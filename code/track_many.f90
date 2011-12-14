@@ -75,6 +75,7 @@ if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 ix_br = integer_option (0, ix_branch)
 branch => lat%branch(ix_br)
+branch%param%ix_lost = not_lost$
 
 n_ele_track = branch%n_ele_track
 
@@ -129,6 +130,7 @@ do n = ix1, ix2
   ! check for lost particles
 
   if (branch%param%lost) then
+    branch%param%ix_lost = n
     if (branch%param%end_lost_at == exit_end$) then
       call zero_this_track (n+1, ix2)
     elseif (branch%param%end_lost_at == entrance_end$) then
@@ -182,6 +184,7 @@ do n = ix1, ix2, -1
   ! check for lost particles
 
   if (branch%param%lost) then
+    branch%param%ix_lost = n
     if (branch%param%end_lost_at == exit_end$) then
       branch%param%end_lost_at = entrance_end$
       call zero_this_track (ix2-1, n-2)

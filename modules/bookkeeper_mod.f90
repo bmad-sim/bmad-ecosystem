@@ -1248,14 +1248,7 @@ do j = 1, slave%n_lord
 
   if (associated(lord%rf_wake)) then
     call out_io (s_abort$, r_name, &
-            'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
-            'SUPER_LORD: ' // lord%name)
-    call err_exit
-  endif
-
-  if (associated(lord%em_field)) then
-    call out_io (s_abort$, r_name, &
-            'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
+            'SUPERPOSITION OF ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
     call err_exit
   endif

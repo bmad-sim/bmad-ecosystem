@@ -53,6 +53,7 @@ character(40), parameter :: r_name = 'track_from_s_to_s'
 ! Easy case & error check
 
 branch => lat%branch(integer_option(0, ix_branch))
+branch%param%ix_lost = not_lost$
 
 if (s_start == s_end .and. branch%param%lattice_type == linear_lattice$) then
   orbit_end = orbit_start
@@ -80,6 +81,7 @@ call ele_at_s (lat, s_end, ix_end, ix_branch)
 if (s_end > s_start .and. ix_start == ix_end) then
   call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param, s_start-s0, s_end-s0, &
                                                .true., .true., orbit_start, orbit_end)
+  if (branch%param%lost) branch%param%ix_lost = ix_start
   return
 endif
 
@@ -88,7 +90,10 @@ endif
 call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param,  &
             s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
 
-if (branch%param%lost) return
+if (branch%param%lost) then
+  branch%param%ix_lost = ix_start
+  return
+endif
 
 if (present(all_orb)) then
   call reallocate_coord(all_orb, branch%n_ele_max)
@@ -104,7 +109,10 @@ do
   call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
 
   if (present(all_orb)) all_orb(ix_ele) = orbit_end
-  if (branch%param%lost) return
+  if (branch%param%lost) then
+    branch%param%ix_lost = ix_ele
+    return
+  endif
   ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
 enddo
 
@@ -112,5 +120,6 @@ enddo
 
 call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-branch%ele(ix_end-1)%s, &
                                                                       .true., .true., orbit_end, orbit_end)
+if (branch%param%lost) branch%param%ix_lost = ix_end
 
 end subroutine

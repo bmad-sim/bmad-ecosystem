@@ -299,27 +299,21 @@ select case (ele%field_calc)
       
       dEz_dz = gradient
 
-      if (x .eq. 0.0) then
-        theta = 0.0
-      else
-        theta = atan(y/x)   
-      endif
+      theta = atan2(y, x)   
       r = sqrt(x**2 + y**2)                                           
-      E_r =  - (r/2.0) * dEz_dz                                       
-      B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
-                                                                       
-                                                                       
-      field%E(1) = E_r * cos (theta)                                  
-      field%E(2) = E_r * sin (theta)
+
+      E_r =  (r/2.0) * dEz_dz                                                                       
+      field%E(1) = -E_r * cos (theta)                                  
+      field%E(2) = -E_r * sin (theta)
       field%E(3) = gradient
       
-      phi = pi - theta
-      field%B(1) =  B_phi * cos (phi)
-      field%B(2) = -B_phi * sin (phi)
+      B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
+      field%B(1) = -B_phi * sin(theta)
+      field%B(2) =  B_phi * cos(theta)
 
       if (df_calc) then
-        print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
-        call err_exit
+        call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY!')
+        if (bmad_status%exit_on_error) call err_exit
       endif
 
 
@@ -499,9 +493,9 @@ select case (ele%field_calc)
   ! Error
 
   case default
-    print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED: ', key_name(ele%key)
-    print *, '      FOR: ', ele%name
-    call err_exit
+    call out_io (s_fatal$, r_name, 'ELEMENT NOT YET CODED: ' // key_name(ele%key), 'FOR: ' // ele%name)
+    if (bmad_status%exit_on_error) call err_exit
+    return
   end select
 
   !---------------------------------------------------------------------
@@ -509,8 +503,9 @@ select case (ele%field_calc)
 
   if (associated(ele%a_pole)) then
     if (ele%value(l$) == 0) then
-      print *, 'ERROR IN EM_FILED_CALC: dField NOT YET IMPLEMENTED FOR MULTIPOLES!'
-      call err_exit
+      call out_io (s_fatal$, r_name, 'dField NOT YET IMPLEMENTED FOR MULTIPOLES!', 'FOR: ' // ele%name)
+      if (bmad_status%exit_on_error) call err_exit
+      return
     endif
 
     do i = 0, ubound(ele%a_pole, 1)
@@ -567,8 +562,9 @@ case(map$)
 
   case(rfcavity$, lcavity$)
     if (.not. associated(ele%em_field)) then
-        print *, 'ERROR IN EM_FIELD_CALC: No accociated em_field for field calc = Map'
-        call err_exit
+      call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Map', 'FOR: ' // ele%name) 
+      if (bmad_status%exit_on_error) call err_exit
+      return  
     endif
 
     E_rho = 0; E_phi = 0; E_z = 0
@@ -668,9 +664,9 @@ case(map$)
   ! Error
 
   case default
-    print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED FOR MAP METHOD: ', key_name(ele%key)
-    print *, '      FOR: ', ele%name
-    call err_exit
+    call out_io (s_fatal$, r_name, 'ELEMENT NOT YET CODED FOR MAP METHOD: ' // key_name(ele%key), &
+                                  'FOR: ' // ele%name)
+    if (bmad_status%exit_on_error) call err_exit
   end select
 
 !----------------------------------------------------------------------------
@@ -682,8 +678,9 @@ case(grid$)
   ! 
 
   if (.not. associated(ele%em_field)) then
-    print *, 'ERROR IN EM_FIELD_CALC: No accociated em_field for field calc = Grid'
-    call err_exit
+    call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Grid', 'FOR: ' // ele%name)
+    if (bmad_status%exit_on_error) call err_exit
+    return
   endif
   
   ! radial coordinate
@@ -715,8 +712,9 @@ case(grid$)
 
     ! Check for grid
     if (.not. associated(mode%grid)) then
-      call out_io (s_fatal$, r_name, 'ERROR IN EM_FIELD_CALC: Missing grid for ele: ' // ele%name)
-      call err_exit
+      call out_io (s_fatal$, r_name, 'MISSING GRID FOR ELE: ' // ele%name)
+      if (bmad_status%exit_on_error) call err_exit
+      return
     endif
 
     ! calculate field based on grid type
@@ -750,8 +748,10 @@ case(grid$)
       field%b(3) = field%b(3) + real(expt*local_field%B(3)) 
   
     case default
-      call out_io (s_fatal$, r_name, 'UNKOWN GRID TYPE FOR ELEMENT: ' // ele%name)
-      call err_exit
+      call out_io (s_fatal$, r_name, 'UNKNOWN GRID TYPE: \i0\ ', &
+                                     'FOR ELEMENT: ' // ele%name, i_array = [mode%grid%type])
+      if (bmad_status%exit_on_error) call err_exit
+      return
     end select
   enddo
 
@@ -760,7 +760,8 @@ case(grid$)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
+  return
 end select
 
 call convert_fields_to_lab_coords
@@ -859,6 +860,7 @@ real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3, approx_i1, approx_i2, approx_i3
 integer i1, i2, i3
 
+character(32), parameter :: r_name = 'em_grid_linear_interpolate'
 
 !Pick appropriate dimension 
 
@@ -871,9 +873,8 @@ case (1)
 
   ! Check for bad indices
   if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) ) then
-    print *, 'Warning in  1D GRID interpolation: indicies out of bounds:'
-    print *, '            i1 =', i1
-    print *, 'Setting field to zero'
+    call out_io (s_warn$, r_name, '1D GRID interpolation indice out of bounds: i1 = \i0\ ', &
+                                  'Setting field to zero', i_array = [i1])
     field%E = 0
     field%B = 0
     return
@@ -896,10 +897,8 @@ case (2)
   ! Check for bad indices
   if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) .or. &
       (i2 < lbound(grid%pt, 2)) .or. (i2 > (ubound(grid%pt, 2) - 1)) ) then
-    print *, 'Warning in 2D GRID interpolation: indicies out of bounds:'
-    print *, '            i1 =', i1
-    print *, '            i2 =', i2
-    print *, 'Setting field to zero'
+    call out_io (s_warn$, r_name, '2D GRID interpolation indices out of bounds: i1 = \i0\, i2 = \i0\ ', &
+                                  'Setting field to zero', i_array = [i1, i2])
     field%E = 0
     field%B = 0
     return
@@ -929,11 +928,8 @@ case (3)
   if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) .or. &
       (i2 < lbound(grid%pt, 2)) .or. (i2 > (ubound(grid%pt, 2) - 1)) .or. &
       (i3 < lbound(grid%pt, 3)) .or. (i3 > (ubound(grid%pt, 3) - 1)) ) then
-    print *, 'Warning in 3D GRID interpolation: indicies out of bounds:'
-    print *, '            i1 =', i1
-    print *, '            i2 =', i2
-    print *, '            i3 =', i3
-    print *, 'Setting field to zero'
+    call out_io (s_warn$, r_name, '3D GRID interpolation indices out of bounds: i1 = \i0\, i2 = \i0\, i3 = \i0\ ', &
+                                  'Setting field to zero', i_array = [i1, i2, i3])
     field%E = 0
     field%B = 0
     return
@@ -962,8 +958,9 @@ case (3)
 
 
 case default
-  print *, 'ERROR IN EM_GRID_INTERPOLATE, BAD DIMENSION:', em_grid_dimension(grid%type)
-  call err_exit   
+  call out_io (s_fatal$, r_name, 'BAD DIMENSION: \i0\ ', em_grid_dimension(grid%type))
+  if (bmad_status%exit_on_error) call err_exit
+  return
 end select
 
 end subroutine em_grid_linear_interpolate

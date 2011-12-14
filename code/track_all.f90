@@ -54,6 +54,7 @@ character(12), parameter :: r_name = 'track_all'
 
 ix_br = integer_option (0, ix_branch)
 branch => lat%branch(ix_br)
+branch%param%ix_lost = not_lost$
 
 if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_max)
 
@@ -68,6 +69,7 @@ do n = 1, branch%n_ele_track
   ! check for lost particles
 
   if (branch%param%lost) then
+    branch%param%ix_lost = n
     do nn = n+1, branch%n_ele_track
       orbit(nn)%vec = 0
     enddo

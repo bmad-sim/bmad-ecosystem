@@ -56,7 +56,7 @@ end module track1_time_runge_kutta_mod
 !   track   -- track_struct (optional): particle path
 !   param   -- lat_param_struct: lattice parameters
 !    %end_lost_at -- integer: entrance_end$, exit_end$ or no_end$
-!    %ix_lost -- integer: element index particle lost at
+!    %lost        -- Set True
 !-
 
 
@@ -153,7 +153,6 @@ end = start
 if (param%lost) then
 
   param%lost = .true.
-  param%ix_lost = ele%ix_ele  !Update ele index where particle was lost
   exit_surface = no_end$
    
   !Allocate track array and set value
@@ -303,9 +302,6 @@ logical :: exit_flag
 ! init
 dt = dt1
 orb = start
-param%ix_lost = -1    !Reset ele index where particle was lost
-
-
 
 !Allocate track arrays
 n_pt = max_step
@@ -394,9 +390,7 @@ do n_step = 1, max_step
   !Check wall or aperture at every step
   call  particle_hit_wall_check(orb, orb_new, param, ele)
   if (param%lost) then
-     param%ix_lost = ele%ix_ele  !Update ele index where particle was lost
-     exit_surface = no_end$
-     !print *, "  Hit element wall or aperture - Exiting . . ."
+    exit_surface = no_end$
   endif
 
   !Update orb
