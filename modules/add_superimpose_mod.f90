@@ -13,7 +13,7 @@ contains
 !-----------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------
 !+
-! Subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)
+! Subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out, save_null_drift)
 !
 ! Subroutine to make a superimposed element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -25,19 +25,23 @@ contains
 !   use bmad
 !
 ! Input:
-!   lat          -- lat_struct: Lat to modify.
-!   super_ele_in -- Ele_struct: Element to superimpose.
-!         %s          -- Position of end of element.
-!                         Negative distances mean distance from the end.
-!   ix_branch -- Integer: Branch index to put element.
-!
+!   lat              -- lat_struct: Lat to modify.
+!   super_ele_in     -- Ele_struct: Element to superimpose.
+!         %s            -- Position of end of element.
+!                          Negative distances mean distance from the end.
+!   ix_branch        -- Integer: Branch index to put element.
+!   save_null_drift  -- Logical, optional: Save a copy of a drift to be split as a null_ele?
+!                         This is useful if further superpositions might use this drift as a 
+!                         reference element. After all superpositions are done, 
+!                         remove_eles_from_lat can be called to remove all nul_eles.
+!                         Default is False.
 !
 ! Output:
 !   lat           -- lat_struct: Modified lat.
 !   super_ele_out -- Ele_struct, pointer, optional :: Pointer to the super element in the lattice.
 !-
 
-subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)
+subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out, save_null_drift)
 
 implicit none
 
@@ -55,6 +59,7 @@ integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch
 integer ix1_split, ix2_split, ix_super, ix_super_con
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
+logical, optional :: save_null_drift
 logical setup_lord, split1_done, split2_done, all_drift
 
 character(100) name
@@ -128,7 +133,8 @@ endif
 if (super_saved%value(l$) == 0) then
   super_saved%lord_status  = not_a_lord$ 
   super_saved%slave_status = free$
-  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, check_controls = .false.)
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
+                                check_controls = .false., save_null_drift = save_null_drift)
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)
   ix_super = ix1_split + 1
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
@@ -148,16 +154,26 @@ endif
 
 ! if superimpose wraps around 0 ...
 if (s2 < s1) then     
-  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false.)
-  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false.)
+  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false., save_null_drift)
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false., save_null_drift)
   super_saved%value(l$) = (s2_lat - branch%ele(ix1_split)%s) + (branch%ele(ix2_split)%s - s1_lat)
 
 ! no wrap case...
 else                  
-  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false.)
-  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false.)
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false., save_null_drift)
+  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false., save_null_drift)
   super_saved%value(l$) = branch%ele(ix2_split)%s - branch%ele(ix1_split)%s
 endif
+
+! Get rid of duplicate saved drifts if present
+
+n = lat%n_ele_max
+if (lat%ele(n)%key == null_ele$ .and. lat%ele(n-1)%key == null_ele$ .and. &
+        lat%ele(n)%s == lat%ele(n-1)%s .and. lat%ele(n)%name == lat%ele(n-1)%name) then
+  lat%ele(n)%key = -1
+  call remove_eles_from_lat (lat, .false.)
+endif
+
 
 ! zero length elements at the edges of the superimpose region can be excluded
 ! from the region

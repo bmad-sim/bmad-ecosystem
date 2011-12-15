@@ -697,7 +697,7 @@ interface
 end interface
 
 interface
-  subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)
+  subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct), target :: lat
@@ -705,7 +705,7 @@ interface
     integer ix_branch
     integer ix_split
     logical split_done
-    logical, optional :: add_suffix, check_controls
+    logical, optional :: add_suffix, check_controls, save_null_drift
   end subroutine
 end interface
 
