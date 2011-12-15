@@ -1361,10 +1361,6 @@ endif
 
 if (associated (ele%em_field)) then
   if (allocated (ele%em_field%mode)) then
-    !removed to allow grids to point to the same memory
-	!do i = 1, size(ele%em_field%mode)
-    !  if (associated (ele%em_field%mode(i)%grid)) deallocate (ele%em_field%mode(i)%grid)
-    !enddo
     deallocate (ele%em_field%mode)
   endif
   deallocate (ele%em_field)
@@ -2093,18 +2089,13 @@ subroutine transfer_em_field (field_in, field_out)
 implicit none
 
 type (em_fields_struct), pointer :: field_in, field_out
-integer i, n
-integer :: n_terms, ng(3)
 
 ! Rule: If field_in or field_out is associated then %mode must be allocated
 
 if (associated (field_in)) then
 
   call init_em_field (field_out, size(field_in%mode))
-
-  do i = 1, size(field_in%mode)
-    field_out%mode(i) = field_in%mode(i)
-  enddo
+  field_out%mode = field_in%mode
 
 elseif (associated(field_out)) then
   deallocate(field_out)

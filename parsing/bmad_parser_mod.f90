@@ -222,7 +222,7 @@ type (wig_term_struct), pointer :: wig_term(:)
 type (real_pointer_struct), allocatable, save :: r_ptrs(:)
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
-type (em_field_mode_struct), allocatable, target :: em_modes(:)
+type (em_field_mode_struct), pointer :: em_modes(:)
 type (em_field_mode_struct), pointer :: em_mode
 
 real(rp) kx, ky, kz, tol, value, coef
@@ -648,12 +648,21 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
   ! Loop over all modes
 
-  if (.not. allocated(em_modes)) allocate(em_modes(20))
-  do i_mode = 1, size(em_modes)
+  do
 
-    em_mode => em_modes(i_mode)
-    allocate (em_mode%map)
-    allocate (em_mode%grid)
+    if (associated(ele%em_field)) then
+      i_mode = size(ele%em_field%mode) + 1
+      em_modes => ele%em_field%mode
+      nullify(ele%em_field)
+      call init_em_field (ele%em_field, i_mode)
+      ele%em_field%mode(1:i_mode-1) = em_modes 
+      deallocate(em_modes)
+    else
+      call init_em_field (ele%em_field, 1)
+      i_mode = 1
+    endif
+
+    em_mode => ele%em_field%mode(i_mode)
 
     ! Expect "MODE = {"
 
@@ -693,6 +702,9 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
         do_evaluate = .false.
 
       case ('E_COEF_RE', 'E_COEF_IM', 'B_COEF_RE', 'B_COEF_IM')
+
+        if (.not. associated(em_mode%map)) allocate (em_mode%map)
+
         ! Expect "("
         call get_next_word (word, ix_word, ',({', delim, delim_found)
         if (word /= '' .or. delim /= '(') then
@@ -762,10 +774,11 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
       case ('THETA_T0');      r_ptr => em_mode%theta_t0
       case ('STORED_ENERGY'); r_ptr => em_mode%stored_energy
       case ('PHI_0');         r_ptr => em_mode%phi_0
-      case ('DZ');            r_ptr => em_mode%map%dz
       case ('FIELD_SCALE');   r_ptr => em_mode%field_scale
 
-
+      case ('DZ');            
+        if (.not. associated(em_mode%map)) allocate (em_mode%map)
+        r_ptr => em_mode%map%dz
 
       case ('GRID') 
         call parse_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag, print_err)
@@ -799,16 +812,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
   enddo
 
-  if (.not. associated(ele%em_field)) allocate (ele%em_field)
-  if (allocated(ele%em_field%mode)) then
-    call parser_warning ('MULTIPLE RF_FIELD DEFINITIONS FOR A SINGLE ELEMENT NOT YET IMPLEMENTED!', &
-                         'IN ELEMENT: ' // ele%name)
-  else
-    allocate (ele%em_field%mode(i_mode))
-    ele%em_field%mode = em_modes(1:i_mode)
-    deallocate(em_modes)
-    if (allocated(array)) deallocate(array)
-  endif
+  if (allocated(array)) deallocate(array)
 
   call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
   err_flag = .false.
@@ -5269,6 +5273,10 @@ real(rp), allocatable :: dr(:), r0(:)
 
 type(grid_pt_struct), allocatable :: array(:), array2(:)
 
+!
+
+if (.not. associated(grid)) allocate (grid)
+
 ! Expect {
 
 call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true. )
@@ -5469,21 +5477,21 @@ deallocate(array)
 !Check if file has already been read
 !Loop over lat
 
-do ib = 0, ubound(lat%branch, 1)
+branch_loop: do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  ele_loop: do ie = 1, branch%n_ele_max
+  do ie = 1, branch%n_ele_max
     bele => branch%ele(ie)
     if (.not. associated(bele%em_field)) cycle    
+    if (bele%ix_ele == ele%ix_ele .and. bele%ix_branch == ele%ix_branch) cycle
     do im = 1, size(bele%em_field%mode)
-      if (associated(bele%em_field%mode(im)%grid)) then
-        if (bele%em_field%mode(im)%grid%file == grid%file) then
-          deallocate(grid)
-          grid => bele%em_field%mode(im)%grid        
-        end if
-      end if
+      if (.not. associated(bele%em_field%mode(im)%grid)) cycle
+      if (bele%em_field%mode(im)%grid%file /= grid%file) cycle
+      deallocate(grid)
+      grid => bele%em_field%mode(im)%grid        
+      exit branch_loop
     end do
-  enddo ele_loop
-enddo 
+  enddo 
+enddo branch_loop
 
 !------------------------------------------------------------
 
