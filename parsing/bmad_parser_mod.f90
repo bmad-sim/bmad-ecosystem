@@ -5442,19 +5442,19 @@ if (allocated(grid%pt) ) deallocate(grid%pt)
 grid_dim = em_grid_dimension(grid%type)
 select case(grid_dim)
   case ( 1 )
-    max_ix1 = maxval( array(:)%ix1)
+    max_ix1 = maxval( array(1:pt_counter)%ix1)
     ix2 = 1
     ix3 = 1
     allocate( grid%pt(0:max_ix1, 1:1, 1:1) )
   case ( 2 )
-    max_ix1 = maxval( array(:)%ix1)
-    max_ix2 = maxval( array(:)%ix2)
+    max_ix1 = maxval( array(1:pt_counter)%ix1)
+    max_ix2 = maxval( array(1:pt_counter)%ix2)
     ix3 = 1
     allocate( grid%pt(0:max_ix1, 0:max_ix2, 1:1) )
   case ( 3 )
-    max_ix1 = maxval( array(:)%ix1)
-    max_ix2 = maxval( array(:)%ix2)
-    max_ix3 = maxval( array(:)%ix3)
+    max_ix1 = maxval( array(1:pt_counter)%ix1)
+    max_ix2 = maxval( array(1:pt_counter)%ix2)
+    max_ix3 = maxval( array(1:pt_counter)%ix3)
     allocate( grid%pt(0:max_ix1, 0:max_ix2, 0:max_ix3) )
   case default
     call parser_warning ('BAD GRID DIMENSION', &
