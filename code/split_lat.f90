@@ -1,5 +1,5 @@
 !+
-! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)
+! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift)
 !
 ! Subroutine to split a lat at a point. Subroutine will not split the lat if the split
 ! would create a "runt" element with length less than bmad_com%significant_length.
@@ -13,12 +13,15 @@
 !   use bmad
 !
 ! Input:
-!   lat            -- lat_struct: Original lat structure.
-!   s_split        -- Real(rp): Position at which lat is to be split.
-!   add_suffix     -- Logical, optional: If True (default) add '#1' and '#2" suffixes
-!                       to the split elements. 
-!   check_controls -- Logical, optional: If True (default) then call check_lat_controls
-!                       after the split to make sure everything is ok.
+!   lat             -- lat_struct: Original lat structure.
+!   s_split         -- Real(rp): Position at which lat is to be split.
+!   add_suffix      -- Logical, optional: If True (default) add '#1' and '#2" suffixes
+!                        to the split elements. 
+!   check_controls  -- Logical, optional: If True (default) then call check_lat_controls
+!                        after the split to make sure everything is ok.
+!   save_null_drift -- Logical, optional: Save a copy of a drift to be split as a null_ele?
+!                         This is useful if when superpositions are done. See add_superimpose for more info.
+!                         Default is False.
 !
 ! Output:
 !   lat        -- lat_struct: Modified lat structure.
@@ -26,7 +29,7 @@
 !   split_done -- Logical: True if lat was split.
 !-
 
-subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)
+subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift)
 
 use bmad_struct
 use bmad_interface, except_dummy => split_lat
@@ -46,10 +49,9 @@ integer ix_split, ixc, ix_attrib, ix_super_lord
 integer icon, ix2, inc, nr, n_ic2, ct
 
 logical split_done
-logical, optional :: add_suffix, check_controls
+logical, optional :: add_suffix, check_controls, save_null_drift
 
 character(16) :: r_name = "split_lat"
-
 
 ! Check for s_split out of bounds.
 
@@ -65,7 +67,7 @@ endif
 
 ! Find where to split.
 
-do ix_split = 0, branch%n_ele_track   
+do ix_split = 0, branch%n_ele_track
   if (abs(branch%ele(ix_split)%s - s_split) < 10*ds_fudge) then
     split_done = .false.
     return
@@ -86,6 +88,14 @@ len1 = len_orig - len2
 if (ele%key == custom$ .or. ele%key == match$) then
   call out_io (s_fatal$, r_name, "I DON'T KNOW HOW TO SPLIT THIS ELEMENT:" // ele%name)
   call err_exit
+endif
+
+! save element to be split as a null element if needed
+
+if (branch%ele(ix_split)%key == drift$ .and. logic_option(.false., save_null_drift)) then
+  call new_control (lat, ixc)
+  lat%ele(ixc) = branch%ele(ix_split)
+  lat%ele(ixc)%key = null_ele$
 endif
 
 ! Insert a new element.

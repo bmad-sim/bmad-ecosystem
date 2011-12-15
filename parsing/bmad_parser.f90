@@ -920,18 +920,6 @@ do i = 1, n_max
 
 enddo
 
-! Remove all null_ele elements.
-! Note: We tell remove_eles_from_lat to *not* call check_lat_controls since
-! the lattice is not fully formed.
-
-do n = 0, ubound(lat%branch, 1)
-  branch => lat%branch(n)
-  do i = 1, branch%n_ele_max
-    if (branch%ele(i)%key == null_ele$) branch%ele(i)%key = -1 ! mark for deletion
-  enddo
-enddo
-call remove_eles_from_lat (lat, .false.)  
-
 ! Now put in the overlay_lord, girder, and group elements
 
 call parser_add_lord (in_lat, n_max, plat, lat)
@@ -959,6 +947,16 @@ if (detected_expand_lattice_cmd) then
   bp_com%bmad_parser_calling = .false.
   bmad_status%exit_on_error = exit_on_error
 endif
+
+! Remove all null_ele elements.
+
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  do i = 1, branch%n_ele_max
+    if (branch%ele(i)%key == null_ele$) branch%ele(i)%key = -1 ! mark for deletion
+  enddo
+enddo
+call remove_eles_from_lat (lat, .false.)  
 
 ! Make the transfer matrices
 
