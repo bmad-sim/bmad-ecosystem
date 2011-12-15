@@ -24,7 +24,7 @@
 !   track_entrance -- Logical: If True then entrance effects are included in the tracking.
 !                       But only if l_start = 0.
 !   track_exit     -- Logical: If True then exit effects are included in the tracking but 
-!                       only if l_end = ele%value(l$) (within bmad_com%significant_longitudinal_length tol).
+!                       only if l_end = ele%value(l$) (within bmad_com%significant_length tol).
 !   orbit_start    -- Coord_struct, optional: Starting phase space coordinates at l_start.
 !   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
 !
@@ -87,7 +87,7 @@ endif
 if (present(err)) err = .true.
 runt = ele
 do_entrance = (track_entrance .and. l_start == 0)
-do_exit = (track_exit .and. abs(l_end - ele%value(l$)) < bmad_com%significant_longitudinal_length)
+do_exit = (track_exit .and. abs(l_end - ele%value(l$)) < bmad_com%significant_length)
 call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_entrance, do_exit)
 
 ! Now track. 

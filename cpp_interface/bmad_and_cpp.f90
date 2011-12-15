@@ -1174,7 +1174,7 @@ type (c_dummy_struct) c_bmad_com
 
 f = bmad_com
 call bmad_com_to_c2 (c_bmad_com, f%max_aperture_limit, f%d_orb, &
-      f%default_ds_step, f%significant_longitudinal_length, &
+      f%default_ds_step, f%significant_length, &
       f%rel_tolerance, f%abs_tolerance, &
       f%rel_tol_adaptive_tracking, f%abs_tol_adaptive_tracking, &
       f%taylor_order, f%default_integ_order, &

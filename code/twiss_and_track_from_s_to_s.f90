@@ -22,7 +22,7 @@
 !   track_entrance -- Logical: If True then entrance effects are included in the tracking.
 !                       But only if l_start = 0.
 !   track_exit     -- Logical: If True then exit effects are included in the tracking but 
-!                       only if s_end = ele%s (within bmad_com%significant_longitudinal_length tol).
+!                       only if s_end = ele%s (within bmad_com%significant_length tol).
 !   orbit_start    -- Coord_struct, optional: Starting phase space coordinates at l_start.
 !   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
 !   ix_branch      -- Integer, optional: Lattice branch index. Default is 0 (main branch).

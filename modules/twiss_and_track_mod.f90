@@ -323,7 +323,7 @@ if (err_flag) then
   return
 endif
 
-if (abs(s_use - branch%ele(i)%s) < bmad_com%significant_longitudinal_length) then
+if (abs(s_use - branch%ele(i)%s) < bmad_com%significant_length) then
   if (present(ele)) ele = branch%ele(i)
   if (present(orb_at_s)) orb_at_s = orb(i)
   if (present(err)) err = .false.

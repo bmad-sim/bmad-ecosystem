@@ -54,7 +54,7 @@ allocate (s_rel(ns), ixx(ns), iyy(ns), cs(ns))
 do i = 1, lord%n_slave
   slave => pointer_to_slave(lord, i)
   ds = slave%s - lord%s
-  if (ds > bmad_com%significant_longitudinal_length) ds = ds - lat%branch(slave%ix_branch)%param%total_length
+  if (ds > bmad_com%significant_length) ds = ds - lat%branch(slave%ix_branch)%param%total_length
   if (-ds > lord%value(l$)) then
     call out_io (s_fatal$, r_name, 'INTERNAL ERROR! ' // trim(slave%name))
     call err_exit

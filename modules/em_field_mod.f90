@@ -853,62 +853,41 @@ end subroutine em_field_calc
 
 subroutine em_grid_linear_interpolate (grid, field, x1, x2, x3)
 
-type (em_field_grid_struct), intent(in) :: grid
-type (em_field_point_struct), intent(out)     :: field
+type (em_field_grid_struct) :: grid
+type (em_field_point_struct), intent(out) :: field
 real(rp) :: x1
 real(rp), optional :: x2, x3
-real(rp) rel_x1, rel_x2, rel_x3, approx_i1, approx_i2, approx_i3
-integer i1, i2, i3
+real(rp) rel_x1, rel_x2, rel_x3
+integer i1, i2, i3, grid_dim
+logical err1, err2, err3
 
 character(32), parameter :: r_name = 'em_grid_linear_interpolate'
 
-!Pick appropriate dimension 
+! Pick appropriate dimension 
 
-select case(em_grid_dimension(grid%type))
-  
+grid_dim = em_grid_dimension(grid%type)
+select case(grid_dim)
+
 case (1)
 
-  approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
-  rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
+  call get_this_index(x1, 1, i1, rel_x1, err1)
+  if (err1) return
 
-  ! Check for bad indices
-  if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) ) then
-    call out_io (s_warn$, r_name, '1D GRID interpolation indice out of bounds: i1 = \i0\ ', &
-                                  'Setting field to zero', i_array = [i1])
-    field%E = 0
-    field%B = 0
-    return
-  end if      
-
-  ! Do linear interpolation
-  field%E(:) = (1-rel_x1) * grid%pt(i1,   1, 1)%E(:) &
-               + (rel_x1)   * grid%pt(i1+1, 1, 1)%E(:) 
-  field%B(:) = (1-rel_x1) * grid%pt(i1,   1, 1)%B(:) &
-               + (rel_x1)   * grid%pt(i1+1, 1, 1)%B(:) 
+  field%E(:) = (1-rel_x1) * grid%pt(i1, 1, 1)%E(:) + (rel_x1) * grid%pt(i1+1, 1, 1)%E(:) 
+  field%B(:) = (1-rel_x1) * grid%pt(i1, 1, 1)%B(:) + (rel_x1) * grid%pt(i1+1, 1, 1)%B(:) 
 
 case (2)
 
-  approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
-  approx_i2 = (x2 - grid%r0(2)) / grid%dr(2); i2 = floor(approx_i2) ! index of lower x2 data point
-
-  rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
-  rel_x2 = approx_i2 - i2 !Relative distance from lower x2 grid point
-  
-  ! Check for bad indices
-  if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) .or. &
-      (i2 < lbound(grid%pt, 2)) .or. (i2 > (ubound(grid%pt, 2) - 1)) ) then
-    call out_io (s_warn$, r_name, '2D GRID interpolation indices out of bounds: i1 = \i0\, i2 = \i0\ ', &
-                                  'Setting field to zero', i_array = [i1, i2])
-    field%E = 0
-    field%B = 0
-    return
-  end if      
+  call get_this_index(x1, 1, i1, rel_x1, err1)
+  call get_this_index(x2, 2, i2, rel_x2, err2)
+  if (err1 .or. err2) return
 
   ! Do bilinear interpolation
   field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%E(:) &
              + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%E(:) &
              + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%E(:) &
              + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%E(:) 
+
   field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%B(:) &
              + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%B(:) &
              + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%B(:) &
@@ -916,25 +895,10 @@ case (2)
             
 case (3)
 
-  approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
-  approx_i2 = (x2 - grid%r0(2)) / grid%dr(2); i2 = floor(approx_i2) ! index of lower x2 data point
-  approx_i3 = (x3 - grid%r0(3)) / grid%dr(3); i3 = floor(approx_i3) ! index of lower x3 data point
-
-  rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
-  rel_x2 = approx_i2 - i2 !Relative distance from lower x2 grid point
-  rel_x3 = approx_i3 - i3 !Relative distance from lower x3 grid point
-
-  ! Check for bad indices
-  if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) .or. &
-      (i2 < lbound(grid%pt, 2)) .or. (i2 > (ubound(grid%pt, 2) - 1)) .or. &
-      (i3 < lbound(grid%pt, 3)) .or. (i3 > (ubound(grid%pt, 3) - 1)) ) then
-    call out_io (s_warn$, r_name, '3D GRID interpolation indices out of bounds: i1 = \i0\, i2 = \i0\, i3 = \i0\ ', &
-                                  'Setting field to zero', i_array = [i1, i2, i3])
-    field%E = 0
-    field%B = 0
-    return
-  end if      
-
+  call get_this_index(x1, 1, i1, rel_x1, err1)
+  call get_this_index(x2, 2, i2, rel_x2, err2)
+  call get_this_index(x3, 3, i3, rel_x3, err3)
+  if (err1 .or. err2 .or. err3) return
     
   ! Do trilinear interpolation
   field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%E(:) &
@@ -946,7 +910,6 @@ case (3)
              + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%E(:) &
              + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%E(:)               
              
-  ! Do bilinear interpolation
   field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%B(:) &
              + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%B(:) &
              + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%B(:) &
@@ -962,6 +925,47 @@ case default
   if (bmad_status%exit_on_error) call err_exit
   return
 end select
+
+!-------------------------------------------------------------------------------------
+contains
+
+subroutine get_this_index (x, ix_x, i0, rel_x0, err_flag)
+
+implicit none
+
+real(rp) x, rel_x0, x_norm
+integer ix_x, i0
+logical err_flag
+
+!
+
+x_norm = (x - grid%r0(ix_x)) / grid%dr(ix_x)
+i0 = floor(x_norm)     ! index of lower 1 data point
+rel_x0 = x_norm - i0   ! Relative distance from lower x1 grid point
+
+if (i0 == ubound(grid%pt, ix_x) .and. rel_x0 < bmad_com%significant_length) then
+  i0 = ubound(grid%pt, ix_x) - 1
+  rel_x0 = 1
+endif
+
+if (i0 == lbound(grid%pt, ix_x) - 1 .and. abs(rel_x0 - 1) < bmad_com%significant_length) then
+  i0 = lbound(grid%pt, ix_x)
+  rel_x0 = 0
+endif
+
+if (i0 < lbound(grid%pt, ix_x) .or. i0 >= ubound(grid%pt, ix_x)) then
+  call out_io (s_warn$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
+                                  'Setting field to zero', i_array = [grid_dim, ix_x, i0])
+  
+  field%E = 0
+  field%B = 0
+  err_flag = .true.
+  return
+endif
+
+err_flag = .false.
+
+end subroutine get_this_index 
 
 end subroutine em_grid_linear_interpolate
 

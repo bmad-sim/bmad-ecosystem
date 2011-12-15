@@ -894,7 +894,7 @@ type bmad_common_struct
   real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
   real(rp) :: d_orb(6)           = 1e-5      ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: default_ds_step    = 0.2_rp    ! Integration step size.  
-  real(rp) :: significant_longitudinal_length = 1e-10 ! meter 
+  real(rp) :: significant_length = 1e-10 ! meter 
   real(rp) :: rel_tolerance = 1e-6
   real(rp) :: abs_tolerance = 1e-8
   real(rp) :: rel_tol_adaptive_tracking = 1e-8    ! Adaptive tracking relative tolerance.
