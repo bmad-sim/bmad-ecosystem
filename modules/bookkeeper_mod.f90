@@ -428,7 +428,7 @@ if (.not. bmad_com%auto_bookkeeper) then
   if (lat%branch(0)%param%status%length /= stale$) return
 endif
 
-dl_tol = 10 * bmad_com%significant_longitudinal_length
+dl_tol = 10 * bmad_com%significant_length
 
 length_adjustment_made = .false.
 
@@ -683,7 +683,7 @@ endif
 
 s_end_lord = lord%s + lord%value(s_offset_tot$)
 slave => pointer_to_slave(lord, lord%n_slave)
-sig_l = bmad_com%significant_longitudinal_length
+sig_l = bmad_com%significant_length
 
 if (abs(s_end_lord - slave%s) < sig_l * (1 + abs(slave%value(l$)))) return
 
@@ -1694,7 +1694,7 @@ if (ele_in%key == taylor$ .or. ele_in%key == hybrid$) then
 endif
 
 e_len = ele_in%value(l$)
-if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_longitudinal_length) then
+if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_length) then
   call out_io (s_fatal$, r_name, &
         'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele_in%name, &
         'LENGTH: \2es12.3\ ', r_array = [l_slice, e_len])

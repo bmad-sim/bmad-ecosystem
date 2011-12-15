@@ -223,7 +223,7 @@ do
 
   ! Are we done?
 
-  if (abs(s_end - s_2) < bmad_com%significant_longitudinal_length) return
+  if (abs(s_end - s_2) < bmad_com%significant_length) return
 
   ! We are not done so move to the next element.
 
@@ -432,7 +432,7 @@ do
 
   ! Are we done?
 
-  if (abs(s_end - s_2) < bmad_com%significant_longitudinal_length) return
+  if (abs(s_end - s_2) < bmad_com%significant_length) return
 
   ! We are not done so move to the next element.
 

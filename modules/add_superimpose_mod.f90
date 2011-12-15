@@ -90,10 +90,10 @@ branch => lat%branch(ix_branch)
 ix_lord_max_old = lat%n_ele_max
 
 s1_lat = branch%ele(0)%s                 ! normally this is zero.
-s1_lat_fudge = s1_lat - bmad_com%significant_longitudinal_length
+s1_lat_fudge = s1_lat - bmad_com%significant_length
 
 s2_lat = branch%ele(branch%n_ele_track)%s
-s2_lat_fudge = s2_lat + bmad_com%significant_longitudinal_length
+s2_lat_fudge = s2_lat + bmad_com%significant_length
 
 s1 = super_saved%s - super_saved%value(l$)
 s2 = super_saved%s                 

@@ -99,7 +99,7 @@ character(24), parameter :: r_name = 'check_if_s_in_bounds'
 
 s_min = branch%ele(0)%s
 s_max = branch%ele(branch%n_ele_track)%s 
-ds_fudge = bmad_com%significant_longitudinal_length
+ds_fudge = bmad_com%significant_length
 err_flag = .false.
 ss = s
 
