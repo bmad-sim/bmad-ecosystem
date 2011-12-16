@@ -1720,7 +1720,6 @@ sliced_ele%value(l$) = l_slice
 call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end)
 
 sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
-sliced_ele%value(ds_slave_offset$) = offset + ele_in%value(ds_slave_offset$)
 
 ! Use a speedier tracking method.
 
@@ -1853,7 +1852,6 @@ slave%map_with_offsets = lord%map_with_offsets
 ! If a wiggler: 
 ! must keep track of where we are in terms of the unsplit wiggler.
 ! This is for anything which does not try to make a homogeneous approximation.
-! ds_slave_offset is the starting point with respect to the original wiggler.
 
 if (slave%key == wiggler$) then
   slave%value(n_pole$) = lord%value(n_pole$) * coef
@@ -1889,11 +1887,6 @@ if (associated(lord%em_field)) then
   enddo
 
 endif
-
-! Must keep track of where we are in terms of the unsplit element.
-! See wiggler above for more details.
-
-slave%value(ds_slave_offset$) = offset
 
 ! If an sbend:
 !     1) renormalize the angles
