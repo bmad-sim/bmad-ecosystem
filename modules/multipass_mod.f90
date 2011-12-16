@@ -266,7 +266,7 @@ end function
 ! Output
 !   ix_pass      -- Integer: Multipass pass number of the input element. 
 !                     Set to -1 if input element is not in a multipass section.
-!   n_links      -- Integer, optional: Number of times the physical element is passed through.
+!   n_links      -- Integer: Number of times the physical element is passed through.
 !   chain_ele(:) -- Ele_pointer_struct, optional, allocatable: pointers to the
 !                    elements of the chain. Note: chain_ele(ix_pass)%ele => ele
 !-

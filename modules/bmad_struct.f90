@@ -565,7 +565,7 @@ integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' 
 integer, parameter :: num_steps$ = 56, l_x$ = 56
 integer, parameter :: ds_step$ = 57, l_y$ = 57
 integer, parameter :: l_z$ = 58
-integer, parameter :: ds_slave_offset$ = 59
+! 59 is free...
 integer, parameter :: general1$ = 60   ! For general use
 integer, parameter :: general2$ = 61   ! For general use
 integer, parameter :: general3$ = 62   ! For general use

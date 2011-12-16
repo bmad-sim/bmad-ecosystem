@@ -22,6 +22,7 @@ subroutine lat_compute_reference_energy (lat)
 
 use lat_ele_loc_mod
 use bookkeeper_mod
+use multipass_mod
 
 implicit none
 
@@ -29,7 +30,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave, branch_ele, ele0
 type (branch_struct), pointer :: branch
 
-integer i, k, ib, ix, ixs, ibb, ix_slave, ixl
+integer i, k, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 
 logical did_set, stale
 
@@ -118,6 +119,10 @@ do ib = 0, ubound(lat%branch, 1)
         if (ele_has_constant_reference_energy(lord) .or. ix_slave /= 1) cycle
         if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
         if (lord%tracking_method == bmad_standard$) cycle
+        if (lord%lord_status == multipass_lord$) then
+          call multipass_chain(ele, lat, ix_pass, n_links)
+          if (ix_pass /= 1) cycle
+        endif
         ! This adjusts the RF phase and amplitude
         call compute_ele_reference_energy (lord, branch%param, &
                                               ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
@@ -236,6 +241,11 @@ case (lcavity$)
   ele%value(E_tot_start$) = E_tot_start
   ele%value(p0c_start$) = p0c_start
 
+  ! We can only use the formula dE = voltage * cos(phase) with bmad_standard$ tracking since with other 
+  ! tracking there is no guarantee that dE varies as cos(phase). Additionally, for multipass elements 
+  ! with tracking /= bmad_standard$, dE at phase = 0 may not even be equal to the voltage if this
+  ! is not the reference pass. 
+
   if (ele%tracking_method == bmad_standard$) then
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
     E_tot = E_tot_start + ele%value(gradient$) * ele%value(l$) * cos(phase)
@@ -246,20 +256,22 @@ case (lcavity$)
     if (E_tot_start == E_tot) then
       ele%ref_time = ref_time_start + ele%value(l$) * E_tot / (p0c * c_light)
     else
-      ele%ref_time = ref_time_start + ele%value(l$) * &        ! lcavity with non-zero acceleration formula
+      ele%ref_time = ref_time_start + ele%value(l$) * &  ! lcavity with non-zero acceleration formula
                 (p0c - p0c_start) / ((E_tot - E_tot_start) * c_light)
     endif
 
   else
-    ! A zero e_tot can mess up tracking so put in a temp value if needed.
-    if (ele%value(e_tot$) == 0) then ! Can happen on first pass through this routine
-      ele%value(E_tot$) = ele%value(e_tot_start$)      ! Temp value. Does not affect phase & amp adjustment.
+    ! A zero e_tot (Can happen on first pass through this routine) can mess up tracking so put 
+    ! in a temp value if needed. This does not affect the phase & amp adjustment.
+    if (ele%value(e_tot$) == 0) then ! 
+      ele%value(E_tot$) = ele%value(e_tot_start$)      
       ele%value(p0c$) = ele%value(p0c_start$)
       ele%ref_time = ref_time_start
     endif
 
-    if (ele%slave_status /= super_slave$ .and. &
-                    ele%slave_status /= multipass_slave$) call rf_accel_mode_adjust_phase_and_amp (ele, param)
+    if (ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
+      call rf_accel_mode_adjust_phase_and_amp (ele, param)
+    endif
 
     call track1 (start_orb, ele, param, end_orb)
     E_tot = ele%value(E_tot$)

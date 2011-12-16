@@ -189,7 +189,7 @@ real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, E_grad, theta, r, E_r, E_s, k_wave
-real(rp) k_t, k_zn, kappa2_n, kap_rho, s_pos
+real(rp) k_t, k_zn, kappa2_n, kap_rho
 real(rp) radius, phi, t_ref, tilt, omega
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
@@ -233,8 +233,8 @@ endif
 if (ele%field_calc == refer_to_lords$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    s = s_rel - lord%value(s_offset$) + ele%value(ds_slave_offset$)
-    t = t_rel - ((ele%ref_time - ele%value(delta_ref_time$)) - (lord%ref_time - lord%value(delta_ref_time$)))
+    s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
+    t = t_rel + (lord%ref_time - lord%value(delta_ref_time$)) - (ele%ref_time - ele%value(delta_ref_time$))
     call em_field_calc (lord, param, s, t, local_orb, .false., field2, calc_dfield)
     field%E = field%E + field2%E
     field%B = field%B + field2%B
@@ -582,9 +582,8 @@ case(map$)
     radius = sqrt(x**2 + y**2)
     phi = atan2(y, x)
 
-    s_pos = s_rel + ele%value(ds_slave_offset$)
-
     ! 
+
     if (ele%key == rfcavity$) then
       t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
     else
@@ -607,7 +606,7 @@ case(map$)
         k_zn = twopi * (n - 1) / (size(mode%map%term) * mode%map%dz)
         if (2 * n > size(mode%map%term)) k_zn = k_zn - twopi / mode%map%dz
 
-        expi = cmplx(cos(k_zn * s_pos), sin(k_zn * s_pos))
+        expi = cmplx(cos(k_zn * s_rel), sin(k_zn * s_rel))
 
         kappa2_n = k_zn**2 - k_t**2
         kappa_n = sqrt(abs(kappa2_n))
@@ -695,9 +694,6 @@ case(grid$)
   ! radial coordinate
   r = sqrt(x**2 + y**2)
 
-  ! ???
-  s_pos = s_rel + ele%value(ds_slave_offset$)
-
   ! reference time for oscillating elements
   select case (ele%key)
     case(rfcavity$) 
@@ -735,7 +731,7 @@ case(grid$)
         
       ! Interpolate 2D (r, z) grid
       ! local_field is a em_field_pt_struct, which has complex E and B
-      call em_grid_linear_interpolate(mode%grid, local_field, r, s_pos)
+      call em_grid_linear_interpolate(ele, mode%grid, local_field, r, s_rel)
       ! Transverse field is zero on axis. Otherwise:
 
       if (r /= 0) then
@@ -841,7 +837,7 @@ end subroutine em_field_calc
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_grid_linear_interpolate (grid, field, x1, x2, x3 )
+! Subroutine em_grid_linear_interpolate (ele, grid, field, x1, x2, x3 )
 !
 ! Subroutine to interpolate the E and B fields on a rectilinear grid
 !
@@ -851,7 +847,8 @@ end subroutine em_field_calc
 !   use bmad_struct
 !
 ! Input:
-!   grid    --em_field_grid_struct
+!   ele     -- ele_struct: Element containing the grid
+!   grid    -- em_field_grid_struct: Grid to interpolate
 !   x1      -- real(rp) : dimension 1 interpolation point
 !   x2      -- real(rp), optional : dimension 2 interpolation point
 !   x3      -- real(rp), optional : dimension 3 interpolation point
@@ -860,8 +857,9 @@ end subroutine em_field_calc
 !   field  -- em_field_pt_struct: Interpolated field (complex)
 !-
 
-subroutine em_grid_linear_interpolate (grid, field, x1, x2, x3)
+subroutine em_grid_linear_interpolate (ele, grid, field, x1, x2, x3)
 
+type (ele_struct) ele
 type (em_field_grid_struct) :: grid
 type (em_field_point_struct), intent(out) :: field
 real(rp) :: x1
@@ -964,7 +962,8 @@ endif
 
 if (i0 < lbound(grid%pt, ix_x) .or. i0 >= ubound(grid%pt, ix_x)) then
   call out_io (s_warn$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
-                                  'Setting field to zero', i_array = [grid_dim, ix_x, i0])
+                                'For element: ' // ele%name, &
+                                'Setting field to zero', i_array = [grid_dim, ix_x, i0])
   
   field%E = 0
   field%B = 0

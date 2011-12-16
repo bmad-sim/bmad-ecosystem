@@ -11,8 +11,6 @@
 !   exit_on_error -- Logical: Exit if an error detected?
 !-
 
-#include "CESR_platform.inc"
-
 subroutine check_lat_controls (lat, exit_on_error)
 
 use lat_ele_loc_mod, except_dummy => check_lat_controls
@@ -185,6 +183,19 @@ do i_b = 0, ubound(lat%branch, 1)
         found_err = .true.
       endif
     endif
+
+    ! lcavity must have n_ref_pass = 1. This is done to be able to compute the reference energy.
+
+    if (ele%key == lcavity$ .and. l_stat == multipass_lord$) then
+      if (n_pass /= 1) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'WHICH IS A LCAVITY ELEMENT AND A MULTIPASS_LORD.', &
+                  'HAS N_REF_PASS NOT 1! \i0\ ', i_array = [nint(ele%value(n_ref_pass$))])
+        found_err = .true.
+      endif
+    endif
+
 
     ! If n_ref_pass is set for a multipass_lord then check that there the appropriate 
     ! slave exists
