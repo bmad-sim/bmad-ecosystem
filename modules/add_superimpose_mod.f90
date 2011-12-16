@@ -13,7 +13,7 @@ contains
 !-----------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------
 !+
-! Subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out, save_null_drift)
+! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift)
 !
 ! Subroutine to make a superimposed element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -38,10 +38,11 @@ contains
 !
 ! Output:
 !   lat           -- lat_struct: Modified lat.
+!   err_flag      -- Logical :: Set True if there is an error. False otherwise
 !   super_ele_out -- Ele_struct, pointer, optional :: Pointer to the super element in the lattice.
 !-
 
-subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out, save_null_drift)
+subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift)
 
 implicit none
 
@@ -60,7 +61,7 @@ integer ix1_split, ix2_split, ix_super, ix_super_con
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
 logical, optional :: save_null_drift
-logical setup_lord, split1_done, split2_done, all_drift
+logical err_flag, setup_lord, split1_done, split2_done, all_drift
 
 character(100) name
 character(20) fmt
@@ -69,12 +70,15 @@ character(20) :: r_name = "add_superimpose"
 !-------------------------------------------------------------------------
 ! Check for negative length
 
+err_flag = .true.
+
 if (super_ele_in%value(l$) < 0) then
   call out_io (s_abort$, r_name, &
                   'Superposition of element with negative length not allowed!', &
                   'Element: ' // super_ele_in%name, &
                   'Length: \es10.2\ ', r_array = [super_ele_in%value(l$)] )
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
 
 ! We need a copy of super_ele_in since the actual argument may be in the lat
@@ -120,7 +124,8 @@ if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2
     'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_saved%name, &
     'LEFT EDGE: \F10.1\ ', &
     'RIGHT EDGE:\F10.1\ ', r_array = [s1, s2])
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
  
 !-------------------------------------------------------------------------
@@ -140,6 +145,7 @@ if (super_saved%value(l$) == 0) then
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   call adjust_super_slave_names (lat, ix_lord_max_old+1, branch%n_ele_max)
   call adjust_drift_names (lat, branch%ele(ix1_split))
+  err_flag = .false.
   return
 endif
 
@@ -251,6 +257,7 @@ if (all_drift) then
     endif
   endif
   call adjust_drift_names (lat, branch%ele(ix_super-1))
+  err_flag = .false.
   return
 endif
 
@@ -389,7 +396,8 @@ do
             'IS TO BE SUPERIMPOSED UPON: ' // trim(slave_saved%name), &
             'OF TYPE: ' // key_name(slave_saved%key), &
             'I DO NOT KNOW HOW TO DO THIS!'] )
-    call err_exit                    
+    if (bmad_status%exit_on_error) call err_exit 
+    return                   
   endif
 
   call set_flags_for_changed_attribute (lat, lat%ele(ix_super))
@@ -433,6 +441,8 @@ call order_super_lord_slaves (lat, ix_super)
 call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
 call adjust_drift_names (lat, branch%ele(ix1_split))
 call adjust_drift_names (lat, branch%ele(ix2_split+1))
+
+err_flag = .false.
 
 end subroutine
 

@@ -188,9 +188,9 @@ type (em_field_map_term_struct), pointer :: term
 real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
-real(rp) phase, gradient, dEz_dz, theta, r, E_r
+real(rp) phase, gradient, E_grad, theta, r, E_r, E_s, k_wave
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_pos
-real(rp) radius, phi, t_ref, tilt
+real(rp) radius, phi, t_ref, tilt, omega
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
@@ -284,37 +284,46 @@ select case (ele%field_calc)
 
   case(rfcavity$, lcavity$)
 
-      ! This is taken from the gradient as calculated in
-      !       J. Rosenzweig and L. Serafini
-      !       Phys Rev E, Vol. 49, p. 1599, (1994)
-      !
-      ! Right now only works at relativistic energies
 
-      ! This is taken from track1_bmad
-      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
-                          local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
-      gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
-      if (.not. ele%is_on) gradient = 0
-      gradient = gradient + gradient_shift_sr_wake(ele, param)
-      
-      dEz_dz = gradient
+    ! This is taken from track1_bmad
+    phase = twopi * (ele%value(theta_t0$) + ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
+                        local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
+    if (ele%key == rfcavity$) phase = phase + pi/2
 
-      theta = atan2(y, x)   
-      r = sqrt(x**2 + y**2)                                           
+    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+    if (.not. ele%is_on) gradient = 0
+    gradient = gradient + gradient_shift_sr_wake(ele, param)
 
-      E_r =  (r/2.0) * dEz_dz                                                                       
-      field%E(1) = -E_r * cos (theta)                                  
-      field%E(2) = -E_r * sin (theta)
-      field%E(3) = gradient
-      
-      B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
-      field%B(1) = -B_phi * sin(theta)
-      field%B(2) =  B_phi * cos(theta)
+    ! Use pillbox formulas for standing wave TM_011 mode with infinite wall radius.
+    ! See S.Y. Lee Accelerator Physics pg 344.
+    !   E_s   = 2 * E_grad * cos(k s) * cos(omega t)
+    !   E_r   = E_grad * k * r * sin(k s) * cos(omega t)
+    !   B_phi = -E_grad * k * r * cos(k s) * sin(omega t) / c_light
+    ! where
+    !   k = pi / L
+    !   omega = c * k
 
-      if (df_calc) then
-        call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY!')
-        if (bmad_status%exit_on_error) call err_exit
-      endif
+    E_grad = gradient
+
+    theta = atan2(y, x)   
+    r = sqrt(x**2 + y**2)                                           
+    k_wave = pi / ele%value(l$)
+    omega = c_light * k_wave
+
+    E_r = E_grad * r * k_wave * sin(k_wave*s_rel) * cos(omega * t + phase)
+
+    field%E(1) = -E_r * cos (theta)                                  
+    field%E(2) = -E_r * sin (theta)
+    field%E(3) = 2 * E_grad * cos(k_wave*s_rel) * cos(omega * t + phase)
+    
+    B_phi = -E_grad * r * k_wave * cos(k_wave*s_rel) * sin(omega * t + phase) / c_light 
+    field%B(1) = -B_phi * sin(theta)
+    field%B(2) =  B_phi * cos(theta)
+
+    if (df_calc) then
+      call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY!')
+      if (bmad_status%exit_on_error) call err_exit
+    endif
 
 
   !------------------------------------------
