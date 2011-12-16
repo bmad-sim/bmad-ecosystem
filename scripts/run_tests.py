@@ -59,11 +59,11 @@ for line in dir_list:
   num_local_failures = 0
 
   if len(dir_split) > 2:
-    print_all ('     Extra stuff on line in "tests.list": ' + dir_split, True)
+    print_all ('\nExtra stuff on line in "tests.list": ' + dir_split, True)
     continue
 
   if not os.path.exists(dir_split[0]):
-    print_all ('     Non-existant subdirectory given in "tests.list": ' + dir_split[0], True)
+    print_all ('\nNon-existant subdirectory given in "tests.list": ' + dir_split[0], True)
     continue
 
   os.chdir(dir_split[0])
@@ -82,17 +82,20 @@ for line in dir_list:
   print_all ('     Running program: ' + program)
   
   if not os.path.isfile(program):
-    print_all ('    !!! Program does not exist!', True)
+    print_all ('     !!! Program does not exist!', True)
+    os.chdir('..')
     continue
 
   os.system(program)
 
   if not os.path.isfile('output.now'):
-    print_all ('    !!! Program failed to create "output.now" file', True)
+    print_all ('     !!! Program failed to create "output.now" file', True)
+    os.chdir('..')
     continue
 
   if not os.path.isfile('output.correct'):
-    print_all ('    !!! No "output.correct" file', True)
+    print_all ('     !!! No "output.correct" file', True)
+    os.chdir('..')
     continue
 
   # Compare the output of the program "output.now" to the expected output "output.correct"
@@ -121,7 +124,7 @@ for line in dir_list:
       if len(now_line) != 0:
         print_all ('     Confusion! End of "output.correct" reached before End of "output.now"', True)
       if len(correct_line) != 0:
-        print_all ('     Confusion! End of "output.now" reached before End of "output.correct"'), True
+        print_all ('     Confusion! End of "output.now" reached before End of "output.correct"', True)
       break
 
     now_line = now_line.strip()
