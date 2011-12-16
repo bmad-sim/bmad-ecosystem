@@ -220,7 +220,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
     debug_line = bp_com%parse_line
-    call out_io (s_info$, r_name, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON')
+    if (bmad_status%type_out) call out_io (s_info$, r_name, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON')
     cycle parsing_loop
   endif
 
@@ -228,7 +228,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
     bp_com%write_digested = .false.
-    call out_io (s_info$, r_name, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED')
+    if (bmad_status%type_out) call out_io (s_info$, r_name, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED')
     cycle parsing_loop
   endif
 
@@ -850,7 +850,7 @@ if (ix > 0) then  ! lattice_type has been set.
 else              ! else use default
   lat%param%lattice_type = circular_lattice$      ! default 
   if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
-    call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
+    if (bmad_status%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
                                   'SETTING THE LATTICE_TYPE TO LINEAR_LATTICE.')
     lat%param%lattice_type = linear_lattice$
   endif
@@ -878,7 +878,7 @@ elseif (lat%ele(0)%value(e_tot$) /= 0) then
   call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
                                            pc = lat%ele(0)%value(p0c$))
 else
-  call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
+  if (bmad_status%type_out) call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
   lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
   bp_com%write_digested = .false.
 endif

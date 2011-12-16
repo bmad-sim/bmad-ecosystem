@@ -152,14 +152,12 @@ type em_field_grid_struct
   real(rp) :: r0(3) = 0   ! Grid origin.
 end type
 
-! Mode structure
-! See: 
-!    Dan Abell, PRST-AB 9, 052001 (2006)
-!   "Numerical computation of high-order transfer maps for rf cavities."
-
+! Electro-Magnetic mode structure
 ! Note: Unlike most everything else, to save on space, different ele%field%mode%grid
 ! and ele%field%mode%map pointers may point to the same memeory location. 
 ! This being the case, these components are never deallocated.
+! Rule: If %map is associated then %map%term(:) will be allocated.
+! Rule: If %grid is associated then %grid%pt(:,:,:) will be allocated.
 
 type em_field_mode_struct
   integer m                   ! Mode varies as cos(m*phi - phi_0)
@@ -276,7 +274,6 @@ type ele_struct
   type (space_charge_struct), pointer :: space_charge => null()
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
   type (lat_struct), pointer :: lat => null()  ! Pointer to lattice containing this element.
-  type (ele_struct), pointer :: lord => null() ! Used for element slicing.
   type (bookkeeper_status_struct) status       ! For keeping track of what bookkeeping has been done.
   real(rp) value(n_attrib_maxx)                ! attribute values.
   real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
@@ -528,8 +525,8 @@ integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: n_sample$=15, fh_re$=15, f0_re2$=15
 integer, parameter :: l_chord$=16, bend_tilt$=16, fh_im$=16, f0_im2$=16, grad_loss_sr_wake$=16
-integer, parameter :: h1$=17, x_quad$=17, ref_polarization$=17
-integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
+integer, parameter :: h1$=17, x_quad$=17, ref_polarization$=17, theta_t0$ = 17
+integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18, field_scale$ = 18
 integer, parameter :: b_param$ = 19
 integer, parameter :: d_spacing$ = 20
 integer, parameter :: x_pitch$ = 23
@@ -674,13 +671,13 @@ logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
-integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, patch_in_slave$ = 12
+integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, patch_in_slave$ = 12, sliced_slave$ = 13
 
-character(16), parameter :: control_name(12) = [ &
-            'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
-            'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
-            'GIRDER_LORD    ', 'MULTIPASS_LORD ', 'MULTIPASS_SLAVE', &
-            'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'PATCH_IN_SLAVE ']
+character(16), parameter :: control_name(13) = [ &
+            'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', 'GROUP_LORD     ', &
+            'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
+            'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'PATCH_IN_SLAVE ', &
+            'SLICED_SLAVE   ']
 
 ! plane list, etc
 

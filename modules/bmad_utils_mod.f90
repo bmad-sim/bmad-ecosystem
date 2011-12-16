@@ -1324,7 +1324,7 @@ integer i
 
 ! nullify
 
-nullify (ele%lat, ele%lord)
+nullify (ele%lat)
 
 if (logic_option (.false., nullify_only)) then
   nullify (ele%wig_term)
@@ -2856,15 +2856,6 @@ if (ix_lord > slave%n_lord .or. ix_lord < 1) then
   if (present(ix_slave)) ix_slave = -1
   return
 endif
-
-! Special case: Element slice
-
-if (slave%ix_ele == -1 .and. associated(slave%lord)) then
-  lord_ptr => slave%lord
-  if (present(ix_control)) ix_control = -1
-  ix_slave = 1
-  return
-endif  
 
 ! Point to the lord
 

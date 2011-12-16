@@ -3334,7 +3334,7 @@ character(40) matched_name(200), num, name
 character(40), allocatable :: multi_name(:)
 character(80) line
 
-logical have_inserted, found
+logical have_inserted, found, err_flag
 
 ! init
 
@@ -3353,7 +3353,8 @@ n_inserted = 0
 
 if (pele%ref_name == blank_name$) then
   call compute_super_lord_s (lat, lat%ele(0), super_ele, pele)
-  call add_superimpose (lat, super_ele, 0, save_null_drift = .true.)
+  call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true.)
+  if (err_flag) bmad_status%ok = .false.
   return
 endif
 
@@ -3414,7 +3415,8 @@ do
           if (branch%ele(i)%ix_pointer /= j+1) cycle
           j = j + 1
           call compute_super_lord_s (lat, branch%ele(i), super_ele, pele)
-          call add_superimpose (lat, super_ele, ix_branch, super_ele_out, save_null_drift = .true.)
+          call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, save_null_drift = .true.)
+          if (err_flag) bmad_status%ok = .false.
           super_ele_out%name = 'temp_name!'
         enddo
 
@@ -3503,7 +3505,8 @@ do
         call compute_super_lord_s (lat, branch%ele(i_ele), super_ele, pele)
         call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
         super_ele%name = super_ele_saved%name(:ix)            
-        call add_superimpose (lat, super_ele, i_br, super_ele_out, save_null_drift = .true.)
+        call add_superimpose (lat, super_ele, i_br, err_flag, super_ele_out, save_null_drift = .true.)
+        if (err_flag) bmad_status%ok = .false.
         call control_bookkeeper (lat, super_ele_out)
       endif
 
@@ -4314,6 +4317,7 @@ case (ecollimator$)
 
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
+  ele%value(field_scale$) = 1
 
 case (multilayer_mirror$)
   ele%value(ref_polarization$) = sigma_polarization$  

@@ -514,6 +514,8 @@ call init_attrib (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attrib (lcavity$, rf_field$,                     'RF_FIELD')
 call init_attrib (lcavity$, ds_slave_offset$,              reserved_name$)
 call init_attrib (lcavity$, grad_loss_sr_wake$,            reserved_name$)
+call init_attrib (lcavity$, field_scale$,                  reserved_name$)
+call init_attrib (lcavity$, theta_t0$,                     reserved_name$)
 
 
 call init_attrib (group$, command$,                        'COMMAND')
@@ -657,6 +659,8 @@ call init_attrib (rfcavity$, coupler_at$,                  'COUPLER_AT')
 call init_attrib (rfcavity$, rf_field$,                    'RF_FIELD')
 call init_attrib (rfcavity$, ds_slave_offset$,             reserved_name$)
 call init_attrib (rfcavity$, grad_loss_sr_wake$,           reserved_name$)
+call init_attrib (rfcavity$, field_scale$,                 reserved_name$)
+call init_attrib (rfcavity$, theta_t0$,                    reserved_name$)
 
 call init_attrib (elseparator$, gap$,                      'GAP')
 call init_attrib (elseparator$, e_field$,                  'E_FIELD')

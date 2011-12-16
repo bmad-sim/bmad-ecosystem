@@ -117,7 +117,7 @@ do ib = 0, ubound(lat%branch, 1)
         lord => pointer_to_lord (ele, ixl, ix_slave = ix_slave)
         if (ele_has_constant_reference_energy(lord) .or. ix_slave /= 1) cycle
         if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-        if (.not. associated(lord%em_field)) cycle
+        if (lord%tracking_method == bmad_standard$) cycle
         ! This adjusts the RF phase and amplitude
         call compute_ele_reference_energy (lord, branch%param, &
                                               ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
@@ -258,7 +258,7 @@ case (lcavity$)
       ele%ref_time = ref_time_start
     endif
 
-    if (associated(ele%em_field) .and. ele%slave_status /= super_slave$ .and. &
+    if (ele%slave_status /= super_slave$ .and. &
                     ele%slave_status /= multipass_slave$) call rf_accel_mode_adjust_phase_and_amp (ele, param)
 
     call track1 (start_orb, ele, param, end_orb)

@@ -1147,7 +1147,7 @@ slave%status%control = ok$
 call set_ele_status_stale (slave, branch%param, attribute_group$)
 
 if (slave%slave_status /= super_slave$) then
-   call out_io(s_abort$, r_name, "ELEMENT IS NOT AN SUPER SLAVE: " // slave%name)
+   call out_io(s_abort$, r_name, "ELEMENT IS NOT A SUPER SLAVE: " // slave%name)
   call err_exit
 endif
 
@@ -1711,14 +1711,10 @@ endif
 ! The sliced element is treated as a super_slave to the original element except
 ! if that element is a super_slave in which case the sliced element has the same lords
 ! as the original element.
-! Note: Setting the slave_status to super_slave prevents attribute_bookkeeper from setting
+! Note: Setting the %slave_status to sliced_slave$ prevents attribute_bookkeeper from setting
 ! periodic wiggler phi_z values.
 
-sliced_ele%slave_status = super_slave$
-if (ele_in%slave_status /= super_slave$) then
-  sliced_ele%lord => ele_in
-  sliced_ele%n_lord = 1
-endif
+if (ele_in%slave_status /= super_slave$) sliced_ele%slave_status = sliced_slave$
 
 sliced_ele%value(l$) = l_slice
 call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end)
@@ -2517,7 +2513,7 @@ case (wiggler$)
   ! on-axis ends on-axis. For this to be true, there must be an integer number
   ! of poles.
 
-  ! For super_slave elements, the phi_z is set by the position with respect to the lord in
+  ! For super_slave and sliced elements, the phi_z is set by the position with respect to the lord in
   ! the routine makeup_super_slave1 and so should not be touched here.
 
   if (ele%sub_key == periodic_type$) then
@@ -2531,7 +2527,7 @@ case (wiggler$)
     ele%wig_term(1)%coef   = val(b_max$)
     ele%wig_term(1)%kx     = 0
     ele%wig_term(1)%kz     = ele%wig_term(1)%ky
-    if (ele%slave_status /= super_slave$) ele%wig_term(1)%phi_z  = -ele%wig_term(1)%kz * val(l$) / 2 
+    if (ele%slave_status /= super_slave$ .and. ele%slave_status /= sliced_slave$) ele%wig_term(1)%phi_z  = -ele%wig_term(1)%kz * val(l$) / 2 
     ele%wig_term(1)%type   = hyper_y$
   endif
 
