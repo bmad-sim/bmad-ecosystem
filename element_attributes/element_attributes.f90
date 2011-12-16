@@ -25,7 +25,7 @@ n_used = 0
 do i = 1, n_key
   if (i == overlay_lord$) cycle
   write (1, *) '!---------------------------------'
-  write (1, *) key_name(i)
+  write (1, '(i3, 2x, a)') i, key_name(i)
   ele%key = i
   do j = 1, n_attrib_special_maxx
     a_name = attribute_name (ele, j) 

@@ -52,7 +52,7 @@ CONFIG_DIRS  :=
 LOCAL_INCS   :=
 SRC_EXCLUDE  :=
 
-M_FILE_LIST  := M.bmad_to_mad_and_xsif M.bmad_to_autocad M.bmad_to_csrtrack M.f77_to_f90
+M_FILE_LIST  := M.bmad_to_mad_and_xsif M.bmad_to_autocad M.bmad_to_csrtrack M.f77_to_f90 M.element_attributes
 
 
 

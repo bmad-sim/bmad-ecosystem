@@ -1,5 +1,5 @@
  !---------------------------------
- DRIFT                                   
+  1  DRIFT                                   
          1  L                                       
          2  TILT                                    
         23  X_PITCH                                 
@@ -38,6 +38,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -61,7 +62,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- SBEND                                   
+  2  SBEND                                   
          1  L                                       
          2  TILT                                    
          3  ANGLE                                   
@@ -122,6 +123,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -190,7 +192,7 @@
        170  B20                                     
  
  !---------------------------------
- QUADRUPOLE                              
+  3  QUADRUPOLE                              
          1  L                                       
          2  TILT                                    
          4  K1                                      
@@ -234,6 +236,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -247,6 +250,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       105  DC_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -301,7 +305,7 @@
        170  B20                                     
  
  !---------------------------------
- GROUP                                   
+  4  GROUP                                   
          2  COMMAND                                 
          3  OLD_COMMAND                             
         14  COEF                                    
@@ -318,7 +322,7 @@
         97  TYPE                                    
  
  !---------------------------------
- SEXTUPOLE                               
+  5  SEXTUPOLE                               
          1  L                                       
          2  TILT                                    
          5  K2                                      
@@ -362,6 +366,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -375,6 +380,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       105  DC_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -429,7 +435,7 @@
        170  B20                                     
  
  !---------------------------------
- CUSTOM                                  
+  7  CUSTOM                                  
          1  L                                       
          2  TILT                                    
          3  VAL1                                    
@@ -480,6 +486,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -504,7 +511,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- TAYLOR                                  
+  8  TAYLOR                                  
          1  L                                       
          2  TILT                                    
         23  X_PITCH                                 
@@ -534,6 +541,7 @@
         78  MAP_WITH_OFFSETS                        
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -556,7 +564,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- RFCAVITY                                
+  9  RFCAVITY                                
          1  L                                       
          2  TILT                                    
          4  HARMON                                  
@@ -565,6 +573,9 @@
          9  RF_FREQUENCY                            
         11  PHI0                                    
         15  LR_FREQ_SPREAD                          
+        16  !RESERVED                               
+        17  !RESERVED                               
+        18  !RESERVED                               
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -607,6 +618,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -618,9 +630,9 @@
         96  FIELD_CALC                              
         97  TYPE                                    
         98  APERTURE_AT                             
+        99  RF_FIELD                                
        101  FIELD_MASTER                            
        104  WALL                                    
-       105  RF_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -633,7 +645,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- ELSEPARATOR                             
+ 10  ELSEPARATOR                             
          1  L                                       
          2  TILT                                    
          7  VOLTAGE                                 
@@ -677,6 +689,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -690,6 +703,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       105  DC_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -744,7 +758,7 @@
        170  B20                                     
  
  !---------------------------------
- BEAMBEAM                                
+ 11  BEAMBEAM                                
          2  TILT                                    
          4  SIG_X                                   
          5  SIG_Y                                   
@@ -778,6 +792,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -802,7 +817,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- WIGGLER                                 
+ 12  WIGGLER                                 
          1  L                                       
          2  TILT                                    
          4  K1                                      
@@ -851,6 +866,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -865,6 +881,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       105  DC_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -919,7 +936,7 @@
        170  B20                                     
  
  !---------------------------------
- SOL_QUAD                                
+ 13  SOL_QUAD                                
          1  L                                       
          2  TILT                                    
          4  K1                                      
@@ -964,6 +981,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -977,6 +995,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       105  DC_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1031,7 +1050,7 @@
        170  B20                                     
  
  !---------------------------------
- MARKER                                  
+ 14  MARKER                                  
          2  TILT                                    
          3  X_GAIN_ERR                              
          4  Y_GAIN_ERR                              
@@ -1072,6 +1091,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1093,7 +1113,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- KICKER                                  
+ 15  KICKER                                  
          1  L                                       
          2  TILT                                    
          4  H_DISPLACE                              
@@ -1137,6 +1157,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1204,7 +1225,7 @@
        170  B20                                     
  
  !---------------------------------
- HYBRID                                  
+ 16  HYBRID                                  
          1  L                                       
         14  DELTA_E                                 
         41  DELTA_REF_TIME                          
@@ -1216,7 +1237,7 @@
         70  !RESERVED                               
  
  !---------------------------------
- OCTUPOLE                                
+ 17  OCTUPOLE                                
          1  L                                       
          2  TILT                                    
          6  K3                                      
@@ -1260,6 +1281,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1273,6 +1295,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       105  DC_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1327,7 +1350,7 @@
        170  B20                                     
  
  !---------------------------------
- RBEND                                   
+ 18  RBEND                                   
          1  L                                       
          2  TILT                                    
          3  ANGLE                                   
@@ -1388,6 +1411,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1456,7 +1480,7 @@
        170  B20                                     
  
  !---------------------------------
- MULTIPOLE                               
+ 19  MULTIPOLE                               
          1  L                                       
          2  TILT                                    
         23  X_PITCH                                 
@@ -1485,6 +1509,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1548,7 +1573,7 @@
        170  T20                                     
  
  !---------------------------------
- BEND_SOL_                               
+ 20  BEND_SOL_                               
          1  L                                       
          2  TILT                                    
         23  X_PITCH                                 
@@ -1587,6 +1612,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1609,9 +1635,9 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- DEF_BEAM                                
-         1  PARTICLE                                
+ 21  DEF_BEAM                                
          2  N_PART                                  
+         4  PARTICLE                                
         52  PC                                      
         53  ENERGY                                  
         60  !RESERVED                               
@@ -1620,7 +1646,7 @@
         70  !RESERVED                               
  
  !---------------------------------
- AB_MULTIPOLE                            
+ 22  AB_MULTIPOLE                            
          1  L                                       
          2  TILT                                    
         23  X_PITCH                                 
@@ -1649,6 +1675,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1712,7 +1739,7 @@
        170  B20                                     
  
  !---------------------------------
- SOLENOID                                
+ 23  SOLENOID                                
          1  L                                       
          2  TILT                                    
          8  KS                                      
@@ -1756,6 +1783,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1769,6 +1797,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       105  DC_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1823,7 +1852,7 @@
        170  B20                                     
  
  !---------------------------------
- PATCH                                   
+ 24  PATCH                                   
          1  L                                       
          2  TILT                                    
         23  X_PITCH                                 
@@ -1858,6 +1887,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1881,7 +1911,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- LCAVITY                                 
+ 25  LCAVITY                                 
          1  L                                       
          2  TILT                                    
          3  GRADIENT_ERR                            
@@ -1893,6 +1923,9 @@
         11  PHI0                                    
         14  DELTA_E                                 
         15  LR_FREQ_SPREAD                          
+        16  !RESERVED                               
+        17  !RESERVED                               
+        18  !RESERVED                               
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1937,6 +1970,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -1948,9 +1982,9 @@
         96  FIELD_CALC                              
         97  TYPE                                    
         98  APERTURE_AT                             
+        99  RF_FIELD                                
        101  FIELD_MASTER                            
        104  WALL                                    
-       105  RF_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1963,10 +1997,10 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- DEF_PARAMETER                           
-         1  PARTICLE                                
+ 26  DEF_PARAMETER                           
          2  N_PART                                  
          3  TAYLOR_ORDER                            
+         4  PARTICLE                                
          5  LATTICE_TYPE                            
         52  P0C                                     
         53  E_TOT                                   
@@ -1975,11 +2009,12 @@
         62  !RESERVED                               
         70  !RESERVED                               
         76  LATTICE                                 
+        88  ROOT_BRANCH_NAME                        
         89  APERTURE_LIMIT_ON                       
         99  RAN_SEED                                
  
  !---------------------------------
- NULL_ELE                                
+ 27  NULL_ELE                                
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -1999,7 +2034,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- INIT_ELE                                
+ 28  INIT_ELE                                
         10  E_FIELD_X                               
         11  E_FIELD_Y                               
         12  PHASE_X                                 
@@ -2035,7 +2070,7 @@
        106  PHI_B                                   
  
  !---------------------------------
- HOM                                     
+ 29  HOM                                     
          2  TILT                                    
         23  X_PITCH                                 
         24  Y_PITCH                                 
@@ -2063,6 +2098,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2084,7 +2120,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- MATCH                                   
+ 30  MATCH                                   
          1  L                                       
          2  BETA_A0                                 
          3  ALPHA_A0                                
@@ -2133,6 +2169,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2154,7 +2191,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- MONITOR                                 
+ 31  MONITOR                                 
          1  L                                       
          2  TILT                                    
          3  X_GAIN_ERR                              
@@ -2207,6 +2244,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2230,7 +2268,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- INSTRUMENT                              
+ 32  INSTRUMENT                              
          1  L                                       
          2  TILT                                    
          3  X_GAIN_ERR                              
@@ -2283,6 +2321,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2306,7 +2345,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- HKICKER                                 
+ 33  HKICKER                                 
          1  L                                       
          2  TILT                                    
          3  KICK                                    
@@ -2345,6 +2384,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2412,7 +2452,7 @@
        170  B20                                     
  
  !---------------------------------
- VKICKER                                 
+ 34  VKICKER                                 
          1  L                                       
          2  TILT                                    
          3  KICK                                    
@@ -2451,6 +2491,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2518,7 +2559,7 @@
        170  B20                                     
  
  !---------------------------------
- RCOLLIMATOR                             
+ 35  RCOLLIMATOR                             
          1  L                                       
          2  TILT                                    
         23  X_PITCH                                 
@@ -2557,6 +2598,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2579,7 +2621,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- ECOLLIMATOR                             
+ 36  ECOLLIMATOR                             
          1  L                                       
          2  TILT                                    
         23  X_PITCH                                 
@@ -2618,6 +2660,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2640,7 +2683,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- GIRDER                                  
+ 37  GIRDER                                  
          2  TILT                                    
         12  S_CENTER                                
         23  X_PITCH                                 
@@ -2657,7 +2700,7 @@
         97  TYPE                                    
  
  !---------------------------------
- BEND_SOL_QUAD                           
+ 38  BEND_SOL_QUAD                           
          1  L                                       
          2  TILT                                    
          3  ANGLE                                   
@@ -2708,6 +2751,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2721,6 +2765,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       105  DC_FIELD                                
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2775,7 +2820,7 @@
        170  B20                                     
  
  !---------------------------------
- DEF_BEAM_START                          
+ 39  DEF_BEAM_START                          
          1  X                                       
          2  PX                                      
          3  Y                                       
@@ -2792,9 +2837,12 @@
         70  !RESERVED                               
  
  !---------------------------------
- PHOTON_BRANCH                           
+ 40  PHOTON_BRANCH                           
          2  TILT                                    
          3  DIRECTION                               
+         4  PARTICLE                                
+         5  LATTICE_TYPE                            
+         7  !RESERVED                               
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -2807,6 +2855,8 @@
         46  X_OFFSET_TOT                            
         47  Y_OFFSET_TOT                            
         48  S_OFFSET_TOT                            
+        50  P0C_START                               
+        51  E_TOT_START                             
         52  P0C                                     
         53  E_TOT                                   
         60  !RESERVED                               
@@ -2821,6 +2871,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2843,9 +2894,12 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- BRANCH                                  
+ 41  BRANCH                                  
          2  TILT                                    
          3  DIRECTION                               
+         4  PARTICLE                                
+         5  LATTICE_TYPE                            
+         7  !RESERVED                               
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -2858,6 +2912,8 @@
         46  X_OFFSET_TOT                            
         47  Y_OFFSET_TOT                            
         48  S_OFFSET_TOT                            
+        50  P0C_START                               
+        51  E_TOT_START                             
         52  P0C                                     
         53  E_TOT                                   
         60  !RESERVED                               
@@ -2872,6 +2928,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2894,19 +2951,26 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- MIRROR                                  
+ 42  MIRROR                                  
          2  TILT                                    
          3  TILT_ERR                                
          5  GRAZE_ANGLE                             
          7  CRITICAL_ANGLE                          
          8  GRAZE_ANGLE_ERR                         
-        17  G_GRAZE                                 
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
         28  G_TRANS                                 
+        29  C2_CURVE                                
+        30  C3_CURVE                                
+        31  C4_CURVE                                
+        32  C2_CURVE_TOT                            
+        33  C3_CURVE_TOT                            
+        34  C4_CURVE_TOT                            
+        35  D_SOURCE                                
+        36  D_DETEC                                 
         41  DELTA_REF_TIME                          
         43  TILT_TOT                                
         44  X_PITCH_TOT                             
@@ -2929,6 +2993,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -2949,7 +3014,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- CRYSTAL                                 
+ 43  CRYSTAL                                 
          2  TILT                                    
          3  TILT_ERR                                
          4  TILT_CORR                               
@@ -2965,6 +3030,7 @@
         15  FH_RE                                   
         16  FH_IM                                   
         17  REF_POLARIZATION                        
+        18  NEGATIVE_GRAZE_ANGLE                    
         19  B_PARAM                                 
         20  D_SPACING                               
         23  X_PITCH                                 
@@ -3013,6 +3079,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -3034,7 +3101,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- PIPE                                    
+ 44  PIPE                                    
          1  L                                       
          2  TILT                                    
          3  X_GAIN_ERR                              
@@ -3087,6 +3154,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -3110,7 +3178,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- CAPILLARY                               
+ 45  CAPILLARY                               
          2  TILT                                    
          4  CRITICAL_ANGLE_FACTOR                   
         23  X_PITCH                                 
@@ -3140,6 +3208,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -3163,7 +3232,7 @@
        119  COMMON_LORD                             
  
  !---------------------------------
- MULTILAYER_MIRROR                       
+ 46  MULTILAYER_MIRROR                       
          2  TILT                                    
          3  TILT_ERR                                
          5  GRAZE_ANGLE                             
@@ -3178,6 +3247,7 @@
         15  F0_RE2                                  
         16  F0_IM2                                  
         17  REF_POLARIZATION                        
+        18  NEGATIVE_GRAZE_ANGLE                    
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -3213,6 +3283,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
@@ -3234,127 +3305,252 @@
        119  COMMON_LORD                             
  
  !---------------------------------
+ 47  E_GUN                                   
+         1  L                                       
+         2  TILT                                    
+         7  VOLTAGE                                 
+        10  GRADIENT                                
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  S_OFFSET                                
+        41  DELTA_REF_TIME                          
+        43  TILT_TOT                                
+        44  X_PITCH_TOT                             
+        45  Y_PITCH_TOT                             
+        46  X_OFFSET_TOT                            
+        47  Y_OFFSET_TOT                            
+        48  S_OFFSET_TOT                            
+        49  N_REF_PASS                              
+        52  P0C                                     
+        53  E_TOT                                   
+        55  INTEGRATOR_ORDER                        
+        56  NUM_STEPS                               
+        57  DS_STEP                                 
+        60  !RESERVED                               
+        61  !RESERVED                               
+        62  !RESERVED                               
+        66  X1_LIMIT                                
+        67  X2_LIMIT                                
+        68  Y1_LIMIT                                
+        69  Y2_LIMIT                                
+        70  !RESERVED                               
+        72  ALIAS                                   
+        77  APERTURE_TYPE                           
+        78  MAP_WITH_OFFSETS                        
+        79  CSR_CALC_ON                             
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
+        85  APERTURE                                
+        86  X_LIMIT                                 
+        87  Y_LIMIT                                 
+        88  OFFSET_MOVES_APERTURE                   
+        93  SYMPLECTIFY                             
+        94  DESCRIP                                 
+        95  IS_ON                                   
+        96  FIELD_CALC                              
+        97  TYPE                                    
+        98  APERTURE_AT                             
+        99  RF_FIELD                                
+       104  WALL                                    
+       105  DC_FIELD                                
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+       119  COMMON_LORD                             
+ 
+ !---------------------------------
+ 48  EM_FIELD                                
+         1  L                                       
+         2  TILT                                    
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  S_OFFSET                                
+        41  DELTA_REF_TIME                          
+        43  TILT_TOT                                
+        44  X_PITCH_TOT                             
+        45  Y_PITCH_TOT                             
+        46  X_OFFSET_TOT                            
+        47  Y_OFFSET_TOT                            
+        48  S_OFFSET_TOT                            
+        49  N_REF_PASS                              
+        50  P0C_START                               
+        51  E_TOT_START                             
+        52  P0C                                     
+        53  E_TOT                                   
+        55  INTEGRATOR_ORDER                        
+        56  NUM_STEPS                               
+        57  DS_STEP                                 
+        60  !RESERVED                               
+        61  !RESERVED                               
+        62  !RESERVED                               
+        66  X1_LIMIT                                
+        67  X2_LIMIT                                
+        68  Y1_LIMIT                                
+        69  Y2_LIMIT                                
+        70  !RESERVED                               
+        72  ALIAS                                   
+        77  APERTURE_TYPE                           
+        78  MAP_WITH_OFFSETS                        
+        79  CSR_CALC_ON                             
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
+        85  APERTURE                                
+        86  X_LIMIT                                 
+        87  Y_LIMIT                                 
+        88  OFFSET_MOVES_APERTURE                   
+        93  SYMPLECTIFY                             
+        94  DESCRIP                                 
+        95  IS_ON                                   
+        97  TYPE                                    
+        98  APERTURE_AT                             
+        99  RF_FIELD                                
+       104  WALL                                    
+       105  DC_FIELD                                
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+       119  COMMON_LORD                             
+ 
+ !---------------------------------
  Index usage:
     Ix Count
      1    32
-     2    42
+     2    44
      3    20
-     4    19
-     5    17
+     4    23
+     5    19
      6    13
-     7    16
+     7    19
      8    18
      9    13
-    10    14
+    10    15
     11    15
     12    15
     13    12
     14    14
     15    14
-    16     6
-    17     7
-    18     4
+    16     8
+    17     8
+    18     8
     19     2
     20     2
     21     1
     22     1
-    23    38
-    24    38
-    25    38
-    26    38
-    27    38
+    23    40
+    24    40
+    25    40
+    26    40
+    27    40
     28    23
-    29    23
-    30    23
-    31    23
-    32     5
-    33     8
-    34     4
-    35     4
-    36     6
+    29    24
+    30    24
+    31    24
+    32     6
+    33     9
+    34     5
+    35     5
+    36     7
     37     5
     38     3
     39     6
     40    11
-    41    38
+    41    40
     42    10
-    43    36
-    44    36
-    45    36
-    46    36
-    47    36
-    48    36
-    49    25
-    50     4
-    51     4
-    52    40
-    53    40
+    43    38
+    44    38
+    45    38
+    46    38
+    47    38
+    48    38
+    49    27
+    50     7
+    51     7
+    52    42
+    53    42
     54     3
-    55    24
-    56    24
-    57    24
+    55    26
+    56    26
+    57    26
     58     1
     59    20
-    60    45
-    61    45
-    62    45
+    60    47
+    61    47
+    62    47
     63     0
     64     0
     65     0
-    66    37
-    67    37
-    68    37
-    69    37
-    70    45
+    66    39
+    67    39
+    68    39
+    69    39
+    70    47
     71     3
-    72    41
+    72    43
     73     2
     74     2
     75     2
     76     3
-    77    37
-    78    25
-    79    24
+    77    39
+    78    27
+    79    26
     80     2
-    81    38
-    82    38
+    81    40
+    82    40
     83     1
-    84     0
-    85    37
-    86    37
-    87    37
-    88    37
+    84    39
+    85    39
+    86    39
+    87    39
+    88    40
     89     1
     90     4
     91     4
     92     2
-    93    27
-    94    41
-    95    34
-    96    19
-    97    41
-    98    38
-    99     2
+    93    29
+    94    43
+    95    36
+    96    20
+    97    43
+    98    40
+    99     6
    100     2
    101    21
    102     0
    103    13
-   104    38
-   105     2
+   104    40
+   105    10
    106     3
    107     0
    108     0
    109     0
-   110    38
-   111    38
-   112    38
-   113    38
-   114    38
-   115    38
-   116    38
-   117    38
-   118    38
-   119    38
+   110    40
+   111    40
+   112    40
+   113    40
+   114    40
+   115    40
+   116    40
+   117    40
+   118    40
+   119    40
    120    15
    121    15
    122    15
@@ -3425,12 +3621,10 @@ Index: 1
     RBEND                                   
     MULTIPOLE                               
     BEND_SOL_                               
-    DEF_BEAM                                
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    DEF_PARAMETER                           
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
@@ -3441,6 +3635,8 @@ Index: 1
     BEND_SOL_QUAD                           
     DEF_BEAM_START                          
     PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 2
@@ -3486,6 +3682,8 @@ Index: 2
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 3
@@ -3522,12 +3720,16 @@ Index: 4
     MARKER                                  
     KICKER                                  
     RBEND                                   
+    DEF_BEAM                                
     LCAVITY                                 
+    DEF_PARAMETER                           
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     BEND_SOL_QUAD                           
     DEF_BEAM_START                          
+    PHOTON_BRANCH                           
+    BRANCH                                  
     CRYSTAL                                 
     PIPE                                    
     CAPILLARY                               
@@ -3548,6 +3750,8 @@ Index: 5
     MONITOR                                 
     INSTRUMENT                              
     DEF_BEAM_START                          
+    PHOTON_BRANCH                           
+    BRANCH                                  
     MIRROR                                  
     PIPE                                    
     MULTILAYER_MIRROR                       
@@ -3582,10 +3786,13 @@ Index: 7
     MONITOR                                 
     INSTRUMENT                              
     BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    E_GUN                                   
  
  !---------------------------------
 Index: 8
@@ -3640,6 +3847,7 @@ Index: 10
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    E_GUN                                   
  
  !---------------------------------
 Index: 11
@@ -3729,7 +3937,9 @@ Index: 15
  !---------------------------------
 Index: 16
     SBEND                                   
+    RFCAVITY                                
     RBEND                                   
+    LCAVITY                                 
     MATCH                                   
     BEND_SOL_QUAD                           
     CRYSTAL                                 
@@ -3738,19 +3948,24 @@ Index: 16
  !---------------------------------
 Index: 17
     SBEND                                   
+    RFCAVITY                                
     RBEND                                   
+    LCAVITY                                 
     MATCH                                   
     BEND_SOL_QUAD                           
-    MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
  
  !---------------------------------
 Index: 18
     SBEND                                   
+    RFCAVITY                                
     RBEND                                   
+    LCAVITY                                 
     MATCH                                   
     BEND_SOL_QUAD                           
+    CRYSTAL                                 
+    MULTILAYER_MIRROR                       
  
  !---------------------------------
 Index: 19
@@ -3810,6 +4025,8 @@ Index: 23
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 24
@@ -3851,6 +4068,8 @@ Index: 24
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 25
@@ -3892,6 +4111,8 @@ Index: 25
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 26
@@ -3933,6 +4154,8 @@ Index: 26
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 27
@@ -3974,6 +4197,8 @@ Index: 27
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 28
@@ -4023,6 +4248,7 @@ Index: 29
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
@@ -4049,6 +4275,7 @@ Index: 30
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
@@ -4075,6 +4302,7 @@ Index: 31
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
@@ -4084,6 +4312,7 @@ Index: 32
     MATCH                                   
     HKICKER                                 
     VKICKER                                 
+    MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
  
@@ -4095,6 +4324,7 @@ Index: 33
     RBEND                                   
     LCAVITY                                 
     MATCH                                   
+    MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
  
@@ -4102,6 +4332,7 @@ Index: 33
 Index: 34
     SBEND                                   
     RBEND                                   
+    MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
  
@@ -4109,6 +4340,7 @@ Index: 34
 Index: 35
     RFCAVITY                                
     LCAVITY                                 
+    MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
  
@@ -4118,6 +4350,7 @@ Index: 36
     QUADRUPOLE                              
     SOL_QUAD                                
     RBEND                                   
+    MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
  
@@ -4198,6 +4431,8 @@ Index: 41
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 42
@@ -4250,6 +4485,8 @@ Index: 43
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 44
@@ -4289,6 +4526,8 @@ Index: 44
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 45
@@ -4328,6 +4567,8 @@ Index: 45
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 46
@@ -4367,6 +4608,8 @@ Index: 46
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 47
@@ -4406,6 +4649,8 @@ Index: 47
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 48
@@ -4445,6 +4690,8 @@ Index: 48
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 49
@@ -4473,6 +4720,8 @@ Index: 49
     BEND_SOL_QUAD                           
     CRYSTAL                                 
     PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 50
@@ -4480,6 +4729,9 @@ Index: 50
     HYBRID                                  
     PATCH                                   
     LCAVITY                                 
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    EM_FIELD                                
  
  !---------------------------------
 Index: 51
@@ -4487,6 +4739,9 @@ Index: 51
     HYBRID                                  
     PATCH                                   
     LCAVITY                                 
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    EM_FIELD                                
  
  !---------------------------------
 Index: 52
@@ -4530,6 +4785,8 @@ Index: 52
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 53
@@ -4573,6 +4830,8 @@ Index: 53
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 54
@@ -4606,6 +4865,8 @@ Index: 55
     BEND_SOL_QUAD                           
     CRYSTAL                                 
     PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 56
@@ -4633,6 +4894,8 @@ Index: 56
     BEND_SOL_QUAD                           
     CRYSTAL                                 
     PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 57
@@ -4660,6 +4923,8 @@ Index: 57
     BEND_SOL_QUAD                           
     CRYSTAL                                 
     PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 58
@@ -4735,6 +5000,8 @@ Index: 60
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 61
@@ -4783,6 +5050,8 @@ Index: 61
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 62
@@ -4831,6 +5100,8 @@ Index: 62
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 63
@@ -4880,6 +5151,8 @@ Index: 66
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 67
@@ -4920,6 +5193,8 @@ Index: 67
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 68
@@ -4960,6 +5235,8 @@ Index: 68
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 69
@@ -5000,6 +5277,8 @@ Index: 69
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 70
@@ -5048,6 +5327,8 @@ Index: 70
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 71
@@ -5098,6 +5379,8 @@ Index: 72
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 73
@@ -5159,6 +5442,8 @@ Index: 77
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 78
@@ -5187,6 +5472,8 @@ Index: 78
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
     PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 79
@@ -5214,6 +5501,8 @@ Index: 79
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
     PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 80
@@ -5260,6 +5549,8 @@ Index: 81
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 82
@@ -5301,6 +5592,8 @@ Index: 82
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 83
@@ -5308,6 +5601,45 @@ Index: 83
  
  !---------------------------------
 Index: 84
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    CUSTOM                                  
+    TAYLOR                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    MULTIPOLE                               
+    BEND_SOL_                               
+    AB_MULTIPOLE                            
+    SOLENOID                                
+    PATCH                                   
+    LCAVITY                                 
+    HOM                                     
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    MIRROR                                  
+    CRYSTAL                                 
+    PIPE                                    
+    CAPILLARY                               
+    MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 85
@@ -5348,6 +5680,8 @@ Index: 85
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 86
@@ -5388,6 +5722,8 @@ Index: 86
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 87
@@ -5428,6 +5764,8 @@ Index: 87
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 88
@@ -5452,6 +5790,7 @@ Index: 88
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
     HOM                                     
     MATCH                                   
     MONITOR                                 
@@ -5468,6 +5807,8 @@ Index: 88
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 89
@@ -5521,6 +5862,8 @@ Index: 93
     BEND_SOL_QUAD                           
     PIPE                                    
     CAPILLARY                               
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 94
@@ -5565,6 +5908,8 @@ Index: 94
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 95
@@ -5602,6 +5947,8 @@ Index: 95
     BRANCH                                  
     PIPE                                    
     CAPILLARY                               
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 96
@@ -5624,6 +5971,7 @@ Index: 96
     HKICKER                                 
     VKICKER                                 
     BEND_SOL_QUAD                           
+    E_GUN                                   
  
  !---------------------------------
 Index: 97
@@ -5668,6 +6016,8 @@ Index: 97
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 98
@@ -5709,11 +6059,17 @@ Index: 98
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 99
+    RFCAVITY                                
+    LCAVITY                                 
     DEF_PARAMETER                           
     INIT_ELE                                
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 100
@@ -5803,11 +6159,21 @@ Index: 104
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 105
-    RFCAVITY                                
-    LCAVITY                                 
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    ELSEPARATOR                             
+    WIGGLER                                 
+    SOL_QUAD                                
+    OCTUPOLE                                
+    SOLENOID                                
+    BEND_SOL_QUAD                           
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 106
@@ -5864,6 +6230,8 @@ Index: 110
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 111
@@ -5905,6 +6273,8 @@ Index: 111
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 112
@@ -5946,6 +6316,8 @@ Index: 112
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 113
@@ -5987,6 +6359,8 @@ Index: 113
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 114
@@ -6028,6 +6402,8 @@ Index: 114
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 115
@@ -6069,6 +6445,8 @@ Index: 115
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 116
@@ -6110,6 +6488,8 @@ Index: 116
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 117
@@ -6151,6 +6531,8 @@ Index: 117
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 118
@@ -6192,6 +6574,8 @@ Index: 118
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 119
@@ -6233,6 +6617,8 @@ Index: 119
     PIPE                                    
     CAPILLARY                               
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 120
