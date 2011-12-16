@@ -1,0 +1,10 @@
+
+cavity2: lcavity, tracking_method = runge_kutta, delta_e=cavity2_delta_e, mat6_calc_method = tracking,  
+field_calc = grid,
+L = 	0.480	, !Grid extends to 0.484
+rf_field = { 
+ mode = {
+ m = 0,
+ freq = 	1.3e9	,
+grid = call::cavity2_grid.bmad }}
+

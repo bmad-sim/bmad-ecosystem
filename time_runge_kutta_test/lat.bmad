@@ -11,13 +11,11 @@ PARAMETER[E_TOT] = 1e6
 
 cavity2_delta_e = 2e6
 
-d1: drift, L = 1
+CALL, FILE = cavity2.bmad
 
-*[ds_step] = 1e-3
+lat: line = (cavity2)
+*[ds_step] = 1e-5
 
-
-
-lat: line = (20*d1)
-
+!USE, IN.CRMOD
 USE, lat
 
