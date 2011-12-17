@@ -130,12 +130,13 @@ else
   else  ! lcavity, etc.
     p0c = ele%value(p0c_start$)
   end if
-  !ref_time = ele%ref_time - ele%value(delta_ref_time$)
-  call offset_particle(ele, param, start, set$, set_canonical = .false., reversed = .false. )    
+  !Forward moving particles in a gun start with t-coordinates, so ignore offset
+  if(ele%key /= e_gun$) call offset_particle(ele, param, start, set$, set_canonical = .false., reversed = .false. )    
 end if
 
 ! ele(s-based) -> ele(t-based)
-call convert_particle_coordinates_s_to_t(start, p0c)
+!Forward moving particles in a gun start with t-coordinates, so ignore offset
+if(ele%key /= e_gun$) call convert_particle_coordinates_s_to_t(start, p0c)
 
 !Shift s and t back to global values
 start%t = start%t - (ele%ref_time - ele%value(delta_ref_time$))
@@ -282,7 +283,7 @@ real(rp), target  :: dvec_dt(6)
 real(rp), target  :: vec_err(6)
 real(rp), target :: s_target
 
-integer, parameter :: max_step = 10000
+integer, parameter :: max_step = 100000
 integer :: n_step, n_pt, dn_save, n_save_count
 
 logical, target :: local_ref_frame
