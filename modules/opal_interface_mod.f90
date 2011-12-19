@@ -62,7 +62,7 @@ character(40), allocatable :: names(:)
 integer, allocatable :: an_indexx(:), name_occurrences(:)
 
 
-real(rp)        :: absmax_Ez
+real(rp)        :: absmax_Ez, absmax_Bz, phase_lag
 character(40)   :: fieldgrid_output_name
 character(200), allocatable :: fieldgrid_names(:)
 integer			:: fieldgrid_n_names
@@ -207,7 +207,25 @@ ele_loop: do ie = ix_start, ix_end
 	!elemedge
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 
-		
+	!----------------------------------------------------------
+	!Solenoid -----------------------------------       
+	!----------------------------------------------------------
+     case (solenoid$)
+        write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
+        !ks TODO: what is this in OPAL?
+        call value_to_line (line, val(bs_field$), 'ks', rfmt, 'R')
+
+        ! Write new fieldgrid file, based on the element's name
+        fieldgrid_output_name = ''
+        write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
+	iu_fieldgrid = lunget()
+	open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
+	call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Bz)
+	close(iu_fieldgrid)
+	!Add FMAPFN to line
+        write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
+	!elemedge
+        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)		
 		
 	!----------------------------------------------------------
 	!Quadrupole -----------------------------------   
@@ -219,12 +237,12 @@ ele_loop: do ie = ix_start, ix_end
 		call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 		
 	!----------------------------------------------------------
-	!Lcavity -----------------------------------
+	!Lcavity, RFCavity -----------------------------------
 	!----------------------------------------------------------
-    case (lcavity$)
+    case (lcavity$, rfcavity$)
       !Check that there is a map or grid associated to make a decent field grid for OPAL
 	  if (.not. associated(ele%em_field)  )then
-	    call out_io (s_error$, r_name, 'No rf_field_struct for: ' // key_name(ele%key), &
+	    call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key), &
                                      '----')
         call err_exit
       endif
@@ -270,6 +288,11 @@ ele_loop: do ie = ix_start, ix_end
       !Write frequency in MHz
       call value_to_line (line, 1e-6*ele%em_field%mode(1)%freq, 'freq', rfmt, 'R')
       
+      !Write phase in rad
+      phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
+      if (ele%key == rfcavity$) phase_lag = phase_lag + pi/2
+      call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
+
       !Write ELEMEDGE
       call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
       
@@ -374,7 +397,7 @@ complex ::  phasor_rotation
 
 integer :: nx, nz, iz, ix
 
-real(rp) :: Ex_factor, Ez_factor, By_factor
+real(rp) :: Ex_factor, Ez_factor, Bx_factor, By_factor, Bz_factor
 
 logical loc_ref_frame
 
@@ -386,28 +409,30 @@ loc_ref_frame = .true.
 
 !Format for numbers
   rfmt = 'es13.5'
+
+
+!TODO: pass these parameters in somehow
+x_step = 0.001_rp
+z_step = 0.001_rp
+
+x_min = 0.0_rp
+x_max = 0.02_rp
+
+z_min = 0.0_rp
+z_max = ele%value(L$)
+
+nx = ceiling(x_max/x_step)  
+nz = ceiling(z_max/z_step)
+
   
 select case (ele%key)
 
   !-----------
   !LCavity
   !-----------
-  case (lcavity$) 
+  case (lcavity$, rfcavity$) 
                                          
     freq = ele%em_field%mode(1)%freq
-
-    !TODO: pass these parameters in somehow
-    x_step = 0.001_rp
-    z_step = 0.001_rp
-
-    x_min = 0.0_rp
-    x_max = 0.02_rp
-
-    z_min = 0.0_rp
-    z_max = ele%value(L$)
-
-    nx = ceiling(x_max/x_step)  
-    nz = ceiling(z_max/z_step)
 
   !Example:
   !2DDynamic XZ
@@ -432,7 +457,7 @@ select case (ele%key)
       orb%vec(3) = 0.0_rp
       
       !Calculate field at \omegat*t=0 and \omega*t = \pi/2 to get real and imaginary parts
-      call em_field_calc (ele, param, z, 0.0_rp,        orb, loc_ref_frame, field_re)
+      call em_field_calc (ele, param, z, 0.0_rp,     orb, loc_ref_frame, field_re)
       call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
 
       pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
@@ -459,7 +484,7 @@ select case (ele%key)
     !Scaling for T7 format
     Ex_factor = (1/maxfield)
     Ez_factor = (1/maxfield)
-   By_factor = -(1/maxfield)*1e6_rp / ( fourpi * 1e-7)
+    By_factor = -(1/maxfield)*1e6_rp / ( fourpi * 1e-7)
 
   
     !Calculate complex rotation number to rotate Ez onto the real axis
@@ -480,6 +505,75 @@ select case (ele%key)
    
    
    deallocate(pt)
+
+  !-----------
+  !Solenoid
+  !-----------
+  !Note: This is similar to code for lcavity/rfcavity
+  case (solenoid$) 
+                                         
+  !Example:
+  !2DMagnetoStatic ZX
+  !0.0 2.0 199  # rmin(cm),  rmax(cm),   nr-1
+  !-3.0 51.0 4999 #zmin(cm),  zmax(cm).   nz - 1
+  !0.00000e+00 0.00000e+00    ! B_r, B_z 
+
+  !Allocate temporary pt array
+  allocate ( pt(0:nx, 0:nz, 1:1) )
+  !Write data points
+  
+  !initialize maximum found field
+  maxfield = 0
+  
+  do ix = 0, nx
+    do iz = 0, nz
+      x = x_step * ix
+      z = z_step * iz 
+      orb%vec(1) = x
+      orb%vec(3) = 0.0_rp
+
+      call em_field_calc (ele, param, z, 0.0_rp, orb, loc_ref_frame, field_re)
+      field_im%E = 0
+      field_im%B = 0
+
+      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
+      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+      
+      !Update ref_field if larger Bz is found
+      !TODO: Check this. 
+      if(abs(pt(ix, iz, 1)%B(3)) > maxfield) then
+         ref_field = pt(ix, iz, 1)
+         maxfield = abs(ref_field%B(3))
+      end if 
+    end do
+  end do
+  
+  ! Write to file
+  if (opal_file_unit > 0 )  then
+
+    !Write header
+    write (opal_file_unit, '(3a)') ' 2DMagnetoStatic ZX', '  # Created from ele: ', trim(ele%name)
+    write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '  # x_min (cm), x_max (cm), n_x_points -1'
+    write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*z_min, 100*nz*z_step, nz, '  # z_min (cm), z_max (cm), n_z_points -1'
+    
+
+    !Scaling for T7 format
+   Bx_factor = (1/maxfield)*1e6_rp / ( fourpi * 1e-7)
+   Bz_factor = Bx_factor
+
+    do ix = 0, nx
+      do iz = 0, nz
+        write (opal_file_unit, '(2'//rfmt//')') , &
+          Bx_factor * real (  pt(ix, iz, 1)%B(1) ), &
+          Bz_factor * real (  pt(ix, iz, 1)%B(3) )						
+      enddo
+    enddo
+  
+  end if
+
+  !cleanup 
+   deallocate(pt)
+
 
   !-----------
   !SBend
@@ -530,6 +624,12 @@ select case (ele%key)
   
   
 end select 
+
+if (maxfield == 0) then
+  call out_io (s_error$, r_name, 'ZERO MAXIMUM FIELD IN ELEMENT: ' // key_name(ele%key), &
+             '----')
+  call err_exit
+end if
 
 
 
