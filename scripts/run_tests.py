@@ -28,23 +28,45 @@ def print_all(str, terminate = False):
 #----------------------------------------------------------
 def print_help():
   print 'Usage:'
-  print '   run_test.py {-bin <exe_dir>} {-test <test_dir>} {-list <test_list_file>}'
+  print '   run_test.py {-bin <exe_dir>} {-test <test_dir>} {-list <test_list_file>} {-debug}'
   print 'Defaults:'
   print '   <exe_dir>  = "../../bin"       ! Remember: Relative to test directories.' 
   print '   <test_dir> = ""                ! For running a single test. Overrides using a test list file.'
   print '   <test_list_file> = "test.list" ! For running multiple tests.'
-
+  exit()
 
 #----------------------------------------------------------
 # List of tests is in "test.list".
 
 results = open('regression.results', 'w')
 
-program_dir = '../../bin/'
-if len(sys.argv) == 2: program_dir = sys.argv[1]
-if program_dir[-1] != '/': program_dir = program_dir + '/'
-dir_file = open ('tests.list', 'r')
-dir_list = dir_file.readlines()
+bin_dir = '../../bin/'
+dir_list = []
+dir_name = 'tests.list'
+debug = False
+
+i = 1
+while i < len(sys.argv):
+  if sys.argv[i] == '-bin':
+    bin_dir = sys.argv[i+1]
+    i += 1
+  elif sys.argv[i] == '-test':
+    dir_list = [sys.argv[i+1]]
+    i += 1
+  elif sys.argv[i] == '-list':
+    dir_name = [sys.argv[i+1]]
+    i += 1
+  elif sys.argv[i] == '-debug':
+    debug = True
+  else:
+    print_help()
+  i += 1
+
+if bin_dir[-1] != '/': bin_dir = bin_dir + '/'
+
+if len(dir_list) == 0:
+  dir_file = open (dir_name, 'r')
+  dir_list = dir_file.readlines()
 
 for line in dir_list:
   line = line.strip()
@@ -76,7 +98,8 @@ for line in dir_list:
 
   program = dir_split[0]
   if len(dir_split) == 2: program = dir_split[1]
-  program = program_dir + program
+  program = bin_dir + program
+  if debug: program = program + '_g'
 
   print_all ('\nStarting testing in subdirectory: ' + dir_split[0])
   print_all ('     Running program: ' + program)
