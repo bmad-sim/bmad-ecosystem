@@ -543,12 +543,12 @@ select case (ele%key)
       pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
       
       !Update ref_field if larger Bx or Bzis found
-      !TODO: Check this. 
-      if(abs(pt(ix, iz, 1)%B(1)) > maxfield) then
+      !Only check on-axis field (x=0), because this is what OPAL scales
+      if(ix == 0 .and. abs(pt(ix, iz, 1)%B(1)) > maxfield) then
          ref_field = pt(ix, iz, 1)
          maxfield = abs(ref_field%B(1))
       end if 
-      if(abs(pt(ix, iz, 1)%B(3)) > maxfield) then
+      if(ix == 0 .and. abs(pt(ix, iz, 1)%B(3)) > maxfield) then
          ref_field = pt(ix, iz, 1)
          maxfield = abs(ref_field%B(3))
       end if 
@@ -561,21 +561,20 @@ select case (ele%key)
   if (opal_file_unit > 0 )  then
 
     !Write header
-    write (opal_file_unit, '(3a)') ' 2DMagnetoStatic ZX', '  # Created from ele: ', trim(ele%name)
-    write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '  # x_min (cm), x_max (cm), n_x_points -1'
+    write (opal_file_unit, '(3a)') ' 2DMagnetoStatic XZ', '  # Created from ele: ', trim(ele%name)
     write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*z_min, 100*nz*z_step, nz, '  # z_min (cm), z_max (cm), n_z_points -1'
-    
+    write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '  # x_min (cm), x_max (cm), n_x_points -1'
 
     !Scaling for T7 format
    Bx_factor = 1
    Bz_factor = 1
     
     !XZ ordering: ix changes fastest (inner loop)
-    do iz = 0, nz
-      do ix = 0, nx
+    do ix = 0, nx
+      do iz = 0, nz
         write (opal_file_unit, '(2'//rfmt//')') , &
-          Bx_factor * real (  pt(ix, iz, 1)%B(1) ), &
-          Bz_factor * real (  pt(ix, iz, 1)%B(3) )						
+          Bz_factor * real (  pt(ix, iz, 1)%B(3) ), &
+          Bx_factor * real (  pt(ix, iz, 1)%B(1) )						
       enddo
     enddo
   
