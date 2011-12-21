@@ -212,8 +212,6 @@ ele_loop: do ie = ix_start, ix_end
 	!----------------------------------------------------------
      case (solenoid$)
         write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
-        !ks TODO: what is this in OPAL?
-        call value_to_line (line, val(bs_field$), 'ks', rfmt, 'R')
 
         ! Write new fieldgrid file, based on the element's name
         fieldgrid_output_name = ''
@@ -222,8 +220,13 @@ ele_loop: do ie = ix_start, ix_end
 	open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
 	call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Bz)
 	close(iu_fieldgrid)
+
 	!Add FMAPFN to line
         write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
+
+        !ks field strength TODO: check specification. Seems to be Tesla
+        call value_to_line (line, absmax_Bz, 'ks', rfmt, 'R')
+
 	!elemedge
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)		
 		
@@ -234,7 +237,7 @@ ele_loop: do ie = ix_start, ix_end
         write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
         !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
         call value_to_line (line, q_sign*val(b1_gradient$), 'k1', rfmt, 'R')
-		call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 		
 	!----------------------------------------------------------
 	!Lcavity, RFCavity -----------------------------------
@@ -539,12 +542,18 @@ select case (ele%key)
       pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
       pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
       
-      !Update ref_field if larger Bz is found
+      !Update ref_field if larger Bx or Bzis found
       !TODO: Check this. 
+      if(abs(pt(ix, iz, 1)%B(1)) > maxfield) then
+         ref_field = pt(ix, iz, 1)
+         maxfield = abs(ref_field%B(1))
+      end if 
       if(abs(pt(ix, iz, 1)%B(3)) > maxfield) then
          ref_field = pt(ix, iz, 1)
          maxfield = abs(ref_field%B(3))
       end if 
+
+
     end do
   end do
   
@@ -558,11 +567,12 @@ select case (ele%key)
     
 
     !Scaling for T7 format
-   Bx_factor = (1/maxfield)*1e6_rp / ( fourpi * 1e-7)
-   Bz_factor = Bx_factor
-
-    do ix = 0, nx
-      do iz = 0, nz
+   Bx_factor = 1
+   Bz_factor = 1
+    
+    !XZ ordering: ix changes fastest (inner loop)
+    do iz = 0, nz
+      do ix = 0, nx
         write (opal_file_unit, '(2'//rfmt//')') , &
           Bx_factor * real (  pt(ix, iz, 1)%B(1) ), &
           Bz_factor * real (  pt(ix, iz, 1)%B(3) )						
