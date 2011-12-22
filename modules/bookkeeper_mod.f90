@@ -548,7 +548,8 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   if (vary_sublength == 0) then
     call out_io (s_fatal$, r_name, 'CANNOT VARY LENGTH OF SUPER_LORD: ' // lord0%name)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
+    return
   endif
 
   ! Calculate positive and negative extension length changes
@@ -641,7 +642,8 @@ if (length_adjustment_made) then
               'LORD: ' // lord0%name, &
               'LENGTH: \es16.9\ ', &
               'SUM OF SLAVE LENGTHS: \es16.9\ ', r_array = [lord0%value(l$), sum_len_slaves] )
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
+      return
     endif
   enddo
 endif
@@ -673,8 +675,9 @@ character(40) :: r_name = 'adjust_super_lord_s_position'
 !
 
 if (lord%lord_status /= super_lord$) then
-   call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
-   call err_exit
+  call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
+  if (bmad_status%exit_on_error) call err_exit
+  return 
 endif
 
 ! If a super lord is moved then we just need to adjust the start and end edges.
@@ -1026,7 +1029,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
         call out_io (s_error$, r_name, &
               'MULTIPASS MATCH_GLOBAL_COORDS CALC ERROR FOR: ' // lord%name, &
               'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
-        exit
+        call err_exit
       endif
       ang_slave = asin(arg)
       if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
@@ -1066,7 +1069,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
           call out_io (s_error$, r_name, &
                 'MULTIPASS MATCH_AT_ENTRANCE/EXIT CALC ERROR FOR: ' // lord%name, &
                 'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
-          exit
+          call err_exit
         endif
         ang_slave = asin(arg)
         if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
@@ -1188,6 +1191,7 @@ if (slave%n_lord == 1) then
 
   call makeup_super_slave1 (slave, lord, offset, lat%branch(slave%ix_branch)%param, &
                                   is_first, is_last, err_flag)
+  if (err_flag) return
 
   if (associated(lord%wall3d%section)) slave%wall3d = lord%wall3d
 
@@ -1681,7 +1685,7 @@ type (lat_param_struct) param
 
 real(rp) l_slice, offset, e_len
 
-logical at_entrance_end, at_exit_end, err_flag
+logical at_entrance_end, at_exit_end, err_flag, err2_flag
 
 character(24) :: r_name = 'create_element_slice'
 
@@ -1726,8 +1730,8 @@ if (ele_in%slave_status /= super_slave$) then
   sliced_ele%lord   => ele_in
 endif
 
-call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end, err_flag)
-if (err_flag) return
+call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end, err2_flag)
+if (err2_flag) return
 
 sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
 

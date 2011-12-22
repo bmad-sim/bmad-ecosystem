@@ -2047,7 +2047,8 @@ use mad_like, only: nmax, init_sagan_pointers, misalign_fibre, copy, c_, fibre
 
 implicit none
  
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele2
 type (fibre) fiber
 type (keywords) ptc_key
 type (lat_param_struct) :: param
@@ -2056,7 +2057,7 @@ real(dp) mis_rot(6)
 real(dp) omega(3), basis(3,3), angle(3)
 
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
-real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch
+real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch, s_rel
 
 integer n, key, n_term, exception
 integer, optional :: integ_order, steps
@@ -2248,6 +2249,11 @@ call create_fibre (fiber, ptc_key, EXCEPTION, .true.)   ! ptc routine
 
 if (key == wiggler$) then
 
+  ele2 => ele
+  if (ele2%field_calc == refer_to_lords$) ele2 => pointer_to_lord(ele2, 1)
+  if (ele2%field_calc == refer_to_lords$) ele2 => pointer_to_lord(ele2, 1)
+  s_rel = (ele%s - ele%value(l$)) - (ele2%s - ele2%value(l$))
+
   if (hyper_x$ /= hyperbolic_xdollar .or. hyper_y$ /= hyperbolic_ydollar .or. &
                                         hyper_xy$ /= hyperbolic_xydollar) then
     print *, 'ERROR IN ELE_TO_FIBRE: WIGGLER FORM/TYPE MISMATCH!'
@@ -2256,15 +2262,15 @@ if (key == wiggler$) then
     call err_exit
   endif
 
-  n_term = size(ele%wig%term)
+  n_term = size(ele2%wig%term)
   call init_sagan_pointers (fiber%mag%wi%w, n_term)   
 
-  fiber%mag%wi%w%a(1:n_term) = c_light * ele%value(polarity$) * ele%wig%term%coef / ele%value(e_tot$)
-  fiber%mag%wi%w%k(1,1:n_term)  = ele%wig%term%kx
-  fiber%mag%wi%w%k(2,1:n_term)  = ele%wig%term%ky
-  fiber%mag%wi%w%k(3,1:n_term)  = ele%wig%term%kz
-  fiber%mag%wi%w%f(1:n_term)    = ele%wig%term%phi_z
-  fiber%mag%wi%w%form(1:n_term) = ele%wig%term%type
+  fiber%mag%wi%w%a(1:n_term) = c_light * ele2%value(polarity$) * ele2%wig%term%coef / ele%value(e_tot$)
+  fiber%mag%wi%w%k(1,1:n_term)  = ele2%wig%term%kx
+  fiber%mag%wi%w%k(2,1:n_term)  = ele2%wig%term%ky
+  fiber%mag%wi%w%k(3,1:n_term)  = ele2%wig%term%kz
+  fiber%mag%wi%w%f(1:n_term)    = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
+  fiber%mag%wi%w%form(1:n_term) = ele2%wig%term%type
 
   call copy (fiber%mag, fiber%magp)
 endif
