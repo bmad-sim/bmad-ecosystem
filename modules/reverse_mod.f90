@@ -237,10 +237,10 @@ case (sbend$)
 !   on the origin, z_patch may shift and needs to be recalculated.
 
 case (wiggler$)
-  if (associated(ele%wig_term)) then
-    do i = 1, size(ele%wig_term)
-      ele%wig_term(i)%phi_z = -ele%wig_term(i)%phi_z - &
-                                      ele%wig_term(i)%kz * ele%value(l$)
+  if (associated(ele%wig)) then
+    do i = 1, size(ele%wig%term)
+      ele%wig%term(i)%phi_z = -ele%wig%term(i)%phi_z - &
+                                      ele%wig%term(i)%kz * ele%value(l$)
     enddo
     if (ele%slave_status /= super_slave$) call z_patch_calc (ele, param)
   endif

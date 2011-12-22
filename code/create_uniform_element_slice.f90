@@ -41,7 +41,7 @@ type (lat_param_struct) param
 
 integer i_slice, n_slice_tot
 real(rp) l_slice
-logical at_entrance_end, at_exit_end
+logical at_entrance_end, at_exit_end, err_exit
 
 !
 
@@ -55,6 +55,6 @@ at_exit_end = (i_slice == n_slice_tot)
 
 l_slice = ele%value(l$) / n_slice_tot
 call create_element_slice (sliced_ele, ele, l_slice, l_slice * (i_slice - 1), &
-                param, at_entrance_end, at_exit_end)
+                param, at_entrance_end, at_exit_end, err_exit)
 
 end subroutine

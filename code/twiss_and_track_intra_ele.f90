@@ -88,7 +88,8 @@ if (present(err)) err = .true.
 runt = ele
 do_entrance = (track_entrance .and. l_start == 0)
 do_exit = (track_exit .and. abs(l_end - ele%value(l$)) < bmad_com%significant_length)
-call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_entrance, do_exit)
+call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_entrance, do_exit, err_flag)
+if (err_flag) return
 
 ! Now track. 
 ! Must take care if orbit_start and orbit_end are the same actual argument so use temporary orb_at_end.

@@ -123,8 +123,8 @@ endif
 
 if (err_flag) then
   if (bmad_status%type_out) call out_io (s_fatal$, r_name, &
-        'S-POSITION \f14.8\ PAST EDGE OF LATTICE. ' , &
-        'PAST LATTICE EDGE AT: \es14.6\ ', r_array = [s, s_bound])
+        'S-POSITION \es20.12\ PAST EDGE OF LATTICE. ' , &
+        'PAST LATTICE EDGE AT: \es20.12\ ', r_array = [s, s_bound])
   if (bmad_status%exit_on_error) call err_exit
 endif
 
@@ -363,12 +363,54 @@ end function key_name_to_key_index
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine zero_ele_kicks (ele)
+!
+! Subroutine to zero any kick attributes like hkick$, bl_vkick$, etc.
+!
+! Modules needed:
+!   use bmad
+!
+! Input
+!   ele -- Ele_struct: Element with possible nonzero kicks.
+!
+! Output:
+!   ele -- Ele_struct: Element with no kicks.
+!-
+
+subroutine zero_ele_kicks (ele)
+
+implicit none
+
+type (ele_struct) ele
+
+!
+
+if (has_hkick_attributes(ele%key)) then
+  ele%value(hkick$) = 0
+  ele%value(vkick$) = 0
+  ele%value(bl_hkick$) = 0
+  ele%value(bl_vkick$) = 0
+
+elseif (has_kick_attributes(ele%key)) then
+  ele%value(kick$) = 0
+  ele%value(bl_kick$) = 0
+endif
+
+end subroutine zero_ele_kicks
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine zero_ele_offsets (ele)
 !
 ! Subroutine to zero the offsets, pitches and tilt of an element.
 !
 ! Modules needed:
 !   use bmad
+!
+! Input
+!   ele -- Ele_struct: Element with possible nonzero offsets, etc.
 !
 ! Output:
 !   ele -- Ele_struct: Element with no (mis)orientation.
@@ -644,8 +686,8 @@ s = here%vec(5)
 
 vec_pot = 0
 
-do i = 1, size(ele%wig_term)
-  t => ele%wig_term(i)
+do i = 1, size(ele%wig%term)
+  t => ele%wig%term(i)
 
     if (t%type == hyper_y$) then
       c_x = cos(t%kx * x)
@@ -923,15 +965,15 @@ vnot = (ele_taylor%value /= ele2%value)
 vnot = vnot .and. vmask
 if (any(vnot)) return
 
-if (associated(ele_taylor%wig_term) .neqv. associated(ele2%wig_term)) return
-if (associated(ele_taylor%wig_term)) then
-  if (size(ele_taylor%wig_term) /= size(ele2%wig_term)) return
-  do it = 1, size(ele_taylor%wig_term)
-    if (ele_taylor%wig_term(it)%coef  /= ele2%wig_term(it)%coef)  cycle
-    if (ele_taylor%wig_term(it)%kx    /= ele2%wig_term(it)%kx)    cycle
-    if (ele_taylor%wig_term(it)%ky    /= ele2%wig_term(it)%ky)    cycle
-    if (ele_taylor%wig_term(it)%kz    /= ele2%wig_term(it)%kz)    cycle
-    if (ele_taylor%wig_term(it)%phi_z /= ele2%wig_term(it)%phi_z) cycle
+if (associated(ele_taylor%wig) .neqv. associated(ele2%wig)) return
+if (associated(ele_taylor%wig)) then
+  if (size(ele_taylor%wig%term) /= size(ele2%wig%term)) return
+  do it = 1, size(ele_taylor%wig%term)
+    if (ele_taylor%wig%term(it)%coef  /= ele2%wig%term(it)%coef)  cycle
+    if (ele_taylor%wig%term(it)%kx    /= ele2%wig%term(it)%kx)    cycle
+    if (ele_taylor%wig%term(it)%ky    /= ele2%wig%term(it)%ky)    cycle
+    if (ele_taylor%wig%term(it)%kz    /= ele2%wig%term(it)%kz)    cycle
+    if (ele_taylor%wig%term(it)%phi_z /= ele2%wig%term(it)%phi_z) cycle
   enddo
 endif
 
@@ -1318,16 +1360,21 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (em_field_mode_struct), pointer :: mode
 logical, optional, intent(in) :: nullify_only
 integer i
 
-! nullify
+! %lord and %lat never point to something that has been allocated for the element
+! so just nullify these pointers.
 
 nullify (ele%lat)
+nullify (ele%lord)
+
+! nullify
 
 if (logic_option (.false., nullify_only)) then
-  nullify (ele%wig_term)
+  nullify (ele%wig)
   nullify (ele%const)
   nullify (ele%r)
   nullify (ele%descrip)
@@ -1338,12 +1385,12 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%gen_field)
   nullify (ele%mode3)
   nullify (ele%wall3d%section)
+  nullify (ele%em_field)
   return
 endif
 
 ! Normal deallocate
 
-if (associated (ele%wig_term))       deallocate (ele%wig_term)
 if (associated (ele%const))          deallocate (ele%const)
 if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
@@ -1360,10 +1407,27 @@ if (associated (ele%rf_wake)) then
 endif
 
 if (associated (ele%em_field)) then
-  if (allocated (ele%em_field%mode)) then
-    deallocate (ele%em_field%mode)
-  endif
+  do i = 1, size(ele%em_field%mode)
+    mode => ele%em_field%mode(i)
+    if (associated (mode%map)) then
+      mode%map%n_link = mode%map%n_link - 1
+      if (mode%map%n_link == 0) deallocate (ele%em_field%mode(i)%map)
+    endif
+    if (associated (mode%grid)) then
+      mode%grid%n_link = mode%grid%n_link - 1
+      if (mode%grid%n_link == 0) deallocate (ele%em_field%mode(i)%grid)
+    endif
+  enddo
   deallocate (ele%em_field)
+endif
+
+if (associated(ele%wig)) then
+  ele%wig%n_link = ele%wig%n_link - 1
+  if (ele%wig%n_link == 0) then
+    deallocate (ele%wig)
+  else
+    nullify (ele%wig)
+  endif
 endif
 
 if (associated (ele%taylor(1)%term)) deallocate &
@@ -2070,9 +2134,64 @@ end subroutine match_ele_to_mat6
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine transfer_wig (wig_in, wig_out)
+!
+! Subroutine to point wig_out => wig_in
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   wig_in -- Wig_struct, pointer: Input wiggler field.
+!
+! Output:
+!   wig_out -- Wig_struct, pointer: Output wiggler field.
+!-
+
+subroutine transfer_wig (wig_in, wig_out)
+
+implicit none
+
+type (wig_struct), pointer :: wig_in, wig_out
+
+!
+
+if (.not. associated(wig_in) .and. .not. associated(wig_out)) return
+if (associated(wig_in, wig_out)) return
+
+! If both associated must be pointing to different memory locations
+
+if (associated(wig_in) .and. associated(wig_out)) then
+  wig_out%n_link = wig_out%n_link - 1
+  if (wig_out%n_link == 0) deallocate (wig_out)
+  wig_out => wig_in
+  wig_out%n_link = wig_out%n_link + 1
+
+elseif (associated(wig_out)) then 
+  wig_out%n_link = wig_out%n_link - 1
+  if (wig_out%n_link == 0) then
+    deallocate (wig_out)
+  else
+    nullify (wig_out)
+  endif
+
+elseif (associated(wig_in)) then 
+  wig_out => wig_in
+  wig_out%n_link = wig_out%n_link + 1
+endif
+
+end subroutine transfer_wig
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine transfer_em_field (field_in, field_out)
 !
 ! Subroutine to transfer the field info from one struct to another.
+! In the end will have:
+!     field_out%map  => field_in%map
+!     field_out%grid => field_in%grid
 !
 ! Modules needed:
 !   use bmad
@@ -2089,17 +2208,77 @@ subroutine transfer_em_field (field_in, field_out)
 implicit none
 
 type (em_fields_struct), pointer :: field_in, field_out
+type (em_field_mode_struct), pointer :: mode, mode_in, mode_out
+
+integer i
 
 ! Rule: If field_in or field_out is associated then %mode must be allocated
 
-if (associated (field_in)) then
+if (.not. associated(field_in) .and. .not. associated(field_out)) return
 
+! field_in exists and field_out does not exist: Create field_out.
+
+if (.not. associated(field_out)) then
   call init_em_field (field_out, size(field_in%mode))
   field_out%mode = field_in%mode
-
-elseif (associated(field_out)) then
-  deallocate(field_out)
+  do i = 1, size(field_out%mode)
+    mode => field_out%mode(i)
+    if (associated(mode%map)) mode%map%n_link = mode%map%n_link + 1
+    if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link + 1
+  enddo
+  return
 endif
+
+! field_in does not exist and field_out exists: Deallocate field_out.
+
+if (.not. associated(field_in)) then
+  call init_em_field (field_out, 0)
+  return
+endif
+
+! Both field_in and field_out exist: If both point to the same memory then need
+! to do nothing. Otherwise need to transfer the data.
+
+call init_em_field (field_out, size(field_in%mode))
+
+do i = 1, size(field_out%mode)
+
+  mode_in => field_in%mode(i)
+  mode_out => field_out%mode(i)
+
+  if (associated(mode_in%map) .and. associated(mode_out%map)) then
+    if (.not. associated(mode_in%map, mode_out%map)) then
+      mode_out%map%n_link = mode_out%map%n_link - 1
+      if (mode_out%map%n_link == 0) deallocate (mode_out%map)
+      mode_out%map => mode_in%map
+      mode_out%map%n_link = mode_out%map%n_link + 1
+    endif
+  elseif (associated(mode_out%map) .and. .not. associated(mode_in%map)) then 
+    mode_out%map%n_link = mode_out%map%n_link - 1
+    if (mode_out%map%n_link == 0) deallocate (mode_out%map)
+  elseif (associated(mode_in%map) .and. .not. associated(mode_out%map)) then 
+    mode_out%map => mode_in%map
+    mode_out%map%n_link = mode_out%map%n_link + 1
+  endif
+
+  if (associated(mode_in%grid) .and. associated(mode_out%grid)) then
+    if (.not. associated(mode_in%grid, mode_out%grid)) then
+      mode_out%grid%n_link = mode_out%grid%n_link - 1
+      if (mode_out%grid%n_link == 0) deallocate (mode_out%grid)
+      mode_out%grid => mode_in%grid
+      mode_out%grid%n_link = mode_out%grid%n_link + 1
+    endif
+  elseif (associated(mode_out%grid) .and. .not. associated(mode_in%grid)) then 
+    mode_out%grid%n_link = mode_out%grid%n_link - 1
+    if (mode_out%grid%n_link == 0) deallocate (mode_out%grid)
+  elseif (associated(mode_in%grid) .and. .not. associated(mode_out%grid)) then 
+    mode_out%grid => mode_in%grid
+    mode_out%grid%n_link = mode_out%grid%n_link + 1
+  endif
+
+  mode_out = mode_in
+
+enddo
 
 end subroutine transfer_em_field
 
@@ -2115,7 +2294,7 @@ end subroutine transfer_em_field
 !   use bmad
 !
 ! Input:
-!   n_mode     -- Integer: Number of modes. If 0, nullify em_field
+!   n_mode   -- Integer: Size of %modes(:) to create. If 0, deallocate em_field
 !
 ! Output:
 !   em_field -- em_field_struct, pointer: Initialized structure.
@@ -2124,28 +2303,39 @@ end subroutine transfer_em_field
 subroutine init_em_field (em_field, n_mode)
 
 type (em_fields_struct), pointer :: em_field
+type (em_field_mode_struct), pointer :: mode
 
 integer n_mode
 
 integer i
 
+! Cases where nothing is to be done
 
-! Case for n_mode not positive.
+if (n_mode < 1 .and. .not. associated(em_field)) return
 
-if (n_mode < 1) then
-  if (associated(em_field)) deallocate(em_field)
-  return
+if (n_mode > 0 .and. associated(em_field)) then
+  if (size(em_field%mode) == n_mode) return
 endif
+
+! Must deallocate existing.
+
+if (associated(em_field)) then
+  do i = 1, size(em_field%mode)
+    mode => em_field%mode(i)
+    if (associated(mode%map)) mode%map%n_link = mode%map%n_link - 1
+    if (mode%map%n_link == 0) deallocate (mode%map)
+    if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link - 1
+    if (mode%grid%n_link == 0) deallocate (mode%grid)
+  enddo
+  deallocate(em_field)
+endif
+  
+if (n_mode < 1) return
 
 ! n_mode > 0 case.
 
-if (.not. associated (em_field)) allocate(em_field)
-if (.not. allocated(em_field%mode))  allocate(em_field%mode(n_mode))
-
-if (size(em_field%mode) /= n_mode) then
-  deallocate(em_field%mode)
-  allocate(em_field%mode(n_mode))
-endif
+allocate(em_field)
+allocate(em_field%mode(n_mode))
 
 end subroutine init_em_field
 
@@ -2832,9 +3022,10 @@ end function pointer_to_slave
 !   lord_ptr   -- Ele_struct, pointer: Pointer to the lord.
 !                   Nullified if there is an error.
 !   ix_control -- Integer, optional: Index of appropriate lat%control(:) element.
-!                   Set to -1 is there is an error.
+!                   Set to -1 is there is an error or the slave is a slice_slave.
 !   ix_slave   -- Integer, optional: Index of back to the slave. That is, 
 !                   pointer_to_slave(lord_ptr, ix_slave) will point back to slave. 
+!                   Set to -1 is there is an error or the slave is a slice_slave.
 !-
 
 function pointer_to_lord (slave, ix_lord, ix_control, ix_slave) result (lord_ptr)
@@ -2857,9 +3048,19 @@ if (ix_lord > slave%n_lord .or. ix_lord < 1) then
   return
 endif
 
-! Point to the lord
+! slice_ele stores info differently
 
 lat => slave%lat
+
+if (slave%slave_status == slice_slave$) then
+  lord_ptr => slave%lord
+  if (present(ix_control)) ix_control = -1
+  if (present(ix_slave)) ix_slave = -1
+  return
+endif
+
+! Point to the lord
+
 icon = lat%ic(slave%ic1_lord + ix_lord - 1)
 lord_ptr => lat%ele(lat%control(icon)%ix_lord)
 
@@ -3080,7 +3281,7 @@ logical is_const
 !
 
 select case (ele%key)
-case (lcavity$, custom$, hybrid$)
+case (lcavity$, custom$, hybrid$, e_gun$)
   is_const = .false.
 case (em_field$)
   if (ele%sub_key == const_ref_energy$) then

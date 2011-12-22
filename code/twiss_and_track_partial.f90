@@ -114,7 +114,8 @@ endif
 ! Create the runt element to track through.
 
 runt = ele_track
-call create_element_slice (runt, ele_track, del_s, 0.0_rp, param, track_entrance, .false.)
+call create_element_slice (runt, ele_track, del_s, 0.0_rp, param, track_entrance, .false., error)
+if (error) return
 
 ! If not easy case then do tracking...
 

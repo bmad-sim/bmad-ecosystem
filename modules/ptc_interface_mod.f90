@@ -2256,15 +2256,15 @@ if (key == wiggler$) then
     call err_exit
   endif
 
-  n_term = size(ele%wig_term)
+  n_term = size(ele%wig%term)
   call init_sagan_pointers (fiber%mag%wi%w, n_term)   
 
-  fiber%mag%wi%w%a(1:n_term) = c_light * ele%value(polarity$) * ele%wig_term%coef / ele%value(e_tot$)
-  fiber%mag%wi%w%k(1,1:n_term)  = ele%wig_term%kx
-  fiber%mag%wi%w%k(2,1:n_term)  = ele%wig_term%ky
-  fiber%mag%wi%w%k(3,1:n_term)  = ele%wig_term%kz
-  fiber%mag%wi%w%f(1:n_term)    = ele%wig_term%phi_z
-  fiber%mag%wi%w%form(1:n_term) = ele%wig_term%type
+  fiber%mag%wi%w%a(1:n_term) = c_light * ele%value(polarity$) * ele%wig%term%coef / ele%value(e_tot$)
+  fiber%mag%wi%w%k(1,1:n_term)  = ele%wig%term%kx
+  fiber%mag%wi%w%k(2,1:n_term)  = ele%wig%term%ky
+  fiber%mag%wi%w%k(3,1:n_term)  = ele%wig%term%kz
+  fiber%mag%wi%w%f(1:n_term)    = ele%wig%term%phi_z
+  fiber%mag%wi%w%form(1:n_term) = ele%wig%term%type
 
   call copy (fiber%mag, fiber%magp)
 endif

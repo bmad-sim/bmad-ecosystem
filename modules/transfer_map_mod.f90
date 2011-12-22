@@ -9,7 +9,8 @@ contains
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, one_turn, unit_start)
+! Subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, 
+!                                                                one_turn, unit_start, err_flag)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
@@ -51,9 +52,11 @@ contains
 !
 ! Output:
 !   t_map(6) -- Taylor_struct: Transfer map.
+!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, one_turn, unit_start)
+subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, &
+                                                     one_turn, unit_start, err_flag)
 
 use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
 use bookkeeper_mod, only: create_element_slice
@@ -71,8 +74,8 @@ real(rp) ss1, ss2
 integer, optional :: ix_branch
 integer ix_br
 
-logical, optional :: integrate, one_turn, unit_start
-logical integrate_this, one_turn_this, unit_start_this, err_flag
+logical, optional :: integrate, one_turn, unit_start, err_flag
+logical integrate_this, one_turn_this, unit_start_this, error_flag
 
 character(40) :: r_name = 'transfer_map_from_s_to_s'
 
@@ -84,39 +87,47 @@ branch => lat%branch(ix_br)
 integrate_this  = logic_option (.false., integrate)
 one_turn_this   = logic_option (.false., one_turn)
 unit_start_this = logic_option(.true., unit_start)
+if (present(err_flag)) err_flag = .true.
 
-call check_if_s_in_bounds (branch, real_option(0.0_rp, s1), err_flag, ss1)
-if (err_flag) return
+call check_if_s_in_bounds (branch, real_option(0.0_rp, s1), error_flag, ss1)
+if (error_flag) return
 
-call check_if_s_in_bounds (branch, real_option(branch%param%total_length, s2), err_flag, ss2)
-if (err_flag) return
+call check_if_s_in_bounds (branch, real_option(branch%param%total_length, s2), error_flag, ss2)
+if (error_flag) return
 
 if (unit_start_this) call taylor_make_unit (t_map)
 
 ! One turn or not calc?
 
-if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == linear_lattice$)) return
-
+if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == linear_lattice$)) then
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
 ! Normal case
 
 if (ss1 < ss2) then 
-  call transfer_this_map (t_map, ss1, ss2)
+  call transfer_this_map (t_map, ss1, ss2, error_flag)
+  if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%lattice_type == circular_lattice$) then
-  call transfer_this_map (t_map, ss1, branch%param%total_length)
-  call transfer_this_map (t_map, 0.0_rp, ss2)
+  call transfer_this_map (t_map, ss1, branch%param%total_length, error_flag)
+  if (error_flag) return
+  call transfer_this_map (t_map, 0.0_rp, ss2, error_flag)
+  if (error_flag) return
 
 ! For a linear (not closed) lattice compute the backwards map
 
 else
   if (unit_start_this) then
-    call transfer_this_map (t_map, ss2, ss1)
+    call transfer_this_map (t_map, ss2, ss1, error_flag)
+    if (error_flag) return
     call taylor_inverse (t_map, t_map)
   else  
     call taylor_make_unit (a_map)
-    call transfer_this_map (a_map, ss2, ss1)
+    call transfer_this_map (a_map, ss2, ss1, error_flag)
+    if (error_flag) return
     call taylor_inverse (a_map, a_map)
     call concat_taylor (t_map, a_map, t_map)
     call kill_taylor (a_map)
@@ -124,10 +135,12 @@ else
 
 endif
 
+if (present(err_flag)) err_flag = .false.
+
 !------------------------------------------------------------------------
 contains
 
-subroutine transfer_this_map (map, s_1, s_2)
+subroutine transfer_this_map (map, s_1, s_2, error_flag)
 
 type (taylor_struct) :: map(:)
 type (ele_struct), pointer, save :: ele
@@ -140,7 +153,7 @@ real(rp), save :: ds_old = -1
 integer i, ix_ele
 
 logical kill_it, track_entrance, track_exit, track_entire_ele
-logical runt_points_to_new
+logical runt_points_to_new, error_flag
 logical, save :: old_track_end = .false.
 
 ! Init
@@ -199,7 +212,8 @@ do
     if (kill_it) then
       call kill_taylor (runt%taylor)
       call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
-                                              branch%param, track_entrance, track_exit)
+                                     branch%param, track_entrance, track_exit, error_flag)
+      if (error_flag) return
     endif
 
   endif
@@ -240,7 +254,7 @@ end subroutine transfer_map_from_s_to_s
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start)
+! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start, err_flag)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
@@ -278,9 +292,10 @@ end subroutine transfer_map_from_s_to_s
 ! Output:
 !   mat6(6,6) -- Real(rp): Transfer matrix.
 !   vec0(6)   -- Real(rp): 0th order part of the map.
+!   err_flag  -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start)
+subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start, err_flag)
 
 use bookkeeper_mod, only: create_element_slice
 
@@ -295,20 +310,21 @@ real(rp) ss1, ss2
 
 integer, optional :: ix_branch
 
-logical, optional :: one_turn, unit_start
-logical one_turn_this, err_flag
+logical, optional :: one_turn, unit_start, err_flag
+logical one_turn_this, error_flag
 
 !
 
+if (present(err_flag)) err_flag = .true.
 branch => lat%branch(integer_option(0, ix_branch))
 
 one_turn_this = logic_option (.false., one_turn)
 
-call check_if_s_in_bounds (branch, real_option(0.0_rp, s1), err_flag, ss1)
-if (err_flag) return
+call check_if_s_in_bounds (branch, real_option(0.0_rp, s1), error_flag, ss1)
+if (error_flag) return
 
-call check_if_s_in_bounds (branch, real_option(branch%param%total_length, s2), err_flag, ss2)
-if (err_flag) return
+call check_if_s_in_bounds (branch, real_option(branch%param%total_length, s2), error_flag, ss2)
+if (error_flag) return
 
 if (logic_option(.true., unit_start)) then
   call mat_make_unit (mat6)
@@ -317,34 +333,42 @@ endif
 
 ! One turn or not calc?
 
-if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == linear_lattice$)) return
+if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == linear_lattice$)) then
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
 
 ! Normal case
 
 if (ss1 < ss2) then
-  call transfer_this_mat (ss1, ss2)
+  call transfer_this_mat (ss1, ss2, error_flag)
+  if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%lattice_type == circular_lattice$) then
-  call transfer_this_mat (ss1, branch%param%total_length)
-  call transfer_this_mat (0.0_rp, ss2)
+  call transfer_this_mat (ss1, branch%param%total_length, error_flag)
+  if (error_flag) return
+  call transfer_this_mat (0.0_rp, ss2, error_flag)
+  if (error_flag) return
 
 ! For a linear lattice compute the backwards matrix
 
 else
-  call transfer_this_mat (ss2, ss1)
+  call transfer_this_mat (ss2, ss1, error_flag)
+  if (error_flag) return
   call mat_inverse (mat6, mat6)
   vec0 = -matmul(mat6, vec0)
 
 endif
 
+if (present(err_flag)) err_flag = .false.
 
 !--------------------------------------------------------
 
 contains
 
-subroutine transfer_this_mat (s_1, s_2)
+subroutine transfer_this_mat (s_1, s_2, error_flag)
 
 type (ele_struct), pointer, save :: ele
 type (ele_struct), pointer, save :: runt
@@ -356,7 +380,7 @@ real(rp), save :: ds_old = -1
 integer ix_ele
 
 logical track_entrance, track_exit, track_entire_ele, kill_it
-logical runt_points_to_new
+logical runt_points_to_new, error_flag
 logical, save :: old_track_end = .false.
 
 ! Init
@@ -413,7 +437,8 @@ do
 
     if (kill_it) then
       call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
-                                            branch%param, track_entrance, track_exit)
+                                      branch%param, track_entrance, track_exit, error_flag)
+      if (error_flag) return
       call make_mat6 (runt, branch%param)
     endif
 

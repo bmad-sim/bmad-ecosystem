@@ -64,9 +64,11 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track, offset_ele)
 implicit none
 
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
 type (coord_struct) :: start, end
 type (lat_param_struct)  param
 type (track_struct), optional :: track
+type (wig_term_struct), pointer :: wig_term(:)
 
 type (save_computations_struct), allocatable, save :: tm(:)
 type (wig_term_struct), pointer :: wt
@@ -76,7 +78,7 @@ real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
-real(rp) dE_p, dpx, dpy, mc2
+real(rp) dE_p, dpx, dpy, mc2, s_offset
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 
 integer i, n_step
@@ -153,11 +155,21 @@ select case (ele%key)
 
 Case (wiggler$)
 
+  if (ele%field_calc == refer_to_lords$) then
+    lord => pointer_to_lord(ele, 1)
+    if (lord%field_calc == refer_to_lords$) lord => pointer_to_lord(lord, 1)
+    wig_term => lord%wig%term
+    s_offset = (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
+  else
+    wig_term => ele%wig%term
+    s_offset = 0
+  endif
+
   if (.not. allocated(tm)) then
-    allocate (tm(size(ele%wig_term)))
-  elseif (size(tm) < size(ele%wig_term)) then
+    allocate (tm(size(wig_term)))
+  elseif (size(tm) < size(wig_term)) then
     deallocate(tm)
-    allocate (tm(size(ele%wig_term)))
+    allocate (tm(size(wig_term)))
   endif
 
   call update_wig_coefs (calculate_mat6)
@@ -603,8 +615,8 @@ logical do_mat6
 
 factor = c_light / ele%value(p0c$)
 
-do j = 1, size(ele%wig_term)
-  wt => ele%wig_term(j)
+do j = 1, size(wig_term)
+  wt => wig_term(j)
   coef = factor * wt%coef * ele%value(polarity$)
   tm(j)%a_y%coef         = -coef * wt%kz      ! / (wt%kx * wt%ky)
   tm(j)%dint_a_y_dx%coef = -coef * wt%kz      ! / wt%ky**2
@@ -618,8 +630,8 @@ enddo
 
 if (.not. do_mat6) return
 
-do j = 1, size(ele%wig_term)
-  wt => ele%wig_term(j)
+do j = 1, size(wig_term)
+  wt => wig_term(j)
   tm(j)%a_y%dx_coef = tm(j)%a_y%coef
   tm(j)%a_y%dy_coef = tm(j)%a_y%coef
   tm(j)%dint_a_y_dx%dx_coef = tm(j)%dint_a_y_dx%coef * wt%kx
@@ -651,11 +663,11 @@ real(rp) kyy
 integer j
 logical err
 
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
 
   ! Update y-terms
 
-  wt => ele%wig_term(j)
+  wt => wig_term(j)
   kyy = wt%ky * end%vec(3)
   if (abs(kyy) < 1e-20) then
     tm(j)%c_y = 1
@@ -692,8 +704,8 @@ real(rp) kxx, kzz
 integer j
 logical err
 
-do j = 1, size(ele%wig_term)
-  wt => ele%wig_term(j)
+do j = 1, size(wig_term)
+  wt => wig_term(j)
 
   ! Update x-terms
 
@@ -718,7 +730,7 @@ do j = 1, size(ele%wig_term)
 
   ! update s-terms
 
-  kzz = wt%kz * s + wt%phi_z
+  kzz = wt%kz * (s + s_offset) + wt%phi_z
   tm(j)%c_z = cos(kzz)
   tm(j)%s_z = sin(kzz)
 
@@ -738,7 +750,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%a_y%coef * tm(j)%s_x_kx * tm(j)%s_y_ky * tm(j)%s_z
 enddo
 
@@ -756,7 +768,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%a_y%coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
 enddo
 
@@ -774,7 +786,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%a_y%coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%s_z
 enddo
 
@@ -792,7 +804,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%dint_a_y_dx%coef * tm(j)%c_x * tm(j)%c1_ky2 * tm(j)%s_z
 enddo
 
@@ -810,7 +822,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%da_z_dx%coef * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
 enddo
 
@@ -828,7 +840,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%da_z_dy%coef * tm(j)%s_x_kx * tm(j)%s_y * tm(j)%c_z
 enddo
 
@@ -846,7 +858,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%dint_a_y_dx%dx_coef * tm(j)%s_x * tm(j)%c1_ky2 * tm(j)%s_z
 enddo
 
@@ -864,7 +876,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%dint_a_y_dx%dy_coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
 enddo
 
@@ -882,7 +894,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%a_y%dx_coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
 enddo
 
@@ -900,7 +912,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%a_y%dy_coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%s_z
 enddo
 
@@ -918,7 +930,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%da_z_dx%dx_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z
 enddo
 
@@ -936,7 +948,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%da_z_dx%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
 enddo
 
@@ -954,7 +966,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%da_z_dy%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
 enddo
 
@@ -972,7 +984,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(ele%wig_term)
+do j = 1, size(wig_term)
   value = value + tm(j)%da_z_dy%dy_coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%c_z
 enddo
 

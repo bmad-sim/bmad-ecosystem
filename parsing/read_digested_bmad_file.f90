@@ -408,18 +408,20 @@ if (mode3) then
 endif
 
 if (ix_wig /= 0) then
-  allocate (ele%wig_term(ix_wig))
+  allocate (ele%wig)
+  ele%wig%n_link = 1
+  allocate (ele%wig%term(ix_wig))
   do j = 1, ix_wig
-    read (d_unit, err = 9200) ele%wig_term(j)
+    read (d_unit, err = 9200) ele%wig%term(j)
   enddo
 endif
 
 ! This is to cover up the change where periodic_type wigglers now have a single wig_term
 ! where before they did not have any.
 
-if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. &
-                                                       .not. associated(ele%wig_term)) then
-  allocate (ele%wig_term(1))
+if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. .not. associated(ele%wig)) then
+  allocate (ele%wig)
+  allocate (ele%wig%term(1))
 endif
 
 if (ix_const /= 0) then

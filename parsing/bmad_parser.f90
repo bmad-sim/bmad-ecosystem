@@ -865,22 +865,25 @@ if (lat%input_taylor_order /= 0) call set_taylor_order (lat%input_taylor_order, 
 !-------------------------------------------------------------------------
 ! energy bookkeeping.
 
-if (lat%ele(0)%value(e_tot$) /= 0 .and. lat%ele(0)%value(p0c$) /= 0) then
-  call parser_warning ('BOTH REFERENCE ENERGY AND P0C HAVE BEEN DEFINED!', stop_here = .true.)
-  call parser_end_stuff ()
-  return
+err_flag = .true.
+if (bp_com%e_tot_set .and. lat%ele(0)%value(e_tot$) < mass_of(lat%param%particle)) then
+  if (bmad_status%type_out) call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2! WILL USE 1000 * MC^2!')
+elseif (bp_com%p0c_set .and. lat%ele(0)%value(p0c$) < 0) then
+  if (bmad_status%type_out) call out_io (s_error$, r_name, 'REFERENCE MOMENTUM IS NEGATIVE! WILL USE 1000 * MC^2!')
+elseif (.not. (bp_com%p0c_set .or. bp_com%e_tot_set)) then
+  if (bmad_status%type_out) call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
+else
+  err_flag = .false.
 endif
 
-if (lat%ele(0)%value(p0c$) /= 0) then  ! beginning[p0c] = ...
-  call convert_pc_to (lat%ele(0)%value(p0c$), lat%param%particle, &
-                                           e_tot = lat%ele(0)%value(e_tot$))
-elseif (lat%ele(0)%value(e_tot$) /= 0) then
-  call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
-                                           pc = lat%ele(0)%value(p0c$))
-else
-  if (bmad_status%type_out) call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
+if (err_flag) then
   lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
+  call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, pc = lat%ele(0)%value(p0c$))
   bp_com%write_digested = .false.
+elseif (bp_com%e_tot_set) then
+  call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, pc = lat%ele(0)%value(p0c$))
+elseif (bp_com%p0c_set) then
+  call convert_pc_to (lat%ele(0)%value(p0c$), lat%param%particle, e_tot = lat%ele(0)%value(e_tot$))
 endif
 
 call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
