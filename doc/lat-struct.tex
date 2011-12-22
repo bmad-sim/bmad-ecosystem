@@ -368,19 +368,18 @@ a lord element to \vn{not_a_lord\$}.
 
 \index{super_slave\$}\index{multipass_slave\$}
 \index{patch_in_slave\$}\index{overlay_slave\$}
-\index{group_slave\$} index{free\$}
+\index{group_slave\$}\index{free\$}\index{slice_slave\$}
 The possible values for the \vn{ele%slave_status} component are:
   \begin{description}
-  \item[super_slave\$]\Newline 
-A \vn{super_slave} element is an element in the tracking part of the lattice that 
-has one or more \vn{super_lord} lords (\sref{s:super}).
+  \item[free\$]\Newline
+Free elements do not have any lord elements controlling them.
+  \item[group_slave\$]\Newline
+A \vn{group_slave} is an element that has one or more \vn{group_lord}
+elements controlling the slave's attributes.  A \vn{group_slave} 
+will not have any other types of lords.
   \item[multipass_slave\$]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
 (\sref{s:multipass}).
-  \item[patch_in_slave\$]\Newline
-A \vn{patch_in_slave} is a \vn{patch} element that is also a
-\vn{multipass_lord} with \vn{%ref_orbit} set to \vn{patch_out\$}
-(\sref{s:multipass}). 
   \item[overlay_slave\$]\Newline 
 An \vn{overlay_slave} is an element that has one or more
 \vn{overlay_lord} or \vn{girder_lord} lords. 
@@ -389,13 +388,19 @@ zero associated \vn{overlay_lord}s as long as it has a \vn{girder_lord}.
 Thus the term \vn{overlay_slave} is
 a bit misleading. An \vn{overlay_slave} can also have associated
 \vn{group_lord} elements.
-  \item[group_slave\$]\Newline
-A \vn{group_slave} is an element that has one or more \vn{group_lord}
-elements controlling the slave's attributes.  A \vn{group_slave} 
-will not have any other types of lords.
-  \item[free\$]\Newline
-Free elements do not have any lord elements controlling them.
+  \item[patch_in_slave\$]\Newline
+A \vn{patch_in_slave} is a \vn{patch} element that is also a
+\vn{multipass_lord} with \vn{%ref_orbit} set to \vn{patch_out\$}
+(\sref{s:multipass}). 
+  \item[slice_slave\$]\Newline
+A \vn{slice_slave} element represents a longitudinal slice of another element.
+Slice elements are not part of the lattice but rather are created on-the-fly
+when, for example, a program needs to track part way through an element.
+  \item[super_slave\$]\Newline 
+A \vn{super_slave} element is an element in the tracking part of the lattice that 
+has one or more \vn{super_lord} lords (\sref{s:super}).
 \end{description}
+
 Any element whose \vn{%slave_status} is something other than
 \vn{free\$} is called a \vn{slave} element. \vn{super_slave} elements
 always appear in the tracking part of the lattice. The other types can
@@ -509,13 +514,13 @@ use the routines \Hyperref{r:pointer.to.slave}{pointer_to_slave} and
 
   do i = 1, this_ele%n_lord   ! Loop over all lords of this_ele
     ! lord_ele points to the i^th lord element of this_ele
-    lord_ele => pointer_to_lord (lat, this_ele, i)  
+    lord_ele => pointer_to_lord (this_ele, i)  
     ...
   enddo
 
   do i = 1, this_ele%n_slave  ! Loop over all slaves of this_ele
     ! slave_ele points to the i^th slave element of this_ele
-    slave_ele => pointer_to_slave (lat, this_ele, i) 
+    slave_ele => pointer_to_slave (this_ele, i) 
     ...
   enddo
 \end{example}
@@ -523,22 +528,22 @@ The lord/slave bookkeeping is bidirectional. That is,
 for any given element, call it \vn{this_ele}, consider the
 i\Th lord:
 \begin{example}
-  lord_ele_i => pointer_to_lord (lat, this_ele, i)
+  lord_ele_i => pointer_to_lord (this_ele, i)
 \end{example}
 then there will always be some index j such that the 
 element pointed to by
 \begin{example}
-  pointer_to_slave(lat, lord_ele_i, j)
+  pointer_to_slave(lord_ele_i, j)
 \end{example}
 is the original element \vn{this_ele}. The same is true for
 the slaves of any given element. That is, for the i\Th slave
 \begin{example}
-  slave_ele_i => pointer_to_slave (lat, this_ele, i)
+  slave_ele_i => pointer_to_slave (this_ele, i)
 \end{example}
 there will always be some index j such that the 
 element pointed to by
 \begin{example}
-  pointer_to_lord(lat, slave_ele_i, j)
+  pointer_to_lord(slave_ele_i, j)
 \end{example}
 \index{patch_in_slave}
 will be the original element \vn{this_ele}. 
@@ -559,17 +564,17 @@ element are ordered from the entrance end of the \vn{super_lord}
 to the exit end. That is, in the code snippet above,
 \vn{pointer_to_slave (lat, this_ele, 1)} will point to the slave at
 the start of the \vn{super_lord} and 
-\vn{ pointer_to_slave (lat, this_ele, this_ele%n_lord)}
+\vn{ pointer_to_slave (this_ele, this_ele%n_lord)}
 will point to the slave at the exit end of the \vn{super_lord}.
   \item[Slaves of a multipass_lord:] \Newline
 The associated \vn{multipass_slave} elements of a 
 \vn{multipass_lord} element are ordered by pass number. That is, 
-in the code snippet above, \vn{pointer_to_slave (lat, this_ele, i)}
+in the code snippet above, \vn{pointer_to_slave (this_ele, i)}
 will point to the slave of the $i$\Th pass.
   \item[Lord of a multipass_slave:] \Newline
 A \vn{multipass_slave} will have exactly one associated \vn{multipass_lord}
 and this lord will be the first one. That is, 
-\vn{pointer_to_slave (lat, this_ele, 1)}.
+\vn{pointer_to_slave (this_ele, 1)}.
   \item[Patch_in_slave:] \Newline
 When a lattice input file has a \vn{patch} element that is used in a
 multipass line and the \vn{patch} element has its \vn{ref_orbit}
@@ -624,7 +629,7 @@ on all group elements in a lattice.
     if (lord%lord_status = group_lord$) then 
       print *, 'Slaves for group lord: ', lord%name
       do j = 1, lord%n_slave
-        slave => pointer_to_slave (lat, lord, j, ix_con)
+        slave => pointer_to_slave (lord, j, ix_con)
         con => lat%control(ix_con)
         attrib_name = attribute_name (slave, con%ix_attrib)
         print *, i, slave%name, attrib_name, con%coef
@@ -647,9 +652,9 @@ lord. Example:
   ...
   lord => lat%ele(i)                    ! Point to some element
   if (lord%n_slave > 0) then
-    slave => pointer_to_slave (lat, lord, 1, ix_con)
+    slave => pointer_to_slave (lord, 1, ix_con)
     print *, lord%ix1_slave == ix_con   ! Will print "T" for True
-    slave => pointer_to_slave (lat, lord, lord%n_slave, ix_con)
+    slave => pointer_to_slave (lord, lord%n_slave, ix_con)
     print *, lord%ix2_slave == ix_con   ! Will print "T" for True
   endif
 \end{example}
@@ -663,7 +668,7 @@ taking advantage of the fact that the pass number
   slave => lat%ele(i)                ! Point to some element  
   if (slave%slave_status == multipass_slave$) then
     ! The multipass_lord of this element is the first lord.
-    lord => pointer_to_lord(lat, slave, 1, ix_con)   
+    lord => pointer_to_lord(slave, 1, ix_con)   
     print *, 'Multipass_slave: ', slave%name
     print *, 'Is in pass number:', ix_con - lord%ix1_slave + 1
   endif
@@ -680,7 +685,7 @@ avoided. For the interested reader, the entire
 \vn{pointer_to_lord} function (minus
 some error checking) is:
 \begin{example}
-  function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
+  function pointer_to_lord (slave, ix_lord, ix_control) result (lord_ptr)
     implicit none
     type (lat_struct), target :: lat
     type (ele_struct) slave

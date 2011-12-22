@@ -310,13 +310,13 @@ select case (ele%field_calc)
     k_wave = pi / ele%value(l$)
     omega = c_light * k_wave
 
-    E_r = E_grad * r * k_wave * sin(k_wave*s_rel) * cos(omega * t + phase)
+    E_r = E_grad * r * k_wave * sin(k_wave*s_rel) * cos(omega * t_rel + phase)
 
     field%E(1) = -E_r * cos (theta)                                  
     field%E(2) = -E_r * sin (theta)
-    field%E(3) = 2 * E_grad * cos(k_wave*s_rel) * cos(omega * t + phase)
+    field%E(3) = 2 * E_grad * cos(k_wave*s_rel) * cos(omega * t_rel + phase)
     
-    B_phi = -E_grad * r * k_wave * cos(k_wave*s_rel) * sin(omega * t + phase) / c_light 
+    B_phi = -E_grad * r * k_wave * cos(k_wave*s_rel) * sin(omega * t_rel + phase) / c_light 
     field%B(1) = -B_phi * sin(theta)
     field%B(2) =  B_phi * cos(theta)
 
@@ -331,8 +331,8 @@ select case (ele%field_calc)
 
   case(wiggler$)
 
-    do i = 1, size(ele%wig_term)
-      wig => ele%wig_term(i)
+    do i = 1, size(ele%wig%term)
+      wig => ele%wig%term(i)
 
       if (wig%type == hyper_y$) then
         c_x = cos(wig%kx * x)

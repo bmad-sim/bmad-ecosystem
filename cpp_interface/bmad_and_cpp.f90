@@ -1331,7 +1331,7 @@ descrip =  ' '
 if (associated(f%descrip)) descrip = f%descrip
 
 n_wig = 0
-if (associated(f%wig_term)) n_wig = size(f%wig_term)
+if (associated(f%wig)) n_wig = size(f%wig%term)
 
 value(0) = 0
 value(1:) = f%value
@@ -1354,10 +1354,12 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
 
 if (associated(f%r)) deallocate(r_arr)
 
-do i = 1, n_wig
-  w => f_ele%wig_term(i)
-  call wig_term_in_ele_to_c2 (c_ele, i, w%coef, w%kx, w%ky, w%kz, w%phi_z, w%type)
-end do
+if (associated(f%wig)) then
+  do i = 1, n_wig
+    w => f_ele%wig%term(i)
+    call wig_term_in_ele_to_c2 (c_ele, i, w%coef, w%kx, w%ky, w%kz, w%phi_z, w%type)
+  end do
+endif
 
 end subroutine
 
@@ -1445,17 +1447,15 @@ call taylor_to_f (tlr4, f%taylor(4))
 call taylor_to_f (tlr5, f%taylor(5))
 call taylor_to_f (tlr6, f%taylor(6))
 
-if (n_wig == 0) then
-  if (associated(f%wig_term)) deallocate (f%wig_term)
-else
-  if (associated(f%wig_term)) then
-    if (size(f%wig_term) /= n_wig) then
-      deallocate (f%wig_term)
-      allocate (f%wig_term(n_wig))
-    endif
-  else
-    allocate (f%wig_term(n_wig))
-  endif
+if (associated(f%wig)) then
+  f%wig%n_link = f%wig%n_link - 1
+  if (f%wig%n_link == 0) deallocate (f%wig%term)
+  nullify (f%wig)
+endif
+
+if (n_wig /= 0) then
+  allocate (f%wig)
+  allocate (f%wig%term(n_wig))
 endif
 
 f%value                 = value
@@ -1569,7 +1569,7 @@ type (ele_struct) f_ele
 real(rp) coef, kx, ky, kz, phi_z
 integer it, tp
 
-f_ele%wig_term(it) = wig_term_struct(coef, kx, ky, kz, phi_z, tp)
+f_ele%wig%term(it) = wig_term_struct(coef, kx, ky, kz, phi_z, tp)
 
 end subroutine
 

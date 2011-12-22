@@ -23,6 +23,7 @@ subroutine lat_compute_reference_energy (lat)
 use lat_ele_loc_mod
 use bookkeeper_mod
 use multipass_mod
+use rf_mod
 
 implicit none
 
@@ -193,6 +194,13 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     lord%value(p0c_start$)   = slave%value(p0c_start$)
   endif
 
+  ! Autophase rfcavity lords.
+
+  if (lord%key == rfcavity$) then
+    slave => pointer_to_slave(lord, 1)
+    call rf_accel_mode_adjust_phase_and_amp (lord, lat%branch(slave%ix_branch)%param)
+  endif
+
 enddo
 
 end subroutine lat_compute_reference_energy
@@ -224,7 +232,7 @@ use rf_mod
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct) ele, ele2
 type (lat_param_struct) :: param
 type (coord_struct) start_orb, end_orb
 
@@ -273,7 +281,18 @@ case (lcavity$)
       call rf_accel_mode_adjust_phase_and_amp (ele, param)
     endif
 
-    call track1 (start_orb, ele, param, end_orb)
+    ! For reference energy tracking need to turn off any element offsets and kicks.
+    ! If a super_slave, only want to track through the accelerating element.
+
+    ele2 = ele
+    if (ele2%slave_status == super_slave$) then
+      
+    else
+      call zero_ele_offsets (ele2)
+      call zero_ele_kicks (ele2)
+    endif
+
+    call track1 (start_orb, ele2, param, end_orb)
     E_tot = ele%value(E_tot$)
     p0c = ele%value(p0c$)
     ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
@@ -289,6 +308,22 @@ case (custom$, hybrid$)
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$))
 
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+
+case (e_gun$)
+  ele%value(E_tot_start$) = E_tot_start
+  ele%value(p0c_start$) = p0c_start
+
+  ele%value(E_tot$) = E_tot_start + ele%value(voltage$)
+  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$))
+
+  ele2 = ele
+  call zero_ele_offsets (ele2)
+  call zero_ele_kicks (ele2)
+
+  call track1 (start_orb, ele2, param, end_orb)
+  E_tot = ele%value(E_tot$)
+  p0c = ele%value(p0c$)
+  ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
 
 case (crystal$, mirror$, multilayer_mirror$)
   ele%value(ref_wavelength$) = c_light * h_planck / E_tot_start
@@ -318,6 +353,10 @@ case default
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
   ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+
+  if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
+    call rf_accel_mode_adjust_phase_and_amp (ele, param)
+  endif
 
 end select
 

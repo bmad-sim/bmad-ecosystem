@@ -214,7 +214,7 @@ ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
 mode3 = .false.; n_wall_section = 0; n_rf_field_mode = 0
 
 if (associated(ele%mode3))          mode3 = .true.
-if (associated(ele%wig_term))       ix_wig = size(ele%wig_term)
+if (associated(ele%wig))            ix_wig = size(ele%wig%term)
 if (associated(ele%const))          ix_const = size(ele%const)
 if (associated(ele%r))              ix_r = 1
 if (associated(ele%descrip))        ix_d = 1
@@ -310,7 +310,7 @@ endif
 if (mode3) write (d_unit) ele%mode3
 
 do j = 1, ix_wig
-  write (d_unit) ele%wig_term(j)
+  write (d_unit) ele%wig%term(j)
 enddo
 
 if (associated(ele%const))    write (d_unit) ele%const

@@ -65,16 +65,25 @@ type bpm_phase_coupling_struct
   real(rp) phi_b    ! b-mode betatron phase.
 end type
 
-! Wiggler structures
+! Wiggler 
 
 integer, parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
 character(8), parameter :: wig_term_type_name(0:3) = ['Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ']
+
+! Single wiggler term
 
 type wig_term_struct
   real(rp) coef
   real(rp) kx, ky, kz
   real(rp) phi_z
   integer type      ! hyper_y$, hyper_xy$, or hyper_x$
+end type
+
+! Wiggler field
+
+type wig_struct
+  integer :: n_link = 1             ! For memory management of %term
+  type (wig_term_struct), allocatable :: term(:)   ! Wiggler Coefs
 end type
 
 ! Wakefield structs...
@@ -135,6 +144,7 @@ end type
 
 type em_field_mode_map_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  integer :: n_link = 1         ! For memory management of this structure
   real(rp) :: dz = 0            ! Distance between sampled field points.
   type (em_field_map_term_struct), allocatable :: term(:)
 end type
@@ -147,6 +157,7 @@ end type
 type em_field_grid_struct
   integer :: type = 0           ! Type of grid structure
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  integer :: n_link = 1         ! For memory management of this structure
   type (em_field_point_struct), allocatable :: pt(:,:,:)
   real(rp) :: dr(3) = 0   ! Grid spacing.
   real(rp) :: r0(3) = 0   ! Grid origin.
@@ -270,10 +281,11 @@ type ele_struct
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
-  type (wig_term_struct), pointer :: wig_term(:) => null()  ! Wiggler Coefs
+  type (wig_struct), pointer :: wig => null()  ! Wiggler field
   type (space_charge_struct), pointer :: space_charge => null()
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
   type (lat_struct), pointer :: lat => null()  ! Pointer to lattice containing this element.
+  type (ele_struct), pointer :: lord => null() ! Pointer to a slice lord.
   type (bookkeeper_status_struct) status       ! For keeping track of what bookkeeping has been done.
   real(rp) value(n_attrib_maxx)                ! attribute values.
   real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
@@ -671,13 +683,13 @@ logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
-integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, patch_in_slave$ = 12, sliced_slave$ = 13
+integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, patch_in_slave$ = 12, slice_slave$ = 13
 
 character(16), parameter :: control_name(13) = [ &
             'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', 'GROUP_LORD     ', &
             'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
             'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'PATCH_IN_SLAVE ', &
-            'SLICED_SLAVE   ']
+            'SLICE_SLAVE    ']
 
 ! plane list, etc
 

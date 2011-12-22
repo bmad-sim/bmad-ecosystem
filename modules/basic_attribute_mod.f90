@@ -436,6 +436,8 @@ call init_attrib (def_beam_start$, e_field_y$,             'E_FIELD_Y')
 call init_attrib (def_beam_start$, phase_x$,               'PHASE_X')
 call init_attrib (def_beam_start$, phase_y$,               'PHASE_Y')
 
+call init_attrib (e_gun$, e_tot_start$,                    'E_TOT_START')
+call init_attrib (e_gun$, p0c_start$,                      'P0C_START')
 call init_attrib (e_gun$, gradient$,                       'GRADIENT')
 call init_attrib (e_gun$, voltage$,                        'VOLTAGE')
 call init_attrib (e_gun$, field_calc$,                     'FIELD_CALC')

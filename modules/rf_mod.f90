@@ -2,7 +2,7 @@ module rf_mod
 
 use runge_kutta_mod
 
-type (em_field_mode_struct), pointer, private :: mode1
+real(rp), pointer, private :: field_scale, theta_t0
 type (lat_param_struct), pointer, private :: param_com
 type (ele_struct), pointer, private :: ele_com
 
@@ -38,15 +38,12 @@ contains
 !
 ! Input:
 !   ele   -- ele_struct: RF element. Either lcavity or rfcavity.
-!     %em_field(1) -- Accelerating mode.
 !     %value(gradient$) -- Accelerating gradient to match to if an lcavity.
 !     %value(voltage$)  -- Accelerating voltage to match to if an rfcavity.
 !   param -- lat_param_struct: lattice parameters
 !
 ! Output:
-!   ele -- ele_struct: RF element.
-!     %em_field%mode(1)%theta_t0    -- RF phase
-!     %em_field%mode(1)%field_scale -- RF amplitude.
+!   ele -- ele_struct: element with phase and amplitude adjusted.
 !-
 
 subroutine rf_accel_mode_adjust_phase_and_amp (ele, param)
@@ -69,20 +66,27 @@ logical step_up_seen
 
 ! Init
 
-mode1 => ele%em_field%mode(1)
+if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
 
-! Only do the adjustment if mode1 is an acceleration mode.
+nullify(field_scale)
 
-if (mode1%m /= 0) return  
-!Check for a valid map or the existence of a grid
-if(associated(mode1%map) ) then
-  if (all(mode1%map%term%e_coef == 0) .and. .not. associated(mode1%grid)) return
-else 
-  if (.not. associated(mode1%grid)) return
-endif
-if (ele%field_calc /= grid$ .and. ele%field_calc /= map$ .and. ele%field_calc /= custom$ ) return
+select case (ele%field_calc)
+case (bmad_standard$) 
+  field_scale => ele%value(field_scale$)
+  theta_t0 => ele%value(theta_t0$)
+case (grid$, map$, custom$)
+  do i = 1, size(ele%em_field%mode)
+    if (ele%em_field%mode(i)%freq /= 0 .and. ele%em_field%mode(i)%m == 0) then
+      field_scale => ele%em_field%mode(i)%field_scale
+      theta_t0 => ele%em_field%mode(i)%theta_t0
+      exit
+    endif
+  enddo
+end select
 
-!
+if (.not. associated(field_scale)) return
+
+! 
 
 ele_com => ele
 param_com => param
@@ -104,7 +108,7 @@ end select
 n_loop = 0  ! For debug purposes.
 
 if (wanted_de == 0) then
-  mode1%field_scale = 0
+  field_scale = 0
   return
 endif
 
@@ -116,7 +120,7 @@ ele%value(dphi0$) = 0
 tracking_method_saved = ele%tracking_method
 if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
 
-theta_max = mode1%theta_t0   ! Init guess
+theta_max = theta_t0   ! Init guess
 if (ele%key == rfcavity$) theta_max = theta_max - 0.25
 
 theta_max_old = 100 ! Number far from unity
@@ -151,7 +155,7 @@ coarse_loop: do
     theta_max = theta
     step_up_seen = .true.
     if (i == 10) then  ! field too strong and always loosing particles
-      mode1%field_scale = mode1%field_scale / 10
+      field_scale = field_scale / 10
       cycle coarse_loop
     endif
   enddo
@@ -188,7 +192,7 @@ coarse_loop: do
   call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
   f_correct = wanted_de / (e_tot - e_tot_start)
   if (f_correct > 1000) f_correct = max(1000.0_rp, f_correct / 10)
-  mode1%field_scale = mode1%field_scale * f_correct
+  field_scale = field_scale * f_correct
 
   if (abs(f_correct - 1) < pz_tol .and. abs(theta_max-theta_max_old) < theta_tol) exit
   theta_max_old = theta_max
@@ -211,7 +215,7 @@ if (ele%key == rfcavity$) then
     if (pz < 0) exit
     theta_max = theta
   enddo
-  mode1%theta_t0 = modulo2 (zbrent(neg_pz_calc, theta_max, theta_max+dtheta, 1d-9), 0.5_rp)
+  theta_t0 = modulo2 (zbrent(neg_pz_calc, theta_max, theta_max+dtheta, 1d-9), 0.5_rp)
 endif
 
 ! Cleanup
@@ -219,9 +223,6 @@ endif
 ele%value(phi0$) = phi0_saved
 ele%value(dphi0$) = dphi0_saved
 ele%tracking_method = tracking_method_saved
-
-!print '(i4, f12.0, 3f12.6)', n_loop, mode1%field_scale, mode1%theta_t0, &
-!                              -neg_pz_calc(mode1%theta_t0), pz_max
 
 end subroutine rf_accel_mode_adjust_phase_and_amp
 
@@ -237,7 +238,7 @@ real(rp) neg_pz
 
 ! brent finds minima so need to flip the final energy
 
-mode1%theta_t0 = theta
+theta_t0 = theta
 call track1 (start_orb, ele_com, param_com, end_orb)
 neg_pz = -end_orb%vec(6)
 if (param_com%lost) neg_pz = 1

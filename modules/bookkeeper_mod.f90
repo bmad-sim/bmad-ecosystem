@@ -808,10 +808,7 @@ if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
 endif
 
 if (associated(lord%wall3d%section)) slave%wall3d = lord%wall3d
-
-if (slave%key /= wiggler$) then
-  slave%field_calc = refer_to_lords$
-endif
+slave%field_calc = refer_to_lords$
 
 ! A slave's field_master = T irregardless of the lord's setting.
 ! This is to make attribute_bookkeeper compute the correct normalized field strength.
@@ -857,7 +854,9 @@ if (associated (slave%a_pole)) then
   slave%scale_multipoles = lord%scale_multipoles
 endif
 
-! RF wakes and fields
+! RF wakes and fields, and wigglers
+
+call transfer_wig (lord%wig, slave%wig)
 
 call transfer_em_field (lord%em_field, slave%em_field)
 
@@ -1125,7 +1124,7 @@ real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
 real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
-logical is_first, is_last, wall3d_here
+logical is_first, is_last, wall3d_here, err_flag
 logical, save :: init_needed = .true.
 
 character(20) :: r_name = 'makeup_super_slave'
@@ -1147,15 +1146,14 @@ slave%status%control = ok$
 call set_ele_status_stale (slave, branch%param, attribute_group$)
 
 if (slave%slave_status /= super_slave$) then
-   call out_io(s_abort$, r_name, "ELEMENT IS NOT A SUPER SLAVE: " // slave%name)
-  call err_exit
+  call out_io(s_abort$, r_name, "ELEMENT IS NOT A SUPER SLAVE: " // slave%name)
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
 
-! wigglers are grandfathered for now...
+!
 
-if (slave%key /= wiggler$) then
-  slave%field_calc = refer_to_lords$
-endif
+slave%field_calc = refer_to_lords$
 
 !-----------------------------------------------------------------------
 ! 1 super_lord for this super_slave: just transfer attributes except length
@@ -1188,7 +1186,8 @@ if (slave%n_lord == 1) then
 
   if (is_last) slave%value(l$) = lord%value(l$) - offset
 
-  call makeup_super_slave1 (slave, lord, offset, lat%branch(slave%ix_branch)%param, is_first, is_last)
+  call makeup_super_slave1 (slave, lord, offset, lat%branch(slave%ix_branch)%param, &
+                                  is_first, is_last, err_flag)
 
   if (associated(lord%wall3d%section)) slave%wall3d = lord%wall3d
 
@@ -1643,7 +1642,7 @@ end subroutine makeup_super_slave
 !--------------------------------------------------------------------------
 !+
 ! Subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset,
-!                                                 param, at_entrance_end, at_exit_end)
+!                                            param, at_entrance_end, at_exit_end, err_flag)
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
 ! Note: This routine essentially only modifies the sliced_ele%value array so 
@@ -1668,29 +1667,34 @@ end subroutine makeup_super_slave
 !
 ! Output:
 !   sliced_ele -- Ele_struct: Sliced_ele element with appropriate values set.
+!   err_flag   -- Logical: Set True if there is an error. False otherwise.
 !-
 
 subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
-                                                       param, at_entrance_end, at_exit_end)
+                                                param, at_entrance_end, at_exit_end, err_flag)
 
 implicit none
 
 type (ele_struct), target :: sliced_ele, ele_in
+type (ele_struct), save :: ele2
 type (lat_param_struct) param
 
 real(rp) l_slice, offset, e_len
 
-logical at_entrance_end, at_exit_end
+logical at_entrance_end, at_exit_end, err_flag
 
 character(24) :: r_name = 'create_element_slice'
 
 ! Err check. Remember: the element length may be negative
 
+err_flag = .true.
+
 if (ele_in%key == taylor$ .or. ele_in%key == hybrid$) then
   call out_io (s_fatal$, r_name, &
         'CANNOT SLICE ELEMENT OF TYPE: ' // key_name(ele_in%key), &
         'CANNOT SLICE: ' // ele_in%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
 
 e_len = ele_in%value(l$)
@@ -1698,26 +1702,32 @@ if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_leng
   call out_io (s_fatal$, r_name, &
         'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele_in%name, &
         'LENGTH: \2es12.3\ ', r_array = [l_slice, e_len])
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
 
 ! Simple case where ele length is zero
 
 if (e_len == 0) then
   sliced_ele = ele_in
+  err_flag = .false.
   return
 endif
 
 ! The sliced element is treated as a super_slave to the original element except
 ! if that element is a super_slave in which case the sliced element has the same lords
 ! as the original element.
-! Note: Setting the %slave_status to sliced_slave$ prevents attribute_bookkeeper from setting
-! periodic wiggler phi_z values.
-
-if (ele_in%slave_status /= super_slave$) sliced_ele%slave_status = sliced_slave$
 
 sliced_ele%value(l$) = l_slice
-call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end)
+
+if (ele_in%slave_status /= super_slave$) then
+  sliced_ele%slave_status = slice_slave$
+  sliced_ele%n_lord = 1
+  sliced_ele%lord   => ele_in
+endif
+
+call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end, err_flag)
+if (err_flag) return
 
 sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
 
@@ -1739,19 +1749,20 @@ case (taylor$, symp_map$, symp_lie_ptc$)
   end select
 end select
 
-if (sliced_ele%key /= wiggler$) then
-  sliced_ele%field_calc = refer_to_lords$
-endif
+sliced_ele%field_calc = refer_to_lords$
 
 ! If the reference energy is changing it can be nonlinear as a function of s so use a slice 
 ! from the beginning of ele_in to get the starting ref energy of the slice.
 
 if (.not. ele_has_constant_reference_energy(sliced_ele)) then
-  sliced_ele%value(l$) = offset
-  call compute_ele_reference_energy (sliced_ele, param, ele_in%value(e_tot_start$), ele_in%value(p0c_start$), 0.0_rp)
-  sliced_ele%value(e_tot_start$) = sliced_ele%value(e_tot$)
-  sliced_ele%value(p0c_start$)   = sliced_ele%value(p0c$)
+  call transfer_ele (sliced_ele, ele2)
+  ele2%value(l$) = offset
+  ele2%s = ele_in%s - ele_in%value(l$) + offset
+  call compute_ele_reference_energy (ele2, param, ele_in%value(e_tot_start$), ele_in%value(p0c_start$), ele_in%ref_time)
+  call compute_ele_reference_energy (sliced_ele, param, ele2%value(e_tot_start$), ele2%value(p0c_start$), ele2%ref_time)
 endif
+
+err_flag = .false.
 
 end subroutine create_element_slice
 
@@ -1761,15 +1772,13 @@ end subroutine create_element_slice
 !+
 ! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
 !
-! Routine to transfer the %value, %wig_term, and %rf information from a 
-! superposition lord to a slave when the slave has only one lord.
+! Routine to construct a super_slave from a super_lord when the slave has only one lord.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
 !   slave  -- Ele_struct: Slave element.
-!     %value(l$) -- Length of slave.
 !   lord   -- Ele_struct: Lord element.
 !   offset -- Real(rp): offset of entrance end of slave from entrance end of the lord.
 !   param  -- Lat_param_struct: lattice paramters.
@@ -1777,10 +1786,11 @@ end subroutine create_element_slice
 !   at_exit_end     -- Logical: Slave contains the lord's exit end?
 !
 ! Output:
-!   slave -- Ele_struct: Slave element with appropriate values set.
+!   slave    -- Ele_struct: Slave element with appropriate values set.
+!   err_flag -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
+subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end, err_flag)
 
 implicit none
 
@@ -1790,15 +1800,18 @@ type (lat_param_struct) param
 real(rp) offset, s_del, coef
 real(rp) value(n_attrib_maxx)
 integer i
-logical at_entrance_end, at_exit_end
+logical at_entrance_end, at_exit_end, err_flag
 character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
 ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
 
+err_flag = .true.
+
 if (lord%value(l$) == 0) then
   call out_io (s_fatal$, r_name, 'LORD HAS ZERO LENGTH!')
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
 
 if (abs(slave%value(l$)) > abs(lord%value(l$))) then
@@ -1849,44 +1862,12 @@ slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
 slave%map_with_offsets = lord%map_with_offsets
 
-! If a wiggler: 
-! must keep track of where we are in terms of the unsplit wiggler.
-! This is for anything which does not try to make a homogeneous approximation.
+! wiggler fields and electro-magnetic fields
 
-if (slave%key == wiggler$) then
-  slave%value(n_pole$) = lord%value(n_pole$) * coef
+if (slave%key == wiggler$) slave%value(n_pole$) = lord%value(n_pole$) * coef
+call transfer_wig (lord%wig, slave%wig)
 
-  if (associated(lord%wig_term)) then
-    if (.not. associated (slave%wig_term) .or. size(slave%wig_term) /= size(lord%wig_term)) then
-      if (associated (slave%wig_term)) deallocate (slave%wig_term)
-      allocate (slave%wig_term(size(lord%wig_term)))
-    endif
-    do i = 1, size(lord%wig_term)
-      slave%wig_term(i) = lord%wig_term(i)
-      slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + lord%wig_term(i)%kz * offset
-    enddo
-  else
-    if (associated (slave%wig_term)) deallocate (slave%wig_term)
-  endif
-
-endif
-
-! If has rf modes then adjust the time.
-
-if (associated(lord%em_field)) then
-  if (.not. associated (slave%em_field)) then
-    allocate (slave%em_field)
-    allocate (slave%em_field%mode(size(lord%em_field%mode)))
-    slave%em_field = lord%em_field
-  endif
-
-  do i = 1, size(slave%em_field%mode)
-    slave%em_field%mode(i)%field_scale = lord%em_field%mode(i)%field_scale
-    slave%em_field%mode(i)%theta_t0    = lord%em_field%mode(i)%theta_t0 + &
-                            lord%em_field%mode(i)%freq * (slave%ref_time - lord%ref_time)
-  enddo
-
-endif
+call transfer_em_field(lord%em_field, slave%em_field)
 
 ! If an sbend:
 !     1) renormalize the angles
@@ -1927,6 +1908,8 @@ endif
 
 slave%status%attributes = stale$
 call attribute_bookkeeper (slave, param)
+
+err_flag = .false.
 
 end subroutine makeup_super_slave1
 
@@ -2501,7 +2484,7 @@ case (wiggler$)
     val(n_pole$) = val(l$) / val(l_pole$)
   endif
 
-  ! Periodic_type wigglers have a single %wig_term for use with tracking, etc.
+  ! Periodic_type wigglers have a single %wig%term for use with tracking, etc.
   ! The phase of this term is set so that tracking with a particle starting
   ! on-axis ends on-axis. For this to be true, there must be an integer number
   ! of poles.
@@ -2509,19 +2492,23 @@ case (wiggler$)
   ! For super_slave and sliced elements, the phi_z is set by the position with respect to the lord in
   ! the routine makeup_super_slave1 and so should not be touched here.
 
-  if (ele%sub_key == periodic_type$) then
-    if (.not. associated(ele%wig_term)) allocate (ele%wig_term(1))
+  if (ele%sub_key == periodic_type$ .and. ele%slave_status /= super_slave$ .and. &
+      ele%slave_status /= multipass_slave$ .and. ele%slave_status /= slice_slave$) then
+    if (.not. associated(ele%wig)) then
+      allocate (ele%wig)
+      allocate (ele%wig%term(1))
+    endif
 
     if (val(l$) == 0) then
-      ele%wig_term(1)%ky = 0
+      ele%wig%term(1)%ky = 0
     else
-      ele%wig_term(1)%ky = pi * val(n_pole$) / val(l$)
+      ele%wig%term(1)%ky = pi * val(n_pole$) / val(l$)
     endif
-    ele%wig_term(1)%coef   = val(b_max$)
-    ele%wig_term(1)%kx     = 0
-    ele%wig_term(1)%kz     = ele%wig_term(1)%ky
-    if (ele%slave_status /= super_slave$ .and. ele%slave_status /= sliced_slave$) ele%wig_term(1)%phi_z  = -ele%wig_term(1)%kz * val(l$) / 2 
-    ele%wig_term(1)%type   = hyper_y$
+    ele%wig%term(1)%coef   = val(b_max$)
+    ele%wig%term(1)%kx     = 0
+    ele%wig%term(1)%kz     = ele%wig%term(1)%ky
+    ele%wig%term(1)%phi_z  = -ele%wig%term(1)%kz * val(l$) / 2 
+    ele%wig%term(1)%type   = hyper_y$
   endif
 
 end select

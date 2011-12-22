@@ -634,10 +634,10 @@ is_eq = is_eq .and. (associated(f1%em_field) .eqv. associated(f2%em_field));  if
 !! if (associated(f1%rf%wake)) then
 !!   if (.not. (f1%rf%wake == f2%rf%wake)) then; is_eq = .false.; return; endif
 !! endif
-!! is_eq = is_eq .and. (associated(f1%wig_term) .eqv. associated(f2%wig_term));  if (.not. is_eq) return 
-!! if (associated(f1%wig_term)) then
-!!   if (size(f1%wig_term) /= size(f2%wig_term)) then; is_eq = .false.; return; endif
-!!   if (.not. all(f1%wig_term == f2%wig_term)) then; is_eq = .false.; return; endif
+!! is_eq = is_eq .and. (associated(f1%wig%term) .eqv. associated(f2%wig%term));  if (.not. is_eq) return 
+!! if (associated(f1%wig%term)) then
+!!   if (size(f1%wig%term) /= size(f2%wig%term)) then; is_eq = .false.; return; endif
+!!   if (.not. all(f1%wig%term == f2%wig%term)) then; is_eq = .false.; return; endif
 !! endif
 !! is_eq = is_eq .and. (associated(f1%space_charge) .eqv. associated(f2%space_charge));  if (.not. is_eq) return
 !! if (associated(f1%space_charge)) then

@@ -529,10 +529,10 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
       line = trim(line) // ', &'
       call write_lat_line (line, iu, .true.)  
-      do j = 1, size(ele%wig_term)
-        wt = ele%wig_term(j)
+      do j = 1, size(ele%wig%term)
+        wt = ele%wig%term(j)
         last = '}, &'
-        if (j == size(ele%wig_term)) last = '}'
+        if (j == size(ele%wig%term)) last = '}'
         write (iu, '(a, i3, 11a)') ' term(', j, ')={', trim(str(wt%coef)), ', ', &
           trim(str(wt%kx)), ', ', trim(str(wt%ky)), ', ', trim(str(wt%kz)), &
           ', ', trim(str(wt%phi_z)), trim(last)  

@@ -43,7 +43,7 @@ type (ele_struct), intent(inout) :: ele1
 type (ele_struct), intent(in) :: ele2
 type (ele_struct) ele_save
 
-integer i
+integer i, n2
 
 ! 1) Save ele1 pointers in ele_save
 ! 2) Set ele1 = ele2.
@@ -64,25 +64,61 @@ endif
   
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
-! location from ele2's so that the elements are truely separate.
+! location from ele2's so that the elements are separate.
+! Exceptions: %em_field%mode%map, %em_field%mode%grid and %wig.
 
-! %wig_term
+! %wig%term. 
+! The exception for having ele1%wig and ele2%wig point to the same memory location 
+! is if we have a periodic_wiggler and ele1 is not a slave or ele2. 
+! In this case, the wiggler field depends upon the setting of
+! ele%value(b_max$) and ele%value(l_pole$) so sharing the same memeory location would
+! lead to trouble if these attributes are modified in one element but not the other.
 
-if (associated(ele2%wig_term)) then
-  if (associated (ele_save%wig_term)) then
-    if (size(ele_save%wig_term) == size(ele2%wig_term)) then
-      ele1%wig_term => ele_save%wig_term
+if (ele1%key == wiggler$ .and. ele1%sub_key == periodic_type$ .and. &
+    ele_save%slave_status /= super_slave$ .and. ele_save%slave_status /= multipass_slave$ .and. &
+    ele_save%slave_status /= slice_slave$) then
+
+  nullify(ele1%wig)
+
+  if (associated(ele_save%wig) .and. .not. associated(ele2%wig)) then
+    ele_save%wig%n_link = ele_save%wig%n_link - 1
+    if (ele_save%wig%n_link == 0) deallocate (ele_save%wig)
+
+  elseif (.not. associated(ele_save%wig) .and. associated(ele2%wig)) then
+    allocate(ele1%wig)
+    n2 = size(ele2%wig%term)
+    allocate(ele1%wig%term(n2))
+    ele1%wig = ele2%wig
+
+  elseif (associated(ele_save%wig) .and. associated(ele2%wig)) then
+    n2 = size(ele2%wig%term)
+    if (associated(ele_save%wig, ele2%wig)) then
+      ele_save%wig%n_link = ele_save%wig%n_link - 1
+      allocate(ele1%wig)
+      allocate(ele1%wig%term(n2))
+    elseif (size(ele_save%wig%term) /= n2) then
+      ele_save%wig%n_link = ele_save%wig%n_link - 1
+      if (ele_save%wig%n_link == 0) deallocate (ele_save%wig)
+      allocate(ele1%wig)
+      allocate(ele1%wig%term(n2))
     else
-      deallocate (ele_save%wig_term)
-      allocate (ele1%wig_term(size(ele2%wig_term)))
+      ele1%wig => ele_save%wig
     endif
-  else
-    allocate (ele1%wig_term(size(ele2%wig_term)))
+    ele1%wig = ele2%wig
   endif
-  ele1%wig_term = ele2%wig_term
+
 else
-  if (associated (ele_save%wig_term)) deallocate (ele_save%wig_term)
+  ele1%wig => ele_save%wig ! Reinstate for trnasfer call 
+  call transfer_wig (ele2%wig, ele1%wig)
 endif
+
+! If the memory allocated for the wiggler field for ele1 and ele2 are different
+! then must adjust the number of links and deallocate if necessary.
+
+! %em_field
+
+ele1%em_field => ele_save%em_field ! Reinstate for transfer call 
+call transfer_em_field (ele2%em_field, ele1%em_field)
 
 ! %const
 
@@ -192,11 +228,6 @@ endif
 
 ele1%rf_wake => ele_save%rf_wake  ! reinstate
 call transfer_rf_wake (ele2%rf_wake, ele1%rf_wake)
-
-! %em_field
-
-ele1%em_field => ele_save%em_field  ! reinstate
-call transfer_em_field (ele2%em_field, ele1%em_field)
 
 ! %gen_fields are hard because it involves pointers in PTC.
 ! just kill the gen_field in ele1 for now.

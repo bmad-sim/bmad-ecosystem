@@ -835,7 +835,7 @@ implicit none
 
 real(rp) angle_in, energy, theta_out,  phi_out
 real(rp) sigma, t, ctheta2, sign_phi
-real(rp) fl, fh, df
+real(rp) fl, fh, df, r, p_spec
 
 character(28), parameter :: r_name = 'photon_diffuse_scattering'
 
@@ -846,6 +846,17 @@ T = reflect_surface%roughness_correlation_len
 cheb_com%y = sin(angle_in)
 cheb_com%lambda = h_planck * c_light / max(1.0_rp, energy)
 
+! Decide if reflection is specular
+
+P_spec = exp(-(4*pi*sigma*sin(angle_in)/cheb_com%lambda)**2)
+call ran_uniform(r)
+if (r < P_spec) then   ! Is specular
+  theta_out = pi/2 - angle_in
+  phi_out = 0
+  return
+endif
+
+! Not specular...
 ! Fit the probability distribution in x = cos(theta_out) to Chebyshev polynomials.
 ! Also compute the coefficients fo the cumulative distribution in x
 

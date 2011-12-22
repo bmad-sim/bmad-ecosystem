@@ -214,10 +214,12 @@ use random_mod
        
 implicit none
 
-type (lat_struct)  lat
+type (lat_struct), target :: lat
 type (parser_ele_struct), optional :: pele
 type (ele_struct), target ::  ele
 type (ele_struct), target, save ::  ele0
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: bele
 type (wig_term_struct), pointer :: wig_term(:)
 type (real_pointer_struct), allocatable, save :: r_ptrs(:)
 type (wall3d_section_struct), pointer :: section
@@ -232,7 +234,7 @@ real(rp), allocatable :: array(:)
 complex(rp), pointer :: c_ptr(:)
 
 integer i, j, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef
-integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term
+integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
 
 character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
@@ -799,6 +801,26 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
     enddo
 
+    ! Check if map data has already been read in for another element.
+    ! If so, save space by pointing to the existing map.
+
+    branch_loop: do ib = 0, ubound(lat%branch, 1)
+      branch => lat%branch(ib)
+      do ie = 1, branch%n_ele_max
+        bele => branch%ele(ie)
+        if (.not. associated(bele%em_field)) cycle    
+        if (bele%ix_ele == ele%ix_ele .and. bele%ix_branch == ele%ix_branch) cycle
+        do im = 1, size(bele%em_field%mode)
+          if (.not. associated(bele%em_field%mode(im)%map)) cycle
+          if (bele%em_field%mode(im)%map%file /= em_mode%map%file) cycle
+          deallocate(em_mode%map)
+          em_mode%map => bele%em_field%mode(im)%map
+          em_mode%map%n_link = em_mode%map%n_link + 1        
+          exit branch_loop
+        end do
+      enddo 
+    enddo branch_loop
+
     ! Expect "," or "}"
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
@@ -845,14 +867,15 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
 
   write (str_ix, '(a, i3, a)') 'TERM(', ix, ')'
 
-  if (.not. associated(ele%wig_term)) then
-    allocate(ele%wig_term(ix))
-  elseif (ix > size(ele%wig_term)) then
-    allocate (wig_term(size(ele%wig_term)))
-    wig_term = ele%wig_term
-    deallocate (ele%wig_term)
-    allocate (ele%wig_term(ix))
-    ele%wig_term(1:size(wig_term)) = wig_term
+  if (.not. associated(ele%wig)) then
+    allocate(ele%wig)
+    allocate(ele%wig%term(ix))
+  elseif (ix > size(ele%wig%term)) then
+    allocate (wig_term(size(ele%wig%term)))
+    wig_term = ele%wig%term
+    deallocate (ele%wig%term)
+    allocate (ele%wig%term(ix))
+    ele%wig%term(1:size(wig_term)) = wig_term
     deallocate (wig_term)
   endif
 
@@ -868,32 +891,32 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
 
   err_str = trim(ele%name) // ' ' // str_ix
 
-  call evaluate_value (err_str, ele%wig_term(ix)%coef, lat, delim, delim_found, err_flag, ',')
+  call evaluate_value (err_str, ele%wig%term(ix)%coef, lat, delim, delim_found, err_flag, ',')
   if (err_flag) return
  
-  call evaluate_value (err_str, ele%wig_term(ix)%kx, lat, delim, delim_found, err_flag, ',')
+  call evaluate_value (err_str, ele%wig%term(ix)%kx, lat, delim, delim_found, err_flag, ',')
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%ky, lat, delim, delim_found, err_flag, ',')
+  call evaluate_value (err_str, ele%wig%term(ix)%ky, lat, delim, delim_found, err_flag, ',')
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%kz, lat, delim, delim_found, err_flag, ',')
+  call evaluate_value (err_str, ele%wig%term(ix)%kz, lat, delim, delim_found, err_flag, ',')
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%phi_z, lat, delim, delim_found, err_flag, '}')
+  call evaluate_value (err_str, ele%wig%term(ix)%phi_z, lat, delim, delim_found, err_flag, '}')
   if (err_flag) return
 
-  kx = ele%wig_term(ix)%kx
-  ky = ele%wig_term(ix)%ky
-  kz = ele%wig_term(ix)%kz
+  kx = ele%wig%term(ix)%kx
+  ky = ele%wig%term(ix)%ky
+  kz = ele%wig%term(ix)%kz
   tol = 1e-5 * (kx**2 + ky**2 + kz**2)
 
   if (abs(ky**2 - kx**2 - kz**2) < tol) then
-    ele%wig_term(ix)%type = hyper_y$
+    ele%wig%term(ix)%type = hyper_y$
   elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
-    ele%wig_term(ix)%type = hyper_xy$
+    ele%wig%term(ix)%type = hyper_xy$
   elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
-    ele%wig_term(ix)%type = hyper_x$
+    ele%wig%term(ix)%type = hyper_x$
   else
     call parser_warning ('WIGGLER TERM DOES NOT HAVE CONSISTANT Kx, Ky, and Kz', &
                   'FOR WIGGLER: ' // ele%name // '  ' // str_ix)
@@ -5475,11 +5498,12 @@ do i = 1, pt_counter
   grid%pt(ix1, ix2, ix3)%B(1:3) = array(i)%field(4:6)
 end do
 
-!Clear temporary array
+! Clear temporary array
+
 deallocate(array)
 
-!Check if file has already been read
-!Loop over lat
+! Check if grid data has already been read in for another element.
+! If so, save space by pointing to the existing grid.
 
 branch_loop: do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -5491,7 +5515,8 @@ branch_loop: do ib = 0, ubound(lat%branch, 1)
       if (.not. associated(bele%em_field%mode(im)%grid)) cycle
       if (bele%em_field%mode(im)%grid%file /= grid%file) cycle
       deallocate(grid)
-      grid => bele%em_field%mode(im)%grid        
+      grid => bele%em_field%mode(im)%grid
+      grid%n_link = grid%n_link + 1        
       exit branch_loop
     end do
   enddo 
