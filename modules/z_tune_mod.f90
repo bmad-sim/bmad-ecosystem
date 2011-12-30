@@ -14,7 +14,7 @@ contains
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine set_z_tune (lat, z_tune)
+! Subroutine set_z_tune (lat, z_tune, ok)
 !
 ! Subroutine to set the longitudinal tune by scalling the RF voltages
 ! in the RF cavities. Note: RF cavity elements that are set OFF will not
@@ -32,6 +32,9 @@ contains
 !   lat
 !     %ele(i_rf)%value(voltage$) -- Voltage on the cavity.
 !     %z%tune                    -- equal to z_tune.
+!   ok                           -- logical.  If present, returns true or false if set was
+!                                             successful.  If not present, set_z_tune will
+!                                             bomb if tune could not be set.
 !
 ! Notes:
 !   1) The calculation assumes that Q_z < 1.
@@ -40,7 +43,7 @@ contains
 !      the longitudinal tune is negative above transition.
 !-
 
-subroutine set_z_tune (lat, z_tune)
+subroutine set_z_tune (lat, z_tune, ok)
 
 use nr, only: zbrent
 
@@ -52,6 +55,7 @@ type (ele_struct), pointer :: ele, ele2
 real(rp) dQz_max
 real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, coef, dz_tune
 real(rp), optional :: z_tune
+logical, optional :: ok
 
 integer i, j, k, ix
 integer :: loop_max = 10
@@ -65,6 +69,8 @@ character(16), parameter :: r_name = 'set_z_tune'
 dQz_max = 0.0001
 
 if (present (z_tune)) lat%z%tune = z_tune
+
+if (present (ok)) ok = .true.
 
 if (lat%z%tune > 0) then
   call out_io (s_warn$, r_name, 'LAT%Z%TUNE IS POSITIVE!', &
@@ -196,13 +202,16 @@ do k = 1, loop_max
     call out_io (s_error$, r_name, 'I CANNOT SET THE TUNE TO THE CORRECT VALUE.', &
                                    '      VALUE WANTED:   \f12.3\ ', '      VALUE OBTAINED: \f12.3\ ', &
                                    r_array = [z_tune_wanted, lat%z%tune])
-    call err_exit
+    if (present(ok)) then
+      ok = .false.
+    else
+      call err_exit
+    endif
   endif
 enddo
 
 !  Have bracketed index
-
-coef = zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), dQz_max)
+!superfluous? coef = zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), dQz_max)
 
 end subroutine set_z_tune
 
