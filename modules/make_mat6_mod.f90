@@ -10,6 +10,62 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine mat6_add_pitch (x_pitch_tot, y_pitch_tot, mat6)
+!
+! Subroutine to modify a first order transfer matrix to include the affect
+! of an element pitch. Note that this routine does not correct the 0th order
+! part of the map. It is assumed that on input the transfer map
+! does not include the affect of any pitches.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   x_pitch_tot -- Real(rp): Horizontal pitch
+!   y_pitch_tot -- Real(rp): Vertical pitch
+!   mat6(6,6)   -- Real(rp): 1st order part of the transfer map (Jacobian).
+!
+! Output:
+!   mat6(6,6) -- Real(rp): 1st order xfer map with pitches.
+!-
+
+subroutine mat6_add_pitch (x_pitch_tot, y_pitch_tot, mat6)
+
+implicit none
+
+real(rp) mat6(:,:), x_pitch_tot, y_pitch_tot
+
+!
+
+if (x_pitch_tot == 0 .and. y_pitch_tot == 0) return
+
+mat6(5,6) = mat6(5,6) - mat6(5,2) * x_pitch_tot - mat6(5,4) * y_pitch_tot
+
+mat6(5,1) = mat6(5,1) - x_pitch_tot * (mat6(1,1) - 1) 
+mat6(5,2) = mat6(5,2) - x_pitch_tot *  mat6(1,2)
+mat6(5,3) = mat6(5,3) - x_pitch_tot *  mat6(1,3)
+mat6(5,4) = mat6(5,4) - x_pitch_tot *  mat6(1,4)
+
+mat6(5,1) = mat6(5,1) - y_pitch_tot *  mat6(3,1)
+mat6(5,2) = mat6(5,2) - y_pitch_tot *  mat6(3,2)
+mat6(5,3) = mat6(5,3) - y_pitch_tot * (mat6(3,3) - 1)
+mat6(5,4) = mat6(5,4) - y_pitch_tot *  mat6(3,4)
+
+mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
+                    mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
+mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
+                    mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
+mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
+                    mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
+mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
+                    mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
+
+end subroutine mat6_add_pitch
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine quad_mat2_calc (k1, length, mat2, z_coef, dz_dpz_coef)
 !
 ! Subroutine to calculate the 2x2 transfer matrix for a quad for

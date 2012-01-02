@@ -48,7 +48,8 @@ type (lat_struct), target :: lat, in_lat, old_lat
 type (ele_struct) this_ele
 type (seq_struct), save, target :: sequence(1000)
 type (branch_struct), pointer :: branch0, branch
-type (parser_lat_struct) plat
+type (parser_lat_struct), target :: plat
+type (parser_ele_struct), pointer :: pele
 type (ele_struct), save, pointer :: ele, slave
 type (lat_ele_loc_struct) m_slaves(100)
 
@@ -897,6 +898,17 @@ do i = 1, lat%n_ele_max
   call parser_add_branch (lat%ele(i), lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat)
 enddo
 
+! Error check that if a superposition attribute was set that "superposition" was set.
+
+do i = 1, n_max
+  if (in_lat%ele(i)%lord_status == super_lord$) cycle
+  pele => plat%ele(i)
+  if (pele%ref_name /= blank_name$ .or. pele%s /= 0 .or. &
+      pele%ele_pt /= not_set$ .or. pele%ref_pt /= not_set$) then
+    call parser_warning ('SUPERPOSITION ATTRIBUTE SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)
+  endif
+enddo
+
 ! Go through the IN_LAT elements and put in the superpositions.
 ! If the superposition is a branch elemen, need to add the branch line.
 
@@ -904,6 +916,7 @@ call s_calc (lat)              ! calc longitudinal distances
 call control_bookkeeper (lat)
 
 do i = 1, n_max
+
   if (in_lat%ele(i)%lord_status /= super_lord$) cycle
   call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i), in_lat)
 

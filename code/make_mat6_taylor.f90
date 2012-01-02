@@ -48,7 +48,7 @@ else
 
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (ele%mat6, ele%value(tilt_tot$))
 
-  call mat6_add_pitch (ele, ele%mat6)
+  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%mat6)
 
   ele%vec0 = orb_out%vec - matmul(ele%mat6, orb_in%vec)
 

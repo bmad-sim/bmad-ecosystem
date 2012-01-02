@@ -19,11 +19,9 @@ contains
 !     lat_rev%ele(lat%n_ele_track+1-i) = lat_in%ele(i)  For 0 < i <= lat%n_ele_track
 !     lat_rev%ele(i)                   = lat_in%ele(i)  For lat%n_ele_track < i 
 !
-! All longitudial quantities (for example, the value of ks for a solenoid) 
-! are flipped in sign for the reversed lat. 
-! This means that the appropriate transformation from particle coordinates
+! The transformation from particle coordinates
 ! in one lat to the corrisponding coordinates in the other is:
-!     (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)
+!     (x, P_x, y, P_y, z, P_z) -> (x, -P_x, -y, P_y, -z, P_z)
 !
 ! Note: The Twiss parameters will not be correct for the reversed lat.
 ! You will need to compute them.
@@ -162,7 +160,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) temp
 
-integer i, j, sum245
+integer i, j, sum235
 
 real(rp) tempp
 
@@ -173,11 +171,11 @@ ele%map_ref_orb_out = ele%map_ref_orb_in
 ele%map_ref_orb_in = temp
 
 ele%map_ref_orb_in%vec(2) = -ele%map_ref_orb_in%vec(2)
-ele%map_ref_orb_in%vec(4) = -ele%map_ref_orb_in%vec(4)
+ele%map_ref_orb_in%vec(3) = -ele%map_ref_orb_in%vec(3)
 ele%map_ref_orb_in%vec(5) = -ele%map_ref_orb_in%vec(5)
 
 ele%map_ref_orb_out%vec(2) = -ele%map_ref_orb_out%vec(2)
-ele%map_ref_orb_out%vec(4) = -ele%map_ref_orb_out%vec(4)
+ele%map_ref_orb_out%vec(3) = -ele%map_ref_orb_out%vec(3)
 ele%map_ref_orb_out%vec(5) = -ele%map_ref_orb_out%vec(5)
 
 ! Flip aperture limit position
@@ -230,17 +228,18 @@ case (sbend$)
   ele%value(hgapx$) = tempp
 
 ! For wigglers:
-!       phi_z -> -phi_z -  k_z * Length
+!       phi_z -> -phi_z - k_z * Length
+!       coef  -> -coef
 ! This transforms:
-!       (B_x, B_y, B_z) @ (s) -> (B_x, B_y, -B_z) @ (L-s)
+!       (B_x, B_y, B_z) @ (x, y, s) -> (B_x, -B_y, -B_z) @ (x, -y, L-s)
 ! Also: Since the wiggler trajectory starting on the origin may not end
 !   on the origin, z_patch may shift and needs to be recalculated.
 
 case (wiggler$)
   if (associated(ele%wig)) then
     do i = 1, size(ele%wig%term)
-      ele%wig%term(i)%phi_z = -ele%wig%term(i)%phi_z - &
-                                      ele%wig%term(i)%kz * ele%value(l$)
+      ele%wig%term(i)%phi_z = -ele%wig%term(i)%phi_z - ele%wig%term(i)%kz * ele%value(l$)
+      ele%wig%term(i)%coef = -ele%wig%term(i)%coef
     enddo
     if (ele%slave_status /= super_slave$) call z_patch_calc (ele, param)
   endif
@@ -251,7 +250,7 @@ end select
 !   M * T^(-1) * M
 ! where: 
 !   T = the input taylor series
-!   M = The map (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)
+!   M = The map (x, P_x, y, P_y, z, P_z) -> (x, -P_x, -y, P_y, -z, P_z)
 
 if (associated(ele%taylor(1)%term)) then
 
@@ -261,17 +260,16 @@ if (associated(ele%taylor(1)%term)) then
 
   do i = 1, 6
     do j = 1, size(ele%taylor(i)%term)
-      sum245 = ele%taylor(i)%term(j)%expn(2) + ele%taylor(i)%term(j)%expn(4) + &
+      sum235 = ele%taylor(i)%term(j)%expn(2) + ele%taylor(i)%term(j)%expn(3) + &
                                                 ele%taylor(i)%term(j)%expn(5)
-      if (mod(sum245, 2) == 1) ele%taylor(i)%term(j)%coef = &
-                                                  -ele%taylor(i)%term(j)%coef
+      if (mod(sum235, 2) == 1) ele%taylor(i)%term(j)%coef = -ele%taylor(i)%term(j)%coef
     end do
   end do
 
   ! Apply M to the left
 
   ele%taylor(2)%term(:)%coef = -ele%taylor(2)%term(:)%coef
-  ele%taylor(4)%term(:)%coef = -ele%taylor(4)%term(:)%coef
+  ele%taylor(3)%term(:)%coef = -ele%taylor(3)%term(:)%coef
   ele%taylor(5)%term(:)%coef = -ele%taylor(5)%term(:)%coef
 
 endif
@@ -286,15 +284,15 @@ call mat_symp_conj (ele%mat6, ele%mat6)
 ele%vec0 = -matmul(ele%mat6, ele%vec0)
 
 ele%mat6(2,:) = -ele%mat6(2,:)
-ele%mat6(4,:) = -ele%mat6(4,:)
+ele%mat6(3,:) = -ele%mat6(3,:)
 ele%mat6(5,:) = -ele%mat6(5,:)
 
 ele%vec0(2) = -ele%vec0(2)
-ele%vec0(4) = -ele%vec0(4)
+ele%vec0(3) = -ele%vec0(3)
 ele%vec0(5) = -ele%vec0(5)
 
 ele%mat6(:,2) = -ele%mat6(:,2)
-ele%mat6(:,4) = -ele%mat6(:,4)
+ele%mat6(:,3) = -ele%mat6(:,3)
 ele%mat6(:,5) = -ele%mat6(:,5)
 
 end subroutine ele_reverse

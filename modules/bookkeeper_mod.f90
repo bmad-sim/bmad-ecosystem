@@ -279,6 +279,7 @@ do
   all_bookkeeping_done = .true.
   ie_loop: do ie = n1, n2
     ele2 => lat%ele(ie)
+    if (ele2%key == null_ele$) cycle
     if (ele2%status%control /= stale$ .and. ele2%status%attributes /= stale$) cycle
     do j = 1, ele2%n_lord
       lord => pointer_to_lord(ele2, j)
@@ -298,6 +299,7 @@ do ib = 0, ubound(lat%branch, 1)
   if (.not. bmad_com%auto_bookkeeper .and. lat%branch(ib)%param%status%control /= stale$) cycle
   do ie = 0, lat%branch(ib)%n_ele_track
     ele2 => lat%branch(ib)%ele(ie)
+    if (ele2%key == null_ele$) cycle
     if (ele2%slave_status == free$) cycle
     if (.not. bmad_com%auto_bookkeeper .and. ele2%status%control /= stale$) cycle
     call control_bookkeeper1 (lat, ele2, sm_only)
@@ -436,6 +438,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   lord0 => lat%ele(ie)
 
+  if (lord0%key == null_ele$) cycle
   if (lord0%lord_status /= super_lord$) cycle
 
   if (present(ele)) then

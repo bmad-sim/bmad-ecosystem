@@ -365,7 +365,7 @@ if (calculate_mat6) then
   mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
 
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  if (x_pitch /= 0 .or. y_pitch /= 0) call mat6_add_pitch (ele, mat6)
+  call mat6_add_pitch (x_pitch, y_pitch, mat6)
 endif
 
 if (do_offset) call offset_particle (ele, param, end, unset$, set_canonical = .false.)
@@ -415,7 +415,7 @@ call offset_particle (ele, param, track%orb(ix), unset$, set_canonical = .false.
 if (calculate_mat6) track%map(ix)%mat6 = mat6
 
 if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%map(ix)%mat6, ele%value(tilt_tot$))
-if (x_pitch /= 0 .or. y_pitch /= 0) call mat6_add_pitch (ele, track%map(ix)%mat6)
+call mat6_add_pitch (x_pitch, y_pitch, track%map(ix)%mat6)
 
 if (calculate_mat6) then
   track%map(ix)%vec0(1:5) = track%orb(ix)%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
