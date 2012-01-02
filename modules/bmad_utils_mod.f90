@@ -442,67 +442,6 @@ ele%value(s_offset_tot$) = 0
 
 end subroutine zero_ele_offsets
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Subroutine mat6_add_pitch (ele, mat6)
-!
-! Subroutine to modify a first order transfer matrix to include the affect
-! of an element pitch. Note that this routine does not correct the 0th order
-! part of the map. It is assumed that on input the transfer map
-! does not include the affect of any pitches.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele       -- Ele_struct: Element with pitches
-!     %value(x_pitch_tot$) -- Horizontal pitch
-!     %value(y_pitch_tot$) -- Vertical pitch
-!   mat6(6,6) -- Real(rp): 1st order part of the transfer map (Jacobian).
-!
-! Output:
-!   mat6(6,6) -- Real(rp): 1st order xfer map with pitches.
-!-
-
-subroutine mat6_add_pitch (ele, mat6)
-
-implicit none
-
-type (ele_struct) ele
-real(rp) mat6(:,:), x_pitch, y_pitch
-
-!
-
-if (ele%value(x_pitch_tot$) == 0 .and. ele%value(y_pitch_tot$) == 0) return
-
-x_pitch = ele%value(x_pitch_tot$)
-y_pitch = ele%value(y_pitch_tot$)
-
-mat6(5,6) = mat6(5,6) - mat6(5,2) * x_pitch - mat6(5,4) * y_pitch
-
-mat6(5,1) = mat6(5,1) - x_pitch * (mat6(1,1) - 1) 
-mat6(5,2) = mat6(5,2) - x_pitch *  mat6(1,2)
-mat6(5,3) = mat6(5,3) - x_pitch *  mat6(1,3)
-mat6(5,4) = mat6(5,4) - x_pitch *  mat6(1,4)
-
-mat6(5,1) = mat6(5,1) - y_pitch *  mat6(3,1)
-mat6(5,2) = mat6(5,2) - y_pitch *  mat6(3,2)
-mat6(5,3) = mat6(5,3) - y_pitch * (mat6(3,3) - 1)
-mat6(5,4) = mat6(5,4) - y_pitch *  mat6(3,4)
-
-mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
-                    mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
-mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
-                    mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
-mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
-                    mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
-mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
-                    mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
-
-end subroutine mat6_add_pitch
-
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -633,93 +572,6 @@ if (present(dbeta)) then
 endif
 
 end subroutine convert_pc_to
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine wiggler_vec_potential (ele, here, vec_pot)
-!
-! Subroutine to calculate the normalized vector potential at 
-! a point for a wiggler. The normalized potental a_norm is defined by:
-!      p_cononical = p_mv - a_norm
-! The Gauge used here is the same one as used in PTC and has A_x = 0.
-! 
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele     -- Ele_struct: wiggler element.
-!   here    -- Coord_struct: Coordinates for calculating the vector pot.
-!
-! Output:
-!   vec_pot(3) -- Real(rp): Normalized vector potential
-!-
-
-subroutine wiggler_vec_potential (ele, here, vec_pot)
-
-implicit none
-
-type (ele_struct), target, intent(in) :: ele
-type (coord_struct), intent(in) :: here
-real(rp), intent(out) :: vec_pot(3)
-
-type (wig_term_struct), pointer :: t
-
-real(rp) c_x, s_x, c_y, s_y, c_z, s_z
-real(rp) x, y, s, coef
-
-integer i
-
-!
-
-if (ele%key /= wiggler$) then
-  print *, 'ERROR IN WIGGLER_VEC_POTENTIAL. ELEMENT NOT A WIGGLER: ', ele%name
-  call err_exit
-endif
-
-!
-
-x = here%vec(1)
-y = here%vec(3)
-s = here%vec(5)
-
-vec_pot = 0
-
-do i = 1, size(ele%wig%term)
-  t => ele%wig%term(i)
-
-    if (t%type == hyper_y$) then
-      c_x = cos(t%kx * x)
-      s_x = sin(t%kx * x)
-    elseif (t%type == hyper_x$ .or. t%type == hyper_xy$) then
-      c_x = cosh(t%kx * x)
-      s_x = sinh(t%kx * x)
-    else
-      print *, 'ERROR IN WIGGLER_VEC_POTENTIAL: UNKNOWN TERM TYPE!'
-      call err_exit
-    endif
-
-    if (t%type == hyper_y$ .or. t%type == hyper_xy$) then
-      c_y = cosh (t%ky * y)
-      s_y = sinh (t%ky * y)
-    else
-      c_y = cos (t%ky * y)
-      s_y = sin (t%ky * y)
-    endif
-
-    c_z = cos (t%kz * s + t%phi_z)
-    s_z = sin (t%kz * s + t%phi_z)
-
-    coef = ele%value(polarity$) * t%coef
-
-    vec_pot(2) = vec_pot(2) - coef  * (t%kz / (t%kx * t%ky)) * s_x * s_y * s_z
-    vec_pot(3) = vec_pot(3) - coef  * (1 / t%kx)             * s_x * c_y * c_z
-  enddo
-
-
-end subroutine wiggler_vec_potential
-
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -2914,7 +2766,9 @@ end subroutine set_lords_status_stale
 !+
 ! Function pointer_to_branch (ele) result (branch_ptr)
 !
-! Function to point to a branch of an element.
+! Function to point to the lattice branch associated with an element.
+! Note: Result is ambiguous if the element is associated with multiple branches which
+! can happen, for example, with overlay lord elements.
 !
 ! Modules Needed:
 !   use bmad_utils_mod
@@ -2923,27 +2777,118 @@ end subroutine set_lords_status_stale
 !   ele      -- Ele_struct: Element.
 !
 ! Output:
-!   branch_ptr  -- branch_struct, pointer: Pointer to the branch containing the element.
+!   branch_ptr  -- branch_struct, pointer: Pointer to the branch associated with the element.
 !                   Nullified if the element is not associated with a lattice.
 !-
 
-function pointer_to_branch (ele) result (branch_ptr)
+recursive function pointer_to_branch (ele) result (branch_ptr)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch_ptr
 
-!
+! Now associated with a lattice case
 
 if (.not. associated(ele%lat)) then
   nullify(branch_ptr)
   return
 endif
 
-branch_ptr => ele%lat%branch(ele%ix_branch)
+! Not a lord case
+
+if (ele%n_slave == 0) then
+  branch_ptr => ele%lat%branch(ele%ix_branch)
+  return
+endif
+
+! If a lord then look to the first slave for the associated branch
+
+branch_ptr => pointer_to_branch(pointer_to_slave(ele, 1))
 
 end function pointer_to_branch
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine remove_lord_slave_link (lord, slave)
+!
+! Routine to remove the pointers between a lord and a slave.
+! Note: This routine will not modify lord%lord_status and slave%slave_status.
+!
+! Input:
+!   lord  -- ele_struct: Lord element
+!   slave -- ele_struct: Slave element
+!
+! Output:
+!   lord  -- ele_struct: Lord element with link info removed
+!   slave -- ele_struct: Slave element with link info removed
+!   lat   -- Lattice_struct: Lattice obtaind from lord%lat and slave%lat pointers.
+!     %control(:)  -- Array modified to remove lord/slave link.
+!     %ic(:)       -- Array modified to remove lord/slave link.
+!-
+
+subroutine remove_lord_slave_link (lord, slave)
+
+implicit none
+
+type (ele_struct), target :: lord, slave
+type (ele_struct), pointer :: ele
+type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
+
+integer ic, icon, ib, i, n
+
+!
+
+if (.not. associated(lord%lat, slave%lat)) call err_exit  ! Should not be
+
+lat => lord%lat
+
+! Find lat%control(:) and lat%ic(:) elements associated with this link
+
+do ic = slave%ic1_lord, slave%ic2_lord
+  icon = lat%ic(ic)
+  if (lat%control(icon)%ix_lord == lord%ix_ele) exit
+enddo
+
+if (icon == slave%ic2_lord + 1) call err_exit ! Should not be
+
+! Compress lat%control and lat%ic arrays.
+
+n = lat%n_control_max
+lat%control(icon:n-1) = lat%control(icon+1:n)
+lat%n_control_max = n - 1
+
+n = lat%n_ic_max
+lat%ic(ic:n-1) = lat%ic(ic+1:n)
+lat%n_ic_max = n - 1
+
+do i = 1, n - 1
+  if (lat%ic(i) > icon) lat%ic(i) = lat%ic(i) - 1
+enddo
+
+! Correct info in all elements
+
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
+
+    if (ele%ix1_slave > icon) ele%ix1_slave = ele%ix1_slave - 1
+    if (ele%ix2_slave > icon) ele%ix2_slave = ele%ix2_slave - 1
+
+    if (ele%ic1_lord > ic) ele%ic1_lord = ele%ic1_lord - 1
+    if (ele%ic2_lord > ic) ele%ic2_lord = ele%ic2_lord - 1
+  enddo
+enddo
+
+slave%n_lord = slave%n_lord - 1
+lord%n_slave = lord%n_slave - 1
+
+end subroutine remove_lord_slave_link 
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

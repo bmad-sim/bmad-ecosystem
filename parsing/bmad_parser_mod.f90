@@ -81,24 +81,24 @@ type stack_file_struct
 end type
 
 !-----------------------------------------------------------
-! structure for holding the control names and pointers for
-! superimpose and overlay elements
 
-integer, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-integer, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
-integer, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
-integer, private :: sin$ = 11, cos$ = 12, tan$ = 13
-integer, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-integer, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, private :: numeric$ = 100
+integer, parameter, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
+integer, parameter, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
+integer, parameter, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
+integer, parameter, private :: sin$ = 11, cos$ = 12, tan$ = 13
+integer, parameter, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
+integer, parameter, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
+integer, parameter, private :: numeric$ = 100
 
-integer, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
+integer, parameter, private :: eval_level(22) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 type eval_stack_struct
   integer type
   real(rp) value
 end type
+
+! structure for holding the control names and pointers for superimpose and overlay elements
 
 type parser_ele_struct
   character(40) ref_name
@@ -122,15 +122,8 @@ end type
 
 integer, parameter :: line$ = 1, list$ = 2, element$ = 3
 integer, parameter :: replacement_line$ = 4
-
-integer begin$, center$, end$
-parameter (begin$ = -1)
-parameter (center$ = 0)
-parameter (end$ = 1)
-
-integer def$, redef$
-parameter (def$ = 1)
-parameter (redef$ = 2)
+integer, parameter :: begin$ = -1, center$ = 0, end$ = 1, not_set$ = 2
+integer, parameter :: def$ = 1, redef$ = 2
 
 !------------------------------------------------
 ! common stuff
@@ -3219,15 +3212,20 @@ end subroutine init_bmad_parser_common
 
 subroutine add_this_multipass (lat, m_slaves, lord_in)
 
+use multipass_mod
+
 implicit none
 
-type (lat_struct) lat
-type (ele_struct), pointer :: slave, lord, slave2, lord2
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: slave, lord, slave2, lord2, ele
 type (ele_struct), optional :: lord_in
+type (branch_struct), pointer :: branch
 type (lat_ele_loc_struct) m_slaves(:)
 
-integer i, j, k, n, i1, ix, ixc, ixic, ix_lord
-integer n_multipass, ic, ix_l1, ix_l0
+integer i, j, k, n, i1, ix, ixc, ixic, ix_lord, ixb, ixb2, ix_n
+integer n_multipass, ic, ix_l1, ix_l0, ix_pass, n_links
+
+character(40) base_name
 
 ! Count slaves.
 ! If i > lat%n_ele_track we are looking at cloning a super_lord which should
@@ -3290,6 +3288,48 @@ do i = 1, n_multipass
     endif
   enddo
 enddo
+
+! If this is a drift multipass whose multipass_slave elements are the result
+! of splitting a drift with superposition then make sure that all split drift elements 
+! of the lattice with the same base name have a name of the form "<base_name>#<n>" where
+! <n> is an index from 1 for the first split drift.
+
+ixb = index(lord%name, '#') - 1
+if (lord%key == drift$ .and. ixb > 0) then
+  ix_n = 0
+  base_name = lord%name(1:ixb) 
+
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    do j = 1, branch%n_ele_track
+      ele => branch%ele(j)
+      if (ele%key /= drift$) cycle
+      ixb2 = index(ele%name, '#') - 1
+      if (ixb2 /= ixb) cycle
+      if (base_name(1:ixb) /= ele%name(1:ixb)) cycle
+      ! super_slave drifts are temporary constructs that need to be ignored.
+      ! This routine will be called later to correct the name of such elements.
+      if (ele%slave_status == super_slave$) cycle 
+      if (ele%slave_status == multipass_slave$) then
+        call multipass_chain (ele, lat, ix_pass, n_links)
+        if (ix_pass /= 1) cycle  ! Only do renaming once
+        lord2 => pointer_to_lord(ele, 1)
+        ix_n = ix_n + 1
+        write (lord2%name, '(2a, i0)') base_name(1:ixb), '#', ix_n
+        do k = 1, lord2%n_slave
+          slave => pointer_to_slave(lord2, k)
+          write (slave%name, '(2a, i0, a, i0)') base_name(1:ixb), '#', ix_n, '\', k      !'
+        enddo
+      else
+        ix_n = ix_n + 1
+        write (ele%name, '(2a, i0)') base_name(1:ixb), '#', ix_n
+      endif
+    enddo
+  enddo
+
+endif
+
+!
 
 call control_bookkeeper (lat, lord)
 
@@ -3438,33 +3478,41 @@ do
           if (branch%ele(i)%ix_pointer /= j+1) cycle
           j = j + 1
           call compute_super_lord_s (lat, branch%ele(i), super_ele, pele)
-          call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, save_null_drift = .true.)
+          ! Don't need to save drifts since a multipass_lord drift already exists.
+          call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, save_null_drift = .false.)
           if (err_flag) bmad_status%ok = .false.
           super_ele_out%name = 'temp_name!'
         enddo
 
-        ! Remove any multipass_lord drifts that no longer do anything.
-        ! We can recognize these elements since they control super_slaves.
-        ! Also mark any of their lords for deletion.
+        ! Mark any super_lord drifts (along with any lords that control the super_lord) for 
+        ! future deletion at the end of lattice parsing.
+
+        call multipass_all_info (lat, m_info) ! Save multipass info for later.
 
         do i = lat%n_ele_track+1, lat%n_ele_max 
           ele => lat%ele(i)
           if (ele%key /= drift$) cycle
-          slave => pointer_to_slave(ele, 1)
-          if (slave%slave_status /= super_slave$) cycle
-          ele%key = -1 ! mark for deletion
+          if (ele%lord_status /= super_lord$) cycle 
+          ele%key = null_ele$ ! mark for deletion
+
           do j = 1, ele%n_lord
             lord => pointer_to_lord(ele, j)
-            lord%key = -1  ! Mark lord for deletion
+            lord%key = null_ele$  ! Mark lord for deletion
           enddo
+
+          ! Need to remove super_lord/super_slave links otherwise the code below gets confused
+          ! when it tries to connect the former super_slave drifts.
+          do while (ele%n_slave /= 0)
+            call remove_lord_slave_link (ele, pointer_to_slave(ele, 1))
+          enddo
+
         enddo
-        call remove_eles_from_lat (lat, .false.) ! and delete
 
         ! Add a multipass_lord to control the created super_lords.
         ! If the super_lords have a single super_slave and the super_slave
         ! has only a single super_lord, the super_lords
         ! can be eliminated and the created multipass_lord can control the
-        ! super_slaves directly
+        ! super_slaves directly.
 
         j = 0
 
@@ -3502,8 +3550,6 @@ do
         call add_this_multipass (lat, m_slaves, super_ele_saved) 
 
         ! Reconnect drifts that were part of the multipass region.
-
-        call multipass_all_info (lat, m_info) ! Save multipass info for later.
 
         do i = 1, size(m_info%top)
           do j = 1, size(m_info%top(i)%slave, 2)
@@ -3657,7 +3703,7 @@ super_ele%s = pele%s
 
 if (pele%ele_pt == begin$) then
   super_ele%s = super_ele%s + super_ele%value(l$)
-elseif (pele%ele_pt == center$) then
+elseif (pele%ele_pt == center$ .or. pele%ele_pt == not_set$) then
   super_ele%s = super_ele%s + super_ele%value(l$) / 2
 elseif (pele%ele_pt /= end$) then
   call parser_warning ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!')
@@ -3687,7 +3733,7 @@ endif
 
 if (pele%ref_pt == begin$) then
   super_ele%s = super_ele%s + s_ref_begin
-elseif (pele%ref_pt == center$) then
+elseif (pele%ref_pt == center$ .or. pele%ref_pt == not_set$) then
   super_ele%s = super_ele%s + (s_ref_begin + s_ref_end) / 2
 elseif (pele%ref_pt == end$) then
   super_ele%s = super_ele%s + s_ref_end
@@ -4018,8 +4064,8 @@ do i = n_now+1, ubound(plat%ele, 1)
   nullify (plat%ele(i)%name)
 
   plat%ele(i)%ref_name = blank_name$
-  plat%ele(i)%ref_pt  = center$
-  plat%ele(i)%ele_pt  = center$
+  plat%ele(i)%ref_pt  = not_set$
+  plat%ele(i)%ele_pt  = not_set$
   plat%ele(i)%s       = 0
   plat%ele(i)%common_lord = .false.
 enddo

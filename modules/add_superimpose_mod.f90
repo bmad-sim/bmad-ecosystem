@@ -33,7 +33,7 @@ contains
 !   save_null_drift  -- Logical, optional: Save a copy of a drift to be split as a null_ele?
 !                         This is useful if further superpositions might use this drift as a 
 !                         reference element. After all superpositions are done, 
-!                         remove_eles_from_lat can be called to remove all nul_eles.
+!                         remove_eles_from_lat can be called to remove all null_eles.
 !                         Default is False.
 !
 ! Output:
