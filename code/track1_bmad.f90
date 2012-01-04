@@ -221,7 +221,8 @@ case (elseparator$, kicker$, hkicker$, vkicker$)
   call end_z_calc
 
   ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * &
+                                        (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! LCavity: Linac rf cavity
@@ -229,7 +230,7 @@ case (elseparator$, kicker$, hkicker$, vkicker$)
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1. The extra factors of beta are included to make the 
-! transverse determinant (beta_i*gamma_i)/(beta_f*gamma_f) which it should
+! transverse determinant equal to (beta_i*gamma_i)/(beta_f*gamma_f) which it should
 ! be at low energies.
 
 case (lcavity$)
@@ -290,7 +291,7 @@ case (lcavity$)
 
   call offset_particle (ele, param, end, set$)
 
-  ! entrence kick
+  ! entrance kick
 
   k1 = -gradient / (2 * pc_start)
   end%vec(2) = end%vec(2) + k1 * end%vec(1)

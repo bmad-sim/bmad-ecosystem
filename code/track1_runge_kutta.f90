@@ -32,6 +32,7 @@
 subroutine track1_runge_kutta (start, ele, param, end, track)
 
 use runge_kutta_mod, except_dummy => track1_runge_kutta
+use track1_mod
 
 implicit none
 
@@ -49,8 +50,10 @@ del_s_min = 1e-8
 
 start2 = start
 call offset_particle (ele, param, start2, set$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
+call apply_element_edge_kick (start2, ele, param, entrance_end$)
 call odeint_bmad (start2, ele, param, end, 0.0_rp, ele%value(l$), bmad_com%rel_tol_adaptive_tracking, &
                   bmad_com%abs_tol_adaptive_tracking, del_s_step, del_s_min, .true., track)
+call apply_element_edge_kick (end, ele, param, exit_end$)
 call offset_particle (ele, param, end, unset$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
 
 end subroutine

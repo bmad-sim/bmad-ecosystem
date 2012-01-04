@@ -156,6 +156,7 @@ coarse_loop: do
     step_up_seen = .true.
     if (i == 10) then  ! field too strong and always loosing particles
       field_scale = field_scale / 10
+      pz = -neg_pz_calc(theta)
       cycle coarse_loop
     endif
   enddo
