@@ -263,7 +263,7 @@ endif
 
 end = start
 call offset_particle (ele, param, end, set$, set_canonical = .false., set_multipoles = .false.)
-call track_bend_edge (end, ele, .true., .false.)
+call apply_bend_edge_kick (end, ele, entrance_end$, .false.)
 
 ! If we have a sextupole component then step through in steps of length ds_step
 
@@ -398,7 +398,7 @@ enddo
 
 ! Track through the exit face. Treat as thin lens.
 
-call track_bend_edge (end, ele, .false., .false.)
+call apply_bend_edge_kick (end, ele, exit_end$, .false.)
 call offset_particle (ele, param, end, unset$, set_canonical = .false., set_multipoles = .false.)
 
 end subroutine track_a_bend
@@ -407,21 +407,22 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_bend_edge (orb, e, g, start_edge, reverse, kx, ky)
+! Subroutine apply_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
 !
 ! Subroutine to track through the edge field of an sbend.
 ! Reverse tracking starts with the particle just outside the bend and
 ! returns the orbit that the particle had just inside the bend.
 !
+! Module needed:
+!   use track1_mod
+!
 ! Input:
-!   orb        -- Coord_struct: Starting coords.
-!   e          -- Real(rp): Edge angle.
-!   g          -- Real(rp): 1/bending_radius
-!   start_edge -- Logical: If True then track will be through the entrance edge.
-!                          If False then track will be through the exit edge.
-!   reverse    -- Logical: If True then take the input orb as the position
-!                   just outside the bend and output the position just inside the bend. 
-!                   This does not affect the values of kx and ky
+!   orb         -- Coord_struct: Starting coords.
+!   ele         -- ele_struct: SBend element.
+!   element_end -- Integer: entrance_end$ or exit_end$
+!   reverse     -- Logical: If True then take the input orb as the position
+!                    just outside the bend and output the position just inside the bend. 
+!                    This does not affect the values of kx and ky
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
@@ -430,19 +431,20 @@ end subroutine track_a_bend
 !                  The values of kx and ky are not affected by the reverse argument.
 !-
 
-subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
+subroutine apply_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
 
 type (ele_struct) ele
 type (coord_struct) orb
 real(rp), optional :: kx, ky
 real(rp) e, g_tot, fint, hgap, k1x, k1y
-logical start_edge, reverse
+integer element_end
+logical reverse
 
 ! Track through the entrence face. Treat as thin lens.
 
 g_tot = ele%value(g$) + ele%value(g_err$)
 
-if (start_edge) then
+if (element_end == entrance_end$) then
   e = ele%value(e1$); fint = ele%value(fint$); hgap = ele%value(hgap$)
 else
   e = ele%value(e2$); fint = ele%value(fintx$); hgap = ele%value(hgapx$)
@@ -466,6 +468,98 @@ endif
 if (present(kx)) kx = k1x 
 if (present(ky)) ky = k1y
 
-end subroutine track_bend_edge
+end subroutine apply_bend_edge_kick
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine apply_element_edge_kick (orb, ele, param, element_end)
+!
+! Subroutine to track through the edge field of an element.
+! Elements that have edge fields:
+!   sbend
+!   solenoid
+!   sol_quad
+!   lcavity and rfcavity with runge_kutta tracking and bmad_standard field_calc
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   orb         -- Coord_struct: Starting coords.
+!   ele         -- ele_struct: Element.
+!   param       -- lat_param_struct: lattice parameters.
+!   element_end -- Integer: entrance_end$ or exit_end$.
+!
+! Output:
+!   orb        -- Coord_struct: Coords after tracking.
+!-
+
+subroutine apply_element_edge_kick (orb, ele, param, element_end)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orb
+type (lat_param_struct) param
+
+real(rp) phase, gradient, beta, t, k_wave, omega, E_z
+
+integer element_end
+
+! 
+
+select case (ele%key)
+case (sbend$)
+  call apply_bend_edge_kick (orb, ele, element_end, .false.)
+
+case (solenoid$, sol_quad$)
+    if (element_end == entrance_end$) then
+      orb%vec(2) = orb%vec(2) + ele%value(ks$) * orb%vec(3) / 2
+      orb%vec(4) = orb%vec(4) - ele%value(ks$) * orb%vec(1) / 2
+    else
+      orb%vec(2) = orb%vec(2) - ele%value(ks$) * orb%vec(3) / 2
+      orb%vec(4) = orb%vec(4) + ele%value(ks$) * orb%vec(1) / 2
+    endif
+
+! The edge kick for a cavity is only needed when tracking through the field
+! using field_calc == bmad_standard$. See Eq (10) of J. Rosenzweig and L. Serafini,
+! Phys Rev E, Vol. 49, p. 1599, (1994). In this case g = b_0 + b_-1 = 2.
+
+case (lcavity$, rfcavity$)
+    if (ele%field_calc /= bmad_standard$) return
+
+    phase = twopi * (ele%value(theta_t0$) + ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$))
+    if (ele%key == rfcavity$) phase = phase + pi/2
+
+    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+    if (.not. ele%is_on) gradient = 0
+    gradient = gradient + gradient_shift_sr_wake(ele, param)
+
+    k_wave = pi / ele%value(l$)
+    omega = c_light * k_wave
+
+    if (element_end == entrance_end$) then
+      
+      call convert_pc_to(ele%value(p0c_start$) * (1 + orb%vec(6)), param%particle, beta = beta)
+      t = -orb%vec(5) / (beta * c_light)
+      E_z = 2 * gradient * cos(omega * t + phase)
+
+      orb%vec(2) = orb%vec(2) - E_z * orb%vec(1) / (2 * ele%value(p0c_start$))
+      orb%vec(4) = orb%vec(4) - E_z * orb%vec(3) / (2 * ele%value(p0c_start$))
+
+    else
+      call convert_pc_to(ele%value(p0c$) * (1 + orb%vec(6)), param%particle, beta = beta)
+      t = ele%value(delta_ref_time$) - orb%vec(5) / (beta * c_light)
+      E_z = -2 * gradient * cos(omega * t + phase)  ! cos(k_wave * L) = -1 gives negative sign in this Eq.
+
+      orb%vec(2) = orb%vec(2) + E_z * orb%vec(1) / (2 * ele%value(p0c$))
+      orb%vec(4) = orb%vec(4) + E_z * orb%vec(3) / (2 * ele%value(p0c$))
+
+    endif
+end select
+
+end subroutine apply_element_edge_kick
 
 end module

@@ -298,31 +298,38 @@ end subroutine rkck_bmad
 ! Subroutine to calculate the dr/ds "kick vector" where
 !     r = [x, p_x, y, p_y, z, p_z, t] 
 !
-! Remember: In order to simplify the calculation, in the body of any element, P0 is taken to be constant.
+! Remember: In order to simplify the calculation, in the body of any element, P0 is taken to be 
+! the P0 at the exit end of the element.
 !
 !   dr(1)/ds = dx/dt * dt/ds
-!   dx/dt = v_x 
-!   dt/ds = (1 + g*x) / v_s
+!   where:
+!     dx/dt = v_x = p_x / (1 + p_z)
+!     dt/ds = (1 + g*x) / v_s
+!     g = 1/rho, rho = bending radius (nonzero only in a dipole)
 !
 !   dr(2)/ds = dP_x/dt * dt/ds / P0
-!   dP_x/dt = EM_Force_x + gamma * mass * vec * (dtheta/dt)^2
-!   vec * (dtheta/dt)^2 = g * v_s^2 / (1 + g*x)^2   ! Centrifugal term
+!   where:
+!     dP_x/dt = EM_Force_x + gamma * mass * vec * (dtheta/dt)^2
+!     vec * (dtheta/dt)^2 = g * v_s^2 / (1 + g*x)^2   ! Centrifugal term
 !
 !   dr(3)/ds = dy/dt * dt/ds
-!   dy/dt = v_x 
+!   where:
+!     dy/dt = v_x 
 ! 
 !   dr(4)/ds = dP_y/dt * ds/dt / P0
-!   dP_y/dt = EM_Force_y
+!   where:
+!     dP_y/dt = EM_Force_y
 !
 !   dr(5)/ds = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * c_light * [t(ref) - t]
 !            = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * vec(5) / beta
-!   where ds/dt(ref) is taken to be:
+!   where:
 !     dt/ds(ref) = ele%value(delta_ref_time$) / ele%value(l$)
-!   This is inaccurate at low energy in an lcavity but the total integrated dr(5)/ds
-!   accross the lcavity will be correct.
+!     This is inaccurate at low energy in an lcavity but the total integrated dr(5)/ds
+!     accross the lcavity will be correct.
 !
 !   dr(6)/ds = (EM_Force dot v_hat) * dt/ds / P0
-!   where v_hat = velocity normalized to 1. 
+!   where:
+!      v_hat = velocity normalized to 1. 
 !
 ! Modules needed:
 !   use bmad
