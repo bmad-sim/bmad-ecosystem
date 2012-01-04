@@ -84,7 +84,7 @@ real(rp), pointer :: r_ptr
 character(*), pointer :: lines(:)
 character(len(lines)), pointer :: li(:)
 character(len(lines)), allocatable :: li2(:)
-character(40) a_name, name, fmt_a, fmt_i, fmt_l
+character(40) a_name, name, fmt_a, fmt_i, fmt_l, coef_str
 character(12) val_str
 character(8) angle
 character(2) str_i
@@ -425,43 +425,18 @@ if (logic_option(present(lattice), type_control)) then
 
   if (ele%n_lord /= 0) then
 
-    print_it = .true.
+    nl=nl+1; write (li(nl), *) &
+      '    Name                       Lat_index  Attribute         Coefficient       Value  Lord_Type'
 
-    if (ele%slave_status == multipass_slave$) then
-      lord => pointer_to_lord (ele, 1)
-      nl=nl+1; write (li(nl), '(2a, 4x, a, i0, a)') &
-                'Multipass_lord: ', trim(lord%name), '[Lattice index: ', lord%ix_ele, ']'
-      if (ele%n_lord == 1) print_it = .false. 
-    endif
-
-    if (ele%slave_status == super_slave$ .or. ele%slave_status == patch_in_slave$) then
-      nl=nl+1; write (li(nl), '(a, i4)') 'Lords:'
-      nl=nl+1; write (li(nl), '(t4, a, t40, a, t60, a10)') 'Name', 'Type', 'Lat_index'
-      do i = 1, ele%n_lord
-        lord => pointer_to_lord (ele, i)
-        nl=nl+1; write (li(nl), '(5x, a30, i10)') lord%name, trim(key_name(slave%key)), lord%ix_ele
-      enddo
-      print_it = .false.
-    endif
-
-    ! Print overlay info here.
-
-    if (print_it) then
-
-      if (ele%slave_status == multipass_slave$) then
-        i1 = 2
-        nl=nl+1; write (li(nl), '(a, i4)') 'Other Lords:'
-      else
-        i1 = 1
-        nl=nl+1; write (li(nl), '(a, i4)') 'Lords:'
-      endif
-
-      nl=nl+1; write (li(nl), *) &
-'    Name                       Lat_index  Attribute         Coefficient       Value  Lord_Type'
-
-      do i = i1, ele%n_lord
-        lord => pointer_to_lord (ele, i, ic)
-        coef = lattice%control(ic)%coef
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord (ele, i, ic)
+      select case (lord%lord_status)
+      case (super_lord$, multipass_lord$, patch_in_slave$)
+        coef_str = ''
+        a_name = ''
+        val_str = ''
+      case default
+        write (coef_str, '(es11.3)') lattice%control(ic)%coef
         iv = lattice%control(ic)%ix_attrib
         a_name = attribute_name(ele, iv)
         ix = lord%ix_value
@@ -471,10 +446,12 @@ if (logic_option(present(lattice), type_control)) then
           call pointer_to_indexed_attribute (lord, ix, .false., r_ptr, err_flag)
           write (val_str, '(1p, e12.3)') r_ptr
         endif
-        nl=nl+1; write (li(nl), '(5x, a30, i6, 2x, a18, es11.3, a12, 2x, a)') &
-              lord%name, lord%ix_ele, a_name, coef, val_str, trim(control_name(lord%lord_status))
-      enddo
-    endif
+      end select
+
+      nl=nl+1; write (li(nl), '(5x, a30, i6, 2x, a18, a11, a12, 2x, a)') &
+            lord%name, lord%ix_ele, a_name, coef_str, val_str, trim(trim(key_name(lord%key)))
+    enddo
+    nl=nl+1; li(nl) = ''
 
   endif
 
