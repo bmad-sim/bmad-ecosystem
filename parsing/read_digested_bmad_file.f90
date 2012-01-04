@@ -62,7 +62,7 @@ character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
 logical deterministic_ran_function_used
-logical found_it, v99, v100, v_old, mode3, error, is_open, status_ok
+logical found_it, can_read_this_old_version, mode3, error, is_open, status_ok
 
 ! init all elements in lat
 
@@ -86,9 +86,7 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 
 read (d_unit, err = 9010) n_files, version
 
-v99 = (version == 99)
-v100 = (version == 100)
-v_old = .false.
+can_read_this_old_version = .false.
 
 ! Version is old but recent enough to read.
 
@@ -96,7 +94,7 @@ if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
          (/ 'DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' /),  &
           i_array = (/ bmad_inc_version$, version /) )
-  if (v_old) then 
+  if (can_read_this_old_version) then 
     allocate (file_names(n_files))
     status_ok = .false.
   else
@@ -156,7 +154,7 @@ do i = 1, n_files
   endif
 
   call simplify_path (fname_read, fname_read)
-  if (v_old) file_names(i) = fname_read  ! fake out
+  if (can_read_this_old_version) file_names(i) = fname_read  ! fake out
 
 #if defined (CESR_VMS) 
   ix = index(fname_read, ';')
@@ -371,6 +369,10 @@ read (d_unit, err = 9120) ix_value(1:k_max), value(1:k_max)
 do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
+
+if (version == 100) then
+  if (attribute_name(ele, 59) == null_name$) ele%value(59) = 0
+endif
 
 ! RF field def
 
