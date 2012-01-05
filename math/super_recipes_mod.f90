@@ -10,6 +10,122 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Function super_zbrent (func, x1, x2, tol, err_flag) result (x_min)
+!
+! Routine find the root of a function.
+! This routine is essentially zbrent from Numerical Recipes with the feature that it returns
+! an error flag if something goes wrong instead of bombing.
+!
+! Modules needed:
+!   use super_recipes_mod
+!
+! Input:
+!   func(x)  -- Function whose root is to be found. See zbrent for more details.
+!   x1, x2   -- Real(rp): Bracket values.
+!   tol      -- Real(rp): Tolerance for root.
+!
+! Output:
+!   x_min    -- Real(rp): Root found.
+!   err_flag -- Logical: Set True if there is a problem. False otherwise.
+!-
+
+function super_zbrent (func, x1, x2, tol, err_flag) result (x_min)
+
+use nrtype
+
+implicit none
+
+real(rp), intent(in) :: x1,x2,tol
+real(rp) :: x_min
+
+interface
+  function func(x)
+    use precision_def
+    implicit none
+    real(rp), intent(in) :: x
+    real(rp) :: func
+    end function func
+end interface
+
+integer(i4b), parameter :: itmax=100
+real(rp), parameter :: eps=epsilon(x1)
+integer(i4b) :: iter
+real(rp) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
+
+logical err_flag
+character(16) :: r_name = 'super_zbrent'
+
+!
+
+err_flag = .true.
+a=x1
+b=x2
+fa=func(a)
+fb=func(b)
+if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) &
+call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
+c=b
+fc=fb
+do iter=1,ITMAX
+if ((fb > 0.0 .and. fc > 0.0) .or. (fb < 0.0 .and. fc < 0.0)) then
+c=a
+fc=fa
+    d=b-a
+    e=d
+  end if
+  if (abs(fc) < abs(fb)) then
+    a=b
+    b=c
+    c=a
+    fa=fb
+    fb=fc
+    fc=fa
+  end if
+  tol1=2.0_rp*EPS*abs(b)+0.5_rp*tol
+  xm=0.5_rp*(c-b)
+  if (abs(xm) <= tol1 .or. fb == 0.0) then
+    x_min=b
+    err_flag = .false.
+    RETURN
+  end if
+  if (abs(e) >= tol1 .and. abs(fa) > abs(fb)) then
+    s=fb/fa
+    if (a == c) then
+      p=2.0_rp*xm*s
+      q=1.0_rp-s
+    else
+      q=fa/fc
+      r=fb/fc
+      p=s*(2.0_rp*xm*q*(q-r)-(b-a)*(r-1.0_rp))
+      q=(q-1.0_rp)*(r-1.0_rp)*(s-1.0_rp)
+    end if
+    if (p > 0.0) q=-q
+    p=abs(p)
+    if (2.0_rp*p  <  min(3.0_rp*xm*q-abs(tol1*q),abs(e*q))) then
+      e=d
+      d=p/q
+    else
+      d=xm
+      e=d
+    end if
+  else
+    d=xm
+    e=d
+  end if
+  a=b
+  fa=fb
+  b=b+merge(d,sign(tol1,xm), abs(d) > tol1 )
+  fb=func(b)
+end do
+call out_io (s_fatal$, r_name, 'EXCEEDED MAXIMUM ITERATIONS!')
+x_min=b
+
+end function super_zbrent 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! subroutine super_mrqmin (y, weight, a, covar, alpha, chisq, funcs, alamda, status, maska)
 !
 ! Routine to do non-linear optimizations. 
@@ -341,7 +457,7 @@ end subroutine super_gaussj
 
 subroutine super_ludcmp(a,indx,d, err)
 
-use nrtype; use nrutil, only : assert_eq,imaxloc,nrerror,outerprod,swap
+use nrtype; use nrutil, only : assert_eq,imaxloc,outerprod,swap
 implicit none
 real(rp), dimension(:,:), intent(inout) :: a
 integer, dimension(:), intent(out) :: indx
@@ -364,16 +480,16 @@ if (any(vv == 0.0)) then
 endif
 vv=1.0_rp/vv
 do j=1,n
-	imax=(j-1)+imaxloc(vv(j:n)*abs(a(j:n,j)))
-	if (j /= imax) then
-		call swap(a(imax,:),a(j,:))
-		d=-d
-		vv(imax)=vv(j)
-	end if
-	indx(j)=imax
-	if (a(j,j) == 0.0) a(j,j)=tiny
-	a(j+1:n,j)=a(j+1:n,j)/a(j,j)
-	a(j+1:n,j+1:n)=a(j+1:n,j+1:n)-outerprod(a(j+1:n,j),a(j,j+1:n))
+  imax=(j-1)+imaxloc(vv(j:n)*abs(a(j:n,j)))
+  if (j /= imax) then
+    call swap(a(imax,:),a(j,:))
+    d=-d
+    vv(imax)=vv(j)
+  end if
+  indx(j)=imax
+  if (a(j,j) == 0.0) a(j,j)=tiny
+  a(j+1:n,j)=a(j+1:n,j)/a(j,j)
+  a(j+1:n,j+1:n)=a(j+1:n,j+1:n)-outerprod(a(j+1:n,j),a(j,j+1:n))
 end do
 err = .false.
 
@@ -402,25 +518,32 @@ end subroutine super_ludcmp
 
 function super_brent(ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_max)
 
-use nrtype; use nrutil, only : nrerror
-
-implicit none
-
-real(dp), intent(in) :: ax,bx,cx,rel_tol, abs_tol
-real(dp), intent(out) :: xmin
-real(dp) :: f_max
-interface
-function func(x)
 use nrtype
+
 implicit none
-real(dp), intent(in) :: x
-real(dp) :: func
-end function func
+
+real(rp), intent(in) :: ax,bx,cx,rel_tol, abs_tol
+real(rp), intent(out) :: xmin
+real(rp) :: f_max
+
+interface
+  function func(x)
+    use precision_def
+    implicit none
+    real(rp), intent(in) :: x
+    real(rp) :: func
+  end function func
 end interface
+
 integer(i4b), parameter :: itmax=100
-real(dp), parameter :: cgold=0.3819660_dp
+real(rp), parameter :: cgold=0.3819660_rp
 integer(i4b) :: iter
-real(dp) :: a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
+real(rp) :: a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
+
+character(16) :: r_name = 'super_brent'
+
+!
+
 a=min(ax,cx)
 b=max(ax,cx)
 v=bx
@@ -431,72 +554,73 @@ fx=func(x)
 fv=fx
 fw=fx
 do iter=1,ITMAX
-xm=0.5_dp*(a+b)
-tol1=rel_tol*abs(x)+abs_tol
-tol2=2.0_dp*tol1
-if (abs(x-xm) <= (tol2-0.5_dp*(b-a))) then
-xmin=x
-f_max=fx
-RETURN
-end if
-if (abs(e) > tol1) then
-r=(x-w)*(fx-fv)
-q=(x-v)*(fx-fw)
-p=(x-v)*q-(x-w)*r
-q=2.0_dp*(q-r)
-if (q > 0.0) p=-p
-q=abs(q)
-etemp=e
-e=d
-if (abs(p) >= abs(0.5_dp*q*etemp) .or. &
-p <= q*(a-x) .or. p >= q*(b-x)) then
-e=merge(a-x,b-x, x >= xm )
-d=CGOLD*e
-else
-d=p/q
-u=x+d
-if (u-a < tol2 .or. b-u < tol2) d=sign(tol1,xm-x)
-end if
-else
-e=merge(a-x,b-x, x >= xm )
-d=cgold*e
-end if
-u=merge(x+d,x+sign(tol1,d), abs(d) >= tol1 )
-fu=func(u)
-if (fu <= fx) then
-if (u >= x) then
-a=x
-else
-b=x
-end if
-call shft(v,w,x,u)
-call shft(fv,fw,fx,fu)
-else
-if (u < x) then
-a=u
-else
-b=u
-end if
-if (fu <= fw .or. w == x) then
-v=w
-fv=fw
-w=u
-fw=fu
-else if (fu <= fv .or. v == x .or. v == w) then
-v=u
-fv=fu
-end if
-end if
+  xm=0.5_rp*(a+b)
+  tol1=rel_tol*abs(x)+abs_tol
+  tol2=2.0_rp*tol1
+  if (abs(x-xm) <= (tol2-0.5_rp*(b-a))) then
+    xmin=x
+    f_max=fx
+    RETURN
+  end if
+  if (abs(e) > tol1) then
+    r=(x-w)*(fx-fv)
+    q=(x-v)*(fx-fw)
+    p=(x-v)*q-(x-w)*r
+    q=2.0_rp*(q-r)
+    if (q > 0.0) p=-p
+    q=abs(q)
+    etemp=e
+    e=d
+    if (abs(p) >= abs(0.5_rp*q*etemp) .or. p <= q*(a-x) .or. p >= q*(b-x)) then
+      e=merge(a-x,b-x, x >= xm )
+      d=CGOLD*e
+    else
+      d=p/q
+      u=x+d
+      if (u-a < tol2 .or. b-u < tol2) d=sign(tol1,xm-x)
+    end if
+  else
+    e=merge(a-x,b-x, x >= xm )
+    d=cgold*e
+  end if
+  u=merge(x+d,x+sign(tol1,d), abs(d) >= tol1 )
+  fu=func(u)
+  if (fu <= fx) then
+    if (u >= x) then
+      a=x
+    else
+      b=x
+    end if
+    call shft(v,w,x,u)
+    call shft(fv,fw,fx,fu)
+  else
+    if (u < x) then
+      a=u
+    else
+      b=u
+    end if
+    if (fu <= fw .or. w == x) then
+      v=w
+      fv=fw
+      w=u
+      fw=fu
+    else if (fu <= fv .or. v == x .or. v == w) then
+      v=u
+      fv=fu
+    end if
+  end if
 end do
-call nrerror('brent: exceed maximum iterations')
+call out_io (s_fatal$, r_name, 'EXCEED MAXIMUM ITERATIONS.')
+call err_exit
 
 !-------------------------------------------------
 contains
 
 subroutine shft(a,b,c,d)
-real(dp), intent(out) :: a
-real(dp), intent(inout) :: b,c
-real(dp), intent(in) :: d
+real(rp), intent(out) :: a
+real(rp), intent(inout) :: b,c
+real(rp), intent(in) :: d
+
 a=b
 b=c
 c=d
