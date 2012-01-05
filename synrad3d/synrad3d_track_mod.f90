@@ -515,7 +515,7 @@ end subroutine sr3d_propagate_photon_a_step
 
 subroutine sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit, err)
 
-use nr, only: zbrent
+use super_recipes_mod
 
 implicit none
 
@@ -589,7 +589,15 @@ endif
 ! Find where the photon hits.
 
 in_zbrent = .true.
-track_len = zbrent (sr3d_photon_hit_func, track_len0, track_len1, 1d-10)
+track_len = super_zbrent (sr3d_photon_hit_func, track_len0, track_len1, 1d-10, err)
+if (err) then
+  call print_hit_points (10, photon, wall_hit, '(6es25.15)')
+  print *, 'WILL IGNORE THIS PHOTON.'
+  print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
+  print *, '       Start: ', photon%start%vec
+  print *, '       Now:   ', photon%now%vec
+  return
+endif
 
 ! Cleanup
 
