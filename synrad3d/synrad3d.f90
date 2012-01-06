@@ -40,7 +40,7 @@ integer i, j, n, iu, n_wall_pt_max, random_seed, iu_start, n_shape_max
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_gen_shape
-integer n_photons_per_pass, num_ignore_generated_outside_wall
+integer n_photons_per_pass, num_ignore_generated_outside_wall, ix_photon_out
 
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file, surface_reflection_file
@@ -72,14 +72,25 @@ ok = .true.
 plotting = ''
 param_file = ''
 surface_reflection_file = ''
+photon_start_input_file = '' 
+ix_photon_out = -1
 
-do i = 1, cesr_iargc()
+i = 0
+do while (i < cesr_iargc())
+  i = i + 1
   call cesr_getarg(i, arg)
   select case (arg)
   case ('-plot')
     plotting = '-cross'
   case ('-cross', '-rcross', '-norm', '-xs', '-ys', '-reflect')
     plotting = arg
+  case ('-in')
+    i = i + 1
+    call cesr_getarg(i, photon_start_input_file)
+  case ('-out')
+    i = i + 1
+    call cesr_getarg(i, arg)
+    read (arg, *) ix_photon_out
   case default
     if (arg(1:1) == '-') then
       print *, 'I DO NOT UNDERSTAND: ', trim(arg)
@@ -94,9 +105,20 @@ if (param_file == '') param_file = 'synrad3d.init'
 
 if (.not. ok) then
   print *, 'Usage:'
-  print *, '  synrad3d {-cross | -rcross | -norm | -xs | -ys | -reflect} {<init_file>}'
+  print *, '  synrad3d {options} {<init_file>}'
   print *, 'Default:'
   print *, '  <init_file> = synrad3d.init'
+  print *, 'Options: [Note: No photon tracking done with plotting.]'
+  print *, '  -cross        ! Plot wall x-y cross-sections.'
+  print *, '  -in <file>    ! Use <file> to initialize photon(s). '
+  print *, '                !   This option is used for debugging synrad3d.'
+  print *, '  -norm         ! Plot wall x-y cross-sections along with wall normal vectors.'
+  print *, '  -out <n>      ! Create error_photon_start file using the n^th generated photon.'
+  print *, '                !   This option is used for debugging synrad3d.'
+  print *, '  -rcross       ! Plot wall x-y cross-sections with positive x-axis to the left.'
+  print *, '  -reflect      ! Plot reflection probability curves.'
+  print *, '  -xs           ! Plot wall x-s cross-section.'
+  print *, '  -ys           ! Plot wall x-s cross-section.'
   stop
 endif
 
@@ -130,7 +152,6 @@ reflect_file = ''
 lat_ele_file = ''
 iu_lat_file = 0
 iu_hit_file = 0
-photon_start_input_file = '' 
 photon_start_output_file = ''
 num_photons = -1
 num_photons_per_pass = -1
@@ -433,11 +454,23 @@ if (photon_start_input_file /= '') then
     photon => photons(n_photon_array)
     photon%start = p
     photon%n_wall_hit = 0
+    photon%ix_photon_generated = n_photon_generated
     if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
     if (random_seed > -1) call ran_seed_put (seed = random_seed)
     call check_filter_restrictions(ok, .true.)
     if (.not. ok) cycle
     call sr3d_track_photon (photon, lat, wall, wall_hit, err)
+
+    ! ix_photon_out is used for generating a file of the photon starting position.
+    ! This is used for diagnostic purposes.
+
+    if (photon%ix_photon_generated == ix_photon_out) then
+      call print_hit_points (-1, photon, wall_hit)
+       stop
+     endif
+
+    !
+
     if (err) then
       n_photon_array = n_photon_array - 1  ! Delete photon from the array.
       cycle
@@ -555,6 +588,17 @@ else
         if (.not. ok) cycle
 
         call sr3d_track_photon (photon, lat, wall, wall_hit, err)
+
+        ! ix_photon_out is used for generating a file of the photon starting position.
+        ! This is used for diagnostic purposes.
+
+        if (photon%ix_photon_generated == ix_photon_out) then
+          call print_hit_points (-1, photon, wall_hit)
+          stop
+        endif
+
+        !
+
         if (err) then
           n_photon_array = n_photon_array - 1  ! Delete photon from the array.
           cycle

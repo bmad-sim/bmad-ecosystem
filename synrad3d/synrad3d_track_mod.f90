@@ -56,6 +56,8 @@ photon%start%track_len = 0
 photon%now = photon%start
 wall_hit(0)%after_reflect = photon%start
 
+call ran_seed_get (state = sr3d_params%ran_state)  ! Save 
+
 !
 
 err = .false.
@@ -576,7 +578,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
       print *, '       Start: ', photon%start%vec
       print *, '       Now:   ', photon%now%vec
       print *, '       WILL IGNORE THIS PHOTON.'
-      call print_hit_points (10, photon, wall_hit, '(6es25.15)')
+      call print_hit_points (-1, photon, wall_hit, '(6es25.15)')
       err = .true.
       return
     endif
@@ -591,7 +593,7 @@ endif
 in_zbrent = .true.
 track_len = super_zbrent (sr3d_photon_hit_func, track_len0, track_len1, 1d-10, err)
 if (err) then
-  call print_hit_points (10, photon, wall_hit, '(6es25.15)')
+  call print_hit_points (-1, photon, wall_hit, '(6es25.15)')
   print *, 'WILL IGNORE THIS PHOTON.'
   print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
   print *, '       Start: ', photon%start%vec
@@ -836,7 +838,7 @@ if (cos_perp < 0) then
   print *, '       Start:  ', photon%start%vec
   print *, '       Now:    ', photon%now%vec
   print *, '       WILL IGNORE THIS PHOTON...'
-  call print_hit_points (10, photon, wall_hit, '(6es25.15)')
+  call print_hit_points (-1, photon, wall_hit, '(6es25.15)')
   err_flag = .true.
   return
 endif
