@@ -61,8 +61,6 @@ character(16), parameter :: r_name = 'make_mat6'
 !--------------------------------------------------------
 ! Some Init
 
-mat6_calc_method = ele%mat6_calc_method
-
 if (present(start_orb)) then
   a_start_orb = start_orb
 else
@@ -74,7 +72,7 @@ if (end_input) a_end_orb = end_orb
 
 ! custom calc 
 
-if (mat6_calc_method == custom$) then
+if (ele%key == custom$) then
   call make_mat6_custom (ele, param, a_start_orb, a_end_orb)
   return
 endif
@@ -84,6 +82,7 @@ endif
 param%lost = .false.
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
+mat6_calc_method = ele%mat6_calc_method
 if (.not. ele%is_on) mat6_calc_method = bmad_standard$
 
 !
@@ -96,6 +95,9 @@ bmad_com%radiation_fluctuations_on = .false.
 !
 
 select case (mat6_calc_method)
+
+case (custom$)
+  call make_mat6_custom (ele, param, a_start_orb, a_end_orb)
 
 case (taylor$)
   call make_mat6_taylor (ele, param, a_start_orb)

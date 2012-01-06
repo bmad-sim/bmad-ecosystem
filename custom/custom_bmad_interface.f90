@@ -11,6 +11,14 @@ interface
 end interface
 
 interface
+  subroutine init_custom (ele)
+    use bmad_struct, only: ele_struct
+    implicit none
+    type (ele_struct), target :: ele
+  end subroutine
+end interface
+
+interface
   subroutine make_mat6_custom (ele, param, start, end)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none

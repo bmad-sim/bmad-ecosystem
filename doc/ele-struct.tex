@@ -54,7 +54,7 @@ type ele_struct
   real(rp) gamma_c                        ! gamma associated with C matrix
   real(rp) s                              ! longitudinal position at the exit end.
   real(rp) ref_time                       ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:) => null()           ! For general use. Not used by Bmad.
+  real(rp), pointer :: r(:,:,:) => null()         ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()        ! multipole
   real(rp), pointer :: b_pole(:) => null()        ! multipoles
   real(rp), pointer :: const(:) => null()         ! Working constants.
@@ -538,11 +538,17 @@ PTC library (\sref{s:libs}). The PTC partially inverted map does not have any
 zeroth order terms so the zeroth order terms are stored in the \vn{%gen0(6)} vector.
 
 %--------------------------------------------------------------------------
-\section {RF fields and wakes}
+\section {EM Fields and RF Wakes}
 \index{wake fields!in ele_struct}
 
-\index{ele_struct!\%rf}
+\index{ele_struct!\%rf_wake}\index{ele_struct!\%em_field}
 \index{lcavity}\index{rfcavity}
+For any type of element, the \vn{%em_field} component holds information on 
+the electric and magnetic fields of an element. 
+These fields are used, for example, with Runge-Kutta tracking
+
+\NeedsToBeWorkedOn...
+
 For \vn{lcavity} and \vn{rfcavity} elements, the \vn{ele_struct%rf}
 structure holds information on ``rf fields'' and ``rf wakes.''
 Actually the two are not totally disjoint since the field substructure
@@ -728,6 +734,7 @@ See Chapter~\sref{c:tracking} for more details.
 %--------------------------------------------------------------------------
 \section{General Use Components}
 \index{ele_struct!components not used by Bmad}
+\label{s:ele.gen}
 
 \index{ele_struct!\%r}
 \index{ele_struct!\%ix_pointer}
@@ -736,7 +743,7 @@ There are three components of an \vn{ele_struct} that are guaranteed
 to never be used by any \bmad routine and so are available for use by
 someone writing a program. These components are
 \begin{example}
-   real(rp), pointer :: r(:) => null()  
+   real(rp), pointer :: r(:,:,:) => null()  
    integer ix_pointer                 
    logical logic                      
 \end{example}
