@@ -10,6 +10,7 @@ use bmad_struct
 use bmad_interface
 use make_mat6_mod
 use mad_mod
+use em_field_mod
 
 contains
 
@@ -477,17 +478,21 @@ end subroutine apply_bend_edge_kick
 ! Subroutine apply_element_edge_kick (orb, ele, param, element_end)
 !
 ! Subroutine to track through the edge field of an element.
-! Elements that have edge fields:
+! This routine is used with bmad_standard field_calc where the field
+! can have an abrubt, unphysical termination of the field at the
+! edges of the element. 
+!
+! Elements that have kicks due to unphysical edge field terminations:
 !   sbend
 !   solenoid
 !   sol_quad
-!   lcavity and rfcavity with runge_kutta tracking and bmad_standard field_calc
+!   lcavity and rfcavity 
 !
 ! Module needed:
 !   use track1_mod
 !
 ! Input:
-!   orb         -- Coord_struct: Starting coords.
+!   orb         -- Coord_struct: Starting coords in element reference frame.
 !   ele         -- ele_struct: Element.
 !   param       -- lat_param_struct: lattice parameters.
 !   element_end -- Integer: entrance_end$ or exit_end$.
@@ -503,61 +508,49 @@ implicit none
 type (ele_struct) ele
 type (coord_struct) orb
 type (lat_param_struct) param
-
-real(rp) phase, gradient, beta, t, k_wave, omega, E_z
+type (em_field_struct) field
+real(rp) t, beta, f
 
 integer element_end
 
 ! 
+
+if (ele%field_calc == bmad_standard$) return
 
 select case (ele%key)
 case (sbend$)
   call apply_bend_edge_kick (orb, ele, element_end, .false.)
 
 case (solenoid$, sol_quad$)
-    if (element_end == entrance_end$) then
-      orb%vec(2) = orb%vec(2) + ele%value(ks$) * orb%vec(3) / 2
-      orb%vec(4) = orb%vec(4) - ele%value(ks$) * orb%vec(1) / 2
-    else
-      orb%vec(2) = orb%vec(2) - ele%value(ks$) * orb%vec(3) / 2
-      orb%vec(4) = orb%vec(4) + ele%value(ks$) * orb%vec(1) / 2
-    endif
-
-! The edge kick for a cavity is only needed when tracking through the field
-! using field_calc == bmad_standard$. See Eq (10) of J. Rosenzweig and L. Serafini,
-! Phys Rev E, Vol. 49, p. 1599, (1994). In this case g = b_0 + b_-1 = 2.
+  if (element_end == entrance_end$) then
+    orb%vec(2) = orb%vec(2) + ele%value(ks$) * orb%vec(3) / 2
+    orb%vec(4) = orb%vec(4) - ele%value(ks$) * orb%vec(1) / 2
+  else
+    orb%vec(2) = orb%vec(2) - ele%value(ks$) * orb%vec(3) / 2
+    orb%vec(4) = orb%vec(4) + ele%value(ks$) * orb%vec(1) / 2
+  endif
 
 case (lcavity$, rfcavity$)
-    if (ele%field_calc /= bmad_standard$) return
 
-    phase = twopi * (ele%value(theta_t0$) + ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$))
-    if (ele%key == rfcavity$) phase = phase + pi/2
+  if (element_end == entrance_end$) then
+    call convert_pc_to(ele%value(p0c_start$) * (1 + orb%vec(6)), param%particle, beta = beta)
+    t = -orb%vec(5) / (beta * c_light)
+    call em_field_calc (ele, param, 0.0_rp, t, orb, .true., field)
+    f = 1 / (2 * ele%value(p0c_start$))
 
-    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
-    if (.not. ele%is_on) gradient = 0
-    gradient = gradient + gradient_shift_sr_wake(ele, param)
+    orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
+    orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
-    k_wave = pi / ele%value(l$)
-    omega = c_light * k_wave
+  else
+    call convert_pc_to(ele%value(p0c$) * (1 + orb%vec(6)), param%particle, beta = beta)
+    t = ele%value(delta_ref_time$) - orb%vec(5) / (beta * c_light)
+    call em_field_calc (ele, param, ele%value(l$), t, orb, .true., field)
+    f = 1 / (2 * ele%value(p0c$))
 
-    if (element_end == entrance_end$) then
-      
-      call convert_pc_to(ele%value(p0c_start$) * (1 + orb%vec(6)), param%particle, beta = beta)
-      t = -orb%vec(5) / (beta * c_light)
-      E_z = 2 * gradient * cos(omega * t + phase)
+    orb%vec(2) = orb%vec(2) + field%e(3) * orb%vec(1) * f - c_light * field%b(3) * orb%vec(3) * f
+    orb%vec(4) = orb%vec(4) + field%e(3) * orb%vec(3) * f + c_light * field%b(3) * orb%vec(1) * f
 
-      orb%vec(2) = orb%vec(2) - E_z * orb%vec(1) / (2 * ele%value(p0c_start$))
-      orb%vec(4) = orb%vec(4) - E_z * orb%vec(3) / (2 * ele%value(p0c_start$))
-
-    else
-      call convert_pc_to(ele%value(p0c$) * (1 + orb%vec(6)), param%particle, beta = beta)
-      t = ele%value(delta_ref_time$) - orb%vec(5) / (beta * c_light)
-      E_z = -2 * gradient * cos(omega * t + phase)  ! cos(k_wave * L) = -1 gives negative sign in this Eq.
-
-      orb%vec(2) = orb%vec(2) + E_z * orb%vec(1) / (2 * ele%value(p0c$))
-      orb%vec(4) = orb%vec(4) + E_z * orb%vec(3) / (2 * ele%value(p0c$))
-
-    endif
+  endif
 end select
 
 end subroutine apply_element_edge_kick

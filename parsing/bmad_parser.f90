@@ -221,7 +221,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
     debug_line = bp_com%parse_line
-    if (bmad_status%type_out) call out_io (s_info$, r_name, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON')
+    if (bmad_status%type_out) call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on')
     cycle parsing_loop
   endif
 
@@ -229,7 +229,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
     bp_com%write_digested = .false.
-    if (bmad_status%type_out) call out_io (s_info$, r_name, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED')
+    if (bmad_status%type_out) call out_io (s_info$, r_name, 'Found in file: "NO_DIGESTED". No digested file will be created')
     cycle parsing_loop
   endif
 
@@ -964,12 +964,16 @@ if (detected_expand_lattice_cmd) then
   bmad_status%exit_on_error = exit_on_error
 endif
 
-! Remove all null_ele elements.
+! Remove all null_ele elements and init custom stuff.
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
   do i = 1, branch%n_ele_max
-    if (branch%ele(i)%key == null_ele$) branch%ele(i)%key = -1 ! mark for deletion
+    ele => branch%ele(i)
+    if (ele%key == null_ele$) ele%key = -1 ! mark for deletion
+    if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
+        ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
+        ele%aperture_type == custom$) call init_custom (ele)
   enddo
 enddo
 call remove_eles_from_lat (lat, .false.)  

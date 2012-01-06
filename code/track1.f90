@@ -53,11 +53,9 @@ integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
 
-! Custom tracking
+! Custom element
 
-tracking_method = ele%tracking_method
-
-if (tracking_method == custom$) then
+if (ele%key == custom$) then
   call track1_custom (start, ele, param, end, track)
   return
 endif
@@ -89,12 +87,16 @@ endif
 
 ! bmad_standard handles the case when the element is turned off.
 
+tracking_method = ele%tracking_method
 if (.not. ele%is_on) tracking_method = bmad_standard$
 
 select case (tracking_method)
 
 case (bmad_standard$) 
   call track1_bmad (orb, ele, param, end)
+
+case (custom$)
+  call track1_custom (start, ele, param, end, track)
 
 case (runge_kutta$) 
   call track1_runge_kutta (orb, ele, param, end, track)

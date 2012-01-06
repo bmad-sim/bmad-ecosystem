@@ -431,11 +431,6 @@ select case (ele%field_calc)
 
   case (sol_quad$)
 
-    if (bmad_status%type_out) &
-      call out_io (s_fatal$, r_name, 'BMAD_STANDARD SOL_QUAD FIELD NOT IMPLEMENTED SINCE EDGE FIELD IS NOT DEFINED.')
-    if (bmad_status%exit_on_error) call err_exit
-    return
-
     field%b(1) = y * ele%value(k1$) * f_p0c 
     field%b(2) = x * ele%value(k1$) * f_p0c 
     field%b(3) = ele%value(ks$) * f_p0c
@@ -449,11 +444,6 @@ select case (ele%field_calc)
   ! Solenoid
 
   case (solenoid$)
-
-    if (bmad_status%type_out) &
-      call out_io (s_fatal$, r_name, 'BMAD_STANDARD SOLENOID FIELD NOT IMPLEMENTED SINCE EDGE FIELD IS NOT DEFINED.')
-    if (bmad_status%exit_on_error) call err_exit
-    return
 
     field%b(3) = ele%value(ks$) * f_p0c
 
