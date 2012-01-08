@@ -1130,7 +1130,8 @@ real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
 real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
-logical is_first, is_last, wall3d_here, err_flag
+logical is_first, is_last, wall3d_here, err_flag, major_method_set_done 
+
 logical, save :: init_needed = .true.
 
 character(20) :: r_name = 'makeup_super_slave'
@@ -1228,11 +1229,13 @@ value = 0
 value(l$) = slave%value(l$)
 value(E_tot$) = slave%value(E_tot$)
 value(p0c$) = slave%value(p0c$)
+if (slave%key == wiggler$) value(z_patch$) = slave%value(z_patch$)
 
 s_slave = slave%s - value(l$)/2  ! center of slave
 slave%is_on = .false.
 
 wall3d_here = .false.
+major_method_set_done = .false.
 
 ! sum over all lords...
 
@@ -1300,32 +1303,52 @@ do j = 1, slave%n_lord
 
   if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, is_first, is_last)
 
-  ! Methods
+  ! Methods.
+  ! Major_method_set_done = T means the slave methods have been set using a "major" element.
+  ! A "major" element is something other than a pipe, monitor, etc.
 
-  if (j == 1) then
+  if (j == 1 .or. .not. major_method_set_done) then
     slave%mat6_calc_method = lord%mat6_calc_method
     slave%tracking_method  = lord%tracking_method
     slave%map_with_offsets = lord%map_with_offsets
-  else
-    if (slave%mat6_calc_method /= lord%mat6_calc_method) then
-      lord1 => pointer_to_lord(slave, 1)
-      call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-      call err_exit
-    endif
-    if (slave%tracking_method /= lord%tracking_method) then
-      lord1 => pointer_to_lord(slave, 1)
-      call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-      call err_exit
-    endif
-    if (slave%map_with_offsets .neqv. lord%map_with_offsets) then
-      lord1 => pointer_to_lord(slave, 1)
-      call out_io(s_abort$, r_name, 'MAP_WITH_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-      call err_exit
-    endif
   endif
+
+  select case (lord%key)
+  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
+  case default
+    if (.not. major_method_set_done) then
+      if (slave%mat6_calc_method /= lord%mat6_calc_method) then
+        lord1 => pointer_to_lord(slave, 1)
+        call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
+             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
+        call err_exit
+      endif
+      if (slave%tracking_method /= lord%tracking_method) then
+        lord1 => pointer_to_lord(slave, 1)
+        call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
+             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
+        call err_exit
+      endif
+      if (slave%map_with_offsets .neqv. lord%map_with_offsets) then
+        lord1 => pointer_to_lord(slave, 1)
+        call out_io(s_abort$, r_name, 'MAP_WITH_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
+             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
+        call err_exit
+      endif
+    endif
+
+    major_method_set_done = .true.
+  end select
+
+  ! descriptive strings.
+
+  if (associated(lord%descrip)) then
+    if (.not. associated(slave%descrip)) allocate (slave%descrip)
+    slave%descrip = lord%descrip
+  endif
+
+  if (lord%type /= '') slave%type = lord%type
+  if (lord%alias /= '') slave%alias = lord%alias
 
   !----------------------------------------------------
   ! kicks, etc.
@@ -1419,19 +1442,17 @@ do j = 1, slave%n_lord
   ! bend_sol_quad
 
   case (bend_sol_quad$)
-    call out_io (s_abort$, r_name, &
-               'CODING NOT YET IMPLEMENTED FOR: ' // key_name(slave%key))
+    call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR: ' // key_name(slave%key))
     call err_exit
 
-  ! hkicker, vkicker, kicker, etc. looks like drifts
+  ! hkicker, vkicker, kicker, etc. has no special needs.
 
-  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
+  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$, wiggler$)
 
   ! default
 
   case default
-    call out_io (s_abort$, r_name, &
-               'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
+    call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
     call err_exit
 
   end select
@@ -1658,7 +1679,7 @@ end subroutine makeup_super_slave
 ! needs to be done.
 !
 ! Note: To save tracking computation time, if ele_in has taylor, symp_lie_ptc, or symp_map 
-! for trackint_method or mat6_calc_method, then this will be changed to symp_lie_bmad 
+! for tracking_method or mat6_calc_method, then this will be changed to symp_lie_bmad 
 ! for wigglers and bmad_standard for everything else.
 !
 ! Modules needed:

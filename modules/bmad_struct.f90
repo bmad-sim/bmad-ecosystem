@@ -21,7 +21,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 100
+integer, parameter :: bmad_inc_version$ = 101
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -626,7 +626,7 @@ integer, parameter :: to$ = 100
 integer, parameter :: field_master$ = 101
 integer, parameter :: star_aperture$ = 102
 integer, parameter :: scale_multipoles$ = 103
-integer, parameter :: wall$ = 104
+integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall$
 integer, parameter :: dc_field$ = 105
 integer, parameter :: phi_b$ = 106, crystal_type$ = 106
 
@@ -864,9 +864,9 @@ integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ =
 
 ! Note: custom$ = 7 is taken from element key names.
 
-integer, parameter :: rectangular$ = 1, elliptical$ = 2, star_shape$ = 3
+integer, parameter :: rectangular$ = 1, elliptical$ = 2, wall$ = 3
 character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ', &
+                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Wall       ', &
                                      'garbage!   ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 
 integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2

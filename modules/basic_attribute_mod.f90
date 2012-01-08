@@ -269,7 +269,7 @@ do i = 1, n_key
 
   if (i == null_ele$) cycle
 
-  call init_attrib (i, wall$,                   'WALL')
+  call init_attrib (i, wall_attribute$,         'WALL')
   call init_attrib (i, x_limit$,                'X_LIMIT')
   call init_attrib (i, x1_limit$,               'X1_LIMIT')
   call init_attrib (i, x2_limit$,               'X2_LIMIT')
@@ -306,12 +306,12 @@ do i = 1, n_key
   if (i == mirror$)     cycle
   if (i == crystal$)    cycle
   if (i == multilayer_mirror$) cycle
+  if (i == capillary$)    cycle
 
   if (i /= drift$) call init_attrib (i, is_on$,        'IS_ON')
 
   if (i == photon_branch$) cycle
-  if (i == branch$) cycle
-  if (i == capillary$)    cycle
+  if (i == branch$)       cycle
   if (i == marker$)       cycle
   if (i == patch$)        cycle
   if (i == beambeam$)     cycle
@@ -337,6 +337,7 @@ do i = 1, n_key
   if (i == custom$)       cycle
   if (i == e_gun$)        cycle
   if (i == em_field$)     cycle
+  if (i == drift$)        cycle
 
   call init_attrib (i, hkick$,     'HKICK')
   call init_attrib (i, vkick$,     'VKICK')
@@ -407,7 +408,7 @@ call init_attrib (init_ele$, e_field_x$,                   'E_FIELD_X')
 call init_attrib (init_ele$, e_field_y$,                   'E_FIELD_Y')
 call init_attrib (init_ele$, phase_x$,                     'PHASE_X')
 call init_attrib (init_ele$, phase_y$,                     'PHASE_Y')
-call init_attrib (init_ele$, wall$,                        'WALL')
+call init_attrib (init_ele$, wall_attribute$,              'WALL')
 
 call init_attrib (def_parameter$, e_tot$,                  'E_TOT')
 call init_attrib (def_parameter$, p0c$,                    'P0C')

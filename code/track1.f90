@@ -1,5 +1,5 @@
 !+
-! Subroutine track1 (start, ele, param, end, track)
+! Subroutine track1 (start_orb, ele, param, end_orb, track)
 !
 ! Particle tracking through a single element. 
 ! Optionally synchrotron radiation and space charge kicks can included.
@@ -8,14 +8,14 @@
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting position.
+!   start_orb  -- Coord_struct: Starting position.
 !   ele    -- Ele_struct: Element to track through.
 !   param  -- lat_param_struct:
 !     %aperture_limit_on -- If True check if particle is lost by going outside
 !                of the element aperture. 
 !
 ! Output:
-!   end   -- Coord_struct: End position.
+!   end_orb   -- Coord_struct: End position.
 !   param
 !     %lost          -- Set True If the particle cannot make it through an element.
 !                         Set False otherwise.
@@ -30,7 +30,7 @@
 ! and vertical kicks irregardless of the value for TILT.
 !-
 
-subroutine track1 (start, ele, param, end, track)
+subroutine track1 (start_orb, ele, param, end_orb, track)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -40,8 +40,8 @@ use spin_mod, except_dummy3 => track1
 
 implicit none
 
-type (coord_struct) :: start
-type (coord_struct) :: end
+type (coord_struct) :: start_orb
+type (coord_struct) :: end_orb
 type (coord_struct) :: orb
 type (ele_struct)   :: ele
 type (lat_param_struct) :: param
@@ -53,13 +53,6 @@ integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
 
-! Custom element
-
-if (ele%key == custom$) then
-  call track1_custom (start, ele, param, end, track)
-  return
-endif
-
 ! Init
 
 param%lost = .false.  ! assume everything will be OK
@@ -69,10 +62,10 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 ! check for particles outside aperture
 
 if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
-                call check_aperture_limit (start, ele, entrance_end$, param)
+                call check_aperture_limit (start_orb, ele, entrance_end$, param)
 if (param%lost) then
   param%end_lost_at = entrance_end$
-  call init_coord (end)      ! it never got to the end so zero this.
+  call init_coord (end_orb)      ! it never got to the end so zero this.
   return
 endif
 
@@ -80,9 +73,9 @@ endif
 
 if ((bmad_com%radiation_damping_on .or. &
             bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
-  call track1_radiation (start, ele, param, orb, start_edge$) 
+  call track1_radiation (start_orb, ele, param, orb, start_edge$) 
 else
-  orb = start
+  orb = start_orb
 endif
 
 ! bmad_standard handles the case when the element is turned off.
@@ -93,40 +86,40 @@ if (.not. ele%is_on) tracking_method = bmad_standard$
 select case (tracking_method)
 
 case (bmad_standard$) 
-  call track1_bmad (orb, ele, param, end)
+  call track1_bmad (orb, ele, param, end_orb)
 
 case (custom$)
-  call track1_custom (start, ele, param, end, track)
+  call track1_custom (start_orb, ele, param, end_orb, track)
 
 case (runge_kutta$) 
-  call track1_runge_kutta (orb, ele, param, end, track)
+  call track1_runge_kutta (orb, ele, param, end_orb, track)
 
 case (linear$) 
-  call track1_linear (orb, ele, param, end)
+  call track1_linear (orb, ele, param, end_orb)
 
 case (taylor$) 
-  call track1_taylor (orb, ele, param, end)
+  call track1_taylor (orb, ele, param, end_orb)
 
 case (symp_map$) 
-  call track1_symp_map (orb, ele, param, end)
+  call track1_symp_map (orb, ele, param, end_orb)
 
 case (symp_lie_bmad$) 
-  call symp_lie_bmad (ele, param, orb, end, .false., track)
+  call symp_lie_bmad (ele, param, orb, end_orb, .false., track)
 
 case (symp_lie_ptc$) 
-  call track1_symp_lie_ptc (orb, ele, param, end)
+  call track1_symp_lie_ptc (orb, ele, param, end_orb)
 
 case (adaptive_boris$) 
-  call track1_adaptive_boris (orb, ele, param, end, track)
+  call track1_adaptive_boris (orb, ele, param, end_orb, track)
 
 case (boris$) 
-  call track1_boris (orb, ele, param, end, track)
+  call track1_boris (orb, ele, param, end_orb, track)
 
 case (mad$)
-  call track1_mad (orb, ele, param, end)
+  call track1_mad (orb, ele, param, end_orb)
 
 case (time_runge_kutta$)
-  call track1_time_runge_kutta (orb, ele, param, end, track)
+  call track1_time_runge_kutta (orb, ele, param, end_orb, track)
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)
@@ -136,39 +129,39 @@ end select
 
 ! s and time update
 
-end%s = ele%s
+end_orb%s = ele%s
 
 if (ele_has_constant_reference_energy(ele)) then
-  call convert_pc_to (ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
-  end%t = start%t + ele%value(delta_ref_time$) + (start%vec(5) - end%vec(5)) / (beta * c_light)
+  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = beta)
+  end_orb%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - end_orb%vec(5)) / (beta * c_light)
 else
-  call convert_pc_to (ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
-  call convert_pc_to (ele%value(p0c_start$) * (1 + start%vec(6)), param%particle, beta = beta_start)
-  end%t = start%t + ele%value(delta_ref_time$) + &
-                          start%vec(5) / (beta_start * c_light) - end%vec(5) / (beta * c_light)
+  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = beta)
+  call convert_pc_to (ele%value(p0c_start$) * (1 + start_orb%vec(6)), param%particle, beta = beta_start)
+  end_orb%t = start_orb%t + ele%value(delta_ref_time$) + &
+                          start_orb%vec(5) / (beta_start * c_light) - end_orb%vec(5) / (beta * c_light)
 endif
 
 ! Radiation damping and/or fluctuations for the last half of the element
 
 if ((bmad_com%radiation_damping_on .or. &
                   bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
-  call track1_radiation (end, ele, param, end, end_edge$) 
+  call track1_radiation (end_orb, ele, param, end_orb, end_edge$) 
 endif
 
 ! space charge
 
 if (bmad_com%space_charge_on) &
-      call track1_ultra_rel_space_charge (end, ele, param, end)
+      call track1_ultra_rel_space_charge (end_orb, ele, param, end_orb)
 
 ! spin tracking
  
-if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end)
+if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end_orb)
 
 ! check for particles outside aperture
 
 if (.not. param%lost) then
   if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) then
-    call check_aperture_limit (end, ele, exit_end$, param)
+    call check_aperture_limit (end_orb, ele, exit_end$, param)
     if (param%lost) param%end_lost_at = exit_end$
   endif
 endif
@@ -176,10 +169,10 @@ endif
 if (param%lost .and. param%end_lost_at == live_reversed$) then
   param%lost = .false. ! Temp
   if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
-                  call check_aperture_limit (start, ele, entrance_end$, param)
+                  call check_aperture_limit (start_orb, ele, entrance_end$, param)
   if (param%lost) then
     param%end_lost_at = entrance_end$
-    call init_coord (end)      ! it never got to the end so zero this.
+    call init_coord (end_orb)      ! it never got to the end so zero this.
     return
   endif
   param%lost = .true.

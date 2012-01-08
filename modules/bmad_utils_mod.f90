@@ -2389,12 +2389,14 @@ endif
 
 ! If one element is a rcollimator, monitor, or instrument then key3 = key of other element.
 
-if (any(key1 == [rcollimator$, monitor$, instrument$])) then
+if (ele1%aperture_type == elliptical$ .or. ele2%aperture_type == elliptical$ ) ele3%aperture_type = elliptical$
+
+if (any(key1 == [ecollimator$, rcollimator$, monitor$, instrument$])) then
   key3 = key2
   return
 endif
 
-if (any(key2 == [rcollimator$, monitor$, instrument$])) then
+if (any(key2 == [ecollimator$, rcollimator$, monitor$, instrument$])) then
   key3 = key1
   return
 endif

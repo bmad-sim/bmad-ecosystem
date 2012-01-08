@@ -70,13 +70,6 @@ endif
 end_input = (logic_option (.false., end_in) .and. present(end_orb))
 if (end_input) a_end_orb = end_orb
 
-! custom calc 
-
-if (ele%key == custom$) then
-  call make_mat6_custom (ele, param, a_start_orb, a_end_orb)
-  return
-endif
-
 ! init
 
 param%lost = .false.

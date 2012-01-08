@@ -48,16 +48,16 @@ type (lat_struct), target :: lat
 
 real(rp), pointer :: val(:)
 
-integer			:: opal_file_unit
+integer      :: opal_file_unit
 integer,  optional :: opal_ix_start, opal_ix_end
-character(200)	:: file_name
-character(40)	:: r_name = 'write_opal_lattice_file', name
-character(2) 	:: continue_char, eol_char, comment_char
-character(24)	:: rfmt
-character(4000)	:: line
-integer			:: iu,  ios, ix_match, ie, ix_start, ix_end, iu_fieldgrid
-integer			:: n_names, n
-integer 		:: q_sign
+character(200)  :: file_name
+character(40)  :: r_name = 'write_opal_lattice_file', name
+character(2)   :: continue_char, eol_char, comment_char
+character(24)  :: rfmt
+character(4000)  :: line
+integer      :: iu,  ios, ix_match, ie, ix_start, ix_end, iu_fieldgrid
+integer      :: n_names, n
+integer     :: q_sign
 character(40), allocatable :: names(:)
 integer, allocatable :: an_indexx(:), name_occurrences(:)
 
@@ -65,7 +65,7 @@ integer, allocatable :: an_indexx(:), name_occurrences(:)
 real(rp)        :: absmax_Ez, absmax_Bz, phase_lag
 character(40)   :: fieldgrid_output_name
 character(200), allocatable :: fieldgrid_names(:)
-integer			:: fieldgrid_n_names
+integer      :: fieldgrid_n_names
 integer, allocatable :: fieldgrid_an_indexx(:), fieldgrid_name_occurrences(:)
 
 
@@ -75,16 +75,16 @@ if (present(err)) err = .true.
 
 !If unit number is zero, make a new file
 if (opal_file_unit == 0 ) then
-	! Open the file
-	iu = lunget()	
-	call file_suffixer (lat%input_file_name, file_name, 'opal', .true.)
-	open (iu, file = file_name, iostat = ios)
-	if (ios /= 0) then
-	  	call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(file_name))
-  		return
-  	endif
+  ! Open the file
+  iu = lunget()  
+  call file_suffixer (lat%input_file_name, file_name, 'opal', .true.)
+  open (iu, file = file_name, iostat = ios)
+  if (ios /= 0) then
+      call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(file_name))
+      return
+    endif
 else
-	iu = opal_file_unit
+  iu = opal_file_unit
 endif
 
 
@@ -97,15 +97,15 @@ eol_char = ';'
 !Elements to write
 !Get optional start index
 if (present(opal_ix_start) ) then 
-	ix_start = opal_ix_start
+  ix_start = opal_ix_start
 else
-	ix_start = 1
+  ix_start = 1
 end if
 !Get optional end index
 if (present(opal_ix_end) ) then 
-	ix_end = opal_ix_end
+  ix_end = opal_ix_end
 else
-	ix_end = lat%n_ele_track
+  ix_end = lat%n_ele_track
 end if
 
 !Check order
@@ -142,52 +142,52 @@ q_sign = sign(1,  charge_of(lat%param%particle) )
 
 !Loop over all elements
 ele_loop: do ie = ix_start, ix_end
-	ele => lat%ele(ie)
-	!point to value array for convenience
-	val => ele%value
-	
-	
-	!Make unique names	
+  ele => lat%ele(ie)
+  !point to value array for convenience
+  val => ele%value
+  
+  
+  !Make unique names  
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
     if (ix_match > 0) then
-    	name_occurrences(ix_match) = name_occurrences(ix_match) + 1
-    	!Replace ele%name with a unique name
-    	write(ele%name, '(2a,i0)') trim(ele%name), '_', name_occurrences(ix_match) 
-    	!Be careful with this internal write statement
-    	!This only works because ele%name is first in the write list
-	end if
+      name_occurrences(ix_match) = name_occurrences(ix_match) + 1
+      !Replace ele%name with a unique name
+      write(ele%name, '(2a,i0)') trim(ele%name), '_', name_occurrences(ix_match) 
+      !Be careful with this internal write statement
+      !This only works because ele%name is first in the write list
+  end if
     !add name to list  
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
     n_names = n_names + 1
 
-	!Format for numbers
-	rfmt = 'es13.5'
+  !Format for numbers
+  rfmt = 'es13.5'
 
 
-	!----------------------------------------------------------
-	!----------------------------------------------------------
-	!Element attributes
-	select case (ele%key)
+  !----------------------------------------------------------
+  !----------------------------------------------------------
+  !Element attributes
+  select case (ele%key)
 
-	!----------------------------------------------------------
-	!Marker -----------------------------------
-	!----------------------------------------------------------
+  !----------------------------------------------------------
+  !Marker -----------------------------------
+  !----------------------------------------------------------
     case (marker$)
         write (line, '(a)' ) trim(ele%name) // ': marker'
       !Write ELEMEDGE
       call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 
-	!----------------------------------------------------------
-	!Drift -----------------------------------   
-	!----------------------------------------------------------
+  !----------------------------------------------------------
+  !Drift -----------------------------------   
+  !----------------------------------------------------------
      case (drift$, instrument$)
         write (line, '(a, ' // rfmt //')' ) trim(ele%name) // ': drift, l =', val(l$)
       !Write ELEMEDGE
       call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 
-	!----------------------------------------------------------
-	!Sbend -----------------------------------       
-	!----------------------------------------------------------
+  !----------------------------------------------------------
+  !Sbend -----------------------------------       
+  !----------------------------------------------------------
      case (sbend$)
         write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(l$)
         call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
@@ -198,59 +198,59 @@ ele_loop: do ie = ix_start, ix_end
         ! Write new fieldgrid file, based on the element's name
         fieldgrid_output_name = ''
         write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
-	iu_fieldgrid = lunget()
-	open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
-	call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
-	close(iu_fieldgrid)
-	!Add FMAPFN to line
+  iu_fieldgrid = lunget()
+  open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
+  call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
+  close(iu_fieldgrid)
+  !Add FMAPFN to line
         write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
-	!elemedge
+  !elemedge
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 
-	!----------------------------------------------------------
-	!Solenoid -----------------------------------       
-	!----------------------------------------------------------
+  !----------------------------------------------------------
+  !Solenoid -----------------------------------       
+  !----------------------------------------------------------
      case (solenoid$)
         write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
 
         ! Write new fieldgrid file, based on the element's name
         fieldgrid_output_name = ''
         write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
-	iu_fieldgrid = lunget()
-	open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
-	call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Bz)
-	close(iu_fieldgrid)
+  iu_fieldgrid = lunget()
+  open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
+  call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Bz)
+  close(iu_fieldgrid)
 
-	!Add FMAPFN to line
+  !Add FMAPFN to line
         write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
 
         !ks field strength TODO: check specification. Seems to be Tesla
         call value_to_line (line, absmax_Bz, 'ks', rfmt, 'R')
 
-	!elemedge
-        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)		
-		
-	!----------------------------------------------------------
-	!Quadrupole -----------------------------------   
-	!----------------------------------------------------------
+  !elemedge
+        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)    
+    
+  !----------------------------------------------------------
+  !Quadrupole -----------------------------------   
+  !----------------------------------------------------------
      case (quadrupole$)
         write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
         !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
         call value_to_line (line, q_sign*val(b1_gradient$), 'k1', rfmt, 'R')
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
-		
-	!----------------------------------------------------------
-	!Lcavity, RFCavity -----------------------------------
-	!----------------------------------------------------------
+    
+  !----------------------------------------------------------
+  !Lcavity, RFCavity -----------------------------------
+  !----------------------------------------------------------
     case (lcavity$, rfcavity$)
       !Check that there is a map or grid associated to make a decent field grid for OPAL
-	  if (.not. associated(ele%em_field)  )then
-	    call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key), &
+    if (.not. associated(ele%em_field)  )then
+      call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key), &
                                      '----')
         call err_exit
       endif
-	  if (.not. associated(ele%em_field%mode(1)%grid)  )then
-	    call out_io (s_error$, r_name, 'No grid for: ' // key_name(ele%key), &
+    if (.not. associated(ele%em_field%mode(1)%grid)  )then
+      call out_io (s_error$, r_name, 'No grid for: ' // key_name(ele%key), &
                                      '----')
         call err_exit
       endif
@@ -277,12 +277,12 @@ ele_loop: do ie = ix_start, ix_end
         ! Write new fieldgrid file
         fieldgrid_output_name = ''
         write(fieldgrid_output_name, '(a, i0, a)') 'fieldgrid_', fieldgrid_n_names, '.t7'
-	    iu_fieldgrid = lunget()
-	    open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
-	    	    call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
-	    close(iu_fieldgrid)
-	  end if
-	  !Add FMAPFN to line
+      iu_fieldgrid = lunget()
+      open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
+            call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
+      close(iu_fieldgrid)
+    end if
+    !Add FMAPFN to line
       write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
       
       !Write field scaling in MV/m
@@ -300,31 +300,31 @@ ele_loop: do ie = ix_start, ix_end
       call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
       
 
-	!----------------------------------------------------------
-	!Default -----------------------------------
-	!----------------------------------------------------------
+  !----------------------------------------------------------
+  !Default -----------------------------------
+  !----------------------------------------------------------
      case default
         call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
              'CONVERTING TO DRIFT')
         write (line, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
         !Write ELEMEDGE
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
-	end select
-	
-	!type (general attribute)
-	if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
-	
-	!end line
-	write (line, '(2a)') trim(line), trim(eol_char)
+  end select
+  
+  !type (general attribute)
+  if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
+  
+  !end line
+  write (line, '(2a)') trim(line), trim(eol_char)
 
-	!call write_opal_field_map()
+  !call write_opal_field_map()
 
-	!----------------------------------------------------------
-	!----------------------------------------------------------
+  !----------------------------------------------------------
+  !----------------------------------------------------------
 
 
-	!Finally write out line
-	call write_lat_line (line, iu, .true.)  
+  !Finally write out line
+  call write_lat_line (line, iu, .true.)  
 enddo ele_loop
 
 
@@ -333,8 +333,8 @@ write (iu, *)
 line = 'lattice: line = ('
 
 lat_loop: do ie = ix_start, ix_end
-	 call write_line_element (line, iu, lat%ele(ie), lat)
-enddo lat_loop		
+   call write_line_element (line, iu, lat%ele(ie), lat)
+enddo lat_loop    
 !write closing parenthesis
 line = line(:len_trim(line)-1) // ')' // eol_char
 call write_lat_line (line, iu, .true.)
@@ -378,14 +378,14 @@ subroutine write_opal_field_grid_file (opal_file_unit, ele, param, maxfield, err
 implicit none
 
 
-integer			:: opal_file_unit
+integer      :: opal_file_unit
 integer         :: dimensions
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 real(rp)        :: maxfield
 logical, optional :: err
 
-character(40)	:: r_name = 'write_opal_field_grid_file'
+character(40)  :: r_name = 'write_opal_field_grid_file'
 character(10)   ::  rfmt 
 
 
@@ -439,11 +439,11 @@ select case (ele%key)
 
   !Example:
   !2DDynamic XZ
-  !0.	100.955	743   #zmin(cm),  zmax(cm).   nz - 1
+  !0.  100.955  743   #zmin(cm),  zmax(cm).   nz - 1
   !1300.              #freq (MHz)
-  !-0.10158700000000001	4.793651666666666	11    # rmin(cm),  rmax(cm),   nr-1
+  !-0.10158700000000001  4.793651666666666  11    # rmin(cm),  rmax(cm),   nr-1
   !
-  !-547.601	-9.64135	0	-20287.798905810083   ! Ez(t0), Er(t0), dummy->0.0, -10^6 / mu_0 * B_phi (t + 1/4 1/f) 
+  !-547.601  -9.64135  0  -20287.798905810083   ! Ez(t0), Er(t0), dummy->0.0, -10^6 / mu_0 * B_phi (t + 1/4 1/f) 
 
   !Allocate temporary pt array
   allocate ( pt(0:nx, 0:nz, 1:1) )
@@ -574,7 +574,7 @@ select case (ele%key)
       do iz = 0, nz
         write (opal_file_unit, '(2'//rfmt//')') , &
           Bz_factor * real (  pt(ix, iz, 1)%B(3) ), &
-          Bx_factor * real (  pt(ix, iz, 1)%B(1) )						
+          Bx_factor * real (  pt(ix, iz, 1)%B(1) )            
       enddo
     enddo
   
@@ -671,20 +671,18 @@ end subroutine write_opal_field_grid_file
 !   err            -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-
-
-subroutine  write_opal_particle_distribution (opal_file_unit, bunch, mc2, p0c, err)
+subroutine write_opal_particle_distribution (opal_file_unit, bunch, mc2, p0c, err)
 
 implicit none
 
-integer			    :: opal_file_unit
+integer          :: opal_file_unit
 type (bunch_struct) :: bunch
 real(rp)            :: mc2, p0c
 logical, optional   :: err
 
 type (coord_struct) :: orb
-real(rp)        :: dt, pc, gmc
-character(40)	:: r_name = 'write_opal_particle_distribution'
+real(rp)       :: dt, pc, gmc
+character(40)  :: r_name = 'write_opal_particle_distribution'
 character(10)   ::  rfmt 
 integer n_particle, i
 

@@ -1,21 +1,26 @@
 \chapter{Miscellaneous Programming}
 
-{\bf NOTE: THIS CHAPTER IS UNDER CONSTRUCTION!}
-
 %-----------------------------------------------------------------------------
 \section{Custom Elements and Custom Calculations}
 \label{s:custom.ele}
 \index{custom}
 
-\NeedsWork....
+In this context, a ``custom'' calculation is a calculation, normally
+done by \bmad, that is instead handled by having the appropriate \bmad
+code call the appropriate custom code. Implementing custom
+calculations involve writing custom code and linking this code into a
+program. There are essentually two ways to do custom calculations. One
+method involves using a \vn{custom} element (\sref{s:custom}). The
+other method involves setting the appropriate component of an element
+to \vn{custom}. An appropriate component is one of
+\begin{example}
+  tracking_method       \sref{s:tkm}
+  mat6_calc_method      \sref{s:xfer}
+  field_calc            \sref{s:integ}
+  aperture_type         \sref{s:limit}
+\end{example}
 
-\index{custom}
-\index[routine]{radiation_integrals}\index[routine]{em_field}
-\index[routine]{make.mat6}\index[routine]{track1}\index[routine]{bmad_parser}
-Routines to handle \vn{custom} elements (\sref{s:custom}) must be supplied
-by the creator of the elements.
-There are potentially four routines that must be written to implement a custom 
-element:
+There are seven routines that implement custom calculations:
 \begin{example}
    \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom}
    \Hyperref{r:em.field.custom}{em_field_custom}
@@ -26,69 +31,54 @@ element:
    \Hyperref{r:track1.bunch.custom}{track1_bunch_custom}
 \end{example}
 [Use \vn{getf} for more details about the argument lists for these
-routines.]  The \bmad library has dummy routines of the same name to
+routines.]  The \bmad library has ``dummy'' routines of the same name to
 keep the linker happy when custom routines are not implemented. These
-dummy routines (except for \vn{init_custom}), if called, will print an
-error message and stop the program. The custom routines are called by
-their corresponding regular routines. By ``regular'' routine it is
-meant the routine without the ``\vn{_custom}'' suffix. For example,
-\vn{radiation_integrals} will call
-\vn{radiation_integrals_custom}. Thus if a program using the custom
-code does not call a particular regular routine, the program does not
-have to implement the corresponding custom routine.
+dummy routines, if called, will print an error message and stop the
+program. The exception is the dummy \vn{init_custom} routine which will
+simply do nothing when called.
 
-The \vn{init_custom} routine, unlike the other custom routines, will
-simply do nothing when called. It is called by \vn{bmad_parser} for
-any \vn{custom} element or any element that does custom calculations.
-Custom calculations are done if any one of the following
-\vn{ele_struct} components is set to \vn{custom\$}:
-\begin{example}
-  ele%tracking_method
-  ele%mat6_calc_method
-  ele%field_calc
-  ele%aperture_type
-\end{example}
-
-The following attributes are defined in a custom element and may be
-set in the lattice file:
-\begin{example}
-    ele%value(val1$)
-    ele%value(val2$)
-    ele%value(val3$)
-    ele%value(val4$)
-    ele%value(val5$)
-    ele%value(val6$)
-    ele%value(val7$)
-    ele%value(val8$)
-    ele%value(val9$)
-    ele%value(val10$)
-    ele%value(val11$)
-    ele%value(val12$)
-    ele%value(field_calc$)
-    ele%value(field_master$)
-    ele%value(delta_e$)
-    ele%value(delta_ref_time$)
-\end{example}
+If a particular custom routine is not used in a program, then,
+obviously, a non-dummy version does not have to be implemented. To
+link in a non-dummy version of a custom routine, put the code file in
+the same directory as the program code and relink.
 
 \index{descrip}
-The \vn{descrip} (\sref{s:string}) element component may be used to pass 
-file names to a custom element. For example
+The \Hyperref{r:init.custom}{init_custom} routine is called by
+\Hyperref{r:bmad.parser}{bmad_parser} at the end of parsing for any
+lattice element that is a \vn{custom} element or has set any one of
+the element components as listed above to \vn{custom}. The
+\vn{init_custom} routine can be used to initialize the internals of
+the element. For example, consider a \vn{custom} element defined in a
+lattice file by
 \begin{example}
   my_element: custom, val1 = 1.37, descrip = "field.dat", mat6_calc_method = tracking
 \end{example}
-In this example, a custom element is set up to model some element. The
-name of the parameter file describing the element - field.dat - is
-stored in the \vn{descrip} string. Internally, parameters may be
-stored in the general use components (\sref{s:ele.gen} of the
-\vn{ele_struct}.
+In this example, the \vn{descrip} (\sref{s:string}) component is used
+to specify the name of a file that contains parameters for this
+element. When \vn{init_custom} is called for this element (see below),
+the file can be read and the parameters stored in the element
+structure. Besides the \vn{ele%value} array, parameters may be stored
+in the general use components given in \sref{s:ele.gen}.
 
-The following attributes are set by standard bmad routines:
-\begin{example}
-    ele%value(e_tot_start$)
-    ele%value(p0c_start$)
-    ele%value(e_tot$)
-    ele%value(p0c$)
-\end{example}
+The \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom} routine is used to check if a
+particle has hit an aperture in tracking. It is called by the standard
+\bmad routine \Hyperref{r:check.aperture.limit}{check_aperture_limit} when \vn{ele%aperture_type}
+is set to \vn{custom\$}. A \vn{custom} element has the standard limit
+attributes (\sref{s:limit}) so a \vn{custom} element does not have to
+implement custom aperture checking code.
+
+The \Hyperref{r:em.field.custom}{em_field_custom} routine is called by the electro-magnetic
+field calculating routine \Hyperref{r:em.field.calc}{em_field_calc} when \vn{ele%field_calc}
+is set to \vn{custom\$}. As an alternative to \vn{em_field_custom}, a
+\vn{custom} element can use the \vn{field} attribute
+(\sref{s:em.fields}) to characterize the element's electromagnetic
+fields.
+
+The \Hyperref{r:make.mat6.custom}{make_mat6_custom} routine is called by the \Hyperref{r:make.mat6}{make_mat6}
+routine when calculating the transfer matrix through an element.
+
+The \Hyperref{r:track1.custom}{track1_custom} routine is called by the \Hyperref{r:track1}{track1}
+routine when calculating the transfer matrix through an element.
 
 
 %-----------------------------------------------------------------------------

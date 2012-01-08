@@ -18,11 +18,11 @@ how to compile and run the program are given on the \bmad web
 page\cite{b:bmad.web}. On the \bmad web page, click on the ``Run Programs''
 
 \begin{figure}[htp]
-\index[routine]{bmad_parser}
-\index[routine]{twiss_at_start}
-\index[routine]{twiss_propagate_all}
-\index[routine]{lat_ele_locator}
-\index[routine]{type_ele}
+\Hyperref{r:bmad.parser}{bmad_parser}
+\Hyperref{r:twiss.at.start}{twiss_at_start}
+\Hyperref{r:twiss.propagate.all}{twiss_propagate_all}
+\Hyperref{r:lat.ele.locator}{lat_ele_locator}
+\Hyperref{r:type.ele}{type_ele}
 \index{ele_struct}
 \index{lat_struct}
 \index{ele_pointer_struct}
@@ -213,8 +213,8 @@ of the \vn{ks} attribute of the \vn{CLEO_SOL} and have the \vn{ks}
 attributes of the dependent (``\vn{super_slave}'') elements updated
 with one subroutine call. For example, the following code increases the
 solenoid strength by 1\%
-\index[routine]{lattice_bookkeeper}
-\index[routine]{lat_ele_locator}
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper}
+\Hyperref{r:lat.ele.locator}{lat_ele_locator}
 \begin{example}
   call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)
   eles(1)%ele(ix)%value(ks$) = eles(1)%ele%value(ks$) * 1.01 
