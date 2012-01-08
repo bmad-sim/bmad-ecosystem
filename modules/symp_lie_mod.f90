@@ -83,7 +83,7 @@ real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_pl
 
 integer i, n_step
 
-logical calc_mat6, calculate_mat6, err, do_offset
+logical calc_mat6, calculate_mat6, err, do_offset, wiggler_found
 logical, optional :: offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
@@ -156,10 +156,18 @@ select case (ele%key)
 Case (wiggler$)
 
   if (ele%field_calc == refer_to_lords$) then
-    lord => pointer_to_lord(ele, 1)
-    if (lord%field_calc == refer_to_lords$) lord => pointer_to_lord(lord, 1)
-    wig_term => lord%wig%term
-    s_offset = (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
+    wiggler_found = .false.
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord(ele, i)
+      if (lord%key /= wiggler$) cycle
+      if (wiggler_found) then
+        call out_io (s_fatal$, r_name, 'SUPERIMPOSING MULTIPLE WIGGLERS NOT YET IMPLEMENTED.')
+        if (bmad_status%exit_on_error) call err_exit
+      endif
+      wiggler_found = .true.
+      wig_term => lord%wig%term
+      s_offset = (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
+    enddo
   else
     wig_term => ele%wig%term
     s_offset = 0

@@ -61,6 +61,9 @@ real(rp), private, parameter :: converge = 1d-9, gmin = 0.001, gmax = 100
 integer(rp), private, parameter :: maxsum = 1000, ismax = 20, bmax = 100
 logical, private :: appsw = .true.
 
+private cumulr, ptwo, zmmax, cumulx, cos_phi, prob_x_diffuse, zzfi, zzfp, hzz, zbessi
+private zbessi1, zbessi0, zzexp
+
 contains
 
 !---------------------------------------------------------------------------------------------

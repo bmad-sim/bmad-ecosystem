@@ -897,6 +897,131 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Electromagnetic Fields}
+\label{s:em.fields}
+
+\index{lcavity}\index{rfcavity}\index{em_field}\index{field}
+Electromagnetic fields can be specified using the \vn{field}
+attribute. Fields so specified can be used with, for example,
+\vn{runge_kutta} tracking (\sref{s:tkm}), etc. The \vn{field}
+attribute can be used with both RF and DC fields however RF fields can
+only be associated with \vn{lcavity}, \vn{rfcavity}, and \vn{em_field}
+elements.
+
+The syntax for specifying the electromagnetic fields is
+\begin{example}
+  field = \{
+    mode = \{
+      m             = <Integer>, ! Mode number
+      freq          = <Real>,    ! Frequency of oscillations (Hz).
+      theta_t0      = <Real>,    ! Phase of oscillations.
+      f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
+      field_scale   = <Real>,    ! Scale factor for the E & B fields
+      stored_energy = <Real>,    
+      phi_0         = <Real>,    ! Azimuthal orientation.
+      map           = <EM_field_map>,        ! EM field map data
+      grid          = \{<EM_field_grid>\} \},    ! EM field grid data
+    mode = \{...\}\}
+\end{example}
+The electromagnetic field is specified as a series of \vn{modes}. Each
+\vn{mode} has a frequency \vn{freq} which, if non-zero, identifies it
+as an RF field. The field associated with a mode can be specified
+using a \vn{grid} of data points or by a \vn{map} which specify the
+coefficients of an analytical form for the field.
+
+The \vn{map} specification has the form
+\begin{example}
+  map = \{
+    dz        = <Real>,    ! Distance between sampled field points.
+    e_coef_re = (<Real>, <Real>, ....),  ! Real part of e.
+    e_coef_im = (<Real>, <Real>, ....),  ! Imaginary part of e.
+    b_coef_re = (<Real>, <Real>, ....),  ! Real part of b.
+    b_coef_im = (<Real>, <Real>, ....),  ! Imaginary part of b.
+  \}
+\end{example}
+For rf fields the basic equations used for the mode decomposition of
+the rf fields are given in Section~\sref{s:rf.fields.phys}. 
+\vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and
+\vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All
+of these vectors must be present and have the same length. The
+exception is with an $m = 0$ mode either the $e$ or $b$ arrays can be
+omitted and will default to zero. The number of terms $N$ for the $e$
+or $b$ vectors must be a power of $2$ and all modes must have the same
+number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$
+running from 0 to $N-1$, is associated with a wavelength $k_n$
+\begin{equation}
+  k_n = \begin{cases}
+    \frac{2 \, \pi \, n}{N \, dz} & n < \frac{N}{2} \\
+    \frac{2 \, \pi \, (n-N)}{N \, dz} & \mbox{otherwise}
+  \end{cases}
+\end{equation}
+This convention follows the convention used by Numerical
+Recipes\cite{b:nr}.  
+
+The longitudinal length
+of the field is
+\begin{equation}
+  L_{\mbox{field}} = \frac{N - 1}{dz}
+\end{equation}
+this may be different from the length \vn{l} specified for the
+element. If there is a difference, the field is assumed to be centered
+on the element and drifts will be used at the entrance and exit ends
+of the element to make up the difference.
+
+Alternatively, a grid of field points may be specified. The general format is:
+\begin{example}
+  grid = \{ 
+    type = <String>,
+    r0   = (<Real>, <Real>, <Real>),  !Grid origin 
+    dr   = (<Real>, <Real>, <Real>),  !Grid spacing
+    pt(<Integer>, <Integer>, <Integer>) = ( (<Real>, <Real>), \ldots ),  !Grid field points
+    \ldots \}
+\end{example}
+Currently the only available type is \vn{rotationally_symmetric_rz}. The format for this type of grid is 
+\begin{example}
+  grid = \{ 
+    type = rotationally_symmetric_rz,
+    r0   = ( <r(0,0)>,  <z(0,0)>),     !Grid origin 
+    dr   = ( <delta_r>, <delta_z>),  !Grid spacing
+    pt(i_r, i_z) = ( (<Re(E_r)>, <Im(E_r) ), \ldots ),  !Grid field points
+    \ldots \}
+\end{example}
+
+The field of a given mode oscillates as given by Eq.~\ref{eseei}  
+\Begineq
+  e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
+\Endeq
+The phase of the oscillation, $\theta_0$ comes from two
+sources: the phase \vn{theta_t0} set for the mode and an overall phase
+\vn{phi_ref} given by
+\begin{example}
+ phi_ref = phi0 + dphi0
+\end{example}
+\index{lcavity!reference phase}\index{rfcavity!reference phase}
+Unfortunately, to be consistent with \mad, the definition of
+\vn{phi_ref} for an \vn{lcavity} (\sref{s:lcav}) differs in sign to
+that for an \vn{rfcavity} (\sref{s:rfcav}). This being the case,
+$\theta_0$ is
+\Begineq
+  \theta_0 = 
+  \begin{cases}
+    \mbox{theta_t0} + \dsfrac{f}{f_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
+    \mbox{lcavity element} \\
+    \mbox{theta_t0} - \dsfrac{f}{f_0} \, \mbox{phi_ref} & 
+    \mbox{rfcavity element}
+  \end{cases}
+\Endeq
+where $f$ is the mode frequency and $f_0$ is the frequency of the fundamental.
+
+The phase \vn{theta_t0} of the fundamental mode is autoscaled by Bmad
+so that a particle with $z = 0$ will go through the cavity on crest
+for a \vn{lcavity} and on the zero-crossing for an
+\vn{rfcavity}. Additionally, the field of the fundamental mode is
+adjusted by an overall factor so that for an \vn{lcavity} the maximal
+acceleration is equal to \vn{gradient * L} and for an \vn{rfcavity}
+the maximal acceleration is equal to \vn{e * voltage}.
+
+%-----------------------------------------------------------------
 \section{RF Couplers}
 \label{s:rf.coupler}
 
@@ -1050,121 +1175,6 @@ Example:
 \begin{example}
   rf1: lcav, l = 4.5, gradient = 1.2e6, sr_wake_file = "sr1.dat"
 \end{example}
-
-%-----------------------------------------------------------------
-\section{RF Fields}
-\label{s:rf.fields}
-
-For \vn{lcavity} and \vn{rfcavity} elements, the RF field can be
-parameterized as the sum over a number of modes. With such a
-characterization, particles can be tracked through a cavity using
-\vn{boris}, \vn{adaptive_boris}, \vn{runge_kutta}, or
-\vn{symp_lie_bmad} tracking (\sref{s:tkm}).
-
-The basic equations used for the mode decomposition of the rf fields
-are given in Section~\sref{s:rf.fields.phys}. The syntax for specifying the 
-RF fields is
-\begin{example}
-  rf_field = \{
-    mode = \{
-      m             = <Integer>, ! Mode number
-      freq          = <Real>,    ! Frequency of oscillations (Hz).
-      theta_t0      = <Real>,    ! Phase of oscillations.
-      f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
-      field_scale   = <Real>,    ! Scale factor for the E & B fields
-      stored_energy = <Real>,    
-      dz            = <Real>,    ! Distance between sampled field points.
-      phi_0         = <Real>,    ! Azimuthal orientation.
-      e_coef_re     = (<Real>, <Real>, ....),  ! Real part of e.
-      e_coef_im     = (<Real>, <Real>, ....),  ! Imaginary part of e.
-      b_coef_re     = (<Real>, <Real>, ....),  ! Real part of b.
-      b_coef_im     = (<Real>, <Real>, ....), ! Imaginary part of b.
-      grid          = <EM_field_grid> \},    !EM field grid data
-    mode = \{...\}\}
-\end{example}
-The ``fundamental'' mode is taken to be the first mode of the
-\vn{rf_field} structure.
-
-\vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and
-\vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All
-of these vectors must be present and have the same length. The
-exception is with an $m = 0$ mode either the $e$ or $b$ arrays can be
-omitted and will default to zero. The number of terms $N$ for the $e$
-or $b$ vectors must be a power of $2$ and all modes must have the same
-number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$
-running from 0 to $N-1$, is associated with a wavelength $k_n$
-\begin{equation}
-  k_n = \begin{cases}
-    \frac{2 \, \pi \, n}{N \, dz} & n < \frac{N}{2} \\
-    \frac{2 \, \pi \, (n-N)}{N \, dz} & \mbox{otherwise}
-  \end{cases}
-\end{equation}
-This convention follows the convention used by Numerical
-Recipes\cite{b:nr}.  
-
-The longitudinal length
-of the field is
-\begin{equation}
-  L_{\mbox{field}} = \frac{N - 1}{dz}
-\end{equation}
-this may be different from the length \vn{l} specified for the
-element. If there is a difference, the field is assumed to be centered
-on the element and drifts will be used at the entrance and exit ends
-of the element to make up the difference.
-
-Alternatively, a grid of field points may be specified. The general format is:
-\begin{example}
-  grid = \{ 
-    type = <String>,
-    r0   = (<Real>, <Real>, <Real>),  !Grid origin 
-    dr   = (<Real>, <Real>, <Real>),  !Grid spacing
-    pt(<Integer>, <Integer>, <Integer>) = ( (<Real>, <Real>), \ldots ),  !Grid field points
-    \ldots \}
-\end{example}
-Currently the only available type is \vn{rotationally_symmetric_rz}. The format for this type of grid is 
-\begin{example}
-  grid = \{ 
-    type = rotationally_symmetric_rz,
-    r0   = ( <r(0,0)>,  <z(0,0)>),     !Grid origin 
-    dr   = ( <delta_r>, <delta_z>),  !Grid spacing
-    pt(i_r, i_z) = ( (<Re(E_r)>, <Im(E_r) ), \ldots ),  !Grid field points
-    \ldots \}
-\end{example}
-
-
-The field of a given mode oscillates as given by Eq.~\ref{eseei}  
-\Begineq
-  e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
-\Endeq
-The phase of the oscillation, $\theta_0$ comes from two
-sources: the phase \vn{theta_t0} set for the mode and an overall phase
-\vn{phi_ref} given by
-\begin{example}
- phi_ref = phi0 + dphi0
-\end{example}
-\index{lcavity!reference phase}\index{rfcavity!reference phase}
-Unfortunately, to be consistent with \mad, the definition of
-\vn{phi_ref} for an \vn{lcavity} (\sref{s:lcav}) differs in sign to
-that for an \vn{rfcavity} (\sref{s:rfcav}). This being the case,
-$\theta_0$ is
-\Begineq
-  \theta_0 = 
-  \begin{cases}
-    \mbox{theta_t0} + \dsfrac{f}{f_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
-    \mbox{lcavity element} \\
-    \mbox{theta_t0} - \dsfrac{f}{f_0} \, \mbox{phi_ref} & 
-    \mbox{rfcavity element}
-  \end{cases}
-\Endeq
-where $f$ is the mode frequency and $f_0$ is the frequency of the fundamental.
-
-The phase \vn{theta_t0} of the fundamental mode is autoscaled by Bmad
-so that a particle with $z = 0$ will go through the cavity on crest
-for a \vn{lcavity} and on the zero-crossing for an
-\vn{rfcavity}. Additionally, the field of the fundamental mode is
-adjusted by an overall factor so that for an \vn{lcavity} the maximal
-acceleration is equal to \vn{gradient * L} and for an \vn{rfcavity}
-the maximal acceleration is equal to \vn{e * voltage}.
 
 %-----------------------------------------------------------------
 \section{Instrumental Measurement Attributes}

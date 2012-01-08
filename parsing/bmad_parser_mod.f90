@@ -466,7 +466,13 @@ if (ix_word == 0) then  ! no word
 endif
 
 if (ix_attrib < 1) then
-  if (print_err) call parser_warning  ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
+  if (ele%key == drift$ .and. (word == 'HKICK' .or. word == 'VKICK' .or. &
+        word == 'BL_HKICK' .or. word == 'BL_VKICK')) then
+    if (print_err) call parser_warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name, &
+                      'ONE SOLUTION IS TO MAKE THIS DRIFT A "PIPE" ELEMENT.')
+  else
+    if (print_err) call parser_warning ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
+  endif
   return
 endif
 
@@ -632,12 +638,12 @@ endif
 
 ! rf field
 
-if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
+if (attrib_word == 'FIELD') then
 
   ! Expect "= {"
   call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
   if (delim /= '=' .or. delim2 /= '{' .or. word /= '') then
-    call parser_warning ('NO "= {" FOUND AFTER "RF_FIELD"', 'FOR ELEMENT: ' // ele%name)
+    call parser_warning ('NO "= {" FOUND AFTER "FIELD"', 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
@@ -664,7 +670,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
     if (word /= 'MODE' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
-      call parser_warning ('NO "MODE = {" SIGN FOUND IN RF_FIELD STRUCTURE', 'FOR ELEMENT: ' // ele%name)
+      call parser_warning ('NO "MODE = {" SIGN FOUND IN FIELD STRUCTURE', 'FOR ELEMENT: ' // ele%name)
       return
     endif
 
@@ -677,7 +683,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
       ! Expect "<component> = "
 
       if (delim /= '=') then
-        call parser_warning ('NO "=" SIGN FOUND IN MODE DEFINITION', 'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        call parser_warning ('NO "=" SIGN FOUND IN MODE DEFINITION', 'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
 
@@ -691,7 +697,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
         if (is_integer(word)) read (word, *) em_mode%m
         if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
           call parser_warning ('BAD "M = <INTEGER>" CONSTRUCT', &
-                               'FOUND IN MODE DEFINITION IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                               'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
         endif
         do_evaluate = .false.
@@ -704,7 +710,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
         call get_next_word (word, ix_word, ',({', delim, delim_found)
         if (word /= '' .or. delim /= '(') then
           call parser_warning ('NO "(" FOUND AFTER "' // trim(word2) // ' =" ', &
-                               'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                               'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
         endif
 
@@ -714,7 +720,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
           call get_next_word (word, ix_word, '{},()', delim, delim_found)
           if ((delim /= ',' .and. delim /= ')') .or. .not. is_real(word)) then
             call parser_warning ('ERROR PARSING ARRAY FOR: ' // word2, &
-                                 'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                                 'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
           if (i_term > size(array)) call re_allocate(array, 2*size(array))
@@ -725,7 +731,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
         if (allocated(em_mode%map%term)) then
           if (size(em_mode%map%term) /= i_term) then
             call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
-                               'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                               'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
         else
@@ -740,7 +746,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
         if (word2(8:9) == 'RE') then
           if (any(real(c_ptr) /= 0)) then
             call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
-                               'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                               'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
           c_ptr = c_ptr + array(1:i_term)
@@ -748,7 +754,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
         else
           if (any(aimag(c_ptr) /= 0)) then
             call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
-                               'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                               'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
           c_ptr = c_ptr + i_imaginary * array(1:i_term)
@@ -758,7 +764,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
         call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
         if (word /= '' .or. (delim /= ',' .and. delim /= '}')) then
           call parser_warning ('BAD ' // trim(word2) // ' = (...) CONSTRUCT', &
-                               'FOUND IN MODE DEFINITION IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                               'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
         endif
 
@@ -781,7 +787,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
       case default
         call parser_warning ('UNKNOWN MODE COMPONENT: ' // word, &
-                             'FOUND IN MODE DEFINITION IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                             'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       end select
 
@@ -819,7 +825,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
     if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
       call parser_warning ('NO "," OR "}" FOUND AFTER MODE DEFINITION', &
-                           'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
 
@@ -5355,7 +5361,7 @@ if (.not. associated(grid)) allocate (grid)
 call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true. )
 if ((word /= '') .or. (delim /= '{')) then
   call parser_warning (  'NO { SIGN FOUND IN GRID DEFINITION',  &
-                    'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+                    'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
   return
 endif
 

@@ -224,13 +224,14 @@ General \vn{bend_sol_quad} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:string}    & Reference energy           & \ref{s:energy}  \HH 
+  Field table or map         & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
+  Integration settings       & \ref{s:integ}     &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -313,13 +314,14 @@ General \vn{rbend} and \vn{sbend} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:string}    & Reference energy           & \ref{s:energy}  \HH 
+  Field table or map         & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
+  Integration settings       & \ref{s:integ}     &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -820,6 +822,20 @@ to do tracking, transfer matrix calculations, etc. See the programmer
 who wrote the custom routines for more details! See
 \sref{s:custom.ele} on how to write custom routines.
 
+\index{tracking_method}\index{mat6_calc_method}\index{field_calc}
+As an alternative to defining a custom element, standard elements can
+be ``customized'' by setting one or more of the following attributes
+to \vn{custom}:
+\begin{example}
+  tracking_method       \sref{s:tkm}
+  mat6_calc_method      \sref{s:xfer}
+  field_calc            \sref{s:integ}
+  aperture_type         \sref{s:limit}
+\end{example}
+As with a custom element, setting one of these attributes to
+\vn{custom} necessitates the use of custom code to implement the
+corresponding calculation.
+
 General \vn{custom} attributes are:
 \begin{center}
 \tt
@@ -847,8 +863,10 @@ between the starting edge of the element and the ending edge.
 
 Example:
 \begin{example}
-  c1: custom, l = 3, val4 = 5.6, val12 = 0.9, ds_step = 0.2, tracking_method = boris
+  c1: custom, l = 3, val4 = 5.6, val12 = 0.9, descrip = 'params.dat'
 \end{example}
+In this example the \vn{descrip} string is being used to specify a
+file that contains parameters for the element.
 
 %-----------------------------------------------------------------
 \section{Drift}
@@ -1192,7 +1210,7 @@ General \vn{lcavity} attributes are:
   Aperture Limits        & \ref{s:limit}      & Length                     & \ref{s:l}        \HH
   Hkick \& Vkick         & \ref{s:kick}       & Integration settings       & \ref{s:integ}    \HH
   RF Couplers            & \ref{s:rf.coupler} & RF Wakes                   & \ref{s:rf.wakes} \HH
-  RF Fields              & \ref{s:rf.fields}  & Chamber wall               & \ref{s:wall}     \HH
+  RF Fields              & \ref{s:em.fields}  & Chamber wall               & \ref{s:wall}     \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1278,7 +1296,7 @@ addition, couplers (\sref{s:rf.coupler}) and HOM wakes
 \index{runge_kutta!and field maps}\index{adaptive_boris!and field maps}
 \index{boris!and field maps}\index{symp_lie_bmad!and field maps}
 \index{symp_lie_bmad}
-If a field map is specified (\sref{s:rf.fields}), tracking using an
+If a field map is specified (\sref{s:em.fields}), tracking using an
 integrator is possible. A field map is only used for \vn{runge_kutta},
 \vn{adaptive_boris}, \vn{boris} and \vn{symp_lie_bmad} tracking
 (\sref{s:tkm}).  For \vn{symp_lie_bmad} tracking, only the
@@ -1799,7 +1817,7 @@ General \vn{rfcavity} attributes are:
   Description strings    & \ref{s:string}     & Is_on                      & \ref{s:is.on}     \HH 
   Reference energy       & \ref{s:energy}     & Tracking \& transfer map   & \ref{c:methods}   \HH
   Aperture Limits        & \ref{s:limit}      & Length                     & \ref{s:l}         \HH
-  Hkick \& Vkick         & \ref{s:kick}       & RF Fields                  & \ref{s:rf.fields} \HH
+  Hkick \& Vkick         & \ref{s:kick}       & RF Fields                  & \ref{s:em.fields} \HH
   RF Couplers            & \ref{s:rf.coupler} & RF Wakes                   & \ref{s:rf.wakes}  \HH
   Chamber Wall           & \ref{s:wall}       &                            &                   \HH
 \end{tabular}
@@ -1843,12 +1861,12 @@ where \vn{L_lattice} is the total lattice length.
 
 Couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:rf.wakes} can
 be modeled. In addition, if a field map is specified
-(\sref{s:rf.fields}), tracking using an integrator is possible.
+(\sref{s:em.fields}), tracking using an integrator is possible.
 
 \index{RF field map}
 \index{runge_kutta!and field maps}\index{adaptive_runge_kutta!and field maps}
 \index{boris!and field maps}\index{symp_lie_bmad!and field maps}
-If a field map is specified (\sref{s:rf.fields}), tracking using an
+If a field map is specified (\sref{s:em.fields}), tracking using an
 integrator is possible. A field map is only used for \vn{runge_kutta},
 \vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad} tracking (\sref{s:tkm}).
 Only the fundamental mode has an analytical formula for the symplectic

@@ -54,7 +54,7 @@ information as \vn{lattice2} but the pointers in \vn{lattice1} will
 point to different locations in physical memory so that changes to one
 lattice will not affect the other.
 
-\index[routine]{deallocate_lat_pointers}
+\Hyperref{r:deallocate.lat.pointers}{deallocate_lat_pointers}
 Initial allocation of the pointers in a \vn{lat_struct} variable is
 generally handled by the \Hyperref{r:bmad.parser}{bmad_parser} 
 and \Hyperref{r:lat.equal.lat}{lat_equal_lat}
@@ -99,7 +99,7 @@ definition of the \vn{branch_struct} structure is
     type (lat_param_struct), pointer :: param
   end type
 \end{example}
-\index[routine]{key_name}
+\Hyperref{r:key.name}{key_name}
 The \vn{branch(i)%key} component is set to either \vn{photon_branch\$}
 or \vn{branch\$}. The \Hyperref{r:key.name}{key_name} function will
 convert the integer key value to a string for printing. The value of the
