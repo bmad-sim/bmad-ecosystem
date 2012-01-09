@@ -31,6 +31,7 @@
 ! Chrom x:1.86  y:2.11    Tonality x:-0.05  y:0.38
 !-
 
+	no_digested
  parameter[lattice] = 12WIG_20050626
  beam, energy =   1.885 
 
