@@ -221,10 +221,10 @@ change by $-1.0 = -2.0 * 0.5$.
 \index{superimpose|hyperbf}
 
 In practice the field at a particular point in the lattice may be due
-to more than one physical element. A common example is a quadrupole
-inside a solenoid. \bmad has a mechanism to handle some of these
-cases using what is called ``superposition''. A simple example shows
-how this works:
+to more than one physical element. One example of this is a quadrupole
+magnet inside a larger solenoid magnet. \bmad has a mechanism to
+handle some of these cases using what is called ``superposition''. A
+simple example shows how this works:
 \begin{example}
   Q: quad, l = 10
   D: drift, l = 10
@@ -354,21 +354,16 @@ The lattice will have three elements in the tracking section:
 \end{example}
 The lord section of the lattice will have the element \vn{Q}. 
 
+\index{drift!superposition}\index{pipe!superposition}
 When a superposition is made that overlaps a drift the drift, not
 being a "real" element, vanishes. That is, it does not get put in the
-lord section of the lattice. Thus, it is an error if a second
-superposition uses the drift as the reference element. For example
-\begin{example}
-  dft1: drift, l = 10
-  q1: quad, l = 1, superposition, ref = dft1   ! OK 
-  q2: quad, l = 2, superposition, ref = dft1   ! ERROR! 
-\end{example}
-Also note that if aperture limits (\sref{s:limit}) have been assigned
-to a drift, the aperture limits can ``disappear'' when the
-superposition is done. Explicitly, if the exit end of a drift has been
-assigned aperture limits, the limits will disappear if the
-superimposed element overlays the exit end of the drift. A similar
-situation applies to the entrance end of a drift.
+lord section of the lattice.  Note that if aperture limits
+(\sref{s:limit}) have been assigned to a drift, the aperture limits
+can ``disappear'' when the superposition is done. Explicitly, if the
+exit end of a drift has been assigned aperture limits, the limits will
+disappear if the superimposed element overlays the exit end of the
+drift. A similar situation applies to the entrance end of a drift. If
+this is not desired, use a \vn{pipe} element instead.
 
 %-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}

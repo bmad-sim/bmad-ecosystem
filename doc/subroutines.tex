@@ -1081,6 +1081,11 @@ Routine to find the end points of an element.
 \item[get_element_slave_list (lat, lord, slaves, n_slave)] \Newline 
 Routine to get the list of slaves for an element.
 
+\index[routine]{key_name}
+\label{r:key.name}
+\item[{key_name (key_index)}] \Newline
+Translate an element key index (EG: quadrupole\$, etc.) to a character string.
+
 \index[routine]{key_name_to_key_index}
 \label{r:key.name.to.key.index}
 \item[key_name_to_key_index (key_str, abbrev_allowed) result (key_index)] \Newline 
@@ -1406,7 +1411,7 @@ model for a sol_quad element.
 Routine to give elements in a lattice unique names.
 
 \index[routine]{init_custom}
-\label[r:init.custom]
+\label{r:init.custom}
 \item[init_custom (ele)] \Newline
 Routine for initializing custom elements or elements that do custom
 calculations.

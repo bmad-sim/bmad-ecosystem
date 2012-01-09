@@ -1862,14 +1862,14 @@ call transfer_mat2_from_twiss (ele1%b, ele2%b, m(3:4,3:4))
 ! Add in coupling
 
 if (any(ele1%c_mat /= 0)) then
-  call mat_det (ele1%c_mat, det)
+  det = determinant (ele1%c_mat)
   ele1%gamma_c = sqrt(1-det)
   call make_v_mats (ele1, v_mat, v_inv_mat)
   m(1:4,1:4) = matmul (m(1:4,1:4), v_inv_mat)
 endif
 
 if (any(ele2%c_mat /= 0)) then
-  call mat_det (ele2%c_mat, det)
+  det = determinant (ele2%c_mat)
   ele2%gamma_c = sqrt(1-det)
   call make_v_mats (ele2, v_mat, v_inv_mat)
   m(1:4,1:4) = matmul (v_mat, m(1:4,1:4))

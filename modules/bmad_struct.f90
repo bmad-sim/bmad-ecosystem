@@ -142,7 +142,7 @@ type em_field_map_term_struct
   complex(rp) :: e_coef = 0, b_coef = 0
 end type
 
-type em_field_mode_map_struct
+type em_field_map_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
   real(rp) :: dz = 0            ! Distance between sampled field points.
@@ -178,7 +178,7 @@ type em_field_mode_struct
   real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
-  type (em_field_mode_map_struct), pointer :: map => null()
+  type (em_field_map_struct), pointer :: map => null()
   type (em_field_grid_struct), pointer :: grid => null()
 end type
 
@@ -618,16 +618,16 @@ integer, parameter :: is_on$ = 95, theta_position$ = 95
 integer, parameter :: field_calc$ = 96, phi_position$ = 96
 integer, parameter :: type$ = 97, psi_position$ = 97
 integer, parameter :: aperture_at$ = 98, beta_a$ = 98
-integer, parameter :: ran_seed$ = 99, beta_b$ = 99, rf_field$ = 99 
+integer, parameter :: ran_seed$ = 99, beta_b$ = 99
 
-! superimpose$ through common_lord$ assumed unique (or need to modify bmad_parser_mod.f90).
+! superimpose$ through ref_end$ assumed unique (or need to modify bmad_parser_mod.f90).
 
 integer, parameter :: to$ = 100
 integer, parameter :: field_master$ = 101
 integer, parameter :: star_aperture$ = 102
 integer, parameter :: scale_multipoles$ = 103
 integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall$
-integer, parameter :: dc_field$ = 105
+integer, parameter :: field$ = 105
 integer, parameter :: phi_b$ = 106, crystal_type$ = 106
 
 integer, parameter :: superimpose$    = 110   
@@ -639,7 +639,6 @@ integer, parameter :: ele_end$        = 115
 integer, parameter :: ref_beginning$  = 116
 integer, parameter :: ref_center$     = 117
 integer, parameter :: ref_end$        = 118
-integer, parameter :: common_lord$    = 119
 
 integer, parameter :: a0$  = 120, k0l$  = 120
 integer, parameter :: a20$ = 140, k20l$ = 140
