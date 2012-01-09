@@ -1458,6 +1458,7 @@ if (n_wig /= 0) then
   allocate (f%wig%term(n_wig))
 endif
 
+f%old_value             = 0
 f%value                 = value
 f%gen0                  = gen0
 f%vec0                  = vec0
