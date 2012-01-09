@@ -1412,6 +1412,7 @@ ele%on_a_girder       = .false.
 ele%csr_calc_on       = .true.
 ele%logic             = .false.
 ele%reversed          = .false.
+ele%mode_flip         = .false.
 
 ele%field_master  = .false.
 ele%aperture_type = rectangular$
