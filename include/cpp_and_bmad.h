@@ -970,8 +970,8 @@ public:
   bool offset_moves_aperture;   // element offsets affects aperture?
 
   C_ele () : 
-    taylor(C_taylor(0), 6), 
     gen_field(NULL),
+    taylor(C_taylor(0), 6), 
     value(double(0), Bmad::N_ATTRIB_MAXX+1),
     old_value(double(0), 
     Bmad::N_ATTRIB_MAXX+1), 
