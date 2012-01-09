@@ -971,6 +971,7 @@ public:
 
   C_ele () : 
     taylor(C_taylor(0), 6), 
+    gen_field(NULL),
     value(double(0), Bmad::N_ATTRIB_MAXX+1),
     old_value(double(0), 
     Bmad::N_ATTRIB_MAXX+1), 
@@ -1009,6 +1010,7 @@ public:
     scale_multipoles(true), 
     map_with_offsets(true),
     field_master(false), 
+    reversed(false),
     is_on(true), 
     old_is_on(false),
     logic(false),

@@ -23,7 +23,7 @@ type spin_map_struct
   type (taylor_term_struct), pointer :: gamma1(:) => null() ! quaternion four-vector (gamma1)
   type (taylor_term_struct), pointer :: gamma2(:) => null() ! quaternion four-vector (gamma2)
   type (taylor_term_struct), pointer :: gamma3(:) => null() ! quaternion four-vector (gamma3)
-  type (taylor_term_struct), pointer :: kappa(:)  => null() ! quaternion four-vector (kappa) 
+  type (taylor_term_struct), pointer :: kappa(:)  => null() ! quaternion four-vector (kappa)
 end type
 
 type (pauli_struct) pauli(3)
@@ -42,7 +42,7 @@ private initialize_pauli_vector
 real(rp), parameter :: g_factor_of(-2:2) = [g_factor_proton, g_factor_electron, 0.0_rp, &
                                             g_factor_electron, g_factor_proton]
 
- contains
+contains
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -121,7 +121,7 @@ phi(2) = atan2 (imag(coord%spin(2)), real(coord%spin(2)))
 polar%xi = phi(1)
 polar%phi = phi(2) - phi(1)
 
-polar%theta = 2 * atan2(abs(coord%spin(2)), abs(coord%spin(1))) 
+polar%theta = 2 * atan2(abs(coord%spin(2)), abs(coord%spin(1)))
 
 end subroutine spinor_to_polar
 
@@ -169,7 +169,7 @@ end subroutine polar_to_vec
 ! Modules needed:
 !   use spin_mod
 !
-! Input: 
+! Input:
 !   polar          -- spin_polar_struct: includes polar phase
 !
 ! Output:
@@ -185,8 +185,8 @@ type (coord_struct) coord
 
 !
 
- coord%spin(1) = Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
- coord%spin(2) = Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
+coord%spin(1) = Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
+coord%spin(2) = Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
 
 end subroutine polar_to_spinor
 
@@ -201,11 +201,11 @@ end subroutine polar_to_spinor
 ! Modules needed:
 !   use spin_mod
 !
-! Input: 
+! Input:
 !   vec(3)   -- real(rp): unitary spin vector
-!   phase    -- real(rp)(Optional): Phase of the spinor, if not given then 
+!   phase    -- real(rp)(Optional): Phase of the spinor, if not given then
 !                                   set to zero
-! 
+!
 ! Output:
 !   polar    -- spin_polar_struct:
 !-
@@ -244,7 +244,7 @@ end subroutine vec_to_polar
 ! Output
 !   vec(3) -- Real(rp): spin vector in cartesian coordinates
 !-
- 
+
 subroutine spinor_to_vec (coord, vec)
 
 implicit none
@@ -271,7 +271,7 @@ end subroutine spinor_to_vec
 !--------------------------------------------------------------------------
 !+
 ! Subroutine vec_to_spinor (vec, coord, phase)
-! 
+!
 ! Converts a spin cartesian vector to a spinor.
 !
 ! Modules needed:
@@ -279,7 +279,7 @@ end subroutine spinor_to_vec
 !
 ! Input:
 !   vec(3)   -- Real(rp): spin vector in cartesian coordinates
-!   phase    -- real(rp)(Optional): Phase of the spinor, if not given then 
+!   phase    -- real(rp)(Optional): Phase of the spinor, if not given then
 !                                   set to zero
 !
 ! Output:
@@ -322,7 +322,7 @@ end subroutine vec_to_spinor
 ! Input:
 !   polar1    -- (spin_polar_struct)
 !   polar2    -- (spin_polar_struct)
-! 
+!
 ! Output:
 !   angle     -- Real(rp): Angle between the polar vectors
 !-
@@ -528,7 +528,7 @@ if(isTreatedHere) then
   !-----------------------------------------------
   ! drift: no change to spin
 
-!   case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
+!   case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 !
 !     return
 
@@ -652,10 +652,10 @@ if(isTreatedHere) then
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
                         temp_end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
-    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
+    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi
     if (.not. ele%is_on) gradient = 0
 
-    gradient = gradient + gradient_shift_sr_wake(ele, param) 
+    gradient = gradient + gradient_shift_sr_wake(ele, param)
 
     !
 
@@ -721,7 +721,7 @@ subroutine lcav_edge_track (pc, grad, gam, map)
 real(rp) pc, grad, gam
 type (spin_map_struct) map
 
-! 
+!
 
 k_el = abs(grad / (2 * pc))
 omega_el = sqrt(k_el)
@@ -888,9 +888,9 @@ if (ele%key .eq. lcavity$) then
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
                       coord%vec(5) * ele%value(rf_frequency$) / c_light)
   cos_phi = cos(phase)
-  gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
+  gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi
   if (.not. ele%is_on) gradient = 0
-  gradient = gradient + gradient_shift_sr_wake(ele, param) 
+  gradient = gradient + gradient_shift_sr_wake(ele, param)
   pc = ele%value(p0c_start$) * (1 + coord%vec(6))
   call convert_pc_to (pc, param%particle, E_tot = e_particle)
   e_particle = e_particle + gradient*s
@@ -996,11 +996,11 @@ end function normalized_quaternion
 !   param     -- lat_param_struct:
 !     %particle   -- What kind of particle (for elseparator elements).
 !   set       -- Logical:
-!                   T (= set$)   -> Translate from lab coords to the local 
+!                   T (= set$)   -> Translate from lab coords to the local
 !                                     element coords.
 !                   F (= unset$) -> Translate back to lab coords.
 !   set_tilt       -- Logical, optional: Default is True.
-!                   T -> Rotate using ele%value(tilt$) and 
+!                   T -> Rotate using ele%value(tilt$) and
 !                            ele%value(roll$) for sbends.
 !                   F -> Do not rotate
 !   set_multipoles -- Logical, optional: Default is True.
@@ -1370,5 +1370,3 @@ endif
 end subroutine multipole_spin_precession
 
 end module spin_mod
-
-
