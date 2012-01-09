@@ -439,7 +439,8 @@ end subroutine calc_rotation_quaternion
 !
 ! Particle spin tracking through a single element.
 !
-! Uses Nonlinear Spin Transfer Maps from C. Weissbaecker and G. H. Hoffstaetter
+! Uses "Nonlinear Spin Transfer Maps" from C. Weissbaecker and G. H. Hoffstaetter
+! proceedings of 1999 workshop on Polarized Protons at High Energies
 !
 ! For now just does first order transport. The kappa term is determined from the
 ! unitarity condition.
@@ -473,7 +474,7 @@ real(rp) a(4) ! quaternion four-vector
 real(rp) omega1, omega_el, xi, gamma0, gammaf, v, x, u
 real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, k_el, k_el_tilde
 real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
-real(rp) g_factor, m_particle, sign_k
+real(rp) g_factor, m_particle, sign_k, abs_a
 
 integer key
 
@@ -563,7 +564,7 @@ if(isTreatedHere) then
 
     map => maps(quadrupole$)
 
-    call allocate_map (map, 2, 2, 0, 0)
+    call allocate_map (map, 2, 2, 0, 1)
     ! take into account sign of quadrupole (focusing or defocusing)
     sign_k = sign(1.0_rp, ele%value(k1$))
 
@@ -581,6 +582,9 @@ if(isTreatedHere) then
 
     ! no gamma3 terms
 
+    map%kappa(1)%expn(:)  = [0, 0, 0, 0, 0, 0]
+    map%kappa(1)%coef    = 1.0
+
   !-----------------------------------------------
   ! sbend
   ! does not take k1, k2 (quadrupole and sextupole terms) into account
@@ -588,21 +592,20 @@ if(isTreatedHere) then
   case (sbend$)
 
     gamma0 = ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
-    xi = 1 + g_factor * &
-          ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
+    xi = 1 + g_factor * gamma0
     v = ele%value(g$)*ele%value(l$)
     x = g_factor*gamma0*v
 
     map => maps(sbend$)
 
-    call allocate_map (map, 0, 4, 1, 0)
+    call allocate_map (map, 0, 4, 1, 4)
 
     ! No first order gamma1
 
     map%gamma2(1)%expn(:) = [0, 0, 0, 0, 0, 0]
     map%gamma2(1)%coef   = -sin(x / 2.0d0)
     map%gamma2(2)%expn(:) = [1, 0, 0, 0, 0, 0]
-    map%gamma2(2)%coef   = -(1.0d0/2.0d0) * xi * ele%value(g$) * sin(v) * cos(x / 2.0d0)
+    map%gamma2(2)%coef   = -0.5d0 * xi * ele%value(g$) * sin(v) * cos(x / 2.0d0)
     map%gamma2(3)%expn(:) = [0, 1, 0, 0, 0, 0]
     map%gamma2(3)%coef   = -xi * cos(x / 2.0d0) * (sin(v / 2.0d0))**2
     map%gamma2(4)%expn(:) = [0, 0, 0, 0, 0, 1]
@@ -611,6 +614,16 @@ if(isTreatedHere) then
 
     map%gamma3(1)%expn(:) = [0, 0, 0, 1, 0, 0]
     map%gamma3(1)%coef   = (gamma0-1)/gamma0 * sin(x / 2.0d0)
+
+    map%kappa(1)%expn(:) = [0, 0, 0, 0, 0, 0]
+    map%kappa(1)%coef   = cos(x / 2.0d0)
+    map%kappa(2)%expn(:) = [1, 0, 0, 0, 0, 0]
+    map%kappa(2)%coef   = -0.5 * xi * ele%value(g$) * sin(v) *  sin(x / 2.0d0)
+    map%kappa(3)%expn(:) = [0, 1, 0, 0, 0, 0]
+    map%kappa(3)%coef   =  -xi * (sin(v / 2.0d0))**2 * sin( x / 2.0d0)
+    map%kappa(4)%expn(:) = [0, 0, 0, 0, 0, 1]
+    map%kappa(4)%coef   = ((xi * gamma0 * sin(v) - g_factor * (1+gamma0) * (gamma0-1) * v) / &
+         (2.0d0 * (1+gamma0))) * sin(x / 2.0d0)
 
   !-----------------------------------------------
   ! solenoid
@@ -624,10 +637,13 @@ if(isTreatedHere) then
 
     map => maps(solenoid$)
 
-    call allocate_map (map, 0, 0, 1, 0)
+    call allocate_map (map, 0, 0, 1, 1)
 
     map%gamma3(1)%expn(:) = [0, 0, 0, 0, 0, 0]
     map%gamma3(1)%coef   = sin(alpha/2.0)
+
+    map%kappa(1)%expn(:)  = [0, 0, 0, 0, 0, 0]
+    map%kappa(1)%coef    = cos(alpha/2.0)
 
   !-----------------------------------------------
   ! LCavity
@@ -701,7 +717,14 @@ if(isTreatedHere) then
     call compute_quaternion (map%gamma3, a(3))
     ! call compute_quaternion (map%kappa, a(4))
 
-    a(4) = sqrt(1.0 - (a(1)**2 + a(2)**2 + a(3)**2))
+    ! Need to insert kappa terms for lcavity. For now, use questionable renormalization for lcavity
+    if ( key == lcavity$ ) then
+      a(4) = sqrt(1.0 - (a(1)**2 + a(2)**2 + a(3)**2))
+    else
+      call compute_quaternion (map%kappa, a(4))
+      abs_a = sqrt(a(1)**2 + a(2)**2 + a(3)**2 + a(4)**2)
+      a = a / abs_a
+    endif
 
     call quaternion_track (a, temp_middle%spin)
   endif
@@ -1039,14 +1062,7 @@ logical set_multi, set_hv, set_t, set_hv1, set_hv2
 set_multi = logic_option (.true., set_multipoles) .and. (associated(ele%a_pole) .or. ele%key==sextupole$ .or. ele%key==octupole$)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
-set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele)
-
-
-! return if there is nothing to do
-if ( (x_pitch_tot$==0.) .and. (y_pitch_tot$==0.) .and. (.not. set_multi) &
-                        .and. (.not. set_hv) .and. (.not. set_t) ) then
-  return
-endif
+set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele%key)
 
 if (set_hv) then
   select case (ele%key)
@@ -1089,22 +1105,30 @@ if (set) then
 
   ! Setting s_offset done already in offset_particle
 
-  ! Set: (Offset and) pitch
+  ! Set: pitch
   ! contrary to offset_particle no dependence on E_rel
-  call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, ele%value(x_pitch_tot$), a)
-  call quaternion_track (a, coord%spin)
-  call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, ele%value(y_pitch_tot$), a)
-  call quaternion_track (a, coord%spin)
+  if (x_pitch_tot$/=0.) then
+    call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, ele%value(x_pitch_tot$), a)
+    call quaternion_track (a, coord%spin)
+  endif
+  if (y_pitch_tot$/=0.) then
+    call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, ele%value(y_pitch_tot$), a)
+    call quaternion_track (a, coord%spin)
+  endif
 
   ! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
   ! HV kicks must come after s_offset but before any tilts are applied.
   ! Note: Since this is applied before tilt_coords, kicks are independent of any tilt.
 
   if (set_hv1) then
-      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
-      call quaternion_track (a, coord%spin)
-      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
-      call quaternion_track (a, coord%spin)
+      if (hkick$/=0.) then
+        call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
+      if (vkick$/=0.) then
+        call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
   endif
 
   ! Set: Multipoles
@@ -1117,7 +1141,7 @@ if (set) then
   ! Set: Tilt
   ! A non-zero roll has a zeroth order effect that must be included
 
-  if (set_t) then
+  if (set_t .and. (tilt_tot$/=0. .or. roll$/=0.)) then
 
     if (ele%key == sbend$) then
       if (ele%value(roll$) /= 0) then
@@ -1145,16 +1169,24 @@ if (set) then
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
-      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
-      call quaternion_track (a, coord%spin)
+      if (kick$/=0.) then
+        call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
     elseif (ele%key == vkicker$) then
-      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
-      call quaternion_track (a, coord%spin)
+      if (kick$/=0.) then
+        call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
     else ! i.e. elseif (ele%key == kicker$) then
-      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
-      call quaternion_track (a, coord%spin)
-      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
-      call quaternion_track (a, coord%spin)
+      if (hkick$/=0.) then
+        call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
+      if (vkick$/=0.) then
+        call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
     endif
   endif
 
@@ -1172,23 +1204,31 @@ else
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
-      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
-      call quaternion_track (a, coord%spin)
+      if (kick$/=0.) then
+        call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
     elseif (ele%key == vkicker$) then
-      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
-      call quaternion_track (a, coord%spin)
+      if (kick$/=0.) then
+        call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
     else ! i.e. elseif (ele%key == kicker$) then
-      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
-      call quaternion_track (a, coord%spin)
-      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
-      call quaternion_track (a, coord%spin)
+      if (vkick$/=0.) then
+        call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
+      if (hkick$/=0.) then
+        call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
     endif
   endif
 
 
   ! Unset: Tilt
 
-  if (set_t) then
+  if (set_t .and. (tilt_tot$/=0. .or. roll$/=0.)) then
 
     if (ele%key == sbend$) then
       call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, -(ele%value(tilt_tot$)+ele%value(roll$)), a)
@@ -1216,18 +1256,26 @@ else
   ! HV kicks must come after s_offset but before any tilts are applied.
 
   if (set_hv1) then
-      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
-      call quaternion_track (a, coord%spin)
-      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
-      call quaternion_track (a, coord%spin)
+      if (vkick$/=0.) then
+        call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
+      if (hkick$/=0.) then
+        call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
+        call quaternion_track (a, coord%spin)
+      endif
   endif
 
   ! Unset: (Offset and) pitch
 
-  call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, -ele%value(y_pitch_tot$), a)
-  call quaternion_track (a, coord%spin)
-  call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, -ele%value(x_pitch_tot$), a)
-  call quaternion_track (a, coord%spin)
+  if (y_pitch_tot$/=0.) then
+    call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, -ele%value(y_pitch_tot$), a)
+    call quaternion_track (a, coord%spin)
+  endif
+  if (x_pitch_tot$/=0.) then
+    call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, -ele%value(x_pitch_tot$), a)
+    call quaternion_track (a, coord%spin)
+  endif
 
 endif
 
@@ -1242,6 +1290,11 @@ end subroutine offset_spin
 !                                       include_sextupole_octupole, ref_orb_offset)
 !
 ! Subroutine to track the spins in a multipole field
+!
+! Track1_spin uses quaternions which are calculated only up to second order,
+! which does not take into account higher-order magnets (sextupoles etc.).
+! This subroutine tracks spins through those higher-order magnets assuming simple
+! T-BMT precession to get a rough estimate of their effects.
 !
 ! Modules Needed:
 !   use multipole_mod, only: multipole_ele_to_ab
@@ -1259,7 +1312,6 @@ end subroutine offset_spin
 !                          Apply half multipole effect only (for kick-drift-kick model)
 !   include_sextupole_octupole  -- Logical, optional: Default is False.
 !                          Include the effects of sextupoles and octupoles
-!                          (since there are currently not implemented in track1_spin)
 !   ref_orb_offset   -- Logical, optional: Default is False.
 !                          Rotate the local coordinate system according to the
 !                          the dipole component of the multipole
@@ -1370,3 +1422,4 @@ endif
 end subroutine multipole_spin_precession
 
 end module spin_mod
+
