@@ -568,7 +568,7 @@ end subroutine
 ! Input:
 !   bmad_taylor -- Taylor_struct: Old structure.
 !   n_term      -- Integer: Number of terms to allocate. 
-!                   -1 => bmad_taylor%term pointer will be disassociated.
+!                   n_term < 1 => bmad_taylor%term pointer will be disassociated.
 !   save        -- Logical, optional: If True then save any old terms when
 !                   bmad_taylor is resized. Default is False.
 !
@@ -588,7 +588,7 @@ logical, optional :: save
 
 !
 
-if (n_term < 0) then
+if (n_term < 1) then
   if (associated(bmad_taylor%term)) deallocate(bmad_taylor%term)
   return
 endif
