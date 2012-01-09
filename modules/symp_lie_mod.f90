@@ -169,6 +169,7 @@ Case (wiggler$)
       s_offset = (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
     enddo
   else
+    lord => ele
     wig_term => ele%wig%term
     s_offset = 0
   endif
@@ -625,7 +626,7 @@ factor = c_light / ele%value(p0c$)
 
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  coef = factor * wt%coef * ele%value(polarity$)
+  coef = factor * wt%coef * lord%value(polarity$)
   tm(j)%a_y%coef         = -coef * wt%kz      ! / (wt%kx * wt%ky)
   tm(j)%dint_a_y_dx%coef = -coef * wt%kz      ! / wt%ky**2
   tm(j)%da_z_dx%coef     = -coef 
