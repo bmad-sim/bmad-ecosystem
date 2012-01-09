@@ -14,7 +14,7 @@ use wake_mod
 use attribute_mod
 use add_superimpose_mod
 
-private parse_grid
+private parse_grid, parse_map
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
@@ -111,7 +111,6 @@ type parser_ele_struct
   integer ix_count
   integer ele_pt, ref_pt
   integer indexx
-  logical common_lord
 end type
 
 type parser_lat_struct
@@ -222,9 +221,6 @@ type (em_field_mode_struct), pointer :: em_mode
 
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
-real(rp), allocatable :: array(:)
-
-complex(rp), pointer :: c_ptr(:)
 
 integer i, j, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
@@ -702,74 +698,6 @@ if (attrib_word == 'FIELD') then
         endif
         do_evaluate = .false.
 
-      case ('E_COEF_RE', 'E_COEF_IM', 'B_COEF_RE', 'B_COEF_IM')
-
-        if (.not. associated(em_mode%map)) allocate (em_mode%map)
-
-        ! Expect "("
-        call get_next_word (word, ix_word, ',({', delim, delim_found)
-        if (word /= '' .or. delim /= '(') then
-          call parser_warning ('NO "(" FOUND AFTER "' // trim(word2) // ' =" ', &
-                               'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-          return
-        endif
-
-        ! Read list of values.
-        call re_allocate(array, 1024, .false.)
-        do i_term = 1, 100000
-          call get_next_word (word, ix_word, '{},()', delim, delim_found)
-          if ((delim /= ',' .and. delim /= ')') .or. .not. is_real(word)) then
-            call parser_warning ('ERROR PARSING ARRAY FOR: ' // word2, &
-                                 'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-            return
-          endif
-          if (i_term > size(array)) call re_allocate(array, 2*size(array))
-          read (word, *) array(i_term)
-          if (delim == ')') exit
-        enddo
-
-        if (allocated(em_mode%map%term)) then
-          if (size(em_mode%map%term) /= i_term) then
-            call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
-                               'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-            return
-          endif
-        else
-          allocate(em_mode%map%term(i_term))
-        endif
-
-        select case (word2)
-        case ('E_COEF_RE', 'E_COEF_IM'); c_ptr => em_mode%map%term%e_coef 
-        case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => em_mode%map%term%b_coef
-        end select
-
-        if (word2(8:9) == 'RE') then
-          if (any(real(c_ptr) /= 0)) then
-            call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
-                               'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-            return
-          endif
-          c_ptr = c_ptr + array(1:i_term)
-
-        else
-          if (any(aimag(c_ptr) /= 0)) then
-            call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
-                               'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-            return
-          endif
-          c_ptr = c_ptr + i_imaginary * array(1:i_term)
-        endif
-
-        ! Expect "," or "}"
-        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-        if (word /= '' .or. (delim /= ',' .and. delim /= '}')) then
-          call parser_warning ('BAD ' // trim(word2) // ' = (...) CONSTRUCT', &
-                               'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-          return
-        endif
-
-        do_evaluate = .false.
-
       case ('FREQ');          r_ptr => em_mode%freq
       case ('F_DAMP');        r_ptr => em_mode%f_damp
       case ('THETA_T0');      r_ptr => em_mode%theta_t0
@@ -777,12 +705,14 @@ if (attrib_word == 'FIELD') then
       case ('PHI_0');         r_ptr => em_mode%phi_0
       case ('FIELD_SCALE');   r_ptr => em_mode%field_scale
 
-      case ('DZ');            
-        if (.not. associated(em_mode%map)) allocate (em_mode%map)
-        r_ptr => em_mode%map%dz
-
       case ('GRID') 
         call parse_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag, print_err)
+        if (err_flag) return
+        do_evaluate = .false.
+
+      case ('MAP') 
+        call parse_map(em_mode%map, ele, lat, delim, delim_found, err_flag, print_err)
+        if (err_flag) return
         do_evaluate = .false.
 
       case default
@@ -832,8 +762,6 @@ if (attrib_word == 'FIELD') then
     if (delim == '}') exit
 
   enddo
-
-  if (allocated(array)) deallocate(array)
 
   call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
   err_flag = .false.
@@ -1010,10 +938,6 @@ if (delim /= '=')  then
   case (ele_end$)
     if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
     pele%ele_pt = end$
-
-  case (common_lord$)
-    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
-    pele%common_lord = .true.
 
   case default
     call parser_warning ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  'FOR ELEMENT: ' // ele%name)
@@ -3611,74 +3535,6 @@ if (n_inserted == 0) then
           pele%ref_name, 'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
 endif
 
-! if there is to be no common lord then we are done
-
-if (.not. pele%common_lord) return
-
-! here for common_lord, not scalled multipoles
-
-if (super_ele_saved%key /= multipole$ .and. super_ele_saved%key /= ab_multipole$) then
-  call parser_warning ( &
-          'ELEMENT ' // super_ele_saved%name, &
-          'IS USED WITH THE "COMMON_LORD" ATTRIBUTE BUT', &
-          'THIS ELEMENT IS NOT A MULTIPOLE OR AB_MULTIPOLE', pele = pele)
-  return
-endif
-
-lat%n_ele_max = lat%n_ele_max + 1
-if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
-
-nn = lat%n_ele_max 
-
-n_con = lat%n_control_max 
-lat%n_control_max = n_con + n_inserted
-if (lat%n_control_max > size(lat%control)) call reallocate_control(lat, lat%n_control_max+100)
-
-
-lat%ele(nn) = super_ele_saved
-lat%ele(nn)%lord_status = super_lord$
-lat%ele(nn)%n_slave = n_inserted
-lat%ele(nn)%ix1_slave = n_con + 1
-lat%ele(nn)%ix2_slave = n_con + n_inserted
-
-do i = n_con + 1, n_con + n_inserted
-  lat%control(i)%ix_lord = nn
-  lat%control(i)%ix_attrib = 0
-enddo
-
-j = 0
-do i_br = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i_br)
-
-  do i = 1, branch%n_ele_max-1
-    if (any (matched_name(1:n_inserted) == branch%ele(i)%name)) then
-      it = branch%ele(i)%slave_status
-      if (it /= free$) then
-        call parser_warning ('SLAVE: ' // branch%ele(i)%name, &
-                      'OF LORD: ' // super_ele_saved%name, &
-                      'IS NOT A "FREE" ELEMENT BUT IS: ' // control_name(it), pele = pele)
-        return
-      endif
-      j = j + 1
-      branch%ele(i)%slave_status = super_slave$
-      nic = lat%n_ic_max + 1
-      branch%ele(i)%n_lord = 1
-      branch%ele(i)%ic1_lord = nic
-      branch%ele(i)%ic2_lord = nic
-      lat%ic(nic) = n_con + j
-      lat%control(n_con+j)%ix_slave  = i
-      lat%control(n_con+j)%ix_branch = i_br
-      lat%n_ic_max = nic
-    endif
-  enddo
-
-enddo
-
-if (j /= n_inserted) then
-  call parser_warning ('INTERNAL ERROR! SLAVE NUMBER MISMATCH!')
-  call err_exit
-endif
-
 end subroutine add_all_superimpose
 
 !-------------------------------------------------------------------------
@@ -4073,7 +3929,6 @@ do i = n_now+1, ubound(plat%ele, 1)
   plat%ele(i)%ref_pt  = not_set$
   plat%ele(i)%ele_pt  = not_set$
   plat%ele(i)%s       = 0
-  plat%ele(i)%common_lord = .false.
 enddo
 
 end subroutine allocate_plat
@@ -5307,16 +5162,170 @@ endif
 
 end subroutine parser_debug_print_info
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! parse_map (grid, ele, lat, delim, delim_found, err_flag, print_err)
+!
+! Subroutine to parse a "map = {}" construct
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is private to bmad_parser_mod.
+! This must read in:
+! {type = ,
+!    dr = , 
+!    r0 = , 
+!    pt(i,j,k) = ( (ex_re, ex_im), .... (bz_re, bz_im) ) 
+!    .
+!    .
+!    . ) },
+!-
+
+subroutine parse_map (map, ele, lat, delim, delim_found, err_flag, print_err)
+
+implicit none
+
+type (em_field_map_struct), pointer :: map
+type (ele_struct), target :: ele
+type (lat_struct) lat
+
+real(rp), allocatable :: array(:)
+
+complex(rp), pointer :: c_ptr(:)
+
+integer ix_word, i_term
+
+character(1) delim, delim2
+character(40) word, word2
+
+logical err_flag, print_err, delim_found
+
+!
+
+if (.not. associated(map)) allocate (map)
+allocate (array(1024))
+
+! Expect {
+
+call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true. )
+if ((word /= '') .or. (delim /= '{')) then
+  call parser_warning (  'NO { SIGN FOUND IN MAP DEFINITION',  &
+                    'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+  return
+endif
+
+!
+
+do
+
+  ! Read attriubute
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+  select case (word)
+
+  case ('E_COEF_RE', 'E_COEF_IM', 'B_COEF_RE', 'B_COEF_IM')
+
+    ! Expect "("
+    call get_next_word (word, ix_word, ',({', delim, delim_found)
+    if (word /= '' .or. delim /= '(') then
+      call parser_warning ('NO "(" FOUND AFTER "' // trim(word2) // ' =" ', &
+                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+    ! Read list of values.
+    call re_allocate(array, 1024, .false.)
+    do i_term = 1, 100000
+      call get_next_word (word, ix_word, '{},()', delim, delim_found)
+      if ((delim /= ',' .and. delim /= ')') .or. .not. is_real(word)) then
+        call parser_warning ('ERROR PARSING ARRAY FOR: ' // word2, &
+                             'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        return
+      endif
+      if (i_term > size(array)) call re_allocate(array, 2*size(array))
+      read (word, *) array(i_term)
+      if (delim == ')') exit
+    enddo
+
+    if (allocated(map%term)) then
+      if (size(map%term) /= i_term) then
+        call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
+                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        return
+      endif
+    else
+      allocate(map%term(i_term))
+    endif
+
+    select case (word2)
+    case ('E_COEF_RE', 'E_COEF_IM'); c_ptr => map%term%e_coef 
+    case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => map%term%b_coef
+    end select
+
+    if (word2(8:9) == 'RE') then
+      if (any(real(c_ptr) /= 0)) then
+        call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
+                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        return
+      endif
+      c_ptr = c_ptr + array(1:i_term)
+
+    else
+      if (any(aimag(c_ptr) /= 0)) then
+        call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
+                           'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        return
+      endif
+      c_ptr = c_ptr + i_imaginary * array(1:i_term)
+    endif
+
+    ! Expect "," or "}"
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+    if (word /= '' .or. (delim /= ',' .and. delim /= '}')) then
+      call parser_warning ('BAD ' // trim(word2) // ' = (...) CONSTRUCT', &
+                           'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+  case ('DZ');            
+    if (.not. associated(map)) allocate (map)
+    call evaluate_value (trim(ele%name), map%dz, lat, delim, delim_found, err_flag, ',}')
+
+  end select
+
+  ! Possible "}" is end of mode
+  if (delim == '}') exit
+
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+enddo
+
+! Get final separator after grid construct.
+ 
+call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+if (ix_word /= 0) then
+    call parser_warning ('UNKNOWN TEXT FOUND AFTER MODE GRID DEFINITION: ' // word, &
+                         'FOR ELEMENT: ' // ele%name)
+    return 
+endif
+
+! Deallocate
+
+deallocate(array)
+
+end subroutine parse_map
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_grid(grid, ele, lat, delim, delim_found, err_flag, print_err)
+! parse_grid (grid, ele, lat, delim, delim_found, err_flag, print_err)
 !
-! Subroutine to parse a GRID = () construct
+! Subroutine to parse a "grid = {}" construct
 !
-! ??? This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is private to bmad_parser_mod.
 ! This must read in:
 ! {type = ,
@@ -5337,20 +5346,23 @@ type grid_pt_struct
 end type
 
 
-type (em_field_grid_struct), pointer ::  grid
-type (ele_struct) ::  ele
-type (ele_struct), pointer ::  bele
-type (lat_struct),  target ::  lat
+type (em_field_grid_struct), pointer :: grid
+type (ele_struct) :: ele
+type (ele_struct), pointer :: bele
+type (lat_struct),  target :: lat
 type (branch_struct), pointer :: branch
+type(grid_pt_struct), allocatable :: array(:), array2(:)
+
 character(1) delim, delim2
-logical delim_found, delim_found2, err_flag, print_err
+character(40) :: word, word2
+
+real(rp), allocatable :: dr(:), r0(:)
+
 integer ix_word, ix_word2
 integer pt_counter, n, i, ib, ie, im, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
 integer grid_dim,  num_dr, num_r0
-character(40) :: word, word2
-real(rp), allocatable :: dr(:), r0(:)
 
-type(grid_pt_struct), allocatable :: array(:), array2(:)
+logical delim_found, delim_found2, err_flag, print_err
 
 !
 
@@ -5681,7 +5693,7 @@ subroutine parse_integer_list( integer_array, num_found, &
 integer, allocatable :: integer_array(:)
 integer :: num_found
 integer, optional :: num_expected
-character(1), optional ::  open_delim, close_delim, separator
+character(1), optional :: open_delim, close_delim, separator
 logical, optional :: do_resize
 
 !Local
@@ -5796,7 +5808,7 @@ subroutine parse_real_list( real_array, num_found, &
 real(rp), allocatable :: real_array(:)
 integer :: num_found
 integer, optional :: num_expected
-character(1), optional ::  open_delim, close_delim, separator
+character(1), optional :: open_delim, close_delim, separator
 logical, optional :: do_resize
 real(rp), optional :: default_value
 
