@@ -1062,7 +1062,7 @@ logical set_multi, set_hv, set_t, set_hv1, set_hv2
 set_multi = logic_option (.true., set_multipoles) .and. (associated(ele%a_pole) .or. ele%key==sextupole$ .or. ele%key==octupole$)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
-set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele%key)
+set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele)
 
 if (set_hv) then
   select case (ele%key)
