@@ -39,6 +39,7 @@
 subroutine check_aperture_limit_custom (orb, ele, at, param)
 
 use bmad_struct
+use bmad_interface
 
 implicit none
 
