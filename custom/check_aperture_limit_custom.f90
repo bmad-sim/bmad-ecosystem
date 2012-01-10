@@ -5,6 +5,9 @@
 ! A valid check_aperture_limit_custom is needed only if ele%aperture_type is set to
 ! custom$.
 !
+! General rule: Your code may NOT modify any argument that is not listed as
+! an output agument below."
+!
 ! Modules needed:
 !   use bmad
 !

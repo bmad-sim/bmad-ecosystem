@@ -5,6 +5,9 @@
 ! If called, this routine will generate an error message and quit.
 ! This routine needs to be replaced for a custom calculation.
 !
+! General rule: Your code may NOT modify any argument that is not listed as
+! an output agument below."
+!
 ! Modules Needed:
 !   use bmad
 !

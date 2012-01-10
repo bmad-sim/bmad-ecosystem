@@ -4,6 +4,9 @@
 ! Dummy routine. Will generate an error if called.
 ! A valid em_field_custom is needed only if the em_field routine is being used.
 !
+! General rule: Your code may NOT modify any argument that is not listed as
+! an output agument below."
+!
 ! Input:
 !   ele         -- Ele_struct: Custom element.
 !   param       -- lat_param_struct: Lattice parameters.
@@ -24,6 +27,7 @@
 subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield)
 
 use bmad_struct
+use bmad_interface, except => em_field_custom
 
 implicit none
 
