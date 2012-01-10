@@ -214,6 +214,8 @@ end subroutine convert_particle_coordinates_t_to_s
 !
 ! Input:
 !   particle   -- coord_struct: input particle
+!                       %vec(2), %vec(4), %vec(6)
+!                       %s
 !   p0c        -- real: Reference momentum. The sign indicates direction of p_s 
 ! Output:
 !    particle   -- coord_struct: output particle 
