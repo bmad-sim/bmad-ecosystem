@@ -9,22 +9,6 @@ module em_field_mod
 use bmad_struct
 use bmad_interface
 
-! Interface for custom field calc
-
-interface 
-  subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield)
-    use bmad_struct
-    implicit none
-    type (ele_struct) :: ele
-    type (lat_param_struct) param
-    type (coord_struct), intent(in) :: orb
-    real(rp), intent(in) :: s_rel, t_rel
-    logical local_ref_frame
-    type (em_field_struct), intent(out) :: field
-    logical, optional :: calc_dfield
-  end subroutine
-end interface
-
 contains
 
 !-----------------------------------------------------------------

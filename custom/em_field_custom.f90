@@ -27,7 +27,7 @@
 subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield)
 
 use bmad_struct
-use bmad_interface, except => em_field_custom
+use bmad_interface, except_dummy => em_field_custom
 
 implicit none
 

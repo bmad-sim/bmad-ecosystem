@@ -1,5 +1,30 @@
 module custom_bmad_interface
 
+interface 
+  subroutine check_aperture_limit_custom (orb, ele, at, param)
+    use bmad_struct, only: coord_struct, ele_struct, lat_param_struct
+    implicit none
+    type (coord_struct) :: orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+    integer at
+  end subroutine
+end interface
+
+interface 
+  subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield)
+    use bmad_struct
+    implicit none
+    type (ele_struct) :: ele
+    type (lat_param_struct) param
+    type (coord_struct), intent(in) :: orb
+    real(rp), intent(in) :: s_rel, t_rel
+    logical local_ref_frame
+    type (em_field_struct), intent(out) :: field
+    logical, optional :: calc_dfield
+  end subroutine
+end interface
+
 interface
   subroutine radiation_integrals_custom (lat, ir, orb)
     use bmad_struct, only: lat_struct, coord_struct
