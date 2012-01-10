@@ -3,7 +3,7 @@
 ! Consider input arguments of: rkck_bmad_T (ele, param, orb, dvec_dt, orb%s, orb%t, new_dt, orb_new, vec_err, local_ref_frame)
 module track1_time_runge_kutta_mod
 
-use bmad
+use bmad_struct
 type (ele_struct), save, pointer :: ele_com
 type (lat_param_struct), save, pointer :: param_com
 type (coord_struct), save, pointer ::  orb_com
@@ -69,7 +69,7 @@ use bmad_interface
 
 implicit none
 
-type (coord_struct) :: start, end
+type (coord_struct) :: start, start2, end
 type (coord_struct) :: ele_origin
 type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
@@ -84,7 +84,7 @@ logical :: local_ref_frame = .true.
 !Reset particle lost status
 param%lost = .False.
 
-!If element has no length, skip tracking
+!If element has zero length, skip tracking
 if (ele%value(l$) .eq. 0) then
   end = start
 
@@ -109,10 +109,12 @@ if (ele%value(l$) .eq. 0) then
   return
 end if
 
+!copy start, because following routines will maniupulate it
+start2 = start
 
 !Specify time step; assumes ele%value(ds_step$) has been set
-
 dt_step = ele%value(ds_step$)/c_light
+
 
 !------
 !Convert particle to element coordinates
@@ -122,7 +124,8 @@ if (param%end_lost_at == live_reversed$) then
   !Particle must be moving backwards
   !The sign of p0c is used in s->t conversion
   p0c = -1*ele%value(p0c$)
-  call offset_particle(ele, param, start, set$, set_canonical = .false.,  reversed = .true. ) 
+  call offset_particle(ele, param, start2, set$, set_canonical = .false.,  reversed = .true. ) 
+  call apply_element_edge_kick (start2, ele, param, exit_end$)
 else
   !Forward moving particle
   if (ele_has_constant_reference_energy(ele)) then
@@ -130,27 +133,25 @@ else
   else  ! lcavity, etc.
     p0c = ele%value(p0c_start$)
   end if
-  !Forward moving particles in a gun start with t-coordinates, so ignore offset
-  if(ele%key /= e_gun$) call offset_particle(ele, param, start, set$, set_canonical = .false., reversed = .false. )    
+  call offset_particle(ele, param, start2, set$, set_canonical = .false., reversed = .false. ) 
+  call apply_element_edge_kick (start2, ele, param, entrance_end$)   
 end if
 
 ! ele(s-based) -> ele(t-based)
 !Forward moving particles in a gun start with t-coordinates, so ignore offset
-if(ele%key /= e_gun$) call convert_particle_coordinates_s_to_t(start, p0c)
+if(ele%key /= e_gun$) call convert_particle_coordinates_s_to_t(start2, p0c)
 
 !Shift s and t back to global values
-start%t = start%t - (ele%ref_time - ele%value(delta_ref_time$))
-start%s = start%s - (ele%s - ele%value(l$))
-start%vec(5) = start%s
+start2%t = start2%t - (ele%ref_time - ele%value(delta_ref_time$))
+start2%s = start2%s - (ele%s - ele%value(l$))
+start2%vec(5) = start2%s
 
 
 !------
 !Check wall or aperture at beginning of element
-end = start
-ele_origin%vec = (/ 0, 0, 0, 0, 0, 0 /)
-ele_origin%s = 0
-call  particle_hit_wall_check(ele_origin, end, param, ele)
-end = start
+ele_origin%vec = (/ 0.0_rp, 0.0_rp,  0.0_rp,  0.0_rp, start2%s,  0.0_rp /)
+ele_origin%s = start2%s
+call  particle_hit_wall_check_time(ele_origin, start2, param, ele)
 
 if (param%lost) then
 
@@ -161,7 +162,7 @@ if (param%lost) then
   if ( present(track) ) then
     call init_saved_orbit (track, 0)
     track%n_pt = 0
-    track%orb(0) = start
+    track%orb(0) = start2
   endif
 
   print *, "  Particle entered element region outside of wall- exiting..."
@@ -169,7 +170,7 @@ if (param%lost) then
 else
 
   !If particle passed wall check, track through element
-  call odeint_bmad_time(start, ele, param, end, 0.0_rp, ele%value(l$), &
+  call odeint_bmad_time(start2, ele, param, end, 0.0_rp, ele%value(l$), &
     dt_step, local_ref_frame, exit_surface, track )
 
 end if
@@ -178,13 +179,14 @@ end if
 !Convert particle to global curvilinear coordinates
 
 !Shift s and t back to global values
-start%t = start%t + (ele%ref_time - ele%value(delta_ref_time$))
-start%s = start%s + (ele%s - ele%value(l$))
+start2%t = start2%t + (ele%ref_time - ele%value(delta_ref_time$))
+start2%s = start2%s + (ele%s - ele%value(l$))
 end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
 end%s = end%s + (ele%s - ele%value(l$))
 
 !Define p0c and ref_time at end of tracking
 if (param%end_lost_at == entrance_end$) then
+  !particle is at the entrance end
   if (ele_has_constant_reference_energy(ele)) then
     p0c = ele%value(p0c$)
   else  ! lcavity, etc.
@@ -194,15 +196,18 @@ if (param%end_lost_at == entrance_end$) then
 
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+  call apply_element_edge_kick (start2, ele, param, entrance_end$)
   !unset
   call offset_particle(ele, param, end, unset$, set_canonical = .false., &
      reversed = .true. ) 
 else
+  !particle is at the exit end
   p0c = ele%value(p0c$)
   ref_time = ele%ref_time
   
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+  call apply_element_edge_kick (start2, ele, param, exit_end$)
   !unset
   call offset_particle(ele, param, end, unset$, set_canonical = .false., &
      reversed = .false. ) 
@@ -222,7 +227,7 @@ end subroutine
 ! Subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
 !                             dt1, local_ref_frame, track)
 ! 
-! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
+! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
 !
 !
@@ -230,7 +235,7 @@ end subroutine
 !   use bmad
 !
 ! Input: 
-!   start   -- Coord_struct: Starting coords: (x, px, y, py, s, ps).
+!   start   -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
 !   ele     -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
@@ -299,7 +304,7 @@ if ( present(track) ) then
    call init_saved_orbit (track, n_pt)
    track%n_pt = 0
    track%orb(0) = orb
-   !number of 
+   !number of save points
    n_save_count = 0
    dn_save = max(floor(track%ds_save/c_light/dt), 1)
 endif 
@@ -377,7 +382,7 @@ do n_step = 1, max_step
 
   else
   !Check wall or aperture at every intermediate step
-    call  particle_hit_wall_check(orb, orb_new, param, ele)
+    call  particle_hit_wall_check_time(orb, orb_new, param, ele)
     !Flag for exit if wall is hit
     if (param%lost) then
       exit_surface = no_end$
@@ -479,7 +484,7 @@ end subroutine rkck_bmad_time
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine particle_hit_wall_check
+! Subroutine particle_hit_wall_check_time
 !
 ! Subroutine to check whether particle has collided with element walls,
 ! and to calculate location of impact if it has
@@ -489,8 +494,8 @@ end subroutine rkck_bmad_time
 !   use capillary_mod
 !
 ! Input
-!   orb     -- coord_struct: Previous particle coordinates
-!   orb_new -- coord_struct: Current particle coordinates
+!   orb     -- coord_struct: Previous particle coordinates  [t-based]
+!   orb_new -- coord_struct: Current particle coordinates [t-based]
 !   param   -- lat_param_struct: Lattice parameters
 !    %particle -- integer: Type of particle
 !   ele     -- ele_struct: Lattice element
@@ -502,7 +507,7 @@ end subroutine rkck_bmad_time
 !    %phase_x -- real(rp): Used to store hit angle
 !-
 
-subroutine  particle_hit_wall_check(orb, orb_new, param, ele)
+subroutine  particle_hit_wall_check_time(orb, orb_new, param, ele)
  
 use bmad
 use capillary_mod
@@ -608,4 +613,4 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
    param%lost = .True.
 endif
 
-end subroutine  particle_hit_wall_check
+end subroutine  particle_hit_wall_check_time
