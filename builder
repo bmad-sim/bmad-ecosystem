@@ -1,7 +1,7 @@
 #-*-python-*-
 # Accepts full build logfile name as only argument.
 # i.e.
-# builder /nfs/acc/libs/Linux_i686_ifort/log/cesr_2011_0907_d_1.log
+# 'builder /nfs/acc/libs/Linux_i686_ifort/log/cesr_2011_0907_d_1.log'
 #--------------------------------------------------------------
 import sys
 import os
@@ -145,7 +145,6 @@ def build_directory( dir, statlist, target ):
         
 link_to_packages( invars.packages_name )
 
-status_list = []
 blist = manifest_to_build_list( checkout_manifest )
 
 
@@ -169,3 +168,36 @@ for buildpass, target in enumerate(targets):
 
     sys.stdout.flush()
 
+
+# Create a condensed pass summary giving success/failure
+# info for each build pass that took place.
+print 'Condensed pass summary:'
+all_OK = {}
+for buildpass, target in enumerate(targets):
+    all_OK[target] = True
+    for entry in buildpass_summaries[target]:
+        if entry[1] != 0:
+            all_OK[target] = False
+    if all_OK[target]:
+        print target + ' : OK'
+        set_nightly_link = True
+    else:
+        print target + ' : ERROR'
+
+
+# If all passes succeeded, AND a nighly build was requested
+# from the build_supervisor, then rotate the nightly link.
+if invars.nightly:
+    rotate_nightly = True
+    for entry in all_OK:
+        if not all_OK[entry]:
+            rotate_nightly = False
+            break
+
+    if rotate_nightly:
+        print 'Rotating nightly link...'
+        print invars.libs_basedir+'/'+invars.platform+'/nightly'
+        if os.path.lexists(invars.libs_basedir+'/'+invars.platform+'/nightly'):
+            print 'Nightly link exists.'
+            os.remove(invars.libs_basedir+'/'+invars.platform+'/nightly')
+        os.symlink( invars.build_name, invars.libs_basedir+'/'+invars.platform+'/nightly' )

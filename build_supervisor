@@ -70,6 +70,16 @@ print 'Platforms that appear in collection of build specifications:'
 print all_platforms
 
 
+argparser = argparse.ArgumentParser(description='Acelerator Libraries Collection Build Tool')
+
+argparser.add_argument('--pkgname', action='store', dest='pkg_name')
+argparser.add_argument('--gmake', action='store', dest='gmake_dir')
+argparser.add_argument('--spec', action='store', dest='build_spec', help='Build specification')
+argparser.add_argument('--nightly', action='store_true', dest='nightly')
+
+argresults = argparser.parse_args()
+
+
 
 class BuildController(threading.Thread):
 
@@ -103,6 +113,7 @@ class BuildController(threading.Thread):
         self.type = build_config.build_specs[spec]['type']
         self.platform = build_config.build_specs[spec]['platform']
         self.basedir = build_config.build_specs[spec]['basedir']
+        self.nightly = argresults.nightly
         
         if not self.is_platform_supported():
             print 'Quitting.'
@@ -213,6 +224,7 @@ class BuildController(threading.Thread):
         self.log.write('build_name        ' + self.name  +'\n')
         self.log.write('full_release_dir  ' + self.full_release_dir +'\n')
         self.log.write('packages_name     ' + self.packages_name +'\n')
+        self.log.write('nightly           ' + str(self.nightly) +'\n')
         self.write_checkout_manifest()
         self.log.write('[builder] - STARTING SUBSCRIPT\n')
         self.log.flush()
@@ -294,16 +306,6 @@ class BuildController(threading.Thread):
 # Non-class code begin
 #----------------------
 build_request = 'release'
-
-
-
-argparser = argparse.ArgumentParser(description='Library build tool')
-
-argparser.add_argument('--pkgname', action='store', dest='pkg_name')
-argparser.add_argument('--gmake', action='store', dest='gmake_dir')
-
-argresults = argparser.parse_args()
-
 
 
 
