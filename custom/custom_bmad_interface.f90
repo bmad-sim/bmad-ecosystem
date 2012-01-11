@@ -54,6 +54,16 @@ interface
 end interface
 
 interface
+  subroutine make_mat6_custom2 (ele, param, start, end)
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    implicit none
+    type (ele_struct), target :: ele
+    type (coord_struct) :: start, end
+    type (lat_param_struct) param
+  end subroutine
+end interface
+
+interface
   subroutine track1_custom (start, ele, param, end, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none

@@ -36,7 +36,7 @@
 !   err     -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine make_mat6 (ele, param, start_orb, end_orb, end_in, err)
+recursive subroutine make_mat6 (ele, param, start_orb, end_orb, end_in, err)
 
 use symp_lie_mod, only: symp_lie_bmad
 use bookkeeper_mod, only: attribute_bookkeeper
@@ -70,6 +70,13 @@ endif
 end_input = (logic_option (.false., end_in) .and. present(end_orb))
 if (end_input) a_end_orb = end_orb
 
+! custom calc
+
+if (ele%mat6_calc_method == custom$) then
+  call make_mat6_custom (ele, param, a_start_orb, a_end_orb)
+  return
+endif
+
 ! init
 
 param%lost = .false.
@@ -89,8 +96,8 @@ bmad_com%radiation_fluctuations_on = .false.
 
 select case (mat6_calc_method)
 
-case (custom$)
-  call make_mat6_custom (ele, param, a_start_orb, a_end_orb)
+case (custom2$)
+  call make_mat6_custom2 (ele, param, a_start_orb, a_end_orb)
 
 case (taylor$)
   call make_mat6_taylor (ele, param, a_start_orb)

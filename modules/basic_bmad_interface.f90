@@ -334,7 +334,7 @@ interface
 end interface
 
 interface
-  subroutine make_mat6 (ele, param, start_orb, end_orb, end_in, err)
+  recursive subroutine make_mat6 (ele, param, start_orb, end_orb, end_in, err)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct) ele
