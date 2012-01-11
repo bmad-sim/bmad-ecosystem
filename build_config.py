@@ -103,11 +103,11 @@ build_specs = {
         'host'   : 'acc101.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
-                '/trunk/util',
-                '/trunk/Gmake',
-                '/trunk/src/include',
-                '/trunk/src/lattice',
-                '/trunk/src/c_utils',
+                 '/trunk/util',
+                 '/trunk/Gmake',
+                 '/trunk/src/include',
+                 '/trunk/src/lattice',
+                 '/trunk/src/c_utils',
                 '/trunk/src/recipes_f-90_LEPP',
                 '/trunk/src/sim_utils',
                 '/trunk/src/mpmnet',
@@ -221,77 +221,77 @@ build_specs = {
 }
 
 
-## packages_build_specs = {
-##     'Linux_i686_intel' : {
-##         'type' : 'packages',
-##         'host' : 'lnx209.lns.cornell.edu',
-##         'repositories' : {
-##             'ACC-LEPP' : [
-##                 '/trunk/packages/cfortran',
-##                 '/trunk/packages/forest',
-##                 '/trunk/packages/num_recipes/recipes_f-90',
-##                 '/trunk/packages/num_recipes/recipes_c-ansi',
-##                 '/trunk/packages/xsif',
-##                 '/trunk/packages/PGPLOT'
-##             ]
-##         }
-##     },
-##     'Linux_x86_64_intel' : {
-##         'type' : 'packages',
-##         'host' : 'acc101.lns.cornell.edu',
-##         'repositories' : {
-##             'ACC-LEPP' : [
-##                 '/trunk/packages/cfortran',
-##                     # A copy, perhaps, to central include directory?
-##                     # Makefiles need to know how to find this, so perhaps not, for now.
-##                 '/trunk/packages/forest',
-##                     # gmake is all that is necessary
-##                 '/trunk/packages/num_recipes/recipes_f-90',
-##                     # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations" lib
-##                     # cp -p *.mod ../modules
-##                     # cp -p librecipes_f90.a ../lib/librecipes_f90.a
-##                     # gmake NRROOT=`pwd` clean
-##                     #---------debug------------------
-##                     # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations -g" lib
-##                     # cp -p *.mod ../modules
-##                     # cp -p librecipes_f90.a ../lib/librecipes_f90_g.a
-##                     # gmake NRROOT=`pwd` clean
-##                 '/trunk/packages/num_recipes/recipes_c-ansi',
-##                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` lib
-##                     # cp -p librecipes_c-ansi.a ../lib/librecipes_c-ansi.a
-##                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` clean
-##                     #---------debug------------------
-##                     # gmake -fmakefile_cesr CC="gcc -DANSI -g" NRROOT=`pwd` lib
-##                     # cp -p librecipes_c-ansi.a ../lib/librecipes_c-ansi_g.a
-##                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` clean
-##                 '/trunk/packages/xsif',
-##                     # gmake
-##                 '/trunk/packages/PGPLOT',
-##                     # ./makemake . linux ifort_gcc
-##                     # gmake
-##                     # gmake cpg
-##                     # cp -p libpgplot.a ../lib/libpgplot.a
-##                     # cp -p libcpgplot.a ../lib/libcpgplot.a
-##                     # gmake clean
-##                     #---------debug------------------
-##                     # ./makemake . linux ifort_gcc_g
-##                     # gmake
-##                     # gmake cpg
-##                     # cp -p libpgplot.a ../lib/libpgplot_g.a
-##                     # cp -p libcpgplot.a ../lib/libcpgplot_g.a
-##                     # gmake clean
-##                 '/trunk/packages/gsl',
-##                     # ./configure --prefix `pwd`/..
-##                     # make
-##                     # make install
-##                 '/trunk/packages/fgsl'
-##                     # ./configure --prefix `pwd`/.. --f90 ifort --gsl `pwd`/..
-##                     # make
-##                     # make install
-##             ]
-##         }
-##     }    
-## }
+packages_build_specs = {
+    'Linux_i686_intel' : {
+        'type' : 'packages',
+        'host' : 'lnx209.lns.cornell.edu',
+        'repositories' : {
+            'ACC-LEPP' : [
+                '/trunk/packages/cfortran',
+                '/trunk/packages/forest',
+                '/trunk/packages/num_recipes/recipes_f-90',
+                '/trunk/packages/num_recipes/recipes_c-ansi',
+                '/trunk/packages/xsif',
+                '/trunk/packages/PGPLOT'
+            ]
+        }
+    },
+    'Linux_x86_64_intel' : {
+        'type' : 'packages',
+        'host' : 'acc101.lns.cornell.edu',
+        'repositories' : {
+            'ACC-LEPP' : [
+                '/trunk/packages/cfortran',
+                    # A copy, perhaps, to central include directory?
+                    # Makefiles need to know how to find this, so perhaps not, for now.
+                '/trunk/packages/forest',
+                    # gmake is all that is necessary
+                '/trunk/packages/num_recipes/recipes_f-90',
+                    # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations" lib
+                    # cp -p *.mod ../modules
+                    # cp -p librecipes_f90.a ../lib/librecipes_f90.a
+                    # gmake NRROOT=`pwd` clean
+                    #---------debug------------------
+                    # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations -g" lib
+                    # cp -p *.mod ../modules
+                    # cp -p librecipes_f90.a ../lib/librecipes_f90_g.a
+                    # gmake NRROOT=`pwd` clean
+                '/trunk/packages/num_recipes/recipes_c-ansi',
+                    # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` lib
+                    # cp -p librecipes_c-ansi.a ../lib/librecipes_c-ansi.a
+                    # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` clean
+                    #---------debug------------------
+                    # gmake -fmakefile_cesr CC="gcc -DANSI -g" NRROOT=`pwd` lib
+                    # cp -p librecipes_c-ansi.a ../lib/librecipes_c-ansi_g.a
+                    # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` clean
+                '/trunk/packages/xsif',
+                    # gmake
+                '/trunk/packages/PGPLOT',
+                    # ./makemake . linux ifort_gcc
+                    # gmake
+                    # gmake cpg
+                    # cp -p libpgplot.a ../lib/libpgplot.a
+                    # cp -p libcpgplot.a ../lib/libcpgplot.a
+                    # gmake clean
+                    #---------debug------------------
+                    # ./makemake . linux ifort_gcc_g
+                    # gmake
+                    # gmake cpg
+                    # cp -p libpgplot.a ../lib/libpgplot_g.a
+                    # cp -p libcpgplot.a ../lib/libcpgplot_g.a
+                    # gmake clean
+                '/trunk/packages/gsl',
+                    # ./configure --prefix `pwd`/..
+                    # make
+                    # make install
+                '/trunk/packages/fgsl'
+                    # ./configure --prefix `pwd`/.. --f90 ifort --gsl `pwd`/..
+                    # make
+                    # make install
+            ]
+        }
+    }    
+}
 
 
 
