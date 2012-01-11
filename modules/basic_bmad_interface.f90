@@ -742,7 +742,7 @@ interface
 end interface
 
 interface
-  subroutine track1 (start_orb, ele, param, end_orb, track)
+  recursive subroutine track1 (start_orb, ele, param, end_orb, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
