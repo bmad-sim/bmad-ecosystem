@@ -604,8 +604,8 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
   Int&, Int&, Int&, Int&, Int&,                        // key
   Int&, Int&, Int&, Int&,                              // slave_status
   Int&, Int&, Int&, Int&,                              // lord_status
-  Int&, Int&, Int&, Int&, Int&, Int&,            // ix_pointer
-  Int&, Int&, Int&, Int&, Int&, Int&,                              // symp
+  Int&, Int&, Int&, Int&, Int&, Int&, Int&,            // ix_pointer
+  Int&, Int&, Int&, Int&, Int&, Int&,                  // symp
   Int&, Int&, Int&, Int&, Int&, Int&,                  // map_with_off
   Int&, Int&, Int&, Int&);
 
@@ -639,7 +639,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.key, c.sub_key, c.ix_ele, c.ix_branch, c.ix_value, 
     c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
     c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
-    c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.field_calc, c.ref_orbit,
+    c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.spin_tracking_method, c.field_calc, c.ref_orbit,
     c.aperture_at, c.aperture_type, c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
     c.map_with_offsets, c.field_master, c.reversed, c.is_on, c.old_is_on, c.logic, c.bmad_logic,
     c.on_a_girder, c.csr_calc_on, c.offset_moves_aperture);
@@ -663,7 +663,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     Int& key, Int& sub_key, Int& ix_ele, Int& ix_branch, Int& ix_value,  
     Int& slave_status, Int& n_slave, Int& ix1_s, Int& ix2_s, 
     Int& lord_status, Int& n_lord, Int& ic1_l, Int& ic2_l, 
-    Int& ix_p, Int& ixx, Int& mat6_calc, Int& tracking, Int& field_calc, Int& ref_orbit,
+    Int& ix_p, Int& ixx, Int& mat6_calc, Int& tracking, Int& spin_meth, Int& field_calc, Int& ref_orbit,
     Int& aperture_at, Int& aperture_type, 
     Int& symp, Int& mode_flip, Int& multi_on, Int& scale_multi, Int& map_with_off, 
     Int& field_master, Int& reversed, Int& is_on, Int& old_is_on, Int& logic, Int& bmad_logic, Int& on_a_gird, 
@@ -730,6 +730,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
 
   c.mat6_calc_method      = mat6_calc;
   c.tracking_method       = tracking;
+  c.spin_tracking_method  = spin_meth;
   c.field_calc            = field_calc;
   c.ref_orbit             = ref_orbit;
   c.aperture_at           = aperture_at;

@@ -706,6 +706,8 @@ subroutine init_lat (lat, n)
 implicit none
 
 type (lat_struct)  lat
+type (lat_param_struct), save :: param0
+
 integer, optional :: n
 
 !
@@ -722,11 +724,7 @@ lat%use_name = ' '
 lat%lattice = ' '
 lat%input_file_name = ' '
 
-lat%param%unstable_factor = 0
-lat%param%stable = .true.
-lat%param%particle = positron$
-lat%param%aperture_limit_on = .true.
-lat%param%lattice_type = circular_lattice$
+lat%param = param0
 call set_status_flags (lat%param%status, ok$)
 
 call init_coord(lat%beam_start)
@@ -1185,6 +1183,7 @@ lat%control(1:n_old) = control
 deallocate (control)
 
 call re_allocate(lat%ic, max(n, size(lat%ic) + n - n_old))
+lat%ic(n_old+1:) = 0
 
 end subroutine reallocate_control
 

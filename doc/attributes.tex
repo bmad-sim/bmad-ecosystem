@@ -595,13 +595,13 @@ point of view of the photons.
 \label{s:wall}
 
 The vacuum chamber wall shape may be defined for an element using the
-\vn{wall} attribute as detailed below. For X-ray capillay elements
+\vn{wall} attribute as detailed below. For X-ray capillary elements
 (\sref{s:capillary}), this construct is used to define the inside wall
 of the capillary.
 
 NOTE: This construct is currently under development. Unless a program
 is specifically enabled, the presence of a chamber wall for a
-non-capillay element will not affect particle tracking.
+non-capillary element will not affect particle tracking.
 
 The wall is defined by a number of cross-sectional slices as shown in
 Fig.~\ref{f:chamber.wall}A. Each cross-section is defined by a number of
@@ -879,9 +879,8 @@ Multipole formulas for are given in \sref{s:fields}.  Note that for
 non-zero dipole component will affect the reference orbit (just like a
 normal dipole will).
 
-The \vn{Tn} tilt component without a value takes a default of $pi$/(2n + 2) which makes
-the component \vn{skew}.
-Example:
+The \vn{Tn} tilt component without a value takes a default of $pi$/(2n
++ 2) which makes the component \vn{skew}.  Example:
 \begin{example}
   m: multipole, k1l = 0.45, t1  ! Skew quadrupole
 \end{example}
@@ -891,9 +890,9 @@ multipole strength is scaled by a factor $F \, r_0^{n_\text{ref}} /
 r_0^n$ (cf.~\Eq{ababf}) where $F$ is the strength of the element (for
 example $F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the
 ``measurement radius'' and is set by the \vn{radius} attribute. The
-default value of $r_0$, if the \vn{radius} is not given, is 1.0.
-This behavior may be turned off by setting the \vn{scale_multipoles} attribute.
-Example:
+default value of $r_0$, if the \vn{radius} is not given, is 1.0.  This
+behavior may be turned off by setting the \vn{scale_multipoles}
+attribute.  Example:
 \begin{example}
   q1: quadrupole, b0 = 0.12, a20 = 1e7, scale_multipoles = F
 \end{example}
@@ -903,7 +902,7 @@ Example:
 \label{s:em.fields}
 
 \index{lcavity}\index{rfcavity}\index{em_field}\index{field}
-Electromagnetic fields can be specified using the \vn{field}
+3D Electromagnetic fields can be specified using the \vn{field}
 attribute. Fields so specified can be used with, for example,
 \vn{runge_kutta} tracking (\sref{s:tkm}), etc. The \vn{field}
 attribute can be used with both RF and DC fields however RF fields can
@@ -911,6 +910,9 @@ only be associated with \vn{lcavity}, \vn{rfcavity}, and \vn{em_field}
 elements.
 
 The syntax for specifying the electromagnetic fields is
+\index{m}\index{field}\index{mode}\index{freq}\index{theta_t0}
+\index{f_damp}\index{field_scale}\index{master_scale}\index{phi_0}
+\index{map}\index{grid}
 \begin{example}
   field = \{
     mode = \{
@@ -918,8 +920,8 @@ The syntax for specifying the electromagnetic fields is
       freq          = <Real>,    ! Frequency of oscillations (Hz).
       theta_t0      = <Real>,    ! Phase of oscillations.
       f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
-      field_scale   = <Real>,    ! Scale factor for the E & B fields
-      stored_energy = <Real>,    
+      field_scale   = <Real>,    ! Scale factor for the E & B fields.
+      master_scale  = <Name>,    ! Master scaling parameter for E & B fields.
       phi_0         = <Real>,    ! Azimuthal orientation.
       map           = <EM_field_map>,        ! EM field map data
       grid          = \{<EM_field_grid>\} \},    ! EM field grid data
@@ -930,6 +932,21 @@ The electromagnetic field is specified as a series of \vn{modes}. Each
 as an RF field. The field associated with a mode can be specified
 using a \vn{grid} of data points or by a \vn{map} which specify the
 coefficients of an analytical form for the field.
+
+The field is scaled by two values specified by \vn{field_scale} and
+\vn{master_scale}. That is
+\begin{equation}
+  [E, B] (actual) = [E, B] (from map or grid) * field_scale * master_scale_value
+\end{equation}
+That is, the actual field is the value as determined from the \vn{map}
+or \vn{grid} data (see below) scaled by the value of \vn{field_scale}
+times the ``master_scale_value''. This master_scale_value is the value
+of the element parameter given by \vn{master_scale}. For example, for
+a quadrupole element, if \vn{master_scale} is set to "K1" then the
+fields are scaled by the quadrupole strength parameter. The purpose of
+this \vn{master_scale} is to provide a way to scale the 3D fields with
+the element strength parameter (K1 for a quadrupole) and also provide
+a way to scale separate \vn{mode}s jointly.
 
 The \vn{map} specification has the form
 \begin{example}
@@ -1015,7 +1032,7 @@ $\theta_0$ is
 \Endeq
 where $f$ is the mode frequency and $f_0$ is the frequency of the fundamental.
 
-The phase \vn{theta_t0} of the fundamental mode is autoscaled by Bmad
+The phase \vn{theta_t0} of the fundamental mode is auto-scaled by Bmad
 so that a particle with $z = 0$ will go through the cavity on crest
 for a \vn{lcavity} and on the zero-crossing for an
 \vn{rfcavity}. Additionally, the field of the fundamental mode is
