@@ -4,6 +4,7 @@
 module track1_time_runge_kutta_mod
 
 use bmad_struct
+
 type (ele_struct), save, pointer :: ele_com
 type (lat_param_struct), save, pointer :: param_com
 type (coord_struct), save, pointer ::  orb_com
@@ -66,6 +67,7 @@ use time_tracker_mod
 use em_field_mod
 use bmad_struct
 use bmad_interface
+use track1_mod
 
 implicit none
 

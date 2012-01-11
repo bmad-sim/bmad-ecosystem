@@ -688,16 +688,6 @@ if (attrib_word == 'FIELD') then
 
       select case (word2)
 
-      case ('M')
-        call get_next_word (word, ix_word, ',}', delim, delim_found)
-        if (is_integer(word)) read (word, *) em_mode%m
-        if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
-          call parser_warning ('BAD "M = <INTEGER>" CONSTRUCT', &
-                               'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-          return
-        endif
-        do_evaluate = .false.
-
       case ('FREQ');          r_ptr => em_mode%freq
       case ('F_DAMP');        r_ptr => em_mode%f_damp
       case ('THETA_T0');      r_ptr => em_mode%theta_t0
@@ -713,6 +703,26 @@ if (attrib_word == 'FIELD') then
       case ('MAP') 
         call parse_map(em_mode%map, ele, lat, delim, delim_found, err_flag, print_err)
         if (err_flag) return
+        do_evaluate = .false.
+
+      case ('M')
+        call get_next_word (word, ix_word, ',}', delim, delim_found)
+        if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
+          call parser_warning ('BAD "M = <INTEGER>" CONSTRUCT', &
+                               'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+          return
+        endif
+        read (word, *) em_mode%m
+        do_evaluate = .false.
+
+      case ('MASTER_SCALE')
+        call get_next_word (word, ix_word, ',}', delim, delim_found)
+        ix = attribute_index(ele, word)
+        if (ix < 1 .or. ix > n_attrib_maxx) then
+          call parser_warning ('BAD NAME FOR "MASTER_SCALE = <NAME>" CONSTRUCT', &
+                               'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+          return
+        endif
         do_evaluate = .false.
 
       case default

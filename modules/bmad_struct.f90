@@ -31,6 +31,20 @@ integer, parameter :: bmad_inc_version$ = 101
 
 integer, parameter :: n_attrib_maxx = 70
 
+! electron/positron
+
+integer, parameter :: proton$     = +2
+integer, parameter :: positron$   = +1
+integer, parameter :: photon$     =  0
+integer, parameter :: electron$   = -1
+integer, parameter :: antiproton$ = -2
+
+character(16), parameter :: particle_name(-2:2) = ['ANTIPROTON', &
+                       'ELECTRON  ', 'PHOTON    ', 'POSITRON  ', 'PROTON    ']
+
+integer, parameter :: charge_of(-2:2) = [-1, -1, 0, 1, 1]
+real(rp), parameter :: mass_of(-2:2) = [m_proton, m_electron, 0.0_rp, m_electron, m_proton]
+
 ! coordinate def
 
 type coord_struct                ! Particle coordinates at a single point
@@ -47,6 +61,8 @@ end type
 type coord_array_struct
   type (coord_struct), allocatable :: orb(:)
 end type
+
+integer, parameter :: not_lost$ = -1
 
 integer, parameter :: mesh_surface$ = 1, linear_surface$ = 2
 
@@ -178,6 +194,7 @@ type em_field_mode_struct
   real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
+  integer :: master_scale = 0 ! Master scaling parameter in ele%value(:) array.
   type (em_field_map_struct), pointer :: map => null()
   type (em_field_grid_struct), pointer :: grid => null()
 end type
@@ -353,21 +370,21 @@ end type
 ! lattice parameter struct
 
 type lat_param_struct
-  real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-  real(rp) total_length       ! total_length of lat
-  real(rp) unstable_factor    ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
-  real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
-  real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
-  integer particle            ! positron$, electron$, etc.
-  integer ix_lost             ! Index of element particle was lost at.
-  integer end_lost_at         ! between_ends$, live_reversed$, entrance_end$, or exit_end$
-  integer plane_lost_at       ! x_plane$, y_plane$, z_plane$ (reversed direction).
-  integer lattice_type        ! linear_lattice$, etc...
-  integer ixx                 ! Integer for general use
-  logical stable              ! is closed lat stable?
-  logical aperture_limit_on   ! use apertures in tracking?
-  logical lost                ! for use in tracking
-  type (bookkeeper_status_struct) status     ! Overall status for the branch.
+  real(rp) :: n_part = 0                 ! Particles/bunch (for BeamBeam elements).
+  real(rp) :: total_length = 0           ! total_length of lat
+  real(rp) :: unstable_factor = 0        ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
+  real(rp) :: t1_with_RF(6,6) = 0        ! Full 1-turn matrix with RF on.
+  real(rp) :: t1_no_RF(6,6) = 0          ! Full 1-turn matrix with RF off.
+  integer :: particle = positron$        ! positron$, electron$, etc.
+  integer :: ix_lost = not_lost$         ! Index of element particle was lost at.
+  integer :: end_lost_at = 0             ! between_ends$, live_reversed$, entrance_end$, or exit_end$
+  integer :: plane_lost_at = 0           ! x_plane$, y_plane$, z_plane$ (reversed direction).
+  integer :: lattice_type = 0            ! linear_lattice$, etc...
+  integer :: ixx = 0                     ! Integer for general use
+  logical :: stable = .false.            ! is closed lat stable?
+  logical :: aperture_limit_on = .true.  ! use apertures in tracking?
+  logical :: lost = .false.              ! for use in tracking
+  type (bookkeeper_status_struct) status ! Overall status for the branch.
 end type
 
 !
@@ -652,20 +669,6 @@ character(40), parameter :: null_name$ = '!NULL'
 character(40), parameter :: reserved_name$ = '!RESERVED' 
 character(40), parameter :: blank_name$ = ' '
 
-! electron/positron
-
-integer, parameter :: proton$     = +2
-integer, parameter :: positron$   = +1
-integer, parameter :: photon$     =  0
-integer, parameter :: electron$   = -1
-integer, parameter :: antiproton$ = -2
-
-character(16), parameter :: particle_name(-2:2) = ['ANTIPROTON', &
-                       'ELECTRON  ', 'PHOTON    ', 'POSITRON  ', 'PROTON    ']
-
-integer, parameter :: charge_of(-2:2) = [-1, -1, 0, 1, 1]
-real(rp), parameter :: mass_of(-2:2) = [m_proton, m_electron, 0.0_rp, m_electron, m_proton]
-
 ! lattice logical names
 
 integer, parameter :: linear_lattice$ = 10
@@ -856,8 +859,6 @@ type synch_rad_common_struct
 end type
 
 type (synch_rad_common_struct), save :: synch_rad_com
-
-integer, parameter :: not_lost$ = -1
 
 integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ = 4
 

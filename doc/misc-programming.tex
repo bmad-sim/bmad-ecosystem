@@ -9,7 +9,7 @@ In this context, a ``custom'' calculation is a calculation, normally
 done by \bmad, that is instead handled by having the appropriate \bmad
 code call the appropriate custom code. Implementing custom
 calculations involve writing custom code and linking this code into a
-program. There are essentually two ways to do custom calculations. One
+program. There are essentially two ways to do custom calculations. One
 method involves using a \vn{custom} element (\sref{s:custom}). The
 other method involves setting the appropriate component of an element
 to \vn{custom}. An appropriate component is one of
@@ -37,10 +37,15 @@ dummy routines, if called, will print an error message and stop the
 program. The exception is the dummy \vn{init_custom} routine which will
 simply do nothing when called.
 
-If a particular custom routine is not used in a program, then,
+If a particular custom routine is not called in a program, then,
 obviously, a non-dummy version does not have to be implemented. To
 link in a non-dummy version of a custom routine, put the code file in
 the same directory as the program code and relink.
+
+While coding a custom routine, it is important to remember that it is
+{\em not} permissible to modify any routine argument that does not
+appear in the list of output arguments shown in the comment section at
+the top of the file.
 
 \index{descrip}
 The \Hyperref{r:init.custom}{init_custom} routine is called by
@@ -149,7 +154,7 @@ the elements in a lattice.
 \index {reference energy}
 The reference energy for the elements in a lattice is calculated by
 \Hyperref{r:lat.compute.reference.energy}{lat_compute_reference_energy}.
-The reference energy associated with a lattice element is gnerally stored in
+The reference energy associated with a lattice element is generally stored in
 \begin{example}
   ele%value(E_tot\$)      ! Total energy (eV)
   ele%value(p0c\$)        ! Momentum * c_light (eV)
@@ -171,7 +176,7 @@ the exit end of the \vn{super_lord}. For \vn{group} and \vn{overlay}
 elements a reference energy only makes sense if all the elements under
 control have the same reference energy.
 
-\index{lcavity!referece energy}\index{cutom!referece energy}\index{hybrid!referece energy}
+\index{lcavity!reference energy}\index{custom!reference energy}\index{hybrid!reference energy}
 Generally, the reference energy is constant throughout an
 element. Exceptions are \vn{lcavity}, \vn{custom} and \vn{hybrid}
 elements. For these types of elements, the above reference energy
@@ -184,7 +189,7 @@ the element
 \end{example}
 These starting energies are the same as the exit end energies of the upstream element in the lattice.
 
-Additionally, photonic elements like \vn{crystal}, \vn{capillay},
+Additionally, photonic elements like \vn{crystal}, \vn{capillary},
 \vn{mirror} and \vn{multilayer_mirror} elements have an associated photon reference wavelength
 \begin{example}
   ele%value(ref_wavelength\$)      ! Meters.

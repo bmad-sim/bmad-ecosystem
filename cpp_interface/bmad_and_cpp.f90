@@ -1346,7 +1346,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%slave_status, f%n_slave, f%ix1_slave, f%ix2_slave, &
       f%lord_status, f%n_lord, f%ic1_lord, f%ic2_lord, &
       f%ix_pointer, f%ixx, &
-      f%mat6_calc_method, f%tracking_method, f%field_calc, f%ref_orbit, &
+      f%mat6_calc_method, f%tracking_method, f%spin_tracking_method, f%field_calc, f%ref_orbit, &
       f%aperture_at, f%aperture_type, &
       f%symplectify, f%mode_flip, f%multipoles_on, f%scale_multipoles, f%map_with_offsets, &
       f%field_master, f%reversed, f%is_on, f%old_is_on, f%logic, f%bmad_logic, f%on_a_girder, &
@@ -1382,7 +1382,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, component_nam, n_co
     key, sub_key, ix_ele, ix_branch, ix_value, &
     slave_status, n_slave, ix1_slave, ix2_slave, &
     lord_status, n_lord, ic1_lord, ic2_lord, &
-    ix_point, ixx, mat6_meth, tracking_meth, field_calc, ref_orb, &
+    ix_point, ixx, mat6_meth, tracking_meth, spin_meth, field_calc, ref_orb, &
     aperture_at, aperture_type, symp, mode_flip, multi_on, scale_multi, &
     map_with_off, field_master, reversed, is_on, old_is_on, logic, bmad_logic, &
     girder, csr_calc, offset_moves_ap)   
@@ -1400,7 +1400,7 @@ type (c_dummy_struct) tlr1, tlr2, tlr3, tlr4, tlr5, tlr6
 type (genfield), target :: gen_f
 
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub_key, lord_status, slave_status
-integer ix2_slave, n_lord, ic1_lord, ic2_lord, ix_point, ixx, ix_ele, mat6_meth, tracking_meth, field_calc
+integer ix2_slave, n_lord, ic1_lord, ic2_lord, ix_point, ixx, ix_ele, mat6_meth, tracking_meth, spin_meth, field_calc
 integer ref_orb, aperture_at, symp, mode_flip, multi_on, map_with_off, field_master
 integer reversed, is_on, old_is_on, logic, bmad_logic, girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
 integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
@@ -1525,6 +1525,7 @@ f%ixx                   = ixx
 
 f%mat6_calc_method      = mat6_meth
 f%tracking_method       = tracking_meth
+f%spin_tracking_method  = spin_meth
 f%field_calc            = field_calc
 f%ref_orbit             = ref_orb
 f%aperture_at           = aperture_at

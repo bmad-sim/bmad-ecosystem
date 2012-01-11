@@ -624,6 +624,7 @@ case(map$)
       enddo
 
       expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%theta_t0))
+      if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
       E_rho = E_rho + Er * expt
       E_phi = E_phi + Ep * expt
       E_z   = E_z   + Ez * expt
@@ -682,8 +683,8 @@ case(grid$)
     m = mode%m
     
     ! DC modes should have mode%freq = 0
-    expt = mode%field_scale * exp(-I_imaginary * twopi * &
-          (mode%freq * (t_rel + t_ref) + mode%theta_t0))
+    expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%theta_t0))
+    if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
 
     ! Check for grid
     if (.not. associated(mode%grid)) then

@@ -103,7 +103,7 @@ end subroutine zero_lr_wakes_in_lat
 ! Subroutine lr_wake_add_to (ele, t0_bunch, orbit, charge)
 !
 ! Subroutine to add to the existing long-range wake the contribution from
-! a passing (macro)particle.
+! a passing particle.
 !
 ! Modules needed:
 !   use wake_mod
@@ -112,7 +112,7 @@ end subroutine zero_lr_wakes_in_lat
 !   ele      -- Ele_struct: Element with wakes.
 !   t0_bunch -- Real(rp): Time when the bench center was at the start of the lattice.
 !   orbit    -- Coord_struct: Starting coords.
-!   charge   -- Real(rp): Charge of passing (macro)particle.
+!   charge   -- Real(rp): Charge of passing particle.
 !
 ! Output:
 !   ele      -- Ele_struct: Element with wakes.
@@ -215,7 +215,7 @@ end subroutine lr_wake_add_to
 !   ele      -- Ele_struct: Element with wakes
 !   t0_bunch -- Real(rp): Time when the bench center was at the start of the lattice.
 !   orbit    -- Coord_struct: Starting coords of the particle.
-!   charge   -- Real(rp): Charge of passing (macro)particle. Needed for self wake.
+!   charge   -- Real(rp): Charge of passing particle. Needed for self wake.
 !
 ! Output:
 !   orbit    -- Coord_struct: coords after the kick.
@@ -408,7 +408,7 @@ end subroutine sr_table_apply_trans_kick
 ! Subroutine sr_mode_long_wake_add_to (ele, orbit, charge)
 !
 ! Subroutine to add to the existing short-range wake the contribution from
-! a passing (macro)particle.
+! a passing particle.
 !
 ! Modules needed:
 !   use wake_mod
@@ -416,7 +416,7 @@ end subroutine sr_table_apply_trans_kick
 ! Input:
 !   ele     -- Ele_struct: Element with wakes.
 !   orbit   -- Coord_struct: Starting coords.
-!   charge  -- Real(rp): Charge of passing (macro)particle.
+!   charge  -- Real(rp): Charge of passing particle.
 !
 ! Output:
 !   ele     -- Ele_struct: Element with wakes.
@@ -470,7 +470,7 @@ end subroutine sr_mode_long_wake_add_to
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes
-!   charge  -- Real(rp): Charge of passing (macro)particle.
+!   charge  -- Real(rp): Charge of passing particle.
 !   orbit   -- Coord_struct: Starting coords.
 !
 ! Output:
@@ -523,7 +523,7 @@ end subroutine sr_mode_long_wake_apply_kick
 ! Subroutine sr_mode_trans_wake_add_to (ele, orbit, charge)
 !
 ! Subroutine to add to the existing short-range wake the contribution from
-! a passing (macro)particle.
+! a passing particle.
 !
 ! Modules needed:
 !   use wake_mod
@@ -531,7 +531,7 @@ end subroutine sr_mode_long_wake_apply_kick
 ! Input:
 !   ele     -- Ele_struct: Element with wakes.
 !   orbit   -- Coord_struct: Starting coords.
-!   charge  -- Real(rp): Charge of passing (macro)particle.
+!   charge  -- Real(rp): Charge of passing particle.
 !
 ! Output:
 !   ele     -- Ele_struct: Element with wakes.
