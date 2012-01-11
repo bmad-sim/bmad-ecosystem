@@ -30,7 +30,7 @@
 ! and vertical kicks irregardless of the value for TILT.
 !-
 
-subroutine track1 (start_orb, ele, param, end_orb, track)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -52,6 +52,13 @@ real(rp) beta, beta_start
 integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
+
+! custom
+
+if (ele%tracking_method == custom$) then
+  call track1_custom (start_orb, ele, param, end_orb, track)
+  return
+endif
 
 ! Init
 
@@ -117,6 +124,9 @@ case (boris$)
 
 case (mad$)
   call track1_mad (orb, ele, param, end_orb)
+
+case (custom2$)
+  call track1_custom2 (orb, ele, param, end_orb)
 
 case (time_runge_kutta$)
   call track1_time_runge_kutta (orb, ele, param, end_orb, track)

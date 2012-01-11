@@ -723,6 +723,7 @@ if (attrib_word == 'FIELD') then
                                'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
         endif
+        em_mode%master_scale = ix
         do_evaluate = .false.
 
       case default
