@@ -1,11 +1,11 @@
 !+
-! Subroutine make_mat6_custom (ele, param, c0, c1)
+! Subroutine make_mat6_custom2 (ele, param, c0, c1)
 !
 ! Dummy subroutine for custom calculation of the transfer matrix. 
 ! If called, this routine will generate an error message and quit.
 ! This routine needs to be replaced for a custom calculation.
 !
-! Note: This routine is not to be confused with make_mat6_custom2.
+! Note: This routine is not to be confused with make_mat6_custom.
 ! See the Bmad manual for more details.
 !
 ! General rule: Your code may NOT modify any argument that is not listed as
@@ -27,10 +27,10 @@
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6_custom (ele, param, c0, c1)
+subroutine make_mat6_custom2 (ele, param, c0, c1)
 
   use bmad_struct
-  use bmad_interface, except_dummy => make_mat6_custom
+  use bmad_interface, except_dummy => make_mat6_custom2
 
   implicit none
 
@@ -40,7 +40,7 @@ subroutine make_mat6_custom (ele, param, c0, c1)
 
 !
 
-  print *, 'ERROR: DUMMY MAKE_MAT6_CUSTOM CALLED FOR: ', ele%name
+  print *, 'ERROR: DUMMY MAKE_MAT6_CUSTOM2 CALLED FOR: ', ele%name
   print *, '       EITHER CUSTOM MAT6_CALC_METHOD WAS CALLED BY MISTAKE,'
   print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
   call err_exit
