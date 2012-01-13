@@ -1,5 +1,5 @@
 !+
-! Subroutine track1 (start_orb, ele, param, end_orb, track)
+! Subroutine track1 (start_orb, ele, param, end_orb, track, internal_start)
 !
 ! Particle tracking through a single element. 
 ! Optionally synchrotron radiation and space charge kicks can included.
@@ -13,6 +13,8 @@
 !   param  -- lat_param_struct:
 !     %aperture_limit_on -- If True check if particle is lost by going outside
 !                of the element aperture. 
+!   internal_start -- Logical, optional: Default False. If True then particle is starting from
+!                       somewhere in the middle of the element instead of the entrance end as normal.
 !
 ! Output:
 !   end_orb   -- Coord_struct: End position.
@@ -30,7 +32,7 @@
 ! and vertical kicks irregardless of the value for TILT.
 !-
 
-recursive subroutine track1 (start_orb, ele, param, end_orb, track)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, internal_start)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -52,6 +54,8 @@ real(rp) beta, beta_start
 integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
+
+logical, optional :: internal_start
 
 ! custom
 
@@ -129,7 +133,7 @@ case (custom2$)
   call track1_custom2 (orb, ele, param, end_orb)
 
 case (time_runge_kutta$)
-  call track1_time_runge_kutta (orb, ele, param, end_orb, track)
+  call track1_time_runge_kutta (orb, ele, param, end_orb, track, internal_start)
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)
@@ -139,16 +143,18 @@ end select
 
 ! s and time update
 
-end_orb%s = ele%s
+if (tracking_method /= time_runge_kutta$) then
+  end_orb%s = ele%s
 
-if (ele_has_constant_reference_energy(ele)) then
-  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = beta)
-  end_orb%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - end_orb%vec(5)) / (beta * c_light)
-else
-  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = beta)
-  call convert_pc_to (ele%value(p0c_start$) * (1 + start_orb%vec(6)), param%particle, beta = beta_start)
-  end_orb%t = start_orb%t + ele%value(delta_ref_time$) + &
-                          start_orb%vec(5) / (beta_start * c_light) - end_orb%vec(5) / (beta * c_light)
+  if (ele_has_constant_reference_energy(ele)) then
+    call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = beta)
+    end_orb%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - end_orb%vec(5)) / (beta * c_light)
+  else
+    call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = beta)
+    call convert_pc_to (ele%value(p0c_start$) * (1 + start_orb%vec(6)), param%particle, beta = beta_start)
+    end_orb%t = start_orb%t + ele%value(delta_ref_time$) + &
+                            start_orb%vec(5) / (beta_start * c_light) - end_orb%vec(5) / (beta * c_light)
+  endif
 endif
 
 ! Radiation damping and/or fluctuations for the last half of the element

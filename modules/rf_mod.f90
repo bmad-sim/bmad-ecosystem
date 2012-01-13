@@ -2,7 +2,7 @@ module rf_mod
 
 use runge_kutta_mod
 
-real(rp), pointer, private :: field_scale, theta_t0
+real(rp), pointer, private :: field_scale, dtheta_ref
 type (lat_param_struct), pointer, private :: param_com
 type (ele_struct), pointer, private :: ele_com
 
@@ -73,12 +73,12 @@ nullify(field_scale)
 select case (ele%field_calc)
 case (bmad_standard$) 
   field_scale => ele%value(field_scale$)
-  theta_t0 => ele%value(theta_t0$)
+  dtheta_ref => ele%value(dtheta_ref$)
 case (grid$, map$, custom$)
   do i = 1, size(ele%em_field%mode)
     if (ele%em_field%mode(i)%freq /= 0 .and. ele%em_field%mode(i)%m == 0) then
       field_scale => ele%em_field%mode(i)%field_scale
-      theta_t0 => ele%em_field%mode(i)%theta_t0
+      dtheta_ref => ele%em_field%mode(i)%dtheta_ref
       exit
     endif
   enddo
@@ -122,7 +122,7 @@ ele%value(phi0_err$) = 0
 tracking_method_saved = ele%tracking_method
 if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
 
-theta_max = theta_t0   ! Init guess
+theta_max = dtheta_ref   ! Init guess
 if (ele%key == rfcavity$) theta_max = theta_max - 0.25
 
 theta_max_old = 100 ! Number far from unity
@@ -130,7 +130,7 @@ dtheta = 0.05
 theta_tol = 1d-5
 pz_tol = 1d-7
 
-! See if %theta_t0 and %field_scale are already set correctly
+! See if %dtheta_ref and %field_scale are already set correctly
 
 pz_plus  = -neg_pz_calc(theta_max + 2 * theta_tol)
 pz_minus = -neg_pz_calc(theta_max - 2 * theta_tol)
@@ -143,7 +143,7 @@ if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(f_correct - 1) < 2 * pz_t
 
 ! Now adjust %field_scale for the correct acceleration at the phase for maximum accelleration. 
 
-coarse_loop: do
+main_loop: do
 
   ! Find approximately the phase for maximum acceleration.
   ! First go in +theta direction until pz decreases.
@@ -159,7 +159,7 @@ coarse_loop: do
     if (i == 10) then  ! field too strong and always loosing particles
       field_scale = field_scale / 10
       pz = -neg_pz_calc(theta)
-      cycle coarse_loop
+      cycle main_loop
     endif
   enddo
 
@@ -205,12 +205,13 @@ coarse_loop: do
 
   pz_max = -neg_pz_calc(theta_max)
 
-enddo coarse_loop
+enddo main_loop
 
 ! For an rfcavity now find the zero crossing with negative slope which is
 ! about 90deg away from max acceleration.
 
 if (ele%key == rfcavity$) then
+  ele%value(dtheta_max$) = dtheta_ref  ! Save for use with OPAL
   dtheta = 0.1
   do
     theta = theta_max + dtheta
@@ -218,7 +219,7 @@ if (ele%key == rfcavity$) then
     if (pz < 0) exit
     theta_max = theta
   enddo
-  theta_t0 = modulo2 (zbrent(neg_pz_calc, theta_max, theta_max+dtheta, 1d-9), 0.5_rp)
+  dtheta_ref = modulo2 (zbrent(neg_pz_calc, theta_max, theta_max+dtheta, 1d-9), 0.5_rp)
 endif
 
 ! Cleanup
@@ -242,7 +243,7 @@ real(rp) neg_pz
 
 ! brent finds minima so need to flip the final energy
 
-theta_t0 = theta
+dtheta_ref = theta
 call track1 (start_orb, ele_com, param_com, end_orb)
 neg_pz = -end_orb%vec(6)
 if (param_com%lost) neg_pz = 1

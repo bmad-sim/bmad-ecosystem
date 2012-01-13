@@ -2146,6 +2146,16 @@ case (marker$, branch$, photon_branch$, init_ele$)
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
 
+!case (lcavity$, rfcavity$)
+!  ptc_key%magnet  = 'rfcavity'
+!  ptc_key%volt    = ele%value(voltage$) ??  ! MeV
+!  ptc_key%freq0   = ele%value(...)    ! Hz
+!  ptc_key%lag     => -el%phas
+!  ptc_key%n_bessel = 1   ! Linear transverse focusing
+!  ! PTC has a fake mode where particle is always on crest to get the desired voltage gain
+!  ! This sets things up for non-fake tracking.
+!  ptc_key%cavity_totalpath = 1  
+
 case (rfcavity$)
   ptc_key%nstep = 1
   ptc_key%method = 2

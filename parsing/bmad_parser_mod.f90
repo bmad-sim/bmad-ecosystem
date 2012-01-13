@@ -690,7 +690,7 @@ if (attrib_word == 'FIELD') then
 
       case ('FREQ');          r_ptr => em_mode%freq
       case ('F_DAMP');        r_ptr => em_mode%f_damp
-      case ('THETA_T0');      r_ptr => em_mode%theta_t0
+      case ('DTHETA_REF');      r_ptr => em_mode%dtheta_ref
       case ('STORED_ENERGY'); r_ptr => em_mode%stored_energy
       case ('PHI_0');         r_ptr => em_mode%phi_0
       case ('FIELD_SCALE');   r_ptr => em_mode%field_scale
