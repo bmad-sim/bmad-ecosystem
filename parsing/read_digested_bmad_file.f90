@@ -380,7 +380,7 @@ call init_em_field (ele%em_field, n_rf_field_mode)
 if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%em_field%mode(i)
-    read (d_unit, err = 9140) nf, ng, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
+    read (d_unit, err = 9140) nf, ng, mode%freq, mode%f_damp, mode%dtheta_ref, mode%stored_energy, &
                                  mode%m, mode%phi_0, mode%field_scale 
     if (nf > 0) then
       allocate (mode%map)
