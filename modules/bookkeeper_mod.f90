@@ -2247,7 +2247,7 @@ if (bmad_com%auto_bookkeeper) then
 
   dval = val - ele%old_value
   dval(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
-  dval(scratch$) = 59
+  dval(scratch$) = 0
   if (all(dval == 0) .and. .not. z_patch_calc_needed .and. ele%key /= capillary$) return
 endif
 
@@ -2567,6 +2567,8 @@ if (init_needed) then
 endif
 
 dval = val - ele%old_value
+dval(scratch$) = 0
+
 if (has_orientation_attributes(ele)) then
   non_offset_changed = (any(dval /= 0 .and. v_mask))
   offset_changed =  (any(dval /= 0 .and. offset_mask))
