@@ -83,7 +83,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 
   case default   ! overlay_lord$ or group_lord$
 
-    call get_element_slave_list (lat, ele, slaves, n_slave)
+    call get_slave_list (ele, slaves, n_slave)
     ix1 = lat%n_ele_track;  ix2 = 0
     do i = 1, n_slave
       ix1 = min (ix1, slaves(i)%ele%ix_ele)

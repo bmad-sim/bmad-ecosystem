@@ -181,7 +181,7 @@ complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
 
 integer i, j, m, n, sign_charge
 
-logical :: local_ref_frame
+logical :: local_ref_frame, local_ref
 logical, optional :: calc_dfield
 
 logical df_calc
@@ -212,14 +212,25 @@ if (.not. local_ref_frame) then
 endif
 
 !----------------------------------------------------------------------------
-! super_slave and multipass_slave elements have their field info stored in the associated lord elements.
+! super_slave, slice_slave, and  multipass_slave elements have their 
+! field info stored in the associated lord elements.
+! Note: The lord of an em_field element has independent misalignments.
 
 if (ele%field_calc == refer_to_lords$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
-    t = t_rel + (lord%ref_time - lord%value(delta_ref_time$)) - (ele%ref_time - ele%value(delta_ref_time$))
-    call em_field_calc (lord, param, s, t, local_orb, .false., field2, calc_dfield)
+    if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
+    local_ref = .true.
+    if (ele%key == em_field$) local_ref = .false.
+    if (lord%lord_status == multipass_lord$) then
+      if (ele%key == lcavity$ .or. ele%key == rfcavity$) lord%value(dphi0$) = ele%value(dphi0$)
+      call em_field_calc (lord, param, s_rel, t_rel, local_orb, local_ref, field2, calc_dfield)
+      if (ele%key == lcavity$ .or. ele%key == rfcavity$) lord%value(dphi0$) = lord%old_value(dphi0$)
+    else
+      s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
+      t = t_rel + (lord%ref_time - lord%value(delta_ref_time$)) - (ele%ref_time - ele%value(delta_ref_time$))
+      call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield)
+    endif
     field%E = field%E + field2%E
     field%B = field%B + field2%B
     if (df_calc) then
@@ -623,6 +634,8 @@ case(map$)
         
       enddo
 
+      ! Notice that phi0, dphi0, and phi0_err are folded into t_ref above.
+
       expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%theta_t0))
       if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
       E_rho = E_rho + Er * expt
@@ -750,54 +763,52 @@ contains
 
 subroutine convert_fields_to_lab_coords
 
-if (.not. local_ref_frame) then
+if (local_ref_frame) return
 
-  if (ele%value(tilt_tot$) /= 0) then
+if (ele%value(tilt_tot$) /= 0) then
 
-    sin_ang = sin(ele%value(tilt_tot$))
-    cos_ang = cos(ele%value(tilt_tot$))
+  sin_ang = sin(ele%value(tilt_tot$))
+  cos_ang = cos(ele%value(tilt_tot$))
 
-    fd = field%B
-    field%B(1) = cos_ang * fd(1) - sin_ang * fd(2)
-    field%B(2) = sin_ang * fd(1) + cos_ang * fd(2)
+  fd = field%B
+  field%B(1) = cos_ang * fd(1) - sin_ang * fd(2)
+  field%B(2) = sin_ang * fd(1) + cos_ang * fd(2)
 
-    fd = field%E
-    field%E(1) = cos_ang * fd(1) - sin_ang * fd(2)
-    field%E(2) = sin_ang * fd(1) + cos_ang * fd(2)
+  fd = field%E
+  field%E(1) = cos_ang * fd(1) - sin_ang * fd(2)
+  field%E(2) = sin_ang * fd(1) + cos_ang * fd(2)
 
-    if (df_calc) then
+  if (df_calc) then
 
-      dk(1,:) = cos_ang * field%dB(1,:) - sin_ang * field%dB(2,:)
-      dk(2,:) = sin_ang * field%dB(1,:) + cos_ang * field%dB(2,:)
-      dk(3,:) = field%dB(3,:)
+    dk(1,:) = cos_ang * field%dB(1,:) - sin_ang * field%dB(2,:)
+    dk(2,:) = sin_ang * field%dB(1,:) + cos_ang * field%dB(2,:)
+    dk(3,:) = field%dB(3,:)
 
-      field%dB(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
-      field%dB(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
-      field%dB(:,3) = dk(:,3) 
+    field%dB(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
+    field%dB(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
+    field%dB(:,3) = dk(:,3) 
 
-      dk(1,:) = cos_ang * field%dE(1,:) - sin_ang * field%dE(2,:)
-      dk(2,:) = sin_ang * field%dE(1,:) + cos_ang * field%dE(2,:)
-      dk(3,:) = field%dE(3,:)
+    dk(1,:) = cos_ang * field%dE(1,:) - sin_ang * field%dE(2,:)
+    dk(2,:) = sin_ang * field%dE(1,:) + cos_ang * field%dE(2,:)
+    dk(3,:) = field%dE(3,:)
 
-      field%dE(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
-      field%dE(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
-      field%dE(:,3) = dk(:,3) 
+    field%dE(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
+    field%dE(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
+    field%dE(:,3) = dk(:,3) 
 
-    endif
   endif
+endif
 
-  !
+!
 
-  if (ele%value(x_pitch_tot$) /= 0) then
-    field%B(1) = field%B(1) + ele%value(x_pitch_tot$) * field%B(3)
-    field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
-  endif
+if (ele%value(x_pitch_tot$) /= 0) then
+  field%B(1) = field%B(1) + ele%value(x_pitch_tot$) * field%B(3)
+  field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
+endif
 
-  if (ele%value(y_pitch_tot$) /= 0) then
-    field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
-    field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
-  endif
-
+if (ele%value(y_pitch_tot$) /= 0) then
+  field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
+  field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
 endif
 
 end subroutine convert_fields_to_lab_coords

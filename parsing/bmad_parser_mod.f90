@@ -705,14 +705,18 @@ if (attrib_word == 'FIELD') then
         if (err_flag) return
         do_evaluate = .false.
 
-      case ('M')
+      case ('M', 'HARMONIC')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
         if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
           call parser_warning ('BAD "M = <INTEGER>" CONSTRUCT', &
                                'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
         endif
-        read (word, *) em_mode%m
+
+        if (word2 == 'M') then;  read (word, *) em_mode%m
+        else;                    read (word, *) em_mode%harmonic
+        endif
+
         do_evaluate = .false.
 
       case ('MASTER_SCALE')
@@ -5214,6 +5218,7 @@ logical err_flag, print_err, delim_found
 
 !
 
+err_flag = .true.
 if (.not. associated(map)) allocate (map)
 allocate (array(1024))
 
@@ -5325,6 +5330,7 @@ endif
 ! Deallocate
 
 deallocate(array)
+err_flag = .false.
 
 end subroutine parse_map
 
@@ -5373,7 +5379,7 @@ integer ix_word, ix_word2
 integer pt_counter, n, i, ib, ie, im, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
 integer grid_dim,  num_dr, num_r0
 
-logical delim_found, delim_found2, err_flag, print_err
+logical delim_found, delim_found2, err_flag, print_err, err_flag2
 
 !
 
@@ -5396,6 +5402,7 @@ write(grid%file, '(2a, i0)' ) trim(bp_com%current_file%full_name),  ':', bp_com%
 
 allocate(array(1024))
 pt_counter = 0
+err_flag = .true.
 
 do    
 
@@ -5428,7 +5435,8 @@ do
       return
     endif
     ! expect ( 1. ) or (1. , 2.) or (1., 2., 3. )
-    call parse_real_list(r0, num_r0, num_expected = 3)
+    call parse_real_list(err_flag2, r0, num_r0, num_expected = 3)
+    if (err_flag2) return
     grid%r0 = r0
     !Expect , or }
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
@@ -5446,7 +5454,8 @@ do
       return
     endif      
     ! expect ( 1. ) or (1. , 2.) or (1., 2., 3. )
-    call parse_real_list(dr, num_dr, num_expected = 3)
+    call parse_real_list(err_flag2, dr, num_dr, num_expected = 3)
+    if (err_flag2) return
     grid%dr = dr
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '' ) then
@@ -5477,9 +5486,10 @@ do
     end if
      
     !Get indices
-    call parse_pt_indices(array(pt_counter)%ix1, delim)
-    if ( delim == ',') call parse_pt_indices(array(pt_counter)%ix2, delim)    
-    if ( delim == ',') call parse_pt_indices(array(pt_counter)%ix3, delim)    
+    call parse_pt_indices(array(pt_counter)%ix1, delim, err_flag2)
+    if (err_flag2) return
+    if ( delim == ',') call parse_pt_indices(array(pt_counter)%ix2, delim, err_flag2)
+    if ( delim == ',') call parse_pt_indices(array(pt_counter)%ix3, delim, err_flag2) 
 
     !Expect last delim was ")"
     if (delim /= ')' ) then
@@ -5498,7 +5508,8 @@ do
     end if
     !Get as many field components as listed
     do i = 1, 6
-      call parse_complex_component(array(pt_counter)%field(i), delim)
+      call parse_complex_component(array(pt_counter)%field(i), delim, err_flag2)
+      if (err_flag2) return
       if (delim == ')') exit
       if (delim /= ',') then
         call parser_warning ('BAD GRID PT CONSTRUCT, NO "," BETWEEN FIELD COMPONENTS', &
@@ -5597,18 +5608,25 @@ branch_loop: do ib = 0, ubound(lat%branch, 1)
   enddo 
 enddo branch_loop
 
+err_flag = .false.
+
 !------------------------------------------------------------
 
 contains
 
-subroutine parse_pt_indices( ix, delim)
+subroutine parse_pt_indices (ix, delim, err_flag2)
 
 character(1) delim
 character(40) :: word
 integer ix, ix_word
-logical delim_found
+logical delim_found, err_flag2
+
+!
+
+err_flag2 = .true.
 
 !Expect integer followed by "," or ")"
+
 call get_next_word (word, ix_word, ',)', delim, delim_found)
 if (.not. is_integer(word) ) then
   call parser_warning ('BAD GRID PT INDEX, NOT AN INTEGER', &
@@ -5616,24 +5634,30 @@ if (.not. is_integer(word) ) then
   return
 end if       
 read (word, *) ix
+err_flag2 = .false.
 
 end subroutine parse_pt_indices
 
-
- 
-! subroutine parse_complex_component( complex_component, delim)
+!-----------------------------------------------------------
+! contains 
+! subroutine parse_complex_component( complex_component, delim, err_flag2)
 ! looks for (x, y) or x followed by , or ) 
 ! returns complex field_component and next delim, which should be , or )
-subroutine parse_complex_component( complex_component, delim)
+subroutine parse_complex_component( complex_component, delim, err_flag2)
 
 character(1) delim, delim2
 character(40) :: word, word2
 integer  ix_word, ix_word2
-logical delim_found, delim_found2
+logical delim_found, delim_found2, err_flag2
 real(rp) x, y
 complex(rp) complex_component
 
-!Expect "(" for complex, "," for real in the middle of the list, and ")" at the end of the list
+!
+
+err_flag2 = .true.
+
+! Expect "(" for complex, "," for real in the middle of the list, and ")" at the end of the list
+
 call get_next_word (word, ix_word, ',()', delim, delim_found)
 if (is_real(word) ) then
   read (word, *) x
@@ -5657,6 +5681,7 @@ else if ( delim == '(') then
    call get_next_word (word, ix_word, ',)', delim, delim_found)
 end if
 
+err_flag2 = .false.
 
 end subroutine parse_complex_component
 
@@ -5668,7 +5693,7 @@ end subroutine parse_grid
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_integer_list(integer_array, num_found, 
+! parse_integer_list (integer_array, num_found, 
 !           num_expected = 1, open_delim = '(', 
 !           separator = ',', close_delim = ')', 
 !           do_resize = .false. )
@@ -5780,7 +5805,7 @@ end subroutine parse_integer_list
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_real_list(real_array, num_found, 
+! parse_real_list (err_flag, real_array, num_found, 
 !           num_expected = 1, open_delim = '(', 
 !           separator = ',', close_delim = ')', 
 !           do_resize = .false., default_value = 0.0_rp )
@@ -5810,7 +5835,7 @@ end subroutine parse_integer_list
 !   num_found    -- integer : number of elements
 
 
-subroutine parse_real_list( real_array, num_found, &
+subroutine parse_real_list (err_flag, real_array, num_found, &
           num_expected, open_delim, separator, close_delim, &
           do_resize, default_value)
 
@@ -5820,6 +5845,7 @@ real(rp), allocatable :: real_array(:)
 integer :: num_found
 integer, optional :: num_expected
 character(1), optional :: open_delim, close_delim, separator
+logical err_flag
 logical, optional :: do_resize
 real(rp), optional :: default_value
 
@@ -5835,6 +5861,7 @@ character(20), parameter :: r_name =  'parse_real_list'
 
 ! Optional arguments
 
+err_flag = .true.
 num_expect = 1
 op_delim = '('
 cl_delim = ')'
@@ -5891,6 +5918,8 @@ end do
 
 !Resize if asked
 if (resize) call re_allocate(real_array, num_found, .true.)
+
+err_flag = .false.
 
 end subroutine parse_real_list
 

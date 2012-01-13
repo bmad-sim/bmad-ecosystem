@@ -422,7 +422,7 @@ end function ele_to_lat_loc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine get_element_slave_list (lat, lord, slave_list, n_slave)
+! Subroutine get_slave_list (lord, slave_list, n_slave)
 !
 ! Subroutine to get the list of slaves for a lord element.
 !
@@ -431,7 +431,7 @@ end function ele_to_lat_loc
 ! element lord1 which controlls an element lord2, then lord2 will
 ! show up in the slave_list but lord1 will not.
 !
-! If the lord element does not have any slaves, 
+! If the "lord" element does not have any slaves, 
 ! then the slave_list will just be the lord element.
 !
 ! This routine will increase the size of slave_list if needed but will
@@ -441,7 +441,6 @@ end function ele_to_lat_loc
 !   use lat_ele_loc_mod
 !
 ! Input:
-!   lat   -- lat_struct: Lattice
 !   lord  -- Ele_struct: The lord element.
 !
 ! Output:
@@ -449,11 +448,10 @@ end function ele_to_lat_loc
 !   n_slave   -- Integer: Number of slaves.
 !-
 
-subroutine get_element_slave_list (lat, lord, slaves, n_slave)
+subroutine get_slave_list (lord, slaves, n_slave)
 
 implicit none
 
-type (lat_struct) lat
 type (ele_struct) :: lord
 type (ele_pointer_struct), allocatable :: slaves(:)
 
@@ -483,13 +481,102 @@ do i = 1, lord%n_slave
     call get_slaves (slave)
   else
     n_slave = n_slave + 1
-    if (n_slave > size(slaves)) call re_allocate_eles(slaves, n_slave + 10, .true.)
+    if (n_slave > size(slaves)) call re_allocate_eles(slaves, n_slave + 4, .true.)
     slaves(n_slave)%ele => slave
   endif
 enddo
 
 end subroutine get_slaves
 
-end subroutine get_element_slave_list
+end subroutine get_slave_list
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine get_field_ele_list (ele, field_eles, n_field_ele)
+!
+! Subroutine to get the list of elements that specify the field for the given element.
+!
+! This is a list of elements that possibly have field info for a given element. 
+! For example: a slice_slave under a super_slave under a multipass_slave. In this case
+! the multipass_lord will store the field info.
+! Note: group_lords, overlay_lords, and girder_lords will never have field info.
+!
+! If the given element does not have any lords, 
+! the element list will just consist of the element itself.
+!
+! This routine will increase the size of field_ele_list if needed but will
+! not decrease it.
+!
+! Modules needed:
+!   use lat_ele_loc_mod
+!
+! Input:
+!   lat   -- lat_struct: Lattice
+!   ele   -- Ele_struct: Element whose fields are to be evaluated.
+!
+! Output:
+!   field_eles(:) -- Ele_pointer_struct, allocatable :: Array of field_eles.
+!     %ele%value(ds_field_offset$) -- Offset of ele from field element.
+!   n_field_ele   -- Integer: Number of field_eles.
+!-
+
+subroutine get_field_ele_list (ele, field_eles, n_field_ele)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (ele_pointer_struct), allocatable :: field_eles(:)
+
+integer n_field_ele
+
+!
+
+n_field_ele = 0
+if (.not. allocated(field_eles)) call re_allocate_eles (field_eles, 3)
+
+ele%value(ds_field_offset$) = 0
+call get_field_eles (ele)
+
+!--------------------------------------------------------------------------
+contains
+
+recursive subroutine get_field_eles (ele)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: field_ele
+integer i, ix
+
+!
+
+if (ele%field_calc == refer_to_lords$) then
+  do i = 1, ele%n_lord
+    field_ele => pointer_to_lord(ele, i)
+
+    select case (field_ele%key)
+    case (overlay$, group$, girder$); cycle
+    end select
+
+    if (field_ele%lord_status == multipass_lord$) then
+      field_ele%value(ds_field_offset$) = ele%value(ds_field_offset$)
+    else
+      field_ele%value(ds_field_offset$) = ele%value(ds_field_offset$) + &
+                            (ele%s - ele%value(l$)) - (field_ele%s - field_ele%value(l$))
+    endif
+
+    call get_field_eles (field_ele)
+
+  enddo
+
+else
+  n_field_ele = n_field_ele + 1
+  if (n_field_ele > size(field_eles)) call re_allocate_eles(field_eles, n_field_ele + 10, .true.)
+  field_eles(n_field_ele)%ele => ele
+endif
+
+end subroutine get_field_eles
+
+end subroutine get_field_ele_list
 
 end module

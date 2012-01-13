@@ -58,7 +58,7 @@ type (lat_param_struct), target :: param
 
 real(rp) pz, theta, pz_max, theta0, theta_max, e_tot, f_correct, wanted_de
 real(rp) dtheta, e_tot_start, pz_plus, pz_minus, b, c, theta_tol, pz_tol, theta_max_old
-real(rp) phi0_saved, dphi0_saved
+real(rp) phi0_saved, dphi0_saved, phi0_err_saved
 
 integer i, tracking_method_saved
 
@@ -112,10 +112,12 @@ if (wanted_de == 0) then
   return
 endif
 
-phi0_saved  = ele%value(phi0$) 
-dphi0_saved = ele%value(dphi0$)
+phi0_saved     = ele%value(phi0$) 
+dphi0_saved    = ele%value(dphi0$)
+phi0_err_saved = ele%value(phi0_err$) 
 ele%value(phi0$) = 0
 ele%value(dphi0$) = 0
+ele%value(phi0_err$) = 0
 
 tracking_method_saved = ele%tracking_method
 if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
@@ -223,6 +225,7 @@ endif
 
 ele%value(phi0$) = phi0_saved
 ele%value(dphi0$) = dphi0_saved
+ele%value(phi0_err$) = phi0_err_saved
 ele%tracking_method = tracking_method_saved
 
 end subroutine rf_accel_mode_adjust_phase_and_amp

@@ -2048,10 +2048,11 @@ use mad_like, only: nmax, init_sagan_pointers, misalign_fibre, copy, c_, fibre
 implicit none
  
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele2
+type (ele_struct), pointer :: field_ele, ele2
 type (fibre) fiber
 type (keywords) ptc_key
 type (lat_param_struct) :: param
+type (ele_pointer_struct), allocatable, save :: field_eles(:)
 
 real(dp) mis_rot(6)
 real(dp) omega(3), basis(3,3), angle(3)
@@ -2059,7 +2060,7 @@ real(dp) omega(3), basis(3,3), angle(3)
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch, s_rel
 
-integer n, key, n_term, exception
+integer i, n, key, n_term, exception, n_field
 integer, optional :: integ_order, steps
 
 logical kick_here, use_offsets
@@ -2249,10 +2250,13 @@ call create_fibre (fiber, ptc_key, EXCEPTION, .true.)   ! ptc routine
 
 if (key == wiggler$) then
 
-  ele2 => ele
-  if (ele2%field_calc == refer_to_lords$) ele2 => pointer_to_lord(ele2, 1)
-  if (ele2%field_calc == refer_to_lords$) ele2 => pointer_to_lord(ele2, 1)
-  s_rel = (ele%s - ele%value(l$)) - (ele2%s - ele2%value(l$))
+  call get_field_ele_list (ele, field_eles, n_field)
+  do i = 1, n_field
+    ele2 => field_eles(i)%ele
+    if (ele2%key == wiggler$) exit
+  enddo
+
+  s_rel = ele2%value(ds_field_offset$)
 
   if (hyper_x$ /= hyperbolic_xdollar .or. hyper_y$ /= hyperbolic_ydollar .or. &
                                         hyper_xy$ /= hyperbolic_xydollar) then

@@ -188,6 +188,7 @@ end type
 
 type em_field_mode_struct
   integer m                   ! Mode varies as cos(m*phi - phi_0)
+  integer :: harmonic = 0     ! Harmonic of fundamental
   real(rp) freq               ! Oscillation frequency (Hz)
   real(rp) :: f_damp = 0      ! 1/Q damping factor 
   real(rp) :: theta_t0 = 0    ! Mode oscillates as: twopi * (f * t + theta_t0)
@@ -594,7 +595,7 @@ integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' 
 integer, parameter :: num_steps$ = 56, l_x$ = 56
 integer, parameter :: ds_step$ = 57, l_y$ = 57
 integer, parameter :: l_z$ = 58
-! 59 is free...
+integer, parameter :: scratch$ = 59, ds_field_offset$ = 59
 integer, parameter :: general1$ = 60   ! For general use
 integer, parameter :: general2$ = 61   ! For general use
 integer, parameter :: general3$ = 62   ! For general use
