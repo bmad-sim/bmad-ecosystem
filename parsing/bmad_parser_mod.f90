@@ -1083,31 +1083,26 @@ case default   ! normal attribute
       select case (ele%key)
       case (def_beam$)
         lat%ele(0)%value(e_tot$) = 1d9 * value
-        bp_com%param_ele%value(e_tot$) = 1d9 * value
       case (def_parameter$, init_ele$)
         lat%ele(0)%value(e_tot$) = value
-        bp_com%param_ele%value(e_tot$) = value
-        bp_com%beam_ele%value(e_tot$) = 1d-9 * value
       end select
       bp_com%e_tot_set = .true.
       bp_com%p0c_set   = .false.
-
-    case (lr_freq_spread$)
-      call randomize_lr_wake_frequencies (ele, set_done)
-      if (set_done) call bp_set_ran_status
 
     case (p0c$)
       select case (ele%key)
       case (def_beam$)
         lat%ele(0)%value(p0c$) = 1d9 * value
-        bp_com%param_ele%value(p0c$) = 1d9 * value
       case (def_parameter$, init_ele$)
         lat%ele(0)%value(p0c$) = value
-        bp_com%param_ele%value(p0c$) = value
-        bp_com%beam_ele%value(p0c$) = 1d-9 * value
       end select
       bp_com%e_tot_set = .false.
       bp_com%p0c_set   = .true.
+
+    case (lr_freq_spread$)
+      call randomize_lr_wake_frequencies (ele, set_done)
+      if (set_done) call bp_set_ran_status
+
     end select
 
   endif

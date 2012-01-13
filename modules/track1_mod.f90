@@ -509,7 +509,7 @@ type (ele_struct) ele
 type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
-real(rp) t, beta, f
+real(rp) t, beta, f, p0c_start
 
 integer element_end
 
@@ -533,10 +533,15 @@ case (solenoid$, sol_quad$)
 case (lcavity$, rfcavity$)
 
   if (element_end == entrance_end$) then
-    call convert_pc_to(ele%value(p0c_start$) * (1 + orb%vec(6)), param%particle, beta = beta)
+    if (ele%key == lcavity$) then
+      p0c_start = ele%value(p0c_start$)
+    else  
+      p0c_start = ele%value(p0c$)
+    endif
+    call convert_pc_to(p0c_start * (1 + orb%vec(6)), param%particle, beta = beta)
     t = -orb%vec(5) / (beta * c_light)
     call em_field_calc (ele, param, 0.0_rp, t, orb, .true., field)
-    f = 1 / (2 * ele%value(p0c_start$))
+    f = 1 / (2 * p0c_start)
 
     orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
     orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
