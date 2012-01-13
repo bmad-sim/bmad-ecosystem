@@ -25,7 +25,7 @@ use bmad_interface, except => remove_eles_from_lat
 implicit none
                          
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, lord
 type (branch_struct), pointer :: branch
 type (control_struct), pointer :: ctl
 
@@ -152,9 +152,13 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
 
+    ! Don't do anything if nothing needs to be modified
+
     i1 = ele%ic1_lord; i2 = ele%ic2_lord
     if (i1 < 1) cycle
     if (ic(i1) == i1 .and. ic(i2) == i2) cycle
+
+    ! Correct ic and n_lord info.
 
     ele%ic1_lord = 0  ! Start with no lords
     ele%ic2_lord = -1
@@ -164,7 +168,24 @@ do ib = 0, ubound(lat%branch, 1)
       if (ic(j) /= -1) ele%ic2_lord = ic(j)
     enddo
     ele%n_lord = ele%ic2_lord - ele%ic1_lord + 1
-    if (ele%slave_status == super_slave$ .and. ele%n_lord == 0) ele%slave_status = free$
+
+    ! Correct slave_status
+
+    ele%slave_status = free$
+    do j = 1, ele%n_lord
+      lord => pointer_to_lord(ele, j)
+      select case(lord%lord_status)
+      case (group_lord$)
+        if (ele%slave_status == free$) ele%slave_status = group_slave$
+      case (overlay_lord$, girder_lord$)
+        if (ele%slave_status == free$ .or. ele%slave_status == group_slave$) ele%slave_status = overlay_slave$
+      case (multipass_lord$)
+        ele%slave_status = multipass_slave$
+      case (super_lord$)
+        ele%slave_status = super_slave$
+      end select
+    enddo
+
   enddo
 
 enddo
