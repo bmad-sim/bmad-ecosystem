@@ -213,6 +213,7 @@ do i = 1, n_key
   call init_attrib (i, general2$, reserved_name$)
   call init_attrib (i, general3$, reserved_name$)
   call init_attrib (i, check_sum$, reserved_name$)
+  call init_attrib (i, scratch$, reserved_name$)   ! For bmad general use.
 
   if (i == crystal$ .or. i == multilayer_mirror$ .or. i == mirror$) then
     call init_attrib (i, d_source$,             'D_SOURCE')

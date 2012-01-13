@@ -64,7 +64,8 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track, offset_ele)
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: lord
+type (ele_struct), pointer :: field_ele
+type (ele_pointer_struct), allocatable, save :: field_eles(:)
 type (coord_struct) :: start, end
 type (lat_param_struct)  param
 type (track_struct), optional :: track
@@ -81,9 +82,9 @@ real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
 real(rp) dE_p, dpx, dpy, mc2, s_offset
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 
-integer i, n_step
+integer i, n_step, n_field
 
-logical calc_mat6, calculate_mat6, err, do_offset, wiggler_found
+logical calc_mat6, calculate_mat6, err, do_offset
 logical, optional :: offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
@@ -155,24 +156,14 @@ select case (ele%key)
 
 Case (wiggler$)
 
-  if (ele%field_calc == refer_to_lords$) then
-    wiggler_found = .false.
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord(ele, i)
-      if (lord%key /= wiggler$) cycle
-      if (wiggler_found) then
-        call out_io (s_fatal$, r_name, 'SUPERIMPOSING MULTIPLE WIGGLERS NOT YET IMPLEMENTED.')
-        if (bmad_status%exit_on_error) call err_exit
-      endif
-      wiggler_found = .true.
-      wig_term => lord%wig%term
-      s_offset = (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
-    enddo
-  else
-    lord => ele
-    wig_term => ele%wig%term
-    s_offset = 0
-  endif
+  call get_field_ele_list (ele, field_eles, n_field)
+  do i = 1, n_field
+    field_ele => field_eles(i)%ele
+    if (field_ele%key == wiggler$) exit
+  enddo
+
+  wig_term => field_ele%wig%term
+  s_offset = field_ele%value(ds_field_offset$)
 
   if (.not. allocated(tm)) then
     allocate (tm(size(wig_term)))
@@ -626,7 +617,7 @@ factor = c_light / ele%value(p0c$)
 
 do j = 1, size(wig_term)
   wt => wig_term(j)
-  coef = factor * wt%coef * lord%value(polarity$)
+  coef = factor * wt%coef * field_ele%value(polarity$)
   tm(j)%a_y%coef         = -coef * wt%kz      ! / (wt%kx * wt%ky)
   tm(j)%dint_a_y_dx%coef = -coef * wt%kz      ! / wt%ky**2
   tm(j)%da_z_dx%coef     = -coef 
