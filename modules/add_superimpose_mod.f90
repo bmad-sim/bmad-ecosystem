@@ -526,6 +526,8 @@ do i = ix1_lord, ix2_lord
       slave%name = name(2:len(slave%name))
     endif
 
+    ! Adjust em_field slave parameters
+
     if (slave%key == em_field$) then
       slave%sub_key = const_ref_energy$
       do k = 1, slave%n_lord
