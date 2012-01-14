@@ -862,10 +862,6 @@ endif
 
 ! RF wakes and fields, and wigglers
 
-call transfer_wig (lord%wig, slave%wig)
-
-call transfer_em_field (lord%em_field, slave%em_field)
-
 call transfer_rf_wake (lord%rf_wake, slave%rf_wake)
 
 if (associated (slave%rf_wake)) then
@@ -1459,6 +1455,9 @@ do j = 1, slave%n_lord
 
 enddo
 
+if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
+if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$
+
 !-------------------------------------------------------------------------------
 ! stuff sums into slave element
 
@@ -1890,12 +1889,12 @@ slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
 slave%map_with_offsets = lord%map_with_offsets
 
+if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
+if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$
+
 ! wiggler fields and electro-magnetic fields
 
 if (slave%key == wiggler$) slave%value(n_pole$) = lord%value(n_pole$) * coef
-call transfer_wig (lord%wig, slave%wig)
-
-call transfer_em_field(lord%em_field, slave%em_field)
 
 ! If an sbend:
 !     1) renormalize the angles

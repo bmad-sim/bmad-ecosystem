@@ -768,7 +768,8 @@ case (wiggler$)
 case default
 
   call out_io (s_fatal$, r_name, &
-          'ERROR IN TRACK1_BMAD: UNKNOWN ELEMENT: ' // key_name(ele%key))
+          'BMAD_STANDARD TRACKING_METHOD NOT IMPLMENTED FOR: ' // key_name(ele%key), &
+          'FOR ELEMENT: ' // ele%name)
   call err_exit
 
 end select
