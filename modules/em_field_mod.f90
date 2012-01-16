@@ -113,7 +113,7 @@ end if
 
 orb2 = orb
 if (local_ref_frame) call offset_particle (ele, param, orb2, unset$, &
-                                    set_canonical = .false., set_s_offset = .false., s_pos = s)
+                                    set_canonical = .false., set_s_offset = .false., ds_pos = s)
 
 track%orb(n_pt) = orb2
 track%map(n_pt)%mat6 = 0

@@ -50,7 +50,7 @@ ele%vec0 = orb%vec
 ! transform the ref_orb
 
 call offset_particle (ele, param, ele%map_ref_orb_in, unset$, &
-                              set_canonical = .false., set_hvkicks = .false., s_pos = 0.0_rp)
+                              set_canonical = .false., set_hvkicks = .false., ds_pos = 0.0_rp)
 
 call offset_particle (ele, param, ele%map_ref_orb_out, unset$, &
                               set_canonical = .false., set_hvkicks = .false.)

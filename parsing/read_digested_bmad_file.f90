@@ -132,7 +132,7 @@ do i = 1, n_files
     inquire (file = fname_read, opened = is_match)
 #else
     ierr = stat(full_digested_name, stat_b)
-    is_match = (stat_b2 == stat_b(2) .and. (stat_b8 == stat_b(8)) .and. (stat_b10 == stat_b(10)) 
+    is_match = (stat_b2 == stat_b(2) .and. (stat_b8 == stat_b(8)) .and. (stat_b10 == stat_b(10)
 #endif
     if (.not. is_match) then
       if (bmad_status%type_out .and. status_ok) call out_io(s_warn$, &
@@ -163,7 +163,7 @@ do i = 1, n_files
 #else
   ierr = stat(fname_read, stat_b)
   fname_versionless = fname_read
-  is_match = (stat_b2 == stat_b(2) .and. (stat_b8 == stat_b(8)) .and. (stat_b10 == stat_b(10)) 
+  is_match = (stat_b2 == stat_b(2) .and. (stat_b8 == stat_b(8)) .and. (stat_b10 == stat_b(10) 
 #endif
 
   inquire (file = fname_versionless, exist = found_it, name = fname_full)

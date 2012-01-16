@@ -103,7 +103,7 @@ if (ele%offset_moves_aperture) then
   if (at == exit_end$) s_here = ele%value(l$)
   call offset_particle (ele, param, orb2, set$, set_canonical = .false., &
                set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
-               s_pos = s_here)
+               ds_pos = s_here)
   x_beam = orb2%vec(1)
   y_beam = orb2%vec(3)
 else

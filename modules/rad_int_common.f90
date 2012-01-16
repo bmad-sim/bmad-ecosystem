@@ -131,7 +131,7 @@ if (associated(info%cache_ele)) then
   call offset_particle (ele, info%branch%param, start, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
   call offset_particle (ele, info%branch%param, end, set$, &
-       set_canonical = .false., set_multipoles = .false., set_hvkicks = .false., s_pos = ll)
+       set_canonical = .false., set_multipoles = .false., set_hvkicks = .false., ds_pos = ll)
 endif
 
 ! Loop until integrals converge.
