@@ -9,6 +9,7 @@ offline_release_build_request = [
     ]
 
 online_release_build_request = [
+    'Linux_x86_64_intel-online',
     'Linux_x86_64_intel-online'
     ]
 
@@ -140,12 +141,57 @@ build_specs = {
             ]
         }
     },
+    'Linux_i686_intel-online' : {
+        'type' : 'release',
+        'platform' : 'Linux_i686_intel',
+        'basedir' : '/nfs/cesr/online/lib',
+        'domain' : 'ONLINE',
+        'host'   : 'cesr110.lns.cornell.edu',
+        'repositories' : {
+            'ACC-LEPP' : [
+                '/trunk/util',
+                '/trunk/Gmake',
+                '/trunk/src/include',
+                '/trunk/src/lattice',
+                '/trunk/src/c_utils',
+                '/trunk/src/recipes_f-90_LEPP',
+                '/trunk/src/sim_utils',
+                '/trunk/src/CesrBPM',
+                '/trunk/src/mpmnet',
+                '/trunk/src/cbi_net',
+                '/trunk/src/bmad',
+                '/trunk/src/bsim',
+                '/trunk/src/cesr_utils',
+                '/trunk/src/BeamInstSupport',
+                '/trunk/src/CBPM-TSHARC',
+                '/trunk/src/CBIC',
+                '/trunk/src/mpm_utils',
+                '/trunk/src/nonlin_bpm',
+                '/trunk/src/tao',
+                '/trunk/src/tao_cesr',
+                '/trunk/src/cesr_programs',
+                '/trunk/src/bmadz',
+                '/trunk/src/cesrv',
+                '/trunk/src/bsim_cesr',
+                '/trunk/src/util_programs',
+                '/trunk/src/BPM_tbt_gain',
+                '/trunk/src/examples',
+                #'/trunk/src/genplt', # enable when SBP is ready
+                #'/trunk/src/displays'
+                ##ccon_det
+                ##logit
+                ##magstat
+                ##rfintl
+                ##simcon
+            ]
+        }
+    },
     'Linux_x86_64_intel-online' : {
         'type' : 'release',
         'platform' : 'Linux_x86_64_intel',
         'basedir' : '/nfs/cesr/online/lib',
         'domain' : 'ONLINE',
-        'host'   : 'cesr109.lns.cornell.edu',
+        'host'   : 'cesr110.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
