@@ -95,29 +95,16 @@ character(20), parameter :: r_name = 'lattice_bookkeeper'
 ! Control bookkeeper is called twice to make sure, for example, that the z_patch for a 
 ! wiggler super_lord is computed. Other reasons include multipass bends.
 
-call control_bookkeeper (lat)
+call control_bookkeeper (lat, do_free_eles = .true.)
 call lat_compute_reference_energy (lat)
-call control_bookkeeper (lat, super_and_multipass_only = .true.)
-
-! Make sure attributes are updated for all elements in the tracking part of the lattice.
-! We do this since control_bookkeeper does not take care of free elements.
-! Also overlay slaves with field_master = T need doing...
-
-do i = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i)
-  if (.not. bmad_com%auto_bookkeeper .and. branch%param%status%attributes /= stale$) cycle
-  do j = 0, branch%n_ele_track
-    call attribute_bookkeeper (branch%ele(j), branch%param)
-  enddo
-  branch%param%status%attributes = ok$
-enddo
+call control_bookkeeper (lat, super_and_multipass_only = .true., do_free_eles = .true.)
 
 ! Global geometry
 
 call s_calc (lat)
 call lat_geometry (lat)
 
-! multipass slaves with ref_orbit set may may depend upon the geometry so recalc.
+! multipass slaves with ref_orbit set may depend upon the geometry so recalc.
 ! Also free elements may have had their control status set but this is bogus so just reset to ok$
 
 found = .false.
@@ -192,7 +179,7 @@ end subroutine lattice_bookkeeper
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (lat, ele, super_and_multipass_only)
+! Subroutine control_bookkeeper (lat, ele, super_and_multipass_only, do_free_eles)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 ! This subroutine will call attribute_bookkeeper.
@@ -208,13 +195,16 @@ end subroutine lattice_bookkeeper
 !               have been changed. If not present bookkeeping will be done 
 !               for all elements.
 !   super_and_multipass_only 
-!          -- Logical, optional: If True then only do bookkeeping for 
-!               superposition and multipass elements only. Default is False. 
+!          -- Logical, optional: Default is False. If True then only do bookkeeping 
+!               for superposition and multipass elements only. Default is False. 
 !               This argument is used by lattice_bookkeeper and should not
 !               to set unless you know what you are doing.
+!   do_free_eles
+!         -- Logical, optional: Default is False. If True then call 
+!               attribute_bookkeeper for elements in the tracking part of the lattice.
 !-
 
-recursive subroutine control_bookkeeper (lat, ele, super_and_multipass_only)
+recursive subroutine control_bookkeeper (lat, ele, super_and_multipass_only, do_free_eles)
 
 implicit none
 
@@ -223,9 +213,9 @@ type (ele_struct), optional :: ele
 type (ele_struct), pointer :: slave, lord, branch_ele, ele2
 type (branch_struct), pointer :: branch
 
-integer ie, ib, j, n1, n2
+integer i, j, ie, ib, n1, n2
 
-logical, optional :: super_and_multipass_only
+logical, optional :: super_and_multipass_only, do_free_eles
 logical sm_only, all_bookkeeping_done
 
 character(20), parameter :: r_name = 'control_bookkeeper'
@@ -307,6 +297,19 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
   lat%branch(ib)%param%status%control = ok$
 enddo
+
+! Update attributes for elements in the tracking part of the lattice.
+
+if (logic_option(.false., do_free_eles)) then
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    if (.not. bmad_com%auto_bookkeeper .and. branch%param%status%attributes /= stale$) cycle
+    do j = 0, branch%n_ele_track
+      call attribute_bookkeeper (branch%ele(j), branch%param)
+    enddo
+    branch%param%status%attributes = ok$
+  enddo
+endif
 
 end subroutine control_bookkeeper
 
