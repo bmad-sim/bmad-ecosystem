@@ -2152,7 +2152,7 @@ case (rfcavity$, lcavity$)
   ptc_key%list%volt = 1e-6 * ele%value(voltage$)
   ptc_key%list%freq0 = ele%value(rf_frequency$)
   ptc_key%list%lag = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + &
-        ele%value(phi0_ref$)) + pi * ptc_key%list%freq0 * leng / c_light + c_%phase0 
+        ele%value(dphi0_ref$)) + pi * ptc_key%list%freq0 * leng / c_light + c_%phase0 
   
       ! For (t, dE) use /(c_light*beta0)
   ptc_key%list%delta_e = 0
