@@ -63,7 +63,7 @@ See \sref{r:mat} for a complete listing of such routines.
 Since the normal mode and projected dispersions are related, when one
 is changed within a program the appropriate change must be made to the
 other. To make sure everything is consistent, the
-\Hyperref{r:changed.attribute.bookkeeper}{changed_attribute_bookkeeper}
+\Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
 routine can be used. Example:
 \begin{example}
   type (lat_struct), target :: lat
@@ -71,7 +71,7 @@ routine can be used. Example:
   ...
   attrib_ptr => lat%ele(ix_ele)%value(k1$) ! Point to some attribute.
   attrib_ptr = value                       ! Change the value.
-  call changed_attribute_bookkeeper (lat, lat%ele(ix_ele), attrib_ptr)
+  call set_flags_for_changed_attribute (lat, lat%ele(ix_ele), attrib_ptr)
 \end{example}
 
 The \vn{%mode_flip} logical component of an \vn{ele_struct} indicates

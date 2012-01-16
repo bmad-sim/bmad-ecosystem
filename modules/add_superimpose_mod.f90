@@ -13,13 +13,19 @@ contains
 !-----------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------
 !+
-! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift)
+! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, 
+!                                                       save_null_drift, create_em_field_slave)
 !
-! Subroutine to make a superimposed element. If the element can be inserted
+! Routine to superimpose an element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
 !
+! Note: This routine, since it handles only one superposition, is not sufficient for
+!   superposition in a multipass region. For historical reasons, the extra code needed 
+!   is buried in the bmad_parser code. If you need to do multipass superpositions 
+!   please contact David Sagan and this situation will be rectified.
+!
 ! Note: Transfer matrices for split elements and super_slave elements are
-!       *not* recomputed.
+!   *not* recomputed.
 !
 ! Modules Needed:
 !   use bmad
@@ -35,6 +41,10 @@ contains
 !                         reference element. After all superpositions are done, 
 !                         remove_eles_from_lat can be called to remove all null_eles.
 !                         Default is False.
+!   create_em_field_slave
+!                   -- Logical, optional: Default is False. If True then super_slaves
+!                       that are created that have super_ele_in as their super_lord are
+!                       em_field elements.
 !
 ! Output:
 !   lat           -- lat_struct: Modified lat.
@@ -42,7 +52,8 @@ contains
 !   super_ele_out -- Ele_struct, pointer, optional :: Pointer to the super element in the lattice.
 !-
 
-subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift)
+subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, &
+                                                            save_null_drift, create_em_field_slave)
 
 implicit none
 
@@ -60,7 +71,7 @@ integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch
 integer ix1_split, ix2_split, ix_super, ix_super_con
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
-logical, optional :: save_null_drift
+logical, optional :: save_null_drift, create_em_field_slave
 logical err_flag, setup_lord, split1_done, split2_done, all_drift
 
 character(100) name
@@ -524,19 +535,6 @@ do i = ix1_lord, ix2_lord
         name = trim(name) //  '\' // lord2%name     !'
       enddo
       slave%name = name(2:len(slave%name))
-    endif
-
-    ! Adjust em_field slave parameters
-
-    if (slave%key == em_field$) then
-      slave%sub_key = const_ref_energy$
-      do k = 1, slave%n_lord
-        lord2 => pointer_to_lord(slave, k)
-        if (.not. ele_has_constant_reference_energy(lord2)) then
-          slave%sub_key = nonconst_ref_energy$
-          exit
-        endif
-      enddo
     endif
 
   enddo

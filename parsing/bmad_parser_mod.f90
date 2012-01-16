@@ -111,6 +111,7 @@ type parser_ele_struct
   integer ix_count
   integer ele_pt, ref_pt
   integer indexx
+  logical create_em_field_slave
 end type
 
 type parser_lat_struct
@@ -690,9 +691,9 @@ if (attrib_word == 'FIELD') then
 
       case ('FREQ');          r_ptr => em_mode%freq
       case ('F_DAMP');        r_ptr => em_mode%f_damp
-      case ('DTHETA_REF');      r_ptr => em_mode%dtheta_ref
+      case ('PHI0_REF');      r_ptr => em_mode%phi0_ref
       case ('STORED_ENERGY'); r_ptr => em_mode%stored_energy
-      case ('PHI_0');         r_ptr => em_mode%phi_0
+      case ('PHI0_AZIMUTH');         r_ptr => em_mode%phi0_azimuth
       case ('FIELD_SCALE');   r_ptr => em_mode%field_scale
 
       case ('GRID') 
@@ -933,6 +934,10 @@ if (delim /= '=')  then
   case (ref_beginning$)
     if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
     pele%ref_pt = begin$
+
+  case (create_em_field_slave$)
+    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+    pele%create_em_field_slave = .true.
 
   case (ref_center$)
     if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
@@ -3356,7 +3361,8 @@ n_inserted = 0
 
 if (pele%ref_name == blank_name$) then
   call compute_super_lord_s (lat, lat%ele(0), super_ele, pele)
-  call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true.)
+  call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
+                                 create_em_field_slave = pele%create_em_field_slave)
   if (err_flag) bmad_status%ok = .false.
   return
 endif
@@ -3419,7 +3425,8 @@ do
           j = j + 1
           call compute_super_lord_s (lat, branch%ele(i), super_ele, pele)
           ! Don't need to save drifts since a multipass_lord drift already exists.
-          call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, save_null_drift = .false.)
+          call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
+                        save_null_drift = .false., create_em_field_slave = pele%create_em_field_slave)
           if (err_flag) bmad_status%ok = .false.
           super_ele_out%name = 'temp_name!'
         enddo
@@ -3514,7 +3521,8 @@ do
         call compute_super_lord_s (lat, branch%ele(i_ele), super_ele, pele)
         call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
         super_ele%name = super_ele_saved%name(:ix)            
-        call add_superimpose (lat, super_ele, i_br, err_flag, super_ele_out, save_null_drift = .true.)
+        call add_superimpose (lat, super_ele, i_br, err_flag, super_ele_out, &
+                    save_null_drift = .true., create_em_field_slave = pele%create_em_field_slave)
         if (err_flag) bmad_status%ok = .false.
         call control_bookkeeper (lat, super_ele_out)
       endif
@@ -3939,6 +3947,7 @@ do i = n_now+1, ubound(plat%ele, 1)
   plat%ele(i)%ref_pt  = not_set$
   plat%ele(i)%ele_pt  = not_set$
   plat%ele(i)%s       = 0
+  plat%ele(i)%create_em_field_slave = .false.
 enddo
 
 end subroutine allocate_plat

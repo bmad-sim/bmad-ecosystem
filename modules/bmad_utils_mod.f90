@@ -2313,7 +2313,7 @@ end subroutine init_wake
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine calc_superimpose_key (ele1, ele2) result (ele3)
+! Subroutine calc_superimpose_key (ele1, ele2, ele3, create_em_field_slave)
 !
 ! Function to decide what ele3%key and ele3%sub_key should be
 ! when two elements, ele1, and ele2, are superimposed.
@@ -2328,6 +2328,9 @@ end subroutine init_wake
 !   ele2 -- Ele_struct:
 !     %key
 !     %sub_key
+!   create_em_field_slave
+!                   -- Logical, optional: Default is False. If True then ele3%key
+!                       will be set to em_field.
 !
 ! Output:
 !   ele3 -- Ele_struct:
@@ -2335,13 +2338,14 @@ end subroutine init_wake
 !     %sub_key
 !-
 
-subroutine calc_superimpose_key (ele1, ele2, ele3)
+subroutine calc_superimpose_key (ele1, ele2, ele3, create_em_field_slave)
 
 implicit none
 
 type (ele_struct), target :: ele1, ele2, ele3
 integer key1, key2
 integer, pointer :: key3
+logical, optional :: create_em_field_slave
 
 !
 
@@ -2352,12 +2356,27 @@ key3 => ele3%key
 key3 = -1  ! Default if no superimpse possible
 ele3%sub_key = 0
 
+! em_field
+
+if (logic_option(.false., create_em_field_slave)) then
+  if (ele_has_constant_reference_energy(ele1) .and. ele_has_constant_reference_energy(ele2)) then
+    ele3%sub_key = const_ref_energy$
+  else
+    ele3%sub_key = nonconst_ref_energy$
+  endif
+  key3 = em_field$
+  return
+endif
+
 ! Wiggler case
 
 if (key1 == key2) then
-  if (key1 == wiggler$ .and. ele1%sub_key /= ele2%sub_key) return  ! Bad combo
+  if (key1 == wiggler$) then
+    key3 = em_field$
+    ele3%sub_key = const_ref_energy$
+    return
+  endif
   key3 = key1
-  if (key1 == wiggler$) ele3%sub_key = ele1%sub_key
   return
 endif
 
@@ -2445,7 +2464,16 @@ if (key3 /= -1) return  ! Have found something
 ! sbend is not allowed here.
 
 if (key1 == sbend$ .or. key2 == sbend$) return
-key3 = em_field$
+
+if (logic_option(.false., create_em_field_slave)) then
+  if (ele_has_constant_reference_energy(ele1) .and. ele_has_constant_reference_energy(ele2)) then
+    ele3%sub_key = const_ref_energy$
+  else
+    ele3%sub_key = nonconst_ref_energy$
+  endif
+  key3 = em_field$
+endif
+
 
 end subroutine calc_superimpose_key
 

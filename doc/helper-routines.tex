@@ -49,10 +49,10 @@ There are a number of \bmad routines for matrix manipulation as listed
 in \sref{r:mat}. In fact, Fortran90 has a number of intrinsic matrix
 routines as well but this is outside the scope of this manual. The
 following example shows some of the \bmad matrix routines
-\Hyperref{r:mat.det}{mat_det}
+\Hyperref{r:mat.inverse}{mat_inverse}
 \Hyperref{r:mat.make.unit}{mat_make_unit}
 \begin{example}
   real(rp) mat(6,6), mat_inv(6,6)
   call mat_make_unit (mat)    ! make a unit matrix
-  call mat_inv (mat, mat_inv) ! Compute the inverse matrix.
+  call mat_inverse (mat, mat_inv) ! Compute the inverse matrix.
 \end{example}

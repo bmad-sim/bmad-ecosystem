@@ -281,7 +281,7 @@ select case (ele%field_calc)
 
   case(rfcavity$, lcavity$)
 
-    phase = twopi * (ele%value(dtheta_ref$) + ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$))
+    phase = twopi * (ele%value(phi0_ref$) + ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$))
     if (ele%key == rfcavity$) phase = phase + pi/2
 
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
@@ -610,8 +610,8 @@ case(map$)
           Bz = Bz - term%b_coef * Im_0    * expi * I_imaginary
 
         else
-          cm = expi * cos(m * phi - mode%phi_0)
-          sm = expi * sin(m * phi - mode%phi_0)
+          cm = expi * cos(m * phi - mode%phi0_azimuth)
+          sm = expi * sin(m * phi - mode%phi0_azimuth)
           Im_plus  = I_bessel(m+1, kap_rho) / kappa_n**(m+1)
           Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
 
@@ -636,7 +636,7 @@ case(map$)
 
       ! Notice that phi0, dphi0, and phi0_err are folded into t_ref above.
 
-      expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%dtheta_ref))
+      expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%phi0_ref))
       if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
       E_rho = E_rho + Er * expt
       E_phi = E_phi + Ep * expt
@@ -696,7 +696,7 @@ case(grid$)
     m = mode%m
     
     ! DC modes should have mode%freq = 0
-    expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%dtheta_ref))
+    expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%phi0_ref))
     if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
 
     ! Check for grid

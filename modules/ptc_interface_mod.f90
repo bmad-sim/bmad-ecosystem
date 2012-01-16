@@ -2146,26 +2146,20 @@ case (marker$, branch$, photon_branch$, init_ele$)
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
 
-!case (lcavity$, rfcavity$)
-!  ptc_key%magnet  = 'rfcavity'
-!  ptc_key%volt    = ele%value(voltage$) ??  ! MeV
-!  ptc_key%freq0   = ele%value(...)    ! Hz
-!  ptc_key%lag     => -el%phas
-!  ptc_key%n_bessel = 1   ! Linear transverse focusing
-!  ! PTC has a fake mode where particle is always on crest to get the desired voltage gain
-!  ! This sets things up for non-fake tracking.
-!  ptc_key%cavity_totalpath = 1  
-
-case (rfcavity$)
-  ptc_key%nstep = 1
+case (rfcavity$, lcavity$)
   ptc_key%method = 2
   ptc_key%magnet = 'rfcavity'
   ptc_key%list%volt = 1e-6 * ele%value(voltage$)
   ptc_key%list%freq0 = ele%value(rf_frequency$)
-  ptc_key%list%lag = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + &
-      pi * ptc_key%list%freq0 * leng / c_light + c_%phase0 
+  ptc_key%list%lag = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + &
+        ele%value(phi0_ref$)) + pi * ptc_key%list%freq0 * leng / c_light + c_%phase0 
+  
       ! For (t, dE) use /(c_light*beta0)
   ptc_key%list%delta_e = 0
+  ptc_key%list%n_bessel = 1   ! Linear transverse focusing
+  ! PTC has a fake mode where particle is always on crest to get the desired voltage gain
+  ! This sets things up for non-fake tracking.
+  ptc_key%list%cavity_totalpath = 1  
 
 case (elseparator$)
   ptc_key%magnet = 'elseparator'

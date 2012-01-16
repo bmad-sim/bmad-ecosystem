@@ -266,12 +266,12 @@ if (associated(ele%em_field)) then
     do i = 1, size(ele%em_field%mode)
       rfm => ele%em_field%mode(i)
       nl=nl+1; write (li(nl), '(a, i0)')     'Mode #:', i
-      nl=nl+1; write (li(nl), '(a, i0)')     '    m:           ', rfm%m
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    freq:        ', rfm%freq
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    f_damp:      ', rfm%f_damp
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    dtheta_ref:    ', rfm%dtheta_ref
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    phi_0:       ', rfm%phi_0
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    field_scale: ', rfm%field_scale
+      nl=nl+1; write (li(nl), '(a, i0)')     '    m:             ', rfm%m
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    freq:          ', rfm%freq
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    f_damp:        ', rfm%f_damp
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    phi0_ref:      ', rfm%phi0_ref
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    phi0_azimuth:  ', rfm%phi0_azimuth
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    field_scale:   ', rfm%field_scale
       if (associated(rfm%map)) then
         nl=nl+1; write (li(nl), '(a, es16.8)') '    dz:          ', rfm%map%dz
         nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'

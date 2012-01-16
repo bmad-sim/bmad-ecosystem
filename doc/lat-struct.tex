@@ -34,6 +34,11 @@ end type
 \label{f:lat.struct}
 \end{figure}
 
+\index{lat_struct!\%ele_init}
+The \vn{%ele_init} component within the \vn{lat_struct} is not used
+by \bmad and is available for general program use.
+
+
 %----------------------------------------------------------------------------
 \section{Pointers}
 \label{s:lat:point}
@@ -957,10 +962,22 @@ This component is not used in any standard \bmad calculation. It is up
 to an individual program to use as desired.
 
 %----------------------------------------------------------------------------
-\section{Miscellaneous}
-\label{s:lat.misc}
+\section{Adding and Deleting Elements From a Lattice}
+\label{s:lat.add.delete}
 
-\index{lat_struct!\%ele_init}
-The \vn{%ele_init} component within the \vn{lat_struct} is not used
-by \bmad and is available for general program use.
+Modifying the number of elements in a lattice involves a bit of
+bookkeeping. To help with this there are a number of routines. 
+
+For adding elements there are three basic routines: To add a lord
+element, the \Hyperref{r:new.control}{new_control} routine is used.  To add a new element
+to the tracking part of the lattice, use the \Hyperref{r:insert.element}{insert_element}
+routine. Finally to split an element into two pieces, the routine
+\Hyperref{r:split.lat}{split_lat} is used. These basic routines are then used in such
+routines as \Hyperref{r:create.overlay}{create_overlay} that creates overlay elements,
+\Hyperref{r:create.group}{create_group} which creates group elements, \Hyperref{r:add.superimpose}{add_superimpose}
+which superimposes elements, etc.
+
+The routine \Hyperref{r:remove.eles.from.lat}{remove_eles_from_lat} is used to delete elements from
+a lattice.
+
 
