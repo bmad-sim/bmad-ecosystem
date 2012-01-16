@@ -9,7 +9,7 @@ offline_release_build_request = [
     ]
 
 online_release_build_request = [
-    'Linux_x86_64_intel-online',
+    'Linux_i686_intel-online',
     'Linux_x86_64_intel-online'
     ]
 
