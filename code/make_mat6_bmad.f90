@@ -125,7 +125,7 @@ select case (key)
 case (beambeam$)
 
  call offset_particle (ele, param, c00, set$)
- call offset_particle (ele, param, c11, set$, s_pos = length)
+ call offset_particle (ele, param, c11, set$, ds_pos = length)
 
   n_slice = nint(ele%value(n_slice$))
   if (n_slice < 1) then
@@ -370,7 +370,7 @@ case (multipole$, ab_multipole$)
 case (octupole$)
 
   call offset_particle (ele, param, c00, set$, set_canonical = .false.)
-  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
+  call offset_particle (ele, param, c11, set$, set_canonical = .false., ds_pos = length)
 
   k3l = ele%value(k3$) * length 
   call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat1)
@@ -422,7 +422,7 @@ case (patch$)
 case (quadrupole$)
 
   call offset_particle (ele, param, c00, set$)
-  call offset_particle (ele, param, c11, set$, s_pos = length)
+  call offset_particle (ele, param, c11, set$, ds_pos = length)
 
   k1 = ele%value(k1$) / rel_p
 
@@ -557,7 +557,7 @@ case (sbend$)
   call offset_particle (ele, param, c00, set$, set_canonical = .false.)
   call apply_bend_edge_kick (c00, ele, entrance_end$, .false., kx_1, ky_1)
 
-  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
+  call offset_particle (ele, param, c11, set$, set_canonical = .false., ds_pos = length)
   call apply_bend_edge_kick (c11, ele, exit_end$, .true., kx_2, ky_2)  
 
   ! Body
@@ -668,7 +668,7 @@ case (sextupole$)
 
 
   call offset_particle (ele, param, c00, set$, set_canonical = .false.)
-  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
+  call offset_particle (ele, param, c11, set$, set_canonical = .false., ds_pos = length)
 
   k2l = ele%value(k2$) * length 
   call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat1)
@@ -697,7 +697,7 @@ case (sextupole$)
 case (solenoid$)
 
   call offset_particle (ele, param, c00, set$)
-  call offset_particle (ele, param, c11, set$, s_pos = length)
+  call offset_particle (ele, param, c11, set$, ds_pos = length)
 
   ks = ele%value(ks$) / rel_p
 
@@ -783,7 +783,7 @@ case (solenoid$)
 case (sol_quad$)
 
   call offset_particle (ele, param, c00, set$)
-  call offset_particle (ele, param, c11, set$, s_pos = length)
+  call offset_particle (ele, param, c11, set$, ds_pos = length)
 
   call sol_quad_mat6_calc (ele%value(ks$), ele%value(k1$), length, mat6, c00%vec)
 
@@ -807,7 +807,7 @@ case (taylor$)
 case (wiggler$)
 
   call offset_particle (ele, param, c00, set$)
-  call offset_particle (ele, param, c11, set$, s_pos = length)
+  call offset_particle (ele, param, c11, set$, ds_pos = length)
 
   call mat_make_unit (mat6)     ! make a unit matrix
 
