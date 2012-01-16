@@ -123,7 +123,7 @@ do i_b = 0, ubound(lat%branch, 1)
     if (.not. associated(ele%lat, lat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '   (\i0\)', &
-                'HAS BAD ELE%LAT POINTER.')
+                'HAS BAD ELE%LAT POINTER.', i_array = [ele%ix_ele])
       found_err = .true.
     endif
 

@@ -405,7 +405,7 @@ case ('CSR_CALC_ON', 'IS_ON')
   free = .true.
   return
 case ('X_OFFSET_TOT', 'Y_OFFSET_TOT', 'S_OFFSET_TOT', 'TILT_TOT', &
-      'X_PITCH_TOT', 'Y_PITCH_TOT', 'NUM_STEPS', 'FIELD_SCALE', 'DTHETA_REF')
+      'X_PITCH_TOT', 'Y_PITCH_TOT', 'NUM_STEPS', 'FIELD_SCALE', 'PHI0_REF')
   return
 end select
 

@@ -34,19 +34,9 @@ use multipole_mod
 
 implicit none
 
-type old_coord_struct                ! Particle coordinates at a single point
-  real(rp) :: vec(6) = 0         ! (x, px, y, py, z, pz)
-  complex(rp) :: spin(2) = 0     ! Spin in spinor notation
-  real(rp) :: e_field_x = 0      ! Photon field intensity, x-axis component
-  real(rp) :: e_field_y = 0      ! Photon field intensity, y-axis component
-  real(rp) :: phase_x = 0        ! Photon phase, x-axis component
-  real(rp) :: phase_y = 0        ! Photon phase, y-axis component
-end type
-
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
 type (random_state_struct) :: ran_state, digested_ran_state
-type (old_coord_struct) old_beam_start
 
 real(rp) value(n_attrib_maxx)
 
@@ -326,7 +316,6 @@ subroutine read_this_ele (ele, ix_ele, error)
 
 type (ele_struct), target :: ele
 type (em_field_mode_struct), pointer :: mode
-type (old_coord_struct) map_in, map_out
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, n_wall_section
 integer n_rf_field_mode, i_min(3), i_max(3)
@@ -380,8 +369,8 @@ call init_em_field (ele%em_field, n_rf_field_mode)
 if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%em_field%mode(i)
-    read (d_unit, err = 9140) nf, ng, mode%freq, mode%f_damp, mode%dtheta_ref, mode%stored_energy, &
-                                 mode%m, mode%phi_0, mode%field_scale 
+    read (d_unit, err = 9140) nf, ng, mode%freq, mode%f_damp, mode%phi0_ref, mode%stored_energy, &
+                                 mode%m, mode%phi0_azimuth, mode%field_scale 
     if (nf > 0) then
       allocate (mode%map)
       allocate (mode%map%term(nf))

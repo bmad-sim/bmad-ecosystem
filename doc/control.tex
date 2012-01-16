@@ -275,11 +275,9 @@ in the Beam Line (with a drift before it) and \vn{Q} could then have
 been superimposed on top and the result would have been the same
 (except that the split elements could have different names).
 
-Superpositions are restricted in that \bmad may not have an
-appropriate element for the superimposed fields. For example, a
-solenoid can not be superimposed over an octupole. If a zero length
-element, such as a marker, is superimposed with some other element (or
-vice versa) the element is just split in two. For example:
+If a zero length element, such as a marker, is superimposed with some
+other element (or vice versa) the element is just split in two. For
+example:
 \begin{example}
   Q: quad, l = 10
   M: marker, superimpose, offset = 6
@@ -364,6 +362,13 @@ exit end of a drift has been assigned aperture limits, the limits will
 disappear if the superimposed element overlays the exit end of the
 drift. A similar situation applies to the entrance end of a drift. If
 this is not desired, use a \vn{pipe} element instead.
+
+\NeedsWork...
+
+Normally when \bmad creates a slave
+Superpositions are restricted in that \bmad may not have an
+appropriate element for the superimposed fields. For example, a
+solenoid can not be superimposed over an octupole. 
 
 %-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}

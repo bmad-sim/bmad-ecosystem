@@ -187,13 +187,13 @@ end type
 ! Rule: If %grid is associated then %grid%pt(:,:,:) will be allocated.
 
 type em_field_mode_struct
-  integer m                   ! Mode varies as cos(m*phi - phi_0)
+  integer m                   ! Mode varies as cos(m*phi - phi0_azimuth)
   integer :: harmonic = 0     ! Harmonic of fundamental
   real(rp) freq               ! Oscillation frequency (Hz)
   real(rp) :: f_damp = 0      ! 1/Q damping factor 
-  real(rp) :: dtheta_ref = 0    ! Mode oscillates as: twopi * (f * t + dtheta_ref)
+  real(rp) :: phi0_ref = 0    ! Mode oscillates as: twopi * (f * t + phi0_ref)
   real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
-  real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
+  real(rp) :: phi0_azimuth = 0       ! Azimuthal orientation of mode.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
   integer :: master_scale = 0 ! Master scaling parameter in ele%value(:) array.
   type (em_field_map_struct), pointer :: map => null()
@@ -550,12 +550,12 @@ integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10, al
 integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
 integer, parameter :: rho$=12, s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
 integer, parameter :: hgap$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13
-integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14, dtheta_max$=14
+integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14, phi0_max$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: n_sample$=15, fh_re$=15, f0_re2$=15
 integer, parameter :: l_chord$=16, bend_tilt$=16, fh_im$=16, f0_im2$=16, grad_loss_sr_wake$=16
-integer, parameter :: h1$=17, x_quad$=17, ref_polarization$=17, dtheta_ref$ = 17
+integer, parameter :: h1$=17, x_quad$=17, ref_polarization$=17, phi0_ref$ = 17
 integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18, field_scale$ = 18
 integer, parameter :: b_param$ = 19
 integer, parameter :: d_spacing$ = 20
@@ -638,8 +638,6 @@ integer, parameter :: type$ = 97, psi_position$ = 97
 integer, parameter :: aperture_at$ = 98, beta_a$ = 98
 integer, parameter :: ran_seed$ = 99, beta_b$ = 99
 
-! superimpose$ through ref_end$ assumed unique (or need to modify bmad_parser_mod.f90).
-
 integer, parameter :: to$ = 100
 integer, parameter :: field_master$ = 101
 integer, parameter :: star_aperture$ = 102
@@ -647,6 +645,8 @@ integer, parameter :: scale_multipoles$ = 103
 integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall$
 integer, parameter :: field$ = 105
 integer, parameter :: phi_b$ = 106, crystal_type$ = 106
+
+! superimpose$ through create_em_field_slave$ assumed unique (or need to modify bmad_parser_mod.f90).
 
 integer, parameter :: superimpose$    = 110   
 integer, parameter :: offset$         = 111
@@ -657,6 +657,7 @@ integer, parameter :: ele_end$        = 115
 integer, parameter :: ref_beginning$  = 116
 integer, parameter :: ref_center$     = 117
 integer, parameter :: ref_end$        = 118
+integer, parameter :: create_em_field_slave$ = 119
 
 integer, parameter :: a0$  = 120, k0l$  = 120
 integer, parameter :: a20$ = 140, k20l$ = 140

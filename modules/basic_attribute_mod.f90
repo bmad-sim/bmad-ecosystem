@@ -266,6 +266,7 @@ do i = 1, n_key
   call init_attrib (i, ref_beginning$,      'REF_BEGINNING')
   call init_attrib (i, ref_center$,         'REF_CENTER')
   call init_attrib (i, ref_end$,            'REF_END')
+  call init_attrib (i, create_em_field_slave$, 'CREATE_EM_FIELD_SLAVE')
 
   if (i == null_ele$) cycle
 
@@ -514,7 +515,7 @@ call init_attrib (lcavity$, gradient_err$,                 'GRADIENT_ERR')
 call init_attrib (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attrib (lcavity$, field$,                        'FIELD')
 call init_attrib (lcavity$, field_scale$,                  'FIELD_SCALE')
-call init_attrib (lcavity$, dtheta_ref$,                     'DTHETA_REF')
+call init_attrib (lcavity$, phi0_ref$,                     'PHI0_REF')
 call init_attrib (lcavity$, grad_loss_sr_wake$,            reserved_name$)
 
 
@@ -637,6 +638,7 @@ call init_attrib (rfcavity$, dphi0$,                       'DPHI0')
 call init_attrib (rfcavity$, voltage$,                     'VOLTAGE')
 call init_attrib (rfcavity$, rf_frequency$,                'RF_FREQUENCY')
 call init_attrib (rfcavity$, phi0$,                        'PHI0')
+call init_attrib (rfcavity$, phi0_err$,                    reserved_name$) ! Will always be 0.
 call init_attrib (rfcavity$, harmon$,                      'HARMON')
 call init_attrib (rfcavity$, field_calc$,                  'FIELD_CALC')
 call init_attrib (rfcavity$, field_master$,                'FIELD_MASTER')
@@ -649,9 +651,9 @@ call init_attrib (rfcavity$, coupler_phase$,               'COUPLER_PHASE')
 call init_attrib (rfcavity$, coupler_at$,                  'COUPLER_AT')
 call init_attrib (rfcavity$, field$,                       'FIELD')
 call init_attrib (rfcavity$, field_scale$,                 'FIELD_SCALE')
-call init_attrib (rfcavity$, dtheta_ref$,                  'DTHETA_REF')
+call init_attrib (rfcavity$, phi0_ref$,                  'PHI0_REF')
 call init_attrib (rfcavity$, grad_loss_sr_wake$,           reserved_name$)
-call init_attrib (rfcavity$, dtheta_max$,                  reserved_name$)
+call init_attrib (rfcavity$, phi0_max$,                  reserved_name$)
 
 call init_attrib (elseparator$, gap$,                      'GAP')
 call init_attrib (elseparator$, e_field$,                  'E_FIELD')

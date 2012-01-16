@@ -216,8 +216,8 @@ logical is_eq
 
 !
 
-is_eq = (f1%freq == f2%freq) .and. (f1%f_damp == f2%f_damp) .and. (f1%dtheta_ref == f2%dtheta_ref) .and. &
-        (f1%stored_energy == f2%stored_energy) .and. (f1%m == f2%m) .and. (f1%phi_0 == f2%phi_0) .and. &
+is_eq = (f1%freq == f2%freq) .and. (f1%f_damp == f2%f_damp) .and. (f1%phi0_ref == f2%phi0_ref) .and. &
+        (f1%stored_energy == f2%stored_energy) .and. (f1%m == f2%m) .and. (f1%phi0_azimuth == f2%phi0_azimuth) .and. &
         (f1%field_scale == f2%field_scale)
 if (.not. is_eq) return
 
