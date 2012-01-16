@@ -563,12 +563,12 @@ holds an array of modes
 Each mode has components
 \begin{example}
   type em_field_mode_struct
-    integer m                   ! Mode varies as cos(m*phi - phi_0)
-    real(rp) freq               ! Oscillation frequency (Hz)
-    real(rp) :: f_damp = 0      ! 1/Q damping factor
-    real(rp) :: theta_t0 = 0    ! Mode oscillates as: twopi * (f * t + theta_t0)
-    real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
-    real(rp) :: field_scale = 1 ! Factor to scale the fields by
+    integer m                     ! Mode varies as cos(m*phi - phi_0)
+    real(rp) freq                 ! Oscillation frequency (Hz)
+    real(rp) :: f_damp = 0        ! 1/Q damping factor
+    real(rp) :: dphi0_ref = 0     ! Mode oscillates as: twopi * (f * t + dphi0_ref)
+    real(rp) :: phi0_azimuth = 0  ! Azimuthal orientation of mode.
+    real(rp) :: field_scale = 1   ! Factor to scale the fields by
     type (em_field_mode_map_struct), pointer :: map => null()
     type (em_field_grid_struct), pointer :: grid => null()
   end type

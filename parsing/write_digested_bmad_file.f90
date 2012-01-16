@@ -105,7 +105,7 @@ stat_b = 0
 #endif
 
 fname = '!DIGESTED:' // full_digested_name
-write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
+write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10), 0, 0  ! stat_b(10) = Modification date
  
 ! write other file names.
 
@@ -118,7 +118,7 @@ do j = 1, n_file
 #else
   ierr = stat(fname, stat_b)
 #endif
-  write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
+  write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10), 0, 0  ! stat_b(10) = Modification date
 enddo
 
 ! Write the lat structure to the digested file. We do this in pieces

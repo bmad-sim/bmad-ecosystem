@@ -41,18 +41,18 @@ type (random_state_struct) :: ran_state, digested_ran_state
 real(rp) value(n_attrib_maxx)
 
 integer inc_version, d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
-integer stat_b(13), idate_old, n_branch, n, control_type, coupler_at, idum1
-integer ierr, stat, ios, n_wall_section, garbage
+integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at, idum1
+integer ierr, stat, ios, n_wall_section, garbage, idum2
 
 character(*) digested_name
 character(200) fname_read, fname_versionless, fname_full
 character(200) input_file_name, full_digested_name
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
-character(40) old_time_stamp, new_time_stamp
+character(40) old_vms_time_stamp, new_vms_time_stamp
 
 logical deterministic_ran_function_used
-logical found_it, can_read_this_old_version, mode3, error, is_open, status_ok
+logical found_it, can_read_this_old_version, mode3, error, is_match, status_ok
 
 ! init all elements in lat
 
@@ -108,24 +108,33 @@ endif
 
 do i = 1, n_files
 
-  old_time_stamp = ''
-  new_time_stamp = ''
+  old_vms_time_stamp = ''
+  new_vms_time_stamp = ''
   stat_b = 0
 
-  read (d_unit, err = 9020, end = 9020) fname_read, idate_old
+  read (d_unit, err = 9020, end = 9020) fname_read, stat_b2, stat_b8, stat_b10, idum1, idum2
 
 #if defined (CESR_VMS) 
   ix = index(fname_read, '@')
   if (ix /= 0) then
-    old_time_stamp = fname_read(ix+1:)
+    old_vms_time_stamp = fname_read(ix+1:)
     fname_read = fname_read(:ix-1)
   endif
 #endif
 
+  ! Cannot use full file name to check if this is the original digested file since
+  ! the path may change depending upon what system the program is running on and how
+  ! things are mounted. So use stat() instead
+
   if (fname_read(1:10) == '!DIGESTED:') then
+#if defined (CESR_VMS)     
     fname_read = fname_read(11:)
-    inquire (file = fname_read, opened = is_open)
-    if (.not. is_open) then
+    inquire (file = fname_read, opened = is_match)
+#else
+    ierr = stat(full_digested_name, stat_b)
+    is_match = (stat_b2 == stat_b(2) .and. (stat_b8 == stat_b(8)) .and. (stat_b10 == stat_b(10)) 
+#endif
+    if (.not. is_match) then
       if (bmad_status%type_out .and. status_ok) call out_io(s_warn$, &
                                           r_name, ' NOTE: MOVED DIGESTED FILE.')
       status_ok = .false.
@@ -149,16 +158,17 @@ do i = 1, n_files
 #if defined (CESR_VMS) 
   ix = index(fname_read, ';')
   fname_versionless = fname_read(:ix-1)
-  call get_file_time_stamp (fname_versionless, new_time_stamp)
+  call get_file_time_stamp (fname_versionless, new_vms_time_stamp)
+  is_match = old_vms_time_stamp == new_vms_time_stamp
 #else
   ierr = stat(fname_read, stat_b)
   fname_versionless = fname_read
+  is_match = (stat_b2 == stat_b(2) .and. (stat_b8 == stat_b(8)) .and. (stat_b10 == stat_b(10)) 
 #endif
 
   inquire (file = fname_versionless, exist = found_it, name = fname_full)
   call simplify_path (fname_full, fname_full)
-  if (.not. found_it .or. fname_read /= fname_full .or. stat_b(10) /= idate_old .or. &
-                                                    old_time_stamp /= new_time_stamp) then
+  if (.not. found_it .or. fname_read /= fname_full .or. .not. is_match) then
     if (bmad_status%type_out .and. status_ok) call out_io(s_warn$, &
                                       r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
     status_ok = .false.
