@@ -75,27 +75,6 @@ def manifest_to_build_list( manifest ):
     return build_list
 
 
-def check_out_files( manifest ):
-    """Check out all files described in the manifest
-       associated with this build."""
-    print 'Checking out files according to manifest...'
-    svnlines = []
-    for repo in manifest:
-        svnlines = []
-        for dir in checkout_manifest[repo]:
-            p = sub.Popen('kinit -k -t /etc/cesrulib-keytab cesrulib/'+hostname+'; svn co ' + repo + dir,
-                          bufsize=1,
-                          shell=True,
-                          stdout=sub.PIPE,
-                          stderr=sub.STDOUT )
-            while True:
-                nextline = p.stdout.readline()
-                if nextline == '' and p.poll() != None:
-                    break
-                sys.stdout.write(nextline)
-                sys.stdout.flush()
-
-
 def link_to_packages( packages_name ):
     """Create a symbolic link in the release directory
        called 'packages' to the packages area named in
@@ -137,7 +116,9 @@ def build_directory( dir, statlist, target ):
         sys.stdout.write(nextline)
         sys.stdout.flush()
 
-        
+
+def build_pkg_directory( dir, statlist, target ) :
+    print 'Build pkg directory here...'
 
 #---------------------------
 

@@ -1,303 +1,147 @@
-#!/bin/sh
-##########################################################################
-#
-# This script rotates the filesystem links to the accelerator libraries 
-# releases across the supported platforms at CLASSE to point at a new
-# release build.
-#
-# usage :    rotate_release [options] <release_name>
-#
-# argument:  release_name (eg, cesr_2003_0728_d)
-#
-#         options:
-#          -current       Rotate CURRENT release
-#          -devel         Rotate DEVEL release (DEFAULT)
-#          -nightly       Rotate NIGHTLY release 
-#          -mail          Send notification to the 
-#                          cesr-code-l list upon successful rotation
-#          -tag           Tag the specified release in the repository.
-#
-# examples: Update the DEVEL release -
-#             rotate_release cesr_2003_0728_d
-#           Update the CURRENT release -
-#             rotate_release -current cesr_2003_0728_d
-#           Update the NIGHTLY release - will most often be used
-#                                        in an automated fashion.
-#             rotate_release -nightly cesr_2006_0912_d
-#
-# Exit codes:
-#   3 - release doesn't meet existence criteria
-#  50 - problem tagging release
-#
-# Date   : 11 September 2006
-# Author : Matt Rendina
-#             
-################################################################
+#!/usr/bin/env python
+# -*- python -*-      
+# rotate_release   
+#--------------------------------------------------------
+import argparse
+import time
+import sys
+import os
+import subprocess as sub
+import build_mgmt
 
-# One hardcoded path here necessary for subsequent getting of config vars.
-UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
+mailing_list_address = 'acc-code-lepp@lnx122.lns.cornell.edu'
 
-#---------------------------------+
-# Set up some internal functions  |
-#---------------------------------+
-
-# Script help function
-myprint_help () {
-#   Print help info
-    echo ""
-    echo "Usage is:  rotate_release [options or none for DEVEL] <release_name>"
-    echo ""
-    echo "Variables:"
-    echo "   <release_name>      cesr_xxxx_yyyy_d"
-    echo "Options:"
-    echo "   -devel              Rotate release into DEVEL position (DEFAULT)"
-    echo "   -nightly            Rotate release into NIGHTLY position"
-    echo "   -bmad               Rotate a Bmad distribution archive file onto the web site."
-    echo "   -current            Flag to rotate release into CURRENT position"
-    echo "   -mail               Send notification to the acc-code-lepp listserv"
-    echo "   -tag                Tag the specified release in the repository."
-}
+# Make unique tempfile name to hold e-mail body
+mail_tempfile = '/tmp/relrot-'+str(time.time())
 
 
-#############################################################
-# Main script starts here                                   #
-#############################################################
+# Set up command-line argument handling
+argparser = argparse.ArgumentParser(description='Build-to-release rotation tool')
+argparser.add_argument('buildname',
+                       type=str,
+                       help='Name of build')
+argparser.add_argument('--mail',
+                       action='store_true',
+                       dest='send_mail',
+                       default=False,
+                       help='Send rotation notification message to libraries mailing list.')
+argparser.add_argument('--tag',
+                       action='store_true',
+                       dest='create_tag',
+                       default=False,
+                       help='Create a tagged copy of all source and support files in repository under the release\'s name.')
 
-TO_ADDRESS=`${UTIL_DIR}/getcfg Notification list_address`
-LIBS_DIRECTORY=`${UTIL_DIR}/getcfg Paths LIBS_DIR`
-DIST_DIRECTORY=`${UTIL_DIR}/getcfg Paths DIST_DIR`
-DIST_WEB_DIR=`${UTIL_DIR}/getcfg Paths DIST_WEB_DIR`
-FIXES_DIR=`${UTIL_DIR}/getcfg Paths FIXES_DIR`
+muxgroup = argparser.add_mutually_exclusive_group()
+muxgroup.add_argument('--devel',
+                      action='store_true',
+                      dest='devel',
+                      default=True,
+                      help='DEVEL rotation request')
+muxgroup.add_argument('--current',
+                      action='store_true',
+                      dest='current',
+                      default=False,
+                      help='CURRENT rotation request')
 
-PLATFORMS=`${UTIL_DIR}/getcfg Platforms FULL`
-BASE_DIRECTORY=""
-TAGGER=${UTIL_DIR}/`${UTIL_DIR}/getcfg Scripts tagger`
-mail_tempfile="/tmp/RR_automail.tmp"
+argresults = argparser.parse_args()
 
-current_idx_file=${LIBS_DIRECTORY}/current.index
-devel_idx_file=${LIBS_DIRECTORY}/devel.index
+release_type = 'devel'
+if argresults.current:
+    argresults.devel = False
+    release_type = 'current'
 
-# Set default inputs
-REL=""
-ROTATE_DEVEL=1
-ROTATE_CURRENT=0
-ROTATE_NIGHTLY=0
-ROTATE_BMAD=0
-TAG_RELEASE=0
-REL_TYPE=""
-MAIL=0
-
-#############################################
-# Get inputs
-#############################################
-if ( [ $# = 0 ] || [ $# -gt 4 ] ) then
-    myprint_help
-    echo ""
-    echo "Check the number of command-line arguments."
-    exit 1
-fi
-
-arg_list=""
-for i 
-do arg_list="${arg_list} ${i}";
-   case $i in
-     "-current" ) ROTATE_CURRENT=1; ROTATE_DEVEL=0; ROTATE_NIGHTLY=0; ROTATE_BMAD=0;;
-     "-devel"   ) ROTATE_DEVEL=1; ROTATE_CURRENT=0; ROTATE_NIGHTLY=0; ROTATE_BMAD=0;;
-     "-nightly" ) ROTATE_NIGHTLY=1; ROTATE_CURRENT=0; ROTATE_DEVEL=0; ROTATE_BMAD=0;;
-     "-bmad"    ) ROTATE_BMAD=1; ROTATE_CURRENT=0; ROTATE_DEVEL=0; ROTATE_NIGHTLY=0;;
-     "-tag"     ) TAG_RELEASE=1;;
-     "-mail"    ) MAIL=1;;
-     cesr_*      ) REL=`echo $i`;;
-     bmad_dist_* ) REL=`echo $i`;;
-     *           ) myprint_help;
-     exit 2;;
-   esac
-done
-
-##############################################
-# Verify that the specified release is valid
-##############################################
-rel_exists=1
-if ( [ ${ROTATE_BMAD} -eq 0 ] ) then
-  BASE_DIRECTORY=${LIBS_DIRECTORY}
-  for dir in ${PLATFORMS}; do
-    REL_DIR=${BASE_DIRECTORY}/${dir}/${REL}
-    if ( [ ! -e ${REL_DIR} ] ) then
-      rel_exists=0
-      echo "Release ${REL} not found in:  ${BASE_DIRECTORY}/${dir}"
-    fi
-  done
-elif ( [ ${ROTATE_BMAD} -eq 1 ] ) then
-  BASE_DIRECTORY=${DIST_DIRECTORY}
-  if ( [ ! -f ${BASE_DIRECTORY}/${REL}.tar.gz ] ) then
-      rel_exists=0
-      echo "Archive file ${REL}.tar.gz not found in:  ${BASE_DIRECTORY}"
-      echo "NOTE: This script only accepts the RELEASE name,"
-      echo "not the .tar.gz name of the release to rotate."
-  fi
-fi
+buildname = argresults.buildname
+send_mail = argresults.send_mail
 
 
-if ( [ ${rel_exists} -eq 0 ] ) then
-  echo ""; echo""
-  exit 3
-fi
+# Get local copies of needed collections of values.
+platforms = build_mgmt.Platforms()
+releases = build_mgmt.Releases()
+fulldiritems = build_mgmt.FullDirItems()
+builds_basedir = build_mgmt.builds_basedir
+active_relnames = build_mgmt.ActiveRelNames(release_type)
 
-##############################################
-# Get old release index
-##############################################
-if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
-  if ( [ -e ${current_idx_file} ] ) then
-    current_index=`head -n1 ${current_idx_file} | awk '// {print $1}'`
-    new_index=`expr ${current_index} + 1`
-    echo "${new_index}" > ${current_idx_file} 
-  else
-    current_index=last
-    echo "No index file found for the current release!"
-  fi
-  current_old="current_${current_index}"
-fi
+for platform in platforms:
+    if buildname in releases[platform]:
+        print 'Note: ['+platform+']'+ ' Build has already been promoted'
 
-if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
-  if ( [ -e ${devel_idx_file} ] ) then
-    devel_index=`head -n1 ${devel_idx_file} | awk '// {print $1}'`
-    new_index=`expr ${devel_index} + 1`
-    echo "${new_index}" > ${devel_idx_file} 
-  else
-    devel_index=last
-    echo "No index file found for the devel release!"
-  fi
-  devel_old="devel_${devel_index}"
-fi
 
-##############################################
-# Rotate specified release
-##############################################
-if ( [ ${ROTATE_BMAD} = 0 ] ) then
-  for dir in ${PLATFORMS}; do
-    BASE_DIR=${BASE_DIRECTORY}/${dir}
-    cd ${BASE_DIR}
-    if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
-      present_rel=`ls -l current | cut -d\> -f2`
-      mv -f current ${current_old}
-      ln -s ${REL} current
-    fi
-    if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
-      present_rel=`ls -l devel | cut -d\> -f2`
-      mv -f devel ${devel_old}
-      ln -s ${REL} devel
-    fi
-    if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
-      present_rel=`ls -l nightly | cut -d\> -f2`
-      rm -fv nightly > /dev/null
-      ln -s ${REL} nightly
-      # Wipe the fixes directory system when NIGHTLY gets rotated
-      for item in `ls ${FIXES_DIR}`; do
-          if ( [ ${item} != "control" ] && [ ${item} != "staging" ] ) then
-              rm -rf ${FIXES_DIR}/${item}
-          fi
-      done
-      for item in `ls ${FIXES_DIR}/staging`; do
-          rm -rf ${FIXES_DIR}/staging/${item}
-      done
-    fi 
-done
-fi
+# Verify that the specified release is promoted to the same rank in
+# on all supported build platforms.
+if build_mgmt.RelNameConsistency(release_type):
+    old_releasename = build_mgmt.ActiveRelNames(release_type)[0]
 
-if ( [ ${ROTATE_BMAD} -eq 1 ] ) then
-  cd ${DIST_DIRECTORY}
-  present_rel=`ls -l latest | cut -d\> -f2`
-  rm -fv latest > /dev/null
-  ln -s ${REL} latest
-  cp ${DIST_DIRECTORY}/${REL}.tar.gz ${DIST_WEB_DIR}
-  cd ${DIST_WEB_DIR}/latest_tgz
-  ln -s ../${REL}.tar.gz ${DIST_WEB_DIR}/latest_tgz/${REL}.tar.gz
-fi
+# Verify that the build directory exists in all supported build
+# platform directories.
+if not build_mgmt.BuildExists(buildname):
+    print 'Build name ' + buildname + ' does not exist in all'
+    print 'of the following archive directories.'
+    for platform in platforms:
+        print platform
+    sys.exit(1)
+
+
+def send_notification_email(old_relname):
+    # Make unique tempfile name to hold e-mail body
+    mail_tempfile = '/tmp/relrot-'+str(time.time())
+    
+    time_of_day = 'morning'
+    hour = time.localtime()[3]
+    if hour > 12:
+        time_of_day = 'afternoon'
+
+    f = open(mail_tempfile, 'w')
+    f.write('Good '+time_of_day+' everyone,\n\n')
+    f.write('The accelerator physics libraries have been rotated as follows:\n\n')
+    f.write(release_type.upper() + ' release rotation for:\n')
+    for platform in platforms:
+        f.write('                             ' + platform + '\n')
+    f.write('\n')
+    f.write('Old:  ' + old_relname +'  -->  New:  '+ buildname +'\n\n')
+    f.write('   -Accelerator Code Librarian\n\n')
+    f.write('--------------------------------------------------------------------------------\n')
+    f.write('Accelerator Code Support Links -\n')
+    f.write('Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/ACC/ACL/WebHome\n')
+    f.write('Bug Reports        : cesr-libraries@rt.lepp.cornell.edu\n')
+    f.write('Librarian Email    : cesrulib@mail.lepp.cornell.edu\n')
+    f.write('Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/\n')
+
+    mail_command = 'mail -s "Accelerator Libraries Rotation" '+mailing_list_address+' < '+mail_tempfile
+    print 'Sending e-mail notification of this rotation to mailing list...'
+    
+    p = sub.Popen(mail_command)
+    f.close()
+    os.remove(mail_tempfile)
+    print 'Done.'
+
+
+#def tag_release():
+#    
 
 
 
-##############################################
-# Print out rotation summary
-##############################################
-if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
-  echo "CURRENT Release Rotation for:  ${PLATFORMS}"
-  REL_TYPE="* CURRENT *"
-fi
-if ( [ ${ROTATE_DEVEL} -eq 1 ] ) then
-  echo "DEVEL Release Rotation for:  ${PLATFORMS}"
-  REL_TYPE=" DEVEL "
-fi
-if ( [ ${ROTATE_NIGHTLY} -eq 1 ] ) then
-  echo "NIGHTLY Release Rotation for:  ${PLATFORMS}"
-  REL_TYPE="NIGHTLY"
-fi
-if ( [ ${ROTATE_BMAD} -eq 1 ] ) then
-  echo "BMAD Distribution Rotation:"
-  REL_TYPE="BMAD DISTRIBUTION"
-fi
-echo ""
-echo "OLD:  ${present_rel}   -->   NEW:  ${REL}"
-echo ""
+# If a tag operation was requested, compose the command(s) for tagging and
+# execute them.
 
-###############################################
-#  Tag the release
-###############################################
-if ( [ ${TAG_RELEASE} -eq 1 ] ) then
-    if ( [ ${ROTATE_CURRENT} -eq 1 ] ) then
-        ${TAGGER} -current ${REL}
-    else
-        ${TAGGER} ${REL}
-    fi
-    if ( [ $? -ne 0 ] ) then
-        echo "Problem tagging release from within rotate_release."
-        exit 50
-    fi
-fi
+# Perform the rotation of active release to archive link
+# and requested build to active release.
+archive_linkname = build_mgmt.NewLinkName('devel')
+for platform in platforms:
+    platform_dir = builds_basedir+'/'+platform+'/'
+    active_relname = active_relnames[platform]
+    os.chdir(platform_dir)
+    os.symlink(active_relname, archive_linkname)
+    os.remove(platform_dir+'/'+release_type)
+    os.symlink(buildname, release_type)
 
 
-###############################################
-# E-Mail message composition machinery here.
-###############################################
-if ( [ ${MAIL} -eq 1 ] && [ ${ROTATE_BMAD} -ne 1 ] ) then
-    ##hour=`date | cut --delimiter=' ' -f4 | cut -d: -f1`
-    hour=`date -R | cut --delimiter=' ' -f5 | cut -d: -f1`
-    if ( [ ${hour} -lt 12 ] ) then
-        time_of_day="morning"
-    else
-        time_of_day="afternoon"
-    fi
-    #echo "hour : ${hour}"
-    #echo "tod  : ${time_of_day}"
-    echo "Mailing notification message to: ${TO_ADDRESS}."
-
-  ################## Message Body ###################
-    echo "Good ${time_of_day} everyone,
- 
-The accelerator physics libraries have been rotated as follows:
-
- ${REL_TYPE} release rotation for:" > ${mail_tempfile}
-
-for i in ${PLATFORMS}
-do
-  echo "                               ${i}" >> ${mail_tempfile}
-done
-
-echo " 
- OLD:  ${present_rel}   -->   NEW:  ${REL}
-
-   -Accelerator Code Librarian
+if send_mail:
+    send_notification_email(old_releasename)
 
 
---------------------------------------------------------------------------------
-Accelerator Code Support Links -
-Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/ACC/ACL/WebHome
-Bug Reports        : cesr-libraries@rt.lepp.cornell.edu
-Librarian Email    : cesrulib@mail.lepp.cornell.edu
-Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/" >> ${mail_tempfile}
-  ################ End Message Body ################# 
-    mail -s "Accelerator Libraries Rotation" ${TO_ADDRESS} < ${mail_tempfile}
-    rm -f mail_tempfile
-fi
 
 
-exit 0
+
+
+
+

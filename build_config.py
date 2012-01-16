@@ -145,7 +145,7 @@ build_specs = {
         'platform' : 'Linux_x86_64_intel',
         'basedir' : '/nfs/cesr/online/lib',
         'domain' : 'ONLINE',
-        'host'   : 'acc101.lns.cornell.edu',
+        'host'   : 'cesr109.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
@@ -188,6 +188,7 @@ build_specs = {
     'OSF_alpha_hp-offline' : {
         'type' : 'release',
         'platform' : 'OSF_alpha_hp',
+        'basedir' : '/nfs/acc/libs',
         'host' : 'cesr66.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
@@ -217,13 +218,14 @@ build_specs = {
                 '/trunk/src/examples'
             ]
         }
-    }
-}
+    },
 
-
-packages_build_specs = {
+    
     'Linux_i686_intel' : {
         'type' : 'packages',
+        'platform' : 'Linux_i686_intel',
+        'basedir' : '/nfs/acc/libs',
+        'domain' : 'OFFLINE',
         'host' : 'lnx209.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
@@ -238,6 +240,9 @@ packages_build_specs = {
     },
     'Linux_x86_64_intel' : {
         'type' : 'packages',
+        'platform' : 'Linux_x86_64_intel',
+        'basedir' : '/nfs/acc/libs',
+        'domain' : 'OFFLINE',
         'host' : 'acc101.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
@@ -246,16 +251,16 @@ packages_build_specs = {
                     # Makefiles need to know how to find this, so perhaps not, for now.
                 '/trunk/packages/forest',
                     # gmake is all that is necessary
-                '/trunk/packages/num_recipes/recipes_f-90',
-                    # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations" lib
-                    # cp -p *.mod ../modules
-                    # cp -p librecipes_f90.a ../lib/librecipes_f90.a
-                    # gmake NRROOT=`pwd` clean
-                    #---------debug------------------
-                    # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations -g" lib
-                    # cp -p *.mod ../modules
-                    # cp -p librecipes_f90.a ../lib/librecipes_f90_g.a
-                    # gmake NRROOT=`pwd` clean
+                ###'/trunk/packages/num_recipes/recipes_f-90',
+                ###    # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations" lib
+                ###    # cp -p *.mod ../modules
+                ###    # cp -p librecipes_f90.a ../lib/librecipes_f90.a
+                ###    # gmake NRROOT=`pwd` clean
+                ###    #---------debug------------------
+                ###    # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations -g" lib
+                ###    # cp -p *.mod ../modules
+                ###    # cp -p librecipes_f90.a ../lib/librecipes_f90_g.a
+                ###    # gmake NRROOT=`pwd` clean
                 '/trunk/packages/num_recipes/recipes_c-ansi',
                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` lib
                     # cp -p librecipes_c-ansi.a ../lib/librecipes_c-ansi.a
@@ -284,10 +289,14 @@ packages_build_specs = {
                     # ./configure --prefix `pwd`/..
                     # make
                     # make install
-                '/trunk/packages/fgsl'
+                '/trunk/packages/fgsl',
                     # ./configure --prefix `pwd`/.. --f90 ifort --gsl `pwd`/..
                     # make
                     # make install
+                '/trunk/packages/lapack'
+                    # cmake .
+                    # make
+                    # cp lib/* ../lib
             ]
         }
     }    

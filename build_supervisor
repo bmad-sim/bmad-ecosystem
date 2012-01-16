@@ -72,13 +72,32 @@ print all_platforms
 
 argparser = argparse.ArgumentParser(description='Acelerator Libraries Collection Build Tool')
 
-argparser.add_argument('--pkgname', action='store', dest='pkg_name')
-argparser.add_argument('--gmake', action='store', dest='gmake_dir')
-argparser.add_argument('--spec', action='store', dest='build_spec', help='Build specification')
-argparser.add_argument('--nightly', action='store_true', dest='nightly')
+argparser.add_argument('--pkgname',
+                       action='store',
+                       dest='pkg_name')
+argparser.add_argument('--gmake',
+                       action='store',
+                       dest='gmake_dir')
+argparser.add_argument('--spec',
+                       action='store',
+                       dest='build_spec',
+                       help='Build specification')
+argparser.add_argument('--nightly',
+                       action='store_true',
+                       dest='nightly')
+argparser.add_argument('--online',
+                       action='store_true',
+                       dest='build_online_release',
+                       help='Build the collection of libraries and programs for CESR online use.')
+
 
 argresults = argparser.parse_args()
 
+build_online_release = argresults.build_online_release
+
+build_request = 'release'
+if build_online_release:
+    build_request = 'online-release'
 
 
 class BuildController(threading.Thread):
@@ -302,10 +321,10 @@ class BuildController(threading.Thread):
 
 
 
-#----------------------
-# Non-class code begin
-#----------------------
-build_request = 'release'
+#-----------------------
+# Non-class code begins
+#-----------------------
+
 
 
 
