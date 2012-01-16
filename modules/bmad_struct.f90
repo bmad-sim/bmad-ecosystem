@@ -191,7 +191,7 @@ type em_field_mode_struct
   integer :: harmonic = 0     ! Harmonic of fundamental
   real(rp) freq               ! Oscillation frequency (Hz)
   real(rp) :: f_damp = 0      ! 1/Q damping factor 
-  real(rp) :: phi0_ref = 0    ! Mode oscillates as: twopi * (f * t + phi0_ref)
+  real(rp) :: dphi0_ref = 0    ! Mode oscillates as: twopi * (f * t + dphi0_ref)
   real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   real(rp) :: phi0_azimuth = 0       ! Azimuthal orientation of mode.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
@@ -550,12 +550,12 @@ integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10, al
 integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
 integer, parameter :: rho$=12, s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
 integer, parameter :: hgap$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13
-integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14, phi0_max$=14
+integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14, dphi0_max$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: n_sample$=15, fh_re$=15, f0_re2$=15
 integer, parameter :: l_chord$=16, bend_tilt$=16, fh_im$=16, f0_im2$=16, grad_loss_sr_wake$=16
-integer, parameter :: h1$=17, x_quad$=17, ref_polarization$=17, phi0_ref$ = 17
+integer, parameter :: h1$=17, x_quad$=17, ref_polarization$=17, dphi0_ref$ = 17
 integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18, field_scale$ = 18
 integer, parameter :: b_param$ = 19
 integer, parameter :: d_spacing$ = 20
