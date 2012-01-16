@@ -910,19 +910,19 @@ only be associated with \vn{lcavity}, \vn{rfcavity}, and \vn{em_field}
 elements.
 
 The syntax for specifying the electromagnetic fields is
-\index{m}\index{field}\index{mode}\index{freq}\index{theta_t0}
-\index{f_damp}\index{field_scale}\index{master_scale}\index{phi_0}
+\index{m}\index{field}\index{mode}\index{freq}\index{dphi0_ref}
+\index{f_damp}\index{field_scale}\index{master_scale}\index{phi0_azimuth}
 \index{map}\index{grid}
 \begin{example}
   field = \{
     mode = \{
       m             = <Integer>, ! Mode number
       freq          = <Real>,    ! Frequency of oscillations (Hz).
-      theta_t0      = <Real>,    ! Phase of oscillations.
+      dphi0_ref      = <Real>,   ! Phase of oscillations.
       f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
       field_scale   = <Real>,    ! Scale factor for the E & B fields.
       master_scale  = <Name>,    ! Master scaling parameter for E & B fields.
-      phi_0         = <Real>,    ! Azimuthal orientation.
+      phi0_azimuth  = <Real>,    ! Azimuthal orientation.
       map           = <EM_field_map>,        ! EM field map data
       grid          = \{<EM_field_grid>\} \},    ! EM field grid data
     mode = \{...\}\}
@@ -1011,7 +1011,7 @@ The field of a given mode oscillates as given by Eq.~\ref{eseei}
   e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
 \Endeq
 The phase of the oscillation, $\theta_0$ comes from two
-sources: the phase \vn{theta_t0} set for the mode and an overall phase
+sources: the phase \vn{dphi0_ref} set for the mode and an overall phase
 \vn{phi_ref} given by
 \begin{example}
  phi_ref = phi0 + dphi0
@@ -1024,15 +1024,15 @@ $\theta_0$ is
 \Begineq
   \theta_0 = 
   \begin{cases}
-    \mbox{theta_t0} + \dsfrac{f}{f_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
+    \mbox{dphi0_ref} + \dsfrac{f}{f_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
     \mbox{lcavity element} \\
-    \mbox{theta_t0} - \dsfrac{f}{f_0} \, \mbox{phi_ref} & 
+    \mbox{dphi0_ref} - \dsfrac{f}{f_0} \, \mbox{phi_ref} & 
     \mbox{rfcavity element}
   \end{cases}
 \Endeq
 where $f$ is the mode frequency and $f_0$ is the frequency of the fundamental.
 
-The phase \vn{theta_t0} of the fundamental mode is auto-scaled by Bmad
+The phase \vn{dphi0_ref} of the fundamental mode is auto-scaled by Bmad
 so that a particle with $z = 0$ will go through the cavity on crest
 for a \vn{lcavity} and on the zero-crossing for an
 \vn{rfcavity}. Additionally, the field of the fundamental mode is
