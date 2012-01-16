@@ -99,27 +99,44 @@ fi
 #--------------------------------------------------------------
 # Set the location of the directory containing all the 
 # necessary environment setup scripts.
+#
+# TODO: Move below such that this script, when run via a login
+#       process, uses an appropriate CESR ONLINE or
+#       CESR OFFLINE path.
 #--------------------------------------------------------------
-SETUP_SCRIPTS_DIR=/nfs/acc/libs/util    # CHANGE to directory internal to release.
+SETUP_SCRIPTS_DIR=/nfs/acc/libs/util
 
 
 
 #--------------------------------------------------------------
-# Central area where all releases are kept.
-#  This location will be one of two places dependin upon
-#  whether the user is logged into a CESR offline or online
-#  machine.
-# Set CESR_ONLINE to the nfs version used for 'CESR offline'
+# Central area where releases are kept.
+#
+#  This location will be one of two places depending upon
+#  whether the user is logged into a CESR OFFLINE or 
+#  CESR ONLINE machine.
+#
+# Set CESR_ONLINE to the path used for 'CESR offline'
 # hosts if it hasn't already been set upon entering this
 # script.
+#
+# Set OPT_SOFTWARE_DIR to point to the appropriate place for
+# compilers, their setup scripts, and other software packages
+# maintained by the computer group but separate from the
+# OS distribution.
 #--------------------------------------------------------------
 CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
 
+#--- CESR OFFLINE Systems
 if ( [ "${CESR_ONLINE}" == "/nfs/cesr/online" ] ) then
     RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
+    OPT_SOFTWARE_DIR=/nfs/opt
+
+#--- CESR ONLINE Systems
 elif ( [ "${CESR_ONLINE}" == "/gfs/cesr/online" ] )then
-      # CHANGE to reflect a CESR ONLINE release directory when it becomes active.
+      # TODO: CHANGE to reflect a CESR ONLINE release directory when it becomes active.
     RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
+      # TODO: Will change to /gfs/cesr/opt for CESR ONLINE use.
+    OPT_SOFTWARE_DIR=/nfs/opt
 fi 
 
 
@@ -225,7 +242,8 @@ export ACC_PKG=${ACC_RELEASE_DIR}/packages
 export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
 
-export ACC_GMAKE=/home/cesrulib/bin/Gmake  # CHANGE to directory internal to release.
+export ACC_GMAKE=${ACC_RELEASE_DIR}/Gmake
+#export ACC_GMAKE=/home/cesrulib/bin/Gmake
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 
 
@@ -253,22 +271,26 @@ export PGPLOT_FONTS=${ACC_PKG}/PGPLOT
 
 #--------------------------------------------------------------
 # Set up the fortran compiler appropriate to the machine
-# architecture
+# architecture.
+#
+# TODO: These vendor-supplied compiler setup scripts will
+#       need to live in both CESR OFFLINE and CESR ONLINE 
+#       directories.
 #--------------------------------------------------------------
 case ${ACC_OS_ARCH} in
 
     "Linux_i686" )
         # 32-bit Intel Fortran (ifort)
-        source /nfs/opt/ifc/bin/ifortvars.sh
+	source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
 	;;
 
     "Linux_x86_64" )
 	# Add ifort-9-specific path information to user's environment
 	# to allow running 32-bit fortran programs on a 64-bit machine.
 	# Then source the final 64-bit path information on top.
-        source /nfs/opt/ifc/bin/ifortvars.sh
+	source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
         # 64-bit Intel Fortran (ifort) v12.1.0.233
-	source /nfs/opt/intel/composerxe/bin/compilervars.sh intel64
+	source ${OPT_SOFTWARE_DIR}/intel/composerxe/bin/compilervars.sh intel64
 	;;
 
 esac
@@ -296,7 +318,7 @@ add_path ${ACC_BIN}
 #--------------------------------------------------------------
 LD_LIBRARY_PATH_TEMP=${LD_LIBRARY_PATH}
 LD_LIBRARY_PATH=""
-DEFAULT_IFS=${IFS}
+DEFAULT_IFS=${IFS} # bash 'internal field separator' reserved variable
 IFS=":"
 for part in ${LD_LIBRARY_PATH_TEMP}; do
   case ${part} in
@@ -322,7 +344,8 @@ LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/solib
 
 
 #--------------------------------------------------------------
-# Variables to locate and use CERNlib
+# Variables to locate and use CERNlib, ROOT.
+# To be integrated into packages system for CESR management?
 #--------------------------------------------------------------
 export CERN_ROOT=/nfs/cern/pro
 export CERNLIB=${CERN_ROOT}/lib
@@ -340,6 +363,7 @@ Fortran compiler : ${ACC_FC}" '
 alias ACCINFO='accinfo'
 alias acc_info='accinfo'
 alias ACC_INFO='accinfo'
+
 
 alias current='ACC_RELEASE_REQUEST=current; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 alias devel='ACC_RELEASE_REQUEST=devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
