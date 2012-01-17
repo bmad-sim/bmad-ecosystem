@@ -369,6 +369,14 @@ if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
   endif
 
   r_ptrs(1)%r = value
+  if (word == 'E_TOT') then
+    bp_com%e_tot_set = .true.
+    bp_com%p0c_set   = .false.
+  elseif (word == 'P0C') then
+    bp_com%e_tot_set = .false.
+    bp_com%p0c_set   = .true.
+  endif
+
   return
 endif
 
