@@ -27,6 +27,7 @@ class invars():
     pass
 
 for line in inlines:
+    boolean_map = {'True':True, 'False':False}
     if '[builder]' in line:
         break
     if 'repository' in line:
@@ -35,6 +36,8 @@ for line in inlines:
     else:
         var = line.split()[0]
         val = line.split()[1].strip()
+        if val in boolean_map:
+            val = boolean_map[val]
         setattr(invars, var, val)
 
 
@@ -44,6 +47,7 @@ file.close()
 file = open(logfile, 'a', 1) # unbuffered, needed?
 
 sys.stdout = file
+
 
 hostname = socket.gethostname()
 p = sub.Popen('kinit -k -t /etc/cesrulib-keytab cesrulib/'+hostname,
