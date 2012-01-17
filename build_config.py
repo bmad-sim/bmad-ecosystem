@@ -146,7 +146,7 @@ build_specs = {
         'platform' : 'Linux_i686_intel',
         'basedir' : '/nfs/cesr/online/lib',
         'domain' : 'ONLINE',
-        'host'   : 'cesr110.lns.cornell.edu',
+        'host'   : 'lnx184c.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
