@@ -969,7 +969,7 @@ public:
   bool csr_calc_on;             // Coherent synchrotron radiation calculation.
   bool offset_moves_aperture;   // element offsets affects aperture?
 
-  C_ele (int key = 0) : 
+  C_ele (const int key = 0) : 
     gen_field(NULL),
     taylor(C_taylor(0), 6), 
     value(double(0), Bmad::N_ATTRIB_MAXX+1),
