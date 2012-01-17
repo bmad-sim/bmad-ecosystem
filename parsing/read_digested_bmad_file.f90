@@ -1,5 +1,5 @@
 !+
-! Subroutine read_digested_bmad_file (digested_name, lat, inc_version)
+! Subroutine read_digested_bmad_file (digested_file, lat, inc_version)
 !
 ! Subroutine to read in a digested file. The subroutine will check that
 ! the version of the digested file is up to date and that the digested file
@@ -12,7 +12,7 @@
 !   use bmad
 !
 ! Input:
-!   digested_name -- Character(*): Name of the digested file.
+!   digested_file -- Character(*): Name of the digested file.
 !
 ! Output:
 !   lat         -- lat_struct: Output lattice structure
@@ -26,7 +26,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine read_digested_bmad_file (digested_name, lat, inc_version)
+subroutine read_digested_bmad_file (digested_file, lat, inc_version)
 
 use bmad_struct
 use bmad_interface, except_dummy => read_digested_bmad_file
@@ -42,16 +42,16 @@ real(rp) value(n_attrib_maxx)
 
 integer inc_version, d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at, idum1
-integer ierr, stat, ios, n_wall_section, garbage, idum2
+integer ierr, stat, ios, n_wall_section, garbage, idum2, j1, j2
 
-character(*) digested_name
+character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
-character(200) input_file_name, full_digested_name
+character(200) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_vms_time_stamp, new_vms_time_stamp
 
-logical deterministic_ran_function_used
+logical deterministic_ran_function_used, is_ok
 logical found_it, can_read_this_old_version, mode3, error, is_match, status_ok
 
 ! init all elements in lat
@@ -68,10 +68,10 @@ inc_version = -1
 lat%n_ele_track = 0
 deterministic_ran_function_used = .false.
 
-call fullfilename (digested_name, full_digested_name)
-inquire (file = full_digested_name, name = full_digested_name)
-call simplify_path (full_digested_name, full_digested_name)
-open (unit = d_unit, file = full_digested_name, status = 'old',  &
+call fullfilename (digested_file, full_digested_file)
+inquire (file = full_digested_file, name = full_digested_file)
+call simplify_path (full_digested_file, full_digested_file)
+open (unit = d_unit, file = full_digested_file, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
 read (d_unit, err = 9010) n_files, version
@@ -127,12 +127,19 @@ do i = 1, n_files
   ! things are mounted. So use stat() instead
 
   if (fname_read(1:10) == '!DIGESTED:') then
-#if defined (CESR_VMS)     
-    fname_read = fname_read(11:)
+  fname_read = fname_read(11:)
+#if defined (CESR_VMS)
     inquire (file = fname_read, opened = is_match)
 #else
-    ierr = stat(full_digested_name, stat_b)
-    is_match = (stat_b2 == stat_b(2)) .and. (stat_b8 == stat_b(8)) .and. (stat_b10 == stat_b(10))
+    ierr = stat(full_digested_file, stat_b)
+    is_match = (stat_b2 == stat_b(2)) .and. (stat_b10 == stat_b(10))
+    j1 = len_trim(fname_read)
+    j2 = len_trim(full_digested_file)
+    do j = 0, min(j1, j2) - 1
+      if (fname_read(j1-j:j1-j) /= full_digested_file(j2-j:j2-j)) exit
+    enddo
+    digested_prefix_in = fname_read(1:j1-j)
+    digested_prefix_out = full_digested_file(1:j2-j)
 #endif
     if (.not. is_match) then
       if (bmad_status%type_out .and. status_ok) call out_io(s_warn$, &
@@ -161,9 +168,21 @@ do i = 1, n_files
   call get_file_time_stamp (fname_versionless, new_vms_time_stamp)
   is_match = old_vms_time_stamp == new_vms_time_stamp
 #else
+  is_ok = .true.
+  if (digested_prefix_in /= '') then
+    if (index(fname_read, trim(digested_prefix_in)) == 1) then
+      ix = len_trim(digested_prefix_in)
+      fname_read = fname_read(ix+1:)
+    else
+      is_ok = .false.
+    endif
+  endif
+  if (digested_prefix_out /= '') then
+    fname_read = trim(digested_prefix_out) // trim(fname_read)
+  endif
   ierr = stat(fname_read, stat_b)
   fname_versionless = fname_read
-  is_match = (stat_b2 == stat_b(2)) .and. (stat_b8 == stat_b(8)) .and. (stat_b10 == stat_b(10))
+  is_match = (stat_b2 == stat_b(2)) .and. (stat_b10 == stat_b(10))
 #endif
 
   inquire (file = fname_versionless, exist = found_it, name = fname_full)

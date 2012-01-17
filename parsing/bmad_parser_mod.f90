@@ -1526,8 +1526,7 @@ case ('push', 'push_inline')
 
   ix = splitfilename (file_name2, file(i_level)%dir, basename, is_relative)
   if (is_relative) then
-    call append_subdirectory (trim(file(i_level-1)%dir), &
-                                           file(i_level)%dir, file(i_level)%dir, err_flag)
+    call append_subdirectory (trim(file(i_level-1)%dir), file(i_level)%dir, file(i_level)%dir, err_flag)
     if (err_flag) call parser_warning ('BAD DIRECTORY SYNTAX FOR: ' // file_name, stop_here = .true.)
   endif
   bp_com%dirs(1) = file(i_level-1)%dir
@@ -1536,8 +1535,7 @@ case ('push', 'push_inline')
   file(i_level)%full_name = file_name
   file(i_level)%f_unit = lunget()
 
-  open (file(i_level)%f_unit, file = file_name,  &
-                               status = 'OLD', action = 'READ', iostat = ios)
+  open (file(i_level)%f_unit, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
   if (ios /= 0 .or. .not. found_it) then
     bp_com%current_file => file(i_level-1)  ! For warning
     if (file_name2 == file_name)  then
