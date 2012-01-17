@@ -484,11 +484,7 @@ if (logic_option(present(lattice), type_control)) then
         iv = lattice%control(i)%ix_attrib
         coef = lattice%control(i)%coef
         if (slave%lord_status == overlay_lord$) then
-          if (iv == slave%ix_value) then
-            a_name = attribute_name(pointer_to_slave(slave, 1), iv)
-          else
-            a_name = '** BAD POINTER! **'
-          endif            
+          a_name = ele%component_name
         else
           a_name = attribute_name(slave, iv)
         endif

@@ -1028,7 +1028,7 @@ end subroutine transfer_lat
 !
 ! Subroutine to allocate an allocatable  coord_struct array to at least:
 !     coord(0:n_coord)
-! Note: The old coordinates are not saved except for coord(0).
+! The old coordinates are saved
 ! If, at input, coord(:) is not allocated then coord(0)%vec is set to zero.
 ! In any case, coord(n)%vec for n > 0 is set to zero.
 !
@@ -1046,23 +1046,36 @@ end subroutine transfer_lat
 subroutine reallocate_coord (coord, n_coord)
 
 type (coord_struct), allocatable :: coord(:)
-type (coord_struct) start
+type (coord_struct), allocatable :: old(:)
 
 integer, intent(in) :: n_coord
-integer i
+integer i, n_old
 
 !
 
 if (allocated (coord)) then
-  if (size(coord) < n_coord + 1) then
-    start = coord(0)
-    deallocate (coord)
-    allocate (coord(0:n_coord))
-    coord(0) = start
-    do i = 1, n_coord
-      call init_coord (coord(i))
-    enddo
-  endif
+
+  n_old = size(coord)
+  if (n_old >= n_coord) return
+  allocate(old(0:n_old))
+
+  do i = 0, n_old
+    old(i) = coord(i)
+  enddo
+
+  deallocate (coord)
+  allocate (coord(0:n_coord))
+
+  do i = 0, n_old
+    coord(i) = old(i)
+  enddo
+
+  do i = n_old+1, n_coord
+    call init_coord (coord(i))
+  enddo
+
+  deallocate(old)
+
 else
   allocate (coord(0:n_coord))
   do i = 0, n_coord
