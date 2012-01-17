@@ -969,7 +969,7 @@ public:
   bool csr_calc_on;             // Coherent synchrotron radiation calculation.
   bool offset_moves_aperture;   // element offsets affects aperture?
 
-  C_ele () : 
+  C_ele (int key = 0) : 
     gen_field(NULL),
     taylor(C_taylor(0), 6), 
     value(double(0), Bmad::N_ATTRIB_MAXX+1),
@@ -1018,7 +1018,15 @@ public:
     on_a_girder(false),
     csr_calc_on(true),
     offset_moves_aperture(false)
-    {}
+    {
+      if (key == Bmad::LCAVITY) {
+        value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+      }
+
+      if (key == Bmad::RFCAVITY) {
+        value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+      }
+    }
 
   C_ele& operator= (const C_ele&);
 
