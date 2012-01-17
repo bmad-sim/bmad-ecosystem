@@ -293,7 +293,8 @@ ele_loop: do ie = ix_start, ix_end
       
       !Write phase in rad
       phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
-      if (ele%key == rfcavity$) phase_lag = phase_lag + pi/2
+      !OPAL only autophases for maximum acceleration, so adjust the lag for 'zero-crossing' 
+      if (ele%key == rfcavity$) phase_lag = phase_lag + twopi*( ele%value(dphi0_max$) - ele%em_field%mode(1)%dphi0_ref )
       call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
 
       !Write ELEMEDGE
@@ -542,13 +543,9 @@ select case (ele%key)
       pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
       pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
       
-      !Update ref_field if larger Bx or Bzis found
-      !Only check on-axis field (x=0), because this is what OPAL scales
-      if(ix == 0 .and. abs(pt(ix, iz, 1)%B(1)) > maxfield) then
-         ref_field = pt(ix, iz, 1)
-         maxfield = abs(ref_field%B(1))
-      end if 
-      if(ix == 0 .and. abs(pt(ix, iz, 1)%B(3)) > maxfield) then
+      !Update ref_field if larger Bz is found
+      !OPAL normalizes the map to the maximum Bz
+      if(abs(pt(ix, iz, 1)%B(3)) > maxfield) then
          ref_field = pt(ix, iz, 1)
          maxfield = abs(ref_field%B(3))
       end if 

@@ -30,7 +30,7 @@ end module track1_time_runge_kutta_mod
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+ 
-! Subroutine track1_time_runge_kutta(start, ele, param, end, track)
+! Subroutine track1_time_runge_kutta(start, ele, param, end, track, inside_start)
 !
 ! Routine to track a particle through an element using 
 ! Runge-Kutta time-based tracking. Converts to and from element
@@ -44,13 +44,13 @@ end module track1_time_runge_kutta_mod
 !   use time_tracker_mod
 !
 ! Input:
-!   start   -- coord_struct: starting position, t-based global
-!   ele     -- ele_struct: element
-!    %value -- real(rp): attribute values
-!    %ref_time -- real(rp): time ref particle passes exit end
-!    %s     -- real(rp): longitudinal ref position at exit end
-!   param   -- lat_param_struct: lattice parameters
-!    %particle -- integer: positron$, electron$, etc.
+!   start       -- coord_struct: starting position, t-based global
+!   ele         -- ele_struct: element
+!    %value     -- real(rp): attribute values
+!    %ref_time  -- real(rp): time ref particle passes exit end
+!    %s         -- real(rp): longitudinal ref position at exit end
+!   param       -- lat_param_struct: lattice parameters
+!    %particle  -- integer: positron$, electron$, etc.
 !
 ! Output:
 !   end     -- coord_struct: end position, t-based global
@@ -78,7 +78,7 @@ type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 integer :: exit_surface
 
-real(rp)  dt_step, p0c, ref_time, vec6
+real(rp)  dt_step, p0c, ref_time, vec6, ds_entrance
 
 logical :: local_ref_frame = .true.
 
@@ -129,19 +129,18 @@ if (param%end_lost_at == live_reversed$) then
   call offset_particle(ele, param, start2, set$, set_canonical = .false.,  reversed = .true. ) 
   call apply_element_edge_kick (start2, ele, param, exit_end$)
 else
-  !Forward moving particle
+  !Forward moving particle, or interior start
   if (ele_has_constant_reference_energy(ele)) then
     p0c = ele%value(p0c$)
   else  ! lcavity, etc.
     p0c = ele%value(p0c_start$)
   end if
-  call offset_particle(ele, param, start2, set$, set_canonical = .false., reversed = .false. ) 
-  call apply_element_edge_kick (start2, ele, param, entrance_end$)   
-end if
 
-! ele(s-based) -> ele(t-based)
-!Forward moving particles in a gun start with t-coordinates, so ignore offset
-if(ele%key /= e_gun$) call convert_particle_coordinates_s_to_t(start2, p0c)
+  !Allow for interior start
+  ds_entrance =  start2%s - (ele%s - ele%value(l$))
+  call offset_particle(ele, param, start2, set$, set_canonical = .false., reversed = .false., ds_pos = ds_entrance ) 
+  if ( abs(ds_entrance) < bmad_com%significant_length ) call apply_element_edge_kick (start2, ele, param, entrance_end$)   
+end if
 
 !Shift s and t back to global values
 start2%t = start2%t - (ele%ref_time - ele%value(delta_ref_time$))
