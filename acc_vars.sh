@@ -53,6 +53,27 @@
 #   acc_vars.csh  instead.
 #--------------------------------------------------------------
 
+#HAC_ARCHIVE_BASE_DIR='/gfs/cesr/online/lib'
+#HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
+#HAC_OPT_SOFTWARE_DIR='/nfs/opt'
+
+HAC_ARCHIVE_BASE_DIR='/nfs/acc/libs'
+HAC_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
+HAC_OPT_SOFTWARE_DIR='/nfs/opt'
+
+#ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
+#ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
+#ONLINE_OPT_SOFTWARE_DIR='/nfs/opt'
+
+ONLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
+ONLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
+ONLINE_OPT_SOFTWARE_DIR='/nfs/opt'
+
+OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
+OFFLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
+OFFLINE_OPT_SOFTWARE_DIR='/nfs/opt'
+
+
 #--------------------------------------------------------------
 # Files to hold a 'printenv' environment snapshot before this
 # script defines all its variables, and again after for use
@@ -66,6 +87,8 @@
 
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
 OLD_ACC_BIN=${ACC_BIN}
+
+
 
 
 #--------------------------------------------------------------
@@ -97,52 +120,62 @@ fi
 
 
 #--------------------------------------------------------------
-# Set the location of the directory containing all the 
-# necessary environment setup scripts.
-#
-# TODO: Move below such that this script, when run via a login
-#       process, uses an appropriate CESR ONLINE or
-#       CESR OFFLINE path.
-#--------------------------------------------------------------
-SETUP_SCRIPTS_DIR=/nfs/acc/libs/util
-
-
-
-#--------------------------------------------------------------
-# Central area where releases are kept.
-#
-#  This location will be one of two places depending upon
-#  whether the user is logged into a CESR OFFLINE or 
-#  CESR ONLINE machine.
-#
 # Set CESR_ONLINE to the path used for 'CESR offline'
 # hosts if it hasn't already been set upon entering this
 # script.
-#
-# Set OPT_SOFTWARE_DIR to point to the appropriate place for
-# compilers, their setup scripts, and other software packages
-# maintained by the computer group but separate from the
-# OS distribution.
 #--------------------------------------------------------------
 CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
 
-#--- CESR OFFLINE Systems
-if ( [ "${CESR_ONLINE}" == "/nfs/cesr/online" ] ) then
-    RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
-    OPT_SOFTWARE_DIR=/nfs/opt
 
-#--- CESR ONLINE Systems
-elif ( [ "${CESR_ONLINE}" == "/gfs/cesr/online" ] )then
-      # TODO: CHANGE to reflect a CESR ONLINE release directory when it becomes active.
-    RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
-      # TODO: Will change to /gfs/cesr/opt for CESR ONLINE use.
-    OPT_SOFTWARE_DIR=/nfs/opt
+#--------------------------------------------------------------
+# 'CESR ONLINE' hosts are interactive shell capable machines in
+# that follow the convention of having 'cesr' in their hostname.
+# If the machine on which this script is sourced is defined to
+# be a 'CESR_ONLINE' host, the follow value will be 
+# shell-TRUE(0) and (1) otherwise.
+#
+#  TODO: Double check that no laboratory hostnames violate
+#        this convention.  'cesrweb'?
+#--------------------------------------------------------------
+if ( [ `hostname | grep cesr` ] ) then
+    IS_CESR_ONLINE_HOST='true'
+fi
+
+
+#--- CESR ONLINE Hosts
+if ( [ "${IS_CESR_ONLINE_HOST}" == "true" ] ) then
+
+    #-- CESR HAC (High-availability Cluster) Online Host
+    if ( [ "${CESR_ONLINE}" == "/gfs/cesr/online" ] )then
+	SETUP_SCRIPTS_DIR=${HAC_RELEASE_MGMT_DIR}
+	RELEASE_ARCHIVE_BASE_DIR=${HAC_ARCHIVE_BASE_DIR}
+	OPT_SOFTWARE_DIR=${HAC_OPT_SOFTWARE_DIR}
+    else
+    #-- CESR Online Host
+	SETUP_SCRIPTS_DIR=${ONLINE_RELEASE_MGMT_DIR}
+	RELEASE_ARCHIVE_BASE_DIR=${ONLINE_ARCHIVE_BASE_DIR}
+	OPT_SOFTWARE_DIR=${ONLINE_OPT_SOFTWARE_DIR}
+    fi
+
+#-- CESR OFFLINE Host
+else
+    SETUP_SCRIPTS_DIR=${OFFLINE_RELEASE_MGMT_DIR}
+    RELEASE_ARCHIVE_BASE_DIR=${OFFLINE_ARCHIVE_BASE_DIR}
+    OPT_SOFTWARE_DIR=${OFFLINE_OPT_SOFTWARE_DIR}
+
 fi 
 
 
+#--------------------------------------------------------------
+# Allow for util directory override.
+#--------------------------------------------------------------
+SETUP_SCRIPTS_DIR=${UTIL_DIR_REQUEST:-$SETUP_SCRIPTS_DIR}
+unset UTIL_DIR_REQUEST
+
 
 #--------------------------------------------------------------
-# Variables that influence the build process
+# Variables that influence the build process 
+# (Their names begin with 'ACC'.)
 #--------------------------------------------------------------
 ACC_OS="`uname`"
 export ACC_ARCH="`uname -m`"
@@ -170,7 +203,7 @@ esac
 #
 # Until full 64-bit OS migration takes place, all builds will
 # default to 32-bit on all hosts.  This can be changed to 
-# use the true machine architecture word length per user
+ # use the true machine architecture word length per user
 # request by setting the ACC_FORCE_32_BIT variable to the 
 # value "N".
 #--------------------------------------------------------------
@@ -243,7 +276,6 @@ export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
 
 export ACC_GMAKE=${ACC_RELEASE_DIR}/Gmake
-#export ACC_GMAKE=/home/cesrulib/bin/Gmake
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 
 

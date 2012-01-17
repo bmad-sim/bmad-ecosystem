@@ -98,8 +98,9 @@ def link_to_packages( packages_name ):
 def build_directory( dir, statlist, target ):
     print '\n\n\n-------- Building: ' + dir
     os.chdir( dir )
-    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; source ' + \
-                    invars.util_dir + \
+    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; ' + \
+                    'UTIL_DIR_REQUEST='+invars.util_dir + \
+                    '; source ' + invars.util_dir + \
                     '/acc_vars.sh; ifort -v; printenv | grep ACC; gmake ' + \
                     target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
     p = sub.Popen(build_command,
