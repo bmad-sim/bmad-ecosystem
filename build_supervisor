@@ -66,8 +66,8 @@ for spec in build_config.build_specs:
     all_platforms.append( build_config.build_specs[spec]['platform'] )
 # Remove any duplicate platforms from list
 all_platforms = list(set(all_platforms))
-print 'Platforms that appear in collection of build specifications:'
-print all_platforms
+#print 'Platforms that appear in collection of build specifications:'
+#print all_platforms
 
 
 argparser = argparse.ArgumentParser(description='Acelerator Libraries Collection Build Tool')
@@ -75,9 +75,12 @@ argparser = argparse.ArgumentParser(description='Acelerator Libraries Collection
 argparser.add_argument('--pkgname',
                        action='store',
                        dest='pkg_name')
-argparser.add_argument('--gmake',
+argparser.add_argument('--gmakedir',
                        action='store',
                        dest='gmake_dir')
+argparser.add_argument('--utildir',
+                       action='store',
+                       dest='util_dir')
 argparser.add_argument('--spec',
                        action='store',
                        dest='build_spec',
@@ -291,21 +294,8 @@ class BuildController(threading.Thread):
         pass
         
 
-
-    def set_packages_name(self, name):
-        self.packages_name = name
-
-
     def set_test_suite_run(self, request):
         self.test_suite_run = request
-
-
-    def set_util_dir(self, dir):
-        self.util_dir = dir
-
-
-    def set_makefile_dir(self, dir):
-        self.makefile_dir = dir
 
 
     def run(self):
@@ -369,19 +359,23 @@ print svn_revisions
 #  makefile directory, svn_revision,
 #  packages directory to use, etc...
 #---------------------------------------
-if not isinstance(None, type(argresults.pkg_name)):
+if argresults.pkg_name is not None:
     print '\nA custom packages name was provided.'
     print '  Using "' + argresults.pkg_name + '" instead of the default.\n'
     for build in builds:
-        build.set_packages_name(argresults.pkg_name)
+        build.packages_name = argresults.pkg_name
 
-
-if not isinstance(None, type(argresults.gmake_dir)):
+if argresults.gmake_dir is not None:
     print '\nA custom Gmake directory was provided.'
     print '  Using "' + argresults.gmake_dir + '" instead of the default.\n'
     for build in builds:
-        build.set_packages_name(argresults.gmake_dir)
+        build.makefile_dir = argresults.gmake_dir
 
+if argresults.util_dir is not None:
+    print '\nA custom util directory was provided.'
+    print ' Using "' + argresults.util_dir + '" instead of the default.\n'
+    for build in builds:
+        build.util_dir = argresults.util_dir
 
 
 #---------------------------------------
