@@ -142,6 +142,9 @@ else
   if ( abs(ds_entrance) < bmad_com%significant_length ) call apply_element_edge_kick (start2, ele, param, entrance_end$)   
 end if
 
+! ele(s-based) -> ele(t-based)
+call convert_particle_coordinates_s_to_t(start2, p0c)
+
 !Shift s and t back to global values
 start2%t = start2%t - (ele%ref_time - ele%value(delta_ref_time$))
 start2%s = start2%s - (ele%s - ele%value(l$))
