@@ -248,6 +248,51 @@ end subroutine convert_particle_coordinates_s_to_t
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
+!+
+! Subroutine drift_orbit_time(orbit, mc2, delta_s)
+!
+! Simple routine to drift a particle orbit in time-based coordinates by a distance delta_s
+!
+! Modules Needed:
+!   use bmad_struct
+!
+! Input:
+!   orbit      -- coord_struct: particle orbit in time-based coordinates
+!   mc2        -- real(rp): particle mass in eV
+!   delta_s    -- real(rp): s-coordinate distance to drift particle
+!                  .
+!
+! Output:
+!   orbit      -- coord_struct: particle orbit in time-based coordinates
+!                                     
+!-
+subroutine drift_orbit_time(orbit, mc2, delta_s)
+  use bmad_struct
+  
+  implicit none
+  
+  type (coord_struct) :: orbit
+  real(rp) :: mc2, delta_s, delta_t, v_s, e_tot, vel(3)
+  
+  
+  e_tot = sqrt( orbit%vec(2)**2 + orbit%vec(4)**2 +  orbit%vec(6)**2 + mc2**2) !Get e_tot from momentum
+
+  vel(1:3) = c_light*[  orbit%vec(2), orbit%vec(4), orbit%vec(6) ]/ e_tot ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
+
+  delta_t = delta_s / vel(3)
+  
+  !Drift x, y, s
+  orbit%vec(1) = orbit%vec(1) + vel(1)*delta_t  !x
+  orbit%vec(3) = orbit%vec(3) + vel(2)*delta_t  !y
+  orbit%vec(5) = orbit%vec(5) + vel(3)*delta_t  !s
+  orbit%s =  orbit%s + delta_s
+  orbit%t =  orbit%t + delta_t 
+
+end subroutine drift_orbit_time
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
 !+ 
 ! Subroutine write_time_particle_distribution  (time_file_unit, bunch,  mc2, p0c, err)
 !
