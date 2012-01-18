@@ -80,6 +80,8 @@ integer :: exit_surface
 
 real(rp)  dt_step, p0c, ref_time, vec6, ds_entrance
 
+character(30), parameter :: r_name = 'track1_time_runge_kutta'
+
 logical :: local_ref_frame = .true.
 
 !---------------------------------
@@ -121,31 +123,41 @@ dt_step = ele%value(ds_step$)/c_light
 !------
 !Convert particle to element coordinates
 
-!Define p0c and ref_time at start of tracking
-if (param%end_lost_at == live_reversed$) then
-  !Particle must be moving backwards
+ds_entrance =  start2%s - (ele%s - ele%value(l$))
+
+select case (param%end_lost_at)
+case (live_reversed$)
+  !Particle is moving backwards from exit end or interior
   !The sign of p0c is used in s->t conversion
   p0c = -1*ele%value(p0c$)
-  call offset_particle(ele, param, start2, set$, set_canonical = .false.,  reversed = .true. ) 
-  call apply_element_edge_kick (start2, ele, param, exit_end$)
-else
-  !Forward moving particle, or interior start
+  call offset_particle(ele, param, start2, set$, set_canonical = .false., &
+    reversed = .true., ds_pos = ds_entrance) 
+  if ( abs(ds_entrance - ele%value(l$)) < bmad_com%significant_length ) &
+    call apply_element_edge_kick (start2, ele, param, entrance_end$)
+
+case (no_end$)
+  !Interior start, forward moving particle
+  p0c = ele%value(p0c$)
+  call offset_particle(ele, param, start2, set$, set_canonical = .false., reversed = .false.)
+
+case (exit_end$)
+  !Forward moving particle, came from exit end of previous element
   if (ele_has_constant_reference_energy(ele)) then
     p0c = ele%value(p0c$)
   else  ! lcavity, etc.
     p0c = ele%value(p0c_start$)
   end if
+  call offset_particle(ele, param, start2, set$, set_canonical = .false., reversed = .false.)
+  call apply_element_edge_kick (start2, ele, param, entrance_end$)
 
-  !Allow for interior start
-  ds_entrance =  start2%s - (ele%s - ele%value(l$))
-  call offset_particle(ele, param, start2, set$, set_canonical = .false., reversed = .false., ds_pos = ds_entrance ) 
-  if ( abs(ds_entrance) < bmad_com%significant_length ) call apply_element_edge_kick (start2, ele, param, entrance_end$)   
-end if
+case default
+  call out_io (s_fatal$, r_name, 'BAD ENTRANCE SURFACE: \i0\ ', param%end_lost_at)
+  call err_exit
+end select
 
 ! ele(s-based) -> ele(t-based)
 call convert_particle_coordinates_s_to_t(start2, p0c)
-
-!Shift s and t back to global values
+!Shift s and t to ele coordinates
 start2%t = start2%t - (ele%ref_time - ele%value(delta_ref_time$))
 start2%s = start2%s - (ele%s - ele%value(l$))
 start2%vec(5) = start2%s
@@ -188,36 +200,50 @@ start2%s = start2%s + (ele%s - ele%value(l$))
 end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
 end%s = end%s + (ele%s - ele%value(l$))
 
-!Define p0c and ref_time at end of tracking
-if (param%end_lost_at == entrance_end$) then
-  !particle is at the entrance end
-  if (ele_has_constant_reference_energy(ele)) then
+
+!Convert back to s-based coordinates
+select case (exit_surface)
+
+  case (live_reversed$) !live_reversed$ is the entrance end
+    if (ele_has_constant_reference_energy(ele)) then
+      p0c = ele%value(p0c$)
+    else  ! lcavity, etc.
+      p0c = ele%value(p0c_start$)
+    end if
+    ref_time = ele%ref_time - ele%value(delta_ref_time$)
+
+    !ele(t-based) -> ele(s-based)
+    call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+    call apply_element_edge_kick (start2, ele, param, entrance_end$)
+    !unset
+    call offset_particle(ele, param, end, unset$, set_canonical = .false., &
+       reversed = .true. ) 
+
+  case (exit_end$)
     p0c = ele%value(p0c$)
-  else  ! lcavity, etc.
-    p0c = ele%value(p0c_start$)
-  end if
-  ref_time = ele%ref_time - ele%value(delta_ref_time$)
+    ref_time = ele%ref_time
+    !ele(t-based) -> ele(s-based)
+    call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+    call apply_element_edge_kick (start2, ele, param, exit_end$)
+    !unset
+    call offset_particle(ele, param, end, unset$, set_canonical = .false., &
+       reversed = .false. ) 
 
-  !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
-  call apply_element_edge_kick (start2, ele, param, entrance_end$)
-  !unset
-  call offset_particle(ele, param, end, unset$, set_canonical = .false., &
-     reversed = .true. ) 
-else
-  !particle is at the exit end
-  p0c = ele%value(p0c$)
-  ref_time = ele%ref_time
-  
-  !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
-  call apply_element_edge_kick (start2, ele, param, exit_end$)
-  !unset
-  call offset_particle(ele, param, end, unset$, set_canonical = .false., &
-     reversed = .false. ) 
-end if
+  case (between_ends$)
+    !Particle is lost in the interior of the element. 
+    p0c = ele%value(p0c$)
+    ref_time = ele%ref_time
+    !ele(t-based) -> ele(s-based)
+    call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+    !unset
+    call offset_particle(ele, param, end, unset$, set_canonical = .false., &
+       reversed = .false., ds_pos = end%s - (ele%s - ele%value(l$)) )
 
-!------
+case default
+  call out_io (s_fatal$, r_name, 'UNKOWN EXIT SURFACE: \i0\ ', exit_surface)
+  call err_exit
+
+end select
 
 !Return the exit surface information through the lat_param_struct
 param%end_lost_at = exit_surface
@@ -262,7 +288,7 @@ end subroutine
 ! Output:
 !   end     -- Coord_struct: Ending coords: (x, px, y, py, s, ps).
 !   track   -- Track_struct: Structure holding the track information.
-!   exit_surface -- integer: exit surface: entrance_end$, exit_end$, no_end$
+!   exit_surface -- integer: exit surface: live_reversed$, exit_end$, no_end$
 !
 !-
 
@@ -360,8 +386,8 @@ do n_step = 1, max_step
 
      exit_flag = .true. 
      s_target = s1
-     exit_surface = entrance_end$
-     !print *, 'Hit entrance_end$'
+     exit_surface = live_reversed$
+     !print *, 'Hit entrance end (live_reversed$)'
          !Set common structures for zbrent's internal functions 
    ele_com => ele
    param_com => param
@@ -389,7 +415,7 @@ do n_step = 1, max_step
     call  particle_hit_wall_check_time(orb, orb_new, param, ele)
     !Flag for exit if wall is hit
     if (param%lost) then
-      exit_surface = no_end$
+      exit_surface = between_ends$
       exit_flag = .true.
     end if
   endif
@@ -530,7 +556,8 @@ real(rp) :: edge_tol = 1e-8
 !-----------------------------------------------
 !First check for a wall- if none, just check aperture
 if ( .not. associated(ele%wall3d%section) ) then
-   call check_aperture_limit(orb_new, ele, exit_end$, param, check_momentum = .false.)
+   !TODO:
+   !call check_aperture_limit(orb_new, ele, exit_end$, param, check_momentum = .false.)
    !entrance_end$ vs exit_end$: determines s for offset_particle in 
    !check_aperture_limit
    return
