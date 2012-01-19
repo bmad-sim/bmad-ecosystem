@@ -378,14 +378,15 @@ type lat_param_struct
   real(rp) :: t1_no_RF(6,6) = 0             ! Full 1-turn matrix with RF off.
   integer :: particle = positron$           ! positron$, electron$, etc.
   integer :: ix_lost = not_lost$            ! Index of element particle was lost at.
-  integer :: end_lost_at = 0                ! between_ends$, live$, entrance_end$, or exit_end$
+  integer :: particle_at = 0                ! between_ends$, live$, entrance_end$, or exit_end$
   integer :: plane_lost_at = 0              ! x_plane$, y_plane$, z_plane$ (reversed direction).
   integer :: lattice_type = 0               ! linear_lattice$, etc...
   integer :: ixx = 0                        ! Integer for general use
   logical :: particle_is_reversed = .false. ! Particle being tracked going in reversed direction?
+  logical :: particle_is_alive = .true.     ! Particle being tracked is alive?
   logical :: stable = .false.               ! is closed lat stable?
   logical :: aperture_limit_on = .true.     ! use apertures in tracking?
-  logical :: lost = .false.                 ! for use in tracking
+  logical :: lost = .false.                 ! Particle alive and moving forward.
   type (bookkeeper_status_struct) status    ! Overall status for the branch.
 end type
 
@@ -748,11 +749,11 @@ character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ',
 ! ele%aperture_at logical definitions.
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
-integer, parameter :: no_end$ = 4, continuous$ = 5, between_ends$ = 6, live$ = 7
+integer, parameter :: no_end$ = 4, continuous$ = 5, between_ends$ = 6, alive$ = 7
 integer, parameter :: lost$ = 10
 character(16), parameter :: element_end_name(0:7) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ', 'Continuous   ', 'Between_Ends ', 'Live         ']
+      'No_End       ', 'Continuous   ', 'Between_Ends ', 'Alive         ']
 
 ! ref_orbit values.
 

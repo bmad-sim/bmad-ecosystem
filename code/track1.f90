@@ -23,7 +23,7 @@
 !                         Set False otherwise.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
-!     %end_lost_at   -- entrance_end$ or exit_end$.
+!     %particle_at   -- entrance_end$ or exit_end$.
 !   track -- track_struct, optional: Structure holding the track information if the 
 !             tracking method does tracking step-by-step.
 !
@@ -75,7 +75,7 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
                 call check_aperture_limit (start_orb, ele, entrance_end$, param)
 if (param%lost) then
-  param%end_lost_at = entrance_end$
+  param%particle_at = entrance_end$
   call init_coord (end_orb)      ! it never got to the end so zero this.
   return
 endif
@@ -178,16 +178,16 @@ if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end_orb)
 if (.not. param%lost) then
   if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) then
     call check_aperture_limit (end_orb, ele, exit_end$, param)
-    if (param%lost) param%end_lost_at = exit_end$
+    if (param%lost) param%particle_at = exit_end$
   endif
 endif
 
-if (param%lost .and. param%end_lost_at == live$) then
+if (param%lost .and. param%particle_at == alive$) then
   param%lost = .false. ! Temp
   if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
                   call check_aperture_limit (start_orb, ele, entrance_end$, param)
   if (param%lost) then
-    param%end_lost_at = entrance_end$
+    param%particle_at = entrance_end$
     call init_coord (end_orb)      ! it never got to the end so zero this.
     return
   endif
