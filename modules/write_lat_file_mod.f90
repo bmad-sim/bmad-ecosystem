@@ -887,7 +887,7 @@ end function
 !   end_is_neigh -- Logical: If true then write out everything.
 !                     Otherwise wait for a full line of max_char characters or so.
 
-subroutine write_lat_line (line, iu, end_is_neigh, continue_char)
+subroutine write_lat_line (line, iu, end_is_neigh)
 
 implicit none
 
@@ -896,13 +896,11 @@ integer i, iu
 logical end_is_neigh
 logical, save :: init = .true.
 integer, save :: max_char = 90
-character(*), optional :: continue_char
-character(len(continue_char)) c_char
+character(1) c_char
 
 !
 
 c_char = '&'
-if (present(continue_char)) c_char = continue_char
 
 outer_loop: do 
 

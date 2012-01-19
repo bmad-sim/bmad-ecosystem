@@ -522,10 +522,7 @@ end interface
 interface
   subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
                     dt1, local_ref_frame, track)
-   use track1_time_runge_kutta_mod
-   use time_tracker_mod
-   use em_field_mod
-   use nr, only: zbrent
+    use bmad_struct, only: rp, track_struct, coord_struct, ele_struct, lat_param_struct
    implicit none
     type (coord_struct), intent(in) :: start
     type (ele_struct) , target :: ele
@@ -534,6 +531,15 @@ interface
     real(rp), intent(in) :: s1, s2, dt1
     logical, target :: local_ref_frame
     type (track_struct), optional :: track
+  end subroutine
+end interface
+
+interface
+  subroutine offset_photon_mat6 (mat6, ele)
+    use bmad_struct, only: ele_struct, rp
+    implicit none
+    real(rp) mat6(6,6)
+    type (ele_struct), target :: ele
   end subroutine
 end interface
 
