@@ -1016,7 +1016,7 @@ end subroutine bbi_kick_matrix
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+      
-! Subroutine offset_photon_mat6 (mat6, start, ele)
+! Subroutine offset_photon_mat6 (mat6, ele)
 !
 ! Subroutine to transform a 6x6 transfer matrix to a new reference frame
 ! with the given offsets, pitches and tilts of the given element.
@@ -1027,7 +1027,6 @@ end subroutine bbi_kick_matrix
 ! Input:
 !   mat6(6,6) -- Real(rp): Untilted matrix.
 !   ele       -- Ele_struct: Mirror or equivalent.
-!   start     -- Coord_struct: Starting coords
 !
 ! Output:
 !   mat6(6,6) -- Real(rp): Tilted matrix.

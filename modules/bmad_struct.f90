@@ -753,7 +753,7 @@ integer, parameter :: no_end$ = 4, continuous$ = 5, between_ends$ = 6, alive$ = 
 integer, parameter :: lost$ = 10
 character(16), parameter :: element_end_name(0:7) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ', 'Continuous   ', 'Between_Ends ', 'Alive         ']
+      'No_End       ', 'Continuous   ', 'Between_Ends ', 'Alive        ']
 
 ! ref_orbit values.
 
