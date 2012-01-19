@@ -376,10 +376,6 @@ if (version >= 99) then
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1
 endif
 
-
-
-if ((version == 99 .or. version == 100) .and. ele%spin_tracking_method == 0) ele%spin_tracking_method = bmad_standard$
-
 ! Decompress value array
 
 read (d_unit, err = 9110) k_max
@@ -387,10 +383,6 @@ read (d_unit, err = 9120) ix_value(1:k_max), value(1:k_max)
 do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
-
-if (version == 100) then
-  if (attribute_name(ele, 59) == null_name$) ele%value(59) = 0
-endif
 
 ! RF field def
 
