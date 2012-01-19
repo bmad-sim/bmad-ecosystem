@@ -126,7 +126,7 @@ dt_step = ele%value(ds_step$)/c_light
 ds_entrance =  start2%s - (ele%s - ele%value(l$))
 
 select case (param%end_lost_at)
-case (live_reversed$)
+case (live$)
   !Particle is moving backwards from exit end or interior
   !The sign of p0c is used in s->t conversion
   p0c = -1*ele%value(p0c$)
@@ -204,7 +204,7 @@ end%s = end%s + (ele%s - ele%value(l$))
 !Convert back to s-based coordinates
 select case (exit_surface)
 
-  case (live_reversed$) !live_reversed$ is the entrance end
+  case (live$) !live$ is the entrance end
     if (ele_has_constant_reference_energy(ele)) then
       p0c = ele%value(p0c$)
     else  ! lcavity, etc.
@@ -288,7 +288,7 @@ end subroutine
 ! Output:
 !   end     -- Coord_struct: Ending coords: (x, px, y, py, s, ps).
 !   track   -- Track_struct: Structure holding the track information.
-!   exit_surface -- integer: exit surface: live_reversed$, exit_end$, no_end$
+!   exit_surface -- integer: exit surface: live$, exit_end$, no_end$
 !
 !-
 
@@ -386,8 +386,8 @@ do n_step = 1, max_step
 
      exit_flag = .true. 
      s_target = s1
-     exit_surface = live_reversed$
-     !print *, 'Hit entrance end (live_reversed$)'
+     exit_surface = live$
+     !print *, 'Hit entrance end (live$)'
          !Set common structures for zbrent's internal functions 
    ele_com => ele
    param_com => param

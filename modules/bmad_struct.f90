@@ -21,7 +21,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 102
+integer, parameter :: bmad_inc_version$ = 103
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -371,21 +371,22 @@ end type
 ! lattice parameter struct
 
 type lat_param_struct
-  real(rp) :: n_part = 0                 ! Particles/bunch (for BeamBeam elements).
-  real(rp) :: total_length = 0           ! total_length of lat
-  real(rp) :: unstable_factor = 0        ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
-  real(rp) :: t1_with_RF(6,6) = 0        ! Full 1-turn matrix with RF on.
-  real(rp) :: t1_no_RF(6,6) = 0          ! Full 1-turn matrix with RF off.
-  integer :: particle = positron$        ! positron$, electron$, etc.
-  integer :: ix_lost = not_lost$         ! Index of element particle was lost at.
-  integer :: end_lost_at = 0             ! between_ends$, live_reversed$, entrance_end$, or exit_end$
-  integer :: plane_lost_at = 0           ! x_plane$, y_plane$, z_plane$ (reversed direction).
-  integer :: lattice_type = 0            ! linear_lattice$, etc...
-  integer :: ixx = 0                     ! Integer for general use
-  logical :: stable = .false.            ! is closed lat stable?
-  logical :: aperture_limit_on = .true.  ! use apertures in tracking?
-  logical :: lost = .false.              ! for use in tracking
-  type (bookkeeper_status_struct) status ! Overall status for the branch.
+  real(rp) :: n_part = 0                    ! Particles/bunch (for BeamBeam elements).
+  real(rp) :: total_length = 0              ! total_length of lat
+  real(rp) :: unstable_factor = 0           ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
+  real(rp) :: t1_with_RF(6,6) = 0           ! Full 1-turn matrix with RF on.
+  real(rp) :: t1_no_RF(6,6) = 0             ! Full 1-turn matrix with RF off.
+  integer :: particle = positron$           ! positron$, electron$, etc.
+  integer :: ix_lost = not_lost$            ! Index of element particle was lost at.
+  integer :: end_lost_at = 0                ! between_ends$, live$, entrance_end$, or exit_end$
+  integer :: plane_lost_at = 0              ! x_plane$, y_plane$, z_plane$ (reversed direction).
+  integer :: lattice_type = 0               ! linear_lattice$, etc...
+  integer :: ixx = 0                        ! Integer for general use
+  logical :: particle_is_reversed = .false. ! Particle being tracked going in reversed direction?
+  logical :: stable = .false.               ! is closed lat stable?
+  logical :: aperture_limit_on = .true.     ! use apertures in tracking?
+  logical :: lost = .false.                 ! for use in tracking
+  type (bookkeeper_status_struct) status    ! Overall status for the branch.
 end type
 
 !
@@ -747,11 +748,11 @@ character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ',
 ! ele%aperture_at logical definitions.
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
-integer, parameter :: no_end$ = 4, continuous$ = 5, between_ends$ = 6, live_reversed$ = 7
+integer, parameter :: no_end$ = 4, continuous$ = 5, between_ends$ = 6, live$ = 7
 integer, parameter :: lost$ = 10
 character(16), parameter :: element_end_name(0:7) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ', 'Continuous   ', 'Between_Ends ', 'Live_Reversed']
+      'No_End       ', 'Continuous   ', 'Between_Ends ', 'Live         ']
 
 ! ref_orbit values.
 

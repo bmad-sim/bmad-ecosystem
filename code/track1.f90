@@ -182,7 +182,7 @@ if (.not. param%lost) then
   endif
 endif
 
-if (param%lost .and. param%end_lost_at == live_reversed$) then
+if (param%lost .and. param%end_lost_at == live$) then
   param%lost = .false. ! Temp
   if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
                   call check_aperture_limit (start_orb, ele, entrance_end$, param)
