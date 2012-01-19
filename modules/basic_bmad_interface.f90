@@ -520,6 +520,24 @@ interface
 end interface
 
 interface
+  subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
+                    dt1, local_ref_frame, track)
+   use track1_time_runge_kutta_mod
+   use time_tracker_mod
+   use em_field_mod
+   use nr, only: zbrent
+   implicit none
+    type (coord_struct), intent(in) :: start
+    type (ele_struct) , target :: ele
+    type (lat_param_struct), target ::  param
+    type (coord_struct), intent(out) :: end
+    real(rp), intent(in) :: s1, s2, dt1
+    logical, target :: local_ref_frame
+    type (track_struct), optional :: track
+  end subroutine
+end interface
+
+interface
   subroutine orbit_to_dispersion (orb_diff, ele)
     use bmad_struct, only: ele_struct, coord_struct
     implicit none
