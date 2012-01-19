@@ -30,7 +30,7 @@ end module track1_time_runge_kutta_mod
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+ 
-! Subroutine track1_time_runge_kutta(start, ele, param, end, track, inside_start)
+! Subroutine track1_time_runge_kutta(start, ele, param, end, track)
 !
 ! Routine to track a particle through an element using 
 ! Runge-Kutta time-based tracking. Converts to and from element
@@ -187,7 +187,7 @@ else
 
   !If particle passed wall check, track through element
   call odeint_bmad_time(start2, ele, param, end, 0.0_rp, ele%value(l$), &
-    dt_step, local_ref_frame, exit_surface, track )
+    dt_step, local_ref_frame, track )
 
 end if
 
@@ -293,7 +293,7 @@ end subroutine
 !-
 
 subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
-                    dt1, local_ref_frame, exit_surface, track)
+                    dt1, local_ref_frame, track)
 use track1_time_runge_kutta_mod
 use time_tracker_mod
 use em_field_mod
@@ -307,7 +307,7 @@ type (coord_struct), intent(out) :: end
 type (ele_struct) , target :: ele
 type (lat_param_struct), target ::  param
 type (track_struct), optional :: track
-integer, intent(out) :: exit_surface
+integer :: exit_surface
 
 real(rp), intent(in) :: s1, s2, dt1
 real(rp), parameter :: tiny = 1.0e-30_rp, edge_tol = 1e-10
