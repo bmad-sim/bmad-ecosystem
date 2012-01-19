@@ -495,7 +495,7 @@ subroutine qp_draw_polyline_basic (x, y)
   endif
 
   if (size(x) < 2) return
-  call pgline (size(f*x), real(f*x), real(f*y))
+  call pgline (size(x), real(f*x), real(f*y))
 
 end subroutine
 
