@@ -2030,7 +2030,7 @@ case ('unstable.')
       iz = lat%param%ix_lost
       if (iz /= not_lost$ .and. iz <= ix_ele) then
         datum_value = 1 + ix_ele - iz
-        if (lat%param%end_lost_at == entrance_end$) then
+        if (lat%param%particle_at == entrance_end$) then
           orb => orbit(iz-1)
           datum%ix_ele_merit = iz - 1
         else
