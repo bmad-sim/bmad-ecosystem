@@ -44,7 +44,7 @@
 !     %ix_lost       -- Integer: Index of element where particle is lost.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                           z_plane$ (turned around in an lcavity).
-!     %end_lost_at    -- Either entrance_end$ or exit_end$.
+!     %particle_at    -- Either entrance_end$ or exit_end$.
 !   orbit(0:)    -- Coord_struct: Orbit. In particular orbit(ix_end) is
 !                       the coordinates at the end of tracking. 
 !-
@@ -131,9 +131,9 @@ do n = ix1, ix2
 
   if (branch%param%lost) then
     branch%param%ix_lost = n
-    if (branch%param%end_lost_at == exit_end$) then
+    if (branch%param%particle_at == exit_end$) then
       call zero_this_track (n+1, ix2)
-    elseif (branch%param%end_lost_at == entrance_end$) then
+    elseif (branch%param%particle_at == entrance_end$) then
       call zero_this_track (n, ix2)
     else
       call out_io (s_abort$, r_name, 'INTERNAL ERROR')
@@ -185,11 +185,11 @@ do n = ix1, ix2, -1
 
   if (branch%param%lost) then
     branch%param%ix_lost = n
-    if (branch%param%end_lost_at == exit_end$) then
-      branch%param%end_lost_at = entrance_end$
+    if (branch%param%particle_at == exit_end$) then
+      branch%param%particle_at = entrance_end$
       call zero_this_track (ix2-1, n-2)
-    elseif (branch%param%end_lost_at == entrance_end$) then
-      branch%param%end_lost_at = exit_end$
+    elseif (branch%param%particle_at == entrance_end$) then
+      branch%param%particle_at = exit_end$
       call zero_this_track (ix2-1, n-1)
     else
       call out_io (s_abort$, r_name, 'INTERNAL ERROR')

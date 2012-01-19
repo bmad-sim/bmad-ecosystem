@@ -56,7 +56,7 @@ end module track1_time_runge_kutta_mod
 !   end     -- coord_struct: end position, t-based global
 !   track   -- track_struct (optional): particle path
 !   param   -- lat_param_struct: lattice parameters
-!    %end_lost_at -- integer: entrance_end$, exit_end$ or no_end$
+!    %particle_at -- integer: entrance_end$, exit_end$ or no_end$
 !    %lost        -- Set True
 !-
 
@@ -107,7 +107,7 @@ if (ele%value(l$) .eq. 0) then
   !Restore s and t to continue tracking
   end = start
 
-  !Do not need to update param%end_lost_at because it will be
+  !Do not need to update param%particle_at because it will be
   !the same as where it was lost in the previous element
 
   return
@@ -125,8 +125,8 @@ dt_step = ele%value(ds_step$)/c_light
 
 ds_entrance =  start2%s - (ele%s - ele%value(l$))
 
-select case (param%end_lost_at)
-case (live$)
+select case (param%particle_at)
+case (alive$)
   !Particle is moving backwards from exit end or interior
   !The sign of p0c is used in s->t conversion
   p0c = -1*ele%value(p0c$)
@@ -151,7 +151,7 @@ case (exit_end$)
   call apply_element_edge_kick (start2, ele, param, entrance_end$)
 
 case default
-  call out_io (s_fatal$, r_name, 'BAD ENTRANCE SURFACE: \i0\ ', param%end_lost_at)
+  call out_io (s_fatal$, r_name, 'BAD ENTRANCE SURFACE: \i0\ ', param%particle_at)
   call err_exit
 end select
 
@@ -204,7 +204,7 @@ end%s = end%s + (ele%s - ele%value(l$))
 !Convert back to s-based coordinates
 select case (exit_surface)
 
-  case (live$) !live$ is the entrance end
+  case (alive$) !alive$ is the entrance end
     if (ele_has_constant_reference_energy(ele)) then
       p0c = ele%value(p0c$)
     else  ! lcavity, etc.
@@ -246,7 +246,7 @@ case default
 end select
 
 !Return the exit surface information through the lat_param_struct
-param%end_lost_at = exit_surface
+param%particle_at = exit_surface
 
 end subroutine
 
@@ -288,7 +288,7 @@ end subroutine
 ! Output:
 !   end     -- Coord_struct: Ending coords: (x, px, y, py, s, ps).
 !   track   -- Track_struct: Structure holding the track information.
-!   exit_surface -- integer: exit surface: live$, exit_end$, no_end$
+!   exit_surface -- integer: exit surface: alive$, exit_end$, no_end$
 !
 !-
 
@@ -386,8 +386,8 @@ do n_step = 1, max_step
 
      exit_flag = .true. 
      s_target = s1
-     exit_surface = live$
-     !print *, 'Hit entrance end (live$)'
+     exit_surface = alive$
+     !print *, 'Hit entrance end (alive$)'
          !Set common structures for zbrent's internal functions 
    ele_com => ele
    param_com => param

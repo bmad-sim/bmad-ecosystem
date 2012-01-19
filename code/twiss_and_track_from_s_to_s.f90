@@ -34,7 +34,7 @@
 !       %ix_lost       -- Integer: Set to index of element where particle is lost.
 !       %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                           z_plane$ (turned around in an lcavity).
-!       %end_lost_at   -- entrance_end$ or exit_end$.
+!       %particle_at   -- entrance_end$ or exit_end$.
 !   orbit_end      -- Coord_struct, optional: End phase space coordinates. 
 !                       If present then the orbit_start argument must also be present.
 !   ele_end        -- Ele_struct, optional: Holds the ending Twiss parameters.

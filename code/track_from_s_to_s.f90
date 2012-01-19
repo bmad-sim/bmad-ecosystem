@@ -22,7 +22,7 @@
 !     %ix_lost       -- Integer: Set to index of element where particle is lost.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
-!     %end_lost_at   -- entrance_end$ or exit_end$.
+!     %particle_at   -- entrance_end$ or exit_end$.
 !   orbit_end   -- coord_struct: Ending coordinates.
 !   all_orb(0:) -- coord_struct, allocatable, optional: If present then the orbit at the exit ends
 !                   of the elements tracked through will be recorded in this structure. 

@@ -927,7 +927,7 @@ f => f_lat_param
 
 call lat_param_to_c2 (c_lat_param, f%n_part, f%total_length, f%unstable_factor, &
       mat2arr(f%t1_with_RF), mat2arr(f%t1_no_RF), &
-      f%particle, f%ix_lost, f%end_lost_at, f%plane_lost_at, f%lattice_type, &
+      f%particle, f%ix_lost, f%particle_at, f%plane_lost_at, f%lattice_type, &
       f%ixx, c_logic(f%stable), c_logic(f%aperture_limit_on), c_logic(f%lost))
 
 end subroutine
@@ -936,7 +936,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine lat_param_to_f2 (f_lat_param, n_part, total_length, &
-!      growth_rate, m1, m2, particle, ix_lost, end_lost_at, plane_lost_at, &
+!      growth_rate, m1, m2, particle, ix_lost, particle_at, plane_lost_at, &
 !      lat_type, ixx, stable, ap_limit_on, lost)
 !
 ! Subroutine used by lat_param_to_f to convert a C++ C_lat_param into
@@ -944,7 +944,7 @@ end subroutine
 !-
 
 subroutine lat_param_to_f2 (f_lat_param, n_part, total_length, &
-      growth_rate, m1, m2, particle, ix_lost, end_lost_at, plane_lost_at, &
+      growth_rate, m1, m2, particle, ix_lost, particle_at, plane_lost_at, &
       lat_type, ixx, stable, ap_limit_on, lost) 
 
 use fortran_and_cpp
@@ -956,13 +956,13 @@ implicit none
 type (lat_param_struct) f_lat_param
 real(rp) n_part, total_length, growth_rate
 real(rp) m1(36), m2(36)
-integer particle, ix_lost, end_lost_at, lat_type, ixx, stable, &
+integer particle, ix_lost, particle_at, lat_type, ixx, stable, &
         ap_limit_on, lost, plane_lost_at
 
 ! Added status component
 
 !f_lat_param = lat_param_struct(n_part, total_length, growth_rate, &
-!      arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, ix_lost, end_lost_at, &
+!      arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, ix_lost, particle_at, &
 !      plane_lost_at, lat_type, ixx, f_logic(stable), f_logic(ap_limit_on), &
 !      f_logic(lost))
 
