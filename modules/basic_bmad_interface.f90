@@ -335,14 +335,14 @@ interface
 end interface
 
 interface
-  recursive subroutine make_mat6 (ele, param, start_orb, end_orb, end_in, err)
+  recursive subroutine make_mat6 (ele, param, start_orb, end_orb, end_in, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct) ele
     type (coord_struct), optional :: start_orb, end_orb
     type (lat_param_struct) param
     logical, optional :: end_in
-    logical, optional :: err
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -658,12 +658,13 @@ interface
 end interface
 
 interface
-  recursive subroutine lat_make_mat6 (lat, ix_ele, coord, ix_branch)
+  recursive subroutine lat_make_mat6 (lat, ix_ele, coord, ix_branch, err_flag)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct), target :: lat
     type (coord_struct), optional :: coord(0:)
     integer, optional :: ix_ele, ix_branch
+    logical, optional :: err_flag
   end subroutine
 end interface
 
