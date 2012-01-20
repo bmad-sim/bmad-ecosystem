@@ -401,12 +401,10 @@ do
 
   call calc_superimpose_key(slave_saved, super_saved, slave)
   if (slave%key <= 0) then
-    call out_io (s_abort$, r_name, [ &
-            'ELEMENT: ' // trim(super_saved%name), &
-            'OF TYPE: ' // key_name(super_saved%key), &
-            'IS TO BE SUPERIMPOSED UPON: ' // trim(slave_saved%name), &
-            'OF TYPE: ' // key_name(slave_saved%key), &
-            'I DO NOT KNOW HOW TO DO THIS!'] )
+    call out_io (s_abort$, r_name, &
+            'I DO NOT KNOW HOW TO SUPERIMPOSE ELEMENT: "' // trim(super_saved%name) // &
+                                               '" OF TYPE: ' // key_name(super_saved%key), &
+            'UPON: "' // trim(slave_saved%name) // '" OF TYPE: ' // key_name(slave_saved%key))
     if (bmad_status%exit_on_error) call err_exit 
     return                   
   endif

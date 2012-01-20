@@ -2369,19 +2369,12 @@ key3 => ele3%key
 key3 = -1  ! Default if no superimpse possible
 ele3%sub_key = 0
 
-! em_field
+! control elements cannot be superimposed.
 
-if (logic_option(.false., create_em_field_slave)) then
-  if (ele_has_constant_reference_energy(ele1) .and. ele_has_constant_reference_energy(ele2)) then
-    ele3%sub_key = const_ref_energy$
-  else
-    ele3%sub_key = nonconst_ref_energy$
-  endif
-  key3 = em_field$
-  return
-endif
+if (any(key1 == [overlay$, group$, girder$])) return
+if (any(key2 == [overlay$, group$, girder$])) return
 
-! Wiggler case
+! Superimposing two wigglers results in em_field
 
 if (key1 == key2) then
   if (key1 == wiggler$) then
@@ -2449,7 +2442,25 @@ if (any(key2 == [kicker$, hkicker$, vkicker$])) then
   return
 endif
 
-! General case
+! General case...
+
+! sbend elements are problematical due to the different reference orbit so cannot superimpose them
+
+if (key1 == sbend$ .or. key2 == sbend$) return
+
+! em_field wanted
+
+if (logic_option(.false., create_em_field_slave)) then
+  if (ele_has_constant_reference_energy(ele1) .and. ele_has_constant_reference_energy(ele2)) then
+    ele3%sub_key = const_ref_energy$
+  else
+    ele3%sub_key = nonconst_ref_energy$
+  endif
+  key3 = em_field$
+  return
+endif
+
+!
 
 select case (key1)
 
@@ -2474,19 +2485,13 @@ end select
 if (key3 /= -1) return  ! Have found something
 
 ! Only thing left is to use em_field type element.
-! sbend is not allowed here.
 
-if (key1 == sbend$ .or. key2 == sbend$) return
-
-if (logic_option(.false., create_em_field_slave)) then
-  if (ele_has_constant_reference_energy(ele1) .and. ele_has_constant_reference_energy(ele2)) then
-    ele3%sub_key = const_ref_energy$
-  else
-    ele3%sub_key = nonconst_ref_energy$
-  endif
-  key3 = em_field$
+if (ele_has_constant_reference_energy(ele1) .and. ele_has_constant_reference_energy(ele2)) then
+  ele3%sub_key = const_ref_energy$
+else
+  ele3%sub_key = nonconst_ref_energy$
 endif
-
+key3 = em_field$
 
 end subroutine calc_superimpose_key
 
