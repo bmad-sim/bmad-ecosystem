@@ -143,19 +143,20 @@ interface
 end interface
 
 interface
-  subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start)
+  subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
     use bmad_struct, only: rp, ele_struct, lat_param_struct
     type (ele_struct) ele
     type (lat_param_struct) param
     real(rp) e_tot_start, p0c_start, ref_time_start
+    logical err_flag
   end subroutine
 end interface
 
 interface
-  subroutine lat_compute_reference_energy (lat, compute)
+  subroutine lat_compute_reference_energy (lat, err_flag)
     use bmad_struct, only: lat_struct
     type (lat_struct) lat
-    logical, optional :: compute
+    logical, optional :: err_flag
   end subroutine
 end interface
 

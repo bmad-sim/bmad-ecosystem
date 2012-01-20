@@ -1788,8 +1788,10 @@ if (.not. ele_has_constant_reference_energy(sliced_ele)) then
   call transfer_ele (sliced_ele, ele2)
   ele2%value(l$) = offset
   ele2%s = ele_in%s - ele_in%value(l$) + offset
-  call compute_ele_reference_energy (ele2, param, ele_in%value(e_tot_start$), ele_in%value(p0c_start$), ele_in%ref_time)
-  call compute_ele_reference_energy (sliced_ele, param, ele2%value(e_tot_start$), ele2%value(p0c_start$), ele2%ref_time)
+  call compute_ele_reference_energy (ele2, param, ele_in%value(e_tot_start$), ele_in%value(p0c_start$), ele_in%ref_time, err2_flag)
+  if (err2_flag) return
+  call compute_ele_reference_energy (sliced_ele, param, ele2%value(e_tot_start$), ele2%value(p0c_start$), ele2%ref_time, err2_flag)
+  if (err2_flag) return
 endif
 
 err_flag = .false.
