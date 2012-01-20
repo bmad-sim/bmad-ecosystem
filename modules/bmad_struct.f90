@@ -11,7 +11,8 @@ use bmad_taylor_mod
 use random_mod
 use wall3d_mod
 
-use tpsalie_analysis, only: genfield
+use definition, only: genfield
+use s_fitting_new, only: fibre
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -295,7 +296,8 @@ type ele_struct
   type (mode3_struct), pointer :: mode3 => null()
   type (coord_struct) map_ref_orb_in                        ! Ref orbit at entrance of element.
   type (coord_struct) map_ref_orb_out                       ! Ref orbit at exit of element.
-  type (genfield), pointer :: gen_field => null()           ! For symp_map$
+  type (genfield), pointer :: ptc_genfield => null()        ! For symp_map$
+  type (fibre), pointer :: ptc_fiber                        ! PTC tracking.
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
@@ -911,22 +913,25 @@ type bmad_common_struct
   real(rp) :: significant_length = 1e-10 ! meter 
   real(rp) :: rel_tolerance = 1e-6
   real(rp) :: abs_tolerance = 1e-8
-  real(rp) :: rel_tol_adaptive_tracking = 1e-8    ! Adaptive tracking relative tolerance.
-  real(rp) :: abs_tol_adaptive_tracking = 1e-10   ! Adaptive tracking absolute tolerance.
-  integer :: taylor_order = 3                     ! 3rd order is default
-  integer :: default_integ_order = 2              ! PTC integration order
-  logical :: canonical_coords = .true.            ! NOT USED.
-  logical :: sr_wakes_on = .true.                 ! Short range wakefields?
-  logical :: lr_wakes_on = .true.                 ! Long range wakefields
-  logical :: mat6_track_symmetric = .true.        ! symmetric offsets
-  logical :: auto_bookkeeper = .true.             ! Automatic bookkeeping?
-  logical :: space_charge_on = .false.            ! Space charge switch
-  logical :: coherent_synch_rad_on = .false.      ! csr 
-  logical :: spin_tracking_on = .false.           ! spin tracking?
-  logical :: radiation_damping_on = .false.       ! Damping toggle.
-  logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
-  logical :: conserve_taylor_maps = .true.        ! Enable bookkeeper to set
-                                                  ! ele%map_with_offsets = F?
+  real(rp) :: rel_tol_adaptive_tracking = 1e-8     ! Adaptive tracking relative tolerance.
+  real(rp) :: abs_tol_adaptive_tracking = 1e-10    ! Adaptive tracking absolute tolerance.
+  integer :: taylor_order = 3                      ! 3rd order is default
+  integer :: default_integ_order = 2               ! PTC integration order
+  logical :: canonical_coords = .true.             ! NOT USED.
+  logical :: sr_wakes_on = .true.                  ! Short range wakefields?
+  logical :: lr_wakes_on = .true.                  ! Long range wakefields
+  logical :: mat6_track_symmetric = .true.         ! symmetric offsets
+  logical :: auto_bookkeeper = .true.              ! Automatic bookkeeping?
+  logical :: space_charge_on = .false.             ! Space charge switch
+  logical :: coherent_synch_rad_on = .false.       ! csr 
+  logical :: spin_tracking_on = .false.            ! spin tracking?
+  logical :: radiation_damping_on = .false.        ! Damping toggle.
+  logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
+  logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set
+                                                   ! ele%map_with_offsets = F?
+  logical :: auto_rf_phase_and_amp_adjust = .true. ! See rf_accel_mode_adjust_phase_and_amp routine.
+  logical :: use_single_ptc_fiber = .true.         ! 
+  logical :: absolute_time_tracking = .false.      ! Use absolute time in RF cavities?
 end type
   
 type (bmad_common_struct), save :: bmad_com

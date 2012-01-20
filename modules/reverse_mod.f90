@@ -274,9 +274,9 @@ if (associated(ele%taylor(1)%term)) then
 
 endif
 
-! kill any gen_field
+! kill any ptc_genfield
 
-if (associated(ele%gen_field)) call kill_gen_field (ele%gen_field)
+if (associated(ele%ptc_genfield)) call kill_ptc_genfield (ele%ptc_genfield)
 
 ! reverse mat6
 

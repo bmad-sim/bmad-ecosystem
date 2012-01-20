@@ -59,19 +59,19 @@ subroutine track1_this_body
 
 ! Make the genfield map if needed.
 
-if (.not. (associated(ele%gen_field) .and. &
+if (.not. (associated(ele%ptc_genfield) .and. &
                               associated(ele%taylor(1)%term))) then
   if (.not. associated(ele%taylor(1)%term)) &
                               call ele_to_taylor(ele, param, start2)
-  call kill_gen_field (ele%gen_field)  ! clean up if necessary
-  allocate (ele%gen_field)
-  call taylor_to_genfield (ele%taylor, ele%gen_field, ele%gen0)
+  call kill_ptc_genfield (ele%ptc_genfield)  ! clean up if necessary
+  allocate (ele%ptc_genfield)
+  call taylor_to_genfield (ele%taylor, ele%ptc_genfield, ele%gen0)
 endif
 
 ! track and add the constant term back in
 
 call vec_bmad_to_ptc (start2%vec, re(1:6))
-re = ele%gen_field * re
+re = ele%ptc_genfield * re
 call vec_ptc_to_bmad (re(1:6), end%vec)
 end%vec = end%vec + ele%gen0
 

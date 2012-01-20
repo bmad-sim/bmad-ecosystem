@@ -1196,7 +1196,7 @@ end subroutine concat_real_8
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
+! Subroutine taylor_to_genfield (bmad_taylor, ptc_genfield, c0)
 !
 ! Subroutine to construct a genfield (partially inverted map) from a taylor
 ! map.
@@ -1210,18 +1210,18 @@ end subroutine concat_real_8
 !   bmad_taylor(6) -- Taylor_struct: Input taylor map.
 !
 ! Output:
-!   gen_field      -- Genfield: Output partially inverted map.
+!   ptc_genfield      -- Genfield: Output partially inverted map.
 !   c0(6)          -- Real(rp): The constant part of the bmad_taylor map
 !-
 
-subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
+subroutine taylor_to_genfield (bmad_taylor, ptc_genfield, c0)
 
 use s_fitting, only: alloc, kill, assignment(=), damap, real_8
 
 implicit none
 
 type (taylor_struct), intent(in) :: bmad_taylor(6)
-type (genfield), intent(inout) :: gen_field
+type (genfield), intent(inout) :: ptc_genfield
 type (taylor_struct) taylor(6)
 type (damap) da_map
 type (real_8) y(6)
@@ -1240,15 +1240,15 @@ call remove_constant_taylor (bmad_taylor, taylor, c0, .true.)
 
 ! allocate pointers
 
-call alloc (gen_field)
+call alloc (ptc_genfield)
 call alloc (da_map)
 call alloc (y)
 
-! calculate the gen_field
+! calculate the ptc_genfield
 
 y = taylor
 da_map = y
-gen_field = da_map
+ptc_genfield = da_map
 
 ! cleanup
 
@@ -1832,7 +1832,7 @@ ele%taylor = y
 call kill(a_fibre)
 call kill(y)
 
-if (associated (ele%gen_field)) call kill_gen_field (ele%gen_field)
+if (associated (ele%ptc_genfield)) call kill_ptc_genfield (ele%ptc_genfield)
 
 ! For wigglers there is a z_patch to take out the non-zero z offset that an
 ! on axis particle gets.

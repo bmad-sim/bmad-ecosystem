@@ -43,7 +43,7 @@ subroutine create_girder (lat, ix_girder, contrl, ele_init)
 
   type (lat_struct), target :: lat
   type (ele_struct), optional :: ele_init
-  type (ele_struct), pointer ::  slave, girder
+  type (ele_struct), pointer ::  slave, girder_ele
   type (control_struct)  contrl(:)
 
   integer, intent(in) :: ix_girder
@@ -54,7 +54,7 @@ subroutine create_girder (lat, ix_girder, contrl, ele_init)
 
 ! Mark element as an girder lord
 
-  girder => lat%ele(ix_girder)
+  girder_ele => lat%ele(ix_girder)
 
   n_slave = size (contrl)
   ix = lat%n_control_max
@@ -69,11 +69,11 @@ subroutine create_girder (lat, ix_girder, contrl, ele_init)
     lat%control(ix+j)%ix_attrib = 0
   enddo
 
-  girder%n_slave = n_slave
-  girder%ix1_slave = ix + 1
-  girder%ix2_slave = ix + n_slave
-  girder%lord_status = girder_lord$
-  girder%key = girder$
+  girder_ele%n_slave = n_slave
+  girder_ele%ix1_slave = ix + 1
+  girder_ele%ix2_slave = ix + n_slave
+  girder_ele%lord_status = girder_lord$
+  girder_ele%key = girder$
   lat%n_control_max = n_con2
 
 ! Loop over all slaves
@@ -82,9 +82,9 @@ subroutine create_girder (lat, ix_girder, contrl, ele_init)
   s_max = -1e30  ! something large and negative
   s_min =  1e30  ! something large and positive
 
-  do i = 1, girder%n_slave
+  do i = 1, girder_ele%n_slave
 
-    slave => pointer_to_slave(girder, i)
+    slave => pointer_to_slave(girder_ele, i)
 
     if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
                                                   slave%slave_status = overlay_slave$
@@ -94,7 +94,7 @@ subroutine create_girder (lat, ix_girder, contrl, ele_init)
     if (slave%slave_status == super_slave$ .or. slave%lord_status == group_lord$ .or. &
                                             slave%lord_status == overlay_lord$) then
       print *, 'ERROR IN CREATE_GIRDER: ILLEGAL GIRDER ON ', slave%name
-      print *, '      BY: ', girder%name
+      print *, '      BY: ', girder_ele%name
       call err_exit
     endif
 
@@ -114,17 +114,17 @@ subroutine create_girder (lat, ix_girder, contrl, ele_init)
 
 ! center of girder
 
-  girder%value(s_center$) = (s_max + s_min) / 2
+  girder_ele%value(s_center$) = (s_max + s_min) / 2
 
 ! ele_init stuff
 
   if (present(ele_init)) then
-    girder%name    = ele_init%name
-    girder%alias   = ele_init%alias
-    girder%value   = ele_init%value
+    girder_ele%name    = ele_init%name
+    girder_ele%alias   = ele_init%alias
+    girder_ele%value   = ele_init%value
     if (associated(ele_init%descrip)) then
-      allocate (girder%descrip)
-      girder%descrip = ele_init%descrip
+      allocate (girder_ele%descrip)
+      girder_ele%descrip = ele_init%descrip
     endif
   endif
 

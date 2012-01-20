@@ -1338,7 +1338,7 @@ value(1:) = f%value
 
 call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       c_str(f%component_name), c_str(descrip), f%a, f%b, f%z, f%x, f%y, &
-      f%floor, f%map_ref_orb_in, f%map_ref_orb_out, f%gen_field, &
+      f%floor, f%map_ref_orb_in, f%map_ref_orb_out, f%ptc_genfield, &
       f%taylor(1), f%taylor(2), f%taylor(3), f%taylor(4), f%taylor(5), f%taylor(6), &
       n_wig, value, f%gen0, f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, f%ref_time, &
       r_arr, nr1, nr2, f%a_pole, f%b_pole, r_size(f%a_pole), f%const, r_size(f%const), &
@@ -1438,7 +1438,7 @@ call floor_position_to_f (floor, f%floor)
 call coord_to_f (ref_orb_in, f%map_ref_orb_in)
 call coord_to_f (ref_orb_out, f%map_ref_orb_out)
 
-f%gen_field => gen_f
+f%ptc_genfield => gen_f
 
 call taylor_to_f (tlr1, f%taylor(1))
 call taylor_to_f (tlr2, f%taylor(2))

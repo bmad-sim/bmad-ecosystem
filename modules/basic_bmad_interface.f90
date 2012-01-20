@@ -124,15 +124,15 @@ interface
 end interface
 
 interface
- subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
+  subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
                                                eps_rel, eps_abs, init_guess)
-   use bmad_struct, only: lat_struct, rp, coord_struct
-   type (lat_struct) lat
-   type (coord_struct), allocatable :: closed_orb(:)
-   type (coord_struct), optional :: init_guess
-   real(rp), intent(in), optional :: eps_rel(:), eps_abs(:)
-   integer i_dim
- end subroutine
+    use bmad_struct, only: lat_struct, rp, coord_struct
+    type (lat_struct) lat
+    type (coord_struct), allocatable :: closed_orb(:)
+    type (coord_struct), optional :: init_guess
+    real(rp), intent(in), optional :: eps_rel(:), eps_abs(:)
+    integer i_dim
+  end subroutine
 end interface
 
 interface

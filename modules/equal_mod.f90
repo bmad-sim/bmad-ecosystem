@@ -229,11 +229,11 @@ endif
 ele1%rf_wake => ele_save%rf_wake  ! reinstate
 call transfer_rf_wake (ele2%rf_wake, ele1%rf_wake)
 
-! %gen_fields are hard because it involves pointers in PTC.
-! just kill the gen_field in ele1 for now.
+! %ptc_genfields are hard because it involves pointers in PTC.
+! just kill the ptc_genfield in ele1 for now.
 
-if (associated(ele_save%gen_field)) call kill_gen_field (ele_save%gen_field)
-if (associated(ele1%gen_field)) nullify (ele1%gen_field)
+if (associated(ele_save%ptc_genfield)) call kill_ptc_genfield (ele_save%ptc_genfield)
+if (associated(ele1%ptc_genfield)) nullify (ele1%ptc_genfield)
 
 end subroutine ele_equal_ele
 

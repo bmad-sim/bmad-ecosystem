@@ -66,6 +66,7 @@ logical step_up_seen
 
 ! Init
 
+if (.not. bmad_com%auto_rf_phase_and_amp_adjust) return
 if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
 
 nullify(field_scale)
