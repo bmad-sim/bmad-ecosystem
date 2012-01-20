@@ -446,7 +446,7 @@ end subroutine zero_ele_offsets
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta)
+! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)
 !
 ! Routine to calculate the momentum, etc. from a particle's total energy.
 !
@@ -458,15 +458,16 @@ end subroutine zero_ele_offsets
 !   particle -- Integer: Type of particle. positron$, etc.
 !
 ! Output:
-!   gamma   -- Real(rp), optional: Gamma factor. Set to -1 for photons.
-!   kinetic -- Real(rp), optional: Kinetic energy
-!   beta    -- Real(rp), optional: velocity / c_light
-!   pc      -- Real(rp), optional: Particle momentum
-!   brho    -- Real(rp), optional: Nominal B_field*rho_bend
-!   dbeta   -- Real(rp), optional: 1 - beta. Equal to 1/(2*gamma^2) in ultra-rel limit.
+!   gamma    -- Real(rp), optional: Gamma factor. Set to -1 for photons.
+!   kinetic  -- Real(rp), optional: Kinetic energy
+!   beta     -- Real(rp), optional: velocity / c_light
+!   pc       -- Real(rp), optional: Particle momentum
+!   brho     -- Real(rp), optional: Nominal B_field*rho_bend
+!   dbeta    -- Real(rp), optional: 1 - beta. Equal to 1/(2*gamma^2) in ultra-rel limit.
+!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta)
+subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)
 
 implicit none
 
@@ -475,14 +476,19 @@ real(rp), intent(out), optional :: kinetic, beta, pc, brho, gamma, dbeta
 real(rp) pc_new, mc2, g2
 
 integer, intent(in) :: particle
+logical, optional :: err_flag
+
 character(20) :: r_name = 'convert_total_energy_to'
 
 !
 
+if (present(err_flag)) err_flag = .true.
+
 mc2 = mass_of(particle)
 if (E_tot < mc2) then
   call out_io (s_abort$, r_name, 'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
 
 pc_new = E_tot * sqrt(1.0 - (mc2/E_tot)**2)
@@ -508,13 +514,15 @@ if (present(dbeta)) then
   endif
 endif
 
+if (present(err_flag)) err_flag = .false.
+
 end subroutine convert_total_energy_to
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta)
+! Subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta, err_flag)
 !
 ! Routine to calculate the energy, etc. from a particle's momentum.
 !
@@ -526,15 +534,16 @@ end subroutine convert_total_energy_to
 !   particle -- Integer: Type of particle. positron$, etc.
 !
 ! Output:
-!   E_tot   -- Real(rp), optional: Total energy of the particle.
-!   gamma   -- Real(rp), optional: Gamma factor.
-!   kinetic -- Real(rp), optional: Kinetic energy
-!   beta    -- Real(rp), optional: velocity / c_light
-!   brho    -- Real(rp), optional: Nominal B_field*rho_bend
-!   dbeta   -- Real(rp), optional: 1 - beta. Equal to 1/(2*gamma^2) in ultra-rel limit.
+!   E_tot    -- Real(rp), optional: Total energy of the particle.
+!   gamma    -- Real(rp), optional: Gamma factor.
+!   kinetic  -- Real(rp), optional: Kinetic energy
+!   beta     -- Real(rp), optional: velocity / c_light
+!   brho     -- Real(rp), optional: Nominal B_field*rho_bend
+!   dbeta    -- Real(rp), optional: 1 - beta. Equal to 1/(2*gamma^2) in ultra-rel limit.
+!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta)
+subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta, err_flag)
 
 implicit none
 
@@ -545,9 +554,13 @@ real(rp), save :: particle_old = 0, pc_old = -1, mc2, E_tot_this
 
 
 integer, intent(in) :: particle
+logical, optional :: err_flag
+
 character(20) :: r_name = 'convert_pc_to'
 
 !
+
+if (present(err_flag)) err_flag = .false.
 
 if (particle_old /= particle .or. pc_old /= pc) then
   mc2 = mass_of(particle)
@@ -570,6 +583,8 @@ if (present(dbeta)) then
     dbeta = 1 - pc / E_tot_this
   endif
 endif
+
+if (present(err_flag)) err_flag = .false.
 
 end subroutine convert_pc_to
 

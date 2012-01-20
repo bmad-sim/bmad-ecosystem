@@ -40,6 +40,8 @@ integer, optional :: ix_branch
 
 character(16), parameter :: r_name = 'insert_element'
 
+logical err_flag
+
 ! transfer_ele is fast since it re reuse storage.
 
 ix_br = integer_option(0, ix_branch)
@@ -94,7 +96,7 @@ call set_flags_for_changed_attribute (lat, inserted_ele)
 if (ele_has_constant_reference_energy(inserted_ele) .and. insert_index > 0) then
   ele0 => branch%ele(insert_index-1)
   if (ele0%value(e_tot$) /= 0) then
-    call compute_ele_reference_energy (inserted_ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
+    call compute_ele_reference_energy (inserted_ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err_flag)
   endif
 endif
 

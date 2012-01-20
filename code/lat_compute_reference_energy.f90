@@ -1,5 +1,5 @@
 !+
-! Subroutine lat_compute_reference_energy (lat)
+! Subroutine lat_compute_reference_energy (lat, err_flag)
 !
 ! Subroutine to compute the energy, momentum and time of the reference particle for 
 ! each element in a lat structure.
@@ -12,13 +12,14 @@
 !     %ele(0)%value(E_tot$) -- Energy at the start of the lattice.
 !
 ! Output:
-!   lat -- lat_struct
+!   lat      -- lat_struct
 !     %ele(:)%value(E_tot$) -- Reference energy at the exit end.
 !     %ele(:)%value(p0c$)   -- Reference momentum at the exit end.
 !     %ele(:)%ref_time      -- Reference time from the beginning at the exit end.
+!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine lat_compute_reference_energy (lat)
+subroutine lat_compute_reference_energy (lat, err_flag)
 
 use lat_ele_loc_mod
 use bookkeeper_mod
@@ -33,11 +34,14 @@ type (branch_struct), pointer :: branch
 
 integer i, k, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 
-logical did_set, stale
+logical did_set, stale, err
+logical, optional :: err_flag
 
 character(24), parameter :: r_name = 'lat_compute_reference_energy'
 
 ! propagate the energy through the tracking part of the lattice
+
+if (present(err_flag)) err_flag = .true.
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -85,7 +89,8 @@ do ib = 0, ubound(lat%branch, 1)
         'E_TOT_START OR P0C_START MUST BE SET IN A BRANCHING ELEMENT IF THE PARTICLE IN ', &
         'THE "FROM" BRANCH IS DIFFERENT FROM THE PARTICLE IN THE "TO" BRANCH.', &
         'PROBLEM OCCURS WITH BRANCH ELEMENT: ' // branch_ele%name) 
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
+      return
     endif
 
     stale = .true.
@@ -126,14 +131,16 @@ do ib = 0, ubound(lat%branch, 1)
         endif
         ! This adjusts the RF phase and amplitude
         call compute_ele_reference_energy (lord, branch%param, &
-                                              ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
+                                              ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
+        if (err) return
         call control_bookkeeper (lat, lord)
       enddo
     endif
 
     ! Calculate the energy at the end of the present element.
 
-    call compute_ele_reference_energy (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
+    call compute_ele_reference_energy (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
+    if (err) return
 
     call set_ele_status_stale (ele, branch%param, attribute_group$)
     call set_lords_status_stale (ele, lat, ref_energy_group$)
@@ -203,13 +210,15 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
 enddo
 
+if (present(err_flag)) err_flag = .false.
+
 end subroutine lat_compute_reference_energy
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start)
+! Subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
 !
 ! Routine to compute the reference energy and reference time at the end of an element 
 ! given the reference enegy and reference time at the start of the element.
@@ -220,12 +229,13 @@ end subroutine lat_compute_reference_energy
 !   e_tot_start    -- Real(rp): Entrance end energy.
 !   p0c_start      -- Real(rp): Entrance end momentum
 !   ref_time_start -- Real(rp): Entrance end reference time
+!   err_flag       -- Logical: Set true if there is an error. False otherwise.
 !
 ! Output:
 !   ele         -- Ele_struct: Lattice element with reference energy and time.
 !-
 
-subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start)
+subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
 
 use lat_ele_loc_mod
 use rf_mod
@@ -238,8 +248,11 @@ type (coord_struct) start_orb, end_orb
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
 integer key
+logical err_flag, err
 
 ! Treat an accelerating em_field element like an lcavity
+
+err_flag = .true.
 
 key = ele%key
 if (ele%key == em_field$ .and. .not. ele_has_constant_reference_energy(ele)) key = lcavity$
@@ -257,7 +270,8 @@ case (lcavity$)
   if (ele%tracking_method == bmad_standard$) then
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
     E_tot = E_tot_start + ele%value(gradient$) * ele%value(l$) * cos(phase)
-    call convert_total_energy_to (E_tot, param%particle, pc = p0c)
+    call convert_total_energy_to (E_tot, param%particle, pc = p0c, err_flag = err)
+    if (err) return
     ele%value(E_tot$) = E_tot
     ele%value(p0c$) = p0c
 
@@ -297,7 +311,8 @@ case (lcavity$)
     p0c = ele%value(p0c$)
     ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
     ele%value(p0c$) = p0c * (1 + end_orb%vec(6))
-    call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$))
+    call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
+    if (err) return
   endif
 
 case (custom$, hybrid$)
@@ -305,7 +320,8 @@ case (custom$, hybrid$)
   ele%value(p0c_start$) = p0c_start
 
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e$)
-  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$))
+  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
+  if (err) return
 
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
@@ -314,7 +330,8 @@ case (e_gun$)
   ele%value(p0c_start$) = p0c_start
 
   ele%value(E_tot$) = E_tot_start + ele%value(voltage$)
-  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$))
+  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
+  if (err) return
 
   ele2 = ele
   call zero_ele_offsets (ele2)
@@ -337,7 +354,8 @@ case (patch$)
 
   if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
     ele%value(E_tot$) = e_tot_start + ele%value(e_tot_offset$)
-    call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$))
+    call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
+    if (err) return
   else
     ele%value(E_tot$) = E_tot_start
     ele%value(p0c$) = p0c_start
@@ -365,5 +383,7 @@ end select
 
 ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
+
+err_flag = .false.
 
 end subroutine compute_ele_reference_energy
