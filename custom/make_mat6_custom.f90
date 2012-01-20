@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6_custom (ele, param, c0, c1)
+! Subroutine make_mat6_custom (ele, param, c0, c1, err_flag)
 !
 ! Dummy subroutine for custom calculation of the transfer matrix. 
 ! If called, this routine will generate an error message and quit.
@@ -20,29 +20,34 @@
 !   c0     -- Coord_struct: Coordinates at the beginning of element. 
 !
 ! Output:
-!   ele    -- Ele_struct: Element with transfer matrix.
-!     %mat6  -- 6x6 transfer matrix.
-!   c1     -- Coord_struct: Coordinates at the end of element.
+!   ele      -- Ele_struct: Element with transfer matrix.
+!     %mat6    -- 6x6 transfer matrix.
+!   c1       -- Coord_struct: Coordinates at the end of element.
+!   err_flag -- Logical: err_flag
 !+
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6_custom (ele, param, c0, c1)
+subroutine make_mat6_custom (ele, param, c0, c1, err_flag)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => make_mat6_custom
+use bmad_struct
+use bmad_interface, except_dummy => make_mat6_custom
 
-  implicit none
+implicit none
 
-  type (ele_struct), target :: ele
-  type (coord_struct) :: c0, c1
-  type (lat_param_struct)  param
+type (ele_struct), target :: ele
+type (coord_struct) :: c0, c1
+type (lat_param_struct)  param
+
+logical :: err_flag
 
 !
 
-  print *, 'ERROR: DUMMY MAKE_MAT6_CUSTOM CALLED FOR: ', ele%name
-  print *, '       EITHER CUSTOM MAT6_CALC_METHOD WAS CALLED BY MISTAKE,'
-  print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
-  call err_exit
+err_flag = .false.
+
+print *, 'ERROR: DUMMY MAKE_MAT6_CUSTOM CALLED FOR: ', ele%name
+print *, '       EITHER CUSTOM MAT6_CALC_METHOD WAS CALLED BY MISTAKE,'
+print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
+call err_exit
 
 end subroutine

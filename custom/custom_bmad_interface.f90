@@ -44,22 +44,24 @@ interface
 end interface
 
 interface
-  subroutine make_mat6_custom (ele, param, start, end)
+  subroutine make_mat6_custom (ele, param, start, end, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start, end
     type (lat_param_struct) param
+    logical :: err_flag
   end subroutine
 end interface
 
 interface
-  subroutine make_mat6_custom2 (ele, param, start, end)
+  subroutine make_mat6_custom2 (ele, param, start, end, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start, end
     type (lat_param_struct) param
+    logical err_flag
   end subroutine
 end interface
 

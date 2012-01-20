@@ -229,7 +229,7 @@ case (lcavity$)
   if (e_end <= 0) then
     call out_io (s_error$, r_name, 'END ENERGY IS NEGATIVE AT ELEMENT: ' // ele%name)
     mat6 = 0   ! garbage.
-    err = .true.
+    if (present(err)) err = .true.
     return 
   endif
   call convert_total_energy_to (e_end, param%particle, &
