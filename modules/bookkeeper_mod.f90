@@ -2557,7 +2557,7 @@ if (bmad_com%auto_bookkeeper) then
   if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
 endif
 
-! Since things have changed we need to kill the Taylor Map and gen_field.
+! Since things have changed we need to kill the Taylor Map and ptc_genfield.
 
 if (init_needed) then
   v_mask = .true.
@@ -2597,11 +2597,11 @@ if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
       "To conserve the element's Taylor map, I will set ele%map_with_offsets = False.")
 endif
 
-! Kill the taylor map and gen_field if necessary.
+! Kill the taylor map and ptc_genfield if necessary.
 
 if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
   if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
-  if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
+  if (associated(ele%ptc_genfield)) call kill_ptc_genfield(ele%ptc_genfield)
   if (ele%key == wiggler$ .and. ele%slave_status /= super_slave$) then
     val(z_patch$) = 0
     z_patch_calc_needed = (ele%key == wiggler$ .and. val(p0c$) /= 0)

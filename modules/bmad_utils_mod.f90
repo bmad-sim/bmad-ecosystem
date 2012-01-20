@@ -1261,7 +1261,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%rf_wake)
   nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
             ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
-  nullify (ele%gen_field)
+  nullify (ele%ptc_genfield)
   nullify (ele%mode3)
   nullify (ele%wall3d%section)
   nullify (ele%em_field)
@@ -1313,7 +1313,7 @@ if (associated (ele%taylor(1)%term)) deallocate &
          (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
          ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
 
-call kill_gen_field (ele%gen_field)
+call kill_ptc_genfield (ele%ptc_genfield)
 
 end subroutine deallocate_ele_pointers
 
@@ -1321,36 +1321,36 @@ end subroutine deallocate_ele_pointers
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine kill_gen_field (gen_field)
+! Subroutine kill_ptc_genfield (ptc_genfield)
 !
-! Subroutine to kill a gen_field.
+! Subroutine to kill a ptc_genfield.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   gen_field -- Genfield, pointer: gen_field to kill.
+!   ptc_genfield -- Genfield, pointer: ptc_genfield to kill.
 !
 ! Output:
-!   gen_field -- Genfield, pointer: Killed gen_field.
+!   ptc_genfield -- Genfield, pointer: Killed ptc_genfield.
 !-
 
-subroutine kill_gen_field (gen_field)
+subroutine kill_ptc_genfield (ptc_genfield)
 
 use tpsalie_analysis, only: kill 
 
 implicit none
 
-type (genfield), pointer :: gen_field
+type (genfield), pointer :: ptc_genfield
 
 !
 
-if (associated(gen_field)) then
-  call kill (gen_field)
-  deallocate (gen_field)
+if (associated(ptc_genfield)) then
+  call kill (ptc_genfield)
+  deallocate (ptc_genfield)
 endif
 
-end subroutine kill_gen_field
+end subroutine kill_ptc_genfield
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

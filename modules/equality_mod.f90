@@ -624,7 +624,7 @@ if (associated(f1%mode3)) then
 endif
 is_eq = is_eq .and. (f1%map_ref_orb_in == f2%map_ref_orb_in)
 is_eq = is_eq .and. (f1%map_ref_orb_out == f2%map_ref_orb_out) 
-is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field));  if (.not. is_eq) return 
+is_eq = is_eq .and. (associated(f1%ptc_genfield) .eqv. associated(f2%ptc_genfield));  if (.not. is_eq) return 
 do i = 1, size(f1%taylor)
   if (.not. (f1%taylor(i) == f2%taylor(i))) then; is_eq = .false.; return; endif
 enddo
