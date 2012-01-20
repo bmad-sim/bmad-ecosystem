@@ -53,7 +53,7 @@ end type
 
 type (input_struct) in(200), out(200)
 
-namelist / element / z, in, out, units, in_equals_out, seg_len_max
+namelist / wall_element / z, in, out, units, in_equals_out, seg_len_max
 namelist / concat_element / concat
 
 ! init
@@ -139,7 +139,7 @@ do
   in_equals_out = .false.
   seg_len_max = 0.1
 
-  read (lun, nml = element, end = 200)
+  read (lun, nml = wall_element, end = 200)
 
   z%out%s = out%s
   z%out%x = out%x
