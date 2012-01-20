@@ -124,60 +124,6 @@ ele1%value(l$) = len1
 ele1%s = s_split
 ele2%value(l$) = len2
 
-! correct aperture limits
-
-select case (ele%aperture_at)
-case (entrance_end$) 
-  ele2%value(x1_limit$) = 0
-  ele2%value(x2_limit$) = 0
-  ele2%value(y1_limit$) = 0
-  ele2%value(y2_limit$) = 0
-
-case (exit_end$)
-  ele1%value(x1_limit$) = 0
-  ele1%value(x2_limit$) = 0
-  ele1%value(y1_limit$) = 0
-  ele1%value(y2_limit$) = 0
-
-case (both_ends$)
-  ele1%aperture_at = entrance_end$
-  ele2%aperture_at = exit_end$
-
-case (continuous$)
-  ele1%aperture_at = continuous$
-  ele2%aperture_at = continuous$
-
-case (no_end$)
-
-case default
-  call out_io (s_abort$, r_name, 'BAD ELE%APERTURE_AT VALUE: ' // &
-                                   element_end_name(ele%aperture_at))
-  call err_exit
-end select
-
-! correct coupler location
-
-if (ele%key == lcavity$) then
-  select case (nint(ele%value(coupler_at$)))
-  case (entrance_end$) 
-    ele2%value(coupler_strength$) = 0
-
-  case (exit_end$)
-    ele1%value(coupler_strength$) = 0
-
-  case (both_ends$)
-    ele1%value(coupler_at$) = entrance_end$
-    ele2%value(coupler_at$) = exit_end$
-
-  case (no_end$)
-
-  case default
-    call out_io (s_abort$, r_name, 'BAD ELE%COUPLER_AT VALUE: \i0\ ', &
-                  i_array = [nint(ele%value(coupler_at$))] )
-    call err_exit
-  end select
-endif
-
 !-------------------------------------------------------------
 ! Now to correct the slave/lord bookkeeping...
 
