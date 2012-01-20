@@ -1184,16 +1184,15 @@ call bmad_com_to_c2 (c_bmad_com, f%max_aperture_limit, f%d_orb, &
       c_logic(f%space_charge_on), c_logic(f%coherent_synch_rad_on), &
       c_logic(f%spin_tracking_on), &
       c_logic(f%radiation_damping_on), c_logic(f%radiation_fluctuations_on), &
-      c_logic(f%conserve_taylor_maps))
+      c_logic(f%conserve_taylor_maps), c_logic(f%auto_rf_phase_and_amp_adjust), &
+      c_logic(f%use_single_ptc_fiber), c_logic(f%absolute_time_tracking))
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine bmad_com_to_f2 (max_ap, orb, ds_step, signif, rel, abs, rel_track, 
-!              abs_track, taylor_ord, dflt_integ, cc, sr, lr, sym,
-!              a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
+! Subroutine bmad_com_to_f2 (...)
 !
 ! Subroutine used by bmad_com_to_f to transfer the data from a C++ 
 ! C_bmad_com variable into the Bmad bmad_com_stuct common block.
@@ -1202,7 +1201,7 @@ end subroutine
 
 subroutine bmad_com_to_f2 (max_ap, orb, ds_step, signif, rel, abs, rel_track, &
         abs_track, taylor_ord, dflt_integ, cc, sr, lr, sym, &
-        a_book, tsc_on, csr_on, st_on, rad_d, rad_f, conserve_t)
+        a_book, tsc_on, csr_on, st_on, rad_d, rad_f, conserve_t, auto_rf, use_single_ptc, abs_time)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1213,13 +1212,14 @@ implicit none
 real(rp) orb(6), max_ap, rel, abs, rel_track, abs_track, ds_step, signif
 integer taylor_ord, dflt_integ, cc, sr, lr, sym
 integer st_on, rad_d, rad_f, a_book, tsc_on, csr_on
-integer conserve_t
+integer conserve_t, auto_rf, use_single_ptc, abs_time
 
 bmad_com = bmad_common_struct(max_ap, orb, ds_step, signif, &
     rel, abs, rel_track, abs_track, taylor_ord, dflt_integ, &
     f_logic(cc), f_logic(sr), f_logic(lr), f_logic(sym), &
     f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
-    f_logic(rad_d), f_logic(rad_f), f_logic(conserve_t))
+    f_logic(rad_d), f_logic(rad_f), f_logic(conserve_t), f_logic(auto_rf), f_logic(use_single_ptc), &
+    f_logic(abs_time))
 
 end subroutine
 
@@ -1385,7 +1385,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, component_nam, n_co
     ix_point, ixx, mat6_meth, tracking_meth, spin_meth, field_calc, ref_orb, &
     aperture_at, aperture_type, symp, mode_flip, multi_on, scale_multi, &
     map_with_off, field_master, reversed, is_on, old_is_on, logic, bmad_logic, &
-    girder, csr_calc, offset_moves_ap)   
+    on_girder, csr_calc, offset_moves_ap)   
 
 use fortran_and_cpp
 use multipole_mod
@@ -1402,7 +1402,7 @@ type (genfield), target :: gen_f
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub_key, lord_status, slave_status
 integer ix2_slave, n_lord, ic1_lord, ic2_lord, ix_point, ixx, ix_ele, mat6_meth, tracking_meth, spin_meth, field_calc
 integer ref_orb, aperture_at, symp, mode_flip, multi_on, map_with_off, field_master
-integer reversed, is_on, old_is_on, logic, bmad_logic, girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
+integer reversed, is_on, old_is_on, logic, bmad_logic, on_girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
 integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
 integer ix_value, n_slave, ix1_slave, scale_multi
 
@@ -1541,7 +1541,7 @@ f%is_on                 = f_logic(is_on)
 f%old_is_on             = f_logic(old_is_on)
 f%logic                 = f_logic(logic)
 f%bmad_logic            = f_logic(bmad_logic)
-f%on_a_girder           = f_logic(girder)
+f%on_a_girder           = f_logic(on_girder)
 f%csr_calc_on           = f_logic(csr_calc)
 f%offset_moves_aperture = f_logic(offset_moves_ap)
 
