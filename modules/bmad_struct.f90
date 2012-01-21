@@ -12,7 +12,7 @@ use random_mod
 use wall3d_mod
 
 use definition, only: genfield
-use s_fitting_new, only: fibre
+use definition, only: fibre
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
