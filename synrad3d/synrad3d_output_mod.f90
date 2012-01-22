@@ -65,7 +65,7 @@ if (iu_hit_file == -1) then
   write (iu, *) '  p%vec     =', photon%start%vec
   write (iu, *) '  p%energy  =', photon%start%energy
   write (iu, *) '/'
-  close (1)
+  close (iu)
   print *, 'Written file: error_photon_start'
 endif
 
