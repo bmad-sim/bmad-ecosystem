@@ -5,6 +5,8 @@
 ! The existing elements from insert_index to n_ele_max get shoved up 1
 ! in the element array.
 !
+! Note: This routine is not for creating new control elements. For creating
+!   new control elements use the routine new_control.
 ! Note: Bookkeeping like recalculating s-positions, reference energy, etc. is not done by this routine.
 ! Note: set_flags_for_changed_attribute is called for the inserted element.
 !
