@@ -161,6 +161,7 @@ type bp_common_struct
   logical input_from_file     ! Input is from a lattice file?
   logical inline_call_active
   logical e_tot_set, p0c_set
+  logical :: always_parse = .false. ! For debugging to force parsing
 end type
 
 !
@@ -247,7 +248,7 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   word = word(2:)             ! strip off '{'
   read (word, *, iostat = ios) i_out
   if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
-    call parser_warning ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
+    call parser_error ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
     return
   endif
 
@@ -257,7 +258,7 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   call get_next_word (line, ix_word, '},', delim, delim_found)
   read (line, *, iostat = ios) expn
   if (delim /= '}' .or. ix_word == 0 .or. ios /= 0) then
-    call parser_warning ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
+    call parser_error ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
     return
   endif
 
@@ -265,7 +266,7 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   call get_next_word (word, ix_word, '},', delim, delim_found)
 
   if (ix_word /= 0 .or. (delim_found .and. delim /= ',')) then
-    call parser_warning ('BAD TERM ENDING FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
+    call parser_error ('BAD TERM ENDING FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
     return
   endif
 
@@ -283,7 +284,7 @@ if (ele%key == overlay$) then
   else
 
     if (i < 1) then
-      if (print_err) call parser_warning ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+      if (print_err) call parser_error ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
       return
     endif
 
@@ -293,7 +294,7 @@ if (ele%key == overlay$) then
     endif
 
     if (ele%ix_value /= i) then
-      if (print_err) call parser_warning ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
+      if (print_err) call parser_error ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
             'YOU ARE TRYING TO SET: ' // word, &
             'BUT YOU SHOULD BE SETTING: ' // ele%component_name)
       return
@@ -327,7 +328,7 @@ if (ele%key == group$) then
   endif
 
   if (i < 1) then
-    if (print_err) call parser_warning ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+    if (print_err) call parser_error ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
     return
   endif
 
@@ -347,7 +348,7 @@ if (ele%key == group$) then
         ele%value(i) = value
       endif
     elseif (how == redef$) then
-      call parser_warning ('NO VALUE GIVEN FOR ATTRIBUTE FOR: ' // ele%name)
+      call parser_error ('NO VALUE GIVEN FOR ATTRIBUTE FOR: ' // ele%name)
     endif
     if (attrib_free_problem(word)) return
   endif
@@ -364,7 +365,7 @@ if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
   if (err_flag) return
   call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag, .false.)
   if (err_flag .or. size(r_ptrs) /= 1) then
-    if (print_err) call parser_warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
+    if (print_err) call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
@@ -386,12 +387,12 @@ if (word == 'LR' .and. delim == '(') then
 
   call get_next_word (word, ix_word, '=', delim, delim_found)
   if (.not. delim_found) then
-    call parser_warning ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
+    call parser_error ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
     return
   endif
   call pointer_to_attribute (ele, 'LR(' // word, .false., r_ptr, err_flag, .false.)
   if (err_flag) then
-    call parser_warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
+    call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
@@ -403,13 +404,13 @@ endif
 
 if (word(1:5) == 'WALL.') then
   if (delim /= '(') then
-    call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
+    call parser_error ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
     return
   endif
 
   ix_sec = evaluate_array_index (err_flag, ')', word2, '(=', delim)
   if (err_flag .or. .not. associated(ele%wall3d%section) .or. ix_sec < 0 .or. ix_sec > size(ele%wall3d%section)) then
-    call parser_warning('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
+    call parser_error('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
     return
   endif
   section => ele%wall3d%section(ix_sec)
@@ -426,7 +427,7 @@ if (word(1:5) == 'WALL.') then
     elseif (word2 == '.V' .and. delim == '(') then
       ix_v = evaluate_array_index (err_flag, ')', word, '=', delim)
       if (err_flag .or. ix_v < 0 .or. ix_v > size(section%v)) then
-        call parser_warning('BAD VERTEX INDEX',  'FOR ELEMENT: ' // ele%name)
+        call parser_error('BAD VERTEX INDEX',  'FOR ELEMENT: ' // ele%name)
         return
       endif
       v_ptr => section%v(ix_v)
@@ -438,16 +439,16 @@ if (word(1:5) == 'WALL.') then
       case ('.RADIUS_Y'); r_ptr => v_ptr%radius_y
       case ('.TILT');     r_ptr => v_ptr%tilt
       case default
-        call parser_warning('BAD WALL SECTION VERTEX COMPONENT: ' // word, 'FOR ELEMENT: ' // ele%name)
+        call parser_error('BAD WALL SECTION VERTEX COMPONENT: ' // word, 'FOR ELEMENT: ' // ele%name)
         return
       end select
     else
-      call parser_warning('BAD WALL SECTION COMPONENT: ' // word2, 'FOR ELEMENT: ' // ele%name)
+      call parser_error('BAD WALL SECTION COMPONENT: ' // word2, 'FOR ELEMENT: ' // ele%name)
       return
     endif
 
   case default
-    call parser_warning ('BAD WALL COMPONENT REDEF: ' // word, 'IN ELEMENT: ' // ele%name)
+    call parser_error ('BAD WALL COMPONENT REDEF: ' // word, 'IN ELEMENT: ' // ele%name)
   end select
 
   call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag)
@@ -466,17 +467,17 @@ attrib_word = word
 if (attrib_free_problem(attrib_word)) return
 
 if (ix_word == 0) then  ! no word
-  call parser_warning  ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
+  call parser_error  ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
   return
 endif
 
 if (ix_attrib < 1) then
   if (ele%key == drift$ .and. (word == 'HKICK' .or. word == 'VKICK' .or. &
         word == 'BL_HKICK' .or. word == 'BL_VKICK')) then
-    if (print_err) call parser_warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name, &
+    if (print_err) call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name, &
                       'ONE SOLUTION IS TO MAKE THIS DRIFT A "PIPE" ELEMENT.')
   else
-    if (print_err) call parser_warning ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
+    if (print_err) call parser_error ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
   endif
   return
 endif
@@ -485,14 +486,14 @@ endif
 
 if (attrib_word == 'WALL') then
   if (associated (ele%wall3d%section)) then
-    call parser_warning ('MULTIPLE WALL DEFINITIONS FOR ELEMENT: ' // ele%name)
+    call parser_error ('MULTIPLE WALL DEFINITIONS FOR ELEMENT: ' // ele%name)
     return
   endif
 
   ! Expect "= {"
   call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
   if (delim /= '=' .or. delim2 /= '{' .or. word /= '') then
-    call parser_warning ('NO "= {" FOUND AFTER "WALL"', 'FOR ELEMENT: ' // ele%name)
+    call parser_error ('NO "= {" FOUND AFTER "WALL"', 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
@@ -509,7 +510,7 @@ if (attrib_word == 'WALL') then
     ! Expect "section = {"
     call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
     if (word /= 'SECTION' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
-      call parser_warning ('NO "SECTION = {" SIGN FOUND IN WALL STRUCTURE', 'FOR ELEMENT: ' // ele%name)
+      call parser_error ('NO "SECTION = {" SIGN FOUND IN WALL STRUCTURE', 'FOR ELEMENT: ' // ele%name)
       return
     endif
 
@@ -523,7 +524,7 @@ if (attrib_word == 'WALL') then
     call get_next_word (word, ix_word, '{},()=', delim, delim_found)
 
     if (word /= 'S' .or. delim /= '=') then
-      call parser_warning ('EXPECTED "S =" AT START OF WALL SECTION BUT GOT: ' // trim(word) // delim, &
+      call parser_error ('EXPECTED "S =" AT START OF WALL SECTION BUT GOT: ' // trim(word) // delim, &
                            'FOR: ' // ele%name)
       return
     endif
@@ -542,7 +543,7 @@ if (attrib_word == 'WALL') then
 
       if (word == 'DR_DS') then
         if (delim /= '=') then
-          call parser_warning ('NO "=" AFTER "DR_DS" IN WALL SECTION FOR:' // ele%name)
+          call parser_error ('NO "=" AFTER "DR_DS" IN WALL SECTION FOR:' // ele%name)
           return
         endif
         call evaluate_value (trim(ele%name), section%dr_ds, lat, delim, delim_found, err_flag, ',}')
@@ -559,13 +560,13 @@ if (attrib_word == 'WALL') then
         call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
         read (word, *, iostat = ios) j 
         if (ios /= 0 .or. ix_v /= j) then
-          call parser_warning ('BAD OR OUT OF ORDER WALL SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
+          call parser_error ('BAD OR OUT OF ORDER WALL SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
           return
         endif
 
         call get_next_word (word, ix_word, '{},()', delim2, delim_found)
         if (delim /= ')' .or. word /= '=' .or. delim2 /= '{') then        
-          call parser_warning ('MALFORMED ORDER WALL SECTION VERTEX FOR: ' // ele%name)
+          call parser_error ('MALFORMED ORDER WALL SECTION VERTEX FOR: ' // ele%name)
           return
         endif
 
@@ -592,12 +593,12 @@ if (attrib_word == 'WALL') then
 
         call get_next_word (word, ix_word, '{},()=', delim, delim_found)
         if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
-          call parser_warning ('BAD SYNTAX IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
+          call parser_error ('BAD SYNTAX IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
           return
         endif
 
       else
-        call parser_warning ('EXPECTED "V(" BUT GOT: ' // trim(word) // delim, &
+        call parser_error ('EXPECTED "V(" BUT GOT: ' // trim(word) // delim, &
                              'IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
         return
       endif
@@ -613,7 +614,7 @@ if (attrib_word == 'WALL') then
 
     ! Must be ","
     if (word /= '' .or. delim /= ',') then
-      call parser_warning ('BAD SYNTAX IN WALL DEFINITION FOR ELEMENT: ' // ele%name)
+      call parser_error ('BAD SYNTAX IN WALL DEFINITION FOR ELEMENT: ' // ele%name)
     endif
 
 
@@ -622,12 +623,12 @@ if (attrib_word == 'WALL') then
     call get_next_word (word, ix_word, '{},()=', delim, delim_found)
 
     if (delim /= '=') then
-      call parser_warning ('NO "=" SIGN FOUND AFTER: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
+      call parser_error ('NO "=" SIGN FOUND AFTER: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
 
     if (word /= 'SECTION') then
-      call parser_warning('DO NOT UNDERSTAND: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
+      call parser_error('DO NOT UNDERSTAND: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
 
@@ -636,7 +637,7 @@ if (attrib_word == 'WALL') then
   ! Check for next thing on line and return
 
   call get_next_word (word, ix_word, '{},()', delim, delim_found)
-  if (word /= '') call parser_warning('EXTRA CHARACTERS AT END OF WALL SPECIFICATION IN ELEMENT: ' // ele%name) 
+  if (word /= '') call parser_error('EXTRA CHARACTERS AT END OF WALL SPECIFICATION IN ELEMENT: ' // ele%name) 
   return
 
 endif
@@ -648,7 +649,7 @@ if (attrib_word == 'FIELD') then
   ! Expect "= {"
   call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
   if (delim /= '=' .or. delim2 /= '{' .or. word /= '') then
-    call parser_warning ('NO "= {" FOUND AFTER "FIELD"', 'FOR ELEMENT: ' // ele%name)
+    call parser_error ('NO "= {" FOUND AFTER "FIELD"', 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
@@ -675,7 +676,7 @@ if (attrib_word == 'FIELD') then
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
     if (word /= 'MODE' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
-      call parser_warning ('NO "MODE = {" SIGN FOUND IN FIELD STRUCTURE', 'FOR ELEMENT: ' // ele%name)
+      call parser_error ('NO "MODE = {" SIGN FOUND IN FIELD STRUCTURE', 'FOR ELEMENT: ' // ele%name)
       return
     endif
 
@@ -688,7 +689,7 @@ if (attrib_word == 'FIELD') then
       ! Expect "<component> = "
 
       if (delim /= '=') then
-        call parser_warning ('NO "=" SIGN FOUND IN MODE DEFINITION', 'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        call parser_error ('NO "=" SIGN FOUND IN MODE DEFINITION', 'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
 
@@ -717,7 +718,7 @@ if (attrib_word == 'FIELD') then
       case ('M', 'HARMONIC')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
         if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
-          call parser_warning ('BAD "M = <INTEGER>" CONSTRUCT', &
+          call parser_error ('BAD "M = <INTEGER>" CONSTRUCT', &
                                'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
         endif
@@ -732,7 +733,7 @@ if (attrib_word == 'FIELD') then
         call get_next_word (word, ix_word, ',}', delim, delim_found)
         ix = attribute_index(ele, word)
         if (ix < 1 .or. ix > n_attrib_maxx) then
-          call parser_warning ('BAD NAME FOR "MASTER_SCALE = <NAME>" CONSTRUCT', &
+          call parser_error ('BAD NAME FOR "MASTER_SCALE = <NAME>" CONSTRUCT', &
                                'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
         endif
@@ -740,7 +741,7 @@ if (attrib_word == 'FIELD') then
         do_evaluate = .false.
 
       case default
-        call parser_warning ('UNKNOWN MODE COMPONENT: ' // word, &
+        call parser_error ('UNKNOWN MODE COMPONENT: ' // word, &
                              'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       end select
@@ -778,7 +779,7 @@ if (attrib_word == 'FIELD') then
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
     if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
-      call parser_warning ('NO "," OR "}" FOUND AFTER MODE DEFINITION', &
+      call parser_error ('NO "," OR "}" FOUND AFTER MODE DEFINITION', &
                            'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
@@ -800,19 +801,19 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
   err_flag = .true. ! assume the worst
 
   if (delim /= '(') then   ! ) then
-    call parser_warning ('"TERM" FOR A WIGGLER NOT FOLLOWED BY A "(" FOR: ' // ele%name)  ! )
+    call parser_error ('"TERM" FOR A WIGGLER NOT FOLLOWED BY A "(" FOR: ' // ele%name)  ! )
     return
   endif
 
   call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.) ! (
   if (delim /= ')') then
-    call parser_warning ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', 'FOR: ' // ele%name)
+    call parser_error ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', 'FOR: ' // ele%name)
     return
   endif
 
   read (word, *, iostat = ios) ix
   if (ix < 1 .or. ios /= 0) then
-    call parser_warning ('BAD TERM NUMBER FOR A WIGGLER FOR: ' // ele%name)
+    call parser_error ('BAD TERM NUMBER FOR A WIGGLER FOR: ' // ele%name)
     return
   endif
 
@@ -836,7 +837,7 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
   call get_next_word (word, ix_word2, ':,={}', delim2, delim_found, .true., call_check = .true.)  
 
   if (delim1 /= '=' .or. delim2 /= '{' .or. ix_word1 /= 0 .or. ix_word2 /= 0) then
-    call parser_warning ('CONFUSED SYNTAX FOR TERM IN WIGGLER: ' // ele%name, str_ix)
+    call parser_error ('CONFUSED SYNTAX FOR TERM IN WIGGLER: ' // ele%name, str_ix)
     return
   endif
 
@@ -869,7 +870,7 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
   elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
     ele%wig%term(ix)%type = hyper_x$
   else
-    call parser_warning ('WIGGLER TERM DOES NOT HAVE CONSISTANT Kx, Ky, and Kz', &
+    call parser_error ('WIGGLER TERM DOES NOT HAVE CONSISTANT Kx, Ky, and Kz', &
                   'FOR WIGGLER: ' // ele%name // '  ' // str_ix)
     err_flag = .true.
     return
@@ -877,7 +878,7 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
 
   call get_next_word (word, ix_word,  ':,=()', delim,  delim_found, .true.)  
   if (ix_word /= 0) then
-    call parser_warning ('BAD SYNTAX FOR WIGGLER: ' // ele%name, str_ix)
+    call parser_error ('BAD SYNTAX FOR WIGGLER: ' // ele%name, str_ix)
     err_flag = .true.
     return
   endif
@@ -915,7 +916,7 @@ if (delim /= '=')  then
       return
     case default
       if (attribute_name(ele, tilt$) == 'TILT') then
-        call parser_warning ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
+        call parser_error ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
                       'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
         err_flag = .true.
         return
@@ -940,35 +941,35 @@ if (delim /= '=')  then
     ele%lord_status = super_lord$
 
   case (ref_beginning$)
-    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ref_pt = begin$
 
   case (create_em_field_slave$)
-    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%create_em_field_slave = .true.
 
   case (ref_center$)
-    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ref_pt = center$
 
   case (ref_end$)
-    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ref_pt = end$
 
   case (ele_beginning$)
-    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ele_pt = begin$
 
   case (ele_center$)
-    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ele_pt = center$
 
   case (ele_end$)
-    if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ele_pt = end$
 
   case default
-    call parser_warning ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  'FOR ELEMENT: ' // ele%name)
+    call parser_error ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  'FOR ELEMENT: ' // ele%name)
     err_flag = .true.
   end select
 
@@ -982,13 +983,13 @@ endif
 select case (attrib_word)
 
 case ('REFERENCE')
-  if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   call get_next_word(pele%ref_name, ix_word,  ':=,', delim, delim_found, .true.)
 
 case ('OFFSET')
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   if (err_flag) return
-  if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   pele%s = value
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
@@ -1005,12 +1006,11 @@ case ('SYMPLECTIFY')
 case ('IS_ON')
   call get_logical (attrib_word, ele%is_on, err_flag)
 
-case ('MATCH_END', 'FOLLOW_DIFFRACTED_BEAM', 'PATCH_END', 'TRANSLATE_AFTER', 'MATCH_END_ORBIT', &
-      'NEGATIVE_GRAZE_ANGLE')
-  call get_logical_real (attrib_word, ele%value(ix_attrib), err_flag)
-
 case ('APERTURE_LIMIT_ON') 
   call get_logical (attrib_word, lat%param%aperture_limit_on, err_flag)
+
+case ('ABSOLUTE_TIME_TRACKING')
+  call get_logical (attrib_word, lat%absolute_time_tracking, err_flag)
 
 case ('CSR_CALC_ON')
   call get_logical (attrib_word, ele%csr_calc_on, err_flag)
@@ -1038,85 +1038,92 @@ case ('ROOT_BRANCH_NAME')
 
 case default   ! normal attribute
 
-  call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
-  if (err_flag) return
+  if (attribute_type(attrib_word) == is_logical$) then
+    call get_logical_real (attrib_word, ele%value(ix_attrib), err_flag)
 
-  if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then  ! multipole attribute
-      if (.not. associated(ele%a_pole)) call multipole_init (ele)
-      if (ix_attrib >= b0$) then
-        ele%b_pole(ix_attrib-b0$) = value
-      else
-        ele%a_pole(ix_attrib-a0$) = value
-      endif
-  elseif (ix_attrib == mat6_calc_method$) then
-    ele%mat6_calc_method = nint(value)
-  elseif (ix_attrib == tracking_method$) then
-    ele%tracking_method = nint(value)
-  elseif (ix_attrib == spin_tracking_method$) then
-    ele%spin_tracking_method = nint(value)
-  elseif (ix_attrib == ref_orbit$) then
-    ele%ref_orbit = nint(value)
-  elseif (ix_attrib == aperture_at$) then
-    ele%aperture_at = nint(value)
-  elseif (ix_attrib == aperture_type$) then
-    ele%aperture_type = nint(value)
-  elseif (ix_attrib == ran_seed$) then
-    call ran_seed_put (nint(value))  ! init random number generator
-    if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
-      bp_com%ran%deterministic = 0
-    else
-      bp_com%ran%deterministic = 2
-    endif
-  elseif (ix_attrib == aperture$) then
-    ele%value(x1_limit$) = value
-    ele%value(x2_limit$) = value
-    ele%value(y1_limit$) = value
-    ele%value(y2_limit$) = value
-  elseif (ix_attrib == x_limit$) then
-    ele%value(x1_limit$) = value
-    ele%value(x2_limit$) = value
-  elseif (ix_attrib == y_limit$) then
-    ele%value(y1_limit$) = value
-    ele%value(y2_limit$) = value
+
   else
-    ele%value(ix_attrib) = value
+    call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+    if (err_flag) return
 
-    ix = len_trim(attrib_word)
-    if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
-    if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
-    if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
-    if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
+    if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then  ! multipole attribute
+        if (.not. associated(ele%a_pole)) call multipole_init (ele)
+        if (ix_attrib >= b0$) then
+          ele%b_pole(ix_attrib-b0$) = value
+        else
+          ele%a_pole(ix_attrib-a0$) = value
+        endif
+    elseif (ix_attrib == mat6_calc_method$) then
+      ele%mat6_calc_method = nint(value)
+    elseif (ix_attrib == tracking_method$) then
+      ele%tracking_method = nint(value)
+    elseif (ix_attrib == spin_tracking_method$) then
+      ele%spin_tracking_method = nint(value)
+    elseif (ix_attrib == ref_orbit$) then
+      ele%ref_orbit = nint(value)
+    elseif (ix_attrib == aperture_at$) then
+      ele%aperture_at = nint(value)
+    elseif (ix_attrib == aperture_type$) then
+      ele%aperture_type = nint(value)
+    elseif (ix_attrib == ran_seed$) then
+      call ran_seed_put (nint(value))  ! init random number generator
+      if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
+        bp_com%ran%deterministic = 0
+      else
+        bp_com%ran%deterministic = 2
+      endif
+    elseif (ix_attrib == aperture$) then
+      ele%value(x1_limit$) = value
+      ele%value(x2_limit$) = value
+      ele%value(y1_limit$) = value
+      ele%value(y2_limit$) = value
+    elseif (ix_attrib == x_limit$) then
+      ele%value(x1_limit$) = value
+      ele%value(x2_limit$) = value
+    elseif (ix_attrib == y_limit$) then
+      ele%value(y1_limit$) = value
+      ele%value(y2_limit$) = value
+    else
+      ele%value(ix_attrib) = value
 
-    select case (ix_attrib)
+      ix = len_trim(attrib_word)
+      if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
+      if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
+      if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
+      if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
 
-    case (num_steps$)
-      ele%value(ds_step$) = abs(ele%value(l$) * nint(ele%value(num_steps$)))
+      select case (ix_attrib)
 
-    case (e_tot$)
-      select case (ele%key)
-      case (def_beam$)
-        lat%ele(0)%value(e_tot$) = 1d9 * value
-      case (def_parameter$, init_ele$)
-        lat%ele(0)%value(e_tot$) = value
+      case (num_steps$)
+        ele%value(ds_step$) = abs(ele%value(l$) * nint(ele%value(num_steps$)))
+
+      case (e_tot$)
+        select case (ele%key)
+        case (def_beam$)
+          lat%ele(0)%value(e_tot$) = 1d9 * value
+        case (def_parameter$, init_ele$)
+          lat%ele(0)%value(e_tot$) = value
+        end select
+        bp_com%e_tot_set = .true.
+        bp_com%p0c_set   = .false.
+
+      case (p0c$)
+        select case (ele%key)
+        case (def_beam$)
+          lat%ele(0)%value(p0c$) = 1d9 * value
+        case (def_parameter$, init_ele$)
+          lat%ele(0)%value(p0c$) = value
+        end select
+        bp_com%e_tot_set = .false.
+        bp_com%p0c_set   = .true.
+
+      case (lr_freq_spread$)
+        call randomize_lr_wake_frequencies (ele, set_done)
+        if (set_done) call bp_set_ran_status
+
       end select
-      bp_com%e_tot_set = .true.
-      bp_com%p0c_set   = .false.
 
-    case (p0c$)
-      select case (ele%key)
-      case (def_beam$)
-        lat%ele(0)%value(p0c$) = 1d9 * value
-      case (def_parameter$, init_ele$)
-        lat%ele(0)%value(p0c$) = value
-      end select
-      bp_com%e_tot_set = .false.
-      bp_com%p0c_set   = .true.
-
-    case (lr_freq_spread$)
-      call randomize_lr_wake_frequencies (ele, set_done)
-      if (set_done) call bp_set_ran_status
-
-    end select
+    endif
 
   endif
 
@@ -1139,7 +1146,7 @@ is_problem = .false.
 if (logic_option(.false., check_free)) then
   is_free = attribute_free (ele, attrib_name, lat, print_err)
   if (.not. is_free) then
-    if (print_err) call parser_warning ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
+    if (print_err) call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
     err_flag = .true.
     is_problem = .true.
   endif
@@ -1160,7 +1167,7 @@ logical this_logic, err
 call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
 this_logic = evaluate_logical (word, ios)
 if (ios /= 0 .or. ix_word == 0) then
-  call parser_warning ('BAD "' // trim(attrib_name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+  call parser_error ('BAD "' // trim(attrib_name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
   err = .true.
 else
   err = .false.
@@ -1182,7 +1189,7 @@ logical err
 call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
 call match_word (word, name_list, this_switch, can_abbreviate = .false.)
 if (this_switch < 1) then
-  call parser_warning ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+  call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
   err = .true.
 else
   err = .false.
@@ -1238,23 +1245,23 @@ logical delim_found, finished, xsif_called, err
 
 err = .true.
 
-if (delim /= ',')  call parser_warning ('"CALL" NOT FOLLOWED BY COMMA', stop_here = .true.)
+if (delim /= ',')  call parser_error ('"CALL" NOT FOLLOWED BY COMMA', stop_here = .true.)
 call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
 
 if (ix_word == 0) then
-  call parser_warning ('NOTHING AFTER "CALL"', stop_here = .true.)
+  call parser_error ('NOTHING AFTER "CALL"', stop_here = .true.)
   return
 elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
-  call parser_warning ('INVALID "CALL" COMMAND', stop_here = .true.)
+  call parser_error ('INVALID "CALL" COMMAND', stop_here = .true.)
   return
 elseif (delim /= '=') then
-  call parser_warning ('NO "=" AFTER "FILENAME"', stop_here = .true.)
+  call parser_error ('NO "=" AFTER "FILENAME"', stop_here = .true.)
   return
 endif
 
 call get_next_word(call_file, ix_word, ',', delim, delim_found, .false.)
 if (ix_word == 0) then
-  call parser_warning ('NO FILE NAME SPECIFIED', stop_here = .true.)
+  call parser_error ('NO FILE NAME SPECIFIED', stop_here = .true.)
   return
 endif
 
@@ -1262,7 +1269,7 @@ if (call_file(1:1) == '"') then
   call_file = call_file(2:)
   ix = index(call_file, '"')
   if (ix == 0 .or. ix /= len_trim(call_file)) then
-    call parser_warning ('MISSING DOUBLE QUOTE MARK (") FOR CALL STATEMENT', stop_here = .true.)
+    call parser_error ('MISSING DOUBLE QUOTE MARK (") FOR CALL STATEMENT', stop_here = .true.)
     return
   endif
   call_file(ix:ix) = ' '
@@ -1272,7 +1279,7 @@ if (call_file(1:1) == "'") then
   call_file = call_file(2:)
   ix = index(call_file, "'")
   if (ix == 0 .or. ix /= len_trim(call_file)) then
-    call parser_warning ("MISSING SINGLE QUOTE MARK (') FOR CALL STATEMENT", stop_here = .true.)
+    call parser_error ("MISSING SINGLE QUOTE MARK (') FOR CALL STATEMENT", stop_here = .true.)
     return
   endif
   call_file(ix:ix) = ' '
@@ -1322,7 +1329,7 @@ if (.not. associated(ele%taylor(1)%term)) then
 endif
 
 if (i_out < 1 .or. i_out > 6) then
-  call parser_warning ('"OUT" VALUE IN TAYLOR TERM NOT IN RANGE (1 - 6)', &
+  call parser_error ('"OUT" VALUE IN TAYLOR TERM NOT IN RANGE (1 - 6)', &
                 'FOR TAYLOR ELEMENT: ' // ele%name)
   return
 endif
@@ -1409,7 +1416,7 @@ if (bp_com%input_from_file) then
           call string_trim (bp_com%parse_line(n+1:), line, ix)
           call str_upcase (line(1:10), line(1:10))
           if (line /= 'END_FILE') THEN
-            call parser_warning ('EXTRA STUFF IN FILE')
+            call parser_error ('EXTRA STUFF IN FILE')
           endif
         endif
         bp_com%parse_line(n+1:) = ''
@@ -1428,7 +1435,7 @@ endif
 call word_read (bp_com%parse_line, delim_list,  word, ix_word, delim, delim_found, bp_com%parse_line)
 
 if (len(word) < ix_word) then
-  call parser_warning ('BAD WORD: ' // bp_com%parse_line)
+  call parser_error ('BAD WORD: ' // bp_com%parse_line)
   ix_word = len(word)
 endif
 
@@ -1500,7 +1507,7 @@ case ('push', 'push_inline')
 
   i_level = i_level + 1    ! number of files currently open
   if (i_level > f_maxx) then
-    call parser_warning ('CALL NESTING GREATER THAN 20 LEVELS')
+    call parser_error ('CALL NESTING GREATER THAN 20 LEVELS')
     call err_exit
   endif
 
@@ -1524,7 +1531,7 @@ case ('push', 'push_inline')
 
   call fullfilename (file_name_in, file_name2, valid)
   if (.not. valid) then
-    call parser_warning ('MALFORMED FILE NAME: ' // file_name_in, stop_here = .true.)
+    call parser_error ('MALFORMED FILE NAME: ' // file_name_in, stop_here = .true.)
     if (bmad_status%exit_on_error) call err_exit
     do i = 1, i_level-1
       close (file(i_level)%f_unit)
@@ -1535,7 +1542,7 @@ case ('push', 'push_inline')
   ix = splitfilename (file_name2, file(i_level)%dir, basename, is_relative)
   if (is_relative) then
     call append_subdirectory (trim(file(i_level-1)%dir), file(i_level)%dir, file(i_level)%dir, err_flag)
-    if (err_flag) call parser_warning ('BAD DIRECTORY SYNTAX FOR: ' // file_name, stop_here = .true.)
+    if (err_flag) call parser_error ('BAD DIRECTORY SYNTAX FOR: ' // file_name, stop_here = .true.)
   endif
   bp_com%dirs(1) = file(i_level-1)%dir
   call find_file (file_name2, found_it, file_name, bp_com%dirs)
@@ -1547,9 +1554,9 @@ case ('push', 'push_inline')
   if (ios /= 0 .or. .not. found_it) then
     bp_com%current_file => file(i_level-1)  ! For warning
     if (file_name2 == file_name)  then
-      call parser_warning ('UNABLE TO OPEN FILE: ' // file_name, stop_here = .true.)
+      call parser_error ('UNABLE TO OPEN FILE: ' // file_name, stop_here = .true.)
     else
-      call parser_warning ('UNABLE TO OPEN FILE: ' // file_name, &
+      call parser_error ('UNABLE TO OPEN FILE: ' // file_name, &
                     'THIS FROM THE LOGICAL FILE NAME: ' // file_name2, &
                     stop_here = .true.)
     endif
@@ -1572,7 +1579,7 @@ case ('pop')
   close (unit = bp_com%current_file%f_unit)
   i_level = i_level - 1
   if (i_level < 0) then
-    call parser_warning ('BAD "RETURN"')
+    call parser_error ('BAD "RETURN"')
     return
   elseif (i_level > 0) then
     bp_com%current_file => file(i_level)
@@ -1591,7 +1598,7 @@ case ('pop')
 ! Programming error
 
 case default
-  call parser_warning ('INTERNAL ERROR IN PARSER_FILE_STACK SUBROUTINE!')
+  call parser_error ('INTERNAL ERROR IN PARSER_FILE_STACK SUBROUTINE!')
   call err_exit
 end select
 
@@ -1645,7 +1652,7 @@ do
     read (bp_com%current_file%f_unit, '(a)', end = 9000) line
     bp_com%current_file%i_line = bp_com%current_file%i_line + 1
     if (line(n_parse_line-ix_start-20:) /= ' ') &
-      call parser_warning ('INPUT LINE HAS TOO MANY CHARACTERS:', line)
+      call parser_error ('INPUT LINE HAS TOO MANY CHARACTERS:', line)
   endif
 
   ! %input_line1 and %input_line2 are for error messages if needed.
@@ -1660,7 +1667,7 @@ do
     bp_com%input_line1 = ' '
     bp_com%input_line2 = line
   else
-    call parser_warning ('INTERNAL ERROR #4: CALL HELP')
+    call parser_error ('INTERNAL ERROR #4: CALL HELP')
     call err_exit
   endif
 
@@ -1708,7 +1715,7 @@ return
 end_of_file = .true.
 
 if (bp_com%parse_line /= '' .and. .not. bp_com%inline_call_active) then
-  call parser_warning ('FILE ENDED BEFORE PARSING FINISHED', stop_here = .true.)
+  call parser_error ('FILE ENDED BEFORE PARSING FINISHED', stop_here = .true.)
 endif
 
 end subroutine load_parse_line
@@ -1884,13 +1891,13 @@ parsing_loop: do
   endif
 
   if (delim == '*' .and. word(1:1) == '*') then
-    call parser_warning ('EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"!',  &
+    call parser_error ('EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"!',  &
                   'for: ' // err_str)
     return
   endif
 
   if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
-    call parser_warning ('RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT', 'FOR: ' // err_str)
+    call parser_error ('RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT', 'FOR: ' // err_str)
     return
   endif
 
@@ -1968,7 +1975,7 @@ parsing_loop: do
         ran_function_pending = .true.
         call bp_set_ran_status
       case default
-        call parser_warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
+        call parser_error ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                 'FOR: ' // err_str)
         return
       end select
@@ -1994,7 +2001,7 @@ parsing_loop: do
   elseif (delim == ')') then
     if (ix_word == 0) then
       if (.not. ran_function_pending) then
-        call parser_warning  ('CONSTANT OR VARIABLE MISSING BEFORE ")"', 'FOR: ' // err_str)
+        call parser_error  ('CONSTANT OR VARIABLE MISSING BEFORE ")"', 'FOR: ' // err_str)
         return
       endif
       ran_function_pending = .false.
@@ -2011,7 +2018,7 @@ parsing_loop: do
       enddo
 
       if (i == 0) then
-        call parser_warning ('UNMATCHED ")" ON RHS', 'FOR: ' // err_str)
+        call parser_error ('UNMATCHED ")" ON RHS', 'FOR: ' // err_str)
         return
       endif
 
@@ -2019,7 +2026,7 @@ parsing_loop: do
 
       call get_next_word (word, ix_word, '+-*/()^,:}', delim, delim_found)
       if (ix_word /= 0) then
-        call parser_warning ('UNEXPECTED CHARACTERS ON RHS AFTER ")"',  &
+        call parser_error ('UNEXPECTED CHARACTERS ON RHS AFTER ")"',  &
                                                   'FOR: ' // err_str)
         return
       endif
@@ -2029,7 +2036,7 @@ parsing_loop: do
 
 
     if (delim == '(') then
-      call parser_warning ('")(" CONSTRUCT DOES NOT MAKE SENSE FOR: ' // err_str)
+      call parser_error ('")(" CONSTRUCT DOES NOT MAKE SENSE FOR: ' // err_str)
       return
     endif
 
@@ -2037,7 +2044,7 @@ parsing_loop: do
 
   else
     if (ix_word == 0) then
-      call parser_warning ('CONSTANT OR VARIABLE MISSING IN EVALUATING: ' // err_str)
+      call parser_error ('CONSTANT OR VARIABLE MISSING IN EVALUATING: ' // err_str)
       return
     endif
     call word_to_value (word, lat, value)
@@ -2065,7 +2072,7 @@ parsing_loop: do
   case (',', '}', ':')
     i_delim = no_delim$
   case default
-    call parser_warning ('MALFORMED EXPRESSION')
+    call parser_error ('MALFORMED EXPRESSION')
     bp_com%parse_line = ' '
     return
   end select
@@ -2076,7 +2083,7 @@ parsing_loop: do
   do i = i_op, 1, -1
     if (eval_level(op(i)) >= eval_level(i_delim)) then
       if (op(i) == l_parens$) then
-        call parser_warning ('UNMATCHED "(" IN EVALUATING: ' // err_str)
+        call parser_error ('UNMATCHED "(" IN EVALUATING: ' // err_str)
         return
       endif
       call pushit (stk%type, i_lev, op(i))
@@ -2100,11 +2107,11 @@ enddo parsing_loop
 ! now go through the stack and perform the operations
 
 if (i_op /= 0) then
-  call parser_warning ('UNMATCHED "(" IN EVALUATING: ' // err_str)
+  call parser_error ('UNMATCHED "(" IN EVALUATING: ' // err_str)
   return
 endif
 
-if (i_lev == 0) call parser_warning ('NO VALUE FOUND FOR: ' // err_str)
+if (i_lev == 0) call parser_error ('NO VALUE FOUND FOR: ' // err_str)
 
 i2 = 0
 do i = 1, i_lev
@@ -2126,7 +2133,7 @@ do i = 1, i_lev
     i2 = i2 - 1
   elseif (stk(i)%type == divide$) then
     if (stk(i2)%value == 0) then
-      call parser_warning ('DIVIDE BY 0 ON RHS', 'FOR: ' // err_str)
+      call parser_error ('DIVIDE BY 0 ON RHS', 'FOR: ' // err_str)
       return
     endif
     stk(i2-1)%value= stk(i2-1)%value / stk(i2)%value
@@ -2161,13 +2168,13 @@ do i = 1, i_lev
     i2 = i2 + 1
     call ran_gauss(stk(i2)%value)
   else
-    call parser_warning ('INTERNAL ERROR #02: GET HELP')
+    call parser_error ('INTERNAL ERROR #02: GET HELP')
     call err_exit
   endif
 enddo
 
 if (i2 /= 1) then
-  call parser_warning ('INTERNAL ERROR #03: GET HELP')
+  call parser_error ('INTERNAL ERROR #03: GET HELP')
   call err_exit
 endif
 
@@ -2178,7 +2185,7 @@ err_flag = .false.
 
 if (present(end_delims)) then
   if (.not. delim_found .or. index(end_delims, delim) == 0) then
-    call parser_warning ('BAD DELIMITOR AFTER VALUE FOR: ' // err_str)
+    call parser_error ('BAD DELIMITOR AFTER VALUE FOR: ' // err_str)
     err_flag = .true.
   endif
 endif
@@ -2205,7 +2212,7 @@ integer stack(:), i_lev, value
 i_lev = i_lev + 1
 
 if (i_lev > size(stack)) then
-  call parser_warning ('STACK OVERFLOW.', 'EXPERT HELP IS NEEDED!')
+  call parser_error ('STACK OVERFLOW.', 'EXPERT HELP IS NEEDED!')
   call err_exit
 endif
 
@@ -2242,7 +2249,7 @@ logical err_flag
 
 if (index('-+.0123456789', word(1:1)) /= 0) then
   read (word, *, iostat = ios) value
-  if (ios /= 0) call parser_warning ('BAD VARIABLE: ' // word)
+  if (ios /= 0) call parser_error ('BAD VARIABLE: ' // word)
   return
 endif
 
@@ -2257,7 +2264,7 @@ ix1 = index(word, '[')
 if (ix1 == 0) then   
   call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
   if (i == 0) then
-    call parser_warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
+    call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
     value = 0
   else
     value = bp_com%var(i)%value
@@ -2273,7 +2280,7 @@ ix2 = index(word, ']')
 attrib_name = word(ix1+1:ix2-1)
 
 if (attrib_name == 'S' .and. bp_com%parser_name /= 'bmad_parser2') then
-  call parser_warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
+  call parser_error ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
 endif
 
 ! Apertures, etc.
@@ -2307,7 +2314,7 @@ case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
 
   ! If size(eles) > 1 then there must be more than one element of the same name.
 
-  if (size(eles) > 1) call parser_warning (&
+  if (size(eles) > 1) call parser_error (&
             'MULTIPLE ELEMENTS OF THE SAME NAME REFERENCED IN ATTRIBUTE: ' // word, warn_only = .true.)
 
 ! Everything else
@@ -2315,14 +2322,14 @@ case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
 case default
   call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false.)
   if (err_flag .or. size(ptr) == 0) then
-    call parser_warning('BAD ATTRIBUTE: ' // word)
+    call parser_error('BAD ATTRIBUTE: ' // word)
   else
     value = ptr(1)%r
   endif
 
   ! If size(ptr) > 1 then there must be more than one element of the same name.
 
-  if (size(ptr) > 1) call parser_warning (&
+  if (size(ptr) > 1) call parser_error (&
             'MULTIPLE ELEMENTS OF THE SAME NAME REFERENCED IN ATTRIBUTE: ' // word, warn_only = .true.)
 
 end select
@@ -2351,7 +2358,7 @@ logical delim_found, err_flag
 
 call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
 if (i /= 0) then
-  call parser_warning ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
+  call parser_error ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
   call evaluate_value (word, bp_com%var(i)%value, lat, delim, delim_found, err_flag)
   return
 endif
@@ -2362,7 +2369,7 @@ ivar = bp_com%ivar_tot
 bp_com%var(ivar)%name = word
 call evaluate_value (bp_com%var(ivar)%name, bp_com%var(ivar)%value, &
                                      lat, delim, delim_found, err_flag)
-if (delim_found .and. .not. err_flag) call parser_warning  &
+if (delim_found .and. .not. err_flag) call parser_error  &
                   ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
                    'FOR VARIABLE: ' // bp_com%var(ivar)%name)
 
@@ -2407,14 +2414,14 @@ if (str_end == '"' .or. str_end == "'") then
   bp_com%parse_line = bp_com%parse_line(2:)
   ix = index(bp_com%parse_line, str_end)
   if (ix == 0) then
-    call parser_warning ('MISSING ENDING QUOTE MARK FOR TYPE = "attribute"',  &
+    call parser_error ('MISSING ENDING QUOTE MARK FOR TYPE = "attribute"',  &
                         'FOR ELEMENT: ' // ele%name)
     type_name = ' '
   else
     type_name = bp_com%parse_line(1:ix-1)
     bp_com%parse_line = bp_com%parse_line(ix+1:)
     call get_next_word (word, ix_word, ',=', delim, delim_found, .true.)
-    if (ix_word /= 0) call parser_warning (  &
+    if (ix_word /= 0) call parser_error (  &
               'EXTRA CHARACTERS FOUND AFTER TYPE ATTRIBUTE: ' // word,  &
               'FOR ELEMENT: ' // ele%name)
   endif
@@ -2440,7 +2447,7 @@ case ('TO', 'REF_PATCH')
 case ('CRYSTAL_TYPE')
   ele%component_name = type_name
 case default
-  call parser_warning ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
+  call parser_error ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
   call err_exit
 end select
 
@@ -2511,7 +2518,7 @@ lr%t_ref = 0
 read (iu, nml = long_range_modes, iostat = ios)
 close (iu)
 if (ios /= 0) then
-  call parser_warning ('CANNOT READ LONG_RANGE_MODES NAMELIST FOR ELEMENT: ' // ele%name, & 
+  call parser_error ('CANNOT READ LONG_RANGE_MODES NAMELIST FOR ELEMENT: ' // ele%name, & 
                 'FROM FILE: '// full_file_name)
   return
 endif
@@ -2536,7 +2543,7 @@ do i = 1, size(lr)
 
   call downcase_string(lr(i)%angle)
   if (lr(i)%angle == '') then
-    call parser_warning ('LONG_RANGE_MODE ANGLE IS MISSING. MUST BE NUMBER OR "UNPOLARIZED"', & 
+    call parser_error ('LONG_RANGE_MODE ANGLE IS MISSING. MUST BE NUMBER OR "UNPOLARIZED"', & 
                   'FOR ELEMENT: ' // ele%name, &
                   'IN FILE: ' // full_file_name)
     cycle
@@ -2549,7 +2556,7 @@ do i = 1, size(lr)
     ele%rf_wake%lr(j)%polarized = .true.
     read (lr(j)%angle, *, iostat = ios) ele%rf_wake%lr(j)%angle
     if (ios /= 0) then
-      call parser_warning ('BAD LONG_RANGE_MODE ANGLE.', &
+      call parser_error ('BAD LONG_RANGE_MODE ANGLE.', &
                     'FOR ELEMENT: ' // ele%name, &
                     'IN FILE: ' // full_file_name)
       cycle
@@ -2644,7 +2651,7 @@ do
     exit
   endif
   if (ios > 0) then
-    call parser_warning ('ERROR READING WAKE FILE: ' // full_file_name)
+    call parser_error ('ERROR READING WAKE FILE: ' // full_file_name)
     return
   endif
   call string_trim (line, line, ix)
@@ -2657,7 +2664,7 @@ do
   read (line, *, iostat = ios) col1(i), col2(i), col3(i)
 
   if (ios /= 0) then
-    call parser_warning ('ERROR PARSING WAKE FILE: ' // full_file_name, &
+    call parser_error ('ERROR PARSING WAKE FILE: ' // full_file_name, &
                                         'CANNOT READ LINE: ' // line)
     return
   endif
@@ -2675,7 +2682,7 @@ deallocate (col1, col2, col3)
 
 if (n_row > 1) then
   if (ele%rf_wake%sr_table(0)%z /= 0) then
-    call parser_warning ('WAKEFIELDS DO NOT START AT Z = 0!', &
+    call parser_error ('WAKEFIELDS DO NOT START AT Z = 0!', &
                                   'IN FILE: ' // ele%rf_wake%sr_file)
     return
   endif
@@ -2687,18 +2694,18 @@ if (n_row > 1) then
     if (abs(ele%rf_wake%sr_table(j)%z - dz * j) > 1e-4 * abs(dz)) then
       write (line, '(a, i5)') &
                'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
-      call parser_warning (line, 'IN FILE: ' // ele%rf_wake%sr_file)
+      call parser_error (line, 'IN FILE: ' // ele%rf_wake%sr_file)
       return
     endif
   enddo               
 
   ! if dz > 0 means that an old-style file is being used.
 
-  if (dz > 0) call parser_warning ( &
+  if (dz > 0) call parser_error ( &
           'SHORT-RANGE WAKEFIELD FILE TABLES NOW MUST HAVE Z < 0! ' // full_file_name, &
           'REMEMBER THAT Wt NEEDS TO BE NEGATIVE ALSO!')
 
-  if (ele%rf_wake%sr_table(1)%trans > 0) call parser_warning ( &
+  if (ele%rf_wake%sr_table(1)%trans > 0) call parser_error ( &
            'POSITIVE Wt IN WAKEFIELD FILE INDICATES SIGN ERROR! ' // full_file_name)
 
 endif
@@ -2714,7 +2721,7 @@ z_max = real_garbage$
 read (iu, nml = short_range_modes, iostat = ios)
 close (1)
 if (ios /= 0) then
-  call parser_warning ('CANNOT READ SHORT_RANGE_MODES NAMELIST FROM FILE: ' & 
+  call parser_error ('CANNOT READ SHORT_RANGE_MODES NAMELIST FROM FILE: ' & 
                     // full_file_name, 'FOR ELEMENT: ' // ele%name)
   return
 endif
@@ -2722,20 +2729,20 @@ endif
 n = count(longitudinal%phi /= real_garbage$)
 allocate (ele%rf_wake%sr_mode_long(n))
 ele%rf_wake%sr_mode_long = longitudinal(1:n)
-if (any(longitudinal(1:n)%phi == real_garbage$)) call parser_warning ( &
+if (any(longitudinal(1:n)%phi == real_garbage$)) call parser_error ( &
     'JUMBLED INDEX FOR LONGITUDINAL SHORT_RANGE_MODES FROM FILE: ' &
     // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
 n = count(transverse%phi /= real_garbage$)
 allocate (ele%rf_wake%sr_mode_trans(n))
 ele%rf_wake%sr_mode_trans = transverse(1:n)
-if (any(transverse(1:n)%phi == real_garbage$)) call parser_warning ( &
+if (any(transverse(1:n)%phi == real_garbage$)) call parser_error ( &
     'JUMBLED INDEX FOR TRANSVERSE SHORT_RANGE_MODES FROM FILE: ' &
     // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
 
 ele%rf_wake%z_sr_mode_max = z_max
-if (z_max == real_garbage$) call parser_warning ( &
+if (z_max == real_garbage$) call parser_error ( &
     'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' &
     // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
@@ -2774,7 +2781,7 @@ bp_com%dirs(2) = bp_com%calling_file%dir
 call find_file (file, found_it, full_file_name, bp_com%dirs)
 open (iu, file = full_file_name, status = 'OLD', action = 'READ', iostat = ios)
 if (ios /= 0) then
-call parser_warning ('CANNOT OPEN WAKE FILE: ' // file)
+call parser_error ('CANNOT OPEN WAKE FILE: ' // file)
 iu = -1
 return
 endif
@@ -2822,7 +2829,7 @@ logical delim_found, err_flag, end_of_file
 !
 
 call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
-if (delim /= '{' .or. ix_word /= 0) call parser_warning  &
+if (delim /= '{' .or. ix_word /= 0) call parser_error  &
         ('BAD ' // control_name(ele%lord_status) // 'SPEC: ' // word_in,  &
         'FOR ELEMENT: ' // ele%name)
 
@@ -2846,7 +2853,7 @@ do
   if (j > 1) then
     k = index(word, ']')
     if (k <= j+1) then
-      call parser_warning ('BAD ATTRIBUTE SPEC: ' // word_in, 'FOR: ' // ele%name)
+      call parser_error ('BAD ATTRIBUTE SPEC: ' // word_in, 'FOR: ' // ele%name)
       word = word(:k-1) // word(j+1:)
     else
       attrib_name(ixs) = word(j+1:k-1)
@@ -2862,7 +2869,7 @@ do
     call evaluate_value (trim(ele%name), value, &
                                 lat, delim, delim_found, err_flag)
     if (err_flag) then
-      call parser_warning ('BAD COEFFICIENT: ' // word_in,  &
+      call parser_error ('BAD COEFFICIENT: ' // word_in,  &
                                         'FOR ELEMENT: ' // ele%name)
       call load_parse_line ('normal', 1, end_of_file)         ! next line
       return
@@ -2876,7 +2883,7 @@ do
     call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
     exit
   elseif (delim /= ',') then
-    call parser_warning ('BAD ' // control_name(ele%lord_status) //  &
+    call parser_error ('BAD ' // control_name(ele%lord_status) //  &
             'SPEC: ' // word_in, 'FOR: ' // ele%name)
     exit
   endif
@@ -2887,7 +2894,7 @@ enddo
 
 ixs = ele%n_slave
 
-! if (ixs == 0) call parser_warning ( &
+! if (ixs == 0) call parser_error ( &
 !        'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
 
 allocate (pele%coef(ixs), pele%name(ixs), pele%attrib_name(ixs))
@@ -2927,20 +2934,20 @@ wild_permit = logic_option (.false., wildcards_permitted)
 ! check for blank spaces
 
 do i = 1, min(ix_name, len(name))
-  if (name(i:i) == ' ' .or. name(i:i) == tab) call parser_warning  &
+  if (name(i:i) == ' ' .or. name(i:i) == tab) call parser_error  &
                         ('NO DELIMITER BETWEEN NAMES: ' // name)
 enddo
 
 ! check for name too long
 
 if (ix_name > len(name)) then
-   call parser_warning ('NAME TOO LONG: ' // name)
+   call parser_error ('NAME TOO LONG: ' // name)
    ix_name = len(name)      ! chop name
 endif
 
 ! check for name too short
 
-if (ix_name == 0) call parser_warning ('BLANK NAME')
+if (ix_name == 0) call parser_error ('BLANK NAME')
 
 ! Check if integer
 
@@ -2959,17 +2966,17 @@ do i = 1, ix_name
          .not. (wild_permit .and. (name(i:i) == '*' .or. name(i:i) == '%'))) OK = .false.
 enddo
 
-if (.not. OK) call parser_warning ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' // name)
+if (.not. OK) call parser_error ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' // name)
 
 ! Check for non-matched "(" ")" pairs
 
 ix1 = index(name, '(')
 ix2 = index(name, ')')
 if (ix1 /= 0 .or. ix2 /= 0) then
-  if (ix1 == 0) call parser_warning ('UNMATCHED PARENTHESIS: ' // name)
-  if (ix2 <= ix1+1) call parser_warning  ('INVALID: REVERSED PARENTHESES: ' // name)
+  if (ix1 == 0) call parser_error ('UNMATCHED PARENTHESIS: ' // name)
+  if (ix2 <= ix1+1) call parser_error  ('INVALID: REVERSED PARENTHESES: ' // name)
   if (index(name(ix1+1:), '(') /= 0 .or. index(name(ix2+1:), ')') /=  &
-                 0) call parser_warning ('INVALID: BAD PARENTHESES: ' // name)
+                 0) call parser_error ('INVALID: BAD PARENTHESES: ' // name)
 endif
 
 ! Check for non matched "[" "]" pairs
@@ -2977,12 +2984,12 @@ endif
 ix1 = index(name, '[')
 ix2 = index(name, ']')
 if (ix1 /= 0 .or. ix2 /= 0) then
-  if (ix1 == 0) call parser_warning ('UNMATCHED BRACKET: ' // name)
-  if (ix2 <= ix1+1) call parser_warning  ('INVALID: REVERSED BRACKETS: ' // name)
+  if (ix1 == 0) call parser_error ('UNMATCHED BRACKET: ' // name)
+  if (ix2 <= ix1+1) call parser_error  ('INVALID: REVERSED BRACKETS: ' // name)
   if (index(name(ix1+1:), '[') /= 0 .or. index(name(ix2+1:), ']') /=  &
-                 0) call parser_warning ('INVALID: BAD BRACKETS: ' // name)
+                 0) call parser_error ('INVALID: BAD BRACKETS: ' // name)
   if (ix2 /= len(name)) then
-    if (name(ix2+1:ix2+1) /= ' ') call parser_warning  &
+    if (name(ix2+1:ix2+1) /= ' ') call parser_error  &
                   ('INVALID: SOMETHING AFTER CLOSING "]" BRACKET: ' // name)
   endif
 endif
@@ -2990,7 +2997,7 @@ endif
 ! check for more than 40 characters
 
 if ((ix1 == 0 .and. ix_name > 40) .or. (ix1 > 41 .or. ix2 - ix1 > 41)) &
-                          call parser_warning ('NAME HAS > 40 CHARACTERS: ' // name)
+                          call parser_error ('NAME HAS > 40 CHARACTERS: ' // name)
 
 end subroutine verify_valid_name
 
@@ -3002,7 +3009,7 @@ end subroutine verify_valid_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_warning (what1, what2, what3, seq, pele, stop_here, warn_only)
+subroutine parser_error (what1, what2, what3, seq, pele, stop_here, warn_only)
 
 implicit none
 
@@ -3012,7 +3019,7 @@ type (parser_ele_struct), optional :: pele
 character(*) what1
 character(*), optional :: what2, what3
 character(160) lines(12)
-character(16), parameter :: r_name = 'parser_warning'
+character(16), parameter :: r_name = 'parser_error'
 integer nl
 logical, optional :: stop_here, warn_only
 
@@ -3022,7 +3029,11 @@ if (bmad_status%type_out) then
 
   nl = 0
 
-  nl=nl+1; lines(nl) = 'ERROR IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+  if (logic_option(.false., warn_only)) then
+    nl=nl+1; lines(nl) = 'WARNING IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+  else
+    nl=nl+1; lines(nl) = 'ERROR IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+  endif
 
   if (present(what2)) then
     nl=nl+1; lines(nl) = '     ' // trim(what2)
@@ -3066,13 +3077,13 @@ endif
 
 ! Warnings do not result in bp_com%error_flag being set
 
-if (logic_option(.true., warn_only)) then
+if (.not. logic_option(.false., warn_only)) then
   bp_com%error_flag = .true.
   bmad_status%ok = .false.
   if (logic_option(.false., stop_here) .and. bmad_status%exit_on_error) stop
 endif
 
-end subroutine parser_warning
+end subroutine parser_error
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3211,7 +3222,7 @@ do i = 1, n_multipass
   lat%control(ixc)%ix_slave = slave%ix_ele
   lat%control(ixc)%ix_branch = slave%ix_branch
   if (slave%n_lord /= 0) then
-    call parser_warning ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
+    call parser_error ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
                   'PLEASE GET EXPERT HELP!')
     call err_exit
   endif
@@ -3555,7 +3566,7 @@ if (n_inserted == 0) then
     found = match_wild(in_lat%ele(i)%name, pele%ref_name)
     if (found) exit
   enddo
-  if (.not. found) call parser_warning ('NO MATCH FOR REFERENCE ELEMENT: ' //  &
+  if (.not. found) call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  &
           pele%ref_name, 'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
 endif
 
@@ -3592,7 +3603,7 @@ if (pele%ele_pt == begin$) then
 elseif (pele%ele_pt == center$ .or. pele%ele_pt == not_set$) then
   super_ele%s = super_ele%s + super_ele%value(l$) / 2
 elseif (pele%ele_pt /= end$) then
-  call parser_warning ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!')
+  call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!')
   call err_exit
 endif
 
@@ -3608,7 +3619,7 @@ if (ct == overlay_lord$ .or. ct == girder_lord$) then
     s_ref_end = max(s_ref_end, slave%s)
   enddo
 elseif (ct == group_lord$) then
-  call parser_warning ('SUPERPOSING: ' // super_ele%name, 'UPON GROUP' // pele%ref_name)
+  call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON GROUP' // pele%ref_name)
   return
 else
   s_ref_begin = ref_ele%s - ref_ele%value(l$)
@@ -3624,7 +3635,7 @@ elseif (pele%ref_pt == center$ .or. pele%ref_pt == not_set$) then
 elseif (pele%ref_pt == end$) then
   super_ele%s = super_ele%s + s_ref_end
 else
-  call parser_warning ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #2 INTERNAL ERROR!')
+  call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #2 INTERNAL ERROR!')
   call err_exit
 endif
 
@@ -3674,7 +3685,7 @@ err_flag = .true.
 do
   call get_next_word (word, ix_word, '(): =,', delim, delim_found, .true.)
   if (ix_word == 0 .or. delim == '( :=') then
-    call parser_warning ('BAD ARGUMENT LIST FOR: ', seq_name)
+    call parser_error ('BAD ARGUMENT LIST FOR: ', seq_name)
     return
   endif
   n_arg = n_arg + 1
@@ -3740,9 +3751,9 @@ seq%ix_line = bp_com%current_file%i_line
 
 call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
 
-if (delim /= '(') call parser_warning  &
+if (delim /= '(') call parser_error  &
       ('EXPECTING "(", GOT: ' // delim, 'FOR LINE: ' // seq%name)
-if (ix_word /= 0)  call parser_warning  &
+if (ix_word /= 0)  call parser_error  &
       ('EXTRANEOUS STUFF BEFORE "(", GOT: ' // word,  &
       'FOR LINE: ' // seq%name)
 
@@ -3766,7 +3777,7 @@ do
     this_ele%rep_count = nint(rcount)
     if (err_flag) return
     if (bp_com%parse_line /= '' .or. c_delim /= ":") then
-      call parser_warning ('MALFORMED REPETION COUNT FOUND IN SEQUENCE: ' // seq%name)
+      call parser_error ('MALFORMED REPETION COUNT FOUND IN SEQUENCE: ' // seq%name)
       return
     endif
     bp_com%parse_line = parse_line_saved
@@ -3797,12 +3808,12 @@ do
   if (delim == '[') then
     call get_next_word (this_ele%tag, ix_word, '[]:=(,)', delim, delim_found, .true.)
     if (delim /= ']') then
-      call parser_warning ('NO MATCHING "]" FOUND FOR OPENING "[" IN SEQUENCE: ' // seq%name)
+      call parser_error ('NO MATCHING "]" FOUND FOR OPENING "[" IN SEQUENCE: ' // seq%name)
       return
     endif
     call get_next_word (word, ix_word, '[]:=(,)', delim, delim_found, .true.)
     if (ix_word > 0) then
-      call parser_warning ('ILLEGAL CHARACTERS AFTER CLOSING "]" FOUND IN SEQUENCE: ' // seq%name)
+      call parser_error ('ILLEGAL CHARACTERS AFTER CLOSING "]" FOUND IN SEQUENCE: ' // seq%name)
       return
     endif   
   endif
@@ -3842,12 +3853,12 @@ do
     endif
 
     call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
-    if (word /= ' ') call parser_warning &
+    if (word /= ' ') call parser_error &
               ('NO COMMA AFTER SUBLINE OR REPLACEMENT LINE. FOUND: ' // &
                word, 'IN THE SEQUENCE: ' // seq%name)
   endif
 
-  if (this_ele%name == ' ') call parser_warning &
+  if (this_ele%name == ' ') call parser_error &
             ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
 
   ! if a replacement line then look for element in argument list
@@ -3881,7 +3892,7 @@ do
   if (delim == ')') exit
 
   if (delim /= ',') then
-    call parser_warning ('EXPECTING "," GOT: ' // delim, 'FOR LINE: ' // seq%name)
+    call parser_error ('EXPECTING "," GOT: ' // delim, 'FOR LINE: ' // seq%name)
     exit
   endif
          
@@ -3891,7 +3902,7 @@ enddo
 
 if (top_level) then
   call get_next_word(word, ix_word, ':=() ', delim, delim_found, .true.)
-  if (delim_found .or. ix_word /= 0) call parser_warning  &
+  if (delim_found .or. ix_word /= 0) call parser_error  &
         ('EXTRA CHARACTERS AFTER CLOSING ")"',  'FOR LINE: ' // seq%name)
 endif
 
@@ -4052,7 +4063,7 @@ main_loop: do n = 1, n2
 
       if ((k == 0 .and. j > 0) .or. (k > 0 .and. slave_not_in_lat) .or. &
           (k == 0 .and. all(in_lat%ele(1:n2)%name /= name))) then
-        call parser_warning ('CANNOT FIND SLAVE FOR: ' // lord%name, &
+        call parser_error ('CANNOT FIND SLAVE FOR: ' // lord%name, &
                       'CANNOT FIND: '// missing_slave_name, pele = plat%ele(ixx))
         lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
         cycle main_loop
@@ -4083,7 +4094,7 @@ main_loop: do n = 1, n2
         endif
         cs(j)%ix_attrib = ix
         if (ix < 1) then
-          call parser_warning ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
+          call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
                         'ATTRIBUTE: ' // attrib_name, &
                         'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, &
                         pele = plat%ele(ixx))
@@ -4117,7 +4128,7 @@ main_loop: do n = 1, n2
 
     do ii = 1, n_list-1
       if (name_list(r_indexx(ii)) > name_list(r_indexx(ii+1))) then
-        call parser_warning ('PARER_ADD_LORD INTERNAL ERROR!')
+        call parser_error ('PARER_ADD_LORD INTERNAL ERROR!')
         call err_exit
       endif
     enddo
@@ -4132,7 +4143,7 @@ main_loop: do n = 1, n2
     case (group_lord$)
       call create_group (lat, ix_lord, cs(1:ns), err)
     end select
-    if (err) call parser_warning ('ELEMENT OR GROUP: ' // lord%name, &
+    if (err) call parser_error ('ELEMENT OR GROUP: ' // lord%name, &
                            'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!', &
                            pele = plat%ele(ixx))
 
@@ -4148,7 +4159,7 @@ main_loop: do n = 1, n2
 
     call find_indexx (name1, name_list, r_indexx, n_list, k_slave, k2)
     if (k_slave == 0) then
-      call parser_warning ('CANNOT FIND START ELEMENT FOR GIRDER: ' // lord%name, &
+      call parser_error ('CANNOT FIND START ELEMENT FOR GIRDER: ' // lord%name, &
                     'CANNOT FIND: '// name, pele = plat%ele(ixx))
       cycle
     endif
@@ -4196,7 +4207,7 @@ main_loop: do n = 1, n2
             slave => branch%ele(slave%ix_ele + 1)
           endif
           if (slave%ix_ele == ix_ele_original) then
-            call parser_warning ('CANNOT FIND END ELEMENT FOR GIRDER: ' // lord%name, &
+            call parser_error ('CANNOT FIND END ELEMENT FOR GIRDER: ' // lord%name, &
                           'CANNOT FIND: ' // slave_name, pele = plat%ele(ixx))
             cycle main_loop
           endif
@@ -4341,17 +4352,17 @@ case (sbend$, rbend$)
 
   ! Only one of b_field, g, or rho may be set.
 
-  if (ele%value(b_field$) /= 0 .and. ele%key == rbend$) call parser_warning &
+  if (ele%value(b_field$) /= 0 .and. ele%key == rbend$) call parser_error &
           ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
 
-  if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call parser_warning &
+  if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call parser_error &
           ('BOTH G AND B_FIELD SET FOR A BEND: ' // ele%name)
 
-  if (ele%value(b_field$) /= 0 .and. ele%value(rho$) /= 0) call parser_warning &
+  if (ele%value(b_field$) /= 0 .and. ele%value(rho$) /= 0) call parser_error &
           ('BOTH RHO AND B_FIELD SET FOR A BEND: ' // ele%name)
 
   if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
-            call parser_warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
+            call parser_error ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
 
   ! if rho is set then this gives g
 
@@ -4361,7 +4372,7 @@ case (sbend$, rbend$)
 
   length_set = .false.
   if (ele%value(g$) /= 0 .and. angle /= 0) then
-    if (ele%value(l$) /= 0) call parser_warning ('ANGLE, G/RHO, AND L SPECIFIED FOR BEND: ' // ele%name)
+    if (ele%value(l$) /= 0) call parser_error ('ANGLE, G/RHO, AND L SPECIFIED FOR BEND: ' // ele%name)
     ele%value(l$) = angle / ele%value(g$)
     length_set = .true.
   endif
@@ -4392,7 +4403,7 @@ case (sbend$, rbend$)
   ! 
 
   if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0) then
-    call parser_warning ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
+    call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
   elseif (ele%value(angle$) /= 0) then
     ele%value(g$) = ele%value(angle$) / ele%value(l$) 
   endif
@@ -4408,7 +4419,7 @@ case (sbend$, rbend$)
 case (lcavity$) 
 
   if (ele%value(delta_e$) /= 0) then
-    if (ele%value(gradient$) /= 0) call parser_warning &
+    if (ele%value(gradient$) /= 0) call parser_error &
                 ('BOTH DELTA_E AND GRADIENT NON-ZERO FOR A LCAVITY:', ele%name)
     ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
   endif
@@ -4427,33 +4438,33 @@ case (wiggler$)
 ! check for inconsistancies
 
 case (solenoid$)
-  if (ele%field_master .and. (ele%value(ks$) /= 0 .or. kick_set)) call parser_warning &
+  if (ele%field_master .and. (ele%value(ks$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
        'BOTH STRENGTH (KS, HKICK, ETC.) AND FIELD SET FOR A SOLENOID.')
 
 case (sol_quad$)
   if (ele%field_master .and. (ele%value(ks$) /= 0 .or. &
-                            ele%value(k1$) /= 0 .or. kick_set)) call parser_warning &
+                            ele%value(k1$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
        'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A SOL_QUAD.')
 
 case (quadrupole$)
-  if (ele%field_master .and. (ele%value(k1$) /= 0 .or. kick_set)) call parser_warning &
+  if (ele%field_master .and. (ele%value(k1$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
        'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A QUAD.')
 
 case (sextupole$)
-  if (ele%field_master .and. (ele%value(k2$) /= 0 .or. kick_set)) call parser_warning &
+  if (ele%field_master .and. (ele%value(k2$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
        'BOTH STRENGTH (K2, HKICK, ETC.) AND FIELD SET FOR A SEXTUPOLE.')
 
 case (octupole$)
-  if (ele%field_master .and. (ele%value(k3$) /= 0 .or. kick_set)) call parser_warning &
+  if (ele%field_master .and. (ele%value(k3$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
        'BOTH STRENGTH (K3, HKICK, ETC.) AND FIELD SET FOR A OCTUPOLE.')
 
 case (hkicker$, vkicker$)
-  if (ele%field_master .and. (ele%value(kick$) /= 0 .or. kick_set)) call parser_warning &
+  if (ele%field_master .and. (ele%value(kick$) /= 0 .or. kick_set)) call parser_error &
       ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
        'BOTH STRENGTH AND BL_KICK SET FOR A H/VKICKER.')
 
@@ -4486,10 +4497,10 @@ if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master) then
     if (nint(ele%value(n_ref_pass$)) /= 0) n = n + 1 
     if (ele%value(p0c$) /= 0) n = n + 1
     if (ele%value(e_tot$) /= 0) n = n + 1
-    if (n == 0) call parser_warning ( &
+    if (n == 0) call parser_error ( &
           'FOR MULTIPASS LORD: ' // ele%name, &
           'N_REF_PASS, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
-    if (n > 1) call parser_warning ( &
+    if (n > 1) call parser_error ( &
           'FOR MULTIPASS LORD: ' // ele%name, &
           'MORE THAN ONE OF N_REF_PASS, E_TOT, AND P0C ARE SET NON-ZERO!')
   end select
@@ -4713,7 +4724,7 @@ do j = 1, n_ele_use
     if (n == 0) exit
     b_ele => pointer_to_ele(lat, lat%branch(n)%ix_from_ele, lat%branch(n)%ix_from_branch)
     if (b_ele%name == ele2%name) then
-      call parser_warning ('ENDLESS BRANCHING LOOP DETECTED. BRANCHING ON BRANCHING ELEMENT: ' // ele2%name)
+      call parser_error ('ENDLESS BRANCHING LOOP DETECTED. BRANCHING ON BRANCHING ELEMENT: ' // ele2%name)
       call err_exit
     endif
     n = b_ele%ix_branch
@@ -4770,12 +4781,12 @@ n_max = in_lat%n_ele_max
 
 call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
 if (i_use == 0) then
-  call parser_warning ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // use_name, ' ')
+  call parser_error ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // use_name, ' ')
   return
 endif
 
 if (sequence(i_use)%type /= line$) then
-  call parser_warning ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
+  call parser_error ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
   return
 endif
 
@@ -4806,12 +4817,12 @@ do k = 1, iseq_tot
         s_ele%ix_ele = j
         s_ele%type = sequence(j)%type
       endif
-      if (s_ele%type == list$ .and. s_ele%reflect) call parser_warning ( &
+      if (s_ele%type == list$ .and. s_ele%reflect) call parser_error ( &
                           'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
                           // sequence(k)%name, 'FOR LIST: ' // s_ele%name, &
                           seq = sequence(k))
       if (sequence(k)%type == list$) &
-                call parser_warning ('A REPLACEMENT LIST: ' // sequence(k)%name, &
+                call parser_error ('A REPLACEMENT LIST: ' // sequence(k)%name, &
                 'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
  
     else    ! if an element...
@@ -4843,7 +4854,7 @@ ix_lat = -1
 sequence(:)%ix = 1  ! Init. Used for replacement list index
 
 if (stack(1)%multipass) then
-  call parser_warning ('"USE"D LINE FOR LATTICE EXPANSION IS MARKED MULTIPASS!')
+  call parser_error ('"USE"D LINE FOR LATTICE EXPANSION IS MARKED MULTIPASS!')
   call err_exit
 endif
 
@@ -4900,7 +4911,7 @@ line_expansion: do
     if (j < 0) then  ! if not an element it must be a sequence
       call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
       if (j == 0) then  ! if not a sequence then I don't know what it is
-        call parser_warning ('CANNOT FIND DEFINITION FOR: ' // name, &
+        call parser_error ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, seq = seq)
         if (bmad_status%exit_on_error) call err_exit
         return
@@ -4928,14 +4939,14 @@ line_expansion: do
       if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
     else
       if (s_ele%tag /= '') then
-        call parser_warning ('ELEMENTS IN A LINE OR LIST ARE NOT ALLOWED TO HAVE A TAG.', &
+        call parser_error ('ELEMENTS IN A LINE OR LIST ARE NOT ALLOWED TO HAVE A TAG.', &
                       'FOUND ILLEGAL TAG FOR ELEMENT: ' // s_ele%name, &
                       'IN THE LINE/LIST: ' // seq%name, seq)
       endif
       this_seq_ele => s_ele
     endif
 
-    if (this_seq_ele%ix_ele < 1) call parser_warning('NOT A DEFINED ELEMENT: ' // &
+    if (this_seq_ele%ix_ele < 1) call parser_error('NOT A DEFINED ELEMENT: ' // &
                           s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
 
 
@@ -4980,13 +4991,13 @@ line_expansion: do
   case (line$, replacement_line$)
     i_lev = i_lev + 1
     if (i_lev > size(stack)) then
-      call parser_warning ('NESTED LINES EXCEED STACK DEPTH! SUSPECT INFINITE LOOP!')
+      call parser_error ('NESTED LINES EXCEED STACK DEPTH! SUSPECT INFINITE LOOP!')
       call err_exit
     endif
     if (s_ele%type == replacement_line$) then
       seq2 => sequence(s_ele%ix_ele)
       if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
-        call parser_warning ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
+        call parser_error ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
             s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq = seq)
         return
       endif
@@ -5033,7 +5044,7 @@ line_expansion: do
     endif
 
   case default
-    call parser_warning ('INTERNAL SEQUENCE ERROR!')
+    call parser_error ('INTERNAL SEQUENCE ERROR!')
 
   end select
 
@@ -5236,7 +5247,7 @@ allocate (array(1024))
 
 call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true. )
 if ((word /= '') .or. (delim /= '{')) then
-  call parser_warning (  'NO { SIGN FOUND IN MAP DEFINITION',  &
+  call parser_error (  'NO { SIGN FOUND IN MAP DEFINITION',  &
                     'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
   return
 endif
@@ -5255,7 +5266,7 @@ do
     ! Expect "("
     call get_next_word (word, ix_word, ',({', delim, delim_found)
     if (word /= '' .or. delim /= '(') then
-      call parser_warning ('NO "(" FOUND AFTER "' // trim(word2) // ' =" ', &
+      call parser_error ('NO "(" FOUND AFTER "' // trim(word2) // ' =" ', &
                            'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
@@ -5265,7 +5276,7 @@ do
     do i_term = 1, 100000
       call get_next_word (word, ix_word, '{},()', delim, delim_found)
       if ((delim /= ',' .and. delim /= ')') .or. .not. is_real(word)) then
-        call parser_warning ('ERROR PARSING ARRAY FOR: ' // word2, &
+        call parser_error ('ERROR PARSING ARRAY FOR: ' // word2, &
                              'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
@@ -5276,7 +5287,7 @@ do
 
     if (allocated(map%term)) then
       if (size(map%term) /= i_term) then
-        call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
+        call parser_error ('ARRAY SIZE MISMATCH FOR: ' // word2, &
                            'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
@@ -5291,7 +5302,7 @@ do
 
     if (word2(8:9) == 'RE') then
       if (any(real(c_ptr) /= 0)) then
-        call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
+        call parser_error ('DUPLICATE ARRAY FOR: ' // word2, &
                            'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
@@ -5299,7 +5310,7 @@ do
 
     else
       if (any(aimag(c_ptr) /= 0)) then
-        call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
+        call parser_error ('DUPLICATE ARRAY FOR: ' // word2, &
                            'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
@@ -5309,7 +5320,7 @@ do
     ! Expect "," or "}"
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     if (word /= '' .or. (delim /= ',' .and. delim /= '}')) then
-      call parser_warning ('BAD ' // trim(word2) // ' = (...) CONSTRUCT', &
+      call parser_error ('BAD ' // trim(word2) // ' = (...) CONSTRUCT', &
                            'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
@@ -5332,7 +5343,7 @@ enddo
 call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
 if (ix_word /= 0) then
-    call parser_warning ('UNKNOWN TEXT FOUND AFTER MODE GRID DEFINITION: ' // word, &
+    call parser_error ('UNKNOWN TEXT FOUND AFTER MODE GRID DEFINITION: ' // word, &
                          'FOR ELEMENT: ' // ele%name)
     return 
 endif
@@ -5399,7 +5410,7 @@ if (.not. associated(grid)) allocate (grid)
 
 call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true. )
 if ((word /= '') .or. (delim /= '{')) then
-  call parser_warning (  'NO { SIGN FOUND IN GRID DEFINITION',  &
+  call parser_error (  'NO { SIGN FOUND IN GRID DEFINITION',  &
                     'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
   return
 endif
@@ -5424,7 +5435,7 @@ do
   case ('TYPE')
     ! Expect "<component> = "
     if (delim /= '=') then
-      call parser_warning (  'NO "=" SIGN FOUND AFTER GRID TYPE',  &
+      call parser_error (  'NO "=" SIGN FOUND AFTER GRID TYPE',  &
                       'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
@@ -5432,7 +5443,7 @@ do
     !Check to see if this is a valid type by checking against em_grid_type_name(:)
     call match_word(word, em_grid_type_name, grid%type, can_abbreviate = .false. )
     if (grid%type == 0) then
-      call parser_warning ('UNKNKOWN GRID TYPE: ' // word, &
+      call parser_error ('UNKNKOWN GRID TYPE: ' // word, &
                                  'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return        
     endif      
@@ -5440,7 +5451,7 @@ do
   case ('R0')       
     ! Expect "<component> = "
     if (delim /= '=') then
-      call parser_warning (  'NO "=" SIGN FOUND AFTER GRID R0',  &
+      call parser_error (  'NO "=" SIGN FOUND AFTER GRID R0',  &
                       'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
@@ -5451,7 +5462,7 @@ do
     !Expect , or }
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '' ) then
-      call parser_warning ('BAD INPUT AFTER R0 DEFINITION: ' // word , &
+      call parser_error ('BAD INPUT AFTER R0 DEFINITION: ' // word , &
                                  'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
@@ -5459,7 +5470,7 @@ do
     case ('DR')      
     ! Expect "<component> = "
     if (delim /= '=') then
-      call parser_warning (  'NO "=" SIGN FOUND AFTER GRID DR',  &
+      call parser_error (  'NO "=" SIGN FOUND AFTER GRID DR',  &
                       'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif      
@@ -5469,7 +5480,7 @@ do
     grid%dr = dr
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '' ) then
-      call parser_warning ('BAD INPUT AFTER DR DEFINITION: ' // word , &
+      call parser_error ('BAD INPUT AFTER DR DEFINITION: ' // word , &
                                  'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
@@ -5490,7 +5501,7 @@ do
 
     !Expect "("
     if (delim /= '(' ) then
-      call parser_warning ('BAD GRID PT CONSTRUCT', &
+      call parser_error ('BAD GRID PT CONSTRUCT', &
                            'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
@@ -5503,7 +5514,7 @@ do
 
     !Expect last delim was ")"
     if (delim /= ')' ) then
-      call parser_warning ('BAD GRID PT CONSTRUCT, NO CLOSING ")" FOR INDICES', &
+      call parser_error ('BAD GRID PT CONSTRUCT, NO CLOSING ")" FOR INDICES', &
       'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
@@ -5512,7 +5523,7 @@ do
     call get_next_word (word2, ix_word2, '{}=,()', delim2, delim_found2)
     if ( (word /= '') .or. (word2 /= '') &
          .or. (delim /= '=') .or. (delim2 /= '(') ) then
-      call parser_warning ('BAD GRID PT CONSTRUCT, NO  = "(" ', &
+      call parser_error ('BAD GRID PT CONSTRUCT, NO  = "(" ', &
                  'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
@@ -5522,7 +5533,7 @@ do
       if (err_flag2) return
       if (delim == ')') exit
       if (delim /= ',') then
-        call parser_warning ('BAD GRID PT CONSTRUCT, NO "," BETWEEN FIELD COMPONENTS', &
+        call parser_error ('BAD GRID PT CONSTRUCT, NO "," BETWEEN FIELD COMPONENTS', &
             'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
         return
       end if    
@@ -5530,13 +5541,13 @@ do
     !Expect , or }
     call get_next_word (word, ix_word, ',}', delim, delim_found) 
     if (word /= '' ) then
-      call parser_warning ('BAD INPUT AFTER PT DEFINITION: ' // word , &
+      call parser_error ('BAD INPUT AFTER PT DEFINITION: ' // word , &
                            'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
   
   case default
-    call parser_warning ('UNKNOWN GRID ATTRIBUTE: ' // word, &
+    call parser_error ('UNKNOWN GRID ATTRIBUTE: ' // word, &
                          'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
     return 
         
@@ -5551,7 +5562,7 @@ enddo
 call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
 if (ix_word /= 0) then
-    call parser_warning ('UNKNOWN TEXT FOUND AFTER MODE GRID DEFINITION: ' // word, &
+    call parser_error ('UNKNOWN TEXT FOUND AFTER MODE GRID DEFINITION: ' // word, &
                          'FOR ELEMENT: ' // ele%name)
     return 
 endif
@@ -5580,7 +5591,7 @@ select case(grid_dim)
     max_ix3 = maxval( array(1:pt_counter)%ix3)
     allocate( grid%pt(0:max_ix1, 0:max_ix2, 0:max_ix3) )
   case default
-    call parser_warning ('BAD GRID DIMENSION', &
+    call parser_error ('BAD GRID DIMENSION', &
                'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
     return
 end select
@@ -5639,7 +5650,7 @@ err_flag2 = .true.
 
 call get_next_word (word, ix_word, ',)', delim, delim_found)
 if (.not. is_integer(word) ) then
-  call parser_warning ('BAD GRID PT INDEX, NOT AN INTEGER', &
+  call parser_error ('BAD GRID PT INDEX, NOT AN INTEGER', &
                          'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
   return
 end if       
@@ -5679,7 +5690,7 @@ else if ( delim == '(') then
   if ( (.not. is_real(word)) .or. (.not. is_real(word2) ) &
     .or. (delim /= ',') .or. (delim2 /= ')') &
     .or. (.not. delim_found) .or. (.not. delim_found2)) then
-    call parser_warning ('BAD COMPLEX COMPONENT CONSTRUCT', &
+    call parser_error ('BAD COMPLEX COMPONENT CONSTRUCT', &
                          'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
     return
    end if
@@ -5767,7 +5778,7 @@ if (present(do_resize)) resize = do_resize
 !Expect op_delim
 call get_next_word (word, ix_word, op_delim, delim, delim_found)
 if ((word /= '') .or. (delim /= op_delim) ) then
-  call parser_warning ('BAD OPENING DELIMITER', &
+  call parser_error ('BAD OPENING DELIMITER', &
                          'IN: ' // r_name)
     return
 end if
@@ -5782,7 +5793,7 @@ num_found = 0
 do 
   call get_next_word (word, ix_word, sep // cl_delim, delim, delim_found)
   if (.not. is_integer(word)  ) then 
-    call parser_warning ('BAD ELEMENT: ' // word, &
+    call parser_error ('BAD ELEMENT: ' // word, &
                          'IN : ' // r_name)
     return
    end if    
@@ -5799,7 +5810,7 @@ do
   
   !Check separator
   if (delim /= sep) then
-    call parser_warning ('BAD SEPARATOR', &
+    call parser_error ('BAD SEPARATOR', &
                          'IN: ' // r_name)
     return  
   end if
@@ -5889,7 +5900,7 @@ if (present(default_value)) default_val = default_value
 !Expect op_delim
 call get_next_word (word, ix_word, op_delim, delim, delim_found)
 if ((word /= '') .or. (delim /= op_delim) ) then
-  call parser_warning ('BAD OPENING DELIMITER', 'IN: ' // r_name)
+  call parser_error ('BAD OPENING DELIMITER', 'IN: ' // r_name)
   return
 end if
 
@@ -5904,7 +5915,7 @@ num_found = 0
 do 
   call get_next_word (word, ix_word, sep // cl_delim, delim, delim_found)
   if (.not. is_real(word)  ) then 
-    call parser_warning ('BAD ELEMENT: ' // word, 'IN : ' // r_name)
+    call parser_error ('BAD ELEMENT: ' // word, 'IN : ' // r_name)
     return
    end if    
   !real is found
@@ -5920,7 +5931,7 @@ do
   
   !Check separator
   if (delim /= sep) then
-    call parser_warning ('BAD SEPARATOR', 'IN: ' // r_name)
+    call parser_error ('BAD SEPARATOR', 'IN: ' // r_name)
     return  
   end if
 

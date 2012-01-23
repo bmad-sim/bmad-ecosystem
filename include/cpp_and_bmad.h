@@ -798,7 +798,7 @@ public:
   bool conserve_taylor_maps;
   bool auto_rf_phase_and_amp_adjust;
   bool use_single_ptc_fiber;
-  bool absolute_time_tracking;
+  bool dummy;
 
   C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
 

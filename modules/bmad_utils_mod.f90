@@ -754,6 +754,7 @@ lat%n_control_max = 0
 lat%n_ic_max = 0
 lat%input_taylor_order = 0
 lat%version = -1
+lat%absolute_time_tracking = .false.
 
 call allocate_branch_array (lat, 0)
 lat%branch(0)%name = 'ROOT'
@@ -2202,10 +2203,14 @@ endif
 if (associated(em_field)) then
   do i = 1, size(em_field%mode)
     mode => em_field%mode(i)
-    if (associated(mode%map)) mode%map%n_link = mode%map%n_link - 1
-    if (mode%map%n_link == 0) deallocate (mode%map)
-    if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link - 1
-    if (mode%grid%n_link == 0) deallocate (mode%grid)
+    if (associated(mode%map)) then
+      mode%map%n_link = mode%map%n_link - 1
+      if (mode%map%n_link == 0) deallocate (mode%map)
+    endif
+    if (associated(mode%grid)) then
+      mode%grid%n_link = mode%grid%n_link - 1
+      if (mode%grid%n_link == 0) deallocate (mode%grid)
+    endif
   enddo
   deallocate(em_field)
 endif

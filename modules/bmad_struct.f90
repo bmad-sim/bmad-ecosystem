@@ -11,8 +11,7 @@ use bmad_taylor_mod
 use random_mod
 use wall3d_mod
 
-use definition, only: genfield
-use definition, only: fibre
+use definition, only: genfield, fibre
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -454,6 +453,7 @@ type lat_struct
   integer n_ic_max                        ! Last index used in ic_array
   integer input_taylor_order              ! As set in the input file
   integer, allocatable :: ic(:)           ! Index to %control(:)
+  logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
 end type
 
 character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
@@ -584,7 +584,7 @@ integer, parameter :: radius$ = 40
 integer, parameter :: delta_ref_time$ = 41 ! Assumed unique Do not overload.
 integer, parameter :: pole_radius$ = 42, coupler_at$ = 42, follow_diffracted_beam$ = 42 
 integer, parameter :: tilt_tot$ = 43
-integer, parameter :: x_pitch_tot$ = 44
+integer, parameter :: x_pitch_tot$ = 44, no_end_marker$ = 44
 integer, parameter :: y_pitch_tot$ = 45
 integer, parameter :: x_offset_tot$ = 46
 integer, parameter :: y_offset_tot$ = 47
@@ -626,7 +626,7 @@ integer, parameter :: tracking_method$  = 82, s_long$ = 82
 integer, parameter :: ref_time$ = 83
 integer, parameter :: spin_tracking_method$ = 84
 integer, parameter :: aperture$ = 85
-integer, parameter :: x_limit$ = 86
+integer, parameter :: x_limit$ = 86, absolute_time_tracking$ = 86
 integer, parameter :: y_limit$ = 87
 integer, parameter :: offset_moves_aperture$ = 88, root_branch_name$ = 88
 integer, parameter :: aperture_limit_on$ = 89
@@ -929,9 +929,9 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set
                                                    ! ele%map_with_offsets = F?
-  logical :: auto_rf_phase_and_amp_adjust = .true. ! See rf_accel_mode_adjust_phase_and_amp routine.
+  logical :: rf_auto_phase_and_amp_correct_correct = .true. ! See rf_auto_phase_and_amp_correct_correction routine.
   logical :: use_single_ptc_fiber = .true.         ! 
-  logical :: absolute_time_tracking = .false.      ! Use absolute time in RF cavities?
+  logical :: dummy                                 ! Place holder for future use.
 end type
   
 type (bmad_common_struct), save :: bmad_com

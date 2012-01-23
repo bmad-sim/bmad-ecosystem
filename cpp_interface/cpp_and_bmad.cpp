@@ -535,7 +535,7 @@ extern "C" void bmad_com_to_f_(C_bmad_com& c) {
     c.auto_bookkeeper, c.trans_space_charge_on, c.coherent_synch_rad_on, 
     c.spin_tracking_on, c.radiation_damping_on, c.radiation_fluctuations_on, 
     c.conserve_taylor_maps, c.auto_rf_phase_and_amp_adjust,
-    c.use_single_ptc_fiber, c.absolute_time_tracking);
+    c.use_single_ptc_fiber, c.dummy);
 }
 
 extern "C" void bmad_com_to_c2_(C_bmad_com& c, 
@@ -544,7 +544,7 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
               Int& to, Int& dflt_ord, Int& cc, 
               Int& sr, Int& lr, Int& sym, Int& a_book, Int& tsc_on, Int& csr_on, 
               Int& st_on, Int& rad_d, Int& rad_f, Int& con_t, Int& auto_rf, Int& use_single_ptc, 
-              Int& abs_time) {
+              Int& dummy) {
   c.max_aperture_limit               = ap;
   c.d_orb                            << orb;
   c.default_ds_step                  = ds;
@@ -568,7 +568,7 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
   c.conserve_taylor_maps             = con_t;
   c.auto_rf_phase_and_amp_adjust     = auto_rf;
   c.use_single_ptc_fiber             = use_single_ptc;
-  c.absolute_time_tracking           = abs_time;
+  c.dummy                            = dummy;
 }
 
 //---------------------------------------------------------------------------

@@ -16,23 +16,24 @@ the lattice as a whole and not simply associated with a single element.
 \index{e_tot}
 \index{p0c}
 \index{ran_seed}
-\index{n_part}
+\index{n_part}\index{no_end_marker}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
 other variables. If branching is present (\sref{s:branching}), these
 variables pertain to the \vn{root} branch. The variables that can be
 set by \vn{parameter} are
 \begin{example}
-  parameter[lattice]      = <String>        ! Lattice name 
-  parameter[lattice_type] = <Switch>        ! 
-  parameter[taylor_order] = <Integer>       ! Default: 3
-  parameter[e_tot]        = <Real>          ! Reference total Energy. 
-                                            !      Default: 1000 * rest_energy.
-  parameter[p0c]          = <Real>          ! Reference momentum.
-  parameter[n_part]       = <Real>          ! Number of particles in a bunch.
-  parameter[ran_seed]     = <Integer>       ! Random number generator init.
-  parameter[particle]     = <particle_type> ! Eg: positron, antiproton, etc.
-  parameter[aperture_limit_on] = <Logical>  ! Use aperture limits in tracking.
-  parameter[root_branch_name]  = "<name>"   ! Name of the root branch.
+  parameter[lattice]       = <String>        ! Lattice name 
+  parameter[lattice_type]  = <Switch>        ! 
+  parameter[taylor_order]  = <Integer>       ! Default: 3
+  parameter[e_tot]         = <Real>          ! Reference total Energy. 
+                                             !      Default: 1000 * rest_energy.
+  parameter[p0c]           = <Real>          ! Reference momentum.
+  parameter[n_part]        = <Real>          ! Number of particles in a bunch.
+  parameter[ran_seed]      = <Integer>       ! Random number generator init.
+  parameter[particle]      = <particle_type> ! Eg: positron, antiproton, etc.
+  parameter[no_end_marker] = <Logical>       ! Default: False.
+  parameter[aperture_limit_on] = <Logical>   ! Use aperture limits in tracking.
+  parameter[root_branch_name]  = "<name>"    ! Name of the root branch.
 \end{example}
 
 \noindent
@@ -43,6 +44,10 @@ Examples
   parameter[taylor_order] = 5
   parameter[E_tot]        = 5.6e9    ! eV
 \end{example}
+
+\index{end element}
+The \vn{parameter[no_end_marker]} is use to suppress the automatic inclusion
+of a marker named \vn{END} at the end of the lattice (\sref{s:use}). 
 
 For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
 

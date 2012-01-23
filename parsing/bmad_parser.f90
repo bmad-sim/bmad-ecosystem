@@ -51,12 +51,13 @@ type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (ele_struct), save, pointer :: ele, slave
+type (ele_struct), save :: marker_ele
 type (lat_ele_loc_struct) m_slaves(100)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 character(40), allocatable ::  in_name(:), seq_name(:)
 
-integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, n_wall
+integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, n_wall, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0, n_ele
 integer, pointer :: n_max
@@ -104,7 +105,7 @@ if (present(use_line)) then
   endif
 endif
 
-if (bmad_status%ok) then
+if (bmad_status%ok .and. .not. bp_com%always_parse) then
   call set_taylor_order (lat%input_taylor_order, .false.)
   call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
   if (lat%input_taylor_order == bmad_com%taylor_order) then
@@ -250,10 +251,10 @@ parsing_loop: do
   ! USE command...
 
   if (word_1(:ix_word) == 'USE') then
-    if (delim /= ',') call parser_warning ('"USE" NOT FOLLOWED BY COMMA')
+    if (delim /= ',') call parser_error ('"USE" NOT FOLLOWED BY COMMA')
     call get_next_word(word_2, ix_word, ':(=,)', delim, delim_found, .true.)
     if (ix_word == 0) then 
-      call parser_warning ('NO BEAM LINE SPECIFIED WITH "USE"', ' ')
+      call parser_error ('NO BEAM LINE SPECIFIED WITH "USE"', ' ')
       call parser_end_stuff ()
       return
     endif
@@ -266,7 +267,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'TITLE') then
     if (delim_found) then
-      if (delim /= " " .and. delim /= ",") call parser_warning &
+      if (delim /= " " .and. delim /= ",") call parser_error &
                           ('BAD DELIMITOR IN "TITLE" COMMAND')
       call bmad_parser_type_get (this_ele, 'DESCRIP', delim, delim_found)
       lat%title = this_ele%descrip
@@ -288,7 +289,7 @@ parsing_loop: do
     endif
 
     if (xsif_called) then
-      call parser_warning ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
+      call parser_error ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
       call err_exit
       ! call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line) 
       detected_expand_lattice_cmd = .true.
@@ -301,11 +302,11 @@ parsing_loop: do
   ! BEAM command
 
   if (word_1(:ix_word) == 'BEAM') then
-    if (delim /= ',') call parser_warning ('"BEAM" NOT FOLLOWED BY COMMA')
+    if (delim /= ',') call parser_error ('"BEAM" NOT FOLLOWED BY COMMA')
     do 
       if (.not. delim_found) exit
       if (delim /= ',') then
-        call parser_warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
+        call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
       call parser_set_attribute (def$, bp_com%beam_ele, in_lat, delim, delim_found, err_flag, .true.)
@@ -317,7 +318,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'LATTICE') then
     if (delim /= ':' .and. delim /= '=') then
-      call parser_warning ('"LATTICE" NOT FOLLOWED BY ":"')
+      call parser_error ('"LATTICE" NOT FOLLOWED BY ":"')
     else
       if (delim == ':' .and. bp_com%parse_line(1:1) == '=') &
                     bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
@@ -365,13 +366,13 @@ parsing_loop: do
 
     call get_next_word (word_2, ix_word, ']', delim, delim_found, .true.)
     if (.not. delim_found) then
-      call parser_warning ('OPENING "[" FOUND WITHOUT MATCHING "]"')
+      call parser_error ('OPENING "[" FOUND WITHOUT MATCHING "]"')
       cycle parsing_loop
     endif
 
     call get_next_word (this_name, ix_word, ':=', delim, delim_found, .true.)
     if (.not. delim_found .or. ix_word /= 0) then
-      call parser_warning ('MALFORMED ELEMENT ATTRIBUTE REDEFINITION')
+      call parser_error ('MALFORMED ELEMENT ATTRIBUTE REDEFINITION')
       cycle parsing_loop
     endif
 
@@ -379,7 +380,7 @@ parsing_loop: do
     ! a ':=' construction as a '=' 
 
     if (delim == ':') then
-      call parser_warning ('MALFORMED ELEMENT ATTRIBUTE REDEF')
+      call parser_error ('MALFORMED ELEMENT ATTRIBUTE REDEF')
       cycle parsing_loop
     endif
 
@@ -417,7 +418,7 @@ parsing_loop: do
         endif
         call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
                                                   err_flag, print_err, plat%ele(ele%ixx))
-        if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim)
+        if (.not. err_flag .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
         found = .true.
         if (.not. err_flag) good_attrib = .true.
 
@@ -438,7 +439,7 @@ parsing_loop: do
         endif
         call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
                                                     err_flag, print_err, plat%ele(ele%ixx))
-        if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim)
+        if (.not. err_flag .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
         found = .true.
         if (.not. err_flag) good_attrib = .true.
       enddo
@@ -450,11 +451,11 @@ parsing_loop: do
 
     if (.not. found) then
       bp_com%parse_line = ''
-      if (key_name_to_key_index (word_1, .false.) == -1) call parser_warning ('ELEMENT NOT FOUND: ' // word_1)
+      if (key_name_to_key_index (word_1, .false.) == -1) call parser_error ('ELEMENT NOT FOUND: ' // word_1)
     endif
 
     if (found .and. .not. print_err .and. .not. good_attrib) then
-      call parser_warning ('BAD ATTRIBUTE')
+      call parser_error ('BAD ATTRIBUTE')
     endif
 
     cycle parsing_loop
@@ -478,7 +479,7 @@ parsing_loop: do
     if (err_flag) cycle parsing_loop
     arg_list_found = .true.
     call get_next_word (word_2, ix_word, '(): =,', delim, delim_found, .true.)
-    if (word_2 /= ' ') call parser_warning &
+    if (word_2 /= ' ') call parser_error &
                 ('":" NOT FOUND AFTER REPLACEMENT LINE ARGUMENT LIST. ' // &
                 'FOUND: ' // word_2, 'FOR LINE: ' // word_1)
   else
@@ -488,7 +489,7 @@ parsing_loop: do
   ! must have a ":" delimiter now
 
   if (delim /= ':') then
-    call parser_warning ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  &
+    call parser_error ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  &
                                                      'FOR: ' // word_1)
     cycle parsing_loop
   endif
@@ -498,7 +499,7 @@ parsing_loop: do
 
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
-    call parser_warning ('NO NAME FOUND AFTER: ' // word_1, ' ')
+    call parser_error ('NO NAME FOUND AFTER: ' // word_1, ' ')
     call parser_end_stuff 
     return
   endif
@@ -516,7 +517,7 @@ parsing_loop: do
   ! arg lists are only used with lines
 
   if (word_2(:ix_word) /= 'LINE' .and. arg_list_found) then
-    call parser_warning ('ARGUMENTS "XYZ(...):" ARE ONLY USED WITH REPLACEMENT LINES.', &
+    call parser_error ('ARGUMENTS "XYZ(...):" ARE ONLY USED WITH REPLACEMENT LINES.', &
                                                       'FOR: ' // word_1)
     cycle parsing_loop
   endif
@@ -533,7 +534,7 @@ parsing_loop: do
     sequence(iseq_tot)%name = word_1
     sequence(iseq_tot)%multipass = multipass
 
-    if (delim /= '=') call parser_warning ('EXPECTING: "=" BUT GOT: ' // delim)
+    if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
     if (word_2(:ix_word) == 'LINE') then
       sequence(iseq_tot)%type = line$
       if (arg_list_found) sequence(iseq_tot)%type = replacement_line$
@@ -547,7 +548,7 @@ parsing_loop: do
   else
 
     if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START') then
-      call parser_warning ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
+      call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
       cycle parsing_loop
     endif
 
@@ -592,7 +593,7 @@ parsing_loop: do
     endif
 
     if (.not. found) then
-      call parser_warning ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
+      call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
                     'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       cycle parsing_loop
     endif
@@ -603,7 +604,7 @@ parsing_loop: do
     key = in_lat%ele(n_max)%key
     if (key == overlay$ .or. key == group$ .or. key == girder$) then
       if (delim /= '=') then
-        call parser_warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
+        call parser_error ('EXPECTING: "=" BUT GOT: ' // delim,  &
                     'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
         cycle parsing_loop        
       endif
@@ -616,7 +617,7 @@ parsing_loop: do
                                                   plat%ele(n_max), delim, delim_found)
 
       if (key /= girder$ .and. .not. delim_found) then
-        call parser_warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
+        call parser_error ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                       'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
         cycle parsing_loop
       endif
@@ -629,7 +630,7 @@ parsing_loop: do
     do 
       if (.not. delim_found) exit   ! If no delim then we are finished with this element.
       if (delim /= ',') then
-        call parser_warning ('EXPECTING: "," BUT GOT: ' // delim,  &
+        call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  &
                       'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
         exit
       endif
@@ -659,14 +660,14 @@ call indexx (seq_name, seq_indexx)
 do i = 1, iseq_tot-1
   ix1 = seq_indexx(i)
   ix2 = seq_indexx(i+1)
-  if (sequence(ix1)%name == sequence(ix2)%name) call parser_warning  &
+  if (sequence(ix1)%name == sequence(ix2)%name) call parser_error  &
                     ('DUPLICATE LINE NAME ' // sequence(ix1)%name)
 enddo
 
 do i = 1, n_max-1
   ix1 = in_indexx(i)
   ix2 = in_indexx(i+1)
-  if (in_lat%ele(ix1)%name == in_lat%ele(ix2)%name) call parser_warning &
+  if (in_lat%ele(ix1)%name == in_lat%ele(ix2)%name) call parser_error &
                   ('DUPLICATE ELEMENT NAME ' // in_lat%ele(ix1)%name)
 enddo
 
@@ -676,7 +677,7 @@ do
   if (j > n_max) exit
   ix1 = seq_indexx(i)
   ix2 = in_indexx(j)
-  if (sequence(ix1)%name == in_lat%ele(ix2)%name) call parser_warning  &
+  if (sequence(ix1)%name == in_lat%ele(ix2)%name) call parser_error  &
         ('LINE AND ELEMENT HAVE THE SAME NAME: ' // sequence(ix1)%name)
   if (sequence(ix1)%name < in_lat%ele(ix2)%name) then
     i = i + 1
@@ -692,7 +693,7 @@ if (present (use_line)) then
 endif
 
 if (lat%use_name == blank_name$) then
-  call parser_warning ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
+  call parser_error ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
   call parser_end_stuff ()
   return
 endif
@@ -729,13 +730,13 @@ call mat_make_unit (lat%ele(0)%mat6)
 call clear_lat_1turn_mats (lat)
 
 if (bp_com%beam_ele%value(n_part$) /= 0 .and. bp_com%param_ele%value(n_part$) /= 0) &
-          call parser_warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
+          call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
 lat%param%n_part = max(bp_com%beam_ele%value(n_part$), bp_com%param_ele%value(n_part$))
 
 ix1 = nint(bp_com%param_ele%value(particle$))
 ix2 = nint(bp_com%beam_ele%value(particle$))
 if (ix1 /= positron$ .and. ix2 /= positron$) &
-        call parser_warning ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
+        call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
 lat%param%particle = ix1
 if (ix2 /=  positron$) lat%param%particle = ix2
 
@@ -773,7 +774,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   ele => lat%ele(i)
   if (ele%ref_orbit /= patch_out$) cycle
   if (ele%component_name == '') then
-    call parser_warning ('NO REF_PATCH ELEMENT GIVEN FOR PATCH: ' // ele%name)
+    call parser_error ('NO REF_PATCH ELEMENT GIVEN FOR PATCH: ' // ele%name)
     cycle
   endif
   do j = lat%n_ele_track+1, lat%n_ele_max
@@ -799,7 +800,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     endif
   enddo
   if (j == lat%n_ele_max + 1) then
-    call parser_warning ('CANNOT FIND REF_PATCH FOR PATCH: ' // ele%name, &
+    call parser_error ('CANNOT FIND REF_PATCH FOR PATCH: ' // ele%name, &
                   'CANNOT FIND: ' // ele%component_name)
   endif
 enddo
@@ -905,9 +906,38 @@ do i = 1, n_max
   pele => plat%ele(i)
   if (pele%ref_name /= blank_name$ .or. pele%s /= 0 .or. &
       pele%ele_pt /= not_set$ .or. pele%ref_pt /= not_set$) then
-    call parser_warning ('SUPERPOSITION ATTRIBUTE SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)
+    call parser_error ('SUPERPOSITION ATTRIBUTE SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)
   endif
 enddo
+
+! Add end marker. Make sure name is not duplicated. Also do not add marker if one already exists.
+
+if (nint(bp_com%param_ele%value(no_end_marker$)) == 0) then
+  call init_ele (marker_ele)
+  marker_ele%key = marker$
+
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    n_track = branch%n_ele_track
+
+    marker_ele%name = 'END'
+
+    do j = 1, n_track
+      if (branch%ele(j)%name == 'END') then
+        marker_ele%name = 'END_MARKER'
+        exit
+      endif
+    enddo
+
+    if (branch%ele(n_track)%name /= 'END' .or. branch%ele(n_track)%key /= marker$) then
+      if (marker_ele%name /= 'END') then
+        call parser_error ('ELEMENT NAMED "END" FOUND IN LATTICE.', & 
+                           'ENDING MARKER WILL BE NAMED: ' // trim(marker_ele%name), warn_only = .true.)
+      endif
+      call insert_element (lat, marker_ele, n_track, i)
+    endif
+  enddo
+endif
 
 ! Go through the IN_LAT elements and put in the superpositions.
 ! If the superposition is a branch elemen, need to add the branch line.

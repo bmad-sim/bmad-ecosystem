@@ -1184,8 +1184,8 @@ call bmad_com_to_c2 (c_bmad_com, f%max_aperture_limit, f%d_orb, &
       c_logic(f%space_charge_on), c_logic(f%coherent_synch_rad_on), &
       c_logic(f%spin_tracking_on), &
       c_logic(f%radiation_damping_on), c_logic(f%radiation_fluctuations_on), &
-      c_logic(f%conserve_taylor_maps), c_logic(f%auto_rf_phase_and_amp_adjust), &
-      c_logic(f%use_single_ptc_fiber), c_logic(f%absolute_time_tracking))
+      c_logic(f%conserve_taylor_maps), c_logic(f%rf_auto_phase_and_amp_correct_correct), &
+      c_logic(f%use_single_ptc_fiber), c_logic(f%dummy))
 
 end subroutine
 
@@ -1201,7 +1201,7 @@ end subroutine
 
 subroutine bmad_com_to_f2 (max_ap, orb, ds_step, signif, rel, abs, rel_track, &
         abs_track, taylor_ord, dflt_integ, cc, sr, lr, sym, &
-        a_book, tsc_on, csr_on, st_on, rad_d, rad_f, conserve_t, auto_rf, use_single_ptc, abs_time)
+        a_book, tsc_on, csr_on, st_on, rad_d, rad_f, conserve_t, auto_rf, use_single_ptc, dummy)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1212,14 +1212,14 @@ implicit none
 real(rp) orb(6), max_ap, rel, abs, rel_track, abs_track, ds_step, signif
 integer taylor_ord, dflt_integ, cc, sr, lr, sym
 integer st_on, rad_d, rad_f, a_book, tsc_on, csr_on
-integer conserve_t, auto_rf, use_single_ptc, abs_time
+integer conserve_t, auto_rf, use_single_ptc, dummy
 
 bmad_com = bmad_common_struct(max_ap, orb, ds_step, signif, &
     rel, abs, rel_track, abs_track, taylor_ord, dflt_integ, &
     f_logic(cc), f_logic(sr), f_logic(lr), f_logic(sym), &
     f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
     f_logic(rad_d), f_logic(rad_f), f_logic(conserve_t), f_logic(auto_rf), f_logic(use_single_ptc), &
-    f_logic(abs_time))
+    f_logic(dummy))
 
 end subroutine
 
