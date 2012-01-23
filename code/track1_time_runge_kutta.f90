@@ -166,8 +166,12 @@ case (between_ends$)
 case (exit_end$)
   !Particle is at the exit surface, should be moving backwards
   if ( .not. param%particle_is_reversed) then
-     call out_io (s_fatal$, r_name, 'PARTICLE STARTED AT EXIT END WITH FORWARD MOMENDUM: ele = '//trim(ele%name) )
-     call err_exit
+    !if particle is actually moving forwards, return end = start:
+    end = start
+    return
+     !this used to be an error:
+     !     call out_io (s_fatal$, r_name, 'PARTICLE STARTED AT EXIT END WITH FORWARD MOMENTUM: ele = '//trim(ele%name) )
+     !     call err_exit
   end if
   p0c = -1*ele%value(p0c$)
   call offset_particle(ele, param, start2, set$, set_canonical = .false., &
