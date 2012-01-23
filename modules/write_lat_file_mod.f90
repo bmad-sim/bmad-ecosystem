@@ -884,10 +884,10 @@ end function
 !-------------------------------------------------------
 !-------------------------------------------------------
 ! Input:
-!   end_is_neigh -- Logical: If true then write out everything.
-!                     Otherwise wait for a full line of max_char characters or so.
-
-subroutine write_lat_line (line, iu, end_is_neigh)
+!   end_is_neigh  -- Logical: If true then write out everything.
+!                      Otherwise wait for a full line of max_char characters or so.
+!   continue_char -- character(1), optional. Default is '&'
+subroutine write_lat_line (line, iu, end_is_neigh, continue_char)
 
 implicit none
 
@@ -896,11 +896,15 @@ integer i, iu
 logical end_is_neigh
 logical, save :: init = .true.
 integer, save :: max_char = 90
+character(1), optional :: continue_char
 character(1) c_char
 
 !
-
-c_char = '&'
+if (present(continue_char)) then
+ c_char = continue_char
+else
+ c_char = '&'
+end if
 
 outer_loop: do 
 
