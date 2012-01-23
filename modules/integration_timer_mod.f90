@@ -54,21 +54,20 @@ subroutine integration_timer_ele (ele, param, start, orb_max, tol)
   type (coord_struct), intent(in) :: start, orb_max
   type (lat_param_struct) param
   
-  real(rp) tol
+  real(rp) tol, beta0
   real(dp) tol_dp, orbit(6), orbit_max(6)
 
 !
 
-  call alloc_fibre (a_fibre)
   call ele_to_fibre (ele, a_fibre, param, .true.)
 
-  call vec_bmad_to_ptc (start%vec, orbit)
-  call vec_bmad_to_ptc (orb_max%vec, orbit_max)
+  beta0 = ele%value(p0c$) / ele%value(e_tot$)
+  call vec_bmad_to_ptc (start%vec, beta0, orbit)
+  call vec_bmad_to_ptc (orb_max%vec, beta0, orbit_max)
   orbit_max = abs(orbit_max)
   tol_dp = tol
 
   call integration_timer_fibre (a_fibre, orbit, orbit_max, tol_dp)
-  call kill (a_fibre)
   
 end subroutine
 

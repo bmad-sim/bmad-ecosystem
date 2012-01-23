@@ -888,7 +888,13 @@ contains
 
 subroutine add_multipoles_and_s_offset(add_m56_correction)
 
+implicit none
+
+real(rp) mass, e_tot
+
 logical add_m56_correction
+
+!
 
 if (associated(ele%a_pole) .and. key /= multipole$ .and. key /= ab_multipole$) then
   call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
@@ -916,8 +922,11 @@ call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%mat6)
 
 ! 1/gamma^2 m56 correction
 
-if (add_m56_correction) mat6(5,6) = mat6(5,6) + &
-        length * (1 - 3 * c0%vec(6)) * (mass_of(param%particle) / ele%value(e_tot$))**2
+if (add_m56_correction) then
+  mass = mass_of(param%particle)
+  e_tot = sqrt(mass**2 + (ele%value(p0c$) * (1 + c0%vec(6)))**2)**3
+  mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot
+endif
 
 end subroutine
 

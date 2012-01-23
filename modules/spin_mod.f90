@@ -462,6 +462,9 @@ end subroutine calc_rotation_quaternion
 
 subroutine track1_spin (start_orb, ele, param, end_orb)
 
+use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
+use ptc_interface_mod
+
 implicit none
 
 type (coord_struct), intent(in) :: start_orb
@@ -469,12 +472,15 @@ type (coord_struct) :: temp_start, temp_middle, temp_end, end_orb
 type (ele_struct), intent(in) :: ele
 type (lat_param_struct), intent(in) :: param
 type (spin_map_struct), pointer :: map
+type (probe) spin_probe
+type (fibre), pointer :: fibre_ele
 
 real(rp) a(4) ! quaternion four-vector
 real(rp) omega1, omega_el, xi, gamma0, gammaf, v, x, u
 real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, k_el, k_el_tilde
 real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
-real(rp) g_factor, m_particle, sign_k, abs_a
+real(rp) g_factor, m_particle, sign_k, abs_a, spin_vec(3)
+real(dp) re(6), beta0, beta1
 
 integer key
 
@@ -482,10 +488,36 @@ logical isTreatedHere, isKicker
 
 character(16), parameter :: r_name = 'track1_spin'
 
+! PTC spin tracking
+
+if (ele%spin_tracking_method == symp_lie_ptc$) then
+
+  if (ele_has_constant_reference_energy(ele)) then
+    beta0 = ele%value(p0c$) / ele%value(e_tot$)
+  else
+    beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
+  endif
+
+  call vec_bmad_to_ptc (start_orb%vec, beta0, re)
+  call spinor_to_vec (start_orb, spin_vec)
+
+  spin_probe = re
+  spin_probe%s(1)%x = real(spin_vec, dp)
+
+  call ele_to_fibre (ele, fibre_ele, param, .true.)
+  call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele) 
+
+  spin_vec = spin_probe%s(1)%x
+  call vec_to_spinor (spin_vec, end_orb)
+
+  return
+endif
+
+
 ! Boris tracking does it's own spin tracking
 
-if (ele%tracking_method .eq. boris$ .or. &
-    ele%tracking_method .eq. adaptive_boris$) return
+if (ele%tracking_method == boris$ .or. &
+    ele%tracking_method == adaptive_boris$) return
 
 m_particle = mass_of(param%particle)
 g_factor = g_factor_of(param%particle)
@@ -787,7 +819,7 @@ integer n_gamma1, n_gamma2, n_gamma3, n_kappa
 
 !
 
-if (n_gamma1 .eq. 0) then
+if (n_gamma1 == 0) then
   if (associated (map%gamma1)) deallocate (map%gamma1)
 else
   if (.not. associated (map%gamma1)) then
@@ -798,7 +830,7 @@ else
   endif
 endif
 
-if (n_gamma2 .eq. 0) then
+if (n_gamma2 == 0) then
   if (associated (map%gamma2)) deallocate (map%gamma2)
 else
   if (.not. associated (map%gamma2)) then
@@ -809,7 +841,7 @@ else
   endif
 endif
 
-if (n_gamma3 .eq. 0) then
+if (n_gamma3 == 0) then
   if (associated (map%gamma3)) deallocate (map%gamma3)
 else
   if (.not. associated (map%gamma3)) then
@@ -820,7 +852,7 @@ else
   endif
 endif
 
-if (n_kappa .eq. 0) then
+if (n_kappa == 0) then
   if (associated (map%kappa)) deallocate (map%kappa)
 else
   if (.not. associated (map%kappa)) then
@@ -907,7 +939,7 @@ call initialize_pauli_vector
 
 ! FIX_ME!!!
 ! get e_particle and pc at position in element
-if (ele%key .eq. lcavity$) then
+if (ele%key == lcavity$) then
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
                       coord%vec(5) * ele%value(rf_frequency$) / c_light)
   cos_phi = cos(phase)
