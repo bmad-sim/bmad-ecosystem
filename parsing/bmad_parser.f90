@@ -934,7 +934,7 @@ if (nint(bp_com%param_ele%value(no_end_marker$)) == 0) then
         call parser_error ('ELEMENT NAMED "END" FOUND IN LATTICE.', & 
                            'ENDING MARKER WILL BE NAMED: ' // trim(marker_ele%name), warn_only = .true.)
       endif
-      call insert_element (lat, marker_ele, n_track, i)
+      call insert_element (lat, marker_ele, n_track+1, i)
     endif
   enddo
 endif
