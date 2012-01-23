@@ -240,9 +240,9 @@ ele_loop: do ie = ix_start, ix_end
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
     
   !----------------------------------------------------------
-  !Lcavity, RFCavity -----------------------------------
+  !Lcavity, RFCavity, E_gun -----------------------------------
   !----------------------------------------------------------
-    case (lcavity$, rfcavity$)
+    case (lcavity$, rfcavity$, e_gun$)
       !Check that there is a map or grid associated to make a decent field grid for OPAL
     if (.not. associated(ele%em_field)  )then
       call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key), &
@@ -325,7 +325,7 @@ ele_loop: do ie = ix_start, ix_end
 
 
   !Finally write out line
-  call write_lat_line (line, iu, .true.)  
+  call write_lat_line (line, iu, .true., continue_char = continue_char )  
 enddo ele_loop
 
 
@@ -338,7 +338,7 @@ lat_loop: do ie = ix_start, ix_end
 enddo lat_loop    
 !write closing parenthesis
 line = line(:len_trim(line)-1) // ')' // eol_char
-call write_lat_line (line, iu, .true.)
+call write_lat_line (line, iu, .true., continue_char = continue_char)
 
 
 
@@ -431,12 +431,13 @@ nz = ceiling(z_max/z_step)
   
 select case (ele%key)
 
-  !-----------
-  !LCavity
-  !-----------
-  case (lcavity$, rfcavity$) 
+!-----------
+!LCavity, RFCavity, E_GUN
+!-----------
+case (lcavity$, rfcavity$, e_gun$) 
                                          
-    freq = ele%em_field%mode(1)%freq
+  freq = ele%em_field%mode(1)%freq
+  if (freq .eq. 0) freq = 1e-30_rp !To prevent divide by zero
 
   !Example:
   !2DDynamic XZ
