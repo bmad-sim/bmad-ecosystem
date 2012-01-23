@@ -264,12 +264,16 @@ backslash and hash marks are used for to compose names for
 superposition (\sref{s:super}) and multipass (\sref{s:multipass})
 slave elements.
 
+\index{reserved names}
+\index{beam}\index{beam_start}\index{beginning}
+\index{end}\index{parameter}\index{root}
 There is a short list of names that cannot be used as an element name. 
 These reserved names are:
 \begin{example}
   BEAM
   BEAM_START
   BEGINNING
+  END
   PARAMETER
   ROOT
 \end{example}
@@ -316,6 +320,7 @@ any number of characters and \vn{``%''} denotes a single character. Examples:
   Q*[k1] = 0.234                      ! Matches all elements with names beginning with Q.
   Q%1[k1] = 0.234                     ! Matches to "Q01" but not "Q001".
 \end{example}
+\index{beginning element}
 Note: A name with wild cards will never match to the \vn{BEGINNING} element (\sref{s:use}).
 
 After lattice expansion (\sref{s:expand}), The element index can be

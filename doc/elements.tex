@@ -1234,6 +1234,8 @@ The attributes specific to an \vn{lcavity} are
                               !   respect to the RF. phi0 = 0 is on crest.
   dphi0            = <Real>   ! Phase with respect to a multipass lord (rad/2\(\pi\)).
   phi0_err         = <Real>   ! Phase error (rad/2\(\pi\))
+  dphi0_ref        = <Real>   ! Phase offset used to deal with absolute time tracking
+                              !  and other issues (see below).
   e_loss           = <Real>   ! Loss parameter for short range wake fields (V/Coul).
   rf_frequency     = <Real>   ! Rf frequency (Hz).
   delta_e                     ! Change in energy of an on-crest particle. 
@@ -1248,19 +1250,31 @@ dependent attribute and is defined to be
 
 The energy kick felt by a particle is 
 \begin{example}
-  dE = gradient_tot * L * cos(twopi * (phi(z) + phi_ref + phi0_err)
+  dE = gradient_tot * L * cos(twopi * phi)
 \end{example}
 \index{multipass}
-where
+where the total gradient is
 \begin{example}
   gradient_tot = gradient + gradient_err
-  phi(z) = -z * rf_frequency / velocity
-  phi_ref = phi0 + dphi0
 \end{example}
-Where z is the particles' $z$ phase space coordinate (\sref{s:phase.space}).
-See \sref{s:rf.time} for a discussion on timing issues.
+and the phase \vn{phi} is
+\begin{example}
+  phi = phi_particle + phi0 + dphi0 + phi0_err + dphi0_ref
+\end{example}
+\begin{example}
+  phi_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{rf.time})
+               = t_particle * rf_frequency     ! With absolute time tracking
+\end{example}
+With \vn{relative time tracking}, the phase, \vn{phi_particle}, of the
+particle with respect to the cavity's internal clock is proportional
+to \vn{z} -- the particles' phase space coordinate
+(\sref{s:phase.space}). With \vn{absolute time tracking},
+\vn{phi_particle} is proportional to the absolute time the particle reaches 
+
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}.
+
+\vn{dphi0_ref} is 
 
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus

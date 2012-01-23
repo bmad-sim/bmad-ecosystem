@@ -421,6 +421,8 @@ call init_attrib (def_parameter$, n_part$,                 'N_PART')
 call init_attrib (def_parameter$, particle$,               'PARTICLE')
 call init_attrib (def_parameter$, aperture_limit_on$,      'APERTURE_LIMIT_ON')
 call init_attrib (def_parameter$, root_branch_name$,       'ROOT_BRANCH_NAME') 
+call init_attrib (def_parameter$, absolute_time_tracking$, 'ABSOLUTE_TIME_TRACKING')
+call init_attrib (def_parameter$, no_end_marker$,          'NO_END_MARKER')
 
 call init_attrib (def_beam$, particle$,                    'PARTICLE')
 call init_attrib (def_beam$, e_tot$,                       'ENERGY')
@@ -913,7 +915,7 @@ integer attrib_type
 
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER', 'FOLLOW_DIFFRACTED_BEAM', &
-      'NEGATIVE_GRAZE_ANGLE', 'SCALE_MULTIPOLES')
+      'NEGATIVE_GRAZE_ANGLE', 'SCALE_MULTIPOLES', 'NO_END_MARKER')
   attrib_type = is_logical$
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
       'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS')

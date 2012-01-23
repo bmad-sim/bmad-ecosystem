@@ -560,7 +560,10 @@ individual simulation programs and is not part of the \bmad standard.
 \label{s:time.phase.space}
 \index{time!phase space coordinates|hyperbf}
 
-Some specialized routines use $(x, c p_x, y, c p_y, s, c p_s)_t$ phase space coordinates with time $t$ as the independent variable. The positions $x$, $y$, and $s$ are the same as in Fig.~\ref{f:local.coords}. The momenta are defined as  
+Some specialized routines use $(x, c p_x, y, c p_y, s, c p_s)_t$ phase
+space coordinates with time $t$ as the independent variable. The
+positions $x$, $y$, and $s$ are the same as in
+Fig.~\ref{f:local.coords}. The momenta are defined as
 \begin{align}
 c p_x &\equiv m c^2 \gamma \beta_x \\
 c p_y &\equiv m c^2 \gamma \beta_y \\
@@ -569,10 +572,24 @@ c p_s &\equiv m c^2 \gamma \beta_s,
 and internally are stored in units of eV.
 
 %-----------------------------------------------------------------
-\section{RF timing issues}
+\section{Relative and Absolute Time Tracking}
 \label{s:rf.time}
 
-\index{lcavity}\index{rfcavity}
+\index{relative time tracking}\index{absolute time tracking}
+\index{lcavity}\index{rfcavity}\index{em_field}
+Unlike other elements, the kick given a particle going through an
+\vn{lcavity}, \vn{rfcavity}, or possibly an \vn{em_field} element
+depends upon the time that the particle enters the element relative to
+some ``element clock''. \Bmad has two modes for calculating this time
+called \vn{relative time tracking} and \vn{absolute time
+tracking}. 
+
+With \vn{relative time tracking}, which in \bmad is the default, the
+element clock is determined by the reference particle.
+
+
+
+
 When a particle passes through an \vn{lcavity} or \vn{rfcavity}
 element, the kick that it gets is the sum of kicks due to the
 fundamental mode, HOM couplers, short-range wakes, and long-range

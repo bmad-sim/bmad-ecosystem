@@ -74,4 +74,6 @@ current_file%full_name = ''
 call parser_set_attribute (redef$, ele, lat, delim, delim_found, err_flag, &
                                                   logic_option(.true., err_print_flag))
 
+bp_com%input_from_file = .true.
+
 end subroutine
