@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_symp_lie_ptc (start, ele, param, end)
+! Subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb)
 !
 ! Particle tracking through a single element using a hamiltonian
 ! and a symplectic integrator. This uses Etienne's PTC code. For a 
@@ -9,17 +9,17 @@
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting position
+!   start_orb  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
 !   param  -- lat_param_struct:
 !
 ! Output:
-!   end   -- Coord_struct: End position
+!   end_orb   -- Coord_struct: End position
 !-
 
 #include "CESR_platform.inc"
 
-subroutine track1_symp_lie_ptc (start, ele, param, end)
+subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb)
 
 use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
 use s_tracking, only: DEFAULT, alloc_fibre
@@ -27,48 +27,44 @@ use mad_like, only: fibre, kill, ptc_track => track
 
 implicit none
 
-type (coord_struct) :: start
-type (coord_struct) :: end
+type (coord_struct) :: start_orb
+type (coord_struct) :: end_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (fibre), pointer :: fibre_ele
 
-real(dp) re(6), beta0, m2_rel
+real(dp) re(6), beta0
 
 character(20) :: r_name = 'track1_symp_lie_ptc'
 
-! Construct a PTC fibre out of the ele element.
-! A fibre is PTC's structure analogous to BMAD's ele_struct.  
-
-call alloc_fibre (fibre_ele)
-call ele_to_fibre (ele, fibre_ele, param, .true.)
-
-! call the PTC routines to track through the fibre.
+! Error test
 
 if (ele%key == wiggler$ .and. ele%value(z_patch$) == 0) then
   call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
   call err_exit 
 endif
 
-call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
-call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
-call vec_ptc_to_bmad (re, end%vec)
+! Construct a PTC fibre out of the ele element.
+! A fibre is PTC's structure analogous to BMAD's ele_struct.  
 
-if (ele%key == wiggler$) then
-  end%vec(5) = end%vec(5) - ele%value(z_patch$)
+call ele_to_fibre (ele, fibre_ele, param, .true.)
+
+! call the PTC routines to track through the fibre.
+
+if (ele_has_constant_reference_energy(ele)) then
+  beta0 = ele%value(p0c$) / ele%value(e_tot$)
+else
+  beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 endif
 
-call kill(fibre_ele)  ! clean up allocated memory.
+call vec_bmad_to_ptc (start_orb%vec, beta0, re)
+call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
+call vec_ptc_to_bmad (re, beta0, end_orb%vec)
+if (.not. ele_has_constant_reference_energy(ele)) &
+      call vec_bmad_ref_energy_correct(end_orb%vec, ele%value(p0c$) / ele%value(p0c_start$))
 
-! Correct map since in ptc z_ptc (vec(6)) is: 
-!     z_ptc = v * t - v_ref * t_ref 
-! and what is wanted to do a simple conversion to Bmad is to transform:
-!     z_ptc -> v * (t - t_ref) = -z_bmad
-
-beta0 = ele%value(p0c$) / ele%value(e_tot$)
-m2_rel = (mass_of(param%particle) / ele%value(p0c$))**2
-
-end%vec(5) = end%vec(5) + ele%value(l$) * beta0 * m2_rel * (2.0_rp * end%vec(6) + end%vec(6)**2) / &
-      (((1.0_rp + end%vec(6)) / sqrt((1.0_rp + end%vec(6))**2 + m2_rel) + beta0) * ((1.0_rp + end%vec(6))**2 + m2_rel))
+if (ele%key == wiggler$) then
+  end_orb%vec(5) = end_orb%vec(5) - ele%value(z_patch$)
+endif
 
 end subroutine

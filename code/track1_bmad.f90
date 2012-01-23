@@ -168,9 +168,7 @@ case (bend_sol_quad$)
   enddo
 
   call offset_particle (ele, param, end, unset$)
-
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! capillary
@@ -199,8 +197,7 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
   call track_a_drift (end, length)
   if (ele%is_on) call offset_particle (ele, param, end, unset$, .false.)
 
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! kicker, separator
@@ -220,9 +217,7 @@ case (elseparator$, kicker$, hkicker$, vkicker$)
   call offset_particle (ele, param, end, unset$)  
   call end_z_calc
 
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * &
-                                        (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! LCavity: Linac rf cavity
@@ -514,8 +509,7 @@ case (octupole$)
 
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)  
 
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! patch
@@ -564,8 +558,7 @@ case (quadrupole$)
 
   call offset_particle (ele, param, end, unset$)  
 
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! rfcavity
@@ -623,8 +616,7 @@ case (rfcavity$)
 
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! sbend
@@ -632,9 +624,7 @@ case (rfcavity$)
 case (sbend$)
 
   call track_a_bend (start, ele, param, end)
-
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! sextupole
@@ -663,9 +653,7 @@ case (sextupole$)
   enddo
 
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)
-
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! solenoid
@@ -684,9 +672,7 @@ case (solenoid$)
   end%vec(1:4) = matmul (mat4, end%vec(1:4))
 
   call offset_particle (ele, param, end, unset$)
-
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! sol_quad
@@ -703,9 +689,7 @@ case (sol_quad$)
   end%vec(1:4) = matmul (mat6(1:4,1:4), end%vec(1:4))
 
   call offset_particle (ele, param, end, unset$)
-
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! Taylor
@@ -758,9 +742,7 @@ case (wiggler$)
 
   call offset_particle (ele, param, end, unset$)
   call end_z_calc
-
-  ! 1/gamma^2 low E correction
-  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+  call low_energy_z_correction (end, ele, param)
 
 !-----------------------------------------------
 ! unknown
@@ -785,6 +767,8 @@ contains
 
 subroutine end_z_calc
 
+implicit none
+
 end%vec(5) = end%vec(5) - (length / rel_pc**2) * &
       (start%vec(2)**2 + end%vec(2)**2 + start%vec(2) * end%vec(2) + &
        start%vec(4)**2 + end%vec(4)**2 + start%vec(4) * end%vec(4)) / 6
@@ -795,6 +779,8 @@ end subroutine
 ! contains
 
 subroutine coupler_kick_entrance ()
+
+implicit none
 
 dp_coupler = (ele%value(gradient$) * ele%value(gradient_err$)) * &
       ele%value(coupler_strength$) * cos(phase + twopi * ele%value(coupler_phase$))
@@ -819,10 +805,42 @@ end subroutine
 
 subroutine coupler_kick_exit ()
 
+implicit none
+
 if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
     nint(ele%value(coupler_at$)) == both_ends$) then
   end%vec(2) = end%vec(2) + dp_x_coupler / pc_end
   end%vec(4) = end%vec(4) + dp_y_coupler / pc_end
+endif
+
+end subroutine
+
+!--------------------------------------------------------------
+! contains
+
+subroutine low_energy_z_correction (end, ele, param)
+
+implicit none
+
+type (coord_struct) end
+type (ele_struct) ele
+type (lat_param_struct) param
+
+real(rp) p0c, pc, beta, beta0, mass
+
+!
+
+mass = mass_of(param%particle)
+e_tot = ele%value(e_tot$)
+p0c = ele%value(p0c$)
+
+if (abs(end%vec(6)) < 1e-6 * mass**2 * p0c / e_tot**3) then
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass / e_tot)**2
+else
+  pc = (1 + end%vec(6)) * ele%value(p0c$)
+  call convert_pc_to (pc, param%particle, beta = beta)
+  beta0 = ele%value(p0c$) / ele%value(e_tot$)
+  end%vec(5) = end%vec(5) + length * (beta - beta0) / beta0
 endif
 
 end subroutine
