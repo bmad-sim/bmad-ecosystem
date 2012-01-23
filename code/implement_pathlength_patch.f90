@@ -20,7 +20,7 @@
  implicit none
 
  type (lat_struct) ring
- type (ele_struct), allocatable :: patch(:)
+ type (ele_struct), allocatable :: patch_ele(:)
 
  integer i,j
  integer j_max
@@ -45,7 +45,7 @@
   end do
 
   j_max = j
-  allocate (patch(1:j), s_rf(1:j), rf_ele(1:j), ix_ele(1:j))
+  allocate (patch_ele(1:j), s_rf(1:j), rf_ele(1:j), ix_ele(1:j))
 
  if( .not. path_length_patch)then  
   j=0
@@ -53,18 +53,18 @@
    if(ring%ele(i)%key == rfcavity$) then
     j=j+1
     rf_ele(j) = ring%ele(i)%name
-    call init_ele(patch(j))
-    patch(j)%name = 'PATCH_'//ring%ele(i)%name(1:len_trim(ring%ele(i)%name))
-    patch(j)%key = patch$
-    patch(j)%s = ring%ele(i-1)%s
-    patch(j)%value(z_offset$) = 0.
+    call init_ele(patch_ele(j))
+    patch_ele(j)%name = 'PATCH_'//ring%ele(i)%name(1:len_trim(ring%ele(i)%name))
+    patch_ele(j)%key = patch$
+    patch_ele(j)%s = ring%ele(i-1)%s
+    patch_ele(j)%value(z_offset$) = 0.
    endif
   end do
  
   do j = 1,j_max
     call element_locator(rf_ele(j), ring, ix)
 
-    call insert_element(ring,patch(j),ix)
+    call insert_element(ring,patch_ele(j),ix)
     if (.not. bmad_com%auto_bookkeeper) call lattice_bookkeeper(ring)
     call lat_make_mat6(ring,-1)
   end do
@@ -104,7 +104,7 @@
   
   path_length_patch = .true.
 
-  deallocate (patch, s_rf, rf_ele, ix_ele)
+  deallocate (patch_ele, s_rf, rf_ele, ix_ele)
 
   return
   end
