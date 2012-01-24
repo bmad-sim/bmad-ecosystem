@@ -55,7 +55,7 @@ real(rp) g_tot, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
 real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
 real(rp) dcP2_dz1, dbeta1_dpz1, dbeta2_dpz2, beta_start, beta_end
-real(rp) dp_coupler, dp_x_coupler, dp_y_coupler
+real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, gradient_max, voltage_max
 
 integer i, n_slice, key
 
@@ -211,9 +211,9 @@ case (lcavity$)
                             ele%value(phi0_err$)) - f * c0%vec(5)
 
   cos_phi = cos(phase)
-  gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
-  if (.not. ele%is_on) gradient = 0
-  gradient = gradient + gradient_shift_sr_wake(ele, param) 
+  gradient_max = ele%value(gradient$) + ele%value(gradient_err$)
+  if (.not. ele%is_on) gradient_max = 0
+  gradient = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) 
 
   if (gradient == 0) then
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
@@ -223,8 +223,7 @@ case (lcavity$)
 
   p0c_start = ele%value(p0c_start$) 
   pc_start = p0c_start * (1 + c0%vec(6))
-  call convert_pc_to (pc_start, param%particle, &
-                                    E_tot = e_start, beta = beta_start)
+  call convert_pc_to (pc_start, param%particle, E_tot = e_start, beta = beta_start)
   e_end = e_start + gradient * length
   if (e_end <= 0) then
     call out_io (s_error$, r_name, 'END ENERGY IS NEGATIVE AT ELEMENT: ' // ele%name)
@@ -237,7 +236,7 @@ case (lcavity$)
   p0c_end = ele%value(p0c$)
   e_ratio = e_end / e_start
 
-  mat6(6,5) = (e_end / pc_end) * ele%value(gradient$) * length * &
+  mat6(6,5) = (e_end / pc_end) * gradient * length * &
                                             f * sin(phase) / ele%value(p0c$) 
   mat6(6,6) = e_end * pc_start * p0c_start / (e_start * pc_end * p0c_end)
 
@@ -259,14 +258,14 @@ case (lcavity$)
 
   k1 = -gradient / (2 * pc_start)
 
-  ! body...
-  ! Note: dimad/liar formulas are:
-  !  r11 = 1
-  !  r12 = e_start * log (e_ratio) / gradient
-  !  r21 = 0
-  !  r22 = 1 / e_ratio
+  voltage_max = gradient_max * length
+  if (abs(voltage_max * cos_phi) < 1e-5 * pc_start) then
+    f = voltage_max / pc_start
+    alpha = f * (1 + f * cos_phi / 2)  / (2 * sqrt_2)
+  else
+    alpha = log(E_ratio) / (2 * sqrt_2 * cos_phi)
+  endif
 
-  alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
   cos_a = cos(alpha)
   sin_a = sin(alpha)
   f = gradient / (2 * sqrt_2 * cos_phi)   ! body matrix
