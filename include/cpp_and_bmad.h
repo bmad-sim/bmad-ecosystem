@@ -1024,10 +1024,12 @@ public:
     {
       if (key == Bmad::LCAVITY) {
         value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+        value[Bmad::FIELD_SCALE] = 1;
       }
 
       if (key == Bmad::RFCAVITY) {
         value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+        value[Bmad::FIELD_SCALE] = 1;
       }
     }
 

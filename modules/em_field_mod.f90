@@ -284,7 +284,12 @@ select case (ele%field_calc)
     phase = twopi * (ele%value(dphi0_ref$) + ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$))
     if (ele%key == rfcavity$) phase = phase + pi/2
 
-    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+    if (ele%key == lcavity$) then
+      gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+    else
+      gradient = ele%value(voltage$) * ele%value(field_scale$) / ele%value(l$)
+    endif
+
     if (.not. ele%is_on) gradient = 0
     gradient = gradient + gradient_shift_sr_wake(ele, param)
 
