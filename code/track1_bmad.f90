@@ -48,8 +48,8 @@ real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
 real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-real(rp) rel_pc, ff, k_z, pc_start, pc_end, dt_ref, gradient_ref
-real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
+real(rp) rel_pc, ff, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
+real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
@@ -252,14 +252,14 @@ case (lcavity$)
   phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
   phase = phase0 + dphase
 
-  cos_phi = cos(phase)
-  gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
+  gradient_max = ele%value(gradient$) + ele%value(gradient_err$)
 
   if (.not. ele%is_on) then
-    gradient = 0
+    gradient_max = 0
   endif
 
-  gradient = gradient + gradient_shift_sr_wake(ele, param) 
+  cos_phi = cos(phase)
+  gradient = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
 
   ! If the cavity is off and the reference energy does not change then
   ! the tracking is simple.
@@ -296,13 +296,6 @@ case (lcavity$)
 
   if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
 
-  ! track body...
-  ! Note: dimad/liar formulas are:
-  !  r11 = 1
-  !  r12 = E_start * log (E_ratio) / gradient
-  !  r21 = 0
-  !  r22 = 1 / E_ratio
-
   if (gradient == 0) then
     r11 = 1
     r12 = length
@@ -310,7 +303,13 @@ case (lcavity$)
     r22 = 1
 
   else
-    alpha = log(E_ratio) / (2 * sqrt_2 * cos_phi)
+    voltage_max = gradient_max * length
+    if (abs(voltage_max * cos_phi) < 1e-5 * pc_start) then
+      f = voltage_max / pc_start
+      alpha = f * (1 + f * cos_phi / 2)  / (2 * sqrt_2)
+    else
+      alpha = log(E_ratio) / (2 * sqrt_2 * cos_phi)
+    endif
     cos_a = cos(alpha)
     sin_a = sin(alpha)
     f = gradient / (2 * sqrt_2 * cos_phi)

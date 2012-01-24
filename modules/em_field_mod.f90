@@ -291,7 +291,7 @@ select case (ele%field_calc)
     endif
 
     if (.not. ele%is_on) gradient = 0
-    gradient = gradient + gradient_shift_sr_wake(ele, param)
+    gradient = (gradient + gradient_shift_sr_wake(ele, param)) * sign_charge
 
     ! Use pillbox formulas for standing wave TM_011 mode with infinite wall radius.
     ! See S.Y. Lee, "Accelerator Physics"
