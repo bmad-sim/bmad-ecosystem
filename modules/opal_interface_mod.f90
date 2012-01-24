@@ -295,6 +295,8 @@ ele_loop: do ie = ix_start, ix_end
       phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
       !OPAL only autophases for maximum acceleration, so adjust the lag for 'zero-crossing' 
       if (ele%key == rfcavity$) phase_lag = phase_lag + twopi*( ele%value(dphi0_max$) - ele%em_field%mode(1)%dphi0_ref )
+      !The e_gun needs phase_lag to be pi/2 for some reason
+      if (ele%key == e_gun$) phase_lag = pi/2
       call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
 
       !Write ELEMEDGE
@@ -437,7 +439,7 @@ select case (ele%key)
 case (lcavity$, rfcavity$, e_gun$) 
                                          
   freq = ele%em_field%mode(1)%freq
-  if (freq .eq. 0) freq = 1e-30_rp !To prevent divide by zero
+ ! if (freq .eq. 0) freq = 1e-30_rp !To prevent divide by zero
 
   !Example:
   !2DDynamic XZ
@@ -463,7 +465,13 @@ case (lcavity$, rfcavity$, e_gun$)
       
       !Calculate field at \omegat*t=0 and \omega*t = \pi/2 to get real and imaginary parts
       call em_field_calc (ele, param, z, 0.0_rp,     orb, loc_ref_frame, field_re)
-      call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
+      !if frequency is zero, zero out field_im
+      if(freq == 0) then
+        field_im%E=0
+        field_im%B=0
+      else 
+        call em_field_calc (ele, param, z, 0.25/freq , orb, loc_ref_frame, field_im)
+      endif
 
       pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
       pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
