@@ -66,7 +66,7 @@ type (track_struct), optional :: track
 type (coord_struct) here
 
 real(rp), optional, intent(in) :: s_start, s_end
-real(rp) s1, s2, s_sav, ds, s
+real(rp) s1, s2, s_sav, ds, s, t, beta
 
 integer i, n_step
 
@@ -105,6 +105,9 @@ call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
 call track_solenoid_edge (loc_ele, param, set$, here)
 
+call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
+t = -start%vec(5) / (beta * c_light)
+
 ! if we are saving the trajectory then allocate enough space in the arrays
 
 if (present(track)) then
@@ -118,7 +121,7 @@ endif
 s = s1
 
 do i = 1, n_step
-  call track1_boris_partial (here, loc_ele, param, s, ds, here)
+  call track1_boris_partial (here, loc_ele, param, s, t, ds, here)
   s = s + ds
   if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
 enddo
@@ -190,7 +193,7 @@ real(rp), optional, intent(in) :: s_start, s_end
 real(rp) :: ds, s, s_sav, sqrt_N
 real(rp), parameter :: err_5 = 0.0324, safety = 0.9
 real(rp) :: s1, s2, scale_orb, err_max, ds_temp, rel_tol_N, abs_tol_N
-real(rp) :: scale_spin, ds_in, step_min
+real(rp) :: scale_spin, ds_in, step_min, t, beta
 
 integer :: n_step, max_step
 
@@ -235,6 +238,9 @@ call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
 call track_solenoid_edge (loc_ele, param, set$, here)
 
+call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
+t = -start%vec(5) / (beta * c_light)
+
 ! if we are saving the trajectory then allocate enough space in the arrays
 
 if (present(track)) then
@@ -266,9 +272,9 @@ do n_step = 1, max_step
 
   do
 
-    call track1_boris_partial (here, loc_ele, param, s, ds/2, orb2) 
-    call track1_boris_partial (orb2, loc_ele, param, s+ds/2, ds/2, orb2)
-    call track1_boris_partial (here, loc_ele, param, s, ds, orb1) 
+    call track1_boris_partial (here, loc_ele, param, s, t, ds/2, orb2) 
+    call track1_boris_partial (orb2, loc_ele, param, s+ds/2, t, ds/2, orb2)
+    call track1_boris_partial (here, loc_ele, param, s, t, ds, orb1) 
     scale_orb = maxval((abs(orb1%vec) + abs(orb2%vec))) / 2
     scale_spin = maxval((abs(orb1%spin) + abs(orb2%spin))) / 2.0
 
@@ -325,7 +331,7 @@ end subroutine track1_adaptive_boris
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine track1_boris_partial (start, ele, param, s, ds, end)
+! Subroutine track1_boris_partial (start, ele, param, s, t, ds, end)
 !
 ! Subroutine to track 1 step using boris tracking.
 ! This subroutine is used by track1_boris and track1_adaptive_boris.
@@ -346,13 +352,14 @@ end subroutine track1_adaptive_boris
 !     %particle    -- Particle type [positron$, electron$, etc.]
 !     %spin_tracking_on -- If True then also track the spin
 !   s     -- Real(rp): Starting point relative to element beginning.
+!   t     -- Real(rp): Particle time
 !   ds    -- Real(rp): step size
 !
 ! Output:
 !   end   -- Coord_struct: Ending coordinates.
 !-
 
-subroutine track1_boris_partial (start, ele, param, s, ds, end)
+subroutine track1_boris_partial (start, ele, param, s, t, ds, end)
 
 implicit none
 
@@ -364,7 +371,7 @@ type (em_field_struct) :: field
 real(rp), intent(in) :: s, ds
 real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot, ds2
 real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
-real(rp) :: Omega(3), p2
+real(rp) :: Omega(3), p2, t, dt
 
 complex(rp) :: dspin_dz(2), quaternion(2,2)
 
@@ -389,11 +396,13 @@ end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
 end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
 
 end%s = end%s + ds2
-end%t = end%t + ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (old_beta * c_light)
+dt = ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (old_beta * c_light)
+end%t = end%t + dt
+t = t + dt
 
 ! 2) Evaluate the fields.
 
-call em_field_calc (ele, param, s+ds2, 0.0_rp, end, .true., field)
+call em_field_calc (ele, param, s+ds2, t+dt, end, .true., field)
 
 ! 2.5) Push the spin 1/2 step
 ! This uses the momentum at the beginning and the fields at (ds2)
@@ -470,8 +479,10 @@ end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot)
 end%vec(6) = p_tot - 1
 
 end%s = end%s + ds2
-end%t = end%t + ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (beta * c_light)
-  
+dt = ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (beta * c_light)
+end%t = end%t + dt
+t = t + dt
+
 ! 6.5) Push the spin 1/2 step
 ! This uses the momentum at the end 
 !  and the fields at (ds2)

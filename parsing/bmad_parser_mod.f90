@@ -4295,6 +4295,10 @@ case (rbend$, sbend$)
 case (rcollimator$)
   ele%offset_moves_aperture = .true.
 
+case (rfcavity$)
+  ele%value(coupler_at$) = exit_end$
+  ele%value(field_scale$) = 1
+
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  
   ele%mat6_calc_method = taylor$ 

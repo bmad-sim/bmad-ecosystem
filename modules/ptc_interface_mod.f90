@@ -1078,7 +1078,7 @@ real(rp) vec_bmad(6), p0c_rel
 !
 
 vec_bmad(2) = vec_bmad(2) / p0c_rel
-vec_bmad(4) = vec_bmad(2) / p0c_rel
+vec_bmad(4) = vec_bmad(4) / p0c_rel
 vec_bmad(6) = (1 + vec_bmad(6)) / p0c_rel - 1
 
 end subroutine vec_bmad_ref_energy_correct
@@ -2144,7 +2144,7 @@ real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch, s_rel
 integer i, n, key, n_term, exception, n_field
 integer, optional :: integ_order, steps
 
-logical kick_here, use_offsets
+logical kick_here, use_offsets, doneit
 
 character(16) :: r_name = 'ele_to_fibre'
 
@@ -2227,20 +2227,26 @@ case (marker$, branch$, photon_branch$, init_ele$)
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
 
-! cavity model is a "Fake" in that E_z is a constant through the cavity.
+! cavity model is a 
 
 case (rfcavity$, lcavity$)
   beta = ele%value(p0c$) / ele%value(e_tot$)
-  ptc_key%method = 2
   ptc_key%magnet = 'rfcavity'
-  ptc_key%list%volt = 1e-6 * ele%value(voltage$)
   ptc_key%list%freq0 = ele%value(rf_frequency$)
   ptc_key%list%lag = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + &
         ele%value(dphi0_ref$)) ! + pi * ptc_key%list%freq0 * leng / (beta * c_light) 
-  !if (ele%key == rfcavity$) ptc_key%list%lag = ptc_key%list%lag + pi / 2
+  if (ele%key == lcavity$) then
+    ptc_key%list%lag = ptc_key%list%lag + pi / 2
+    ptc_key%list%volt = 2e-6 * ele%value(l$) * &
+                            (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+  else
+    ptc_key%list%volt = 2e-6 * ele%value(voltage$) * ele%value(field_scale$)
+  endif
+
   ptc_key%list%delta_e = 0    ! For radiation calc.
-  ptc_key%list%n_bessel = 1   ! Linear transverse focusing
-  ptc_key%list%cavity_totalpath = 1  ! "Fake" cavity model
+  ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
+  ptc_key%list%cavity_totalpath = 1  ! 
+  ptc_key%list%permfringe = .false.
 
 case (elseparator$)
   ptc_key%magnet = 'elseparator'
@@ -2335,6 +2341,18 @@ lielib_print(12) = 0  ! No printing info messages
 
 call create_fibre_append (.false., m_u, ptc_key, EXCEPTION)   ! ptc routine
 fiber => m_u%end%start
+
+! 
+
+m_u%end%closed=.true.
+
+doneit=.true.
+call ring_l(m_u%end,doneit)
+
+call survey(m_u%end)
+call MAKE_NODE_LAYOUT( m_u%end)
+
+!
 
 lielib_print(12) = n
 
