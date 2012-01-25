@@ -1071,7 +1071,7 @@ integer i, n_old
 
 if (allocated (coord)) then
 
-  n_old = size(coord)
+  n_old = ubound(coord, 1)
   if (n_old >= n_coord) return
   allocate(old(0:n_old))
 
