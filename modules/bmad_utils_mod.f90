@@ -1663,7 +1663,7 @@ end subroutine allocate_element_array
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine allocate_branch_array (branch, upper_bound, lat)
+! Subroutine allocate_branch_array (lat, upper_bound, lat)
 !
 ! Subroutine to allocate or re-allocate an branch array.
 ! The old information is saved.
