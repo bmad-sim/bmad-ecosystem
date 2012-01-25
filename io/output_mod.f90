@@ -36,7 +36,7 @@ end type
 
 type (output_mod_com_struct), save, private :: output_com
 
-private output_line4, output_int, output_real, output_logical
+private output_line6, output_int, output_real, output_logical
 private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 
 !+
@@ -51,8 +51,8 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 !   output_int (level, routine_name, line, i_num)
 !   output_logical (level, routine_name, line, l_num)
 !   output_lines (level, routine_name, lines, r_array, i_array, l_array)
-!   output_line4 (level, routine_name, &
-!                     line1, line2, line3, line4, r_array, i_array, l_array)
+!   output_line6 (level, routine_name, &
+!            line1, line2, line3, line4, line5, line6, r_array, i_array, l_array)
 !
 ! Numbers are encoded in lines using the syntax "\<fmt>\" 
 ! where <fmt> is the desired format. For example:
@@ -89,9 +89,8 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 !   line         -- Character(*), Line to print.
 !   lines(:)     -- Character(*), Lines to print.
 !   line1        -- Character(*): First line to print.
-!   line2        -- Character(*), optional: Second line to print.
-!   line3        -- Character(*), optional: Third line to print.
-!   line4        -- Character(*), optional: Firth line to print.
+!   line2, ..., line6 
+!                -- Character(*), optional: Second through sixth lines to print.
 !   r_num        -- Real(rp): Real Number to print.
 !   i_num        -- Integer: Integer to print.
 !   l_num        -- Logical: Logical to print.
@@ -101,7 +100,7 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 !-
 
 interface out_io
-  module procedure output_line4
+  module procedure output_line6
   module procedure output_lines
   module procedure output_real
   module procedure output_int
@@ -352,20 +351,20 @@ end subroutine output_logical
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_line4 (level, routine_name, &
-!                     line1, line2, line3, line4, r_array, i_array, l_array)
+! Subroutine output_line6 (level, routine_name, &
+!               line1, line2, line3, line4, line5, line6, r_array, i_array, l_array)
 !
 ! Subroutine to print to the terminal for command line type programs.
 ! This routine is overloaded by the routine: out_io. See out_io for more details.
 !-
 
-subroutine output_line4 (level, routine_name, line1, line2, line3, line4, &
-                                                     r_array, i_array, l_array)
+subroutine output_line6 (level, routine_name, &
+               line1, line2, line3, line4, line5, line6, r_array, i_array, l_array)
 
 implicit none
 
 character(*) routine_name, line1
-character(*), optional :: line2, line3, line4
+character(*), optional :: line2, line3, line4, line5, line6
 character(40) fmt
 
 real(rp), optional :: r_array(:)
@@ -385,6 +384,8 @@ call insert_numbers (level, fmt, nr, ni, nl, line1, r_array, i_array, l_array)
 if (present(line2)) call insert_numbers (level, fmt, nr, ni, nl, line2, r_array, i_array, l_array)
 if (present(line3)) call insert_numbers (level, fmt, nr, ni, nl, line3, r_array, i_array, l_array)
 if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array, i_array, l_array)
+if (present(line5)) call insert_numbers (level, fmt, nr, ni, nl, line5, r_array, i_array, l_array)
+if (present(line6)) call insert_numbers (level, fmt, nr, ni, nl, line6, r_array, i_array, l_array)
 
 if (output_com%to_routine(level) /= 0) call out_io_end()
 
