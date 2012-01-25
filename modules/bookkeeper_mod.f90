@@ -1444,15 +1444,10 @@ do j = 1, slave%n_lord
     call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR: ' // key_name(slave%key))
     call err_exit
 
-  ! hkicker, vkicker, kicker, etc. has no special needs.
-
-  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$, wiggler$)
-
-  ! default
+  ! Everything else
 
   case default
-    call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
-    call err_exit
+    ! Everything else has no special needs. 
 
   end select
 
