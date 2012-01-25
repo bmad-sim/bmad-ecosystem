@@ -3998,7 +3998,7 @@ integer ix_lord, k_slave, ix_ele_original
 integer, allocatable :: r_indexx(:), ix_ele(:), ix_branch(:)
 
 character(40), allocatable :: name_list(:)
-character(40) name, name1, slave_name, attrib_name, missing_slave_name
+character(40) name, name1, input_slave_name, attrib_name, missing_slave_name
 
 logical err, slave_not_in_lat
 
@@ -4149,8 +4149,7 @@ main_loop: do n = 1, n2
 
   !-----------------------------------------------------
   ! girder
-  ! Create an girder element for each element whose name matches the
-  ! first name in the slave list.
+  ! Create an girder element for each lattice section that matches the slave list names.
 
   case (girder_lord$)
 
@@ -4164,38 +4163,49 @@ main_loop: do n = 1, n2
       cycle
     endif
 
-    slave => pointer_to_ele (lat, ix_ele(k_slave), ix_branch(k_slave))
-
-    if (slave%lord_status == super_lord$) then 
-      slave => pointer_to_slave(slave, 1)
-    endif
-
-    branch => lat%branch(slave%ix_branch)
-    ix_ele_original = slave%ix_ele
-
-    ! Loop over all matches to the first name.
+    ! Loop to find lattice section that matches the slave list names.
 
     do 
+
+      k_slave = r_indexx(k2)
+      slave => pointer_to_ele (lat, ix_ele(k_slave), ix_branch(k_slave))
+
+      if (slave%name /= name1) exit
+
+      if (slave%lord_status == multipass_lord$) then 
+        slave => pointer_to_slave(slave, 1)
+      endif
+
+      if (slave%lord_status == super_lord$) then 
+        slave => pointer_to_slave(slave, 1)
+      endif
+
+      branch => lat%branch(slave%ix_branch)
+      ix_ele_original = slave%ix_ele
+
+      ! Loop over girder slave list and see if this section matches.
 
       ixs = 0       ! Index of slave element we are looking for
 
       slave_loop: do            ! loop over all slaves
         ixs = ixs + 1
+        slave => pointer_to_ele (lat, ix_ele_original+ixs-1, branch%ix_branch)
         if (ixs > lord%n_slave) exit
-        slave_name = plat%ele(ixx)%name(ixs)
+        input_slave_name = plat%ele(ixx)%name(ixs)
 
         do  ! loop over all lattice elements
           if (slave%slave_status == super_slave$) then
             do ic = 1, slave%n_lord
               lord2 => pointer_to_lord(slave, ic)
-              if (match_wild(lord2%name, slave_name)) then
+              if (lord2%slave_status == multipass_slave$) lord2 => pointer_to_lord(lord2, 1)
+              if (match_wild(lord2%name, input_slave_name)) then
                 cs(ixs)%ix_slave  = lord2%ix_ele
                 cs(ixs)%ix_branch = lord2%ix_branch
                 cycle slave_loop
               endif
             enddo
           else
-            if (match_wild(slave%name, slave_name)) then
+            if (match_wild(slave%name, input_slave_name)) then
               cs(ixs)%ix_slave  = slave%ix_ele
               cs(ixs)%ix_branch = slave%ix_branch
               cycle slave_loop
@@ -4208,7 +4218,7 @@ main_loop: do n = 1, n2
           endif
           if (slave%ix_ele == ix_ele_original) then
             call parser_error ('CANNOT FIND END ELEMENT FOR GIRDER: ' // lord%name, &
-                          'CANNOT FIND: ' // slave_name, pele = plat%ele(ixx))
+                          'CANNOT FIND: ' // input_slave_name, pele = plat%ele(ixx))
             cycle main_loop
           endif
         enddo 
@@ -4219,13 +4229,7 @@ main_loop: do n = 1, n2
       call new_control (lat, ix_lord)
       call create_girder (lat, ix_lord, cs(1:lord%n_slave), lord)
 
-      k2 = k2 + 1
-      k_slave = r_indexx(k2)
-      if (slave%name /= name1) exit
-      if (k_slave > lat%n_ele_track) then ! must be a super_lord.
-        ix = slave%ix1_slave
-        k_slave = lat%control(ix)%ix_slave
-      endif
+      k2 = k2 + 1 ! Next first slave match
 
     enddo 
 

@@ -431,7 +431,7 @@ if (logic_option(present(lattice), type_control)) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord (ele, i, ic)
       select case (lord%lord_status)
-      case (super_lord$, multipass_lord$, patch_in_slave$)
+      case (super_lord$, multipass_lord$, patch_in_slave$, girder_lord$)
         coef_str = ''
         a_name = ''
         val_str = ''

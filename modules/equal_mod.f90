@@ -306,7 +306,7 @@ implicit none
 type (lat_struct), intent(inout), target :: lat_out
 type (lat_struct), intent(in) :: lat_in
 
-integer i, n, n_out, n_in
+integer i, n, ie, n_out, n_in
 
 ! If the element arrays have not been initialized in lat_in then deallocate lat_out.
 
@@ -315,19 +315,26 @@ if (.not. allocated (lat_in%branch) .or. .not. associated(lat_in%ele)) then
   return
 endif
 
-! resize %ele array if needed
+! Care must be taken here since lat%ele points to the same memory as lat%branch(0).
+! First take care of the branch lines.
 
-n_in = ubound(lat_in%ele, 1)
-n_out = ubound(lat_out%ele, 1)
-if (n_out < n_in) call allocate_lat_ele_array(lat_out, n_in)
+n = ubound(lat_in%branch, 1)
+call allocate_branch_array (lat_out, n)
 
-lat_out%ele(0:n_in) = lat_in%ele(0:n_in)
-do i = n_in+1, n_out
-  call init_ele (lat_out%ele(i), ix_ele = i, ix_branch = 0)
+do i = 0, n
+  call allocate_lat_ele_array (lat_out, ubound(lat_in%branch(i)%ele, 1), i)
+  lat_out%branch(i) = lat_in%branch(i)
+  do ie = 0, ubound(lat_out%branch(i)%ele, 1)
+    lat_out%branch(i)%ele(ie)%ix_ele = ie
+    lat_out%branch(i)%ele(ie)%ix_branch = i
+    lat_out%branch(i)%ele(ie)%lat => lat_out
+  enddo
 enddo
-lat_out%ele_init = lat_in%ele_init
 
-! handle lat%control array
+lat_out%ele_init = lat_in%ele_init
+lat_out%ele_init%lat => lat_out
+
+! Handle lat%control array
 
 if (allocated (lat_in%control)) then
   n = size(lat_in%control)
@@ -351,30 +358,6 @@ else
 endif
 
 lat_out%wall3d = lat_in%wall3d
-
-! branch lines 
-
-n = ubound(lat_in%branch, 1)
-call allocate_branch_array (lat_out, n)
-
-lat_out%branch(0) = lat_in%branch(0)
-
-do i = 1, n
-  call allocate_lat_ele_array (lat_out, ubound(lat_in%branch(i)%ele, 1), i)
-  lat_out%branch(i) = lat_in%branch(i)
-enddo
-
-! Make sure ele%ix_ele and ele%lat are set correctly
-
-do i = 0, ubound(lat_out%branch, 1)
-  do n = 0, ubound(lat_out%branch(i)%ele, 1)
-    lat_out%branch(i)%ele(n)%ix_ele = n
-    lat_out%branch(i)%ele(n)%ix_branch = i
-    lat_out%branch(i)%ele(n)%lat => lat_out
-  enddo
-enddo
-
-lat_out%ele_init%lat => lat_out
 
 ! non-pointer transfer
 
