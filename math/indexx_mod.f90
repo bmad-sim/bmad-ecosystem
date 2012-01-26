@@ -3,7 +3,7 @@ module indexx_mod
 use utilities_mod
 
 type char_indexx_struct
-  character(40), allocatable :: names(:)   !  Array of names.
+  character(400), allocatable :: names(:)  !  Array of names.
   integer,       allocatable :: indexx(:)  !  Sorted index for names(:) array.
                                            !    names(an_indexx(i)) is in alphabetical order.
   integer                    :: n_min = 1  ! 
