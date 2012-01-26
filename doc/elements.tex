@@ -1053,24 +1053,8 @@ The \vn{girder} statement syntax is:
   <element_name>: GIRDER = \{<ele1>, <ele2>, ... \}, ...
 \end{example}
 A \vn{girder} element will be created for each \vn{<ele1>} element in
-the lattice. The elements \vn{<ele2>}, \vn{<ele3>}, etc. do not have to be
-consecutive but, if more than one \vn{girder} is to be created, need
-to be in order of increasing \vn{s}.
-For example:
-\begin{example}
-  q1: quad
-  q2: quad
-  s0: sextupole
-  s1: sextupole
-  ib: girder = \{q1, s1, q2\}
-  this_line: line = (q1, s0, s1, q2, ..., q1, s0, s1, q2)
-  use, this_line
-\end{example}
-In this example two \vn{girder} elements will be created.
-
-Note to programmers: The total horizontal offset of any element is
-stored in the element component \vn{%value(x_offset_tot\$)}. Similarly
-the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
+the lattice. In the lattice, the elements \vn{<ele1>}, \vn{<ele2>},
+etc. have to be consecutive. 
 
 %-----------------------------------------------------------------
 \section{Hybrid}

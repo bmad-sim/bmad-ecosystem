@@ -44,20 +44,20 @@ use random_mod
 
 implicit none
 
-type (lat_struct), target :: lat, in_lat, old_lat
+type (lat_struct), target :: lat, in_lat, old_lat, lat2
 type (ele_struct) this_ele
+type (ele_struct), save, pointer :: ele, slave, lord
+type (ele_struct), save :: marker_ele
 type (seq_struct), save, target :: sequence(1000)
 type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
-type (ele_struct), save, pointer :: ele, slave
-type (ele_struct), save :: marker_ele
 type (lat_ele_loc_struct) m_slaves(100)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 character(40), allocatable ::  in_name(:), seq_name(:)
 
-integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, n_wall, n_track
+integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0, n_ele
 integer, pointer :: n_max
@@ -712,7 +712,28 @@ lat%n_ele_track = n_ele_use
 lat%n_ele_max   = n_ele_use
 
 !---------------------------------------------------------------
-! we now have the line to use in constructing the lat.
+! If a girder elements refer to a line then must expand that line.
+
+do i = 1, n_max
+  lord => in_lat%ele(i)
+  if (lord%lord_status /= girder_lord$) cycle
+  pele => plat%ele(i)
+  j = 0
+  do 
+    j = j + 1
+    if (j > lord%n_slave) exit
+    call find_indexx(pele%name(j), seq_name, seq_indexx, size(seq_name), k, k2)
+    if (k == 0) cycle
+    call parser_expand_line (0, lat2, pele%name(j), sequence, in_name, in_indexx, &
+                                      seq_name, seq_indexx, in_lat, n_ele_use)
+    lord%n_slave = lord%n_slave + n_ele_use - 1
+    call re_associate (pele%name, lord%n_slave)
+    pele%name(j:) = lat2%ele(1:lat2%n_ele_max)%name
+  enddo
+enddo
+
+!---------------------------------------------------------------
+! We have the line to use in constructing the lat.
 ! now to put the elements in LAT in the correct order.
 ! superimpose, overlays, and groups are handled later.
 ! first load beam parameters.
@@ -1135,6 +1156,7 @@ enddo
 
 call deallocate_lat_pointers(old_lat)
 call deallocate_lat_pointers(in_lat)
+call deallocate_lat_pointers(lat2)
 
 end subroutine
 
