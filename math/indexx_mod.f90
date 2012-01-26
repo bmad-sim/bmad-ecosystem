@@ -2,9 +2,25 @@ module indexx_mod
 
 use utilities_mod
 
+type char_indexx_struct
+  character(40), allocatable :: names(:)  !  Array of names.
+  integer,       allocatable :: index(:)  !  Sorted index for names(:) array.
+                                          !    names(an_indexx(i)) is in alphabetical order.
+  integer                    :: n_min = 1 ! 
+  integer                    :: n_max     !  Use only names(n_min:n_max) part of array.
+end type
+
+
 interface indexx
   module procedure indexx_char
 end interface
+
+interface find_indexx
+  module procedure find_indexx0
+  module procedure find_indexx1
+end interface
+
+
 
 contains
 
@@ -12,7 +28,34 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list)
+! Subroutine find_indexx0 (name, name_index, ix_match, ix2_match, add_to_list)
+! Subroutine to find a matching name in a list of names.
+!
+!
+!-
+
+subroutine find_indexx0 (name, name_index, ix_match, ix2_match, add_to_list)
+
+implicit none
+
+character(*) name
+type (char_indexx_struct) name_index
+integer  ix_match
+integer, optional :: ix2_match
+logical, optional :: add_to_list
+
+
+call find_indexx2 (name, name_index%names, name_index%index, name_index%n_min, name_index%n_max, ix_match, ix2_match, add_to_list)
+
+end subroutine find_indexx0
+
+
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine find_indexx1 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list)
 !
 ! Subroutine to find a matching name in a list of names.
 ! The routine indexx should be used to create an_indexx.
@@ -55,7 +98,7 @@ contains
 !   an_indexx(:) -- Integer: Updated if add_to_list = True.
 !-
 
-subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list)
+subroutine find_indexx1 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list)
 
 implicit none
 
@@ -67,60 +110,11 @@ character(*) name, names(:)
 
 logical, optional :: add_to_list
 
-! simple case
+! 
 
-if (n_max == 0) then
-  if (present(ix2_match)) ix2_match = 1
-  ix_match = 0
-  if (logic_option(.false., add_to_list)) then
-    ix_match = 1
-    an_indexx(1) = 1
-    names(1) = name
-  endif
-  return
-endif
+call find_indexx2 (name, names, an_indexx, 1, n_max, ix_match, ix2_match, add_to_list)
 
-!
-
-ix1 = 1
-ix3 = n_max
-
-do
-
-  ix2 = (ix1 + ix3) / 2 
-
-  if (names(an_indexx(ix2)) == name) then
-    do ! if there are duplicate names in the list choose the first one
-      if (ix2 == 1) exit
-      if (names(an_indexx(ix2-1)) /= names(an_indexx(ix2))) exit
-      ix2 = ix2 - 1
-    enddo
-    ix_match = an_indexx(ix2)
-    exit
-  elseif (names(an_indexx(ix2)) < name) then
-    ix1 = ix2 + 1
-  else
-    ix3 = ix2 - 1
-  endif
-                     
-  if (ix1 > ix3) then
-    ix_match = 0
-    if (names(an_indexx(ix2)) < name) ix2 = ix2 + 1
-    exit
-  endif
-
-enddo
-
-if (present(ix2_match)) ix2_match = ix2
-
-if (logic_option(.false., add_to_list)) then
-  an_indexx(ix2+1:n_max+1) = an_indexx(ix2:n_max)
-  an_indexx(ix2) = n_max + 1
-  names(n_max+1) = name
-  ix_match = n_max+1
-endif
-
-end subroutine find_indexx
+end subroutine find_indexx1
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
