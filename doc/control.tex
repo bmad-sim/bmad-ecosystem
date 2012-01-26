@@ -363,13 +363,6 @@ disappear if the superimposed element overlays the exit end of the
 drift. A similar situation applies to the entrance end of a drift. If
 this is not desired, use a \vn{pipe} element instead.
 
-\NeedsWork...
-
-Normally when \bmad creates a slave
-Superpositions are restricted in that \bmad may not have an
-appropriate element for the superimposed fields. For example, a
-solenoid can not be superimposed over an octupole. 
-
 %-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}
 \label{s:super.length}
@@ -455,7 +448,7 @@ file.  To avoid this, and to simplify the computational overhead,
 \bmad chooses to use a relatively simple algorithm for adjusting
 lengths after lattice expansion. Notice that for layout design, the
 \vn{no_superimpose} command (\sref{s:no.superimpose}) can be used to
-supress superposition.
+suppress superposition.
 
 %-----------------------------------------------------------------------------
 \section{Multipass}
@@ -701,7 +694,7 @@ lattices that lie horizontally in the global $X-Z$ plane. Also, the
 restriction to \vn{n_ref_pass = 1} is necessary since the calculation
 becomes nondeterministic otherwise. 
 
-\index{match_at_entrance}\index{match_at_exit}\index{match_global_cocords}
+\index{match_at_entrance}\index{match_at_exit}\index{match_global_coords}
 \index{sbend}\index{rbend}
 Additionally, for a bend, with \vn{ref_orbit} set to either
 \begin{example}

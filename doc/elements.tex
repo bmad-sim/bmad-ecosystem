@@ -994,6 +994,8 @@ General \vn{em_field} attributes are:
 \end{center}
 \toffset
 
+The advantage to using \vn{em_field} elements is that they
+
 
 %-----------------------------------------------------------------
 \section{Girder}
@@ -1026,19 +1028,20 @@ orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.)
 give the orientation of
 the element with respect to the \vn{girder}. An example will make this clear:
 \begin{example}
-  q1: quad, l = 10
-  q2: quad, l = 5, x_offset = 0.2, x_pitch = 0.01
+  q1: quad, l = 2
+  q2: quad, l = 4, x_offset = 0.2, x_pitch = 0.01
+  d: drift, l = 8
   ib: girder = \{q1, q2\}, x_pitch = 0.1, x_offset = 0.3
-  this_line: line = (q1, q2)
+  this_line: line = (q1, d, q2)
   use, this_line
 \end{example}
 \index{overlay}
 In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
-center of \vn{ib} is at $s = 7.5$ (\vn{ib} starts at $s = 0$ which is
-the beginning of \vn{q1} and ends at $s = 15$ which is the end of
+center of \vn{ib} is at $s = 7$~meters (\vn{ib} starts at $s = 0$ which is
+the beginning of \vn{q1} and ends at $s = 14$ which is the end of
 \vn{q2}). Like other elements, pitch is calculated from the center of
 a \vn{girder} element (see Sec.~\ref{s:offset}). The center of
-\vn{q2} is at $s = 12.5$ so the distance between the center of \vn{ib}
+\vn{q2} is at $s = 12$ so the distance between the center of \vn{ib}
 and \vn{q2} is $ds = 5$. The pitch of \vn{ib} produces an offset at
 the center of \vn{q2} of $0.5 = 0.1 * 5$. This, added to the offsets
 of \vn{ib} and \vn{q2}, give the total offset of \vn{q2} to be $1.0 =
@@ -1050,11 +1053,24 @@ however, take six \vn{Overlays} to simulate the effect of a single
 
 The \vn{girder} statement syntax is:
 \begin{example}
-  <element_name>: GIRDER = \{<ele1>, <ele2>, ... \}, ...
+  <element_name>: GIRDER = \{<ele1>, <ele2>, ..., <eleN> \}, ...
 \end{example}
-A \vn{girder} element will be created for each \vn{<ele1>} element in
-the lattice. In the lattice, the elements \vn{<ele1>}, \vn{<ele2>},
-etc. have to be consecutive. 
+A \vn{girder} element will be created for each section of the lattice
+where there is a ``consecutive'' sequence of ``slave'' elements
+\vn{<ele1>} through \vn{<eleN>}.  This section of the lattice from
+\vn{<ele1>} through \vn{<eleN>} is called the ``girder support
+region''.  ``Consecutive'' here means there are no other elements in the
+girder support region except for possibly \vn{drift} and/or \vn{marker}
+elements.  \vn{Drift} elements cannot be controlled by a girder and
+should not appear in the girder slave list. If a drift-like element is
+desired, use a \vn{pipe} element instead. \vn{Marker} elements present
+in a girder support region, but not mentioned in the girder slave
+list, are simply ignored.
+
+Wild card characters (\sref{s:lat.attribs}) can be used in any element
+name in the girder slave list. Additionally, beam line names
+(\sref{s:lines.wo.arg}) can be used. In this case, any \vn{drift} elements
+within a beam line will be ignored.
 
 %-----------------------------------------------------------------
 \section{Hybrid}
@@ -1246,7 +1262,7 @@ and the phase \vn{phi} is
   phi = phi_particle + phi0 + dphi0 + phi0_err + dphi0_ref
 \end{example}
 \begin{example}
-  phi_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{rf.time})
+  phi_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
                = t_particle * rf_frequency     ! With absolute time tracking
 \end{example}
 With \vn{relative time tracking}, the phase, \vn{phi_particle}, of the
