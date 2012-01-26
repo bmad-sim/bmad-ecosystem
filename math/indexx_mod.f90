@@ -3,11 +3,11 @@ module indexx_mod
 use utilities_mod
 
 type char_indexx_struct
-  character(40), allocatable :: names(:)  !  Array of names.
-  integer,       allocatable :: index(:)  !  Sorted index for names(:) array.
-                                          !    names(an_indexx(i)) is in alphabetical order.
-  integer                    :: n_min = 1 ! 
-  integer                    :: n_max     !  Use only names(n_min:n_max) part of array.
+  character(40), allocatable :: names(:)   !  Array of names.
+  integer,       allocatable :: indexx(:)  !  Sorted index for names(:) array.
+                                           !    names(an_indexx(i)) is in alphabetical order.
+  integer                    :: n_min = 1  ! 
+  integer                    :: n_max      !  Use only names(n_min:n_max) part of array.
 end type
 
 
@@ -28,10 +28,31 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine find_indexx0 (name, name_index, ix_match, ix2_match, add_to_list)
+! Subroutine find_indexx0 (name, char_indexx, ix_match, ix2_match, add_to_list)
 ! Subroutine to find a matching name in a list of names.
+! Note that this simply calls find_indexx1
 !
+! Input:
+!   name           -- Character(*): Name to match to.
+!   char_indexx    -- char_indexx_struct: Contains name and indexx arrays
 !
+!   add_to_list  -- Logical, optional: If present and True then add name to names array and
+!                     update char_indexx%index array.
+!
+! Output:
+!   ix_match  -- Integer: If a match is found then:
+!                             char_indexx%names(ix_match) = name
+!                  If no match is found then ix_match = 0.
+!   ix2_match -- Integer, optional: 
+!                  If a match is found then
+!                              char_indexx%indexx(ix2_match) = ix_match
+!                              char_indexx%names(indexx(ix2_match-1)) /= name
+!                  If no match is found then 
+!                    for j = char_indexx%indexx(ix2_match):
+!                              names(j) > name
+!                    and if ix2_match > 1 then for j = char_indexx%indexx(ix2_match-1):
+!                              names(j) < name
+!   char_indexx    -- char_indexx_struct: Updated if add_to_list = True.
 !-
 
 subroutine find_indexx0 (name, name_index, ix_match, ix2_match, add_to_list)
@@ -45,7 +66,7 @@ integer, optional :: ix2_match
 logical, optional :: add_to_list
 
 
-call find_indexx2 (name, name_index%names, name_index%index, name_index%n_min, name_index%n_max, ix_match, ix2_match, add_to_list)
+call find_indexx2 (name, name_index%names, name_index%indexx, name_index%n_min, name_index%n_max, ix_match, ix2_match, add_to_list)
 
 end subroutine find_indexx0
 
