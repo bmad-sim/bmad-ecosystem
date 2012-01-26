@@ -2866,8 +2866,7 @@ do
   name(ixs) = word
 
   if (delim == '/' .or. delim == ':') then
-    call evaluate_value (trim(ele%name), value, &
-                                lat, delim, delim_found, err_flag)
+    call evaluate_value (trim(ele%name), value, lat, delim, delim_found, err_flag)
     if (err_flag) then
       call parser_error ('BAD COEFFICIENT: ' // word_in,  &
                                         'FOR ELEMENT: ' // ele%name)
@@ -4806,9 +4805,6 @@ do k = 1, iseq_tot
 
     s_ele => sequence(k)%ele(i)
     name = s_ele%name
-
-!      ix = index(name, '\')   ! ' 
-!      if (ix /= 0) name = name(:ix-1) ! strip off everything after \
 
     if (s_ele%ix_arg > 0) then   ! dummy arg
       s_ele%type = element$
