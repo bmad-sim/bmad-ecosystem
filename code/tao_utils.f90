@@ -2675,7 +2675,7 @@ character(40), parameter :: r_name = 'tao_print_command_line_info'
 
 !
 
-call out_io (s_info$, r_name, [ &
+call out_io (s_blank$, r_name, [ &
         'Syntax:                            ', &
         '  tao {OPTIONS}                    ', &
         'Options are:                       ', &

@@ -85,7 +85,7 @@ if (tao_com%init_tao_file /= '') then
     call out_io (s_info$, r_name, 'Tao initialization file not found.')
     if (tao_com%lat_file == '' .or. tao_com%init_tao_file_arg_set) then
       call output_direct (0, .true.)
-      call out_io (s_info$, r_name, &
+      call out_io (s_blank$, r_name, &
               'Note: To run Tao, you either need a Tao initialization file or', &
               '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
               '  See the Tao manual for more details...')
