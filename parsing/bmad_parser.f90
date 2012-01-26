@@ -726,9 +726,19 @@ do i = 1, n_max
     if (k == 0) cycle
     call parser_expand_line (0, lat2, pele%name(j), sequence, in_name, in_indexx, &
                                       seq_name, seq_indexx, in_lat, n_ele_use)
-    lord%n_slave = lord%n_slave + n_ele_use - 1
-    call re_associate (pele%name, lord%n_slave)
-    pele%name(j:) = lat2%ele(1:lat2%n_ele_max)%name
+    ! Put elements from the line expansion into the slave list.
+    ! Remember to ignore drifts.
+    lord%n_slave = lord%n_slave - 1   ! Remove beam line name
+    pele%name(1:lord%n_slave) = [pele%name(1:j-1), pele%name(j+1:lord%n_slave+1)]
+    call re_associate (pele%name, lord%n_slave+n_ele_use)
+    do k = 1, n_ele_use
+      call find_indexx2 (lat2%ele(k)%name, in_name, in_indexx, 0, n_max, ix, ix2)      
+      if (ix /= 0) then
+        if (in_lat%ele(ix)%key == drift$) cycle
+      endif
+      lord%n_slave = lord%n_slave + 1
+      pele%name(lord%n_slave) = lat2%ele(k)%name
+    enddo
   enddo
 enddo
 
