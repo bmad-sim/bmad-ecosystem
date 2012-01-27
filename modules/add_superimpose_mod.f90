@@ -356,6 +356,7 @@ do
 
   if (setup_lord) then
     call new_control (lat, ixn)
+    slave => branch%ele(ix_slave)   ! need this if branch%ele was reallocated
     lat%ele(ixn) = slave_saved
     lat%ele(ixn)%lord_status = super_lord$
     ixc = lat%n_control_max + 1

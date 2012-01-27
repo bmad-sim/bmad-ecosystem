@@ -2045,7 +2045,8 @@ type (ele_struct) slave
 type (ele_struct), pointer :: lord
 type (branch_struct), pointer :: branch
 
-real(rp) value(n_attrib_special_maxx), coef, ds
+real(rp) value(n_attrib_special_maxx), coef, ds, s_slave
+real(rp) t, x_off, y_off, x_pitch, y_pitch
 real(rp), pointer :: r_ptr
 integer i, ix_con, ix, iv, ix_slave, icom, l_stat
 logical used(n_attrib_special_maxx), multipole_set, err_flag
@@ -2074,14 +2075,26 @@ do i = 1, slave%n_lord
   if (lord%lord_status == group_lord$) cycle
 
   if (lord%lord_status == girder_lord$ .and. has_orientation_attributes(slave)) then
-    ds = (slave%s - slave%value(l$)/2) - lord%value(s_center$) 
-    slave%value(x_offset_tot$) = slave%value(x_offset$) + &
-                   ds * lord%value(x_pitch$) + lord%value(x_offset$)
-    slave%value(y_offset_tot$) = slave%value(y_offset$) + &
-                   ds * lord%value(y_pitch$) + lord%value(y_offset$)
+    s_slave = slave%s - slave%value(l$)/2
+    if (s_slave > lord%value(s_max$)) s_slave = s_slave - lat%branch(slave%ix_branch)%param%total_length
+    ds = s_slave - lord%value(s_center$) 
+    if (lord%value(tilt$) == 0) then
+      x_off = slave%value(x_offset$)
+      y_off = slave%value(y_offset$)
+      x_pitch = slave%value(x_pitch$)
+      y_pitch = slave%value(y_pitch$)
+    else
+      t = lord%value(tilt$)
+      x_off = slave%value(x_offset$) * cos(t) - slave%value(y_offset$) * sin(t)
+      y_off = slave%value(x_offset$) * sin(t) + slave%value(y_offset$) * cos(t)
+      x_pitch = slave%value(x_pitch$) * cos(t) - slave%value(y_pitch$) * sin(t)
+      y_pitch = slave%value(x_pitch$) * sin(t) + slave%value(y_pitch$) * cos(t)
+    endif
+    slave%value(x_offset_tot$) = x_off + ds * lord%value(x_pitch$) + lord%value(x_offset$)
+    slave%value(y_offset_tot$) = y_off + ds * lord%value(y_pitch$) + lord%value(y_offset$)
     slave%value(s_offset_tot$) = slave%value(s_offset$) + lord%value(s_offset$)
-    slave%value(x_pitch_tot$)  = slave%value(x_pitch$)  + lord%value(x_pitch$)
-    slave%value(y_pitch_tot$)  = slave%value(y_pitch$)  + lord%value(y_pitch$)
+    slave%value(x_pitch_tot$)  = x_pitch  + lord%value(x_pitch$)
+    slave%value(y_pitch_tot$)  = y_pitch  + lord%value(y_pitch$)
     slave%value(tilt_tot$)     = slave%value(tilt$)     + lord%value(tilt$)
     slave%on_a_girder = .true.
     cycle
