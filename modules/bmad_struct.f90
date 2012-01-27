@@ -551,9 +551,9 @@ integer, parameter :: ks$=8, e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8
 integer, parameter :: d1_thickness$ = 9
 integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9, bragg_angle$=9
 integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
-integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
+integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11, s_min$=11
 integer, parameter :: rho$=12, s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
-integer, parameter :: hgap$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13
+integer, parameter :: hgap$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14, dphi0_max$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15

@@ -437,6 +437,138 @@ end subroutine calc_rotation_quaternion
 !+
 ! subroutine track1_spin (start_orb, ele, param, end_orb)
 !
+! Particle spin tracking through a single element using one of the tracking methods.
+!
+! Modules needed:
+!   use spin_mod
+!
+! Input :
+!   start_orb  -- Coord_struct: Starting coords.
+!   ele        -- Ele_struct: Element to track through.
+!   param      -- lat_param_struct: Beam parameters.
+!     %particle     -- Type of particle used
+!   end_orb    -- Coord_struct: Ending coords. 
+!     %vec          -- Ending particle position needed for bmad_standard spin tracking.
+!
+! Output:
+!   end_orb    -- Coord_struct: Ending coords.
+!      %spin(2)   -- complex(rp): Ending spinor
+!-
+
+subroutine track1_spin (start_orb, ele, param, end_orb)
+
+use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
+use ptc_interface_mod
+
+implicit none
+
+type (coord_struct) :: start_orb, end_orb
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
+
+integer method
+character(16), parameter :: r_name = 'track1_spin'
+
+! Use bmad_standard if spin tracking = tracking$ but particle tracking is not using an integration method.
+
+method = ele%spin_tracking_method
+if (.not. any(ele%tracking_method == [boris$, adaptive_boris$, runge_kutta$, symp_lie_ptc$]) .and. &
+              method == tracking$) method = bmad_standard$
+
+select case (method)
+case (bmad_standard$)
+  call track1_spin_bmad (start_orb, ele, param, end_orb)
+
+case (custom$)
+  call track1_spin_custom (start_orb, ele, param, end_orb)
+
+case (symp_lie_ptc$)
+  call track1_spin_symp_lie_ptc (start_orb, ele, param, end_orb)
+
+case (tracking$)
+  ! Spin tracking here is handled by the particle coordinate tracker.
+
+case default
+  call out_io (s_fatal$, r_name, 'BAD SPIN_TRACKING_METHOD: ' // calc_method_name(ele%spin_tracking_method), &
+                                 'FOR ELEMENT: ', ele%name)
+  if (bmad_status%exit_on_error) call err_exit
+end select
+
+end subroutine track1_spin
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! subroutine track1_spin_symp_lie_ptc (start_orb, ele, param, end_orb)
+!
+! Particle spin tracking through a single element using Symplectic integration with
+! Etienne Forset's PTC code.
+!
+! Modules needed:
+!   use spin_mod
+!
+! Input :
+!   start_orb  -- Coord_struct: Starting coords.
+!   ele        -- Ele_struct: Element to track through.
+!   param      -- lat_param_struct: Beam parameters.
+!     %particle     -- Type of particle used
+!
+! Output:
+!   end_orb    -- Coord_struct: Ending coords. 
+!      %spin(2)   -- complex(rp): Ending spinor
+!-
+
+subroutine track1_spin_symp_lie_ptc (start_orb, ele, param, end_orb)
+
+use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
+use ptc_interface_mod
+
+implicit none
+
+type (coord_struct) :: start_orb, end_orb
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
+type (spin_map_struct), pointer :: map
+type (probe) spin_probe
+type (fibre), pointer :: fibre_ele
+
+real(rp) spin_vec(3), re(6), beta0, beta1
+
+integer key
+
+logical isTreatedHere, isKicker
+
+character(16), parameter :: r_name = 'track1_spin_symp_lie_ptc'
+
+! PTC spin tracking
+
+if (ele_has_constant_reference_energy(ele)) then
+  beta0 = ele%value(p0c$) / ele%value(e_tot$)
+else
+  beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
+endif
+
+call vec_bmad_to_ptc (start_orb%vec, beta0, re)
+call spinor_to_vec (start_orb, spin_vec)
+
+spin_probe = re
+spin_probe%s(1)%x = real(spin_vec, dp)
+
+call ele_to_fibre (ele, fibre_ele, param, .true.)
+call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele) 
+
+spin_vec = spin_probe%s(1)%x
+call vec_to_spinor (spin_vec, end_orb)
+
+end subroutine track1_spin_symp_lie_ptc
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
+!
 ! Particle spin tracking through a single element.
 !
 ! Uses "Nonlinear Spin Transfer Maps" from C. Weissbaecker and G. H. Hoffstaetter
@@ -453,71 +585,40 @@ end subroutine calc_rotation_quaternion
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
 !     %particle     -- Type of particle used
+!   end_orb    -- Coord_struct: Ending coords. 
+!     %vec          -- Ending particle position
 !
 ! Output:
-!   end_orb    -- Coord_struct: Ending coords. (contains already ending %vec,
-!                                               %vec may not be changed)
-!      %spin(2)   -- complex(rp): Ending spinor
+!   end_orb    -- Coord_struct:
+!     %spin(2)   -- complex(rp): Ending spinor
 !-
 
-subroutine track1_spin (start_orb, ele, param, end_orb)
+subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
 
 use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
 use ptc_interface_mod
 
 implicit none
 
-type (coord_struct), intent(in) :: start_orb
+type (coord_struct) :: start_orb
 type (coord_struct) :: temp_start, temp_middle, temp_end, end_orb
-type (ele_struct), intent(in) :: ele
-type (lat_param_struct), intent(in) :: param
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
 type (spin_map_struct), pointer :: map
-type (probe) spin_probe
-type (fibre), pointer :: fibre_ele
 
 real(rp) a(4) ! quaternion four-vector
 real(rp) omega1, omega_el, xi, gamma0, gammaf, v, x, u
 real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, k_el, k_el_tilde
 real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
-real(rp) g_factor, m_particle, sign_k, abs_a, spin_vec(3)
-real(dp) re(6), beta0, beta1
+real(rp) g_factor, m_particle, sign_k, abs_a
 
 integer key
 
 logical isTreatedHere, isKicker
 
-character(16), parameter :: r_name = 'track1_spin'
+character(16), parameter :: r_name = 'track1_spin_bmad'
 
-! PTC spin tracking
-
-if (ele%spin_tracking_method == symp_lie_ptc$) then
-
-  if (ele_has_constant_reference_energy(ele)) then
-    beta0 = ele%value(p0c$) / ele%value(e_tot$)
-  else
-    beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
-  endif
-
-  call vec_bmad_to_ptc (start_orb%vec, beta0, re)
-  call spinor_to_vec (start_orb, spin_vec)
-
-  spin_probe = re
-  spin_probe%s(1)%x = real(spin_vec, dp)
-
-  call ele_to_fibre (ele, fibre_ele, param, .true.)
-  call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele) 
-
-  spin_vec = spin_probe%s(1)%x
-  call vec_to_spinor (spin_vec, end_orb)
-
-  return
-endif
-
-
-! Boris tracking does it's own spin tracking
-
-if (ele%tracking_method == boris$ .or. &
-    ele%tracking_method == adaptive_boris$) return
+! 
 
 m_particle = mass_of(param%particle)
 g_factor = g_factor_of(param%particle)
@@ -893,7 +994,7 @@ enddo
 
 end subroutine compute_quaternion
 
-end subroutine track1_spin
+end subroutine track1_spin_bmad
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1069,15 +1170,14 @@ end function normalized_quaternion
 ! Currently not implemented: elseparators
 !-
 
-subroutine offset_spin (ele, param, coord, set, set_tilt, &
-                              set_multipoles, set_hvkicks)
+subroutine offset_spin (ele, param, coord, set, set_tilt, set_multipoles, set_hvkicks)
 
 use bmad_interface
 
 implicit none
 
-type (ele_struct), intent(in) :: ele
-type (lat_param_struct), intent(in) :: param
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
 type (coord_struct), intent(inout) :: coord
 
 real(rp), save :: old_angle = 0, old_roll = 0
@@ -1091,7 +1191,8 @@ logical set_multi, set_hv, set_t, set_hv1, set_hv2
 
 !---------------------------------------------------------------
 
-set_multi = logic_option (.true., set_multipoles) .and. (associated(ele%a_pole) .or. ele%key==sextupole$ .or. ele%key==octupole$)
+set_multi = logic_option (.true., set_multipoles) .and. &
+                (associated(ele%a_pole) .or. ele%key==sextupole$ .or. ele%key==octupole$)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele)

@@ -191,6 +191,7 @@ logical local_ref_frame
 !
 
 h = h_try
+orb_new = orb
 
 do
 
@@ -218,15 +219,9 @@ end if
 h_did = h
 s = s+h
 
-orb%s = orb%s + h
-orb%vec = orb_new%vec
+orb_new%s = orb%s + h
+orb = orb_new
 t = t_new
-
-! Add coordinate rotation if needed
-
-if (ele%key == sbend$) then
-  
-endif
 
 end subroutine rkqs_bmad
 
@@ -240,12 +235,12 @@ implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) orb, orb_new, orb_temp
+type (coord_struct) orb, orb_new, orb_temp(5)
 
 real(rp), intent(in) :: dr_ds(7)
 real(rp), intent(in) :: s, t, h
 real(rp), intent(out) :: r_err(7), t_new
-real(rp) :: ak2(7), ak3(7), ak4(7), ak5(7), ak6(7), t_temp
+real(rp) :: ak2(7), ak3(7), ak4(7), ak5(7), ak6(7), t_temp(5)
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
     b32=9.0_rp/40.0_rp, b41=0.3_rp, b42=-0.9_rp, b43=1.2_rp, &
@@ -259,33 +254,76 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
     dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
+complex(rp) dspin1(2), dspin3(2), dspin4(2), dspin6(2)
+
 logical local_ref_frame
 
 !
 
-orb_temp%vec = orb%vec + b21*h*dr_ds(1:6)
-t_temp = t + b21*h*dr_ds(7)
-call kick_vector_calc(ele, param, s + a2*h, t_temp, orb_temp, local_ref_frame, ak2)
+orb_temp(1)%vec = orb%vec + b21*h*dr_ds(1:6)
+t_temp(1) = t + b21*h*dr_ds(7)
+call kick_vector_calc(ele, param, s + a2*h, t_temp(1), orb_temp(1), local_ref_frame, ak2)
 
-orb_temp%vec = orb%vec + h*(b31*dr_ds(1:6) + b32*ak2(1:6))
-t_temp = t + h*(b31*dr_ds(7) + b32*ak2(7))
-call kick_vector_calc(ele, param, s + a3*h, t_temp, orb_temp, local_ref_frame, ak3)
+orb_temp(2)%vec = orb%vec + h*(b31*dr_ds(1:6) + b32*ak2(1:6))
+t_temp(2) = t + h*(b31*dr_ds(7) + b32*ak2(7))
+call kick_vector_calc(ele, param, s + a3*h, t_temp(2), orb_temp(2), local_ref_frame, ak3)
 
-orb_temp%vec = orb%vec + h*(b41*dr_ds(1:6) + b42*ak2(1:6) + b43*ak3(1:6))
-t_temp = t + h*(b41*dr_ds(7) + b42*ak2(7) + b43*ak3(7))
-call kick_vector_calc(ele, param, s + a4*h, t_temp, orb_temp, local_ref_frame, ak4)
+orb_temp(3)%vec = orb%vec + h*(b41*dr_ds(1:6) + b42*ak2(1:6) + b43*ak3(1:6))
+t_temp(3) = t + h*(b41*dr_ds(7) + b42*ak2(7) + b43*ak3(7))
+call kick_vector_calc(ele, param, s + a4*h, t_temp(3), orb_temp(3), local_ref_frame, ak4)
 
-orb_temp%vec = orb%vec + h*(b51*dr_ds(1:6) + b52*ak2(1:6) + b53*ak3(1:6) + b54*ak4(1:6))
-t_temp = t + h*(b51*dr_ds(7) + b52*ak2(7) + b53*ak3(7) + b54*ak4(7))
-call kick_vector_calc(ele, param, s + a5*h, t_temp, orb_temp, local_ref_frame, ak5)
+orb_temp(4)%vec = orb%vec + h*(b51*dr_ds(1:6) + b52*ak2(1:6) + b53*ak3(1:6) + b54*ak4(1:6))
+t_temp(4) = t + h*(b51*dr_ds(7) + b52*ak2(7) + b53*ak3(7) + b54*ak4(7))
+call kick_vector_calc(ele, param, s + a5*h, t_temp(4), orb_temp(4), local_ref_frame, ak5)
 
-orb_temp%vec = orb%vec + h*(b61*dr_ds(1:6) + b62*ak2(1:6) + b63*ak3(1:6) + b64*ak4(1:6) + b65*ak5(1:6))
-t_temp = t + h*(b61*dr_ds(7) + b62*ak2(7) + b63*ak3(7) + b64*ak4(7) + b65*ak5(7))
-call kick_vector_calc(ele, param, s + a6*h, t_temp, orb_temp, local_ref_frame, ak6)
+orb_temp(5)%vec = orb%vec + h*(b61*dr_ds(1:6) + b62*ak2(1:6) + b63*ak3(1:6) + b64*ak4(1:6) + b65*ak5(1:6))
+t_temp(5) = t + h*(b61*dr_ds(7) + b62*ak2(7) + b63*ak3(7) + b64*ak4(7) + b65*ak5(7))
+call kick_vector_calc(ele, param, s + a6*h, t_temp(5), orb_temp(5), local_ref_frame, ak6)
 
 orb_new%vec = orb%vec + h*(c1*dr_ds(1:6) + c3*ak3(1:6) + c4*ak4(1:6) + c6*ak6(1:6))
 t_new = t + h*(c1*dr_ds(7) + c3*ak3(7) + c4*ak4(7) + c6*ak6(7))
 r_err=h*(dc1*dr_ds + dc3*ak3 + dc4*ak4 + dc5*ak5 + dc6*ak6)
+
+! Spin
+
+if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
+  call dspin_dz (ele, param, s,        t,         orb,         local_ref_frame, dspin1)
+  call dspin_dz (ele, param, s + a3*h, t_temp(2), orb_temp(2), local_ref_frame, dspin3)
+  call dspin_dz (ele, param, s + a4*h, t_temp(3), orb_temp(3), local_ref_frame, dspin4)
+  call dspin_dz (ele, param, s + a6*h, t_temp(5), orb_temp(5), local_ref_frame, dspin6)
+
+  orb_new%spin = orb%spin + h * (c1*dspin1 + c3*dspin3 + c4*dspin4 + c6*dspin6)
+endif
+
+!----------------------------------------------------------
+contains
+
+subroutine dspin_dz (ele, param, s, t, orb, local_ref_frame, dspin)
+
+implicit none
+
+type (ele_struct) ele
+type (lat_param_struct) param
+type (coord_struct) orb
+type (em_field_struct) :: field
+
+real(rp) s, t
+real(rp) :: Omega(3)
+
+complex(rp) :: dspin(2), quaternion(2,2)
+
+logical local_ref_frame
+
+! this uses a modified Omega' = -Omega/v_z
+
+Omega = spin_omega_at (field, orb, ele, param, s)
+quaternion = (i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
+
+!   quaternion = normalized_quaternion (quaternion)
+
+dspin = matmul(quaternion, orb%spin)
+
+end subroutine dspin_dz
 
 end subroutine rkck_bmad
 
