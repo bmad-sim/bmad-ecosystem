@@ -235,7 +235,7 @@ select case (param%particle_at)
 case (entrance_end$)
   !Particle leaving entrance end, should be reversed
   if ( .not. param%particle_is_reversed) then
-     call out_io (s_fatal$, r_name, 'PARTICLE LEAVING ENTRANCE END WITH FORWARD MOMENDUM: ele = '//trim(ele%name) )
+     call out_io (s_fatal$, r_name, 'PARTICLE LEAVING ENTRANCE END WITH FORWARD MOMENTUM: ele = '//trim(ele%name) )
      call err_exit
   end if
 
@@ -271,7 +271,7 @@ case (between_ends$)
 case (exit_end$)
   !Particle is at the exit end, should be moving forward
   if (param%particle_is_reversed) then
-     call out_io (s_fatal$, r_name, 'PARTICLE LEAVING EXIT END WITH REVERSED MOMENDUM: ele = '//trim(ele%name) )
+     call out_io (s_fatal$, r_name, 'PARTICLE LEAVING EXIT END WITH REVERSED MOMENTUM: ele = '//trim(ele%name) )
      call err_exit
   end if
   p0c = ele%value(p0c$)
@@ -475,7 +475,12 @@ do n_step = 1, max_step
   if (exit_flag) then
      end = orb_new   !Return last orb_new that zbrent calculated
      !check for reversed motion
-     if (end%vec(6) <0) param%particle_is_reversed = .true.
+     if (end%vec(6) <0 ) then 
+       param%particle_is_reversed = .true.
+     else
+       param%particle_is_reversed = .false.
+     end if
+     !exit routine
      return
   endif
 
