@@ -44,33 +44,33 @@ interface
 end interface
 
 interface
-  subroutine make_mat6_custom (ele, param, start, end, err_flag)
+  subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
-    type (coord_struct) :: start, end
+    type (coord_struct) :: start_orb, end_orb
     type (lat_param_struct) param
     logical :: err_flag
   end subroutine
 end interface
 
 interface
-  subroutine make_mat6_custom2 (ele, param, start, end, err_flag)
+  subroutine make_mat6_custom2 (ele, param, start_orb, end_orb, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct), target :: ele
-    type (coord_struct) :: start, end
+    type (coord_struct) :: start_orb, end_orb
     type (lat_param_struct) param
     logical err_flag
   end subroutine
 end interface
 
 interface
-  subroutine track1_custom (start, ele, param, end, track)
+  subroutine track1_custom (start_orb, ele, param, end_orb, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
-    type (coord_struct) :: start
-    type (coord_struct) :: end
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
     type (track_struct), optional :: track
@@ -78,11 +78,11 @@ interface
 end interface
 
 interface
-  subroutine track1_custom2 (start, ele, param, end, track)
+  subroutine track1_custom2 (start_orb, ele, param, end_orb, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
-    type (coord_struct) :: start
-    type (coord_struct) :: end
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
     type (track_struct), optional :: track
@@ -97,6 +97,18 @@ interface
     type (bunch_struct) bunch_start, bunch_end
     type (lat_struct), target :: lat
     type (ele_struct) :: ele
+  end subroutine
+end interface
+
+interface
+  subroutine track1_spin_custom (start_orb, ele, param, end_orb, track)
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+    type (track_struct), optional :: track
   end subroutine
 end interface
 

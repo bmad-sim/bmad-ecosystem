@@ -79,9 +79,6 @@ lat%n_control_max = n_con2
 ! Loop over all slaves
 ! Free elements convert to overlay slaves.
 
-s_max = -1e30  ! something large and negative
-s_min =  1e30  ! something large and positive
-
 do i = 1, girder_ele%n_slave
 
   slave => pointer_to_slave(girder_ele, i, ix_con)
@@ -106,14 +103,24 @@ do i = 1, girder_ele%n_slave
 
   ! compute min/max
 
-  s_max = max(s_max, slave%s)
-  s_min = min(s_min, slave%s-slave%value(l$))
-
 enddo
 
 ! center of girder
+! Need to make a correction if girder wraps around zero.
 
+slave => pointer_to_slave(girder_ele, 1)
+s_min = slave%s - slave%value(l$)
+
+slave => pointer_to_slave(girder_ele, girder_ele%n_slave)
+s_max = slave%s
+
+if (s_min > s_max) s_min = s_min - lat%branch(slave%ix_branch)%param%total_length ! wrap correction
+
+girder_ele%value(l$) = (s_max - s_min)
 girder_ele%value(s_center$) = (s_max + s_min) / 2
+girder_ele%value(s_max$) = s_max
+girder_ele%value(s_min$) = s_min
+girder_ele%s = s_max
 
 ! ele_init stuff
 

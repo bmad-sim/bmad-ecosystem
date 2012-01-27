@@ -1,12 +1,9 @@
 !+
-! Subroutine track1_custom (start, ele, param, end, track)
+! Subroutine track1_spin_custom (start, ele, param, end, track)
 !
-! Dummy routine for custom tracking. 
+! Dummy routine for custom spin tracking. 
 ! If called, this routine will generate an error message and quit.
 ! This routine needs to be replaced for a custom calculation.
-!
-! Note: This routine is not to be confused with track1_custom2.
-! See the Bmad manual for more details.
 !
 ! General rule: Your code may NOT modify any argument that is not listed as
 ! an output agument below."
@@ -29,9 +26,9 @@
 
 #include "CESR_platform.inc"
 
-subroutine track1_custom (start, ele, param, end, track)
+subroutine track1_spin_custom (start, ele, param, end, track)
 
-use bmad_interface, except_dummy => track1_custom
+use bmad_interface, except_dummy => track1_spin_custom
 
 implicit none
 
@@ -43,7 +40,7 @@ type (track_struct), optional :: track
 
 !
 
-print *, 'ERROR: DUMMY TRACK1_CUSTOM CALLED FOR: ', ele%name
+print *, 'ERROR: DUMMY TRACK1_SPIN_CUSTOM CALLED FOR: ', ele%name
 print *, '       EITHER CUSTOM TRACKING_METHOD WAS CALLED BY MISTAKE,'
 print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
 call err_exit

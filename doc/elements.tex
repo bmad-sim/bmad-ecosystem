@@ -906,7 +906,7 @@ General \vn{e_gun} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -937,7 +937,7 @@ General \vn{elseparator} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -985,7 +985,7 @@ General \vn{em_field} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -994,7 +994,7 @@ General \vn{em_field} attributes are:
 \end{center}
 \toffset
 
-The advantage to using \vn{em_field} elements is that they
+The advantage to using \vn{em_field} elements is that they can acc
 
 
 %-----------------------------------------------------------------
@@ -1018,11 +1018,10 @@ General \vn{girder} attributes are:
 Attributes specific to a \vn{girder} are:
 \begin{example}
   girder = \{<List>\}   ! List of elements on the Girder
+  s_center              ! Center of the girder
 \end{example}
 
-\index{x_offset}
-\index{y_pitch}
-\index{tilt}
+\index{x_offset}\index{y_pitch}\index{tilt}\index{s_center}
 When a \vn{girder} overlays an element, then that elements
 orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.) 
 give the orientation of
@@ -1037,17 +1036,17 @@ the element with respect to the \vn{girder}. An example will make this clear:
 \end{example}
 \index{overlay}
 In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
-center of \vn{ib} is at $s = 7$~meters (\vn{ib} starts at $s = 0$ which is
-the beginning of \vn{q1} and ends at $s = 14$ which is the end of
-\vn{q2}). Like other elements, pitch is calculated from the center of
-a \vn{girder} element (see Sec.~\ref{s:offset}). The center of
-\vn{q2} is at $s = 12$ so the distance between the center of \vn{ib}
-and \vn{q2} is $ds = 5$. The pitch of \vn{ib} produces an offset at
-the center of \vn{q2} of $0.5 = 0.1 * 5$. This, added to the offsets
-of \vn{ib} and \vn{q2}, give the total offset of \vn{q2} to be $1.0 =
-0.5 + 0.3 + 0.2$. The total \vn{x_pitch} of \vn{q2} is $0.11 = 0.1 +
-0.01$. From the above example it can be seen that a \vn{girder} looks
-similar to an \vn{Overlay} (see Sec.~\ref{s:overlay}). It would,
+\vn{s_center} of \vn{ib} is at $s = 7$~meters (\vn{ib} starts at $s =
+0$ which is the beginning of \vn{q1} and ends at $s = 14$ which is the
+end of \vn{q2}). Like other elements, pitch is calculated from the
+center of a \vn{girder} element (see Sec.~\ref{s:offset}). The center
+of \vn{q2} is at $s = 12$ so the distance between the center of
+\vn{ib} and \vn{q2} is $ds = 5$. The pitch of \vn{ib} produces an
+offset at the center of \vn{q2} of $0.5 = 0.1 * 5$. This, added to the
+offsets of \vn{ib} and \vn{q2}, give the total offset of \vn{q2} to be
+$1.0 = 0.5 + 0.3 + 0.2$. The total \vn{x_pitch} of \vn{q2} is $0.11 =
+0.1 + 0.01$. From the above example it can be seen that a \vn{girder}
+looks similar to an \vn{Overlay} (see Sec.~\ref{s:overlay}). It would,
 however, take six \vn{Overlays} to simulate the effect of a single
 \vn{girder}.
 
