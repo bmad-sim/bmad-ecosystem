@@ -29,16 +29,12 @@ contains
 ! Input:
 !   opal_file_unit -- Integer: unit number to write to
 !   lat            -- lat_struct: Holds the lattice information.
-!   ix_start       -- Integer, optional: Starting index of lat%ele(i)
-!                        used for output.
-!   ix_end         -- Integer, optional: Ending index of lat%ele(i)
-!                       used for output.
 !
 ! Output:
 !   err    -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine write_opal_lattice_file (opal_file_unit, lat, err, opal_ix_start, opal_ix_end)
+subroutine write_opal_lattice_file (opal_file_unit, lat, err)
 
 implicit none
 
@@ -49,7 +45,6 @@ type (lat_struct), target :: lat
 real(rp), pointer :: val(:)
 
 integer      :: opal_file_unit
-integer,  optional :: opal_ix_start, opal_ix_end
 character(200)  :: file_name
 character(40)  :: r_name = 'write_opal_lattice_file', name
 character(2)   :: continue_char, eol_char, comment_char
@@ -60,7 +55,7 @@ integer      :: n_names, n
 integer     :: q_sign
 
 type (char_indexx_struct) :: fieldgrid_names, ele_names
-integer, allocatable      :: ele_name_occurrences(:), fieldgrid_name_occurrences(:)
+integer, allocatable      :: ele_name_occurrences(:)
 
 real(rp)        :: absmax_Ez, absmax_Bz, phase_lag
 character(40)   :: fieldgrid_output_name
@@ -91,18 +86,9 @@ eol_char = ';'
 
 
 !Elements to write
-!Get optional start index
-if (present(opal_ix_start) ) then 
-  ix_start = opal_ix_start
-else
-  ix_start = 1
-end if
-!Get optional end index
-if (present(opal_ix_end) ) then 
-  ix_end = opal_ix_end
-else
-  ix_end = lat%n_ele_track
-end if
+!Loop over all track and lord elements
+ix_start = 1
+ix_end = lat%n_ele_max
 
 !Check order
 if (ix_start > ix_end) then
@@ -123,9 +109,7 @@ ele_name_occurrences = 0
 n = ix_end - ix_start + 1
 allocate ( fieldgrid_names%names(n) ) 
 allocate ( fieldgrid_names%indexx(n) )
-allocate ( fieldgrid_name_occurrences(n) )
 fieldgrid_names%n_max = 0
-fieldgrid_name_occurrences = 0
 
 
 
@@ -145,6 +129,14 @@ q_sign = sign(1,  charge_of(lat%param%particle) )
 !Loop over all elements
 ele_loop: do ie = ix_start, ix_end
   ele => lat%ele(ie)
+  
+  !Skip these elements:
+  if (ele%slave_status == super_slave$ .or. &
+      ele%slave_status == multipass_slave$ .or. &
+      ele%key == girder$ .or. &
+      ele%key == overlay$ .or. &
+      ele%key == group$) cycle
+  
   !point to value array for convenience
   val => ele%value
   
@@ -216,12 +208,18 @@ ele_loop: do ie = ix_start, ix_end
   !Solenoid -----------------------------------       
   !----------------------------------------------------------
   case (solenoid$)
+  !Check that there is a map or grid associated to make a decent field grid for OPAL
+  if (.not. associated(ele%em_field)  )then
+    call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key))
+    call err_exit
+  endif
+    
     write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
 
     !Get field grid name and scaling. This writes the file if needed. 
 
     call get_opal_fieldgrid_name_and_scaling(&
-	   ele, lat%param, fieldgrid_names, fieldgrid_name_occurrences, &
+	   ele, lat%param, fieldgrid_names, &
 	   fieldgrid_output_name, absmax_bz)
 
    !Add FMAPFN to line
@@ -246,12 +244,12 @@ ele_loop: do ie = ix_start, ix_end
   !Lcavity, RFCavity, E_gun -----------------------------------
   !----------------------------------------------------------
     case (lcavity$, rfcavity$, e_gun$)
-      !Check that there is a map or grid associated to make a decent field grid for OPAL
+    !Check that there is a map or grid associated to make a decent field grid for OPAL
     if (.not. associated(ele%em_field)  )then
-      call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key), &
-                                     '----')
-        call err_exit
-      endif
+      call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key))
+      call err_exit
+    endif
+    
     if (.not. associated(ele%em_field%mode(1)%grid)  )then
       call out_io (s_error$, r_name, 'No grid for: ' // key_name(ele%key), &
                                      '----')
@@ -262,28 +260,28 @@ ele_loop: do ie = ix_start, ix_end
 
     !Get field grid name and scaling. This writes the file if needed. 
     call get_opal_fieldgrid_name_and_scaling(&
-           ele, lat%param, fieldgrid_names, fieldgrid_name_occurrences, &
-           fieldgrid_output_name, absmax_ez)
+	   ele, lat%param, fieldgrid_names,  &
+	   fieldgrid_output_name, absmax_ez)
 
-     !Add FMAPFN to line
-      write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
-      
-      !Write field scaling in MV/m
-      call value_to_line (line, 1e-6*absmax_ez, 'volt', rfmt, 'R')
-      
-      !Write frequency in MHz
-      call value_to_line (line, 1e-6*ele%em_field%mode(1)%freq, 'freq', rfmt, 'R')
-      
-      !Write phase in rad
-      phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
-      !OPAL only autophases for maximum acceleration, so adjust the lag for 'zero-crossing' 
-      if (ele%key == rfcavity$) phase_lag = phase_lag + twopi*( ele%value(dphi0_max$) - ele%em_field%mode(1)%dphi0_ref )
-      !The e_gun needs phase_lag to be pi/2 for some reason
-      if (ele%key == e_gun$) phase_lag = pi/2
-      call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
-
-      !Write ELEMEDGE
-      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
+   !Add FMAPFN to line
+    write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
+  
+    !Write field scaling in MV/m
+    call value_to_line (line, 1e-6*absmax_ez, 'volt', rfmt, 'R')
+  
+    !Write frequency in MHz
+    call value_to_line (line, 1e-6*ele%em_field%mode(1)%freq, 'freq', rfmt, 'R')
+  
+    !Write phase in rad
+    phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
+    !OPAL only autophases for maximum acceleration, so adjust the lag for 'zero-crossing' 
+    if (ele%key == rfcavity$) phase_lag = phase_lag + twopi*( ele%value(dphi0_max$) - ele%em_field%mode(1)%dphi0_ref )
+    !The e_gun needs phase_lag to be pi/2 for some reason
+    if (ele%key == e_gun$) phase_lag = pi/2
+    call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
+ 
+    !Write ELEMEDGE
+    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
       
 
   !----------------------------------------------------------
@@ -320,6 +318,13 @@ line = 'lattice: line = ('
 
 lat_loop: do ie = ix_start, ix_end
   ele => lat%ele(ie)
+  !Skip these elements:
+  if (ele%slave_status == super_slave$ .or. &
+      ele%slave_status == multipass_slave$ .or. &
+      ele%key == girder$ .or. &
+      ele%key == overlay$ .or. &
+      ele%key == group$) cycle
+      
   write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
   if (len_trim(line) > 80) call write_lat_line(line, iu, .false., continue_char = continue_char)
 enddo lat_loop    
@@ -336,7 +341,7 @@ deallocate ( ele_name_occurrences )
 
 deallocate ( fieldgrid_names%names ) 
 deallocate ( fieldgrid_names%indexx )
-deallocate ( fieldgrid_name_occurrences )
+
 
 
 if (present(err)) err = .false.
@@ -349,7 +354,7 @@ end subroutine write_opal_lattice_file
 !------------------------------------------------------------------------
 !+ 
 ! Subroutine  get_opal_fieldgrid_name_and_scaling(&
-!               ele, param, name_indexx, name_occurrences, output_name, field_scale)
+!               ele, param, name_indexx, output_name, field_scale)
 !
 ! Subroutine to get a field grid filename and its scaling. Calls write_opal_field_grid_file.
 !   If the field grid file does not exist, it is written 
@@ -359,10 +364,9 @@ end subroutine write_opal_lattice_file
 !   ele              -- ele_struct: element to make map
 !   param            -- lat_param_struct: Contains lattice information
 !   name_indexx      -- char_indexx_struct: contains field grid filenames
-!   name_occurrences -- integer(:) : Array of the number of occurrences of each name
+!
 ! Output:   
 !   name_indexx      -- char_indexx_struct: updated if new name is added
-!   name_occurrences -- integer(:) : updated if new name is added
 !   output_name      -- Real(rp): output filename. 
 !   field_scale      -- Real(rp): the scaling of the field grid
 !
@@ -370,14 +374,13 @@ end subroutine write_opal_lattice_file
 
 
 subroutine get_opal_fieldgrid_name_and_scaling(&
-             ele, param, name_indexx, name_occurrences, output_name, field_scale)
+             ele, param, name_indexx, output_name, field_scale)
                                           
 implicit none
 
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (char_indexx_struct) :: name_indexx
-integer :: name_occurrences(:)
 character(*)  :: output_name
 real(rp)      :: field_scale
 
@@ -390,7 +393,6 @@ output_name = ''
 !Check field map file. If file has not been written, create a new file. 
 call find_indexx (ele%em_field%mode(1)%grid%file, name_indexx, ix_match)
 !Check for match with existing grid
-print *, ele%em_field%mode(1)%grid%file
 if (ix_match > 0) then
   !File should exist  
   write(output_name, '(a, i0, a)') 'fieldgrid_', ix_match, '.t7'
@@ -402,7 +404,6 @@ else
   call find_indexx (ele%em_field%mode(1)%grid%file, name_indexx, ix_match, add_to_list = .true.)
   name_indexx%n_max = name_indexx%n_max + 1
   ix_match = name_indexx%n_max
-  name_occurrences(ix_match) = name_occurrences(ix_match) + 1
   write(output_name, '(a, i0, a)') 'fieldgrid_', ix_match, '.t7'
   ! Write new fieldgrid file
   iu_fieldgrid = lunget()
