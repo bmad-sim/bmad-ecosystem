@@ -515,7 +515,7 @@ integer element_end
 
 ! 
 
-if (ele%field_calc == bmad_standard$) return
+if (ele%field_calc /= bmad_standard$) return
 
 select case (ele%key)
 case (sbend$)
