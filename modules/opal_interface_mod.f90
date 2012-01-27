@@ -58,16 +58,12 @@ character(4000)  :: line
 integer      :: iu,  ios, ix_match, ie, ix_start, ix_end, iu_fieldgrid
 integer      :: n_names, n
 integer     :: q_sign
-character(40), allocatable :: names(:)
-integer, allocatable :: an_indexx(:), name_occurrences(:)
 
+type (char_indexx_struct) :: fieldgrid_names, ele_names
+integer, allocatable      :: ele_name_occurrences(:), fieldgrid_name_occurrences(:)
 
 real(rp)        :: absmax_Ez, absmax_Bz, phase_lag
 character(40)   :: fieldgrid_output_name
-character(200), allocatable :: fieldgrid_names(:)
-integer      :: fieldgrid_n_names
-integer, allocatable :: fieldgrid_an_indexx(:), fieldgrid_name_occurrences(:)
-
 
 logical, optional :: err
 
@@ -116,15 +112,21 @@ endif
 
 !Initialize unique name list
 n = ix_end - ix_start + 1
-allocate ( names(n), an_indexx(n), name_occurrences(n) )
-name_occurrences = 0
-n_names = 0
+allocate ( ele_names%names(n) ) 
+allocate ( ele_names%indexx(n) )
+allocate ( ele_name_occurrences(n) )
+ele_names%n_max = 0
+ele_name_occurrences = 0
+
 
 !Initialize fieldgrid filename list
 n = ix_end - ix_start + 1
-allocate ( fieldgrid_names(n), fieldgrid_an_indexx(n), fieldgrid_name_occurrences(n) )
+allocate ( fieldgrid_names%names(n) ) 
+allocate ( fieldgrid_names%indexx(n) )
+allocate ( fieldgrid_name_occurrences(n) )
+fieldgrid_names%n_max = 0
 fieldgrid_name_occurrences = 0
-fieldgrid_n_names = 0
+
 
 
 !-------------------------------------------
@@ -146,19 +148,22 @@ ele_loop: do ie = ix_start, ix_end
   !point to value array for convenience
   val => ele%value
   
+  !Clean up "#" and "\" symbols in element name
+  call str_substitute (ele%name, "#", "_part_")
+  call str_substitute (ele%name, "\", "_and_")
   
   !Make unique names  
-    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
-    if (ix_match > 0) then
-      name_occurrences(ix_match) = name_occurrences(ix_match) + 1
-      !Replace ele%name with a unique name
-      write(ele%name, '(2a,i0)') trim(ele%name), '_', name_occurrences(ix_match) 
-      !Be careful with this internal write statement
-      !This only works because ele%name is first in the write list
+  call find_indexx (ele%name, ele_names, ix_match)
+  if (ix_match > 0) then
+    ele_name_occurrences(ix_match) = ele_name_occurrences(ix_match) + 1
+    !Replace ele%name with a unique name
+    write(ele%name, '(2a,i0)') trim(ele%name), '_', ele_name_occurrences(ix_match) 
+    !Be careful with this internal write statement
+    !This only works because ele%name is first in the write list
   end if
-    !add name to list  
-    call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
-    n_names = n_names + 1
+  !add name to list  
+  call find_indexx (ele%name, ele_names, ix_match, add_to_list = .true.)
+  ele_names%n_max = ele_names%n_max + 1
 
   !Format for numbers
   rfmt = 'es13.5'
@@ -175,29 +180,29 @@ ele_loop: do ie = ix_start, ix_end
     case (marker$)
         write (line, '(a)' ) trim(ele%name) // ': marker'
       !Write ELEMEDGE
-      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   !Drift -----------------------------------   
   !----------------------------------------------------------
-     case (drift$, instrument$)
+     case (drift$, pipe$, instrument$)
         write (line, '(a, ' // rfmt //')' ) trim(ele%name) // ': drift, l =', val(l$)
       !Write ELEMEDGE
-      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   !Sbend -----------------------------------       
   !----------------------------------------------------------
-     case (sbend$)
-        write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(l$)
-        call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
-        call value_to_line (line, val(e_tot$), 'designenergy', rfmt, 'R')
-        call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
-        call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
+  case (sbend$)
+	write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(l$)
+	call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
+	call value_to_line (line, val(e_tot$), 'designenergy', rfmt, 'R')
+	call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
+	call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
 
-        ! Write new fieldgrid file, based on the element's name
-        fieldgrid_output_name = ''
-        write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
+	! Write new fieldgrid file, based on the element's name
+	fieldgrid_output_name = ''
+	write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
   iu_fieldgrid = lunget()
   open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
   call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
@@ -205,30 +210,28 @@ ele_loop: do ie = ix_start, ix_end
   !Add FMAPFN to line
         write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
   !elemedge
-        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
   !Solenoid -----------------------------------       
   !----------------------------------------------------------
-     case (solenoid$)
-        write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
+  case (solenoid$)
+    write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
 
-        ! Write new fieldgrid file, based on the element's name
-        fieldgrid_output_name = ''
-        write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
-  iu_fieldgrid = lunget()
-  open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
-  call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Bz)
-  close(iu_fieldgrid)
+    !Get field grid name and scaling. This writes the file if needed. 
 
-  !Add FMAPFN to line
-        write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
+    call get_opal_fieldgrid_name_and_scaling(&
+	   ele, lat%param, fieldgrid_names, fieldgrid_name_occurrences, &
+	   fieldgrid_output_name, absmax_bz)
 
-        !ks field strength TODO: check specification. Seems to be Tesla
-        call value_to_line (line, absmax_Bz, 'ks', rfmt, 'R')
+   !Add FMAPFN to line
+    write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
+
+    !ks field strength TODO: check specification. Seems to be Tesla
+    call value_to_line (line, absmax_bz, 'ks', rfmt, 'R')
 
   !elemedge
-        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)    
+    call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)    
     
   !----------------------------------------------------------
   !Quadrupole -----------------------------------   
@@ -237,7 +240,7 @@ ele_loop: do ie = ix_start, ix_end
         write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
         !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
         call value_to_line (line, q_sign*val(b1_gradient$), 'k1', rfmt, 'R')
-        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
     
   !----------------------------------------------------------
   !Lcavity, RFCavity, E_gun -----------------------------------
@@ -255,34 +258,14 @@ ele_loop: do ie = ix_start, ix_end
         call err_exit
       endif
       
-      write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "STANDING", l =', val(l$)
+    write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "STANDING", l =', val(l$)
 
-      !Check field map file. If file has not been written, create a new file. 
-      call find_indexx (ele%em_field%mode(1)%grid%file, fieldgrid_names, fieldgrid_an_indexx, fieldgrid_n_names, ix_match)
-      !Check for match with existing grid
-      if (ix_match > 0) then
-        !File exists. 
-          fieldgrid_name_occurrences(ix_match) = fieldgrid_name_occurrences(ix_match) + 1
-          fieldgrid_output_name = ''
-          write(fieldgrid_output_name, '(a, i0, a)') 'fieldgrid_', ix_match, '.t7'
-          !Get maximum field for "VOLT =" by calling write_opal_field_grid_file with 0 file unit number
-          call write_opal_field_grid_file (0, ele, lat%param, absmax_Ez)
-      else
-        !File does not exist.
-        
-        !Add name to list  
-        call find_indexx (ele%em_field%mode(1)%grid%file, fieldgrid_names, fieldgrid_an_indexx, fieldgrid_n_names, ix_match, add_to_list = .true.)
-        fieldgrid_n_names = fieldgrid_n_names + 1
-        
-        ! Write new fieldgrid file
-        fieldgrid_output_name = ''
-        write(fieldgrid_output_name, '(a, i0, a)') 'fieldgrid_', fieldgrid_n_names, '.t7'
-      iu_fieldgrid = lunget()
-      open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
-            call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
-      close(iu_fieldgrid)
-    end if
-    !Add FMAPFN to line
+    !Get field grid name and scaling. This writes the file if needed. 
+    call get_opal_fieldgrid_name_and_scaling(&
+           ele, lat%param, fieldgrid_names, fieldgrid_name_occurrences, &
+           fieldgrid_output_name, absmax_ez)
+
+     !Add FMAPFN to line
       write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
       
       !Write field scaling in MV/m
@@ -300,7 +283,7 @@ ele_loop: do ie = ix_start, ix_end
       call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
 
       !Write ELEMEDGE
-      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
       
 
   !----------------------------------------------------------
@@ -311,11 +294,11 @@ ele_loop: do ie = ix_start, ix_end
              'CONVERTING TO DRIFT')
         write (line, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
         !Write ELEMEDGE
-        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R',ignore_if_zero = .false.)
   end select
   
   !type (general attribute)
-  if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
+  !if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
   
   !end line
   write (line, '(2a)') trim(line), trim(eol_char)
@@ -336,7 +319,9 @@ write (iu, *)
 line = 'lattice: line = ('
 
 lat_loop: do ie = ix_start, ix_end
-   call write_line_element (line, iu, lat%ele(ie), lat)
+  ele => lat%ele(ie)
+  write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
+  if (len_trim(line) > 80) call write_lat_line(line, iu, .false., continue_char = continue_char)
 enddo lat_loop    
 !write closing parenthesis
 line = line(:len_trim(line)-1) // ')' // eol_char
@@ -345,12 +330,88 @@ call write_lat_line (line, iu, .true., continue_char = continue_char)
 
 
 !Cleanup
-deallocate (names, an_indexx, name_occurrences)
+deallocate ( ele_names%names ) 
+deallocate ( ele_names%indexx )
+deallocate ( ele_name_occurrences )
+
+deallocate ( fieldgrid_names%names ) 
+deallocate ( fieldgrid_names%indexx )
+deallocate ( fieldgrid_name_occurrences )
+
 
 if (present(err)) err = .false.
 
 end subroutine write_opal_lattice_file
 
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine  get_opal_fieldgrid_name_and_scaling(&
+!               ele, param, name_indexx, name_occurrences, output_name, field_scale)
+!
+! Subroutine to get a field grid filename and its scaling. Calls write_opal_field_grid_file.
+!   If the field grid file does not exist, it is written 
+!
+!
+! Input:
+!   ele              -- ele_struct: element to make map
+!   param            -- lat_param_struct: Contains lattice information
+!   name_indexx      -- char_indexx_struct: contains field grid filenames
+!   name_occurrences -- integer(:) : Array of the number of occurrences of each name
+! Output:   
+!   name_indexx      -- char_indexx_struct: updated if new name is added
+!   name_occurrences -- integer(:) : updated if new name is added
+!   output_name      -- Real(rp): output filename. 
+!   field_scale      -- Real(rp): the scaling of the field grid
+!
+!-
+
+
+subroutine get_opal_fieldgrid_name_and_scaling(&
+             ele, param, name_indexx, name_occurrences, output_name, field_scale)
+                                          
+implicit none
+
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
+type (char_indexx_struct) :: name_indexx
+integer :: name_occurrences(:)
+character(*)  :: output_name
+real(rp)      :: field_scale
+
+integer :: ix_match, iu_fieldgrid, ios
+
+!
+
+output_name = ''
+
+!Check field map file. If file has not been written, create a new file. 
+call find_indexx (ele%em_field%mode(1)%grid%file, name_indexx, ix_match)
+!Check for match with existing grid
+print *, ele%em_field%mode(1)%grid%file
+if (ix_match > 0) then
+  !File should exist  
+  write(output_name, '(a, i0, a)') 'fieldgrid_', ix_match, '.t7'
+  !Call with iu=0 to get field_scale
+  call write_opal_field_grid_file (0, ele, param, field_scale)
+else
+  !File does not exist.
+  !Add name to list  
+  call find_indexx (ele%em_field%mode(1)%grid%file, name_indexx, ix_match, add_to_list = .true.)
+  name_indexx%n_max = name_indexx%n_max + 1
+  ix_match = name_indexx%n_max
+  name_occurrences(ix_match) = name_occurrences(ix_match) + 1
+  write(output_name, '(a, i0, a)') 'fieldgrid_', ix_match, '.t7'
+  ! Write new fieldgrid file
+  iu_fieldgrid = lunget()
+  open (iu_fieldgrid, file = output_name, iostat = ios)
+	call write_opal_field_grid_file (iu_fieldgrid, ele, param, field_scale)
+  close(iu_fieldgrid)
+end if
+
+end subroutine get_opal_fieldgrid_name_and_scaling
 
 
 !------------------------------------------------------------------------
