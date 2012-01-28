@@ -144,7 +144,7 @@ do i = 0, ubound(in_lat%ele, 1)
 enddo
 
 bmad_status%ok = .true.
-if (bmad_status%type_out) call out_io (s_warn$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
+if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then

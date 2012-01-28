@@ -81,7 +81,7 @@ can_read_this_old_version = .false.
 ! Version is old but recent enough to read.
 
 if (version < bmad_inc_version$) then
-  if (bmad_status%type_out) call out_io (s_warn$, r_name, &
+  if (bmad_status%type_out) call out_io (s_info$, r_name, &
          (/ 'DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' /),  &
           i_array = (/ bmad_inc_version$, version /) )
   if (can_read_this_old_version) then 
@@ -94,7 +94,7 @@ if (version < bmad_inc_version$) then
 endif
 
 if (version > bmad_inc_version$) then
-  if (bmad_status%type_out) call out_io (s_warn$, r_name, &
+  if (bmad_status%type_out) call out_io (s_info$, r_name, &
        'DIGESTED FILE HAS VERSION: \i0\ ', &
        'GREATER THAN VERSION OF THIS PROGRAM: \i0\ ', &
        'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
@@ -132,7 +132,8 @@ do i = 1, n_files
     inquire (file = fname_read, opened = is_match)
 #else
     ierr = stat(full_digested_file, stat_b)
-    is_match = (stat_b2 == stat_b(2)) .and. (stat_b10 == stat_b(10))
+    ! Time stamp in file is created while file is being written to so is not accurate.
+    is_match = (stat_b2 == stat_b(2))            !!!! .and. (stat_b10 == stat_b(10))
     j1 = len_trim(fname_read)
     j2 = len_trim(full_digested_file)
     do j = 0, min(j1, j2) - 1
@@ -142,7 +143,7 @@ do i = 1, n_files
     digested_prefix_out = full_digested_file(1:j2-j)
 #endif
     if (.not. is_match) then
-      if (bmad_status%type_out .and. status_ok) call out_io(s_warn$, &
+      if (bmad_status%type_out .and. status_ok) call out_io(s_info$, &
                                           r_name, ' NOTE: MOVED DIGESTED FILE.')
       status_ok = .false.
     endif
@@ -188,7 +189,7 @@ do i = 1, n_files
   inquire (file = fname_versionless, exist = found_it, name = fname_full)
   call simplify_path (fname_full, fname_full)
   if (.not. found_it .or. fname_read /= fname_full .or. .not. is_match) then
-    if (bmad_status%type_out .and. status_ok) call out_io(s_warn$, &
+    if (bmad_status%type_out .and. status_ok) call out_io(s_info$, &
                                       r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
     status_ok = .false.
   endif
