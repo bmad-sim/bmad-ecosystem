@@ -105,6 +105,18 @@ do i = 1, girder_ele%n_slave
 
 enddo
 
+! ele_init stuff
+
+if (present(ele_init)) then
+  girder_ele%name    = ele_init%name
+  girder_ele%alias   = ele_init%alias
+  girder_ele%value   = ele_init%value
+  if (associated(ele_init%descrip)) then
+    allocate (girder_ele%descrip)
+    girder_ele%descrip = ele_init%descrip
+  endif
+endif
+
 ! center of girder
 ! Need to make a correction if girder wraps around zero.
 
@@ -121,17 +133,5 @@ girder_ele%value(s_center$) = (s_max + s_min) / 2
 girder_ele%value(s_max$) = s_max
 girder_ele%value(s_min$) = s_min
 girder_ele%s = s_max
-
-! ele_init stuff
-
-if (present(ele_init)) then
-  girder_ele%name    = ele_init%name
-  girder_ele%alias   = ele_init%alias
-  girder_ele%value   = ele_init%value
-  if (associated(ele_init%descrip)) then
-    allocate (girder_ele%descrip)
-    girder_ele%descrip = ele_init%descrip
-  endif
-endif
 
 end subroutine
