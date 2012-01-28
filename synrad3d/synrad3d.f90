@@ -660,6 +660,7 @@ write (1, *) 'sr3d_params%allow_reflections         =', sr3d_params%allow_reflec
 write (1, *) 'sr3d_params%ds_track_step_max         =', sr3d_params%ds_track_step_max
 write (1, *) 'sr3d_params%dr_track_step_max         =', sr3d_params%dr_track_step_max
 write (1, *) 'sr3d_params%diffuse_scattering_on     =', sr3d_params%diffuse_scattering_on
+write (1, *) 'sr3d_params%stop_if_hit_antechamber   =', sr3d_params%stop_if_hit_antechamber
 write (1, *) 'surface_roughness_rms (input)         =', surface_roughness_rms
 write (1, *) 'surface_roughness_rms (set value)     =', rms_set
 write (1, *) 'roughness_correlation_len (input)     =', roughness_correlation_len
