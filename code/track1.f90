@@ -1,5 +1,5 @@
 !+
-! Subroutine track1 (start_orb, ele, param, end_orb, track, internal_start)
+! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag)
 !
 ! Particle tracking through a single element. 
 ! Optionally synchrotron radiation and space charge kicks can included.
@@ -13,8 +13,6 @@
 !   param  -- lat_param_struct:
 !     %aperture_limit_on -- If True check if particle is lost by going outside
 !                of the element aperture. 
-!   internal_start -- Logical, optional: Default False. If True then particle is starting from
-!                       somewhere in the middle of the element instead of the entrance end as normal.
 !
 ! Output:
 !   end_orb   -- Coord_struct: End position.
@@ -24,15 +22,16 @@
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
 !     %particle_at   -- entrance_end$ or exit_end$.
-!   track -- track_struct, optional: Structure holding the track information if the 
-!             tracking method does tracking step-by-step.
+!   track     -- track_struct, optional: Structure holding the track information if the 
+!                  tracking method does tracking step-by-step.
+!   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !
 ! Notes:
 ! It is assumed that HKICK and VKICK are the kicks in the horizontal
 ! and vertical kicks irregardless of the value for TILT.
 !-
 
-recursive subroutine track1 (start_orb, ele, param, end_orb, track, internal_start)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -55,12 +54,18 @@ integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
 
-logical, optional :: internal_start
+logical, optional :: err_flag
+logical err
+
+!
+
+if (present(err_flag)) err_flag = .true.
 
 ! custom
 
 if (ele%tracking_method == custom$) then
-  call track1_custom (start_orb, ele, param, end_orb, track)
+  call track1_custom (start_orb, ele, param, end_orb, err, track)
+  if (present(err_flag)) err_flag = err
   return
 endif
 
@@ -96,11 +101,12 @@ if (.not. ele%is_on) tracking_method = bmad_standard$
 
 select case (tracking_method)
 
-case (bmad_standard$) 
+case (bmad_standard$)
   call track1_bmad (orb, ele, param, end_orb)
 
 case (custom$)
-  call track1_custom (start_orb, ele, param, end_orb, track)
+  call track1_custom (start_orb, ele, param, end_orb, err, track)
+  if (err) return
 
 case (runge_kutta$) 
   call track1_runge_kutta (orb, ele, param, end_orb, track)
@@ -130,14 +136,16 @@ case (mad$)
   call track1_mad (orb, ele, param, end_orb)
 
 case (custom2$)
-  call track1_custom2 (orb, ele, param, end_orb)
+  call track1_custom2 (orb, ele, param, end_orb, err)
+  if (err) return
 
 case (time_runge_kutta$)
-  call track1_time_runge_kutta (orb, ele, param, end_orb, track, internal_start)
+  call track1_time_runge_kutta (orb, ele, param, end_orb, track)
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
+  return
 
 end select
 
@@ -189,9 +197,10 @@ if (param%lost .and. param%particle_at == alive$) then
   if (param%lost) then
     param%particle_at = entrance_end$
     call init_coord (end_orb)      ! it never got to the end so zero this.
-    return
   endif
   param%lost = .true.
 endif
+
+if (present(err_flag)) err_flag = .false.
 
 end subroutine

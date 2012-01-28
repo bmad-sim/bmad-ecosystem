@@ -14,7 +14,7 @@ subroutine outline_concat (outline1, outline2, outline3)
   if (outline1%zero_is_center .and. outline2%zero_is_center) then
     print *, 'ERROR: CONCATINATING TWO OUTLINES BOTH OF WHICH HAVE ZERO_IS_CENTER'
     print *, '      ', outline1%name, outline2%name
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   outline22 = outline2

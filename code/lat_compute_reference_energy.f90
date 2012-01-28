@@ -306,6 +306,7 @@ case (lcavity$)
       call zero_ele_kicks (ele2)
     endif
 
+    ele2%value(phi0_err$) = 0
     call track1 (start_orb, ele2, param, end_orb)
     E_tot = ele%value(E_tot$)
     p0c = ele%value(p0c$)

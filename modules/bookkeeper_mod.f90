@@ -961,7 +961,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
             'WITH THE REF_ORBIT ATTRIBUTE SET TO: ' // ref_orbit_name(lord%ref_orbit), &
             'HAS A NONZERO HIGHER ORDER MULTIPOLE!', &
             'THIS IS NOT ALLOWED. SEE THE BMAD MANUAL FOR MORE DETAILS.')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
   endif
 
@@ -991,7 +991,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     if (slave%floor%phi /= 0 .or. slave%floor%psi /= 0) then
        call out_io (s_fatal$, r_name, 'MULTIPASS ELEMENT: ' // lord%name, &
                      'WHICH HAS REF_ORBIT = MATCH_GLOBAL_COORDS DOES NOT LIE IN THE (X, Z) PLANE!')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
 
     ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
@@ -1031,7 +1031,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
         call out_io (s_error$, r_name, &
               'MULTIPASS MATCH_GLOBAL_COORDS CALC ERROR FOR: ' // lord%name, &
               'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
-        call err_exit
+        if (bmad_status%exit_on_error) call err_exit
       endif
       ang_slave = asin(arg)
       if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
@@ -1071,7 +1071,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
           call out_io (s_error$, r_name, &
                 'MULTIPASS MATCH_AT_ENTRANCE/EXIT CALC ERROR FOR: ' // lord%name, &
                 'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
-          call err_exit
+          if (bmad_status%exit_on_error) call err_exit
         endif
         ang_slave = asin(arg)
         if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
@@ -1090,7 +1090,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
   case default
     call out_io (s_fatal$, r_name, 'BAD REF_ORBIT VALUE: \i0\ ', &
                            'FOR: ' // lord%name, i_array = [lord%ref_orbit] )
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
 
   end select
 endif
@@ -1251,14 +1251,14 @@ do j = 1, slave%n_lord
           "SUPER_SLAVE HAS A CONTROL ELEMENT THAT IS NOT A SUPER_LORD", &
           'SLAVE: ' //  slave%name // '  \i\ ', &
           'LORD:  ' //  lord%name  // '  \i\ ', i_array = [ix_slave, lord%ix_ele] )
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   if (associated(lord%rf_wake)) then
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   ! Transfer wall3d info
@@ -1267,7 +1267,7 @@ do j = 1, slave%n_lord
     if (wall3d_here) then
       call out_io (s_abort$, r_name, &
             'SUPERPOSITION SLAVE CANNOT INHERIT WALL PROFILES FROM MULTIPLE LORDS! ' // slave%name)
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
     slave%wall3d = lord%wall3d
     wall3d_here = .true.
@@ -1320,19 +1320,19 @@ do j = 1, slave%n_lord
         lord1 => pointer_to_lord(slave, 1)
         call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-        call err_exit
+        if (bmad_status%exit_on_error) call err_exit
       endif
       if (slave%tracking_method /= lord%tracking_method) then
         lord1 => pointer_to_lord(slave, 1)
         call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-        call err_exit
+        if (bmad_status%exit_on_error) call err_exit
       endif
       if (slave%map_with_offsets .neqv. lord%map_with_offsets) then
         lord1 => pointer_to_lord(slave, 1)
         call out_io(s_abort$, r_name, 'MAP_WITH_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-        call err_exit
+        if (bmad_status%exit_on_error) call err_exit
       endif
     endif
 
@@ -1442,7 +1442,7 @@ do j = 1, slave%n_lord
 
   case (bend_sol_quad$)
     call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR: ' // key_name(slave%key))
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
 
   ! Everything else
 
@@ -1644,7 +1644,7 @@ case (solenoid$, sol_quad$, quadrupole$)
 case (bend_sol_quad$)
   call out_io (s_abort$, r_name, &
                'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 end select
 
@@ -2103,7 +2103,7 @@ do i = 1, slave%n_lord
   if (lord%lord_status /= overlay_lord$) then
     call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_slave)
     call type_ele (slave, .true., 0, .false., 0, .true., lat)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif     
 
   coef = lat%control(ix_con)%coef
@@ -2444,7 +2444,7 @@ case (beambeam$)
     if (val(sig_x$) == 0 .or. val(sig_y$) == 0) then
       call out_io(s_abort$, r_name, 'ZERO SIGMA IN BEAMBEAM ELEMENT!')
       call type_ele(ele, .true., 0, .false., 0, .false.)
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
 
     val(bbi_const$) = -param%n_part * val(charge$) * classical_radius_factor /  &
@@ -3033,7 +3033,7 @@ do ib = 0, ubound(lat%branch, 1)
       branch%ele(i)%is_on = branch%ele(i)%old_is_on
     case default
       call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     end select
 
     if (old_state .neqv. branch%ele(i)%is_on) then

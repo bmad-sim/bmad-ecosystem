@@ -768,7 +768,7 @@ interface
 end interface
 
 interface
-  recursive subroutine track1 (start_orb, ele, param, end_orb, track)
+  recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
@@ -776,6 +776,7 @@ interface
     type (ele_struct)   :: ele
     type (lat_param_struct) :: param
     type (track_struct), optional :: track
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -810,6 +811,18 @@ interface
     type (coord_struct) :: end_orb
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
+  end subroutine
+end interface
+
+interface
+  subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, track)
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct), target :: ele
+    type (lat_param_struct), target :: param
+    type (track_struct), optional :: track
   end subroutine
 end interface
 

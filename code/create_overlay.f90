@@ -74,12 +74,12 @@ do j = 1, n_slave
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
     call out_io (s_fatal$, r_name,  'BRANCH INDEX OUT OF BOUNDS. \i0\ ', ix_branch)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
     call out_io (s_fatal$, r_name,  'INDEX OUT OF BOUNDS. \i0\ ', ix_slave)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 enddo
 
@@ -97,7 +97,7 @@ ix_attrib =  attribute_index (lord, at_name)
 if (ix_attrib == 0) then
   call out_io (s_fatal$, r_name,  'BAD ATTRIBUTE_NAME: ' // attrib_name, &
                                   'TRYING TO CREATE OVERLAY: ' // lord%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 lord%component_name = at_name
 lord%ix_value = ix_attrib
@@ -167,7 +167,7 @@ do i = 1, lord%n_slave
   if (slave%slave_status == super_slave$) then
     call out_io (s_fatal$, r_name,  'ILLEGAL OVERLAY ON ' // slave%name, &
                                     ' BY: ' // lord%name)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   ! update controller info for the slave ele

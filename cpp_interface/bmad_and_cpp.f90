@@ -1662,7 +1662,7 @@ integer i, n_con, n_ele, n_ic
 !
 
 print *, 'LAT_STRUCT CONVERSION BETWEEN C++/FORTRAN NOT YET IMPLEMENTED!'
-!!call err_exit
+!!if (bmad_status%exit_on_error) call err_exit
 
 !
 
@@ -1728,7 +1728,7 @@ character(n_title) title
 !
 
 print *, 'LAT_STRUCT CONVERSION BETWEEN C++/FORTRAN NOT YET IMPLEMENTED!'
-!!call err_exit
+!!if (bmad_status%exit_on_error) call err_exit
 
 !
 

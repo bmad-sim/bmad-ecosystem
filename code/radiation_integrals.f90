@@ -137,7 +137,7 @@ integer i, j, k, ir, key, n_step
 
 character(20) :: r_name = 'radiation_integrals'
 
-logical do_alloc, use_cache, init_cache, cache_only_wig
+logical do_alloc, use_cache, init_cache, cache_only_wig, err
 logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
@@ -204,13 +204,13 @@ elseif (ix_cache == 0) then
     exit
     if (i == size(rad_int_cache_common)) then
       print *, 'ERROR IN RADIATION_INTEGRALS: CACHE OUT OF MEMORY!'
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
   enddo
 elseif (ix_cache > 0) then
   if (ix_cache > ubound(rad_int_cache_common, 1)) then
     print *, 'ERROR IN RADIATION_INTEGRALS: INVALID IX_CACHE ARGUMENT', ix_cache
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
   cache => rad_int_cache_common(ix_cache)
   init_cache = .false.
@@ -402,7 +402,7 @@ do ir = 1, branch%n_ele_track
   ! custom
 
   if (key == custom$) then
-    call radiation_integrals_custom (lat, ir, orbit)
+    call radiation_integrals_custom (lat, ir, orbit, err)
     cycle
   endif
 

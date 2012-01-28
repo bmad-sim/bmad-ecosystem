@@ -1,5 +1,5 @@
 !+
-! Subroutine radiation_integrals_custom (lat, ir, orb)
+! Subroutine radiation_integrals_custom (lat, ir, orb, err_flag)
 !
 ! Dummy routine for custom elements. Will generate an error if called.
 ! A valid radiation_integrals_custom is needed only if the 
@@ -17,28 +17,26 @@
 !   orb(:) -- Coord_struct: Orbit around which integrals are to be evaluated.
 !
 ! Output:
-!   ric  -- Rad_int_all_ele_struct: Common block for storing the results.
-!     %i1(ir)  -- I1 integral.
-!     %i2(ir)  -- I2 integral.
-!     %i3(ir)  -- I3 integral.
-!     %i4a(ir) -- I4a integral.
-!     %i4b(ir) -- I4b integral.
-!     %i5a(ir) -- I5a integral.
-!     %i5b(ir) -- I5b integral.
+!   ric      -- Rad_int_all_ele_struct: Common block for storing the results.
+!   err_flag -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine radiation_integrals_custom (lat, ir, orb)
+subroutine radiation_integrals_custom (lat, ir, orb, err_flag)
 
-  use bmad_struct, only: lat_struct, coord_struct
+use bmad_struct
+use bmad_interface
 
-  implicit none
+implicit none
 
-  type (lat_struct) lat
-  type (coord_struct) orb(0:)
-  integer ir
+type (lat_struct) lat
+type (coord_struct) orb(0:)
+integer ir
+logical err_flag
+character(32) :: r_name = 'radiation_integrals_custom'
 
-  print *, 'ERROR IN RADIATION_INTEGRALS_CUSTOM: THIS DUMMY ROUTINE SHOULD NOT' 
-  print *, '      HAVE BEEN CALLED IN THE FIRST PLACE.'
-  call err_exit
+!
+
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+err_flag = .true.
 
 end subroutine

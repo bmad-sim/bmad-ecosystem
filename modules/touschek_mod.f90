@@ -13,9 +13,9 @@
 ! aperture is significant to the momentum aperture.
 !-
 
-MODULE touschek_mod
+module touschek_mod
 
-USE bmad
+use bmad
 
 ! This common block is needed in order to pass parameters to
 ! integrand.  We use NR's qromb function, which requires that the

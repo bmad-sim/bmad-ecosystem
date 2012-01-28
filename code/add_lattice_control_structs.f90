@@ -42,7 +42,7 @@ subroutine add_lattice_control_structs (lat, ele)
   if (n_add < 0) then
     call out_io (s_fatal$, r_name, 'N_SLAVE < CURRENT ALLOCATION FOR: [\3i8\] ' // ele%name, &
                                     i_array = [ele%n_slave, ele%ix2_slave, ele%ix1_slave])
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   if (n_add > 0) then
@@ -90,7 +90,7 @@ subroutine add_lattice_control_structs (lat, ele)
   if (n_add < 0) then
     call out_io (s_fatal$, r_name, 'N_LORD < CURRENT ALLOCATION FOR: [\3i8\] ' // ele%name, &
                                     i_array = [ele%n_lord, ele%ic2_lord, ele%ic1_lord])
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   if (n_add > 0) then

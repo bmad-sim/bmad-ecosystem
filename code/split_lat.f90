@@ -62,7 +62,7 @@ nr = branch%n_ele_track
 if (s_split < branch%ele(0)%s - ds_fudge .or. s_split > branch%ele(nr)%s + ds_fudge) then
   call out_io (s_fatal$, r_name, 'POSITION OF SPLIT NOT WITHIN LAT: \es12.3\ ',  &
                                   r_array = [s_split] )
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! Find where to split.
@@ -87,7 +87,7 @@ len1 = len_orig - len2
 
 if (ele%key == custom$ .or. ele%key == match$) then
   call out_io (s_fatal$, r_name, "I DON'T KNOW HOW TO SPLIT THIS ELEMENT:" // ele%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! save element to be split as a null element if needed
@@ -266,7 +266,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
                     'GROUP: ' // lat%ele(i)%name, &
                     'CONTROLS SPLIT ELEMENT: ' // ele%name, &
                     'BUT NO LORD WAS MADE!')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
   enddo
 

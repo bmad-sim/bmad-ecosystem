@@ -234,7 +234,7 @@ case (lcavity$)
 
   if (ele%value(E_tot_start$) == 0) then
     call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!')
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   E_start_ref  = ele%value(E_tot_start$)
@@ -588,7 +588,7 @@ case (rfcavity$)
       call out_io (s_fatal$, r_name, &
                  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // ele%name, &
                  'YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
     ff = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + ff * z
@@ -713,7 +713,7 @@ case (wiggler$)
             'NEW STYLE WIGGLER: ' // ele%name, &
             'HAS TRACKING_METHOD = BMAD_STANDARD.', &
             'THIS IS NOT A POSSIBLE OPTION FOR THE TRACKING_METHOD.')
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   call offset_particle (ele, param, end, set$)
@@ -751,7 +751,7 @@ case default
   call out_io (s_fatal$, r_name, &
           'BMAD_STANDARD TRACKING_METHOD NOT IMPLMENTED FOR: ' // key_name(ele%key), &
           'FOR ELEMENT: ' // ele%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 end select
 

@@ -103,7 +103,7 @@ case (lcavity$)
                                         
   e_tot_start = ele%value(e_tot_start$)
 case default
-  call err_exit ! exit on error.
+  if (bmad_status%exit_on_error) call err_exit ! exit on error.
 end select
 
 n_loop = 0  ! For debug purposes.

@@ -97,14 +97,14 @@ case (+1)
 case (-1)
 
   print *, 'ERROR IN TWISS_PROPAGATE_MANY: BACKWARDS PROPAGATION NOT YET IMPLEMENTED!'
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 !
 
 case default
 
   print *, 'ERROR IN TWISS_PROPAGATE_MANY: BAD DIRECTION:', direction
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 end select
 

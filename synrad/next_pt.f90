@@ -21,7 +21,7 @@ subroutine next_pt (ray, wall, ix_wall, passed_end)
 
   if (wall%pt(wall%ix_pt)%ix_pt /= ix_wall) then
     print *, 'ERROR IN NEXT_PT: INTERNAL ERROR'
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
 ! wrap around cases

@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_custom (start, ele, param, end, track)
+! Subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, track)
 !
 ! Dummy routine for custom tracking. 
 ! If called, this routine will generate an error message and quit.
@@ -15,39 +15,39 @@
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting position.
+!   start_orb  -- Coord_struct: Starting position.
 !   ele    -- Ele_struct: Element.
 !   param  -- lat_param_struct: Lattice parameters.
 !
 ! Output:
-!   end   -- Coord_struct: End position.
-!   param -- lat_param_struct: Lattice parameters.
-!     %lost -- Logical. Set to true if a particle is lost.
-!   track -- track_struct, optional: Structure holding the track information if the 
-!             tracking method does tracking step-by-step.
+!   end_orb   -- Coord_struct: End position.
+!   param     -- lat_param_struct: Lattice parameters.
+!     %lost     -- Logical. Set to true if a particle is lost.
+!   track     -- track_struct, optional: Structure holding the track information if the 
+!                 tracking method does tracking step-by-step.
+!   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine track1_custom (start, ele, param, end, track)
+subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, track)
 
 use bmad_interface, except_dummy => track1_custom
 
 implicit none
 
-type (coord_struct) :: start
-type (coord_struct) :: end
+type (coord_struct) :: start_orb
+type (coord_struct) :: end_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
+logical err_flag
+
+character(32) :: r_name = 'track1_custom'
 
 !
 
-print *, 'ERROR: DUMMY TRACK1_CUSTOM CALLED FOR: ', ele%name
-print *, '       EITHER CUSTOM TRACKING_METHOD WAS CALLED BY MISTAKE,'
-print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
-call err_exit
-
-end%vec = 0  ! so compiler will not complain
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+err_flag = .true.
 
 end subroutine

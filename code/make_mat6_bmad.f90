@@ -185,7 +185,7 @@ case (crystal$)
 case (custom$)
 
   call out_io (s_fatal$, r_name,  'MAT6_CALC_METHOD = BMAD_STANDARD IS NOT ALLOWED FOR A CUSTOM ELEMENT: ' // ele%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity
@@ -471,7 +471,7 @@ case (quadrupole$)
 case (rbend$)
 
   call out_io (s_fatal$, r_name,  'RBEND ELEMENTS NOT ALLOWED INTERNALLY!')
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 !--------------------------------------------------------
 ! rf cavity
@@ -486,7 +486,7 @@ case (rfcavity$)
     if (ele%value(RF_frequency$) == 0) then
       call out_io (s_fatal$, r_name,  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // trim(ele%name), &
                                       '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
     factor = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + factor * c0%vec(5) 
@@ -876,7 +876,7 @@ case default
 
   call out_io (s_fatal$, r_name,  'UNKNOWN ELEMENT KEY: /i0/ ', &
                                   'FOR ELEMENT: ' // ele%name, i_array = [ele%key])
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 end select
 

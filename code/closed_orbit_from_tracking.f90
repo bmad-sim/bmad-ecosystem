@@ -108,11 +108,11 @@ subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
     if (.not. rf_on) then
       print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ', &
                                       'RF IS NOT ON FOR 6-DIM TRACKING!'
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
   else
     print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: BAD "I_DIM":', nd
-    call err_exit    
+    if (bmad_status%exit_on_error) call err_exit    
   endif
 
 ! determine initial guess

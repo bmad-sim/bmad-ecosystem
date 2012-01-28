@@ -102,7 +102,7 @@ here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
-call track_solenoid_edge (loc_ele, param, set$, here)
+call apply_element_edge_kick (here, loc_ele, param, entrance_end$)
 
 call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
 t = -start%vec(5) / (beta * c_light)
@@ -127,7 +127,7 @@ enddo
 
 ! back to lab coords
 
-call track_solenoid_edge (loc_ele, param, unset$, here)
+call apply_element_edge_kick (here, loc_ele, param, exit_end$)
 call offset_particle (ele, param, here, unset$, set_canonical = .false.)
 
 end = here
@@ -235,7 +235,7 @@ here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
-call track_solenoid_edge (loc_ele, param, set$, here)
+call apply_element_edge_kick (here, loc_ele, param, entrance_end$)
 
 call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
 t = -start%vec(5) / (beta * c_light)
@@ -315,7 +315,7 @@ do n_step = 1, max_step
 
   if ((s-s2)*(s2-s1) >= 0.0) then
     if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
-    call track_solenoid_edge (loc_ele, param, unset$, here)
+    call apply_element_edge_kick (here, loc_ele, param, exit_end$)
     call offset_particle (ele, param, here, unset$, set_canonical = .false.)
     end = here
     return
@@ -481,34 +481,6 @@ t = t + dt
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) &
                                 call spin_track_a_step (ele, param, field, s + ds2, ds2, end) 
   
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
-subroutine track_solenoid_edge (ele, param, set, orb)
-
-implicit none
-
-type (ele_struct) :: ele
-type (lat_param_struct), intent(in) :: param
-type (coord_struct) :: orb
-
-logical, intent(in) :: set
-
-!
-
-if (ele%key /= solenoid$ .and. ele%key /= sol_quad$) return
-
-if (set) then
-  orb%vec(2) = orb%vec(2) + orb%vec(3) * ele%value(ks$) / 2
-  orb%vec(4) = orb%vec(4) - orb%vec(1) * ele%value(ks$) / 2
-else
-  orb%vec(2) = orb%vec(2) - orb%vec(3) * ele%value(ks$) / 2
-  orb%vec(4) = orb%vec(4) + orb%vec(1) * ele%value(ks$) / 2
-endif
-
 end subroutine
 
 end module

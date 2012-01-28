@@ -1,8 +1,7 @@
 !+
-! Subroutine track1_spin_custom (start, ele, param, end, track)
+! Subroutine track1_spin_custom (start, ele, param, end, err_flag, track)
 !
 ! Dummy routine for custom spin tracking. 
-! If called, this routine will generate an error message and quit.
 ! This routine needs to be replaced for a custom calculation.
 !
 ! General rule: Your code may NOT modify any argument that is not listed as
@@ -26,8 +25,9 @@
 
 #include "CESR_platform.inc"
 
-subroutine track1_spin_custom (start, ele, param, end, track)
+subroutine track1_spin_custom (start, ele, param, end, err_flag, track)
 
+use bmad_struct
 use bmad_interface, except_dummy => track1_spin_custom
 
 implicit none
@@ -38,13 +38,12 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
+logical err_flag
+character(32) :: r_name = 'check_aperture_limit_custom'
+
 !
 
-print *, 'ERROR: DUMMY TRACK1_SPIN_CUSTOM CALLED FOR: ', ele%name
-print *, '       EITHER CUSTOM TRACKING_METHOD WAS CALLED BY MISTAKE,'
-print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
-call err_exit
-
-end%vec = 0  ! so compiler will not complain
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+err_flag = .true.
 
 end subroutine

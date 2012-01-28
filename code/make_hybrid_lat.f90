@@ -97,7 +97,7 @@ init_hybrid_needed = .true.         ! we need to init out lat element
 
 if (r_in%n_ele_track == 0) then
   call out_io (s_fatal$, r_name, 'LAT_IN%n_ele_track = 0!')
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! loop over all in lat elements
@@ -320,7 +320,7 @@ deallocate (ica)
 
 if (r_out%n_ele_track == 0) then
   call out_io (s_fatal$, r_name, 'OUTPUT LAT HAS 0 ELEMENTS!')
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 r_out%ele_init = r_in%ele_init

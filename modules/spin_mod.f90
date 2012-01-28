@@ -468,6 +468,7 @@ type (lat_param_struct) :: param
 
 integer method
 character(16), parameter :: r_name = 'track1_spin'
+logical err
 
 ! Use bmad_standard if spin tracking = tracking$ but particle tracking is not using an integration method.
 
@@ -480,7 +481,7 @@ case (bmad_standard$)
   call track1_spin_bmad (start_orb, ele, param, end_orb)
 
 case (custom$)
-  call track1_spin_custom (start_orb, ele, param, end_orb)
+  call track1_spin_custom (start_orb, ele, param, end_orb, err)
 
 case (symp_lie_ptc$)
   call track1_spin_symp_lie_ptc (start_orb, ele, param, end_orb)
@@ -795,7 +796,7 @@ if(isTreatedHere) then
 
     if (ele%value(E_TOT_START$) == 0) then
       call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &

@@ -1,8 +1,8 @@
-MODULE ibs_mod
+module ibs_mod
 
-USE bmad_struct
-USE bmad_interface
-USE nr
+use bmad_struct
+use bmad_interface
+use nr
 
 TYPE ibs_struct
   REAL(rp) inv_Tx

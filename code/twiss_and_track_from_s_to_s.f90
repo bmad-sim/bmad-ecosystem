@@ -80,7 +80,7 @@ endif
 
 if (s_end < s_start .and. branch%param%lattice_type == linear_lattice$) then
   call out_io (s_abort$, r_name, 'S_END < S_START WITH A LINEAR LATTICE.')
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! Find elements corresponding to s_start and s_stop

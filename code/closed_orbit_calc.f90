@@ -126,7 +126,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
     end   => closed_orb(0)
   else
     call out_io (s_error$, r_name, 'BAD DIRECTION ARGUMENT.')
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
 !----------------------------------------------------------------------
@@ -191,7 +191,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
       call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
                                      'CALCULATION WITH NO RF VOLTAGE!')
       bmad_status%ok = .false. 
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
 
     call make_mat2 
@@ -201,7 +201,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
   case default
     call out_io (s_error$, r_name, 'BAD I_DIM ARGUMENT: \i4\ ', i_dim)
     bmad_status%ok = .false. 
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   end select
           
 ! Orbit correction = (T-1)^-1 * (orbit_end - orbit_start)

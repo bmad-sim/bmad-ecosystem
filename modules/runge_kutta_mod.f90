@@ -205,7 +205,7 @@ do
   if (s_new == s) then
     bmad_status%ok = .false.
     print *, 'ERROR IN RKQS_BMAD: STEPSIZE UNDERFLOW'
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
 end do

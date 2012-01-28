@@ -205,7 +205,7 @@ do k = 1, loop_max
     if (present(ok)) then
       ok = .false.
     else
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
   endif
 enddo

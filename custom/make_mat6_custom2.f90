@@ -23,7 +23,7 @@
 !   ele      -- Ele_struct: Element with transfer matrix.
 !     %mat6    -- 6x6 transfer matrix.
 !   c1       -- Coord_struct: Coordinates at the end of element.
-!   err_flag -- Logical: err_flag
+!   err_flag -- Logical: Set true if there is an error. False otherwise.
 !+
 
 #include "CESR_platform.inc"
@@ -41,13 +41,11 @@ type (lat_param_struct)  param
 
 logical err_flag
 
+character(32) :: r_name = 'make_mat6_custom2'
+
 !
 
-err_flag = .false.
-
-print *, 'ERROR: DUMMY MAKE_MAT6_CUSTOM2 CALLED FOR: ', ele%name
-print *, '       EITHER CUSTOM MAT6_CALC_METHOD WAS CALLED BY MISTAKE,'
-print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
-call err_exit
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+err_flag = .true.
 
 end subroutine

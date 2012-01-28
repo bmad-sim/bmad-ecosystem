@@ -167,7 +167,7 @@ do
 
   if (z%n_out == -1) then
     print *, 'ERROR IN SYNRAD_READ_VAC_WALL_GEOMETRY: OUT ARRAY OVERFLOW FOR: ', z%name
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   if (in_equals_out) then
@@ -190,7 +190,7 @@ do
 
     if (z%n_in == -1) then
       print *, 'ERROR IN SYNRAD_READ_VAC_WALL_GEOMETRY: OUT ARRAY OVERFLOW FOR: ', z%name
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
   endif
 
@@ -227,7 +227,7 @@ do
   elseif (units /= 'METRIC') then
     print *, 'ERROR IN SYNRAD_READ_VAC_WALL_GEOMETRY: UNKNOWN UNITS: ', units
     print *, '      FOR ELEMENT: ', name
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   outline_(ixx) = z

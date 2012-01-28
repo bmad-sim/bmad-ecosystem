@@ -41,7 +41,7 @@ character(20) :: r_name = 'track1_symp_lie_ptc'
 
 if (ele%key == wiggler$ .and. ele%value(z_patch$) == 0) then
   call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
-  call err_exit 
+  if (bmad_status%exit_on_error) call err_exit 
 endif
 
 ! Construct a PTC fibre out of the ele element.

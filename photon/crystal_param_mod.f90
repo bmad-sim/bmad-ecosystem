@@ -222,7 +222,7 @@ ix1 = index(ele%component_name, '(')
 ix2 = len_trim(ele%component_name)
 if (ix1 == 0 .or. ele%component_name(ix2:ix2) /= ')') then
   call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 atomic_formula = ele%component_name(1:ix1-1)
@@ -238,7 +238,7 @@ if (atomic_formula == 'Si') then
 else
 
   call out_io (s_fatal$, r_name, 'BAD CRYSTAL TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 endif
 
@@ -255,7 +255,7 @@ ele%value(v_unitcell$) = cp%a0**3
 
 if (.not. is_integer(hkl_str) .or. len_trim(hkl_str) /= 3) then
   call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 read (hkl_str(1:1), *, iostat = ios) hkl(1)
@@ -699,7 +699,7 @@ case ('W')
   f0_ptr => f0_w
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN ATOM TYPE: ' // atom)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 end select
 
 n = size(f0_ptr)
@@ -780,7 +780,7 @@ select case (atomic_formula)
 case ('Si');   param_ptr => params_si
 case ('B4C');  param_ptr => params_b4c
 case ('W');    param_ptr => params_w
-case default; call err_exit
+case default; if (bmad_status%exit_on_error) call err_exit
 end select 
 
 end function pointer_to_crystal_params 

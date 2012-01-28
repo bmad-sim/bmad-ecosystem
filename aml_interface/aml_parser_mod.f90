@@ -276,7 +276,7 @@ bmad_status%ok = f_logic(c_ok)
 if (.not. bmad_status%ok) then
   if (bmad_status%exit_on_error) then
     call out_io (s_fatal$, r_name, 'AML_PARSER FINISHED. EXITING ON ERRORS')
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
   return
 endif

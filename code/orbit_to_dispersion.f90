@@ -44,7 +44,7 @@ character(20), parameter :: r_name = 'orbit_to_dispersion'
 
 if (orb_diff%vec(6) == 0) then
   call out_io (s_fatal$, r_name, 'ORB_DIFF%VEC(6) = 0 !')
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 call ele_to_v_mats (ele, v_mat, v_inv_mat)

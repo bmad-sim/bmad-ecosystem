@@ -151,7 +151,7 @@ file_loop: do
             call str_upcase (line, line)
           else
             type *, 'ERROR: ROUTINE LINE DOES NOT END WITH ")" NOR "&"'
-            call err_exit
+            if (bmad_status%exit_on_error) call err_exit
           endif
         endif
       endif
@@ -173,7 +173,7 @@ file_loop: do
         endif
         if (line(1:1) /= '(') then
           print *, 'ERROR: CANNOT FINE "(" AFTER "RESULT" FOR A FUNCTION!'
-          call err_exit
+          if (bmad_status%exit_on_error) call err_exit
         endif
         ix = index(line, ')')
         arg(1) = line(2:ix-1)
