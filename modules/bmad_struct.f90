@@ -33,17 +33,19 @@ integer, parameter :: n_attrib_maxx = 70
 
 ! electron/positron
 
+integer, parameter :: antimuon$   = +3
 integer, parameter :: proton$     = +2
 integer, parameter :: positron$   = +1
 integer, parameter :: photon$     =  0
 integer, parameter :: electron$   = -1
 integer, parameter :: antiproton$ = -2
+integer, parameter :: muon$       = -3
 
-character(16), parameter :: particle_name(-2:2) = ['ANTIPROTON', &
-                       'ELECTRON  ', 'PHOTON    ', 'POSITRON  ', 'PROTON    ']
+character(16), parameter :: particle_name(-3:3) = ['ANTIMUON  ', 'ANTIPROTON', 'ELECTRON  ', &
+                                     'PHOTON    ', 'POSITRON  ', 'PROTON    ', 'MUON      ']
 
-integer, parameter :: charge_of(-2:2) = [-1, -1, 0, 1, 1]
-real(rp), parameter :: mass_of(-2:2) = [m_proton, m_electron, 0.0_rp, m_electron, m_proton]
+integer, parameter :: charge_of(-3:3) = [-1, -1, -1, 0, 1, 1, 1]
+real(rp), parameter :: mass_of(-3:3) = [m_muon, m_proton, m_electron, 0.0_rp, m_electron, m_proton, m_muon]
 
 ! coordinate def
 
@@ -801,17 +803,6 @@ end type
 integer, parameter :: bends$ = 201
 integer, parameter :: wigglers$ = 202
 integer, parameter :: all$ = 203
-
-! common flags
-! status structure
-
-type bmad_status_struct
-  logical :: ok             = .true.   ! Error flag
-  logical :: type_out       = .true.   ! Print error messages?
-  logical :: exit_on_error  = .true.   ! Exit program on error?
-end type
-
-type (bmad_status_struct), save :: bmad_status
 
 !---------------------------------------------------------------------------
 ! Units

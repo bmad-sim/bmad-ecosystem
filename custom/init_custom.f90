@@ -1,5 +1,5 @@
 !+
-! Subroutine init_custom (ele)
+! Subroutine init_custom (ele, err_flag)
 !
 ! Dummy routine for initializing custom elements or elements that do custom
 ! calculations. Custom calculations are done if any one of the following
@@ -19,12 +19,13 @@
 !   ele    -- Ele_struct: Element to init.
 !
 ! Output:
-!   ele    -- Ele_struct: Initalized element.
+!   ele      -- Ele_struct: Initalized element.
+!   err_flag -- Logical: Set true if there is an error. False otherwise.
 !+
 
 #include "CESR_platform.inc"
 
-subroutine init_custom (ele)
+subroutine init_custom (ele, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => init_custom
@@ -32,7 +33,10 @@ use bmad_interface, except_dummy => init_custom
 implicit none
 
 type (ele_struct), target :: ele
+logical err_flag
 
 !
+
+err_flag = .false.
 
 end subroutine

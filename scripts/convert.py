@@ -11,8 +11,8 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'auto_rf_phase_and_amp' in line: 
-      line = line.replace('auto_rf_phase_and_amp', 'rf_auto_phase_and_amp_correct')
+    if 'call err_exit' in line and 'if' not in line: 
+      line = line.replace('call err_exit', 'if (bmad_status%exit_on_error) call err_exit')
       found = True
 
     out_file.write(line)

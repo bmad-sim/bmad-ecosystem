@@ -359,7 +359,7 @@ parsing_loop: do
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
     call parser_error ('NO NAME FOUND AFTER: ' // word_1, ' ')
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   call verify_valid_name(word_2, ix_word)

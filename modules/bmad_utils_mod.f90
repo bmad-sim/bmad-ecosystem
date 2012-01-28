@@ -1874,12 +1874,12 @@ character(20) :: r_name = 'transfer_mat_from_twiss'
 
 if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
   call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele1%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 if (ele2%a%beta == 0 .or. ele2%b%beta == 0) then
   call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele2%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! Transfer matrices without coupling or dispersion
@@ -2634,7 +2634,7 @@ case (all_groups$)
   call set_rad_int
 
 case default
-   call err_exit   ! Should not be here
+   if (bmad_status%exit_on_error) call err_exit   ! Should not be here
 
 end select
 
@@ -3092,7 +3092,7 @@ if (present(ix_slave)) then
   enddo
 
   ! If ix_slave not found then this is an error
-  call err_exit   
+  if (bmad_status%exit_on_error) call err_exit   
 
 endif
 

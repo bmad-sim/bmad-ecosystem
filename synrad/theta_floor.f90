@@ -29,7 +29,7 @@ integer, save :: ix_ele = 1
 
 if (s < 0 .or. s > lat%ele(lat%n_ele_track)%s) then
   print *, 'ERROR IN THETA_FLOOR: S VALUE OUT OF RANGE:', s
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 end if
 
 ! find element containing s.

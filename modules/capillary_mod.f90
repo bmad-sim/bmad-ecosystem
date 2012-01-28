@@ -301,7 +301,7 @@ do i = 1, 30
   track_len0 = (track_len0 + photon%old%track_len) / 2
   if (i == 30) then
     call out_io (s_abort$, r_name, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!')
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 enddo
 

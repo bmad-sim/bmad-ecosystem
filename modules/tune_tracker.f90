@@ -25,14 +25,15 @@
 ! It returns the kick amplitude (normalized to one) to be used on the next turn.
 ! dest_dTT is the destructor.  It is passed the id of the tune tracker to destroy.
 !-
-MODULE tune_tracker_mod
 
-USE bmad
-USE windowLS_mod
+module tune_tracker_mod
 
-IMPLICIT NONE
+use bmad
+use windowls_mod
 
-INTEGER, PARAMETER :: max_tt = 3 !number of tune trackers to allocate memory for,
+implicit none
+
+integer, parameter :: max_tt = 3 !number of tune trackers to allocate memory for,
                                  !effectively maximum number of tune trackers
 
 ! Structure to hold parameters of tune tracker.

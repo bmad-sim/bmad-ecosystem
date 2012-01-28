@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end)
+! Subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end, err_flag)
 !
 ! Dummy routine for custom bunch tracking. 
 ! If called, this routine will generate an error message and quit.
@@ -18,11 +18,12 @@
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
+!   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end)
+subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end, err_flag)
 
 use bmad_interface, except_dummy => track1_bunch_custom
 use bmad_struct
@@ -33,12 +34,13 @@ implicit none
 type (bunch_struct) bunch_start, bunch_end
 type (lat_struct), target :: lat
 type (ele_struct) :: ele
+logical err_flag
+
+character(32) :: r_name = 'track1_bunch_custom'
 
 !
 
-print *, 'ERROR: DUMMY TRACK1_BUNCH_CUSTOM CALLED FOR: ', ele%name
-print *, '       EITHER CUSTOM TRACKING_METHOD WAS CALLED BY MISTAKE,'
-print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
-call err_exit
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+err_flag = .true.
 
 end subroutine

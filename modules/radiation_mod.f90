@@ -114,7 +114,7 @@ elseif (edge == end_edge$) then
   direc = -1
 else
   call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 if (s_len < 0) s_len = 0

@@ -140,7 +140,7 @@ case (entrance_end$)
   !Particle is at the entrance, should be moving forwards
   if ( param%particle_is_reversed) then
      call out_io (s_fatal$, r_name, 'PARTICLE STARTED AT ENTRANCE END WITH REVERSE MOMENTUM: ele = '//trim(ele%name) )
-     call err_exit
+     if (bmad_status%exit_on_error) call err_exit
   end if
 
   if (ele_has_constant_reference_energy(ele)) then
@@ -171,7 +171,7 @@ case (exit_end$)
     return
      !this used to be an error:
      !     call out_io (s_fatal$, r_name, 'PARTICLE STARTED AT EXIT END WITH FORWARD MOMENTUM: ele = '//trim(ele%name) )
-     !     call err_exit
+     !     if (bmad_status%exit_on_error) call err_exit
   end if
   p0c = -1*ele%value(p0c$)
   call offset_particle(ele, param, start2, set$, set_canonical = .false., &
@@ -181,7 +181,7 @@ case (exit_end$)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD ENTRANCE SURFACE: \i0\ ', param%particle_at)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 end select
 
 ! ele(s-based) -> ele(t-based)
@@ -236,7 +236,7 @@ case (entrance_end$)
   !Particle leaving entrance end, should be reversed
   if ( .not. param%particle_is_reversed) then
      call out_io (s_fatal$, r_name, 'PARTICLE LEAVING ENTRANCE END WITH FORWARD MOMENTUM: ele = '//trim(ele%name) )
-     call err_exit
+     if (bmad_status%exit_on_error) call err_exit
   end if
 
   if (ele_has_constant_reference_energy(ele)) then
@@ -272,7 +272,7 @@ case (exit_end$)
   !Particle is at the exit end, should be moving forward
   if (param%particle_is_reversed) then
      call out_io (s_fatal$, r_name, 'PARTICLE LEAVING EXIT END WITH REVERSED MOMENTUM: ele = '//trim(ele%name) )
-     call err_exit
+     if (bmad_status%exit_on_error) call err_exit
   end if
   p0c = ele%value(p0c$)
   ref_time = ele%ref_time
@@ -285,7 +285,7 @@ case (exit_end$)
 
 case default
   call out_io (s_fatal$, r_name, 'UNKOWN EXIT SURFACE: \i0\ ', param%particle_at)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 end select
 

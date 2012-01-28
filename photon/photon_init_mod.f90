@@ -641,7 +641,7 @@ case (end_spline$)
 ! Coding error if here.
 
 case default
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 end select
 

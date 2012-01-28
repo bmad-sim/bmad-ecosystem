@@ -178,7 +178,7 @@ if (order == 0) return
 
 if (order < 0 .or. order > 100) then
   print *, 'ERROR IN SET_TAYLOR_ORDER: ORDER OUT OF BOUNDS:', order
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! check for override_flag and do nothing if the taylor order has been set
@@ -667,7 +667,7 @@ if (params_present) then
     this_energy = 1e-9 * e_tot
     if (this_energy == 0) then
       call out_io (s_fatal$, r_name, 'E_TOT IS 0.')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
     call set_madx (energy = this_energy, method = this_method, step = this_steps)
     old_e_tot  = e_tot
@@ -1926,7 +1926,7 @@ if (ele%key == wiggler$) then
 
   if (ele%value(z_patch$) == 0) then
     call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
-    call err_exit 
+    if (bmad_status%exit_on_error) call err_exit 
   endif
 
   call add_taylor_term (ele%taylor(5), -ele%value(z_patch$))
@@ -2016,7 +2016,7 @@ nv = ut_in%nv
 
 if (nv /= 6) then
   print *, 'ERROR IN SORT_UNIVERSAL_TERMS: I AM NOT SET UP FOR NV /= 6'
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 if (associated(ut_sorted%n)) deallocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c, ut_sorted%j)
@@ -2171,7 +2171,7 @@ elseif (leng == 0) then
 else
   if (ele%value(ds_step$) == 0) then
     call out_io (s_fatal$, r_name, 'DS_STEP IS ZERO FOR ELEMENT: ' // ele%name)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
   ptc_key%nstep = nint(abs(leng) / ele%value(ds_step$))
   if (ptc_key%nstep == 0) ptc_key%nstep = 1
@@ -2227,7 +2227,7 @@ case (marker$, branch$, photon_branch$, init_ele$)
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
 
-! cavity model is a 
+! 
 
 case (rfcavity$, lcavity$)
   beta = ele%value(p0c$) / ele%value(e_tot$)
@@ -2243,10 +2243,10 @@ case (rfcavity$, lcavity$)
     ptc_key%list%volt = 2e-6 * ele%value(voltage$) * ele%value(field_scale$)
   endif
 
-  ptc_key%list%delta_e = 0    ! For radiation calc.
+  ptc_key%list%delta_e = 0     ! For radiation calc.
   ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
   ptc_key%list%cavity_totalpath = 1  ! 
-  ptc_key%list%permfringe = .false.
+  ptc_key%list%permfringe = .true.
 
 case (elseparator$)
   ptc_key%magnet = 'elseparator'
@@ -2265,7 +2265,7 @@ case (elseparator$)
   call multipole_ele_to_ab (ele, +1, an0, bn0, .false.) 
   if (any(an0 /= 0) .or. any(bn0 /= 0)) then
     print *, 'ERROR IN ELE_TO_FIBRE: ', 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
 case (ab_multipole$, multipole$)
@@ -2274,7 +2274,7 @@ case (ab_multipole$, multipole$)
 case (beambeam$)
   ptc_key%magnet = 'beambeam'
   print *, 'ERROR IN ELE_TO_FIBRE: BEAMBEAM ELEMENT NOT YET IMPLEMENTED!'
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 case (wiggler$)
   ptc_key%magnet = 'wiggler'
@@ -2282,7 +2282,7 @@ case (wiggler$)
 case default
   print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', key_name(ele%key)
   print *, '      FOR ELEMENT: ', trim(ele%name)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 end select
 
@@ -2381,7 +2381,7 @@ if (key == wiggler$) then
     print *, 'ERROR IN ELE_TO_FIBRE: WIGGLER FORM/TYPE MISMATCH!'
     print *, '     ', hyper_y$, hyper_xy$, hyper_x$
     print *, '     ', hyperbolic_ydollar, hyperbolic_xydollar, hyperbolic_xdollar
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   n_term = size(ele2%wig%term)

@@ -131,7 +131,7 @@ subroutine integration_timer_fibre (a_fibre, orbit, orbit_max, tol_dp)
       if (n1_step > 1000) then
         print *, 'ERROR IN INTEGRATION_TIMER: ', &
                                 'NOT CONVGING FOR INTEGRATION ORDER:', order
-        call err_exit
+        if (bmad_status%exit_on_error) call err_exit
       endif
     enddo
 

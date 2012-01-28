@@ -290,7 +290,7 @@ parsing_loop: do
 
     if (xsif_called) then
       call parser_error ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
       ! call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line) 
       detected_expand_lattice_cmd = .true.
       goto 8000  ! Skip the lattice expansion since xsif_parser does this
@@ -528,7 +528,7 @@ parsing_loop: do
     iseq_tot = iseq_tot + 1
     if (iseq_tot > size(sequence)-1) then
       call out_io (s_fatal$, r_name, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY SIZE!')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
 
     sequence(iseq_tot)%name = word_1
@@ -1034,7 +1034,10 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%key == null_ele$) ele%key = -1 ! mark for deletion
     if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
         ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
-        ele%aperture_type == custom$) call init_custom (ele)
+        ele%aperture_type == custom$) then
+      call init_custom (ele, err_flag)
+      if (err_flag) bmad_status%ok = .false.
+    endif
   enddo
 enddo
 call remove_eles_from_lat (lat, .false.)  

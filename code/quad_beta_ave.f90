@@ -40,7 +40,7 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
   if (ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. &
         ele%key /= wiggler$) then
     call out_io (s_fatal$, r_name, 'ELEMENT NOT A QUAD, SOL_QUAD OR WIGGLER: [\i0\] ' // ele%name, key_name(ele%key))
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
 ! if a controller element just use the value at the end of the first
@@ -57,7 +57,7 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 
   if (ele%a%beta == 0 .or. ele%b%beta == 0) then
     call out_io (s_fatal$, r_name, 'BETA IS ZERO AT END:' // ele%name)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   k_quad = ele%value(k1$)

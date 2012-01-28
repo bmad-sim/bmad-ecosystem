@@ -1,10 +1,7 @@
-#include "CESR_platform.inc"
-
 module photon_reflection_mod
 
-use precision_def
 use physical_constants
-use output_mod
+use bmad_base_mod
 
 ! Structure for holding the reflection probability tables.
 ! For a custom reflection calc: 
@@ -706,7 +703,7 @@ endif
 
 if (angle > 1.000001 * pi/2 .or. angle < 0) then
   call out_io (s_fatal$, r_name, 'PHOTON_REFLECTIVITY: ANGLE OUT OF RANGE! \f12.7\ ', angle)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 angle_deg = angle * 180 / pi

@@ -269,7 +269,7 @@ integer i
 
 if (size(ele1) /= size(ele2)) then
   print *, 'ERROR IN ELE_VEC_EQUAL_ELE_VEC: ARRAY SIZES ARE NOT THE SAME!'
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! transfer
@@ -397,7 +397,7 @@ integer i
 
 if (size(lat1) /= size(lat2)) then
   print *, 'ERROR IN lat_vec_equal_lat_vec: ARRAY SIZES ARE NOT THE SAME!'
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! transfer

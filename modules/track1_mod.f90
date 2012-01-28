@@ -66,14 +66,14 @@ type (lat_param_struct), intent(inout) :: param
 
 real(rp) x_lim, y_lim, x_beam, y_beam, s_here, r
 integer at
-logical do_tilt
+logical do_tilt, err
 logical, optional :: check_momentum
 character(20) :: r_name = 'check_aperture_limit'
 
 ! Custom
 
 if (ele%aperture_type == custom$) then
-  call check_aperture_limit_custom (orb, ele, at, param)
+  call check_aperture_limit_custom (orb, ele, at, param, err)
   return
 endif
 
@@ -138,7 +138,7 @@ case (elliptical$)
   if (x_lim == 0 .or. y_lim == 0) then
     call out_io (s_fatal$, r_name, &
               'ECOLLIMATOR HAS ONE LIMIT ZERO AND THE OTHER NOT: ' // ele%name)
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   r = (x_beam / x_lim)**2 + (y_beam / y_lim)**2
@@ -541,7 +541,7 @@ case (lcavity$, rfcavity$)
     call convert_pc_to(p0c_start * (1 + orb%vec(6)), param%particle, beta = beta)
     t = -orb%vec(5) / (beta * c_light)
     call em_field_calc (ele, param, 0.0_rp, t, orb, .true., field)
-    f = 1 / (2 * p0c_start)
+    f = charge_of(param%particle) / (2 * p0c_start)
 
     orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
     orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
@@ -550,7 +550,7 @@ case (lcavity$, rfcavity$)
     call convert_pc_to(ele%value(p0c$) * (1 + orb%vec(6)), param%particle, beta = beta)
     t = ele%value(delta_ref_time$) - orb%vec(5) / (beta * c_light)
     call em_field_calc (ele, param, ele%value(l$), t, orb, .true., field)
-    f = 1 / (2 * ele%value(p0c$))
+    f = charge_of(param%particle) / (2 * ele%value(p0c$))
 
     orb%vec(2) = orb%vec(2) + field%e(3) * orb%vec(1) * f - c_light * field%b(3) * orb%vec(3) * f
     orb%vec(4) = orb%vec(4) + field%e(3) * orb%vec(3) * f + c_light * field%b(3) * orb%vec(1) * f

@@ -85,7 +85,7 @@ track_entrance = .not. logic_option(.false., body_only)
 if (del_s*l_orig < 0 .or. abs(del_s) > abs(l_orig)+1e-6) then
   write (line, '(a, f10.4)') 'DEL_S NEGATIVE OR LARGER THAN ELEMENT LENGTH: ', del_s
   call out_io (s_abort$, r_name, line)
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! Easy case when del_s is zero.

@@ -1,7 +1,7 @@
 !+
-! Subroutine check_aperture_limit_custom (orb, ele, at, param)
+! Subroutine check_aperture_limit_custom (orb, ele, at, param, err_flag)
 !
-! Dummy routine. Will generate an error if called.
+! Dummy routine.
 ! A valid check_aperture_limit_custom is needed only if ele%aperture_type is set to
 ! custom$.
 !
@@ -27,16 +27,16 @@
 !               be set to True.
 !
 ! Output:
-!   param -- lat_param_struct: Parameter structure:
-!     %lost -- Set True if the orbit is outside the aperture. 
-!              Note: %lost is NOT set False if the orbit is inside 
-!                the aperture.
+!   param     -- lat_param_struct: Parameter structure:
+!     %lost     -- Set True if the orbit is outside the aperture. 
+!                  Note: %lost is NOT set False if the orbit is inside the aperture.
 !     %plane_lost_at   -- Integer: Plane where particle is lost:
 !                           x_plane$ or y_plane$
 !     %unstable_factor -- Real(rp): |orbit_amp/limit|
+!   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine check_aperture_limit_custom (orb, ele, at, param)
+subroutine check_aperture_limit_custom (orb, ele, at, param, err_flag)
 
 use bmad_struct
 use bmad_interface
@@ -48,13 +48,13 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
 integer at
+logical err_flag
+
+character(32) :: r_name = 'check_aperture_limit_custom'
 
 !
 
-print *, 'ERROR IN CHECK_APERTURE_LIMIT_CUSTOM: THIS DUMMY ROUTINE SHOULD NOT HAVE'
-print *, '      BEEN CALLED IN THE FIRST PLACE.'
-call err_exit
-
-ele%value(1) = 0   ! so compiler will not complain
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+err_flag = .true.
 
 end subroutine

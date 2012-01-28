@@ -201,7 +201,7 @@ logical csr_on, err
 ! Custom tracking
 
 if (ele%tracking_method == custom$) then
-  call track1_bunch_custom (bunch_start, lat, ele, bunch_end)
+  call track1_bunch_custom (bunch_start, lat, ele, bunch_end, err)
   bunch_end%ix_ele = ele%ix_ele
   return
 endif

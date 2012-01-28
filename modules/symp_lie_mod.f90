@@ -258,7 +258,7 @@ Case (wiggler$)
 
   if (ele%value(z_patch$) == 0 .and. do_offset) then
     call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
-    call err_exit 
+    if (bmad_status%exit_on_error) call err_exit 
   endif
 
   end%vec(5) = end%vec(5) - ele%value(z_patch$)
@@ -352,7 +352,7 @@ case default
 
   print *, 'ERROR IN SYMP_LIE_BMAD: NOT YET IMPLEMENTED:', ele%key
   print *, '      FOR ELEMENT: ', ele%name
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 
 end select
 

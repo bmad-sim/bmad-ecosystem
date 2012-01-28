@@ -1,7 +1,7 @@
 module wall3d_mod
 
 use re_allocate_mod
-use output_mod
+use bmad_base_mod
 
 ! Structures for defining cross-sections of beam pipes and capillaries
 ! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.

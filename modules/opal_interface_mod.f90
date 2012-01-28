@@ -211,7 +211,7 @@ ele_loop: do ie = ix_start, ix_end
   !Check that there is a map or grid associated to make a decent field grid for OPAL
   if (.not. associated(ele%em_field)  )then
     call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key))
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
     
     write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
@@ -247,13 +247,13 @@ ele_loop: do ie = ix_start, ix_end
     !Check that there is a map or grid associated to make a decent field grid for OPAL
     if (.not. associated(ele%em_field)  )then
       call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key))
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
     
     if (.not. associated(ele%em_field%mode(1)%grid)  )then
       call out_io (s_error$, r_name, 'No grid for: ' // key_name(ele%key), &
                                      '----')
-        call err_exit
+        if (bmad_status%exit_on_error) call err_exit
       endif
       
     write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "STANDING", l =', val(l$)
@@ -696,7 +696,7 @@ case (lcavity$, rfcavity$, e_gun$)
   case default
   call out_io (s_error$, r_name, 'MISSING OPAL FIELD GRID CODE FOR: ' // key_name(ele%key), &
              '----')
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
   
   
   
@@ -705,7 +705,7 @@ end select
 if (maxfield == 0) then
   call out_io (s_error$, r_name, 'ZERO MAXIMUM FIELD IN ELEMENT: ' // key_name(ele%key), &
              '----')
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 end if
 
 

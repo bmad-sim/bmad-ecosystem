@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_custom2 (start, ele, param, end, track)
+! Subroutine track1_custom2 (start, ele, param, end, err_flag, track)
 !
 ! Dummy routine for custom tracking. 
 ! If called, this routine will generate an error message and quit.
@@ -29,25 +29,25 @@
 
 #include "CESR_platform.inc"
 
-subroutine track1_custom2 (start, ele, param, end, track)
+subroutine track1_custom2 (start, ele, param, end, err_flag, track)
 
-  use bmad_interface, except_dummy => track1_custom2
+use bmad_interface, except_dummy => track1_custom2
 
-  implicit none
+implicit none
 
-  type (coord_struct) :: start
-  type (coord_struct) :: end
-  type (ele_struct) :: ele
-  type (lat_param_struct) :: param
-  type (track_struct), optional :: track
+type (coord_struct) :: start
+type (coord_struct) :: end
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
+type (track_struct), optional :: track
+
+logical err_flag
+
+character(32) :: r_name = 'check_aperture_limit_custom'
 
 !
 
-  print *, 'ERROR: DUMMY TRACK1_CUSTOM2 CALLED FOR: ', ele%name
-  print *, '       EITHER CUSTOM TRACKING_METHOD WAS CALLED BY MISTAKE,'
-  print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
-  call err_exit
-
-  end%vec = 0  ! so compiler will not complain
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+err_flag = .true.
 
 end subroutine

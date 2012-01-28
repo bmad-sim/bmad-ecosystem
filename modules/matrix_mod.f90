@@ -127,7 +127,7 @@ function mat_symp_error (mat) result (error)
 
   if (mod(n, 2) /= 0) then
     print *, 'ERROR IN MAT_SYMP_ERROR: MATRIX DOES NOT HAVE EVEN SIZE'
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
 ! init
@@ -199,7 +199,7 @@ subroutine mat_symplectify (mat_in, mat_symp)
 
   if (ubound(mat_symp, 1) /= n) then
     print *, 'ERROR IN MAT_SYMPLECTIFY: UNEQUAL MATRIX SIZES.'
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
 !

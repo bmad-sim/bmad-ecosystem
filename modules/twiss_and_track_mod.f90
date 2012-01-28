@@ -170,7 +170,7 @@ branch => lat%branch(ix_branch)
 if (branch%param%lattice_type == circular_lattice$) then
   if (ix_branch /= 0) then
     call out_io (s_fatal$, r_name, 'CIRCULAR NON-MAIN BRANCHES NOT YET IMPLEMENTED!')
-    call err_exit
+    if (bmad_status%exit_on_error) call err_exit
   endif
 
   call lat_make_mat6 (lat, -1, ix_branch = ix_branch)

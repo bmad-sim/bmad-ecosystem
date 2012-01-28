@@ -111,7 +111,7 @@ elseif (direction == -1) then
 
 else
   print *, 'ERROR IN TRACK_MANY: BAD DIRECTION:', direction
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 !--------------------------------------------------------------------------
@@ -137,7 +137,7 @@ do n = ix1, ix2
       call zero_this_track (n, ix2)
     else
       call out_io (s_abort$, r_name, 'INTERNAL ERROR')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
     return
   endif
@@ -193,7 +193,7 @@ do n = ix1, ix2, -1
       call zero_this_track (ix2-1, n-1)
     else
       call out_io (s_abort$, r_name, 'INTERNAL ERROR')
-      call err_exit
+      if (bmad_status%exit_on_error) call err_exit
     endif
     ix_last = n-1
     exit

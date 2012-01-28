@@ -1,7 +1,7 @@
 !+
-! Subroutine em_field_custom (ele, param, s_rel, t_rel, here, local_ref_frame, field, calc_dfield)
+! Subroutine em_field_custom (ele, param, s_rel, t_rel, here, local_ref_frame, field, calc_dfield, err_flag)
 !
-! Dummy routine. Will generate an error if called.
+! Dummy routine. 
 ! A valid em_field_custom is needed only if the em_field routine is being used.
 !
 ! General rule: Your code may NOT modify any argument that is not listed as
@@ -21,10 +21,11 @@
 !                     derivative matrix is wanted by the calling program.
 !
 ! Output:
-!   field -- Em_field_struct: Structure hoding the field values.
+!   field    -- Em_field_struct: Structure hoding the field values.
+!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield)
+subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => em_field_custom
@@ -36,15 +37,14 @@ type (lat_param_struct) param
 type (coord_struct), intent(in) :: orb
 real(rp), intent(in) :: s_rel, t_rel
 logical local_ref_frame
-type (em_field_struct), intent(out) :: field
-logical, optional :: calc_dfield
+type (em_field_struct) :: field
+logical, optional :: calc_dfield, err_flag
+character(32) :: r_name = 'em_field_custom'
 
 !
 
-print *, 'ERROR IN EM_FIELD_CUSTOM: THIS DUMMY ROUTINE SHOULD NOT HAVE'
-print *, '      BEEN CALLED IN THE FIRST PLACE.'
-call err_exit
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+if (present(err_flag)) err_flag = .true.
 
-field%E = 0   ! so compiler will not complain
 
 end subroutine

@@ -1243,7 +1243,7 @@ do
           ! If the wiggler wraps around the origin we are in trouble.
           if (ix2 < ix1) then 
             call out_io (s_fatal$, r_name, 'Wiggler wraps around origin. Cannot translate this!')
-            call err_exit
+            if (bmad_status%exit_on_error) call err_exit
           endif
           do i = ix1+1, ix2
             lat_out%ele(i)%key = -1  ! mark for deletion
@@ -1842,7 +1842,7 @@ elseif (typ == 'I') then
   write (val_str, fmt2) nint(value)
 else
   print *, 'ERROR IN VALUE_TO_LINE. BAD "TYP": ', typ 
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 call string_trim(val_str, val_str, ix)

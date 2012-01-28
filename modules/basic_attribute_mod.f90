@@ -113,7 +113,7 @@ elseif (key > 0 .and. key <= n_key) then
 
 else
   print *, 'ERROR IN ATTRIBUTE_INDEX: BAD KEY', key
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 
 ! If there is one unique abbreviation then use it.
@@ -841,7 +841,7 @@ if (attrib_array(ix_key, ix_attrib) /= null_name$) then
                   'IX_ATTRIB \i0\ ALREADY SET!', &
                   'OLD/NEW NAMES: ' // trim(attrib_array(ix_key, ix_attrib)) // ' : ' // name, &
                   i_array = [ix_attrib])
-  call err_exit
+  if (bmad_status%exit_on_error) call err_exit
 endif
 attrib_array(ix_key, ix_attrib) = name
 
