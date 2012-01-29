@@ -25,25 +25,27 @@ will return an array of strings containing the element information.
 \footnotesize
 \begin{verbatim}
 type ele_struct
-  character(40) name                    ! name of element \sref{c:ele.string}.
-  character(40) type                    ! type name \sref{c:ele.string}.
-  character(40) alias                   ! Another name \sref{c:ele.string}.
-  character(40) component_name          ! Used by overlays, multipass patch, etc.
-  character(200), pointer :: descrip    ! Description string.
-  type (twiss_struct)  a, b, z          ! Twiss parameters at end of element \sref{c:twiss}.
-  type (xy_disp_struct) x, y            ! Projected dispersions \sref{c:twiss}.
-  type (floor_position_struct) floor    ! Global floor position at end of ele.
-  type (mode3_struct), pointer :: mode3 
-  type (coord_struct) map_ref_orb_in    ! Ref orbit at entrance of element.
-  type (coord_struct) map_ref_orb_out   ! Ref orbit at exit of element.
-  type (genfield), pointer :: gen_field ! For symp_map
-  type (taylor_struct) :: taylor(6)     ! Taylor terms
-  type (em_fields_struct) em_field      ! Electric and magnetic fields.
-  type (rf_wake_struct) rf_wake         ! RF wake component.
-  type (wig_term_struct), pointer :: wig_term(:) ! Wiggler Coefs
+  character(40) name                       ! name of element \sref{c:ele.string}.
+  character(40) type                       ! type name \sref{c:ele.string}.
+  character(40) alias                      ! Another name \sref{c:ele.string}.
+  character(40) component_name             ! Used by overlays, multipass patch, etc.
+  character(200), pointer :: descrip       ! Description string.
+  type (twiss_struct)  a, b, z             ! Twiss parameters at end of element \sref{c:twiss}.
+  type (xy_disp_struct) x, y               ! Projected dispersions \sref{c:twiss}.
+  type (floor_position_struct) floor       ! Global floor position at end of ele.
+  type (mode3_struct), pointer :: mode3  
+  type (coord_struct) map_ref_orb_in       ! Ref orbit at entrance of element.
+  type (coord_struct) map_ref_orb_out      ! Ref orbit at exit of element.
+  type (genfield), pointer :: ptc_genfield ! For symp_map tracking
+  type (fibre), pointer :: ptc_fiber       ! For PTC analysis.
+  type (taylor_struct) :: taylor(6)        ! Taylor terms
+  type (em_fields_struct) em_field         ! Electric and magnetic fields.
+  type (rf_wake_struct) rf_wake            ! RF wake component.
+  type (wig_struct), pointer :: wig        ! Wiggler field.
   type (space_charge_struct), pointer :: space_charge => null()
   type (wall3d_struct) :: wall3d          ! Chamber or capillary wall
   type (lat_struct), pointer :: lat       ! Pointer to lattice containing this element.
+  type (ele_struct), pointer :: lord      ! Pointer to slice lord.
   type (bookkeeper_status_struct) status  ! For keeping track of what bookkeeping has been done.
   real(rp) value(n_attrib_maxx)           ! attribute values.
   real(rp) old_value(n_attrib_maxx)       ! Used to see if %value(:) array has changed.
