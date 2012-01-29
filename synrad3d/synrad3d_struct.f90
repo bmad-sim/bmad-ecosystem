@@ -61,6 +61,11 @@ end type
 ! If there is an antechamber: width2_plus and width2_minus are the antechamber horizontal extent.
 ! With no antechamber: width2_plus and width2_minus specify beam stops.
 
+type sr3d_gen_shape_struct
+  type (wall3d_section_struct), pointer :: wall3d_section
+  integer ix_vertex_ante(2)
+end type
+
 type sr3d_wall_pt_struct
   character(40) name     ! Name of associated lattice element
   real(rp) s                      ! Longitudinal position.
@@ -75,7 +80,7 @@ type sr3d_wall_pt_struct
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
-  type (wall3d_section_struct), pointer :: gen_shape            ! Gen_shape info
+  type (sr3d_gen_shape_struct), pointer :: gen_shape            ! Gen_shape info
 end type
 
 ! Needed since Fortran does not allow pointers to be part of a namelist
@@ -95,7 +100,7 @@ end type
 
 type sr3d_wall_struct
   type (sr3d_wall_pt_struct), allocatable :: pt(:)  ! lbound index = 0
-  type (wall3d_section_struct), allocatable :: gen_shape(:)
+  type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
   integer n_pt_max
   integer lattice_type   ! linear_lattice$ or circular_lattice$
 end type

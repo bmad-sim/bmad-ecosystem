@@ -145,7 +145,7 @@ computed. A scattering probability is computed, based on this angle
 and the photon's energy. Depending on the value of this probability,
 the photon is either absorbed at this location, or scattered. If it is
 scattered, the scattering is taken to be elastic. That is, photon
-energy does not change. This ignores any floresence. Surface
+energy does not change. This ignores any florescence. Surface
 roughness, on the other hand is taken into account so there is a
 diffuse component to the scattering.
 
@@ -522,6 +522,7 @@ specification which has the parameters
 \begin{example}
   ix_gen_shape        ! Index of this gen_shape definition.
   v(i)                ! (x, y) coordinates of the i\Th vertex.
+  ix_vertex_ante = iv1, iv2  ! For defining antechamber.
 \end{example}
 
 An example wall definition file is:
@@ -540,6 +541,7 @@ An example wall definition file is:
     v(2) = -0.045,  0.025
     v(3) = -0.045, -0.025
     v(4) =  0.045, -0.025
+    ix_vertex_ante = 4, 1
   /
   &gen_shape_def
     ix_gen_shape = 2
@@ -611,6 +613,14 @@ definition defines a rectangle and is equivalent to the cross-section
 at 82.9~meters. Additionally, the second \vn{gen_shape_def} namelist
 with an \vn{ix_gen_shape} value of 2. defines a symmetric gen_shape
 which has the exact same shape as the first gen_shape.
+
+In order to use the \vn{sr3d_params%stop_if_hit_antechamber} with
+\vn{gen_shape}, the \vn{ix_vertex_ante} indexes can be set to the two
+vertices that define the extent of the antechamber. The antechamber is
+taken to run from \vn{v(ix_vertex_ante(1))} counter-clockwise to the
+vertex \vn{v(ix_vertex_ante(2))} In the above example, the antechamber
+is given to extend from vertex \vn{v(4)} counter-clockwise to
+\vn{v(1)} which is the $x = 0.045$ piece of this square chamber.
 
 The \vn{gen_shape_mesh} shape syntax is exactly the same as the
 \vn{gen_shape} syntax except that \vn{basic_shape} is set to

@@ -28,10 +28,10 @@ type (sr3d_plot_param_struct) plot_param
 type (random_state_struct) ran_state
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (wall3d_vertex_struct) v(100)
-type (wall3d_section_struct), pointer :: poly
+type (wall3d_section_struct), pointer :: wall3d_section
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack
+real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack, ix_vertex_ante(2)
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
@@ -62,7 +62,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             surface_roughness_rms, roughness_correlation_len
 
 namelist / wall_def / section, name
-namelist / gen_shape_def / ix_gen_shape, v
+namelist / gen_shape_def / ix_gen_shape, v, ix_vertex_ante
 
 namelist / start / p, ran_state, random_seed
 
@@ -230,6 +230,8 @@ if (n_shape_max > 0) then
   rewind(1)
   allocate (wall%gen_shape(n_shape_max))
   do
+    ix_gen_shape = 0
+    ix_vertex_ante = 0
     v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
     read (1, nml = gen_shape_def, iostat = ios)
     if (ios > 0) then ! If error
@@ -247,9 +249,8 @@ if (n_shape_max > 0) then
     endif
 
     ! Count number of vertices and calc angles.
-    ! 
 
-    poly => wall%gen_shape(ix_gen_shape)
+    wall3d_section => wall%gen_shape(ix_gen_shape)%wall3d_section
     do n = 1, size(v)
       if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
     enddo
@@ -260,20 +261,31 @@ if (n_shape_max > 0) then
       call err_exit
     endif
 
-    if (allocated(poly%v)) then
+    if (allocated(wall3d_section%v)) then
       print *, 'ERROR: DUPLICATE IX_GEN_SHAPE =', ix_gen_shape
       call err_exit
     endif
 
-    allocate(poly%v(n-1))
-    poly%v = v(1:n-1)
-    poly%n_vertex_input = n-1
-      
-    call wall3d_section_initializer (poly, err)
+    allocate(wall3d_section%v(n-1))
+    wall3d_section%v = v(1:n-1)
+    wall3d_section%n_vertex_input = n-1    
+
+    call wall3d_section_initializer (wall3d_section, err)
     if (err) then
       print *, 'ERROR AT IX_GEN_SHAPE =', ix_gen_shape
       call err_exit
     endif
+
+    wall%gen_shape(ix_gen_shape)%ix_vertex_ante = ix_vertex_ante
+    if (ix_vertex_ante(1) > 0 .or. ix_vertex_ante(2) > 0) then
+      if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(wall3d_section%v) .or. &
+          ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(wall3d_section%v)) then
+        print *, 'ERROR IN IX_VERTEX_ANTE:', ix_vertex_ante
+        print *, '      FOR GEN_SHAPE =', ix_gen_shape
+        call err_exit
+      endif
+    endif
+
   enddo
 endif
 

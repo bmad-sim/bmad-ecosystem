@@ -90,7 +90,7 @@ do i = 0, wall%n_pt_max
       call err_exit
     endif
 
-    if (size(pt0%gen_shape%v) /= size(pt%gen_shape%v)) then
+    if (size(pt0%gen_shape%wall3d_section%v) /= size(pt%gen_shape%wall3d_section%v)) then
       call out_io (s_fatal$, r_name, &
               '"gen_shape_mesh" CONSTRUCT MUST HAVE THE SAME NUMBER OF VERTEX POINTS ON', &
               'SUCCESIVE CROSS-SECTIONS  \2i0\ ', i_array = [i-1, i])
@@ -618,8 +618,8 @@ end subroutine sr3d_get_wall_index
 ! Input:
 !   pt1 -- sr3d_wall_pt_struct: A gen_shape or gen_shape_mesh cross-section.
 !   pt2 -- sr3d_wall_pt_struct: Second cross-section. Should be gen_shape_mesh.
-!   ix_tr  -- Integer: Triangle index. Must be between 1 and 2*size(pt1%gen_shape%v).
-!               [Note: size(pt1%gen_shape%v) = size(pt2%gen_shape%v)]
+!   ix_tr  -- Integer: Triangle index. Must be between 1 and 2*size(pt1%gen_shape%wall3d_section%v).
+!               [Note: size(pt1%gen_shape%wall3d_section%v) = size(pt2%gen_shape%wall3d_section%v)]
 !
 ! Output:
 !   tri_vert0(3), tri_vert1(3), tri_vert2(3)
@@ -643,16 +643,16 @@ real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3)
 
 ix1 = (ix_tri + 1) / 2
 ix2 = ix1 + 1
-if (ix2 > size(pt1%gen_shape%v)) ix2 = 1
+if (ix2 > size(pt1%gen_shape%wall3d_section%v)) ix2 = 1
 
 if (odd(ix_tri)) then
-  tri_vert0 = [pt1%gen_shape%v(ix1)%x, pt1%gen_shape%v(ix1)%y, pt1%s]
-  tri_vert1 = [pt1%gen_shape%v(ix2)%x, pt1%gen_shape%v(ix2)%y, pt1%s]
-  tri_vert2 = [pt2%gen_shape%v(ix1)%x, pt2%gen_shape%v(ix1)%y, pt2%s]
+  tri_vert0 = [pt1%gen_shape%wall3d_section%v(ix1)%x, pt1%gen_shape%wall3d_section%v(ix1)%y, pt1%s]
+  tri_vert1 = [pt1%gen_shape%wall3d_section%v(ix2)%x, pt1%gen_shape%wall3d_section%v(ix2)%y, pt1%s]
+  tri_vert2 = [pt2%gen_shape%wall3d_section%v(ix1)%x, pt2%gen_shape%wall3d_section%v(ix1)%y, pt2%s]
 else
-  tri_vert0 = [pt1%gen_shape%v(ix2)%x, pt1%gen_shape%v(ix2)%y, pt1%s]
-  tri_vert1 = [pt2%gen_shape%v(ix2)%x, pt2%gen_shape%v(ix2)%y, pt2%s]
-  tri_vert2 = [pt2%gen_shape%v(ix1)%x, pt2%gen_shape%v(ix1)%y, pt2%s]
+  tri_vert0 = [pt1%gen_shape%wall3d_section%v(ix2)%x, pt1%gen_shape%wall3d_section%v(ix2)%y, pt1%s]
+  tri_vert1 = [pt2%gen_shape%wall3d_section%v(ix2)%x, pt2%gen_shape%wall3d_section%v(ix2)%y, pt2%s]
+  tri_vert2 = [pt2%gen_shape%wall3d_section%v(ix1)%x, pt2%gen_shape%wall3d_section%v(ix1)%y, pt2%s]
 endif
 
 end subroutine sr3d_get_mesh_wall_triangle_pts
@@ -687,7 +687,7 @@ type (wall3d_vertex_struct), pointer :: v(:)
 real(rp) dr_dtheta, cos_photon, sin_photon 
 real(rp) r_wall
 
-integer ix
+integer ix, ix_vertex, ixv(2)
 
 logical in_antechamber
 
@@ -698,7 +698,15 @@ in_antechamber = .false.
 ! general shape
 
 if (wall_pt%basic_shape == 'gen_shape') then
-  call calc_wall_radius (wall_pt%gen_shape%v, cos_photon, sin_photon, r_wall, dr_dtheta)
+  call calc_wall_radius (wall_pt%gen_shape%wall3d_section%v, cos_photon, sin_photon, r_wall, dr_dtheta, ix_vertex)
+  ixv = wall_pt%gen_shape%ix_vertex_ante
+  if (ixv(1) > 0) then
+    if (ixv(2) > wall_pt%gen_shape%ix_vertex_ante(1)) then
+      if (ix_vertex >= ixv(1) .and. ix_vertex < ixv(2)) in_antechamber = .true.
+    else
+      if (ix_vertex >= ixv(2) .or. ix_vertex < ixv(1)) in_antechamber = .true.
+    endif
+  endif
   return
 endif
 
