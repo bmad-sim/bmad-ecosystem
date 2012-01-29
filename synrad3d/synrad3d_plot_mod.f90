@@ -395,6 +395,7 @@ type (sr3d_wall_struct), target :: wall
 type (sr3d_wall_pt_struct), pointer :: pt
 type (sr3d_photon_track_struct) photon
 type (lat_struct) lat
+type (wall3d_vertex_struct), pointer :: v(:)
 
 real(rp), allocatable :: x(:), y(:)
 real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
@@ -404,6 +405,7 @@ real(rp) minn, maxx
 integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu
 
 character(100) :: ans, label
+character(8) v_str
 character(*) extra
 
 logical at_section
@@ -455,6 +457,8 @@ do
     if (extra == '-norm' .and. modulo(i, 4) == 0) then
       j = (i / 4)
       call sr3d_find_wall_point (wall, lat, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
+      x1_norm = x1_norm * 100; x2_norm = x2_norm * 100
+      y1_norm = y1_norm * 100; y2_norm = y2_norm * 100
     else
       call sr3d_find_wall_point (wall, lat, photon, x(i), y(i))
     endif
@@ -462,8 +466,6 @@ do
   enddo
 
   x = x * 100; y = y * 100
-  x1_norm = x1_norm * 100; x2_norm = x2_norm * 100
-  y1_norm = y1_norm * 100; y2_norm = y2_norm * 100
 
   ! Now plot
 
@@ -502,6 +504,15 @@ do
   if (extra == '-norm') then
     do j = 1, size(x1_norm)
       call qp_draw_line(x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
+    enddo
+  endif
+
+  if (at_section .and. wall%pt(ix_section)%basic_shape == "gen_shape") then
+    v => wall%pt(ix_section)%gen_shape%wall3d_section%v
+    do i = 1, size(v)
+      call qp_draw_symbol (100 * v(i)%x, 100 * v(i)%y)
+      write (v_str, '(a, i0, a)') 'v(', i, ')'
+      call qp_draw_text (v_str, 100 * v(i)%x, 100 * v(i)%y)
     enddo
   endif
 
