@@ -615,7 +615,7 @@ photon%old%vec(5) = photon%now%vec(5)
 r_old = sqrt(photon%now%vec(1)**2 + photon%now%vec(3)**2)
 
 if (wall%pt(ixp+1)%basic_shape == 'gen_shape_mesh') then
-  do j = 1, 2*size(wall%pt(ixp)%gen_shape%v)
+  do j = 1, 2*size(wall%pt(ixp)%gen_shape%wall3d_section%v)
     call sr3d_get_mesh_wall_triangle_pts (wall%pt(ixp), wall%pt(ixp+1), j, tri_vert0, tri_vert1, tri_vert2)
     call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through, dtrack)
     if (is_through) then

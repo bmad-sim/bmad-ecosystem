@@ -175,7 +175,7 @@ call sr3d_get_wall_index (photon%now, wall, ix)
 photon%status = inside_the_wall$
 
 if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
-  do i = 1, 2*size(wall%pt(ix)%gen_shape%v)
+  do i = 1, 2*size(wall%pt(ix)%gen_shape%wall3d_section%v)
     call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), i, tri_vert0, tri_vert1, tri_vert2)
     call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through)
     if (is_through) then
@@ -726,7 +726,7 @@ endif
 photon%now%ix_triangle = -1
 dlen_min = 1d30   ! Something large
 
-do i = 1, 2*size(wall%pt(ix)%gen_shape%v)
+do i = 1, 2*size(wall%pt(ix)%gen_shape%wall3d_section%v)
   call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), i, tv0, tv1, tv2)
   call sr3d_mesh_triangle_intersect (photon, tv0, tv1, tv2, is_through, dlen)
   if (dlen <= 0) cycle
