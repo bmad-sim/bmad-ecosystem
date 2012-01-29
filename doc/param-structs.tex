@@ -70,12 +70,14 @@ this structure are:
 \end{example}
 
 \vn{max_aperture_limit} is the maximum amplitude a particle can have
-during tracking. If this amplitude is exceeded, the particle is
-lost even if there is no element aperture set. Having a maximum
-aperture limit helps prevent numerical overflow in the tracking calculations.
+during tracking. If this amplitude is exceeded, the particle is lost
+even if there is no element aperture set. Having a maximum aperture
+limit helps prevent numerical overflow in the tracking calculations.
 
 \vn{d_orb} is the orbit displacement used in the routine that
 calculates the transfer matrix through an element via tracking.
+
+\vn{spin_tracking_on} determines if spin tracking is performed or not.
 
 %-----------------------------------------------------------------
 \section{Beam Initialization Parameters}

@@ -1,18 +1,28 @@
-\chapter{Tracking and Transfer Matrix Calculation Methods}
+\chapter{Tracking, Spin, and Transfer Matrix Calculation Methods}
 \label{c:methods}
 
-\index{element!class}
-\index{tracking_method}
-\index{mat6_calc_method}
-Typically, there are several ways to do tracking and transfer matrix
-calculations for a given element class within \bmad. What method is
-used is selected on an element--by--element basis using the attributes
+\index{element!class}\index{tracking_method}
+\index{mat6_calc_method}\index{spin_tracking_method}
+\bmad allows for a number of methods that can be use to ``track'' a particle
+through a lattice element. Here ``track'' can mean one of three things:
 \begin{example}
-  tracking_method = Switch   ! Method for tracking.
-  mat6_calc_method = Switch  ! Method for 6x6 transfer matrix calculation.
+  1) Calculate a particle's phase space coordinates at the exit 
+     end of the element given the coordinates at the entrance end.
+  2) Calculate the linear transfer map (Jacobian) through an element
+     about a given reference orbit.
+  3) Calculate the a particle's spin orientation at the exit end 
+     of the element given the coordinates at the beginning.
 \end{example}
-These switches are discussed in more detail in sections \sref{s:tkm} 
-and \sref{s:xfer}. Example:
+The different tracking methods that are available have different
+advantages and disadvantages in terms of speed, symplecticity, etc.
+What tracking method is used, is selected on an element--by--element
+basis using the attributes:
+\begin{example}
+  tracking_method      = <Switch>   ! phase space tracking method.
+  mat6_calc_method     = <Switch>   ! 6x6 transfer matrix calculation.
+  spin_tracking_method = <Switch>   ! Spin tracking method.
+\end{example}
+Example:
 \begin{example}
   q2: quadrupole, tracking_method = boris
   q2[tracking_method] = boris
@@ -22,24 +32,20 @@ The first two lines of this example have exactly the same effect in
 terms of setting the \vn{tracking_method}. The third line shows how to
 set the \vn{tracking_method} for an entire class of elements.
 
-\index{sympliectify}
-\index{map_with_offsets}
-Two element attributes that can affect the way the transfer matrix is
-calculated are \vn{symplectify} and \vn{map_with_offsets}. These are
-discussed in \sref{s:symp} and \sref{s:mapoff} respectively.
+These switches are discussed in more detail in the following sections.
 
 %----------------------------------------------------------------------------
-\section{tracking_method Switches}
+\section{Phase Space Coordinate Tracking Methods}
 \label{s:tkm}
 \index{tracking methods|hyperbf}
 
-The \vn{tracking_method} attribute of an element sets the algorithm that is
-used for single particle tracking through that element.
-A table giving which methods are available with which element classes is
-given in Table~\ref{t:track.methods}.
+The \vn{tracking_method} attribute of an element sets the algorithm
+that is used for single particle tracking through that element.
+Table~\ref{t:track.methods} gives which methods are available for each
+type of element.
 
 A note on terminology: Adaptive step size control used with the
-\vn{adaptive_boris} and \vn{Runge_Kutta} integrators means that 
+\vn{adaptive_boris} and \vn{Runge_Kutta} integrators means that
 instead of taking fixed step sizes the integrator chooses the proper
 step size so that the error in the tracking is below the maximum
 allowable error set by \vn{rel_tol} and \vn{abs_tol} tolerances. The
@@ -48,16 +54,16 @@ step size when needed (the fields are rapidly varying), but makes
 larger steps when it can. The disadvantage is that a step is more
 computationally intensive since the error in a step is estimated by
 repeating a step using two mini steps. If the fields are rather
-uniform and you know what a good step size is you can save time by using
-a fixed step size.
+uniform and you know what a good step size is you can save time by
+using a fixed step size.
 
 \begin{description}
-\index{adaptive_boris!tracking method}
+\index{adaptive_boris!tracking_method}
 \item[\vn{adaptive_boris}]
 Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
-\index{boris!tracking method}
+\index{boris!tracking_method}
 \item[\vn{Boris}]
 Second order Boris Integration\cite{b:boris}. Like \vn{Runge_Kutta},
 \vn{Boris} does tracking by integrating the equation of
@@ -65,7 +71,7 @@ motion. \vn{Boris} handles both electric and magnetic fields and does
 not assume that the particle is ultra--relativistic. \vn{Boris} preserves
 conserved quantities more accurately than \vn{Runge_Kutta}.
 
-\index{bmad_standard!tracking method}
+\index{bmad_standard!tracking_method}
 \item[\vn{Bmad_Standard}]
 Uses formulas for tracking. The formulas generally use the paraxial
 approximation.  The emphasis here is on speed. Note: If an element has
@@ -76,7 +82,7 @@ result in differences between this and tracking methods like
 \vn{Symp_Lie_PTC} which model multipoles as as distributed evenly
 throughout an element.
 
-\index{custom!tracking method}
+\index{custom!tracking_method}
 \item[\vn{Custom}]
 This method will call a routine \vn{track1_custom} which must be
 supplied by the programmer implementing the custom tracking. The
@@ -84,26 +90,26 @@ default \vn{track1_custom} supplied with the \bmad release will print
 an error message and stop the program if it is called which probably
 indicates a program linking problem. See \vn{s:custom.ele} for more details.
 
-\index{linear!tracking method}
+\index{linear!tracking_method}
 \item[\vn{Linear}]
 Linear just uses the 0th order vector with the 1st order 6x6 transfer
 matrix for an element. Very simple.  Depending upon how the transfer
 matrix was generated this may or may not be symplectic.
 
-\index{MAD!tracking method}
+\index{MAD!tracking_method}
 \item[\vn{MAD}]
 This uses the MAD 2nd order transfer map. Note: Thanks must be given
 to CERN and Frank Schmidt for permission to use the MAD tracking code
 within \bmad.
 
-\index{runge_kutta!tracking method}
+\index{runge_kutta!tracking_method}
 \item[\vn{runge_kutta}]
 This uses a 4\Th order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
 accurate. This method is non-symplectic.
 
-\index{symp_lie_Bmad!tracking method}
+\index{symp_lie_Bmad!tracking_method}
 \item[\vn{Symp_Lie_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
@@ -111,13 +117,13 @@ This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
 \vn{Symp_Lie_PTC}.
 
-\index{symp_lie_ptc!tracking method}
+\index{symp_lie_ptc!tracking_method}
 \item[\vn{Symp_Lie_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
 This uses Etienne's PTC software for the calculation. This method is
 symplectic but can be slow.
 
-\index{symp_map!tracking method}
+\index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
 uses Etienne's PTC software.  Since the map is implicit, a Newton
@@ -125,16 +131,16 @@ search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic. Note: Due to memory limitations
 in PTC, the number of elements using symp_map is limited to be of order 50.
 
-\index{time_runge_kutta!tracking method}
+\index{time_runge_kutta!tracking_method}
 \item[\vn{Symp_Map}]
 This method uses time as the independent variable instead of
 longitudinal position. The advantage of this method is that it can
 handle particles which reverse direction longitudinally.  One use for
 this method is ``dark current'' tracking where low energy particles
-generatied at the vacuum chamber walls can be found travelling in all
+generated at the vacuum chamber walls can be found traveling in all
 directions.
 
-\index{taylor!tracking method}
+\index{taylor!tracking_method}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
@@ -192,7 +198,7 @@ and \vn{patch} elements are limited to first order.
   \vn{hkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
   \vn{instrument}              & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
   \vn{kicker}                  & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{lcavity}                 & X & D & X & X & X &   &  X  &  X  &     &     &  *  & X  \\  
+  \vn{lcavity}                 & X & D & X & X & X &   &  X  &  X  &  X  &  X  &  *  & X  \\  
   \vn{marker}                  &   & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
   \vn{match}                   &   & D &   & X &   &   &     &     &     &     &  *  &    \\ 
   \vn{monitor}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
@@ -229,15 +235,20 @@ Taylor map will only be first order.
 \vfill \break
 
 %----------------------------------------------------------------------------
-\section{mat6_calc_method Switches}
+\section{Linear Transfer Map Methods}
 \label{s:xfer}
 \index{mat6_calc_method|hyperbf}
 
-
 The \vn{mat6_calc_method} attribute sets how the 6x6 Jacobian transfer
-matrix for a given element is computed. A table giving which methods
-are available with which element classes is give in
-Table~\ref{t:mat6.methods}.
+matrix for a given element is computed.  Table~\ref{t:mat6.methods}
+gives which methods are available for each type of element.
+
+\index{sympliectify}
+\index{map_with_offsets}
+In addition to the \vn{mat6_calc_method} switch, 
+two element attributes that can affect the way the transfer matrix is
+calculated are \vn{symplectify} and \vn{map_with_offsets}. These are
+discussed in sections \sref{s:symp} and \sref{s:mapoff} respectively.
 
 For methods that do not necessarily produce a symplectic matrix the
 \vn{symplectify} attribute of an element can be set to \vn{True} to
@@ -260,12 +271,12 @@ integration order does not necessarily imply higher accuracy.
 
 \begin{description}
 
-\index{bmad_standard!transfer map method}
+\index{bmad_standard!mat6_calc_method}
 \item[\vn{Bmad_Standard}]
 Uses formulas for the calculation. The formulas generally use the
-paraxial approximation. The emphasis here is on speed
+paraxial approximation. The emphasis here is on speed.
 
-\index{custom!transfer map method}
+\index{custom!mat6_calc_method}
 \item[\vn{Custom}]
 This method will call a routine \vn{make_mat6_custom} which must be
 supplied by the programmer implementing the custom transfer matrix
@@ -274,20 +285,20 @@ calculation. The default \vn{make_mat6_custom} supplied with the
 is called which probably indicates a program linking problem.
 See \vn{s:custom.ele} for more details.
 
-\index{MAD!transfer map method}
+\index{MAD!mat6_calc_method}
 \item[\vn{MAD}]
 This uses the MAD 2nd transfer map. Thanks must be given
 to CERN and Frank Schmidt for permission to use the MAD tracking code
 within \bmad.
 
-\index{static!transfer map method}
+\index{static!mat6_calc_method}
 \item[\vn{Static}]
 This prevents the transfer matrix from being recomputed.
 Using \vn{Static} in the input file is generally not a good idea since
 it prevents the matrix from being computed in the first place.
 Typically \vn{Static} is used internally in a program to prevent recomputation.
 
-\index{symp_lie_bmad!transfer map method}
+\index{symp_lie_bmad!mat6_calc_method}
 \item[\vn{Symp_Lie_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator
 techniques.  This is similar to \vn{Symp_Lie_PTC} (see below) except
@@ -296,13 +307,13 @@ inherent in PTC, \vn{Symp_Lie_Bmad} achieves about a factor
 of 10 improvement in speed over \vn{Symp_Lie_PTC}. However,
 \vn{Symp_Lie_Bmad} cannot generate maps above first order.
 
-\index{symp_lie_ptc!transfer map method}
+\index{symp_lie_ptc!mat6_calc_method}
 \item[\vn{Symp_Lie_PTC}]
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses Etienne's PTC software for the calculation.
 This method is symplectic but can be slow.
 
-\index{taylor!transfer map method}
+\index{taylor!mat6_calc_method}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
@@ -316,7 +327,7 @@ attribute (\sref{s:mapoff}).
 Note: Taylor maps for \vn{lcavity}, \vn{match},
 and \vn{patch} elements are limited to first order.
 
-\index{tracking!transfer map method}
+\index{tracking!mat6_calc_method}
 \item[\vn{Tracking}]
 This uses the tracking method set by \vn{tracking_method} to track 6
 particles around the central orbit. This method is susceptible to inaccuracies
@@ -362,7 +373,7 @@ is that it is directly related to any tracking results.
   \vn{hkicker}                 & D & X &   & X &     &  X  &  X  & X \\  
   \vn{instrument}              & D & X &   & X &     &  X  &  X  & X \\  
   \vn{kicker}                  & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{lcavity}                 & D & X &   & X &  X  &  X  &     & X \\  
+  \vn{lcavity}                 & D & X &   & X &  X  &  X  &  X  & X \\  
   \vn{marker}                  & D & X &   & X &     &  X  &  X  & X \\  
   \vn{match}                   & D & X &   & X &     &     &     &   \\  
   \vn{mirror}                  & D & X &   & X &     &     &     &   \\  
@@ -393,6 +404,117 @@ switches for a given element class. ``D'' denotes the default
 method. ``X'' denotes an available method.}
 
 \label{t:mat6.methods}
+\end{table}
+
+\vfill \break
+
+%----------------------------------------------------------------------------
+\section{Spin Tracking Methods}
+\label{s:spin.methods}
+\index{spin tracking!methods}
+\index{spin_tracking_method}
+
+The \vn{spin_tracking_method} attribute of an elements sets the
+algorithm that is used for tracking a particle's spin through that
+element. Table~\ref{t:spin.methods} gives which methods are available
+for each type of element.
+
+Since speed may be an issue, \bmad has an internal global parameter
+called \vn{spin_tracking_on} (\sref{s:bmad.params}) that determines
+whether spin is tracked or not.  Access to this parameter is
+implemented on a program-by-program basis.
+
+\begin{description}
+
+\index{bmad_standard!spin_tracking_method}
+\item[\vn{Bmad_Standard}]
+Uses formulas for the calculation. The formulas generally use the
+paraxial approximation. The emphasis here is on speed.
+
+\index{custom!spin_tracking_method}
+\item[\vn{Custom}]
+This method will call a routine \vn{track1_spin_custom} which must be
+supplied by the programmer implementing the custom spin tracking
+calculation. See \vn{s:custom.ele} for more details.
+
+\index{tracking!mat6_calc_method}
+\item[\vn{Tracking}]
+If \vn{tracking_method} is set to \vn{adaptive_boris}, \vn{boris}, or
+\vn{runge_kutta} then the spin will be tracked along with the phase
+space particle coordinates using the local fields. For all other
+\vn{tracking_method}s the spin will be tracked using the
+\vn{bmad_standard} spin tracking method.
+
+\index{symp_lie_ptc!spin_tracking_method}
+\item[\vn{Symp_Lie_PTC}]
+Symplectic integration using a Hamiltonian and Lie operators.
+This uses Etienne's PTC software for the calculation.
+This method is symplectic but can be slow.
+
+\end{description}
+
+\index{ab_multipole}\index{beambeam}\index{bend_sol_quad}\index{custom}
+\index{drift}\index{ecollimator}\index{elseparator}\index{hkicker}
+\index{instrument}\index{kicker}\index{lcavity}\index{marker}
+\index{match}\index{monitor}\index{multipole}\index{octupole}
+\index{patch}\index{quadrupole}\index{rbend}\index{rcollimator}
+\index{rfcavity}\index{sbend}\index{sextupole}\index{solenoid}
+\index{sol_quad}\index{taylor}\index{vkicker}\index{wiggler}
+\index{crystal}\index{capillary}
+\begin{table}[pth]
+\centering {
+\begin{tabular}{lcccc} \toprule
+\rule{0pt}{80pt} &
+\begin{sideways}\vn{Bmad_Standard}\end{sideways} &
+\begin{sideways}\vn{Custom}\end{sideways} &
+\begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
+\begin{sideways}\vn{Tracking}\end{sideways}
+\\ \midrule
+%                               BS   C  SLP Trk 
+  \vn{ab_multipole}            & D & X &   &   \\  
+  \vn{beambeam}                & D & X &   & X \\  
+  \vn{bend_sol_quad}           & D & X & X & X \\  
+  \vn{capillary}               &   &   &   &   \\  
+  \vn{crystal}                 &   &   &   &   \\  
+  \vn{custom}                  &   & D &   & X \\  
+  \vn{drift}                   & D & X & X & X \\  
+  \vn{e_gun}                   & D & X & X & D \\  
+  \vn{ecollimator}             & D & X & X & X \\  
+  \vn{elseparator}             & D & X & X & X \\  
+  \vn{em_field}                &   &   &   & D \\  
+  \vn{hkicker}                 & D & X & X & X \\  
+  \vn{instrument}              & D & X & X & X \\  
+  \vn{kicker}                  & D & X & X & X \\  
+  \vn{lcavity}                 & D & X & X & X \\  
+  \vn{marker}                  & D & X & X & X \\  
+  \vn{match}                   & D & X &   &   \\  
+  \vn{mirror}                  &   &   &   &   \\  
+  \vn{monitor}                 & D & X & X & X \\  
+  \vn{multipole}               & D & X & X &   \\  
+  \vn{multilayer}              &   &   &   &   \\  
+  \vn{octupole}                & D & X & X & X \\ 
+  \vn{patch}                   & D & X &   &   \\ 
+  \vn{quadrupole}              & D & X & X & X \\ 
+  \vn{rbend}                   & D & X & X & X \\ 
+  \vn{rcollimator}             & D & X & X & X \\ 
+  \vn{rfcavity}                & D & X & X & X \\ 
+  \vn{sbend}                   & D & X & X & X \\ 
+  \vn{sextupole}               & D & X & X & X \\ 
+  \vn{solenoid}                & D & X & X & X \\ 
+  \vn{sol_quad}                & D & X & X & X \\ 
+  \vn{taylor}                  &   &   &   &   \\ 
+  \vn{vkicker}                 & D & X & X & X \\ 
+  \vn{wiggler} (map type)      & D & X & X & X \\ 
+  \vn{wiggler} (periodic type) & D & X & X & X \\ \bottomrule
+\end{tabular}
+}
+
+\caption[Table of available \vn{spin_tracking_method}\ switches for a
+given element class.]{Table of available \vn{spin_tracking_method}\
+switches for a given element class. ``D'' denotes the default
+method. ``X'' denotes an available method.}
+
+\label{t:spin.methods}
 \end{table}
 
 \vfill \break
@@ -504,7 +626,6 @@ Possible values for \vn{field_calc} are:
 \vn{Custom} means that the field calculations are done outside of the
 \bmad software. A program doing \vn{Custom} field calculations will
 need the appropriate custom routine (\sref{s:custom.field}).
-\vn{Grid}
 
 \index{boris}\index{adaptive_boris}
 Both \vn{boris} and \vn{adaptive_boris} tracking do not
