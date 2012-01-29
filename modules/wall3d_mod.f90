@@ -342,10 +342,12 @@ if (all(v(1:n)%x >= 0) .and. all(v(1:n)%y >= 0)) then
 
   n = nn
 
+endif
+
 ! If everything is in the upper half plane assume up/down symmetry and
 ! propagate vertices to the bottom half.
 
-elseif (all(v(1:n)%y >= 0)) then
+if (all(v(1:n)%y >= 0)) then
   if (v(n)%y == 0) then  ! Do not duplicate v(n) vertex
     nn = 2*n - 1
     call re_allocate(section%v, nn, .false.); v => section%v
