@@ -376,7 +376,7 @@ case default
   ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
 
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
-    call rf_auto_phase_and_amp_correct_correction (ele, param)
+    call rf_auto_phase_and_amp_correction (ele, param)
   endif
 
 end select
