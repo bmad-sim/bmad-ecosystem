@@ -44,6 +44,9 @@ type (track_struct), optional :: track
 real(rp) rel_tol, abs_tol, del_s_step, del_s_min
 
 ! Track.
+! lcavity and rfcavity elements using field_calc == bmad_standard us a pi/2 cavity 
+!   model of length c_light * f / 2. In this case, drifts are used on either end to 
+!   make up for the difference between ele%value(l$) and the cavity length.
 
 del_s_step = 1e-3
 del_s_min = 1e-8

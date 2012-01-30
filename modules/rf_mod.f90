@@ -14,7 +14,7 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Subroutine rf_auto_phase_and_amp_correct_correction (ele, param)
+! Subroutine rf_auto_phase_and_amp_correction (ele, param)
 !
 ! Routine to set the reference phase and amplitude of the accelerating rf field mode if
 ! this mode is present. The accelerating mode is defined to be ele%em_field%mode(1) if
@@ -46,7 +46,7 @@ contains
 !   ele -- ele_struct: element with phase and amplitude adjusted.
 !-
 
-subroutine rf_auto_phase_and_amp_correct_correction (ele, param)
+subroutine rf_auto_phase_and_amp_correction (ele, param)
 
 use super_recipes_mod
 use nr, only: zbrent
@@ -66,7 +66,7 @@ logical step_up_seen
 
 ! Init
 
-if (.not. bmad_com%rf_auto_phase_and_amp_correct_correct) return
+if (.not. bmad_com%rf_auto_phase_and_amp_correct) return
 if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
 
 nullify(field_scale)
@@ -230,7 +230,7 @@ ele%value(dphi0$) = dphi0_saved
 ele%value(phi0_err$) = phi0_err_saved
 ele%tracking_method = tracking_method_saved
 
-end subroutine rf_auto_phase_and_amp_correct_correction
+end subroutine rf_auto_phase_and_amp_correction
 
 !----------------------------------------------------------------
 

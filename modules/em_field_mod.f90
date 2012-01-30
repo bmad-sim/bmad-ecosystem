@@ -172,7 +172,7 @@ type (em_field_map_term_struct), pointer :: term
 real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
-real(rp) phase, gradient, theta, r, E_r, E_s, k_wave
+real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, l_cav, s_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho
 real(rp) radius, phi, t_ref, tilt, omega
 
@@ -276,8 +276,17 @@ select case (ele%field_calc)
 
   !------------------------------------------
   ! RFcavity and Lcavity
-  ! Note: This does not include the edge focusing which is calcuated in the 
-  !  apply_element_edge_kick routine.
+  ! Use half-wave pillbox formulas for standing wave TM_011 mode with infinite wall radius.
+  ! See S.Y. Lee, "Accelerator Physics"
+  !   E_s   = 2 * gradient * cos(k s) * cos(omega t + phase)
+  !   E_r   = gradient * k * r * sin(k s) * cos(omega t + phase)
+  !   B_phi = -gradient * k * r * cos(k s) * sin(omega t + phase) / c_light
+  ! where
+  !   k = pi / L
+  !   omega = c * k
+  ! Field extends to +/- c_light * freq / 2 from centerline of element.
+  ! Note: There is a discontinuity in the field at the edge. Edge focusing due to this 
+  !  discontinuity can be handled in the apply_element_edge_kick routine.
 
   case(rfcavity$, lcavity$)
 
@@ -293,19 +302,14 @@ select case (ele%field_calc)
     if (.not. ele%is_on) gradient = 0
     gradient = (gradient + gradient_shift_sr_wake(ele, param)) * sign_charge
 
-    ! Use pillbox formulas for standing wave TM_011 mode with infinite wall radius.
-    ! See S.Y. Lee, "Accelerator Physics"
-    !   E_s   = 2 * gradient * cos(k s) * cos(omega t + phase)
-    !   E_r   = gradient * k * r * sin(k s) * cos(omega t + phase)
-    !   B_phi = -gradient * k * r * cos(k s) * sin(omega t + phase) / c_light
-    ! where
-    !   k = pi / L
-    !   omega = c * k
-
     theta = atan2(y, x)   
     r = sqrt(x**2 + y**2)
-    k_wave = pi / ele%value(l$)
-    omega = c_light * k_wave
+    omega = twopi * ele%value(rf_frequency$)
+    k_wave = omega / c_light
+    l_cav = c_light * ele%value(rf_frequency$) / 2
+
+    s_eff = s_rel - (ele%value(l$) - l_cav) / 2  ! Relative to entrance end of the cavity
+    if (s_eff < 0 .or. s_eff > l_cav) return  ! Zero field outside
 
     E_r = gradient * r * k_wave * sin(k_wave*s_rel) * cos(omega * t_rel + phase)
 
