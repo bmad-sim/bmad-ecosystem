@@ -205,7 +205,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   if (lord%key == rfcavity$) then
     slave => pointer_to_slave(lord, 1)
-    call rf_auto_phase_and_amp_correct_correction (lord, lat%branch(slave%ix_branch)%param)
+    call rf_auto_phase_and_amp_correction (lord, lat%branch(slave%ix_branch)%param)
   endif
 
 enddo
@@ -292,7 +292,7 @@ case (lcavity$)
     endif
 
     if (ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
-      call rf_auto_phase_and_amp_correct_correction (ele, param)
+      call rf_auto_phase_and_amp_correction (ele, param)
     endif
 
     ! For reference energy tracking need to turn off any element offsets and kicks.

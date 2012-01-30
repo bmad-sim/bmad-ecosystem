@@ -1184,7 +1184,7 @@ call bmad_com_to_c2 (c_bmad_com, f%max_aperture_limit, f%d_orb, &
       c_logic(f%space_charge_on), c_logic(f%coherent_synch_rad_on), &
       c_logic(f%spin_tracking_on), &
       c_logic(f%radiation_damping_on), c_logic(f%radiation_fluctuations_on), &
-      c_logic(f%conserve_taylor_maps), c_logic(f%rf_auto_phase_and_amp_correct_correct), &
+      c_logic(f%conserve_taylor_maps), c_logic(f%rf_auto_phase_and_amp_correct), &
       c_logic(f%use_single_ptc_fiber), c_logic(f%dummy))
 
 end subroutine

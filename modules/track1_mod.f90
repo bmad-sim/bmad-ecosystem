@@ -479,7 +479,7 @@ end subroutine apply_bend_edge_kick
 !
 ! Subroutine to track through the edge field of an element.
 ! This routine is used with bmad_standard field_calc where the field
-! can have an abrubt, unphysical termination of the field at the
+! can have an abrubt, unphysical termination of the longitudinal field at the
 ! edges of the element. 
 !
 ! Elements that have kicks due to unphysical edge field terminations:
