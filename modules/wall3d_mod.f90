@@ -3,6 +3,11 @@ module wall3d_mod
 use re_allocate_mod
 use bmad_base_mod
 
+!
+
+integer, parameter :: anchor_beginning$ = 1, anchor_center$ = 2, anchor_end$ = 3
+character(12) :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Center   ', 'End      ']
+
 ! Structures for defining cross-sections of beam pipes and capillaries
 ! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.
 ! Each vertex v(i) defines a point on the pipe/capillary.
@@ -42,7 +47,10 @@ type wall3d_section_struct
 
 end type
 
+! If, say, %anchor_pt = center$ then center of wall is at the center of the element.
+
 type wall3d_struct
+  integer :: anchor_pt = 0      ! anchor_beginning$, anchor_center$, or anchor_end$
   type (wall3d_section_struct), pointer :: section(:) => null()  
 end type  
 

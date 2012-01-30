@@ -163,6 +163,7 @@ end type
 type em_field_map_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
+  integer :: anchor_pt = 0      ! anchor_beginning$, anchor_center$, or anchor_end$
   real(rp) :: dz = 0            ! Distance between sampled field points.
   type (em_field_map_term_struct), allocatable :: term(:)
 end type
@@ -173,8 +174,9 @@ type em_field_point_struct
 end type
 
 type em_field_grid_struct
-  integer :: type = 0           ! Type of grid structure
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  integer :: type = 0           ! Type of grid structure
+  integer :: anchor_pt = 0      ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: n_link = 1         ! For memory management of this structure
   type (em_field_point_struct), allocatable :: pt(:,:,:)
   real(rp) :: dr(3) = 0   ! Grid spacing.
@@ -189,15 +191,15 @@ end type
 ! Rule: If %grid is associated then %grid%pt(:,:,:) will be allocated.
 
 type em_field_mode_struct
-  integer m                   ! Mode varies as cos(m*phi - phi0_azimuth)
-  integer :: harmonic = 0     ! Harmonic of fundamental
-  real(rp) freq               ! Oscillation frequency (Hz)
-  real(rp) :: f_damp = 0      ! 1/Q damping factor 
+  integer m                    ! Mode varies as cos(m*phi - phi0_azimuth)
+  integer :: harmonic = 0      ! Harmonic of fundamental
+  real(rp) freq                ! Oscillation frequency (Hz)
+  real(rp) :: f_damp = 0       ! 1/Q damping factor 
   real(rp) :: dphi0_ref = 0    ! Mode oscillates as: twopi * (f * t + dphi0_ref)
-  real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
-  real(rp) :: phi0_azimuth = 0       ! Azimuthal orientation of mode.
-  real(rp) :: field_scale = 1 ! Factor to scale the fields by
-  integer :: master_scale = 0 ! Master scaling parameter in ele%value(:) array.
+  real(rp) stored_energy       ! epsilon_0/2 * \int_vol |E|^2 [Joules]
+  real(rp) :: phi0_azimuth = 0 ! Azimuthal orientation of mode.
+  real(rp) :: field_scale = 1  ! Factor to scale the fields by
+  integer :: master_scale = 0  ! Master scaling parameter in ele%value(:) array.
   type (em_field_map_struct), pointer :: map => null()
   type (em_field_grid_struct), pointer :: grid => null()
 end type
