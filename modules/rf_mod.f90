@@ -58,7 +58,7 @@ type (lat_param_struct), target :: param
 
 real(rp) pz, theta, pz_max, theta0, theta_max, e_tot, f_correct, wanted_de
 real(rp) dtheta, e_tot_start, pz_plus, pz_minus, b, c, theta_tol, pz_tol, theta_max_old
-real(rp) phi0_saved, dphi0_saved, phi0_err_saved
+real(rp) value_saved(n_attrib_maxx)
 
 integer i, tracking_method_saved
 
@@ -87,7 +87,9 @@ end select
 
 if (.not. associated(field_scale)) return
 
-! 
+! Compute wanted energy gain. 
+! Autophasing when the wanted energy gain is zero or very small is not possible
+! Therefore if the wanted energy gain is less than 1 eV then do nothing.
 
 ele_com => ele
 param_com => param
@@ -106,19 +108,15 @@ case default
   if (bmad_status%exit_on_error) call err_exit ! exit on error.
 end select
 
-n_loop = 0  ! For debug purposes.
+if (abs(wanted_de) < 1) return
 
-if (wanted_de == 0) then
-  field_scale = 0
-  return
-endif
+! Set error fields to zero
 
-phi0_saved     = ele%value(phi0$) 
-dphi0_saved    = ele%value(dphi0$)
-phi0_err_saved = ele%value(phi0_err$) 
+value_saved = ele%value
 ele%value(phi0$) = 0
 ele%value(dphi0$) = 0
 ele%value(phi0_err$) = 0
+if (ele%key == lcavity$) ele%value(gradient_err$) = 0
 
 tracking_method_saved = ele%tracking_method
 if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
@@ -143,6 +141,8 @@ f_correct = wanted_de / (e_tot - e_tot_start)
 if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(f_correct - 1) < 2 * pz_tol) return
 
 ! Now adjust %field_scale for the correct acceleration at the phase for maximum accelleration. 
+
+n_loop = 0  ! For debug purposes.
 
 main_loop: do
 
@@ -225,9 +225,7 @@ endif
 
 ! Cleanup
 
-ele%value(phi0$) = phi0_saved
-ele%value(dphi0$) = dphi0_saved
-ele%value(phi0_err$) = phi0_err_saved
+ele%value = value_saved
 ele%tracking_method = tracking_method_saved
 
 end subroutine rf_auto_phase_and_amp_correction

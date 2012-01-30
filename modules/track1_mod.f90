@@ -560,4 +560,55 @@ end select
 
 end subroutine apply_element_edge_kick
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine drift_to_hard_edge (orb, ele, param, element_end)
+!
+! Subroutine to track through the end drifts of an element.
+! The end drifts are present, for example, when doing runge_kutta tracking
+! through an rf_cavity with field_calc = bmad_standard. In this case, the
+! field model is a pi-wave hard-edge resonator whose length may not match
+! the length of the element and so particles must be drifted from the edge
+! of the element to the edge of the field model.
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   orb         -- Coord_struct: Starting coords in element reference frame.
+!   ele         -- ele_struct: Element.
+!   param       -- lat_param_struct: lattice parameters.
+!   element_end -- Integer: entrance_end$ or exit_end$.
+!
+! Output:
+!   orb        -- Coord_struct: Coords after tracking.
+!-
+
+subroutine drift_to_hard_edge (orb, ele, param, element_end)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orb
+type (lat_param_struct) param
+
+
+integer element_end
+
+!
+
+if (ele%field_calc /= bmad_standard$) return
+
+
+select case (ele%key)
+
+case (lcavity$, rfcavity$)
+  
+
+end select
+
+end subroutine drift_to_hard_edge 
+
 end module

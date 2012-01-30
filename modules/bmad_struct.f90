@@ -920,7 +920,7 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set
                                                    ! ele%map_with_offsets = F?
-  logical :: rf_auto_phase_and_amp_correct = .true. ! See rf_auto_phase_and_amp_correct_correction routine.
+  logical :: rf_auto_phase_and_amp_correct = .true. ! See rf_auto_phase_and_amp_correction routine.
   logical :: use_single_ptc_fiber = .true.         ! 
   logical :: dummy                                 ! Place holder for future use.
 end type

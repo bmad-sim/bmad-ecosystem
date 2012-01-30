@@ -242,7 +242,8 @@ use rf_mod
 
 implicit none
 
-type (ele_struct) ele, ele2
+type (ele_struct) ele
+type (ele_struct), save :: ele2
 type (lat_param_struct) :: param
 type (coord_struct) start_orb, end_orb
 
