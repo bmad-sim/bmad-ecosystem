@@ -66,8 +66,13 @@ if (ele_has_constant_reference_energy(ele)) then
 else
   call convert_pc_to (ele%value(p0c_start$) * (1 + start_orb%vec(6)), param%particle, beta = start_orb%beta)
 endif
-start_orb%p0c = ele%value(p0c$)
-  
+
+if (start_orb%p0c < 0) then
+  start_orb%p0c = -ele%value(p0c$)
+else  
+  start_orb%p0c = ele%value(p0c$)
+endif
+
 ! custom
 
 if (ele%tracking_method == custom$) then
@@ -157,7 +162,8 @@ case default
 
 end select
 
-! s and time update
+! s, time, etc. update. time_runge_kutta will do its own thing since, for example, the particle
+! might be travelling backwards and be at the entrance end.
 
 if (tracking_method /= time_runge_kutta$) then
 

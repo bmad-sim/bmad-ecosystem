@@ -1,6 +1,6 @@
 !+
 ! Subroutine offset_particle (ele, param, coord, set, set_canonical, 
-!                               set_tilt, set_multipoles, set_hvkicks, reversed, set_s_offset, ds_pos)
+!                               set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the entrance or exit ends of the element. Additionally, this routine will:
@@ -11,13 +11,13 @@
 !
 ! set = set$:
 !    Transforms from lab to element coords. 
-!    Assumes the particle is at the entrance end of the element if reversed = False (default).
-!    Assumes the particle is at the exit end of the elment if reversed = True.
+!    Assumes the particle is at the entrance end of the element if coord%p0c > 0. 
+!    Assumes the particle is at the exit end of the elment if coord%p0c < 0.
 !
 ! set = unset$:
 !    Transforms from element to lab coords.
-!    Assumes the particle is at the exit end of the element if reversed = False (default).
-!    Assumes the particle is at the entrance end of the elment if reversed = True.
+!    Assumes the particle is at the exit end of the element if coord%p0c > 0.
+!    Assumes the particle is at the entrance end of the elment if coord%p0c < 0.
 !
 ! Note: the assumption of where the particle is can be overridden by using the ds_pos argument.
 !
@@ -57,8 +57,6 @@
 !                    T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
 !                    T -> Apply 1/2 any hkick or vkick.
-!   reversed       -- Logical, optional: Default is False.
-!                    T -> Particle is treated as travelling backwards from the exit end towards the entrance end.
 !   set_s_offset   -- Logical, optional: Default is True.
 !                    T -> Particle will be translated by ele%value(s_offset$) to propagate between the nominal
 !                           edge of the element and the true physical edge of the element.
@@ -72,7 +70,7 @@
 !-
 
 subroutine offset_particle (ele, param, coord, set, set_canonical, &
-                              set_tilt, set_multipoles, set_hvkicks, reversed, set_s_offset, ds_pos)
+                              set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
 
 use bmad_interface, except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
@@ -95,7 +93,7 @@ integer n
 
 logical, intent(in) :: set
 logical, optional, intent(in) :: set_canonical, set_tilt, set_multipoles
-logical, optional, intent(in) :: set_hvkicks, reversed, set_s_offset
+logical, optional, intent(in) :: set_hvkicks, set_s_offset
 logical set_canon, set_multi, set_hv, set_t, set_hv1, set_hv2, is_reversed, set_s
 
 !---------------------------------------------------------------         
@@ -118,7 +116,7 @@ set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
 set_s     = logic_option (.true., set_s_offset) .and. has_orientation_attributes(ele)
-is_reversed = logic_option (.false., reversed)
+is_reversed = coord%p0c < 0
 
 if (set_hv) then
   select case (ele%key)
