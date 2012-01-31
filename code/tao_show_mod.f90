@@ -180,7 +180,7 @@ end type
 
 type (show_lat_column_struct) column(50)
 
-real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val
+real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, beta
 real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
@@ -220,7 +220,7 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_wo
 logical bmad_format, good_opt_only, show_lords, show_custom, print_cross_section, show_lost
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
-logical show_all, name_found, print_taylor, print_field_coefs, print_all, print_ran_state
+logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
@@ -860,7 +860,7 @@ case ('derivative')
 case ('element')
 
   print_taylor = .false.
-  print_field_coefs = .false.
+  print_em_field = .false.
   print_all = .false.
   print_data = .false.
   print_cross_section = .false.
@@ -868,7 +868,7 @@ case ('element')
   lat_type = model$
 
   do
-    call tao_next_switch (stuff2, ['-taylor        ', '-field_coefs   ', &
+    call tao_next_switch (stuff2, ['-taylor        ', '-em_field      ', &
                 '-all_attributes', '-data          ', '-design        ', &
                 '-no_slaves     ', '-cross_section ', '-base          '], switch, err, ix)
     if (err) return
@@ -876,7 +876,7 @@ case ('element')
     if (switch == '-taylor') print_taylor = .true.
     if (switch == '-design') lat_type = design$
     if (switch == '-base') lat_type = base$
-    if (switch == '-field_coefs') print_field_coefs = .true.
+    if (switch == '-em_field') print_em_field = .true.
     if (switch == '-all_attributes') print_all = .true.
     if (switch == '-data') print_data = .true.
     if (switch == '-no_slaves') print_slaves = .false.
@@ -951,7 +951,7 @@ case ('element')
   tao_lat => tao_pointer_to_tao_lat (u, lat_type)
 
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
-            .true., tao_lat%lat, .true., .true., print_field_coefs, print_cross_section)
+            .true., tao_lat%lat, .true., .true., print_em_field, print_cross_section)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = ptr_lines(1:n)
@@ -963,21 +963,26 @@ case ('element')
   endif
 
   ele => eles(1)%ele
+  branch => tao_lat%lat%branch(ele%ix_branch)
   stat = ele%lord_status
   if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$) then
     orb = tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
-    fmt = '(2x, a, 3p2f15.8, 0pf15.6, f11.6)'
     nl=nl+1; lines(nl) = ' '
     if (lat%branch(ele%ix_branch)%param%particle == photon$) then
-      nl=nl+1; lines(nl) = 'Orbit:   Position[mm] Momentum[mrad]      Intensity      phase'
-      nl=nl+1; write (lines(nl), fmt) "X:  ", orb%vec(1:2), orb%e_field_x**2, orb%phase_x
-      nl=nl+1; write (lines(nl), fmt) "Y:  ", orb%vec(3:4), orb%e_field_y**2, orb%phase_y
-      nl=nl+1; write (lines(nl), fmt) "Z:  ", orb%vec(5:6)
+      fmt = '(2x, a, 3p2f15.8, 0pf15.6, f11.6)'
+      fmt2 = '(2x, a, 3p2f15.8, a, es16.8)'
+      nl=nl+1; lines(nl) = 'Orbit:   Position[mm] Momentum[mrad]      Intensity      phase  '
+      nl=nl+1; write (lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%e_field_x**2, orb%phase_x
+      nl=nl+1; write (lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%e_field_y**2, orb%phase_y
+      nl=nl+1; write (lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
     else
-      nl=nl+1; lines(nl) = 'Orbit: Position[mm]   Momentum[mrad]'
-      nl=nl+1; write (lines(nl), fmt) "X:  ", orb%vec(1:2)
-      nl=nl+1; write (lines(nl), fmt) "Y:  ", orb%vec(3:4)
-      nl=nl+1; write (lines(nl), fmt) "Z:  ", orb%vec(5:6)
+      call convert_pc_to ((1 + orb%vec(6)) * ele%value(p0c$), branch%param%particle, beta = beta)
+      z = (ele%ref_time - orb%t) * beta * c_light
+      fmt = '(2x, a, 3p2f15.8, a, es16.8)'
+      nl=nl+1; lines(nl) = 'Orbit:   Position[mm] Momentum[mrad]  |                            Time'
+      nl=nl+1; write (lines(nl), fmt) 'X:  ', orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t
+      nl=nl+1; write (lines(nl), fmt) 'Y:  ', orb%vec(3:4),   '  | Abs-Ref [sec]:    ', orb%t - ele%ref_time
+      nl=nl+1; write (lines(nl), fmt) 'Z:  ', orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z
     endif
   endif
 

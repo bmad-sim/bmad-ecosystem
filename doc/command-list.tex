@@ -1054,7 +1054,7 @@ Format:
    data \{<data_name>\} 
    derivative <data_name(s)> <var_name(s)>
    element \{-all_attributes\} \{-cross_section\} \{-base\} \{-design\}
-         \{-data\} \{-no_slaves\} \{-taylor\} \{-field_coefs\} <ele_name>
+         \{-data\} \{-no_slaves\} \{-taylor\} \{-em_field\} <ele_name>
    global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
    graph <graph_name>
    hom
@@ -1228,9 +1228,9 @@ for the element call for one. For example, if an elements
 Taylor map. To see the Taylor map for an element that does not have an
 associated map, use the \vn{show taylor} command.
 
-If the \vn{-field_coefs} switch is present, any associated wiggler
-terms for a \vn{map_type} \vn{wiggler} element is printed. Additionally,
-RF field coefficients for \vn{lcavity} and \vn{rfcavity} elements are printed.
+If the \vn{-em_field} switch is present, any associated 
+Electro-magnetic field maps or grid data is printed. For example, 
+wiggler terms for a \vn{map_type} \vn{wiggler} element are printed.
 
 Example:
 \begin{example}
