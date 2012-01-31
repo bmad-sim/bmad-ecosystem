@@ -381,7 +381,7 @@ r = beam_init%center
 write (2, fmt) r(5), r(1), r(3), (1 + r(6))*p0, r(2)*p0, r(4)*p0, c
 
 do i = 1, size(beam%bunch(1)%particle)
-  r = beam%bunch(1)%particle(i)%r%vec - beam_init%center
+  r = beam%bunch(1)%particle(i)%vec - beam_init%center
   write (2, fmt) r(5), r(1), r(3), r(6)*p0, r(2)*p0, r(4)*p0, c
 enddo
 

@@ -7,10 +7,6 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        28  HKICK                                   
-        29  VKICK                                   
-        30  BL_HKICK                                
-        31  BL_VKICK                                
         41  DELTA_REF_TIME                          
         43  TILT_TOT                                
         44  X_PITCH_TOT                             
@@ -24,6 +20,7 @@
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -59,7 +56,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
   2  SBEND                                   
@@ -147,7 +144,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -250,7 +247,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -260,7 +257,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -309,6 +306,7 @@
          2  COMMAND                                 
          3  OLD_COMMAND                             
         14  COEF                                    
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -380,7 +378,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -390,7 +388,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -508,7 +506,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
   8  TAYLOR                                  
@@ -528,6 +526,7 @@
         48  S_OFFSET_TOT                            
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -561,21 +560,23 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
   9  RFCAVITY                                
          1  L                                       
          2  TILT                                    
          4  HARMON                                  
+         5  !RESERVED                               
          7  VOLTAGE                                 
          8  DPHI0                                   
          9  RF_FREQUENCY                            
         11  PHI0                                    
+        14  !RESERVED                               
         15  LR_FREQ_SPREAD                          
         16  !RESERVED                               
-        17  !RESERVED                               
-        18  !RESERVED                               
+        17  DPHI0_REF                               
+        18  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -630,9 +631,9 @@
         96  FIELD_CALC                              
         97  TYPE                                    
         98  APERTURE_AT                             
-        99  RF_FIELD                                
        101  FIELD_MASTER                            
        104  WALL                                    
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -642,7 +643,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  10  ELSEPARATOR                             
@@ -703,7 +704,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -713,7 +714,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -780,6 +781,7 @@
         48  S_OFFSET_TOT                            
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -814,7 +816,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  12  WIGGLER                                 
@@ -881,7 +883,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -891,7 +893,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -995,7 +997,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1005,7 +1007,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -1079,6 +1081,7 @@
         48  S_OFFSET_TOT                            
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -1110,7 +1113,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  15  KICKER                                  
@@ -1180,7 +1183,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -1231,6 +1234,7 @@
         41  DELTA_REF_TIME                          
         50  P0C_START                               
         51  E_TOT_START                             
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -1295,7 +1299,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1305,7 +1309,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -1435,7 +1439,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -1497,6 +1501,7 @@
         48  S_OFFSET_TOT                            
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -1528,7 +1533,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  K0L                                     
        121  K1L                                     
        122  K2L                                     
@@ -1598,6 +1603,7 @@
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -1632,7 +1638,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  21  DEF_BEAM                                
@@ -1640,6 +1646,7 @@
          4  PARTICLE                                
         52  PC                                      
         53  ENERGY                                  
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -1663,6 +1670,7 @@
         48  S_OFFSET_TOT                            
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -1694,7 +1702,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -1797,7 +1805,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1807,7 +1815,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -1875,6 +1883,7 @@
         51  E_TOT_START                             
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -1908,7 +1917,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  25  LCAVITY                                 
@@ -1924,8 +1933,8 @@
         14  DELTA_E                                 
         15  LR_FREQ_SPREAD                          
         16  !RESERVED                               
-        17  !RESERVED                               
-        18  !RESERVED                               
+        17  DPHI0_REF                               
+        18  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1982,9 +1991,9 @@
         96  FIELD_CALC                              
         97  TYPE                                    
         98  APERTURE_AT                             
-        99  RF_FIELD                                
        101  FIELD_MASTER                            
        104  WALL                                    
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1994,7 +2003,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  26  DEF_PARAMETER                           
@@ -2002,19 +2011,23 @@
          3  TAYLOR_ORDER                            
          4  PARTICLE                                
          5  LATTICE_TYPE                            
+        44  NO_END_MARKER                           
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
         70  !RESERVED                               
         76  LATTICE                                 
+        86  ABSOLUTE_TIME_TRACKING                  
         88  ROOT_BRANCH_NAME                        
         89  APERTURE_LIMIT_ON                       
         99  RAN_SEED                                
  
  !---------------------------------
  27  NULL_ELE                                
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2031,7 +2044,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  28  INIT_ELE                                
@@ -2041,6 +2054,7 @@
         13  PHASE_Y                                 
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2086,6 +2100,7 @@
         48  S_OFFSET_TOT                            
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2117,7 +2132,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  30  MATCH                                   
@@ -2157,6 +2172,7 @@
         41  DELTA_REF_TIME                          
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2188,7 +2204,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  31  MONITOR                                 
@@ -2265,7 +2281,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  32  INSTRUMENT                              
@@ -2342,7 +2358,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  33  HKICKER                                 
@@ -2407,7 +2423,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -2514,7 +2530,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -2584,6 +2600,7 @@
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2618,7 +2635,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  36  ECOLLIMATOR                             
@@ -2646,6 +2663,7 @@
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2680,7 +2698,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  37  GIRDER                                  
@@ -2691,6 +2709,7 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2765,7 +2784,7 @@
        101  FIELD_MASTER                            
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2775,7 +2794,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
        120  A0                                      
        121  A1                                      
        122  A2                                      
@@ -2831,6 +2850,7 @@
         11  E_FIELD_Y                               
         12  PHASE_X                                 
         13  PHASE_Y                                 
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2859,6 +2879,7 @@
         51  E_TOT_START                             
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2891,7 +2912,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  41  BRANCH                                  
@@ -2916,6 +2937,7 @@
         51  E_TOT_START                             
         52  P0C                                     
         53  E_TOT                                   
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -2948,7 +2970,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  42  MIRROR                                  
@@ -2981,6 +3003,7 @@
         52  P0C                                     
         53  E_TOT                                   
         54  REF_WAVELENGTH                          
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -3011,7 +3034,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  43  CRYSTAL                                 
@@ -3066,6 +3089,7 @@
         56  !RESERVED                               
         57  !RESERVED                               
         58  !RESERVED                               
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -3098,7 +3122,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  44  PIPE                                    
@@ -3175,7 +3199,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  45  CAPILLARY                               
@@ -3216,7 +3240,6 @@
         92  S_SPLINE                                
         93  N_SLICE_SPLINE                          
         94  DESCRIP                                 
-        95  IS_ON                                   
         97  TYPE                                    
         98  APERTURE_AT                             
        104  WALL                                    
@@ -3229,7 +3252,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  46  MULTILAYER_MIRROR                       
@@ -3271,6 +3294,7 @@
         52  P0C                                     
         53  E_TOT                                   
         54  REF_WAVELENGTH                          
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -3302,7 +3326,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  47  E_GUN                                   
@@ -3323,11 +3347,14 @@
         47  Y_OFFSET_TOT                            
         48  S_OFFSET_TOT                            
         49  N_REF_PASS                              
+        50  P0C_START                               
+        51  E_TOT_START                             
         52  P0C                                     
         53  E_TOT                                   
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -3353,9 +3380,8 @@
         96  FIELD_CALC                              
         97  TYPE                                    
         98  APERTURE_AT                             
-        99  RF_FIELD                                
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3365,7 +3391,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  48  EM_FIELD                                
@@ -3391,6 +3417,7 @@
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
+        59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
@@ -3415,9 +3442,8 @@
         95  IS_ON                                   
         97  TYPE                                    
         98  APERTURE_AT                             
-        99  RF_FIELD                                
        104  WALL                                    
-       105  DC_FIELD                                
+       105  FIELD                                   
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3427,7 +3453,7 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  COMMON_LORD                             
+       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  Index usage:
@@ -3436,7 +3462,7 @@
      2    44
      3    20
      4    23
-     5    19
+     5    20
      6    13
      7    19
      8    18
@@ -3445,7 +3471,7 @@
     11    15
     12    15
     13    12
-    14    14
+    14    15
     15    14
     16     8
     17     8
@@ -3459,10 +3485,10 @@
     25    40
     26    40
     27    40
-    28    23
-    29    24
-    30    24
-    31    24
+    28    22
+    29    23
+    30    23
+    31    23
     32     6
     33     9
     34     5
@@ -3475,14 +3501,14 @@
     41    40
     42    10
     43    38
-    44    38
+    44    39
     45    38
     46    38
     47    38
     48    38
     49    27
-    50     7
-    51     7
+    50     8
+    51     8
     52    42
     53    42
     54     3
@@ -3490,7 +3516,7 @@
     56    26
     57    26
     58     1
-    59    20
+    59    47
     60    47
     61    47
     62    47
@@ -3517,7 +3543,7 @@
     83     1
     84    39
     85    39
-    86    39
+    86    40
     87    39
     88    40
     89     1
@@ -3526,17 +3552,17 @@
     92     2
     93    29
     94    43
-    95    36
+    95    35
     96    20
     97    43
     98    40
-    99     6
+    99     2
    100     2
    101    21
    102     0
    103    13
    104    40
-   105    10
+   105    12
    106     3
    107     0
    108     0
@@ -3739,6 +3765,7 @@ Index: 5
     SBEND                                   
     SEXTUPOLE                               
     CUSTOM                                  
+    RFCAVITY                                
     BEAMBEAM                                
     WIGGLER                                 
     MARKER                                  
@@ -3905,6 +3932,7 @@ Index: 14
     SBEND                                   
     GROUP                                   
     CUSTOM                                  
+    RFCAVITY                                
     WIGGLER                                 
     MARKER                                  
     HYBRID                                  
@@ -4202,7 +4230,6 @@ Index: 27
  
  !---------------------------------
 Index: 28
-    DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
@@ -4228,7 +4255,6 @@ Index: 28
  
  !---------------------------------
 Index: 29
-    DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
@@ -4255,7 +4281,6 @@ Index: 29
  
  !---------------------------------
 Index: 30
-    DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
@@ -4282,7 +4307,6 @@ Index: 30
  
  !---------------------------------
 Index: 31
-    DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
@@ -4511,6 +4535,7 @@ Index: 44
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
     HOM                                     
     MONITOR                                 
     INSTRUMENT                              
@@ -4731,6 +4756,7 @@ Index: 50
     LCAVITY                                 
     PHOTON_BRANCH                           
     BRANCH                                  
+    E_GUN                                   
     EM_FIELD                                
  
  !---------------------------------
@@ -4741,6 +4767,7 @@ Index: 51
     LCAVITY                                 
     PHOTON_BRANCH                           
     BRANCH                                  
+    E_GUN                                   
     EM_FIELD                                
  
  !---------------------------------
@@ -4932,26 +4959,53 @@ Index: 58
  
  !---------------------------------
 Index: 59
+    DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
+    GROUP                                   
     SEXTUPOLE                               
     CUSTOM                                  
+    TAYLOR                                  
     RFCAVITY                                
     ELSEPARATOR                             
+    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
+    MARKER                                  
     KICKER                                  
+    HYBRID                                  
     OCTUPOLE                                
     RBEND                                   
+    MULTIPOLE                               
+    BEND_SOL_                               
+    DEF_BEAM                                
+    AB_MULTIPOLE                            
     SOLENOID                                
+    PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
+    NULL_ELE                                
+    INIT_ELE                                
+    HOM                                     
+    MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     HKICKER                                 
     VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    GIRDER                                  
     BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    MIRROR                                  
+    CRYSTAL                                 
     PIPE                                    
     CAPILLARY                               
+    MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 60
@@ -5706,6 +5760,7 @@ Index: 86
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
     HOM                                     
     MATCH                                   
     MONITOR                                 
@@ -5946,7 +6001,6 @@ Index: 95
     PHOTON_BRANCH                           
     BRANCH                                  
     PIPE                                    
-    CAPILLARY                               
     E_GUN                                   
     EM_FIELD                                
  
@@ -6064,12 +6118,8 @@ Index: 98
  
  !---------------------------------
 Index: 99
-    RFCAVITY                                
-    LCAVITY                                 
     DEF_PARAMETER                           
     INIT_ELE                                
-    E_GUN                                   
-    EM_FIELD                                
  
  !---------------------------------
 Index: 100
@@ -6166,11 +6216,13 @@ Index: 104
 Index: 105
     QUADRUPOLE                              
     SEXTUPOLE                               
+    RFCAVITY                                
     ELSEPARATOR                             
     WIGGLER                                 
     SOL_QUAD                                
     OCTUPOLE                                
     SOLENOID                                
+    LCAVITY                                 
     BEND_SOL_QUAD                           
     E_GUN                                   
     EM_FIELD                                
