@@ -134,8 +134,7 @@ if (end%p0c > 0 .and. end%status == outside$) then
   else  ! lcavity, etc.
     p0c = ele%value(p0c_start$)
   end if  
-  call offset_particle(ele, param, start2, set$, set_canonical = .false., &
-    reversed = .false., ds_pos = 0.0_rp ) 
+  call offset_particle(ele, param, start2, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
    call apply_element_edge_kick (start2, ele, param, entrance_end$)
 
 elseif (end%status == inside$) then
@@ -146,14 +145,12 @@ elseif (end%status == inside$) then
     p0c = ele%value(p0c$)
   endif 
   call offset_particle(ele, param, start2, set$, set_canonical = .false., &
-                       reversed = (end%p0c < 0), &
                        ds_pos = start2%s - (ele%s - ele%value(l$)) )
 
 elseif (end%p0c < 0 .and. end%status == outside$) then
   !Particle is at the exit surface, should be moving backwards
   p0c = -1*ele%value(p0c$)
   call offset_particle(ele, param, start2, set$, set_canonical = .false., &
-                       reversed =.true., &
                        ds_pos = start2%s - (ele%s - ele%value(l$)) )
   call apply_element_edge_kick (start2, ele, param, exit_end$)
 
@@ -223,8 +220,7 @@ if (end%status == outside$ .and. end%p0c < 0) then
   call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
   call apply_element_edge_kick (start2, ele, param, entrance_end$)
   !unset
-  call offset_particle(ele, param, end, unset$, set_canonical = .false., &
-     reversed = .true. ) 
+  call offset_particle(ele, param, end, unset$, set_canonical = .false.)
 
 elseif (end%status == dead$) then
     !Particle is lost in the interior of the element.
@@ -239,7 +235,7 @@ elseif (end%status == dead$) then
     call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
     !unset
     call offset_particle(ele, param, end, unset$, set_canonical = .false., &
-       reversed = end%p0c < 0, ds_pos = end%s - (ele%s - ele%value(l$)) )
+                                        ds_pos = end%s - (ele%s - ele%value(l$)) )
 
 elseif (end%status == outside$ .and. end%p0c > 0) then
   p0c = ele%value(p0c$)
@@ -248,8 +244,7 @@ elseif (end%status == outside$ .and. end%p0c > 0) then
   call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
   call apply_element_edge_kick (start2, ele, param, exit_end$)
   !unset
-  call offset_particle(ele, param, end, unset$, set_canonical = .false., &
-       reversed = .false. ) 
+  call offset_particle(ele, param, end, unset$, set_canonical = .false.)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
