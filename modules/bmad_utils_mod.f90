@@ -285,14 +285,23 @@ real(rp), optional :: vec(:)
 
 !
 
-orb%vec = 0
-if (present(vec)) orb%vec = vec
+if (present(vec)) then
+  orb%vec = vec
+else
+  orb%vec = 0
+endif
 
 orb%spin      = 0
 orb%e_field_x = 0
 orb%e_field_y = 0
 orb%phase_x   = 0
 orb%phase_y   = 0
+orb%p0c       = 0
+orb%beta      = -1
+orb%charge    = 0
+orb%ix_z      = 0
+orb%ix_lost   = not_lost$
+orb%status    = 0
 
 end subroutine init_coord
 
@@ -2355,19 +2364,19 @@ end subroutine init_wake
 !   use bmad
 !
 ! Input:
-!   ele1 -- Ele_struct:
+!   ele1     -- Ele_struct:
 !     %key
 !     %sub_key
-!   ele2 -- Ele_struct:
+!   ele2     -- Ele_struct:
 !     %key
 !     %sub_key
 !   create_em_field_slave
-!                   -- Logical, optional: Default is False. If True then ele3%key
-!                       will be set to em_field.
+!            -- Logical, optional: Default is False. If True then ele3%key
+!                     will be set to em_field.
 !
 ! Output:
 !   ele3 -- Ele_struct:
-!     %key
+!     %key        -- Set to -1 if there is an error
 !     %sub_key
 !-
 
@@ -2388,6 +2397,10 @@ key3 => ele3%key
 
 key3 = -1  ! Default if no superimpse possible
 ele3%sub_key = 0
+
+! Two lcavity elements cannot be superimposed
+
+if (key1 == lcavity$ .and. key2 == lcavity$) return
 
 ! control elements cannot be superimposed.
 

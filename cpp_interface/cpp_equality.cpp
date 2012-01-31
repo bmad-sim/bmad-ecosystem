@@ -61,7 +61,9 @@ bool is_all_equal (const Real_Matrix& v1, const Real_Matrix& v2) {
 
 bool operator== (const C_coord& x, const C_coord& y) {
   return is_all_equal(x.vec, y.vec) && (x.s == y.s) && (x.t == y.t) && (x.spin1 == y.spin1) && (x.spin2 == y.spin2) && 
-    (x.e_field_x == y.e_field_x) && (x.e_field_y == y.e_field_y) && (x.phase_x == y.phase_x) && (x.phase_y == y.phase_y);
+    (x.e_field_x == y.e_field_x) && (x.e_field_y == y.e_field_y) && (x.phase_x == y.phase_x) && (x.phase_y == y.phase_y) &&
+    (x.charge == y.charge) && (x.p0c == y.p0c) && (x.beta == y.beta) && (x.ix_z == y.ix_z) && 
+    (x.ix_lost == y.ix_lost) && (x.status == y.status);
 };
 
 bool operator== (const C_twiss& x, const C_twiss& y) {
@@ -172,7 +174,6 @@ bool operator== (const C_lat_param& x, const C_lat_param& y) {
          is_all_equal(x.t1_with_RF, y.t1_with_RF) && 
          is_all_equal(x.t1_no_RF, y.t1_no_RF) && 
          (x.particle == y.particle) && (x.ix_lost == y.ix_lost) && 
-         (x.end_lost_at == y.end_lost_at) && 
          (x.lattice_type == y.lattice_type) && 
          (x.ixx == y.ixx) && (x.stable == y.stable) && 
          (x.aperture_limit_on == y.aperture_limit_on) && (x.lost == y.lost);

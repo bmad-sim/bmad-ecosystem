@@ -63,16 +63,18 @@ void matrix_to_array (const Real_Matrix& mat, double* arr) {
 //---------------------------------------------------------------------------
 // Coord
 
-extern "C" void coord_to_f2_(coord_struct*, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void coord_to_f2_(coord_struct*, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, 
+                                            Int&, Int&, Int&);
 
 extern "C" void coord_to_f_(C_coord& c, coord_struct* f) {
   coord_to_f2_(f, &c.vec[0], c.s, c.t, c.spin1.real(), c.spin1.imag(), c.spin2.real(), c.spin2.imag(), 
-                c.e_field_x, c.e_field_y, c.phase_x, c.phase_y);
+                c.e_field_x, c.e_field_y, c.phase_x, c.phase_y, c.charge, c.p0c, c.beta, c.ix_z, c.ix_lost, c.status);
 }
 
 extern "C" void coord_to_c2_(C_coord& c, ReArr vec, Re& s, Re& t, Re& sp1_re, Re& sp1_im, Re& sp2_re, Re& sp2_im, 
-                             Re& field_x, Re& field_y, Re& p_x, Re& p_y) {
-  c = C_coord(vec, s, t, Complx(sp1_re, sp1_im), Complx(sp2_re, sp2_im), field_x, field_y, p_x, p_y);
+                             Re& field_x, Re& field_y, Re& p_x, Re& p_y, Re& charg, Re& pc, Re& bet, 
+                             Int& ixz, Int& ixl, Int& stat) {
+  c = C_coord(vec, s, t, Complx(sp1_re, sp1_im), Complx(sp2_re, sp2_im), field_x, field_y, p_x, p_y, charg, pc, bet, ixz, ixl, stat);
 }
 
 void operator>> (C_coord& c, coord_struct* f) {

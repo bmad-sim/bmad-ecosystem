@@ -21,7 +21,7 @@ use definition, only: genfield, fibre
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 103
+integer, parameter :: bmad_inc_version$ = 104
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -49,22 +49,29 @@ real(rp), parameter :: mass_of(-3:3) = [m_muon, m_proton, m_electron, 0.0_rp, m_
 
 ! coordinate def
 
-type coord_struct                ! Particle coordinates at a single point
-  real(rp) :: vec(6) = 0         ! (x, px, y, py, z, pz)
-  real(rp) :: s = 0              ! Longitudinal position 
-  real(rp) :: t = 0              ! Absolute time (not relative to reference).
-  complex(rp) :: spin(2) = 0     ! Spin in spinor notation
-  real(rp) :: e_field_x = 0      ! Photon field intensity, x-axis component
-  real(rp) :: e_field_y = 0      ! Photon field intensity, y-axis component
-  real(rp) :: phase_x = 0        ! Photon phase, x-axis component
-  real(rp) :: phase_y = 0        ! Photon phase, y-axis component
+integer, parameter :: not_lost$ = -1
+
+type coord_struct                 ! Particle coordinates at a single point
+  real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
+  real(rp) :: s = 0               ! Longitudinal position 
+  real(rp) :: t = 0               ! Absolute time (not relative to reference).
+  complex(rp) :: spin(2) = 0      ! Spin in spinor notation
+  real(rp) :: e_field_x = 0       ! Photon field intensity, x-axis component
+  real(rp) :: e_field_y = 0       ! Photon field intensity, y-axis component
+  real(rp) :: phase_x = 0         ! Photon phase, x-axis component
+  real(rp) :: phase_y = 0         ! Photon phase, y-axis component
+  real(rp) charge                 ! charge in a particle (Coul).
+  real(rp) :: p0c                 ! Reference momentum. Negative means going backwards.
+  real(rp) :: beta = -1           ! Velocity / c_light
+  integer :: ix_z = 0             ! Index for ordering the particles longitudinally.
+                                  !   particle(1)%ix_z is index of head particle.
+  integer :: ix_lost = not_lost$  ! Index of element particle was lost at.
+  integer :: status = 0           ! inside$, outside$, dead$
 end type
 
 type coord_array_struct
   type (coord_struct), allocatable :: orb(:)
 end type
-
-integer, parameter :: not_lost$ = -1
 
 integer, parameter :: mesh_surface$ = 1, linear_surface$ = 2
 
@@ -382,17 +389,14 @@ type lat_param_struct
   real(rp) :: t1_with_RF(6,6) = 0           ! Full 1-turn matrix with RF on.
   real(rp) :: t1_no_RF(6,6) = 0             ! Full 1-turn matrix with RF off.
   integer :: particle = positron$           ! positron$, electron$, etc.
-  integer :: ix_lost = not_lost$            ! Index of element particle was lost at.
-  integer :: particle_at = 0                ! between_ends$, live$, entrance_end$, or exit_end$
-  integer :: plane_lost_at = 0              ! x_plane$, y_plane$, z_plane$ (reversed direction).
   integer :: lattice_type = 0               ! linear_lattice$, etc...
   integer :: ixx = 0                        ! Integer for general use
-  logical :: particle_is_reversed = .false. ! Particle being tracked going in reversed direction?
-  logical :: particle_is_alive = .true.     ! Particle being tracked is alive?
   logical :: stable = .false.               ! is closed lat stable?
   logical :: aperture_limit_on = .true.     ! use apertures in tracking?
-  logical :: lost = .false.                 ! Particle alive and moving forward.
   type (bookkeeper_status_struct) status    ! Overall status for the branch.
+  integer :: ix_lost = not_lost$            ! Index of element particle was lost at.
+  integer :: plane_lost_at = 0              ! x_plane$, y_plane$, z_plane$ (reversed direction).
+  logical :: lost = .false.                 ! Particle alive and moving forward.
 end type
 
 !
@@ -755,11 +759,12 @@ character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ',
 ! ele%aperture_at logical definitions.
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
-integer, parameter :: no_end$ = 4, continuous$ = 5, between_ends$ = 6, alive$ = 7
+integer, parameter :: no_end$ = 4, continuous$ = 5, inside$ = 6, dead$ = 7, outside$ = 8
 integer, parameter :: lost$ = 10
-character(16), parameter :: element_end_name(0:7) = [ &
+character(16), parameter :: element_end_name(0:8) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ', 'Continuous   ', 'Between_Ends ', 'Alive        ']
+      'No_End       ', 'Continuous   ', 'Inside       ', 'Dead         ', &
+      'Outside      ']
 
 ! ref_orbit values.
 

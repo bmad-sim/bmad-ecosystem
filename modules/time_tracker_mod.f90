@@ -349,7 +349,7 @@ write(time_file_unit, '(i8)') n_particle
 
 !Write out all particles to file
 do i = 1, n_particle
-  orb = bunch%particle(i)%r
+  orb = bunch%particle(i)
   
   !Get time to track backwards by
   dt = orb%t - bunch%t_center

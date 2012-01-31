@@ -60,6 +60,9 @@ if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_m
 
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
+call convert_pc_to (branch%ele(0)%value(p0c$) * (1 + orbit(0)%vec(6)), branch%param%particle, beta = orbit(0)%beta)
+orbit(0)%p0c = branch%ele(0)%value(p0c$)
+
 ! track through elements.
 
 do n = 1, branch%n_ele_track

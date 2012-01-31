@@ -64,7 +64,7 @@ logical, optional :: err
 
 if (present(err)) err = .true.
 
-!If unit number is zero, make a new file
+! If unit number is zero, make a new file
 if (opal_file_unit == 0 ) then
   ! Open the file
   iu = lunget()  
@@ -79,24 +79,24 @@ else
 endif
 
 
-!OPAL formatting characters
+! OPAL formatting characters
 comment_char = '//'
 continue_char = ''
 eol_char = ';'
 
 
-!Elements to write
-!Loop over all track and lord elements
+! Elements to write
+! Loop over all track and lord elements
 ix_start = 1
 ix_end = lat%n_ele_max
 
-!Check order
+! Check order
 if (ix_start > ix_end) then
   call out_io (s_error$, r_name, 'Bad index range')
   return
 endif
 
-!Initialize unique name list
+! Initialize unique name list
 n = ix_end - ix_start + 1
 allocate ( ele_names%names(n) ) 
 allocate ( ele_names%indexx(n) )
@@ -105,7 +105,7 @@ ele_names%n_max = 0
 ele_name_occurrences = 0
 
 
-!Initialize fieldgrid filename list
+! Initialize fieldgrid filename list
 n = ix_end - ix_start + 1
 allocate ( fieldgrid_names%names(n) ) 
 allocate ( fieldgrid_names%indexx(n) )
@@ -122,68 +122,68 @@ write (iu, '(3a)') comment_char, ' Bmad Lattice File: ', trim(lat%input_file_nam
 write (iu, '(3a)') comment_char, ' Bmad Lattice Name: ', trim(lat%lattice)
 write (iu, *)
 
-!Helper variables
-!sign of particle charge
+! Helper variables
+! sign of particle charge
 q_sign = sign(1,  charge_of(lat%param%particle) ) 
 
-!Loop over all elements
+! Loop over all elements
 ele_loop: do ie = ix_start, ix_end
   ele => lat%ele(ie)
   
-  !Skip these elements:
+  ! Skip these elements:
   if (ele%slave_status == super_slave$ .or. &
       ele%slave_status == multipass_slave$ .or. &
       ele%key == girder$ .or. &
       ele%key == overlay$ .or. &
       ele%key == group$) cycle
   
-  !point to value array for convenience
+  ! point to value array for convenience
   val => ele%value
   
-  !Clean up "#" and "\" symbols in element name
+  ! Clean up "#" and "\" symbols in element name
   call str_substitute (ele%name, "#", "_part_")
-  call str_substitute (ele%name, "\", "_and_")
+  call str_substitute (ele%name, "\", "_and_")  ! "
   
-  !Make unique names  
+  ! Make unique names  
   call find_indexx (ele%name, ele_names, ix_match)
   if (ix_match > 0) then
     ele_name_occurrences(ix_match) = ele_name_occurrences(ix_match) + 1
-    !Replace ele%name with a unique name
+    ! Replace ele%name with a unique name
     write(ele%name, '(2a,i0)') trim(ele%name), '_', ele_name_occurrences(ix_match) 
-    !Be careful with this internal write statement
-    !This only works because ele%name is first in the write list
+    ! Be careful with this internal write statement
+    ! This only works because ele%name is first in the write list
   end if
-  !add name to list  
+  ! add name to list  
   call find_indexx (ele%name, ele_names, ix_match, add_to_list = .true.)
   ele_names%n_max = ele_names%n_max + 1
 
-  !Format for numbers
+  ! Format for numbers
   rfmt = 'es13.5'
 
 
   !----------------------------------------------------------
   !----------------------------------------------------------
-  !Element attributes
+  ! Element attributes
   select case (ele%key)
 
   !----------------------------------------------------------
-  !Marker -----------------------------------
+  ! Marker -----------------------------------
   !----------------------------------------------------------
     case (marker$)
         write (line, '(a)' ) trim(ele%name) // ': marker'
-      !Write ELEMEDGE
+      ! Write ELEMEDGE
       call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
-  !Drift -----------------------------------   
+  ! Drift -----------------------------------   
   !----------------------------------------------------------
      case (drift$, pipe$, instrument$)
         write (line, '(a, ' // rfmt //')' ) trim(ele%name) // ': drift, l =', val(l$)
-      !Write ELEMEDGE
+      ! Write ELEMEDGE
       call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
-  !Sbend -----------------------------------       
+  ! Sbend -----------------------------------       
   !----------------------------------------------------------
   case (sbend$)
 	write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(l$)
@@ -199,16 +199,16 @@ ele_loop: do ie = ix_start, ix_end
   open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
   call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
   close(iu_fieldgrid)
-  !Add FMAPFN to line
+  ! Add FMAPFN to line
         write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
-  !elemedge
+  ! elemedge
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
   !----------------------------------------------------------
-  !Solenoid -----------------------------------       
+  ! Solenoid -----------------------------------       
   !----------------------------------------------------------
   case (solenoid$)
-  !Check that there is a map or grid associated to make a decent field grid for OPAL
+  ! Check that there is a map or grid associated to make a decent field grid for OPAL
   if (.not. associated(ele%em_field)  )then
     call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key))
     if (bmad_status%exit_on_error) call err_exit
@@ -216,35 +216,35 @@ ele_loop: do ie = ix_start, ix_end
     
     write (line, '(a, '//rfmt//')') trim(ele%name) // ': solenoid, l =', val(l$)
 
-    !Get field grid name and scaling. This writes the file if needed. 
+    ! Get field grid name and scaling. This writes the file if needed. 
 
     call get_opal_fieldgrid_name_and_scaling(&
 	   ele, lat%param, fieldgrid_names, &
 	   fieldgrid_output_name, absmax_bz)
 
-   !Add FMAPFN to line
+   ! Add FMAPFN to line
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
 
-    !ks field strength TODO: check specification. Seems to be Tesla
+    ! ks field strength TODO: check specification. Seems to be Tesla
     call value_to_line (line, absmax_bz, 'ks', rfmt, 'R')
 
-  !elemedge
+  ! elemedge
     call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)    
     
   !----------------------------------------------------------
-  !Quadrupole -----------------------------------   
+  ! Quadrupole -----------------------------------   
   !----------------------------------------------------------
      case (quadrupole$)
         write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
-        !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
+        ! Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
         call value_to_line (line, q_sign*val(b1_gradient$), 'k1', rfmt, 'R')
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
     
   !----------------------------------------------------------
-  !Lcavity, RFCavity, E_gun -----------------------------------
+  ! Lcavity, RFCavity, E_gun -----------------------------------
   !----------------------------------------------------------
     case (lcavity$, rfcavity$, e_gun$)
-    !Check that there is a map or grid associated to make a decent field grid for OPAL
+    ! Check that there is a map or grid associated to make a decent field grid for OPAL
     if (.not. associated(ele%em_field)  )then
       call out_io (s_error$, r_name, 'No em_field for: ' // key_name(ele%key))
       if (bmad_status%exit_on_error) call err_exit
@@ -258,67 +258,67 @@ ele_loop: do ie = ix_start, ix_end
       
     write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "STANDING", l =', val(l$)
 
-    !Get field grid name and scaling. This writes the file if needed. 
+    ! Get field grid name and scaling. This writes the file if needed. 
     call get_opal_fieldgrid_name_and_scaling(&
 	   ele, lat%param, fieldgrid_names,  &
 	   fieldgrid_output_name, absmax_ez)
 
-   !Add FMAPFN to line
+   ! Add FMAPFN to line
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
   
-    !Write field scaling in MV/m
+    ! Write field scaling in MV/m
     call value_to_line (line, 1e-6*absmax_ez, 'volt', rfmt, 'R')
   
-    !Write frequency in MHz
+    ! Write frequency in MHz
     call value_to_line (line, 1e-6*ele%em_field%mode(1)%freq, 'freq', rfmt, 'R')
   
-    !Write phase in rad
+    ! Write phase in rad
     phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
-    !OPAL only autophases for maximum acceleration, so adjust the lag for 'zero-crossing' 
+    ! OPAL only autophases for maximum acceleration, so adjust the lag for 'zero-crossing' 
     if (ele%key == rfcavity$) phase_lag = phase_lag + twopi*( ele%value(dphi0_max$) - ele%em_field%mode(1)%dphi0_ref )
-    !The e_gun needs phase_lag to be pi/2 for some reason
+    ! The e_gun needs phase_lag to be pi/2 for some reason
     if (ele%key == e_gun$) phase_lag = pi/2
     call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
  
-    !Write ELEMEDGE
+    ! Write ELEMEDGE
     call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
       
 
   !----------------------------------------------------------
-  !Default -----------------------------------
+  ! Default -----------------------------------
   !----------------------------------------------------------
      case default
         call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
              'CONVERTING TO DRIFT')
         write (line, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
-        !Write ELEMEDGE
+        ! Write ELEMEDGE
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R',ignore_if_zero = .false.)
   end select
   
-  !type (general attribute)
-  !if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
+  ! type (general attribute)
+  ! if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
   
-  !end line
+  ! end line
   write (line, '(2a)') trim(line), trim(eol_char)
 
-  !call write_opal_field_map()
+  ! call write_opal_field_map()
 
   !----------------------------------------------------------
   !----------------------------------------------------------
 
 
-  !Finally write out line
+  ! Finally write out line
   call write_lat_line (line, iu, .true., continue_char = continue_char )  
 enddo ele_loop
 
 
-!Write lattice line
+! Write lattice line
 write (iu, *)
 line = 'lattice: line = ('
 
 lat_loop: do ie = ix_start, ix_end
   ele => lat%ele(ie)
-  !Skip these elements:
+  ! Skip these elements:
   if (ele%slave_status == super_slave$ .or. &
       ele%slave_status == multipass_slave$ .or. &
       ele%key == girder$ .or. &
@@ -328,13 +328,13 @@ lat_loop: do ie = ix_start, ix_end
   write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
   if (len_trim(line) > 80) call write_lat_line(line, iu, .false., continue_char = continue_char)
 enddo lat_loop    
-!write closing parenthesis
+! write closing parenthesis
 line = line(:len_trim(line)-1) // ')' // eol_char
 call write_lat_line (line, iu, .true., continue_char = continue_char)
 
 
 
-!Cleanup
+! Cleanup
 deallocate ( ele_names%names ) 
 deallocate ( ele_names%indexx )
 deallocate ( ele_name_occurrences )
@@ -390,17 +390,17 @@ integer :: ix_match, iu_fieldgrid, ios
 
 output_name = ''
 
-!Check field map file. If file has not been written, create a new file. 
+! Check field map file. If file has not been written, create a new file. 
 call find_indexx (ele%em_field%mode(1)%grid%file, name_indexx, ix_match)
-!Check for match with existing grid
+! Check for match with existing grid
 if (ix_match > 0) then
-  !File should exist  
+  ! File should exist  
   write(output_name, '(a, i0, a)') 'fieldgrid_', ix_match, '.t7'
-  !Call with iu=0 to get field_scale
+  ! Call with iu=0 to get field_scale
   call write_opal_field_grid_file (0, ele, param, field_scale)
 else
-  !File does not exist.
-  !Add name to list  
+  ! File does not exist.
+  ! Add name to list  
   call find_indexx (ele%em_field%mode(1)%grid%file, name_indexx, ix_match, add_to_list = .true.)
   name_indexx%n_max = name_indexx%n_max + 1
   ix_match = name_indexx%n_max
@@ -475,11 +475,11 @@ if (present(err)) err = .true.
 
 loc_ref_frame = .true. 
 
-!Format for numbers
+! Format for numbers
   rfmt = 'es13.5'
 
 
-!TODO: pass these parameters in somehow
+! TODO: pass these parameters in somehow
 x_step = 0.001_rp
 z_step = 0.001_rp
 
@@ -496,14 +496,14 @@ nz = ceiling(z_max/z_step)
 select case (ele%key)
 
 !-----------
-!LCavity, RFCavity, E_GUN
+! LCavity, RFCavity, E_GUN
 !-----------
 case (lcavity$, rfcavity$, e_gun$) 
                                          
   freq = ele%em_field%mode(1)%freq
- ! if (freq .eq. 0) freq = 1e-30_rp !To prevent divide by zero
+ ! if (freq .eq. 0) freq = 1e-30_rp ! To prevent divide by zero
 
-  !Example:
+  ! Example:
   !2DDynamic XZ
   !0.  100.955  743   #zmin(cm),  zmax(cm).   nz - 1
   !1300.              #freq (MHz)
@@ -511,11 +511,11 @@ case (lcavity$, rfcavity$, e_gun$)
   !
   !-547.601  -9.64135  0  -20287.798905810083   ! Ez(t0), Er(t0), dummy->0.0, -10^6 / mu_0 * B_phi (t + 1/4 1/f) 
 
-  !Allocate temporary pt array
+  ! Allocate temporary pt array
   allocate ( pt(0:nx, 0:nz, 1:1) )
-  !Write data points
+  ! Write data points
   
-  !initialize maximum found field
+  ! initialize maximum found field
   maxfield = 0
   
   do ix = 0, nx
@@ -525,9 +525,9 @@ case (lcavity$, rfcavity$, e_gun$)
       orb%vec(1) = x
       orb%vec(3) = 0.0_rp
       
-      !Calculate field at \omegat*t=0 and \omega*t = \pi/2 to get real and imaginary parts
+      ! Calculate field at \omegat*t=0 and \omega*t = \pi/2 to get real and imaginary parts
       call em_field_calc (ele, param, z, 0.0_rp,     orb, loc_ref_frame, field_re)
-      !if frequency is zero, zero out field_im
+      ! if frequency is zero, zero out field_im
       if(freq == 0) then
         field_im%E=0
         field_im%B=0
@@ -538,8 +538,8 @@ case (lcavity$, rfcavity$, e_gun$)
       pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
       pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
       
-      !Update ref_field if larger Ez is found
-      !TODO: Opal may use Ex as well for scaling. Check this. 
+      ! Update ref_field if larger Ez is found
+      ! TODO: Opal may use Ex as well for scaling. Check this. 
       if(abs(pt(ix, iz, 1)%E(3)) > maxfield) then
          ref_field = pt(ix, iz, 1)
          maxfield = abs(ref_field%E(3))
@@ -550,19 +550,19 @@ case (lcavity$, rfcavity$, e_gun$)
   ! Write to file
   if (opal_file_unit > 0 )  then
 
-    !Write header
+    ! Write header
     write (opal_file_unit, '(3a)') ' 2DDynamic XZ', '  # Created from ele: ', trim(ele%name)
     write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*z_min, 100*nz*z_step, nz, '  # z_min (cm), z_max (cm), n_z_points -1'
     write (opal_file_unit, '('//rfmt//', a)') 1e-6 * freq, '  # frequency (MHz)'
     write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '  # x_min (cm), x_max (cm), n_x_points -1'
 
-    !Scaling for T7 format
+    ! Scaling for T7 format
     Ex_factor = (1/maxfield)
     Ez_factor = (1/maxfield)
     By_factor = -(1/maxfield)*1e6_rp / ( fourpi * 1e-7)
 
   
-    !Calculate complex rotation number to rotate Ez onto the real axis
+    ! Calculate complex rotation number to rotate Ez onto the real axis
     phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
     phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref))
   
@@ -582,22 +582,22 @@ case (lcavity$, rfcavity$, e_gun$)
    deallocate(pt)
 
   !-----------
-  !Solenoid
+  ! Solenoid
   !-----------
-  !Note: This is similar to code for lcavity/rfcavity
+  ! Note: This is similar to code for lcavity/rfcavity
   case (solenoid$) 
                                          
-  !Example:
+  ! Example:
   !2DMagnetoStatic ZX
   !0.0 2.0 199  # rmin(cm),  rmax(cm),   nr-1
   !-3.0 51.0 4999 #zmin(cm),  zmax(cm).   nz - 1
   !0.00000e+00 0.00000e+00    ! B_r, B_z 
 
-  !Allocate temporary pt array
+  ! Allocate temporary pt array
   allocate ( pt(0:nx, 0:nz, 1:1) )
-  !Write data points
+  ! Write data points
   
-  !initialize maximum found field
+  ! initialize maximum found field
   maxfield = 0
   
   do ix = 0, nx
@@ -614,8 +614,8 @@ case (lcavity$, rfcavity$, e_gun$)
       pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
       pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
       
-      !Update ref_field if larger Bz is found
-      !OPAL normalizes the map to the maximum Bz
+      ! Update ref_field if larger Bz is found
+      ! OPAL normalizes the map to the maximum Bz
       if(abs(pt(ix, iz, 1)%B(3)) > maxfield) then
          ref_field = pt(ix, iz, 1)
          maxfield = abs(ref_field%B(3))
@@ -628,16 +628,16 @@ case (lcavity$, rfcavity$, e_gun$)
   ! Write to file
   if (opal_file_unit > 0 )  then
 
-    !Write header
+    ! Write header
     write (opal_file_unit, '(3a)') ' 2DMagnetoStatic XZ', '  # Created from ele: ', trim(ele%name)
     write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*z_min, 100*nz*z_step, nz, '  # z_min (cm), z_max (cm), n_z_points -1'
     write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '  # x_min (cm), x_max (cm), n_x_points -1'
 
-    !Scaling for T7 format
+    ! Scaling for T7 format
    Bx_factor = 1
    Bz_factor = 1
     
-    !XZ ordering: ix changes fastest (inner loop)
+    ! XZ ordering: ix changes fastest (inner loop)
     do ix = 0, nx
       do iz = 0, nz
         write (opal_file_unit, '(2'//rfmt//')') , &
@@ -648,16 +648,16 @@ case (lcavity$, rfcavity$, e_gun$)
   
   end if
 
-  !cleanup 
+  ! cleanup 
    deallocate(pt)
 
 
   !-----------
-  !SBend
+  ! SBend
   !-----------
   case (sbend$)
   
-  !Example:
+  ! Example:
   !1DProfile1 1 2 3.0   #Enge coefficient type map, entrance order, exit order, full gap (cm)
   ! -6.0  2.0  2.0 1000 #entrance positions, relative to elemedge: enge start(cm), enge origin (cm), enge end (cm), unused number
   ! 24.0 28.0 32.0 0    #exit     positions, relative to elemedge: enge start(cm), enge origin (cm), enge end (cm), unused number
@@ -665,33 +665,33 @@ case (lcavity$, rfcavity$, e_gun$)
   ! 1e-6  #coefficient 1 for exit
   ! 2e-6  #coefficient 2 for exit
 
-  !TODO:
-  !Only a simple order 1 map will be used in this routine. Dummy numbers will be used. 
+  ! TODO:
+  ! Only a simple order 1 map will be used in this routine. Dummy numbers will be used. 
   gap = 0.02_rp
   
-  !maxfield isn't used for this type of map
+  ! maxfield isn't used for this type of map
   maxfield = 0
 
 
   ! Write to file
   if (opal_file_unit > 0 )  then
-    !Write header
+    ! Write header
     write (opal_file_unit, '(a,'//rfmt//', 2a )' ) '1DProfile1 1 1 ', 100*gap, '  # Created from ele: ', trim(ele%name)
     write (opal_file_unit, '(3'//rfmt//', i8, a)') -100*gap, 0, 100*gap, 666,  &
           ' #entrance: edge start(cm), edge center(cm), edge end(cm), unusued'
     write (opal_file_unit, '(3'//rfmt//', i8, a)') 100*(ele%value(L$) - gap) , 100*ele%value(L$), 100*(ele%value(L$) + gap), 666,  &
           ' #exit:     edge start(cm), edge center(cm), edge end(cm), unusued'
-    !Entrance coefficients
-    write (opal_file_unit, '('//rfmt//')') 0     !TODO: The specification for these is unknown!
+    ! Entrance coefficients
+    write (opal_file_unit, '('//rfmt//')') 0     ! TODO: The specification for these is unknown!
     write (opal_file_unit, '('//rfmt//')') 1/gap
-    !Exit coefficients
+    ! Exit coefficients
     write (opal_file_unit, '('//rfmt//')') 0
     write (opal_file_unit, '('//rfmt//')') 1/gap
   end if
 
 
   !-----------
-  !Default (gives an error)
+  ! Default (gives an error)
   !-----------
   case default
   call out_io (s_error$, r_name, 'MISSING OPAL FIELD GRID CODE FOR: ' // key_name(ele%key), &
@@ -758,40 +758,40 @@ integer n_particle, i
 !
 if (present(err)) err = .true.
 
-!TODO: Check that weights are all the same
+! TODO: Check that weights are all the same
 
 n_particle = size(bunch%particle)
 
-!Format for numbers
+! Format for numbers
   rfmt = 'es13.5'
 
-!Write number of particles to first line
+! Write number of particles to first line
 write(opal_file_unit, '(i8)') n_particle
 
 !\gamma m c
 
-!Write out all particles to file
+! Write out all particles to file
 do i = 1, n_particle
-  orb = bunch%particle(i)%r
+  orb = bunch%particle(i)
   
-  !Get time to track backwards by
+  ! Get time to track backwards by
   dt = orb%t - bunch%t_center
   
-  !Get pc before conversion
+  ! Get pc before conversion
   pc = (1+orb%vec(6))*p0c 
   
-  !convert to time coordinates
+  ! convert to time coordinates
   call convert_particle_coordinates_s_to_t (orb, p0c)
   
-  !get \gamma m c
+  ! get \gamma m c
   gmc = sqrt(pc**2 + mc2**2) / c_light
   
   !'track' particles backwards in time and write to file
-  write(opal_file_unit, '(6'//rfmt//')') orb%vec(1) - dt*orb%vec(2)/gmc, &   !x - dt mc2 \beta_x \gamma / \gamma m c
+  write(opal_file_unit, '(6'//rfmt//')') orb%vec(1) - dt*orb%vec(2)/gmc, &   ! x - dt mc2 \beta_x \gamma / \gamma m c
                                          orb%vec(2) / mc2, &
-                                         orb%vec(3) - dt*orb%vec(4)/gmc, &   !y - dt mc2 \beta_y \gamma / \gamma m c
+                                         orb%vec(3) - dt*orb%vec(4)/gmc, &   ! y - dt mc2 \beta_y \gamma / \gamma m c
                                          orb%vec(4) / mc2, &
-                                         orb%vec(5) - dt*orb%vec(6)/gmc, &   !s - dt mc2 \beta_s \gamma / \gamma m c
+                                         orb%vec(5) - dt*orb%vec(6)/gmc, &   ! s - dt mc2 \beta_s \gamma / \gamma m c
                                          orb%vec(6) / mc2
 end do 
 

@@ -8,20 +8,20 @@
 !   use bmad
 !
 ! Input:
-!   start_orb  -- Coord_struct: Starting position.
-!   ele    -- Ele_struct: Element to track through.
-!   param  -- lat_param_struct:
+!   start_orb -- Coord_struct: Starting position.
+!   ele       -- Ele_struct: Element to track through.
+!   param     -- lat_param_struct:
 !     %aperture_limit_on -- If True check if particle is lost by going outside
 !                of the element aperture. 
 !
 ! Output:
+!   start_orb -- Coord_struct: Starting position with %p0c and %beta corrected.
 !   end_orb   -- Coord_struct: End position.
 !   param
 !     %lost          -- Set True If the particle cannot make it through an element.
 !                         Set False otherwise.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
-!     %particle_at   -- entrance_end$ or exit_end$.
 !   track     -- track_struct, optional: Structure holding the track information if the 
 !                  tracking method does tracking step-by-step.
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.
@@ -48,8 +48,6 @@ type (ele_struct)   :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
-real(rp) beta, beta_start
-
 integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
@@ -61,6 +59,15 @@ logical err
 
 if (present(err_flag)) err_flag = .true.
 
+! Correct start_orb %beta and %p0c
+
+if (ele_has_constant_reference_energy(ele)) then
+  call convert_pc_to (ele%value(p0c$) * (1 + start_orb%vec(6)), param%particle, beta = start_orb%beta)
+else
+  call convert_pc_to (ele%value(p0c_start$) * (1 + start_orb%vec(6)), param%particle, beta = start_orb%beta)
+endif
+start_orb%p0c = ele%value(p0c$)
+  
 ! custom
 
 if (ele%tracking_method == custom$) then
@@ -80,8 +87,9 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
                 call check_aperture_limit (start_orb, ele, entrance_end$, param)
 if (param%lost) then
-  param%particle_at = entrance_end$
-  call init_coord (end_orb)      ! it never got to the end so zero this.
+  end_orb = start_orb
+  end_orb%status = dead$
+  if (present(err_flag)) err_flag = .false.
   return
 endif
 
@@ -105,7 +113,7 @@ case (bmad_standard$)
   call track1_bmad (orb, ele, param, end_orb)
 
 case (custom$)
-  call track1_custom (start_orb, ele, param, end_orb, err, track)
+  call track1_custom (orb, ele, param, end_orb, err, track)
   if (err) return
 
 case (runge_kutta$) 
@@ -152,17 +160,19 @@ end select
 ! s and time update
 
 if (tracking_method /= time_runge_kutta$) then
-  end_orb%s = ele%s
 
   if (ele_has_constant_reference_energy(ele)) then
-    call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = beta)
-    end_orb%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - end_orb%vec(5)) / (beta * c_light)
+    end_orb%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - end_orb%vec(5)) / &
+                                                                                   (end_orb%beta * c_light)
   else
-    call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = beta)
-    call convert_pc_to (ele%value(p0c_start$) * (1 + start_orb%vec(6)), param%particle, beta = beta_start)
+    call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
     end_orb%t = start_orb%t + ele%value(delta_ref_time$) + &
-                            start_orb%vec(5) / (beta_start * c_light) - end_orb%vec(5) / (beta * c_light)
+                            start_orb%vec(5) / (orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
   endif
+
+  end_orb%s = ele%s
+  end_orb%p0c = ele%value(p0c$)
+
 endif
 
 ! Radiation damping and/or fluctuations for the last half of the element
@@ -186,17 +196,15 @@ if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end_orb)
 if (.not. param%lost) then
   if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) then
     call check_aperture_limit (end_orb, ele, exit_end$, param)
-    if (param%lost) param%particle_at = exit_end$
   endif
 endif
 
-if (param%lost .and. param%particle_at == alive$) then
+if (end_orb%p0c < 0 .and. end_orb%status /= dead$) then
   param%lost = .false. ! Temp
   if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
                   call check_aperture_limit (start_orb, ele, entrance_end$, param)
   if (param%lost) then
-    param%particle_at = entrance_end$
-    call init_coord (end_orb)      ! it never got to the end so zero this.
+    end_orb%status = dead$
   endif
   param%lost = .true.
 endif

@@ -44,7 +44,6 @@
 !     %ix_lost       -- Integer: Index of element where particle is lost.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                           z_plane$ (turned around in an lcavity).
-!     %particle_at    -- Either entrance_end$ or exit_end$.
 !   orbit(0:)    -- Coord_struct: Orbit. In particular orbit(ix_end) is
 !                       the coordinates at the end of tracking. 
 !-
@@ -82,6 +81,11 @@ n_ele_track = branch%n_ele_track
 ! track through elements.
 
 if (direction == +1) then
+
+  call convert_pc_to (branch%ele(ix_start)%value(p0c$) * (1 + orbit(ix_start)%vec(6)), &
+                                                  branch%param%particle, beta = orbit(ix_start)%beta)
+  orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
+
   if (ix_start < ix_end) then
     call track_fwd (ix_start+1, ix_end)
     return
@@ -96,6 +100,11 @@ if (direction == +1) then
   endif
 
 elseif (direction == -1) then
+
+  call convert_pc_to (branch%ele(ix_start)%value(p0c$) * (1 + orbit(ix_start)%vec(6)), &
+                                                  branch%param%particle, beta = orbit(ix_start)%beta)
+  orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
+
   if (ix_start > ix_end) then
     call track_back (ix_start, ix_end+1)
     return
@@ -131,13 +140,10 @@ do n = ix1, ix2
 
   if (branch%param%lost) then
     branch%param%ix_lost = n
-    if (branch%param%particle_at == exit_end$) then
+    if (orbit(n)%s == branch%ele(n)%s) then  ! Lost at exit end
       call zero_this_track (n+1, ix2)
-    elseif (branch%param%particle_at == entrance_end$) then
-      call zero_this_track (n, ix2)
     else
-      call out_io (s_abort$, r_name, 'INTERNAL ERROR')
-      if (bmad_status%exit_on_error) call err_exit
+      call zero_this_track (n, ix2)
     endif
     return
   endif
@@ -185,15 +191,10 @@ do n = ix1, ix2, -1
 
   if (branch%param%lost) then
     branch%param%ix_lost = n
-    if (branch%param%particle_at == exit_end$) then
-      branch%param%particle_at = entrance_end$
+    if (orbit(n-1)%s == ele%s) then
       call zero_this_track (ix2-1, n-2)
-    elseif (branch%param%particle_at == entrance_end$) then
-      branch%param%particle_at = exit_end$
-      call zero_this_track (ix2-1, n-1)
     else
-      call out_io (s_abort$, r_name, 'INTERNAL ERROR')
-      if (bmad_status%exit_on_error) call err_exit
+      call zero_this_track (ix2-1, n-1)
     endif
     ix_last = n-1
     exit

@@ -16,52 +16,6 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_particle (start, ele, param, end)
-!
-! Subroutine to track a particle through an element.
-!
-! Modules needed:
-!   use beam_mod
-!
-! Input:
-!   start  -- struct: Starting coords.
-!   ele    -- Ele_struct: Element to track through.
-!   param  -- lat_param_struct: Global parameters.
-!
-! Output:
-!   end    -- struct: Ending coords.
-!-
-
-subroutine track1_particle (start, ele, param, end)
-
-  implicit none
-
-  type (particle_struct) :: start
-  type (particle_struct) :: end
-  type (ele_struct) :: ele
-  type (lat_param_struct), intent(inout) :: param
-
-! transfer z-order index, charge, etc
-
-  end = start
-  if (start%ix_lost /= not_lost$) return
-  if (ele%key == marker$ .or. ele%key == photon_branch$ .or. ele%key == branch$) return
-
-  call track1 (start%r, ele, param, end%r)
-  if (param%lost) end%ix_lost = ele%ix_ele
-
-  if (end%ix_lost /= not_lost$) then
-    end%r%vec = 0
-    end%charge = 0
-    return
-  endif
-
-end subroutine
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end)
 !
 ! Subroutine to track a bunch of particles through an element.
@@ -111,7 +65,7 @@ if (ele%key /= lcavity$ .or. .not. associated(ele%rf_wake) .or. &
             (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
   do j = 1, size(bunch_start%particle)
-    call track1_particle (bunch_start%particle(j), ele, param, bunch_end%particle(j))
+    call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
   enddo
 
 
@@ -129,7 +83,7 @@ endif
 ! wakes applied in cononical coords so don't do canonical coord conversion
 
 do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, param, bunch_end%particle(i)%r, set$, set_canonical = .false.)
+  call offset_particle (ele, param, bunch_end%particle(i), set$, set_canonical = .false.)
 enddo
 
 ! Modify ele temporarily so we can track through half the cavity.
@@ -159,7 +113,7 @@ do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
   call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
-  call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
+  call track1 (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
 ele%value(grad_loss_sr_wake$) = 0.0
@@ -183,7 +137,7 @@ do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
   call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
-  call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
+  call track1 (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
 ele%value(grad_loss_sr_wake$) = 0.0
@@ -200,7 +154,7 @@ if (associated(a_pole_save)) ele%a_pole => a_pole_save
 ! Wakes applied in cononical coords so don't do canonical coord conversion
 
 do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, param, bunch_end%particle(i)%r, unset$, &
+  call offset_particle (ele, param, bunch_end%particle(i), unset$, &
       set_canonical = .false.)
 enddo
 
@@ -268,9 +222,9 @@ if (n_sr_table > 0) then
 
   do i = 1, num_in_front
     if (bunch%particle(bunch%particle(i)%ix_z)%ix_lost == not_lost$) &
-      call sr_table_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z)%r, &
+      call sr_table_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z), &
                bunch%particle(bunch%particle(i)%ix_z)%charge, &
-               bunch%particle(ix_follower)%r)
+               bunch%particle(ix_follower))
   enddo
 
 endif
@@ -302,8 +256,8 @@ implicit none
 
 type (bunch_struct), target :: bunch
 type (ele_struct) ele
-type (particle_struct), pointer :: particle, leader
-type (particle_struct), pointer :: p(:)
+type (coord_struct), pointer :: particle, leader
+type (coord_struct), pointer :: p(:)
 
 real(rp) dz_sr_table, sr02, z_sr_table_max
 integer i, j, k, i1, i2, i_sr_mode, n_sr_table, n_sr_mode_long, n_sr_mode_trans, k_start
@@ -323,7 +277,7 @@ call order_particles_in_z (bunch)
 if (size(ele%rf_wake%sr_mode_long) /= 0) then
   i1 = p(1)%ix_z 
   i2 = p(size(p))%ix_z
-  if (p(i1)%r%vec(5) - p(i2)%r%vec(5) > ele%rf_wake%z_sr_mode_max) then
+  if (p(i1)%vec(5) - p(i2)%vec(5) > ele%rf_wake%z_sr_mode_max) then
     call out_io (s_abort$, r_name, &
         'Bunch longer than sr_mode wake can handle for element: ' // ele%name)
     if (bmad_status%exit_on_error) call err_exit
@@ -360,14 +314,14 @@ do j = 1, size(p)
   k_start = i_sr_mode
   do k = k_start, j-1
     leader => p(p(k)%ix_z)
-    if ((particle%r%vec(5) - leader%r%vec(5)) > z_sr_table_max) then
+    if ((particle%vec(5) - leader%vec(5)) > z_sr_table_max) then
       ! use sr_table table to add to particle j the wake of particle k
-      call sr_table_apply_trans_kick (ele, leader%r, leader%charge, particle%r)
+      call sr_table_apply_trans_kick (ele, leader, leader%charge, particle)
     else
       ! add contribution of particle(k) to wake sums
       i_sr_mode = k  ! update i_sr_mode
-      call sr_mode_long_wake_add_to (ele, leader%r, leader%charge)
-      call sr_mode_trans_wake_add_to (ele, leader%r, leader%charge)
+      call sr_mode_long_wake_add_to (ele, leader, leader%charge)
+      call sr_mode_trans_wake_add_to (ele, leader, leader%charge)
     endif
   enddo
 
@@ -375,8 +329,8 @@ do j = 1, size(p)
 
   ! apply longitudinal self wake
 
-  call sr_mode_long_wake_apply_kick (ele, particle%charge, particle%r)
-  call sr_mode_trans_wake_apply_kick(ele, particle%r)
+  call sr_mode_long_wake_apply_kick (ele, particle%charge, particle)
+  call sr_mode_trans_wake_apply_kick(ele, particle)
 
 enddo
 
@@ -416,7 +370,7 @@ implicit none
 
 type (bunch_struct), target :: bunch
 type (ele_struct) ele
-type (particle_struct), pointer :: particle
+type (coord_struct), pointer :: particle
 
 integer n_mode, j, k
 
@@ -437,7 +391,7 @@ do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
   if (particle%ix_lost /= not_lost$) cycle
-  call lr_wake_apply_kick (ele, bunch%t_center, particle%r, particle%charge)
+  call lr_wake_apply_kick (ele, bunch%t_center, particle, particle%charge)
 enddo
 
 ! Add the wakes left by this bunch to the existing wakes.
@@ -446,7 +400,7 @@ do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
   if (particle%ix_lost /= not_lost$) cycle
-  call lr_wake_add_to (ele, bunch%t_center, particle%r, particle%charge)
+  call lr_wake_add_to (ele, bunch%t_center, particle, particle%charge)
 enddo
 
 end subroutine
@@ -466,7 +420,7 @@ end subroutine
 !
 ! Input:
 !   bunch     -- Bunch_struct: collection of particles.
-!     %particle(j)%r%vec(5) -- Longitudinal position of j^th particle.
+!     %particle(j)%vec(5) -- Longitudinal position of j^th particle.
 !
 ! Output:
 !   bunch     -- bunch_struct: collection of particles.
@@ -481,8 +435,8 @@ Subroutine order_particles_in_z (bunch)
 implicit none
 
 type (bunch_struct), target :: bunch
-type (particle_struct), pointer :: particle(:)
-type (particle_struct) temp
+type (coord_struct), pointer :: particle(:)
+type (coord_struct) temp
 integer i, k, nm, i0, i1
 real(rp) z1, z2
 logical ordered
@@ -502,7 +456,7 @@ do
   ordered = .true.
   do i = 1, nm-1
     i0 = particle(i)%ix_z; i1 = particle(i+1)%ix_z
-    if (particle(i0)%r%vec(5) < particle(i1)%r%vec(5)) then
+    if (particle(i0)%vec(5) < particle(i1)%vec(5)) then
       particle(i:i+1)%ix_z = particle(i+1:i:-1)%ix_z
       ordered = .false.
     endif
@@ -661,7 +615,7 @@ do i_bunch = 1, size(beam%bunch)
   bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
   bunch%ix_bunch = i_bunch
 
-  bunch%particle(:)%r%t = bunch%particle(:)%r%t + bunch%t_center
+  bunch%particle(:)%t = bunch%particle(:)%t + bunch%t_center
 
 enddo
   
@@ -723,7 +677,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (beam_init_struct), target :: beam_init
 type (bunch_struct), target :: bunch
-type (particle_struct), pointer :: p
+type (coord_struct), pointer :: p
 type (kv_beam_init_struct), pointer :: kv
 
 real(rp) beta(3), alpha(3), emit(3), covar
@@ -809,9 +763,9 @@ do i = 1, size(bunch%particle)
   p%charge = bunch%charge * p%charge
   p%ix_lost = not_lost$
   ! Include Dispersion
-  p%r%vec(1:4) =  p%r%vec(1:4) + p%r%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
+  p%vec(1:4) =  p%vec(1:4) + p%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
   ! Include Coupling
-  p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
+  p%vec(1:4) = matmul(v_mat, p%vec(1:4))
 enddo
 
 ! recenter the bunch and include beam jitter
@@ -831,16 +785,16 @@ call init_spin_distribution (beam_init, bunch)
 
 if (param%particle == photon$) then
   n = size(bunch%particle)
-  bunch%particle(1:n:2)%r%e_field_x = 1
-  bunch%particle(2:n:2)%r%e_field_y = 1
+  bunch%particle(1:n:2)%e_field_x = 1
+  bunch%particle(2:n:2)%e_field_y = 1
 endif
 
 ! Fill in %t and %s
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
-  p%r%s = ele%s
-  call convert_pc_to (ele%value(p0c$) * (1 + p%r%vec(6)), param%particle, beta = beta_vel)
-  p%r%t = ele%ref_time - p%r%vec(5) / (beta_vel * c_light)
+  p%s = ele%s
+  call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), param%particle, beta = beta_vel)
+  p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
 enddo
 
 end subroutine init_bunch_distribution
@@ -935,7 +889,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (beam_init_struct) beam_init
 type (bunch_struct), target :: bunch
-type (particle_struct), allocatable :: p(:)
+type (coord_struct), allocatable :: p(:)
   
 real(rp) dpz_dz, denom, emit(2)
 real(rp) a_emit, b_emit, y, a, b
@@ -968,7 +922,7 @@ sig_mat = 0
 ave = 0
 do n = 1, n_particle
   call ran_gauss(r)
-  p(n)%r%vec = r
+  p(n)%vec = r
   ave = ave + r
   forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
 enddo  
@@ -976,7 +930,7 @@ enddo
 ave = ave / n_particle
 sig_mat = sig_mat / n_particle
 
-! Now the distribution of particle(:)%r%vec(n) for fixed n has
+! Now the distribution of particle(:)%vec(n) for fixed n has
 ! on average, unit sigma and the distribution for n = n1 is uncorrelated
 ! with the distribution for n = n2, n1 /= n2.
 
@@ -988,7 +942,7 @@ sig_mat = sig_mat / n_particle
 ! Zero the average for now
 
 do n = 1, n_particle
-  p(n)%r%vec = p(n)%r%vec - ave
+  p(n)%vec = p(n)%vec - ave
 enddo
 
 ! renormalize the beam sigmas. Ignore if n_particle = 1.
@@ -1014,7 +968,7 @@ if (beam_init%renorm_sigma .and. n_particle > 1) then
       b = -sig_mat(i,j) / sig_mat(j,j)
       ! Transform the distribution
       do n = 1, n_particle
-        p(n)%r%vec(i) = p(n)%r%vec(i) + b * p(n)%r%vec(j)
+        p(n)%vec(i) = p(n)%vec(i) + b * p(n)%vec(j)
       enddo
       ! Since we have transformed the distribution we need to transform
       ! sig_mat to keep things consistant.
@@ -1032,7 +986,7 @@ if (beam_init%renorm_sigma .and. n_particle > 1) then
 
   forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
   do n = 1, n_particle
-    p(n)%r%vec = p(n)%r%vec * alpha
+    p(n)%vec = p(n)%vec * alpha
   enddo
 
 endif
@@ -1043,7 +997,7 @@ endif
 
 if (.not. beam_init%renorm_center) then
   do n = 1, n_particle
-    p(n)%r%vec = p(n)%r%vec + ave
+    p(n)%vec = p(n)%vec + ave
   enddo
 endif
 
@@ -1075,13 +1029,13 @@ b = sqrt(1-a**2)
 ! Put everything together to distribute the particles.
 
 do i = 1, n_particle
-  r = p(i)%r%vec
-  p(i)%r%vec(1) =  sigma(1) *  r(1)
-  p(i)%r%vec(2) = -sigma(2) * (r(2) + r(1) * ele%a%alpha)
-  p(i)%r%vec(3) =  sigma(3) *  r(3)
-  p(i)%r%vec(4) = -sigma(4) * (r(4) + r(3) * ele%b%alpha)
-  p(i)%r%vec(5) =  sigma(5) *  r(5)
-  p(i)%r%vec(6) =  sigma(6) * (r(6) * b + r(5) * a)
+  r = p(i)%vec
+  p(i)%vec(1) =  sigma(1) *  r(1)
+  p(i)%vec(2) = -sigma(2) * (r(2) + r(1) * ele%a%alpha)
+  p(i)%vec(3) =  sigma(3) *  r(3)
+  p(i)%vec(4) = -sigma(4) * (r(4) + r(3) * ele%b%alpha)
+  p(i)%vec(5) =  sigma(5) *  r(5)
+  p(i)%vec(6) =  sigma(6) * (r(6) * b + r(5) * a)
 end do
 
 ! Set particle charge and transfer info the the bunch
@@ -1117,7 +1071,7 @@ subroutine init_grid_distribution (ix_plane, grid, bunch)
 implicit none
 
 type (grid_beam_init_struct) grid
-type (particle_struct), allocatable :: p(:)
+type (coord_struct), allocatable :: p(:)
 type (bunch_struct) bunch
 
 integer i, j, k, ix_plane, n_particle
@@ -1154,8 +1108,8 @@ do i = 1, grid%n_x
          px = grid%px_min + real(j - 1)/(grid%n_px - 1) * (grid%px_max - grid%px_min)
       endif
 
-      p(k)%r%vec(2*ix_plane-1) = x
-      p(k)%r%vec(2*ix_plane)   = px
+      p(k)%vec(2*ix_plane-1) = x
+      p(k)%vec(2*ix_plane)   = px
       p(k)%charge = 1.0_rp / n_particle     ! total charge = 1
 
       k = k + 1
@@ -1199,7 +1153,7 @@ subroutine init_ellipse_distribution (ix_plane, ellipse, beta, alpha, emit, bunc
 implicit none
 
 type (bunch_struct) bunch
-type (particle_struct), allocatable :: p(:)
+type (coord_struct), allocatable :: p(:)
 type (ellipse_beam_init_struct), target :: ellipse
 type (ellipse_beam_init_struct), pointer :: e
 
@@ -1248,8 +1202,8 @@ do n = 1, e%n_ellipse
   do m = 1, e%part_per_ellipse
     phi = (twopi * m) / e%part_per_ellipse
     k = k + 1
-    p(k)%r%vec(2*ix_plane-1) =  sqrt(2 * J * beta) * cos(phi)
-    p(k)%r%vec(2*ix_plane)   = -sqrt(2 * J / beta) * (alpha * cos(phi) + sin(phi))
+    p(k)%vec(2*ix_plane-1) =  sqrt(2 * J * beta) * cos(phi)
+    p(k)%vec(2*ix_plane)   = -sqrt(2 * J / beta) * (alpha * cos(phi) + sin(phi))
     p(k)%charge = charge / e%part_per_ellipse
   enddo
 
@@ -1291,7 +1245,7 @@ implicit none
 
 type (bunch_struct) bunch
 type (kv_beam_init_struct) kv
-type (particle_struct), allocatable :: p(:)
+type (coord_struct), allocatable :: p(:)
 
 real(rp) beta(:), alpha(:), emit(:)
 real(rp) beta1, beta2, alpha1, alpha2, emit1, emit2
@@ -1346,10 +1300,10 @@ do i_I2 = 1, kv%n_i2
       x2 = sqrt(2.0 * J2 * beta2) * cos(phi2)
       px2 = -sqrt(2.0 * J2 / beta2) * (alpha2 * cos(phi2) + sin(phi2))
      
-      p(k)%r%vec(2*ix1_plane-1) = x1
-      p(k)%r%vec(2*ix1_plane)   = px1
-      p(k)%r%vec(2*ix2_plane-1) = x2
-      p(k)%r%vec(2*ix2_plane)   = px2
+      p(k)%vec(2*ix1_plane-1) = x1
+      p(k)%vec(2*ix1_plane)   = px1
+      p(k)%vec(2*ix2_plane-1) = x2
+      p(k)%vec(2*ix2_plane)   = px2
       p(k)%charge = 1.0_rp / n_particle
 
       k = k + 1
@@ -1379,7 +1333,7 @@ end subroutine init_KV_distribution
 !
 ! Input:
 !   bunch       -- bunch_struct: Structure holding the old distribution
-!   particle(:) -- particle_struct, allocatable: A new distribution.
+!   particle(:) -- coord_struct, allocatable: A new distribution.
 !                   This array will be deallocated.
 !   where(3)    -- logical: Which planes of particle have the new distribution.
 !   do_multiply -- logical: Determines type of combination.
@@ -1393,7 +1347,7 @@ subroutine combine_bunch_distributions (bunch, particle, where, do_multiply)
 implicit none
 
 type (bunch_struct) bunch
-type (particle_struct), allocatable :: particle(:), p(:)
+type (coord_struct), allocatable :: particle(:), p(:)
 
 integer i, j, k, m
 
@@ -1418,10 +1372,10 @@ if (do_multiply) then
     do j = 1, size(particle)
       m = m + 1
       p(m)%charge = bunch%particle(i)%charge * particle(j)%charge
-      p(m)%r%vec = bunch%particle(i)%r%vec
+      p(m)%vec = bunch%particle(i)%vec
       do k = 1, 3
         if (.not. where(k)) cycle
-        p(m)%r%vec(2*k-1:2*k) = particle(j)%r%vec(2*k-1:2*k)
+        p(m)%vec(2*k-1:2*k) = particle(j)%vec(2*k-1:2*k)
       enddo
     enddo
   enddo
@@ -1438,7 +1392,7 @@ else
   do i = 1, size(bunch%particle)
     do k = 1, 3
       if (.not. where(k)) cycle
-      bunch%particle(i)%r%vec(2*k-1:2*k) = particle(i)%r%vec(2*k-1:2*k)
+      bunch%particle(i)%vec(2*k-1:2*k) = particle(i)%vec(2*k-1:2*k)
     enddo
   enddo
   deallocate(particle)
@@ -1472,7 +1426,7 @@ implicit none
 
 type (beam_init_struct) beam_init
 type (bunch_struct), target :: bunch
-type (particle_struct), pointer :: p
+type (coord_struct), pointer :: p
 
 real(rp) ran(6), center(6)
 integer i
@@ -1487,7 +1441,7 @@ center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6)
 
 do i = 1, beam_init%n_particle
    p => bunch%particle(i)
-   p%r%vec = p%r%vec + center
+   p%vec = p%vec + center
 enddo
 
 end subroutine recenter_bunch
@@ -1512,7 +1466,7 @@ end subroutine recenter_bunch
 !
 ! Output:
 !  bunch    -- bunch_struct: Bunch of particles.
-!   %particle(:)%r%spin
+!   %particle(:)%spin
 !-
 
 subroutine init_spin_distribution (beam_init, bunch)
@@ -1545,7 +1499,7 @@ do i = 1, size(bunch%particle)
     n_diff = n_diff - 1
   endif
 
-  call polar_to_spinor (polar, bunch%particle(i)%r)
+  call polar_to_spinor (polar, bunch%particle(i))
 enddo
 
 end subroutine init_spin_distribution
@@ -1599,8 +1553,8 @@ logical err
 
 n_part = 0
 do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%r%vec(plane) .le. slice_center + abs(slice_spread) .and. &
-      bunch%particle(i)%r%vec(plane) .ge. slice_center - abs(slice_spread)) &
+  if (bunch%particle(i)%vec(plane) .le. slice_center + abs(slice_spread) .and. &
+      bunch%particle(i)%vec(plane) .ge. slice_center - abs(slice_spread)) &
             n_part = n_part + 1
 enddo
 
@@ -1612,8 +1566,8 @@ beam%bunch(1)%t_center = bunch%t_center
 
 n_part = 1
 do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%r%vec(plane) .le. slice_center + abs(slice_spread) .and. &
-      bunch%particle(i)%r%vec(plane) .ge. slice_center - abs(slice_spread)) then
+  if (bunch%particle(i)%vec(plane) .le. slice_center + abs(slice_spread) .and. &
+      bunch%particle(i)%vec(plane) .ge. slice_center - abs(slice_spread)) then
             beam%bunch(1)%particle(n_part) = bunch%particle(i)
             n_part = n_part + 1
   endif
@@ -1715,11 +1669,11 @@ bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%ix_lost == not_lost$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost == not_lost$))
 
-bunch_params%centroid%e_field_x = sum(bunch%particle%r%e_field_x, mask = (bunch%particle%ix_lost == not_lost$))
-bunch_params%centroid%e_field_y = sum(bunch%particle%r%e_field_y, mask = (bunch%particle%ix_lost == not_lost$))
+bunch_params%centroid%e_field_x = sum(bunch%particle%e_field_x, mask = (bunch%particle%ix_lost == not_lost$))
+bunch_params%centroid%e_field_y = sum(bunch%particle%e_field_y, mask = (bunch%particle%ix_lost == not_lost$))
 
 if (param%particle == photon$) then
-  charge = bunch%particle%r%e_field_x**2 + bunch%particle%r%e_field_y**2
+  charge = bunch%particle%e_field_x**2 + bunch%particle%e_field_y**2
 else
   charge = bunch%particle%charge
 endif
@@ -1745,7 +1699,7 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
 ! average the energy
 
-avg_energy = sum((1+bunch%particle%r%vec(6)) * charge, mask = (bunch%particle%ix_lost == not_lost$))
+avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%ix_lost == not_lost$))
 avg_energy = avg_energy * ele%value(E_TOT$) / charge_live
 
 ! Convert to geometric coords and find the sigma matrix
@@ -1997,7 +1951,7 @@ charge_live = 0
 ave_vec = 0.0
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%ix_lost /= not_lost$) cycle
-  call spinor_to_vec (bunch%particle(i)%r, vec)
+  call spinor_to_vec (bunch%particle(i), vec)
   ave_vec = ave_vec + vec * bunch%particle(i)%charge
   charge_live = charge_live + bunch%particle(i)%charge
 enddo
@@ -2025,7 +1979,7 @@ end subroutine calc_spin_params
 !   use beam_mod
 !
 ! Input:
-!   particle(:) -- Particle_struct: Array of particles.
+!   particle(:) -- Coord_struct: Array of particles.
 !   charge(:)   -- real(rp): Particle charge or photon intensity.
 ! Output:
 !   sigma(21)    -- Real(rp): Sigma matrix elements.
@@ -2037,7 +1991,7 @@ subroutine find_bunch_sigma_matrix (particle, charge, avg, sigma, sigma_s)
 
 implicit none
 
-type (particle_struct) :: particle(:)
+type (coord_struct) :: particle(:)
 
 real(rp) charge_live, avg(6), sigma(21)
 real(rp) sigma_s(6,6), s(6,6), charge(:)
@@ -2049,7 +2003,7 @@ integer i
 charge_live = sum(charge, mask = (particle%ix_lost == not_lost$))
 
 do i = 1, 6
-  avg(i) = sum(particle(:)%r%vec(i) * charge, mask = (particle(:)%ix_lost == not_lost$)) / charge_live
+  avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%ix_lost == not_lost$)) / charge_live
 enddo
 
 sigma(s11$) = exp_calc (particle, charge, 1, 1, avg)
@@ -2131,7 +2085,7 @@ function exp_calc (particle, charge, ix1, ix2, avg) result (this_sigma)
 
 implicit none
 
-type (particle_struct) particle(:)
+type (coord_struct) particle(:)
 real(rp) charge(:), avg(:)
 real(rp) this_sigma
 
@@ -2139,7 +2093,7 @@ integer ix1, ix2
 
 !
                                     
-this_sigma = sum((particle(:)%r%vec(ix1) - avg(ix1)) * (particle(:)%r%vec(ix2) - avg(ix2)) * charge(:), &
+this_sigma = sum((particle(:)%vec(ix1) - avg(ix1)) * (particle(:)%vec(ix2) - avg(ix2)) * charge(:), &
                                mask = (particle%ix_lost == not_lost$))
 
 this_sigma = this_sigma / charge_live
