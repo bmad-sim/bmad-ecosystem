@@ -56,15 +56,16 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct), target :: param
 
-real(rp) pz, theta, pz_max, theta0, theta_max, e_tot, f_correct, wanted_de
-real(rp) dtheta, e_tot_start, pz_plus, pz_minus, b, c, theta_tol, pz_tol, theta_max_old
+real(rp) pz, phi, pz_max, phi0, phi_max, e_tot, f_correct, wanted_de
+real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, pz_tol, phi_max_old
 real(rp) value_saved(n_attrib_maxx)
 
 integer i, tracking_method_saved
 
 logical step_up_seen
 
-! Init
+! Init.
+! Note: dphi0_ref is set in neg_pz_calc
 
 if (.not. bmad_com%rf_auto_phase_and_amp_correct) return
 if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
@@ -121,24 +122,29 @@ if (ele%key == lcavity$) ele%value(gradient_err$) = 0
 tracking_method_saved = ele%tracking_method
 if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
 
-theta_max = dphi0_ref   ! Init guess
-if (ele%key == rfcavity$) theta_max = theta_max - 0.25
+phi0 = dphi0_ref
+phi_max = dphi0_ref   ! Init guess
+if (ele%key == rfcavity$) phi_max = ele%value(dphi0_max$)
 
-theta_max_old = 100 ! Number far from unity
-dtheta = 0.05
-theta_tol = 1d-5
+phi_max_old = 100 ! Number far from unity
+dphi = 0.05
+phi_tol = 1d-5
 pz_tol = 1d-7
 
 ! See if %dphi0_ref and %field_scale are already set correctly
 
-pz_plus  = -neg_pz_calc(theta_max + 2 * theta_tol)
-pz_minus = -neg_pz_calc(theta_max - 2 * theta_tol)
-pz_max = -neg_pz_calc(theta_max)
+pz_plus  = -neg_pz_calc(phi_max + 2 * phi_tol)
+pz_minus = -neg_pz_calc(phi_max - 2 * phi_tol)
+pz_max = -neg_pz_calc(phi_max)
 
 call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
 f_correct = wanted_de / (e_tot - e_tot_start)
 
-if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(f_correct - 1) < 2 * pz_tol) return
+if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(f_correct - 1) < 2 * pz_tol) then
+  call cleanup_this()
+  dphi0_ref = phi0
+  return
+endif
 
 ! Now adjust %field_scale for the correct acceleration at the phase for maximum accelleration. 
 
@@ -147,47 +153,47 @@ n_loop = 0  ! For debug purposes.
 main_loop: do
 
   ! Find approximately the phase for maximum acceleration.
-  ! First go in +theta direction until pz decreases.
+  ! First go in +phi direction until pz decreases.
 
   step_up_seen = .false.
   do i = 1, 10
-    theta = theta_max + dtheta
-    pz = -neg_pz_calc(theta)
+    phi = phi_max + dphi
+    pz = -neg_pz_calc(phi)
     if (pz < pz_max) exit
     pz_max = pz
-    theta_max = theta
+    phi_max = phi
     step_up_seen = .true.
     if (i == 10) then  ! field too strong and always loosing particles
       field_scale = field_scale / 10
-      pz = -neg_pz_calc(theta)
+      pz = -neg_pz_calc(phi)
       cycle main_loop
     endif
   enddo
 
   pz_plus = pz
 
-  ! If needed: Now go in -theta direction until pz decreases
+  ! If needed: Now go in -phi direction until pz decreases
 
   if (.not. step_up_seen) then
     do
-      theta = theta_max - dtheta
-      pz = -neg_pz_calc(theta)
+      phi = phi_max - dphi
+      pz = -neg_pz_calc(phi)
       if (pz < pz_max) exit
       pz_max = pz
-      theta_max = theta
+      phi_max = phi
     enddo
   endif
 
   pz_minus = pz
 
   ! Quadradic interpolation to get the maximum phase.
-  ! Formula: pz = a + b*dt + c*dt^2 where dt = (theta-theta_max) / dtheta
+  ! Formula: pz = a + b*dt + c*dt^2 where dt = (phi-phi_max) / dphi
 
   b = (pz_plus - pz_minus) / 2
   c = pz_plus - pz_max - b
 
-  theta_max = theta_max - b * dtheta / (2 * c)
-  pz_max = -neg_pz_calc(theta_max)
+  phi_max = phi_max - b * dphi / (2 * c)
+  pz_max = -neg_pz_calc(phi_max)
 
   ! Now scale %field_scale
   ! f_correct = dE(design) / dE (from tracking)
@@ -198,13 +204,13 @@ main_loop: do
   if (f_correct > 1000) f_correct = max(1000.0_rp, f_correct / 10)
   field_scale = field_scale * f_correct
 
-  if (abs(f_correct - 1) < pz_tol .and. abs(theta_max-theta_max_old) < theta_tol) exit
-  theta_max_old = theta_max
+  if (abs(f_correct - 1) < pz_tol .and. abs(phi_max-phi_max_old) < phi_tol) exit
+  phi_max_old = phi_max
 
-  dtheta = 0.05
-  if (abs(f_correct - 1) < 0.1) dtheta = max(theta_tol, 0.1*sqrt(2*abs(f_correct - 1))/twopi)
+  dphi = 0.05
+  if (abs(f_correct - 1) < 0.1) dphi = max(phi_tol, 0.1*sqrt(2*abs(f_correct - 1))/twopi)
 
-  pz_max = -neg_pz_calc(theta_max)
+  pz_max = -neg_pz_calc(phi_max)
 
 enddo main_loop
 
@@ -213,36 +219,51 @@ enddo main_loop
 
 if (ele%key == rfcavity$) then
   ele%value(dphi0_max$) = dphi0_ref  ! Save for use with OPAL
-  dtheta = 0.1
+  dphi = 0.1
   do
-    theta = theta_max + dtheta
-    pz = -neg_pz_calc(theta)
+    phi = phi_max + dphi
+    pz = -neg_pz_calc(phi)
     if (pz < 0) exit
-    theta_max = theta
+    phi_max = phi
   enddo
-  dphi0_ref = modulo2 (zbrent(neg_pz_calc, theta_max, theta_max+dtheta, 1d-9), 0.5_rp)
+  dphi0_ref = modulo2 (zbrent(neg_pz_calc, phi_max, phi_max+dphi, 1d-9), 0.5_rp)
 endif
 
 ! Cleanup
 
+call cleanup_this()
+
+!------------------------------------
+contains
+
+subroutine cleanup_this ()
+
+select case (ele%field_calc)
+case (bmad_standard$) 
+  value_saved(field_scale$) = field_scale 
+  value_saved(dphi0_ref$) = dphi0_ref
+end select
+
 ele%value = value_saved
 ele%tracking_method = tracking_method_saved
+
+end subroutine cleanup_this
 
 end subroutine rf_auto_phase_and_amp_correction
 
 !----------------------------------------------------------------
 
-function neg_pz_calc (theta) result (neg_pz)
+function neg_pz_calc (phi) result (neg_pz)
 
 implicit none
 
 type (coord_struct) start_orb, end_orb
-real(rp), intent(in) :: theta
+real(rp), intent(in) :: phi
 real(rp) neg_pz
 
 ! brent finds minima so need to flip the final energy
 
-dphi0_ref = theta
+dphi0_ref = phi
 call track1 (start_orb, ele_com, param_com, end_orb)
 neg_pz = -end_orb%vec(6)
 if (param_com%lost) neg_pz = 1

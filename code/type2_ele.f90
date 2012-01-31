@@ -37,7 +37,7 @@
 !                          Default is False.
 !   type_field        -- Logical, optional: If True then print:
 !                          Wiggler terms for a a map_type wiggler or
-!                          RF field coefficients for a lcavity or rfcavity.
+!                          RF field info for a lcavity or rfcavity, etc.
 !                          Default is False.
 !   type_wall         -- Logical, optional: If True then print wall info. Default is False.
 !
@@ -272,7 +272,11 @@ if (associated(ele%em_field)) then
       nl=nl+1; write (li(nl), '(a, es16.8)') '    dphi0_ref:      ', rfm%dphi0_ref
       nl=nl+1; write (li(nl), '(a, es16.8)') '    phi0_azimuth:  ', rfm%phi0_azimuth
       nl=nl+1; write (li(nl), '(a, es16.8)') '    field_scale:   ', rfm%field_scale
+
       if (associated(rfm%map)) then
+        nl=nl+1; write (li(nl), '(2a)')        '    File:        ', trim(rfm%map%file)
+        nl=nl+1; write (li(nl), '(2a)')        '    anchor_pt:   ', anchor_pt_name(rfm%map%anchor_pt)
+        nl=nl+1; write (li(nl), '(a, i0)')     '    n_link:      ', rfm%map%n_link
         nl=nl+1; write (li(nl), '(a, es16.8)') '    dz:          ', rfm%map%dz
         nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
         do j = 1, min(10, size(rfm%map%term))
@@ -284,6 +288,17 @@ if (associated(ele%em_field)) then
           nl=nl+1; li(nl) = '     .... etc ...'
         endif
       endif
+
+      if (associated(rfm%grid)) then
+        nl=nl+1; write (li(nl), '(2a)')         '    File:        ', trim(rfm%grid%file)
+        nl=nl+1; write (li(nl), '(2a)')         '    Type:        ', em_grid_type_name(rfm%grid%type)
+        nl=nl+1; write (li(nl), '(2a)')         '    anchor_pt:   ', anchor_pt_name(rfm%grid%anchor_pt)
+        nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:      ', rfm%grid%n_link
+        nl=nl+1; write (li(nl), '(a, 3es16.8)') '    dr:          ', rfm%grid%dr
+        nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:          ', rfm%grid%r0
+        nl=nl+1; write (li(nl), '(a, i0)')      '    #Points:     ', size(rfm%grid%pt)
+      endif
+
     enddo
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of Field modes:', size(ele%em_field%mode)
