@@ -150,8 +150,8 @@ case ('beam')
           write (iu, *) bunch%t_center, '  ! t_center'
           do ip = 1, size(bunch%particle)
             write (iu, '(6es19.10, es14.5, i6, 2(a, es19.10, a, es19.10, a))') &
-                  bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, bunch%particle(ip)%ix_lost, &
-                  ('  (', real(bunch%particle(ip)%r%spin(j)), ',', aimag(bunch%particle(ip)%r%spin(j)), ')', j = 1, 2)
+                  bunch%particle(ip)%vec, bunch%particle(ip)%charge, bunch%particle(ip)%ix_lost, &
+                  ('  (', real(bunch%particle(ip)%spin(j)), ',', aimag(bunch%particle(ip)%spin(j)), ')', j = 1, 2)
           enddo
           write (iu, *) 'END_BUNCH'
         enddo
@@ -161,8 +161,8 @@ case ('beam')
           bunch => beam%bunch(ib)
           write (iu) bunch%charge, bunch%z_center, bunch%t_center, size(bunch%particle)
           do ip = 1, size(bunch%particle)
-            write (iu) bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
-                               bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin
+            write (iu) bunch%particle(ip)%vec, bunch%particle(ip)%charge, &
+                               bunch%particle(ip)%ix_lost, bunch%particle(ip)%spin
           enddo
         enddo
       endif
@@ -272,7 +272,7 @@ case ('curve')
     open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
     do i = 1, size(beam%bunch(1)%particle)
-      write (iu, '(i6, 6es15.7)') i, (beam%bunch(1)%particle(i)%r%vec(j), j = 1, 6)
+      write (iu, '(i6, 6es15.7)') i, (beam%bunch(1)%particle(i)%vec(j), j = 1, 6)
     enddo
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
     close(iu)

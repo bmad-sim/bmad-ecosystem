@@ -518,7 +518,7 @@ function tao_no_beam_left (beam, particle) result (no_beam)
 implicit none
 
 type (beam_struct), target :: beam
-type (particle_struct), pointer :: p(:)
+type (coord_struct), pointer :: p(:)
 
 real(rp) charge_tot
 integer n_bunch, particle
@@ -534,7 +534,7 @@ p =>beam%bunch(n_bunch)%particle(:)
 all_lost = all(p%ix_lost /= not_lost$)
 
 if (particle == photon$) then
-  if (sum(p%r%e_field_x**2) + sum(p%r%e_field_y**2) == 0 .or. all_lost) no_beam = .true.
+  if (sum(p%e_field_x**2) + sum(p%e_field_y**2) == 0 .or. all_lost) no_beam = .true.
 else
   if (sum(p%charge) == 0 .or. all_lost) no_beam = .true.
 endif
@@ -732,8 +732,8 @@ if (u%beam_info%beam0_file /= "") then
     do i = 1, size(uni_branch%ele(0)%beam%bunch)
       n = n + size(uni_branch%ele(0)%beam%bunch(i)%particle)
       do j = 1, size(uni_branch%ele(0)%beam%bunch(i)%particle)
-        uni_branch%ele(0)%beam%bunch(i)%particle(j)%r%vec = &
-                  uni_branch%ele(0)%beam%bunch(i)%particle(j)%r%vec + model%lat%beam_start%vec
+        uni_branch%ele(0)%beam%bunch(i)%particle(j)%vec = &
+                  uni_branch%ele(0)%beam%bunch(i)%particle(j)%vec + model%lat%beam_start%vec
       enddo
     enddo
     call out_io (s_info$, r_name, &

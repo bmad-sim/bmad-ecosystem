@@ -1142,7 +1142,7 @@ case ('graph')
   if (allocated(graph)) then
     g => graph(1)%g
     if (associated(g%p%r)) then
-      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
+      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
     nl=nl+1; write (lines(nl), amt) 'type                  = ', g%type
@@ -1836,7 +1836,7 @@ case ('particle')
     nl=nl+1; write (lines(nl), '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
     do i = 1, size(bunch%particle)
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
-      nl=nl+1; write (lines(nl), '(i6, 6es15.7)') i, (bunch%particle(i)%r%vec(j), j = 1, 6)
+      nl=nl+1; write (lines(nl), '(i6, 6es15.7)') i, (bunch%particle(i)%vec(j), j = 1, 6)
     enddo
     result_id = 'particle:lost'
     return
@@ -1854,13 +1854,13 @@ case ('particle')
   nl=nl+1; write (lines(nl), imt) 'Particle:    ', ix_p
   nl=nl+1; write (lines(nl), lmt) 'Is Alive?    ', bunch%particle(ix_p)%ix_lost == not_lost$
   if (u%model%lat%branch(ix_branch)%param%particle == photon$) then
-    nl=nl+1; write (lines(nl), rmt) 'Intensity_x: ', bunch%particle(ix_p)%r%e_field_x**2
-    nl=nl+1; write (lines(nl), rmt) 'Intensity_y: ', bunch%particle(ix_p)%r%e_field_y**2
+    nl=nl+1; write (lines(nl), rmt) 'Intensity_x: ', bunch%particle(ix_p)%e_field_x**2
+    nl=nl+1; write (lines(nl), rmt) 'Intensity_y: ', bunch%particle(ix_p)%e_field_y**2
   else
     nl=nl+1; write (lines(nl), rmt) 'Charge:      ', bunch%particle(ix_p)%charge
   endif
   nl=nl+1; write (lines(nl), lmt) 'Coords: '
-  nl=nl+1; write (lines(nl), '(a, 6es13.5)') '  ', bunch%particle(ix_p)%r%vec
+  nl=nl+1; write (lines(nl), '(a, 6es13.5)') '  ', bunch%particle(ix_p)%vec
 
   result_id = show_what
 
@@ -1978,7 +1978,7 @@ case ('plot')
   if (allocated(plot)) then
     p => plot(1)%p
     if (associated(p%r)) then
-      nl=nl+1; lines(nl) = 'Region:  ' // trim(p%r%name)
+      nl=nl+1; lines(nl) = 'Region:  ' // trim(p%name)
     endif
     nl=nl+1; lines(nl) = 'Plot:  ' // p%name
     nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type

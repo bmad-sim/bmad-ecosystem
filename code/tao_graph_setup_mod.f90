@@ -237,7 +237,7 @@ type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_x, d1_y
-type (particle_struct), pointer :: p(:)
+type (coord_struct), pointer :: p(:)
 
 real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
@@ -336,7 +336,7 @@ do k = 1, size(graph%curve)
         curve%x_symb(n+1:n+m) = pack(axis1, mask = (p%ix_lost == not_lost$))
         curve%y_symb(n+1:n+m) = pack(axis2, mask = (p%ix_lost == not_lost$))
         if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
-                             sqrt(p(:)%r%e_field_x**2 + p(:)%r%e_field_y**2), mask = (p%ix_lost == not_lost$))
+                             sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%ix_lost == not_lost$))
         curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%ix_lost == not_lost$))
         n = n + count(p%ix_lost == not_lost$)
       enddo
@@ -347,7 +347,7 @@ do k = 1, size(graph%curve)
       curve%x_symb = pack(axis1, mask = (p%ix_lost == not_lost$))
       curve%y_symb = pack(axis2, mask = (p%ix_lost == not_lost$))
       if (graph%symbol_size_scale > 0) curve%symb_size = pack(graph%symbol_size_scale * &
-                            sqrt(p(:)%r%e_field_x**2 + p(:)%r%e_field_y**2), mask = (p%ix_lost == not_lost$))
+                            sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%ix_lost == not_lost$))
       forall (i = 1:m) curve%ix_symb(i) = i
     endif
 
@@ -475,7 +475,7 @@ subroutine tao_phase_space_axis (data_type, ix_axis, p, axis, err)
 
 implicit none
 
-type (particle_struct), optional, target :: p(:)
+type (coord_struct), optional, target :: p(:)
 
 real(rp), allocatable, optional :: axis(:)
 
@@ -491,21 +491,21 @@ character(16) :: r_name = 'phase_space_axis'
 if (present(p)) call re_allocate (axis, size(p))
 
 select case (data_type)
-case ('x');   ix_axis = 1; if (present(p)) axis = p%r%vec(1)
-case ('px');  ix_axis = 2; if (present(p)) axis = p%r%vec(2)
-case ('y');   ix_axis = 3; if (present(p)) axis = p%r%vec(3)
-case ('py');  ix_axis = 4; if (present(p)) axis = p%r%vec(4)
-case ('z');   ix_axis = 5; if (present(p)) axis = p%r%vec(5)
-case ('pz');  ix_axis = 6; if (present(p)) axis = p%r%vec(6)
-case ('intensity_x'); ix_axis =  7; if (present(p)) axis = p%r%e_field_x**2
-case ('intensity_y'); ix_axis =  8; if (present(p)) axis = p%r%e_field_y**2
-case ('phase_x');     ix_axis =  9; if (present(p)) axis = p%r%phase_x
-case ('phase_y');     ix_axis = 10; if (present(p)) axis = p%r%phase_y
+case ('x');   ix_axis = 1; if (present(p)) axis = p%vec(1)
+case ('px');  ix_axis = 2; if (present(p)) axis = p%vec(2)
+case ('y');   ix_axis = 3; if (present(p)) axis = p%vec(3)
+case ('py');  ix_axis = 4; if (present(p)) axis = p%vec(4)
+case ('z');   ix_axis = 5; if (present(p)) axis = p%vec(5)
+case ('pz');  ix_axis = 6; if (present(p)) axis = p%vec(6)
+case ('intensity_x'); ix_axis =  7; if (present(p)) axis = p%e_field_x**2
+case ('intensity_y'); ix_axis =  8; if (present(p)) axis = p%e_field_y**2
+case ('phase_x');     ix_axis =  9; if (present(p)) axis = p%phase_x
+case ('phase_y');     ix_axis = 10; if (present(p)) axis = p%phase_y
 
 case ('intensity')
   ix_axis = 11
   if (present(p)) then
-    p%charge = p%r%e_field_x**2 + p%r%e_field_y**2
+    p%charge = p%e_field_x**2 + p%e_field_y**2
     axis = p%charge
   endif
 

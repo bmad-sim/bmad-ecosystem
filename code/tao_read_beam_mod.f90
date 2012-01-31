@@ -205,7 +205,7 @@ implicit none
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
-type (particle_struct), pointer :: p(:)
+type (coord_struct), pointer :: p(:)
 
 integer i, j, k, ix, ios
 integer n_bunch, n_particle, n_particle_lines, ix_lost
@@ -291,12 +291,12 @@ do i = 1, n_bunch
       if (index(line, 'END_BUNCH') /= 0) exit
       if (j > n_particle) cycle
 
-      p(j)%charge = 0; p(j)%ix_lost = not_lost$; p(j)%r%spin = cmplx(0.0_rp, 0.0_rp)
+      p(j)%charge = 0; p(j)%ix_lost = not_lost$; p(j)%spin = cmplx(0.0_rp, 0.0_rp)
 
       ix = 0
       do k = 1, 6
         call string_trim(line(ix+1:), line, ix)
-        read (line, *, iostat = ios) p(j)%r%vec(k)
+        read (line, *, iostat = ios) p(j)%vec(k)
         if (ios /= 0) then
           call out_io (s_error$, r_name, &
                         'ERROR READING PARTICLE COORDINATES IN: ' // rb_com%file_name, &
@@ -330,7 +330,7 @@ do i = 1, n_bunch
 
       call string_trim(line(ix+1:), line, ix)
       if (ix == 0) cycle
-      read (line, *, iostat = ios) p(j)%r%spin
+      read (line, *, iostat = ios) p(j)%spin
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
                         'ERROR READING PARTICLE SPIN IN: ' // rb_com%file_name, &
@@ -353,7 +353,7 @@ do i = 1, n_bunch
 
     do j = 1, n_particle_lines
       if (j > n_particle) exit
-      read (rb_com%iu, iostat = ios) p(j)%r%vec, p(j)%charge, p(j)%ix_lost, p(j)%r%spin
+      read (rb_com%iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%ix_lost, p(j)%spin
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
                         'ERROR READING PARTICLE COORDINATES IN: ' // rb_com%file_name, &

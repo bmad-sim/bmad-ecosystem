@@ -2030,7 +2030,7 @@ case ('unstable.')
       iz = lat%param%ix_lost
       if (iz /= not_lost$ .and. iz <= ix_ele) then
         datum_value = 1 + ix_ele - iz
-        if (lat%param%particle_at == entrance_end$) then
+        if (orbit(iz)%s < branch%ele(iz)%s) then
           orb => orbit(iz-1)
           datum%ix_ele_merit = iz - 1
         else
@@ -2479,8 +2479,8 @@ endif
 
 ! Rotating the wire scanner is equivalent to rotating the beam by -theta
 
-dist =  beam%bunch(1)%particle%r%vec(1) * cos(-theta_rad ) &
-        + beam%bunch(1)%particle%r%vec(3) * sin(-theta_rad)
+dist =  beam%bunch(1)%particle%vec(1) * cos(-theta_rad ) &
+        + beam%bunch(1)%particle%vec(3) * sin(-theta_rad)
   
 avg = sum (dist, mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
           / count (beam%bunch(1)%particle%ix_lost == not_lost$)
