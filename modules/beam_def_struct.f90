@@ -15,17 +15,8 @@ type beam_spin_struct
   real(rp) :: phi = 0.0          ! polarization direction in polar coordinates
 end type
 
-type particle_struct
-  type (coord_struct) r   ! Center of the particle
-  real(rp) charge         ! charge in a particle (Coul).
-  integer :: ix_z = 0     ! Index for ordering the particles longitudinally.
-                          !   particle(1)%ix_z is index of head particle.
-  integer :: ix_lost = not_lost$  ! When the particle been lost in tracking
-                                  !   ix_lost set to index of element where lost.
-end type
-
 type bunch_struct
-  type (particle_struct), allocatable :: particle(:)
+  type (coord_struct), allocatable :: particle(:)
   real(rp) charge   ! Total charge in a bunch (Coul).
   real(rp) z_center ! Longitudinal center of bunch (m). Note: Generally, z_center of 
                     !   bunch #1 is 0 and z_center of the other bunches is negative.

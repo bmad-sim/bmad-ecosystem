@@ -1650,7 +1650,7 @@ real(8) x_dp(6)
 
 ! Patch and Match elements are not implemented in PTC so just use the matrix.
 
-if (ele%key == patch$ .or. ele%key == match$) then
+if (ele%key == patch$ .or. ele%key == match$ .or. ele%key == lcavity$ .or. ele%key == rfcavity$) then
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
   call concat_taylor (taylor1, ele%taylor, taylor3)
   return
@@ -1864,7 +1864,7 @@ call attribute_bookkeeper (ele, param)
 
 if (ele%key == taylor$) return
 
-if (ele%key == match$ .or. ele%key == patch$) then
+if (ele%key == match$ .or. ele%key == patch$ .or. ele%key == lcavity$ .or. ele%key == rfcavity$) then
   c0%vec = 0
   call make_mat6_bmad (ele, param, c0, c0, .true.)
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)

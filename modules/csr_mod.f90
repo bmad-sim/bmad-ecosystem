@@ -122,7 +122,7 @@ implicit none
 
 type (lat_struct) lat
 type (bunch_struct), target :: bunch_start, bunch_end
-type (particle_struct), pointer :: pt
+type (coord_struct), pointer :: pt
 type (ele_struct) :: ele
 type (ele_struct), save :: runt
 type (csr_bin_struct), save :: bin
@@ -258,7 +258,7 @@ end subroutine track1_bunch_csr
 !   use csr_mod
 !
 ! Input:
-!   particle(:)          -- Particle_struct: Array of particles
+!   particle(:)          -- Coord_struct: Array of particles
 !   csr_param            -- Csr_parameter_struct: CSR common block (not an argument).
 !     %n_bin             -- Number of bins.
 !     %particle_bin_span -- Particle length / dz_bin. 
@@ -279,8 +279,8 @@ type this_local_struct   ! Temporary structure
   integer ib             ! bin index
 end type
 
-type (particle_struct), target :: particle(:)
-type (particle_struct), pointer :: p
+type (coord_struct), target :: particle(:)
+type (coord_struct), pointer :: p
 type (csr_bin_struct), target :: bin
 type (this_local_struct), save, allocatable :: tloc(:)
 type (csr_bin1_struct), pointer :: bin1
@@ -300,8 +300,8 @@ character(20) :: r_name = 'csr_bin_particles'
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
     .not. csr_param%tsc_component_on) return
 
-z_maxval = maxval(particle(:)%r%vec(5), mask = (particle(:)%ix_lost == not_lost$))
-z_minval = minval(particle(:)%r%vec(5), mask = (particle(:)%ix_lost == not_lost$))
+z_maxval = maxval(particle(:)%vec(5), mask = (particle(:)%ix_lost == not_lost$))
+z_minval = minval(particle(:)%vec(5), mask = (particle(:)%ix_lost == not_lost$))
 dz = z_maxval - z_minval
 bin%dz_bin = dz / (csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1))
 bin%dz_bin = 1.0000001 * bin%dz_bin     ! to prevent round off problems
@@ -357,7 +357,7 @@ ic = 0
 do i = 1, size(particle)
   p => particle(i)
   if (p%ix_lost /= not_lost$) cycle
-  zp_center = p%r%vec(5) ! center of particle
+  zp_center = p%vec(5) ! center of particle
   zp0 = zp_center - dz_particle / 2       ! particle left edge 
   zp1 = zp_center + dz_particle / 2       ! particle right edge 
   ix0 = nint((zp0 - z_min) / bin%dz_bin)  ! left most bin index
@@ -368,12 +368,12 @@ do i = 1, size(particle)
     zb1 = bin%bin1(ib)%z1_edge   ! edges of the bin
     charge = charge_in_bin (zb0, zb1)
     bin1%charge = bin1%charge + charge
-    bin1%x0 = bin1%x0 + p%r%vec(1) * charge
-    bin1%y0 = bin1%y0 + p%r%vec(3) * charge
+    bin1%x0 = bin1%x0 + p%vec(1) * charge
+    bin1%y0 = bin1%y0 + p%vec(3) * charge
     ic = ic + 1
     tloc(ic)%charge = charge
-    tloc(ic)%x0 = p%r%vec(1)
-    tloc(ic)%y0 = p%r%vec(3)
+    tloc(ic)%x0 = p%vec(1)
+    tloc(ic)%y0 = p%vec(3)
     tloc(ic)%ib = ib
   enddo
 enddo
@@ -1147,12 +1147,12 @@ end function z_calc_csr
 !   use csr_mod
 !
 !   bin -- Csr_bin1_struct: Binned beam
-!   particle -- Particle_struct: Particle to kick.
-!     %r%vec(6) -- Initial particle energy.
+!   particle -- Coord_struct: Particle to kick.
+!     %vec(6) -- Initial particle energy.
 !
 ! Output:
-!   particle -- Particle_struct: Particle to kick.
-!     %r%vec(6) -- Final particle energy.
+!   particle -- Coord_struct: Particle to kick.
+!     %vec(6) -- Final particle energy.
 !-
 
 subroutine csr_kick_calc (bin, particle)
@@ -1160,7 +1160,7 @@ subroutine csr_kick_calc (bin, particle)
 implicit none
 
 type (csr_bin_struct), target :: bin
-type (particle_struct), target :: particle
+type (coord_struct), target :: particle
 type (csr_bin1_struct), pointer :: bin1
 
 real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f
@@ -1168,13 +1168,13 @@ real(rp), pointer :: vec(:)
 integer i, i0, i_del
 
 ! We use a weighted average between %kick1(j)%I_csr and %kick1(j+1)%I_csr
-! so that the integral varies smoothly as a function of particle%r%vec(5).
+! so that the integral varies smoothly as a function of particle%vec(5).
 
-zp = particle%r%vec(5)
+zp = particle%vec(5)
 i0 = int((zp - bin%bin1(1)%z_center) / bin%dz_bin) + 1
 r1 = (zp - bin%bin1(i0)%z_center) / bin%dz_bin
 r0 = 1 - r1
-vec => particle%r%vec
+vec => particle%vec
 
 if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
   print *, 'CSR INTERNAL ERROR!'
@@ -1250,7 +1250,7 @@ implicit none
 
 type (lat_struct) lat
 type (bunch_struct), target :: bunch_start, bunch_end
-type (particle_struct), pointer :: pt
+type (coord_struct), pointer :: pt
 type (ele_struct) :: ele
 type (ele_struct), save :: runt
 type (csr_bin_struct), save :: bin

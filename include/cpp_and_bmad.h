@@ -93,24 +93,32 @@ public:
   double e_field_y;
   double phase_x;
   double phase_y;
+  double charge;
+  double p0c;
+  double beta;
+  int ix_z;
+  int ix_lost;
+  int status;
 
   C_coord(ReArr v, double ss = 0, double tt = 0, CComplx spn1 = 0, CComplx spn2 = 0,
-          double field_x = 0, double field_y = 0, double p_x = 0, double p_y = 0) : 
+          double field_x = 0, double field_y = 0, double p_x = 0, double p_y = 0, double charg = 0,
+          double pc = 0, double bet = 0, int ixz = 0, int ixl = 0, int stat = 0) : 
           vec(v, 6), s(ss), t(tt), spin1(spn1), spin2(spn2),
-          e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y) {}
+          e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y), charge(charg), 
+          p0c(pc), beta(bet), ix_z(ixz), ix_lost(ixl), status(stat) {}
 
   C_coord(Real_Array v, double ss = 0, double tt = 0, CComplx spn1 = 0, CComplx spn2 = 0,
-          double field_x = 0, double field_y = 0, double p_x = 0, double p_y = 0) : 
+          double field_x = 0, double field_y = 0, double p_x = 0, double p_y = 0, double charg = 0,
+          double pc = 0, double bet = 0, int ixz = 0, int ixl = 0, int stat = 0) : 
           vec(v), s(ss), t(tt), spin1(spn1), spin2(spn2),
-          e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y) {}
+          e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y), charge(charg), 
+          p0c(pc), beta(bet), ix_z(ixz), ix_lost(ixl), status(stat) {}
 
-  C_coord(double v0, double v1, double v2, double v3, double v4, double v5) :
-     s(0), t(0), spin1(0), spin2(0), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0)
+  C_coord(double v0 = 0, double v1 = 0, double v2 = 0, double v3 = 0, double v4 = 0, double v5 = 0) :
+          s(0), t(0), spin1(0), spin2(0), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0), charge(0), 
+          p0c(0), beta(0), ix_z(0), ix_lost(0), status(0)
      {double v[] = {v0, v1, v2, v3, v4, v5}; vec = Real_Array(v, 6);}
 
-  C_coord(Re v = 0) : vec(v, 6), s(0), t(0), spin1(0), spin2(0), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
-
-  C_coord(Int i) : vec(double(i), 6), s(0), t(0), spin1(0), spin2(0), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
 };    // End Class
 
 extern "C" void coord_to_c_(coord_struct*, C_coord&);
@@ -609,6 +617,29 @@ void operator>> (C_control&, control_struct*);
 void operator>> (control_struct*, C_control&);
 
 //--------------------------------------------------------------------
+// bookkeeper_status
+
+class bookkeeper_status_struct {};
+
+class C_bookkeeper_status {
+  int attributes;
+  int control;
+  int floor_position;
+  int length;
+  int ref_energy;
+  int mat6;
+  int rad_int;
+};   // End Class
+
+extern "C" void bookkeeper_status_to_c_(bookkeeper_status_struct*, C_bookkeeper_status&);
+extern "C" void bookkeeper_status_to_f_(C_bookkeeper_status&, bookkeeper_status_struct*);
+
+bool operator== (const C_bookkeeper_status&, const C_bookkeeper_status&);
+
+void operator>> (C_bookkeeper_status&, bookkeeper_status_struct*);
+void operator>> (bookkeeper_status_struct*, C_bookkeeper_status&);
+
+//--------------------------------------------------------------------
 // Param 
 
 class lat_param_struct {};
@@ -621,13 +652,14 @@ public:
   Real_Matrix t1_with_RF;   // Full 1-turn matrix with RF on.
   Real_Matrix t1_no_RF;     // Full 1-turn matrix with RF off.
   int particle;             // positron$, electron$, etc.
-  int ix_lost;              // Index of element particle was lost at.
-  int end_lost_at;          // entrance_end$ or exit_end$
-  int plane_lost_at;        // x_plane$ or y_plane$
   int lattice_type;         // linear_lattice$, etc...
   int ixx;                  // Int for general use
   bool stable;              // is closed ring stable?
   bool aperture_limit_on;   // use apertures in tracking?
+  C_bookkeeper_status status;
+  int ix_lost;              // Index of element particle was lost at.
+  int end_lost_at;          // entrance_end$ or exit_end$
+  int plane_lost_at;        // x_plane$ or y_plane$
   bool lost;                // for use in tracking
 
   C_lat_param () : n_part(0), total_length(0), unstable_factor(0),
@@ -879,21 +911,6 @@ bool operator== (const C_space_charge&, const C_space_charge&);
 
 void operator>> (C_space_charge&, space_charge_struct*);
 void operator>> (space_charge_struct*, C_space_charge&);
-
-//--------------------------------------------------------------------
-// bookkeeper_status
-
-class bookkeeper_status_struct {};
-
-class C_bookkeeper_status {
-
-public:
-  int overall;           // Overall status: super_ok$, ok$ or stale$ 
-  int floor;             // Global (floor) geometry: super_ok$, ok$ or stale$
-  int ref_energy;        // Reference energy: super_ok$, ok$ or stale$
-  int attributes;        // Element dependent attributes: super_ok$, ok$ or stale$
-  int n_modify;          // How many times the dependent attributes or ref energy have been modified?.
-};  // End Class
 
 //--------------------------------------------------------------------
 // Ele 

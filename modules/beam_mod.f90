@@ -153,7 +153,7 @@ integer i, j
 
 do i = 1, size(beam_start%bunch)
   do j = 1, size(beam_start%bunch(i)%particle)
-    call track1_particle (beam_start%bunch(i)%particle(j), ele, param, beam_end%bunch(i)%particle(j))
+    call track1 (beam_start%bunch(i)%particle(j), ele, param, beam_end%bunch(i)%particle(j))
   enddo
 enddo
 

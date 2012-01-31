@@ -340,7 +340,7 @@ case (e_gun$)
   call zero_ele_offsets (ele2)
   call zero_ele_kicks (ele2)
 
-  param%particle_at = between_ends$ !to avoid entrance kick in time tracking
+  start_orb%status = inside$ !to avoid entrance kick in time tracking
   call track1 (start_orb, ele2, param, end_orb)
   E_tot = ele%value(E_tot$)
   p0c = ele%value(p0c$)

@@ -52,7 +52,6 @@ end module track1_time_runge_kutta_mod
 !   param                  -- lat_param_struct: lattice parameters
 !    %particle             -- integer: positron$, electron$, etc.  
 !    %particle_at          -- integer: entrance_end$, between_ends$, exit_end$
-!    %particle_is_reversed -- logical: Deterimines direction of cp_s
 !
 ! Output:
 !   end     -- coord_struct: end position, t-based global
@@ -60,7 +59,6 @@ end module track1_time_runge_kutta_mod
 !   param   -- lat_param_struct: lattice parameters
 !    %particle             -- integer: positron$, electron$, etc.  
 !    %particle_at          -- integer: entrance_end$, between_ends$, exit_end$
-!    %particle_is_reversed -- logical: Deterimines direction of cp_s
 !    %lost                 -- logical: False only if particle leaves exit end
 !-
 
@@ -97,7 +95,7 @@ if (ele%value(l$) .eq. 0) then
   
   !If saving tracks, allocate track array and save one point
   if ( present(track) ) then
-    if (param%particle_is_reversed) then
+    if (end%p0c < 0) then
       p0c = -1*ele%value(p0c$)
     else
       p0c = ele%value(p0c$)
@@ -115,12 +113,7 @@ if (ele%value(l$) .eq. 0) then
     end = start
   endif
 
-  !Set particle_at properly
-  if (param%particle_is_reversed) then
-    param%particle_at = entrance_end$
-  else
-    param%particle_at = exit_end$
-  end if
+  end%status = outside$
 
   return
 end if
@@ -135,14 +128,7 @@ dt_step = ele%value(ds_step$)/c_light
 !------
 !Convert particle to element coordinates
 
-select case (param%particle_at)
-case (entrance_end$)
-  !Particle is at the entrance, should be moving forwards
-  if ( param%particle_is_reversed) then
-     call out_io (s_fatal$, r_name, 'PARTICLE STARTED AT ENTRANCE END WITH REVERSE MOMENTUM: ele = '//trim(ele%name) )
-     if (bmad_status%exit_on_error) call err_exit
-  end if
-
+if (end%p0c > 0 .and. end%status == outside$) then
   if (ele_has_constant_reference_energy(ele)) then
     p0c = ele%value(p0c$)
   else  ! lcavity, etc.
@@ -152,37 +138,30 @@ case (entrance_end$)
     reversed = .false., ds_pos = 0.0_rp ) 
    call apply_element_edge_kick (start2, ele, param, entrance_end$)
 
-case (between_ends$)
+elseif (end%status == inside$) then
   !Interior start, reference momentum is at the end. No edge kicks are given
-  if (param%particle_is_reversed) then
+  if (end%p0c < 0) then
     p0c = -1*ele%value(p0c$)
   else 
     p0c = ele%value(p0c$)
   endif 
   call offset_particle(ele, param, start2, set$, set_canonical = .false., &
-                       reversed = (param%particle_is_reversed), &
+                       reversed = (end%p0c < 0), &
                        ds_pos = start2%s - (ele%s - ele%value(l$)) )
 
-case (exit_end$)
+elseif (end%p0c < 0 .and. end%status == outside$) then
   !Particle is at the exit surface, should be moving backwards
-  if ( .not. param%particle_is_reversed) then
-    !if particle is actually moving forwards, return end = start:
-    end = start
-    return
-     !this used to be an error:
-     !     call out_io (s_fatal$, r_name, 'PARTICLE STARTED AT EXIT END WITH FORWARD MOMENTUM: ele = '//trim(ele%name) )
-     !     if (bmad_status%exit_on_error) call err_exit
-  end if
   p0c = -1*ele%value(p0c$)
   call offset_particle(ele, param, start2, set$, set_canonical = .false., &
                        reversed =.true., &
                        ds_pos = start2%s - (ele%s - ele%value(l$)) )
   call apply_element_edge_kick (start2, ele, param, exit_end$)
 
-case default
-  call out_io (s_fatal$, r_name, 'BAD ENTRANCE SURFACE: \i0\ ', param%particle_at)
+else
+  call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
   if (bmad_status%exit_on_error) call err_exit
-end select
+
+endif
 
 ! ele(s-based) -> ele(t-based)
 call convert_particle_coordinates_s_to_t(start2, p0c)
@@ -200,7 +179,7 @@ call  particle_hit_wall_check_time(ele_origin, start2, param, ele)
 
 if (param%lost) then
 
-  param%particle_at = between_ends$
+  end%status = dead$
    
   !Allocate track array and set value
   if ( present(track) ) then
@@ -230,14 +209,8 @@ end%s = end%s + (ele%s - ele%value(l$))
 
 
 !Convert back to s-based coordinates
-select case (param%particle_at)
 
-case (entrance_end$)
-  !Particle leaving entrance end, should be reversed
-  if ( .not. param%particle_is_reversed) then
-     call out_io (s_fatal$, r_name, 'PARTICLE LEAVING ENTRANCE END WITH FORWARD MOMENTUM: ele = '//trim(ele%name) )
-     if (bmad_status%exit_on_error) call err_exit
-  end if
+if (end%status == outside$ .and. end%p0c < 0) then
 
   if (ele_has_constant_reference_energy(ele)) then
     p0c = -1*ele%value(p0c$)
@@ -253,10 +226,10 @@ case (entrance_end$)
   call offset_particle(ele, param, end, unset$, set_canonical = .false., &
      reversed = .true. ) 
 
-case (between_ends$)
+elseif (end%status == dead$) then
     !Particle is lost in the interior of the element.
     !  The reference is a the end of the element
-    if (param%particle_is_reversed) then
+    if (end%p0c < 0) then
       p0c = -1*ele%value(p0c$)
     else 
       p0c = ele%value(p0c$)
@@ -266,14 +239,9 @@ case (between_ends$)
     call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
     !unset
     call offset_particle(ele, param, end, unset$, set_canonical = .false., &
-       reversed = param%particle_is_reversed, ds_pos = end%s - (ele%s - ele%value(l$)) )
+       reversed = end%p0c < 0, ds_pos = end%s - (ele%s - ele%value(l$)) )
 
-case (exit_end$)
-  !Particle is at the exit end, should be moving forward
-  if (param%particle_is_reversed) then
-     call out_io (s_fatal$, r_name, 'PARTICLE LEAVING EXIT END WITH REVERSED MOMENTUM: ele = '//trim(ele%name) )
-     if (bmad_status%exit_on_error) call err_exit
-  end if
+elseif (end%status == outside$ .and. end%p0c > 0) then
   p0c = ele%value(p0c$)
   ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
@@ -283,11 +251,10 @@ case (exit_end$)
   call offset_particle(ele, param, end, unset$, set_canonical = .false., &
        reversed = .false. ) 
 
-case default
-  call out_io (s_fatal$, r_name, 'UNKOWN EXIT SURFACE: \i0\ ', param%particle_at)
+else
+  call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
   if (bmad_status%exit_on_error) call err_exit
-
-end select
+endif
 
 end subroutine
 
@@ -398,7 +365,7 @@ do n_step = 1, max_step
   if ( orb_new%s > s2 ) then
    exit_flag = .true.
    s_target = s2
-   param%particle_at = exit_end$ 
+   orb_new%status = outside$ 
    !Set common structures for zbrent's internal functions 
    ele_com => ele
    param_com => param
@@ -412,7 +379,7 @@ do n_step = 1, max_step
    dt = zbrent (delta_s_target, 0.0_rp, dt, 1d-18)
 
    !ensure that particle has actually exited after zbrent
-   if      (orb_new%s < s2) then
+   if (orb_new%s < s2) then
       orb_new%s = 2*s2 - orb_new%s
       orb_new%vec(5) = orb_new%s
    end if
@@ -424,35 +391,35 @@ do n_step = 1, max_step
   else if ( orb_new%s < s1 ) then
     exit_flag = .true. 
     s_target = s1
-    param%particle_at = entrance_end$
-   !Set common structures for zbrent's internal functions 
-   ele_com => ele
-   param_com => param
-   orb_com => orb
-   dvec_dt_com => dvec_dt
-   orb_new_com => orb_new
-   vec_err_com => vec_err
-   local_ref_frame_com => local_ref_frame
-   s_target_com => s_target
-   !---
-   dt = zbrent (delta_s_target, dt, 0.0_rp, 1d-18)
+    orb_new%status = outside$ 
+    !Set common structures for zbrent's internal functions 
+    ele_com => ele
+    param_com => param
+    orb_com => orb
+    dvec_dt_com => dvec_dt
+    orb_new_com => orb_new
+    vec_err_com => vec_err
+    local_ref_frame_com => local_ref_frame
+    s_target_com => s_target
+    !---
+    dt = zbrent (delta_s_target, dt, 0.0_rp, 1d-18)
 
-   !ensure that particle has actually exited after zbrent
-   if      (orb_new%s > s1) then
+    ! ensure that particle has actually exited after zbrent
+    if (orb_new%s > s1) then
       orb_new%s = 2*s1 - orb_new%s
       orb_new%vec(5) = orb_new%s
-   end if
-   if (abs(s1 - orb_new%s) < edge_tol) then
+    end if
+    if (abs(s1 - orb_new%s) < edge_tol) then
       orb_new%s = s1 - edge_tol
       orb_new%vec(5) = orb_new%s
-   endif
+    endif
 
   else
   !Check wall or aperture at every intermediate step
     call  particle_hit_wall_check_time(orb, orb_new, param, ele)
     !Flag for exit if wall is hit
     if (param%lost) then
-       param%particle_at = between_ends$
+       orb_new%status = dead$
       exit_flag = .true.
     end if
   endif
@@ -476,9 +443,9 @@ do n_step = 1, max_step
      end = orb_new   !Return last orb_new that zbrent calculated
      !check for reversed motion
      if (end%vec(6) <0 ) then 
-       param%particle_is_reversed = .true.
+       end%p0c = -abs(end%p0c)
      else
-       param%particle_is_reversed = .false.
+       end%p0c = abs(end%p0c)
      end if
      !exit routine
      return
@@ -490,7 +457,7 @@ bmad_status%ok = .false.
 if (bmad_status%type_out) then
   call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
   !print *, '  Skipping particle; coordinates will not be saved'
-  param%particle_at = between_ends$
+  orb_new%status = inside$
   end = orb_new     !Return last coordinate
   return
 end if
@@ -682,7 +649,7 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
    orb_new%vec(6) = now_orb%vec(6) * e_tot
 
    param%lost = .True.
-   param%particle_is_alive = .false.
+   orb_new%status = dead$
 endif
 
 end subroutine  particle_hit_wall_check_time
