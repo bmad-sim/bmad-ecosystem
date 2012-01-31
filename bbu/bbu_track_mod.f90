@@ -384,10 +384,10 @@ do j = ix_ele_start+1, ix_ele_end
   ! Collect orbit stats at element with wake
   if (j == this_stage%ix_ele_lr_wake) then
     do ip = 1, size(bbu_beam%bunch(ib)%particle)
-      this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(ip)%r%vec
-      this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(ip)%r%vec**2
-      this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(ip)%r%vec)
-      this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(ip)%r%vec)
+      this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(ip)%vec
+      this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(ip)%vec**2
+      this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(ip)%vec)
+      this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(ip)%vec)
       this_stage%n_orb   = this_stage%n_orb + 1
     enddo
   endif
@@ -529,8 +529,8 @@ bbu_beam%ix_bunch_end = ixb
 if (bunch%t_center < bbu_beam%one_turn_time) then
   do i = 1, size(bunch%particle)
     call ran_gauss (r)
-    bunch%particle%r%vec(1) = bbu_param%init_particle_offset * r(1)
-    bunch%particle%r%vec(3) = bbu_param%init_particle_offset * r(2)
+    bunch%particle%vec(1) = bbu_param%init_particle_offset * r(1)
+    bunch%particle%vec(3) = bbu_param%init_particle_offset * r(2)
   enddo
 endif
 
