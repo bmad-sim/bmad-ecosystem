@@ -622,6 +622,7 @@ void operator>> (control_struct*, C_control&);
 class bookkeeper_status_struct {};
 
 class C_bookkeeper_status {
+public:
   int attributes;
   int control;
   int floor_position;
@@ -629,6 +630,11 @@ class C_bookkeeper_status {
   int ref_energy;
   int mat6;
   int rad_int;
+
+  C_bookkeeper_status (int stat = 0) : 
+        attributes(stat), control(stat), floor_position(stat), length(stat), 
+        ref_energy(stat), mat6(stat), rad_int(stat) {}
+
 };   // End Class
 
 extern "C" void bookkeeper_status_to_c_(bookkeeper_status_struct*, C_bookkeeper_status&);
@@ -640,7 +646,7 @@ void operator>> (C_bookkeeper_status&, bookkeeper_status_struct*);
 void operator>> (bookkeeper_status_struct*, C_bookkeeper_status&);
 
 //--------------------------------------------------------------------
-// Param 
+// Lat_Param 
 
 class lat_param_struct {};
 
@@ -664,17 +670,18 @@ public:
 
   C_lat_param () : n_part(0), total_length(0), unstable_factor(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
-      particle(Bmad::POSITRON), ix_lost(0), end_lost_at(0), plane_lost_at(0), 
-      lattice_type(Bmad::CIRCULAR_LATTICE), ixx(0),
-      stable(1), aperture_limit_on(1), lost(0) {}
+      particle(Bmad::POSITRON), lattice_type(Bmad::CIRCULAR_LATTICE), ixx(0),
+      stable(1), aperture_limit_on(1), status(), ix_lost(0), end_lost_at(0), plane_lost_at(0), 
+      lost(0) {}
+
 
   C_lat_param (double np, double tl, double gr, Real_Matrix t1w,
-    Real_Matrix t1n, int pa, int il, int ela, int pla, int lt, int ix, 
-    int st, int alo, int lo) :
+    Real_Matrix t1n, int part, int lat, int ix, 
+    int stab, int alo, int stat, int ixl, int ela, int pla, int los) :
         n_part(np), total_length(tl), unstable_factor(gr),
-        t1_with_RF(t1w), t1_no_RF(t1n), particle(pa), 
-        ix_lost(il), end_lost_at(ela), plane_lost_at(pla), lattice_type(lt), ixx(ix),
-        stable(st), aperture_limit_on(alo), lost(lo) {}
+        t1_with_RF(t1w), t1_no_RF(t1n), particle(part), 
+        lattice_type(lat), ixx(ix), stable(stab), aperture_limit_on(alo), 
+        status(stat), ix_lost(ixl), end_lost_at(ela), plane_lost_at(pla), lost(los) {}
 };    // End Class
 
 extern "C" void lat_param_to_c_(lat_param_struct*, C_lat_param&);

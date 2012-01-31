@@ -428,18 +428,19 @@ extern "C" void lat_param_to_f_(C_lat_param& c, lat_param_struct* f) {
   matrix_to_array (c.t1_with_RF, arr1);
   matrix_to_array (c.t1_no_RF, arr2);
   lat_param_to_f2_(f, c.n_part, c.total_length, c.unstable_factor,
-      arr1, arr2, c.particle, c.ix_lost, c.end_lost_at, c.plane_lost_at,
-      c.lattice_type, c.ixx, c.stable, c.aperture_limit_on, c.lost);
+      arr1, arr2, c.particle, c.lattice_type, c.ixx, c.stable, c.aperture_limit_on, 
+      c.ix_lost, c.end_lost_at, c.plane_lost_at, c.lost);
 }
 
 extern "C" void lat_param_to_c2_(C_lat_param& c, Re& np, Re& total_l, 
-      Re& growth_r, ReArr t1_with, ReArr t1_no, Int& part, Int& ixl, Int& end_lost,
-      Int& plane_lost, Int& lattice_type, Int& ixx, Int& stable, Int& ap_lim, Int& lost) {
+      Re& growth_r, ReArr t1_with, ReArr t1_no, Int& part, 
+      Int& lattice_type, Int& ixx, Int& stable, Int& ap_lim, 
+      Int& ixl, Int& end_lost, Int& plane_lost, Int& lost) {
   static Real_Matrix m1(M6_mat), m2(M6_mat);
   m1 << t1_with;
   m2 << t1_no;
-  c = C_lat_param(np, total_l, growth_r, m1, m2, part, ixl, 
-              end_lost, plane_lost, lattice_type, ixx, stable, ap_lim, lost);
+  c = C_lat_param(np, total_l, growth_r, m1, m2, part, 
+          lattice_type, ixx, stable, ap_lim, 0, ixl, end_lost, plane_lost, lost);
 }
 
 void operator>> (C_lat_param& c, lat_param_struct* f) {
