@@ -237,7 +237,7 @@ do i = 1, n_branch
   branch%ix_branch = i
   read (d_unit, err = 9070) branch%param
   read (d_unit, err = 9070) branch%name, garbage, branch%ix_from_branch, &
-                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, idum1
+                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, branch%wall3d%anchor_pt
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
     call read_this_ele (branch%ele(j), j, error)
@@ -374,7 +374,7 @@ if (version >= 99) then
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%anchor_pt
 endif
 
 ! Decompress value array
@@ -396,14 +396,14 @@ if (n_rf_field_mode > 0) then
     if (nf > 0) then
       allocate (mode%map)
       allocate (mode%map%term(nf))
-      read (d_unit, err = 9140) mode%map%file, mode%map%dz
+      read (d_unit, err = 9140) mode%map%file, mode%map%dz, mode%map%anchor_pt
       read (d_unit, err = 9140) mode%map%term
     endif
 
     if (ng > 0) then
       allocate (mode%grid)
       read (d_unit, err = 9140) lb1, ub1, lb2, ub2, lb3, ub3, &
-                                mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0
+                                mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0, mode%grid%anchor_pt
       allocate (mode%grid%pt(lb1:ub1, lb2:ub2, lb3:ub3))
       do j = lb3, ub3
         read (d_unit, err = 9140) mode%grid%pt(:,:,j)
