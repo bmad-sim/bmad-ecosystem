@@ -21,7 +21,7 @@ use definition, only: genfield, fibre
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 104
+integer, parameter :: bmad_inc_version$ = 106
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -522,7 +522,7 @@ integer, parameter :: n_part$ = 2, taylor_order$ = 3, particle$ = 4
 integer, parameter :: lattice_type$ = 5, symmetry$ = 6
 
 integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
-          val6$=8, val7$=9, val8$=10, val9$=11, val10$=12, val11$=13, &
+          val6$=9, val7$=10, val8$=11, val9$=12, val10$=13, val11$=14, &
           val12$=15
 
 integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
@@ -540,37 +540,36 @@ integer, parameter :: e_field_x$ = 10,  e_field_y$ = 11, phase_x$ = 12, phase_y$
 
 integer, parameter :: l$=1    ! Assumed unique. Do not overload.
 integer, parameter :: tilt$=2, command$=2
-integer, parameter :: tilt_err$ = 3 
-integer, parameter :: direction$=3
-integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
-integer, parameter :: tilt_corr$ = 4
-integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4, y_gain_err$=4
-integer, parameter :: critical_angle_factor$ = 4
-integer, parameter :: graze_angle$=5
-integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, phi0_err$=5, crunch$=5
-integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6, noise$=6
-integer, parameter :: graze_angle_in$ = 6
-integer, parameter :: dks_ds$=6
-integer, parameter :: g$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
-integer, parameter :: critical_angle$ = 7, n_cells$=7
+integer, parameter :: tilt_err$ = 3, rf_frequency$=3, direction$=3
+integer, parameter :: old_command$=3, angle$=3, kick$=3, x_gain_err$=3
+integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displace$=4, y_gain_err$=4
+integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
+integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5, crunch$=5
+integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6
+integer, parameter :: g$=6, graze_angle_in$ = 6
+integer, parameter :: g_err$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
+integer, parameter :: gradient_err$=7, critical_angle$ = 7, n_cells$=7
 integer, parameter :: graze_angle_out$ = 7, ix_branch_to$=7
-integer, parameter :: graze_angle_err$ = 8
-integer, parameter :: ks$=8, e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8
-integer, parameter :: d1_thickness$ = 9
-integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9, bragg_angle$=9
-integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
-integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11, s_min$=11
-integer, parameter :: rho$=12, s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
-integer, parameter :: hgap$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
-integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14, dphi0_max$=14
+integer, parameter :: rho$=8, delta_e$=8, graze_angle_err$ = 8
+integer, parameter :: charge$=8, gap$=8, x_gain_calib$=8
+integer, parameter :: field_scale$ = 9, d1_thickness$ = 9
+integer, parameter :: ks$=9, l_chord$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
+integer, parameter :: polarity$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
+integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10
+integer, parameter :: grad_loss_sr_wake$=11, s_min$=11
+integer, parameter :: e2$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
+integer, parameter :: s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
+integer, parameter :: phi0$=13, fint$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
+integer, parameter :: phi0_err$=14, coef$=14, current$=14, fintx$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
-integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
-integer, parameter :: n_sample$=15, fh_re$=15, f0_re2$=15
-integer, parameter :: l_chord$=16, bend_tilt$=16, fh_im$=16, f0_im2$=16, grad_loss_sr_wake$=16
-integer, parameter :: h1$=17, x_quad$=17, ref_polarization$=17, dphi0_ref$ = 17
-integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18, field_scale$ = 18
-integer, parameter :: b_param$ = 19
+integer, parameter :: quad_tilt$=15, x_ray_line_len$=15
+integer, parameter :: hgap$=15, dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15
+integer, parameter :: hgapx$=16, dphi0_ref$ = 16, bend_tilt$=16, fh_im$=16, f0_im2$=16
+integer, parameter :: dphi0_max$=17, h1$=17, x_quad$=17, ref_polarization$=17
+integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
+integer, parameter :: b_param$ = 19, z_patch$=19
 integer, parameter :: d_spacing$ = 20
+integer, parameter :: roll$=22 
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
 integer, parameter :: x_offset$ = 25
@@ -580,34 +579,35 @@ integer, parameter :: hkick$ = 28, g_trans$=28
 integer, parameter :: vkick$ = 29, c2_curve$ = 29
 integer, parameter :: BL_hkick$ = 30, c3_curve$ = 30
 integer, parameter :: BL_vkick$ = 31, c4_curve$ = 31
-integer, parameter :: BL_kick$ = 32, c2_curve_tot$ = 32
+integer, parameter :: BL_kick$ = 32, c2_curve_tot$ = 32, coupler_at$ = 32
 integer, parameter :: B_field$ = 33, E_field$ = 33, coupler_phase$ = 33, c3_curve_tot$ = 33
-integer, parameter :: B_field_err$ = 34, c4_curve_tot$ = 34
-integer, parameter :: coupler_angle$ = 35, d_source$ = 35
-integer, parameter :: B1_gradient$ = 36, E1_gradient$ = 36, d_detec$ = 36
-integer, parameter :: B2_gradient$ = 37, E2_gradient$ = 37, patch_end$ = 37, kh_x_norm$ = 37
-integer, parameter :: B3_gradient$ = 38, E3_gradient$ = 38, translate_after$ = 38, kh_y_norm$ = 38
-integer, parameter :: Bs_field$ = 39, coupler_strength$ = 39, e_tot_offset$ = 39, kh_z_norm$ = 39
-integer, parameter :: radius$ = 40
-integer, parameter :: delta_ref_time$ = 41 ! Assumed unique Do not overload.
-integer, parameter :: pole_radius$ = 42, coupler_at$ = 42, follow_diffracted_beam$ = 42 
-integer, parameter :: tilt_tot$ = 43
-integer, parameter :: x_pitch_tot$ = 44, no_end_marker$ = 44
-integer, parameter :: y_pitch_tot$ = 45
-integer, parameter :: x_offset_tot$ = 46
-integer, parameter :: y_offset_tot$ = 47
-integer, parameter :: s_offset_tot$ = 48
-integer, parameter :: n_ref_pass$ = 49, ref_cap_gamma$ = 49
-integer, parameter :: p0c_start$ = 50
-integer, parameter :: e_tot_start$ = 51   
-integer, parameter :: p0c$ = 52         ! Assumed unique. Do not overload.
-integer, parameter :: e_tot$ = 53       ! Assumed unique. Do not overload.
-integer, parameter :: ref_wavelength$ = 54
+integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34, c4_curve_tot$ = 34
+integer, parameter :: coupler_strength$ = 35, d_source$ = 35
+integer, parameter :: B1_gradient$ = 35, E1_gradient$ = 35
+integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36, patch_end$ = 36, d_detec$ = 36
+integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, translate_after$ = 37, kh_x_norm$ = 37 
+integer, parameter :: Bs_field$ = 38, e_tot_offset$ = 38, kh_z_norm$ = 38
+integer, parameter :: delta_ref_time$ = 39 ! Assumed unique Do not overload.
+integer, parameter :: p0c_start$ = 40
+integer, parameter :: e_tot_start$ = 41   
+integer, parameter :: p0c$ = 42         ! Assumed unique. Do not overload.
+integer, parameter :: e_tot$ = 43       ! Assumed unique. Do not overload.
+integer, parameter :: ref_wavelength$ = 44
+integer, parameter :: x_pitch_tot$ = 45, no_end_marker$ = 45
+integer, parameter :: y_pitch_tot$ = 46
+integer, parameter :: x_offset_tot$ = 47
+integer, parameter :: y_offset_tot$ = 48
+integer, parameter :: s_offset_tot$ = 49
+integer, parameter :: tilt_tot$ = 50
+integer, parameter :: n_ref_pass$ = 51, ref_cap_gamma$ = 51
+integer, parameter :: radius$ = 52, kh_y_norm$ = 52
+integer, parameter :: pole_radius$ = 53, follow_diffracted_beam$ = 53 
+integer, parameter :: ds_field_offset$ = 54   ! Assumed unique. Do not overload.
 integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 56, l_x$ = 56
 integer, parameter :: ds_step$ = 57, l_y$ = 57
 integer, parameter :: l_z$ = 58
-integer, parameter :: scratch$ = 59, ds_field_offset$ = 59
+integer, parameter :: scratch$ = 59
 integer, parameter :: general1$ = 60   ! For general use
 integer, parameter :: general2$ = 61   ! For general use
 integer, parameter :: general3$ = 62   ! For general use
