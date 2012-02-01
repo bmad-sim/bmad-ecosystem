@@ -31,7 +31,7 @@ type (wall3d_vertex_struct) v(100)
 type (wall3d_section_struct), pointer :: wall3d_section
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack, ix_vertex_ante(2)
+real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack, ix_vertex_ante(2), ix_vertex_ante2(2)
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
@@ -62,7 +62,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             surface_roughness_rms, roughness_correlation_len
 
 namelist / wall_def / section, name
-namelist / gen_shape_def / ix_gen_shape, v, ix_vertex_ante
+namelist / gen_shape_def / ix_gen_shape, v, ix_vertex_ante, ix_vertex_ante2
 
 namelist / start / p, ran_state, random_seed
 
@@ -232,6 +232,7 @@ if (n_shape_max > 0) then
   do
     ix_gen_shape = 0
     ix_vertex_ante = 0
+    ix_vertex_ante2 = 0
     v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
     read (1, nml = gen_shape_def, iostat = ios)
     if (ios > 0) then ! If error
@@ -281,6 +282,16 @@ if (n_shape_max > 0) then
       if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(wall3d_section%v) .or. &
           ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(wall3d_section%v)) then
         print *, 'ERROR IN IX_VERTEX_ANTE:', ix_vertex_ante
+        print *, '      FOR GEN_SHAPE =', ix_gen_shape
+        call err_exit
+      endif
+    endif
+
+    wall%gen_shape(ix_gen_shape)%ix_vertex_ante2 = ix_vertex_ante2
+    if (ix_vertex_ante2(1) > 0 .or. ix_vertex_ante2(2) > 0) then
+      if (ix_vertex_ante2(1) < 1 .or. ix_vertex_ante2(1) > size(wall3d_section%v) .or. &
+          ix_vertex_ante2(2) < 1 .or. ix_vertex_ante2(2) > size(wall3d_section%v)) then
+        print *, 'ERROR IN IX_VERTEX_ANTE2:', ix_vertex_ante2
         print *, '      FOR GEN_SHAPE =', ix_gen_shape
         call err_exit
       endif

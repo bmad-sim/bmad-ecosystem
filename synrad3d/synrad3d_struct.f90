@@ -64,6 +64,7 @@ end type
 type sr3d_gen_shape_struct
   type (wall3d_section_struct) :: wall3d_section
   integer ix_vertex_ante(2)
+  integer ix_vertex_ante2(2)
 end type
 
 type sr3d_wall_pt_struct

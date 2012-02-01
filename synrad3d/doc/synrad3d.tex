@@ -704,7 +704,8 @@ specification which has the parameters
 \begin{example}
   ix_gen_shape        ! Index of this gen_shape definition.
   v(i)                ! (x, y) coordinates of the i\Th vertex.
-  ix_vertex_ante = iv1, iv2  ! For defining antechamber.
+  ix_vertex_ante  = iv1, iv2  ! For defining antechamber.
+  ix_vertex_ante2 = iv1, iv2  ! For defining second antechamber.
 \end{example}
 
 An example wall definition file is:
@@ -809,6 +810,7 @@ Notice that if symmetry is used in the input (as in the example with
 ``complete'' the wall perimeter. This must be taken into account when
 setting \vn{ix_vertex_ante}. To see these generated vertex points, run
 \srthree with the \vn{-cross} option (\sref{s:intro}).
+If there is a second antechamber, \vn{ix_vertex_ante2} can be used.
 
 The \vn{gen_shape_mesh} shape syntax is exactly the same as the
 \vn{gen_shape} syntax except that \vn{basic_shape} is set to
