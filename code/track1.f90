@@ -48,6 +48,7 @@ type (ele_struct)   :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
+real(rp) p0c_start
 integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
@@ -59,18 +60,18 @@ logical err
 
 if (present(err_flag)) err_flag = .true.
 
-! Correct start_orb %beta and %p0c
+! Correct start_orb %beta and %p0c.
+! Doing this here to be compatible with programs that do not set this.
 
-if (ele_has_constant_reference_energy(ele)) then
-  call convert_pc_to (ele%value(p0c$) * (1 + start_orb%vec(6)), param%particle, beta = start_orb%beta)
-else
-  call convert_pc_to (ele%value(p0c_start$) * (1 + start_orb%vec(6)), param%particle, beta = start_orb%beta)
-endif
+if (tracking_method /= time_runge_kutta$) then
+  if (ele_has_constant_reference_energy(ele)) then
+    p0c_start = ele%value(p0c$)
+  else
+    p0c_start = ele%value(p0c_start$)
+  endif
 
-if (start_orb%p0c < 0) then
-  start_orb%p0c = -ele%value(p0c$)
-else  
-  start_orb%p0c = ele%value(p0c$)
+  call convert_pc_to (p0c_start * (1 + start_orb%vec(6)), param%particle, beta = start_orb%beta)
+  start_orb%p0c = p0c_start
 endif
 
 ! custom
