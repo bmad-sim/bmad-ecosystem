@@ -79,7 +79,7 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp)  dt_step, p0c, ref_time, vec6
+real(rp)  dt_step, ref_time, vec6
 
 character(30), parameter :: r_name = 'track1_time_runge_kutta'
 
@@ -212,7 +212,7 @@ if (end%status == outside$ .and. end%vec(6) < 0) then
 elseif (end%status == dead$) then
     !Particle is lost in the interior of the element.
     !  The reference is a the end of the element
-    if (end%p0c < 0) then
+    if (end%vec(6) < 0) then
       end%p0c = -1*ele%value(p0c$)
     else 
       end%p0c = ele%value(p0c$)
@@ -238,6 +238,10 @@ else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
   if (bmad_status%exit_on_error) call err_exit
 endif
+
+!Set relativistic beta
+call convert_pc_to (abs(end%p0c) * (1 + end%vec(6)), param%particle, beta = end%beta)
+
 
 end subroutine
 
