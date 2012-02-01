@@ -60,8 +60,7 @@ contains
 subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, &
                                                      one_turn, unit_start, err_flag)
 
-use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
-use bookkeeper_mod, only: create_element_slice
+use ptc_interface_mod, only: concat_taylor, taylor_inverse
 
 implicit none
 
@@ -151,6 +150,9 @@ end subroutine transfer_map_from_s_to_s
 !-
 
 subroutine transfer_this_map (map, lat, branch, s_1, s_2, integrate_this, error_flag)
+
+use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1
+use bookkeeper_mod, only: create_element_slice
 
 implicit none
 
@@ -309,8 +311,6 @@ end subroutine transfer_this_map
 
 subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start, err_flag)
 
-use bookkeeper_mod, only: create_element_slice
-
 implicit none
 
 type (lat_struct), target :: lat
@@ -388,6 +388,8 @@ end subroutine mat6_from_s_to_s
 !-
 
 subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag)
+
+use bookkeeper_mod, only: create_element_slice
 
 implicit none
 
