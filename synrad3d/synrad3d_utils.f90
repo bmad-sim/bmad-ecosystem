@@ -699,6 +699,7 @@ in_antechamber = .false.
 
 if (wall_pt%basic_shape == 'gen_shape') then
   call calc_wall_radius (wall_pt%gen_shape%wall3d_section%v, cos_photon, sin_photon, r_wall, dr_dtheta, ix_vertex)
+
   ixv = wall_pt%gen_shape%ix_vertex_ante
   if (ixv(1) > 0) then
     if (ixv(2) > ixv(1)) then
@@ -707,6 +708,16 @@ if (wall_pt%basic_shape == 'gen_shape') then
       if (ix_vertex >= ixv(1) .or. ix_vertex < ixv(2)) in_antechamber = .true.
     endif
   endif
+
+  ixv = wall_pt%gen_shape%ix_vertex_ante2
+  if (ixv(1) > 0) then
+    if (ixv(2) > ixv(1)) then
+      if (ix_vertex >= ixv(1) .and. ix_vertex < ixv(2)) in_antechamber = .true.
+    else
+      if (ix_vertex >= ixv(1) .or. ix_vertex < ixv(2)) in_antechamber = .true.
+    endif
+  endif
+
   return
 endif
 
