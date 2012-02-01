@@ -3,6 +3,8 @@ module transfer_map_mod
 use bmad_struct
 use bmad_interface
 
+private transfer_this_map, transfer_this_mat
+
 contains
 
 !-----------------------------------------------------------------------
@@ -106,27 +108,27 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then 
-  call transfer_this_map (t_map, ss1, ss2, error_flag)
+  call transfer_this_map (t_map, lat, branch, ss1, ss2, integrate_this, error_flag)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%lattice_type == circular_lattice$) then
-  call transfer_this_map (t_map, ss1, branch%param%total_length, error_flag)
+  call transfer_this_map (t_map, lat, branch, ss1, branch%param%total_length, integrate_this, error_flag)
   if (error_flag) return
-  call transfer_this_map (t_map, 0.0_rp, ss2, error_flag)
+  call transfer_this_map (t_map, lat, branch, 0.0_rp, ss2, integrate_this, error_flag)
   if (error_flag) return
 
 ! For a linear (not closed) lattice compute the backwards map
 
 else
   if (unit_start_this) then
-    call transfer_this_map (t_map, ss2, ss1, error_flag)
+    call transfer_this_map (t_map, lat, branch, ss2, ss1, integrate_this, error_flag)
     if (error_flag) return
     call taylor_inverse (t_map, t_map)
   else  
     call taylor_make_unit (a_map)
-    call transfer_this_map (a_map, ss2, ss1, error_flag)
+    call transfer_this_map (a_map, lat, branch, ss2, ss1, integrate_this, error_flag)
     if (error_flag) return
     call taylor_inverse (a_map, a_map)
     call concat_taylor (t_map, a_map, t_map)
@@ -137,11 +139,23 @@ endif
 
 if (present(err_flag)) err_flag = .false.
 
+end subroutine transfer_map_from_s_to_s
+
 !------------------------------------------------------------------------
-contains
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine transfer_this_map (map, lat, branch, s_1, s_2, integrate_this, error_flag)
+!
+! Private subroutine used by transfer_map_from_s_to_s
+!-
 
-subroutine transfer_this_map (map, s_1, s_2, error_flag)
+subroutine transfer_this_map (map, lat, branch, s_1, s_2, integrate_this, error_flag)
 
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), target :: branch
 type (taylor_struct) :: map(:)
 type (ele_struct), pointer, save :: ele
 type (ele_struct), pointer, save :: runt => null()
@@ -153,12 +167,12 @@ real(rp), save :: ds_old = -1
 integer i, ix_ele
 
 logical kill_it, track_entrance, track_exit, track_entire_ele
-logical runt_points_to_new, error_flag
+logical runt_points_to_new, integrate_this, error_flag
 logical, save :: old_track_end = .false.
 
 ! Init
 
-call ele_at_s (lat, s_1, ix_ele, ix_branch)
+call ele_at_s (lat, s_1, ix_ele, branch%ix_branch)
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -247,8 +261,6 @@ do
 enddo
 
 end subroutine transfer_this_map
-
-end subroutine transfer_map_from_s_to_s
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -341,21 +353,21 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then
-  call transfer_this_mat (ss1, ss2, error_flag)
+  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  ss2, error_flag)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%lattice_type == circular_lattice$) then
-  call transfer_this_mat (ss1, branch%param%total_length, error_flag)
+  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  branch%param%total_length, error_flag)
   if (error_flag) return
-  call transfer_this_mat (0.0_rp, ss2, error_flag)
+  call transfer_this_mat (mat6, vec0, lat, branch, 0.0_rp, ss2, error_flag)
   if (error_flag) return
 
 ! For a linear lattice compute the backwards matrix
 
 else
-  call transfer_this_mat (ss2, ss1, error_flag)
+  call transfer_this_mat (mat6, vec0, lat, branch, ss2, ss1, error_flag)
   if (error_flag) return
   call mat_inverse (mat6, mat6)
   vec0 = -matmul(mat6, vec0)
@@ -364,16 +376,28 @@ endif
 
 if (present(err_flag)) err_flag = .false.
 
-!--------------------------------------------------------
+end subroutine mat6_from_s_to_s
 
-contains
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag)
+!
+! Private subroutine used by mat6_from_s_to_s
+!-
 
-subroutine transfer_this_mat (s_1, s_2, error_flag)
+subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag)
 
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), target :: branch
 type (ele_struct), pointer, save :: ele
 type (ele_struct), pointer, save :: runt
 type (ele_struct), target, save :: runt_save
 
+real(rp) mat6(:,:), vec0(:)
 real(rp) s_1, s_2, s_end, s_now, ds
 real(rp), save :: ds_old = -1
 
@@ -385,7 +409,7 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-call ele_at_s (lat, s_1, ix_ele, ix_branch)
+call ele_at_s (lat, s_1, ix_ele, branch%ix_branch)
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -467,8 +491,6 @@ do
 enddo
 
 end subroutine transfer_this_mat
-
-end subroutine mat6_from_s_to_s
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
