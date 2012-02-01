@@ -147,7 +147,7 @@ end subroutine em_field_kick_vector_time
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine convert_particle_coordinates_t_to_s (particle, p0c, mc2, tref)
+! Subroutine convert_particle_coordinates_t_to_s (particle, mc2, tref)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
@@ -155,24 +155,24 @@ end subroutine em_field_kick_vector_time
 !   use bmad
 !
 ! Input:
-!   particle   -- coord_struct: input particle
+!   particle   -- coord_struct: input particle coordinates
 !                    %vec(:)
-!                    %t
-!   p0c        -- real: Reference momentum. The sign indicates direction of p_s. 
+!                    %t 
+!                    %p0c
 !   mc2        -- real: particle rest mass in eV
 !   tref       -- real: reference time for z coordinate
 ! Output:
 !    particle   -- coord_struct: output particle 
 !-
 
-subroutine convert_particle_coordinates_t_to_s (particle, p0c, mc2, tref)
+subroutine convert_particle_coordinates_t_to_s (particle, mc2, tref)
 
 !use bmad_struct
 
 implicit none
 
 type (coord_struct), intent(inout), target ::particle
-real(rp), intent(in) :: p0c
+real(rp) :: p0c
 real(rp), intent(in) :: mc2
 real(rp), intent(in) :: tref
 
@@ -180,15 +180,16 @@ real(rp) :: pctot
 
 real(rp), pointer :: vec(:)
 vec => particle%vec
+p0c=abs(particle%p0c)
 
       !Convert t to s
       pctot = sqrt (vec(2)**2 + vec(4)**2 + vec(6)**2)
       !vec(1) = vec(1)   !this is unchanged
-      vec(2) = vec(2)/abs(p0c)
+      vec(2) = vec(2)/p0c
       !vec(3) = vec(3)   !this is unchanged
-      vec(4) = vec(4)/abs(p0c)
+      vec(4) = vec(4)/p0c
       vec(5) = -c_light * (pctot/sqrt(pctot**2 +mc2**2)) *  (particle%t - tref) !z \equiv -c \beta(s)  (t(s) -t_0(s)) 
-      vec(6) = pctot/abs(p0c) - 1.0_rp
+      vec(6) = pctot/p0c - 1.0_rp
 
 end subroutine convert_particle_coordinates_t_to_s
 
@@ -196,10 +197,10 @@ end subroutine convert_particle_coordinates_t_to_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine convert_particle_coordinates_s_to_t (particle, p0c)
+! Subroutine convert_particle_coordinates_s_to_t (particle)
 !
 ! Subroutine to convert particle coordinates from s-based to t-based system. 
-!     The sign of p0c indicates the direction of p_s
+!     The sign of particle%p0c indicates the direction of p_s
 !
 ! Note: t coordinates are:            
 !     vec(1) = x                              [m]
@@ -215,30 +216,29 @@ end subroutine convert_particle_coordinates_t_to_s
 ! Input:
 !   particle   -- coord_struct: input particle
 !                       %vec(2), %vec(4), %vec(6)
-!                       %s
+!                       %s, %p0c
 !   p0c        -- real: Reference momentum. The sign indicates direction of p_s 
 ! Output:
 !    particle   -- coord_struct: output particle 
 !-
 
-subroutine convert_particle_coordinates_s_to_t (particle, p0c)
+subroutine convert_particle_coordinates_s_to_t (particle)
 
 !use bmad_struct
 
 implicit none
 
 type (coord_struct), intent(inout), target :: particle
-real(rp), intent(in) :: p0c
 real(rp), pointer :: vec(:)
 
 vec => particle%vec
 
       !Convert s to t
-      vec(6) = p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
+      vec(6) = particle%p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
       !vec(1) = vec(1) !this is unchanged
-      vec(2) = vec(2)*abs(p0c)
+      vec(2) = vec(2)*abs(particle%p0c)
       !vec(3) = vec(3) !this is unchanged
-      vec(4) = vec(4)*abs(p0c)
+      vec(4) = vec(4)*abs(particle%p0c)
       vec(5) = particle%s
       
 
@@ -294,7 +294,7 @@ end subroutine drift_orbit_time
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_time_particle_distribution  (time_file_unit, bunch,  mc2, p0c, err)
+! Subroutine write_time_particle_distribution  (time_file_unit, bunch, mc2, err)
 !
 ! Subroutine to write an time-based bunch from a standard Bmad bunch
 ! 
@@ -310,7 +310,6 @@ end subroutine drift_orbit_time
 !   bunch          -- bunch_struct: bunch to be written.
 !                            Particles are drifted to bmad_bunch%t_center for output
 !   mc2            -- real(rp): particle mass in eV
-!   p0c            -- real(rp): reference momentum for particles in bmad_bunch
 !
 ! Output:          
 !   err            -- Logical, optional: Set True if, say a file could not be opened.
@@ -318,13 +317,13 @@ end subroutine drift_orbit_time
 
 
 
-subroutine write_time_particle_distribution (time_file_unit, bunch, mc2, p0c, err)
+subroutine write_time_particle_distribution (time_file_unit, bunch, mc2, err)
 
 implicit none
 
 integer			    :: time_file_unit
 type (bunch_struct) :: bunch
-real(rp)            :: mc2, p0c
+real(rp)            :: mc2
 logical, optional   :: err
 
 type (coord_struct) :: orb
@@ -355,16 +354,16 @@ do i = 1, n_particle
   dt = orb%t - bunch%t_center
   
   !Get pc before conversion
-  pc = (1+orb%vec(6))*p0c 
+  pc = (1+orb%vec(6))*orb%p0c 
   
   !convert to time coordinates
-  call convert_particle_coordinates_s_to_t (orb, p0c)
+  call convert_particle_coordinates_s_to_t (orb)
   
   !get \gamma m c
   gmc = sqrt(pc**2 + mc2**2) / c_light
   
   !'track' particles backwards in time and write to file
-  write(time_file_unit, '(8'//rfmt//')') orb%vec(1) - dt*orb%vec(2)/gmc, &   !x - dt mc2 \beta_x \gamma / \gamma m c
+  write(time_file_unit, '(8'//rfmt//')')  orb%vec(1) - dt*orb%vec(2)/gmc, &   !x - dt mc2 \beta_x \gamma / \gamma m c
                                           orb%vec(2), &
                                           orb%vec(3) - dt*orb%vec(4)/gmc, &   !y - dt mc2 \beta_y \gamma / \gamma m c
                                           orb%vec(4), &

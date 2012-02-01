@@ -717,7 +717,7 @@ end subroutine write_opal_field_grid_file
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_opal_particle_distribution  (opal_file_unit, bunch,  mc2, p0c, err)
+! Subroutine write_opal_particle_distribution  (opal_file_unit, bunch,  mc2, err)
 !
 ! Subroutine to write an OPAL bunch from a standard Bmad bunch
 ! 
@@ -733,19 +733,18 @@ end subroutine write_opal_field_grid_file
 !   bunch          -- bunch_struct: bunch to be written.
 !                            Particles are drifted to bmad_bunch%t_center for output
 !   mc2            -- real(rp): particle mass in eV
-!   p0c            -- real(rp): reference momentum for particles in bmad_bunch
 !
 ! Output:          
 !   err            -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine write_opal_particle_distribution (opal_file_unit, bunch, mc2, p0c, err)
+subroutine write_opal_particle_distribution (opal_file_unit, bunch, mc2, err)
 
 implicit none
 
 integer          :: opal_file_unit
 type (bunch_struct) :: bunch
-real(rp)            :: mc2, p0c
+real(rp)            :: mc2
 logical, optional   :: err
 
 type (coord_struct) :: orb
@@ -778,10 +777,10 @@ do i = 1, n_particle
   dt = orb%t - bunch%t_center
   
   ! Get pc before conversion
-  pc = (1+orb%vec(6))*p0c 
+  pc = (1+orb%vec(6))*orb%p0c 
   
   ! convert to time coordinates
-  call convert_particle_coordinates_s_to_t (orb, p0c)
+  call convert_particle_coordinates_s_to_t (orb)
   
   ! get \gamma m c
   gmc = sqrt(pc**2 + mc2**2) / c_light
