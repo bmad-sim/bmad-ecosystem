@@ -332,6 +332,7 @@ do i = 1, n_key
   call init_attrib (i, ds_step$,            'DS_STEP')
   call init_attrib (i, csr_calc_on$,        'CSR_CALC_ON')
   call init_attrib (i, n_ref_pass$,         'N_REF_PASS')
+  call init_attrib (i, ds_field_offset$,    reserved_name$)
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
@@ -450,8 +451,10 @@ call init_attrib (e_gun$, field$,                          'FIELD')
 call init_attrib (em_field$, e_tot_start$,                 'E_TOT_START')
 call init_attrib (em_field$, p0c_start$,                   'P0C_START')
 call init_attrib (em_field$, field$,                       'FIELD')
+call init_attrib (em_field$, z_patch$,                     'Z_PATCH')
 
 call init_attrib (taylor$, l$,                             'L')
+call init_attrib (marker$, l$,                             reserved_name$)
 
 call init_attrib (match$, l$,                              'L')
 call init_attrib (match$, beta_a0$,                        'BETA_A0')
@@ -520,7 +523,8 @@ call init_attrib (lcavity$, gradient_err$,                 'GRADIENT_ERR')
 call init_attrib (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attrib (lcavity$, field$,                        'FIELD')
 call init_attrib (lcavity$, field_scale$,                  'FIELD_SCALE')
-call init_attrib (lcavity$, dphi0_ref$,                     'DPHI0_REF')
+call init_attrib (lcavity$, dphi0_ref$,                    'DPHI0_REF')
+call init_attrib (lcavity$, z_patch$,                      'Z_PATCH')
 call init_attrib (lcavity$, grad_loss_sr_wake$,            reserved_name$)
 
 
@@ -656,9 +660,11 @@ call init_attrib (rfcavity$, coupler_phase$,               'COUPLER_PHASE')
 call init_attrib (rfcavity$, coupler_at$,                  'COUPLER_AT')
 call init_attrib (rfcavity$, field$,                       'FIELD')
 call init_attrib (rfcavity$, field_scale$,                 'FIELD_SCALE')
-call init_attrib (rfcavity$, dphi0_ref$,                  'DPHI0_REF')
+call init_attrib (rfcavity$, dphi0_ref$,                   'DPHI0_REF')
+call init_attrib (rfcavity$, z_patch$,                     'Z_PATCH')
 call init_attrib (rfcavity$, grad_loss_sr_wake$,           reserved_name$)
-call init_attrib (rfcavity$, dphi0_max$,                  reserved_name$)
+call init_attrib (rfcavity$, dphi0_max$,                   reserved_name$)
+
 
 call init_attrib (elseparator$, gap$,                      'GAP')
 call init_attrib (elseparator$, e_field$,                  'E_FIELD')
@@ -668,6 +674,7 @@ call init_attrib (elseparator$, field_calc$,               'FIELD_CALC')
 call init_attrib (elseparator$, field_master$,             'FIELD_MASTER')
 call init_attrib (elseparator$, field$,                    'FIELD')
 
+call init_attrib (beambeam$, l$,                           reserved_name$)
 call init_attrib (beambeam$, sig_x$,                       'SIG_X')
 call init_attrib (beambeam$, sig_y$,                       'SIG_Y')
 call init_attrib (beambeam$, sig_z$,                       'SIG_Z')
@@ -737,6 +744,7 @@ call init_attrib (hybrid$, delta_ref_time$,                'DELTA_REF_TIME')
 call init_attrib (hybrid$, e_tot_start$,                   'E_TOT_START')
 call init_attrib (hybrid$, p0c_start$,                     'P0C_START')
 
+call init_attrib (mirror$, l$,                             reserved_name$)
 call init_attrib (mirror$, graze_angle$,                   'GRAZE_ANGLE')
 call init_attrib (mirror$, graze_angle_err$,               'GRAZE_ANGLE_ERR')
 call init_attrib (mirror$, critical_angle$,                'CRITICAL_ANGLE')
@@ -744,6 +752,7 @@ call init_attrib (mirror$, tilt_err$,                      'TILT_ERR')
 call init_attrib (mirror$, g_trans$,                       'G_TRANS')
 call init_attrib (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
 
+call init_attrib (multilayer_mirror$, l$,                  reserved_name$)
 call init_attrib (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
 call init_attrib (multilayer_mirror$, graze_angle_err$,      'GRAZE_ANGLE_ERR')
 call init_attrib (multilayer_mirror$, tilt_err$,             'TILT_ERR')
@@ -761,6 +770,7 @@ call init_attrib (multilayer_mirror$, crystal_type$,         'CRYSTAL_TYPE')
 call init_attrib (multilayer_mirror$, ref_polarization$,     'REF_POLARIZATION')
 call init_attrib (multilayer_mirror$, negative_graze_angle$, 'NEGATIVE_GRAZE_ANGLE')
 
+call init_attrib (crystal$, l$,                            reserved_name$)
 call init_attrib (crystal$, graze_angle_in$,               'GRAZE_ANGLE_IN')
 call init_attrib (crystal$, graze_angle_out$,              'GRAZE_ANGLE_OUT')
 call init_attrib (crystal$, graze_angle_err$,              'GRAZE_ANGLE_ERR')
@@ -874,7 +884,9 @@ implicit none
 type (ele_struct) ele
 logical has_attribs
 
-!
+! Rule: The orientation attributes of an em_field control any fields that the element contains internally.
+! If it is a super_slave or a mutipass_slave, the fields always reside in the lord elements and thus
+! the em_field is not considered to have orientation attributes in this case.
 
 has_attribs = has_orientation_attributes_key(ele%key)
 if (ele%key == em_field$ .and. (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$)) &

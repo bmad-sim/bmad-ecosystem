@@ -1204,7 +1204,7 @@ real(rp) omega, charge, vrf, phirf, c0, c1, c2
 
 charge = 1   ! Assume this
 
-omega = charge * twopi / ele%value(rf_wavelength$)
+omega = charge * twopi * ele%value(rf_frequency$) / c_light
 vrf   = ele%value(voltage$) * charge / energy%total
 phirf = (ele%value(phi0$) + ele%value(dphi0$)) * twopi   ! - omega * orbit(5)
 
