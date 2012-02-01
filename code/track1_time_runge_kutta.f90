@@ -95,13 +95,8 @@ if (ele%value(l$) .eq. 0) then
   
   !If saving tracks, allocate track array and save one point
   if ( present(track) ) then
-    if (end%p0c < 0) then
-      p0c = -1*ele%value(p0c$)
-    else
-      p0c = ele%value(p0c$)
-    end if
    !Convert to global-s to local-t coordinates
-    call convert_particle_coordinates_s_to_t(end, p0c )
+    call convert_particle_coordinates_s_to_t(end)
     !convert to element coordinates for track_struct
     end%t = end%t - ele%ref_time
     end%s = end%s - ele%s
@@ -128,28 +123,18 @@ dt_step = ele%value(ds_step$)/c_light
 !------
 !Convert particle to element coordinates
 
-if (end%p0c > 0 .and. end%status == outside$) then
-  if (ele_has_constant_reference_energy(ele)) then
-    p0c = ele%value(p0c$)
-  else  ! lcavity, etc.
-    p0c = ele%value(p0c_start$)
-  end if  
+if (start2%p0c > 0 .and.start2%status == outside$) then
+  !Particle is moving forward towards the entrance
   call offset_particle(ele, param, start2, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
-   call apply_element_edge_kick (start2, ele, param, entrance_end$)
+  call apply_element_edge_kick (start2, ele, param, entrance_end$)
 
-elseif (end%status == inside$) then
+elseif (start2%status == inside$) then
   !Interior start, reference momentum is at the end. No edge kicks are given
-  if (end%p0c < 0) then
-    p0c = -1*ele%value(p0c$)
-  else 
-    p0c = ele%value(p0c$)
-  endif 
   call offset_particle(ele, param, start2, set$, set_canonical = .false., &
                        ds_pos = start2%s - (ele%s - ele%value(l$)) )
 
-elseif (end%p0c < 0 .and. end%status == outside$) then
+elseif (start2%p0c < 0 .and. start2%status == outside$) then
   !Particle is at the exit surface, should be moving backwards
-  p0c = -1*ele%value(p0c$)
   call offset_particle(ele, param, start2, set$, set_canonical = .false., &
                        ds_pos = start2%s - (ele%s - ele%value(l$)) )
   call apply_element_edge_kick (start2, ele, param, exit_end$)
@@ -161,7 +146,7 @@ else
 endif
 
 ! ele(s-based) -> ele(t-based)
-call convert_particle_coordinates_s_to_t(start2, p0c)
+call convert_particle_coordinates_s_to_t(start2)
 !Shift s and t to ele coordinates
 start2%t = start2%t - (ele%ref_time - ele%value(delta_ref_time$))
 start2%s = start2%s - (ele%s - ele%value(l$))
@@ -176,13 +161,14 @@ call  particle_hit_wall_check_time(ele_origin, start2, param, ele)
 
 if (param%lost) then
 
+  end = start2
   end%status = dead$
    
   !Allocate track array and set value
   if ( present(track) ) then
     call init_saved_orbit (track, 0)
     track%n_pt = 0
-    track%orb(0) = start2
+    track%orb(0) = end
   endif
 
   call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL, SKIPPING TRACKING")
@@ -207,17 +193,18 @@ end%s = end%s + (ele%s - ele%value(l$))
 
 !Convert back to s-based coordinates
 
-if (end%status == outside$ .and. end%p0c < 0) then
-
+if (end%status == outside$ .and. end%vec(6) < 0) then
+  !Particle left entrance end going backwards
+  !set reference time and momentum
   if (ele_has_constant_reference_energy(ele)) then
-    p0c = -1*ele%value(p0c$)
+    end%p0c = -1*ele%value(p0c$)
   else  ! lcavity, etc.
-    p0c = -1*ele%value(p0c_start$)
+    end%p0c = -1*ele%value(p0c_start$)
   end if
   ref_time = ele%ref_time - ele%value(delta_ref_time$)
 
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+  call convert_particle_coordinates_t_to_s(end, mass_of(param%particle), ref_time)
   call apply_element_edge_kick (start2, ele, param, entrance_end$)
   !unset
   call offset_particle(ele, param, end, unset$, set_canonical = .false.)
@@ -226,22 +213,23 @@ elseif (end%status == dead$) then
     !Particle is lost in the interior of the element.
     !  The reference is a the end of the element
     if (end%p0c < 0) then
-      p0c = -1*ele%value(p0c$)
+      end%p0c = -1*ele%value(p0c$)
     else 
-      p0c = ele%value(p0c$)
+      end%p0c = ele%value(p0c$)
     end if
     ref_time = ele%ref_time
     !ele(t-based) -> ele(s-based)
-    call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+    call convert_particle_coordinates_t_to_s(end, mass_of(param%particle), ref_time)
     !unset
     call offset_particle(ele, param, end, unset$, set_canonical = .false., &
                                         ds_pos = end%s - (ele%s - ele%value(l$)) )
 
-elseif (end%status == outside$ .and. end%p0c > 0) then
-  p0c = ele%value(p0c$)
+elseif (end%status == outside$ .and. end%vec(6) .ge. 0) then
+  !Particle left exit end going forward
+  end%p0c = ele%value(p0c$)
   ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+  call convert_particle_coordinates_t_to_s(end, mass_of(param%particle), ref_time)
   call apply_element_edge_kick (start2, ele, param, exit_end$)
   !unset
   call offset_particle(ele, param, end, unset$, set_canonical = .false.)
@@ -360,7 +348,8 @@ do n_step = 1, max_step
   if ( orb_new%s > s2 ) then
    exit_flag = .true.
    s_target = s2
-   orb_new%status = outside$ 
+   orb_new%status = outside$
+   
    !Set common structures for zbrent's internal functions 
    ele_com => ele
    param_com => param
@@ -382,11 +371,13 @@ do n_step = 1, max_step
      orb_new%s = s2 + edge_tol
      orb_new%vec(5) = orb_new%s
    end if
-
+ 
+  
   else if ( orb_new%s < s1 ) then
     exit_flag = .true. 
     s_target = s1
     orb_new%status = outside$ 
+    
     !Set common structures for zbrent's internal functions 
     ele_com => ele
     param_com => param
@@ -414,7 +405,7 @@ do n_step = 1, max_step
     call  particle_hit_wall_check_time(orb, orb_new, param, ele)
     !Flag for exit if wall is hit
     if (param%lost) then
-       orb_new%status = dead$
+      orb_new%status = dead$
       exit_flag = .true.
     end if
   endif
@@ -436,12 +427,6 @@ do n_step = 1, max_step
   !Exit when the particle hits surface s1 or s2, or hits wall
   if (exit_flag) then
      end = orb_new   !Return last orb_new that zbrent calculated
-     !check for reversed motion
-     if (end%vec(6) <0 ) then 
-       end%p0c = -abs(end%p0c)
-     else
-       end%p0c = abs(end%p0c)
-     end if
      !exit routine
      return
   endif
