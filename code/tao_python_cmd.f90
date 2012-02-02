@@ -3,6 +3,17 @@
 !
 ! Print information in a form easily parsed by a scripting program like python.
 !
+! Note: The syntax for "serial output form" is:
+!   <component_name>;<type>;<variable>;<component_value>;
+! <type> is one of:
+!   STRING
+!   INTEGER
+!   REAL
+!   LOGICAL
+! <variable> indicates if the component can be varied. It is one of:
+!   T
+!   F
+!
 ! Input:
 !   input_str  -- Character(*): What to show.
 !-
@@ -59,7 +70,7 @@ character(20) :: cmd_names(32)= &
           ['plot_visible   ', 'plot_template  ', 'graph          ', 'curve          ', &
            'plot1          ', 'var_all        ', 'var_v1         ', 'var1           ', &
            'graph1         ', 'curve1         ', 'curve_sym      ', 'curve_line     ', &
-           'data_all       ', 'data_d2        ', 'data_d1        ', 'data1          ', &
+           '--------       ', 'data_d2        ', 'data_d1        ', 'data1          ', &
            'ele_all        ', 'ele1_all       ', 'beam_all       ', 'ele1_attrib    ', &
            'constraint_data', 'constraint_vars', 'global         ', 'lat_ele_list   ', &
            'lat_global     ', '               ', '               ', '               ', &
@@ -88,6 +99,11 @@ if (ix < 0) then
   call out_io (s_error$, r_name, '***PYTHON COMMAND? AMBIGUOUS: ' // command)
   return
 endif
+
+amt = '(3a)'
+imt = '(a,i0,a)'
+rmt = '(a,es15.8,a)'
+lmt = '(a,l1,a)'
 
 nl = 0
 if (.not. allocated(lines)) allocate (lines(200))
@@ -170,9 +186,90 @@ do i = 1, s%n_var_used
 enddo
 
 !----------------------------------------------------------------------
-! D1 level data. 
+! Curve for a plot
 ! Input syntax:
-!   data_d1 <d2_datum>
+!   curve <curve>
+! Output syntax is serial output form. See documentation at beginning of this file.
+
+case ('curve')
+
+  call tao_find_plots (err, line, 'BOTH', curve = curve, always_allocate = .true.)
+
+  if (.not. allocated(curve) .or. size(curve) /= 1) then
+    nl=nl+1; lines(nl) = 'INVALID;;'
+  else
+    c1 => curve(1)%c
+    nl=nl+1; write (lines(nl), amt)  'data_source;STRING;F;',               trim(c1%data_source), ';'
+    nl=nl+1; write (lines(nl), amt)  'data_index;STRING;F;',                trim(c1%data_index), ';'
+    nl=nl+1; write (lines(nl), amt)  'data_type_x;STRING;F;',               trim(c1%data_type_x), ';'
+    nl=nl+1; write (lines(nl), amt)  'data_type;STRING;F;',                 trim(c1%data_type), ';'
+    nl=nl+1; write (lines(nl), amt)  'legend_text;STRING;F;',               trim(c1%legend_text), ';'
+    nl=nl+1; write (lines(nl), amt)  'ele_ref_name;STRING;F;',              trim(c1%ele_ref_name), ';'
+    nl=nl+1; write (lines(nl), imt)  'ix_branch;INTEGER;F;',                c1%ix_branch, ';'
+    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref;INTEGER;F;',               c1%ix_ele_ref, ';'
+    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref_track;INTEGER;F;',         c1%ix_ele_ref_track, ';'
+    nl=nl+1; write (lines(nl), imt)  'ix_bunch;INTEGER;F;',                 c1%ix_bunch, ';'
+    nl=nl+1; write (lines(nl), imt)  'ix_universe;INTEGER;F;',              c1%ix_universe, ';'
+    nl=nl+1; write (lines(nl), imt)  'symbol_every;INTEGER;F;',             c1%symbol_every, ';'
+    nl=nl+1; write (lines(nl), rmt)  'y_axis_scale_factor;REAL;F;',         c1%y_axis_scale_factor, ';'
+    nl=nl+1; write (lines(nl), lmt)  'use_y2;LOGICAL;F;',                   c1%use_y2, ';'
+    nl=nl+1; write (lines(nl), lmt)  'draw_line;LOGICAL;F;',                c1%draw_line, ';'
+    nl=nl+1; write (lines(nl), lmt)  'draw_symbols;LOGICAL;F;',             c1%draw_symbols, ';'
+    nl=nl+1; write (lines(nl), lmt)  'draw_symbol_index;LOGICAL;F;',        c1%draw_symbol_index, ';'
+    nl=nl+1; write (lines(nl), lmt)  'smooth_line_calc;LOGICAL;F;',         c1%smooth_line_calc, ';'
+    nl=nl+1; write (lines(nl), imt)  'line%width;INTEGER;F;',               c1%line%width, ';'
+    nl=nl+1; write (lines(nl), amt)  'line%color;STRING;F;',                trim(qp_color_name(c1%line%color)), ';'
+    nl=nl+1; write (lines(nl), amt)  'line%pattern;STRING;F;',              trim(qp_line_pattern_name(c1%line%pattern)), ';'
+    nl=nl+1; write (lines(nl), amt)  'symbol%type;STRING;F;',               trim(qp_symbol_type_name(c1%symbol%type)), ';'
+    nl=nl+1; write (lines(nl), rmt)  'symbol%height;REAL;F;',               c1%symbol%height, ';'
+    nl=nl+1; write (lines(nl), amt)  'symbol%fill_pattern;STRING;F;',       trim(qp_fill_name(c1%symbol%fill_pattern)), ';'
+    nl=nl+1; write (lines(nl), imt)  'symbol%line_width;INTEGER;F;',        c1%symbol%line_width, ';'
+  endif
+
+!----------------------------------------------------------------------
+! Curve for a plot
+! Input syntax:
+!   curve <curve>
+! Output syntax: 
+!   <index>;<x>;<y>;
+
+case ('curve_line')
+
+  call tao_find_plots (err, line, 'BOTH', curve = curve, always_allocate = .true.)
+
+  if (.not. allocated(curve) .or. size(curve) /= 1) then
+    nl=nl+1; lines(nl) = 'INVALID;;;'
+  else
+    c1 => curve(1)%c
+    call re_allocate (lines, nl+size(c1%x_line)+100, .false.)
+    do i = 1, size(c1%x_line)
+      nl=nl+1; write (lines(nl), '(i0, a, 2(es15.8, a))') i, ';', c1%x_line(i), ';', c1%y_line(i), ';'
+    enddo
+  endif
+
+!----------------------------------------------------------------------
+! Curve for a plot
+! Input syntax:
+!   curve <curve>
+! Output syntax: 
+!   <index>;<symbol_index>;<x>;<y>;
+
+case ('curve_sym')
+
+  if (.not. allocated(curve) .or. size(curve) /= 1) then
+    nl=nl+1; lines(nl) = 'INVALID;;;'
+  else
+    c1 => curve(1)%c
+    call re_allocate (lines, nl+size(c1%x_symb)+100, .false.)
+    do i = 1, size(c1%x_symb)
+      nl=nl+1; write (lines(nl), '(2(i0, a), 2(es15.8, a))') i, ';', c1%ix_symb(i), ';', c1%x_symb(i), ';', c1%y_symb(i)
+    enddo
+  endif
+
+!----------------------------------------------------------------------
+! List of datums in a given data d1 array
+! Input syntax:
+!   data_d1 <d1_datum>
 ! Output syntax: 
 !   <index>;<data_type>;<merit_type>;<ele_ref_name>;<ele_start_name>;<ele_name>;<meas_value>;<model_value>;<design_value>;<good_user>;<useit_opt>;<useit_plot>;
 
@@ -188,7 +285,7 @@ case ('data_d1')
       d_ptr => d1_ptr%d(i)
       if (.not. d_ptr%exists) cycle
       if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
-      nl=nl+1; write(lines(nl), '(i0, 11a, 3(es16.8, a), 3(l1, a))') &
+      nl=nl+1; write(lines(nl), '(i0, 11a, 3(es15.8, a), 3(l1, a))') &
                        d_ptr%ix_d1, ';', trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
                        trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', &
                        trim(d_ptr%ele_name), ';', d_ptr%meas_value, ';', d_ptr%model_value, ';', &
@@ -231,16 +328,7 @@ case ('data_d2')
 ! Individual datum
 ! Input syntax:
 !   data1 <datum_name>
-! Output syntax:
-!   <component_name>;<type>;<variable>;<component_value>;
-! <type> is one of:
-!   STRING
-!   INTEGER
-!   REAL
-!   LOGICAL
-! <variable> indicates if the component can be varied. It is one of:
-!   T
-!   F
+! Output syntax is serial output form. See documentation at beginning of this file.
 
 case ('data1')
 
@@ -250,10 +338,6 @@ case ('data1')
     nl=nl+1; lines(nl) = 'INVALID;STRING;F;0;'
   else
     d_ptr => d_array(1)%d
-    amt = '(3a)'
-    imt = '(a,i0,a)'
-    rmt = '(a,es16.8,a)'
-    lmt = '(a,l1,a)'
     nl=nl+1; write(lines(nl), amt)  'ele_name;STRING;F;',           trim(d_ptr%ele_name), ';'
     nl=nl+1; write(lines(nl), amt)  'ele_start_name;STRING;F;',     trim(d_ptr%ele_start_name), ';'
     nl=nl+1; write(lines(nl), amt)  'ele_ref_name;STRING;F;',       trim(d_ptr%ele_ref_name), ';'
@@ -321,6 +405,69 @@ case ('global')
 ! Lattice element list.
 ! Input syntax:
 !   lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
+! Output syntax is serial output form. See documentation at beginning of this file.
+
+case ('graph')
+
+    call tao_find_plots (err, line, 'BOTH', graph = graph, always_allocate = .true.)
+
+    if (.not. allocated(graph) .and. size(graph) /= 1) then
+      nl=nl+1; lines(nl) = 'INVALID;STRING;F;0;'
+    else
+      g => graph(1)%g
+      nl=nl+1; write (lines(nl), amt) 'type;STRING;F;',                       trim(g%type), ';'
+      nl=nl+1; write (lines(nl), amt) 'title;STRING;F;',                      trim(g%title), ';'
+      nl=nl+1; write (lines(nl), amt) 'title_suffix;STRING;F;',               trim(g%title_suffix), ';'
+      nl=nl+1; write (lines(nl), amt) 'component;STRING;F;',                  trim(g%component), ';'
+      nl=nl+1; write (lines(nl), imt) 'box1;INTEGER;F;',                      g%box(1), ';'
+      nl=nl+1; write (lines(nl), imt) 'box2;INTEGER;F;',                      g%box(2), ';'
+      nl=nl+1; write (lines(nl), imt) 'box3;INTEGER;F;',                      g%box(3), ';'
+      nl=nl+1; write (lines(nl), imt) 'box4;INTEGER;F;',                      g%box(4), ';'
+      nl=nl+1; write (lines(nl), imt) 'ix_universe;INTEGER;F;',               g%ix_universe, ';'
+      nl=nl+1; write (lines(nl), lmt) 'valid;LOGICAL;F;',                     g%valid, ';'
+
+      nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor;REAL;F;',          g%x_axis_scale_factor, ';'
+      nl=nl+1; write (lines(nl), rmt) 'symbol_size_scale;REAL;F;',            g%symbol_size_scale, ';'
+      nl=nl+1; write (lines(nl), amt) 'x%label;STRING;F;',                    trim(g%x%label), ';'
+      nl=nl+1; write (lines(nl), rmt) 'x%max;REAL;F;',                        g%x%max, ';'
+      nl=nl+1; write (lines(nl), rmt) 'x%min;REAL;F;',                        g%x%min, ';'
+      nl=nl+1; write (lines(nl), imt) 'x%major_div;INTEGER;F;',               g%x%major_div, ';'
+      nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal;INTEGER;F;',       g%x%major_div_nominal, ';'
+      nl=nl+1; write (lines(nl), imt) 'x%places;INTEGER;F;',                  g%x%places, ';'
+      nl=nl+1; write (lines(nl), lmt) 'x%draw_label;LOGICAL;F;',              g%x%draw_label, ';'
+      nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers;LOGICAL;F;',            g%x%draw_numbers, ';'
+
+      nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y;LOGICAL;F;',              g%y2_mirrors_y, ';'
+      nl=nl+1; write (lines(nl), amt) 'y%label;STRING;F;',                    trim(g%y%label), ';'
+      nl=nl+1; write (lines(nl), rmt) 'y%max;REAL;F;',                        g%y%max, ';'
+      nl=nl+1; write (lines(nl), rmt) 'y%min;REAL;F;',                        g%y%min, ';'
+      nl=nl+1; write (lines(nl), imt) 'y%major_div;INTEGER;F;',               g%y%major_div, ';'
+      nl=nl+1; write (lines(nl), imt) 'y%major_div_nominal;INTEGER;F;',       g%y%major_div_nominal, ';'
+      nl=nl+1; write (lines(nl), imt) 'y%places;INTEGER;F;',                  g%y%places, ';'
+      nl=nl+1; write (lines(nl), lmt) 'y%draw_label;LOGICAL;F;',              g%y%draw_label, ';'
+      nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers;LOGICAL;F;',            g%y%draw_numbers, ';'
+
+      nl=nl+1; write (lines(nl), amt) 'y2%label;STRING;F;',                   trim(g%y2%label), ';'
+      nl=nl+1; write (lines(nl), rmt) 'y2%max;REAL;F;',                       g%y2%max, ';'
+      nl=nl+1; write (lines(nl), rmt) 'y2%min;REAL;F;',                       g%y2%min, ';'
+      nl=nl+1; write (lines(nl), imt) 'y2%major_div;INTEGER;F;',              g%y2%major_div, ';'
+      nl=nl+1; write (lines(nl), imt) 'y2%major_div_nominal;INTEGER;F;',      g%y2%major_div_nominal, ';'
+      nl=nl+1; write (lines(nl), imt) 'y2%places;INTEGER;F;',                 g%y2%places, ';'
+      nl=nl+1; write (lines(nl), lmt) 'y2%draw_label;LOGICAL;F;',             g%y2%draw_label, ';'
+      nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers;LOGICAL;F;',           g%y2%draw_numbers, ';'
+      nl=nl+1; write (lines(nl), lmt) 'limited;LOGICAL;F;',                   g%limited, ';'
+      nl=nl+1; write (lines(nl), lmt) 'clip;LOGICAL;F;',                      g%clip, ';'
+      nl=nl+1; write (lines(nl), lmt) 'draw_axes;LOGICAL;F;',                 g%draw_axes, ';'
+      nl=nl+1; write (lines(nl), lmt) 'correct_xy_distortion;LOGICAL;F;',     g%correct_xy_distortion, ';'
+      do i = 1, size(g%curve)
+        nl=nl+1; write (lines(nl), amt) 'curve;STRING;F;',   trim(g%curve(i)%name), ';'
+      enddo
+    endif
+
+!----------------------------------------------------------------------
+! Lattice element list.
+! Input syntax:
+!   lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
 
 case ('lat_ele_list')
 
@@ -337,8 +484,7 @@ case ('lat_global')
 ! Info on a given plot.
 ! Input syntax:
 !   plot1 <plot_name>
-! Output syntax:
-!
+! Output syntax is serial output form. See documentation at beginning of this file.
 
 case ('plot1')
 
@@ -346,21 +492,22 @@ case ('plot1')
   if (err) return
 
   if (allocated(plot)) then
-    nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
-    nl=nl+1; write (lines(nl), amt) 'x%label              = ', p%x%label
-    nl=nl+1; write (lines(nl), rmt) 'x%max                = ', p%x%max
-    nl=nl+1; write (lines(nl), rmt) 'x%min                = ', p%x%min
-    nl=nl+1; write (lines(nl), imt) 'x%major_div          = ', p%x%major_div
-    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
-    nl=nl+1; write (lines(nl), imt) 'x%places             = ', p%x%places
-    nl=nl+1; write (lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
-    nl=nl+1; write (lines(nl), lmt) 'autoscale_x          = ', p%autoscale_x
-    nl=nl+1; write (lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
-    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
-    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
+    p => plot(1)%p
+    nl=nl+1; write (lines(nl), amt) 'x_axis_type;STRING;F;',          trim(p%x_axis_type), ';'
+    nl=nl+1; write (lines(nl), amt) 'x%label;STRING;F;',              trim(p%x%label), ';'
+    nl=nl+1; write (lines(nl), rmt) 'x%max;REAL;F;',                  p%x%max, ';'
+    nl=nl+1; write (lines(nl), rmt) 'x%min;REAL;F;',                  p%x%min, ';'
+    nl=nl+1; write (lines(nl), imt) 'x%major_div;INTEGER;F;',         p%x%major_div, ';'
+    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal;INTEGER;F;', p%x%major_div_nominal, ';'
+    nl=nl+1; write (lines(nl), imt) 'x%places;INTEGER;F;',            p%x%places, ';'
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_label;LOGICAL;F;',        p%x%draw_label, ';'
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers;LOGICAL;F;',      p%x%draw_numbers, ';'
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_x;LOGICAL;F;',         p%autoscale_x, ';'
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_y;LOGICAL;F;',         p%autoscale_y, ';'
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_x;LOGICAL;F;',    p%autoscale_gang_x, ';'
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_y;LOGICAL;F;',    p%autoscale_gang_y, ';'
     do i = 1, size(p%graph)
-      nl=nl+1; write (lines(nl), amt) 'graph = ', p%graph(i)%name
+      nl=nl+1; write (lines(nl), amt) 'graph;STRING;F;',  trim(p%graph(i)%name), ';'
     enddo
   endif
 
@@ -368,6 +515,8 @@ case ('plot1')
 ! List of visible plot names.
 ! Input syntax: 
 !   plot_visible
+! Output syntax:
+!   <plot_name>;
 
 case ('plot_visible')
 
@@ -375,13 +524,14 @@ case ('plot_visible')
     region => s%plot_region(i)
     if (region%name == '') cycle
     if (.not. region%visible) cycle
-    nl=nl+1; write (lines(nl), '(a)') region%plot%name
+    nl=nl+1; write (lines(nl), '(a)') region%plot%name, ';'
   enddo
 
 !----------------------------------------------------------------------
 ! List of plot templates.
 ! Input syntax:  
 !   plot_template
+! Output syntax:
 
 case ('plot_template')
   do i = 1, size(s%template_plot)
@@ -390,18 +540,18 @@ case ('plot_template')
     if (p%name == 'scratch') cycle
     if (allocated(p%graph)) then
         nl=nl+1; write (lines(nl), '(100a)') &
-                          trim(p%name), (';.', trim(p%graph(j)%name), j = 1, size(p%graph))
+                          trim(p%name), (';.', trim(p%graph(j)%name), j = 1, size(p%graph)), ';'
     else
       nl=nl+1; write (lines(nl), '(3x, a)') p%name 
     endif
   enddo
 
 !----------------------------------------------------------------------
-! List of variable v1 arrays
+! List of all variable v1 arrays
 ! Input syntax: 
 !   var_all
 ! Output syntax:
-!   <v1_var name>;<v1_var%v lower bound>;<v1_var%v upper bound>;<used in optimization list>
+!   <v1_var name>;<v1_var%v lower bound>;<v1_var%v upper bound>;<vars used in optimization list>;
 
 case ('var_all')
 
@@ -412,10 +562,76 @@ case ('var_all')
       call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
       nl=nl+1; write(lines(nl), '(2a, i0, a, i0, 2a)') &
                       trim(v1_ptr%name), ';', lbound(v1_ptr%v, 1), ';', &
-                      ubound(v1_ptr%v, 1), ';', trim(line)
+                      ubound(v1_ptr%v, 1), ';', trim(line), ';'
       
     enddo
   
+!----------------------------------------------------------------------
+! List of variables in a given variable v1 array
+! Input syntax: 
+!   var_v1 <v1_var>
+! Output syntax:
+!   <index>;<lat_ele_name>;<attribute_name>;<meas_value>;<model_value>;<design_value>;<good_user>;<useit_opt>;
+
+case ('var_v1')
+
+  call tao_find_var (err, line, v1_array = v1_array)
+
+  if (.not. allocated(v1_array) .or. size(v1_array) /= 1) then
+    nl=nl+1; lines(nl) = '0;INVALID;;0;0;0;F;F;'
+  else
+    v1_ptr => v1_array(1)%v1
+    do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+      v_ptr => v1_ptr%v(i)
+      if (.not. v_ptr%exists) cycle
+      if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
+      nl=nl+1; write(lines(nl), '(i0, 5a, 3(es15.8, a), 2(l1, a))') &
+                       v_ptr%ix_v1, ';', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
+                       v_ptr%meas_value, ';', v_ptr%model_value, ';', &
+                       v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt, ';'
+    enddo
+  endif
+
+!----------------------------------------------------------------------
+! Info on an individual variable
+! Input syntax: 
+!   var1 <var>
+! Output syntax is serial output form. See documentation at beginning of this file.
+
+case ('var1')
+
+  call tao_find_var (err, line, v_array = v_array)
+
+  if (.not. allocated(v_array) .or. size(v_array) /= 1) then
+    nl=nl+1; lines(nl) = '0;INVALID;;0;0;0;F;F;'
+  else
+    v_ptr => v_array(1)%v
+    nl=nl+1; write(lines(nl), amt)  'ele_name;STRING;F;',           trim(v_ptr%ele_name), ';'
+    nl=nl+1; write(lines(nl), amt)  'attrib_name;STRING;F;',        trim(v_ptr%attrib_name), ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_v1;INTEGER;F;',             v_ptr%ix_v1, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_var;INTEGER;F;',            v_ptr%ix_var, ';'
+    nl=nl+1; write(lines(nl), rmt)  'model_value;REAL;F;',          v_ptr%model_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'base_value;REAL;F;',           v_ptr%base_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'design_value;REAL;F;',         v_ptr%design_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'meas_value;REAL;T;',           v_ptr%meas_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'ref_value;REAL;T;',            v_ptr%ref_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'high_lim;REAL;F;',             v_ptr%high_lim, ';'
+    nl=nl+1; write(lines(nl), rmt)  'low_lim;REAL;F;',              v_ptr%low_lim, ';'
+    nl=nl+1; write(lines(nl), rmt)  'step;REAL;F;',                 v_ptr%step, ';'
+    nl=nl+1; write(lines(nl), rmt)  'weight;REAL;F;',               v_ptr%weight, ';'
+    nl=nl+1; write(lines(nl), rmt)  'delta_merit;REAL;F;',          v_ptr%delta_merit, ';'
+    nl=nl+1; write(lines(nl), rmt)  'merit;REAL;F;',                v_ptr%merit, ';'
+    nl=nl+1; write(lines(nl), rmt)  's;REAL;F;',                    v_ptr%s, ';'
+    nl=nl+1; write(lines(nl), lmt)  'exists;LOGICAL;F;',            v_ptr%exists, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_var;LOGICAL;F;',          v_ptr%good_var, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_user;LOGICAL;T;',         v_ptr%good_user, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_opt;LOGICAL;F;',          v_ptr%good_opt, ';'
+    nl=nl+1; write(lines(nl), lmt)  'goov_plot;LOGICAL;F;',         v_ptr%good_plot, ';'
+    nl=nl+1; write(lines(nl), lmt)  'useit_plot;LOGICAL;F;',        v_ptr%useit_plot, ';'
+    nl=nl+1; write(lines(nl), lmt)  'useit_opt;LOGICAL;F;',         v_ptr%useit_opt, ';'
+
+  endif
+
 !----------------------------------------------------------------------
 
 case default
