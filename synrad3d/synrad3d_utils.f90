@@ -528,7 +528,7 @@ else
     dw_perp(3) = (radius0 - radius1) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
   endif
 
-  if (present(in_antechamber)) in_antechamber = (in_ante0 .or. in_ante1)
+  if (present(in_antechamber)) in_antechamber = (in_ante0 .and. in_ante1)
 
 endif
 
