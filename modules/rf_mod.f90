@@ -6,7 +6,7 @@ real(rp), pointer, private :: field_scale, dphi0_ref
 type (lat_param_struct), pointer, private :: param_com
 type (ele_struct), pointer, private :: ele_com
 
-integer, private :: n_loop
+integer, private, save :: n_loop ! Used for debugging.
 
 contains
 
@@ -14,7 +14,7 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Subroutine rf_auto_phase_and_amp_correction (ele, param)
+! Subroutine rf_auto_scale_phase_and_amp(ele, param)
 !
 ! Routine to set the reference phase and amplitude of the accelerating rf field mode if
 ! this mode is present. The accelerating mode is defined to be ele%em_field%mode(1) if
@@ -46,7 +46,7 @@ contains
 !   ele -- ele_struct: element with phase and amplitude adjusted.
 !-
 
-subroutine rf_auto_phase_and_amp_correction (ele, param)
+subroutine rf_auto_scale_phase_and_amp(ele, param)
 
 use super_recipes_mod
 use nr, only: zbrent
@@ -64,11 +64,16 @@ integer i, tracking_method_saved
 
 logical step_up_seen
 
+! Check if auto scale is needed
+
+if (associated (ele%lat)) then
+  if (.not. ele%lat%rf_auto_scale_phase_and_amp) return
+endif
+
+if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
+
 ! Init.
 ! Note: dphi0_ref is set in neg_pz_calc
-
-if (.not. bmad_com%rf_auto_phase_and_amp_correct) return
-if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
 
 nullify(field_scale)
 
@@ -249,7 +254,7 @@ ele%tracking_method = tracking_method_saved
 
 end subroutine cleanup_this
 
-end subroutine rf_auto_phase_and_amp_correction
+end subroutine rf_auto_scale_phase_and_amp
 
 !----------------------------------------------------------------
 
