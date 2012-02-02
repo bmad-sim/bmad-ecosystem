@@ -462,6 +462,8 @@ type lat_struct
   integer input_taylor_order              ! As set in the input file
   integer, allocatable :: ic(:)           ! Index to %control(:)
   logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
+  logical rf_auto_scale_phase_and_amp     ! See rf_auto_scale_phase_and_amp routine.
+  logical use_ptc_layout                  ! Use ptc layout for lattice
 end type
 
 character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
@@ -635,12 +637,12 @@ integer, parameter :: ref_time$ = 83
 integer, parameter :: spin_tracking_method$ = 84
 integer, parameter :: aperture$ = 85
 integer, parameter :: x_limit$ = 86, absolute_time_tracking$ = 86
-integer, parameter :: y_limit$ = 87
+integer, parameter :: y_limit$ = 87, rf_auto_scale_phase_and_amp$ = 87
 integer, parameter :: offset_moves_aperture$ = 88, root_branch_name$ = 88
 integer, parameter :: aperture_limit_on$ = 89
 
 integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90, ref_patch$ = 90
-integer, parameter :: ref_orbit$ = 91, term$ = 91
+integer, parameter :: ref_orbit$ = 91, term$ = 91, use_ptc_layout$ = 91
 integer, parameter :: x_position$ = 92, s_spline$ = 92
 integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
 integer, parameter :: descrip$ = 94, z_position$ = 94
@@ -908,7 +910,7 @@ type bmad_common_struct
   real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
   real(rp) :: d_orb(6)           = 1e-5      ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: default_ds_step    = 0.2_rp    ! Integration step size.  
-  real(rp) :: significant_length = 1e-10 ! meter 
+  real(rp) :: significant_length = 1e-10     ! meter 
   real(rp) :: rel_tolerance = 1e-6
   real(rp) :: abs_tolerance = 1e-8
   real(rp) :: rel_tol_adaptive_tracking = 1e-8     ! Adaptive tracking relative tolerance.
@@ -925,11 +927,11 @@ type bmad_common_struct
   logical :: spin_tracking_on = .false.            ! spin tracking?
   logical :: radiation_damping_on = .false.        ! Damping toggle.
   logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
-  logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set
-                                                   ! ele%map_with_offsets = F?
-  logical :: rf_auto_phase_and_amp_correct = .true. ! See rf_auto_phase_and_amp_correction routine.
-  logical :: use_single_ptc_fiber = .true.         ! 
-  logical :: dummy                                 ! Place holder for future use.
+  logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set ele%map_with_offsets = F?
+  logical :: use_ptc_layout_default = .false.             ! Default for lat%use_ptc_layout
+  logical :: absolute_time_tracking_default = .false.     ! Default for lat%absolute_time_tracking
+  logical :: rf_auto_scale_phase_and_amp_default = .true. ! Default for lat%rf_auto_scale_phase_and_amp
+  logical :: be_thread_safe = .false.                     ! Avoid thread unsafe practices?
 end type
   
 type (bmad_common_struct), save :: bmad_com
