@@ -63,7 +63,7 @@ if (present(err_flag)) err_flag = .true.
 ! Correct start_orb %beta and %p0c.
 ! Doing this here to be compatible with programs that do not set this.
 
-if (tracking_method /= time_runge_kutta$) then
+if (ele%tracking_method /= time_runge_kutta$) then
   if (ele_has_constant_reference_energy(ele)) then
     p0c_start = ele%value(p0c$)
   else
