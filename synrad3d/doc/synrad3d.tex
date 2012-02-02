@@ -809,8 +809,13 @@ Notice that if symmetry is used in the input (as in the example with
 \vn{ix_gen_shape} = 2 above), extra vertex points will be generated to
 ``complete'' the wall perimeter. This must be taken into account when
 setting \vn{ix_vertex_ante}. To see these generated vertex points, run
-\srthree with the \vn{-cross} option (\sref{s:intro}).
-If there is a second antechamber, \vn{ix_vertex_ante2} can be used.
+\srthree with the \vn{-cross} option (\sref{s:intro}).  If there is a
+second antechamber, \vn{ix_vertex_ante2} can be used.
+
+For a photon hitting the wall between two defined wall cross-sections,
+the photon is considered to have hit the antechamber if points
+$r_{w1}$ and $r_{w2}$ (See Eq.~\ref{rssss}) both correspond to points
+within the antechamber.
 
 The \vn{gen_shape_mesh} shape syntax is exactly the same as the
 \vn{gen_shape} syntax except that \vn{basic_shape} is set to
@@ -870,6 +875,7 @@ $s$ with $s_1 \le s \le s_2$ is
   r_w(\theta, s) = 
   \frac{s_2 - s}{s_2 - s_1} \, r_{w1}(\theta) + 
   \frac{s_1 - s}{s_1 - s_2} \, r_{w2}(\theta)
+  \label{rssss}
 \Endeq
 A photon at $(r,\theta, s)$ is inside the chamber if
 \Begineq
