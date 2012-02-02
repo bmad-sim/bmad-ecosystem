@@ -650,45 +650,13 @@ photons(:)%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_to
 
 open (1, file = dat_file)
 print *, 'Data file is: ', trim(dat_file)
+call write_this_header (1)
 
-if (sr3d_params%stop_if_hit_antechamber .and. &
-    (any(wall%pt%ante_height2_plus > 0) .or. &
-     any(wall%pt%ante_height2_minus > 0))) then
+if (sr3d_params%stop_if_hit_antechamber) then
   dat2_file = trim(dat_file) // '.antechamber'
   open (2, file = dat2_file)
-  print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
+  print *, 'Data file for photons hitting the antechamber: ', trim(dat2_file)
 endif
-
-write (1, *) 'ix_ele_track_start      =', ix_ele_track_start
-write (1, *) 'ix_ele_track_end        =', ix_ele_track_end
-write (1, *) 'photon_direction        =', photon_direction
-write (1, *) 'num_photons             =', num_photons
-write (1, *) 'num_photons_per_pass    =', num_photons_per_pass
-write (1, *) 'lattice_file            = ', trim(lattice_file)
-write (1, *) 'ds_step_min             =', ds_step_min
-write (1, *) 'emit_a                  =', emit_a
-write (1, *) 'emit_b                  =', emit_b
-write (1, *) 'sig_e                   =', sig_e
-write (1, *) 'photon_start_input_file = ', trim(photon_start_input_file)
-write (1, *) 'wall_file               = ', trim(wall_file)
-write (1, *) 'dat_file                = ', trim(dat_file)
-write (1, *) 'random_seed             =', random_seed
-write (1, *) 'e_init_filter_min       =', e_init_filter_min
-write (1, *) 'e_init_filter_max       =', e_init_filter_max
-write (1, *) 'e_filter_min            =', e_filter_min
-write (1, *) 'e_filter_max            =', e_filter_max
-write (1, *) 's_filter_min            =', s_filter_min
-write (1, *) 's_filter_max            =', s_filter_max
-write (1, *) 'sr3d_params%allow_reflections         =', sr3d_params%allow_reflections
-write (1, *) 'sr3d_params%ds_track_step_max         =', sr3d_params%ds_track_step_max
-write (1, *) 'sr3d_params%dr_track_step_max         =', sr3d_params%dr_track_step_max
-write (1, *) 'sr3d_params%diffuse_scattering_on     =', sr3d_params%diffuse_scattering_on
-write (1, *) 'sr3d_params%stop_if_hit_antechamber   =', sr3d_params%stop_if_hit_antechamber
-write (1, *) 'surface_roughness_rms (input)         =', surface_roughness_rms
-write (1, *) 'surface_roughness_rms (set value)     =', rms_set
-write (1, *) 'roughness_correlation_len (input)     =', roughness_correlation_len
-write (1, *) 'roughness_correlation_len (set value) =', correlation_set
-write (1, *)
 
 do i = 1, n_photon_array   
   photon => photons(i)
@@ -707,6 +675,7 @@ do i = 1, n_photon_array
 enddo
 
 close (1)
+if (sr3d_params%stop_if_hit_antechamber) close (2)
 
 ! For custom output
 
@@ -842,6 +811,52 @@ allocate(photon_array(n_size))
 photon_array(1:n_old) = temp
 
 deallocate (temp)
+
+end subroutine
+
+!--------------------------------------------------------------------------------------------
+! contains
+
+!+
+! Subroutine write_this_header (iu)
+!
+! Routine to write the header into to the output data file.
+!-
+
+subroutine write_this_header (iu)
+
+integer iu
+
+write (iu, *) 'ix_ele_track_start      =', ix_ele_track_start
+write (iu, *) 'ix_ele_track_end        =', ix_ele_track_end
+write (iu, *) 'photon_direction        =', photon_direction
+write (iu, *) 'num_photons             =', num_photons
+write (iu, *) 'num_photons_per_pass    =', num_photons_per_pass
+write (iu, *) 'lattice_file            = ', trim(lattice_file)
+write (iu, *) 'ds_step_min             =', ds_step_min
+write (iu, *) 'emit_a                  =', emit_a
+write (iu, *) 'emit_b                  =', emit_b
+write (iu, *) 'sig_e                   =', sig_e
+write (iu, *) 'photon_start_input_file = ', trim(photon_start_input_file)
+write (iu, *) 'wall_file               = ', trim(wall_file)
+write (iu, *) 'dat_file                = ', trim(dat_file)
+write (iu, *) 'random_seed             =', random_seed
+write (iu, *) 'e_init_filter_min       =', e_init_filter_min
+write (iu, *) 'e_init_filter_max       =', e_init_filter_max
+write (iu, *) 'e_filter_min            =', e_filter_min
+write (iu, *) 'e_filter_max            =', e_filter_max
+write (iu, *) 's_filter_min            =', s_filter_min
+write (iu, *) 's_filter_max            =', s_filter_max
+write (iu, *) 'sr3d_params%allow_reflections         =', sr3d_params%allow_reflections
+write (iu, *) 'sr3d_params%ds_track_step_max         =', sr3d_params%ds_track_step_max
+write (iu, *) 'sr3d_params%dr_track_step_max         =', sr3d_params%dr_track_step_max
+write (iu, *) 'sr3d_params%diffuse_scattering_on     =', sr3d_params%diffuse_scattering_on
+write (iu, *) 'sr3d_params%stop_if_hit_antechamber   =', sr3d_params%stop_if_hit_antechamber
+write (iu, *) 'surface_roughness_rms (input)         =', surface_roughness_rms
+write (iu, *) 'surface_roughness_rms (set value)     =', rms_set
+write (iu, *) 'roughness_correlation_len (input)     =', roughness_correlation_len
+write (iu, *) 'roughness_correlation_len (set value) =', correlation_set
+write (iu, *)
 
 end subroutine
 
