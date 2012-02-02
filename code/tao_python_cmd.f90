@@ -555,16 +555,16 @@ case ('plot_template')
 
 case ('var_all')
 
-    do i = 1, s%n_v1_var_used
-      v1_ptr => s%v1_var(i)
-      if (v1_ptr%name == '') cycle
-      if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
-      call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
-      nl=nl+1; write(lines(nl), '(2a, i0, a, i0, 2a)') &
-                      trim(v1_ptr%name), ';', lbound(v1_ptr%v, 1), ';', &
-                      ubound(v1_ptr%v, 1), ';', trim(line), ';'
-      
-    enddo
+  do i = 1, s%n_v1_var_used
+    v1_ptr => s%v1_var(i)
+    if (v1_ptr%name == '') cycle
+    if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
+    call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
+    nl=nl+1; write(lines(nl), '(2a, 2(i0, a), 2a)') &
+                    trim(v1_ptr%name), ';', lbound(v1_ptr%v, 1), ';', &
+                    ubound(v1_ptr%v, 1), ';', trim(line), ';'
+    
+  enddo
   
 !----------------------------------------------------------------------
 ! List of variables in a given variable v1 array
