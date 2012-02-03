@@ -159,16 +159,15 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), target :: branch
 type (taylor_struct) :: map(:)
-type (ele_struct), pointer, save :: ele
-type (ele_struct), pointer, save :: runt => null()
+type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: runt => null()
 type (ele_struct), target, save :: runt_save
 
 real(rp) s_1, s_2, s_now, s_end, ds
-real(rp), save :: ds_old = -1
 
 integer i, ix_ele
 
-logical kill_it, track_entrance, track_exit, track_entire_ele
+logical create_it, track_entrance, track_exit, track_entire_ele
 logical runt_points_to_new, integrate_this, error_flag
 logical, save :: old_track_end = .false.
 
@@ -176,6 +175,7 @@ logical, save :: old_track_end = .false.
 
 call ele_at_s (lat, s_1, ix_ele, branch%ix_branch)
 s_now = s_1
+if (bmad_com%be_thread_safe) nullify(runt)
 
 ! Loop over all the element to track through.
 
@@ -195,14 +195,15 @@ do
   ! the element with a partial track.
 
   runt_points_to_new = .false.
-  if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then
-    if (track_entire_ele) then
-      runt => ele
-    else  ! partial track
-      runt_save = ele
-      runt => runt_save
-      old_track_end = .false.
-    endif
+
+  if (track_entire_ele) then
+    runt => ele
+  elseif (bmad_com%be_thread_safe) then
+    if (.not. associated(runt)) allocate (runt)
+    runt = ele
+  else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
+    runt_save = ele
+    runt => runt_save
     runt_points_to_new = .true.
   endif
 
@@ -213,23 +214,24 @@ do
 
     ! Kill the saved taylor map if it does not apply to the present integration step.
 
-    kill_it = .false.
+    create_it = .false.
 
-    if (ds /= ds_old .or. runt_points_to_new) then
-      kill_it = .true.
+    create_it = .false.
+    if (bmad_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
+      create_it = .true.
     elseif (ele%key == sbend$) then
-      if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
+      if (track_entrance .or. track_exit .or. old_track_end) create_it = .true.
     elseif (ele%key == wiggler$) then
-      kill_it = .true.
+      create_it = .true.
     elseif (.not. ele_has_constant_reference_energy(ele)) then
-      kill_it = .true.
+      create_it = .true.
     endif
 
-    if (kill_it) then
+    if (create_it) then
       call kill_taylor (runt%taylor)
       call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
                                      branch%param, track_entrance, track_exit, error_flag)
-      if (error_flag) return
+      if (error_flag) exit
     endif
 
   endif
@@ -248,12 +250,11 @@ do
   ! Save the present integration step parameters so that if this routine
   ! is called in the future we can tell if the saved taylor map is still valid.
 
-  ds_old = ds
   old_track_end = track_entrance .or. track_exit
 
   ! Are we done?
 
-  if (abs(s_end - s_2) < bmad_com%significant_length) return
+  if (abs(s_end - s_2) < bmad_com%significant_length) exit
 
   ! We are not done so move to the next element.
 
@@ -261,6 +262,13 @@ do
   ix_ele = ix_ele + 1
 
 enddo
+
+! Cleanup
+
+if (.not. track_entire_ele .and. bmad_com%be_thread_safe) then
+  call deallocate_ele_pointers (runt)
+  deallocate (runt)
+endif
 
 end subroutine transfer_this_map
 
@@ -395,17 +403,16 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), target :: branch
-type (ele_struct), pointer, save :: ele
-type (ele_struct), pointer, save :: runt
+type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: runt
 type (ele_struct), target, save :: runt_save
 
 real(rp) mat6(:,:), vec0(:)
 real(rp) s_1, s_2, s_end, s_now, ds
-real(rp), save :: ds_old = -1
 
 integer ix_ele
 
-logical track_entrance, track_exit, track_entire_ele, kill_it
+logical track_entrance, track_exit, track_entire_ele, create_it
 logical runt_points_to_new, error_flag
 logical, save :: old_track_end = .false.
 
@@ -413,6 +420,7 @@ logical, save :: old_track_end = .false.
 
 call ele_at_s (lat, s_1, ix_ele, branch%ix_branch)
 s_now = s_1
+if (bmad_com%be_thread_safe) nullify(runt)
 
 ! Loop over all the element to track through.
 
@@ -432,14 +440,15 @@ do
   ! the element with a partial track.
 
   runt_points_to_new = .false.
-  if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then
-    if (track_entire_ele) then
-      runt => ele
-    else  ! partial track
-      runt_save = ele
-      runt => runt_save
-      old_track_end = .false.
-    endif
+
+  if (track_entire_ele) then
+    runt => ele
+  elseif (bmad_com%be_thread_safe) then
+    if (.not. associated(runt)) allocate (runt)
+    runt = ele
+  else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
+    runt_save = ele
+    runt => runt_save
     runt_points_to_new = .true.
   endif
 
@@ -450,21 +459,22 @@ do
 
     ! Kill the saved matrix if it does not apply to the present integration step.
 
-    kill_it = .false.
-    if (ds /= ds_old .or. runt_points_to_new) then
-      kill_it = .true.
+    create_it = .false.
+
+    if (bmad_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
+      create_it = .true.
     elseif (ele%key == sbend$) then
-      if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
+      if (track_entrance .or. track_exit .or. old_track_end) create_it = .true.
     elseif (ele%key == wiggler$) then
-      kill_it = .true.
+      create_it = .true.
     elseif (.not. ele_has_constant_reference_energy(ele)) then
-      kill_it = .true.
+      create_it = .true.
     endif
 
-    if (kill_it) then
+    if (create_it) then
       call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
                                       branch%param, track_entrance, track_exit, error_flag)
-      if (error_flag) return
+      if (error_flag) exit
       call make_mat6 (runt, branch%param)
     endif
 
@@ -476,14 +486,13 @@ do
   vec0 = matmul (runt%mat6, vec0) + runt%vec0
 
   ! Save the present integration step parameters so that if this routine
-  ! is called in the future we can tell if the saved taylor map is still valid.
+  ! is called in the future we can tell if the saved mat is still valid.
 
-  ds_old = ds
   old_track_end = track_entrance .or. track_exit
 
   ! Are we done?
 
-  if (abs(s_end - s_2) < bmad_com%significant_length) return
+  if (abs(s_end - s_2) < bmad_com%significant_length) exit
 
   ! We are not done so move to the next element.
 
@@ -491,6 +500,13 @@ do
   ix_ele = ix_ele + 1
 
 enddo
+
+! Cleanup
+
+if (.not. track_entire_ele .and. bmad_com%be_thread_safe) then
+  call deallocate_ele_pointers (runt)
+  deallocate (runt)
+endif
 
 end subroutine transfer_this_mat
 
