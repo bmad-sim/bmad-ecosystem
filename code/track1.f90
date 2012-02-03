@@ -41,9 +41,8 @@ use spin_mod, except_dummy3 => track1
 
 implicit none
 
-type (coord_struct) :: start_orb
+type (coord_struct) :: start_orb, start2_orb
 type (coord_struct) :: end_orb
-type (coord_struct) :: orb
 type (ele_struct)   :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
@@ -59,6 +58,7 @@ logical err
 !
 
 if (present(err_flag)) err_flag = .true.
+start2_orb = start_orb
 
 ! Correct start_orb %beta and %p0c.
 ! Doing this here to be compatible with programs that do not set this.
@@ -70,14 +70,15 @@ if (ele%tracking_method /= time_runge_kutta$) then
     p0c_start = ele%value(p0c_start$)
   endif
 
-  call convert_pc_to (p0c_start * (1 + start_orb%vec(6)), param%particle, beta = start_orb%beta)
-  start_orb%p0c = p0c_start
+  call convert_pc_to (p0c_start * (1 + start2_orb%vec(6)), param%particle, beta = start2_orb%beta)
+  start2_orb%p0c = p0c_start
+  start2_orb%status = outside$
 endif
 
 ! custom
 
 if (ele%tracking_method == custom$) then
-  call track1_custom (start_orb, ele, param, end_orb, err, track)
+  call track1_custom (start2_orb, ele, param, end_orb, err, track)
   if (present(err_flag)) err_flag = err
   return
 endif
@@ -91,21 +92,17 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 ! check for particles outside aperture
 
 if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
-                call check_aperture_limit (start_orb, ele, entrance_end$, param)
-if (param%lost) then
-  end_orb = start_orb
-  end_orb%status = dead$
+                              call check_aperture_limit (start2_orb, ele, entrance_end$, param)
+if (start2_orb%status == dead$) then
+  end_orb = start2_orb
   if (present(err_flag)) err_flag = .false.
   return
 endif
 
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
-if ((bmad_com%radiation_damping_on .or. &
-            bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
-  call track1_radiation (start_orb, ele, param, orb, start_edge$) 
-else
-  orb = start_orb
+if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
+  call track1_radiation (start2_orb, ele, param, start2_orb, start_edge$) 
 endif
 
 ! bmad_standard handles the case when the element is turned off.
@@ -116,45 +113,45 @@ if (.not. ele%is_on) tracking_method = bmad_standard$
 select case (tracking_method)
 
 case (bmad_standard$)
-  call track1_bmad (orb, ele, param, end_orb)
+  call track1_bmad (start2_orb, ele, param, end_orb)
 
 case (custom$)
-  call track1_custom (orb, ele, param, end_orb, err, track)
+  call track1_custom (start2_orb, ele, param, end_orb, err, track)
   if (err) return
 
 case (runge_kutta$) 
-  call track1_runge_kutta (orb, ele, param, end_orb, track)
+  call track1_runge_kutta (start2_orb, ele, param, end_orb, track)
 
 case (linear$) 
-  call track1_linear (orb, ele, param, end_orb)
+  call track1_linear (start2_orb, ele, param, end_orb)
 
 case (taylor$) 
-  call track1_taylor (orb, ele, param, end_orb)
+  call track1_taylor (start2_orb, ele, param, end_orb)
 
 case (symp_map$) 
-  call track1_symp_map (orb, ele, param, end_orb)
+  call track1_symp_map (start2_orb, ele, param, end_orb)
 
 case (symp_lie_bmad$) 
-  call symp_lie_bmad (ele, param, orb, end_orb, .false., track)
+  call symp_lie_bmad (ele, param, start2_orb, end_orb, .false., track)
 
 case (symp_lie_ptc$) 
-  call track1_symp_lie_ptc (orb, ele, param, end_orb)
+  call track1_symp_lie_ptc (start2_orb, ele, param, end_orb)
 
 case (adaptive_boris$) 
-  call track1_adaptive_boris (orb, ele, param, end_orb, track)
+  call track1_adaptive_boris (start2_orb, ele, param, end_orb, track)
 
 case (boris$) 
-  call track1_boris (orb, ele, param, end_orb, track)
+  call track1_boris (start2_orb, ele, param, end_orb, track)
 
 case (mad$)
-  call track1_mad (orb, ele, param, end_orb)
+  call track1_mad (start2_orb, ele, param, end_orb)
 
 case (custom2$)
-  call track1_custom2 (orb, ele, param, end_orb, err)
+  call track1_custom2 (start2_orb, ele, param, end_orb, err)
   if (err) return
 
 case (time_runge_kutta$)
-  call track1_time_runge_kutta (orb, ele, param, end_orb, track)
+  call track1_time_runge_kutta (start2_orb, ele, param, end_orb, track)
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)
@@ -174,7 +171,7 @@ if (tracking_method /= time_runge_kutta$) then
   else
     call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
     end_orb%t = start_orb%t + ele%value(delta_ref_time$) + &
-                            start_orb%vec(5) / (orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
+                            start_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
   endif
 
   end_orb%s = ele%s
@@ -196,7 +193,7 @@ if (bmad_com%space_charge_on) &
 
 ! spin tracking
  
-if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end_orb)
+if (bmad_com%spin_tracking_on) call track1_spin (start2_orb, ele, param, end_orb)
 
 ! check for particles outside aperture
 

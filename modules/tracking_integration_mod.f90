@@ -46,7 +46,6 @@ type (lat_param_struct), intent(in) :: param
 type (coord_struct) :: orbit
 
 real(rp) p0, p1, e_start
-real(rp), save :: vec6_start
 character(40), parameter :: r_name = 'lcavity_reference_energy_correction'
 
 !
