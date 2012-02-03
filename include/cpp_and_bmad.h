@@ -100,21 +100,21 @@ public:
   int ix_lost;
   int status;
 
-  C_coord(ReArr v, double ss = 0, double tt = 0, CComplx spn1 = 0, CComplx spn2 = 0,
-          double field_x = 0, double field_y = 0, double p_x = 0, double p_y = 0, double charg = 0,
-          double pc = 0, double bet = 0, int ixz = 0, int ixl = 0, int stat = 0) : 
+  C_coord(ReArr v, Re ss = 0, Re tt = 0, CComplx spn1 = 0, CComplx spn2 = 0,
+          Re field_x = 0, Re field_y = 0, Re p_x = 0, Re p_y = 0, Re charg = 0,
+          Re pc = 0, Re bet = 0, int ixz = 0, int ixl = 0, int stat = 0) : 
           vec(v, 6), s(ss), t(tt), spin1(spn1), spin2(spn2),
           e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y), charge(charg), 
           p0c(pc), beta(bet), ix_z(ixz), ix_lost(ixl), status(stat) {}
 
-  C_coord(Real_Array v, double ss = 0, double tt = 0, CComplx spn1 = 0, CComplx spn2 = 0,
-          double field_x = 0, double field_y = 0, double p_x = 0, double p_y = 0, double charg = 0,
-          double pc = 0, double bet = 0, int ixz = 0, int ixl = 0, int stat = 0) : 
+  C_coord(Real_Array v, Re ss = 0, Re tt = 0, CComplx spn1 = 0, CComplx spn2 = 0,
+          Re field_x = 0, Re field_y = 0, Re p_x = 0, Re p_y = 0, Re charg = 0,
+          Re pc = 0, Re bet = 0, int ixz = 0, int ixl = 0, int stat = 0) : 
           vec(v), s(ss), t(tt), spin1(spn1), spin2(spn2),
           e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y), charge(charg), 
           p0c(pc), beta(bet), ix_z(ixz), ix_lost(ixl), status(stat) {}
 
-  C_coord(double v0 = 0, double v1 = 0, double v2 = 0, double v3 = 0, double v4 = 0, double v5 = 0) :
+  C_coord(Re v0 = 0, Re v1 = 0, Re v2 = 0, Re v3 = 0, Re v4 = 0, Re v5 = 0) :
           s(0), t(0), spin1(0), spin2(0), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0), charge(0), 
           p0c(0), beta(0), ix_z(0), ix_lost(0), status(0)
      {double v[] = {v0, v1, v2, v3, v4, v5}; vec = Real_Array(v, 6);}
@@ -139,12 +139,11 @@ public:
   double beta, alpha, gamma, phi, eta, etap;
   double sigma, sigma_p, emit, norm_emit;
 
-  C_twiss(double b, double a, double g, double p, double e, double ep, 
-                                  double s, double sp, double em, double n_em) : 
+  C_twiss(Re b, Re a, Re g, Re p, Re e, Re ep, Re s, Re sp, Re em, Re n_em) : 
     beta(b), alpha(a), gamma(g), phi(p), eta(e), etap(ep), 
     sigma(s), sigma_p(sp), emit(em), norm_emit(n_em) {}
 
-  C_twiss(double z = 0) : 
+  C_twiss(Re z = 0) : 
     beta(z), alpha(z), gamma(z), phi(z), eta(z), 
     etap(z), sigma(z), sigma_p(z), emit(z), norm_emit(z) {}
 
@@ -167,10 +166,10 @@ class C_xy_disp {
 public:
   double eta, etap;
 
-  C_xy_disp(double e, double ep) : 
+  C_xy_disp(Re e, Re ep) : 
     eta(e), etap(ep) {}
 
-  C_xy_disp(double z = 0) : 
+  C_xy_disp(Re z = 0) : 
     eta(z), etap(z) {}
 
 };    // End Class
@@ -193,10 +192,10 @@ public:
   double x, y, z;            // offset from origin
   double theta, phi, psi;    // angular orientation
 
-  C_floor_position (double xx, double yy, double zz, double th, double ph, double ps) :
+  C_floor_position (Re xx, Re yy, Re zz, Re th, Re ph, Re ps) :
     x(xx), y(yy), z(zz), theta(th), phi(ph), psi(ps) {}
 
-  C_floor_position (double z = 0) : 
+  C_floor_position (Re z = 0) : 
     x(z), y(z), z(z), theta(z), phi(z), psi(z) {}
 
 };    // End Class
@@ -221,10 +220,10 @@ public:
   double phi_z;
   int type;      // HYPER_Y, HYPER_XY, OR HYPER_X
 
-  C_wig_term (double c, double x, double y, double z, double p, int t) :
+  C_wig_term (Re c, Re x, Re y, Re z, Re p, int t) :
     coef(c), kx(x), ky(y), kz(z), phi_z(p), type(t) {}
 
-  C_wig_term (double z = 0, int t = 1) : 
+  C_wig_term (Re z = 0, int t = 1) : 
     coef(z), kx(z), ky(z), kz(z), phi_z(z), type(t) {}
 
 };    // End Class
@@ -247,16 +246,16 @@ public:
   double coef;
   Int_Array expn;  // size = 6
 
-  C_taylor_term (double c, int e[6]) : coef(c), expn(e, 6) {}
+  C_taylor_term (Re c, int e[6]) : coef(c), expn(e, 6) {}
 
-  C_taylor_term (double c, Int_Array e) : coef(c), expn(e) {}
+  C_taylor_term (Re c, Int_Array e) : coef(c), expn(e) {}
 
-  C_taylor_term (double c, int e0, int e1, int e2, int e3, int e4, int e5) :
+  C_taylor_term (Re c, int e0, int e1, int e2, int e3, int e4, int e5) :
     coef(c), expn(0, 6) {
         expn[0] = e0; expn[1] = e1; expn[2] = e2; expn[3] = e3; expn[4] = e4; expn[5] = e5;
     }
 
-  C_taylor_term (double c = 0) : coef(c), expn(0, 6) {}
+  C_taylor_term (Re c = 0) : coef(c), expn(0, 6) {}
 
 };    // End Class
 
@@ -278,7 +277,7 @@ public:
   double ref;
   C_taylor_term_array term;  // size = variable
 
-  C_taylor(int n_term = 0, double r = 0) : 
+  C_taylor(int n_term = 0, Re r = 0) : 
       ref(r), term (C_taylor_term(), n_term) {}
 
   C_taylor& operator= (const C_taylor&);
@@ -304,10 +303,10 @@ public:
   double longitudinal;      // Longitudinal wake in V/C/m
   double transverse;        // Transverse wake in V/C/m^2
 
-  C_rf_wake_sr_table (double zz, double lw, double tw) :
+  C_rf_wake_sr_table (Re zz, Re lw, Re tw) :
       z(zz), longitudinal(lw), transverse(tw) {}
 
-  C_rf_wake_sr_table (double zz = 0) :
+  C_rf_wake_sr_table (Re zz = 0) :
       z(zz), longitudinal(0), transverse(0) {}
 };    // End Class
 
@@ -336,12 +335,12 @@ public:
   double a_cos;       // skew cos-like component of the wake
 
 
-  C_rf_wake_sr_mode (double a, double d, double kk, double p, double n_sin = 0, 
-                  double n_cos = 0, double s_sin = 0, double s_cos = 0) :
+  C_rf_wake_sr_mode (Re a, Re d, Re kk, Re p, Re n_sin = 0, 
+                  Re n_cos = 0, Re s_sin = 0, Re s_cos = 0) :
       amp(a), damp(d), k(kk), phi(p), b_sin(n_sin), 
       b_cos(n_cos), a_sin(s_sin), a_cos(s_cos) {}
 
-  C_rf_wake_sr_mode (double a = 0) :
+  C_rf_wake_sr_mode (Re a = 0) :
       amp(0), damp(0), k(0), phi(0), b_sin(0), b_cos(0), 
       a_sin(0), a_cos(0) {}
 
@@ -375,13 +374,13 @@ public:
   int m;             // Order number (1 = dipole, etc.)
   bool polarized;
 
-  C_rf_wake_lr (double f, double f_in, double rq, double q, double ang,
-          double n_sin, double n_cos, double s_sin, double s_cos, double t_ref,
+  C_rf_wake_lr (Re f, Re f_in, Re rq, Re q, Re ang,
+          Re n_sin, Re n_cos, Re s_sin, Re s_cos, Re t_ref,
           int mm, bool pol) :
       freq(f), freq_in(f_in), R_over_Q(rq), Q(q), angle(ang), b_sin(n_sin),
       b_cos(n_cos), a_sin(s_sin), a_cos(s_cos), t_ref(t_ref), m(mm), polarized(pol){}
 
-  C_rf_wake_lr (double f = 0) :
+  C_rf_wake_lr (Re f = 0) :
       freq(f), freq_in(0), R_over_Q(0), Q(0), angle(0), b_sin(0), b_cos(0),
       a_sin(0), a_cos(0), t_ref(0), m(0), polarized(0){}
 };    // End Class
@@ -601,7 +600,7 @@ public:
   int ix_branch;               // index to a photon line
   int ix_attrib;              // index of attribute controlled
 
-  C_control (double c, int il, int is, int ib, int ia) :
+  C_control (Re c, int il, int is, int ib, int ia) :
       coef(c), ix_lord(il), ix_slave(is), ix_branch(ib), ix_attrib(ia) {}
 
   C_control () :
@@ -675,7 +674,7 @@ public:
       lost(0) {}
 
 
-  C_lat_param (double np, double tl, double gr, Real_Matrix t1w,
+  C_lat_param (Re np, Re tl, Re gr, Real_Matrix t1w,
     Real_Matrix t1n, int part, int lat, int ix, 
     int stab, int alo, int stat, int ixl, int ela, int pla, int los) :
         n_part(np), total_length(tl), unstable_factor(gr),
@@ -712,8 +711,8 @@ public:
       emittance(0), synch_int4(0), synch_int5(0), synch_int6(0), j_damp(0), 
       alpha_damp(0), chrom(0), tune(0) {}
 
-  C_anormal_mode (double em, double si4, double si5, double si6, double jd, 
-                                  double ad, double ch, double tu) :
+  C_anormal_mode (Re em, Re si4, Re si5, Re si6, Re jd, 
+                                  Re ad, Re ch, Re tu) :
       emittance(em), synch_int4(si4), synch_int5(si5), synch_int6(si6), j_damp(jd), 
       alpha_damp(ad), chrom(ch), tune(tu) {}
 
@@ -746,8 +745,7 @@ public:
       i2_E4(0), i3_E7(0), i5a_E6(0), i5b_E6(0), sig_E1(0),
       a_emittance_end(0), b_emittance_end(0) {}
 
-  C_linac_normal_mode (double i2, double i3, double i5a, double i5b, double sig,
-                                                       double a, double b) :
+  C_linac_normal_mode (Re i2, Re i3, Re i5a, Re i5b, Re sig, Re a, Re b) :
       i2_E4(i2), i3_E7(i3), i5a_E6(i5a), i5b_E6(i5b), sig_E1(sig),
       a_emittance_end(a), b_emittance_end(b) {}
 
@@ -781,13 +779,13 @@ public:
       synch_int(0.0, 4), sigE_E(0), 
       sig_z(0), e_loss(0), rf_voltage(0), pz_aperture(0), a(), b(), z(), lin() {}
 
-  C_normal_modes (ReArr si, double se, double sz, double el, double rf_volt, double pz,
+  C_normal_modes (ReArr si, Re se, Re sz, Re el, Re rf_volt, Re pz,
           C_anormal_mode aa, C_anormal_mode bb, C_anormal_mode zz, C_linac_normal_mode l) :
       synch_int(si, 4), sigE_E(se), 
       sig_z(sz), e_loss(el), rf_voltage(rf_volt), pz_aperture(pz),
       a(aa), b(bb), z(zz), lin(l) {}
 
-  C_normal_modes (Real_Array si, double se, double sz, double el, double rf_volt, double pz,
+  C_normal_modes (Real_Array si, Re se, Re sz, Re el, Re rf_volt, Re pz,
           C_anormal_mode aa, C_anormal_mode bb, C_anormal_mode zz, C_linac_normal_mode l) :
       synch_int(si), sigE_E(se), 
       sig_z(sz), e_loss(el), rf_voltage(rf_volt), pz_aperture(pz),
@@ -997,11 +995,12 @@ public:
   bool offset_moves_aperture;   // element offsets affects aperture?
 
   C_ele (const int key = 0) : 
+    map_ref_orb_in(V6_array),
+    map_ref_orb_out(V6_array),
     gen_field(NULL),
     taylor(C_taylor(0), 6), 
     value(double(0), Bmad::N_ATTRIB_MAXX+1),
-    old_value(double(0), 
-    Bmad::N_ATTRIB_MAXX+1), 
+    old_value(double(0), Bmad::N_ATTRIB_MAXX+1), 
     gen0(V6_array),
     vec0(V6_array), 
     mat6(M6_mat), 

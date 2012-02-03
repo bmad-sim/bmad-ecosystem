@@ -31,6 +31,7 @@ There are seven routines that implement custom calculations:
    \Hyperref{r:track1.custom}{track1_custom}
    \Hyperref{r:track1.custom2}{track1_custom2}
    \Hyperref{r:track1.bunch.custom}{track1_bunch_custom}
+   \Hyperref{r:track1.spin.custom}{track1_spin_custom}
 \end{example}
 [Use \vn{getf} for more details about the argument lists for these
 routines.]  The \bmad library has ``dummy'' routines of the same name to
@@ -277,10 +278,8 @@ structure.
 The \vn{bmad_status_struct} structure is:
 \begin{example}
 type bmad_status_struct
-  integer :: status         = ok\$     ! Computation status 
   logical :: ok             = .true.   ! Error flag
   logical :: type_out       = .true.   ! Print error messages?
-  logical :: sub_type_out   = .true.   ! 
   logical :: exit_on_error  = .true.   ! Exit program on error?
 end type
 \end{example}
