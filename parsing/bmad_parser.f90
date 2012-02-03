@@ -1008,7 +1008,13 @@ call check_lat_controls (lat, .true.)
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
 
-call lattice_bookkeeper (lat)
+call lattice_bookkeeper (lat, err)
+if (err) then
+  bp_com%error_flag = .true.
+  call parser_end_stuff
+  return
+endif
+
 lat%input_taylor_order = bmad_com%taylor_order
 
 ! Do we need to expand the lattice and call bmad_parser2?

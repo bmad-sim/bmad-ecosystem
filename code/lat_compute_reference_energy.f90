@@ -205,7 +205,8 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   if (lord%key == rfcavity$) then
     slave => pointer_to_slave(lord, 1)
-    call rf_auto_scale_phase_and_amp (lord, lat%branch(slave%ix_branch)%param)
+    call rf_auto_scale_phase_and_amp (lord, lat%branch(slave%ix_branch)%param, err)
+    if (err) return
   endif
 
 enddo
@@ -251,6 +252,8 @@ real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
 integer key
 logical err_flag, err
 
+character(32), parameter :: r_name = 'compute_ele_reference_energy'
+
 ! Treat an accelerating em_field element like an lcavity
 
 err_flag = .true.
@@ -293,7 +296,8 @@ case (lcavity$)
     endif
 
     if (ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
-      call rf_auto_scale_phase_and_amp (ele, param)
+      call rf_auto_scale_phase_and_amp (ele, param, err)
+      if (err) return
     endif
 
     ! For reference energy tracking need to turn off any element offsets and kicks.
@@ -310,6 +314,11 @@ case (lcavity$)
     ele2%value(phi0_err$) = 0
     ele2%value(gradient_err$) = 0
     call track1 (start_orb, ele2, param, end_orb)
+    if (end_orb%status == dead$) then
+      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING LCAVITY: ' // ele%name, &
+                                     'CANNOT COMPUTE REFERENCE ENERGY')
+      return
+    endif
     E_tot = ele%value(E_tot$)
     p0c = ele%value(p0c$)
     ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
@@ -377,7 +386,8 @@ case default
   ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
 
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
-    call rf_auto_scale_phase_and_amp (ele, param)
+    call rf_auto_scale_phase_and_amp (ele, param, err)
+    if (err) return
   endif
 
 end select

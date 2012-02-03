@@ -338,7 +338,7 @@ end subroutine lat_ele1_locator
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_eles (eles, n, save, exact)
+! Subroutine re_allocate_eles (eles, n, save_old, exact)
 !
 ! Routine to allocate an array of ele_pointer_structs.
 !
@@ -346,23 +346,23 @@ end subroutine lat_ele1_locator
 !   use lat_ele_loc_mod
 !
 ! Input:
-!   n     -- Integer: Array size to set.
-!   save  -- Logical, optional: If present and True then save the old data.
-!   exact -- Logical, optional: If present and True then eles will have size = n
-!             If False (default), reallcation will not be done if eles is already large enough
+!   n        -- Integer: Array size to set.
+!   save_old -- Logical, optional: If present and True then save the old data.
+!   exact    -- Logical, optional: If present and True then eles will have size = n
+!                 If False (default), reallcation will not be done if eles is already large enough
 !
 ! Output:
 !   eles(:) -- ele_pointer_struct, allocatable: Array of element pointers.
 !-
 
-subroutine re_allocate_eles (eles, n, save, exact)
+subroutine re_allocate_eles (eles, n, save_old, exact)
 
 implicit none
 
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_pointer_struct), allocatable :: l_temp(:)
 integer n, n_old
-logical, optional :: save, exact
+logical, optional :: save_old, exact
 
 !
 
@@ -375,7 +375,7 @@ if (.not. logic_option(.false., exact) .and. size(eles) >= n) return
 
 if  (size(eles) == n) return
 
-if (logic_option (.false., save)) then
+if (logic_option (.false., save_old)) then
   n_old = min(size(eles), n)
   allocate (l_temp(n_old))
   l_temp = eles(1:n_old)
@@ -384,7 +384,7 @@ endif
 deallocate (eles)
 allocate (eles(n))
 
-if (logic_option (.false., save)) then
+if (logic_option (.false., save_old)) then
   eles(1:n_old) = l_temp
   deallocate (l_temp)
 endif

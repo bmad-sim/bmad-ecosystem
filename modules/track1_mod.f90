@@ -82,6 +82,7 @@ endif
 if (logic_option(.true., check_momentum)) then
   if (abs(orb%vec(2)) > 1 .or. abs(orb%vec(4)) > 1) then
     param%lost = .true.
+    orb%status = dead$
     if (abs(orb%vec(2)) > abs(orb%vec(4))) then
       param%plane_lost_at = x_plane$
       param%unstable_factor = 100 * abs(orb%vec(2)) 
@@ -144,6 +145,7 @@ case (elliptical$)
   r = (x_beam / x_lim)**2 + (y_beam / y_lim)**2
   if (r > 1) then
     param%lost = .true.
+    orb%status = dead$
     if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
       param%plane_lost_at = x_plane$
     else
@@ -156,6 +158,7 @@ case (rectangular$)
 
   if (abs(x_beam) > x_lim .or. abs(y_beam) > y_lim) then
     param%lost = .true.
+    orb%status = dead$
     if (abs(x_beam)/x_lim > abs(y_beam)/y_lim) then
       param%plane_lost_at = x_plane$
       param%unstable_factor = abs(x_beam) / x_lim - 1
@@ -211,7 +214,7 @@ end subroutine track_a_drift
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_bend (start, ele, param, end)
+! Subroutine track_a_bend (start_orb, ele, param, end_orb)
 !
 ! Particle tracking through a bend element. 
 ! For e1 or e2 non-zero this subroutine treats the edges as thin quads.
@@ -221,22 +224,22 @@ end subroutine track_a_drift
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting position.
+!   start_orb  -- Coord_struct: Starting position.
 !   ele    -- Ele_struct: Bend element.
 !   param  -- lat_param_struct: Lattice parameters.
 !
 ! Output:
-!   end     -- Coord_struct: End position.
+!   end_orb     -- Coord_struct: End position.
 !-
 
-subroutine track_a_bend (start, ele, param, end)
+subroutine track_a_bend (start_orb, ele, param, end_orb)
 
 use multipole_mod
 
 implicit none
 
-type (coord_struct), intent(in)  :: start
-type (coord_struct), intent(out) :: end
+type (coord_struct), intent(in)  :: start_orb
+type (coord_struct), intent(out) :: end_orb
 type (ele_struct),   intent(inout)  :: ele
 type (lat_param_struct), intent(inout) :: param
 
@@ -253,18 +256,18 @@ integer n, n_step
 
 if (ele%value(g$) == 0) then
   length = ele%value(l$)
-  end = start
-  end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
-  call track_a_drift (end, length)
-  end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
+  end_orb = start_orb
+  end_orb%vec(2) = end_orb%vec(2) - length * ele%value(g_err$) / 2
+  call track_a_drift (end_orb, length)
+  end_orb%vec(2) = end_orb%vec(2) - length * ele%value(g_err$) / 2
   return
 endif
 
 !-----------------------------------------------------------------------
 
-end = start
-call offset_particle (ele, param, end, set$, set_canonical = .false., set_multipoles = .false.)
-call apply_bend_edge_kick (end, ele, entrance_end$, .false.)
+end_orb = start_orb
+call offset_particle (ele, param, end_orb, set$, set_canonical = .false., set_multipoles = .false.)
+call apply_bend_edge_kick (end_orb, ele, entrance_end$, .false.)
 
 ! If we have a sextupole component then step through in steps of length ds_step
 
@@ -285,7 +288,7 @@ g_err = ele%value(g_err$)
 g_tot = g + g_err
 angle = ele%value(g$) * length
 rho = 1 / g
-del_p = start%vec(6)
+del_p = start_orb%vec(6)
 rel_p  = 1 + del_p
 rel_p2 = rel_p**2
 k_1 = ele%value(k1$)
@@ -293,8 +296,8 @@ k_2 = ele%value(k2$) * length
 
 ! 1/2 sextupole kick at the beginning.
 
-if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end)
-if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end)
+if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end_orb)
+if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end_orb)
 
 ! And track with n_step steps
 
@@ -304,7 +307,7 @@ do n = 1, n_step
 
   if (k_1 /= 0) then
 
-    call sbend_body_with_k1_map (g, g_err, length, k_1, end%vec, end = end%vec)
+    call sbend_body_with_k1_map (g, g_err, length, k_1, end_orb%vec, end = end_orb%vec)
 
   !-----------------------------------------------------------------------
   ! Track through main body...
@@ -315,19 +318,20 @@ do n = 1, n_step
     ct = cos(angle)
     st = sin(angle)
 
-    x  = end%vec(1)
-    px = end%vec(2)
-    y  = end%vec(3)
-    py = end%vec(4)
-    z  = end%vec(5)
-    pz = end%vec(6)
+    x  = end_orb%vec(1)
+    px = end_orb%vec(2)
+    y  = end_orb%vec(3)
+    py = end_orb%vec(4)
+    z  = end_orb%vec(5)
+    pz = end_orb%vec(6)
    
     pxy2 = px**2 + py**2
     if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
       param%lost = .true.
+      end_orb%status = dead$
       param%plane_lost_at = x_plane$
-      end%vec(1) = 2 * bmad_com%max_aperture_limit
-      end%vec(3) = 2 * bmad_com%max_aperture_limit
+      end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
+      end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
       return
     endif 
 
@@ -350,37 +354,38 @@ do n = 1, n_step
     if (abs(px) > Dy .or. abs(px_t) > Dy) then
       param%lost = .true.
       param%plane_lost_at = x_plane$
+      end_orb%status = dead$
       return
     endif    
 
     if (abs(g_tot) < 1e-5 * abs(g)) then
       alpha = p_long * ct - px * st
-      end%vec(1) = (p_long * (1 + g * x) - alpha) / (g * alpha) - &
+      end_orb%vec(1) = (p_long * (1 + g * x) - alpha) / (g * alpha) - &
                    g_tot * (Dy * (1 + g * x) * st)**2 / (2 * alpha**3 * g**2) + &
                    g_tot**2 * Dy**2 * ((1 + g * x) * st)**3 * (px * ct + p_long * st) / (2 * alpha**5 * g**3)
     else
       eps = px_t**2 + py**2
       if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
         eps = eps / (2 * rel_p)
-        end%vec(1) = (del_p - g_err / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / g_tot
+        end_orb%vec(1) = (del_p - g_err / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / g_tot
       else
-        end%vec(1) = (sqrt(rel_p2 - eps) - rho*dpx_t - rho*g_tot) / g_tot
+        end_orb%vec(1) = (sqrt(rel_p2 - eps) - rho*dpx_t - rho*g_tot) / g_tot
       endif
     endif
 
-    end%vec(2) = px_t
-    end%vec(4) = py
-    end%vec(6) = pz
+    end_orb%vec(2) = px_t
+    end_orb%vec(4) = py
+    end_orb%vec(6) = pz
 
     if (abs(g_tot) < 1e-5 * abs(g)) then
       beta = (1 + g * x) * st / (g * alpha) - &
              g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
-      end%vec(3) = y + py * beta
-      end%vec(5) = z + length  - rel_p * beta 
+      end_orb%vec(3) = y + py * beta
+      end_orb%vec(5) = z + length  - rel_p * beta 
     else
       factor = (asin(px/Dy) - asin(px_t/Dy)) / g_tot
-      end%vec(3) = y + py * (angle/g_tot + factor)
-      end%vec(5) = z + length * (g_err - g*del_p) / g_tot - rel_p * factor
+      end_orb%vec(3) = y + py * (angle/g_tot + factor)
+      end_orb%vec(5) = z + length * (g_err - g*del_p) / g_tot - rel_p * factor
     endif
 
   endif
@@ -388,19 +393,19 @@ do n = 1, n_step
   ! sextupole kick
 
   if (n == n_step) then
-    if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end)
-    if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end)
+    if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end_orb)
+    if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end_orb)
   else
-    if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end)
-    if (associated(ele%a_pole)) call multipole_kicks (knl, tilt, end)
+    if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end_orb)
+    if (associated(ele%a_pole)) call multipole_kicks (knl, tilt, end_orb)
   endif
 
 enddo
 
 ! Track through the exit face. Treat as thin lens.
 
-call apply_bend_edge_kick (end, ele, exit_end$, .false.)
-call offset_particle (ele, param, end, unset$, set_canonical = .false., set_multipoles = .false.)
+call apply_bend_edge_kick (end_orb, ele, exit_end$, .false.)
+call offset_particle (ele, param, end_orb, unset$, set_canonical = .false., set_multipoles = .false.)
 
 end subroutine track_a_bend
 

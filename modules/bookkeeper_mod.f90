@@ -55,7 +55,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lattice_bookkeeper (lat)
+! Subroutine lattice_bookkeeper (lat, err_flag)
 !
 ! Subroutine to do a "complete" bookkeeping job on a lattice:
 !   lord/slave control
@@ -75,10 +75,11 @@ contains
 !   lat   -- lat_struct: Lattice needing bookkeeping.
 !
 ! Output:
-!   lat   -- lat_struct: Lattice with bookkeeping done.
+!   lat      -- lat_struct: Lattice with bookkeeping done.
+!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine lattice_bookkeeper (lat)
+subroutine lattice_bookkeeper (lat, err_flag)
 
 implicit none
 
@@ -88,15 +89,20 @@ type (branch_struct), pointer :: branch
 type (bookkeeper_status_struct), pointer :: stat
 
 integer i, j
-logical found
+
+logical, optional :: err_flag
+logical found, err
 
 character(20), parameter :: r_name = 'lattice_bookkeeper'
 
 ! Control bookkeeper is called twice to make sure, for example, that the z_patch for a 
 ! wiggler super_lord is computed. Other reasons include multipass bends.
 
+if (present(err_flag)) err_flag = .true.
+
 call control_bookkeeper (lat, do_free_eles = .true.)
-call lat_compute_reference_energy (lat)
+call lat_compute_reference_energy (lat, err)
+if (err) return
 call control_bookkeeper (lat, super_and_multipass_only = .true., do_free_eles = .true.)
 
 ! Global geometry
@@ -158,6 +164,8 @@ if (.not. bmad_com%auto_bookkeeper) then
 
   enddo
 endif
+
+if (present(err_flag)) err_flag = .false.
 
 !----------------------------------------------------------
 contains
