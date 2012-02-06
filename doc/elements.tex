@@ -1223,7 +1223,7 @@ General \vn{lcavity} attributes are:
 \toffset
 
 The attributes specific to an \vn{lcavity} are 
-\index{gradient}\index{phi0}
+\index{gradient}\index{phi0}\index{n_cell}
 \index{dphi0}\index{e_loss}
 \index{rf_frequency}\index{delta_e}
 \begin{example}
@@ -1239,6 +1239,7 @@ The attributes specific to an \vn{lcavity} are
   rf_frequency     = <Real>   ! Rf frequency (Hz).
   delta_e                     ! Change in energy of an on-crest particle. 
                               !   Dependent attribute (\sref{s:depend}).
+  n_cell       = <Integer> ! Number of cavity cells.
 \end{example}
 The dependent variable \vn{delta_e} attribute can be used in place of
 \vn{gradient} as discussed in \sref{s:depend}.  \vn{delta_e} is a
@@ -1327,6 +1328,8 @@ tracking. In the future, the other modes could be used with
 \vn{symp_lie_bmad} tracking using a field expansion about the
 centerline.
 
+\index{n_cell}
+When 
 
 %-----------------------------------------------------------------
 \section{Marker}
@@ -1593,7 +1596,7 @@ General \vn{crystal} attributes are:
 
 \index{crystal_type}\index{graze_angle_err}
 \index{d1_thickness}\index{d2_thickness}
-\index{n_cells}\index{tilt_err}
+\index{n_cell}\index{tilt_err}
 \index{c2_curve}\index{c3_curve}
 \index{c4_curve}\index{d_detec}
 \index{d_source}\index{g_trans}
@@ -1604,7 +1607,7 @@ The attributes specific to a \vn{multilayer_mirror} are
   graze_angle_err      = <Real>    ! Error in the graze angle.
   d1_thickness         = <Real>    ! Thickness of layer 1
   d2_thickness         = <Real>    ! Thickness of layer 2
-  n_cells              = <Integer> ! Number of cells (= Number of layers / 2)
+  n_cell               = <Integer> ! Number of cells (= Number of layers / 2)
   tilt_err             = <Real>    ! Error in the tilt angle.
   tilt_err             = <Real>    ! Error in the tilt angle.
   negative_graze_angle = <Logic>   ! Use negative graze angle? Default is False.
@@ -1627,7 +1630,7 @@ Dependent attributes (\sref{s:depend}) are
 \end{example}
 
 A \vn{multilayer_mirror} is constructed of a number of ``cells''. The
-number of cells is set by \vn{n_cells}. Each cell consists of two
+number of cells is set by \vn{n_cell}. Each cell consists of two
 layers of differencing material. The materials used is given by
 the \vn{crystal_type} attribute. The format for this is
 \begin{example}
@@ -1644,7 +1647,7 @@ will be negative. This is equivalent to setting \vn{tilt} to \vn{pi}.
 
 Example:
 \begin{example}
-  mm: multilayer_mirror, crystal_type = 'W:B4C', n_cells = 100, &
+  mm: multilayer_mirror, crystal_type = 'W:B4C', n_cell = 100, &
             d1_thickness = 1e-9, d2_thickness = 1.5e-9
 \end{example}
 

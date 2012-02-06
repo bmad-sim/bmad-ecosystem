@@ -201,7 +201,8 @@ main_loop: do
 
   if (has_been_lost) num_times_lost = num_times_lost + 1
   if (num_times_lost == 3) then
-    call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!')
+    call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!', &
+                                   '[Can happen when particle energy is near E_rest_mass]')
     err_flag = .true.
     return
   endif

@@ -172,7 +172,7 @@ type (em_field_map_term_struct), pointer :: term
 real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
-real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, l_cav, s_eff
+real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, s_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho
 real(rp) radius, phi, t_ref, tilt, omega
 
@@ -290,8 +290,8 @@ select case (ele%field_calc)
 
   case(rfcavity$, lcavity$)
 
-    phase = twopi * (ele%value(dphi0_ref$) + ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$))
-    if (ele%key == rfcavity$) phase = phase + pi/2
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$))
+    if (ele%key == rfcavity$) phase = pi/2 - phase
 
     if (ele%key == lcavity$) then
       gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
@@ -301,23 +301,23 @@ select case (ele%field_calc)
 
     if (.not. ele%is_on) gradient = 0
     gradient = (gradient + gradient_shift_sr_wake(ele, param)) * sign_charge
+    gradient = gradient * ele%value(l$) / ele%value(l_hard_edge$)
 
     theta = atan2(y, x)   
     r = sqrt(x**2 + y**2)
     omega = twopi * ele%value(rf_frequency$)
     k_wave = omega / c_light
-    l_cav = c_light * ele%value(rf_frequency$) / 2
 
-    s_eff = s_rel - (ele%value(l$) - l_cav) / 2  ! Relative to entrance end of the cavity
-    if (s_eff < 0 .or. s_eff > l_cav) return  ! Zero field outside
+    s_eff = s_rel - (ele%value(l$) - ele%value(l_hard_edge$)) / 2  ! Relative to entrance end of the cavity
+    if (s_eff < 0 .or. s_eff > ele%value(l_hard_edge$)) return  ! Zero field outside
 
-    E_r = gradient * r * k_wave * sin(k_wave*s_rel) * cos(omega * t_rel + phase)
+    E_r = gradient * r * k_wave * sin(k_wave*s_eff) * cos(omega * t_rel + phase)
 
     field%E(1) = E_r * cos (theta)                                  
     field%E(2) = E_r * sin (theta)
-    field%E(3) = 2 * gradient * cos(k_wave * s_rel) * cos(omega * t_rel + phase)
+    field%E(3) = 2 * gradient * cos(k_wave * s_eff) * cos(omega * t_rel + phase)
     
-    B_phi = -gradient * r * k_wave * cos(k_wave*s_rel) * sin(omega * t_rel + phase) / c_light 
+    B_phi = -gradient * r * k_wave * cos(k_wave*s_eff) * sin(omega * t_rel + phase) / c_light 
     field%B(1) = -B_phi * sin(theta)
     field%B(2) =  B_phi * cos(theta)
 
@@ -572,14 +572,10 @@ case(map$)
     radius = sqrt(x**2 + y**2)
     phi = atan2(y, x)
 
-    ! 
+    ! Notice that it is mode%dphi0_ref that is used below. Not ele%value(dphi0_ref$).
 
-    if (ele%key == rfcavity$) then
-      t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
-    else
-      t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
-    endif
-    t_ref = t_ref / ele%em_field%mode(1)%freq
+    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / ele%em_field%mode(1)%freq
+    if (ele%key == rfcavity$) t_ref = 0.25/ele%em_field%mode(1)%freq - t_ref
 
     do i = 1, size(ele%em_field%mode)
       mode => ele%em_field%mode(i)
@@ -689,14 +685,13 @@ case(grid$)
 
   ! reference time for oscillating elements
   select case (ele%key)
-    case(rfcavity$) 
-      t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / ele%em_field%mode(1)%freq
-  
-    case(lcavity$)
-      t_ref = -(ele%value(phi0$) + ele%value(dphi0$))  / ele%em_field%mode(1)%freq
+  case(rfcavity$, lcavity$) 
+    ! Notice that it is mode%dphi0_ref that is used below. Not ele%value(dphi0_ref$).
+    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / ele%em_field%mode(1)%freq
+    if (ele%key == rfcavity$) t_ref = 0.25/ele%em_field%mode(1)%freq - t_ref
 
-    case default
-      t_ref = 0
+  case default
+    t_ref = 0
   end select
 
   ! Loop over modes

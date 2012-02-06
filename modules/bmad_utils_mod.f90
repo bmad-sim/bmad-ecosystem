@@ -301,7 +301,7 @@ orb%beta      = -1
 orb%charge    = 0
 orb%ix_z      = 0
 orb%ix_lost   = not_lost$
-orb%status    = 0
+orb%status    = outside$
 
 end subroutine init_coord
 
@@ -703,7 +703,7 @@ enddo
 
 ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
 
-if (ele_in%key == wiggler$) ele_out%value(z_patch$) = ele_in%value(z_patch$)
+if (has_z_patch(ele_in)) ele_out%value(z_patch$) = ele_in%value(z_patch$)
 
 end subroutine transfer_ele_taylor
 
@@ -829,7 +829,7 @@ if (ele_taylor%value(integrator_order$) /= ele2%value(integrator_order$)) return
 
 vmask = .true.
 vmask(delta_ref_time$) = .false.
-if (ele_taylor%key == wiggler$) then
+if (has_z_patch(ele_taylor)) then
   vmask( [k1$, rho$, b_max$, z_patch$] ) = .false.
 endif
 if (.not. ele_taylor%map_with_offsets) then
@@ -3322,5 +3322,110 @@ case default
 end select
 
 end function ele_has_constant_reference_energy
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function tracking_uses_hard_edge_model (ele, method) result (is_hard)
+!
+! Function to determine if the tracking for an element uses a "hard edge model"
+! in which case the tracking looks like (drift, model, drift). For example,
+! RF cavity fields with ele%field_calc = bmad_standard$ use a hard edge model where
+! the length of the cavity is c_light / (2 * freq).
+!
+! Module needed:
+!   use bmad
+!
+! Input:
+!   ele    -- ele_struct: Element.
+!   method -- Integer: Either tracking_method$ if doing simple particle tracking or
+!                             mat6_calc_method$ is tracking for transfer maps.
+!
+! Output:
+!   is_hard -- Logical: True if tracking uses a hard edge model.
+!-
+
+function tracking_uses_hard_edge_model (ele, method) result (is_hard)
+
+implicit none
+
+type (ele_struct) ele
+integer method
+logical is_hard
+
+!
+
+is_hard = .false.
+
+select case (ele%key)
+case (lcavity$)
+  if (method == tracking_method$) then
+    select case (ele%tracking_method)
+    case (time_runge_kutta$, runge_kutta$, boris$, adaptive_boris$)
+      if (ele%field_calc == bmad_standard$) is_hard = .true.
+    case (symp_lie_ptc$)
+      is_hard = .true.
+    end select
+  else 
+    is_hard = .true.
+  endif
+
+case (rfcavity$)
+  if (method == tracking_method$) then
+    select case (ele%tracking_method)
+    case (time_runge_kutta$, runge_kutta$, boris$, adaptive_boris$)
+      if (ele%field_calc == bmad_standard$) is_hard = .true.
+    case (symp_lie_ptc$)
+      is_hard = .true.
+    end select
+  else
+    is_hard = .true.
+  endif
+
+end select
+
+end function tracking_uses_hard_edge_model
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine create_hard_edge_drift (ele_in, drift_ele)
+!
+! Subroutine to create the drift element for the end drifts of an element.
+! The end drifts are present, for example, when doing runge_kutta tracking
+! through an rf_cavity with field_calc = bmad_standard. In this case, the
+! field model is a pi-wave hard-edge resonator whose length may not match
+! the length of the element and so particles must be drifted from the edge
+! of the element to the edge of the field model.
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   ele_in     -- ele_struct: Input element.
+!
+! Output:
+!   drift_ele  -- ele_struct: drift elment.
+!-
+
+subroutine create_hard_edge_drift (ele_in, drift_ele)
+
+implicit none
+
+type (ele_struct) ele_in, drift_ele
+
+!
+
+drift_ele%key = drift$
+drift_ele%value = 0
+drift_ele%value(p0c$) = ele_in%value(p0c$)
+drift_ele%value(e_tot$) = ele_in%value(e_tot$)
+drift_ele%value(l$) = (ele_in%value(l$) - ele_in%value(l_hard_edge$)) / 2 
+drift_ele%value(ds_step$) = drift_ele%value(l$)
+drift_ele%value(num_steps$) = 1
+
+end subroutine create_hard_edge_drift 
 
 end module

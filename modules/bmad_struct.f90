@@ -550,7 +550,7 @@ integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$
 integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6
 integer, parameter :: g$=6, graze_angle_in$ = 6
 integer, parameter :: g_err$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
-integer, parameter :: gradient_err$=7, critical_angle$ = 7, n_cells$=7
+integer, parameter :: gradient_err$=7, critical_angle$ = 7
 integer, parameter :: graze_angle_out$ = 7, ix_branch_to$=7
 integer, parameter :: rho$=8, delta_e$=8, graze_angle_err$ = 8
 integer, parameter :: charge$=8, gap$=8, x_gain_calib$=8
@@ -570,8 +570,8 @@ integer, parameter :: hgapx$=16, dphi0_ref$ = 16, bend_tilt$=16, fh_im$=16, f0_i
 integer, parameter :: dphi0_max$=17, h1$=17, x_quad$=17, ref_polarization$=17
 integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
 integer, parameter :: b_param$ = 19, z_patch$=19
-integer, parameter :: d_spacing$ = 20
-integer, parameter :: roll$=22 
+integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 21
+integer, parameter :: roll$=22, n_cell$=22
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
 integer, parameter :: x_offset$ = 25
@@ -723,14 +723,14 @@ logical, parameter :: set$ = .true., unset$ = .false.
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
 integer, parameter :: runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
-integer, parameter :: symp_lie_bmad$ = 10, static$ = 11
+integer, parameter :: hard_edge_model$ = 9, symp_lie_bmad$ = 10, static$ = 11
 integer, parameter :: boris$ = 12, adaptive_boris$ = 13, mad$ = 14
 integer, parameter :: time_runge_kutta$ = 15, custom2$ = 16
 
 character(16), parameter :: calc_method_name(0:16) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
       'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
-      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'Static          ', &
+      'Taylor          ', 'Hard_Edge_Model ', 'Symp_Lie_Bmad   ', 'Static          ', &
       'Boris           ', 'Adaptive_Boris  ', 'MAD             ', 'Time_Runge_Kutta', &
       'Custom2         ']
 

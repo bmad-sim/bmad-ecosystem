@@ -193,13 +193,13 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   lord%value(p0c$) = slave%value(p0c$)
   lord%value(E_tot$) = slave%value(E_tot$)
 
-  ! Transfer the starting energy if needed.
+  ! Transfer the starting energy.
 
-  if (lord%key == lcavity$ .or. lord%key == custom$) then
+  !!if (lord%key == lcavity$ .or. lord%key == custom$) then
     slave => pointer_to_slave(lord, 1)
     lord%value(E_tot_start$) = slave%value(E_tot_start$)
     lord%value(p0c_start$)   = slave%value(p0c_start$)
-  endif
+  !!endif
 
   ! Autophase rfcavity lords.
 
@@ -261,10 +261,11 @@ err_flag = .true.
 key = ele%key
 if (ele%key == em_field$ .and. .not. ele_has_constant_reference_energy(ele)) key = lcavity$
 
+ele%value(E_tot_start$) = E_tot_start
+ele%value(p0c_start$) = p0c_start
+
 select case (key)
 case (lcavity$) 
-  ele%value(E_tot_start$) = E_tot_start
-  ele%value(p0c_start$) = p0c_start
 
   ! We can only use the formula dE = voltage * cos(phase) with bmad_standard$ tracking since with other 
   ! tracking there is no guarantee that dE varies as cos(phase). Additionally, for multipass elements 
@@ -321,16 +322,13 @@ case (lcavity$)
     endif
     E_tot = ele%value(E_tot$)
     p0c = ele%value(p0c$)
-    ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
+    ele%ref_time = ref_time_start + end_orb%t
     ele%value(p0c$) = p0c * (1 + end_orb%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
   endif
 
 case (custom$, hybrid$)
-  ele%value(E_tot_start$) = E_tot_start
-  ele%value(p0c_start$) = p0c_start
-
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e$)
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
   if (err) return
@@ -338,9 +336,6 @@ case (custom$, hybrid$)
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 case (e_gun$)
-  ele%value(E_tot_start$) = E_tot_start
-  ele%value(p0c_start$) = p0c_start
-
   ele%value(E_tot$) = E_tot_start + ele%value(voltage$)
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
   if (err) return
@@ -362,9 +357,6 @@ case (crystal$, mirror$, multilayer_mirror$)
   ele%ref_time = ref_time_start
 
 case (patch$) 
-  ele%value(E_tot_start$) = E_tot_start
-  ele%value(p0c_start$) = p0c_start
-
   if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
     ele%value(E_tot$) = e_tot_start + ele%value(e_tot_offset$)
     call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)

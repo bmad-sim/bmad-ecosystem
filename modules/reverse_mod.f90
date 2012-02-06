@@ -241,10 +241,13 @@ case (wiggler$)
       ele%wig%term(i)%phi_z = -ele%wig%term(i)%phi_z - ele%wig%term(i)%kz * ele%value(l$)
       ele%wig%term(i)%coef = -ele%wig%term(i)%coef
     enddo
-    if (ele%slave_status /= super_slave$) call z_patch_calc (ele, param)
   endif
 
 end select
+
+! z_patch
+
+if (has_z_patch(ele) .and. ele%slave_status /= super_slave$) call z_patch_calc (ele, param)
 
 ! The inverse of the Taylor map is: 
 !   M * T^(-1) * M
