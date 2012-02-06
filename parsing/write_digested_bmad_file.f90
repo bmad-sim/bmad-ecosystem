@@ -127,9 +127,13 @@ enddo
 write (d_unit) &
         lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
-        lat%n_ele_track, lat%n_ele_max, &
-        lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
-  
+        lat%n_ele_track, lat%n_ele_max, lat%lord_status, &
+        lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
+        lat%absolute_time_tracking, lat%rf_auto_scale_phase_and_amp, &
+        lat%use_ptc_layout, lat%pre_tracker
+
+call write_this_wall3d (lat%wall3d)
+
 n_wake = 0  ! number of wakes written to the digested file.
 
 do i = 0, lat%n_ele_max
@@ -153,11 +157,9 @@ write (d_unit) lat%beam_start
 write (d_unit) ubound(lat%branch, 1)
 do i = 1, ubound(lat%branch, 1)
   branch => lat%branch(i)
-  n_wall_section = 0
-  if (associated(branch%wall3d%section)) n_wall_section = size(branch%wall3d%section)
   write (d_unit) branch%param
   write (d_unit) branch%name, -1, branch%ix_from_branch, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, branch%wall3d%anchor_pt
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, branch%wall3d%anchor_pt
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
@@ -360,16 +362,22 @@ integer j, k
 
 !
 
-if (.not. associated(wall3d%section)) return
+if (associated(wall3d%section)) then
 
-do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
-  sec => wall3d%section(j)
-  write (d_unit) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
-                 sec%dr_ds, sec%p1_coef, sec%p2_coef, size(sec%v), sec%n_vertex_input
-  do k = 1, size(sec%v)
-    write (d_unit) sec%v(k)
+  write (d_unit) size(wall3d%section)
+
+  do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
+    sec => wall3d%section(j)
+    write (d_unit) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
+                   sec%dr_ds, sec%p1_coef, sec%p2_coef, size(sec%v), sec%n_vertex_input
+    do k = 1, size(sec%v)
+      write (d_unit) sec%v(k)
+    enddo
   enddo
-enddo
+
+else
+  write (d_unit) 0
+endif
 
 end subroutine
 

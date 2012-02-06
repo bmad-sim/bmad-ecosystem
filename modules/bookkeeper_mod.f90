@@ -139,6 +139,16 @@ endif
 ! Exception is mat6 flag since the bookkeeping routines do not touch this.
 
 if (.not. bmad_com%auto_bookkeeper) then
+
+  stat => lat%lord_status
+  if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
+      stat%length == stale$ .or. stat%ref_energy == stale$) then
+    call out_io (s_info$, r_name, 'Stale bookkeeping lord_status flags detected.', &
+                                  'Please contact DCS!', 'Status: \5i6\ ', &
+            i_array = [stat%attributes, stat%control, stat%floor_position, stat%length, stat%ref_energy])
+  endif
+  call reset_status_flags(stat)
+
   do i = 0, ubound(lat%branch, 1)
 
     branch => lat%branch(0)

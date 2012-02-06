@@ -200,10 +200,14 @@ enddo
 ! too big to write in one piece
 
 read (d_unit, err = 9030)  &   
-            lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
-            lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
-            lat%n_ele_track, lat%n_ele_max, &
-            lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
+        lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
+        lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
+        lat%n_ele_track, lat%n_ele_max, lat%lord_status, &
+        lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
+        lat%absolute_time_tracking, lat%rf_auto_scale_phase_and_amp, &
+        lat%use_ptc_layout, lat%pre_tracker
+
+call read_this_wall3d (lat%wall3d, error)
 
 ! Allocate lat%ele, lat%control and lat%ic arrays
 
@@ -237,13 +241,13 @@ do i = 1, n_branch
   branch%ix_branch = i
   read (d_unit, err = 9070) branch%param
   read (d_unit, err = 9070) branch%name, garbage, branch%ix_from_branch, &
-                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, branch%wall3d%anchor_pt
+                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, branch%wall3d%anchor_pt
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
     call read_this_ele (branch%ele(j), j, error)
     if (error) return
   enddo
-  call read_this_wall3d (branch%wall3d, n_wall_section, error)
+  call read_this_wall3d (branch%wall3d, error)
   if (error) return
 enddo
 
@@ -488,7 +492,7 @@ if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. i
   endif
 endif
 
-call read_this_wall3d (ele%wall3d, n_wall_section, error)
+call read_this_wall3d (ele%wall3d, error)
 if (error) return
 
 !
@@ -665,7 +669,7 @@ end subroutine
 !-----------------------------------------------------------------------------------
 ! contains
 
-subroutine read_this_wall3d (wall3d, n_wall_section, error)
+subroutine read_this_wall3d (wall3d, error)
 
 type (wall3d_struct) wall3d
 type (wall3d_section_struct), pointer :: sec
@@ -676,10 +680,17 @@ logical error
 
 !
 
-error = .false.
-if (n_wall_section < 1) return
-
 error = .true.
+
+read (d_unit, iostat = ios) n_wall_section
+if (ios /= 0) then
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                   'ERROR READING WALL3D N_WALL_SECTION NUMBER')
+  endif
+  close (d_unit)
+  return
+endif
 
 call re_associate (wall3d%section, n_wall_section)
 
