@@ -82,9 +82,10 @@ n_ele_track = branch%n_ele_track
 
 if (direction == +1) then
 
-  call convert_pc_to (branch%ele(ix_start)%value(p0c$) * (1 + orbit(ix_start)%vec(6)), &
-                                                  branch%param%particle, beta = orbit(ix_start)%beta)
-  orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
+  if (orbit(ix_start)%status /= inside$) then
+    orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
+    orbit(ix_start)%status = outside$
+  endif
 
   if (ix_start < ix_end) then
     call track_fwd (ix_start+1, ix_end)

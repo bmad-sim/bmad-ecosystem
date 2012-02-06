@@ -50,6 +50,7 @@ real(rp), parameter :: mass_of(-3:3) = [m_muon, m_proton, m_electron, 0.0_rp, m_
 ! coordinate def
 
 integer, parameter :: not_lost$ = -1
+integer, parameter :: not_set$ = -999
 
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
@@ -66,7 +67,7 @@ type coord_struct                 ! Particle coordinates at a single point
   integer :: ix_z = 0             ! Index for ordering the particles longitudinally.
                                   !   particle(1)%ix_z is index of head particle.
   integer :: ix_lost = not_lost$  ! Index of element particle was lost at.
-  integer :: status = 0           ! inside$, outside$, dead$
+  integer :: status = not_set$    ! inside$, outside$, dead$
 end type
 
 type coord_array_struct

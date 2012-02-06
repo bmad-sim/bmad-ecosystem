@@ -60,8 +60,11 @@ if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_m
 
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
-call convert_pc_to (branch%ele(0)%value(p0c$) * (1 + orbit(0)%vec(6)), branch%param%particle, beta = orbit(0)%beta)
-orbit(0)%p0c = branch%ele(0)%value(p0c$)
+if (branch%ele(0)%tracking_method /= time_runge_kutta$ .or. orbit(0)%status == not_set$) then
+  orbit(0)%status = outside$
+  call convert_pc_to (branch%ele(0)%value(p0c$) * (1 + orbit(0)%vec(6)), branch%param%particle, beta = orbit(0)%beta)
+  orbit(0)%p0c = branch%ele(0)%value(p0c$)
+endif
 
 ! track through elements.
 
