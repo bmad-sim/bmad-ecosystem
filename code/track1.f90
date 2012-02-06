@@ -15,7 +15,6 @@
 !                of the element aperture. 
 !
 ! Output:
-!   start_orb -- Coord_struct: Starting position with %p0c and %beta corrected.
 !   end_orb   -- Coord_struct: End position.
 !   param
 !     %lost          -- Set True If the particle cannot make it through an element.
@@ -63,7 +62,7 @@ start2_orb = start_orb
 ! Correct start_orb %beta and %p0c.
 ! Doing this here to be compatible with programs that do not set this.
 
-if (ele%tracking_method /= time_runge_kutta$) then
+if (ele%tracking_method /= time_runge_kutta$ .or. start_orb%status == not_set$) then
   if (ele_has_constant_reference_energy(ele)) then
     p0c_start = ele%value(p0c$)
   else

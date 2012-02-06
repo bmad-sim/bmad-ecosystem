@@ -122,7 +122,7 @@ end type
 
 integer, parameter :: line$ = 1, list$ = 2, element$ = 3
 integer, parameter :: replacement_line$ = 4
-integer, parameter :: begin$ = -1, center$ = 0, end$ = 1, not_set$ = 2
+integer, parameter :: begin$ = -1, center$ = 0, end$ = 1
 integer, parameter :: def$ = 1, redef$ = 2
 
 !------------------------------------------------

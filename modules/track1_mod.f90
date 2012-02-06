@@ -208,6 +208,7 @@ orb%vec(3) = orb%vec(3) + length * orb%vec(4) / rel_pc
 dz = -length * (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2)
 orb%vec(5) = orb%vec(5) + dz
 if (orb%beta /= 0) orb%t = orb%t + (length - dz) / (orb%beta * c_light)
+orb%s = orb%s + length
 
 end subroutine track_a_drift
 
