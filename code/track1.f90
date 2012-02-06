@@ -166,12 +166,12 @@ end select
 if (tracking_method /= time_runge_kutta$) then
 
   if (ele_has_constant_reference_energy(ele)) then
-    end_orb%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - end_orb%vec(5)) / &
+    end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + (start2_orb%vec(5) - end_orb%vec(5)) / &
                                                                                    (end_orb%beta * c_light)
   else
     call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
-    end_orb%t = start_orb%t + ele%value(delta_ref_time$) + &
-                            start_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
+    end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &
+                            start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
   endif
 
   end_orb%s = ele%s
@@ -206,7 +206,7 @@ endif
 if (end_orb%p0c < 0 .and. end_orb%status /= dead$) then
   param%lost = .false. ! Temp
   if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
-                  call check_aperture_limit (start_orb, ele, entrance_end$, param)
+                  call check_aperture_limit (start2_orb, ele, entrance_end$, param)
   if (param%lost) then
     end_orb%status = dead$
   endif

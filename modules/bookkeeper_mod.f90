@@ -1236,7 +1236,7 @@ value = 0
 value(l$) = slave%value(l$)
 value(E_tot$) = slave%value(E_tot$)
 value(p0c$) = slave%value(p0c$)
-if (slave%key == wiggler$) value(z_patch$) = slave%value(z_patch$)
+if (has_z_patch(slave)) value(z_patch$) = slave%value(z_patch$)
 
 s_slave = slave%s - value(l$)/2  ! center of slave
 slave%is_on = .false.
@@ -1860,9 +1860,7 @@ value(l$)              = slave%value(l$)                ! do not change slave le
 value(delta_ref_time$) = slave%value(delta_ref_time$)
 value(num_steps$)      = slave%value(num_steps$)
 
-if (lord%key == wiggler$) then
-  value(z_patch$) = slave%value(z_patch$)
-endif
+if (has_z_patch(slave)) value(z_patch$) = slave%value(z_patch$)
 
 if (lord%key == hkicker$ .or. lord%key == vkicker$) then
   value(kick$) = lord%value(kick$) * coef
@@ -2231,7 +2229,7 @@ logical :: init_needed = .true.
 ! Some init
 
 val => ele%value
-z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. &
+z_patch_calc_needed = (has_z_patch(ele) .and. val(z_patch$) == 0 .and. &
                               val(p0c$) /= 0 .and. ele%slave_status /= super_slave$)
 
 ! Intelligent bookkeeping
@@ -2422,6 +2420,11 @@ case (lcavity$)
   endif
 
   val(delta_e$) = val(gradient$) * val(l$)
+  if (val(rf_frequency$) == 0) then
+    val(l_hard_edge$) = 0
+  else
+    val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+  endif
 
 ! E_Gun
 
@@ -2438,6 +2441,12 @@ case (e_gun$)
 
 case (rfcavity$)
   if (val(harmon$) /= 0) val(rf_frequency$) =  val(harmon$) * c_light / param%total_length 
+
+  if (val(rf_frequency$) == 0) then
+    val(l_hard_edge$) = 0
+  else
+    val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+  endif
 
 ! BeamBeam
 
@@ -2620,9 +2629,9 @@ endif
 if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
   if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
   if (associated(ele%ptc_genfield)) call kill_ptc_genfield(ele%ptc_genfield)
-  if (ele%key == wiggler$ .and. ele%slave_status /= super_slave$) then
+  if (has_z_patch(ele) .and. ele%slave_status /= super_slave$) then
     val(z_patch$) = 0
-    z_patch_calc_needed = (ele%key == wiggler$ .and. val(p0c$) /= 0)
+    z_patch_calc_needed = (val(p0c$) /= 0)
   endif
 endif
 

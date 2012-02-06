@@ -177,7 +177,7 @@ ttbar = f**2
 
 a = (1 - ttbar + r**2) / 2
 nu = (1 + ttbar - r**2) / (2 * sqrt(ttbar))
-n1 = nint(val(n_cells$)) - 1
+n1 = nint(val(n_cell$)) - 1
 
 exp_half = nu + I_imaginary * sqrt(1 - nu**2)
 exp_n = exp_half ** (2 * n1)

@@ -16,13 +16,20 @@ contains
 ! Recipes.  See the NR book for more details.
 !
 ! Notice that this routine has an two tolerance arguments rel_tol and abs_tol.
-! Odein only has 1. rel_tol (essentually equivalent to eps in odeint) 
+! Odeint only has 1. rel_tol (essentually equivalent to eps in odeint) 
 ! is scalled by the step size to to able to relate it to the final accuracy.
 !
 ! Essentually (assuming random errors) one of these conditions holds:
 !      %error in tracking < rel_tol
 ! or
 !     absolute error in tracking < abs_tol
+!
+! Note: For elements where the reference energy is not constant (lcavity, etc.), and 
+! with particles where the velocity is energy dependent (ie non ultra-relativistic), 
+! the calculation of z is off since the reference velocity is unknown in the body of 
+! the element. In this case, the reference velocity is simply taken to be a 
+! constant equal to the reference velocity at the exit end. 
+! It is up to the calling routine to handle the correction for this.
 !
 ! Modules needed:
 !   use bmad
@@ -69,7 +76,7 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
-real(rp) :: dr_ds(7), r_scal(7), t, beta
+real(rp) :: dr_ds(7), r_scal(7), t
 
 integer, parameter :: max_step = 10000
 integer :: n_step
@@ -90,8 +97,7 @@ end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, end)
 
-call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
-t = -start%vec(5) / (beta * c_light)
+t = -start%vec(5) / (end%beta * c_light)    ! Time
 
 ! Save initial point
 
@@ -133,17 +139,9 @@ do n_step = 1, max_step
   endif
 
   ! Check if we are done.
-  ! For elements where the reference energy is not constant (lcavity, etc.), and with particles 
-  ! where the velocity is energy dependent (ie non ultra-relativistic), the calculation of z
-  ! is off since the reference energy was taken to be a constant equal to the reference energy 
-  ! at the exit end. In this case calculate z based on the element's delta_ref_time
 
   if ((s-s2)*(s2-s1) >= 0.0) then
     if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, end, s_sav)
-    if (.not. ele_has_constant_reference_energy (ele)) then
-      call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
-      end%vec(5) = (ele%value(delta_ref_time$) - t) * beta * c_light
-    endif
     return
   end if
 
@@ -182,7 +180,7 @@ real(rp), intent(out)   :: h_did, h_next
 
 real(rp) :: err_max, h, h_temp, s_new, p2
 real(rp) :: r_err(7), r_temp(7)
-real(rp) :: beta, rel_pc, t_new
+real(rp) :: rel_pc, t_new
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
 
@@ -220,6 +218,8 @@ h_did = h
 s = s+h
 
 orb_new%s = orb%s + h
+orb_new%t = orb%t + (t_new - t)
+
 orb = orb_new
 t = t_new
 
@@ -260,27 +260,27 @@ logical local_ref_frame
 
 !
 
-orb_temp(1)%vec = orb%vec + b21*h*dr_ds(1:6)
+call transfer_this_orbit (orb, b21*h*dr_ds(1:6), orb_temp(1))
 t_temp(1) = t + b21*h*dr_ds(7)
 call kick_vector_calc(ele, param, s + a2*h, t_temp(1), orb_temp(1), local_ref_frame, ak2)
 
-orb_temp(2)%vec = orb%vec + h*(b31*dr_ds(1:6) + b32*ak2(1:6))
+call transfer_this_orbit (orb, h*(b31*dr_ds(1:6) + b32*ak2(1:6)), orb_temp(2))
 t_temp(2) = t + h*(b31*dr_ds(7) + b32*ak2(7))
 call kick_vector_calc(ele, param, s + a3*h, t_temp(2), orb_temp(2), local_ref_frame, ak3)
 
-orb_temp(3)%vec = orb%vec + h*(b41*dr_ds(1:6) + b42*ak2(1:6) + b43*ak3(1:6))
+call transfer_this_orbit (orb, h*(b41*dr_ds(1:6) + b42*ak2(1:6) + b43*ak3(1:6)), orb_temp(3))
 t_temp(3) = t + h*(b41*dr_ds(7) + b42*ak2(7) + b43*ak3(7))
 call kick_vector_calc(ele, param, s + a4*h, t_temp(3), orb_temp(3), local_ref_frame, ak4)
 
-orb_temp(4)%vec = orb%vec + h*(b51*dr_ds(1:6) + b52*ak2(1:6) + b53*ak3(1:6) + b54*ak4(1:6))
+call transfer_this_orbit (orb, h*(b51*dr_ds(1:6) + b52*ak2(1:6) + b53*ak3(1:6) + b54*ak4(1:6)), orb_temp(4))
 t_temp(4) = t + h*(b51*dr_ds(7) + b52*ak2(7) + b53*ak3(7) + b54*ak4(7))
 call kick_vector_calc(ele, param, s + a5*h, t_temp(4), orb_temp(4), local_ref_frame, ak5)
 
-orb_temp(5)%vec = orb%vec + h*(b61*dr_ds(1:6) + b62*ak2(1:6) + b63*ak3(1:6) + b64*ak4(1:6) + b65*ak5(1:6))
+call transfer_this_orbit (orb, h*(b61*dr_ds(1:6) + b62*ak2(1:6) + b63*ak3(1:6) + b64*ak4(1:6) + b65*ak5(1:6)), orb_temp(5))
 t_temp(5) = t + h*(b61*dr_ds(7) + b62*ak2(7) + b63*ak3(7) + b64*ak4(7) + b65*ak5(7))
 call kick_vector_calc(ele, param, s + a6*h, t_temp(5), orb_temp(5), local_ref_frame, ak6)
 
-orb_new%vec = orb%vec + h*(c1*dr_ds(1:6) + c3*ak3(1:6) + c4*ak4(1:6) + c6*ak6(1:6))
+call transfer_this_orbit (orb, h*(c1*dr_ds(1:6) + c3*ak3(1:6) + c4*ak4(1:6) + c6*ak6(1:6)), orb_new)
 t_new = t + h*(c1*dr_ds(7) + c3*ak3(7) + c4*ak4(7) + c6*ak6(7))
 r_err=h*(dc1*dr_ds + dc3*ak3 + dc4*ak4 + dc5*ak5 + dc6*ak6)
 
@@ -297,6 +297,26 @@ endif
 
 !----------------------------------------------------------
 contains
+
+subroutine transfer_this_orbit (orb_in, dvec, orb_out)
+
+type (coord_struct) orb_in, orb_out
+real(rp) dvec(6)
+
+!
+
+orb_out%vec = orb_in%vec + dvec
+orb_out%p0c = orb_in%p0c
+if (dvec(6) == 0) then
+  orb_out%beta = orb_in%beta
+else
+  call convert_pc_to (orb_in%p0c * (1 + orb_in%vec(6)), param%particle, beta = orb_out%beta)
+endif
+
+end subroutine
+
+!----------------------------------------------------------
+! contains
 
 subroutine dspin_dz (ele, param, s, t, orb, local_ref_frame, dspin)
 
@@ -361,9 +381,8 @@ end subroutine rkck_bmad
 !   dr(5)/ds = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * c_light * [t(ref) - t]
 !            = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * vec(5) / beta
 !   where:
-!     dt/ds(ref) = ele%value(delta_ref_time$) / ele%value(l$)
-!     This is inaccurate at low energy in an lcavity but the total integrated dr(5)/ds
-!     accross the lcavity will be correct.
+!     dt/ds(ref) = 1 / beta(ref)
+!     Note: dt/ds(ref) formula is inaccurate at low energy in an lcavity.
 !
 !   dr(6)/ds = (EM_Force dot v_hat) * dt/ds / P0
 !   where:
@@ -399,8 +418,7 @@ real(rp), intent(in) :: s_rel, t_rel
 real(rp), intent(out) :: dr_ds(7)
 real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), force(3)
-real(rp), save :: pc, e_tot, beta, dt_ds_ref, p0
-real(rp), save :: pc_old = -1, particle_old = 0
+real(rp) e_tot, dt_ds_ref, p0
 
 logical :: local_ref_frame
 
@@ -408,13 +426,9 @@ character(24), parameter :: r_name = 'kick_vector_calc'
 
 !
 
-pc = ele%value(p0c$) * (1 + orbit%vec(6))
-if (pc /= pc_old .or. param%particle /= particle_old) then
-  call convert_pc_to (pc, param%particle, e_tot = e_tot, beta = beta)
-  pc_old = pc; particle_old = param%particle
-  dt_ds_ref = ele%value(delta_ref_time$) / ele%value(l$)
-  p0 = ele%value(p0c$) / c_light
-endif
+dt_ds_ref = ele%value(p0c$) / (ele%value(e_tot$) * c_light)
+p0 = ele%value(p0c$) / c_light
+e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 
 ! calculate the field
 
@@ -423,7 +437,7 @@ call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .fa
 ! Bend factor
 
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
-vel = beta * c_light * [vel(1), vel(2), sqrt(1 - vel(1)**2 - vel(2)**2)]
+vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - vel(1)**2 - vel(2)**2)]
 force = charge_of(param%particle) * (field%E + cross_product(vel, field%B))
 
 f_bend = 1
@@ -440,14 +454,14 @@ if (ele%key == sbend$) then
 endif
 
 dt_ds = f_bend / vel(3)
-dp_ds = dot_product(force, vel) * dt_ds / (beta * c_light)
+dp_ds = dot_product(force, vel) * dt_ds / (orbit%beta * c_light)
 dbeta_ds = mass_of(param%particle)**2 * dp_ds / e_tot**3
 
 dr_ds(1) = vel(1) * dt_ds
 dr_ds(2) = (force(1) + e_tot * gx_bend / (dt_ds * c_light)**2) * dt_ds / p0
 dr_ds(3) = vel(2) * dt_ds
 dr_ds(4) = (force(2) + e_tot * gy_bend / (dt_ds * c_light)**2) * dt_ds / p0
-dr_ds(5) = beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / beta
+dr_ds(5) = orbit%beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / orbit%beta
 dr_ds(6) = dp_ds / p0
 dr_ds(7) = dt_ds
 

@@ -1650,7 +1650,7 @@ real(8) x_dp(6)
 
 ! Patch and Match elements are not implemented in PTC so just use the matrix.
 
-if (ele%key == patch$ .or. ele%key == match$ .or. ele%key == lcavity$ .or. ele%key == rfcavity$) then
+if (ele%key == patch$ .or. ele%key == match$) then
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
   call concat_taylor (taylor1, ele%taylor, taylor3)
   return
@@ -1751,9 +1751,9 @@ implicit none
 
 type (taylor_struct) bmad_taylor(:)
 type (real_8), save :: ptc_tlr(6)
-type (ele_struct) ele
+type (ele_struct) ele, drift_ele
 type (lat_param_struct) param
-type (fibre), pointer, save :: a_fibre
+type (fibre), pointer :: ptc_fiber
 
 real(rp) beta0, m2_rel
 
@@ -1768,13 +1768,25 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 call real_8_init (ptc_tlr)
 call taylor_to_real_8 (bmad_taylor, beta0, ptc_tlr)
 
-! Init ptc "element" (fibre)
+! Track entrance drift if PTC is using a hard edge model
 
-call ele_to_fibre (ele, a_fibre, param, .true.)
+if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) then
+  call create_hard_edge_drift (ele, drift_ele)
+  call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
+  call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
+endif
 
-! Track map through the fibre
+! Init ptc "element" (fibre) and track the map
 
-call ptc_track (a_fibre, ptc_tlr, default)  ! "track" in PTC
+call ele_to_fibre (ele, ptc_fiber, param, .true.)
+call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
+
+! Track exit side drift if PTC is using a hard edge model
+
+if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) then
+  call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
+  call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
+endif
 
 ! transfer ptc map back to bmad map
 
@@ -1789,7 +1801,7 @@ call kill (ptc_tlr)
 
 ! Correct wiggler z_patch if needed
 
-if (ele%key == wiggler$) then
+if (has_z_patch(ele)) then
   call add_taylor_term (bmad_taylor(5), -ele%value(z_patch$))
 endif
 
@@ -1832,12 +1844,12 @@ use mad_like, only: real_8, fibre, ptc_track => track
 
 implicit none
 
-type (ele_struct), intent(inout) :: ele
+type (ele_struct) :: ele, drift_ele
 type (lat_param_struct) :: param
 type (coord_struct), optional, intent(in) :: orb0
 type (coord_struct) start0, end0, c0
 
-type (fibre), pointer, save :: a_fibre
+type (fibre), pointer :: ptc_fiber
 type (real_8) y(6), y2(6)
 
 real(dp) x(6), beta0
@@ -1864,7 +1876,7 @@ call attribute_bookkeeper (ele, param)
 
 if (ele%key == taylor$) return
 
-if (ele%key == match$ .or. ele%key == patch$ .or. ele%key == lcavity$ .or. ele%key == rfcavity$) then
+if (ele%key == match$ .or. ele%key == patch$) then
   c0%vec = 0
   call make_mat6_bmad (ele, param, c0, c0, .true.)
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
@@ -1879,7 +1891,6 @@ endif
 ! Track with offset
 
 use_offsets = logic_option(ele%map_with_offsets, map_with_offsets)
-call ele_to_fibre (ele, a_fibre, param, use_offsets)
  
 if (present(orb0)) then
   ele%taylor(:)%ref = orb0%vec
@@ -1895,7 +1906,27 @@ endif
 
 call real_8_init(y)
 y = x   ! y = IdentityMap + x
-call ptc_track (a_fibre, y, default) ! "track" in PTC
+
+! Track entrance drift if PTC is using a hard edge model
+
+if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) then
+  call create_hard_edge_drift (ele, drift_ele)
+  call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
+  call ptc_track (ptc_fiber, y, default) ! "track" in PTC
+endif
+
+! Track element
+
+call ele_to_fibre (ele, ptc_fiber, param, use_offsets)
+call ptc_track (ptc_fiber, y, default) ! "track" in PTC
+
+! Track exit end drift if PTC is using a hard edge model
+
+if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) then
+  call create_hard_edge_drift (ele, drift_ele)
+  call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
+  call ptc_track (ptc_fiber, y, default) ! "track" in PTC
+endif
 
 ! take out the offset
 
@@ -1919,13 +1950,13 @@ call kill(y)
 
 if (associated (ele%ptc_genfield)) call kill_ptc_genfield (ele%ptc_genfield)
 
-! For wigglers there is a z_patch to take out the non-zero z offset that an
+! For wigglers, etc. there is a z_patch to take out the non-zero z offset that an
 ! on axis particle gets.
 
-if (ele%key == wiggler$) then
+if (has_z_patch(ele)) then
 
   if (ele%value(z_patch$) == 0) then
-    call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
+    call out_io (s_fatal$, r_name, 'Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
     if (bmad_status%exit_on_error) call err_exit 
   endif
 
@@ -2135,7 +2166,7 @@ type (ele_pointer_struct), allocatable, save :: field_eles(:)
 type (work) energy_work
 
 
-real(dp) mis_rot(6), beta
+real(dp) mis_rot(6), beta, phi_tot
 real(dp) omega(3), basis(3,3), angle(3)
 
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
@@ -2233,20 +2264,23 @@ case (rfcavity$, lcavity$)
   beta = ele%value(p0c$) / ele%value(e_tot$)
   ptc_key%magnet = 'rfcavity'
   ptc_key%list%freq0 = ele%value(rf_frequency$)
-  ptc_key%list%lag = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + &
-        ele%value(dphi0_ref$)) ! + pi * ptc_key%list%freq0 * leng / (beta * c_light) 
+  phi_tot = ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$)
+  if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) ptc_key%list%l    = ele%value(l_hard_edge$)
+
   if (ele%key == lcavity$) then
-    ptc_key%list%lag = ptc_key%list%lag + pi / 2
+    ptc_key%list%lag = pi / 2 - twopi * phi_tot
     ptc_key%list%volt = 2e-6 * ele%value(l$) * &
                             (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+    ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
   else
+    ptc_key%list%lag = twopi * phi_tot
     ptc_key%list%volt = 2e-6 * ele%value(voltage$) * ele%value(field_scale$)
+    ptc_key%list%n_bessel = -1 
   endif
 
   ptc_key%list%delta_e = 0     ! For radiation calc.
-  ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
   ptc_key%list%cavity_totalpath = 1  ! 
-  ptc_key%list%permfringe = .true.
+  ptc_key%list%permfringe = .false.
 
 case (elseparator$)
   ptc_key%magnet = 'elseparator'

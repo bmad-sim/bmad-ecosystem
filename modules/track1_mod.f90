@@ -9,7 +9,6 @@ module track1_mod
 use bmad_struct
 use bmad_interface
 use make_mat6_mod
-use mad_mod
 use em_field_mod
 
 contains
@@ -199,14 +198,16 @@ implicit none
 
 type (coord_struct) orb
 type (lat_param_struct) param
-real(rp) length, rel_pc
+real(rp) length, rel_pc, dz
 
 !
 rel_pc = 1 + orb%vec(6)
 
 orb%vec(1) = orb%vec(1) + length * orb%vec(2) / rel_pc
 orb%vec(3) = orb%vec(3) + length * orb%vec(4) / rel_pc
-orb%vec(5) = orb%vec(5) - length * (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2)
+dz = -length * (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2)
+orb%vec(5) = orb%vec(5) + dz
+if (orb%beta /= 0) orb%t = orb%t + (length - dz) / (orb%beta * c_light)
 
 end subroutine track_a_drift
 
@@ -514,7 +515,7 @@ type (ele_struct) ele
 type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
-real(rp) t, beta, f, p0c_start
+real(rp) t, beta, f, p0c_start, l_drift, dref_time
 
 integer element_end
 
@@ -537,6 +538,9 @@ case (solenoid$, sol_quad$)
 
 case (lcavity$, rfcavity$)
 
+  ! Add on bmad_com%significan_length to make sure we are just inside the cavity.
+  l_drift = (ele%value(l$) - ele%value(l_hard_edge$)) / 2 + bmad_com%significant_length
+
   if (element_end == entrance_end$) then
     if (ele%key == lcavity$) then
       p0c_start = ele%value(p0c_start$)
@@ -545,7 +549,7 @@ case (lcavity$, rfcavity$)
     endif
     call convert_pc_to(p0c_start * (1 + orb%vec(6)), param%particle, beta = beta)
     t = -orb%vec(5) / (beta * c_light)
-    call em_field_calc (ele, param, 0.0_rp, t, orb, .true., field)
+    call em_field_calc (ele, param, l_drift, t, orb, .true., field)
     f = charge_of(param%particle) / (2 * p0c_start)
 
     orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
@@ -553,8 +557,11 @@ case (lcavity$, rfcavity$)
 
   else
     call convert_pc_to(ele%value(p0c$) * (1 + orb%vec(6)), param%particle, beta = beta)
-    t = ele%value(delta_ref_time$) - orb%vec(5) / (beta * c_light)
-    call em_field_calc (ele, param, ele%value(l$), t, orb, .true., field)
+    ! dref_time is the reference time to cross just the cavity. That is, this subtracts off the drift times.
+    dref_time = ele%value(delta_ref_time$) - (l_drift / c_light) * &
+                  (ele%value(e_tot_start$) / ele%value(p0c_start$) + ele%value(e_tot$) / ele%value(p0c$))
+    t = dref_time - orb%vec(5) / (beta * c_light)
+    call em_field_calc (ele, param, ele%value(l$)-l_drift, t, orb, .true., field)
     f = charge_of(param%particle) / (2 * ele%value(p0c$))
 
     orb%vec(2) = orb%vec(2) + field%e(3) * orb%vec(1) * f - c_light * field%b(3) * orb%vec(3) * f
@@ -564,56 +571,5 @@ case (lcavity$, rfcavity$)
 end select
 
 end subroutine apply_element_edge_kick
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Subroutine drift_to_hard_edge (orb, ele, param, element_end)
-!
-! Subroutine to track through the end drifts of an element.
-! The end drifts are present, for example, when doing runge_kutta tracking
-! through an rf_cavity with field_calc = bmad_standard. In this case, the
-! field model is a pi-wave hard-edge resonator whose length may not match
-! the length of the element and so particles must be drifted from the edge
-! of the element to the edge of the field model.
-!
-! Module needed:
-!   use track1_mod
-!
-! Input:
-!   orb         -- Coord_struct: Starting coords in element reference frame.
-!   ele         -- ele_struct: Element.
-!   param       -- lat_param_struct: lattice parameters.
-!   element_end -- Integer: entrance_end$ or exit_end$.
-!
-! Output:
-!   orb        -- Coord_struct: Coords after tracking.
-!-
-
-subroutine drift_to_hard_edge (orb, ele, param, element_end)
-
-implicit none
-
-type (ele_struct) ele
-type (coord_struct) orb
-type (lat_param_struct) param
-
-
-integer element_end
-
-!
-
-if (ele%field_calc /= bmad_standard$) return
-
-
-select case (ele%key)
-
-case (lcavity$, rfcavity$)
-  
-
-end select
-
-end subroutine drift_to_hard_edge 
 
 end module

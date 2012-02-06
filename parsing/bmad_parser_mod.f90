@@ -4363,6 +4363,7 @@ case (ecollimator$)
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_scale$) = 1
+  ele%value(n_cell$) = 1
 
 case (multilayer_mirror$)
   ele%value(ref_polarization$) = sigma_polarization$  
@@ -4377,6 +4378,7 @@ case (rcollimator$)
 case (rfcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_scale$) = 1
+  ele%value(n_cell$) = 1
 
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  

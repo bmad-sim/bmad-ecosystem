@@ -288,8 +288,14 @@ case (lcavity$, rfcavity$)
 
   enddo
 
-  ! z_patch:
+  ! z_patch: This should have been computed if doing tracking with an offset.
 
+  if (ele%value(z_patch$) == 0 .and. do_offset) then
+    call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
+    if (bmad_status%exit_on_error) call err_exit 
+  endif
+
+  end%vec(5) = end%vec(5) - ele%value(z_patch$)
 
 !----------------------------------------------------------------------------
 ! solenoid, quadrupole, sol_quad, or bend_sol_quad

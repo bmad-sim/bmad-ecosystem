@@ -325,7 +325,8 @@ do i = 1, n_key
 
   if (i == taylor$)       cycle
 
-  call init_attrib (i, l$,  'L')
+  call init_attrib (i, l$,            'L')
+  call init_attrib (i, l_hard_edge$,  reserved_name$)
 
   call init_attrib (i, integrator_order$,   'INTEGRATOR_ORDER')
   call init_attrib (i, num_steps$,          'NUM_STEPS')
@@ -456,7 +457,12 @@ call init_attrib (em_field$, field$,                       'FIELD')
 call init_attrib (em_field$, z_patch$,                     'Z_PATCH')
 
 call init_attrib (taylor$, l$,                             'L')
+call init_attrib (taylor$, E_tot_start$,                   reserved_name$)
+call init_attrib (taylor$, p0c_start$,                     reserved_name$)
+
 call init_attrib (marker$, l$,                             reserved_name$)
+call init_attrib (marker$, E_tot_start$,                   reserved_name$)
+call init_attrib (marker$, p0c_start$,                     reserved_name$)
 
 call init_attrib (match$, l$,                              'L')
 call init_attrib (match$, beta_a0$,                        'BETA_A0')
@@ -492,6 +498,8 @@ call init_attrib (match$, z1$,                             'Z1')
 call init_attrib (match$, pz1$,                            'PZ1')
 call init_attrib (match$, match_end_orbit$,                'MATCH_END_ORBIT')
 call init_attrib (match$, is_on$,                          'IS_ON')
+call init_attrib (match$, E_tot_start$,                   reserved_name$)
+call init_attrib (match$, p0c_start$,                     reserved_name$)
 
 call init_attrib (girder$, l$,                             'L')
 call init_attrib (girder$, x_offset$,                      'X_OFFSET')
@@ -527,6 +535,7 @@ call init_attrib (lcavity$, field$,                        'FIELD')
 call init_attrib (lcavity$, field_scale$,                  'FIELD_SCALE')
 call init_attrib (lcavity$, dphi0_ref$,                    'DPHI0_REF')
 call init_attrib (lcavity$, z_patch$,                      'Z_PATCH')
+call init_attrib (lcavity$, n_cell$,                       'N_CELL')
 call init_attrib (lcavity$, grad_loss_sr_wake$,            reserved_name$)
 
 
@@ -540,8 +549,12 @@ call init_attrib (group$, symmetric_edge$,                 'SYMMETRIC_EDGE')
 
 call init_attrib (drift$, field_calc$,                     'FIELD_CALC')
 call init_attrib (drift$, field_master$,                   'FIELD_MASTER')
+call init_attrib (drift$, E_tot_start$,                   reserved_name$)
+call init_attrib (drift$, p0c_start$,                     reserved_name$)
 
 call init_attrib (monitor$, field_master$,                 'FIELD_MASTER')
+call init_attrib (monitor$, E_tot_start$,                   reserved_name$)
+call init_attrib (monitor$, p0c_start$,                     reserved_name$)
 
 attrib_array(instrument$, :)                         = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                               = attrib_array(monitor$, :)
@@ -551,6 +564,8 @@ call init_attrib (hkicker$, field_calc$,                   'FIELD_CALC')
 call init_attrib (hkicker$, field_master$,                 'FIELD_MASTER')
 call init_attrib (hkicker$, bl_kick$,                      'BL_KICK')
 call init_attrib (hkicker$, pole_radius$,                  'POLE_RADIUS')
+call init_attrib (hkicker$, E_tot_start$,                   reserved_name$)
+call init_attrib (hkicker$, p0c_start$,                     reserved_name$)
 
 attrib_array(vkicker$, :) = attrib_array(hkicker$, :)
 
@@ -560,6 +575,8 @@ call init_attrib (kicker$, radius$,                        'RADIUS')
 call init_attrib (kicker$, field_calc$,                    'FIELD_CALC')
 call init_attrib (kicker$, field_master$,                  'FIELD_MASTER')
 call init_attrib (kicker$, pole_radius$,                   'POLE_RADIUS')
+call init_attrib (kicker$, E_tot_start$,                   reserved_name$)
+call init_attrib (kicker$, p0c_start$,                     reserved_name$)
 
 call init_attrib (sbend$, angle$,                          'ANGLE')
 call init_attrib (sbend$, e1$,                             'E1')
@@ -585,6 +602,8 @@ call init_attrib (sbend$, radius$,                         'RADIUS')
 call init_attrib (sbend$, field_calc$,                     'FIELD_CALC')
 call init_attrib (sbend$, field_master$,                   'FIELD_MASTER')
 call init_attrib (sbend$, ref_orbit$,                      'REF_ORBIT')
+call init_attrib (sbend$, E_tot_start$,                   reserved_name$)
+call init_attrib (sbend$, p0c_start$,                     reserved_name$)
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -602,6 +621,8 @@ call init_attrib (bend_sol_quad$, radius$,                 'RADIUS')
 call init_attrib (bend_sol_quad$, field_calc$,             'FIELD_CALC')
 call init_attrib (bend_sol_quad$, field_master$,           'FIELD_MASTER')
 call init_attrib (bend_sol_quad$, field$,                  'FIELD')
+call init_attrib (bend_sol_quad$, E_tot_start$,                   reserved_name$)
+call init_attrib (bend_sol_quad$, p0c_start$,                     reserved_name$)
 
 call init_attrib (patch$, l$,                              'L')
 call init_attrib (patch$, p0c_start$,                      'P0C_START')
@@ -620,6 +641,8 @@ call init_attrib (quadrupole$, field_calc$,                'FIELD_CALC')
 call init_attrib (quadrupole$, field_master$,              'FIELD_MASTER')
 call init_attrib (quadrupole$, pole_radius$,               'POLE_RADIUS')
 call init_attrib (quadrupole$, field$,                     'FIELD')
+call init_attrib (quadrupole$, E_tot_start$,                   reserved_name$)
+call init_attrib (quadrupole$, p0c_start$,                     reserved_name$)
 
 call init_attrib (sextupole$, k2$,                         'K2')
 call init_attrib (sextupole$, B2_gradient$,                'B2_GRADIENT')
@@ -628,6 +651,8 @@ call init_attrib (sextupole$, field_calc$,                 'FIELD_CALC')
 call init_attrib (sextupole$, field_master$,               'FIELD_MASTER')
 call init_attrib (sextupole$, pole_radius$,                'POLE_RADIUS')
 call init_attrib (sextupole$, field$,                      'FIELD')
+call init_attrib (sextupole$, E_tot_start$,                   reserved_name$)
+call init_attrib (sextupole$, p0c_start$,                     reserved_name$)
 
 call init_attrib (octupole$, k3$,                          'K3')
 call init_attrib (octupole$, B3_gradient$,                 'B3_GRADIENT')
@@ -636,6 +661,8 @@ call init_attrib (octupole$, field_calc$,                  'FIELD_CALC')
 call init_attrib (octupole$, field_master$,                'FIELD_MASTER')
 call init_attrib (octupole$, pole_radius$,                 'POLE_RADIUS')
 call init_attrib (octupole$, field$,                       'FIELD')
+call init_attrib (octupole$, E_tot_start$,                   reserved_name$)
+call init_attrib (octupole$, p0c_start$,                     reserved_name$)
 
 call init_attrib (solenoid$, ks$,                          'KS')
 call init_attrib (solenoid$, bs_field$,                    'BS_FIELD')
@@ -644,6 +671,8 @@ call init_attrib (solenoid$, field_calc$,                  'FIELD_CALC')
 call init_attrib (solenoid$, field_master$,                'FIELD_MASTER')
 call init_attrib (solenoid$, pole_radius$,                 'POLE_RADIUS')
 call init_attrib (solenoid$, field$,                       'FIELD')
+call init_attrib (solenoid$, E_tot_start$,                   reserved_name$)
+call init_attrib (solenoid$, p0c_start$,                     reserved_name$)
 
 call init_attrib (rfcavity$, dphi0$,                       'DPHI0')
 call init_attrib (rfcavity$, voltage$,                     'VOLTAGE')
@@ -663,10 +692,12 @@ call init_attrib (rfcavity$, coupler_at$,                  'COUPLER_AT')
 call init_attrib (rfcavity$, field$,                       'FIELD')
 call init_attrib (rfcavity$, field_scale$,                 'FIELD_SCALE')
 call init_attrib (rfcavity$, dphi0_ref$,                   'DPHI0_REF')
+call init_attrib (rfcavity$, n_cell$,                      'N_CELL')
 call init_attrib (rfcavity$, z_patch$,                     'Z_PATCH')
 call init_attrib (rfcavity$, grad_loss_sr_wake$,           reserved_name$)
 call init_attrib (rfcavity$, dphi0_max$,                   reserved_name$)
-
+call init_attrib (rfcavity$, E_tot_start$,                   reserved_name$)
+call init_attrib (rfcavity$, p0c_start$,                     reserved_name$)
 
 call init_attrib (elseparator$, gap$,                      'GAP')
 call init_attrib (elseparator$, e_field$,                  'E_FIELD')
@@ -675,6 +706,8 @@ call init_attrib (elseparator$, radius$,                   'RADIUS')
 call init_attrib (elseparator$, field_calc$,               'FIELD_CALC')
 call init_attrib (elseparator$, field_master$,             'FIELD_MASTER')
 call init_attrib (elseparator$, field$,                    'FIELD')
+call init_attrib (elseparator$, E_tot_start$,                   reserved_name$)
+call init_attrib (elseparator$, p0c_start$,                     reserved_name$)
 
 call init_attrib (beambeam$, l$,                           reserved_name$)
 call init_attrib (beambeam$, sig_x$,                       'SIG_X')
@@ -686,6 +719,8 @@ call init_attrib (beambeam$, n_slice$,                     'N_SLICE')
 call init_attrib (beambeam$, symplectify$,                 'N_SLICE')
 call init_attrib (beambeam$, field_calc$,                  'FIELD_CALC')
 call init_attrib (beambeam$, field_master$,                'FIELD_MASTER')
+call init_attrib (beambeam$, E_tot_start$,                   reserved_name$)
+call init_attrib (beambeam$, p0c_start$,                     reserved_name$)
 
 call init_attrib (wiggler$, k1$,                           'K1')
 call init_attrib (wiggler$, l_pole$,                       'L_POLE')
@@ -700,6 +735,8 @@ call init_attrib (wiggler$, field_calc$,                   'FIELD_CALC')
 call init_attrib (wiggler$, field_master$,                 'FIELD_MASTER')
 call init_attrib (wiggler$, x_ray_line_len$,               'X_RAY_LINE_LEN')
 call init_attrib (wiggler$, field$,                        'FIELD')
+call init_attrib (wiggler$, E_tot_start$,                   reserved_name$)
+call init_attrib (wiggler$, p0c_start$,                     reserved_name$)
 
 call init_attrib (sol_quad$, k1$,                          'K1')
 call init_attrib (sol_quad$, ks$,                          'KS')
@@ -709,6 +746,8 @@ call init_attrib (sol_quad$, field_master$,                'FIELD_MASTER')
 call init_attrib (sol_quad$, b1_gradient$,                 'B1_GRADIENT')
 call init_attrib (sol_quad$, bs_field$,                    'BS_FIELD')
 call init_attrib (sol_quad$, field$,                       'FIELD')
+call init_attrib (sol_quad$, E_tot_start$,                   reserved_name$)
+call init_attrib (sol_quad$, p0c_start$,                     reserved_name$)
 
 call init_attrib (multipole$, l$,                          'L')
 attrib_array(multipole$, k0l$:k20l$)    = &
@@ -758,7 +797,7 @@ call init_attrib (multilayer_mirror$, l$,                  reserved_name$)
 call init_attrib (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
 call init_attrib (multilayer_mirror$, graze_angle_err$,      'GRAZE_ANGLE_ERR')
 call init_attrib (multilayer_mirror$, tilt_err$,             'TILT_ERR')
-call init_attrib (multilayer_mirror$, n_cells$,              'N_CELLS')
+call init_attrib (multilayer_mirror$, n_cell$,               'N_CELL')
 call init_attrib (multilayer_mirror$, d1_thickness$,         'D1_THICKNESS')
 call init_attrib (multilayer_mirror$, d2_thickness$,         'D2_THICKNESS')
 call init_attrib (multilayer_mirror$, v1_unitcell$,          'V1_UNITCELL')
@@ -900,6 +939,39 @@ end function has_orientation_attributes
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Function has_z_patch (ele) result (has_patch)
+!
+! Routine to determine whether an element has the z_patch attribute.
+!
+! Input:
+!   ele  -- ele_struct: Lattice element.
+!
+! Output:
+!   has_patch -- Logical: True if ele uses a z_patch. False otherwise.
+!-
+
+function has_z_patch (ele) result (has_patch)
+
+implicit none
+
+type (ele_struct) ele
+logical has_patch
+
+! 
+
+select case (ele%key)
+case (wiggler$, em_field$)
+   has_patch = .true.
+case default
+  has_patch = .false.
+end select
+
+end function has_z_patch
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Function attribute_type (attrib_name) result (attrib_type)
 !
 ! Routine to return the type (logical, integer, real, or named) of an attribute.
@@ -934,7 +1006,7 @@ select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER', 'FOLLOW_DIFFRACTED_BEAM', &
       'NEGATIVE_GRAZE_ANGLE', 'SCALE_MULTIPOLES', 'NO_END_MARKER')
   attrib_type = is_logical$
-case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
       'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS')
   attrib_type = is_integer$
 case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'LATTICE_TYPE')
