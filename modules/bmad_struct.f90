@@ -21,7 +21,7 @@ use definition, only: genfield, fibre
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 106
+integer, parameter :: bmad_inc_version$ = 107
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -441,13 +441,14 @@ end type
 !     lat_equal_lat
 
 type lat_struct
-  character(40) use_name                  ! Name of lat given by USE statement
-  character(40) lattice                   ! Lattice
-  character(200) input_file_name          ! Name of the lattice input file
-  character(80) title                     ! General title
-  type (mode_info_struct) a, b, z         ! Tunes, etc.
-  type (lat_param_struct) param           ! Parameters
-  type (ele_struct)  ele_init             ! For use by any program
+  character(40) use_name                      ! Name of lat given by USE statement
+  character(40) lattice                       ! Lattice
+  character(200) input_file_name              ! Name of the lattice input file
+  character(80) title                         ! General title
+  type (mode_info_struct) a, b, z             ! Tunes, etc.
+  type (lat_param_struct) param               ! Parameters
+  type (bookkeeper_status_struct) lord_status ! lord bookkeeping status.
+  type (ele_struct)  ele_init                 ! For use by any program
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (wall3d_struct) wall3d
   type (branch_struct), allocatable :: branch(:)   ! Branch arrays

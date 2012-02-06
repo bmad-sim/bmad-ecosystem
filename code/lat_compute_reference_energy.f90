@@ -158,6 +158,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(i)
 
   if (.not. bmad_com%auto_bookkeeper .and. lord%status%ref_energy /= stale$) cycle
+  if (lord%n_slave == 0) cycle   ! Can happen with null_ele$ elements for example.
 
   call set_ele_status_stale (lord, lat%param, attribute_group$)
   lord%status%ref_energy = ok$
@@ -195,11 +196,11 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   ! Transfer the starting energy.
 
-  !!if (lord%key == lcavity$ .or. lord%key == custom$) then
+  if (lord%lord_status == super_lord$) then
     slave => pointer_to_slave(lord, 1)
     lord%value(E_tot_start$) = slave%value(E_tot_start$)
     lord%value(p0c_start$)   = slave%value(p0c_start$)
-  !!endif
+  endif
 
   ! Autophase rfcavity lords.
 
