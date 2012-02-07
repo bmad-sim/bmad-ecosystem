@@ -1064,13 +1064,14 @@ Format:
          \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
          \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
    optimizer
-   particle \{-bunch <bunch\_index>\} \{-particle <particle\_index> \{-element <element\_name\_or\_index>\} \{-lost\} \{-all\}
+   particle \{-bunch <bunch_index>\} \{-particle <particle_index> \{-element <element_name_or_index>\} \{-lost\} \{-all\}
    plot
    plot \{<template_plot_name>\}
    plot \{<plot_region_name>\}
    plot -shapes
-   top10 \{-derivative\}
    taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}
+   top10 \{-derivative\}
+   twiss_and_orbit \{-base\} \{-branch <name>\} \{-design\} \{-universe <ix_uni>\} <s_position>
    universe \{universe_number\}
    universe -connections
    use
@@ -1532,6 +1533,27 @@ Examples:
   show taylor -order 1 q10w q10e  ! 0th and 1st order maps from q10e to q10w
   show taylor 45                  ! Transfer map of element #45
   show taylor -s 13.4  23.6       ! Transfer map from s = 13.4 meters to 23.6 meters. 
+\end{example} 
+
+%% show twiss_and_orbit --------------------------------------------------------------
+
+\item[twiss\_and\_orbit \{-base\} \{-branch <name>\} \{-design\} \{-universe <ix\_uni>\} <s\_position>] \Newline
+
+Show Twiss and orbit information at a given longitudinal position \vn{<s_position>}. 
+
+The default universe to use is the current viewed universe. This can
+be changed using the \vn{-universe} switch.
+
+The default is to show the \vn{model} Twiss and orbit parameters. The
+use of \vn{-base} or \vn{-design} switches can be used to show
+parameters for the \vn{base} or \vn{design} lattices.
+
+The particular branch used in the analysis can be selected by the
+\vn{-branch} switch. The root branch (branch 0) is the default.
+
+Examples:
+\begin{example}
+  show twiss -uni 2 23.7     ! Show the parameters in universe 2 at s = 23.7 meters.
 \end{example} 
 
 %% show universe --------------------------------------------------------------

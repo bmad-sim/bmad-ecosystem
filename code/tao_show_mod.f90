@@ -157,11 +157,11 @@ type (tao_ele_shape_struct), pointer :: shape
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele
+type (ele_struct), target :: ele3, ele0
 type (bunch_struct), pointer :: bunch
 type (rf_wake_lr_struct), pointer :: lr
-type (ele_struct), pointer :: ele
 type (coord_struct), target :: orb
-type (ele_struct), target :: ele3
 type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
@@ -199,12 +199,13 @@ character(60) nam
 character(3) undef_str
 character(40) replacement_for_blank
 
-character(16) :: show_what, show_names(25) = [ &
-   'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
-   'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
-   'beam        ', 'tune        ', 'graph       ', 'curve       ', 'particle    ', &
-   'hom         ', 'key_bindings', 'universe    ', 'orbit       ', 'derivative  ', &
-   'branches    ', 'use         ', 'taylor_map  ', 'value       ', 'wave        ' ]
+character(16) :: show_what, show_names(26) = [ &
+   'data           ', 'variable       ', 'global         ', 'alias          ', 'top10          ', &
+   'optimizer      ', 'element        ', 'lattice        ', 'constraints    ', 'plot           ', &
+   'beam           ', 'tune           ', 'graph          ', 'curve          ', 'particle       ', &
+   'hom            ', 'key_bindings   ', 'universe       ', 'orbit          ', 'derivative     ', &
+   'branches       ', 'use            ', 'taylor_map     ', 'value          ', 'wave           ', &
+   'twiss_and_orbit' ]
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -1291,11 +1292,12 @@ case ('lattice')
       call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
     case ('-branch')
-      read (stuff2(1:ix_s2), *, iostat = ios) ix_branch
-      if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
+      branch => pointer_to_branch(stuff2(1:ix_s2), u%model%lat)
+      if (.not. associated(branch)) then
         nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
+      ix_branch = branch%ix_branch
       call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
     case ('-custom')
@@ -2008,24 +2010,6 @@ case ('plot')
   result_id = show_what
 
 !----------------------------------------------------------------------
-! top10
-
-case ('top10')
-
-  call string_trim(stuff, stuff2, ix)
-  if (ix == 0) then
-    call tao_show_constraints (0, 'TOP10')
-    call tao_top10_merit_categories_print (0)
-  elseif (index('-derivative', trim(stuff2)) == 1) then 
-    call tao_top10_derivative_print ()
-  else
-    nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2
-    return
-  endif
-
-  result_id = show_what
-
-!----------------------------------------------------------------------
 ! taylor_map
 
 case ('taylor_map')
@@ -2137,11 +2121,110 @@ case ('taylor_map')
   result_id = show_what
 
 !----------------------------------------------------------------------
+! top10
+
+case ('top10')
+
+  call string_trim(stuff, stuff2, ix)
+  if (ix == 0) then
+    call tao_show_constraints (0, 'TOP10')
+    call tao_top10_merit_categories_print (0)
+  elseif (index('-derivative', trim(stuff2)) == 1) then 
+    call tao_top10_derivative_print ()
+  else
+    nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2
+    return
+  endif
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
 ! tune
 
 case ('tune')
 
   nl=nl+1; lines(nl) = 'Use "show universe" instead.'
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
+! twiss
+    
+case ('twiss_and_orbit')
+
+  tao_lat => u%model
+  branch => tao_lat%lat%branch(0)
+  lat_type = model$
+
+  do 
+
+    call tao_next_switch (stuff2, [ &
+        '-branch     ', '-universe   ', '-design     ', '-base       '], &
+              switch, err, ix_s2)
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+    case ('-base')
+      lat_type = base$
+
+    case ('-branch')
+      branch => pointer_to_branch(stuff2(1:ix_s2), lat)
+      if (.not. associated(branch)) then
+        nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
+        return
+      endif
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+
+    case ('-design')
+      lat_type = design$
+
+    case ('-universe')
+      read (stuff2(1:ix_s2), *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
+        return
+      endif
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+
+    end select
+
+  enddo
+
+  !
+
+  tao_lat => tao_pointer_to_tao_lat (u, lat_type)
+  lat => tao_lat%lat
+  branch => lat%branch(branch%ix_branch)
+  ix_branch = branch%ix_branch
+
+  call string_trim(stuff2, stuff2, ix)
+  if (ix == 0) then
+    s_pos = 0
+  else
+    if (.not. is_real(stuff2)) then
+      nl=1; lines(1) = 'NOT A REAL NUMBER: ' // stuff2
+      return
+    endif
+    read (stuff2, *) s_pos
+  endif
+
+  call twiss_and_track_at_s (lat, s_pos, ele0, tao_lat%lat_branch(ix_branch)%orbit, orb, ix_branch, err)
+  if (err) return 
+
+  nl=nl+1; write (lines(nl), '(a, f10.5)') 'At S =', s_pos
+  nl=nl+1; write (lines(nl), '(2a)')       'In Element: ', ele0%name
+
+  call type2_twiss (ele0, lines(nl+1:), n, s%global%phase_units)
+  nl = nl + n
+
+  fmt = '(2x, a, 3p2f11.4)'
+  nl=nl+1; write (lines(nl), *) ' '
+  nl=nl+1; write (lines(nl), *)   'Orbit: [mm, mrad]'
+  nl=nl+1; write (lines(nl), fmt) "X  X':", orb%vec(1), orb%vec(2)
+  nl=nl+1; write (lines(nl), fmt) "Y  Y':", orb%vec(3), orb%vec(4)
+  nl=nl+1; write (lines(nl), fmt) "Z  Z':", orb%vec(5), orb%vec(6)
 
   result_id = show_what
 
