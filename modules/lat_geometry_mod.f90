@@ -166,9 +166,9 @@ real(dp), save :: s_ang, c_ang
 real(dp), save :: w_mat(3,3), s_mat(3,3), r_mat(3), t_mat(3,3)
 real(dp), parameter :: twopi_dp = 2 * 3.14159265358979
 
-! patch with patch_end set: Floor position is already set.
+! floor_position element: Floor position is already set in the element.
 
-if (ele%key == patch$ .and. ele%value(patch_end$) /= 0) return
+if (ele%key == floor_position$) return
 
 ! init
 ! old_theta is used to tell if we have to reconstruct the w_mat

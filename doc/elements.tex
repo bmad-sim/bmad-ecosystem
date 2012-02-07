@@ -28,16 +28,17 @@ photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \HH
-  AB_Multipole      & \ref{s:ab.m}        &  Multipole         & \ref{s:mult}     \HH
-  BeamBeam          & \ref{s:bbi}         &  Null_Ele          & \ref{s:null.ele} \HH
-  Bend_Sol_Quad     & \ref{s:bsq}         &  Octupole          & \ref{s:oct}      \HH
-  Branch            & \ref{s:branch}      &  Patch             & \ref{s:patch}    \HH
-  Custom            & \ref{s:custom}      &  Photon_Branch     & \ref{s:branch}   \HH
-  Drift             & \ref{s:drift}       &  Pipe              & \ref{s:monitor}  \HH
-  E_Gun             & \ref{s:e.gun}       &  Quadrupole        & \ref{s:quad}     \HH
-  Ecollimator       & \ref{s:col}         &  Rbend             & \ref{s:bend}     \HH
-  ElSeparator       & \ref{s:elsep}       &  Rcollimator       & \ref{s:col}      \HH
-  EM_Field          & \ref{s:em.field}    &  RFcavity          & \ref{s:rfcav}    \HH
+  AB_Multipole      & \ref{s:ab.m}        &  Monitor           & \ref{s:monitor}  \HH 
+  BeamBeam          & \ref{s:bbi}         &  Multipole         & \ref{s:mult}     \HH
+  Bend_Sol_Quad     & \ref{s:bsq}         &  Null_Ele          & \ref{s:null.ele} \HH
+  Branch            & \ref{s:branch}      &  Octupole          & \ref{s:oct}      \HH
+  Custom            & \ref{s:custom}      &  Patch             & \ref{s:patch}    \HH
+  Drift             & \ref{s:drift}       &  Photon_Branch     & \ref{s:branch}   \HH
+  E_Gun             & \ref{s:e.gun}       &  Pipe              & \ref{s:monitor}  \HH
+  Ecollimator       & \ref{s:col}         &  Quadrupole        & \ref{s:quad}     \HH
+  ElSeparator       & \ref{s:elsep}       &  Rbend             & \ref{s:bend}     \HH
+  EM_Field          & \ref{s:em.field}    &  Rcollimator       & \ref{s:col}      \HH
+  Floor_Position    & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \HH
   HKicker           & \ref{s:hvkicker}    &  Sbend             & \ref{s:bend}     \HH
   Hybrid            & \ref{s:hybrid}      &  Sextupole         & \ref{s:sex}      \HH
   Instrument        & \ref{s:monitor}     &  Solenoid          & \ref{s:sol}      \HH
@@ -45,8 +46,6 @@ photon use.
   Lcavity           & \ref{s:lcav}        &  Taylor            & \ref{s:tay}      \HH
   Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \HH  
   Match             & \ref{s:match}       &  Wiggler           & \ref{s:wiggler}  \HH
-  Monitor           & \ref{s:monitor}     &                    &                  \HH
-
 \end{tabular}
 }
 \caption{Table of element classes suitable for use with relativistic particles.}
@@ -63,8 +62,9 @@ photon use.
   Crystal            & \ref{s:crystal}       &  Mirror            & \ref{s:mirror}     \HH
   Custom             & \ref{s:custom}        &  Multilayer_mirror & \ref{s:multilayer} \HH
   Drift              & \ref{s:drift}         &  Patch             & \ref{s:patch}      \HH
-  Instrument         & \ref{s:monitor}       &  Photon_Branch     & \ref{s:branch}     \HH
-  Marker             & \ref{s:mark}          &  Pipe              & \ref{s:monitor}    \HH
+  Floor_Position     & \ref{s:floor.ele}     &  Photon_Branch     & \ref{s:branch}     \HH 
+  Instrument         & \ref{s:monitor}       &  Pipe              & \ref{s:monitor}    \HH
+  Marker             & \ref{s:mark}          &                    &                    \HH
 \end{tabular}
 }
 \caption{Table of element classes suitable for use with photons.}
@@ -996,6 +996,48 @@ General \vn{em_field} attributes are:
 
 The advantage to using \vn{em_field} elements is that they can acc
 
+%-----------------------------------------------------------------
+\section{Floor_Position}
+\label{s:floor.ele}
+\index{floor_position|hyperbf}
+
+A \vn{floor_position} element sets the global floor coordinates.
+
+General \vn{floor_position} element attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Description strings    & \ref{s:string}  & Reference energy           & \ref{s:energy}  \HH
+  is_on                  & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \HH
+\end{tabular}
+\end{center}
+\toffset
+
+\index{x_position}\index{y_position}
+\index{z_position}\index{theta_position}
+\index{phi_position}\index{psi_position}
+Attributes specific to a \vn{floor_position} elements are:
+\begin{example}
+  x_position      = <Real>
+  y_position      = <Real>
+  z_position      = <Real>
+  theta_position  = <Real>
+  phi_position    = <Real>
+  psi_position    = <Real>
+\end{example}
+
+The \vn{floor_position} element sets the global position
+(\sref{s:global}) of the reference coordinates at the exit end of the
+element.  Here, the transfer map through the \vn{floor_position} will
+be the unit map. That is, the phase space coordinates of a particle
+will not change when tracking through such an element.
+
+Example:
+\begin{example}
+  floor_set: floor_position, x_position = 3.2
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Girder}
@@ -1250,31 +1292,34 @@ dependent attribute and is defined to be
 
 The energy kick felt by a particle is 
 \begin{example}
-  dE = gradient_tot * L * cos(twopi * phi)
+  dE = gradient_tot * L * cos(twopi * (phi_particle + phi_ref))
 \end{example}
 \index{multipass}
 where the total gradient is
 \begin{example}
   gradient_tot = gradient + gradient_err
 \end{example}
-and the phase \vn{phi} is
+the phase \vn{phi_ref} is
 \begin{example}
-  phi = phi_particle + phi0 + dphi0 + phi0_err + dphi0_ref
+  phi_ref = phi0 + dphi0 + phi0_err + dphi0_ref
 \end{example}
+and \vn{phi_particle} is
 \begin{example}
   phi_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
-               = t_particle * rf_frequency     ! With absolute time tracking
+               =  t_particle * rf_frequency    ! With absolute time tracking
 \end{example}
 With \vn{relative time tracking}, the phase, \vn{phi_particle}, of the
 particle with respect to the cavity's internal clock is proportional
 to \vn{z} -- the particles' phase space coordinate
 (\sref{s:phase.space}). With \vn{absolute time tracking},
-\vn{phi_particle} is proportional to the absolute time the particle reaches 
+\vn{phi_particle} is proportional to the absolute time the particle
+reaches the cavity.
 
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}.
 
-\vn{dphi0_ref} is 
+\vn{phi0_ref} is a phase calculated by \bmad's RF auto-phase module
+(\sref{s:rf.auto}).
 
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus
@@ -1725,54 +1770,31 @@ General \vn{patch} element attributes are:
 \toffset
 
 \index{x_offset}\index{y_offset}\index{z_offset}\index{tilt}
-\index{x_pitch}\index{y_pitch}\index{pz_offset}
+\index{x_pitch}\index{y_pitch}\index{pz_offset}\index{t_offset}
 Attributes specific to a \vn{patch} elements are:
 \begin{example}
   x_offset        = <Real>  
   y_offset        = <Real>  
   z_offset        = <Real>  
+  t_offset        = <Real>  
   x_pitch         = <Real>  
   y_pitch         = <Real>  
   tilt            = <Real>        
   e_tot_offset    = <Real>
   translate_after = <Logic>  ! Default: False.
-
-  patch_end       = <Logic>  ! Default: False.
-  x_position      = <Real>
-  y_position      = <Real>
-  z_position      = <Real>
-  theta_position  = <Real>
-  phi_position    = <Real>
-  psi_position    = <Real>
 \end{example}
-
 \index{x_offset}
 For example, a positive \vn{x_offset} offsets the reference orbit after
 the \vn{patch} in the positive $x$--direction relative to the
 reference orbit before the \vn{patch}. Hence, the \vn{x} coordinate of
 a particle going through a patch with a positive \vn{x_offset} will be
-decreased. See \sref{s:patch.coords} for formulas for the reference
+decreased. The \vn{t_offset} offsets the particle time
+See \sref{s:patch.coords} for formulas for the reference
 orbit transformation with a \vn{patch}. 
 
 Normally, for computing the change in the reference orbit, the offsets
 are applied before the pitches and tilts. If reverse is desired, the
 \vn{translate_after} logical can be set to True.
-
-If the \vn{patch_end} logical is set to True, the \vn{patch} element
-will change its behavior. In this case, the setting of the offsets,
-pitches and tilt will be ignored, and the global position of the
-reference coordinates at the exit end of the \vn{patch} will be fixed
-by the setting of \vn{x_position}, \vn{y_position}, \vn{z_position},
-\vn{theta_position}, \vn{phi_position} and \vn{psi_position}. Here,
-the transfer map through the \vn{patch} will be the unit map. That is,
-the phase space coordinates of a particle will not change when
-tracking through such an element.
-
-The \vn{l} length attribute is used to set the longitudinal $s$
-distance between the previous and next elements and a program can, for
-example, use \vn{l} to compute the time it takes to go through the
-element. Otherwise, the value of \vn{l} does not affect tracking or
-transfer matrix calculations.
 
 Example:
 \begin{example}
@@ -1861,20 +1883,34 @@ Attributes specific to an \vn{rfcavity} are:
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \mad. The energy kick felt by a particle is 
 \begin{example}
-  dE = -e_charge * voltage * sin(twopi * (phi(z) - phi_ref))
+  dE = -e_charge * voltage * sin(twopi * (phi_particle - phi_ref))
 \end{example}
 \index{multipass}
 where
 \begin{example}
-  phi(z) = -z * rf_frequency / velocity
-  phi_ref = phi0 + dphi0
+  phi_ref = phi0 + dphi0 + dphi0_ref
 \end{example}
-Where z is the particles' $z$ phase space coordinate (\sref{s:phase.space}).
-See \sref{s:rf.time} for a discussion on timing issues.
+and
+and \vn{phi_particle} is
+\begin{example}
+  phi_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
+               =  t_particle * rf_frequency    ! With absolute time tracking
+\end{example}
+With \vn{relative time tracking}, the phase, \vn{phi_particle}, of the
+particle with respect to the cavity's internal clock is proportional
+to \vn{z} -- the particles' phase space coordinate
+(\sref{s:phase.space}). With \vn{absolute time tracking},
+\vn{phi_particle} is proportional to the absolute time the particle
+reaches the cavity.
+
+
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
 charge on an electron (Table~\ref{t:constants}). Notice that the
 energy kick is independent of the sign of the charge of the particle
+
+\vn{phi0_ref} is a phase calculated by \bmad's RF auto-phase module
+(\sref{s:rf.auto}).
 
 If \vn{harmon} is non--zero then \vn{rf_frequency} is a dependent
 attribute calculated by

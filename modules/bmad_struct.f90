@@ -489,9 +489,9 @@ integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
 integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
-integer, parameter :: e_gun$ = 47, em_field$ = 48
+integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_position$ = 49
 
-integer, parameter :: n_key = 48
+integer, parameter :: n_key = 49
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
@@ -507,7 +507,8 @@ character(40), parameter :: key_name(n_key) = [ &
     'HKICKER          ', 'VKICKER          ', 'RCOLLIMATOR      ', 'ECOLLIMATOR      ', &
     'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
-    'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ']
+    'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
+    'FLOOR_POSITION   ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -556,7 +557,7 @@ integer, parameter :: gradient_err$=7, critical_angle$ = 7
 integer, parameter :: graze_angle_out$ = 7, ix_branch_to$=7
 integer, parameter :: rho$=8, delta_e$=8, graze_angle_err$ = 8
 integer, parameter :: charge$=8, gap$=8, x_gain_calib$=8
-integer, parameter :: field_scale$ = 9, d1_thickness$ = 9
+integer, parameter :: d1_thickness$ = 9
 integer, parameter :: ks$=9, l_chord$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
 integer, parameter :: polarity$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
 integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10
@@ -572,14 +573,15 @@ integer, parameter :: hgapx$=16, dphi0_ref$ = 16, bend_tilt$=16, fh_im$=16, f0_i
 integer, parameter :: dphi0_max$=17, h1$=17, x_quad$=17, ref_polarization$=17
 integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
 integer, parameter :: b_param$ = 19, z_patch$=19
-integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 21
+integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 20
+integer, parameter :: field_scale$ = 21
 integer, parameter :: roll$=22, n_cell$=22
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
 integer, parameter :: x_offset$ = 25
 integer, parameter :: y_offset$ = 26 
 integer, parameter :: s_offset$ = 27, z_offset$ = 27 ! Assumed unique. Do not overload further.
-integer, parameter :: hkick$ = 28, g_trans$=28
+integer, parameter :: hkick$ = 28, g_trans$=28, t_offset$ = 28
 integer, parameter :: vkick$ = 29, c2_curve$ = 29
 integer, parameter :: BL_hkick$ = 30, c3_curve$ = 30
 integer, parameter :: BL_vkick$ = 31, c4_curve$ = 31
@@ -588,7 +590,7 @@ integer, parameter :: B_field$ = 33, E_field$ = 33, coupler_phase$ = 33, c3_curv
 integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34, c4_curve_tot$ = 34
 integer, parameter :: coupler_strength$ = 35, d_source$ = 35
 integer, parameter :: B1_gradient$ = 35, E1_gradient$ = 35
-integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36, patch_end$ = 36, d_detec$ = 36
+integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36, d_detec$ = 36
 integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, translate_after$ = 37, kh_x_norm$ = 37 
 integer, parameter :: Bs_field$ = 38, e_tot_offset$ = 38, kh_z_norm$ = 38
 integer, parameter :: delta_ref_time$ = 39 ! Assumed unique Do not overload.
@@ -647,20 +649,21 @@ integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90, ref_patch$ = 90
 integer, parameter :: ref_orbit$ = 91, term$ = 91, use_ptc_layout$ = 91
 integer, parameter :: x_position$ = 92, s_spline$ = 92
 integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
-integer, parameter :: descrip$ = 94, z_position$ = 94
+integer, parameter :: z_position$ = 94
 integer, parameter :: is_on$ = 95, theta_position$ = 95
 integer, parameter :: field_calc$ = 96, phi_position$ = 96
-integer, parameter :: type$ = 97, psi_position$ = 97
+integer, parameter :: psi_position$ = 97
 integer, parameter :: aperture_at$ = 98, beta_a$ = 98
 integer, parameter :: ran_seed$ = 99, beta_b$ = 99
 
 integer, parameter :: to$ = 100
 integer, parameter :: field_master$ = 101
-integer, parameter :: star_aperture$ = 102
+integer, parameter :: descrip$ = 102
 integer, parameter :: scale_multipoles$ = 103
 integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall$
 integer, parameter :: field$ = 105
 integer, parameter :: phi_b$ = 106, crystal_type$ = 106
+integer, parameter :: type$ = 107
 
 ! superimpose$ through create_em_field_slave$ assumed unique (or need to modify bmad_parser_mod.f90).
 
@@ -684,7 +687,7 @@ integer, parameter :: b20$ = 170, t20$ = 170
 integer, parameter :: n_attrib_special_maxx = t20$
 
 character(40), parameter :: null_name$ = '!NULL' 
-character(40), parameter :: reserved_name$ = '!RESERVED' 
+character(40), parameter :: reserved_slot$ = '!RESERVED' 
 character(40), parameter :: blank_name$ = ' '
 
 ! lattice logical names
