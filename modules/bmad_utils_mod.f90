@@ -15,6 +15,37 @@ use make_mat6_mod
 use basic_attribute_mod
 
 private pointer_to_ele1, pointer_to_ele2
+private pointer_to_branch_given_name, pointer_to_branch_given_ele
+
+!+
+! Function pointer_to_branch
+!
+! Routine to return a pointer to a lattice branch.
+!
+! This routine is an overloaded name for:
+!   pointer_to_branch_given_ele (ele) result (branch_ptr)
+!   pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
+!
+! Note: Result is ambiguous if ele argument is associated with multiple branches 
+! which can happen, for example, with overlay lord elements.
+!
+! Modules Needed:
+!   use bmad_utils_mod
+!
+! Input:
+!   ele         -- Ele_struct: Element contained in the branch.
+!   branch_name -- Character(*): May be a branch name or a branch index.
+!   lat         -- Lat_struct: Lattice to search.
+!
+! Output:
+!   branch_ptr  -- branch_struct, pointer: Pointer to the branch.
+!                   Nullified if there is no associated branch.
+!-
+
+interface pointer_to_branch
+  module procedure pointer_to_branch_given_ele
+  module procedure pointer_to_branch_given_name
+end interface
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -2847,9 +2878,70 @@ end subroutine set_lords_status_stale
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_branch (ele) result (branch_ptr)
+! Function pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
+!
+! Function to point to the named lattice branch.
+! This routine is overloaded by the routine: pointer_to_branch.
+! See pointer_to_branch for more details.
+! 
+! Modules Needed:
+!   use bmad_utils_mod
+!
+! Input:
+!   branch_name -- Character(*): May be a branch name or a branch index.
+!   lat         -- Lat_struct: Lattice to search.
+!
+! Output:
+!   branch_ptr  -- branch_struct, pointer: Pointer to the nameed branch.
+!                   Nullified if there is no such branch.
+!-
+
+function pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
+
+implicit none
+
+type (branch_struct), pointer :: branch_ptr
+type (lat_struct), target :: lat
+
+integer i, ib, ios
+character(*) branch_name
+character(32), parameter :: r_name = 'pointer_to_branch_given_name'
+
+! Is index.
+
+if (is_integer(trim(branch_name))) then
+  read (branch_name, *, iostat = ios) ib
+  if (ib < 0 .or. ib > ubound(lat%branch, 1)) then
+    call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // branch_name)
+    return
+  endif
+  branch_ptr => lat%branch(ib)
+
+! Is name.
+
+else
+  do i = lbound(lat%branch, 1), ubound(lat%branch, 1)
+    if (lat%branch(i)%name == branch_name) then
+      branch_ptr => lat%branch(ib)
+      return
+    endif
+  enddo
+  call out_io (s_error$, r_name, 'BRANCH NAME NOT FOUND: ' // branch_name)
+  return
+endif
+
+end function pointer_to_branch_given_name
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_branch_given_ele (ele) result (branch_ptr)
 !
 ! Function to point to the lattice branch associated with an element.
+! This routine is overloaded by the routine: pointer_to_branch.
+! See pointer_to_branch for more details.
+!
 ! Note: Result is ambiguous if the element is associated with multiple branches which
 ! can happen, for example, with overlay lord elements.
 !
@@ -2864,7 +2956,7 @@ end subroutine set_lords_status_stale
 !                   Nullified if the element is not associated with a lattice.
 !-
 
-recursive function pointer_to_branch (ele) result (branch_ptr)
+recursive function pointer_to_branch_given_ele (ele) result (branch_ptr)
 
 implicit none
 
@@ -2887,9 +2979,9 @@ endif
 
 ! If a lord then look to the first slave for the associated branch
 
-branch_ptr => pointer_to_branch(pointer_to_slave(ele, 1))
+branch_ptr => pointer_to_branch_given_ele(pointer_to_slave(ele, 1))
 
-end function pointer_to_branch
+end function pointer_to_branch_given_ele
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

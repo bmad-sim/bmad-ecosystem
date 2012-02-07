@@ -407,9 +407,9 @@ case (lcavity$)
   end%vec(5) = end%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
 
 !-----------------------------------------------
-! marker
+! marker, etc.
 
-case (marker$, branch$, photon_branch$)
+case (marker$, branch$, photon_branch$, floor_position$)
 
   return
 
@@ -512,11 +512,8 @@ case (octupole$)
 
 !-----------------------------------------------
 ! patch
-! If patch_end is set then do nothing
 
 case (patch$)
-
-  if (ele%value(patch_end$) /= 0) return
 
   rel_pc = 1 + end%vec(6)
 
@@ -528,7 +525,7 @@ case (patch$)
 
   end%vec(1) = end%vec(1) - ele%value(x_offset$)
   end%vec(3) = end%vec(3) - ele%value(y_offset$)
-  end%vec(5) = end%vec(5) - ele%value(z_offset$)
+  end%vec(5) = end%vec(5) - ele%value(z_offset$) + ele%value(t_offset$) * end%beta * c_light
   end%vec(6) = (end%vec(6) * ele%value(p0c_start$) + &
                                       (ele%value(p0c_start$) - ele%value(p0c$))) / ele%value(p0c$) 
 

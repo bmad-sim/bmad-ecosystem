@@ -139,7 +139,7 @@ end subroutine re_allocate_vertex_array
 !                    Default is True.
 !
 ! Output:
-!   criss(:) -- Wall3d_section_struct, pointer: Associated array.
+!   section(:) -- Wall3d_section_struct, pointer: Associated array.
 !-
 
 subroutine re_associate_section_array (section, n, exact)
@@ -155,7 +155,11 @@ logical, optional :: exact
 
 !
 
-if (associated(section)) then
+if (n == 0) then
+  if (.not. associated(section)) return
+  deallocate(section)
+
+elseif (associated(section)) then
   n_old = size(section)
   if (n == n_old) return
   if (.not. logic_option(.true., exact) .and. n < n_old) return
@@ -164,6 +168,7 @@ if (associated(section)) then
   allocate (section(n))
   section(1:n_save) = temp_section
   deallocate (temp_section)
+
 else
   allocate (section(n))
 endif

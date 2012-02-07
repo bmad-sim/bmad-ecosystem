@@ -28,7 +28,8 @@ contains
 !   key     = Optional key name ("quadrupole", "sbend", etc.)
 !   branch  = Name or index of branch. May contain the wild cards "*" and "%".
 !   ele_id  = Name or index of element. May contain the wild cards "*" and "%".
-!
+!               If a name and no branch is given, all branches are searched.
+!               If an index and no branch is given, branch 0 is assumed.
 !
 ! An element range is of the form:
 !   {key::}ele1:ele2{:step}
@@ -229,6 +230,7 @@ subroutine lat_ele1_locator (name, lat, eles, n_loc, err)
 implicit none
 
 type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 
 character(*) name
@@ -264,25 +266,9 @@ ix_branch = -1
 
 ixp = index(name, '>>')
 if (ixp > 0) then
-  if (is_integer(name(1:ixp-1))) then
-    read (name(1:ixp-1), *, iostat = ios) ix_branch
-    if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
-      call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // name)
-      return
-    endif
-  else
-    ix_branch = -1
-    do i = lbound(lat%branch, 1), ubound(lat%branch, 1)
-      if (lat%branch(i)%name == name(1:ixp-1)) then
-        ix_branch = i
-        exit
-      endif
-    enddo
-    if (ix_branch == -1) then
-      call out_io (s_error$, r_name, 'BRANCH NAME NOT FOUND: ' // name)
-      return
-    endif
-  endif
+  branch => pointer_to_branch (name(1:ixp-1), lat)
+  if (.not. associated(branch)) return
+  ix_branch = branch%ix_branch
   name = name(ixp+2:)
 endif
 

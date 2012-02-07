@@ -308,9 +308,9 @@ case (lcavity$)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
-! Marker, branch, photon_branch
+! Marker, branch, photon_branch, etc.
 
-case (marker$, branch$, photon_branch$) 
+case (marker$, branch$, photon_branch$, floor_position$) 
   return
 
 !--------------------------------------------------------
@@ -394,11 +394,8 @@ case (octupole$)
 
 !--------------------------------------------------------
 ! Patch
-! If patch_end is set then the xfer map is just the unit matrix
 
 case (patch$) 
-
-  if (ele%value(patch_end$) /= 0) return
 
   mat6(2,6) = -ele%value(x_pitch_tot$)
   mat6(4,6) = -ele%value(y_pitch_tot$)

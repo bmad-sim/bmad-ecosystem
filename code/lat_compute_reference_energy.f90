@@ -367,7 +367,7 @@ case (patch$)
     ele%value(p0c$) = p0c_start
   endif
 
-  ele%ref_time = ref_time_start
+  ele%ref_time = ref_time_start + ele%value(t_offset$)
 
 case default
   if (ele%key == em_field$) then

@@ -164,7 +164,7 @@ else
   do i = 1, n_attrib_maxx
     a_name = attribute_name(ele, i)
     if (a_name == null_name$) cycle
-    if (a_name == reserved_name$) cycle
+    if (a_name == reserved_slot$) cycle
     ix_tot = corresponding_tot_attribute_index (ele, i)
     if (ix_tot > 0) then
       if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle
