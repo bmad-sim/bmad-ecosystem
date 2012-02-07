@@ -21,7 +21,7 @@ use definition, only: genfield, fibre
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 107
+integer, parameter :: bmad_inc_version$ = 108
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -396,6 +396,7 @@ type lat_param_struct
   logical :: aperture_limit_on = .true.     ! use apertures in tracking?
   type (bookkeeper_status_struct) status    ! Overall status for the branch.
   integer :: ix_lost = not_lost$            ! Index of element particle was lost at.
+  integer :: end_lost_at = 0                ! entrance_end$ or exit_end$
   integer :: plane_lost_at = 0              ! x_plane$, y_plane$, z_plane$ (reversed direction).
   logical :: lost = .false.                 ! Particle alive and moving forward.
 end type
@@ -464,7 +465,8 @@ type lat_struct
   integer input_taylor_order              ! As set in the input file
   integer, allocatable :: ic(:)           ! Index to %control(:)
   logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
-  logical rf_auto_scale_phase_and_amp     ! See rf_auto_scale_phase_and_amp routine.
+  logical rf_auto_scale_phase             ! See rf_auto_scale_phase_and_amp routine.
+  logical rf_auto_scale_amp               ! See rf_auto_scale_phase_and_amp routine.
   logical use_ptc_layout                  ! Use ptc layout for lattice
 end type
 
@@ -639,9 +641,9 @@ integer, parameter :: mat6_calc_method$ = 81, cmat_22$ = 81
 integer, parameter :: tracking_method$  = 82, s_long$ = 82
 integer, parameter :: ref_time$ = 83
 integer, parameter :: spin_tracking_method$ = 84
-integer, parameter :: aperture$ = 85
+integer, parameter :: aperture$ = 85, rf_auto_scale_amp$ = 85
 integer, parameter :: x_limit$ = 86, absolute_time_tracking$ = 86
-integer, parameter :: y_limit$ = 87, rf_auto_scale_phase_and_amp$ = 87
+integer, parameter :: y_limit$ = 87, rf_auto_scale_phase$ = 87
 integer, parameter :: offset_moves_aperture$ = 88, root_branch_name$ = 88
 integer, parameter :: aperture_limit_on$ = 89
 
@@ -933,10 +935,11 @@ type bmad_common_struct
   logical :: radiation_damping_on = .false.        ! Damping toggle.
   logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set ele%map_with_offsets = F?
-  logical :: use_ptc_layout_default = .false.             ! Default for lat%use_ptc_layout
-  logical :: absolute_time_tracking_default = .false.     ! Default for lat%absolute_time_tracking
-  logical :: rf_auto_scale_phase_and_amp_default = .true. ! Default for lat%rf_auto_scale_phase_and_amp
-  logical :: be_thread_safe = .false.                     ! Avoid thread unsafe practices?
+  logical :: use_ptc_layout_default = .false.           ! Default for lat%use_ptc_layout
+  logical :: absolute_time_tracking_default = .false.   ! Default for lat%absolute_time_tracking
+  logical :: rf_auto_scale_phase_default = .true.       ! Default for lat%rf_auto_scale_phase
+  logical :: rf_auto_scale_amp_default = .true.         ! Default for lat%rf_auto_scale_amp
+  logical :: be_thread_safe = .false.                   ! Avoid thread unsafe practices?
 end type
   
 type (bmad_common_struct), save :: bmad_com

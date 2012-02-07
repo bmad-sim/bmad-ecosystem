@@ -32,9 +32,9 @@
 !   param      -- lat_param_struct: Structure holding the info if the particle is lost.
 !     %lost          -- Set True If the particle cannot make it through an element.
 !                         Set False otherwise.
+!     %end_lost_at   -- entrance_end$ or exit_end$.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
-!     %particle_at   -- entrance_end$ or exit_end$.
 !   orbit_end  -- Coord_struct, optional: End phase space coordinates. 
 !             If present then the orbit_start argument must also be present.
 !   ele_end   -- Ele_struct, optional: Holds the ending Twiss parameters at l_end.

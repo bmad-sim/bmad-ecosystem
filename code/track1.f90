@@ -19,6 +19,7 @@
 !   param
 !     %lost          -- Set True If the particle cannot make it through an element.
 !                         Set False otherwise.
+!     %end_lost_at   -- entrance_end$ or exit_end$.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
 !   track     -- track_struct, optional: Structure holding the track information if the 
@@ -93,6 +94,7 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
                               call check_aperture_limit (start2_orb, ele, entrance_end$, param)
 if (start2_orb%status == dead$) then
+  param%end_lost_at = entrance_end$
   end_orb = start2_orb
   if (present(err_flag)) err_flag = .false.
   return
@@ -199,6 +201,7 @@ if (bmad_com%spin_tracking_on) call track1_spin (start2_orb, ele, param, end_orb
 if (.not. param%lost) then
   if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) then
     call check_aperture_limit (end_orb, ele, exit_end$, param)
+    if (param%lost) param%end_lost_at = exit_end$
   endif
 endif
 
@@ -208,6 +211,7 @@ if (end_orb%p0c < 0 .and. end_orb%status /= dead$) then
                   call check_aperture_limit (start2_orb, ele, entrance_end$, param)
   if (param%lost) then
     end_orb%status = dead$
+    param%end_lost_at = entrance_end$
   endif
   param%lost = .true.
 endif

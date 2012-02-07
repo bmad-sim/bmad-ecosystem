@@ -947,7 +947,7 @@ end subroutine
 
 subroutine lat_param_to_f2 (f_lat_param, n_part, total_length, &
        growth_rate, m1, m2, particle, lat_type, ixx, stable, ap_limit_on, &
-       book_stat, ix_lost, plane_lost_at, lost)
+       book_stat, ix_lost, end_lost_at, plane_lost_at, lost)
 
 use fortran_and_cpp
 use bmad_struct
@@ -959,13 +959,13 @@ type (lat_param_struct) f_lat_param
 type (bookkeeper_status_struct) book_stat
 real(rp) n_part, total_length, growth_rate
 real(rp) m1(36), m2(36)
-integer particle, ix_lost, particle_at, lat_type, ixx, stable, &
-        ap_limit_on, lost, plane_lost_at
+integer particle, ix_lost, lat_type, ixx, stable, &
+        ap_limit_on, lost, end_lost_at, plane_lost_at
 
 f_lat_param = lat_param_struct(n_part, total_length, growth_rate, &
       arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, &
       lat_type, ixx, f_logic(stable), f_logic(ap_limit_on), &
-      book_stat, ix_lost, plane_lost_at, f_logic(lost))
+      book_stat, ix_lost, end_lost_at, plane_lost_at, f_logic(lost))
 
 end subroutine
 
@@ -1186,8 +1186,8 @@ call bmad_com_to_c2 (c_bmad_com, f%max_aperture_limit, f%d_orb, &
       c_logic(f%spin_tracking_on), &
       c_logic(f%radiation_damping_on), c_logic(f%radiation_fluctuations_on), &
       c_logic(f%conserve_taylor_maps), c_logic(f%use_ptc_layout_default), &
-      c_logic(f%absolute_time_tracking_default), c_logic(f%rf_auto_scale_phase_and_amp_default), &
-      c_logic(f%be_thread_safe))
+      c_logic(f%absolute_time_tracking_default), c_logic(f%rf_auto_scale_phase_default), &
+      c_logic(f%rf_auto_scale_amp_default), c_logic(f%be_thread_safe))
 
 end subroutine
 
@@ -1203,7 +1203,8 @@ end subroutine
 
 subroutine bmad_com_to_f2 (max_ap, orb, ds_step, signif, rel, abs, rel_track, &
         abs_track, taylor_ord, dflt_integ, cc, sr, lr, sym, a_book, tsc_on, csr_on, &
-        st_on, rad_d, rad_f, conserve_t, use_ptc_layout, absolute_time, rf_auto_scale, be_thread_safe)
+        st_on, rad_d, rad_f, conserve_t, use_ptc_layout, absolute_time, &
+        rf_auto_phase, rf_auto_amp, be_thread_safe)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1214,14 +1215,14 @@ implicit none
 real(rp) orb(6), max_ap, rel, abs, rel_track, abs_track, ds_step, signif
 integer taylor_ord, dflt_integ, cc, sr, lr, sym
 integer st_on, rad_d, rad_f, a_book, tsc_on, csr_on
-integer conserve_t, rf_auto_scale, use_ptc_layout, absolute_time, be_thread_safe 
+integer conserve_t, rf_auto_phase, rf_auto_amp, use_ptc_layout, absolute_time, be_thread_safe 
 
 bmad_com = bmad_common_struct(max_ap, orb, ds_step, signif, &
     rel, abs, rel_track, abs_track, taylor_ord, dflt_integ, &
     f_logic(cc), f_logic(sr), f_logic(lr), f_logic(sym), &
     f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
     f_logic(rad_d), f_logic(rad_f), f_logic(conserve_t), f_logic(use_ptc_layout),  &
-    f_logic(absolute_time), f_logic(rf_auto_scale), f_logic(be_thread_safe))
+    f_logic(absolute_time), f_logic(rf_auto_phase), f_logic(rf_auto_amp), f_logic(be_thread_safe))
 
 end subroutine
 

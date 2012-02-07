@@ -1015,8 +1015,11 @@ case ('ABSOLUTE_TIME_TRACKING')
 case ('USE_PTC_LAYOUT')
   call get_logical (attrib_word, lat%use_ptc_layout, err_flag)
 
-case ('RF_AUTO_SCALE_PHASE_AND_AMP')
-  call get_logical (attrib_word, lat%rf_auto_scale_phase_and_amp, err_flag)
+case ('RF_AUTO_SCALE_PHASE')
+  call get_logical (attrib_word, lat%rf_auto_scale_phase, err_flag)
+
+case ('RF_AUTO_SCALE_AMP')
+  call get_logical (attrib_word, lat%rf_auto_scale_amp, err_flag)
 
 case ('CSR_CALC_ON')
   call get_logical (attrib_word, ele%csr_calc_on, err_flag)

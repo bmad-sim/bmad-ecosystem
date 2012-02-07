@@ -794,9 +794,10 @@ lat%n_control_max = 0
 lat%n_ic_max = 0
 lat%input_taylor_order = 0
 lat%version = -1
-lat%absolute_time_tracking      = bmad_com%absolute_time_tracking_default
-lat%rf_auto_scale_phase_and_amp = bmad_com%rf_auto_scale_phase_and_amp_default
-lat%use_ptc_layout              = bmad_com%use_ptc_layout_default
+lat%absolute_time_tracking   = bmad_com%absolute_time_tracking_default
+lat%rf_auto_scale_phase      = bmad_com%rf_auto_scale_phase_default
+lat%rf_auto_scale_amp        = bmad_com%rf_auto_scale_amp_default
+lat%use_ptc_layout           = bmad_com%use_ptc_layout_default
 
 call allocate_branch_array (lat, 0)
 lat%branch(0)%name = 'ROOT'
