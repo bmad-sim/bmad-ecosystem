@@ -260,12 +260,12 @@ character(32), parameter :: r_name = 'compute_ele_reference_energy'
 err_flag = .true.
 
 key = ele%key
-if (ele%key == em_field$ .and. .not. ele_has_constant_reference_energy(ele)) key = lcavity$
 
 ele%value(E_tot_start$) = E_tot_start
 ele%value(p0c_start$) = p0c_start
 
 select case (key)
+
 case (lcavity$) 
 
   ! We can only use the formula dE = voltage * cos(phase) with bmad_standard$ tracking since with other 
@@ -376,11 +376,20 @@ case default
   endif
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
-  ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
 
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
     call rf_auto_scale_phase_and_amp (ele, param, err)
     if (err) return
+  endif
+
+  if (ele%key == rfcavity$ .and. ele%tracking_method /= bmad_standard$) then
+    ele2 = ele
+    call zero_ele_offsets (ele2)
+    call zero_ele_kicks (ele2)
+    call track1 (start_orb, ele2, param, end_orb)
+    ele%ref_time = ref_time_start + end_orb%t
+  else
+    ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
   endif
 
 end select

@@ -68,19 +68,17 @@ call apply_element_edge_kick (start2_orb, ele, param, entrance_end$)
 call odeint_bmad (start2_orb, ele, param, end_orb, l_drift, ele%value(l$)-l_drift, bmad_com%rel_tol_adaptive_tracking, &
                   bmad_com%abs_tol_adaptive_tracking, del_s_step, del_s_min, .true., track)
 
-! The z value computed in odeint_bmad is off for elements where the reference energy is not constant (see
-! odeint_bmad for more details). In this case make the needed correction.
+! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
+! constant (see odeint_bmad for more details). In this case make the needed correction.
 ! dref_time is reference time for transversing the element under the assumption, used by odeint_bmad, that 
-!   the the reference velocity is constant and equal to the velocity at the final enegy.
+! the reference velocity is constant and equal to the velocity at the final enegy.
 
-if (.not. ele_has_constant_reference_energy (ele)) then
-  if (tracking_uses_hard_edge_model(ele, tracking_method$)) then
-    dref_time = l_drift / (start2_orb%beta * c_light) + (l_drift + ele%value(l_hard_edge$)) / (end_orb%beta * c_light)
-  else
-    dref_time = ele%value(l$) / (end_orb%beta * c_light)
-  endif
-  end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
+if (tracking_uses_hard_edge_model(ele, tracking_method$)) then
+  dref_time = l_drift / (start2_orb%beta * c_light) + (l_drift + ele%value(l_hard_edge$)) / (end_orb%beta * c_light)
+else
+  dref_time = ele%value(l$) / (end_orb%beta * c_light)
 endif
+end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
 
 ! Edge kick, drift, convert to lab coords.
 
