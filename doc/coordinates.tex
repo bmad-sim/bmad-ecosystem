@@ -580,30 +580,48 @@ and internally are stored in units of eV.
 Unlike other elements, the kick given a particle going through an
 \vn{lcavity}, \vn{rfcavity}, or possibly an \vn{em_field} element
 depends upon the time that the particle enters the element relative to
-some ``element clock''. \bmad has two modes for calculating this time
-called \vn{relative time tracking} and \vn{absolute time
-tracking}. 
+some ``RF clock''. \bmad has two modes for calculating this time
+called \vn{relative time tracking} and \vn{absolute time tracking}.
 
-With \vn{relative time tracking}, which in \bmad is the default, the
-element clock is determined by the reference particle.
+With \vn{relative time tracking}, which \bmad uses by default, the RF
+clock is determined by the reference particle. That is, the RF phase
+is directly proportional to the $z$ phase space coordinate
+\begin{example}
+  phi_RF = -z * rf_frequency / particle_velocity
+\end{example}
+With \vn{absolute time tracking} the RF phase is simply determined by the 
+absolute time the particle enters the element
+\begin{example}
+  phi_RF = t_particle * rf_frequency
+\end{example}
 
+There are advantages and disadvantages to using either relative or
+absolute time tracking. Absolute time tracking is more correct
+since RF cavities are in reality synced to some clock. The problem
+with absolute time tracking is that the transfer map through the
+cavity is now a function of time and cannot be written as a function
+of $z$ unless the total lattice length is a multiple of the RF
+wavelength.  Another way of saying this is that if the lattice length
+is not a multiple of the RF wavelength, the transfer map as a function
+of $z$ will vary from turn to turn. This complicates lattice analysis
+in terms of finding closed orbits, etc. [Interesting side note: Given
+a ring with two cavities with incommensurate frequencies, there is no
+closed orbit.] 
 
+With relative time tracking the transfer map problem is swept under
+the rug and, for example, the closed orbit analysis is straight
+forward. The penelty for using relative time tracking is that results
+can be unphysical. For example, the closed orbit is essentially
+independent of the RF frequency. From a different angle this can be
+viewed as a good feature since if one is only interested in, say,
+calculating the Twiss parameters, it can be an annoyance to have to
+worry that the ring one has constructed have the spacing between RF
+cavities be multiples of the RF wavelength.
 
-
-When a particle passes through an \vn{lcavity} or \vn{rfcavity}
-element, the kick that it gets is the sum of kicks due to the
-fundamental mode, HOM couplers, short-range wakes, and long-range
-wakes. For this discussion only the fundamental mode and long-range
-wakes need be considered. The fundamental mode and long-range wake
-kicks are time dependent but how this time dependence is handled 
-differently as explained below.
-
-The kick due to the fundamental mode is based on the particle's $z$
-phase space coordinate as discussed in \sref{s:lcav} and
-\sref{s:rfcav}. In a storage ring or recirculating linac a particle
+In a storage ring or recirculating linac, a particle
 goes through the same cavity multiple times. In such a situation, if
 the distance from a cavity back to itself is not a multiple of the
-fundamental mode wavelength the simulation will not be self
+fundamental mode wavelength, the simulation will not be self
 consistent. This can be seen by a simple example: In a storage ring, a
 particle simulated by \bmad traveling on the reference orbit with zero
 $z$ will never see a kick from the fundamental mode of a cavity with
@@ -613,11 +631,13 @@ kicks. The choice to have \bmad behave unphysically was made since it
 can be very confusing otherwise. For example, it is potentially very
 confusing to see non-zero closed orbits when one is not expecting it.
 
-On the other hand, the long-range wakes cannot be synchronized to the
-$z$ coordinate since, in general, their frequencies are not
+The above discussion is limited to the cavity fundamental mode.
+Long-range wake fields, on the other hand, cannot be synchronized to
+the $z$ coordinate since, in general, their frequencies are not
 commensurate with the fundamental mode frequency. For simulating the
 long-range wakes, the kick is thus, by necessity, tied to the absolute
 time. The exception is that a wake associated with the fundamental
-mode will also use $z$ to determine timing.
+mode (that is, has the same frequency as the fundamental mode) will
+always use relative time if the fundamental is using relative time and
+vice versa.
 
-%\end{document}
