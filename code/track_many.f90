@@ -42,6 +42,7 @@
 !     %lost          -- Logical: Set when a particle is lost with the 
 !                         aperture limit on.
 !     %ix_lost       -- Integer: Index of element where particle is lost.
+!     %param%end_lost_at -- Either entrance_end$ or exit_end$.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                           z_plane$ (turned around in an lcavity).
 !   orbit(0:)    -- Coord_struct: Orbit. In particular orbit(ix_end) is
@@ -141,10 +142,13 @@ do n = ix1, ix2
 
   if (branch%param%lost) then
     branch%param%ix_lost = n
-    if (orbit(n)%s == branch%ele(n)%s) then  ! Lost at exit end
+    if (branch%param%end_lost_at == exit_end$) then
       call zero_this_track (n+1, ix2)
-    else
+    elseif (branch%param%end_lost_at == entrance_end$) then
       call zero_this_track (n, ix2)
+    else
+      call out_io (s_abort$, r_name, 'INTERNAL ERROR')
+      call err_exit
     endif
     return
   endif
@@ -192,12 +196,16 @@ do n = ix1, ix2, -1
 
   if (branch%param%lost) then
     branch%param%ix_lost = n
-    if (orbit(n-1)%s == ele%s) then
+    if (branch%param%end_lost_at == exit_end$) then
+      branch%param%end_lost_at = entrance_end$
       call zero_this_track (ix2-1, n-2)
-    else
+    elseif (branch%param%end_lost_at == entrance_end$) then
+      branch%param%end_lost_at = exit_end$
       call zero_this_track (ix2-1, n-1)
+    else
+      call out_io (s_abort$, r_name, 'INTERNAL ERROR')
+      call err_exit
     endif
-    ix_last = n-1
     exit
   endif
 

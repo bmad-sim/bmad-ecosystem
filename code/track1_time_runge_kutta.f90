@@ -51,14 +51,12 @@ end module track1_time_runge_kutta_mod
 !    %s                    -- real(rp): longitudinal ref position at exit end
 !   param                  -- lat_param_struct: lattice parameters
 !    %particle             -- integer: positron$, electron$, etc.  
-!    %particle_at          -- integer: entrance_end$, between_ends$, exit_end$
 !
 ! Output:
 !   end     -- coord_struct: end position, t-based global
 !   track   -- track_struct (optional): particle path
 !   param   -- lat_param_struct: lattice parameters
 !    %particle             -- integer: positron$, electron$, etc.  
-!    %particle_at          -- integer: entrance_end$, between_ends$, exit_end$
 !    %lost                 -- logical: False only if particle leaves exit end
 !-
 

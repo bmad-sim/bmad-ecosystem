@@ -129,7 +129,7 @@ write (d_unit) &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
         lat%n_ele_track, lat%n_ele_max, lat%lord_status, &
         lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
-        lat%absolute_time_tracking, lat%rf_auto_scale_phase_and_amp, &
+        lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
         lat%use_ptc_layout, lat%pre_tracker
 
 call write_this_wall3d (lat%wall3d)

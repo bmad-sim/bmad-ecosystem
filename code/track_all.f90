@@ -24,9 +24,9 @@
 !       %lost          -- Logical: Set True when a particle cannot make it 
 !                           through an element.
 !       %ix_lost       -- Integer: Set to index of element where particle is lost.
+!       %end_lost_at   -- entrance_end$ or exit_end$.
 !       %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                           z_plane$ (turned around in an lcavity).
-!       %particle_at   -- entrance_end$ or exit_end$.
 !   orbit(0:*)  -- Coord_struct: Orbit array.
 !-
 

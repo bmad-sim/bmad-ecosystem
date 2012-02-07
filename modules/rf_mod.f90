@@ -36,13 +36,19 @@ contains
 !
 ! Note: If |dE| is too small, this routine cannot scale and will do nothing.
 !
+! Note: For an rfcavity if ele%lat%rf_auto_scale_phase = F and lat%rf_auto_scale_amp = T then
+! the first step is done above but then the phase is reset to the original phase in step 2.
+!
 ! Modules needed
 !   use rf_mod
 !
 ! Input:
+!
 !   ele   -- ele_struct: RF element. Either lcavity or rfcavity.
 !     %value(gradient$) -- Accelerating gradient to match to if an lcavity.
 !     %value(voltage$)  -- Accelerating voltage to match to if an rfcavity.
+!     %lat%rf_auto_scale_phase ! Scale phase? Default is True if ele%lat is not associated.
+!     %lat%rf_auto_scale_amp   ! Scale amp?   Default is True if ele%lat is not associated.
 !   param -- lat_param_struct: lattice parameters
 !
 ! Output:
@@ -60,28 +66,36 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct), target :: param
 
-real(rp) pz, phi, pz_max, phi0, phi_max, e_tot, scale_correct, dE_peak, dE_cut, E_tol
+real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
-real(rp) value_saved(n_attrib_maxx)
+real(rp) value_saved(n_attrib_maxx), dphi0_ref_original
 
 integer i, tracking_method_saved, num_times_lost
 
-logical step_up_seen, err_flag, has_been_lost
+logical step_up_seen, err_flag, has_been_lost, scale_phase, scale_amp, adjust_phase, adjust_amp
 
 character(28), parameter :: r_name = 'rf_auto_scale_phase_and_amp'
 
-! Check if auto scale is needed
+! Check if auto scale is needed.
+! Adjust_phase is used to determine if the phase can be adjusted when scaling the amplitude.
 
 err_flag = .false.
 
+scale_phase = .true.
+scale_amp   = .true.
 if (associated (ele%lat)) then
-  if (.not. ele%lat%rf_auto_scale_phase_and_amp) return
+  scale_phase = ele%lat%rf_auto_scale_phase
+  scale_amp   = ele%lat%rf_auto_scale_amp
+  if (.not. scale_phase .and. .not. scale_amp) return
 endif
 
-if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
+adjust_phase = (scale_phase .or. ele%key == rfcavity$)
+adjust_amp   = scale_amp
 
 ! Init.
 ! Note: dphi0_ref is set in neg_pz_calc
+
+if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
 
 nullify(field_scale)
 
@@ -98,6 +112,8 @@ case (grid$, map$, custom$)
     endif
   enddo
 end select
+
+dphi0_ref_original = dphi0_ref
 
 if (.not. associated(field_scale)) return
 
@@ -136,7 +152,6 @@ if (ele%key == lcavity$) ele%value(gradient_err$) = 0
 tracking_method_saved = ele%tracking_method
 if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
 
-phi0 = dphi0_ref
 phi_max = dphi0_ref   ! Init guess
 if (ele%key == rfcavity$) phi_max = ele%value(dphi0_max$)
 
@@ -154,16 +169,26 @@ phi_tol = 1d-5
 
 ! See if %dphi0_ref and %field_scale are already set correctly
 
-pz_plus  = -neg_pz_calc(phi_max + 2 * phi_tol)
-pz_minus = -neg_pz_calc(phi_max - 2 * phi_tol)
-pz_max = -neg_pz_calc(phi_max)
+pz_max   = -neg_pz_calc(phi_max)
 
-call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
-scale_correct = dE_peak / (e_tot - e_tot_start)
+if (adjust_phase) then
+  pz_plus  = -neg_pz_calc(phi_max + 2 * phi_tol)
+  pz_minus = -neg_pz_calc(phi_max - 2 * phi_tol)
+else
+  pz_plus  = -100
+  pz_minus = -100
+endif
+
+if (adjust_amp) then
+  call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
+  scale_correct = dE_peak / (e_tot - e_tot_start)
+else
+  scale_correct = 1
+endif
 
 if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(scale_correct - 1) < 2 * scale_tol) then
   call cleanup_this()
-  dphi0_ref = phi0
+  dphi0_ref = dphi0_ref_original
   return
 endif
 
@@ -177,68 +202,75 @@ main_loop: do
   ! Find approximately the phase for maximum acceleration.
   ! First go in +phi direction until pz decreases.
 
-  step_up_seen = .false.
-  has_been_lost = .false.
+  if (adjust_phase) then
+    has_been_lost = .false.
+    step_up_seen = .false.
 
-  do i = 1, 100
-    phi = phi_max + dphi
-    pz = -neg_pz_calc(phi)
-    if (is_lost) then  ! field too strong so reduce
-      field_scale = field_scale / 10
-      pz_max = -neg_pz_calc(phi_max)
-      step_up_seen = .false.
-      has_been_lost = .true.
-      cycle
-    endif
-    if (pz < pz_max) exit
-    pz_max = pz
-    phi_max = phi
-    step_up_seen = .true.
-  enddo
-
-  ! Can get into an infinite loop where, if the starting energy is too low,
-  ! the algorithm cannot converge. In this case bail out.
-
-  if (has_been_lost) num_times_lost = num_times_lost + 1
-  if (num_times_lost == 3) then
-    call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!', &
-                                   '[Can happen when particle energy is near E_rest_mass]')
-    err_flag = .true.
-    return
-  endif
-
-  ! If needed: Now go in -phi direction until pz decreases
-
-  pz_plus = pz
-  if (.not. step_up_seen) then
-    do
-      phi = phi_max - dphi
+    do i = 1, 100
+      phi = phi_max + dphi
       pz = -neg_pz_calc(phi)
+      if (is_lost) then  ! field too strong so reduce
+        field_scale = field_scale / 10
+        pz_max = -neg_pz_calc(phi_max)
+        step_up_seen = .false.
+        has_been_lost = .true.
+        cycle
+      endif
       if (pz < pz_max) exit
       pz_max = pz
       phi_max = phi
+      step_up_seen = .true.
     enddo
+
+    ! Can get into an infinite loop where, if the starting energy is too low,
+    ! the algorithm cannot converge. In this case bail out.
+
+    if (has_been_lost) num_times_lost = num_times_lost + 1
+    if (num_times_lost == 3) then
+      call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!', &
+                                     '[Can happen when particle energy is near E_rest_mass]')
+      err_flag = .true.
+      return
+    endif
+
+    ! If needed: Now go in -phi direction until pz decreases
+
+    pz_plus = pz
+    if (.not. step_up_seen) then
+      do
+        phi = phi_max - dphi
+        pz = -neg_pz_calc(phi)
+        if (pz < pz_max) exit
+        pz_max = pz
+        phi_max = phi
+      enddo
+    endif
+
+    pz_minus = pz
+
+    ! Quadradic interpolation to get the maximum phase.
+    ! Formula: pz = a + b*dt + c*dt^2 where dt = (phi-phi_max) / dphi
+
+    b = (pz_plus - pz_minus) / 2
+    c = pz_plus - pz_max - b
+
+    phi_max = phi_max - b * dphi / (2 * c)
+    pz_max = -neg_pz_calc(phi_max)
+
   endif
-
-  pz_minus = pz
-
-  ! Quadradic interpolation to get the maximum phase.
-  ! Formula: pz = a + b*dt + c*dt^2 where dt = (phi-phi_max) / dphi
-
-  b = (pz_plus - pz_minus) / 2
-  c = pz_plus - pz_max - b
-
-  phi_max = phi_max - b * dphi / (2 * c)
-  pz_max = -neg_pz_calc(phi_max)
 
   ! Now scale %field_scale
   ! scale_correct = dE(design) / dE (from tracking)
   ! Can overshoot so if scale_correct is too large then scale back by a factor of 10
 
-  call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
-  scale_correct = dE_peak / (e_tot - e_tot_start)
-  if (scale_correct > 1000) scale_correct = max(1000.0_rp, scale_correct / 10)
-  field_scale = field_scale * scale_correct
+  if (adjust_amp) then
+    call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
+    scale_correct = dE_peak / (e_tot - e_tot_start)
+    if (scale_correct > 1000) scale_correct = max(1000.0_rp, scale_correct / 10)
+    field_scale = field_scale * scale_correct
+  else
+    scale_correct = 1
+  endif
 
   if (abs(scale_correct - 1) < scale_tol .and. abs(phi_max-phi_max_old) < phi_tol) exit
   phi_max_old = phi_max
@@ -246,7 +278,9 @@ main_loop: do
   dphi = 0.05
   if (abs(scale_correct - 1) < 0.1) dphi = max(phi_tol, 0.1*sqrt(2*abs(scale_correct - 1))/twopi)
 
-  pz_max = -neg_pz_calc(phi_max)
+  if (adjust_phase) then
+    pz_max = -neg_pz_calc(phi_max)
+  endif
 
 enddo main_loop
 
@@ -255,14 +289,18 @@ enddo main_loop
 
 if (ele%key == rfcavity$) then
   ele%value(dphi0_max$) = dphi0_ref  ! Save for use with OPAL
-  dphi = 0.1
-  do
-    phi = phi_max + dphi
-    pz = -neg_pz_calc(phi)
-    if (pz < 0) exit
-    phi_max = phi
-  enddo
-  dphi0_ref = modulo2 (zbrent(neg_pz_calc, phi_max, phi_max+dphi, 1d-9), 0.5_rp)
+  if (scale_phase) then
+    dphi = 0.1
+    do
+      phi = phi_max + dphi
+      pz = -neg_pz_calc(phi)
+      if (pz < 0) exit
+      phi_max = phi
+    enddo
+    dphi0_ref = modulo2 (zbrent(neg_pz_calc, phi_max, phi_max+dphi, 1d-9), 0.5_rp)
+  else
+    dphi0_ref = dphi0_ref_original
+  endif
 endif
 
 ! Cleanup

@@ -757,7 +757,8 @@ lat%a          = in_lat%a
 lat%b          = in_lat%b
 lat%z          = in_lat%z
 lat%absolute_time_tracking      = in_lat%absolute_time_tracking
-lat%rf_auto_scale_phase_and_amp = in_lat%rf_auto_scale_phase_and_amp
+lat%rf_auto_scale_phase         = in_lat%rf_auto_scale_phase
+lat%rf_auto_scale_amp           = in_lat%rf_auto_scale_amp
 lat%use_ptc_layout              = in_lat%use_ptc_layout
 
 call mat_make_unit (lat%ele(0)%mat6)
