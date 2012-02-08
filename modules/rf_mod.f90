@@ -288,7 +288,7 @@ enddo main_loop
 ! about 90deg away from max acceleration.
 
 if (ele%key == rfcavity$) then
-  ele%value(dphi0_max$) = dphi0_ref  ! Save for use with OPAL
+  value_saved(dphi0_max$) = dphi0_ref  ! Save for use with OPAL
   if (scale_phase) then
     dphi = 0.1
     phi_max = phi_max - dphi
@@ -315,8 +315,10 @@ subroutine cleanup_this ()
 
 select case (ele%field_calc)
 case (bmad_standard$) 
-  value_saved(field_scale$) = field_scale 
-  value_saved(dphi0_ref$) = dphi0_ref
+  if (associated(field_scale, ele%value(field_scale$))) then
+    value_saved(field_scale$) = field_scale 
+    value_saved(dphi0_ref$) = dphi0_ref
+  endif
 end select
 
 ele%value = value_saved
