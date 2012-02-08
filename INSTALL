@@ -1,5 +1,5 @@
 
-                                                                 Edited: 12-Nov-2010
+                                                          Edited: 8-Feb-2012
 
 *****************************************************************************
 INTRODUCTION
@@ -27,7 +27,6 @@ OBTAINING HELP
 
 General questions, installation problems, code building problems contact:
   CESR Unix Librarian (cesrulib@mail.lepp.cornell.edu)
-  Mark Palmer (map36@cornell.edu)
   David Sagan (dcs16@cornell.edu)
 
 Questions on the BMAD code contact:
@@ -39,14 +38,14 @@ Questions on the BMAD code contact:
 COMPILER, MAKE AND MISCELLANEOUS SUPPORT PACKAGE ISSUES
 --------------------------------------------------------
 
-At present, the BMAD distribution, which includes Fortran 77/90, C, and C++ sources,
-is known to build with the following compiler combinations:
+At present, the BMAD distribution, which includes Fortran 77/90, C, and C++ 
+sources, is known to build with the following compiler combinations:
 
 
 LINUX (i686)
   gcc/gfortran Version 4.4.4 
   gcc (GCC) 3.2.3 (Red Hat Linux 3.2.3-59)
-- or -
+ - or -
   Intel-ifort Fortran 95 Compiler (ifort v9.1)
   gcc (GCC) 3.2.3 (Red Hat Linux 3.2.3-59)
 
@@ -79,17 +78,19 @@ Numerical Recipes license for any computer on which they build the BMAD
 distribution.  Numerical Recipes licensing information (for individual
 computers or sites) can be obtained at www.nr.com.
 
-This distribution includes the FPP/PTC (Polymorphic Tracking Code) package from 
-Etienne Forest there are no licensing issues with this software.
+This distribution includes the FPP/PTC (Polymorphic Tracking Code) package
+from Etienne Forest there are no licensing issues with this software.
 
-This distribution includes the PGPLOT (pretty good plotting) package from Tim Pearson. 
+This distribution includes the PGPLOT (pretty good plotting) package from
+Tim Pearson. 
 The web page for this package is:
   http://www.astro.caltech.edu/~tjp/pgplot/
 From the PGPLOT web page:
-  PGPLOT is not public-domain software. However, it is freely available for non-commercial use. 
-  The source code and documentation are copyrighted by California Institute of Technology, 
-  and may not be redistributed or placed on public Web servers without permission. 
-  The software is provided ``as is'' with no warranty. 
+  PGPLOT is not public-domain software. However, it is freely available for
+  non-commercial use. The source code and documentation are copyrighted by
+  California Institute of Technology, and may not be redistributed or placed
+  on public Web servers without permission. The software is provided 
+  ``as is'' with no warranty. 
 
 
 *****************************************************************************
@@ -113,63 +114,11 @@ Utilities:
 
 Libraries:
 
-The BMAD distribution depends on one external library at this time.  For proper
-operation you will need to have the PLPLOT library installed on your system as
-as shared object library (.so file) and will need to have the path containing 
-that library present in the contents of your LD_LIBRARY_PATH environment 
-variable before the build begins.
-
-
-*****************************************************************************
-Initial Setup for Distribution Users within LEPP
-(From Bmad documentation)
--------------------------------------------------
-
-The following instructions are for using the "devel" release. 
-To use the "current" release substitute the word "current" for "devel".
-Recommendation: use the "devel" release.
-
- 1. Go to your home directory. If you are using tcsh put the following lines
-    in your .cshrc file:
-
-        setenv CESRLIB devel
-        source /home/cesrulib/bin/accdef
-        source /home/cesrulib/bin/cesr_ctl_def
-        source /nfs/opt/ifc/bin/ifortvars.csh
-
-     If you are using bash, put in your .bashrc file:
-
-        export CESRLIB=devel
-        . /home/cesrulib/bin/accdefs
-        . /home/cesrulib/bin/cesr_ctl_defs
-        . /nfs/opt/ifc/bin/ifortvars.sh
-
- 2. Additionally, the following stuff should be put in your .cshrc file
-
-        limit core 0
-        limit stack unlimited
-        limit datasize unlimited
-
-      or .bashrc file:
-
-        ulimit -c 0
-        ulimit -s unlimited
-        ulimit -d unlimited
-
-  The first line prevents core dump files from being generated (takes up
-  space and no one ever looks at them anyway). The next two lines helps
-  prevent programs from bombing due to software limits on internal stack
-  and heap sizes.
-
-   3. Run your initialization file. For tcsh:
-
-        source ~/.cshrc 
-
-      For bash:
-
-        . ~/.bashrc 
-
-
+The BMAD distribution depends on one external library at this time.  For 
+proper operation you will need to have the PLPLOT library installed on your
+system as as shared object library (.so file) and will need to have the path
+containing that library present in the contents of your LD_LIBRARY_PATH
+environment variable before the build begins.
 
 
 *****************************************************************************
@@ -203,8 +152,8 @@ be downloaded and installed separately.
 PLPLOT can be obtained at: 
   http://plplot.sourceforge.net/
 
-Note: PLPLOT fortran libraries need to be built along with the other PLPLOT libraries.
-The fortran libraries are not part of the default build.
+Note: PLPLOT fortran libraries need to be built along with the other PLPLOT
+libraries. The fortran libraries are not part of the default build.
 To build the fortran libraries on the Mac using MacPorts use the command:
   sudo port install plplot +gcc44
 
@@ -435,6 +384,6 @@ HANDLING DIFFERENT FORTRAN COMPILERS
    to appropriate value (see table above).
 
 
-3) After changing compiler do not forget to recompile the entire bmad distribution. 
+3) After changing compiler do not forget to recompile the entire distribution.
 
 
