@@ -291,13 +291,14 @@ if (ele%key == rfcavity$) then
   ele%value(dphi0_max$) = dphi0_ref  ! Save for use with OPAL
   if (scale_phase) then
     dphi = 0.1
+    phi_max = phi_max - dphi
     do
-      phi = phi_max + dphi
+      phi = phi_max - dphi
       pz = -neg_pz_calc(phi)
       if (pz < 0) exit
       phi_max = phi
     enddo
-    dphi0_ref = modulo2 (zbrent(neg_pz_calc, phi_max, phi_max+dphi, 1d-9), 0.5_rp)
+    dphi0_ref = modulo2 (zbrent(neg_pz_calc, phi_max-dphi, phi_max, 1d-9), 0.5_rp)
   else
     dphi0_ref = dphi0_ref_original
   endif

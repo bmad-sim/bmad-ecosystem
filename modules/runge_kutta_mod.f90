@@ -418,7 +418,7 @@ real(rp), intent(in) :: s_rel, t_rel
 real(rp), intent(out) :: dr_ds(7)
 real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), force(3)
-real(rp) e_tot, dt_ds_ref, p0
+real(rp) e_tot, dt_ds_ref, p0, beta0
 
 logical :: local_ref_frame
 
@@ -426,7 +426,8 @@ character(24), parameter :: r_name = 'kick_vector_calc'
 
 !
 
-dt_ds_ref = ele%value(p0c$) / (ele%value(e_tot$) * c_light)
+beta0 = ele%value(p0c$) / ele%value(e_tot$) 
+dt_ds_ref = 1 / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
 e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 
