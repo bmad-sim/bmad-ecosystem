@@ -10,13 +10,11 @@ the lattice as a whole and not simply associated with a single element.
 \index{parameter statement|hyperbf}
 
 
-\index{lattice}
-\index{lattice_type}
-\index{taylor_order}
-\index{e_tot}
-\index{p0c}
-\index{ran_seed}
+\index{lattice}\index{lattice_type}
+\index{taylor_order}\index{e_tot}
+\index{p0c}\index{ran_seed}
 \index{n_part}\index{no_end_marker}
+\index{rf_auto_scale_phase}\index{rf_auto_scale_amp}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
 other variables. If branching is present (\sref{s:branching}), these
 variables pertain to the \vn{root} branch. The variables that can be
@@ -32,11 +30,12 @@ set by \vn{parameter} are
   parameter[ran_seed]      = <Integer>       ! Random number generator init.
   parameter[particle]      = <particle_type> ! Eg: positron, antiproton, etc.
   parameter[no_end_marker] = <Logical>       ! Default: False.
-  parameter[aperture_limit_on] = <Logical>   ! Use aperture limits in tracking.
-  parameter[root_branch_name]  = "<name>"    ! Name of the root branch.
-  parameter[rf_auto_scale_phase_and_amp] = <Logical>  ! RF Phase and amplitude scaling.
-  parameter[absolute_time_tracking]      = <Logical>  ! Absolute time used for RF clock?
-  parameter[use_single_ptc_fiber]        = <Logical>  ! Use single ptc fiber for calculations?
+  parameter[aperture_limit_on]      = <Logical>  ! Use aperture limits in tracking.
+  parameter[root_branch_name]       = "<name>"   ! Name of the root branch.
+  parameter[rf_auto_scale_phase]    = <Logical>  ! RF automatic phase scaling.
+  parameter[rf_auto_scale_amp]      = <Logical>  ! RF automatic amplitude scaling.
+  parameter[absolute_time_tracking] = <Logical>  ! Absolute time used for RF clock?
+  parameter[use_single_ptc_fiber]   = <Logical>  ! Use single ptc fiber for calculations?
 \end{example}
 
 \noindent
@@ -69,7 +68,7 @@ Valid \vn{parameter[particle]} switches are:
 \index{patch}
 \index{p0c}
 The \vn{parameter[e_tot]} and \vn{parameter[p0c]} are the reference
-total energy and momentum at the start of the lattice.  Each element
+total energy and momentum at the start of the lattice. Each element
 in a lattice has an individual reference \vn{e_tot} and \vn{p0c} attributes
 which are dependent parameters. The reference energy and momentum will only
 change between \vn{LCavity} or \vn{Patch} elements. The starting
