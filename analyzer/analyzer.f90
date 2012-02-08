@@ -39,7 +39,7 @@ program anaylzer
   integer ke
   integer n/0/
   integer nd
-  integer plot_flag, last
+  integer plot_flag/0/, last
   integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
   integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8, rad_int$=9, sext$=10
   integer, parameter :: phase$=11, de_phase$=12
@@ -54,6 +54,7 @@ program anaylzer
   integer ix_start/1/, ix_end/1/
   integer io_stat
   integer ncross, cross(1000)
+  integer lun
 
   real*4, allocatable :: z(:), x(:), y(:), zz(:,:), xx(:,:), yy(:,:)
   real*4, allocatable :: zz_diff(:), xx_diff(:), yy_diff(:)
@@ -88,9 +89,11 @@ program anaylzer
   character*20 device_type, last_device_type/' '/
   character*40 ele_names(4)
   character*40 location
+  character*40 name_flag(10)/'orbit','beta','cbar','diff', 'denergy_dbeta', 'eta', &
+                         'denergy_dcbar', 'eta_prop', 'radiation_integrals', 'sextupoles'/
 
   logical keep_trying/.true./
-  logical write_orbit/.false./                                        
+  logical write/.false./                                        
   logical diff
   logical radiation/.false./
   logical transfer_line/.false./
@@ -150,7 +153,8 @@ program anaylzer
 
   last = 0
 
-  do while (.not. write_orbit)
+!  do while (.not. write_orbit)
+  do while (.true.)
   do while (keep_trying)
 
 10  print '(a, $)', ' ANALYZER:  element change or GO> '
@@ -518,6 +522,7 @@ program anaylzer
          print '(a7,e12.4)',' i3  =',mode%synch_int(3)
          print '(a7,e12.4)',' i4  =',mode%a%synch_int(4)
          print '(a7,e12.4)',' i5a =',mode%a%synch_int(5)
+         print '(a7,e12.4)',' i6b =',mode%b%synch_int(6)
        endif
       endif
 
@@ -546,6 +551,7 @@ program anaylzer
      diff=.false.
 
 20   print *, ' '
+     write = .false.
      print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, DPHASE/DE,  ETA, DCBAR/DE, RAD_INT, DIFF, SEXT, PHASE]) > '
      read(5, '(a)', err=20)answer
      save_answer = answer
@@ -582,6 +588,12 @@ program anaylzer
        plot_flag=phase$
       elseif(index(answer,'DI') /= 0 .or. diff)then
        diff = .true.
+      elseif(index(answer,'WRITE') /= 0)then
+       if(plot_flag /= 0)then
+        write = .true.
+        lun = lunget()
+        open(unit=lun, file = trim(name_flag(plot_flag))//'.dat')
+       endif
       else
        cycle
      endif
@@ -666,11 +678,26 @@ program anaylzer
       if(plot_flag == orbit$)then
        x(0:n_all)= co(0:n_all)%vec(1)*1000.
        y(0:n_all)= co(0:n_all)%vec(3)*1000.
+       if(write) then
+        print *,' Write orbit to '//trim(name_flag(plot_flag))//'.dat'
+         write(lun,'(a16,7a12)')'element','s','x[mm]','xp[mm]','y[mm]','yp[mm]','dl[mm]','deltaE/E'
+         do i=0,n_all
+          write(lun,'(a16,7e12.4)')ring%ele(i)%name,ring%ele(i)%s,co(i)%vec(1:6)*1000
+         end do
+       endif
       endif
 
       if(plot_flag == beta$)then
        x(0:n_all) = ring%ele(0:n_all)%a%beta
        y(0:n_all) = ring%ele(0:n_all)%b%beta
+       if(write) then
+         write(lun,'(a16,5a12)')'element','s','a%beta','a%alpha','b%beta','b%alpha'
+         print *,' Write orbit to '//trim(name_flag(plot_flag))//'.dat'
+         do i=0,n_all
+          write(lun,'(a16,5e12.4)')ring%ele(i)%name,ring%ele(i)%s, ring%ele(i)%a%beta, ring%ele(i)%a%alpha, &
+                                      ring%ele(i)%b%beta, ring%ele(i)%b%alpha
+         end do
+       endif
       endif
       if(plot_flag == phase$)then
        x(0:n_all) = ring%ele(0:n_all)%a%phi
@@ -692,18 +719,37 @@ program anaylzer
       if(plot_flag == eta$)then
        x(0:n_all) = (co_high(0:n_all)%vec(1) - co_low(0:n_all)%vec(1))/2/de
        y(0:n_all) = (co_high(0:n_all)%vec(3) - co_low(0:n_all)%vec(3))/2/de
+       if(write) then
+         write(lun,'(a16,3a12)')'element','s','etax','etay'
+         print *,' Write orbit to '//trim(name_flag(plot_flag))//'.dat'
+         do i=0,n_all
+          write(lun,'(a16,3e12.4)')ring%ele(i)%name,ring%ele(i)%s, x(i), y(i)
+         end do
+       endif
       endif
 
       if(plot_flag == eta_prop$)then
        x(0:n_all) = ring%ele(0:n_all)%a%eta
        y(0:n_all) = ring%ele(0:n_all)%b%eta
+       if(write) then
+         write(lun,'(a16,3a12)')'element','s','a%eta','a%etap','b%eta','b%etap'
+         print *,' Write orbit to '//trim(name_flag(plot_flag))//'.dat'
+         do i=0,n_all
+          write(lun,'(a16,3e12.4)')ring%ele(i)%name,ring%ele(i)%s,ring%ele(i)%a%eta,ring%ele(i)%a%etap, &
+                                                                  ring%ele(i)%b%eta,ring%ele(i)%b%etap
+         end do
+       endif
       endif
 
       if(plot_flag == cbar$)then
+        if(write)write(lun,'(a16,5a12)')'element','s','cbar_11','cbar_12','cbar_21','cbar_22'
+        if(write)print *,' Write cbar to '//trim(name_flag(plot_flag))//'.dat'
         do i = 0,n_all
           call c_to_cbar(ring%ele(i),cbar_mat)
           x(i) = cbar_mat(1,2)
           y(i) = cbar_mat(2,2)
+         if(write)write(lun,'(a16,5e12.4)')ring%ele(i)%name,ring%ele(i)%s, cbar_mat(1,1), cbar_mat(1,2), &
+                                      cbar_mat(2,1), cbar_mat(2,2)
         end do
       endif
 
@@ -1119,12 +1165,12 @@ program anaylzer
 
       print *,' write geometry data to "geometry.dat"'
       open(unit=34, file='geometry.dat')
-      write(34,'(1x,a13,7a12)')'  Ele name  ','     s       ', &
+      write(34,'(1x,a13,7a15)')'  Ele name  ','     s       ', &
                                               '     x       ','     y      ','     z      ',&
                                               '   theta     ','    phi     ','    psi     ' 
 
        do i=1,ring%n_ele_track
-  write(34,'(1x,a13,7e12.4)')ring%ele(i)%name, ring%ele(i)%s, &
+  write(34,'(1x,a13,7es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
                         ring%ele(i)%floor%x,ring%ele(i)%floor%y,ring%ele(i)%floor%z, &
                         ring%ele(i)%floor%theta,ring%ele(i)%floor%phi,ring%ele(i)%floor%psi
 
@@ -1137,12 +1183,12 @@ program anaylzer
       print *,' write beta, alpha, and eta, etap data to "beta_alpha_eta_etap.dat"'
       open(unit=35,file="beta_alpha_eta_etap.dat")
       write(34,'(a13,5a12)')'Element','s','beta x','beta y','eta x','eta y'
-      write(35,'(a13,9a12)')'Element','s','beta x','alpha x','beta y','alpha y','eta x','etap x','eta y','etap y'
+      write(35,'(a13,9a15)')'Element','s','beta x','alpha x','beta y','alpha y','eta x','etap x','eta y','etap y'
        do i=1,ring%n_ele_track
   write(34,'(1x,a13,5e12.4)')ring%ele(i)%name, ring%ele(i)%s, &
                         ring%ele(i)%a%beta,ring%ele(i)%b%beta,ring%ele(i)%x%eta, &
                         ring%ele(i)%y%eta
-  write(35,'(1x,a13,9e12.4)')ring%ele(i)%name, ring%ele(i)%s, &
+  write(35,'(1x,a13,9es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
                         ring%ele(i)%a%beta,ring%ele(i)%a%alpha, &
                         ring%ele(i)%b%beta, ring%ele(i)%b%alpha, &
                         ring%ele(i)%x%eta, ring%ele(i)%x%etap, &
@@ -1198,6 +1244,7 @@ program anaylzer
 
     print *
     print *,' "READ" : to read another lattice into ring_2'
+    print *,' "REVERSE" : create ring_2 as reverse of ring_1'
     print *,' "RING_1(2)" : switch to ring_1(2). '
     print *,'        Ring_1(2) is the ring structure for the lattice read at startup'
     print *,' "RADIATION ON(OFF)" : turn radiation damping and fluctuations on(off)'
@@ -1229,7 +1276,8 @@ program anaylzer
     print *,'                  type "<data_type>  X  <x_min>  <x_max> " to'
     print *,'                   set xrange' 
     print *,'                  type "<data_type>  Y  <y_up>  <y_low> " to'
-    print *,'                   set absolute yrange for upper and lower plots' 
+    print *,'                   set absolute yrange for upper and lower plots'
+    print *,'                  print "WRITE" to write the last thing plotted to a file"' 
 
     print *
     return
@@ -1529,9 +1577,20 @@ program anaylzer
   do i =1,ring%n_ele_track
    begin = ring%ele(i-1)%s
    ele = ring%ele(i)
-   if(ele%key /= sbend$ .and. ele%key /= quadrupole$ .and.ele%key /= rbend$)cycle
-   if(ele%key == sbend$ .or. ele%key == rbend$)width = 1.    
-   if(ele%key == quadrupole$)width = 2.    
+   if(ele%key /= sbend$ .and. ele%key /= quadrupole$ .and.ele%key /= rbend$ &
+            .and. ele%key /= sextupole$)cycle
+   if(ele%key == sbend$ .or. ele%key == rbend$)then
+     width = 1.
+     call pgsci(1)
+   endif    
+   if(ele%key == quadrupole$)then
+     width = 2.
+     call pgsci(2)
+   endif
+   if(ele%key == sextupole$)then
+     width = 1.5
+     call pgsci(5)
+   endif    
    x(1) = begin
    x(2) = begin
    x(3) = ele%s
