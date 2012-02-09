@@ -2,6 +2,8 @@
 
 module filename_mod
 
+use output_mod
+
 contains
 
 !+
@@ -337,16 +339,12 @@ end subroutine
 
 function SplitFileName(FileName, Path, BaseName, is_relative) result (ix_char)
 
-  use output_mod
-
   implicit none
 
   character(*) FileName, Path, BaseName
   logical, optional :: is_relative
 
   character(16), parameter :: r_name = 'SplitFileName'
-  character(62), parameter :: AtoZ = &
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
 
   Integer InLen, ix_char, ix
   Integer iBracket, iColon, iSlash
@@ -373,40 +371,73 @@ function SplitFileName(FileName, Path, BaseName, is_relative) result (ix_char)
 
 ! find if path name is relative or absolute.
 
-  if (.not. present(is_relative)) return
+  if (present(is_relative)) is_relative = file_name_is_relative(path)
 
-  if (path(1:1) == ' ') then
-    is_relative = .true.
-  elseif (path(1:1) == '/') then
-    is_relative = .false.
-  elseif (path(1:1) == '~') then
-    is_relative = .false.
-  elseif (index(path, ':') /= 0) then
-    is_relative = .false.
-  elseif (path(1:1) == '.') then
-    is_relative = .true.
-  elseif (index(AtoZ, path(1:1)) /= 0) then
-    is_relative = .true.
-  elseif (path(1:2) == '[.') then
-    is_relative = .true.
-  elseif (path(1:2) == '[-') then
-    is_relative = .true.
-  elseif (path(1:1) == '[' .and. index(AtoZ, path(2:2)) /= 0) then
-    is_relative = .false.
-  elseif (path(1:1) == '$') then
-    is_relative = .false.
-  else
-    is_relative = .false.
-    call out_io (s_warn$, r_name, &
-                    'CANNOT TELL IF PATH IS ABSOLUTE OR RELATIVE: ' // path, &
-                    'ASSUMING ABSOLUTE. PLEASE CONTACT DCS! ')
-  endif
-      
 End function
 
+!-----------------------------------------------------------------------------
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+!+
+! Function file_name_is_relative (file_name) result (is_rel)
+! 
+! Routine to determine if a file name is absolute or relative.
+! Examples:
+!     abc       ! Relative
+!     $ENV/abc  ! Absolute
+!     /nfs/opt  ! Absolute
+!
+! Note: This routine works for Unix and VMS. Has not been extended to Windows.
+!
+! Input:
+!   file_name -- Character(*): Name of file or path.
+!
+! Output:
+!   is_rel    -- Logical: True if relative, False otherwise
+!-
 
+function file_name_is_relative (file_name) result (is_rel)
+
+implicit none
+
+character(*) file_name
+character(len(file_name)) name
+character(24), parameter :: r_name = 'file_name_is_relative'
+integer ix
+logical is_rel
+
+!
+
+call string_trim(file_name, name, ix)
+
+if (name(1:1) == ' ') then
+  is_rel = .true.
+elseif (name(1:1) == '/') then
+  is_rel = .false.
+elseif (name(1:1) == '~') then
+  is_rel = .false.
+elseif (index(name, ':') /= 0) then
+  is_rel = .false.
+elseif (name(1:1) == '.') then
+  is_rel = .true.
+elseif (name(1:2) == '[.') then
+  is_rel = .true.
+elseif (name(1:2) == '[-') then
+  is_rel = .true.
+elseif (name(1:1) == '[') then
+  is_rel = .false.
+elseif (name(1:1) == '$') then
+  is_rel = .false.
+! can have file names like "#abc#" so take everything else to be relative.
+else
+  is_rel = .true.
+endif
+
+end function file_name_is_relative 
+      
+!-----------------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
 !-
 ! Subroutine simplify_path (name_in, name_out)
 !
@@ -503,8 +534,6 @@ end subroutine
 !-
 
 subroutine append_subdirectory (dir, sub_dir, dir_out, err)
-
-use output_mod
 
 implicit none
 

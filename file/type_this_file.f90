@@ -13,7 +13,7 @@ use filename_mod
 
 implicit none
 
-integer lun, lunget
+integer lun
 
 character(*) filename
 character(200) f_name, line
