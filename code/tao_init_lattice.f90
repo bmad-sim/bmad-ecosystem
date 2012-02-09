@@ -181,13 +181,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call err_exit
   end select
 
-  ! When reading digested files there are language errors associated with, for example, the file
+  ! When reading digested files there are parser errors associated with, for example, the file
   ! having been moved. Do not exit for such stuff.
 
   if (design_lat%language /= 'digested') err = .not. bmad_status%ok
   if (err) then
     call out_io (s_fatal$, r_name, &
-            'LANGUAGE ERROR DETECTED FOR UNIVERSE: \i0\ ', &
+            'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
             'EXITING...', & 
             i_array = (/ i /))
     stop
