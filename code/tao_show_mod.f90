@@ -871,13 +871,15 @@ case ('element')
   do
     call tao_next_switch (stuff2, ['-taylor        ', '-em_field      ', &
                 '-all_attributes', '-data          ', '-design        ', &
-                '-no_slaves     ', '-cross_section ', '-base          '], switch, err, ix)
+                '-no_slaves     ', '-cross_section ', '-base          ', &
+                '-field         '], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-taylor') print_taylor = .true.
     if (switch == '-design') lat_type = design$
     if (switch == '-base') lat_type = base$
-    if (switch == '-em_field') print_em_field = .true.
+    if (switch == '-em_field') print_em_field = .true.  ! Old style. Use "-field".
+    if (switch == '-field')    print_em_field = .true.
     if (switch == '-all_attributes') print_all = .true.
     if (switch == '-data') print_data = .true.
     if (switch == '-no_slaves') print_slaves = .false.

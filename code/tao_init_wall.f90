@@ -36,10 +36,10 @@ subroutine tao_init_wall (wall_file)
 
   if (wall_file == '') return
 
-  call tao_open_file ('TAO_INIT_DIR', wall_file, iu, complete_file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // complete_file_name)
+  call tao_open_file (wall_file, iu, complete_file_name, s_fatal$)
   if (iu == 0) then
-    call out_io (s_fatal$, r_name, 'ERROR OPENING TUNNEL WALL FILE. WILL EXIT HERE...')
+    call out_io (s_blank$, r_name, 'ERROR OPENING TUNNEL WALL FILE. WILL EXIT HERE...')
     call err_exit
   endif
 

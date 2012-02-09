@@ -46,7 +46,7 @@ character(20), parameter :: r_name = 'tao_open_beam_file'
 
 err_flag = .true.
 
-call tao_open_file ('TAO_INIT_DIR', file_name, rb_com%iu, full_file_name)
+call tao_open_file (file_name, rb_com%iu, full_file_name, s_error$)
 if (rb_com%iu == 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE!')
   return

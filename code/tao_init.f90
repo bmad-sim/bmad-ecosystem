@@ -80,7 +80,7 @@ if (present(err_flag)) err_flag = .true.
 
 iu = 0
 if (tao_com%init_tao_file /= '') then
-  call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
+  call tao_open_file (tao_com%init_tao_file, iu, file_name, s_blank$)
   if (iu == 0) then ! If open failure
     call out_io (s_info$, r_name, 'Tao initialization file not found.')
     if (tao_com%lat_file == '' .or. tao_com%init_tao_file_arg_set) then
@@ -101,14 +101,14 @@ endif
 
 init_tao_file = tao_com%init_tao_file
 
-plot_file          = init_tao_file      ! set default
-data_file          = init_tao_file      ! set default
-var_file           = init_tao_file      ! set default
-beam_file          = init_tao_file      ! set default
-wall_file          = ''
+plot_file          = 'NOT SET!'         ! set default
+data_file          = 'NOT SET!'         ! set default
+var_file           = 'NOT SET!'         ! set default
+beam_file          = 'NOT SET!'         ! set default
+wall_file          = 'NOT SET!'       
 n_universes        = 1                  ! set default
 init_name          = "Tao"              ! set default
-startup_file       = "tao.startup"
+startup_file       = 'NOT SET!'       
 
 ! Read the info
 
@@ -130,13 +130,14 @@ if (iu /= 0) then
   tao_com%n_universes = n_universes
 endif
 
-! Command line override
+! Set
 
-if (tao_com%beam_file /= '')    beam_file    = tao_com%beam_file
-if (tao_com%data_file /= '')    data_file    = tao_com%data_file
-if (tao_com%plot_file /= '')    plot_file    = tao_com%plot_file
-if (tao_com%startup_file /= '') startup_file = tao_com%startup_file
-if (tao_com%var_file /= '')     var_file     = tao_com%var_file
+call set_this_file_name (plot_file, init_tao_file, tao_com%plot_file)
+call set_this_file_name (data_file, init_tao_file, tao_com%data_file)
+call set_this_file_name (var_file,  init_tao_file, tao_com%var_file)
+call set_this_file_name (beam_file, init_tao_file, tao_com%beam_file)
+call set_this_file_name (wall_file, '',            tao_com%wall_file)
+call set_this_file_name (startup_file, 'tao.startup', tao_com%startup_file)
 
 ! Tao inits.
 ! Data can have variable info so init vars first.
@@ -260,15 +261,17 @@ enddo
 
 ! Look for a startup file
 
-call tao_open_file ('TAO_INIT_DIR', startup_file, iu, file_name, .false.)
-if (iu /= 0) then
-  close (iu)
-  call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
-  tao_com%cmd_from_cmd_file = .false.
-  call tao_cmd_history_record ('call ' // startup_file)
-  call tao_call_cmd (file_name)
-else if (startup_file /= 'tao.startup') then  ! If not default
-  call out_io (s_error$, r_name, 'Tao startup file not found: ' // file_name)
+if (startup_file /= '') then
+  call tao_open_file (startup_file, iu, file_name, s_error$)
+  if (iu /= 0) then
+    close (iu)
+    call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
+    tao_com%cmd_from_cmd_file = .false.
+    call tao_cmd_history_record ('call ' // startup_file)
+    call tao_call_cmd (file_name)
+  else if (startup_file /= 'tao.startup') then  ! If not default
+    call out_io (s_error$, r_name, 'Tao startup file not found: ' // file_name)
+  endif
 endif
 
 ! Bookkeeping
@@ -277,8 +280,9 @@ call tao_set_data_useit_opt()
 call tao_set_var_useit_opt()
 if (present(err_flag)) err_flag = .false.
 
-contains
 !------------------------------------------------------------------------------
+contains
+
 ! every pointer and allocatable needs to be deallocated now before the universe
 ! is reallocated.
 
@@ -378,6 +382,27 @@ endif
     
 end subroutine deallocate_everything
     
+!------------------------------------------------------------------------------
+! contains
+
+subroutine set_this_file_name (file_name, init_name, tao_com_name)
+
+character(*) file_name, init_name, tao_com_name
+
+! file_name may already have been set from the tao_init file. If not, it is 'NOT SET!'.
+! tao_com_name comes from the command line.
+! init_name is the default if not set.
+
+if (tao_com_name /= '') then
+  file_name    = tao_com_name
+elseif (file_name == 'NOT SET!') then
+  file_name = init_name
+elseif (file_name_is_relative(file_name)) then
+  file_name = trim(tao_com%init_tao_file_path) // trim(file_name)
+endif
+
+end subroutine set_this_file_name
+
 end subroutine tao_init
 
 

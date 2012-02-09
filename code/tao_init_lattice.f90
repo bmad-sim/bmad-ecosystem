@@ -42,7 +42,7 @@ namelist / tao_design_lattice / design_lattice, taylor_order, &
 
 design_lattice%file   = ''
 design_lattice%file2  = ''
-design_lattice%parser = ''
+design_lattice%language = ''
 design_lattice%use_line = ''
 
 ! Read lattice info
@@ -54,7 +54,7 @@ if (tao_com%init_read_lat_info) then
   ! input_file_name == '' means there is no lattice file so just use the defaults.
 
   if (input_file_name /= '') then
-    call tao_open_file ('TAO_INIT_DIR', input_file_name, iu, full_input_name)
+    call tao_open_file (input_file_name, iu, full_input_name, s_fatal$)
     call out_io (s_blank$, r_name, '*Init: Opening File: ' // full_input_name)
     if (iu == 0) then
       call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INFO FILE. WILL EXIT HERE...')
@@ -122,35 +122,27 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Get the name of the lattice file
 
   if (init_lat_file /= '') then
-    ix = index (init_lat_file, '|')
+    ix = index (init_lat_file, '|') ! Indicates multiple lattices
     if (ix == 0) then
       design_lat%file = init_lat_file
     else
       design_lat%file = init_lat_file(1:ix-1)
       init_lat_file = init_lat_file(ix+1:)
     endif
-    design_lat%parser = ''
+    design_lat%language = ''
     design_lat%file2 = ''
   else
     ! If %file is blank then default is to use last one
     if (design_lattice(i)%file /= '') design_lat = design_lattice(i)
-    if (design_lattice(i)%parser /= '') then
-      design_lat%file = trim(design_lat%parser) // '::' // trim(design_lat%file)
-      call out_io (s_error$, r_name, (/ &
-        '************************************************************', &
-        '***** OLD STYLE "DESIGN_LATTICE()%PARSER" SYNTAX USED! *****', &
-        '*****         PLEASE CONVERT TO THE NEW STYLE!         *****', &
-        '************************************************************' /) )
-    endif
   endif
 
-  ! Split off parser name and/or use_line if needed
+  ! Split off language name and/or use_line if needed
 
   ix = index(design_lat%file(1:10), '::')
   if (ix == 0) then
-    design_lat%parser = 'bmad'
+    design_lat%language = 'bmad'
   else
-    design_lat%parser = design_lat%file(1:ix-1)
+    design_lat%language = design_lat%file(1:ix-1)
     design_lat%file = design_lat%file(ix+2:)
   endif
 
@@ -162,11 +154,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     design_lat%use_line = ''
   endif
 
+  ! If the lattice file was obtained from the tao init file and if the lattice name 
+  ! is relative, then it is relative to the directory where the tao init file is.
+
+  if (tao_com%lat_file == '' .and. file_name_is_relative(design_lat%file)) &
+                design_lat%file = trim(tao_com%init_tao_file_path) // design_lat%file 
+
   ! Read in the design lattice. 
   ! A blank means use the lattice form universe 1.
 
   allocate (u%design, u%base, u%model)
-  select case (design_lat%parser)
+  select case (design_lat%language)
   case ('bmad')
     call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line)
   case ('xsif')
@@ -179,17 +177,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call read_digested_bmad_file (design_lat%file, u%design%lat, version)
     err = (bmad_inc_version$ /= version)
   case default
-    call out_io (s_abort$, r_name, 'PARSER NOT RECOGNIZED: ' // design_lat%parser)
+    call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat%language)
     call err_exit
   end select
 
-  ! When reading digested files there are parser errors associated with, for example, the file
+  ! When reading digested files there are language errors associated with, for example, the file
   ! having been moved. Do not exit for such stuff.
 
-  if (design_lat%parser /= 'digested') err = .not. bmad_status%ok
+  if (design_lat%language /= 'digested') err = .not. bmad_status%ok
   if (err) then
     call out_io (s_fatal$, r_name, &
-            'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
+            'LANGUAGE ERROR DETECTED FOR UNIVERSE: \i0\ ', &
             'EXITING...', & 
             i_array = (/ i /))
     stop

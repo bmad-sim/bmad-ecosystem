@@ -55,7 +55,7 @@ integer graph_index, color, i_graph
 
 character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
-character(100) plot_file, graph_name, file_name
+character(100) plot_file, graph_name, full_file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
@@ -147,7 +147,7 @@ call string_trim(plot_file_array, plot_file_array, ix)
 plot_file = plot_file_array(1:ix)
 
 call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
-call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
+call tao_open_file (plot_file, iu, full_file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
   call err_exit
@@ -309,12 +309,7 @@ do   ! Loop over plot files
   if (ix == 0) exit
   plot_file = plot_file_array(1:ix)
   plot_file_array = plot_file_array(ix+1:)
-  call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
-  if (iu == 0) then
-    call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE: ' // plot_file, &
-                                   'WILL EXIT HERE...')
-    call err_exit
-  endif
+  call tao_open_file (plot_file, iu, full_file_name, s_fatal$)
 
   do   ! Loop over templates in a file
     read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
@@ -360,7 +355,7 @@ do  ! Loop over plot files
   plot_file = plot_file_array(1:ix)
   plot_file_array = plot_file_array(ix+1:)
   call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
-  call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
+  call tao_open_file (plot_file, iu, full_file_name, s_fatal$)
 
   do   ! Loop over templates in a file
 
@@ -789,7 +784,7 @@ return
 
 9100 continue
 call out_io (s_error$, r_name, &
-        'TAO_TEMPLATE_PLOT NAMELIST READ ERROR.', 'IN FILE: ' // file_name)
+        'TAO_TEMPLATE_PLOT NAMELIST READ ERROR.', 'IN FILE: ' // full_file_name)
 rewind (iu)
 do
   read (iu, nml = tao_template_plot)  ! force printing of error message
@@ -799,7 +794,7 @@ enddo
 
 9200 continue
 call out_io (s_error$, r_name, &
-       'TAO_TEMPLATE_GRAPH NAMELIST READ ERROR.', 'IN FILE: ' // file_name)
+       'TAO_TEMPLATE_GRAPH NAMELIST READ ERROR.', 'IN FILE: ' // full_file_name)
 rewind (iu)
 do
   read (iu, nml = tao_template_graph)  ! force printing of error message

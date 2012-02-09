@@ -1,41 +1,36 @@
 !+
-! Subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name, print_failure)
+! Subroutine tao_open_file (file_name, iunit, full_file_name, error_severity)
 !
 ! Subroutine to open a file for reading.
 ! This subroutine will first look for a file in the current directory before
 ! it looks in the logical_dir directory.
 !
 ! Input:
-!   logical_dir   -- Character(*): Logical directory.
-!   file_name     -- Character(*): File name.
-!   print_failure -- Logical, optional: If present and False: Suppress printing of
-!                       the file-not-found message.
+!   file_name      -- Character(*): File name.
+!   error_severity -- Integer: Severity of the error. Use s_fatal$, etc.
 !
 ! Output:
 !   iunit          -- Integer: Logical unit number. Set to 0 if file not openable.
 !   full_file_name -- Character(*): File name of found file.
 !-
 
-subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name, print_failure)
+subroutine tao_open_file (file_name, iunit, full_file_name, error_severity)
 
   use tao_mod
 
   implicit none
 
-  character(*) logical_dir, file_name, full_file_name
+  character(*) file_name, full_file_name
   character(20) :: r_name = 'tao_open_file'
 
-  integer iunit, ios
+  integer iunit, ios, error_severity
   logical valid
-  logical, optional :: print_failure
 
-  ! A blank file name does not give an open error so we check for this explicitly.
+  ! A blank file name is always considered an error.
 
   if (file_name == "") then
     iunit = 0
-    if (logic_option(.true., print_failure)) then
-      call out_io (s_error$, r_name, 'Blank file name')
-    endif
+    call out_io (s_error$, r_name, 'Blank file name')
     return
   endif
 
@@ -45,30 +40,9 @@ subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name, print_f
   full_file_name = file_name
   open (iunit, file = full_file_name, status = 'old', action = 'READ', iostat = ios)
 
-  ! If we cannot open a file then try the the logical_dir 
-
   if (ios /= 0) then
-
-    call fullfilename (trim(logical_dir) // ':' // file_name, full_file_name, valid)
-    if (valid) then
-      open (iunit, file = full_file_name, status = 'old', &
-                                      action = 'READ', iostat = ios)
-    endif
-
-    ! If still nothing then this is an error.
-
-    if (ios /= 0) then
-      if (logic_option(.true., print_failure)) then
-        if (valid) then
-           call out_io (s_blank$, r_name, 'File not found: ' // file_name, &
-                                         '           Nor: ' // full_file_name)
-        else
-           call out_io (s_blank$, r_name, 'File not found: ' // file_name)
-        endif
-      endif
-      iunit = 0
-    endif
-
+    call out_io (error_severity, r_name, 'File not found: ' // file_name)
+    iunit = 0
   endif
 
 end subroutine

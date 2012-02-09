@@ -572,6 +572,7 @@ type tao_common_struct
   logical :: log_startup = .false.             ! '-log_startup' command line argument.
   character(200) :: lat_file = ''              ! '-lat'         command line argument.
   character(100) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
+  character(200) :: init_tao_file_path = ''    ! Path part of init_tao_file
   character(100) :: beam_file = ''             ! '-beam'        command line argument.
   character(100) :: beam_all_file = ''         ! '-beam_all'    command line argument.
   character(100) :: beam0_file    = ''         ! '-beam0'       command line argument.
@@ -579,6 +580,7 @@ type tao_common_struct
   character(100) :: plot_file = ''             ! '-plot'        command line argument.
   character(100) :: startup_file = ''          ! '-startup'     command line argument.
   character(100) :: var_file = ''              ! '-var'         command line argument.
+  character(100) :: wall_file = ''             ! '-wall'        command line argument.
   character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...

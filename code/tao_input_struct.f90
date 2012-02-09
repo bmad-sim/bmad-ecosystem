@@ -152,7 +152,7 @@ end type
 type tao_design_lat_input
   character(100) file
   character(100) file2
-  character(16) parser
+  character(16) language
   character(40) use_line
 end type
 

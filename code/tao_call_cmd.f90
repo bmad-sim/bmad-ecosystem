@@ -43,7 +43,7 @@ allocate (tao_com%cmd_file(0:nl))
 if (nl > 1) tao_com%cmd_file(0:nl-1) = cmd_file
   
 iu = lunget()
-call tao_open_file ('TAO_COMMAND_DIR', file_name, iu, full_name)
+call tao_open_file (file_name, iu, full_name, s_error$)
 if (iu == 0) then ! open failed
   tao_com%cmd_file_level = nl - 1
   return

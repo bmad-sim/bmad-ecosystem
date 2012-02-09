@@ -18,10 +18,6 @@ In general, the input files tell \tao:
 \section{Format}
 \label{s:format}
 
-\tao first looks for input files in the current directory and then
-looks in a directory pointed to by the environmental variable
-\vn{TAO_INIT_DIR}.
-
 Initialization parameters are read in from a file using Fortran
 namelist input. Fortran namelist breaks up the input file into
 blocks. The first line of a namelist block starts with an ampersand
@@ -176,6 +172,28 @@ are used).  This namelist contains the variables:
     init_name         = "<init_name>"  ! Default = "Tao"
   /
 \end{example}
+Rule: A file name obtained from the \tao initialization file (as opposed to
+being present on the command line) is always relative to the directory
+that the \tao initialization file lives in. Example: If \tao is started from
+the system command line like:
+\begin{example}
+    tao -data data.cl -init ../tao.init
+\end{example}
+And if the \vn{tao_start} namelist in \vn{../tao.init} looks like:
+\begin{example}
+  &tao_start
+    data_file = "dat.in"
+    plot_file = "plot.in"
+    var_file  = "/nfs/var.in"
+  /
+\end{example}
+Then, relative to the current working directory, the files used will be
+\begin{example}
+  data_file: "data.cl"      ! Command line arguments have preference
+  plot_file: "../plot.in"   ! Relative to ../tao.init.
+  var_file:  "/nfs/var.in"  ! Absolute paths are never modified.
+\end{example}
+
 \vn{init_name} is for naming the initialization. This is useful to
 distinguish between multiple initialization files with custom versions
 of \tao. The other parameters specify which files to find the other

@@ -2543,10 +2543,10 @@ subroutine tao_parse_command_args (error, cmd_words)
 implicit none
 
 character(*), optional :: cmd_words(:)
-character(80) arg0
+character(80) arg0, base
 character(24) :: r_name = 'tao_parse_command_args'
 
-integer n_arg, i_arg
+integer n_arg, i_arg, ix
 logical error
 
 ! Get command line input
@@ -2581,6 +2581,7 @@ do
       call out_io (s_fatal$, r_name, 'NO TAO INIT FILE NAME ON COMMAND LINE.')
       call err_exit
     endif
+    ix = SplitFileName(tao_com%init_tao_file, tao_com%init_tao_file_path, base)
 
   case ('-noinit')
     tao_com%init_tao_file = ''

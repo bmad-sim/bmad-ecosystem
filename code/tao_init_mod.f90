@@ -66,8 +66,8 @@ call tao_hook_init_global (init_file, global)
 ! init_file == '' means there is no lattice file so just use the defaults.
 
 if (init_file /= '') then
-  call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
+  call tao_open_file (init_file, iu, file_name, s_blank$)
   if (iu == 0) then
     call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
   else
@@ -173,7 +173,7 @@ if (.not. tao_com%init_connected_uni .or. init_file == '') return
 
 !
 
-call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
+call tao_open_file (init_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN CONNECTED UNIVERSES INIT FILE: ' // init_file)
   call err_exit
@@ -358,8 +358,8 @@ if (.not. tao_com%init_beam .or. init_file == '') return
 
 !
 
-call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+call tao_open_file (init_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN BEAM INIT FILE: ' // init_file)
   call err_exit
@@ -642,8 +642,8 @@ endif
 
 !---
 
-call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
+call tao_open_file (data_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN DATA INIT FILE: ' // data_file)
   call err_exit
@@ -1499,8 +1499,8 @@ endif
 ! Standard var init:
 ! First open the var init file.
 
-call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
+call tao_open_file (var_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN VARIABLE INIT FILE: ' // var_file)
   call err_exit
