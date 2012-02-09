@@ -262,7 +262,7 @@ enddo
 ! Look for a startup file
 
 if (startup_file /= '') then
-  call tao_open_file (startup_file, iu, file_name, s_error$)
+  call tao_open_file (startup_file, iu, file_name, s_info$)
   if (iu /= 0) then
     close (iu)
     call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
