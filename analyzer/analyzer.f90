@@ -64,6 +64,7 @@ program anaylzer
   real*4 xscale, yscale, x_low, y_low
   real*4 xa(4), za(4)
   real*4 xdet(1000), ydet(1000), zdet(1000)
+  real*4 new_width, new_aspect
 
   real(rp) cbar_mat(2,2), cbar_mat1(2,2), cbar_mat2(2,2)
   real(rp) de/8e-4/
@@ -327,6 +328,20 @@ program anaylzer
      exit
    endif
 
+   ix= index(line, 'PLOT_WIDTH')
+   if(ix /= 0)then
+      read(line(ix+11:),*)new_width
+      if(new_width /= 0) width = new_width
+      print *,' Plot width = ', width
+    cycle
+   endif
+   ix= index(line, 'PLOT_ASPECT')
+   if(ix/= 0)then
+      read(line(ix+12:),*)new_aspect
+      if(new_aspect /= 0)aspect = new_aspect
+      print *,' Plot_aspect = ', aspect
+     cycle
+   endif
    if(line(1:2) == 'PS' .or.  line(1:3) == 'GIF')exit
 
 
@@ -1278,7 +1293,8 @@ program anaylzer
     print *,'                  type "<data_type>  Y  <y_up>  <y_low> " to'
     print *,'                   set absolute yrange for upper and lower plots'
     print *,'                  print "WRITE" to write the last thing plotted to a file"' 
-
+    print *,' "PLOT_WIDTH #" :set plot width to # '
+    print *,' "PLOT_ASPECT #" :set plot width to # '
     print *
     return
   end
