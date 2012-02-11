@@ -526,27 +526,30 @@ void operator>> (normal_modes_struct* f, C_normal_modes& c) {
 //---------------------------------------------------------------------------
 // bmad_com
 
-extern "C" void bmad_com_to_f2_(Re&, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, Re&, 
-     Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
+extern "C" void bmad_com_to_f2_(Re&, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, 
+     Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
+     Int&, Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
   bmad_com_to_f2_(c.max_aperture_limit, &c.d_orb[0],
-    c.default_ds_step, c.significant_longitudinal_length, c.rel_tolerance, 
+    c.significant_longitudinal_length, c.rel_tolerance, 
     c.abs_tolerance, c.rel_tol_adaptive_tracking, c.abs_tol_adaptive_tracking, 
     c.taylor_order, c.default_integ_order, c.canonical_coords, 
     c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
-    c.auto_bookkeeper, c.trans_space_charge_on, c.coherent_synch_rad_on, 
+    c.auto_bookkeeper, c.coherent_synch_rad_on, 
     c.spin_tracking_on, c.radiation_damping_on, c.radiation_fluctuations_on, 
-    c.conserve_taylor_maps, c.auto_rf_phase_and_amp_adjust,
-    c.use_single_ptc_fiber, c.dummy);
+    c.conserve_taylor_maps, c.use_ptc_layout_default, c.absolute_time_tracking_default, 
+    c.rf_auto_scale_phase_default, c.rf_auto_scale_amp_default,
+    c.be_thread_safe, c.dummy);
 }
 
 extern "C" void bmad_com_to_c2_(C_bmad_com& c, 
               Re& ap, ReArr orb, Re& ds, Re& significant, Re& rel, Re& abs,  
               Re& rel_adapt, Re& abs_adapt, 
               Int& to, Int& dflt_ord, Int& cc, 
-              Int& sr, Int& lr, Int& sym, Int& a_book, Int& tsc_on, Int& csr_on, 
-              Int& st_on, Int& rad_d, Int& rad_f, Int& con_t, Int& auto_rf, Int& use_single_ptc, 
+              Int& sr, Int& lr, Int& sym, Int& a_book, Int& csr_on, 
+              Int& st_on, Int& rad_d, Int& rad_f, Int& con_t, Int& use_ptc_layout,
+              Int& abs_time_track, Int& rf_auto_phase, Int& rf_auto_amp, Int& be_thread,
               Int& dummy) {
   c.max_aperture_limit               = ap;
   c.d_orb                            << orb;
@@ -563,14 +566,16 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
   c.lr_wakes_on                      = lr;
   c.mat6_track_symmetric             = sym;
   c.auto_bookkeeper                  = a_book;
-  c.trans_space_charge_on            = tsc_on;
   c.coherent_synch_rad_on            = csr_on;
   c.spin_tracking_on                 = st_on;
   c.radiation_damping_on             = rad_d;
   c.radiation_fluctuations_on        = rad_f;
   c.conserve_taylor_maps             = con_t;
-  c.auto_rf_phase_and_amp_adjust     = auto_rf;
-  c.use_single_ptc_fiber             = use_single_ptc;
+  c.use_ptc_layout_default           = use_ptc_layout;
+  c.absolute_time_tracking_default   = abs_time_track;
+  c.rf_auto_scale_phase_default      = rf_auto_phase;
+  c.rf_auto_scale_amp_default        = rf_auto_amp;
+  c.be_thread_safe                   = be_thread;
   c.dummy                            = dummy;
 }
 

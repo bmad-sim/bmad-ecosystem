@@ -827,14 +827,17 @@ public:
   bool lr_wakes_on;               // Long range wakefields
   bool mat6_track_symmetric;     // symmetric offsets
   bool auto_bookkeeper;          // Automatic bookkeeping when elements change?
-  bool trans_space_charge_on;
+  bool space_charge_on;
   bool coherent_synch_rad_on;
   bool spin_tracking_on;
   bool radiation_damping_on;
   bool radiation_fluctuations_on;
   bool conserve_taylor_maps;
-  bool auto_rf_phase_and_amp_adjust;
-  bool use_single_ptc_fiber;
+  bool use_ptc_layout_default;
+  bool absolute_time_tracking_default;
+  bool rf_auto_scale_phase_default;
+  bool rf_auto_scale_amp_default;
+  bool be_thread_safe;
   bool dummy;
 
   C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}

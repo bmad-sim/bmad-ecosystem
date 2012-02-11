@@ -61,15 +61,16 @@ ele1%ix_branch = ele_save%ix_branch ! This should not change.
 if (ele1%ix_ele > -1) then          ! If part of a lattice...
   ele1%lat      => ele_save%lat     !   then ele1%lat should not change.
 endif
-  
+
+
+
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
 ! location from ele2's so that the elements are separate.
 ! Exceptions: %em_field%mode%map, %em_field%mode%grid and %wig.
 
-! %wig%term. 
-! The exception for having ele1%wig and ele2%wig point to the same memory location 
-! is if we have a periodic_wiggler and ele1 is not a slave or ele2. 
+! %wig%term exception: The problem with having ele1%wig and ele2%wig point to the same 
+! memory location is when we have a periodic_wiggler and ele1 is not a slave or ele2. 
 ! In this case, the wiggler field depends upon the setting of
 ! ele%value(b_max$) and ele%value(l_pole$) so sharing the same memeory location would
 ! lead to trouble if these attributes are modified in one element but not the other.

@@ -17,9 +17,8 @@ contains
 !+
 ! Subroutine rf_auto_scale_phase_and_amp(ele, param, err_flag)
 !
-! Routine to set the reference phase and amplitude of the accelerating rf field mode if
-! this mode is present. The accelerating mode is defined to be ele%em_field%mode(1) if
-! mode(1)%m = 0. 
+! Routine to set the reference phase and amplitude of the accelerating field if
+! this field is defined. This routine works on lcavity, rfcavity and e_gun elements
 !
 ! All calculations are done with a particle with the energy of the reference particle and 
 ! with z = 0.
@@ -43,7 +42,6 @@ contains
 !   use rf_mod
 !
 ! Input:
-!
 !   ele   -- ele_struct: RF element. Either lcavity or rfcavity.
 !     %value(gradient$) -- Accelerating gradient to match to if an lcavity.
 !     %value(voltage$)  -- Accelerating voltage to match to if an rfcavity.
@@ -68,11 +66,11 @@ type (lat_param_struct), target :: param
 
 real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
-real(rp) value_saved(n_attrib_maxx), dphi0_ref_original
+real(rp) value_saved(n_attrib_maxx), dphi0_ref_original, pz_arr(0:3)
 
-integer i, tracking_method_saved, num_times_lost
+integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
 
-logical step_up_seen, err_flag, has_been_lost, scale_phase, scale_amp, adjust_phase, adjust_amp
+logical step_up_seen, err_flag, scale_phase, scale_amp, adjust_phase, adjust_amp
 
 character(28), parameter :: r_name = 'rf_auto_scale_phase_and_amp'
 
@@ -91,6 +89,11 @@ endif
 
 adjust_phase = (scale_phase .or. ele%key == rfcavity$)
 adjust_amp   = scale_amp
+
+if (ele%key == e_gun$) then
+  scale_phase = .false.
+  adjust_phase = .false.
+endif
 
 ! Init.
 ! Note: dphi0_ref is set in neg_pz_calc
@@ -171,28 +174,58 @@ phi_tol = 1d-5
 
 pz_max   = -neg_pz_calc(phi_max)
 
-if (adjust_phase) then
-  pz_plus  = -neg_pz_calc(phi_max + 2 * phi_tol)
-  pz_minus = -neg_pz_calc(phi_max - 2 * phi_tol)
-else
-  pz_plus  = -100
-  pz_minus = -100
+if (.not. is_lost) then
+  if (adjust_phase) then
+    pz_plus  = -neg_pz_calc(phi_max + 2 * phi_tol)
+    pz_minus = -neg_pz_calc(phi_max - 2 * phi_tol)
+  else
+    pz_plus  = -100  ! So that (pz_max > pz_plus) test is True.
+    pz_minus = -100
+  endif
+
+  if (adjust_amp) then
+    call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
+    scale_correct = dE_peak / (e_tot - e_tot_start)
+  else
+    scale_correct = 1
+  endif
+
+  if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(scale_correct - 1) < 2 * scale_tol) then
+    call cleanup_this()
+    dphi0_ref = dphi0_ref_original
+    return
+  endif
 endif
 
-if (adjust_amp) then
-  call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
-  scale_correct = dE_peak / (e_tot - e_tot_start)
-else
-  scale_correct = 1
-endif
+! Find approximate phase for acceleration
 
-if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(scale_correct - 1) < 2 * scale_tol) then
-  call cleanup_this()
-  dphi0_ref = dphi0_ref_original
+pz_arr(0) = pz_max
+
+do i = 1, 3
+  pz_arr(i) = -neg_pz_calc(phi_max + i*0.25)
+enddo
+
+i_max1 = maxloc(pz_arr, 1) - 1  
+pz_arr(i_max1) = -1
+i_max2 = maxloc(pz_arr, 1) - 1
+
+if (pz_arr(i_max2) < 0) then
+  call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION!')
+  err_flag = .true.
   return
 endif
 
-! Now adjust %field_scale for the correct acceleration at the phase for maximum accelleration. 
+! Just take half way between two acceleration 
+
+if (abs(i_max1 - i_max2) == 3) then   ! wrap around case when i_max1 = 0 and i_max2 = 3 or vice versa.
+  phi_max = phi_max + 0.25 * (-1) / 2.0
+else
+  phi_max = phi_max + 0.25 * (i_max1 + i_max2) / 2.0
+endif
+
+pz_max = -neg_pz_calc(phi_max)
+
+! Now adjust %field_scale for the correct acceleration at the phase for maximum acceleration. 
 
 n_loop = 0  ! For debug purposes.
 num_times_lost = 0
@@ -203,50 +236,47 @@ main_loop: do
   ! First go in +phi direction until pz decreases.
 
   if (adjust_phase) then
-    has_been_lost = .false.
     step_up_seen = .false.
 
     do i = 1, 100
       phi = phi_max + dphi
       pz = -neg_pz_calc(phi)
-      if (is_lost) then  ! field too strong so reduce
-        field_scale = field_scale / 10
-        pz_max = -neg_pz_calc(phi_max)
-        step_up_seen = .false.
-        has_been_lost = .true.
-        cycle
+
+      if (is_lost) then
+        do j = -19, 20
+          print *, j, -neg_pz_calc(phi_max + j / 40.0)
+        enddo
+        call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!')
+        err_flag = .true.
+        return
       endif
-      if (pz < pz_max) exit
+
+      if (pz < pz_max) then
+        pz_plus = pz
+        exit
+      endif
+
+      pz_minus = pz_max
       pz_max = pz
       phi_max = phi
       step_up_seen = .true.
     enddo
 
-    ! Can get into an infinite loop where, if the starting energy is too low,
-    ! the algorithm cannot converge. In this case bail out.
-
-    if (has_been_lost) num_times_lost = num_times_lost + 1
-    if (num_times_lost == 3) then
-      call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!', &
-                                     '[Can happen when particle energy is near E_rest_mass]')
-      err_flag = .true.
-      return
-    endif
-
     ! If needed: Now go in -phi direction until pz decreases
 
-    pz_plus = pz
     if (.not. step_up_seen) then
       do
         phi = phi_max - dphi
         pz = -neg_pz_calc(phi)
-        if (pz < pz_max) exit
+        if (pz < pz_max) then
+          pz_minus = pz
+          exit
+        endif
+        pz_plus = pz_max
         pz_max = pz
         phi_max = phi
       enddo
     endif
-
-    pz_minus = pz
 
     ! Quadradic interpolation to get the maximum phase.
     ! Formula: pz = a + b*dt + c*dt^2 where dt = (phi-phi_max) / dphi

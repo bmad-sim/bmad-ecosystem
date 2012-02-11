@@ -222,12 +222,18 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
       (x.sr_wakes_on == y.sr_wakes_on) &&  (x.lr_wakes_on == y.lr_wakes_on) &&  
       (x.mat6_track_symmetric ==  y.mat6_track_symmetric) &&
       (x.auto_bookkeeper == y.auto_bookkeeper) &&
-      (x.trans_space_charge_on == y.trans_space_charge_on) &&
       (x.coherent_synch_rad_on == y.coherent_synch_rad_on) &&
       (x.spin_tracking_on == y.spin_tracking_on) &&
       (x.radiation_damping_on == y.radiation_damping_on) &&
       (x.radiation_fluctuations_on == y.radiation_fluctuations_on) &&
-      (x.conserve_taylor_maps == y.conserve_taylor_maps);
+      (x.conserve_taylor_maps == y.conserve_taylor_maps) &&
+      (x.use_ptc_layout_default == y.use_ptc_layout_default) &&
+      (x.absolute_time_tracking_default == y.absolute_time_tracking_default) &&
+      (x.rf_auto_scale_phase_default == y.rf_auto_scale_phase_default) &&
+      (x.rf_auto_scale_amp_default == y.rf_auto_scale_amp_default) &&
+      (x.be_thread_safe == y.be_thread_safe) &&
+      (x.dummy == y.dummy)
+      ;
 }
 
 bool operator== (const C_em_field& x, const C_em_field& y) {
