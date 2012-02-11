@@ -202,9 +202,9 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     lord%value(p0c_start$)   = slave%value(p0c_start$)
   endif
 
-  ! Autophase rfcavity lords.
+  ! Autophase/amp rfcavity lords.
 
-  if (lord%key == rfcavity$) then
+  if (lord%key == rfcavity$ .or. lord%key == e_gun$) then
     slave => pointer_to_slave(lord, 1)
     call rf_auto_scale_phase_and_amp (lord, lat%branch(slave%ix_branch)%param, err)
     if (err) return
@@ -306,6 +306,7 @@ case (lcavity$)
     ! If a super_slave, only want to track through the accelerating element.
 
     ele2 = ele
+    ele2%is_on = .true.
     if (ele2%slave_status == super_slave$) then
       
     else
@@ -315,6 +316,7 @@ case (lcavity$)
 
     ele2%value(phi0_err$) = 0
     ele2%value(gradient_err$) = 0
+    start_orb%vec = 0
     call track1 (start_orb, ele2, param, end_orb)
     if (end_orb%status == dead$) then
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING LCAVITY: ' // ele%name, &
@@ -337,7 +339,7 @@ case (custom$, hybrid$)
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 case (e_gun$)
-  ele%value(E_tot$) = E_tot_start + ele%value(voltage$)
+  ele%value(E_tot$) = E_tot_start 
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
   if (err) return
 
@@ -346,6 +348,9 @@ case (e_gun$)
   call zero_ele_kicks (ele2)
 
   start_orb%status = inside$ !to avoid entrance kick in time tracking
+  start_orb%vec = 0
+  call convert_total_energy_to (ele%value(E_tot$) - ele%value(voltage$), param%particle, pc = start_orb%vec(6))
+  start_orb%vec(6) = start_orb%vec(6) / ele%value(p0c$)
   call track1 (start_orb, ele2, param, end_orb)
   E_tot = ele%value(E_tot$)
   p0c = ele%value(p0c$)

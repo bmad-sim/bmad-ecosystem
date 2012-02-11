@@ -81,7 +81,7 @@ real(rp) :: dr_ds(7), r_scal(7), t
 integer, parameter :: max_step = 10000
 integer :: n_step
 
-logical local_ref_frame
+logical local_ref_frame, abs_time
 
 ! init
 
@@ -97,7 +97,16 @@ end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, end)
 
-t = -start%vec(5) / (end%beta * c_light)    ! Time
+abs_time = .false.
+if (associated(ele%lat)) then
+  if (ele%lat%absolute_time_tracking) abs_time = .true.
+endif
+
+if (abs_time) then
+  t = end%t
+else
+  t = -end%vec(5) / (end%beta * c_light)    ! Time
+endif
 
 ! Save initial point
 
