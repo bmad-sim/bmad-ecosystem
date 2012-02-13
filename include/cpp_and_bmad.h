@@ -41,6 +41,8 @@ typedef valarray<int>                   Int_Array;
 typedef valarray<Real_Array>            Real_Matrix;
 typedef valarray<Bool_Array>            Bool_Matrix;
 
+typedef valarray<Real_Matrix>           Real_Tensor;
+
 typedef valarray<C_taylor_term>         C_taylor_term_array;
 typedef valarray<C_wig_term>            C_wig_term_array;
 typedef valarray<C_rf_wake_sr_table>    C_rf_wake_sr_table_array;
@@ -838,7 +840,6 @@ public:
   bool rf_auto_scale_phase_default;
   bool rf_auto_scale_amp_default;
   bool be_thread_safe;
-  bool dummy;
 
   C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
 
@@ -956,7 +957,7 @@ public:
   double gamma_c;               // gamma associated with C matrix
   double s;                     // longitudinal position at the end
   double ref_time;              // Time ref particle passes exit end.
-  Real_Matrix r;                // For general use. Not used by Bmad.
+  Real_Tensor r;                // For general use. Not used by Bmad.
   Real_Array a_pole;            // multipole
   Real_Array b_pole;            // multipoles
   Real_Array const_arr;         // Working constants.

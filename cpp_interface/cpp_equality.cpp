@@ -43,15 +43,28 @@ bool is_all_equal (const Bool_Array& v) {
   return is_true; 
 };
 
-bool is_all_equal (const Real_Matrix& v1, const Real_Matrix& v2) {
+bool is_all_equal (const Real_Matrix& mat1, const Real_Matrix& mat2) {
   bool is_true = true;
-  double a1, a2;
-  if (v1.size() != v2.size()) return false;
-  for (int i = 0; i < v1.size(); i++) {
-    if (v1[i].size() != v2[i].size()) return false;
-    for (int j = 0; j < v1[i].size(); j++) {
-      a1 = v1[i][j]; a2 = v2[i][j];
-      is_true = is_true && (v1[i][j] == v2[i][j]);
+  if (mat1.size() != mat2.size()) return false;
+  for (int i = 0; i < mat1.size(); i++) {
+    if (mat1[i].size() != mat2[i].size()) return false;
+    for (int j = 0; j < mat1[i].size(); j++) {
+      is_true = is_true && (mat1[i][j] == mat2[i][j]);
+    }
+  }
+  return is_true; 
+};
+
+bool is_all_equal (const Real_Tensor& tensor1, const Real_Tensor& tensor2) {
+  bool is_true = true;
+  if (tensor1.size() != tensor2.size()) return false;
+  for (int i = 0; i < tensor1.size(); i++) {
+    if (tensor1[i].size() != tensor2[i].size()) return false;
+    for (int j = 0; j < tensor1[i].size(); j++) {
+      if (tensor1[i][j].size() != tensor2[i][j].size()) return false;
+      for (int k = 0; k < tensor1[i][j].size(); k++) {
+        is_true = is_true && (tensor1[i][j][k] == tensor2[i][j][k]);
+      }
     }
   }
   return is_true; 
@@ -168,15 +181,21 @@ bool operator== (const C_control& x, const C_control& y) {
          (x.ix_slave == y.ix_slave) && (x.ix_attrib == y.ix_attrib);
 }
 
+// Note: Status component not checked.
+
 bool operator== (const C_lat_param& x, const C_lat_param& y) {
-  return (x.n_part == y.n_part) && (x.total_length == y.total_length) && 
+  bool is_equal = true;
+  is_equal = (x.n_part == y.n_part) && (x.total_length == y.total_length) && 
          (x.unstable_factor == y.unstable_factor) &&
-         is_all_equal(x.t1_with_RF, y.t1_with_RF) && 
-         is_all_equal(x.t1_no_RF, y.t1_no_RF) && 
          (x.particle == y.particle) && (x.ix_lost == y.ix_lost) && 
          (x.lattice_type == y.lattice_type) && 
          (x.ixx == y.ixx) && (x.stable == y.stable) && 
-         (x.aperture_limit_on == y.aperture_limit_on) && (x.lost == y.lost);
+         (x.aperture_limit_on == y.aperture_limit_on) && 
+         (x.ix_lost == y.ix_lost) && (x.end_lost_at == y.end_lost_at) &&
+         (x.plane_lost_at == y.plane_lost_at) && (x.lost == y.lost);
+  is_equal = is_equal && is_all_equal(x.t1_with_RF, y.t1_with_RF);
+  is_equal = is_equal && is_all_equal(x.t1_no_RF, y.t1_no_RF);
+  return is_equal;
 }
 
 bool operator== (const C_anormal_mode& x, const C_anormal_mode& y) {
@@ -194,10 +213,17 @@ bool operator== (const C_linac_normal_mode& x, const C_linac_normal_mode& y) {
 };
 
 bool operator== (const C_normal_modes& x, const C_normal_modes& y) {
-  return is_all_equal(x.synch_int == y.synch_int) && (x.sigE_E == y.sigE_E) && 
-         (x.sig_z == y.sig_z) && (x.e_loss == y.e_loss) && 
-         (x.pz_aperture == y.pz_aperture) && (x.a == y.a) && 
-         (x.b == y.b) && (x.z == y.z) && (x.lin == y.lin);
+  bool is_equal = true;
+  is_equal = is_equal && is_all_equal(x.synch_int == y.synch_int);
+  is_equal = is_equal && (x.sigE_E == y.sigE_E);
+  is_equal = is_equal && (x.sig_z == y.sig_z);
+  is_equal = is_equal && (x.e_loss == y.e_loss);
+  is_equal = is_equal && (x.pz_aperture == y.pz_aperture);
+  is_equal = is_equal && (x.a == y.a);
+  is_equal = is_equal && (x.b == y.b);
+  is_equal = is_equal && (x.z == y.z);
+  is_equal = is_equal && (x.lin == y.lin);
+  return is_equal;
 }
 
 bool operator== (const C_branch& x, const C_branch& y) {
@@ -219,7 +245,8 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
       (x.default_ds_step == y.default_ds_step) &&  
       (x.canonical_coords == y.canonical_coords) && 
       (x.significant_longitudinal_length == y.significant_longitudinal_length) && 
-      (x.sr_wakes_on == y.sr_wakes_on) &&  (x.lr_wakes_on == y.lr_wakes_on) &&  
+      (x.sr_wakes_on == y.sr_wakes_on) && 
+      (x.lr_wakes_on == y.lr_wakes_on) &&  
       (x.mat6_track_symmetric ==  y.mat6_track_symmetric) &&
       (x.auto_bookkeeper == y.auto_bookkeeper) &&
       (x.coherent_synch_rad_on == y.coherent_synch_rad_on) &&
@@ -231,9 +258,7 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
       (x.absolute_time_tracking_default == y.absolute_time_tracking_default) &&
       (x.rf_auto_scale_phase_default == y.rf_auto_scale_phase_default) &&
       (x.rf_auto_scale_amp_default == y.rf_auto_scale_amp_default) &&
-      (x.be_thread_safe == y.be_thread_safe) &&
-      (x.dummy == y.dummy)
-      ;
+      (x.be_thread_safe == y.be_thread_safe);
 }
 
 bool operator== (const C_em_field& x, const C_em_field& y) {
