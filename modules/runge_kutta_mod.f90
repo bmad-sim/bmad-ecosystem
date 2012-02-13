@@ -319,7 +319,7 @@ orb_out%p0c = orb_in%p0c
 if (dvec(6) == 0) then
   orb_out%beta = orb_in%beta
 else
-  call convert_pc_to (orb_in%p0c * (1 + orb_in%vec(6)), param%particle, beta = orb_out%beta)
+  call convert_pc_to (orb_out%p0c * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
 endif
 
 end subroutine
