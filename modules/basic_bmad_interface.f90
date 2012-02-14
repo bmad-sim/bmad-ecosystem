@@ -521,15 +521,15 @@ interface
 end interface
 
 interface
-  subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
+  subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, &
                     dt1, local_ref_frame, track)
     use bmad_struct, only: rp, track_struct, coord_struct, ele_struct, lat_param_struct
    implicit none
-    type (coord_struct), intent(in) :: start
+    type (coord_struct), intent(inout) :: orb
     type (ele_struct) , target :: ele
     type (lat_param_struct), target ::  param
-    type (coord_struct), intent(out) :: end
     real(rp), intent(in) :: s1, s2, dt1
+    real(rp) :: t_rel
     logical, target :: local_ref_frame
     type (track_struct), optional :: track
   end subroutine

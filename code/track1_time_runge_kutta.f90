@@ -30,7 +30,7 @@ end module track1_time_runge_kutta_mod
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+ 
-! Subroutine track1_time_runge_kutta(start, ele, param, end, track)
+! Subroutine track1_time_runge_kutta(start_orb, ele, param, end_orb, track)
 !
 ! Routine to track a particle through an element using 
 ! Runge-Kutta time-based tracking. Converts to and from element
@@ -44,7 +44,7 @@ end module track1_time_runge_kutta_mod
 !   use time_tracker_mod
 !
 ! Input:
-!   start                  -- coord_struct: starting position, t-based global
+!   start_orb                  -- coord_struct: starting position, t-based global
 !   ele                    -- ele_struct: element
 !    %value                -- real(rp): attribute values
 !    %ref_time             -- real(rp): time ref particle passes exit end
@@ -53,7 +53,7 @@ end module track1_time_runge_kutta_mod
 !    %particle             -- integer: positron$, electron$, etc.  
 !
 ! Output:
-!   end     -- coord_struct: end position, t-based global
+!   end_orb     -- coord_struct: end position, t-based global
 !   track   -- track_struct (optional): particle path
 !   param   -- lat_param_struct: lattice parameters
 !    %particle             -- integer: positron$, electron$, etc.  
@@ -61,7 +61,7 @@ end module track1_time_runge_kutta_mod
 !-
 
 
-subroutine track1_time_runge_kutta (start, ele, param, end, track)
+subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, track)
 
 use time_tracker_mod
 use em_field_mod
@@ -71,48 +71,47 @@ use track1_mod
 
 implicit none
 
-type (coord_struct) :: start, start2, end
+type (coord_struct) :: start_orb, end_orb
 type (coord_struct) :: ele_origin
 type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp)  dt_step, ref_time, vec6
+real(rp)  dt_step, ref_time, vec6, s_rel, t_rel
 
 character(30), parameter :: r_name = 'track1_time_runge_kutta'
 
 logical :: local_ref_frame = .true.
+logical :: abs_time
 
 !---------------------------------
 !Reset particle lost status
 param%lost = .False.
 
+end_orb = start_orb
+
 !If element has zero length, skip tracking
 if (ele%value(l$) .eq. 0) then
-  end = start
   
   !If saving tracks, allocate track array and save one point
   if ( present(track) ) then
    !Convert to global-s to local-t coordinates
-    call convert_particle_coordinates_s_to_t(end)
+    call convert_particle_coordinates_s_to_t(end_orb)
     !convert to element coordinates for track_struct
-    end%t = end%t - ele%ref_time
-    end%s = end%s - ele%s
-    end%vec(5) = end%s
+    end_orb%t = end_orb%t - ele%ref_time
+    end_orb%s = end_orb%s - ele%s
+    end_orb%vec(5) = end_orb%s
     call init_saved_orbit (track, 0)
     track%n_pt = 0
-    track%orb(0) = end
+    track%orb(0) = end_orb
     !Restore s and t to continue tracking
-    end = start
+    end_orb = start_orb
   endif
 
-  end%status = outside$
+  end_orb%status = outside$
 
   return
 end if
-
-!copy start, because following routines will maniupulate it
-start2 = start
 
 !Specify time step; assumes ele%value(ds_step$) has been set
 dt_step = ele%value(ds_step$)/c_light
@@ -121,21 +120,21 @@ dt_step = ele%value(ds_step$)/c_light
 !------
 !Convert particle to element coordinates
 
-if (start2%p0c > 0 .and.start2%status == outside$) then
+if (end_orb%p0c > 0 .and.end_orb%status == outside$) then
   !Particle is moving forward towards the entrance
-  call offset_particle(ele, param, start2, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
-  call apply_element_edge_kick (start2, ele, param, entrance_end$)
+  call offset_particle(ele, param, end_orb, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
+  call apply_element_edge_kick (end_orb, ele, param, entrance_end$)
 
-elseif (start2%status == inside$) then
+elseif (end_orb%status == inside$) then
   !Interior start, reference momentum is at the end. No edge kicks are given
-  call offset_particle(ele, param, start2, set$, set_canonical = .false., &
-                       ds_pos = start2%s - (ele%s - ele%value(l$)) )
+  call offset_particle(ele, param, end_orb, set$, set_canonical = .false., &
+                       ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
 
-elseif (start2%p0c < 0 .and. start2%status == outside$) then
+elseif (end_orb%p0c < 0 .and. end_orb%status == outside$) then
   !Particle is at the exit surface, should be moving backwards
-  call offset_particle(ele, param, start2, set$, set_canonical = .false., &
-                       ds_pos = start2%s - (ele%s - ele%value(l$)) )
-  call apply_element_edge_kick (start2, ele, param, exit_end$)
+  call offset_particle(ele, param, end_orb, set$, set_canonical = .false., &
+                       ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
+  call apply_element_edge_kick (end_orb, ele, param, exit_end$)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
@@ -144,29 +143,39 @@ else
 endif
 
 ! ele(s-based) -> ele(t-based)
-call convert_particle_coordinates_s_to_t(start2)
-!Shift s and t to ele coordinates
-start2%t = start2%t - (ele%ref_time - ele%value(delta_ref_time$))
-start2%s = start2%s - (ele%s - ele%value(l$))
-start2%vec(5) = start2%s
+call convert_particle_coordinates_s_to_t(end_orb)
+s_rel =  end_orb%s - (ele%s - ele%value(l$) )
+end_orb%vec(5) = s_rel
+
+! Absolute time tracking
+abs_time = .false.
+if (associated(ele%lat)) then
+  if (ele%lat%absolute_time_tracking) abs_time = .true.
+endif
+
+if (abs_time) then
+  t_rel = start_orb%t - (ele%ref_time - ele%value(delta_ref_time$))
+else
+  t_rel = -start_orb%vec(5) / (start_orb%beta * c_light)    ! Time
+endif
+
 
 
 !------
 !Check wall
-ele_origin%vec = (/ 0.0_rp, 0.0_rp,  0.0_rp,  0.0_rp, start2%s,  0.0_rp /)
-ele_origin%s = start2%s
-call  particle_hit_wall_check_time(ele_origin, start2, param, ele)
+ele_origin%vec = (/ 0.0_rp, 0.0_rp,  0.0_rp,  0.0_rp, s_rel,  0.0_rp /)
+call  particle_hit_wall_check_time(ele_origin, end_orb, param, ele)
 
 if (param%lost) then
 
-  end = start2
-  end%status = dead$
+  end_orb = start_orb
+  end_orb%status = dead$
    
   !Allocate track array and set value
   if ( present(track) ) then
     call init_saved_orbit (track, 0)
     track%n_pt = 0
-    track%orb(0) = end
+    track%orb(0) = end_orb
   endif
 
   call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL, SKIPPING TRACKING")
@@ -174,63 +183,54 @@ if (param%lost) then
 else
 
   !If particle passed wall check, track through element
-  call odeint_bmad_time(start2, ele, param, end, 0.0_rp, ele%value(l$), &
+  call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), t_rel, &
     dt_step, local_ref_frame, track )
 
 end if
 
 !------
-!Convert particle to global curvilinear coordinates
-
-!Shift s and t back to global values
-start2%t = start2%t + (ele%ref_time - ele%value(delta_ref_time$))
-start2%s = start2%s + (ele%s - ele%value(l$))
-end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
-end%s = end%s + (ele%s - ele%value(l$))
-
-
 !Convert back to s-based coordinates
 
-if (end%status == outside$ .and. end%vec(6) < 0) then
+if (end_orb%status == outside$ .and. end_orb%vec(6) < 0) then
   !Particle left entrance end going backwards
   !set reference time and momentum
   if (ele_has_constant_reference_energy(ele)) then
-    end%p0c = -1*ele%value(p0c$)
+    end_orb%p0c = -1*ele%value(p0c$)
   else  ! lcavity, etc.
-    end%p0c = -1*ele%value(p0c_start$)
+    end_orb%p0c = -1*ele%value(p0c_start$)
   end if
   ref_time = ele%ref_time - ele%value(delta_ref_time$)
 
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end, mass_of(param%particle), ref_time)
-  call apply_element_edge_kick (start2, ele, param, entrance_end$)
+  call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
+  call apply_element_edge_kick (end_orb, ele, param, entrance_end$)
   !unset
-  call offset_particle(ele, param, end, unset$, set_canonical = .false.)
+  call offset_particle(ele, param, end_orb, unset$, set_canonical = .false.)
 
-elseif (end%status == dead$) then
+elseif (end_orb%status == dead$) then
     !Particle is lost in the interior of the element.
     !  The reference is a the end of the element
-    if (end%vec(6) < 0) then
-      end%p0c = -1*ele%value(p0c$)
+    if (end_orb%vec(6) < 0) then
+      end_orb%p0c = -1*ele%value(p0c$)
     else 
-      end%p0c = ele%value(p0c$)
+      end_orb%p0c = ele%value(p0c$)
     end if
     ref_time = ele%ref_time
     !ele(t-based) -> ele(s-based)
-    call convert_particle_coordinates_t_to_s(end, mass_of(param%particle), ref_time)
+    call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
     !unset
-    call offset_particle(ele, param, end, unset$, set_canonical = .false., &
-                                        ds_pos = end%s - (ele%s - ele%value(l$)) )
+    call offset_particle(ele, param, end_orb, unset$, set_canonical = .false., &
+                                        ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
 
-elseif (end%status == outside$ .and. end%vec(6) .ge. 0) then
+elseif (end_orb%status == outside$ .and. end_orb%vec(6) .ge. 0) then
   !Particle left exit end going forward
-  end%p0c = ele%value(p0c$)
+  end_orb%p0c = ele%value(p0c$)
   ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end, mass_of(param%particle), ref_time)
-  call apply_element_edge_kick (start2, ele, param, exit_end$)
+  call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
+  call apply_element_edge_kick (end_orb, ele, param, exit_end$)
   !unset
-  call offset_particle(ele, param, end, unset$, set_canonical = .false.)
+  call offset_particle(ele, param, end_orb, unset$, set_canonical = .false.)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
@@ -238,7 +238,7 @@ else
 endif
 
 !Set relativistic beta
-call convert_pc_to (abs(end%p0c) * (1 + end%vec(6)), param%particle, beta = end%beta)
+call convert_pc_to (abs(end_orb%p0c) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
 
 
 end subroutine
@@ -247,7 +247,7 @@ end subroutine
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
+! Subroutine odeint_bmad_time (orb, ele, param, s1, s2, &
 !                             dt1, local_ref_frame, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
@@ -258,7 +258,7 @@ end subroutine
 !   use bmad
 !
 ! Input: 
-!   start   -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
+!   orb   -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
 !   ele     -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
@@ -279,12 +279,12 @@ end subroutine
 !     %save_track -- Logical: Set True if track is to be saved.
 !
 ! Output:
-!   end     -- Coord_struct: Ending coords: (x, px, y, py, s, ps).
+!   orb     -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
 !   track   -- Track_struct: Structure holding the track information.
 !
 !-
 
-subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
+subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel,  &
                     dt1, local_ref_frame, track)
 use track1_time_runge_kutta_mod
 use time_tracker_mod
@@ -294,20 +294,20 @@ use nr, only: zbrent
 
 implicit none
 
-type (coord_struct), intent(in) :: start
-type (coord_struct), intent(out) :: end
+type (coord_struct), intent(inout), target :: orb
 type (ele_struct) , target :: ele
 type (lat_param_struct), target ::  param
 type (track_struct), optional :: track
-
 real(rp), intent(in) :: s1, s2, dt1
+real(rp) :: t_rel
+
 real(rp), parameter :: tiny = 1.0e-30_rp, edge_tol = 1e-10
-real(rp) :: dt, dt_did, dt_next, s
-type (coord_struct), target :: orb
+real(rp) :: dt, dt_did, dt_next
 type (coord_struct), target :: orb_new
 real(rp), target  :: dvec_dt(6)
 real(rp), target  :: vec_err(6)
 real(rp), target :: s_target
+
 
 integer, parameter :: max_step = 100000
 integer :: n_step, n_pt, dn_save, n_save_count
@@ -319,7 +319,10 @@ character(30), parameter :: r_name = 'odeint_bmad_time'
 
 ! init
 dt = dt1
-orb = start
+
+! local s coordinates
+orb%vec(5) = orb%s - (ele%s - ele%value(l$))
+
 
 !Allocate track arrays
 n_pt = max_step
@@ -340,14 +343,16 @@ exit_flag = .false.
 do n_step = 1, max_step
 
   !Get initial kick vector
-  !Note that orb%s and orb%t are the relative s and t for element frame
-  call em_field_kick_vector_time (ele, param, orb%s, orb%t, orb, local_ref_frame, dvec_dt) 
+  !Note that s and t are in the element frame
+  call em_field_kick_vector_time (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, dvec_dt) 
  
   !Single Runge-Kutta step. Updates orb% vec(6), s, and t to orb_new
-  call rkck_bmad_time (ele, param, orb, dvec_dt, orb%s, orb%t, dt, orb_new, vec_err, local_ref_frame)
+  call rkck_bmad_time (ele, param, orb, dvec_dt, orb%vec(5), t_rel, dt, orb_new, vec_err, local_ref_frame)
+  ! t_rel needs to be stepped separately 
+  t_rel = t_rel + dt
 
   !Check entrance and exit faces
-  if ( orb_new%s > s2 ) then
+  if ( orb_new%vec(5) > s2 ) then
    exit_flag = .true.
    s_target = s2
    orb_new%status = outside$
@@ -365,17 +370,15 @@ do n_step = 1, max_step
    dt = zbrent (delta_s_target, 0.0_rp, dt, 1d-18)
 
    !ensure that particle has actually exited after zbrent
-   if (orb_new%s < s2) then
-      orb_new%s = 2*s2 - orb_new%s
-      orb_new%vec(5) = orb_new%s
+   if (orb_new%vec(5) < s2) then
+      orb_new%vec(5) = 2*s2 - orb_new%s
    end if
-   if (abs(s2 - orb_new%s) < edge_tol) then
-     orb_new%s = s2 + edge_tol
-     orb_new%vec(5) = orb_new%s
+   if (abs(s2 - orb_new%vec(5)) < edge_tol) then
+     orb_new%vec(5) = s2 + edge_tol
    end if
  
   
-  else if ( orb_new%s < s1 ) then
+  else if ( orb_new%vec(5) < s1 ) then
     exit_flag = .true. 
     s_target = s1
     orb_new%status = outside$ 
@@ -393,13 +396,11 @@ do n_step = 1, max_step
     dt = zbrent (delta_s_target, dt, 0.0_rp, 1d-18)
 
     ! ensure that particle has actually exited after zbrent
-    if (orb_new%s > s1) then
-      orb_new%s = 2*s1 - orb_new%s
-      orb_new%vec(5) = orb_new%s
+    if (orb_new%vec(5) > s1) then
+      orb_new%vec(5) = 2*s1 - orb_new%s
     end if
     if (abs(s1 - orb_new%s) < edge_tol) then
-      orb_new%s = s1 - edge_tol
-      orb_new%vec(5) = orb_new%s
+      orb_new%vec(5) = s1 - edge_tol
     endif
 
   else
@@ -426,10 +427,10 @@ do n_step = 1, max_step
     end if
   endif
 
-  !Exit when the particle hits surface s1 or s2, or hits wall
+  ! Exit when the particle hits surface s1 or s2, or hits wall
   if (exit_flag) then
-     end = orb_new   !Return last orb_new that zbrent calculated
-     !exit routine
+     orb = orb_new   !Return last orb_new that zbrent calculated
+     ! exit routine
      return
   endif
 
@@ -440,7 +441,7 @@ if (bmad_status%type_out) then
   call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
   !print *, '  Skipping particle; coordinates will not be saved'
   orb_new%status = inside$
-  end = orb_new     !Return last coordinate
+  orb = orb_new     !Return last coordinate
   return
 end if
 if (bmad_status%exit_on_error) call err_exit
@@ -452,7 +453,7 @@ end subroutine odeint_bmad_time
 !-------------------------------------------------------------------------
 subroutine rkck_bmad_time (ele, param, orb, dr_ds, s, t, h, orb_new, r_err, local_ref_frame)
 !Very similar to rkck_bmad, except that em_field_kick_vector_time is called
-!  and orb_new%s and %t are updated
+!  and orb_new%s and %t are updated to the global values
 
 use bmad
 use time_tracker_mod
@@ -496,8 +497,10 @@ orb_temp%vec = orb%vec +h*(b61*dr_ds+b62*ak2+b63*ak3+b64*ak4+b65*ak5)
 call em_field_kick_vector_time(ele, param, s+a6*h, t, orb_temp, local_ref_frame, ak6)
 !Output new orb and error vector
 orb_new%vec = orb%vec +h*(c1*dr_ds+c3*ak3+c4*ak4+c6*ak6)
+!Step global t and s
 orb_new%t = orb%t + h
-orb_new%s = orb_new%vec(5)
+orb_new%s = orb%s + orb_new%vec(5) - orb%vec(5)
+
 r_err=h*(dc1*dr_ds+dc3*ak3+dc4*ak4+dc5*ak5+dc6*ak6)
 
 end subroutine rkck_bmad_time
@@ -563,9 +566,8 @@ now_orb = orb_new
 !If now_orb is before element, change it
 !We can do this because it can't hit the element wall outside of the
 !element, and these do not affect tracks
-if (now_orb%s < 0) then
-   now_orb%s = 0
-   now_orb%vec(5) = now_orb%s
+if (now_orb%vec(5) < 0) then
+   now_orb%vec(5) = 0
 end if
 
 
