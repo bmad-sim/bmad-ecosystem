@@ -31,7 +31,8 @@ is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin)) .and. &
         (f1%e_field_x == f2%e_field_x) .and. (f1%e_field_y == f2%e_field_y) .and. &
         (f1%phase_x == f2%phase_x) .and. (f1%phase_y == f2%phase_y) .and. & 
         (f1%charge == f2%charge) .and. (f1%p0c == f2%p0c) .and. &
-        (f1%ix_z == f2%ix_z) .and. (f1%status == f2%status)
+        (f1%beta == f2%beta) .and. (f1%ix_z == f2%ix_z) .and. &
+        (f1%ix_lost == f2%ix_lost) .and. (f1%status == f2%status)
         
 
 end function eq_coord
@@ -629,6 +630,7 @@ endif
 is_eq = is_eq .and. (f1%map_ref_orb_in == f2%map_ref_orb_in)
 is_eq = is_eq .and. (f1%map_ref_orb_out == f2%map_ref_orb_out) 
 is_eq = is_eq .and. (associated(f1%ptc_genfield) .eqv. associated(f2%ptc_genfield));  if (.not. is_eq) return 
+is_eq = is_eq .and. eq_bookkeeper_status(f1%status, f2%status) 
 do i = 1, size(f1%taylor)
   if (.not. (f1%taylor(i) == f2%taylor(i))) then; is_eq = .false.; return; endif
 enddo
@@ -673,10 +675,10 @@ if (associated(f1%const)) then
 endif
 is_eq = is_eq .and. (f1%key == f2%key)
 is_eq = is_eq .and. (f1%sub_key == f2%sub_key) 
-is_eq = is_eq .and. (f1%slave_status == f2%slave_status) 
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
 is_eq = is_eq .and. (f1%ix_value == f2%ix_value)
+is_eq = is_eq .and. (f1%slave_status == f2%slave_status) 
 is_eq = is_eq .and. (f1%n_slave == f2%n_slave)
 is_eq = is_eq .and. (f1%ix1_slave == f2%ix1_slave) 
 is_eq = is_eq .and. (f1%ix2_slave == f2%ix2_slave)
@@ -688,17 +690,18 @@ is_eq = is_eq .and. (f1%ix_pointer == f2%ix_pointer)
 is_eq = is_eq .and. (f1%ixx == f2%ixx) 
 is_eq = is_eq .and. (f1%mat6_calc_method == f2%mat6_calc_method) 
 is_eq = is_eq .and. (f1%tracking_method == f2%tracking_method) 
+is_eq = is_eq .and. (f1%spin_tracking_method == f2%spin_tracking_method) 
 is_eq = is_eq .and. (f1%field_calc == f2%field_calc)
 is_eq = is_eq .and. (f1%ref_orbit == f2%ref_orbit)
 is_eq = is_eq .and. (f1%aperture_at == f2%aperture_at)
 is_eq = is_eq .and. (f1%aperture_type == f2%aperture_type) 
-is_eq = is_eq .and. eq_bookkeeper_status(f1%status, f2%status) 
 is_eq = is_eq .and. (f1%symplectify .eqv. f2%symplectify) 
 is_eq = is_eq .and. (f1%mode_flip .eqv. f2%mode_flip)
 is_eq = is_eq .and. (f1%multipoles_on .eqv. f2%multipoles_on) 
 is_eq = is_eq .and. (f1%scale_multipoles .eqv. f2%scale_multipoles) 
 is_eq = is_eq .and. (f1%map_with_offsets .eqv. f2%map_with_offsets)
 is_eq = is_eq .and. (f1%field_master .eqv. f2%field_master) 
+is_eq = is_eq .and. (f1%reversed .eq. f2%reversed)
 is_eq = is_eq .and. (f1%is_on .eqv. f2%is_on)
 is_eq = is_eq .and. (f1%old_is_on .eqv. f2%old_is_on) 
 is_eq = is_eq .and. (f1%logic .eqv. f2%logic)

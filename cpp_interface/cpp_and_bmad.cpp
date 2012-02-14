@@ -18,6 +18,20 @@ template <class T> void operator<< (valarray< valarray<T> >& mat, const T* ptr) 
   }
 }
 
+template <class T> void operator<< (valarray< valarray< valarray<T> > >& tensor, const T* ptr) {
+  int n1 = tensor.size();
+  if (n1 == 0) return;
+  int n2 = tensor[0].size();
+  int n3 = tensor[0][0].size();
+  for (int i = 0; i < n1; i++) {
+    for (int j = 0; j < n2; j++) {
+      for (int k = 0; k < n3; k++) {
+        tensor[i][j][k] = ptr[i*n2*n3 + j*n3 + k];
+      }
+    }
+  }
+}
+
 template <class T> void operator<< (valarray<T>& arr1, const valarray<T>& arr2) {
   int n1 = arr1.size(), n2 = arr2.size();
   if (n1 != n2) arr1.resize(n2);
@@ -36,8 +50,11 @@ template <class T> void operator<< (valarray< valarray<T> >& mat1,
 }
 
 //---------------------------------------------------------------------------
+// Instantiate needed template instances.
+
  template void operator<< (Real_Array&, const double*);
  template void operator<< (Real_Matrix&, const double*);
+ template void operator<< (Real_Tensor&, const double*);
  template void operator<< (Int_Array&, const int*);
 
  template void operator<< (Real_Array&, const Real_Array&);
@@ -56,6 +73,22 @@ void matrix_to_array (const Real_Matrix& mat, double* arr) {
   for (int i = 0; i < n1; i++) {
     for (int j = 0; j < n2; j++) {
       arr[i*n2+j] = mat[i][j];
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
+
+void tensor_to_array (const Real_Tensor& tensor, double* arr) {
+  int n1 = tensor.size();
+  if (n1 == 0) return;
+  int n2 = tensor[0].size();
+  int n3 = tensor[0][0].size();
+  for (int i = 0; i < n1; i++) {
+    for (int j = 0; j < n2; j++) {
+      for (int k = 0; k < n3; k++) {
+        arr[i*n2*n3 + j*n3 + k] = tensor[i][j][k];
+      }
     }
   }
 }
@@ -421,26 +454,26 @@ void operator>> (control_struct* f, C_control& c) {
 // lat_param
 
 extern "C" void lat_param_to_f2_(lat_param_struct*, Re&, Re&, Re&, ReArr, ReArr, 
-                               Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
+                               Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
 extern "C" void lat_param_to_f_(C_lat_param& c, lat_param_struct* f) {
   double arr1[36], arr2[36];
   matrix_to_array (c.t1_with_RF, arr1);
   matrix_to_array (c.t1_no_RF, arr2);
   lat_param_to_f2_(f, c.n_part, c.total_length, c.unstable_factor,
-      arr1, arr2, c.particle, c.lattice_type, c.ixx, c.stable, c.aperture_limit_on, 
+      arr1, arr2, c.particle, c.lattice_type, c.ixx, c.stable, c.aperture_limit_on, 0,
       c.ix_lost, c.end_lost_at, c.plane_lost_at, c.lost);
 }
 
 extern "C" void lat_param_to_c2_(C_lat_param& c, Re& np, Re& total_l, 
       Re& growth_r, ReArr t1_with, ReArr t1_no, Int& part, 
-      Int& lattice_type, Int& ixx, Int& stable, Int& ap_lim, 
-      Int& ixl, Int& end_lost, Int& plane_lost, Int& lost) {
+      Int& lattice_type, Int& ixx, Int& stable, Int& ap_lim, Int& status, 
+      Int& ix_lost, Int& end_lost, Int& plane_lost, Int& lost) {
   static Real_Matrix m1(M6_mat), m2(M6_mat);
   m1 << t1_with;
   m2 << t1_no;
   c = C_lat_param(np, total_l, growth_r, m1, m2, part, 
-          lattice_type, ixx, stable, ap_lim, 0, ixl, end_lost, plane_lost, lost);
+          lattice_type, ixx, stable, ap_lim, 0, ix_lost, end_lost, plane_lost, lost);
 }
 
 void operator>> (C_lat_param& c, lat_param_struct* f) {
@@ -528,29 +561,28 @@ void operator>> (normal_modes_struct* f, C_normal_modes& c) {
 
 extern "C" void bmad_com_to_f2_(Re&, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, 
      Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
-     Int&, Int&);
+     Int&, Int&, Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
   bmad_com_to_f2_(c.max_aperture_limit, &c.d_orb[0],
-    c.significant_longitudinal_length, c.rel_tolerance, 
+    c.default_ds_step, c.significant_longitudinal_length, c.rel_tolerance, 
     c.abs_tolerance, c.rel_tol_adaptive_tracking, c.abs_tol_adaptive_tracking, 
     c.taylor_order, c.default_integ_order, c.canonical_coords, 
     c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
-    c.auto_bookkeeper, c.coherent_synch_rad_on, 
+    c.auto_bookkeeper, c.space_charge_on, c.coherent_synch_rad_on, 
     c.spin_tracking_on, c.radiation_damping_on, c.radiation_fluctuations_on, 
     c.conserve_taylor_maps, c.use_ptc_layout_default, c.absolute_time_tracking_default, 
     c.rf_auto_scale_phase_default, c.rf_auto_scale_amp_default,
-    c.be_thread_safe, c.dummy);
+    c.be_thread_safe);
 }
 
 extern "C" void bmad_com_to_c2_(C_bmad_com& c, 
               Re& ap, ReArr orb, Re& ds, Re& significant, Re& rel, Re& abs,  
               Re& rel_adapt, Re& abs_adapt, 
               Int& to, Int& dflt_ord, Int& cc, 
-              Int& sr, Int& lr, Int& sym, Int& a_book, Int& csr_on, 
+              Int& sr, Int& lr, Int& sym, Int& a_book, Int& space_charge, Int& csr_on, 
               Int& st_on, Int& rad_d, Int& rad_f, Int& con_t, Int& use_ptc_layout,
-              Int& abs_time_track, Int& rf_auto_phase, Int& rf_auto_amp, Int& be_thread,
-              Int& dummy) {
+              Int& abs_time_track, Int& rf_auto_phase, Int& rf_auto_amp, Int& be_thread) {
   c.max_aperture_limit               = ap;
   c.d_orb                            << orb;
   c.default_ds_step                  = ds;
@@ -566,6 +598,7 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
   c.lr_wakes_on                      = lr;
   c.mat6_track_symmetric             = sym;
   c.auto_bookkeeper                  = a_book;
+  c.space_charge_on                  = space_charge;
   c.coherent_synch_rad_on            = csr_on;
   c.spin_tracking_on                 = st_on;
   c.radiation_damping_on             = rad_d;
@@ -576,7 +609,6 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
   c.rf_auto_scale_phase_default      = rf_auto_phase;
   c.rf_auto_scale_amp_default        = rf_auto_amp;
   c.be_thread_safe                   = be_thread;
-  c.dummy                            = dummy;
 }
 
 //---------------------------------------------------------------------------
@@ -612,7 +644,7 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
   C_floor_position&, C_coord&, C_coord&, void*, 
   C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, 
   Int&, ReArr, ReArr, ReArr, ReArr, ReArr,
-  Re&, Re&, Re&, ReArr, Int&, Int&, 
+  Re&, Re&, Re&, ReArr, Int&, Int&, Int&,
   ReArr, ReArr, Int&, ReArr, Int&, 
   Int&, Int&, Int&, Int&, Int&,                        // key
   Int&, Int&, Int&, Int&,                              // slave_status
@@ -633,21 +665,22 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
                                     int n_component = c.component_name.length();
   int n_ab = c.a_pole.size(), n_const = c.const_arr.size();
   int n_wig = c.wig_term.size();
-  int nr1 = c.r.size(), nr2 = 0;
+  int nr1 = c.r.size(), nr2 = 0, nr3 = 0;
   if (nr1) {
     nr2 = c.r[0].size();
+    nr3 = c.r[0][0].size();
   }
   double mat6[36], c_mat[4];
-  double *r_arr = new double[nr1*nr2];  
+  double *r_arr = new double[nr1*nr2*nr3];  
   matrix_to_array (c.mat6, mat6);
   matrix_to_array (c.c_mat, c_mat);
-  matrix_to_array (c.r, r_arr);
+  tensor_to_array (c.r, r_arr);
   ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, component, n_component, descrip, n_descrip, 
     c.a, c.b, c.z, c.x, c.y, 
     c.floor, c.map_ref_orb_in, c.map_ref_orb_out, c.gen_field,  
     c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], 
     n_wig, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat,
-    c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, 
+    c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, nr3, 
     &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], n_const, 
     c.key, c.sub_key, c.ix_ele, c.ix_branch, c.ix_value, 
     c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
@@ -672,7 +705,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
     Int& n_wig, ReArr val, ReArr gen0, ReArr vec0,
     ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, Re& ref_t, 
-    ReArr r_arr, Int& nr1, Int& nr2, ReArr a_pole, ReArr b_pole, Int& n_ab, ReArr const_arr, Int& n_const, 
+    ReArr r_arr, Int& nr1, Int& nr2, Int& nr3, ReArr a_pole, ReArr b_pole, Int& n_ab, ReArr const_arr, Int& n_const, 
     Int& key, Int& sub_key, Int& ix_ele, Int& ix_branch, Int& ix_value,  
     Int& slave_status, Int& n_slave, Int& ix1_s, Int& ix2_s, 
     Int& lord_status, Int& n_lord, Int& ic1_l, Int& ic2_l, 
@@ -705,13 +738,25 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.s                     = s; 
   c.ref_time              = ref_t;
 
-  if (nr1*nr2 == 0) {
+  if (nr1*nr2*nr3 == 0) {
     if (!c.r.size()) c.r.resize(0);
   } else {
     if (!(c.r.size() == nr1)) c.r.resize(nr1);
+
     if (!(c.r[0].size() == nr2)) {
-      for (int i = 0; i < nr1; i++) c.r[i].resize(nr2);
+      for (int i = 0; i < nr1; i++) {
+        c.r[i].resize(nr2);
+      }
     }
+    
+    if (!(c.r[0][0].size() == nr3)) {
+      for (int i = 0; i < nr1; i++) {
+        for (int j = 0; j < nr2; j++) {
+          c.r[i][j].resize(nr3);
+        }
+      }
+    }
+
     c.r << r_arr;
   }
 
@@ -824,6 +869,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
 
   mat6_calc_method      = c.mat6_calc_method;
   tracking_method       = c.tracking_method;
+  spin_tracking_method  = c.spin_tracking_method;
   field_calc            = c.field_calc;
   ref_orbit             = c.ref_orbit;
   aperture_at           = c.aperture_at;
