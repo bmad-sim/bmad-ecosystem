@@ -41,6 +41,8 @@ typedef valarray<int>                   Int_Array;
 typedef valarray<Real_Array>            Real_Matrix;
 typedef valarray<Bool_Array>            Bool_Matrix;
 
+typedef valarray<Real_Matrix>           Real_Tensor;
+
 typedef valarray<C_taylor_term>         C_taylor_term_array;
 typedef valarray<C_wig_term>            C_wig_term_array;
 typedef valarray<C_rf_wake_sr_table>    C_rf_wake_sr_table_array;
@@ -838,9 +840,35 @@ public:
   bool rf_auto_scale_phase_default;
   bool rf_auto_scale_amp_default;
   bool be_thread_safe;
-  bool dummy;
 
-  C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
+  C_bmad_com () : 
+      max_aperture_limit(0),   
+      d_orb(double(0), 6),
+      default_ds_step(0),
+      significant_longitudinal_length(0),
+      rel_tolerance(0), 
+      abs_tolerance(0), 
+      rel_tol_adaptive_tracking(0),
+      abs_tol_adaptive_tracking(0),
+      taylor_order(0),
+      default_integ_order(0),
+      canonical_coords(false),
+      sr_wakes_on(false),
+      lr_wakes_on(false),
+      mat6_track_symmetric(false),
+      auto_bookkeeper(false),
+      space_charge_on(false),
+      coherent_synch_rad_on(false),
+      spin_tracking_on(false),
+      radiation_damping_on(false),
+      radiation_fluctuations_on(false),
+      conserve_taylor_maps(false),
+      use_ptc_layout_default(false),
+      absolute_time_tracking_default(false),
+      rf_auto_scale_phase_default(false),
+      rf_auto_scale_amp_default(false),
+      be_thread_safe(false)
+  {};
 
 };    // End Class
 
@@ -956,7 +984,7 @@ public:
   double gamma_c;               // gamma associated with C matrix
   double s;                     // longitudinal position at the end
   double ref_time;              // Time ref particle passes exit end.
-  Real_Matrix r;                // For general use. Not used by Bmad.
+  Real_Tensor r;                // For general use. Not used by Bmad.
   Real_Array a_pole;            // multipole
   Real_Array b_pole;            // multipoles
   Real_Array const_arr;         // Working constants.
