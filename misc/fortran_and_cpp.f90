@@ -6,6 +6,36 @@ type c_dummy_struct
   real(rp) dummy
 end type
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine remove_null_in_string 
+! 
+! This is an overloaded routine for:
+!   remove_null_in_string_char (str_char, str_out)
+!   remove_null_in_string_arr (str_arr, str_out)
+!
+! Routine to convert a null character in a string to a blank.
+! All characters thereafter are similarly converted.
+! This is useful for converting a C style string to Fortran.
+! If there is no null character then str_out = str_in.
+!
+! Modules needed:
+!  use fortran_and_cpp
+!
+! Input:
+!   str_char   -- Character(*): Input string with null character.
+!   str_arr(*) -- Character(1): Input array of null terminated character(1) characters.
+!
+! Output:
+!   str_out -- Character(*): String with null character converted.
+!-
+
+interface remove_null_in_string
+  module procedure remove_null_in_string_char
+  module procedure remove_null_in_string_arr
+end interface
+
 contains
 
 !-----------------------------------------------------------------------------
@@ -140,12 +170,48 @@ end function i_size
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine remove_null_in_string (str_in, str_out)
+! Subroutine remove_null_in_string_arr (str_in, str_out)
 ! 
-! Routine to convert a null character in a string to a blank.
-! All characters thereafter are similarly converted.
-! This is useful for converting a C style string to Fortran.
-! If there is no null character then str_out = str_in.
+! This routine overloaded by:
+!        remove_null_in_string
+! See remove_null_in_string for more details.
+!
+! Modules needed:
+!  use fortran_and_cpp
+!
+! Input:
+!   str_in(*) -- Character(1): Input character array. Null terminated.
+!
+! Output:
+!   str_out -- Character(*): String with null character converted.
+!-
+
+subroutine remove_null_in_string_arr (str_in, str_out)
+
+implicit none
+
+character(1) str_in(*)
+character(*) str_out
+integer ix
+
+!
+
+str_out = ''
+do ix = 1, 32000
+  if (str_in(ix) == char(0)) return
+  str_out(ix:ix) = str_in(ix)
+enddo
+
+end subroutine remove_null_in_string_arr
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine remove_null_in_string_char (str_in, str_out)
+! 
+! This routine overloaded by:
+!        remove_null_in_string
+! See remove_null_in_string for more details.
 !
 ! Modules needed:
 !  use fortran_and_cpp
@@ -157,7 +223,7 @@ end function i_size
 !   str_out -- Character(*): String with null character converted.
 !-
 
-subroutine remove_null_in_string (str_in, str_out)
+subroutine remove_null_in_string_char (str_in, str_out)
 
 implicit none
 
@@ -173,7 +239,7 @@ else
   str_out = str_in(1:ix-1)
 endif
 
-end subroutine remove_null_in_string
+end subroutine remove_null_in_string_char
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
