@@ -162,6 +162,7 @@ type (taylor_struct) :: map(:)
 type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt => null()
 type (ele_struct), target, save :: runt_save
+type (ele_struct), target, save :: runt_nosave
 
 real(rp) s_1, s_2, s_now, s_end, ds
 
@@ -175,7 +176,6 @@ logical, save :: old_track_end = .false.
 
 call ele_at_s (lat, s_1, ix_ele, branch%ix_branch)
 s_now = s_1
-if (bmad_com%be_thread_safe) nullify(runt)
 
 ! Loop over all the element to track through.
 
@@ -199,7 +199,7 @@ do
   if (track_entire_ele) then
     runt => ele
   elseif (bmad_com%be_thread_safe) then
-    if (.not. associated(runt)) allocate (runt)
+    runt => runt_nosave
     runt = ele
   else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
     runt_save = ele
@@ -265,9 +265,8 @@ enddo
 
 ! Cleanup
 
-if (.not. track_entire_ele .and. bmad_com%be_thread_safe) then
-  call deallocate_ele_pointers (runt)
-  deallocate (runt)
+if (bmad_com%be_thread_safe) then
+  call deallocate_ele_pointers (runt_nosave)
 endif
 
 end subroutine transfer_this_map
@@ -406,6 +405,7 @@ type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt
 type (ele_struct), target, save :: runt_save
+type (ele_struct), target :: runt_nosave
 
 real(rp) mat6(:,:), vec0(:)
 real(rp) s_1, s_2, s_end, s_now, ds
@@ -420,7 +420,6 @@ logical, save :: old_track_end = .false.
 
 call ele_at_s (lat, s_1, ix_ele, branch%ix_branch)
 s_now = s_1
-if (bmad_com%be_thread_safe) nullify(runt)
 
 ! Loop over all the element to track through.
 
@@ -444,7 +443,7 @@ do
   if (track_entire_ele) then
     runt => ele
   elseif (bmad_com%be_thread_safe) then
-    if (.not. associated(runt)) allocate (runt)
+    runt => runt_nosave
     runt = ele
   else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
     runt_save = ele
@@ -503,9 +502,8 @@ enddo
 
 ! Cleanup
 
-if (.not. track_entire_ele .and. bmad_com%be_thread_safe) then
+if (bmad_com%be_thread_safe) then
   call deallocate_ele_pointers (runt)
-  deallocate (runt)
 endif
 
 end subroutine transfer_this_mat
