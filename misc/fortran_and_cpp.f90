@@ -40,7 +40,7 @@ else
   c_log = 0
 endif
 
-end function
+end function c_logic
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -74,7 +74,7 @@ else
   f_log = .true.
 endif
 
-end function
+end function f_logic
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -104,7 +104,7 @@ integer this_size
 this_size = 0
 if (associated(ptr)) this_size = size(ptr)
 
-end function
+end function r_size
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -135,7 +135,7 @@ integer this_size
 this_size = 0
 if (associated(ptr)) this_size = size(ptr)
 
-end function
+end function i_size
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -203,7 +203,7 @@ character(len_trim(str)+1) c_string
 
 c_string = trim(str) // char(0)
 
-end function
+end function c_str
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -236,7 +236,40 @@ integer i, j, n1, n2
 n1 = size(mat, 1); n2 = size(mat, 2)
 forall (i = 1:n1, j = 1:n2) arr(n2*(i-1) + j) = mat(i,j)
  
-end function
+end function mat2arr
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function tensor2arr (tensor) result (arr)
+!
+! Function to take a tensorrix and turn it into an array:
+!   arr(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
+! where n2 = size(tensor,2).
+! This is used for passing tensorrices to C++ routines.
+!
+! Modules needed:
+!  use fortran_and_cpp
+!
+! Input:
+!   tensor(:,:)  -- Real(rp): Input tensorrix
+!
+! Output:
+!   arr(:)   -- Real(rp): Output array 
+!-
+
+function tensor2arr (tensor) result (arr)
+
+implicit none
+
+real(rp) tensor(:,:,:)
+real(rp) arr(size(tensor))
+integer i, j, k, n1, n2, n3
+
+n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
+forall (i = 1:n1, j = 1:n2, k = 1:n3) arr(n3*n2*(i-1) + n3*(j-1) + k) = tensor(i,j,k)
+ 
+end function tensor2arr
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -269,7 +302,41 @@ real(rp) mat(n1,n2)
 
 forall (i = 1:n1, j = 1:n2) mat(i,j) = arr(n2*(i-1) + j) 
  
-end function
+end function arr2mat
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function arr2tensor (arr, n1, n2, n3) result (tensor)
+!
+! Function to take a an array and turn it into a tensor:
+!   tensor(i,j) = arr(n3*n2*(i-1) + n3*j + k) 
+! This is used for getting tensorrices from C++ routines.
+!
+! Modules needed:
+!  use fortran_and_cpp
+!
+! Input:
+!   arr(:)   -- Real(rp): Input array.
+!   n1       -- Integer: Size of first tensor index.
+!   n2       -- Integer: Size of second tensor index.
+!   n3       -- Integer: Size of third tensor index.
+!
+! Output:
+!   tensor(n1,n2,n3)  -- Real(rp): Output tensor.
+!-
+
+function arr2tensor (arr, n1, n2, n3) result (tensor)
+
+implicit none
+
+integer i, j, k, n1, n2, n3
+real(rp) arr(:)
+real(rp) tensor(n1,n2,n3)
+
+forall (i = 1:n1, j = 1:n2, k = 1:n3) tensor(i,j,k) = arr(n3*n2*(i-1) + n3*(j-1) + k) 
+ 
+end function arr2tensor
 
 end module
 
@@ -305,4 +372,4 @@ character(n_out) string_out
 
 string_out = string_in
 
-end subroutine
+end subroutine set_string
