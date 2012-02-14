@@ -1426,6 +1426,9 @@ f%type  = typ
 f%alias = ali
 f%component_name = component_nam
 
+call str_upcase (f%name, f%name)
+call str_upcase (f%component_name, f%component_name)
+
 if (n_des == 0) then
   if (associated (f%descrip)) deallocate (f%descrip)
 else
