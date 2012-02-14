@@ -273,9 +273,9 @@ ele_loop: do ie = ix_start, ix_end
     call value_to_line (line, 1e-6*ele%em_field%mode(1)%freq, 'freq', rfmt, 'R')
   
     ! Write phase in rad
-    phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
+    phase_lag = -1*twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
     ! OPAL only autophases for maximum acceleration, so adjust the lag for 'zero-crossing' 
-    if (ele%key == rfcavity$) phase_lag = phase_lag + twopi*( ele%value(dphi0_max$) - ele%em_field%mode(1)%dphi0_ref )
+    if (ele%key == rfcavity$) phase_lag = phase_lag - twopi*( ele%value(dphi0_max$) - ele%em_field%mode(1)%dphi0_ref )
     ! The e_gun needs phase_lag to be pi/2 for some reason
     if (ele%key == e_gun$) phase_lag = pi/2
     call value_to_line (line, phase_lag, 'lag', rfmt, 'R')
