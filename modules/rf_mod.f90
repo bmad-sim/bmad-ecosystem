@@ -66,7 +66,7 @@ type (lat_param_struct), target :: param
 
 real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
-real(rp) value_saved(n_attrib_maxx), dphi0_ref_original, pz_arr(0:3)
+real(rp) value_saved(n_attrib_maxx), dphi0_ref_original, pz_arr(0:3), pz_max1, pz_max2
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
 
@@ -170,7 +170,8 @@ E_tol = 0.1 ! eV
 scale_tol = max(1d-7, E_tol / dE_peak) ! tolerance for scale_correct
 phi_tol = 1d-5
 
-! See if %dphi0_ref and %field_scale are already set correctly
+! See if %dphi0_ref and %field_scale are already set correctly.
+! If so we can quit.
 
 pz_max   = -neg_pz_calc(phi_max)
 
@@ -197,7 +198,10 @@ if (.not. is_lost) then
   endif
 endif
 
-! Find approximate phase for acceleration
+! OK so the input %dphi0_ref and %field_scale are not set correctly...
+! First choose a starting phi_max by finding an approximate phase for max acceleration.
+! We start by testing 4 phases 90 deg apart.
+! pz_max1 gives the maximal acceleration of the 4. pz_max2 gives the second largest.
 
 pz_arr(0) = pz_max
 
@@ -205,9 +209,11 @@ do i = 1, 3
   pz_arr(i) = -neg_pz_calc(phi_max + i*0.25)
 enddo
 
-i_max1 = maxloc(pz_arr, 1) - 1  
-pz_arr(i_max1) = -1
+i_max1 = maxloc(pz_arr, 1) - 1
+pz_max1 = pz_arr(i_max1)
+pz_arr(i_max1) = -1  ! To find next max
 i_max2 = maxloc(pz_arr, 1) - 1
+pz_max2 = pz_arr(i_max2)
 
 if (pz_arr(i_max2) < 0) then
   call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION!')
@@ -215,9 +221,12 @@ if (pz_arr(i_max2) < 0) then
   return
 endif
 
-! Just take half way between two acceleration 
+! If pz_max1 is large compared to pz_max2 then just use the pz_max1 phase. 
+! Otherwise take half way between pz_max1 and pz_max2 phases.
 
-if (abs(i_max1 - i_max2) == 3) then   ! wrap around case when i_max1 = 0 and i_max2 = 3 or vice versa.
+if (pz_max2 < pz_max1/2) then  ! Just use pz_max1 point
+  phi_max = phi_max + 0.25 * i_max1
+elseif (abs(i_max1 - i_max2) == 3) then   ! wrap around case when i_max1 = 0 and i_max2 = 3 or vice versa.
   phi_max = phi_max + 0.25 * (-1) / 2.0
 else
   phi_max = phi_max + 0.25 * (i_max1 + i_max2) / 2.0

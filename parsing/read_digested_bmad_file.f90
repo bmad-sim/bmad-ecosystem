@@ -1,5 +1,5 @@
 !+
-! Subroutine read_digested_bmad_file (digested_file, lat, inc_version)
+! Subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag)
 !
 ! Subroutine to read in a digested file. The subroutine will check that
 ! the version of the digested file is up to date and that the digested file
@@ -20,13 +20,12 @@
 !                   If the file is current this number should be the same 
 !                   as the global parameter bmad_inc_version$. 
 !                   Set to -1 if there is a read error.
-!   bmad_status -- Bmad_status_struct: Common block status structure.
-!     %ok           -- Set .false. if read failure.
+!   err_flag    -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine read_digested_bmad_file (digested_file, lat, inc_version)
+subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => read_digested_bmad_file
@@ -51,10 +50,14 @@ character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_vms_time_stamp, new_vms_time_stamp
 
+logical, optional :: err_flag
 logical deterministic_ran_function_used, is_ok
-logical found_it, can_read_this_old_version, mode3, error, is_match, status_ok
+logical found_it, can_read_this_old_version, mode3, error, is_match, err_found
 
 ! init all elements in lat
+
+if (present(err_flag)) err_flag = .true.
+err_found = .false.
 
 call init_lat (lat)
 
@@ -62,8 +65,6 @@ call init_lat (lat)
 ! Some old versions can be read even though they are not the current version.
 
 d_unit = lunget()
-bmad_status%ok = .false.
-status_ok = .true.
 inc_version = -1
 lat%n_ele_track = 0
 deterministic_ran_function_used = .false.
@@ -86,7 +87,7 @@ if (version < bmad_inc_version$) then
           i_array = (/ bmad_inc_version$, version /) )
   if (can_read_this_old_version) then 
     allocate (file_names(n_files))
-    status_ok = .false.
+    err_found = .true.
   else
     close (d_unit)
     return
@@ -143,15 +144,15 @@ do i = 1, n_files
     digested_prefix_out = full_digested_file(1:j2-j)
 #endif
     if (.not. is_match) then
-      if (bmad_status%type_out .and. status_ok) call out_io(s_info$, &
-                                          r_name, ' NOTE: MOVED DIGESTED FILE.')
-      status_ok = .false.
+      if (bmad_status%type_out .and. .not. err_found) &
+                      call out_io(s_info$, r_name, ' NOTE: MOVED DIGESTED FILE.')
+      err_found = .true.
     endif
     cycle
   endif
 
   if (fname_read == '!RAN FUNCTION WAS CALLED') then ! Not deterministic
-    status_ok = .false.
+    err_found = .true.
     cycle
   endif
 
@@ -189,9 +190,9 @@ do i = 1, n_files
   inquire (file = fname_versionless, exist = found_it, name = fname_full)
   call simplify_path (fname_full, fname_full)
   if (.not. found_it .or. fname_read /= fname_full .or. .not. is_match) then
-    if (bmad_status%type_out .and. status_ok) call out_io(s_info$, &
-                                      r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
-    status_ok = .false.
+    if (bmad_status%type_out .and. .not. err_found) &
+            call out_io(s_info$, r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
+    err_found = .true.
   endif
 
 enddo
@@ -256,35 +257,30 @@ enddo
 close (d_unit)
 
 lat%param%stable = .true.  ! Assume this 
-bmad_status%ok = status_ok
 inc_version = version
+
+if (present(err_flag)) err_flag = err_found
 
 return
 
 !------------------
 
 9000  continue
-if (bmad_status%type_out) then
-   call out_io (s_warn$, r_name, 'Digested file does not exist.')
-endif
+if (bmad_status%type_out) call out_io (s_warn$, r_name, 'Digested file does not exist.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9010  continue
-if (bmad_status%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE VERSION.')
-endif
+if (bmad_status%type_out) call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE VERSION.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9020  continue
-if (bmad_status%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE FILE AND DATE.')
-endif
+if (bmad_status%type_out) call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE FILE AND DATE.')
 close (d_unit)
 return
 

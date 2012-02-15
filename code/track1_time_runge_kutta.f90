@@ -31,7 +31,7 @@ end module track1_time_runge_kutta_mod
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+ 
-! Subroutine track1_time_runge_kutta(start_orb, ele, param, end_orb, track)
+! Subroutine track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track)
 !
 ! Routine to track a particle through an element using 
 ! Runge-Kutta time-based tracking. Converts to and from element
@@ -55,14 +55,15 @@ end module track1_time_runge_kutta_mod
 !
 ! Output:
 !   end_orb     -- coord_struct: end position, t-based global
-!   track   -- track_struct (optional): particle path
-!   param   -- lat_param_struct: lattice parameters
+!   err_flag    -- Logical: Set True if there is an error. False otherwise
+!   track       -- track_struct (optional): particle path
+!   param       -- lat_param_struct: lattice parameters
 !    %particle             -- integer: positron$, electron$, etc.  
 !    %lost                 -- logical: False only if particle leaves exit end
 !-
 
 
-subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, track)
+subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
 
 use time_tracker_mod
 use em_field_mod
@@ -83,10 +84,12 @@ real(rp)  dt_step, ref_time, vec6, s_rel, t_rel
 character(30), parameter :: r_name = 'track1_time_runge_kutta'
 
 logical :: local_ref_frame = .true.
-logical :: abs_time
+logical :: abs_time, err_flag, err
 
 !---------------------------------
-!Reset particle lost status
+! Reset particle lost status
+
+err_flag = .true.
 param%lost = .False.
 
 end_orb = start_orb
@@ -106,7 +109,7 @@ if (ele%value(l$) .eq. 0) then
   ! Reset particle to s-coordinates
   end_orb = start_orb
   end_orb%status = outside$
-
+  err_flag = .false.
   return
 end if
 
@@ -181,7 +184,8 @@ else
 
   !If particle passed wall check, track through element
   call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), t_rel, &
-    dt_step, local_ref_frame, track )
+                                      dt_step, local_ref_frame, err, track)
+  if (err) return
 
 end if
 
@@ -244,8 +248,8 @@ end subroutine
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, ele, param, s1, s2, 
-!                              t_rel, dt1, local_ref_frame, track)
+! Subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, &
+!                             dt1, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -277,13 +281,14 @@ end subroutine
 !     %save_track -- Logical: Set True if track is to be saved.
 !
 ! Output:
-!   orb     -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
-!   track   -- Track_struct: Structure holding the track information.
+!   orb      -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
+!   err_flag -- Logical: Set True if there is an error. False otherwise.
+!   track    -- Track_struct: Structure holding the track information.
 !
 !-
 
-subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel,  &
-                    dt1, local_ref_frame, track)
+subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, &
+                                dt1, local_ref_frame, err_flag, track)
 use track1_time_runge_kutta_mod
 use time_tracker_mod
 use em_field_mod
@@ -306,12 +311,11 @@ real(rp), target  :: dvec_dt(6)
 real(rp), target  :: vec_err(6)
 real(rp), target :: s_target
 
-
 integer, parameter :: max_step = 100000
 integer :: n_step, n_pt, dn_save, n_save_count
 
 logical, target :: local_ref_frame
-logical :: exit_flag
+logical :: exit_flag, err_flag
 
 character(30), parameter :: r_name = 'odeint_bmad_time'
 
@@ -321,8 +325,8 @@ dt = dt1
 ! local s coordinates
 orb%vec(5) = orb%s - (ele%s - ele%value(l$))
 
+! Allocate track arrays
 
-!Allocate track arrays
 n_pt = max_step
 if ( present(track) ) then
    call init_saved_orbit (track, n_pt)
@@ -333,10 +337,10 @@ if ( present(track) ) then
    dn_save = max(floor(track%ds_save/c_light/dt), 1)
 endif 
 
+! Now Track
 
-!Now Track
-bmad_status%ok = .true.
 exit_flag = .false.
+err_flag = .true.
 
 do n_step = 1, max_step
 
@@ -404,9 +408,9 @@ do n_step = 1, max_step
     endif
 
   else
-  !Check wall or aperture at every intermediate step
+    ! Check wall or aperture at every intermediate step
     call  particle_hit_wall_check_time(orb, orb_new, param, ele)
-    !Flag for exit if wall is hit
+    ! Flag for exit if wall is hit
     if (param%lost) then
       orb_new%status = dead$
       exit_flag = .true.
@@ -429,14 +433,13 @@ do n_step = 1, max_step
 
   ! Exit when the particle hits surface s1 or s2, or hits wall
   if (exit_flag) then
-     orb = orb_new   !Return last orb_new that zbrent calculated
-     ! exit routine
-     return
+    orb = orb_new   !Return last orb_new that zbrent calculated
+    err_flag = .false. 
+    return
   endif
 
 end do
 
-bmad_status%ok = .false.
 if (bmad_status%type_out) then
   call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
   !print *, '  Skipping particle; coordinates will not be saved'
@@ -444,6 +447,7 @@ if (bmad_status%type_out) then
   orb = orb_new     !Return last coordinate
   return
 end if
+
 if (bmad_status%exit_on_error) call err_exit
 
 end subroutine odeint_bmad_time

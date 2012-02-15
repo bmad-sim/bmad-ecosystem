@@ -49,6 +49,8 @@ type (branch_struct), pointer :: branch, branch_in
 integer i, n, i1, i2, nr, n_con, ib
 integer :: ix_con(size(lat_in%control))
 
+logical err_flag
+
 ! Correct control information
 
 lat_rev = lat_in
@@ -115,7 +117,7 @@ enddo
 
 ! Finish
 
-call check_lat_controls (lat_rev, .true.)
+call check_lat_controls (lat_rev, err_flag)
 call set_ele_status_stale (lat_rev%ele(0), lat_rev%param, floor_position_group$)
 call lattice_bookkeeper (lat_rev)
 

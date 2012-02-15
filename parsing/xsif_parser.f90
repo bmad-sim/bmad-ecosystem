@@ -1,5 +1,5 @@
 !+
-! Subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
+! Subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 !
 ! Subroutine to parse an XSIF (extended standard input format) lattice file.
 ! Error messages will be recorded in a local file: 'xsif.err'.
@@ -24,11 +24,10 @@
 !
 ! Output:
 !   lat         -- lat_struct: Structure holding the lattice information.
-!   bmad_status  -- Bmad status common block.
-!     %ok            -- Set True if parsing is successful. False otherwise.
+!   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
+subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
 use xsif_lat_file_names_mod
 use xsif_inout
@@ -60,25 +59,28 @@ character(200) full_lat_file_name, digested_file
 character(200), allocatable, save :: file_names(:)
 character(16) :: r_name = 'xsif_parser'
 
-logical, optional :: make_mats6, digested_read_ok
-logical echo_output, err_flag
+logical, optional :: make_mats6, digested_read_ok, err_flag
+logical echo_output, err
 
 ! See if the digested file is OK
 
+if (present(err_flag)) err_flag = .true.
+
 call form_digested_bmad_file_name (xsif_file, digested_file, full_lat_file_name)
-call read_digested_bmad_file (digested_file, lat, digested_version)
+call read_digested_bmad_file (digested_file, lat, digested_version, err_flag = err)
 
 if (present(use_line)) then
   if (use_line /= '') then
     call str_upcase (name, use_line)
-    if (name /= lat%use_name) bmad_status%ok = .false.
+    if (name /= lat%use_name) err = .true.
   endif
 endif
 
-if (bmad_status%ok) then
+if (.not. err) then
   if (present(digested_read_ok)) digested_read_ok = .true.
   call set_taylor_order (lat%input_taylor_order, .false.)
   call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
+  if (present(err_flag)) err_flag = .false.  
   return
 endif
 
@@ -89,7 +91,6 @@ bp_com%write_digested = .true.
 ! If XSIF_IO_SETUP returns bad status it means that one of the file-open 
 !   commands bombed, so we abort execution at this point.
 
-err_flag = .true.         ! assume the worst
 i = lunget()
 xsif_unit     = i    ! open unit number for reading in the xsif file
 err_unit      = i+1  ! open unit number for error messages
@@ -610,8 +611,7 @@ if (logic_option (.true., make_mats6)) then
   call lat_make_mat6 (lat, -1)
 endif
 
-err_flag = .false.
-bmad_status%ok = .true.
+if (present(err_flag)) err_flag = .false.
 
 ! Check for xsif warnings. nwarn is defined in the xsif_inout.f file in the xsif library.
 
@@ -622,7 +622,6 @@ if (nwarn /= 0) call xsif_warning ('WARNINGS FROM XSIF DETECTED.')
 call xsif_io_close
 
 ! Make a digested file
-
 
 if (bp_com%write_digested) then
   call file_name_list_show (file_names, n_names)

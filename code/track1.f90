@@ -121,7 +121,8 @@ case (custom$)
   if (err) return
 
 case (runge_kutta$) 
-  call track1_runge_kutta (start2_orb, ele, param, end_orb, track)
+  call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track)
+  if (err) return
 
 case (linear$) 
   call track1_linear (start2_orb, ele, param, end_orb)
@@ -139,10 +140,12 @@ case (symp_lie_ptc$)
   call track1_symp_lie_ptc (start2_orb, ele, param, end_orb)
 
 case (adaptive_boris$) 
-  call track1_adaptive_boris (start2_orb, ele, param, end_orb, track)
+  call track1_adaptive_boris (start2_orb, ele, param, end_orb, err, track)
+  if (err) return
 
 case (boris$) 
-  call track1_boris (start2_orb, ele, param, end_orb, track)
+  call track1_boris (start2_orb, ele, param, end_orb, err, track)
+  if (err) return
 
 case (mad$)
   call track1_mad (start2_orb, ele, param, end_orb)
@@ -152,7 +155,8 @@ case (custom2$)
   if (err) return
 
 case (time_runge_kutta$)
-  call track1_time_runge_kutta (start2_orb, ele, param, end_orb, track)
+  call track1_time_runge_kutta (start2_orb, ele, param, end_orb, err, track)
+  if (err) return
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)

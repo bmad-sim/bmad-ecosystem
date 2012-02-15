@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_runge_kutta (start_orb, ele, param, end_orb, track)
+! Subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
 !
 ! Subroutine to do tracking using Runge-Kutta integration. 
 ! The core Runge-Kutta routine used here is odeint_bmad which is
@@ -22,10 +22,11 @@
 !
 ! Output:
 !   end_orb    -- Coord_struct: Ending coords.
+!   err_flag   -- Logical: Set True if there is an error. False otherwise.
 !   track      -- Track_struct, optional: Structure holding the track information.
 !- 
 
-subroutine track1_runge_kutta (start_orb, ele, param, end_orb, track)
+subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
 
 use runge_kutta_mod, except_dummy => track1_runge_kutta
 use track1_mod
@@ -38,6 +39,8 @@ type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
 real(rp) rel_tol, abs_tol, del_s_step, del_s_min, l_drift, t_start, dref_time
+
+logical err_flag
 
 ! Init 
 
@@ -66,7 +69,8 @@ endif
 call apply_element_edge_kick (start2_orb, ele, param, entrance_end$)
 
 call odeint_bmad (start2_orb, ele, param, end_orb, l_drift, ele%value(l$)-l_drift, bmad_com%rel_tol_adaptive_tracking, &
-                  bmad_com%abs_tol_adaptive_tracking, del_s_step, del_s_min, .true., track)
+                  bmad_com%abs_tol_adaptive_tracking, del_s_step, del_s_min, .true., err_flag, track)
+if (err_flag) return
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
 ! constant (see odeint_bmad for more details). In this case make the needed correction.

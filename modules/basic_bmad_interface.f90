@@ -5,49 +5,49 @@
 module basic_bmad_interface
 
 interface
-  subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+  subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
     use bmad_struct, only: lat_struct
     implicit none
     character(*) lat_file
     type (lat_struct), target :: lat
     logical, optional :: make_mats6
-    logical, optional :: digested_read_ok
+    logical, optional :: digested_read_ok, err_flag
     character(*), optional :: use_line
   end subroutine
 end interface
 
 interface
-  subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+  subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
     use bmad_struct, only: lat_struct
     implicit none
     character(*) lat_file
     type (lat_struct), target :: lat
     logical, optional :: make_mats6
-    logical, optional :: digested_read_ok
+    logical, optional :: digested_read_ok, err_flag
     character(*), optional :: use_line
   end subroutine
 end interface
   
 interface
-  subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+  subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
     use bmad_struct, only: lat_struct
     implicit none
     character(*) lat_file
     type (lat_struct), target :: lat
     logical, optional :: make_mats6
-    logical, optional :: digested_read_ok
+    logical, optional :: digested_read_ok, err_flag
     character(*), optional :: use_line
   end subroutine
 end interface
   
 interface
-  subroutine bmad_parser2 (in_file, lat, orbit, make_mats6)
+  subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, err_flag)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     character(*) in_file
     type (lat_struct), target :: lat
     type (coord_struct), optional :: orbit(0:)
-    logical, optional :: make_mats6
+    logical, optional :: make_mats6, err_flag
   end subroutine
 end interface
 
@@ -78,23 +78,23 @@ interface
 end interface
 
 interface
-  subroutine check_lat_controls (lat, exit_on_error)
+  subroutine check_lat_controls (lat, err_flag)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct), target :: lat
-    logical exit_on_error
+    logical, intent(out) :: err_flag
   end subroutine
 end interface
 
 interface
-  subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, exit_on_error)
+  subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct) lat
     real(rp) delta_e
     real(rp) chrom_x
     real(rp) chrom_y
-    logical, optional :: exit_on_error
+    logical, optional, intent(out) :: err_flag
   end subroutine
 end interface
 
@@ -112,26 +112,27 @@ interface
 end interface
 
 interface
-  subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
+  subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, err_flag)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable, target :: closed_orb(:)
     integer i_dim
     integer, optional :: direction
-    logical, optional :: exit_on_error
+    logical, optional, intent(out) :: err_flag
   end subroutine
 end interface
 
 interface
   subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
-                                               eps_rel, eps_abs, init_guess)
+                                       eps_rel, eps_abs, init_guess, err_flag)
     use bmad_struct, only: lat_struct, rp, coord_struct
     type (lat_struct) lat
     type (coord_struct), allocatable :: closed_orb(:)
     type (coord_struct), optional :: init_guess
     real(rp), intent(in), optional :: eps_rel(:), eps_abs(:)
     integer i_dim
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -161,7 +162,7 @@ interface
 end interface
 
 interface
-  subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
+  subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, err_flag)
     use bmad_struct, only: ele_struct, coord_struct
     implicit none
     character(*) in_type_str
@@ -169,6 +170,7 @@ interface
     type (coord_struct) coord_in
     type (coord_struct) coord_out
     type (ele_struct) ele
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -227,10 +229,11 @@ interface
 end interface
 
 interface
-  subroutine do_mode_flip (ele)
+  subroutine do_mode_flip (ele, err_flag)
     use bmad_struct, only: ele_struct
     implicit none
     type (ele_struct) ele
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -496,7 +499,7 @@ end interface
 
 interface
   subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
-                                                    stable, growth_rate, chi)
+                                             stable, growth_rate, chi, err_flag)
     use bmad_struct, only: ele_struct, rp, coord_struct
     implicit none
     type (coord_struct), intent(in) :: track(:)
@@ -504,7 +507,7 @@ interface
     type (ele_struct) :: ele
     real(rp), intent(out) :: growth_rate, chi
     integer, intent(in) :: i_dim
-    logical, intent(out) :: stable
+    logical, intent(out) :: stable, err_flag
   end subroutine
 end interface
 
@@ -522,7 +525,7 @@ end interface
 
 interface
   subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, &
-                    dt1, local_ref_frame, track)
+                    dt1, local_ref_frame, err_flag, track)
     use bmad_struct, only: rp, track_struct, coord_struct, ele_struct, lat_param_struct
    implicit none
     type (coord_struct), intent(inout) :: orb
@@ -530,7 +533,7 @@ interface
     type (lat_param_struct), target ::  param
     real(rp), intent(in) :: s1, s2, dt1
     real(rp) :: t_rel
-    logical, target :: local_ref_frame
+    logical :: local_ref_frame, err_flag
     type (track_struct), optional :: track
   end subroutine
 end interface
@@ -638,12 +641,13 @@ interface
 end interface
 
 interface
-  subroutine read_digested_bmad_file (in_file_name, lat, version)
+  subroutine read_digested_bmad_file (in_file_name, lat, version, err_flag)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct), target, intent(inout) :: lat
     integer version
     character(*) in_file_name
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -723,7 +727,7 @@ interface
 end interface
 
 interface
-  subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift)
+  subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct), target :: lat
@@ -731,7 +735,7 @@ interface
     integer ix_branch
     integer ix_split
     logical split_done
-    logical, optional :: add_suffix, check_controls, save_null_drift
+    logical, optional :: add_suffix, check_controls, save_null_drift, err_flag
   end subroutine
 end interface
 
@@ -745,12 +749,13 @@ interface
 end interface
 
 interface
-  subroutine track_all (lat, orbit, ix_branch)
+  subroutine track_all (lat, orbit, ix_branch, err_flag)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable :: orbit(:)
     integer, optional :: ix_branch
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -781,13 +786,14 @@ interface
 end interface
 
 interface
-  subroutine track1_runge_kutta (start_orb, ele, param, end_orb, track)
+  subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
     type (ele_struct), target :: ele
     type (lat_param_struct), target :: param
+    logical err_flag
     type (track_struct), optional :: track
   end subroutine
 end interface
@@ -815,13 +821,14 @@ interface
 end interface
 
 interface
-  subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, track)
+  subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
     type (ele_struct), target :: ele
     type (lat_param_struct), target :: param
+    logical err_flag
     type (track_struct), optional :: track
   end subroutine
 end interface
@@ -927,12 +934,12 @@ interface
 end interface
 
 interface
-  subroutine twiss_at_start (lat, ix_branch, status)
+  subroutine twiss_at_start (lat, status, ix_branch)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
-    integer, optional :: ix_branch
-    integer, optional :: status
+    integer, optional, intent(in) :: ix_branch
+    integer, optional, intent(out) :: status
   end subroutine
 end interface
 
@@ -959,12 +966,13 @@ interface
 end interface
 
 interface
-  subroutine twiss_from_tracking (lat, ref_orb0, error, d_orb) 
+  subroutine twiss_from_tracking (lat, ref_orb0, symp_err, err_flag, d_orb) 
     use bmad_struct, only: lat_struct, rp, coord_struct
     type (lat_struct), intent(inout) :: lat
     type (coord_struct), intent(in) :: ref_orb0
     real(rp), intent(in), optional :: d_orb(:)   
-    real(rp), intent(out) :: error
+    real(rp), intent(out) :: symp_err
+    logical err_flag
   end subroutine
 end interface
 
@@ -979,16 +987,17 @@ interface
 end interface
 
 interface
-  subroutine twiss_propagate_all (lat, ix_branch)
+  subroutine twiss_propagate_all (lat, ix_branch, err_flag)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
     integer, optional :: ix_branch
+    logical, optional :: err_flag
   end subroutine
 end interface
 
 interface
-  subroutine twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch)
+  subroutine twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch, err_flag)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) :: lat
@@ -996,6 +1005,7 @@ interface
     integer, intent(in) :: ix_end
     integer, intent(in) :: direction
     integer, optional :: ix_branch
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -1117,14 +1127,14 @@ interface
 end interface
 
 interface
-  subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
+  subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
     use bmad_struct, only: lat_struct
     implicit none
     character(*) xsif_file
     character(*), optional :: use_line
     type (lat_struct), target :: lat
     logical, optional :: make_mats6
-    logical, optional :: digested_read_ok
+    logical, optional :: digested_read_ok, err_flag
   end subroutine
 end interface
 

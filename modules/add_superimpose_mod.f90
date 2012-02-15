@@ -72,7 +72,7 @@ integer ix1_split, ix2_split, ix_super, ix_super_con
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
 logical, optional :: save_null_drift, create_em_field_slave
-logical err_flag, setup_lord, split1_done, split2_done, all_drift
+logical err_flag, setup_lord, split1_done, split2_done, all_drift, err
 
 character(100) name
 character(20) fmt
@@ -150,7 +150,8 @@ if (super_saved%value(l$) == 0) then
   super_saved%lord_status  = not_a_lord$ 
   super_saved%slave_status = free$
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
-                                check_controls = .false., save_null_drift = save_null_drift)
+                                check_controls = .false., save_null_drift = save_null_drift, err_flag = err)
+  if (err) return
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)
   ix_super = ix1_split + 1
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
@@ -171,14 +172,18 @@ endif
 
 ! if superimpose wraps around 0 ...
 if (s2 < s1) then     
-  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false., save_null_drift)
-  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false., save_null_drift)
+  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false., save_null_drift, err)
+  if (err) return
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false., save_null_drift, err)
+  if (err) return
   super_saved%value(l$) = (s2_lat - branch%ele(ix1_split)%s) + (branch%ele(ix2_split)%s - s1_lat)
 
 ! no wrap case...
 else                  
-  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false., save_null_drift)
-  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false., save_null_drift)
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false., save_null_drift, err)
+  if (err) return
+  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false., save_null_drift, err)
+  if (err) return
   super_saved%value(l$) = branch%ele(ix2_split)%s - branch%ele(ix1_split)%s
 endif
 

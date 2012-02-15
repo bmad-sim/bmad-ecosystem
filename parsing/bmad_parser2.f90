@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6)
+! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag)
 !
 ! Subroutine parse (read in) a BMAD input file.
 ! This subrotine assumes that lat already holds an existing lattice.
@@ -30,7 +30,7 @@
 !   lat    -- lat_struct: lattice with modifications.
 !-
 
-subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6)
+subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag)
 
 use bmad_parser_mod, except_dummy => bmad_parser2
 
@@ -62,14 +62,14 @@ character(280) parse_line_save
 character(200) call_file
 character(80) debug_line
 
-logical, optional :: make_mats6
+logical, optional :: make_mats6, err_flag
 logical parsing, found, delim_found, xsif_called, err, wild_here, key_here
-logical end_of_file, err_flag, finished, good_attrib, wildcards_permitted, integer_permitted
+logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
 logical print_err, check
 
 ! Init...
 
-bmad_status%ok = .true.
+if (present(err_flag)) err_flag = .true.
 bp_com%write_digested2 = .false.
 bp_com%parser_name = 'bmad_parser2'
 bp_com%input_from_file = .true.
@@ -118,7 +118,6 @@ beam_start_ele%key = def_beam_start$
 beam_start_ele%ixx = 3                    ! Pointer to plat%ele() array
 
 n_plat_ele = 3
-bmad_status%ok = .true.
 
 !-----------------------------------------------------------
 ! main parsing loop
@@ -180,8 +179,8 @@ parsing_loop: do
         parsing = .false.
       else
         call parser_set_attribute (def$, beam_ele, lat, delim, delim_found, &
-                                        err_flag, .true., check_free = .true.)
-        if (err_flag) cycle parsing_loop
+                                        err, .true., check_free = .true.)
+        if (err) cycle parsing_loop
       endif
     enddo
 
@@ -305,10 +304,10 @@ parsing_loop: do
       endif
 
       call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
-                                                err_flag, print_err, check_free = check)
-      if (.not. err_flag .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim, ' ')
+                                                err, print_err, check_free = check)
+      if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim, ' ')
       found = .true.
-      if (.not. err_flag) good_attrib = .true.
+      if (.not. err) good_attrib = .true.
       call set_flags_for_changed_attribute (lat, ele)
 
       if (word_1  == 'PARAMETER' .or. word_1  == 'BEAM_START') cycle parsing_loop
@@ -458,9 +457,9 @@ parsing_loop: do
         n_max = n_max - 1
         cycle parsing_loop
       else
-        call parser_set_attribute (def$, ele, lat, delim, delim_found, err_flag, .true., pele)
+        call parser_set_attribute (def$, ele, lat, delim, delim_found, err, .true., pele)
         call set_flags_for_changed_attribute (lat, ele)
-        if (err_flag) then
+        if (err) then
           n_max = n_max - 1
           cycle parsing_loop
         endif
@@ -572,12 +571,13 @@ if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, orbit)
 
 if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
-if (.not. bmad_status%ok .and. bmad_status%exit_on_error) then
+call check_lat_controls (lat, err)
+if (err) bp_com%error_flag = .true.
+
+if (bp_com%error_flag .and. bmad_status%exit_on_error) then
   call out_io (s_info$, r_name, 'FINISHED. EXITING ON ERRORS')
   stop
 endif
-
-call check_lat_controls (lat, .true.)
 
 do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
   if (associated (plat%ele(i)%name)) then
@@ -591,5 +591,7 @@ if (associated (plat%ele))      deallocate (plat%ele)
 if (allocated(lat_name))        deallocate (lat_name, lat_indexx)
 
 call deallocate_lat_pointers (lat2)
+
+if (present(err_flag)) err_flag = bp_com%error_flag
 
 end subroutine

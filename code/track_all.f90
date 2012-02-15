@@ -1,5 +1,5 @@
 !+                       
-! Subroutine track_all (lat, orbit, ix_branch)
+! Subroutine track_all (lat, orbit, ix_branch, err_flag)
 !
 ! Subroutine to track through the lat.
 !
@@ -28,9 +28,10 @@
 !       %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                           z_plane$ (turned around in an lcavity).
 !   orbit(0:*)  -- Coord_struct: Orbit array.
+!   err_flag    -- Logical, optional: Set true if particle lost or error. False otherwise
 !-
 
-subroutine track_all (lat, orbit, ix_branch)
+subroutine track_all (lat, orbit, ix_branch, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => track_all
@@ -46,12 +47,15 @@ type (branch_struct), pointer :: branch
 integer n, i, nn, ix_br
 integer, optional :: ix_branch
 
+logical, optional :: err_flag
+logical err
 logical :: debug = .false.
 
 character(12), parameter :: r_name = 'track_all'
 
 ! init
 
+if (present(err_flag)) err_flag = .true.
 ix_br = integer_option (0, ix_branch)
 branch => lat%branch(ix_br)
 branch%param%ix_lost = not_lost$
@@ -68,17 +72,20 @@ endif
 
 ! track through elements.
 
+if (present(err_flag)) err_flag = .false.
+
 do n = 1, branch%n_ele_track
 
-  call track1 (orbit(n-1), branch%ele(n), branch%param, orbit(n))
+  call track1 (orbit(n-1), branch%ele(n), branch%param, orbit(n), err_flag = err)
 
   ! check for lost particles
 
-  if (branch%param%lost) then
-    branch%param%ix_lost = n
+  if (err .or. branch%param%lost) then
+    if (branch%param%lost) branch%param%ix_lost = n
     do nn = n+1, branch%n_ele_track
       orbit(nn)%vec = 0
     enddo
+    if (present(err_flag)) err_flag = .true.
     exit
   endif
 
@@ -89,9 +96,6 @@ do n = 1, branch%n_ele_track
 enddo
 
 ! Fill in super_lord info.
-! This only works on the main branch at present
-
-if (ix_br /= 0) return
 
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n) 

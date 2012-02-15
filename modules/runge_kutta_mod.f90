@@ -10,7 +10,7 @@ contains
 !-----------------------------------------------------------
 !+
 ! Subroutine odeint_bmad (start, ele, param, end, s1, s2, &
-!                            rel_tol, abs_tol, h1, hmin, local_ref_frame, track)
+!                            rel_tol, abs_tol, h1, hmin, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -58,12 +58,13 @@ contains
 !                respect to the frame of referene of the element. 
 !
 ! Output:
-!   end     -- Coord_struct: Ending coords: (x, px, y, py, z, delta).
-!   track   -- Track_struct, optional: Structure holding the track information.
+!   end      -- Coord_struct: Ending coords: (x, px, y, py, z, delta).
+!   err_flag -- Logical: Set True if there is an error. False otherwise.
+!   track    -- Track_struct, optional: Structure holding the track information.
 !-
 
 subroutine odeint_bmad (start, ele, param, end, s1, s2, &
-                    rel_tol, abs_tol, h1, h_min, local_ref_frame, track)
+                    rel_tol, abs_tol, h1, h_min, local_ref_frame, err_flag, track)
 
 implicit none
 
@@ -81,10 +82,11 @@ real(rp) :: dr_ds(7), r_scal(7), t
 integer, parameter :: max_step = 10000
 integer :: n_step
 
-logical local_ref_frame, abs_time
+logical local_ref_frame, abs_time, err_flag, err
 
 ! init
 
+err_flag = .true.
 s = s1
 h = sign(h1, s2-s1)
 end = start
@@ -117,8 +119,6 @@ endif
 
 ! now track
 
-bmad_status%ok = .true.
-
 do n_step = 1, max_step
 
   call kick_vector_calc (ele, param, s, t, end, local_ref_frame, dr_ds)
@@ -136,8 +136,8 @@ do n_step = 1, max_step
 
   if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
 
-  call rkqs_bmad (ele, param, end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame)
-  if (.not. bmad_status%ok) return
+  call rkqs_bmad (ele, param, end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame, err)
+  if (err) return
 
   if (present(track)) then
     if (h_did == h) then
@@ -151,6 +151,7 @@ do n_step = 1, max_step
 
   if ((s-s2)*(s2-s1) >= 0.0) then
     if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, end, s_sav)
+    err_flag = .false.
     return
   end if
 
@@ -166,7 +167,6 @@ end do
 
 param%lost = .true.
 param%plane_lost_at = z_plane$
-bmad_status%ok = .false.
 
 end subroutine odeint_bmad
 
@@ -174,7 +174,7 @@ end subroutine odeint_bmad
 !-----------------------------------------------------------------
 
 subroutine rkqs_bmad (ele, param, orb, dr_ds, s, t, h_try, rel_tol, abs_tol, &
-                                       r_scal, h_did, h_next, local_ref_frame)
+                                       r_scal, h_did, h_next, local_ref_frame, err_flag)
 
 implicit none
 
@@ -193,7 +193,7 @@ real(rp) :: rel_pc, t_new
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
 
-logical local_ref_frame
+logical local_ref_frame, err_flag
 
 !
 
@@ -210,7 +210,7 @@ do
   s_new = s + h
 
   if (s_new == s) then
-    bmad_status%ok = .false.
+    err_flag = .true.
     print *, 'ERROR IN RKQS_BMAD: STEPSIZE UNDERFLOW'
     if (bmad_status%exit_on_error) call err_exit
   endif

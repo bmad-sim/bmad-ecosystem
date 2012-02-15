@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+! Subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 !
 ! Subroutine to parse a BMAD input file and put the information in lat.
 !
@@ -21,21 +21,20 @@
 !                   statement in the lattice file and use use_line instead.
 !
 ! Output:
-!   lat -- lat_struct: Lat structure. See bmad_struct.f90 for more details.
-!     %ele(:)%mat6  -- This is computed assuming an on-axis orbit 
-!     %ele(:)%s     -- This is also computed.
+!   lat              -- lat_struct: Lat structure. See bmad_struct.f90 for more details.
+!     %ele(:)%mat6      -- This is computed assuming an on-axis orbit 
+!     %ele(:)%s         -- This is also computed.
 !   digested_read_ok -- Logical, optional: Set True if the digested file was
 !                        successfully read. False otherwise.
-!   bmad_status      -- Bmad status common block.
-!     %ok              -- Set True if parsing is successful. False otherwise.
-!         
+!   err_flag         -- Logical, optional: Set true if there is an error, false otherwise.
+!
 ! Defaults:
 !   lat%param%particle          = positron$
 !   lat%param%lattice_type      = circular_lattice$
 !   lat%param%aperture_limit_on = .true.
 !-
 
-subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
 use bmad_parser_mod, except_dummy => bmad_parser
 use sim_utils
@@ -73,9 +72,9 @@ character(200) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save
 character(80) debug_line
 
-logical, optional :: make_mats6, digested_read_ok
-logical delim_found, arg_list_found, xsif_called, err, print_err, wild_here
-logical end_of_file, found, good_attrib, err_flag, finished, exit_on_error
+logical, optional :: make_mats6, digested_read_ok, err_flag
+logical delim_found, arg_list_found, xsif_called, print_err, wild_here
+logical end_of_file, found, good_attrib, err, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, wildcards_permitted, matched
 logical auto_bookkeeper_saved
 
@@ -85,6 +84,7 @@ logical auto_bookkeeper_saved
 auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .true.  
 
+if (present(err_flag)) err_flag = .true.
 bp_com%error_flag = .false.              ! set to true on an error
 bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
 bp_com%write_digested = .true.
@@ -93,7 +93,7 @@ bp_com%input_from_file = .true.
 debug_line = ''
 
 call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
-call read_digested_bmad_file (digested_file, lat, digested_version)
+call read_digested_bmad_file (digested_file, lat, digested_version, err_flag = err)
 
 ! Must make sure that if use_line is present the digested file has used the 
 ! correct line
@@ -101,11 +101,11 @@ call read_digested_bmad_file (digested_file, lat, digested_version)
 if (present(use_line)) then
   if (use_line /= '') then
     call str_upcase (name, use_line)
-    if (name /= lat%use_name) bmad_status%ok = .false.
+    if (name /= lat%use_name) err = .true.
   endif
 endif
 
-if (bmad_status%ok .and. .not. bp_com%always_parse) then
+if (.not. err .and. .not. bp_com%always_parse) then
   call set_taylor_order (lat%input_taylor_order, .false.)
   call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
   if (lat%input_taylor_order == bmad_com%taylor_order) then
@@ -143,7 +143,6 @@ do i = 0, ubound(in_lat%ele, 1)
   in_lat%ele(i)%ixx = i   ! Pointer to plat%ele() array
 enddo
 
-bmad_status%ok = .true.
 if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
@@ -309,7 +308,7 @@ parsing_loop: do
         call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
-      call parser_set_attribute (def$, bp_com%beam_ele, in_lat, delim, delim_found, err_flag, .true.)
+      call parser_set_attribute (def$, bp_com%beam_ele, in_lat, delim, delim_found, err, .true.)
     enddo
     cycle parsing_loop
   endif
@@ -417,10 +416,10 @@ parsing_loop: do
           parse_line_save = bp_com%parse_line
         endif
         call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
-                                                  err_flag, print_err, plat%ele(ele%ixx))
-        if (.not. err_flag .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
+                                                  err, print_err, plat%ele(ele%ixx))
+        if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
         found = .true.
-        if (.not. err_flag) good_attrib = .true.
+        if (.not. err) good_attrib = .true.
 
       enddo
 
@@ -438,10 +437,10 @@ parsing_loop: do
           parse_line_save = bp_com%parse_line
         endif
         call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
-                                                    err_flag, print_err, plat%ele(ele%ixx))
-        if (.not. err_flag .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
+                                                    err, print_err, plat%ele(ele%ixx))
+        if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
         found = .true.
-        if (.not. err_flag) good_attrib = .true.
+        if (.not. err) good_attrib = .true.
       enddo
 
     endif
@@ -472,11 +471,10 @@ parsing_loop: do
   ! if a "(" delimitor then we are looking at a replacement line.
 
   if (delim == '(') then
-    call get_sequence_args (word_1, sequence(iseq_tot+1)%dummy_arg, &
-                                                     delim, err_flag)
+    call get_sequence_args (word_1, sequence(iseq_tot+1)%dummy_arg, delim, err)
     ix = size(sequence(iseq_tot+1)%dummy_arg)
     allocate (sequence(iseq_tot+1)%corresponding_actual_arg(ix))
-    if (err_flag) cycle parsing_loop
+    if (err) cycle parsing_loop
     arg_list_found = .true.
     call get_next_word (word_2, ix_word, '(): =,', delim, delim_found, .true.)
     if (word_2 /= ' ') call parser_error &
@@ -635,8 +633,8 @@ parsing_loop: do
         exit
       endif
       call parser_set_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, &
-                      err_flag, .true., plat%ele(n_max))
-      if (err_flag) cycle parsing_loop
+                      err, .true., plat%ele(n_max))
+      if (err) cycle parsing_loop
     enddo
 
   endif
@@ -902,7 +900,7 @@ if (lat%input_taylor_order /= 0) call set_taylor_order (lat%input_taylor_order, 
 !-------------------------------------------------------------------------
 ! energy bookkeeping.
 
-err_flag = .true.
+err = .true.
 if (bp_com%e_tot_set .and. lat%ele(0)%value(e_tot$) < mass_of(lat%param%particle)) then
   if (bmad_status%type_out) call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2! WILL USE 1000 * MC^2!')
 elseif (bp_com%p0c_set .and. lat%ele(0)%value(p0c$) < 0) then
@@ -910,10 +908,10 @@ elseif (bp_com%p0c_set .and. lat%ele(0)%value(p0c$) < 0) then
 elseif (.not. (bp_com%p0c_set .or. bp_com%e_tot_set)) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
 else
-  err_flag = .false.
+  err = .false.
 endif
 
-if (err_flag) then
+if (err) then
   lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
   call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, pc = lat%ele(0)%value(p0c$))
   bp_com%write_digested = .false.
@@ -1007,7 +1005,12 @@ call parser_add_lord (in_lat, n_max, plat, lat)
 
 ! Consistancy check
 
-call check_lat_controls (lat, .true.)
+call check_lat_controls (lat, err)
+if (err) then
+  bp_com%error_flag = .true.
+  call parser_end_stuff
+  return
+endif
 
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
@@ -1045,8 +1048,8 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
         ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
         ele%aperture_type == custom$) then
-      call init_custom (ele, err_flag)
-      if (err_flag) bmad_status%ok = .false.
+      call init_custom (ele, err)
+      if (err) bp_com%error_flag = .true.
     endif
   enddo
 enddo
@@ -1094,8 +1097,8 @@ if (.not. bp_com%error_flag) then
   bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
   if (bp_com%write_digested) then
     call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, &
-                                                            bp_com%lat_file_names, bp_com%ran, err_flag)
-    if (.not. err_flag .and. bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+                                                            bp_com%lat_file_names, bp_com%ran, err)
+    if (.not. err .and. bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
   endif
 endif
 
@@ -1156,8 +1159,9 @@ if (bp_com%error_flag) then
     call out_io (s_fatal$, r_name, 'BMAD_PARSER FINISHED. EXITING ON ERRORS')
     stop
   endif
-  bmad_status%ok = .false.
 endif
+
+if (present(err_flag)) err_flag = bp_com%error_flag
 
 ! Check wiggler for integer number of periods
 

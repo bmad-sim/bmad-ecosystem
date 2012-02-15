@@ -27,7 +27,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
+! Subroutine track1_boris (start, ele, param, end, err_flag, track, s_start, s_end)
 !
 ! Subroutine to do Boris tracking. For more information on Boris tracking 
 ! see the boris_mod module documentation.
@@ -50,10 +50,11 @@ contains
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
+!   err_flag   -- Logical: Set True if there is an error. False otherwise.
 !   track      -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
+subroutine track1_boris (start, ele, param, end, err_flag, track, s_start, s_end)
 
 implicit none
 
@@ -70,9 +71,12 @@ real(rp) s1, s2, s_sav, ds, s, t, beta
 
 integer i, n_step
 
+logical err_flag
 logical, save :: init_needed = .false.
 
 ! init
+
+err_flag = .true.
 
 if (init_needed) then
   call init_ele(loc_ele)
@@ -132,6 +136,7 @@ call apply_element_edge_kick (here, loc_ele, param, exit_end$)
 call offset_particle (ele, param, here, unset$, set_canonical = .false.)
 
 end = here
+err_flag = .false.
 
 end subroutine
 
@@ -139,7 +144,7 @@ end subroutine
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
+! Subroutine track1_adaptive_boris (start, ele, param, end, err_flag, track, s_start, s_end)
 ! 
 ! Subroutine to do Boris tracking with adaptive step size control.
 ! This routine is adapted from odeint in Numerical Recipes. 
@@ -174,10 +179,11 @@ end subroutine
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
+!   err_flag   -- Logical: Set True if there is an error. False otherwise.
 !   track      -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
+subroutine track1_adaptive_boris (start, ele, param, end, err_flag, track, s_start, s_end)
 
 implicit none
 
@@ -197,10 +203,12 @@ real(rp) :: scale_spin, ds_in, step_min, t, beta, err_max_spin
 
 integer :: n_step, max_step
 
+logical err_flag
 logical, save :: init_needed = .false.
 
 ! init
 
+err_flag = .true.
 ds_in = 1d-3
 step_min = 1e-8
 max_step = 10000
@@ -250,8 +258,6 @@ endif
 
 ! now track
 
-bmad_status%ok = .true.
-
 do n_step = 1, max_step
 
   sqrt_N = sqrt(abs((s2-s1)/ds))  ! N = estimated number of steps
@@ -291,7 +297,6 @@ do n_step = 1, max_step
     ds = sign(max(abs(ds_temp), 0.1_rp*abs(ds)), ds)
 
     if (abs(ds) < step_min) then
-      bmad_status%ok = .false.
       if (bmad_status%type_out) print *, &
           'ERROR IN TRACK1_ADAPTIVE_BORIS: STEPSIZE SMALLER THAN MINIMUM.' 
       if (bmad_status%exit_on_error) call err_exit
@@ -319,12 +324,12 @@ do n_step = 1, max_step
     call apply_element_edge_kick (here, loc_ele, param, exit_end$)
     call offset_particle (ele, param, here, unset$, set_canonical = .false.)
     end = here
+    err_flag = .false.
     return
   end if
 
 end do
 
-bmad_status%ok = .false.
 if (bmad_status%type_out) &
                print *, 'ERROR IN TRACK1_ADAPTIVE_BORIS: TOO MANY STEPS'
 if (bmad_status%exit_on_error) call err_exit
