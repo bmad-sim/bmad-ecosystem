@@ -256,6 +256,8 @@ case ('curve_line')
 
 case ('curve_sym')
 
+  call tao_find_plots (err, line, 'BOTH', curve = curve, always_allocate = .true.)
+
   if (.not. allocated(curve) .or. size(curve) /= 1) then
     nl=nl+1; lines(nl) = 'INVALID;;;'
   else
