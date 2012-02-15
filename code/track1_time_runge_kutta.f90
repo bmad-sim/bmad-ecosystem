@@ -13,6 +13,7 @@ type (coord_struct), save, pointer :: orb_new_com
 real(rp), save, pointer :: vec_err_com(:)
 logical, save, pointer :: local_ref_frame_com
 real(rp), save, pointer :: s_target_com
+real(rp), save, pointer :: t_rel_com
 
 contains
 
@@ -20,7 +21,7 @@ contains
 function delta_s_target (new_dt)
   real(rp), intent(in)  :: new_dt
   real(rp) :: delta_s_target
-  call rkck_bmad_time (ele_com, param_com, orb_com, dvec_dt_com, orb_com%s, orb_com%t, new_dt, orb_new_com, vec_err_com, local_ref_frame_com)
+  call rkck_bmad_time (ele_com, param_com, orb_com, dvec_dt_com, orb_com%vec(5), t_rel_com, new_dt, orb_new_com, vec_err_com, local_ref_frame_com)
   delta_s_target = orb_new_com%s - s_target_com
 end function delta_s_target
   
@@ -296,7 +297,7 @@ type (ele_struct) , target :: ele
 type (lat_param_struct), target ::  param
 type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2, dt1
-real(rp) :: t_rel
+real(rp), target :: t_rel
 
 real(rp), parameter :: tiny = 1.0e-30_rp, edge_tol = 1e-10
 real(rp) :: dt, dt_did, dt_next
@@ -363,6 +364,7 @@ do n_step = 1, max_step
    vec_err_com => vec_err
    local_ref_frame_com => local_ref_frame
    s_target_com => s_target
+   t_rel_com => t_rel
    !---
    dt = zbrent (delta_s_target, 0.0_rp, dt, 1d-18)
 
@@ -389,6 +391,7 @@ do n_step = 1, max_step
     vec_err_com => vec_err
     local_ref_frame_com => local_ref_frame
     s_target_com => s_target
+    t_rel_com => t_rel
     !---
     dt = zbrent (delta_s_target, dt, 0.0_rp, 1d-18)
 
