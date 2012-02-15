@@ -322,7 +322,7 @@ character(30), parameter :: r_name = 'odeint_bmad_time'
 ! init
 dt = dt1
 
-! local s coordinates
+! local s coordinates for vec(5)
 orb%vec(5) = orb%s - (ele%s - ele%value(l$))
 
 ! Allocate track arrays
@@ -344,45 +344,18 @@ err_flag = .true.
 
 do n_step = 1, max_step
 
-  !Get initial kick vector
-  !Note that s and t are in the element frame
+  ! Get initial kick vector
+  ! Note that s and t are in the element frame
   call em_field_kick_vector_time (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, dvec_dt) 
  
-  !Single Runge-Kutta step. Updates orb% vec(6), s, and t to orb_new
+  !S ingle Runge-Kutta step. Updates orb% vec(6), s, and t to orb_new
   call rkck_bmad_time (ele, param, orb, dvec_dt, orb%vec(5), t_rel, dt, orb_new, vec_err, local_ref_frame)
 
-  !Check entrance and exit faces
+  ! Check entrance and exit faces
   if ( orb_new%vec(5) > s2 ) then
-   exit_flag = .true.
-   s_target = s2
-   orb_new%status = outside$
-   
-   !Set common structures for zbrent's internal functions 
-   ele_com => ele
-   param_com => param
-   orb_com => orb
-   dvec_dt_com => dvec_dt
-   orb_new_com => orb_new
-   vec_err_com => vec_err
-   local_ref_frame_com => local_ref_frame
-   s_target_com => s_target
-   t_rel_com => t_rel
-   !---
-   dt = zbrent (delta_s_target, 0.0_rp, dt, 1d-18)
-
-   !ensure that particle has actually exited after zbrent
-   if (orb_new%vec(5) < s2) then
-      orb_new%vec(5) = 2*s2 - orb_new%s
-   end if
-   if (abs(s2 - orb_new%vec(5)) < edge_tol) then
-     orb_new%vec(5) = s2 + edge_tol
-   end if
- 
-  
-  else if ( orb_new%vec(5) < s1 ) then
-    exit_flag = .true. 
-    s_target = s1
-    orb_new%status = outside$ 
+    exit_flag = .true.
+    s_target = s2
+    orb_new%status = outside$
     
     !Set common structures for zbrent's internal functions 
     ele_com => ele
@@ -395,15 +368,32 @@ do n_step = 1, max_step
     s_target_com => s_target
     t_rel_com => t_rel
     !---
+    dt = zbrent (delta_s_target, 0.0_rp, dt, 1d-18)
+    
+    ! Set s to be exactly at the exit edge
+    orb_new%vec(5) = s2
+    orb_new%s = ele%s
+   
+  else if ( orb_new%vec(5) < s1 ) then
+    exit_flag = .true. 
+    s_target = s1
+    orb_new%status = outside$ 
+    
+    ! Set common structures for zbrent's internal functions 
+    ele_com => ele
+    param_com => param
+    orb_com => orb
+    dvec_dt_com => dvec_dt
+    orb_new_com => orb_new
+    vec_err_com => vec_err
+    local_ref_frame_com => local_ref_frame
+    s_target_com => s_target
+    t_rel_com => t_rel
+    !---
     dt = zbrent (delta_s_target, dt, 0.0_rp, 1d-18)
-
-    ! ensure that particle has actually exited after zbrent
-    if (orb_new%vec(5) > s1) then
-      orb_new%vec(5) = 2*s1 - orb_new%s
-    end if
-    if (abs(s1 - orb_new%s) < edge_tol) then
-      orb_new%vec(5) = s1 - edge_tol
-    endif
+    ! Set s to be exactly at the entrance edge
+    orb_new%vec(5) = s1
+    orb_new%s = ele%s - ele%value(L$)
 
   else
     ! Check wall or aperture at every intermediate step
