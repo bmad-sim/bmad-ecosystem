@@ -279,6 +279,7 @@ enddo
 call control_bookkeeper (lat, ele1)
 call control_bookkeeper (lat, ele2)
 
+err = .false.  ! In case check_lat_controls is not called.
 if (logic_option(.true., check_controls)) call check_lat_controls (lat, err)
 if (present(err_flag)) err_flag = err
 
