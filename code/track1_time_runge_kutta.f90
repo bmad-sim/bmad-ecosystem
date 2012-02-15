@@ -98,16 +98,12 @@ if (ele%value(l$) .eq. 0) then
    !Convert to global-s to local-t coordinates
     call convert_particle_coordinates_s_to_t(end_orb)
     !convert to element coordinates for track_struct
-    end_orb%t = end_orb%t - ele%ref_time
-    end_orb%s = end_orb%s - ele%s
-    end_orb%vec(5) = end_orb%s
     call init_saved_orbit (track, 0)
     track%n_pt = 0
     track%orb(0) = end_orb
-    !Restore s and t to continue tracking
-    end_orb = start_orb
   endif
-
+  ! Reset particle to s-coordinates
+  end_orb = start_orb
   end_orb%status = outside$
 
   return
@@ -247,8 +243,8 @@ end subroutine
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, ele, param, s1, s2, &
-!                             dt1, local_ref_frame, track)
+! Subroutine odeint_bmad_time (orb, ele, param, s1, s2, 
+!                              t_rel, dt1, local_ref_frame, track)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -269,6 +265,7 @@ end subroutine
 !     %particle    -- Particle type [positron$, or electron$]
 !   s1      -- Real: Starting point.
 !   s2      -- Real: Ending point.
+!   t_rel   -- Real: time relative to entering reference time
 !   dt1      -- Real: Initial guess for a time step size.
 !   local_ref_frame 
 !           -- Logical: If True then take the 
