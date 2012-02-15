@@ -166,11 +166,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   allocate (u%design, u%base, u%model)
   select case (design_lat%language)
   case ('bmad')
-    call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line)
+    call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
   case ('xsif')
-    call xsif_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line)
+    call xsif_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
   case ('aml')
-    call aml_parser (design_lat%file, u%design%lat)
+    call aml_parser (design_lat%file, u%design%lat, err_flag = err)
   case ('digested')
     call out_io (s_blank$, r_name, &
                 "Reading digested BMAD file " // trim(design_lat%file))
@@ -184,8 +184,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! When reading digested files there are parser errors associated with, for example, the file
   ! having been moved. Do not exit for such stuff.
 
-  if (design_lat%language /= 'digested') err = .not. bmad_status%ok
-  if (err) then
+  if (design_lat%language /= 'digested' .and. err) then
     call out_io (s_fatal$, r_name, &
             'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
             'EXITING...', & 

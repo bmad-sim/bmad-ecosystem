@@ -2331,8 +2331,8 @@ case ('universe')
   call radiation_integrals (u%model%lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache)
   call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%design%ix_rad_int_cache)
   if (lat%param%lattice_type == circular_lattice$) then
-    call chrom_calc (lat, delta_e, u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
-    call chrom_calc (u%design%lat, delta_e, u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
+    call chrom_calc (lat, delta_e, u%model%a%chrom, u%model%b%chrom)
+    call chrom_calc (u%design%lat, delta_e, u%design%a%chrom, u%design%b%chrom)
   endif
 
   nl=nl+1; lines(nl) = ''

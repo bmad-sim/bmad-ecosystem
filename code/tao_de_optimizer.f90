@@ -108,6 +108,8 @@ character(80) line, line2, stars
 character(20) :: r_name = 'tao_de_optimizer'
 character(1) char
 
+logical calc_ok
+
 ! Init
 
 if (iter_count == 0) then
@@ -137,7 +139,7 @@ stars = '****************************************************'
 
 call tao_set_opt_vars (var_vec, s%global%optimizer_var_limit_warn)
 
-this_merit = tao_merit ()
+this_merit = tao_merit (calc_ok)
 merit_min = min(merit_min, this_merit)
 
 if (iter_count == 1000) then
@@ -149,7 +151,7 @@ endif
 
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
   write (line, '(a, es14.6)') ' So far the minimum is ', merit_min
-  if (bmad_status%ok) then
+  if (calc_ok) then
     call out_io (s_blank$, r_name, stars, line, stars)
   else
     write (line2, *) 'Computation had problems...'

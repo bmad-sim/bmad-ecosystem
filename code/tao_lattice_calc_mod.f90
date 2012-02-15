@@ -128,8 +128,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
                                                              tao_lat%ix_rad_int_cache, 0, tao_lat%rad_int)
   endif
 
-  if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, &
-                             tao_lat%a%chrom, tao_lat%b%chrom, exit_on_error = .false.)
+  if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom)
 
   if (.not. this_calc_ok) calc_ok = .false.
 
@@ -211,7 +210,7 @@ type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: lat_branch
 
-integer i, ii, ix_lost, ix_branch
+integer i, ii, ix_lost, ix_branch, status
 
 character(20) :: r_name = "tao_single_track"
 
@@ -239,8 +238,8 @@ if (u%track_recalc_on) then
 
   if (branch%param%lattice_type == circular_lattice$) then
     if (ix_branch /= 0) call err_exit  ! Needs to be fixed...
-    call closed_orbit_calc (lat, lat_branch%orbit, 4, exit_on_error = .false.)
-    if (.not. bmad_status%ok) then
+    call closed_orbit_calc (lat, lat_branch%orbit, 4, err_flag = err)
+    if (err) then
       calc_ok = .false.
       do i = 0, ubound(orbit, 1)
         orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
@@ -280,8 +279,8 @@ if (u%mat6_recalc_on) then
   enddo
 
   if (branch%param%lattice_type == circular_lattice$) then
-    call twiss_at_start (lat)
-    if (.not. bmad_status%ok) then
+    call twiss_at_start (lat, status = status)
+    if (status /= ok$) then
       calc_ok = .false.
       return
     endif
