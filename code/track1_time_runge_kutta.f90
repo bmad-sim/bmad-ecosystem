@@ -22,7 +22,7 @@ function delta_s_target (new_dt)
   real(rp), intent(in)  :: new_dt
   real(rp) :: delta_s_target
   call rkck_bmad_time (ele_com, param_com, orb_com, dvec_dt_com, orb_com%vec(5), t_rel_com, new_dt, orb_new_com, vec_err_com, local_ref_frame_com)
-  delta_s_target = orb_new_com%s - s_target_com
+  delta_s_target = orb_new_com%vec(5) - s_target_com
 end function delta_s_target
   
 end module track1_time_runge_kutta_mod
@@ -350,8 +350,6 @@ do n_step = 1, max_step
  
   !Single Runge-Kutta step. Updates orb% vec(6), s, and t to orb_new
   call rkck_bmad_time (ele, param, orb, dvec_dt, orb%vec(5), t_rel, dt, orb_new, vec_err, local_ref_frame)
-  ! t_rel needs to be stepped separately 
-  t_rel = t_rel + dt
 
   !Check entrance and exit faces
   if ( orb_new%vec(5) > s2 ) then
@@ -418,6 +416,8 @@ do n_step = 1, max_step
   endif
   
   !Update orb
+  ! t_rel needs to be stepped separately 
+  t_rel = t_rel + dt
   orb = orb_new
 
   !Save track
