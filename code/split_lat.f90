@@ -1,5 +1,5 @@
 !+
-! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift)
+! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)
 !
 ! Subroutine to split a lat at a point. Subroutine will not split the lat if the split
 ! would create a "runt" element with length less than bmad_com%significant_length.
@@ -27,9 +27,10 @@
 !   lat        -- lat_struct: Modified lat structure.
 !   ix_split   -- Integer: Index of element just before the split.
 !   split_done -- Logical: True if lat was split.
+!   err_flag   -- Logical, optional: Set true if there is an error, false otherwise.
 !-
 
-subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift)
+subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => split_lat
@@ -48,12 +49,14 @@ integer i, j, k, ix, ix_branch
 integer ix_split, ixc, ix_attrib, ix_super_lord
 integer icon, ix2, inc, nr, n_ic2, ct
 
-logical split_done
-logical, optional :: add_suffix, check_controls, save_null_drift
+logical split_done, err
+logical, optional :: add_suffix, check_controls, save_null_drift, err_flag
 
 character(16) :: r_name = "split_lat"
 
 ! Check for s_split out of bounds.
+
+if (present(err_flag)) err_flag = .true.
 
 branch => lat%branch(ix_branch)
 ds_fudge = bmad_com%significant_length
@@ -70,6 +73,7 @@ endif
 do ix_split = 0, branch%n_ele_track
   if (abs(branch%ele(ix_split)%s - s_split) < 10*ds_fudge) then
     split_done = .false.
+    if (present(err_flag)) err_flag = .false.
     return
   endif
   if (branch%ele(ix_split)%s > s_split) exit
@@ -275,6 +279,7 @@ enddo
 call control_bookkeeper (lat, ele1)
 call control_bookkeeper (lat, ele2)
 
-if (logic_option(.true., check_controls)) call check_lat_controls (lat, .true.)
+if (logic_option(.true., check_controls)) call check_lat_controls (lat, err)
+if (present(err_flag)) err_flag = err
 
 end subroutine

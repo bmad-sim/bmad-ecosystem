@@ -1,5 +1,5 @@
 !+
-! Subroutine SET_TUNE (phi_a_set, phi_b_set, dk1, lat, orb, ok)
+! Subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
 !
 ! Subroutine to Q_tune a lat. Program will set the tunes to
 ! within 0.001 radian (0.06 deg).
@@ -41,9 +41,9 @@ real(rp) phi_a_set, phi_b_set, dphi_a, dphi_b, dQ_max
 real(rp) phi_a, phi_b, d_xx, d_xy, d_yx, d_yy, det
 real(rp) l_beta_a, l_beta_b, dk_x, dk_y, dk1(:)
 
-integer i, j
+integer i, j, status
 
-logical ok
+logical ok, err
 
 character(20) :: r_name = 'set_tune'
 real(rp), dimension(2) :: phi_array
@@ -51,30 +51,31 @@ real(rp), dimension(2) :: phi_array
 ! q_tune
 
 dQ_max = 0.001
+ok = .false.
 
 do i = 1, 10
 
   if (.not. bmad_com%auto_bookkeeper) call lattice_bookkeeper(lat)
 
-  call closed_orbit_calc (lat, orb, 4)
-  ok = bmad_status%ok
-  if (.not. ok) return
+  call closed_orbit_calc (lat, orb, 4, err_flag = err)
+  if (err) return
 
   call lat_make_mat6 (lat, -1, orb)
 
-  call twiss_at_start(lat)
-  ok = bmad_status%ok
-  if (.not. ok) return
+  call twiss_at_start(lat, status = status)
+  if (status /= ok$) return
 
-  call twiss_propagate_all (lat)
-  ok = bmad_status%ok
-  if (.not. ok) return
+  call twiss_propagate_all (lat, err_flag = err)
+  if (err) return
 
   phi_a = lat%ele(lat%n_ele_track)%a%phi
   phi_b = lat%ele(lat%n_ele_track)%b%phi
   dphi_a = phi_a_set - phi_a 
   dphi_b = phi_b_set - phi_b 
-  if (abs(dphi_a) < dQ_max .and. abs(dphi_b) < dQ_max) return
+  if (abs(dphi_a) < dQ_max .and. abs(dphi_b) < dQ_max) then
+    ok = .true.
+    return
+  endif
 
   d_xx = 0
   d_xy = 0
@@ -123,6 +124,6 @@ call out_io (s_error$, r_name, 'CANNOT GET TUNE RIGHT.', &
       'CURRENT TUNE: \2f\ ', &
       'SET TUNE:     \2f\ ', &
       r_array = (/ phi_a/twopi, phi_b/twopi, phi_a_set/twopi, phi_b_set/twopi /))
-ok = .false.
+
 
 end subroutine

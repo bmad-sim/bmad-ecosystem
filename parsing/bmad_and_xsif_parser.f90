@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+! Subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 !
 ! Subroutine to parse either a Bmad or XSIF (extended standard input format) lattice file.
 !
@@ -22,11 +22,10 @@
 !
 ! Output:
 !   lat         -- lat_struct: Structure holding the lattice information.
-!   bmad_status  -- Bmad status common block.
-!     %ok            -- Set True if parsing is successful. False otherwise.
+!   err_flag    -- Logical, optional: Set True if there is an error. False otherwise
 !-
 
-subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => bmad_and_xsif_parser
@@ -38,7 +37,7 @@ type (lat_struct), target :: lat
 character(*) :: lat_file
 character(*), optional :: use_line
 
-logical, optional :: make_mats6, digested_read_ok
+logical, optional :: make_mats6, digested_read_ok, err_flag
 
 integer ix
 
@@ -50,9 +49,9 @@ if (ix /= 0) then
 endif
 
 if (ix == 0) then
-  call bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+  call bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 else
-  call xsif_parser (lat_file(ix+6:), lat, make_mats6, digested_read_ok, use_line)
+  call xsif_parser (lat_file(ix+6:), lat, make_mats6, digested_read_ok, use_line, err_flag)
 endif
 
 end subroutine

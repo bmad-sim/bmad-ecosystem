@@ -153,7 +153,7 @@ type bp_common_struct
   character(40) parser_name
   character(200) :: dirs(2) 
   logical :: bmad_parser_calling = .false.     ! used for expand_lattice
-  logical error_flag     ! Needed since bmad_status%ok gets set by many routines.
+  logical error_flag     
   logical input_line_meaningful
   logical do_superimpose
   logical write_digested      ! For bmad_parser
@@ -3087,7 +3087,6 @@ endif
 
 if (.not. logic_option(.false., warn_only)) then
   bp_com%error_flag = .true.
-  bmad_status%ok = .false.
   if (logic_option(.false., stop_here) .and. bmad_status%exit_on_error) stop
 endif
 
@@ -3388,7 +3387,7 @@ if (pele%ref_name == blank_name$) then
   call compute_super_lord_s (lat, lat%ele(0), super_ele, pele)
   call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
                                  create_em_field_slave = pele%create_em_field_slave)
-  if (err_flag) bmad_status%ok = .false.
+  if (err_flag) bp_com%error_flag = .true.
   return
 endif
 
@@ -3452,7 +3451,7 @@ do
           ! Don't need to save drifts since a multipass_lord drift already exists.
           call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
                         save_null_drift = .false., create_em_field_slave = pele%create_em_field_slave)
-          if (err_flag) bmad_status%ok = .false.
+          if (err_flag) bp_com%error_flag = .true.
           super_ele_out%name = 'temp_name!'
         enddo
 
@@ -3548,7 +3547,7 @@ do
         super_ele%name = super_ele_saved%name(:ix)            
         call add_superimpose (lat, super_ele, i_br, err_flag, super_ele_out, &
                     save_null_drift = .true., create_em_field_slave = pele%create_em_field_slave)
-        if (err_flag) bmad_status%ok = .false.
+        if (err_flag) bp_com%error_flag = .true.
         call control_bookkeeper (lat, super_ele_out)
       endif
 

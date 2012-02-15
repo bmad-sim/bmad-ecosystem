@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_propagate_all (lat, ix_branch)
+! Subroutine twiss_propagate_all (lat, ix_branch, err_flag)
 !
 ! Subroutine to propagate the twiss, coupling, and dispersion parameters from 
 ! the start to the end of a lattice branch.
@@ -18,11 +18,10 @@
 !
 ! Output:
 !   lat          -- lat_struct: Lattice with parameters computed for the branch.
-!   bmad_status  -- Common block status structure:
-!       %ok         -- Set False if an input beta is zero. True otherwise
+!   err_flag     -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine twiss_propagate_all (lat, ix_branch)
+subroutine twiss_propagate_all (lat, ix_branch, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => twiss_propagate_all
@@ -36,24 +35,27 @@ type (ele_struct), pointer :: lord, slave
 integer n, n_track
 integer, optional :: ix_branch
 
+logical, optional :: err_flag
+logical err
+
 ! Propagate twiss
 
 branch => lat%branch(integer_option(0, ix_branch))
 n_track = branch%n_ele_track
 
-bmad_status%ok = .true.
+if (present(err_flag)) err_flag = .true.
 
 do n = 1, n_track
-  call twiss_propagate1 (branch%ele(n-1), branch%ele(n))
-  if (.not. bmad_status%ok) return
+  call twiss_propagate1 (branch%ele(n-1), branch%ele(n), err)
+  if (err) return
 enddo
 
 ! Make sure final mode is same as initial mode
 
 if (branch%param%lattice_type == circular_lattice$) then
   if (branch%ele(0)%mode_flip .neqv. branch%ele(n_track)%mode_flip) then
-    call do_mode_flip (branch%ele(n_track))
-    if (bmad_status%type_out .and. .not. bmad_status%ok) then
+    call do_mode_flip (branch%ele(n_track), err)
+    if (err .and. bmad_status%type_out) then
       print *, 'ERROR IN TWISS_PROPAGATE_ALL: CANNOT MAKE FINAL FLIP STATE'
       print *, '      EQUAL TO THE INITIAL'
     endif
@@ -72,5 +74,7 @@ do n = lat%n_ele_track + 1, lat%n_ele_max
     call transfer_twiss (slave, lord)
   end select
 enddo
+
+if (present(err_flag)) err_flag = .false.
 
 end subroutine

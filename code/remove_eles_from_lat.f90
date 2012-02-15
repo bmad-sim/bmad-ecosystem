@@ -38,6 +38,7 @@ integer i, j, ib, ix, i1, i2
 integer, allocatable :: ic(:), control(:)
 
 logical, optional :: check_controls
+logical err_flag
 
 ! Allocate
 
@@ -194,7 +195,7 @@ enddo
 
 deallocate (ibr, control, ic)
 
-if (logic_option(.true., check_controls)) call check_lat_controls (lat, .true.)
+if (logic_option(.true., check_controls)) call check_lat_controls (lat, err_flag)
 
 end subroutine
           

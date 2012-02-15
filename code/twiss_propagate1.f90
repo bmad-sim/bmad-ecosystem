@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_propagate1 (ele1, ele2, err)
+! Subroutine twiss_propagate1 (ele1, ele2, err_flag)
 !
 ! Subroutine to propagate the twiss, coupling, and dispersion parameters from 
 ! the exit end of ele1 to the exit end of ele2.
@@ -15,13 +15,11 @@
 !       %exit_on_error -- If True then stop if there is an error.
 !
 ! Output:
-!   ele2   -- Ele_struct: Structure for the ending parameters.
-!   err    -- Logical, optional: Set True if there is an error. False otherwise.
-!   bmad_status -- Common block status structure:
-!       %ok         -- Set False if an input beta is zero (deprecated).
+!   ele2     -- Ele_struct: Structure for the ending parameters.
+!   err_flag -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine twiss_propagate1 (ele1, ele2, err)
+subroutine twiss_propagate1 (ele1, ele2, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => twiss_propagate1
@@ -40,20 +38,19 @@ real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
 real(rp) det_factor, deriv_rel, gamma2_c
 
 logical error
-logical, optional :: err
+logical, optional :: err_flag
 
 character(20), parameter :: r_name = 'twiss_propagate1'
 
 !---------------------------------------------------------------------
 ! init
 
-if (present(err)) err = .true.
+if (present(err_flag)) err_flag = .true.
 
 if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
   call out_io (s_fatal$, r_name, 'ZERO BETA DETECTED AT: ' // trim(ele1%name), &
                                  'ELEMENT # \i0\ ',  i_array = [ele1%ix_ele])
   if (bmad_status%exit_on_error) call err_exit
-  bmad_status%ok = .false.
   return
 endif
 
@@ -82,7 +79,7 @@ endif
 
 if (key2 == marker$ .or. key2 == photon_branch$ .or. key2 == branch$) then
   call transfer_twiss (ele1, ele2)
-  if (present(err)) err = .false.
+  if (present(err_flag)) err_flag = .false.
   return
 endif
 
@@ -231,7 +228,7 @@ ele2%a%etap = eta_vec(2)
 ele2%b%eta  = eta_vec(3)
 ele2%b%etap = eta_vec(4)
 
-if (present(err)) err = .false.
+if (present(err_flag)) err_flag = .false.
 
 end subroutine
 

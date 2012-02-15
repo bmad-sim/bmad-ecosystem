@@ -7,7 +7,6 @@ use output_mod
 ! status structure
 
 type bmad_status_struct
-  logical :: ok             = .true.   ! Error flag
   logical :: type_out       = .true.   ! Print error messages?
   logical :: exit_on_error  = .true.   ! Exit program on error?
 end type

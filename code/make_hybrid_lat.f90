@@ -75,7 +75,7 @@ integer, allocatable, save :: ica(:)
 integer, optional :: ix_out(:)
 
 logical init_hybrid_needed, remove_markers, keep_ele(:)
-logical do_taylor
+logical do_taylor, err_flag
 logical, optional :: use_taylor
 
 character(16), parameter :: r_name = 'make_hybrid_lat'
@@ -325,7 +325,7 @@ endif
 
 r_out%ele_init = r_in%ele_init
 
-call check_lat_controls (r_out, .false.)
+call check_lat_controls (r_out, err_flag)
 if (present (ix_out)) ix_out(1:r_in%n_ele_max) = r_in%ele(1:r_in%n_ele_max)%ixx
 
 end subroutine

@@ -81,11 +81,13 @@ type (lat_struct) lat
 type (coord_struct), allocatable :: orb(:)
 
 logical, optional :: ok
+logical err_flag
 
 !
 
 call reallocate_coord (orb, lat%n_ele_max)
-call twiss_and_track1 (lat, orb, 0, ok)
+call twiss_and_track1 (lat, orb, 0, err_flag)
+if (present(ok)) ok = .not. err_flag
 
 end subroutine twiss_and_track_main
 
@@ -113,6 +115,7 @@ type (coord_array_struct), allocatable :: orb_array(:)
 integer i
 
 logical, optional :: ok
+logical err_flag
 
 !
 
@@ -125,9 +128,12 @@ do i = 0, ubound(lat%branch, 1)
     orb_array(i)%orb(0) = orb_array(branch%ix_from_branch)%orb(branch%ix_from_ele) 
     call transfer_twiss (lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele), branch%ele(0))
   endif
-  call twiss_and_track1 (lat, orb_array(i)%orb, i, ok)
-  if (.not. ok) return
+  call twiss_and_track1 (lat, orb_array(i)%orb, i, err_flag)
+  if (present(ok)) ok = .not. err_flag
+  if (err_flag) return
 enddo 
+
+if (present(ok)) ok = .true.
 
 end subroutine twiss_and_track_all
 
@@ -135,7 +141,7 @@ end subroutine twiss_and_track_all
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track1 (lat, ix_branch, orb, ok)
+! Subroutine twiss_and_track1 (lat, ix_branch, orb, err_flag)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 !
@@ -144,15 +150,15 @@ end subroutine twiss_and_track_all
 !   twiss_and_track_all
 !-
 
-subroutine twiss_and_track1 (lat, orb, ix_branch, ok)
+subroutine twiss_and_track1 (lat, orb, ix_branch, err_flag)
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (coord_struct), allocatable :: orb(:)
 
-integer i, ix_branch
+integer i, ix_branch, status
 
-logical, optional :: ok
+logical err_flag, err
 
 character(20) :: r_name = 'twiss_and_track1'
 
@@ -161,7 +167,7 @@ character(20) :: r_name = 'twiss_and_track1'
 ! However closed_orbit_calc needs some crude notion of the 1-turn transfer
 ! matrix in order for it to do the calculation.
 
-if (present(ok)) ok = .false.
+err_flag = .true.
 branch => lat%branch(ix_branch)
 
 ! A match with match_end$ complicates things since in order to track correctly we
@@ -174,10 +180,10 @@ if (branch%param%lattice_type == circular_lattice$) then
   endif
 
   call lat_make_mat6 (lat, -1, ix_branch = ix_branch)
-  call twiss_at_start (lat)
-  if (.not. bmad_status%ok) return
-  call closed_orbit_calc (lat, orb, 4)
-  if (.not. bmad_status%ok) return
+  call twiss_at_start (lat, status)
+  if (status /= ok$) return
+  call closed_orbit_calc (lat, orb, 4, err_flag = err)
+  if (err) return
 else
   do i = 1, branch%n_ele_track
     if (branch%ele(i)%key == match$ .and. branch%ele(i)%value(match_end$) /= 0) then
@@ -190,17 +196,18 @@ endif
 
 ! Now we can compute the Twiss parameters.
 
-call lat_make_mat6 (lat, -1, orb, ix_branch = ix_branch)
+call lat_make_mat6 (lat, -1, orb, ix_branch = ix_branch, err_flag = err)
+if (err) return
 
 if (lat%param%lattice_type == circular_lattice$) then
-  call twiss_at_start (lat)
-  if (.not. bmad_status%ok) return
+  call twiss_at_start (lat, status)
+  if (status /= ok$) return
 endif
 
-call twiss_propagate_all (lat, ix_branch)
-if (.not. bmad_status%ok) return
+call twiss_propagate_all (lat, ix_branch, err)
+if (err) return
 
-if (present(ok)) ok = .true.
+err_flag = .false.
 
 end subroutine twiss_and_track1
 

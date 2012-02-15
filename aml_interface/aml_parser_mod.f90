@@ -141,7 +141,7 @@ end module
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+! Subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 !
 ! Subroutine to parse an AML input file and put the information in lat.
 !
@@ -168,16 +168,14 @@ end module
 !     %ele(:)%s     -- This is also computed.
 !   digested_read_ok -- Logical, optional: Set True if the digested file was
 !                        successfully read. False otherwise.
-!   Bmad_status      -- Bmad status common block.
-!     %ok              -- Set True if parsing is successful. False otherwise.
-!         
+!
 ! Defaults:
 !   lat%param%particle          = positron$
 !   lat%param%lattice_type      = circular_lattice$
 !   lat%param%aperture_limit_on = .true.
 !-
 
-subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
+subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
 use aml_parser_mod
 
@@ -685,7 +683,7 @@ if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
 if (bp_com%error_flag) then
   if (bmad_status%exit_on_error) then
-     call out_io (s_fatal$, r_name, 'AML_PARSER FINISHED. EXITING ON ERRORS')
+    call out_io (s_fatal$, r_name, 'AML_PARSER FINISHED. EXITING ON ERRORS')
     stop
   else
     bmad_status%ok = .false.
@@ -693,7 +691,7 @@ if (bp_com%error_flag) then
   endif
 endif
               
-call check_lat_controls (lat, .true.)
+call check_lat_controls (lat, err_flag)
 
 end subroutine
 

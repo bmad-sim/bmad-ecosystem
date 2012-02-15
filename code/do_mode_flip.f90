@@ -1,5 +1,5 @@
 !+
-! Subroutine do_mode_flip (ele)
+! Subroutine do_mode_flip (ele, err_flag)
 !
 ! Subroutine to mode flip the twiss_parameters of an element.
 ! That is, the normal mode associated with ele%a is transfered to ele%b
@@ -15,11 +15,11 @@
 !
 ! Output:
 !     ele         -- Ele_struct: Flipped element
-!     bmad_status -- Status_struct: Status common block
+!     err_flag    -- Logical, optional: Set True if there is an error. False otherwise.
 !            %ok      -- Set false if there is a problem.
 !-
 
-subroutine do_mode_flip (ele)
+subroutine do_mode_flip (ele, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => do_mode_flip
@@ -30,14 +30,16 @@ type (ele_struct)  ele
 type (twiss_struct) a
 
 real(rp) cg_mat(2,2), cg_conj(2,2), gamma_flip
+logical, optional :: err_flag
 logical err
 
 character(12), parameter :: r_name = 'do_mode_flip'
 
 ! Check that a flip can be done.
 
+if (present(err_flag)) err_flag = .true.
+
 if (ele%gamma_c >= 1.0) then
-  bmad_status%ok = .false.
   if (bmad_status%type_out) call out_io (s_fatal$, r_name, 'CANNOT MODE FLIP ELEMENT')
   if (bmad_status%exit_on_error) call err_exit
   return
@@ -52,10 +54,14 @@ call mat_symp_conj (cg_mat, cg_conj)
 
 a = ele%a
 call twiss1_propagate (ele%b, cg_mat, 0.0_rp, ele%a, err)
+if (err) return
 call twiss1_propagate (a, -cg_conj, 0.0_rp, ele%b, err)
+if (err) return
 
 ele%mode_flip = .not. ele%mode_flip
 ele%c_mat = -cg_mat * ele%gamma_c
 ele%gamma_c = gamma_flip
+
+if (present(err_flag)) err_flag = .false.
 
 end subroutine

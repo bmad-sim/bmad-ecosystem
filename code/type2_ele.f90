@@ -101,7 +101,7 @@ allocate (li(300))
 
 type_zero = logic_option(.false., type_zero_attrib)
 
-if (associated(ele%lat)) call check_lat_controls(ele%lat, bmad_status%exit_on_error)
+if (associated(ele%lat)) call check_lat_controls(ele%lat, err_flag)
 
 ! Encode element name and type
 
