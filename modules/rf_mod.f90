@@ -64,9 +64,10 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct), target :: param
 
-real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak, dE_cut, E_tol
+real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
 real(rp) value_saved(n_attrib_maxx), dphi0_ref_original, pz_arr(0:3), pz_max1, pz_max2
+real(rp) dE_max1, dE_max2
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
 
@@ -128,21 +129,21 @@ param_com => param
 if (.not. ele%is_on) return
 select case (ele%key)
 case (rfcavity$)
-  dE_peak = ele%value(voltage$)
+  dE_peak_wanted = ele%value(voltage$)
   e_tot_start = ele%value(e_tot$)
 case (lcavity$)
-  dE_peak = ele%value(gradient$) + ele%value(l$)
+  dE_peak_wanted = ele%value(gradient$) + ele%value(l$)
   e_tot_start = ele%value(e_tot_start$)
 case default
   call out_io (s_fatal$, r_name, 'CONFUSED ELEMENT TYPE!')
   if (bmad_status%exit_on_error) call err_exit ! exit on error.
 end select
 
-! Autophasing when dE_peak is zero or very small is not possible.
-! Therefore if dE_peak is less than dE_cut then do nothing.
+! Autophasing when dE_peak_wanted is zero or very small is not possible.
+! Therefore if dE_peak_wanted is less than dE_cut then do nothing.
 
 dE_cut = 10 ! eV
-if (abs(dE_peak) < dE_cut) return
+if (abs(dE_peak_wanted) < dE_cut) return
 
 ! Set error fields to zero
 
@@ -164,10 +165,10 @@ dphi = 0.05
 ! scale_correct is the correction factor applied to field_scale on each iteration:
 !  field_scale(new) = field_scale(old) * scale_correct
 ! scale_tol is the tolerance for scale_correct.
-! scale_tol = E_tol / dE_peak corresponds to a tolerance in dE_peak of E_tol. 
+! scale_tol = E_tol / dE_peak_wanted corresponds to a tolerance in dE_peak_wanted of E_tol. 
 
 E_tol = 0.1 ! eV
-scale_tol = max(1d-7, E_tol / dE_peak) ! tolerance for scale_correct
+scale_tol = max(1d-7, E_tol / dE_peak_wanted) ! tolerance for scale_correct
 phi_tol = 1d-5
 
 ! See if %dphi0_ref and %field_scale are already set correctly.
@@ -185,8 +186,7 @@ if (.not. is_lost) then
   endif
 
   if (adjust_amp) then
-    call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
-    scale_correct = dE_peak / (e_tot - e_tot_start)
+    scale_correct = dE_peak_wanted / dE_particle(pz_max) 
   else
     scale_correct = 1
   endif
@@ -211,28 +211,32 @@ enddo
 
 i_max1 = maxloc(pz_arr, 1) - 1
 pz_max1 = pz_arr(i_max1)
+dE_max1 = dE_particle(pz_max1)
+
 pz_arr(i_max1) = -1  ! To find next max
 i_max2 = maxloc(pz_arr, 1) - 1
 pz_max2 = pz_arr(i_max2)
+dE_max2 = dE_particle(pz_max2)
 
-if (pz_arr(i_max2) < 0) then
+if (dE_max1 < 0) then
   call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION!')
   err_flag = .true.
   return
 endif
 
-! If pz_max1 is large compared to pz_max2 then just use the pz_max1 phase. 
-! Otherwise take half way between pz_max1 and pz_max2 phases.
+! If dE_max1 is large compared to dE_max2 then just use the dE_max1 phase. 
+! Otherwise take half way between dE_max1 and dE_max2 phases.
 
-if (pz_max2 < pz_max1/2) then  ! Just use pz_max1 point
+if (dE_max2 < dE_max1/2) then  ! Just use dE_max1 point
   phi_max = phi_max + 0.25 * i_max1
+  pz_max = pz_max1
 elseif (abs(i_max1 - i_max2) == 3) then   ! wrap around case when i_max1 = 0 and i_max2 = 3 or vice versa.
   phi_max = phi_max + 0.25 * (-1) / 2.0
+  pz_max = -neg_pz_calc(phi_max)
 else
   phi_max = phi_max + 0.25 * (i_max1 + i_max2) / 2.0
+  pz_max = -neg_pz_calc(phi_max)
 endif
-
-pz_max = -neg_pz_calc(phi_max)
 
 ! Now adjust %field_scale for the correct acceleration at the phase for maximum acceleration. 
 
@@ -303,8 +307,7 @@ main_loop: do
   ! Can overshoot so if scale_correct is too large then scale back by a factor of 10
 
   if (adjust_amp) then
-    call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
-    scale_correct = dE_peak / (e_tot - e_tot_start)
+    scale_correct = dE_peak_wanted / dE_particle(pz_max)
     if (scale_correct > 1000) scale_correct = max(1000.0_rp, scale_correct / 10)
     field_scale = field_scale * scale_correct
   else
@@ -365,8 +368,23 @@ ele%tracking_method = tracking_method_saved
 
 end subroutine cleanup_this
 
+!------------------------------------
+! contains
+! Function returns the energy gain of a particle given final pz
+
+function dE_particle(pz) result (de)
+
+real(rp) pz, e_tot, de
+
+call convert_pc_to ((1 + pz) * ele%value(p0c$), param%particle, e_tot = e_tot)
+de = e_tot - e_tot_start
+
+end function dE_particle
+
 end subroutine rf_auto_scale_phase_and_amp
 
+!----------------------------------------------------------------
+!----------------------------------------------------------------
 !----------------------------------------------------------------
 
 function neg_pz_calc (phi) result (neg_pz)
