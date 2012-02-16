@@ -267,7 +267,7 @@ if (associated(ele%em_field)) then
       rfm => ele%em_field%mode(i)
       nl=nl+1; write (li(nl), '(a, i0)')     'Mode #:', i
       nl=nl+1; write (li(nl), '(a, i0)')     '    m:             ', rfm%m
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    harmonic:      ', rfm%harmonic
+      nl=nl+1; write (li(nl), '(a, i0)')     '    harmonic:      ', rfm%harmonic
       nl=nl+1; write (li(nl), '(a, es16.8)') '    f_damp:        ', rfm%f_damp
       nl=nl+1; write (li(nl), '(a, es16.8)') '    dphi0_ref:      ', rfm%dphi0_ref
       nl=nl+1; write (li(nl), '(a, es16.8)') '    phi0_azimuth:  ', rfm%phi0_azimuth
