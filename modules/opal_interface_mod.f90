@@ -9,11 +9,6 @@ use time_tracker_mod
 
 contains
 
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-
-
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -42,14 +37,13 @@ implicit none
 type (ele_struct), pointer :: ele
 type (lat_struct), target :: lat
 
-real(rp), pointer :: val(:)
-
 integer      :: opal_file_unit
 character(200)  :: file_name
 character(40)  :: r_name = 'write_opal_lattice_file', name
 character(2)   :: continue_char, eol_char, comment_char
 character(24)  :: rfmt
 character(4000)  :: line
+
 integer      :: iu,  ios, ix_match, ie, ix_start, ix_end, iu_fieldgrid
 integer      :: n_names, n
 integer     :: q_sign
@@ -57,7 +51,9 @@ integer     :: q_sign
 type (char_indexx_struct) :: fieldgrid_names, ele_names
 integer, allocatable      :: ele_name_occurrences(:)
 
-real(rp)        :: absmax_Ez, absmax_Bz, phase_lag
+real(rp), pointer :: val(:)
+real(rp)        :: absmax_Ez, absmax_Bz, phase_lag, freq
+
 character(40)   :: fieldgrid_output_name
 
 logical, optional :: err
@@ -270,7 +266,8 @@ ele_loop: do ie = ix_start, ix_end
     call value_to_line (line, 1e-6*absmax_ez, 'volt', rfmt, 'R')
   
     ! Write frequency in MHz
-    call value_to_line (line, 1e-6*ele%em_field%mode(1)%freq, 'freq', rfmt, 'R')
+    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+    call value_to_line (line, 1e-6*freq, 'freq', rfmt, 'R')
   
     ! Write phase in rad
     phase_lag = -1*twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
@@ -342,12 +339,9 @@ deallocate ( ele_name_occurrences )
 deallocate ( fieldgrid_names%names ) 
 deallocate ( fieldgrid_names%indexx )
 
-
-
 if (present(err)) err = .false.
 
 end subroutine write_opal_lattice_file
-
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -499,9 +493,9 @@ select case (ele%key)
 ! LCavity, RFCavity, E_GUN
 !-----------
 case (lcavity$, rfcavity$, e_gun$) 
-                                         
-  freq = ele%em_field%mode(1)%freq
- ! if (freq .eq. 0) freq = 1e-30_rp ! To prevent divide by zero
+
+  freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+  ! if (freq .eq. 0) freq = 1e-30_rp ! To prevent divide by zero
 
   ! Example:
   !2DDynamic XZ
