@@ -917,8 +917,8 @@ The syntax for specifying the electromagnetic fields is
   field = \{
     mode = \{
       m             = <Integer>, ! Mode number
-      freq          = <Real>,    ! Frequency of oscillations (Hz).
-      dphi0_ref      = <Real>,   ! Phase of oscillations.
+      harmonic      = <Integer>, ! Harmonic number 
+      dphi0_ref     = <Real>,    ! Phase of oscillations.
       f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
       field_scale   = <Real>,    ! Scale factor for the E & B fields.
       master_scale  = <Name>,    ! Master scaling parameter for E & B fields.
@@ -928,7 +928,7 @@ The syntax for specifying the electromagnetic fields is
     mode = \{...\}\}
 \end{example}
 The electromagnetic field is specified as a series of \vn{modes}. Each
-\vn{mode} has a frequency \vn{freq} which, if non-zero, identifies it
+\vn{mode} has a \vn{harmonic} number which, if non-zero, identifies it
 as an RF field. The field associated with a mode can be specified
 using a \vn{grid} of data points or by a \vn{map} which specify the
 coefficients of an analytical form for the field.

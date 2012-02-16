@@ -201,7 +201,6 @@ end type
 type em_field_mode_struct
   integer m                    ! Mode varies as cos(m*phi - phi0_azimuth)
   integer :: harmonic = 0      ! Harmonic of fundamental
-  real(rp) freq                ! Oscillation frequency (Hz)
   real(rp) :: f_damp = 0       ! 1/Q damping factor 
   real(rp) :: dphi0_ref = 0    ! Mode oscillates as: twopi * (f * t + dphi0_ref)
   real(rp) stored_energy       ! epsilon_0/2 * \int_vol |E|^2 [Joules]

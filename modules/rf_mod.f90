@@ -64,9 +64,11 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct), target :: param
 
+integer, parameter :: n_sample = 16
+
 real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
-real(rp) value_saved(n_attrib_maxx), dphi0_ref_original, pz_arr(0:3), pz_max1, pz_max2
+real(rp) value_saved(n_attrib_maxx), dphi0_ref_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
 real(rp) dE_max1, dE_max2
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
@@ -109,7 +111,7 @@ case (bmad_standard$)
   dphi0_ref => ele%value(dphi0_ref$)
 case (grid$, map$, custom$)
   do i = 1, size(ele%em_field%mode)
-    if (ele%em_field%mode(i)%freq /= 0 .and. ele%em_field%mode(i)%m == 0) then
+    if (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0) then
       field_scale => ele%em_field%mode(i)%field_scale
       dphi0_ref => ele%em_field%mode(i)%dphi0_ref
       exit
@@ -160,7 +162,6 @@ phi_max = dphi0_ref   ! Init guess
 if (ele%key == rfcavity$) phi_max = ele%value(dphi0_max$)
 
 phi_max_old = 100 ! Number far from unity
-dphi = 0.05
 
 ! scale_correct is the correction factor applied to field_scale on each iteration:
 !  field_scale(new) = field_scale(old) * scale_correct
@@ -204,9 +205,10 @@ endif
 ! pz_max1 gives the maximal acceleration of the 4. pz_max2 gives the second largest.
 
 pz_arr(0) = pz_max
+dphi = 1.0_rp / n_sample
 
-do i = 1, 3
-  pz_arr(i) = -neg_pz_calc(phi_max + i*0.25)
+do i = 1, n_sample - 1
+  pz_arr(i) = -neg_pz_calc(phi_max + i*dphi)
 enddo
 
 i_max1 = maxloc(pz_arr, 1) - 1
@@ -228,13 +230,14 @@ endif
 ! Otherwise take half way between dE_max1 and dE_max2 phases.
 
 if (dE_max2 < dE_max1/2) then  ! Just use dE_max1 point
-  phi_max = phi_max + 0.25 * i_max1
+  phi_max = phi_max + dphi * i_max1
   pz_max = pz_max1
-elseif (abs(i_max1 - i_max2) == 3) then   ! wrap around case when i_max1 = 0 and i_max2 = 3 or vice versa.
-  phi_max = phi_max + 0.25 * (-1) / 2.0
+! wrap around case when i_max1 = 0 and i_max2 = n_sample-1 or vice versa.
+elseif (abs(i_max1 - i_max2) == n_sample - 1) then   
+  phi_max = phi_max - dphi / 2.0
   pz_max = -neg_pz_calc(phi_max)
 else
-  phi_max = phi_max + 0.25 * (i_max1 + i_max2) / 2.0
+  phi_max = phi_max + dphi * (i_max1 + i_max2) / 2.0
   pz_max = -neg_pz_calc(phi_max)
 endif
 
@@ -242,6 +245,7 @@ endif
 
 n_loop = 0  ! For debug purposes.
 num_times_lost = 0
+dphi = 0.05
 
 main_loop: do
 

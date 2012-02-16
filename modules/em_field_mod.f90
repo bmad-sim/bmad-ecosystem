@@ -174,7 +174,7 @@ real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, s_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho
-real(rp) radius, phi, t_ref, tilt, omega
+real(rp) radius, phi, t_ref, tilt, omega, freq
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
@@ -574,14 +574,15 @@ case(map$)
 
     ! Notice that it is mode%dphi0_ref that is used below. Not ele%value(dphi0_ref$).
 
-    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / ele%em_field%mode(1)%freq
-    if (ele%key == rfcavity$) t_ref = 0.25/ele%em_field%mode(1)%freq - t_ref
+    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / freq
+    if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
 
     do i = 1, size(ele%em_field%mode)
       mode => ele%em_field%mode(i)
       m = mode%m
 
-      k_t = twopi * mode%freq / c_light
+      k_t = twopi * ele%value(rf_frequency$) * mode%harmonic / c_light
 
       Er = 0; Ep = 0; Ez = 0
       Br = 0; Bp = 0; Bz = 0
@@ -641,13 +642,14 @@ case(map$)
 
       ! Notice that phi0, dphi0, and phi0_err are folded into t_ref above.
 
-      expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%dphi0_ref))
+      freq = ele%value(rf_frequency$) * mode%harmonic
+      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (t_rel + t_ref) + mode%dphi0_ref))
       if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
       E_rho = E_rho + Er * expt
       E_phi = E_phi + Ep * expt
       E_z   = E_z   + Ez * expt
 
-      expt = expt / (twopi * mode%freq)
+      expt = expt / (twopi * freq)
       B_rho = B_rho + Br * expt
       B_phi = B_phi + Bp * expt
       B_z   = B_z   + Bz * expt
@@ -687,8 +689,9 @@ case(grid$)
   select case (ele%key)
   case(rfcavity$, lcavity$) 
     ! Notice that it is mode%dphi0_ref that is used below. Not ele%value(dphi0_ref$).
-    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / ele%em_field%mode(1)%freq
-    if (ele%key == rfcavity$) t_ref = 0.25/ele%em_field%mode(1)%freq - t_ref
+    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / freq
+    if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
 
   case default
     t_ref = 0
@@ -699,8 +702,9 @@ case(grid$)
     mode => ele%em_field%mode(i)
     m = mode%m
     
-    ! DC modes should have mode%freq = 0
-    expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%dphi0_ref))
+    ! DC modes should have mode%harmonic = 0
+    freq = ele%value(rf_frequency$) * mode%harmonic
+    expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (t_rel + t_ref) + mode%dphi0_ref))
     if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
 
     ! Check for grid

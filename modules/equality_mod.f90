@@ -220,7 +220,7 @@ logical is_eq
 
 !
 
-is_eq = (f1%freq == f2%freq) .and. (f1%f_damp == f2%f_damp) .and. (f1%dphi0_ref == f2%dphi0_ref) .and. &
+is_eq = (f1%harmonic == f2%harmonic) .and. (f1%f_damp == f2%f_damp) .and. (f1%dphi0_ref == f2%dphi0_ref) .and. &
         (f1%stored_energy == f2%stored_energy) .and. (f1%m == f2%m) .and. (f1%phi0_azimuth == f2%phi0_azimuth) .and. &
         (f1%field_scale == f2%field_scale)
 if (.not. is_eq) return
