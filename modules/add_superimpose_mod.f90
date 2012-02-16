@@ -101,6 +101,11 @@ call init_ele (drift)
 drift%key = drift$
 
 super_saved = super_ele_in
+super_saved%slave_status = free$
+super_saved%n_lord = 0
+super_saved%ic1_lord = 0
+super_saved%ic2_lord = -1
+
 branch => lat%branch(ix_branch)
 
 ! s1 is the left edge of the superimpose.
@@ -148,7 +153,6 @@ endif
 
 if (super_saved%value(l$) == 0) then
   super_saved%lord_status  = not_a_lord$ 
-  super_saved%slave_status = free$
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
                                 check_controls = .false., save_null_drift = save_null_drift, err_flag = err)
   if (err) return
@@ -258,7 +262,6 @@ if (all_drift) then
   ix_super = ix1_split + 1
   branch%ele(ix_super) = super_saved
   branch%ele(ix_super)%lord_status  = not_a_lord$
-  branch%ele(ix_super)%slave_status = free$
   call set_flags_for_changed_attribute (lat, branch%ele(ix_super))
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   ! If a single drift was split: give the runt drifts on either end 
