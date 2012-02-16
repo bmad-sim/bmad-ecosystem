@@ -134,7 +134,7 @@ case (rfcavity$)
   dE_peak_wanted = ele%value(voltage$)
   e_tot_start = ele%value(e_tot$)
 case (lcavity$)
-  dE_peak_wanted = ele%value(gradient$) + ele%value(l$)
+  dE_peak_wanted = ele%value(gradient$) * ele%value(l$)
   e_tot_start = ele%value(e_tot_start$)
 case default
   call out_io (s_fatal$, r_name, 'CONFUSED ELEMENT TYPE!')
