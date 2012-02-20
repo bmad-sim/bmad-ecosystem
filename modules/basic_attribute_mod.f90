@@ -335,7 +335,6 @@ do i = 1, n_key
   call init_attrib (i, csr_calc_on$,        'CSR_CALC_ON')
   call init_attrib (i, n_ref_pass$,         'N_REF_PASS')
   call init_attrib (i, field_scale$,        'FIELD_SCALE')
-  call init_attrib (i, ds_field_offset$,    reserved_slot$)
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
@@ -457,7 +456,6 @@ call init_attrib (e_gun$, field$,                          'FIELD')
 call init_attrib (em_field$, e_tot_start$,                 'E_TOT_START')
 call init_attrib (em_field$, p0c_start$,                   'P0C_START')
 call init_attrib (em_field$, field$,                       'FIELD')
-call init_attrib (em_field$, z_patch$,                     'Z_PATCH')
 
 call init_attrib (taylor$, l$,                             'L')
 call init_attrib (taylor$, E_tot_start$,                   reserved_slot$)
@@ -536,7 +534,6 @@ call init_attrib (lcavity$, gradient_err$,                 'GRADIENT_ERR')
 call init_attrib (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attrib (lcavity$, field$,                        'FIELD')
 call init_attrib (lcavity$, dphi0_ref$,                    'DPHI0_REF')
-call init_attrib (lcavity$, z_patch$,                      'Z_PATCH')
 call init_attrib (lcavity$, n_cell$,                       'N_CELL')
 call init_attrib (lcavity$, grad_loss_sr_wake$,            reserved_slot$)
 
@@ -703,7 +700,6 @@ call init_attrib (rfcavity$, coupler_at$,                  'COUPLER_AT')
 call init_attrib (rfcavity$, field$,                       'FIELD')
 call init_attrib (rfcavity$, dphi0_ref$,                   'DPHI0_REF')
 call init_attrib (rfcavity$, n_cell$,                      'N_CELL')
-call init_attrib (rfcavity$, z_patch$,                     'Z_PATCH')
 call init_attrib (rfcavity$, grad_loss_sr_wake$,           reserved_slot$)
 call init_attrib (rfcavity$, dphi0_max$,                   reserved_slot$)
 call init_attrib (rfcavity$, E_tot_start$,                   reserved_slot$)
@@ -739,7 +735,6 @@ call init_attrib (wiggler$, rho$,                          'RHO')
 call init_attrib (wiggler$, n_pole$,                       'N_POLE')
 call init_attrib (wiggler$, term$,                         'TERM')
 call init_attrib (wiggler$, polarity$,                     'POLARITY')
-call init_attrib (wiggler$, z_patch$,                      'Z_PATCH')
 call init_attrib (wiggler$, radius$,                       'RADIUS')
 call init_attrib (wiggler$, field_calc$,                   'FIELD_CALC')
 call init_attrib (wiggler$, field_master$,                 'FIELD_MASTER')
@@ -944,39 +939,6 @@ if (ele%key == em_field$ .and. (ele%slave_status == super_slave$ .or. ele%slave_
       has_attribs = .false.
 
 end function has_orientation_attributes
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Function has_z_patch (ele) result (has_patch)
-!
-! Routine to determine whether an element has the z_patch attribute.
-!
-! Input:
-!   ele  -- ele_struct: Lattice element.
-!
-! Output:
-!   has_patch -- Logical: True if ele uses a z_patch. False otherwise.
-!-
-
-function has_z_patch (ele) result (has_patch)
-
-implicit none
-
-type (ele_struct) ele
-logical has_patch
-
-! 
-
-select case (ele%key)
-case (wiggler$, em_field$)
-   has_patch = .true.
-case default
-  has_patch = .false.
-end select
-
-end function has_z_patch
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

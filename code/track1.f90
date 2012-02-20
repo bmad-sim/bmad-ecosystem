@@ -64,11 +64,7 @@ start2_orb = start_orb
 ! Doing this here to be compatible with programs that do not set this.
 
 if (ele%tracking_method /= time_runge_kutta$ .or. start_orb%status == not_set$) then
-  if (ele_has_constant_reference_energy(ele)) then
-    p0c_start = ele%value(p0c$)
-  else
-    p0c_start = ele%value(p0c_start$)
-  endif
+  p0c_start = ele%value(p0c_start$)
 
   call convert_pc_to (p0c_start * (1 + start2_orb%vec(6)), param%particle, beta = start2_orb%beta)
   start2_orb%p0c = p0c_start
@@ -164,25 +160,6 @@ case default
   return
 
 end select
-
-! s, time, etc. update. time_runge_kutta will do its own thing since, for example, the particle
-! might be travelling backwards and be at the entrance end.
-
-if (tracking_method /= time_runge_kutta$) then
-
-  if (ele_has_constant_reference_energy(ele)) then
-    end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + (start2_orb%vec(5) - end_orb%vec(5)) / &
-                                                                                   (end_orb%beta * c_light)
-  else
-    call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
-    end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &
-                            start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
-  endif
-
-  end_orb%s = ele%s
-  end_orb%p0c = ele%value(p0c$)
-
-endif
 
 ! Radiation damping and/or fluctuations for the last half of the element
 

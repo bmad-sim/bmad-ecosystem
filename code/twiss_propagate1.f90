@@ -106,7 +106,7 @@ else
   ! det_factor is a renormalization factor since det_original != 1
 
   det_factor = 1
-  if (.not. ele_has_constant_reference_energy(ele2)) then
+  if (ele2%value(p0c$) /= ele2%value(p0c_start$)) then
     det_factor = sqrt(determinant (mat6(1:4,1:4)))
   endif
 
@@ -185,8 +185,8 @@ endif
 ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
 ! This is just 1.0 (except for RF cavities).
 
-orb  => ele2%map_ref_orb_in%vec
-orb_out => ele2%map_ref_orb_out%vec
+orb  => ele2%map_ref_orb_in
+orb_out => ele2%map_ref_orb_out
 rel_p1 = 1 + orb(6)               ! reference energy 
 rel_p2 = 1 + orb_out(6)
 

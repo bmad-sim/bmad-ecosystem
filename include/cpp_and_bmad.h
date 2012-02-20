@@ -965,8 +965,6 @@ public:
   C_xy_disp x, y;               // Projected dispersion
   C_floor_position floor;       // Global floor position at end of ele.
   C_mode3 mode3;
-  C_coord map_ref_orb_in;
-  C_coord map_ref_orb_out;
   void* gen_field;              // Pointer to a PTC genfield
   C_taylor_array taylor;        // Taylor terms
   C_rf rf;                      // Fields and wakes
@@ -987,7 +985,8 @@ public:
   Real_Tensor r;                // For general use. Not used by Bmad.
   Real_Array a_pole;            // multipole
   Real_Array b_pole;            // multipoles
-  Real_Array const_arr;         // Working constants.
+  Real_Array map_ref_orb_in;
+  Real_Array map_ref_orb_out;
   int key;                      // key value
   int sub_key;                  // For wigglers: map_type$, periodic_type$
   int ix_ele;                   // Index in ring%ele(:) array
@@ -1026,8 +1025,6 @@ public:
   bool offset_moves_aperture;   // element offsets affects aperture?
 
   C_ele (const int key = 0) : 
-    map_ref_orb_in(V6_array),
-    map_ref_orb_out(V6_array),
     gen_field(NULL),
     taylor(C_taylor(0), 6), 
     value(double(0), Bmad::N_ATTRIB_MAXX+1),
@@ -1039,6 +1036,8 @@ public:
     gamma_c(0),
     s(0),
     ref_time(0),
+    map_ref_orb_in(V6_array),
+    map_ref_orb_out(V6_array),
     key(0),
     sub_key(0),
     ix_ele(-1),

@@ -223,7 +223,7 @@ change by $-1.0 = -2.0 * 0.5$.
 In practice the field at a particular point in the lattice may be due
 to more than one physical element. One example of this is a quadrupole
 magnet inside a larger solenoid magnet. \bmad has a mechanism to
-handle some of these cases using what is called ``superposition''. A
+handle this using what is called ``superposition''. A
 simple example shows how this works:
 \begin{example}
   Q: quad, l = 10
@@ -255,6 +255,16 @@ combination solenoid/quadrupole element as one could
 expect. \vn{S{\#}1} is the part of \vn{S} that is outside \vn{Q} so
 this element is just a solenoid. Finally, \vn{D\#2} is the rest of the
 drift outside \vn{S}.
+
+When \bmad sets the element class for elements created from
+superpositions, \bmad will set the class of the element to something
+other than an \vn{em_field} element (\sref{s:em.field}) if
+possible. If no other possibilities exist, \bnad will use
+\vn{em_field}. For example, a \vn{quadrupole} superimposed with a
+\vn{solenoid} will produce a \vn{sol_quad} element but a \vn{solenoid}
+superimposed with a \vn{rfcavity} element will produce an
+\vn{em_field} element since there is no other class of element that
+can simultaneously handle solenoid and RF fields.
 
 \begin{figure}[tb]
 \centering 

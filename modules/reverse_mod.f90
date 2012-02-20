@@ -160,10 +160,10 @@ implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) temp
 
 integer i, j, sum235
 
+real(rp) temp(6)
 real(rp) tempp
 
 ! Flip map_ref coords
@@ -172,13 +172,13 @@ temp = ele%map_ref_orb_out
 ele%map_ref_orb_out = ele%map_ref_orb_in
 ele%map_ref_orb_in = temp
 
-ele%map_ref_orb_in%vec(2) = -ele%map_ref_orb_in%vec(2)
-ele%map_ref_orb_in%vec(3) = -ele%map_ref_orb_in%vec(3)
-ele%map_ref_orb_in%vec(5) = -ele%map_ref_orb_in%vec(5)
+ele%map_ref_orb_in(2) = -ele%map_ref_orb_in(2)
+ele%map_ref_orb_in(3) = -ele%map_ref_orb_in(3)
+ele%map_ref_orb_in(5) = -ele%map_ref_orb_in(5)
 
-ele%map_ref_orb_out%vec(2) = -ele%map_ref_orb_out%vec(2)
-ele%map_ref_orb_out%vec(3) = -ele%map_ref_orb_out%vec(3)
-ele%map_ref_orb_out%vec(5) = -ele%map_ref_orb_out%vec(5)
+ele%map_ref_orb_out(2) = -ele%map_ref_orb_out(2)
+ele%map_ref_orb_out(3) = -ele%map_ref_orb_out(3)
+ele%map_ref_orb_out(5) = -ele%map_ref_orb_out(5)
 
 ! Flip aperture limit position
 
@@ -234,8 +234,6 @@ case (sbend$)
 !       coef  -> -coef
 ! This transforms:
 !       (B_x, B_y, B_z) @ (x, y, s) -> (B_x, -B_y, -B_z) @ (x, -y, L-s)
-! Also: Since the wiggler trajectory starting on the origin may not end
-!   on the origin, z_patch may shift and needs to be recalculated.
 
 case (wiggler$)
   if (associated(ele%wig)) then
@@ -247,9 +245,12 @@ case (wiggler$)
 
 end select
 
-! z_patch
+! Since, for example, the wiggler trajectory starting on the origin may not end
+!   on the origin, the reference transit time may shift and needs to be recalculated.
 
-if (has_z_patch(ele) .and. ele%slave_status /= super_slave$) call z_patch_calc (ele, param)
+if (.not. ele_has_constant_ds_dt_ref(ele)) then
+  !...
+endif
 
 ! The inverse of the Taylor map is: 
 !   M * T^(-1) * M

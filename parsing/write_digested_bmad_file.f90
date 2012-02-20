@@ -200,8 +200,9 @@ type (ele_struct), target :: ele
 type (taylor_struct), pointer :: tt(:)
 type (rf_wake_struct), pointer :: wake
 type (em_field_mode_struct), pointer :: mode
+type (coord_struct) map_ref_orb_in, map_ref_orb_out
 
-integer ix_wig, n_wall_section, ix_const, ix_r, ix_d, ix_m, ix_t(6)
+integer ix_wig, n_wall_section, ix_r, ix_d, ix_m, ix_t(6)
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
 integer i, j, k, n, ng, nf, n_rf_field_mode
 
@@ -211,13 +212,12 @@ logical write_wake, mode3
 
 tt => ele%taylor
     
-ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
+ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_r = 0
 ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
 mode3 = .false.; n_wall_section = 0; n_rf_field_mode = 0
 
 if (associated(ele%mode3))          mode3 = .true.
 if (associated(ele%wig))            ix_wig = size(ele%wig%term)
-if (associated(ele%const))          ix_const = size(ele%const)
 if (associated(ele%r))              ix_r = 1
 if (associated(ele%descrip))        ix_d = 1
 if (associated(ele%a_pole))         ix_m = 1
@@ -250,8 +250,11 @@ endif
 ! Now write the element info. 
 ! The last zero is for future use.
 
-write (d_unit) mode3, ix_wig, ix_const, ix_r, 0, 0, 0, ix_d, ix_m, ix_t, &
+write (d_unit) mode3, ix_wig, 0, ix_r, 0, 0, 0, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, 0
+
+map_ref_orb_in%vec  = ele%map_ref_orb_in    ! To be compatible with olf ele_struct def.
+map_ref_orb_out%vec = ele%map_ref_orb_out
 
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -265,7 +268,7 @@ write (d_unit) &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
+          map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%anchor_pt
 
 ! This compresses the ele%value array
@@ -314,8 +317,6 @@ if (mode3) write (d_unit) ele%mode3
 do j = 1, ix_wig
   write (d_unit) ele%wig%term(j)
 enddo
-
-if (associated(ele%const))    write (d_unit) ele%const
 
 if (associated(ele%r)) then
   write (d_unit) lbound(ele%r), ubound(ele%r)

@@ -480,7 +480,7 @@ end subroutine get_slave_list
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine get_field_ele_list (ele, field_eles, n_field_ele)
+! Subroutine get_field_ele_list (ele, field_eles, ds_offset, n_field_ele)
 !
 ! Subroutine to get the list of elements that specify the field for the given element.
 !
@@ -504,61 +504,66 @@ end subroutine get_slave_list
 !
 ! Output:
 !   field_eles(:) -- Ele_pointer_struct, allocatable :: Array of field_eles.
-!     %ele%value(ds_field_offset$) -- Offset of ele from field element.
+!   ds_offset(:)  -- Offsets of ele from field elements.
 !   n_field_ele   -- Integer: Number of field_eles.
 !-
 
-subroutine get_field_ele_list (ele, field_eles, n_field_ele)
+subroutine get_field_ele_list (ele, field_eles, ds_offset, n_field_ele)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (ele_pointer_struct), allocatable :: field_eles(:)
 
+real(rp), allocatable :: ds_offset(:)
+real(rp) offset
 integer n_field_ele
 
 !
 
 n_field_ele = 0
 if (.not. allocated(field_eles)) call re_allocate_eles (field_eles, 3)
+allocate (ds_offset(3))
 
-ele%value(ds_field_offset$) = 0
-call get_field_eles (ele)
+offset = 0
+call get_field_eles (ele, offset)
 
 !--------------------------------------------------------------------------
 contains
 
-recursive subroutine get_field_eles (ele)
+recursive subroutine get_field_eles (this_ele, this_offset)
 
-type (ele_struct), target :: ele
+type (ele_struct), target :: this_ele
 type (ele_struct), pointer :: field_ele
+real(rp) this_offset
 integer i, ix
 
 !
 
-if (ele%field_calc == refer_to_lords$) then
-  do i = 1, ele%n_lord
-    field_ele => pointer_to_lord(ele, i)
+if (this_ele%field_calc == refer_to_lords$) then
+  do i = 1, this_ele%n_lord
+    field_ele => pointer_to_lord(this_ele, i)
 
     select case (field_ele%key)
     case (overlay$, group$, girder$); cycle
     end select
 
-    if (field_ele%lord_status == multipass_lord$) then
-      field_ele%value(ds_field_offset$) = ele%value(ds_field_offset$)
-    else
-      field_ele%value(ds_field_offset$) = ele%value(ds_field_offset$) + &
-                            (ele%s - ele%value(l$)) - (field_ele%s - field_ele%value(l$))
-    endif
+    if (field_ele%lord_status == multipass_lord$) cycle
 
-    call get_field_eles (field_ele)
+    this_offset = this_offset + (this_ele%s - this_ele%value(l$)) - (field_ele%s - field_ele%value(l$))
+
+    call get_field_eles (field_ele, this_offset)
 
   enddo
 
 else
   n_field_ele = n_field_ele + 1
-  if (n_field_ele > size(field_eles)) call re_allocate_eles(field_eles, n_field_ele + 10, .true.)
-  field_eles(n_field_ele)%ele => ele
+  if (n_field_ele > size(field_eles) .or. n_field_ele > size(ds_offset)) then
+    call re_allocate_eles(field_eles, n_field_ele + 10, .true.)
+    call re_allocate (ds_offset, n_field_ele + 10, .false.)
+  endif
+  field_eles(n_field_ele)%ele => this_ele
+  ds_offset(n_field_ele) = this_offset
 endif
 
 end subroutine get_field_eles

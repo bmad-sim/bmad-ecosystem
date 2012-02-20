@@ -78,7 +78,7 @@ if (present(ref_orb)) then
   endif
 endif
 
-if (bmad_com%auto_bookkeeper) call lat_compute_reference_energy (lat)
+if (bmad_com%auto_bookkeeper) call lat_compute_ref_energy_and_time (lat)
 
 ! Is the reference orbit zero?
 
@@ -115,9 +115,9 @@ if (i_ele < 0) then
 
     if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
       if (present(ref_orb)) then
-        if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) cycle
+        if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in)) cycle
       else
-        if (all(ele%map_ref_orb_in%vec == 0)) cycle
+        if (all(ele%map_ref_orb_in == 0)) cycle
       endif
     endif
 
@@ -130,7 +130,7 @@ if (i_ele < 0) then
           lord => pointer_to_lord(ele, ild, ix_slave = ix_slave)
           if (ix_slave == 1) cycle  ! If first one then no preceeding slave
           slave0 => pointer_to_slave(lord, ix_slave-1) ! slave before this element.
-          orb_start = slave0%map_ref_orb_out
+          orb_start%vec = slave0%map_ref_orb_out
           exit
         enddo
       endif
@@ -213,12 +213,12 @@ ele => branch%ele(i_ele)
 
 if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
   if (present(ref_orb)) then
-    if (all(ref_orb(i_ele-1)%vec == ele%map_ref_orb_in%vec)) then
+    if (all(ref_orb(i_ele-1)%vec == ele%map_ref_orb_in)) then
       return
       if (present(err_flag)) err_flag = .false.
     endif
   else
-    if (all(ele%map_ref_orb_in%vec == 0)) then
+    if (all(ele%map_ref_orb_in == 0)) then
       return
       if (present(err_flag)) err_flag = .false.
     endif

@@ -10,12 +10,12 @@ type save_coef_struct
   real(rp) coef, dx_coef, dy_coef
 end type
 
-type save_computations_struct
+type wiggler_computations_struct
   type (save_coef_struct) a_y, dint_a_y_dx, da_z_dx, da_z_dy
   real(rp) c_x, s_x, c_y, s_y, c_z, s_z, s_x_kx, s_y_ky, c1_ky2
 end type
 
-private save_coef_struct, save_computations_struct
+private save_coef_struct, wiggler_computations_struct
 
 contains
 
@@ -23,7 +23,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track, offset_ele)
+! Subroutine symp_lie_bmad (ele, param, start_orb, end_orb, calc_mat6, track, offset_ele)
 !
 ! Subroutine to track through an element (which gives the 0th order map) 
 ! and optionally make the 6x6 transfer matrix (1st order map) as well.
@@ -46,7 +46,7 @@ contains
 ! Input:
 !   ele        -- Ele_struct: Element with transfer matrix
 !   param      -- lat_param_struct: Parameters are needed for some elements.
-!   start      -- Coord_struct: Coordinates at the beginning of element. 
+!   start_orb  -- Coord_struct: Coordinates at the beginning of element. 
 !   calc_mat6  -- Logical: If True then make the 6x6 transfer matrix.
 !   offset_ele -- Logical, optional: Offset the element using ele%value(x_offset$), etc.
 !                   Default is True.
@@ -55,32 +55,33 @@ contains
 !   ele        -- Ele_struct: Element with transfer matrix.
 !     %mat6(6,6)  -- 6x6 transfer matrix.
 !     %vec0(6)    -- 0th order part of the transfer matrix.
-!   end        -- Coord_struct: Coordinates at the end of element.
+!   end_orb    -- Coord_struct: Coordinates at the end of element.
 !   track      -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track, offset_ele)
+subroutine symp_lie_bmad (ele, param, start_orb, end_orb, calc_mat6, track, offset_ele)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele
-type (ele_pointer_struct), allocatable, save :: field_eles(:)
-type (coord_struct) :: start, end
+type (ele_pointer_struct), allocatable :: field_eles(:)
+type (coord_struct) :: start_orb, end_orb, start2_orb
 type (lat_param_struct)  param
 type (track_struct), optional :: track
 type (wig_term_struct), pointer :: wig_term(:)
 
-type (save_computations_struct), allocatable, save :: tm(:)
+type (wiggler_computations_struct), allocatable :: tm(:)
 type (wig_term_struct), pointer :: wt
 
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), x_pitch, y_pitch
-real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds
+real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
 real(rp) dE_p, dpx, dpy, mc2, s_offset
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
+real(rp), allocatable :: ds_offset(:)
 
 integer i, n_step, n_field
 
@@ -94,12 +95,13 @@ character(16) :: r_name = 'symp_lie_bmad'
 calculate_mat6 = (calc_mat6 .or. synch_rad_com%i_calc_on)
 
 do_offset = logic_option (.true., offset_ele)
-rel_E = (1 + start%vec(6))
+rel_E = (1 + start_orb%vec(6))
 rel_E2 = rel_E**2
 rel_E3 = rel_E**3
 
-end = start
-end%s = ele%s - ele%value(l$)
+start2_orb = end_orb
+end_orb = start_orb
+end_orb%s = ele%s - ele%value(l$)
 
 err = .false.
 
@@ -110,10 +112,10 @@ y_pitch = ele%value(y_pitch_tot$)
 
 if (calculate_mat6) then
   mat6 => ele%mat6
-  call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end%vec)
+  call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end_orb%vec)
 endif
 
-if (do_offset) call offset_particle (ele, param, end, set$, set_canonical = .false.)
+if (do_offset) call offset_particle (ele, param, end_orb, set$, set_canonical = .false.)
 
 ! init
 
@@ -156,21 +158,16 @@ select case (ele%key)
 
 Case (wiggler$)
 
-  call get_field_ele_list (ele, field_eles, n_field)
+  call get_field_ele_list (ele, field_eles, ds_offset, n_field)
   do i = 1, n_field
     field_ele => field_eles(i)%ele
     if (field_ele%key == wiggler$) exit
   enddo
 
   wig_term => field_ele%wig%term
-  s_offset = field_ele%value(ds_field_offset$)
+  s_offset = ds_offset(i)
 
-  if (.not. allocated(tm)) then
-    allocate (tm(size(wig_term)))
-  elseif (size(tm) < size(wig_term)) then
-    deallocate(tm)
-    allocate (tm(size(wig_term)))
-  endif
+  allocate (tm(size(wig_term)))
 
   call update_wig_coefs (calculate_mat6)
   call update_wig_y_terms (err); if (err) return
@@ -178,7 +175,7 @@ Case (wiggler$)
 
   ! Start correction for finite vector potential
 
-  end%vec(4) = end%vec(4) + a_y()
+  end_orb%vec(4) = end_orb%vec(4) + a_y()
 
   if (calculate_mat6) then
     mat6(4,:) = mat6(4,:) + da_y_dx() * mat6(1,:) + da_y_dy() * mat6(3,:)
@@ -211,8 +208,8 @@ Case (wiggler$)
 
     dpx = da_z_dx()
     dpy = da_z_dy()
-    end%vec(2) = end%vec(2) + ds * dpx
-    end%vec(4) = end%vec(4) + ds * dpy
+    end_orb%vec(2) = end_orb%vec(2) + ds * dpx
+    end_orb%vec(4) = end_orb%vec(4) + ds * dpy
 
     call radiation_kick()
 
@@ -248,20 +245,11 @@ Case (wiggler$)
   call update_wig_y_terms (err); if (err) return
   call update_wig_x_s_terms (err); if (err) return
 
-  end%vec(4) = end%vec(4) - a_y()
+  end_orb%vec(4) = end_orb%vec(4) - a_y()
 
   if (calculate_mat6) then
     mat6(4,:) = mat6(4,:) - da_y_dx() * mat6(1,:) - da_y_dy() * mat6(3,:)
   endif
-
-  ! z_patch: This should have been computed if doing tracking with an offset.
-
-  if (ele%value(z_patch$) == 0 .and. do_offset) then
-    call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
-    if (bmad_status%exit_on_error) call err_exit 
-  endif
-
-  end%vec(5) = end%vec(5) - ele%value(z_patch$)
 
 !----------------------------------------------------------------------------
 ! rf cavity
@@ -287,15 +275,6 @@ case (lcavity$, rfcavity$)
     if (present(track)) call save_this_track_pt (i, s)
 
   enddo
-
-  ! z_patch: This should have been computed if doing tracking with an offset.
-
-  if (ele%value(z_patch$) == 0 .and. do_offset) then
-    call out_io (s_fatal$, r_name, 'WIGGLER Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
-    if (bmad_status%exit_on_error) call err_exit 
-  endif
-
-  end%vec(5) = end%vec(5) - ele%value(z_patch$)
 
 !----------------------------------------------------------------------------
 ! solenoid, quadrupole, sol_quad, or bend_sol_quad
@@ -362,10 +341,11 @@ case default
 
 end select
 
+!----------------------------------------------------------------------------
 ! element offset
 
 if (calculate_mat6) then
-  call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end%vec)
+  call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end_orb%vec)
   mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
   mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
   mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
@@ -374,14 +354,27 @@ if (calculate_mat6) then
   call mat6_add_pitch (x_pitch, y_pitch, mat6)
 endif
 
-if (do_offset) call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+if (do_offset) call offset_particle (ele, param, end_orb, unset$, set_canonical = .false.)
 
 ! Correct for finite pitches & calc vec0
 
 if (calculate_mat6) then
-  ele%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+  ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
   ele%vec0(6) = 0
 endif
+
+! Correct z-position for wigglers, etc. 
+
+z_patch = ele%value(delta_ref_time$) * c_light * end_orb%beta - ele%value(l$)
+end_orb%vec(5) = end_orb%vec(5) + z_patch
+end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + (start2_orb%vec(5) - end_orb%vec(5)) / &
+                                                                                   (end_orb%beta * c_light)
+
+!
+
+end_orb%s = ele%s
+end_orb%p0c = ele%value(p0c$)
+
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -398,8 +391,8 @@ print *, 'ERROR IN SYMP_LIE_BMAD: FLOATING OVERFLOW IN WIGGLER TRACKING.'
 print *, '      PARTICLE WILL BE TAGGED AS LOST.'
 param%plane_lost_at = plane
 param%lost = .true.
-end%vec(1) = 2 * bmad_com%max_aperture_limit
-end%vec(3) = 2 * bmad_com%max_aperture_limit
+end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
+end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
 err = .true.
 
 end subroutine err_set
@@ -415,7 +408,7 @@ integer ix
 
 !
 
-track%orb(ix) = end
+track%orb(ix) = end_orb
 call offset_particle (ele, param, track%orb(ix), unset$, set_canonical = .false.)
   
 if (calculate_mat6) track%map(ix)%mat6 = mat6
@@ -424,7 +417,7 @@ if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%map(ix)%mat6, ele%value(til
 call mat6_add_pitch (x_pitch, y_pitch, track%map(ix)%mat6)
 
 if (calculate_mat6) then
-  track%map(ix)%vec0(1:5) = track%orb(ix)%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+  track%map(ix)%vec0(1:5) = track%orb(ix)%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
   track%map(ix)%vec0(6) = 0
 endif
  
@@ -438,13 +431,13 @@ subroutine apply_p_x (do_mat6)
 
 logical do_mat6
 
-end%vec(1) = end%vec(1) + ds2 * end%vec(2) / rel_E
-end%vec(5) = end%vec(5) - ds2 * end%vec(2)**2 / (2*rel_E2)
-end%s = end%s + ds2
+end_orb%vec(1) = end_orb%vec(1) + ds2 * end_orb%vec(2) / rel_E
+end_orb%vec(5) = end_orb%vec(5) - ds2 * end_orb%vec(2)**2 / (2*rel_E2)
+end_orb%s = end_orb%s + ds2
 
 if (do_mat6) then
-  mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)           * mat6(2,1:6) - (ds2*end%vec(2)/rel_E2)    * mat6(6,1:6) 
-  mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end%vec(2)**2/rel_E3) * mat6(6,1:6)
+  mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)           * mat6(2,1:6) - (ds2*end_orb%vec(2)/rel_E2)    * mat6(6,1:6) 
+  mat6(5,1:6) = mat6(5,1:6) - (ds2*end_orb%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end_orb%vec(2)**2/rel_E3) * mat6(6,1:6)
 endif
 
 end subroutine apply_p_x 
@@ -457,12 +450,12 @@ subroutine apply_p_y (do_mat6)
 
 logical do_mat6
 
-end%vec(3) = end%vec(3) + ds2 * end%vec(4) / rel_E
-end%vec(5) = end%vec(5) - ds2 * end%vec(4)**2 / (2*rel_E2)
+end_orb%vec(3) = end_orb%vec(3) + ds2 * end_orb%vec(4) / rel_E
+end_orb%vec(5) = end_orb%vec(5) - ds2 * end_orb%vec(4)**2 / (2*rel_E2)
 
 if (do_mat6) then
-  mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)           * mat6(4,1:6) - (ds2*end%vec(4)/rel_E2)    * mat6(6,1:6) 
-  mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
+  mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)           * mat6(4,1:6) - (ds2*end_orb%vec(4)/rel_E2)    * mat6(6,1:6) 
+  mat6(5,1:6) = mat6(5,1:6) - (ds2*end_orb%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end_orb%vec(4)**2/rel_E3) * mat6(6,1:6)
 endif      
 
 end subroutine apply_p_y
@@ -477,8 +470,8 @@ logical do_mat6
 
 ! Drift_1 = (P_x - a_x)**2 / (2 * (1 + dE))
 
-end%vec(2) = end%vec(2) 
-end%vec(4) = end%vec(4) 
+end_orb%vec(2) = end_orb%vec(2) 
+end_orb%vec(4) = end_orb%vec(4) 
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) 
@@ -491,8 +484,8 @@ call apply_p_x (do_mat6)
 
 !
 
-end%vec(2) = end%vec(2) 
-end%vec(4) = end%vec(4) 
+end_orb%vec(2) = end_orb%vec(2) 
+end_orb%vec(4) = end_orb%vec(4) 
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6)
@@ -511,8 +504,8 @@ logical do_mat6
 
 ! Drift_1 = (P_x - a_x)**2 / (2 * (1 + dE))
 
-end%vec(2) = end%vec(2) + end%vec(3) * ks_tot_2   !  vec(2) - a_x
-end%vec(4) = end%vec(4) + end%vec(1) * ks_tot_2   !  vec(4) - dint_a_x_dy
+end_orb%vec(2) = end_orb%vec(2) + end_orb%vec(3) * ks_tot_2   !  vec(2) - a_x
+end_orb%vec(4) = end_orb%vec(4) + end_orb%vec(1) * ks_tot_2   !  vec(4) - dint_a_x_dy
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
@@ -525,8 +518,8 @@ call apply_p_x (do_mat6)
 
 !
 
-end%vec(2) = end%vec(2) - end%vec(3) * ks_tot_2   !  vec(2) + a_x
-end%vec(4) = end%vec(4) - end%vec(1) * ks_tot_2   !  vec(4) + dint_a_x_dy
+end_orb%vec(2) = end_orb%vec(2) - end_orb%vec(3) * ks_tot_2   !  vec(2) + a_x
+end_orb%vec(4) = end_orb%vec(4) - end_orb%vec(1) * ks_tot_2   !  vec(4) + dint_a_x_dy
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
@@ -545,8 +538,8 @@ logical do_mat6
 
 ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
 
-end%vec(2) = end%vec(2) - end%vec(3) * ks_tot_2   !  vec(2) - dint_a_y_dx
-end%vec(4) = end%vec(4) - end%vec(1) * ks_tot_2   !  vec(4) - a_y
+end_orb%vec(2) = end_orb%vec(2) - end_orb%vec(3) * ks_tot_2   !  vec(2) - dint_a_y_dx
+end_orb%vec(4) = end_orb%vec(4) - end_orb%vec(1) * ks_tot_2   !  vec(4) - a_y
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
@@ -559,8 +552,8 @@ call apply_p_y (do_mat6)
 
 !
 
-end%vec(2) = end%vec(2) + end%vec(3) * ks_tot_2   !  vec(2) + dint_a_y_dx
-end%vec(4) = end%vec(4) + end%vec(1) * ks_tot_2   !  vec(4) + a_y
+end_orb%vec(2) = end_orb%vec(2) + end_orb%vec(3) * ks_tot_2   !  vec(2) + dint_a_y_dx
+end_orb%vec(4) = end_orb%vec(4) + end_orb%vec(1) * ks_tot_2   !  vec(4) + a_y
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
@@ -577,11 +570,11 @@ subroutine bsq_kick (do_mat6)
 
 logical do_mat6
 
-dpx = k1_norm * (x_q - end%vec(1)) - k1_skew * end%vec(3) - g_x
-end%vec(2) = end%vec(2) + ds * dpx  ! da_z_dx
+dpx = k1_norm * (x_q - end_orb%vec(1)) - k1_skew * end_orb%vec(3) - g_x
+end_orb%vec(2) = end_orb%vec(2) + ds * dpx  ! da_z_dx
               
-dpy = k1_norm * (end%vec(3) - y_q) - k1_skew * end%vec(1) - g_y
-end%vec(4) = end%vec(4) + ds * dpy  ! da_z_dy
+dpy = k1_norm * (end_orb%vec(3) - y_q) - k1_skew * end_orb%vec(1) - g_y
+end_orb%vec(4) = end_orb%vec(4) + ds * dpy  ! da_z_dy
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) - ds * k1_norm * mat6(1,1:6) - ds * k1_skew * mat6(3,1:6)
@@ -599,8 +592,8 @@ subroutine apply_wig_exp_int_ay (sgn, do_mat6)
 integer sgn
 logical do_mat6
 
-end%vec(2) = end%vec(2) + sgn * dint_a_y_dx()
-end%vec(4) = end%vec(4) + sgn * a_y()
+end_orb%vec(2) = end_orb%vec(2) + sgn * dint_a_y_dx()
+end_orb%vec(4) = end_orb%vec(4) + sgn * a_y()
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) + sgn * (dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6))
@@ -674,12 +667,12 @@ do j = 1, size(wig_term)
   ! Update y-terms
 
   wt => wig_term(j)
-  kyy = wt%ky * end%vec(3)
+  kyy = wt%ky * end_orb%vec(3)
   if (abs(kyy) < 1e-20) then
     tm(j)%c_y = 1
     tm(j)%s_y = kyy
-    tm(j)%s_y_ky = end%vec(3)
-    tm(j)%c1_ky2 = end%vec(3)**2 / 2
+    tm(j)%s_y_ky = end_orb%vec(3)
+    tm(j)%c1_ky2 = end_orb%vec(3)**2 / 2
     if (wt%type == hyper_x$) tm(j)%c1_ky2 = -tm(j)%c1_ky2 
   elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
     if (abs(kyy) > 30) then
@@ -715,11 +708,11 @@ do j = 1, size(wig_term)
 
   ! Update x-terms
 
-  kxx = wt%kx * end%vec(1)
+  kxx = wt%kx * end_orb%vec(1)
   if (abs(kxx) < 1e-20) then
     tm(j)%c_x = 1
     tm(j)%s_x = kxx
-    tm(j)%s_x_kx = end%vec(1)
+    tm(j)%s_x_kx = end_orb%vec(1)
   elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
     if (abs(kxx) > 30) then
       call err_set (err, x_plane$)
@@ -1016,13 +1009,13 @@ g3 = g2 * sqrt(g2)
 ! synch_rad_com%scale is normally 1 but can be set by a program for testing purposes.
 
 call ran_gauss (this_ran)
-dE_p = (1 + end%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * synch_rad_com%scale 
+dE_p = (1 + end_orb%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * synch_rad_com%scale 
 
 ! And kick the particle.
 
-end%vec(2) = end%vec(2) * (1 - dE_p)
-end%vec(4) = end%vec(4) * (1 - dE_p)
-end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
+end_orb%vec(2) = end_orb%vec(2) * (1 - dE_p)
+end_orb%vec(4) = end_orb%vec(4) * (1 - dE_p)
+end_orb%vec(6) = end_orb%vec(6)  - dE_p * (1 + end_orb%vec(6))
 
 ! synch_ran_com%i_calc_on is, by default, False but a program can set this to True for testing purposes.
 
@@ -1030,10 +1023,10 @@ if (synch_rad_com%i_calc_on) then
   synch_rad_com%i2 = synch_rad_com%i2 + g2 * ds
   synch_rad_com%i3 = synch_rad_com%i3 + g3 * ds
   temp_ele%mat6 = mat6
-  temp_ele%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+  temp_ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
   temp_ele%vec0(6) = 0
-  temp_ele%map_ref_orb_in = start
-  temp_ele%map_ref_orb_out = end
+  temp_ele%map_ref_orb_in = start_orb%vec
+  temp_ele%map_ref_orb_out = end_orb%vec
   call twiss_propagate1 (synch_rad_com%ele0, temp_ele)
   synch_rad_com%i5a = synch_rad_com%i5a + g3 * ds * (temp_ele%a%gamma * temp_ele%a%eta**2 + &
         2 * temp_ele%a%alpha * temp_ele%a%eta * temp_ele%a%etap + temp_ele%a%beta * temp_ele%a%etap**2)

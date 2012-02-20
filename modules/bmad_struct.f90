@@ -281,10 +281,21 @@ type bookkeeper_status_struct
   integer :: control = ok$         ! Lord/slave bookkeeping status: super_ok$, ok$ or stale$ 
   integer :: floor_position = ok$  ! Global (floor) geometry: super_ok$, ok$ or stale$
   integer :: length = ok$          ! Length: super_ok$, ok$ or stale$
-  integer :: ref_energy = ok$      ! Reference energy: super_ok$, ok$ or stale$
+  integer :: ref_energy = ok$      ! Reference energy and ref time: super_ok$, ok$ or stale$
   integer :: mat6 = ok$            ! Linear transfer map status: super_ok$, ok$ or stale$
   integer :: rad_int = ok$         ! Radiation integrals cache status
 end type
+
+! radiation integral data cache
+
+type rad_int_ele_cache_struct
+  real(rp) orb0(6)        ! Reference orbit for the calculation
+  real(rp) g2_0           ! g2 factor when orbit = %vec0
+  real(rp) g3_0           ! g3 factor when orbit = %vec0
+  real(rp) dg2_dorb(6)    ! variation of g2 with respect to orbit.
+  real(rp) dg3_dorb(6)    ! Variation of g3 with respect to orbit.
+  logical :: stale = .true.
+end type 
 
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
@@ -302,21 +313,21 @@ type ele_struct
   character(200), pointer :: descrip => null() ! Description string.
   type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
   type (xy_disp_struct) x, y           ! Projected dispersions.
-  type (floor_position_struct) floor   ! Global floor position at end of ele.
-  type (mode3_struct), pointer :: mode3 => null()
-  type (coord_struct) map_ref_orb_in                        ! Ref orbit at entrance of element.
-  type (coord_struct) map_ref_orb_out                       ! Ref orbit at exit of element.
-  type (genfield), pointer :: ptc_genfield => null()        ! For symp_map$
-  type (fibre), pointer :: ptc_fiber                        ! PTC tracking.
-  type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
+  type (floor_position_struct) floor                        ! Global floor position.
+  type (lat_struct), pointer :: lat => null()               ! Pointer to lattice containing element.
+  type (ele_struct), pointer :: lord => null()              ! Pointer to a slice lord.
+  type (mode3_struct), pointer :: mode3 => null()
+  type (fibre), pointer :: ptc_fiber                        ! PTC tracking.
+  type (genfield), pointer :: ptc_genfield => null()        ! For symp_map$
+  type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
+                                                            ! Radiation integral calc cached values 
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
-  type (wig_struct), pointer :: wig => null()  ! Wiggler field
   type (space_charge_struct), pointer :: space_charge => null()
+  type (bookkeeper_status_struct) status                    ! Element attribute bookkeeping
+  type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
-  type (lat_struct), pointer :: lat => null()  ! Pointer to lattice containing this element.
-  type (ele_struct), pointer :: lord => null() ! Pointer to a slice lord.
-  type (bookkeeper_status_struct) status       ! For keeping track of what bookkeeping has been done.
+  type (wig_struct), pointer :: wig => null()  ! Wiggler field
   real(rp) value(n_attrib_maxx)                ! attribute values.
   real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                             ! constant part of the genfield map.
@@ -329,7 +340,10 @@ type ele_struct
   real(rp), pointer :: r(:,:,:) => null()      ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()     ! knl for multipole elements.
   real(rp), pointer :: b_pole(:) => null()     ! tilt for multipole elements.
-  real(rp), pointer :: const(:) => null()      ! Working constants.
+  real(rp) map_ref_orb_in(6)     ! Transfer map ref orbit at entrance end of element.
+  real(rp) map_ref_orb_out(6)    ! Transfer map ref orbit at exit end of element.
+  real(rp) time_ref_orb_in(6)    ! Reference orbit at entrance end for ref_time calc.
+  real(rp) time_ref_orb_out(6)   ! Reference orbit at exit end for ref_time calc.
   integer key                    ! key value 
   integer sub_key                ! For wigglers: map_type$, periodic_type$
   integer :: ix_ele = -1         ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
@@ -573,7 +587,7 @@ integer, parameter :: hgap$=15, dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15
 integer, parameter :: hgapx$=16, dphi0_ref$ = 16, bend_tilt$=16, fh_im$=16, f0_im2$=16
 integer, parameter :: dphi0_max$=17, h1$=17, x_quad$=17, ref_polarization$=17
 integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
-integer, parameter :: b_param$ = 19, z_patch$=19
+integer, parameter :: b_param$ = 19
 integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 20
 integer, parameter :: field_scale$ = 21
 integer, parameter :: roll$=22, n_cell$=22
@@ -609,7 +623,7 @@ integer, parameter :: tilt_tot$ = 50
 integer, parameter :: n_ref_pass$ = 51, ref_cap_gamma$ = 51
 integer, parameter :: radius$ = 52, kh_y_norm$ = 52
 integer, parameter :: pole_radius$ = 53, follow_diffracted_beam$ = 53 
-integer, parameter :: ds_field_offset$ = 54   ! Assumed unique. Do not overload.
+! 54 is open
 integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 56, l_x$ = 56
 integer, parameter :: ds_step$ = 57, l_y$ = 57

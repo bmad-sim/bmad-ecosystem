@@ -169,8 +169,17 @@ else
     if (ix_tot > 0) then
       if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, i7, 3x, a16, a, es15.7)') &
-                                  i, a_name(1:n_att), '=', ele%value(i), ',', &
-                                  ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot)
+                        i, a_name(1:n_att), '=', ele%value(i), ',', &
+                        ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot)
+    elseif (a_name == 'E_TOT_START') then
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
+                        i, a_name(1:n_att), '=', ele%value(i), ',', &
+                        'BETA_START      =', ele%value(p0c_start$) / ele%value(e_tot_start$)
+    elseif (a_name == 'E_TOT') then
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
+                        i, a_name(1:n_att), '=', ele%value(i), ',', &
+                        'BETA            =', ele%value(p0c$) / ele%value(e_tot$)
+
     elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
       if (ele%value(i) == 0) cycle
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 6x, a, f10.4, a)') &
@@ -192,7 +201,7 @@ else
         name = attribute_value_name (a_name, ele%value(i), ele, is_default)
         if (.not. is_default .or. type_zero) then
           nl=nl+1; write (li(nl), '(i6, 3x, 4a, i0, a)')  i, a_name(1:n_att), '=  ', &
-                                                        name, ' (', nint(ele%value(i)), ')'
+                                                        trim(name), ' (', nint(ele%value(i)), ')'
         endif
       end select
     endif

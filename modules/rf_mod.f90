@@ -80,6 +80,8 @@ character(28), parameter :: r_name = 'rf_auto_scale_phase_and_amp'
 ! Check if auto scale is needed.
 ! Adjust_phase is used to determine if the phase can be adjusted when scaling the amplitude.
 
+if (.not. ele%is_on) return
+
 err_flag = .false.
 
 scale_phase = .true.
@@ -109,6 +111,7 @@ select case (ele%field_calc)
 case (bmad_standard$) 
   field_scale => ele%value(field_scale$)
   dphi0_ref => ele%value(dphi0_ref$)
+
 case (grid$, map$, custom$)
   do i = 1, size(ele%em_field%mode)
     if (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0) then
@@ -121,14 +124,18 @@ end select
 
 dphi0_ref_original = dphi0_ref
 
-if (.not. associated(field_scale)) return
+if (.not. associated(field_scale)) then
+  call out_io (s_fatal$, r_name, 'CANNOT DETERMINE WHAT TO SCALE. NO FIELD MODE WITH HARMONIC = 1, M = 0', &
+                                 'FOR ELEMENT: ' // ele%name)
+  if (bmad_status%exit_on_error) call err_exit ! exit on error.
+  return
+endif
 
 ! Compute Energy gain at peak (zero phase)
 
 ele_com => ele
 param_com => param
 
-if (.not. ele%is_on) return
 select case (ele%key)
 case (rfcavity$)
   dE_peak_wanted = ele%value(voltage$)
@@ -139,13 +146,27 @@ case (lcavity$)
 case default
   call out_io (s_fatal$, r_name, 'CONFUSED ELEMENT TYPE!')
   if (bmad_status%exit_on_error) call err_exit ! exit on error.
+  return
 end select
 
-! Autophasing when dE_peak_wanted is zero or very small is not possible.
+! Auto scale amplitude when dE_peak_wanted is zero or very small is not possible.
 ! Therefore if dE_peak_wanted is less than dE_cut then do nothing.
 
-dE_cut = 10 ! eV
-if (abs(dE_peak_wanted) < dE_cut) return
+if (adjust_amp) then
+  dE_cut = 10 ! eV
+  if (abs(dE_peak_wanted) < dE_cut) return
+endif
+
+if (field_scale == 0) then
+  ! Cannot autophase if not allowed to make the field_scale non-zero.
+  if (.not. adjust_amp) then
+    call out_io (s_fatal$, &
+            r_name, 'CANNOT AUTO PHASE IF NOT ALLOWED TO MAKE THE FIELD_SCALE NON-ZERO FOR: ' // ele%name)
+    if (bmad_status%exit_on_error) call err_exit ! exit on error.
+    return 
+  endif
+  field_scale = 1  ! Initial guess.
+endif
 
 ! Set error fields to zero
 

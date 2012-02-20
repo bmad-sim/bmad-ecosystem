@@ -280,8 +280,8 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && (x.y == y.y);
   is_true = is_true && (x.floor == y.floor);
   // is_true = is_true && (x.mode3 == y.mode3);
-  is_true = is_true && (x.map_ref_orb_in == y.map_ref_orb_in);
-  is_true = is_true && (x.map_ref_orb_out == y.map_ref_orb_out);
+  is_true = is_true && is_all_equal(x.map_ref_orb_in == y.map_ref_orb_in);
+  is_true = is_true && is_all_equal(x.map_ref_orb_out == y.map_ref_orb_out);
   // is_true = is_true && (x.gen_field == y.gen_field);
   is_true = is_true && is_all_equal(x.taylor, y.taylor);
   // is_true = is_true && (x.em_field == y.em_field);
@@ -300,7 +300,6 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && is_all_equal(x.r, y.r);
   is_true = is_true && is_all_equal(x.a_pole, y.a_pole);
   is_true = is_true && is_all_equal(x.b_pole, y.b_pole);
-  is_true = is_true && is_all_equal(x.const_arr, y.const_arr);
   is_true = is_true && (x.key == y.key);
   is_true = is_true && (x.sub_key == y.sub_key);
   is_true = is_true && (x.ix_ele == y.ix_ele);

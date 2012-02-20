@@ -1,5 +1,5 @@
 !+
-! Subroutine lat_compute_reference_energy (lat, err_flag)
+! Subroutine lat_compute_ref_energy_and_time (lat, err_flag)
 !
 ! Subroutine to compute the energy, momentum and time of the reference particle for 
 ! each element in a lat structure.
@@ -19,7 +19,7 @@
 !   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine lat_compute_reference_energy (lat, err_flag)
+subroutine lat_compute_ref_energy_and_time (lat, err_flag)
 
 use lat_ele_loc_mod
 use bookkeeper_mod
@@ -29,15 +29,16 @@ use rf_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, slave, branch_ele, ele0
+type (ele_struct), pointer :: ele, lord, lord2, slave, branch_ele, ele0
 type (branch_struct), pointer :: branch
 
-integer i, k, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
+integer i, j, k, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
+integer ix_super_end
 
 logical did_set, stale, err
 logical, optional :: err_flag
 
-character(24), parameter :: r_name = 'lat_compute_reference_energy'
+character(24), parameter :: r_name = 'lat_compute_ref_energy_and_time'
 
 ! propagate the energy through the tracking part of the lattice
 
@@ -95,12 +96,17 @@ do ib = 0, ubound(lat%branch, 1)
 
     stale = .true.
     ele0%status%ref_energy = ok$
+    ele0%time_ref_orb_out = 0
 
   endif
 
   ! Loop over all elements in the branch
 
+  ix_super_end = 0  ! End index of current super_lord_region
+
   do i = 1, branch%n_ele_track
+
+    ele0 => branch%ele(i-1)
     ele => branch%ele(i)
 
     if (.not. stale .and. ele%status%ref_energy /= stale$) cycle
@@ -113,33 +119,51 @@ do ib = 0, ubound(lat%branch, 1)
       call set_ele_status_stale (lat%branch(ibb)%ele(0), lat%branch(ibb)%param, ref_energy_group$)
     endif
 
-    ! If this element is the first super_slave or multipass_slave of a lord with varying reference energy,
-    ! then, if needed, make sure that the lord has its RF phase and amplitude properly adjusted.
+    ! If we are in the middle of a super_lord region then the "zero" orbit is just the continuation
+    ! of the "zero" orbit of the previous element. This is important in wigglers. If the fact
+    ! that the "zero" orbit is not truely zero is not taken into account then splitting 
+    ! wigglers would result in z-position shifts when tracking particles.
 
-    ele0 => branch%ele(i-1)
+    if (ix_super_end < i) then
+      ele%time_ref_orb_in = 0
+    else
+      ele%time_ref_orb_in = ele0%time_ref_orb_out
+    endif
 
-    if ((ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) .and. &
-                                            .not. ele_has_constant_reference_energy(ele)) then
+    ! Find where the current super lord region ends.
+
+    if (ele%slave_status == super_slave$) then
+      do j = 1, ele%n_lord
+        lord => pointer_to_lord(ele, j)
+        lord2 => pointer_to_slave(lord, lord%n_slave) ! last element of lord
+        ix_super_end = max(ix_super_end, lord2%ix_ele)
+      enddo
+    endif
+
+    ! If this element is the first super_slave or multipass_slave of a lord that needs to be auto phased,
+    ! make sure that the lord has its RF phase and amplitude properly adjusted.
+
+    if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then 
       do ixl = 1, ele%n_lord
         lord => pointer_to_lord (ele, ixl, ix_slave = ix_slave)
-        if (ele_has_constant_reference_energy(lord) .or. ix_slave /= 1) cycle
+        if (ix_slave /= 1) cycle
+        if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
         if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-        if (lord%tracking_method == bmad_standard$) cycle
         if (lord%lord_status == multipass_lord$) then
           call multipass_chain(ele, lat, ix_pass, n_links)
           if (ix_pass /= 1) cycle
         endif
         ! This adjusts the RF phase and amplitude
-        call compute_ele_reference_energy (lord, branch%param, &
+        call ele_compute_ref_energy_and_time (lord, branch%param, &
                                               ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
         if (err) return
         call control_bookkeeper (lat, lord)
       enddo
     endif
 
-    ! Calculate the energy at the end of the present element.
+    ! Calculate the energy and reference time at the end of the present element.
 
-    call compute_ele_reference_energy (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
+    call ele_compute_ref_energy_and_time (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
     if (err) return
 
     call set_ele_status_stale (ele, branch%param, attribute_group$)
@@ -191,8 +215,9 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   ! Now transfer the information to the lord.
 
-  lord%value(p0c$) = slave%value(p0c$)
+  lord%value(p0c$)   = slave%value(p0c$)
   lord%value(E_tot$) = slave%value(E_tot$)
+  lord%ref_time      = slave%ref_time
 
   ! Transfer the starting energy.
 
@@ -202,31 +227,24 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     lord%value(p0c_start$)   = slave%value(p0c_start$)
   endif
 
-  ! Autophase/amp rfcavity lords.
-
-  if (lord%key == rfcavity$ .or. lord%key == e_gun$) then
-    slave => pointer_to_slave(lord, 1)
-    call rf_auto_scale_phase_and_amp (lord, lat%branch(slave%ix_branch)%param, err)
-    if (err) return
-  endif
-
 enddo
 
 if (present(err_flag)) err_flag = .false.
 
-end subroutine lat_compute_reference_energy
+end subroutine lat_compute_ref_energy_and_time
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
+! Subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
 !
 ! Routine to compute the reference energy and reference time at the end of an element 
 ! given the reference enegy and reference time at the start of the element.
 !
 ! Input:
 !   ele            -- Ele_struct: Lattice element
+!     %time_ref_orb_in  -- Starting orbit for ref time calc.
 !   param          -- lat_Param_struct: Lattice parameters.
 !   e_tot_start    -- Real(rp): Entrance end energy.
 !   p0c_start      -- Real(rp): Entrance end momentum
@@ -235,9 +253,10 @@ end subroutine lat_compute_reference_energy
 !
 ! Output:
 !   ele         -- Ele_struct: Lattice element with reference energy and time.
+!     %time_ref_orb_out  -- Ending orbit for ref time calc.
 !-
 
-subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
+subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
 
 use lat_ele_loc_mod
 use rf_mod
@@ -245,28 +264,32 @@ use rf_mod
 implicit none
 
 type (ele_struct) ele
-type (ele_struct), save :: ele2
 type (lat_param_struct) :: param
-type (coord_struct) start_orb, end_orb
+type (coord_struct) orb_start, orb_end
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
+real(rp) old_delta_ref_time, old_p0c
 integer key
 logical err_flag, err
 
-character(32), parameter :: r_name = 'compute_ele_reference_energy'
+character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
-! Treat an accelerating em_field element like an lcavity
+! 
 
 err_flag = .true.
-
-key = ele%key
+old_delta_ref_time = ele%value(delta_ref_time$)
+old_p0c = ele%value(p0c$)
 
 ele%value(E_tot_start$) = E_tot_start
 ele%value(p0c_start$) = p0c_start
+ele%time_ref_orb_out = ele%time_ref_orb_in  ! This should be true when we don't have to track.
+
+key = ele%key
+if (key == em_field$ .and. ele%value(p0c$) /= ele%value(p0c_start$)) key = lcavity$
 
 select case (key)
 
-case (lcavity$) 
+case (lcavity$)
 
   ! We can only use the formula dE = voltage * cos(phase) with bmad_standard$ tracking since with other 
   ! tracking there is no guarantee that dE varies as cos(phase). Additionally, for multipass elements 
@@ -302,31 +325,24 @@ case (lcavity$)
       if (err) return
     endif
 
-    ! For reference energy tracking need to turn off any element offsets and kicks.
-    ! If a super_slave, only want to track through the accelerating element.
+    ! Track
 
-    ele2 = ele
-    ele2%is_on = .true.
-    if (ele2%slave_status == super_slave$) then
-      
-    else
-      call zero_ele_offsets (ele2)
-      call zero_ele_kicks (ele2)
-    endif
+    call zero_errors_in_ele (ele)
+    orb_start%vec = ele%time_ref_orb_in
+    call track1 (orb_start, ele, param, orb_end)
+    ele%time_ref_orb_out = orb_end%vec
+    call restore_errors_in_ele (ele)
 
-    ele2%value(phi0_err$) = 0
-    ele2%value(gradient_err$) = 0
-    start_orb%vec = 0
-    call track1 (start_orb, ele2, param, end_orb)
-    if (end_orb%status == dead$) then
+    if (orb_end%status == dead$) then
       call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING LCAVITY: ' // ele%name, &
                                      'CANNOT COMPUTE REFERENCE ENERGY')
       return
     endif
+
     E_tot = ele%value(E_tot$)
     p0c = ele%value(p0c$)
-    ele%ref_time = ref_time_start + end_orb%t
-    ele%value(p0c$) = p0c * (1 + end_orb%vec(6))
+    ele%ref_time = ref_time_start + orb_end%t
+    ele%value(p0c$) = p0c * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
   endif
@@ -343,18 +359,19 @@ case (e_gun$)
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
   if (err) return
 
-  ele2 = ele
-  call zero_ele_offsets (ele2)
-  call zero_ele_kicks (ele2)
+  orb_start%status = inside$ !to avoid entrance kick in time tracking
+  call convert_total_energy_to (ele%value(E_tot$) - ele%value(voltage$), param%particle, pc = orb_start%vec(6))
+  orb_start%vec(6) = orb_start%vec(6) / ele%value(p0c$)
 
-  start_orb%status = inside$ !to avoid entrance kick in time tracking
-  start_orb%vec = 0
-  call convert_total_energy_to (ele%value(E_tot$) - ele%value(voltage$), param%particle, pc = start_orb%vec(6))
-  start_orb%vec(6) = start_orb%vec(6) / ele%value(p0c$)
-  call track1 (start_orb, ele2, param, end_orb)
+  call zero_errors_in_ele (ele)
+  orb_start%vec = ele%time_ref_orb_in
+  call track1 (orb_start, ele, param, orb_end)
+  ele%time_ref_orb_out = orb_end%vec
+  call restore_errors_in_ele (ele)
+
   E_tot = ele%value(E_tot$)
   p0c = ele%value(p0c$)
-  ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
+  ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - orb_end%vec(5) * E_tot / (p0c * c_light)
 
 case (crystal$, mirror$, multilayer_mirror$)
   ele%value(ref_wavelength$) = c_light * h_planck / E_tot_start
@@ -375,10 +392,6 @@ case (patch$)
   ele%ref_time = ref_time_start + ele%value(t_offset$)
 
 case default
-  if (ele%key == em_field$) then
-    ele%value(E_tot_start$) = E_tot_start
-    ele%value(p0c_start$) = p0c_start
-  endif
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
 
@@ -387,24 +400,95 @@ case default
     if (err) return
   endif
 
-  if (ele%key == rfcavity$ .and. ele%tracking_method /= bmad_standard$) then
-    ele2 = ele
-    call zero_ele_offsets (ele2)
-    call zero_ele_kicks (ele2)
-    call track1 (start_orb, ele2, param, end_orb)
-    ele%ref_time = ref_time_start + end_orb%t
-  else
+  if (ele_has_constant_ds_dt_ref(ele)) then
     ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+  else
+    call zero_errors_in_ele (ele)
+    orb_start%vec = ele%time_ref_orb_in
+    call track1 (orb_start, ele, param, orb_end)
+    ele%time_ref_orb_out = orb_end%vec
+    call restore_errors_in_ele (ele)
+    ele%ref_time = ref_time_start + orb_end%t
   endif
 
 end select
 
-
-! %old_value is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
+! If delta_ref_time has shifted then any taylor map must be updated.
 
 ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
+if (abs(ele%value(delta_ref_time$) - old_delta_ref_time) > bmad_com%significant_length / c_light) then
+  if (associated (ele%taylor(1)%term)) call kill_taylor (ele%taylor)
+  ele%status%mat6 = stale$
+endif
+
+! %old_value(delta_ref_time$) is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
+! However changes in the reference energy should trigger bookkeeping
+
 ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
+ele%old_value(p0c$) = old_p0c
 
 err_flag = .false.
 
-end subroutine compute_ele_reference_energy
+!---------------------------------------------------------------------------------
+contains
+
+recursive subroutine zero_errors_in_ele (ele)
+
+type (ele_struct) ele
+type (ele_struct), pointer :: lord
+integer i
+
+! For reference energy tracking need to turn off any element offsets and kicks and zero any errors.
+! If the element is a super_slave then the errors must be zeroed in the super_lord elements also.
+
+ele%old_value = ele%value
+ele%bmad_logic = ele%is_on
+ele%is_on = .true.
+ele%ix_value = ele%tracking_method
+if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_ptc$
+
+if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    if (lord%lord_status /= super_lord$) cycle
+    call zero_errors_in_ele (lord)
+  enddo
+endif
+
+call zero_ele_offsets (ele)
+call zero_ele_kicks (ele)
+
+select case (ele%key)
+case (lcavity$)
+  ele%value(phi0_err$) = 0
+  ele%value(gradient_err$) = 0
+end select
+
+end subroutine zero_errors_in_ele
+
+!---------------------------------------------------------------------------------
+! contains
+
+recursive subroutine restore_errors_in_ele (ele)
+
+type (ele_struct) ele
+type (ele_struct), pointer :: lord
+integer i
+
+! 
+
+ele%value = ele%old_value
+ele%old_is_on = ele%bmad_logic
+ele%tracking_method = ele%ix_value
+
+if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    if (lord%lord_status /= super_lord$) cycle
+    call restore_errors_in_ele (lord)
+  enddo
+endif
+
+end subroutine restore_errors_in_ele
+
+end subroutine ele_compute_ref_energy_and_time

@@ -121,22 +121,17 @@ endif
 ele1%em_field => ele_save%em_field ! Reinstate for transfer call 
 call transfer_em_field (ele2%em_field, ele1%em_field)
 
-! %const
+! %rad_int_cache
 
-if (associated(ele2%const)) then
-  if (associated (ele_save%const)) then
-    if (size(ele_save%const) == size(ele2%const)) then
-      ele1%const => ele_save%const
-    else
-      deallocate (ele_save%const)
-      allocate (ele1%const(size(ele2%const)))
-    endif
+if (associated(ele2%rad_int_cache)) then
+  if (associated (ele_save%rad_int_cache)) then
+      ele1%rad_int_cache => ele_save%rad_int_cache
   else
-    allocate (ele1%const(size(ele2%const)))
+    allocate (ele1%rad_int_cache)
   endif
-  ele1%const = ele2%const
+  ele1%rad_int_cache = ele2%rad_int_cache
 else
-  if (associated (ele_save%const)) deallocate (ele_save%const)
+  if (associated (ele_save%rad_int_cache)) deallocate (ele_save%rad_int_cache)
 endif
 
 ! %r

@@ -29,7 +29,6 @@
 subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
 
 use runge_kutta_mod, except_dummy => track1_runge_kutta
-use track1_mod
 
 implicit none
 
@@ -38,7 +37,7 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp) rel_tol, abs_tol, del_s_step, del_s_min, l_drift, t_start, dref_time
+real(rp) rel_tol, abs_tol, del_s_step, del_s_min, dref_time
 
 logical err_flag
 
@@ -46,29 +45,16 @@ logical err_flag
 
 del_s_step = 1e-3
 del_s_min = 1e-8
-l_drift = 0
-t_start = start_orb%t  ! Save in case start_orb & end_orb point to same memory location.
 
 start2_orb = start_orb
-start2_orb%t = 0
 
 ! Convert to element coords
 
 call offset_particle (ele, param, start2_orb, set$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
 
 ! Track.
-! lcavity and rfcavity elements using field_calc == bmad_standard us a pi/2 cavity 
-!   model of length c_light / (2 * f). In this case, drifts are used on either end_orb to 
-!   make up for the difference between ele%value(l$) and the cavity length.
 
-if (tracking_uses_hard_edge_model(ele, tracking_method$)) then
-  l_drift = (ele%value(l$) - ele%value(l_hard_edge$)) / 2
-  call track_a_drift (start2_orb, l_drift)
-endif
-
-call apply_element_edge_kick (start2_orb, ele, param, entrance_end$)
-
-call odeint_bmad (start2_orb, ele, param, end_orb, l_drift, ele%value(l$)-l_drift, bmad_com%rel_tol_adaptive_tracking, &
+call odeint_bmad (start2_orb, ele, param, end_orb, 0.0_rp, ele%value(l$), bmad_com%rel_tol_adaptive_tracking, &
                   bmad_com%abs_tol_adaptive_tracking, del_s_step, del_s_min, .true., err_flag, track)
 if (err_flag) return
 
@@ -77,21 +63,17 @@ if (err_flag) return
 ! dref_time is reference time for transversing the element under the assumption, used by odeint_bmad, that 
 ! the reference velocity is constant and equal to the velocity at the final enegy.
 
-if (tracking_uses_hard_edge_model(ele, tracking_method$)) then
-  dref_time = l_drift / (start2_orb%beta * c_light) + (l_drift + ele%value(l_hard_edge$)) / (end_orb%beta * c_light)
-else
-  dref_time = ele%value(l$) / (end_orb%beta * c_light)
-endif
+dref_time = ele%value(l$) / (end_orb%beta * c_light)
 end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
 
-! Edge kick, drift, convert to lab coords.
+end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &
+                            start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 
-call apply_element_edge_kick (end_orb, ele, param, exit_end$)
-if (tracking_uses_hard_edge_model(ele, tracking_method$)) call track_a_drift (end_orb, l_drift)
+end_orb%s = ele%s
+end_orb%p0c = ele%value(p0c$)
+
+! convert to lab coords.
+
 call offset_particle (ele, param, end_orb, unset$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
-
-! Absolute time 
-
-end_orb%t = end_orb%t + t_start
 
 end subroutine

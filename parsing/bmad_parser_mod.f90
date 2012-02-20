@@ -670,6 +670,7 @@ if (attrib_word == 'FIELD') then
     endif
 
     em_mode => ele%em_field%mode(i_mode)
+    if (ele%key == lcavity$ .or. ele%key == rfcavity$) em_mode%harmonic = 1 ! Default
 
     ! Expect "MODE = {"
 
