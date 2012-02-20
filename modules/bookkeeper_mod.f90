@@ -95,13 +95,13 @@ logical found, err
 
 character(20), parameter :: r_name = 'lattice_bookkeeper'
 
-! Control bookkeeper is called twice to make sure, for example, that the z_patch for a 
-! wiggler super_lord is computed. Other reasons include multipass bends.
+! Control bookkeeper is called twice to make sure, for example, that multipass bend
+! are correctly computed.
 
 if (present(err_flag)) err_flag = .true.
 
 call control_bookkeeper (lat, do_free_eles = .true.)
-call lat_compute_reference_energy (lat, err)
+call lat_compute_ref_energy_and_time (lat, err)
 if (err) return
 call control_bookkeeper (lat, super_and_multipass_only = .true., do_free_eles = .true.)
 
@@ -830,18 +830,17 @@ slave_val = slave%value  ! save
 slave%value = lord%value
 if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
   slave%value(dphi0$)        = slave_val(dphi0$)
-  slave%value(E_tot_start$)  = slave_val(E_tot_start$)
-  slave%value(p0c_start$)    = slave_val(p0c_start$)
 endif
-
-slave%field_calc = refer_to_lords$
 
 ! A slave's field_master = T irregardless of the lord's setting.
 ! This is to make attribute_bookkeeper compute the correct normalized field strength.
 
-slave%value(e_tot$) = slave_val(e_tot$)
-slave%value(p0c$)   = slave_val(p0c$)
-slave%value(n_ref_pass$)    = 0
+slave%value(E_tot_start$)    = slave_val(E_tot_start$)
+slave%value(p0c_start$)      = slave_val(p0c_start$)
+slave%value(e_tot$)          = slave_val(e_tot$)
+slave%value(p0c$)            = slave_val(p0c$)
+slave%value(delta_ref_time$) = slave_val(delta_ref_time$)
+slave%value(n_ref_pass$)     = 0
 if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
 
 ! A match element with match_end$: Restore initial Twiss parameters (which
@@ -1190,9 +1189,9 @@ if (slave%n_lord == 1) then
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
-    if (.not. slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out) then
+    if (.not. all(slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out)) then
       slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
-      if (associated(slave%const)) slave%const = -1  ! Forces recalc
+      if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
   endif
 
@@ -1241,9 +1240,11 @@ ks_yo_sum = 0
 
 value = 0
 value(l$) = slave%value(l$)
-value(E_tot$) = slave%value(E_tot$)
-value(p0c$) = slave%value(p0c$)
-if (has_z_patch(slave)) value(z_patch$) = slave%value(z_patch$)
+value(E_tot_start$)    = slave%value(E_tot_start$)
+value(p0c_start$)      = slave%value(p0c_start$)
+value(E_tot$)          = slave%value(E_tot$)
+value(p0c$)            = slave%value(p0c$)
+value(delta_ref_time$) = slave%value(delta_ref_time$)
 
 s_slave = slave%s - value(l$)/2  ! center of slave
 slave%is_on = .false.
@@ -1287,9 +1288,9 @@ do j = 1, slave%n_lord
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
-    if (.not. slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out) then
+    if (.not. all(slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out)) then
       slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
-      if (associated(slave%const)) slave%const = -1  ! Forces recalc
+      if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
   endif
 
@@ -1669,7 +1670,7 @@ end subroutine makeup_super_slave
 !--------------------------------------------------------------------------
 !+
 ! Subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset,
-!                                            param, at_entrance_end, at_exit_end, err_flag)
+!                                    param, at_entrance_end, at_exit_end, err_flag, old_slice)
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
 ! Note: This routine essentially only modifies the sliced_ele%value array so 
@@ -1685,28 +1686,31 @@ end subroutine makeup_super_slave
 !   use bmad
 !
 ! Input:
-!   ele_in      -- Ele_struct: Original element to slice
-!   l_slice     -- Real(rp): Length of the slice
-!   offset      -- Real(rp): offset of entrance end of sliced_ele from entrance end of the ele.
-!   param       -- Lat_param_struct: lattice paramters.
+!   ele_in          -- Ele_struct: Original element to slice
+!   l_slice         -- Real(rp): Length of the slice
+!   offset          -- Real(rp): Offset of entrance end of sliced_ele from entrance end of ele_in.
+!   param           -- Lat_param_struct: lattice paramters.
 !   at_entrance_end -- Logical: Sliced_ele contains the ele's entrance end?
 !   at_exit_end     -- Logical: Sliced_ele contains the ele's exit end?
+!   old_slice       -- Logical, optional: Previous slice. If present this saves computation
+!                        time of the refernece energy and time at the start of the present slice.
 !
 ! Output:
 !   sliced_ele -- Ele_struct: Sliced_ele element with appropriate values set.
 !   err_flag   -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
-                                                param, at_entrance_end, at_exit_end, err_flag)
+recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
+                                       param, at_entrance_end, at_exit_end, err_flag, old_slice)
 
 implicit none
 
 type (ele_struct), target :: sliced_ele, ele_in
-type (ele_struct), save :: ele2
+type (ele_struct), optional :: old_slice
+type (ele_struct) :: ele2
 type (lat_param_struct) param
 
-real(rp) l_slice, offset, e_len
+real(rp) l_slice, offset, e_len, ref_time_start, p0c_start, e_tot_start
 
 logical at_entrance_end, at_exit_end, err_flag, err2_flag
 
@@ -1778,18 +1782,35 @@ end select
 
 sliced_ele%field_calc = refer_to_lords$
 
-! If the reference energy is changing it can be nonlinear as a function of s so use a slice 
-! from the beginning of ele_in to get the starting ref energy of the slice.
+! Makeup_super_slave1 does not compute reference energy or time so need to do it here.
 
-if (.not. ele_has_constant_reference_energy(sliced_ele)) then
+if (offset == 0) then
+  p0c_start      = ele_in%value(p0c_start$)
+  e_tot_start    = ele_in%value(e_tot_start$)
+  ref_time_start = ele_in%ref_time - ele_in%value(delta_ref_time$)
+  sliced_ele%time_ref_orb_in = ele_in%time_ref_orb_in
+elseif (present(old_slice)) then
+  p0c_start      = old_slice%value(p0c$)
+  e_tot_start    = old_slice%value(e_tot$)
+  ref_time_start = old_slice%ref_time
+  sliced_ele%time_ref_orb_in = old_slice%time_ref_orb_out
+elseif (ele_has_constant_ds_dt_ref(ele_in)) then
+  p0c_start      = ele_in%value(p0c$)
+  e_tot_start    = ele_in%value(e_tot$)
+  ref_time_start = ele_in%ref_time - ele_in%value(delta_ref_time$) * (ele_in%value(l$) - offset) / ele_in%value(l$)
+  sliced_ele%time_ref_orb_in = 0
+else
   call transfer_ele (sliced_ele, ele2)
-  ele2%value(l$) = offset
-  ele2%s = ele_in%s - ele_in%value(l$) + offset
-  call compute_ele_reference_energy (ele2, param, ele_in%value(e_tot_start$), ele_in%value(p0c_start$), ele_in%ref_time, err2_flag)
+  call create_element_slice (ele2, ele_in, offset, 0.0_rp, param, .true., .false., err2_flag)
   if (err2_flag) return
-  call compute_ele_reference_energy (sliced_ele, param, ele2%value(e_tot_start$), ele2%value(p0c_start$), ele2%ref_time, err2_flag)
-  if (err2_flag) return
+  p0c_start      = ele2%value(p0c$)
+  e_tot_start    = ele2%value(e_tot$)
+  ref_time_start = ele2%ref_time
+  sliced_ele%time_ref_orb_in = ele2%time_ref_orb_out
 endif
+
+call ele_compute_ref_energy_and_time (sliced_ele, param, e_tot_start, p0c_start, ref_time_start, err2_flag)
+if (err2_flag) return
 
 err_flag = .false.
 
@@ -1802,6 +1823,7 @@ end subroutine create_element_slice
 ! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
 !
 ! Routine to construct a super_slave from a super_lord when the slave has only one lord.
+! Note: Reference energy and times are not computed in this routine.
 !
 ! Modules needed:
 !   use bmad
@@ -1849,12 +1871,18 @@ else
   coef = slave%value(l$) / lord%value(l$) 
 endif
 
+! Reference energy and time computed in ele_compute_ref_energy_and_time.
+
 value = lord%value
 value(l$)              = slave%value(l$)                ! do not change slave length, etc.
 value(delta_ref_time$) = slave%value(delta_ref_time$)
+value(E_tot_start$)    = slave%value(E_tot_start$)
+value(p0c_start$)      = slave%value(p0c_start$)
+value(E_tot$)          = slave%value(E_tot$)
+value(p0c$)            = slave%value(p0c$)
 value(num_steps$)      = slave%value(num_steps$)
 
-if (has_z_patch(slave)) value(z_patch$) = slave%value(z_patch$)
+!
 
 if (lord%key == hkicker$ .or. lord%key == vkicker$) then
   value(kick$) = lord%value(kick$) * coef
@@ -2174,13 +2202,11 @@ end subroutine makeup_overlay_and_girder_slave
 !     B_MAX$    
 !     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
 !     rho$ = p0c$ / (c_light * b_max$)
-!     z_patch$  
 !
 ! WIGGLER (periodic_type):
 !     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
 !     rho$ = p0c$ / (c_light * b_max$)
 !     n_pole$ = L$ / l_pole$
-!     z_patch$  
 !
 ! Modules needed:
 !   use bmad
@@ -2191,9 +2217,6 @@ end subroutine makeup_overlay_and_girder_slave
 !
 ! Output:
 !   ele            -- Ele_struct: Element with self-consistant attributes.
-!     %map_ref_orb_out -- Reference orbit to be used for the next
-!                         super_slave wiggler z_patch calculation. 
-!                         This is to be only used by the control_bookkeeper routine.
 !
 ! Programming Note: If the dependent attributes are changed then 
 !       the attribute_free routine must be modified.
@@ -2216,15 +2239,13 @@ integer i, n
 character(20) ::  r_name = 'attribute_bookkeeper'
 
 logical err_flag
-logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed, is_on
+logical non_offset_changed, offset_changed, offset_nonzero, is_on
 logical, save :: v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
 logical :: init_needed = .true.
 
 ! Some init
 
 val => ele%value
-z_patch_calc_needed = (has_z_patch(ele) .and. val(z_patch$) == 0 .and. &
-                              val(p0c$) /= 0 .and. ele%slave_status /= super_slave$)
 
 ! Intelligent bookkeeping
 
@@ -2260,8 +2281,7 @@ if (bmad_com%auto_bookkeeper) then
   dval = val - ele%old_value
   dval(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
   dval(scratch$) = 0
-  dval(ds_field_offset$) = 0
-  if (all(dval == 0) .and. .not. z_patch_calc_needed .and. ele%key /= capillary$) return
+  if (all(dval == 0) .and. ele%key /= capillary$) return
 endif
 
 ! Transfer tilt to tilt_tot, etc.
@@ -2442,6 +2462,11 @@ case (rfcavity$)
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   endif
 
+! Solenoid
+
+case (solenoid$)
+  val(l_hard_edge$) = val(l$)
+
 ! BeamBeam
 
 case (beambeam$)
@@ -2501,9 +2526,8 @@ case (elseparator$)
 case (wiggler$) 
 
   ! Calculate b_max for map_type wigglers. 
-  ! To save on computation time, only compute when z_patch calc is also needed.
 
-  if (ele%sub_key == map_type$ .and. (z_patch_calc_needed .or. val(b_max$) == 0)) then
+  if (ele%sub_key == map_type$ .and. val(b_max$) == 0) then
     is_on = ele%is_on  ! Save
     polarity = val(polarity$)
     ele%is_on = .true.
@@ -2574,7 +2598,7 @@ end select
 ! So stop here if nothing has truely changed.
 
 if (bmad_com%auto_bookkeeper) then
-  if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
+  if (all(val == ele%old_value)) return
 endif
 
 ! Since things have changed we need to kill the Taylor Map and ptc_genfield.
@@ -2583,16 +2607,14 @@ if (init_needed) then
   v_mask = .true.
   v_mask([x_offset$, y_offset$, s_offset$, &
             tilt$, x_pitch$, y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
-            tilt_tot$, x_pitch_tot$, y_pitch_tot$, z_patch$]) = .false.
+            tilt_tot$, x_pitch_tot$, y_pitch_tot$]) = .false.
   offset_mask = .not. v_mask
-  offset_mask(z_patch$) = .false.
   v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
   init_needed = .false.
 endif
 
 dval = val - ele%old_value
 dval(scratch$) = 0
-dval(ds_field_offset$) = 0
 
 if (has_orientation_attributes(ele)) then
   non_offset_changed = (any(dval /= 0 .and. v_mask))
@@ -2623,98 +2645,17 @@ endif
 if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
   if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
   if (associated(ele%ptc_genfield)) call kill_ptc_genfield(ele%ptc_genfield)
-  if (has_z_patch(ele) .and. ele%slave_status /= super_slave$) then
-    val(z_patch$) = 0
-    z_patch_calc_needed = (val(p0c$) /= 0)
-  endif
 endif
 
-! Kill ele%const if allocated
+! Make stale ele%rad_int_cache if allocated
 
-if (associated(ele%const)) ele%const = -1  ! Forces recalc
-
-! Compute the z_patch for a wiggler if needed.
-
-if (z_patch_calc_needed) call z_patch_calc (ele, param)
+if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.  ! Forces recalc
 
 ! Set old_value = value
 
 ele%old_value = val
 
 end subroutine attribute_bookkeeper
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine z_patch_calc (ele, param)
-!
-! Routine to calculate the ele%value(z_patch$) value for a wiggler.
-! The z_patch accounts for the problem where a tracked particle that starts
-! out on the reference orbit accumulates a non-zero change in z due to the fact
-! that the particle trajectory is non-zero. With RF cavities in the 
-! machine this can lead to energy shifts. The solution is that the z_patch
-! is applied after tracking through a wiggler to make the change in z for
-! a particle on the reference orbit zero.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele   -- ele_struct: Wiggler element
-!   param -- lat_param_struct: Lattice parameter values.
-!
-! Output:
-!   ele   -- ele_struct:
-!     %value(z_patch$) -- z_patch value.
-!-
-
-recursive subroutine z_patch_calc (ele, param)
-
-use symp_lie_mod, only: symp_lie_bmad
-
-implicit none
-
-type (ele_struct), target :: ele
-type (ele_struct), pointer :: slave
-type (branch_struct), pointer :: branch
-type (lat_param_struct) param
-type (coord_struct) start, end
-
-integer i
-
-!
-
-!if (ele%slave_status == super_slave$) then
-!  if (ele%n_lord > 1) call err_exit
-!  branch => pointer_to_branch(ele)
-!  call z_patch_calc (pointer_to_lord(ele, 1), branch%param)
-!  return
-!endif
-
-!
-
-start%vec = 0
-call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
-ele%value(z_patch$) = end%vec(5) - start%vec(5)
-if (ele%value(z_patch$) == 0) ele%value(z_patch$) = 1e-30 ! something non-zero.
-
-! update slaves as well.
-
-if (ele%lord_status == super_lord$) then
-  do i = 1, ele%n_slave 
-    slave => pointer_to_slave(ele, i)
-    branch => pointer_to_branch(slave)
-    call symp_lie_bmad (slave, branch%param, start, end, .false., offset_ele = .false.)
-    slave%value(z_patch$) = end%vec(5) - start%vec(5)
-    if (slave%value(z_patch$) == 0) slave%value(z_patch$) = 1e-30 ! something non-zero.
-    start = end
-  enddo
-endif
-
-
-
-end subroutine z_patch_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2749,7 +2690,7 @@ call set_flags_for_changed_real_attribute (lat, ele, dummy)
 branch => lat%branch(ele%ix_branch)
 a_ptr => attrib
 
-if (.not. ele_has_constant_reference_energy(ele)) then
+if (ele%value(p0c$) /= ele%value(p0c_start$)) then
   if (associated(a_ptr, ele%tracking_method) .or. associated(a_ptr, ele%field_calc)) then
     call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
@@ -2875,7 +2816,7 @@ if (associated(a_ptr, ele%value(l$))) then
     call set_ele_status_stale (ele, branch%param, length_group$)
     call set_ele_status_stale (ele, branch%param, floor_position_group$)
   endif
-  if (.not. ele_has_constant_reference_energy(ele)) call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  if (ele%value(p0c$) /= ele%value(p0c_start$)) call set_ele_status_stale (ele, branch%param, ref_energy_group$)
 endif
 
 !
@@ -2957,6 +2898,12 @@ case (branch$, photon_branch$)
     lat%branch(ib)%ele(0)%status%floor_position = stale$
   endif
 
+case (lcavity$)
+  if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
+      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
+    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  endif
+
 case (patch$)
   if (associated(a_ptr, ele%value(e_tot_offset$))) then
     call set_ele_status_stale (ele, branch%param, ref_energy_group$)
@@ -2965,13 +2912,6 @@ case (patch$)
 end select
 
 !
-
-if (.not. ele_has_constant_reference_energy(ele)) then
-  if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
-      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
-    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
-  endif
-endif
 
 end subroutine set_flags_for_changed_real_attribute
 
@@ -3000,7 +2940,7 @@ end subroutine set_flags_for_changed_real_attribute
 !                     restore_state$ => Restore saved on/off state.
 !   orb(0:)     -- Coord_struct, optional: Needed for lat_make_mat6
 !   use_ref_orb -- Logical, optional: If present and true then use the
-!                    present ele%ref_orb. Default is false.
+!                    present ele%map_ref_orb. Default is false.
 !
 ! Output:
 !   lat -- lat_struct: Modified lattice.
@@ -3051,7 +2991,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (old_state .neqv. branch%ele(i)%is_on) then
       if (logic_option (.false., use_ref_orb)) then
-        ref_orb = branch%ele(i)%map_ref_orb_in
+        ref_orb%vec = branch%ele(i)%map_ref_orb_in
         call make_mat6(branch%ele(i), branch%param, ref_orb)
       else
         call set_ele_status_stale (branch%ele(i), branch%param, mat6_group$)

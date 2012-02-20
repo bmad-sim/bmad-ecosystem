@@ -226,10 +226,15 @@ if (init_cache) then
   ! Count number of elements to cache & allocate memory.
 
   call re_allocate (cache%ix_c_ele, branch%n_ele_max, .false.)
+  cache%ix_c_ele = -1 ! do not cache this element
 
   j = 0  ! number of elements to cache
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
+    ele%status%rad_int = stale$
+
+    if (ele%value(l$) == 0) cycle
+
     key = ele%key
     if ((key == wiggler$ .and. ele%sub_key == map_type$) .or. &
         (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
@@ -237,10 +242,7 @@ if (init_cache) then
         ele%value(vkick$) /= 0 .or. key == hkicker$ .or. key == vkicker$))) then
       j = j + 1
       cache%ix_c_ele(i) = j  ! mark element for caching
-    else
-      cache%ix_c_ele(i) = -1 ! do not cache this element
-    endif          
-    ele%status%rad_int = stale$
+    endif
   enddo
 
   if (allocated(cache%c_ele)) then
@@ -305,8 +307,8 @@ if (use_cache .or. init_cache) then
         call calc_wiggler_g_params (ele2, z_here, orb_end, c_pt, ri_info)
         c_pt%mat6 = track%map(k)%mat6
         c_pt%vec0 = track%map(k)%vec0
-        c_pt%map_ref_orb_in  = orb_start
-        c_pt%map_ref_orb_out = orb_end
+        c_pt%ref_orb_in  = orb_start
+        c_pt%ref_orb_out = orb_end
       enddo
 
     ! non-wiggler element
@@ -316,7 +318,7 @@ if (use_cache .or. init_cache) then
       z_start = 0
       ele_start = branch%ele(i-1)
       dz = min (1e-3_rp, cache_ele%del_z/3)
-      cache_ele%pt(:)%map_ref_orb_in  = orb_start
+      cache_ele%pt(:)%ref_orb_in  = orb_start
       call mat_make_unit (mat6)
       vec0 = 0
 
@@ -339,7 +341,7 @@ if (use_cache .or. init_cache) then
         c_pt%mat6 = mat6
         c_pt%vec0 = vec0
 
-        c_pt%map_ref_orb_out = orb_end
+        c_pt%ref_orb_out = orb_end
         c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
         c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
         c_pt%dgx_dx = 0

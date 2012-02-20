@@ -591,7 +591,7 @@ call set_ptc (ele0%value(e_tot$), lat%param%particle)
 
 call set_flags_for_changed_attribute (lat)
 
-call lat_compute_reference_energy (lat)
+call lat_compute_ref_energy_and_time (lat)
 
 do i = 1, lat%n_ele_max
   ele => lat%ele(i)

@@ -1798,7 +1798,7 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track1_mad (start, ele, param, end)
+! Subroutine track1_mad (start_orb, ele, param, end_orb)
 !
 ! Subroutine to track through an element using a 2nd order transfer map.
 ! Note: If map does not exist then one will be created. 
@@ -1807,23 +1807,24 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting coords.
-!   ele    -- Ele_struct: Element to track through.
-!   param  -- lat_param_struct: Lattice parameters.
+!   start_orb  -- Coord_struct: Starting coords.
+!   ele        -- Ele_struct: Element to track through.
+!   param      -- lat_param_struct: Lattice parameters.
 !
 ! Output:
-!   end   -- Coord_struct: Ending coords.
+!   end_orb    -- Coord_struct: Ending coords.
 !-
 
-subroutine track1_mad (start, ele, param, end)  
+subroutine track1_mad (start_orb, ele, param, end_orb)  
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) start, end
+type (coord_struct) start_orb, end_orb, start2_orb
 type (energy_struct) energy
 type (mad_map_struct) map
+real(rp) dtime_ref
 
 !
 
@@ -1832,7 +1833,24 @@ if (.not. associated(ele%taylor(1)%term)) then
   call mad_map_to_taylor (map, ele%taylor)
 endif
 
-call track_taylor (start%vec, ele%taylor, end%vec)
+start2_orb = start_orb
+end_orb = start_orb
+call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
+
+end_orb%s = ele%s
+end_orb%p0c = ele%value(p0c$)
+
+! If delta_ref_time has not been set then just assume that the particle has constant velocity.
+
+if (ele%value(p0c$) /= ele%value(p0c_start$)) then
+  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
+endif
+
+dtime_ref = ele%value(delta_ref_time$)
+if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
+
+end_orb%t = start2_orb%t + dtime_ref + &
+                            start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 
 end subroutine
 

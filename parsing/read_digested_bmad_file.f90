@@ -346,10 +346,11 @@ subroutine read_this_ele (ele, ix_ele, error)
 
 type (ele_struct), target :: ele
 type (em_field_mode_struct), pointer :: mode
+type (coord_struct) map_ref_orb_in, map_ref_orb_out
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, n_wall_section
 integer n_rf_field_mode, i_min(3), i_max(3)
-integer ix_wig, ix_const, ix_r, idum1, idum2, idum3, idum4, ix_d, ix_m, ix_t(6), ios, k_max
+integer ix_wig, ix_r, idum0, idum1, idum2, idum3, idum4, ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
 
 logical error
@@ -359,7 +360,7 @@ logical error
 error = .true.
 
 if (version >= 99) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
+  read (d_unit, err = 9100) mode3, ix_wig, idum0, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum4
   read (d_unit, err = 9100) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -373,9 +374,12 @@ if (version >= 99) then
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
+          map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%anchor_pt
 endif
+
+ele%map_ref_orb_in  = map_ref_orb_in%vec
+ele%map_ref_orb_out = map_ref_orb_out%vec
 
 ! Decompress value array
 
@@ -435,11 +439,6 @@ endif
 if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. .not. associated(ele%wig)) then
   allocate (ele%wig)
   allocate (ele%wig%term(1))
-endif
-
-if (ix_const /= 0) then
-  allocate (ele%const(ix_const))
-  read (d_unit, err = 9300) ele%const
 endif
 
 if (ix_r /= 0) then
@@ -551,14 +550,6 @@ return
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
         'ERROR READING WIGGLER TERM FOR ELEMENT: ' // ele%name)
-endif
-close (d_unit)
-return
-
-9300  continue
-if (bmad_status%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING IX_CONST TERM FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 return

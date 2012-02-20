@@ -734,8 +734,6 @@ enddo
 
 ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
 
-if (has_z_patch(ele_in)) ele_out%value(z_patch$) = ele_in%value(z_patch$)
-
 end subroutine transfer_ele_taylor
 
 !----------------------------------------------------------------------------
@@ -861,8 +859,8 @@ if (ele_taylor%value(integrator_order$) /= ele2%value(integrator_order$)) return
 
 vmask = .true.
 vmask(delta_ref_time$) = .false.
-if (has_z_patch(ele_taylor)) then
-  vmask( [k1$, rho$, b_max$, z_patch$] ) = .false.
+if (ele_taylor%key == wiggler$ .and. ele_taylor%sub_key == map_type$) then
+  vmask( [k1$, rho$, b_max$] ) = .false.  ! These are dependent attributes.
 endif
 if (.not. ele_taylor%map_with_offsets) then
   vmask( [x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
@@ -1298,7 +1296,7 @@ nullify (ele%lord)
 
 if (logic_option (.false., nullify_only)) then
   nullify (ele%wig)
-  nullify (ele%const)
+  nullify (ele%rad_int_cache)
   nullify (ele%r)
   nullify (ele%descrip)
   nullify (ele%a_pole, ele%b_pole)
@@ -1314,7 +1312,7 @@ endif
 
 ! Normal deallocate
 
-if (associated (ele%const))          deallocate (ele%const)
+if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
 if (associated (ele%a_pole))         deallocate (ele%a_pole, ele%b_pole)
@@ -1443,8 +1441,10 @@ ele%sub_key = integer_option (0, sub_key)
 
 ele%value(:) = 0
 ele%old_value(:) = 0
-call init_coord (ele%map_ref_orb_in)
-call init_coord (ele%map_ref_orb_out)
+ele%map_ref_orb_in = 0
+ele%map_ref_orb_out = 0
+ele%time_ref_orb_in = 0
+ele%time_ref_orb_out = 0
 
 ele%lord_status = not_a_lord$
 ele%slave_status = free$
@@ -2432,24 +2432,33 @@ key3 => ele3%key
 key3 = -1  ! Default if no superimpse possible
 ele3%sub_key = 0
 
-! Two lcavity elements cannot be superimposed
-
-if (key1 == lcavity$ .and. key2 == lcavity$) return
-
 ! control elements cannot be superimposed.
 
 if (any(key1 == [overlay$, group$, girder$])) return
 if (any(key2 == [overlay$, group$, girder$])) return
 
-! Superimposing two wigglers results in em_field
+! Superimposing two of like kind...
 
 if (key1 == key2) then
-  if (key1 == wiggler$) then
+  select case (key1)
+  case (sbend$)
+    ! Bad
+  case (wiggler$, rfcavity$)
     key3 = em_field$
     ele3%sub_key = const_ref_energy$
-    return
-  endif
-  key3 = key1
+  case (lcavity$)
+    key3 = em_field$
+    ele3%sub_key = nonconst_ref_energy$
+  case (em_field$)
+    key3 = em_field$
+    if (ele1%sub_key == nonconst_ref_energy$ .or. ele2%sub_key == nonconst_ref_energy$) then
+      ele3%sub_key = nonconst_ref_energy$
+    else
+      ele3%sub_key = const_ref_energy$
+    endif
+  case default
+    key3 = key1
+  end select
   return
 endif
 
@@ -2511,19 +2520,23 @@ endif
 
 ! General case...
 
-! sbend elements are problematical due to the different reference orbit so cannot superimpose them
+! sbend elements are problematical due to the different reference orbit so cannot superimpose them.
 
 if (key1 == sbend$ .or. key2 == sbend$) return
 
 ! em_field wanted
 
 if (logic_option(.false., create_em_field_slave)) then
-  if (ele_has_constant_reference_energy(ele1) .and. ele_has_constant_reference_energy(ele2)) then
-    ele3%sub_key = const_ref_energy$
-  else
-    ele3%sub_key = nonconst_ref_energy$
-  endif
   key3 = em_field$
+  if (key1 == lcavity$ .or. key2 == lcavity$) then
+    ele3%sub_key = const_ref_energy$
+  elseif (key1 == em_field$) then
+    ele3%sub_key = ele1%sub_key
+  elseif (key2 == em_field$) then
+    ele3%sub_key = ele2%sub_key
+  else
+    ele3%sub_key = const_ref_energy$
+  endif
   return
 endif
 
@@ -2553,12 +2566,16 @@ if (key3 /= -1) return  ! Have found something
 
 ! Only thing left is to use em_field type element.
 
-if (ele_has_constant_reference_energy(ele1) .and. ele_has_constant_reference_energy(ele2)) then
-  ele3%sub_key = const_ref_energy$
-else
-  ele3%sub_key = nonconst_ref_energy$
-endif
 key3 = em_field$
+if (key1 == lcavity$ .or. key2 == lcavity$) then
+  ele3%sub_key = const_ref_energy$
+elseif (key1 == em_field$) then
+  ele3%sub_key = ele1%sub_key
+elseif (key2 == em_field$) then
+  ele3%sub_key = ele2%sub_key
+else
+  ele3%sub_key = const_ref_energy$
+endif
 
 end subroutine calc_superimpose_key
 
@@ -3378,9 +3395,10 @@ end function pointer_to_ele2
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function ele_has_constant_reference_energy (ele) result (is_const)
+! Function ele_has_constant_ds_dt_ref (ele) result (is_const)
 !
-! Function to determine if an element has a reference energy through an element is a constant.
+! Function to determine if an element has a constant longitudinal reference velocity.
+! When in doubt, the assumption is that the longitudinal velocity is not constant.
 !
 ! Module needed:
 !   use bmad
@@ -3389,32 +3407,28 @@ end function pointer_to_ele2
 !   ele -- ele_struct: Element.
 !
 ! Output:
-!   is_const -- Logical: True if reference energy must be a constant.
+!   is_const -- Logical: True if reference velocity must be a constant.
 !-
 
-function ele_has_constant_reference_energy (ele) result (is_const)
+function ele_has_constant_ds_dt_ref (ele) result (is_const)
 
 implicit none
 
 type (ele_struct) ele
 logical is_const
 
-!
+! Anything with longitudinal electric fields or anything
+! where the "zero-orbit" is not a straight line down the middle
+! has a varying ds/dt(ref).
 
 select case (ele%key)
-case (lcavity$, custom$, hybrid$, e_gun$)
+case (lcavity$, custom$, hybrid$, wiggler$, rfcavity$, em_field$)
   is_const = .false.
-case (em_field$)
-  if (ele%sub_key == const_ref_energy$) then
-    is_const = .true.
-  else
-    is_const = .false.
-  endif
 case default
   is_const = .true.
 end select
 
-end function ele_has_constant_reference_energy
+end function ele_has_constant_ds_dt_ref
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -3484,9 +3498,124 @@ end function tracking_uses_hard_edge_model
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine calc_next_hard_edge (track_ele, method, s_edge, hard_ele, hard_end)
+!
+! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
+! This routine is used by integration tracking routines like Runge-Kutta.
+! This routine is called repeatedly as the integration routine tracks through the element.
+! If the element is a super_slave, there are potentially many hard edges. 
+!
+! Input:
+!   track_ele     -- ele_struct: Element being tracked through.
+!   method        -- Integer: Either tracking_method$ if doing simple particle tracking or
+!                             mat6_calc_method$ is tracking for transfer maps.
+!   hard_ele      -- ele_struct, pointer: Needs to be nullified at the start of tracking.
+!
+! Output:
+!   s_edge    -- Real(rp): S position of next hard edge. If there are no more hard 
+!                  edges then s_pos will be set to ele%value(l$).
+!   hard_ele  -- ele_struct, pointer: Points to element with the hard edge.
+!                  Will be nullified if there is no hard edge.
+!                  This will be track_ele unless track_ele is a super_slave.
+!   hard_end  -- Integer: Describes hard edge. Set to entrance_end$ or exit_end$.
+!-
+
+subroutine calc_next_hard_edge (track_ele, method, s_edge, hard_ele, hard_end)
+
+implicit none
+
+type (ele_struct), target :: track_ele
+type (ele_struct), pointer :: hard_ele, lord
+
+real(rp) s_edge
+integer hard_end, method
+integer i
+
+! Init if needed.
+! Keep track of things by setting: 
+!   ele%ixx = 0  ! Init setting
+!   ele%ixx = 1  ! About to track through entrance hard edge
+!   ele%ixx = 2  ! About to track through exit hard edge
+
+if (.not. associated(hard_ele)) then
+  if (track_ele%slave_status == super_slave$) then
+    do i = 1, track_ele%n_lord
+      lord => pointer_to_lord(track_ele, i)
+      if (lord%lord_status /= super_lord$) cycle
+      lord%ixx = 0
+    enddo
+  else
+    track_ele%ixx = 0
+  endif
+endif
+
+! Find next hard edge
+
+s_edge = track_ele%value(l$)
+nullify (hard_ele)
+
+if (track_ele%slave_status == super_slave$) then
+  do i = 1, track_ele%n_lord
+    lord => pointer_to_lord(track_ele, i)
+    if (lord%lord_status /= super_lord$) cycle
+    call does_this_ele_contain_the_next_edge (lord)
+  enddo
+else
+  call does_this_ele_contain_the_next_edge (track_ele)
+endif
+
+if (associated (hard_ele)) hard_ele%ixx = hard_ele%ixx + 1
+
+!-------------------------------------------------------------------------
+contains 
+
+subroutine does_this_ele_contain_the_next_edge (this_ele)
+
+type (ele_struct), target :: this_ele
+real(rp) s_this_edge, s_off
+integer this_end
+
+!
+
+if (.not. tracking_uses_hard_edge_model (track_ele, method)) return
+if (track_ele%ixx == 2) return
+
+if (this_ele%ix_ele == track_ele%ix_ele) then ! If same element
+  s_off = 0
+else
+  s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
+endif
+
+if (track_ele%ixx == 1) then
+  this_end = entrance_end$
+  s_this_edge = s_off + (this_ele%value(l$) - this_ele%value(l_hard_edge$)) / 2 
+else
+  this_end = entrance_end$
+  s_this_edge = s_off + (this_ele%value(l$) + this_ele%value(l_hard_edge$)) / 2 
+endif
+
+if (s_this_edge < -bmad_com%significant_length .or. &
+    s_this_edge > track_ele%value(l$) + bmad_com%significant_length) return
+
+if (s_this_edge > s_edge) return
+
+! This looks like the next hard edge
+
+s_edge = s_this_edge
+hard_ele => this_ele
+hard_end = this_end
+
+end subroutine does_this_ele_contain_the_next_edge
+
+end subroutine calc_next_hard_edge
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine create_hard_edge_drift (ele_in, drift_ele)
 !
-! Subroutine to create the drift element for the end drifts of an element.
+! Routine to create the drift element for the end drifts of an element.
 ! The end drifts are present, for example, when doing runge_kutta tracking
 ! through an rf_cavity with field_calc = bmad_standard. In this case, the
 ! field model is a pi-wave hard-edge resonator whose length may not match

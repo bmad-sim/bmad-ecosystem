@@ -11,8 +11,12 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'call err_exit' in line and 'if' not in line: 
-      line = line.replace('call err_exit', 'if (bmad_status%exit_on_error) call err_exit')
+    if 'lat_compute_reference_energy' in line and 'if' not in line: 
+      line = line.replace('lat_compute_reference_energy', 'lat_compute_ref_energy_and_time')
+      found = True
+
+    if 'compute_ele_reference_energy' in line and 'if' not in line: 
+      line = line.replace('compute_ele_reference_energy', 'ele_compute_ref_energy_and_time')
       found = True
 
     out_file.write(line)

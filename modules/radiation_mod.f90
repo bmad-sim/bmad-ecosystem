@@ -165,10 +165,10 @@ case (wiggler$)
   ! Reuse g2 and g3 values from start_edge
   if (ele%sub_key == map_type$) then
     if (edge == start_edge$) then
-      if (.not. associated(ele%const)) call calc_radiation_tracking_consts(ele, param)
-      if (ele%const(10) < 0) call calc_radiation_tracking_consts(ele, param)
-      g2 = ele%const(10) + dot_product(start%vec(1:4)-ele%const(1:4), ele%const(11:14))
-      g3 = ele%const(20) + dot_product(start%vec(1:4)-ele%const(1:4), ele%const(21:24))
+      if (.not. associated(ele%rad_int_cache)) call calc_radiation_tracking_consts(ele, param)
+      if (ele%rad_int_cache%stale) call calc_radiation_tracking_consts(ele, param)
+      g2 = ele%rad_int_cache%g2_0 + dot_product(start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
+      g3 = ele%rad_int_cache%g3_0 + dot_product(start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
       if (g3 < 0) g3 = 0
     endif
   elseif (ele%sub_key == periodic_type$) then
@@ -226,7 +226,7 @@ end subroutine track1_radiation
 !
 ! Output:
 !   ele  -- ele_struct: Element 
-!     %const(:)  -- radiation tracking constants.
+!     %rad_int_cache  -- radiation tracking constants.
 !-
 
 subroutine calc_radiation_tracking_consts (ele, param)
@@ -251,21 +251,23 @@ integer i, j
 if (ele%key /= wiggler$) return
 if (ele%sub_key /= map_type$) return
 
-if (.not. associated(ele%const)) allocate (ele%const(1:26))
-ele%const(1:6) = ele%map_ref_orb_in%vec
+if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
+ele%rad_int_cache%orb0 = ele%map_ref_orb_in
 
-start1 = ele%map_ref_orb_in
+start1%vec = ele%map_ref_orb_in
 call symp_lie_bmad (ele, param, start1, end, .false., track)
-call calc_g (track, ele%const(10), ele%const(20))
+call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
 
 do j = 1, 4
   start = start1
   start%vec(j) = start%vec(j) + del_orb
   call symp_lie_bmad (ele, param, start, end, .false., track)
   call calc_g (track, g2, g3)
-  ele%const(j+10) = (g2 - ele%const(10)) / del_orb
-  ele%const(j+20) = (g3 - ele%const(20)) / del_orb
+  ele%rad_int_cache%dg2_dorb(j) = (g2 - ele%rad_int_cache%g2_0) / del_orb
+  ele%rad_int_cache%dg3_dorb(j) = (g3 - ele%rad_int_cache%g3_0) / del_orb
 enddo
+
+ele%rad_int_cache%stale = .false.
 
 !-------------------------------------------------------
 contains

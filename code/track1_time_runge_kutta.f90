@@ -195,11 +195,7 @@ end if
 if (end_orb%status == outside$ .and. end_orb%vec(6) < 0) then
   !Particle left entrance end going backwards
   !set reference time and momentum
-  if (ele_has_constant_reference_energy(ele)) then
-    end_orb%p0c = -1*ele%value(p0c$)
-  else  ! lcavity, etc.
-    end_orb%p0c = -1*ele%value(p0c_start$)
-  end if
+  end_orb%p0c = -1*ele%value(p0c_start$)
   ref_time = ele%ref_time - ele%value(delta_ref_time$)
 
   !ele(t-based) -> ele(s-based)

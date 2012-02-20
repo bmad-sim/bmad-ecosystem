@@ -1706,7 +1706,7 @@ call concat_real_8 (x1, x_ele, x3)
 call real_8_to_taylor(x3, beta0, taylor3)
 taylor3(:)%ref = taylor1(:)%ref
 
-if (.not. ele_has_constant_reference_energy(ele)) &
+if (ele%value(p0c$) /= ele%value(p0c_start$)) &
       call taylor_ref_energy_correct(taylor3, ele%value(p0c$) / ele%value(p0c_start$))
 
 ! Cleanup
@@ -1755,7 +1755,7 @@ type (ele_struct) ele, drift_ele
 type (lat_param_struct) param
 type (fibre), pointer :: ptc_fiber
 
-real(rp) beta0, m2_rel
+real(rp) beta0, m2_rel, z_patch
 
 ! set the taylor order in PTC if not already done so
 
@@ -1792,19 +1792,19 @@ endif
 
 call real_8_to_taylor(ptc_tlr, beta0, bmad_taylor)
 
-if (.not. ele_has_constant_reference_energy(ele)) &
+if (ele%value(p0c$) /= ele%value(p0c_start$)) &
       call taylor_ref_energy_correct(bmad_taylor, ele%value(p0c$) / ele%value(p0c_start$))
 
 ! cleanup
 
 call kill (ptc_tlr)
 
-! Correct wiggler z_patch if needed
+! Correct z-position for wigglers, etc. 
 
-if (has_z_patch(ele)) then
-  call add_taylor_term (bmad_taylor(5), -ele%value(z_patch$))
+z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
+if (abs(z_patch) > bmad_com%significant_length) then
+  call add_taylor_term (bmad_taylor(5), z_patch)
 endif
-
 
 end subroutine taylor_propagate1
 
@@ -1853,6 +1853,7 @@ type (fibre), pointer :: ptc_fiber
 type (real_8) y(6), y2(6)
 
 real(dp) x(6), beta0
+real(rp) z_patch
 
 integer i
 
@@ -1894,11 +1895,7 @@ use_offsets = logic_option(ele%map_with_offsets, map_with_offsets)
  
 if (present(orb0)) then
   ele%taylor(:)%ref = orb0%vec
-  if (ele_has_constant_reference_energy(ele)) then
-    call vec_bmad_to_ptc (orb0%vec, ele%value(p0c$)/ele%value(e_tot$), x)
-  else
-    call vec_bmad_to_ptc (orb0%vec, ele%value(p0c_start$)/ele%value(e_tot_start$), x)
-  endif
+  call vec_bmad_to_ptc (orb0%vec, ele%value(p0c_start$)/ele%value(e_tot_start$), x)
 else
   ele%taylor(:)%ref = 0
   x = 0
@@ -1943,7 +1940,7 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 
 call real_8_to_taylor (y, beta0, ele%taylor)
 
-if (.not. ele_has_constant_reference_energy(ele)) &
+if (ele%value(p0c$) /= ele%value(p0c_start$)) &
       call taylor_ref_energy_correct(ele%taylor, ele%value(p0c$) / ele%value(p0c_start$))
 
 call kill(y)
@@ -1953,15 +1950,9 @@ if (associated (ele%ptc_genfield)) call kill_ptc_genfield (ele%ptc_genfield)
 ! For wigglers, etc. there is a z_patch to take out the non-zero z offset that an
 ! on axis particle gets.
 
-if (has_z_patch(ele)) then
-
-  if (ele%value(z_patch$) == 0) then
-    call out_io (s_fatal$, r_name, 'Z_PATCH VALUE HAS NOT BEEN COMPUTED!')
-    if (bmad_status%exit_on_error) call err_exit 
-  endif
-
-  call add_taylor_term (ele%taylor(5), -ele%value(z_patch$))
-
+z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
+if (abs(z_patch) > bmad_com%significant_length) then
+  call add_taylor_term (ele%taylor(5), z_patch)
 endif
 
 ele%status%mat6 = stale$
@@ -2162,12 +2153,13 @@ type (ele_struct), pointer :: field_ele, ele2
 type (fibre), pointer :: fiber
 type (keywords) ptc_key
 type (lat_param_struct) :: param
-type (ele_pointer_struct), allocatable, save :: field_eles(:)
+type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
 
 
 real(dp) mis_rot(6), beta, phi_tot
 real(dp) omega(3), basis(3,3), angle(3)
+real(rp), allocatable :: ds_offset(:)
 
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch, s_rel
@@ -2391,24 +2383,21 @@ call MAKE_NODE_LAYOUT( m_u%end)
 lielib_print(12) = n
 
 energy_work = 0
-if (ele_has_constant_reference_energy(ele)) then
-  call find_energy (energy_work, p0c = 1d-9 * ele%value(p0c$))
-else
-  call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c_start$))
-endif
+call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c_start$))
 fiber = energy_work
 
 ! wiggler
 
 if (key == wiggler$) then
 
-  call get_field_ele_list (ele, field_eles, n_field)
+  call get_field_ele_list (ele, field_eles, ds_offset, n_field)
   do i = 1, n_field
     ele2 => field_eles(i)%ele
-    if (ele2%key == wiggler$) exit
+    if (ele2%key == wiggler$) then
+      s_rel = ds_offset(i)
+      exit
+    endif
   enddo
-
-  s_rel = ele2%value(ds_field_offset$)
 
   if (hyper_x$ /= hyperbolic_xdollar .or. hyper_y$ /= hyperbolic_ydollar .or. &
                                         hyper_xy$ /= hyperbolic_xydollar) then

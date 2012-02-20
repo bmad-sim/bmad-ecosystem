@@ -221,9 +221,7 @@ do
       create_it = .true.
     elseif (ele%key == sbend$) then
       if (track_entrance .or. track_exit .or. old_track_end) create_it = .true.
-    elseif (ele%key == wiggler$) then
-      create_it = .true.
-    elseif (.not. ele_has_constant_reference_energy(ele)) then
+    elseif (.not. ele_has_constant_ds_dt_ref(ele)) then
       create_it = .true.
     endif
 
@@ -464,9 +462,7 @@ do
       create_it = .true.
     elseif (ele%key == sbend$) then
       if (track_entrance .or. track_exit .or. old_track_end) create_it = .true.
-    elseif (ele%key == wiggler$) then
-      create_it = .true.
-    elseif (.not. ele_has_constant_reference_energy(ele)) then
+    elseif (.not. ele_has_constant_ds_dt_ref(ele)) then
       create_it = .true.
     endif
 

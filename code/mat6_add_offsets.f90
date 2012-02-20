@@ -36,7 +36,7 @@ use bmad_utils_mod
 implicit none
 
 type (ele_struct) ele
-type (coord_struct) orb
+type (coord_struct) orb, map_orb
 type (lat_param_struct) param
 
 ! the new vec0 is obtained by just tracking through the element
@@ -49,11 +49,16 @@ ele%vec0 = orb%vec
 
 ! transform the ref_orb
 
-call offset_particle (ele, param, ele%map_ref_orb_in, unset$, &
+map_orb%vec = ele%map_ref_orb_in
+call offset_particle (ele, param, map_orb, unset$, &
                               set_canonical = .false., set_hvkicks = .false., ds_pos = 0.0_rp)
+ele%map_ref_orb_in = map_orb%vec
 
-call offset_particle (ele, param, ele%map_ref_orb_out, unset$, &
+
+map_orb%vec = ele%map_ref_orb_out
+call offset_particle (ele, param, map_orb, unset$, &
                               set_canonical = .false., set_hvkicks = .false.)
+ele%map_ref_orb_out = map_orb%vec
 
 ! calculate the new Jacobian.
 

@@ -26,29 +26,46 @@ use tpsalie_analysis, only: assignment(=), operator(*), lnv
 
 implicit none
 
-type (coord_struct) :: start_orb
+type (coord_struct) :: start_orb, start2_orb
 type (coord_struct) :: end_orb
-type (coord_struct) start2_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
-real(dp) re(lnv), beta0
+real(dp) re(lnv), beta0, dtime_ref
 
 ! Put in offsets if needed.
 
 start2_orb = start_orb
+end_orb = start_orb
 
 if (ele%map_with_offsets) then  ! simple case
   call track1_this_body
 
 else
-  call offset_particle (ele, param, start2_orb, set$, &
+  call offset_particle (ele, param, end_orb, set$, &
                           set_canonical = .false., set_multipoles = .false.)
   call track1_this_body
   call offset_particle (ele, param, end_orb, unset$, &
                           set_canonical = .false., set_multipoles = .false.)
 endif
 
+
+end_orb%s = ele%s
+end_orb%p0c = ele%value(p0c$)
+
+! If delta_ref_time has not been set then just assume that the particle has constant velocity.
+
+dtime_ref = ele%value(delta_ref_time$)
+if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
+
+if (ele%value(p0c$) == ele%value(p0c_start$)) then
+  end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / &
+                                                                                 (end_orb%beta * c_light)
+else
+  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
+  end_orb%t = start2_orb%t + dtime_ref + &
+                            start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
+endif
 
 !---------------------------------------------------------------------
 contains
@@ -58,23 +75,20 @@ subroutine track1_this_body
 ! Make the genfield map if needed.
 
 if (.not. (associated(ele%ptc_genfield) .and. associated(ele%taylor(1)%term))) then
-  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, start2_orb)
+  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, end_orb)
   call kill_ptc_genfield (ele%ptc_genfield)  ! clean up if necessary
   allocate (ele%ptc_genfield)
   call taylor_to_genfield (ele%taylor, ele%ptc_genfield, ele%gen0)
 endif
 
 ! track and add the constant term back in
-if (ele_has_constant_reference_energy(ele)) then
-  beta0 = ele%value(p0c$) / ele%value(e_tot$)
-else
-  beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
-endif
 
-call vec_bmad_to_ptc (start2_orb%vec, beta0, re(1:6))
+beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
+
+call vec_bmad_to_ptc (end_orb%vec, beta0, re(1:6))
 re = ele%ptc_genfield * re
 call vec_ptc_to_bmad (re(1:6), beta0, end_orb%vec)
-if (.not. ele_has_constant_reference_energy(ele)) &
+if (ele%value(p0c$) /= ele%value(p0c_start$)) &
       call vec_bmad_ref_energy_correct(end_orb%vec, ele%value(p0c$) / ele%value(p0c_start$))
 end_orb%vec = end_orb%vec + ele%gen0
 

@@ -144,12 +144,12 @@ if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6)
 
 ! Finish up
 
-if (.not. ele%map_ref_orb_in == a_start_orb) then
-  ele%map_ref_orb_in = a_start_orb
-  if (associated(ele%const)) ele%const = -1
+if (any(ele%map_ref_orb_in /= a_start_orb%vec)) then
+  ele%map_ref_orb_in = a_start_orb%vec
+  if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.
 endif
 
-ele%map_ref_orb_out = a_end_orb
+ele%map_ref_orb_out = a_end_orb%vec
 if (present(end_orb) .and. .not. end_input) end_orb = a_end_orb
 
 bmad_com%radiation_fluctuations_on = rad_fluct_save

@@ -69,8 +69,7 @@ subroutine mat_inverse (mat, mat_inv, ok, print_err)
 
   vec(1:n) = maxval(abs(mat), dim = 2)
   if (any(vec(1:n) == 0)) then
-    if (logic_option(.false., print_err)) &
-                                call out_io (s_error$, r_name, 'SINGULAR MATRIX.')
+    if (logic_option(.false., print_err)) call out_io (s_error$, r_name, 'SINGULAR MATRIX.')
     if (present(ok)) ok = .false.
     return
   endif

@@ -2,6 +2,7 @@ module runge_kutta_mod
 
 use em_field_mod
 use tracking_integration_mod
+use track1_mod
 
 contains
 
@@ -9,7 +10,7 @@ contains
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine odeint_bmad (start, ele, param, end, s1, s2, &
+! Subroutine odeint_bmad (orb_start, ele, param, orb_end, s1, s2, &
 !                            rel_tol, abs_tol, h1, hmin, local_ref_frame, err_flag, track)
 ! 
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
@@ -35,52 +36,53 @@ contains
 !   use bmad
 !
 ! Input: 
-!   start   -- Coord_struct: Starting coords: (x, px, y, py, z, delta).
-!   ele     -- Ele_struct: Element to track through.
+!   orb_start -- Coord_struct: Starting coords: (x, px, y, py, z, delta).
+!   ele       -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field_standard
-!   param   -- lat_param_struct: Beam parameters.
+!   param     -- lat_param_struct: Beam parameters.
 !     %enegy       -- Energy in GeV
 !     %particle    -- Particle type [positron$, or electron$]
-!   s1      -- Real: Starting point relative to physical entrance.
-!   s2      -- Real: Ending point relative physical entrance.
-!   rel_tol -- Real: Same as eps for odeint scalled by sqrt(h/(s2-s1))
-!               where h is the step size for the current step. rel_tol
-!               sets the %error of the result
-!   abs_tol -- Real: Sets the absolute error of the result
-!   h1      -- Real: Initial guess for a step size.
-!   h_min   -- Real: Minimum step size (can be zero).
+!   s1        -- Real: Starting point relative to physical entrance.
+!   s2        -- Real: Ending point relative physical entrance.
+!   rel_tol   -- Real: Same as eps for odeint scalled by sqrt(h/(s2-s1))
+!                   where h is the step size for the current step. rel_tol
+!                   sets the %error of the result
+!   abs_tol   -- Real: Sets the absolute error of the result
+!   h1        -- Real: Initial guess for a step size.
+!   h_min     -- Real: Minimum step size (can be zero).
 !   local_ref_frame 
-!           -- Logical: If True then take the 
+!              -- Logical: If True then take the 
 !                input and output coordinates as being with 
 !                respect to the frame of referene of the element. 
 !
 ! Output:
-!   end      -- Coord_struct: Ending coords: (x, px, y, py, z, delta).
+!   orb_end  -- Coord_struct: Ending coords: (x, px, y, py, z, delta).
 !   err_flag -- Logical: Set True if there is an error. False otherwise.
 !   track    -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine odeint_bmad (start, ele, param, end, s1, s2, &
+subroutine odeint_bmad (orb_start, ele, param, orb_end, s1, s2, &
                     rel_tol, abs_tol, h1, h_min, local_ref_frame, err_flag, track)
 
 implicit none
 
-type (coord_struct), intent(in) :: start
-type (coord_struct), intent(out) :: end
+type (coord_struct), intent(in) :: orb_start
+type (coord_struct), intent(out) :: orb_end
 type (ele_struct) ele
+type (ele_struct), pointer :: hard_ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
-real(rp) :: dr_ds(7), r_scal(7), t
+real(rp) :: dr_ds(7), r_scal(7), t, s_hard_edge
 
 integer, parameter :: max_step = 10000
-integer :: n_step
+integer :: n_step, hard_end
 
 logical local_ref_frame, abs_time, err_flag, err
 
@@ -89,15 +91,21 @@ logical local_ref_frame, abs_time, err_flag, err
 err_flag = .true.
 s = s1
 h = sign(h1, s2-s1)
-end = start
+orb_end = orb_start
 if (s1 == s2) return
 
-end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
+orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
+
+! If the element is using a hard edge model then need to stop at the hard edges
+! to apply the appropriate hard edge kick.
+
+nullify (hard_ele)
+call calc_next_hard_edge (ele, tracking_method$, s_hard_edge, hard_ele, hard_end)
 
 ! For elements where the reference energy is changing the reference energy in the body is 
-! taken by convention to be the reference energy at the exit end.
+! taken, by convention, to be the reference energy at the exit end.
 
-call lcavity_reference_energy_correction (ele, param, end)
+call lcavity_reference_energy_correction (ele, param, orb_end)
 
 abs_time = .false.
 if (associated(ele%lat)) then
@@ -105,9 +113,9 @@ if (associated(ele%lat)) then
 endif
 
 if (abs_time) then
-  t = end%t
+  t = orb_end%t
 else
-  t = -end%vec(5) / (end%beta * c_light)    ! Time
+  t = -orb_end%vec(5) / (orb_end%beta * c_light)    ! Time
 endif
 
 ! Save initial point
@@ -121,22 +129,22 @@ endif
 
 do n_step = 1, max_step
 
-  call kick_vector_calc (ele, param, s, t, end, local_ref_frame, dr_ds)
+  call kick_vector_calc (ele, param, s, t, orb_end, local_ref_frame, dr_ds)
 
   ! The tolerances are only applied to 
 
   sqrt_N = sqrt(abs((s2-s1)/h))  ! number of steps we would take with this h
   rel_tol_eff = rel_tol / sqrt_N
   abs_tol_eff = abs_tol / sqrt_N
-  r_scal(:) = abs([end%vec(:), t]) + abs(h*dr_ds(:)) + TINY
+  r_scal(:) = abs([orb_end%vec(:), t]) + abs(h*dr_ds(:)) + TINY
 
   if (present(track)) then
-    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, end, s_sav)
+    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
   endif
 
   if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
 
-  call rkqs_bmad (ele, param, end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame, err)
+  call rkqs_bmad (ele, param, orb_end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame, err)
   if (err) return
 
   if (present(track)) then
@@ -147,10 +155,20 @@ do n_step = 1, max_step
     end if
   endif
 
+  ! Check if we we need to apply a hard edge kick.
+  ! For super_slaves there may be multibple hard edges at a single s-position.
+
+  do
+    if (.not. associated(hard_ele)) exit
+    if ((s-s_hard_edge)*(s_hard_edge-s1) < 0.0) exit
+    call apply_element_edge_kick (orb_end, hard_ele, param, hard_end)
+    call calc_next_hard_edge (ele, tracking_method$, s_hard_edge, hard_ele, hard_end)
+  enddo
+
   ! Check if we are done.
 
   if ((s-s2)*(s2-s1) >= 0.0) then
-    if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, end, s_sav)
+    if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
     err_flag = .false.
     return
   end if

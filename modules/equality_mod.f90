@@ -627,8 +627,8 @@ is_eq = is_eq .and. (associated(f1%mode3) .eqv. associated(f2%mode3));  if (.not
 if (associated(f1%mode3)) then
   if (.not. (f1%mode3 == f2%mode3)) then; is_eq = .false.; return; endif
 endif
-is_eq = is_eq .and. (f1%map_ref_orb_in == f2%map_ref_orb_in)
-is_eq = is_eq .and. (f1%map_ref_orb_out == f2%map_ref_orb_out) 
+is_eq = is_eq .and. all(f1%map_ref_orb_in == f2%map_ref_orb_in)
+is_eq = is_eq .and. all(f1%map_ref_orb_out == f2%map_ref_orb_out) 
 is_eq = is_eq .and. (associated(f1%ptc_genfield) .eqv. associated(f2%ptc_genfield));  if (.not. is_eq) return 
 is_eq = is_eq .and. eq_bookkeeper_status(f1%status, f2%status) 
 do i = 1, size(f1%taylor)
@@ -668,10 +668,6 @@ is_eq = is_eq .and. (associated(f1%a_pole) .eqv. associated(f2%a_pole));  if (.n
 is_eq = is_eq .and. (associated(f1%b_pole) .eqv. associated(f2%b_pole));  if (.not. is_eq) return 
 if (associated(f1%a_pole)) then
   if (any(f1%a_pole /= f2%a_pole) .or. any(f1%b_pole /= f2%b_pole)) then; is_eq = .false.; return; endif
-endif
-is_eq = is_eq .and. (associated(f1%const) .eqv. associated(f2%const));  if (.not. is_eq) return 
-if (associated(f1%const)) then
-  if (any(f1%const /= f2%const)) then; is_eq = .false.; return; endif
 endif
 is_eq = is_eq .and. (f1%key == f2%key)
 is_eq = is_eq .and. (f1%sub_key == f2%sub_key) 

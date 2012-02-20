@@ -544,11 +544,7 @@ character(16), parameter :: r_name = 'track1_spin_symp_lie_ptc'
 
 ! PTC spin tracking
 
-if (ele_has_constant_reference_energy(ele)) then
-  beta0 = ele%value(p0c$) / ele%value(e_tot$)
-else
-  beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
-endif
+beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 
 call vec_bmad_to_ptc (start_orb%vec, beta0, re)
 call spinor_to_vec (start_orb, spin_vec)
