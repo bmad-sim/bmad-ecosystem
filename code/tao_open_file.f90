@@ -8,6 +8,7 @@
 ! Input:
 !   file_name      -- Character(*): File name.
 !   error_severity -- Integer: Severity of the error. Use s_fatal$, etc.
+!                       Use -1 to not print a message if file cannot be opened.
 !
 ! Output:
 !   iunit          -- Integer: Logical unit number. Set to 0 if file not openable.
@@ -41,7 +42,7 @@ subroutine tao_open_file (file_name, iunit, full_file_name, error_severity)
   open (iunit, file = full_file_name, status = 'old', action = 'READ', iostat = ios)
 
   if (ios /= 0) then
-    call out_io (error_severity, r_name, 'File not found: ' // file_name)
+    if (error_severity > 0) call out_io (error_severity, r_name, 'File not found: ' // file_name)
     iunit = 0
   endif
 
