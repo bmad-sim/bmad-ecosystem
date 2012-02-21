@@ -1399,7 +1399,7 @@ use bmad_interface
 implicit none
 
 type (ele_struct) f
-type (c_dummy_struct) a, b, x, y, z, floor, ref_orb_in, ref_orb_out
+type (c_dummy_struct) a, b, x, y, z, floor
 type (c_dummy_struct) tlr1, tlr2, tlr3, tlr4, tlr5, tlr6
 type (genfield), target :: gen_f
 
@@ -1411,7 +1411,7 @@ integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type,
 integer ix_value, n_slave, ix1_slave, scale_multi
 
 real(rp) value(n_attrib_maxx), gen0(6), vec0(6), mat6(36), c_mat(4), gamma_c, s, ref_t
-real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2*nr3)
+real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2*nr3), ref_orb_in(6), ref_orb_out(6)
 
 character(n_nam)  nam
 character(n_typ)  typ
@@ -1442,8 +1442,6 @@ call twiss_to_f (z, f%z)
 call xy_disp_to_f (x, f%x)
 call xy_disp_to_f (y, f%y)
 call floor_position_to_f (floor, f%floor)
-call coord_to_f (ref_orb_in, f%map_ref_orb_in)
-call coord_to_f (ref_orb_out, f%map_ref_orb_out)
 
 f%ptc_genfield => gen_f
 
@@ -1465,6 +1463,8 @@ if (n_wig /= 0) then
   allocate (f%wig%term(n_wig))
 endif
 
+f%map_ref_orb_in        = ref_orb_in
+f%map_ref_orb_out       = ref_orb_out
 f%old_value             = 0
 f%value                 = value
 f%gen0                  = gen0
