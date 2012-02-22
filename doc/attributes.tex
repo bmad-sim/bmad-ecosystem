@@ -226,9 +226,12 @@ Then the following energy values will be set for the beginning \vn{init_ele} ele
   p0c         = Sqrt(e_tot - mc2^2)
 \end{example}
 where \vn{mc2} is the particle rest mass.  The reason for using this
-convoluted convention is avoid the calculational problems when the
-reference momentum is zero. Specifically, the phase space momentum
-would be infinity in this case (Cf.~\Eqs{ppp}).
+convoluted convention is to allow the setting, in the lattice file, of
+a zero reference momentum at the start of the lattice, while
+avoiding the calculational problems that would occur if the \vn{e_gun}
+element truely had a starting reference momentum of zero.
+Specifically, the problem with zero reference momentum is that the
+phase space momentum would be infinity as can be seen from \Eqs{ppp}.
 
 For \vn{multipass} elements, the reference energy is set by specifying
 one of \vn{e_tot}, \vn{p0c}, or \vn{n_ref_pass} as described in

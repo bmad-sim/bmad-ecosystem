@@ -341,7 +341,7 @@ case (lcavity$)
     ! Track
 
     call zero_errors_in_ele (ele)
-    orb_start%vec = ele%time_ref_orb_in
+    call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
     call track1 (orb_start, ele, param, orb_end)
     call calc_time_ref_orb_out
     call restore_errors_in_ele (ele)
@@ -378,7 +378,7 @@ case (e_gun$)
   orb_start%vec(6) = orb_start%vec(6) / ele%value(p0c$)
 
   call zero_errors_in_ele (ele)
-  orb_start%vec = ele%time_ref_orb_in
+  call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
   call track1 (orb_start, ele, param, orb_end)
   call calc_time_ref_orb_out
   call restore_errors_in_ele (ele)
@@ -418,6 +418,7 @@ case default
     ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
   else
     call zero_errors_in_ele (ele)
+    call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
     orb_start%vec = ele%time_ref_orb_in
     call track1 (orb_start, ele, param, orb_end)
     call calc_time_ref_orb_out
