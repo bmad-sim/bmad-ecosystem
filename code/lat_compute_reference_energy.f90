@@ -107,7 +107,9 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%key == marker$) cycle
     if (ele%key /= e_gun$) exit
     if (ele%slave_status == super_slave$) ele => pointer_to_lord(ele, 1)
-    branch%ele(0)%value(e_tot$) = branch%ele(0)%value(e_tot_start$) + ele%value(voltage$) * ele%value(l$)
+    ele0 => branch%ele(0)
+    ele0%value(e_tot$) = ele0%value(e_tot_start$) + ele%value(voltage$) * ele%value(l$)
+    call convert_total_energy_to (ele0%value(e_tot$), branch%param%particle, pc = ele0%value(p0c$))
     exit
   enddo
 
