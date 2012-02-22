@@ -171,14 +171,21 @@ else
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, i7, 3x, a16, a, es15.7)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot)
-    elseif (a_name == 'E_TOT_START') then
+
+    elseif (a_name == 'P0C_START') then
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         'BETA_START      =', ele%value(p0c_start$) / ele%value(e_tot_start$)
-    elseif (a_name == 'E_TOT') then
+
+    elseif (a_name == 'P0C') then
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         'BETA            =', ele%value(p0c$) / ele%value(e_tot$)
+
+    elseif (a_name == 'E_TOT' .and. attribute_name(ele, e_tot_start$) == 'E_TOT_START') then
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es15.7)') &
+                        i, a_name(1:n_att), '=', ele%value(i), ',', &
+                        'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$)
 
     elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
       if (ele%value(i) == 0) cycle
@@ -379,7 +386,7 @@ endif
 
 ! Write aparture stuff if appropriate
 
-if (ele%aperture_at /= 0) then
+if (attribute_name(ele, aperture_at$) == 'APERTURE_AT' .and. ele%aperture_at /= 0) then
   nl=nl+1; write (li(nl), fmt_a) 'APERTURE_AT', '=', element_end_name(ele%aperture_at)
   default_val = rectangular$
   if (ele%key == ecollimator$) default_val = elliptical$
@@ -540,7 +547,8 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
 
   if (n /= 0) then
     nl=nl+1; li(nl) = ' '
-    nl=nl+1; li(nl) = 'Transfer Matrix : Kick'
+    nl=nl+1; write (li(nl), '(a, f12.6, a)') 'Transfer Matrix : Kick  [Matrix symplectic error:', &
+                  mat_symp_error(ele%mat6), ']'
   endif
 
   if (any(abs(ele%mat6(1:n,1:n)) >= 1000)) then

@@ -32,34 +32,38 @@ type ele_struct
   character(200), pointer :: descrip       ! Description string.
   type (twiss_struct)  a, b, z             ! Twiss parameters at end of element \sref{c:twiss}.
   type (xy_disp_struct) x, y               ! Projected dispersions \sref{c:twiss}.
-  type (floor_position_struct) floor       ! Global floor position at end of ele.
-  type (mode3_struct), pointer :: mode3  
-  type (coord_struct) map_ref_orb_in       ! Ref orbit at entrance of element.
-  type (coord_struct) map_ref_orb_out      ! Ref orbit at exit of element.
-  type (genfield), pointer :: ptc_genfield ! For symp_map tracking
-  type (fibre), pointer :: ptc_fiber       ! For PTC analysis.
-  type (taylor_struct) :: taylor(6)        ! Taylor terms
-  type (em_fields_struct) em_field         ! Electric and magnetic fields.
-  type (rf_wake_struct) rf_wake            ! RF wake component.
-  type (wig_struct), pointer :: wig        ! Wiggler field.
-  type (space_charge_struct), pointer :: space_charge => null()
-  type (wall3d_struct) :: wall3d          ! Chamber or capillary wall
-  type (lat_struct), pointer :: lat       ! Pointer to lattice containing this element.
-  type (ele_struct), pointer :: lord      ! Pointer to slice lord.
-  type (bookkeeper_status_struct) status  ! For keeping track of what bookkeeping has been done.
-  real(rp) value(n_attrib_maxx)           ! attribute values.
-  real(rp) old_value(n_attrib_maxx)       ! Used to see if %value(:) array has changed.
-  real(rp) gen0(6)                        ! constant part of the genfield map.
-  real(rp) vec0(6)                        ! 0th order transport vector.
-  real(rp) mat6(6,6)                      ! 1st order transport matrix.
-  real(rp) c_mat(2,2)                     ! 2x2 C coupling matrix
-  real(rp) gamma_c                        ! gamma associated with C matrix
-  real(rp) s                              ! longitudinal position at the exit end.
-  real(rp) ref_time                       ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:,:) => null()         ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()        ! multipole
-  real(rp), pointer :: b_pole(:) => null()        ! multipoles
-  real(rp), pointer :: const(:) => null()         ! Working constants.
+  type (em_fields_struct), pointer :: em_field ! DC and RF E/M fields
+  type (floor_position_struct) floor           ! Global floor position.
+  type (lat_struct), pointer :: lat            ! Pointer to lattice containing element.
+  type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
+  type (mode3_struct), pointer :: mode3        ! Full 6-dimensional normal mode decomposition.
+  type (fibre), pointer :: ptc_fiber           ! PTC tracking.
+  type (genfield), pointer :: ptc_genfield     ! For symp_map
+  type (rad_int_ele_cache_struct), pointer :: rad_int_cache  
+                                               ! Radiation integral calc cached values 
+  type (rf_wake_struct), pointer :: rf_wake    ! Wakes
+  type (space_charge_struct), pointer :: space_charge 
+  type (bookkeeper_status_struct) status       ! Element attribute bookkeeping
+  type (taylor_struct) :: taylor(6)            ! Taylor terms
+  type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
+  type (wig_struct), pointer :: wig            ! Wiggler field
+  real(rp) value(n_attrib_maxx)                ! attribute values.
+  real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
+  real(rp) gen0(6)                             ! constant part of the genfield map.
+  real(rp) vec0(6)                             ! 0th order transport vector.
+  real(rp) mat6(6,6)                           ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
+  real(rp) gamma_c                             ! gamma associated with C matrix
+  real(rp) s                                   ! longitudinal position at the exit end.
+  real(rp) ref_time                            ! Time ref particle passes exit end.
+  real(rp), pointer :: r(:,:,:)                ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:)               ! multipole
+  real(rp), pointer :: b_pole(:)               ! multipoles
+  real(rp), pointer :: const(:)                ! Working constants.
+  real(rp) map_ref_orb_in(6)           ! Transfer map ref orbit at entrance end of element.
+  real(rp) map_ref_orb_out(6)          ! Transfer map ref orbit at exit end of element.
+  real(rp) time_ref_orb_in(6)          ! Reference orbit at entrance end for ref_time calc.
+  real(rp) time_ref_orb_out(6)         ! Reference orbit at exit end for ref_time calc.
     ele_struct definition continued on next figure...
 \end{verbatim}
 \caption[The \vn{ele_struct} (part 1).]{The \vn{ele_struct}. structure definition. 
@@ -74,41 +78,41 @@ The complete structure is shown in this and the following figure.}
 \footnotesize
 \begin{verbatim}
     ... ele_struct definition continued from previous figure.
-  integer key                ! key value
-  integer sub_key            ! For wigglers: map_type$, periodic_type$
-  integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
-  integer ix_branch          ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer ix_value           ! Overlays: Index of control attribute. 
-  integer slave_status       ! super_slave$, etc.
-  integer n_slave            ! Number of slaves
-  integer ix1_slave          ! Start index for slave elements
-  integer ix2_slave          ! Stop  index for slave elements
-  integer lord_status        ! overlay_lord$, etc.
-  integer n_lord             ! Number of lords
-  integer ic1_lord           ! Start index for lord elements
-  integer ic2_lord           ! Stop  index for lord elements
-  integer ix_pointer         ! For general use. Not used by Bmad.
-  integer ixx                ! Index for Bmad internal use
-  integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
-  integer tracking_method    ! bmad_standard$, taylor$, etc.
-  integer field_calc         ! Used with Boris, Runge-Kutta integrators.
-  integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, etc.
-  integer taylor_order       ! Order of the taylor series.
-  integer aperture_at        ! Aperture location: exit_end$, ...
-  integer aperture_type      ! Type of aperture: rectanular$, elliptical$, or custom$. 
-  logical symplectify        ! Symplectify mat6 matrices.
-  logical mode_flip          ! Have the normal modes traded places?
-  logical multipoles_on      ! For turning multipoles on/off
-  logical scale_multipoles   ! multipole components scaled by the strength of element?
-  logical map_with_offsets   ! Taylor map calculated with element offsets?
-  logical field_master       ! Calculate strength from the field value?
-  logical reversed           ! Element is longitudinally reversed form the lord element?
-  logical is_on              ! For turning element on/off.
-  logical old_is_on          ! For saving the element on/off state.
-  logical logic              ! For general use. Not used by Bmad.
-  logical bmad_logic         ! For Bmad internal use only.
-  logical on_a_girder        ! Have an Girder overlay_lord?
-  logical csr_calc_on        ! Coherent synchrotron radiation calculation
+  integer key                    ! key value
+  integer sub_key                ! For wigglers: map_type$, periodic_type$
+  integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
+  integer ix_value               ! Overlays: Index of control attribute. 
+  integer slave_status           ! super_slave$, etc.
+  integer n_slave                ! Number of slaves
+  integer ix1_slave              ! Start index for slave elements
+  integer ix2_slave              ! Stop  index for slave elements
+  integer lord_status            ! overlay_lord$, etc.
+  integer n_lord                 ! Number of lords
+  integer ic1_lord               ! Start index for lord elements
+  integer ic2_lord               ! Stop  index for lord elements
+  integer ix_pointer             ! For general use. Not used by Bmad.
+  integer ixx                    ! Index for Bmad internal use
+  integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
+  integer tracking_method        ! bmad_standard$, taylor$, etc.
+  integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
+  integer field_calc             ! Used with Boris, Runge-Kutta integrators.
+  integer ref_orbit              ! Multipass ref orb: single_ref$, match_global_coords$, etc.
+  integer aperture_at            ! Aperture location: exit_end$, ...
+  integer aperture_type          ! Type of aperture: rectanular$, elliptical$, or custom$. 
+  logical symplectify            ! Symplectify mat6 matrices.
+  logical mode_flip              ! Have the normal modes traded places?
+  logical multipoles_on          ! For turning multipoles on/off
+  logical scale_multipoles       ! multipole components scaled by the strength of element?
+  logical map_with_offsets       ! Taylor map calculated with element offsets?
+  logical field_master           ! Calculate strength from the field value?
+  logical reversed               ! Element is longitudinally reversed form the lord element?
+  logical is_on                  ! For turning element on/off.
+  logical old_is_on              ! For saving the element on/off state.
+  logical logic                  ! For general use. Not used by Bmad.
+  logical bmad_logic             ! For Bmad internal use only.
+  logical on_a_girder            ! Have an Girder overlay_lord?
+  logical csr_calc_on            ! Coherent synchrotron radiation calculation
   logical offset_moves_aperture  ! element offsets affects aperture?          
 end type
 \end{verbatim}
@@ -786,7 +790,6 @@ only. These are:
   %ixx
   %old_is_on
   %bmad_logic
-  %const(:)
 \end{example}
 
 The \vn{%ixx} and \vn{%bmad_logic} components are used for internal \bmad bookkeeping purposes. 

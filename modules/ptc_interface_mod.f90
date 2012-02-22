@@ -1770,7 +1770,7 @@ call taylor_to_real_8 (bmad_taylor, beta0, ptc_tlr)
 
 ! Track entrance drift if PTC is using a hard edge model
 
-if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) then
+if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
   call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
@@ -1783,7 +1783,7 @@ call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
 
 ! Track exit side drift if PTC is using a hard edge model
 
-if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) then
+if (tracking_uses_hard_edge_model(ele)) then
   call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
   call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
 endif
@@ -1906,7 +1906,7 @@ y = x   ! y = IdentityMap + x
 
 ! Track entrance drift if PTC is using a hard edge model
 
-if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) then
+if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
   call ptc_track (ptc_fiber, y, default) ! "track" in PTC
@@ -1919,7 +1919,7 @@ call ptc_track (ptc_fiber, y, default) ! "track" in PTC
 
 ! Track exit end drift if PTC is using a hard edge model
 
-if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) then
+if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
   call ptc_track (ptc_fiber, y, default) ! "track" in PTC
@@ -2257,7 +2257,7 @@ case (rfcavity$, lcavity$)
   ptc_key%magnet = 'rfcavity'
   ptc_key%list%freq0 = ele%value(rf_frequency$)
   phi_tot = ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$)
-  if (tracking_uses_hard_edge_model(ele, mat6_calc_method$)) ptc_key%list%l    = ele%value(l_hard_edge$)
+  if (tracking_uses_hard_edge_model(ele)) ptc_key%list%l    = ele%value(l_hard_edge$)
 
   if (ele%key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot

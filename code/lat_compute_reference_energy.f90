@@ -100,6 +100,17 @@ do ib = 0, ubound(lat%branch, 1)
 
   endif
 
+  ! Look for an e_gun and if found then the starting
+
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
+    if (ele%key == marker$) cycle
+    if (ele%key /= e_gun$) exit
+    if (ele%slave_status == super_slave$) ele => pointer_to_lord(ele, 1)
+    branch%ele(0)%value(e_tot$) = branch%ele(0)%value(e_tot_start$) + ele%value(voltage$) * ele%value(l$)
+    exit
+  enddo
+
   ! Loop over all elements in the branch
 
   ix_super_end = 0  ! End index of current super_lord_region
@@ -285,7 +296,7 @@ ele%value(p0c_start$) = p0c_start
 ele%time_ref_orb_out = ele%time_ref_orb_in  ! This should be true when we don't have to track.
 
 key = ele%key
-if (key == em_field$ .and. ele%value(p0c$) /= ele%value(p0c_start$)) key = lcavity$
+if (key == em_field$ .and. ele%sub_key == nonconst_ref_energy$) key = lcavity$
 
 select case (key)
 
@@ -330,7 +341,7 @@ case (lcavity$)
     call zero_errors_in_ele (ele)
     orb_start%vec = ele%time_ref_orb_in
     call track1 (orb_start, ele, param, orb_end)
-    ele%time_ref_orb_out = orb_end%vec
+    call calc_time_ref_orb_out
     call restore_errors_in_ele (ele)
 
     if (orb_end%status == dead$) then
@@ -339,12 +350,13 @@ case (lcavity$)
       return
     endif
 
-    E_tot = ele%value(E_tot$)
-    p0c = ele%value(p0c$)
     ele%ref_time = ref_time_start + orb_end%t
-    ele%value(p0c$) = p0c * (1 + orb_end%vec(6))
+    ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
+
+
+
   endif
 
 case (custom$, hybrid$)
@@ -366,7 +378,7 @@ case (e_gun$)
   call zero_errors_in_ele (ele)
   orb_start%vec = ele%time_ref_orb_in
   call track1 (orb_start, ele, param, orb_end)
-  ele%time_ref_orb_out = orb_end%vec
+  call calc_time_ref_orb_out
   call restore_errors_in_ele (ele)
 
   E_tot = ele%value(E_tot$)
@@ -406,7 +418,7 @@ case default
     call zero_errors_in_ele (ele)
     orb_start%vec = ele%time_ref_orb_in
     call track1 (orb_start, ele, param, orb_end)
-    ele%time_ref_orb_out = orb_end%vec
+    call calc_time_ref_orb_out
     call restore_errors_in_ele (ele)
     ele%ref_time = ref_time_start + orb_end%t
   endif
@@ -490,5 +502,18 @@ if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
 endif
 
 end subroutine restore_errors_in_ele
+
+!---------------------------------------------------------------------------------
+! contains
+
+subroutine calc_time_ref_orb_out ()
+
+ele%time_ref_orb_out = orb_end%vec
+ele%time_ref_orb_out(2) = ele%time_ref_orb_out(2) / (1 + orb_end%vec(6))
+ele%time_ref_orb_out(4) = ele%time_ref_orb_out(4) / (1 + orb_end%vec(6))
+ele%time_ref_orb_out(5) = ele%time_ref_orb_out(5) + &
+            (orb_end%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
+
+end subroutine
 
 end subroutine ele_compute_ref_energy_and_time

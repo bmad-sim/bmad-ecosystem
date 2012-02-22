@@ -12,7 +12,7 @@ the lattice as a whole and not simply associated with a single element.
 
 \index{lattice}\index{lattice_type}
 \index{taylor_order}\index{e_tot}
-\index{p0c}\index{ran_seed}
+\index{p0c}\index{ran_seed}\index{absolute_time_tracking]
 \index{n_part}\index{no_end_marker}
 \index{rf_auto_scale_phase}\index{rf_auto_scale_amp}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
@@ -139,6 +139,10 @@ The \vn{rf_auto_scale_phase} and \vn{rf_auto_scale_amp} switches
 toggle the automatic scaling of the RF phase and/or amplitude for
 \vn{rfcavity}, \vn{lcavity}, and \vn{em_field} elements (\sref{s:rf.auto}).
 
+\index{absolute_time_tracking}\index{lcavity}\index{rfcavity}
+The \vn{absolute_time_tracking} switch sets whether the clock for the
+\vn{lcavity and \vn{rfcavity} elements
+
 %-----------------------------------------------------------------------------
 \section{Beam_start Statement}
 \label{s:beam.start}
@@ -200,18 +204,12 @@ are the same as \vn{parameter[particle]}.
 \label{s:beginning}
 \index{beginning statement|hyperbf}
 
-\index{beta_a}
-\index{alpha_a}
-\index{phi_a}
-\index{eta_x}
-\index{etap_x}
-\index{beta_b}
-\index{alpha_b}
-\index{phi_b}
-\index{eta_y}
-\index{etap_y}
-\index{cmat_ij}
-\index{e_tot}
+\index{beta_a}\index{alpha_a}
+\index{phi_a}\index{eta_x}
+\index{etap_x}\index{beta_b}
+\index{alpha_b}\index{phi_b}
+\index{eta_y}\index{etap_y}
+\index{cmat_ij}\index{e_tot}
 \index{p0c}
 For non--circular lattices, the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the lattice.

@@ -327,7 +327,7 @@ do i = 1, n_key
   if (i == taylor$)       cycle
 
   call init_attrib (i, l$,            'L')
-  call init_attrib (i, l_hard_edge$,  reserved_slot$)
+  call init_attrib (i, l_hard_edge$,  'L_HARD_EDGE')
 
   call init_attrib (i, integrator_order$,   'INTEGRATOR_ORDER')
   call init_attrib (i, num_steps$,          'NUM_STEPS')
@@ -384,6 +384,8 @@ call init_attrib (photon_branch$, p0c_start$,            'P0C_START')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
+call init_attrib (init_ele$, e_tot_start$,                 'E_TOT_START')
+call init_attrib (init_ele$, p0c_start$,                   'P0C_START')
 call init_attrib (init_ele$, e_tot$,                       'E_TOT')
 call init_attrib (init_ele$, p0c$,                         'P0C')
 call init_attrib (init_ele$, x_position$,                  'X_POSITION')
@@ -448,8 +450,10 @@ call init_attrib (def_beam_start$, phase_y$,               'PHASE_Y')
 
 call init_attrib (e_gun$, e_tot_start$,                    reserved_slot$)
 call init_attrib (e_gun$, p0c_start$,                      reserved_slot$)
-call init_attrib (e_gun$, gradient$,                       'GRADIENT')
 call init_attrib (e_gun$, voltage$,                        'VOLTAGE')
+call init_attrib (e_gun$, voltage_err$,                    'VOLTAGE_ERR')
+call init_attrib (e_gun$, gradient$,                       'GRADIENT')
+call init_attrib (e_gun$, gradient_err$,                   'GRADIENT_ERR')
 call init_attrib (e_gun$, field_calc$,                     'FIELD_CALC')
 call init_attrib (e_gun$, field$,                          'FIELD')
 
@@ -520,7 +524,7 @@ call init_attrib (lcavity$, phi0$,                         'PHI0')
 call init_attrib (lcavity$, gradient$,                     'GRADIENT')
 call init_attrib (lcavity$, rf_frequency$,                 'RF_FREQUENCY')
 call init_attrib (lcavity$, e_loss$,                       'E_LOSS')
-call init_attrib (lcavity$, delta_e$,                      'DELTA_E')
+call init_attrib (lcavity$, voltage$,                      'VOLTAGE')
 call init_attrib (lcavity$, sr_wake_file$,                 'SR_WAKE_FILE')
 call init_attrib (lcavity$, lr_wake_file$,                 'LR_WAKE_FILE')
 call init_attrib (lcavity$, field_calc$,                   'FIELD_CALC')

@@ -4501,14 +4501,14 @@ case (sbend$, rbend$)
   if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
   if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
 
-! Accept Use of Delta_E for lcavities and vary the mode frequencies.
+! Accept Use of Voltage for lcavities and vary the mode frequencies.
 
 case (lcavity$) 
 
-  if (ele%value(delta_e$) /= 0) then
+  if (ele%value(voltage$) /= 0) then
     if (ele%value(gradient$) /= 0) call parser_error &
-                ('BOTH DELTA_E AND GRADIENT NON-ZERO FOR A LCAVITY:', ele%name)
-    ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
+                ('BOTH VOLTAGE AND GRADIENT NON-ZERO FOR A LCAVITY:', ele%name)
+    ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
   endif
 
 ! for a periodic_type wiggler n_pole is a dependent attribute
