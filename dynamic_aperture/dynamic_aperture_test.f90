@@ -93,7 +93,8 @@ end interface
   integer k
   integer n
   integer int_Q_x, int_Q_y
-  integer i_dim/4/  
+  integer i_dim/4/
+  integer nargs  
 
   real(rp) x_init, y_init, e_max, accuracy, energy(10)
   real(rp) ap_mult, aperture_multiplier, Qx, Qy, Qz, Qx_ini, Qy_ini, Qp_x, Qp_y
@@ -108,6 +109,7 @@ end interface
   character*100 lat_file
   character date_str*20
   character*16 qp_tune1, qp_tune2 ! elements for changing chromaticity (like RAW_XQUNEING_1 and 2)
+  character*60 line
     
   logical ok
   logical rec_taylor
@@ -124,7 +126,20 @@ end interface
 
 ! init
 
-    in_file = 'da_test.in'
+      nargs = cesr_iargc()
+      if(nargs == 1)then
+         call cesr_getarg(1,in_file)
+         print *, 'Using ', trim(in_file)
+       else
+      in_file = 'da.in'
+      print '(a37,$)',' Using ? (default= da.in) '
+      read(5,'(a)') line
+       call string_trim(line, line, ix)
+       in_file = line
+       if(ix == 0) in_file ='da.in'
+       print *, ' in_file = ', in_file
+      endif
+
     open (unit = 1, file = in_file, status = 'old', iostat = ios)
 
     if (ios /= 0) then
