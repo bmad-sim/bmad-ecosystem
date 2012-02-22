@@ -188,7 +188,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
    ring%param%aperture_limit_on = .true.
 
 ! write output
-  call file_suffixer (in_file, in_file, '.dat', .true.)
+  call file_suffixer (in_file, in_file, '_back.dat', .true.)
   open (unit = 2, file = in_file)
   write (2, *) 'Lattice  = ', ring%lattice
   write (2, '(a11,i5,3(a10,f7.5))') ' N_turn   =', track_input%n_turn
@@ -211,6 +211,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   write(2,*)
 
   i_e_max = max(1, n_energy_pts)
+
+  print *,' i_e_max = ', i_e_max
   do i_e = 1, i_e_max
 
 
@@ -228,7 +230,13 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 !     orb0%vec(6) = e_init
 
     call string_trim (in_file, in_file, ix)
-    write (da_file, '(a, i1.1, a)') in_file(1:ix-4), i_e, '.dat'
+    if(i_e_max == 1)then
+     write (da_file, '(a, a)') in_file(1:ix-4), '.dat'
+     print *,' da_file = ', da_file
+    else
+     write (da_file, '(a, i1.1, a)') in_file(1:ix-4), i_e, '.dat'
+     print *,' da_file = ', da_file
+    endif
     open (unit = 3, file = da_file)
 
     file_name = ring%input_file_name
