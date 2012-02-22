@@ -105,7 +105,6 @@ if (i_ele < 0) then
   ! one from a previous element.
 
   n_taylor = 0  ! number of taylor map found
-  call init_coord (orb_start)
 
   do i = 1, branch%n_ele_track
 
@@ -134,8 +133,10 @@ if (i_ele < 0) then
           exit
         enddo
       endif
+      call init_coord (orb_start, orb_start%vec, ele, branch%param%particle)
+
     else  ! else ref_orb must be present
-      orb_start%vec = ref_orb(i-1)%vec
+      orb_start = ref_orb(i-1)
     endif
 
     ! If a Taylor map is needed then check for an appropriate map from a previous element.

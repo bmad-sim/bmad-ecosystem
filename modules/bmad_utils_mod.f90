@@ -293,7 +293,7 @@ end subroutine check_controller_controls
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord (orb, vec)
+! Subroutine init_coord (orb, vec, ele, particle)
 ! 
 ! Subroutine to initialize a coord_struct.
 !
@@ -301,18 +301,24 @@ end subroutine check_controller_controls
 !   use bmad
 !
 ! Input:
-!   vec(6) -- real(rp): Coordinate vector. If not present then taken to be zero.
+!   vec(6)   -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
+!   ele      -- ele_struct, optional: If present then particle is taken to be at the entrance end
+!                 of this element.
+!   particle -- Integer, optional: Particle type (electron$, etc.). Must be present if ele is present.
 !
 ! Output:
 !   orb -- Coord_struct: Initialized coordinate.
 !-
 
-subroutine init_coord (orb, vec)
+subroutine init_coord (orb, vec, ele, particle)
 
 implicit none
 
 type (coord_struct) orb
+type (ele_struct), optional :: ele
+
 real(rp), optional :: vec(:)
+integer, optional :: particle
 
 !
 
@@ -333,6 +339,15 @@ orb%charge    = 0
 orb%ix_z      = 0
 orb%ix_lost   = not_lost$
 orb%status    = outside$
+
+if (present(ele)) then
+  orb%p0c = ele%value(p0c_start$)
+  if (orb%vec(6) == 0) then
+    orb%beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
+  else
+    call convert_pc_to (ele%value(p0c$) * (1 + orb%vec(6)), particle, beta = orb%beta)
+  endif
+endif
 
 end subroutine init_coord
 
