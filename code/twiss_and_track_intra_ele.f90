@@ -56,7 +56,7 @@ type (coord_struct) orb_at_end
 type (ele_struct), optional :: ele_start, ele_end
 type (ele_struct) ele
 type (lat_param_struct) param
-type (ele_struct), save :: runt
+type (ele_struct) :: runt
 
 real(rp) l_start, l_end, mat6(6,6), vec0(6)
 
@@ -85,7 +85,7 @@ endif
 ! Construct a "runt" element to track through.
 
 if (present(err)) err = .true.
-runt = ele
+call transfer_ele(ele, runt)
 do_entrance = (track_entrance .and. l_start == 0)
 do_exit = (track_exit .and. abs(l_end - ele%value(l$)) < bmad_com%significant_length)
 call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_entrance, do_exit, err_flag)
