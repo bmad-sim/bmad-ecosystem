@@ -39,7 +39,7 @@ type (random_state_struct) :: ran_state, digested_ran_state
 
 real(rp) value(n_attrib_maxx)
 
-integer inc_version, d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
+integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at, idum1
 integer ierr, stat, ios, n_wall_section, garbage, idum2, j1, j2
 
@@ -75,16 +75,16 @@ call simplify_path (full_digested_file, full_digested_file)
 open (unit = d_unit, file = full_digested_file, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
-read (d_unit, err = 9010) n_files, version
+read (d_unit, err = 9010) n_files, file_version
 
 can_read_this_old_version = .false.
 
 ! Version is old but recent enough to read.
 
-if (version < bmad_inc_version$) then
+if (file_version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_info$, r_name, &
          (/ 'DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' /),  &
-          i_array = (/ bmad_inc_version$, version /) )
+          i_array = (/ bmad_inc_version$, file_version /) )
   if (can_read_this_old_version) then 
     allocate (file_names(n_files))
     err_found = .true.
@@ -94,12 +94,12 @@ if (version < bmad_inc_version$) then
   endif
 endif
 
-if (version > bmad_inc_version$) then
+if (file_version > bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_info$, r_name, &
        'DIGESTED FILE HAS VERSION: \i0\ ', &
        'GREATER THAN VERSION OF THIS PROGRAM: \i0\ ', &
        'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
-       i_array = (/ version, bmad_inc_version$ /) )
+       i_array = (/ file_version, bmad_inc_version$ /) )
   close (d_unit)
   return
 endif
@@ -257,7 +257,7 @@ enddo
 close (d_unit)
 
 lat%param%stable = .true.  ! Assume this 
-inc_version = version
+inc_version = file_version
 
 if (present(err_flag)) err_flag = err_found
 
@@ -359,7 +359,7 @@ logical error
 
 error = .true.
 
-if (version >= 99) then
+if (file_version >= 99) then
   read (d_unit, err = 9100) mode3, ix_wig, idum0, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum4
   read (d_unit, err = 9100) &

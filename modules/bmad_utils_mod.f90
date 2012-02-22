@@ -2529,7 +2529,7 @@ if (key1 == sbend$ .or. key2 == sbend$) return
 if (logic_option(.false., create_em_field_slave)) then
   key3 = em_field$
   if (key1 == lcavity$ .or. key2 == lcavity$) then
-    ele3%sub_key = const_ref_energy$
+    ele3%sub_key = nonconst_ref_energy$
   elseif (key1 == em_field$) then
     ele3%sub_key = ele1%sub_key
   elseif (key2 == em_field$) then
@@ -2568,7 +2568,7 @@ if (key3 /= -1) return  ! Have found something
 
 key3 = em_field$
 if (key1 == lcavity$ .or. key2 == lcavity$) then
-  ele3%sub_key = const_ref_energy$
+  ele3%sub_key = nonconst_ref_energy$
 elseif (key1 == em_field$) then
   ele3%sub_key = ele1%sub_key
 elseif (key2 == em_field$) then
@@ -3434,7 +3434,7 @@ end function ele_has_constant_ds_dt_ref
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function tracking_uses_hard_edge_model (ele, method) result (is_hard)
+! Function tracking_uses_hard_edge_model (ele) result (is_hard)
 !
 ! Function to determine if the tracking for an element uses a "hard edge model"
 ! in which case the tracking looks like (drift, model, drift). For example,
@@ -3446,19 +3446,16 @@ end function ele_has_constant_ds_dt_ref
 !
 ! Input:
 !   ele    -- ele_struct: Element.
-!   method -- Integer: Either tracking_method$ if doing simple particle tracking or
-!                             mat6_calc_method$ is tracking for transfer maps.
 !
 ! Output:
 !   is_hard -- Logical: True if tracking uses a hard edge model.
 !-
 
-function tracking_uses_hard_edge_model (ele, method) result (is_hard)
+function tracking_uses_hard_edge_model (ele) result (is_hard)
 
 implicit none
 
 type (ele_struct) ele
-integer method
 logical is_hard
 
 !
@@ -3466,30 +3463,8 @@ logical is_hard
 is_hard = .false.
 
 select case (ele%key)
-case (lcavity$)
-  if (method == tracking_method$) then
-    select case (ele%tracking_method)
-    case (time_runge_kutta$, runge_kutta$, boris$, adaptive_boris$)
-      if (ele%field_calc == bmad_standard$) is_hard = .true.
-    case (symp_lie_ptc$)
-      is_hard = .true.
-    end select
-  else 
-    is_hard = .true.
-  endif
-
-case (rfcavity$)
-  if (method == tracking_method$) then
-    select case (ele%tracking_method)
-    case (time_runge_kutta$, runge_kutta$, boris$, adaptive_boris$)
-      if (ele%field_calc == bmad_standard$) is_hard = .true.
-    case (symp_lie_ptc$)
-      is_hard = .true.
-    end select
-  else
-    is_hard = .true.
-  endif
-
+case (lcavity$, rfcavity$, solenoid$)
+    if (ele%field_calc == bmad_standard$) is_hard = .true.
 end select
 
 end function tracking_uses_hard_edge_model
@@ -3498,7 +3473,7 @@ end function tracking_uses_hard_edge_model
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine calc_next_hard_edge (track_ele, method, s_edge, hard_ele, hard_end)
+! Subroutine calc_next_hard_edge (track_ele, s_edge, hard_ele, hard_end)
 !
 ! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
 ! This routine is used by integration tracking routines like Runge-Kutta.
@@ -3507,8 +3482,6 @@ end function tracking_uses_hard_edge_model
 !
 ! Input:
 !   track_ele     -- ele_struct: Element being tracked through.
-!   method        -- Integer: Either tracking_method$ if doing simple particle tracking or
-!                             mat6_calc_method$ is tracking for transfer maps.
 !   hard_ele      -- ele_struct, pointer: Needs to be nullified at the start of tracking.
 !
 ! Output:
@@ -3520,7 +3493,7 @@ end function tracking_uses_hard_edge_model
 !   hard_end  -- Integer: Describes hard edge. Set to entrance_end$ or exit_end$.
 !-
 
-subroutine calc_next_hard_edge (track_ele, method, s_edge, hard_ele, hard_end)
+subroutine calc_next_hard_edge (track_ele, s_edge, hard_ele, hard_end)
 
 implicit none
 
@@ -3528,7 +3501,7 @@ type (ele_struct), target :: track_ele
 type (ele_struct), pointer :: hard_ele, lord
 
 real(rp) s_edge
-integer hard_end, method
+integer hard_end
 integer i
 
 ! Init if needed.
@@ -3577,8 +3550,8 @@ integer this_end
 
 !
 
-if (.not. tracking_uses_hard_edge_model (track_ele, method)) return
-if (track_ele%ixx == 2) return
+if (.not. tracking_uses_hard_edge_model (this_ele)) return
+if (this_ele%ixx == 2) return
 
 if (this_ele%ix_ele == track_ele%ix_ele) then ! If same element
   s_off = 0
@@ -3586,10 +3559,10 @@ else
   s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
 endif
 
-if (track_ele%ixx == 1) then
+if (this_ele%ixx == 0) then
   this_end = entrance_end$
   s_this_edge = s_off + (this_ele%value(l$) - this_ele%value(l_hard_edge$)) / 2 
-else
+else   ! this_ele%ixx = 1
   this_end = entrance_end$
   s_this_edge = s_off + (this_ele%value(l$) + this_ele%value(l_hard_edge$)) / 2 
 endif

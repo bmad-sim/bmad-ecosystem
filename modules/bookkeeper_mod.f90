@@ -1462,7 +1462,10 @@ if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave
 !-------------------------------------------------------------------------------
 ! stuff sums into slave element
 
-if (slave%key == em_field$) return  ! Field info is stored in the lord elements.
+if (slave%key == em_field$) then
+  slave%value = value
+  return  ! Field info is stored in the lord elements.
+endif
 
 if (x_kick == 0 .and. y_kick == 0) then
   if (slave%key == hkicker$ .or. slave%key == vkicker$) then
@@ -2188,7 +2191,7 @@ end subroutine makeup_overlay_and_girder_slave
 !     voltage$ = e_field$ * gap$ 
 !
 ! LCAVITY:    
-!     delta_e$ = gradient$ * L$ 
+!     voltage$ = gradient$ * L$ 
 ! 
 ! RFCAVITY:   
 !     rf_frequency$ = harmon$ * c_light / param%total_length (only if harmon$ /= 0)
@@ -2433,7 +2436,7 @@ case (lcavity$)
     endif
   endif
 
-  val(delta_e$) = val(gradient$) * val(l$)
+  val(voltage$) = val(gradient$) * val(l$)
   if (val(rf_frequency$) == 0) then
     val(l_hard_edge$) = 0
   else

@@ -21,7 +21,7 @@ use definition, only: genfield, fibre
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 108
+integer, parameter :: bmad_inc_version$ = 109
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -30,6 +30,16 @@ integer, parameter :: bmad_inc_version$ = 108
 ! Size of ele%value(:) array
 
 integer, parameter :: n_attrib_maxx = 70
+
+! ele%aperture_at logical definitions.
+
+integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
+integer, parameter :: no_end$ = 4, continuous$ = 5, inside$ = 6, dead$ = 7, outside$ = 8
+integer, parameter :: lost$ = 10
+character(16), parameter :: element_end_name(0:8) = [ &
+      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
+      'No_End       ', 'Continuous   ', 'Inside       ', 'Dead         ', &
+      'Outside      ']
 
 ! electron/positron
 
@@ -67,7 +77,7 @@ type coord_struct                 ! Particle coordinates at a single point
   integer :: ix_z = 0             ! Index for ordering the particles longitudinally.
                                   !   particle(1)%ix_z is index of head particle.
   integer :: ix_lost = not_lost$  ! Index of element particle was lost at.
-  integer :: status = not_set$    ! inside$, outside$, dead$
+  integer :: status = outside$    ! inside$, outside$, dead$
 end type
 
 type coord_array_struct
@@ -75,6 +85,13 @@ type coord_array_struct
 end type
 
 integer, parameter :: mesh_surface$ = 1, linear_surface$ = 2
+
+type tracking_status_struct
+  integer :: ix_lost = not_lost$            ! Index of element particle was lost at.
+  integer :: end_lost_at = 0                ! entrance_end$ or exit_end$
+  integer :: plane_lost_at = 0              ! x_plane$, y_plane$, z_plane$ (reversed direction).
+  logical :: lost = .false.                 ! Particle alive and moving forward.
+end type
 
 ! Coupling structure
 
@@ -567,15 +584,15 @@ integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5, crunch$=5
 integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6
 integer, parameter :: g$=6, graze_angle_in$ = 6
-integer, parameter :: g_err$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
+integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: gradient_err$=7, critical_angle$ = 7
 integer, parameter :: graze_angle_out$ = 7, ix_branch_to$=7
-integer, parameter :: rho$=8, delta_e$=8, graze_angle_err$ = 8
-integer, parameter :: charge$=8, gap$=8, x_gain_calib$=8
-integer, parameter :: d1_thickness$ = 9
+integer, parameter :: rho$=8, voltage$=8, delta_e$ = 8, graze_angle_err$ = 8
+integer, parameter :: charge$=8, x_gain_calib$=8
+integer, parameter :: d1_thickness$ = 9, voltage_err$=9
 integer, parameter :: ks$=9, l_chord$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
 integer, parameter :: polarity$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
-integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10
+integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10, gap$=10
 integer, parameter :: grad_loss_sr_wake$=11, s_min$=11
 integer, parameter :: e2$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
 integer, parameter :: s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
@@ -606,7 +623,7 @@ integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34, c4_curve_tot$ = 34
 integer, parameter :: coupler_strength$ = 35, d_source$ = 35
 integer, parameter :: B1_gradient$ = 35, E1_gradient$ = 35
 integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36, d_detec$ = 36
-integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, translate_after$ = 37, kh_x_norm$ = 37 
+integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, translate_after$ = 37, kh_x_norm$ = 37
 integer, parameter :: Bs_field$ = 38, e_tot_offset$ = 38, kh_z_norm$ = 38
 integer, parameter :: delta_ref_time$ = 39 ! Assumed unique Do not overload.
 integer, parameter :: p0c_start$ = 40
@@ -777,16 +794,6 @@ character(16), parameter :: field_calc_name(0:7) = &
 
 integer, parameter :: bragg$ = 1, laue$ = 2
 character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ', 'Laue    ']
-
-! ele%aperture_at logical definitions.
-
-integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
-integer, parameter :: no_end$ = 4, continuous$ = 5, inside$ = 6, dead$ = 7, outside$ = 8
-integer, parameter :: lost$ = 10
-character(16), parameter :: element_end_name(0:8) = [ &
-      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ', 'Continuous   ', 'Inside       ', 'Dead         ', &
-      'Outside      ']
 
 ! ref_orbit values.
 

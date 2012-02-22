@@ -69,7 +69,7 @@ The following helper routines are generally not useful for general use.
 
 \index[routine]{add_sr_long_wake}
 \label{r:add.sr.long.wake}
-\item[add_sr_long_wake (start, ele, param, end, track)] \Newline 
+\item[add_sr_long_wake (start_orb, ele, param, end_orb, track, err_flag)] \Newline 
 Adds the longitudinal wake for all particles in front of the follower.
 
 \index[routine]{apply_bend_edge_kick}
@@ -115,11 +115,6 @@ Routine to track a bunch of particles through an element.
 \label{r:track1.bunch.hom}
 \item[track1_bunch_hom (bunch_start, ele, param, bunch_end)] \Newline 
 Routine to track a bunch of particles through an element.
-
-\index[routine]{track1_particle}
-\label{r:track1.particle}
-\item[track1_particle (start, ele, param, end)] \Newline 
-Routine to track a particle through an element.
 
 \end{description}
 
@@ -181,7 +176,7 @@ Subroutine to reallocate particles within a bunch_struct.
 
 \index[routine]{track1_bunch_custom}
 \label{r:track1.bunch.custom}
-\item[track1_bunch_custom (bunch_start, lat, ele, bunch_end)] \Newline 
+\item[track1_bunch_custom (bunch_start, lat, ele, bunch_end, err_flag)] \Newline 
 Dummy routine for custom bunch tracking. 
 
 \index[routine]{track_beam}
@@ -307,9 +302,9 @@ Routine to convert a Bmad taylor_term_struct to a C++ C_taylor_term.
 \item[taylor_to_c (f_taylor, c_taylor)] \Newline 
 Routine to convert a Bmad taylor_struct to a C++ C_taylor.
 
-\index[routine]{wake_to_c}
-\label{r:wake.to.c}
-\item[wake_to_c (f_wake, c_wake)] \Newline 
+\index[routine]{rf_wake_to_c}
+\label{r:rf.wake.to.c}
+\item[rf_wake_to_c (f_wake, c_wake)] \Newline 
 Routine to convert a Bmad wake_struct to a C++ C_wake.
 
 \index[routine]{wig_term_to_c}
@@ -412,7 +407,7 @@ Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
 \label{r:em.field.custom}
-\item[em_field_custom(ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield)] \Newline
+\item[em_field_custom(ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield, err_flag)] \Newline
 Custom routine for calculating fields.
 
 \end{description}
@@ -864,7 +859,7 @@ elements can be added.
 
 \index[routine]{add_superimpose}
 \label{r:add.superimpose}
-\item[add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift)] \Newline
+\item[add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift, create_em_field_slave)] \Newline
 Routine to make a superimposed element. 
 
 \index[routine]{attribute_bookkeeper}
@@ -904,8 +899,8 @@ lat structure.
 \index[routine]{create_element_slice}
 \label{r:create.element.slice}
 \item[\protect\parbox{6in}{
-    create_element_slice (sliced_ele, ele_in, l_slice, offset, \\
-    \hspace*{1in} param, at_entrance_end, at_exit_end, err_flag)} ] \Newline 
+    create_element_slice (sliced_ele, ele_in, l_slice, offset, param, \\
+    \hspace*{1in} at_entrance_end, at_exit_end, err_flag, old_slice)} ] \Newline 
 Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
 superposition lord to a slave when the slave has only one lord.
 
@@ -949,7 +944,7 @@ Routine to remove an elements from the lattice.
 
 \index[routine]{split_lat}
 \label{r:split.lat}
-\item[split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift)] \Newline
+\item[split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)] \Newline
 Routine to split a lat at a point.
 
 \index[routine]{update_hybrid_list}
@@ -1048,7 +1043,7 @@ Routine to return the name corresponding to the value of a given attribute.
 
 \index[routine]{check_lat_controls}
 \label{r:check.lat.controls}
-\item[check_lat_controls (lat, exit_on_error)] \Newline
+\item[check_lat_controls (lat, err_flag)] \Newline
 Routine to check if the control links in a lat structure are valid. 
 
 \index[routine]{ele_at_s}
@@ -1076,9 +1071,9 @@ that their Taylor Maps, if they existed, would be the same.
 \item[find_element_ends (lat, ele, ele1, ele2)] \Newline
 Routine to find the end points of an element. 
 
-\index[routine]{get_element_slave_list}
-\label{r:get.element.slave.list}
-\item[get_element_slave_list (lat, lord, slaves, n_slave)] \Newline 
+\index[routine]{get_slave_list}
+\label{r:get.slave.list}
+\item[get_slave_list (lord, slaves, n_slave)] \Newline 
 Routine to get the list of slaves for an element.
 
 \index[routine]{key_name}
@@ -1195,7 +1190,7 @@ Routine to take an orbit vector difference and calculate the dispersion.
 
 \index[routine]{re_allocate_eles}
 \label{r:re.allocate.eles}
-\item[re_allocate_eles (eles, n, save, exact)] \Newline 
+\item[re_allocate_eles (eles, n, save_old, exact)] \Newline 
 Routine to allocate an array of ele_pointer_structs.
 
 \index[routine]{twiss1_propagate}
@@ -1223,7 +1218,7 @@ Routine to allocate or re-allocate an element array.
 
 \index[routine]{control_bookkeeper}
 \label{r:control.bookkeeper}
-\item[control_bookkeeper (lat, ele, super_and_multipass_only)] \Newline
+\item[control_bookkeeper (lat, ele, super_and_multipass_only, do_free_eles)] \Newline
 Routine to calculate the combined strength of the attributes for
 controlled elements.
 
@@ -1250,7 +1245,7 @@ Routine to initialize a Bmad lat.
 
 \index[routine]{lattice_bookkeeper}
 \label{r:lattice.bookkeeper}
-\item[lattice_bookkeeper (lat)] \Newline 
+\item[lattice_bookkeeper (lat, err_flag)] \Newline 
 Routine to do bookkeeping for the entire lattice.
 
 \index[routine]{lat_reverse}
@@ -1331,9 +1326,9 @@ Routine to zero the offsets, pitches and tilt of an element.
 Routine to compute multipole factors: 
 c_multi(n, m) = +/- ("n choose m")/n! 
 
-\index[routine]{lat_compute_reference_energy}
-\label{r:lat.compute.reference.energy}
-\item[lat_compute_reference_energy (lat)] \Newline
+\index[routine]{lat_compute_ref_energy_and_time}
+\label{r:lat.compute.ref.energy.and.time}
+\item[lat_compute_ref_energy_and_time (lat, err_flag)] \Newline
 Routine to compute the reference energy for each element in a lattice. 
 
 \index[routine]{field_interpolate_3d}
@@ -1367,22 +1362,22 @@ Routine to mark an element as modified for use with "intelligent" bookkeeping.
 
 \index[routine]{aml_parser}
 \label{r:aml.parser}
-\item[aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
+\item[aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline 
 Routine to parse an AML input file and put the information in a lat_struct.
 
 \index[routine]{bmad_and_xsif_parser}
 \label{r:bmad.and.xsif.parser}
-\item[bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
+\item[bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline 
 Subroutine to parse either a Bmad or XSIF (extended standard input format) lattice files.
 
 \index[routine]{bmad_parser}
 \label{r:bmad.parser}
-\item[bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)] \Newline
+\item[bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline
 Routine to parse (read in) a Bmad input file. 
 
 \index[routine]{bmad_parser2}
 \label{r:bmad.parser2}
-\item[bmad_parser2 (lat_file, lat, orbit, make_mats6)] \Newline
+\item[bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag)] \Newline
 Routine to parse (read in) a Bmad input file to modify an existing lattice. 
 
 \index[routine]{bmad_to_mad_or_xsif}
@@ -1412,13 +1407,13 @@ Routine to give elements in a lattice unique names.
 
 \index[routine]{init_custom}
 \label{r:init.custom}
-\item[init_custom (ele)] \Newline
+\item[init_custom (ele, err_flag)] \Newline
 Routine for initializing custom elements or elements that do custom
 calculations.
 
 \index[routine]{read_digested_bmad_file}
 \label{r:read.digested.bmad.file}
-\item[read_digested_bmad_file (digested_name, lat, inc_version)] \Newline
+\item[read_digested_bmad_file (digested_file, lat, inc_version, err_flag)] \Newline
 Routine to read in a digested file. 
 
 \index[routine]{write_bmad_lattice_file}
@@ -1474,7 +1469,7 @@ This routine is adapted from Numerical Recipes.
 
 \index[routine]{do_mode_flip}
 \label{r:do.mode.flip}
-\item[do_mode_flip (ele)] \Newline
+\item[do_mode_flip (ele, err_flag)] \Newline
 Routine to mode flip the Twiss parameters of an element 
 
 \index[routine]{make_g2_mats}
@@ -1491,7 +1486,7 @@ coordinates with the beta function removed.
 
 \index[routine]{make_mat6}
 \label{r:make.mat6}
-\item[make_mat6 (ele, param, start_orb, end_orb, end_in, err)] \Newline
+\item[make_mat6 (ele, param, start_orb, end_orb, end_in, err_flag)] \Newline
 Routine to make the 6x6 transfer matrix for an element. 
 
 \index[routine]{make_v_mats}
@@ -1535,7 +1530,7 @@ at the end of an element.
 
 \index[routine]{lat_make_mat6}
 \label{r:lat.make.mat6}
-\item[lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch)] \Newline
+\item[lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch, err_flag)] \Newline
 Routine to make the 6x6 linear transfer matrix for an element 
 
 \index[routine]{taylor_to_mat6}
@@ -1839,18 +1834,18 @@ structure equal to another.
 
 \index[routine]{convert_coords}
 \label{r:convert.coords}
-\item[convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)] \Newline
+\item[convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, err_flag)] \Newline
 Routine to convert between lab frame, normal mode, normalized normal mode, 
 and action-angle coordinates. 
 
 \index[routine]{convert_pc_to}
 \label{r:convert.pc.to}
-\item[convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta)] \Newline
+\item[convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta, err_flag)] \Newline
 Routine to calculate the energy, etc. from a particle's momentum. 
 
 \index[routine]{convert_total_energy_to}
 \label{r:convert.total.energy.to}
-\item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta)] \Newline
+\item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)] \Newline
 Routine to calculate the momentum, etc. from a particle's total energy. 
 
 \index[routine]{init_coord}
@@ -1909,13 +1904,8 @@ Routine to convert a Bmad element to a PTC fibre element.
 
 \index[routine]{map_coef}
 \label{r:map.coef}
-\item[map_coef (y, i, j, k, l, style)] \Newline
+\item[map_coef (y, i, j, k, l)] \Newline
 Function to return the coefficient of the map y(:) up to 3rd order. 
-
-\index[routine]{kill_gen_field}
-\label{r:kill.gen.field}
-\item[kill_gen_field (gen_field)] \Newline
-Routine to kill a gen_field. 
 
 \index[routine]{kind_name}
 \label{r:kind.name}
@@ -1929,7 +1919,7 @@ Routine to overload "=" in expressions real_8 = bmad_taylor
 
 \index[routine]{real_8_to_taylor}
 \label{r:real.8.to.taylor}
-\item[real_8_to_taylor (y8, bmad_taylor, switch_z)] \Newline
+\item[real_8_to_taylor (y8, beta0, bmad_taylor)] \Newline
 Routine to convert from a real_8 taylor map in Etienne's PTC to a taylor map in Bmad. 
 
 \index[routine]{real_8_init}
@@ -1970,7 +1960,7 @@ Routine to overload "=" in expressions bmad_taylor = y8
 
 \index[routine]{taylor_to_real_8}
 \label{r:taylor.to.real.8}
-\item[taylor_to_real_8 (bmad_taylor, y8, switch_z)] \Newline
+\item[taylor_to_real_8 (bmad_taylor, beta0, y8)] \Newline
 Routine to convert from a taylor map in Bmad to a real_8 taylor map in Etienne's PTC. 
 
 \index[routine]{type_layout}
@@ -1980,7 +1970,7 @@ Routine to print the global information in a PTC layout.
 
 \index[routine]{type_map1}
 \label{r:type.map1}
-\item[type_map1 (y, type0, n_dim, style)] \Newline
+\item[type_map1 (y, type0, n_dim)] \Newline
 Routine to type the transfer map up to first order. 
 
 \index[routine]{type_fibre}
@@ -1995,27 +1985,27 @@ Routine to type the transfer maps of a real_8 array.
 
 \index[routine]{type_real_8_taylors}
 \label{r:type.real.8.taylors}
-\item[type_real_8_taylors (y, switch_z)] \Newline
+\item[type_real_8_taylors (y)] \Newline
 Routine to type out the taylor series from a real_8 array. 
 
 \index[routine]{taylor_to_genfield}
 \label{r:taylor.to.genfield}
-\item[taylor_to_genfield (bmad_taylor, gen_field, c0)] \Newline
+\item[taylor_to_genfield (bmad_taylor, ptc_genfield, c0)] \Newline
 Routine to construct a genfield (partially inverted map) from a taylor map. 
 
 \index[routine]{universal_to_bmad_taylor}
 \label{r:universal.to.bmad.taylor}
-\item[universal_to_bmad_taylor (u_taylor, bmad_taylor, switch_z)] \Newline
+\item[universal_to_bmad_taylor (u_taylor, bmad_taylor)] \Newline
 Routine to convert from a universal_taylor map in Etienne's PTC to a taylor map in Bmad. 
 
 \index[routine]{vec_bmad_to_ptc}
 \label{r:vec.bmad.to.ptc}
-\item[vec_bmad_to_ptc (vec_bmad, vec_ptc)] \Newline
+\item[vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc)] \Newline
 Routine to convert from Bmad to PTC coordinates. 
 
 \index[routine]{vec_ptc_to_bmad}
 \label{r:vec.ptc.to.bmad}
-\item[vec_ptc_to_bmad (vec_ptc, vec_bmad)] \Newline
+\item[vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad)] \Newline
 Routine to convert from PTC to Bmad coordinates. 
 
 \end{description}
@@ -2729,12 +2719,12 @@ using closed formulas.
 
 \index[routine]{make_mat6_custom}
 \label{r:make.mat6.custom}
-\item[make_mat6_custom (ele, param, c0, c1)] \Newline
+\item[make_mat6_custom (ele, param, c0, c1, err_flag)] \Newline
 Routine for custom calculations of the 6x6 transfer matrices.
 
 \index[routine]{make_mat6_custom2}
 \label{r:make.mat6.custom2}
-\item[make_mat6_custom2 (ele, param, c0, c1)] \Newline
+\item[make_mat6_custom2 (ele, param, c0, c1, err_flag)] \Newline
 Routine for custom calculations of the 6x6 transfer matrices.
 
 \index[routine]{make_mat6_symp_lie_ptc}
@@ -2864,13 +2854,13 @@ Routine to invert a taylor map.
 
 \index[routine]{taylor_propagate1}
 \label{r:taylor.propagate1}
-\item[taylor_propagate1 (tlr, ele, param)] \Newline
+\item[taylor_propagate1 (bmad_taylor, ele, param)] \Newline
 Routine to track a real_8 taylor map through an element. 
 The alternative routine, if ele has a taylor series, is concat_taylor. 
 
 \index[routine]{track_taylor}
 \label{r:track.taylor}
-\item[track_taylor (start, bmad_taylor, end)] \Newline
+\item[track_taylor (start_orb, bmad_taylor, end_orb)] \Newline
 Routine to track using a Taylor map. 
 
 \index[routine]{transfer_ele_taylor}
@@ -2914,19 +2904,18 @@ Routine to check if an orbit is outside an element's aperture.
 
 \index[routine]{check_aperture_limit_custom}
 \label{r:check.aperture.limit.custom}
-\item[check_aperture_limit_custom (orb, ele, at, param)] \Newline
+\item[check_aperture_limit_custom (orb, ele, at, param, err_flag)] \Newline
 Routine to check if an orbit is outside an element's aperture.
 Used when \vn{ele%aperture_type} is set to \vn{custom\$} 
 
 \index[routine]{closed_orbit_calc}
 \label{r:closed.orbit.calc}
-\item[closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)] \Newline 
+\item[closed_orbit_calc (lat, closed_orb, i_dim, direction, err_flag)] \Newline 
 Routine to calculate the closed orbit at the beginning of the lat.
 
 \index[routine]{closed_orbit_from_tracking}
 \label{r:closed.orbit.from.tracking}
-\item[closed_orbit_from_tracking (lat, closed_orb, i_dim, 
-eps_rel, eps_abs, init_guess)] \Newline
+\item[closed_orbit_from_tracking (lat, closed_orb, i_dim, eps_rel, eps_abs, init_guess, err_flag)] \Newline
 Routine to find the closed orbit via tracking. 
 
 \index[routine]{compute_even_steps}
@@ -2942,8 +2931,7 @@ Routine to determine the dynamic aperture of a lattice via tracking.
 
 \index[routine]{multi_turn_tracking_analysis}
 \label{r:multi.turn.tracking.analysis}
-\item[multi_turn_tracking_analysis (track, i_dim, track0, ele, 
-stable, growth_rate, chi)] \Newline
+\item[multi_turn_tracking_analysis (track, i_dim, track0, ele, stable, growth_rate, chi, err_flag)] \Newline
 Routine to analyze multi-turn tracking data to get the Twiss
 parameters etc.
 
@@ -2958,7 +2946,7 @@ matrix and the closed orbit offset.
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
     offset_particle (ele, param, coord, set, set_canonical, set_tilt, \\
-    \hspace*{1in} set_multipoles, set_hvkicks, reversed, set_s_offset, ds_pos)}] \Newline
+    \hspace*{1in} set_multipoles, set_hvkicks, set_s_offset, ds_pos)}] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
@@ -2982,7 +2970,7 @@ instead rotating the particle position with negative the angle.
 
 \index[routine]{track1}
 \label{r:track1}
-\item[track1 (start_orb, ele, param, end_orb, track)] \Newline
+\item[track1 (start_orb, ele, param, end_orb, track, err_flag)] \Newline
 Routine to track through a single element. 
 
 \index[routine]{track1_beam_simple}
@@ -2999,7 +2987,7 @@ with csr radiation effects.
 
 \index[routine]{track_all}
 \label{r:track.all}
-\item[track_all (lat, orbit, ix_branch)] \Newline
+\item[track_all (lat, orbit, ix_branch, err_flag)] \Newline
 Routine to track through the lat. 
 
 \index[routine]{track_from_s_to_s}
@@ -3040,7 +3028,7 @@ Routine to track a particle within an element.
 Routine to calculate the Twiss parameters and orbit at a particular position inside an element. 
 
 \index[routine]{twiss_from_tracking}
-\item[twiss_from_tracking (lat, ref_orb0, error, d_orb)] \Newline
+\item[twiss_from_tracking (lat, ref_orb0, symp_err, err_flag, d_orb)] \Newline
 Routine to compute from tracking the Twiss parameters and the transfer matrices 
 for every element in the lat. 
 
@@ -3055,8 +3043,7 @@ for every element in the lat.
 \index[routine]{odeint_bmad}
 \label{r:odeint.bmad}
 \item[\protect\parbox{6in}{
-    odeint_bmad (start, ele, param, end, s1, s2, rel_tol, abs_tol, h1, h_min, \\
-    \hspace*{1in} local_ref_frame, track) }] \Newline
+    odeint_bmad (orb_start, ele, param, orb_end, s1, s2, rel_tol, abs_tol, h1, h_min, local_ref_frame, err_flag, track) }] \Newline
 Routine to do Runge Kutta tracking. 
 
 \index[routine]{create_uniform_element_slice}
@@ -3067,7 +3054,7 @@ This routine can be used for detailed tracking through an element.
 
 \index[routine]{track1_boris_partial}
 \label{r:track1.boris.partial}
-\item[track1_boris_partial (start, ele, param, s, ds, end)] \Newline
+\item[track1_boris_partial (start, ele, param, end, err_flag, track, s_start, s_end)] \Newline
 Routine to track 1 step using boris tracking. 
 This routine is used by track1_boris and track1_adaptive_boris. 
 
@@ -3078,7 +3065,7 @@ Routine to track through a drift.
 
 \index[routine]{track_a_bend}
 \label{r:track.a.bend}
-\item[track_a_bend (start, ele, param, end)] \Newline
+\item[track_a_bend (start_orb, ele, param, end_orb)] \Newline
 Particle tracking through a bend element. 
 
 \end{description}
@@ -3264,7 +3251,7 @@ Routine to track a macroparticle through an element.
 
 \index[routine]{track1_mad}
 \label{r:track1.mad}
-\item[track1_mad (start, ele, param, end)] \Newline 
+\item[track1_mad (start_orb, ele, param, end_orb)] \Newline 
      Routine to track through an element using a 2nd order transfer map.
      Note: If map does not exist then one will be created. 
 
@@ -3297,12 +3284,12 @@ Note: Generally you don't call these routines directly.
 
 \index[routine]{symp_lie_bmad}
 \label{r:symp.lie.bmad}
-\item[symp_lie_bmad (ele, param, start, end, calc_mat6, track, offset_ele)] \Newline
+\item[symp_lie_bmad (ele, param, start_orb, end_orb, calc_mat6, track, offset_ele)] \Newline
 Symplectic integration through an element to 0th or 1st order.
 
 \index[routine]{track1_adaptive_boris}
 \label{r:track1.adaptive.boris}
-\item[track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)] \Newline
+\item[track1_adaptive_boris (start, ele, param, end, err_flag, track, s_start, s_end)] \Newline
 Routine to do Boris tracking with adaptive step size control. 
 
 \index[routine]{track1_boris}
@@ -3312,22 +3299,22 @@ Routine to do Boris tracking.
 
 \index[routine]{track1_bmad}
 \label{r:track1.bmad}
-\item[track1_bmad (start, ele, param, end)] \Newline
+\item[track1_bmad (start_orb, ele, param, end_orb)] \Newline
 Particle tracking through a single element BMAD_standard style. 
 
 \index[routine]{track1_custom}
 \label{r:track1.custom}
-\item[track1_custom (start, ele, param, end, track)] \Newline
+\item[track1_custom (start_orb, ele, param, end_orb, err_flag, track)] \Newline
 Dummy routine for custom tracking.
 
 \index[routine]{track1_custom2}
 \label{r:track1.custom2}
-\item[track1_custom2 (start, ele, param, end, track)] \Newline
+\item[track1_custom2 (start, ele, param, end, err_flag, track)] \Newline
 Dummy routine for custom tracking.
 
 \index[routine]{track1_linear}
 \label{r:track1.linear}
-\item[track1_linear (start, ele, param, end)] \Newline
+\item[track1_linear (start_orb, ele, param, end_orb)] \Newline
 Particle tracking through a single element using the transfer matrix.. 
 
 \index[routine]{track1_radiation}
@@ -3337,24 +3324,24 @@ Routine to put in radiation damping and/or fluctuations.
 
 \index[routine]{track1_runge_kutta}
 \label{r:track1.runge.kutta}
-\item[track1_runge_kutta (start, ele, param, end, track)] \Newline
+\item[track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)] \Newline
 Routine to do tracking using Runge-Kutta integration. 
 
 \index[routine]{track1_symp_lie_ptc}
 \label{r:track1.symp.lie.ptc}
-\item[track1_symp_lie_ptc (start, ele, param, end)] \Newline
+\item[track1_symp_lie_ptc (start_orb, ele, param, end_orb)] \Newline
 Particle tracking through a single element using a Hamiltonian and a 
 symplectic integrator. 
 
 \index[routine]{track1_symp_map}
 \label{r:track1.symp.map}
-\item[track1_symp_map (start, ele, param, end)] \Newline
+\item[track1_symp_map (start_orb, ele, param, end_orb)] \Newline
 Particle tracking through a single element using a partially inverted 
 taylor map (In PTC/FPP this is called a genfield). 
 
 \index[routine]{track1_taylor}
 \label{r:track1.taylor}
-\item[track1_taylor (start, ele, param, end)] \Newline
+\item[track1_taylor (start_orb, ele, param, end_orb)] \Newline
 Routine to track through an element using the elements taylor series. 
 
 \end{description}
@@ -3373,7 +3360,7 @@ Routine to calculate the synchrotron tune from the full 6X6 1 turn matrix.
 
 \index[routine]{chrom_calc}
 \label{r:chrom.calc}
-\item[chrom_calc (lat, delta_e, chrom_x, chrom_y, exit_on_error)] \Newline
+\item[chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag)] \Newline
 Routine to calculate the chromaticities by computing the tune 
 change when then energy is changed. 
 
@@ -3395,7 +3382,7 @@ Routine to calculate the synchrotron radiation integrals, the emittance, and ene
 
 \index[routine]{radiation_integrals_custom}
 \label{r:radiation.integrals.custom}
-\item[radiation_integrals_custom (lat, ir, orb)] \Newline
+\item[radiation_integrals_custom (lat, ir, orb, err_flag)] \Newline
 User supplied routine to calculate the synchrotron radiation integrals for
 a custom element.
 
@@ -3411,7 +3398,7 @@ Routine to Q_tune a lat. This routine will set the tunes to within 0.001 radian 
 
 \index[routine]{set_z_tune}
 \label{r:set.z.tune}
-\item[set_z_tune (lat, z_tune)] \Newline
+\item[set_z_tune (lat, z_tune, ok)] \Newline
 Routine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
 
 \index[routine]{transfer_map_calc}
@@ -3452,7 +3439,7 @@ Routine to calculate the Twiss parameters and orbit at a particular longitudinal
 
 \index[routine]{twiss_at_start}
 \label{r:twiss.at.start}
-\item[twiss_at_start (lat, ix_branch, status)] \Newline
+\item[twiss_at_start (lat, status, ix_branch)] \Newline
 Routine to calculate the Twiss parameters at the start of the lat. 
 
 \index[routine]{twiss_from_tracking}
@@ -3463,17 +3450,17 @@ the Twiss parameters and the transfer matrices.
 
 \index[routine]{twiss_propagate1}
 \label{r:twiss.propagate1}
-\item[twiss_propagate1 (ele1, ele2, err)] \Newline
+\item[twiss_propagate1 (ele1, ele2, err_flag)] \Newline
 Routine to propagate the Twiss parameters from the end of ELE1 to the end of ELE2. 
 
 \index[routine]{twiss_propagate_all}
 \label{r:twiss.propagate.all}
-\item[twiss_propagate_all (lat, ix_branch)] \Newline
+\item[twiss_propagate_all (lat, ix_branch, err_flag)] \Newline
 Routine to propagate the Twiss parameters from the start to the end. 
 
 \index[routine]{twiss_propagate_many}
 \label{r:twiss.propagate.many}
-\item[twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch)] \Newline
+\item[twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch, err_flag)] \Newline
 Routine to propagate the Twiss parameters from one element in the lat to another. 
 
 \index[routine]{twiss_to_1_turn_mat}

@@ -491,7 +491,7 @@ case (beambeam$)
 case (wiggler$)
   if (ix_attrib == k1$ .or. ix_attrib == rho$) free = .false. 
 case (lcavity$)
-  if (any(ix_attrib == [delta_e$, p0c_start$, e_tot_start$])) free = .false.
+  if (any(ix_attrib == [voltage$, p0c_start$, e_tot_start$])) free = .false.
 case (elseparator$)
   if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
 end select

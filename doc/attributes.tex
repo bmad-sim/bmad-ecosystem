@@ -36,7 +36,7 @@ in.
                                                                & \vn{bbi_constant}                  \HH
  \vn{Elseparator}             & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{e_tot}      
                                                                & \vn{e_field}, \vn{voltage}         \HH
- \vn{Lcavity}                 & \vn{gradient}, \vn{l}          & \vn{e_loss}, \vn{delta_e}          \HH
+ \vn{Lcavity}                 & \vn{gradient}, \vn{l}          & \vn{e_loss}, \vn{voltage}          \HH
  \vn{Rbend}, \vn{Sbend}       & \vn{g}, \vn{l}                     
                                                                & \vn{rho}, \vn{angle}, \vn{l_chord} \HH
 
@@ -68,7 +68,7 @@ be set by the bookkeeping routine.
 \centering {
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}                  & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \HH
-  \vn{Lcavity}                 & \vn{delta_e}       & \vn{gradient}      \HH
+  \vn{Lcavity}                 & \vn{voltage}       & \vn{gradient}      \HH
   \vn{Rbend}, \vn{Sbend}       & \vn{rho}           & \vn{g}             \HH
   \vn{Rbend}, \vn{Sbend}       & \vn{angle}         & \vn{g}, or \vn{l}  \HH
   \vn{RFcavity}                & \vn{rf_frequency}  & \vn{harmon}        \HH
@@ -195,6 +195,40 @@ the dependent attributes
   p0c_start
 \end{example}
 which are just the reference energy and momentum at the start of the element.
+
+\index{init_ele}
+The \vn{init_ele} element (\sref{s:init.ele}) also has associated
+\vn{e_tot_start} and \vn{p0c_start} attributes as well as \vn{e_tot}
+and \vn{p0c}. Generally, for an \vn{init_ele}, \vn{p0c_start} and
+\vn{p0c} are the same and \vn{e_tot_start} and \vn{e_tot} are the same
+and the values for these attributes are set in the lattice file with
+the appropriate \vn{parameter} (\sref{s:param}) or \vn{beginning}
+(\sref{s:beginning}) statement. The exception occurs when there is an
+\vn{e_gun} element in the lattice (\sref{s:e.gun}). In this case, the
+\vn{p0c_start} and \vn{e_tot_start} attributes of the \vn{init_ele}
+are set to the values as set in the lattice file and \vn{e_tot} is set
+to
+\begin{example}
+  e_tot = e_tot_start + voltage
+\end{example}
+and \vn{p0c} is calculated from \vn{e_tot} and the mass of the
+particle being tracked. For example, if the lattice file contained:
+\begin{example}
+  beginning[p0c] = 0
+  gun: e_gun, voltage = 0.5e6
+  injector: line = (gun, ...)
+\end{example}
+Then the following energy values will be set for the beginning \vn{init_ele} element:
+\begin{example}
+  p0c_start   = 0
+  e_tot_start = mc2
+  e_tot       = mc2 + 0.5e6
+  p0c         = Sqrt(e_tot - mc2^2)
+\end{example}
+where \vn{mc2} is the particle rest mass.  The reason for using this
+convoluted convention is avoid the calculational problems when the
+reference momentum is zero. Specifically, the phase space momentum
+would be infinity in this case (Cf.~\Eqs{ppp}).
 
 For \vn{multipass} elements, the reference energy is set by specifying
 one of \vn{e_tot}, \vn{p0c}, or \vn{n_ref_pass} as described in

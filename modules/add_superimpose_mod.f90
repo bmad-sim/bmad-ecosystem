@@ -60,7 +60,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct)  super_ele_in
 type (ele_struct), pointer, optional ::  super_ele_out
-type (ele_struct), save :: super_saved, slave_saved, drift, null_ele
+type (ele_struct) super_saved, slave_saved, drift, null_ele
 type (ele_struct), pointer :: slave, lord
 type (control_struct)  sup_con(100)
 type (branch_struct), pointer :: branch
@@ -95,12 +95,9 @@ endif
 ! We need a copy of super_ele_in since the actual argument may be in the lat
 ! and split_lat can then overwrite it.
 
-call init_ele (super_saved)
-call init_ele (slave_saved)
-call init_ele (drift)
 drift%key = drift$
 
-super_saved = super_ele_in
+call transfer_ele (super_ele_in, super_saved)
 super_saved%slave_status = free$
 super_saved%n_lord = 0
 super_saved%ic1_lord = 0
@@ -342,7 +339,7 @@ do
   if (ix_slave == branch%n_ele_track + 1) ix_slave = 1
 
   slave => branch%ele(ix_slave)
-  slave_saved = slave
+  call transfer_ele(slave, slave_saved)
   if (slave_saved%value(l$) == 0) cycle
 
   ! Do we need to set up a super lord to control this slave element?
@@ -504,8 +501,12 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: lord, slave, lord2
 integer ix1_lord, ix2_lord
-integer i, j, k, ix, ix_1lord
-character(40) name
+integer i, j, k, ix, n_unique
+
+character(40), allocatable :: slave_names(:)
+character(100) name
+integer, allocatable :: n_slave_names(:), ix_slave_names(:)
+
 logical, optional :: first_time
 
 ! First time through...
@@ -525,27 +526,61 @@ do i = ix1_lord, ix2_lord
   if (lord%lord_status /= super_lord$) cycle
   if (lord%bmad_logic) cycle
   lord%bmad_logic = .true.
-  ix_1lord = 0
-  do j = 1, lord%n_slave
+
+  allocate (slave_names(lord%n_slave), n_slave_names(lord%n_slave), ix_slave_names(lord%n_slave))
+  n_unique = 0
+  n_slave_names = 0
+
+  slave_loop: do j = 1, lord%n_slave
     slave => pointer_to_slave(lord, j)
     if (slave%bmad_logic) cycle
     slave%bmad_logic = .true.
 
-    if (slave%n_lord == 1) then
-      ix_1lord = ix_1lord + 1
-      write (slave%name, '(2a, i0)') trim(lord%name), '#', ix_1lord
-    else
-      name = ''
-      do k = 1, slave%n_lord
-        lord2 => pointer_to_lord(slave, k)
-        if (.not. lord2%bmad_logic) call adjust_super_slave_names (lat, lord2%ix_ele, lord2%ix_ele, .false.)
-        name = trim(name) //  '\' // lord2%name     !'
-      enddo
-      slave%name = name(2:len(slave%name))
-    endif
+    name = ''
+    do k = 1, slave%n_lord
+      lord2 => pointer_to_lord(slave, k)
+      name = trim(name) //  '\' // lord2%name     !'
+    enddo
+    slave%name = name(2:len(slave%name)+1)
+
+    do k = 1, n_unique
+      if (slave%name == slave_names(k)) exit
+    enddo
+
+    n_unique = max (n_unique, k)
+    slave_names(k) = slave%name
+    n_slave_names(k) = n_slave_names(k) + 1
+
+  enddo slave_loop
+
+  !
+
+  ix_slave_names = 0
+  do j = 1, lord%n_slave
+    slave => pointer_to_slave(lord, j)
+
+    do k = 1, n_unique
+      if (slave%name == slave_names(k)) then
+        if (index(slave%name, '\') /= 0 .and. n_slave_names(k) == 1) exit       !'
+        ix = min(len_trim(slave%name), len(slave%name) - 2)
+        ix_slave_names(k) = ix_slave_names(k) + 1
+        write (slave%name, '(2a, i0)') slave%name(1:ix), '#', ix_slave_names(k)
+      endif
+    enddo
+    
+    do k = 1, slave%n_lord
+      lord2 => pointer_to_lord(slave, k)
+      if (.not. lord2%bmad_logic) call adjust_super_slave_names (lat, lord2%ix_ele, lord2%ix_ele, .false.)
+    enddo
 
   enddo
+
+  deallocate (slave_names, n_slave_names, ix_slave_names)
+
 enddo
+
+
+
 
 end subroutine adjust_super_slave_names
 

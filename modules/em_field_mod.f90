@@ -290,6 +290,8 @@ select case (ele%field_calc)
 
   case(rfcavity$, lcavity$)
 
+    if (ele%value(rf_frequency$) == 0) return
+
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$))
     if (ele%key == rfcavity$) phase = pi/2 - phase
 

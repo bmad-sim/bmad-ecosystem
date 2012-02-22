@@ -100,7 +100,7 @@ orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 ! to apply the appropriate hard edge kick.
 
 nullify (hard_ele)
-call calc_next_hard_edge (ele, tracking_method$, s_hard_edge, hard_ele, hard_end)
+call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
 
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken, by convention, to be the reference energy at the exit end.
@@ -142,7 +142,7 @@ do n_step = 1, max_step
     if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
   endif
 
-  if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
+  if ((s+h-s_hard_edge)*(s+h-s1) > 0.0) h = s_hard_edge-s
 
   call rkqs_bmad (ele, param, orb_end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame, err)
   if (err) return
@@ -162,7 +162,10 @@ do n_step = 1, max_step
     if (.not. associated(hard_ele)) exit
     if ((s-s_hard_edge)*(s_hard_edge-s1) < 0.0) exit
     call apply_element_edge_kick (orb_end, hard_ele, param, hard_end)
-    call calc_next_hard_edge (ele, tracking_method$, s_hard_edge, hard_ele, hard_end)
+    call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
+    ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
+    ! So offset s a very tiny amount to avoid this
+    s = s + 1d-12
   enddo
 
   ! Check if we are done.
