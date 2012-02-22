@@ -423,6 +423,7 @@ real(rp) neg_pz
 ! brent finds minima so need to flip the final energy
 
 dphi0_ref = phi
+call init_coord (start_orb, ele = ele_com, particle = param_com%particle)
 call track1 (start_orb, ele_com, param_com, end_orb)
 
 neg_pz = -end_orb%vec(6)
