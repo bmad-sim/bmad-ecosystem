@@ -339,6 +339,8 @@ orb%charge    = 0
 orb%ix_z      = 0
 orb%ix_lost   = not_lost$
 orb%status    = outside$
+orb%s = 0
+orb%t = 0
 
 if (present(ele)) then
   orb%p0c = ele%value(p0c_start$)
@@ -347,6 +349,8 @@ if (present(ele)) then
   else
     call convert_pc_to (ele%value(p0c$) * (1 + orb%vec(6)), particle, beta = orb%beta)
   endif
+  orb%s = ele%s - ele%value(l$)
+  orb%t = ele%ref_time - ele%value(delta_ref_time$) - orb%vec(5) / (orb%beta * c_light)
 endif
 
 end subroutine init_coord
