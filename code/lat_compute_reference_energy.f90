@@ -490,7 +490,7 @@ integer i
 ! 
 
 ele%value = ele%old_value
-ele%old_is_on = ele%bmad_logic
+ele%is_on = ele%bmad_logic
 ele%tracking_method = ele%ix_value
 
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
