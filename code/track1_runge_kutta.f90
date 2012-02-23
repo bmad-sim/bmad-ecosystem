@@ -37,7 +37,7 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp) rel_tol, abs_tol, del_s_step, del_s_min, dref_time
+real(rp) rel_tol, abs_tol, del_s_step, del_s_min, dref_time, beta0
 
 logical err_flag
 
@@ -63,7 +63,8 @@ if (err_flag) return
 ! dref_time is reference time for transversing the element under the assumption, used by odeint_bmad, that 
 ! the reference velocity is constant and equal to the velocity at the final enegy.
 
-dref_time = ele%value(l$) / (end_orb%beta * c_light)
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
+dref_time = ele%value(l$) / (beta0 * c_light)
 end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
 
 end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &
