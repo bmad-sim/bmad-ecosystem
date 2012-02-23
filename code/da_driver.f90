@@ -191,7 +191,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   call file_suffixer (in_file, in_file, '_back.dat', .true.)
   open (unit = 2, file = in_file)
   write (2, *) 'Lattice  = ', ring%lattice
-  write (2, '(a11,i5,3(a10,f7.5))') ' N_turn   =', track_input%n_turn
+  write (2, '(a11,i5,3(a10,f10.5))') ' N_turn   =', track_input%n_turn
   write(2,'(a8,a1,f8.4,a1)') '  Q_x = ',"`",ring%a%tune/twopi,"'"
   write(2,'(a8,a1,f8.4,a1)') '  Q_y = ',"`",ring%b%tune/twopi,"'"
   write(2,'(a8,a1,f8.4,a1)') '  Q_z = ',"`",ring%z%tune/twopi,"'"
@@ -253,7 +253,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
     write(3,'(1x,a6,a1,a6,f8.4,a1)')'Q_x = ',"`",'Q_x = ',ring%a%tune/twopi,"'"
     write(3,'(1x,a6,a1,a6,f8.4,a1)')'Q_y = ',"`",'Q_y = ',ring%b%tune/twopi,"'"
     write(3,'(1x,a6,a1,a6,f8.4,a1)')'Q_z = ',"`",'Q_z = ',ring%z%tune/twopi,"'"
-    write(3,'(1x,a12,a1,a12,es7.2e1,a1)')'Delta_fRF = ',"`",'Delta_fRF = ',delta_fRF,"'"
+    write(3,'(1x,a12,a1,a12,es9.2e1,a1)')'Delta_fRF = ',"`",'Delta_fRF = ',delta_fRF,"'"
     write(2,'(1x,a16,a1,a9,a1)')' particle_type =',"'", particle_type(particle),"'"  
     write (3, *) 'return'
     write (3, *)
