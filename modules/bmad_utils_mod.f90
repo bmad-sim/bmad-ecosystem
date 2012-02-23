@@ -17,6 +17,41 @@ use basic_attribute_mod
 private pointer_to_ele1, pointer_to_ele2
 private pointer_to_branch_given_name, pointer_to_branch_given_ele
 
+
+!+
+! Subroutine reallocate_coord (...)
+!
+! Routine to allocate or reallocate at allocatable coord_struct array.
+! reallocate_coord is an overloaded name for:
+!   reallocate_coord_n (coord, n_coord)
+!   reallocate_coord_lat (coord, lat, ix_branch)
+!
+! Subroutine to allocate an allocatable coord_struct array to at least:
+!     coord(0:n_coord)                            if n_coord arg is used.
+!     coord(0:lat%branch(ix_branch)%n_ele_max)    if lat arg is used.
+!
+! The old coordinates are saved
+! If, at input, coord(:) is not allocated, coord(0)%vec is set to zero.
+! In any case, coord(n)%vec for n > 0 is set to zero.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   coord(:)  -- Coord_struct, allocatable: Allocatable array.
+!   n_coord   -- Integer: Minimum array upper bound wanted.
+!   lat       -- lat_struct: Lattice 
+!   ix_branch -- Integer, optional: Branch to use. Default is 0 (main branch).
+!
+! Output:
+!   coord(:) -- coord_struct: Allocated array.
+!-
+
+interface reallocate_coord
+  module procedure reallocate_coord_n
+  module procedure reallocate_coord_lat
+end interface
+
 !+
 ! Function pointer_to_branch
 !
@@ -57,6 +92,7 @@ end interface
 ! pointer_to_ele is an overloaded name for:
 !     Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
 !     Function pointer_to_ele2 (lat, ele_loc_id) result (ele_ptr)
+!
 ! Also see:
 !   pointer_to_slave
 !   pointer_to_lord
@@ -295,15 +331,18 @@ end subroutine check_controller_controls
 !+
 ! Subroutine init_coord (orb, vec, ele, particle)
 ! 
-! Subroutine to initialize a coord_struct.
+! Subroutine to initialize a coord_struct. 
+! If the ele argument is present, the particle is taken to be at the entrance end of this element.
+! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
+! Additionally, If ele is an init_ele  and vec is zero or not present, orb%vec(6) is shifted
+! so that the particle's energy is maintained at ele%value(p0c_start$).
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
 !   vec(6)   -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
-!   ele      -- ele_struct, optional: If present then particle is taken to be at the entrance end
-!                 of this element.
+!   ele      -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
 !   particle -- Integer, optional: Particle type (electron$, etc.). Must be present if ele is present.
 !
 ! Output:
@@ -343,14 +382,23 @@ orb%s = 0
 orb%t = 0
 
 if (present(ele)) then
-  orb%p0c = ele%value(p0c_start$)
+  if (ele%key == init_ele$) then
+    orb%p0c = ele%value(p0c$)
+    if (all(orb%vec == 0)) orb%vec(6) = (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
+    orb%vec(6) = orb%vec(6)
+  else
+    orb%p0c = ele%value(p0c_start$)
+  endif
+
   if (orb%vec(6) == 0) then
     orb%beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
   else
     call convert_pc_to (ele%value(p0c$) * (1 + orb%vec(6)), particle, beta = orb%beta)
   endif
+
   orb%s = ele%s - ele%value(l$)
   orb%t = ele%ref_time - ele%value(delta_ref_time$) - orb%vec(5) / (orb%beta * c_light)
+
 endif
 
 end subroutine init_coord
@@ -1100,26 +1148,13 @@ end subroutine transfer_lat
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine reallocate_coord (coord, n_coord)
+! Subroutine reallocate_coord_n (coord, n_coord)
 !
-! Subroutine to allocate an allocatable  coord_struct array to at least:
-!     coord(0:n_coord)
-! The old coordinates are saved
-! If, at input, coord(:) is not allocated then coord(0)%vec is set to zero.
-! In any case, coord(n)%vec for n > 0 is set to zero.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   coord(:) -- Coord_struct, allocatable: Allocatable array.
-!   n_coord   -- Integer: Minimum array upper bound wanted.
-!
-! Output:
-!   coord(:) -- coord_struct: Allocated array.
+! Subroutine to allocate an allocatable  coord_struct array.
+! This is an overloaded subroutine. See reallocate_coord.
 !-
 
-subroutine reallocate_coord (coord, n_coord)
+subroutine reallocate_coord_n (coord, n_coord)
 
 type (coord_struct), allocatable :: coord(:)
 type (coord_struct), allocatable :: old(:)
@@ -1159,7 +1194,38 @@ else
   enddo
 endif
 
-end subroutine reallocate_coord
+end subroutine reallocate_coord_n
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine reallocate_coord_lat (coord, lat, ix_branch)
+!
+! Subroutine to allocate an allocatable  coord_struct array.
+! This is an overloaded subroutine. See reallocate_coord.
+!-
+
+subroutine reallocate_coord_lat (coord, lat, ix_branch)
+
+type (coord_struct), allocatable :: coord(:)
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+
+integer, optional :: ix_branch
+
+!
+
+branch => lat%branch(integer_option(0, ix_branch))
+
+if (allocated(coord)) then
+  call reallocate_coord_n (coord, branch%n_ele_max)
+else
+  allocate (coord(0:branch%n_ele_max))
+  call init_coord (coord(0), ele = branch%ele(0), particle = branch%param%particle)
+endif
+
+end subroutine reallocate_coord_lat
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -3497,7 +3563,12 @@ end function tracking_uses_hard_edge_model
 ! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
 ! This routine is used by integration tracking routines like Runge-Kutta.
 ! This routine is called repeatedly as the integration routine tracks through the element.
-! If the element is a super_slave, there are potentially many hard edges. 
+! If the element is a super_slave, there are potentially many hard edges.
+!
+! Rule: When track_ele is a super_slave, the edges of track_ele may be inside the field region.
+! In this case, the hard edge is applied at the edges to make the particle look like it is
+! outside the field. This is done to make the tracking symplectic from entrance edge to exit
+! edge. [Remember that Bmad's coordinates are not canonical inside a field region.]
 !
 ! Input:
 !   track_ele     -- ele_struct: Element being tracked through.
@@ -3564,7 +3635,7 @@ contains
 subroutine does_this_ele_contain_the_next_edge (this_ele)
 
 type (ele_struct), target :: this_ele
-real(rp) s_this_edge, s_off
+real(rp) s_this_edge, s_hard_entrance, s_hard_exit, s_off
 integer this_end
 
 !
@@ -3578,16 +3649,23 @@ else
   s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
 endif
 
+s_hard_entrance = s_off + (this_ele%value(l$) - this_ele%value(l_hard_edge$)) / 2 
+s_hard_exit     = s_off + (this_ele%value(l$) + this_ele%value(l_hard_edge$)) / 2 
+
+if (s_hard_entrance < -bmad_com%significant_length .and. &
+    s_hard_exit     < -bmad_com%significant_length) return
+
+if (s_hard_entrance > track_ele%value(l$) + bmad_com%significant_length .and. &
+    s_hard_exit     > track_ele%value(l$) + bmad_com%significant_length) return
+
 if (this_ele%ixx == 0) then
   this_end = entrance_end$
-  s_this_edge = s_off + (this_ele%value(l$) - this_ele%value(l_hard_edge$)) / 2 
-else   ! this_ele%ixx = 1
-  this_end = entrance_end$
-  s_this_edge = s_off + (this_ele%value(l$) + this_ele%value(l_hard_edge$)) / 2 
-endif
+  s_this_edge = max(0.0_rp, s_hard_entrance)
 
-if (s_this_edge < -bmad_com%significant_length .or. &
-    s_this_edge > track_ele%value(l$) + bmad_com%significant_length) return
+else   ! this_ele%ixx = 1
+  this_end = exit_end$
+  s_this_edge = min(track_ele%value(l$), s_hard_exit)
+endif
 
 if (s_this_edge > s_edge) return
 

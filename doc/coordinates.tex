@@ -395,21 +395,21 @@ replaced by
 \begin{figure}
 \centering 
 \includegraphics{canonical-z.pdf} 
-\caption[Interpreting Canonical $z$ at constant velocity.]
-{Interpreting Canonical $z$ at constant velocity: A) The change in $z$
+\caption[Interpreting phase space $z$ at constant velocity.]
+{Interpreting phase space $z$ at constant velocity: A) The change in $z$
 going through an element of length $L_0$ is $L_0 - L_p$.  B) At
 constant time, $z$ is the longitudinal distance between the reference
 particle and the particle.}
 \label{f:canonical.z}
 \end{figure}
 
-\bmad uses the canonical phase space coordinates 
+\bmad uses the phase space coordinates 
 \Begineq
   \Bf r(s) = (x, p_x, y, p_y, z, p_z)
 \Endeq
 The longitudinal position $s$ is the independent variable instead of
-the time.  $x$ and $y$, are the reference orbit coordinates given in
-\sref{s:ref}.  The canonical momenta $p_x$ and $p_y$ are
+the time. $x$ and $y$, are the reference orbit coordinates given in
+\sref{s:ref}.  The phase space momenta $p_x$ and $p_y$ are
 normalized by the reference (sometimes called the
 design) momentum $P_0$
 \begin{align}
@@ -417,10 +417,10 @@ design) momentum $P_0$
   p_y = &\frac{P_y}{P_0}
   \label{ppp}
 \end{align}
-where $P_x$ and $P_y$ are respectively the $x$ and $y$ canonical momentums.
+where $P_x$ and $P_y$ are respectively the $x$ and $y$ momentums.
 
 \index{lcavity}\index{rfcavity}
-The canonical $z$ coordinate is 
+The phase space $z$ coordinate is 
 \begin{align}
   z(s) &= -\beta(s) \, c \, (t(s) - t_0(s)) \CRNO
     &\equiv - \beta(s) \, c \, \Delta t(s)
@@ -432,7 +432,7 @@ $\beta$ is $v/c$ with $v$ being the particle velocity (and not the
 reference velocity). The reference particle is, by definition,
 ``synchronized'' with elements whose fields are oscillating and therefore the
 actual fields a particle will see when traveling through such an
-element will depend upon the particle's canonical $z$. For example,
+element will depend upon the particle's phase space $z$. For example,
 the energy change of a particle traveling through an \vn{lcavity} or
 \vn{rfcavity} are $z$ dependent (See \sref{s:lcav} and \sref{s:rfcav}).
 
@@ -447,19 +447,19 @@ through an element is
 where, as shown in Figure~\ref{f:canonical.z}A, $L_0$ is the path
 length of the reference particle (which is just the length of the
 element) and $L_p$ is the path length of the particle in traversing
-the element.  Another way of interpreting canonical $z$ is that, at
+the element.  Another way of interpreting phase space $z$ is that, at
 constant $\beta$, and constant time, $z$ is the longitudinal distance
 between the particle and the reference particle as shown in
 Figure~\ref{f:canonical.z}B. with positive $z$ indicating that the
 particle is ahead of the reference particle.
 
-Do not confuse the canonical $z$ with the $z$ that is the particle's
+Do not confuse the phase space $z$ with the $z$ that is the particle's
 longitudinal coordinate in the local reference frame as shown in
 Figure~\ref{f:local.coords}. By construction, this latter $z$ is
 always zero.
 
 Notice that if a particle gets an instantaneous longitudinal kick so
-that $\beta$ is discontinuous then, from \Eq{zbctt}, canonical $z$ is
+that $\beta$ is discontinuous then, from \Eq{zbctt}, phase space $z$ is
 discontinuous even though the particle itself does not move in
 space. In general, from \Eq{zbctt}, The value of $z$ for a particle at
 $s_2$ is related to the value of $z$ for the particle at $s_1$ by
@@ -472,7 +472,7 @@ $\Delta t_2 - \Delta t_1$ can be interpreted as the difference in
 transit time, between the particle and the reference particle, in going
 from $s_1$ to $s_2$.
 
-The longitudinal canonical momentum $p_z$ is given by
+The longitudinal phase space momentum $p_z$ is given by
 \begin{equation}
   p_z = \frac{\Delta P}{P_0} \equiv \frac{P - P_0}{P_0}
 \end{equation}
@@ -500,15 +500,14 @@ identical.
 \vn{Bmad_standard} (\sref{c:methods}) tracking and transfer matrix
 calculations use the small angle (paraxial) approximation where it is
 assumed that $p_x, p_y \ll 1$. With this approximation, the
-relationship, between the canonical momenta and the slopes $x' \equiv
+relationship, between the phase space momenta and the slopes $x' \equiv
 dx/ds$ and $y' \equiv dy/ds$ is
 \begin{align}
-  x' &\approx \frac{p_x - a_x}{1 + p_z} (1 + g x) \\
-  y' &\approx \frac{p_y - a_y}{1 + p_z} (1 + g x) 
+  x' &\approx \frac{p_x}{1 + p_z} (1 + g x) \\
+  y' &\approx \frac{p_y}{1 + p_z} (1 + g x) 
   \label{xpa1p}
 \end{align}
-$\Bf a = q \, A / c \, P_0$ is the normalized vector potential, $g =
-1/\rho$ is the curvature function with $\rho$ being the radius of
+$g = 1/\rho$ is the curvature function with $\rho$ being the radius of
 curvature of the reference orbit and it has been assumed that the
 bending is in the $x$--$z$ plane. 
 
@@ -519,6 +518,12 @@ change in $z$ with position is
 \Endeq
 This shows that in a linac, without any bends, the $z$ of a particle
 always decreases.
+
+Note that \bmad's phase space coordinates are only canonical (that is,
+the particle trajectories can be described by a Hamiltonian) in a
+region where there are no longitudinal magnetic fields. This is
+only of practicle concern when doing partial tracking through lattice
+elements.
 
 \index{phase space coordinates!PTC convention}
 \index{FPP/PTC!phase space convention}

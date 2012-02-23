@@ -107,7 +107,7 @@ here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
-call apply_element_edge_kick (here, loc_ele, param, entrance_end$)
+call apply_hard_edge_kick (here, loc_ele, param, entrance_end$)
 
 call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
 t = -start%vec(5) / (beta * c_light)
@@ -132,7 +132,7 @@ enddo
 
 ! back to lab coords
 
-call apply_element_edge_kick (here, loc_ele, param, exit_end$)
+call apply_hard_edge_kick (here, loc_ele, param, exit_end$)
 call offset_particle (ele, param, here, unset$, set_canonical = .false.)
 
 end = here
@@ -244,7 +244,7 @@ here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
-call apply_element_edge_kick (here, loc_ele, param, entrance_end$)
+call apply_hard_edge_kick (here, loc_ele, param, entrance_end$)
 
 call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
 t = -start%vec(5) / (beta * c_light)
@@ -321,7 +321,7 @@ do n_step = 1, max_step
 
   if ((s-s2)*(s2-s1) >= 0.0) then
     if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
-    call apply_element_edge_kick (here, loc_ele, param, exit_end$)
+    call apply_hard_edge_kick (here, loc_ele, param, exit_end$)
     call offset_particle (ele, param, here, unset$, set_canonical = .false.)
     end = here
     err_flag = .false.

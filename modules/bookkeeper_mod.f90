@@ -2450,6 +2450,7 @@ case (e_gun$)
     if (val(gradient$) /= ele%old_value(gradient$) .or. val(l$) /= ele%old_value(l$)) then
       call set_ele_status_stale (ele, param, ref_energy_group$)
       val(voltage$) = val(gradient$) * val(l$)
+      val(voltage_err$) = val(gradient_err$) * val(l$)
     endif
   endif
 

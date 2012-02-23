@@ -2044,9 +2044,13 @@ Attributes specific to an \vn{solenoid} element are:
   bs_field   = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
+The \vn{bmad_standard} tracking model (\sref{s:tkm}) uses a ``hard
+edge'' model where an impulse kick is applied at the entrance and exit
+ends of the element due to the fringe fields there.
+
 Example:
 \begin{example}
-  cleo_sol: solenoid, l = 2.6, ks = 1.5*beam[energy]Q
+  cleo_sol: solenoid, l = 2.6, ks = 1.5e-9 * parameter[e_tot]
 \end{example}
 
 %-----------------------------------------------------------------

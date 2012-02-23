@@ -27,47 +27,48 @@
 !   c1     -- Coord_struct: Coordinates at the end of element.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine make_mat6_tracking (ele, param, c0, c1)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => make_mat6_tracking
+use bmad_struct
+use bmad_interface, except_dummy => make_mat6_tracking
 
-  implicit none
+implicit none
 
-  type (ele_struct), target :: ele
-  type (coord_struct) :: c0, c1, start1, end1, end2
-  type (lat_param_struct)  param
+type (ele_struct), target :: ele
+type (coord_struct) :: c0, c1, start, end1, end2
+type (lat_param_struct)  param
 
-  real(rp) del_orb(6)
-  integer i
+real(rp) del_orb(6)
+integer i
 
 !
 
-  call track1 (c0, ele, param, c1)
+call track1 (c0, ele, param, c1)
 
-  del_orb = bmad_com%d_orb
+del_orb = bmad_com%d_orb
 
-  if (bmad_com%mat6_track_symmetric) then
-    do i = 1, 6
-      start1 = c0
-      start1%vec(i) = start1%vec(i) + del_orb(i)
-      call track1 (start1, ele, param, end2)
-      start1%vec(i) = start1%vec(i) - 2*del_orb(i)
-      call track1 (start1, ele, param, end1)
-      ele%mat6(1:6, i) = (end2%vec - end1%vec) / (2 * del_orb(i))
-    enddo
-  else
-    do i = 1, 6
-      start1 = c0
-      start1%vec(i) = start1%vec(i) + del_orb(i)
-      call track1 (start1, ele, param, end1)
-      ele%mat6(1:6, i) = (end1%vec - c1%vec) / del_orb(i)
-    enddo
-  endif
+if (bmad_com%mat6_track_symmetric) then
+  do i = 1, 6
+    start = c0
+    start%vec(i) = start%vec(i) + del_orb(i)
+    call track1 (start, ele, param, end2)
 
-    ele%vec0 = c1%vec - matmul(ele%mat6, c0%vec)
+    start = c0
+    start%vec(i) = start%vec(i) - del_orb(i)
+    call track1 (start, ele, param, end1)
+
+    ele%mat6(1:6, i) = (end2%vec - end1%vec) / (2 * del_orb(i))
+  enddo
+else
+  do i = 1, 6
+    start = c0
+    start%vec(i) = start%vec(i) + del_orb(i)
+    call track1 (start, ele, param, end1)
+    ele%mat6(1:6, i) = (end1%vec - c1%vec) / del_orb(i)
+  enddo
+endif
+
+ele%vec0 = c1%vec - matmul(ele%mat6, c0%vec)
 
 end subroutine
 
