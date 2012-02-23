@@ -384,8 +384,8 @@ orb%t = 0
 if (present(ele)) then
   if (ele%key == init_ele$) then
     orb%p0c = ele%value(p0c$)
-    if (all(orb%vec == 0)) orb%vec(6) = (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
-    orb%vec(6) = orb%vec(6)
+    ! Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
+    if (.not. present(vec)) orb%vec(6) = (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
   else
     orb%p0c = ele%value(p0c_start$)
   endif

@@ -33,10 +33,12 @@ type (ele_struct), pointer :: ele, lord, lord2, slave, branch_ele, ele0, gun_ele
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
+real(rp) pc
+
 integer i, j, k, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end
 
-logical did_set, stale, err
+logical did_set, stale, err, is_e_gun
 logical, optional :: err_flag
 
 character(24), parameter :: r_name = 'lat_compute_ref_energy_and_time'
@@ -130,6 +132,7 @@ do ib = 0, ubound(lat%branch, 1)
     exit
   enddo
 
+  !----------------------------
   ! Loop over all elements in the branch
 
   ix_super_end = 0  ! End index of current super_lord_region
@@ -156,6 +159,19 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ix_super_end < i) then
       ele%time_ref_orb_in = 0
+      is_e_gun = (ele%key == e_gun$)
+      if (ele%slave_status == super_slave$) then
+        do k = 1, ele%n_lord
+          lord => pointer_to_lord(ele, k)
+          if (lord%key /= e_gun$) cycle
+          is_e_gun = .true.
+          exit
+        enddo
+      endif
+      if (is_e_gun) then
+        ele%time_ref_orb_in(6) = (branch%ele(0)%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
+      endif
+
     else
       ele%time_ref_orb_in = ele0%time_ref_orb_out
     endif
@@ -374,8 +390,6 @@ case (lcavity$)
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
 
-
-
   endif
 
 case (custom$, hybrid$)
@@ -386,23 +400,19 @@ case (custom$, hybrid$)
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 case (e_gun$)
-  ele%value(E_tot$) = E_tot_start 
-  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
-  if (err) return
-
-  orb_start%status = inside$ !to avoid entrance kick in time tracking
-  call convert_total_energy_to (ele%value(E_tot$) - ele%value(voltage$), param%particle, pc = orb_start%vec(6))
-  orb_start%vec(6) = orb_start%vec(6) / ele%value(p0c$)
+  ele%value(E_tot$) = E_tot_start
+  ele%value(p0c$) = p0c_start
 
   call zero_errors_in_ele (ele)
   call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
+  orb_start%status = inside$ !to avoid entrance kick in time tracking
   call track1 (orb_start, ele, param, orb_end)
   call calc_time_ref_orb_out
   call restore_errors_in_ele (ele)
 
   E_tot = ele%value(E_tot$)
   p0c = ele%value(p0c$)
-  ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - orb_end%vec(5) * E_tot / (p0c * c_light)
+  ele%ref_time = ref_time_start + orb_end%t - orb_start%t
 
 case (crystal$, mirror$, multilayer_mirror$)
   ele%value(ref_wavelength$) = c_light * h_planck / E_tot_start
