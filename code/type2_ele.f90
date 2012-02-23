@@ -74,7 +74,7 @@ type (wall3d_vertex_struct), pointer :: v
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
 integer i, i1, j, n, ix, ix_tot, iv, ic, nl2, l_status, a_type, default_val
-integer nl, nt, n_max, particle, n_term, n_att, attrib_type
+integer nl, nt, n_max, particle, n_term, n_att, attrib_type, n_char
 
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -497,19 +497,26 @@ if (logic_option(present(lattice), type_control)) then
   if (ele%n_slave /= 0) then
     nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
 
+    n_char = 20
+    do i = 1, ele%n_slave
+      slave => pointer_to_slave (ele, i)
+      n_char = max(n_char, len_trim(slave%name))
+    enddo
+
     select case (ele%lord_status)
 
     case (multipass_lord$, super_lord$, girder_lord$)
-      nl=nl+1; write (li(nl), '(t4, a, t40, a, t60, a10)') 'Name', 'Type', 'Lat_index'
+      name = 'Name'
+      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), 'Type                 Lat_index'
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
-        nl=nl+1; write (li(nl), '(t4, a35, t40, a, t60, a10)') &
-                    slave%name, trim(key_name(slave%key)), trim(ele_loc_to_string(slave))
+        nl=nl+1; write (li(nl), '(3x, a, 3x, a20, a10)') &
+                    slave%name(1:n_char), key_name(slave%key), trim(ele_loc_to_string(slave))
       enddo
 
     case default
-      nl=nl+1; write (li(nl), *) &
-          '    Name                         Lat_index  Attribute         Coefficient'
+      name = 'Name'
+      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), 'Lat_index  Attribute         Coefficient'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, i)
         iv = lattice%control(i)%ix_attrib
@@ -519,8 +526,8 @@ if (logic_option(present(lattice), type_control)) then
         else
           a_name = attribute_name(slave, iv)
         endif
-        nl=nl+1; write (li(nl), '(5x, a30, a8, 2x, a18, es11.3, es12.3)') &
-                               slave%name, trim(ele_loc_to_string(slave)), a_name, coef
+        nl=nl+1; write (li(nl), '(3x, a, 3x, a8, 2x, a18, es11.3, es12.3)') &
+                           slave%name(1:n_char), trim(ele_loc_to_string(slave)), a_name, coef
       enddo
     end select
 

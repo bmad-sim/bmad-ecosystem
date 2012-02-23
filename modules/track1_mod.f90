@@ -482,7 +482,7 @@ end subroutine apply_bend_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine apply_element_edge_kick (orb, ele, param, element_end)
+! Subroutine apply_hard_edge_kick (orb, ele, param, element_end)
 !
 ! Subroutine to track through the edge field of an element.
 ! This routine is used with bmad_standard field_calc where the field
@@ -508,7 +508,7 @@ end subroutine apply_bend_edge_kick
 !   orb        -- Coord_struct: Coords after tracking.
 !-
 
-subroutine apply_element_edge_kick (orb, ele, param, element_end)
+subroutine apply_hard_edge_kick (orb, ele, param, element_end)
 
 implicit none
 
@@ -571,6 +571,6 @@ case (lcavity$, rfcavity$)
   endif
 end select
 
-end subroutine apply_element_edge_kick
+end subroutine apply_hard_edge_kick
 
 end module

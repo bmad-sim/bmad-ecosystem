@@ -11,12 +11,8 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'lat_compute_reference_energy' in line and 'if' not in line: 
-      line = line.replace('lat_compute_reference_energy', 'lat_compute_ref_energy_and_time')
-      found = True
-
-    if 'compute_ele_reference_energy' in line and 'if' not in line: 
-      line = line.replace('compute_ele_reference_energy', 'ele_compute_ref_energy_and_time')
+    if 'apply_element_edge_kick' in line:
+      line = line.replace('apply_element_edge_kick', 'apply_hard_edge_kick')
       found = True
 
     out_file.write(line)

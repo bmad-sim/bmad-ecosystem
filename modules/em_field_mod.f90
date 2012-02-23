@@ -172,8 +172,8 @@ type (em_field_map_term_struct), pointer :: term
 real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
-real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, s_eff
-real(rp) k_t, k_zn, kappa2_n, kap_rho
+real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, s_eff, t_eff
+real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
@@ -286,7 +286,7 @@ select case (ele%field_calc)
   !   omega = c * k
   ! Field extends to +/- c_light * freq / 2 from centerline of element.
   ! Note: There is a discontinuity in the field at the edge. Edge focusing due to this 
-  !  discontinuity can be handled in the apply_element_edge_kick routine.
+  !  discontinuity can be handled in the apply_hard_edge_kick routine.
 
   case(rfcavity$, lcavity$)
 
@@ -310,16 +310,20 @@ select case (ele%field_calc)
     omega = twopi * ele%value(rf_frequency$)
     k_wave = omega / c_light
 
-    s_eff = s_rel - (ele%value(l$) - ele%value(l_hard_edge$)) / 2  ! Relative to entrance end of the cavity
+    s_hard_offset = (ele%value(l$) - ele%value(l_hard_edge$)) / 2  ! Relative to entrance end of the cavity
+    s_eff = s_rel - s_hard_offset
     if (s_eff < 0 .or. s_eff > ele%value(l_hard_edge$)) return  ! Zero field outside
 
-    E_r = gradient * r * k_wave * sin(k_wave*s_eff) * cos(omega * t_rel + phase)
+    beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
+    t_eff = t_rel - s_hard_offset / (c_light * beta_start)
+
+    E_r = gradient * r * k_wave * sin(k_wave*s_eff) * cos(omega * t_eff + phase)
 
     field%E(1) = E_r * cos (theta)                                  
     field%E(2) = E_r * sin (theta)
-    field%E(3) = 2 * gradient * cos(k_wave * s_eff) * cos(omega * t_rel + phase)
+    field%E(3) = 2 * gradient * cos(k_wave * s_eff) * cos(omega * t_eff + phase)
     
-    B_phi = -gradient * r * k_wave * cos(k_wave*s_eff) * sin(omega * t_rel + phase) / c_light 
+    B_phi = -gradient * r * k_wave * cos(k_wave*s_eff) * sin(omega * t_eff + phase) / c_light 
     field%B(1) = -B_phi * sin(theta)
     field%B(2) =  B_phi * cos(theta)
 

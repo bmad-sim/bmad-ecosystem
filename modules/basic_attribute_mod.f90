@@ -384,6 +384,7 @@ call init_attrib (photon_branch$, p0c_start$,            'P0C_START')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
+call init_attrib (init_ele$, delta_ref_time$,              reserved_slot$)
 call init_attrib (init_ele$, e_tot_start$,                 'E_TOT_START')
 call init_attrib (init_ele$, p0c_start$,                   'P0C_START')
 call init_attrib (init_ele$, e_tot$,                       'E_TOT')

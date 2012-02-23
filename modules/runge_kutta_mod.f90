@@ -78,7 +78,7 @@ type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 real(rp), parameter :: tiny = 1.0e-30_rp
-real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
+real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, h_save
 real(rp) :: dr_ds(7), r_scal(7), t, s_hard_edge
 
 integer, parameter :: max_step = 10000
@@ -123,37 +123,14 @@ endif
 if (present(track)) then
   s_sav = s - 2.0_rp * track%ds_save
   call init_saved_orbit (track, 1000)
+  if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
 endif
 
 ! now track
 
+err = .false.
+
 do n_step = 1, max_step
-
-  call kick_vector_calc (ele, param, s, t, orb_end, local_ref_frame, dr_ds)
-
-  ! The tolerances are only applied to 
-
-  sqrt_N = sqrt(abs((s2-s1)/h))  ! number of steps we would take with this h
-  rel_tol_eff = rel_tol / sqrt_N
-  abs_tol_eff = abs_tol / sqrt_N
-  r_scal(:) = abs([orb_end%vec(:), t]) + abs(h*dr_ds(:)) + TINY
-
-  if (present(track)) then
-    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
-  endif
-
-  if ((s+h-s_hard_edge)*(s+h-s1) > 0.0) h = s_hard_edge-s
-
-  call rkqs_bmad (ele, param, orb_end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame, err)
-  if (err) return
-
-  if (present(track)) then
-    if (h_did == h) then
-      track%n_ok = track%n_ok + 1
-    else
-      track%n_bad = track%n_bad + 1
-    end if
-  endif
 
   ! Check if we we need to apply a hard edge kick.
   ! For super_slaves there may be multibple hard edges at a single s-position.
@@ -161,7 +138,7 @@ do n_step = 1, max_step
   do
     if (.not. associated(hard_ele)) exit
     if ((s-s_hard_edge)*(s_hard_edge-s1) < 0.0) exit
-    call apply_element_edge_kick (orb_end, hard_ele, param, hard_end)
+    call apply_hard_edge_kick (orb_end, hard_ele, param, hard_end)
     call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
@@ -176,11 +153,46 @@ do n_step = 1, max_step
     return
   end if
 
-  ! Check for step size smaller than minimum.
- 
-  if (abs(h_next) < h_min) exit
+  ! Need to propagate a step. First calc tolerances.
 
-  h = h_next
+  call kick_vector_calc (ele, param, s, t, orb_end, local_ref_frame, dr_ds)
+
+  sqrt_N = sqrt(abs((s2-s1)/h))  ! number of steps we would take with this h
+  rel_tol_eff = rel_tol / sqrt_N
+  abs_tol_eff = abs_tol / sqrt_N
+  r_scal(:) = abs([orb_end%vec(:), t]) + abs(h*dr_ds(:)) + TINY
+
+  h_save = h
+  if ((s+h-s_hard_edge)*(s+h-s1) > 0.0) h = s_hard_edge-s
+
+  call rkqs_bmad (ele, param, orb_end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame, err)
+  if (err) return
+
+  if (present(track)) then
+    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
+    if (h_did == h) then
+      track%n_ok = track%n_ok + 1
+    else
+      track%n_bad = track%n_bad + 1
+    end if
+  endif
+
+  ! Calculate next step size. If there was a hard edge then take into account the step that would have
+  ! been taken if no hard edge was present.
+
+  if (h_save == h) then  ! No hard edge case
+    h = h_next
+  else                   ! Was hard edge case.
+    if (h_next < h) then
+      h = h_next
+    else
+      h = max(h_save, h_next)
+    endif
+  endif
+
+  ! Check for step size smaller than minimum. If so we consider the particle lost
+ 
+  if (abs(h) < h_min) exit
 
 end do
 
@@ -447,7 +459,7 @@ type (coord_struct) orbit
 real(rp), intent(in) :: s_rel, t_rel 
 real(rp), intent(out) :: dr_ds(7)
 real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
-real(rp) vel(3), force(3)
+real(rp) vel(3), E_force(3), B_force(3)
 real(rp) e_tot, dt_ds_ref, p0, beta0
 
 logical :: local_ref_frame
@@ -469,7 +481,8 @@ call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .fa
 
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
 vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - vel(1)**2 - vel(2)**2)]
-force = charge_of(param%particle) * (field%E + cross_product(vel, field%B))
+E_force = charge_of(param%particle) * field%E
+B_force = charge_of(param%particle) * cross_product(vel, field%B)
 
 f_bend = 1
 gx_bend = 0; gy_bend = 0
@@ -485,13 +498,13 @@ if (ele%key == sbend$) then
 endif
 
 dt_ds = f_bend / vel(3)
-dp_ds = dot_product(force, vel) * dt_ds / (orbit%beta * c_light)
+dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
 dbeta_ds = mass_of(param%particle)**2 * dp_ds / e_tot**3
 
 dr_ds(1) = vel(1) * dt_ds
-dr_ds(2) = (force(1) + e_tot * gx_bend / (dt_ds * c_light)**2) * dt_ds / p0
+dr_ds(2) = (E_force(1) + B_force(1) + e_tot * gx_bend / (dt_ds * c_light)**2) * dt_ds / p0
 dr_ds(3) = vel(2) * dt_ds
-dr_ds(4) = (force(2) + e_tot * gy_bend / (dt_ds * c_light)**2) * dt_ds / p0
+dr_ds(4) = (E_force(2) + B_force(2) + e_tot * gy_bend / (dt_ds * c_light)**2) * dt_ds / p0
 dr_ds(5) = orbit%beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / orbit%beta
 dr_ds(6) = dp_ds / p0
 dr_ds(7) = dt_ds

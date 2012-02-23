@@ -29,8 +29,9 @@ use rf_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, lord2, slave, branch_ele, ele0
+type (ele_struct), pointer :: ele, lord, lord2, slave, branch_ele, ele0, gun_ele
 type (branch_struct), pointer :: branch
+type (coord_struct) start_orb, end_orb
 
 integer i, j, k, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end
@@ -100,16 +101,32 @@ do ib = 0, ubound(lat%branch, 1)
 
   endif
 
-  ! Look for an e_gun and if found then the starting
+  ! Look for an e_gun and if found then the starting energy must be computed accordingly.
+  ! Remember that there may be markers before an e_gun in the lattice but nothing else.
 
   do i = 1, branch%n_ele_track
-    ele => branch%ele(i)
-    if (ele%key == marker$) cycle
-    if (ele%key /= e_gun$) exit
-    if (ele%slave_status == super_slave$) ele => pointer_to_lord(ele, 1)
+    gun_ele => branch%ele(i)
+    if (gun_ele%key == marker$) cycle
+    if (gun_ele%key /= e_gun$) exit
+    if (gun_ele%slave_status == super_slave$) gun_ele => pointer_to_lord(gun_ele, 1)
+
     ele0 => branch%ele(0)
-    ele0%value(e_tot$) = ele0%value(e_tot_start$) + ele%value(voltage$) * ele%value(l$)
-    call convert_total_energy_to (ele0%value(e_tot$), branch%param%particle, pc = ele0%value(p0c$))
+
+    if (lat%rf_auto_scale_amp) then
+      ele0%value(e_tot$) = ele0%value(e_tot_start$) + gun_ele%value(voltage$)
+      call convert_total_energy_to (ele0%value(e_tot$), branch%param%particle, pc = ele0%value(p0c$))
+ 
+    else
+      gun_ele%value(e_tot$) = 2 * mass_of(branch%param%particle)   ! Dummy numbers so can do tracking
+      call convert_total_energy_to (gun_ele%value(e_tot$), branch%param%particle, pc = gun_ele%value(p0c$))
+      gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
+      gun_ele%value(p0c_start$) = gun_ele%value(p0c$)
+      call init_coord (start_orb, ele = gun_ele, particle = branch%param%particle)
+      start_orb%vec(6) = (ele0%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
+      call track1 (start_orb, gun_ele, branch%param, end_orb)
+      ele0%value(p0c$) = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
+      call convert_pc_to (ele0%value(p0c$), branch%param%particle, e_tot = ele0%value(e_tot$))
+    endif
     exit
   enddo
 
@@ -352,7 +369,7 @@ case (lcavity$)
       return
     endif
 
-    ele%ref_time = ref_time_start + orb_end%t
+    ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
@@ -423,7 +440,7 @@ case default
     call track1 (orb_start, ele, param, orb_end)
     call calc_time_ref_orb_out
     call restore_errors_in_ele (ele)
-    ele%ref_time = ref_time_start + orb_end%t
+    ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
   endif
 
 end select
@@ -515,7 +532,7 @@ ele%time_ref_orb_out = orb_end%vec
 ele%time_ref_orb_out(2) = ele%time_ref_orb_out(2) / (1 + orb_end%vec(6))
 ele%time_ref_orb_out(4) = ele%time_ref_orb_out(4) / (1 + orb_end%vec(6))
 ele%time_ref_orb_out(5) = ele%time_ref_orb_out(5) + &
-            (orb_end%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
+            (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
 
 end subroutine
 
