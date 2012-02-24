@@ -288,6 +288,7 @@ do i = 1, n_key
   call init_attrib (i, E_tot$,                  'E_TOT')
   call init_attrib (i, p0c$,                    'P0C')
   call init_attrib (i, delta_ref_time$,         'DELTA_REF_TIME')
+  call init_attrib (i, ref_time_start$,         reserved_slot$)
 
   if (i == match$) cycle
   if (i == floor_position$) cycle
@@ -385,6 +386,7 @@ call init_attrib (photon_branch$, p0c_start$,            'P0C_START')
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
 call init_attrib (init_ele$, delta_ref_time$,              reserved_slot$)
+call init_attrib (init_ele$, ref_time_start$,              reserved_slot$)
 call init_attrib (init_ele$, e_tot_start$,                 'E_TOT_START')
 call init_attrib (init_ele$, p0c_start$,                   'P0C_START')
 call init_attrib (init_ele$, e_tot$,                       'E_TOT')
@@ -792,6 +794,7 @@ call init_attrib (custom$, p0c_start$,                     'P0C_START')
 call init_attrib (hybrid$, l$,                             'L')
 call init_attrib (hybrid$, delta_e$,                       'DELTA_E')
 call init_attrib (hybrid$, delta_ref_time$,                'DELTA_REF_TIME')
+call init_attrib (hybrid$, ref_time_start$,                reserved_slot$)
 call init_attrib (hybrid$, e_tot_start$,                   'E_TOT_START')
 call init_attrib (hybrid$, p0c_start$,                     'P0C_START')
 
@@ -803,7 +806,7 @@ call init_attrib (mirror$, tilt_err$,                      'TILT_ERR')
 call init_attrib (mirror$, g_trans$,                       'G_TRANS')
 call init_attrib (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
 
-call init_attrib (multilayer_mirror$, l$,                  reserved_slot$)
+call init_attrib (multilayer_mirror$, l$,                    reserved_slot$)
 call init_attrib (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
 call init_attrib (multilayer_mirror$, graze_angle_err$,      'GRAZE_ANGLE_ERR')
 call init_attrib (multilayer_mirror$, tilt_err$,             'TILT_ERR')

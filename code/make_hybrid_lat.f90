@@ -150,6 +150,7 @@ do j_in = 1, r_in%n_ele_track
       ele_out%mat6_calc_method = static$
       ele_out%value(e_tot_start$) = r_in%ele(j_in-1)%value(e_tot$)
       ref_time0                   = r_in%ele(j_in-1)%ref_time
+      ele_out%value(ref_time_start$) = ref_time0
       ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
       ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0 
 

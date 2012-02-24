@@ -335,8 +335,10 @@ err_flag = .true.
 old_delta_ref_time = ele%value(delta_ref_time$)
 old_p0c = ele%value(p0c$)
 
-ele%value(E_tot_start$) = E_tot_start
-ele%value(p0c_start$) = p0c_start
+ele%value(E_tot_start$)    = E_tot_start
+ele%value(p0c_start$)      = p0c_start
+ele%value(ref_time_start$) = ref_time_start
+
 ele%time_ref_orb_out = ele%time_ref_orb_in  ! This should be true when we don't have to track.
 
 key = ele%key

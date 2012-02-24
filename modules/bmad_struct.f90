@@ -640,7 +640,7 @@ integer, parameter :: tilt_tot$ = 50
 integer, parameter :: n_ref_pass$ = 51, ref_cap_gamma$ = 51
 integer, parameter :: radius$ = 52, kh_y_norm$ = 52
 integer, parameter :: pole_radius$ = 53, follow_diffracted_beam$ = 53 
-! 54 is open
+integer, parameter :: ref_time_start$ = 54
 integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 56, l_x$ = 56
 integer, parameter :: ds_step$ = 57, l_y$ = 57

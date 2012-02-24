@@ -397,7 +397,7 @@ if (present(ele)) then
   endif
 
   orb%s = ele%s - ele%value(l$)
-  if (orb%beta /= 0) orb%t = ele%ref_time - ele%value(delta_ref_time$) - orb%vec(5) / (orb%beta * c_light)
+  if (orb%beta /= 0) orb%t = ele%value(ref_time_start$) - orb%vec(5) / (orb%beta * c_light)
 
 endif
 
@@ -926,6 +926,7 @@ if (ele_taylor%value(integrator_order$) /= ele2%value(integrator_order$)) return
 
 vmask = .true.
 vmask(delta_ref_time$) = .false.
+vmask(ref_time_start$) = .false.
 if (ele_taylor%key == wiggler$ .and. ele_taylor%sub_key == map_type$) then
   vmask( [k1$, rho$, b_max$] ) = .false.  ! These are dependent attributes.
 endif
