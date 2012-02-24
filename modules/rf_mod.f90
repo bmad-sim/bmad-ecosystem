@@ -282,7 +282,7 @@ main_loop: do
 
       if (is_lost) then
         do j = -19, 20
-          print *, j, -neg_pz_calc(phi_max + j / 40.0)
+          print *, j, phi_max+j/40.0, -neg_pz_calc(phi_max + j / 40.0)
         enddo
         call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!')
         err_flag = .true.

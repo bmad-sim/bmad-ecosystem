@@ -121,6 +121,10 @@ write (iu, *) 'parameter[particle] = ', particle_name(lat%param%particle)
 if (.not. lat%param%aperture_limit_on) write (iu, *) 'parameter[aperture_limit_on] = F'
 if (lat%param%n_part /= 0) write (iu, *) 'parameter[n_part] = ', lat%param%n_part
 
+write (iu, '(a, l1)') 'parameter[rf_auto_scale_phase]    = ', lat%rf_auto_scale_phase
+write (iu, '(a, l1)') 'parameter[rf_auto_scale_amp]      = ', lat%rf_auto_scale_amp
+write (iu, '(a, l1)') 'parameter[absolute_time_tracking] = ', lat%absolute_time_tracking
+
 ele => lat%ele(0) 
 
 if (ele%floor%x /= 0) write (iu, *) 'beginning[x_position] = ', trim(str(ele%floor%x))

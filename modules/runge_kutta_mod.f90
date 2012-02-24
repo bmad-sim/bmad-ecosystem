@@ -77,9 +77,9 @@ type (lat_param_struct) param
 type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
-real(rp), parameter :: tiny = 1.0e-30_rp
+real(rp), parameter :: tiny = 1.0e-30_rp, ds_safe = 1e-12_rp
 real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, h_save
-real(rp) :: dr_ds(7), r_scal(7), t, s_hard_edge
+real(rp) :: dr_ds(7), r_scal(7), t, s_hard_edge, direction
 
 integer, parameter :: max_step = 10000
 integer :: n_step, hard_end
@@ -90,7 +90,8 @@ logical local_ref_frame, abs_time, err_flag, err
 
 err_flag = .true.
 s = s1
-h = sign(h1, s2-s1)
+direction = sign(1.0_rp, s2-s1)
+h = h1 * direction
 orb_end = orb_start
 if (s1 == s2) return
 
@@ -137,17 +138,17 @@ do n_step = 1, max_step
 
   do
     if (.not. associated(hard_ele)) exit
-    if ((s-s_hard_edge)*(s_hard_edge-s1) < 0.0) exit
+    if ((s-s_hard_edge)*direction < -ds_safe) exit
     call apply_hard_edge_kick (orb_end, t, hard_ele, ele, param, hard_end)
     call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
-    s = s + 1d-12
+    s = s + ds_safe
   enddo
 
   ! Check if we are done.
 
-  if ((s-s2)*(s2-s1) >= 0.0) then
+  if ((s-s2)*direction > -ds_safe) then
     if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
     err_flag = .false.
     return
@@ -163,7 +164,7 @@ do n_step = 1, max_step
   r_scal(:) = abs([orb_end%vec(:), t]) + abs(h*dr_ds(:)) + TINY
 
   h_save = h
-  if ((s+h-s_hard_edge)*(s+h-s1) > 0.0) h = s_hard_edge-s
+  if ((s+h-s_hard_edge)*direction > 0.0) h = (s_hard_edge - s - ds_safe / 2) * direction
 
   call rkqs_bmad (ele, param, orb_end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame, err)
   if (err) return
@@ -186,7 +187,7 @@ do n_step = 1, max_step
     if (h_next < h) then
       h = h_next
     else
-      h = max(h_save, h_next)
+      h = max(abs(h_save), abs(h_next)) * direction
     endif
   endif
 
