@@ -93,7 +93,7 @@ character(12), parameter :: r_name = 'type2_ele'
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
 logical, optional :: type_floor_coords, type_field, type_wall
-logical type_zero, err_flag, print_it, is_default
+logical type_zero, err_flag, print_it, is_default, has_acceleration
 
 ! init
 
@@ -118,15 +118,15 @@ nl=nl+1; write (li(nl), *) 'Element #', ele%ix_ele
 nl=nl+1; write (li(nl), *) 'Element Name: ', ele%name
 
 if (ele%type /= blank_name$) then
-  nl=nl+1; write (li(nl), *) 'Element Type: "', ele%type, '"'
+  nl=nl+1; write (li(nl), *) 'Element Type: "', trim(ele%type), '"'
 endif
 
 if (ele%alias /= blank_name$) then
-  nl=nl+1; write (li(nl), *) 'Element Alias: "', ele%alias, '"'
+  nl=nl+1; write (li(nl), *) 'Element Alias: "', trim(ele%alias), '"'
 endif
 
 if (associated(ele%descrip)) then
-  nl=nl+1; write (li(nl), *) 'Descrip: ', trim(ele%descrip)
+  nl=nl+1; write (li(nl), *) 'Descrip: "', trim(ele%descrip), '"'
 endif
 
 ! Encode element key and attributes
@@ -161,6 +161,12 @@ if (ele%lord_status == overlay_lord$) then
   nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)') i, name(1:n_att), '=', r_ptr
 
 else
+  ! All elements, except for lcavities em_fields, and init_eles, will normally have the starting
+  ! and ending reference energies the same. The exception is when an element is superimposed
+  ! with an lcavity. Therefore, do not print p0c_start and e_tot_start unless has_acceleration
+  ! is True.
+  has_acceleration = (ele%key == lcavity$) .or. (ele%key == init_ele$) .or. &
+                     (ele%key == em_field$) .or. (ele%value(p0c_start$) /= ele%value(p0c$))
   do i = 1, n_attrib_maxx
     a_name = attribute_name(ele, i)
     if (a_name == null_name$) cycle
@@ -173,16 +179,23 @@ else
                         ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot)
 
     elseif (a_name == 'P0C_START') then
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
+      if (has_acceleration) then
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         'BETA_START      =', ele%value(p0c_start$) / ele%value(e_tot_start$)
+      endif
+
+    elseif (a_name == 'E_TOT_START' .and. has_acceleration) then
+      if (has_acceleration) then
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, a_name(1:n_att), '=', ele%value(i)
+      endif
 
     elseif (a_name == 'P0C') then
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         'BETA            =', ele%value(p0c$) / ele%value(e_tot$)
 
-    elseif (a_name == 'E_TOT' .and. attribute_name(ele, e_tot_start$) == 'E_TOT_START') then
+    elseif (a_name == 'E_TOT' .and. has_acceleration) then
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es15.7)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$)

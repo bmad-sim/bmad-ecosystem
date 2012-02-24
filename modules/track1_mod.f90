@@ -482,7 +482,7 @@ end subroutine apply_bend_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine apply_hard_edge_kick (orb, ele, param, element_end)
+! Subroutine apply_hard_edge_kick (orb, t_rel, hard_ele, track_ele, param, element_end)
 !
 ! Subroutine to track through the edge field of an element.
 ! This routine is used with bmad_standard field_calc where the field
@@ -500,7 +500,10 @@ end subroutine apply_bend_edge_kick
 !
 ! Input:
 !   orb         -- Coord_struct: Starting coords in element reference frame.
-!   ele         -- ele_struct: Element.
+!   t_rel       -- real(rp): Time relative to track_ele entrance edge
+!   hard_ele    -- ele_struct: Element with hard edges.
+!   track_ele   -- ele_struct: Element being tracked through. 
+!                    Is different from hard_ele when there are superpositions.
 !   param       -- lat_param_struct: lattice parameters.
 !   element_end -- Integer: entrance_end$ or exit_end$.
 !
@@ -508,62 +511,57 @@ end subroutine apply_bend_edge_kick
 !   orb        -- Coord_struct: Coords after tracking.
 !-
 
-subroutine apply_hard_edge_kick (orb, ele, param, element_end)
+subroutine apply_hard_edge_kick (orb, t_rel, hard_ele, track_ele, param, element_end)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct) hard_ele, track_ele
 type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
-real(rp) t, beta, f, p0c_start, l_drift, dref_time
+
+real(rp) t, f, l_drift, dref_time, ks, t_rel
 
 integer element_end
 
 ! 
 
-if (ele%field_calc /= bmad_standard$) return
+if (hard_ele%field_calc /= bmad_standard$) return
 
-select case (ele%key)
+select case (hard_ele%key)
 case (sbend$)
-  call apply_bend_edge_kick (orb, ele, element_end, .false.)
+  call apply_bend_edge_kick (orb, hard_ele, element_end, .false.)
+
+! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
+! So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$)
+  ks = hard_ele%value(bs_field$) * c_light / orb%p0c
   if (element_end == entrance_end$) then
-    orb%vec(2) = orb%vec(2) + ele%value(ks$) * orb%vec(3) / 2
-    orb%vec(4) = orb%vec(4) - ele%value(ks$) * orb%vec(1) / 2
+    orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
+    orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
   else
-    orb%vec(2) = orb%vec(2) - ele%value(ks$) * orb%vec(3) / 2
-    orb%vec(4) = orb%vec(4) + ele%value(ks$) * orb%vec(1) / 2
+    orb%vec(2) = orb%vec(2) - ks * orb%vec(3) / 2
+    orb%vec(4) = orb%vec(4) + ks * orb%vec(1) / 2
   endif
 
 case (lcavity$, rfcavity$)
 
-  ! Add on bmad_com%significan_length to make sure we are just inside the cavity.
-  l_drift = (ele%value(l$) - ele%value(l_hard_edge$)) / 2 + bmad_com%significant_length
+  ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
+  l_drift = (hard_ele%value(l$) - hard_ele%value(l_hard_edge$)) / 2 + bmad_com%significant_length
+  f = charge_of(param%particle) / (2 * orb%p0c)
+  t = t_rel + ((hard_ele%ref_time - hard_ele%value(delta_ref_time$)) - &
+               (track_ele%ref_time - track_ele%value(delta_ref_time$)))
 
   if (element_end == entrance_end$) then
-    if (ele%key == lcavity$) then
-      p0c_start = ele%value(p0c_start$)
-    else  
-      p0c_start = ele%value(p0c$)
-    endif
-    call convert_pc_to(p0c_start * (1 + orb%vec(6)), param%particle, beta = beta)
-    t = -orb%vec(5) / (beta * c_light)
-    call em_field_calc (ele, param, l_drift, t, orb, .true., field)
-    f = charge_of(param%particle) / (2 * p0c_start)
+    call em_field_calc (hard_ele, param, l_drift, t, orb, .true., field)
 
     orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
     orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
   else
-    call convert_pc_to(ele%value(p0c$) * (1 + orb%vec(6)), param%particle, beta = beta)
     ! dref_time is the reference time to cross just the cavity. That is, this subtracts off the drift times.
-    dref_time = ele%value(delta_ref_time$) - (l_drift / c_light) * &
-                  (ele%value(e_tot_start$) / ele%value(p0c_start$) + ele%value(e_tot$) / ele%value(p0c$))
-    t = dref_time - orb%vec(5) / (beta * c_light)
-    call em_field_calc (ele, param, ele%value(l$)-l_drift, t, orb, .true., field)
-    f = charge_of(param%particle) / (2 * ele%value(p0c$))
+    call em_field_calc (hard_ele, param, hard_ele%value(l$)-l_drift, t, orb, .true., field)
 
     orb%vec(2) = orb%vec(2) + field%e(3) * orb%vec(1) * f - c_light * field%b(3) * orb%vec(3) * f
     orb%vec(4) = orb%vec(4) + field%e(3) * orb%vec(3) * f + c_light * field%b(3) * orb%vec(1) * f

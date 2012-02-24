@@ -45,7 +45,7 @@ Table~\ref{t:track.methods} gives which methods are available for each
 type of element.
 
 A note on terminology: Adaptive step size control used with the
-\vn{adaptive_boris} and \vn{Runge_Kutta} integrators means that
+\vn{Runge_Kutta} integrator means that
 instead of taking fixed step sizes the integrator chooses the proper
 step size so that the error in the tracking is below the maximum
 allowable error set by \vn{rel_tol} and \vn{abs_tol} tolerances. The
@@ -58,10 +58,6 @@ uniform and you know what a good step size is you can save time by
 using a fixed step size.
 
 \begin{description}
-\index{adaptive_boris!tracking_method}
-\item[\vn{adaptive_boris}]
-Second order Boris integration\cite{b:boris} with adaptive step size control.
-This should be nearly symplectic but slow.
 
 \index{boris!tracking_method}
 \item[\vn{Boris}]
@@ -170,7 +166,6 @@ and \vn{patch} elements are limited to first order.
 \begin{tabular}{lcccccccccccc} \toprule
 \rule{0pt}{80pt} 
 {\em Element Class} &
-\begin{sideways}\vn{Adaptive_Boris}\end{sideways} &
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
 \begin{sideways}\vn{Boris}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
@@ -183,42 +178,42 @@ and \vn{patch} elements are limited to first order.
 \begin{sideways}\vn{Taylor}\end{sideways}
 \begin{sideways}\vn{Time_Runge_Kutta}\end{sideways} &
 \\ \midrule
-%                               AB  BS   B   C   L   M   RK    SLB   SLP   SM     T   TRK
-  \vn{ab_multipole}            &   & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{beambeam}                &   & D &   & X & X &   &     &     &     &     &     &    \\  
-  \vn{bend_sol_quad}           &   &   &   & X &   &   &     &  D  &     &     &     &    \\  
-  \vn{capillary}               &   & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{crystal}                 &   & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{custom}                  & X &   & X & D & X &   &  X  &     &     &     &     & X  \\  
-  \vn{drift}                   & X & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{e_gun}                   & X &   & X & X &   &   &  D  &     &     &     &     & X  \\  
-  \vn{ecollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{elseparator}             & X & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{em_field}                & X &   & X & X &   &   &  D  &     &     &     &     & X  \\  
-  \vn{hkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{instrument}              & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{kicker}                  & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{lcavity}                 & X & D & X & X & X &   &  X  &  X  &  X  &  X  &  *  & X  \\  
-  \vn{marker}                  &   & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{match}                   &   & D &   & X &   &   &     &     &     &     &  *  &    \\ 
-  \vn{monitor}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{mirror}                  &   & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{multipole}               &   & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{multilayer}              &   & D &   & X &   &   &     &     &     &     &     &    \\  
-  \vn{octupole}                & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{patch}                   &   & D &   & X &   &   &     &     &     &     &  *  &    \\ 
-  \vn{quadrupole}              & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{rbend}                   &   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
-  \vn{rcollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{rfcavity}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{sbend}                   &   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
-  \vn{sextupole}               & X & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{solenoid}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{sol_quad}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{taylor}                  &   & D &   & X & X &   &     &     &     &     &     &    \\ 
-  \vn{vkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{wiggler} (map type)      & X & D & X & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{wiggler} (periodic type) &   & D &   & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
+%                               BS   B   C   L   M   RK    SLB   SLP   SM     T   TRK
+  \vn{ab_multipole}            & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{beambeam}                & D &   & X & X &   &     &     &     &     &     &    \\  
+  \vn{bend_sol_quad}           &   &   & X &   &   &     &  D  &     &     &     &    \\  
+  \vn{capillary}               & D &   & X &   &   &     &     &     &     &     &    \\  
+  \vn{crystal}                 & D &   & X &   &   &     &     &     &     &     &    \\  
+  \vn{custom}                  &   & X & D & X &   &  X  &     &     &     &     & X  \\  
+  \vn{drift}                   & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{e_gun}                   &   & X & X &   &   &  D  &     &     &     &     & X  \\  
+  \vn{ecollimator}             & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{elseparator}             & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{em_field}                &   & X & X &   &   &  D  &     &     &     &     & X  \\  
+  \vn{hkicker}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{instrument}              & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{kicker}                  & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{lcavity}                 & D & X & X & X &   &  X  &  X  &  X  &  X  &  *  & X  \\  
+  \vn{marker}                  & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{match}                   & D &   & X &   &   &     &     &     &     &  *  &    \\ 
+  \vn{monitor}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{mirror}                  & D &   & X &   &   &     &     &     &     &     &    \\  
+  \vn{multipole}               & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{multilayer}              & D &   & X &   &   &     &     &     &     &     &    \\  
+  \vn{octupole}                & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{patch}                   & D &   & X &   &   &     &     &     &     &  *  &    \\ 
+  \vn{quadrupole}              & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{rbend}                   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
+  \vn{rcollimator}             & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{rfcavity}                & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{sbend}                   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
+  \vn{sextupole}               & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{solenoid}                & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{sol_quad}                & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{taylor}                  & D &   & X & X &   &     &     &     &     &     &    \\ 
+  \vn{vkicker}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{wiggler} (map type)      & D & X & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{wiggler} (periodic type) & D &   & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
    \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 } 
@@ -439,7 +434,7 @@ calculation. See \vn{s:custom.ele} for more details.
 
 \index{tracking!mat6_calc_method}
 \item[\vn{Tracking}]
-If \vn{tracking_method} is set to \vn{adaptive_boris}, \vn{boris}, or
+If \vn{tracking_method} is set to \vn{boris}, or
 \vn{runge_kutta} then the spin will be tracked along with the phase
 space particle coordinates using the local fields. For all other
 \vn{tracking_method}s the spin will be tracked using the
@@ -544,11 +539,9 @@ Taylor map methods are
 See section \sref{s:taylor.phys} for more information on Taylor maps
 and symplectic integration.  The methods that do not involve Taylor
 maps are
-\index{adaptive_boris!and Taylor maps}
 \index{boris!and Taylor maps}
 \index{runge_kutta!and Taylor maps}
 \begin{example}
-  adaptive_boris
   boris
   runge_kutta
 \end{example}
@@ -606,8 +599,8 @@ independent of the setting of \vn{integrator_order}.
 
 \index{ds_step}
 \index{rel_tol}
-\index{abs_tol}\index{runge_kutta}\index{adaptive_boris}
-\vn{adaptive_boris} and \vn{runge_kutta} use adaptive step
+\index{abs_tol}\index{runge_kutta}
+The \vn{runge_kutta} tracking uses adaptive step
 control independent of \vn{ds_step}. These methods use the \vn{rel_tol} and
 \vn{abs_tol} attributes to try to keep the estimated error of the integration
 such that
@@ -617,8 +610,8 @@ such that
 lowering the error bounds makes for greater accuracy (as long as round-off 
 doesn't hurt) but for slower tracking. 
 
-\index{field_calc}\index{runge_kutta}\index{adaptive_boris}\index{boris}
-The \vn{boris}, \vn{adaptive_boris}, and \vn{runge_kutta} tracking all use
+\index{field_calc}\index{runge_kutta}\index{boris}
+The \vn{boris}, and \vn{runge_kutta} tracking all use
 as input the electric and magnetic fields of an element. How the EM fields
 are calculated is determined by the \vn{field_calc} attribute for an element.
 Possible values for \vn{field_calc} are:
@@ -633,12 +626,9 @@ Possible values for \vn{field_calc} are:
 \bmad software. A program doing \vn{Custom} field calculations will
 need the appropriate custom routine (\sref{s:custom.field}).
 
-\index{boris}\index{adaptive_boris}
-Both \vn{boris} and \vn{adaptive_boris} tracking do not
-assume that a particle is relativistic so these tracking methods can be
-used with non--relativistic particles. The phase space coordinates
-used in these tracking methods are not the usual \bmad coordinates Rather
-what is used is
+\index{boris}
+The phase space coordinates used with \vn{boris} tracking are not the
+standard \bmad coordinates. Rather what is used is
 \begin{example}
     (x, p_x/p_0, y, p_y/p_0, s-ct, dE/(cP_0))
 \end{example}
