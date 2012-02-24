@@ -550,7 +550,7 @@ case (lcavity$, rfcavity$)
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
   l_drift = (hard_ele%value(l$) - hard_ele%value(l_hard_edge$)) / 2 + bmad_com%significant_length
   f = charge_of(param%particle) / (2 * orb%p0c)
-  t = t_rel + hard_ele%value(ref_time_start$) - track_ele%value(ref_time_start$)
+  t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
 
   if (element_end == entrance_end$) then
     call em_field_calc (hard_ele, param, l_drift, t, orb, .true., field)

@@ -228,7 +228,7 @@ if (ele%field_calc == refer_to_lords$) then
       if (ele%key == lcavity$ .or. ele%key == rfcavity$) lord%value(dphi0$) = lord%old_value(dphi0$)
     else
       s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
-      t = t_rel + lord%value(ref_time_start$) - ele%value(ref_time_start$)
+      t = t_rel + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
       call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield)
     endif
     field%E = field%E + field2%E

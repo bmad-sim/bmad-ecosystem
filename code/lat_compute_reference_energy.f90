@@ -554,6 +554,7 @@ ele%time_ref_orb_out(2) = ele%time_ref_orb_out(2) / (1 + orb_end%vec(6))
 ele%time_ref_orb_out(4) = ele%time_ref_orb_out(4) / (1 + orb_end%vec(6))
 ele%time_ref_orb_out(5) = ele%time_ref_orb_out(5) + &
             (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
+ele%time_ref_orb_out(6) = 0  !
 
 end subroutine
 
