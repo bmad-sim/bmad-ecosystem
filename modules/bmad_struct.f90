@@ -761,14 +761,14 @@ integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
 integer, parameter :: runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
 integer, parameter :: hard_edge_model$ = 9, symp_lie_bmad$ = 10, static$ = 11
-integer, parameter :: boris$ = 12, adaptive_boris$ = 13, mad$ = 14
+integer, parameter :: boris$ = 12, mad$ = 14
 integer, parameter :: time_runge_kutta$ = 15, custom2$ = 16
 
 character(16), parameter :: calc_method_name(0:16) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
       'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
       'Taylor          ', 'Hard_Edge_Model ', 'Symp_Lie_Bmad   ', 'Static          ', &
-      'Boris           ', 'Adaptive_Boris  ', 'MAD             ', 'Time_Runge_Kutta', &
+      'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta', &
       'Custom2         ']
 
 ! sbend$ and rbend$ are from key definitions.

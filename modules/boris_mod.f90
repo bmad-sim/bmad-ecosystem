@@ -65,11 +65,12 @@ type (ele_struct), save :: loc_ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
 type (coord_struct) here
+type (ele_struct), pointer :: hard_ele
 
 real(rp), optional, intent(in) :: s_start, s_end
-real(rp) s1, s2, s_sav, ds, s, t, beta
+real(rp) s1, s2, s_sav, ds, s, t, beta, s_hard_edge, s_target
 
-integer i, n_step
+integer i, n_step, hard_end
 
 logical err_flag
 logical, save :: init_needed = .false.
@@ -83,6 +84,8 @@ if (init_needed) then
   init_needed = .false.
 endif
 
+!
+
 if (present(s_start)) then
   s1 = s_start
 else
@@ -94,6 +97,12 @@ if (present(s_end)) then
 else 
   s2 = ele%value(l$)
 endif
+
+! If the element is using a hard edge model then need to stop at the hard edges
+! to apply the appropriate hard edge kick.
+
+nullify (hard_ele)
+call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
 
 call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
 
@@ -107,7 +116,6 @@ here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
-call apply_hard_edge_kick (here, loc_ele, param, entrance_end$)
 
 call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
 t = -start%vec(5) / (beta * c_light)
@@ -116,7 +124,7 @@ t = -start%vec(5) / (beta * c_light)
 
 if (present(track)) then
   s_sav = s1 - 2.0_rp * track%ds_save
-  call init_saved_orbit (track, n_step+1)
+  call init_saved_orbit (track, n_step+10)
   call save_a_step (track, ele, param, .true., s1, here, s_sav)
 endif
 
@@ -124,217 +132,33 @@ endif
 
 s = s1
 
-do i = 1, n_step
+do 
+
+  do
+    if (abs(s - s_hard_edge) > bmad_com%significant_length .or. .not. associated(hard_ele)) exit
+    call apply_hard_edge_kick (end, t, hard_ele, ele, param, hard_end)
+    call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
+  enddo
+
+  s_target = min(s2, s_hard_edge)
+  call compute_even_steps (ele%value(ds_step$), s_target-s, bmad_com%default_ds_step, ds, n_step)
+
   call track1_boris_partial (here, loc_ele, param, s, t, ds, here)
   s = s + ds
+
   if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
+  if (abs(s - s2) < bmad_com%significant_length) exit
+
 enddo
 
 ! back to lab coords
 
-call apply_hard_edge_kick (here, loc_ele, param, exit_end$)
 call offset_particle (ele, param, here, unset$, set_canonical = .false.)
 
 end = here
 err_flag = .false.
 
 end subroutine
-
-!-----------------------------------------------------------
-!-----------------------------------------------------------
-!-----------------------------------------------------------
-!+
-! Subroutine track1_adaptive_boris (start, ele, param, end, err_flag, track, s_start, s_end)
-! 
-! Subroutine to do Boris tracking with adaptive step size control.
-! This routine is adapted from odeint in Numerical Recipes. 
-! See the NR book for more details.
-!
-! For more information on Boris tracking see the boris_mod documentation.
-!
-! Note:
-!   For each step the error in the orbit must be:
-!     error < (|orbit|*rel_tol + abs_tol) / sqrt(N)
-! Where N is the number of steps that would be needed at the 
-! present step size.
-!
-! Modules needed:
-!   use bmad
-!
-! Input: 
-!   start    -- Coord_struct: Starting coords in element frame.
-!   ele      -- Ele_struct: Element to track through.
-!     %tracking_method -- Determines which subroutine to use to calculate the 
-!                         field. Note: BMAD does no supply em_field_custom.
-!                           == custom$ then use em_field_custom
-!                           /= custom$ then use em_field
-!   param    -- lat_param_struct: Beam parameters.
-!     %particle    -- Particle type [positron$, or electron$]
-!   s_start  -- Real, optional: Starting point.
-!   s_end    -- Real, optional: Ending point.
-!
-!   bmad_com -- Bmad common block.
-!     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1e-6.
-!     %abs_tol_adaptive_tracking -- Absolute tolerance. Default is 1e-7.
-!
-! Output:
-!   end        -- Coord_struct: Ending coords.
-!   err_flag   -- Logical: Set True if there is an error. False otherwise.
-!   track      -- Track_struct, optional: Structure holding the track information.
-!-
-
-subroutine track1_adaptive_boris (start, ele, param, end, err_flag, track, s_start, s_end)
-
-implicit none
-
-type (coord_struct), intent(in) :: start
-type (coord_struct), intent(out) :: end
-type (ele_struct) ele
-type (ele_struct), save :: loc_ele
-type (lat_param_struct) param
-type (coord_struct) here, orb1, orb2
-type (track_struct), optional :: track
-
-real(rp), optional, intent(in) :: s_start, s_end
-real(rp) :: ds, s, s_sav, sqrt_N
-real(rp), parameter :: err_5 = 0.0324, safety = 0.9
-real(rp) :: s1, s2, scale_orb, err_max, ds_temp, rel_tol_N, abs_tol_N
-real(rp) :: scale_spin, ds_in, step_min, t, beta, err_max_spin
-
-integer :: n_step, max_step
-
-logical err_flag
-logical, save :: init_needed = .false.
-
-! init
-
-err_flag = .true.
-ds_in = 1d-3
-step_min = 1e-8
-max_step = 10000
-
-if (init_needed) then
-  call init_ele(loc_ele)
-  init_needed = .false.
-endif
-
-if (present(s_start)) then
-  s1 = s_start
-else
-  s1 = 0
-endif
-
-if (present(s_end)) then
-  s2 = s_end
-else 
-  s2 = ele%value(l$)
-endif
-
-s = s1
-ds = sign(ds_in, s2-s1)
-
-! To save time the tracking is done in the local element frame of reference.
-! To do this, an element without any offsets is created.
-
-call transfer_ele (ele, loc_ele)
-call zero_ele_offsets (loc_ele)
-
-here = start
-here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
-
-call lcavity_reference_energy_correction (ele, param, here)
-call offset_particle (ele, param, here, set$, set_canonical = .false.)
-call apply_hard_edge_kick (here, loc_ele, param, entrance_end$)
-
-call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
-t = -start%vec(5) / (beta * c_light)
-
-! if we are saving the trajectory then allocate enough space in the arrays
-
-if (present(track)) then
-  s_sav = s - 2 * track%ds_save
-  call init_saved_orbit (track, int(abs((s2-s1)/track%ds_save))+1)
-endif
-
-! now track
-
-do n_step = 1, max_step
-
-  sqrt_N = sqrt(abs((s2-s1)/ds))  ! N = estimated number of steps
-  rel_tol_N = bmad_com%rel_tol_adaptive_tracking / sqrt_N
-  abs_tol_N = bmad_com%abs_tol_adaptive_tracking / sqrt_N
-
-  ! record a track if we went far enough.
-
-  if (present(track)) then
-    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, .true., s, here, s_sav)
-  endif
-
-  if ((s+ds-s2)*(s+ds-s1) > 0.0) ds = s2-s
-
-  ! Make A step. Keep shrinking the step until the error is within bounds.
-  ! The error in a step is estimated by the difference in making one whole step
-  ! or two half steps.
-
-  do
-
-    call track1_boris_partial (here, loc_ele, param, s, t, ds/2, orb2) 
-    call track1_boris_partial (orb2, loc_ele, param, s+ds/2, t, ds/2, orb2)
-    call track1_boris_partial (here, loc_ele, param, s, t, ds, orb1) 
-    scale_orb = maxval((abs(orb1%vec) + abs(orb2%vec))) / 2
-
-    err_max = maxval(abs(orb2%vec - orb1%vec) / (scale_orb*rel_tol_N + abs_tol_N))
-
-    if (bmad_com%spin_tracking_on) then
-      scale_spin = maxval((abs(orb1%spin) + abs(orb2%spin))) / 2.0
-      err_max_spin = maxval(abs(orb2%spin - orb1%spin) / (scale_spin*rel_tol_N + abs_tol_N))
-      err_max = max(err_max, err_max_spin)
-    endif
-
-    if (err_max <= 1) exit
-
-    ds_temp = safety * ds / sqrt(err_max)
-    ds = sign(max(abs(ds_temp), 0.1_rp*abs(ds)), ds)
-
-    if (abs(ds) < step_min) then
-      if (bmad_status%type_out) print *, &
-          'ERROR IN TRACK1_ADAPTIVE_BORIS: STEPSIZE SMALLER THAN MINIMUM.' 
-      if (bmad_status%exit_on_error) call err_exit
-      return
-    endif
-
-  enddo
-
-  ! now that we have a good step record the present position and 
-  ! calculate a new step size.
-
-  here = orb2
-  s = s + ds
-
-  if (err_max > err_5) then   ! limit increase to no more than a factor of 5
-    ds = safety * ds / sqrt(err_max)
-  else
-    ds = 5 * ds   
-  endif
-
-  ! check if we are done
-
-  if ((s-s2)*(s2-s1) >= 0.0) then
-    if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
-    call apply_hard_edge_kick (here, loc_ele, param, exit_end$)
-    call offset_particle (ele, param, here, unset$, set_canonical = .false.)
-    end = here
-    err_flag = .false.
-    return
-  end if
-
-end do
-
-if (bmad_status%type_out) &
-               print *, 'ERROR IN TRACK1_ADAPTIVE_BORIS: TOO MANY STEPS'
-if (bmad_status%exit_on_error) call err_exit
-
-end subroutine track1_adaptive_boris
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -343,7 +167,7 @@ end subroutine track1_adaptive_boris
 ! Subroutine track1_boris_partial (start, ele, param, s, t, ds, end)
 !
 ! Subroutine to track 1 step using boris tracking.
-! This subroutine is used by track1_boris and track1_adaptive_boris.
+! This subroutine is used by track1_boris.
 !
 ! Note: Coordinates are with respect to the element coordinate frame.
 !

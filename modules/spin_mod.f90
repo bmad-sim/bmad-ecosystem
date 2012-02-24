@@ -473,8 +473,8 @@ logical err
 ! Use bmad_standard if spin tracking = tracking$ but particle tracking is not using an integration method.
 
 method = ele%spin_tracking_method
-if (.not. any(ele%tracking_method == [boris$, adaptive_boris$, runge_kutta$, symp_lie_ptc$]) .and. &
-              method == tracking$) method = bmad_standard$
+if (.not. any(ele%tracking_method == [boris$, runge_kutta$, symp_lie_ptc$]) .and. &
+                                            method == tracking$) method = bmad_standard$
 
 select case (method)
 case (bmad_standard$)

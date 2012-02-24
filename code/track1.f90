@@ -35,7 +35,7 @@ recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
-use boris_mod, only: track1_boris, track1_adaptive_boris
+use boris_mod, only: track1_boris
 use space_charge_mod, except_dummy2 => track1
 use spin_mod, except_dummy3 => track1
 
@@ -134,10 +134,6 @@ case (symp_lie_bmad$)
 
 case (symp_lie_ptc$) 
   call track1_symp_lie_ptc (start2_orb, ele, param, end_orb)
-
-case (adaptive_boris$) 
-  call track1_adaptive_boris (start2_orb, ele, param, end_orb, err, track)
-  if (err) return
 
 case (boris$) 
   call track1_boris (start2_orb, ele, param, end_orb, err, track)

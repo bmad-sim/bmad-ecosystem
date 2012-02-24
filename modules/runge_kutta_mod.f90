@@ -133,12 +133,12 @@ err = .false.
 do n_step = 1, max_step
 
   ! Check if we we need to apply a hard edge kick.
-  ! For super_slaves there may be multibple hard edges at a single s-position.
+  ! For super_slaves there may be multiple hard edges at a single s-position.
 
   do
     if (.not. associated(hard_ele)) exit
     if ((s-s_hard_edge)*(s_hard_edge-s1) < 0.0) exit
-    call apply_hard_edge_kick (orb_end, hard_ele, param, hard_end)
+    call apply_hard_edge_kick (orb_end, t, hard_ele, ele, param, hard_end)
     call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
