@@ -123,7 +123,7 @@ dt_step = ele%value(ds_step$)/c_light
 if (end_orb%p0c > 0 .and. end_orb%status == outside$) then
   !Particle is moving forward towards the entrance
   call offset_particle(ele, param, end_orb, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
-  call apply_hard_edge_kick (end_orb, ele, param, entrance_end$)
+  !call apply_hard_edge_kick (end_orb, ele, param, entrance_end$)
 
 elseif (end_orb%status == inside$) then
   !Interior start, reference momentum is at the end. No edge kicks are given
@@ -134,7 +134,7 @@ elseif (end_orb%p0c < 0 .and. end_orb%status == outside$) then
   !Particle is at the exit surface, should be moving backwards
   call offset_particle(ele, param, end_orb, set$, set_canonical = .false., &
                        ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
-  call apply_hard_edge_kick (end_orb, ele, param, exit_end$)
+  !call apply_hard_edge_kick (end_orb, ele, param, exit_end$)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
@@ -200,7 +200,7 @@ if (end_orb%status == outside$ .and. end_orb%vec(6) < 0) then
 
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
-  call apply_hard_edge_kick (end_orb, ele, param, entrance_end$)
+ ! call apply_hard_edge_kick (end_orb, ele, param, entrance_end$)
   !unset
   call offset_particle(ele, param, end_orb, unset$, set_canonical = .false.)
 
@@ -225,7 +225,7 @@ elseif (end_orb%status == outside$ .and. end_orb%vec(6) .ge. 0) then
   ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
-  call apply_hard_edge_kick (end_orb, ele, param, exit_end$)
+  !call apply_hard_edge_kick (end_orb, ele, param, exit_end$)
   !unset
   call offset_particle(ele, param, end_orb, unset$, set_canonical = .false.)
 
