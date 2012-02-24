@@ -92,12 +92,14 @@ enddo
 
 call set_flags_for_changed_attribute (lat, inserted_ele)
 
-! The reference energy bookkeeping will not be flagged for elements where the reference energy is not changing.
-! do the bookkeeping locally.
+! The reference energy bookkeeping will not be flagged for elements where the 
+! reference energy is not changing. Do the bookkeeping locally.
 
 ele0 => branch%ele(insert_index-1)
 if (ele0%value(e_tot$) /= 0) then
-  call ele_compute_ref_energy_and_time (inserted_ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err_flag)
+  call attribute_bookkeeper (inserted_ele, branch%param)
+  call ele_compute_ref_energy_and_time (inserted_ele, branch%param, &
+                      ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err_flag)
 endif
 
 end subroutine
