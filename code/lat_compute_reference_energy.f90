@@ -29,7 +29,7 @@ use rf_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, lord2, slave, branch_ele, ele0, gun_ele
+type (ele_struct), pointer :: ele, lord, lord2, slave, branch_ele, ele0, gun_ele, ele_init
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
@@ -38,7 +38,7 @@ real(rp) pc
 integer i, j, k, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end
 
-logical did_set, stale, err, is_e_gun
+logical did_set, stale, err, e_gun_associated
 logical, optional :: err_flag
 
 character(24), parameter :: r_name = 'lat_compute_ref_energy_and_time'
@@ -157,20 +157,29 @@ do ib = 0, ubound(lat%branch, 1)
     ! that the "zero" orbit is not truely zero is not taken into account then splitting 
     ! wigglers would result in z-position shifts when tracking particles.
 
-    if (ix_super_end < i) then
-      ele%time_ref_orb_in = 0
-      is_e_gun = (ele%key == e_gun$)
+    ! If not in super_lord region
+
+    if (ix_super_end < i) then   
+      ele%time_ref_orb_in = 0   ! Want zero orbit except if this is an e_gun then must set pz.
+
+      ! Check if this is an e_gun or is the slave of an e_gun.
+
+      e_gun_associated = (ele%key == e_gun$)
       if (ele%slave_status == super_slave$) then
         do k = 1, ele%n_lord
           lord => pointer_to_lord(ele, k)
           if (lord%key /= e_gun$) cycle
-          is_e_gun = .true.
+          e_gun_associated = .true.
           exit
         enddo
       endif
-      if (is_e_gun) then
-        ele%time_ref_orb_in(6) = (branch%ele(0)%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
+
+      if (e_gun_associated) then 
+        ele_init => branch%ele(0)
+        ele%time_ref_orb_in(6) = (ele_init%value(p0c_start$) - ele_init%value(p0c$)) / ele_init%value(p0c$)
       endif
+
+    ! If in super_lord region
 
     else
       ele%time_ref_orb_in = ele0%time_ref_orb_out
