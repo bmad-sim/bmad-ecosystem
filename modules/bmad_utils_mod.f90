@@ -397,7 +397,7 @@ if (present(ele)) then
   endif
 
   orb%s = ele%s - ele%value(l$)
-  orb%t = ele%ref_time - ele%value(delta_ref_time$) - orb%vec(5) / (orb%beta * c_light)
+  if (orb%beta /= 0) orb%t = ele%ref_time - ele%value(delta_ref_time$) - orb%vec(5) / (orb%beta * c_light)
 
 endif
 
