@@ -840,6 +840,7 @@ slave%value(p0c_start$)      = slave_val(p0c_start$)
 slave%value(e_tot$)          = slave_val(e_tot$)
 slave%value(p0c$)            = slave_val(p0c$)
 slave%value(delta_ref_time$) = slave_val(delta_ref_time$)
+slave%value(ref_time_start$) = slave_val(ref_time_start$)
 slave%value(n_ref_pass$)     = 0
 if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
 
@@ -1245,6 +1246,7 @@ value(p0c_start$)      = slave%value(p0c_start$)
 value(E_tot$)          = slave%value(E_tot$)
 value(p0c$)            = slave%value(p0c$)
 value(delta_ref_time$) = slave%value(delta_ref_time$)
+value(ref_time_start$) = slave%value(ref_time_start$)
 
 s_slave = slave%s - value(l$)/2  ! center of slave
 slave%is_on = .false.
@@ -1790,7 +1792,7 @@ sliced_ele%field_calc = refer_to_lords$
 if (offset == 0) then
   p0c_start      = ele_in%value(p0c_start$)
   e_tot_start    = ele_in%value(e_tot_start$)
-  ref_time_start = ele_in%ref_time - ele_in%value(delta_ref_time$)
+  ref_time_start = ele_in%value(ref_time_start$)
   sliced_ele%time_ref_orb_in = ele_in%time_ref_orb_in
 elseif (present(old_slice)) then
   p0c_start      = old_slice%value(p0c$)
@@ -1879,6 +1881,7 @@ endif
 value = lord%value
 value(l$)              = slave%value(l$)                ! do not change slave length, etc.
 value(delta_ref_time$) = slave%value(delta_ref_time$)
+value(ref_time_start$) = slave%value(ref_time_start$)
 value(E_tot_start$)    = slave%value(E_tot_start$)
 value(p0c_start$)      = slave%value(p0c_start$)
 value(E_tot$)          = slave%value(E_tot$)
