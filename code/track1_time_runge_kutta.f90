@@ -120,7 +120,7 @@ dt_step = ele%value(ds_step$)/c_light
 !------
 !Convert particle to element coordinates
 
-if (end_orb%p0c > 0 .and.end_orb%status == outside$) then
+if (end_orb%p0c > 0 .and. end_orb%status == outside$) then
   !Particle is moving forward towards the entrance
   call offset_particle(ele, param, end_orb, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
   call apply_hard_edge_kick (end_orb, ele, param, entrance_end$)
@@ -153,7 +153,7 @@ if (associated(ele%lat)) then
   if (ele%lat%absolute_time_tracking) abs_time = .true.
 endif
 
-if (abs_time) then
+if (abs_time .or. ele%key == e_gun$) then
   t_rel = start_orb%t - (ele%ref_time - ele%value(delta_ref_time$))
 else
   t_rel = -start_orb%vec(5) / (start_orb%beta * c_light)    ! Time
