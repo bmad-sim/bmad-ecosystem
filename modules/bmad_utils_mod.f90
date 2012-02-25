@@ -990,7 +990,7 @@ end subroutine clear_lat_1turn_mats
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine transfer_ele (ele1, ele2)
+! Subroutine transfer_ele (ele1, ele2, nullify_pointers)
 !
 ! Subroutine to set ele2 = ele1. 
 ! This is a plain transfer of information not using the overloaded equal.
@@ -1002,20 +1002,25 @@ end subroutine clear_lat_1turn_mats
 !   use bmad
 !
 ! Input:
-!   ele1 -- Ele_struct:
+!   ele1             -- Ele_struct:
+!   nullify_pointers -- Logical, optional: If present and True then nullify the pointers in ele2.
+!                         This gives a "bare bones" copy where one does not have to worry about 
+!                         deallocating allocated structure components later.
 !
 ! Output:
 !   ele2 -- Ele_struct:
 !-
 
-subroutine transfer_ele (ele1, ele2)
+subroutine transfer_ele (ele1, ele2, nullify_pointers)
 
 type (ele_struct) :: ele1
 type (ele_struct) :: ele2
+logical, optional :: nullify_pointers
 
 !
 
 ele2 = ele1
+if (logic_option (.false., nullify_pointers)) call deallocate_ele_pointers (ele2, .true.)
 
 end subroutine transfer_ele
 

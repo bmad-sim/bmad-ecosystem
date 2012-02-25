@@ -1,5 +1,5 @@
 !+
-! Subroutine ele_at_s (lat, s, ix_ele, ix_branch, err_flag, s_eff)
+! Subroutine element_at_s (lat, s, ix_ele, ix_branch, err_flag, s_eff)
 !
 ! Subroutine to return the index of the element at position s.
 ! That is, ix_ele is choisen such that:
@@ -24,9 +24,9 @@
 !   s_eff     -- Real(rp), optional: Effective s. Equal to s with a linear lattice.
 !-
 
-subroutine ele_at_s (lat, s, ix_ele, ix_branch, err_flag, s_eff)
+subroutine element_at_s (lat, s, ix_ele, ix_branch, err_flag, s_eff)
 
-use bmad, except_dummy => ele_at_s
+use bmad, except_dummy => element_at_s
 
 implicit none
 
@@ -39,7 +39,7 @@ real(rp), optional :: s_eff
 integer ix_ele, n1, n2, n3
 integer, optional :: ix_branch
 
-character(16), parameter :: r_name = 'ele_at_s'
+character(16), parameter :: r_name = 'element_at_s'
 logical, optional :: err_flag
 logical err
 

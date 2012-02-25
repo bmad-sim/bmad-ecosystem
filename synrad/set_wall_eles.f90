@@ -23,7 +23,7 @@ integer i, is, ix_ele
 do is = 1, wall%n_seg_tot
 
   ! find the element at the s midpoint of the wall segment
-  call ele_at_s (lat, wall%seg(is)%s_mid, ix_ele)
+  call element_at_s (lat, wall%seg(is)%s_mid, ix_ele)
   wall%seg(is)%ix_ele = ix_ele
 
   ! Get the betas at the s midpoint

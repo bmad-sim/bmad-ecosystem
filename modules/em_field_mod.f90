@@ -581,6 +581,13 @@ case(map$)
     ! Notice that it is mode%dphi0_ref that is used below. Not ele%value(dphi0_ref$).
 
     freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+    if (freq == 0) then
+      call out_io (s_fatal$, r_name, 'Frequency is zero for map in cavity: ' // ele%name)
+      if (ele%em_field%mode(1)%harmonic == 0) &
+            call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
+      if (bmad_status%exit_on_error) call err_exit
+      return  
+    endif
     t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / freq
     if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
 
@@ -696,6 +703,13 @@ case(grid$)
   case(rfcavity$, lcavity$) 
     ! Notice that it is mode%dphi0_ref that is used below. Not ele%value(dphi0_ref$).
     freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+    if (freq == 0) then
+      call out_io (s_fatal$, r_name, 'Frequency is zero for grid in cavity: ' // ele%name)
+      if (ele%em_field%mode(1)%harmonic == 0) &
+            call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
+      if (bmad_status%exit_on_error) call err_exit
+      return  
+    endif
     t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / freq
     if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
 

@@ -68,7 +68,7 @@ logical, optional :: err
 if (l_end == l_start .and. .not. (l_start == 0 .and. track_entrance)) then
 
   if (present(ele_end)) then
-    ele_end = ele_start
+    call transfer_ele(ele_start, ele_end, .true.)
     call mat_make_unit(ele_end%mat6)
     ele_end%vec0 = 0
   endif
@@ -106,7 +106,7 @@ if (present(ele_end)) then
     call make_mat6 (runt, param)
   endif
   call twiss_propagate1 (ele_start, runt, err_flag)
-  ele_end = runt
+  call transfer_ele(runt, ele_end, .true.)
   if (err_flag) return
 endif
 

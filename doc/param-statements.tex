@@ -12,7 +12,7 @@ the lattice as a whole and not simply associated with a single element.
 
 \index{lattice}\index{lattice_type}
 \index{taylor_order}\index{e_tot}
-\index{p0c}\index{ran_seed}\index{absolute_time_tracking]
+\index{p0c}\index{ran_seed}\index{absolute_time_tracking}
 \index{n_part}\index{no_end_marker}
 \index{rf_auto_scale_phase}\index{rf_auto_scale_amp}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
@@ -141,11 +141,13 @@ toggle the automatic scaling of the RF phase and/or amplitude for
 
 \index{absolute_time_tracking}\index{lcavity}\index{rfcavity}
 The \vn{absolute_time_tracking} switch sets whether the clock for the
-\vn{lcavity and \vn{rfcavity} elements
+\vn{lcavity} and \vn{rfcavity} elements is tied to the reference
+particle or to uses the absolute time (\sref{s:rf.time}). A value of
+\vn{False} (the default) mandates relative time and a value of
+\vn{True} mandates absolute time.
 
 %-----------------------------------------------------------------------------
-\section{Beam_start Statement}
-\label{s:beam.start}
+\section{Beam_start Statement} \label{s:beam.start}
 \index{beam_start statement|hyperbf}
 
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
