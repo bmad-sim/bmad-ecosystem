@@ -42,7 +42,7 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
-integer iuni, j, k, ix, n_max, iu, it, id, ie
+integer iuni, j, ib, ix, n_max, iu, it, id, ie
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
@@ -82,39 +82,39 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Loop over all branches
 
-  do k = 0, ubound(tao_lat%lat%branch, 1)
+  do ib = 0, ubound(tao_lat%lat%branch, 1)
  
     do j = 1, 6
-      tao_lat%lat_branch(k)%orbit%vec(j) = 0.0
+      tao_lat%lat_branch(ib)%orbit%vec(j) = 0.0
     enddo
 
     track_type = s%global%track_type
-    if (k > 0 .and. tao_lat%lat%branch(k)%param%particle == photon$) track_type = 'single'
+    if (ib > 0 .and. tao_lat%lat%branch(ib)%param%particle == photon$) track_type = 'single'
 
     select case (track_type)
     case ('single') 
-      call tao_inject_particle (u, tao_lat, k)
-      call tao_single_track (u, tao_lat, this_calc_ok, k)
-      do ie = 0, tao_lat%lat%branch(k)%n_ele_track
-        call tao_load_data_array (u, ie, k, model$)
+      call tao_inject_particle (u, tao_lat, ib)
+      call tao_single_track (u, tao_lat, this_calc_ok, ib)
+      do ie = 0, tao_lat%lat%branch(ib)%n_ele_track
+        call tao_load_data_array (u, ie, ib, model$)
       enddo
       if (.not. this_calc_ok) exit
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
-      call tao_inject_particle (u, tao_lat, k)
-      call tao_single_track (u, tao_lat, this_calc_ok, k)
-      call tao_inject_beam (u, tao_lat, k, this_calc_ok)
+      call tao_inject_particle (u, tao_lat, ib)
+      call tao_single_track (u, tao_lat, this_calc_ok, ib)
+      call tao_inject_beam (u, tao_lat, ib, this_calc_ok)
       if (.not. this_calc_ok) then
-        if (k == 0) then
+        if (ib == 0) then
           call out_io (s_error$, r_name, 'CANNOT INJECT BEAM. WILL NOT TRACK BEAM...')
         else
           call out_io (s_error$, r_name, &
-              'CANNOT INJECT BEAM. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [k])
+              'CANNOT INJECT BEAM. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [ib])
         endif      
-        tao_lat%lat_branch(k)%bunch_params(:)%n_particle_lost_in_ele = 0
-        tao_lat%lat_branch(k)%bunch_params(:)%n_particle_live = 0
+        tao_lat%lat_branch(ib)%bunch_params(:)%n_particle_lost_in_ele = 0
+        tao_lat%lat_branch(ib)%bunch_params(:)%n_particle_live = 0
         exit
       endif
-      call tao_beam_track (u, tao_lat, this_calc_ok, k)
+      call tao_beam_track (u, tao_lat, this_calc_ok, ib)
       if (.not. this_calc_ok) exit
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // track_type)
@@ -123,9 +123,13 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo
 
-  if (u%do_rad_int_calc_data .or. u%do_rad_int_calc_plotting) then
-    call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(0)%orbit, tao_lat%modes, &
-                                                             tao_lat%ix_rad_int_cache, 0, tao_lat%rad_int)
+  ! Radiation integrals. At some point should extend this to non-main branches.
+
+  if (ib == 0) then
+    if (u%do_rad_int_calc_data .or. u%do_rad_int_calc_plotting) then
+      call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(ib)%orbit, tao_lat%modes, &
+                                                             tao_lat%ix_rad_int_cache, ib, tao_lat%rad_int)
+    endif
   endif
 
   if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom)
@@ -136,37 +140,39 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   ! do multi-turn tracking if needed. This is always the main lattice. 
 
-  write (name, '(i0, a)') iuni, '@multi_turn_orbit'
-  call tao_find_data (err, name, d2_dat, print_err = .false.)
+  if (ib == 0) then
+    write (name, '(i0, a)') iuni, '@multi_turn_orbit'
+    call tao_find_data (err, name, d2_dat, print_err = .false.)
 
-  if (associated(d2_dat)) then
-    n_max = 0
-    do id = 1, size(d2_dat%d1)
-      n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
-    enddo
-    call reallocate_coord (orb, tao_lat%lat%n_ele_max)
-    orb(0) = tao_lat%lat%beam_start
-    do it = 0, n_max
+    if (associated(d2_dat)) then
+      n_max = 0
       do id = 1, size(d2_dat%d1)
-        d1_dat => d2_dat%d1(id)
-        if (it >= lbound(d1_dat%d, 1) .and. it <= ubound(d1_dat%d, 1)) then
-          select case (d1_dat%name)
-          case ('x');   d1_dat%d(it)%model_value = orb(0)%vec(1)
-          case ('px');  d1_dat%d(it)%model_value = orb(0)%vec(2)
-          case ('y');   d1_dat%d(it)%model_value = orb(0)%vec(3)
-          case ('py');  d1_dat%d(it)%model_value = orb(0)%vec(4)
-          case ('z');   d1_dat%d(it)%model_value = orb(0)%vec(5)
-          case ('pz');  d1_dat%d(it)%model_value = orb(0)%vec(6)
-          case default
-            call out_io (s_fatal$, r_name, &
-                        'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
-            call err_exit
-          end select
-        endif
+        n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
       enddo
-      call track_all (tao_lat%lat, orb)
-      orb(0) = orb(tao_lat%lat%n_ele_track)
-    enddo
+      call reallocate_coord (orb, tao_lat%lat%n_ele_max)
+      orb(0) = tao_lat%lat%beam_start
+      do it = 0, n_max
+        do id = 1, size(d2_dat%d1)
+          d1_dat => d2_dat%d1(id)
+          if (it >= lbound(d1_dat%d, 1) .and. it <= ubound(d1_dat%d, 1)) then
+            select case (d1_dat%name)
+            case ('x');   d1_dat%d(it)%model_value = orb(0)%vec(1)
+            case ('px');  d1_dat%d(it)%model_value = orb(0)%vec(2)
+            case ('y');   d1_dat%d(it)%model_value = orb(0)%vec(3)
+            case ('py');  d1_dat%d(it)%model_value = orb(0)%vec(4)
+            case ('z');   d1_dat%d(it)%model_value = orb(0)%vec(5)
+            case ('pz');  d1_dat%d(it)%model_value = orb(0)%vec(6)
+            case default
+              call out_io (s_fatal$, r_name, &
+                          'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
+              call err_exit
+            end select
+          endif
+        enddo
+        call track_all (tao_lat%lat, orb)
+        orb(0) = orb(tao_lat%lat%n_ele_track)
+      enddo
+    endif
   endif
 
   ! If calc is on common model then transfer data to base of all other universes

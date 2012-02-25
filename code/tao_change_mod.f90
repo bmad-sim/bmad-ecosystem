@@ -173,6 +173,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (real_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
+type (tao_d2_data_struct), pointer :: d2_dat
 
 real(rp), allocatable, save :: change_number(:), old_value(:)
 real(rp) new_merit, old_merit, new_value, delta, max_val
@@ -275,10 +276,24 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     delta = m_ptr(i)%r - old_value(i)
 
+    ! Beam_start. Cannot set in a circular lattice except when doing multi_turn_orbit data taking.
+
     if (e_name == 'BEAM_START') then
+
+      if (u%model%lat%param%lattice_type == circular_lattice$) then
+        write (name, '(i0, a)') iu, '@multi_turn_orbit'
+        call tao_find_data (err, name, d2_dat, print_err = .false.)
+        if (.not. associated(d2_dat)) then
+          call out_io (s_error$, r_name, 'CANNOT SET BEAM_START IN A CIRCULAR LATTICE!')
+          return
+        endif
+      endif
+
       u%beam_info%beam_init%center = u%model%lat%beam_start%vec
       u%beam_info%init_beam0 = .true.
     endif
+
+    !
 
     if (size(eles) > 0) then
       call set_flags_for_changed_attribute (u%model%lat, eles(i)%ele, m_ptr(i)%r)

@@ -1255,7 +1255,7 @@ do ii = 1, size(curve%x_line)
 
   ! Check if in a hybrid or taylor element within which interpolation cannot be done.
 
-  call ele_at_s (lat, s_now, ix_ele, ix_branch, err)
+  call element_at_s (lat, s_now, ix_ele, ix_branch, err)
   if (branch%ele(ix_ele)%key == hybrid$ .or. branch%ele(ix_ele)%key == taylor$ .or. err) then
     good(ii) = .false.
     cycle
@@ -1289,7 +1289,7 @@ do ii = 1, size(curve%x_line)
       return
     endif
 
-    call ele_at_s (lat, s_now, ix_ele)
+    call element_at_s (lat, s_now, ix_ele)
     ele = branch%ele(ix_ele)
     here = bunch_params%centroid
 

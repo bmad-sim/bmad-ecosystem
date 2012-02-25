@@ -423,6 +423,12 @@ case ('beam')
     n_live = bunch_p%n_particle_live
     n_tot = bunch_p%n_particle_tot
 
+    if (n_tot == 0) then
+      nl=nl+1; lines(nl) = 'Beam has no particles!'
+      result_id = 'beam:no_particles'
+      return
+    endif
+
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
     nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
     nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live

@@ -526,7 +526,7 @@ case ('plot_visible')
     region => s%plot_region(i)
     if (region%name == '') cycle
     if (.not. region%visible) cycle
-    nl=nl+1; write (lines(nl), '(a)') region%plot%name, ';'
+    nl=nl+1; write (lines(nl), '(2a)') trim(region%plot%name), ';'
   enddo
 
 !----------------------------------------------------------------------
