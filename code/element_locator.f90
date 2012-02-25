@@ -46,7 +46,7 @@ call str_upcase (e_name, ele_name)
 if (e_name(1:2) == 'S:') then
   read (e_name(3:), *, iostat = ios) s
   if (ios /= 0) return
-  call ele_at_s (lat, s, ix_ele)
+  call element_at_s (lat, s, ix_ele)
   ! See if previous element is closer
   if (ix_ele > 0) then
     if (s - lat%ele(ix_ele-1)%s < lat%ele(ix_ele)%s - s) ix_ele = ix_ele - 1

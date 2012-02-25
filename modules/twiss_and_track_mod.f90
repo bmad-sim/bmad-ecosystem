@@ -232,7 +232,7 @@ end subroutine twiss_and_track_nullify_saved_data
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s, ix_branch, err, use_saved_data)
+! Subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_saved_data)
 ! 
 ! Subroutine to return the twiss parameters and particle orbit at a 
 ! given longitudinal position.
@@ -265,7 +265,7 @@ end subroutine twiss_and_track_nullify_saved_data
 !             -- Logical, optional: If present and True then use the result from the previous 
 !                  calculation as a starting point for the present calculation.
 !                  This can speed things up when the given s-position is in the middle 
-!                  of a long complicated element and the tracking (EG: Runge Kutta) is slow. 
+!                  of a long complicated element and the tracking (EG: Runge-Kutta) is slow. 
 !
 ! Output:
 !   ele      -- Ele_struct, optional: Element structure holding the Twiss parameters.
@@ -278,12 +278,12 @@ end subroutine twiss_and_track_nullify_saved_data
 !                 calculation, False otherwise.
 !-
 
-subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s, ix_branch, err, use_saved_data)
+subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_saved_data)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), optional :: ele
+type (ele_struct), optional :: ele_at_s
 type (coord_struct), optional :: orb(0:)
 type (coord_struct), optional :: orb_at_s
 type (branch_struct), pointer :: branch
@@ -311,7 +311,7 @@ if (init_needed) then
   init_needed = .false.
 endif
 
-saved_flag = logic_option(.false., use_saved_data)
+saved_flag = logic_option(.false., use_saved_data) .and. .not. bmad_com%be_thread_safe
 if (.not. saved_flag) then
   ele_is_saved = .false.
   orb_is_saved = .false.
@@ -324,14 +324,14 @@ branch => lat%branch(i_branch)
 
 !
 
-call ele_at_s (lat, s, i, ix_branch, err_flag, s_use)
+call element_at_s (lat, s, i, ix_branch, err_flag, s_use)
 if (err_flag) then
   if (present(err)) err = .true. 
   return
 endif
 
 if (abs(s_use - branch%ele(i)%s) < bmad_com%significant_length) then
-  if (present(ele)) ele = branch%ele(i)
+  if (present(ele_at_s)) call transfer_ele(branch%ele(i), ele_at_s, .true.)
   if (present(orb_at_s)) orb_at_s = orb(i)
   if (present(err)) err = .false.
   return
@@ -344,23 +344,23 @@ s0 = branch%ele(i-1)%s
 if (saved_flag .and. s_saved < s_use .and. s_saved > s0) then
   if (present(orb)) then
     call twiss_and_track_intra_ele (branch%ele(i), branch%param, s_saved-s0, s_use-s0, &
-                              .true., .true., orb_saved, orb_at_s, ele_saved, ele, err)
+                              .true., .true., orb_saved, orb_at_s, ele_saved, ele_at_s, err)
   else
     call twiss_and_track_intra_ele (branch%ele(i), branch%param, s_saved-s0, s_use-s0, &
-                              .true., .true., ele_start = ele_saved, ele_end = ele, err = err)
+                              .true., .true., ele_start = ele_saved, ele_end = ele_at_s, err = err)
   endif
 
 else
   if (present(orb)) then
     call twiss_and_track_intra_ele (branch%ele(i), branch%param, 0.0_rp, s_use-s0, &
-                              .true., .true., orb(i-1), orb_at_s, branch%ele(i-1), ele, err)
+                              .true., .true., orb(i-1), orb_at_s, branch%ele(i-1), ele_at_s, err)
   else
     call twiss_and_track_intra_ele (branch%ele(i), branch%param, 0.0_rp, s_use-s0, &
-                              .true., .true., ele_start = branch%ele(i-1), ele_end = ele, err = err)
+                              .true., .true., ele_start = branch%ele(i-1), ele_end = ele_at_s, err = err)
   endif
 endif
 
-call ele_geometry (branch%ele(i-1)%floor, ele, ele%floor)
+call ele_geometry (branch%ele(i-1)%floor, ele_at_s, ele_at_s%floor)
 
 if (saved_flag) then
   s_saved = s_use
@@ -368,8 +368,8 @@ if (saved_flag) then
     orb_saved = orb_at_s
     orb_is_saved = .true.
   endif
-  if (present(ele)) then
-    ele_saved = ele
+  if (present(ele_at_s)) then
+    ele_saved = ele_at_s
     ele_is_saved = .true.
   endif
 endif

@@ -11,8 +11,8 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'apply_element_edge_kick' in line:
-      line = line.replace('apply_element_edge_kick', 'apply_hard_edge_kick')
+    if 'ele_at_s' in line:
+      line = line.replace('ele_at_s', 'element_at_s')
       found = True
 
     out_file.write(line)

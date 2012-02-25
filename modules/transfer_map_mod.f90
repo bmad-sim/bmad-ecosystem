@@ -162,7 +162,7 @@ type (taylor_struct) :: map(:)
 type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt => null()
 type (ele_struct), target, save :: runt_save
-type (ele_struct), target, save :: runt_nosave
+type (ele_struct), target :: runt_nosave
 
 real(rp) s_1, s_2, s_now, s_end, ds
 
@@ -174,7 +174,7 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-call ele_at_s (lat, s_1, ix_ele, branch%ix_branch)
+call element_at_s (lat, s_1, ix_ele, branch%ix_branch)
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -416,7 +416,7 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-call ele_at_s (lat, s_1, ix_ele, branch%ix_branch)
+call element_at_s (lat, s_1, ix_ele, branch%ix_branch)
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -499,7 +499,7 @@ enddo
 ! Cleanup
 
 if (bmad_com%be_thread_safe) then
-  call deallocate_ele_pointers (runt)
+  call deallocate_ele_pointers (runt_nosave)
 endif
 
 end subroutine transfer_this_mat
