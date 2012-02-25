@@ -1,8 +1,11 @@
 #ifndef BMAD_PARAMETERS
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 108;
+  const int BMAD_INC_VERSION = 109;
   const int N_ATTRIB_MAXX = 70;
+  const int ENTRANCE_END = 1, EXIT_END = 2, BOTH_ENDS = 3;
+  const int NO_END = 4, CONTINUOUS = 5, INSIDE = 6, DEAD = 7, OUTSIDE = 8;
+  const int LOST = 10;
   const int ANTIMUON   = +3;
   const int PROTON     = +2;
   const int POSITRON   = +1;
@@ -62,15 +65,15 @@ namespace Bmad {
   const int LR_FREQ_SPREAD=5, GRAZE_ANGLE=5, K2=5, SIG_Y=5, B_MAX=5, V_DISPLACE=5, CRUNCH=5;
   const int GRADIENT=6, K3=6, SIG_Z=6, NOISE=6;
   const int G=6, GRAZE_ANGLE_IN = 6;
-  const int G_ERR=7, VOLTAGE=7, N_POLE=7, BBI_CONST=7, OSC_AMPLITUDE=7;
+  const int G_ERR=7, N_POLE=7, BBI_CONST=7, OSC_AMPLITUDE=7;
   const int GRADIENT_ERR=7, CRITICAL_ANGLE = 7;
   const int GRAZE_ANGLE_OUT = 7, IX_BRANCH_TO=7;
-  const int RHO=8, DELTA_E=8, GRAZE_ANGLE_ERR = 8;
-  const int CHARGE=8, GAP=8, X_GAIN_CALIB=8;
-  const int D1_THICKNESS = 9;
+  const int RHO=8, VOLTAGE=8, DELTA_E = 8, GRAZE_ANGLE_ERR = 8;
+  const int CHARGE=8, X_GAIN_CALIB=8;
+  const int D1_THICKNESS = 9, VOLTAGE_ERR=9;
   const int KS=9, L_CHORD=9, N_SLICE=9, Y_GAIN_CALIB=9, BRAGG_ANGLE=9;
   const int POLARITY=10, CRUNCH_CALIB=10, ALPHA_ANGLE=10, D2_THICKNESS = 10;
-  const int E1=10, E_LOSS=10, DKS_DS=10;
+  const int E1=10, E_LOSS=10, DKS_DS=10, GAP=10;
   const int GRAD_LOSS_SR_WAKE=11, S_MIN=11;
   const int E2=11, X_OFFSET_CALIB=11, V1_UNITCELL=11, PSI_ANGLE=11;
   const int S_CENTER=12, Y_OFFSET_CALIB=12, V_UNITCELL=12, V2_UNITCELL=12;
@@ -82,7 +85,7 @@ namespace Bmad {
   const int HGAPX=16, DPHI0_REF = 16, BEND_TILT=16, FH_IM=16, F0_IM2=16;
   const int DPHI0_MAX=17, H1=17, X_QUAD=17, REF_POLARIZATION=17;
   const int H2=18, Y_QUAD=18, NEGATIVE_GRAZE_ANGLE = 18;
-  const int B_PARAM = 19, Z_PATCH=19;
+  const int B_PARAM = 19;
   const int D_SPACING = 20, L_HARD_EDGE = 20;
   const int FIELD_SCALE = 21;
   const int ROLL=22, N_CELL=22;
@@ -118,7 +121,7 @@ namespace Bmad {
   const int N_REF_PASS = 51, REF_CAP_GAMMA = 51;
   const int RADIUS = 52, KH_Y_NORM = 52;
   const int POLE_RADIUS = 53, FOLLOW_DIFFRACTED_BEAM = 53;
-  const int DS_FIELD_OFFSET = 54;
+  const int REF_TIME_START = 54;
   const int THICKNESS = 55, INTEGRATOR_ORDER = 55;
   const int NUM_STEPS = 56, L_X = 56;
   const int DS_STEP = 57, L_Y = 57;
@@ -196,14 +199,11 @@ namespace Bmad {
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
   const int HARD_EDGE_MODEL = 9, SYMP_LIE_BMAD = 10, STATIC = 11;
-  const int BORIS = 12, ADAPTIVE_BORIS = 13, MAD = 14;
+  const int BORIS = 12, MAD = 14;
   const int TIME_RUNGE_KUTTA = 15, CUSTOM2 = 16;
   const int MAP_TYPE = 1, PERIODIC_TYPE = 3, CONST_REF_ENERGY = 4, NONCONST_REF_ENERGY = 5;
   const int GRID = 2, MAP = 3, REFER_TO_LORDS = 4;
   const int BRAGG = 1, LAUE = 2;
-  const int ENTRANCE_END = 1, EXIT_END = 2, BOTH_ENDS = 3;
-  const int NO_END = 4, CONTINUOUS = 5, INSIDE = 6, DEAD = 7, OUTSIDE = 8;
-  const int LOST = 10;
   const int SINGLE_REF = 1, MATCH_AT_ENTRANCE = 2, MATCH_AT_EXIT = 3;
   const int MATCH_GLOBAL_COORDS = 4, PATCH_IN = 5, PATCH_OUT = 6;
   const int BENDS = 201;
