@@ -189,7 +189,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 ! write output
   call file_suffixer (in_file, in_file, '_back.dat', .true.)
-  open (unit = 2, file = in_file)
+  open (unit = 2, file = trim(in_file)//'_back')
   write (2, *) 'Lattice  = ', ring%lattice
   write (2, '(a11,i5,3(a10,f10.5))') ' N_turn   =', track_input%n_turn
   write(2,'(a8,a1,f8.4,a1)') '  Q_x = ',"`",ring%a%tune/twopi,"'"

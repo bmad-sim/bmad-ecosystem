@@ -64,7 +64,7 @@ program anaylzer
   real*4 xscale, yscale, x_low, y_low
   real*4 xa(4), za(4)
   real*4 xdet(1000), ydet(1000), zdet(1000)
-  real*4 new_width, new_aspect
+  real*4 new_width, new_aspect, last_aspect
 
   real(rp) cbar_mat(2,2), cbar_mat1(2,2), cbar_mat2(2,2)
   real(rp) de/8e-4/
@@ -659,8 +659,9 @@ program anaylzer
     endif ! if(line(1:2) /= 'PS'.and. line(1:2) /= 'GIF')then
 
 !      device_type = '?'
-      if(device_type /= last_device_type)then
+      if(device_type /= last_device_type .or. aspect /= last_aspect)then
        last_device_type = device_type
+       last_aspect = aspect
        istat1 = pgopen(device_type)
        if(istat1 .lt. 1) stop
        call pgpap (width, aspect)

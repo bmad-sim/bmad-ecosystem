@@ -47,7 +47,7 @@
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := code
-OBJ_SRC_DIRS := test dynamic_aperture analyzer tune_plane_res_plot synrad synrad3d bbu plot_freq_map plot_sb_scan plot_da find_quads ilc_lattice_list 
+OBJ_SRC_DIRS := test dynamic_aperture analyzer tune_plane_res_plot synrad synrad3d bbu plot_freq_map plot_sb_scan plot_da find_quads ilc_lattice_list select_lines 
 CONFIG_DIRS  :=
 LOCAL_INCS   := synrad3d
 SRC_EXCLUDE  :=
