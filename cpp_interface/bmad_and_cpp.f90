@@ -1321,14 +1321,15 @@ character(200) descrip
 f => f_ele
 
 nr1 = 0; nr2 = 0; nr3 = 0
-!if (associated(f%r)) then
-!  nr1 = size(f%r, 1)
-!  nr2 = size(f%r, 2)
-!  allocate (r_arr(nr1*nr2))
-!  r_arr = mat2arr (f%r)
-!else
+if (associated(f%r)) then
+  nr1 = size(f%r, 1)
+  nr2 = size(f%r, 2)
+  nr3 = size(f%r, 3)
+  allocate (r_arr(nr1*nr2*nr3))
+  r_arr = tensor2arr (f%r)
+else
   allocate (r_arr(0))
-!endif
+endif
 
 descrip =  ' '
 if (associated(f%descrip)) descrip = f%descrip
@@ -1344,7 +1345,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%floor, f%map_ref_orb_in, f%map_ref_orb_out, f%ptc_genfield, &
       f%taylor(1), f%taylor(2), f%taylor(3), f%taylor(4), f%taylor(5), f%taylor(6), &
       n_wig, value, f%gen0, f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, f%ref_time, &
-      r_arr, nr1, nr2, nr3, f%a_pole, f%b_pole, r_size(f%a_pole), f%const, r_size(f%const), &
+      r_arr, nr1, nr2, nr3, f%a_pole, f%b_pole, r_size(f%a_pole), &
       f%key, f%sub_key, f%ix_ele, f%ix_branch, f%ix_value, &
       f%slave_status, f%n_slave, f%ix1_slave, f%ix2_slave, &
       f%lord_status, f%n_lord, f%ic1_lord, f%ic2_lord, &
@@ -1381,7 +1382,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, component_nam, n_co
     tlr1, tlr2, tlr3, tlr4, tlr5, tlr6, &
     n_wig, value, gen0, vec0, mat6, c_mat, &
     gamma_c, s, ref_t, r_arr, nr1, nr2, nr3, &
-    a_pole, b_pole, n_ab, const, n_const, &
+    a_pole, b_pole, n_ab, &
     key, sub_key, ix_ele, ix_branch, ix_value, &
     slave_status, n_slave, ix1_slave, ix2_slave, &
     lord_status, n_lord, ic1_lord, ic2_lord, &
@@ -1398,11 +1399,11 @@ use bmad_interface
 implicit none
 
 type (ele_struct) f
-type (c_dummy_struct) a, b, x, y, z, floor, ref_orb_in, ref_orb_out
+type (c_dummy_struct) a, b, x, y, z, floor
 type (c_dummy_struct) tlr1, tlr2, tlr3, tlr4, tlr5, tlr6
 type (genfield), target :: gen_f
 
-integer n_nam, nr1, nr2, nr3, n_ab, n_const, key, sub_key, lord_status, slave_status
+integer n_nam, nr1, nr2, nr3, n_ab, key, sub_key, lord_status, slave_status
 integer ix2_slave, n_lord, ic1_lord, ic2_lord, ix_point, ixx, ix_ele, mat6_meth, tracking_meth, spin_meth, field_calc
 integer ref_orb, aperture_at, symp, mode_flip, multi_on, map_with_off, field_master
 integer reversed, is_on, old_is_on, logic, bmad_logic, on_girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
@@ -1410,7 +1411,7 @@ integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type,
 integer ix_value, n_slave, ix1_slave, scale_multi
 
 real(rp) value(n_attrib_maxx), gen0(6), vec0(6), mat6(36), c_mat(4), gamma_c, s, ref_t
-real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2*nr3), const(n_const)
+real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2*nr3), ref_orb_in(6), ref_orb_out(6)
 
 character(n_nam)  nam
 character(n_typ)  typ
@@ -1420,10 +1421,13 @@ character(n_des)  des
 
 !
 
-call str_upcase(f%name, nam)
+f%name = nam
 f%type  = typ
 f%alias = ali
-call str_upcase (f%component_name, component_nam)
+f%component_name = component_nam
+
+call str_upcase (f%name, f%name)
+call str_upcase (f%component_name, f%component_name)
 
 if (n_des == 0) then
   if (associated (f%descrip)) deallocate (f%descrip)
@@ -1438,8 +1442,6 @@ call twiss_to_f (z, f%z)
 call xy_disp_to_f (x, f%x)
 call xy_disp_to_f (y, f%y)
 call floor_position_to_f (floor, f%floor)
-call coord_to_f (ref_orb_in, f%map_ref_orb_in)
-call coord_to_f (ref_orb_out, f%map_ref_orb_out)
 
 f%ptc_genfield => gen_f
 
@@ -1461,6 +1463,8 @@ if (n_wig /= 0) then
   allocate (f%wig%term(n_wig))
 endif
 
+f%map_ref_orb_in        = ref_orb_in
+f%map_ref_orb_out       = ref_orb_out
 f%old_value             = 0
 f%value                 = value
 f%gen0                  = gen0
@@ -1471,17 +1475,17 @@ f%gamma_c               = gamma_c
 f%s                     = s
 f%ref_time              = ref_t
 
-!if (nr1 == 0 .or. nr2 == 0) then
+if (nr1 == 0 .or. nr2 == 0 .or. nr3 == 0) then
   if (associated(f%r)) deallocate (f%r)
-!else
-!  if (.not. associated(f%r)) then
-!    allocate (f%r(nr1, nr2))
-!  elseif ((size(f%r, 1) /= nr1) .or. (size(f%r, 2) /= nr2)) then
-!    deallocate (f%r)
-!    allocate (f%r(nr1, nr2))
-!  endif
-!  f%r =  arr2mat(r_arr, nr1, nr2)
-!endif
+else
+  if (.not. associated(f%r)) then
+    allocate (f%r(nr1, nr2, nr3))
+  elseif (size(f%r, 1) /= nr1 .or. size(f%r, 2) /= nr2 .or. size(f%r, 3) /= nr3) then
+    deallocate (f%r)
+    allocate (f%r(nr1, nr2, nr3))
+  endif
+  f%r =  arr2tensor(r_arr, nr1, nr2, nr3)
+endif
 
 if (n_ab == 0) then
   if (associated (f%a_pole)) deallocate (f%a_pole, f%b_pole)
@@ -1489,20 +1493,6 @@ else
   call multipole_init(f)
   f%a_pole = a_pole
   f%b_pole = b_pole
-endif
-
-if (n_const == 0) then
-  if (associated (f%const)) deallocate (f%const)
-else
-  if (associated(f%const)) then
-    if (size(f%const) /= n_const) then
-      deallocate (f%const)
-      allocate (f%const(n_const))
-    endif
-  else
-    allocate (f%const(n_const))
-  endif
-  f%const = const
 endif
 
 f%key                   = key

@@ -25,8 +25,8 @@ template <class T> void operator<< (valarray< valarray< valarray<T> > >& tensor,
   int n3 = tensor[0][0].size();
   for (int i = 0; i < n1; i++) {
     for (int j = 0; j < n2; j++) {
-      for (int k = 0; k < n2; k++) {
-        tensor[i][j][k] = ptr[i*n2*n3 + j*n2 + k];
+      for (int k = 0; k < n3; k++) {
+        tensor[i][j][k] = ptr[i*n2*n3 + j*n3 + k];
       }
     }
   }
@@ -561,15 +561,15 @@ void operator>> (normal_modes_struct* f, C_normal_modes& c) {
 
 extern "C" void bmad_com_to_f2_(Re&, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, 
      Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
-     Int&);
+     Int&, Int&, Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
   bmad_com_to_f2_(c.max_aperture_limit, &c.d_orb[0],
-    c.significant_longitudinal_length, c.rel_tolerance, 
+    c.default_ds_step, c.significant_longitudinal_length, c.rel_tolerance, 
     c.abs_tolerance, c.rel_tol_adaptive_tracking, c.abs_tol_adaptive_tracking, 
     c.taylor_order, c.default_integ_order, c.canonical_coords, 
     c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
-    c.auto_bookkeeper, c.coherent_synch_rad_on, 
+    c.auto_bookkeeper, c.space_charge_on, c.coherent_synch_rad_on, 
     c.spin_tracking_on, c.radiation_damping_on, c.radiation_fluctuations_on, 
     c.conserve_taylor_maps, c.use_ptc_layout_default, c.absolute_time_tracking_default, 
     c.rf_auto_scale_phase_default, c.rf_auto_scale_amp_default,
@@ -641,11 +641,11 @@ void operator>> (em_field_struct* f, C_em_field& c) {
 
 extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char, Int&, Char, Int&, 
   C_twiss&, C_twiss&, C_twiss&, C_xy_disp&, C_xy_disp&, 
-  C_floor_position&, C_coord&, C_coord&, void*, 
+  C_floor_position&, ReArr, ReArr, void*, 
   C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, 
   Int&, ReArr, ReArr, ReArr, ReArr, ReArr,
   Re&, Re&, Re&, ReArr, Int&, Int&, Int&,
-  ReArr, ReArr, Int&, ReArr, Int&, 
+  ReArr, ReArr, Int&, 
   Int&, Int&, Int&, Int&, Int&,                        // key
   Int&, Int&, Int&, Int&,                              // slave_status
   Int&, Int&, Int&, Int&,                              // lord_status
@@ -663,7 +663,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   const char* descrip = c.descrip.data();    int n_descrip = c.descrip.length();
   const char* component = c.component_name.data(); 
                                     int n_component = c.component_name.length();
-  int n_ab = c.a_pole.size(), n_const = c.const_arr.size();
+  int n_ab = c.a_pole.size();
   int n_wig = c.wig_term.size();
   int nr1 = c.r.size(), nr2 = 0, nr3 = 0;
   if (nr1) {
@@ -677,11 +677,11 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   tensor_to_array (c.r, r_arr);
   ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, component, n_component, descrip, n_descrip, 
     c.a, c.b, c.z, c.x, c.y, 
-    c.floor, c.map_ref_orb_in, c.map_ref_orb_out, c.gen_field,  
+    c.floor, &c.map_ref_orb_in[0], &c.map_ref_orb_out[0], c.gen_field,  
     c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], 
     n_wig, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat,
     c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, nr3, 
-    &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], n_const, 
+    &c.a_pole[0], &c.b_pole[0], n_ab, 
     c.key, c.sub_key, c.ix_ele, c.ix_branch, c.ix_value, 
     c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
     c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
@@ -700,12 +700,12 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
 extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias, 
     char* component, char* descrip, 
     twiss_struct* a, twiss_struct* b, twiss_struct* z, xy_disp_struct* x, xy_disp_struct* y, 
-    floor_position_struct* floor, coord_struct* ref_orb_in, coord_struct* ref_orb_out, void* gen,
+    floor_position_struct* floor, ReArr ref_orb_in, ReArr ref_orb_out, void* gen,
     taylor_struct* tlr0, taylor_struct* tlr1, taylor_struct* tlr2,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
     Int& n_wig, ReArr val, ReArr gen0, ReArr vec0,
     ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, Re& ref_t, 
-    ReArr r_arr, Int& nr1, Int& nr2, Int& nr3, ReArr a_pole, ReArr b_pole, Int& n_ab, ReArr const_arr, Int& n_const, 
+    ReArr r_arr, Int& nr1, Int& nr2, Int& nr3, ReArr a_pole, ReArr b_pole, Int& n_ab, 
     Int& key, Int& sub_key, Int& ix_ele, Int& ix_branch, Int& ix_value,  
     Int& slave_status, Int& n_slave, Int& ix1_s, Int& ix2_s, 
     Int& lord_status, Int& n_lord, Int& ic1_l, Int& ic2_l, 
@@ -723,8 +723,8 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   a >> c.a;  b >> c.b;  z >> c.z;
   x >> c.x;  y >> c.y;
   floor >> c.floor;
-  ref_orb_in >> c.map_ref_orb_in;
-  ref_orb_out >> c.map_ref_orb_out;
+  c.map_ref_orb_in << ref_orb_in;
+  c.map_ref_orb_out << ref_orb_out;
   c.gen_field = gen;
   tlr0 >> c.taylor[0];   tlr1 >> c.taylor[1];   tlr2 >> c.taylor[2]; 
   tlr3 >> c.taylor[3];   tlr4 >> c.taylor[4];   tlr5 >> c.taylor[5]; 
@@ -766,9 +766,6 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     c.a_pole = Real_Array(a_pole, Bmad::N_POLE_MAXX+1);
     c.b_pole = Real_Array(b_pole, Bmad::N_POLE_MAXX+1);
   }
-
-  if (c.const_arr.size() != n_const) c.const_arr.resize(n_const);
-  c.const_arr  << const_arr;
 
   c.key                   = key;
   c.sub_key               = sub_key;
@@ -850,7 +847,6 @@ C_ele& C_ele::operator= (const C_ele& c) {
   r                     << c.r;
   a_pole                << c.a_pole;
   b_pole                << c.b_pole;
-  const_arr             << c.const_arr;
   key                   = c.key;
   sub_key               = c.sub_key;
   ix_ele                = c.ix_ele;
@@ -869,6 +865,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
 
   mat6_calc_method      = c.mat6_calc_method;
   tracking_method       = c.tracking_method;
+  spin_tracking_method  = c.spin_tracking_method;
   field_calc            = c.field_calc;
   ref_orbit             = c.ref_orbit;
   aperture_at           = c.aperture_at;

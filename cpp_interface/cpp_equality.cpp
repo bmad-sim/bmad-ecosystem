@@ -280,11 +280,11 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && (x.y == y.y);
   is_true = is_true && (x.floor == y.floor);
   // is_true = is_true && (x.mode3 == y.mode3);
-  is_true = is_true && (x.map_ref_orb_in == y.map_ref_orb_in);
-  is_true = is_true && (x.map_ref_orb_out == y.map_ref_orb_out);
+  is_true = is_true && is_all_equal(x.map_ref_orb_in == y.map_ref_orb_in);
+  is_true = is_true && is_all_equal(x.map_ref_orb_out == y.map_ref_orb_out);
   // is_true = is_true && (x.gen_field == y.gen_field);
   is_true = is_true && is_all_equal(x.taylor, y.taylor);
-  // is_true = is_true && (x.rf == y.rf);
+  // is_true = is_true && (x.em_field == y.em_field);
   // is_true = is_true && is_all_equal(x.wig_term, y.wig_term);
   // is_true = is_true && (x.space_charge == y.space_charge);
   // is_true = is_true && (x.wall3d == y.wall3d);
@@ -300,7 +300,6 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && is_all_equal(x.r, y.r);
   is_true = is_true && is_all_equal(x.a_pole, y.a_pole);
   is_true = is_true && is_all_equal(x.b_pole, y.b_pole);
-  is_true = is_true && is_all_equal(x.const_arr, y.const_arr);
   is_true = is_true && (x.key == y.key);
   is_true = is_true && (x.sub_key == y.sub_key);
   is_true = is_true && (x.ix_ele == y.ix_ele);
@@ -318,6 +317,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && (x.ixx == y.ixx);
   is_true = is_true && (x.mat6_calc_method == y.mat6_calc_method);
   is_true = is_true && (x.tracking_method == y.tracking_method);
+  is_true = is_true && (x.spin_tracking_method == y.spin_tracking_method);
   is_true = is_true && (x.field_calc == y.field_calc);
   is_true = is_true && (x.ref_orbit == y.ref_orbit);
   is_true = is_true && (x.aperture_at == y.aperture_at);
@@ -327,6 +327,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && (x.multipoles_on == y.multipoles_on);
   is_true = is_true && (x.scale_multipoles == y.scale_multipoles);
   is_true = is_true && (x.map_with_offsets == y.map_with_offsets);
+  is_true = is_true && (x.field_master == y.field_master);
   is_true = is_true && (x.reversed == y.reversed);
   is_true = is_true && (x.is_on == y.is_on);
   is_true = is_true && (x.old_is_on == y.old_is_on);

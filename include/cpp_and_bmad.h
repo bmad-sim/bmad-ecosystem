@@ -841,7 +841,34 @@ public:
   bool rf_auto_scale_amp_default;
   bool be_thread_safe;
 
-  C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
+  C_bmad_com () : 
+      max_aperture_limit(0),   
+      d_orb(double(0), 6),
+      default_ds_step(0),
+      significant_longitudinal_length(0),
+      rel_tolerance(0), 
+      abs_tolerance(0), 
+      rel_tol_adaptive_tracking(0),
+      abs_tol_adaptive_tracking(0),
+      taylor_order(0),
+      default_integ_order(0),
+      canonical_coords(false),
+      sr_wakes_on(false),
+      lr_wakes_on(false),
+      mat6_track_symmetric(false),
+      auto_bookkeeper(false),
+      space_charge_on(false),
+      coherent_synch_rad_on(false),
+      spin_tracking_on(false),
+      radiation_damping_on(false),
+      radiation_fluctuations_on(false),
+      conserve_taylor_maps(false),
+      use_ptc_layout_default(false),
+      absolute_time_tracking_default(false),
+      rf_auto_scale_phase_default(false),
+      rf_auto_scale_amp_default(false),
+      be_thread_safe(false)
+  {};
 
 };    // End Class
 
@@ -938,8 +965,6 @@ public:
   C_xy_disp x, y;               // Projected dispersion
   C_floor_position floor;       // Global floor position at end of ele.
   C_mode3 mode3;
-  C_coord map_ref_orb_in;
-  C_coord map_ref_orb_out;
   void* gen_field;              // Pointer to a PTC genfield
   C_taylor_array taylor;        // Taylor terms
   C_rf rf;                      // Fields and wakes
@@ -960,7 +985,8 @@ public:
   Real_Tensor r;                // For general use. Not used by Bmad.
   Real_Array a_pole;            // multipole
   Real_Array b_pole;            // multipoles
-  Real_Array const_arr;         // Working constants.
+  Real_Array map_ref_orb_in;
+  Real_Array map_ref_orb_out;
   int key;                      // key value
   int sub_key;                  // For wigglers: map_type$, periodic_type$
   int ix_ele;                   // Index in ring%ele(:) array
@@ -999,8 +1025,6 @@ public:
   bool offset_moves_aperture;   // element offsets affects aperture?
 
   C_ele (const int key = 0) : 
-    map_ref_orb_in(V6_array),
-    map_ref_orb_out(V6_array),
     gen_field(NULL),
     taylor(C_taylor(0), 6), 
     value(double(0), Bmad::N_ATTRIB_MAXX+1),
@@ -1012,6 +1036,8 @@ public:
     gamma_c(0),
     s(0),
     ref_time(0),
+    map_ref_orb_in(V6_array),
+    map_ref_orb_out(V6_array),
     key(0),
     sub_key(0),
     ix_ele(-1),
