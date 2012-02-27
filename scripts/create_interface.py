@@ -135,5 +135,11 @@ for struct in f_struct_def:
 # Create C++ to Fortran code
 
 #--------------------------------------------------------
-# Create check code
+# Create Fortran struct equality check code
+
+#--------------------------------------------------------
+# Create C++ class equality check code
+
+#--------------------------------------------------------
+# Create interface check code
 
