@@ -298,6 +298,20 @@ do ib = 0, ubound(lat%branch, 1)
       line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
     endif
 
+    ! Wall
+
+    if (associated(ele%wall3d%section)) then
+      call out_io (s_error$, r_name, 'WRITING WALL3D ELEMENT COMPONENT NOT YET IMPLEMENTED!', &
+                                     'PLEASE CONTACT DAVID SAGAN!')
+    endif
+
+    ! EM fields
+
+    if (associated(ele%em_field)) then
+      call out_io (s_error$, r_name, 'WRITING EM_FIELD ELEMENT COMPONENT NOT YET IMPLEMENTED!', & 
+                                     'PLEASE CONTACT DAVID SAGAN!')
+    endif
+
     ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
     ! If first three characters of the file name are '...' then it is a foreign file.
 

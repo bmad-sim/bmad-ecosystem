@@ -470,7 +470,7 @@ end select
 
 ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 if (abs(ele%value(delta_ref_time$) - old_delta_ref_time) > bmad_com%significant_length / c_light) then
-  if (associated (ele%taylor(1)%term)) call kill_taylor (ele%taylor)
+  if (associated (ele%taylor(1)%term) .and. ele%key /= taylor$) call kill_taylor (ele%taylor)
   ele%status%mat6 = stale$
 endif
 

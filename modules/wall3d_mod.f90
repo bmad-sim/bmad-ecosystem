@@ -47,10 +47,10 @@ type wall3d_section_struct
 
 end type
 
-! If, say, %anchor_pt = center$ then center of wall is at the center of the element.
+! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
 
 type wall3d_struct
-  integer :: anchor_pt = 0      ! anchor_beginning$, anchor_center$, or anchor_end$
+  integer :: ele_anchor_pt = 0      ! anchor_beginning$, anchor_center$, or anchor_end$
   type (wall3d_section_struct), pointer :: section(:) => null()  
 end type  
 
