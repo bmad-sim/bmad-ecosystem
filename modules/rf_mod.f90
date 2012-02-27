@@ -242,7 +242,7 @@ pz_max2 = pz_arr(i_max2)
 dE_max2 = dE_particle(pz_max2)
 
 if (dE_max1 < 0) then
-  call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION!')
+  call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION FOR: ' // ele%name)
   err_flag = .true.
   return
 endif
