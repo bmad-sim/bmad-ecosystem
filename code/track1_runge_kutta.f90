@@ -67,9 +67,6 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 dref_time = ele%value(l$) / (beta0 * c_light)
 end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
 
-end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + &
-                            start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
-
 end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)
 

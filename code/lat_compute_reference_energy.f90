@@ -126,6 +126,12 @@ do ib = 0, ubound(lat%branch, 1)
       call init_coord (start_orb, ele = gun_ele, particle = branch%param%particle)
       start_orb%vec(6) = (ele0%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
       call track1 (start_orb, gun_ele, branch%param, end_orb)
+      if (branch%param%lost) then
+        call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
+                                       'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+        if (bmad_status%exit_on_error) call err_exit
+        return
+      endif
       ele0%value(p0c$) = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
       call convert_pc_to (ele0%value(p0c$), branch%param%particle, e_tot = ele0%value(e_tot$))
     endif
@@ -387,17 +393,18 @@ case (lcavity$)
     call zero_errors_in_ele (ele)
     call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
     call track1 (orb_start, ele, param, orb_end)
-    call calc_time_ref_orb_out
-    call restore_errors_in_ele (ele)
-
-    if (orb_end%status == dead$) then
-      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING LCAVITY: ' // ele%name, &
-                                     'CANNOT COMPUTE REFERENCE ENERGY')
+    if (param%lost) then
+      call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING LCAVITY: ' // ele%name, &
+                                     'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+      if (bmad_status%exit_on_error) call err_exit
       return
     endif
+    call restore_errors_in_ele (ele)
 
     ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
+    call calc_time_ref_orb_out
+
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
 
@@ -418,11 +425,17 @@ case (e_gun$)
   call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
   orb_start%status = inside$ !to avoid entrance kick in time tracking
   call track1 (orb_start, ele, param, orb_end)
-  call calc_time_ref_orb_out
+  if (param%lost) then
+    call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // ele%name, &
+                                   'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+    if (bmad_status%exit_on_error) call err_exit
+    return
+  endif
   call restore_errors_in_ele (ele)
 
   E_tot = ele%value(E_tot$)
   p0c = ele%value(p0c$)
+  call calc_time_ref_orb_out
   ele%ref_time = ref_time_start + orb_end%t - orb_start%t
 
 case (crystal$, mirror$, multilayer_mirror$)
@@ -459,9 +472,15 @@ case default
     call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
     orb_start%vec = ele%time_ref_orb_in
     call track1 (orb_start, ele, param, orb_end)
-    call calc_time_ref_orb_out
+    if (param%lost) then
+      call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
+                                     'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+      if (bmad_status%exit_on_error) call err_exit
+      return
+    endif
     call restore_errors_in_ele (ele)
     ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
+    call calc_time_ref_orb_out
   endif
 
 end select
@@ -554,7 +573,7 @@ ele%time_ref_orb_out(2) = ele%time_ref_orb_out(2) / (1 + orb_end%vec(6))
 ele%time_ref_orb_out(4) = ele%time_ref_orb_out(4) / (1 + orb_end%vec(6))
 ele%time_ref_orb_out(5) = ele%time_ref_orb_out(5) + &
             (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
-ele%time_ref_orb_out(6) = 0  !
+ele%time_ref_orb_out(6) = ((1 + orb_end%vec(6)) * orb_end%p0c - ele%value(p0c$)) / ele%value(p0c$)
 
 end subroutine
 
