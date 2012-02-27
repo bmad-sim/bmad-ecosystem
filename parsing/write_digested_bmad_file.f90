@@ -159,7 +159,7 @@ do i = 1, ubound(lat%branch, 1)
   branch => lat%branch(i)
   write (d_unit) branch%param
   write (d_unit) branch%name, -1, branch%ix_from_branch, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, branch%wall3d%anchor_pt
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, branch%wall3d%ele_anchor_pt
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
@@ -269,7 +269,7 @@ write (d_unit) &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%anchor_pt
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%ele_anchor_pt
 
 ! This compresses the ele%value array
 
@@ -295,13 +295,13 @@ if (n_rf_field_mode > 0) then
     write (d_unit) nf, ng, mode%harmonic, mode%f_damp, mode%dphi0_ref, mode%stored_energy, &
                                     mode%m, mode%phi0_azimuth, mode%field_scale
     if (nf > 0) then
-      write (d_unit) mode%map%file, mode%map%dz, mode%map%anchor_pt
+      write (d_unit) mode%map%file, mode%map%dz, mode%map%ele_anchor_pt
       write (d_unit) mode%map%term
     endif
 
     if (ng > 0) then
       write (d_unit) (lbound(mode%grid%pt, j), ubound(mode%grid%pt, j), j = 1, 3), &
-                      mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0, mode%grid%anchor_pt
+                      mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt
       do j = lbound(mode%grid%pt, 3), ubound(mode%grid%pt, 3)
         write (d_unit) mode%grid%pt(:,:,j)
       enddo

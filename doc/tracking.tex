@@ -376,17 +376,20 @@ program by setting the \vn{%tracking_method} attribute of an element
   type (ele_struct) ele
   ...
   ele%tracking_method = boris$  ! for boris tracking
+  print *, 'Tracking_method: ', calc_method_name(ele%tracking_method)
 \end{verbatim}
 To form the corresponding parameter to a given tracking method just
 put ``\$'' after the name. For example, the \vn{bmad_standard}
-tracking method is specified by the \vn{bmad_standard\$}
-parameter.
+tracking method is specified by the \vn{bmad_standard\$} parameter. To
+convert the integer \vn{%tracking_method} value to a string suitable
+for printing, use the \vn{tracking_method_name} array.
 
 \index{ele_struct!\%mat6}\index{linear}
 It should be noted that except for \vn{linear} tracking, none of the
 \bmad tracking routines make use of the \vn{ele%mat6} transfer
 matrix. The reverse, however, is not true.  The transfer matrix
 routines (\vn{lat_make_mat6}, etc.)  will do tracking.
+
 
 \index{synchrotron radiation!calculating}
 \bmad simulates radiation damping and excitation by applying a kick

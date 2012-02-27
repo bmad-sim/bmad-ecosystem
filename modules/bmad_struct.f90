@@ -182,13 +182,15 @@ type rf_wake_struct
 end type
 
 type em_field_map_term_struct
-  complex(rp) :: e_coef = 0, b_coef = 0
+  complex(rp) :: e_coef = 0
+  complex(rp) :: b_coef = 0
 end type
 
 type em_field_map_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
-  integer :: anchor_pt = 0      ! anchor_beginning$, anchor_center$, or anchor_end$
+  integer :: ele_anchor_pt = anchor_beginning$
+                                ! anchor_beginning$, anchor_center$, or anchor_end$
   real(rp) :: dz = 0            ! Distance between sampled field points.
   type (em_field_map_term_struct), allocatable :: term(:)
 end type
@@ -201,7 +203,8 @@ end type
 type em_field_grid_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: type = 0           ! Type of grid structure
-  integer :: anchor_pt = 0      ! anchor_beginning$, anchor_center$, or anchor_end$
+  integer :: ele_anchor_pt = anchor_beginning$  
+                                ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: n_link = 1         ! For memory management of this structure
   type (em_field_point_struct), allocatable :: pt(:,:,:)
   real(rp) :: dr(3) = 0   ! Grid spacing.

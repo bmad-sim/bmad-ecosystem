@@ -170,7 +170,7 @@ type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
 real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
-real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
+real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
@@ -600,13 +600,22 @@ case(map$)
       Er = 0; Ep = 0; Ez = 0
       Br = 0; Bp = 0; Bz = 0
 
+      select case (mode%map%ele_anchor_pt)
+      case (anchor_beginning$); s0 = 0
+      case (anchor_center$);    s0 = ele%value(l$) / 2
+      case (anchor_end$);       s0 = ele%value(l$)
+      case default
+        call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD MODE IN ELEMENT: ' // ele%name)
+        if (bmad_status%exit_on_error) call err_exit
+      end select
+
       do n = 1, size(mode%map%term)
 
         term => mode%map%term(n)
         k_zn = twopi * (n - 1) / (size(mode%map%term) * mode%map%dz)
         if (2 * n > size(mode%map%term)) k_zn = k_zn - twopi / mode%map%dz
 
-        expi = cmplx(cos(k_zn * s_rel), sin(k_zn * s_rel))
+        expi = cmplx(cos(k_zn * (s_rel-s0)), sin(k_zn * s_rel))
 
         kappa2_n = k_zn**2 - k_t**2
         kappa_n = sqrt(abs(kappa2_n))
@@ -677,7 +686,7 @@ case(map$)
 
   case default
     call out_io (s_fatal$, r_name, 'ELEMENT NOT YET CODED FOR MAP METHOD: ' // key_name(ele%key), &
-                                  'FOR: ' // ele%name)
+                                   'FOR: ' // ele%name)
     if (bmad_status%exit_on_error) call err_exit
   end select
 
@@ -722,6 +731,15 @@ case(grid$)
     mode => ele%em_field%mode(i)
     m = mode%m
     
+    select case (mode%grid%ele_anchor_pt)
+    case (anchor_beginning$); s0 = 0
+    case (anchor_center$);    s0 = ele%value(l$) / 2
+    case (anchor_end$);       s0 = ele%value(l$)
+    case default
+      call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD GRID IN ELEMENT: ' // ele%name)
+      if (bmad_status%exit_on_error) call err_exit
+    end select
+
     ! DC modes should have mode%harmonic = 0
     freq = ele%value(rf_frequency$) * mode%harmonic
     expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (t_rel + t_ref) + mode%dphi0_ref))
@@ -743,7 +761,9 @@ case(grid$)
         
       ! Interpolate 2D (r, z) grid
       ! local_field is a em_field_pt_struct, which has complex E and B
-      call em_grid_linear_interpolate(ele, mode%grid, local_field, r, s_rel)
+
+      call em_grid_linear_interpolate(ele, mode%grid, local_field, r, s_rel-s0)
+
       ! Transverse field is zero on axis. Otherwise:
 
       if (r /= 0) then
