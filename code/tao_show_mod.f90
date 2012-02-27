@@ -2304,9 +2304,12 @@ case ('universe')
   nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam_info%beam_all_file)
   nl=nl+1; write (lines(nl), amt) '%beam_saved_at:        = ', trim(u%beam_saved_at)
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), amt) 'Lattice name:    ', lat%lattice
-  nl=nl+1; write(lines(nl), amt) 'Input_file_name: ', lat%input_file_name
-  nl=nl+1; lines(nl) =           'Lattice Type:    ' // lattice_type(branch%param%lattice_type)
+  nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', lat%lattice
+  nl=nl+1; write(lines(nl), amt) 'Input_file_name:        ', lat%input_file_name
+  nl=nl+1; write(lines(nl), amt) 'RF_Auto_Scale_Phase:    ', lat%rf_auto_scale_phase
+  nl=nl+1; write(lines(nl), amt) 'RF_Auto_scale_Amp:      ', lat%rf_auto_scale_amp
+  nl=nl+1; write(lines(nl), amt) 'Absolute_Time_Tracking: ', lat%absolute_time_tracking
+  nl=nl+1; lines(nl) =           'Lattice Type:           ' // lattice_type(branch%param%lattice_type)
   nl=nl+1; write (lines(nl), imt) &
                 'Elements used in tracking: From 1 through ', branch%n_ele_track
   if (branch%n_ele_max .gt. branch%n_ele_track) then

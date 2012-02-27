@@ -562,7 +562,7 @@ implicit none
 type (tao_universe_struct) u
 type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
-type (ele_struct), pointer :: from_ele
+type (ele_struct), pointer :: from_ele, ele0
 type (coord_struct) pos
 type (coord_struct), pointer :: orb0
 type (spin_polar_struct) :: polar
@@ -602,7 +602,11 @@ endif
 ! This is important with common_lattice since tao_lat%lat_branch(0)%orbit(0) has been overwritten.
 
 if (model%lat%branch(ix_branch)%param%lattice_type == linear_lattice$) then
-  model%lat_branch(ix_branch)%orbit(0) = model%lat%beam_start
+  ele0 => model%lat%ele(0)
+  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start%vec, &
+                                                            ele0, model%lat%param%particle)
+  model%lat_branch(ix_branch)%orbit(0)%vec(6) = model%lat_branch(ix_branch)%orbit(0)%vec(6) + &
+            (ele0%value(p0c_start$) - ele0%value(p0c$)) / ele0%value(p0c$)
 else
   model%lat_branch(ix_branch)%orbit(0) = u%model_orb0
 endif
