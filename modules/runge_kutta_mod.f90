@@ -92,10 +92,16 @@ err_flag = .true.
 s = s1
 direction = sign(1.0_rp, s2-s1)
 h = h1 * direction
-orb_end = orb_start
-if (s1 == s2) return
 
+orb_end = orb_start
 orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
+
+! For elements where the reference energy is changing the reference energy in the body is 
+! taken, by convention, to be the reference energy at the exit end.
+
+call lcavity_reference_energy_correction (ele, param, orb_end)
+
+if (s1 == s2) return
 
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
@@ -103,10 +109,7 @@ orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 nullify (hard_ele)
 call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
 
-! For elements where the reference energy is changing the reference energy in the body is 
-! taken, by convention, to be the reference energy at the exit end.
-
-call lcavity_reference_energy_correction (ele, param, orb_end)
+! Initial time
 
 abs_time = .false.
 if (associated(ele%lat)) then

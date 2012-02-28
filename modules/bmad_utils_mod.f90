@@ -2772,6 +2772,7 @@ case (length_group$)
 case (ref_energy_group$)
   call set_ref_energy
   call set_mat6
+  if (ele%field_master) call set_attributes
 
 case (mat6_group$)
   call set_mat6
