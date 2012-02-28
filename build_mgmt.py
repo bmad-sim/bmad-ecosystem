@@ -107,7 +107,6 @@ def NewLinkName(promotion_label):
     highval = 0
     for platform in platforms:
         latestlinks[platform] = ''
-        print '\n'
         for link in prolinks[platform]:
             if promotion_label in link and '_' in link and \
                    link > latestlinks[platform]:

@@ -43,7 +43,7 @@ sources, is known to build with the following compiler combinations:
 
 
 LINUX (i686)
-  gcc/gfortran Version 4.4.4 
+  gcc/gfortran Version 4.4.4, 4.5.1
   gcc (GCC) 3.2.3 (Red Hat Linux 3.2.3-59)
  - or -
   Intel-ifort Fortran 95 Compiler (ifort v9.1)

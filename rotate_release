@@ -69,7 +69,22 @@ for platform in platforms:
 # Verify that the specified release is promoted to the same rank in
 # on all supported build platforms.
 if build_mgmt.RelNameConsistency(release_type):
-    old_releasename = build_mgmt.ActiveRelNames(release_type)[0]
+    old_releasenames = build_mgmt.ActiveRelNames(release_type)
+    activenames = []
+    for platform in old_releasenames:
+        activenames.append(old_releasenames[platform])
+    if len(set(activenames)) != 1:
+        print '\n\nThere is a mismatch between the active release across'
+        print 'the collection of supported platforms.'
+        for platform in old_releasenames:
+            print '  '+platform+'  :  '+old_releasenames[platform]
+        print 'Please address this before continuing with a'
+        print 'rotation,or perform the release rotation manually.\n'
+        sys.exit(1)
+    else:
+        old_releasename = activenames[0]
+        print old_releasename
+
 
 # Verify that the build directory exists in all supported build
 # platform directories.
@@ -87,7 +102,7 @@ def send_notification_email(old_relname):
     
     time_of_day = 'morning'
     hour = time.localtime()[3]
-    if hour > 12:
+    if hour >= 12:
         time_of_day = 'afternoon'
 
     f = open(mail_tempfile, 'w')
@@ -106,12 +121,14 @@ def send_notification_email(old_relname):
     f.write('Librarian Email    : cesrulib@mail.lepp.cornell.edu\n')
     f.write('Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/\n')
 
-    mail_command = 'mail -s "Accelerator Libraries Rotation" '+mailing_list_address+' < '+mail_tempfile
+    mail_command = '/bin/mail -s "Accelerator Libraries Rotation" '+mailing_list_address+' < '+mail_tempfile
     print 'Sending e-mail notification of this rotation to mailing list...'
-    
-    p = sub.Popen(mail_command)
     f.close()
-    os.remove(mail_tempfile)
+    p = sub.call(mail_command,
+                  bufsize=1,
+                  shell=True)
+    if os.path.exists(mail_tempfile):
+        os.remove(mail_tempfile)
     print 'Done.'
 
 

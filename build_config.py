@@ -9,7 +9,6 @@ offline_release_build_request = [
     ]
 
 online_release_build_request = [
-    'Linux_i686_intel-online',
     'Linux_x86_64_intel-online'
     ]
 
@@ -43,6 +42,7 @@ makefile_dir = '/home/cesrulib/bin/Gmake'
 #-----------------------------------------------------
 repository_addresses = {
     'ACC-LEPP' : 'https://accserv.lepp.cornell.edu/svn',
+    ####'ACC-LEPP' : 'https://lnx770.lepp.cornell.edu/svn',
     'ACC-LEPP-local' : '/mnt/svn',
     'UAP-Sourceforge' : 'https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap'
     }
@@ -83,10 +83,12 @@ build_specs = {
                 '/trunk/src/bsim',
                 '/trunk/src/bsim_cesr',
                 '/trunk/src/cesr_programs',
+                '/trunk/src/fbph',
                 '/trunk/src/util_programs',
                 '/trunk/src/BPM_tbt_gain',
                 '/trunk/src/examples',
-                '/trunk/src/genplt', # enable when SBP is ready
+                '/trunk/src/genplt',
+                '/trunk/src/CBSM/xBSM/XbsmAnalysis'
                 ##'/trunk/src/displays'
                 ##ccon_det
                 ##logit
@@ -104,11 +106,11 @@ build_specs = {
         'host'   : 'acc101.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
-                 '/trunk/util',
-                 '/trunk/Gmake',
-                 '/trunk/src/include',
-                 '/trunk/src/lattice',
-                 '/trunk/src/c_utils',
+                '/trunk/util',
+                '/trunk/Gmake',
+                '/trunk/src/include',
+                '/trunk/src/lattice',
+                '/trunk/src/c_utils',
                 '/trunk/src/recipes_f-90_LEPP',
                 '/trunk/src/sim_utils',
                 '/trunk/src/mpmnet',
@@ -128,10 +130,13 @@ build_specs = {
                 '/trunk/src/bsim',
                 '/trunk/src/bsim_cesr',
                 '/trunk/src/cesr_programs',
+                '/trunk/src/fbph',
                 '/trunk/src/util_programs',
                 '/trunk/src/BPM_tbt_gain',
                 '/trunk/src/examples',
-                '/trunk/src/genplt', # enable when SBP is ready
+                '/trunk/src/genplt',
+                '/trunk/src/CBSM/xBSM/XbsmAnalysis'
+                 
                 ##'/trunk/src/displays'
                 ##ccon_det
                 ##logit
@@ -191,7 +196,7 @@ build_specs = {
         'platform' : 'Linux_x86_64_intel',
         'basedir' : '/nfs/cesr/online/lib',
         'domain' : 'ONLINE',
-        'host'   : 'cesr110.lns.cornell.edu',
+        'host'   : 'cesr109.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
@@ -339,10 +344,25 @@ build_specs = {
                     # ./configure --prefix `pwd`/.. --f90 ifort --gsl `pwd`/..
                     # make
                     # make install
-                '/trunk/packages/lapack'
+                '/trunk/packages/lapack',
                     # cmake .
                     # make
                     # cp lib/* ../lib
+                '/trunk/packages/lapack/LAPACK95'
+                    # cd SRC
+                    # make single_double_complex_dcomplex
+                    # cp ../lapack95.a ../../../lib/liblapack95.a
+                # fftw3
+                    # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/..
+                    # make
+                    # make install
+                # root
+                    # This employs 32-bit Python 2.7
+                    # ./configure --enable-fftw3 --with-fftw3-incdir=`pwd`/../include --with-fftw3-libdir=`pwd`/../lib --disable-python --prefix=`pwd`/.. --etcdir=`pwd`/../etc
+                    # make
+                    # make install
+                    # User must run 'thisroot.sh' script in the directory
+                    #   as part of their environment setup.
             ]
         }
     }    

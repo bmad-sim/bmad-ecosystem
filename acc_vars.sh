@@ -89,8 +89,6 @@ OFFLINE_OPT_SOFTWARE_DIR='/nfs/opt'
 OLD_ACC_BIN=${ACC_BIN}
 
 
-
-
 #--------------------------------------------------------------
 # Support functions
 #--------------------------------------------------------------
@@ -100,16 +98,26 @@ function no_path() {
 }
 
 # If argument path ($1) exists and is not in path, append it.
-function add_path () {
+function add_path() {
   [ -d ${1:-.} ] && no_path $* && eval ${2:-PATH}="\$${2:-PATH}:$1"
 }
 
 # If argument ($1) is in path, remove it.
-function del_path () {
+function del_path() {
   no_path $* || eval ${2:-PATH}=`eval echo :'$'${2:-PATH}: |
     /bin/sed -e "s;:$1:;:;g" -e "s;^:;;" -e "s;:\$;;"`
 }
 
+# Test whether argument 1 string contains argument 2 as a substring.
+# Returns true(0) if substring is present
+# Returns false(1) is substring is not
+function has_substring() {
+    if [[ "${1}" =~ "${2}" ]]; then
+	return `true`
+    else
+	return `false`
+    fi
+}
 
 if ( [ "${ENV_USE_SNAPSHOTS}" == "Y" ] ) then
     ENV_SNAPSHOT_1="${HOME}/.ACC_env_snapshot_1.tmp"
@@ -280,6 +288,7 @@ export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 
 
 
+
 #--------------------------------------------------------------
 # Non-ACC naming convention variables. 
 # Named such for historical compatibility.
@@ -313,16 +322,34 @@ case ${ACC_OS_ARCH} in
 
     "Linux_i686" )
         # 32-bit Intel Fortran (ifort)
-	source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
+	# If this string is not present
+        #    /nfs/opt/intel/fc/9.1.045/bin
+	# source the vendor script, otherwise do nothing.
+        # I.e. only source this script a single time to
+        # prevent unchecked growth of environment variable
+        # length.
+	has_substring ${PATH} "/nfs/opt/intel/fc/9.1.045/bin"
+	if [ "${?}" == "1" ]; then
+	    source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
+	fi
 	;;
 
     "Linux_x86_64" )
 	# Add ifort-9-specific path information to user's environment
 	# to allow running 32-bit fortran programs on a 64-bit machine.
 	# Then source the final 64-bit path information on top.
-	source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
-        # 64-bit Intel Fortran (ifort) v12.1.0.233
-	source ${OPT_SOFTWARE_DIR}/intel/composerxe/bin/compilervars.sh intel64
+	has_substring ${PATH} "/nfs/opt/intel/fc/9.1.045/bin"
+	if [ "${?}" == "1" ]; then
+	    source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
+	fi
+        ## 64-bit Intel Fortran (ifort) v12.1.0.233
+        # /nfs/opt/intel/composer_xe_2011_sp1.6.233/bin/intel64
+	has_substring ${PATH} "/nfs/opt/intel/composer_xe_2011_sp1.6.233/bin/intel64"
+	if [ "${?}" == "1" ]; then
+	    source ${OPT_SOFTWARE_DIR}/intel/composerxe/bin/compilervars.sh intel64
+	fi
+	# 64-bit Intel Fortran (ifort) v9.1.052
+	#source /nfs/opt/intel/fce/9.1.052/bin/ifortvars.sh
 	;;
 
 esac
@@ -338,6 +365,7 @@ del_path ${OLD_ACC_BIN}
 add_path ${ACC_UTIL}
 add_path ${ACC_PKG}/bin
 add_path ${ACC_BIN}
+
 
 
 #--------------------------------------------------------------
@@ -371,19 +399,23 @@ for part in ${LD_LIBRARY_PATH_TEMP}; do
 done
 IFS=${DEFAULT_IFS}
 
-LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/solib
-
-
 
 #--------------------------------------------------------------
-# Variables to locate and use CERNlib, ROOT.
-# To be integrated into packages system for CESR management?
+# Source ROOT setup script for the set of ROOT libraries and
+# programs built as 3rd-party packages in the selected release.
 #--------------------------------------------------------------
-export CERN_ROOT=/nfs/cern/pro
-export CERNLIB=${CERN_ROOT}/lib
-export CERNSRC=${CERN_ROOT}/src
+if [ -f ${ACC_PKG}/bin/thisroot.sh ]; then
+    # To prevent multiple sourcing
+# When active, Test never invokes thisroot on 'mcr' account.
+# When active, Test does invoke thisroot on 'cesrulib' account.  
+#  WHY the difference?
+    #has_substring ${PATH} "root/../bin" 
+    #if [ "${?}" == "1" ]; then
+	source ${ACC_PKG}/bin/thisroot.sh
+    #fi
+fi
 
-
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/solib:${ACC_RELEASE_DIR}/packages/lib
 
 #--------------------------------------------------------------
 # Useful aliases

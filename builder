@@ -105,7 +105,7 @@ def build_directory( dir, statlist, target ):
     build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; ' + \
                     'UTIL_DIR_REQUEST='+invars.util_dir + \
                     '; source ' + invars.util_dir + \
-                    '/acc_vars.sh; ifort -v; printenv | grep ACC; gmake ' + \
+                    '/acc_vars.sh; ifort -v; printenv | grep ACC; echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; gmake ' + \
                     target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
     p = sub.Popen(build_command,
                   bufsize=1,
