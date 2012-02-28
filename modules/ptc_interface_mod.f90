@@ -1007,7 +1007,8 @@ implicit none
 real(rp) vec_bmad(:), vec_ptc(:)
 real(rp) beta0
 
-!
+! vec_ptc(5) = (E - E0) / P0
+! vec_ptc(6) = t - t_ref
 
 vec_ptc = vec_bmad
 vec_ptc(5) = (vec_bmad(6)**2+2.d0*vec_bmad(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+vec_bmad(6)**2+2.d0*vec_bmad(6)) )

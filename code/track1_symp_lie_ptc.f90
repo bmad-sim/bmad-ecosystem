@@ -31,7 +31,7 @@ type (ele_struct) :: ele, drift_ele
 type (lat_param_struct) :: param
 type (fibre), pointer :: fibre_ele
 
-real(dp) re(6), beta0, z_patch
+real(dp) re(6), beta0, z_patch, dref_time
 
 character(20) :: r_name = 'track1_symp_lie_ptc'
 
@@ -71,7 +71,9 @@ if (ele%value(p0c$) /= ele%value(p0c_start$)) then
   call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
 endif
 
-z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
+beta0 = ele%value(p0c$) / ele%value(e_tot$) 
+dref_time = ele%value(l$) / (beta0 * c_light)
+z_patch = (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light 
 end_orb%vec(5) = end_orb%vec(5) + z_patch
 
 end_orb%s = ele%s

@@ -110,7 +110,7 @@ do ib = 0, ubound(lat%branch, 1)
     gun_ele => branch%ele(i)
     if (gun_ele%key == marker$) cycle
     if (gun_ele%key /= e_gun$) exit
-    if (gun_ele%slave_status == super_slave$) gun_ele => pointer_to_lord(gun_ele, 1)
+    if (gun_ele%slave_status == super_slave$ .or. gun_ele%slave_status == slice_slave$) gun_ele => pointer_to_lord(gun_ele, 1)
 
     ele0 => branch%ele(0)
 
@@ -171,7 +171,7 @@ do ib = 0, ubound(lat%branch, 1)
       ! Check if this is an e_gun or is the slave of an e_gun.
 
       e_gun_associated = (ele%key == e_gun$)
-      if (ele%slave_status == super_slave$) then
+      if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
         do k = 1, ele%n_lord
           lord => pointer_to_lord(ele, k)
           if (lord%key /= e_gun$) cycle
@@ -193,7 +193,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Find where the current super lord region ends.
 
-    if (ele%slave_status == super_slave$) then
+    if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
       do j = 1, ele%n_lord
         lord => pointer_to_lord(ele, j)
         lord2 => pointer_to_slave(lord, lord%n_slave) ! last element of lord
@@ -204,7 +204,7 @@ do ib = 0, ubound(lat%branch, 1)
     ! If this element is the first super_slave or multipass_slave of a lord that needs to be auto phased,
     ! make sure that the lord has its RF phase and amplitude properly adjusted.
 
-    if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then 
+    if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$ .or. ele%slave_status == multipass_slave$) then 
       do ixl = 1, ele%n_lord
         lord => pointer_to_lord (ele, ixl, ix_slave = ix_slave)
         if (ix_slave /= 1) cycle
@@ -383,7 +383,7 @@ case (lcavity$)
       ele%ref_time = ref_time_start
     endif
 
-    if (ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
+    if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
       call rf_auto_scale_phase_and_amp (ele, param, err)
       if (err) return
     endif
@@ -460,7 +460,8 @@ case default
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
 
-  if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) then
+  if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &
+                        ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
     call rf_auto_scale_phase_and_amp (ele, param, err)
     if (err) return
   endif
