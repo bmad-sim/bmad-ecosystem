@@ -124,6 +124,7 @@ if (lat%param%n_part /= 0) write (iu, *) 'parameter[n_part] = ', lat%param%n_par
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_phase]    = ', lat%rf_auto_scale_phase
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_amp]      = ', lat%rf_auto_scale_amp
 write (iu, '(a, l1)') 'parameter[absolute_time_tracking] = ', lat%absolute_time_tracking
+write (iu, '(a, l1)') 'parameter[no_end_marker]          = ', .true.
 
 ele => lat%ele(0) 
 

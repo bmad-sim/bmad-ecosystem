@@ -2979,7 +2979,7 @@ if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%par
 
 do i = 1, ele%n_lord
   lord => pointer_to_lord (ele, i)
-  call set_lords_status_stale (lord, lat, stat_group, flag)
+  call set_lords_status_stale (lord, lat, stat_group, .true.)
 enddo
 
 end subroutine set_lords_status_stale
