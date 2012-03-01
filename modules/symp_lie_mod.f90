@@ -356,19 +356,19 @@ endif
 
 if (do_offset) call offset_particle (ele, param, end_orb, unset$, set_canonical = .false.)
 
-! Correct for finite pitches & calc vec0
-
-if (calculate_mat6) then
-  ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
-  ele%vec0(6) = 0
-endif
-
 ! Correct z-position for wigglers, etc. 
 
 z_patch = ele%value(delta_ref_time$) * c_light * end_orb%beta - ele%value(l$)
 end_orb%vec(5) = end_orb%vec(5) + z_patch
 end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + (start2_orb%vec(5) - end_orb%vec(5)) / &
-                                                                                   (end_orb%beta * c_light)
+                                                                            (end_orb%beta * c_light)
+
+! calc vec0
+
+if (calculate_mat6) then
+  ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
+  ele%vec0(6) = 0
+endif
 
 !
 

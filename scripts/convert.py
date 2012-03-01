@@ -11,8 +11,8 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'ele_at_s' in line:
-      line = line.replace('ele_at_s', 'element_at_s')
+    if 'character*(*)' in line:
+      line = line.replace('character*(*)', 'character(*)')
       found = True
 
     out_file.write(line)
