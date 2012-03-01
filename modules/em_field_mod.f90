@@ -175,13 +175,14 @@ real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
 
 integer i, j, m, n, sign_charge
 
-logical :: local_ref_frame, local_ref
+logical :: local_ref_frame, local_ref, has_nonzero_pole
 logical, optional :: calc_dfield
 
 logical df_calc
@@ -219,7 +220,7 @@ endif
 if (ele%field_calc == refer_to_lords$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
+    if (ele%slave_status /= slice_slave$ .and. lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
     local_ref = .true.
     if (ele%key == em_field$) local_ref = .false.
     if (lord%lord_status == multipass_lord$) then
@@ -506,19 +507,21 @@ select case (ele%field_calc)
   !---------------------------------------------------------------------
   ! Add multipoles
 
-  if (associated(ele%a_pole)) then
+  call multipole_ele_to_ab(ele, param%particle, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
+  if (has_nonzero_pole) then
+
     if (ele%value(l$) == 0) then
       call out_io (s_fatal$, r_name, 'dField NOT YET IMPLEMENTED FOR MULTIPOLES!', 'FOR: ' // ele%name)
       if (bmad_status%exit_on_error) call err_exit
       return
     endif
 
-    do i = 0, ubound(ele%a_pole, 1)
-      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+    do i = 0, n_pole_maxx
+      if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
       if (df_calc) then
-        call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky, dkm)
+        call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky, dkm)
       else
-        call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky)
+        call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky)
       endif
       field%B(1) = field%B(1) +  f_p0c * ky / ele%value(l$)
       field%B(2) = field%B(2) -  f_p0c * kx / ele%value(l$)

@@ -68,7 +68,7 @@ type (coord_struct) here
 type (ele_struct), pointer :: hard_ele
 
 real(rp), optional, intent(in) :: s_start, s_end
-real(rp) s1, s2, s_sav, ds, s, t, beta, s_hard_edge, s_target
+real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target, s_edge_hard
 
 integer i, n_step, hard_end
 
@@ -102,7 +102,7 @@ endif
 ! to apply the appropriate hard edge kick.
 
 nullify (hard_ele)
-call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
+call calc_next_hard_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
 
@@ -135,12 +135,12 @@ s = s1
 do 
 
   do
-    if (abs(s - s_hard_edge) > bmad_com%significant_length .or. .not. associated(hard_ele)) exit
-    call apply_hard_edge_kick (end, t, hard_ele, ele, param, hard_end)
-    call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
+    if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(hard_ele)) exit
+    call apply_hard_edge_kick (end, s_edge_hard, t, hard_ele, ele, param, hard_end)
+    call calc_next_hard_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
   enddo
 
-  s_target = min(s2, s_hard_edge)
+  s_target = min(s2, s_edge_track)
   call compute_even_steps (ele%value(ds_step$), s_target-s, bmad_com%default_ds_step, ds, n_step)
 
   call track1_boris_partial (here, loc_ele, param, s, t, ds, here)

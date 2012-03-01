@@ -60,7 +60,7 @@ real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, gradient_max, voltage_max
 integer i, n_slice, key
 
 logical, optional :: end_in, err
-logical err_flag
+logical err_flag, has_nonzero_pole
 character(16), parameter :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
@@ -347,7 +347,7 @@ case (multipole$, ab_multipole$)
 
   if (.not. ele%multipoles_on) return
 
-  call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
+  call multipole_ele_to_kt (ele, param%particle, .true., has_nonzero_pole, knl, tilt)
   call mat6_multipole (knl, tilt, c0%vec, 1.0_rp, ele%mat6)
 
   ! if knl(0) is non-zero then the reference orbit itself is bent
@@ -888,20 +888,22 @@ implicit none
 
 real(rp) mass, e_tot
 
-logical add_m56_correction
+logical add_m56_correction, has_nonzero_pole
 
 !
 
-if (associated(ele%a_pole) .and. key /= multipole$ .and. key /= ab_multipole$) then
-  call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
-  mat6_m = 0
-  call mat6_multipole (knl, tilt, c0%vec, 0.5_rp, mat6_m)
-  mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
-  mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
-  mat6_m = 0
-  call mat6_multipole (knl, tilt, c1%vec, 0.5_rp, mat6_m)
-  mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
-  mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
+if (key /= multipole$ .and. key /= ab_multipole$) then
+  call multipole_ele_to_kt (ele, param%particle, .true., has_nonzero_pole, knl, tilt)
+  if (has_nonzero_pole) then
+    mat6_m = 0
+    call mat6_multipole (knl, tilt, c0%vec, 0.5_rp, mat6_m)
+    mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
+    mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
+    mat6_m = 0
+    call mat6_multipole (knl, tilt, c1%vec, 0.5_rp, mat6_m)
+    mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
+    mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
+  endif
 endif
 
 if (ele%value(s_offset_tot$) /= 0) then

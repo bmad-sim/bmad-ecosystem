@@ -1140,7 +1140,6 @@ real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
 real(rp) sin_n, cos_n, a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
-real(rp) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
 real(rp) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
 real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
@@ -1225,8 +1224,6 @@ k_x = 0
 k_y = 0
 x_kick = 0
 y_kick = 0
-a_tot = 0
-b_tot = 0
 sum_1 = 0
 sum_2 = 0
 sum_3 = 0
@@ -1380,13 +1377,6 @@ do j = 1, slave%n_lord
     y_kick = y_kick + lord%value(vkick$) * coef
   endif
 
-  if (associated(lord%a_pole)) then
-    call multipole_ele_to_kt (lord, +1, knl, t, .true.)
-    call multipole_kt_to_ab (knl/lord%value(l$), t, a, b)
-    a_tot = a_tot + a
-    b_tot = b_tot + b
-  endif
-
   !------
 
   select case (slave%key)
@@ -1493,17 +1483,6 @@ endif
 
 slave%value = value
 
-if (any(a_tot /= 0) .or. any(b_tot /= 0)) then
-  call multipole_init(slave)
-  call multipole_ab_to_kt(a_tot, b_tot, knl, t)
-  call multipole_kt_to_ab(knl*slave%value(l$), t-tilt, a, b)
-  slave%a_pole = a
-  slave%b_pole = b
-  slave%value(radius$) = 1
-elseif (associated(slave%a_pole)) then
-  deallocate (slave%a_pole, slave%b_pole)
-endif
-
 !-----------------------------
 
 select case (slave%key)
@@ -1565,7 +1544,6 @@ case (solenoid$, sol_quad$, quadrupole$)
   if (k_x == 0 .and. k_y == 0) then  ! pure solenoid
     slave%value(k1$) = 0
     slave%value(tilt$) = 0
-    deallocate (slave%a_pole, slave%b_pole, stat = ix)
     slave%value(x_offset$) = x_o_sol
     slave%value(y_offset$) = y_o_sol
     slave%value(x_pitch$)  = x_p_sol
@@ -1678,10 +1656,9 @@ end subroutine makeup_super_slave
 !                                    param, at_entrance_end, at_exit_end, err_flag, old_slice)
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
-! Note: This routine essentially only modifies the sliced_ele%value array so 
-! before this routine is called, the set:
-!    sliced_ele = ele_in 
-! needs to be done.
+! Note: This routine assumes that the following call has been made before hand:
+!    call transfer (ele_in, sliced_ele, .true.)
+! This routine only has to be done once for the life of the sliced_ele variable.
 !
 ! Note: To save tracking computation time, if ele_in has taylor, symp_lie_ptc, or symp_map 
 ! for tracking_method or mat6_calc_method, then this will be changed to symp_lie_bmad 

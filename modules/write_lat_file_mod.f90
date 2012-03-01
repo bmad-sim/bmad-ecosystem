@@ -49,13 +49,14 @@ type (multipass_info_struct), allocatable :: multipass(:)
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2
+type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2
 type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (rf_wake_lr_struct), pointer :: lr
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
+type (em_field_mode_struct), pointer :: mode
 
 real(rp) s0, x_lim, y_lim, val
 
@@ -69,8 +70,8 @@ character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
 character(10) angle
 
-integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
-integer unit(6), n_names, ix_match
+integer i, j, k, n, ix, iu, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
+integer unit(6), n_names, ix_match, ie2
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_top, ix_super, default_val
 integer, allocatable :: an_indexx(:)
@@ -309,6 +310,60 @@ do ib = 0, ubound(lat%branch, 1)
     ! EM fields
 
     if (associated(ele%em_field)) then
+
+      ! First find out out if an em_file has been written
+      found = .false.
+      do ie2 = 1, ie-1
+        ele2 => branch%ele(ie2)
+        if (.not. associated(ele2%em_field)) cycle
+        if (.not. associated(ele2%em_field, ele%em_field)) cycle
+        found = .true.
+        exit
+      enddo
+
+      if (found) then
+        call str_downcase(name, ele2%name)
+        line = trim(line) // ', field = call::field_' // trim(name)
+      else
+        call str_downcase(name, ele%name)
+        line = trim(line) // ', field = call::field_' // trim(name)
+        iu2 = lunget()
+        open (iu2, file = 'field_' // trim(name))
+        write (iu2, *) '{'
+        do i = 1, size(ele%em_field%mode)
+          mode => ele%em_field%mode(i)
+          write (iu2, '(a)') '  mode = {'
+          write (iu2, '(a, i0, a)')     '  m             = ', mode%m, ','
+          write (iu2, '(a, i0, a)')     '  harmonic      = ', mode%harmonic, ','
+          write (iu2, '(a, es12.4, a)') '  f_damp        =', mode%f_damp, ','
+          write (iu2, '(a, f10.6, a)')  '  dphi0_ref     =', mode%dphi0_ref, ','
+          write (iu2, '(a, f10.6, a)')  '  phi0_azimuth  =', mode%dphi0_ref, ','
+          write (iu2, '(a, es13.6, a)') '  field_scale   =', mode%field_scale, ','
+          if (mode%master_scale > 0) write (iu2, '(3a)') '    master_scale = ', &
+                                          trim(attribute_name(ele, mode%master_scale)), ','
+          if (associated(mode%map)) then
+            write (iu2, *)                '  map = {'
+            write (iu2, '(3a)')           '    ele_anchor_pt = ', &
+                                          trim(anchor_pt_name(mode%map%ele_anchor_pt)), ','
+            write (iu2, '(a, es13.6, a)') '    dz            =', mode%map%dz, ','
+              if (any(real(mode%map%term%e_coef) /= 0)) then
+                write (iu2, '(a)')        '    e_coef_re ='
+                do j = 1, size(mode%map%term)
+                enddo
+              endif
+          endif
+
+          if (associated(mode%grid)) then
+
+          endif
+
+
+        enddo
+        write (iu2, *) '}'
+        close (iu2)
+      endif
+
+
       call out_io (s_error$, r_name, 'WRITING EM_FIELD ELEMENT COMPONENT NOT YET IMPLEMENTED!', & 
                                      'PLEASE CONTACT DAVID SAGAN!')
     endif
@@ -1040,9 +1095,9 @@ character(8) str
 character(20) :: r_name = "bmad_to_mad_or_xsif"
 character(2) continue_char, eol_char, comment_char
 
-logical init_needed
-logical parsing
 logical, optional :: use_matrix_model, err
+logical init_needed, has_nonzero_pole
+logical parsing
 
 ! open file
 
@@ -1188,17 +1243,19 @@ do
   ! If there is a multipole component then put multipole elements at half strength 
   ! just before and just after the element.
 
-  if (associated(ele%a_pole) .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    call multipole_ele_to_ab (ele, lat%param%particle, ab_ele%a_pole, ab_ele%b_pole, .true.)
-    ab_ele%a_pole = ab_ele%a_pole / 2
-    ab_ele%b_pole = ab_ele%b_pole / 2
-    deallocate (ele%a_pole, ele%b_pole)
-    j_count = j_count + 1
-    write (ab_ele%name,   '(a, i3.3)') 'MULTIPOLE_Z', j_count
-    call insert_element (lat_out, ab_ele, ix_ele)
-    call insert_element (lat_out, ab_ele, ix_ele+2)
-    ie2 = ie2 + 2
-    cycle
+  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
+    call multipole_ele_to_ab (ele, lat%param%particle, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
+    if (has_nonzero_pole) then
+      ab_ele%a_pole = ab_ele%a_pole / 2
+      ab_ele%b_pole = ab_ele%b_pole / 2
+      deallocate (ele%a_pole, ele%b_pole)
+      j_count = j_count + 1
+      write (ab_ele%name,   '(a, i3.3)') 'MULTIPOLE_Z', j_count
+      call insert_element (lat_out, ab_ele, ix_ele)
+      call insert_element (lat_out, ab_ele, ix_ele+2)
+      ie2 = ie2 + 2
+      cycle
+    endif
   endif
 
   ! If there are nonzero kick values and this is not a kick type element then put
@@ -1588,12 +1645,12 @@ do ix_ele = ie1, ie2
 
   case (multipole$, ab_multipole$)
 
-    call multipole_ele_to_kt (ele, lat_out%param%particle, knl, tilts, .true.)
+    call multipole_ele_to_kt (ele, lat_out%param%particle, .true., has_nonzero_pole, knl, tilts)
     write (line_out, '(a, es13.5)') trim(ele%name) // ': multipole'  
 
     if (out_type == 'MAD-X') then
       knl_str = ''; ksl_str = ''
-      call multipole_ele_to_ab (ele, lat_out%param%particle, a_pole, b_pole, .true.)
+      call multipole_ele_to_ab (ele, lat_out%param%particle, .true., has_nonzero_pole, a_pole, b_pole)
       do i = 0, 9
         if (all(knl(i:) == 0)) exit
         if (abs(a_pole(i)) < 1d-12 * abs(b_pole(i))) a_pole(i) = 0  ! Round to zero insignificant value

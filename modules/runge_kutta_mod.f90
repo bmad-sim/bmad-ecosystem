@@ -79,7 +79,7 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 real(rp), parameter :: tiny = 1.0e-30_rp, ds_safe = 1e-12_rp
 real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, h_save
-real(rp) :: dr_ds(7), r_scal(7), t, s_hard_edge, direction
+real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, direction
 
 integer, parameter :: max_step = 10000
 integer :: n_step, hard_end
@@ -107,7 +107,7 @@ if (s1 == s2) return
 ! to apply the appropriate hard edge kick.
 
 nullify (hard_ele)
-call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
+call calc_next_hard_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 ! Initial time
 
@@ -141,9 +141,9 @@ do n_step = 1, max_step
 
   do
     if (.not. associated(hard_ele)) exit
-    if ((s-s_hard_edge)*direction < -ds_safe) exit
-    call apply_hard_edge_kick (orb_end, t, hard_ele, ele, param, hard_end)
-    call calc_next_hard_edge (ele, s_hard_edge, hard_ele, hard_end)
+    if ((s-s_edge_track)*direction < -ds_safe) exit
+    call apply_hard_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
+    call calc_next_hard_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
     s = s + ds_safe
@@ -167,7 +167,7 @@ do n_step = 1, max_step
   r_scal(:) = abs([orb_end%vec(:), t]) + abs(h*dr_ds(:)) + TINY
 
   h_save = h
-  if ((s+h-s_hard_edge)*direction > 0.0) h = (s_hard_edge - s - ds_safe / 2) * direction
+  if ((s+h-s_edge_track)*direction > 0.0) h = (s_edge_track - s - ds_safe / 2) * direction
 
   call rkqs_bmad (ele, param, orb_end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame, err)
   if (err) return

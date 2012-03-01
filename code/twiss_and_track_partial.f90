@@ -113,7 +113,7 @@ endif
 
 ! Create the runt element to track through.
 
-runt = ele_track
+call transfer_ele (ele_track, runt, .true.)
 call create_element_slice (runt, ele_track, del_s, 0.0_rp, param, track_entrance, .false., error)
 if (error) return
 

@@ -84,8 +84,7 @@ type (coord_struct), intent(inout) :: coord
 
 real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-real(rp), save :: old_angle = 0, old_roll = 0
-real(rp), save :: del_x_vel = 0, del_y_vel = 0
+real(rp) :: del_x_vel, del_y_vel
 real(rp) angle, s_here, xp, yp, x_off, y_off, s_off, vec(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta
 
@@ -95,6 +94,7 @@ logical, intent(in) :: set
 logical, optional, intent(in) :: set_canonical, set_tilt, set_multipoles
 logical, optional, intent(in) :: set_hvkicks, set_s_offset
 logical set_canon, set_multi, set_hv, set_t, set_hv1, set_hv2, is_reversed, set_s
+logical has_nonzero_pole
 
 !---------------------------------------------------------------         
 ! E_rel               
@@ -132,21 +132,17 @@ else
   set_hv2 = .false.
 endif
 
-if (set_t .and. ele%key == sbend$) then
+if (ele%key == sbend$) then
   angle = ele%value(l$) * ele%value(g$)
-  if (angle /= old_angle .or. ele%value(roll$) /= old_roll) then
-    if (ele%value(roll$) == 0) then
-      del_x_vel = 0
-      del_y_vel = 0
-    else if (abs(ele%value(roll$)) < 0.001) then
-      del_x_vel = angle * ele%value(roll$)**2 / 4
-      del_y_vel = -angle * sin(ele%value(roll$)) / 2
-    else
-      del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2
-      del_y_vel = -angle * sin(ele%value(roll$)) / 2
-    endif
-    old_angle = angle
-    old_roll = ele%value(roll$)
+  if (ele%value(roll$) == 0) then
+    del_x_vel = 0
+    del_y_vel = 0
+  else if (abs(ele%value(roll$)) < 0.001) then
+    del_x_vel = angle * ele%value(roll$)**2 / 4
+    del_y_vel = -angle * sin(ele%value(roll$)) / 2
+  else
+    del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2
+    del_y_vel = -angle * sin(ele%value(roll$)) / 2
   endif
 endif
 
@@ -219,10 +215,12 @@ if (set) then
 
   ! Set: Multipoles
 
-  if (set_multi .and. associated(ele%a_pole)) then
-    call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
-    knl = knl / 2
-    call multipole_kicks (knl, tilt, coord)
+  if (set_multi) then
+    call multipole_ele_to_kt(ele, param%particle, .true., has_nonzero_pole, knl, tilt)
+    if (has_nonzero_pole) then
+      knl = knl / 2
+      call multipole_kicks (knl, tilt, coord)
+    endif
   endif
 
   ! Set: Tilt
@@ -312,8 +310,12 @@ else
 
   ! Unset: Multipoles
 
-  if (set_multi .and. associated(ele%a_pole)) then
-    call multipole_kicks (knl, tilt, coord)
+  if (set_multi) then
+    call multipole_ele_to_kt(ele, param%particle, .true., has_nonzero_pole, knl, tilt)
+    if (has_nonzero_pole) then
+      knl = knl / 2
+      call multipole_kicks (knl, tilt, coord)
+    endif
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.

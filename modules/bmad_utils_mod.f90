@@ -993,8 +993,8 @@ end subroutine clear_lat_1turn_mats
 ! Subroutine transfer_ele (ele1, ele2, nullify_pointers)
 !
 ! Subroutine to set ele2 = ele1. 
-! This is a plain transfer of information not using the overloaded equal.
-! Thus at the end ele2's pointers point to the same memory as ele1's.
+! This is a plain transfer of information not using the overloaded equal operator.
+! The result is that ele2's pointers will point to the same memory as ele1's.
 !
 ! NOTE: Do not use this routine unless you know what you are doing!
 !
@@ -1003,9 +1003,10 @@ end subroutine clear_lat_1turn_mats
 !
 ! Input:
 !   ele1             -- Ele_struct:
-!   nullify_pointers -- Logical, optional: If present and True then nullify the pointers in ele2.
-!                         This gives a "bare bones" copy where one does not have to worry about 
-!                         deallocating allocated structure components later.
+!   nullify_pointers -- Logical, optional: If present and True then nullify the 
+!                         pointers in ele2 except for the ele2%lat pointer. 
+!                         This gives a "bare bones" copy where one does not have to 
+!                         worry about deallocating allocated structure components later.
 !
 ! Output:
 !   ele2 -- Ele_struct:
@@ -1013,14 +1014,17 @@ end subroutine clear_lat_1turn_mats
 
 subroutine transfer_ele (ele1, ele2, nullify_pointers)
 
-type (ele_struct) :: ele1
+type (ele_struct), target :: ele1
 type (ele_struct) :: ele2
 logical, optional :: nullify_pointers
 
 !
 
 ele2 = ele1
-if (logic_option (.false., nullify_pointers)) call deallocate_ele_pointers (ele2, .true.)
+if (logic_option (.false., nullify_pointers)) then
+  call deallocate_ele_pointers (ele2, .true.)
+  ele2%lat => ele1%lat  ! Reinstate
+endif
 
 end subroutine transfer_ele
 
@@ -3565,7 +3569,7 @@ end function tracking_uses_hard_edge_model
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine calc_next_hard_edge (track_ele, s_edge, hard_ele, hard_end)
+! Subroutine calc_next_hard_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
 !
 ! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
 ! This routine is used by integration tracking routines like Runge-Kutta.
@@ -3582,22 +3586,23 @@ end function tracking_uses_hard_edge_model
 !   hard_ele      -- ele_struct, pointer: Needs to be nullified at the start of tracking.
 !
 ! Output:
-!   s_edge    -- Real(rp): S position of next hard edge. If there are no more hard 
-!                  edges then s_pos will be set to ele%value(l$).
-!   hard_ele  -- ele_struct, pointer: Points to element with the hard edge.
-!                  Will be nullified if there is no hard edge.
-!                  This will be track_ele unless track_ele is a super_slave.
-!   hard_end  -- Integer: Describes hard edge. Set to entrance_end$ or exit_end$.
+!   s_edge_track -- Real(rp): S position of next hard edge in track_ele frame.
+!                     If there are no more hard edges then s_pos will be set to ele%value(l$).
+!   hard_ele     -- ele_struct, pointer: Points to element with the hard edge.
+!                     Will be nullified if there is no hard edge.
+!                     This will be track_ele unless track_ele is a super_slave.
+!   s_edge_hard  -- Real(rp): S-position of next hard egde in hard_ele frame.
+!   hard_end     -- Integer: Describes hard edge. Set to entrance_end$ or exit_end$.
 !-
 
-subroutine calc_next_hard_edge (track_ele, s_edge, hard_ele, hard_end)
+subroutine calc_next_hard_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 implicit none
 
 type (ele_struct), target :: track_ele
 type (ele_struct), pointer :: hard_ele, lord
 
-real(rp) s_edge
+real(rp) s_edge_track, s_edge_hard
 integer hard_end
 integer i
 
@@ -3608,10 +3613,9 @@ integer i
 !   ele%ixx = 2  ! About to track through exit hard edge
 
 if (.not. associated(hard_ele)) then
-  if (track_ele%slave_status == super_slave$) then
+  if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
     do i = 1, track_ele%n_lord
       lord => pointer_to_lord(track_ele, i)
-      if (lord%lord_status /= super_lord$) cycle
       lord%ixx = 0
     enddo
   else
@@ -3621,13 +3625,12 @@ endif
 
 ! Find next hard edge
 
-s_edge = track_ele%value(l$)
+s_edge_track = track_ele%value(l$)
 nullify (hard_ele)
 
-if (track_ele%slave_status == super_slave$) then
+if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
   do i = 1, track_ele%n_lord
     lord => pointer_to_lord(track_ele, i)
-    if (lord%lord_status /= super_lord$) cycle
     call does_this_ele_contain_the_next_edge (lord)
   enddo
 else
@@ -3650,12 +3653,7 @@ integer this_end
 if (.not. tracking_uses_hard_edge_model (this_ele)) return
 if (this_ele%ixx == 2) return
 
-if (this_ele%ix_ele == track_ele%ix_ele) then ! If same element
-  s_off = 0
-else
-  s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
-endif
-
+s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
 s_hard_entrance = s_off + (this_ele%value(l$) - this_ele%value(l_hard_edge$)) / 2 
 s_hard_exit     = s_off + (this_ele%value(l$) + this_ele%value(l_hard_edge$)) / 2 
 
@@ -3674,13 +3672,14 @@ else   ! this_ele%ixx = 1
   s_this_edge = min(track_ele%value(l$), s_hard_exit)
 endif
 
-if (s_this_edge > s_edge) return
+if (s_this_edge > s_edge_track) return
 
 ! This looks like the next hard edge
 
-s_edge = s_this_edge
 hard_ele => this_ele
 hard_end = this_end
+s_edge_track = s_this_edge
+s_edge_hard = s_edge_track - s_off
 
 end subroutine does_this_ele_contain_the_next_edge
 
