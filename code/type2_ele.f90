@@ -93,7 +93,7 @@ character(12), parameter :: r_name = 'type2_ele'
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
 logical, optional :: type_floor_coords, type_field, type_wall
-logical type_zero, err_flag, print_it, is_default, has_acceleration
+logical type_zero, err_flag, print_it, is_default, has_acceleration, has_nonzero_pole
 
 ! init
 
@@ -232,11 +232,11 @@ else
     if (present(lattice)) particle = lattice%param%particle
 
     if (ele%key == multipole$) then
-      call multipole_ele_to_kt (ele, particle, a,  b,  .false.)
-      call multipole_ele_to_kt (ele, particle, a2, b2, .true.)
+      call multipole_ele_to_kt (ele, particle, .false., has_nonzero_pole, a,  b)
+      call multipole_ele_to_kt (ele, particle, .true.,  has_nonzero_pole, a2, b2)
     else
-      call multipole_ele_to_ab (ele, particle, a,  b,  .false.)
-      call multipole_ele_to_ab (ele, particle, a2, b2, .true.)
+      call multipole_ele_to_ab (ele, particle, .false., has_nonzero_pole, a,  b)
+      call multipole_ele_to_ab (ele, particle, .true.,  has_nonzero_pole, a2, b2)
     endif
 
     if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
@@ -244,7 +244,7 @@ else
     endif
 
     do i = 0, n_pole_maxx
-      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+      if (a2(i) == 0 .and. b2(i) == 0) cycle
       write (str_i, '(i2)') i
       call string_trim (str_i, str_i, ix)
       if (ele%key == ab_multipole$) then

@@ -166,6 +166,8 @@ real(dp), save :: s_ang, c_ang
 real(dp), save :: w_mat(3,3), s_mat(3,3), r_mat(3), t_mat(3,3)
 real(dp), parameter :: twopi_dp = 2 * 3.14159265358979
 
+logical has_nonzero_pole
+
 ! floor_position element: Floor position is already set in the element.
 
 if (ele%key == floor_position$) return
@@ -186,7 +188,7 @@ key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
 if (key == multipole$) then
-  call multipole_ele_to_kt (ele, positron$, knl, tilt, .true.)
+  call multipole_ele_to_kt (ele, positron$, .true., has_nonzero_pole, knl, tilt)
 endif
 
 ! General case where layout is not in the horizontal plane

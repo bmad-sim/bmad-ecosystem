@@ -681,14 +681,11 @@ taking advantage of the fact that the pass number
 
 \index{ele_struct!\%ic1_lord}\index{ele_struct!\%ic2_lord}
 \index{lat_struct!\%ic}
-The \vn{%ic1_lord} and \vn{%ic2_lord} components of a given slave element,
-along with the \vn{lat%ic(:)} array, can be
-used to find the lords of the slave. In virtually all practical cases, it is
-simpler to use the \vn{pointer_to_lord} function to find the lords and so
-it is recommended that the use of \vn{%ic1_lord} and \vn{%ic2_lord} be
-avoided. For the interested reader, the entire
-\vn{pointer_to_lord} function (minus
-some error checking) is:
+Except for a \vn{slice_slave}, the \vn{%ic1_lord} and \vn{%ic2_lord} 
+components of a given slave
+element, along with the \vn{lat%ic(:)} array, can be used to find
+the lords of the slave. 
+Somewhat simplified, the code for the \xxx{pointer_to_lord} function is:
 \begin{example}
   function pointer_to_lord (slave, ix_lord, ix_control) result (lord_ptr)
     implicit none
@@ -703,6 +700,9 @@ some error checking) is:
     if (present(ix_control)) ix_control = icon
   end function
 \end{example}
+This method for finding the lords of an element is considered
+``private''. That is, no code outside of the official \bmad library
+should rely on this.
 
 %----------------------------------------------------------------------------
 \section{Lattice Bookkeeping}

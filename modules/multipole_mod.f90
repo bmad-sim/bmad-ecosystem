@@ -2,6 +2,7 @@ module multipole_mod
 
 use bmad_struct
 use matrix_mod
+use bmad_utils_mod
 
 contains
 
@@ -107,13 +108,13 @@ do n = 0, n_pole_maxx
 
 enddo
 
-end subroutine
+end subroutine multipole_ab_to_kt
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
+! Subroutine multipole_ele_to_kt (ele, particle, use_ele_tilt, has_nonzero_pole, knl, tilt)
 !
 ! Subroutine to put the multipole components (strength and tilt)
 ! into 2 vectors along with the appropriate scaling.
@@ -125,47 +126,66 @@ end subroutine
 ! Input:
 !   ele          -- Ele_struct: Multipole element.
 !   particle     -- Integer: Particle species (+1 or -1).
-!   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) 
-!                     in calculations.
+!   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations. 
+!                     use_ele_tilt is ignored in the case of multipole$ elements.
 !
 ! Output:
-!   knl(0:)  -- Real(rp): Vector of strengths, MAD units.
-!   tilt(0:) -- Real(rp): Vector of tilts.
+!   has_nonzero_pole    -- Logical: Set True if there is a nonzero pole. False otherwise.
+!   knl(0:n_pole_maxx)  -- Real(rp): Vector of strengths, MAD units.
+!   tilt(0:n_pole_maxx) -- Real(rp): Vector of tilts.
 !-
 
-subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
+subroutine multipole_ele_to_kt (ele, particle, use_ele_tilt, has_nonzero_pole, knl, tilt)
 
 implicit none
 
-type (ele_struct)  ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
 
 real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx)
-integer particle
-logical use_ele_tilt
+real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
+real(rp) tilt1
 
-!
+integer i, particle
 
-if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a_pole)) then
-  knl = 0
-  tilt = 0
-  return
-endif
+logical use_ele_tilt, has_nonzero_pole
+logical has_nonzero
 
-! multipole
-                  
+! Init
+
+has_nonzero_pole = .false.
+
+! Multipole case. Note: use_ele_tilt arg is ignored here.
+! Also multipoles cannot be slaves.
+
 if (ele%key == multipole$) then
   knl  = ele%a_pole
   tilt = ele%b_pole + ele%value(tilt_tot$)
+  if (any(knl /= 0)) has_nonzero_pole = .true.
   return
 endif
 
-! ab_multiple, etc...
+! All other cases.
+! Slice slaves and super slaves have their associated multipoles stored in the lord
 
-call multipole_ele_to_ab (ele, particle, a, b, .false.)
+if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+  a = 0
+  b = 0
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    call multipole_ele_to_ab (lord, particle, use_ele_tilt, has_nonzero, this_a, this_b)
+    if (.not. has_nonzero) cycle
+    has_nonzero_pole = .true.
+    a = a + this_a * (ele%value(l$) / lord%value(l$))
+    b = b + this_b * (ele%value(l$) / lord%value(l$))
+  enddo
+else
+  call multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)
+endif
+
 call multipole_ab_to_kt (a, b, knl, tilt)
-if (use_ele_tilt) tilt = tilt + ele%value(tilt_tot$)
 
-end subroutine
+end subroutine multipole_ele_to_kt
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -224,7 +244,7 @@ end subroutine multipole_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
+! Subroutine multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
 ! Note: The ab values will be scalled by the strength of the element.
@@ -237,120 +257,157 @@ end subroutine multipole_kt_to_ab
 !     %value()     -- ab_multipole values.
 !   particle     -- Integer: Particle species (positron$, etc.).
 !                     To be used with electrostatic elements.
-!   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) 
-!                     in calculations.
+!   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations.
+!                     use_ele_tilt is ignored in the case of multipole$ elements.
 !
 ! Output:
+!   has_nonzero_pole -- Logical: Set True if there is a nonzero pole. False otherwise.
 !   a(0:n_pole_maxx) -- Real(rp): Array of scalled multipole values.
 !   b(0:n_pole_maxx) -- Real(rp): Array of scalled multipole values.
 !-
 
-subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
+subroutine multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
 
 real(rp) const, radius, factor, a(0:), b(0:)
 real(rp) an, bn, cos_t, sin_t
+real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 
-integer ref_exp, n, particle
+integer i, ref_exp, n, particle
 
-logical use_ele_tilt
+logical use_ele_tilt, has_nonzero_pole
 
 character(24), parameter :: r_name = 'multipole_ele_to_ab'
 
-!
+! Init
 
-if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a_pole)) then
-  a = 0
-  b = 0
+a = 0
+b = 0
+has_nonzero_pole = .false.
+
+! Multipole type element case. Note: use_ele_tilt is ignored in this case.
+
+if (ele%key == multipole$) then
+  if (any(ele%a_pole /= 0)) return
+  has_nonzero_pole = .true.
+  call multipole_kt_to_ab (ele%a_pole, ele%b_pole, a, b)
   return
 endif
 
-! transfer values to a and b vecs
+! All other cases
+! Slice slaves and super slaves have their associated multipoles stored in the lord
 
-a = ele%a_pole
-b = ele%b_pole
+if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    call convert_this_ab (lord, this_a, this_b)
+    a = a + this_a * (ele%value(l$) / lord%value(l$))
+    b = b + this_b * (ele%value(l$) / lord%value(l$))
+  enddo
+else
+  call convert_this_ab (ele, a, b)
+endif
 
-if (ele%key == multipole$) call multipole_kt_to_ab (a, b, a, b)
+!---------------------------------------------
+contains
+
+subroutine convert_this_ab (this_ele, this_a, this_b)
+
+type (ele_struct) this_ele
+real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
+logical has_nonzero
+logical a, b ! protect symbols
+
+!
+
+if (.not. this_ele%multipoles_on .or. .not. this_ele%is_on .or. .not. associated(this_ele%a_pole)) return
+
+this_a = this_ele%a_pole
+this_b = this_ele%b_pole
 
 ! all zero then we do not need to scale.
 ! Also if scaling is turned off
 
-if (.not. ele%scale_multipoles) return
-if (all(a == 0) .and. all(b == 0)) return
+if (all(this_a == 0) .and. all(this_b == 0)) return
+
+has_nonzero_pole = .true.
+
+if (.not. this_ele%scale_multipoles) return
 
 ! flip sign for electrons or antiprotons with a separator.
 
-if (ele%key == elseparator$ .and. particle < 0) then
-  a = -a
-  b = -b
+if (this_ele%key == elseparator$ .and. particle < 0) then
+  this_a = -this_a
+  this_b = -this_b
 endif
 
 ! use tilt?
 
-if (use_ele_tilt .and. ele%value(tilt_tot$) /= 0) then
+if (use_ele_tilt .and. this_ele%value(tilt_tot$) /= 0) then
   do n = 0, n_pole_maxx
-    if (a(n) /= 0 .or. b(n) /= 0) then
-      an = a(n); bn = b(n)
-      cos_t = cos((n+1)*ele%value(tilt_tot$))
-      sin_t = sin((n+1)*ele%value(tilt_tot$))
-      b(n) =  bn * cos_t + an * sin_t
-      a(n) = -bn * sin_t + an * cos_t
+    if (this_a(n) /= 0 .or. this_b(n) /= 0) then
+      an = this_a(n); bn = this_b(n)
+      cos_t = cos((n+1)*this_ele%value(tilt_tot$))
+      sin_t = sin((n+1)*this_ele%value(tilt_tot$))
+      this_b(n) =  bn * cos_t + an * sin_t
+      this_a(n) = -bn * sin_t + an * cos_t
     endif
   enddo
 endif
 
 ! radius = 0 defaults to radius = 1
 
-radius = ele%value(radius$)
+radius = this_ele%value(radius$)
 if (radius == 0) radius = 1
 
 ! normal case...
 
-select case (ele%key)
+select case (this_ele%key)
 
 case (sbend$, rbend$)
-  const = ele%value(l$) * (ele%value(g$) + ele%value(g_err$))
+  const = this_ele%value(l$) * (this_ele%value(g$) + this_ele%value(g_err$))
   ref_exp = 0
 
 case (elseparator$, kicker$)
-  if (ele%value(hkick$) == 0) then
-    const = ele%value(vkick$)
-  elseif (ele%value(vkick$) == 0) then
-    const = ele%value(hkick$)
+  if (this_ele%value(hkick$) == 0) then
+    const = this_ele%value(vkick$)
+  elseif (this_ele%value(vkick$) == 0) then
+    const = this_ele%value(hkick$)
   else
-    const = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2)
+    const = sqrt(this_ele%value(hkick$)**2 + this_ele%value(vkick$)**2)
   endif
   ref_exp = 0
 
 case (quadrupole$, sol_quad$)
-  const = ele%value(k1$) * ele%value(l$)
+  const = this_ele%value(k1$) * this_ele%value(l$)
   ref_exp = 1
 
 case (wiggler$)
-  const = 2 * ele%value(l$) / &
-                  (pi * ele%value(rho$) * ele%value(n_pole$))
+  const = 2 * this_ele%value(l$) / &
+                  (pi * this_ele%value(rho$) * this_ele%value(n_pole$))
   ref_exp = 0
 
 case (solenoid$)
-  const = ele%value(ks$) * ele%value(l$)
+  const = this_ele%value(ks$) * this_ele%value(l$)
   ref_exp = 1
 
 case (sextupole$)
-  const = ele%value(k2$) * ele%value(l$)
+  const = this_ele%value(k2$) * this_ele%value(l$)
   ref_exp = 2
  
 case (octupole$)
-  const = ele%value(k3$) * ele%value(l$)
+  const = this_ele%value(k3$) * this_ele%value(l$)
   ref_exp = 3
   
 case (ab_multipole$, multipole$) ! multipoles do not scale
   return
 
 case default
-  call out_io (s_fatal$, r_name, 'ELEMENT NOT A AB_MULTIPOLE, QUAD, ETC. ' // ele%name)
+  call out_io (s_fatal$, r_name, 'ELEMENT NOT A AB_MULTIPOLE, QUAD, ETC. ' // this_ele%name)
   if (bmad_status%exit_on_error) call err_exit
 
 end select
@@ -359,9 +416,11 @@ end select
 
 do n = 0, n_pole_maxx
   factor = const * radius ** (ref_exp - n)
-  a(n) = factor * a(n)
-  b(n) = factor * b(n)
+  this_a(n) = factor * this_a(n)
+  this_b(n) = factor * this_b(n)
 enddo
+
+end subroutine convert_this_ab
 
 end subroutine multipole_ele_to_ab
 

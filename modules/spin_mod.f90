@@ -1188,8 +1188,7 @@ logical set_multi, set_hv, set_t, set_hv1, set_hv2
 
 !---------------------------------------------------------------
 
-set_multi = logic_option (.true., set_multipoles) .and. &
-                (associated(ele%a_pole) .or. ele%key==sextupole$ .or. ele%key==octupole$)
+set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele)
@@ -1426,9 +1425,6 @@ end subroutine offset_spin
 ! This subroutine tracks spins through those higher-order magnets assuming simple
 ! T-BMT precession to get a rough estimate of their effects.
 !
-! Modules Needed:
-!   use multipole_mod, only: multipole_ele_to_ab
-!
 ! Input:
 !   ele              -- Ele_struct: Element
 !     %value(x_pitch$)        -- Horizontal roll of element.
@@ -1459,18 +1455,17 @@ implicit none
 
 type (ele_struct), intent(in) :: ele
 
-logical, optional, intent(in) :: do_half_prec, include_sextupole_octupole, ref_orb_offset
-logical half_prec, sext_oct, ref_orb
-
 complex(rp), intent(inout) :: spin(2)
+complex(rp) kick, pos
 
 real(rp), intent(in) :: vec(6)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), kick_angle, Bx, By, knl, a_coord(4), a_field(4)
 
-complex(rp) kick, pos
-
 integer, intent(in) :: particle
 integer n
+
+logical, optional, intent(in) :: do_half_prec, include_sextupole_octupole, ref_orb_offset
+logical half_prec, sext_oct, ref_orb, has_nonzero_pole
 
 !
 
@@ -1478,7 +1473,8 @@ half_prec = logic_option (.false., do_half_prec)
 sext_oct  = logic_option (.false., include_sextupole_octupole)
 ref_orb   = logic_option (.false., ref_orb_offset)
 
-call multipole_ele_to_ab(ele, particle, an, bn, .true.)
+call multipole_ele_to_ab(ele, particle, .true., has_nonzero_pole, an, bn)
+if (.not. has_nonzero_pole) return
 
 select case (ele%key)
   case (sextupole$)

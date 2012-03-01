@@ -2168,7 +2168,7 @@ real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch, s_rel
 integer i, n, key, n_term, exception, n_field
 integer, optional :: integ_order, steps
 
-logical kick_here, use_offsets, doneit
+logical kick_here, use_offsets, doneit, has_nonzero_pole
 
 character(16) :: r_name = 'ele_to_fibre'
 
@@ -2289,8 +2289,8 @@ case (elseparator$)
     ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
   endif
   ptc_key%list%volt = 1e-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
-  call multipole_ele_to_ab (ele, +1, an0, bn0, .false.) 
-  if (any(an0 /= 0) .or. any(bn0 /= 0)) then
+  call multipole_ele_to_ab (ele, +1, .false., has_nonzero_pole, an0, bn0) 
+  if (has_nonzero_pole) then
     print *, 'ERROR IN ELE_TO_FIBRE: ', 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
     if (bmad_status%exit_on_error) call err_exit
   endif
@@ -2339,7 +2339,7 @@ if (ele%key /= elseparator$) then
     ptc_key%list%ks(1) =                   - hk * sin_t + vk * cos_t
   endif
 
-  call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.)
+  call multipole_ele_to_ab (ele, param%particle, .false., has_nonzero_pole, an0, bn0)
   if (leng /= 0) then
     an0 = an0 / leng
     bn0 = bn0 / leng

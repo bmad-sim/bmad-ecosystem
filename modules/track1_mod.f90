@@ -253,6 +253,8 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
 integer n, n_step
 
+logical has_nonzero_pole
+
 !-----------------------------------------------------------------------
 ! simple case
 
@@ -274,13 +276,10 @@ call apply_bend_edge_kick (end_orb, ele, entrance_end$, .false.)
 ! If we have a sextupole component then step through in steps of length ds_step
 
 n_step = 1
-if (ele%value(k2$) /= 0 .or. associated(ele%a_pole)) &
-                  n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 
-if (associated(ele%a_pole)) then
-  call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
-  knl = knl / n_step
-endif
+call multipole_ele_to_kt(ele, param%particle, .true., has_nonzero_pole, knl, tilt)
+if (ele%value(k2$) /= 0 .or. has_nonzero_pole) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+knl = knl / n_step
 
 ! Set some parameters
 
@@ -299,7 +298,7 @@ k_2 = ele%value(k2$) * length
 ! 1/2 sextupole kick at the beginning.
 
 if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end_orb)
-if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end_orb)
+if (has_nonzero_pole) call multipole_kicks (knl/2, tilt, end_orb)
 
 ! And track with n_step steps
 
@@ -396,10 +395,10 @@ do n = 1, n_step
 
   if (n == n_step) then
     if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end_orb)
-    if (associated(ele%a_pole)) call multipole_kicks (knl/2, tilt, end_orb)
+    if (has_nonzero_pole) call multipole_kicks (knl/2, tilt, end_orb)
   else
     if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end_orb)
-    if (associated(ele%a_pole)) call multipole_kicks (knl, tilt, end_orb)
+    if (has_nonzero_pole) call multipole_kicks (knl, tilt, end_orb)
   endif
 
 enddo
@@ -482,7 +481,7 @@ end subroutine apply_bend_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine apply_hard_edge_kick (orb, t_rel, hard_ele, track_ele, param, element_end)
+! Subroutine apply_hard_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, element_end)
 !
 ! Subroutine to track through the edge field of an element.
 ! This routine is used with bmad_standard field_calc where the field
@@ -500,6 +499,7 @@ end subroutine apply_bend_edge_kick
 !
 ! Input:
 !   orb         -- Coord_struct: Starting coords in element reference frame.
+!   s_edge      -- real(rp): Hard edge relative to start of hard_ele.
 !   t_rel       -- real(rp): Time relative to track_ele entrance edge
 !   hard_ele    -- ele_struct: Element with hard edges.
 !   track_ele   -- ele_struct: Element being tracked through. 
@@ -511,7 +511,7 @@ end subroutine apply_bend_edge_kick
 !   orb        -- Coord_struct: Coords after tracking.
 !-
 
-subroutine apply_hard_edge_kick (orb, t_rel, hard_ele, track_ele, param, element_end)
+subroutine apply_hard_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, element_end)
 
 implicit none
 
@@ -520,7 +520,7 @@ type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
 
-real(rp) t, f, l_drift, dref_time, ks, t_rel
+real(rp) t, f, l_drift, ks, t_rel, s_edge, s
 
 integer element_end
 
@@ -548,19 +548,20 @@ case (solenoid$, sol_quad$)
 case (lcavity$, rfcavity$)
 
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
-  l_drift = (hard_ele%value(l$) - hard_ele%value(l_hard_edge$)) / 2 + bmad_com%significant_length
   f = charge_of(param%particle) / (2 * orb%p0c)
   t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
+  s = s_edge
 
   if (element_end == entrance_end$) then
-    call em_field_calc (hard_ele, param, l_drift, t, orb, .true., field)
+    s = s + bmad_com%significant_length / 10 ! Make sure inside field region
+    call em_field_calc (hard_ele, param, s, t, orb, .true., field)
 
     orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
     orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
   else
-    ! dref_time is the reference time to cross just the cavity. That is, this subtracts off the drift times.
-    call em_field_calc (hard_ele, param, hard_ele%value(l$)-l_drift, t, orb, .true., field)
+    s = s - bmad_com%significant_length / 10 ! Make sure inside field region
+    call em_field_calc (hard_ele, param, s, t, orb, .true., field)
 
     orb%vec(2) = orb%vec(2) + field%e(3) * orb%vec(1) * f - c_light * field%b(3) * orb%vec(3) * f
     orb%vec(4) = orb%vec(4) + field%e(3) * orb%vec(3) * f + c_light * field%b(3) * orb%vec(1) * f

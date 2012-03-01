@@ -46,8 +46,7 @@ logical at_entrance_end, at_exit_end, err_exit
 !
 
 if (i_slice == 1) then
-  sliced_ele = ele                ! Note: Does not transfer %ix_ele
-  sliced_ele%ix_ele = ele%ix_ele
+  call transfer_ele (ele, sliced_ele, .true.)
 endif
 
 at_entrance_end = (i_slice == 1)
@@ -55,6 +54,6 @@ at_exit_end = (i_slice == n_slice_tot)
 
 l_slice = ele%value(l$) / n_slice_tot
 call create_element_slice (sliced_ele, ele, l_slice, l_slice * (i_slice - 1), &
-                param, at_entrance_end, at_exit_end, err_exit)
+                                      param, at_entrance_end, at_exit_end, err_exit)
 
 end subroutine

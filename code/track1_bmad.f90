@@ -70,7 +70,7 @@ complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
 integer i, n, n_slice, key
 
-logical err
+logical err, has_nonzero_pole
 
 character(16) :: r_name = 'track1_bmad'
 
@@ -489,7 +489,7 @@ case (multipole$, ab_multipole$)
 
   call offset_particle (ele, param, end_orb, set$, set_canonical = .false., set_multipoles = .false.)
 
-  call multipole_ele_to_kt(ele, param%particle, knl, tilt, .false.)
+  call multipole_ele_to_kt(ele, param%particle, .false., has_nonzero_pole, knl, tilt)
   call multipole_kicks (knl, tilt, end_orb, .true.)
 
   call offset_particle (ele, param, end_orb, unset$, set_canonical = .false., set_multipoles = .false.)

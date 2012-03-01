@@ -202,7 +202,7 @@ do
     runt => runt_nosave
     runt = ele
   else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
-    runt_save = ele
+    call transfer_ele (ele, runt_save, .true.)
     runt => runt_save
     runt_points_to_new = .true.
   endif
@@ -226,7 +226,6 @@ do
     endif
 
     if (create_it) then
-      call kill_taylor (runt%taylor)
       call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
                                      branch%param, track_entrance, track_exit, error_flag)
       if (error_flag) exit
@@ -444,7 +443,7 @@ do
     runt => runt_nosave
     runt = ele
   else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
-    runt_save = ele
+    call transfer_ele (ele, runt_save, .true.)
     runt => runt_save
     runt_points_to_new = .true.
   endif
