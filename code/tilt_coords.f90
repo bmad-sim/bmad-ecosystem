@@ -20,7 +20,7 @@ use precision_def
 
 implicit none
 
-real(rp), save :: cos_ang, sin_ang, old_ang = 0
+real(rp) :: cos_ang, sin_ang
 real(rp) tilt_val, coord(:), rot_mat(2,2)
 
 logical set
@@ -29,14 +29,8 @@ logical set
 
 if (tilt_val == 0) return
 
-if (tilt_val == -old_ang) then
-  sin_ang = -sin_ang
-  old_ang = -old_ang
-else if (tilt_val /= old_ang) then
-  sin_ang = sin(tilt_val)
-  cos_ang = cos(tilt_val)
-  old_ang = tilt_val
-endif
+sin_ang = sin(tilt_val)
+cos_ang = cos(tilt_val)
 
 rot_mat(1,1) =  cos_ang
 rot_mat(1,2) =  sin_ang

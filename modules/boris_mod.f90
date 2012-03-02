@@ -61,7 +61,7 @@ implicit none
 type (coord_struct), intent(in) :: start
 type (coord_struct), intent(out) :: end
 type (ele_struct) ele
-type (ele_struct), save :: loc_ele
+type (ele_struct) :: loc_ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
 type (coord_struct) here
@@ -73,18 +73,10 @@ real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target, s_edge_hard
 integer i, n_step, hard_end
 
 logical err_flag
-logical, save :: init_needed = .false.
 
 ! init
 
 err_flag = .true.
-
-if (init_needed) then
-  call init_ele(loc_ele)
-  init_needed = .false.
-endif
-
-!
 
 if (present(s_start)) then
   s1 = s_start

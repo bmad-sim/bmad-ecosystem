@@ -378,7 +378,7 @@ type ele_struct
   integer ic1_lord               ! Start index for lord elements
   integer ic2_lord               ! Stop  index for lord elements
   integer ix_pointer             ! For general use. Not used by Bmad.
-  integer ixx                    ! Index for Bmad internal use
+  integer ixx, iyy               ! Index for Bmad internal use
   integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
   integer tracking_method        ! bmad_standard$, taylor$, etc.
   integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.

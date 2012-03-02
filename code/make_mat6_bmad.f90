@@ -1050,7 +1050,7 @@ type (ele_struct), target :: ele
 
 real(rp) mat6(6,6), mm(6,6)
 real(rp), pointer :: p(:)
-real(rp), save :: old_tilt = 0, ct, st
+real(rp) ct, st
 real(rp) c2g, s2g, offset(6), tilt, graze
 real(rp) off(3), rot(3), project_x(3), project_y(3), project_s(3)
 
@@ -1072,11 +1072,8 @@ tilt = p(tilt_tot$) + p(tilt_err$)
 
 if (tilt /= 0) then
 
-  if (tilt /= old_tilt) then
-    ct = cos(tilt)
-    st = sin(tilt)
-    old_tilt = tilt
-  endif
+  ct = cos(tilt)
+  st = sin(tilt)
 
   mm(:,1) = mat6(:,1) * ct - mat6(:,3) * st
   mm(:,2) = mat6(:,2) * ct - mat6(:,4) * st
@@ -1108,7 +1105,6 @@ s2g = sin(2*p(graze_angle$))
 if (p(tilt_err$) /= 0) then
   ct = cos(p(tilt$)) 
   st = sin(p(tilt$))
-  old_tilt = p(tilt$)
 endif
 
 project_x = (/ c2g * ct**2 + st**2, -ct * st + c2g * ct * st, -ct * s2g /)
@@ -1141,7 +1137,6 @@ if (p(tilt_err$) /= 0) then
 
   ct = cos(rot(3)) 
   st = sin(rot(3))
-  old_tilt = rot(3)
 
   mm(1,:) = ct * mat6(1,:) - st * mat6(3,:)
   mm(2,:) = ct * mat6(2,:) - st * mat6(4,:)

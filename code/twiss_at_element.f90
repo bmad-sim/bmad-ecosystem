@@ -34,7 +34,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   type (ele_struct), optional :: start, end, average
   type (ele_struct), pointer :: ele
   type (ele_struct) slave_ave
-  type (ele_pointer_struct), allocatable, save :: slaves(:)
+  type (ele_pointer_struct), allocatable :: slaves(:)
 
   integer ix_ele, ix1, ix2
   integer i, ix, n_slave, ct

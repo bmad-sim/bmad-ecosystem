@@ -995,7 +995,7 @@ end function da_z_dy__dy
 
 subroutine radiation_kick()
 
-type (ele_struct), save :: temp_ele
+type (ele_struct) :: temp_ele
 
 ! Test if kick should be applied
 

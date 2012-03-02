@@ -51,8 +51,7 @@ real(rp), intent(out) :: dvec_dt(6)
 
 real(rp) f_bend, kappa_x, kappa_y, ds_dt, h
 real(rp) vel(3), force(3)
-real(rp), save :: pc, e_tot, mc2, gamma, charge, beta, ds_dt_ref, p0
-real(rp), save :: pc_old = -1, particle_old = 0
+real(rp) :: pc, e_tot, mc2, gamma, charge, beta, ds_dt_ref, p0
 
 logical :: local_ref_frame
 

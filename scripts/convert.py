@@ -11,8 +11,8 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'character*(*)' in line:
-      line = line.replace('character*(*)', 'character(*)')
+    if 'genplt mpm_utils cesr_utils sim_utils mpmnet' in line:
+      line = line.replace('genplt mpm_utils cesr_utils sim_utils mpmnet', 'genplt mpm_utils cesr_utils sim_utils mpmnet cbi_net c_utils')
       found = True
 
     out_file.write(line)

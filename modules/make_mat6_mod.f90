@@ -683,9 +683,9 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
 
   implicit none
 
-  integer :: i, n_slice, n_slice_old = 0 
+  integer :: i, n_slice
   real(rp) sig_z, z_slice(:), y
-  real(rp), save :: z_norm(100)
+  real(rp) :: z_norm
 
 !
 
@@ -693,13 +693,10 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
     z_slice(1) = 0
   elseif (n_slice > 1) then
     do i = 1, n_slice
-      if (n_slice /= n_slice_old) then
-        y = (i - 0.5) / n_slice - 0.5
-        z_norm(i) = inverse(probability_funct, y, -5.0_rp, 5.0_rp, 1.0e-5_rp)
-      endif
-      z_slice(i) = sig_z * z_norm(i)
+      y = (i - 0.5) / n_slice - 0.5
+      z_norm = inverse(probability_funct, y, -5.0_rp, 5.0_rp, 1.0e-5_rp)
+      z_slice(i) = sig_z * z_norm
     enddo
-    n_slice_old = n_slice
   else
     print *, 'ERROR IN BBI_SLICE_CALC: N_SLICE IS NEGATIVE:', n_slice
     if (bmad_status%exit_on_error) call err_exit
@@ -735,17 +732,14 @@ subroutine tilt_mat6 (mat6, tilt)
   implicit none
 
   real(rp) tilt, mat6(6,6), mm(6,6)
-  real(rp), save :: old_tilt = 0, c = 1, s = 0
+  real(rp) c, s
 
 !
 
   if (tilt == 0) return
 
-  if (tilt /= old_tilt) then
-    c = cos(tilt)
-    s = sin(tilt)
-    old_tilt = tilt
-  endif
+  c = cos(tilt)
+  s = sin(tilt)
 
   mm(1,:) = c * mat6(1,:) - s * mat6(3,:)
   mm(2,:) = c * mat6(2,:) - s * mat6(4,:)

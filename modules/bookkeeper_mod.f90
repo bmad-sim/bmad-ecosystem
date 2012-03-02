@@ -1131,7 +1131,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct) slave
 type (ele_struct), pointer :: lord, slave0, lord1
-type (ele_struct), save :: sol_quad
+type (ele_struct) :: sol_quad
 type (branch_struct), pointer :: branch
 
 integer i, j, ix_con, ix, ix_slave, ix_lord
@@ -1150,14 +1150,6 @@ logical is_first, is_last, err_flag, major_method_set_done
 logical, save :: init_needed = .true.
 
 character(20) :: r_name = 'makeup_super_slave'
-
-! init
-
-if (init_needed) then
-  call init_ele (sol_quad)
-  sol_quad%key = sol_quad$
-  init_needed = .false.
-endif
 
 ! Super_slave:
 
@@ -1598,6 +1590,8 @@ case (solenoid$, sol_quad$, quadrupole$)
     T_end(4,1) =  ks / 2
     T_end(2,3) = -ks / 2
 
+    call init_ele (sol_quad)
+    sol_quad%key = sol_quad$
     sol_quad%value(ks$) = ks
     sol_quad%value(k1$) = k1
     sol_quad%value(l$)  = l_slave
