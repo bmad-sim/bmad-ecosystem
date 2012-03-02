@@ -328,35 +328,40 @@ do ib = 0, ubound(lat%branch, 1)
         call str_downcase(name, ele%name)
         line = trim(line) // ', field = call::field_' // trim(name)
         iu2 = lunget()
+ 
         open (iu2, file = 'field_' // trim(name))
-        write (iu2, *) '{'
+        write (iu2, *) '{ &'
         do i = 1, size(ele%em_field%mode)
           mode => ele%em_field%mode(i)
+          if (i > 1) write (iu2, '(a)') '  , &'
           write (iu2, '(a)') '  mode = {'
-          write (iu2, '(a, i0, a)')     '  m             = ', mode%m, ','
-          write (iu2, '(a, i0, a)')     '  harmonic      = ', mode%harmonic, ','
-          write (iu2, '(a, es12.4, a)') '  f_damp        =', mode%f_damp, ','
-          write (iu2, '(a, f10.6, a)')  '  dphi0_ref     =', mode%dphi0_ref, ','
-          write (iu2, '(a, f10.6, a)')  '  phi0_azimuth  =', mode%dphi0_ref, ','
-          write (iu2, '(a, es13.6, a)') '  field_scale   =', mode%field_scale, ','
-          if (mode%master_scale > 0) write (iu2, '(3a)') '    master_scale = ', &
-                                          trim(attribute_name(ele, mode%master_scale)), ','
+          write (iu2, '(4x, a, i0, a)')     'm             = ', mode%m, ','
+          write (iu2, '(4x, a, i0, a)')     'harmonic      = ', mode%harmonic, ','
+          write (iu2, '(4x, a, es12.4, a)') 'f_damp        =', mode%f_damp, ','
+          write (iu2, '(4x, a, f10.6, a)')  'dphi0_ref     =', mode%dphi0_ref, ','
+          write (iu2, '(4x, a, f10.6, a)')  'phi0_azimuth  =', mode%dphi0_ref, ','
+          if (mode%master_scale > 0) write (iu2, '(3a)') &
+                                            'master_scale  = ', trim(attribute_name(ele, mode%master_scale)), ','
+          write (iu2, '(4x, a, es13.6, a)') 'field_scale   =', mode%field_scale, '&'
           if (associated(mode%map)) then
-            write (iu2, *)                '  map = {'
-            write (iu2, '(3a)')           '    ele_anchor_pt = ', &
-                                          trim(anchor_pt_name(mode%map%ele_anchor_pt)), ','
-            write (iu2, '(a, es13.6, a)') '    dz            =', mode%map%dz, ','
-              if (any(real(mode%map%term%e_coef) /= 0)) then
-                write (iu2, '(a)')        '    e_coef_re ='
-                do j = 1, size(mode%map%term)
-                enddo
-              endif
+            write (iu2, '(4x, a)')          ', &'
+            write (iu2, '(4x, a)')          'map = {'
+            write (iu2, '(4x, 3a)')         'ele_anchor_pt = ', &
+                                                    trim(anchor_pt_name(mode%map%ele_anchor_pt)), ','
+            write (iu2, '(a, es13.6, a)') '    dz            =', mode%map%dz, ' &'
+            if (any(real(mode%map%term%e_coef) /= 0)) call write_map_coef ('e_coef_re', real(mode%map%term%e_coef))
+            if (any(aimag(mode%map%term%e_coef) /= 0)) call write_map_coef ('e_coef_im', aimag(mode%map%term%e_coef))
+            if (any(real(mode%map%term%b_coef) /= 0)) call write_map_coef ('b_coef_re', real(mode%map%term%b_coef))
+            if (any(aimag(mode%map%term%b_coef) /= 0)) call write_map_coef ('b_coef_im', aimag(mode%map%term%b_coef))
+            write (iu2, '(4x, a)') '} &'
           endif
 
           if (associated(mode%grid)) then
-
+            write (iu2, '(4x, a)')          ', &'
+            write (iu2, '(4x, a)')          'grid = {'
           endif
 
+          write (iu2, '(a)') '  }'
 
         enddo
         write (iu2, *) '}'
@@ -836,9 +841,34 @@ write (iu, '(a)') 'expand_lattice'
 write (iu, *)
 expand_lat_out = .true.
 
-end subroutine
+end subroutine write_expand_lat_header
 
-end subroutine
+!--------------------------------------------------------------------------------
+! contains
+
+subroutine write_map_coef (tag, array)
+
+real(rp) :: array(:)
+character(*) tag
+integer j, k, kk, n
+
+!
+
+write (iu2, '(6x, a)')  ', &'
+write (iu2, '(6x, 2a)') tag, ' = ('
+
+n = size(array)
+do j = 1, n - 5, 5
+  k = 5 * (j - 1)
+  write (iu2, '(8x, 5(es14.6, a))') (array(k+kk:k+kk), ',', kk = 1, 5) 
+enddo
+
+k = 5 * (j - 1) 
+write (iu2, '(8x, 5(es14.6, a))') (array(k+kk:k+kk), ',', k = 1, n-k-1), array(n), ') &' 
+
+end subroutine write_map_coef
+
+end subroutine write_bmad_lattice_file
 
 !-------------------------------------------------------
 !-------------------------------------------------------

@@ -47,7 +47,6 @@ real(rp), pointer :: mat6(:,:), vec0(:)
 
 integer, optional :: ix_ele, ix_branch
 integer i, j, ie, i1, ild, n_taylor, i_ele, i_branch, ix_slave
-integer, save, allocatable :: ix_taylor(:)
 
 logical, optional :: err_flag
 logical transferred, zero_orbit
@@ -57,7 +56,6 @@ character(16), parameter :: r_name = 'lat_make_mat6'
 ! Error check
 
 if (present(err_flag)) err_flag = .true.
-if (.not. allocated(ix_taylor)) allocate(ix_taylor(200))
 
 i_ele = integer_option (-1, ix_ele)
 i_branch = integer_option (0, ix_branch)
@@ -149,7 +147,7 @@ if (i_ele < 0) then
                   (ele%tracking_method == taylor$) .or. &
                   (ele%tracking_method == symp_map$))) then
       do j = 1, n_taylor
-        ie = ix_taylor(j)
+        ie = branch%ele(j)%iyy   ! Keep track of where Taylor maps are.
         if (.not. equivalent_taylor_attributes (ele, branch%ele(ie))) cycle
         if (any(orb_start%vec /= branch%ele(ie)%taylor%ref)) cycle
         call transfer_ele_taylor (branch%ele(ie), ele)
@@ -172,8 +170,7 @@ if (i_ele < 0) then
 
     if (associated(ele%taylor(1)%term) .and. .not. transferred) then
       n_taylor = n_taylor + 1
-      if (n_taylor > size(ix_taylor)) call re_allocate (ix_taylor, 2*size(ix_taylor))
-      ix_taylor(n_taylor) = i
+      branch%ele(n_taylor)%iyy = i  ! Keep track of where Taylor maps are.
     endif
 
     call set_lords_status_stale (ele, lat, mat6_group$)

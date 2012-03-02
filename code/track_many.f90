@@ -172,7 +172,7 @@ end subroutine
 
 subroutine track_back (ix1, ix2)
 
-type (ele_struct), save :: ele
+type (ele_struct) :: ele
 
 integer i, n, ix1, ix2, ix_last 
 
@@ -213,6 +213,8 @@ do n = ix1, ix2, -1
     print *, branch%ele(n)%name
     print *, (orbit(n)%vec(i), i = 1, 6)
   endif
+
+  call deallocate_ele_pointers(ele)
 
 enddo
 

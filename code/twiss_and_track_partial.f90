@@ -63,7 +63,7 @@ implicit none
 
 type (ele_struct), optional :: ele_end
 type (ele_struct) ele0, ele_track
-type (ele_struct), save :: runt
+type (ele_struct) :: runt
 type (coord_struct), optional :: orb_start, orb_end
 type (coord_struct) c0, c1
 type (lat_param_struct) param

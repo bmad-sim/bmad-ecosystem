@@ -46,8 +46,8 @@ subroutine mat_inverse (mat, mat_inv, ok, print_err)
   real(rp) :: mat(:,:)
   real(rp) :: mat_inv(:,:)
 
-  real(rp), allocatable, save :: mat2(:,:), vec(:)
-  integer, allocatable, save :: indx(:)
+  real(rp) :: mat2(size(mat, 1), size(mat, 1)), vec(size(mat, 1))
+  integer :: indx(size(mat, 1))
   real(rp) d
 
   integer n, i
@@ -57,13 +57,6 @@ subroutine mat_inverse (mat, mat_inv, ok, print_err)
 !
 
   n = size (mat, 1)
-
-  if (.not. allocated(indx)) then
-    allocate (mat2(n,n), indx(n), vec(n))
-  elseif (size(indx) /= n) then
-    deallocate (mat2, indx, vec)
-    allocate (mat2(n,n), indx(n), vec(n))
-  endif
 
   mat2 = mat  ! use temp mat so as to not change mat
 
@@ -115,7 +108,7 @@ function mat_symp_error (mat) result (error)
   integer i, j, n
 
   real(rp), intent(in) :: mat(:,:)
-  real(rp), allocatable, save :: m2(:,:)
+  real(rp) :: m2(size(mat, 1), size(mat, 1))
   real(rp) error
 
   logical :: debug = .false.
@@ -127,15 +120,6 @@ function mat_symp_error (mat) result (error)
   if (mod(n, 2) /= 0) then
     print *, 'ERROR IN MAT_SYMP_ERROR: MATRIX DOES NOT HAVE EVEN SIZE'
     if (bmad_status%exit_on_error) call err_exit
-  endif
-
-! init
-
-  if (.not. allocated (m2)) then
-    allocate (m2(n,n))
-  elseif (ubound(m2, 1) /= n) then
-    deallocate (m2)
-    allocate (m2(n,n))
   endif
 
 !
