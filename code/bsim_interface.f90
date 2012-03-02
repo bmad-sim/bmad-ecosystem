@@ -10,15 +10,6 @@ module bsim_interface
   end interface
   
   interface
-     subroutine gfit3d(phase_coord,parameters)
-       use bmad_struct, only: coord_struct, rp
-       implicit none
-       type(coord_struct), dimension(1:), intent(in) :: phase_coord
-       real(RP), dimension(1:,1:), intent(inout):: parameters
-     end subroutine gfit3D
-  end interface
-  
-  interface
      subroutine gaussian_dist (ele, mode, coupling, min_sig, coord)
        use bmad_struct, only: normal_modes_struct, coord_struct, ele_struct, rp
        implicit none
