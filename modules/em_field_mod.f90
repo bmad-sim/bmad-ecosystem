@@ -165,7 +165,7 @@ type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb
 type (wig_term_struct), pointer :: wig
 type (em_field_struct) :: field, field2
-type (em_field_point_struct) :: local_field
+type (em_field_grid_pt_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
@@ -894,7 +894,7 @@ subroutine em_grid_linear_interpolate (ele, grid, field, x1, x2, x3)
 
 type (ele_struct) ele
 type (em_field_grid_struct) :: grid
-type (em_field_point_struct), intent(out) :: field
+type (em_field_grid_pt_struct), intent(out) :: field
 real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3

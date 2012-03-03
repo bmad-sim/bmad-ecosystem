@@ -195,9 +195,9 @@ type em_field_map_struct
   type (em_field_map_term_struct), allocatable :: term(:)
 end type
 
-type em_field_point_struct
-  complex :: E(3) = 0
-  complex :: B(3) = 0
+type em_field_grid_pt_struct
+  complex(rp) :: E(3) = 0
+  complex(rp) :: B(3) = 0
 end type
 
 type em_field_grid_struct
@@ -206,7 +206,7 @@ type em_field_grid_struct
   integer :: ele_anchor_pt = anchor_beginning$  
                                 ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: n_link = 1         ! For memory management of this structure
-  type (em_field_point_struct), allocatable :: pt(:,:,:)
+  type (em_field_grid_pt_struct), allocatable :: pt(:,:,:)
   real(rp) :: dr(3) = 0   ! Grid spacing.
   real(rp) :: r0(3) = 0   ! Grid origin.
 end type

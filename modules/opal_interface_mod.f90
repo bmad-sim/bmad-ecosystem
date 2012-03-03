@@ -450,8 +450,8 @@ character(10)   ::  rfmt
 
 type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
-type (em_field_point_struct), allocatable :: pt(:,:,:)
-type (em_field_point_struct) :: ref_field
+type (em_field_grid_pt_struct), allocatable :: pt(:,:,:)
+type (em_field_grid_pt_struct) :: ref_field
 real(rp) :: x_step, z_step, x_min, x_max, z_min, z_max
 real(rp) :: freq, x, z, phase_ref
 real(rp) :: gap
