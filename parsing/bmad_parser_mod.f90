@@ -499,113 +499,135 @@ if (attrib_word == 'WALL') then
 
   call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
-  ! Loop over all sections
+  ! Loop over all sections or ele_anchor_pt
 
   i_section = 0
-  do    
+  section_loop: do    
 
     ! Possible "}" is end of wall 
     if (delim /= '}' .and. word == '') exit
 
-    ! Expect "section = {"
-    call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
-    if (word /= 'SECTION' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
-      call parser_error ('NO "SECTION = {" SIGN FOUND IN WALL STRUCTURE', 'FOR ELEMENT: ' // ele%name)
-      return
-    endif
+    ! "ele_anchor_pt ="
 
-    ! Read in section
+    if (word == 'ELE_ANCHOR_PT') then
+      if (delim /= '=') then
+        call parser_error ('NO "=" FOUND AFTER WALL ELE_ANCHOR_PT FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      call get_next_word (word2, ix_word, ',}', delim, delim_found)
+      call match_word(word2, anchor_pt_name, ele%wall3d%ele_anchor_pt, can_abbreviate = .false.)
+      if (ele%wall3d%ele_anchor_pt < 1) then
+        call parser_error ('BAD WALL3D ELE_ANCHOR_PT: ' // word2, 'FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      ! delim is parsed below so just put it back on the parse line.
+      bp_com%parse_line = delim // bp_com%parse_line
 
-    i_section = i_section + 1
-    call re_associate (ele%wall3d%section, i_section)
-    section => ele%wall3d%section(i_section)
+    ! Must be section
+    ! Expect "section = {" 
 
-    ! Expect "S ="
-    call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+    else
+      call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
 
-    if (word /= 'S' .or. delim /= '=') then
-      call parser_error ('EXPECTED "S =" AT START OF WALL SECTION BUT GOT: ' // trim(word) // delim, &
-                           'FOR: ' // ele%name)
-      return
-    endif
-
-    call evaluate_value (trim(ele%name), section%s, lat, delim, delim_found, err_flag, ',')
-    if (err_flag) return
-    if (ele%key == capillary$) ele%value(l$) = section%s
-
-    ! Parse "V() = ..." constructs.
-
-    ix_v = 0
-
-    do
-      ! Expect "V (" or "dr_ds ="
-      call get_next_word (word, ix_word, '{},()=', delim, delim_found)
-
-      if (word == 'DR_DS') then
-        if (delim /= '=') then
-          call parser_error ('NO "=" AFTER "DR_DS" IN WALL SECTION FOR:' // ele%name)
-          return
-        endif
-        call evaluate_value (trim(ele%name), section%dr_ds, lat, delim, delim_found, err_flag, ',}')
-        if (err_flag) return
-
-      !
-
-      elseif (word == 'V' .and. delim == '(') then
-
-        ix_v = ix_v + 1
-        section%n_vertex_input = ix_v
-        call re_allocate (section%v, ix_v)
-
-        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-        read (word, *, iostat = ios) j 
-        if (ios /= 0 .or. ix_v /= j) then
-          call parser_error ('BAD OR OUT OF ORDER WALL SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
-          return
-        endif
-
-        call get_next_word (word, ix_word, '{},()', delim2, delim_found)
-        if (delim /= ')' .or. word /= '=' .or. delim2 /= '{') then        
-          call parser_error ('MALFORMED ORDER WALL SECTION VERTEX FOR: ' // ele%name)
-          return
-        endif
-
-        call evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
-        if (err_flag) return
-
-        call evaluate_value (trim(ele%name), section%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}')
-        if (err_flag) return
-
-        if (delim == ',') then
-          call evaluate_value (trim(ele%name), section%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}')
-          if (err_flag) return
-        endif
-
-        if (delim == ',') then
-          call evaluate_value (trim(ele%name), section%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}')
-          if (err_flag) return
-        endif
-
-        if (delim == ',') then
-          call evaluate_value (trim(ele%name), section%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}')
-          if (err_flag) return
-        endif
-
-        call get_next_word (word, ix_word, '{},()=', delim, delim_found)
-        if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
-          call parser_error ('BAD SYNTAX IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
-          return
-        endif
-
-      else
-        call parser_error ('EXPECTED "V(" BUT GOT: ' // trim(word) // delim, &
-                             'IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
+      if (word /= 'SECTION' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
+        call parser_error ('NO "SECTION = {" SIGN FOUND IN WALL STRUCTURE', 'FOR ELEMENT: ' // ele%name)
         return
       endif
 
-      if (delim == '}') exit
+      ! Read in section
 
-    enddo
+      i_section = i_section + 1
+      call re_associate (ele%wall3d%section, i_section)
+      section => ele%wall3d%section(i_section)
+
+      ! Expect "S ="
+      call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+
+      if (word /= 'S' .or. delim /= '=') then
+        call parser_error ('EXPECTED "S =" AT START OF WALL SECTION BUT GOT: ' // trim(word) // delim, &
+                             'FOR: ' // ele%name)
+        return
+      endif
+
+      call evaluate_value (trim(ele%name), section%s, lat, delim, delim_found, err_flag, ',')
+      if (err_flag) return
+      if (ele%key == capillary$) ele%value(l$) = section%s
+
+      ! Parse "V() = ..." constructs.
+
+      ix_v = 0
+
+      do
+        ! Expect "V(" or "dr_ds ="
+        call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+
+        if (word == 'DR_DS') then
+          if (delim /= '=') then
+            call parser_error ('NO "=" AFTER "DR_DS" IN WALL SECTION FOR:' // ele%name)
+            return
+          endif
+          call evaluate_value (trim(ele%name), section%dr_ds, lat, delim, delim_found, err_flag, ',}')
+          if (err_flag) return
+
+        !
+
+        elseif (word == 'V' .and. delim == '(') then
+
+          ix_v = ix_v + 1
+          section%n_vertex_input = ix_v
+          call re_allocate (section%v, ix_v)
+
+          call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+          read (word, *, iostat = ios) j 
+          if (ios /= 0 .or. ix_v /= j) then
+            call parser_error ('BAD OR OUT OF ORDER WALL SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
+            return
+          endif
+
+          call get_next_word (word, ix_word, '{},()', delim2, delim_found)
+          if (delim /= ')' .or. word /= '=' .or. delim2 /= '{') then        
+            call parser_error ('MALFORMED ORDER WALL SECTION VERTEX FOR: ' // ele%name)
+            return
+          endif
+
+          call evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
+          if (err_flag) return
+
+          call evaluate_value (trim(ele%name), section%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}')
+          if (err_flag) return
+
+          if (delim == ',') then
+            call evaluate_value (trim(ele%name), section%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}')
+            if (err_flag) return
+          endif
+
+          if (delim == ',') then
+            call evaluate_value (trim(ele%name), section%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}')
+            if (err_flag) return
+          endif
+
+          if (delim == ',') then
+            call evaluate_value (trim(ele%name), section%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}')
+            if (err_flag) return
+          endif
+
+          call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+          if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
+            call parser_error ('BAD SYNTAX IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
+            return
+          endif
+
+        else
+          call parser_error ('EXPECTED "V(" BUT GOT: ' // trim(word) // delim, &
+                               'IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
+          return
+        endif
+
+        if (delim == '}') exit
+
+      enddo
+
+    endif
 
     call get_next_word (word, ix_word, '{},()=', delim, delim_found)
 
@@ -618,7 +640,7 @@ if (attrib_word == 'WALL') then
     endif
 
 
-    ! Expect "section"
+    ! Expect "section" or "ele_anchor_pt"
 
     call get_next_word (word, ix_word, '{},()=', delim, delim_found)
 
@@ -627,12 +649,12 @@ if (attrib_word == 'WALL') then
       return
     endif
 
-    if (word /= 'SECTION') then
+    if (word /= 'SECTION' .and. word /= 'ELE_ANCHOR_PT') then
       call parser_error('DO NOT UNDERSTAND: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
 
-  enddo
+  enddo section_loop
 
   ! Check for next thing on line and return
 
@@ -5352,7 +5374,7 @@ do
                          'IN MAP STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
-    call get_next_word (word, ix_word, ',}', delim, delim_found)
+    call get_next_word (word2, ix_word, ',}', delim, delim_found)
 
     ! Evaluate string into integer.
 

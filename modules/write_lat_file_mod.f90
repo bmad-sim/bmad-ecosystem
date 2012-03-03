@@ -57,11 +57,15 @@ type (multipass_all_info_struct), target :: m_info
 type (rf_wake_lr_struct), pointer :: lr
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (em_field_mode_struct), pointer :: mode
-
+type (em_field_grid_struct), pointer :: grid
+type (em_field_map_struct), pointer :: map
+type (wall3d_section_struct), pointer :: section
+type (wall3d_vertex_struct), pointer :: v
 real(rp) s0, x_lim, y_lim, val
 
 character(*) bmad_file
 character(4000) line
+character(4) end_str
 character(4) last
 character(40) name, look_for, attrib_name
 character(200) wake_name, file_name
@@ -71,7 +75,7 @@ character(40) :: r_name = 'write_bmad_lattice_file'
 character(10) angle
 
 integer i, j, k, n, ix, iu, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
-integer unit(6), n_names, ix_match, ie2
+integer unit(6), n_names, ix_match, ie2, id1, id2, id3
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_top, ix_super, default_val
 integer, allocatable :: an_indexx(:)
@@ -303,8 +307,57 @@ do ib = 0, ubound(lat%branch, 1)
     ! Wall
 
     if (associated(ele%wall3d%section)) then
-      call out_io (s_error$, r_name, 'WRITING WALL3D ELEMENT COMPONENT NOT YET IMPLEMENTED!', &
-                                     'PLEASE CONTACT DAVID SAGAN!')
+      ! First find out out if an em_file has been written
+      found = .false.
+      do ie2 = 1, ie-1
+        ele2 => branch%ele(ie2)
+        if (.not. associated(ele2%wall3d%section)) cycle
+        if (.not. associated(ele2%wall3d%section, ele%wall3d%section)) cycle
+        found = .true.
+        exit
+      enddo
+
+      if (found) then
+        call str_downcase(name, ele2%name)
+        line = trim(line) // ', wall = call::wall_' // trim(name)
+      else
+        call str_downcase(name, ele%name)
+        line = trim(line) // ', wall = call::wall_' // trim(name)
+        iu2 = lunget()
+ 
+        open (iu2, file = 'wall_' // trim(name))
+        write (iu2, *) '{ &'
+        write (iu2, '(2x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(ele%wall3d%ele_anchor_pt)), ','
+        do i = 1, size(ele%wall3d%section)
+          section => ele%wall3d%section(i)
+          write (iu2, '(2x, a)')   'section = {'
+          write (iu2, '(4x, 3a)')  's     = ', trim(str(section%s)), ','
+          if (section%dr_ds /= real_garbage$) write (iu2, '(4x, 3a)')  'dr_ds = ', trim(str(section%s)), ','
+          end_str = ','
+          do j = 1, size(section%v)
+            if (j == size(section%v)) then
+              end_str = '},'
+              if (i == size(ele%wall3d%section)) end_str = '}}'
+            endif
+            v => section%v(j)
+            if (v%tilt /= 0) then
+              write (iu2, '(4x, a, i0, 3a)') 'v(', j, ') = ', &
+                    trim(array_str([v%x, v%y, v%radius_x, v%radius_y, v%tilt], '{}')), end_str
+            elseif (v%radius_y /= 0) then
+              write (iu2, '(4x, a, i0, 3a)') 'v(', j, ') = ', &
+                    trim(array_str([v%x, v%y, v%radius_x, v%radius_y], '{}')), end_str
+            elseif (v%radius_x /= 0) then
+              write (iu2, '(4x, a, i0, 3a)') 'v(', j, ') = ', &
+                    trim(array_str([v%x, v%y, v%radius_x], '{}')), end_str
+            else
+              write (iu2, '(4x, a, i0, 3a)') 'v(', j, ') = ', &
+                    trim(array_str([v%x, v%y], '{}')), end_str
+            endif
+          enddo
+        enddo
+        close (iu2)
+
+      endif
     endif
 
     ! EM fields
@@ -334,43 +387,85 @@ do ib = 0, ubound(lat%branch, 1)
         do i = 1, size(ele%em_field%mode)
           mode => ele%em_field%mode(i)
           if (i > 1) write (iu2, '(a)') '  , &'
-          write (iu2, '(a)') '  mode = {'
-          write (iu2, '(4x, a, i0, a)')     'm             = ', mode%m, ','
-          write (iu2, '(4x, a, i0, a)')     'harmonic      = ', mode%harmonic, ','
-          write (iu2, '(4x, a, es12.4, a)') 'f_damp        =', mode%f_damp, ','
-          write (iu2, '(4x, a, f10.6, a)')  'dphi0_ref     =', mode%dphi0_ref, ','
-          write (iu2, '(4x, a, f10.6, a)')  'phi0_azimuth  =', mode%dphi0_ref, ','
+          write (iu2, '(2x, a)')      'mode = {'
+          write (iu2, '(4x, a, i0, a)') 'm             = ', mode%m, ','
+          write (iu2, '(4x, a, i0, a)') 'harmonic      = ', mode%harmonic, ','
+          write (iu2, '(4x, 3a)')       'f_damp        = ', trim(str(mode%f_damp)), ','
+          write (iu2, '(4x, 3a)')       'dphi0_ref     = ', trim(str(mode%dphi0_ref)), ','
+          write (iu2, '(4x, 3a)')       'phi0_azimuth  = ', trim(str(mode%dphi0_ref)), ','
           if (mode%master_scale > 0) write (iu2, '(3a)') &
-                                            'master_scale  = ', trim(attribute_name(ele, mode%master_scale)), ','
-          write (iu2, '(4x, a, es13.6, a)') 'field_scale   =', mode%field_scale, '&'
+                                        'master_scale  = ', trim(attribute_name(ele, mode%master_scale)), ','
+          write (iu2, '(4x, 3a)')       'field_scale   = ', trim(str(mode%field_scale)), ','
           if (associated(mode%map)) then
-            write (iu2, '(4x, a)')          ', &'
-            write (iu2, '(4x, a)')          'map = {'
-            write (iu2, '(4x, 3a)')         'ele_anchor_pt = ', &
-                                                    trim(anchor_pt_name(mode%map%ele_anchor_pt)), ','
-            write (iu2, '(a, es13.6, a)') '    dz            =', mode%map%dz, ' &'
-            if (any(real(mode%map%term%e_coef) /= 0)) call write_map_coef ('e_coef_re', real(mode%map%term%e_coef))
-            if (any(aimag(mode%map%term%e_coef) /= 0)) call write_map_coef ('e_coef_im', aimag(mode%map%term%e_coef))
-            if (any(real(mode%map%term%b_coef) /= 0)) call write_map_coef ('b_coef_re', real(mode%map%term%b_coef))
-            if (any(aimag(mode%map%term%b_coef) /= 0)) call write_map_coef ('b_coef_im', aimag(mode%map%term%b_coef))
+            map => mode%map
+            write (iu2, '(4x, a)')  'map = {'
+            write (iu2, '(4x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(map%ele_anchor_pt)), ','
+            write (iu2, '(4x, 3a)') 'dz            =', trim(str(map%dz)), ' &'
+            if (any(real(map%term%e_coef) /= 0)) call write_map_coef ('e_coef_re', real(map%term%e_coef))
+            if (any(aimag(map%term%e_coef) /= 0)) call write_map_coef ('e_coef_im', aimag(map%term%e_coef))
+            if (any(real(map%term%b_coef) /= 0)) call write_map_coef ('b_coef_re', real(map%term%b_coef))
+            if (any(aimag(map%term%b_coef) /= 0)) call write_map_coef ('b_coef_im', aimag(map%term%b_coef))
             write (iu2, '(4x, a)') '} &'
           endif
 
           if (associated(mode%grid)) then
-            write (iu2, '(4x, a)')          ', &'
-            write (iu2, '(4x, a)')          'grid = {'
+            grid => mode%grid
+            n = em_grid_dimension(grid%type)
+            write (iu2, '(4x, a)')   'grid = {'
+            write (iu2, '(6x, 3a)')  'type          = ', trim(em_grid_type_name(grid%type)), ','
+            write (iu2, '(6x, 4a)')  'dr            = ', trim(array_str(grid%dr(1:n))), ','
+            write (iu2, '(6x, 4a)')  'r0            = ', trim(array_str(grid%r0(1:n))), ','
+            write (iu2, '(6x, 3a)')  'ele_anchor_pt = ', trim(anchor_pt_name(mode%grid%ele_anchor_pt)), ','
+            end_str = '),'
+            do id1 = lbound(grid%pt, 1), ubound(grid%pt, 1)
+              if (n == 1) then
+                if (id1 == ubound(grid%pt, 1)) end_str = ') &'
+                write (iu2, '(6x, a, i0, 13a)') 'pt(', id1, ') = (', &
+                                                        trim(cmplx_str(grid%pt(id1,1,1)%e(1))), ',', &
+                                                        trim(cmplx_str(grid%pt(id1,1,1)%e(2))), ',', &
+                                                        trim(cmplx_str(grid%pt(id1,1,1)%e(3))), ',', &
+                                                        trim(cmplx_str(grid%pt(id1,1,1)%b(1))), ',', &
+                                                        trim(cmplx_str(grid%pt(id1,1,1)%b(2))), ',', &
+                                                        trim(cmplx_str(grid%pt(id1,1,1)%b(3))), end_str
+                cycle
+              endif
+
+              do id2 = lbound(grid%pt, 2), ubound(grid%pt, 2)
+                if (n == 2) then
+                  if (all([id1, id2, 1] == ubound(grid%pt))) end_str = ') &'
+                  write (iu2, '(6x, 2(a, i0), 13a)') 'pt(', id1, ',', id2, ') = (', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,1)%e(1))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,1)%e(2))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,1)%e(3))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,1)%b(1))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,1)%b(2))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,1)%b(3))), end_str
+                  cycle
+                endif
+
+                do id3 = lbound(grid%pt, 3), ubound(grid%pt, 3)
+                  if (all([id1, id2, id3] == ubound(grid%pt))) end_str = ') &'
+                  write (iu2, '(6x, 3(a, i0), 13a)') 'pt(', id1, ',', id2, ',', id3, ') = (', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,id3)%e(1))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,id3)%e(2))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,id3)%e(3))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,id3)%b(1))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,id3)%b(2))), ',', &
+                                                       trim(cmplx_str(grid%pt(id1,id2,id3)%b(3))), end_str
+                enddo
+              enddo
+            enddo
+
+            write (iu2, '(4x, a)') '} &'
           endif
 
-          write (iu2, '(a)') '  }'
+          write (iu2, '(2x, a)') '} &'
 
         enddo
-        write (iu2, *) '}'
+        write (iu2, '(a)') '}'
         close (iu2)
       endif
 
-
-      call out_io (s_error$, r_name, 'WRITING EM_FIELD ELEMENT COMPONENT NOT YET IMPLEMENTED!', & 
-                                     'PLEASE CONTACT DAVID SAGAN!')
     endif
 
     ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
@@ -539,7 +634,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%spin_tracking_method /= bmad_standard$) line = trim(line) // &
                 ', spin_tracking_method = ' // calc_method_name(ele%spin_tracking_method)
     if (ele%field_calc /= bmad_standard$) line = trim(line) // &
-                ', field_calc = ' // calc_method_name(ele%field_calc)
+                ', field_calc = ' // field_calc_name(ele%field_calc)
     if (ele%symplectify) line = trim(line) // ', symplectify'
     if (attribute_index(ele, 'FIELD_MASTER') /= 0 .and. ele%field_master) &
                 line = trim(line) // ', field_master = True'
@@ -952,7 +1047,47 @@ else
 
 endif
 
-end function
+end function str
+
+!-------------------------------------------------------
+!-------------------------------------------------------
+!-------------------------------------------------------
+
+function array_str(arr, parens_in) result (str_out)
+
+real(rp) arr(:)
+integer i
+character(100) str_out
+character(*), optional :: parens_in
+character(2) parens
+
+!
+
+parens = '()'
+if (present(parens_in)) parens = parens_in
+
+str_out = parens(1:1) // str(arr(1))
+do i = 2, size(arr)
+  str_out = trim(str_out) // ', ' // str(arr(i))
+enddo
+str_out = trim(str_out) // parens(2:2)
+
+end function array_str
+
+!-------------------------------------------------------
+!-------------------------------------------------------
+!-------------------------------------------------------
+
+function cmplx_str(cmp) result (str_out)
+
+complex(rp) cmp
+character(40) str_out
+
+!
+
+str_out = '(' // trim(str(real(cmp))) // ', ' // trim(str(imag(cmp))) // ')'
+
+end function cmplx_str
 
 !-------------------------------------------------------
 !-------------------------------------------------------

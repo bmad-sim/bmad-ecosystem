@@ -1421,6 +1421,7 @@ character(n_des)  des
 
 !
 
+call init_ele (f)
 f%name = nam
 f%type  = typ
 f%alias = ali
