@@ -1129,24 +1129,20 @@ case default   ! normal attribute
         ele%value(ds_step$) = abs(ele%value(l$) * nint(ele%value(num_steps$)))
 
       case (e_tot$)
-        select case (ele%key)
-        case (def_beam$)
-          lat%ele(0)%value(e_tot$) = 1d9 * value
-        case (def_parameter$, init_ele$)
+        if (ele%key == def_beam$ .or. ele%key == def_parameter$) then
           lat%ele(0)%value(e_tot$) = value
-        end select
-        bp_com%e_tot_set = .true.
-        bp_com%p0c_set   = .false.
+          if (ele%key == def_beam$) lat%ele(0)%value(e_tot$) = 1d9 * value
+          bp_com%e_tot_set = .true.
+          bp_com%p0c_set   = .false.
+        endif
 
       case (p0c$)
-        select case (ele%key)
-        case (def_beam$)
-          lat%ele(0)%value(p0c$) = 1d9 * value
-        case (def_parameter$, init_ele$)
+        if (ele%key == def_beam$ .or. ele%key == def_parameter$) then
           lat%ele(0)%value(p0c$) = value
-        end select
-        bp_com%e_tot_set = .false.
-        bp_com%p0c_set   = .true.
+          if (ele%key == def_beam$) lat%ele(0)%value(p0c$) = 1d9 * value
+          bp_com%e_tot_set = .false.
+          bp_com%p0c_set   = .true.
+        endif
 
       case (lr_freq_spread$)
         call randomize_lr_wake_frequencies (ele, set_done)
@@ -4742,7 +4738,7 @@ enddo
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
 
-  do i = 1, lat%n_ele_max
+  do i = 1, branch%n_ele_max
 
     ele => branch%ele(i)
     if (ele%tracking_method /= taylor$ .and. ele%tracking_method /= symp_map$ .and. &

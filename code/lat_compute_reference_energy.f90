@@ -248,21 +248,9 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   call set_ele_status_stale (lord, lat%param, attribute_group$)
   lord%status%ref_energy = ok$
 
-  ! Multipass lords have their own reference energy if n_ref_pass /= 0.
+  ! Multipass lords have their enegy computed above.
 
-  if (lord%lord_status == multipass_lord$) then
-    ix = nint(lord%value(n_ref_pass$))
-    if (ix /= 0) then  
-      slave => pointer_to_slave(lord, ix)
-      lord%value(e_tot$) = slave%value(e_tot$)
-      lord%value(p0c$)   = slave%value(p0c$)
-    elseif (lord%value(e_tot$) == 0 .and. lord%value(p0c$) /= 0) then
-      call convert_pc_to (lord%value(p0c$), lat%param%particle, e_tot = lord%value(e_tot$))
-    elseif (lord%value(p0c$) == 0 .and. lord%value(e_tot$) /= 0) then
-      call convert_total_energy_to (lord%value(e_tot$), lat%param%particle, pc = lord%value(p0c$))
-    endif
-    cycle
-  endif
+  if (lord%lord_status == multipass_lord$) cycle
 
   ! Now for everything but multipass_lord elements...
   ! The lord inherits the energy from the last slave.
@@ -335,7 +323,52 @@ logical err_flag, err
 
 character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
-! 
+! Multipass lords with n_ref_pass = 0 define their own reference energ
+
+if (ele%lord_status == multipass_lord$ .and. nint(ele%value(n_ref_pass$)) == 0 .and. &
+              (ele%value(e_tot$) /= 0 .or. ele%value(p0c$) /= 0)) then
+  if (ele%value(e_tot$) == 0 .and. ele%value(p0c$) /= 0) then
+    call convert_pc_to (ele%value(p0c$), param%particle, e_tot = ele%value(e_tot$))
+  elseif (ele%value(p0c$) == 0 .and. ele%value(e_tot$) /= 0) then
+    call convert_total_energy_to (ele%value(e_tot$), param%particle, pc = ele%value(p0c$))
+  endif
+
+  select case (ele%key)
+
+  case (lcavity$)
+    if (ele%tracking_method == bmad_standard$) then
+      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+      ele%value(E_tot_start$) = ele%value(E_tot$) - ele%value(gradient$) * ele%value(l$) * cos(phase)
+      call convert_total_energy_to (ele%value(E_tot_start$), param%particle, pc = ele%value(p0c_start$), err_flag = err)
+
+    else
+      print *, 'MULTIPASS LCAVITY WITH FIELD TRACKING NOT YET IMPLEMENTED!'
+      call err_exit
+      if (ele%value(e_tot_start$) == 0) then ! 
+        ele%value(E_tot_start$) = ele%value(e_tot$)
+        ele%value(p0c_start$) = ele%value(p0c$)
+      endif
+      call track_this_ele (.false.)
+      ele%value(p0c_start$) = ele%value(p0c$) * (1 + orb_end%vec(6))
+      call calc_time_ref_orb_out
+
+      call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
+    endif  
+
+  case (hybrid$, custom$)
+    ele%value(E_tot_start$) = ele%value(e_tot$) - ele%value(delta_e$)
+    call convert_total_energy_to (ele%value(E_tot_start$), param%particle, pc = ele%value(p0c_start$), err_flag = err)
+
+  case default
+    ele%value(e_tot_start$) = ele%value(e_tot$)
+    ele%value(p0c_start$) = ele%value(p0c$)
+  end select
+
+  return
+
+endif
+
+!
 
 err_flag = .true.
 old_delta_ref_time = ele%value(delta_ref_time$)
@@ -390,16 +423,7 @@ case (lcavity$)
 
     ! Track
 
-    call zero_errors_in_ele (ele)
-    call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
-    call track1 (orb_start, ele, param, orb_end)
-    if (param%lost) then
-      call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING LCAVITY: ' // ele%name, &
-                                     'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-      if (bmad_status%exit_on_error) call err_exit
-      return
-    endif
-    call restore_errors_in_ele (ele)
+    call track_this_ele (.false.)
 
     ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
@@ -421,17 +445,7 @@ case (e_gun$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
 
-  call zero_errors_in_ele (ele)
-  call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
-  orb_start%status = inside$ !to avoid entrance kick in time tracking
-  call track1 (orb_start, ele, param, orb_end)
-  if (param%lost) then
-    call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // ele%name, &
-                                   'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-    if (bmad_status%exit_on_error) call err_exit
-    return
-  endif
-  call restore_errors_in_ele (ele)
+  call track_this_ele (.true.)
 
   E_tot = ele%value(E_tot$)
   p0c = ele%value(p0c$)
@@ -469,17 +483,8 @@ case default
   if (ele_has_constant_ds_dt_ref(ele)) then
     ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
   else
-    call zero_errors_in_ele (ele)
-    call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
-    orb_start%vec = ele%time_ref_orb_in
-    call track1 (orb_start, ele, param, orb_end)
-    if (param%lost) then
-      call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
-                                     'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-      if (bmad_status%exit_on_error) call err_exit
-      return
-    endif
-    call restore_errors_in_ele (ele)
+
+    call track_this_ele (.false.)
     ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
     call calc_time_ref_orb_out
   endif
@@ -504,6 +509,29 @@ err_flag = .false.
 
 !---------------------------------------------------------------------------------
 contains
+
+subroutine track_this_ele (is_inside)
+
+logical is_inside
+
+!
+
+call zero_errors_in_ele (ele)
+call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
+if (is_inside) orb_start%status = inside$ !to avoid entrance kick in time tracking
+call track1 (orb_start, ele, param, orb_end)
+if (param%lost) then
+  call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
+                                 'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+  if (bmad_status%exit_on_error) call err_exit
+  return
+endif
+call restore_errors_in_ele (ele)
+
+end subroutine track_this_ele
+
+!---------------------------------------------------------------------------------
+! contains
 
 recursive subroutine zero_errors_in_ele (ele)
 
