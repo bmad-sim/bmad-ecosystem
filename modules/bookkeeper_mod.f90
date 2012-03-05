@@ -2797,6 +2797,20 @@ if (associated(a_ptr, ele%value(l$))) then
   if (ele%value(p0c$) /= ele%value(p0c_start$)) call set_ele_status_stale (ele, branch%param, ref_energy_group$)
 endif
 
+! E_tot and p0c can be varied in an init_ele or a multipass lord with n_ref_pass = 0.
+
+if (associated(a_ptr, ele%value(e_tot$))) then
+  call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+  call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  return
+endif
+
+if (associated(a_ptr, ele%value(p0c$))) then
+  call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
+  call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  return
+endif
+
 !
 
 select case (ele%key)
@@ -2848,19 +2862,6 @@ case (init_ele$)
       associated(a_ptr, ele%floor%z) .or. associated(a_ptr, ele%floor%theta) .or. &
       associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi)) then
     call set_ele_status_stale (ele, branch%param, floor_position_group$)
-    return
-  endif
-
-  if (associated(a_ptr, ele%value(e_tot$))) then
-    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
-    return
-  endif
-
-
-  if (associated(a_ptr, ele%value(p0c$))) then
-    call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
-    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
     return
   endif
 

@@ -309,13 +309,15 @@ if (ele%slave_status == super_slave$) then
   ! Find offset in super_lord
 
   do j = 1, s_lord%n_slave
-    slave => pointer_to_slave(ele, j)
-    if (slave%ix_ele == ele%ix_ele) ix_off = j
+    slave => pointer_to_slave(s_lord, j)
+    if (slave%ix_ele /= ele%ix_ele) cycle
+    ix_off = j
+    exit
   enddo
 
   ! Construct chain
 
-  m_lord => pointer_to_lord(ele, 1)
+  m_lord => pointer_to_lord(s_lord, 1)
   if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .false.)
   n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
