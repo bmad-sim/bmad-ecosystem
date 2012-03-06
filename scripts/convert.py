@@ -11,8 +11,24 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'genplt mpm_utils cesr_utils sim_utils mpmnet' in line:
-      line = line.replace('genplt mpm_utils cesr_utils sim_utils mpmnet', 'genplt mpm_utils cesr_utils sim_utils mpmnet cbi_net c_utils')
+    if 'single-mode' in line:
+      line = line.replace('single-mode', 'single_mode')
+      found = True
+
+    if 'end-file' in line:
+      line = line.replace('end-file', 'end_file')
+      found = True
+
+    if 'xy-scale' in line:
+      line = line.replace('xy-scale', 'xy_scale')
+      found = True
+
+    if 'x-scale' in line:
+      line = line.replace('x-scale', 'x_scale')
+      found = True
+
+    if '{x-axis}' in line:
+      line = line.replace('{x-axis}', '{x_axis}')
       found = True
 
     out_file.write(line)
