@@ -8,7 +8,7 @@ single line of input. Conversely, \vn{Single Mode}, which is described
 in Chapter~\sref{c:single}, interprets each keystroke as a
 command. Single Mode is useful for quickly varying parameters to see
 how they affect a lattice but the number of commands in Single Mode is
-limited. To put \tao into \vn{single mode} use the \vn{single-mode}
+limited. To put \tao into \vn{single mode} use the \vn{single_mode}
 command (\sref{s:sing}).
 
 \index{commands!Command List} 
@@ -36,7 +36,7 @@ of the line is ignored.  Example:
   clip          & \sref{s:clip}     & scale         & \sref{s:scale}    \\ \hline 
   continue      & \sref{s:continue} & set           & \sref{s:set}      \\ \hline  
   derivative    & \sref{s:deriv}    & show          & \sref{s:show}     \\ \hline 
-  end-file      & \sref{s:end.file} & single-mode   & \sref{s:sing}     \\ \hline 
+  end_file      & \sref{s:end.file} & single_mode   & \sref{s:sing}     \\ \hline 
   exit          & \sref{s:exit}     & spawn         & \sref{s:spawn}    \\ \hline 
   flatten       & \sref{s:flatten}  & timer         & \sref{s:timer}    \\ \hline
   help          & \sref{s:help}     & use           & \sref{s:use}      \\ \hline 
@@ -44,9 +44,9 @@ of the line is ignored.  Example:
   misalign      & \sref{s:misalign} & view          & \sref{s:view}     \\ \hline 
   pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\ \hline
   place         & \sref{s:place}    & write         & \sref{s:write}    \\ \hline 
-  plot          & \sref{s:plot}     & x-axis        & \sref{s:x.axis}   \\ \hline 
-  python        & \sref{s:python}   & x-scale       & \sref{s:x.scale}  \\ \hline 
-  quit          & \sref{s:quit}     & xy-scale      & \sref{s:xy.scale} \\ \hline
+  plot          & \sref{s:plot}     & x_axis        & \sref{s:x.axis}   \\ \hline 
+  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ \hline 
+  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\ \hline
   read          & \sref{s:read}     &                                   \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -250,17 +250,17 @@ command file (\sref{s:command.files}) after a \vn{pause} command
   continue
 \end{example}
 
-%% end-file --------------------------------------------------------------
-\section{end-file} \label{s:end.file}
-\index{commands!end-file}
+%% end_file --------------------------------------------------------------
+\section{end_file} \label{s:end.file}
+\index{commands!end_file}
 
-The \vn{end-file} command is used in command files
+The \vn{end_file} command is used in command files
 (\sref{s:command.files}) to signal the end of the file. Everything
-after an \vn{end-file} command is ignored. An \vn{end-file} command
+after an \vn{end_file} command is ignored. An \vn{end_file} command
 entered at the command line will simply generate an error message.
 Format:
 \begin{example}
-  end-file
+  end_file
 \end{example}
 
 %% exit --------------------------------------------------------------
@@ -1619,14 +1619,14 @@ analysis (\sref{c:wave}).
 
 \end{description}
 
-%% single-mode --------------------------------------------------------------
-\section{single-mode}\index{commands!single-mode}
+%% single_mode --------------------------------------------------------------
+\section{single_mode}\index{commands!single_mode}
 \label{s:sing}
 
-The \vn{sing-mode} command puts \tao into \vn{single mode} (\sref{c:single}).
+The \vn{single_mode} command puts \tao into \vn{single mode} (\sref{c:single}).
 Format:
 \begin{example}
-  single-mode
+  single_mode
 \end{example}
 
 %% spawn --------------------------------------------------------------
@@ -1859,18 +1859,18 @@ initialize \tao (\sref{s:command.line}). Example
 Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using a ps to gif converter.
 
-%% x-axis --------------------------------------------------------------
-\section{x-axis}\index{commands!x-axis}
+%% x_axis --------------------------------------------------------------
+\section{x_axis}\index{commands!x_axis}
 \label{s:x.axis}
 
-The \vn{x-axis} command sets the data type used for the x-axis coordinate.
+The \vn{x_axis} command sets the data type used for the x-axis coordinate.
 Format:
 \begin{example}
-  x-axis <where> <axis_type>
+  x_axis <where> <axis_type>
 \end{example}
 
 \vskip 0.1in 
-The \vn{x-axis} command sets the \vn{plot%x_axis_type}. This determines 
+The \vn{x_axis} command sets the \vn{plot%x_axis_type}. This determines 
 what data is used for the horizontal axis. Possibilities
 for \vn{<axis_type>} are:
 \begin{example}
@@ -1883,28 +1883,28 @@ associated with it.
 
 Examples:
 \begin{example}
-  x-axis * s
-  x-axis top index
+  x_axis * s
+  x_axis top index
 \end{example}
 
-%% x-scale --------------------------------------------------------------
-\section{x-scale}\index{commands!x-scale}
+%% x_scale --------------------------------------------------------------
+\section{x_scale}\index{commands!x_scale}
 \label{s:x.scale}
 
-The \vn{x-scale} command scales the horizontal axis of a graph or set of graphs.
+The \vn{x_scale} command scales the horizontal axis of a graph or set of graphs.
 Format:
 \begin{example}
-  x-scale \{-gang\} \{-nogang\} \{<where>\} \{<value1> \}<value2>\}\}\}
+  x_scale \{-gang\} \{-nogang\} \{<where>\} \{<value1> \}<value2>\}\}\}
 \end{example}
 
 Which graphs are scaled is determined by the \vn{<where>} switch. If
 \vn{<where>} is not present or \vn{<where>} is \vn{*} then all
 graphs are scaled. \vn{<where>} can be a plot name or the name of an
 individual graph withing a plot.  If \vn{<where>} is \vn{s} then the
-scaling is done only for the plots where the x--axis scale is the
+scaling is done only for the plots where the x-axis scale is the
 longitudinal s-position.
 
-\vskip 0.2in \vn{x-scale} sets the lower and upper bounds for the
+\vskip 0.2in \vn{x_scale} sets the lower and upper bounds for the
 horizontal axis.  If both \vn{<bound1>} and \vn{<bound2>} are present
 then \vn{<bound1>} is taken to be the lower (left) bound and
 \vn{<bound2>} is the upper (right) bound. If only \vn{<bound1>} is
@@ -1918,37 +1918,37 @@ data of all the graphs is within the plot region. The affect of
 \vn{plot%autoscale_gang_x} can be overridden by using the \vn{-gang}
 or \vn{-nogang} switches.
 
-Note: The \vn{x-scale} command will vary the number of major divisions
+Note: The \vn{x_scale} command will vary the number of major divisions
 (set by plot%x%major_divisions (\sref{s:template})) to try to give a
 nice looking axis. The result can be that if two plots have the same
-range of data but differing major division settings, the \vn{x-scale}
+range of data but differing major division settings, the \vn{x_scale}
 command can produce differing results.
 
 Example:
 \begin{example}
-  x-scale                 ! Autoscale all x-axes.
-  x-scale * 0 100         ! Scale all x-axes to go from 0 to 100.
+  x_scale                 ! Autoscale all x-axes.
+  x_scale * 0 100         ! Scale all x-axes to go from 0 to 100.
 \end{example}
 
-%% xy-scale --------------------------------------------------------------
-\section{xy-scale}\index{commands!xy-scale}
+%% xy_scale --------------------------------------------------------------
+\section{xy_scale}\index{commands!xy_scale}
 \label{s:xy.scale}
 
-The \vn{xy-scale} command sets horizontal and vertical axis bounds. Format:
+The \vn{xy_scale} command sets horizontal and vertical axis bounds. Format:
 \begin{example}
-  xy-scale \{<where>\} \{<value1> \}<value2>\}\}\}
+  xy_scale \{<where>\} \{<value1> \}<value2>\}\}\}
 \end{example}
 
-\vn{xy-scale} is equivalent to an \vn{x-scale} followed by a \vn{y-scale}.
+\vn{xy_scale} is equivalent to an \vn{x_scale} followed by a \vn{y-scale}.
 
 Which graphs are scaled is determined by the \vn{<where>} switch. If
 \vn{<where>} is not present or \vn{<where>} is \vn{*} then all
 graphs are scaled. \vn{<where>} can be a plot name or the name of an
 individual graph withing a plot. 
 
-\vskip 0.2in \vn{xy-scale} sets the lower and upper bounds for both
+\vskip 0.2in \vn{xy_scale} sets the lower and upper bounds for both
 the horizontal and vertical axes.  This is just a shortcut for doing
-an \vn{x-scale} followed by a \vn{scale}.  If both \vn{<bound1>} and
+an \vn{x_scale} followed by a \vn{scale}.  If both \vn{<bound1>} and
 \vn{<bound2>} are present then \vn{<bound1>} is taken to be the lower
 (left) bound and \vn{<bound2>} is the upper (right) bound. If only
 \vn{<bound1>} is present then the bounds will be from -\vn{<bound1>}
@@ -1960,7 +1960,7 @@ with the data.
 
 Example:
 \begin{example}
-  xy-scale          ! Autoscale all axes.
-  xy-scale * -1 1   ! Scale all axes to go from -1 to 1.
+  xy_scale          ! Autoscale all axes.
+  xy_scale * -1 1   ! Scale all axes to go from -1 to 1.
 \end{example}
 

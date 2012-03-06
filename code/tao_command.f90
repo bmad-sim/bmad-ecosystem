@@ -26,6 +26,7 @@ use tao_change_mod
 use tao_misalign_mod
 use tao_data_and_eval_mod
 use tao_wave_mod
+use tao_cut_ring_mod
 
 implicit none
 
@@ -45,12 +46,16 @@ character(16) cmd_name, set_word, axis_name
 character(16) :: cmd_names(36) = [  &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
-    'run_optimizer', 'flatten      ', 'output       ', 'change       ', 'set          ', &
+    'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
     'call         ', 'view         ', 'alias        ', 'help         ', 'history      ', &
-    'single-mode  ', 'reinitialize ', 'x-scale      ', 'x-axis       ', 'derivative   ', &
-    'spawn        ', 'xy-scale     ', 'read         ', 'misalign     ', 'end-file     ', &
+    'single_mode  ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
+    'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
     'python       ']
+
+character(16) :: cmd_names_old(6) = [ &
+    'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
+    'output       ']
 
 character(16) :: set_names(17) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
@@ -80,7 +85,15 @@ if (ix /= 0) cmd_line = cmd_line(:ix-1)        ! strip off comments
 
 ! match first word to a command name
 
-call match_word (cmd_line, cmd_names, ix_cmd, .true.)
+call match_word (cmd_line, cmd_names, ix_cmd, .true., matched_name = cmd_name)
+
+if (ix_cmd == 0) then  ! Accept old-style names with "-" instead of "_".
+  call match_word (cmd_line, cmd_names_old, ix_cmd, .true., matched_name = cmd_name)
+  ix = index(cmd_name, '-')
+  if (ix /= 0) cmd_name(ix:ix) = '_'
+  if (cmd_name == 'output') cmd_name = 'write'
+endif
+
 if (ix_cmd == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED COMMAND: ' // cmd_line)
   call tao_abort_command_file()
@@ -93,7 +106,6 @@ endif
 
 ! Strip off command name from cmd_line and select the appropriate command.
 
-cmd_name = cmd_names(ix_cmd)
 call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
 
 select case (cmd_name)
@@ -186,6 +198,14 @@ case ('continue')
   return
 
 !--------------------------------
+! CUT_RING
+
+case ('cut_ring')
+
+  call tao_cut_ring ()
+  return
+
+!--------------------------------
 ! DERIVATIVE
 
 case ('derivative')
@@ -198,7 +218,7 @@ case ('derivative')
 !--------------------------------
 ! END_FILE
 
-case ('end-file')
+case ('end_file')
 
   n_level = tao_com%cmd_file_level
   if (n_level == 0) then
@@ -261,14 +281,6 @@ case ('misalign')
 
 
 !--------------------------------
-! write, [output is old name]
-
-case ('write', 'output')
-
-  call tao_write_cmd (cmd_line)
-  return
-
-!--------------------------------
 ! PAUSE
 
 case ('pause')
@@ -326,9 +338,9 @@ case ('python')
   return
 
 !--------------------------------
-! VETO, RESTORE, USE
+! RESTORE, USE, VETO
 
-case ('use', 'veto', 'restore')
+case ('restore', 'use', 'veto')
 
   call tao_cmd_split(cmd_line, 2, cmd_word, .true., err)
   if (err) return
@@ -548,7 +560,7 @@ case ('show')
 !--------------------------------
 ! SINGLE-MODE
 
-case ('single-mode')
+case ('single_mode')
 
   tao_com%single_mode = .true.
   call out_io (s_blank$, r_name, 'Entering Single Mode...')
@@ -591,9 +603,17 @@ case ('wave')
   return
 
 !--------------------------------
-! X-AXIS
+! write
 
-case ('x-axis')
+case ('write')
+
+  call tao_write_cmd (cmd_line)
+  return
+
+!--------------------------------
+! X_AXIS
+
+case ('x_axis')
 
   if (.not. s%global%plot_on) then
     call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
@@ -604,9 +624,9 @@ case ('x-axis')
   call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
-! X-SCALE
+! X_SCALE
 
-case ('x-scale')
+case ('x_scale')
 
   if (.not. s%global%plot_on) then
     call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
@@ -638,9 +658,9 @@ case ('x-scale')
   endif
 
 !--------------------------------
-! XY-SCALE
+! XY_SCALE
 
-case ('xy-scale')
+case ('xy_scale')
 
   if (.not. s%global%plot_on) then
     call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")

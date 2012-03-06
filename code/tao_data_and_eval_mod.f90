@@ -944,14 +944,9 @@ case ('dpz_dz')
 
 case ('e_tot')
   if (data_source == 'beam') return
-  call tao_load_this_datum (branch%ele(0:n_track)%value(E_TOT$) * (1+orbit(0:n_track)%vec(6)), &
+  call tao_load_this_datum (branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)) / orbit(0:n_track)%beta, &
                             ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
-case ('%e_tot')
-  if (data_source == 'beam') return
-  call tao_load_this_datum (orbit(0:n_track)%vec(6), ele_ref, ele_start, ele, &
-                                     datum_value, valid_value, datum, lat, why_invalid)
-    
 !-----------
 
 case ('emit.', 'norm_emit.')
@@ -1294,6 +1289,12 @@ case ('k.')
 
   end select
 
+!-----------
+
+case ('momentum')
+  if (data_source == 'beam') return
+  call tao_load_this_datum (branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)), &
+                            ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 !-----------
 
 case ('momentum_compaction')
@@ -1922,6 +1923,13 @@ case ('s_position')
     datum_value = ele%s 
   endif
   valid_value = .true.
+
+!-----------
+
+case ('time')
+  if (data_source == 'beam') return
+  call tao_load_this_datum (orbit(0:n_track)%t, &
+                            ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 !-----------
 

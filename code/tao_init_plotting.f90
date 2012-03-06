@@ -847,19 +847,21 @@ s%plot_page = plot_page
 allocate (tao_com%ele_shape_floor_plan(10), tao_com%ele_shape_lat_layout(10))
 
 tao_com%ele_shape_floor_plan(:)%ele_name = ''
-tao_com%ele_shape_floor_plan(1:5) = [&
+tao_com%ele_shape_floor_plan(1:6) = [&
           tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none', .true., ''), &
           tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name', .true., ''), &
           tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none', .true., ''), &
           tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     20.0_rp, 'none', .true., ''), &
-          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none', .true., '')]
+          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none', .true., ''), &
+          tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLACK',   12.0_rp, 'none', .true., '')]
 
 tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
+
+allocate (s%template_plot(9)) 
 
 !---------------
 ! beta plot
 
-allocate (s%template_plot(6))
 plt => s%template_plot(1)
 
 nullify(plt%r)
@@ -1011,9 +1013,118 @@ grph%x             = init_axis
 grph%y             = init_axis
 
 !---------------
-! Scratch plot
+! Momentum
 
 plt => s%template_plot(6)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+plt%graph(1)%p => plt
+allocate (plt%graph(1)%curve(1))
+
+plt%name           = 'momentum'
+plt%x_axis_type          = 's'
+plt%x                    = init_axis
+
+grph => plt%graph(1)
+grph%name          = 'c'
+grph%title         = 'Particle Momentum PC (eV)'
+grph%type          = 'data'
+grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%box           = [1, 1, 1, 1]
+grph%y             = init_axis
+grph%y%label       = 'PC [eV]'
+grph%y%major_div_nominal = 4
+grph%y2%draw_numbers = .false.
+grph%component     = 'model'
+crv => grph%curve(1)
+crv%data_source = 'lat'
+crv%draw_symbols = .false.
+crv%data_type = 'momentum'
+
+!---------------
+! Momentum
+
+plt => s%template_plot(7)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+plt%graph(1)%p => plt
+allocate (plt%graph(1)%curve(1))
+
+plt%name           = 'time'
+plt%x_axis_type          = 's'
+plt%x                    = init_axis
+
+grph => plt%graph(1)
+grph%name          = 'c'
+grph%title         = 'Particle Time (sec)'
+grph%type          = 'data'
+grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%box           = [1, 1, 1, 1]
+grph%y             = init_axis
+grph%y%label       = 'Time [sec]'
+grph%y%major_div_nominal = 4
+grph%y2%draw_numbers = .false.
+grph%component     = 'model'
+crv => grph%curve(1)
+crv%data_source = 'lat'
+crv%draw_symbols = .false.
+crv%data_type = 'time'
+
+!---------------
+! phase plot
+
+plt => s%template_plot(8)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(2))
+plt%graph(1)%p => plt
+plt%graph(2)%p => plt
+allocate (plt%graph(1)%curve(1))
+allocate (plt%graph(2)%curve(1))
+
+plt%name                 = 'phase'
+plt%x_axis_type          = 's'
+plt%x                    = init_axis
+plt%x%major_div_nominal  = 8
+plt%x%minor_div_max = 6
+plt%autoscale_gang_x = .true.
+plt%autoscale_gang_y = .true.
+
+
+grph => plt%graph(1)
+grph%name          = 'a'
+grph%title         = 'Horizontal Phase'
+grph%type          = 'data'
+grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%box           = [1, 2, 1, 2]
+grph%y             = init_axis
+grph%y%label       = 'Phase_a'
+grph%y%major_div_nominal   = 4
+grph%y2%draw_numbers = .false.
+grph%component     = 'model'
+crv => grph%curve(1)
+crv%data_source = 'lat'
+crv%draw_symbols = .false.
+crv%data_type = 'phase.a'
+
+grph => plt%graph(2)
+grph               = plt%graph(1)
+grph%name          = 'b'
+grph%title         = 'Vertical Phase'
+grph%y%label       = 'Phase_b'
+grph%box           = [1, 1, 1, 2]
+crv => grph%curve(1)
+crv%data_type = 'phase.b'
+
+!---------------
+! Scratch plot
+
+plt => s%template_plot(9)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)

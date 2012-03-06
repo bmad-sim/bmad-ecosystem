@@ -1261,16 +1261,9 @@ do ii = 1, size(curve%x_line)
     cycle
   endif
 
-  !
+  !-----------------------------
 
   select case (curve%data_source)
-  case ('lat')   
-    call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err, .true.)
-    if (err) then
-      good(ii:) = .false.
-      return
-    endif
-
   case ('beam')
     if (.not. allocated(tao_lat%bunch_params2)) then
       call out_io (s_fatal$, r_name, 'BUNCH_PARAMS2 NOT ALLOCATED.')
@@ -1293,15 +1286,26 @@ do ii = 1, size(curve%x_line)
     ele = branch%ele(ix_ele)
     here = bunch_params%centroid
 
+  case ('lat')   
+    call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err, .true.)
+    if (err) then
+      good(ii:) = .false.
+      return
+    endif
+
   case default
     call out_io (s_fatal$, r_name, &
             'I DO NOT KNOW HOW TO HANDLE THIS curve%data_source: ' // curve%data_source)
     call err_exit
   end select
 
-!
+  !-------------------------------
 
   select case (data_type_select)
+  case ('alpha.a')
+    value = ele%a%alpha
+  case ('alpha.b')
+    value = ele%b%alpha
   case ('apparent_emit.x', 'norm_apparent_emit.x')
     if (curve%data_source == 'beam') then
       value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
@@ -1316,38 +1320,38 @@ do ii = 1, size(curve%x_line)
       value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-  case ('orbit.x')
-    value = here%vec(1)
-  case ('orbit.y')
-    value = here%vec(3)
-  case ('orbit.z')
-    value = here%vec(5)
-  case ('orbit.px')
-    value = here%vec(2)
-  case ('orbit.py')
-    value = here%vec(4)
-  case ('orbit.pz')
-    value = here%vec(6)
-  case ('orbit.amp_a')
-    call orbit_amplitude_calc (ele, here, amp_a = value)
-  case ('orbit.amp_b')
-    call orbit_amplitude_calc (ele, here, amp_b = value)
-  case ('orbit.norm_amp_a')
-    call orbit_amplitude_calc (ele, here, amp_na = value)
-  case ('orbit.norm_amp_b')
-    call orbit_amplitude_calc (ele, here, amp_nb = value)
-  case ('phase.a')
-    value = ele%a%phi
-  case ('phase.b')
-    value = ele%b%phi
   case ('beta.a')
     value = ele%a%beta
   case ('beta.b')
     value = ele%b%beta
-  case ('alpha.a')
-    value = ele%a%alpha
-  case ('alpha.b')
-    value = ele%b%alpha
+  case ('cbar.11')
+    call c_to_cbar (ele, cbar)
+    value = cbar(1,1)
+  case ('cbar.12')
+    call c_to_cbar (ele, cbar)
+    value = cbar(1,2)
+  case ('cbar.21')
+    call c_to_cbar (ele, cbar)
+    value = cbar(2,1)
+  case ('cbar.22')
+    call c_to_cbar (ele, cbar)
+    value = cbar(2,2)
+  case ('coupling.11b')
+    call c_to_cbar (ele, cbar)
+    value = cbar(1,1) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
+  case ('coupling.12a')
+    call c_to_cbar (ele, cbar)
+    value = cbar(1,2) * sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
+  case ('coupling.12b')
+    call c_to_cbar (ele, cbar)
+    value = cbar(1,2) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
+  case ('coupling.22a')
+    call c_to_cbar (ele, cbar)
+    value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
+  case ('emit.a')
+    value = bunch_params%a%emit
+  case ('emit.b')
+    value = bunch_params%b%emit
   case ('emit.x', 'norm_emit.x')
     if (curve%data_source == 'beam') then
       value = bunch_params%x%emit
@@ -1389,33 +1393,60 @@ do ii = 1, size(curve%x_line)
   case ('floor.z')
     value = ele%floor%z
   case ('e_tot')
-    value = ele%value(e_tot$) * (1 + here%vec(6))
-  case ('%e_tot')
+    if (here%beta == 0) then
+      value = mass_of(branch%param%particle)
+    else
+      value = here%p0c * (1 + here%vec(6)) / here%beta
+    endif
+  case ('momentum')
+    value = here%p0c * (1 + here%vec(6)) 
+  case ('momentum_compaction')
+    if (ii == 1) call mat_make_unit (mat6)
+    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
+    call make_v_mats (ele_ref, v_mat, v_inv_mat)
+    eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
+    eta_vec = matmul (v_mat, eta_vec)
+    one_pz = 1 + orb_ref%vec(6)
+    eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
+    eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
+    value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+  case ('norm_emit.a')
+    value = bunch_params%a%norm_emit
+  case ('norm_emit.b')
+    value = bunch_params%b%norm_emit
+  case ('norm_emit.z')
+    value = bunch_params%z%norm_emit
+  case ('orbit.x')
+    value = here%vec(1)
+  case ('orbit.y')
+    value = here%vec(3)
+  case ('orbit.z')
+    value = here%vec(5)
+  case ('orbit.px')
+    value = here%vec(2)
+  case ('orbit.py')
+    value = here%vec(4)
+  case ('orbit.pz')
     value = here%vec(6)
-  case ('cbar.11')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,1)
-  case ('cbar.12')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,2)
-  case ('cbar.21')
-    call c_to_cbar (ele, cbar)
-    value = cbar(2,1)
-  case ('cbar.22')
-    call c_to_cbar (ele, cbar)
-    value = cbar(2,2)
-  case ('coupling.11b')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,1) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
-  case ('coupling.12a')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,2) * sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
-  case ('coupling.12b')
-    call c_to_cbar (ele, cbar)
-    value = cbar(1,2) * sqrt(ele%a%beta/ele%b%beta) / ele%gamma_c
-  case ('coupling.22a')
-    call c_to_cbar (ele, cbar)
-    value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
+  case ('orbit.amp_a')
+    call orbit_amplitude_calc (ele, here, amp_a = value)
+  case ('orbit.amp_b')
+    call orbit_amplitude_calc (ele, here, amp_b = value)
+  case ('orbit.norm_amp_a')
+    call orbit_amplitude_calc (ele, here, amp_na = value)
+  case ('orbit.norm_amp_b')
+    call orbit_amplitude_calc (ele, here, amp_nb = value)
+  case ('phase.a')
+    value = ele%a%phi
+  case ('phase.b')
+    value = ele%b%phi
+  case ('r.')
+    if (ii == 1) call mat_make_unit (mat6)
+    if (s_now < s_last) cycle
+    i = tao_read_this_index (data_type, 3); if (i == 0) return
+    j = tao_read_this_index (data_type, 4); if (j == 0) return
+    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, ix_branch, unit_start = .false.)
+    value = mat6(i, j)
   case ('sigma.x')
     value = sqrt(bunch_params%sigma(s11$))
   case ('sigma.px')
@@ -1428,23 +1459,8 @@ do ii = 1, size(curve%x_line)
     value = sqrt(bunch_params%sigma(s55$))
   case ('sigma.pz')
     value = sqrt(bunch_params%sigma(s66$))
-  case ('norm_emit.a')
-    value = bunch_params%a%norm_emit
-  case ('norm_emit.b')
-    value = bunch_params%b%norm_emit
-  case ('norm_emit.z')
-    value = bunch_params%z%norm_emit
-  case ('emit.a')
-    value = bunch_params%a%emit
-  case ('emit.b')
-    value = bunch_params%b%emit
-  case ('r.')
-    if (ii == 1) call mat_make_unit (mat6)
-    if (s_now < s_last) cycle
-    i = tao_read_this_index (data_type, 3); if (i == 0) return
-    j = tao_read_this_index (data_type, 4); if (j == 0) return
-    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, ix_branch, unit_start = .false.)
-    value = mat6(i, j)
+  case ('time')
+    value = here%t
   case ('t.')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
@@ -1465,16 +1481,6 @@ do ii = 1, size(curve%x_line)
     enddo
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
-  case ('momentum_compaction')
-    if (ii == 1) call mat_make_unit (mat6)
-    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
-    call make_v_mats (ele_ref, v_mat, v_inv_mat)
-    eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
-    eta_vec = matmul (v_mat, eta_vec)
-    one_pz = 1 + orb_ref%vec(6)
-    eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
-    eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
-    value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
 
   case default
     call out_io (s_warn$, r_name, &
