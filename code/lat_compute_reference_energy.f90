@@ -512,9 +512,13 @@ contains
 
 subroutine track_this_ele (is_inside)
 
-logical is_inside
+logical is_inside, auto_bookkeeper_saved
 
-!
+! Set auto_bookkeeper to prevent track1 calling attribute_bookkeeper which will overwrite
+! ele%old_value
+
+auto_bookkeeper_saved = bmad_com%auto_bookkeeper
+bmad_com%auto_bookkeeper = .false.
 
 call zero_errors_in_ele (ele)
 call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
@@ -527,6 +531,8 @@ if (param%lost) then
   return
 endif
 call restore_errors_in_ele (ele)
+
+bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 
 end subroutine track_this_ele
 
