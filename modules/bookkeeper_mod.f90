@@ -2798,15 +2798,37 @@ if (associated(a_ptr, ele%value(l$))) then
 endif
 
 ! E_tot and p0c can be varied in an init_ele or a multipass lord with n_ref_pass = 0.
+! In addition, for an init_ele, must also set e_tot_start and p0c_start. This is important
+! for lattices with an e_gun element
 
 if (associated(a_ptr, ele%value(e_tot$))) then
   call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
   call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  if (ele%key == init_ele$) then
+    ele%value(e_tot_start$) = ele%value(e_tot$)
+    ele%value(p0c_start$) = ele%value(p0c$)
+  endif
   return
 endif
 
 if (associated(a_ptr, ele%value(p0c$))) then
   call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
+  call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  if (ele%key == init_ele$) then
+    ele%value(e_tot_start$) = ele%value(e_tot$)
+    ele%value(p0c_start$) = ele%value(p0c$)
+  endif
+  return
+endif
+
+if (associated(a_ptr, ele%value(e_tot_start$))) then
+  call convert_total_energy_to (ele%value(e_tot_start$), branch%param%particle, pc = ele%value(p0c_start$))
+  call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  return
+endif
+
+if (associated(a_ptr, ele%value(p0c_start$))) then
+  call convert_pc_to (ele%value(p0c_start$), branch%param%particle, e_tot = ele%value(e_tot_start$))
   call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   return
 endif
