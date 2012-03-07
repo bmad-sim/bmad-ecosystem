@@ -178,9 +178,10 @@ if (bmad_com%spin_tracking_on) call track1_spin (start2_orb, ele, param, end_orb
 if (.not. param%lost) then
   if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) then
     call check_aperture_limit (end_orb, ele, exit_end$, param)
-    if (param%lost) param%end_lost_at = exit_end$
   endif
 endif
+
+if (param%lost) param%end_lost_at = exit_end$
 
 if (end_orb%p0c < 0 .and. end_orb%status /= dead$) then
   param%lost = .false. ! Temp

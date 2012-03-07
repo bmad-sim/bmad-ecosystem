@@ -11,24 +11,12 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'single-mode' in line:
-      line = line.replace('single-mode', 'single_mode')
+    if 'character*72' in line:
+      line = line.replace('character*72', 'character(160)')
       found = True
 
-    if 'end-file' in line:
-      line = line.replace('end-file', 'end_file')
-      found = True
-
-    if 'xy-scale' in line:
-      line = line.replace('xy-scale', 'xy_scale')
-      found = True
-
-    if 'x-scale' in line:
-      line = line.replace('x-scale', 'x_scale')
-      found = True
-
-    if '{x-axis}' in line:
-      line = line.replace('{x-axis}', '{x_axis}')
+    if '*72' in line:
+      line = line.replace('*72', '*160')
       found = True
 
     out_file.write(line)
