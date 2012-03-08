@@ -15,6 +15,7 @@ logical, save, pointer :: local_ref_frame_com
 real(rp), save, pointer :: s_target_com
 real(rp), save, pointer :: t_rel_com
 
+
 contains
 
 ! function for zbrent to calculate timestep to exit face surface
@@ -73,13 +74,25 @@ use track1_mod
 
 implicit none
 
+type hard_edge_struct
+   real(rp) :: s                          ! S position of next hard edge in track_ele frame.
+   real(rp) :: s_hard                     ! S-position of next hard edge in hard_ele frame
+   type (ele_struct), pointer :: hard_ele ! Points to element with the hard edge.               
+   integer  :: hard_end                   ! Integer: Describes hard edge.
+end type 
+
+
 type (coord_struct) :: start_orb, end_orb
 type (coord_struct) :: ele_origin
 type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
+type (hard_edge_struct), allocatable :: edge(:)
 
-real(rp)  dt_step, ref_time, vec6, s_rel, t_rel
+real(rp)  dt_step, ref_time, vec6
+real(rp)   s_rel, t_rel, s1, s2, del_s, p0c_save
+
+integer :: i, n_edge
 
 character(30), parameter :: r_name = 'track1_time_runge_kutta'
 
@@ -115,6 +128,17 @@ end if
 
 !Specify time step; assumes ele%value(ds_step$) has been set
 dt_step = ele%value(ds_step$)/c_light
+
+
+! Get edge array of hard edges
+allocate( edge ( 2*max(ele%n_lord, 1) ) )
+nullify (edge(1)%hard_ele)
+n_edge = 0
+do i = 1, size(edge)
+  call calc_next_hard_edge (ele, edge(i)%s, edge(i)%hard_ele, edge(i)%s_hard, edge(i)%hard_end) 
+  if (.not.  associated(edge(i)%hard_ele )) exit
+  n_edge = n_edge + 1
+enddo 
 
 
 !------
@@ -182,12 +206,60 @@ if (param%lost) then
 
 else
 
-  !If particle passed wall check, track through element
-  call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), t_rel, &
-                                      dt_step, local_ref_frame, err, track)
-  if (err) return
+  if ( present(track) ) then
+    call init_saved_orbit (track, 10000)   !TODO: pass this from elsewhere
+    track%n_pt = 0
+    track%orb(0) = end_orb
+  endif
 
+
+  !If particle passed wall check, track through element
+  
+  if (n_edge == 0) then
+    ! Track whole element with no hard edges
+    call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), t_rel, &
+                                      dt_step, local_ref_frame, err, track)
+    if (err) return
+  else 
+    ! There are hard edges. Track between edges until final exit
+    do    
+      ! Bracket edges and kick if at edge
+      s1 = 0.0_rp
+      s2 = ele%value(l$)
+      do i = 1, n_edge
+        del_s = end_orb%vec(5) - edge(i)%s
+        if (del_s > 0 ) then
+      	  if (del_s < end_orb%vec(5) - s1 ) s1 = edge(i)%s  !new nearest left edge
+        else if (del_s < 0 ) then
+          if (del_s > end_orb%vec(5) - s2 ) s2 = edge(i)%s  !new nearest right edge
+        else 
+          ! At an edge. Kick.         
+          p0c_save = end_orb%p0c ! Fudge to kick orb in time coordinates by setting p0c = +/- 1
+          end_orb%p0c = sign(1.0_rp, p0c_save)
+          call apply_hard_edge_kick (end_orb, edge(i)%s_hard, t_rel, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
+          end_orb%p0c = p0c_save
+          if (p0c_save > 0 ) then 
+            s1 = edge(i)%s
+          else 
+            s2 = edge(i)%s
+          end if
+        endif
+      enddo
+      if ( end_orb%vec(5) == ele%value(L$) .and. end_orb%vec(6) > 0 ) exit
+      if ( end_orb%vec(5) == 0.0_rp        .and. end_orb%vec(6) < 0 ) exit
+      if ( end_orb%status == dead$) exit
+      
+      ! Track
+      call odeint_bmad_time(end_orb, ele, param, s1, s2, t_rel, &
+                                      dt_step, local_ref_frame, err, track)
+      if (err) return
+    enddo
+  endif   
+  
 end if
+
+! Cleanup  
+deallocate (edge)
 
 !------
 !Convert back to s-based coordinates
@@ -323,11 +395,8 @@ orb%vec(5) = orb%s - (ele%s - ele%value(l$))
 
 ! Allocate track arrays
 
-n_pt = max_step
+!n_pt = max_step
 if ( present(track) ) then
-   call init_saved_orbit (track, n_pt)
-   track%n_pt = 0
-   track%orb(0) = orb
    !number of save points
    n_save_count = 0
    dn_save = max(floor(track%ds_save/c_light/dt), 1)
@@ -627,3 +696,5 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
 endif
 
 end subroutine  particle_hit_wall_check_time
+
+
