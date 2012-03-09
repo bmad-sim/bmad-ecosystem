@@ -491,6 +491,22 @@ interface
 end interface
  
 interface
+  function downcase(str_in) result (str_out)
+    implicit none
+    character(*) str_in
+    character(len(str_in)) str_out
+  end function
+end interface
+ 
+interface
+  function upcase(str_in) result (str_out)
+    implicit none
+    character(*) str_in
+    character(len(str_in)) str_out
+  end function
+end interface
+ 
+interface
   subroutine upcase_string(string)
     implicit none
     character(*) string

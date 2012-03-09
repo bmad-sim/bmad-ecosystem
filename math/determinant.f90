@@ -14,8 +14,6 @@
 !   det      -- Real(rp): Deteminant.
 !-
 
-#include "CESR_platform.inc"
-
 function determinant(mat) result (det)
 
 use nr
@@ -24,11 +22,12 @@ use precision_def
 
 implicit none
 
-integer i, ns
-integer, allocatable, save :: indx(:)
-
 real(rp) mat(:, :), det
-real(rp), allocatable, save :: mat1(:,:) 
+
+integer i, ns
+integer :: indx(size(mat, 1))
+
+real(rp) :: mat1(size(mat, 1), size(mat, 1)) 
 
 logical err
 
@@ -39,17 +38,6 @@ ns = size(mat, 1)
 if (ns == 2) then
   det = mat(1,1) * mat(2,2) - mat(1,2) * mat(2,1)
   return
-endif
-
-! Allocate space if needed
-
-if (allocated(indx)) then
-  if (ns /= size(indx)) then
-    deallocate (indx, mat1)
-    allocate (indx(ns), mat1(ns, ns))
-  endif
-else
-  allocate (indx(ns), mat1(ns, ns))
 endif
 
 ! singular case
@@ -70,5 +58,6 @@ if (err) call err_exit
 do i = 1, ns
   det = det * mat1(i, i)
 enddo
+
 
 end function
