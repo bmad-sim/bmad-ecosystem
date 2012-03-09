@@ -440,8 +440,8 @@ logical is_eq
 
 is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%max_aperture_limit == f2%max_aperture_limit) .and. &
-      (f1%rel_tolerance == f2%rel_tolerance) .and. &
-      (f1%abs_tolerance == f2%abs_tolerance) .and. &
+      (f1%rel_tol_tracking == f2%rel_tol_tracking) .and. &
+      (f1%abs_tol_tracking == f2%abs_tol_tracking) .and. &
       (f1%rel_tol_adaptive_tracking == f2%rel_tol_adaptive_tracking) .and. &
       (f1%abs_tol_adaptive_tracking == f2%abs_tol_adaptive_tracking) .and. &
       (f1%taylor_order == f2%taylor_order) .and. &

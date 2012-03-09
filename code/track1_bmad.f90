@@ -54,7 +54,7 @@ real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22, volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
 real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, len_slice, k0l, k1l
-real(rp) phase0, dphase, dcos_phi, dgradient, dpz
+real(rp) dphase, dcos_phi, dgradient, dpz
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 
@@ -254,8 +254,7 @@ case (lcavity$)
   call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
 
   dphase = twopi * (ele%value(phi0_err$) - end_orb%vec(5) * ele%value(rf_frequency$) / (beta_start_ref * c_light))
-  phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-  phase = phase0 + dphase
+  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + dphase
 
   gradient_max = ele%value(gradient$) + ele%value(gradient_err$)
 
@@ -603,6 +602,7 @@ case (rfcavity$)
                  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // ele%name, &
                  'YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
       if (bmad_status%exit_on_error) call err_exit
+      return
     endif
     ff = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + ff * z

@@ -84,8 +84,8 @@ if (.not. ele%is_on) return
 
 err_flag = .false.
 
-scale_phase = .true.
-scale_amp   = .true.
+scale_phase = bmad_com%rf_auto_scale_phase_default
+scale_amp   = bmad_com%rf_auto_scale_amp_default
 if (associated (ele%lat)) then
   scale_phase = ele%lat%rf_auto_scale_phase
   scale_amp   = ele%lat%rf_auto_scale_amp

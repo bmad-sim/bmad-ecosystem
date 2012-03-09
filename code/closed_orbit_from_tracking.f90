@@ -21,9 +21,9 @@
 !       = 2,4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
 !       = 6    Full closed orbit using the entire transfer 6x6 matrix.
 !   eps_rel(6) -- Real(rp), optional: Relative allowed error.
-!                   Default is bmad_com%rel_tolerance
+!                   Default is bmad_com%rel_tol_tracking
 !   eps_abs(6) -- Real(rp), optional: Absolute allowed error.
-!                   Default is bmad_com%abs_tolerance
+!                   Default is bmad_com%abs_tol_tracking
 !   init_guess -- Coord_struct, optional: Starting guess for the closed 
 !                orbit at the start of the lat. If not present then
 !                the origin will be used. 
@@ -68,10 +68,10 @@ logical :: debug = .false., rf_on, fluct_saved, aperture_saved
 
 if (present(err_flag)) err_flag = .true.
 
-rel_err = bmad_com%rel_tolerance
+rel_err = bmad_com%rel_tol_tracking
 if (present(eps_rel)) rel_err = eps_rel
 
-abs_err = bmad_com%abs_tolerance
+abs_err = bmad_com%abs_tol_tracking
 if (present(eps_abs)) abs_err = eps_abs
 
 ! make sure orb has the correct size

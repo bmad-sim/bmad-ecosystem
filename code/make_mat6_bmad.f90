@@ -206,7 +206,7 @@ case (lcavity$)
 
   if (length == 0) return
 
-  f = twopi * ele%value(rf_frequency$) / c_light
+  f = twopi * ele%value(rf_frequency$) / (c0%beta * c_light)
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + &
                             ele%value(phi0_err$)) - f * c0%vec(5)
 

@@ -109,8 +109,7 @@ here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
 
-call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
-t = -start%vec(5) / (beta * c_light)
+t = particle_time(start, ele)
 
 ! if we are saving the trajectory then allocate enough space in the arrays
 

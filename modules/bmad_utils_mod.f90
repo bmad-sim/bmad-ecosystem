@@ -3698,9 +3698,6 @@ end subroutine calc_next_hard_edge
 ! the length of the element and so particles must be drifted from the edge
 ! of the element to the edge of the field model.
 !
-! Module needed:
-!   use track1_mod
-!
 ! Input:
 !   ele_in     -- ele_struct: Input element.
 !
@@ -3725,5 +3722,47 @@ drift_ele%value(ds_step$) = drift_ele%value(l$)
 drift_ele%value(num_steps$) = 1
 
 end subroutine create_hard_edge_drift 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function particle_time (orbit, ele) result (time)
+!
+! Routine to return the current time for use, for example, in calculations of time-dependent EM fields.
+! The oscillations of such fields are synched relative to the absolute clock if 
+! absolute time tracking is used or are synched relative to the reference particle
+! if relative time tracking is used.
+!
+! Input:
+!   orbit -- Coord_struct: Particle coordinates
+!   ele   -- ele_struct: Element being tracked through.
+!
+! Ouput:
+!   time  -- Real(rp): Current time.
+!-
+
+function particle_time (orbit, ele) result (time)
+
+implicit none
+
+type (coord_struct) orbit
+type (ele_struct) ele
+
+real(rp) time
+logical abs_time
+
+!
+
+abs_time = bmad_com%absolute_time_tracking_default
+if (associated(ele%lat)) abs_time = ele%lat%absolute_time_tracking
+
+if (abs_time) then
+  time = orbit%t 
+else
+  time = -orbit%vec(5) / (orbit%beta * c_light)
+endif
+
+end function particle_time
 
 end module

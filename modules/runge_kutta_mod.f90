@@ -84,7 +84,7 @@ real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, direction
 integer, parameter :: max_step = 10000
 integer :: n_step, hard_end
 
-logical local_ref_frame, abs_time, err_flag, err
+logical local_ref_frame, err_flag, err
 
 ! init
 
@@ -111,16 +111,7 @@ call calc_next_hard_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 ! Initial time
 
-abs_time = .false.
-if (associated(ele%lat)) then
-  if (ele%lat%absolute_time_tracking) abs_time = .true.
-endif
-
-if (abs_time) then
-  t = orb_end%t
-else
-  t = -orb_end%vec(5) / (orb_end%beta * c_light)    ! Time
-endif
+t = particle_time(orb_end, ele)
 
 ! Save initial point
 

@@ -311,7 +311,7 @@ if (init_needed) then
   init_needed = .false.
 endif
 
-saved_flag = logic_option(.false., use_saved_data) .and. .not. bmad_com%be_thread_safe
+saved_flag = logic_option(.false., use_saved_data) .and. .not. global_com%be_thread_safe
 if (.not. saved_flag) then
   ele_is_saved = .false.
   orb_is_saved = .false.
