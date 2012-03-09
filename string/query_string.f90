@@ -1,12 +1,12 @@
 !+
-! Subroutine query_string (query_str, upcase, return_str, ix, ios)
+! Subroutine query_string (query_str, do_upcase, return_str, ix, ios)
 !
 ! Subroutine to ask a question and accept a string. Leading blanks will
 ! always be trimmed.
 !
 ! Input:
 !   query_str   -- Character*(*): Query string.
-!   upcase      -- Logical: If True then return_str will up converted
+!   do_upcase   -- Logical: If True then return_str will up converted
 !                     to upper case.
 !
 ! Output:
@@ -17,7 +17,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine query_string (query_str, upcase, return_str, ix, ios)
+subroutine query_string (query_str, do_upcase, return_str, ix, ios)
 
   use sim_utils, except => query_string
   use precision_def
@@ -27,7 +27,7 @@ subroutine query_string (query_str, upcase, return_str, ix, ios)
   character(*) return_str
   character(*) query_str
   integer ix, ios
-  logical upcase
+  logical do_upcase
 
   integer traceflag
   common / traceback / traceflag
@@ -45,7 +45,7 @@ subroutine query_string (query_str, upcase, return_str, ix, ios)
 
   call string_trim (return_str, return_str, ix)
 
-  if (upcase) call str_upcase (return_str, return_str)
+  if (do_upcase) call str_upcase (return_str, return_str)
 
 end subroutine
 

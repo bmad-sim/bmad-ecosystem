@@ -36,8 +36,8 @@ subroutine mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error, print_err)
 implicit none
 
 real(rp) mat(:,:)
-real(rp), allocatable, save :: val(:), vec(:,:)
-integer, allocatable, save :: iv(:)
+real(rp) :: val(size(mat, 1)), vec(size(mat, 1), size(mat, 1))
+integer :: iv(size(mat, 1))
 
 real(rp) eval_r(:), eval_i(:), evec_r(:,:), evec_i(:,:)
 
@@ -49,12 +49,6 @@ logical error
 !
 
 n = ubound(mat, 1)
-if (.not. allocated(iv)) allocate(val(n), vec(n,n), iv(n))
-if (size(iv) /= n) then
-  deallocate (val, vec, iv)
-  allocate(val(n), vec(n,n), iv(n))
-endif
-
 error = .false.
 
 call eigensys (mat, val, vec, iv, n, ier, print_err)
