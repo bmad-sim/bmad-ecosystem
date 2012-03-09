@@ -23,7 +23,7 @@
 ! by calling clear_lat_1turn_mats.
 !
 ! The closed orbit calculation stops when the following condition is satisfied:
-!   amp_del < amp_co * bmad_com%rel_tolerance + bmad_com%abs_tolerance
+!   amp_del < amp_co * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking
 ! Where:
 !   amp_co = sum(abs(closed_orb[at beginning of lattice]))
 !   amp_del = sum(abs(closed_orb[at beginning] - closed_orb[at end]))
@@ -60,8 +60,8 @@
 !     %type_out      -- If True then the subroutine will type out
 !                         a warning message if the orbit does not converge.
 !   bmad_com       -- Bmad_common_struct: Bmad common block.
-!     %rel_tolerance -- Relative error. See above. Default = 1e-5
-!     %abs_tolerance -- Absolute error. See above. Default = 1e-8
+!     %rel_tol_tracking -- Relative error. See above. Default = 1e-5
+!     %abs_tol_tracking -- Absolute error. See above. Default = 1e-8
 !
 ! Output:
 !   closed_orb(0:) -- Coord_struct, allocatable: Closed orbit. closed_orb(i)
@@ -246,7 +246,7 @@ do i = 1, i_max
   ! We want to do at least one iteration to prevent problems when 
   ! only a small change is made to the machine and the closed orbit recalculated.
 
-  if (i > 1 .and. amp_del < amp_co * bmad_com%rel_tolerance + bmad_com%abs_tolerance) exit
+  if (i > 1 .and. amp_del < amp_co * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking) exit
 
   if (amp_del < amp_del_old) then
     start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)

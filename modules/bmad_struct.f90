@@ -941,8 +941,8 @@ type bmad_common_struct
   real(rp) :: d_orb(6)           = 1e-5      ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: default_ds_step    = 0.2_rp    ! Integration step size.  
   real(rp) :: significant_length = 1e-10     ! meter 
-  real(rp) :: rel_tolerance = 1e-6
-  real(rp) :: abs_tolerance = 1e-8
+  real(rp) :: rel_tol_tracking = 1e-8
+  real(rp) :: abs_tol_tracking = 1e-10
   real(rp) :: rel_tol_adaptive_tracking = 1e-8     ! Adaptive tracking relative tolerance.
   real(rp) :: abs_tol_adaptive_tracking = 1e-10    ! Adaptive tracking absolute tolerance.
   integer :: taylor_order = 3                      ! 3rd order is default
@@ -962,7 +962,6 @@ type bmad_common_struct
   logical :: absolute_time_tracking_default = .false.   ! Default for lat%absolute_time_tracking
   logical :: rf_auto_scale_phase_default = .true.       ! Default for lat%rf_auto_scale_phase
   logical :: rf_auto_scale_amp_default = .true.         ! Default for lat%rf_auto_scale_amp
-  logical :: be_thread_safe = .false.                   ! Avoid thread unsafe practices?
 end type
   
 type (bmad_common_struct), save :: bmad_com

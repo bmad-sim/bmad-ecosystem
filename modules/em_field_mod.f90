@@ -141,7 +141,9 @@ end subroutine save_a_step
 !   ele    -- Ele_struct: Element
 !   param  -- lat_param_struct: Lattice parameters.
 !   s_rel  -- Real(rp): Longitudinal position relative to the start of the element.
-!   t_rel  -- Real(rp): Time relative to the time the reference particle passed the element entrance end.
+!   t_rel  -- Real(rp): Particle time.
+!                 For absolute time tracking this is the absolute time.
+!                 For relative time tracking this is relative to the reference particle entering the element.
 !   orbit  -- Coord_struct: Transverse coordinates.
 !     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
 !   local_ref_frame 
@@ -220,24 +222,22 @@ endif
 if (ele%field_calc == refer_to_lords$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    if (ele%slave_status /= slice_slave$ .and. lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
+    if (ele%slave_status /= slice_slave$ .and. lord%lord_status /= super_lord$) cycle
+
     local_ref = .true.
     if (ele%key == em_field$) local_ref = .false.
-    if (lord%lord_status == multipass_lord$) then
-      if (ele%key == lcavity$ .or. ele%key == rfcavity$) lord%value(dphi0$) = ele%value(dphi0$)
-      call em_field_calc (lord, param, s_rel, t_rel, local_orb, local_ref, field2, calc_dfield)
-      if (ele%key == lcavity$ .or. ele%key == rfcavity$) lord%value(dphi0$) = lord%old_value(dphi0$)
-    else
-      s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
-      t = t_rel + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
-      call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield)
-    endif
+
+    s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
+    t = t_rel + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
+    call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield)
+
     field%E = field%E + field2%E
     field%B = field%B + field2%B
     if (df_calc) then
       field%dE = field%dE + field2%dE
       field%dB = field%dB + field2%dB
     endif
+
   enddo
   call convert_fields_to_lab_coords
   return

@@ -198,7 +198,7 @@ do
 
   if (track_entire_ele) then
     runt => ele
-  elseif (bmad_com%be_thread_safe) then
+  elseif (global_com%be_thread_safe) then
     runt => runt_nosave
     runt = ele
   else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
@@ -217,7 +217,7 @@ do
     create_it = .false.
 
     create_it = .false.
-    if (bmad_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
+    if (global_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
       create_it = .true.
     elseif (ele%key == sbend$) then
       if (track_entrance .or. track_exit .or. old_track_end) create_it = .true.
@@ -262,7 +262,7 @@ enddo
 
 ! Cleanup
 
-if (bmad_com%be_thread_safe) then
+if (global_com%be_thread_safe) then
   call deallocate_ele_pointers (runt_nosave)
 endif
 
@@ -439,7 +439,7 @@ do
 
   if (track_entire_ele) then
     runt => ele
-  elseif (bmad_com%be_thread_safe) then
+  elseif (global_com%be_thread_safe) then
     runt => runt_nosave
     runt = ele
   else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
@@ -457,7 +457,7 @@ do
 
     create_it = .false.
 
-    if (bmad_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
+    if (global_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
       create_it = .true.
     elseif (ele%key == sbend$) then
       if (track_entrance .or. track_exit .or. old_track_end) create_it = .true.
@@ -497,7 +497,7 @@ enddo
 
 ! Cleanup
 
-if (bmad_com%be_thread_safe) then
+if (global_com%be_thread_safe) then
   call deallocate_ele_pointers (runt_nosave)
 endif
 
