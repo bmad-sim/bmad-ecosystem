@@ -524,21 +524,6 @@ interface
 end interface
 
 interface
-  subroutine odeint_bmad_time (orb, ele, param, s1, s2, t_rel, &
-                    dt1, local_ref_frame, err_flag, track)
-    use bmad_struct, only: rp, track_struct, coord_struct, ele_struct, lat_param_struct
-   implicit none
-    type (coord_struct), intent(inout) :: orb
-    type (ele_struct) , target :: ele
-    type (lat_param_struct), target ::  param
-    real(rp), intent(in) :: s1, s2, dt1
-    real(rp) :: t_rel
-    logical :: local_ref_frame, err_flag
-    type (track_struct), optional :: track
-  end subroutine
-end interface
-
-interface
   subroutine offset_photon_mat6 (mat6, ele)
     use bmad_struct, only: ele_struct, rp
     implicit none
@@ -773,7 +758,7 @@ interface
 end interface
 
 interface
-  recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag)
+  recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
@@ -781,7 +766,7 @@ interface
     type (ele_struct)   :: ele
     type (lat_param_struct) :: param
     type (track_struct), optional :: track
-    logical, optional :: err_flag
+    logical, optional :: err_flag, ignore_radiation
   end subroutine
 end interface
 

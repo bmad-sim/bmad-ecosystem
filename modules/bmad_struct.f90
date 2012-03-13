@@ -666,7 +666,7 @@ integer, parameter :: start_edge$ =73, eta_y$ = 73
 integer, parameter :: end_edge$ =74, etap_x$ = 74
 integer, parameter :: accordion_edge$ =75, etap_y$ = 75
 integer, parameter :: lattice$ = 76, phi_a$ = 76, diffraction_type$ = 76
-integer, parameter :: aperture_type$ = 77
+integer, parameter :: aperture_type$ = 77, eta_z$ = 77
 integer, parameter :: map_with_offsets$ = 78, cmat_11$ = 78
 integer, parameter :: csr_calc_on$ = 79, cmat_12$ = 79
 integer, parameter :: symmetric_edge$ = 80, cmat_21$ = 80

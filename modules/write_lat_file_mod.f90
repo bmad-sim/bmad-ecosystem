@@ -152,10 +152,10 @@ if (lat%param%lattice_type /= circular_lattice$) then
   if (ele%b%phi /= 0)      write (iu, *) 'beginning[phi_b] = ', trim(str(ele%b%phi))
   if (ele%b%eta /= 0)      write (iu, *) 'beginning[eta_b] = ', trim(str(ele%b%eta))
   if (ele%b%etap /= 0)     write (iu, *) 'beginning[etap_b] = ', trim(str(ele%b%etap))
-  if (ele%c_mat(1,1) /= 0) write (iu, *) 'beginning[c11] = ', trim(str(ele%c_mat(1,1)))
-  if (ele%c_mat(1,2) /= 0) write (iu, *) 'beginning[c12] = ', trim(str(ele%c_mat(1,2)))
-  if (ele%c_mat(2,1) /= 0) write (iu, *) 'beginning[c21] = ', trim(str(ele%c_mat(2,1)))
-  if (ele%c_mat(2,2) /= 0) write (iu, *) 'beginning[c22] = ', trim(str(ele%c_mat(2,2)))
+  if (ele%c_mat(1,1) /= 0) write (iu, *) 'beginning[cmat_11] = ', trim(str(ele%c_mat(1,1)))
+  if (ele%c_mat(1,2) /= 0) write (iu, *) 'beginning[cmat_12] = ', trim(str(ele%c_mat(1,2)))
+  if (ele%c_mat(2,1) /= 0) write (iu, *) 'beginning[cmat_21] = ', trim(str(ele%c_mat(2,1)))
+  if (ele%c_mat(2,2) /= 0) write (iu, *) 'beginning[cmat_22] = ', trim(str(ele%c_mat(2,2)))
 endif
 
 ! Element stuff

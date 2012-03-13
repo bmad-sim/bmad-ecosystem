@@ -515,7 +515,7 @@ if (attrib_word == 'WALL') then
         return
       endif
       call get_next_word (word2, ix_word, ',}', delim, delim_found)
-      call match_word(word2, anchor_pt_name, ele%wall3d%ele_anchor_pt, can_abbreviate = .false.)
+      call match_word(word2, anchor_pt_name(1:), ele%wall3d%ele_anchor_pt, can_abbreviate = .false.)
       if (ele%wall3d%ele_anchor_pt < 1) then
         call parser_error ('BAD WALL3D ELE_ANCHOR_PT: ' // word2, 'FOR ELEMENT: ' // ele%name)
         return
@@ -5375,7 +5375,7 @@ do
     ! Evaluate string into integer.
 
     if (word == 'ELE_ANCHOR_PT') then
-      call match_word(word2, anchor_pt_name, map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, anchor_pt_name(1:), map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
     endif
   
     if (name == '') then
@@ -5568,7 +5568,7 @@ do
     if (word == 'TYPE') then
       call match_word(word2, em_grid_type_name, grid%type, can_abbreviate = .false., matched_name = name)
     else
-      call match_word(word2, anchor_pt_name, grid%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
+      call match_word(word2, anchor_pt_name(1:), grid%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
     endif
   
     if (name == '') then
