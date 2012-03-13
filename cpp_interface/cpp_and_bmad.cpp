@@ -1,4 +1,5 @@
 #include "cpp_and_bmad.h"
+#include <iostream>
 
 //---------------------------------------------------------------------------
 
@@ -349,42 +350,50 @@ extern "C" void rf_wake_lr_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re
                                                          Re&, Re&, Re&, Re&, Re&, Int&, Int&);
 
 extern "C" void rf_wake_to_f_(C_rf_wake& c, rf_wake_struct* f) {
-  int n_lr = c.lr.size();
-  int n_sr_table = c.sr_table.size(); 
-  int n_sr_mode_long = c.sr_mode_long.size(); 
-  int n_sr_mode_trans = c.sr_mode_trans.size(); 
-  const char* srf = c.sr_file.data();     int n_srf = c.sr_file.length();
-  const char* lrf = c.lr_file.data();     int n_lrf = c.lr_file.length();
-  rf_wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_sr_mode_max, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr);
-  for (int i = 0; i < n_sr_table; i++) {
-    rf_wake_sr_table_in_rf_wake_to_f2_(f, i, c.sr_table[i].z, c.sr_table[i].longitudinal, c.sr_table[i].transverse);
-  }
-  for (int i = 0; i < n_sr_mode_long; i++) {
-    rf_wake_sr_mode_long_in_rf_wake_to_f2_(f, i+1, c.sr_mode_long[i].amp, c.sr_mode_long[i].damp, 
-        c.sr_mode_long[i].k, c.sr_mode_long[i].phi, c.sr_mode_long[i].b_sin, 
-        c.sr_mode_long[i].b_cos, c.sr_mode_long[i].a_sin, c.sr_mode_long[i].a_cos);
-  }
-  for (int i = 0; i < n_sr_mode_trans; i++) {
-    rf_wake_sr_mode_trans_in_rf_wake_to_f2_(f, i+1, c.sr_mode_trans[i].amp, c.sr_mode_trans[i].damp, 
-        c.sr_mode_trans[i].k, c.sr_mode_trans[i].phi, c.sr_mode_trans[i].b_sin, 
-        c.sr_mode_trans[i].b_cos, c.sr_mode_trans[i].a_sin, c.sr_mode_trans[i].a_cos);
-  }
-  for (int i = 0; i < n_lr; i++) {
-    rf_wake_lr_in_rf_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
-        c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].angle, c.lr[i].b_sin, 
-        c.lr[i].b_cos, c.lr[i].a_sin, c.lr[i].a_cos, c.lr[i].t_ref, c.lr[i].m, c.lr[i].polarized);
+  try {
+    int n_lr = c.lr.size();
+    int n_sr_table = c.sr_table.size(); 
+    int n_sr_mode_long = c.sr_mode_long.size(); 
+    int n_sr_mode_trans = c.sr_mode_trans.size(); 
+    const char* srf = c.sr_file.data();     int n_srf = c.sr_file.length();
+    const char* lrf = c.lr_file.data();     int n_lrf = c.lr_file.length();
+    rf_wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_sr_mode_max, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr);
+    for (int i = 0; i < n_sr_table; i++) {
+      rf_wake_sr_table_in_rf_wake_to_f2_(f, i, c.sr_table[i].z, c.sr_table[i].longitudinal, c.sr_table[i].transverse);
+    }
+    for (int i = 0; i < n_sr_mode_long; i++) {
+      rf_wake_sr_mode_long_in_rf_wake_to_f2_(f, i+1, c.sr_mode_long[i].amp, c.sr_mode_long[i].damp, 
+          c.sr_mode_long[i].k, c.sr_mode_long[i].phi, c.sr_mode_long[i].b_sin, 
+          c.sr_mode_long[i].b_cos, c.sr_mode_long[i].a_sin, c.sr_mode_long[i].a_cos);
+    }
+    for (int i = 0; i < n_sr_mode_trans; i++) {
+      rf_wake_sr_mode_trans_in_rf_wake_to_f2_(f, i+1, c.sr_mode_trans[i].amp, c.sr_mode_trans[i].damp, 
+          c.sr_mode_trans[i].k, c.sr_mode_trans[i].phi, c.sr_mode_trans[i].b_sin, 
+          c.sr_mode_trans[i].b_cos, c.sr_mode_trans[i].a_sin, c.sr_mode_trans[i].a_cos);
+    }
+    for (int i = 0; i < n_lr; i++) {
+      rf_wake_lr_in_rf_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
+          c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].angle, c.lr[i].b_sin, 
+          c.lr[i].b_cos, c.lr[i].a_sin, c.lr[i].a_cos, c.lr[i].t_ref, c.lr[i].m, c.lr[i].polarized);
+    }
+  } catch (...) {
+    std::cerr << "ERROR IN: rf_wake_to_f_" << endl;
   }
 }
 
 extern "C" void rf_wake_to_c2_(C_rf_wake& c, char* srf, char* lrf, Re& z_cut, Int& n_sr_table, Int& n_sr_mode_long,
                             Int& n_sr_mode_trans, Int& n_lr) {
-  if (c.sr_table.size() != n_sr_table) c.sr_table.resize(n_sr_table);
-  if (c.sr_mode_long.size() != n_sr_mode_long) c.sr_mode_long.resize(n_sr_mode_long);
-  if (c.sr_mode_trans.size() != n_sr_mode_trans) c.sr_mode_trans.resize(n_sr_mode_trans);
-  c.sr_file = srf;
-  if (c.lr.size() != n_lr) c.lr.resize(n_lr);
-  c.lr_file = lrf;
-  c.z_sr_mode_max = z_cut;
+  try {
+    if (c.sr_table.size() != n_sr_table) c.sr_table.resize(n_sr_table);
+    if (c.sr_mode_long.size() != n_sr_mode_long) c.sr_mode_long.resize(n_sr_mode_long);
+    if (c.sr_mode_trans.size() != n_sr_mode_trans) c.sr_mode_trans.resize(n_sr_mode_trans);
+    c.sr_file = srf;
+    if (c.lr.size() != n_lr) c.lr.resize(n_lr);
+    c.lr_file = lrf;
+    c.z_sr_mode_max = z_cut;
+  } catch (...) {
+    std::cerr << "ERROR IN: rf_wake_to_c2_" << endl;
+  }
 }
 
 extern "C" void rf_wake_sr_table_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& z, Re& l, Re& t) {
@@ -416,16 +425,20 @@ void operator>> (rf_wake_struct* f, C_rf_wake& c) {
 }
 
 C_rf_wake& C_rf_wake::operator= (const C_rf_wake& c) {
-  if (sr_table.size() != c.sr_table.size()) sr_table.resize(c.sr_table.size());
-  sr_table = c.sr_table;
-  if (sr_mode_long.size() != c.sr_mode_long.size()) sr_mode_long.resize(c.sr_mode_long.size());
-  sr_mode_long = c.sr_mode_long;
-  if (sr_mode_trans.size() != c.sr_mode_trans.size()) sr_mode_trans.resize(c.sr_mode_trans.size());
-  sr_mode_trans = c.sr_mode_trans;
-  sr_file = c.sr_file;
-  if (lr.size() != c.lr.size()) lr.resize(c.lr.size());
-  lr = c.lr;
-  lr_file = c.lr_file;
+  try {
+    if (sr_table.size() != c.sr_table.size()) sr_table.resize(c.sr_table.size());
+    sr_table = c.sr_table;
+    if (sr_mode_long.size() != c.sr_mode_long.size()) sr_mode_long.resize(c.sr_mode_long.size());
+    sr_mode_long = c.sr_mode_long;
+    if (sr_mode_trans.size() != c.sr_mode_trans.size()) sr_mode_trans.resize(c.sr_mode_trans.size());
+    sr_mode_trans = c.sr_mode_trans;
+    sr_file = c.sr_file;
+    if (lr.size() != c.lr.size()) lr.resize(c.lr.size());
+    lr = c.lr;
+    lr_file = c.lr_file;
+  } catch (...) {
+    std::cerr << "ERROR IN: zzz" << endl;
+  }
   return *this;
 }
 
@@ -457,23 +470,31 @@ extern "C" void lat_param_to_f2_(lat_param_struct*, Re&, Re&, Re&, ReArr, ReArr,
                                Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
 extern "C" void lat_param_to_f_(C_lat_param& c, lat_param_struct* f) {
-  double arr1[36], arr2[36];
-  matrix_to_array (c.t1_with_RF, arr1);
-  matrix_to_array (c.t1_no_RF, arr2);
-  lat_param_to_f2_(f, c.n_part, c.total_length, c.unstable_factor,
-      arr1, arr2, c.particle, c.lattice_type, c.ixx, c.stable, c.aperture_limit_on, 0,
-      c.ix_lost, c.end_lost_at, c.plane_lost_at, c.lost);
+  try {
+    double arr1[36], arr2[36];
+    matrix_to_array (c.t1_with_RF, arr1);
+    matrix_to_array (c.t1_no_RF, arr2);
+    lat_param_to_f2_(f, c.n_part, c.total_length, c.unstable_factor,
+        arr1, arr2, c.particle, c.lattice_type, c.ixx, c.stable, c.aperture_limit_on, 0,
+        c.ix_lost, c.end_lost_at, c.plane_lost_at, c.lost);
+  } catch (...) {
+    std::cerr << "ERROR IN: control_to_f2_" << endl;
+  }
 }
 
 extern "C" void lat_param_to_c2_(C_lat_param& c, Re& np, Re& total_l, 
       Re& growth_r, ReArr t1_with, ReArr t1_no, Int& part, 
       Int& lattice_type, Int& ixx, Int& stable, Int& ap_lim, Int& status, 
       Int& ix_lost, Int& end_lost, Int& plane_lost, Int& lost) {
-  static Real_Matrix m1(M6_mat), m2(M6_mat);
-  m1 << t1_with;
-  m2 << t1_no;
-  c = C_lat_param(np, total_l, growth_r, m1, m2, part, 
-          lattice_type, ixx, stable, ap_lim, 0, ix_lost, end_lost, plane_lost, lost);
+  try {
+    static Real_Matrix m1(M6_mat), m2(M6_mat);
+    m1 << t1_with;
+    m2 << t1_no;
+    c = C_lat_param(np, total_l, growth_r, m1, m2, part, 
+            lattice_type, ixx, stable, ap_lim, 0, ix_lost, end_lost, plane_lost, lost);
+  } catch (...) {
+    std::cerr << "ERROR IN: lat_param_to_c2_" << endl;
+  }
 }
 
 void operator>> (C_lat_param& c, lat_param_struct* f) {
@@ -564,16 +585,20 @@ extern "C" void bmad_com_to_f2_(Re&, ReArr, Re&, Re&, Re&, Re&, Re&, Re&,
      Int&, Int&, Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
-  bmad_com_to_f2_(c.max_aperture_limit, &c.d_orb[0],
-    c.default_ds_step, c.significant_longitudinal_length, c.rel_tolerance, 
-    c.abs_tolerance, c.rel_tol_adaptive_tracking, c.abs_tol_adaptive_tracking, 
-    c.taylor_order, c.default_integ_order, c.canonical_coords, 
-    c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
-    c.auto_bookkeeper, c.space_charge_on, c.coherent_synch_rad_on, 
-    c.spin_tracking_on, c.radiation_damping_on, c.radiation_fluctuations_on, 
-    c.conserve_taylor_maps, c.use_ptc_layout_default, c.absolute_time_tracking_default, 
-    c.rf_auto_scale_phase_default, c.rf_auto_scale_amp_default,
-    c.be_thread_safe);
+  try {
+    bmad_com_to_f2_(c.max_aperture_limit, &c.d_orb[0],
+      c.default_ds_step, c.significant_longitudinal_length, c.rel_tolerance, 
+      c.abs_tolerance, c.rel_tol_adaptive_tracking, c.abs_tol_adaptive_tracking, 
+      c.taylor_order, c.default_integ_order, c.canonical_coords, 
+      c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
+      c.auto_bookkeeper, c.space_charge_on, c.coherent_synch_rad_on, 
+      c.spin_tracking_on, c.radiation_damping_on, c.radiation_fluctuations_on, 
+      c.conserve_taylor_maps, c.use_ptc_layout_default, c.absolute_time_tracking_default, 
+      c.rf_auto_scale_phase_default, c.rf_auto_scale_amp_default,
+      c.be_thread_safe);
+  } catch (...) {
+    std::cerr << "ERROR IN: bmad_com_to_f_" << endl;
+  }
 }
 
 extern "C" void bmad_com_to_c2_(C_bmad_com& c, 
@@ -583,32 +608,36 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
               Int& sr, Int& lr, Int& sym, Int& a_book, Int& space_charge, Int& csr_on, 
               Int& st_on, Int& rad_d, Int& rad_f, Int& con_t, Int& use_ptc_layout,
               Int& abs_time_track, Int& rf_auto_phase, Int& rf_auto_amp, Int& be_thread) {
-  c.max_aperture_limit               = ap;
-  c.d_orb                            << orb;
-  c.default_ds_step                  = ds;
-  c.significant_longitudinal_length  = significant;
-  c.rel_tolerance                    = rel;
-  c.abs_tolerance                    = abs;
-  c.rel_tol_adaptive_tracking        = rel_adapt;
-  c.abs_tol_adaptive_tracking        = abs_adapt;
-  c.taylor_order                     = to;
-  c.default_integ_order              = dflt_ord;
-  c.canonical_coords                 = cc;
-  c.sr_wakes_on                      = sr;
-  c.lr_wakes_on                      = lr;
-  c.mat6_track_symmetric             = sym;
-  c.auto_bookkeeper                  = a_book;
-  c.space_charge_on                  = space_charge;
-  c.coherent_synch_rad_on            = csr_on;
-  c.spin_tracking_on                 = st_on;
-  c.radiation_damping_on             = rad_d;
-  c.radiation_fluctuations_on        = rad_f;
-  c.conserve_taylor_maps             = con_t;
-  c.use_ptc_layout_default           = use_ptc_layout;
-  c.absolute_time_tracking_default   = abs_time_track;
-  c.rf_auto_scale_phase_default      = rf_auto_phase;
-  c.rf_auto_scale_amp_default        = rf_auto_amp;
-  c.be_thread_safe                   = be_thread;
+  try {
+    c.max_aperture_limit               = ap;
+    c.d_orb                            << orb;
+    c.default_ds_step                  = ds;
+    c.significant_longitudinal_length  = significant;
+    c.rel_tolerance                    = rel;
+    c.abs_tolerance                    = abs;
+    c.rel_tol_adaptive_tracking        = rel_adapt;
+    c.abs_tol_adaptive_tracking        = abs_adapt;
+    c.taylor_order                     = to;
+    c.default_integ_order              = dflt_ord;
+    c.canonical_coords                 = cc;
+    c.sr_wakes_on                      = sr;
+    c.lr_wakes_on                      = lr;
+    c.mat6_track_symmetric             = sym;
+    c.auto_bookkeeper                  = a_book;
+    c.space_charge_on                  = space_charge;
+    c.coherent_synch_rad_on            = csr_on;
+    c.spin_tracking_on                 = st_on;
+    c.radiation_damping_on             = rad_d;
+    c.radiation_fluctuations_on        = rad_f;
+    c.conserve_taylor_maps             = con_t;
+    c.use_ptc_layout_default           = use_ptc_layout;
+    c.absolute_time_tracking_default   = abs_time_track;
+    c.rf_auto_scale_phase_default      = rf_auto_phase;
+    c.rf_auto_scale_amp_default        = rf_auto_amp;
+    c.be_thread_safe                   = be_thread;
+  } catch (...) {
+    std::cerr << "ERROR IN: bmad_com_to_c2_" << endl;
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -617,10 +646,14 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
 extern "C" void em_field_to_f2_(em_field_struct*, ReArr, ReArr, ReArr, ReArr);
 
 extern "C" void em_field_to_f_(C_em_field& c, em_field_struct* f) {
-  double de[9], db[9];
-  matrix_to_array (c.dE, de);
-  matrix_to_array (c.dB, db);
-  em_field_to_f2_(f, &c.E[0], &c.B[0], de, db);
+  try {
+    double de[9], db[9];
+    matrix_to_array (c.dE, de);
+    matrix_to_array (c.dB, db);
+    em_field_to_f2_(f, &c.E[0], &c.B[0], de, db);
+  } catch (...) {
+    std::cerr << "ERROR IN: em_field_to_f_" << endl;
+  }
 }
 
 extern "C" void em_field_to_c2_(C_em_field& c, ReArr e, ReArr b, ReArr de, ReArr db) {
@@ -657,44 +690,48 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
 extern "C" void wig_term_in_ele_to_f2_(ele_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Int&);
 
 extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
-  const char* nam = c.name.data();       int n_nam = c.name.length();
-  const char* typ = c.type.data();       int n_typ = c.type.length();
-  const char* ali = c.alias.data();      int n_ali = c.alias.length();
-  const char* descrip = c.descrip.data();    int n_descrip = c.descrip.length();
-  const char* component = c.component_name.data(); 
-                                    int n_component = c.component_name.length();
-  int n_ab = c.a_pole.size();
-  int n_wig = c.wig_term.size();
-  int nr1 = c.r.size(), nr2 = 0, nr3 = 0;
-  if (nr1) {
-    nr2 = c.r[0].size();
-    nr3 = c.r[0][0].size();
+  try {
+    const char* nam = c.name.data();       int n_nam = c.name.length();
+    const char* typ = c.type.data();       int n_typ = c.type.length();
+    const char* ali = c.alias.data();      int n_ali = c.alias.length();
+    const char* descrip = c.descrip.data();    int n_descrip = c.descrip.length();
+    const char* component = c.component_name.data(); 
+                                      int n_component = c.component_name.length();
+    int n_ab = c.a_pole.size();
+    int n_wig = c.wig_term.size();
+    int nr1 = c.r.size(), nr2 = 0, nr3 = 0;
+    if (nr1) {
+      nr2 = c.r[0].size();
+      nr3 = c.r[0][0].size();
+    }
+    double mat6[36], c_mat[4];
+    double *r_arr = new double[nr1*nr2*nr3];  
+    matrix_to_array (c.mat6, mat6);
+    matrix_to_array (c.c_mat, c_mat);
+    tensor_to_array (c.r, r_arr);
+    ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, component, n_component, descrip, n_descrip, 
+      c.a, c.b, c.z, c.x, c.y, 
+      c.floor, &c.map_ref_orb_in[0], &c.map_ref_orb_out[0], c.gen_field,  
+      c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], 
+      n_wig, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat,
+      c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, nr3, 
+      &c.a_pole[0], &c.b_pole[0], n_ab, 
+      c.key, c.sub_key, c.ix_ele, c.ix_branch, c.ix_value, 
+      c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
+      c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
+      c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.spin_tracking_method, c.field_calc, c.ref_orbit,
+      c.aperture_at, c.aperture_type, c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
+      c.map_with_offsets, c.field_master, c.reversed, c.is_on, c.old_is_on, c.logic, c.bmad_logic,
+      c.on_a_girder, c.csr_calc_on, c.offset_moves_aperture);
+    for (int i = 0; i < n_wig; i++) {
+      wig_term_in_ele_to_f2_(f, i+1, c.wig_term[i].coef, 
+              c.wig_term[i].kx, c.wig_term[i].ky, c.wig_term[i].kz, 
+              c.wig_term[i].phi_z, c.wig_term[i].type);
+    }
+    delete[] r_arr;
+  } catch (...) {
+    cerr << "ERROR IN: ele_to_f_" << endl;
   }
-  double mat6[36], c_mat[4];
-  double *r_arr = new double[nr1*nr2*nr3];  
-  matrix_to_array (c.mat6, mat6);
-  matrix_to_array (c.c_mat, c_mat);
-  tensor_to_array (c.r, r_arr);
-  ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, component, n_component, descrip, n_descrip, 
-    c.a, c.b, c.z, c.x, c.y, 
-    c.floor, &c.map_ref_orb_in[0], &c.map_ref_orb_out[0], c.gen_field,  
-    c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], 
-    n_wig, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat,
-    c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, nr3, 
-    &c.a_pole[0], &c.b_pole[0], n_ab, 
-    c.key, c.sub_key, c.ix_ele, c.ix_branch, c.ix_value, 
-    c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
-    c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
-    c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.spin_tracking_method, c.field_calc, c.ref_orbit,
-    c.aperture_at, c.aperture_type, c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
-    c.map_with_offsets, c.field_master, c.reversed, c.is_on, c.old_is_on, c.logic, c.bmad_logic,
-    c.on_a_girder, c.csr_calc_on, c.offset_moves_aperture);
-  for (int i = 0; i < n_wig; i++) {
-    wig_term_in_ele_to_f2_(f, i+1, c.wig_term[i].coef, 
-            c.wig_term[i].kx, c.wig_term[i].ky, c.wig_term[i].kz, 
-            c.wig_term[i].phi_z, c.wig_term[i].type);
-  }
-  delete[] r_arr;
 }
 
 extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias, 
@@ -714,96 +751,99 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     Int& symp, Int& mode_flip, Int& multi_on, Int& scale_multi, Int& map_with_off, 
     Int& field_master, Int& reversed, Int& is_on, Int& old_is_on, Int& logic, Int& bmad_logic, Int& on_a_gird, 
     Int& csr_calc, Int& offset_moves_ap) {
+  try {
+    c.name                  = name;
+    c.type                  = type;
+    c.alias                 = alias; 
+    c.component_name        = component;
+    c.descrip               = descrip;
+    a >> c.a;  b >> c.b;  z >> c.z;
+    x >> c.x;  y >> c.y;
+    floor >> c.floor;
+    c.map_ref_orb_in << ref_orb_in;
+    c.map_ref_orb_out << ref_orb_out;
+    c.gen_field = gen;
+    tlr0 >> c.taylor[0];   tlr1 >> c.taylor[1];   tlr2 >> c.taylor[2]; 
+    tlr3 >> c.taylor[3];   tlr4 >> c.taylor[4];   tlr5 >> c.taylor[5]; 
+    if (c.wig_term.size() != n_wig) c.wig_term.resize(n_wig);
+    c.value                 << val;
+    c.gen0                  << gen0; 
+    c.vec0                  << vec0; 
+    c.mat6 << mat6;
+    c.c_mat << c_mat;
+    c.gamma_c               = gamma_c; 
+    c.s                     = s; 
+    c.ref_time              = ref_t;
 
-  c.name                  = name;
-  c.type                  = type;
-  c.alias                 = alias; 
-  c.component_name        = component;
-  c.descrip               = descrip;
-  a >> c.a;  b >> c.b;  z >> c.z;
-  x >> c.x;  y >> c.y;
-  floor >> c.floor;
-  c.map_ref_orb_in << ref_orb_in;
-  c.map_ref_orb_out << ref_orb_out;
-  c.gen_field = gen;
-  tlr0 >> c.taylor[0];   tlr1 >> c.taylor[1];   tlr2 >> c.taylor[2]; 
-  tlr3 >> c.taylor[3];   tlr4 >> c.taylor[4];   tlr5 >> c.taylor[5]; 
-  if (c.wig_term.size() != n_wig) c.wig_term.resize(n_wig);
-  c.value                 << val;
-  c.gen0                  << gen0; 
-  c.vec0                  << vec0; 
-  c.mat6 << mat6;
-  c.c_mat << c_mat;
-  c.gamma_c               = gamma_c; 
-  c.s                     = s; 
-  c.ref_time              = ref_t;
+    if (nr1*nr2*nr3 == 0) {
+      if (!c.r.size()) c.r.resize(0);
+    } else {
+      if (!(c.r.size() == nr1)) c.r.resize(nr1);
 
-  if (nr1*nr2*nr3 == 0) {
-    if (!c.r.size()) c.r.resize(0);
-  } else {
-    if (!(c.r.size() == nr1)) c.r.resize(nr1);
-
-    if (!(c.r[0].size() == nr2)) {
-      for (int i = 0; i < nr1; i++) {
-        c.r[i].resize(nr2);
-      }
-    }
-    
-    if (!(c.r[0][0].size() == nr3)) {
-      for (int i = 0; i < nr1; i++) {
-        for (int j = 0; j < nr2; j++) {
-          c.r[i][j].resize(nr3);
+      if (!(c.r[0].size() == nr2)) {
+        for (int i = 0; i < nr1; i++) {
+          c.r[i].resize(nr2);
         }
       }
+      
+      if (!(c.r[0][0].size() == nr3)) {
+        for (int i = 0; i < nr1; i++) {
+          for (int j = 0; j < nr2; j++) {
+            c.r[i][j].resize(nr3);
+          }
+        }
+      }
+
+      c.r << r_arr;
     }
 
-    c.r << r_arr;
+    if (n_ab > 0) {
+      c.a_pole.resize(Bmad::N_POLE_MAXX+1);
+      c.b_pole.resize(Bmad::N_POLE_MAXX+1);
+      c.a_pole = Real_Array(a_pole, Bmad::N_POLE_MAXX+1);
+      c.b_pole = Real_Array(b_pole, Bmad::N_POLE_MAXX+1);
+    }
+
+    c.key                   = key;
+    c.sub_key               = sub_key;
+    c.ix_ele                = ix_ele;
+    c.ix_branch             = ix_branch;
+    c.ix_value              = ix_value;
+    c.slave_status          = slave_status;
+    c.n_slave               = n_slave;
+    c.ix1_slave             = ix1_s;
+    c.ix2_slave             = ix2_s;
+    c.lord_status           = lord_status;
+    c.n_lord                = n_lord;
+    c.ic1_lord              = ic1_l;
+    c.ic2_lord              = ic2_l;
+    c.ix_pointer            = ix_p;
+    c.ixx                   = ixx;
+
+    c.mat6_calc_method      = mat6_calc;
+    c.tracking_method       = tracking;
+    c.spin_tracking_method  = spin_meth;
+    c.field_calc            = field_calc;
+    c.ref_orbit             = ref_orbit;
+    c.aperture_at           = aperture_at;
+    c.aperture_type         = aperture_type;
+    c.symplectify           = symp;
+    c.mode_flip             = mode_flip;
+    c.multipoles_on         = multi_on;
+    c.scale_multipoles      = scale_multi;
+    c.map_with_offsets      = map_with_off;
+    c.field_master          = field_master;
+    c.reversed              = reversed;
+    c.is_on                 = is_on;
+    c.old_is_on             = old_is_on;
+    c.logic                 = logic;
+    c.bmad_logic            = bmad_logic;
+    c.on_a_girder           = on_a_gird;
+    c.csr_calc_on           = csr_calc;
+    c.offset_moves_aperture = offset_moves_ap;
+  } catch (...) {
+    std::cerr << "ERROR IN: ele_to_f_" << endl;
   }
-
-  if (n_ab > 0) {
-    c.a_pole.resize(Bmad::N_POLE_MAXX+1);
-    c.b_pole.resize(Bmad::N_POLE_MAXX+1);
-    c.a_pole = Real_Array(a_pole, Bmad::N_POLE_MAXX+1);
-    c.b_pole = Real_Array(b_pole, Bmad::N_POLE_MAXX+1);
-  }
-
-  c.key                   = key;
-  c.sub_key               = sub_key;
-  c.ix_ele                = ix_ele;
-  c.ix_branch             = ix_branch;
-  c.ix_value              = ix_value;
-  c.slave_status          = slave_status;
-  c.n_slave               = n_slave;
-  c.ix1_slave             = ix1_s;
-  c.ix2_slave             = ix2_s;
-  c.lord_status           = lord_status;
-  c.n_lord                = n_lord;
-  c.ic1_lord              = ic1_l;
-  c.ic2_lord              = ic2_l;
-  c.ix_pointer            = ix_p;
-  c.ixx                   = ixx;
-
-  c.mat6_calc_method      = mat6_calc;
-  c.tracking_method       = tracking;
-  c.spin_tracking_method  = spin_meth;
-  c.field_calc            = field_calc;
-  c.ref_orbit             = ref_orbit;
-  c.aperture_at           = aperture_at;
-  c.aperture_type         = aperture_type;
-  c.symplectify           = symp;
-  c.mode_flip             = mode_flip;
-  c.multipoles_on         = multi_on;
-  c.scale_multipoles      = scale_multi;
-  c.map_with_offsets      = map_with_off;
-  c.field_master          = field_master;
-  c.reversed              = reversed;
-  c.is_on                 = is_on;
-  c.old_is_on             = old_is_on;
-  c.logic                 = logic;
-  c.bmad_logic            = bmad_logic;
-  c.on_a_girder           = on_a_gird;
-  c.csr_calc_on           = csr_calc;
-  c.offset_moves_aperture = offset_moves_ap;
 }
 
 extern "C" void wig_term_in_ele_to_c2_(C_ele& c, Int& it, 
@@ -820,69 +860,73 @@ void operator>> (ele_struct* f, C_ele& c) {
 }
 
 C_ele& C_ele::operator= (const C_ele& c) {
-  name                  = c.name;
-  type                  = c.type;
-  alias                 = c.alias;
-  component_name        = c.component_name;
-  descrip               = c.descrip;
-  a                     = c.a;
-  b                     = c.b;
-  z                     = c.z;
-  x                     = c.x;
-  y                     = c.y;
-  floor                 = c.floor;
-  map_ref_orb_in        = c.map_ref_orb_in;
-  map_ref_orb_out       = c.map_ref_orb_out;
-  gen_field             = c.gen_field;
-  taylor                << c.taylor;
-  wig_term              << c.wig_term;
-  value                 << c.value;
-  gen0                  << c.gen0;
-  vec0                  << c.vec0;
-  mat6                  << c.mat6;
-  c_mat                 << c.c_mat;
-  gamma_c               = c.gamma_c;
-  s                     = c.s;
-  ref_time              = c.ref_time;
-  r                     << c.r;
-  a_pole                << c.a_pole;
-  b_pole                << c.b_pole;
-  key                   = c.key;
-  sub_key               = c.sub_key;
-  ix_ele                = c.ix_ele;
-  ix_branch             = c.ix_branch;
-  ix_value              = c.ix_value;
-  slave_status          = c.slave_status;
-  n_slave               = c.n_slave;
-  ix1_slave             = c.ix1_slave;
-  ix2_slave             = c.ix2_slave;
-  lord_status           = c.lord_status;
-  n_lord                = c.n_lord;
-  ic1_lord              = c.ic1_lord;
-  ic2_lord              = c.ic2_lord;
-  ix_pointer            = c.ix_pointer;
-  ixx                   = c.ixx;
+  try {
+    name                  = c.name;
+    type                  = c.type;
+    alias                 = c.alias;
+    component_name        = c.component_name;
+    descrip               = c.descrip;
+    a                     = c.a;
+    b                     = c.b;
+    z                     = c.z;
+    x                     = c.x;
+    y                     = c.y;
+    floor                 = c.floor;
+    map_ref_orb_in        = c.map_ref_orb_in;
+    map_ref_orb_out       = c.map_ref_orb_out;
+    gen_field             = c.gen_field;
+    taylor                << c.taylor;
+    wig_term              << c.wig_term;
+    value                 << c.value;
+    gen0                  << c.gen0;
+    vec0                  << c.vec0;
+    mat6                  << c.mat6;
+    c_mat                 << c.c_mat;
+    gamma_c               = c.gamma_c;
+    s                     = c.s;
+    ref_time              = c.ref_time;
+    r                     << c.r;
+    a_pole                << c.a_pole;
+    b_pole                << c.b_pole;
+    key                   = c.key;
+    sub_key               = c.sub_key;
+    ix_ele                = c.ix_ele;
+    ix_branch             = c.ix_branch;
+    ix_value              = c.ix_value;
+    slave_status          = c.slave_status;
+    n_slave               = c.n_slave;
+    ix1_slave             = c.ix1_slave;
+    ix2_slave             = c.ix2_slave;
+    lord_status           = c.lord_status;
+    n_lord                = c.n_lord;
+    ic1_lord              = c.ic1_lord;
+    ic2_lord              = c.ic2_lord;
+    ix_pointer            = c.ix_pointer;
+    ixx                   = c.ixx;
 
-  mat6_calc_method      = c.mat6_calc_method;
-  tracking_method       = c.tracking_method;
-  spin_tracking_method  = c.spin_tracking_method;
-  field_calc            = c.field_calc;
-  ref_orbit             = c.ref_orbit;
-  aperture_at           = c.aperture_at;
-  aperture_type        = c.aperture_type;
-  symplectify           = c.symplectify;
-  mode_flip             = c.mode_flip;
-  multipoles_on         = c.multipoles_on;
-  scale_multipoles      = c.scale_multipoles;
-  map_with_offsets      = c.map_with_offsets;
-  field_master          = c.field_master;
-  reversed              = c.reversed;
-  is_on                 = c.is_on;
-  old_is_on             = c.old_is_on;
-  logic                 = c.logic;
-  on_a_girder           = c.on_a_girder;
-  csr_calc_on           = c.csr_calc_on;
-  offset_moves_aperture = c.offset_moves_aperture;
+    mat6_calc_method      = c.mat6_calc_method;
+    tracking_method       = c.tracking_method;
+    spin_tracking_method  = c.spin_tracking_method;
+    field_calc            = c.field_calc;
+    ref_orbit             = c.ref_orbit;
+    aperture_at           = c.aperture_at;
+    aperture_type        = c.aperture_type;
+    symplectify           = c.symplectify;
+    mode_flip             = c.mode_flip;
+    multipoles_on         = c.multipoles_on;
+    scale_multipoles      = c.scale_multipoles;
+    map_with_offsets      = c.map_with_offsets;
+    field_master          = c.field_master;
+    reversed              = c.reversed;
+    is_on                 = c.is_on;
+    old_is_on             = c.old_is_on;
+    logic                 = c.logic;
+    on_a_girder           = c.on_a_girder;
+    csr_calc_on           = c.csr_calc_on;
+    offset_moves_aperture = c.offset_moves_aperture;
+  } catch (...) {
+    std::cerr << "ERROR IN: zzz" << endl;
+  }
 
   return *this;
 }
@@ -922,22 +966,26 @@ extern "C" void control_from_lat_to_f2_(lat_struct*, Int&, C_control&);
 
 
 extern "C" void lat_to_f_(C_lat& c, lat_struct* f) {
-  const char* use_name  = c.use_name.data();    int n_name = c.use_name.size();
-  const char* lat   = c.lattice.data();         int n_lat = c.lattice.size();
-  const char* file  = c.input_file_name.data(); int n_file = c.input_file_name.size();
-  const char* title = c.title.data();           int n_title = c.title.size();
-  int n_con = c.control.size();
-  int n_ic  = c.ic.size();
-  int n_ele_max = c.ele.size() - 1;
-  lat_to_f2_(f, use_name, n_name, lat, n_lat, file, n_file, title, n_title,
-      c.a, c.b, c.z, c.param, 
-      c.version, c.n_ele_track, c.n_ele_max, n_ele_max, c.n_control_max, 
-      c.n_ic_max, c.input_taylor_order, c.ele_init, n_con, &c.ic[0], n_ic);
-  for (int i = 0; i < n_ele_max+1; i++) {
-    ele_from_lat_to_f2_(f, i, c.ele[i]);
-  }
-  for (int i = 0; i < n_con; i++) {
-    control_from_lat_to_f2_(f, i+1, c.control[i]);
+  try {
+    const char* use_name  = c.use_name.data();    int n_name = c.use_name.size();
+    const char* lat   = c.lattice.data();         int n_lat = c.lattice.size();
+    const char* file  = c.input_file_name.data(); int n_file = c.input_file_name.size();
+    const char* title = c.title.data();           int n_title = c.title.size();
+    int n_con = c.control.size();
+    int n_ic  = c.ic.size();
+    int n_ele_max = c.ele.size() - 1;
+    lat_to_f2_(f, use_name, n_name, lat, n_lat, file, n_file, title, n_title,
+        c.a, c.b, c.z, c.param, 
+        c.version, c.n_ele_track, c.n_ele_max, n_ele_max, c.n_control_max, 
+        c.n_ic_max, c.input_taylor_order, c.ele_init, n_con, &c.ic[0], n_ic);
+    for (int i = 0; i < n_ele_max+1; i++) {
+      ele_from_lat_to_f2_(f, i, c.ele[i]);
+    }
+    for (int i = 0; i < n_con; i++) {
+      control_from_lat_to_f2_(f, i+1, c.control[i]);
+    }
+  } catch (...) {
+    std::cerr << "ERROR IN: mode_info_to_f2_" << endl;
   }
 }
 
@@ -946,25 +994,29 @@ extern "C" void lat_to_c2_(C_lat& c, char* use_name, char* lat, char* file,
     lat_param_struct* param, Int& ver, Int& n_track, Int& n_max, Int& n_maxx, 
     Int& n_con_max, Int& n_ic_max, Int& n_taylor, 
     ele_struct* ele_init, Int& n_con_array, IntArr ic, Int& n_ic_array) {
-  c.use_name            = use_name;
-  c.lattice             = lat;
-  c.input_file_name     = file;
-  c.title               = title;
-  c.version             = ver;
-  c.n_ele_track         = n_track;
-  c.n_ele_max           = n_max;
-  c.n_control_max       = n_con_max;
-  c.n_ic_max            = n_ic_max;
-  c.input_taylor_order  = n_taylor;
+  try {
+    c.use_name            = use_name;
+    c.lattice             = lat;
+    c.input_file_name     = file;
+    c.title               = title;
+    c.version             = ver;
+    c.n_ele_track         = n_track;
+    c.n_ele_max           = n_max;
+    c.n_control_max       = n_con_max;
+    c.n_ic_max            = n_ic_max;
+    c.input_taylor_order  = n_taylor;
 
-  if (c.control.size() != n_con_array) c.control.resize(n_con_array);
-  if (!(c.ele.size() == n_maxx)) c.ele.resize(n_maxx);
-  if (!(c.ic.size() == n_ic_array)) c.ic.resize(n_ic_array);
+    if (c.control.size() != n_con_array) c.control.resize(n_con_array);
+    if (!(c.ele.size() == n_maxx)) c.ele.resize(n_maxx);
+    if (!(c.ic.size() == n_ic_array)) c.ic.resize(n_ic_array);
 
-  c.ic << ic;
-  a >> c.a;  b >> c.b;  z >> c.z;
-  param >> c.param;
-  ele_init >> c.ele_init;
+    c.ic << ic;
+    a >> c.a;  b >> c.b;  z >> c.z;
+    param >> c.param;
+    ele_init >> c.ele_init;
+  } catch (...) {
+    std::cerr << "ERROR IN: lat_to_c2_" << endl;
+  }
 }
 
 
@@ -985,32 +1037,37 @@ void operator>> (lat_struct* f, C_lat& c) {
 }
 
 C_lat& C_lat::operator= (const C_lat& c) {
-  use_name           = c.use_name;
-  lattice            = c.lattice;
-  input_file_name    = c.input_file_name;
-  title              = c.title;
-  a                  = c.a;
-  b                  = c.b;
-  z                  = c.z;
-  param              = c.param;
-  version            = c.version;
-  n_ele_track        = c.n_ele_track;
-  n_ele_max          = c.n_ele_max;    
-  n_control_max      = c.n_control_max;        
-  n_ic_max           = c.n_ic_max;   
-  input_taylor_order = c.input_taylor_order;             
-  ele_init           = c.ele_init;   
+  try {
+    use_name           = c.use_name;
+    lattice            = c.lattice;
+    input_file_name    = c.input_file_name;
+    title              = c.title;
+    a                  = c.a;
+    b                  = c.b;
+    z                  = c.z;
+    param              = c.param;
+    version            = c.version;
+    n_ele_track        = c.n_ele_track;
+    n_ele_max          = c.n_ele_max;    
+    n_control_max      = c.n_control_max;        
+    n_ic_max           = c.n_ic_max;   
+    input_taylor_order = c.input_taylor_order;             
+    ele_init           = c.ele_init;   
 
-  if (ele.size() < n_ele_max+1) ele.resize(n_ele_max+1);
-  for (int i = 0; i < n_ele_max+1; i++) ele[i] = c.ele[i];
+    if (ele.size() < n_ele_max+1) ele.resize(n_ele_max+1);
+    for (int i = 0; i < n_ele_max+1; i++) ele[i] = c.ele[i];
 
-  int n_control = c.control.size();
-  if (control.size() < n_control) control.resize(n_control);
-  for (int i = 0; i < n_control; i++) control[i] = c.control[i];
-  
-  int n_ic = c.ic.size();
-  if (ic.size() < n_ic) ic.resize(n_ic);
-  for (int i = 0; i < n_ic; i++) ic[i] = c.ic[i];
+    int n_control = c.control.size();
+    if (control.size() < n_control) control.resize(n_control);
+    for (int i = 0; i < n_control; i++) control[i] = c.control[i];
+    
+    int n_ic = c.ic.size();
+    if (ic.size() < n_ic) ic.resize(n_ic);
+    for (int i = 0; i < n_ic; i++) ic[i] = c.ic[i];
+
+  } catch (...) {
+    std::cerr << "ERROR IN: lat=lat" << endl;
+  }
 
   return *this;  
 }
