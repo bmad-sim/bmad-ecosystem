@@ -37,25 +37,20 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp) rel_tol, abs_tol, del_s_step, del_s_min, dref_time, beta0
+real(rp) rel_tol, abs_tol, dref_time, beta0
 
 logical err_flag
 
-! Init 
-
-del_s_step = 1e-3
-del_s_min = 1e-8
+! Convert to element coords
 
 start2_orb = start_orb
 
-! Convert to element coords
-
-call offset_particle (ele, param, start2_orb, set$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
+call offset_particle (ele, param, start2_orb, set$, set_canonical = .false., &
+                                             set_hvkicks = .false., set_multipoles = .false.)
 
 ! Track.
 
-call odeint_bmad (start2_orb, ele, param, end_orb, 0.0_rp, ele%value(l$), bmad_com%rel_tol_adaptive_tracking, &
-                  bmad_com%abs_tol_adaptive_tracking, del_s_step, del_s_min, .true., err_flag, track)
+call odeint_bmad (start2_orb, ele, param, end_orb, 0.0_rp, ele%value(l$), .true., err_flag, track)
 if (err_flag) return
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 

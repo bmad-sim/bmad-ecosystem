@@ -1,8 +1,13 @@
 !+
-! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag)
+! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
 !
 ! Particle tracking through a single element. 
-! Optionally synchrotron radiation and space charge kicks can included.
+! This includes synchrotron radiation and space charge kicks if enabled by the appropriate
+! bmad_com%radiation_damping_on, etc. components. See the code for more details. 
+!
+! Note: the ignore_radiation argument is meant as a "temporary" override to turn off
+! all radiation and space-charge effects independent of the settings of the bmad_com%xxx
+! switches. This is used by routines that are tracking the reference particle.
 !
 ! Modules Needed:
 !   use bmad
@@ -13,6 +18,9 @@
 !   param     -- lat_param_struct:
 !     %aperture_limit_on -- If True check if particle is lost by going outside
 !                of the element aperture. 
+!   ignore_radiation
+!             -- Logical, optional: If present and True then do not include radiation
+!                  effects along with space charge effects. 
 !
 ! Output:
 !   end_orb   -- Coord_struct: End position.
@@ -31,7 +39,7 @@
 ! and vertical kicks irregardless of the value for TILT.
 !-
 
-recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -52,13 +60,14 @@ integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
 
-logical, optional :: err_flag
-logical err
+logical, optional :: err_flag, ignore_radiation
+logical err, do_extra
 
 !
 
 if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
+do_extra = .not. logic_option(.false., ignore_radiation)
 
 ! Correct start_orb %beta and %p0c.
 ! Doing this here to be compatible with programs that do not set this.
@@ -98,7 +107,8 @@ endif
 
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
-if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
+if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) &
+                                                       .and. ele%is_on .and. do_extra) then
   call track1_radiation (start2_orb, ele, param, start2_orb, start_edge$) 
 endif
 
@@ -159,19 +169,19 @@ end select
 
 ! Radiation damping and/or fluctuations for the last half of the element
 
-if ((bmad_com%radiation_damping_on .or. &
-                  bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
+if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
+                                                         ele%is_on .and. do_extra) then
   call track1_radiation (end_orb, ele, param, end_orb, end_edge$) 
 endif
 
 ! space charge
 
-if (bmad_com%space_charge_on) &
+if (bmad_com%space_charge_on .and. do_extra) &
       call track1_ultra_rel_space_charge (end_orb, ele, param, end_orb)
 
 ! spin tracking
  
-if (bmad_com%spin_tracking_on) call track1_spin (start2_orb, ele, param, end_orb)
+if (bmad_com%spin_tracking_on .and. do_extra) call track1_spin (start2_orb, ele, param, end_orb)
 
 ! check for particles outside aperture
 

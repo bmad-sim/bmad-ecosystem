@@ -404,9 +404,18 @@ select case (a_name)
 case ('CSR_CALC_ON', 'IS_ON')
   free = .true.
   return
+
 case ('X_OFFSET_TOT', 'Y_OFFSET_TOT', 'S_OFFSET_TOT', 'TILT_TOT', &
       'X_PITCH_TOT', 'Y_PITCH_TOT', 'NUM_STEPS', 'FIELD_SCALE', 'DPHI0_REF')
   return
+
+case ('E_TOT', 'E_TOT_START', 'P0C', 'P0C_START')
+  if (ele%key == init_ele$ .and. branch%ix_from_branch < 0) free = .true.
+  return
+
+case ('L_HARD_EDGE')
+  return
+
 end select
 
 ! if the attribute is controled by an overlay lord then it cannot be varied.
@@ -495,27 +504,6 @@ case (lcavity$)
 case (elseparator$)
   if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
 end select
-
-if (has_orientation_attributes(ele)) then
-  if (ix_attrib == tilt_tot$) free = .false.
-  if (ix_attrib == x_pitch_tot$) free = .false.
-  if (ix_attrib == y_pitch_tot$) free = .false.
-  if (ix_attrib == x_offset_tot$) free = .false.
-  if (ix_attrib == y_offset_tot$) free = .false.
-  if (ix_attrib == s_offset_tot$) free = .false.
-endif
-
-if (ix_attrib == e_tot$ .or. ix_attrib == p0c$) then
-  if (ele%key == init_ele$) then
-    if (branch%ix_from_branch > -1) then
-      free = .false.
-    else
-      free = .true.
-    endif
-  elseif (ele%key /= group$ .and. ele%key /= overlay$ .and. ele%key /= girder$) then
-    free = .false.
-  endif
-endif
 
 if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
     ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.

@@ -424,7 +424,7 @@ real(rp) neg_pz
 
 dphi0_ref = phi
 call init_coord (start_orb, ele = ele_com, particle = param_com%particle)
-call track1 (start_orb, ele_com, param_com, end_orb)
+call track1 (start_orb, ele_com, param_com, end_orb, ignore_radiation = .true.)
 
 neg_pz = -end_orb%vec(6)
 if (param_com%lost) neg_pz = 1
