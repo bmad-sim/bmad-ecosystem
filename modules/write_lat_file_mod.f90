@@ -68,7 +68,7 @@ character(4000) line
 character(4) end_str
 character(4) last
 character(40) name, look_for, attrib_name
-character(200) wake_name, file_name
+character(200) wake_name, file_name, path, basename
 character(40), allocatable :: names(:)
 character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
@@ -325,7 +325,8 @@ do ib = 0, ubound(lat%branch, 1)
         line = trim(line) // ', wall = call::wall_' // trim(name)
         iu2 = lunget()
  
-        open (iu2, file = 'wall_' // trim(name))
+        ix = splitfilename(file_name, path, basename)
+        open (iu2, file = trim(path) // '/wall_' // trim(name))
         write (iu2, *) '{ &'
         write (iu2, '(2x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(ele%wall3d%ele_anchor_pt)), ','
         do i = 1, size(ele%wall3d%section)
@@ -382,7 +383,8 @@ do ib = 0, ubound(lat%branch, 1)
         line = trim(line) // ', field = call::field_' // trim(name)
         iu2 = lunget()
  
-        open (iu2, file = 'field_' // trim(name))
+        ix = splitfilename(file_name, path, basename)
+        open (iu2, file = trim(path) // 'field_' // trim(name))
         write (iu2, *) '{ &'
         do i = 1, size(ele%em_field%mode)
           mode => ele%em_field%mode(i)
