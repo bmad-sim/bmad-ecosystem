@@ -78,112 +78,112 @@ this structure along with the default values are:
 \end{example}
 
 \begin{description}
-\item[\vn{%max_aperture_limit}] \Newline 
+\item[\vn{\%max_aperture_limit}] \Newline 
 Sets the maximum amplitude a particle can have
 during tracking. If this amplitude is exceeded, the particle is lost
 even if there is no element aperture set. Having a maximum aperture
 limit helps prevent numerical overflow in the tracking calculations.
 
-\item[\vn{%d_orb}] \Newline 
+\item[\vn{\%d_orb}] \Newline 
 Sets the orbit displacement used in the routine that calculates the
 transfer matrix through an element via tracking.  \vn{%d_orb} needs to
 be large enough to avoid significant round-off errors but not so large
 that nonlinearities will affect the results. Also see
 \vn{%mat6_track_symmetric}.
 
-\item[\vn{%default_ds_step}] \Newline
+\item[\vn{\%default_ds_step}] \Newline
 Step size for tracking code \sref{c:methods} that uses a fixed step
 size. For example, \vn{symp_lie_ptc} and \vn{boris} tracking.
 
-\item[\vn{%significant_length}] \Newline
+\item[\vn{\%significant_length}] \Newline
 Sets the scale to decide if two length values are significantly
 different. For example, The superposition code will not create any
 super_slave elements that have a length less then this.
 
-\item[\vn{%rel_tol_tracking}] \Newline
+\item[\vn{\%rel_tol_tracking}] \Newline
 Relative tolerance to use in tracking. Specifically, Tolerance to use
 when finding the closed orbit.
 
-\item[\vn{%abs_tol_tracking}] \Newline
+\item[\vn{\%abs_tol_tracking}] \Newline
 Absolute tolerance to use in tracking. Specifically, Tolerance to use
 when finding the closed orbit.
 
-\item[\vn{%rel_tol_adaptive_tracking}] \Newline
+\item[\vn{\%rel_tol_adaptive_tracking}] \Newline
 Relative tolerance to use in tracking. Specifically, Tolerance to use
 in Runge-Kutta tracking.
 
-\item[\vn{%abs_tol_adaptive_tracking}] \Newline
+\item[\vn{\%abs_tol_adaptive_tracking}] \Newline
 Absolute tolerance to use in tracking. Specifically, Tolerance to use
 in Runge-Kutta tracking.
 
-\item[\vn{%taylor_order}] \Newline
+\item[\vn{\%taylor_order}] \Newline
 Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
 
-\item[\vn{%default_integ_order}] \Newline
+\item[\vn{\%default_integ_order}] \Newline
 Order of the the integrator used by Etienne Forest's PTC code (\sref{s:libs}).
 
-\item[\vn{%sr_wakes_on}] \Newline
+\item[\vn{\%sr_wakes_on}] \Newline
 Toggle for turning on or off short-range higher order mode wake field effects.
 
-\item[\vn{%lr_wakes_on}] \Newline
+\item[\vn{\%lr_wakes_on}] \Newline
 Toggle for turning on or off long-range higher order mode wake field effects.
 
-\item[\vn{%mat6_track_symmetric}] \Newline
+\item[\vn{\%mat6_track_symmetric}] \Newline
 Toggle to turn off whether the transfer matrix from tracking routine
-(\zzz{make_mat6_from_tracking}) tracks 12 particles at both plus and
+(\Hyperref{r:make.mat6.from.tracking}{make_mat6_from_tracking}) tracks 12 particles at both plus and
 minus \vn{%d_orb} values or only tracks 7 particles to save time.
 
-\item[\vn{%auto_bookkeeper}] \Newline
+\item[\vn{\%auto_bookkeeper}] \Newline
 Toggles automatic or intelligent bookkeeping. See
 section~\sref{s:lat.bookkeeping} for more details.
 
-\item[\vn{%space_charge_on}] \Newline
+\item[\vn{\%space_charge_on}] \Newline
 Toggle to turn on or off high energy space charge effect in particle tracking.
 
-\item[\vn{%coherent_synch_rad_on}] \Newline
+\item[\vn{\%coherent_synch_rad_on}] \Newline
 Toggle to turn on or off the coherent space charge calculation.
 
-\item[\vn{%spin_tracking_on}] \Newline
+\item[\vn{\%spin_tracking_on}] \Newline
 Determines if spin tracking is performed or not.
 
-\item[\vn{%radiation_damping_on}] \Newline
+\item[\vn{\%radiation_damping_on}] \Newline
 Toggle to turn on or off effects due to radiation dampling in particle tracking.
 
-\item[\vn{%radiation_fluctuations_on}] \Newline
+\item[\vn{\%radiation_fluctuations_on}] \Newline
 Toggle to turn on or off effects due to radiation fluctuations in particle tracking.
 
-\item[\vn{%conserve_taylor_maps}] \Newline
+\item[\vn{\%conserve_taylor_maps}] \Newline
 Toggle to determine if the Taylor map for an element include any
 element ``misalignments''.  See Section~\sref{s:mapoff} for more
 details.
 
-\item[\vn{%use_ptc_layout_default}] \Newline
+\item[\vn{\%use_ptc_layout_default}] \Newline
 Default setting to be applied to a lattice if \vn{use_ptc_layout} is
 not specified in a lattice file.  This feature has not yet been
 implementd.
 
-\item[\vn{%absolute_time_tracking_default}] \Newline
+\item[\vn{\%absolute_time_tracking_default}] \Newline
 Default setting to be applied to a lattice if
 \vn{absolute_time_tracking} (\sref{s:param}) is not specified in a
 lattice file. Additionally, if an element that is not associated with a lattice
 is tracked, \vn{%absolute_time_tracking_default} will be used to
 determine whether absolute time tracking is used.
 
-\item[\vn{%rf_auto_scale_phase_default}] \Newline
+\item[\vn{\%rf_auto_scale_phase_default}] \Newline
 Default setting to be applied to a lattice if
 \vn{rf_auto_scale_phase} (\sref{s:param}) is not specified in a
 lattice file. Additionally, if an element that is not associated with a lattice
 is tracked, \vn{%rf_auto_scale_phase_default} will be used to
 determine whether phase auto scaling is done.
 
-\item[\vn{%rf_auto_scale_amp_default}] \Newline
+\item[\vn{\%rf_auto_scale_amp_default}] \Newline
 Default setting to be applied to a lattice if
 \vn{rf_auto_scale_amp} (\sref{s:param}) is not specified in a
 lattice file. Additionally, if an element that is not associated with a lattice
 is tracked, \vn{%rf_auto_scale_amp_default} will be used to
 determine whether amplitude auto scaling is done.
 
-\item[\vn{%be_thread_safe}] \Newline
+\item[\vn{\%be_thread_safe}] \Newline
 Toggle to prevent non thread safe calculational optimizations from being done.
 See Section~\sref{s:thread.safe} for more details.
 
