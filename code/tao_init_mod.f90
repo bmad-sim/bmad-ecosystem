@@ -1568,7 +1568,8 @@ do
   var%low_lim        = default_low_lim
   var%high_lim       = default_high_lim
   call set_logical_to_garbage (var%good_user)
-  call transfer_logical (default_key_b(n_v1), var%key_bound)
+  call transfer_logical (default_key_b(n_v1), var(0)%key_bound)
+  var%key_bound = var(0)%key_bound
   var%key_delta      = default_key_d(n_v1)
 
   read (iu, nml = tao_var, iostat = ios)
