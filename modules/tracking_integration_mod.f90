@@ -53,8 +53,6 @@ character(40), parameter :: r_name = 'lcavity_reference_energy_correction'
 if (ele%value(p0c$) == ele%value(p0c_start$)) return
 
 orbit%vec(2:4:2) = orbit%vec(2:4:2) * ele%value(p0c_start$) / ele%value(p0c$)
-orbit%vec(5) = orbit%vec(5) * (ele%value(p0c$) / ele%value(e_tot$)) / &
-                          (ele%value(p0c_start$) / ele%value(e_tot_start$))
 orbit%vec(6) = (1 + orbit%vec(6)) * ele%value(p0c_start$) / ele%value(p0c$) - 1
 
 if (orbit%p0c > 0) then

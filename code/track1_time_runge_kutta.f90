@@ -189,11 +189,8 @@ else
       s2 = ele%value(l$)
       do i = 1, n_edge
         del_s = end_orb%vec(5) - edge(i)%s
-        if (del_s > 0 ) then
-      	  if (del_s < end_orb%vec(5) - s1 ) s1 = edge(i)%s  !new nearest left edge
-        else if (del_s < 0 ) then
-          if (del_s > end_orb%vec(5) - s2 ) s2 = edge(i)%s  !new nearest right edge
-        else 
+
+        if (abs(del_s) < bmad_com%significant_length) then
           ! At an edge. Kick.         
           p0c_save = end_orb%p0c ! Fudge to kick orb in time coordinates by setting p0c = +/- 1
           end_orb%p0c = sign(1.0_rp, p0c_save)
@@ -204,6 +201,14 @@ else
           else 
             s2 = edge(i)%s
           end if
+
+        elseif (del_s > 0) then
+      	  if (del_s < end_orb%vec(5) - s1) s1 = edge(i)%s  !new nearest left edge
+
+        else  ! Must be del_s < 0
+          if (del_s > end_orb%vec(5) - s2) s2 = edge(i)%s  !new nearest right edge
+
+
         endif
       enddo
       if (abs(end_orb%vec(5) - ele%value(L$)) < bmad_com%significant_length .and. end_orb%vec(6) > 0) exit
