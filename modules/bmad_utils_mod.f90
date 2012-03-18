@@ -393,7 +393,7 @@ if (present(ele)) then
   if (orb%vec(6) == 0) then
     orb%beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
   else
-    call convert_pc_to (ele%value(p0c$) * (1 + orb%vec(6)), particle, beta = orb%beta)
+    call convert_pc_to (ele%value(p0c_start$) * (1 + orb%vec(6)), particle, beta = orb%beta)
   endif
 
   orb%s = ele%s - ele%value(l$)
@@ -1618,15 +1618,10 @@ ele%z%beta     = 0
 ele%z%alpha    = 0
 ele%z%gamma    = 0
 ele%z%eta      = 0
-ele%z%etap     = 0
+ele%z%etap     = 1
 ele%z%phi      = 0
 ele%z%sigma    = 0
 ele%z%emit     = 0
-
-! This is needed because of a compiler and/or totalview bug
-
-!allocate (ele%r(1,1))
-!ele%r = 0.0
 
 end subroutine init_ele
 

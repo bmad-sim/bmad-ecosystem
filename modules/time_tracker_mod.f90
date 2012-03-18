@@ -320,7 +320,7 @@ call em_field_kick_vector_time(ele, param, t+a6*dt, orb_temp, local_ref_frame, a
 orb_new%vec = orb%vec +dt*(c1*dr_dt+c3*ak3+c4*ak4+c6*ak6)
 orb_new%t = orb%t + dt
 orb_new%s = orb%s + orb_new%vec(5) - orb%vec(5)
-pc = sqrt(orb_new%vec(1)**2 +orb_new%vec(3)**2 + orb_new%vec(5)**2)
+pc = sqrt(orb_new%vec(2)**2 +orb_new%vec(4)**2 + orb_new%vec(6)**2)
 call convert_pc_to (pc, param%particle, beta = orb_new%beta)
 
 r_err = dt*(dc1*dr_dt+dc3*ak3+dc4*ak4+dc5*ak5+dc6*ak6)

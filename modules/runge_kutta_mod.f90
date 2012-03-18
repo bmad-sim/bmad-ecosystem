@@ -237,10 +237,14 @@ orb_new = orb
 do
 
   call rk_step1 (ele, param, orb, dr_ds, s, t, ds, orb_new, t_new, r_err, local_ref_frame, err_flag)
-  if (err_flag) return
-  err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
-  if (err_max <=  1.0) exit
-  ds_temp = safety * ds * (err_max**p_shrink)
+  ! Can get errors due to step size too large 
+  if (err_flag) then
+    ds_temp = ds / 2
+  else
+    err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
+    if (err_max <=  1.0) exit
+    ds_temp = safety * ds * (err_max**p_shrink)
+  endif
   ds = sign(max(abs(ds_temp), 0.1_rp*abs(ds)), ds)
   s_new = s + ds
 
@@ -510,7 +514,7 @@ endif
 
 dt_ds = f_bend / vel(3)
 dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
-dbeta_ds = mass_of(param%particle)**2 * dp_ds / e_tot**3
+dbeta_ds = mass_of(param%particle)**2 * dp_ds * c_light / e_tot**3
 
 dr_ds(1) = vel(1) * dt_ds
 dr_ds(2) = (E_force(1) + B_force(1) + e_tot * gx_bend / (dt_ds * c_light)**2) * dt_ds / p0

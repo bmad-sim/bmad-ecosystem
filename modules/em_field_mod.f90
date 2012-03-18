@@ -174,12 +174,12 @@ type (em_field_map_term_struct), pointer :: term
 real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
-real(rp) phase, gradient, theta, r, E_r, E_s, k_wave, s_eff, t_eff
+real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
-real(rp) radius, phi, t_ref, tilt, omega, freq
+real(rp) radius, phi, t_ref, tilt, omega, freq, B_phi_coef
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
+complex(rp) E_rho, E_phi, E_z, BEr, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
 
 integer i, j, m, n, sign_charge
@@ -306,8 +306,6 @@ select case (ele%field_calc)
     gradient = (gradient + gradient_shift_sr_wake(ele, param)) * sign_charge
     gradient = gradient * ele%value(l$) / ele%value(l_hard_edge$)
 
-    theta = atan2(y, x)   
-    r = sqrt(x**2 + y**2)
     omega = twopi * ele%value(rf_frequency$)
     k_wave = omega / c_light
 
@@ -318,15 +316,15 @@ select case (ele%field_calc)
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
     t_eff = t_rel - s_hard_offset / (c_light * beta_start)
 
-    E_r = gradient * r * k_wave * sin(k_wave*s_eff) * cos(omega * t_eff + phase)
+    E_r_coef = gradient * k_wave * sin(k_wave*s_eff) * cos(omega * t_eff + phase)
 
-    field%E(1) = E_r * cos (theta)                                  
-    field%E(2) = E_r * sin (theta)
+    field%E(1) = E_r_coef * x
+    field%E(2) = E_r_coef * y
     field%E(3) = 2 * gradient * cos(k_wave * s_eff) * cos(omega * t_eff + phase)
     
-    B_phi = -gradient * r * k_wave * cos(k_wave*s_eff) * sin(omega * t_eff + phase) / c_light 
-    field%B(1) = -B_phi * sin(theta)
-    field%B(2) =  B_phi * cos(theta)
+    B_phi_coef = -gradient * k_wave * cos(k_wave*s_eff) * sin(omega * t_eff + phase) / c_light 
+    field%B(1) = -B_phi_coef * y
+    field%B(2) =  B_phi_coef * x
 
     if (df_calc) then
       call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY!')
@@ -338,7 +336,10 @@ select case (ele%field_calc)
 
   case(wiggler$)
 
-    do i = 1, size(ele%wig%term)
+    n = 0
+    if (associated(ele%wig)) n = size(ele%wig%term)
+
+    do i = 1, n
       wig => ele%wig%term(i)
 
       if (wig%type == hyper_y$) then

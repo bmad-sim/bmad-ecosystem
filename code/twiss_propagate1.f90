@@ -218,7 +218,7 @@ ele2%x%etap = eta_vec(2)
 ele2%y%eta  = eta_vec(3)
 ele2%y%etap = eta_vec(4)
 ele2%z%eta  = eta_vec(5)
-ele2%z%etap = 1
+ele2%z%etap = ele1%z%etap * dpz2_dpz1
 
 call make_v_mats (ele2, v_mat, v_inv_mat)
 eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))

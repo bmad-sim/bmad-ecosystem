@@ -99,7 +99,7 @@ rel_E = (1 + start_orb%vec(6))
 rel_E2 = rel_E**2
 rel_E3 = rel_E**3
 
-start2_orb = end_orb
+start2_orb = start_orb
 end_orb = start_orb
 end_orb%s = ele%s - ele%value(l$)
 
