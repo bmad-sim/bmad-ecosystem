@@ -33,14 +33,20 @@ Running the Tests:
 1) If needed, compile and link the programs:
       make DO_EXTRA_MAKES=Y
 The executables are created in:
-			../bin/
+      ../bin/
 
 2) Run the testing script:
-      scripts/run_tests.py <program_dir>
-<program_dir> is the directory where all the programs are.
-If <program_dir> is a relative path name it must be relative
-to any subdirectory of regression_tests.
-<program_dir> is optional and, if not present, will
+Usage:
+   scripts/run_test.py {-bin <exe_dir>} {-test <test_dir>} {-list <test_list_file>} {-debug}
+
+Defaults:
+   <exe_dir>  = "../../bin"       ! This is relative to the test directories.
+   <test_dir> = ""                ! For running a single test. Overrides using a test_list_file.
+   <test_list_file> = "test.list" ! For running multiple tests.
+
+<exe_dir> is the directory where all the programs are.  If <exe_dir>
+is a relative path name, it must be relative to any subdirectory of
+regression_tests.  <program_dir> is optional and, if not present, will
 default to "../../bin"
 
 3) The results will be saved in a file "test.results"
@@ -53,7 +59,7 @@ For this documentation call this subdirectory "zzz".
 
 2) Add a line to the "regression_tests/tests.list" file. Each line in
 this file is of the format:
-	<subdir_name> <program_name>
+  <subdir_name> <program_name>
 The <program_name> is optional if it is the same as <subdir_name>.
 
 3) If needed: In this subdirectory put your testing program code and any input
@@ -75,9 +81,9 @@ where:
   <value_1>, etc.  = List of values. Must use double quotes for STR data.
 Double quote marks must be used to surround the <tag_string> field.
 The <data_id> field can be one of:
-	STR            String or logical data.
+  STR            String or logical data.
   REL            Real data with relative tolerance.
-	ABS            Real data with absolute tolerance.
+  ABS            Real data with absolute tolerance.
 The format of the "output.correct" file is the same as the "output.now" 
 file except the <REL_or_ABS> and <tolerance> fields are absent.
 
@@ -89,7 +95,7 @@ and the N^th specification line in "output.now" must have the same
 
 Example specification lines for "output.now":
   "Orbit at s = 34.5"  REL  1e-4  0.023  -0.0079  0.0060 
-	"Element Names"      STR  "ABC cat"  "XYZ dog"
+  "Element Names"      STR  "ABC cat"  "XYZ dog"
 
 In this example the "Orbit at s = 34.5" data has values 0.023,
 -0.0079, and 0.0060.  The tolerance is relative so to pass testing the
@@ -116,7 +122,7 @@ the correct format for "output.correct".
 Makefile in order to determine the list of programs to be run.
 
 Guideline:
-	Make the running time for programs short (few minutes max).
+  Make the running time for programs short (few minutes max).
 
 ------------------------------------------------- 
 Future:

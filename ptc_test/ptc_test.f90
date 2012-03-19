@@ -46,11 +46,13 @@ write (1, '(a, es20.10)') '"Bmad:vec(3)" REL  1E-10', end_orb1%vec(3)
 write (1, '(a, es20.10)') '"Bmad:vec(4)" REL  1E-10', end_orb1%vec(4)
 write (1, '(a, es20.10)') '"Bmad:vec(5)" REL  1E-10', end_orb1%vec(5)
 write (1, '(a, es20.10)') '"Bmad:vec(6)" REL  1E-10', end_orb1%vec(6)
+write (1, '(a, es20.10)') '"Bmad:orb%t " REL  1E-10', end_orb1%t
 
 write (1, *)
-write (1, '(a, 6es10.2)') '"Bmad:dvec"  ABS  2E-09', end_orb1%vec - end_orb2%vec
-write (1, '(a, es10.2)')  '"Bmad:dmat"  ABS  2E-09', maxval(abs(diff_mat))
-write (1, '(a, es10.2)')  '"Bmad:dvec0" ABS  1E-14', maxval(abs(diff_vec))
+write (1, '(a, 6es10.2)') '"Bmad:dvec"   ABS  2E-09', end_orb1%vec - end_orb2%vec
+write (1, '(a, es10.2)')  '"Bmad:dmat"   ABS  2E-09', maxval(abs(diff_mat))
+write (1, '(a, es10.2)')  '"Bmad:dvec0"  ABS  1E-09', maxval(abs(diff_vec))
+write (1, '(a, es10.2)')  '"Bmad:dorb%t" ABS  3E-18', end_orb1%t - end_orb2%t
 
 !
 
@@ -69,10 +71,12 @@ diff_mat = lat2%ele(3)%mat6 - lat%ele(1)%mat6
 diff_vec = lat2%ele(3)%vec0 - lat%ele(1)%vec0
 
 write (1, *)
-write (1, '(a, 6es10.2)') '"PTC1:dvec"  ABS  1E-09', end_orb1%vec - end_orb1p%vec
-write (1, '(a, 6es10.2)') '"PTC2:dvec"  ABS  1E-09', end_orb1%vec - end_orb2p%vec
-write (1, '(a, es10.2)')  '"PTC2:dmat"  ABS  1E-06', maxval(abs(diff_mat))
-write (1, '(a, es10.2)')  '"PTC2:dvec0" ABS  1E-09', maxval(abs(diff_vec))
+write (1, '(a, 6es10.2)') '"PTC1:dvec"   ABS  1E-09', end_orb1%vec - end_orb1p%vec
+write (1, '(a, es10.2)')  '"PTC1:dorb%t" ABS  1E-18', end_orb1%t - end_orb1p%t
+write (1, '(a, 6es10.2)') '"PTC2:dvec"   ABS  1E-09', end_orb1%vec - end_orb2p%vec
+write (1, '(a, es10.2)')  '"PTC2:dmat"   ABS  1E-06', maxval(abs(diff_mat))
+write (1, '(a, es10.2)')  '"PTC2:dvec0"  ABS  1E-09', maxval(abs(diff_vec))
+write (1, '(a, es10.2)')  '"PTC2:dorb%t" ABS  3E-18', end_orb1%t - end_orb2p%t
 
 
 end program
