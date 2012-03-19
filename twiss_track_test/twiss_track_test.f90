@@ -35,8 +35,8 @@ lat = lat2
 
 allocate (orb(0:lat%n_ele_max))     
 
-bmad_com%rel_tolerance = 1e-7
-bmad_com%abs_tolerance = 1e-10
+bmad_com%rel_tol_tracking = 1e-7
+bmad_com%abs_tol_tracking = 1e-10
 
 orb(0)%vec = 0
 call twiss_at_start (lat)

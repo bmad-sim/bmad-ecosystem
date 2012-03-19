@@ -166,7 +166,7 @@ for line in dir_list:
 
     if now_split[1] != correct_split[1]:
       print_all ('     Identification string for a line in "output.now":    ' + now_split[1])
-      print_all ('     Does not match corresponding ID in "output.correct": ' + corect_split[1], True)
+      print_all ('     Does not match corresponding ID in "output.correct": ' + correct_split[1], True)
 
     now_end = now_split[2].strip().split()
 
