@@ -59,7 +59,7 @@ type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 type (hard_edge_struct), allocatable :: edge(:)
 
-real(rp)  dt_step, ref_time, vec6
+real(rp)  dt_step, ref_time, vec6, pc2
 real(rp)   s_rel, t_rel, s1, s2, del_s, p0c_save
 
 integer :: i, n_edge
@@ -115,21 +115,19 @@ enddo
 !------
 !Convert particle to element coordinates
 
+! Particle is moving forward towards the entrance
 if (end_orb%p0c > 0 .and. end_orb%status == outside$) then
-  !Particle is moving forward towards the entrance
   call offset_particle(ele, param, end_orb, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
-  !call apply_hard_edge_kick (end_orb, ele, param, entrance_end$)
 
+! Interior start, reference momentum is at the end. No edge kicks are given
 elseif (end_orb%status == inside$) then
-  !Interior start, reference momentum is at the end. No edge kicks are given
   call offset_particle(ele, param, end_orb, set$, set_canonical = .false., &
                        ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
 
+! Particle is at the exit surface, should be moving backwards
 elseif (end_orb%p0c < 0 .and. end_orb%status == outside$) then
-  !Particle is at the exit surface, should be moving backwards
   call offset_particle(ele, param, end_orb, set$, set_canonical = .false., &
                        ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
-  !call apply_hard_edge_kick (end_orb, ele, param, exit_end$)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
@@ -194,8 +192,10 @@ else
           ! At an edge. Kick.         
           p0c_save = end_orb%p0c ! Fudge to kick orb in time coordinates by setting p0c = +/- 1
           end_orb%p0c = sign(1.0_rp, p0c_save)
+          pc2 = end_orb%vec(2)**2 + end_orb%vec(4)**2 + end_orb%vec(6)**2
           call apply_hard_edge_kick (end_orb, edge(i)%s_hard, t_rel, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
           end_orb%p0c = p0c_save
+          end_orb%vec(6) = sign(sqrt(pc2 - end_orb%vec(2)**2 - end_orb%vec(4)**2), end_orb%vec(6))
           if (p0c_save > 0 ) then 
             s1 = edge(i)%s
           else 

@@ -493,7 +493,7 @@ call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .fa
 ! Bend factor
 
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
-v2 = vel(1)**2 - vel(2)**2
+v2 = vel(1)**2 + vel(2)**2
 if (v2 > 1) return
 vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2)]
 E_force = charge_of(param%particle) * field%E
