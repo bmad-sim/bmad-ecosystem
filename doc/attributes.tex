@@ -169,7 +169,7 @@ comma (,) or the end of the line marks the end of the string. Example:
 \label{s:energy}
 \index{parameter statement}\index{e_tot}
 \index{e_tot_start}\index{p0c_start}
-\index{patch}\index{lcavity}\index{p0c}
+\index{patch}\index{lcavity}\index{p0c}\index{e_gun}
 \index{n_ref_pass}\index{ref_wave_length}
 The attributes that define the reference energy and momentum at an element are:
 \begin{example}
@@ -183,7 +183,7 @@ are the same (\sref{s:phase.space}). Except for multipass elements
 and, except for multipass elements, any setting of \vn{e_tot} and
 \vn{p0c} in the lattice input file is an error. The value of
 \vn{e_tot} and \vn{p0c} for an element is calculated by \bmad to be
-the same as the previous element except for \vn{Lcavity} and
+the same as the previous element except for \vn{e_gun}, \vn{lcavity} and
 \vn{patch} elements. To set the \vn{e_tot} or \vn{p0c} at the start of
 the lattice use the \vn{beginning} or \vn{parameter} statements.
 See~\sref{s:param}. Since the energy changes from the start to the end

@@ -23,7 +23,7 @@ a PLL is shown in Fig.~[\ref{f:PLL}].
 \begin{figure}[h]
 \centering
 \includegraphics{PLL.png}
-\caption{
+\caption[General diagram of a phase lock loop.]{
 General diagram of a phase lock loop. The loop adjusts the speed of a VCO according to the 
 phase difference between the VCO and an incoming signal.}
 \label{f:PLL}
@@ -61,7 +61,7 @@ loop consists of the update to $\omega$ that follows {\it Gain Kvco}.
 \begin{sidewaysfigure}[h!]
 \includegraphics[width=\columnwidth]{TT-Flow.png}
 \caption{
-Flow chart of tune tracker module \vn{???_dTT} function.  See text for description of each box.}
+Flow chart of tune tracker module functions.}
 \label{f:CdTT}
 \end{sidewaysfigure}
 
@@ -246,7 +246,7 @@ $K_I$&      decrease&         increase&         slower&             no change&  
 $K_D$$^\textrm{see note}$&    slight increase&  slight decrease&  slightly faster&    degrade&    grow\\ 
 \hline
 \end{tabular}
-\caption{
+\caption[Effect on VCO response of increasing $K_P$, $K_I$, or $K_D$.]{
 Effect on VCO response of increasing $K_P$, $K_I$, or $K_D$. 
 {\it Note:} The effects of the derivative channel are theoritical and have not 
 been verified extensively.}
@@ -266,7 +266,7 @@ acceptible performance at 0.569, and also acceptible performance at
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.75]{vco_plot.png}
-\caption{
+\caption[Plot of VCO response of typical tune tracker setup.]{
 Plot of VCO response of typical tune tracker setup.  VCO base frequency is 0.571.
 Beam fractional tune is 0.5691.}
 \label{f:typ-tt}

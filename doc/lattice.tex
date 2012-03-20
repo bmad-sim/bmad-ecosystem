@@ -1,49 +1,28 @@
 \chapter{Lattice File Overview}
 \index{lattice files|hyperbf}
 
-%---------------------------------------------------------------------------
-\section{Lattice Files}
-\label{s:lattice.file.formats}
-
-\index{XSIF|hyperbf}
 \index{Bmad!lattice file format}
-A lattice file (or files) defines an accelerator: That is, a lattice
-file defines the sequence of elements that a particle will travel
-through along with the attributes of the elements (their lengths,
-their strengths, etc.). The \bmad software library comes with
-routines to read in (parse) lattice files. There are two input formats
+A lattice file (or files) is a file that is used to describe an 
+accelerator or storage ring. In \bmad, a lattice defines
+the sequence of elements that a particle will travel
+through along with the attributes (length,
+strength, orientation, etc.) of the elements. 
+The \bmad software library comes with
+routines to parse lattice files. There are two input formats
 that \bmad understands: The \bmad standard format and
-XSIF\cite{b:xsif}. XSIF stands for ``Extended Standard Input Format.''
-XSIF is essentially a subset of the MAD input format. XSIF has its own
-documentation which can be found at:
-\begin{example}
-  http://www-project.slac.stanford.edu/
-              lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
-\end{example}
-\index{parameter statement!lattice_type}
-\index{XSIF!lcavity and lattice_type}
-Since XSIF does not have a \vn{lattice_type} statement
-(\sref{s:param}), the type of the lattice (whether circular or linear)
-is determined by the presence or absence of any \vn{lcavity} elements
-in the XSIF file. This is independent of whether \vn{lcavity} elements
-are actually used in the lattice.
-
-An XSIF lattice file may be called from within a \bmad lattice
-file. See Section~\sref{s:call} for more details.
-
-Since XSIF is separately documented it will not be discussed in detail
-here and throughout this manual, unless explicitly stated otherwise,
+XSIF\cite{b:xsif}. XSIF (\sref{s:xsif}), developed at SLAC,
+has its own documentation and will not be discussed in detail
+here. Throughout this manual, unless explicitly stated otherwise,
 the lattice format under discussion will always pertain to the \bmad
-standard format. One feature of the \bmad implementation of XSIF
-Note: One point that is not covered in the XSIF
-documentation is that for a \vn{MATRIX} element, unlike \mad, the
-\vn{R$ii$} terms (the diagonal terms of the linear matrix) are not
-unity by default. Thus
-\index{MAD}
-\begin{example}
-  m: matrix
-\end{example}
-in an XSIF file will give a matrix with all elements being zero.
+standard format. 
+
+While \bmad cannotdirectlhy read in \mad files, 
+translation between \mad and \bmad lattice files is possible using
+the \vn{Universal Accelerator Parser} (\sref{s:aml}).
+
+%---------------------------------------------------------------------------
+\section{Lattice File Format}
+\label{s:lattice.file.formats}
 
 \index{MAD!lattice format}
 The syntax that a \bmad standard lattice file must conform to is
@@ -739,3 +718,52 @@ the lattice.  Example
 \begin{example}
   parser_debug var lat ele 34 78
 \end{example}
+
+%---------------------------------------------------------------------------
+\section{XSIF Lattice File Format}
+\label{s:xsif}
+\index{XSIF|hyperbf}
+\index{parameter statement!lattice_type}
+
+XSIF, developed at SLAC, stands for 
+``Extended Standard Input Format.''
+XSIF is essentially a subset of the \mad\cite{b:maduser} input format. 
+XSIF has its own documentation which can be found at:
+\begin{example}
+  http://www-project.slac.stanford.edu/
+              lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
+\end{example}
+An XSIF lattice file may be called from within a \bmad lattice
+file. See Section~\sref{s:call} for details.
+
+Since XSIF does not have a \vn{parameter[lattice_type]} statement
+(\sref{s:param}), the type of the lattice (whether circular or linear)
+is determined by the presence or absence of any \vn{lcavity} elements
+in the XSIF file. This is independent of whether \vn{lcavity} elements
+are actually used in the lattice.
+
+Note: One point that is not covered in the XSIF
+documentation is that for a \vn{MATRIX} element, unlike \mad, the
+\vn{R$ii$} terms (the diagonal terms of the linear matrix) are not
+unity by default. Thus
+\index{MAD}
+\begin{example}
+  m: matrix
+\end{example}
+in an XSIF file will give a matrix with all elements being zero.
+
+%----------------------------------------------------------------------------
+\section{Accelerator Markup Lanuage}
+\label{s:aml}
+\index{Accelerator Markup Language (AML)}
+\index{Universal Accelerator Parser (UAP)}
+
+\index{MAD}
+The \vn{Accelerator Markup Language} (\vn{AML}) / \vn{Universal
+Accelerator Parser} (\vn{UAP}) project\cite{b:aml} is a collaboratory
+effort with the aim of 1) creating a lattice format (the \vn{AML} part)
+that can be used to fully describe accelerators and storage rings, and
+2) producing software (the \vn{UAP} part) that can parse \vn{AML}
+lattice files. A side benefit of this project is that the \vn{UAP} code
+has been extended to be able to translate between \vn{AML}, \bmad, \mad-8,
+\mad-X, and \vn{XSIF}. See the AML/UAP project home web page for more details.
