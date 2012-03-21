@@ -98,11 +98,14 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
       do ie = 0, tao_lat%lat%branch(ib)%n_ele_track
         call tao_load_data_array (u, ie, ib, model$)
       enddo
+      if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) exit
+
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
       call tao_inject_particle (u, tao_lat, ib)
       call tao_single_track (u, tao_lat, this_calc_ok, ib)
       call tao_inject_beam (u, tao_lat, ib, this_calc_ok)
+      if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) then
         if (ib == 0) then
           call out_io (s_error$, r_name, 'CANNOT INJECT BEAM. WILL NOT TRACK BEAM...')
@@ -115,7 +118,9 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
         exit
       endif
       call tao_beam_track (u, tao_lat, this_calc_ok, ib)
+      if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) exit
+
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // track_type)
       call err_exit
@@ -131,10 +136,6 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     endif
 
     if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom)
-
-    if (.not. this_calc_ok) calc_ok = .false.
-
-    call tao_load_data_array (u, -1, 0, model$)
 
     ! do multi-turn tracking if needed. This is always the main lattice. 
 
@@ -174,6 +175,8 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     endif
 
   enddo
+
+  call tao_load_data_array (u, -1, 0, model$)
 
   ! If calc is on common model then transfer data to base of all other universes
 
