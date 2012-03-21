@@ -497,6 +497,12 @@ select case (ele%field_calc)
     field%b(2) = -ele%value(hkick$) * f_p0c 
 
   !------------------------------------------
+  ! E_Gun
+
+  case (e_gun$)
+    field%e(3) = sign_charge * ele%value(gradient$)
+
+  !------------------------------------------
   ! Error
 
   case default

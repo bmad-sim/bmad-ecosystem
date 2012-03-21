@@ -2426,6 +2426,7 @@ case (e_gun$)
       val(voltage$) = val(gradient$) * val(l$)
       val(voltage_err$) = val(gradient_err$) * val(l$)
     endif
+    val(l_hard_edge$) = val(l$)
   endif
 
 
