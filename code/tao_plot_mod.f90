@@ -958,7 +958,8 @@ if (s%global%label_keys) then
           call qp_draw_text (trim(str), s_pos, y_top, justify = 'CT', height = key_number_height)  
         enddo
       else
-        s_pos = ele%s - ele%value(l$)/2
+        l2 = ele%value(l$) / 2
+        s_pos = ele%s - l2
         if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
         if (s_pos + l2 < graph%x%min .or. s_pos - l2 > graph%x%max) cycle
         call qp_draw_text (trim(str), s_pos, y_top, justify = 'CT', height = key_number_height)  
