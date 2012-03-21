@@ -493,6 +493,7 @@ end subroutine apply_bend_edge_kick
 !   solenoid
 !   sol_quad
 !   lcavity and rfcavity 
+!   e_gun
 !
 ! Module needed:
 !   use track1_mod
@@ -545,7 +546,7 @@ case (solenoid$, sol_quad$)
     orb%vec(4) = orb%vec(4) + ks * orb%vec(1) / 2
   endif
 
-case (lcavity$, rfcavity$)
+case (lcavity$, rfcavity$, e_gun$)
 
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
   f = charge_of(param%particle) / (2 * orb%p0c)
@@ -553,6 +554,8 @@ case (lcavity$, rfcavity$)
   s = s_edge
 
   if (element_end == entrance_end$) then
+
+    if (hard_ele%key == e_gun$) return  ! E_gun does not have an entrance kick
     s = s + bmad_com%significant_length / 10 ! Make sure inside field region
     call em_field_calc (hard_ele, param, s, t, orb, .true., field)
 
