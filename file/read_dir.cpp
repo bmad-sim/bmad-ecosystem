@@ -14,7 +14,7 @@ struct dirent* dir_ent = NULL;
 
 extern "C" void set_string(const char*, const int&, char*, const int&);
 
-extern "C" void open_dir(char* dir, bool& valid) {
+extern "C" void open_dir(char* dir, int& valid) {
   if (ptr_dir != NULL) closedir(ptr_dir);
   ptr_dir = opendir(dir);
   valid = (ptr_dir != NULL);
@@ -24,7 +24,7 @@ extern "C" void close_dir() {
   if (ptr_dir) closedir(ptr_dir);
 }
 
-extern "C" void read_dir(char* file, const int& n_len, bool& valid) {
+extern "C" void read_dir(char* file, const int& n_len, int& valid) {
   dir_ent = readdir(ptr_dir);
   if (dir_ent == NULL) {
     closedir(ptr_dir);
@@ -50,13 +50,13 @@ extern "C" void CLOSE_DIR() {
   ptr_dir = NULL;
 }
 
-extern "C" void OPEN_DIR(char* dir, bool& valid) {
+extern "C" void OPEN_DIR(char* dir, int& valid) {
   if (ptr_dir != NULL) close_dir_();
   ptr_dir = opendir(dir);
   valid = (ptr_dir != NULL);
 }
 
-extern "C" void READ_DIR(char* file, const int& n_len, bool& valid) {
+extern "C" void READ_DIR(char* file, const int& n_len, int& valid) {
   dir_ent = readdir(ptr_dir);
   if (dir_ent == NULL) {
     close_dir_();
@@ -82,13 +82,13 @@ extern "C" void close_dir_() {
   ptr_dir = NULL;
 }
 
-extern "C" void open_dir_(char* dir, bool& valid) {
+extern "C" void open_dir_(char* dir, int& valid) {
   if (ptr_dir != NULL) close_dir_();
   ptr_dir = opendir(dir);
   valid = (ptr_dir != NULL);
 }
 
-extern "C" void read_dir_(char* file, const int& n_len, bool& valid) {
+extern "C" void read_dir_(char* file, const int& n_len, int& valid) {
   dir_ent = readdir(ptr_dir);
   if (dir_ent == NULL) {
     close_dir_();
