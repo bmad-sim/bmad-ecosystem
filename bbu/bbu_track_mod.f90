@@ -817,7 +817,8 @@ kk=1
           ! Threshold current for coupling
           poltheta = 2*pi*lat%ele(i)%rf_wake%lr(j)%angle
           matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
-          currthc = currth * abs ( mat(1,2) / matc )
+          currthc = -1
+          if (matc /= 0) currthc = currth * abs ( mat(1,2) / matc )
 
           print '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)', k, j, currth, currthc, erltime(k), &
                            lat%ele(i)%rf_wake%lr(j)%freq, lat%ele(i)%rf_wake%lr(j)%R_over_Q,lat%ele(i)%rf_wake%lr(j)%Q,lat%ele(i)%rf_wake%lr(j)%angle, &
