@@ -177,7 +177,7 @@ endif
 ! space charge
 
 if (bmad_com%space_charge_on .and. do_extra) &
-      call track1_ultra_rel_space_charge (end_orb, ele, param, end_orb)
+      call track1_ultra_rel_space_charge (ele, param, end_orb)
 
 ! spin tracking
  
