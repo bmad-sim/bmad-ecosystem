@@ -76,12 +76,12 @@ real(rp), intent(in) :: s1, s2, dt1
 real(rp), target :: t_rel, t_old
 
 real(rp), parameter :: tiny = 1.0e-30_rp
-real(rp) :: dt, dt_did, dt_next, ds_safe
+real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save
 real(rp), target  :: dvec_dt(6), vec_err(6), s_target
 real(rp) sqrt_n, rel_tol_eff, abs_tol_eff, r_scal(6), dt_min, rel_tol, abs_tol, dt_tol
 
 integer, parameter :: max_step = 100000
-integer :: n_step, n_pt, dn_save, n_save_count
+integer :: n_step, n_pt
 
 logical, target :: local_ref_frame
 logical :: exit_flag, err_flag, err, zbrent_needed
@@ -102,9 +102,8 @@ orb%vec(5) = orb%s - (ele%s - ele%value(l$))
 
 !n_pt = max_step
 if ( present(track) ) then
-   !number of save points
-   n_save_count = 0
-   dn_save = max(floor(track%ds_save/c_light/dt), 1)
+   dt_save = track%ds_save/c_light
+   t_save = t_rel
 endif 
 
 ! Now Track
@@ -177,12 +176,13 @@ do n_step = 1, max_step
   
   !Save track
   if ( present(track) ) then
-    n_save_count = n_save_count +1
-    if (n_save_count == dn_save) then
+    !Check if we are past a save time
+    if (t_rel >= t_save) then
       track%n_pt = track%n_pt + 1
       n_pt = track%n_pt
-       track%orb(n_pt) = orb
-       n_save_count = 0
+        track%orb(n_pt) = orb
+       !Set next save time 
+       t_save = t_rel + dt_save
     end if
   endif
 
