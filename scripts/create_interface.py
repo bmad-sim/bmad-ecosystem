@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 # Script to read in Fortran structures and create:
-#   Fortran bind(c) version.
-#   C version
-#   Translators between Fortran original structure and bind(c) version.
-#   Translators between C version and C++ version
+#   Corresponding C++ class
+#   Translator between Fortran structure and C++ class
+#   Routines to check for equality between instances of a given fortran structure.
+#   Routines to check for equality between instances of a given C++ class
+#   Program to check the Fortran / C++ translator
 
 import sys
 import shutil
@@ -22,11 +23,12 @@ class f_var_class:
     self.type = ''
     self.pointer_type = '-'    # 'pointer', 'allocatable'
     self.array = ''            # [':', ':'] or ['6']
-    self.init_value = ''
+    self.init_value = '-'
     self.comment = ''
-    
+    self.n_array = 1
+
   def __repr__(self):
-    return '[%s, %s, %s, %s, %s]' % (self.type, self.pointer_type, self.name, self.array, self.init_value)
+    return '[%s, %s, %s, (%s), %s]' % (self.type, self.pointer_type, self.name, self.array, self.init_value)
 
 class f_struct_def_class:
   def __init__(self):
@@ -76,10 +78,9 @@ f_struct_list_file.close()
 # Parse structure definitions
 
 # Current restrictions: Syntax to avoid:
-#   Spaces in type def: "real (rp)"
 #   Multiple inits: "real a = 5, b = 7"
-#   No space after type: "type(abc_struct)"
-#   Space between var name and array def: "arr (:)"
+#   No space in type parens: "type( abc_struct )" or "real( rp )"
+#   Space in array def: "arr( : )"
 
 for file_name in f_module_files:
   f_module_file = open('../../' + file_name)
@@ -110,6 +111,11 @@ for file_name in f_module_files:
       if split_line[0:2] == ['end', 'type']: break
 
       var.type = split_line.pop(0)
+      if split_line[1][0:1] == '(': var.type = var.type + split_line.pop(0)
+
+      if var.type == 'type(':
+        var.type = 'type:' + var.type[5:-1]
+
       if var.type == 'type': var.type = 'type:' + split_line.pop(0)[1:-1]
 
       if split_line[0] == 'allocatable' or split_line[0] == 'pointer':
@@ -117,12 +123,17 @@ for file_name in f_module_files:
 
       # Handle lines like: "real(rp) kx, ky, kz"
 
-      for name in split_line:
+      for ix, name in enumerate(split_line):
         var = copy.copy(var)
         var.name = name
+
         part = var.name.partition('(')
         var.name = part[0]
         var.array = part[2][:-1]     # Remove last ')'
+
+        if ix+1 < len(split_line) and split_line[ix+1][0:1] == '(': 
+          var.array = split_line.pop(ix+1)[:-1]
+
         f_struct_def[struct_name].var.append(var)
         
   f_module_file.close()
@@ -143,7 +154,9 @@ f_out.close()
 
 ##################################################################################
 ##################################################################################
-# Create Fortran side of interface
+# Create Fortran side of interface...
+
+# First the header
 
 f_out = open('../cpp_interface/bmad_and_cpp_mod.f90', 'w')
 
@@ -165,10 +178,56 @@ contains
 
 ''')
 
-for struct in f_struct_def:
-  s_name = struct[0:-7]  # Strip off ending "_struct"
-  # Count simple reals and ints
 
+##############
+# Loop over all the structures...
+
+for struct in f_struct_def:
+
+  ##############
+  # Sort the variables into the argument list
+
+  s_name = struct[0:-7]  # Strip off ending "_struct"
+
+  # Count simple reals and ints
+  real_list = []
+  int_list = []
+  other_list = []
+  num_list = []
+
+  for var in f_struct_def[struct]:
+    if var.pointer_type == 'allocatable' or var.pointer_type == 'pointer':
+      other_list.append(var.name)
+      num_list.append(var.name)
+
+
+    elif var.type == 'character':
+
+    elif var.array /= '':
+      for d1 in var.array.split(','):
+        d1_apart = d1.partition(':')
+        if d1_apart[2] == '':
+          var.n_array = var.n_array * int(d1_apart[0])
+        else:
+          var.n_array = var.n_array * (int(d1_apart[2]) - int(d1_apart[0]))
+
+    elif var.name[0:5] == 'type:':
+      other_list.append(var.name)
+
+    else:
+
+      if var.type == 'real(rp)':
+        n_real = n_real + var.n_array
+      elif var.type == 'complex(rp)':
+        n_real = n_real + 2 * var.n_array
+      elif var.type == 'integer':
+        n_int = n_int + var.n_array
+      elif var.type == 'logical':
+        n_int = n_int + var.n_array
+
+
+  ##############
+  # Write out structure
 
   f_out.write ('''
 !--------------------------------------------------------------------------
@@ -219,70 +278,14 @@ call zzz_to_c2 (c_zzz, c_real_arr, c_int_arr)
 end subroutine zzz_to_c
 '''.replace('zzz', s_name))
 
+########################
+# End stuff
 
 f_out.write('end module\n')
 
 ##################################################################################
 ##################################################################################
-# Create Fortran bind(c) struct version
-
-f_out = open('../cpp_interface/bmad_bind_c_mod.f90', 'w')
-
-f_out.write ('''
-!+
-! Fortran bind(c) structures used for the Bmad / C++ interface.
-!
-! File Generated by: create_interface.py
-! Do not edit this file directly! 
-!-
-
-module bmad_bind_c_mod
-
-use iso_c_binding
-
-''')
-
-for key, struct in f_struct_def.iteritems():
-  f_out.write('\n')
-  f_out.write('!---------------------------------------------------------------------------\n')
-  f_out.write('\n')
-  f_out.write('type, bind(c) :: ' + key.replace('_struct', '_bind_c') + '\n')
-
-  for struct in f_struct_list:
-    var = f_struct_def[struct]
-
-    if var.type[0:5] == 'type:':
-      line = var.type.replace(':', ' (') + ')'
-    else:
-      line = f_type_to_bind_c(var.type)
-
-    if var.pointer_type == '-':
-      
-    else:
-
-f_out.write('\n')
-f_out.write('end module\n')
-
-
-f_out.close()
-
-##################################################################################
-##################################################################################
-# Create C struct version
-
-##################################################################################
-##################################################################################
-# Create C++ class version
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Subroutine
-''')
-
-
-f_out.close()
+# Create C++ class
 
 ##################################################################################
 ##################################################################################
