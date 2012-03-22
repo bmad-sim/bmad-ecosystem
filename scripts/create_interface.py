@@ -14,7 +14,7 @@ import copy
 
 ##################################################################################
 ##################################################################################
-# Class defs
+# f_var_class
 
 class f_var_class:
 
@@ -30,6 +30,8 @@ class f_var_class:
   def __repr__(self):
     return '[%s, %s, %s, (%s), %s]' % (self.type, self.pointer_type, self.name, self.array, self.init_value)
 
+# f_struct_def_class
+
 class f_struct_def_class:
   def __init__(self):
     self.name = ''
@@ -37,6 +39,18 @@ class f_struct_def_class:
 
   def __repr__(self):
     return '[name: %s, #var: %i]' % (self.name, len(self.var))
+
+# f_arg_class
+
+class f_arg_class:
+  def __init__(self, name):
+    self.c_name = name
+    self.num = 0
+    self.input = []
+
+  def __repr__(self):
+    return '[%s, %s]' % (self.c_arg, self.num)
+
 
 ##################################################################################
 ##################################################################################
@@ -189,42 +203,44 @@ for struct in f_struct_def:
 
   s_name = struct[0:-7]  # Strip off ending "_struct"
 
-  # Count simple reals and ints
-  real_list = []
-  int_list = []
-  other_list = []
-  num_list = []
+  # Form argument list
+
+  args = [f_arg_class('c_real'), f_arg_class('c_int')]  # real and int arrays
 
   for var in f_struct_def[struct]:
-    if var.pointer_type == 'allocatable' or var.pointer_type == 'pointer':
-      other_list.append(var.name)
-      num_list.append(var.name)
 
+    if var.pointer_type == 'allocatable' or var.pointer_type == 'pointer':
 
     elif var.type == 'character':
 
     elif var.array /= '':
+      args.append(f_arg_class('var.name'))
+      args[-1].num = 1
       for d1 in var.array.split(','):
         d1_apart = d1.partition(':')
         if d1_apart[2] == '':
-          var.n_array = var.n_array * int(d1_apart[0])
+          args[-1].num = args[-1].num * int(d1_apart[0])
         else:
-          var.n_array = var.n_array * (int(d1_apart[2]) - int(d1_apart[0]))
+          args[-1].num = args[-1].num * (int(d1_apart[2]) - int(d1_apart[0]))
 
     elif var.name[0:5] == 'type:':
-      other_list.append(var.name)
 
     else:
-
       if var.type == 'real(rp)':
-        n_real = n_real + var.n_array
+        args[0].num += 1
+        args[0].input.append(var.name)
       elif var.type == 'complex(rp)':
-        n_real = n_real + 2 * var.n_array
+        args[0].num += 1
+        args[0].input.append(var.name)
       elif var.type == 'integer':
-        n_int = n_int + var.n_array
+        args[1].num += 1
+        args[1].input.append(var.name)
       elif var.type == 'logical':
-        n_int = n_int + var.n_array
+        args[1].num += 1
+        args[1].input.append(var.name)
 
+  if args[1].num == 0: args.pop[1]
+  if args[0].num == 0: args.pop[0]
 
   ##############
   # Write out structure
@@ -250,10 +266,14 @@ subroutine zzz_to_c (f_zzz, c_zzz)
 implicit none
 
 interface
-  subroutine zzz_to_c2 (c_zzz, c_real_arr, c_int_arr)
-    import fortran_and_cpp_mod
-    type (c_ptr), value :: c_zzz, c_int_arr, c_real_arr
-    type (c_ptr), value
+'''.replace('zzz', s_name))
+
+  f_out.write ('  subroutine zzz_to_c2 (c_zzz'.replace('zzz', s_name) + (', ').join([a.c_name for a in args]) + ')\n')
+  f_out.write ('  import fortran_and_cpp_mod\n')
+  f_out.write ('  type (c_ptr), value :: c_zzz\n'.replace('zzz', s_name) + '\n')
+  for arg in args:
+    f_out.write ('  type (c_ptr), value :: ' + arg + '\n')
+  f_out.write ('''
   end subroutine
 end interface
 
@@ -261,13 +281,19 @@ type (zzz_struct), pointer :: f_zzz
 type (c_ptr), value :: c_zzz
 '''.replace('zzz', s_name))
 
-  
-  f_out.write ('abc')
+  for arg in args:
+    if arg.num == 1:
+      f_out.write ('type (c_ptr), value :: ' + arg.c_name + '(' + arg.num + ')\n')
+    else:
+      f_out.write ('type (c_ptr), value :: ' + arg.c_name + '\n')
 
-#real(c_double) c_real_arr(NNN)
-#integer(c_int) c_int_arr(MMM)
+  f_out.write ('\n')
+
+
+
 
   f_out.write ('''
+
 !
 
 c_real_arr = [f_zzz%, ...]
