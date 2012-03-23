@@ -63,44 +63,54 @@ do ib = 0, ubound(lat%branch, 1)
 
   ele0 => branch%ele(0)
 
-  if (branch%ix_from_branch >= 0 .and. (stale .or. ele0%status%ref_energy == stale$)) then
+  if (stale .or. ele0%status%ref_energy == stale$) then
+    if (branch%ix_from_branch >= 0) then
 
-    branch_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-    branch%param%particle = nint(branch_ele%value(particle$))
-    branch%param%lattice_type = nint(branch_ele%value(lattice_type$))
+      branch_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
+      branch%param%particle = nint(branch_ele%value(particle$))
+      branch%param%lattice_type = nint(branch_ele%value(lattice_type$))
 
-    did_set = .false.
+      did_set = .false.
 
-    if (branch_ele%value(E_tot_start$) == 0) then
-      ele0%value(E_tot$) = branch_ele%value(E_tot$)
-      call convert_total_energy_to (ele0%value(E_tot$), branch%param%particle, pc = ele0%value(p0c$))
+      if (branch_ele%value(E_tot_start$) == 0) then
+        ele0%value(E_tot$) = branch_ele%value(E_tot$)
+        call convert_total_energy_to (ele0%value(E_tot$), branch%param%particle, pc = ele0%value(p0c$))
+      else
+        ele0%value(E_tot$) = branch_ele%value(E_tot_start$)
+        did_set = .true.
+      endif
+
+      if (branch_ele%value(p0c_start$) == 0) then
+        ele0%value(p0c$) = branch_ele%value(p0c$)
+       call convert_pc_to (ele0%value(p0c$), branch%param%particle, e_tot = ele0%value(e_tot$))
+      else
+        ele0%value(p0c$) = branch_ele%value(p0c_start$)
+        did_set = .true.
+      endif
+
+      if (.not. did_set .and. mass_of(branch%param%particle) /= &
+                              mass_of(lat%branch(branch_ele%ix_branch)%param%particle)) then
+        call out_io (s_fatal$, r_name, &
+          'E_TOT_START OR P0C_START MUST BE SET IN A BRANCHING ELEMENT IF THE PARTICLE IN ', &
+          'THE "FROM" BRANCH IS DIFFERENT FROM THE PARTICLE IN THE "TO" BRANCH.', &
+          'PROBLEM OCCURS WITH BRANCH ELEMENT: ' // branch_ele%name) 
+        if (bmad_status%exit_on_error) call err_exit
+        return
+      endif
+
+      stale = .true.
+      ele0%status%ref_energy = ok$
+      ele0%time_ref_orb_out = 0
+
     else
-      ele0%value(E_tot$) = branch_ele%value(E_tot_start$)
-      did_set = .true.
+      if (ele0%value(E_tot$) == 0) then
+        ele0%value(E_tot$) = ele0%value(E_tot_start$)
+        ele0%value(p0c$) = ele0%value(p0c_start$)
+      elseif (ele0%value(E_tot_start$) == 0) then
+        ele0%value(E_tot_start$) = ele0%value(E_tot$)
+        ele0%value(p0c_start$) = ele0%value(p0c$)
+      endif
     endif
-
-    if (branch_ele%value(p0c_start$) == 0) then
-      ele0%value(p0c$) = branch_ele%value(p0c$)
-     call convert_pc_to (ele0%value(p0c$), branch%param%particle, e_tot = ele0%value(e_tot$))
-    else
-      ele0%value(p0c$) = branch_ele%value(p0c_start$)
-      did_set = .true.
-    endif
-
-    if (.not. did_set .and. mass_of(branch%param%particle) /= &
-                            mass_of(lat%branch(branch_ele%ix_branch)%param%particle)) then
-      call out_io (s_fatal$, r_name, &
-        'E_TOT_START OR P0C_START MUST BE SET IN A BRANCHING ELEMENT IF THE PARTICLE IN ', &
-        'THE "FROM" BRANCH IS DIFFERENT FROM THE PARTICLE IN THE "TO" BRANCH.', &
-        'PROBLEM OCCURS WITH BRANCH ELEMENT: ' // branch_ele%name) 
-      if (bmad_status%exit_on_error) call err_exit
-      return
-    endif
-
-    stale = .true.
-    ele0%status%ref_energy = ok$
-    ele0%time_ref_orb_out = 0
-
   endif
 
   ! Look for an e_gun and if found then the starting energy must be computed accordingly.

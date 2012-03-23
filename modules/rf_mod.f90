@@ -114,7 +114,7 @@ case (bmad_standard$)
 
 case (grid$, map$, custom$)
   do i = 1, size(ele%em_field%mode)
-    if (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0) then
+    if (ele%key == e_gun$ .or. (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0)) then
       field_scale => ele%em_field%mode(i)%field_scale
       dphi0_ref => ele%em_field%mode(i)%dphi0_ref
       exit
