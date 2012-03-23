@@ -102,15 +102,15 @@ do ib = 0, ubound(lat%branch, 1)
       ele0%status%ref_energy = ok$
       ele0%time_ref_orb_out = 0
 
-    else
-      if (ele0%value(E_tot$) == 0) then
-        ele0%value(E_tot$) = ele0%value(E_tot_start$)
-        ele0%value(p0c$) = ele0%value(p0c_start$)
-      elseif (ele0%value(E_tot_start$) == 0) then
-        ele0%value(E_tot_start$) = ele0%value(E_tot$)
-        ele0%value(p0c_start$) = ele0%value(p0c$)
-      endif
     endif
+  endif
+
+  if (ele0%value(E_tot$) == 0) then
+    ele0%value(E_tot$) = ele0%value(E_tot_start$)
+    ele0%value(p0c$) = ele0%value(p0c_start$)
+  elseif (ele0%value(E_tot_start$) == 0) then
+    ele0%value(E_tot_start$) = ele0%value(E_tot$)
+    ele0%value(p0c_start$) = ele0%value(p0c$)
   endif
 
   ! Look for an e_gun and if found then the starting energy must be computed accordingly.
