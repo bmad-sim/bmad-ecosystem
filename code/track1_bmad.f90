@@ -44,7 +44,7 @@ type (lat_param_struct) :: param
 
 real(rp) k1, k2, k2l, k3l, length, phase, beta_start
 real(rp) beta_end, beta_start_ref, beta_end_ref
-real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const
+real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const, voltage
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
 real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
@@ -256,7 +256,7 @@ case (lcavity$)
   dphase = twopi * (ele%value(phi0_err$) - end_orb%vec(5) * ele%value(rf_frequency$) / (beta_start_ref * c_light))
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + dphase
 
-  gradient_max = ele%value(gradient$) + ele%value(gradient_err$)
+  gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
 
   if (.not. ele%is_on) then
     gradient_max = 0
@@ -593,7 +593,9 @@ case (rfcavity$)
   py = end_orb%vec(4)
   pz = end_orb%vec(6)
 
-  if (ele%value(voltage$) == 0) then
+  voltage = ele%value(voltage$) * ele%value(field_scale$) 
+
+  if (voltage == 0) then
     phase = 0
     k = 0
   else
@@ -605,11 +607,11 @@ case (rfcavity$)
       return
     endif
     ff = twopi * ele%value(rf_frequency$) / c_light
-    phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + ff * z
-    k  =  ff * ele%value(voltage$) * cos(phase) / ele%value(p0c$)
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + ff * z
+    k  =  ff * cos(phase) / ele%value(p0c$)
   endif
 
-  dE0 =  ele%value(voltage$) * sin(phase) / ele%value(E_tot$)
+  dE0 =  voltage * sin(phase) / ele%value(E_tot$)
   L = ele%value(l$)
   E = 1 + pz
   E2 = E**2
@@ -801,7 +803,7 @@ subroutine coupler_kick_entrance ()
 
 implicit none
 
-dp_coupler = (ele%value(gradient$) * ele%value(gradient_err$)) * &
+dp_coupler = (ele%value(gradient$) * ele%value(gradient_err$)) * ele%value(field_scale$) * &
       ele%value(coupler_strength$) * cos(phase + twopi * ele%value(coupler_phase$))
 dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
 dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))

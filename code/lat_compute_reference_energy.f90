@@ -348,7 +348,8 @@ if (ele%lord_status == multipass_lord$ .and. nint(ele%value(n_ref_pass$)) == 0 .
   case (lcavity$)
     if (ele%tracking_method == bmad_standard$) then
       phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-      ele%value(E_tot_start$) = ele%value(E_tot$) - ele%value(gradient$) * ele%value(l$) * cos(phase)
+      ele%value(E_tot_start$) = ele%value(E_tot$) - &
+                    ele%value(gradient$) * ele%value(field_scale$) * ele%value(l$) * cos(phase)
       call convert_total_energy_to (ele%value(E_tot_start$), param%particle, pc = ele%value(p0c_start$), err_flag = err)
 
     else
@@ -404,7 +405,7 @@ case (lcavity$)
 
   if (ele%tracking_method == bmad_standard$) then
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-    E_tot = E_tot_start + ele%value(gradient$) * ele%value(l$) * cos(phase)
+    E_tot = E_tot_start + ele%value(gradient$) * ele%value(field_scale$) * ele%value(l$) * cos(phase)
     call convert_total_energy_to (E_tot, param%particle, pc = p0c, err_flag = err)
     if (err) return
     ele%value(E_tot$) = E_tot

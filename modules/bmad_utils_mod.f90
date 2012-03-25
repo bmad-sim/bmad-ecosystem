@@ -1579,11 +1579,11 @@ ele%csr_calc_on       = .true.
 ele%logic             = .false.
 ele%reversed          = .false.
 ele%mode_flip         = .false.
+ele%field_master      = .false.
+ele%offset_moves_aperture = .false.
 
-ele%field_master  = .false.
 ele%aperture_type = rectangular$
 ele%aperture_at   = exit_end$
-ele%offset_moves_aperture = .false.
 
 ! init Twiss
 

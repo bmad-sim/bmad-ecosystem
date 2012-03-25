@@ -37,6 +37,8 @@ contains
 
 subroutine write_bmad_lattice_file (bmad_file, lat, err)
 
+use bmad_parser_mod
+
 implicit none
 
 type multipass_info_struct
@@ -49,7 +51,8 @@ type (multipass_info_struct), allocatable :: multipass(:)
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2
+type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2, ele_dflt
+type (ele_struct), target :: ele_default(n_key)
 type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm
@@ -85,6 +88,13 @@ logical unit_found, write_term, found, in_multi_region, expand_lat_out
 logical is_multi_sup, x_lim_good, y_lim_good, is_default, need_new_region
 
 ! Init...
+! Init default parameters
+
+do i = 1, size(ele_default)
+  call init_ele (ele_default(i), i)
+  call parser_set_ele_defaults (ele_default(i))
+enddo
+
 ! Count the number of foreign wake files
 
 if (present(err)) err = .true.
@@ -173,6 +183,7 @@ do ib = 0, ubound(lat%branch, 1)
   ele_loop: do ie = 1, branch%n_ele_max
 
     ele => branch%ele(ie)
+    ele_dflt => ele_default(ele%key)
 
     multi_lord => pointer_to_multipass_lord (ele, lat, ix_pass) 
 
@@ -587,6 +598,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
       if (.not. attribute_free (ele, attrib_name, lat, .false., .true.)) cycle
+      if (val == ele_dflt%value(j)) cycle
       if (attrib_name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
       if (attrib_name == null_name$) then
         print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
@@ -629,29 +641,26 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Encode methods, etc.
 
-    if (ele%mat6_calc_method /= bmad_standard$) line = trim(line) // &
+    if (ele%mat6_calc_method /= ele_dflt%mat6_calc_method) line = trim(line) // &
                 ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
-    if (ele%tracking_method /= bmad_standard$) line = trim(line) // &
+    if (ele%tracking_method /= ele_dflt%tracking_method) line = trim(line) // &
                 ', tracking_method = ' // calc_method_name(ele%tracking_method)
-    if (ele%spin_tracking_method /= bmad_standard$) line = trim(line) // &
+    if (ele%spin_tracking_method /= ele_dflt%spin_tracking_method) line = trim(line) // &
                 ', spin_tracking_method = ' // calc_method_name(ele%spin_tracking_method)
-    if (ele%field_calc /= bmad_standard$) line = trim(line) // &
+    if (ele%field_calc /= ele_dflt%field_calc) line = trim(line) // &
                 ', field_calc = ' // field_calc_name(ele%field_calc)
     if (ele%symplectify) line = trim(line) // ', symplectify'
-    if (attribute_index(ele, 'FIELD_MASTER') /= 0 .and. ele%field_master) &
-                line = trim(line) // ', field_master = True'
-    if (.not. ele%is_on) line = trim(line) // ', is_on = False'
-    if (.not. ele%scale_multipoles) line = trim(line) // ', scale_multipoles = False'
+    if (ele%field_master /= ele_dflt%field_master) write (line, '(2a, l1)') &
+                                                      trim(line), ', field_master = ', ele%field_master
+    if (ele%is_on .neqv. ele_dflt%is_on) line = trim(line) // ', is_on = False'
+    if (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles) line = trim(line) // ', scale_multipoles = False'
 
-    if (.not. ele%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
-    if (.not. ele%csr_calc_on) line = trim(line) // ', csr_calc_on = False'
+    if (ele%map_with_offsets .neqv. ele_dflt%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
+    if (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on) line = trim(line) // ', csr_calc_on = False'
     if (ele%offset_moves_aperture) line = trim(line) // ', offset_moves_aperture = True'
-    if (ele%aperture_at /= exit_end$) line = trim(line) // ', aperture_at = ' // & 
-                                                         element_end_name(ele%aperture_at)
-
-    default_val = rectangular$
-    if (ele%key == ecollimator$) default_val = elliptical$
-    if (ele%aperture_type /= default_val) line = trim(line) // &
+    if (ele%aperture_at /= ele_dflt%aperture_at) &
+                            line = trim(line) // ', aperture_at = ' // element_end_name(ele%aperture_at)
+    if (ele%aperture_type /= ele_dflt%aperture_type) line = trim(line) // &
                                 ', aperture_type = ' // aperture_type_name(ele%aperture_type)
 
     if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
@@ -665,7 +674,6 @@ do ib = 0, ubound(lat%branch, 1)
         line = trim(line) // ', e_tot = ' // str(ele%value(e_tot$))
       end select
     endif
-
 
     call write_lat_line (line, iu, .false.)  
 

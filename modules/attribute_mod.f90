@@ -406,7 +406,11 @@ case ('CSR_CALC_ON', 'IS_ON')
   return
 
 case ('X_OFFSET_TOT', 'Y_OFFSET_TOT', 'S_OFFSET_TOT', 'TILT_TOT', &
-      'X_PITCH_TOT', 'Y_PITCH_TOT', 'NUM_STEPS', 'FIELD_SCALE', 'DPHI0_REF')
+      'X_PITCH_TOT', 'Y_PITCH_TOT', 'NUM_STEPS')
+  return
+
+case ('FIELD_SCALE', 'DPHI0_REF')
+  free = .true.   ! This may not be true with autoscaling
   return
 
 case ('E_TOT', 'E_TOT_START', 'P0C', 'P0C_START')
