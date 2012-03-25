@@ -41,7 +41,7 @@ real(rp) k2l, k3l, c2, s2, cs, ks2, del_l
 real(rp) factor, kmat6(6,6), drift(6,6)
 real(rp) s_pos, s_pos_old, z_slice(100)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-real(rp) c_e, c_m, gamma_old, gamma_new
+real(rp) c_e, c_m, gamma_old, gamma_new, voltage
 real(rp) arg, rel_p, rel_p2, r11, r12, r21, r22
 real(rp) cy, sy, k2, s_off, x_pitch, y_pitch, y_ave, k_z
 real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), xp_start, yp_start
@@ -211,7 +211,7 @@ case (lcavity$)
                             ele%value(phi0_err$)) - f * c0%vec(5)
 
   cos_phi = cos(phase)
-  gradient_max = ele%value(gradient$) + ele%value(gradient_err$)
+  gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) 
   if (.not. ele%is_on) gradient_max = 0
   gradient = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) 
 
@@ -476,7 +476,9 @@ case (rbend$)
 
 case (rfcavity$)
 
-  if (ele%value(voltage$) == 0) then
+  voltage = ele%value(voltage$) * ele%value(field_scale$) 
+
+  if (voltage == 0) then
     phase = 0
     k = 0
   else
@@ -487,14 +489,14 @@ case (rfcavity$)
     endif
     factor = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + factor * c0%vec(5) 
-    k  =  factor * ele%value(voltage$) * cos(phase) / ele%value(p0c$)
+    k  =  factor * voltage * cos(phase) / ele%value(p0c$)
   endif
 
   px = c0%vec(2)
   py = c0%vec(4)
   pz = c0%vec(6)
 
-  dE0 =  ele%value(voltage$) * sin(phase) / ele%value(p0c$)
+  dE0 =  voltage * sin(phase) / ele%value(p0c$)
   L = ele%value(l$)
   E = 1 + pz
   E2 = E**2

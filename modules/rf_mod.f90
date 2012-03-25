@@ -105,23 +105,7 @@ endif
 
 if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
 
-nullify(field_scale)
-
-select case (ele%field_calc)
-case (bmad_standard$) 
-  field_scale => ele%value(field_scale$)
-  dphi0_ref => ele%value(dphi0_ref$)
-
-case (grid$, map$, custom$)
-  do i = 1, size(ele%em_field%mode)
-    if (ele%key == e_gun$ .or. (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0)) then
-      field_scale => ele%em_field%mode(i)%field_scale
-      dphi0_ref => ele%em_field%mode(i)%dphi0_ref
-      exit
-    endif
-  enddo
-end select
-
+call pointers_to_rf_auto_scale_vars (ele, field_scale, dphi0_ref)
 dphi0_ref_original = dphi0_ref
 
 if (.not. associated(field_scale)) then
@@ -433,6 +417,54 @@ is_lost = param_com%lost
 
 n_loop = n_loop + 1
 
-end function
+end function neg_pz_calc
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Subroutine pointers_to_rf_auto_scale_vars (ele, field_scale, dphi0_ref)
+!
+! Routine to set pointers to the variables within an element used for auto scaling.
+!
+! Input:
+!   ele -- ele_struct: Element being scalled.
+!
+! Output:
+!   field_scale -- Real(rp), pointer: Pointer to the amplitude var.
+!                     Points to null if does not exist.
+!   dphi0_ref   -- Real(rp), pointer: Pointer to the phase var. 
+!-
+
+
+Subroutine pointers_to_rf_auto_scale_vars (ele, field_scale, dphi0_ref)
+
+implicit none
+
+type (ele_struct), target :: ele
+real(rp), pointer :: field_scale, dphi0_ref
+integer i
+
+!
+
+nullify(field_scale)
+nullify(dphi0_ref)
+
+select case (ele%field_calc)
+case (bmad_standard$) 
+  field_scale => ele%value(field_scale$)
+  dphi0_ref => ele%value(dphi0_ref$)
+
+case (grid$, map$, custom$)
+  do i = 1, size(ele%em_field%mode)
+    if (ele%key == e_gun$ .or. (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0)) then
+      field_scale => ele%em_field%mode(i)%field_scale
+      if (ele%key /= e_gun$) dphi0_ref => ele%em_field%mode(i)%dphi0_ref
+      exit
+    endif
+  enddo
+end select
+
+end subroutine pointers_to_rf_auto_scale_vars
 
 end module

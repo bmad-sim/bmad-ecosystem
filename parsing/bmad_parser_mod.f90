@@ -4412,6 +4412,7 @@ case (wiggler$)
 case (e_gun$)
   ele%tracking_method = time_runge_kutta$
   ele%mat6_calc_method = tracking$
+  ele%value(field_scale$) = 1
 
 end select
 

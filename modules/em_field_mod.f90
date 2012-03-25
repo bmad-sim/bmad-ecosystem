@@ -500,7 +500,7 @@ select case (ele%field_calc)
   ! E_Gun
 
   case (e_gun$)
-    field%e(3) = sign_charge * ele%value(gradient$)
+    field%e(3) = sign_charge * ele%value(gradient$) * ele%value(field_scale$)
 
   !------------------------------------------
   ! Error
@@ -906,7 +906,7 @@ real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3
 integer i1, i2, i3, grid_dim
-logical err1, err2, err3
+logical out_of_bounds1, out_of_bounds2, out_of_bounds3
 
 character(32), parameter :: r_name = 'em_grid_linear_interpolate'
 
@@ -917,17 +917,17 @@ select case(grid_dim)
 
 case (1)
 
-  call get_this_index(x1, 1, i1, rel_x1, err1)
-  if (err1) return
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1)
+  if (out_of_bounds1) return
 
   field%E(:) = (1-rel_x1) * grid%pt(i1, 1, 1)%E(:) + (rel_x1) * grid%pt(i1+1, 1, 1)%E(:) 
   field%B(:) = (1-rel_x1) * grid%pt(i1, 1, 1)%B(:) + (rel_x1) * grid%pt(i1+1, 1, 1)%B(:) 
 
 case (2)
 
-  call get_this_index(x1, 1, i1, rel_x1, err1)
-  call get_this_index(x2, 2, i2, rel_x2, err2)
-  if (err1 .or. err2) return
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1)
+  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2)
+  if (out_of_bounds1 .or. out_of_bounds2) return
 
   ! Do bilinear interpolation
   field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%E(:) &
@@ -942,10 +942,10 @@ case (2)
             
 case (3)
 
-  call get_this_index(x1, 1, i1, rel_x1, err1)
-  call get_this_index(x2, 2, i2, rel_x2, err2)
-  call get_this_index(x3, 3, i3, rel_x3, err3)
-  if (err1 .or. err2 .or. err3) return
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1)
+  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2)
+  call get_this_index(x3, 3, i3, rel_x3, out_of_bounds3)
+  if (out_of_bounds1 .or. out_of_bounds2 .or. out_of_bounds3) return
     
   ! Do trilinear interpolation
   field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%E(:) &
@@ -976,42 +976,53 @@ end select
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine get_this_index (x, ix_x, i0, rel_x0, err_flag)
+subroutine get_this_index (x, ix_x, i0, rel_x0, out_of_bounds)
 
 implicit none
 
 real(rp) x, rel_x0, x_norm
-integer ix_x, i0
-logical err_flag
+integer ix_x, i0, ig0, ig1, idg
+logical out_of_bounds
 
 !
+
+ig0 = lbound(grid%pt, ix_x)
+ig1 = ubound(grid%pt, ix_x)
 
 x_norm = (x - grid%r0(ix_x)) / grid%dr(ix_x)
 i0 = floor(x_norm)     ! index of lower 1 data point
 rel_x0 = x_norm - i0   ! Relative distance from lower x1 grid point
 
-if (i0 == ubound(grid%pt, ix_x) .and. rel_x0 < bmad_com%significant_length) then
-  i0 = ubound(grid%pt, ix_x) - 1
+if (i0 == ig1 .and. rel_x0 < bmad_com%significant_length) then
+  i0 = ig1 - 1
   rel_x0 = 1
 endif
 
-if (i0 == lbound(grid%pt, ix_x) - 1 .and. abs(rel_x0 - 1) < bmad_com%significant_length) then
-  i0 = lbound(grid%pt, ix_x)
+if (i0 == ig0 - 1 .and. abs(rel_x0 - 1) < bmad_com%significant_length) then
+  i0 = ig0
   rel_x0 = 0
 endif
 
-if (i0 < lbound(grid%pt, ix_x) .or. i0 >= ubound(grid%pt, ix_x)) then
-  call out_io (s_warn$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
-                                'For element: ' // ele%name, &
-                                'Setting field to zero', i_array = [grid_dim, ix_x, i0])
-  
+! Outside of the gird the field is considered to be zero.
+
+! Only generate a warning message if the particle is grossly outside of the grid region.
+! Here "gross" is defined as dOut > L_grid/2 where dOut is the distance between the
+! particle and the grid edge and L_grid is the length of the grid.
+
+out_of_bounds = .false.
+
+if (i0 < ig0 .or. i0 >= ig1) then
   field%E = 0
   field%B = 0
-  err_flag = .true.
-  return
-endif
+  out_of_bounds = .true.
 
-err_flag = .false.
+  idg = ig1 - ig0
+  if (abs(i0 - idg/2) > idg) then
+    call out_io (s_warn$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
+                                'For element: ' // ele%name, &
+                                'Setting field to zero', i_array = [grid_dim, ix_x, i0])
+  endif
+endif
 
 end subroutine get_this_index 
 
