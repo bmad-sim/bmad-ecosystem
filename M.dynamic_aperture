@@ -1,14 +1,18 @@
 #=============================================================================
-# File:     M.dynamic_aperture
 #
-# Purpose:  Makefile to build the  dynamic_aperture executable
+# File:     M.job
+#
+# Purpose:  Simple Makefile to build local code and a CESR executable
+#           Uses the standard $(C_GMAKE)/M.tail 
 #
 # Author:   M. Palmer   7/24/00
 #
 # Acknowledgements:  Simon Patton's CLEO Makefile infrastructure
 #                    Dave Sagan's descrip.mms 
 #                    Mike Marsh and his makefiles
+#
 #=============================================================================
+
 
 #-----------------------------------------------------------------------------
 # Specify the SHELL in which to operate
@@ -61,7 +65,7 @@ MAKEFILE := M.dynamic_aperture
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS  :=
 OBJ_SRC_DIRS  := .
-LOCAL_INCS    :=
+LOCAL_INCS    := include
 LOCAL_MODS    := ../modules
 
 
@@ -85,7 +89,9 @@ ifeq "$(JOB)" ""
   WHERE := $(shell pwd)
   JOB   := $(notdir $(WHERE))
 endif
-LIBNAME := $(JOB)
+ifneq "$(LIB_SRC_DIRS)" ""
+  LIBNAME := $(JOB)
+endif
 
 
 #-------------------------------------------------------------
@@ -132,8 +138,10 @@ LOCAL_FFLAGS   :=
 LOCAL_CFLAGS   :=
 LOCAL_CXXFLAGS :=
 LOCAL_LFLAGS   :=
-
-
+ifeq "$(CESR_PLATFORM)" "CYGWIN_NT_i686"
+  LOCAL_LFLAGS   := -MW
+  LOCAL_FFLAGS   := -MW
+endif
 #--------------------------------------------------------------
 # Provide the list of libraries required for linking this job.
 # All lists should be space delimited.
@@ -152,9 +160,9 @@ LOCAL_LFLAGS   :=
 #                           packages)
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
-LOCAL_LIBS :=
-CESR_LIBS  := bsim bmadz cesr_utils bmad sim_utils recipes_f-90_LEPP
-PKG_LIBS   := forest xsif
+LOCAL_LIBS := 
+CESR_LIBS  := bmadz cesr_utils bmad sim_utils recipes_f-90_LEPP
+PKG_LIBS   := forest pgplot xsif
 SYS_LIBS   :=
 CERN_LIBS  :=
 
@@ -179,8 +187,3 @@ ifeq "$(DIST_BUILD)" "TRUE"
 else
   include $(ACC_GMAKE)/M.tail
 endif
-
-
-
-
-
