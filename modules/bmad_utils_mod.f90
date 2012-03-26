@@ -724,22 +724,27 @@ type (lat_struct) :: lat_out
 
 !
 
-lat_out%use_name =             lat_in%use_name
-lat_out%lattice =              lat_in%lattice
-lat_out%input_file_name =      lat_in%input_file_name
-lat_out%title =                lat_in%title
-lat_out%a =                    lat_in%a
-lat_out%b =                    lat_in%b
-lat_out%z =                    lat_in%z
-lat_out%param =                lat_in%param
-lat_out%version =              lat_in%version
-lat_out%n_ele_track =          lat_in%n_ele_track
-lat_out%n_ele_max =            lat_in%n_ele_max
-lat_out%n_control_max =        lat_in%n_control_max
-lat_out%n_ic_max =             lat_in%n_ic_max
-lat_out%input_taylor_order =   lat_in%input_taylor_order
-lat_out%beam_start =           lat_in%beam_start
-lat_out%pre_tracker =          lat_in%pre_tracker
+lat_out%use_name                  = lat_in%use_name
+lat_out%lattice                   = lat_in%lattice
+lat_out%input_file_name           = lat_in%input_file_name
+lat_out%title                     = lat_in%title
+lat_out%a                         = lat_in%a
+lat_out%b                         = lat_in%b
+lat_out%z                         = lat_in%z
+lat_out%param                     = lat_in%param
+lat_out%lord_status               = lat_in%lord_status
+lat_out%beam_start                = lat_in%beam_start
+lat_out%pre_tracker               = lat_in%pre_tracker
+lat_out%version                   = lat_in%version
+lat_out%n_ele_track               = lat_in%n_ele_track
+lat_out%n_ele_max                 = lat_in%n_ele_max
+lat_out%n_control_max             = lat_in%n_control_max
+lat_out%n_ic_max                  = lat_in%n_ic_max
+lat_out%input_taylor_order        = lat_in%input_taylor_order
+lat_out%absolute_time_tracking    = lat_in%absolute_time_tracking
+lat_out%rf_auto_scale_phase       = lat_in%rf_auto_scale_phase
+lat_out%rf_auto_scale_amp         = lat_in%rf_auto_scale_amp
+lat_out%use_ptc_layout            = lat_in%use_ptc_layout
 
 end subroutine transfer_lat_parameters
 
