@@ -101,6 +101,7 @@ program anaylzer
   logical track/.false./
   logical cbarve/.false./
   logical path_length_patch/.false./
+  logical set_synchronous_phase/.false./
 
 !
   nargs = cesr_iargc()
@@ -342,9 +343,19 @@ program anaylzer
       print *,' Plot_aspect = ', aspect
      cycle
    endif
+
+    if(index(line, 'SYNCH_PH') /= 0)then
+     if(index(line, 'SET') /= 0)then
+         set_synchronous_phase = .true.
+         radiation = .true.
+     endif
+     if(index(line, 'noc') /= 0) set_synchronous_phase = .false.
+     exit
+   endif
+
    if(line(1:2) == 'PS' .or.  line(1:3) == 'GIF')exit
 
-
+   
    call find_change( line, ring)
 
   if(line(1:2) == 'HE' .or. index(line, '?') /= 0)call list_commands
@@ -522,6 +533,14 @@ program anaylzer
       ix_cache = 0
       if(radiation)then
        call radiation_integrals (ring, co, mode, ix_cache, 0, rad_int)
+       call calc_synchronous_phase(ring, mode,set_synchronous_phase)
+       if(set_synchronous_phase)then
+        call lat_make_mat6(ring,-1,co)
+        if(.not. transfer_line) call twiss_at_start(ring)
+        call calc_z_tune (ring)
+        call radiation_integrals (ring, co, mode, ix_cache, 0, rad_int)
+        print '(a,es12.4)',' synchrotron tune = ', ring%z%tune/twopi
+       endif
        print '(a24,e12.4,a25,e12.4)',' horizontal emittance = ', mode%a%emittance, &
                                     '    vertical emittance = ',mode%b%emittance
        print '(a17,e12.4,a18,e12.4, a, e12.4)',' Energy spread = ',mode%sige_e,'   Bunch length = ',mode%sig_z ,&
@@ -1270,6 +1289,7 @@ program anaylzer
     print *,'  6D <delta f_rf (Hz)> < f_rf (Hz)> '
     print *,' "4D   Delta E/E" :compute 4-dimensional closed orbit with energy offset'
     print *,' "TRACK" :track and plot phase space'
+    print *,' "SYNCH_PHASE" : set synchronous phase (SET) or nochange (NOCHANGE)' 
     print *,' "PRETZ" :write orbit and crossing point data for PRETZEL plot'
     print *,'           fort.35 - Electron and positron orbits'
     print *,'           fort.37 - Origin and Injection point'
@@ -1360,6 +1380,44 @@ program anaylzer
 
    return
    end
+
+   subroutine calc_synchronous_phase(ring, mode, set)
+    use bmad
+
+    implicit none
+
+  type (lat_struct) ring
+  type (normal_modes_struct) mode
+
+  integer i
+  integer ncav
+  real(rp) volt
+  real(rp) synch_phase
+
+  logical set
+
+! find total accelerating voltage
+    volt = 0.
+    ncav = 0
+    do i = 1,ring%n_ele_track
+     if(ring%ele(i)%key == rfcavity$)then
+       volt = volt + ring%ele(i)%value(voltage$)
+       ncav = ncav + 1
+     endif
+    end do
+
+    synch_phase = asin(mode%e_loss/volt)
+    print '(a,es12.4,a,i3,a)',' total accelerating voltage = ',volt,'  with ',ncav,' RF cavities '
+!    print '(a,es12.4)',' energy loss /turn = ',mode%e_loss
+    print '(a,es12.4)',' synchronous phase (deg) = ',synch_phase * 360./twopi
+    if(set)then
+    do i = 1,ring%n_ele_track
+     if(ring%ele(i)%key == rfcavity$)ring%ele(i)%value(phi0$) = 0.5 + synch_phase/twopi
+    end do
+    endif
+
+    return
+   end subroutine
 
    subroutine  num_words(line, ix)
    implicit none
