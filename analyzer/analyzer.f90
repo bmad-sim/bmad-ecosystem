@@ -1412,7 +1412,7 @@ program anaylzer
     print '(a,es12.4)',' synchronous phase (deg) = ',synch_phase * 360./twopi
     if(set)then
     do i = 1,ring%n_ele_track
-     if(ring%ele(i)%key == rfcavity$)ring%ele(i)%value(phi0$) = 0.5 + synch_phase/twopi
+     if(ring%ele(i)%key == rfcavity$)ring%ele(i)%value(phi0$) = synch_phase/twopi
     end do
     endif
 
