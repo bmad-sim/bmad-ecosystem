@@ -1393,6 +1393,7 @@ program anaylzer
   integer ncav
   real(rp) volt
   real(rp) synch_phase
+  real(rp) phi
 
   logical set
 
@@ -1403,13 +1404,16 @@ program anaylzer
      if(ring%ele(i)%key == rfcavity$)then
        volt = volt + ring%ele(i)%value(voltage$)
        ncav = ncav + 1
+       phi = ring%ele(i)%value(phi0$)
      endif
     end do
 
     synch_phase = asin(mode%e_loss/volt)
     print '(a,es12.4,a,i3,a)',' total accelerating voltage = ',volt,'  with ',ncav,' RF cavities '
 !    print '(a,es12.4)',' energy loss /turn = ',mode%e_loss
-    print '(a,es12.4)',' synchronous phase (deg) = ',synch_phase * 360./twopi
+    print '(a,es12.4,a,es12.4,a,es12.4)',' synchronous phase (deg) = ',synch_phase * 360./twopi, &
+                              '     phi/360 =', synch_phase/twopi, &
+                              '     value(phi0$) = ', phi 
     if(set)then
     do i = 1,ring%n_ele_track
      if(ring%ele(i)%key == rfcavity$)ring%ele(i)%value(phi0$) = synch_phase/twopi
