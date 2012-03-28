@@ -650,7 +650,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%field_calc /= ele_dflt%field_calc) line = trim(line) // &
                 ', field_calc = ' // field_calc_name(ele%field_calc)
     if (ele%symplectify) line = trim(line) // ', symplectify'
-    if (ele%field_master /= ele_dflt%field_master) write (line, '(2a, l1)') &
+    if (ele%field_master .neqv. ele_dflt%field_master) write (line, '(2a, l1)') &
                                                       trim(line), ', field_master = ', ele%field_master
     if (ele%is_on .neqv. ele_dflt%is_on) line = trim(line) // ', is_on = False'
     if (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles) line = trim(line) // ', scale_multipoles = False'
