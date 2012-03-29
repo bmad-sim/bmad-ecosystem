@@ -707,146 +707,147 @@ size squared.
 
 %----------------------------------------------------------------------------------------------
 
+{\tt\small
 \begin{longtable}{lll} 
   \caption{Predefined Data Types in Tao}
   \label{t:data.types}
   \\ \hline
 
-  {\it Data\_Type}                   & {\it Description}                             & Source    \\ \hline\hline 
+  {\it Data\_Type}                    & {\it Description}                             & Source    \\ \hline\hline 
   \endfirsthead
 
   \caption[]{(continued)} \\ \hline
-  {\it Data\_Type}                   & {\it Description}                             & source    \\ \hline\hline 
+  {\it Data\_Type}                    & {\it Description}                             & source    \\ \hline\hline 
   \endhead
 
-  alpha.a, alpha.b                   & Normal-Mode alpha function                    & lat       \\ \hline 
-  apparent\_emit.x, apparent\_emit.y & Apparent emittance                            & beam, lat \\ \hline
-  beta.a, beta.b, beta.c             & Normal-mode beta function                     & beam, lat \\ \hline 
-  beta.x, beta.y  beta.z             & Projected beta function                       & beam, lat \\ \hline 
-  bpm\_orbit.x, bpm\_orbit.y         & Measured orbit                                & lat       \\ \hline
-  bpm\_phase.a, bpm\_phase.b         & Measured betatron phase                       & lat       \\ \hline
-  bpm\_eta.x, bpm\_eta.y             & Measured dispersion                           & lat       \\ \hline
+  alpha.a, alpha.b                    & Normal-Mode alpha function                    & lat       \\ \hline 
+  apparent\_emit.x, apparent\_emit.y  & Apparent emittance                            & beam, lat \\ \hline
+  beta.a, beta.b, beta.c              & Normal-mode beta function                     & beam, lat \\ \hline 
+  beta.x, beta.y  beta.z              & Projected beta function                       & beam, lat \\ \hline 
+  bpm\_orbit.x, bpm\_orbit.y          & Measured orbit                                & lat       \\ \hline
+  bpm\_phase.a, bpm\_phase.b          & Measured betatron phase                       & lat       \\ \hline
+  bpm\_eta.x, bpm\_eta.y              & Measured dispersion                           & lat       \\ \hline
 
   \begin{tabular}{@{}l}
     bpm\_k.22a, bpm\_k.12a, \\
     bpm\_k.11b, bpm\_k.12b
-  \end{tabular}                      & Measured coupling                             & lat       \\ \hline
+  \end{tabular}                       & Measured coupling                             & lat       \\ \hline
 
   \begin{tabular}{@{}l}
     bpm\_cbar.22a, bpm\_cbar.12a, \\
     bpm\_cbar.11b, bpm\_cbar.12b
   \end{tabular}
-                                     & Measured coupling                             & lat       \\ \hline
+                                      & Measured coupling                             & lat       \\ \hline
 
   cbar.11, cbar.12, cbar.21, cbar.22
-                                     & Coupling                                      & lat       \\ \hline 
+                                      & Coupling                                      & lat       \\ \hline 
 
-  chrom.a, chrom.b                   & Chromaticity for a ring                       & lat       \\ \hline
+  chrom.a, chrom.b                    & Chromaticity for a ring                       & lat       \\ \hline
 
-  dpx\_dx, dpx\_dy, etc.             & Bunch <x px> / <$x^2$> \& Etc...              & beam      \\ \hline 
+  dpx\_dx, dpx\_dy, etc.              & Bunch <x px> / <$x^2$> \& Etc...              & beam      \\ \hline 
 
-  e\_tot                             & Beam total energy (eV)                        & lat       \\ \hline
+  e\_tot                              & Beam total energy (eV)                        & lat       \\ \hline
 
-  element\_param.<param\_name>       & lattice element parameter                     & lat       \\ \hline
+  element\_param.<param\_name>        & lattice element parameter                     & lat       \\ \hline
 
-  emit.a, emit.b, emit.c             & Emittance                                     & beam, lat \\ \hline
+  emit.a, emit.b, emit.c              & Emittance                                     & beam, lat \\ \hline
 
-  eta.x, eta.y, eta.z                & Lab Frame dispersion                          & beam, lat \\ \hline 
-  eta.a, eta.b                       & Normal-mode dispersion                        & beam, lat \\ \hline 
-  etap.x, etap.y                     & Lab Frame dispersion derivative               & beam, lat \\ \hline 
-  etap.a, etap.b                     & Normal-mode dispersion derivative             & beam, lat \\ \hline 
+  eta.x, eta.y, eta.z                 & Lab Frame dispersion                          & beam, lat \\ \hline 
+  eta.a, eta.b                        & Normal-mode dispersion                        & beam, lat \\ \hline 
+  etap.x, etap.y                      & Lab Frame dispersion derivative               & beam, lat \\ \hline 
+  etap.a, etap.b                      & Normal-mode dispersion derivative             & beam, lat \\ \hline 
 
-  expression: <arithmetic expression>& See the text                                  & lat       \\ \hline 
+  expression: <arithmetic expression> & See the text                                  & lat       \\ \hline 
 
   floor.x, floor.y, floor.z, floor.theta 
-                                     & Global (``floor'') position                   & lat       \\ \hline 
+                                      & Global (``floor'') position                   & lat       \\ \hline 
 
-  gamma.a, gamma.b                   & Normal-mode gamma function                    & lat       \\ \hline 
+  gamma.a, gamma.b                    & Normal-mode gamma function                    & lat       \\ \hline 
 
-  rad\_int.i1                        & I1 radiation integral                         & lat       \\ \hline
-  rad\_int.i2                        & I2 radiation integral                         & lat       \\ \hline
-  rad\_int.i2\_e4                    & Energy normalized I2 radiation integral       & lat       \\ \hline
-  rad\_int.i3                        & I3 radiation integral                         & lat       \\ \hline
-  rad\_int.i3\_e7                    & Energy normalized I3 radiation integral       & lat       \\ \hline
-  rad\_int.i5a, rad\_int.i5b         & I5 radiation integrals                        & lat       \\ \hline
-  rad\_int.i5a\_e6, rad\_int.i5b\_e6 & Energy normalized I5 radiation integral       & lat       \\ \hline
+  rad\_int.i1                         & I1 radiation integral                         & lat       \\ \hline
+  rad\_int.i2                         & I2 radiation integral                         & lat       \\ \hline
+  rad\_int.i2\_e4                     & Energy normalized I2 radiation integral       & lat       \\ \hline
+  rad\_int.i3                         & I3 radiation integral                         & lat       \\ \hline
+  rad\_int.i3\_e7                     & Energy normalized I3 radiation integral       & lat       \\ \hline
+  rad\_int.i5a, rad\_int.i5b          & I5 radiation integrals                        & lat       \\ \hline
+  rad\_int.i5a\_e6, rad\_int.i5b\_e6  & Energy normalized I5 radiation integral       & lat       \\ \hline
 
-  k.11b, k.12a, k.12b, k.22a         & Coupling                                      & lat       \\ \hline 
-  momentum                           & Momentum: P*C\_light (eV)                     & lat       \\ \hline
-  momentum\_compaction               & Momentum compaction factor                    & lat       \\ \hline
+  k.11b, k.12a, k.12b, k.22a          & Coupling                                      & lat       \\ \hline 
+  momentum                            & Momentum: P*C\_light (eV)                     & lat       \\ \hline
+  momentum\_compaction                & Momentum compaction factor                    & lat       \\ \hline
 
   \begin{tabular}{@{}l}   
     multi\_turn\_orbit.x, multi\_turn\_orbit.px \\ 
     multi\_turn\_orbit.y, multi\_turn\_orbit.py \\
     multi\_turn\_orbit.z, multi\_turn\_orbit.pz \\
-  \end{tabular}                      & Bunch size                                    & lat       \\ \hline 
+  \end{tabular}                       & Bunch size                                    & lat       \\ \hline 
 
-  n\_particle\_loss                  & Number of particles lost                      & beam      \\ \hline 
+  n\_particle\_loss                   & Number of particles lost                      & beam      \\ \hline 
 
   \begin{tabular}{@{}l}
     norm\_apparent\_emit.x \\
     norm\_apparent\_emit.y 
-  \end{tabular}                      & Normalized apparent emittance                 & beam, lat \\ \hline
+  \end{tabular}                       & Normalized apparent emittance                 & beam, lat \\ \hline
   norm\_emit.a, norm\_emit.b, norm\_emit.c 
-                                     & Normalized beam emittance                     & beam, lat \\ \hline 
+                                      & Normalized beam emittance                     & beam, lat \\ \hline 
   norm\_emit.x, norm\_emit.y, norm\_emit.z
-                                     & Energy Normalized projected emittance         & beam, lat \\ \hline 
+                                      & Energy Normalized projected emittance         & beam, lat \\ \hline 
 
-  orbit.x, orbit.y, orbit.z          & Orbit                                         & beam, lat \\ \hline 
+  orbit.x, orbit.y, orbit.z           & Orbit                                         & beam, lat \\ \hline 
   orbit.px, orbit.py, orbit.pz       & Momenta                                       & beam, lat \\ \hline 
-  orbit.amp\_a, orbit.amp\_b         & ``Invariant'' amplitude                       & lat       \\ \hline 
+  orbit.amp\_a, orbit.amp\_b          & ``Invariant'' amplitude                       & lat       \\ \hline 
   orbit.norm\_amp\_a, orbit.norm\_amp\_b  
-                                     & Energy normalized ``invariant'' amplitude     & lat       \\ \hline 
+                                      & Energy normalized ``invariant'' amplitude     & lat       \\ \hline 
 
   periodic.tt.$ijklm\ldots$ \hspace{10pt} $1 \le i,j,k,\ldots \le 6$   
-                                     & Taylor term of the periodic map.              & lat       \\ \hline 
+                                      & Taylor term of the periodic map.              & lat       \\ \hline 
 
-  phase.a, phase.b                   & Betatron phase                                & lat       \\ \hline 
+  phase.a, phase.b                    & Betatron phase                                & lat       \\ \hline 
 
-  phase\_frac.a, phase\_frac.b       & \begin{tabular}{@{}l}
+  phase\_frac.a, phase\_frac.b        & \begin{tabular}{@{}l}
                                          Fractional betatron phase \\       
                                          $-\pi < \phi_{\mbox{frac}} < \pi$ \\
                                        \end{tabular}                                 & lat        \\ \hline 
 
-  phase\_frac\_diff                  & \begin{tabular}{@{}l}
+  phase\_frac\_diff                   & \begin{tabular}{@{}l}
                                          Fractional betatron phase \\
                                         difference (a-b) $-\pi < d\phi_{\mbox{frac}} < \pi$
                                        \end{tabular}                                 & lat       \\ \hline 
 
   photon.intensity_x, photon.intensity_y
-                                     & Photon intensity                              & beam, lat \\ \hline
-  photon.intensity                   & Photon total intensity                        & beam, lat \\ \hline 
-  photon.phase_x, photon.phase_y     & Photon phase                                  & beam, lat \\ \hline
+                                      & Photon intensity                              & beam, lat \\ \hline
+  photon.intensity                    & Photon total intensity                        & beam, lat \\ \hline 
+  photon.phase_x, photon.phase_y      & Photon phase                                  & beam, lat \\ \hline
 
   r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
-                                     & Term in linear transfer map                   & lat       \\ \hline 
+                                      & Term in linear transfer map                   & lat       \\ \hline 
 
-  ref\_time                          & Reference time                                & beam, lat \\ \hline
+  ref\_time                           & Reference time                                & beam, lat \\ \hline
 
   \begin{tabular}{@{}l}   
     rel\_floor.x, rel\_floor.y, \\
     rel\_floor.z, rel\_floor.theta \\
-  \end{tabular}                      & Relative global (``floor'') position          & lat       \\ \hline 
+  \end{tabular}                       & Relative global (``floor'') position          & lat       \\ \hline 
 
-  s\_position                        & longitudinal length constraint                & lat       \\ \hline 
+  s\_position                         & longitudinal length constraint                & lat       \\ \hline 
 
   \begin{tabular}{@{}l}   
     sigma.x, sigma.y, sigma.z \\ 
     sigma.px, sigma.py, sigma.pz
-  \end{tabular}                      & Bunch size                                    & beam, lat \\ \hline 
+  \end{tabular}                       & Bunch size                                    & beam, lat \\ \hline 
 
   spin.polarization, spin.theta, spin.phi
-                                     & Particle spin                                 & beam, lat \\ \hline 
-  time                               & Particle time (sec)                           & lat       \\ \hline
+                                      & Particle spin                                 & beam, lat \\ \hline 
+  time                                & Particle time (sec)                           & lat       \\ \hline
   t.$ijk$ \hspace{10pt} $1 \le i,j,k \le 6$
-                                     & Term in 2\Nd order transfer map               & lat       \\ \hline 
+                                      & Term in 2\Nd order transfer map               & lat       \\ \hline 
   tt.$ijklm\ldots$ \hspace{10pt} $1 \le i,j,k,\ldots \le 6$
-                                     & Term in n\Th order transfer map               & lat       \\ \hline 
+                                      & Term in n\Th order transfer map               & lat       \\ \hline 
 
-  tune.a, tune.b                     & Tune                                          & lat       \\ \hline 
-  unstable.orbit                     & Nonzero if particles are lost in tracking     & lat       \\ \hline
-  unstable.ring                      & Nonzero if a ring is unstable                 & lat       \\ \hline
-  wire.<angle>                       & Wire scanner at wire angle <angle>            & beam      \\ \hline
+  tune.a, tune.b                      & Tune                                          & lat       \\ \hline 
+  unstable.orbit                      & Nonzero if particles are lost in tracking     & lat       \\ \hline
+  unstable.ring                       & Nonzero if a ring is unstable                 & lat       \\ \hline
+  wire.<angle>                        & Wire scanner at wire angle <angle>            & beam      \\ \hline
 
 \end{longtable}
-
+}
