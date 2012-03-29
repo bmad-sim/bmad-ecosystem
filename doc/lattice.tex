@@ -2,23 +2,25 @@
 \index{lattice files|hyperbf}
 
 \index{Bmad!lattice file format}
-A lattice file (or files) is a file that is used to describe an 
-accelerator or storage ring. In \bmad, a lattice defines
+A lattice defines
 the sequence of elements that a particle will travel
 through along with the attributes (length,
 strength, orientation, etc.) of the elements. 
+A lattice file (or files) is a file that is used to describe an 
+accelerator or storage ring. 
 The \bmad software library comes with
 routines to parse lattice files. There are two input formats
 that \bmad understands: The \bmad standard format and
-XSIF\cite{b:xsif}. XSIF (\sref{s:xsif}), developed at SLAC,
+XSIF\cite{b:xsif}. XSIF, developed at SLAC,
 has its own documentation and will not be discussed in detail
-here. Throughout this manual, unless explicitly stated otherwise,
+here except for a few brief notes in Section~(\sref{s:xsif}). 
+Throughout this manual, unless explicitly stated otherwise,
 the lattice format under discussion will always pertain to the \bmad
 standard format. 
 
-While \bmad cannotdirectlhy read in \mad files, 
+While \bmad cannot directlhy read in \mad\cite{b:mad.user} files, 
 translation between \mad and \bmad lattice files is possible using
-the \vn{Universal Accelerator Parser} (\sref{s:aml}).
+the \vn{Universal Accelerator Parser} as disscused in Section~\sref{s:aml}.
 
 %---------------------------------------------------------------------------
 \section{Lattice File Format}
@@ -30,11 +32,12 @@ modeled after the lattice input format of the \mad program.
 Essentially, a \bmad lattice file is similar to a \mad lattice file
 except that a \bmad file has no ``action'' commands (action commands
 tell the program to calculate the Twiss parameters, do tracking,
-etc.).  Interacting with the user to determine what actions a program
+etc.).  Since \bmad is a software library, interacting with the user to 
+determine what actions a program
 should take is left to the program and is not part of \bmad (although
 the \bmad library provides the routines to perform many of the standard
 calculations). A program is not required to use the \bmad parser
-routine but if it does the following chapters describe how to
+routines but, if it does, the following chapters describe how to
 construct a valid lattice file.
 
 %---------------------------------------------------------------------------
@@ -75,26 +78,31 @@ Normally a statement occupies a single line in the file. Several
 statements may be placed on the same line by inserting a semicolon
 (``;'') between them. A long statement can occupy multiple lines by
 putting an ampersand (``\&'') at the end of each line of the statement
-except for the last line. Additionally, lines that end with ``,''
-(comma), ``+'', ``-'', ``*'', ``/'', ``('', ``\{'', ``['', or ``=''
-are automatically considered to be continued to the next line. Notice
+except for the last line. Additionally, lines that end with an
+``implicit continuation character''
+are automatically continued to the next line. The implicit continuation 
+characters are
+\begin{example}
+  ,   +   -   *   /   (   \{   [   =
+\end{example}
+Notice
 that this is {\em not} like \vn{C/C++}. Thus the following is bad syntax
 \begin{example}
-  wall = {
-    section = {s = 0.45     ! BAD SYNTAX. NO CONTINUATION CHARACTER HERE.
-    }                       ! BAD SYNTAX. NO CONTINUATION CHARACTER HERE.
-  }
+  wall = \{
+    section = \{s = 0.45     ! BAD SYNTAX. NO CONTINUATION CHARACTER HERE.
+    \}                       ! BAD SYNTAX. NO CONTINUATION CHARACTER HERE.
+  \}
 \end{example}
 Correct is:
 \begin{example}
-  wall = {
-    section = {s = 0.45} }
+  wall = \{
+    section = \{s = 0.45\} \}
 \end{example}
 or even:
 \begin{example}
-  wall = {
-    section = {s = 0.45} \&
-  }
+  wall = \{
+    section = \{s = 0.45\} \&
+  \}
 \end{example}
 
 \index{lattice files!name syntax}
@@ -753,7 +761,7 @@ unity by default. Thus
 in an XSIF file will give a matrix with all elements being zero.
 
 %----------------------------------------------------------------------------
-\section{Accelerator Markup Lanuage}
+\section{Translation between MAD, Bmad, and XSIF Using the Accelerator Markup Lanuage}
 \label{s:aml}
 \index{Accelerator Markup Language (AML)}
 \index{Universal Accelerator Parser (UAP)}
