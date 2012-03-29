@@ -470,9 +470,50 @@ end function key_name_to_key_index
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function ele_has_kick (ele) result (has_kick)
+!
+! Function to zero any kick attributes like hkick$, bl_vkick$, etc.
+! See also: zero_ele_kicks, ele_has_offset, zero_ele_offsets.
+!
+! Modules needed:
+!   use bmad
+!
+! Input
+!   ele -- Ele_struct: Element with possible nonzero kicks.
+!
+! Output:
+!   ele -- Ele_struct: Element with no kicks.
+!-
+
+function ele_has_kick (ele) result (has_kick)
+
+implicit none
+
+type (ele_struct) ele
+logical has_kick
+
+!
+
+has_kick = .false.
+
+if (has_hkick_attributes(ele%key)) then
+  if (ele%value(bl_hkick$) /= 0) has_kick = .true.
+  if (ele%value(bl_vkick$) /= 0) has_kick = .true.
+
+elseif (has_kick_attributes(ele%key)) then
+  if (ele%value(bl_kick$) /= 0) has_kick = .true.
+endif
+
+end function ele_has_kick
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine zero_ele_kicks (ele)
 !
 ! Subroutine to zero any kick attributes like hkick$, bl_vkick$, etc.
+! See also: ele_has_kick, ele_has_offset, zero_ele_offsets.
 !
 ! Modules needed:
 !   use bmad
@@ -509,9 +550,50 @@ end subroutine zero_ele_kicks
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function ele_has_offset (ele) result (has_offset)
+!
+! Function to tell if an element has a non-zero offset, pitch or tilt.
+! Also see: zero_ele_offsets, zero_ele_kicks, ele_has_kicks
+!
+! Modules needed:
+!   use bmad
+!
+! Input
+!   ele -- Ele_struct: Element with possible nonzero offsets.
+!
+! Output:
+!   has_offset -- Logical: Set true is element has a non-zero offset.
+!-
+
+function ele_has_offset (ele) result (has_offset)
+
+implicit none
+
+type (ele_struct) ele
+logical has_offset
+
+!
+
+has_offset = .false.
+if (.not. has_orientation_attributes(ele)) return
+
+if (ele%value(tilt_tot$) /= 0) has_offset = .true.
+if (ele%value(x_pitch_tot$) /= 0) has_offset = .true.
+if (ele%value(y_pitch_tot$) /= 0) has_offset = .true.
+if (ele%value(x_offset_tot$) /= 0) has_offset = .true.
+if (ele%value(y_offset_tot$) /= 0) has_offset = .true.
+if (ele%value(s_offset_tot$) /= 0) has_offset = .true.
+
+end function ele_has_offset
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine zero_ele_offsets (ele)
 !
 ! Subroutine to zero the offsets, pitches and tilt of an element.
+! Also see: ele_has_offset, zero_ele_kicks, ele_has_kicks
 !
 ! Modules needed:
 !   use bmad

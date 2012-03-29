@@ -185,16 +185,7 @@ if (i_ele < 0) then
   do i = branch%n_ele_track+1, branch%n_ele_max
     ele => branch%ele(i)
     if (ele%lord_status /= super_lord$) cycle
-    mat6 => ele%mat6
-    vec0 => ele%vec0
-    slave => pointer_to_slave(ele, 1)
-    mat6 = slave%mat6
-    vec0 = slave%vec0
-    do j = 2, ele%n_slave
-      slave => pointer_to_slave(ele, j)
-      mat6 = matmul(slave%mat6, mat6)
-      vec0 = matmul(slave%mat6, vec0) + slave%vec0
-    enddo
+    call make_mat6(ele, branch%param, ref_orb(i-1), ref_orb(i), .true.)
   enddo 
 
   if (present(err_flag)) err_flag = .false.

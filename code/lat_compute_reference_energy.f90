@@ -329,7 +329,7 @@ type (coord_struct) orb_start, orb_end
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
 real(rp) old_delta_ref_time, old_p0c
 integer key
-logical err_flag, err
+logical err_flag, err, changed
 
 character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
@@ -531,7 +531,7 @@ logical is_inside, auto_bookkeeper_saved
 auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .false.
 
-call zero_errors_in_ele (ele)
+call zero_errors_in_ele (ele, changed)
 call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
 if (is_inside) orb_start%status = inside$ !to avoid entrance kick in time tracking
 call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
@@ -550,11 +550,12 @@ end subroutine track_this_ele
 !---------------------------------------------------------------------------------
 ! contains
 
-recursive subroutine zero_errors_in_ele (ele)
+recursive subroutine zero_errors_in_ele (ele, changed)
 
 type (ele_struct) ele
 type (ele_struct), pointer :: lord
 integer i
+logical changed, has_changed
 
 ! For reference energy tracking need to turn off any element offsets and kicks and zero any errors.
 ! If the element is a super_slave then the errors must be zeroed in the super_lord elements also.
@@ -563,24 +564,48 @@ ele%old_value = ele%value
 ele%bmad_logic = ele%is_on
 ele%is_on = .true.
 ele%ix_value = ele%tracking_method
-if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_ptc$
+
+has_changed = .false.
 
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) cycle
-    call zero_errors_in_ele (lord)
+    call zero_errors_in_ele (lord, changed)
+    if (changed) has_changed = .true.
   enddo
 endif
 
-call zero_ele_offsets (ele)
-call zero_ele_kicks (ele)
+if (ele_has_offset(ele)) then
+  call zero_ele_offsets (ele)
+  has_changed = .true.
+endif
+
+if (ele_has_kick(ele)) then
+  call zero_ele_kicks (ele)
+  has_changed = .true.
+endif
 
 select case (ele%key)
 case (lcavity$)
-  ele%value(phi0_err$) = 0
-  ele%value(gradient_err$) = 0
+  if (ele%value(phi0_err$) /= 0) then
+    ele%value(phi0_err$) = 0
+    has_changed = .true.
+  endif
+  if (ele%value(gradient_err$) /= 0) then
+    ele%value(gradient_err$) = 0
+    has_changed = .true.
+  endif
 end select
+
+! For speed, use symp_lie_bmad tracking if the taylor map does not exist or if the taylor
+! map is not valid for the element with kicks and offsets removed.
+
+changed = has_changed
+if (ele%tracking_method == taylor$) then
+  if (.not. associated (ele%taylor(1)%term) .or. (changed .and. ele%map_with_offsets)) &
+                                                       ele%tracking_method = symp_lie_bmad$
+endif
 
 end subroutine zero_errors_in_ele
 
