@@ -1,12 +1,8 @@
 #include <stdio.h>
 
-struct c_struct {
-  int i, j;
-};
+extern "C" void c_test (int& i, double& r, int* i1, double* r1) {
 
-extern "C" void my_c (c_struct& cs) {
-
-  printf ("%d  %d\n", cs.i, cs.j);
-  cs.j = -72;
+  printf ("%d  %d  %d\n", i, i1[0], i1[1]);
+  printf ("%f  %f  %f\n", r, r1[0], r1[1]);
 
 } 
