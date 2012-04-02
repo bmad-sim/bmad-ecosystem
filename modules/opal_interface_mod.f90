@@ -183,20 +183,25 @@ ele_loop: do ie = ix_start, ix_end
   !----------------------------------------------------------
   case (sbend$)
 	write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(l$)
-	call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
+	call value_to_line (line, q_sign*val(b_field$), 'k0', rfmt, 'R')
 	call value_to_line (line, val(e_tot$), 'designenergy', rfmt, 'R')
-	call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
-	call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
+	call value_to_line (line, q_sign*val(e1$), 'E1', rfmt, 'R')
+	call value_to_line (line, q_sign*val(e2$), 'E2', rfmt, 'R')
+  !Full GAP (OPAL) =  2*H_GAP (BMAD)
+	call value_to_line (line, 2*val(hgap$), 'GAP', rfmt, 'R')
+
+  write (line, '(2a)') trim(line),  ', fmapfn = "1DPROFILE1-DEFAULT"' 
+
 
 	! Write new fieldgrid file, based on the element's name
-	fieldgrid_output_name = ''
-	write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
-  iu_fieldgrid = lunget()
-  open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
-  call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
-  close(iu_fieldgrid)
+!	fieldgrid_output_name = ''
+!	write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
+ ! iu_fieldgrid = lunget()
+ ! open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
+ ! call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
+ ! close(iu_fieldgrid)
   ! Add FMAPFN to line
-        write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
+  !      write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
   ! elemedge
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
