@@ -385,21 +385,21 @@ write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
 
 nl=nl+1; write (li(nl), *) ' '
 
-if (attribute_index(ele, 'CRYSTAL_TYPE') /= 0) then
+if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
   nl=nl+1; write (li(nl), fmt_a) 'CRYSTAL_TYPE', '=', ele%component_name
 endif
 
-if (attribute_index(ele, 'TRACKING_METHOD') /= 0) then
+if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then
   nl=nl+1; write (li(nl), fmt_a) &
                   'TRACKING_METHOD', '=', calc_method_name(ele%tracking_method)
 endif
 
-if (attribute_index(ele, 'MAT6_CALC_METHOD') /= 0) then
+if (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD') then
   nl=nl+1; write (li(nl), fmt_a) &
                   'MAT6_CALC_METHOD', '=', calc_method_name(ele%mat6_calc_method)
 endif
 
-if (attribute_index(ele, 'FIELD_CALC') /= 0) then
+if (attribute_name(ele, field_calc$) == 'FIELD_CALC') then
   nl=nl+1; write (li(nl), fmt_a) 'FIELD_CALC', '=', field_calc_name(ele%field_calc)
 endif
 
