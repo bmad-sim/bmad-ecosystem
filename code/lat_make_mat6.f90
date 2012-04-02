@@ -40,13 +40,13 @@ implicit none
 type (lat_struct), target :: lat
 type (coord_struct), optional, volatile :: ref_orb(0:)
 type (coord_struct) orb_start
-type (ele_struct), pointer :: ele, slave, lord, slave0
+type (ele_struct), pointer :: ele, slave, lord, slave0, slave1
 type (branch_struct), pointer :: branch
 
 real(rp), pointer :: mat6(:,:), vec0(:)
 
 integer, optional :: ix_ele, ix_branch
-integer i, j, ie, i1, ild, n_taylor, i_ele, i_branch, ix_slave
+integer i, j, i0, i1, ie, ild, n_taylor, i_ele, i_branch, ix_slave
 
 logical, optional :: err_flag
 logical transferred, zero_orbit
@@ -183,9 +183,27 @@ if (i_ele < 0) then
   ! calc super_lord matrices
 
   do i = branch%n_ele_track+1, branch%n_ele_max
-    ele => branch%ele(i)
-    if (ele%lord_status /= super_lord$) cycle
-    call make_mat6(ele, branch%param, ref_orb(i-1), ref_orb(i), .true.)
+    lord => branch%ele(i)
+    if (lord%lord_status /= super_lord$) cycle
+    slave0 => pointer_to_slave(lord, 1)
+    slave1 => pointer_to_slave(lord, lord%n_slave)
+    i0 = slave0%ix_ele; i1 = slave1%ix_ele
+
+    if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
+      if (present(ref_orb)) then
+        if (all(ref_orb(i0-1)%vec == ele%map_ref_orb_in)) cycle
+      else
+        if (all(ele%map_ref_orb_in == 0)) cycle
+      endif
+    endif
+
+
+    if (zero_orbit .or. i_branch /= slave0%ix_branch) then
+      call make_mat6(lord, lat%branch(slave0%ix_branch)%param)
+    else
+      call make_mat6(lord, lat%branch(slave0%ix_branch)%param, &
+                                        ref_orb(i0-1), ref_orb(i1), .true.)
+    endif
   enddo 
 
   if (present(err_flag)) err_flag = .false.
