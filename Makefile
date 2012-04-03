@@ -41,7 +41,7 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := cpp_interface
+LIB_SRC_DIRS := code
 OBJ_SRC_DIRS :=
 
 CONFIG_DIRS  :=
