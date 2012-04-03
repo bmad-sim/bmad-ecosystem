@@ -535,17 +535,13 @@ if (logic_option(present(lattice), type_control)) then
 
     case default
       name = 'Name'
-      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), 'Lat_index  Attribute         Coefficient'
+      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), ' Lat_index  Attribute         Coefficient'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, i)
         iv = lattice%control(i)%ix_attrib
         coef = lattice%control(i)%coef
-        if (slave%lord_status == overlay_lord$) then
-          a_name = ele%component_name
-        else
-          a_name = attribute_name(slave, iv)
-        endif
-        nl=nl+1; write (li(nl), '(3x, a, 3x, a8, 2x, a18, es11.3, es12.3)') &
+        a_name = attribute_name(slave, iv)
+        nl=nl+1; write (li(nl), '(3x, a, 3x, a10, 2x, a18, es11.3, es12.3)') &
                            slave%name(1:n_char), trim(ele_loc_to_string(slave)), a_name, coef
       enddo
     end select

@@ -3811,7 +3811,9 @@ end subroutine create_hard_edge_drift
 !+
 ! Function particle_time (orbit, ele) result (time)
 !
-! Routine to return the current time for use, for example, in calculations of time-dependent EM fields.
+! Routine to return the current time for use, for example, 
+! in calculations of time-dependent EM fields.
+!
 ! The oscillations of such fields are synched relative to the absolute clock if 
 ! absolute time tracking is used or are synched relative to the reference particle
 ! if relative time tracking is used.
@@ -3833,15 +3835,22 @@ type (ele_struct) ele
 
 real(rp) time
 logical abs_time
+character(16), parameter :: r_name = 'particle_time'
 
-!
+! e_gun uses absolute time tracking to get around the problem when orbit%beta = 0.
 
 abs_time = bmad_com%absolute_time_tracking_default
 if (associated(ele%lat)) abs_time = ele%lat%absolute_time_tracking
 
-if (abs_time) then
+if (abs_time .or. ele%key == e_gun$) then
   time = orbit%t 
 else
+  if (orbit%beta == 0) then
+    call out_io (s_fatal$, r_name, 'PARTICLE IN NON E-GUN ELEMENT HAS VELOCITY = 0!')
+    if (bmad_status%exit_on_error) call err_exit
+    time = orbit%t  ! Just to keep on going
+    return
+  endif
   time = -orbit%vec(5) / (orbit%beta * c_light)
 endif
 
