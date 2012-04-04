@@ -932,7 +932,7 @@ f => f_lat_param
 call lat_param_to_c2 (c_lat_param, f%n_part, f%total_length, f%unstable_factor, &
       mat2arr(f%t1_with_RF), mat2arr(f%t1_no_RF), &
       f%particle, f%lattice_type, f%ixx, c_logic(f%stable), c_logic(f%aperture_limit_on), &
-      f%status, f%ix_lost, f%end_lost_at, f%plane_lost_at, c_logic(f%lost))
+      f%bookkeeping_state, f%ix_lost, f%end_lost_at, f%plane_lost_at, c_logic(f%lost))
 
 end subroutine
 

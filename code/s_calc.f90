@@ -33,7 +33,7 @@ real(8) ss, s_end
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
-  if (.not. bmad_com%auto_bookkeeper .and. branch%param%status%length /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%length /= stale$) cycle
   ! Branches that branch from another branch start from zero
   if (branch%ix_from_branch > -1) branch%ele(0)%s = 0  
   ss = branch%ele(0)%s
@@ -41,10 +41,10 @@ do i = 0, ubound(lat%branch, 1)
     ele => branch%ele(n)
     ss = ss + ele%value(l$)
     ele%s = ss
-    if (ele%status%length == stale$) ele%status%length = ok$
+    if (ele%bookkeeping_state%length == stale$) ele%bookkeeping_state%length = ok$
   enddo
   branch%param%total_length = ss - branch%ele(0)%s
-  branch%param%status%length = ok$
+  branch%param%bookkeeping_state%length = ok$
 enddo
 
 
@@ -54,7 +54,7 @@ enddo
 
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
-  if (.not. bmad_com%auto_bookkeeper .and. lord%status%length /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%length /= stale$) cycle
   if (lord%key == null_ele$) cycle
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
   if (lord%lord_status == super_lord$) then
@@ -63,7 +63,7 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   else
     lord%s = 0
   endif
-  lord%status%length = ok$
+  lord%bookkeeping_state%length = ok$
 enddo
 
 end subroutine

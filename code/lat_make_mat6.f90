@@ -110,7 +110,7 @@ if (i_ele < 0) then
 
     ! Check if transfer matrix needs to be recomputed
 
-    if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
+    if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) then
       if (present(ref_orb)) then
         if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in)) cycle
       else
@@ -174,11 +174,11 @@ if (i_ele < 0) then
     endif
 
     call set_lords_status_stale (ele, lat, mat6_group$)
-    ele%status%mat6 = ok$
+    ele%bookkeeping_state%mat6 = ok$
 
   enddo
 
-  if (branch%param%status%mat6 == stale$) branch%param%status%mat6 = ok$
+  if (branch%param%bookkeeping_state%mat6 == stale$) branch%param%bookkeeping_state%mat6 = ok$
 
   ! calc super_lord matrices
 
@@ -189,7 +189,7 @@ if (i_ele < 0) then
     slave1 => pointer_to_slave(lord, lord%n_slave)
     i0 = slave0%ix_ele; i1 = slave1%ix_ele
 
-    if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
+    if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) then
       if (present(ref_orb)) then
         if (all(ref_orb(i0-1)%vec == ele%map_ref_orb_in)) cycle
       else
@@ -218,7 +218,7 @@ ele => branch%ele(i_ele)
 
 ! Check if transfer matrix needs to be recomputed
 
-if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
+if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) then
   if (present(ref_orb)) then
     if (all(ref_orb(i_ele-1)%vec == ele%map_ref_orb_in)) then
       return

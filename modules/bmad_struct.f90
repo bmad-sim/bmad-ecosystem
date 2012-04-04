@@ -344,7 +344,7 @@ type ele_struct
                                                             ! Radiation integral calc cached values 
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
-  type (bookkeeper_status_struct) status                    ! Element attribute bookkeeping
+  type (bookkeeper_status_struct) bookkeeping_state         ! Element attribute bookkeeping
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()  ! Wiggler field
@@ -417,21 +417,22 @@ end type
 ! lattice parameter struct
 
 type lat_param_struct
-  real(rp) :: n_part = 0                    ! Particles/bunch (for BeamBeam elements).
-  real(rp) :: total_length = 0              ! total_length of lat
-  real(rp) :: unstable_factor = 0           ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
-  real(rp) :: t1_with_RF(6,6) = 0           ! Full 1-turn matrix with RF on.
-  real(rp) :: t1_no_RF(6,6) = 0             ! Full 1-turn matrix with RF off.
-  integer :: particle = positron$           ! positron$, electron$, etc.
-  integer :: lattice_type = 0               ! linear_lattice$, etc...
-  integer :: ixx = 0                        ! Integer for general use
-  logical :: stable = .false.               ! is closed lat stable?
-  logical :: aperture_limit_on = .true.     ! use apertures in tracking?
-  type (bookkeeper_status_struct) status    ! Overall status for the branch.
-  integer :: ix_lost = not_lost$            ! Index of element particle was lost at.
-  integer :: end_lost_at = 0                ! entrance_end$ or exit_end$
-  integer :: plane_lost_at = 0              ! x_plane$, y_plane$, z_plane$ (reversed direction).
-  logical :: lost = .false.                 ! Particle alive and moving forward.
+  real(rp) :: n_part = 0                      ! Particles/bunch (for BeamBeam elements).
+  real(rp) :: total_length = 0                ! total_length of lat
+  real(rp) :: unstable_factor = 0             ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
+  real(rp) :: t1_with_RF(6,6) = 0             ! Full 1-turn matrix with RF on.
+  real(rp) :: t1_no_RF(6,6) = 0               ! Full 1-turn matrix with RF off.
+  integer :: particle = positron$             ! positron$, electron$, etc.
+  integer :: lattice_type = 0                 ! linear_lattice$, etc...
+  integer :: ixx = 0                          ! Integer for general use
+  logical :: stable = .false.                 ! is closed lat stable?
+  logical :: aperture_limit_on = .true.       ! use apertures in tracking?
+  type (bookkeeper_status_struct) bookkeeping_state
+                                              ! Overall status for the branch.
+  integer :: ix_lost = not_lost$              ! Index of element particle was lost at.
+  integer :: end_lost_at = 0                  ! entrance_end$ or exit_end$
+  integer :: plane_lost_at = 0                ! x_plane$, y_plane$, z_plane$ (reversed direction).
+  logical :: lost = .false.                   ! Particle alive and moving forward.
 end type
 
 !

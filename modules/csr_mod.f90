@@ -187,7 +187,7 @@ do i = 0, n_step
 
   ! Cannot do a realistic calculation if there are less particles than bins
 
-  n_live = count(bunch_end%particle%ix_lost == not_lost$)
+  n_live = count(bunch_end%particle%status /= dead$)
   if (n_live < csr_param%n_bin) then
     call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
                           'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
@@ -228,7 +228,7 @@ do i = 0, n_step
   ! loop over all particles and give them a kick
 
   do j = 1, size(bunch_end%particle)
-    if (bunch_end%particle(j)%ix_lost /= not_lost$) cycle
+    if (bunch_end%particle(j)%status == dead$) cycle
     call csr_kick_calc (bin, bunch_end%particle(j))
   enddo
 
@@ -300,8 +300,8 @@ character(20) :: r_name = 'csr_bin_particles'
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
     .not. csr_param%tsc_component_on) return
 
-z_maxval = maxval(particle(:)%vec(5), mask = (particle(:)%ix_lost == not_lost$))
-z_minval = minval(particle(:)%vec(5), mask = (particle(:)%ix_lost == not_lost$))
+z_maxval = maxval(particle(:)%vec(5), mask = (particle(:)%status /= dead$))
+z_minval = minval(particle(:)%vec(5), mask = (particle(:)%status /= dead$))
 dz = z_maxval - z_minval
 bin%dz_bin = dz / (csr_param%n_bin - 2 - (csr_param%particle_bin_span + 1))
 bin%dz_bin = 1.0000001 * bin%dz_bin     ! to prevent round off problems
@@ -356,7 +356,7 @@ f = 2.0 / dz_particle**2
 ic = 0
 do i = 1, size(particle)
   p => particle(i)
-  if (p%ix_lost /= not_lost$) cycle
+  if (p%status == dead$) cycle
   zp_center = p%vec(5) ! center of particle
   zp0 = zp_center - dz_particle / 2       ! particle left edge 
   zp1 = zp_center + dz_particle / 2       ! particle right edge 
@@ -1315,7 +1315,7 @@ do i = 0, n_step
 
   ! Cannot do a realistic calculation if there are less particles than bins
 
-  n_live = count(bunch_end%particle%ix_lost == not_lost$)
+  n_live = count(bunch_end%particle%status /= dead$)
   if (n_live < csr_param%n_bin) then
     call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
                           'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
@@ -1355,7 +1355,7 @@ do i = 0, n_step
   ! loop over all particles and give them a kick
 
   do j = 1, size(bunch_end%particle)
-    if (bunch_end%particle(j)%ix_lost /= not_lost$) cycle
+    if (bunch_end%particle(j)%status == dead$) cycle
     call csr_kick_calc (bin, bunch_end%particle(j))
   enddo
 

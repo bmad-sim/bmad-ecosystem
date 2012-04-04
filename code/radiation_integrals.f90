@@ -231,7 +231,7 @@ if (init_cache) then
   j = 0  ! number of elements to cache
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
-    ele%status%rad_int = stale$
+    ele%bookkeeping_state%rad_int = stale$
 
     if (ele%value(l$) == 0) cycle
 
@@ -254,7 +254,7 @@ endif
 
 ! Now cache the information.
 ! The cache ri_info is computed with all offsets off.
-! Only need to update the cache if ele%status%rad_int has been altered.
+! Only need to update the cache if ele%bookkeeping_state%rad_int has been altered.
 
 if (use_cache .or. init_cache) then
 
@@ -266,8 +266,8 @@ if (use_cache .or. init_cache) then
     j = j + 1
     cache_ele => cache%c_ele(j)
 
-    if (branch%ele(i)%status%rad_int /= stale$) cycle
-    branch%ele(i)%status%rad_int = ok$
+    if (branch%ele(i)%bookkeeping_state%rad_int /= stale$) cycle
+    branch%ele(i)%bookkeeping_state%rad_int = ok$
 
     ! Calculation is effectively done in element reference frame with ele2 having
     ! no offsets.

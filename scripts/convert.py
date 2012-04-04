@@ -11,8 +11,12 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if "bmad_com%be_thread_safe" in line:
-      line = line.replace("bmad_com%be_thread_safe", "global_com%be_thread_safe")
+    if "param%bookkeeping" in line:
+      line = line.replace("param%bookkeeping", "param%bookkeeping_state")
+      found = True
+
+    if "ele%status" in line:
+      line = line.replace("ele%status", "ele%bookkeeping_state")
       found = True
 
     out_file.write(line)
