@@ -65,6 +65,13 @@ logical err, do_extra
 
 !
 
+if (start_orb%status == dead$) then
+  end_orb = start_orb
+  end_orb%vec = 0
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
+
 if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
 do_extra = .not. logic_option(.false., ignore_radiation)
@@ -74,7 +81,6 @@ do_extra = .not. logic_option(.false., ignore_radiation)
 
 if (ele%tracking_method /= time_runge_kutta$ .and. start_orb%beta < 0) then
   p0c_start = ele%value(p0c_start$)
-
   call convert_pc_to (p0c_start * (1 + start2_orb%vec(6)), param%particle, beta = start2_orb%beta)
   start2_orb%p0c = p0c_start
   start2_orb%status = outside$
