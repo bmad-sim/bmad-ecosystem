@@ -101,6 +101,7 @@ if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele
 if (start2_orb%status == dead$) then
   param%end_lost_at = entrance_end$
   end_orb = start2_orb
+  end_orb%ix_lost = ele%ix_ele
   if (present(err_flag)) err_flag = .false.
   return
 endif
@@ -205,5 +206,6 @@ if (end_orb%p0c < 0 .and. end_orb%status /= dead$) then
 endif
 
 if (present(err_flag)) err_flag = .false.
+if (end_orb%status == dead$) end_orb%ix_lost = ele%ix_ele
 
 end subroutine

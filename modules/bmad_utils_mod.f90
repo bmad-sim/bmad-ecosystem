@@ -932,7 +932,7 @@ lat%lattice = ' '
 lat%input_file_name = ' '
 
 lat%param = param0
-call set_status_flags (lat%param%status, ok$)
+call set_status_flags (lat%param%bookkeeping_state, ok$)
 
 call init_coord(lat%beam_start)
 
@@ -1643,7 +1643,7 @@ ele%ref_time = 0
 ele%ix_branch = 0
 ele%ix_ele = -1
 
-call set_status_flags (ele%status, ok$, 0)
+call set_status_flags (ele%bookkeeping_state, ok$, 0)
 
 if (present(ix_branch)) ele%ix_branch = ix_branch
 if (present(ix_ele)) ele%ix_ele = ix_ele
@@ -1957,7 +1957,7 @@ do i = curr_ub+1, ub
   allocate(lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
   allocate(lat%branch(i)%wall3d)
   lat%branch(i)%param = lat%param
-  call set_status_flags (lat%branch(i)%param%status, ok$, 0)
+  call set_status_flags (lat%branch(i)%param%bookkeeping_state, ok$, 0)
 end do
 
 end subroutine allocate_branch_array
@@ -2812,9 +2812,9 @@ end function gradient_shift_sr_wake
 ! ones for the branch%param structure of the branch the element is in.
 !
 ! For example: status_group = ref_energy_group$ sets stale:
-!   ele%status%ref_energy 
-!   ele%status%floor_position
-!   ele%status%mat6
+!   ele%bookkeeping_state%ref_energy 
+!   ele%bookkeeping_state%floor_position
+!   ele%bookkeeping_state%mat6
 ! See the code for more details.
 ! 
 ! Output:
@@ -2886,8 +2886,8 @@ contains
 subroutine set_attributes
   if (ele%lord_status == overlay_lord$) return
   if (ele%lord_status == group_lord$) return
-  ele%status%attributes = stale$
-  param%status%attributes = stale$
+  ele%bookkeeping_state%attributes = stale$
+  param%bookkeeping_state%attributes = stale$
 end subroutine set_attributes
 
 !----------------------------------------------------------------------------
@@ -2895,8 +2895,8 @@ end subroutine set_attributes
 
 subroutine set_control
   if (ele%lord_status == not_a_lord$ .and. ele%slave_status == free$) return
-  ele%status%control = stale$
-  param%status%control = stale$
+  ele%bookkeeping_state%control = stale$
+  param%bookkeeping_state%control = stale$
 end subroutine set_control
 
 !----------------------------------------------------------------------------
@@ -2904,8 +2904,8 @@ end subroutine set_control
 
 subroutine set_floor_position
   if (ele%key == overlay$ .or. ele%key == group$) return
-  ele%status%floor_position = stale$
-  param%status%floor_position = stale$
+  ele%bookkeeping_state%floor_position = stale$
+  param%bookkeeping_state%floor_position = stale$
 end subroutine set_floor_position
 
 !----------------------------------------------------------------------------
@@ -2913,24 +2913,24 @@ end subroutine set_floor_position
 
 subroutine set_length
   if (ele%key == overlay$ .or. ele%key == group$) return
-  ele%status%length = stale$
-  param%status%length = stale$
+  ele%bookkeeping_state%length = stale$
+  param%bookkeeping_state%length = stale$
 end subroutine set_length
 
 !----------------------------------------------------------------------------
 ! contains
 
 subroutine set_ref_energy
-  ele%status%ref_energy = stale$
-  param%status%ref_energy = stale$
+  ele%bookkeeping_state%ref_energy = stale$
+  param%bookkeeping_state%ref_energy = stale$
 end subroutine set_ref_energy
 
 !----------------------------------------------------------------------------
 ! contains
 
 subroutine set_rad_int
-  ele%status%rad_int = stale$
-  param%status%rad_int = stale$
+  ele%bookkeeping_state%rad_int = stale$
+  param%bookkeeping_state%rad_int = stale$
 end subroutine set_rad_int
 
 !----------------------------------------------------------------------------
@@ -2944,7 +2944,7 @@ subroutine set_mat6
   if (ele%lord_status == overlay_lord$) return
   if (ele%lord_status == group_lord$) return
   if (ele%lord_status == multipass_lord$) return
-  ele%status%mat6 = stale$
+  ele%bookkeeping_state%mat6 = stale$
 end subroutine set_mat6
 
 end subroutine set_ele_status_stale 

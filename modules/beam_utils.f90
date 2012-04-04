@@ -71,7 +71,7 @@ if (ele%key /= lcavity$ .or. .not. associated(ele%rf_wake) .or. &
 
 
   bunch_end%charge = sum (bunch_end%particle(:)%charge, &
-                      mask = (bunch_end%particle(:)%ix_lost == not_lost$))
+                      mask = (bunch_end%particle(:)%status /= dead$))
   return
 endif
 
@@ -111,7 +111,7 @@ endif
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
-  if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
+  if (bunch_end%particle(ix_z)%status == dead$) cycle
   call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
   call track1 (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
@@ -135,7 +135,7 @@ ele%value(p0c$)          = value_save(p0c$)
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
-  if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
+  if (bunch_end%particle(ix_z)%status == dead$) cycle
   call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
   call track1 (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
@@ -143,7 +143,7 @@ enddo
 ele%value(grad_loss_sr_wake$) = 0.0
 
 bunch_end%charge = sum (bunch_end%particle(:)%charge, &
-                         mask = (bunch_end%particle(:)%ix_lost == not_lost$))
+                         mask = (bunch_end%particle(:)%status /= dead$))
 
 ! Unmodify ele
 
@@ -221,7 +221,7 @@ if (n_sr_table > 0) then
   ! add up all wakes from front of bunch to follower
 
   do i = 1, num_in_front
-    if (bunch%particle(bunch%particle(i)%ix_z)%ix_lost == not_lost$) &
+    if (bunch%particle(bunch%particle(i)%ix_z)%status /= dead$) &
       call sr_table_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z), &
                bunch%particle(bunch%particle(i)%ix_z)%charge, &
                bunch%particle(ix_follower))
@@ -390,7 +390,7 @@ call order_particles_in_z (bunch)  ! needed for wakefield calc.
 do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
-  if (particle%ix_lost /= not_lost$) cycle
+  if (particle%status == dead$) cycle
   call lr_wake_apply_kick (ele, bunch%t_center, particle, particle%charge)
 enddo
 
@@ -399,7 +399,7 @@ enddo
 do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
-  if (particle%ix_lost /= not_lost$) cycle
+  if (particle%status == dead$) cycle
   call lr_wake_add_to (ele, bunch%t_center, particle, particle%charge)
 enddo
 
@@ -1666,11 +1666,11 @@ call re_allocate (charge, size(bunch%particle))
 ! n_particle and centroid
 
 bunch_params%n_particle_tot = size(bunch%particle)
-bunch_params%n_particle_live = count(bunch%particle%ix_lost == not_lost$)
-bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost == not_lost$))
+bunch_params%n_particle_live = count(bunch%particle%status /= dead$)
+bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%status /= dead$))
 
-bunch_params%centroid%e_field_x = sum(bunch%particle%e_field_x, mask = (bunch%particle%ix_lost == not_lost$))
-bunch_params%centroid%e_field_y = sum(bunch%particle%e_field_y, mask = (bunch%particle%ix_lost == not_lost$))
+bunch_params%centroid%e_field_x = sum(bunch%particle%e_field_x, mask = (bunch%particle%status /= dead$))
+bunch_params%centroid%e_field_y = sum(bunch%particle%e_field_y, mask = (bunch%particle%status /= dead$))
 
 if (param%particle == photon$) then
   charge = bunch%particle%e_field_x**2 + bunch%particle%e_field_y**2
@@ -1678,7 +1678,7 @@ else
   charge = bunch%particle%charge
 endif
 
-charge_live = sum(charge, mask = (bunch%particle%ix_lost == not_lost$))
+charge_live = sum(charge, mask = (bunch%particle%status /= dead$))
 
 !
 
@@ -1699,7 +1699,7 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
 ! average the energy
 
-avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%ix_lost == not_lost$))
+avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%status /= dead$))
 avg_energy = avg_energy * ele%value(E_TOT$) / charge_live
 
 ! Convert to geometric coords and find the sigma matrix
@@ -1950,7 +1950,7 @@ charge_live = 0
 
 ave_vec = 0.0
 do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%ix_lost /= not_lost$) cycle
+  if (bunch%particle(i)%status == dead$) cycle
   call spinor_to_vec (bunch%particle(i), vec)
   ave_vec = ave_vec + vec * bunch%particle(i)%charge
   charge_live = charge_live + bunch%particle(i)%charge
@@ -2000,10 +2000,10 @@ integer i
 
 !
 
-charge_live = sum(charge, mask = (particle%ix_lost == not_lost$))
+charge_live = sum(charge, mask = (particle%status /= dead$))
 
 do i = 1, 6
-  avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%ix_lost == not_lost$)) / charge_live
+  avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%status /= dead$)) / charge_live
 enddo
 
 sigma(s11$) = exp_calc (particle, charge, 1, 1, avg)
@@ -2094,7 +2094,7 @@ integer ix1, ix2
 !
                                     
 this_sigma = sum((particle(:)%vec(ix1) - avg(ix1)) * (particle(:)%vec(ix2) - avg(ix2)) * charge(:), &
-                               mask = (particle%ix_lost == not_lost$))
+                               mask = (particle%status /= dead$))
 
 this_sigma = this_sigma / charge_live
 

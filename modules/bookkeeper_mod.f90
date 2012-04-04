@@ -119,15 +119,15 @@ do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
   do j = 1, branch%n_ele_track
     ele => branch%ele(j)
-    if (ele%slave_status == free$ .and. ele%status%control == stale$) ele%status%control = ok$
-    if (.not. bmad_com%auto_bookkeeper .and. ele%status%control /= stale$) cycle
+    if (ele%slave_status == free$ .and. ele%bookkeeping_state%control == stale$) ele%bookkeeping_state%control = ok$
+    if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%control /= stale$) cycle
     if (ele%slave_status == multipass_slave$ .and. ele%ref_orbit /= 0) then
       call makeup_multipass_slave (lat, ele)
       call attribute_bookkeeper (ele, branch%param)
       found = .true.
     endif
   enddo
-  branch%param%status%attributes = ok$
+  branch%param%bookkeeping_state%attributes = ok$
 enddo
 
 if (found) then
@@ -152,7 +152,7 @@ if (.not. bmad_com%auto_bookkeeper) then
   do i = 0, ubound(lat%branch, 1)
 
     branch => lat%branch(0)
-    stat => branch%param%status
+    stat => branch%param%bookkeeping_state
     if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
         stat%length == stale$ .or. stat%ref_energy == stale$) then
       call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at: \i0\.', &
@@ -162,7 +162,7 @@ if (.not. bmad_com%auto_bookkeeper) then
     call reset_status_flags(stat)
 
     do j = 0, ubound(branch%ele, 1)
-      stat => branch%ele(j)%status
+      stat => branch%ele(j)%bookkeeping_state
       if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
           stat%length == stale$ .or. stat%ref_energy == stale$) then
         call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at: \i0\, \i0\.', &
@@ -270,11 +270,11 @@ n1 = lat%n_ele_track+1
 n2 = lat%n_ele_max
 
 if (bmad_com%auto_bookkeeper) then
-  lat%ele(n1:n2)%status%control = stale$  ! Bookkeeping done on this element yet?
+  lat%ele(n1:n2)%bookkeeping_state%control = stale$  ! Bookkeeping done on this element yet?
 else
   do ie = n1, n2
     ele2 => lat%ele(ie)
-    if (ele2%status%control /= stale$ .and. ele2%status%attributes /= stale$) cycle
+    if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
     call set_slaves_status_stale (ele2, lat, control_group$)
   enddo
 endif
@@ -288,15 +288,15 @@ do
   ie_loop: do ie = n1, n2
     ele2 => lat%ele(ie)
     if (ele2%key == null_ele$) cycle
-    if (ele2%status%control /= stale$ .and. ele2%status%attributes /= stale$) cycle
+    if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
     do j = 1, ele2%n_lord
       lord => pointer_to_lord(ele2, j)
-      if (lord%status%control /= stale$ .and. lord%status%attributes /= stale$) cycle
+      if (lord%bookkeeping_state%control /= stale$ .and. lord%bookkeeping_state%attributes /= stale$) cycle
       all_bookkeeping_done = .false.  ! This element remains to be done.
       cycle ie_loop ! Do not do bookkeeping yet if lord not done yet.
     enddo
     call control_bookkeeper1 (lat, ele2, sm_only)
-    ele2%status%control = ok$  ! Done with this element
+    ele2%bookkeeping_state%control = ok$  ! Done with this element
   enddo ie_loop
   if (all_bookkeeping_done) exit  ! And we are done
 enddo
@@ -304,16 +304,16 @@ enddo
 ! and now the slaves in the tracking lattice
 
 do ib = 0, ubound(lat%branch, 1)
-  if (.not. bmad_com%auto_bookkeeper .and. lat%branch(ib)%param%status%control /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. lat%branch(ib)%param%bookkeeping_state%control /= stale$) cycle
   do ie = 0, lat%branch(ib)%n_ele_track
     ele2 => lat%branch(ib)%ele(ie)
     if (ele2%key == null_ele$) cycle
     if (ele2%slave_status == free$) cycle
-    if (.not. bmad_com%auto_bookkeeper .and. ele2%status%control /= stale$) cycle
+    if (.not. bmad_com%auto_bookkeeper .and. ele2%bookkeeping_state%control /= stale$) cycle
     call control_bookkeeper1 (lat, ele2, sm_only)
-    ele2%status%control = ok$
+    ele2%bookkeeping_state%control = ok$
   enddo
-  lat%branch(ib)%param%status%control = ok$
+  lat%branch(ib)%param%bookkeeping_state%control = ok$
 enddo
 
 ! Update attributes for elements in the tracking part of the lattice.
@@ -321,11 +321,11 @@ enddo
 if (logic_option(.false., do_free_eles)) then
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
-    if (.not. bmad_com%auto_bookkeeper .and. branch%param%status%attributes /= stale$) cycle
+    if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%attributes /= stale$) cycle
     do j = 0, branch%n_ele_track
       call attribute_bookkeeper (branch%ele(j), branch%param)
     enddo
-    branch%param%status%attributes = ok$
+    branch%param%bookkeeping_state%attributes = ok$
   enddo
 endif
 
@@ -448,7 +448,7 @@ character(40) :: r_name = 'super_lord_length_bookkeeper'
 !
 
 if (.not. bmad_com%auto_bookkeeper) then
-  if (lat%branch(0)%param%status%length /= stale$) return
+  if (lat%branch(0)%param%bookkeeping_state%length /= stale$) return
 endif
 
 dl_tol = 10 * bmad_com%significant_length
@@ -466,7 +466,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     if (ele%ix_ele /= ie) cycle
   endif
 
-  if (.not. bmad_com%auto_bookkeeper .and. lord0%status%length /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. lord0%bookkeeping_state%length /= stale$) cycle
 
   sum_len_slaves = 0
   do j = 1, lord0%n_slave
@@ -779,7 +779,7 @@ if (moved) then
   call lat_geometry (lat)
 endif
 
-lord%status%control = ok$
+lord%bookkeeping_state%control = ok$
 
 end subroutine makeup_group_lord
 
@@ -818,7 +818,7 @@ character(40) :: r_name = 'makeup_multipass_slave'
 
 branch => lat%branch(slave%ix_branch)
 call set_ele_status_stale (slave, branch%param, attribute_group$)
-slave%status%control = ok$
+slave%bookkeeping_state%control = ok$
 
 ix_slave = slave%ix_ele
 j =  lat%ic(slave%ic1_lord)
@@ -1156,7 +1156,7 @@ character(20) :: r_name = 'makeup_super_slave'
 branch => lat%branch(slave%ix_branch)
 ix_slave = slave%ix_ele
 
-slave%status%control = ok$
+slave%bookkeeping_state%control = ok$
 call set_ele_status_stale (slave, branch%param, attribute_group$)
 
 if (slave%slave_status /= super_slave$) then
@@ -1938,7 +1938,7 @@ if (slave%key == lcavity$) then
   slave%value(e_loss$) = lord%value(e_loss$) * coef
 endif
 
-slave%status%attributes = stale$
+slave%bookkeeping_state%attributes = stale$
 call attribute_bookkeeper (slave, param)
 
 err_flag = .false.
@@ -2062,7 +2062,7 @@ character(40) :: r_name = 'makeup_overlay_and_girder_slave'
                              
 branch => lat%branch(slave%ix_branch)
 
-slave%status%control = ok$
+slave%bookkeeping_state%control = ok$
 call set_ele_status_stale (slave, branch%param, attribute_group$)
 
 l_stat = slave%lord_status
@@ -2227,7 +2227,7 @@ val => ele%value
 ! Intelligent bookkeeping
 
 if (.not. bmad_com%auto_bookkeeper) then
-  if (ele%status%attributes /= stale$) return
+  if (ele%bookkeeping_state%attributes /= stale$) return
 
   if (ele%lord_status /= not_a_lord$) then
     call set_ele_status_stale (ele, param, control_group$)
@@ -2244,8 +2244,8 @@ if (.not. bmad_com%auto_bookkeeper) then
 
 endif
 
-ele%status%attributes = ok$
-ele%status%rad_int = stale$
+ele%bookkeeping_state%attributes = ok$
+ele%bookkeeping_state%rad_int = stale$
 
 ! For auto bookkeeping if no change then we don't need to do anything
 
@@ -2741,9 +2741,9 @@ logical coupling_change
 if (.not. present(ele)) then
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
-    call set_status_flags (branch%param%status, stale$)
+    call set_status_flags (branch%param%bookkeeping_state, stale$)
     do j = 0, ubound(branch%ele, 1)
-      call set_status_flags (branch%ele(j)%status, stale$)
+      call set_status_flags (branch%ele(j)%bookkeeping_state, stale$)
     enddo
   enddo
   return
@@ -2896,8 +2896,8 @@ case (sbend$)
 
 case (branch$, photon_branch$)
   if (associated(a_ptr, ele%value(direction$))) then
-    lat%branch(ib)%param%status%floor_position = stale$
-    lat%branch(ib)%ele(0)%status%floor_position = stale$
+    lat%branch(ib)%param%bookkeeping_state%floor_position = stale$
+    lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
   endif
 
 case (lcavity$)

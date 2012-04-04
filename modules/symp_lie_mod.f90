@@ -390,7 +390,7 @@ integer plane
 print *, 'ERROR IN SYMP_LIE_BMAD: FLOATING OVERFLOW IN WIGGLER TRACKING.'
 print *, '      PARTICLE WILL BE TAGGED AS LOST.'
 param%plane_lost_at = plane
-param%lost = .true.
+end_orb%status = dead$
 end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
 end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
 err = .true.

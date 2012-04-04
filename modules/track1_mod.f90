@@ -329,8 +329,8 @@ do n = 1, n_step
     pxy2 = px**2 + py**2
     if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
       param%lost = .true.
-      end_orb%status = dead$
       param%plane_lost_at = x_plane$
+      end_orb%status = dead$
       end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
       end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
       return

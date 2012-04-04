@@ -38,18 +38,30 @@ type (ele_struct), target :: ele
 type (coord_struct) :: c0, c1, start, end1, end2
 type (lat_param_struct)  param
 
-real(rp) del_orb(6)
+real(rp) del_orb(6), dorb6, abs_p
 integer i
+
+! This computation is singular when start%vec(6) = -1 (zero starting velocity).
+! In this case, shift start%vec(6) slightly to avoid the singularity.
+
+del_orb = bmad_com%d_orb
+
+if (bmad_com%mat6_track_symmetric) then
+  abs_p = max(abs(c0%vec(2)) + abs(del_orb(2)), abs(c0%vec(4)) + abs(del_orb(4)), abs(del_orb(6)))
+else
+  abs_p = max(abs(c0%vec(2) + del_orb(2)), abs(c0%vec(4) + del_orb(4)), -del_orb(6)) 
+endif
+
+dorb6 = max(0.0_rp, abs_p - (1 + c0%vec(6)))   ! Shift in start%vec(6) to apply.
 
 !
 
 call track1 (c0, ele, param, c1)
 
-del_orb = bmad_com%d_orb
-
 if (bmad_com%mat6_track_symmetric) then
   do i = 1, 6
     start = c0
+    start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) + del_orb(i)
     call track1 (start, ele, param, end2)
 
@@ -62,6 +74,7 @@ if (bmad_com%mat6_track_symmetric) then
 else
   do i = 1, 6
     start = c0
+    start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) + del_orb(i)
     call track1 (start, ele, param, end1)
     ele%mat6(1:6, i) = (end1%vec - c1%vec) / del_orb(i)

@@ -169,10 +169,7 @@ do n_step = 1, max_step
   ! Check wall or aperture at every intermediate step and flag for exit if wall is hit
 
   call  particle_hit_wall_check_time(orb_old, orb, param, ele)
-  if (param%lost) then
-    orb%status = dead$
-    exit_flag = .true.
-  end if
+  if (orb%status == dead$) exit_flag = .true.
   
   !Save track
   if ( present(track) ) then
@@ -467,7 +464,7 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
    orb_new%vec(4) = now_orb%vec(4) * e_tot
    orb_new%vec(6) = now_orb%vec(6) * e_tot
 
-   param%lost = .True.
+   param%lost = .true.
    orb_new%status = dead$
 endif
 

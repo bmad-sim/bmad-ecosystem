@@ -281,6 +281,7 @@ case (lcavity$)
   if (E_end <= mass_of(param%particle)) then
     param%lost = .true.
     param%plane_lost_at = z_plane$
+    end_orb%status = dead$
     end_orb%vec(6) = -1.01  ! Something less than -1
     return
   endif
@@ -450,6 +451,7 @@ case (match$)
   call match_ele_to_mat6 (ele, vec0, mat6, err)
   if (err) then
     param%lost = .true.
+    end_orb%status = dead$
 !!    call out_io (s_error$, r_name, &
 !!          'MATCH ELEMENT HAS MATCH_END SET BUT BEGINNING BETA_A0 OR BETA_B0 PARAMETERS HAVE ', &
 !!          'NOT BEEN SET FROM PREVIOUS ELEMENT: ' // ele%name)

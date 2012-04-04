@@ -56,15 +56,15 @@ do n = 0, ubound(lat%branch, 1)
   if (bmad_com%auto_bookkeeper) then
     stale = .true.
   else
-    if (branch%param%status%floor_position /= stale$) cycle
+    if (branch%param%bookkeeping_state%floor_position /= stale$) cycle
     stale = .false.
   endif
 
-  branch%param%status%floor_position = ok$
+  branch%param%bookkeeping_state%floor_position = ok$
 
   ! Transfer info from branch element if that element exists.
 
-  if (branch%ix_from_branch > -1 .and. (stale .or. branch%ele(0)%status%floor_position == stale$)) then
+  if (branch%ix_from_branch > -1 .and. (stale .or. branch%ele(0)%bookkeeping_state%floor_position == stale$)) then
     b_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
     branch%ele(0)%floor = b_ele%floor
 
@@ -76,22 +76,22 @@ do n = 0, ubound(lat%branch, 1)
     stale = .true.
   endif
 
-  if (branch%ele(0)%status%floor_position == stale$) branch%ele(0)%status%floor_position = ok$
+  if (branch%ele(0)%bookkeeping_state%floor_position == stale$) branch%ele(0)%bookkeeping_state%floor_position = ok$
 
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
-    if (.not. stale .and. ele%status%floor_position /= stale$) cycle
+    if (.not. stale .and. ele%bookkeeping_state%floor_position /= stale$) cycle
     call ele_geometry (branch%ele(i-1)%floor, ele, ele%floor)
     stale = .true.
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
       ib = nint(ele%value(ix_branch_to$))
-      lat%branch(ib)%ele(0)%status%floor_position = stale$
+      lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
     endif
     if (ele%n_lord > 0) then
       call set_lords_status_stale (ele, lat, floor_position_group$)
       stale_lord = .true.
     endif
-    ele%status%floor_position = ok$
+    ele%bookkeeping_state%floor_position = ok$
   enddo
 
 enddo
@@ -100,11 +100,11 @@ enddo
 
 if (.not. stale_lord) return
 
-lat%param%status%floor_position = ok$
+lat%param%bookkeeping_state%floor_position = ok$
 
 do i = lat%n_ele_track+1, lat%n_ele_max  
   lord => lat%ele(i)
-  if (.not. bmad_com%auto_bookkeeper .and. lord%status%floor_position /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%floor_position /= stale$) cycle
   if (lord%n_slave == 0) cycle
 
   select case (lord%lord_status)
@@ -116,7 +116,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     lord%floor = slave%floor
   end select
 
-  lord%status%floor_position = ok$
+  lord%bookkeeping_state%floor_position = ok$
 enddo
 
 end subroutine

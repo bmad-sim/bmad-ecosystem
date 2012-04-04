@@ -630,7 +630,7 @@ endif
 is_eq = is_eq .and. all(f1%map_ref_orb_in == f2%map_ref_orb_in)
 is_eq = is_eq .and. all(f1%map_ref_orb_out == f2%map_ref_orb_out) 
 is_eq = is_eq .and. (associated(f1%ptc_genfield) .eqv. associated(f2%ptc_genfield));  if (.not. is_eq) return 
-is_eq = is_eq .and. eq_bookkeeper_status(f1%status, f2%status) 
+is_eq = is_eq .and. eq_bookkeeper_status(f1%bookkeeping_state, f2%bookkeeping_state) 
 do i = 1, size(f1%taylor)
   if (.not. (f1%taylor(i) == f2%taylor(i))) then; is_eq = .false.; return; endif
 enddo

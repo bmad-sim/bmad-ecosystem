@@ -1870,7 +1870,7 @@ if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) then
   call set_ptc (taylor_order = bmad_com%taylor_order)
 endif
 
-ele%status%attributes = stale$
+ele%bookkeeping_state%attributes = stale$
 call attribute_bookkeeper (ele, param)
 
 ! Patch and Match elements are not implemented in PTC so just use the matrix.
@@ -1956,7 +1956,7 @@ if (abs(z_patch) > bmad_com%significant_length) then
   call add_taylor_term (ele%taylor(5), z_patch)
 endif
 
-ele%status%mat6 = stale$
+ele%bookkeeping_state%mat6 = stale$
 
 end subroutine ele_to_taylor
 

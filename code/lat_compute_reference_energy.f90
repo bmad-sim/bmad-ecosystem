@@ -53,17 +53,17 @@ do ib = 0, ubound(lat%branch, 1)
   if (bmad_com%auto_bookkeeper) then
     stale = .true.
   else
-    if (branch%param%status%ref_energy /= stale$) cycle
+    if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
     stale = .false.
   endif
 
-  branch%param%status%ref_energy = ok$
+  branch%param%bookkeeping_state%ref_energy = ok$
 
   ! Init energy at beginning of branch if needed.
 
   ele0 => branch%ele(0)
 
-  if (stale .or. ele0%status%ref_energy == stale$) then
+  if (stale .or. ele0%bookkeeping_state%ref_energy == stale$) then
     if (branch%ix_from_branch >= 0) then
 
       branch_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
@@ -99,7 +99,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       stale = .true.
-      ele0%status%ref_energy = ok$
+      ele0%bookkeeping_state%ref_energy = ok$
       ele0%time_ref_orb_out = 0
 
     endif
@@ -158,10 +158,10 @@ do ib = 0, ubound(lat%branch, 1)
     ele0 => branch%ele(i-1)
     ele => branch%ele(i)
 
-    if (.not. stale .and. ele%status%ref_energy /= stale$) cycle
+    if (.not. stale .and. ele%bookkeeping_state%ref_energy /= stale$) cycle
 
     stale = .true.
-    ele%status%ref_energy = ok$
+    ele%bookkeeping_state%ref_energy = ok$
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
       ibb = nint(ele%value(ix_branch_to$))
@@ -246,17 +246,17 @@ enddo
 
 ! Put the appropriate energy values in the lord elements...
 
-lat%param%status%ref_energy = ok$
+lat%param%bookkeeping_state%ref_energy = ok$
 
 do i = lat%n_ele_track+1, lat%n_ele_max
 
   lord => lat%ele(i)
 
-  if (.not. bmad_com%auto_bookkeeper .and. lord%status%ref_energy /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%ref_energy /= stale$) cycle
   if (lord%n_slave == 0) cycle   ! Can happen with null_ele$ elements for example.
 
   call set_ele_status_stale (lord, lat%param, attribute_group$)
-  lord%status%ref_energy = ok$
+  lord%bookkeeping_state%ref_energy = ok$
 
   ! Multipass lords have their enegy computed above.
 
@@ -507,7 +507,7 @@ end select
 ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 if (abs(ele%value(delta_ref_time$) - old_delta_ref_time) > bmad_com%significant_length / c_light) then
   if (associated (ele%taylor(1)%term) .and. ele%key /= taylor$) call kill_taylor (ele%taylor)
-  ele%status%mat6 = stale$
+  ele%bookkeeping_state%mat6 = stale$
 endif
 
 ! %old_value(delta_ref_time$) is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
