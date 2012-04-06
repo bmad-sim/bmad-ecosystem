@@ -526,12 +526,11 @@ mc2 = mass_of(param%particle) ! Note: mc2 is in eV
 
 charge = charge_of(param%particle) ! Note: charge is in units of |e_charge|
 
-!Get e_tot from momentum
-e_tot = sqrt( orbit%vec(2)**2 +  orbit%vec(4)**2 +  orbit%vec(6)**2 + mc2**2) 
 
-vel(1:3) = c_light*[  orbit%vec(2),  orbit%vec(4),  orbit%vec(6) ]/ e_tot ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
 
 !Set curvatures kappa_x and kappa_y
+h = 1
+
 if (ele%key == sbend$) then
   if (ele%value(tilt_tot$) /= 0 .and. .not. local_ref_frame) then
     kappa_x = ele%value(g$) * cos(ele%value(tilt_tot$))
@@ -543,19 +542,28 @@ if (ele%key == sbend$) then
   h = 1 + kappa_x *  orbit%vec(1) + kappa_y *  orbit%vec(3) ! h = 1 + \kappa_x * x + \kappa_y * y
 endif
 
+!Get e_tot from momentum
+e_tot = sqrt( orbit%vec(2)**2 +  orbit%vec(4)**2 +  orbit%vec(6) **2 + mc2**2) 
+
+vel(1:3) = c_light*[  orbit%vec(2),  orbit%vec(4),  orbit%vec(6) ]/ e_tot ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
+
+
 ! Computation for dr/dt where r(t) = [x, c*p_x, y, c*p_y, s, c*p_s]
+! 
 ! p_x = m c \beta_x \gamma
 ! p_y = m c \beta_y \gamma
-! p_s = m c \beta_s \gamma
+! p_s = m c h \beta_s \gamma 
+!
+! Note: v_s = (ds/dt) h, so ds/dt = v_s / h in the equations below
 !
 ! h = 1 + \kappa_x * x + \kappa_y * y
 !
 ! dx/dt   = v_x 
-! dcp_x/dt = cp_s * v_s * h * \kappa_x + c*charge * ( Ex + v_y * Bs - h * v_s * By )
+! dcp_x/dt = cp_s * v_s * \kappa_x / h + c*charge * ( Ex + v_y * Bs - v_s * By )
 ! dy/dt   = v_y
-! dcp_y/dt = cp_s * v_s * h * \kappa_y + c*charge * ( Ey + h * v_s * Bx - v_x * Bs )
-! ds/dt = v_s
-! dcp_s/dt = -(2/h) * cp_s * ( v_x * \kappa_x + v_y * \kappa_y ) + c*(charge/h) * ( Es + v_x By - v_y Bx )
+! dcp_y/dt = cp_s * v_s * \kappa_y / h + c*charge * ( Ey + * Bx - v_x * Bs )
+! ds/dt = v_s / h 
+! dcp_s/dt = -(1/h) * cp_s * ( v_x * \kappa_x + v_y * \kappa_y ) + c*charge * ( Es + v_x By - v_y Bx )
 
 if (ele%key /= sbend$) then   !Straight coordinate systems have a simple Lorentz force
  
@@ -570,15 +578,15 @@ if (ele%key /= sbend$) then   !Straight coordinate systems have a simple Lorentz
 else    !Curvilinear coordinates are more complicated
 
   dvec_dt(1) = vel(1)
-  dvec_dt(2) =  orbit%vec(6) * vel(3) * h * kappa_x + &
-                                    c_light*charge* (field%E(1) + vel(2)* field%B(3) - h*vel(3)*field%B(2))
+  dvec_dt(2) =  orbit%vec(6) * vel(3) * kappa_x / h + &
+                                    c_light*charge* ( field%E(1) + vel(2)* field%B(3) - vel(3)*field%B(2) )
   dvec_dt(3) = vel(2)
-  dvec_dt(4) =  orbit%vec(6) * vel(3) * h * kappa_y + &
-                                    c_light*charge* (field%E(2) + h*vel(3)* field%B(1) - vel(1)*field%B(3))
-  dvec_dt(5) = vel(3)
-  dvec_dt(6) = -(2/h)* orbit%vec(6)*(vel(1)*kappa_x + vel(2)*kappa_y) + &
-                                   (c_light*charge/h)*( field%E(3) + vel(1)* field%B(2) - vel(2)*field%B(1))
-
+  dvec_dt(4) =  orbit%vec(6) * vel(3) * kappa_y / h + &
+                                    c_light*charge* ( field%E(2) + vel(3)* field%B(1) - vel(1)*field%B(3) )
+  dvec_dt(5) = vel(3) / h
+  dvec_dt(6) = -orbit%vec(6) * ( vel(1)*kappa_x + vel(2)*kappa_y ) / h + &
+                                    c_light*charge* ( field%E(3) + vel(1)* field%B(2) - vel(2)*field%B(1) )
+                                    
 endif
 
 end subroutine em_field_kick_vector_time

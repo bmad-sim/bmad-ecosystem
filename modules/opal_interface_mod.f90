@@ -52,7 +52,7 @@ type (char_indexx_struct) :: fieldgrid_names, ele_names
 integer, allocatable      :: ele_name_occurrences(:)
 
 real(rp), pointer :: val(:)
-real(rp)        :: absmax_Ez, absmax_Bz, phase_lag, freq
+real(rp)        :: absmax_Ez, absmax_Bz, phase_lag, freq, gap
 
 character(40)   :: fieldgrid_output_name
 
@@ -188,7 +188,13 @@ ele_loop: do ie = ix_start, ix_end
 	call value_to_line (line, q_sign*val(e1$), 'E1', rfmt, 'R')
 	call value_to_line (line, q_sign*val(e2$), 'E2', rfmt, 'R')
   !Full GAP (OPAL) =  2*H_GAP (BMAD)
-	call value_to_line (line, 2*val(hgap$), 'GAP', rfmt, 'R')
+  !OPAL will not use the field map if the gap is zero
+    if ( val(hgap$) == 0) then
+      gap = 1e-6_rp
+	else
+      gap = 2*val(hgap$)
+	endif
+	call value_to_line (line, gap, 'GAP', rfmt, 'R')
 
   write (line, '(2a)') trim(line),  ', fmapfn = "1DPROFILE1-DEFAULT"' 
 
