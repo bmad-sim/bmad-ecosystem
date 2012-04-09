@@ -64,9 +64,9 @@ character(16), parameter :: r_name = 'make_mat6'
 if (present(err_flag)) err_flag = .true.
 
 if (present(start_orb)) then
-  a_start_orb = start_orb
+  call init_coord (a_start_orb, start_orb%vec, ele, param%particle)
 else
-  call init_coord (a_start_orb)
+  call init_coord (a_start_orb, ele = ele, particle = param%particle)
 endif
 
 end_input = (logic_option (.false., end_in) .and. present(end_orb))

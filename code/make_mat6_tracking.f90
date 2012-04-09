@@ -66,6 +66,7 @@ if (bmad_com%mat6_track_symmetric) then
     call track1 (start, ele, param, end2)
 
     start = c0
+    start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) - del_orb(i)
     call track1 (start, ele, param, end1)
 

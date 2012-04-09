@@ -299,21 +299,22 @@ if (associated(ele%em_field)) then
       else
         name = attribute_name(ele, rfm%master_scale)
       endif
-      nl=nl+1; write (li(nl), '(a, i0)')     'Mode #:', i
-      nl=nl+1; write (li(nl), '(a, i0)')     '    m:             ', rfm%m
-      nl=nl+1; write (li(nl), '(a, i0)')     '    harmonic:      ', rfm%harmonic
-      nl=nl+1; write (li(nl), '(2a)')        '    master_scale:  ', trim(name)
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    f_damp:        ', rfm%f_damp
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    dphi0_ref:     ', rfm%dphi0_ref
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    phi0_azimuth:  ', rfm%phi0_azimuth
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    field_scale:   ', rfm%field_scale
+      nl=nl+1; li(nl) = ''
+      nl=nl+1; write (li(nl), '(a, i0)')        'Mode #:', i
+      nl=nl+1; write (li(nl), '(a, i0)')        '    m:             ', rfm%m
+      nl=nl+1; write (li(nl), '(a, i0)')        '    harmonic:      ', rfm%harmonic
+      nl=nl+1; write (li(nl), '(2a)')           '    master_scale:  ', trim(name)
+      nl=nl+1; write (li(nl), '(a, es16.8)')    '    f_damp:        ', rfm%f_damp
+      nl=nl+1; write (li(nl), '(a, es16.8)')    '    dphi0_ref:     ', rfm%dphi0_ref
+      nl=nl+1; write (li(nl), '(a, es16.8)')    '    phi0_azimuth:  ', rfm%phi0_azimuth
+      nl=nl+1; write (li(nl), '(a, es16.8)')    '    field_scale:   ', rfm%field_scale
 
       if (associated(rfm%map)) then
-        nl=nl+1; write (li(nl), '(2a)')        '    File:         ', trim(rfm%map%file)
-        nl=nl+1; write (li(nl), '(2a)')        '    ele_anchor_pt:', anchor_pt_name(rfm%map%ele_anchor_pt)
-        nl=nl+1; write (li(nl), '(a, i0)')     '    n_link:       ', rfm%map%n_link
-        nl=nl+1; write (li(nl), '(a, es16.8)') '    dz:           ', rfm%map%dz
-        nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
+        nl=nl+1; write (li(nl), '(2a)')         '    File:          ', trim(rfm%map%file)
+        nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt: ', anchor_pt_name(rfm%map%ele_anchor_pt)
+        nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:        ', rfm%map%n_link
+        nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:            ', rfm%map%dz
+        nl=nl+1; write (li(nl), '(a)')          '  Term                e                           b'
         do j = 1, min(10, size(rfm%map%term))
           if (nl+1 > size(li)) call re_associate(li, 2 * nl)
           nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
@@ -325,13 +326,13 @@ if (associated(ele%em_field)) then
       endif
 
       if (associated(rfm%grid)) then
-        nl=nl+1; write (li(nl), '(2a)')         '    File:         ', trim(rfm%grid%file)
-        nl=nl+1; write (li(nl), '(2a)')         '    Type:         ', em_grid_type_name(rfm%grid%type)
-        nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt:', anchor_pt_name(rfm%grid%ele_anchor_pt)
-        nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:       ', rfm%grid%n_link
-        nl=nl+1; write (li(nl), '(a, 3es16.8)') '    dr:           ', rfm%grid%dr
-        nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:           ', rfm%grid%r0
-        nl=nl+1; write (li(nl), '(a, i0)')      '    #Points:      ', size(rfm%grid%pt)
+        nl=nl+1; write (li(nl), '(2a)')         '    File:          ', trim(rfm%grid%file)
+        nl=nl+1; write (li(nl), '(2a)')         '    Type:          ', em_grid_type_name(rfm%grid%type)
+        nl=nl+1; write (li(nl), '(2a)')         '    ele_anchor_pt: ', anchor_pt_name(rfm%grid%ele_anchor_pt)
+        nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:        ', rfm%grid%n_link
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:            ', rfm%grid%dr
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:            ', rfm%grid%r0
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max - r0:    ', ubound(rfm%grid%pt)*rfm%grid%dr - rfm%grid%r0
       endif
 
     enddo
