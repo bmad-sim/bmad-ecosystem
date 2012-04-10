@@ -567,10 +567,10 @@ if (ele%key == sbend$) then
   endif
   h = 1 + kappa_x *  orbit%vec(1) + kappa_y *  orbit%vec(3) ! h = 1 + \kappa_x * x + \kappa_y * y
 
-  dvec_dt(2) = dvec_dt(2) +  orbit%vec(6) * vel(3) * kappa_x / h
-  dvec_dt(4) = dvec_dt(4) +  orbit%vec(6) * vel(3) * kappa_y / h
+  dvec_dt(2) = dvec_dt(2) + orbit%vec(6) * vel(3) * kappa_x / h
+  dvec_dt(4) = dvec_dt(4) + orbit%vec(6) * vel(3) * kappa_y / h
   dvec_dt(5) = vel(3) / h
-  dvec_dt(6) = dvec_dt(6) - orbit%vec(6) * ( vel(1)*kappa_x + vel(2)*kappa_y ) / h
+  dvec_dt(6) = dvec_dt(6) - orbit%vec(6) * (vel(1)*kappa_x + vel(2)*kappa_y) / h
 endif
 
 end subroutine em_field_kick_vector_time

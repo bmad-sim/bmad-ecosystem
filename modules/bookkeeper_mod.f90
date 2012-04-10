@@ -1134,7 +1134,7 @@ type (ele_struct), pointer :: lord, slave0, lord1
 type (ele_struct) :: sol_quad
 type (branch_struct), pointer :: branch
 
-integer i, j, ix_con, ix, ix_slave, ix_lord
+integer i, j, ix_con, ix, ix_slave, ix_lord, ix_order
 
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
@@ -1174,15 +1174,16 @@ slave%field_calc = refer_to_lords$
 
 if (slave%n_lord == 1) then
 
-  lord => pointer_to_lord(slave, 1, ix_con)
-  is_first = (ix_con == lord%ix1_slave)
-  is_last  = (ix_con == lord%ix2_slave)
+  lord => pointer_to_lord(slave, 1, ix_con, ix_order)
+  is_first = (ix_order == 1)
+  is_last  = (ix_order == lord%n_slave)
 
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
     if (.not. all(slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out)) then
-      slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
+      slave0 => pointer_to_slave(lord, ix_order-1)
+      slave%map_ref_orb_in = slave0%map_ref_orb_out
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
   endif
