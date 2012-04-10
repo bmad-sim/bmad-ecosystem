@@ -8,7 +8,6 @@ type (ele_struct), save, private, pointer :: ele_com
 type (lat_param_struct), save, private, pointer :: param_com
 type (coord_struct), save, private, pointer ::  orb_old_com
 type (coord_struct), save, private, pointer :: orb_com
-real(rp), save, private, pointer :: dvec_dt_com(:)
 real(rp), save, private, pointer :: vec_err_com(:)
 real(rp), save, private, pointer :: s_target_com, t_old_com
 real(rp), save, private, pointer :: t_rel_com
@@ -73,12 +72,9 @@ type (lat_param_struct), target ::  param
 type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2, dt1
-real(rp), target :: t_rel, t_old
-
-real(rp), parameter :: tiny = 1.0e-30_rp
+real(rp), target :: t_rel, t_old, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save
 real(rp), target  :: dvec_dt(6), vec_err(6), s_target
-real(rp) sqrt_n, rel_tol_eff, abs_tol_eff, r_scal(6), dt_min, rel_tol, abs_tol, dt_tol
 
 integer, parameter :: max_step = 100000
 integer :: n_step, n_pt
@@ -91,9 +87,6 @@ character(30), parameter :: r_name = 'odeint_bmad_time'
 ! init
 ds_safe = bmad_com%significant_length / 10
 dt_next = dt1
-dt_min = 1e-8  ! Minimum step size (can be zero).
-rel_tol = bmad_com%rel_tol_adaptive_tracking
-abs_tol = bmad_com%abs_tol_adaptive_tracking
 
 ! local s coordinates for vec(5)
 orb%vec(5) = orb%s - (ele%s - ele%value(l$))
@@ -113,23 +106,12 @@ err_flag = .true.
 
 do n_step = 1, max_step
 
-  ! Calc tolerances
-  ! Note that s is in the element frame
-
-  call em_field_kick_vector_time (ele, param, t_rel, orb, local_ref_frame, dvec_dt) 
-
-  dt = dt_next
-  sqrt_N = sqrt(abs((s2-s1)/dt))  ! number of steps we would take with this h
-  rel_tol_eff = rel_tol / sqrt_N
-  abs_tol_eff = abs_tol / sqrt_N
-  r_scal(:) = abs(orb%vec(:)) + abs(dt*dvec_dt(:)) + TINY
-
   ! Single Runge-Kutta step. Updates orb% vec(6), s, and t 
 
+  dt = dt_next
   orb_old = orb
   t_old = t_rel
-  call rk_adaptive_time_step (ele, param, orb, dvec_dt, t_rel, dt, &
-                  rel_tol_eff, abs_tol_eff, r_scal, dt_did, dt_next, local_ref_frame, err)
+  call rk_adaptive_time_step (ele, param, orb, t_rel, dt, dt_did, dt_next, local_ref_frame, err)
 
   ! Check entrance and exit faces
   if (orb%vec(5) > s2 - ds_safe .or. orb%vec(5) < s1 + ds_safe) then
@@ -150,7 +132,6 @@ do n_step = 1, max_step
     param_com => param
     orb_old_com => orb_old
     orb_com => orb
-    dvec_dt_com => dvec_dt
     vec_err_com => vec_err
     local_ref_frame_com => local_ref_frame
     s_target_com => s_target
@@ -205,8 +186,8 @@ end subroutine odeint_bmad_time
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-subroutine rk_adaptive_time_step (ele, param, orb, dr_dt, t, dt_try, rel_tol, abs_tol, &
-                                       r_scal, dt_did, dt_next, local_ref_frame, err_flag)
+
+subroutine rk_adaptive_time_step (ele, param, orb, t, dt_try, dt_did, dt_next, local_ref_frame, err_flag)
 
 implicit none
 
@@ -214,18 +195,28 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new
 
-real(rp), intent(in)    :: dr_dt(6), r_scal(6)
 real(rp), intent(inout) :: t
-real(rp), intent(in)    :: dt_try, rel_tol, abs_tol
+real(rp), intent(in)    :: dt_try
 real(rp), intent(out)   :: dt_did, dt_next
 
-real(rp) :: err_max, dt, dt_temp, t_new, p2, rel_pc
-real(rp) :: r_err(6), r_temp(6)
+real(rp) :: sqrt_n, err_max, dt, dt_temp, t_new, p2, rel_pc
+real(rp) :: r_err(6), r_temp(6), dr_dt(6)
+real(rp) :: r_scal(6), rel_tol, abs_tol
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
+real(rp), parameter :: tiny = 1.0e-30_rp
 
 logical local_ref_frame, err_flag
 character(20), parameter :: r_name = 'rf_adaptive_time_step'
+
+! Calc tolerances
+! Note that s is in the element frame
+
+call em_field_kick_vector_time (ele, param, t, orb, local_ref_frame, dr_dt) 
+
+sqrt_N = sqrt(abs(1/(c_light*dt_next)))  ! number of steps we would take to cover 1 meter
+rel_tol = bmad_com%rel_tol_adaptive_tracking / sqrt_N
+abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
 
 !
 
@@ -234,7 +225,9 @@ orb_new = orb
 
 do
 
-  call rk_time_step1 (ele, param, orb, dr_dt, t, dt, orb_new, r_err, local_ref_frame)
+  call rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt)
+  r_scal(:) = abs(orb%vec) + abs(orb_new%vec) + TINY
+  r_scal(5) = ele%value(l$)
   err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
   if (err_max <=  1.0) exit
   dt_temp = safety * dt * (err_max**p_shrink)
@@ -265,7 +258,7 @@ end subroutine rk_adaptive_time_step
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-subroutine rk_time_step1 (ele, param, orb, dr_dt, t, dt, orb_new, r_err, local_ref_frame)
+subroutine rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt)
 
 !Very similar to rk_step1_bmad, except that em_field_kick_vector_time is called
 !  and orb_new%s and %t are updated to the global values
@@ -276,10 +269,10 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new, orb_temp
 
-real(rp), intent(in) :: dr_dt(6)
+real(rp), optional, intent(in) :: dr_dt(6)
 real(rp), intent(in) :: t, dt
 real(rp), intent(out) :: r_err(6)
-real(rp) :: ak2(6), ak3(6), ak4(6), ak5(6), ak6(6), r_temp(6), pc
+real(rp) :: dr_dt1(6), dr_dt2(6), dr_dt3(6), dr_dt4(6), dr_dt5(6), dr_dt6(6), r_temp(6), pc
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
     b32=9.0_rp/40.0_rp, b41=0.3_rp, b42=-0.9_rp, b43=1.2_rp, &
@@ -297,30 +290,36 @@ logical local_ref_frame
 
 !
 
-orb_temp%vec = orb%vec + b21*dt*dr_dt
-call em_field_kick_vector_time(ele, param, t+a2*dt, orb_temp, local_ref_frame, ak2)
+if (present(dr_dt)) then
+  dr_dt1 = dr_dt
+else
+  call em_field_kick_vector_time(ele, param, t, orb, local_ref_frame, dr_dt1)
+endif
 
-orb_temp%vec = orb%vec + dt*(b31*dr_dt+b32*ak2)
-call em_field_kick_vector_time(ele, param, t+a3*dt, orb_temp, local_ref_frame, ak3) 
+orb_temp%vec = orb%vec + b21*dt*dr_dt1
+call em_field_kick_vector_time(ele, param, t+a2*dt, orb_temp, local_ref_frame, dr_dt2)
 
-orb_temp%vec = orb%vec + dt*(b41*dr_dt+b42*ak2+b43*ak3)
-call em_field_kick_vector_time(ele, param, t+a4*dt, orb_temp, local_ref_frame, ak4)
+orb_temp%vec = orb%vec + dt*(b31*dr_dt1+b32*dr_dt2)
+call em_field_kick_vector_time(ele, param, t+a3*dt, orb_temp, local_ref_frame, dr_dt3) 
 
-orb_temp%vec = orb%vec + dt*(b51*dr_dt+b52*ak2+b53*ak3+b54*ak4)
-call em_field_kick_vector_time(ele, param, t+a5*dt, orb_temp, local_ref_frame, ak5)
+orb_temp%vec = orb%vec + dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3)
+call em_field_kick_vector_time(ele, param, t+a4*dt, orb_temp, local_ref_frame, dr_dt4)
 
-orb_temp%vec = orb%vec + dt*(b61*dr_dt+b62*ak2+b63*ak3+b64*ak4+b65*ak5)
-call em_field_kick_vector_time(ele, param, t+a6*dt, orb_temp, local_ref_frame, ak6)
+orb_temp%vec = orb%vec + dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4)
+call em_field_kick_vector_time(ele, param, t+a5*dt, orb_temp, local_ref_frame, dr_dt5)
+
+orb_temp%vec = orb%vec + dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5)
+call em_field_kick_vector_time(ele, param, t+a6*dt, orb_temp, local_ref_frame, dr_dt6)
 
 !Output new orb and error vector
 
-orb_new%vec = orb%vec +dt*(c1*dr_dt+c3*ak3+c4*ak4+c6*ak6)
+orb_new%vec = orb%vec +dt*(c1*dr_dt1+c3*dr_dt3+c4*dr_dt4+c6*dr_dt6)
 orb_new%t = orb%t + dt
 orb_new%s = orb%s + orb_new%vec(5) - orb%vec(5)
 pc = sqrt(orb_new%vec(2)**2 +orb_new%vec(4)**2 + orb_new%vec(6)**2)
 call convert_pc_to (pc, param%particle, beta = orb_new%beta)
 
-r_err = dt*(dc1*dr_dt+dc3*ak3+dc4*ak4+dc5*ak5+dc6*ak6)
+r_err = dt*(dc1*dr_dt1+dc3*dr_dt3+dc4*dr_dt4+dc5*dr_dt5+dc6*dr_dt6)
 
 end subroutine rk_time_step1
 
@@ -332,7 +331,7 @@ end subroutine rk_time_step1
 function delta_s_target (this_dt)
   real(rp), intent(in)  :: this_dt
   real(rp) :: delta_s_target
-  call rk_time_step1 (ele_com, param_com, orb_old_com, dvec_dt_com, &
+  call rk_time_step1 (ele_com, param_com, orb_old_com, &
                           t_old_com, this_dt, orb_com, vec_err_com, local_ref_frame_com)
   delta_s_target = orb_com%vec(5) - s_target_com
   t_rel_com = t_old_com + this_dt
@@ -512,41 +511,22 @@ real(rp) :: pc, e_tot, mc2, gamma, charge, beta, p0, h
 
 logical :: local_ref_frame
 
-character(24), parameter :: r_name = 'em_field_kick_vector_time'
-
+character(28), parameter :: r_name = 'em_field_kick_vector_time'
 
 ! calculate the field. 
 ! Note that only orbit%vec(1) = x and orbit%vec(3) = y are used in em_field_calc,
-!	and they coincide in both coordinate systems,
-!	so we can use the 'normal' routine:
+!	and they coincide in both coordinate systems, so we can use the 'normal' routine:
 
 call em_field_calc (ele, param, orbit%vec(5), t_rel, orbit, local_ref_frame, field, .false.)
 
-mc2 = mass_of(param%particle) ! Note: mc2 is in eV
+! Get e_tot from momentum
+! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
 
+mc2 = mass_of(param%particle) ! Note: mc2 is in eV
 charge = charge_of(param%particle) ! Note: charge is in units of |e_charge|
 
-
-
-!Set curvatures kappa_x and kappa_y
-h = 1
-
-if (ele%key == sbend$) then
-  if (ele%value(tilt_tot$) /= 0 .and. .not. local_ref_frame) then
-    kappa_x = ele%value(g$) * cos(ele%value(tilt_tot$))
-    kappa_y = ele%value(g$) * sin(ele%value(tilt_tot$))
-  else
-    kappa_x = ele%value(g$)
-    kappa_y = 0
-  endif
-  h = 1 + kappa_x *  orbit%vec(1) + kappa_y *  orbit%vec(3) ! h = 1 + \kappa_x * x + \kappa_y * y
-endif
-
-!Get e_tot from momentum
 e_tot = sqrt( orbit%vec(2)**2 +  orbit%vec(4)**2 +  orbit%vec(6) **2 + mc2**2) 
-
-vel(1:3) = c_light*[  orbit%vec(2),  orbit%vec(4),  orbit%vec(6) ]/ e_tot ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
-
+vel(1:3) = c_light*[  orbit%vec(2),  orbit%vec(4),  orbit%vec(6) ]/ e_tot 
 
 ! Computation for dr/dt where r(t) = [x, c*p_x, y, c*p_y, s, c*p_s]
 ! 
@@ -565,28 +545,32 @@ vel(1:3) = c_light*[  orbit%vec(2),  orbit%vec(4),  orbit%vec(6) ]/ e_tot ! velo
 ! ds/dt = v_s / h 
 ! dcp_s/dt = -(1/h) * cp_s * ( v_x * \kappa_x + v_y * \kappa_y ) + c*charge * ( Es + v_x By - v_y Bx )
 
-if (ele%key /= sbend$) then   !Straight coordinate systems have a simple Lorentz force
- 
-  force = charge * (field%E + cross_product(vel, field%B))
-  dvec_dt(1) = vel(1)
-  dvec_dt(2) = c_light*force(1)
-  dvec_dt(3) = vel(2)
-  dvec_dt(4) = c_light*force(2)
-  dvec_dt(5) = vel(3)
-  dvec_dt(6) = c_light*force(3)
+! Straight coordinate systems have a simple Lorentz force
 
-else    !Curvilinear coordinates are more complicated
+force = charge * (field%E + cross_product(vel, field%B))
+dvec_dt(1) = vel(1)
+dvec_dt(2) = c_light*force(1)
+dvec_dt(3) = vel(2)
+dvec_dt(4) = c_light*force(2)
+dvec_dt(5) = vel(3)
+dvec_dt(6) = c_light*force(3)
 
-  dvec_dt(1) = vel(1)
-  dvec_dt(2) =  orbit%vec(6) * vel(3) * kappa_x / h + &
-                                    c_light*charge* ( field%E(1) + vel(2)* field%B(3) - vel(3)*field%B(2) )
-  dvec_dt(3) = vel(2)
-  dvec_dt(4) =  orbit%vec(6) * vel(3) * kappa_y / h + &
-                                    c_light*charge* ( field%E(2) + vel(3)* field%B(1) - vel(1)*field%B(3) )
+! Curvilinear coordinates have added terms
+
+if (ele%key == sbend$) then   
+  if (ele%value(tilt_tot$) /= 0 .and. .not. local_ref_frame) then
+    kappa_x = ele%value(g$) * cos(ele%value(tilt_tot$))
+    kappa_y = ele%value(g$) * sin(ele%value(tilt_tot$))
+  else
+    kappa_x = ele%value(g$)
+    kappa_y = 0
+  endif
+  h = 1 + kappa_x *  orbit%vec(1) + kappa_y *  orbit%vec(3) ! h = 1 + \kappa_x * x + \kappa_y * y
+
+  dvec_dt(2) = dvec_dt(2) +  orbit%vec(6) * vel(3) * kappa_x / h
+  dvec_dt(4) = dvec_dt(4) +  orbit%vec(6) * vel(3) * kappa_y / h
   dvec_dt(5) = vel(3) / h
-  dvec_dt(6) = -orbit%vec(6) * ( vel(1)*kappa_x + vel(2)*kappa_y ) / h + &
-                                    c_light*charge* ( field%E(3) + vel(1)* field%B(2) - vel(2)*field%B(1) )
-                                    
+  dvec_dt(6) = dvec_dt(6) - orbit%vec(6) * ( vel(1)*kappa_x + vel(2)*kappa_y ) / h
 endif
 
 end subroutine em_field_kick_vector_time

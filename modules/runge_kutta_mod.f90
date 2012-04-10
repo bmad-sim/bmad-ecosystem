@@ -72,7 +72,7 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2
 real(rp), parameter :: tiny = 1.0e-30_rp, ds_safe = 1e-12_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
-real(rp) :: dr_ds(7), r_scal(7), rel_tol, abs_tol, t, s_edge_track, s_edge_hard, direction
+real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, direction
 real(rp) ds1, ds_min
 
 integer, parameter :: max_step = 10000
@@ -88,8 +88,6 @@ logical local_ref_frame, err_flag, err, at_hard_edge
 
 ds1 = 1e-3     ! Initial guess for a step size.
 ds_min = 1e-8  ! Minimum step size (can be zero).
-rel_tol = bmad_com%rel_tol_adaptive_tracking
-abs_tol = bmad_com%abs_tol_adaptive_tracking
 
 err_flag = .true.
 s = s1
@@ -164,10 +162,10 @@ do n_step = 1, max_step
     ds_save = ds
     ds = (s_edge_track - s - ds_safe / 2) * direction
   endif
-  
+
   sqrt_N = sqrt(abs((s2-s1)/ds))  ! number of steps we would take with this ds
-  rel_tol_eff = rel_tol / sqrt_N
-  abs_tol_eff = abs_tol / sqrt_N
+  rel_tol_eff = bmad_com%rel_tol_adaptive_tracking / sqrt_N
+  abs_tol_eff = bmad_com%abs_tol_adaptive_tracking / sqrt_N
   r_scal(:) = abs([orb_end%vec(:), t]) + abs(ds*dr_ds(:)) + TINY
 
   call rk_adaptive_step (ele, param, orb_end, dr_ds, s, t, ds, &
