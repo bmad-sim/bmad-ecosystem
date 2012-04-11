@@ -20,21 +20,21 @@ other variables. If branching is present (\sref{s:branching}), these
 variables pertain to the \vn{root} branch. The variables that can be
 set by \vn{parameter} are
 \begin{example}
-  parameter[lattice]       = <String>        ! Lattice name 
-  parameter[lattice_type]  = <Switch>        ! 
-  parameter[taylor_order]  = <Integer>       ! Default: 3
+  parameter[absolute_time_tracking] = <Logical>  ! Absolute time used for RF clock?
+  parameter[aperture_limit_on]      = <Logical>  ! Use aperture limits in tracking.
   parameter[e_tot]         = <Real>          ! Reference total Energy. 
                                              !      Default: 1000 * rest_energy.
-  parameter[p0c]           = <Real>          ! Reference momentum.
+  parameter[lattice]       = <String>        ! Lattice name 
+  parameter[lattice_type]  = <Switch>        ! 
   parameter[n_part]        = <Real>          ! Number of particles in a bunch.
-  parameter[ran_seed]      = <Integer>       ! Random number generator init.
-  parameter[particle]      = <particle_type> ! Eg: positron, antiproton, etc.
   parameter[no_end_marker] = <Logical>       ! Default: False.
-  parameter[aperture_limit_on]      = <Logical>  ! Use aperture limits in tracking.
-  parameter[root_branch_name]       = "<name>"   ! Name of the root branch.
+  parameter[p0c]           = <Real>          ! Reference momentum.
+  parameter[particle]      = <particle_type> ! Eg: positron, antiproton, etc.
+  parameter[ran_seed]      = <Integer>       ! Random number generator init.
   parameter[rf_auto_scale_phase]    = <Logical>  ! RF automatic phase scaling.
   parameter[rf_auto_scale_amp]      = <Logical>  ! RF automatic amplitude scaling.
-  parameter[absolute_time_tracking] = <Logical>  ! Absolute time used for RF clock?
+  parameter[root_branch_name]       = "<name>"   ! Name of the root branch.
+  parameter[taylor_order]  = <Integer>       ! Default: 3
   parameter[use_single_ptc_fiber]   = <Logical>  ! Use single ptc fiber for calculations?
 \end{example}
 
@@ -212,25 +212,26 @@ are the same as \vn{parameter[particle]}.
 \index{alpha_b}\index{phi_b}
 \index{eta_y}\index{etap_y}
 \index{cmat_ij}\index{e_tot}
-\index{p0c}
+\index{p0c}\index{ref_time}
 For non--circular lattices, the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the lattice.
 If branching is present (\sref{s:branching}), these variables
 pertain to the \vn{root} branch. \begin{example}
-  beginning[beta_a]  = <Real>  ! "a" mode beta
-  beginning[alpha_a] = <Real>  ! "a" mode alpha
-  beginning[phi_a]   = <Real>  ! "a" mode phase
-  beginning[eta_x]   = <Real>  ! x-axis dispersion
-  beginning[etap_x]  = <Real>  ! x-axis dispersion derivative.
-  beginning[beta_b]  = <Real>  ! "b" mode beta
-  beginning[alpha_b] = <Real>  ! "b" mode alpha
-  beginning[phi_b]   = <Real>  ! "b" mode phase
-  beginning[eta_y]   = <Real>  ! y-axis dispersion
-  beginning[etap_y]  = <Real>  ! y-axis dispersion derivative.
-  beginning[cmat_ij] = <Real>  ! C coupling matrix. i, j = {``1'', or ``2''} 
-  beginning[s]       = <Real>  ! Longitudinal starting position.
-  beginning[e_tot]   = <Real>  ! Reference total energy in eV.
-  beginning[p0c]     = <Real>  ! Reference momentum in eV.
+  beginning[alpha_a]  = <Real>  ! "a" mode alpha
+  beginning[alpha_b]  = <Real>  ! "b" mode alpha
+  beginning[beta_a]   = <Real>  ! "a" mode beta
+  beginning[beta_b]   = <Real>  ! "b" mode beta
+  beginning[cmat_ij]  = <Real>  ! C coupling matrix. i, j = {``1'', or ``2''} 
+  beginning[e_tot]    = <Real>  ! Reference total energy in eV.
+  beginning[eta_x]    = <Real>  ! x-axis dispersion
+  beginning[eta_y]    = <Real>  ! y-axis dispersion
+  beginning[etap_x]   = <Real>  ! x-axis dispersion derivative.
+  beginning[etap_y]   = <Real>  ! y-axis dispersion derivative.
+  beginning[p0c]      = <Real>  ! Reference momentum in eV.
+  beginning[phi_a]    = <Real>  ! "a" mode phase.
+  beginning[phi_b]    = <Real>  ! "b" mode phase.
+  beginning[ref_time] = <Real>  ! Starting reference time.
+  beginning[s]        = <Real>  ! Longitudinal starting position.
 \end{example}
 \index{e_tot}
 The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma

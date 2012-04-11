@@ -101,6 +101,8 @@ do ib = 0, ubound(lat%branch, 1)
       stale = .true.
       ele0%bookkeeping_state%ref_energy = ok$
       ele0%time_ref_orb_out = 0
+      ele0%value(delta_ref_time$) = 0
+      ele0%value(ref_time_start$) = ele0%ref_time
 
     endif
   endif
