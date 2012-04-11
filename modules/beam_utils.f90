@@ -949,12 +949,6 @@ enddo
 
 if (beam_init%renorm_sigma .and. n_particle > 1) then
 
-  if (n_particle < 7) then
-    call out_io (s_abort$, r_name, &
-        'INITIALIZATION WITH RENORM_SIGMA MUST USE AT LEAST 7 PARTICLES!')
-    if (bmad_status%exit_on_error) call err_exit
-  endif
-
   ! This accounts for subtracting off the average
   forall (i = 1:6, j = 1:6) sig_mat(i,j) = sig_mat(i,j) - ave(i) * ave(j)
 
