@@ -52,7 +52,12 @@ CONFIG_DIRS  :=
 LOCAL_INCS   := synrad3d
 SRC_EXCLUDE  :=
 
-
+ifneq (,$(findstring $(USE_PGPLOT),yY))	 
+  M_FILE_LIST  := M.synrad3d M.dynamic_aperture M.synrad M.bbu M.synrad M.synrad_aperture_to_wall M.analyzer M.tune_plane_res_plot	 
+else	 
+  M_FILE_LIST  := M.synrad3d M.dynamic_aperture M.synrad M.bbu M.synrad M.synrad_aperture_to_wall	 
+endif	 
+ 
 
 
 
