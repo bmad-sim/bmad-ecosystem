@@ -125,16 +125,19 @@ endif
 
 ! Non-elemental stuff
 
-if (lat%title /= ' ') write (iu, *) 'title, "', trim(lat%title), '"'
-if (lat%lattice /= ' ') write (iu, *) 'parameter[lattice] = "', trim(lat%lattice), '"'
-write (iu, *) 'parameter[lattice_type] = ', lattice_type(lat%param%lattice_type)
-if (lat%input_taylor_order /= 0) write (iu, *) 'parameter[taylor_order] =', lat%input_taylor_order
+if (lat%title /= ' ')            write (iu, '(4a)')    'title, "', trim(lat%title), '"'
+if (lat%lattice /= ' ')          write (iu, '(4a)')    'parameter[lattice]     = "', trim(lat%lattice), '"'
+
+write (iu, '(4a)') 'parameter[lattice_type] = ', lattice_type(lat%param%lattice_type)
+
+if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] = ', lat%input_taylor_order
 
 write (iu, *)
-write (iu, *) 'parameter[p0c] =', trim(str(lat%ele(0)%value(p0c$)))
-write (iu, *) 'parameter[particle] = ', particle_name(lat%param%particle)
-if (.not. lat%param%aperture_limit_on) write (iu, *) 'parameter[aperture_limit_on] = F'
-if (lat%param%n_part /= 0) write (iu, *) 'parameter[n_part] = ', lat%param%n_part
+write (iu, '(4a)')    'parameter[p0c]                    =', trim(str(lat%ele(0)%value(p0c$)))
+write (iu, '(4a)')    'parameter[particle]               = ', particle_name(lat%param%particle)
+
+if (.not. lat%param%aperture_limit_on) write (iu, '(4a)')    'parameter[aperture_limit_on]      = F'
+if (lat%param%n_part /= 0)             write (iu, '(a, i0)') 'parameter[n_part]                 = ', lat%param%n_part
 
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_phase]    = ', lat%rf_auto_scale_phase
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_amp]      = ', lat%rf_auto_scale_amp
@@ -143,9 +146,9 @@ write (iu, '(a, l1)') 'parameter[no_end_marker]          = ', .true.
 
 ele => lat%ele(0) 
 
-if (ele%floor%x /= 0)      write (iu, '(2a)') 'beginning[x_position] = ', trim(str(ele%floor%x))
-if (ele%floor%y /= 0)      write (iu, '(2a)') 'beginning[y_position] = ', trim(str(ele%floor%y))
-if (ele%floor%z /= 0)      write (iu, '(2a)') 'beginning[z_position] = ', trim(str(ele%floor%z))
+if (ele%floor%x /= 0)      write (iu, '(2a)') 'beginning[x_position]     = ', trim(str(ele%floor%x))
+if (ele%floor%y /= 0)      write (iu, '(2a)') 'beginning[y_position]     = ', trim(str(ele%floor%y))
+if (ele%floor%z /= 0)      write (iu, '(2a)') 'beginning[z_position]     = ', trim(str(ele%floor%z))
 if (ele%floor%theta /= 0)  write (iu, '(2a)') 'beginning[theta_position] = ', trim(str(ele%floor%theta))
 if (ele%floor%phi /= 0)    write (iu, '(2a)') 'beginning[phi_position]   = ', trim(str(ele%floor%phi))
 if (ele%floor%psi /= 0)    write (iu, '(2a)') 'beginning[psi_position]   = ', trim(str(ele%floor%psi))
@@ -340,7 +343,8 @@ do ib = 0, ubound(lat%branch, 1)
         iu2 = lunget()
  
         ix = splitfilename(file_name, path, basename)
-        open (iu2, file = trim(path) // '/wall_' // trim(name))
+        
+        open (iu2, file = trim(path) // 'wall_' // trim(name))
         write (iu2, *) '{ &'
         write (iu2, '(2x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(ele%wall3d%ele_anchor_pt)), ','
         do i = 1, size(ele%wall3d%section)
