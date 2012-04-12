@@ -2727,6 +2727,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), optional, target :: ele
 type (branch_struct), pointer :: branch
+type (em_field_mode_struct), pointer :: mode
 
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
@@ -2735,7 +2736,7 @@ real(rp), target :: unknown_attrib
 
 integer i, j, ib
 
-logical coupling_change
+logical coupling_change, found
 
 ! If ele is not present then must reinit everything.
 
@@ -2905,6 +2906,18 @@ case (lcavity$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
       associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
     call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  endif
+
+  if (associated(ele%em_field)) then
+    found = .false.
+    do i = 1, size(ele%em_field%mode)
+      mode => ele%em_field%mode(i)
+      if (associated(a_ptr, mode%dphi0_ref)) found = .true.
+      if (associated(a_ptr, mode%field_scale)) found = .true.
+      if (mode%master_scale > 0) found = found .or. (associated(a_ptr, ele%value(mode%master_scale)))
+      if (associated(a_ptr, mode%dphi0_ref)) found = .true.
+    enddo
+    if (found) call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
 
 case (patch$)
