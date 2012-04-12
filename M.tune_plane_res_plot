@@ -60,7 +60,7 @@ MAKEFILE := M.tune_plane_res_plot
 #           specifications. 
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS  :=
-OBJ_SRC_DIRS  := .
+OBJ_SRC_DIRS  := tune_plane_res_plot
 LOCAL_INCS    :=
 LOCAL_MODS    := ../modules
 
@@ -157,7 +157,7 @@ endif
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS :=
-CESR_LIBS  := bsim sim_utils cesr_utils
+CESR_LIBS  := sim_utils cesr_utils
 PKG_LIBS   := pgplot
 SYS_LIBS   :=
 CERN_LIBS  :=
