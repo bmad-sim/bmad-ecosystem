@@ -163,7 +163,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (.not. stale .and. ele%bookkeeping_state%ref_energy /= stale$) cycle
 
     stale = .true.
-    ele%bookkeeping_state%ref_energy = ok$
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
       ibb = nint(ele%value(ix_branch_to$))
@@ -239,6 +238,7 @@ do ib = 0, ubound(lat%branch, 1)
     call ele_compute_ref_energy_and_time (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
     if (err) return
 
+    ele%bookkeeping_state%ref_energy = ok$
     call set_ele_status_stale (ele, branch%param, attribute_group$)
     call set_lords_status_stale (ele, lat, ref_energy_group$)
 
