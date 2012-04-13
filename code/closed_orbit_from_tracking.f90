@@ -167,7 +167,7 @@ do j = 1, jmax
       i2 = i
       if (.not. all( abs(orb_diff(i1:i2)) < abs_err(i1:i2) + &
                                      rel_err(i1:i2) * amp(i1:i2) )) then
-        msk(nnd+1:nnd+2) = (/ i1, i2 /)
+        msk(nnd+1:nnd+2) = [i1, i2 ]
         nnd = nnd + 2
       endif
      enddo

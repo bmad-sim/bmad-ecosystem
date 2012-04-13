@@ -261,11 +261,11 @@ else
   bz = field%B(3);               bz2 = bz**2
   exy = ex * ey
   alpha = 2 * d2 / (1 + d2**2 * (bz2 - ex2 - ey2))
-  r(1,1:3) = (/ d2 * (ex2 - bz2), bz + d2*exy,      ex + d2*bz*ey    /)
-  r(2,1:3) = (/ -bz + d2*exy,     d2 * (ey2 - bz2), ey - d2*bz*ex    /)
-  r(3,1:3) = (/ ex - d2*bz*ey,    ey + d2*bz*ex,    d2 * (ex2 + ey2) /)
+  r(1,1:3) = [d2 * (ex2 - bz2), bz + d2*exy,      ex + d2*bz*ey    ]
+  r(2,1:3) = [-bz + d2*exy,     d2 * (ey2 - bz2), ey - d2*bz*ex    ]
+  r(3,1:3) = [ex - d2*bz*ey,    ey + d2*bz*ex,    d2 * (ex2 + ey2) ]
 
-  w = (/ end%vec(2), end%vec(4), U_tot /)
+  w = [end%vec(2), end%vec(4), U_tot ]
   w = w + alpha * matmul(r, w)
   end%vec(2:4:2) = w(1:2); U_tot = w(3)
 endif

@@ -53,8 +53,8 @@ integer in_type, out_type
 real(rp) mat(4,4), mat_inv(4,4), mat2(2,2), mat2_inv(2,2), eta_vec(4)
 
 integer :: lab$ = 1, mode$ = 2, normalized$ = 3, action_angle$ = 4
-character(16) :: type_names(5) = (/ 'LAB         ', 'MODE        ', &
-                    'NORMALIZED  ', 'ACTION-ANGLE', '            ' /)
+character(16) :: type_names(5) = ['LAB         ', 'MODE        ', &
+                    'NORMALIZED  ', 'ACTION-ANGLE', '            ' ]
 
 logical, optional :: err_flag
 
@@ -100,7 +100,7 @@ if (out_type > in_type) then
   if (in_type == lab$) then
     call make_v_mats (ele, mat, mat_inv)
     coord_out%vec(1:4) = matmul (mat_inv, coord_out%vec(1:4))
-    eta_vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
+    eta_vec = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap ]
     coord_out%vec(1:4) = coord_out%vec(1:4) - eta_vec * coord_out%vec(6)
     if (out_type == mode$) return
     in_type = mode$
@@ -151,7 +151,7 @@ endif
 
 ! normal mode to lab
 
-eta_vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
+eta_vec = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap ]
 coord_out%vec(1:4) = coord_out%vec(1:4) + eta_vec * coord_out%vec(6)
 call make_v_mats (ele, mat, mat_inv)
 coord_out%vec(1:4) = matmul (mat, coord_out%vec(1:4))
@@ -168,7 +168,7 @@ if (j == 0) then
 else
   phi = atan2 (-coord(2), coord(1))
 endif
-coord = (/ j, phi /)
+coord = [j, phi ]
 end subroutine
 
 !---------------------------------------
@@ -179,7 +179,7 @@ implicit none
 real(rp) coord(2), x, xp
 x  =  sqrt(2*coord(1)) * cos(coord(2))
 xp = -sqrt(2*coord(1)) * sin(coord(2))
-coord = (/ x, xp /)
+coord = [x, xp ]
 end subroutine
 
 end subroutine

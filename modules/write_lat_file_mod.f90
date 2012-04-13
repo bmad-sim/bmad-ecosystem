@@ -566,7 +566,7 @@ do ib = 0, ubound(lat%branch, 1)
               else
                 angle = '     unpol'
               endif
-              if (any ( (/ lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref /) /= 0)) then
+              if (any ( [lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref ]/= 0)) then
                 write (iuw, '(a, i0, a, 3es16.7, i6, a, 5es12.2)') 'lr(', n, ') =', lr%freq_in, &
                       lr%R_over_Q, lr%Q, lr%m, angle, lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
               else
@@ -1781,7 +1781,7 @@ do ix_ele = ie1, ie2
                   'TAYLOR TERM: \es12.2\ : \6i3\ ', &
                   'IN ELEMENT: ' // ele%name, &
                   'CANNOT BE CONVERTED TO MAD MATRIX TERM', &
-                  r_array = (/ term%coef /), i_array = term%expn)
+                  r_array = [term%coef ], i_array = term%expn)
         end select
       enddo
 

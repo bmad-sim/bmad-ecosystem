@@ -153,8 +153,8 @@ type concat_struct
   logical overlay
 end type concat_struct
 
-character(20) :: wall_name(-2:2) = (/ 'start_side     ', 'negative_x_side', '?????          ', &
-                                      'positive_x_side', 'exit_side      ' /)
+character(20) :: wall_name(-2:2) = ['start_side     ', 'negative_x_side', '?????          ', &
+                                      'positive_x_side', 'exit_side      ' ]
 integer :: negative_x$ = -1, positive_x$ = 1, start_side$ = -2, exit_side$ = 2
 
 integer :: possible_alley$ = -1

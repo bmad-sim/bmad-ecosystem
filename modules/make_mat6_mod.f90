@@ -782,10 +782,10 @@ subroutine solenoid_mat_calc (ks, length, mat4)
     ll = length
     kl = kss * length 
     kl2 = kl**2
-    mat4(1,:) = (/  1.0_rp,   ll,      kl,      kl*ll    /)
-    mat4(2,:) = (/ -kl*kss,   1.0_rp, -kl2*kss, kl       /)
-    mat4(3,:) = (/ -kl,      -kl*ll,   1.0_rp,  ll       /)
-    mat4(4,:) = (/  kl2*kss, -kl,     -kl*kss,  1.0_rp /)
+    mat4(1,:) = [ 1.0_rp,   ll,      kl,      kl*ll    ]
+    mat4(2,:) = [-kl*kss,   1.0_rp, -kl2*kss, kl       ]
+    mat4(3,:) = [-kl,      -kl*ll,   1.0_rp,  ll       ]
+    mat4(4,:) = [ kl2*kss, -kl,     -kl*kss,  1.0_rp ]
     return
   endif
 

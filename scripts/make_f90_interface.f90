@@ -243,7 +243,7 @@ file_loop: do
         aline = aline(ix1+1:)
 
         do
-          call word_read (aline, ',(/*', word, ix_word, delim, delim_found, aline)
+          call word_read (aline, ',/(*', word, ix_word, delim, delim_found, aline)
           if (delim == ',') then
             full_var = word
           elseif (delim == '(') then

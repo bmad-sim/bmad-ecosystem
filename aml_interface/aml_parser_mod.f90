@@ -241,7 +241,7 @@ if (bmad_status%ok) then
        call out_io (s_info$, r_name, 'Taylor_order has changed.', &
            'Taylor_order in digested file: \i4\ ', &
            'Taylor_order now:              \i4\ ', &
-           i_array = (/ lat%input_taylor_order, bmad_com%taylor_order /) )
+           i_array = [lat%input_taylor_order, bmad_com%taylor_order ])
        bmad_status%ok = .false.
     endif
     if (lat%input_taylor_order > bmad_com%taylor_order) &
