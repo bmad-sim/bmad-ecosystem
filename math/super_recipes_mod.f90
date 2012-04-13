@@ -206,12 +206,12 @@ end interface
 !
 
 ndata=assert_eq(size(y), size(weight), 'super_mrqmin: ndata')
-ma=assert_eq((/size(a), size(covar, 1), size(covar, 2), &
-              size(alpha, 1), size(alpha, 2)/), 'super_mrqmin: ma')
+ma=assert_eq([size(a), size(covar, 1), size(covar, 2), &
+              size(alpha, 1), size(alpha, 2)], 'super_mrqmin: ma')
 
 call re_allocate(mask, size(a))
 if (present(maska)) then
-  ma = assert_eq((/size(a), size(maska)/), 'super_mrqmin: maska')
+  ma = assert_eq([size(a), size(maska)], 'super_mrqmin: maska')
   mask = maska
 else
   mask = .true.

@@ -17,14 +17,14 @@ character(16), parameter :: qp_color_name(0:16) =   ['White        ', &
 integer, parameter :: solid$ = 1, dashed$ = 2, dash_dot$ = 3
 integer, parameter :: dotted$ = 4, dash_dot3$ = 5
 
-character(16) :: qp_line_pattern_name(5) = (/ 'solid    ', &
-    'dashed   ', 'dash_dot ', 'dotted   ', 'dash_dot3' /)
+character(16) :: qp_line_pattern_name(5) = ['solid    ', &
+    'dashed   ', 'dash_dot ', 'dotted   ', 'dash_dot3' ]
 
 integer, parameter :: solid_fill$ = 1, no_fill$ = 2
 integer, parameter :: hatched$ = 3, cross_hatched$ = 4
 
-character(16) :: qp_fill_name(4) = (/ 'solid_fill   ', 'no_fill      ', &
-                                      'hatched      ', 'cross_hatched' /)
+character(16) :: qp_fill_name(4) = ['solid_fill   ', 'no_fill      ', &
+                                      'hatched      ', 'cross_hatched' ]
 
 integer, parameter :: square_sym$ = 0, dot_sym$ = 1, plus_sym$ = 2, times_sym$ = 3
 integer, parameter :: circle_sym$ = 4, x_symbol_sym$ = 5, triangle_sym$ = 7
@@ -34,12 +34,12 @@ integer, parameter :: star5_sym$ = 12, triangle_filled_sym$ = 13, red_cross_sym$
 integer, parameter :: star_of_david_sym$ = 15, square_filled_sym$ = 16
 integer, parameter :: circle_filled_sym$ = 17, star5_filled_sym$ = 18
 
-character(16) :: qp_symbol_type_name(0:18) = (/ 'square         ', &
+character(16) :: qp_symbol_type_name(0:18) = ['square         ', &
     'dot            ', 'plus           ', 'times          ', 'circle         ', &
     'x_symbol       ', '---------------', 'triangle       ', 'circle_plus    ', &
     'circle_dot     ', 'square_concave ', 'diamond        ', 'star5          ', &
     'triangle_filled', 'red_cross      ', 'star_of_david  ', 'square_filled  ', &
-    'circle_filled  ', 'star5_filled   ' /)
+    'circle_filled  ', 'star5_filled   ' ]
 
 integer, parameter :: dflt_draw$ = 1, dflt_set$ = 2
 
@@ -145,8 +145,8 @@ type qp_state_struct
   integer :: max_digits = 8
   character(200) plot_file
   character(16) page_type       ! 'PS', 'X', etc.
-  character(8) :: dflt_draw_units(3) = (/ 'DATA ', 'GRAPH', 'LB   ' /)
-  character(8) :: dflt_set_units(3)  = (/ 'INCH ', 'PAGE ', 'LB   ' /)
+  character(8) :: dflt_draw_units(3) = ['DATA ', 'GRAPH', 'LB   ' ]
+  character(8) :: dflt_set_units(3)  = ['INCH ', 'PAGE ', 'LB   ' ]
   logical :: subgraph_on = .false.
   logical :: clip = .false.
   logical :: buffer = .false.   ! to be used by qp_save_state only

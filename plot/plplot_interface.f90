@@ -231,9 +231,9 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
   end select
 
   if (fill_pattern == no_fill$) then
-    call plline (4, fx * (/ x1, x2, x2, x1 /), fy * (/ y1, y1, y2, y2 /)) ! No fill
+    call plline (4, fx * [x1, x2, x2, x1 ], fy * [y1, y1, y2, y2 ]) ! No fill
   else
-    call plfill (4, fx * (/ x1, x2, x2, x1 /), fy * (/ y1, y1, y2, y2 /)) ! color the box
+    call plfill (4, fx * [x1, x2, x2, x1 ], fy * [y1, y1, y2, y2 ]) ! color the box
   endif
 
   call qp_restore_state_basic                 ! Flush the buffer.
@@ -665,8 +665,8 @@ subroutine qp_clear_box_basic (x1, x2, y1, y2)
   call qp_set_color_basic(0)            ! Set color index to background
   call plpsty(0)                        ! Set fill-area pattern to solid
   
-  x_vec = (/x1m, x2m, x2m, x1m, x1m/)
-  y_vec = (/y1m, y1m, y2m, y2m, y1m/)
+  x_vec = [x1m, x2m, x2m, x1m, x1m]
+  y_vec = [y1m, y1m, y2m, y2m, y1m]
   call plfill (5, x_vec, y_vec)         ! Fills a polygon with 4 vertices
   
   call qp_restore_state_basic           ! Flush the buffer.
@@ -760,12 +760,12 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   character(40) geom
   character(16) :: r_name = 'qp_open_page_basic'
 
-  integer, parameter :: red(0:15) = (/255, 0, 255, 0, 0, 0, 255, 255, 255, 127&
-                             , 0, 0, 127, 255, 85, 170/)
-  integer, parameter :: green(0:15) = (/255, 0, 0, 255, 0, 255, 0, 255, 127,&
-                             255, 255, 127, 0, 0, 85, 170/)
-  integer, parameter :: blue(0:15) = (/255, 0, 0, 0, 255, 255, 255, 0, 0, 0,&
-                             127, 255, 255, 127, 85, 170/)
+  integer, parameter :: red(0:15) = [255, 0, 255, 0, 0, 0, 255, 255, 255, 127&
+                             , 0, 0, 127, 255, 85, 170]
+  integer, parameter :: green(0:15) = [255, 0, 0, 255, 0, 255, 0, 255, 127,&
+                             255, 255, 127, 0, 0, 85, 170]
+  integer, parameter :: blue(0:15) = [255, 0, 0, 0, 255, 255, 255, 0, 0, 0,&
+                             127, 255, 255, 127, 85, 170]
 
 ! set plot type
 
