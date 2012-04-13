@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Note: Run this script in the cpp_bmad_interface directory.
+
 # Script to read in Fortran structures and create:
 #   Corresponding C++ class
 #   Translator between Fortran structure and C++ class
@@ -36,7 +38,9 @@ class var_class:
     self.sub_type = ''         # For: components that are structures: the structure name. 
                                #      character strings: The number of characters
     self.pointer_type = '-'    # '-', 'PTR', 'ALLOC'
-    self.array = []            # EG: [':', ':'] or ['6']
+    self.array = []            # EG: [':', ':'] or ['0:6', '3']
+    self.lbound = []
+    self.ubound = []
     self.init_value = '-'      # Initialization value
     self.comment = ''          # Comment with Fortran structure def.
     self.f_side = 0
@@ -55,38 +59,63 @@ PTR = 'PTR'
 ALLOC = 'ALLOC'
 T = True
 F = False
+REAL  = 'real(rp)'
+CMPLX = 'complex(rp)'
+INT   = 'integer'
+LOGIC = 'logical'
+CHAR  = 'character'
+TYPE  = 'type'
+
+# Fortran side translation
 
 class f_side_trans_class:
 
-  def __init__(self, to_c2_arg, bindc_type, bindc_name, to_f2_trans):
+  def __init__(self, to_c2_arg, bindc_type, bindc_name):
     self.to_c2_arg = to_c2_arg
     self.bindc_type = bindc_type
     self.bindc_name = bindc_name
     self.bindc_const = ''
-    self.to_f2_trans = to_f2_trans
+    self.equal_test = '(f1%name == f2%name)'
+    self.to_f2_trans = 'FF%name = name'
+    self.test_set = ''
 
   def __repr__(self):
     return '%s,  %s,  %s :: %s' % (self.to_c2_arg, self.bindc_type, self.bindc_name, self.to_f2_trans)
 
 
-#                 Dim  Has_P                     to_c2_arg             bindc_type                    bindc_name   to_f2_trans
+#       Dim  Has_P                    to_c2_arg             bindc_type                    bindc_name   equal_test
 f_side_trans = {
-  ('real(rp)',     0,   F) : f_side_trans_class('name',               'real(c_double)',             'name',      'f_zzz%name = name'),
-  ('real(rp)',     1,   F) : f_side_trans_class('name',               'real(c_double)',             'name(*)',   'f_zzz%name = name'),
-  ('real(rp)',     2,   F) : f_side_trans_class('mat2arr(name)',      'real(c_double)',             'name(*)',   'f_zzz%name = arr2mat(name, name_dim)'),
-  ('real(rp)',     3,   F) : f_side_trans_class('tensor2arr(name)',   'real(c_double)',             'name(*)',   'f_zzz%name = arr2tensor(name, name_dim)'),
-  ('complex(rp)',  0,   F) : f_side_trans_class('name',               'complex(c_double_complex)',  'name',      'f_zzz%name = name'),
-  ('complex(rp)',  1,   F) : f_side_trans_class('name',               'complex(c_double_complex)',  'name(*)',   'f_zzz%name = name'),
-  ('integer',      0,   F) : f_side_trans_class('name',               'int(c_int)',                 'name',      'f_zzz%name = name'),
-  ('integer',      1,   F) : f_side_trans_class('name',               'int(c_int)',                 'name(*)',   'f_zzz%name = name'),
-  ('integer',      2,   F) : f_side_trans_class('imat2arr(name)',     'int(c_int)',                 'name(*)',   'f_zzz%name = arr2imat(name, name_dim)'),
-  ('logical',      0,   F) : f_side_trans_class('c_logic(name)',      'int(c_bool)',                'name',      'f_zzz%name = f_logic(name)'),
-  ('logical',      1,   F) : f_side_trans_class('c_logic(name)',      'int(c_bool)',                'name(*)',   'f_zzz%name = f_logic(name)'),
-  ('character',    0,   F) : f_side_trans_class('c_str(name)',        'character(c_char)',          'name(*)',   'f_zzz%name = f_str(name)'),
-  ('type',         0,   F) : f_side_trans_class('c_loc(name)',        'type(c_ptr), value',         'name',      'call zzz_to_f(name, f_zzz%name)', ),
-  ('type',         1,   F) : f_side_trans_class('c_loc(name)',        'type(c_ptr), value',         'name(*)',   'do i = 1, name_dim; call zzz_to_f(name(i), f_zzz%name(i)); enddo')}
+  (REAL,  0, F) : f_side_trans_class('name',               'real(c_double)',             'name'),
+  (REAL,  1, F) : f_side_trans_class('name',               'real(c_double)',             'name(*)'),
+  (REAL,  2, F) : f_side_trans_class('mat2arr(name)',      'real(c_double)',             'name(*)'),
+  (REAL,  3, F) : f_side_trans_class('tensor2arr(name)',   'real(c_double)',             'name(*)'),
+  (CMPLX, 0, F) : f_side_trans_class('name',               'complex(c_double_complex)',  'name'),
+  (CMPLX, 1, F) : f_side_trans_class('name',               'complex(c_double_complex)',  'name(*)'),
+  (INT,   0, F) : f_side_trans_class('name',               'integer(c_int)',             'name'),
+  (INT,   1, F) : f_side_trans_class('name',               'integer(c_int)',             'name(*)'),
+  (INT,   2, F) : f_side_trans_class('imat2arr(name)',     'integer(c_int)',             'name(*)'),
+  (LOGIC, 0, F) : f_side_trans_class('c_logic(name)',      'integer(c_bool)',            'name'),
+  (LOGIC, 1, F) : f_side_trans_class('c_logic(name)',      'integer(c_bool)',            'name(*)'),
+  (CHAR,  0, F) : f_side_trans_class('c_str(name)',        'character(c_char)',          'name(*)'),
+  (TYPE,  0, F) : f_side_trans_class('c_loc(name)',        'type(c_ptr), value',         'name'),
+  (TYPE,  1, F) : f_side_trans_class('c_loc(name)',        'type(c_ptr), value',         'name(*)')} 
 
-for key, f in f_side_trans.items(): f.bindc_const = f.bindc_type.partition('(')[2].partition(')')[0]
+f_side_trans[REAL,  1, F].to_f2_trans = 'FF%name = arr2mat(name, name_dim)'
+f_side_trans[REAL,  2, F].to_f2_trans = 'FF%name = arr2tensor(name, name_dim)'
+f_side_trans[INT,   2, F].to_f2_trans = 'FF%name = arr2imat(name, name_dim)'
+f_side_trans[LOGIC, 0, F].to_f2_trans = 'FF%name = f_logic(name)'
+f_side_trans[LOGIC, 1, F].to_f2_trans = 'FF%name = f_logic(name)'
+f_side_trans[CHAR,  0, F].to_f2_trans = 'FF%name = f_str(name)'
+f_side_trans[TYPE,  0, F].to_f2_trans = 'call zzz_to_f(name, FF%name)', 
+f_side_trans[TYPE,  1, F].to_f2_trans = 'do i = 1, name_dim; call zzz_to_f(name(i), FF%name(i)); end do'
+
+f_side_trans[REAL,  0, F].test_set = 'FF%name = XXX'
+f_side_trans[REAL,  1, F].test_set = 'do jd1 = lbound(FF%name, 1), ubound(FF%name, 1)\n  FF%name(jd1) = jd1 + XXX\nend do'
+f_side_trans[REAL,  2, F].test_set = 'do jd1 = lbound(FF%name, 1), U1_name; do jd2 = L2_name, U2_name; FF%name(jd1,jd2) = jd1 + 10*jd2 + XXX; end do'
+
+for key, f in f_side_trans.items(): 
+  f.bindc_const = f.bindc_type.partition('(')[2].partition(')')[0]
+  if key[1] != 0: f.equal_test = 'all(f1%name == f2%name)'
 
 #############################################################
 
@@ -117,27 +146,33 @@ class c_side_trans_class:
     self.to_f2_arg = to_f2_arg
     self.to_f2_call = to_f2_call
     self.to_c2_arg = to_c2_arg
+    self.equal_test = '(x.name == y.name)'
 
   def __repr__(self):
     return '%s,  %s,  %s,  %s' % (self.c_class, self.to_f2_arg, self.to_f2_call, self.to_c2_arg)
 
 
 
-#                  Dim  Has_P                      c_class          to_f2_arg            to_f2_call             to_c2_arg
+#        Dim  Has_P                    c_class          to_f2_arg            to_f2_call             to_c2_arg
 c_side_trans = {
-  ('real(rp)',     0,    F) : c_side_trans_class('double',        'Re&',               'c_zzz.name',          'Re& name'),
-  ('real(rp)',     1,    F) : c_side_trans_class('Real_Array',    'ReArr',             '&c_zzz.name[0]',      'ReArr name'),
-  ('real(rp)',     2,    F) : c_side_trans_class('Real_Matrix',   'ReArr',             'c_zzz.name',          'ReArr name'),
-  ('complex(rp)',  0,    F) : c_side_trans_class('Complx',        'CComplx',           'c_zzz.name',          'CComplx name'),
-  ('complex(rp)',  1,    F) : c_side_trans_class('Complx_Array',  'const ComplxArr',   'c_zzz.name',          'const ComplxArr name'),
-  ('integer',      0,    F) : c_side_trans_class('int',           'Int&',              'c_zzz.name',          'Int& name'),
-  ('integer',      1,    F) : c_side_trans_class('Int_Array',     'IntArr',            'c_zzz.name',          'intarr name'),
-  ('integer',      2,    F) : c_side_trans_class('Int_Matrix',    'IntArr',            'c_zzz.name',          'IntArr name'),
-  ('logical',      0,    F) : c_side_trans_class('bool',          'Int',               'c_zzz.name',          'Int& name'),
-  ('logical',      1,    F) : c_side_trans_class('Bool_Array',    'IntArr',            'c_zzz.name',          'IntArr name'),
-  ('character',    0,    F) : c_side_trans_class('string',        'Char',              'c_zzz.name',          'Char name'),
-  ('type',         0,    F) : c_side_trans_class('C_zzz',         'const C_zzz&',      '&c_zzz.name',         'const C_zzz&'),
-  ('type',         1,    F) : c_side_trans_class('C_zzz_array',   'const C_zzz&',      'c_zzz.name[0]',       'const C_zzz&')}
+  (REAL,   0,  F) : c_side_trans_class('double',        'Re&',               'C.name',          'Re& name'),
+  (REAL,   1,  F) : c_side_trans_class('Real_Array',    'ReArr',             '&C.name[0]',      'ReArr name'),
+  (REAL,   2,  F) : c_side_trans_class('Real_Matrix',   'ReArr',             'C.name',          'ReArr name'),
+  (CMPLX,  0,  F) : c_side_trans_class('Complx',        'CComplx',           'C.name',          'CComplx name'),
+  (CMPLX,  1,  F) : c_side_trans_class('Complx_Array',  'const ComplxArr',   'C.name',          'const ComplxArr name'),
+  (INT,    0,  F) : c_side_trans_class('int',           'Int&',              'C.name',          'Int& name'),
+  (INT,    1,  F) : c_side_trans_class('Int_Array',     'IntArr',            'C.name',          'intarr name'),
+  (INT,    2,  F) : c_side_trans_class('Int_Matrix',    'IntArr',            'C.name',          'IntArr name'),
+  (LOGIC,  0,  F) : c_side_trans_class('bool',          'Int',               'C.name',          'Int& name'),
+  (LOGIC,  1,  F) : c_side_trans_class('Bool_Array',    'IntArr',            'C.name',          'IntArr name'),
+  (CHAR,   0,  F) : c_side_trans_class('string',        'Char',              'C.name',          'Char name'),
+  (TYPE,   0,  F) : c_side_trans_class('C_zzz',         'const C_zzz&',      '&C.name',         'const C_zzz&'),
+  (TYPE,   1,  F) : c_side_trans_class('C_zzz_array',   'const C_zzz&',      'C.name[0]',       'const C_zzz&')}
+
+for key, c in c_side_trans.items(): 
+  if key[1] != 0: c.equal_test = 'all(f1%name == f2%name)'
+
+
 
 ##################################################################################
 ##################################################################################
@@ -234,6 +269,15 @@ for file_name in f_module_files:
         if ix+1 < len(split_line) and split_line[ix+1][0:1] == '(': 
           var.array = split_line.pop(ix+1)[:-1]
 
+        if len(var.array) > 0 and var.array[0] != ':':
+          for dim in var.array:
+            if ':' in dim:
+              var.lbound.append(dim.partition(':')[0])
+              var.ubound.append(dim.partition(':')[2])
+            else:
+              var.lbound.append('1')
+              var.ubound.append(dim)
+
         # F side translation
 
         n_dim = len(var.array)
@@ -287,7 +331,7 @@ f_face = open('code/bmad_cpp_convert_mod.f90', 'w')
 
 f_face.write ('''
 !+
-! Fortran side of the Bmad / C++ interface.
+! Fortran side of the Bmad / C++ structure interface.
 !
 ! File Generated by: create_interface.py
 ! Do not edit this file directly! 
@@ -297,7 +341,7 @@ module bmad_cpp_convert_mod
 
 use bmad_struct
 use bmad_interface
-use fortran_and_cpp_mod
+use fortran_and_cpp
 use, intrinsic :: iso_c_binding
 
 contains
@@ -316,18 +360,18 @@ for struct_key, struct in struct_def.items():
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine zzz_to_c (f_zzz, c_zzz) bind(c)
+! Subroutine zzz_to_c (FF, CC) bind(c)
 !
-! Routine to convert a Bmad zzz_struct to a C++ C_zzz
+! Routine to convert a Bmad zzz_struct to a C++ CC
 !
 ! Input:
-!   f_zzz -- type (c_ptr), value :: Input Bmad zzz_struct structure.
+!   FF -- type (c_ptr), value :: Input Bmad zzz_struct structure.
 !
 ! Output:
-!   c_zzz -- type(c_ptr), value :: Output C++ C_zzz struct.
+!   CC -- type(c_ptr), value :: Output C++ C_zzz struct.
 !-
 
-subroutine zzz_to_c (f_zzz, c_zzz)
+subroutine zzz_to_c (FF, CC)
 
 implicit none
 
@@ -349,10 +393,10 @@ interface
     if not f_side.bindc_type in to_c2_arg_def: to_c2_arg_def[f_side.bindc_type] = []
     to_c2_arg_def[f_side.bindc_type].append(f_side.bindc_name.replace('name', var.name))
 
-  f_face.write ('  subroutine zzz_to_c2 (c_zzz'.replace('zzz', s_name))
+  f_face.write ('  subroutine zzz_to_c2 (CC'.replace('zzz', s_name))
   for var in struct.var: f_face.write (', ' + var.name)
   for var in struct.dim_var: f_face.write (', ' + var.name)
-  f_face.write (')\n')
+  f_face.write (') bind(c)\n')
   f_face.write ('    import ' + ', '.join(import_set) + '\n')
 
   for arg_type, args in to_c2_arg_def.items():
@@ -361,13 +405,13 @@ interface
   f_face.write ('''  end subroutine
 end interface
 
-type (zzz_struct), pointer :: f_zzz
-type (c_ptr), value :: c_zzz
+type (zzz_struct), pointer :: FF
+type (c_ptr), value :: CC
 
-call zzz_to_c2 (c_zzz'''.replace('zzz', s_name))
+call zzz_to_c2 (CC'''.replace('zzz', s_name))
 
   for var in struct.var:
-    f_face.write (', ' + var.f_side.to_c2_arg.replace('name', var.name))
+    f_face.write (', f_' + s_name + '%' + var.f_side.to_c2_arg.replace('name', var.name))
 
   f_face.write(''')
 
@@ -421,7 +465,7 @@ is_eq = .true.
 '''.replace('zzz', struct.short_name))
 
   for var in struct.var:
-    f_equ.write ('is_eq = is_eq .and. (f1%xxx == f2%xxx)'.replace('xxx', var.name) + '\n')
+    f_equ.write ('is_eq = is_eq .and. ' + var.f_side.equal_test.replace('name', var.name) + '\n')
 
   f_equ.write ('''
 end function eq_zzz
@@ -559,11 +603,10 @@ offset = 100 * ix_patt
 
 for i, var in enumerate(struct.var, 1):
   short_type = var.type.partition('(')[0]  # EG: 'real(rp)' -> 'real'
-  if var.pointer_type == 'PTR':
-  if (len(var.array)
-  if var.type == 'type':
-  elif var.type == 'character':
-  else
+#  if var.pointer_type == 'PTR':
+#  if var.type == 'type':
+#  elif var.type == 'character':
+#  else
 
   f_ftest.write ('f_' + struct.short_name + '%' + var.name + ' = ' + str(i) + ' + offset \n')
 
@@ -590,7 +633,7 @@ f_class.write('''
 #include <string.h>
 #include <valarray>
 #include <complex>
-#include "bmad_parameters.h"
+#include "bmad_enums.h"
 
 using namespace std;
 
@@ -625,31 +668,32 @@ const Complx       C0(0);
 
 ''')
 
-for s_name, struct in struct_def.items():
+for key, struct in struct_def.items():
   f_class.write('''
 //--------------------------------------------------------------------
-// zzz
+// C_zzz
 
-class zzz_struct {};
+class zzz_struct {};  // Opaque class for pointers to corresponding fortran structs.
 
 class C_zzz {
 public:
-'''.replace('zzz', s_name))
+'''.replace('zzz', struct.short_name))
 
   for var in struct.var:
     f_class.write('  ' + var.c_side.c_class + ' ' + var.name  + ';\n')
 
-  f_class.write ('''
-  };   // End Class
+  f_class.write ('''};   // End Class
 
-  extern "C" void zzz_to_c (zzz_struct*, C_zzz&);
-  extern "C" void zzz_to_f (C_zzz&, zzz_struct*);
+extern "C" void zzz_to_c (zzz_struct*, C_zzz&);
+extern "C" void zzz_to_f (C_zzz&, zzz_struct*);
 
-  typedef valarray<C_zzz>    C_zzz_array;
+typedef valarray<C_zzz>    C_zzz_array;
 
-  '''.replace('zzz', struct.short_name))
+'''.replace('zzz', struct.short_name))
 
 f_class.write('''
+//--------------------------------------------------------------------
+
 #define CPP_AND_BMAD
 #endif
 ''')
@@ -660,38 +704,83 @@ f_class.close()
 ##################################################################################
 # Create C++ side of interface
 
-f_face = open('code/cpp_bmad_convert.cpp', 'w')
-f_face.write('''
-#include "cpp_bmad_classes.h"
+f_cpp = open('code/cpp_bmad_convert.cpp', 'w')
+f_cpp.write('''
+
+//+
+// C++ side of the Bmad / C++ structure interface.
+//
+// File Generated by: create_interface.py
+// Do not edit this file directly! 
+//-
+
 #include <iostream>
+#include "cpp_bmad_classes.h"
+#include "copy_templates.h"
 ''')
 
-for s_name, struct in struct_def.items():
-  f_face.write('''
+for key, struct in struct_def.items():
+
+  # zzz_to_f2
+  f_cpp.write('''
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// zzz
 
 extern "C" void zzz_to_c (zzz_struct*, C_zzz&);
-extern "C" void zzz_to_f2 (zzz_struct*, IntArr);
 
-extern "C" void zzz_to_f (C_zzz& c_zzz, zzz_struct* f_zzz) {
-'''.replace('zzz', struct.short_name))
+extern "C" void zzz_to_f2 (zzz_struct*'''.replace('zzz', struct.short_name))
 
+  for var in struct.var:
+    f_cpp.write (', ' + var.c_side.to_f2_arg)
 
-  f_face.write('''
-  zzz_to_f2 (f_zzz, c_int);
-}
+  f_cpp.write(');\n')
 
-extern "C" void zzz_to_c2 (C_zzz& c_zzz, '''.replace('zzz', struct.short_name))
+  # zzz_to_f
 
+  f_cpp.write('''
+extern "C" void zzz_to_f (C_zzz& C, zzz_struct* F) {
+  zzz_to_f2 (F'''.replace('zzz', struct.short_name))
 
+  for var in struct.var:
+    f_cpp.write (', ' + var.c_side.to_f2_call.replace('name', var.name))
 
-f_face.write ('}')
+  f_cpp.write(');\n')
+  f_cpp.write('}\n')
 
+  # zzz_to_c2
+
+  f_cpp.write('\n')
+  f_cpp.write('extern "C" void zzz_to_c2 (C_zzz& C'.replace('zzz', struct.short_name))
+
+  for var in struct.var:
+    f_cpp.write (', ' + var.c_side.to_c2_arg.replace('name', var.name))
+
+  f_cpp.write(') {\n')
+  f_cpp.write('}\n')
+
+f_cpp.close()
 
 ##################################################################################
 ##################################################################################
 # Create C++ class equality check code
+
+f_eq = open('code/cpp_equality.cpp', 'w')
+
+f_eq.write('#include "cpp_equality_template"\n'
+
+for key, struct in struct_def.items():
+  f_eq.write ('\n//--------------------------------------------------------------\n\n'
+  f_eq.write ('bool operator== (const C_zzz& x, const C_zzz& y) {'.replate('zzz', struct.short_name))
+  f_eq.write ('  bool is_eq;\n'
+
+  for var in struct.var:
+    f_eq.write ('  is_eq = is_eq && ' + struct.c_side.  + ';\n'
+
+  f_eq.write ('  return is_eq;\n'
+  f_eq.write ('};\n'
+
+f_eq.close()
 
 ##################################################################################
 ##################################################################################
