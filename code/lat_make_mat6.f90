@@ -215,10 +215,12 @@ endif
 ! otherwise make a single element
 
 ele => branch%ele(i_ele)
+call control_bookkeeper (lat, ele)
 
 ! Check if transfer matrix needs to be recomputed
 
-if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) then
+if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$ .and. &
+                                         i_ele <= branch%n_ele_track) then
   if (present(ref_orb)) then
     if (all(ref_orb(i_ele-1)%vec == ele%map_ref_orb_in)) then
       return
@@ -231,10 +233,6 @@ if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) t
     endif
   endif
 endif
-
-! Bookkeeping
-
-call control_bookkeeper (lat, ele)
 
 ! For an element in the tracking part of the lattice
 
