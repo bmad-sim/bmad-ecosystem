@@ -28,9 +28,9 @@ type output_mod_com_struct
   integer :: file_unit(-1:9) = 0
   integer :: to_routine(-1:9) = 0
 #if defined (CESR_VMS)
-  integer :: indent_num(-1:9) = (/ 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5 /)
+  integer :: indent_num(-1:9) = [1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5 ]
 #else
-  integer :: indent_num(-1:9) = (/ 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4 /)
+  integer :: indent_num(-1:9) = [0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4 ]
 #endif
 end type
 
@@ -56,7 +56,7 @@ private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 !
 ! Numbers are encoded in lines using the syntax "\<fmt>\" 
 ! where <fmt> is the desired format. For example:
-!   r_array(1:4) = (/ 1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp /)
+!   r_array(1:4) = [1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp ]
 !   call out_io (s_info$, routine_name, "4 Numbers: \4f8.3\", r_array = r_array)
 ! A valid format
 !   a) Must not contain any spaces.
@@ -440,7 +440,7 @@ end subroutine output_lines
 !
 ! r_array, i_array, and l_array are encoded in lines using the syntax "\<fmt>\" 
 ! where <fmt> is the desired format. For example:
-!   r_array(1:4) = (/ 1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp /)
+!   r_array(1:4) = [1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp ]
 !   lines(1) = "4 Numbers: \4f8.3\"
 ! To use a literal "\" in line use the syntax "\\"
 !
@@ -485,7 +485,7 @@ logical found
 
 this_line = line_in
 
-if (any ( (/ present(r_array), present(i_array), present(l_array) /) )) then
+if (any ( [present(r_array), present(i_array), present(l_array) ])) then
 
   do
 

@@ -26,8 +26,8 @@ subroutine date_and_time_stamp (string, numeric_month)
   integer values(8)
   logical, optional :: numeric_month
 
-  character(3) :: month(12) = (/ 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', &
-                                 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC' /)
+  character(3) :: month(12) = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', &
+                                 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC' ]
 
 !
 

@@ -2120,7 +2120,7 @@ if (u(1:1) == '%') ix = 1
 
 u_type = u(:ix)
 
-if (all(u_type /= (/ 'DATA  ', 'MM    ', 'INCH  ', 'POINTS', '%     ' /))) then
+if (all(u_type /= ['DATA  ', 'MM    ', 'INCH  ', 'POINTS', '%     ' ])) then
   call out_io (s_fatal$, r_name, 'BAD UNITS TYPE: "' // trim(units) // '"')
   call err_exit
 endif
@@ -2131,7 +2131,7 @@ call string_trim (u(ix+1:), u, ix)
 if (ix == 0) return
 region = u(:ix)
 
-if (all(region /= (/ 'PAGE ', 'BOX  ', 'GRAPH' /))) then
+if (all(region /= ['PAGE ', 'BOX  ', 'GRAPH' ])) then
   call out_io (s_fatal$, r_name, 'BAD REGION: "' // trim(units) // '"')
   call err_exit
 endif
@@ -2142,7 +2142,7 @@ call string_trim (u(ix+1:), u, ix)
 if (ix == 0) return
 corner = u(:ix)
 
-if (all(corner /= (/ 'LB', 'LT', 'RB', 'RT' /))) then
+if (all(corner /= ['LB', 'LT', 'RB', 'RT' ])) then
   call out_io (s_fatal$, r_name, 'BAD CORNER: "' // trim(units) // '"')
   call err_exit
 endif
@@ -2286,7 +2286,7 @@ logical, optional :: clip
 
 if (x1 == x2 .or. y1 == y2) return
 
-call qp_draw_polyline ((/ x1, x1, x2, x2, x1 /), (/ y1, y2, y2, y1, y1 /), &
+call qp_draw_polyline ([x1, x1, x2, x2, x1 ], [y1, y2, y2, y1, y1 ], &
                                             units, width, color, line_pattern, clip, style)
 
 end subroutine qp_draw_rectangle
@@ -3175,7 +3175,7 @@ logical, optional :: clip
 
 call qp_save_state (.true.)
 call qp_set_line_attrib (style, width, color, line_pattern, clip)
-call qp_draw_polyline_no_set ((/ x1, x2 /), (/ y1, y2 /), units)
+call qp_draw_polyline_no_set ([x1, x2 ], [y1, y2 ], units)
 call qp_restore_state
 
 end subroutine qp_draw_line
@@ -4250,8 +4250,8 @@ endif
 ! the axis line itself
 
 call qp_set_line_attrib ('AXIS')
-call qp_draw_polyline_no_set ((/ 0.0_rp, 1.0_rp /), &
-                                (/y_pos, y_pos /), '%GRAPH')  
+call qp_draw_polyline_no_set ([0.0_rp, 1.0_rp ], &
+                                [y_pos, y_pos ], '%GRAPH')  
 
 del = (ax1%max - ax1%min) / ax1%major_div
 
@@ -4302,19 +4302,19 @@ do i = 0, divisions - 1
   y1 = y0 + ax1%number_side * who_sign * ax1%number_offset
  
   ! major ticks
-  call qp_draw_polyline_no_set ((/x1, x1 /), (/ y0+dy1, y0+dy2 /), 'INCH')
+  call qp_draw_polyline_no_set ([x1, x1 ], [y0+dy1, y0+dy2 ], 'INCH')
 
   ! Minor ticks
 
   if (ax1%type == 'LOG') then
     do j = 2, 9
       x11 = (i + log10(real(j))) * dx0 + xl0
-      call qp_draw_polyline_no_set ((/ x11, x11 /), (/ y0+dy11, y0+dy22 /), 'INCH')
+      call qp_draw_polyline_no_set ([x11, x11 ], [y0+dy11, y0+dy22 ], 'INCH')
     enddo
   else
     do j = 1, m_div - 1
       x11 = (i + real(j) / m_div) * dx0 + xl0
-      call qp_draw_polyline_no_set ((/ x11, x11 /), (/ y0+dy11, y0+dy22 /), 'INCH')
+      call qp_draw_polyline_no_set ([x11, x11 ], [y0+dy11, y0+dy22 ], 'INCH')
     enddo
   endif
 enddo
@@ -4418,7 +4418,7 @@ number_side = ax1%number_side * who_sign
 ! draw axis line itself
 
 call qp_set_line_attrib ('AXIS')
-call qp_draw_polyline_no_set ((/x_pos, x_pos/), (/0.0_rp, 1.0_rp/), '%GRAPH')
+call qp_draw_polyline_no_set ([x_pos, x_pos], [0.0_rp, 1.0_rp], '%GRAPH')
 
 ! major and minor divisions calc
 
@@ -4465,19 +4465,19 @@ do i = 0, divisions-1
   y1 = i*dy0 + yl0
 
   ! major ticks
-  call qp_draw_polyline_no_set ((/ x0+dx1, x0+dx2 /), (/ y1, y1 /), 'INCH')
+  call qp_draw_polyline_no_set ([x0+dx1, x0+dx2 ], [y1, y1 ], 'INCH')
 
   ! Minor ticks
 
   if (ax1%type == 'LOG') then
     do j = 2, 9
       y11 = (i + log10(real(j))) * dy0 + yl0
-      call qp_draw_polyline_no_set ((/ x0+dx11, x0+dx22 /), (/ y11, y11 /), 'INCH')
+      call qp_draw_polyline_no_set ([x0+dx11, x0+dx22 ], [y11, y11 ], 'INCH')
     enddo
   else
     do j = 1, m_div - 1
       y11 = (i + real(j) / m_div) * dy0 + yl0
-      call qp_draw_polyline_no_set ((/ x0+dx11, x0+dx22 /), (/ y11, y11 /), 'INCH')
+      call qp_draw_polyline_no_set ([x0+dx11, x0+dx22 ], [y11, y11 ], 'INCH')
     enddo
   endif
 enddo
@@ -4748,7 +4748,7 @@ integer i, divisions
 
 call qp_save_state (.true.)
 call qp_set_line_attrib ('GRID')
-r01 = (/ 0.0, 1.0 /)
+r01 = [0.0, 1.0 ]
 
 ! horizontal lines
 
