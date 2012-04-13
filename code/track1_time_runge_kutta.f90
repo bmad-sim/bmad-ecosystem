@@ -146,7 +146,7 @@ t_rel = particle_time(start_orb, ele)
 
 !------
 !Check wall
-ele_origin%vec = (/ 0.0_rp, 0.0_rp,  0.0_rp,  0.0_rp, s_rel,  0.0_rp /)
+ele_origin%vec = [0.0_rp, 0.0_rp,  0.0_rp,  0.0_rp, s_rel,  0.0_rp ]
 call  particle_hit_wall_check_time(ele_origin, end_orb, param, ele)
 
 if (param%lost) then

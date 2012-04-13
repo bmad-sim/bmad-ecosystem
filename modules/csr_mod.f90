@@ -192,7 +192,7 @@ do i = 0, n_step
     call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
                           'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
                           'AT ELEMENT: ' // trim(ele%name) // '  [# \i0\] ', &
-                          i_array = (/ n_live, ele%ix_ele /) )
+                          i_array = [n_live, ele%ix_ele ])
     return
   endif
 
@@ -856,9 +856,9 @@ sin_phi = sin(phi)
 cos_phi = cos(phi)
 
 N_vec = k_factor%L_vec / kf%L
-B_vec = (/ cos(kf%theta), sin(kf%theta), 0.0_rp /)
-Bp_vec = bin%beta * (/ cos_phi, -sin_phi, 0.0_rp /)
-G_vec = bin%beta**2 * kf%g * (/ sin_phi, cos_phi, 0.0_rp /)
+B_vec = [cos(kf%theta), sin(kf%theta), 0.0_rp ]
+Bp_vec = bin%beta * [cos_phi, -sin_phi, 0.0_rp ]
+G_vec = bin%beta**2 * kf%g * [sin_phi, cos_phi, 0.0_rp ]
 
 OneNBp = 1 - sum(N_vec * Bp_vec)
 OneNBp3 = OneNBp**3
@@ -1320,7 +1320,7 @@ do i = 0, n_step
     call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
                           'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
                           'AT ELEMENT: ' // trim(ele%name) // '  [# \i0\] ', &
-                          i_array = (/ n_live, ele%ix_ele /) )
+                          i_array = [n_live, ele%ix_ele ])
     return
   endif
 

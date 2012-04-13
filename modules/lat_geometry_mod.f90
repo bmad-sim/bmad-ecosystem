@@ -175,7 +175,7 @@ if (ele%key == floor_position$) return
 ! init
 ! old_theta is used to tell if we have to reconstruct the w_mat
 
-pos   = (/ floor0%x, floor0%y, floor0%z /)
+pos   = [floor0%x, floor0%y, floor0%z ]
 theta = floor0%theta
 phi   = floor0%phi
 psi   = floor0%psi
@@ -213,7 +213,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
       tlt = ele%value(tilt_tot$)
       rho = 1.0_dp / ele%value(g$)
       s_ang = sin(angle); c_ang = cos(angle)
-      r_mat = (/ rho * (c_ang - 1), 0.0_dp, rho * s_ang /)
+      r_mat = [rho * (c_ang - 1), 0.0_dp, rho * s_ang ]
     else
       angle = knl(0)
       tlt = tilt(0)
@@ -221,15 +221,15 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
       r_mat = 0
     endif
 
-    s_mat(1,:) = (/ c_ang,  0.0_dp, -s_ang /)
-    s_mat(2,:) = (/ 0.0_dp, 1.0_dp,  0.0_dp /)
-    s_mat(3,:) = (/ s_ang,  0.0_dp,  c_ang /) 
+    s_mat(1,:) = [c_ang,  0.0_dp, -s_ang ]
+    s_mat(2,:) = [0.0_dp, 1.0_dp,  0.0_dp ]
+    s_mat(3,:) = [s_ang,  0.0_dp,  c_ang ]
 
     if (tlt /= 0) then
       s_ang = sin(tlt); c_ang = cos(tlt)
-      t_mat(1,:) = (/ c_ang,  -s_ang,  0.0_dp /)
-      t_mat(2,:) = (/ s_ang,   c_ang,  0.0_dp /)
-      t_mat(3,:) = (/ 0.0_dp,  0.0_dp, 1.0_dp /)
+      t_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
+      t_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
+      t_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
 
       r_mat = matmul (t_mat, r_mat)
 
@@ -254,15 +254,15 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
     tlt = ele%value(tilt_tot$)
     s_ang = sin(angle); c_ang = cos(angle)
 
-    s_mat(1,:) = (/ c_ang,  0.0_dp, -s_ang /)
-    s_mat(2,:) = (/ 0.0_dp, 1.0_dp,  0.0_dp /)
-    s_mat(3,:) = (/ s_ang,  0.0_dp,  c_ang /) 
+    s_mat(1,:) = [c_ang,  0.0_dp, -s_ang ]
+    s_mat(2,:) = [0.0_dp, 1.0_dp,  0.0_dp ]
+    s_mat(3,:) = [s_ang,  0.0_dp,  c_ang ]
 
     if (tlt /= 0) then
       s_ang = sin(tlt); c_ang = cos(tlt)
-      t_mat(1,:) = (/ c_ang,  -s_ang,  0.0_dp /)
-      t_mat(2,:) = (/ s_ang,   c_ang,  0.0_dp /)
-      t_mat(3,:) = (/ 0.0_dp,  0.0_dp, 1.0_dp /)
+      t_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
+      t_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
+      t_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
 
       s_mat = matmul (t_mat, s_mat)
       t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
@@ -276,39 +276,39 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
   case (patch$)
 
     if (ele%value(translate_after$) == 0) then
-      r_mat = (/ ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$) /)
+      r_mat = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$) ]
       pos = pos + matmul(w_mat, r_mat)
     endif
 
     angle = ele%value(tilt$)
     if (angle /= 0) then
       s_ang = sin(angle); c_ang = cos(angle)
-      s_mat(1,:) = (/ c_ang,  -s_ang,  0.0_dp /)
-      s_mat(2,:) = (/ s_ang,   c_ang,  0.0_dp /)
-      s_mat(3,:) = (/ 0.0_dp,  0.0_dp, 1.0_dp /) 
+      s_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
+      s_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
+      s_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
       w_mat = matmul(w_mat, s_mat)
     endif
 
     angle = ele%value(y_pitch_tot$)           ! 
     if (angle /= 0) then
       s_ang = sin(angle); c_ang = cos(angle)
-      s_mat(1,:) = (/ 1.0_dp,  0.0_dp, 0.0_dp /)
-      s_mat(2,:) = (/ 0.0_dp,  c_ang,  s_ang /)
-      s_mat(3,:) = (/ 0.0_dp, -s_ang,  c_ang /) 
+      s_mat(1,:) = [1.0_dp,  0.0_dp, 0.0_dp ]
+      s_mat(2,:) = [0.0_dp,  c_ang,  s_ang ]
+      s_mat(3,:) = [0.0_dp, -s_ang,  c_ang ]
       w_mat = matmul(w_mat, s_mat)
     endif
 
     angle = ele%value(x_pitch_tot$)            ! x_pitch is negative MAD yrot
     if (angle /= 0) then
       s_ang = sin(angle); c_ang = cos(angle)
-      s_mat(1,:) = (/  c_ang,  0.0_dp, s_ang /)
-      s_mat(2,:) = (/  0.0_dp, 1.0_dp, 0.0_dp /)
-      s_mat(3,:) = (/ -s_ang,  0.0_dp, c_ang /) 
+      s_mat(1,:) = [ c_ang,  0.0_dp, s_ang ]
+      s_mat(2,:) = [ 0.0_dp, 1.0_dp, 0.0_dp ]
+      s_mat(3,:) = [-s_ang,  0.0_dp, c_ang ]
       w_mat = matmul(w_mat, s_mat)
     endif
      
     if (ele%value(translate_after$) /= 0) then
-      r_mat = (/ ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$) /)
+      r_mat = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$) ]
       pos = pos + matmul(w_mat, r_mat)
     endif
 

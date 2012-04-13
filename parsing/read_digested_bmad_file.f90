@@ -83,8 +83,8 @@ can_read_this_old_version = .false.
 
 if (file_version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_info$, r_name, &
-         (/ 'DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' /),  &
-          i_array = (/ bmad_inc_version$, file_version /) )
+         ['DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' ],  &
+          i_array = [bmad_inc_version$, file_version ])
   if (can_read_this_old_version) then 
     allocate (file_names(n_files))
     err_found = .true.
@@ -99,7 +99,7 @@ if (file_version > bmad_inc_version$) then
        'DIGESTED FILE HAS VERSION: \i0\ ', &
        'GREATER THAN VERSION OF THIS PROGRAM: \i0\ ', &
        'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
-       i_array = (/ file_version, bmad_inc_version$ /) )
+       i_array = [file_version, bmad_inc_version$ ])
   close (d_unit)
   return
 endif
@@ -507,7 +507,7 @@ return
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING ELEMENT # \i0\ ', &
-                                  i_array = (/ ix_ele /) )
+                                  i_array = [ix_ele ])
 endif
 close (d_unit)
 return
@@ -516,7 +516,7 @@ return
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING K_MAX OF ELEMENT # \i0\ ', &
-                                  i_array = (/ ix_ele /) )
+                                  i_array = [ix_ele ])
 endif
 close (d_unit)
 return
@@ -525,7 +525,7 @@ return
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING VALUES OF ELEMENT # \i0\ ', &
-                                  i_array = (/ ix_ele /) )
+                                  i_array = [ix_ele ])
 endif
 close (d_unit)
 return

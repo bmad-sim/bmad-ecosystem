@@ -104,8 +104,8 @@ c11 = c1
 
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
-if (any (key == (/ drift$, capillary$, elseparator$, kicker$, rcollimator$, &
-        ecollimator$, monitor$, instrument$, hkicker$, vkicker$, pipe$ /) )) then
+if (any (key == [drift$, capillary$, elseparator$, kicker$, rcollimator$, &
+        ecollimator$, monitor$, instrument$, hkicker$, vkicker$, pipe$ ])) then
   call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
   call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
@@ -1109,9 +1109,9 @@ if (p(tilt_err$) /= 0) then
   st = sin(p(tilt$))
 endif
 
-project_x = (/ c2g * ct**2 + st**2, -ct * st + c2g * ct * st, -ct * s2g /)
-project_y = (/ -ct * st + c2g * ct * st, ct**2 + c2g * st**2, -s2g * st /) 
-project_s = (/ ct * s2g, s2g * st, c2g /)
+project_x = [c2g * ct**2 + st**2, -ct * st + c2g * ct * st, -ct * s2g ]
+project_y = [-ct * st + c2g * ct * st, ct**2 + c2g * st**2, -s2g * st ]
+project_s = [ct * s2g, s2g * st, c2g ]
 
 ! Unset: graze_angle_error
 

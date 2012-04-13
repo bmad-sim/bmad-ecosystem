@@ -11,13 +11,22 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if "param%bookkeeping" in line:
-      line = line.replace("param%bookkeeping", "param%bookkeeping_state")
+    if "(/ " in line:
+      line = line.replace("(/ ", "[")
       found = True
 
-    if "ele%status" in line:
-      line = line.replace("ele%status", "ele%bookkeeping_state")
+    if "(/" in line:
+      line = line.replace("(/", "[")
       found = True
+
+    if "/) " in line:
+      line = line.replace("/) ", "]")
+      found = True
+
+    if "/)" in line:
+      line = line.replace("/)", "]")
+      found = True
+
 
     out_file.write(line)
 

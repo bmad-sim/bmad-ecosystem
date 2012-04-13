@@ -345,8 +345,8 @@ if (associated(info%cache_ele)) then
   call twiss_propagate1 (ele0, runt)
   a0 = runt%a; b0 = runt%b
   call make_v_mats (runt, v, v_inv)
-  eta_a0 = matmul(v, (/ runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    /))
-  eta_b0 = matmul(v, (/ 0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap /))
+  eta_a0 = matmul(v, [runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    ])
+  eta_b0 = matmul(v, [0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap ])
 
   runt%mat6 = pt1%mat6
   runt%vec0 = pt1%vec0
@@ -357,8 +357,8 @@ if (associated(info%cache_ele)) then
   call twiss_propagate1 (ele0, runt)
   a1 = runt%a; b1 = runt%b
   call make_v_mats (runt, v, v_inv)
-  eta_a1 = matmul(v, (/ runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    /))
-  eta_b1 = matmul(v, (/ 0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap /))
+  eta_a1 = matmul(v, [runt%a%eta, runt%a%etap, 0.0_rp,   0.0_rp    ])
+  eta_b1 = matmul(v, [0.0_rp,   0.0_rp,    runt%b%eta, runt%b%etap ])
 
   info%a%beta  = a0%beta  * f0 + a1%beta  * f1
   info%a%alpha = a0%alpha * f0 + a1%alpha * f1
@@ -415,8 +415,8 @@ endif
 
 call make_v_mats (ele_end, v, v_inv)
 
-info%eta_a = matmul(v, (/ info%a%eta, info%a%etap, 0.0_rp,   0.0_rp /))
-info%eta_b = matmul(v, (/ 0.0_rp,   0.0_rp,    info%b%eta, info%b%etap /))
+info%eta_a = matmul(v, [info%a%eta, info%a%etap, 0.0_rp,   0.0_rp ])
+info%eta_b = matmul(v, [0.0_rp,   0.0_rp,    info%b%eta, info%b%etap ])
 
 if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then 
   call calc_wiggler_g_params (ele, z_here, orb, pt, info)

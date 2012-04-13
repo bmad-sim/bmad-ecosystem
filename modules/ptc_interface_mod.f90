@@ -239,7 +239,7 @@ integer, optional :: j, k, l
 integer arr(40), n_max, sgn, ii
 
 character str*40
-character, parameter :: str1(4) = (/ '1', '2', '3', '4' /)
+character, parameter :: str1(4) = ['1', '2', '3', '4' ]
 
 logical use_bmad
 
@@ -1156,7 +1156,7 @@ use s_fibre_bundle, only: assignment(=), alloc, real_8
 implicit none
 
 type (real_8) :: y(:)
-real(dp) :: x(6) = (/ 0, 0, 0, 0, 0, 0 /)
+real(dp) :: x(6) = [0, 0, 0, 0, 0, 0 ]
 
 logical, optional :: set_taylor
 
@@ -2432,7 +2432,7 @@ if (use_offsets) then
   y_pitch = ele%value(y_pitch_tot$)
 
   if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0) then
-    mis_rot = (/ x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp /)
+    mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp ]
     angle = 0
     angle(3) = -fiber%mag%p%tiltd
     omega = fiber%chart%f%o

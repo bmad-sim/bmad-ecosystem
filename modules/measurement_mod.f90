@@ -75,9 +75,9 @@ implicit none
 type (ele_struct) ele
 
 real(rp) x_gain, y_gain, x_angle, y_angle
-integer, parameter :: ix_attribs(12) = (/ x_gain_err$, x_gain_calib$, &
+integer, parameter :: ix_attribs(12) = [x_gain_err$, x_gain_calib$, &
           y_gain_err$, y_gain_calib$, tilt_tot$, tilt_calib$, crunch$, crunch_calib$, &
-          x_offset_tot$, x_offset_calib$, y_offset_tot$, y_offset_calib$ /)
+          x_offset_tot$, x_offset_calib$, y_offset_tot$, y_offset_calib$ ]
 
 !
 

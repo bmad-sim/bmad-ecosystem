@@ -833,17 +833,17 @@ subroutine mp_sigma_to_mat (s, mat)
 !  
 
   if (size(mat, 1) == 4 .and. size(mat, 2) == 4) then
-    mat(1,:) = (/ s(s11$), s(s12$), s(s13$), s(s14$) /)
-    mat(2,:) = (/ s(s12$), s(s22$), s(s23$), s(s24$) /)
-    mat(3,:) = (/ s(s13$), s(s23$), s(s33$), s(s34$) /)
-    mat(4,:) = (/ s(s14$), s(s24$), s(s34$), s(s44$) /)
+    mat(1,:) = [s(s11$), s(s12$), s(s13$), s(s14$) ]
+    mat(2,:) = [s(s12$), s(s22$), s(s23$), s(s24$) ]
+    mat(3,:) = [s(s13$), s(s23$), s(s33$), s(s34$) ]
+    mat(4,:) = [s(s14$), s(s24$), s(s34$), s(s44$) ]
   elseif (size(mat, 1) == 6 .and. size(mat,2) == 6) then
-    mat(1,:) = (/ s(s11$), s(s12$), s(s13$), s(s14$), s(s15$), s(s16$)/)
-    mat(2,:) = (/ s(s12$), s(s22$), s(s23$), s(s24$), s(s25$), s(s26$)/)
-    mat(3,:) = (/ s(s13$), s(s23$), s(s33$), s(s34$), s(s35$), s(s36$)/)
-    mat(4,:) = (/ s(s14$), s(s24$), s(s34$), s(s44$), s(s45$), s(s46$)/)
-    mat(5,:) = (/ s(s15$), s(s25$), s(s35$), s(s45$), s(s55$), s(s56$)/)
-    mat(6,:) = (/ s(s16$), s(s26$), s(s36$), s(s46$), s(s56$), s(s66$)/)
+    mat(1,:) = [s(s11$), s(s12$), s(s13$), s(s14$), s(s15$), s(s16$)]
+    mat(2,:) = [s(s12$), s(s22$), s(s23$), s(s24$), s(s25$), s(s26$)]
+    mat(3,:) = [s(s13$), s(s23$), s(s33$), s(s34$), s(s35$), s(s36$)]
+    mat(4,:) = [s(s14$), s(s24$), s(s34$), s(s44$), s(s45$), s(s46$)]
+    mat(5,:) = [s(s15$), s(s25$), s(s35$), s(s45$), s(s55$), s(s56$)]
+    mat(6,:) = [s(s16$), s(s26$), s(s36$), s(s46$), s(s56$), s(s66$)]
   else
     print *, 'ERROR IN MP_SIGMA_TO_MAT: MATRIX SIZE NOT 4 OR 6!'
     if (bmad_status%exit_on_error) call err_exit
@@ -1229,7 +1229,7 @@ subroutine init_macro_distribution (beam, init, ele, &
       macro%r%vec = init%center
       macro%r%vec(5) = init%center(5) + init%sig_z * z_rel 
       macro%r%vec(6) = dE_E
-      r = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /) * dE_E
+      r = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap ]* dE_E
       ele%a%gamma = (1+ele%a%alpha**2) / ele%a%beta
       ele%b%gamma = (1+ele%b%alpha**2) / ele%b%beta
       macro%sigma = 0

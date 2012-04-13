@@ -123,7 +123,7 @@ phi_array(2) = phi_b_set/twopi
 call out_io (s_error$, r_name, 'CANNOT GET TUNE RIGHT.', &
       'CURRENT TUNE: \2f\ ', &
       'SET TUNE:     \2f\ ', &
-      r_array = (/ phi_a/twopi, phi_b/twopi, phi_a_set/twopi, phi_b_set/twopi /))
+      r_array = [phi_a/twopi, phi_b/twopi, phi_a_set/twopi, phi_b_set/twopi ])
 
 
 end subroutine

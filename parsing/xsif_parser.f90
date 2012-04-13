@@ -397,11 +397,11 @@ do ie = npos1, npos2-1
 
       allocate (ele%taylor(5)%term(1))
       ele%taylor(5)%term(1) = &
-                      taylor_term_struct(1.0_rp, (/ 0, 0, 0, 0, 1, 0 /))
+                      taylor_term_struct(1.0_rp, [0, 0, 0, 0, 1, 0 ])
 
       allocate (ele%taylor(6)%term(1))
       ele%taylor(6)%term(1) = &
-                      taylor_term_struct(1.0_rp, (/ 0, 0, 0, 0, 0, 1 /))
+                      taylor_term_struct(1.0_rp, [0, 0, 0, 0, 0, 1 ])
 
       call twiss_to_taylor (dat_indx+0, 0)
       call twiss_to_taylor (dat_indx+3, 2)

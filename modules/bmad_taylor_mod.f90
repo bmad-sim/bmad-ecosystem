@@ -45,7 +45,7 @@ end interface
 !   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
 !   ...
 !   coef = taylor_coef (bmad_taylor(3), 6, 6)  ! 1st possibility or ...
-!   coef = taylor_coef (bmad_taylor(3), (/ 0, 0, 0, 0, 0, 2 /) )  
+!   coef = taylor_coef (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ])  
 !
 ! Modules needed:
 !   use bmad
@@ -100,7 +100,7 @@ private taylor_coef1, taylor_coef2
 !   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
 !   ...
 !   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, 6, 6)  ! 1st possibility or ...
-!   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, (/ 0, 0, 0, 0, 0, 2 /) )  
+!   coef = add_taylor_term (bmad_taylor(3), 1.34_rp, [0, 0, 0, 0, 0, 2 ])  
 !
 ! Modules needed:
 !   use bmad
@@ -376,7 +376,7 @@ endif
 ! Normal case
 
 deallocate (lines, stat = ix)
-n_lines = 8 + sum( (/ (size(bmad_taylor(i)%term), i = 1, 6) /) )
+n_lines = 8 + sum( [(size(bmad_taylor(i)%term), i = 1, 6) ])
 allocate(lines(n_lines))
 
 write (lines(1), *) 'Taylor Terms:'

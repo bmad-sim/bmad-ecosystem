@@ -11,8 +11,8 @@ module matrix_mod
   integer, parameter :: non_symplectic$  = 3
   integer, parameter :: unstable$        = 4
 
-  character(16) :: status_name(5) = (/     'OK            ', &
-      'IN_STOP_BAND  ', 'NON_SYMPLECTIC', 'UNSTABLE      ', '              ' /)
+  character(16) :: status_name(5) = [    'OK            ', &
+      'IN_STOP_BAND  ', 'NON_SYMPLECTIC', 'UNSTABLE      ', '              ' ]
 
 contains
       

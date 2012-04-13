@@ -371,16 +371,16 @@ endif
 allocate (y(n_data), yfit(n_data), weight(n_data))
 allocate (a(n_var), covar(n_var, n_var), alpha(n_var,n_var))
 
-a(1:4) = (/ g_max, 0.0_rp, len_bend, len_bend/4 /)
+a(1:4) = [g_max, 0.0_rp, len_bend, len_bend/4 ]
 if (even_pole_num) a(5) = len_bend/4
 
-a_step = (/ c%g_step, c%k_step, c%len_step, c%len_step, c%len_step /)
+a_step = [c%g_step, c%k_step, c%len_step, c%len_step, c%len_step ]
 
 if (wiggler%mat6_calc_method == taylor$) wiggler%mat6_calc_method = symp_lie_bmad$
 if (wiggler%tracking_method == taylor$) wiggler%tracking_method = symp_lie_bmad$
 call make_mat6 (wiggler, lat%param)
 
-weight(1:3)  = (/ c%integral_g2_wgt, c%integral_g3_wgt, c%x_wgt /)
+weight(1:3)  = [c%integral_g2_wgt, c%integral_g3_wgt, c%x_wgt ]
 weight(4:12) = c%mat6_wgt
 weight(13:)  = c%drift_len_wgt
 
@@ -596,7 +596,7 @@ real(rp) vec9(9)
 
 !
 
-vec9 = (/ mat6(1,1:2), mat6(2,1:2), mat6(3,3:4), mat6(4,3:4), mat6(1,6) /)
+vec9 = [mat6(1,1:2), mat6(2,1:2), mat6(3,3:4), mat6(4,3:4), mat6(1,6) ]
 
 end function
 

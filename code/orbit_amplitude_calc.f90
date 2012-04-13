@@ -53,7 +53,7 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, &
 
   call make_v_mats (ele, v_mat, v_inv_mat)
   a_orb = matmul (v_inv_mat, orb%vec(1:4)) - &
-              orb%vec(6) * (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
+              orb%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap ]
 
   amp = (ele%a%gamma * a_orb(1)**2 + 2 * ele%a%alpha * a_orb(1)*a_orb(2) + &
                                                  ele%a%beta * a_orb(2)**2) / 2

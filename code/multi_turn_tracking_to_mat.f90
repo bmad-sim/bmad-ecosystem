@@ -71,7 +71,7 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
     allocate (w(i_dim+1), v(i_dim+1, i_dim+1), a(i_dim+1), m(i_dim,i_dim))
   endif
 
-  x = (/ (i, i=1,n-1) /)
+  x = [(i, i=1,n-1) ]
   sig = 1
 
 ! Because of possible round-off errors we do the computation in two parts.
@@ -147,6 +147,6 @@ function multi_turn_func (x, id)
 
 ! id = i_dim+1
 
-  multi_turn_func = (/ multi_turn_func_common(nint(x))%vec(1:id-1), 1.0_rp /)
+  multi_turn_func = [multi_turn_func_common(nint(x))%vec(1:id-1), 1.0_rp ]
 
 end function

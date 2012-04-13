@@ -117,7 +117,7 @@ if (.not. err .and. .not. bp_com%always_parse) then
        call out_io (s_info$, r_name, 'Taylor_order has changed.', &
            'Taylor_order in digested file: \i4\ ', &
            'Taylor_order now:              \i4\ ', &
-           i_array = (/ lat%input_taylor_order, bmad_com%taylor_order /) )
+           i_array = [lat%input_taylor_order, bmad_com%taylor_order ])
     endif
     if (lat%input_taylor_order > bmad_com%taylor_order) bp_com%write_digested = .false.
   endif
@@ -1176,13 +1176,13 @@ do i = 1, lat%n_ele_max
   if (ele%sub_key /= periodic_type$) cycle
   if (ele%slave_status == super_slave$) cycle
   if (abs(modulo2(ele%value(n_pole$) / 2, 0.5_rp)) > 0.01) then
-    call out_io (s_warn$, r_name, (/ &
+    call out_io (s_warn$, r_name, [&
           '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
           '!!!!! WARNING! WIGGLER: ' // ele%name, &
           '!!!!! DOES NOT HAVE AN EVEN NUMBER OF POLES!                    ', &
           '!!!!! THIS WILL BE PROBLEMATIC IF YOU ARE USING TAYLOR MAPS!    ', &
           '!!!!! SEE THE BMAD MANUAL FOR MORE DETAILS!                     ', &
-          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' /) )
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' ])
   endif
 enddo
 
