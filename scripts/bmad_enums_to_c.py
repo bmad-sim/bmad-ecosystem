@@ -33,7 +33,9 @@ def searchit (file):
 
 #---------------------------------------
 
+if not os.path.exists('include'): os.makedirs('include')
 f_out = open('include/bmad_enums.h', 'w')
+
 f_out.write('''
 #ifndef BMAD_ENUMS
 

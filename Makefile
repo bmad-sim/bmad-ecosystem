@@ -42,7 +42,7 @@
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := code
-OBJ_SRC_DIRS :=
+OBJ_SRC_DIRS := interface_test
 
 CONFIG_DIRS  :=
 LOCAL_INCS   := ./include
