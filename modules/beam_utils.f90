@@ -978,7 +978,11 @@ if (beam_init%renorm_sigma .and. n_particle > 1) then
 
   ! Now we make the diagonal elements unity
 
-  forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
+  alpha = 0
+  do i = 1, 6
+    if (sig_mat(i,i) /= 0) alpha(i) = sqrt(1/sig_mat(i,i))
+  enddo
+
   do n = 1, n_particle
     p(n)%vec = p(n)%vec * alpha
   enddo
