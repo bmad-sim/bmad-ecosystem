@@ -648,29 +648,36 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Encode methods, etc.
 
-    if (ele%mat6_calc_method /= ele_dflt%mat6_calc_method) line = trim(line) // &
-                ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
-    if (ele%tracking_method /= ele_dflt%tracking_method) line = trim(line) // &
-                ', tracking_method = ' // calc_method_name(ele%tracking_method)
-    if (ele%spin_tracking_method /= ele_dflt%spin_tracking_method) line = trim(line) // &
-                ', spin_tracking_method = ' // calc_method_name(ele%spin_tracking_method)
-    if (ele%field_calc /= ele_dflt%field_calc) line = trim(line) // &
-                ', field_calc = ' // field_calc_name(ele%field_calc)
-    if (ele%symplectify) line = trim(line) // ', symplectify'
-    if (ele%field_master .neqv. ele_dflt%field_master) write (line, '(2a, l1)') &
-                                                      trim(line), ', field_master = ', ele%field_master
-    if (ele%is_on .neqv. ele_dflt%is_on) line = trim(line) // ', is_on = False'
-    if (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles) line = trim(line) // ', scale_multipoles = False'
+    if (ele%mat6_calc_method /= ele_dflt%mat6_calc_method) &
+                                      line = trim(line) // ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
+    if (ele%tracking_method /= ele_dflt%tracking_method) &
+                                      line = trim(line) // ', tracking_method = ' // calc_method_name(ele%tracking_method)
+    if (ele%spin_tracking_method /= ele_dflt%spin_tracking_method) &
+                                      line = trim(line) // ', spin_tracking_method = ' // calc_method_name(ele%spin_tracking_method)
+    if (ele%field_calc /= ele_dflt%field_calc) &
+                                      line = trim(line) // ', field_calc = ' // field_calc_name(ele%field_calc)
 
-    if (ele%map_with_offsets .neqv. ele_dflt%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
-    if (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on) line = trim(line) // ', csr_calc_on = False'
-    if (ele%offset_moves_aperture) line = trim(line) // ', offset_moves_aperture = True'
     if (ele%aperture_at /= ele_dflt%aperture_at) &
-                            line = trim(line) // ', aperture_at = ' // element_end_name(ele%aperture_at)
-    if (ele%aperture_type /= ele_dflt%aperture_type) line = trim(line) // &
-                                ', aperture_type = ' // aperture_type_name(ele%aperture_type)
+                                      line = trim(line) // ', aperture_at = ' // element_end_name(ele%aperture_at)
+    if (ele%aperture_type /= ele_dflt%aperture_type) &
+                                      line = trim(line) // ', aperture_type = ' // aperture_type_name(ele%aperture_type)
 
-    if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
+    if (ele%ref_orbit /= 0)           line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
+
+    if (ele%symplectify)              line = trim(line) // ', symplectify'
+
+    if (ele%field_master .neqv. ele_dflt%field_master) &
+                                      write (line, '(2a, l1)') trim(line), ', field_master = ', ele%field_master
+    if (ele%is_on .neqv. ele_dflt%is_on) &
+                                      write (line, '(2a, l1)') trim(line), ', is_on = ', ele%is_on
+    if (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles) &
+                                      write (line, '(2a, l1)') trim(line), ', scale_multipoles = ', ele%scale_multipoles
+    if (ele%map_with_offsets .neqv. ele_dflt%map_with_offsets) &
+                                      write (line, '(2a, l1)') trim(line), ', map_with_offsets = ', ele%map_with_offsets
+    if (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on) &
+                                      write (line, '(2a, l1)') trim(line), ', csr_calc_on = ', ele%csr_calc_on
+    if (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture) &
+                                      write (line, '(2a, l1)') trim(line), ', offset_moves_aperture = ', ele%offset_moves_aperture
 
     ! Multipass lord 
 

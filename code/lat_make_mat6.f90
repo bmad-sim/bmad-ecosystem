@@ -78,23 +78,23 @@ endif
 
 if (bmad_com%auto_bookkeeper) call lat_compute_ref_energy_and_time (lat)
 
-! Is the reference orbit zero?
-
-zero_orbit = .true.
-if (present(ref_orb)) then
-  do i = 0, branch%n_ele_track
-    if (any(ref_orb(i)%vec /= 0)) then
-      zero_orbit = .false.
-      exit
-    endif
-  enddo
-endif
-
 !--------------------------------------------------------------
 ! Make entire lat if i_ele < 0.
 ! First do the inter-element bookkeeping.
 
 if (i_ele < 0) then         
+
+  ! Is the reference orbit zero?
+
+  zero_orbit = .true.
+  if (present(ref_orb)) then
+    do i = 0, branch%n_ele_track
+      if (any(ref_orb(i)%vec /= 0)) then
+        zero_orbit = .false.
+        exit
+      endif
+    enddo
+  endif
 
   if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
