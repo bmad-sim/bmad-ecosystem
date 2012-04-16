@@ -77,8 +77,6 @@ template <class T> void operator<< (valarray<T>& arr1, const valarray<T>& arr2);
 template <class T> void operator<< (valarray< valarray<T> >& mat1, 
                               const valarray< valarray<T> >& mat2);
 
-void matrix_to_array (const Real_Matrix& mat, double* arr);
-
 //--------------------------------------------------------------------
 // Coord 
 

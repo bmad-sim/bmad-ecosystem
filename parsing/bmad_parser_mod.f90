@@ -4403,6 +4403,7 @@ case (rfcavity$)
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  
   ele%mat6_calc_method = taylor$ 
+  ele%map_with_offsets = .false.
   call taylor_make_unit (ele%taylor)
 
 case (wiggler$) 
@@ -4424,7 +4425,7 @@ end subroutine parser_set_ele_defaults
 !+
 ! Subroutine settable_dep_var_bookkeeping (ele)
 !
-! Subroutine initialize dependent variables in an element.
+! Subroutine to initialize dependent variables in an element.
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.

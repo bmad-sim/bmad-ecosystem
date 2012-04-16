@@ -2251,7 +2251,6 @@ ele%bookkeeping_state%rad_int = stale$
 ! For auto bookkeeping if no change then we don't need to do anything
 
 if (bmad_com%auto_bookkeeper) then
-  if (ele%key == taylor$) return
 
   val(check_sum$) = 0
   if (associated(ele%a_pole)) val(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
@@ -2276,6 +2275,13 @@ endif
 ! Wall3d
 
 if (associated(ele%wall3d%section)) call wall3d_initializer (ele%wall3d, err_flag)
+
+! Taylor elements need no more bookkeeping
+
+if (ele%key == taylor$) then
+  ele%old_value = val
+  return
+endif
 
 ! Field_master...
 
