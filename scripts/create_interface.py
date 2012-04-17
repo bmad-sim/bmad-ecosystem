@@ -34,11 +34,12 @@ class var_class:
 
   def __init__(self):
     self.name = ''             # Name of variable
-    self.type = ''             # Fortran type. EG: 'real(rp)', 'type'
-    self.sub_type = ''         # For: components that are structures: the structure name. 
-                               #      character strings: The number of characters
+    self.type = ''             # Fortran type. EG: 'real(rp)', 'type', 'character'
+    self.full_type = ''        # Same as type except: Structures: 'type(<struct_name>)'
+                               #                      Strings: 'character(<len>)'
     self.pointer_type = '-'    # '-', 'PTR', 'ALLOC'
     self.array = []            # EG: [':', ':'] or ['0:6', '3']
+    self.full_array = ''       # EG: '(:,:)', '(0:6, 3)'
     self.lbound = []
     self.ubound = []
     self.init_value = '-'      # Initialization value
@@ -76,7 +77,7 @@ class f_side_trans_class:
     self.bindc_name = bindc_name
     self.bindc_const = ''
     self.equal_test = '(f1%name == f2%name)'
-    self.to_f2_trans = 'FF%name = name'
+    self.to_f2_trans = 'FP%name = name'
     self.test_pat = 'FF%name = XXX + offset'
 
   def __repr__(self):
@@ -94,14 +95,14 @@ f_side_trans = {
   (INT,   0, F) : f_side_trans_class('name',               'integer(c_int)',             'name'),
   (INT,   1, F) : f_side_trans_class('name',               'integer(c_int)',             'name(*)'),
   (INT,   2, F) : f_side_trans_class('imat2arr(name)',     'integer(c_int)',             'name(*)'),
-  (LOGIC, 0, F) : f_side_trans_class('c_logic(name)',      'integer(c_bool)',            'name'),
-  (LOGIC, 1, F) : f_side_trans_class('c_logic(name)',      'integer(c_bool)',            'name(*)'),
+  (LOGIC, 0, F) : f_side_trans_class('c_logic(name)',      'logical(c_bool)',            'name'),
+  (LOGIC, 1, F) : f_side_trans_class('c_logic(name)',      'logical(c_bool)',            'name(*)'),
   (CHAR,  0, F) : f_side_trans_class('c_str(name)',        'character(c_char)',          'name(*)'),
   (TYPE,  0, F) : f_side_trans_class('c_loc(name)',        'type(c_ptr), value',         'name'),
   (TYPE,  1, F) : f_side_trans_class('c_loc(name)',        'type(c_ptr), value',         'name(*)')} 
 
-f_side_trans[REAL,  2, F].to_f2_trans = 'FF%name = arr2tensor(name, name_dim)'
-f_side_trans[INT,   2, F].to_f2_trans = 'FF%name = arr2imat(name, name_dim)'
+f_side_trans[REAL,  2, F].to_f2_trans = 'FP%name = arr2tensor(name, name_dim)'
+f_side_trans[INT,   2, F].to_f2_trans = 'FP%name = arr2imat(name, name_dim)'
 
 f_side_trans[CMPLX, 1, F].test_pat = 'FF%name = [(cmplx(100 + jd1 + XXX + offset, 200 + jd1 + XXX + offset), jd1 = 1, size(FF%name))]'
 f_side_trans[REAL,  1, F].test_pat = 'FF%name = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%name))]'
@@ -140,6 +141,8 @@ class c_side_trans_class:
     self.to_f2_arg = to_f2_arg
     self.to_f2_call = to_f2_call
     self.to_c2_arg = to_c2_arg
+    self.to_c2_set = 'C.name = name;'
+    self.constructor = 'name(0)'
     self.equal_test = '(x.name == y.name)'
     self.test_pat = 'C.name = XXX + offset;'
 
@@ -150,24 +153,38 @@ class c_side_trans_class:
 
 #        Dim  Has_P                    c_class          to_f2_arg          to_f2_call             to_c2_arg
 c_side_trans = {
-  (REAL,   0,  F) : c_side_trans_class('double',         'Re&',             'C.name',          'Re& name'),
-  (REAL,   1,  F) : c_side_trans_class('Real_Array',     'ReArr',           '&C.name[0]',      'ReArr name'),
-  (REAL,   2,  F) : c_side_trans_class('Real_Matrix',    'ReArr',           'C.name',          'ReArr name'),
+  (REAL,   0,  F) : c_side_trans_class('double',         'Real&',           'C.name',          'Real& name'),
+  (REAL,   1,  F) : c_side_trans_class('Real_Array',     'RealArr',         '&C.name[0]',      'RealArr name'),
+  (REAL,   2,  F) : c_side_trans_class('Real_Matrix',    'RealArr',         'C.name',          'RealArr name'),
   (CMPLX,  0,  F) : c_side_trans_class('Dcomplex',       'Dcomplexd&',      'C.name',          'Dcomplex name'),
   (CMPLX,  1,  F) : c_side_trans_class('Dcomplex_Array', 'DcomplexArr',     '&C.name[0]',      'DcomplexArr name'),
   (INT,    0,  F) : c_side_trans_class('int',            'Int&',            'C.name',          'Int& name'),
   (INT,    1,  F) : c_side_trans_class('Int_Array',      'IntArr',          '&C.name[0]',      'IntArr name'),
   (INT,    2,  F) : c_side_trans_class('Int_Matrix',     'IntArr',          'C.name',          'IntArr name'),
-  (LOGIC,  0,  F) : c_side_trans_class('bool',           'Int&',            'C.name',          'Int& name'),
-  (LOGIC,  1,  F) : c_side_trans_class('Bool_Array',     'IntArr',          'C.name',          'IntArr name'),
+  (LOGIC,  0,  F) : c_side_trans_class('bool',           'Bool&',           'C.name',          'Bool& name'),
+  (LOGIC,  1,  F) : c_side_trans_class('Bool_Array',     'BoolArr',         'C.name',          'BoolArr name'),
   (CHAR,   0,  F) : c_side_trans_class('string',         'Char',            'C.name',          'Char name'),
-  (TYPE,   0,  F) : c_side_trans_class('C_zzz',          'const C_zzz&',    '&C.name',         'const C_zzz&'),
-  (TYPE,   1,  F) : c_side_trans_class('C_zzz_array',    'const C_zzz&',    'C.name[0]',       'const C_zzz&')}
+  (TYPE,   0,  F) : c_side_trans_class('C_zzz',          'const C_zzz&',    '&C.name',         'const C_zzz& name'),
+  (TYPE,   1,  F) : c_side_trans_class('C_zzz_array',    'const C_zzz&',    'C.name[0]',       'const C_zzz& name')}
+
+c_side_trans[REAL,  1, F].constructor = 'name(0.0, DIM1)'
+c_side_trans[REAL,  1, F].to_c2_set   = 'C.name = Real_Array(name, DIM1);'
+c_side_trans[REAL,  1, F].test_pat    = 'for (int i = 0; i < C.name.size(); i++) C.name[i] = 101 + i + XXX + offset;'
+
+c_side_trans[CMPLX, 1, F].constructor = 'name(0.0, DIM1)'
+c_side_trans[CMPLX, 1, F].to_c2_set   = 'C.name = Dcomplex_Array(name, DIM1);'
+c_side_trans[CMPLX, 1, F].test_pat    = 'for (int i = 0; i < C.name.size(); i++) C.name[i] = Dcomplex(101 + i + XXX + offset, 201 + i + XXX + offset);'
+
+c_side_trans[INT,   1, F].constructor = 'name(DIM1)'
+c_side_trans[INT,   1, F].to_c2_set   = 'C.name = Int_Array(name, DIM1);'
+c_side_trans[INT,   1, F].test_pat    = 'for (int i = 0; i < C.name.size(); i++) C.name[i] = 101 + i + XXX + offset;'
+
+c_side_trans[LOGIC, 1, F].constructor = 'name(DIM1)'
+c_side_trans[LOGIC, 1, F].to_c2_set   = 'C.name = Int_Array(name, DIM1);'
+c_side_trans[LOGIC, 1, F].test_pat    = 'for (int i = 0; i < C.name.size(); i++) C.name[i] = 101 + i + XXX + offset;'
 
 for key, c in c_side_trans.items(): 
   if key[1] != 0: c.equal_test = 'is_all_equal(x.name, y.name)'
-  if key[1] == 1: c.test_pat = 'for (int i = 0; i < size(C.name); i++) C.name[i] = 100 + i + XXX + offset;'
-
 
 ##################################################################################
 ##################################################################################
@@ -232,15 +249,15 @@ for file_name in f_module_files:
       if len(split_line) == 0: continue
       if split_line[0:2] == ['end', 'type']: break
 
-      var.type = split_line.pop(0)
-      if split_line[0][0:1] == '(': var.type = var.type + split_line.pop(0)
+      var.full_type = split_line.pop(0)
+      if split_line[0][0:1] == '(': var.full_type = var.full_type + split_line.pop(0)
 
-      if var.type == 'character(':
-        var.sub_type = var.type[10:-1]
+      var.type = var.full_type
+
+      if var.full_type[0:10] == 'character(':
         var.type = 'character'
 
-      if var.type == 'type(':
-        var.sub_type = var.type[5:-1]
+      if var.full_type[0:5] == 'type(':
         var.type = 'type' 
 
       if split_line[0] == 'allocatable':
@@ -279,7 +296,7 @@ for file_name in f_module_files:
         has_p = F     ### has_p = (var.pointer_type != '-')
 
         if (var.type, n_dim, has_p) not in f_side_trans:
-          print 'NO TRANSLATION FOR: ' + struct.short_name + '%' + var.name
+          print 'NO TRANSLATION FOR: ' + struct.short_name + '%' + var.name + ' [', var.type + ', ' + str(n_dim) + ', ' + str(has_p) + ']'
           continue
 
         var.f_side = f_side_trans[var.type, n_dim, has_p]
@@ -292,6 +309,7 @@ for file_name in f_module_files:
         struct.var.append(var)        
 
         if len(var.array) != 0:
+          var.full_array = '(' + ', '.join(var.array) + ')'
           if var.array[0] == ':':
             for n in range(1, len(var.array)):
               dim_var = var_class()
@@ -301,6 +319,14 @@ for file_name in f_module_files:
               struct.dim_var.append(dim_var)
 
   f_module_file.close()
+
+# Make some name substitutions
+
+for struct in struct_def.values():
+  for var in struct.var:
+    if len(var.array) == 1: 
+      var.c_side.constructor = var.c_side.constructor.replace('DIM1', str(1 + int(var.ubound[0]) - int(var.lbound[0])))
+      var.c_side.to_c2_set = var.c_side.to_c2_set.replace('DIM1', str(1 + int(var.ubound[0]) - int(var.lbound[0])))
 
 ##################################################################################
 ##################################################################################
@@ -339,13 +365,29 @@ use bmad_struct
 use bmad_interface
 use fortran_and_cpp
 use, intrinsic :: iso_c_binding
-
-contains
 ''')
+
+##############
+# zzz_to_f interface
+
+for struct in struct_def.values():
+  f_face.write ('''
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine zzz_to_f (CC, FF) bind(c)
+    import c_ptr
+    type (c_ptr), value :: CC, FF
+  end subroutine
+end interface
+'''.replace('zzz', struct.short_name))
+
+
+f_face.write ('contains\n')
 
 
 ##############
-# Loop over all the structures...
+# zzz_to_c definitions
 
 for struct_key, struct in struct_def.items():
 
@@ -358,7 +400,7 @@ for struct_key, struct in struct_def.items():
 !+
 ! Subroutine zzz_to_c (FF, CC) bind(c)
 !
-! Routine to convert a Bmad zzz_struct to a C++ CC
+! Routine to convert a Bmad zzz_struct to a C++ C_zzz structure
 !
 ! Input:
 !   FF -- type (c_ptr), value :: Input Bmad zzz_struct structure.
@@ -367,7 +409,7 @@ for struct_key, struct in struct_def.items():
 !   CC -- type(c_ptr), value :: Output C++ C_zzz struct.
 !-
 
-subroutine zzz_to_c (FF, CC)
+subroutine zzz_to_c (FF, CC) bind(c)
 
 implicit none
 
@@ -401,17 +443,68 @@ interface
   f_face.write ('''  end subroutine
 end interface
 
-type (zzz_struct), pointer :: FF
+type (c_ptr), value :: FF
 type (c_ptr), value :: CC
+type (zzz_struct), pointer :: FP
+
+!
+
+call c_f_pointer (FF, FP)
 
 call zzz_to_c2 (CC'''.replace('zzz', s_name))
 
   for var in struct.var:
-    f_face.write (', FF%' + var.f_side.to_c2_arg.replace('name', var.name))
+    f_face.write (', FP%' + var.f_side.to_c2_arg.replace('name', var.name))
 
   f_face.write(''')
 
 end subroutine zzz_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine zzz_to_f2 (FF, ...etc...) bind(c)
+!
+! Routine used in converting a C++ C_zzz structure to a Bmad zzz_struct structure.
+! This routine is called by zzz_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the zzz_to_f2 code for more details.
+!
+! Output:
+!   FF -- type (c_ptr), value :: Bmad zzz_struct structure.
+!-
+
+subroutine zzz_to_f2 (FF'''.replace('zzz', struct.short_name))
+
+  for var in struct.var:
+    f_face.write(', ' + var.name.replace('name', var.name))
+
+  f_face.write(''') bind(c)\n
+
+implicit none
+
+type (c_ptr), value :: FF
+type (zzz_struct), pointer :: FP
+'''.replace('zzz', struct.short_name))
+
+  f2_arg_list = {}
+  for var in struct.var:
+    if not var.full_type in f2_arg_list: f2_arg_list[var.full_type] = []
+    f2_arg_list[var.full_type].append(var.name + var.full_array)
+
+  for arg_type, arg_list in f2_arg_list.items():
+    f_face.write(arg_type + ' ' + ', '.join(arg_list) + '\n')
+
+  f_face.write('''
+call c_f_pointer (FF, FP)
+''')
+
+  for var in struct.var:
+    f_face.write (var.f_side.to_f2_trans.replace('name', var.name) + '\n')
+
+  f_face.write ('''
+end subroutine zzz_to_f2
 '''.replace('zzz', struct.short_name))
 
 ########################
@@ -529,26 +622,26 @@ subroutine test1_f_zzz (ok)
 implicit none
 
 type (zzz_struct), target :: f_zzz, f2_zzz
-integer c_ok
+logical(c_bool) c_ok
 logical ok
 
 interface
   subroutine test_c_zzz (c_zzz, c_ok) bind(c)
     import c_ptr, c_int
     type (c_ptr), value :: c_zzz
-    integer(c_int) c_ok
+    logical(c_bool) c_ok
   end subroutine
 end interface
 
 !
 
 ok = .true.
-call zzz_test_pattern (f_zzz, 1)
+call zzz_test_pattern (f2_zzz, 1)
 
-call test_c_zzz(c_loc(f_zzz), c_ok)
+call test_c_zzz(c_loc(f2_zzz), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call zzz_test_pattern (f2_zzz, 3)
+call zzz_test_pattern (f_zzz, 4)
 if (f_zzz == f2_zzz) then
   print *, 'zzz: C_side_convert C->F: Good'
 else
@@ -582,7 +675,8 @@ else
   c_ok = c_logic(.false.)
 endif
 
-call zzz_to_c (f2_zzz, c_zzz)
+call zzz_test_pattern (f2_zzz, 3)
+call zzz_to_c (c_loc(f2_zzz), c_zzz)
 
 end subroutine test2_f_zzz
 
@@ -594,7 +688,7 @@ subroutine zzz_test_pattern (FF, ix_patt)
 implicit none
 
 type (zzz_struct) FF
-integer ix_patt, offset, jd1
+integer ix_patt, offset, jd1, jd2, jd3
 
 !
 
@@ -644,11 +738,11 @@ typedef complex<double>          dcomplex;
 typedef const bool               Bool;
 typedef const dcomplex           Dcomplex;
 typedef const char*              Char;
-typedef const double             Re;
+typedef const double             Real;
 typedef const int                Int;
 
 typedef const dcomplex*          DcomplexArr;
-typedef const double*            ReArr;
+typedef const double*            RealArr;
 typedef const int*               IntArr;
 
 typedef valarray<bool>           Bool_Array;
@@ -660,15 +754,6 @@ typedef valarray<Real_Array>     Real_Matrix;
 typedef valarray<Bool_Array>     Bool_Matrix;
 
 typedef valarray<Real_Matrix>    Real_Tensor;
-
-const Real_Array V2_array(double(0), 2);
-const Real_Array V3_array(double(0), 3);
-const Real_Array V6_array(double(0), 6);
-const Real_Matrix M2_mat(V2_array, 2);
-const Real_Matrix M3_mat(V3_array, 3);
-const Real_Matrix M6_mat(V6_array, 6);
-const double       V0(0);
-const dcomplex     C0(0);
 
 ''')
 
@@ -684,12 +769,26 @@ public:
 '''.replace('zzz', struct.short_name))
 
   for var in struct.var:
-    f_class.write('  ' + var.c_side.c_class + ' ' + var.name  + ';\n')
+    f_class.write('  ' + var.c_side.c_class.replace('zzz', struct.short_name) + ' ' + var.name  + ';\n')
 
-  f_class.write ('''};   // End Class
+  f_class.write ('''
+  C_zzz() :
+'''.replace('zzz', struct.short_name))
+
+  construct_list = []
+  for var in struct.var:
+    construct_list.append(var.c_side.constructor.replace('name', var.name))
+
+  f_class.write ('    ' + ', '.join(construct_list) + '\n')
+
+  f_class.write('''    {}
+
+};   // End Class
 
 extern "C" void zzz_to_c (zzz_struct*, C_zzz&);
 extern "C" void zzz_to_f (C_zzz&, zzz_struct*);
+
+bool operator== (const C_zzz&, const C_zzz&);
 
 typedef valarray<C_zzz>    C_zzz_array;
 
@@ -698,7 +797,7 @@ typedef valarray<C_zzz>    C_zzz_array;
 f_class.write('''
 //--------------------------------------------------------------------
 
-#define CPP_AND_BMAD
+#define CPP_BMAD_CLASSES
 #endif
 ''')
 
@@ -716,6 +815,8 @@ f_cpp.write('''
 // File Generated by: create_interface.py
 // Do not edit this file directly! 
 //-
+
+#ifndef CPP_BMAD_CONVERT
 
 #include <iostream>
 #include "cpp_bmad_classes.h"
@@ -772,31 +873,31 @@ template <class T> void operator<< (valarray< valarray<T> >& mat1,
 //---------------------------------------------------------------------------
 // Instantiate needed template instances.
 
-template void operator<< (Real_Array&, const double*);
+template void operator<< (Real_Array&,  const double*);
 template void operator<< (Real_Matrix&, const double*);
 template void operator<< (Real_Tensor&, const double*);
-template void operator<< (Int_Array&, const int*);
+template void operator<< (Int_Array&,   const int*);
 
-template void operator<< (Real_Array&, const Real_Array&);
+template void operator<< (Real_Array&,  const Real_Array&);
 template void operator<< (Real_Matrix&, const Real_Matrix&);
-template void operator<< (Int_Array&, const Int_Array&);
+template void operator<< (Int_Array&,   const Int_Array&);
 
 //---------------------------------------------------------------------------
 
-void matrix_to_array (const Real_Matrix& mat, double* arr) {
+void matrix_to_vector (const Real_Matrix& mat, double* vec) {
   int n1 = mat.size();
   if (n1 == 0) return;
   int n2 = mat[0].size();
   for (int i = 0; i < n1; i++) {
     for (int j = 0; j < n2; j++) {
-      arr[i*n2+j] = mat[i][j];
+      vec[i*n2+j] = mat[i][j];
     }
   }
 }
 
 //---------------------------------------------------------------------------
 
-void tensor_to_array (const Real_Tensor& tensor, double* arr) {
+void tensor_to_vector (const Real_Tensor& tensor, double* vec) {
   int n1 = tensor.size();
   if (n1 == 0) return;
   int n2 = tensor[0].size();
@@ -804,7 +905,7 @@ void tensor_to_array (const Real_Tensor& tensor, double* arr) {
   for (int i = 0; i < n1; i++) {
     for (int j = 0; j < n2; j++) {
       for (int k = 0; k < n3; k++) {
-        arr[i*n2*n3 + j*n3 + k] = tensor[i][j][k];
+        vec[i*n2*n3 + j*n3 + k] = tensor[i][j][k];
       }
     }
   }
@@ -825,7 +926,7 @@ extern "C" void zzz_to_c (zzz_struct*, C_zzz&);
 extern "C" void zzz_to_f2 (zzz_struct*'''.replace('zzz', struct.short_name))
 
   for var in struct.var:
-    f_cpp.write (', ' + var.c_side.to_f2_arg)
+    f_cpp.write (', ' + var.c_side.to_f2_arg.replace('zzz', struct.short_name))
 
   f_cpp.write(');\n')
 
@@ -847,10 +948,19 @@ extern "C" void zzz_to_f (C_zzz& C, zzz_struct* F) {
   f_cpp.write('extern "C" void zzz_to_c2 (C_zzz& C'.replace('zzz', struct.short_name))
 
   for var in struct.var:
-    f_cpp.write (', ' + var.c_side.to_c2_arg.replace('name', var.name))
+    f_cpp.write (', ' + var.c_side.to_c2_arg.replace('name', var.name).replace('zzz', struct.short_name))
 
   f_cpp.write(') {\n')
+
+  for var in struct.var:
+    f_cpp.write ('  ' + var.c_side.to_c2_set.replace('name', var.name) + '\n')
+
   f_cpp.write('}\n')
+
+f_cpp.write('''
+#define CPP_BMAD_CONVERT
+#endif
+''')
 
 f_cpp.close()
 
@@ -920,14 +1030,14 @@ bool is_all_equal (const Real_Tensor& tensor1, const Real_Tensor& tensor2) {
 //---------------------------------------------------
 
 template bool is_all_equal (const Dcomplex_Array&, const Dcomplex_Array&);
-template bool is_all_equal (const Real_Array&, const Real_Array&);
-template bool is_all_equal (const Int_Array&, const Int_Array&);
+template bool is_all_equal (const Real_Array&,     const Real_Array&);
+template bool is_all_equal (const Int_Array&,      const Int_Array&);
 ''')
 
 for key, struct in struct_def.items():
   f_eq.write ('\n//--------------------------------------------------------------\n\n')
-  f_eq.write ('bool operator== (const C_zzz& x, const C_zzz& y) {'.replace('zzz', struct.short_name))
-  f_eq.write ('  bool is_eq;\n')
+  f_eq.write ('bool operator== (const C_zzz& x, const C_zzz& y) {'.replace('zzz', struct.short_name) + '\n')
+  f_eq.write ('  bool is_eq = true;\n')
 
   for var in struct.var:
     f_eq.write ('  is_eq = is_eq && ' + var.c_side.equal_test.replace('name', var.name)  + ';\n')
@@ -953,7 +1063,10 @@ f_test.write('''
 //-
 
 #include <stdio.h>
+#include <iostream>
 #include "cpp_bmad_classes.h"
+
+using namespace std;
 ''')
 
 for key, struct in struct_def.items():
@@ -961,7 +1074,11 @@ for key, struct in struct_def.items():
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-void C_zzz_test_pattern (C_zzz& C, int offset) {
+extern "C" void test2_f_zzz (C_zzz&, bool&);
+
+void C_zzz_test_pattern (C_zzz& C, int ix_patt) {
+
+int offset = 100 * ix_patt;
 
 '''.replace('zzz', struct.short_name))
 
@@ -973,32 +1090,35 @@ f_test.write('''
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_zzz (zzz_struct* F, int& c_ok) {
+extern "C" void test_c_zzz (zzz_struct* F, bool& c_ok) {
 
   C_zzz C, C2;
 
   zzz_to_c (F, C);
-  C_zzz_test_pattern (C2, 1)
+  C_zzz_test_pattern (C2, 1);
 
   if (C == C2) {
     cout << " C side convert: zzz F to C: OK" << endl;
   } else {
     cout << " C SIDE CONVERT: zzz F to C: FAILED!!" << endl;
-    c_ok = 0;
+    c_ok = false;
   }
 
-  C_zzz_test_pattern (C2, 2)
-  test2_f_zzz (C2, c_ok);
+  C_zzz_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_zzz (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
 
-  if (c2 == c_coord_out) {
+  C_zzz_test_pattern (C, 3);
+  if (C == C2) {
     cout << " F side convert: zzz F to C: OK" << endl;
   } else {
     cout << " F SIDE CONVERT: zzz F TO C: FAILED!!" << endl;
-    c_ok = 0;
+    c_ok = false;
   }
 
-  C_zzz_test_parttern (C, 3)
-  zzz_to_f (C, F);
+  C_zzz_test_pattern (C2, 4);
+  zzz_to_f (C2, F);
 
 }
 '''.replace('zzz', struct.short_name))

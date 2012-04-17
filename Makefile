@@ -1,14 +1,19 @@
 #=============================================================================
-# File:     cpp_bmad_interface/Makefile
 #
-# Purpose:  Makefile to build the CESR CPP_BMAD_INTERFACE Library
+# File:     M.lib
+#
+# Purpose:  Simple Makefile to build an ACC Library
+#
+# Depends upon:
+#           Master makefile at ${ACC_GMAKE}/M.tail
 #
 # Author:   M. Palmer   7/24/00
 #
 # Acknowledgements:  Simon Patton's CLEO Makefile infrastructure
 #                    Dave Sagan's descrip.mms 
 #                    Mike Marsh and his makefiles
-#-----------------------------------------------------------------------------
+#=============================================================================
+
 
 #-----------------------------------------------------------------------------
 # Specify default source directories for code to be compiled and put into
@@ -28,8 +33,8 @@
 #           are intended to show the full range of options available.
 #
 #
-# CODE_SRC_DIRS   - Put a list of code sub-directories here
-# MOD_SRC_DIRS    - Put a list of F90 module source sub-directories here
+# LIB_SRC_DIRS    - Put a list of code sub-directories here.  These directories 
+#                   hold code that is intended to be installed in the library
 # OBJ_SRC_DIRS    - Put a list of sub-directories with code that should be 
 #                   compiled into explicit .o files but NOT stored in the 
 #                   archive library here (for instance, object files for 
@@ -38,35 +43,55 @@
 #                   here.   NOTE:  It is assumed that ALL config files in the
 #                   CONFIG_DIRS are of the form *.*  This is to avoid copying
 #                   of contained sub-directories (eg, the CVS sub-directory).
-# LOCAL_INCS      - Local directories to search for include files
-# LOCAL_MODS      - Local directories to search for F90 compiled module files
+# LOCAL_INCS      - Local directories to search for include files.  It is 
+#                   recommended that "partial paths" be used.  For example, 
+#                   to specify that an include file from the bmad library is 
+#                   needed, simply add   bmad/include   to this line.  Further 
+#                   path information will be supplied by the M.tail makefile. 
+# SRC_EXCLUDE     - Source files to exclude from compilation (just the base 
+#                   file names should be used here)
+# M_FILE_LIST     - A list of secondary M.xxx makefiles to be run as part 
+#                   of library generation if the DO_EXTRA_MAKES flag is set. 
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := code
-OBJ_SRC_DIRS := interface_test
-
-CONFIG_DIRS  :=
-LOCAL_INCS   := ./include
-LOCAL_MODS   := ../modules 
-
-M_FILE_LIST  :=
+LIB_SRC_DIRS  := code
+OBJ_SRC_DIRS  := interface_test
+CONFIG_DIRS   :=
+LOCAL_INCS    := include
+SRC_EXCLUDE   :=
+LOCAL_MODS    := ../modules
+M_FILE_LIST   := M.interface_test
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
 # These variables are automatically appended to the relevant search paths and
 # lists in M.tail
 #
-# EXTRA_SRC      - extra code source directories
-# EXTRA_MOD_SRC  - extra module source directories
+# EXTRA_LIB_SRC  - extra library code source directories
 # EXTRA_OBJ_SRC  - extra object source directories
 # EXTRA_CONFIG   - extra configuration file directories
 # EXTRA_INCS     - extra include file search directories
-# EXTRA_MODS     - extra compile module search directories
+# EXTRA_MODS     - extra compiled module search directories
+# EXTRA_LIBDIR   - extra directories to search for archive library
+# EXTRA_LIBS     - extra archive libraries for symbol searching
+# EXTRA_OBJS     - extra object files for linking
 # EXTRA_FFLAGS   - extra Fortran flags for compilation
 # EXTRA_CFLAGS   - extra C flags for compilation 
+# EXTRA_CXXFLAGS - extra C++ flags for compilation
 # EXTRA_LFLAGS   - extra linker flags
 #-----------------------------------------------------------------------------
+EXTRA_LIB_SRC  :=
+EXTRA_OBJ_SRC  :=
+EXTRA_CONFIG   :=
+EXTRA_INCS     :=
+EXTRA_MODS     :=
+EXTRA_LIBDIR   :=
+EXTRA_LIBS     :=
+EXTRA_OBJS     :=
+EXTRA_FFLAGS   :=
+EXTRA_CFLAGS   :=
+EXTRA_CXXFLAGS :=
+EXTRA_LFLAGS   :=
 
-## EXTRA_FFLAGS := -p # For gprof
 
 #------------------------------------------------
 # Name of local libraries (standard and debug) 
@@ -78,12 +103,25 @@ endif
 
 
 #------------------------------------------------
-# Include the standard CESR M.tail makefile
+# Place object files in the locallib area
+#------------------------------------------------
+OBJ_OUT_DIR = $(locallib)
+
+
+#------------------------------------------------
+# Include the accelerator build system (ACC) 
+# M.tail master makefile.
 #------------------------------------------------
 ifeq "$(DIST_BUILD)" "TRUE"
   include $(DIST_GMAKE)/M.tail
 else
   include $(ACC_GMAKE)/M.tail
 endif
+
+
+
+
+
+
 
 
