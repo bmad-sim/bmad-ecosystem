@@ -930,73 +930,64 @@ enddo
 ave = ave / n_particle
 sig_mat = sig_mat / n_particle
 
-! Now the distribution of particle(:)%vec(n) for fixed n has
-! on average, unit sigma and the distribution for n = n1 is uncorrelated
-! with the distribution for n = n2, n1 /= n2.
-
-! However, since we are dealing with a finite number of particles, 
-! the sigmas of the distributions will not be exactly 1, and there will 
-! be some correlation between distributions.
+! Since we are dealing with a finite number of particles, 
+! the sigmas of the distributions in each dimension
+! will not be exactly 1 and there will 
+! be some correlation between different dimensions.
 ! If beam_init%renorm_sigma = True then take this out.
+! That is, we want to make sig_mat = the unit matrix.
+! Exception: Ignore if n_particle = 1.
+! Also: If n_particle < 7 then cannot remove correlations between 
+! dimensions so, in this case, only normalize sig_mat(i,i) to 1.
 
-! Zero the average for now
+if (beam_init%renorm_sigma) then
 
-do n = 1, n_particle
-  p(n)%vec = p(n)%vec - ave
-enddo
+  ! Make sure average is zero.
 
-! renormalize the beam sigmas. Ignore if n_particle = 1.
+  do n = 1, n_particle
+    p(n)%vec = p(n)%vec - ave
+  enddo
 
-if (beam_init%renorm_sigma .and. n_particle > 1) then
-
-  ! This accounts for subtracting off the average
   forall (i = 1:6, j = 1:6) sig_mat(i,j) = sig_mat(i,j) - ave(i) * ave(j)
 
-  ! To renormalize we want to make sig_mat = the unit matrix.
   ! The first step is to zero the off-diagonal elements.
   ! We have to do this in the correct order otherwise zeroing one element
   ! might unzero others that have already been zeroed.
 
-  do i = 5, 1, -1
-    do j = i+1, 6
-      b = -sig_mat(i,j) / sig_mat(j,j)
-      ! Transform the distribution
-      do n = 1, n_particle
-        p(n)%vec(i) = p(n)%vec(i) + b * p(n)%vec(j)
-      enddo
-      ! Since we have transformed the distribution we need to transform
-      ! sig_mat to keep things consistant.
-      sig_mat(i,i) = sig_mat(i,i) + 2 * b * sig_mat(i,j) + b**2 * sig_mat(j,j)
-      do j2 = 1, 6
-        if (j2 == i) cycle
-        sig_mat(i,j2) = sig_mat(i,j2) + b * sig_mat(j ,j2)
-        sig_mat(j2,i) = sig_mat(i,j2)
-      enddo
+  if (n_particle > 6) then
+    do i = 5, 1, -1
+      do j = i+1, 6
 
+        b = -sig_mat(i,j) / sig_mat(j,j)
+        ! Transform the distribution
+        do n = 1, n_particle
+          p(n)%vec(i) = p(n)%vec(i) + b * p(n)%vec(j)
+        enddo
+        ! Since we have transformed the distribution we need to transform
+        ! sig_mat to keep things consistant.
+        sig_mat(i,i) = sig_mat(i,i) + 2 * b * sig_mat(i,j) + b**2 * sig_mat(j,j)
+        do j2 = 1, 6
+          if (j2 == i) cycle
+          sig_mat(i,j2) = sig_mat(i,j2) + b * sig_mat(j ,j2)
+          sig_mat(j2,i) = sig_mat(i,j2)
+        enddo
+
+      enddo
     enddo
-  enddo
+  endif
 
   ! Now we make the diagonal elements unity
 
-  alpha = 0
-  do i = 1, 6
-    if (sig_mat(i,i) > 0) alpha(i) = sqrt(1/sig_mat(i,i))
-  enddo
+  if (n_particle > 1) then
+    do i = 1, 6
+      alpha(i) = sqrt(1/sig_mat(i,i))
+    enddo
 
-  do n = 1, n_particle
-    p(n)%vec = p(n)%vec * alpha
-  enddo
+    do n = 1, n_particle
+      p(n)%vec = p(n)%vec * alpha
+    enddo
+  endif
 
-endif
-
-! In general, since we are dealing with a finite number of particles, 
-! the averages will not be zero.
-! Put back the non-zero center if beam_init%renorm_center = False.
-
-if (.not. beam_init%renorm_center) then
-  do n = 1, n_particle
-    p(n)%vec = p(n)%vec + ave
-  enddo
 endif
 
 ! Compute sigmas
