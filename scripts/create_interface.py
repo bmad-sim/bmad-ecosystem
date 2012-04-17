@@ -363,7 +363,7 @@ module bmad_cpp_convert_mod
 
 use bmad_struct
 use bmad_interface
-use fortran_and_cpp
+use fortran_cpp_utils
 use, intrinsic :: iso_c_binding
 ''')
 
@@ -627,7 +627,7 @@ logical ok
 
 interface
   subroutine test_c_zzz (c_zzz, c_ok) bind(c)
-    import c_ptr, c_int
+    import c_ptr, c_bool
     type (c_ptr), value :: c_zzz
     logical(c_bool) c_ok
   end subroutine
@@ -643,9 +643,9 @@ if (.not. f_logic(c_ok)) ok = .false.
 
 call zzz_test_pattern (f_zzz, 4)
 if (f_zzz == f2_zzz) then
-  print *, 'zzz: C_side_convert C->F: Good'
+  print *, 'zzz: C side convert C->F: Good'
 else
-  print *, 'zzz: C_side_convert C->F: FAILED!'
+  print *, 'zzz: C side convert C->F: FAILED!'
   ok = .false.
 endif
 
@@ -1094,13 +1094,15 @@ extern "C" void test_c_zzz (zzz_struct* F, bool& c_ok) {
 
   C_zzz C, C2;
 
+  c_ok = true;
+
   zzz_to_c (F, C);
   C_zzz_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " C side convert: zzz F to C: OK" << endl;
+    cout << " zzz: C side convert F->C: Good" << endl;
   } else {
-    cout << " C SIDE CONVERT: zzz F to C: FAILED!!" << endl;
+    cout << " zzz: C SIDE CONVERT C->F: FAILED!" << endl;
     c_ok = false;
   }
 
@@ -1111,9 +1113,9 @@ extern "C" void test_c_zzz (zzz_struct* F, bool& c_ok) {
 
   C_zzz_test_pattern (C, 3);
   if (C == C2) {
-    cout << " F side convert: zzz F to C: OK" << endl;
+    cout << " zzz: F side convert F->C: Good" << endl;
   } else {
-    cout << " F SIDE CONVERT: zzz F TO C: FAILED!!" << endl;
+    cout << " zzz: F SIDE CONVERT C->F: FAILED!" << endl;
     c_ok = false;
   }
 

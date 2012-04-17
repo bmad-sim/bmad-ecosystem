@@ -1,6 +1,7 @@
-module fortran_and_cpp
+module fortran_cpp_utils
 
 use precision_def
+use, intrinsic :: iso_c_binding
 
 type c_dummy_struct
   real(rp) dummy
@@ -21,7 +22,7 @@ end type
 ! If there is no null character then str_out = str_in.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   str_char   -- Character(*): Input string with null character.
@@ -36,6 +37,32 @@ interface remove_null_in_string
   module procedure remove_null_in_string_arr
 end interface
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function f_logic (logic) result (f_log)
+!
+! Function to convert from a C logical to a Fortran logical.
+! This function overloads:
+!   f_logic_int  (int_logic) result (f_log)
+!   f_logic_bool (bool_logic) result (f_log)
+!
+! Modules needed:
+!   use fortran_cpp_utils
+!
+! Input:
+!   int_logic  -- Integer: C logical.
+!   bool_logic -- Logical(c_bool): C logical.
+!
+! Output:
+!   f_log -- Logical: Fortran logical.
+!-
+
+interface f_logic
+  module procedure f_logic_bool
+  module procedure f_logic_int
+end interface
+
 contains
 
 !-----------------------------------------------------------------------------
@@ -46,7 +73,7 @@ contains
 ! Function to convert from a fortran logical to a C logical.
 !
 ! Modules needed:
-!   use fortran_and_cpp
+!   use fortran_cpp_utils
 !
 ! Input:
 !   logic -- Logical: Fortran logical.
@@ -75,21 +102,14 @@ end function c_logic
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function f_logic (logic) result (f_log)
+! Function f_logic_int (logic) result (f_log)
 !
 ! Function to convert from a C logical to a Fortran logical.
-!
-! Modules needed:
-!   use fortran_and_cpp
-!
-! Input:
-!   logic -- Integer: C logical.
-!
-! Output:
-!   f_log -- Logical: Fortran logical.
+! This function is overloaded by f_logic.
+! See f_logic for more details.
 !-
 
-function f_logic (logic) result (f_log)
+function f_logic_int (logic) result (f_log)
 
 implicit none
 
@@ -104,7 +124,45 @@ else
   f_log = .true.
 endif
 
-end function f_logic
+end function f_logic_int
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function f_logic_bool (logic) result (f_log)
+!
+! Function to convert from a C logical to a Fortran logical.
+! This function is overloaded by f_logic.
+! See f_logic for more details.
+!-
+
+function f_logic_bool (logic) result (f_log)
+
+implicit none
+
+logical(c_bool) logic
+logical f_log
+integer int_logic
+
+interface
+  subroutine bool_to_int (logic, int_logic) bind(c)
+    import c_bool, c_int
+    logical(c_bool) logic
+    integer(c_int) int_logic
+  end subroutine
+end interface
+
+!
+
+call bool_to_int (logic, int_logic)
+
+if (int_logic == 0) then
+  f_log = .false.
+else
+  f_log = .true.
+endif
+
+end function f_logic_bool
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -115,7 +173,7 @@ end function f_logic
 ! If the pointer is not associated then 0 is returned.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   ptr(:) -- Real(rp), pointer: Pointer to an array.
@@ -145,7 +203,7 @@ end function r_size
 ! If the pointer is not associated then 0 is returned.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   ptr(:) -- Integer, pointer: Pointer to an array.
@@ -177,7 +235,7 @@ end function i_size
 ! See remove_null_in_string for more details.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   str_in(*) -- Character(1): Input character array. Null terminated.
@@ -214,7 +272,7 @@ end subroutine remove_null_in_string_arr
 ! See remove_null_in_string for more details.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   str_in -- Character(*): Input string with null character.
@@ -250,7 +308,7 @@ end subroutine remove_null_in_string_char
 ! of trailing blanks) so it will look like a C character array. 
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   str   -- Character(*): Input character string
@@ -282,7 +340,7 @@ end function c_str
 ! This is used for passing matrices to C++ routines.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   mat(:,:)  -- Real(rp): Input matrix
@@ -315,7 +373,7 @@ end function mat2arr
 ! This is used for passing tensorrices to C++ routines.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   tensor(:,:)  -- Real(rp): Input tensorrix
@@ -347,7 +405,7 @@ end function tensor2arr
 ! This is used for getting matrices from C++ routines.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   arr(:)   -- Real(rp): Input array.
@@ -380,7 +438,7 @@ end function arr2mat
 ! This is used for getting tensorrices from C++ routines.
 !
 ! Modules needed:
-!  use fortran_and_cpp
+!  use fortran_cpp_utils
 !
 ! Input:
 !   arr(:)   -- Real(rp): Input array.
