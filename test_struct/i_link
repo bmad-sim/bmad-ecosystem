@@ -1,3 +1,0 @@
-ifort -c -g -O0 test.f90
-g++ -c -g -O0 c_test.cpp
-ifort -o test_g test.o c_test.o -lstdc++

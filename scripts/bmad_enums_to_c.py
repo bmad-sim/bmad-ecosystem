@@ -3,6 +3,7 @@
 # Note: Run this script in the cpp_bmad_interface directory.
 
 import re
+import os
 
 def searchit (file):
 
