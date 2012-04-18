@@ -190,11 +190,15 @@ for key, c in c_side_trans.items():
 ##################################################################################
 # Get the list of structs
 
-f_struct_list_file = open('scripts/fortran_structs.list')
+struct_list_file = 'scripts/fortran_structs.list'
+if len(sys.argv) > 1: struct_list_file = sys.argv[1]
+
+f_struct_list_file = open(struct_list_file)
 
 struct_def = {}
 f_struct_list = []
 f_module_files = []
+f_use_list = []
 
 for line in f_struct_list_file:
   line = line.strip()
@@ -203,6 +207,8 @@ for line in f_struct_list_file:
 
   if split_line[0] == 'FILE:':
     f_module_files.append(split_line[1])
+  elif split_line[0] == 'USE:':
+    f_use_list.append('use ' + split_line[1])
   else:
     f_struct_list.append(split_line)
     struct_def[line.split()[0]] = struct_def_class()
@@ -361,8 +367,11 @@ f_face.write ('''
 
 module bmad_cpp_convert_mod
 
-use bmad_struct
-use bmad_interface
+''')
+
+f_face.write ('\n'.join(f_use_list))
+
+f_face.write ('''
 use fortran_cpp_utils
 use, intrinsic :: iso_c_binding
 ''')
@@ -519,10 +528,10 @@ f_face.close()
 
 f_equ = open('code/bmad_equality.f90', 'w')
 
-f_equ.write ('''
-module bmad_equality
+f_equ.write ('module bmad_equality\n\n')
+f_equ.write ('\n'.join(f_use_list))
 
-use bmad_struct
+f_equ.write ('''
 
 interface operator (==)
 ''')
@@ -645,7 +654,7 @@ call zzz_test_pattern (f_zzz, 4)
 if (f_zzz == f2_zzz) then
   print *, 'zzz: C side convert C->F: Good'
 else
-  print *, 'zzz: C side convert C->F: FAILED!'
+  print *, 'zzz: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 

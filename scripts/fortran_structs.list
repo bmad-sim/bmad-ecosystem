@@ -1,3 +1,4 @@
 FILE: bmad/modules/bmad_struct.f90
+USE: bmad_struct
 
 coord_struct        
