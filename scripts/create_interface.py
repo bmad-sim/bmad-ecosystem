@@ -238,6 +238,7 @@ for file_name in f_module_files:
     struct.short_name = struct_name[:-7]   # Remove '_struct' suffix
     
     # Now collect the struct variables
+    # Example line: "real(rp), pointer :: a(:,:),b(7)
 
     for line in f_module_file:
 
@@ -314,6 +315,7 @@ for file_name in f_module_files:
 
         struct.var.append(var)        
 
+        print var.array + '::' + str(len(var.array))
         if len(var.array) != 0:
           var.full_array = '(' + ', '.join(var.array) + ')'
           if var.array[0] == ':':
@@ -669,7 +671,7 @@ implicit  none
 
 type (c_ptr), value ::  c_zzz
 type (zzz_struct), target :: f_zzz, f2_zzz
-integer(c_int) c_ok
+logical(c_bool) c_ok
 
 !
 
