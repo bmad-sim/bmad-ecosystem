@@ -104,8 +104,9 @@ subroutine add_lattice_control_structs (lat, ele)
       ele%ic1_lord = n_ic + 1
       ele%ic2_lord = n_ic + n_add
     else
-      if (n_ic+n_add > size(lat%ic)) call re_allocate (lat%ic, nint(1.2*(n_ic+n_add)) + 10)
-      lat%ic(i2+1+n_add:n_ic+n_add) = lat%ic(i2+1:n_ic)
+      ! Move 
+      if (n_ic2 > size(lat%ic)) call reallocate_control(lat, nint(1.2*(n_ic2)) + 10)
+      lat%ic(i2+1+n_add:n_ic2) = lat%ic(i2+1:n_ic)
       lat%ic(i2+1:i2+n_add) = 0
       do ib = 0, ubound(lat%branch, 1)
         branch => lat%branch(ib)
@@ -114,7 +115,7 @@ subroutine add_lattice_control_structs (lat, ele)
       enddo
     endif
 
-    lat%n_ic_max = n_ic + n_add
+    lat%n_ic_max = n_ic2
 
   endif
 

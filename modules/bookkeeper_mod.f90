@@ -2904,8 +2904,8 @@ case (sbend$)
 
 case (branch$, photon_branch$)
   if (associated(a_ptr, ele%value(direction$))) then
-    lat%branch(ib)%param%bookkeeping_state%floor_position = stale$
-    lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
+    branch%param%bookkeeping_state%floor_position = stale$
+    branch%ele(0)%bookkeeping_state%floor_position = stale$
   endif
 
 case (lcavity$)

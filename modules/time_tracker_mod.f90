@@ -214,7 +214,7 @@ character(20), parameter :: r_name = 'rf_adaptive_time_step'
 
 call em_field_kick_vector_time (ele, param, t, orb, local_ref_frame, dr_dt) 
 
-sqrt_N = sqrt(abs(1/(c_light*dt_next)))  ! number of steps we would take to cover 1 meter
+sqrt_N = sqrt(abs(1/(c_light*dt_try)))  ! number of steps we would take to cover 1 meter
 rel_tol = bmad_com%rel_tol_adaptive_tracking / sqrt_N
 abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
 
