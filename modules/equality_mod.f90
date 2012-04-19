@@ -264,9 +264,7 @@ logical is_eq
 
 !
 
-is_eq  = (allocated(f1%mode) .eqv. allocated(f2%mode)) ! .and. &
-         !   (allocated(f1%t_ref) .eqv. allocated(f2%t_ref)) .and. &
-         !   (allocated(f1%e_tot_ref) .eqv. allocated(f2%e_tot_ref)) .and. &
+is_eq  = (allocated(f1%mode) .eqv. allocated(f2%mode)) 
 if (.not. is_eq) return
 
 if (allocated(f1%mode)) then
@@ -278,13 +276,6 @@ if (allocated(f1%mode)) then
     if (.not. is_eq) return
   enddo
 endif
-
-! if (allocated(f1%t_ref)) is_eq = is_eq .and. (size(f1%t_ref) == size(f2%t_ref))
-! if (allocated(f1%e_tot_ref)) is_eq = is_eq .and. (size(f1%e_tot_ref) == size(f2%e_tot_ref))
-! if (.not. is_eq) return
-
-! if (allocated(f1%t_ref)) is_eq = is_eq .and. all(f1%t_ref == f2%t_ref)
-! if (allocated(f1%e_tot_ref)) is_eq = is_eq .and. all(f1%e_tot_ref == f2%e_tot_ref)
 
 end function eq_em_fields
 
