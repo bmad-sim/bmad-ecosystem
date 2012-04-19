@@ -535,7 +535,7 @@ recursive subroutine get_field_eles (this_ele, this_offset)
 
 type (ele_struct), target :: this_ele
 type (ele_struct), pointer :: field_ele
-real(rp) this_offset
+real(rp) this_offset, this_offset2
 integer i, ix
 
 !
@@ -550,9 +550,9 @@ if (this_ele%field_calc == refer_to_lords$) then
 
     if (field_ele%lord_status == multipass_lord$) cycle
 
-    this_offset = this_offset + (this_ele%s - this_ele%value(l$)) - (field_ele%s - field_ele%value(l$))
+    this_offset2 = this_offset + (this_ele%s - this_ele%value(l$)) - (field_ele%s - field_ele%value(l$))
 
-    call get_field_eles (field_ele, this_offset)
+    call get_field_eles (field_ele, this_offset2)
 
   enddo
 
