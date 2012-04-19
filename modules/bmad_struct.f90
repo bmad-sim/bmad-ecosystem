@@ -219,14 +219,14 @@ end type
 ! Rule: If %grid is associated then %grid%pt(:,:,:) will be allocated.
 
 type em_field_mode_struct
-  integer m                    ! Mode varies as cos(m*phi - phi0_azimuth)
-  integer :: harmonic = 0      ! Harmonic of fundamental
-  real(rp) :: f_damp = 0       ! 1/Q damping factor 
-  real(rp) :: dphi0_ref = 0    ! Mode oscillates as: twopi * (f * t + dphi0_ref)
-  real(rp) stored_energy       ! epsilon_0/2 * \int_vol |E|^2 [Joules]
-  real(rp) :: phi0_azimuth = 0 ! Azimuthal orientation of mode.
-  real(rp) :: field_scale = 1  ! Factor to scale the fields by
-  integer :: master_scale = 0  ! Master scaling parameter in ele%value(:) array.
+  integer m                     ! Mode varies as cos(m*phi - phi0_azimuth)
+  integer :: harmonic = 0       ! Harmonic of fundamental
+  real(rp) :: f_damp = 0        ! 1/Q damping factor 
+  real(rp) :: dphi0_ref = 0     ! Mode oscillates as: twopi * (f * t + dphi0_ref)
+  real(rp) :: stored_energy = 0 ! epsilon_0/2 * \int_vol |E|^2 [Joules]
+  real(rp) :: phi0_azimuth = 0  ! Azimuthal orientation of mode.
+  real(rp) :: field_scale = 1   ! Factor to scale the fields by
+  integer :: master_scale = 0   ! Master scaling parameter in ele%value(:) array.
   type (em_field_map_struct), pointer :: map => null()
   type (em_field_grid_struct), pointer :: grid => null()
 end type
