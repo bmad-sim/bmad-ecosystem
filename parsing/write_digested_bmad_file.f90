@@ -127,7 +127,7 @@ enddo
 write (d_unit) &
         lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
-        lat%n_ele_track, lat%n_ele_max, lat%lord_status, &
+        lat%n_ele_track, lat%n_ele_max, lat%lord_state, &
         lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
         lat%use_ptc_layout, lat%pre_tracker
