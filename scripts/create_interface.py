@@ -13,6 +13,7 @@ import sys
 import shutil
 import os
 import copy
+import re
 
 ##################################################################################
 ##################################################################################
@@ -34,34 +35,37 @@ class var_class:
 
   def __init__(self):
     self.name = ''             # Name of variable
-    self.type = ''             # Fortran type. EG: 'real(rp)', 'type', 'character'
-    self.full_type = ''        # Same as type except: Structures: 'type(<struct_name>)'
+    self.type = ''             # Fortran type without '(...)'. EG: 'real', 'type', 'character', etc.
+    self.full_type = ''        # Fortran type. EG: 'real(rp)', 'type(coord_struct)', etc.
                                #                      Strings: 'character(<len>)'
-    self.pointer_type = '-'    # '-', 'PTR', 'ALLOC'
+    self.pointer_type = 'NOT'  # '-', 'PTR', 'ALLOC'
     self.array = []            # EG: [':', ':'] or ['0:6', '3']
     self.full_array = ''       # EG: '(:,:)', '(0:6, 3)'
     self.lbound = []
     self.ubound = []
-    self.init_value = '-'      # Initialization value
+    self.init_value = ''       # Initialization value
     self.comment = ''          # Comment with Fortran structure def.
     self.f_side = 0
     self.pointer_trans = 0
     self.c_side = 0
 
   def __repr__(self):
-    return '[%s, %s, %s, [%s], "%s"]' % (self.type, self.pointer_type, self.name, self.array, self.init_value)
+    return '["%s", "%s", "%s", %s, "%s"]' % (self.full_type, self.pointer_type, self.name, self.array, self.init_value)
+
+  def full_repr(self):
+    return '["%s" "%s", "%s", "%s", %s, %s %s "%s"]' % (self.type, self.full_type, self.pointer_type, self.name, self.array, self.lbound, self.ubound, self.init_value)
 
 ##################################################################################
 ##################################################################################
 # Translations
 
-NOT = '-'
+NOT = 'NOT'
 PTR = 'PTR'
 ALLOC = 'ALLOC'
 T = True
 F = False
-REAL  = 'real(rp)'
-CMPLX = 'complex(rp)'
+REAL  = 'real'
+CMPLX = 'complex'
 INT   = 'integer'
 LOGIC = 'logical'
 CHAR  = 'character'
@@ -219,10 +223,20 @@ f_struct_list_file.close()
 ##################################################################################
 # Parse structure definitions
 
-# Current restrictions: Syntax to avoid:
-#   Multiple inits: "real a = 5, b = 7"
-#   No space in type parens: "type( abc_struct )" or "real( rp )"
-#   Space in array def: "arr( : )"
+# Examples: 
+#  1) "type (abc), pointer :: a(:,:),b(7) = 23 ! Comment"
+#  2) "integer zzz"
+# Notice that only in example 2 is space significant.
+
+# Current restrictions. That is, syntax to avoid:
+#   1) Line continuations: '&'
+#   2) Dimensions: "integer, dimension(7) :: abc"
+#   3) Kind: "integer(kind = 8) abc"
+#   4) Variable inits using "," or "(" characters: "real zzz(2) = [1, 2]"
+
+re_end_type = re.compile('^\s*end\s*type')  # Match to: 'end type'
+re_match1 = re.compile('([,(]|::|\s+)')     # Match to: ',', '::', '(', ' '
+re_match2 = re.compile('([,(]|::|=)')       # Match to: ',', '::', '(', '='
 
 for file_name in f_module_files:
   f_module_file = open('../' + file_name)
@@ -238,100 +252,153 @@ for file_name in f_module_files:
     struct.short_name = struct_name[:-7]   # Remove '_struct' suffix
     
     # Now collect the struct variables
-    # Example line: "real(rp), pointer :: a(:,:),b(7)
 
     for line in f_module_file:
-
-      var = var_class()
+      if re_end_type.match(line): break
+      print '\nStart: ' + line.strip()
+      base_var = var_class()
 
       part = line.partition('!')
 
-      var.comment = part[2].strip()
+      base_var.comment = part[2].strip()
+      line = part[0].strip()
+      if len(line) == 0: continue   # Blank line.
+      print 'P1: ' + line.strip()
 
-      part = part[0].replace('  ', ' ').replace(' (', '(').partition('=')
-      var.init_value = part[2].strip()
-      if var.init_value[:1] == '>': var.init_value = ''  # Ignore pointer "=> null()" init.
+      # Get base_var.type
 
-      split_line = part[0].replace(',', ' ').replace('::', ' ').split()
-      if len(split_line) == 0: continue
-      if split_line[0:2] == ['end', 'type']: break
+      split_line = re_match1.split(line, 1)
+      print 'P2: ' + str(split_line)
+      base_var.type = split_line.pop(0)
+      base_var.full_type = base_var.type
 
-      var.full_type = split_line.pop(0)
-      if split_line[0][0:1] == '(': var.full_type = var.full_type + split_line.pop(0)
+      if split_line[0][0] == ' ': 
+        split_line = re_match2.split(split_line[1], 1)
+        if split_line[0] == '': split_line.pop(0)
+ 
+      print 'P3: ' + str(split_line)
 
-      var.type = var.full_type
+      # Now split_line[0] is a delimiter or variable name
+      # Add type information if there is more...
 
-      if var.full_type[0:10] == 'character(':
-        var.type = 'character'
+      if split_line[0] == '(':
+        split_line = split_line[1].partition(')')
+        base_var.full_type = base_var.type + '(' + split_line[0].strip() + ')'
+        split_line = re_match2.split(split_line[2].lstrip(), 1)
+        if split_line[0] == '': split_line.pop(0)   # EG: "real(rp) :: ..."
 
-      if var.full_type[0:5] == 'type(':
-        var.type = 'type' 
+      print 'P4: ' + str(split_line)
 
-      if split_line[0] == 'allocatable':
-        var.pointer_type = ALLOC
-        split_line.pop(0)
+      if split_line[0] == ',':
+        split_line = split_line[1].partition('::')
 
-      if split_line[0] == 'pointer':
-        var.pointer_type = PTR
-        split_line.pop(0)
+        if split_line[0] == 'allocatable':
+          base_var.pointer_type = ALLOC
+        elif split_line[0] == 'pointer':
+          base_var.pointer_type = PTR
 
-      # Handle lines like: "real(rp) kx, ky, kz"
+        split_line[0] = split_line[2].lstrip()
 
-      for ix, name in enumerate(split_line):
-        var = copy.copy(var)
-        var.name = name
+      if split_line[0] == '::': split_line.pop(0)
 
-        part = var.name.partition('(')
-        var.name = part[0]
-        var.array = part[2][:-1]     # Remove last ')'
+      print 'P5: ' + str(split_line)
 
-        if ix+1 < len(split_line) and split_line[ix+1][0:1] == '(': 
-          var.array = split_line.pop(ix+1)[:-1]
+      # Now the first word in split_line[0] is the variable name
+      # There may be multiple variables defined so loop over all instances.
 
-        if len(var.array) > 0 and var.array[0] != ':':
-          for dim in var.array:
-            if ':' in dim:
-              var.lbound.append(dim.partition(':')[0])
-              var.ubound.append(dim.partition(':')[2])
-            else:
-              var.lbound.append('1')
-              var.ubound.append(dim)
+      while True:
 
-        # F side translation
+        print 'L1: ' + str(split_line)
 
-        n_dim = len(var.array)
-        has_p = F     ### has_p = (var.pointer_type != '-')
+        if len(split_line) > 1:
+          print 'Confused parsing of struct:' + str(split_line)
 
-        if (var.type, n_dim, has_p) not in f_side_trans:
-          print 'NO TRANSLATION FOR: ' + struct.short_name + '%' + var.name + ' [', var.type + ', ' + str(n_dim) + ', ' + str(has_p) + ']'
-          continue
+        if len(split_line) == 0 or split_line[0] == '': break
 
-        var.f_side = f_side_trans[var.type, n_dim, has_p]
-        var.c_side = c_side_trans[var.type, n_dim, has_p]
+        split_line = re_match2.split(split_line[0], 1)
 
-        # Dimensionality
+        print 'L2: ' + str(split_line)
 
-        var.pointer_trans = pointer_trans[n_dim]
+        var = copy.copy(base_var)
+        var.name = split_line.pop(0).strip()
+
+        if len(split_line) == 0: 
+          struct.var.append(var)        
+          break
+
+        # Get array bounds
+
+        if split_line[0] == '(':
+          split_line = split_line[1].lstrip().partition(')')
+          var.full_array = '(' + split_line[0].strip().replace(' ', '') + ')'
+          var.array = var.full_array[1:-1].split(',')
+          print 'L2p1: ' + str(split_line)
+          split_line = re_match2.split(split_line[2].lstrip(), 1)
+          print 'L2p2: ' + str(split_line)
+          if split_line[0] == '': split_line.pop(0)  # Needed for EG: "integer aaa(5)"
+
+          if var.array[0] != ':':   # If has explicit bounds...
+            for dim in var.array:
+              if ':' in dim:
+                var.lbound.append(dim.partition(':')[0])
+                var.ubound.append(dim.partition(':')[2])
+              else:
+                var.lbound.append('1')
+                var.ubound.append(dim)
+
+        print 'L3: ' + str(split_line)
+
+        if len(split_line) == 0: 
+          struct.var.append(var)        
+          break
+
+        # Get initial value
+
+        if split_line[0] == '=':
+          split_line = re_match2.split(split_line[1].lstrip(), 1)
+          var.init_value = split_line[0]
+          if len(split_line) == 1:
+            split_line[0] = ''
+          else:
+            split_line.pop(0)
+
+        print 'L4: ' + str(split_line)
 
         struct.var.append(var)        
 
-        print var.array + '::' + str(len(var.array))
-        if len(var.array) != 0:
-          var.full_array = '(' + ', '.join(var.array) + ')'
-          if var.array[0] == ':':
-            for n in range(1, len(var.array)):
-              dim_var = var_class()
-              dim_var.name = 'n' + str(n) + '_' + var.name
-              dim_var.type = 'integer'
-              dim_var.f_side = f_side_class('integer', 0, F)
-              struct.dim_var.append(dim_var)
-
   f_module_file.close()
 
-# Make some name substitutions
+# Add translation info and make some name substitutions
 
 for struct in struct_def.values():
   for var in struct.var:
+
+    # F side translation
+
+    n_dim = len(var.array)
+    has_p = F     ### has_p = (var.pointer_type != NOT)
+
+    if (var.type, n_dim, has_p) not in f_side_trans:
+      print 'NO TRANSLATION FOR: ' + struct.short_name + '%' + var.name + ' [', var.type + ', ' + str(n_dim) + ', ' + str(has_p) + ']'
+      continue
+
+    var.f_side = f_side_trans[var.type, n_dim, has_p]
+    var.c_side = c_side_trans[var.type, n_dim, has_p]
+
+    # Dimensionality translation
+
+    var.pointer_trans = pointer_trans[n_dim]
+
+    # If allocatable or pointer type then add the dimensional varaibles to the struct.dim_var list.
+
+    if len(var.array) != 0 and var.array[0] == ':':
+      for n in range(1, len(var.array)):
+        dim_var = var_class()
+        dim_var.name = 'n' + str(n) + '_' + var.name
+        dim_var.type = 'integer'
+        dim_var.f_side = f_side_class('integer', 0, F)
+        struct.dim_var.append(dim_var)
+
     if len(var.array) == 1: 
       var.c_side.constructor = var.c_side.constructor.replace('DIM1', str(1 + int(var.ubound[0]) - int(var.lbound[0])))
       var.c_side.to_c2_set = var.c_side.to_c2_set.replace('DIM1', str(1 + int(var.ubound[0]) - int(var.lbound[0])))
@@ -346,7 +413,8 @@ for struct in struct_def:
   f_out.write('******************************************\n')
   f_out.write (struct + '    ' + str(len(struct_def[struct].var)) + '\n')
   for var in struct_def[struct].var:
-    f_out.write ('    ' + str(var) + '\n')
+    f_out.write ('    ' + var.full_repr() + '\n')
+    print var.full_repr()
 
 f_out.close()
 
