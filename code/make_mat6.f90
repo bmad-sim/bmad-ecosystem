@@ -62,6 +62,7 @@ character(16), parameter :: r_name = 'make_mat6'
 ! Some Init
 
 if (present(err_flag)) err_flag = .true.
+if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
 
 if (present(start_orb)) then
   call init_coord (a_start_orb, start_orb%vec, ele, param%particle)
