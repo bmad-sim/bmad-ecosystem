@@ -818,7 +818,7 @@ lat_out%a                         = lat_in%a
 lat_out%b                         = lat_in%b
 lat_out%z                         = lat_in%z
 lat_out%param                     = lat_in%param
-lat_out%lord_status               = lat_in%lord_status
+lat_out%lord_state                = lat_in%lord_state
 lat_out%beam_start                = lat_in%beam_start
 lat_out%pre_tracker               = lat_in%pre_tracker
 lat_out%version                   = lat_in%version
@@ -2810,7 +2810,7 @@ end function gradient_shift_sr_wake
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_ele_status_stale (ele, param, status_group)
+! Subroutine set_ele_status_stale (ele, status_group)
 !
 ! Routine to set a status flags to stale in an element and the corresponding 
 ! ones for the branch%param structure of the branch the element is in.
@@ -2824,20 +2824,32 @@ end function gradient_shift_sr_wake
 ! Output:
 !   ele    -- ele_struct: Element.
 !     %status -- Status block to set.
-!   param  -- lat_param_struct: branch%param component of branch element is in.
-!     %status -- status block to set.
 !   status_group  -- Integer: Which flag groups to set. Possibilities are:
 !               attribute_group$, control_group$, floor_position_group$,
 !               length_group$, ref_energy_group$, or mat6_group$, all_groups$
 !-
 
-subroutine set_ele_status_stale (ele, param, status_group)
+subroutine set_ele_status_stale (ele, status_group)
 
 implicit none
 
-type (lat_param_struct) param
-type (ele_struct) ele
+type (bookkeeper_status_struct), pointer :: state
+type (ele_struct), target :: ele
 integer status_group
+
+! Only set overall lattice status flags if the element is part of a lattice.
+
+
+if (ele%ix_ele > -1 .and. associated(ele%lat)) then
+  ! If a lord
+  if (ele%ix_branch == 0 .and. ele%ix_ele > ele%lat%n_ele_track) then
+    state => ele%lat%lord_state
+  else
+    state => ele%lat%branch(ele%ix_branch)%param%bookkeeping_state
+  endif
+else
+  nullify(state)
+endif
 
 !
 
@@ -2891,7 +2903,7 @@ subroutine set_attributes
   if (ele%lord_status == overlay_lord$) return
   if (ele%lord_status == group_lord$) return
   ele%bookkeeping_state%attributes = stale$
-  param%bookkeeping_state%attributes = stale$
+  if (associated(state)) state%attributes = stale$
 end subroutine set_attributes
 
 !----------------------------------------------------------------------------
@@ -2900,7 +2912,7 @@ end subroutine set_attributes
 subroutine set_control
   if (ele%lord_status == not_a_lord$ .and. ele%slave_status == free$) return
   ele%bookkeeping_state%control = stale$
-  param%bookkeeping_state%control = stale$
+  if (associated(state)) state%control = stale$
 end subroutine set_control
 
 !----------------------------------------------------------------------------
@@ -2909,7 +2921,7 @@ end subroutine set_control
 subroutine set_floor_position
   if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%floor_position = stale$
-  param%bookkeeping_state%floor_position = stale$
+  if (associated(state)) state%floor_position = stale$
 end subroutine set_floor_position
 
 !----------------------------------------------------------------------------
@@ -2918,7 +2930,7 @@ end subroutine set_floor_position
 subroutine set_length
   if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%length = stale$
-  param%bookkeeping_state%length = stale$
+  if (associated(state)) state%length = stale$
 end subroutine set_length
 
 !----------------------------------------------------------------------------
@@ -2926,7 +2938,7 @@ end subroutine set_length
 
 subroutine set_ref_energy
   ele%bookkeeping_state%ref_energy = stale$
-  param%bookkeeping_state%ref_energy = stale$
+  if (associated(state)) state%ref_energy = stale$
 end subroutine set_ref_energy
 
 !----------------------------------------------------------------------------
@@ -2934,7 +2946,7 @@ end subroutine set_ref_energy
 
 subroutine set_rad_int
   ele%bookkeeping_state%rad_int = stale$
-  param%bookkeeping_state%rad_int = stale$
+  if (associated(state)) state%rad_int = stale$
 end subroutine set_rad_int
 
 !----------------------------------------------------------------------------
@@ -3024,7 +3036,7 @@ logical, optional :: flag
 ! Do not set status first time through since this is the original element.
 ! That is, only want to set the flags of the slaves.
 
-if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, stat_group)
+if (present(flag)) call set_ele_status_stale (ele, stat_group)
 
 do i = 1, ele%n_slave
   slave => pointer_to_slave (ele, i)
@@ -3065,7 +3077,7 @@ logical, optional :: flag
 ! Do not set status first time through since this is the original element.
 ! That is, only want to set the flags of the lords.
 
-if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, stat_group)
+if (present(flag)) call set_ele_status_stale (ele, stat_group)
 
 do i = 1, ele%n_lord
   lord => pointer_to_lord (ele, i)

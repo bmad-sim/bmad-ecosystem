@@ -166,7 +166,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
       ibb = nint(ele%value(ix_branch_to$))
-      call set_ele_status_stale (lat%branch(ibb)%ele(0), lat%branch(ibb)%param, ref_energy_group$)
+      call set_ele_status_stale (lat%branch(ibb)%ele(0), ref_energy_group$)
     endif
 
     ! If we are in the middle of a super_lord region then the "zero" orbit is just the continuation
@@ -239,7 +239,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (err) return
 
     ele%bookkeeping_state%ref_energy = ok$
-    call set_ele_status_stale (ele, branch%param, attribute_group$)
+    call set_ele_status_stale (ele, attribute_group$)
     call set_lords_status_stale (ele, lat, ref_energy_group$)
 
   enddo
@@ -257,7 +257,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%ref_energy /= stale$) cycle
   if (lord%n_slave == 0) cycle   ! Can happen with null_ele$ elements for example.
 
-  call set_ele_status_stale (lord, lat%param, attribute_group$)
+  call set_ele_status_stale (lord, attribute_group$)
   lord%bookkeeping_state%ref_energy = ok$
 
   ! Multipass lords have their enegy computed above.

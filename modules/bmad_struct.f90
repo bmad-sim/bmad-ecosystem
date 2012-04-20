@@ -483,7 +483,7 @@ type lat_struct
   character(80) title                         ! General title
   type (mode_info_struct) a, b, z             ! Tunes, etc.
   type (lat_param_struct) param               ! Parameters
-  type (bookkeeper_status_struct) lord_status ! lord bookkeeping status.
+  type (bookkeeper_status_struct) lord_state  ! lord bookkeeping status.
   type (ele_struct)  ele_init                 ! For use by any program
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (wall3d_struct) wall3d
