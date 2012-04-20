@@ -17,6 +17,13 @@ import re
 
 ##################################################################################
 ##################################################################################
+
+def print_debug (line):
+  ## print line
+  pass
+
+##################################################################################
+##################################################################################
 # struct_def_class
 # Class for a structure
 
@@ -53,7 +60,7 @@ class var_class:
     return '["%s", "%s", "%s", %s, "%s"]' % (self.full_type, self.pointer_type, self.name, self.array, self.init_value)
 
   def full_repr(self):
-    return '["%s" "%s", "%s", "%s", %s, %s %s "%s"]' % (self.type, self.full_type, self.pointer_type, self.name, self.array, self.lbound, self.ubound, self.init_value)
+    return '["%s" "%s", "%s", "%s", %s, "%s" %s %s "%s"]' % (self.type, self.full_type, self.pointer_type, self.name, self.array, self.full_array, self.lbound, self.ubound, self.init_value)
 
 ##################################################################################
 ##################################################################################
@@ -255,7 +262,7 @@ for file_name in f_module_files:
 
     for line in f_module_file:
       if re_end_type.match(line): break
-      print '\nStart: ' + line.strip()
+      print_debug('\nStart: ' + line.strip())
       base_var = var_class()
 
       part = line.partition('!')
@@ -263,12 +270,12 @@ for file_name in f_module_files:
       base_var.comment = part[2].strip()
       line = part[0].strip()
       if len(line) == 0: continue   # Blank line.
-      print 'P1: ' + line.strip()
+      print_debug('P1: ' + line.strip())
 
       # Get base_var.type
 
       split_line = re_match1.split(line, 1)
-      print 'P2: ' + str(split_line)
+      print_debug('P2: ' + str(split_line))
       base_var.type = split_line.pop(0)
       base_var.full_type = base_var.type
 
@@ -276,7 +283,7 @@ for file_name in f_module_files:
         split_line = re_match2.split(split_line[1], 1)
         if split_line[0] == '': split_line.pop(0)
  
-      print 'P3: ' + str(split_line)
+      print_debug('P3: ' + str(split_line))
 
       # Now split_line[0] is a delimiter or variable name
       # Add type information if there is more...
@@ -287,39 +294,37 @@ for file_name in f_module_files:
         split_line = re_match2.split(split_line[2].lstrip(), 1)
         if split_line[0] == '': split_line.pop(0)   # EG: "real(rp) :: ..."
 
-      print 'P4: ' + str(split_line)
+      print_debug('P4: ' + str(split_line))
 
       if split_line[0] == ',':
         split_line = split_line[1].partition('::')
 
-        if split_line[0] == 'allocatable':
+        if split_line[0].strip() == 'allocatable':
           base_var.pointer_type = ALLOC
-        elif split_line[0] == 'pointer':
+        elif split_line[0].strip() == 'pointer':
           base_var.pointer_type = PTR
 
-        split_line[0] = split_line[2].lstrip()
+        split_line = [split_line[2].lstrip()]
 
       if split_line[0] == '::': split_line.pop(0)
 
-      print 'P5: ' + str(split_line)
+      print_debug('P5: ' + str(split_line))
 
       # Now the first word in split_line[0] is the variable name
       # There may be multiple variables defined so loop over all instances.
 
       while True:
 
-        print 'L1: ' + str(split_line)
+        print_debug('L1: ' + str(split_line))
 
         if len(split_line) > 1:
-          print 'Confused parsing of struct:' + str(split_line)
-
-        if len(split_line) == 0 or split_line[0] == '': break
+          print 'Confused parsing of struct component: ' + line.strip()
 
         split_line = re_match2.split(split_line[0], 1)
 
-        print 'L2: ' + str(split_line)
+        print_debug('L2: ' + str(split_line))
 
-        var = copy.copy(base_var)
+        var = copy.deepcopy(base_var)
         var.name = split_line.pop(0).strip()
 
         if len(split_line) == 0: 
@@ -332,9 +337,9 @@ for file_name in f_module_files:
           split_line = split_line[1].lstrip().partition(')')
           var.full_array = '(' + split_line[0].strip().replace(' ', '') + ')'
           var.array = var.full_array[1:-1].split(',')
-          print 'L2p1: ' + str(split_line)
+          print_debug('L2p1: ' + str(split_line))
           split_line = re_match2.split(split_line[2].lstrip(), 1)
-          print 'L2p2: ' + str(split_line)
+          print_debug('L2p2: ' + str(split_line))
           if split_line[0] == '': split_line.pop(0)  # Needed for EG: "integer aaa(5)"
 
           if var.array[0] != ':':   # If has explicit bounds...
@@ -346,7 +351,7 @@ for file_name in f_module_files:
                 var.lbound.append('1')
                 var.ubound.append(dim)
 
-        print 'L3: ' + str(split_line)
+        print_debug('L3: ' + str(split_line))
 
         if len(split_line) == 0: 
           struct.var.append(var)        
@@ -362,12 +367,43 @@ for file_name in f_module_files:
           else:
             split_line.pop(0)
 
-        print 'L4: ' + str(split_line)
+        print_debug('L4: ' + str(split_line))
 
         struct.var.append(var)        
+        if len(split_line) == 0 or split_line[0] == '': break
+
+        if split_line[0] != ',':
+          print 'Confused parsing of struct2: ' + line.strop()
+
+        split_line.pop(0)
+
+  # End of parsing
 
   f_module_file.close()
 
+##################################################################################
+##################################################################################
+# As a check, write results to file. 
+
+f_out = open('f_structs.parsed', 'w')
+
+n_found = 0
+for key, struct in struct_def.items():
+  if struct.short_name != '': n_found = n_found + 1
+  f_out.write('******************************************\n')
+  f_out.write (key + '    ' + str(len(struct.var)) + '\n')
+  for var in struct.var:
+    f_out.write ('    ' + var.full_repr() + '\n')
+    print var.full_repr()
+
+f_out.close()
+
+
+print 'Number of structs in input list: ' + str(len(struct_def))
+print 'Number of structs found:         ' + str(n_found)
+
+##################################################################################
+##################################################################################
 # Add translation info and make some name substitutions
 
 for struct in struct_def.values():
@@ -396,27 +432,12 @@ for struct in struct_def.values():
         dim_var = var_class()
         dim_var.name = 'n' + str(n) + '_' + var.name
         dim_var.type = 'integer'
-        dim_var.f_side = f_side_class('integer', 0, F)
+        dim_var.f_side = f_side_trans['integer', 0, F]
         struct.dim_var.append(dim_var)
 
     if len(var.array) == 1: 
       var.c_side.constructor = var.c_side.constructor.replace('DIM1', str(1 + int(var.ubound[0]) - int(var.lbound[0])))
       var.c_side.to_c2_set = var.c_side.to_c2_set.replace('DIM1', str(1 + int(var.ubound[0]) - int(var.lbound[0])))
-
-##################################################################################
-##################################################################################
-# As a check, write results to file. 
-
-f_out = open('f_structs.parsed', 'w')
-
-for struct in struct_def:
-  f_out.write('******************************************\n')
-  f_out.write (struct + '    ' + str(len(struct_def[struct].var)) + '\n')
-  for var in struct_def[struct].var:
-    f_out.write ('    ' + var.full_repr() + '\n')
-    print var.full_repr()
-
-f_out.close()
 
 ##################################################################################
 ##################################################################################
