@@ -206,6 +206,8 @@ if (i_ele < 0) then
     endif
   enddo 
 
+  lat%lord_state%mat6 = ok$
+
   if (present(err_flag)) err_flag = .false.
   return
 

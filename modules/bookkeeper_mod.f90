@@ -329,6 +329,9 @@ if (logic_option(.false., do_free_eles)) then
   enddo
 endif
 
+lat%lord_state%control = ok$
+lat%lord_state%attributes = ok$
+
 end subroutine control_bookkeeper
 
 !--------------------------------------------------------------------------

@@ -66,4 +66,6 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   lord%bookkeeping_state%length = ok$
 enddo
 
+lat%lord_state%length = ok$
+
 end subroutine
