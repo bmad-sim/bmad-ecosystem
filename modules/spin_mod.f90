@@ -6,8 +6,11 @@ use bmad_interface
 ! right now, just for electrons (and positrons)
 real(rp), parameter :: g_factor = 0.001159657
 
-! This includes the phase of the spinor
+! This includes the phase of the spinor.
+! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
+
 type spin_polar_struct
+  real(rp) :: polarization = 1 
   real(rp) :: theta = 0
   real(rp) :: phi   = 0
   real(rp) :: xi    = 0
@@ -109,19 +112,22 @@ implicit none
 type (coord_struct) :: coord
 type (spin_polar_struct) ::  polar
 
-real(rp) phi(2), val
+real(rp) temp(2)
 
 character(20) :: r_name = "spinor_to_polar"
 
 !
 
-phi(1) = atan2 (imag(coord%spin(1)), real(coord%spin(1)))
-phi(2) = atan2 (imag(coord%spin(2)), real(coord%spin(2)))
+temp(1) = atan2 (imag(coord%spin(1)), real(coord%spin(1)))
+temp(2) = atan2 (imag(coord%spin(2)), real(coord%spin(2)))
+polar%xi = temp(1)
+polar%phi = temp(2) - temp(1)
 
-polar%xi = phi(1)
-polar%phi = phi(2) - phi(1)
+temp=abs(coord%spin)
+polar%theta = 2 * atan2(temp(2), temp(1))
+! no sqrt here! spinor scales with sqrt(r)
+polar%polarization = dot_product(temp, temp)
 
-polar%theta = 2 * atan2(abs(coord%spin(2)), abs(coord%spin(1)))
 
 end subroutine spinor_to_polar
 
@@ -152,9 +158,9 @@ type (spin_polar_struct) polar
 
 real(rp) vec(3)
 
-vec(1) = sin(polar%theta) * cos(polar%phi)
-vec(2) = sin(polar%theta) * sin(polar%phi)
-vec(3) = cos(polar%theta)
+vec(1) = polar%polarization * sin(polar%theta) * cos(polar%phi)
+vec(2) = polar%polarization * sin(polar%theta) * sin(polar%phi)
+vec(3) = polar%polarization * cos(polar%theta)
 
 end subroutine polar_to_vec
 
@@ -185,8 +191,8 @@ type (coord_struct) coord
 
 !
 
-coord%spin(1) = Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
-coord%spin(2) = Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
+coord%spin(1) = sqrt(polar%polarization) * Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
+coord%spin(2) = sqrt(polar%polarization) * Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
 
 end subroutine polar_to_spinor
 
@@ -224,6 +230,7 @@ real(rp), optional :: phase
 polar%xi = real_option (0.0d0, phase)
 polar%theta = atan2 (sqrt(vec(1)**2 + vec(2)**2), vec(3))
 polar%phi = atan2(vec(2), vec(1))
+polar%polarization = sqrt(dot_product(vec, vec))
 
 end subroutine vec_to_polar
 
@@ -410,7 +417,7 @@ end subroutine quaternion_track
 !   use spin_mod
 !
 ! Input:
-!   x, y, z    -- Real(rp): Rotation axis (unit vector)
+!   x, y, z    -- Real(rp): Unit rotation axis vector.
 !   angle      -- Real(rp): Rotation angle
 !
 ! Output:
@@ -447,7 +454,7 @@ end subroutine calc_rotation_quaternion
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
 !     %particle     -- Type of particle used
-!   end_orb    -- Coord_struct: Ending coords. 
+!   end_orb    -- Coord_struct: Ending coords.
 !     %vec          -- Ending particle position needed for bmad_standard spin tracking.
 !
 ! Output:
@@ -516,7 +523,7 @@ end subroutine track1_spin
 !     %particle     -- Type of particle used
 !
 ! Output:
-!   end_orb    -- Coord_struct: Ending coords. 
+!   end_orb    -- Coord_struct: Ending coords.
 !      %spin(2)   -- complex(rp): Ending spinor
 !-
 
@@ -553,7 +560,7 @@ spin_probe = re
 spin_probe%s(1)%x = real(spin_vec, dp)
 
 call ele_to_fibre (ele, fibre_ele, param, .true.)
-call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele) 
+call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele)
 
 spin_vec = spin_probe%s(1)%x
 call vec_to_spinor (spin_vec, end_orb)
@@ -582,7 +589,7 @@ end subroutine track1_spin_symp_lie_ptc
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
 !     %particle     -- Type of particle used
-!   end_orb    -- Coord_struct: Ending coords. 
+!   end_orb    -- Coord_struct: Ending coords.
 !     %vec          -- Ending particle position
 !
 ! Output:
@@ -615,7 +622,7 @@ logical isTreatedHere, isKicker
 
 character(16), parameter :: r_name = 'track1_spin_bmad'
 
-! 
+!
 
 m_particle = mass_of(param%particle)
 g_factor = g_factor_of(param%particle)
@@ -1548,4 +1555,3 @@ endif
 end subroutine multipole_spin_precession
 
 end module spin_mod
-
