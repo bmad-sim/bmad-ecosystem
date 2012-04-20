@@ -498,6 +498,8 @@ enddo
 ! Now put everything together...
 ! Linac radiation integrals:
 
+lat%lord_state%rad_int = ok$
+
 mc2 = mass_of (branch%param%particle)
 gamma_f = branch%ele(branch%n_ele_track)%value(e_tot$) / mc2
 const_q = const_q_factor / mc2

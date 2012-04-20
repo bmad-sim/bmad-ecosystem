@@ -290,6 +290,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
 enddo
 
+lat%lord_state%ref_energy = ok$
 if (present(err_flag)) err_flag = .false.
 
 end subroutine lat_compute_ref_energy_and_time

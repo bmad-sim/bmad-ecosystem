@@ -119,6 +119,8 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   lord%bookkeeping_state%floor_position = ok$
 enddo
 
+lat%lord_state%floor_position = ok$
+
 end subroutine
 
 !----------------------------------------------------------------------------
