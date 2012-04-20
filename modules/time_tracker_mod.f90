@@ -116,12 +116,12 @@ do n_step = 1, max_step
   ! Check entrance and exit faces
   if (orb%vec(5) > s2 - ds_safe .or. orb%vec(5) < s1 + ds_safe) then
     zbrent_needed = .true.
-    if (orb%vec(5) < s1 - ds_safe) then 
+    if (orb%vec(5) < s1 + ds_safe) then 
       s_target = s1
-      if (orb%vec(5) > s1 - ds_safe) zbrent_needed = .false.
+      if (orb%vec(5) > s1 + ds_safe) zbrent_needed = .false.
     else
       s_target = s2
-      if (orb%vec(5) < s2 + ds_safe) zbrent_needed = .false.
+      if (orb%vec(5) < s2 - ds_safe) zbrent_needed = .false.
     endif
 
     exit_flag = .true.
@@ -143,7 +143,7 @@ do n_step = 1, max_step
     if (zbrent_needed) dt = zbrent (delta_s_target, 0.0_rp, dt, dt_tol)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
-    orb%vec(5) = s_target + sign(ds_safe, orb%p0c)
+    orb%vec(5) = s_target + sign(ds_safe, orb%vec(6))
     orb%s = orb%vec(5) + ele%s - ele%value(l$)
   endif
 
@@ -154,8 +154,8 @@ do n_step = 1, max_step
   
   !Save track
   if ( present(track) ) then
-    !Check if we are past a save time
-    if (t_rel >= t_save) then
+    !Check if we are past a save time, or if exited
+    if (t_rel >= t_save .or. exit_flag) then
       track%n_pt = track%n_pt + 1
       n_pt = track%n_pt
         track%orb(n_pt) = orb
@@ -462,6 +462,9 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
    orb_new%vec(2) = now_orb%vec(2) * e_tot
    orb_new%vec(4) = now_orb%vec(4) * e_tot
    orb_new%vec(6) = now_orb%vec(6) * e_tot
+
+   !Set orb%s
+   orb_new%s = orb_new%vec(5) + ele%s - ele%value(l$)
 
    param%lost = .true.
    orb_new%status = dead$
