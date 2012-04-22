@@ -53,14 +53,15 @@ class var_class:
     self.init_value = ''       # Initialization value
     self.comment = ''          # Comment with Fortran structure def.
     self.f_side = 0
-    self.pointer_trans = 0
     self.c_side = 0
 
   def __repr__(self):
     return '["%s", "%s", "%s", %s, "%s"]' % (self.full_type, self.pointer_type, self.name, self.array, self.init_value)
 
   def full_repr(self):
-    return '["%s" "%s", "%s", "%s", %s, "%s" %s %s "%s"]' % (self.type, self.full_type, self.pointer_type, self.name, self.array, self.full_array, self.lbound, self.ubound, self.init_value)
+    return '["%s" "%s", "%s", "%s", %s, "%s" %s %s "%s"]' % (self.type, 
+              self.full_type, self.pointer_type, self.name, self.array, self.full_array, 
+              self.lbound, self.ubound, self.init_value)
 
 ##################################################################################
 ##################################################################################
@@ -87,61 +88,49 @@ class f_side_trans_class:
     self.bindc_type = bindc_type
     self.bindc_name = bindc_name
     self.bindc_const = ''
-    self.equal_test = '(f1%name == f2%name)'
-    self.to_f2_trans = 'FP%name = name'
-    self.test_pat = 'FF%name = XXX + offset'
+    self.equal_test = '(f1%NAME == f2%NAME)'
+    self.to_f2_trans = 'FP%NAME = NAME'
+    self.test_pat = 'FF%NAME = XXX + offset'
 
   def __repr__(self):
     return '%s,  %s,  %s :: %s' % (self.to_c2_arg, self.bindc_type, self.bindc_name, self.to_f2_trans)
 
 
-#       Dim  Has_P                    to_c2_arg             bindc_type                    bindc_name   equal_test
+#       Dim  P_type                    to_c2_arg                bindc_type                    bindc_name   equal_test
 f_side_trans = {
-  (REAL,  0, F) : f_side_trans_class('name',               'real(c_double)',             'name'),
-  (REAL,  1, F) : f_side_trans_class('name',               'real(c_double)',             'name(*)'),
-  (REAL,  2, F) : f_side_trans_class('mat2arr(name)',      'real(c_double)',             'name(*)'),
-  (REAL,  3, F) : f_side_trans_class('tensor2arr(name)',   'real(c_double)',             'name(*)'),
-  (CMPLX, 0, F) : f_side_trans_class('name',               'complex(c_double_complex)',  'name'),
-  (CMPLX, 1, F) : f_side_trans_class('name',               'complex(c_double_complex)',  'name(*)'),
-  (INT,   0, F) : f_side_trans_class('name',               'integer(c_int)',             'name'),
-  (INT,   1, F) : f_side_trans_class('name',               'integer(c_int)',             'name(*)'),
-  (INT,   2, F) : f_side_trans_class('imat2arr(name)',     'integer(c_int)',             'name(*)'),
-  (LOGIC, 0, F) : f_side_trans_class('c_logic(name)',      'logical(c_bool)',            'name'),
-  (LOGIC, 1, F) : f_side_trans_class('c_logic(name)',      'logical(c_bool)',            'name(*)'),
-  (CHAR,  0, F) : f_side_trans_class('c_str(name)',        'character(c_char)',          'name(*)'),
-  (TYPE,  0, F) : f_side_trans_class('c_loc(name)',        'type(c_ptr), value',         'name'),
-  (TYPE,  1, F) : f_side_trans_class('c_loc(name)',        'type(c_ptr), value',         'name(*)')} 
+  (REAL,  0, NOT) : f_side_trans_class('FP%NAME',               'real(c_double)',             'NAME'),
+  (REAL,  1, NOT) : f_side_trans_class('FP%NAME',               'real(c_double)',             'NAME(*)'),
+  (REAL,  2, NOT) : f_side_trans_class('mat2arr(FP%NAME)',      'real(c_double)',             'NAME(*)'),
+  (REAL,  3, NOT) : f_side_trans_class('tensor2arr(FP%NAME)',   'real(c_double)',             'NAME(*)'),
+  (CMPLX, 0, NOT) : f_side_trans_class('FP%NAME',               'complex(c_double_complex)',  'NAME'),
+  (CMPLX, 1, NOT) : f_side_trans_class('FP%NAME',               'complex(c_double_complex)',  'NAME(*)'),
+  (INT,   0, NOT) : f_side_trans_class('FP%NAME',               'integer(c_int)',             'NAME'),
+  (INT,   1, NOT) : f_side_trans_class('FP%NAME',               'integer(c_int)',             'NAME(*)'),
+  (INT,   2, NOT) : f_side_trans_class('imat2arr(FP%NAME)',     'integer(c_int)',             'NAME(*)'),
+  (LOGIC, 0, NOT) : f_side_trans_class('c_logic(FP%NAME)',      'logical(c_bool)',            'NAME'),
+  (LOGIC, 1, NOT) : f_side_trans_class('c_logic(FP%NAME)',      'logical(c_bool)',            'NAME(*)'),
+  (TYPE,  0, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME'),
+  (TYPE,  1, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME(*)'), 
+  (CHAR,  1, NOT) : f_side_trans_class('c_str(FP%NAME)',        'character(c_char)',          'NAME(*)')
+  }
 
-f_side_trans[REAL,  2, F].to_f2_trans = 'FP%name = arr2tensor(name, name_dim)'
-f_side_trans[INT,   2, F].to_f2_trans = 'FP%name = arr2imat(name, name_dim)'
+f_side_trans[REAL,  1, NOT].test_pat    = 'FF%NAME = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME))]'
 
-f_side_trans[CMPLX, 1, F].test_pat = 'FF%name = [(cmplx(100 + jd1 + XXX + offset, 200 + jd1 + XXX + offset), jd1 = 1, size(FF%name))]'
-f_side_trans[REAL,  1, F].test_pat = 'FF%name = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%name))]'
-f_side_trans[REAL,  2, F].test_pat = 'FF%name = reshape([100 + jd1 + XXX + offset, jd1 = 1, size(FF%name)], shape(FF%name))'
+f_side_trans[REAL,  2, NOT].to_f2_trans = 'FP%NAME = arr2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[REAL,  2, NOT].test_pat    = 'FF%NAME = reshape([100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME)], shape(FF%NAME))'
+
+f_side_trans[INT,   1, NOT].test_pat    = 'FF%NAME = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME))]'
+
+f_side_trans[INT,   2, NOT].to_f2_trans = 'FP%NAME = arr2imat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[INT,   2, NOT].test_pat    = '''do jd1 = lbound(FF%NAME, 1), ubound(FF%NAME, 1); do jd2 = lbound(FF%NAME, 2), ubound(FF%NAME, 2)
+  FF%NAME = 100 + jd1 + 10*jd2 + XXX + offset
+enddo; enddo'''
+
+f_side_trans[CMPLX, 1, NOT].test_pat    = 'FF%NAME = [(cmplx(100 + jd1 + XXX + offset, 200 + jd1 + XXX + offset), jd1 = 1, size(FF%NAME))]'
 
 for key, f in f_side_trans.items(): 
   f.bindc_const = f.bindc_type.partition('(')[2].partition(')')[0]
-  if key[1] != 0: f.equal_test = 'all(f1%name == f2%name)'
-
-#############################################################
-
-class pointer_trans_class:
-
-  def __init__(self, type, name, arg, to_c):
-    self.type = type
-    self.name = name
-    self.arg = arg
-    self.to_c = to_c
-
-  def __repr__(self):
-    return '%s,  %s,  %s,  %s' % (self.type, self.name, self.arg, self.to_c)
-
-# Dim                      type         name            arg           to_c
-pointer_trans = {
-  0 : pointer_trans_class('integer',   'name_dim',     'name_dim',   'name_dim = 0; if (associated(f_zzz%name)) name_dim = 1'),
-  1 : pointer_trans_class('integer',   'name_dim',     'name_dim',   'name_dim = 0; if (associated(f_zzz%name)) name_dim = size(f_zzz%name)'),
-  2 : pointer_trans_class('integer',   'name_dim(2)',  'name_dim',   'name_dim = 0; if (associated(f_zzz%name)) name_dim = size(f_zzz%name)'),
-  3 : pointer_trans_class('integer',   'name_dim(3)',  'name_dim',   'name_dim = 0; if (associated(f_zzz%name)) name_dim = size(f_zzz%name)')}
+  if key[1] != 0: f.equal_test = 'all(f1%NAME == f2%NAME)'
 
 #############################################################
 
@@ -152,50 +141,60 @@ class c_side_trans_class:
     self.to_f2_arg = to_f2_arg
     self.to_f2_call = to_f2_call
     self.to_c2_arg = to_c2_arg
-    self.to_c2_set = 'C.name = name;'
-    self.constructor = 'name(0)'
-    self.equal_test = '(x.name == y.name)'
-    self.test_pat = 'C.name = XXX + offset;'
+    self.to_f_setup = ''
+    self.to_c2_set = 'C.NAME = NAME;'
+    self.constructor = 'NAME(0)'
+    self.equal_test = '(x.NAME == y.NAME)'
+    self.test_pat = 'C.NAME = XXX + offset;'
 
   def __repr__(self):
     return '%s,  %s,  %s,  %s' % (self.c_class, self.to_f2_arg, self.to_f2_call, self.to_c2_arg)
 
 
 
-#        Dim  Has_P                    c_class          to_f2_arg          to_f2_call             to_c2_arg
+#        Dim  P_type                    c_class            to_f2_arg          to_f2_call         to_c2_arg
 c_side_trans = {
-  (REAL,   0,  F) : c_side_trans_class('double',         'Real&',           'C.name',          'Real& name'),
-  (REAL,   1,  F) : c_side_trans_class('Real_Array',     'RealArr',         '&C.name[0]',      'RealArr name'),
-  (REAL,   2,  F) : c_side_trans_class('Real_Matrix',    'RealArr',         'C.name',          'RealArr name'),
-  (CMPLX,  0,  F) : c_side_trans_class('Dcomplex',       'Dcomplexd&',      'C.name',          'Dcomplex name'),
-  (CMPLX,  1,  F) : c_side_trans_class('Dcomplex_Array', 'DcomplexArr',     '&C.name[0]',      'DcomplexArr name'),
-  (INT,    0,  F) : c_side_trans_class('int',            'Int&',            'C.name',          'Int& name'),
-  (INT,    1,  F) : c_side_trans_class('Int_Array',      'IntArr',          '&C.name[0]',      'IntArr name'),
-  (INT,    2,  F) : c_side_trans_class('Int_Matrix',     'IntArr',          'C.name',          'IntArr name'),
-  (LOGIC,  0,  F) : c_side_trans_class('bool',           'Bool&',           'C.name',          'Bool& name'),
-  (LOGIC,  1,  F) : c_side_trans_class('Bool_Array',     'BoolArr',         'C.name',          'BoolArr name'),
-  (CHAR,   0,  F) : c_side_trans_class('string',         'Char',            'C.name',          'Char name'),
-  (TYPE,   0,  F) : c_side_trans_class('C_zzz',          'const C_zzz&',    '&C.name',         'const C_zzz& name'),
-  (TYPE,   1,  F) : c_side_trans_class('C_zzz_array',    'const C_zzz&',    'C.name[0]',       'const C_zzz& name')}
+  (REAL,   0, NOT) : c_side_trans_class('double',          'Real&',           'C.NAME',          'Real& NAME'),
+  (REAL,   1, NOT) : c_side_trans_class('Real_Array',      'RealArr',         '&C.NAME[0]',      'RealArr NAME'),
+  (REAL,   2, NOT) : c_side_trans_class('Real_Matrix',     'RealArr',         'NAME',            'RealArr NAME'),
+  (CMPLX,  0, NOT) : c_side_trans_class('Dcomplex',        'Dcomplexd&',      'C.NAME',          'Dcomplex& NAME'),
+  (CMPLX,  1, NOT) : c_side_trans_class('Dcomplex_Array',  'DcomplexArr',     '&C.NAME[0]',      'DcomplexArr NAME'),
+  (CMPLX,  2, NOT) : c_side_trans_class('Dcomplex_Matrix', 'DcomplexArr',     'NAME',            'DcomplexArr NAME'),
+  (INT,    0, NOT) : c_side_trans_class('int',             'Int&',            'C.NAME',          'Int& NAME'),
+  (INT,    1, NOT) : c_side_trans_class('Int_Array',       'IntArr',          '&C.NAME[0]',      'IntArr NAME'),
+  (INT,    2, NOT) : c_side_trans_class('Int_Matrix',      'IntArr',          'NAME',            'IntArr NAME'),
+  (LOGIC,  0, NOT) : c_side_trans_class('bool',            'Bool&',           'C.NAME',          'Bool& NAME'),
+  (LOGIC,  1, NOT) : c_side_trans_class('Bool_Array',      'BoolArr',         'C.NAME',          'BoolArr NAME'),
+  (TYPE,   0, NOT) : c_side_trans_class('C_zzz',           'const C_zzz&',    '&C.NAME',         'const C_zzz& NAME'),
+  (TYPE,   1, NOT) : c_side_trans_class('C_zzz_array',     'const C_zzz&',    'C.NAME[0]',       'const C_zzz& NAME'),
+  (CHAR,   1, NOT) : c_side_trans_class('string',          'Char',            'C.NAME',          'Char NAME')
+  }
 
-c_side_trans[REAL,  1, F].constructor = 'name(0.0, DIM1)'
-c_side_trans[REAL,  1, F].to_c2_set   = 'C.name = Real_Array(name, DIM1);'
-c_side_trans[REAL,  1, F].test_pat    = 'for (int i = 0; i < C.name.size(); i++) C.name[i] = 101 + i + XXX + offset;'
+c_side_trans[REAL,  1, NOT].constructor = 'NAME(0.0, DIM1)'
+c_side_trans[REAL,  1, NOT].to_c2_set   = 'C.NAME = Real_Array(NAME, DIM1);'
+c_side_trans[REAL,  1, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++) C.NAME[i] = 101 + i + XXX + offset;'
 
-c_side_trans[CMPLX, 1, F].constructor = 'name(0.0, DIM1)'
-c_side_trans[CMPLX, 1, F].to_c2_set   = 'C.name = Dcomplex_Array(name, DIM1);'
-c_side_trans[CMPLX, 1, F].test_pat    = 'for (int i = 0; i < C.name.size(); i++) C.name[i] = Dcomplex(101 + i + XXX + offset, 201 + i + XXX + offset);'
+c_side_trans[CMPLX, 1, NOT].constructor = 'NAME(0.0, DIM1)'
+c_side_trans[CMPLX, 1, NOT].to_c2_set   = 'C.NAME = Dcomplex_Array(NAME, DIM1);'
+c_side_trans[CMPLX, 1, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++) C.NAME[i] = Dcomplex(101 + i + XXX + offset, 201 + i + XXX + offset);'
 
-c_side_trans[INT,   1, F].constructor = 'name(DIM1)'
-c_side_trans[INT,   1, F].to_c2_set   = 'C.name = Int_Array(name, DIM1);'
-c_side_trans[INT,   1, F].test_pat    = 'for (int i = 0; i < C.name.size(); i++) C.name[i] = 101 + i + XXX + offset;'
+c_side_trans[INT,   1, NOT].constructor = 'NAME(DIM1)'
+c_side_trans[INT,   1, NOT].to_c2_set   = 'C.NAME = Int_Array(NAME, DIM1);'
+c_side_trans[INT,   1, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++) C.NAME[i] = 101 + i + XXX + offset;'
 
-c_side_trans[LOGIC, 1, F].constructor = 'name(DIM1)'
-c_side_trans[LOGIC, 1, F].to_c2_set   = 'C.name = Int_Array(name, DIM1);'
-c_side_trans[LOGIC, 1, F].test_pat    = 'for (int i = 0; i < C.name.size(); i++) C.name[i] = 101 + i + XXX + offset;'
+c_side_trans[INT,   2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
+c_side_trans[INT,   2, NOT].to_c2_set   = 'C.NAME = Int_Array(NAME, DIM1);'
+c_side_trans[INT,   2, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++); for (int j = 0; i < C.NAME[0].size(); J++ C.NAME[i][j] = 101 + i + 10*(j+1) + XXX + offset;'
+c_side_trans[INT,   2, NOT].to_f_setup  = 'int NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
+
+c_side_trans[LOGIC, 1, NOT].constructor = 'NAME(DIM1)'
+c_side_trans[LOGIC, 1, NOT].to_c2_set   = 'C.NAME = Int_Array(NAME, DIM1);'
+c_side_trans[LOGIC, 1, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++) C.NAME[i] = 101 + i + XXX + offset;'
 
 for key, c in c_side_trans.items(): 
-  if key[1] != 0: c.equal_test = 'is_all_equal(x.name, y.name)'
+  if key[1] == 1: c.equal_test = 'is_all_equal_vec(x.NAME, y.NAME)'
+  if key[1] == 2: c.equal_test = 'is_all_equal_mat(x.NAME, y.NAME)'
+  if key[1] == 3: c.equal_test = 'is_all_equal_tensor(x.NAME, y.NAME)'
 
 ##################################################################################
 ##################################################################################
@@ -394,7 +393,6 @@ for key, struct in struct_def.items():
   f_out.write (key + '    ' + str(len(struct.var)) + '\n')
   for var in struct.var:
     f_out.write ('    ' + var.full_repr() + '\n')
-    print var.full_repr()
 
 f_out.close()
 
@@ -412,18 +410,14 @@ for struct in struct_def.values():
     # F side translation
 
     n_dim = len(var.array)
-    has_p = F     ### has_p = (var.pointer_type != NOT)
+    p_type = var.pointer_type
 
-    if (var.type, n_dim, has_p) not in f_side_trans:
-      print 'NO TRANSLATION FOR: ' + struct.short_name + '%' + var.name + ' [', var.type + ', ' + str(n_dim) + ', ' + str(has_p) + ']'
+    if (var.type, n_dim, p_type) not in f_side_trans:
+      print 'NO TRANSLATION FOR: ' + struct.short_name + '%' + var.name + ' [', var.type + ', ' + str(n_dim) + ', ' + str(p_type) + ']'
       continue
 
-    var.f_side = f_side_trans[var.type, n_dim, has_p]
-    var.c_side = c_side_trans[var.type, n_dim, has_p]
-
-    # Dimensionality translation
-
-    var.pointer_trans = pointer_trans[n_dim]
+    var.f_side = f_side_trans[var.type, n_dim, p_type]
+    var.c_side = c_side_trans[var.type, n_dim, p_type]
 
     # If allocatable or pointer type then add the dimensional varaibles to the struct.dim_var list.
 
@@ -432,12 +426,25 @@ for struct in struct_def.values():
         dim_var = var_class()
         dim_var.name = 'n' + str(n) + '_' + var.name
         dim_var.type = 'integer'
-        dim_var.f_side = f_side_trans['integer', 0, F]
+        dim_var.f_side = f_side_trans['integer', 0, NOT]
         struct.dim_var.append(dim_var)
 
-    if len(var.array) == 1: 
-      var.c_side.constructor = var.c_side.constructor.replace('DIM1', str(1 + int(var.ubound[0]) - int(var.lbound[0])))
-      var.c_side.to_c2_set = var.c_side.to_c2_set.replace('DIM1', str(1 + int(var.ubound[0]) - int(var.lbound[0])))
+    if len(var.array) > 0 and p_type == NOT:
+      dim1 = str(1 + int(var.ubound[0]) - int(var.lbound[0]))
+      var.c_side.constructor = var.c_side.constructor.replace('DIM1', dim1)
+      var.c_side.to_c2_set   = var.c_side.to_c2_set.replace('DIM1', dim1)
+      var.c_side.to_f_setup  = var.c_side.to_f_setup.replace('DIM1', dim1)
+      var.f_side.to_f2_trans = var.f_side.to_f2_trans.replace('DIM1', dim1)
+      var.f_side.test_pat    = var.f_side.test_pat.replace('DIM1', dim1)
+
+    if len(var.array) > 1 and p_type == NOT:
+      dim2 = str(1 + int(var.ubound[1]) - int(var.lbound[1]))
+      var.c_side.constructor = var.c_side.constructor.replace('DIM2', dim2)
+      var.c_side.to_c2_set   = var.c_side.to_c2_set.replace('DIM2', dim2)
+      var.c_side.to_f_setup  = var.c_side.to_f_setup.replace('DIM2', dim2)
+      var.f_side.to_f2_trans = var.f_side.to_f2_trans.replace('DIM2', dim2)
+      var.f_side.test_pat    = var.f_side.test_pat.replace('DIM2', dim2)
+
 
 ##################################################################################
 ##################################################################################
@@ -523,13 +530,13 @@ interface
     f_side = var.f_side
     import_set.add(f_side.bindc_const)
     if not f_side.bindc_type in to_c2_arg_def: to_c2_arg_def[f_side.bindc_type] = []
-    to_c2_arg_def[f_side.bindc_type].append(f_side.bindc_name.replace('name', var.name))
+    to_c2_arg_def[f_side.bindc_type].append(f_side.bindc_name.replace('NAME', var.name))
 
   for dim_var in struct.dim_var: 
     f_side = dim_var.f_side
     import_set.add(f_side.bindc_const)
     if not f_side.bindc_type in to_c2_arg_def: to_c2_arg_def[f_side.bindc_type] = []
-    to_c2_arg_def[f_side.bindc_type].append(f_side.bindc_name.replace('name', var.name))
+    to_c2_arg_def[f_side.bindc_type].append(f_side.bindc_name.replace('NAME', var.name))
 
   f_face.write ('  subroutine zzz_to_c2 (CC'.replace('zzz', s_name))
   for var in struct.var: f_face.write (', ' + var.name)
@@ -554,7 +561,7 @@ call c_f_pointer (FF, FP)
 call zzz_to_c2 (CC'''.replace('zzz', s_name))
 
   for var in struct.var:
-    f_face.write (', FP%' + var.f_side.to_c2_arg.replace('name', var.name))
+    f_face.write (', ' + var.f_side.to_c2_arg.replace('NAME', var.name))
 
   f_face.write(''')
 
@@ -578,7 +585,7 @@ end subroutine zzz_to_c
 subroutine zzz_to_f2 (FF'''.replace('zzz', struct.short_name))
 
   for var in struct.var:
-    f_face.write(', ' + var.name.replace('name', var.name))
+    f_face.write(', ' + var.name.replace('NAME', var.name))
 
   f_face.write(''') bind(c)\n
 
@@ -590,8 +597,8 @@ type (zzz_struct), pointer :: FP
 
   f2_arg_list = {}
   for var in struct.var:
-    if not var.full_type in f2_arg_list: f2_arg_list[var.full_type] = []
-    f2_arg_list[var.full_type].append(var.name + var.full_array)
+    if not var.f_side.bindc_type in f2_arg_list: f2_arg_list[var.f_side.bindc_type] = []
+    f2_arg_list[var.f_side.bindc_type].append(var.f_side.bindc_name.replace('NAME', var.name))
 
   for arg_type, arg_list in f2_arg_list.items():
     f_face.write(arg_type + ' ' + ', '.join(arg_list) + '\n')
@@ -601,7 +608,7 @@ call c_f_pointer (FF, FP)
 ''')
 
   for var in struct.var:
-    f_face.write (var.f_side.to_f2_trans.replace('name', var.name) + '\n')
+    f_face.write (var.f_side.to_f2_trans.replace('NAME', var.name) + '\n')
 
   f_face.write ('''
 end subroutine zzz_to_f2
@@ -654,7 +661,7 @@ is_eq = .true.
 '''.replace('zzz', struct.short_name))
 
   for var in struct.var:
-    f_equ.write ('is_eq = is_eq .and. ' + var.f_side.equal_test.replace('name', var.name) + '\n')
+    f_equ.write ('is_eq = is_eq .and. ' + var.f_side.equal_test.replace('NAME', var.name) + '\n')
 
   f_equ.write ('''
 end function eq_zzz
@@ -797,7 +804,7 @@ offset = 100 * ix_patt
 '''.replace('zzz', struct.short_name))
 
 for i, var in enumerate(struct.var, 1):
-  f_test.write (var.f_side.test_pat.replace('XXX', str(i)).replace('name', var.name) + '\n')
+  f_test.write (var.f_side.test_pat.replace('XXX', str(i)).replace('NAME', var.name) + '\n')
 
 f_test.write('''
 end subroutine zzz_test_pattern
@@ -841,6 +848,7 @@ typedef const char*              Char;
 typedef const double             Real;
 typedef const int                Int;
 
+typedef const bool*              BoolArr;
 typedef const dcomplex*          DcomplexArr;
 typedef const double*            RealArr;
 typedef const int*               IntArr;
@@ -850,10 +858,13 @@ typedef valarray<dcomplex>       Dcomplex_Array;
 typedef valarray<double>         Real_Array;
 typedef valarray<int>            Int_Array;
 
-typedef valarray<Real_Array>     Real_Matrix;
 typedef valarray<Bool_Array>     Bool_Matrix;
+typedef valarray<Dcomplex_Array> Dcomplex_Matrix;
+typedef valarray<Real_Array>     Real_Matrix;
+typedef valarray<Int_Array>      Int_Matrix;
 
-typedef valarray<Real_Matrix>    Real_Tensor;
+typedef valarray<Real_Matrix>      Real_Tensor;
+typedef valarray<Dcomplex_Matrix>  Dcomplex_Tensor;
 
 ''')
 
@@ -877,7 +888,7 @@ public:
 
   construct_list = []
   for var in struct.var:
-    construct_list.append(var.c_side.constructor.replace('name', var.name))
+    construct_list.append(var.c_side.constructor.replace('NAME', var.name))
 
   f_class.write ('    ' + ', '.join(construct_list) + '\n')
 
@@ -970,21 +981,7 @@ template <class T> void operator<< (valarray< valarray<T> >& mat1,
   mat1 = mat2;
 }
 
-//---------------------------------------------------------------------------
-// Instantiate needed template instances.
-
-template void operator<< (Real_Array&,  const double*);
-template void operator<< (Real_Matrix&, const double*);
-template void operator<< (Real_Tensor&, const double*);
-template void operator<< (Int_Array&,   const int*);
-
-template void operator<< (Real_Array&,  const Real_Array&);
-template void operator<< (Real_Matrix&, const Real_Matrix&);
-template void operator<< (Int_Array&,   const Int_Array&);
-
-//---------------------------------------------------------------------------
-
-void matrix_to_vector (const Real_Matrix& mat, double* vec) {
+template <class T> void matrix_to_vec (const valarray< valarray<T> >& mat, T* vec) {
   int n1 = mat.size();
   if (n1 == 0) return;
   int n2 = mat[0].size();
@@ -996,8 +993,44 @@ void matrix_to_vector (const Real_Matrix& mat, double* vec) {
 }
 
 //---------------------------------------------------------------------------
+// Instantiate instances for conversion from array to C++ structure.
 
-void tensor_to_vector (const Real_Tensor& tensor, double* vec) {
+template void operator<< (Bool_Array&,  const bool*);
+template void operator<< (Bool_Matrix&, const bool*);
+
+template void operator<< (Real_Array&,  const double*);
+template void operator<< (Real_Matrix&, const double*);
+template void operator<< (Real_Tensor&, const double*);
+
+template void operator<< (Dcomplex_Array&,  const dcomplex*);
+template void operator<< (Dcomplex_Matrix&, const dcomplex*);
+template void operator<< (Dcomplex_Tensor&, const dcomplex*);
+
+template void operator<< (Int_Array&,   const int*);
+template void operator<< (Int_Matrix&,  const int*);
+
+//---------------------------------------------------------------------------
+// Instantiate instances for .
+
+template void operator<< (Real_Array&,  const Real_Array&);
+template void operator<< (Real_Matrix&, const Real_Matrix&);
+template void operator<< (Real_Tensor&, const Real_Tensor&);
+
+template void operator<< (Dcomplex_Array&,  const Dcomplex_Array&);
+template void operator<< (Dcomplex_Matrix&, const Dcomplex_Matrix&);
+template void operator<< (Dcomplex_Tensor&, const Dcomplex_Tensor&);
+
+template void operator<< (Int_Array&,   const Int_Array&);
+template void operator<< (Int_Matrix&,  const Int_Matrix&);
+
+template void matrix_to_vec (const Bool_Matrix&,     bool*);
+template void matrix_to_vec (const Dcomplex_Matrix&, dcomplex*);
+template void matrix_to_vec (const Real_Matrix&,     double*);
+template void matrix_to_vec (const Int_Matrix&,      int*);
+
+//---------------------------------------------------------------------------
+
+void tensor_to_vec (const Real_Tensor& tensor, double* vec) {
   int n1 = tensor.size();
   if (n1 == 0) return;
   int n2 = tensor[0].size();
@@ -1028,16 +1061,19 @@ extern "C" void zzz_to_f2 (zzz_struct*'''.replace('zzz', struct.short_name))
   for var in struct.var:
     f_cpp.write (', ' + var.c_side.to_f2_arg.replace('zzz', struct.short_name))
 
-  f_cpp.write(');\n')
+  f_cpp.write(');\n\n')
 
   # zzz_to_f
 
-  f_cpp.write('''
-extern "C" void zzz_to_f (C_zzz& C, zzz_struct* F) {
-  zzz_to_f2 (F'''.replace('zzz', struct.short_name))
+  f_cpp.write('extern "C" void zzz_to_f (C_zzz& C, zzz_struct* F) {\n'.replace('zzz', struct.short_name))
 
   for var in struct.var:
-    f_cpp.write (', ' + var.c_side.to_f2_call.replace('name', var.name))
+    f_cpp.write (var.c_side.to_f_setup.replace('NAME', var.name))
+
+  f_cpp.write('  zzz_to_f2 (F'.replace('zzz', struct.short_name))
+
+  for var in struct.var:
+    f_cpp.write (', ' + var.c_side.to_f2_call.replace('NAME', var.name))
 
   f_cpp.write(');\n')
   f_cpp.write('}\n')
@@ -1048,12 +1084,12 @@ extern "C" void zzz_to_f (C_zzz& C, zzz_struct* F) {
   f_cpp.write('extern "C" void zzz_to_c2 (C_zzz& C'.replace('zzz', struct.short_name))
 
   for var in struct.var:
-    f_cpp.write (', ' + var.c_side.to_c2_arg.replace('name', var.name).replace('zzz', struct.short_name))
+    f_cpp.write (', ' + var.c_side.to_c2_arg.replace('NAME', var.name).replace('zzz', struct.short_name))
 
   f_cpp.write(') {\n')
 
   for var in struct.var:
-    f_cpp.write ('  ' + var.c_side.to_c2_set.replace('name', var.name) + '\n')
+    f_cpp.write ('  ' + var.c_side.to_c2_set.replace('NAME', var.name) + '\n')
 
   f_cpp.write('}\n')
 
@@ -1086,21 +1122,16 @@ using namespace std;
 
 //---------------------------------------------------
 
-template <class T> bool is_all_equal (const valarray<T>& v1, const valarray<T>& v2) {
+template <class T> bool is_all_equal_vec (const valarray<T>& vec1, const valarray<T>& vec2) {
   bool is_eq = true;
-  T t1, t2;
-  if (v1.size() != v2.size()) return false;
-  for (int i = 0; i < v1.size(); i++) {
-    t1 = v1[i];
-    t2 = v2[i];
-    is_eq = is_eq && (v1[i] == v2[i]);
+  if (vec1.size() != vec2.size()) return false;
+  for (int i = 0; i < vec1.size(); i++) {
+    is_eq = is_eq && (vec1[i] == vec2[i]);
   }
   return is_eq;
 }
 
-//---------------------------------------------------
-
-bool is_all_equal (const Real_Matrix& mat1, const Real_Matrix& mat2) {
+template <class T> bool is_all_equal_mat (const valarray< valarray<T> >& mat1, const valarray< valarray<T> >& mat2) {
   bool is_eq = true;
   if (mat1.size() != mat2.size()) return false;
   for (int i = 0; i < mat1.size(); i++) {
@@ -1112,7 +1143,7 @@ bool is_all_equal (const Real_Matrix& mat1, const Real_Matrix& mat2) {
   return is_eq;
 };
 
-bool is_all_equal (const Real_Tensor& tensor1, const Real_Tensor& tensor2) {
+template <class T> bool is_all_equal_tensor (const valarray< valarray< valarray<T> > >& tensor1, const valarray< valarray< valarray<T> > >& tensor2) {
   bool is_eq = true;
   if (tensor1.size() != tensor2.size()) return false;
   for (int i = 0; i < tensor1.size(); i++) {
@@ -1129,9 +1160,19 @@ bool is_all_equal (const Real_Tensor& tensor1, const Real_Tensor& tensor2) {
 
 //---------------------------------------------------
 
-template bool is_all_equal (const Dcomplex_Array&, const Dcomplex_Array&);
-template bool is_all_equal (const Real_Array&,     const Real_Array&);
-template bool is_all_equal (const Int_Array&,      const Int_Array&);
+template bool is_all_equal_vec (const Bool_Array&,     const Bool_Array&);
+template bool is_all_equal_vec (const Dcomplex_Array&, const Dcomplex_Array&);
+template bool is_all_equal_vec (const Real_Array&,     const Real_Array&);
+template bool is_all_equal_vec (const Int_Array&,      const Int_Array&);
+
+template bool is_all_equal_mat (const Bool_Matrix&,     const Bool_Matrix&);
+template bool is_all_equal_mat (const Dcomplex_Matrix&, const Dcomplex_Matrix&);
+template bool is_all_equal_mat (const Real_Matrix&,     const Real_Matrix&);
+template bool is_all_equal_mat (const Int_Matrix&,      const Int_Matrix&);
+
+template bool is_all_equal_tensor (const Dcomplex_Tensor&, const Dcomplex_Tensor&);
+template bool is_all_equal_tensor (const Real_Tensor&,     const Real_Tensor&);
+
 ''')
 
 for key, struct in struct_def.items():
@@ -1140,7 +1181,7 @@ for key, struct in struct_def.items():
   f_eq.write ('  bool is_eq = true;\n')
 
   for var in struct.var:
-    f_eq.write ('  is_eq = is_eq && ' + var.c_side.equal_test.replace('name', var.name)  + ';\n')
+    f_eq.write ('  is_eq = is_eq && ' + var.c_side.equal_test.replace('NAME', var.name)  + ';\n')
 
   f_eq.write ('  return is_eq;\n')
   f_eq.write ('};\n\n')
@@ -1183,7 +1224,7 @@ int offset = 100 * ix_patt;
 '''.replace('zzz', struct.short_name))
 
 for i, var in enumerate(struct.var, 1):
-  f_test.write (var.c_side.test_pat.replace('XXX', str(i)).replace('name', var.name) + '\n')
+  f_test.write (var.c_side.test_pat.replace('XXX', str(i)).replace('NAME', var.name) + '\n')
 
 f_test.write('''
 }

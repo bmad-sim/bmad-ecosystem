@@ -365,6 +365,39 @@ end function mat2arr
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Function imat2arr (mat) result (arr)
+!
+! Function to take a matrix and turn it into an array:
+!   arr(n2*(i-1) + j) = mat(i,j)
+! where n2 = size(mat,2).
+! This is used for passing matrices to C++ routines.
+!
+! Modules needed:
+!  use fortran_cpp_utils
+!
+! Input:
+!   mat(:,:)  -- integer: Input matrix
+!
+! Output:
+!   arr(:)   -- integer: Output array 
+!-
+
+function imat2arr (mat) result (arr)
+
+implicit none
+
+integer mat(:,:)
+integer arr(size(mat))
+integer i, j, n1, n2
+
+n1 = size(mat, 1); n2 = size(mat, 2)
+forall (i = 1:n1, j = 1:n2) arr(n2*(i-1) + j) = mat(i,j)
+ 
+end function imat2arr
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Function tensor2arr (tensor) result (arr)
 !
 ! Function to take a tensorrix and turn it into an array:
@@ -421,12 +454,45 @@ function arr2mat (arr, n1, n2) result (mat)
 implicit none
 
 integer i, j, n1, n2
-real(rp) arr(:)
+real(rp) arr(*)
 real(rp) mat(n1,n2)
 
 forall (i = 1:n1, j = 1:n2) mat(i,j) = arr(n2*(i-1) + j) 
  
 end function arr2mat
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function arr2imat (arr, n1, n2) result (mat)
+!
+! Function to take a an array and turn it into a matrix:
+!   mat(i,j) = arr(n2*(i-1) + j) 
+! This is used for getting matrices from C++ routines.
+!
+! Modules needed:
+!  use fortran_cpp_utils
+!
+! Input:
+!   arr(:)   -- integer: Input array.
+!   n1       -- Integer: Size of first mat index.
+!   n2       -- Integer: Size of second mat index.
+!
+! Output:
+!   mat(n1,n2)  -- integer: Output matrix
+!-
+
+function arr2imat (arr, n1, n2) result (mat)
+
+implicit none
+
+integer i, j, n1, n2
+integer arr(*)
+integer mat(n1,n2)
+
+forall (i = 1:n1, j = 1:n2) mat(i,j) = arr(n2*(i-1) + j) 
+ 
+end function arr2imat
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
