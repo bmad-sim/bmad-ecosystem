@@ -26,6 +26,7 @@ contains
 ! Output:
 !   track -- Track_struct: structure for holding the track
 !     %orb(1:n) -- Coord_struct: n will be at least n_pt
+!     %field(1:n) -- em_field_stuct: n will be at least n_pt
 !     %map(1:n) -- Track_map_struct: n will be at least n_pt
 !     %n_bad    -- Reset to 0
 !     %n_ok     -- Reset to 0
@@ -43,12 +44,13 @@ integer n_pt
 
 if (.not. allocated (track%orb)) then
   allocate(track%orb(0:n_pt))
+  allocate(track%field(0:n_pt))
   allocate(track%map(0:n_pt))
 endif
 
 if (ubound(track%orb, 1) < n_pt) then
-  deallocate(track%orb, track%map)
-  allocate(track%orb(0:n_pt), track%map(0:n_pt))
+  deallocate(track%orb,  track%field, track%map)
+  allocate(track%orb(0:n_pt),  track%field(0:n_pt), track%map(0:n_pt))
 endif
 
 track%n_ok = 0

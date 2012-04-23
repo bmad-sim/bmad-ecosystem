@@ -69,6 +69,7 @@ type (coord_struct), intent(inout), target :: orb
 type (coord_struct), target :: orb_old
 type (ele_struct), target :: ele
 type (lat_param_struct), target ::  param
+type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2, dt1
@@ -163,7 +164,10 @@ do n_step = 1, max_step
     if (t_rel >= t_save .or. exit_flag) then
       track%n_pt = track%n_pt + 1
       n_pt = track%n_pt
-        track%orb(n_pt) = orb
+      track%orb(n_pt) = orb
+      !Query the local field to save
+      call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false.)
+      track%field(n_pt) = saved_field
        !Set next save time 
        t_save = t_rel + dt_save
     end if
@@ -382,7 +386,7 @@ type (lat_param_struct) :: param
 type (ele_struct) :: ele
 type (photon_track_struct), target :: particle
 integer :: section_ix
-real(rp) :: e_tot, perp(3), dummy_real
+real(rp) :: norm, perp(3), dummy_real
 real(rp) :: edge_tol = 1e-8
 
 !-----------------------------------------------
@@ -417,31 +421,39 @@ end if
 !Change from particle coordinates to photon coordinates
 ! (coord_struct to photon_coord_struct)
 
-!Get e_tot from momentum, calculate beta_i = c*p_i / e_tot
-e_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2 + mass_of(param%particle)**2)
-old_orb%vec(2) = orb%vec(2) / e_tot
-old_orb%vec(4) = orb%vec(4) / e_tot
-old_orb%vec(6) = orb%vec(6) / e_tot
+!Get e_tot from momentum, calculate beta_i = c*p_i / p_tot, pretending that these are traveling at v=c
+!p_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2)
+!old_orb%vec(2) = orb%vec(2) / p_tot
+!old_orb%vec(4) = orb%vec(4) / p_tot
+!old_orb%vec(6) = orb%vec(6) / p_tot
 
-e_tot = sqrt(orb_new%vec(2)**2 + orb_new%vec(4)**2 + orb_new%vec(6)**2 + mass_of(param%particle)**2)
-now_orb%vec(2) = orb_new%vec(2) / e_tot
-now_orb%vec(4) = orb_new%vec(4) / e_tot
-now_orb%vec(6) = orb_new%vec(6) / e_tot
+!p_tot = sqrt(orb_new%vec(2)**2 + orb_new%vec(4)**2 + orb_new%vec(6)**2 )
+!now_orb%vec(2) = orb_new%vec(2) / p_tot
+!now_orb%vec(4) = orb_new%vec(4) / p_tot
+!now_orb%vec(6) = orb_new%vec(6) / p_tot
 
 
 !More coordinate changes
 !Equations taken from track_a_capillary in capillary_mod
-particle%old%energy = ele%value(e_tot$) * (1 + orb%vec(6))
-particle%old%track_len = 0
+!particle%old%energy = ele%value(e_tot$) * (1 + orb%vec(6))
+
 !particle%old%ix_section = 1
 
-particle%now%energy = ele%value(e_tot$) * (1 + orb_new%vec(6))
+!particle%now%energy = ele%value(e_tot$) * (1 + orb_new%vec(6))
+
+!Pretend that now_orb and old_orb are photons to calculate the wall intersection
+particle%old%track_len = 0
 particle%now%track_len = sqrt( &
      (now_orb%vec(1) - old_orb%vec(1))**2 + &
      (now_orb%vec(3) - old_orb%vec(3))**2 + &
      (now_orb%vec(5) - old_orb%vec(5))**2)
-!particle%now%ix_section = 1
 
+old_orb%vec(2) = (now_orb%vec(1) - old_orb%vec(1)) /particle%now%track_len
+old_orb%vec(4) = (now_orb%vec(3) - old_orb%vec(3)) /particle%now%track_len
+old_orb%vec(6) = (now_orb%vec(5) - old_orb%vec(5)) /particle%now%track_len
+now_orb%vec(2) = old_orb%vec(2) 
+now_orb%vec(4) = old_orb%vec(4) 
+now_orb%vec(6) = old_orb%vec(6) 
 
 !If particle hit wall, find out where
 if (capillary_photon_d_radius(particle%now, ele) > 0) then
@@ -463,13 +475,15 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
         (now_orb%vec(3) - old_orb%vec(3)) * perp(2) + &
         (now_orb%vec(5) - old_orb%vec(5)) * perp(3)) / particle%now%track_len)
 
-   !Change back from photon coords to particle coords 
-   orb_new%vec(2) = now_orb%vec(2) * e_tot
-   orb_new%vec(4) = now_orb%vec(4) * e_tot
-   orb_new%vec(6) = now_orb%vec(6) * e_tot
+   !Restore momenta from original orb 
+   orb_new%vec(2) = orb%vec(2) 
+   orb_new%vec(4) = orb%vec(4) 
+   orb_new%vec(6) = orb%vec(6) 
 
    !Set orb%s
    orb_new%s = orb_new%vec(5) + ele%s - ele%value(l$)
+
+   !Note that the time is not set!
 
    param%lost = .true.
    orb_new%status = dead$

@@ -58,6 +58,7 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 type (hard_edge_struct), allocatable :: edge(:)
+type (em_field_struct) :: saved_field
 
 real(rp)  dt_step, ref_time, vec6, pc2
 real(rp)   s_rel, t_rel, s1, s2, del_s, p0c_save
@@ -140,9 +141,12 @@ call convert_particle_coordinates_s_to_t(end_orb)
 s_rel =  end_orb%s - (ele%s - ele%value(l$) )
 end_orb%vec(5) = s_rel
 
-! Particle time
-
-t_rel = particle_time(start_orb, ele)
+! Particle time (relative to entrance edge)
+if (ele%lat%absolute_time_tracking) then
+	t_rel = start_orb%t - ele%value(ref_time_start$)
+else
+	t_rel = particle_time(start_orb, ele)
+endif
 
 !------
 !Check wall
@@ -169,6 +173,10 @@ else
     call init_saved_orbit (track, 10000)   !TODO: pass this from elsewhere
     track%n_pt = 0
     track%orb(0) = end_orb
+    !Query the local field to save
+    call em_field_calc (ele, param, end_orb%vec(5), t_rel, end_orb, local_ref_frame, saved_field, .false.)
+    track%field(0) = saved_field
+      
   endif
 
 
