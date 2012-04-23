@@ -876,6 +876,7 @@ end type
 
 type track_struct
   type (coord_struct), allocatable :: orb(:)      ! An array of track points: %orb(0:) 
+  type (em_field_struct), allocatable:: field(:)  ! An array of em fields: %field(0:) 
   type (track_map_struct), allocatable :: map(:)  ! An array of maps: %map(0:)
   real(rp) :: ds_save = 1e-3                      ! Min distance between points.
   integer :: n_pt                                 ! Actual track upper bound for %orb(0:) and  %map(0:)
