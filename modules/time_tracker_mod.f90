@@ -80,7 +80,7 @@ integer, parameter :: max_step = 100000
 integer :: n_step, n_pt
 
 logical, target :: local_ref_frame
-logical :: exit_flag, err_flag, err, zbrent_needed
+logical :: exit_flag, err_flag, err, zbrent_needed, add_ds_safe
 
 character(30), parameter :: r_name = 'odeint_bmad_time'
 
@@ -116,12 +116,16 @@ do n_step = 1, max_step
   ! Check entrance and exit faces
   if (orb%vec(5) > s2 - ds_safe .or. orb%vec(5) < s1 + ds_safe) then
     zbrent_needed = .true.
+    add_ds_safe = .true.
+
     if (orb%vec(5) < s1 + ds_safe) then 
       s_target = s1
-      if (orb%vec(5) > s1 + ds_safe) zbrent_needed = .false.
+      if (orb%vec(5) > s1 - ds_safe) zbrent_needed = .false.
+      if (s1 == 0) add_ds_safe = .false.
     else
       s_target = s2
-      if (orb%vec(5) < s2 - ds_safe) zbrent_needed = .false.
+      if (orb%vec(5) < s2 + ds_safe) zbrent_needed = .false.
+      if (abs(s2 - ele%value(l$)) < ds_safe) add_ds_safe = .false.
     endif
 
     exit_flag = .true.
@@ -143,7 +147,8 @@ do n_step = 1, max_step
     if (zbrent_needed) dt = zbrent (delta_s_target, 0.0_rp, dt, dt_tol)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
-    orb%vec(5) = s_target + sign(ds_safe, orb%vec(6))
+    orb%vec(5) = s_target 
+    if (add_ds_safe) orb%vec(5) = orb%vec(5) + sign(ds_safe, orb%vec(6))
     orb%s = orb%vec(5) + ele%s - ele%value(l$)
   endif
 
