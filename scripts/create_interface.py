@@ -18,9 +18,10 @@ import re
 ##################################################################################
 ##################################################################################
 
+debug = False
+
 def print_debug (line):
-  ## print line
-  pass
+  if (debug): print line
 
 ##################################################################################
 ##################################################################################
@@ -144,22 +145,22 @@ f_side_trans[LOGIC, 1, NOT].test_pat    = 'FF%NAME = [(modulo(jd1 + XXX + offset
 f_side_trans[CMPLX, 1, NOT].to_f2_trans = 'FP%NAME = NAME(1:size(FP%NAME))'
 f_side_trans[CMPLX, 1, NOT].test_pat    = 'FF%NAME = [(cmplx(100 + jd1 + XXX + offset, 200 + jd1 + XXX + offset), jd1 = 1, size(FF%NAME))]'
 
-f_side_trans[REAL,  2, NOT].to_f2_trans = 'FP%NAME = arr2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[REAL,  2, NOT].to_f2_trans = 'FP%NAME = vec2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
 f_side_trans[REAL,  2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
 
-f_side_trans[INT,   2, NOT].to_f2_trans = 'FP%NAME = arr2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[INT,   2, NOT].to_f2_trans = 'FP%NAME = vec2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
 f_side_trans[INT,   2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
 
-f_side_trans[LOGIC, 2, NOT].to_f2_trans = 'FP%NAME = arr2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[LOGIC, 2, NOT].to_f2_trans = 'FP%NAME = vec2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
 f_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '(modulo(rhs, 2) == 0)')
 
-f_side_trans[CMPLX, 2, NOT].to_f2_trans = 'FP%NAME = arr2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[CMPLX, 2, NOT].to_f2_trans = 'FP%NAME = vec2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
 f_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'cmplx(rhs, 100+rhs)')
 
-f_side_trans[REAL,  3, NOT].to_f2_trans = 'FP%NAME = arr2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 1))'
+f_side_trans[REAL,  3, NOT].to_f2_trans = 'FP%NAME = vec2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 1))'
 f_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
 
-f_side_trans[CMPLX, 3, NOT].to_f2_trans = 'FP%NAME = arr2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 1))'
+f_side_trans[CMPLX, 3, NOT].to_f2_trans = 'FP%NAME = vec2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 1))'
 f_side_trans[CMPLX, 3, NOT].test_pat    = test_pat3.replace('NNN', 'cmplx(rhs, 100+rhs)')
 
 for key, f in f_side_trans.items(): 
@@ -207,8 +208,8 @@ c_side_trans = {
   (CHAR,   1, NOT) : c_side_trans_class('string',          'Char',            'C.NAME',          'Char NAME')
   }
 
-test_pat1 = 'for (int i = 0; i < C.NAME.size(); i++) {int rhs = 101 + i + XXX + offset; C.NAME[i] = NNN;}'
-test_pat2 = 'for (int j = 0; j < C.NAME.size(); j++) for (int i = 0; i < C.NAME[0].size(); i++) {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
+test_pat1 = 'for (int i = 0; i < C.NAME.size(); i++)\n  {int rhs = 101 + i + XXX + offset; C.NAME[i] = NNN;}'
+test_pat2 = 'for (int j = 0; j < C.NAME.size(); j++) for (int i = 0; i < C.NAME[0].size(); i++)\n  {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
 test_pat3 = \
 '''for (int k = 0; k < C.NAME.size(); k++) for (int j = 0; j < C.NAME[0].size(); j++) for (int i = 0; i < C.NAME[0][0].size(); i++) 
   {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'''
@@ -375,9 +376,12 @@ for file_name in f_module_files:
 
       if split_line[0] == '::': split_line.pop(0)
 
+      # Join split_line into one string so that we are starting from a definite state.
+
+      if len(split_line) > 1: split_line = [''.join(split_line)]
       print_debug('P5: ' + str(split_line))
 
-      # Now the first word in split_line[0] is the variable name
+      # Now len(split_line) = 1 and the first word in split_line[0] is the variable name
       # There may be multiple variables defined so loop over all instances.
 
       while True:
@@ -863,7 +867,7 @@ subroutine zzz_test_pattern (FF, ix_patt)
 implicit none
 
 type (zzz_struct) FF
-integer ix_patt, offset, jd1, jd2, jd3
+integer ix_patt, offset, jd1, jd2, jd3, rhs
 
 !
 
