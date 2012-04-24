@@ -157,10 +157,10 @@ f_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '(modulo(rhs,
 f_side_trans[CMPLX, 2, NOT].to_f2_trans = 'FP%NAME = vec2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
 f_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'cmplx(rhs, 100+rhs)')
 
-f_side_trans[REAL,  3, NOT].to_f2_trans = 'FP%NAME = vec2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 1))'
+f_side_trans[REAL,  3, NOT].to_f2_trans = 'FP%NAME = vec2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 3))'
 f_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
 
-f_side_trans[CMPLX, 3, NOT].to_f2_trans = 'FP%NAME = vec2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 1))'
+f_side_trans[CMPLX, 3, NOT].to_f2_trans = 'FP%NAME = vec2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 3))'
 f_side_trans[CMPLX, 3, NOT].test_pat    = test_pat3.replace('NNN', 'cmplx(rhs, 100+rhs)')
 
 for key, f in f_side_trans.items(): 
@@ -212,7 +212,7 @@ test_pat1 = 'for (int i = 0; i < C.NAME.size(); i++)\n  {int rhs = 101 + i + XXX
 test_pat2 = 'for (int i = 0; i < C.NAME.size(); i++) for (int j = 0; j < C.NAME[0].size(); j++) \n  {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
 test_pat3 = \
 '''for (int i = 0; i < C.NAME.size(); i++) for (int j = 0; j < C.NAME[0].size(); j++) for (int k = 0; k < C.NAME[0][0].size(); k++) 
-  {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'''
+  {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'''
 
 c_side_trans[REAL,  1, NOT].constructor = 'NAME(0.0, DIM1)'
 c_side_trans[REAL,  1, NOT].to_c2_set   = 'C.NAME = Real_Array(NAME, DIM1);'
@@ -252,12 +252,12 @@ c_side_trans[CMPLX, 2, NOT].to_f_setup  = 'int NAME[DIM1*DIM2]; matrix_to_vec(C.
 
 c_side_trans[REAL,  3, NOT].constructor = 'NAME(Real_Matrix(Real_Array(0.0, DIM3), DIM2), DIM1)'
 c_side_trans[REAL,  3, NOT].to_c2_set   = 'C.NAME << NAME;'
-c_side_trans[REAL,  3, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
+c_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
 c_side_trans[REAL,  3, NOT].to_f_setup  = 'double NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, NAME);\n'
 
 c_side_trans[CMPLX, 3, NOT].constructor = 'NAME(Cmplx_Matrix(Cmplx_Array(0.0, DIM3), DIM2), DIM1)'
 c_side_trans[CMPLX, 3, NOT].to_c2_set   = 'C.NAME << NAME;'
-c_side_trans[CMPLX, 3, NOT].test_pat    = test_pat2.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
+c_side_trans[CMPLX, 3, NOT].test_pat    = test_pat3.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
 c_side_trans[CMPLX, 3, NOT].to_f_setup  = 'int NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, NAME);\n'
 
 for key, c in c_side_trans.items(): 
@@ -518,7 +518,7 @@ for struct in struct_def.values():
       var.f_side.test_pat    = var.f_side.test_pat.replace('DIM2', dim2)
 
     if len(var.array) >= 3 and p_type == NOT:
-      dim2 = str(1 + int(var.ubound[1]) - int(var.lbound[1]))
+      dim3 = str(1 + int(var.ubound[2]) - int(var.lbound[2]))
       var.c_side.constructor = var.c_side.constructor.replace('DIM3', dim3)
       var.c_side.to_c2_set   = var.c_side.to_c2_set.replace('DIM3', dim3)
       var.c_side.to_f_setup  = var.c_side.to_f_setup.replace('DIM3', dim3)

@@ -12,7 +12,8 @@ end type
 !+
 ! Function mat2vec (mat) result (vec)
 !
-! Overloaded function to take a matrix and turn it into an array:
+! Overloaded function to take a matrix and turn it into an array in 
+! C standard row-major order:
 !   vec(n2*(i-1) + j) = mat(i,j)
 ! where n2 = size(mat,2).
 ! This is used for passing matrices to C++ routines.
@@ -51,8 +52,9 @@ end interface
 !+
 ! Function tensor2arr (tensor) result (arr)
 !
-! Function to take a tensorrix and turn it into an array:
-!   arr(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
+! Function to take a tensor and turn it into an array in 
+! C standard row-major order::
+!   arr(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j,k)
 ! where n2 = size(tensor,2).
 ! This is used for passing tensorrices to C++ routines.
 !
@@ -76,7 +78,8 @@ end interface
 !+
 ! Function vec2mat (vec, n1, n2) result (mat)
 !
-! Function to take a an array and turn it into a matrix:
+! Function to take a an array in C standard row-major 
+! order and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
@@ -84,7 +87,7 @@ end interface
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(:)   -- Real(rp): Input array.
+!   vec(*)   -- Real(rp): Input array.
 !   n1       -- Integer: Size of first mat index.
 !   n2       -- Integer: Size of second mat index.
 !
@@ -104,7 +107,8 @@ end interface
 !+
 ! Function vec2tensor (vec, n1, n2, n3) result (tensor)
 !
-! Function to take a an array and turn it into a tensor:
+! Function to take a an array in C standard row-major 
+! order and turn it into a tensor:
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
 !
@@ -112,7 +116,7 @@ end interface
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(:)   -- Real(rp): Input array.
+!   vec(*)   -- Real(rp): Input array.
 !   n1       -- Integer: Size of first tensor index.
 !   n2       -- Integer: Size of second tensor index.
 !   n3       -- Integer: Size of third tensor index.
@@ -634,7 +638,7 @@ end function cmplx_tensor2vec
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(:)   -- Real(rp): Input array.
+!   vec(*)   -- Real(rp): Input array.
 !   n1       -- Integer: Size of first mat index.
 !   n2       -- Integer: Size of second mat index.
 !
@@ -667,7 +671,7 @@ end function real_vec2mat
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(:)   -- integer: Input array.
+!   vec(*)   -- integer: Input array.
 !   n1       -- Integer: Size of first mat index.
 !   n2       -- Integer: Size of second mat index.
 !
@@ -700,7 +704,7 @@ end function int_vec2mat
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(:)   -- logical: Input array.
+!   vec(*)   -- logical: Input array.
 !   n1       -- Logical: Size of first mat index.
 !   n2       -- Logical: Size of second mat index.
 !
@@ -733,7 +737,7 @@ end function bool_vec2mat
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(:)   -- complex(rp): Input array.
+!   vec(*)   -- complex(rp): Input array.
 !   n1       -- Complex(Rp): Size of first mat index.
 !   n2       -- Complex(Rp): Size of second mat index.
 !
@@ -766,7 +770,7 @@ end function cmplx_vec2mat
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(:)   -- Real(rp): Input array.
+!   vec(*)   -- Real(rp): Input array.
 !   n1       -- Integer: Size of first tensor index.
 !   n2       -- Integer: Size of second tensor index.
 !   n3       -- Integer: Size of third tensor index.
@@ -780,7 +784,7 @@ function real_vec2tensor (vec, n1, n2, n3) result (tensor)
 implicit none
 
 integer i, j, k, n1, n2, n3
-real(rp) vec(:)
+real(rp) vec(*)
 real(rp) tensor(n1,n2,n3)
 
 forall (i = 1:n1, j = 1:n2, k = 1:n3) tensor(i,j,k) = vec(n3*n2*(i-1) + n3*(j-1) + k) 
@@ -800,7 +804,7 @@ end function real_vec2tensor
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(:)   -- complex(rp): Input array.
+!   vec(*)   -- complex(rp): Input array.
 !   n1       -- Integer: Size of first tensor index.
 !   n2       -- Integer: Size of second tensor index.
 !   n3       -- Integer: Size of third tensor index.
@@ -814,7 +818,7 @@ function cmplx_vec2tensor (vec, n1, n2, n3) result (tensor)
 implicit none
 
 integer i, j, k, n1, n2, n3
-complex(rp) vec(:)
+complex(rp) vec(*)
 complex(rp) tensor(n1,n2,n3)
 
 forall (i = 1:n1, j = 1:n2, k = 1:n3) tensor(i,j,k) = vec(n3*n2*(i-1) + n3*(j-1) + k) 
