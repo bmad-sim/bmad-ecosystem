@@ -1,4 +1,4 @@
-FILE: bmad/modules/bmad_struct.f90
-USE: bmad_struct
+FILE: cpp_bmad_interface/code/test_mod.f90
+USE: test_mod
 
-coord_struct        
+ttt_struct

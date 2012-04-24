@@ -209,9 +209,9 @@ c_side_trans = {
   }
 
 test_pat1 = 'for (int i = 0; i < C.NAME.size(); i++)\n  {int rhs = 101 + i + XXX + offset; C.NAME[i] = NNN;}'
-test_pat2 = 'for (int j = 0; j < C.NAME.size(); j++) for (int i = 0; i < C.NAME[0].size(); i++)\n  {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
+test_pat2 = 'for (int i = 0; i < C.NAME.size(); i++) for (int j = 0; j < C.NAME[0].size(); j++) \n  {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
 test_pat3 = \
-'''for (int k = 0; k < C.NAME.size(); k++) for (int j = 0; j < C.NAME[0].size(); j++) for (int i = 0; i < C.NAME[0][0].size(); i++) 
+'''for (int i = 0; i < C.NAME.size(); i++) for (int j = 0; j < C.NAME[0].size(); j++) for (int k = 0; k < C.NAME[0][0].size(); k++) 
   {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'''
 
 c_side_trans[REAL,  1, NOT].constructor = 'NAME(0.0, DIM1)'
@@ -231,34 +231,34 @@ c_side_trans[LOGIC, 1, NOT].to_c2_set   = 'C.NAME = Bool_Array(NAME, DIM1);'
 c_side_trans[LOGIC, 1, NOT].test_pat    = test_pat1.replace('NNN', '((rhs % 2) == 0)')
 
 c_side_trans[REAL,  2, NOT].constructor = 'NAME(Real_Array(0.0, DIM2), DIM1)'
-c_side_trans[REAL,  2, NOT].to_c2_set   = 'C.NAME = Real_Array(NAME, DIM1);'
+c_side_trans[REAL,  2, NOT].to_c2_set   = 'C.NAME << NAME;'
 c_side_trans[REAL,  2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
-c_side_trans[REAL,  2, NOT].to_f_setup  = 'double NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
+c_side_trans[REAL,  2, NOT].to_f_setup  = 'double NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, NAME);\n'
 
 c_side_trans[INT,   2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
-c_side_trans[INT,   2, NOT].to_c2_set   = 'C.NAME = Int_Array(NAME, DIM1);'
+c_side_trans[INT,   2, NOT].to_c2_set   = 'C.NAME << NAME;'
 c_side_trans[INT,   2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
-c_side_trans[INT,   2, NOT].to_f_setup  = 'int NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
+c_side_trans[INT,   2, NOT].to_f_setup  = 'int NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, NAME);\n'
 
 c_side_trans[LOGIC, 2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
-c_side_trans[LOGIC, 2, NOT].to_c2_set   = 'C.NAME = Bool_Array(NAME, DIM1);'
+c_side_trans[LOGIC, 2, NOT].to_c2_set   = 'C.NAME << NAME;'
 c_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '((rhs % 2) == 0)')
-c_side_trans[LOGIC, 2, NOT].to_f_setup  = 'bool NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
+c_side_trans[LOGIC, 2, NOT].to_f_setup  = 'bool NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, NAME);\n'
 
 c_side_trans[CMPLX, 2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
-c_side_trans[CMPLX, 2, NOT].to_c2_set   = 'C.NAME = Cmplx_Array(NAME, DIM1);'
+c_side_trans[CMPLX, 2, NOT].to_c2_set   = 'C.NAME << NAME;'
 c_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
-c_side_trans[CMPLX, 2, NOT].to_f_setup  = 'int NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
+c_side_trans[CMPLX, 2, NOT].to_f_setup  = 'int NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, NAME);\n'
 
 c_side_trans[REAL,  3, NOT].constructor = 'NAME(Real_Matrix(Real_Array(0.0, DIM3), DIM2), DIM1)'
-c_side_trans[REAL,  3, NOT].to_c2_set   = 'C.NAME = Real_Array(NAME, DIM1);'
+c_side_trans[REAL,  3, NOT].to_c2_set   = 'C.NAME << NAME;'
 c_side_trans[REAL,  3, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
-c_side_trans[REAL,  3, NOT].to_f_setup  = 'double NAME[DIM1]; tensor_to_vec(C.NAME, NAME);\n'
+c_side_trans[REAL,  3, NOT].to_f_setup  = 'double NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, NAME);\n'
 
 c_side_trans[CMPLX, 3, NOT].constructor = 'NAME(Cmplx_Matrix(Cmplx_Array(0.0, DIM3), DIM2), DIM1)'
-c_side_trans[CMPLX, 3, NOT].to_c2_set   = 'C.NAME = Cmplx_Array(NAME, DIM1);'
+c_side_trans[CMPLX, 3, NOT].to_c2_set   = 'C.NAME << NAME;'
 c_side_trans[CMPLX, 3, NOT].test_pat    = test_pat2.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
-c_side_trans[CMPLX, 3, NOT].to_f_setup  = 'int NAME[DIM1]; tensor_to_vec(C.NAME, NAME);\n'
+c_side_trans[CMPLX, 3, NOT].to_f_setup  = 'int NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, NAME);\n'
 
 for key, c in c_side_trans.items(): 
   if key[1] == 1: c.equal_test = 'is_all_equal (x.NAME, y.NAME)'
@@ -501,7 +501,7 @@ for struct in struct_def.values():
         dim_var.f_side = f_side_trans['integer', 0, NOT]
         struct.dim_var.append(dim_var)
 
-    if len(var.array) > 0 and p_type == NOT:
+    if len(var.array) >= 1 and p_type == NOT:
       dim1 = str(1 + int(var.ubound[0]) - int(var.lbound[0]))
       var.c_side.constructor = var.c_side.constructor.replace('DIM1', dim1)
       var.c_side.to_c2_set   = var.c_side.to_c2_set.replace('DIM1', dim1)
@@ -509,13 +509,21 @@ for struct in struct_def.values():
       var.f_side.to_f2_trans = var.f_side.to_f2_trans.replace('DIM1', dim1)
       var.f_side.test_pat    = var.f_side.test_pat.replace('DIM1', dim1)
 
-    if len(var.array) > 1 and p_type == NOT:
+    if len(var.array) >= 2 and p_type == NOT:
       dim2 = str(1 + int(var.ubound[1]) - int(var.lbound[1]))
       var.c_side.constructor = var.c_side.constructor.replace('DIM2', dim2)
       var.c_side.to_c2_set   = var.c_side.to_c2_set.replace('DIM2', dim2)
       var.c_side.to_f_setup  = var.c_side.to_f_setup.replace('DIM2', dim2)
       var.f_side.to_f2_trans = var.f_side.to_f2_trans.replace('DIM2', dim2)
       var.f_side.test_pat    = var.f_side.test_pat.replace('DIM2', dim2)
+
+    if len(var.array) >= 3 and p_type == NOT:
+      dim2 = str(1 + int(var.ubound[1]) - int(var.lbound[1]))
+      var.c_side.constructor = var.c_side.constructor.replace('DIM3', dim3)
+      var.c_side.to_c2_set   = var.c_side.to_c2_set.replace('DIM3', dim3)
+      var.c_side.to_f_setup  = var.c_side.to_f_setup.replace('DIM3', dim3)
+      var.f_side.to_f2_trans = var.f_side.to_f2_trans.replace('DIM3', dim3)
+      var.f_side.test_pat    = var.f_side.test_pat.replace('DIM3', dim3)
 
 
 ##################################################################################
