@@ -100,33 +100,67 @@ class f_side_trans_class:
 f_side_trans = {
   (REAL,  0, NOT) : f_side_trans_class('FP%NAME',               'real(c_double)',             'NAME'),
   (REAL,  1, NOT) : f_side_trans_class('FP%NAME',               'real(c_double)',             'NAME(*)'),
-  (REAL,  2, NOT) : f_side_trans_class('mat2arr(FP%NAME)',      'real(c_double)',             'NAME(*)'),
-  (REAL,  3, NOT) : f_side_trans_class('tensor2arr(FP%NAME)',   'real(c_double)',             'NAME(*)'),
+  (REAL,  2, NOT) : f_side_trans_class('mat2vec(FP%NAME)',      'real(c_double)',             'NAME(*)'),
+  (REAL,  3, NOT) : f_side_trans_class('tensor2vec(FP%NAME)',   'real(c_double)',             'NAME(*)'),
   (CMPLX, 0, NOT) : f_side_trans_class('FP%NAME',               'complex(c_double_complex)',  'NAME'),
   (CMPLX, 1, NOT) : f_side_trans_class('FP%NAME',               'complex(c_double_complex)',  'NAME(*)'),
+  (CMPLX, 2, NOT) : f_side_trans_class('mat2vec(FP%NAME)',      'complex(c_double_complex)',  'NAME(*)'),
+  (CMPLX, 3, NOT) : f_side_trans_class('tensor2vec(FP%NAME)',   'complex(c_double_complex)',  'NAME(*)'),
   (INT,   0, NOT) : f_side_trans_class('FP%NAME',               'integer(c_int)',             'NAME'),
   (INT,   1, NOT) : f_side_trans_class('FP%NAME',               'integer(c_int)',             'NAME(*)'),
-  (INT,   2, NOT) : f_side_trans_class('imat2arr(FP%NAME)',     'integer(c_int)',             'NAME(*)'),
+  (INT,   2, NOT) : f_side_trans_class('mat2vec(FP%NAME)',      'integer(c_int)',             'NAME(*)'),
   (LOGIC, 0, NOT) : f_side_trans_class('c_logic(FP%NAME)',      'logical(c_bool)',            'NAME'),
   (LOGIC, 1, NOT) : f_side_trans_class('c_logic(FP%NAME)',      'logical(c_bool)',            'NAME(*)'),
+  (LOGIC, 2, NOT) : f_side_trans_class('mat2vec(FP%NAME)',      'logical(c_bool)',            'NAME(*)'),
   (TYPE,  0, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME'),
   (TYPE,  1, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME(*)'), 
   (CHAR,  1, NOT) : f_side_trans_class('c_str(FP%NAME)',        'character(c_char)',          'NAME(*)')
   }
 
-f_side_trans[REAL,  1, NOT].test_pat    = 'FF%NAME = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME))]'
-
-f_side_trans[REAL,  2, NOT].to_f2_trans = 'FP%NAME = arr2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
-f_side_trans[REAL,  2, NOT].test_pat    = 'FF%NAME = reshape([100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME)], shape(FF%NAME))'
-
-f_side_trans[INT,   1, NOT].test_pat    = 'FF%NAME = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME))]'
-
-f_side_trans[INT,   2, NOT].to_f2_trans = 'FP%NAME = arr2imat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
-f_side_trans[INT,   2, NOT].test_pat    = '''do jd1 = lbound(FF%NAME, 1), ubound(FF%NAME, 1); do jd2 = lbound(FF%NAME, 2), ubound(FF%NAME, 2)
-  FF%NAME = 100 + jd1 + 10*jd2 + XXX + offset
+test_pat2 = \
+'''do jd1 = lbound(FF%NAME, 1), ubound(FF%NAME, 1)
+do jd2 = lbound(FF%NAME, 2), ubound(FF%NAME, 2)
+  rhs = 100 + jd1 + 10*jd2 + XXX + offset
+  FF%NAME(jd1,jd2) = NNN
 enddo; enddo'''
 
+test_pat3 = \
+'''do jd1 = lbound(FF%NAME, 1), ubound(FF%NAME, 1)
+do jd2 = lbound(FF%NAME, 2), ubound(FF%NAME, 2)
+do jd3 = lbound(FF%NAME, 3), ubound(FF%NAME, 3)
+  rhs = 100 + jd1 + 10*jd2 + 100*jd3 + XXX + offset
+  FF%NAME(jd1,jd2,jd3) = NNN
+enddo; enddo; enddo'''
+
+f_side_trans[REAL,  1, NOT].to_f2_trans = 'FP%NAME = NAME(1:size(FP%NAME))'
+f_side_trans[REAL,  1, NOT].test_pat    = 'FF%NAME = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME))]'
+
+f_side_trans[INT,   1, NOT].to_f2_trans = 'FP%NAME = NAME(1:size(FP%NAME))'
+f_side_trans[INT,   1, NOT].test_pat    = 'FF%NAME = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME))]'
+
+f_side_trans[LOGIC, 1, NOT].to_f2_trans = 'FP%NAME = NAME(1:size(FP%NAME))'
+f_side_trans[LOGIC, 1, NOT].test_pat    = 'FF%NAME = [(modulo(jd1 + XXX + offset, 2) == 0), jd1 = 1, size(FF%NAME))]'
+
+f_side_trans[CMPLX, 1, NOT].to_f2_trans = 'FP%NAME = NAME(1:size(FP%NAME))'
 f_side_trans[CMPLX, 1, NOT].test_pat    = 'FF%NAME = [(cmplx(100 + jd1 + XXX + offset, 200 + jd1 + XXX + offset), jd1 = 1, size(FF%NAME))]'
+
+f_side_trans[REAL,  2, NOT].to_f2_trans = 'FP%NAME = arr2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[REAL,  2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
+
+f_side_trans[INT,   2, NOT].to_f2_trans = 'FP%NAME = arr2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[INT,   2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
+
+f_side_trans[LOGIC, 2, NOT].to_f2_trans = 'FP%NAME = arr2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '(modulo(rhs, 2) == 0)')
+
+f_side_trans[CMPLX, 2, NOT].to_f2_trans = 'FP%NAME = arr2mat(NAME, size(FP%NAME, 1), size(FP%NAME, 2))'
+f_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'cmplx(rhs, 100+rhs)')
+
+f_side_trans[REAL,  3, NOT].to_f2_trans = 'FP%NAME = arr2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 1))'
+f_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
+
+f_side_trans[CMPLX, 3, NOT].to_f2_trans = 'FP%NAME = arr2tensor(NAME, size(FP%NAME, 1), size(FP%NAME, 2), size(FP%NAME, 1))'
+f_side_trans[CMPLX, 3, NOT].test_pat    = test_pat3.replace('NNN', 'cmplx(rhs, 100+rhs)')
 
 for key, f in f_side_trans.items(): 
   f.bindc_const = f.bindc_type.partition('(')[2].partition(')')[0]
@@ -157,44 +191,78 @@ c_side_trans = {
   (REAL,   0, NOT) : c_side_trans_class('double',          'Real&',           'C.NAME',          'Real& NAME'),
   (REAL,   1, NOT) : c_side_trans_class('Real_Array',      'RealArr',         '&C.NAME[0]',      'RealArr NAME'),
   (REAL,   2, NOT) : c_side_trans_class('Real_Matrix',     'RealArr',         'NAME',            'RealArr NAME'),
+  (REAL,   3, NOT) : c_side_trans_class('Real_Tensor',     'RealArr',         'NAME',            'RealArr NAME'),
   (CMPLX,  0, NOT) : c_side_trans_class('Dcomplex',        'Dcomplexd&',      'C.NAME',          'Dcomplex& NAME'),
   (CMPLX,  1, NOT) : c_side_trans_class('Dcomplex_Array',  'DcomplexArr',     '&C.NAME[0]',      'DcomplexArr NAME'),
   (CMPLX,  2, NOT) : c_side_trans_class('Dcomplex_Matrix', 'DcomplexArr',     'NAME',            'DcomplexArr NAME'),
+  (CMPLX,  3, NOT) : c_side_trans_class('Dcomplex_Tensor', 'DcomplexArr',     'NAME',            'DcomplexArr NAME'),
   (INT,    0, NOT) : c_side_trans_class('int',             'Int&',            'C.NAME',          'Int& NAME'),
   (INT,    1, NOT) : c_side_trans_class('Int_Array',       'IntArr',          '&C.NAME[0]',      'IntArr NAME'),
   (INT,    2, NOT) : c_side_trans_class('Int_Matrix',      'IntArr',          'NAME',            'IntArr NAME'),
   (LOGIC,  0, NOT) : c_side_trans_class('bool',            'Bool&',           'C.NAME',          'Bool& NAME'),
   (LOGIC,  1, NOT) : c_side_trans_class('Bool_Array',      'BoolArr',         'C.NAME',          'BoolArr NAME'),
+  (LOGIC,  2, NOT) : c_side_trans_class('Bool_Matrix',     'BoolArr',         'C.NAME',          'BoolArr NAME'),
   (TYPE,   0, NOT) : c_side_trans_class('C_zzz',           'const C_zzz&',    '&C.NAME',         'const C_zzz& NAME'),
   (TYPE,   1, NOT) : c_side_trans_class('C_zzz_array',     'const C_zzz&',    'C.NAME[0]',       'const C_zzz& NAME'),
   (CHAR,   1, NOT) : c_side_trans_class('string',          'Char',            'C.NAME',          'Char NAME')
   }
 
+test_pat1 = 'for (int i = 0; i < C.NAME.size(); i++) {int rhs = 101 + i + XXX + offset; C.NAME[i] = NNN;}'
+test_pat2 = 'for (int j = 0; j < C.NAME.size(); j++) for (int i = 0; i < C.NAME[0].size(); i++) {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
+test_pat3 = \
+'''for (int k = 0; k < C.NAME.size(); k++) for (int j = 0; j < C.NAME[0].size(); j++) for (int i = 0; i < C.NAME[0][0].size(); i++) 
+  {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'''
+
 c_side_trans[REAL,  1, NOT].constructor = 'NAME(0.0, DIM1)'
 c_side_trans[REAL,  1, NOT].to_c2_set   = 'C.NAME = Real_Array(NAME, DIM1);'
-c_side_trans[REAL,  1, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++) C.NAME[i] = 101 + i + XXX + offset;'
+c_side_trans[REAL,  1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
 
 c_side_trans[CMPLX, 1, NOT].constructor = 'NAME(0.0, DIM1)'
 c_side_trans[CMPLX, 1, NOT].to_c2_set   = 'C.NAME = Dcomplex_Array(NAME, DIM1);'
-c_side_trans[CMPLX, 1, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++) C.NAME[i] = Dcomplex(101 + i + XXX + offset, 201 + i + XXX + offset);'
+c_side_trans[CMPLX, 1, NOT].test_pat    = test_pat1.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
 
 c_side_trans[INT,   1, NOT].constructor = 'NAME(DIM1)'
 c_side_trans[INT,   1, NOT].to_c2_set   = 'C.NAME = Int_Array(NAME, DIM1);'
-c_side_trans[INT,   1, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++) C.NAME[i] = 101 + i + XXX + offset;'
+c_side_trans[INT,   1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
+
+c_side_trans[LOGIC, 1, NOT].constructor = 'NAME(DIM1)'
+c_side_trans[LOGIC, 1, NOT].to_c2_set   = 'C.NAME = Bool_Array(NAME, DIM1);'
+c_side_trans[LOGIC, 1, NOT].test_pat    = test_pat1.replace('NNN', '((rhs % 2) == 0)')
+
+c_side_trans[REAL,  2, NOT].constructor = 'NAME(Real_Array(0.0, DIM2), DIM1)'
+c_side_trans[REAL,  2, NOT].to_c2_set   = 'C.NAME = Real_Array(NAME, DIM1);'
+c_side_trans[REAL,  2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
+c_side_trans[REAL,  2, NOT].to_f_setup  = 'double NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
 
 c_side_trans[INT,   2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
 c_side_trans[INT,   2, NOT].to_c2_set   = 'C.NAME = Int_Array(NAME, DIM1);'
-c_side_trans[INT,   2, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++); for (int j = 0; i < C.NAME[0].size(); J++ C.NAME[i][j] = 101 + i + 10*(j+1) + XXX + offset;'
+c_side_trans[INT,   2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
 c_side_trans[INT,   2, NOT].to_f_setup  = 'int NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
 
-c_side_trans[LOGIC, 1, NOT].constructor = 'NAME(DIM1)'
-c_side_trans[LOGIC, 1, NOT].to_c2_set   = 'C.NAME = Int_Array(NAME, DIM1);'
-c_side_trans[LOGIC, 1, NOT].test_pat    = 'for (int i = 0; i < C.NAME.size(); i++) C.NAME[i] = 101 + i + XXX + offset;'
+c_side_trans[LOGIC, 2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
+c_side_trans[LOGIC, 2, NOT].to_c2_set   = 'C.NAME = Bool_Array(NAME, DIM1);'
+c_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '((rhs % 2) == 0)')
+c_side_trans[LOGIC, 2, NOT].to_f_setup  = 'bool NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
+
+c_side_trans[CMPLX, 2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
+c_side_trans[CMPLX, 2, NOT].to_c2_set   = 'C.NAME = Cmplx_Array(NAME, DIM1);'
+c_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
+c_side_trans[CMPLX, 2, NOT].to_f_setup  = 'int NAME[DIM1]; matrix_to_vec(C.NAME, NAME);\n'
+
+c_side_trans[REAL,  3, NOT].constructor = 'NAME(Real_Matrix(Real_Array(0.0, DIM3), DIM2), DIM1)'
+c_side_trans[REAL,  3, NOT].to_c2_set   = 'C.NAME = Real_Array(NAME, DIM1);'
+c_side_trans[REAL,  3, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
+c_side_trans[REAL,  3, NOT].to_f_setup  = 'double NAME[DIM1]; tensor_to_vec(C.NAME, NAME);\n'
+
+c_side_trans[CMPLX, 3, NOT].constructor = 'NAME(Cmplx_Matrix(Cmplx_Array(0.0, DIM3), DIM2), DIM1)'
+c_side_trans[CMPLX, 3, NOT].to_c2_set   = 'C.NAME = Cmplx_Array(NAME, DIM1);'
+c_side_trans[CMPLX, 3, NOT].test_pat    = test_pat2.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
+c_side_trans[CMPLX, 3, NOT].to_f_setup  = 'int NAME[DIM1]; tensor_to_vec(C.NAME, NAME);\n'
 
 for key, c in c_side_trans.items(): 
-  if key[1] == 1: c.equal_test = 'is_all_equal_vec(x.NAME, y.NAME)'
-  if key[1] == 2: c.equal_test = 'is_all_equal_mat(x.NAME, y.NAME)'
-  if key[1] == 3: c.equal_test = 'is_all_equal_tensor(x.NAME, y.NAME)'
+  if key[1] == 1: c.equal_test = 'is_all_equal (x.NAME, y.NAME)'
+  if key[1] == 2: c.equal_test = 'is_all_equal (x.NAME, y.NAME)'
+  if key[1] == 3: c.equal_test = 'is_all_equal (x.NAME, y.NAME)'
 
 ##################################################################################
 ##################################################################################
@@ -1122,7 +1190,7 @@ using namespace std;
 
 //---------------------------------------------------
 
-template <class T> bool is_all_equal_vec (const valarray<T>& vec1, const valarray<T>& vec2) {
+template <class T> bool is_all_equal (const valarray<T>& vec1, const valarray<T>& vec2) {
   bool is_eq = true;
   if (vec1.size() != vec2.size()) return false;
   for (int i = 0; i < vec1.size(); i++) {
@@ -1131,7 +1199,7 @@ template <class T> bool is_all_equal_vec (const valarray<T>& vec1, const valarra
   return is_eq;
 }
 
-template <class T> bool is_all_equal_mat (const valarray< valarray<T> >& mat1, const valarray< valarray<T> >& mat2) {
+template <class T> bool is_all_equal (const valarray< valarray<T> >& mat1, const valarray< valarray<T> >& mat2) {
   bool is_eq = true;
   if (mat1.size() != mat2.size()) return false;
   for (int i = 0; i < mat1.size(); i++) {
@@ -1143,7 +1211,7 @@ template <class T> bool is_all_equal_mat (const valarray< valarray<T> >& mat1, c
   return is_eq;
 };
 
-template <class T> bool is_all_equal_tensor (const valarray< valarray< valarray<T> > >& tensor1, const valarray< valarray< valarray<T> > >& tensor2) {
+template <class T> bool is_all_equal (const valarray< valarray< valarray<T> > >& tensor1, const valarray< valarray< valarray<T> > >& tensor2) {
   bool is_eq = true;
   if (tensor1.size() != tensor2.size()) return false;
   for (int i = 0; i < tensor1.size(); i++) {
@@ -1160,18 +1228,18 @@ template <class T> bool is_all_equal_tensor (const valarray< valarray< valarray<
 
 //---------------------------------------------------
 
-template bool is_all_equal_vec (const Bool_Array&,     const Bool_Array&);
-template bool is_all_equal_vec (const Dcomplex_Array&, const Dcomplex_Array&);
-template bool is_all_equal_vec (const Real_Array&,     const Real_Array&);
-template bool is_all_equal_vec (const Int_Array&,      const Int_Array&);
+template bool is_all_equal (const Bool_Array&,     const Bool_Array&);
+template bool is_all_equal (const Dcomplex_Array&, const Dcomplex_Array&);
+template bool is_all_equal (const Real_Array&,     const Real_Array&);
+template bool is_all_equal (const Int_Array&,      const Int_Array&);
 
-template bool is_all_equal_mat (const Bool_Matrix&,     const Bool_Matrix&);
-template bool is_all_equal_mat (const Dcomplex_Matrix&, const Dcomplex_Matrix&);
-template bool is_all_equal_mat (const Real_Matrix&,     const Real_Matrix&);
-template bool is_all_equal_mat (const Int_Matrix&,      const Int_Matrix&);
+template bool is_all_equal (const Bool_Matrix&,     const Bool_Matrix&);
+template bool is_all_equal (const Dcomplex_Matrix&, const Dcomplex_Matrix&);
+template bool is_all_equal (const Real_Matrix&,     const Real_Matrix&);
+template bool is_all_equal (const Int_Matrix&,      const Int_Matrix&);
 
-template bool is_all_equal_tensor (const Dcomplex_Tensor&, const Dcomplex_Tensor&);
-template bool is_all_equal_tensor (const Real_Tensor&,     const Real_Tensor&);
+template bool is_all_equal (const Dcomplex_Tensor&, const Dcomplex_Tensor&);
+template bool is_all_equal (const Real_Tensor&,     const Real_Tensor&);
 
 ''')
 
