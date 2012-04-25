@@ -1111,7 +1111,14 @@ logical, optional :: nullify_pointers
 
 !
 
+if (allocated(ele1%orbit) .and. .not. allocated(ele2%orbit)) then
+  allocate (ele2%orbit)
+elseif (.not. allocated(ele1%orbit) .and. allocated(ele2%orbit)) then
+  deallocate(ele2%orbit)
+endif
+
 ele2 = ele1
+
 if (logic_option (.false., nullify_pointers)) then
   call deallocate_ele_pointers (ele2, .true.)
   ele2%lat => ele1%lat  ! Reinstate

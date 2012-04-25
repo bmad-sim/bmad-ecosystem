@@ -333,18 +333,19 @@ type ele_struct
   character(200), pointer :: descrip => null() ! Description string.
   type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
   type (xy_disp_struct) x, y           ! Projected dispersions.
+  type (bookkeeper_status_struct) bookkeeping_state         ! Element attribute bookkeeping
   type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
   type (floor_position_struct) floor                        ! Global floor position.
   type (lat_struct), pointer :: lat => null()               ! Pointer to lattice containing element.
   type (ele_struct), pointer :: lord => null()              ! Pointer to a slice lord.
-  type (mode3_struct), pointer :: mode3 => null()
+  type (mode3_struct), pointer :: mode3 => null()           ! 6D normal mode structure.
+  type (coord_struct), allocatable :: orbit                 ! For holding orbits.
   type (fibre), pointer :: ptc_fiber                        ! PTC tracking.
   type (genfield), pointer :: ptc_genfield => null()        ! For symp_map$
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
                                                             ! Radiation integral calc cached values 
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
-  type (bookkeeper_status_struct) bookkeeping_state         ! Element attribute bookkeeping
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()  ! Wiggler field

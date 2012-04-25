@@ -447,13 +447,6 @@ logical, optional :: err_flag
 
 character(32), parameter :: r_name = 'capillary_photon_d_radius' 
 
-if (vec(5) < (ele%wall3d%section(1)%s - bmad_com%significant_length) .or. &
-    vec(5) > (ele%wall3d%section(n_sec)%s + bmad_com%significant_length) ) then
-  call out_io (s_error$, r_name, 'PHOTON S-POSITION BEYOND WALL: \ES14.3\ ', vec(5))
-  d_radius = -1
-  return
-endif
-
 ! Calculate the photon radius and transverse angle.
 
 if (present(err_flag)) err_flag = .true.
