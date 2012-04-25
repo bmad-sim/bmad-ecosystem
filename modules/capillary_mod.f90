@@ -415,6 +415,8 @@ end subroutine capillary_reflect_photon
 ! Function capillary_photon_d_radius (p_orb, ele, perp, err_flag) result (d_radius)
 !
 ! Routine to calculate the normalized radius = photon_radius - wall_radius.
+! Note: If the longitudinal position, p_orb%orb%vec(5), is outside the wall, the
+! wall is taken to have a uniform cross-section. 
 !
 ! Input:
 !   p_orb   -- photon_coord_struct: Input coordinates.
@@ -440,19 +442,11 @@ real(rp) p1, p2, dp1, dp2
 real(rp), optional :: perp(3)
 real(rp), pointer :: vec(:)
 
-integer ix, n_slice, n_sec
+integer ix_w, n_slice, n_sec
 logical, optional :: err_flag
 
 character(32), parameter :: r_name = 'capillary_photon_d_radius' 
 
-! The outward normal vector is discontinuous at the wall points.
-! If at a wall point, use the correct part of the wall.
-
-vec => p_orb%orb%vec
-
-if (present(err_flag)) err_flag = .true.
-
-n_sec = size(ele%wall3d%section)
 if (vec(5) < (ele%wall3d%section(1)%s - bmad_com%significant_length) .or. &
     vec(5) > (ele%wall3d%section(n_sec)%s + bmad_com%significant_length) ) then
   call out_io (s_error$, r_name, 'PHOTON S-POSITION BEYOND WALL: \ES14.3\ ', vec(5))
@@ -460,15 +454,11 @@ if (vec(5) < (ele%wall3d%section(1)%s - bmad_com%significant_length) .or. &
   return
 endif
 
-call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), vec(5), ix)
-if (ix == n_sec) ix = n_sec - 1
-if (vec(5) == ele%wall3d%section(ix)%s .and. vec(6) > 0 .and. ix /= lbound(ele%wall3d%section, 1)) ix = ix - 1
-p_orb%ix_section = ix
+! Calculate the photon radius and transverse angle.
 
-! sec1 and sec2 are the cross-sections to either side of the photon.
+if (present(err_flag)) err_flag = .true.
 
-sec1 => ele%wall3d%section(ix)
-sec2 => ele%wall3d%section(ix+1)
+vec => p_orb%orb%vec
 
 if (vec(1) == 0 .and. vec(3) == 0) then
   r_photon = 0
@@ -480,7 +470,41 @@ else
   sin_theta = vec(3) / r_photon
 endif
 
+! Find the wall points (defined cross-sections) to either side of the particle.
+! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
+
+! The outward normal vector is discontinuous at the wall points.
+! If the particle is at a wall point, use the correct interval.
+! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
+
+n_sec = size(ele%wall3d%section)
+call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), vec(5), ix_w)
+if (vec(5) == ele%wall3d%section(ix_w)%s .and. vec(6) > 0) ix_w = ix_w - 1
+p_orb%ix_section = ix_w
+
+! Case where photon is outside the wall region.
+
+if (ix_w == 0 .or. ix_w == n_sec) then
+  if (ix_w == 0) then ! Outside wall region
+    sec1 => ele%wall3d%section(1)
+  else
+    sec1 => ele%wall3d%section(n_sec)
+  endif
+
+  call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+  d_radius = r_photon - r1_wall
+  if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
+                            [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_photon
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
+
+! Normal case where photon in inside the wall region.
+! sec1 and sec2 are the cross-sections to either side of the photon.
 ! Calculate the radius values at the cross-sections.
+
+sec1 => ele%wall3d%section(ix_w)
+sec2 => ele%wall3d%section(ix_w+1)
 
 call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
 call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
