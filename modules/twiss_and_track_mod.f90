@@ -4,8 +4,6 @@ use bmad_struct
 use bmad_interface
 use lat_geometry_mod
 
-logical, private, save :: ele_is_saved, orb_is_saved
-
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
@@ -215,24 +213,7 @@ end subroutine twiss_and_track1
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_nullify_saved_data
-!
-! Routine to nullify the saved data which is used in the routine
-!   twiss_and_track_at_s
-!-
-
-subroutine twiss_and_track_nullify_saved_data
-
-ele_is_saved = .false.
-orb_is_saved = .false.
-
-end subroutine twiss_and_track_nullify_saved_data
-
-!-------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------
-!+
-! Subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_saved_data)
+! Subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_last)
 ! 
 ! Subroutine to return the twiss parameters and particle orbit at a 
 ! given longitudinal position.
@@ -240,13 +221,6 @@ end subroutine twiss_and_track_nullify_saved_data
 ! Note: When calculating the Twiss parameters, this routine assumes 
 ! that the lattice elements already contain the Twiss parameters calculated
 ! for the ends of the elements. 
-!
-! Note: The use_saved argument is only effective if this routine is called sucessively with
-! use_saved = True. Specifically:
-!   1) If use_saved is not present, or is false, then the saved data is nullified.
-!   2) If this routine is called with use_save = True and the data has been nullified then
-!      the data will be initiated but the calculation is not affected.
-! The twiss_and_track_nullify_saved_data routine can be used to nullify the saved data.
 !
 ! See also:
 !   twiss_and_track_from_s_to_s
@@ -259,26 +233,30 @@ end subroutine twiss_and_track_nullify_saved_data
 !   lat       -- lat_struct: Lattice.
 !   s         -- Real(rp): Longitudinal position. If s is negative the
 !                  the position is taken to be lat%param%total_length - s.
+!   ele_at_s  -- Ele_struct, optional: If the use_last argument is True, ele_at_s is
+!                  taken to contain valid Twiss parameters stored from a previous call
+!                  to this routine.
 !   orb(0:)   -- Coord_struct, optional: Orbit through the Lattice.
+!   orb_at_s  -- Coord_struct, optional: If the use_last argument is True, orb_at_s is
+!                  taken to contain the valid orbit stored from a previous call.
 !   ix_branch -- Integer, optional: Branch index, Default is 0 (main lattice).
-!   use_saved_data 
-!             -- Logical, optional: If present and True then use the result from the previous 
-!                  calculation as a starting point for the present calculation.
-!                  This can speed things up when the given s-position is in the middle 
+!   use_last  -- logical, optional: If present and True, and if ele_at_s%s < s,
+!                  then use ele_at_s and orb_at_s as the starting point for the present calculation.
+!                  This can speed things up when the present s-position is in the middle 
 !                  of a long complicated element and the tracking (EG: Runge-Kutta) is slow. 
 !
 ! Output:
-!   ele      -- Ele_struct, optional: Element structure holding the Twiss parameters.
+!   ele_at_s  -- Ele_struct, optional: Element structure holding the Twiss parameters.
 !                  if orb is not given then the Twiss parameters are calculated
 !                  with respect to the zero orbit.
-!   orb_at_s -- Coord_struct, optional: Particle position at the position s.
-!             If orb_at_s is present then this routine assumes that orb is
-!             present.
-!   err      -- Logical, optional: Set True if there is a problem in the 
+!   orb_at_s  -- Coord_struct, optional: Particle position at the position s.
+!                  If orb_at_s is present then this routine assumes that orb is
+!                  present.
+!   err       -- Logical, optional: Set True if there is a problem in the 
 !                 calculation, False otherwise.
 !-
 
-subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_saved_data)
+subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_last)
 
 implicit none
 
@@ -287,42 +265,22 @@ type (ele_struct), optional :: ele_at_s
 type (coord_struct), optional :: orb(0:)
 type (coord_struct), optional :: orb_at_s
 type (branch_struct), pointer :: branch
-type (coord_struct), save :: orb_saved
-type (ele_struct), save :: ele_saved
 
-real(rp) s, s_use, s0
-real(rp), save :: s_saved
+real(rp) s, s_use, s0, s_saved
 
 integer, optional :: ix_branch
 integer i, i_branch
 
-logical err_flag, saved_flag
+logical err_flag, use_l
 logical :: init_needed = .true.
-logical, optional :: err, use_saved_data
+logical, optional :: err, use_last
 
 character(20), parameter :: r_name = 'twiss_and_track_at_s'
-
-!
-
-if (init_needed) then
-  call init_ele(ele_saved)
-  ele_is_saved = .false.
-  orb_is_saved =  .false.
-  init_needed = .false.
-endif
-
-saved_flag = logic_option(.false., use_saved_data) .and. .not. global_com%be_thread_safe
-if (.not. saved_flag) then
-  ele_is_saved = .false.
-  orb_is_saved = .false.
-endif
 
 ! If close enough to edge of element just use element info.
 
 i_branch = integer_option(0, ix_branch)
 branch => lat%branch(i_branch)
-
-!
 
 call element_at_s (lat, s, i, ix_branch, err_flag, s_use)
 if (err_flag) then
@@ -340,15 +298,18 @@ endif
 ! Normal case where we need to partially track through an element.
 
 s0 = branch%ele(i-1)%s
-
-if (saved_flag .and. s_saved < s_use .and. s_saved > s0) then
-  if (present(orb)) then
-    call twiss_and_track_intra_ele (branch%ele(i), branch%param, s_saved-s0, s_use-s0, &
-                              .true., .true., orb_saved, orb_at_s, ele_saved, ele_at_s, err)
+use_l = logic_option(.false., use_last)
+if (use_l) then
+  if (present(ele_at_s)) then
+    s_saved = ele_at_s%s
   else
-    call twiss_and_track_intra_ele (branch%ele(i), branch%param, s_saved-s0, s_use-s0, &
-                              .true., .true., ele_start = ele_saved, ele_end = ele_at_s, err = err)
+    s_saved = orb_at_s%s
   endif
+endif
+
+if (use_l .and. s_saved < s_use .and. s_saved > s0) then
+  call twiss_and_track_intra_ele (branch%ele(i), branch%param, s_saved-s0, s_use-s0, &
+                              .true., .true., orb_at_s, orb_at_s, ele_at_s, ele_at_s, err)
 
 else
   if (present(orb)) then
@@ -361,18 +322,6 @@ else
 endif
 
 call ele_geometry (branch%ele(i-1)%floor, ele_at_s, ele_at_s%floor)
-
-if (saved_flag) then
-  s_saved = s_use
-  if (present(orb)) then
-    orb_saved = orb_at_s
-    orb_is_saved = .true.
-  endif
-  if (present(ele_at_s)) then
-    ele_saved = ele_at_s
-    ele_is_saved = .true.
-  endif
-endif
 
 end subroutine twiss_and_track_at_s
 
