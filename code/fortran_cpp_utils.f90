@@ -129,6 +129,7 @@ interface vec2tensor
   module procedure real_vec2tensor
   module procedure cmplx_vec2tensor
 end interface
+
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
@@ -181,8 +182,14 @@ end interface
 !-
 
 interface f_logic
-  module procedure f_logic_bool
+  module procedure f_logic_bool1
+  module procedure f_logic_bool_vec
   module procedure f_logic_int
+end interface
+
+interface c_logic
+  module procedure c_logic1
+  module procedure c_logic_vec
 end interface
 
 contains
@@ -190,9 +197,10 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function c_logic (logic) result (c_log)
+! Function c_logic1 (logic) result (c_log)
 !
 ! Function to convert from a fortran logical to a C logical.
+! See c_logic for more details.
 !
 ! Modules needed:
 !   use fortran_cpp_utils
@@ -204,12 +212,12 @@ contains
 !   c_log -- Integer: C logical.
 !-
 
-function c_logic (logic) result (c_log)
+function c_logic1 (logic) result (c_log)
 
 implicit none
 
 logical logic
-integer c_log
+logical(c_bool) c_log
 
 !
 
@@ -219,7 +227,41 @@ else
   c_log = 0
 endif
 
-end function c_logic
+end function c_logic1
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function c_logic_vec (logic) result (c_log)
+!
+! Function to convert from a fortran logical to a C logical.
+! See c_logic for more details.
+!
+! Modules needed:
+!   use fortran_cpp_utils
+!
+! Input:
+!   logic -- Logical: Fortran logical.
+!
+! Output:
+!   c_log -- Integer: C logical.
+!-
+
+function c_logic_vec (logic) result (c_log)
+
+implicit none
+
+logical logic(:)
+logical(c_bool) c_log(size(logic))
+integer i
+
+!
+
+do i = 1, size(logic)
+  c_log(i) = c_logic1(logic(i))
+enddo
+
+end function c_logic_vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -251,14 +293,14 @@ end function f_logic_int
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function f_logic_bool (logic) result (f_log)
+! Function f_logic_bool1 (logic) result (f_log)
 !
 ! Function to convert from a C logical to a Fortran logical.
 ! This function is overloaded by f_logic.
 ! See f_logic for more details.
 !-
 
-function f_logic_bool (logic) result (f_log)
+function f_logic_bool1 (logic) result (f_log)
 
 implicit none
 
@@ -284,7 +326,33 @@ else
   f_log = .true.
 endif
 
-end function f_logic_bool
+end function f_logic_bool1
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function f_logic_bool_vec (logic) result (f_log)
+!
+! Function to convert from a C logical to a Fortran logical.
+! This function is overloaded by f_logic.
+! See f_logic for more details.
+!-
+
+function f_logic_bool_vec (logic) result (f_log)
+
+implicit none
+
+logical(c_bool) logic(:)
+logical f_log(size(logic))
+integer i
+
+!
+
+do i = 1, size(logic)
+  f_log(i) = f_logic_bool1(logic(i))
+enddo
+
+end function f_logic_bool_vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -530,12 +598,16 @@ function bool_mat2vec (mat) result (vec)
 implicit none
 
 logical mat(:,:)
-logical vec(size(mat))
+logical(c_bool) vec(size(mat))
 integer i, j, n1, n2
 
 n1 = size(mat, 1); n2 = size(mat, 2)
-forall (i = 1:n1, j = 1:n2) vec(n2*(i-1) + j) = mat(i,j)
- 
+do i = 1, n1
+do j = 1, n2 
+  vec(n2*(i-1) + j) = c_logic(mat(i,j))
+enddo
+enddo
+
 end function bool_mat2vec
 
 !-----------------------------------------------------------------------------
@@ -717,11 +789,15 @@ function bool_vec2mat (vec, n1, n2) result (mat)
 implicit none
 
 integer i, j, n1, n2
-logical vec(*)
+logical(c_bool) vec(*)
 logical mat(n1,n2)
 
-forall (i = 1:n1, j = 1:n2) mat(i,j) = vec(n2*(i-1) + j) 
- 
+do i = 1,n1
+do j = 1,n2
+  mat(i,j) = f_logic(vec(n2*(i-1) + j))
+enddo
+enddo
+
 end function bool_vec2mat
 
 !-----------------------------------------------------------------------------
