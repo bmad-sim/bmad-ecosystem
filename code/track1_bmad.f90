@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_bmad (start_orb, ele, param, end_orb)
+! Subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 !
 ! Particle tracking through a single element BMAD_standard style.
 ! This routine is NOT meant for long term tracking since it does not get 
@@ -27,9 +27,10 @@
 !   end_orb   -- Coord_struct: End position
 !   param     -- lat_param_struct:
 !     %lost       -- Set True if particle is lost. False otherwise.
+!   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine track1_bmad (start_orb, ele, param, end_orb)
+subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
 use bmad, except_dummy => track1_bmad
 use capillary_mod
@@ -70,11 +71,14 @@ complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
 integer i, n, n_slice, key
 
+logical, optional :: err_flag
 logical err, has_nonzero_pole
 
 character(16) :: r_name = 'track1_bmad'
 
 ! initially set end_orb = start_orb
+
+if (present(err_flag)) err_flag = .false.
 
 start2_orb = start_orb ! In case start_orb and end_orb share the same memory.
 
@@ -238,8 +242,10 @@ case (lcavity$)
   if (length == 0) return
 
   if (ele%value(E_tot_start$) == 0) then
+    if (present(err_flag)) err_flag = .true.
     call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!')
     if (bmad_status%exit_on_error) call err_exit
+    return
   endif
 
   E_start_ref  = ele%value(E_tot_start$)
@@ -450,11 +456,12 @@ case (match$)
 
   call match_ele_to_mat6 (ele, vec0, mat6, err)
   if (err) then
+    ! Since there are cases where this error may be raised many 
+    ! times, do not print an error message.
+    if (present(err_flag)) err_flag = .true.
     param%lost = .true.
     end_orb%status = dead$
-!!    call out_io (s_error$, r_name, &
-!!          'MATCH ELEMENT HAS MATCH_END SET BUT BEGINNING BETA_A0 OR BETA_B0 PARAMETERS HAVE ', &
-!!          'NOT BEEN SET FROM PREVIOUS ELEMENT: ' // ele%name)
+    return
   endif
 
   end_orb%vec = matmul (mat6, end_orb%vec) + vec0
@@ -602,6 +609,7 @@ case (rfcavity$)
     k = 0
   else
     if (ele%value(RF_frequency$) == 0) then
+      if (present(err_flag)) err_flag = .true.
       call out_io (s_fatal$, r_name, &
                  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // ele%name, &
                  'YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
@@ -726,11 +734,13 @@ case (taylor$)
 case (wiggler$)
 
   if (ele%sub_key == map_type$) then
+    if (present(err_flag)) err_flag = .true.
     call out_io (s_fatal$, r_name, &
             'NEW STYLE WIGGLER: ' // ele%name, &
             'HAS TRACKING_METHOD = BMAD_STANDARD.', &
             'THIS IS NOT A POSSIBLE OPTION FOR THE TRACKING_METHOD.')
     if (bmad_status%exit_on_error) call err_exit
+    return
   endif
 
   call offset_particle (ele, param, end_orb, set$)
@@ -765,10 +775,12 @@ case (wiggler$)
 
 case default
 
+  if (present(err_flag)) err_flag = .true.
   call out_io (s_fatal$, r_name, &
           'BMAD_STANDARD TRACKING_METHOD NOT IMPLMENTED FOR: ' // key_name(ele%key), &
           'FOR ELEMENT: ' // ele%name)
   if (bmad_status%exit_on_error) call err_exit
+  return
 
 end select
 
