@@ -284,6 +284,7 @@ branch => lat%branch(i_branch)
 
 call element_at_s (lat, s, i, ix_branch, err_flag, s_use)
 if (err_flag) then
+  call out_io (s_error$, r_name, 'Bad S-position. Cannot compute Twiss parameters.')
   if (present(err)) err = .true. 
   return
 endif
