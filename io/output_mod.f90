@@ -469,7 +469,7 @@ character(*) line_in
 character(*) fmt
 character(40) fmt2
 character(1) descrip
-character(len(line_in)+100) this_line
+character(len(line_in)+100) this_line, this_line2
 
 real(rp), optional :: r_array(:)
 integer, optional :: i_array(:)
@@ -496,24 +496,26 @@ if (any ( [present(r_array), present(i_array), present(l_array) ])) then
     select case (descrip)
     case ('L')
       fmt2 = '(a, ' // trim(fmt2) // ', a)'
-      write (this_line, fmt2) this_line(:ix1), l_array(nl+1:nl+nn), this_line(ix2:nt)
+      write (this_line2, fmt2) this_line(:ix1), l_array(nl+1:nl+nn), this_line(ix2:nt)
       nl = nl + nn
 
     case ('I', 'O', 'Z')
       fmt2 = '(a, ' // trim(fmt2) // ', a)'
-      write (this_line, fmt2) this_line(:ix1), i_array(ni+1:ni+nn), this_line(ix2:nt)
+      write (this_line2, fmt2) this_line(:ix1), i_array(ni+1:ni+nn), this_line(ix2:nt)
       ni = ni + nn
 
     case ('E', 'G', 'F')
       fmt2 = '(a, ' // trim(fmt2) // ', a)'
-      write (this_line, fmt2) this_line(:ix1), r_array(nr+1:nr+nn), this_line(ix2:nt)
+      write (this_line2, fmt2) this_line(:ix1), r_array(nr+1:nr+nn), this_line(ix2:nt)
       nr = nr + nn
       cycle
 
     case default
-      write (this_line, '(3a)') this_line(:ix1), '######', this_line(ix2:nt)
+      write (this_line2, '(3a)') this_line(:ix1), '######', this_line(ix2:nt)
 
     end select
+
+    this_line = this_line2
 
   enddo
 
