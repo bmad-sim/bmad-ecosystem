@@ -819,13 +819,14 @@ interface
 end interface
 
 interface
-  subroutine track1_bmad (start_orb, ele, param, end_orb)
+  subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
+    logical, optional :: err_flag
   end subroutine
 end interface
 

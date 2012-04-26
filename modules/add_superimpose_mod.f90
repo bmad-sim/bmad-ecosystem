@@ -24,8 +24,8 @@ contains
 !   is buried in the bmad_parser code. If you need to do multipass superpositions 
 !   please contact David Sagan and this situation will be rectified.
 !
-! Note: Transfer matrices for split elements and super_slave elements are
-!   *not* recomputed.
+! Note: Bookkeeping like recalculating reference energies and recalculating transfer matrices 
+!   is *not* done by this routine.
 !
 ! Modules Needed:
 !   use bmad

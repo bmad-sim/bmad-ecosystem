@@ -127,7 +127,8 @@ if (.not. ele%is_on) tracking_method = bmad_standard$
 select case (tracking_method)
 
 case (bmad_standard$)
-  call track1_bmad (start2_orb, ele, param, end_orb)
+  call track1_bmad (start2_orb, ele, param, end_orb, err)
+  if (err) return
 
 case (custom$)
   call track1_custom (start2_orb, ele, param, end_orb, err, track)
