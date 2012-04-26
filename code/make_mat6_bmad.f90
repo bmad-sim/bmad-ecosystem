@@ -129,9 +129,10 @@ case (beambeam$)
 
   n_slice = nint(ele%value(n_slice$))
   if (n_slice < 1) then
+    if (present(err)) err = .true.
     call out_io (s_fatal$, r_name,  'N_SLICE FOR BEAMBEAM ELEMENT IS NEGATIVE')
     call type_ele (ele, .true., 0, .false., 0, .false.)
-    stop
+    return
   endif
 
   if (ele%value(charge$) == 0 .or. param%n_part == 0) return
@@ -184,8 +185,10 @@ case (crystal$)
 
 case (custom$)
 
+  if (present(err)) err = .true.
   call out_io (s_fatal$, r_name,  'MAT6_CALC_METHOD = BMAD_STANDARD IS NOT ALLOWED FOR A CUSTOM ELEMENT: ' // ele%name)
   if (bmad_status%exit_on_error) call err_exit
+  return
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity
@@ -226,9 +229,9 @@ case (lcavity$)
   call convert_pc_to (pc_start, param%particle, E_tot = e_start, beta = beta_start)
   e_end = e_start + gradient * length
   if (e_end <= 0) then
+    if (present(err)) err = .true.
     call out_io (s_error$, r_name, 'END ENERGY IS NEGATIVE AT ELEMENT: ' // ele%name)
     mat6 = 0   ! garbage.
-    if (present(err)) err = .true.
     return 
   endif
   call convert_total_energy_to (e_end, param%particle, &
@@ -467,8 +470,10 @@ case (quadrupole$)
 
 case (rbend$)
 
+  if (present(err)) err = .true.
   call out_io (s_fatal$, r_name,  'RBEND ELEMENTS NOT ALLOWED INTERNALLY!')
   if (bmad_status%exit_on_error) call err_exit
+  return
 
 !--------------------------------------------------------
 ! rf cavity
@@ -483,9 +488,11 @@ case (rfcavity$)
     k = 0
   else
     if (ele%value(RF_frequency$) == 0) then
+      if (present(err)) err = .true.
       call out_io (s_fatal$, r_name,  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // trim(ele%name), &
                                       '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
       if (bmad_status%exit_on_error) call err_exit
+      return
     endif
     factor = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + factor * c0%vec(5) 
@@ -873,9 +880,11 @@ case (accel_sol$)
 
 case default
 
-  call out_io (s_fatal$, r_name,  'UNKNOWN ELEMENT KEY: /i0/ ', &
+  if (present(err)) err = .true.
+  call out_io (s_fatal$, r_name,  'UNKNOWN ELEMENT KEY: \i0\ ', &
                                   'FOR ELEMENT: ' // ele%name, i_array = [ele%key])
   if (bmad_status%exit_on_error) call err_exit
+  return
 
 end select
 
