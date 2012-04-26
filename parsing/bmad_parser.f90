@@ -1066,7 +1066,7 @@ call remove_eles_from_lat (lat, .false.)
 
 call reuse_taylor_elements (old_lat, lat)
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, err_flag = err) 
-if (err) bp_com%err_flag = .true.
+if (err) bp_com%error_flag = .true.
 
 ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
 
