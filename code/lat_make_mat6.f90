@@ -49,7 +49,7 @@ integer, optional :: ix_ele, ix_branch
 integer i, j, i0, i1, ie, ild, n_taylor, i_ele, i_branch, ix_slave
 
 logical, optional :: err_flag
-logical transferred, zero_orbit
+logical transferred, zero_orbit, err
 
 character(16), parameter :: r_name = 'lat_make_mat6'
 
@@ -161,10 +161,11 @@ if (i_ele < 0) then
     ! will be taken as the ending coords of the previous super_slave.
 
     if (zero_orbit) then 
-      call make_mat6(ele, branch%param, orb_start)
+      call make_mat6(ele, branch%param, orb_start, err_flag = err)
     else  ! else ref_orb must be present
-      call make_mat6(ele, branch%param, ref_orb(i-1), ref_orb(i), .true.)
+      call make_mat6(ele, branch%param, ref_orb(i-1), ref_orb(i), .true., err)
     endif
+    if (err) return
 
     ! save this taylor in the list if it is a new one. 
 
@@ -199,11 +200,13 @@ if (i_ele < 0) then
 
 
     if (zero_orbit .or. i_branch /= slave0%ix_branch) then
-      call make_mat6(lord, lat%branch(slave0%ix_branch)%param)
+      call make_mat6(lord, lat%branch(slave0%ix_branch)%param, err_flag = err)
     else
       call make_mat6(lord, lat%branch(slave0%ix_branch)%param, &
-                                        ref_orb(i0-1), ref_orb(i1), .true.)
+                                        ref_orb(i0-1), ref_orb(i1), .true., err)
     endif
+    if (err) return
+
   enddo 
 
   lat%lord_state%mat6 = ok$

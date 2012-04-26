@@ -27,6 +27,8 @@
 !   digested_read_ok -- Logical, optional: Set True if the digested file was
 !                        successfully read. False otherwise.
 !   err_flag         -- Logical, optional: Set true if there is an error, false otherwise.
+!                         Note: err_flag includes errors in lat_make_mat6 when make_mats6
+!                         argument if True.
 !
 ! Defaults:
 !   lat%param%particle          = positron$
@@ -1063,7 +1065,8 @@ call remove_eles_from_lat (lat, .false.)
 ! Make the transfer matrices
 
 call reuse_taylor_elements (old_lat, lat)
-if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1) 
+if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, err_flag = err) 
+if (err) bp_com%err_flag = .true.
 
 ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
 
