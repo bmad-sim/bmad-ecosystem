@@ -1187,7 +1187,7 @@ integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch
 character(40) data_type
 character(40) data_type_select, data_source
 character(20) :: r_name = 'calc_data_at_s'
-logical err, good(:)
+logical err, good(:), use_last
 
 !
 
@@ -1242,7 +1242,7 @@ if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
 
 !
 
-call twiss_and_track_nullify_saved_data
+use_last = .false.
 
 do ii = 1, size(curve%x_line)
 
@@ -1286,8 +1286,10 @@ do ii = 1, size(curve%x_line)
     ele = branch%ele(ix_ele)
     here = bunch_params%centroid
 
-  case ('lat')   
-    call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err, .true.)
+  case ('lat')
+    ele%s = 1e30  ! Something 
+    call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err, use_last)
+    use_last = .true.  ! For next time around
     if (err) then
       good(ii:) = .false.
       return
