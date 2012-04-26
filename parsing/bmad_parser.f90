@@ -16,7 +16,8 @@
 ! Input:
 !   lat_file   -- Character(*): Name of the input file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
-!                   Elements? Default is True.
+!                   Elements and do other bookkeeping like calculate the reference energy? 
+!                   Default is True.
 !   use_line   -- Character(*), optional: If present and not blank, override the use 
 !                   statement in the lattice file and use use_line instead.
 !
@@ -1022,11 +1023,13 @@ endif
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
 
-call lattice_bookkeeper (lat, err)
-if (err) then
-  bp_com%error_flag = .true.
-  call parser_end_stuff
-  return
+if (logic_option (.true., make_mats6)) then
+  call lattice_bookkeeper (lat, err)
+  if (err) then
+    bp_com%error_flag = .true.
+    call parser_end_stuff
+    return
+  endif
 endif
 
 lat%input_taylor_order = bmad_com%taylor_order
