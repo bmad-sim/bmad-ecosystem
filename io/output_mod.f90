@@ -508,7 +508,6 @@ if (any ( [present(r_array), present(i_array), present(l_array) ])) then
       fmt2 = '(a, ' // trim(fmt2) // ', a)'
       write (this_line2, fmt2) this_line(:ix1), r_array(nr+1:nr+nn), this_line(ix2:nt)
       nr = nr + nn
-      cycle
 
     case default
       write (this_line2, '(3a)') this_line(:ix1), '######', this_line(ix2:nt)
