@@ -198,12 +198,13 @@ phi_tol = 1d-5
 phase_scale_good = .true.
 amp_scale_good = .true. 
 
-pz_max   = -neg_pz_calc(phi_max)
+pz_max   = pz_calc(phi_max, err_flag)
+if (err_flag) return
 
 if (.not. is_lost) then
   if (do_scale_phase) then
-    pz_plus  = -neg_pz_calc(phi_max + 2 * phi_tol)
-    pz_minus = -neg_pz_calc(phi_max - 2 * phi_tol)
+    pz_plus  = pz_calc(phi_max + 2 * phi_tol, err_flag); if (err_flag) return
+    pz_minus = pz_calc(phi_max - 2 * phi_tol, err_flag); if (err_flag) return
     phase_scale_good = (pz_max >= pz_plus .and. pz_max >= pz_minus )
   endif
 
@@ -228,7 +229,7 @@ pz_arr(0) = pz_max
 dphi = 1.0_rp / n_sample
 
 do i = 1, n_sample - 1
-  pz_arr(i) = -neg_pz_calc(phi_max + i*dphi)
+  pz_arr(i) = pz_calc(phi_max + i*dphi, err_flag); if (err_flag) return
 enddo
 
 i_max1 = maxloc(pz_arr, 1) - 1
@@ -255,10 +256,10 @@ if (dE_max2 < dE_max1/2) then  ! Just use dE_max1 point
 ! wrap around case when i_max1 = 0 and i_max2 = n_sample-1 or vice versa.
 elseif (abs(i_max1 - i_max2) == n_sample - 1) then   
   phi_max = phi_max - dphi / 2.0
-  pz_max = -neg_pz_calc(phi_max)
+  pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
 else
   phi_max = phi_max + dphi * (i_max1 + i_max2) / 2.0
-  pz_max = -neg_pz_calc(phi_max)
+  pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
 endif
 
 ! Now adjust %field_scale for the correct acceleration at the phase for maximum acceleration. 
@@ -276,11 +277,11 @@ main_loop: do
 
   do i = 1, 100
     phi = phi_max + dphi
-    pz = -neg_pz_calc(phi)
+    pz = pz_calc(phi, err_flag); if (err_flag) return
 
     if (is_lost) then
       do j = -19, 20
-        print *, j, phi_max+j/40.0, -neg_pz_calc(phi_max + j / 40.0)
+        print *, j, phi_max+j/40.0, pz_calc(phi_max + j / 40.0, err_flag)
       enddo
       call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!')
       err_flag = .true.
@@ -303,7 +304,7 @@ main_loop: do
   if (.not. step_up_seen) then
     do
       phi = phi_max - dphi
-      pz = -neg_pz_calc(phi)
+      pz = pz_calc(phi, err_flag); if (err_flag) return
       if (pz < pz_max) then
         pz_minus = pz
         exit
@@ -321,7 +322,7 @@ main_loop: do
   c = pz_plus - pz_max - b
 
   phi_max = phi_max - b * dphi / (2 * c)
-  pz_max = -neg_pz_calc(phi_max)
+  pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
 
   ! Now scale %field_scale
   ! scale_correct = dE(design) / dE (from tracking)
@@ -342,7 +343,7 @@ main_loop: do
   if (abs(scale_correct - 1) < 0.1) dphi = max(phi_tol, 0.1*sqrt(2*abs(scale_correct - 1))/twopi)
 
   if (do_scale_phase) then
-    pz_max = -neg_pz_calc(phi_max)
+    pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
   endif
 
 enddo main_loop
@@ -357,7 +358,7 @@ if (ele%key == rfcavity$) then
     phi_max = phi_max - dphi
     do
       phi = phi_max - dphi
-      pz = -neg_pz_calc(phi)
+      pz = pz_calc(phi, err_flag); if (err_flag) return
       if (pz < 0) exit
       phi_max = phi
     enddo
@@ -417,24 +418,42 @@ function neg_pz_calc (phi) result (neg_pz)
 
 implicit none
 
-type (coord_struct) start_orb, end_orb
 real(rp), intent(in) :: phi
 real(rp) neg_pz
+logical err_flag
 
 ! brent finds minima so need to flip the final energy
 
-dphi0_ref = phi
-call init_coord (start_orb, ele = ele_com, particle = param_com%particle)
-call track1 (start_orb, ele_com, param_com, end_orb, ignore_radiation = .true.)
-
-neg_pz = -end_orb%vec(6)
-if (param_com%lost) neg_pz = 1
-
-is_lost = param_com%lost
-
-n_loop = n_loop + 1
+neg_pz = -pz_calc(phi, err_flag)
 
 end function neg_pz_calc
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+
+function pz_calc (phi, err_flag) result (pz)
+
+implicit none
+
+type (coord_struct) start_orb, end_orb
+real(rp), intent(in) :: phi
+real(rp) pz
+logical err_flag
+
+! 
+
+dphi0_ref = phi
+call init_coord (start_orb, ele = ele_com, particle = param_com%particle)
+call track1 (start_orb, ele_com, param_com, end_orb, err_flag = err_flag, ignore_radiation = .true.)
+
+pz = end_orb%vec(6)
+if (param_com%lost) pz = -1
+
+is_lost = param_com%lost
+n_loop = n_loop + 1
+
+end function pz_calc
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
