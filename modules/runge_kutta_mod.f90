@@ -238,6 +238,7 @@ do
   call rk_step1 (ele, param, orb, dr_ds, s, t, ds, orb_new, t_new, r_err, local_ref_frame, err_flag)
   ! Can get errors due to step size too large 
   if (err_flag) then
+    if (ds < 1d-3) return
     ds_temp = ds / 2
   else
     err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
@@ -251,6 +252,7 @@ do
     err_flag = .true.
     call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name)
     if (bmad_status%exit_on_error) call err_exit
+    return
   endif
 
 end do
@@ -269,6 +271,7 @@ orb_new%t = orb%t + (t_new - t)
 
 orb = orb_new
 t = t_new
+err_flag = .false.
 
 end subroutine rk_adaptive_step
 
