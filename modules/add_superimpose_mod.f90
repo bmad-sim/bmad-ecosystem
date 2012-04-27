@@ -65,7 +65,7 @@ type (ele_struct), pointer :: slave, lord
 type (control_struct)  sup_con(100)
 type (branch_struct), pointer :: branch
 
-real(rp) s1, s2, length, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge
+real(rp) s1, s2, length, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge, s1_in, s2_in
 
 integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch
 integer ix1_split, ix2_split, ix_super, ix_super_con
@@ -105,8 +105,8 @@ super_saved%ic2_lord = -1
 
 branch => lat%branch(ix_branch)
 
-! s1 is the left edge of the superimpose.
-! s2 is the right edge of the superimpose.
+! s1 is the entrance edge of the superimpose.
+! s2 is the exit edge of the superimpose.
 ! For a lat a superimpose can wrap around the ends of the lattice.
 
 ix_lord_max_old = lat%n_ele_max
@@ -117,8 +117,11 @@ s1_lat_fudge = s1_lat - bmad_com%significant_length
 s2_lat = branch%ele(branch%n_ele_track)%s
 s2_lat_fudge = s2_lat + bmad_com%significant_length
 
-s1 = super_saved%s - super_saved%value(l$)
-s2 = super_saved%s                 
+s1_in = super_saved%s - super_saved%value(l$)
+s2_in = super_saved%s                 
+
+s1 = s1_in
+s2 = s2_in
 
 if (s1 < s1_lat_fudge) then
   if (branch%param%lattice_type == linear_lattice$) call out_io (s_warn$, &
@@ -135,8 +138,8 @@ endif
 if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2_lat_fudge) then
   call out_io (s_abort$, r_name, &
     'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_saved%name, &
-    'LEFT EDGE: \F10.1\ ', &
-    'RIGHT EDGE:\F10.1\ ', r_array = [s1, s2])
+    'ELEMENT WANTS TO BE PLACED AT: [\F10.1\, \F10.1\] ', &
+    'lATTICE EXTENT:                [\f10.1\, \F10.1\]', r_array = [s1_in, s2_in, s1_lat, s2_lat])
   if (bmad_status%exit_on_error) call err_exit
   return
 endif
