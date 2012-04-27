@@ -166,7 +166,8 @@ do n_step = 1, max_step
       n_pt = track%n_pt
       track%orb(n_pt) = orb
       !Query the local field to save
-      call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false.)
+      call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
+      if (err_flag) return
       track%field(n_pt) = saved_field
        !Set next save time 
        t_save = t_rel + dt_save
@@ -221,7 +222,8 @@ character(20), parameter :: r_name = 'rf_adaptive_time_step'
 ! Calc tolerances
 ! Note that s is in the element frame
 
-call em_field_kick_vector_time (ele, param, t, orb, local_ref_frame, dr_dt) 
+call em_field_kick_vector_time (ele, param, t, orb, local_ref_frame, dr_dt, err_flag) 
+if (err_flag) return
 
 sqrt_N = sqrt(abs(1/(c_light*dt_try)))  ! number of steps we would take to cover 1 meter
 rel_tol = bmad_com%rel_tol_adaptive_tracking / sqrt_N
@@ -234,7 +236,8 @@ orb_new = orb
 
 do
 
-  call rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt)
+  call rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
+  if (err_flag) return
   r_scal(:) = abs(orb%vec) + abs(orb_new%vec) + TINY
   r_scal(5) = ele%value(l$)
   err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
@@ -267,7 +270,7 @@ end subroutine rk_adaptive_time_step
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-subroutine rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt)
+subroutine rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
 
 !Very similar to rk_step1_bmad, except that em_field_kick_vector_time is called
 !  and orb_new%s and %t are updated to the global values
@@ -295,30 +298,36 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
     dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
-logical local_ref_frame
+logical local_ref_frame, err_flag
 
 !
 
 if (present(dr_dt)) then
   dr_dt1 = dr_dt
 else
-  call em_field_kick_vector_time(ele, param, t, orb, local_ref_frame, dr_dt1)
+  call em_field_kick_vector_time(ele, param, t, orb, local_ref_frame, dr_dt1, err_flag)
+  if (err_flag) return
 endif
 
 orb_temp%vec = orb%vec + b21*dt*dr_dt1
-call em_field_kick_vector_time(ele, param, t+a2*dt, orb_temp, local_ref_frame, dr_dt2)
+call em_field_kick_vector_time(ele, param, t+a2*dt, orb_temp, local_ref_frame, dr_dt2, err_flag)
+if (err_flag) return
 
 orb_temp%vec = orb%vec + dt*(b31*dr_dt1+b32*dr_dt2)
-call em_field_kick_vector_time(ele, param, t+a3*dt, orb_temp, local_ref_frame, dr_dt3) 
+call em_field_kick_vector_time(ele, param, t+a3*dt, orb_temp, local_ref_frame, dr_dt3, err_flag) 
+if (err_flag) return
 
 orb_temp%vec = orb%vec + dt*(b41*dr_dt1+b42*dr_dt2+b43*dr_dt3)
-call em_field_kick_vector_time(ele, param, t+a4*dt, orb_temp, local_ref_frame, dr_dt4)
+call em_field_kick_vector_time(ele, param, t+a4*dt, orb_temp, local_ref_frame, dr_dt4, err_flag)
+if (err_flag) return
 
 orb_temp%vec = orb%vec + dt*(b51*dr_dt1+b52*dr_dt2+b53*dr_dt3+b54*dr_dt4)
-call em_field_kick_vector_time(ele, param, t+a5*dt, orb_temp, local_ref_frame, dr_dt5)
+call em_field_kick_vector_time(ele, param, t+a5*dt, orb_temp, local_ref_frame, dr_dt5, err_flag)
+if (err_flag) return
 
 orb_temp%vec = orb%vec + dt*(b61*dr_dt1+b62*dr_dt2+b63*dr_dt3+b64*dr_dt4+b65*dr_dt5)
-call em_field_kick_vector_time(ele, param, t+a6*dt, orb_temp, local_ref_frame, dr_dt6)
+call em_field_kick_vector_time(ele, param, t+a6*dt, orb_temp, local_ref_frame, dr_dt6, err_flag)
+if (err_flag) return
 
 !Output new orb and error vector
 
@@ -340,8 +349,10 @@ end subroutine rk_time_step1
 function delta_s_target (this_dt)
   real(rp), intent(in)  :: this_dt
   real(rp) :: delta_s_target
-  call rk_time_step1 (ele_com, param_com, orb_old_com, &
-                          t_old_com, this_dt, orb_com, vec_err_com, local_ref_frame_com)
+  logical err_flag
+  !
+  call rk_time_step1 (ele_com, param_com, orb_old_com, t_old_com, this_dt, &
+                          orb_com, vec_err_com, local_ref_frame_com, err_flag = err_flag)
   delta_s_target = orb_com%vec(5) - s_target_com
   t_rel_com = t_old_com + this_dt
 
@@ -495,7 +506,7 @@ end subroutine  particle_hit_wall_check_time
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 !+
-! Subroutine em_field_kick_vector_time (ele, param, t_rel, orbit, local_ref_frame, dvec_dt)
+! Subroutine em_field_kick_vector_time (ele, param, t_rel, orbit, local_ref_frame, dvec_dt, err_flag)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
@@ -503,18 +514,18 @@ end subroutine  particle_hit_wall_check_time
 !   use bmad
 !
 ! Input:
-!   ele   -- coord_struct: input particle
-!   param       -- real: Reference momentum. The sign indicates direction of p_s. 
-!   t_rel       -- real: element coordinate system: t
-!   orbit       -- coord_struct:
+!   ele             -- coord_struct: input particle
+!   param           -- real: Reference momentum. The sign indicates direction of p_s. 
+!   t_rel           -- real: element coordinate system: t
+!   orbit           -- coord_struct:
 !                    %vec(1:6)  in t-based system
-!				   				   
-!   local_ref_frame
+!   local_ref_frame --
+!   err_flag        -- logical: Set True if there is an error. False otherwise.
 ! Output:
 !    dvec_dt(6)  -- real(rp): Derivatives.
 !-
 
-subroutine em_field_kick_vector_time (ele, param, t_rel, orbit, local_ref_frame, dvec_dt)
+subroutine em_field_kick_vector_time (ele, param, t_rel, orbit, local_ref_frame, dvec_dt, err_flag)
 
 implicit none
 
@@ -531,7 +542,7 @@ real(rp) f_bend, kappa_x, kappa_y
 real(rp) vel(3), force(3)
 real(rp) :: pc, e_tot, mc2, gamma, charge, beta, p0, h
 
-logical :: local_ref_frame
+logical :: local_ref_frame, err_flag
 
 character(28), parameter :: r_name = 'em_field_kick_vector_time'
 
@@ -539,7 +550,8 @@ character(28), parameter :: r_name = 'em_field_kick_vector_time'
 ! Note that only orbit%vec(1) = x and orbit%vec(3) = y are used in em_field_calc,
 !	and they coincide in both coordinate systems, so we can use the 'normal' routine:
 
-call em_field_calc (ele, param, orbit%vec(5), t_rel, orbit, local_ref_frame, field, .false.)
+call em_field_calc (ele, param, orbit%vec(5), t_rel, orbit, local_ref_frame, field, .false., err_flag)
+if (err_flag) return
 
 ! Get e_tot from momentum
 ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot

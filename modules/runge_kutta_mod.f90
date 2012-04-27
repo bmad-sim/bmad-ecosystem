@@ -487,7 +487,8 @@ e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 
 ! calculate the field
 
-call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .false.)
+call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .false., err)
+if (err) return
 
 ! Bend factor
 
