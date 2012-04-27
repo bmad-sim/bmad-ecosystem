@@ -139,7 +139,7 @@ select case (ele%key)
 case (rfcavity$)
   dE_peak_wanted = ele%value(voltage$)
   e_tot_start = ele%value(e_tot$)
-case (lcavity$)
+case (lcavity$, e_gun$)
   dE_peak_wanted = ele%value(gradient$) * ele%value(l$)
   e_tot_start = ele%value(e_tot_start$)
 case default
@@ -167,6 +167,26 @@ if (field_scale == 0) then
   field_scale = 1  ! Initial guess.
 endif
 
+!------------------------------------------------------
+! zero frequency e_gun
+
+if (ele%key == e_gun$) then
+  tracking_method_saved = ele%tracking_method
+  if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
+
+  do
+    pz_max = pz_calc(phi_max, err_flag)
+    scale_correct = dE_peak_wanted / dE_particle(pz_max)
+    if (scale_correct > 1000) scale_correct = max(1000.0_rp, scale_correct / 10)
+    field_scale = field_scale * scale_correct
+    if (abs(scale_correct - 1) < scale_tol .and. abs(phi_max-phi_max_old) < phi_tol) exit
+  enddo
+
+  ele%tracking_method = tracking_method_saved
+  return
+endif
+
+!------------------------------------------------------
 ! Set error fields to zero
 
 value_saved = ele%value
@@ -198,7 +218,7 @@ phi_tol = 1d-5
 phase_scale_good = .true.
 amp_scale_good = .true. 
 
-pz_max   = pz_calc(phi_max, err_flag)
+pz_max = pz_calc(phi_max, err_flag)
 if (err_flag) return
 
 if (.not. is_lost) then
@@ -495,7 +515,7 @@ case (grid$, map$, custom$)
   do i = 1, size(ele%em_field%mode)
     if (ele%key == e_gun$ .or. (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0)) then
       field_scale => ele%em_field%mode(i)%field_scale
-      if (ele%key /= e_gun$) dphi0_ref => ele%em_field%mode(i)%dphi0_ref
+      dphi0_ref => ele%em_field%mode(i)%dphi0_ref
       exit
     endif
   enddo
