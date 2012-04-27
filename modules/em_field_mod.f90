@@ -127,7 +127,7 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
+! Subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield, err_flag)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -157,9 +157,10 @@ end subroutine save_a_step
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
+!   err_flag    -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-recursive subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
+recursive subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield, err_flag)
 
 implicit none
 
@@ -187,9 +188,9 @@ complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
 integer i, j, m, n, sign_charge
 
 logical :: local_ref_frame, local_ref, has_nonzero_pole
-logical, optional :: calc_dfield
+logical, optional :: calc_dfield, err_flag
+logical df_calc, err
 
-logical df_calc
 character(20) :: r_name = 'em_field_calc'
 
 ! Initialize field
@@ -205,6 +206,7 @@ if (df_calc) then
   field%dE = 0
 endif
 
+if (present(err_flag)) err_flag = .false.
 if (.not. ele%is_on) return
 
 !----------------------------------------------------------------------------
@@ -510,6 +512,7 @@ select case (ele%field_calc)
   case default
     call out_io (s_fatal$, r_name, 'ELEMENT NOT YET CODED: ' // key_name(ele%key), 'FOR: ' // ele%name)
     if (bmad_status%exit_on_error) call err_exit
+    if (present(err_flag)) err_flag = .true.
     return
   end select
 
@@ -522,6 +525,7 @@ select case (ele%field_calc)
     if (ele%value(l$) == 0) then
       call out_io (s_fatal$, r_name, 'dField NOT YET IMPLEMENTED FOR MULTIPOLES!', 'FOR: ' // ele%name)
       if (bmad_status%exit_on_error) call err_exit
+      if (present(err_flag)) err_flag = .true.
       return
     endif
 
@@ -581,6 +585,7 @@ case(map$)
     if (.not. associated(ele%em_field)) then
       call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Map', 'FOR: ' // ele%name) 
       if (bmad_status%exit_on_error) call err_exit
+      if (present(err_flag)) err_flag = .true.
       return  
     endif
 
@@ -598,6 +603,7 @@ case(map$)
       if (ele%em_field%mode(1)%harmonic == 0) &
             call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
       if (bmad_status%exit_on_error) call err_exit
+      if (present(err_flag)) err_flag = .true.
       return  
     endif
     t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / freq
@@ -713,6 +719,7 @@ case(grid$)
   if (.not. associated(ele%em_field)) then
     call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Grid', 'FOR: ' // ele%name)
     if (bmad_status%exit_on_error) call err_exit
+    if (present(err_flag)) err_flag = .true.
     return
   endif
   
@@ -729,6 +736,7 @@ case(grid$)
       if (ele%em_field%mode(1)%harmonic == 0) &
             call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
       if (bmad_status%exit_on_error) call err_exit
+      if (present(err_flag)) err_flag = .true.
       return  
     endif
     t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / freq
@@ -750,6 +758,8 @@ case(grid$)
     case default
       call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD GRID IN ELEMENT: ' // ele%name)
       if (bmad_status%exit_on_error) call err_exit
+      if (present(err_flag)) err_flag = .true.
+      return
     end select
 
     ! DC modes should have mode%harmonic = 0
@@ -761,6 +771,7 @@ case(grid$)
     if (.not. associated(mode%grid)) then
       call out_io (s_fatal$, r_name, 'MISSING GRID FOR ELE: ' // ele%name)
       if (bmad_status%exit_on_error) call err_exit
+      if (present(err_flag)) err_flag = .true.
       return
     endif
 
@@ -774,7 +785,12 @@ case(grid$)
       ! Interpolate 2D (r, z) grid
       ! local_field is a em_field_pt_struct, which has complex E and B
 
-      call em_grid_linear_interpolate(ele, mode%grid, local_field, r, s_rel-s0)
+      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, r, s_rel-s0)
+      if (err) then
+        if (bmad_status%exit_on_error) call err_exit
+        if (present(err_flag)) err_flag = .true.
+        return
+      endif
 
       ! Transverse field is zero on axis. Otherwise:
 
@@ -800,6 +816,7 @@ case(grid$)
       call out_io (s_fatal$, r_name, 'UNKNOWN GRID TYPE: \i0\ ', &
                                      'FOR ELEMENT: ' // ele%name, i_array = [mode%grid%type])
       if (bmad_status%exit_on_error) call err_exit
+      if (present(err_flag)) err_flag = .true.
       return
     end select
   enddo
@@ -810,6 +827,7 @@ case(grid$)
 case default
   call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
   if (bmad_status%exit_on_error) call err_exit
+  if (present(err_flag)) err_flag = .true.
   return
 end select
 
@@ -879,7 +897,7 @@ end subroutine em_field_calc
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_grid_linear_interpolate (ele, grid, field, x1, x2, x3 )
+! Subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3)
 !
 ! Subroutine to interpolate the E and B fields on a rectilinear grid
 !
@@ -889,17 +907,18 @@ end subroutine em_field_calc
 !   use bmad_struct
 !
 ! Input:
-!   ele     -- ele_struct: Element containing the grid
-!   grid    -- em_field_grid_struct: Grid to interpolate
-!   x1      -- real(rp) : dimension 1 interpolation point
-!   x2      -- real(rp), optional : dimension 2 interpolation point
-!   x3      -- real(rp), optional : dimension 3 interpolation point
+!   ele      -- ele_struct: Element containing the grid
+!   grid     -- em_field_grid_struct: Grid to interpolate
+!   err_flag -- Logical: Set to true if there is an error. False otherwise.
+!   x1       -- real(rp) : dimension 1 interpolation point
+!   x2       -- real(rp), optional : dimension 2 interpolation point
+!   x3       -- real(rp), optional : dimension 3 interpolation point
 !
 ! Output:
 !   field  -- em_field_pt_struct: Interpolated field (complex)
 !-
 
-subroutine em_grid_linear_interpolate (ele, grid, field, x1, x2, x3)
+subroutine em_grid_linear_interpolate (ele, grid, field, err_flag, x1, x2, x3)
 
 type (ele_struct) ele
 type (em_field_grid_struct) :: grid
@@ -908,18 +927,20 @@ real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3
 integer i1, i2, i3, grid_dim
-logical out_of_bounds1, out_of_bounds2, out_of_bounds3
+logical out_of_bounds1, out_of_bounds2, out_of_bounds3, err_flag
 
 character(32), parameter :: r_name = 'em_grid_linear_interpolate'
 
 ! Pick appropriate dimension 
+
+err_flag = .false.
 
 grid_dim = em_grid_dimension(grid%type)
 select case(grid_dim)
 
 case (1)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1)
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag); if (err_flag) return
   if (out_of_bounds1) return
 
   field%E(:) = (1-rel_x1) * grid%pt(i1, 1, 1)%E(:) + (rel_x1) * grid%pt(i1+1, 1, 1)%E(:) 
@@ -927,8 +948,8 @@ case (1)
 
 case (2)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1)
-  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2)
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag); if (err_flag) return
   if (out_of_bounds1 .or. out_of_bounds2) return
 
   ! Do bilinear interpolation
@@ -944,9 +965,9 @@ case (2)
             
 case (3)
 
-  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1)
-  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2)
-  call get_this_index(x3, 3, i3, rel_x3, out_of_bounds3)
+  call get_this_index(x1, 1, i1, rel_x1, out_of_bounds1, err_flag); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, out_of_bounds2, err_flag); if (err_flag) return
+  call get_this_index(x3, 3, i3, rel_x3, out_of_bounds3, err_flag); if (err_flag) return
   if (out_of_bounds1 .or. out_of_bounds2 .or. out_of_bounds3) return
     
   ! Do trilinear interpolation
@@ -972,19 +993,20 @@ case (3)
 case default
   call out_io (s_fatal$, r_name, 'BAD DIMENSION: \i0\ ', em_grid_dimension(grid%type))
   if (bmad_status%exit_on_error) call err_exit
+  err_flag = .true.
   return
 end select
 
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine get_this_index (x, ix_x, i0, rel_x0, out_of_bounds)
+subroutine get_this_index (x, ix_x, i0, rel_x0, out_of_bounds, err_flag)
 
 implicit none
 
 real(rp) x, rel_x0, x_norm
 integer ix_x, i0, ig0, ig1, idg
-logical out_of_bounds
+logical out_of_bounds, err_flag
 
 !
 
@@ -1017,10 +1039,11 @@ if (i0 < ig0 .or. i0 >= ig1) then
   field%E = 0
   field%B = 0
   out_of_bounds = .true.
-
   idg = ig1 - ig0
+
   if (abs(i0 - idg/2) > idg) then
-    call out_io (s_warn$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
+    err_flag = .true.
+    call out_io (s_error$, r_name, '\i0\D GRID interpolation index out of bounds: i\i0\ = \i0\ ', &
                                 'For element: ' // ele%name, &
                                 'Setting field to zero', i_array = [grid_dim, ix_x, i0])
   endif
