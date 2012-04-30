@@ -167,6 +167,15 @@ if (field_scale == 0) then
   field_scale = 1  ! Initial guess.
 endif
 
+! scale_correct is the correction factor applied to field_scale on each iteration:
+!  field_scale(new) = field_scale(old) * scale_correct
+! scale_tol is the tolerance for scale_correct.
+! scale_tol = E_tol / dE_peak_wanted corresponds to a tolerance in dE_peak_wanted of E_tol. 
+
+E_tol = 0.1 ! eV
+scale_tol = max(1d-7, E_tol / dE_peak_wanted) ! tolerance for scale_correct
+phi_tol = 1d-5
+
 !------------------------------------------------------
 ! zero frequency e_gun
 
@@ -203,15 +212,6 @@ phi_max = dphi0_ref   ! Init guess
 if (ele%key == rfcavity$) phi_max = ele%value(dphi0_max$)
 
 phi_max_old = 100 ! Number far from unity
-
-! scale_correct is the correction factor applied to field_scale on each iteration:
-!  field_scale(new) = field_scale(old) * scale_correct
-! scale_tol is the tolerance for scale_correct.
-! scale_tol = E_tol / dE_peak_wanted corresponds to a tolerance in dE_peak_wanted of E_tol. 
-
-E_tol = 0.1 ! eV
-scale_tol = max(1d-7, E_tol / dE_peak_wanted) ! tolerance for scale_correct
-phi_tol = 1d-5
 
 ! See if %dphi0_ref and %field_scale are already set correctly.
 ! If so we can quit.
