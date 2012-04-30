@@ -492,32 +492,77 @@ end subroutine remove_null_in_string_char
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function c_str (str) result (c_string)
+! Subroutine to_c_str (f_string, c_string)
 !
-! Function to append a null (0) character at the end of a string (trimmed
+! Subroutine to append a null (0) character at the end of a string (trimmed
 ! of trailing blanks) so it will look like a C character array. 
 !
 ! Modules needed:
 !  use fortran_cpp_utils
 !
 ! Input:
-!   str   -- Character(*): Input character string
+!   f_string   -- Character(*): Input character string
 !
 ! Output:
-!   c_str -- Character(*): String with a null put just after the last
-!             non-blank character.
+!   c_string(*) -- Character(kind=c_char): String with a null put just after the last
+!                    non-blank character.
 !-
 
-function c_str (str) result (c_string)
+subroutine to_c_str (f_string, c_string)
 
 implicit none
 
-character(*) str
-character(len_trim(str)+1) c_string
+character(*) f_string
+character(kind=c_char) c_string(*)
+integer i
 
-c_string = trim(str) // char(0)
+!
 
-end function c_str
+do i = 1, len_trim(f_string)
+  c_string(i) = f_string(i:i)
+enddo
+
+c_string(i) = char(0)
+
+end subroutine to_c_str
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine to_f_str (c_string, f_string)
+!
+! Subroutine to append a null (0) character at the end of a string (trimmed
+! of trailing blanks) so it will look like a C character array. 
+!
+! Modules needed:
+!  use fortran_cpp_utils
+!
+! Input:
+!   c_string(*) -- Character(kind=c_char): C-style string.
+!
+! Output:
+!   f_string -- Character(*): Output character string.
+!-
+
+subroutine to_f_str (c_string, f_string)
+
+implicit none
+
+character(*) f_string
+character(kind=c_char) c_string(*)
+integer i
+
+!
+
+do i = 1, len(f_string)
+  if (c_string(i) == char(0)) then
+    f_string(i:) = ''
+    return
+  endif
+  f_string(i:i) = c_string(i)
+enddo
+
+end subroutine to_f_str
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

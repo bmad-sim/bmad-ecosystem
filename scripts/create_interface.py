@@ -44,8 +44,7 @@ class var_class:
   def __init__(self):
     self.name = ''             # Name of variable
     self.type = ''             # Fortran type without '(...)'. EG: 'real', 'type', 'character', etc.
-    self.full_type = ''        # Fortran type. EG: 'real(rp)', 'type(coord_struct)', etc.
-                               #                      Strings: 'character(<len>)'
+    self.kind = ''             # Fortran kind. EG: '', 'rp', 'coord_struct', etc.
     self.pointer_type = 'NOT'  # '-', 'PTR', 'ALLOC'
     self.array = []            # EG: [':', ':'] or ['0:6', '3']
     self.full_array = ''       # EG: '(:,:)', '(0:6, 3)'
@@ -57,11 +56,11 @@ class var_class:
     self.c_side = 0
 
   def __repr__(self):
-    return '["%s", "%s", "%s", %s, "%s"]' % (self.full_type, self.pointer_type, self.name, self.array, self.init_value)
+    return '["%s(%s)", "%s", "%s", %s, "%s"]' % (self.type, self.kind, self.pointer_type, self.name, self.array, self.init_value)
 
   def full_repr(self):
-    return '["%s" "%s", "%s", "%s", %s, "%s" %s %s "%s"]' % (self.type, 
-              self.full_type, self.pointer_type, self.name, self.array, self.full_array, 
+    return '["%s(%s)", "%s", "%s", %s, "%s" %s %s "%s"]' % (self.type, 
+              self.kind, self.pointer_type, self.name, self.array, self.full_array, 
               self.lbound, self.ubound, self.init_value)
 
 ##################################################################################
@@ -115,7 +114,8 @@ f_side_trans = {
   (LOGIC, 2, NOT) : f_side_trans_class('mat2vec(FP%NAME)',      'logical(c_bool)',            'NAME(*)'),
   (TYPE,  0, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME'),
   (TYPE,  1, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME(*)'), 
-  (CHAR,  1, NOT) : f_side_trans_class('c_str(FP%NAME)',        'character(c_char)',          'NAME(*)')
+  (TYPE,  2, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME(*)'), 
+  (CHAR,  0, NOT) : f_side_trans_class('trim(FP%NAME) // c_null_char', 'character(c_char)',          'NAME(*)')
   }
 
 test_pat2 = \
@@ -132,6 +132,9 @@ do jd3 = lbound(FF%NAME, 3), ubound(FF%NAME, 3)
   rhs = 100 + jd1 + 10*jd2 + 100*jd3 + XXX + offset
   FF%NAME(jd1,jd2,jd3) = NNN
 enddo; enddo; enddo'''
+
+f_side_trans[CHAR,  0, NOT].test_pat    = 'do jd1 = 1, len(FF%NAME); FF%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26)); enddo'
+f_side_trans[CHAR,  0, NOT].to_f2_trans = 'call to_f_str(NAME, FP%NAME)'
 
 f_side_trans[LOGIC, 0, NOT].test_pat    = 'FF%NAME = (modulo(XXX + offset, 2) == 0)'
 
@@ -207,7 +210,8 @@ c_side_trans = {
   (LOGIC,  2, NOT) : c_side_trans_class('Bool_Matrix',     'BoolArr',         'NAME',            'BoolArr NAME'),
   (TYPE,   0, NOT) : c_side_trans_class('C_zzz',           'const C_zzz&',    '&C.NAME',         'const C_zzz& NAME'),
   (TYPE,   1, NOT) : c_side_trans_class('C_zzz_array',     'const C_zzz&',    'C.NAME[0]',       'const C_zzz& NAME'),
-  (CHAR,   1, NOT) : c_side_trans_class('string',          'Char',            'C.NAME',          'Char NAME')
+  (TYPE,   2, NOT) : c_side_trans_class('C_zzz_array',     'const C_zzz&',    'C.NAME[0]',       'const C_zzz& NAME'),
+  (CHAR,   0, NOT) : c_side_trans_class('string',          'Char',            'C.NAME.c_str()',  'Char NAME')
   }
 
 test_pat1 = 'for (int i = 0; i < C.NAME.size(); i++)\n  {int rhs = 101 + i + XXX + offset; C.NAME[i] = NNN;}'
@@ -215,6 +219,9 @@ test_pat2 = 'for (int i = 0; i < C.NAME.size(); i++) for (int j = 0; j < C.NAME[
 test_pat3 = \
 '''for (int i = 0; i < C.NAME.size(); i++) for (int j = 0; j < C.NAME[0].size(); j++) for (int k = 0; k < C.NAME[0][0].size(); k++) 
   {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'''
+
+c_side_trans[CHAR,  0, NOT].test_pat    = 'C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
+c_side_trans[CHAR,  0, NOT].constructor = "NAME()"
 
 c_side_trans[LOGIC, 0, NOT].test_pat    = 'C.NAME = ((XXX + offset % 2) == 0);'
 
@@ -349,7 +356,6 @@ for file_name in f_module_files:
       split_line = re_match1.split(line, 1)
       print_debug('P2: ' + str(split_line))
       base_var.type = split_line.pop(0)
-      base_var.full_type = base_var.type
 
       if split_line[0][0] == ' ': 
         split_line = re_match2.split(split_line[1], 1)
@@ -362,7 +368,7 @@ for file_name in f_module_files:
 
       if split_line[0] == '(':
         split_line = split_line[1].partition(')')
-        base_var.full_type = base_var.type + '(' + split_line[0].strip() + ')'
+        base_var.kind = split_line[0].strip()
         split_line = re_match2.split(split_line[2].lstrip(), 1)
         if split_line[0] == '': split_line.pop(0)   # EG: "real(rp) :: ..."
 
@@ -504,6 +510,8 @@ for struct in struct_def.values():
         dim_var.type = 'integer'
         dim_var.f_side = f_side_trans['integer', 0, NOT]
         struct.dim_var.append(dim_var)
+
+    var.c_side.test_pat = var.c_side.test_pat.replace('STR_LEN', var.kind)
 
     if len(var.array) >= 1 and p_type == NOT:
       dim1 = str(1 + int(var.ubound[0]) - int(var.lbound[0]))
