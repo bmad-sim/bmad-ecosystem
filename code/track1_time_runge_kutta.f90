@@ -285,7 +285,7 @@ endif
 
 !Set relativistic beta
 call convert_pc_to (abs(end_orb%p0c) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
-
+err_flag = .false.
 
 end subroutine
 
