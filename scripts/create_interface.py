@@ -29,7 +29,8 @@ def print_debug (line):
 # Class for a structure
 
 class struct_def_class:
-  def __init__(self):
+  def __init__(self, f_name = ''):
+    self.f_name = f_name # Struct name on Fortran side
     self.short_name = '' # Struct name without trailing '_struct'. Note: C name is 'C_<name>'
     self.var = []        # List of structrure components. Array of var_class.
     self.dim_var = []    # Array dimensions
@@ -138,6 +139,9 @@ f_side_trans[CHAR,  0, NOT].to_f2_trans = 'call to_f_str(NAME, FP%NAME)'
 
 f_side_trans[LOGIC, 0, NOT].test_pat    = 'FF%NAME = (modulo(XXX + offset, 2) == 0)'
 
+f_side_trans[TYPE,  0, NOT].to_f2_trans = 'call KIND_to_f(NAME, c_loc(FP%NAME))'
+f_side_trans[TYPE,  0, NOT].test_pat    = 'call KIND_test_pattern (FF%NAME, ix_patt)'
+
 f_side_trans[REAL,  1, NOT].to_f2_trans = 'FP%NAME = NAME(1:size(FP%NAME))'
 f_side_trans[REAL,  1, NOT].test_pat    = 'FF%NAME = [(100 + jd1 + XXX + offset, jd1 = 1, size(FF%NAME))]'
 
@@ -208,9 +212,9 @@ c_side_trans = {
   (LOGIC,  0, NOT) : c_side_trans_class('bool',            'Bool&',           'C.NAME',          'Bool& NAME'),
   (LOGIC,  1, NOT) : c_side_trans_class('Bool_Array',      'BoolArr',         '&C.NAME[0]',      'BoolArr NAME'),
   (LOGIC,  2, NOT) : c_side_trans_class('Bool_Matrix',     'BoolArr',         'NAME',            'BoolArr NAME'),
-  (TYPE,   0, NOT) : c_side_trans_class('C_zzz',           'const C_zzz&',    '&C.NAME',         'const C_zzz& NAME'),
-  (TYPE,   1, NOT) : c_side_trans_class('C_zzz_array',     'const C_zzz&',    'C.NAME[0]',       'const C_zzz& NAME'),
-  (TYPE,   2, NOT) : c_side_trans_class('C_zzz_array',     'const C_zzz&',    'C.NAME[0]',       'const C_zzz& NAME'),
+  (TYPE,   0, NOT) : c_side_trans_class('C_KIND',          'const C_KIND&',   'C.NAME',          'const KIND_struct* NAME'),
+  (TYPE,   1, NOT) : c_side_trans_class('C_KIND_array',    'const C_KIND&',   'C.NAME[0]',       'const KIND_struct* NAME'),
+  (TYPE,   2, NOT) : c_side_trans_class('C_KIND_array',    'const C_KIND&',   'C.NAME[0]',       'const KIND_struct* NAME'),
   (CHAR,   0, NOT) : c_side_trans_class('string',          'Char',            'C.NAME.c_str()',  'Char NAME')
   }
 
@@ -222,6 +226,10 @@ test_pat3 = \
 
 c_side_trans[CHAR,  0, NOT].test_pat    = 'C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
 c_side_trans[CHAR,  0, NOT].constructor = "NAME()"
+
+c_side_trans[TYPE,  0, NOT].constructor = "NAME()"
+c_side_trans[TYPE,  0, NOT].to_c2_set   = 'KIND_to_c(NAME, C.NAME);' 
+c_side_trans[TYPE,  0, NOT].test_pat    = 'C_KIND_test_pattern(C.NAME, ix_patt);'
 
 c_side_trans[LOGIC, 0, NOT].test_pat    = 'C.NAME = ((XXX + offset % 2) == 0);'
 
@@ -286,8 +294,7 @@ if len(sys.argv) > 1: struct_list_file = sys.argv[1]
 
 f_struct_list_file = open(struct_list_file)
 
-struct_def = {}
-f_struct_list = []
+struct_def = []
 f_module_files = []
 f_use_list = []
 
@@ -301,8 +308,7 @@ for line in f_struct_list_file:
   elif split_line[0] == 'USE:':
     f_use_list.append('use ' + split_line[1])
   else:
-    f_struct_list.append(split_line)
-    struct_def[line.split()[0]] = struct_def_class()
+    struct_def.append(struct_def_class(line.split()[0]))
 
 f_struct_list_file.close()
 
@@ -311,7 +317,7 @@ f_struct_list_file.close()
 # Parse structure definitions
 
 # Examples: 
-#  1) "type (abc), pointer :: a(:,:),b(7) = 23 ! Comment"
+#  1) "type(abc), pointer :: a(:,:),b(7) = 23 ! Comment"
 #  2) "integer zzz"
 # Notice that only in example 2 is space significant.
 
@@ -332,12 +338,17 @@ for file_name in f_module_files:
     split_line = line.split()
     if len(split_line) < 2: continue
     if split_line[0] != 'type': continue
-    if not split_line[1] in struct_def: continue
 
-    struct_name = split_line[1]
-    struct = struct_def[struct_name]
-    struct.short_name = struct_name[:-7]   # Remove '_struct' suffix
-    
+    found = False
+    for struct in struct_def:
+      if struct.f_name != split_line[1]: continue
+      found = True
+      break
+
+    if not found: continue
+
+    struct.short_name = struct.f_name[:-7]   # Remove '_struct' suffix
+
     # Now collect the struct variables
 
     for line in f_module_file:
@@ -470,10 +481,10 @@ for file_name in f_module_files:
 f_out = open('f_structs.parsed', 'w')
 
 n_found = 0
-for key, struct in struct_def.items():
+for struct in struct_def:
   if struct.short_name != '': n_found = n_found + 1
   f_out.write('******************************************\n')
-  f_out.write (key + '    ' + str(len(struct.var)) + '\n')
+  f_out.write (struct.f_name + '    ' + str(len(struct.var)) + '\n')
   for var in struct.var:
     f_out.write ('    ' + var.full_repr() + '\n')
 
@@ -483,11 +494,14 @@ f_out.close()
 print 'Number of structs in input list: ' + str(len(struct_def))
 print 'Number of structs found:         ' + str(n_found)
 
+if len(struct_def) != n_found:
+  sys.exit('COULD NOT FIND ALL THE STRUCTS! STOPPING HERE!')  
+
 ##################################################################################
 ##################################################################################
 # Add translation info and make some name substitutions
 
-for struct in struct_def.values():
+for struct in struct_def:
   for var in struct.var:
 
     # F side translation
@@ -513,6 +527,16 @@ for struct in struct_def.values():
         struct.dim_var.append(dim_var)
 
     var.c_side.test_pat = var.c_side.test_pat.replace('STR_LEN', var.kind)
+
+    if var.type == 'type':
+      kind = var.kind[:-7]
+      var.f_side.to_f2_trans = var.f_side.to_f2_trans.replace('KIND', kind)
+      var.f_side.test_pat    = var.f_side.test_pat.replace('KIND', kind)
+      var.c_side.test_pat    = var.c_side.test_pat.replace('KIND', kind)
+      var.c_side.c_class     = var.c_side.c_class.replace('KIND', kind)
+      var.c_side.to_c2_set   = var.c_side.to_c2_set.replace('KIND', kind)
+      var.c_side.to_f2_arg   = var.c_side.to_f2_arg.replace('KIND', kind)
+      var.c_side.to_c2_arg   = var.c_side.to_c2_arg.replace('KIND', kind)
 
     if len(var.array) >= 1 and p_type == NOT:
       dim1 = str(1 + int(var.ubound[0]) - int(var.lbound[0]))
@@ -570,14 +594,14 @@ use, intrinsic :: iso_c_binding
 ##############
 # zzz_to_f interface
 
-for struct in struct_def.values():
+for struct in struct_def:
   f_face.write ('''
 !--------------------------------------------------------------------------
 
 interface 
   subroutine zzz_to_f (CC, FF) bind(c)
     import c_ptr
-    type (c_ptr), value :: CC, FF
+    type(c_ptr), value :: CC, FF
   end subroutine
 end interface
 '''.replace('zzz', struct.short_name))
@@ -589,7 +613,7 @@ f_face.write ('contains\n')
 ##############
 # zzz_to_c definitions
 
-for struct_key, struct in struct_def.items():
+for struct in struct_def:
 
   s_name = struct.short_name
 
@@ -603,7 +627,7 @@ for struct_key, struct in struct_def.items():
 ! Routine to convert a Bmad zzz_struct to a C++ C_zzz structure
 !
 ! Input:
-!   FF -- type (c_ptr), value :: Input Bmad zzz_struct structure.
+!   FF -- type(c_ptr), value :: Input Bmad zzz_struct structure.
 !
 ! Output:
 !   CC -- type(c_ptr), value :: Output C++ C_zzz struct.
@@ -636,16 +660,16 @@ interface
   for var in struct.dim_var: f_face.write (', ' + var.name)
   f_face.write (') bind(c)\n')
   f_face.write ('    import ' + ', '.join(import_set) + '\n')
-  f_face.write ('    type (c_ptr), value :: CC\n')
+  f_face.write ('    type(c_ptr), value :: CC\n')
   for arg_type, args in to_c2_arg_def.items():
     f_face.write ('    ' + arg_type + ', '.join(args) + '\n')
 
   f_face.write ('''  end subroutine
 end interface
 
-type (c_ptr), value :: FF
-type (c_ptr), value :: CC
-type (zzz_struct), pointer :: FP
+type(c_ptr), value :: FF
+type(c_ptr), value :: CC
+type(zzz_struct), pointer :: FP
 
 !
 
@@ -672,7 +696,7 @@ end subroutine zzz_to_c
 !   ...etc... -- Components of the structure. See the zzz_to_f2 code for more details.
 !
 ! Output:
-!   FF -- type (c_ptr), value :: Bmad zzz_struct structure.
+!   FF -- type(c_ptr), value :: Bmad zzz_struct structure.
 !-
 
 subroutine zzz_to_f2 (FF'''.replace('zzz', struct.short_name))
@@ -684,8 +708,8 @@ subroutine zzz_to_f2 (FF'''.replace('zzz', struct.short_name))
 
 implicit none
 
-type (c_ptr), value :: FF
-type (zzz_struct), pointer :: FP
+type(c_ptr), value :: FF
+type(zzz_struct), pointer :: FP
 '''.replace('zzz', struct.short_name))
 
   f2_arg_list = {}
@@ -729,14 +753,14 @@ interface operator (==)
 
 for i in range(0, len(struct_def), 5):
   f_equ.write ('  module procedure ' + ', '.join('eq_' + 
-                              f.short_name for f in struct_def.values()[i:i+5]) + '\n')
+                              f.short_name for f in struct_def[i:i+5]) + '\n')
 
 f_equ.write ('''end interface
 
 contains
 ''')
 
-for key, struct in struct_def.items():
+for struct in struct_def:
   f_equ.write ('''
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -745,7 +769,7 @@ elemental function eq_zzz (f1, f2) result (is_eq)
 
 implicit none
 
-type (zzz_struct), intent(in) :: f1, f2
+type(zzz_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -782,7 +806,7 @@ logical ok, all_ok
 all_ok = .true.
 ''')
 
-for struct in struct_def.values():
+for struct in struct_def:
   f_test.write ('call test1_f_' + struct.short_name + '(ok); if (.not. ok) all_ok = .false.\n')
 
 f_test.write('''
@@ -811,7 +835,7 @@ use bmad_equality
 contains
 ''')
 
-for struct_key, struct in struct_def.items():
+for struct in struct_def:
   f_test.write('''
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -821,14 +845,14 @@ subroutine test1_f_zzz (ok)
 
 implicit none
 
-type (zzz_struct), target :: f_zzz, f2_zzz
+type(zzz_struct), target :: f_zzz, f2_zzz
 logical(c_bool) c_ok
 logical ok
 
 interface
   subroutine test_c_zzz (c_zzz, c_ok) bind(c)
     import c_ptr, c_bool
-    type (c_ptr), value :: c_zzz
+    type(c_ptr), value :: c_zzz
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -858,8 +882,8 @@ subroutine test2_f_zzz (c_zzz, c_ok) bind(c)
 
 implicit  none
 
-type (c_ptr), value ::  c_zzz
-type (zzz_struct), target :: f_zzz, f2_zzz
+type(c_ptr), value ::  c_zzz
+type(zzz_struct), target :: f_zzz, f2_zzz
 logical(c_bool) c_ok
 
 !
@@ -887,7 +911,7 @@ subroutine zzz_test_pattern (FF, ix_patt)
 
 implicit none
 
-type (zzz_struct) FF
+type(zzz_struct) FF
 integer ix_patt, offset, jd1, jd2, jd3, rhs
 
 !
@@ -961,7 +985,7 @@ typedef valarray<Dcomplex_Matrix>  Dcomplex_Tensor;
 
 ''')
 
-for key, struct in struct_def.items():
+for struct in struct_def:
   f_class.write('''
 //--------------------------------------------------------------------
 // C_zzz
@@ -989,8 +1013,8 @@ public:
 
 };   // End Class
 
-extern "C" void zzz_to_c (zzz_struct*, C_zzz&);
-extern "C" void zzz_to_f (C_zzz&, zzz_struct*);
+extern "C" void zzz_to_c (const zzz_struct*, C_zzz&);
+extern "C" void zzz_to_f (const C_zzz&, zzz_struct*);
 
 bool operator== (const C_zzz&, const C_zzz&);
 
@@ -1142,15 +1166,15 @@ template void tensor_to_vec (const Real_Tensor&,     double*);
 
 ''')
 
-for key, struct in struct_def.items():
+for struct in struct_def:
 
   # zzz_to_f2
   f_cpp.write('''
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// zzz
+// C_zzz
 
-extern "C" void zzz_to_c (zzz_struct*, C_zzz&);
+extern "C" void zzz_to_c (const zzz_struct*, C_zzz&);
 
 extern "C" void zzz_to_f2 (zzz_struct*'''.replace('zzz', struct.short_name))
 
@@ -1161,7 +1185,7 @@ extern "C" void zzz_to_f2 (zzz_struct*'''.replace('zzz', struct.short_name))
 
   # zzz_to_f
 
-  f_cpp.write('extern "C" void zzz_to_f (C_zzz& C, zzz_struct* F) {\n'.replace('zzz', struct.short_name))
+  f_cpp.write('extern "C" void zzz_to_f (const C_zzz& C, zzz_struct* F) {\n'.replace('zzz', struct.short_name))
 
   for var in struct.var:
     f_cpp.write (var.c_side.to_f_setup.replace('NAME', var.name))
@@ -1271,7 +1295,7 @@ template bool is_all_equal (const Real_Tensor&,     const Real_Tensor&);
 
 ''')
 
-for key, struct in struct_def.items():
+for struct in struct_def:
   f_eq.write ('\n//--------------------------------------------------------------\n\n')
   f_eq.write ('bool operator== (const C_zzz& x, const C_zzz& y) {'.replace('zzz', struct.short_name) + '\n')
   f_eq.write ('  bool is_eq = true;\n')
@@ -1306,7 +1330,7 @@ f_test.write('''
 using namespace std;
 ''')
 
-for key, struct in struct_def.items():
+for struct in struct_def:
   f_test.write ('''
 //--------------------------------------------------------------
 //--------------------------------------------------------------
