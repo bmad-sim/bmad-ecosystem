@@ -112,9 +112,9 @@ f_side_trans = {
   (LOGIC, 0, NOT) : f_side_trans_class('c_logic(FP%NAME)',      'logical(c_bool)',            'NAME'),
   (LOGIC, 1, NOT) : f_side_trans_class('c_logic(FP%NAME)',      'logical(c_bool)',            'NAME(*)'),
   (LOGIC, 2, NOT) : f_side_trans_class('mat2vec(FP%NAME)',      'logical(c_bool)',            'NAME(*)'),
-  (TYPE,  0, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME'),
-  (TYPE,  1, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME(*)'), 
-  (TYPE,  2, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value',         'NAME(*)'), 
+  (TYPE,  0, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value ::',         'NAME'),
+  (TYPE,  1, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value ::',         'NAME(*)'), 
+  (TYPE,  2, NOT) : f_side_trans_class('c_loc(FP%NAME)',        'type(c_ptr), value ::',         'NAME(*)'), 
   (CHAR,  0, NOT) : f_side_trans_class('trim(FP%NAME) // c_null_char', 'character(c_char)',          'NAME(*)')
   }
 
@@ -280,7 +280,8 @@ for key, c in c_side_trans.items():
 ##################################################################################
 # Get the list of structs
 
-struct_list_file = 'scripts/fortran_structs.list'
+##  struct_list_file = 'scripts/fortran_structs.list'
+struct_list_file = 'test.list'
 if len(sys.argv) > 1: struct_list_file = sys.argv[1]
 
 f_struct_list_file = open(struct_list_file)
@@ -637,7 +638,7 @@ interface
   f_face.write ('    import ' + ', '.join(import_set) + '\n')
   f_face.write ('    type (c_ptr), value :: CC\n')
   for arg_type, args in to_c2_arg_def.items():
-    f_face.write ('    ' + arg_type + ' :: ' + ', '.join(args) + '\n')
+    f_face.write ('    ' + arg_type + ', '.join(args) + '\n')
 
   f_face.write ('''  end subroutine
 end interface
@@ -895,10 +896,10 @@ offset = 100 * ix_patt
 
 '''.replace('zzz', struct.short_name))
 
-for i, var in enumerate(struct.var, 1):
-  f_test.write (var.f_side.test_pat.replace('XXX', str(i)).replace('NAME', var.name) + '\n')
+  for i, var in enumerate(struct.var, 1):
+    f_test.write (var.f_side.test_pat.replace('XXX', str(i)).replace('NAME', var.name) + '\n')
 
-f_test.write('''
+  f_test.write('''
 end subroutine zzz_test_pattern
 '''.replace('zzz', struct.short_name))
 
@@ -1318,10 +1319,10 @@ int offset = 100 * ix_patt;
 
 '''.replace('zzz', struct.short_name))
 
-for i, var in enumerate(struct.var, 1):
-  f_test.write (var.c_side.test_pat.replace('XXX', str(i)).replace('NAME', var.name) + '\n')
+  for i, var in enumerate(struct.var, 1):
+    f_test.write (var.c_side.test_pat.replace('XXX', str(i)).replace('NAME', var.name) + '\n')
 
-f_test.write('''
+  f_test.write('''
 }
 
 //--------------------------------------------------------------
