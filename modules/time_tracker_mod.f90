@@ -217,7 +217,7 @@ real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
 real(rp), parameter :: tiny = 1.0e-30_rp
 
 logical local_ref_frame, err_flag
-character(20), parameter :: r_name = 'rf_adaptive_time_step'
+character(24), parameter :: r_name = 'rk_adaptive_time_step'
 
 ! Calc tolerances
 ! Note that s is in the element frame
@@ -250,6 +250,7 @@ do
     err_flag = .true.
     call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name)
     if (bmad_status%exit_on_error) call err_exit
+    return
   endif
 
 end do

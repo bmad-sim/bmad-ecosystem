@@ -226,7 +226,7 @@ real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
 
 logical local_ref_frame, err_flag
-character(20), parameter :: r_name = 'rf_adaptive_step'
+character(20), parameter :: r_name = 'rk_adaptive_step'
 
 !
 
