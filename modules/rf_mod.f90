@@ -180,7 +180,7 @@ if (ele%key == e_gun$) then
     scale_correct = dE_peak_wanted / dE_particle(pz_max)
     if (scale_correct > 1000) scale_correct = max(1000.0_rp, scale_correct / 10)
     field_scale = field_scale * scale_correct
-    if (abs(scale_correct - 1) < scale_tol .and. abs(phi_max-phi_max_old) < phi_tol) exit
+    if (abs(scale_correct - 1) < scale_tol) exit
   enddo
 
   ele%tracking_method = tracking_method_saved
