@@ -73,7 +73,6 @@ real(rp), intent(in) :: s1, s2
 real(rp), parameter :: tiny = 1.0e-30_rp, ds_safe = 1e-12_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
 real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, direction
-real(rp) ds1, ds_min
 
 integer, parameter :: max_step = 10000
 integer :: n_step, hard_end
@@ -86,13 +85,10 @@ logical local_ref_frame, err_flag, err, at_hard_edge
 !                   sets the %error of the result
 !   abs_tol: Sets the absolute error of the result
 
-ds1 = 1e-3     ! Initial guess for a step size.
-ds_min = 1e-8  ! Minimum step size (can be zero).
-
 err_flag = .true.
 s = s1
 direction = sign(1.0_rp, s2-s1)
-ds_next = ds1 * direction
+ds_next = bmad_com%init_ds_adaptive_tracking * direction
 
 orb_end = orb_start
 orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
@@ -190,7 +186,7 @@ do n_step = 1, max_step
 
   ! Check for step size smaller than minimum. If so we consider the particle lost
  
-  if (abs(ds) < ds_min) exit
+  if (abs(ds) < bmad_com%min_ds_adaptive_tracking) exit
 
 end do
 
