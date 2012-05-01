@@ -3129,9 +3129,9 @@ integer nn, nt, i
 if (allocated(bp_com%var)) deallocate (bp_com%var)
 
 nn = 17  ! number of "constant" variables
-bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
-           ubound(ref_orbit_name, 1) + ubound(element_end_name, 1) + ubound(aperture_type_name, 1) + &
-           size(particle_name) + ubound(polarization_name, 1)
+bp_com%ivar_init = nn + ubound(calc_method_name, 1) + ubound(ref_orbit_name, 1) + &
+           ubound(element_end_name, 1) + ubound(aperture_type_name, 1) + &
+           size(particle_name)
 bp_com%ivar_tot = bp_com%ivar_init
 
 nt = bp_com%ivar_tot
