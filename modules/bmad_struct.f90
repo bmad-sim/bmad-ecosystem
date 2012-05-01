@@ -340,7 +340,7 @@ type ele_struct
   type (ele_struct), pointer :: lord => null()              ! Pointer to a slice lord.
   type (mode3_struct), pointer :: mode3 => null()           ! 6D normal mode structure.
   type (coord_struct), allocatable :: orbit                 ! For holding orbits.
-  type (fibre), pointer :: ptc_fiber                        ! PTC tracking.
+  type (fibre), pointer :: ptc_fiber => null()              ! PTC tracking.
   type (genfield), pointer :: ptc_genfield => null()        ! For symp_map$
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
                                                             ! Radiation integral calc cached values 
@@ -453,7 +453,7 @@ type branch_struct
   integer ix_from_ele
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
-  type (mode_info_struct), pointer :: a, b, z         ! Tunes, etc.
+  type (mode_info_struct), pointer :: a => null(), b => null(), z => null()
   type (ele_struct), pointer :: ele(:) => null()
   type (lat_param_struct), pointer :: param => null()
   type (wall3d_struct), pointer :: wall3d => null()
