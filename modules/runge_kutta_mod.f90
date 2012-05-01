@@ -239,8 +239,12 @@ do
   call rk_step1 (ele, param, orb, dr_ds, s, t, ds, orb_new, t_new, r_err, local_ref_frame, err_flag)
   ! Can get errors due to step size too large 
   if (err_flag) then
-    if (ds < 1d-3) return
-    ds_temp = ds / 2
+    if (ds < 1d-3) THEN
+      call out_io (s_fatal$, r_name, 'CANNOT COMPLETE STEP. ABORTING.')
+      if (bmad_status%exit_on_error) call err_exit
+      return
+    endif
+    ds_temp = ds / 10
   else
     err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit

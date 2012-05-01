@@ -239,8 +239,12 @@ do
   call rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
   ! Can get errors due to step size too large 
   if (err_flag) then
-    if (dt < 1d-3/c_light) return
-    dt_temp = dt / 2
+    if (dt < 1d-3/c_light) then
+      call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. ABORTING.')
+      if (bmad_status%exit_on_error) call err_exit
+      return
+    endif
+    dt_temp = dt / 10
   else
     r_scal(:) = abs(orb%vec) + abs(orb_new%vec) + TINY
     r_scal(5) = ele%value(l$)
