@@ -237,12 +237,17 @@ orb_new = orb
 do
 
   call rk_time_step1 (ele, param, orb, t, dt, orb_new, r_err, local_ref_frame, dr_dt, err_flag)
-  if (err_flag) return
-  r_scal(:) = abs(orb%vec) + abs(orb_new%vec) + TINY
-  r_scal(5) = ele%value(l$)
-  err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
-  if (err_max <=  1.0) exit
-  dt_temp = safety * dt * (err_max**p_shrink)
+  ! Can get errors due to step size too large 
+  if (err_flag) then
+    if (dt < 1d-3/c_light) return
+    dt_temp = dt / 2
+  else
+    r_scal(:) = abs(orb%vec) + abs(orb_new%vec) + TINY
+    r_scal(5) = ele%value(l$)
+    err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
+    if (err_max <=  1.0) exit
+    dt_temp = safety * dt * (err_max**p_shrink)
+  endif
   dt = sign(max(abs(dt_temp), 0.1_rp*abs(dt)), dt)
   t_new = t + dt
 
