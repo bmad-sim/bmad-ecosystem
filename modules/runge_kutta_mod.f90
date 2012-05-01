@@ -199,6 +199,7 @@ end do
 orb_end%status = dead$
 param%lost = .true.
 param%plane_lost_at = z_plane$
+err_flag = .false.
 
 end subroutine odeint_bmad
 
