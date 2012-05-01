@@ -97,13 +97,9 @@ if (ele%value(l$) .eq. 0) then
   return
 end if
 
-! Specify time step; Default if ele%value(ds_step$) is zero is 1mm.
+! Specify initial time step.
 
-if (ele%value(ds_step$) == 0) then
-  dt_step = 1d-3 / c_light
-else
-  dt_step = ele%value(ds_step$)/c_light
-endif
+dt_step = bmad_com%init_ds_adaptive_tracking / c_light
 
 ! Get edge array of hard edges
 allocate( edge ( 2*max(ele%n_lord, 1) ) )

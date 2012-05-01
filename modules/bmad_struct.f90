@@ -948,6 +948,8 @@ type bmad_common_struct
   real(rp) :: abs_tol_tracking = 1e-10
   real(rp) :: rel_tol_adaptive_tracking = 1e-8     ! Adaptive tracking relative tolerance.
   real(rp) :: abs_tol_adaptive_tracking = 1e-10    ! Adaptive tracking absolute tolerance.
+  real(rp) :: init_ds_adaptive_tracking = 1e-3     ! Initial step size
+  real(rp) :: min_ds_adaptive_tracking = 1e-8      ! Min step size.
   integer :: taylor_order = 3                      ! 3rd order is default
   integer :: default_integ_order = 2               ! PTC integration order
   logical :: canonical_coords = .true.             ! NOT USED.
