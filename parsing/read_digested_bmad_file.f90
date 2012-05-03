@@ -396,7 +396,7 @@ if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%em_field%mode(i)
     read (d_unit, err = 9140) nf, ng, mode%harmonic, mode%f_damp, mode%dphi0_ref, mode%stored_energy, &
-                                 mode%m, mode%phi0_azimuth, mode%field_scale 
+                                 mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
     if (nf > 0) then
       allocate (mode%map)
       allocate (mode%map%term(nf))

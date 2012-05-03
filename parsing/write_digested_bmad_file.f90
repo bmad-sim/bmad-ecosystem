@@ -293,7 +293,7 @@ if (n_rf_field_mode > 0) then
     ng = 0
     if (associated(mode%grid)) ng = size(mode%grid%pt)
     write (d_unit) nf, ng, mode%harmonic, mode%f_damp, mode%dphi0_ref, mode%stored_energy, &
-                                    mode%m, mode%phi0_azimuth, mode%field_scale
+                          mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
     if (nf > 0) then
       write (d_unit) mode%map%file, mode%map%dz, mode%map%ele_anchor_pt
       write (d_unit) mode%map%term
