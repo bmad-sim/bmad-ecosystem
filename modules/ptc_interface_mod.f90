@@ -1870,8 +1870,7 @@ if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) then
   call set_ptc (taylor_order = bmad_com%taylor_order)
 endif
 
-ele%bookkeeping_state%attributes = stale$
-call attribute_bookkeeper (ele, param)
+call attribute_bookkeeper (ele, param, .true.)
 
 ! Patch and Match elements are not implemented in PTC so just use the matrix.
 ! Also Taylor elements already have a taylor map.
@@ -1956,7 +1955,7 @@ if (abs(z_patch) > bmad_com%significant_length) then
   call add_taylor_term (ele%taylor(5), z_patch)
 endif
 
-ele%bookkeeping_state%mat6 = stale$
+call set_ele_status_stale (ele, mat6_group$)
 
 end subroutine ele_to_taylor
 
