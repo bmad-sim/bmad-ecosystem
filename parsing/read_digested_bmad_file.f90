@@ -266,7 +266,7 @@ return
 !------------------
 
 9000  continue
-if (bmad_status%type_out) call out_io (s_warn$, r_name, 'Digested file does not exist: ' // trim(full_digested_file))
+!! if (bmad_status%type_out) call out_io (s_warn$, r_name, 'Digested file does not exist: ' // trim(full_digested_file))
 close (d_unit)
 return
 

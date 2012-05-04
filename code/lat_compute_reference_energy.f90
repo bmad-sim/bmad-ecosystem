@@ -35,10 +35,10 @@ type (coord_struct) start_orb, end_orb
 
 real(rp) pc
 
-integer i, j, k, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
-integer ix_super_end
+integer j, k, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
+integer ix_super_end, ix_e_gun
 
-logical did_set, stale, err, e_gun_associated
+logical did_set, stale, err
 logical, optional :: err_flag
 
 character(24), parameter :: r_name = 'lat_compute_ref_energy_and_time'
@@ -48,7 +48,9 @@ character(24), parameter :: r_name = 'lat_compute_ref_energy_and_time'
 if (present(err_flag)) err_flag = .true.
 
 do ib = 0, ubound(lat%branch, 1)
+
   branch => lat%branch(ib)
+  ele_init => branch%ele(0)
 
   if (bmad_com%auto_bookkeeper) then
     stale = .true.
@@ -61,9 +63,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   ! Init energy at beginning of branch if needed.
 
-  ele0 => branch%ele(0)
-
-  if (stale .or. ele0%bookkeeping_state%ref_energy == stale$) then
+  if (stale .or. ele_init%bookkeeping_state%ref_energy == stale$) then
     if (branch%ix_from_branch >= 0) then
 
       branch_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
@@ -73,18 +73,18 @@ do ib = 0, ubound(lat%branch, 1)
       did_set = .false.
 
       if (branch_ele%value(E_tot_start$) == 0) then
-        ele0%value(E_tot$) = branch_ele%value(E_tot$)
-        call convert_total_energy_to (ele0%value(E_tot$), branch%param%particle, pc = ele0%value(p0c$))
+        ele_init%value(E_tot$) = branch_ele%value(E_tot$)
+        call convert_total_energy_to (ele_init%value(E_tot$), branch%param%particle, pc = ele_init%value(p0c$))
       else
-        ele0%value(E_tot$) = branch_ele%value(E_tot_start$)
+        ele_init%value(E_tot$) = branch_ele%value(E_tot_start$)
         did_set = .true.
       endif
 
       if (branch_ele%value(p0c_start$) == 0) then
-        ele0%value(p0c$) = branch_ele%value(p0c$)
-       call convert_pc_to (ele0%value(p0c$), branch%param%particle, e_tot = ele0%value(e_tot$))
+        ele_init%value(p0c$) = branch_ele%value(p0c$)
+       call convert_pc_to (ele_init%value(p0c$), branch%param%particle, e_tot = ele_init%value(e_tot$))
       else
-        ele0%value(p0c$) = branch_ele%value(p0c_start$)
+        ele_init%value(p0c$) = branch_ele%value(p0c_start$)
         did_set = .true.
       endif
 
@@ -99,37 +99,52 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       stale = .true.
-      ele0%bookkeeping_state%ref_energy = ok$
-      ele0%time_ref_orb_out = 0
-      ele0%value(delta_ref_time$) = 0
-      ele0%value(ref_time_start$) = ele0%ref_time
+      ele_init%bookkeeping_state%ref_energy = ok$
+      ele_init%time_ref_orb_out = 0
+      ele_init%value(delta_ref_time$) = 0
+      ele_init%value(ref_time_start$) = ele_init%ref_time
 
     endif
   endif
 
-  if (ele0%value(E_tot$) == 0) then
-    ele0%value(E_tot$) = ele0%value(E_tot_start$)
-    ele0%value(p0c$) = ele0%value(p0c_start$)
-  elseif (ele0%value(E_tot_start$) == 0) then
-    ele0%value(E_tot_start$) = ele0%value(E_tot$)
-    ele0%value(p0c_start$) = ele0%value(p0c$)
+  if (ele_init%value(E_tot$) == 0) then
+    ele_init%value(E_tot$) = ele_init%value(E_tot_start$)
+    ele_init%value(p0c$) = ele_init%value(p0c_start$)
+  elseif (ele_init%value(E_tot_start$) == 0) then
+    ele_init%value(E_tot_start$) = ele_init%value(E_tot$)
+    ele_init%value(p0c_start$) = ele_init%value(p0c$)
   endif
 
   ! Look for an e_gun and if found then the starting energy must be computed accordingly.
-  ! Remember that there may be markers before an e_gun in the lattice but nothing else.
+  ! Remember that there may be markers or null_eles before an e_gun in the lattice but nothing else.
 
-  do i = 1, branch%n_ele_track
-    gun_ele => branch%ele(i)
-    if (gun_ele%key == marker$) cycle
-    if (gun_ele%key == null_ele$) cycle
-    if (gun_ele%key /= e_gun$) exit
-    if (gun_ele%slave_status == super_slave$ .or. gun_ele%slave_status == slice_slave$) gun_ele => pointer_to_lord(gun_ele, 1)
+  ix_e_gun = 0
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%key == marker$) cycle
+    if (ele%key == null_ele$) cycle
+    ! Test first non-marker, non-null_ele element...
+    if (ele%slave_status == super_slave$) then
+      do j = 1, ele%n_lord
+        lord => pointer_to_lord(ele, j)
+        if (lord%key == e_gun$) then
+          gun_ele => lord
+          ix_e_gun = ie
+          exit
+        endif
+      enddo
+    elseif (ele%key == e_gun$) then
+      gun_ele => ele
+      ix_e_gun = ie
+    endif
+    exit
+  enddo
 
-    ele0 => branch%ele(0)
+  if (ix_e_gun /= 0) then ! Have found an e_gun...
 
     if (lat%rf_auto_scale_amp) then
-      ele0%value(e_tot$) = ele0%value(e_tot_start$) + gun_ele%value(voltage$)
-      call convert_total_energy_to (ele0%value(e_tot$), branch%param%particle, pc = ele0%value(p0c$))
+      ele_init%value(e_tot$) = ele_init%value(e_tot_start$) + gun_ele%value(voltage$)
+      call convert_total_energy_to (ele_init%value(e_tot$), branch%param%particle, pc = ele_init%value(p0c$))
  
     else
       gun_ele%value(e_tot$) = 2 * mass_of(branch%param%particle)   ! Dummy numbers so can do tracking
@@ -137,7 +152,7 @@ do ib = 0, ubound(lat%branch, 1)
       gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
       gun_ele%value(p0c_start$) = gun_ele%value(p0c$)
       call init_coord (start_orb, ele = gun_ele, particle = branch%param%particle)
-      start_orb%vec(6) = (ele0%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
+      start_orb%vec(6) = (ele_init%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
       call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
       if (branch%param%lost) then
         call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
@@ -145,21 +160,21 @@ do ib = 0, ubound(lat%branch, 1)
         if (bmad_status%exit_on_error) call err_exit
         return
       endif
-      ele0%value(p0c$) = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
-      call convert_pc_to (ele0%value(p0c$), branch%param%particle, e_tot = ele0%value(e_tot$))
+      ele_init%value(p0c$) = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
+      call convert_pc_to (ele_init%value(p0c$), branch%param%particle, e_tot = ele_init%value(e_tot$))
     endif
-    exit
-  enddo
+
+  endif
 
   !----------------------------
   ! Loop over all elements in the branch
 
   ix_super_end = 0  ! End index of current super_lord_region
 
-  do i = 1, branch%n_ele_track
+  do ie = 1, branch%n_ele_track
 
-    ele0 => branch%ele(i-1)
-    ele => branch%ele(i)
+    ele0 => branch%ele(ie-1)
+    ele => branch%ele(ie)
 
     if (.not. stale .and. ele%bookkeeping_state%ref_energy /= stale$) cycle
 
@@ -172,34 +187,16 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! If we are in the middle of a super_lord region then the "zero" orbit is just the continuation
     ! of the "zero" orbit of the previous element. This is important in wigglers. If the fact
-    ! that the "zero" orbit is not truely zero is not taken into account then splitting 
+    ! that the "zero" orbit is not truely zero is not taken into account, splitting 
     ! wigglers would result in z-position shifts when tracking particles.
 
-    ! If not in super_lord region
-
-    if (ix_super_end < i) then   
+    if (ix_super_end < ie) then       ! If not in super_lord region...
       ele%time_ref_orb_in = 0   ! Want zero orbit except if this is an e_gun then must set pz.
-
-      ! Check if this is an e_gun or is the slave of an e_gun.
-
-      e_gun_associated = (ele%key == e_gun$)
-      if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
-        do k = 1, ele%n_lord
-          lord => pointer_to_lord(ele, k)
-          if (lord%key /= e_gun$) cycle
-          e_gun_associated = .true.
-          exit
-        enddo
-      endif
-
-      if (e_gun_associated) then 
-        ele_init => branch%ele(0)
+      if (ie == ix_e_gun) then
         ele%time_ref_orb_in(6) = (ele_init%value(p0c_start$) - ele_init%value(p0c$)) / ele_init%value(p0c$)
-      endif
+      endif 
 
-    ! If in super_lord region
-
-    else
+    else                              ! In super_lord region
       ele%time_ref_orb_in = ele0%time_ref_orb_out
     endif
 
@@ -245,15 +242,15 @@ do ib = 0, ubound(lat%branch, 1)
 
   enddo
 
-enddo
+enddo ! Branch loop
 
 ! Put the appropriate energy values in the lord elements...
 
 lat%param%bookkeeping_state%ref_energy = ok$
 
-do i = lat%n_ele_track+1, lat%n_ele_max
+do ie = lat%n_ele_track+1, lat%n_ele_max
 
-  lord => lat%ele(i)
+  lord => lat%ele(ie)
 
   if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%ref_energy /= stale$) cycle
   if (lord%n_slave == 0) cycle   ! Can happen with null_ele$ elements for example.
@@ -289,7 +286,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     lord%value(p0c_start$)   = slave%value(p0c_start$)
   endif
 
-enddo
+enddo ! Branch loop
 
 lat%lord_state%ref_energy = ok$
 if (present(err_flag)) err_flag = .false.
@@ -439,8 +436,6 @@ case (lcavity$)
     ! Track
 
     call track_this_ele (.false.)
-
-    ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call calc_time_ref_orb_out
 
@@ -461,16 +456,13 @@ case (e_gun$)
   ele%value(p0c$) = p0c_start
 
   call track_this_ele (.true.)
-
-  E_tot = ele%value(E_tot$)
-  p0c = ele%value(p0c$)
   call calc_time_ref_orb_out
-  ele%ref_time = ref_time_start + orb_end%t - orb_start%t
 
 case (crystal$, mirror$, multilayer_mirror$)
-  ele%value(ref_wavelength$) = c_light * h_planck / E_tot_start
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
+
+  ele%value(ref_wavelength$) = c_light * h_planck / E_tot_start
   ele%ref_time = ref_time_start
 
 case (patch$) 
@@ -497,14 +489,13 @@ case default
 
   if (ele_has_constant_ds_dt_ref(ele)) then
     if (ele%value(l$) == 0) then     ! Must avoid problem with zero length markers and p0c = 0.
-      ele%ref_time = 0
+      ele%ref_time = ref_time_start
     else
       ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
     endif
-  else
 
+  else
     call track_this_ele (.false.)
-    ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
     call calc_time_ref_orb_out
   endif
 
@@ -513,6 +504,7 @@ end select
 ! If delta_ref_time has shifted then any taylor map must be updated.
 
 ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
+
 if (abs(ele%value(delta_ref_time$) - old_delta_ref_time) > bmad_com%significant_length / c_light) then
   if (associated (ele%taylor(1)%term) .and. ele%key /= taylor$) call kill_taylor (ele%taylor)
   ele%bookkeeping_state%mat6 = stale$
@@ -550,6 +542,8 @@ if (param%lost) then
   return
 endif
 call restore_errors_in_ele (ele)
+
+ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
 
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 
@@ -646,6 +640,9 @@ end subroutine restore_errors_in_ele
 ! contains
 
 subroutine calc_time_ref_orb_out ()
+
+! The tracking did not have the correct delta_ref_time end exit end ref energy so need to correct for this.
+! Notice that delta_ref_time here is the value used in tracking. Not the correct delta_ref_time computer later.
 
 ele%time_ref_orb_out = orb_end%vec
 ele%time_ref_orb_out(2) = ele%time_ref_orb_out(2) / (1 + orb_end%vec(6))

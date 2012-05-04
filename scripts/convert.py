@@ -5,7 +5,7 @@ import shutil
 import os
 import re
 
-g = re.compile(r'(\s*)(call)( element_at_s.*?,.*?, )(\w*)(.*)')
+g = re.compile(r'(\s*)(call)( element_at_s.*?,.*?,) *(\w*)(.*)', re.IGNORECASE)
 
 for arg in sys.argv[1:]:
   in_file = open(arg)
@@ -16,7 +16,7 @@ for arg in sys.argv[1:]:
 
     gg = g.match(line)
     if gg:
-      line = gg.group(1) + gg.group(4) + ' =' + gg.group(3) + '.true.' + gg.group(5) + '\n'
+      line = gg.group(1) + gg.group(4) + ' =' + gg.group(3) + ' .true.' + gg.group(5) + '\n'
       found = True
 
     out_file.write(line)
