@@ -3832,6 +3832,47 @@ end subroutine create_hard_edge_drift
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function absolute_time_tracking (ele) result (is_abs_time)
+!
+! Routine to return a logical indicating whether the tracking through an
+! element should use absolute time or time relative to the reference particle.
+!
+! Note: e_gun elements always use aboslute time tracking to get around
+! the problem when the particle velocity is zero.
+!
+! Input:
+!   ele  -- ele_struct: Element being tracked through.
+!
+! Output:
+!   is_abs_time -- Logical: True if absolute time tracking is needed.
+!-
+
+function absolute_time_tracking (ele) result (is_abs_time)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
+logical is_abs_time
+integer i
+
+!
+
+is_abs_time = bmad_com%absolute_time_tracking_default
+if (associated(ele%lat)) is_abs_time = ele%lat%absolute_time_tracking
+if (ele%key == e_gun$) is_abs_time = .true.
+
+if (ele%key == em_field$ .and. ele%slave_status == super_slave$) then
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    if (lord%key == e_gun$) is_abs_time = .true.
+  enddo
+endif
+
+end function absolute_time_tracking
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Function particle_time (orbit, ele) result (time)
 !
 ! Routine to return the current time for use, for example, 
@@ -3860,13 +3901,11 @@ real(rp) time
 logical abs_time
 character(16), parameter :: r_name = 'particle_time'
 
-! e_gun uses absolute time tracking to get around the problem when orbit%beta = 0.
+! Note: e_gun uses absolute time tracking to get around the problem when orbit%beta = 0.
 
-abs_time = bmad_com%absolute_time_tracking_default
-if (associated(ele%lat)) abs_time = ele%lat%absolute_time_tracking
-
-if (abs_time .or. ele%key == e_gun$) then
+if (absolute_time_tracking(ele)) then
   time = orbit%t 
+
 else
   if (orbit%beta == 0) then
     call out_io (s_fatal$, r_name, 'PARTICLE IN NON E-GUN ELEMENT HAS VELOCITY = 0!')

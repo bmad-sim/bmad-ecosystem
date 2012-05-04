@@ -127,7 +127,7 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield, err_flag)
+! Subroutine em_field_calc (ele, param, s_rel, time, orbit, local_ref_frame, field, calc_dfield, err_flag)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -143,7 +143,7 @@ end subroutine save_a_step
 !   ele    -- Ele_struct: Element
 !   param  -- lat_param_struct: Lattice parameters.
 !   s_rel  -- Real(rp): Longitudinal position relative to the start of the element.
-!   t_rel  -- Real(rp): Particle time.
+!   time   -- Real(rp): Particle time.
 !                 For absolute time tracking this is the absolute time.
 !                 For relative time tracking this is relative to the reference particle entering the element.
 !   orbit  -- Coord_struct: Transverse coordinates.
@@ -160,7 +160,7 @@ end subroutine save_a_step
 !   err_flag    -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-recursive subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield, err_flag)
+recursive subroutine em_field_calc (ele, param, s_rel, time, orbit, local_ref_frame, field, calc_dfield, err_flag)
 
 implicit none
 
@@ -174,7 +174,7 @@ type (em_field_grid_pt_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
-real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
+real(rp) :: x, y, s, t, xx, yy, time, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
@@ -232,7 +232,10 @@ if (ele%field_calc == refer_to_lords$) then
     if (ele%key == em_field$) local_ref = .false.
 
     s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
-    t = t_rel + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
+    t = time 
+    if (.not. absolute_time_tracking(ele)) then
+      t = t + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
+    endif
     call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield)
 
     field%E = field%E + field2%E
@@ -251,7 +254,7 @@ endif
 ! Custom field calc 
 
 if (ele%field_calc == custom$) then 
-  call em_field_custom (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
+  call em_field_custom (ele, param, s_rel, time, orbit, local_ref_frame, field, calc_dfield)
   return
 end if
 
@@ -318,7 +321,7 @@ select case (ele%field_calc)
     if (s_eff < 0 .or. s_eff > ele%value(l_hard_edge$)) return  ! Zero field outside
 
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
-    t_eff = t_rel - s_hard_offset / (c_light * beta_start)
+    t_eff = time - s_hard_offset / (c_light * beta_start)
 
     E_r_coef = gradient * k_wave * sin(k_wave*s_eff) * cos(omega * t_eff + phase)
 
@@ -683,7 +686,7 @@ case(map$)
       ! Notice that phi0, dphi0, and phi0_err are folded into t_ref above.
 
       freq = ele%value(rf_frequency$) * mode%harmonic
-      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (t_rel + t_ref) + mode%dphi0_ref))
+      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%dphi0_ref))
       if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
       E_rho = E_rho + Er * expt
       E_phi = E_phi + Ep * expt
@@ -764,7 +767,7 @@ case(grid$)
 
     ! DC modes should have mode%harmonic = 0
     freq = ele%value(rf_frequency$) * mode%harmonic
-    expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (t_rel + t_ref) + mode%dphi0_ref))
+    expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%dphi0_ref))
     if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
 
     ! Check for grid

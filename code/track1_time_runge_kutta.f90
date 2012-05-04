@@ -61,7 +61,7 @@ type (hard_edge_struct), allocatable :: edge(:)
 type (em_field_struct) :: saved_field
 
 real(rp)  dt_step, ref_time, vec6, pc2
-real(rp)   s_rel, t_rel, s1, s2, del_s, p0c_save
+real(rp)   s_rel, time, s1, s2, del_s, p0c_save
 
 integer :: i, n_edge
 
@@ -137,16 +137,14 @@ else
 endif
 
 ! ele(s-based) -> ele(t-based)
+
 call convert_particle_coordinates_s_to_t(end_orb)
 s_rel =  end_orb%s - (ele%s - ele%value(l$) )
 end_orb%vec(5) = s_rel
 
-! Particle time (relative to entrance edge)
-if (ele%lat%absolute_time_tracking) then
-	t_rel = start_orb%t - ele%value(ref_time_start$)
-else
-	t_rel = particle_time(start_orb, ele)
-endif
+! Particle time 
+
+time = particle_time(start_orb, ele)
 
 !------
 !Check wall
@@ -174,7 +172,7 @@ else
     track%n_pt = 0
     track%orb(0) = end_orb
     !Query the local field to save
-    call em_field_calc (ele, param, end_orb%vec(5), t_rel, end_orb, local_ref_frame, saved_field, .false.)
+    call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false.)
     track%field(0) = saved_field
       
   endif
@@ -184,7 +182,7 @@ else
   
   if (n_edge == 0) then
     ! Track whole element with no hard edges
-    call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), t_rel, &
+    call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, &
                                       dt_step, local_ref_frame, err, track)
     if (err) return
   else 
@@ -201,7 +199,7 @@ else
           p0c_save = end_orb%p0c ! Fudge to kick orb in time coordinates by setting p0c = +/- 1
           end_orb%p0c = sign(1.0_rp, p0c_save)
           pc2 = end_orb%vec(2)**2 + end_orb%vec(4)**2 + end_orb%vec(6)**2
-          call apply_hard_edge_kick (end_orb, edge(i)%s_hard, t_rel, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
+          call apply_hard_edge_kick (end_orb, edge(i)%s_hard, time, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
           end_orb%p0c = p0c_save
           end_orb%vec(6) = sign(sqrt(pc2 - end_orb%vec(2)**2 - end_orb%vec(4)**2), end_orb%vec(6))
           if (p0c_save > 0 ) then 
@@ -224,7 +222,7 @@ else
       if ( end_orb%status == dead$) exit
       
       ! Track
-      call odeint_bmad_time(end_orb, ele, param, s1, s2, t_rel, dt_step, local_ref_frame, err, track)
+      call odeint_bmad_time(end_orb, ele, param, s1, s2, time, dt_step, local_ref_frame, err, track)
       if (err) return
     enddo
   endif   
