@@ -1287,7 +1287,6 @@ do ii = 1, size(curve%x_line)
     here = bunch_params%centroid
 
   case ('lat')
-    ele%s = 1e30  ! Something 
     call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err, use_last)
     use_last = .true.  ! For next time around
     if (err) then
