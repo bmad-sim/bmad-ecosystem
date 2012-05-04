@@ -2,21 +2,25 @@
   1  DRIFT                                   
          1  L                                       
          2  TILT                                    
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -41,12 +45,12 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -65,19 +69,21 @@
          3  ANGLE                                   
          4  K1                                      
          5  K2                                      
-         6  G_ERR                                   
-         7  G                                       
-         8  E1                                      
-         9  E2                                      
-        10  FINT                                    
-        11  FINTX                                   
-        12  RHO                                     
-        13  HGAP                                    
-        14  HGAPX                                   
-        15  ROLL                                    
-        16  L_CHORD                                 
+         6  G                                       
+         7  G_ERR                                   
+         8  RHO                                     
+         9  L_CHORD                                 
+        10  E1                                      
+        11  E2                                      
+        13  FINT                                    
+        14  FINTX                                   
+        15  HGAP                                    
+        16  HGAPX                                   
         17  H1                                      
         18  H2                                      
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
+        22  ROLL                                    
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -89,19 +95,21 @@
         31  BL_VKICK                                
         33  B_FIELD                                 
         34  B_FIELD_ERR                             
-        36  B1_GRADIENT                             
-        37  B2_GRADIENT                             
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        35  B1_GRADIENT                             
+        36  B2_GRADIENT                             
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -127,14 +135,14 @@
         88  OFFSET_MOVES_APERTURE                   
         91  REF_ORBIT                               
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -193,6 +201,8 @@
          1  L                                       
          2  TILT                                    
          4  K1                                      
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -202,19 +212,21 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        36  B1_GRADIENT                             
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        42  POLE_RADIUS                             
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        35  B1_GRADIENT                             
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
+        53  POLE_RADIUS                             
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -239,15 +251,15 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -316,14 +328,16 @@
         74  END_EDGE                                
         75  ACCORDION_EDGE                          
         80  SYMMETRIC_EDGE                          
-        94  DESCRIP                                 
-        97  TYPE                                    
+       102  DESCRIP                                 
+       107  TYPE                                    
  
  !---------------------------------
   5  SEXTUPOLE                               
          1  L                                       
          2  TILT                                    
          5  K2                                      
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -333,19 +347,21 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        37  B2_GRADIENT                             
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        42  POLE_RADIUS                             
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        36  B2_GRADIENT                             
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
+        53  POLE_RADIUS                             
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -370,15 +386,15 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -441,31 +457,33 @@
          5  VAL3                                    
          6  VAL4                                    
          7  VAL5                                    
-         8  VAL6                                    
-         9  VAL7                                    
-        10  VAL8                                    
-        11  VAL9                                    
-        12  VAL10                                   
-        13  VAL11                                   
-        14  DELTA_E                                 
+         8  DELTA_E                                 
+         9  VAL6                                    
+        10  VAL7                                    
+        11  VAL8                                    
+        12  VAL9                                    
+        13  VAL10                                   
+        14  VAL11                                   
         15  VAL12                                   
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        50  P0C_START                               
-        51  E_TOT_START                             
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  P0C_START                               
+        41  E_TOT_START                             
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -490,13 +508,13 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -517,15 +535,17 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -546,11 +566,11 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -566,17 +586,19 @@
   9  RFCAVITY                                
          1  L                                       
          2  TILT                                    
+         3  RF_FREQUENCY                            
          4  HARMON                                  
-         5  !RESERVED                               
+         5  LR_FREQ_SPREAD                          
          7  VOLTAGE                                 
-         8  DPHI0                                   
-         9  RF_FREQUENCY                            
-        11  PHI0                                    
+        11  !RESERVED                               
+        13  PHI0                                    
         14  !RESERVED                               
-        15  LR_FREQ_SPREAD                          
-        16  !RESERVED                               
-        17  DPHI0_REF                               
-        18  FIELD_SCALE                             
+        15  DPHI0                                   
+        16  DPHI0_REF                               
+        17  !RESERVED                               
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
+        22  N_CELL                                  
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -586,20 +608,22 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
+        32  COUPLER_AT                              
         33  COUPLER_PHASE                           
-        35  COUPLER_ANGLE                           
-        39  COUPLER_STRENGTH                        
-        41  DELTA_REF_TIME                          
-        42  COUPLER_AT                              
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        34  COUPLER_ANGLE                           
+        35  COUPLER_STRENGTH                        
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -626,14 +650,14 @@
         88  OFFSET_MOVES_APERTURE                   
         90  SR_WAKE_FILE                            
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -651,6 +675,8 @@
          2  TILT                                    
          7  VOLTAGE                                 
          8  GAP                                     
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -661,17 +687,19 @@
         30  BL_HKICK                                
         31  BL_VKICK                                
         33  E_FIELD                                 
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -696,15 +724,15 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -760,6 +788,7 @@
  
  !---------------------------------
  11  BEAMBEAM                                
+         1  !RESERVED                               
          2  TILT                                    
          4  SIG_X                                   
          5  SIG_Y                                   
@@ -772,15 +801,17 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -800,13 +831,13 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  N_SLICE                                 
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -825,11 +856,12 @@
          4  K1                                      
          5  B_MAX                                   
          7  N_POLE                                  
+         8  RHO                                     
         10  POLARITY                                
-        11  Z_PATCH                                 
-        12  RHO                                     
         14  L_POLE                                  
         15  X_RAY_LINE_LEN                          
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -839,17 +871,19 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -875,15 +909,15 @@
         88  OFFSET_MOVES_APERTURE                   
         91  TERM                                    
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -942,7 +976,9 @@
          1  L                                       
          2  TILT                                    
          4  K1                                      
-         8  KS                                      
+         9  KS                                      
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -952,19 +988,21 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        36  B1_GRADIENT                             
-        39  BS_FIELD                                
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        35  B1_GRADIENT                             
+        38  BS_FIELD                                
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -989,15 +1027,15 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1053,6 +1091,7 @@
  
  !---------------------------------
  14  MARKER                                  
+         1  !RESERVED                               
          2  TILT                                    
          3  X_GAIN_ERR                              
          4  Y_GAIN_ERR                              
@@ -1072,15 +1111,17 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -1099,11 +1140,11 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1121,6 +1162,8 @@
          2  TILT                                    
          4  H_DISPLACE                              
          5  V_DISPLACE                              
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1130,18 +1173,20 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        42  POLE_RADIUS                             
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
+        53  POLE_RADIUS                             
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -1166,14 +1211,14 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1230,10 +1275,10 @@
  !---------------------------------
  16  HYBRID                                  
          1  L                                       
-        14  DELTA_E                                 
-        41  DELTA_REF_TIME                          
-        50  P0C_START                               
-        51  E_TOT_START                             
+         8  DELTA_E                                 
+        39  DELTA_REF_TIME                          
+        40  P0C_START                               
+        41  E_TOT_START                             
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -1245,6 +1290,8 @@
          1  L                                       
          2  TILT                                    
          6  K3                                      
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1254,19 +1301,21 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        38  B3_GRADIENT                             
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        42  POLE_RADIUS                             
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        37  B3_GRADIENT                             
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
+        53  POLE_RADIUS                             
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -1291,15 +1340,15 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1360,19 +1409,21 @@
          3  ANGLE                                   
          4  K1                                      
          5  K2                                      
-         6  G_ERR                                   
-         7  G                                       
-         8  E1                                      
-         9  E2                                      
-        10  FINT                                    
-        11  FINTX                                   
-        12  RHO                                     
-        13  HGAP                                    
-        14  HGAPX                                   
-        15  ROLL                                    
-        16  L_CHORD                                 
+         6  G                                       
+         7  G_ERR                                   
+         8  RHO                                     
+         9  L_CHORD                                 
+        10  E1                                      
+        11  E2                                      
+        13  FINT                                    
+        14  FINTX                                   
+        15  HGAP                                    
+        16  HGAPX                                   
         17  H1                                      
         18  H2                                      
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
+        22  ROLL                                    
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1384,19 +1435,21 @@
         31  BL_VKICK                                
         33  B_FIELD                                 
         34  B_FIELD_ERR                             
-        36  B1_GRADIENT                             
-        37  B2_GRADIENT                             
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        35  B1_GRADIENT                             
+        36  B2_GRADIENT                             
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -1422,14 +1475,14 @@
         88  OFFSET_MOVES_APERTURE                   
         91  REF_ORBIT                               
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1492,15 +1545,15 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -1519,11 +1572,11 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1581,6 +1634,8 @@
  20  BEND_SOL_                               
          1  L                                       
          2  TILT                                    
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1590,16 +1645,16 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -1624,11 +1679,11 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1644,8 +1699,8 @@
  21  DEF_BEAM                                
          2  N_PART                                  
          4  PARTICLE                                
-        52  PC                                      
-        53  ENERGY                                  
+        42  PC                                      
+        43  ENERGY                                  
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -1661,15 +1716,15 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -1688,11 +1743,11 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1750,7 +1805,9 @@
  23  SOLENOID                                
          1  L                                       
          2  TILT                                    
-         8  KS                                      
+         9  KS                                      
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1760,19 +1817,21 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        39  BS_FIELD                                
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        42  POLE_RADIUS                             
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        38  BS_FIELD                                
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
+        53  POLE_RADIUS                             
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -1797,15 +1856,15 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1868,21 +1927,21 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        37  PATCH_END                               
-        38  TRANSLATE_AFTER                         
-        39  E_TOT_OFFSET                            
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        50  P0C_START                               
-        51  E_TOT_START                             
-        52  P0C                                     
-        53  E_TOT                                   
+        28  T_OFFSET                                
+        37  TRANSLATE_AFTER                         
+        38  E_TOT_OFFSET                            
+        39  DELTA_REF_TIME                          
+        40  P0C_START                               
+        41  E_TOT_START                             
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -1903,11 +1962,11 @@
         88  OFFSET_MOVES_APERTURE                   
         90  REF_PATCH                               
         91  REF_ORBIT                               
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -1923,18 +1982,20 @@
  25  LCAVITY                                 
          1  L                                       
          2  TILT                                    
-         3  GRADIENT_ERR                            
-         4  E_LOSS                                  
-         5  PHI0_ERR                                
-         8  DPHI0                                   
-         9  RF_FREQUENCY                            
-        10  GRADIENT                                
-        11  PHI0                                    
-        14  DELTA_E                                 
-        15  LR_FREQ_SPREAD                          
-        16  !RESERVED                               
-        17  DPHI0_REF                               
-        18  FIELD_SCALE                             
+         3  RF_FREQUENCY                            
+         5  LR_FREQ_SPREAD                          
+         6  GRADIENT                                
+         7  GRADIENT_ERR                            
+         8  DELTA_E                                 
+        10  E_LOSS                                  
+        11  !RESERVED                               
+        13  PHI0                                    
+        14  PHI0_ERR                                
+        15  DPHI0                                   
+        16  DPHI0_REF                               
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
+        22  N_CELL                                  
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1944,22 +2005,22 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
+        32  COUPLER_AT                              
         33  COUPLER_PHASE                           
-        35  COUPLER_ANGLE                           
-        39  COUPLER_STRENGTH                        
-        41  DELTA_REF_TIME                          
-        42  COUPLER_AT                              
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        50  P0C_START                               
-        51  E_TOT_START                             
-        52  P0C                                     
-        53  E_TOT                                   
+        34  COUPLER_ANGLE                           
+        35  COUPLER_STRENGTH                        
+        39  DELTA_REF_TIME                          
+        40  P0C_START                               
+        41  E_TOT_START                             
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -1986,14 +2047,14 @@
         88  OFFSET_MOVES_APERTURE                   
         90  SR_WAKE_FILE                            
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2011,18 +2072,21 @@
          3  TAYLOR_ORDER                            
          4  PARTICLE                                
          5  LATTICE_TYPE                            
-        44  NO_END_MARKER                           
-        52  P0C                                     
-        53  E_TOT                                   
+        42  P0C                                     
+        43  E_TOT                                   
+        45  NO_END_MARKER                           
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
         62  !RESERVED                               
         70  !RESERVED                               
         76  LATTICE                                 
+        85  RF_AUTO_SCALE_AMP                       
         86  ABSOLUTE_TIME_TRACKING                  
+        87  RF_AUTO_SCALE_PHASE                     
         88  ROOT_BRANCH_NAME                        
         89  APERTURE_LIMIT_ON                       
+        91  USE_PTC_LAYOUT                          
         99  RAN_SEED                                
  
  !---------------------------------
@@ -2033,8 +2097,8 @@
         62  !RESERVED                               
         70  !RESERVED                               
         72  ALIAS                                   
-        94  DESCRIP                                 
-        97  TYPE                                    
+       102  DESCRIP                                 
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2052,8 +2116,8 @@
         11  E_FIELD_Y                               
         12  PHASE_X                                 
         13  PHASE_Y                                 
-        52  P0C                                     
-        53  E_TOT                                   
+        42  P0C                                     
+        43  E_TOT                                   
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -2091,15 +2155,15 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -2118,11 +2182,11 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2169,9 +2233,11 @@
         31  Z1                                      
         32  PZ1                                     
         33  MATCH_END_ORBIT                         
-        41  DELTA_REF_TIME                          
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -2190,11 +2256,11 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2223,6 +2289,8 @@
         13  TILT_CALIB                              
         14  DE_ETA_MEAS                             
         15  N_SAMPLE                                
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -2232,16 +2300,18 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -2266,12 +2336,12 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2300,6 +2370,8 @@
         13  TILT_CALIB                              
         14  DE_ETA_MEAS                             
         15  N_SAMPLE                                
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -2309,16 +2381,18 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -2343,12 +2417,12 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2365,23 +2439,27 @@
          1  L                                       
          2  TILT                                    
          3  KICK                                    
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
         32  BL_KICK                                 
-        41  DELTA_REF_TIME                          
-        42  POLE_RADIUS                             
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        53  POLE_RADIUS                             
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -2406,14 +2484,14 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2472,23 +2550,27 @@
          1  L                                       
          2  TILT                                    
          3  KICK                                    
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
         32  BL_KICK                                 
-        41  DELTA_REF_TIME                          
-        42  POLE_RADIUS                             
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        53  POLE_RADIUS                             
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -2513,14 +2595,14 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2578,6 +2660,8 @@
  35  RCOLLIMATOR                             
          1  L                                       
          2  TILT                                    
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -2587,16 +2671,16 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -2621,11 +2705,11 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2641,6 +2725,8 @@
  36  ECOLLIMATOR                             
          1  L                                       
          2  TILT                                    
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -2650,16 +2736,16 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -2684,11 +2770,11 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2702,8 +2788,11 @@
  
  !---------------------------------
  37  GIRDER                                  
+         1  L                                       
          2  TILT                                    
+        11  S_MIN                                   
         12  S_CENTER                                
+        13  S_MAX                                   
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -2715,8 +2804,8 @@
         62  !RESERVED                               
         70  !RESERVED                               
         72  ALIAS                                   
-        94  DESCRIP                                 
-        97  TYPE                                    
+       102  DESCRIP                                 
+       107  TYPE                                    
  
  !---------------------------------
  38  BEND_SOL_QUAD                           
@@ -2724,14 +2813,16 @@
          2  TILT                                    
          3  ANGLE                                   
          4  K1                                      
-         6  DKS_DS                                  
-         7  G                                       
-         8  KS                                      
-        12  RHO                                     
+         6  G                                       
+         8  RHO                                     
+         9  KS                                      
+        10  DKS_DS                                  
         15  QUAD_TILT                               
         16  BEND_TILT                               
         17  X_QUAD                                  
         18  Y_QUAD                                  
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -2741,17 +2832,19 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        40  RADIUS                                  
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -2776,15 +2869,15 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        103  SCALE_MULTIPOLES                        
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2868,17 +2961,17 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        50  P0C_START                               
-        51  E_TOT_START                             
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  P0C_START                               
+        41  E_TOT_START                             
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -2897,12 +2990,12 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
        100  TO                                      
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2926,17 +3019,17 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        50  P0C_START                               
-        51  E_TOT_START                             
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  P0C_START                               
+        41  E_TOT_START                             
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -2955,12 +3048,12 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
        100  TO                                      
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -2974,6 +3067,7 @@
  
  !---------------------------------
  42  MIRROR                                  
+         1  !RESERVED                               
          2  TILT                                    
          3  TILT_ERR                                
          5  GRAZE_ANGLE                             
@@ -2993,16 +3087,16 @@
         34  C4_CURVE_TOT                            
         35  D_SOURCE                                
         36  D_DETEC                                 
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
-        54  REF_WAVELENGTH                          
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        44  REF_WAVELENGTH                          
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -3021,10 +3115,10 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3038,6 +3132,7 @@
  
  !---------------------------------
  43  CRYSTAL                                 
+         1  !RESERVED                               
          2  TILT                                    
          3  TILT_ERR                                
          4  TILT_CORR                               
@@ -3072,19 +3167,19 @@
         36  D_DETEC                                 
         37  !RESERVED                               
         38  !RESERVED                               
-        39  !RESERVED                               
-        41  DELTA_REF_TIME                          
-        42  FOLLOW_DIFFRACTED_BEAM                  
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  REF_CAP_GAMMA                           
-        52  P0C                                     
-        53  E_TOT                                   
-        54  REF_WAVELENGTH                          
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        44  REF_WAVELENGTH                          
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  REF_CAP_GAMMA                           
+        52  !RESERVED                               
+        53  FOLLOW_DIFFRACTED_BEAM                  
         55  THICKNESS                               
         56  !RESERVED                               
         57  !RESERVED                               
@@ -3108,11 +3203,11 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
        106  CRYSTAL_TYPE                            
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3141,6 +3236,8 @@
         13  TILT_CALIB                              
         14  DE_ETA_MEAS                             
         15  N_SAMPLE                                
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -3150,16 +3247,18 @@
         29  VKICK                                   
         30  BL_HKICK                                
         31  BL_VKICK                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -3184,12 +3283,12 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3210,15 +3309,15 @@
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -3239,10 +3338,10 @@
         88  OFFSET_MOVES_APERTURE                   
         92  S_SPLINE                                
         93  N_SLICE_SPLINE                          
-        94  DESCRIP                                 
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3256,10 +3355,10 @@
  
  !---------------------------------
  46  MULTILAYER_MIRROR                       
+         1  !RESERVED                               
          2  TILT                                    
          3  TILT_ERR                                
          5  GRAZE_ANGLE                             
-         7  N_CELLS                                 
          8  GRAZE_ANGLE_ERR                         
          9  D1_THICKNESS                            
         10  D2_THICKNESS                            
@@ -3271,6 +3370,7 @@
         16  F0_IM2                                  
         17  REF_POLARIZATION                        
         18  NEGATIVE_GRAZE_ANGLE                    
+        22  N_CELL                                  
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -3284,16 +3384,16 @@
         34  C4_CURVE_TOT                            
         35  D_SOURCE                                
         36  D_DETEC                                 
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        52  P0C                                     
-        53  E_TOT                                   
-        54  REF_WAVELENGTH                          
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        44  REF_WAVELENGTH                          
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
         59  !RESERVED                               
         60  !RESERVED                               
         61  !RESERVED                               
@@ -3312,11 +3412,11 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  DESCRIP                                 
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
        106  CRYSTAL_TYPE                            
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3332,25 +3432,27 @@
  47  E_GUN                                   
          1  L                                       
          2  TILT                                    
+         6  GRADIENT                                
          7  VOLTAGE                                 
-        10  GRADIENT                                
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        50  P0C_START                               
-        51  E_TOT_START                             
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  !RESERVED                               
+        41  !RESERVED                               
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -3375,13 +3477,13 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
         96  FIELD_CALC                              
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3397,23 +3499,25 @@
  48  EM_FIELD                                
          1  L                                       
          2  TILT                                    
+        20  !RESERVED                               
+        21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
-        41  DELTA_REF_TIME                          
-        43  TILT_TOT                                
-        44  X_PITCH_TOT                             
-        45  Y_PITCH_TOT                             
-        46  X_OFFSET_TOT                            
-        47  Y_OFFSET_TOT                            
-        48  S_OFFSET_TOT                            
-        49  N_REF_PASS                              
-        50  P0C_START                               
-        51  E_TOT_START                             
-        52  P0C                                     
-        53  E_TOT                                   
+        39  DELTA_REF_TIME                          
+        40  P0C_START                               
+        41  E_TOT_START                             
+        42  P0C                                     
+        43  E_TOT                                   
+        45  X_PITCH_TOT                             
+        46  Y_PITCH_TOT                             
+        47  X_OFFSET_TOT                            
+        48  Y_OFFSET_TOT                            
+        49  S_OFFSET_TOT                            
+        50  TILT_TOT                                
+        51  N_REF_PASS                              
         55  INTEGRATOR_ORDER                        
         56  NUM_STEPS                               
         57  DS_STEP                                 
@@ -3438,12 +3542,57 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         93  SYMPLECTIFY                             
-        94  DESCRIP                                 
         95  IS_ON                                   
-        97  TYPE                                    
         98  APERTURE_AT                             
+       102  DESCRIP                                 
        104  WALL                                    
        105  FIELD                                   
+       107  TYPE                                    
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+       119  CREATE_EM_FIELD_SLAVE                   
+ 
+ !---------------------------------
+ 49  FLOOR_POSITION                          
+         1  !RESERVED                               
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        59  !RESERVED                               
+        60  !RESERVED                               
+        61  !RESERVED                               
+        62  !RESERVED                               
+        66  X1_LIMIT                                
+        67  X2_LIMIT                                
+        68  Y1_LIMIT                                
+        69  Y2_LIMIT                                
+        70  !RESERVED                               
+        72  ALIAS                                   
+        77  APERTURE_TYPE                           
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        84  SPIN_TRACKING_METHOD                    
+        85  APERTURE                                
+        86  X_LIMIT                                 
+        87  Y_LIMIT                                 
+        88  OFFSET_MOVES_APERTURE                   
+        92  X_POSITION                              
+        93  Y_POSITION                              
+        94  Z_POSITION                              
+        95  THETA_POSITION                          
+        96  PHI_POSITION                            
+        97  PSI_POSITION                            
+        98  APERTURE_AT                             
+       102  DESCRIP                                 
+       104  WALL                                    
+       107  TYPE                                    
        110  SUPERIMPOSE                             
        111  OFFSET                                  
        112  REFERENCE                               
@@ -3458,125 +3607,125 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    30
+     1    39
      2    44
-     3    20
-     4    23
+     3    21
+     4    22
      5    20
-     6    13
-     7    19
-     8    18
-     9    13
+     6    15
+     7    18
+     8    17
+     9    14
     10    15
     11    15
-    12    15
-    13    12
-    14    15
+    12    11
+    13    15
+    14    14
     15    14
     16     8
-    17     8
-    18     8
+    17     7
+    18     6
     19     2
-    20     2
-    21     1
-    22     1
+    20    27
+    21    26
+    22     6
     23    40
     24    40
     25    40
     26    40
     27    40
-    28    22
+    28    23
     29    23
     30    23
     31    23
-    32     6
+    32     8
     33     9
-    34     5
-    35     5
-    36     7
-    37     5
-    38     3
-    39     6
-    40    11
-    41    40
-    42    10
-    43    38
-    44    39
-    45    38
+    34     7
+    35     9
+    36     6
+    37     3
+    38     4
+    39    41
+    40    30
+    41    30
+    42    43
+    43    43
+    44     3
+    45    39
     46    38
     47    38
     48    38
-    49    27
-    50     8
-    51     8
-    52    42
-    53    42
-    54     3
+    49    38
+    50    38
+    51    27
+    52    12
+    53     8
+    54     0
     55    26
     56    26
     57    26
     58     1
-    59    47
-    60    47
-    61    47
-    62    47
+    59    48
+    60    48
+    61    48
+    62    48
     63     0
     64     0
     65     0
-    66    39
-    67    39
-    68    39
-    69    39
-    70    47
+    66    40
+    67    40
+    68    40
+    69    40
+    70    48
     71     3
-    72    43
+    72    44
     73     2
     74     2
     75     2
     76     3
-    77    39
+    77    40
     78    27
     79    26
     80     2
-    81    40
-    82    40
+    81    41
+    82    41
     83     1
-    84    39
-    85    39
-    86    40
-    87    39
-    88    40
+    84    40
+    85    41
+    86    41
+    87    41
+    88    41
     89     1
     90     4
-    91     4
-    92     2
-    93    29
-    94    43
-    95    35
-    96    20
-    97    43
-    98    40
+    91     5
+    92     3
+    93    30
+    94     2
+    95    36
+    96    21
+    97     2
+    98    41
     99     2
    100     2
    101    21
-   102     0
+   102    43
    103    13
-   104    40
+   104    41
    105    12
    106     3
-   107     0
+   107    43
    108     0
    109     0
-   110    40
-   111    40
-   112    40
-   113    40
-   114    40
-   115    40
-   116    40
-   117    40
-   118    40
-   119    40
+   110    41
+   111    41
+   112    41
+   113    41
+   114    41
+   115    41
+   116    41
+   117    41
+   118    41
+   119    41
    120    15
    121    15
    122    15
@@ -3639,8 +3788,10 @@ Index: 1
     TAYLOR                                  
     RFCAVITY                                
     ELSEPARATOR                             
+    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
+    MARKER                                  
     KICKER                                  
     HYBRID                                  
     OCTUPOLE                                
@@ -3658,11 +3809,16 @@ Index: 1
     VKICKER                                 
     RCOLLIMATOR                             
     ECOLLIMATOR                             
+    GIRDER                                  
     BEND_SOL_QUAD                           
     DEF_BEAM_START                          
+    MIRROR                                  
+    CRYSTAL                                 
     PIPE                                    
+    MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 2
@@ -3716,6 +3872,7 @@ Index: 3
     SBEND                                   
     GROUP                                   
     CUSTOM                                  
+    RFCAVITY                                
     MARKER                                  
     RBEND                                   
     LCAVITY                                 
@@ -3747,7 +3904,6 @@ Index: 4
     KICKER                                  
     RBEND                                   
     DEF_BEAM                                
-    LCAVITY                                 
     DEF_PARAMETER                           
     MATCH                                   
     MONITOR                                 
@@ -3791,6 +3947,7 @@ Index: 6
     MARKER                                  
     OCTUPOLE                                
     RBEND                                   
+    LCAVITY                                 
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
@@ -3798,6 +3955,7 @@ Index: 6
     DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
+    E_GUN                                   
  
  !---------------------------------
 Index: 7
@@ -3809,29 +3967,27 @@ Index: 7
     WIGGLER                                 
     MARKER                                  
     RBEND                                   
+    LCAVITY                                 
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
-    BEND_SOL_QUAD                           
     PHOTON_BRANCH                           
     BRANCH                                  
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
-    MULTILAYER_MIRROR                       
     E_GUN                                   
  
  !---------------------------------
 Index: 8
     SBEND                                   
     CUSTOM                                  
-    RFCAVITY                                
     ELSEPARATOR                             
     BEAMBEAM                                
-    SOL_QUAD                                
+    WIGGLER                                 
     MARKER                                  
+    HYBRID                                  
     RBEND                                   
-    SOLENOID                                
     LCAVITY                                 
     MATCH                                   
     MONITOR                                 
@@ -3846,14 +4002,15 @@ Index: 8
 Index: 9
     SBEND                                   
     CUSTOM                                  
-    RFCAVITY                                
     BEAMBEAM                                
+    SOL_QUAD                                
     MARKER                                  
     RBEND                                   
-    LCAVITY                                 
+    SOLENOID                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    BEND_SOL_QUAD                           
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
@@ -3870,18 +4027,17 @@ Index: 10
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    BEND_SOL_QUAD                           
     DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
-    E_GUN                                   
  
  !---------------------------------
 Index: 11
     SBEND                                   
     CUSTOM                                  
     RFCAVITY                                
-    WIGGLER                                 
     MARKER                                  
     RBEND                                   
     LCAVITY                                 
@@ -3889,6 +4045,7 @@ Index: 11
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    GIRDER                                  
     DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
@@ -3896,17 +4053,13 @@ Index: 11
  
  !---------------------------------
 Index: 12
-    SBEND                                   
     CUSTOM                                  
-    WIGGLER                                 
     MARKER                                  
-    RBEND                                   
     INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     GIRDER                                  
-    BEND_SOL_QUAD                           
     DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
@@ -3916,12 +4069,15 @@ Index: 12
 Index: 13
     SBEND                                   
     CUSTOM                                  
+    RFCAVITY                                
     MARKER                                  
     RBEND                                   
+    LCAVITY                                 
     INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    GIRDER                                  
     DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
@@ -3935,7 +4091,6 @@ Index: 14
     RFCAVITY                                
     WIGGLER                                 
     MARKER                                  
-    HYBRID                                  
     RBEND                                   
     LCAVITY                                 
     MATCH                                   
@@ -3978,7 +4133,6 @@ Index: 17
     SBEND                                   
     RFCAVITY                                
     RBEND                                   
-    LCAVITY                                 
     MATCH                                   
     BEND_SOL_QUAD                           
     CRYSTAL                                 
@@ -3987,9 +4141,7 @@ Index: 17
  !---------------------------------
 Index: 18
     SBEND                                   
-    RFCAVITY                                
     RBEND                                   
-    LCAVITY                                 
     MATCH                                   
     BEND_SOL_QUAD                           
     CRYSTAL                                 
@@ -4002,16 +4154,71 @@ Index: 19
  
  !---------------------------------
 Index: 20
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    CUSTOM                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    WIGGLER                                 
+    SOL_QUAD                                
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    BEND_SOL_                               
+    SOLENOID                                
+    LCAVITY                                 
     MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    BEND_SOL_QUAD                           
     CRYSTAL                                 
+    PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 21
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    CUSTOM                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    WIGGLER                                 
+    SOL_QUAD                                
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    BEND_SOL_                               
+    SOLENOID                                
+    LCAVITY                                 
     MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    BEND_SOL_QUAD                           
+    PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 22
+    SBEND                                   
+    RFCAVITY                                
+    RBEND                                   
+    LCAVITY                                 
     MATCH                                   
+    MULTILAYER_MIRROR                       
  
  !---------------------------------
 Index: 23
@@ -4242,6 +4449,7 @@ Index: 28
     RBEND                                   
     BEND_SOL_                               
     SOLENOID                                
+    PATCH                                   
     LCAVITY                                 
     MATCH                                   
     MONITOR                                 
@@ -4333,6 +4541,8 @@ Index: 31
  
  !---------------------------------
 Index: 32
+    RFCAVITY                                
+    LCAVITY                                 
     MATCH                                   
     HKICKER                                 
     VKICKER                                 
@@ -4355,14 +4565,20 @@ Index: 33
  !---------------------------------
 Index: 34
     SBEND                                   
+    RFCAVITY                                
     RBEND                                   
+    LCAVITY                                 
     MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
  
  !---------------------------------
 Index: 35
+    SBEND                                   
+    QUADRUPOLE                              
     RFCAVITY                                
+    SOL_QUAD                                
+    RBEND                                   
     LCAVITY                                 
     MIRROR                                  
     CRYSTAL                                 
@@ -4371,8 +4587,7 @@ Index: 35
  !---------------------------------
 Index: 36
     SBEND                                   
-    QUADRUPOLE                              
-    SOL_QUAD                                
+    SEXTUPOLE                               
     RBEND                                   
     MIRROR                                  
     CRYSTAL                                 
@@ -4380,43 +4595,19 @@ Index: 36
  
  !---------------------------------
 Index: 37
-    SBEND                                   
-    SEXTUPOLE                               
-    RBEND                                   
+    OCTUPOLE                                
     PATCH                                   
     CRYSTAL                                 
  
  !---------------------------------
 Index: 38
-    OCTUPOLE                                
+    SOL_QUAD                                
+    SOLENOID                                
     PATCH                                   
     CRYSTAL                                 
  
  !---------------------------------
 Index: 39
-    RFCAVITY                                
-    SOL_QUAD                                
-    SOLENOID                                
-    PATCH                                   
-    LCAVITY                                 
-    CRYSTAL                                 
- 
- !---------------------------------
-Index: 40
-    SBEND                                   
-    QUADRUPOLE                              
-    SEXTUPOLE                               
-    ELSEPARATOR                             
-    WIGGLER                                 
-    SOL_QUAD                                
-    KICKER                                  
-    OCTUPOLE                                
-    RBEND                                   
-    SOLENOID                                
-    BEND_SOL_QUAD                           
- 
- !---------------------------------
-Index: 41
     DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
@@ -4457,19 +4648,119 @@ Index: 41
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
+ 
+ !---------------------------------
+Index: 40
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    CUSTOM                                  
+    TAYLOR                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
+    KICKER                                  
+    HYBRID                                  
+    OCTUPOLE                                
+    RBEND                                   
+    SOLENOID                                
+    PATCH                                   
+    LCAVITY                                 
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
+ 
+ !---------------------------------
+Index: 41
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    CUSTOM                                  
+    TAYLOR                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
+    KICKER                                  
+    HYBRID                                  
+    OCTUPOLE                                
+    RBEND                                   
+    SOLENOID                                
+    PATCH                                   
+    LCAVITY                                 
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 42
+    DRIFT                                   
+    SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
+    CUSTOM                                  
+    TAYLOR                                  
     RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
     KICKER                                  
     OCTUPOLE                                
+    RBEND                                   
+    MULTIPOLE                               
+    BEND_SOL_                               
+    DEF_BEAM                                
+    AB_MULTIPOLE                            
     SOLENOID                                
+    PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
+    INIT_ELE                                
+    HOM                                     
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
     HKICKER                                 
     VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    MIRROR                                  
     CRYSTAL                                 
+    PIPE                                    
+    CAPILLARY                               
+    MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 43
@@ -4490,53 +4781,15 @@ Index: 43
     RBEND                                   
     MULTIPOLE                               
     BEND_SOL_                               
-    AB_MULTIPOLE                            
-    SOLENOID                                
-    PATCH                                   
-    LCAVITY                                 
-    HOM                                     
-    MONITOR                                 
-    INSTRUMENT                              
-    HKICKER                                 
-    VKICKER                                 
-    RCOLLIMATOR                             
-    ECOLLIMATOR                             
-    BEND_SOL_QUAD                           
-    PHOTON_BRANCH                           
-    BRANCH                                  
-    MIRROR                                  
-    CRYSTAL                                 
-    PIPE                                    
-    CAPILLARY                               
-    MULTILAYER_MIRROR                       
-    E_GUN                                   
-    EM_FIELD                                
- 
- !---------------------------------
-Index: 44
-    DRIFT                                   
-    SBEND                                   
-    QUADRUPOLE                              
-    SEXTUPOLE                               
-    CUSTOM                                  
-    TAYLOR                                  
-    RFCAVITY                                
-    ELSEPARATOR                             
-    BEAMBEAM                                
-    WIGGLER                                 
-    SOL_QUAD                                
-    MARKER                                  
-    KICKER                                  
-    OCTUPOLE                                
-    RBEND                                   
-    MULTIPOLE                               
-    BEND_SOL_                               
+    DEF_BEAM                                
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
     DEF_PARAMETER                           
+    INIT_ELE                                
     HOM                                     
+    MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     HKICKER                                 
@@ -4553,6 +4806,13 @@ Index: 44
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
+ 
+ !---------------------------------
+Index: 44
+    MIRROR                                  
+    CRYSTAL                                 
+    MULTILAYER_MIRROR                       
  
  !---------------------------------
 Index: 45
@@ -4577,6 +4837,7 @@ Index: 45
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
     HOM                                     
     MONITOR                                 
     INSTRUMENT                              
@@ -4725,17 +4986,23 @@ Index: 49
     QUADRUPOLE                              
     SEXTUPOLE                               
     CUSTOM                                  
+    TAYLOR                                  
     RFCAVITY                                
     ELSEPARATOR                             
+    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
+    MARKER                                  
     KICKER                                  
     OCTUPOLE                                
     RBEND                                   
+    MULTIPOLE                               
     BEND_SOL_                               
+    AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    HOM                                     
     MONITOR                                 
     INSTRUMENT                              
     HKICKER                                 
@@ -4743,128 +5010,115 @@ Index: 49
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
+    CAPILLARY                               
+    MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
  
  !---------------------------------
 Index: 50
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
     CUSTOM                                  
-    HYBRID                                  
+    TAYLOR                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    MULTIPOLE                               
+    BEND_SOL_                               
+    AB_MULTIPOLE                            
+    SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    HOM                                     
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    BEND_SOL_QUAD                           
     PHOTON_BRANCH                           
     BRANCH                                  
+    MIRROR                                  
+    CRYSTAL                                 
+    PIPE                                    
+    CAPILLARY                               
+    MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
  
  !---------------------------------
 Index: 51
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
     CUSTOM                                  
-    HYBRID                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    WIGGLER                                 
+    SOL_QUAD                                
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    BEND_SOL_                               
+    SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    PHOTON_BRANCH                           
-    BRANCH                                  
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    BEND_SOL_QUAD                           
+    CRYSTAL                                 
+    PIPE                                    
     E_GUN                                   
     EM_FIELD                                
  
  !---------------------------------
 Index: 52
-    DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
-    CUSTOM                                  
-    TAYLOR                                  
-    RFCAVITY                                
     ELSEPARATOR                             
-    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
-    MARKER                                  
     KICKER                                  
     OCTUPOLE                                
     RBEND                                   
-    MULTIPOLE                               
-    BEND_SOL_                               
-    DEF_BEAM                                
-    AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
-    LCAVITY                                 
-    DEF_PARAMETER                           
-    INIT_ELE                                
-    HOM                                     
-    MATCH                                   
-    MONITOR                                 
-    INSTRUMENT                              
-    HKICKER                                 
-    VKICKER                                 
-    RCOLLIMATOR                             
-    ECOLLIMATOR                             
     BEND_SOL_QUAD                           
-    PHOTON_BRANCH                           
-    BRANCH                                  
-    MIRROR                                  
     CRYSTAL                                 
-    PIPE                                    
-    CAPILLARY                               
-    MULTILAYER_MIRROR                       
-    E_GUN                                   
-    EM_FIELD                                
  
  !---------------------------------
 Index: 53
-    DRIFT                                   
-    SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
-    CUSTOM                                  
-    TAYLOR                                  
-    RFCAVITY                                
-    ELSEPARATOR                             
-    BEAMBEAM                                
-    WIGGLER                                 
-    SOL_QUAD                                
-    MARKER                                  
     KICKER                                  
     OCTUPOLE                                
-    RBEND                                   
-    MULTIPOLE                               
-    BEND_SOL_                               
-    DEF_BEAM                                
-    AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
-    LCAVITY                                 
-    DEF_PARAMETER                           
-    INIT_ELE                                
-    HOM                                     
-    MATCH                                   
-    MONITOR                                 
-    INSTRUMENT                              
     HKICKER                                 
     VKICKER                                 
-    RCOLLIMATOR                             
-    ECOLLIMATOR                             
-    BEND_SOL_QUAD                           
-    PHOTON_BRANCH                           
-    BRANCH                                  
-    MIRROR                                  
     CRYSTAL                                 
-    PIPE                                    
-    CAPILLARY                               
-    MULTILAYER_MIRROR                       
-    E_GUN                                   
-    EM_FIELD                                
  
  !---------------------------------
 Index: 54
-    MIRROR                                  
-    CRYSTAL                                 
-    MULTILAYER_MIRROR                       
  
  !---------------------------------
 Index: 55
@@ -5006,6 +5260,7 @@ Index: 59
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 60
@@ -5056,6 +5311,7 @@ Index: 60
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 61
@@ -5106,6 +5362,7 @@ Index: 61
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 62
@@ -5156,6 +5413,7 @@ Index: 62
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 63
@@ -5207,6 +5465,7 @@ Index: 66
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 67
@@ -5249,6 +5508,7 @@ Index: 67
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 68
@@ -5291,6 +5551,7 @@ Index: 68
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 69
@@ -5333,6 +5594,7 @@ Index: 69
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 70
@@ -5383,6 +5645,7 @@ Index: 70
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 71
@@ -5435,6 +5698,7 @@ Index: 72
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 73
@@ -5498,6 +5762,7 @@ Index: 77
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 78
@@ -5605,6 +5870,7 @@ Index: 81
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 82
@@ -5648,6 +5914,7 @@ Index: 82
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 83
@@ -5694,6 +5961,7 @@ Index: 84
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 85
@@ -5718,6 +5986,7 @@ Index: 85
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
     HOM                                     
     MATCH                                   
     MONITOR                                 
@@ -5736,6 +6005,7 @@ Index: 85
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 86
@@ -5779,6 +6049,7 @@ Index: 86
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 87
@@ -5803,6 +6074,7 @@ Index: 87
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
     HOM                                     
     MATCH                                   
     MONITOR                                 
@@ -5821,6 +6093,7 @@ Index: 87
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 88
@@ -5864,6 +6137,7 @@ Index: 88
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 89
@@ -5882,11 +6156,13 @@ Index: 91
     WIGGLER                                 
     RBEND                                   
     PATCH                                   
+    DEF_PARAMETER                           
  
  !---------------------------------
 Index: 92
     INIT_ELE                                
     CAPILLARY                               
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 93
@@ -5919,52 +6195,12 @@ Index: 93
     CAPILLARY                               
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 94
-    DRIFT                                   
-    SBEND                                   
-    QUADRUPOLE                              
-    GROUP                                   
-    SEXTUPOLE                               
-    CUSTOM                                  
-    TAYLOR                                  
-    RFCAVITY                                
-    ELSEPARATOR                             
-    BEAMBEAM                                
-    WIGGLER                                 
-    SOL_QUAD                                
-    MARKER                                  
-    KICKER                                  
-    OCTUPOLE                                
-    RBEND                                   
-    MULTIPOLE                               
-    BEND_SOL_                               
-    AB_MULTIPOLE                            
-    SOLENOID                                
-    PATCH                                   
-    LCAVITY                                 
-    NULL_ELE                                
     INIT_ELE                                
-    HOM                                     
-    MATCH                                   
-    MONITOR                                 
-    INSTRUMENT                              
-    HKICKER                                 
-    VKICKER                                 
-    RCOLLIMATOR                             
-    ECOLLIMATOR                             
-    GIRDER                                  
-    BEND_SOL_QUAD                           
-    PHOTON_BRANCH                           
-    BRANCH                                  
-    MIRROR                                  
-    CRYSTAL                                 
-    PIPE                                    
-    CAPILLARY                               
-    MULTILAYER_MIRROR                       
-    E_GUN                                   
-    EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 95
@@ -6003,6 +6239,7 @@ Index: 95
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 96
@@ -6026,52 +6263,12 @@ Index: 96
     VKICKER                                 
     BEND_SOL_QUAD                           
     E_GUN                                   
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 97
-    DRIFT                                   
-    SBEND                                   
-    QUADRUPOLE                              
-    GROUP                                   
-    SEXTUPOLE                               
-    CUSTOM                                  
-    TAYLOR                                  
-    RFCAVITY                                
-    ELSEPARATOR                             
-    BEAMBEAM                                
-    WIGGLER                                 
-    SOL_QUAD                                
-    MARKER                                  
-    KICKER                                  
-    OCTUPOLE                                
-    RBEND                                   
-    MULTIPOLE                               
-    BEND_SOL_                               
-    AB_MULTIPOLE                            
-    SOLENOID                                
-    PATCH                                   
-    LCAVITY                                 
-    NULL_ELE                                
     INIT_ELE                                
-    HOM                                     
-    MATCH                                   
-    MONITOR                                 
-    INSTRUMENT                              
-    HKICKER                                 
-    VKICKER                                 
-    RCOLLIMATOR                             
-    ECOLLIMATOR                             
-    GIRDER                                  
-    BEND_SOL_QUAD                           
-    PHOTON_BRANCH                           
-    BRANCH                                  
-    MIRROR                                  
-    CRYSTAL                                 
-    PIPE                                    
-    CAPILLARY                               
-    MULTILAYER_MIRROR                       
-    E_GUN                                   
-    EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 98
@@ -6115,6 +6312,7 @@ Index: 98
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 99
@@ -6152,6 +6350,49 @@ Index: 101
  
  !---------------------------------
 Index: 102
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    GROUP                                   
+    SEXTUPOLE                               
+    CUSTOM                                  
+    TAYLOR                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    MULTIPOLE                               
+    BEND_SOL_                               
+    AB_MULTIPOLE                            
+    SOLENOID                                
+    PATCH                                   
+    LCAVITY                                 
+    NULL_ELE                                
+    HOM                                     
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    GIRDER                                  
+    BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    MIRROR                                  
+    CRYSTAL                                 
+    PIPE                                    
+    CAPILLARY                               
+    MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 103
@@ -6211,6 +6452,7 @@ Index: 104
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 105
@@ -6235,6 +6477,49 @@ Index: 106
  
  !---------------------------------
 Index: 107
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    GROUP                                   
+    SEXTUPOLE                               
+    CUSTOM                                  
+    TAYLOR                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    MULTIPOLE                               
+    BEND_SOL_                               
+    AB_MULTIPOLE                            
+    SOLENOID                                
+    PATCH                                   
+    LCAVITY                                 
+    NULL_ELE                                
+    HOM                                     
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    GIRDER                                  
+    BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    MIRROR                                  
+    CRYSTAL                                 
+    PIPE                                    
+    CAPILLARY                               
+    MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 108
@@ -6284,6 +6569,7 @@ Index: 110
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 111
@@ -6327,6 +6613,7 @@ Index: 111
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 112
@@ -6370,6 +6657,7 @@ Index: 112
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 113
@@ -6413,6 +6701,7 @@ Index: 113
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 114
@@ -6456,6 +6745,7 @@ Index: 114
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 115
@@ -6499,6 +6789,7 @@ Index: 115
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 116
@@ -6542,6 +6833,7 @@ Index: 116
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 117
@@ -6585,6 +6877,7 @@ Index: 117
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 118
@@ -6628,6 +6921,7 @@ Index: 118
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 119
@@ -6671,6 +6965,7 @@ Index: 119
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 120
