@@ -469,7 +469,7 @@ if (photon_start_input_file /= '') then
       if (is_inside) exit
     enddo
 
-    call element_at_s(lat, p%vec(5), p%ix_ele)
+    p = element_at_s(lat, p%vec(5), .true.%ix_ele)
 
     n_photon_generated = n_photon_generated + 1
     n_photon_array = n_photon_array + 1
