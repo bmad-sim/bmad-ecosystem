@@ -2817,10 +2817,12 @@ end function gradient_shift_sr_wake
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_ele_status_stale (ele, status_group)
+! Subroutine set_ele_status_stale (ele, status_group, set_slaves)
 !
 ! Routine to set a status flags to stale in an element and the corresponding 
-! ones for the branch%param structure of the branch the element is in.
+! ones for any slaves the element has.
+!
+! Also the branch%param structure of the branch the element is in is set.
 !
 ! For example: status_group = ref_energy_group$ sets stale:
 !   ele%bookkeeping_state%ref_energy 
@@ -2829,20 +2831,24 @@ end function gradient_shift_sr_wake
 ! See the code for more details.
 ! 
 ! Output:
-!   ele    -- ele_struct: Element.
-!     %status -- Status block to set.
+!   ele           -- ele_struct: Element.
+!     %status         -- Status block to set.
 !   status_group  -- Integer: Which flag groups to set. Possibilities are:
-!               attribute_group$, control_group$, floor_position_group$,
-!               length_group$, ref_energy_group$, or mat6_group$, all_groups$
+!                      attribute_group$, control_group$, floor_position_group$,
+!                      length_group$, ref_energy_group$, or mat6_group$, all_groups$
+!   set_slaves    -- Logical, optional: If present and False then do not set
+!                      the status for any slaves. Default is True.
 !-
 
-subroutine set_ele_status_stale (ele, status_group)
+recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
 
 implicit none
 
 type (bookkeeper_status_struct), pointer :: state
 type (ele_struct), target :: ele
-integer status_group
+type (ele_struct), pointer :: slave
+integer status_group, i
+logical, optional :: set_slaves
 
 ! Only set overall lattice status flags if the element is part of a lattice.
 
@@ -2902,6 +2908,15 @@ case default
    if (bmad_status%exit_on_error) call err_exit   ! Should not be here
 
 end select
+
+! Set slave
+
+if (logic_option(.true., set_slaves)) then
+  do i = 1, ele%n_slave
+    slave => pointer_to_slave (ele, i)
+    call set_ele_status_stale (slave, status_group)
+  enddo
+endif
 
 !----------------------------------------------------------------------------
 contains
@@ -3015,47 +3030,6 @@ end subroutine set_status_flags
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_slaves_status_stale (ele, lat, stat_group, flag)
-!
-! Routine to recursively set the status flag of all slaves of an element.
-!
-! Input:
-!   ele        -- ele_struct: Element
-!   stat_group -- Integer: which status group to set. floor_position_group$, etc.
-!                   See set_ele_status_stale for more details.
-!   flag       -- Logical, optional: Do not use. For determining recursion depth.
-!
-! Output:
-!   lat        -- Lat_struct: Lattice with status flags of slaves of ele set.
-!-
-
-recursive subroutine set_slaves_status_stale (ele, lat, stat_group, flag)
-
-implicit none
-
-type (lat_struct) lat
-type (ele_struct) ele
-type (ele_struct), pointer :: slave
-integer stat_group, i
-logical, optional :: flag
-
-! First time through the flag argument will not be present.
-! Do not set status first time through since this is the original element.
-! That is, only want to set the flags of the slaves.
-
-if (present(flag)) call set_ele_status_stale (ele, stat_group)
-
-do i = 1, ele%n_slave
-  slave => pointer_to_slave (ele, i)
-  call set_slaves_status_stale (slave, lat, stat_group, .true.)
-enddo
-
-end subroutine set_slaves_status_stale
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine set_lords_status_stale (ele, lat, stat_group, flag)
 !
 ! Routine to recursively set the status flag of all slaves of an element.
@@ -3084,7 +3058,7 @@ logical, optional :: flag
 ! Do not set status first time through since this is the original element.
 ! That is, only want to set the flags of the lords.
 
-if (present(flag)) call set_ele_status_stale (ele, stat_group)
+if (present(flag)) call set_ele_status_stale (ele, stat_group, .false.)
 
 do i = 1, ele%n_lord
   lord => pointer_to_lord (ele, i)

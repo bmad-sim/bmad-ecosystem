@@ -271,12 +271,6 @@ n2 = lat%n_ele_max
 
 if (bmad_com%auto_bookkeeper) then
   lat%ele(n1:n2)%bookkeeping_state%control = stale$  ! Bookkeeping done on this element yet?
-else
-  do ie = n1, n2
-    ele2 => lat%ele(ie)
-    if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
-    call set_slaves_status_stale (ele2, lat, control_group$)
-  enddo
 endif
 
 ! Now do the control bookkeeping.
@@ -2148,7 +2142,7 @@ end subroutine makeup_overlay_and_girder_slave
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine attribute_bookkeeper (ele, param)
+! Subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
 !
 ! Routine to recalculate the dependent attributes of an element.
 ! If the attributes have changed then any Taylor Maps will be killed.
@@ -2194,9 +2188,12 @@ end subroutine makeup_overlay_and_girder_slave
 !   use bmad
 !
 ! Input:
-!   ele        -- Ele_struct: Element with attributes 
-!   param      -- lat_param_struct: 
-!
+!   ele            -- Ele_struct: Element with attributes 
+!   param          -- lat_param_struct: 
+!   force_bookkeeping 
+!                  -- Logical, optional: If present and True then force
+!                       attribute bookkeeping to be done independent of
+!                       the state of ele%bookkeeping_stat%attributes.
 ! Output:
 !   ele            -- Ele_struct: Element with self-consistant attributes.
 !
@@ -2204,7 +2201,7 @@ end subroutine makeup_overlay_and_girder_slave
 !       the attribute_free routine must be modified.
 !-
 
-subroutine attribute_bookkeeper (ele, param)
+subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
 
 implicit none
 
@@ -2220,6 +2217,7 @@ integer i, n
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
+logical, optional :: force_bookkeeping
 logical err_flag
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
 logical, save :: v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
@@ -2232,7 +2230,8 @@ val => ele%value
 ! Intelligent bookkeeping
 
 if (.not. bmad_com%auto_bookkeeper) then
-  if (ele%bookkeeping_state%attributes /= stale$) return
+  if (ele%bookkeeping_state%attributes /= stale$ .and. &
+      .not. logic_option(.true., force_bookkeeping)) return
 
   if (ele%lord_status /= not_a_lord$) then
     call set_ele_status_stale (ele, control_group$)
@@ -2912,7 +2911,7 @@ case (branch$, photon_branch$)
     branch%ele(0)%bookkeeping_state%floor_position = stale$
   endif
 
-case (lcavity$)
+case (lcavity$, e_gun$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
       associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
