@@ -133,7 +133,7 @@ write (iu, '(4a)') 'parameter[lattice_type] = ', lattice_type(lat%param%lattice_
 if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] = ', lat%input_taylor_order
 
 write (iu, *)
-write (iu, '(4a)')    'parameter[p0c]                    =', trim(str(lat%ele(0)%value(p0c$)))
+write (iu, '(4a)')    'parameter[p0c]                    =', trim(str(lat%ele(0)%value(p0c_start$)))
 write (iu, '(4a)')    'parameter[particle]               = ', particle_name(lat%param%particle)
 
 if (.not. lat%param%aperture_limit_on) write (iu, '(4a)')    'parameter[aperture_limit_on]      = F'

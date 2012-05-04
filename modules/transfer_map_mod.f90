@@ -174,7 +174,7 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-call element_at_s (lat, s_1, ix_ele, branch%ix_branch)
+ix_ele = element_at_s (lat, s_1, .true., branch%ix_branch)
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -415,7 +415,7 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-call element_at_s (lat, s_1, ix_ele, branch%ix_branch)
+ix_ele = element_at_s (lat, s_1, .true., branch%ix_branch)
 s_now = s_1
 
 ! Loop over all the element to track through.

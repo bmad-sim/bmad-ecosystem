@@ -1,10 +1,10 @@
 !+
-! Subroutine element_at_s (lat, s, ix_ele, ix_branch, err_flag, s_eff)
+! Function element_at_s (lat, s, min1, ix_branch, err_flag, s_eff) result (ix_ele)
 !
-! Subroutine to return the index of the element at position s.
+! Function to return the index of the element at position s.
 ! That is, ix_ele is choisen such that:
 !     lat%ele(ix_ele-1)%s < s <= lat%ele(ix_ele)%s
-! Exception: s = 0 --> ix_ele = 1.
+! Exception: If min1 = True and s = s_at_start_of_lat --> ix_ele = 1.
 !
 ! Note: For a circular lattice s is evaluated at the effective s which
 ! is modulo the lattice length:
@@ -16,6 +16,7 @@
 ! Input:
 !   lat       -- lat_struct: Lattice of elements.
 !   s         -- Real(rp): Longitudinal position.
+!   min1      -- Logical: If true and if s = s_at_start_of_lat then ix_ele = 1 and not 0.
 !   ix_branch -- Integer, optional: Branch index. Default is 0.
 !
 ! Output:
@@ -24,7 +25,7 @@
 !   s_eff     -- Real(rp), optional: Effective s. Equal to s with a linear lattice.
 !-
 
-subroutine element_at_s (lat, s, ix_ele, ix_branch, err_flag, s_eff)
+function element_at_s (lat, s, min1, ix_branch, err_flag, s_eff) result (ix_ele)
 
 use bmad, except_dummy => element_at_s
 
@@ -41,7 +42,7 @@ integer, optional :: ix_branch
 
 character(16), parameter :: r_name = 'element_at_s'
 logical, optional :: err_flag
-logical err
+logical min1, err
 
 ! Get translated position and check for position out-of-bounds.
 
@@ -49,6 +50,18 @@ branch => lat%branch(integer_option(0, ix_branch))
 call check_if_s_in_bounds (branch, s, err, ss)
 if (present(err_flag)) err_flag = err
 if (err) return
+
+! Start of lattice case
+
+if (s == branch%ele(0)%s) then
+  if (min1) then
+    ix_ele = 1
+  else
+    ix_ele = 0
+  endif
+  if (present(s_eff)) s_eff = s
+  return
+endif
 
 !
 
@@ -74,4 +87,4 @@ enddo
 
 if (present(s_eff)) s_eff = ss
 
-end subroutine
+end function
