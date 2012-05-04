@@ -539,7 +539,7 @@ endif
 ! Also dw_perp needs to be normalized to 1.
 
 if (present(dw_perp)) then
-  call element_at_s (lat, p_orb%vec(5), ix_ele)
+  ix_ele = element_at_s (lat, p_orb%vec(5), .true.)
   ele => lat%ele(ix_ele)
   if (ele%key == sbend$) then
     if (ele%value(tilt_tot$) == 0) then
