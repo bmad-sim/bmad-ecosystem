@@ -67,13 +67,13 @@ endif
 
 ! Find elements corresponding to s_start and s_stop
 
-call element_at_s (lat, s_start, ix_start, ix_branch)
+ix_start = element_at_s (lat, s_start, .true., ix_branch)
 if (branch%ele(ix_start)%s == s_start) then
   ix_start = modulo (ix_start, branch%n_ele_track) + 1
 endif
 s0 = lat%ele(ix_start-1)%s
 
-call element_at_s (lat, s_end, ix_end, ix_branch)
+ix_end = element_at_s (lat, s_end, .true., ix_branch)
 
 
 ! Track within a single element case

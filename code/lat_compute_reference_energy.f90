@@ -121,6 +121,7 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_track
     gun_ele => branch%ele(i)
     if (gun_ele%key == marker$) cycle
+    if (gun_ele%key == null_ele$) cycle
     if (gun_ele%key /= e_gun$) exit
     if (gun_ele%slave_status == super_slave$ .or. gun_ele%slave_status == slice_slave$) gun_ele => pointer_to_lord(gun_ele, 1)
 
@@ -495,7 +496,11 @@ case default
   endif
 
   if (ele_has_constant_ds_dt_ref(ele)) then
-    ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+    if (ele%value(l$) == 0) then     ! Must avoid problem with zero length markers and p0c = 0.
+      ele%ref_time = 0
+    else
+      ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+    endif
   else
 
     call track_this_ele (.false.)
