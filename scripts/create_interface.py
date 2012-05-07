@@ -27,22 +27,24 @@ def print_debug (line):
 ##################################################################################
 # struct_def_class
 # Class for a structure
+# Note: The .var array will contain, in addtion to the structure components, the
+# array bounds for allocatable and pointer structure components.
 
 class struct_def_class:
   def __init__(self, f_name = ''):
     self.f_name = f_name # Struct name on Fortran side
     self.short_name = '' # Struct name without trailing '_struct'. Note: C name is 'C_<name>'
-    self.var = []        # List of structrure components. Array of var_class.
-    self.dim_var = []    # Array dimensions
+    self.var = []        # Array of var_class. List of structrure components + dimensions. 
 
   def __repr__(self):
     return '[name: %s, #var: %i]' % (self.short_name, len(self.var))
 
-# var_class
+# var_class.
 
 class var_class:
 
   def __init__(self):
+    self.is_component = True
     self.name = ''             # Name of variable
     self.type = ''             # Fortran type without '(...)'. EG: 'real', 'type', 'character', etc.
     self.kind = ''             # Fortran kind. EG: '', 'rp', 'coord_struct', etc.
@@ -86,14 +88,14 @@ class f_side_trans_class:
 
   def __init__(self, to_c2_arg, bindc_type, bindc_name):
     self.to_c2_arg = to_c2_arg
-    self.bindc_type = bindc_type
+    self.bindc_type = bindc_type        
     self.bindc_name = bindc_name
-    self.bindc_const = ''
     self.equal_test = '(f1%NAME == f2%NAME)'
     self.to_f2_trans = 'F%NAME = z_NAME'
     self.test_pat = 'F%NAME = XXX + offset'
     self.to_c_var = ''
     self.to_c_trans = ''
+    self.size_var = []              # For communicating the size of allocatable and pointer variables
 
   def __repr__(self):
     return '%s,  %s,  %s :: %s' % (self.to_c2_arg, self.bindc_type, self.bindc_name, self.to_f2_trans)
@@ -134,11 +136,37 @@ test_pat1 = jd1_loop + rhs1 + '  F%NAME(jd1+lb1) = NNN\n' + 'enddo\n'
 test_pat2 = jd1_loop + jd2_loop + rhs2 + '  F%NAME(jd1+lb1,jd2+lb2) = NNN\n' + 'enddo; enddo\n'
 test_pat3 = jd1_loop + jd2_loop + jd3_loop + rhs3 + '  F%NAME(jd1+lb1,jd2+lb2,jd3+lb3) = NNN\n' + 'enddo; enddo; enddo\n'
 
-f_side_trans[CHAR,  0, NOT].test_pat    = \
-        'do jd1 = 1, len(F%NAME)\n  F%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26))\nenddo'
-f_side_trans[CHAR,  0, NOT].to_f2_trans = 'call to_f_str(z_NAME, F%NAME)'
+f_side_trans[REAL,  1, NOT].to_f2_trans = 'F%NAME = z_NAME(1:size(F%NAME))'
+f_side_trans[REAL,  1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
+
+f_side_trans[REAL,  2, NOT].to_f2_trans = 'F%NAME = vec2mat(z_NAME, size(F%NAME, 1), size(F%NAME, 2))'
+f_side_trans[REAL,  2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
+
+f_side_trans[REAL,  3, NOT].to_f2_trans = 'F%NAME = vec2tensor(z_NAME, size(F%NAME, 1), size(F%NAME, 2), size(F%NAME, 3))'
+f_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
+
+f_side_trans[CMPLX, 1, NOT].to_f2_trans = 'F%NAME = z_NAME(1:size(F%NAME))'
+f_side_trans[CMPLX, 1, NOT].test_pat    = test_pat1.replace('NNN', 'cmplx(rhs, 100 + rhs)')
+
+f_side_trans[CMPLX, 2, NOT].to_f2_trans = 'F%NAME = vec2mat(z_NAME, size(F%NAME, 1), size(F%NAME, 2))'
+f_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'cmplx(rhs, 100+rhs)')
+
+f_side_trans[CMPLX, 3, NOT].to_f2_trans = 'F%NAME = vec2tensor(z_NAME, size(F%NAME, 1), size(F%NAME, 2), size(F%NAME, 3))'
+f_side_trans[CMPLX, 3, NOT].test_pat    = test_pat3.replace('NNN', 'cmplx(rhs, 100+rhs)')
+
+f_side_trans[INT,   1, NOT].to_f2_trans = 'F%NAME = z_NAME(1:size(F%NAME))'
+f_side_trans[INT,   1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
+
+f_side_trans[INT,   2, NOT].to_f2_trans = 'F%NAME = vec2mat(z_NAME, size(F%NAME, 1), size(F%NAME, 2))'
+f_side_trans[INT,   2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
 
 f_side_trans[LOGIC, 0, NOT].test_pat    = 'F%NAME = (modulo(XXX + offset, 2) == 0)'
+
+f_side_trans[LOGIC, 1, NOT].to_f2_trans = 'F%NAME = f_logic(z_NAME(1:size(F%NAME)))'
+f_side_trans[LOGIC, 1, NOT].test_pat    = test_pat1.replace('NNN', 'modulo(rhs, 2) == 0')
+
+f_side_trans[LOGIC, 2, NOT].to_f2_trans = 'F%NAME = vec2mat(z_NAME, size(F%NAME, 1), size(F%NAME, 2))'
+f_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '(modulo(rhs, 2) == 0)')
 
 f_side_trans[TYPE,  0, NOT].to_f2_trans = 'call KIND_to_f(z_NAME, c_loc(F%NAME))'
 f_side_trans[TYPE,  0, NOT].test_pat    = 'call KIND_test_pattern (F%NAME, ix_patt)'
@@ -150,18 +178,6 @@ f_side_trans[TYPE,  1, NOT].test_pat    = \
 f_side_trans[TYPE,  1, NOT].to_c_var    = 'type(c_ptr) :: z_NAME(DIM1)'
 f_side_trans[TYPE,  1, NOT].to_c_trans  = jd1_loop + '  z_NAME(jd1) = c_loc(F%NAME(jd1+lb1))\nenddo\n\n'
 
-f_side_trans[REAL,  1, NOT].to_f2_trans = 'F%NAME = z_NAME(1:size(F%NAME))'
-f_side_trans[REAL,  1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
-
-f_side_trans[INT,   1, NOT].to_f2_trans = 'F%NAME = z_NAME(1:size(F%NAME))'
-f_side_trans[INT,   1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
-
-f_side_trans[LOGIC, 1, NOT].to_f2_trans = 'F%NAME = f_logic(z_NAME(1:size(F%NAME)))'
-f_side_trans[LOGIC, 1, NOT].test_pat    = test_pat1.replace('NNN', 'modulo(rhs, 2) == 0')
-
-f_side_trans[CMPLX, 1, NOT].to_f2_trans = 'F%NAME = z_NAME(1:size(F%NAME))'
-f_side_trans[CMPLX, 1, NOT].test_pat    = test_pat1.replace('NNN', 'cmplx(rhs, 100 + rhs)')
-
 f_side_trans[TYPE,  2, NOT].to_f2_trans = jd1_loop + jd2_loop + \
                         '  call KIND_to_f(z_NAME(DIM2*(jd1-1) + jd2), c_loc(F%NAME(jd1+lb1,jd2+lb2)))\n' + 'enddo; enddo\n'
 f_side_trans[TYPE,  2, NOT].test_pat    = jd1_loop + jd2_loop + rhs2 + \
@@ -169,24 +185,6 @@ f_side_trans[TYPE,  2, NOT].test_pat    = jd1_loop + jd2_loop + rhs2 + \
 f_side_trans[TYPE,  2, NOT].to_c_var    = 'type(c_ptr) :: z_NAME(DIM1*DIM2)'
 f_side_trans[TYPE,  2, NOT].to_c_trans  = jd1_loop + jd2_loop + \
                     '  z_NAME(DIM2*(jd1-1) + jd2) = c_loc(F%NAME(jd1+lb1,jd2+lb2))\nenddo; enddo\n\n'
-
-f_side_trans[REAL,  2, NOT].to_f2_trans = 'F%NAME = vec2mat(z_NAME, size(F%NAME, 1), size(F%NAME, 2))'
-f_side_trans[REAL,  2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
-
-f_side_trans[INT,   2, NOT].to_f2_trans = 'F%NAME = vec2mat(z_NAME, size(F%NAME, 1), size(F%NAME, 2))'
-f_side_trans[INT,   2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
-
-f_side_trans[LOGIC, 2, NOT].to_f2_trans = 'F%NAME = vec2mat(z_NAME, size(F%NAME, 1), size(F%NAME, 2))'
-f_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '(modulo(rhs, 2) == 0)')
-
-f_side_trans[CMPLX, 2, NOT].to_f2_trans = 'F%NAME = vec2mat(z_NAME, size(F%NAME, 1), size(F%NAME, 2))'
-f_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'cmplx(rhs, 100+rhs)')
-
-f_side_trans[REAL,  3, NOT].to_f2_trans = 'F%NAME = vec2tensor(z_NAME, size(F%NAME, 1), size(F%NAME, 2), size(F%NAME, 3))'
-f_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
-
-f_side_trans[CMPLX, 3, NOT].to_f2_trans = 'F%NAME = vec2tensor(z_NAME, size(F%NAME, 1), size(F%NAME, 2), size(F%NAME, 3))'
-f_side_trans[CMPLX, 3, NOT].test_pat    = test_pat3.replace('NNN', 'cmplx(rhs, 100+rhs)')
 
 f_side_trans[TYPE,  3, NOT].to_f2_trans = jd1_loop + jd2_loop + jd3_loop + \
                    '  call KIND_to_f(z_NAME(DIM3*DIM2*(jd1-1) + DIM3*(jd2-1) + jd3), c_loc(F%NAME(jd1+lb1,jd2+lb2,jd3+lb3)))\n' + \
@@ -197,9 +195,17 @@ f_side_trans[TYPE,  3, NOT].to_c_var    = 'type(c_ptr) :: z_NAME(DIM1*DIM2*DIM3)
 f_side_trans[TYPE,  3, NOT].to_c_trans  = jd1_loop + jd2_loop + jd3_loop + \
                     '  z_NAME(DIM3*DIM2*(jd1-1) + DIM3*(jd2-1) + jd3) = c_loc(F%NAME(jd1+lb1,jd2+lb2,jd3+lb3))\n' + 'enddo; enddo; enddo\n\n'
 
+f_side_trans[CHAR,  0, NOT].test_pat    = \
+        'do jd1 = 1, len(F%NAME)\n  F%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26))\nenddo'
+f_side_trans[CHAR,  0, NOT].to_f2_trans = 'call to_f_str(z_NAME, F%NAME)'
+
 for key, f in f_side_trans.items(): 
-  f.bindc_const = f.bindc_type.partition('(')[2].partition(')')[0]
   if key[1] != 0: f.equal_test = 'all(f1%NAME == f2%NAME)'
+
+# Pointer components
+
+f_side_trans[INT,   2, PTR] = f_side_trans[INT,   2, PTR].copy()
+
 
 #############################################################
 
@@ -218,6 +224,7 @@ class c_side_trans_class:
 
   def __repr__(self):
     return '%s,  %s,  %s,  %s' % (self.c_class, self.to_f2_arg, self.to_f2_call, self.to_c2_arg)
+    self.size_var = []       # For communicating the size of allocatable and pointer variables
 
 
 #        Dim  P_type                    c_class            to_f2_arg          to_f2_call         to_c2_arg
@@ -251,10 +258,53 @@ test_pat1 = for1 + '\n    {int rhs = 101 + i + XXX + offset; C.NAME[i] = NNN;}'
 test_pat2 = for1 + for2 + '\n    {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
 test_pat3 = for1 + for2 + for3 + '\n    {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'
 
-c_side_trans[CHAR,  0, NOT].test_pat    = 'C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
-c_side_trans[CHAR,  0, NOT].constructor = "NAME()"
+c_side_trans[REAL,  1, NOT].constructor = 'NAME(0.0, DIM1)'
+c_side_trans[REAL,  1, NOT].to_c2_set   = 'C.NAME = Real_Array(z_NAME, DIM1);'
+c_side_trans[REAL,  1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
+
+c_side_trans[REAL,  2, NOT].constructor = 'NAME(Real_Array(0.0, DIM2), DIM1)'
+c_side_trans[REAL,  2, NOT].to_c2_set   = 'C.NAME << z_NAME;'
+c_side_trans[REAL,  2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
+c_side_trans[REAL,  2, NOT].to_f_setup  = '  double z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
+
+c_side_trans[REAL,  3, NOT].constructor = 'NAME(Real_Matrix(Real_Array(0.0, DIM3), DIM2), DIM1)'
+c_side_trans[REAL,  3, NOT].to_c2_set   = 'C.NAME << z_NAME;'
+c_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
+c_side_trans[REAL,  3, NOT].to_f_setup  = '  double z_NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, z_NAME);\n'
+
+c_side_trans[CMPLX, 1, NOT].constructor = 'NAME(0.0, DIM1)'
+c_side_trans[CMPLX, 1, NOT].to_c2_set   = 'C.NAME = Dcomplex_Array(z_NAME, DIM1);'
+c_side_trans[CMPLX, 1, NOT].test_pat    = test_pat1.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
+
+c_side_trans[CMPLX, 2, NOT].constructor = 'NAME(Dcomplex_Array(0.0, DIM2), DIM1)'
+c_side_trans[CMPLX, 2, NOT].to_c2_set   = 'C.NAME << z_NAME;'
+c_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
+c_side_trans[CMPLX, 2, NOT].to_f_setup  = '  dcomplex z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
+
+c_side_trans[CMPLX, 3, NOT].constructor = 'NAME(Dcomplex_Matrix(Dcomplex_Array(0.0, DIM3), DIM2), DIM1)'
+c_side_trans[CMPLX, 3, NOT].to_c2_set   = 'C.NAME << z_NAME;'
+c_side_trans[CMPLX, 3, NOT].test_pat    = test_pat3.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
+c_side_trans[CMPLX, 3, NOT].to_f_setup  = '  dcomplex z_NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, z_NAME);\n'
+
+c_side_trans[INT,   1, NOT].constructor = 'NAME(DIM1)'
+c_side_trans[INT,   1, NOT].to_c2_set   = 'C.NAME = Int_Array(z_NAME, DIM1);'
+c_side_trans[INT,   1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
+
+c_side_trans[INT,   2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
+c_side_trans[INT,   2, NOT].to_c2_set   = 'C.NAME << z_NAME;'
+c_side_trans[INT,   2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
+c_side_trans[INT,   2, NOT].to_f_setup  = '  int z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
 
 c_side_trans[LOGIC, 0, NOT].test_pat    = 'C.NAME = ((XXX + offset % 2) == 0);'
+
+c_side_trans[LOGIC, 1, NOT].constructor = 'NAME(DIM1)'
+c_side_trans[LOGIC, 1, NOT].to_c2_set   = 'C.NAME = Bool_Array(z_NAME, DIM1);'
+c_side_trans[LOGIC, 1, NOT].test_pat    = test_pat1.replace('NNN', '((rhs % 2) == 0)')
+
+c_side_trans[LOGIC, 2, NOT].constructor = 'NAME(Bool_Array(false, DIM2), DIM1)'
+c_side_trans[LOGIC, 2, NOT].to_c2_set   = 'C.NAME << z_NAME;'
+c_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '((rhs % 2) == 0)')
+c_side_trans[LOGIC, 2, NOT].to_f_setup  = '  bool z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
 
 c_side_trans[TYPE,  0, NOT].constructor = "NAME()"
 c_side_trans[TYPE,  0, NOT].to_c2_set   = 'KIND_to_c(z_NAME, C.NAME);' 
@@ -265,63 +315,20 @@ c_side_trans[TYPE,  1, NOT].to_c2_set   = for1 + ' KIND_to_c(z_NAME[i], C.NAME[i
 c_side_trans[TYPE,  1, NOT].test_pat    = test_pat1.replace('C.NAME[i] = NNN', 'C_KIND_test_pattern(C.NAME[i], ix_patt+i+1);')
 c_side_trans[TYPE,  1, NOT].to_f_setup  = '  const C_KIND* z_NAME[DIM1];\n' + for1 + ' z_NAME[i] = &C.NAME[i];\n'
 
-c_side_trans[REAL,  1, NOT].constructor = 'NAME(0.0, DIM1)'
-c_side_trans[REAL,  1, NOT].to_c2_set   = 'C.NAME = Real_Array(z_NAME, DIM1);'
-c_side_trans[REAL,  1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
-
-c_side_trans[CMPLX, 1, NOT].constructor = 'NAME(0.0, DIM1)'
-c_side_trans[CMPLX, 1, NOT].to_c2_set   = 'C.NAME = Dcomplex_Array(z_NAME, DIM1);'
-c_side_trans[CMPLX, 1, NOT].test_pat    = test_pat1.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
-
-c_side_trans[INT,   1, NOT].constructor = 'NAME(DIM1)'
-c_side_trans[INT,   1, NOT].to_c2_set   = 'C.NAME = Int_Array(z_NAME, DIM1);'
-c_side_trans[INT,   1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
-
-c_side_trans[LOGIC, 1, NOT].constructor = 'NAME(DIM1)'
-c_side_trans[LOGIC, 1, NOT].to_c2_set   = 'C.NAME = Bool_Array(z_NAME, DIM1);'
-c_side_trans[LOGIC, 1, NOT].test_pat    = test_pat1.replace('NNN', '((rhs % 2) == 0)')
-
-c_side_trans[REAL,  2, NOT].constructor = 'NAME(Real_Array(0.0, DIM2), DIM1)'
-c_side_trans[REAL,  2, NOT].to_c2_set   = 'C.NAME << z_NAME;'
-c_side_trans[REAL,  2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
-c_side_trans[REAL,  2, NOT].to_f_setup  = '  double z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
-
-c_side_trans[INT,   2, NOT].constructor = 'NAME(Int_Array(0, DIM2), DIM1)'
-c_side_trans[INT,   2, NOT].to_c2_set   = 'C.NAME << z_NAME;'
-c_side_trans[INT,   2, NOT].test_pat    = test_pat2.replace('NNN', 'rhs')
-c_side_trans[INT,   2, NOT].to_f_setup  = '  int z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
-
-c_side_trans[LOGIC, 2, NOT].constructor = 'NAME(Bool_Array(false, DIM2), DIM1)'
-c_side_trans[LOGIC, 2, NOT].to_c2_set   = 'C.NAME << z_NAME;'
-c_side_trans[LOGIC, 2, NOT].test_pat    = test_pat2.replace('NNN', '((rhs % 2) == 0)')
-c_side_trans[LOGIC, 2, NOT].to_f_setup  = '  bool z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
-
-c_side_trans[CMPLX, 2, NOT].constructor = 'NAME(Dcomplex_Array(0.0, DIM2), DIM1)'
-c_side_trans[CMPLX, 2, NOT].to_c2_set   = 'C.NAME << z_NAME;'
-c_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
-c_side_trans[CMPLX, 2, NOT].to_f_setup  = '  dcomplex z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
-
 c_side_trans[TYPE,  2, NOT].constructor = "NAME(C_KIND_Array(C_KIND(), DIM2), DIM1)"
 c_side_trans[TYPE,  2, NOT].to_c2_set   = for1 + for2 + '\n    {int m = DIM2*i + j; KIND_to_c(z_NAME[m], C.NAME[i][j]);}' 
 c_side_trans[TYPE,  2, NOT].test_pat    = test_pat2.replace('C.NAME[i][j] = NNN', 'C_KIND_test_pattern(C.NAME[i][j], ix_patt+i+1+10*(j+1))')
 c_side_trans[TYPE,  2, NOT].to_f_setup  = \
     '  const C_KIND* z_NAME[DIM1*DIM2];\n' + for1 + for2 +  '\n    {int m = DIM2*i + j; z_NAME[m] = &C.NAME[i][j];}\n'
 
-c_side_trans[REAL,  3, NOT].constructor = 'NAME(Real_Matrix(Real_Array(0.0, DIM3), DIM2), DIM1)'
-c_side_trans[REAL,  3, NOT].to_c2_set   = 'C.NAME << z_NAME;'
-c_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
-c_side_trans[REAL,  3, NOT].to_f_setup  = '  double z_NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, z_NAME);\n'
-
-c_side_trans[CMPLX, 3, NOT].constructor = 'NAME(Dcomplex_Matrix(Dcomplex_Array(0.0, DIM3), DIM2), DIM1)'
-c_side_trans[CMPLX, 3, NOT].to_c2_set   = 'C.NAME << z_NAME;'
-c_side_trans[CMPLX, 3, NOT].test_pat    = test_pat3.replace('NNN', 'Dcomplex(rhs, 100+rhs)')
-c_side_trans[CMPLX, 3, NOT].to_f_setup  = '  dcomplex z_NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, z_NAME);\n'
-
 c_side_trans[TYPE,  3, NOT].constructor = "NAME(C_KIND_Matrix(C_KIND_Array(C_KIND(), DIM3), DIM2), DIM1)"
 c_side_trans[TYPE,  3, NOT].to_c2_set   = for1 + for2 + for3 + '\n    {int m = DIM3*DIM2*i + DIM3*j + k; KIND_to_c(z_NAME[m], C.NAME[i][j][k]);}' 
 c_side_trans[TYPE,  3, NOT].test_pat    = test_pat3.replace('C.NAME[i][j][k] = NNN', 'C_KIND_test_pattern(C.NAME[i][j][k], ix_patt+i+1+10*(j+1)+100*(k+1))')
 c_side_trans[TYPE,  3, NOT].to_f_setup  = \
     '  const C_KIND* z_NAME[DIM1*DIM2*DIM3];\n' + for1 + for2 + for3 + '\n    {int m = DIM3*DIM2*i + DIM3*j + k; z_NAME[m] = &C.NAME[i][j][k];}\n'
+
+c_side_trans[CHAR,  0, NOT].test_pat    = 'C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
+c_side_trans[CHAR,  0, NOT].constructor = "NAME()"
 
 for key, c in c_side_trans.items(): 
   if key[1] == 1: c.equal_test = 'is_all_equal (x.NAME, y.NAME)'
@@ -560,16 +567,6 @@ for struct in struct_def:
     var.f_side = f_side_trans[var.type, n_dim, p_type]
     var.c_side = c_side_trans[var.type, n_dim, p_type]
 
-    # If allocatable or pointer type then add the dimensional varaibles to the struct.dim_var list.
-
-    if len(var.array) != 0 and var.array[0] == ':':
-      for n in range(1, len(var.array)):
-        dim_var = var_class()
-        dim_var.name = 'n' + str(n) + '_' + var.name
-        dim_var.type = 'integer'
-        dim_var.f_side = f_side_trans['integer', 0, NOT]
-        struct.dim_var.append(dim_var)
-
     var.c_side.test_pat = var.c_side.test_pat.replace('STR_LEN', var.kind)
 
     if var.type == 'type':
@@ -696,19 +693,13 @@ interface
 
   for var in struct.var: 
     f_side = var.f_side
-    import_set.add(f_side.bindc_const)
-    if not f_side.bindc_type in to_c2_arg_def: to_c2_arg_def[f_side.bindc_type] = []
-    to_c2_arg_def[f_side.bindc_type].append(f_side.bindc_name.replace('NAME', var.name))
-
-  for dim_var in struct.dim_var: 
-    f_side = dim_var.f_side
-    import_set.add(f_side.bindc_const)
+    bindc_const =  f_side.bindc_type.partition('(')[2].partition(')')[0]
+    import_set.add(bindc_const)
     if not f_side.bindc_type in to_c2_arg_def: to_c2_arg_def[f_side.bindc_type] = []
     to_c2_arg_def[f_side.bindc_type].append(f_side.bindc_name.replace('NAME', var.name))
 
   f_face.write ('  subroutine ZZZ_to_c2 (C'.replace('ZZZ', s_name))
   for var in struct.var: f_face.write (', z_' + var.name)
-  for var in struct.dim_var: f_face.write (', ' + var.name)
   f_face.write (') bind(c)\n')
   f_face.write ('    import ' + ', '.join(import_set) + '\n')
   f_face.write ('    type(c_ptr), value :: C\n')
@@ -815,8 +806,7 @@ interface operator (==)
 ''')
 
 for i in range(0, len(struct_def), 5):
-  f_equ.write ('  module procedure ' + ', '.join('eq_' + 
-                              f.short_name for f in struct_def[i:i+5]) + '\n')
+  f_equ.write ('  module procedure ' + ', '.join('eq_' + short_name for f in struct_def[i:i+5]) + '\n')
 
 f_equ.write ('''end interface
 
