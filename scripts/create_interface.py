@@ -208,10 +208,10 @@ f_side_trans[CHAR,  0, NOT].to_f2_trans = 'call to_f_str(z_NAME, F%NAME)'
 for key, f in f_side_trans.items(): 
   if key[1] != 0: f.equality_test = 'is_eq = is_eq .and. all(f1%NAME == f2%NAME)\n'
 
-# Pointer components
+# Int 0 Pointer
 
 f_side_trans[INT,   0, PTR] = copy.deepcopy(f_side_trans[INT,   0, NOT])
-f_side_trans[INT,   0, PTR].to_c_trans  = 'n_NAME = 0\nif(associated(F%NAME)) n_NAME = 1\n\n'
+f_side_trans[INT,   0, PTR].to_c_trans  = 'n_NAME = 0\n' + 'if (associated(F%NAME)) n_NAME = 1\n\n'
 
 f_side_trans[INT,   0, PTR].to_f2_trans = '''
 if (n_NAME == 0) then
@@ -233,6 +233,38 @@ f_side_trans[INT,   0, PTR].equality_test = '''
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = (f1%NAME == f2%NAME)'''
+
+# Int 1 Pointer 
+
+f_side_trans[INT,   1, PTR] = copy.deepcopy(f_side_trans[INT,   1, NOT])
+f_side_trans[INT,   1, PTR].to_c_trans  = 'n_NAME = 0\n' + 'if (associated(F%NAME)) n_NAME = size(F%NAME)\n\n'
+
+f_side_trans[INT,   1, PTR].to_f2_trans = '''
+if (n_NAME == 0) then
+  if (associated(F%NAME)) deallocate(F%NAME)
+else
+  if (.not. associated(F%NAME)) allocate(F%NAME(n_NAME))
+  F%NAME = z_NAME(1:n_NAME)
+endif'''
+
+f_side_trans[INT,   1, PTR].test_pat    = '''
+if (ix_patt < 3) then
+  if (associated(F%NAME)) deallocate (F%NAME)
+else
+  if (.not. associated(F%NAME)) allocate (F%NAME(-1:2))
+  do jd1 = 1, size(F%NAME,1); lb1 = lbound(F%NAME,1) - 1
+    rhs = 100 + jd1 + XXX + offset
+    F%NAME(jd1+lb1) = rhs
+  enddo
+endif'''
+
+f_side_trans[INT,   1, PTR].equality_test = '''
+is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
+if (.not. is_eq) return
+if (associated(f1%NAME)) is_eq = (size(f1%NAME) == size(f2%NAME))
+if (.not. is_eq) return
+if (associated(f1%NAME)) is_eq = all(f1%NAME == f2%NAME)'''
+
 
 
 #############################################################
@@ -364,7 +396,7 @@ for key, c in c_side_trans.items():
   if key[1] == 3: c.equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
 
 
-# Pointer translations
+# Int 0 Pointer
 
 c_side_trans[INT,   0, PTR] = copy.deepcopy(c_side_trans[INT,   0, NOT])
 c_side_trans[INT,   0, PTR].c_class       = 'Int_Array'
@@ -388,8 +420,37 @@ c_side_trans[INT,   0, PTR].to_c2_set     = '''
   if (n_NAME == 0)
     C.NAME.resize(0);
   else {
-    C.NAME.resize(1);
+    C.NAME.resize(n_NAME);
     C.NAME[0] = z_NAME;
+  }'''
+
+# Int 1 Pointer
+
+c_side_trans[INT,   1, PTR] = copy.deepcopy(c_side_trans[INT,   1, NOT])
+c_side_trans[INT,   1, PTR].c_class       = 'Int_Array'
+c_side_trans[INT,   1, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
+c_side_trans[INT,   1, PTR].to_f2_call    = 'z_NAME'
+c_side_trans[INT,   1, PTR].constructor   = 'NAME(0, 0)'
+c_side_trans[INT,   1, PTR].test_pat      = '''
+  if (ix_patt < 3) 
+    C.i.resize(0);
+  else {
+    C.i.resize(4);
+    for (int i = 0; i < C.NAME.size(); i++)
+      {int rhs = 101 + i + XXX + offset; C.NAME[i] = rhs;}
+  }
+'''
+ 
+c_side_trans[INT,   1, PTR].to_f_setup    = '''
+  const int* z_NAME = 0;
+  if (C.NAME.size() != 0) z_NAME = &(C.NAME[0]);
+'''
+c_side_trans[INT,   1, PTR].to_c2_set     = '''
+  if (n_NAME == 0)
+    C.NAME.resize(0);
+  else {
+    C.NAME.resize(n_NAME);
+    C.NAME << z_NAME;
   }'''
 
 
@@ -693,7 +754,7 @@ for struct in struct_def:
     ia += 1
     if arg.pointer_type == NOT: continue
 
-    if len(arg.array) == 0:
+    if len(arg.array) == 0 or len(arg.array) == 1:
       struct.arg.insert(ia, arg_class())
       arg1 = struct.arg[ia]
       arg1.is_component = False
@@ -1390,6 +1451,7 @@ extern "C" void ZZZ_to_f2 (ZZZ_struct*'''.replace('ZZZ', struct.short_name))
   f_cpp.write(') {\n')
 
   for arg in struct.arg:
+    if not arg.is_component: continue
     f_cpp.write (arg.c_side.to_c2_set.replace('NAME', arg.name) + '\n')
 
   f_cpp.write('}\n')
