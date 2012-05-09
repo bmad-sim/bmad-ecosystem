@@ -361,9 +361,9 @@ if (ele%lord_status == multipass_lord$ .and. nint(ele%value(n_ref_pass$)) == 0 .
         ele%value(p0c_start$) = ele%value(p0c$)
       endif
       call track_this_ele (.false.)
-      ele%value(p0c_start$) = ele%value(p0c$) * (1 + orb_end%vec(6))
       call calc_time_ref_orb_out
 
+      ele%value(p0c_start$) = ele%value(p0c$) * (1 + orb_end%vec(6))
       call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     endif  
 
@@ -642,7 +642,8 @@ end subroutine restore_errors_in_ele
 subroutine calc_time_ref_orb_out ()
 
 ! The tracking did not have the correct delta_ref_time end exit end ref energy so need to correct for this.
-! Notice that delta_ref_time here is the value used in tracking. Not the correct delta_ref_time computer later.
+! Notice that here the delta_ref_time value (but not ele%value(p0c$)) the value used in tracking and not the 
+! corrected value computed later.
 
 ele%time_ref_orb_out = orb_end%vec
 ele%time_ref_orb_out(2) = ele%time_ref_orb_out(2) / (1 + orb_end%vec(6))

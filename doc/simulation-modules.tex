@@ -1,6 +1,6 @@
 \chapter{Simulation Modules}
 
-In the \bmad ``echosystem'', various modules have been developed to
+In the \bmad ``ecosystem'', various modules have been developed to
 simulate machine hardware. This chapter provides documentation.
 
 %-----------------------------------------------------------------
@@ -8,11 +8,15 @@ simulate machine hardware. This chapter provides documentation.
 
 \textit{\large [Tune tracker simulation developed by Michael Ehrlichman]}
 
-The digital tune tracker is device for determining the fractional
-tune of a storage ring and exciting resonant beam oscillations.  In
-short, it consists of a BPM, a modulated kicker, and phase-lock loop
-circuit.  The tune tracker is capable of exciting both betatron and
-synchrotron oscillations.
+The digital tune tracker (dTT) is device for determining the
+fractional tune of a storage ring and exciting resonant beam
+oscillations.  In short, the dTT starts with a beam position monitor
+(BPM) to detect the beam oscillations. The signal from the BPM is feed
+into a phase-locked loop (PLL) circuit which oscillates at the
+oscillation frequency the beam. A signal from the PLL is used to
+modulate a kicker to keep the beam oscillating at the beam's
+oscillation frequency. The tune tracker is capable of exciting both
+betatron and synchrotron oscillations.
 
 In general, a PLL is a control system for matching the frequency of a
 VCO to some incoming periodic reference signal.  It does this by
@@ -20,14 +24,15 @@ adjusting the frequency of the VCO according to the phase difference
 between the VCO output and the reference signal.  A general diagram of
 a PLL is shown in Fig.~[\ref{f:PLL}].
 
-\begin{figure}[h]
-\centering
-\includegraphics{PLL.png}
-\caption[General diagram of a phase lock loop.]{
-General diagram of a phase lock loop. The loop adjusts the speed of a VCO according to the 
-phase difference between the VCO and an incoming signal.}
-\label{f:PLL}
-\end{figure}
+  \begin{figure}[h]
+  \centering
+  \includegraphics{PLL.png}
+  \caption[General diagram of a phase lock loop.]{
+General diagram of a phase lock loop. The loop adjusts the speed of a
+VCO according to the phase difference between the VCO and an incoming
+signal.}
+  \label{f:PLL}
+  \end{figure}
 
 In Fig.~[\ref{f:PLL}], the phase detector compares the two incoming
 signals, and outputs a signal that is proportional to the difference
