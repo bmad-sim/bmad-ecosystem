@@ -915,10 +915,6 @@ General \vn{e_gun} attributes are:
 \end{center}
 \toffset
 
-\index{marker}
-An \vn{e_gun} element can only be used in a ``linear'' (non-recirculating) lattice branch
-Only one \vn{e_gun} can be present in a lattice branch and, if it is present, it must be (except for possibly
-\vn{marker} elements) the first element in the branch. 
 The attributes specific to an \vn{e_gun} are 
 \index{voltage}\index{voltage_err}
 \index{gradient}\index{gradient_err}
@@ -932,6 +928,18 @@ The \vn{voltage} is simply related to the \vn{gradient} via the element length \
 \begin{example}
   voltage = gradient * l
 \end{example}
+
+\index{marker}\index{null_ele}
+The \vn{e_gun} element is meant to solve the problem of simulating
+electrons as they are generated from a cathode. The fact that these
+electrons can have zero initial momentum presents a special problem
+(\sref{s:energy}). As a result, the use of \vn{e_gun} elements are
+restricted and they can only be used in a ``linear''
+(non-recirculating) lattice branch. Only one \vn{e_gun} can be present
+in a lattice branch and, if it is present, it must be, except for
+possibly \vn{marker} or \vn{null_ele} elements, the first element in
+any branch.
+ 
 
 Note: In order to be able to avoid problems with a zero reference
 momentum, the reference momentum and energy associated with an \vn{e_gun} element

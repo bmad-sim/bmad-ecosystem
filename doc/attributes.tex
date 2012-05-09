@@ -229,7 +229,7 @@ where \vn{mc2} is the particle rest mass.  The reason for using this
 convoluted convention is to allow the setting, in the lattice file, of
 a zero reference momentum at the start of the lattice, while
 avoiding the calculational problems that would occur if the \vn{e_gun}
-element truely had a starting reference momentum of zero.
+element truly had a starting reference momentum of zero.
 Specifically, the problem with zero reference momentum is that the
 phase space momentum would be infinity as can be seen from \Eqs{ppp}.
 
@@ -279,7 +279,7 @@ as shown in figure~\ref{f:pitch}. Similarly the \vn{y_pitch} attribute
 rotates an element about the $x$--axis so that the exit face of the
 element is displaced in the $+y$--direction. The rotations are about
 the center of the element which is in contrast to the \vn{dtheta} and
-\vn{dphi} misalignments of \mad which rotate around the entrance
+\vn{dphi} misalignment of \mad which rotate around the entrance
 point. In terms of rotation angle
 \index{MAD!element rotation origin}
 \begin{example}
@@ -307,11 +307,11 @@ transformations commute.
 The tilt attribute rotates the element in the $(x, y)$ plane as shown
 in figure~\ref{f:tilt}. The rotation axis is the $z$-axis at the
 entrance face. The reference orbit is also rotated for any element
-who's exit coordinates are not collinear with the entrance
+who's exit coordinates are not colinear with the entrance
 coordinates. For example, a \vn{bend} or \vn{mirror} with a tilt of
 $\pi/2$ will bend a beam vertically upward. The \vn{hkick} and
 \vn{vkick} attributes are not affected by \vn{tilt} except for
-\vn{Kicker} and \vn{ElSeparator} elements. Like MAD, \bmad allows the
+\vn{kicker} and \vn{elseparator} elements. Like MAD, \bmad allows the
 use of the \vn{tilt} attribute without a value to designate a skew
 element. For example
 \begin{example}
@@ -328,7 +328,7 @@ element (n = 0 for bends, n = 1 for quadrupoles etc.)
 \index{sbend}\index{rbend}\index{crystal}\index{mirror}
 For all elements, except \vn{crystal} and \vn{mirror} elements,
 offsets and pitches and are measured with respect to the local coordinates at the
-center of the element. \vn{Crystal} and \vn{mirror} elements measure
+center of the element. \vn{crystal} and \vn{mirror} elements measure
 their offsets and pitches with respect to the entrance coordinates.
 Note that all element define \vn{tilt} with respect to the entrance
 coordinates.
@@ -391,10 +391,10 @@ The kick attributes that an element may have are:
   vkick, bl_vkick = <Real>
 \end{example}
 \vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated
-kick of an element in radians. \vn{kick} is only used for \vn{Hkicker}
-and \vn{Vkicker} elements. All other elements that can kick use
+kick of an element in radians. \vn{kick} is only used for \vn{hkicker}
+and \vn{vkicker} elements. All other elements that can kick use
 \vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate a
-kick for \vn{Hkicker}, \vn{Vkicker}, \vn{Elseparator} and \vn{Kicker}
+kick for \vn{hkicker}, \vn{vkicker}, \vn{elseparator} and \vn{kicker}
 elements. This rule was implemented so that, for example, the
 \vn{hkick} attribute for a skew quadrupole would represent a
 horizontal steering. The \vn{bl_kick}, \vn{bl_hkick}, and
@@ -449,7 +449,7 @@ figure~\ref{f:limit}. A zero \vn{x1_limit}, \vn{x2_limit},
 appropriate plane.
 
 By default, apertures are assumed to be
-rectangular except that an \vn{Ecollimator} has a elliptical aperture.
+rectangular except that an \vn{ecollimator} has a elliptical aperture.
 This can be changed by setting the \vn{aperture_type} attribute. The possible 
 values of this attribute are:
 \begin{example}
@@ -849,13 +849,13 @@ The length attributes are
   l_chord = <Real>  ! Chord length of a bend. Dependent attribute.
 \end{example}
 The length \vn{l} is the path length of the reference particle. The
-one exception is for an \vn{Rbend}, the length \vn{l} set in the
-lattice file is the chord length (\sref{s:bend}). Internally, \bmad
-converts all \vn{Rbend}s to \vn{Sbend}s and stores the chord length
+one exception is for an \vn{rbend}, the length \vn{l} set in the
+lattice file is the chord length (\sref{s:bend}). internally, \bmad
+converts all \vn{rbend}s to \vn{sbend}s and stores the chord length
 under the \vn{l_chord} attribute.
 
 \index{wiggler}
-Note that for \vn{Wiggler}s,
+Note that for \vn{wiggler}s,
 the length \vn{l} is not the same as the path length for a particle
 with the reference energy starting on the reference orbit.
 
@@ -898,7 +898,7 @@ components using an Amplitude (\vn{KnL}) and a tilt (\vn{Tn})
   KnL = <Real>
   Tn  = <Real>  ! Default is $pi$/(2n + 2)
 \end{example}
-\vn{AB_Multipole} (\sref{s:ab.m}) and all other elements that
+\vn{ab_Multipole} (\sref{s:ab.m}) and all other elements that
 have multipole attributes specify the multipoles using normal
 (\vn{Bn}) and skew (\vn{An}) components 
 \begin{example}
@@ -912,7 +912,7 @@ Here \vn{n} ranges from 0
 \end{example}
 
 Multipole formulas for are given in \sref{s:fields}.  Note that for
-\vn{Multipole} and \vn{AB_multipole} (but not any other element) a
+\vn{multipole} and \vn{ab_multipole} (but not any other element) a
 non-zero dipole component will affect the reference orbit (just like a
 normal dipole will).
 
@@ -922,7 +922,7 @@ The \vn{Tn} tilt component without a value takes a default of $pi$/(2n
   m: multipole, k1l = 0.45, t1  ! Skew quadrupole
 \end{example}
 
-For everything other than a \vn{Multipole} and \vn{AB_multipole}, the
+For everything other than a \vn{multipole} and \vn{ab_multipole}, the
 multipole strength is scaled by a factor $F \, r_0^{n_\text{ref}} /
 r_0^n$ (cf.~\Eq{ababf}) where $F$ is the strength of the element (for
 example $F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the
@@ -1248,7 +1248,7 @@ Example:
 \index{x_offset_calib}\index{y_offset_calib}\index{tilt_calib}
 \index{de_eta_meas}\index{n_sample}\index{osc_amplitude}
 
-\vn{Instrument}, \vn{Monitor}, and \vn{Marker} elements have special
+\vn{instrument}, \vn{monitor}, and \vn{marker} elements have special
 attributes to describe orbit, betatron phase, dispersion and coupling
 measurements. These attributes are:
 \hfill\break
