@@ -1081,11 +1081,11 @@ end subroutine clear_lat_1turn_mats
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine transfer_ele (ele1, ele2, nullify_pointers)
+! Subroutine transfer_ele (ele_in, ele_out, prevent_accidental_deallocation)
 !
-! Subroutine to set ele2 = ele1. 
+! Subroutine to set ele_out = ele_in. 
 ! This is a plain transfer of information not using the overloaded equal operator.
-! The result is that ele2's pointers will point to the same memory as ele1's.
+! The result is that ele_out's pointers will point to the same memory as ele_in's.
 !
 ! NOTE: Do not use this routine unless you know what you are doing!
 !
@@ -1093,35 +1093,30 @@ end subroutine clear_lat_1turn_mats
 !   use bmad
 !
 ! Input:
-!   ele1             -- Ele_struct:
-!   nullify_pointers -- Logical, optional: If present and True then nullify the 
-!                         pointers in ele2 except for the ele2%lat pointer. 
-!                         This gives a "bare bones" copy where one does not have to 
-!                         worry about deallocating allocated structure components later.
+!   ele_in     -- Ele_struct:
+!   prevent_accidental_deallocation 
+!              -- Logical, optional: If present and True, mark ele_out%ix_ele = -2.
+!                   This prevents the deallocate_ele_pointers routine from deallocating
+!                   ele_out's pointers which would ruin ele_in.
+!                   Note: This routine can only be used with ele_out elements that
+!                   are not associated with a lattice.
 !
 ! Output:
-!   ele2 -- Ele_struct:
+!   ele_out -- Ele_struct:
 !-
 
-subroutine transfer_ele (ele1, ele2, nullify_pointers)
+subroutine transfer_ele (ele_in, ele_out, prevent_accidental_deallocation)
 
-type (ele_struct), target :: ele1
-type (ele_struct) :: ele2
-logical, optional :: nullify_pointers
+type (ele_struct), target :: ele_in
+type (ele_struct) :: ele_out
+logical, optional :: prevent_accidental_deallocation
 
 !
 
-if (allocated(ele1%orbit) .and. .not. allocated(ele2%orbit)) then
-  allocate (ele2%orbit)
-elseif (.not. allocated(ele1%orbit) .and. allocated(ele2%orbit)) then
-  deallocate(ele2%orbit)
-endif
+ele_out = ele_in
 
-ele2 = ele1
-
-if (logic_option (.false., nullify_pointers)) then
-  call deallocate_ele_pointers (ele2, .true.)
-  ele2%lat => ele1%lat  ! Reinstate
+if (logic_option (.false., prevent_accidental_deallocation)) then
+  ele_out%ix_ele = -2
 endif
 
 end subroutine transfer_ele
@@ -1503,7 +1498,10 @@ if (logic_option (.false., nullify_only)) then
   return
 endif
 
-! Normal deallocate
+! Normal deallocate.
+! ele%ix_ele = -2 is set by transfer_ele to prevent accidental deallocation.
+
+if (ele%ix_ele == -2) return
 
 if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)

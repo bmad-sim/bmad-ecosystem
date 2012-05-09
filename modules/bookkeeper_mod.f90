@@ -1693,7 +1693,7 @@ character(24) :: r_name = 'create_element_slice'
 ! Err check. Remember: the element length may be negative
 
 err_flag = .true.
-sliced_ele%ix_ele = -1  ! Indicate sliced ele is not an element in the lattice.
+sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
 
 if (ele_in%key == taylor$ .or. ele_in%key == hybrid$) then
   call out_io (s_fatal$, r_name, &
