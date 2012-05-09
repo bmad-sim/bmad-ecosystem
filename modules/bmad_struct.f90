@@ -339,7 +339,6 @@ type ele_struct
   type (lat_struct), pointer :: lat => null()               ! Pointer to lattice containing element.
   type (ele_struct), pointer :: lord => null()              ! Pointer to a slice lord.
   type (mode3_struct), pointer :: mode3 => null()           ! 6D normal mode structure.
-  type (coord_struct), allocatable :: orbit                 ! For holding orbits.
   type (fibre), pointer :: ptc_fiber => null()              ! PTC tracking.
   type (genfield), pointer :: ptc_genfield => null()        ! For symp_map$
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 

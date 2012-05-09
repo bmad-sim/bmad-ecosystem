@@ -154,7 +154,24 @@ or the pointers within the variable must be deallocated  with a call to
   call deallocate_ele_pointers (ele) ! And deallocate.
 \end{example}
 
-In the normal course of events, the pointers of an \vn{ele_struct}
+The exception here is when the \zzz{transfer_ele} routine is used with
+a local \vn{ele_struct} variable. Example:
+\begin{example}
+  call transfer_ele (lat%ele(i), loc_ele)
+\end{example}
+In this case, the local \vn{loc_ele} element will have its pointers
+pointing to the same memory locations as \vn{lat%ele(i)} and calling
+\vn{deallocate_ele_pointers} on \vn{loc_ele} will mess up the
+\vn{lat%ele(i)} element.  To guard against accidental pointer
+deallocation, \vn{transfer_ele} has an optional third argument which
+will prevent future accidental deallocation
+\begin{example}
+  call transfer_ele (lat%ele(i), loc_ele, prevent_accidental_deallocation = .true.)
+  ...
+  call deallocate_ele_pointers (loc_ele)  ! This does nothing.
+\end{example}
+
+In the ``normal'' course of events, the pointers of an \vn{ele_struct}
 variable should not be pointing to the same memory locations as the
 pointers of any other \vn{ele_struct} variable. To make sure of this,
 the equal sign in the assignment \vn{ele1 = ele2} is overloaded by the
@@ -170,6 +187,13 @@ ele2} will point at the same memory locations.
 The assignment \vn{ele1 = ele2} will not modify \vn{ele1%ix_ele} or
 \vn{ele1%ix_branch}. If \vn{ele1} is associated with a lattice then
 \vn{ele1%lat} will also be unaffected.
+
+The reason to use \vn{transfer_ele(ele_in, ele_out)}, as opposed to
+\vn{ele_out = ele_in}, is the speedup in time since new memory for
+components in \vn{ele_out} does not have to be created.  The drawback
+in using \vn{transfer_ele(ele_in, ele_out)} is that one has to be
+careful not to simply modify any component of \vn{ele_out} that is a
+pointer.
 
 %--------------------------------------------------------------------------
 \section{Element Attribute Bookkeeping}
@@ -329,7 +353,10 @@ will point to the encomposing lattice. That is
 In this example the \vn{ele2} pointer is constructed to point to the
 \vn{ele} element. The test (\vn{ele%ix_ele}~>~-1) is needed since
 \vn{ele_struct} elements may exist outside of any \vn{lat_struct}
-instance. Such ``external'' elements always have \vn{%ix_ele} = -1.
+instance. Such ``external'' elements always have \vn{%ix_ele}~<~0.
+A value for \vn{%ix_ele} of -2 is special in that it prevents the
+\zzz{deallocate_ele_pointers} routine from deallocating the pointers
+of an element which has its \vn{%ix_ele} set to -2.
 
 An element ``slice'' is an example of an element that exists external
 to any \vn{lat_struct} instance. A slice is an \vn{ele_struct}
