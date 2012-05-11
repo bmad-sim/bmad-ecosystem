@@ -1095,7 +1095,7 @@ end subroutine clear_lat_1turn_mats
 ! Input:
 !   ele1             -- Ele_struct:
 !   nullify_pointers -- Logical, optional: If present and True then nullify the 
-!                         pointers in ele2 except for the ele2%lat pointer. 
+!                         pointers in ele2 except for the ele2%lat and ele2%lord pointers. 
 !                         This gives a "bare bones" copy where one does not have to 
 !                         worry about deallocating allocated structure components later.
 !
@@ -1115,7 +1115,8 @@ ele2 = ele1
 
 if (logic_option (.false., nullify_pointers)) then
   call deallocate_ele_pointers (ele2, .true.)
-  ele2%lat => ele1%lat  ! Reinstate
+  ele2%lat  => ele1%lat  ! Reinstate
+  ele2%lord => ele1%lord ! Reinstate
 endif
 
 end subroutine transfer_ele
