@@ -166,7 +166,7 @@ do istep = 1, nstep
     allocate (ix_out(lat_in%n_ele_max))
     keep_ele = .false.
     do i = 1, lat_in%n_ele_max
-! Keep element if defined as end of tracking
+      ! Keep element if defined as end of tracking
       if(lat_in%ele(i)%name == bbu_param%ele_track_end)then
          call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
          cycle
@@ -187,15 +187,9 @@ do istep = 1, nstep
 
   lat0 = lat
 
-  ! Print some information and get the analytic approximation result for the threshold current
-
-  print '(2a)', ' Lattice File: ', trim(lat%input_file_name)
-  print '(2a)', ' Lattice Name: ', trim(lat%lattice)
-  print '(a, i7)', ' Nr Tracking Elements: ', lat%n_ele_track
-  print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
-
   ! Define element at which tracking ends
-if (bbu_param%ele_track_end.ne.' ')then
+
+  if (bbu_param%ele_track_end.ne.' ')then
       call lat_ele_locator(bbu_param%ele_track_end,lat, eles, n_loc, err)
       if(err)call err_exit
       if(n_loc.eq.0)then
@@ -214,7 +208,9 @@ if (bbu_param%ele_track_end.ne.' ')then
       endif
       bbu_param%ix_ele_track_end = ix
       print *,' Tracking will be halted after element ',bbu_param%ele_track_end
-endif
+  endif
+
+  !
 
   if (bbu_param%write_hom_info) then
    call write_homs(lat, bbu_param%bunch_freq, trtb, currth)
@@ -225,6 +221,14 @@ endif
   endif
 
   call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
+
+  ! Print some information and get the analytic approximation result for the threshold current
+
+  print '(2a)', ' Lattice File: ', trim(lat%input_file_name)
+  print '(2a)', ' Lattice Name: ', trim(lat%lattice)
+  print '(a, i7)', ' Num Elements to Track: ', bbu_param%ix_ele_track_end
+  print '(a, i7)', ' Num Elements Elements: ', lat%n_ele_track
+  print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
 
   print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
@@ -252,7 +256,7 @@ endif
       call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 
       if (lost) then
-         print *, 'Particle(s) lost. Assuming unstable...'
+         print *, 'PARTICLE(S) LOST. ASSUMING UNSTABLE...'
       else
     ! Print output for stable orbit analysis
                   do i = 1, size(bbu_beam%stage)
@@ -292,7 +296,7 @@ endif
       call calc_next_charge_try
       if (hom_voltage_gain > 1) exit
       if (lost) then
-        print *, 'Particle(s) lost. Assuming unstable...'
+        print *, 'PARTICLE(S) LOST. ASSUMING UNSTABLE...'
         exit
       endif
     enddo
