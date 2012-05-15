@@ -17,13 +17,13 @@ end type
 
 type bbu_beam_struct
   type (bunch_struct), allocatable :: bunch(:)  ! Bunches in the lattice
+  type (bbu_stage_struct), allocatable :: stage(:)
   integer, allocatable :: ix_ele_bunch(:)       ! element where bunch is 
   integer ix_bunch_head       ! Index to head bunch(:)
   integer ix_bunch_end        ! Index of the end bunch(:). -1 -> no bunches.
   integer n_bunch_in_lat      ! Number of bunches transversing the lattice.
   integer ix_stage_voltage_max
   integer ix_last_stage_tracked
-  type (bbu_stage_struct), allocatable :: stage(:)
   real(rp) hom_voltage_max
   real(rp) time_now
   real(rp) one_turn_time
@@ -65,7 +65,7 @@ type bbu_param_struct
   integer ran_seed
   real(rp) ran_gauss_sigma_cut
   character(40) ele_track_end
-  integer ix_ele_track_end
+  integer ix_ele_track_end   ! Default: set to last element with a wake
 end type
 
 contains
@@ -85,7 +85,7 @@ type (bbu_param_struct) bbu_param
 type (ele_struct), pointer :: ele
 type (ele_pointer_struct), allocatable, save :: chain_ele(:)
 
-integer i, j, k, ih, ix_pass, n_links
+integer i, j, k, ih, ix_pass, n_links, n_stage, ix_track_end
 
 real(rp) dt_bunch, rr(4)
 
@@ -98,33 +98,23 @@ if (dt_bunch == 0) then
   call err_exit
 endif
 
-bbu_beam%n_bunch_in_lat = (lat%ele(lat%n_ele_track)%ref_time / dt_bunch) + 1
-bbu_beam%one_turn_time = lat%ele(lat%n_ele_track)%ref_time
-
-if (allocated(bbu_beam%bunch)) deallocate (bbu_beam%bunch)
-allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+10))
-bbu_beam%ix_bunch_head = 1
-bbu_beam%ix_bunch_end = -1  ! Indicates No bunches
-
-call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+10)
-
 ! Find all elements that have a lr wake.
 
-j = 0
+n_stage = 0
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   if (.not. associated(ele%rf_wake)) cycle
   if (size(ele%rf_wake%lr) == 0) cycle
-  j = j + 1
+  n_stage = n_stage + 1
 enddo
 
-if (j == 0) then
+if (n_stage == 0) then
   call out_io (s_fatal$, r_name, 'NO LR WAKES FOUND IN LATTICE!')
   call err_exit
 endif
 
 if (allocated(bbu_beam%stage)) deallocate (bbu_beam%stage)
-allocate (bbu_beam%stage(j))
+allocate (bbu_beam%stage(n_stage))
 
 ! Bunches have to go through a given physical lcavity in the correct order. 
 ! To do this correctly, the lattice is divided up into stages.
@@ -148,9 +138,12 @@ do i = 1, lat%n_ele_track
   if (.not. associated(ele%rf_wake)) cycle
   if (size(ele%rf_wake%lr) == 0) cycle
   j = j + 1
+
   bbu_beam%stage(j)%ix_ele_lr_wake = i
+
   call multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
   bbu_beam%stage(j)%ix_pass = ix_pass
+
   if (ix_pass > 0) then
     do k = 1, j
       if (bbu_beam%stage(k)%ix_ele_lr_wake == chain_ele(1)%ele%ix_ele) then
@@ -166,6 +159,21 @@ do i = 1, lat%n_ele_track
     bbu_beam%stage(j)%ix_stage_pass1 = j
   endif
 enddo
+
+! Bunch init
+
+if (bbu_param%ix_ele_track_end == -1) bbu_param%ix_ele_track_end = bbu_beam%stage(n_stage)%ix_ele_lr_wake
+ix_track_end = bbu_param%ix_ele_track_end 
+
+bbu_beam%n_bunch_in_lat = (lat%ele(ix_track_end)%ref_time / dt_bunch) + 1
+bbu_beam%one_turn_time = lat%ele(ix_track_end)%ref_time
+
+if (allocated(bbu_beam%bunch)) deallocate (bbu_beam%bunch)
+allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+10))
+bbu_beam%ix_bunch_head = 1
+bbu_beam%ix_bunch_end = -1  ! Indicates No bunches
+
+call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+10)
 
 end subroutine bbu_setup
 
@@ -236,8 +244,7 @@ do
 
   ! If the head bunch is finished then remove it and seed a new one.
 
-  if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == lat%n_ele_track .or. &
-      bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == bbu_param%ix_ele_track_end) then
+  if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == bbu_param%ix_ele_track_end) then
     call bbu_remove_head_bunch (bbu_beam)
     call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
   endif
@@ -288,8 +295,7 @@ do
     endif
 
     call track_all (lat, orbit)
-    n = lat%n_ele_track
-    if (bbu_param%ix_ele_track_end > 0) n = bbu_param%ix_ele_track_end
+    n = bbu_param%ix_ele_track_end
     max_x = maxval(abs(orbit(1:n)%vec(1)))
     max_y = maxval(abs(orbit(1:n)%vec(3)))
     rms_x = sqrt(sum(orbit(1:n)%vec(1)**2)/n)
@@ -364,7 +370,7 @@ bbu_beam%time_now = this_stage%time_at_wake_ele
 ! With the last stage track to the end of the lattice
 
 ix_ele_end = this_stage%ix_ele_lr_wake
-if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
+if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = bbu_param%ix_ele_track_end
 ie = bbu_param%ix_ele_track_end
 if (ie > 0 .and. ix_ele_end > ie) ix_ele_end = ie
 
@@ -377,6 +383,7 @@ do j = ix_ele_start+1, ix_ele_end
 
   call track1_bunch (bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
   if (.not. all(bbu_beam%bunch(ib)%particle%ix_lost == not_lost$)) then
+    print *, 'PARTICLE(S) LOST WHILE TRACKING ELEMENT: ', trim(lat%ele(j)%name), '  (', j, ')'
     lost = .true.
     return
   endif
@@ -662,7 +669,7 @@ call mat_make_unit(imat)
 time=0
 k=1     
 
-do i = 1, lat%n_ele_track
+do i = 1, bbu_param%ix_ele_track_end
 
   gamma=lat%ele(i)%value(E_TOT$)/m_electron       ! Calculate the z component of the velocity
   Vz=c_light*sqrt(1.-1./gamma**2)
@@ -702,7 +709,7 @@ anavalid = .true.
 !print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq  R/Q(ohms/m^2)     Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 
-do i=0, lat%n_ele_track
+do i=0, bbu_param%ix_ele_track_end
    
    mat=matmul(lat%ele(i)%mat6, oldmat) 
   
