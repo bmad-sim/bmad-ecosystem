@@ -269,13 +269,13 @@ interface
 end interface
 
 interface
-  function element_at_s (lat, s, min1, ix_branch, err_flag, s_eff) result (ix_ele)
+  function element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff) result (ix_ele)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct) lat
     real(rp) s
     integer ix_ele
-    logical min1
+    logical choose_max
     integer, optional :: ix_branch
     logical, optional :: err_flag
     real(rp), optional :: s_eff

@@ -3210,9 +3210,10 @@ type (branch_struct), pointer :: branch
 type (lat_ele_loc_struct) m_slaves(:)
 
 integer i, j, k, n, i1, ix, ixc, ixic, ix_lord, ixb, ixb2, ix_n
-integer n_multipass, ic, ix_l1, ix_l0, ix_pass, n_links
+integer n_multipass, ic, ix_l1, ix_l0, ix_pass, n_links, lmax
 
 character(40) base_name
+character(100) slave2_name
 
 ! Count slaves.
 ! If i > lat%n_ele_track we are looking at cloning a super_lord which should
@@ -3231,6 +3232,7 @@ else
   lord = pointer_to_ele(lat, m_slaves(1))  ! Set attributes equal to first slave.
 endif
 
+lord%old_is_on = .true.  ! So add_all_superimpose will not try to use as ref ele.
 lord%lord_status = multipass_lord$
 lord%n_slave = n_multipass
 lord%ix1_slave = 0
@@ -3265,13 +3267,16 @@ do i = 1, n_multipass
       i1 = i1 + 1
       write (slave2%name, '(2a, i0, a, i0)') trim(lord%name), '#', i1, '\', i      ! '
     else
-      slave2%name = ''
+      slave2_name = ''
+      lmax = len(slave2%name) - 2
       do k = 1, slave2%n_lord
         lord2 => pointer_to_lord(slave2, k)
         lord2 => pointer_to_lord(lord2, 1)
-        slave2%name = trim(slave2%name) // trim(lord2%name) // '\'     ! '
+        slave2_name = trim(slave2_name) // trim(lord2%name) // '\'     ! '
+        if (len_trim(slave2_name) > lmax) exit
       enddo
-      write (slave2%name, '(a, i0)') trim(slave2%name), i  
+      if (len_trim(slave2_name) > lmax) slave2_name = slave2_name(1:lmax) // '\'   ! '
+      write (slave2%name, '(a, i0)') trim(slave2_name), i  
     endif
   enddo
 enddo
@@ -3403,6 +3408,7 @@ n_inserted = 0
 
 if (pele%ref_name == blank_name$) then
   call compute_super_lord_s (lat, lat%ele(0), super_ele, pele)
+  call check_for_multipass_superimpose_problem (lat, lat%ele(0), super_ele, err_flag); if (err_flag) return
   call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
                                  create_em_field_slave = pele%create_em_field_slave)
   if (err_flag) bp_com%error_flag = .true.
@@ -3418,6 +3424,7 @@ do i_br = 0, ubound(lat%branch, 1)
   branch%ele%ix_pointer = -1
 enddo
 
+!
 
 do 
 
@@ -3466,6 +3473,7 @@ do
           if (branch%ele(i)%ix_pointer /= j+1) cycle
           j = j + 1
           call compute_super_lord_s (lat, branch%ele(i), super_ele, pele)
+          call check_for_multipass_superimpose_problem (lat, branch%ele(i), super_ele, err_flag); if (err_flag) return
           ! Don't need to save drifts since a multipass_lord drift already exists.
           call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
                         save_null_drift = .false., create_em_field_slave = pele%create_em_field_slave)
@@ -3482,11 +3490,11 @@ do
           ele => lat%ele(i)
           if (ele%key /= drift$) cycle
           if (ele%lord_status /= super_lord$) cycle 
-          ele%key = null_ele$ ! mark for deletion
+          ele%key = -1 ! mark for deletion
 
           do j = 1, ele%n_lord
             lord => pointer_to_lord(ele, j)
-            lord%key = null_ele$  ! Mark lord for deletion
+            lord%key = -1  ! Mark lord for deletion
           enddo
 
           ! Need to remove super_lord/super_slave links otherwise the code below gets confused
@@ -3532,10 +3540,10 @@ do
               ele%name = super_ele_saved%name
               m_slaves(i) = ele_to_lat_loc (ele)
             enddo
-            call remove_eles_from_lat (lat, .false.)
           endif
         endif
 
+        call remove_eles_from_lat (lat, .false.)
         call add_this_multipass (lat, m_slaves, super_ele_saved) 
 
         ! Reconnect drifts that were part of the multipass region.
@@ -3556,11 +3564,13 @@ do
         enddo
 
         call deallocate_multipass_all_info_struct (m_info)
+        deallocate (m_slaves, multi_name)
 
       ! Else not superimposing on a multipass_lord ...
 
       else
         call compute_super_lord_s (lat, branch%ele(i_ele), super_ele, pele)
+        call check_for_multipass_superimpose_problem (lat, branch%ele(i_ele), super_ele, err_flag); if (err_flag) return
         call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
         super_ele%name = super_ele_saved%name(:ix)            
         call add_superimpose (lat, super_ele, i_br, err_flag, super_ele_out, &
@@ -3677,6 +3687,69 @@ if (branch%param%lattice_type == circular_lattice$) then
 endif
 
 end subroutine compute_super_lord_s
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine check_for_multipass_superimpose_problem (lat, ref_ele, super_ele, err_flag)
+!
+! Subroutine to check if there is a problem superimposing an element when there is multipass.
+! In particular will check that:
+!   1) If the ref_ele is part of a multipass region then super_ele must be superimposed
+!      within the region.
+! Or:
+!   2) If the ref_ele is not part of a multipass region then super_ele must also not
+!      be part of a multipass region.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine check_for_multipass_superimpose_problem (lat, ref_ele, super_ele, err_flag)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct) ref_ele, super_ele
+type (ele_struct), pointer :: ele1, ele2
+type (branch_struct), pointer :: branch
+logical err_flag
+integer ix1, ix2
+
+
+!
+
+branch => lat%branch(ref_ele%ix_branch)
+err_flag = .true.
+
+ix1 = element_at_s (lat, super_ele%s - super_ele%value(l$), .true., ref_ele%ix_branch, err_flag)
+ele1 => branch%ele(ix1)
+if (ele1%slave_status == super_slave$) ele1 => pointer_to_lord(ele1, 1)
+
+ix2 = element_at_s (lat, super_ele%s, .false., ref_ele%ix_branch, err_flag)
+ele2 => branch%ele(ix2)
+if (ele2%slave_status == super_slave$) ele2 => pointer_to_lord(ele2, 1)
+
+if (ref_ele%slave_status == multipass_slave$) then
+  if (ele1%slave_status /= multipass_slave$ .or. ele2%slave_status /= multipass_slave$) then
+    call parser_error ('SUPERIMPOSE OF: ' // super_ele%name, &
+         'USES MULTIPASS REFERENCE ELEMENT BUT OFFSET PLACES IT OUT OF THE MULTIPASS REGION!')
+    return
+  endif
+
+else
+  if (ele1%slave_status == multipass_slave$ .or. ele2%slave_status == multipass_slave$) then
+    call parser_error ('SUPERIMPOSE OF: ' // super_ele%name, &
+         'USES NON-MULTIPASS REFERENCE ELEMENT BUT OFFSET PLACES IT IN A MULTIPASS REGION!')
+    return
+  endif
+
+endif
+
+err_flag = .false.
+
+end subroutine check_for_multipass_superimpose_problem 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

@@ -3201,7 +3201,7 @@ type (ele_struct), pointer :: ele
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 
-integer ic, icon, ib, i, n
+integer ic_out, icon_out, ib, i, n
 
 !
 
@@ -3211,25 +3211,25 @@ lat => lord%lat
 
 ! Find lat%control(:) and lat%ic(:) elements associated with this link
 
-do ic = slave%ic1_lord, slave%ic2_lord
-  icon = lat%ic(ic)
-  if (lat%control(icon)%ix_lord == lord%ix_ele) exit
+do ic_out = slave%ic1_lord, slave%ic2_lord
+  icon_out = lat%ic(ic_out)
+  if (lat%control(icon_out)%ix_lord == lord%ix_ele) exit
 enddo
 
-if (icon == slave%ic2_lord + 1) call err_exit ! Should not be
+if (icon_out == slave%ic2_lord + 1) call err_exit ! Should not be
 
 ! Compress lat%control and lat%ic arrays.
 
 n = lat%n_control_max
-lat%control(icon:n-1) = lat%control(icon+1:n)
+lat%control(icon_out:n-1) = lat%control(icon_out+1:n)
 lat%n_control_max = n - 1
 
 n = lat%n_ic_max
-lat%ic(ic:n-1) = lat%ic(ic+1:n)
+lat%ic(ic_out:n-1) = lat%ic(ic_out+1:n)
 lat%n_ic_max = n - 1
 
 do i = 1, n - 1
-  if (lat%ic(i) > icon) lat%ic(i) = lat%ic(i) - 1
+  if (lat%ic(i) > icon_out) lat%ic(i) = lat%ic(i) - 1
 enddo
 
 ! Correct info in all elements
@@ -3240,16 +3240,27 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
 
-    if (ele%ix1_slave > icon) ele%ix1_slave = ele%ix1_slave - 1
-    if (ele%ix2_slave > icon) ele%ix2_slave = ele%ix2_slave - 1
+    if (ele%ix1_slave >  icon_out) ele%ix1_slave = ele%ix1_slave - 1
+    if (ele%ix2_slave >= icon_out) ele%ix2_slave = ele%ix2_slave - 1
 
-    if (ele%ic1_lord > ic) ele%ic1_lord = ele%ic1_lord - 1
-    if (ele%ic2_lord > ic) ele%ic2_lord = ele%ic2_lord - 1
+    if (ele%ic1_lord >  ic_out) ele%ic1_lord = ele%ic1_lord - 1
+    if (ele%ic2_lord >= ic_out) ele%ic2_lord = ele%ic2_lord - 1
   enddo
 enddo
 
 slave%n_lord = slave%n_lord - 1
+if (slave%n_lord == 0) then
+  slave%ic1_lord = 0
+  slave%ic2_lord = -1
+  slave%slave_status = free$
+endif
+
 lord%n_slave = lord%n_slave - 1
+if (lord%n_slave == 0) then
+  lord%ix1_slave = 0
+  lord%ix2_slave = -1
+  lord%lord_status = not_a_lord$
+endif
 
 end subroutine remove_lord_slave_link 
 

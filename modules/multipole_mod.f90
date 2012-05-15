@@ -183,7 +183,12 @@ else
   call multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)
 endif
 
-call multipole_ab_to_kt (a, b, knl, tilt)
+if (has_nonzero_pole) then
+  call multipole_ab_to_kt (a, b, knl, tilt)
+else
+  knl = 0
+  tilt = 0
+endif
 
 end subroutine multipole_ele_to_kt
 
