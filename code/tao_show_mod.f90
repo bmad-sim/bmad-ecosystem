@@ -14,6 +14,8 @@ type show_common_struct
   integer ix_ele
 end type
 
+private write_real
+
 contains
 
 !--------------------------------------------------------------------
@@ -1406,11 +1408,11 @@ case ('lattice')
       column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '', .false.)
       column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '', .false.)
       column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '', .false.)
-      column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',      7, 'beta|  a', .false.)
+      column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f8.2',      8, 'beta|  a', .false.)
       column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '', .false.)
       column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '', .false.)
       column(10) = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3',  8, '', .false.)
-      column(11) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',      7, '', .false.)
+      column(11) = show_lat_column_struct('ele::#[beta_b]',    'f8.2',      8, '', .false.)
       column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '', .false.)
       column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '', .false.)
       column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '', .false.)
@@ -1664,7 +1666,7 @@ case ('lattice')
             write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
             if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) cycle line_loop
           else
-            write (line(nc:), column(i)%format, iostat = ios) value(1)
+            call write_real (line(nc:), column(i)%format, value(1))
             if (column(i)%remove_line_if_zero .and. value(1) == 0) cycle line_loop
           endif
         endif
@@ -2863,5 +2865,83 @@ nl=nl+1; write (lines(nl), lmt) '  %minimize_merit       = ', opti_de_param%mini
 end subroutine show_opt
 
 end subroutine tao_show_this
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+subroutine write_real (line, fmt, value)
+
+implicit none
+
+real(rp) value
+
+integer id, ip, ix, wid, pl, wid_want, pl_want
+
+character(16) fmt2, num_str
+character(*) line, fmt
+
+!
+
+write (line, fmt) value
+
+if (value == 0) return
+if (line(1:1) == ' ') return
+if (fmt(2:2) /= 'f' .and. fmt(2:2) /= 'F') return
+
+! Always have a blank as first character.
+
+id = index(fmt, '.')
+ip = index(fmt, ')')
+
+read (fmt(3:id-1), *) wid
+read (fmt(id+1:ip-1), *) pl
+
+wid_want = log10((1 + 1/10.0**(wid-2)) * abs(value)) + 1
+if (value < 0) wid_want = wid_want + 1
+
+pl_want = wid - wid_want - 2
+
+if (pl_want == 0) then
+  write (fmt2, '(a, i0, a, i0, a)') '(1x, f', wid, '.', pl_want, ')'
+  write (line, fmt2) value
+  line(wid+1:wid+1) = ' ' ! Get rid of '.'  
+  return
+endif
+
+if (pl_want > 0) then  ! Can use F format.
+  write (fmt2, '(a, i0, a, i0, a)') '(1x, f', wid-1, '.', pl_want, ')'
+  write (line, fmt2) value
+  return
+endif
+
+! Number is too large so switch to ES format.
+
+wid_want = 4
+if (value < 0) wid_want = wid_want + 1
+if (abs(value) > 0.99d10) wid_want = wid_want + 1
+if (abs(value) > 0.99d100) wid_want = wid_want + 1
+
+if (wid < wid_want) return  ! Cannot do anything
+
+pl = wid - wid_want - 1
+if (pl < 0) pl = 0
+write (fmt2, '(a, i0, a, i0, a)') '(es16.', pl, ')'
+write (num_str, fmt2) value
+
+id = index(num_str, '+')  ! Get rid of "+" sign in "E+nnn"
+if (id /= 0) num_str = num_str(1:id-1) // num_str(id+1:)
+
+id = index(num_str, 'E0')  ! Get rid of "0" in "E005"
+if (id /= 0) num_str = num_str(1:id) // num_str(id+2:)
+
+id = index(num_str, 'E0')  ! Get rid of "0" in "E005"
+if (id /= 0) num_str = num_str(1:id) // num_str(id+2:)
+
+call string_trim (num_str, num_str, ix)
+line = ''
+line(wid-ix+1:) = num_str
+
+end subroutine
 
 end module
