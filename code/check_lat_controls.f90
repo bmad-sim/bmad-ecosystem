@@ -253,9 +253,8 @@ do i_b = 0, ubound(lat%branch, 1)
     if (i_t > branch%n_ele_track) then
       if (s_stat == super_slave$) then
         call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele%name, &
-                  'WITH SLAVE_STATUS: ' // control_name(s_stat), &
-                  'IS *NOT* IN THE TRACKING PART OF LAT LIST AT: \i0\ ', &
+                  'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                  'IS *NOT* IN THE TRACKING PART OF LATTICE LIST', &
                   i_array = [i_t] )
         err_flag = .true.
       endif                                             
@@ -264,9 +263,9 @@ do i_b = 0, ubound(lat%branch, 1)
           l_stat == group_lord$ .or. l_stat == girder_lord$ .or. &
           l_stat == multipass_lord$) then
         call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele%name, &
+                  'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
                   'WITH LORD_STATUS: ' // control_name(l_stat), &
-                  'IS IN THE TRACKING PART OF LAT LIST AT: \i0\ ', i_array = [i_t] )
+                  'IS IN THE TRACKING PART OF LATTICE LIST', i_array = [i_t] )
         err_flag = .true.
       endif
     endif

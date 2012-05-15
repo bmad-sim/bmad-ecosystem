@@ -269,7 +269,7 @@ type (branch_struct), pointer :: branch
 real(rp) s, s_use, s0, s_saved
 
 integer, optional :: ix_branch
-integer i, i_branch
+integer ie_at_s, i_branch
 
 logical err_flag, use_l
 logical :: init_needed = .true.
@@ -282,23 +282,23 @@ character(20), parameter :: r_name = 'twiss_and_track_at_s'
 i_branch = integer_option(0, ix_branch)
 branch => lat%branch(i_branch)
 
-i = element_at_s (lat, s, .false., ix_branch, err_flag, s_use)
+ie_at_s = element_at_s (lat, s, .false., ix_branch, err_flag, s_use)
 if (err_flag) then
   call out_io (s_error$, r_name, 'Bad S-position. Cannot compute Twiss parameters.')
   if (present(err)) err = .true. 
   return
 endif
 
-if (abs(s_use - branch%ele(i)%s) < bmad_com%significant_length) then
-  if (present(ele_at_s)) call transfer_ele(branch%ele(i), ele_at_s, .true.)
-  if (present(orb_at_s)) orb_at_s = orb(i)
+if (abs(s_use - branch%ele(ie_at_s)%s) < bmad_com%significant_length) then
+  if (present(ele_at_s)) call transfer_ele(branch%ele(ie_at_s), ele_at_s, .true.)
+  if (present(orb_at_s)) orb_at_s = orb(ie_at_s)
   if (present(err)) err = .false.
   return
 endif
 
 ! Normal case where we need to partially track through an element.
 
-s0 = branch%ele(i-1)%s
+s0 = branch%ele(ie_at_s-1)%s
 use_l = logic_option(.false., use_last)
 if (use_l) then
   if (present(ele_at_s)) then
@@ -309,20 +309,20 @@ if (use_l) then
 endif
 
 if (use_l .and. s_saved < s_use .and. s_saved > s0) then
-  call twiss_and_track_intra_ele (branch%ele(i), branch%param, s_saved-s0, s_use-s0, &
+  call twiss_and_track_intra_ele (branch%ele(ie_at_s), branch%param, s_saved-s0, s_use-s0, &
                               .true., .true., orb_at_s, orb_at_s, ele_at_s, ele_at_s, err)
 
 else
   if (present(orb)) then
-    call twiss_and_track_intra_ele (branch%ele(i), branch%param, 0.0_rp, s_use-s0, &
-                              .true., .true., orb(i-1), orb_at_s, branch%ele(i-1), ele_at_s, err)
+    call twiss_and_track_intra_ele (branch%ele(ie_at_s), branch%param, 0.0_rp, s_use-s0, &
+                              .true., .true., orb(ie_at_s-1), orb_at_s, branch%ele(ie_at_s-1), ele_at_s, err)
   else
-    call twiss_and_track_intra_ele (branch%ele(i), branch%param, 0.0_rp, s_use-s0, &
-                              .true., .true., ele_start = branch%ele(i-1), ele_end = ele_at_s, err = err)
+    call twiss_and_track_intra_ele (branch%ele(ie_at_s), branch%param, 0.0_rp, s_use-s0, &
+                              .true., .true., ele_start = branch%ele(ie_at_s-1), ele_end = ele_at_s, err = err)
   endif
 endif
 
-call ele_geometry (branch%ele(i-1)%floor, ele_at_s, ele_at_s%floor)
+call ele_geometry (branch%ele(ie_at_s-1)%floor, ele_at_s, ele_at_s%floor)
 
 end subroutine twiss_and_track_at_s
 
