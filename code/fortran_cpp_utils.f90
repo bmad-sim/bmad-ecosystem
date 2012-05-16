@@ -36,11 +36,11 @@ end type
 !   ptr_mat(:,:)    -- type(c_ptr): Input matrix
 !
 ! Output:
-!   real_vec(:)   -- Real(rp): Output array 
-!   int_vec(:)    -- Integer: Output array 
-!   complx_vec(:) -- Complex(rp): Output array 
-!   bool_vec(:)   -- Logical(c_bool): Output array 
-!   ptr_vec(:)    -- type(c_ptr): Output array 
+!   real_vec(*)   -- Real(c_double): Output array 
+!   int_vec(*)    -- Integer(c_int): Output array 
+!   complx_vec(*) -- complex(c_double_complex): Output array 
+!   bool_vec(*)   -- Logical(c_bool): Output array 
+!   ptr_vec(*)    -- type(c_ptr): Output array 
 !-
 
 interface mat2vec
@@ -54,11 +54,11 @@ end interface
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function tensor2arr (tensor) result (arr)
+! Function tensor2vec (tensor) result (vec)
 !
 ! Function to take a tensor and turn it into an array in 
 ! C standard row-major order::
-!   arr(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j,k)
+!   vec(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j,k)
 ! where n2 = size(tensor,2).
 ! This is used for passing tensorrices to C++ routines.
 !
@@ -69,11 +69,12 @@ end interface
 !   tensor(:,:)  -- Real(rp): Input tensorrix
 !
 ! Output:
-!   arr(:)   -- Real(rp): Output array 
+!   vec(*)   -- Real(c_double): Output array 
 !-
 
 interface tensor2vec
   module procedure real_tensor2vec
+  module procedure int_tensor2vec
   module procedure cmplx_tensor2vec
   module procedure ptr_tensor2vec
 end interface
@@ -81,9 +82,9 @@ end interface
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function vec2mat (vec, n1, n2) result (mat)
+! Subroutine vec2mat (vec, mat)
 !
-! Function to take a an array in C standard row-major 
+! Routine to take a an array in C standard row-major 
 ! order and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
@@ -92,12 +93,12 @@ end interface
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(*)   -- Real(rp): Input array.
+!   vec(*)   -- Real(c_double): Input array.
 !   n1       -- Integer: Size of first mat index.
 !   n2       -- Integer: Size of second mat index.
 !
 ! Output:
-!   mat(n1,n2)  -- Real(rp): Output matrix
+!   mat(:,:)  -- Real(rp): Output matrix
 !-
 
 interface vec2mat
@@ -111,9 +112,9 @@ end interface
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function vec2tensor (vec, n1, n2, n3) result (tensor)
+! Subroutine vec2tensor (vec, tensor)
 !
-! Function to take a an array in C standard row-major 
+! Routine to take a an array in C standard row-major 
 ! order and turn it into a tensor:
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
@@ -122,7 +123,7 @@ end interface
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(*)   -- Real(rp): Input array.
+!   vec(*)   -- Real(c_double): Input array.
 !   n1       -- Integer: Size of first tensor index.
 !   n2       -- Integer: Size of second tensor index.
 !   n3       -- Integer: Size of third tensor index.
@@ -133,6 +134,7 @@ end interface
 
 interface vec2tensor
   module procedure real_vec2tensor
+  module procedure int_vec2tensor
   module procedure cmplx_vec2tensor
   module procedure ptr_vec2tensor
 end interface
@@ -613,7 +615,7 @@ end function real_mat2vec
 !   mat(:,:)  -- integer: Input matrix
 !
 ! Output:
-!   vec(:)   -- integer: Output array 
+!   vec(:)   -- integer(c_int): Output array 
 !-
 
 function int_mat2vec (mat) result (vec)
@@ -621,7 +623,7 @@ function int_mat2vec (mat) result (vec)
 implicit none
 
 integer mat(:,:)
-integer vec(size(mat))
+integer(c_int) vec(size(mat))
 integer i, j, n1, n2
 
 n1 = size(mat, 1); n2 = size(mat, 2)
@@ -708,7 +710,7 @@ end function ptr_mat2vec
 !   mat(:,:)  -- complex(rp): Input matrix
 !
 ! Output:
-!   vec(:)   -- complex(rp): Output array 
+!   vec(:)   -- complex(c_double_complex): Output array 
 !-
 
 function cmplx_mat2vec (mat) result (vec)
@@ -716,7 +718,7 @@ function cmplx_mat2vec (mat) result (vec)
 implicit none
 
 complex(rp) mat(:,:)
-complex(rp) vec(size(mat))
+complex(c_double_complex) vec(size(mat))
 integer i, j, n1, n2
 
 n1 = size(mat, 1); n2 = size(mat, 2)
@@ -734,7 +736,7 @@ end function cmplx_mat2vec
 ! See tensor2vec for more details
 !
 ! Input:
-!   tensor(:,:)  -- Real(rp): Input tensorrix
+!   tensor(:,:,:)  -- Real(rp): Input tensorrix
 !
 ! Output:
 !   vec(:)   -- Real(rp): Output array 
@@ -756,6 +758,35 @@ end function real_tensor2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Function int_tensor2vec (tensor) result (vec)
+!
+! Function to take a tensor and turn it into an array:
+!   vec(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
+! See tensor2vec for more details
+!
+! Input:
+!   tensor(:,:,:)  -- Integer: Input tensorrix
+!
+! Output:
+!   vec(:)   -- Integer(c_int): Output array 
+!-
+
+function int_tensor2vec (tensor) result (vec)
+
+implicit none
+
+integer tensor(:,:,:)
+integer(c_int) vec(size(tensor))
+integer i, j, k, n1, n2, n3
+
+n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
+forall (i = 1:n1, j = 1:n2, k = 1:n3) vec(n3*n2*(i-1) + n3*(j-1) + k) = tensor(i,j,k)
+ 
+end function int_tensor2vec
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Function cmplx_tensor2vec (tensor) result (vec)
 !
 ! Function to take a tensor and turn it into an array:
@@ -763,10 +794,10 @@ end function real_tensor2vec
 ! See tensor2vec for more details
 !
 ! Input:
-!   tensor(:,:)  -- complex(rp): Input tensorrix
+!   tensor(:,:,:)  -- complex(rp): Input tensorrix
 !
 ! Output:
-!   vec(:)   -- complex(rp): Output array 
+!   vec(:)   -- complex(c_double_complex): Output array 
 !-
 
 function cmplx_tensor2vec (tensor) result (vec)
@@ -774,7 +805,7 @@ function cmplx_tensor2vec (tensor) result (vec)
 implicit none
 
 complex(rp) tensor(:,:,:)
-complex(rp) vec(size(tensor))
+complex(c_double_complex) vec(size(tensor))
 integer i, j, k, n1, n2, n3
 
 n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
@@ -792,7 +823,7 @@ end function cmplx_tensor2vec
 ! See tensor2vec for more details
 !
 ! Input:
-!   tensor(:,:)  -- type(c_ptr): Input tensorrix
+!   tensor(:,:,:)  -- type(c_ptr): Input tensorrix
 !
 ! Output:
 !   vec(:)   -- type(c_ptr): Output array 
@@ -814,9 +845,9 @@ end function ptr_tensor2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function real_vec2mat (vec, n1, n2) result (mat)
+! Subroutine real_vec2mat (vec, mat)
 !
-! Function to take a an array and turn it into a matrix:
+! Subroutine to take a an array and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
@@ -832,24 +863,25 @@ end function ptr_tensor2vec
 !   mat(n1,n2)  -- Real(rp): Output matrix
 !-
 
-function real_vec2mat (vec, n1, n2) result (mat)
+subroutine real_vec2mat (vec, mat)
 
 implicit none
 
 integer i, j, n1, n2
-real(rp) vec(*)
-real(rp) mat(n1,n2)
+real(c_double) vec(*)
+real(rp) mat(:,:)
 
+n1 = size(mat, 1); n2 = size(mat, 2)
 forall (i = 1:n1, j = 1:n2) mat(i,j) = vec(n2*(i-1) + j) 
  
-end function real_vec2mat
+end subroutine real_vec2mat
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function int_vec2mat (vec, n1, n2) result (mat)
+! Subroutine int_vec2mat (vec, mat)
 !
-! Function to take a an array and turn it into a matrix:
+! Subroutine to take a an array and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
@@ -862,27 +894,28 @@ end function real_vec2mat
 !   n2       -- Integer: Size of second mat index.
 !
 ! Output:
-!   mat(n1,n2)  -- integer: Output matrix
+!   mat(:,:)  -- integer: Output matrix
 !-
 
-function int_vec2mat (vec, n1, n2) result (mat)
+subroutine int_vec2mat (vec, mat)
 
 implicit none
 
 integer i, j, n1, n2
-integer vec(*)
-integer mat(n1,n2)
+integer(c_int) vec(*)
+integer mat(:,:)
 
+n1 = size(mat, 1); n2 = size(mat, 2)
 forall (i = 1:n1, j = 1:n2) mat(i,j) = vec(n2*(i-1) + j) 
  
-end function int_vec2mat
+end subroutine int_vec2mat
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function bool_vec2mat (vec, n1, n2) result (mat)
+! Subroutine bool_vec2mat (vec, mat)
 !
-! Function to take a an array and turn it into a matrix:
+! Subroutine to take a an array and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
@@ -895,31 +928,32 @@ end function int_vec2mat
 !   n2       -- integer: Size of second mat index.
 !
 ! Output:
-!   mat(n1,n2)  -- logical: Output matrix
+!   mat(:,:)  -- logical: Output matrix
 !-
 
-function bool_vec2mat (vec, n1, n2) result (mat)
+subroutine bool_vec2mat (vec, mat)
 
 implicit none
 
 integer i, j, n1, n2
 logical(c_bool) vec(*)
-logical mat(n1,n2)
+logical mat(:,:)
 
+n1 = size(mat, 1); n2 = size(mat, 2)
 do i = 1,n1
 do j = 1,n2
   mat(i,j) = f_logic(vec(n2*(i-1) + j))
 enddo
 enddo
 
-end function bool_vec2mat
+end subroutine bool_vec2mat
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function cmplx_vec2mat (vec, n1, n2) result (mat)
+! Subroutine cmplx_vec2mat (vec, mat)
 !
-! Function to take a an array and turn it into a matrix:
+! Subroutine to take a an array and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
@@ -927,32 +961,33 @@ end function bool_vec2mat
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(*)   -- complex(rp): Input array.
+!   vec(*)   -- complex(c_double_complex): Input array.
 !   n1       -- integer: Size of first mat index.
 !   n2       -- integer: Size of second mat index.
 !
 ! Output:
-!   mat(n1,n2)  -- complex(rp): Output matrix
+!   mat(:,:)  -- complex(rp): Output matrix
 !-
 
-function cmplx_vec2mat (vec, n1, n2) result (mat)
+subroutine cmplx_vec2mat (vec, mat)
 
 implicit none
 
 integer i, j, n1, n2
-complex(rp) vec(*)
-complex(rp) mat(n1,n2)
+complex(c_double_complex) vec(*)
+complex(rp) mat(:,:)
 
+n1 = size(mat, 1); n2 = size(mat, 2)
 forall (i = 1:n1, j = 1:n2) mat(i,j) = vec(n2*(i-1) + j) 
  
-end function cmplx_vec2mat
+end subroutine cmplx_vec2mat
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function ptr_vec2mat (vec, n1, n2) result (mat)
+! Subroutine ptr_vec2mat (vec, mat)
 !
-! Function to take a an array and turn it into a matrix:
+! Subroutine to take a an array and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
@@ -965,27 +1000,28 @@ end function cmplx_vec2mat
 !   n2       -- integer: Size of second mat index.
 !
 ! Output:
-!   mat(n1,n2)  -- type(c_ptr): Output matrix
+!   mat(:,:)  -- type(c_ptr): Output matrix
 !-
 
-function ptr_vec2mat (vec, n1, n2) result (mat)
+subroutine ptr_vec2mat (vec, mat)
 
 implicit none
 
 integer i, j, n1, n2
 type(c_ptr) vec(*)
-type(c_ptr) mat(n1,n2)
+type(c_ptr) mat(:,:)
 
+n1 = size(mat, 1); n2 = size(mat, 2)
 forall (i = 1:n1, j = 1:n2) mat(i,j) = vec(n2*(i-1) + j) 
  
-end function ptr_vec2mat
+end subroutine ptr_vec2mat
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function real_vec2tensor (vec, n1, n2, n3) result (tensor)
+! Subroutine real_vec2tensor (vec, tensor)
 !
-! Function to take a an array and turn it into a tensor:
+! Subroutine to take a an array and turn it into a tensor:
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
 !
@@ -999,27 +1035,28 @@ end function ptr_vec2mat
 !   n3       -- Integer: Size of third tensor index.
 !
 ! Output:
-!   tensor(n1,n2,n3)  -- Real(rp): Output tensor.
+!   tensor(:,:,:)  -- Real(rp): Output tensor.
 !-
 
-function real_vec2tensor (vec, n1, n2, n3) result (tensor)
+subroutine real_vec2tensor (vec, tensor)
 
 implicit none
 
 integer i, j, k, n1, n2, n3
-real(rp) vec(*)
-real(rp) tensor(n1,n2,n3)
+real(c_double) vec(*)
+real(rp) tensor(:,:,:)
 
+n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor,3)
 forall (i = 1:n1, j = 1:n2, k = 1:n3) tensor(i,j,k) = vec(n3*n2*(i-1) + n3*(j-1) + k) 
  
-end function real_vec2tensor
+end subroutine real_vec2tensor
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function cmplx_vec2tensor (vec, n1, n2, n3) result (tensor)
+! Subroutine int_vec2tensor (vec, tensor)
 !
-! Function to take a an array and turn it into a tensor:
+! Subroutine to take a an array and turn it into a tensor:
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
 !
@@ -1027,33 +1064,69 @@ end function real_vec2tensor
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(*)   -- complex(rp): Input array.
+!   vec(*)   -- integer: Input array.
 !   n1       -- Integer: Size of first tensor index.
 !   n2       -- Integer: Size of second tensor index.
 !   n3       -- Integer: Size of third tensor index.
 !
 ! Output:
-!   tensor(n1,n2,n3)  -- complex(rp): Output tensor.
+!   tensor(:,:,:)  -- integer(c_int): Output tensor.
 !-
 
-function cmplx_vec2tensor (vec, n1, n2, n3) result (tensor)
+subroutine int_vec2tensor (vec, tensor)
 
 implicit none
 
 integer i, j, k, n1, n2, n3
-complex(rp) vec(*)
-complex(rp) tensor(n1,n2,n3)
+integer(c_int) vec(*)
+integer tensor(:,:,:)
 
+n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor,3)
 forall (i = 1:n1, j = 1:n2, k = 1:n3) tensor(i,j,k) = vec(n3*n2*(i-1) + n3*(j-1) + k) 
  
-end function cmplx_vec2tensor
+end subroutine int_vec2tensor
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function ptr_vec2tensor (vec, n1, n2, n3) result (tensor)
+! Subroutine cmplx_vec2tensor (vec, tensor)
 !
-! Function to take a an array and turn it into a tensor:
+! Subroutine to take a an array and turn it into a tensor:
+!   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
+! This is used for getting tensorrices from C++ routines.
+!
+! Modules needed:
+!  use fortran_cpp_utils
+!
+! Input:
+!   vec(*)   -- complex(c_double_complex): Input array.
+!   n1       -- Integer: Size of first tensor index.
+!   n2       -- Integer: Size of second tensor index.
+!   n3       -- Integer: Size of third tensor index.
+!
+! Output:
+!   tensor(:,:,:)  -- complex(rp): Output tensor.
+!-
+
+subroutine cmplx_vec2tensor (vec, tensor)
+
+implicit none
+
+integer i, j, k, n1, n2, n3
+complex(c_double_complex) vec(*)
+complex(rp) tensor(:,:,:)
+
+n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor,3)
+forall (i = 1:n1, j = 1:n2, k = 1:n3) tensor(i,j,k) = vec(n3*n2*(i-1) + n3*(j-1) + k) 
+ 
+end subroutine cmplx_vec2tensor
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine ptr_vec2tensor (vec, tensor)
+!
+! Subroutine to take a an array and turn it into a tensor:
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
 !
@@ -1067,20 +1140,21 @@ end function cmplx_vec2tensor
 !   n3       -- Integer: Size of third tensor index.
 !
 ! Output:
-!   tensor(n1,n2,n3)  -- type(c_ptr): Output tensor.
+!   tensor(:,:,:)  -- type(c_ptr): Output tensor.
 !-
 
-function ptr_vec2tensor (vec, n1, n2, n3) result (tensor)
+subroutine ptr_vec2tensor (vec, tensor)
 
 implicit none
 
 integer i, j, k, n1, n2, n3
 type(c_ptr) vec(*)
-type(c_ptr) tensor(n1,n2,n3)
+type(c_ptr) tensor(:,:,:)
 
+n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor,3)
 forall (i = 1:n1, j = 1:n2, k = 1:n3) tensor(i,j,k) = vec(n3*n2*(i-1) + n3*(j-1) + k) 
  
-end function ptr_vec2tensor
+end subroutine ptr_vec2tensor
 
 !-----------------------------------------------------------------------------
 
