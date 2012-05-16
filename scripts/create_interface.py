@@ -347,6 +347,19 @@ if (associated(f1%NAME)) is_eq = (size(f1%NAME, 1) == size(f2%NAME, 1) .and. siz
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = all(f1%NAME == f2%NAME)'''
 
+# Allocatable components are very similar to pointer components
+# with the simple replacement of 'allocated' for 'associated'.
+
+for trans in f_side_trans.keys():
+  if trans[2] == PTR:
+    trans_alloc = (trans[0], trans[1], ALLOC)
+    f_side_trans[trans_alloc] = copy.deepcopy(f_side_trans[trans])
+    t = f_side_trans[trans_alloc]
+    t.to_f2_trans   = t.to_f2_trans.replace('associated', 'allocated')
+    t.to_c_trans    = t.to_c_trans.replace('associated', 'allocated')
+    t.test_pat      = t.test_pat.replace('associated', 'allocated')
+    t.equality_test = t.equality_test.replace('associated', 'allocated')
+
 #############################################################
 
 class c_side_trans_class:
@@ -528,9 +541,11 @@ c_side_trans[INT,   1, PTR].test_pat      = '''
 '''
  
 c_side_trans[INT,   1, PTR].to_f_setup    = '''
+  int n1_NAME = C.NAME.size();
   const int* z_NAME = 0;
-  if (C.NAME.size() != 0) z_NAME = &(C.NAME[0]);
+  if (n1_NAME != 0) z_NAME = &(C.NAME[0]);
 '''
+
 c_side_trans[INT,   1, PTR].to_c2_set     = '''
   if (n1_NAME == 0)
     C.NAME.resize(0);
@@ -639,6 +654,12 @@ c_side_trans[INT,   3, PTR].to_c2_set     = '''
     C.NAME << z_NAME;
   }'''
 
+# Allocatable components on the C side are the same as pointer components.
+
+for trans in c_side_trans.keys():
+  if trans[2] == PTR:
+    trans_alloc = (trans[0], trans[1], ALLOC)
+    c_side_trans[trans_alloc] = copy.deepcopy(c_side_trans[trans])
 
 ##################################################################################
 ##################################################################################
