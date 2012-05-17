@@ -124,6 +124,7 @@ f_side_trans = {
   (LOGIC, 0, NOT) : f_side_trans_class('c_logic(F%NAME)',      'logical(c_bool)',            'z_NAME'),
   (LOGIC, 1, NOT) : f_side_trans_class('c_logic(F%NAME)',      'logical(c_bool)',            'z_NAME(*)'),
   (LOGIC, 2, NOT) : f_side_trans_class('mat2vec(F%NAME)',      'logical(c_bool)',            'z_NAME(*)'),
+  (LOGIC, 3, NOT) : f_side_trans_class('tensor2vec(F%NAME)',   'logical(c_bool)',            'z_NAME(*)'),
   (TYPE,  0, NOT) : f_side_trans_class('c_loc(F%NAME)',        'type(c_ptr), value ::',      'z_NAME'),
   (TYPE,  1, NOT) : f_side_trans_class('z_NAME',               'type(c_ptr) ::',             'z_NAME(*)'), 
   (TYPE,  2, NOT) : f_side_trans_class('z_NAME',               'type(c_ptr) ::',             'z_NAME(*)'), 
@@ -143,6 +144,9 @@ test_pat1 = jd1_loop + rhs1 + '  F%NAME(jd1+lb1) = NNN\n' + 'enddo\n'
 test_pat2 = jd1_loop + jd2_loop + rhs2 + '  F%NAME(jd1+lb1,jd2+lb2) = NNN\n' + 'enddo; enddo\n'
 test_pat3 = jd1_loop + jd2_loop + jd3_loop + rhs3 + '  F%NAME(jd1+lb1,jd2+lb2,jd3+lb3) = NNN\n' + 'enddo; enddo; enddo\n'
 
+
+
+
 f_side_trans[REAL,  1, NOT].to_f2_trans = 'F%NAME = z_NAME(1:size(F%NAME))'
 f_side_trans[REAL,  1, NOT].test_pat    = test_pat1.replace('NNN', 'rhs')
 
@@ -153,7 +157,7 @@ f_side_trans[REAL,  3, NOT].to_f2_trans = 'call vec2tensor(z_NAME, F%NAME)'
 f_side_trans[REAL,  3, NOT].test_pat    = test_pat3.replace('NNN', 'rhs')
 
 f_side_trans[CMPLX, 1, NOT].to_f2_trans = 'F%NAME = z_NAME(1:size(F%NAME))'
-f_side_trans[CMPLX, 1, NOT].test_pat    = test_pat1.replace('NNN', 'cmplx(rhs, 100 + rhs)')
+f_side_trans[CMPLX, 1, NOT].test_pat    = test_pat1.replace('NNN', 'cmplx(rhs, 100+rhs)')
 
 f_side_trans[CMPLX, 2, NOT].to_f2_trans = 'call vec2mat(z_NAME, F%NAME)'
 f_side_trans[CMPLX, 2, NOT].test_pat    = test_pat2.replace('NNN', 'cmplx(rhs, 100+rhs)')
@@ -212,12 +216,12 @@ f_side_trans[CHAR,  0, NOT].to_f2_trans = 'call to_f_str(z_NAME, F%NAME)'
 for key, f in f_side_trans.items(): 
   if key[1] != 0: f.equality_test = 'is_eq = is_eq .and. all(f1%NAME == f2%NAME)\n'
 
-# Int 0 Pointer
+# Real 0 Pointer
 
-f_side_trans[INT,   0, PTR] = copy.deepcopy(f_side_trans[INT,   0, NOT])
-f_side_trans[INT,   0, PTR].to_c_trans  = 'n_NAME = 0\n' + 'if (associated(F%NAME)) n_NAME = 1\n\n'
+f_side_trans[REAL,   0, PTR] = copy.deepcopy(f_side_trans[REAL,   0, NOT])
+f_side_trans[REAL,   0, PTR].to_c_trans  = 'n_NAME = 0\n' + 'if (associated(F%NAME)) n_NAME = 1\n\n'
 
-f_side_trans[INT,   0, PTR].to_f2_trans = '''
+f_side_trans[REAL,   0, PTR].to_f2_trans = '''
 if (n_NAME == 0) then
   if (associated(F%NAME)) deallocate(F%NAME)
 else
@@ -225,33 +229,36 @@ else
   F%NAME = z_NAME
 endif'''
 
-f_side_trans[INT,   0, PTR].test_pat    = '''
+f_side_trans[REAL,   0, PTR].test_pat    = '''
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
   if (.not. associated(F%NAME)) allocate (F%NAME)
-  F%NAME = XXX + offset
+  rhs = XXX + offset
+  F%NAME = rhs
 endif'''
 
-f_side_trans[INT,   0, PTR].equality_test = '''
+f_side_trans[REAL,   0, PTR].equality_test = '''
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = (f1%NAME == f2%NAME)'''
 
-# Int 1 Pointer 
+# Real 1 Pointer 
 
-f_side_trans[INT,   1, PTR] = copy.deepcopy(f_side_trans[INT,   1, NOT])
-f_side_trans[INT,   1, PTR].to_c_trans  = 'n1_NAME = 0\n' + 'if (associated(F%NAME)) n1_NAME = size(F%NAME)\n\n'
+f_side_trans[REAL,   1, PTR] = copy.deepcopy(f_side_trans[REAL,   1, NOT])
+f_side_trans[REAL,   1, PTR].to_c_trans  = 'n1_NAME = 0\n' + 'if (associated(F%NAME)) n1_NAME = size(F%NAME)\n\n'
 
-f_side_trans[INT,   1, PTR].to_f2_trans = '''
-if (n1_NAME == 0) then
-  if (associated(F%NAME)) deallocate(F%NAME)
-else
+f_side_trans[REAL,   1, PTR].to_f2_trans = '''
+if (associated(F%NAME)) then
+  if (n1_NAME == 0 .or. size(F%NAME) /= n1_NAME) deallocate(F%NAME)
+endif
+if (n1_NAME /= 0) then
   if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME))
-  F%NAME = z_NAME(1:n1_NAME)
-endif'''
+  F%NAME = z_NAME
+endif
+'''
 
-f_side_trans[INT,   1, PTR].test_pat    = '''
+f_side_trans[REAL,   1, PTR].test_pat    = '''
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
@@ -262,17 +269,17 @@ else
   enddo
 endif'''
 
-f_side_trans[INT,   1, PTR].equality_test = '''
+f_side_trans[REAL,   1, PTR].equality_test = '''
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = (size(f1%NAME) == size(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = all(f1%NAME == f2%NAME)'''
 
-# Int 2 Pointer 
+# Real 2 Pointer 
 
-f_side_trans[INT,   2, PTR] = copy.deepcopy(f_side_trans[INT,   2, NOT])
-f_side_trans[INT,   2, PTR].to_c_trans  = \
+f_side_trans[REAL,   2, PTR] = copy.deepcopy(f_side_trans[REAL,   2, NOT])
+f_side_trans[REAL,   2, PTR].to_c_trans  = \
 '''n1_NAME = 0; n2_NAME = 0
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1)
@@ -280,15 +287,17 @@ if (associated(F%NAME)) then
 endif
 '''
 
-f_side_trans[INT,   2, PTR].to_f2_trans = '''
-if (n1_NAME == 0) then
-  if (associated(F%NAME)) deallocate(F%NAME)
-else
+f_side_trans[REAL,   2, PTR].to_f2_trans = '''
+if (associated(F%NAME)) then
+  if (n1_NAME == 0 .or. shape(F%NAME) /= [n1_NAME, n2_NAME]) deallocate(F%NAME)
+endif
+if (n1_NAME /= 0) then
   if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME, n2_NAME))
   call vec2mat (z_NAME, F%NAME)
-endif'''
+endif
+'''
 
-f_side_trans[INT,   2, PTR].test_pat    = '''
+f_side_trans[REAL,   2, PTR].test_pat    = '''
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
@@ -300,17 +309,17 @@ else
   enddo; enddo
 endif'''
 
-f_side_trans[INT,   2, PTR].equality_test = '''
+f_side_trans[REAL,   2, PTR].equality_test = '''
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = (size(f1%NAME, 1) == size(f2%NAME, 1) .and. size(f1%NAME, 2) == size(f2%NAME, 2))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = all(f1%NAME == f2%NAME)'''
 
-# Int 3 Pointer 
+# Real 3 Pointer 
 
-f_side_trans[INT,   3, PTR] = copy.deepcopy(f_side_trans[INT,   3, NOT])
-f_side_trans[INT,   3, PTR].to_c_trans  = \
+f_side_trans[REAL,   3, PTR] = copy.deepcopy(f_side_trans[REAL,   3, NOT])
+f_side_trans[REAL,   3, PTR].to_c_trans  = \
 '''n1_NAME = 0; n2_NAME = 0; n3_NAME = 0
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1)
@@ -319,15 +328,16 @@ if (associated(F%NAME)) then
 endif
 '''
 
-f_side_trans[INT,   3, PTR].to_f2_trans = '''
-if (n1_NAME == 0) then
-  if (associated(F%NAME)) deallocate(F%NAME)
-else
-  if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME, n2_NAME, n3_NAME))
+f_side_trans[REAL,   3, PTR].to_f2_trans = '''
+if (associated(F%NAME)) then
+  if (n1_NAME == 0 .or. shape(F%NAME) /= [n1_NAME, n2_NAME, n3_NAME]) deallocate(F%NAME)
+endif
+if (n1_NAME /= 0) then
+  allocate(F%NAME(n1_NAME, n2_NAME))
   call vec2tensor (z_NAME, F%NAME)
 endif'''
 
-f_side_trans[INT,   3, PTR].test_pat    = '''
+f_side_trans[REAL,   3, PTR].test_pat    = '''
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
@@ -340,12 +350,35 @@ else
   enddo; enddo; enddo
 endif'''
 
-f_side_trans[INT,   3, PTR].equality_test = '''
+f_side_trans[REAL,   3, PTR].equality_test = '''
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = (size(f1%NAME, 1) == size(f2%NAME, 1) .and. size(f1%NAME, 2) == size(f2%NAME, 2))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = all(f1%NAME == f2%NAME)'''
+
+# INT, etc pointers
+
+for n in range(4):
+
+  f_side_trans[INT, n, PTR] = copy.deepcopy(f_side_trans[REAL, n, PTR])
+  t = f_side_trans[INT, n, PTR] 
+  t.bindc_type = 'integer(c_int)'
+
+  f_side_trans[CMPLX, n, PTR] = copy.deepcopy(f_side_trans[REAL, n, PTR])
+  t = f_side_trans[CMPLX, n, PTR] 
+  t.bindc_type = 'complex(c_double_complex)'
+  t.test_pat = t.test_pat.replace('= rhs', '= cmplx(rhs, rhs+99)')
+
+  f_side_trans[LOGIC, n, PTR] = copy.deepcopy(f_side_trans[REAL, n, PTR])
+  t = f_side_trans[LOGIC, n, PTR] 
+  t.bindc_type = 'logical(c_bool)'
+  t.test_pat = t.test_pat.replace('= rhs', '= (modulo(rhs, 2) == 0)')
+
+  f_side_trans[TYPE, n, PTR] = copy.deepcopy(f_side_trans[REAL, n, PTR])
+  t = f_side_trans[TYPE, n, PTR] 
+  t.bindc_type = 'type(c_ptr) ::'
+  t.test_pat = t.test_pat.replace('F%NAME', 'call KIND_test_pattern (F%NAME').replace(' = rhs', ', rhs)')
 
 # Allocatable components are very similar to pointer components
 # with the simple replacement of 'allocated' for 'associated'.
@@ -397,6 +430,7 @@ c_side_trans = {
   (LOGIC,  0, NOT) : c_side_trans_class('bool',            'Bool&',           'C.NAME',          'Bool& z_NAME'),
   (LOGIC,  1, NOT) : c_side_trans_class('Bool_Array',      'BoolArr',         '&C.NAME[0]',      'BoolArr z_NAME'),
   (LOGIC,  2, NOT) : c_side_trans_class('Bool_Matrix',     'BoolArr',         'z_NAME',          'BoolArr z_NAME'),
+  (LOGIC,  3, NOT) : c_side_trans_class('Bool_Tensor',     'BoolArr',         'z_NAME',          'BoolArr z_NAME'),
   (TYPE,   0, NOT) : c_side_trans_class('C_KIND',          'const C_KIND&',   'C.NAME',          'const KIND_struct* z_NAME'),
   (TYPE,   1, NOT) : c_side_trans_class('C_KIND_Array',    'const C_KIND**',  'z_NAME',          'const KIND_struct** z_NAME'),
   (TYPE,   2, NOT) : c_side_trans_class('C_KIND_Matrix',   'const C_KIND**',  'z_NAME',          'const KIND_struct** z_NAME'),
@@ -495,27 +529,28 @@ for key, c in c_side_trans.items():
   if key[1] == 3: c.equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
 
 
-# Int 0 Pointer
+# Real 0 Pointer
 
-c_side_trans[INT,   0, PTR] = copy.deepcopy(c_side_trans[INT,   0, NOT])
-c_side_trans[INT,   0, PTR].c_class       = 'Int_Array'
-c_side_trans[INT,   0, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
-c_side_trans[INT,   0, PTR].to_f2_call    = 'z_NAME'
-c_side_trans[INT,   0, PTR].constructor   = 'NAME(0, 0)'
-c_side_trans[INT,   0, PTR].test_pat      = '''
+c_side_trans[REAL,   0, PTR] = copy.deepcopy(c_side_trans[REAL,   0, NOT])
+c_side_trans[REAL,   0, PTR].c_class       = 'Real_Array'
+c_side_trans[REAL,   0, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
+c_side_trans[REAL,   0, PTR].to_f2_call    = 'z_NAME'
+c_side_trans[REAL,   0, PTR].constructor   = 'NAME(0.0, 0)'
+c_side_trans[REAL,   0, PTR].test_pat      = '''
   if (ix_patt < 3) 
     C.i.resize(0);
   else {
     C.i.resize(1);
-    C.i[0] = XXX + offset;
+    rhs = XXX + offset; C.i[0] = rhs;
   }
 '''
  
-c_side_trans[INT,   0, PTR].to_f_setup    = '''
-  int z_NAME = 0;
+c_side_trans[REAL,   0, PTR].to_f_setup    = '''
+  double z_NAME = 0;
   if (C.NAME.size() != 0) z_NAME = C.NAME[0];
 '''
-c_side_trans[INT,   0, PTR].to_c2_set     = '''
+
+c_side_trans[REAL,   0, PTR].to_c2_set     = '''
   if (n_NAME == 0)
     C.NAME.resize(0);
   else {
@@ -523,14 +558,14 @@ c_side_trans[INT,   0, PTR].to_c2_set     = '''
     C.NAME[0] = z_NAME;
   }'''
 
-# Int 1 Pointer
+# Real 1 Pointer
 
-c_side_trans[INT,   1, PTR] = copy.deepcopy(c_side_trans[INT,   1, NOT])
-c_side_trans[INT,   1, PTR].c_class       = 'Int_Array'
-c_side_trans[INT,   1, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
-c_side_trans[INT,   1, PTR].to_f2_call    = 'z_NAME'
-c_side_trans[INT,   1, PTR].constructor   = 'NAME(0, 0)'
-c_side_trans[INT,   1, PTR].test_pat      = '''
+c_side_trans[REAL,   1, PTR] = copy.deepcopy(c_side_trans[REAL,   1, NOT])
+c_side_trans[REAL,   1, PTR].c_class       = 'Real_Array'
+c_side_trans[REAL,   1, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
+c_side_trans[REAL,   1, PTR].to_f2_call    = 'z_NAME'
+c_side_trans[REAL,   1, PTR].constructor   = 'NAME(0.0, 0)'
+c_side_trans[REAL,   1, PTR].test_pat      = '''
   if (ix_patt < 3) 
     C.NAME.resize(0);
   else {
@@ -540,13 +575,13 @@ c_side_trans[INT,   1, PTR].test_pat      = '''
   }
 '''
  
-c_side_trans[INT,   1, PTR].to_f_setup    = '''
+c_side_trans[REAL,   1, PTR].to_f_setup    = '''
   int n1_NAME = C.NAME.size();
-  const int* z_NAME = 0;
+  const double* z_NAME = 0;
   if (n1_NAME != 0) z_NAME = &(C.NAME[0]);
 '''
 
-c_side_trans[INT,   1, PTR].to_c2_set     = '''
+c_side_trans[REAL,   1, PTR].to_c2_set     = '''
   if (n1_NAME == 0)
     C.NAME.resize(0);
   else {
@@ -554,14 +589,14 @@ c_side_trans[INT,   1, PTR].to_c2_set     = '''
     C.NAME << z_NAME;
   }'''
 
-# Int 2 Pointer
+# Real 2 Pointer
 
-c_side_trans[INT,   2, PTR] = copy.deepcopy(c_side_trans[INT,   2, NOT])
-c_side_trans[INT,   2, PTR].c_class       = 'Int_Matrix'
-c_side_trans[INT,   2, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
-c_side_trans[INT,   2, PTR].to_f2_call    = 'z_NAME'
-c_side_trans[INT,   2, PTR].constructor   = 'NAME(0, 0)'
-c_side_trans[INT,   2, PTR].test_pat      = '''
+c_side_trans[REAL,   2, PTR] = copy.deepcopy(c_side_trans[REAL,   2, NOT])
+c_side_trans[REAL,   2, PTR].c_class       = 'Real_Matrix'
+c_side_trans[REAL,   2, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
+c_side_trans[REAL,   2, PTR].to_f2_call    = 'z_NAME'
+c_side_trans[REAL,   2, PTR].constructor   = 'NAME(0.0, 0)'
+c_side_trans[REAL,   2, PTR].test_pat      = '''
   if (ix_patt < 3) 
     C.NAME.resize(0);
   else {
@@ -575,14 +610,14 @@ c_side_trans[INT,   2, PTR].test_pat      = '''
   }
 '''
  
-c_side_trans[INT,   2, PTR].to_f_setup    = '''
+c_side_trans[REAL,   2, PTR].to_f_setup    = '''
   int n_NAME = 0, n1_NAME = 0, n2_NAME = 0;
   if (C.NAME.size() > 0) {
     n1_NAME = C.NAME.size(); n2_NAME = C.NAME[0].size();
     n_NAME = n1_NAME * n2_NAME;
   }
 
-  int z_NAME[n_NAME]; 
+  double z_NAME[n_NAME]; 
   if (n_NAME > 0) {
     for (int i = 0; i < n1_NAME; i++)
       for (int j = 0; j < n2_NAME; j++) 
@@ -590,7 +625,7 @@ c_side_trans[INT,   2, PTR].to_f_setup    = '''
   }
 '''
 
-c_side_trans[INT,   2, PTR].to_c2_set     = '''
+c_side_trans[REAL,   2, PTR].to_c2_set     = '''
   if (n1_NAME == 0)
     C.NAME.resize(0);
   else {
@@ -600,14 +635,13 @@ c_side_trans[INT,   2, PTR].to_c2_set     = '''
   }'''
 
 
-# Int 3 Pointer
+# Real 3 Pointer
 
-c_side_trans[INT,   3, PTR] = copy.deepcopy(c_side_trans[INT,   3, NOT])
-c_side_trans[INT,   3, PTR].c_class       = 'Int_Tensor'
-c_side_trans[INT,   3, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
-c_side_trans[INT,   3, PTR].to_f2_call    = 'z_NAME'
-c_side_trans[INT,   3, PTR].constructor   = 'NAME(0, 0)'
-c_side_trans[INT,   3, PTR].test_pat      = '''
+c_side_trans[REAL,   3, PTR] = copy.deepcopy(c_side_trans[REAL,   3, NOT])
+c_side_trans[REAL,   3, PTR].equality_test = '  is_eq = is_eq && is_all_equal (x.NAME, y.NAME);\n'
+c_side_trans[REAL,   3, PTR].to_f2_call    = 'z_NAME'
+c_side_trans[REAL,   3, PTR].constructor   = 'NAME(0.0, 0)'
+c_side_trans[REAL,   3, PTR].test_pat      = '''
   if (ix_patt < 3) 
     C.NAME.resize(0);
   else {
@@ -624,14 +658,14 @@ c_side_trans[INT,   3, PTR].test_pat      = '''
   }
 '''
  
-c_side_trans[INT,   3, PTR].to_f_setup    = '''
+c_side_trans[REAL,   3, PTR].to_f_setup    = '''
   int n_NAME = 0, n1_NAME = 0, n2_NAME = 0, n3_NAME = 0;
   if (C.NAME.size() > 0) {
     n1_NAME = C.NAME.size(); n2_NAME = C.NAME[0].size(); n3_NAME = C.NAME[0][0].size();
     n_NAME = n1_NAME * n2_NAME * n3_NAME;
   }
 
-  int z_NAME[n_NAME]; 
+  double z_NAME[n_NAME]; 
   if (n_NAME > 0) {
     for (int i = 0; i < n1_NAME; i++)
       for (int j = 0; j < n2_NAME; j++) 
@@ -640,7 +674,7 @@ c_side_trans[INT,   3, PTR].to_f_setup    = '''
   }
 '''
 
-c_side_trans[INT,   3, PTR].to_c2_set     = '''
+c_side_trans[REAL,   3, PTR].to_c2_set     = '''
   if (n1_NAME == 0)
     C.NAME.resize(0);
   else {
@@ -653,6 +687,45 @@ c_side_trans[INT,   3, PTR].to_c2_set     = '''
     }
     C.NAME << z_NAME;
   }'''
+
+# INT, CMPLX, BOOL,  pointers
+
+for n in range(4):
+
+  c_side_trans[INT, n, PTR] = copy.deepcopy(c_side_trans[REAL, n, PTR])
+  t = c_side_trans[INT, n, PTR] 
+  t.c_class     = t.c_class.replace('Real', 'Int')
+  t.to_f2_arg   = t.to_f2_arg.replace('Real', 'Int')
+  t.to_c2_arg   = t.to_c2_arg.replace('Real', 'Int')
+  t.to_f_setup  = t.to_f_setup.replace('double', 'int')
+  t.constructor = 'NAME(0, 0)'
+
+  c_side_trans[CMPLX, n, PTR] = copy.deepcopy(c_side_trans[REAL, n, PTR])
+  t = c_side_trans[CMPLX, n, PTR] 
+  t.c_class   = t.c_class.replace('Real', 'Dcomplex')
+  t.to_f2_arg = t.to_f2_arg.replace('Real', 'Dcomplex')
+  t.to_c2_arg = t.to_c2_arg.replace('Real', 'Dcomplex')
+  t.to_f_setup  = t.to_f_setup.replace('double', 'dcomplex')
+  t.constructor   = 'NAME(0.0, 0)'
+  t.test_pat = t.test_pat.replace('= rhs', '= Dcomplex(rhs, 99+rhs)')
+
+  c_side_trans[LOGIC, n, PTR] = copy.deepcopy(c_side_trans[REAL, n, PTR])
+  t = c_side_trans[LOGIC, n, PTR] 
+  t.c_class   = t.c_class.replace('Real', 'Bool')
+  t.to_f2_arg = t.to_f2_arg.replace('Real', 'Bool')
+  t.to_c2_arg = t.to_c2_arg.replace('Real', 'Bool')
+  t.to_f_setup  = t.to_f_setup.replace('double', 'bool')
+  t.constructor   = 'NAME(0.0, 0)'
+  t.test_pat = t.test_pat.replace('= rhs', '= ((rhs % 2) == 0)')
+
+  c_side_trans[TYPE, n, PTR] = copy.deepcopy(c_side_trans[REAL, n, PTR])
+  t = c_side_trans[TYPE, n, PTR] 
+  t.c_class   = t.c_class.replace('Real', 'C_KIND')
+  t.to_f2_arg = t.to_f2_arg.replace('Real', 'C_KIND')
+  t.to_c2_arg = t.to_c2_arg.replace('Real', 'C_KIND')
+  t.to_f_setup  = t.to_f_setup.replace('double', 'C_KIND')
+  t.constructor   = 'NAME()'
+  t.test_pat = t.test_pat.replace('C.NAME', 'C_KIND_test_pattern(C.NAME').replace(' = rhs', ', rhs)')
 
 # Allocatable components on the C side are the same as pointer components.
 

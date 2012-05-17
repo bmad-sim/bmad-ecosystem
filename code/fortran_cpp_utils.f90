@@ -10,7 +10,32 @@ end type
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function mat2vec (mat) result (vec)
+! Function f_vec2vec (f_vec, n) result (c_vec)
+!
+! Overloaded function to translate a vector from Fortran form to C form.
+! Overloads:
+!   bool_f_vec2vec (bool_f_vec, n) result (bool_c_vec)
+!   ptr_f_vec2vec (ptr_f_vec, n) result (ptr_c_vec)
+!
+! Input:
+!   bool_f_vec(:)  -- Logical: Input vector
+!
+! Output:
+!   bool_c_vec(:)  -- Logical(c_bool): Output array 
+!-
+
+interface vec2vec
+  module procedure real_f_vec2vec
+  module procedure int_f_vec2vec
+  module procedure complx_f_vec2vec
+  module procedure bool_f_vec2vec
+  module procedure ptr_f_vec2vec
+end interface
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function mat2vec (mat, n) result (vec)
 !
 ! Overloaded function to take a matrix and turn it into an array in 
 ! C standard row-major order:
@@ -23,7 +48,7 @@ end type
 !   int_mat2vec    (int_mat)    result (int_vec)
 !   complx_mat2vec (complx_mat) result (complx_vec)
 !   bool_mat2vec   (bool_mat)   result (bool_vec)
-!   ptr_mat2vec (ptr_mat) result (ptr_vec)
+!   ptr_mat2vec    (ptr_mat)    result (ptr_vec)
 !
 ! Modules needed:
 !  use fortran_cpp_utils
@@ -34,6 +59,8 @@ end type
 !   complx_mat(:,:) -- Çomplex(rp): Input matrix
 !   bool_mat(:,:)   -- Logical: Input matrix
 !   ptr_mat(:,:)    -- type(c_ptr): Input matrix
+!   n               -- Integer: Number of elements. Normally this 
+!                        is size(mat) actual mat arg is not allocated.
 !
 ! Output:
 !   real_vec(*)   -- Real(c_double): Output array 
@@ -54,7 +81,7 @@ end interface
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function tensor2vec (tensor) result (vec)
+! Function tensor2vec (tensor, n) result (vec)
 !
 ! Function to take a tensor and turn it into an array in 
 ! C standard row-major order::
@@ -66,7 +93,9 @@ end interface
 !  use fortran_cpp_utils
 !
 ! Input:
-!   tensor(:,:)  -- Real(rp): Input tensorrix
+!   tensor(:,:)     -- Real(rp): Input tensorrix
+!   n               -- Integer: Number of elements. Normally this 
+!                        is size(mat) actual tensor arg is not allocated.
 !
 ! Output:
 !   vec(*)   -- Real(c_double): Output array 
@@ -84,10 +113,17 @@ end interface
 !+
 ! Subroutine vec2mat (vec, mat)
 !
-! Routine to take a an array in C standard row-major 
+! Overloaded routine to take a an array in C standard row-major 
 ! order and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
+!
+! Overloaded functions:
+!   real_vec2mat
+!   int_vec2mat
+!   cmplx_vec2mat
+!   bool_vec2mat
+!   ptr_vec2mat
 !
 ! Modules needed:
 !  use fortran_cpp_utils
@@ -576,7 +612,118 @@ end subroutine to_f_str
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function real_mat2vec (mat) result (vec)
+! Function real_f_vec2vec (f_vec, n) result (c_vec)
+!
+! Function transform from Fortran to C.
+! See f_vec2vec for more details
+!-
+
+function real_f_vec2vec (f_vec, n) result (vec)
+
+implicit none
+
+integer n
+real(rp) f_vec(:)
+real(c_double) vec(n)
+
+forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
+ 
+end function real_f_vec2vec
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function int_f_vec2vec (f_vec, n) result (c_vec)
+!
+! Function transform from Fortran to C.
+! See f_vec2vec for more details
+!-
+
+function int_f_vec2vec (f_vec, n) result (vec)
+
+implicit none
+
+integer n
+integer f_vec(:)
+integer(c_int) vec(n)
+
+forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
+ 
+end function int_f_vec2vec
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function complx_f_vec2vec (f_vec, n) result (c_vec)
+!
+! Function transform from Fortran to C.
+! See f_vec2vec for more details
+!-
+
+function complx_f_vec2vec (f_vec, n) result (vec)
+
+implicit none
+
+integer n
+complex(rp) f_vec(:)
+complex(c_complex_double) vec(n)
+
+forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
+ 
+end function complx_f_vec2vec
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function bool_f_vec2vec (f_vec, n) result (c_vec)
+!
+! Function transform from Fortran to C.
+! See f_vec2vec for more details
+!-
+
+function bool_f_vec2vec (f_vec, n) result (vec)
+
+implicit none
+
+integer n
+logical f_vec(:)
+logical(c_bool) vec(n)
+
+forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
+ 
+end function bool_f_vec2vec
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function ptr_f_vec2vec (f_vec, n) result (c_vec)
+!
+! Function transform from Fortran to C.
+! See f_vec2vec for more details
+!
+! Input:
+!   f_vec(:)  -- Logical: Input vector
+!
+! Output:
+!   c_vec(:)  -- Logical(c_ptr): Output array 
+!-
+
+function ptr_f_vec2vec (f_vec, n) result (vec)
+
+implicit none
+
+integer n
+real(rp) f_vec(:)
+real(rp) vec(n)
+
+forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
+ 
+end function ptr_f_vec2vec
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function real_mat2vec (mat, n) result (vec)
 !
 ! Function to take a matrix and turn it into an array:
 !   vec(n2*(i-1) + j) = mat(i,j)
@@ -586,17 +733,19 @@ end subroutine to_f_str
 !   mat(:,:)  -- Real(rp): Input matrix
 !
 ! Output:
-!   vec(:)   -- Real(rp): Output array 
+!   vec(:)   -- Real(c_double): Output array 
 !-
 
-function real_mat2vec (mat) result (vec)
+function real_mat2vec (mat, n) result (vec)
 
 implicit none
 
+integer n
 real(rp) mat(:,:)
-real(rp) vec(size(mat))
+real(c_double) vec(n)
 integer i, j, n1, n2
 
+if (n == 0) return ! Real arg not allocated
 n1 = size(mat, 1); n2 = size(mat, 2)
 forall (i = 1:n1, j = 1:n2) vec(n2*(i-1) + j) = mat(i,j)
  
@@ -605,7 +754,7 @@ end function real_mat2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function int_mat2vec (mat) result (vec)
+! Function int_mat2vec (mat, n) result (vec)
 !
 ! Function to take a matrix and turn it into an array:
 !   vec(n2*(i-1) + j) = mat(i,j)
@@ -618,14 +767,16 @@ end function real_mat2vec
 !   vec(:)   -- integer(c_int): Output array 
 !-
 
-function int_mat2vec (mat) result (vec)
+function int_mat2vec (mat, n) result (vec)
 
 implicit none
 
+integer n
 integer mat(:,:)
-integer(c_int) vec(size(mat))
+integer(c_int) vec(n)
 integer i, j, n1, n2
 
+if (n == 0) return ! Real arg not allocated
 n1 = size(mat, 1); n2 = size(mat, 2)
 forall (i = 1:n1, j = 1:n2) vec(n2*(i-1) + j) = mat(i,j)
  
@@ -634,7 +785,7 @@ end function int_mat2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function bool_mat2vec (mat) result (vec)
+! Function bool_mat2vec (mat, n) result (vec)
 !
 ! Function to take a matrix and turn it into an array:
 !   vec(n2*(i-1) + j) = mat(i,j)
@@ -647,13 +798,16 @@ end function int_mat2vec
 !   vec(:)   -- logical: Output array 
 !-
 
-function bool_mat2vec (mat) result (vec)
+function bool_mat2vec (mat, n) result (vec)
 
 implicit none
 
+integer n
 logical mat(:,:)
-logical(c_bool) vec(size(mat))
+logical(c_bool) vec(n)
 integer i, j, n1, n2
+
+if (n == 0) return ! Real arg not allocated
 
 n1 = size(mat, 1); n2 = size(mat, 2)
 do i = 1, n1
@@ -667,7 +821,7 @@ end function bool_mat2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function ptr_mat2vec (mat) result (vec)
+! Function ptr_mat2vec (mat, n) result (vec)
 !
 ! Function to take a matrix and turn it into an array:
 !   vec(n2*(i-1) + j) = mat(i,j)
@@ -680,14 +834,16 @@ end function bool_mat2vec
 !   vec(:)   -- type(c_ptr): Output array 
 !-
 
-function ptr_mat2vec (mat) result (vec)
+function ptr_mat2vec (mat, n) result (vec)
 
 implicit none
 
+integer n
 type(c_ptr) mat(:,:)
-type(c_ptr) vec(size(mat))
+type(c_ptr) vec(n)
 integer i, j, n1, n2
 
+if (n == 0) return ! Real arg not allocated
 n1 = size(mat, 1); n2 = size(mat, 2)
 do i = 1, n1
 do j = 1, n2 
@@ -700,7 +856,7 @@ end function ptr_mat2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function cmplx_mat2vec (mat) result (vec)
+! Function cmplx_mat2vec (mat, n) result (vec)
 !
 ! Function to take a matrix and turn it into an array:
 !   vec(n2*(i-1) + j) = mat(i,j)
@@ -713,14 +869,16 @@ end function ptr_mat2vec
 !   vec(:)   -- complex(c_double_complex): Output array 
 !-
 
-function cmplx_mat2vec (mat) result (vec)
+function cmplx_mat2vec (mat, n) result (vec)
 
 implicit none
 
+integer n
 complex(rp) mat(:,:)
-complex(c_double_complex) vec(size(mat))
+complex(c_double_complex) vec(n)
 integer i, j, n1, n2
 
+if (n == 0) return ! Real arg not allocated
 n1 = size(mat, 1); n2 = size(mat, 2)
 forall (i = 1:n1, j = 1:n2) vec(n2*(i-1) + j) = mat(i,j)
  
@@ -729,7 +887,7 @@ end function cmplx_mat2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function real_tensor2vec (tensor) result (vec)
+! Function real_tensor2vec (tensor, n) result (vec)
 !
 ! Function to take a tensor and turn it into an array:
 !   vec(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
@@ -739,17 +897,19 @@ end function cmplx_mat2vec
 !   tensor(:,:,:)  -- Real(rp): Input tensorrix
 !
 ! Output:
-!   vec(:)   -- Real(rp): Output array 
+!   vec(:)   -- Real(c_double): Output array 
 !-
 
-function real_tensor2vec (tensor) result (vec)
+function real_tensor2vec (tensor, n) result (vec)
 
 implicit none
 
+integer n
 real(rp) tensor(:,:,:)
-real(rp) vec(size(tensor))
+real(c_double) vec(n)
 integer i, j, k, n1, n2, n3
 
+if (n == 0) return ! Real arg not allocated
 n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
 forall (i = 1:n1, j = 1:n2, k = 1:n3) vec(n3*n2*(i-1) + n3*(j-1) + k) = tensor(i,j,k)
  
@@ -758,7 +918,7 @@ end function real_tensor2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function int_tensor2vec (tensor) result (vec)
+! Function int_tensor2vec (tensor, n) result (vec)
 !
 ! Function to take a tensor and turn it into an array:
 !   vec(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
@@ -771,14 +931,16 @@ end function real_tensor2vec
 !   vec(:)   -- Integer(c_int): Output array 
 !-
 
-function int_tensor2vec (tensor) result (vec)
+function int_tensor2vec (tensor, n) result (vec)
 
 implicit none
 
+integer n
 integer tensor(:,:,:)
-integer(c_int) vec(size(tensor))
+integer(c_int) vec(n)
 integer i, j, k, n1, n2, n3
 
+if (n == 0) return ! Real arg not allocated
 n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
 forall (i = 1:n1, j = 1:n2, k = 1:n3) vec(n3*n2*(i-1) + n3*(j-1) + k) = tensor(i,j,k)
  
@@ -787,7 +949,7 @@ end function int_tensor2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function cmplx_tensor2vec (tensor) result (vec)
+! Function cmplx_tensor2vec (tensor, n) result (vec)
 !
 ! Function to take a tensor and turn it into an array:
 !   vec(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
@@ -800,14 +962,16 @@ end function int_tensor2vec
 !   vec(:)   -- complex(c_double_complex): Output array 
 !-
 
-function cmplx_tensor2vec (tensor) result (vec)
+function cmplx_tensor2vec (tensor, n) result (vec)
 
 implicit none
 
+integer n
 complex(rp) tensor(:,:,:)
-complex(c_double_complex) vec(size(tensor))
+complex(c_double_complex) vec(n)
 integer i, j, k, n1, n2, n3
 
+if (n == 0) return ! Real arg not allocated
 n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
 forall (i = 1:n1, j = 1:n2, k = 1:n3) vec(n3*n2*(i-1) + n3*(j-1) + k) = tensor(i,j,k)
  
@@ -816,7 +980,7 @@ end function cmplx_tensor2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function ptr_tensor2vec (tensor) result (vec)
+! Function ptr_tensor2vec (tensor, n) result (vec)
 !
 ! Function to take a tensor and turn it into an array:
 !   vec(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
@@ -829,14 +993,16 @@ end function cmplx_tensor2vec
 !   vec(:)   -- type(c_ptr): Output array 
 !-
 
-function ptr_tensor2vec (tensor) result (vec)
+function ptr_tensor2vec (tensor, n) result (vec)
 
 implicit none
 
+integer n
 type(c_ptr) tensor(:,:,:)
-type(c_ptr) vec(size(tensor))
+type(c_ptr) vec(n)
 integer i, j, k, n1, n2, n3
 
+if (n == 0) return ! Real arg not allocated
 n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
 forall (i = 1:n1, j = 1:n2, k = 1:n3) vec(n3*n2*(i-1) + n3*(j-1) + k) = tensor(i,j,k)
  
