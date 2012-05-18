@@ -154,7 +154,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
 
     if type == SIZE:
       f.to_c2_call       = 'n' + n_str[dim] + '_NAME'
-      f.bindc_type       = 'integer(c_int), value', 
+      f.bindc_type       = 'integer(c_int), value'
       f.bindc_name       = 'n' + n_str[dim] + '_NAME'
       f.to_f2_trans      = ''
       f.to_c2_f2_sub_arg = 'n' + n_str[dim] + '_NAME'
