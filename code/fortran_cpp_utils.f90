@@ -10,12 +10,12 @@ end type
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function f_vec2vec (f_vec, n) result (c_vec)
+! Function fvec2vec (f_vec, n) result (c_vec)
 !
 ! Overloaded function to translate a vector from Fortran form to C form.
 ! Overloads:
-!   bool_f_vec2vec (bool_f_vec, n) result (bool_c_vec)
-!   ptr_f_vec2vec (ptr_f_vec, n) result (ptr_c_vec)
+!   bool_fvec2vec (bool_f_vec, n) result (bool_c_vec)
+!   ptr_fvec2vec (ptr_f_vec, n) result (ptr_c_vec)
 !
 ! Input:
 !   bool_f_vec(:)  -- Logical: Input vector
@@ -24,12 +24,16 @@ end type
 !   bool_c_vec(:)  -- Logical(c_bool): Output array 
 !-
 
-interface vec2vec
-  module procedure real_f_vec2vec
-  module procedure int_f_vec2vec
-  module procedure complx_f_vec2vec
-  module procedure bool_f_vec2vec
-  module procedure ptr_f_vec2vec
+interface fvec2vec
+  module procedure real_fvec2vec
+  module procedure int_fvec2vec
+  module procedure complx_fvec2vec
+  module procedure bool_fvec2vec
+  module procedure ptr_fvec2vec
+end interface
+
+interface vec2fvec
+  module procedure bool_vec2fvec
 end interface
 
 !-----------------------------------------------------------------------------
@@ -105,6 +109,7 @@ interface tensor2vec
   module procedure real_tensor2vec
   module procedure int_tensor2vec
   module procedure cmplx_tensor2vec
+  module procedure bool_tensor2vec
   module procedure ptr_tensor2vec
 end interface
 
@@ -172,6 +177,7 @@ interface vec2tensor
   module procedure real_vec2tensor
   module procedure int_vec2tensor
   module procedure cmplx_vec2tensor
+  module procedure bool_vec2tensor
   module procedure ptr_vec2tensor
 end interface
 
@@ -227,8 +233,7 @@ end interface
 !-
 
 interface f_logic
-  module procedure f_logic_bool1
-  module procedure f_logic_bool_vec
+  module procedure f_logic_bool
   module procedure f_logic_int
 end interface
 
@@ -257,11 +262,11 @@ contains
 !   c_log -- Integer: C logical.
 !-
 
-function c_logic1 (logic) result (c_log)
+pure function c_logic1 (logic) result (c_log)
 
 implicit none
 
-logical logic
+logical, intent(in) :: logic
 logical(c_bool) c_log
 
 !
@@ -292,11 +297,11 @@ end function c_logic1
 !   c_log -- Integer: C logical.
 !-
 
-function c_logic_vec (logic) result (c_log)
+pure function c_logic_vec (logic) result (c_log)
 
 implicit none
 
-logical logic(:)
+logical, intent(in) :: logic(:)
 logical(c_bool) c_log(size(logic))
 integer i
 
@@ -322,7 +327,7 @@ function f_logic_int (logic) result (f_log)
 
 implicit none
 
-integer logic
+integer, intent(in) :: logic
 logical f_log
 
 !
@@ -338,18 +343,18 @@ end function f_logic_int
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function f_logic_bool1 (logic) result (f_log)
+! Function f_logic_bool (logic) result (f_log)
 !
 ! Function to convert from a C logical to a Fortran logical.
 ! This function is overloaded by f_logic.
 ! See f_logic for more details.
 !-
 
-function f_logic_bool1 (logic) result (f_log)
+function f_logic_bool (logic) result (f_log)
 
 implicit none
 
-logical(c_bool) logic
+logical(c_bool), intent(in) :: logic
 logical f_log
 integer int_logic
 
@@ -371,33 +376,7 @@ else
   f_log = .true.
 endif
 
-end function f_logic_bool1
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function f_logic_bool_vec (logic) result (f_log)
-!
-! Function to convert from a C logical to a Fortran logical.
-! This function is overloaded by f_logic.
-! See f_logic for more details.
-!-
-
-function f_logic_bool_vec (logic) result (f_log)
-
-implicit none
-
-logical(c_bool) logic(:)
-logical f_log(size(logic))
-integer i
-
-!
-
-do i = 1, size(logic)
-  f_log(i) = f_logic_bool1(logic(i))
-enddo
-
-end function f_logic_bool_vec
+end function f_logic_bool
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -612,113 +591,113 @@ end subroutine to_f_str
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function real_f_vec2vec (f_vec, n) result (c_vec)
+! Function real_fvec2vec (f_vec, n) result (c_vec)
 !
 ! Function transform from Fortran to C.
-! See f_vec2vec for more details
+! See fvec2vec for more details
 !-
 
-function real_f_vec2vec (f_vec, n) result (vec)
+function real_fvec2vec (f_vec, n) result (c_vec)
 
 implicit none
 
-integer n
+integer n, i
 real(rp) f_vec(:)
-real(c_double) vec(n)
+real(c_double) c_vec(n)
 
-forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
- 
-end function real_f_vec2vec
+forall (i = 1:n) c_vec(i) = f_vec(i)
+
+end function real_fvec2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function int_f_vec2vec (f_vec, n) result (c_vec)
+! Function int_fvec2vec (f_vec, n) result (c_vec)
 !
 ! Function transform from Fortran to C.
-! See f_vec2vec for more details
+! See fvec2vec for more details
 !-
 
-function int_f_vec2vec (f_vec, n) result (vec)
+function int_fvec2vec (f_vec, n) result (c_vec)
 
 implicit none
 
-integer n
+integer n, i
 integer f_vec(:)
-integer(c_int) vec(n)
+integer(c_int) c_vec(n)
 
-forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
+forall (i = 1:n) c_vec(i) = f_vec(i)
  
-end function int_f_vec2vec
+end function int_fvec2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function complx_f_vec2vec (f_vec, n) result (c_vec)
+! Function complx_fvec2vec (f_vec, n) result (c_vec)
 !
 ! Function transform from Fortran to C.
-! See f_vec2vec for more details
+! See fvec2vec for more details
 !-
 
-function complx_f_vec2vec (f_vec, n) result (vec)
+function complx_fvec2vec (f_vec, n) result (c_vec)
 
 implicit none
 
-integer n
+integer n, i
 complex(rp) f_vec(:)
-complex(c_complex_double) vec(n)
+complex(c_double_complex) c_vec(n)
 
-forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
+forall (i = 1:n) c_vec(i) = f_vec(i)
  
-end function complx_f_vec2vec
+end function complx_fvec2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function bool_f_vec2vec (f_vec, n) result (c_vec)
+! Function bool_fvec2vec (f_vec, n) result (c_vec)
 !
 ! Function transform from Fortran to C.
-! See f_vec2vec for more details
+! See fvec2vec for more details
 !-
 
-function bool_f_vec2vec (f_vec, n) result (vec)
+function bool_fvec2vec (f_vec, n) result (c_vec)
 
 implicit none
 
-integer n
+integer n, i
 logical f_vec(:)
-logical(c_bool) vec(n)
+logical(c_bool) c_vec(n)
 
 forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
  
-end function bool_f_vec2vec
+end function bool_fvec2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function ptr_f_vec2vec (f_vec, n) result (c_vec)
+! Function ptr_fvec2vec (f_vec, n) result (c_vec)
 !
 ! Function transform from Fortran to C.
-! See f_vec2vec for more details
+! See fvec2vec for more details
 !
 ! Input:
-!   f_vec(:)  -- Logical: Input vector
+!   f_vec(:)  -- type(c_ptr): Input vector
 !
 ! Output:
-!   c_vec(:)  -- Logical(c_ptr): Output array 
+!   c_vec(:)  -- type(c_ptr): Output array 
 !-
 
-function ptr_f_vec2vec (f_vec, n) result (vec)
+function ptr_fvec2vec (f_vec, n) result (c_vec)
 
 implicit none
 
-integer n
-real(rp) f_vec(:)
-real(rp) vec(n)
+integer n, i
+type(c_ptr) f_vec(:)
+type(c_ptr) c_vec(n)
 
-forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
+forall (i = 1:n) c_vec(i) = f_vec(i)
  
-end function ptr_f_vec2vec
+end function ptr_fvec2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -980,6 +959,37 @@ end function cmplx_tensor2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Function bool_tensor2vec (tensor, n) result (vec)
+!
+! Function to take a tensor and turn it into an array:
+!   vec(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
+! See tensor2vec for more details
+!
+! Input:
+!   tensor(:,:,:)  -- logical: Input tensorrix
+!
+! Output:
+!   vec(:)   -- logical(c_bool): Output array 
+!-
+
+function bool_tensor2vec (tensor, n) result (vec)
+
+implicit none
+
+integer n
+logical tensor(:,:,:)
+logical(c_bool) vec(n)
+integer i, j, k, n1, n2, n3
+
+if (n == 0) return ! Real arg not allocated
+n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
+forall (i = 1:n1, j = 1:n2, k = 1:n3) vec(n3*n2*(i-1) + n3*(j-1) + k) = c_logic(tensor(i,j,k))
+ 
+end function bool_tensor2vec
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Function ptr_tensor2vec (tensor, n) result (vec)
 !
 ! Function to take a tensor and turn it into an array:
@@ -1011,6 +1021,37 @@ end function ptr_tensor2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine bool_vec2fvec (c_vec, f_vec)
+!
+!
+! Modules needed:
+!  use fortran_cpp_utils
+!
+! Input:
+!   c_vec(*)   -- Logical(c_bool): Input array.
+!
+! Output:
+!   f_vec(n1,n2)  -- Logical: Output f_vec
+!-
+
+subroutine bool_vec2fvec (c_vec, f_vec)
+
+implicit none
+
+integer i, j, n1, n2
+logical(c_bool) c_vec(*)
+logical f_vec(:)
+
+
+do i = 1, size(f_vec)
+  f_vec(i) = f_logic(c_vec(i))
+enddo
+ 
+end subroutine bool_vec2fvec
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine real_vec2mat (vec, mat)
 !
 ! Subroutine to take a an array and turn it into a matrix:
@@ -1021,9 +1062,7 @@ end function ptr_tensor2vec
 !  use fortran_cpp_utils
 !
 ! Input:
-!   vec(*)   -- Real(rp): Input array.
-!   n1       -- Integer: Size of first mat index.
-!   n2       -- Integer: Size of second mat index.
+!   vec(*)   -- Real(c_double): Input array.
 !
 ! Output:
 !   mat(n1,n2)  -- Real(rp): Output matrix
@@ -1056,8 +1095,6 @@ end subroutine real_vec2mat
 !
 ! Input:
 !   vec(*)   -- integer: Input array.
-!   n1       -- Integer: Size of first mat index.
-!   n2       -- Integer: Size of second mat index.
 !
 ! Output:
 !   mat(:,:)  -- integer: Output matrix
@@ -1090,8 +1127,6 @@ end subroutine int_vec2mat
 !
 ! Input:
 !   vec(*)   -- logical: Input array.
-!   n1       -- integer: Size of first mat index.
-!   n2       -- integer: Size of second mat index.
 !
 ! Output:
 !   mat(:,:)  -- logical: Output matrix
@@ -1128,8 +1163,6 @@ end subroutine bool_vec2mat
 !
 ! Input:
 !   vec(*)   -- complex(c_double_complex): Input array.
-!   n1       -- integer: Size of first mat index.
-!   n2       -- integer: Size of second mat index.
 !
 ! Output:
 !   mat(:,:)  -- complex(rp): Output matrix
@@ -1162,8 +1195,6 @@ end subroutine cmplx_vec2mat
 !
 ! Input:
 !   vec(*)   -- type(c_ptr): Input array.
-!   n1       -- integer: Size of first mat index.
-!   n2       -- integer: Size of second mat index.
 !
 ! Output:
 !   mat(:,:)  -- type(c_ptr): Output matrix
@@ -1196,9 +1227,6 @@ end subroutine ptr_vec2mat
 !
 ! Input:
 !   vec(*)   -- Real(rp): Input array.
-!   n1       -- Integer: Size of first tensor index.
-!   n2       -- Integer: Size of second tensor index.
-!   n3       -- Integer: Size of third tensor index.
 !
 ! Output:
 !   tensor(:,:,:)  -- Real(rp): Output tensor.
@@ -1231,9 +1259,6 @@ end subroutine real_vec2tensor
 !
 ! Input:
 !   vec(*)   -- integer: Input array.
-!   n1       -- Integer: Size of first tensor index.
-!   n2       -- Integer: Size of second tensor index.
-!   n3       -- Integer: Size of third tensor index.
 !
 ! Output:
 !   tensor(:,:,:)  -- integer(c_int): Output tensor.
@@ -1266,9 +1291,6 @@ end subroutine int_vec2tensor
 !
 ! Input:
 !   vec(*)   -- complex(c_double_complex): Input array.
-!   n1       -- Integer: Size of first tensor index.
-!   n2       -- Integer: Size of second tensor index.
-!   n3       -- Integer: Size of third tensor index.
 !
 ! Output:
 !   tensor(:,:,:)  -- complex(rp): Output tensor.
@@ -1290,6 +1312,44 @@ end subroutine cmplx_vec2tensor
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine bool_vec2tensor (vec, tensor)
+!
+! Subroutine to take a an array and turn it into a tensor:
+!   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
+! This is used for getting tensorrices from C++ routines.
+!
+! Modules needed:
+!  use fortran_cpp_utils
+!
+! Input:
+!   vec(*)   -- logical(c_bool): Input array.
+!
+! Output:
+!   tensor(:,:,:)  -- logical: Output tensor.
+!-
+
+subroutine bool_vec2tensor (vec, tensor)
+
+implicit none
+
+integer i, j, k, n1, n2, n3
+logical(c_bool) vec(*)
+logical tensor(:,:,:)
+
+n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor,3)
+do i = 1, n1
+do j = 1, n2
+do k = 1, n3
+  tensor(i,j,k) = f_logic(vec(n3*n2*(i-1) + n3*(j-1) + k))
+enddo
+enddo
+enddo
+
+end subroutine bool_vec2tensor
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine ptr_vec2tensor (vec, tensor)
 !
 ! Subroutine to take a an array and turn it into a tensor:
@@ -1301,9 +1361,6 @@ end subroutine cmplx_vec2tensor
 !
 ! Input:
 !   vec(*)   -- type(c_ptr): Input array.
-!   n1       -- Integer: Size of first tensor index.
-!   n2       -- Integer: Size of second tensor index.
-!   n3       -- Integer: Size of third tensor index.
 !
 ! Output:
 !   tensor(:,:,:)  -- type(c_ptr): Output tensor.
