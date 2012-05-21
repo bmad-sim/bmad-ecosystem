@@ -188,7 +188,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
 
     if type == TYPE:
       f.bindc_type = 'type(c_ptr)'
-      test_value = ''
+      test_value = 'NNN'
 
     if type == SIZE:
       f.to_c2_call       = 'NAME'
@@ -203,26 +203,22 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
     if dim == 0: 
       f.to_c2_call = 'F%NAME'
       f.bindc_name = 'z_NAME'
-      f.test_pat    = f.test_pat.replace('NNN', test_value)
       f.equality_test = 'is_eq = is_eq .and. (f1%NAME == f2%NAME)\n'
 
     if dim == 1:
       f.to_f2_trans = 'F%NAME = z_NAME(1:DIM1)'
       f.to_c2_call  = 'fvec2vec(F%NAME, DIM1)'
       f.bindc_name  = 'z_NAME(*)'
-      f.test_pat    = test_pat1.replace('NNN', test_value)
 
     if dim == 2:
       f.to_f2_trans = 'call vec2mat(z_NAME, F%NAME)'
       f.to_c2_call  = 'mat2vec(F%NAME, SIZE2)'
       f.bindc_name  = 'z_NAME(*)'
-      f.test_pat    = test_pat2.replace('NNN', test_value)
 
     if dim == 3:
       f.to_f2_trans = 'call vec2tensor(z_NAME, F%NAME)'
       f.to_c2_call = 'tensor2vec(F%NAME, SIZE3)'
       f.bindc_name = 'z_NAME(*)'
-      f.test_pat    = test_pat3.replace('NNN', test_value)
 
     if type == LOGIC:
       f.equality_test = f.equality_test.replace('==', '.eqv.')
@@ -270,6 +266,10 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
               'enddo; enddo; enddo\n\n'
 
 
+    f.test_pat    = f.test_pat.replace('NNN', test_value)
+
+    #---------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------------------------
     # Pointers
 
     f_side_trans[type, dim, PTR] = f_side_trans_class()
@@ -279,19 +279,25 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
     fp.bindc_type = 'type(c_ptr), value'
     fp.bindc_name = 'z_NAME'
 
+    #---------------------
     # dim = 0
 
     if dim == 0:
       fp.to_c2_call = 'c_loc(F%NAME)'
       fp.to_f2_extra_var_name = 'f_NAME'
       fp.to_f2_trans = '''
-call c_f_pointer (z_NAME, f_NAME)
-if (associated(f_NAME)) then
+if (n_NAME == 0) then
+  if (associated(F%NAME)) deallocate(F%NAME)
+else
+  call c_f_pointer (z_NAME, f_NAME)
   if (.not. associated(F%NAME)) allocate(F%NAME)
   F%NAME = f_NAME
-else
-  if (associated(F%NAME)) deallocate(F%NAME)
 endif'''
+
+      fp.to_c_trans = '''\
+n_NAME = 0
+if (associated(F%NAME)) n_NAME = 1
+'''
 
       fp.equality_test = '''
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
@@ -304,7 +310,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%NAME)) allocate (F%NAME)
   rhs = XXX + offset
-  F%NAME = rhs
+  F%NAME = NNN
 endif
 '''
 
@@ -329,15 +335,16 @@ if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
   if (.not. associated(F%NAME)) allocate (F%NAME(-1:1))
-''' + x2 + jd1_loop + x2 + rhs1 + x2 + set1.replace('NNN', test_value) + '  enddo\n' + 'endif\n'
+''' + x2 + jd1_loop + x2 + rhs1 + x2 + set1 + '  enddo\n' + 'endif\n'
 
     #---------------------
     # Pointer, dim = 2
 
     if dim == 2:
       fp.to_c2_call = 'c_loc(mat2vec(F%NAME, n1_NAME*n2_NAME))'
-      fp.to_f2_trans = to_f2_trans_pointer.replace('DIMS', \
-                       'n1_NAME, n2_NAME').replace('TOTDIM', 'n1_NAME*n2_NAME').replace('SET', 'call vec2mat(f_NAME, F%NAME)')
+      fp.to_f2_trans = to_f2_trans_pointer.replace('DIMS', 'n1_NAME, n2_NAME')\
+                                          .replace('TOTDIM', 'n1_NAME*n2_NAME')\
+                                          .replace('SET', 'call vec2mat(f_NAME, F%NAME)')
       fp.equality_test = equality_test_pointer
 
       fp.to_c_trans  = \
@@ -353,7 +360,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%NAME)) allocate (F%NAME(-1:1, 2))
 ''' + x2 + jd1_loop + x2 + jd2_loop + x2 + rhs2 + \
-      x2 + set2.replace('NNN', test_value) + '  enddo; enddo\n' + 'endif\n'
+      x2 + set2 + '  enddo; enddo\n' + 'endif\n'
 
 
     #---------------------
@@ -380,17 +387,22 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%NAME)) allocate (F%NAME(-1:1, 2, 1))
 ''' + x2 + jd1_loop + x2 + jd2_loop + x2 + jd3_loop + x2 + rhs3 + \
-      x2 + set3.replace('NNN', test_value) + '  enddo; enddo; enddo\n' + 'endif\n'
+      x2 + set3 + '  enddo; enddo; enddo\n' + 'endif\n'
 
+    #----------
 
-  if type == CMPLX:
-    fp.test_pat = fp.test_pat.replace('= rhs', '= cmplx(rhs, rhs+99)')
+    if type == LOGIC:
+      fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
+      if dim == 0:
+        fp.to_f2_trans = fp.to_f2_trans.replace('= f_NAME', '= f_logic(f_NAME)')
+        fp.to_c2_call = 'c_loc(fscaler2scaler(F%NAME, n_NAME))'
+      if dim == 1:
+        fp.to_f2_trans = fp.to_f2_trans.replace('F%NAME = f_NAME(1:n1_NAME)', 'call vec2fvec (f_NAME, F%NAME)')
 
-  if type == LOGIC:
-    fp.test_pat = fp.test_pat.replace('= rhs', '= (modulo(rhs, 2) == 0)')
+    if type == TYPE:
+      fp.test_pat = fp.test_pat.replace('F%NAME', 'call KIND_test_pattern (F%NAME').replace(' = NNN', ', rhs)')
 
-  if type == TYPE:
-    fp.test_pat = fp.test_pat.replace('F%NAME', 'call KIND_test_pattern (F%NAME').replace(' = rhs', ', rhs)')
+    fp.test_pat = fp.test_pat.replace('NNN', test_value)
 
 #---------------------------
 # CHAR
@@ -520,7 +532,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       c.to_f2_arg    = c_arg + '&'
       c.to_f2_call   = 'C.NAME'
       c.to_c2_arg    = c_arg + '& z_NAME'
-      c.test_pat     = c.test_pat.replace('NNN', test_value) 
+      c.test_pat     = c.test_pat
 
     if dim == 1:
       c.c_class      = c_type + '_Array'
@@ -529,7 +541,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       c.to_c2_arg    = c_arg + 'Arr z_NAME'
       c.constructor  = 'NAME(' + construct_value + ', DIM1)'
       c.to_c2_set    = '  C.NAME = ' + c_type + '_Array(z_NAME, DIM1);'
-      c.test_pat    = test_pat1.replace('NNN', test_value)
+      c.test_pat    = test_pat1
       c.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
 
     if dim == 2:
@@ -539,7 +551,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       c.to_c2_arg    = c_arg + 'Arr z_NAME'
       c.constructor  = 'NAME(' + c_type + '_Array(' + construct_value + ', DIM2), DIM1)'
       c.to_c2_set    = '  C.NAME << z_NAME;'
-      c.test_pat     = test_pat2.replace('NNN', test_value)
+      c.test_pat     = test_pat2
       c.to_f_setup  = '  ' + c_type + ' z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
       c.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
 
@@ -550,9 +562,11 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       c.to_c2_arg    = c_arg + 'Arr z_NAME'
       c.constructor  = 'NAME(' + c_type + '_Matrix(' + c_type + '_Array(' + construct_value + ', DIM3), DIM2), DIM1)'
       c.to_c2_set    = '  C.NAME << z_NAME;'
-      c.test_pat     = test_pat3.replace('NNN', test_value)
+      c.test_pat     = test_pat3
       c.to_f_setup   = '  ' + c_type + ' z_NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, z_NAME);\n'
       c.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
+
+    c.test_pat    = c.test_pat.replace('NNN', test_value)
 
     if type == TYPE:
       c.to_c2_arg = 'const KIND_struct* z_NAME'
@@ -603,10 +617,13 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
 
     if dim == 0:
       cp.to_c2_set     = to_c2_set_pointer.replace('KIND', c_type).replace('SET', '*C.NAME = *z_NAME;')\
-                                          .replace('n1_NAME == 0', 'z_NAME == NULL')
+                                          .replace('n1_NAME', 'n_NAME')
       cp.equality_test = equality_test_pointer.replace('TEST', '(*x.NAME == *y.NAME)')
-      cp.test_pat    = test_pat_pointer + '    C.NAME = new ' + c_type + ';\n' + \
+      cp.test_pat      = test_pat_pointer + '    C.NAME = new ' + c_type + ';\n' + \
                                     indent(c.test_pat.replace('C.NAME', '(*C.NAME)'), 2) + '  }\n'
+      cp.to_f_setup    = '''\
+  int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;
+''' 
  
     # Pointer, dim = 1
 
@@ -659,7 +676,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
   if (n1_NAME == 0) 
     delete C.NAME;
   else {
-    C.NAME = new Real_Tensor;
+    C.NAME = new TYPE_Tensor;
     (*C.NAME).resize(n1_NAME);
     for (int i = 0; i < (*C.NAME).size(); i++) {
       (*C.NAME)[i].resize(n2_NAME);
@@ -668,22 +685,24 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
     }
     *C.NAME << z_NAME;
   }
-'''
+'''.replace('TYPE', c_type)
+
       cp.test_pat   = '''\
   if (ix_patt < 3) 
     C.NAME == NULL;
   else {
-    C.NAME = new Real_Tensor(3);
+    C.NAME = new TYPE_Tensor(3);
     for (int i = 0; i < (*C.NAME).size(); i++) {
       (*C.NAME)[i].resize(2);
       for (int j = 0; j < (*C.NAME)[0].size(); j++) {
         (*C.NAME)[i][j].resize(1);
         for (int k = 0; k < (*C.NAME)[0][0].size(); k++)
-          {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; (*C.NAME)[i][j][k] = rhs;}  
+          {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; (*C.NAME)[i][j][k] = NNN;}  
       }
     }
   }
-'''
+'''.replace('TYPE', c_type)
+
       cp.to_f_cleanup = '  delete z_NAME;\n' 
       cp.to_f_setup   = '''
   int n1_NAME = 0, n2_NAME = 0, n3_NAME = 0;
@@ -697,17 +716,12 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
   }
 '''.replace('TYPE', c_type)
 
-    #
-
-    if type == CMPLX:
-      cp.test_pat = cp.test_pat.replace('= rhs', '= Complex(rhs, 99+rhs)')
-
-    if type == LOGIC:
-      cp.test_pat = cp.test_pat.replace('= rhs', '= ((rhs % 2) == 0)')
+    #------------------------------
 
     if type == TYPE:
       cp.test_pat = cp.test_pat.replace('C.NAME', 'C_KIND_test_pattern(C.NAME').replace(' = rhs', ', rhs)')
 
+    cp.test_pat = cp.test_pat.replace('NNN', test_value)
 
 #----------------------------------------------------------------------
 # CHAR
@@ -959,7 +973,6 @@ for struct in struct_def:
     arg = struct.arg[ia]
     ia += 1
     if arg.pointer_type == NOT: continue
-    if len(arg.array) == 0: continue
 
     struct.arg.insert(ia, arg_class())
     arg1 = struct.arg[ia]
@@ -967,6 +980,12 @@ for struct in struct_def:
 
     arg1.is_component = False
     arg1.type = 'integer'
+
+    if len(arg.array) == 0: 
+      arg1.f_side = copy.deepcopy(f_side_trans[SIZE, 1, NOT])
+      arg1.c_side = copy.deepcopy(c_side_trans[SIZE, 1, NOT])
+      arg1.name = 'n_' + arg.name
+      continue
 
     if len(arg.array) >= 1:
       arg1.f_side = copy.deepcopy(f_side_trans[SIZE, 1, NOT])

@@ -7,6 +7,31 @@ type c_dummy_struct
   real(rp) dummy
 end type
 
+interface vec2fvec
+  module procedure bool_vec2fvec
+end interface
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function fscaler2scaler (f_scaler, n) result (c_scaler)
+!
+! Overloaded function to translate a scaler from Fortran form to C form.
+! Overloads:
+!   bool_fscaler2scaler (bool_f_scaler, n) result (bool_c_scaler)
+!
+! Input:
+!   bool_f_scaler  -- Logical: Input scaler.
+!   n              -- Integer: 0 if actual scaler is not allocated, 1 otherwise.
+!
+! Output:
+!   bool_c_scaler  -- Logical(c_bool): Output scaler
+!-
+
+interface fscaler2scaler
+  module procedure bool_fscaler2scaler
+end interface
+
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
@@ -15,7 +40,6 @@ end type
 ! Overloaded function to translate a vector from Fortran form to C form.
 ! Overloads:
 !   bool_fvec2vec (bool_f_vec, n) result (bool_c_vec)
-!   ptr_fvec2vec (ptr_f_vec, n) result (ptr_c_vec)
 !
 ! Input:
 !   bool_f_vec(:)  -- Logical: Input vector
@@ -29,11 +53,6 @@ interface fvec2vec
   module procedure int_fvec2vec
   module procedure complx_fvec2vec
   module procedure bool_fvec2vec
-  module procedure ptr_fvec2vec
-end interface
-
-interface vec2fvec
-  module procedure bool_vec2fvec
 end interface
 
 !-----------------------------------------------------------------------------
@@ -52,7 +71,6 @@ end interface
 !   int_mat2vec    (int_mat)    result (int_vec)
 !   complx_mat2vec (complx_mat) result (complx_vec)
 !   bool_mat2vec   (bool_mat)   result (bool_vec)
-!   ptr_mat2vec    (ptr_mat)    result (ptr_vec)
 !
 ! Modules needed:
 !  use fortran_cpp_utils
@@ -62,16 +80,14 @@ end interface
 !   int_mat(:,:)    -- Integer: Input matrix
 !   complx_mat(:,:) -- Çomplex(rp): Input matrix
 !   bool_mat(:,:)   -- Logical: Input matrix
-!   ptr_mat(:,:)    -- type(c_ptr): Input matrix
-!   n               -- Integer: Number of elements. Normally this 
-!                        is size(mat) actual mat arg is not allocated.
+!   n               -- Integer: Number of elements. Normally this is size(mat). 
+!                        Set to 0 if actual mat arg is not allocated.
 !
 ! Output:
 !   real_vec(*)   -- Real(c_double): Output array 
 !   int_vec(*)    -- Integer(c_int): Output array 
 !   complx_vec(*) -- complex(c_double_complex): Output array 
 !   bool_vec(*)   -- Logical(c_bool): Output array 
-!   ptr_vec(*)    -- type(c_ptr): Output array 
 !-
 
 interface mat2vec
@@ -79,7 +95,6 @@ interface mat2vec
   module procedure int_mat2vec
   module procedure cmplx_mat2vec
   module procedure bool_mat2vec
-  module procedure ptr_mat2vec
 end interface
 
 !-----------------------------------------------------------------------------
@@ -99,7 +114,7 @@ end interface
 ! Input:
 !   tensor(:,:)     -- Real(rp): Input tensorrix
 !   n               -- Integer: Number of elements. Normally this 
-!                        is size(mat) actual tensor arg is not allocated.
+!                        is size(tensor), 0 if actual tensor arg is not allocated.
 !
 ! Output:
 !   vec(*)   -- Real(c_double): Output array 
@@ -110,7 +125,6 @@ interface tensor2vec
   module procedure int_tensor2vec
   module procedure cmplx_tensor2vec
   module procedure bool_tensor2vec
-  module procedure ptr_tensor2vec
 end interface
 
 !-----------------------------------------------------------------------------
@@ -128,7 +142,6 @@ end interface
 !   int_vec2mat
 !   cmplx_vec2mat
 !   bool_vec2mat
-!   ptr_vec2mat
 !
 ! Modules needed:
 !  use fortran_cpp_utils
@@ -147,7 +160,6 @@ interface vec2mat
   module procedure int_vec2mat
   module procedure cmplx_vec2mat
   module procedure bool_vec2mat
-  module procedure ptr_vec2mat
 end interface
 
 !-----------------------------------------------------------------------------
@@ -178,7 +190,6 @@ interface vec2tensor
   module procedure int_vec2tensor
   module procedure cmplx_vec2tensor
   module procedure bool_vec2tensor
-  module procedure ptr_vec2tensor
 end interface
 
 !-----------------------------------------------------------------------------
@@ -591,6 +602,29 @@ end subroutine to_f_str
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Function bool_fscaler2scaler (f_scaler, n) result (c_scaler)
+!
+! Function transform from Fortran to C.
+! See fscaler2scaler for more details
+!-
+
+function bool_fscaler2scaler (f_scaler, n) result (c_scaler)
+
+implicit none
+
+integer n, i
+logical f_scaler
+logical(c_bool) c_scaler
+
+c_scaler = 0
+if (n == 0) return
+c_scaler = c_logic(f_scaler)
+
+end function bool_fscaler2scaler
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Function real_fvec2vec (f_vec, n) result (c_vec)
 !
 ! Function transform from Fortran to C.
@@ -671,33 +705,6 @@ logical(c_bool) c_vec(n)
 forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
  
 end function bool_fvec2vec
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function ptr_fvec2vec (f_vec, n) result (c_vec)
-!
-! Function transform from Fortran to C.
-! See fvec2vec for more details
-!
-! Input:
-!   f_vec(:)  -- type(c_ptr): Input vector
-!
-! Output:
-!   c_vec(:)  -- type(c_ptr): Output array 
-!-
-
-function ptr_fvec2vec (f_vec, n) result (c_vec)
-
-implicit none
-
-integer n, i
-type(c_ptr) f_vec(:)
-type(c_ptr) c_vec(n)
-
-forall (i = 1:n) c_vec(i) = f_vec(i)
- 
-end function ptr_fvec2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -796,41 +803,6 @@ enddo
 enddo
 
 end function bool_mat2vec
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function ptr_mat2vec (mat, n) result (vec)
-!
-! Function to take a matrix and turn it into an array:
-!   vec(n2*(i-1) + j) = mat(i,j)
-! See mat2vec for more details
-!
-! Input:
-!   mat(:,:)  -- type(c_ptr): Input matrix
-!
-! Output:
-!   vec(:)   -- type(c_ptr): Output array 
-!-
-
-function ptr_mat2vec (mat, n) result (vec)
-
-implicit none
-
-integer n
-type(c_ptr) mat(:,:)
-type(c_ptr) vec(n)
-integer i, j, n1, n2
-
-if (n == 0) return ! Real arg not allocated
-n1 = size(mat, 1); n2 = size(mat, 2)
-do i = 1, n1
-do j = 1, n2 
-  vec(n2*(i-1) + j) = mat(i,j)
-enddo
-enddo
-
-end function ptr_mat2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -986,37 +958,6 @@ n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
 forall (i = 1:n1, j = 1:n2, k = 1:n3) vec(n3*n2*(i-1) + n3*(j-1) + k) = c_logic(tensor(i,j,k))
  
 end function bool_tensor2vec
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Function ptr_tensor2vec (tensor, n) result (vec)
-!
-! Function to take a tensor and turn it into an array:
-!   vec(n3*n2*(i-1) + n3*(j - 1) + k) = tensor(i,j, k)
-! See tensor2vec for more details
-!
-! Input:
-!   tensor(:,:,:)  -- type(c_ptr): Input tensorrix
-!
-! Output:
-!   vec(:)   -- type(c_ptr): Output array 
-!-
-
-function ptr_tensor2vec (tensor, n) result (vec)
-
-implicit none
-
-integer n
-type(c_ptr) tensor(:,:,:)
-type(c_ptr) vec(n)
-integer i, j, k, n1, n2, n3
-
-if (n == 0) return ! Real arg not allocated
-n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor, 3)
-forall (i = 1:n1, j = 1:n2, k = 1:n3) vec(n3*n2*(i-1) + n3*(j-1) + k) = tensor(i,j,k)
- 
-end function ptr_tensor2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -1184,38 +1125,6 @@ end subroutine cmplx_vec2mat
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptr_vec2mat (vec, mat)
-!
-! Subroutine to take a an array and turn it into a matrix:
-!   mat(i,j) = vec(n2*(i-1) + j) 
-! This is used for getting matrices from C++ routines.
-!
-! Modules needed:
-!  use fortran_cpp_utils
-!
-! Input:
-!   vec(*)   -- type(c_ptr): Input array.
-!
-! Output:
-!   mat(:,:)  -- type(c_ptr): Output matrix
-!-
-
-subroutine ptr_vec2mat (vec, mat)
-
-implicit none
-
-integer i, j, n1, n2
-type(c_ptr) vec(*)
-type(c_ptr) mat(:,:)
-
-n1 = size(mat, 1); n2 = size(mat, 2)
-forall (i = 1:n1, j = 1:n2) mat(i,j) = vec(n2*(i-1) + j) 
- 
-end subroutine ptr_vec2mat
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
 ! Subroutine real_vec2tensor (vec, tensor)
 !
 ! Subroutine to take a an array and turn it into a tensor:
@@ -1346,38 +1255,6 @@ enddo
 enddo
 
 end subroutine bool_vec2tensor
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Subroutine ptr_vec2tensor (vec, tensor)
-!
-! Subroutine to take a an array and turn it into a tensor:
-!   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
-! This is used for getting tensorrices from C++ routines.
-!
-! Modules needed:
-!  use fortran_cpp_utils
-!
-! Input:
-!   vec(*)   -- type(c_ptr): Input array.
-!
-! Output:
-!   tensor(:,:,:)  -- type(c_ptr): Output tensor.
-!-
-
-subroutine ptr_vec2tensor (vec, tensor)
-
-implicit none
-
-integer i, j, k, n1, n2, n3
-type(c_ptr) vec(*)
-type(c_ptr) tensor(:,:,:)
-
-n1 = size(tensor, 1); n2 = size(tensor, 2); n3 = size(tensor,3)
-forall (i = 1:n1, j = 1:n2, k = 1:n3) tensor(i,j,k) = vec(n3*n2*(i-1) + n3*(j-1) + k) 
- 
-end subroutine ptr_vec2tensor
 
 !-----------------------------------------------------------------------------
 
