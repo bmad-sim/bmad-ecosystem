@@ -69,6 +69,14 @@ logical do_tilt, err
 logical, optional :: check_momentum
 character(20) :: r_name = 'check_aperture_limit'
 
+! Check if there is a limit here. If not, simply return.
+
+if (at == entrance_end$) then
+  if (ele%aperture_at /= entrance_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
+elseif (at == exit_end$) then
+  if (ele%aperture_at /= exit_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
+endif
+
 ! Custom
 
 if (ele%aperture_type == custom$) then
@@ -82,6 +90,7 @@ if (logic_option(.true., check_momentum)) then
   if (abs(orb%vec(2)) > 1 .or. abs(orb%vec(4)) > 1) then
     param%lost = .true.
     orb%status = dead$
+    param%end_lost_at = at
     if (abs(orb%vec(2)) > abs(orb%vec(4))) then
       param%plane_lost_at = x_plane$
       param%unstable_factor = 100 * abs(orb%vec(2)) 
@@ -95,12 +104,11 @@ endif
 
 !
 
-if (ele%offset_moves_aperture) then
+if (ele%offset_moves_aperture .and. (at == entrance_end$ .or. at == exit_end$)) then
   do_tilt = .false.
   if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
   orb2 = orb
-  s_here = 0
-  if (at == exit_end$) s_here = ele%value(l$)
+  s_here = orb2%s - (ele%s - ele%value(l$))
   call offset_particle (ele, param, orb2, set$, set_canonical = .false., &
                set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
                ds_pos = s_here)
@@ -145,6 +153,7 @@ case (elliptical$)
   if (r > 1) then
     param%lost = .true.
     orb%status = dead$
+    param%end_lost_at = at
     if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
       param%plane_lost_at = x_plane$
     else
@@ -158,6 +167,7 @@ case (rectangular$)
   if (abs(x_beam) > x_lim .or. abs(y_beam) > y_lim) then
     param%lost = .true.
     orb%status = dead$
+    param%end_lost_at = at
     if (abs(x_beam)/x_lim > abs(y_beam)/y_lim) then
       param%plane_lost_at = x_plane$
       param%unstable_factor = abs(x_beam) / x_lim - 1
@@ -329,8 +339,8 @@ do n = 1, n_step
     pxy2 = px**2 + py**2
     if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
       param%lost = .true.
-      param%plane_lost_at = x_plane$
       end_orb%status = dead$
+      param%plane_lost_at = x_plane$
       end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
       end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
       return
@@ -354,8 +364,8 @@ do n = 1, n_step
 
     if (abs(px) > Dy .or. abs(px_t) > Dy) then
       param%lost = .true.
-      param%plane_lost_at = x_plane$
       end_orb%status = dead$
+      param%plane_lost_at = x_plane$
       return
     endif    
 

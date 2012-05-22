@@ -33,13 +33,22 @@ integer, parameter :: n_attrib_maxx = 70
 
 ! ele%aperture_at logical definitions.
 
-integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
-integer, parameter :: no_end$ = 4, continuous$ = 5, inside$ = 6, dead$ = 7, outside$ = 8
-integer, parameter :: lost$ = 10
-character(16), parameter :: element_end_name(0:8) = [ &
+integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4
+integer, parameter :: continuous$ = 5, surface$ = 6
+
+character(16), parameter :: aperture_at_name(0:6) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ', 'Continuous   ', 'Inside       ', 'Dead         ', &
-      'Outside      ']
+      'No_End       ', 'Continuous   ', 'Surface      ']
+
+character(16), parameter :: coupler_at_name(0:4) = [ &
+      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
+      'No_End       ']
+
+integer, parameter :: inside$ = 3, outside$ = 4, lost$ = 5, dead$ = 6
+
+character(16), parameter :: orbit_status_name(0:6) = [ &
+      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Inside       ', &
+      'Outside      ', 'Lost         ', 'Dead         ']
 
 ! electron/positron
 
@@ -728,10 +737,10 @@ character(40), parameter :: blank_name$ = ' '
 
 ! lattice logical names
 
-integer, parameter :: linear_lattice$ = 10
-integer, parameter :: circular_lattice$ = 12
+integer, parameter :: linear_lattice$ = 1
+integer, parameter :: circular_lattice$ = 2
 
-character(16), parameter :: lattice_type(10:12) = ['LINEAR_LATTICE  ', 'GARBAGE!        ', 'CIRCULAR_LATTICE']
+character(16), parameter :: lattice_type(0:2) = ['GARBAGE!        ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE']
 
 ! logicals for MAKE_HYBIRD_lat
 

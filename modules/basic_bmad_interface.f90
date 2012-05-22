@@ -144,6 +144,16 @@ interface
 end interface
 
 interface
+  subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele)
+    use bmad_struct, only: ele_struct, lat_param_struct
+    implicit none
+    type (ele_struct) ele, sliced_ele
+    type (lat_param_struct) param
+    integer i_slice, n_slice_tot
+  end subroutine
+end interface
+
+interface
   subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
     use bmad_struct, only: rp, ele_struct, lat_param_struct
     type (ele_struct) ele
@@ -465,30 +475,6 @@ interface
 end interface
 
 interface
-  subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
-    use bmad_struct, only: lat_struct, rp
-    implicit none
-    type (lat_struct) lat
-    logical :: rf_on
-    real(rp) :: xfer_mat(:,:)
-    real(rp), optional :: xfer_vec(:)
-    integer, optional :: ix1, ix2, ix_branch
-  end subroutine
-end interface
-
-interface
-  subroutine transfer_map_calc (lat, t_map, ix1, ix2, &
-                                           integrate, one_turn, unit_start)
-    use bmad_struct, only: lat_struct, rp, taylor_struct
-    implicit none
-    type (lat_struct) lat
-    type (taylor_struct) :: t_map(:)
-    integer, intent(in), optional :: ix1, ix2
-    logical, optional :: integrate, one_turn, unit_start
-  end subroutine
-end interface
-
-interface
   subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
     use bmad_struct, only: ele_struct, rp
     type (ele_struct) ele
@@ -690,6 +676,14 @@ interface
 end interface
 
 interface
+  subroutine set_ele_defaults (ele)
+    use bmad_struct, only: ele_struct
+    implicit none
+    type (ele_struct) ele
+  end subroutine
+end interface
+
+interface
   subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
     use bmad_struct, only: lat_struct, rp, coord_struct
     implicit none
@@ -703,16 +697,6 @@ interface
 end interface
 
 interface
-  subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele)
-    use bmad_struct, only: ele_struct, lat_param_struct
-    implicit none
-    type (ele_struct) ele, sliced_ele
-    type (lat_param_struct) param
-    integer i_slice, n_slice_tot
-  end subroutine
-end interface
-
-interface
   subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)
     use bmad_struct, only: lat_struct, rp
     implicit none
@@ -722,6 +706,30 @@ interface
     integer ix_split
     logical split_done
     logical, optional :: add_suffix, check_controls, save_null_drift, err_flag
+  end subroutine
+end interface
+
+interface
+  subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
+    use bmad_struct, only: lat_struct, rp
+    implicit none
+    type (lat_struct) lat
+    logical :: rf_on
+    real(rp) :: xfer_mat(:,:)
+    real(rp), optional :: xfer_vec(:)
+    integer, optional :: ix1, ix2, ix_branch
+  end subroutine
+end interface
+
+interface
+  subroutine transfer_map_calc (lat, t_map, ix1, ix2, &
+                                           integrate, one_turn, unit_start)
+    use bmad_struct, only: lat_struct, rp, taylor_struct
+    implicit none
+    type (lat_struct) lat
+    type (taylor_struct) :: t_map(:)
+    integer, intent(in), optional :: ix1, ix2
+    logical, optional :: integrate, one_turn, unit_start
   end subroutine
 end interface
 

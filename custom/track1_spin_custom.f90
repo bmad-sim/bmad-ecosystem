@@ -39,7 +39,7 @@ type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
 logical err_flag
-character(32) :: r_name = 'check_aperture_limit_custom'
+character(32) :: r_name = 'track1_spin_custom'
 
 !
 

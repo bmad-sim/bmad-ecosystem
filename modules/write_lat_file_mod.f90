@@ -37,8 +37,6 @@ contains
 
 subroutine write_bmad_lattice_file (bmad_file, lat, err)
 
-use bmad_parser_mod
-
 implicit none
 
 type multipass_info_struct
@@ -92,7 +90,7 @@ logical is_multi_sup, x_lim_good, y_lim_good, is_default, need_new_region
 
 do i = 1, size(ele_default)
   call init_ele (ele_default(i), i)
-  call parser_set_ele_defaults (ele_default(i))
+  call set_ele_defaults (ele_default(i))
 enddo
 
 ! Count the number of foreign wake files
@@ -616,7 +614,7 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (attrib_name == 'COUPLER_AT') then
         if (nint(val) /= exit_end$) then
-          line = trim(line) // ', coupler_at = ' // element_end_name(nint(val))
+          line = trim(line) // ', coupler_at = ' // coupler_at_name(nint(val))
         endif
         cycle
       endif
@@ -658,7 +656,7 @@ do ib = 0, ubound(lat%branch, 1)
                                       line = trim(line) // ', field_calc = ' // field_calc_name(ele%field_calc)
 
     if (ele%aperture_at /= ele_dflt%aperture_at) &
-                                      line = trim(line) // ', aperture_at = ' // element_end_name(ele%aperture_at)
+                                      line = trim(line) // ', aperture_at = ' // aperture_at_name(ele%aperture_at)
     if (ele%aperture_type /= ele_dflt%aperture_type) &
                                       line = trim(line) // ', aperture_type = ' // aperture_type_name(ele%aperture_type)
 

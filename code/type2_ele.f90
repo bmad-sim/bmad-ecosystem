@@ -397,7 +397,7 @@ endif
 ! Write aparture stuff if appropriate
 
 if (attribute_name(ele, aperture_at$) == 'APERTURE_AT' .and. ele%aperture_at /= 0) then
-  nl=nl+1; write (li(nl), fmt_a) 'APERTURE_AT', '=', element_end_name(ele%aperture_at)
+  nl=nl+1; write (li(nl), fmt_a) 'APERTURE_AT', '=', aperture_at_name(ele%aperture_at)
   default_val = rectangular$
   if (ele%key == ecollimator$) default_val = elliptical$
   if (ele%aperture_type /= default_val .or. type_zero) then
