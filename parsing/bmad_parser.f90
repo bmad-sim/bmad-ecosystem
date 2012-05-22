@@ -588,7 +588,7 @@ parsing_loop: do
     if (.not. found) then
       in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
       if (in_lat%ele(n_max)%key > 0) then
-        call parser_set_ele_defaults (in_lat%ele(n_max))
+        call set_ele_defaults (in_lat%ele(n_max))
         found = .true.
       endif
     endif
@@ -839,45 +839,6 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     call parser_error ('CANNOT FIND REF_PATCH FOR PATCH: ' // ele%name, &
                   'CANNOT FIND: ' // ele%component_name)
   endif
-enddo
-
-! Make sure that taylor order and lattice_type are not being set via
-! the old way of doing things.
-
-do i = 1, bp_com%ivar_tot
-
-  if (bp_com%var(i)%name == 'LATTICE_TYPE') then
-    call out_io (s_error$, r_name, [ &
-      '*********************************************************    ', &
-      '*********************************************************    ', &
-      '*********************************************************    ', &
-      'BMAD_PARSER NOTE:                                            ', &
-      '   DEPRECATED USE OF SYNTAX: "LATTICE_TYPE = ...".           ', &
-      '   USE "PARAMETER[LATTICE_TYPE] = ..." SYNTAX INSTEAD.       ', &
-      '*********************************************************    ', &
-      '*********************************************************    ', &
-      '*********************************************************    ', &
-      'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!               '])
-    bp_com%write_digested = .false.
-    lat%param%lattice_type = nint(bp_com%var(i)%value)
-  endif
-
-  if (bp_com%var(i)%name == 'TAYLOR_ORDER') then
-    call out_io (s_error$, r_name, [ &
-      '*********************************************************    ', &
-      '*********************************************************    ', &
-      '*********************************************************    ', &
-      'BMAD_PARSER NOTE:                                            ', &
-      '   DEPRECATED USE OF SYNTAX: "TAYLOR_ORDER = ...".           ', &
-      '   USE "PARAMETER[TAYLOR_ORDER] = ..." SYNTAX INSTEAD.       ', &
-      '*********************************************************    ', &
-      '*********************************************************    ', &
-      '*********************************************************    ', &
-      'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!               '])
-    bp_com%write_digested = .false.
-    lat%input_taylor_order = nint(bp_com%var(i)%value)
-  endif
-
 enddo
 
 ! Set lattice_type.

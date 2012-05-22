@@ -488,12 +488,13 @@ an error:
 Normally, whether a particle hits an aperture or not is evaluated
 independent of any element offsets (\sref{s:offset}). This is
 equivalent to the situation where a beam pipe containing an aperture
-is independent of the element the beam pipe passes through. This can
-be changed by setting the \vn{offset_moves_aperture} attribute to
-\vn{True}. In this case any offsets or pitches will be considered to
-have shifted the aperture boundary. The exception here is that the
-default for \vn{rcollimator} and \vn{ecollimator} elements is for
-\vn{offset_moves_aperture} to be \vn{True}.
+is independent of the placement of the physical element the beam pipe
+passes through. That is, the beam pipe does not ``touch'' the physical
+element. This can be changed by setting the \vn{offset_moves_aperture}
+attribute to \vn{True}. In this case any offsets or pitches will be
+considered to have shifted the aperture boundary. The exception here
+is that the default for \vn{rcollimator} and \vn{ecollimator} elements
+is for \vn{offset_moves_aperture} to be \vn{True}.
 
 Even with \vn{offset_moves_aperture} set to \vn{True}, \vn{tilt}s will
 not affect the aperture calculation. This is done, for example, so
@@ -501,17 +502,18 @@ that the tilt of a skew quadrupole does not affect the aperture. The
 exception here is that tilting an \vn{rcollimator} or \vn{ecollimator}
 element will tilt the aperture.
 
-\index{entrance_end|hyperbf}
-\index{exit_end|hyperbf}
-\index{aperture_at}
+\index{both_ends|hyperbf}\index{continuous|hyperbf}
+\index{entrance_end|hyperbf}\index{exit_end|hyperbf}
+\index{surface|hyperbf}\index{aperture_at}
 By default the aperture is evaluated at the exit face only of the
 element. This can be changed by setting the \vn{aperture_at} attribute.
 Possible settings for \vn{aperture_at} are:
 \begin{example}
   entrance_end
-  exit_end  ! default
+  exit_end       ! Default for most elements
   both_ends
   continuous
+  surface        ! Default for mirror, multilayer_mirror and crystal
 \end{example}
 Note that the entrance and exit ends of an element are independent of
 which direction particles are tracked through an element. Thus if a
@@ -525,6 +527,13 @@ used to transform the particle coordinates at the entrance of an
 element to the coordinates at the exit end, the aperture is only
 checked at the end points so, in this situation, a \vn{continuous}
 aperture is equivalent to the \vn{both_ends} setting.
+
+\index{mirror}\index{multilayer_mirror}\index{crystal}
+The \vn{surface} setting for \vn{aperture_at} is only used for
+\vn{mirror}, \vn{multilayer_mirror}, and \vn{crystal} elements.  For
+these elements, the \vn{surface} setting is the default.  A setting of
+\vn{surface} means that the aperture limits are calculated in the
+frame of reference of the surface of the element.
 
 Examples:
 \begin{example}

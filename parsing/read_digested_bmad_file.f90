@@ -208,6 +208,11 @@ read (d_unit, err = 9030)  &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
         lat%use_ptc_layout, lat%pre_tracker
 
+if (bmad_inc_version$ == 110) then
+  if (lat%param%lattice_type == 10) lat%param%lattice_type = linear_lattice$
+  if (lat%param%lattice_type == 12) lat%param%lattice_type = circular_lattice$
+endif
+
 call read_this_wall3d (lat%wall3d, error)
 
 ! Allocate lat%ele, lat%control and lat%ic arrays
@@ -243,11 +248,18 @@ do i = 1, n_branch
   read (d_unit, err = 9070) branch%param
   read (d_unit, err = 9070) branch%name, garbage, branch%ix_from_branch, &
                   branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, branch%wall3d%ele_anchor_pt
+
+  if (bmad_inc_version$ == 110) then
+    if (branch%param%lattice_type == 10) branch%param%lattice_type = linear_lattice$
+    if (branch%param%lattice_type == 12) branch%param%lattice_type = circular_lattice$
+  endif
+
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
     call read_this_ele (branch%ele(j), j, error)
     if (error) return
   enddo
+
   call read_this_wall3d (branch%wall3d, error)
   if (error) return
 enddo

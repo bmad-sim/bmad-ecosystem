@@ -1064,6 +1064,36 @@ case ('DIFFRACTION_TYPE')
 case ('FIELD_CALC')
   call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag)
 
+case ('APERTURE_AT')
+  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag)
+
+case ('APERTURE_TYPE')
+  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag)
+
+case ('COUPLER_AT')
+  call get_switch (attrib_word, coupler_at_name(1:), ix, err_flag)
+  ele%value(coupler_at$) = ix
+
+case ('TRACKING_METHOD')
+  call get_switch (attrib_word, calc_method_name(1:), ele%tracking_method, err_flag)
+
+case ('SPIN_TRACKING_METHOD')
+  call get_switch (attrib_word, calc_method_name(1:), ele%spin_tracking_method, err_flag)
+
+case ('MAT6_CALC_METHOD')
+  call get_switch (attrib_word, calc_method_name(1:), ele%mat6_calc_method, err_flag)
+
+case ('REF_ORBIT')
+  call get_switch (attrib_word, ref_orbit_name(1:), ele%ref_orbit, err_flag)
+
+case ('PARTICLE')
+  call get_switch (attrib_word, particle_name(:), ix, err_flag)
+  ele%value(particle$) = ix + lbound(particle_name, 1) - 1 
+
+case ('LATTICE_TYPE')
+  call get_switch (attrib_word, lattice_type(1:), ix, err_flag)
+  ele%value(lattice_type$) = ix
+
 case ('ROOT_BRANCH_NAME')
   call get_next_word(bp_com%root_branch_ele%name, ix_word,  ':=,', delim, delim_found, .true.)
 
@@ -1084,18 +1114,6 @@ case default   ! normal attribute
         else
           ele%a_pole(ix_attrib-a0$) = value
         endif
-    elseif (ix_attrib == mat6_calc_method$) then
-      ele%mat6_calc_method = nint(value)
-    elseif (ix_attrib == tracking_method$) then
-      ele%tracking_method = nint(value)
-    elseif (ix_attrib == spin_tracking_method$) then
-      ele%spin_tracking_method = nint(value)
-    elseif (ix_attrib == ref_orbit$) then
-      ele%ref_orbit = nint(value)
-    elseif (ix_attrib == aperture_at$) then
-      ele%aperture_at = nint(value)
-    elseif (ix_attrib == aperture_type$) then
-      ele%aperture_type = nint(value)
     elseif (ix_attrib == ran_seed$) then
       call ran_seed_put (nint(value))  ! init random number generator
       if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
@@ -3122,20 +3140,17 @@ subroutine init_bmad_parser_common
 
 implicit none
 
-integer nn, nt, i
+integer nn, i
 
 ! 
 
 if (allocated(bp_com%var)) deallocate (bp_com%var)
 
-nn = 17  ! number of "constant" variables
-bp_com%ivar_init = nn + ubound(calc_method_name, 1) + ubound(ref_orbit_name, 1) + &
-           ubound(element_end_name, 1) + ubound(aperture_type_name, 1) + &
-           size(particle_name)
-bp_com%ivar_tot = bp_com%ivar_init
+nn = 15  ! number of standard (non-user defined) constants
+bp_com%ivar_init = nn
+bp_com%ivar_tot  = nn
 
-nt = bp_com%ivar_tot
-allocate (bp_com%var(nt))
+allocate (bp_com%var(nn))
 
 bp_com%var( 1) = bp_var_struct('PI', pi, 0)
 bp_com%var( 2) = bp_var_struct('TWOPI', twopi, 0)
@@ -3150,42 +3165,10 @@ bp_com%var(10) = bp_var_struct('R_P', r_p, 0)
 bp_com%var(11) = bp_var_struct('E_CHARGE', e_charge, 0)
 bp_com%var(12) = bp_var_struct('EMASS', e_mass, 0)
 bp_com%var(13) = bp_var_struct('CLIGHT', c_light, 0)
-bp_com%var(14) = bp_var_struct('LINEAR_LATTICE', real(linear_lattice$, rp), 0)
-bp_com%var(15) = bp_var_struct('CIRCULAR_LATTICE', real(circular_lattice$, rp), 0)
-bp_com%var(16) = bp_var_struct('R_E', r_e, 0)
-bp_com%var(17) = bp_var_struct('DEGREES', 180 / pi, 0)
+bp_com%var(14) = bp_var_struct('R_E', r_e, 0)
+bp_com%var(15) = bp_var_struct('DEGREES', 180 / pi, 0)
 
-do i = lbound(particle_name, 1), ubound(particle_name, 1)
-  nn = nn + 1
-  call str_upcase (bp_com%var(nn)%name, particle_name(i))
-  bp_com%var(nn)%value = i
-enddo
-
-do i = 1, ubound(calc_method_name, 1)
-  nn = nn + 1
-  call str_upcase (bp_com%var(nn)%name, calc_method_name(i))
-  bp_com%var(nn)%value = i
-enddo
-
-do i = 1, ubound(element_end_name, 1)
-  nn = nn + 1
-  call str_upcase (bp_com%var(nn)%name, element_end_name(i))
-  bp_com%var(nn)%value = i
-enddo
-
-do i = 1, ubound(ref_orbit_name, 1)
-  nn = nn + 1
-  call str_upcase (bp_com%var(nn)%name, ref_orbit_name(i))
-  bp_com%var(nn)%value = i
-enddo
-
-do i = 1, ubound(aperture_type_name, 1)
-  nn = nn + 1
-  call str_upcase (bp_com%var(nn)%name, aperture_type_name(i))
-  bp_com%var(nn)%value = i
-enddo
-
-call indexx (bp_com%var(1:nt)%name, bp_com%var(1:nt)%indexx)
+call indexx (bp_com%var(1:nn)%name, bp_com%var(1:nn)%indexx)
 
 end subroutine init_bmad_parser_common
 
@@ -4412,85 +4395,6 @@ endif
 end function ix_far_index
 
 end subroutine parser_add_lord
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine parser_set_ele_defaults (ele)
-!
-! Subroutine initialize an element given its key (key).
-!
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
-subroutine parser_set_ele_defaults (ele)
-
-type (ele_struct) ele
-
-select case (ele%key)
-
-case (bend_sol_quad$) 
-  ele%mat6_calc_method = symp_lie_bmad$
-  ele%tracking_method  = symp_lie_bmad$
-
-case (branch$, photon_branch$)
-  ele%value(direction$) = 1
-  ele%value(particle$) = real_garbage$
-  ele%value(lattice_type$) = linear_lattice$
-
-case (crystal$)
-  ele%value(follow_diffracted_beam$) = 1  ! True
-  ele%value(ref_polarization$) = sigma_polarization$ 
-
-case (custom$)  
-  ele%mat6_calc_method = custom$
-  ele%tracking_method  = custom$
-  ele%field_calc       = custom$
-
-case (ecollimator$)
-  ele%offset_moves_aperture = .true.
-  ele%aperture_type = elliptical$
-
-case (lcavity$)
-  ele%value(coupler_at$) = exit_end$
-  ele%value(field_scale$) = 1
-  ele%value(n_cell$) = 1
-
-case (multilayer_mirror$)
-  ele%value(ref_polarization$) = sigma_polarization$  
-
-case (rbend$, sbend$)
-  ele%value(fintx$) = real_garbage$
-  ele%value(hgapx$) = real_garbage$
-
-case (rcollimator$)
-  ele%offset_moves_aperture = .true.
-
-case (rfcavity$)
-  ele%value(coupler_at$) = exit_end$
-  ele%value(field_scale$) = 1
-  ele%value(n_cell$) = 1
-
-case (taylor$)   ! start with unit matrix
-  ele%tracking_method = taylor$  
-  ele%mat6_calc_method = taylor$ 
-  ele%map_with_offsets = .false.
-  call taylor_make_unit (ele%taylor)
-
-case (wiggler$) 
-  ele%sub_key = periodic_type$   
-  ele%value(polarity$) = 1.0     
-
-case (e_gun$)
-  ele%tracking_method = time_runge_kutta$
-  ele%mat6_calc_method = tracking$
-  ele%value(field_scale$) = 1
-
-end select
-
-end subroutine parser_set_ele_defaults
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

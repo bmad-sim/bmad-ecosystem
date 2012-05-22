@@ -86,7 +86,7 @@ if (ele%tracking_method /= time_runge_kutta$ .and. start_orb%beta < 0) then
   start2_orb%status = outside$
 endif
 
-! custom
+! custom tracking if the custom routine is to do everything
 
 if (ele%tracking_method == custom$) then
   call track1_custom (start2_orb, ele, param, end_orb, err, track)
@@ -100,12 +100,16 @@ param%lost = .false.  ! assume everything will be OK
 
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
-! check for particles outside aperture
+! check for particles outside aperture.
 
-if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
-                              call check_aperture_limit (start2_orb, ele, entrance_end$, param)
+if (end_orb%p0c < 0) then
+  call check_aperture_limit (start2_orb, ele, exit_end$, param)
+  param%lost = .true.  ! That is, not moving forward.
+else
+  call check_aperture_limit (start2_orb, ele, entrance_end$, param)
+endif
+
 if (start2_orb%status == dead$) then
-  param%end_lost_at = entrance_end$
   end_orb = start2_orb
   end_orb%ix_lost = ele%ix_ele
   if (present(err_flag)) err_flag = .false.
@@ -192,24 +196,14 @@ if (bmad_com%space_charge_on .and. do_extra) &
 if (bmad_com%spin_tracking_on .and. do_extra) call track1_spin (start2_orb, ele, param, end_orb)
 
 ! check for particles outside aperture
+! Note that a particle going backwards (p0c < 0) must be at the entrance end.
 
-if (.not. param%lost) then
-  if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) then
-    call check_aperture_limit (end_orb, ele, exit_end$, param)
-  endif
-endif
 
-if (param%lost) param%end_lost_at = exit_end$
-
-if (end_orb%p0c < 0 .and. end_orb%status /= dead$) then
-  param%lost = .false. ! Temp
-  if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
-                  call check_aperture_limit (start2_orb, ele, entrance_end$, param)
-  if (param%lost) then
-    end_orb%status = dead$
-    param%end_lost_at = entrance_end$
-  endif
-  param%lost = .true.
+if (end_orb%p0c < 0) then   ! At entrance end...
+  call check_aperture_limit (start2_orb, ele, entrance_end$, param)
+  param%lost = .true.  ! That is, not moving forward.
+else                        ! At exit end...
+  call check_aperture_limit (end_orb, ele, exit_end$, param)
 endif
 
 if (present(err_flag)) err_flag = .false.

@@ -413,7 +413,7 @@ parsing_loop: do
     if (.not. found) then
       ele%key = key_name_to_key_index(word_2, .true.)
       if (ele%key > 0) then
-        call parser_set_ele_defaults (ele)
+        call set_ele_defaults (ele)
         found = .true.
       endif
     endif
