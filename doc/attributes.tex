@@ -242,14 +242,10 @@ dependent attribute calculated from the reference energy.
 
 %-----------------------------------------------------------------
 \section{Offset, Pitch, Tilt, and Roll Attributes}
-\label{s:offset}
-\index{x_offset|hyperbf}
-\index{y_offset|hyperbf}
-\index{s_offset|hyperbf}
-\index{x_pitch|hyperbf}
-\index{y_pitch|hyperbf}
-\index{roll|hyperbf}
-\index{tilt|hyperbf}
+\label{s:offset}\index{x_offset|hyperbf}
+\index{y_offset|hyperbf}\index{s_offset|hyperbf}
+\index{x_pitch|hyperbf}\index{y_pitch|hyperbf}
+\index{roll|hyperbf}\index{tilt|hyperbf}
 
 There are up to 7 attributes that can offset a physical element
 from the reference orbit. They are
@@ -273,22 +269,31 @@ $z$--directions respectively. For a bend it is assumed that
 the bend angle is small and the rotation of the local reference
 axes through the bend is ignored.
 
-The \vn{x_pitch} attribute rotates an element about the $y$--axis so
-that the exit face of the element is displaced in the $+x$--direction
-as shown in figure~\ref{f:pitch}. Similarly the \vn{y_pitch} attribute
-rotates an element about the $x$--axis so that the exit face of the
-element is displaced in the $+y$--direction. The rotations are about
-the center of the element which is in contrast to the \vn{dtheta} and
-\vn{dphi} misalignment of \mad which rotate around the entrance
-point. In terms of rotation angle
+The \vn{x_pitch} and \vn{y_pitch} attributes rotate an element such
+that the unit $z$-axis vector attached to the element, in terms of the
+laboratory coordinate frame, is given by
+\begin{example}
+  \((z\sb{x}, z\sb{y}, z\sb{z})\) = \((s\sb{x}, s\sb{y}, \sqrt{1 - s\sb{x}\sp{2} - s\sb{y}\sp{2}})\)
+  Where: \(s\sb{x}\) = sin(x_pitch), and  \(s\sb{y}\) = sin(y_pitch)
+\end{example}
+and the rotation axis is perpendicular to the laboratory $z$-axis and
+the element $z$-axis. Transformation formulas between labortory and
+element reference frames is given in \sref{s:lab.ele.coord}.
+
+If \vn{y_pitch} is zero, The \vn{x_pitch} attribute rotates an element
+about the $y$--axis so that the exit face of the element is displaced
+in the $+x$--direction as shown in figure~\ref{f:pitch}. Similarly, if
+\vn{x_pitch} is zero, the \vn{y_pitch} attribute rotates an element
+about the $x$--axis so that the exit face of the element is displaced
+in the $+y$--direction. The rotations are about the center of the
+element which is in contrast to the \vn{dtheta} and \vn{dphi}
+misalignment of \mad which rotate around the entrance point. In terms
+of rotation angle
 \index{MAD!element rotation origin}
 \begin{example}
-  x_pitch =  dtheta
-  y_pitch = -dphi
+  x_pitch (Bmad) =  dtheta (MAD)
+  y_pitch (Bmad) = -dphi (MAD)
 \end{example}
-Since \bmad uses the small angle approximation, the pitches are
-considered small so that the \vn{x_pitch} and \vn{y_pitch}
-transformations commute.
 
 \begin{figure}[t]
   \centering
@@ -325,13 +330,15 @@ Default tilts can be used for \vn{rbend}, \vn{sbend}, \vn{sol_quad},
 The default tilt is $\pi/(2(n+1))$ where $n$ is the order of the 
 element (n = 0 for bends, n = 1 for quadrupoles etc.) 
 
-\index{sbend}\index{rbend}\index{crystal}\index{mirror}
-For all elements, except \vn{crystal} and \vn{mirror} elements,
-offsets and pitches and are measured with respect to the local coordinates at the
-center of the element. \vn{crystal} and \vn{mirror} elements measure
-their offsets and pitches with respect to the entrance coordinates.
-Note that all element define \vn{tilt} with respect to the entrance
-coordinates.
+\index{sbend}\index{rbend}\index{crystal}\index{mirror}\index{multilayer_mirror}
+For all elements, except \vn{crystal}, \vn{mirror}, and
+\vn{multilayer_mirror} elements, offsets and pitches and are measured
+with respect to the local coordinates at the center of the element. To
+simplify things, since there is no real ``center'' for \vn{crystal},
+\vn{mirror}, and \vn{multilayer_mirror} elements, these elements
+measure their offsets and pitches with respect to the entrance
+coordinates.  Note that all element define \vn{tilt} with respect to
+the entrance coordinates.
 
 The \vn{roll} attribute is only used for bends and rotates the bend,
 along an axis that runs through the entrance point and exit point as
@@ -485,6 +492,8 @@ an error:
 \index{y_offset}
 \index{x_pitch}
 \index{y_pitch}
+\index{rcollimator}\index{ecollimator}
+\index{multilayer_mirror}\index{mirror}\index{crystal}
 Normally, whether a particle hits an aperture or not is evaluated
 independent of any element offsets (\sref{s:offset}). This is
 equivalent to the situation where a beam pipe containing an aperture
@@ -492,15 +501,18 @@ is independent of the placement of the physical element the beam pipe
 passes through. That is, the beam pipe does not ``touch'' the physical
 element. This can be changed by setting the \vn{offset_moves_aperture}
 attribute to \vn{True}. In this case any offsets or pitches will be
-considered to have shifted the aperture boundary. The exception here
-is that the default for \vn{rcollimator} and \vn{ecollimator} elements
-is for \vn{offset_moves_aperture} to be \vn{True}.
+considered to have shifted the aperture boundary. The exceptions here
+is that the default for \vn{rcollimator}, \vn{ecollimator},
+\vn{multilayer_mirror}, \vn{mirror}, and \vn{crystal} elements is for
+\vn{offset_moves_aperture} to be \vn{True}.
 
 Even with \vn{offset_moves_aperture} set to \vn{True}, \vn{tilt}s will
 not affect the aperture calculation. This is done, for example, so
 that the tilt of a skew quadrupole does not affect the aperture. The
 exception here is that tilting an \vn{rcollimator} or \vn{ecollimator}
-element will tilt the aperture.
+element will tilt the aperture. Additionally, when the aperture is at
+the \vn{surface} (see below), any \vn{tilt} will be used in the
+calculation.
 
 \index{both_ends|hyperbf}\index{continuous|hyperbf}
 \index{entrance_end|hyperbf}\index{exit_end|hyperbf}
@@ -529,11 +541,22 @@ checked at the end points so, in this situation, a \vn{continuous}
 aperture is equivalent to the \vn{both_ends} setting.
 
 \index{mirror}\index{multilayer_mirror}\index{crystal}
-The \vn{surface} setting for \vn{aperture_at} is only used for
+The \vn{surface} setting for \vn{aperture_at} can be only be used for
 \vn{mirror}, \vn{multilayer_mirror}, and \vn{crystal} elements.  For
 these elements, the \vn{surface} setting is the default.  A setting of
 \vn{surface} means that the aperture limits are calculated in the
-frame of reference of the surface of the element.
+frame of reference of the surface of the element. To keep things
+conceptually simple, if a \vn{surface} aperture is used, the setting
+of \vn{offset_moves_aperture} must be set to True (which is the
+default for these elements). Non-moving apertures, if desired, can be
+setup at the entrance or exit end of the element. Notice that since,
+for the \vn{mirror}, \vn{multilayer_mirror}, or \vn{crystal} elements
+the offsets and pitches are measured with respect to the entrance-end
+coordinates (\sref{s:offset}), it is oftentimes simpler to set up a
+separate collimator element positioned at the exit end of the element
+than it is to set the exit-end aperture in the element itself. In any
+case, extra collimator elements are needed if entrance or exit
+collimation is to be used with surface collimation.
 
 Examples:
 \begin{example}
