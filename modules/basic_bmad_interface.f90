@@ -464,13 +464,14 @@ interface
 end interface
 
 interface
-  subroutine offset_photon (ele, param, coord, set)
+  subroutine offset_photon (ele, param, coord, set, offset_position_only)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
     type (coord_struct) :: coord
     logical :: set
+    logical, optional :: offset_position_only
   end subroutine
 end interface
 

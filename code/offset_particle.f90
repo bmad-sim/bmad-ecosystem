@@ -190,7 +190,7 @@ if (set) then
     endif
 
     if (s_off /= 0 .and. set_s) then
-      call track_a_drift (coord, s_off)
+      call track_a_drift (coord, ele, s_off)
     endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
@@ -375,7 +375,7 @@ else
     endif
 
     if (s_off /= 0 .and. set_s) then
-      call track_a_drift (coord, -s_off)
+      call track_a_drift (coord, ele, -s_off)
     endif
 
   endif

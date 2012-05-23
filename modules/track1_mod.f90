@@ -88,8 +88,8 @@ endif
 
 if (logic_option(.true., check_momentum)) then
   if (abs(orb%vec(2)) > 1 .or. abs(orb%vec(4)) > 1) then
-    param%lost = .true.
     orb%status = dead$
+    param%lost = .true.
     param%end_lost_at = at
     if (abs(orb%vec(2)) > abs(orb%vec(4))) then
       param%plane_lost_at = x_plane$
@@ -114,6 +114,9 @@ if (ele%offset_moves_aperture .and. (at == entrance_end$ .or. at == exit_end$)) 
                ds_pos = s_here)
   x_beam = orb2%vec(1)
   y_beam = orb2%vec(3)
+elseif (ele%aperture_at == surface$) then
+  x_beam = orb%vec(5)
+  y_beam = orb%vec(3)
 else
   x_beam = orb%vec(1)
   y_beam = orb%vec(3)
@@ -151,8 +154,8 @@ case (elliptical$)
 
   r = (x_beam / x_lim)**2 + (y_beam / y_lim)**2
   if (r > 1) then
-    param%lost = .true.
     orb%status = dead$
+    param%lost = .true.
     param%end_lost_at = at
     if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
       param%plane_lost_at = x_plane$
@@ -165,8 +168,8 @@ case (elliptical$)
 case (rectangular$)
 
   if (abs(x_beam) > x_lim .or. abs(y_beam) > y_lim) then
-    param%lost = .true.
     orb%status = dead$
+    param%lost = .true.
     param%end_lost_at = at
     if (abs(x_beam)/x_lim > abs(y_beam)/y_lim) then
       param%plane_lost_at = x_plane$
@@ -187,7 +190,7 @@ end subroutine check_aperture_limit
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_drift (orb, length)
+! Subroutine track_a_drift (orb, ele, length)
 !
 ! Subroutine to track a particle as through a drift.
 !
@@ -195,29 +198,40 @@ end subroutine check_aperture_limit
 !   use precision_def
 !
 ! Input:
-!   orb    -- coord_struct: Orbit at start of the drift
-!   length -- Real(rp): Length of drift.
+!   orb    -- coord_struct: Orbit at start of the drift.
+!   ele    -- Ele_struct: Element tracked through.
+!   length -- Real(rp): Length to drift through.
 !
 ! Output:
 !   orb%vec(:) -- coord_struct: Orbit at end of the drift
 !-
 
-subroutine track_a_drift (orb, length)
+subroutine track_a_drift (orb, ele, length)
 
 implicit none
 
 type (coord_struct) orb
+type (ele_struct) ele
 type (lat_param_struct) param
-real(rp) length, rel_pc, dz
+real(rp) length, rel_pc, dz, px, py, pz
 
 !
 rel_pc = 1 + orb%vec(6)
+px = orb%vec(2) / rel_pc
+py = orb%vec(4) / rel_pc
+pz = sqrt(1 - px**2 - py**2)
 
-orb%vec(1) = orb%vec(1) + length * orb%vec(2) / rel_pc
-orb%vec(3) = orb%vec(3) + length * orb%vec(4) / rel_pc
-dz = -length * (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2)
+orb%vec(1) = orb%vec(1) + length * px / pz
+orb%vec(3) = orb%vec(3) + length * py / pz
+
+if (orb%beta == 0) then
+  dz = length * (1 - sqrt(1 + px**2 + py**2))
+else
+  dz = length * (orb%beta * ele%value(e_tot$) / ele%value(p0c$) - sqrt(1 + px**2 + py**2))
+  orb%t = orb%t + (length - dz) / (orb%beta * c_light)
+endif
+
 orb%vec(5) = orb%vec(5) + dz
-if (orb%beta /= 0) orb%t = orb%t + (length - dz) / (orb%beta * c_light)
 orb%s = orb%s + length
 
 end subroutine track_a_drift
@@ -272,7 +286,7 @@ if (ele%value(g$) == 0) then
   length = ele%value(l$)
   end_orb = start_orb
   end_orb%vec(2) = end_orb%vec(2) - length * ele%value(g_err$) / 2
-  call track_a_drift (end_orb, length)
+  call track_a_drift (end_orb, ele, length)
   end_orb%vec(2) = end_orb%vec(2) - length * ele%value(g_err$) / 2
   return
 endif
@@ -338,8 +352,8 @@ do n = 1, n_step
    
     pxy2 = px**2 + py**2
     if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
-      param%lost = .true.
       end_orb%status = dead$
+      param%lost = .true.
       param%plane_lost_at = x_plane$
       end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
       end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
@@ -363,8 +377,8 @@ do n = 1, n_step
     dpx_t = -px*st*g + f*ct*g
 
     if (abs(px) > Dy .or. abs(px_t) > Dy) then
-      param%lost = .true.
       end_orb%status = dead$
+      param%lost = .true.
       param%plane_lost_at = x_plane$
       return
     endif    

@@ -2,6 +2,7 @@ module track1_photon_mod
 
 use bmad_struct
 use bmad_interface
+use track1_mod
 
 ! This is for passing info into the field_calc_routine
 
@@ -83,6 +84,14 @@ if (curved_surface) then
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
 else
   hit_point = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
+endif
+
+! Check aperture
+
+if (ele%aperture_at == surface$) then
+  end_orb%vec(1:5:2) = hit_point ! This is temporary
+  call check_aperture_limit (end_orb, ele, surface$, param)
+  if (param%lost) return
 endif
 
 ! Note: Koln z-axis = Bmad x-axis.
@@ -273,6 +282,14 @@ if (curved_surface) then
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
 else
   hit_point = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
+endif
+
+! Check aperture
+
+if (ele%aperture_at == surface$) then
+  end_orb%vec(1:5:2) = hit_point ! This is temporary
+  call check_aperture_limit (end_orb, ele, surface$, param)
+  if (param%lost) return
 endif
 
 ! Construct h_norm = H * wavelength.

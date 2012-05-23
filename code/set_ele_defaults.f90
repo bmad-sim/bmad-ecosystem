@@ -38,6 +38,7 @@ case (crystal$)
   ele%value(follow_diffracted_beam$) = 1  ! True
   ele%value(ref_polarization$) = sigma_polarization$ 
   ele%aperture_at = surface$
+  ele%offset_moves_aperture = .true.
 
 case (custom$)  
   ele%mat6_calc_method = custom$
@@ -45,8 +46,8 @@ case (custom$)
   ele%field_calc       = custom$
 
 case (ecollimator$)
-  ele%offset_moves_aperture = .true.
   ele%aperture_type = elliptical$
+  ele%offset_moves_aperture = .true.
 
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
@@ -55,10 +56,12 @@ case (lcavity$)
 
 case (mirror$)
   ele%aperture_at = surface$
+  ele%offset_moves_aperture = .true.
 
 case (multilayer_mirror$)
   ele%value(ref_polarization$) = sigma_polarization$  
   ele%aperture_at = surface$
+  ele%offset_moves_aperture = .true.
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$

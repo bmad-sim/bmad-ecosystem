@@ -150,6 +150,9 @@
 % \ExampleNum is for numbering "example" blocks using the same numbering counter
 % as the "equation" counter
 
+% Note: Use \( ... \) for equations in example mode. Also,
+%\sb{} and \sp{} need to be used for subscripts and superscripts instead of "_" and "^".
+
 \newcommand{\ExampleNum}[1]{\hfill \refstepcounter{equation} \((\arabic{equation})\protect\label{#1}\)}
 
 \newenvironment{example}

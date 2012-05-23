@@ -39,7 +39,7 @@ use track1_photon_mod
 implicit none
 
 type (coord_struct) :: start_orb, start2_orb
-type (coord_struct) :: end_orb
+type (coord_struct) :: end_orb, temp_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
@@ -203,7 +203,7 @@ case (crystal$)
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
   if (ele%is_on) call offset_particle (ele, param, end_orb, set$, .false.)
-  call track_a_drift (end_orb, length)
+  call track_a_drift (end_orb, ele, length)
   if (ele%is_on) call offset_particle (ele, param, end_orb, unset$, .false.)
 
   call low_energy_z_correction (end_orb, ele, param)
@@ -276,7 +276,7 @@ case (lcavity$)
 
   if (gradient == 0 .and. gradient_ref == 0) then
     if (ele%is_on) call offset_particle (ele, param, end_orb, set$, .false.)
-    call track_a_drift (end_orb, length)
+    call track_a_drift (end_orb, ele, length)
     if (ele%is_on) call offset_particle (ele, param, end_orb, unset$, .false.)
     ! 1/gamma^2 low E correction
     end_orb%vec(5) = end_orb%vec(5) + length * end_orb%vec(6) * (1 - 3 * end_orb%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
@@ -473,6 +473,20 @@ case (mirror$)
 
   call offset_photon (ele, param, end_orb, set$)
 
+  ! Check aperture
+
+  if (ele%aperture_at == surface$) then
+    temp_orb%vec(3) = end_orb%vec(3)
+    temp_orb%vec(5) = -end_orb%vec(1) * sin(ele%value(graze_angle$))
+    call check_aperture_limit (temp_orb, ele, surface$, param)
+    if (param%lost) then
+      end_orb%status = temp_orb%status
+      return
+    endif
+  endif
+
+  ! Reflect
+
   end_orb%vec(1:4) = [ &
         -end_orb%vec(1), &
         -end_orb%vec(2), &
@@ -519,7 +533,7 @@ case (octupole$)
 
   do i = 1, n_slice
 
-    call track_a_drift (end_orb, length / n_slice)
+    call track_a_drift (end_orb, ele, length / n_slice)
 
     if (i == n_slice) then
       end_orb%vec(2) = end_orb%vec(2) + k3l *  (3*end_orb%vec(1)*end_orb%vec(3)**2 - end_orb%vec(1)**3) / 12
@@ -666,7 +680,7 @@ case (sextupole$)
   end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3) / 2
 
   do i = 1, n_slice
-    call track_a_drift (end_orb, length/n_slice)
+    call track_a_drift (end_orb, ele, length/n_slice)
     if (i == n_slice) then
       end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/4
       end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3) / 2

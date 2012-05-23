@@ -109,6 +109,10 @@ else
   call check_aperture_limit (start2_orb, ele, entrance_end$, param)
 endif
 
+if (ele%aperture_at == surface$) then
+  call check_aperture_limit (start2_orb, ele, surface$, param)
+endif
+
 if (start2_orb%status == dead$) then
   end_orb = start2_orb
   end_orb%ix_lost = ele%ix_ele

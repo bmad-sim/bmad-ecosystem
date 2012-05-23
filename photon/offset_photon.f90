@@ -1,8 +1,8 @@
 !+
-! Subroutine offset_photon (ele, param, coord, set)
+! Subroutine offset_photon (ele, param, coord, set, offset_position_only)
 !
 ! Routine to effectively offset an element by instead offsetting
-! the photon position to correspond to the local crystal or mirror coordinates.
+! the photon position and field to correspond to the local crystal or mirror coordinates.
 !
 ! Note: The transformation between local and lab coordinates does *not* include 
 ! a transformation due to a finite graze angle. 
@@ -38,12 +38,16 @@
 !                   T (= set$)   -> Translate from lab coords to incoming local 
 !                                     element coords.
 !                   F (= unset$) -> Translate from outgoing local coords to lab coords.
-!                                               
+!   offset_position_only
+!           -- Logical, optional: If present and True then only offset the position
+!                coordinates. This is used for example, aperture calculations where
+!                offsetting the field is not needed.
+!
 ! Output:
 !     coord -- Coord_struct: Coordinates of particle.
 !-
 
-subroutine offset_photon (ele, param, coord, set)
+subroutine offset_photon (ele, param, coord, set, offset_position_only)
 
 use bmad_interface !!!!, except_dummy => offset_photon
 
@@ -59,6 +63,7 @@ real(rp), pointer :: p(:), vec(:)
 complex(rp) efield_x, efield_y, efieldout_x, efieldout_y
 
 logical :: set
+logical, optional :: offset_position_only
 
 !----------------------------------------------------------------
 ! Set...
@@ -98,6 +103,8 @@ if (set) then
   vec(5) = vec(5) - vec(1) * p(graze_angle_err$)
 
   ! Set: intensity and phase rotation due to the tilt + tilt_err
+
+  if (logic_option(.false., offset_position_only)) return
 
   efield_x = coord%e_field_x * cmplx(cos(coord%phase_x), sin(coord%phase_x) )
   efield_y = coord%e_field_y * cmplx(cos(coord%phase_y), sin(coord%phase_y) )

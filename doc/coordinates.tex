@@ -285,6 +285,55 @@ undiffracted beam (shown in red) as the reference trajectory.
 \end{figure}
 
 %-----------------------------------------------------------------------------
+\subsection{Transformation Between Laboratory and Element Body Coordinates for Straight Elements}
+\label{s:lab.ele.coord}
+
+The \vn{Element Body} coordinates are the coordinate system attached
+to an element. Without any misalignments (Here \vn{``misalignment''}
+is {\em defined} to be any offset, pitch or tilt (\sref{s:offset}),
+the laboratory and element body coordinates are the same. For a
+straight element, that is, for an element that does not bend or
+reflect like a mirror element, the transformation between laboratory
+and element frames is as follows.
+
+In the laboratory frame, a unit vector $\Bf r_{bz}$ along the $z$-axis
+attached to the element has coordinates
+\Begineq
+  \Bf r_{bz} = (s_x, s_y, \sqrt{1 - s_x^2 - s_y^2})
+\Endeq
+where
+\Begineq
+  s_{x} = \mbox{sin(x_pitch)}, \qquad  \mbox{s_{y} = sin(y_pitch)}
+\Endeq
+The rotation vector that transforms between laboratory and element
+coordinates is defined to be perpendicular to the plane defined by the
+laboratory and element $z$ axes. In the laboratory coordinates, the
+normalized rotation vector $\Bf N$ is thus
+\Begineq
+  \Bf N = \frac{1}{\sqrt{s_x^2 + s_y^2}} \, (-s_y, s_x, 0)
+\Endeq
+The rotation angle $\theta$ between the laboratory and element $z$
+axes is obtained by taking the cross product of the two which gives
+\Begineq
+  \sin\theta = \sqrt{s_x^2 + s_y^2}, \qquad
+  \cos\theta = \sqrt{1 - s_x^2 - s_y^2} 
+\Endeq
+
+The transformation from body coordinates to laboratory coordinates is
+a rotation along $\Bf N$ by an angle $\theta$.  The rotation matrix
+$\Bf W_b$ associated with this transformation is obtained from the
+standard formula
+\Begineq
+  \Bf W_b = \begin{pmatrix}
+    N_x^2 + N_y^2 \, \cos\theta    & N_x \, N_y \, (1 - \cos\theta) & s_x \\
+    N_x \, N_y \, (1 - \cos\theta) & N_y^2 + N_x^2 \, \cos\theta    & s_y \\
+    -s_x                           & -s_y                           & \cos\theta 
+  \end{pmatrix}
+\Endeq
+The reverse transformation from laboratory to body coordinates is
+obtained by substituting $-\theta$ for $\theta$ in the above.
+
+%-----------------------------------------------------------------------------
 \subsection{Crystal and Mirror Element Coordinate Transformation}
 \label{s:mirror.coords}
 
