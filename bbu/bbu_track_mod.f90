@@ -382,7 +382,7 @@ ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 do j = ix_ele_start+1, ix_ele_end
 
   call track1_bunch (bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
-  if (.not. all(bbu_beam%bunch(ib)%particle%ix_lost == not_lost$)) then
+  if (.not. all(bbu_beam%bunch(ib)%particle%state == alive$)) then
     print *, 'PARTICLE(S) LOST WHILE TRACKING ELEMENT: ', trim(lat%ele(j)%name), '  (', j, ')'
     lost = .true.
     return

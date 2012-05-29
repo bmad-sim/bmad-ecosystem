@@ -916,7 +916,7 @@
  real(rp) rate_x_tot, rate_y_tot
  real(rp) frev
 
-  integer i
+  integer i, track_state
 
    frev=c_light/ring%ele(ring%n_ele_track)%s
    sum_x_real =0.
@@ -987,7 +987,7 @@
   real*4, allocatable, save :: psx(:), psxp(:), psy(:), psyp(:)
   real*4 xscale/0./, xscalep/0./, yscale/0./,yscalep/0./
 
-  integer n_turns, i, pgopen, istat2
+  integer n_turns, i, pgopen, istat2, track_state
   integer number_turns
   integer icall
   logical first1/.true./,first2/.true./
@@ -1000,8 +1000,8 @@
 
   co_lat(0)%vec = traj%vec
   do i=1,n_turns
-    call track_all(ring, co_lat)
-    if(ring%param%lost)exit
+    call track_all(ring, co_lat, 0, track_state)
+    if(track_state /= moving_forward$) exit
     co_lat(0)%vec = co_lat(ring%n_ele_track)%vec
     psx(i) = (co_lat(0)%vec(1) - co%vec(1))*1000.
     psxp(i) = (co_lat(0)%vec(2) - co%vec(2))*1000.
