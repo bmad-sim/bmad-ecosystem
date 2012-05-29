@@ -5,7 +5,6 @@ use bmad_interface
 
 type photon_coord_struct
   type (coord_struct) orb       ! Phase space: orb%vec = (x, vx/c, y, vy/c, s, vs/c)
-  real(rp) energy               ! in eV.
   real(rp) track_len            ! Total track length from the start of the element.
   integer ix_section            ! Cross section index
 end type
@@ -28,65 +27,52 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_capillary (orb, ele, lost)
+! Subroutine track_a_capillary (orb, ele)
 !
 ! Routine to track through a capillary.
 !
 ! Input:
-!   orb -- Coord_struct: Input coordinates.
+!   orb -- Coord_struct: Input photon coordinates.
 !   ele -- ele_struct: Capillary element
 !
 ! Output:
-!   orb  -- Coord_struct: Output coordinates.
-!   lost -- Logical: Set true if particle is lost. False otherwise.
+!   orb  -- Coord_struct: Output photon coordinates.
 !-
 
-subroutine track_a_capillary (orb, ele, lost)
+subroutine track_a_capillary (orb, ele)
 
 implicit none
 
 type (ele_struct) ele
 type (coord_struct) orb
-type (photon_track_struct) photon
+type (photon_coord_struct), pointer :: now
+type (photon_track_struct), target :: photon
 
 real(rp) pz
-
-integer status
-
-logical lost
 
 ! Calculate maximum step size
 
 ! Setup photon coords
 
-photon%now%orb = orb
-photon%now%orb%vec(5) = 0
-photon%now%orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
-photon%now%energy = ele%value(e_tot$) * (1 + orb%vec(6))
-photon%now%track_len = 0
-photon%now%ix_section = 1
+now => photon%now
+now%orb = orb
+now%orb%vec(5) = 0
+now%orb%location = inside$
+now%track_len = 0
+now%ix_section = 1
 
 ! Loop over all bounces
 
-lost = .true.
-status = not_lost$
-
 do
-  call capillary_track_photon_to_wall (photon, ele, status)
-  if (status == entrance_end$ .or. status == lost$) return  ! Reflected backwards or lost
-  if (status == exit_end$) exit      ! And done
-  call capillary_reflect_photon (photon, ele, lost)
-  if (lost) return
+  call capillary_track_photon_to_wall (photon, ele)
+  if (now%orb%location /= inside$ .or. now%orb%state /= alive$) exit  ! At end or lost
+  call capillary_reflect_photon (photon, ele)
+  if (now%orb%state /= alive$) exit
 enddo
 
-! Correct z by distance traveled by reference particle.
+! Cleanup
 
-pz = orb%vec(6)
-orb = photon%now%orb
-orb%vec(5) =  ele%value(l$) - photon%now%track_len
-orb%vec(6) = pz
-
-lost = .false.
+orb = now%orb
 
 end subroutine track_a_capillary
 
@@ -94,7 +80,7 @@ end subroutine track_a_capillary
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine capillary_track_photon_to_wall (photon, ele, status)
+! Subroutine capillary_track_photon_to_wall (photon, ele)
 !
 ! Routine to track through a capillary.
 !
@@ -104,11 +90,9 @@ end subroutine track_a_capillary
 !
 ! Output:
 !   photon -- Photon_track_struct: Output coordinates.
-!   status -- Integer: Set to entrance_end$, exit_end$ if at an end, 
-!               or lost$ if absorbed.
 !-
 
-subroutine capillary_track_photon_to_wall (photon, ele, status)
+subroutine capillary_track_photon_to_wall (photon, ele)
 
 implicit none
 
@@ -119,14 +103,12 @@ type (wall3d_section_struct), pointer :: section
 real(rp) dr_max, ds_max, p_max, dlen
 real(rp), pointer :: vec(:)
 
-integer status
-
 character(40) :: r_name = 'capillary_track_photon_to_wall'
 
 ! Check if outside wall
 
 if (capillary_photon_d_radius (photon%now, ele) >= 0) then
-  status = lost$
+  photon%now%orb%state = lost$
   return
 endif
 
@@ -164,12 +146,12 @@ do
   endif
 
   if (vec(5) == 0) then
-    status = entrance_end$
+    photon%now%orb%location = entrance_end$
     return
   endif
 
   if (vec(5) == ele%s) then
-    status = exit_end$
+    photon%now%orb%location = exit_end$
     return
   endif
 
@@ -373,20 +355,18 @@ end function photon_hit_func
 !
 ! Output:
 !   photon   -- Photon_track_struct: Output coordinates.
-!   absorbed -- Logical: If true the photon has been absorbed.
+!   photon%now%orb%state -- Set to lost$ if absorbed.
 !-
 
-subroutine capillary_reflect_photon (photon, ele, absorbed)
+subroutine capillary_reflect_photon (photon, ele)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (photon_track_struct), target :: photon
 
-real(rp) perp(3), r, graze_angle, cos_perp
+real(rp) perp(3), r, graze_angle, cos_perp, energy
 real(rp), pointer :: vec(:)
-
-logical absorbed
 
 ! perp is a vector perpendicular to the surface tangent plane
 
@@ -402,9 +382,9 @@ vec(2:6:2) = vec(2:6:2) - 2 * cos_perp * perp
 
 ! Check for absorbtion if the graze angle is too large.
 
-absorbed = .false.
 graze_angle = pi/2 - acos(cos_perp)
-if (graze_angle > ele%value(critical_angle_factor$) / photon%now%energy) absorbed = .true.
+energy = photon%now%orb%p0c * (1 + photon%now%orb%beta)
+if (graze_angle > ele%value(critical_angle_factor$) / energy) photon%now%orb%state = lost$
 
 end subroutine capillary_reflect_photon
 

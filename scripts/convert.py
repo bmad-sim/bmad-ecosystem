@@ -7,6 +7,8 @@ import re
 
 g = re.compile(r'(\s*)(call)( element_at_s.*?,.*?,) *(\w*)(.*)', re.IGNORECASE)
 
+print 'Number of files: ' + str(len(sys.argv[1:]))
+
 for arg in sys.argv[1:]:
   in_file = open(arg)
   out_file = open(r'temp.temp', 'w')
@@ -14,10 +16,9 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    gg = g.match(line)
-    if gg:
-      line = gg.group(1) + gg.group(4) + ' =' + gg.group(3) + ' .true.' + gg.group(5) + '\n'
+    if 'ix_track_end' in line:
       found = True
+      line = line.replace('ix_track_end', 'track_state')
 
     out_file.write(line)
 

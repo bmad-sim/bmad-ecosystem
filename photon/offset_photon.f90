@@ -49,7 +49,7 @@
 
 subroutine offset_photon (ele, param, coord, set, offset_position_only)
 
-use bmad_interface !!!!, except_dummy => offset_photon
+use track1_mod
 
 implicit none
 
@@ -58,12 +58,22 @@ type (lat_param_struct) :: param
 type (coord_struct), target :: coord
 
 real(rp) c2g, s2g, ct, st, offset(6), tilt
-real(rp) off(3), rot(3), project_x(3), project_y(3), project_s(3)
+real(rp) off(3), rot(3), project_x(3), project_y(3), project_s(3), rot_mat(3,3)
 real(rp), pointer :: p(:), vec(:)
 complex(rp) efield_x, efield_y, efieldout_x, efieldout_y
 
 logical :: set
 logical, optional :: offset_position_only
+logical is_reflective_element
+
+!
+
+select case (ele%key)
+case (crystal$, mirror$, multilayer_mirror$)
+  is_reflective_element = .true.
+case default
+  is_reflective_element = .false.
+end select
 
 !----------------------------------------------------------------
 ! Set...
@@ -76,19 +86,24 @@ if (set) then
   ! Set: s_offset
 
   if (p(s_offset_tot$) /= 0) then
-    vec(1) = vec(1) + vec(2) * p(s_offset_tot$)
-    vec(3) = vec(3) + vec(4) * p(s_offset_tot$)
-    vec(5) = vec(5) - p(s_offset_tot$)
+    vec(1) = vec(1) + vec(2) * p(s_offset_tot$) / vec(6)
+    vec(3) = vec(3) + vec(4) * p(s_offset_tot$) / vec(6)
+    coord%t = coord%t + p(s_offset_tot$)  / vec(6) / c_light 
+    coord%s = coord%s + p(s_offset_tot$)
   endif
 
-  ! Set: x and y offset 
-  ! Set: pitch
+  ! Set: X and Y offsets
 
   vec(1) = vec(1) - p(x_offset_tot$)
-  vec(2) = vec(2) - p(x_pitch_tot$)
   vec(3) = vec(3) - p(y_offset_tot$)
-  vec(4) = vec(4) - p(y_pitch_tot$) 
-  vec(5) = vec(5) + vec(1) * p(x_pitch_tot$) + vec(3) * p(y_pitch_tot$)
+
+  ! Set: pitch
+
+  if (p(x_offset_tot$) /= 0 .or. p(y_offset_tot$) /= 0) then
+    call pitches_to_rotation_matrix (p(x_offset_tot$), p(y_offset_tot$), set, rot_mat)
+    vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
+    vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+  endif
 
   ! Set: tilt
 
@@ -99,8 +114,10 @@ if (set) then
 
   ! Set: graze_angle_err
 
-  vec(2) = vec(2) + p(graze_angle_err$)
-  vec(5) = vec(5) - vec(1) * p(graze_angle_err$)
+  if (is_reflective_element) then
+    vec(2) = vec(2) + p(graze_angle_err$)
+    vec(5) = vec(5) - vec(1) * p(graze_angle_err$)
+  endif
 
   ! Set: intensity and phase rotation due to the tilt + tilt_err
 
@@ -120,73 +137,111 @@ if (set) then
 
 else
 
-  ! Unset: graze_angle_err
+  ! reflective element...
 
-  vec(2) = vec(2) - p(graze_angle_err$)
-  vec(5) = vec(5) + vec(1) * p(graze_angle_err$)
+  if (is_reflective_element) then
 
-  ! Unset: tilt
+    ! Unset: graze_angle_err
 
-  call tilt_coords (-p(tilt_tot$), vec)
+    vec(2) = vec(2) - p(graze_angle_err$)
+    vec(5) = vec(5) + vec(1) * p(graze_angle_err$)
 
-  ! Unset: tilt_err
-  ! The difference between tilt and tilt_err is that tilt also rotates the output 
-  ! laboratory coords but tilt_err does not. 
-  ! The difference between tilt_err with Set vs Unset is that the tilt_err is 
-  ! expressed in terms of the input lab coords.
+    ! Unset: tilt
 
-  if (ele%key == mirror$) then
-    c2g = cos(2*p(graze_angle$)) 
-    s2g = sin(2*p(graze_angle$))
+    call tilt_coords (-p(tilt_tot$), vec)
+
+    ! Unset: tilt_err
+    ! The difference between tilt and tilt_err is that tilt also rotates the output 
+    ! laboratory coords but tilt_err does not. 
+    ! The difference between tilt_err with Set vs Unset is that the tilt_err is 
+    ! expressed in terms of the input lab coords.
+
+    if (ele%key == mirror$) then
+      c2g = cos(2*p(graze_angle$)) 
+      s2g = sin(2*p(graze_angle$))
+    else
+      c2g = cos(p(graze_angle_in$)+p(graze_angle_out$)) 
+      s2g = sin(p(graze_angle_in$)+p(graze_angle_out$))
+    endif
+
+    ct = cos(p(tilt_tot$)) 
+    st = sin(p(tilt_tot$))
+
+    ! [project_x, project_y, project_z] is the matrix product of the matrices T.G.T^-1
+    ! T rotates x to y by tilt_tot, G rotates z to x by sum of graze angles
+    ! project_x is the projection of the x-basis vector in the original basis onto the new basis
+
+    project_x = [c2g * ct**2 + st**2,      -ct * st + c2g * ct * st, -ct * s2g ]
+    project_y = [-ct * st + c2g * ct * st, ct**2 + c2g * st**2,      -s2g * st ] 
+    project_s = [ct * s2g,                 s2g * st,                 c2g       ]
+
+    if (p(tilt_err$) /= 0) then
+
+      rot = project_s * p(tilt_err$)
+
+      call tilt_coords (-rot(3), vec)
+
+      vec(2) = vec(2) + rot(2) 
+      vec(4) = vec(4) - rot(1)
+      vec(5) = vec(5) - vec(1) * rot(2) + vec(3) * rot(1)
+
+    endif
+
+    ! Unset: pitch
+    ! Since the pitches are with respect to the lab input coord system, we have
+    ! to translate to the local output coords.
+
+    rot = project_x * p(y_pitch_tot$) - project_y * p(x_pitch_tot$)
+
+    vec(2) = vec(2) - rot(2)
+    vec(4) = vec(4) + rot(1)
+    vec(5) = vec(5) + vec(1) * rot(2) - vec(3) * rot(1)
+
+    ! Unset: offset
+    ! Translate offsets to the local output coords.
+
+    off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * p(s_offset_tot$)
+
+    vec(1) = vec(1) + off(1)
+    vec(3) = vec(3) + off(2)
+    if (off(3) /= 0) then
+      vec(1) = vec(1) - vec(2) * off(3)
+      vec(3) = vec(3) - vec(4) * off(3)
+      coord%t = coord%t - p(s_offset_tot$)  / vec(6) / c_light 
+      coord%s = coord%s - p(s_offset_tot$)
+    endif
+
+  ! non-reflective element
+
   else
-    c2g = cos(p(graze_angle_in$)+p(graze_angle_out$)) 
-    s2g = sin(p(graze_angle_in$)+p(graze_angle_out$))
-  endif
 
-  ct = cos(p(tilt_tot$)) 
-  st = sin(p(tilt_tot$))
+    ! Unset: tilt
 
-  ! [project_x, project_y, project_z] is the matrix product of the matrices T.G.T^-1
-  ! T rotates x to y by tilt_tot, G rotates z to x by sum of graze angles
-  ! project_x is the projection of the x-basis vector in the original basis onto the new basis
+    tilt = p(tilt_tot$) + p(tilt_err$)
+    call tilt_coords (-tilt, vec)
 
-  project_x = [c2g * ct**2 + st**2,      -ct * st + c2g * ct * st, -ct * s2g ]
-  project_y = [-ct * st + c2g * ct * st, ct**2 + c2g * st**2,      -s2g * st ] 
-  project_s = [ct * s2g,                 s2g * st,                 c2g       ]
+    ! Unset: Pitch
 
-  if (p(tilt_err$) /= 0) then
+    if (p(x_offset_tot$) /= 0 .or. p(y_offset_tot$) /= 0) then
+      call pitches_to_rotation_matrix (-p(x_offset_tot$), -p(y_offset_tot$), set, rot_mat)
+      vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
+      vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+    endif
 
-    rot = project_s * p(tilt_err$)
+    ! Unset: X and Y Offsets
 
-    call tilt_coords (-rot(3), vec)
+    vec(1) = vec(1) - p(x_offset_tot$)
+    vec(3) = vec(3) - p(y_offset_tot$)
 
-    vec(2) = vec(2) + rot(2) 
-    vec(4) = vec(4) - rot(1)
-    vec(5) = vec(5) - vec(1) * rot(2) + vec(3) * rot(1)
+    ! Unset S Offset
 
-  endif
+    if (p(s_offset_tot$) /= 0) then
+      vec(1) = vec(1) - vec(2) * p(s_offset_tot$) / vec(6)
+      vec(3) = vec(3) - vec(4) * p(s_offset_tot$) / vec(6)
+      coord%t = coord%t - p(s_offset_tot$)  / vec(6) / c_light 
+      coord%s = coord%s - p(s_offset_tot$)
+    endif
 
-  ! Unset: pitch
-  ! Since the pitches are with respect to the lab input coord system, we have
-  ! to translate to the local output coords.
-
-  rot = project_x * p(y_pitch_tot$) - project_y * p(x_pitch_tot$)
-
-  vec(2) = vec(2) - rot(2)
-  vec(4) = vec(4) + rot(1)
-  vec(5) = vec(5) + vec(1) * rot(2) - vec(3) * rot(1)
-
-  ! Unset: offset
-  ! Translate offsets to the local output coords.
-
-  off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * p(s_offset_tot$)
-
-  vec(1) = vec(1) + off(1)
-  vec(3) = vec(3) + off(2)
-  if (off(3) /= 0) then
-    vec(1) = vec(1) - vec(2) * off(3)
-    vec(3) = vec(3) - vec(4) * off(3)
-    vec(5) = vec(5) + off(3)
   endif
 
   ! Unset: intensities

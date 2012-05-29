@@ -21,7 +21,7 @@ use definition, only: genfield, fibre
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 110
+integer, parameter :: bmad_inc_version$ = 111
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -44,12 +44,6 @@ character(16), parameter :: coupler_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
       'No_End       ']
 
-integer, parameter :: inside$ = 3, outside$ = 4, lost$ = 5, dead$ = 6
-
-character(16), parameter :: orbit_status_name(0:6) = [ &
-      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Inside       ', &
-      'Outside      ', 'Lost         ', 'Dead         ']
-
 ! electron/positron
 
 integer, parameter :: antimuon$   = +3
@@ -60,16 +54,30 @@ integer, parameter :: electron$   = -1
 integer, parameter :: antiproton$ = -2
 integer, parameter :: muon$       = -3
 
-character(16), parameter :: particle_name(-3:3) = ['ANTIMUON  ', 'ANTIPROTON', 'ELECTRON  ', &
-                                     'PHOTON    ', 'POSITRON  ', 'PROTON    ', 'MUON      ']
+character(16), parameter :: particle_name(-3:3) = ['MUON      ', 'ANTIPROTON', 'ELECTRON  ', &
+                                     'PHOTON    ', 'POSITRON  ', 'PROTON    ', 'ANTIMUON  ']
 
 integer, parameter :: charge_of(-3:3) = [-1, -1, -1, 0, 1, 1, 1]
 real(rp), parameter :: mass_of(-3:3) = [m_muon, m_proton, m_electron, 0.0_rp, m_electron, m_proton, m_muon]
 
+! plane list, etc
+
+integer, parameter :: x_plane$ = 1, y_plane$ = 2
+integer, parameter :: z_plane$ = 3, n_plane$ = 4, s_plane$ = 5
+
+character(1), parameter :: plane_name(6) = ['X', 'Y', 'Z', 'N', 'S', ' ']
+
 ! coordinate def
 
-integer, parameter :: not_lost$ = -1
+integer, parameter :: moving_forward$ = -9
 integer, parameter :: not_set$ = -999
+
+integer, parameter :: alive$ = 1, lost$ = 2
+integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
+integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
+integer, parameter :: lost_z_aperture$ = 7
+
+integer, parameter :: inside$ = 3
 
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
@@ -80,13 +88,14 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: e_field_y = 0       ! Photon field intensity, y-axis component
   real(rp) :: phase_x = 0         ! Photon phase, x-axis component
   real(rp) :: phase_y = 0         ! Photon phase, y-axis component
-  real(rp) charge                 ! charge in a particle (Coul).
-  real(rp) :: p0c                 ! Reference momentum. Negative means going backwards.
-  real(rp) :: beta = -1           ! Velocity / c_light
-  integer :: ix_z = 0             ! Index for ordering the particles longitudinally.
-                                  !   particle(1)%ix_z is index of head particle.
-  integer :: ix_lost = not_lost$  ! Index of element particle was lost at.
-  integer :: status = outside$    ! inside$, outside$, dead$
+  real(rp) :: charge = 0          ! charge in a particle (Coul).
+  real(rp) :: p0c = 0             ! Reference momentum. For non-photons: Negative -> going backwards.
+  real(rp) :: beta = -1           ! Velocity / c_light. deltaE/E for photons.
+  integer :: species = not_set$   ! Type of particle. not_set$ when initialized before tracking.
+  integer :: ix_ele = -1          ! Index of element particle was tracked through.
+                                  !   May be -1 if element is not associated with a lattice.
+  integer :: state = alive$       ! alive$, lost$, lost_neg_x_aperture$, etc.
+  integer :: location = entrance_end$  ! entrance_end$, inside$, or exit_end$
 end type
 
 type coord_array_struct
@@ -94,13 +103,6 @@ type coord_array_struct
 end type
 
 integer, parameter :: mesh_surface$ = 1, linear_surface$ = 2
-
-type tracking_status_struct
-  integer :: ix_lost = not_lost$            ! Index of element particle was lost at.
-  integer :: end_lost_at = 0                ! entrance_end$ or exit_end$
-  integer :: plane_lost_at = 0              ! x_plane$, y_plane$, z_plane$ (reversed direction).
-  logical :: lost = .false.                 ! Particle alive and moving forward.
-end type
 
 ! Coupling structure
 
@@ -426,22 +428,18 @@ end type
 ! lattice parameter struct
 
 type lat_param_struct
-  real(rp) :: n_part = 0                      ! Particles/bunch (for BeamBeam elements).
-  real(rp) :: total_length = 0                ! total_length of lat
-  real(rp) :: unstable_factor = 0             ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
-  real(rp) :: t1_with_RF(6,6) = 0             ! Full 1-turn matrix with RF on.
-  real(rp) :: t1_no_RF(6,6) = 0               ! Full 1-turn matrix with RF off.
-  integer :: particle = positron$             ! positron$, electron$, etc.
-  integer :: lattice_type = 0                 ! linear_lattice$, etc...
-  integer :: ixx = 0                          ! Integer for general use
-  logical :: stable = .false.                 ! is closed lat stable?
-  logical :: aperture_limit_on = .true.       ! use apertures in tracking?
+  real(rp) :: n_part = 0                  ! Particles/bunch (for BeamBeam elements).
+  real(rp) :: total_length = 0            ! total_length of lat
+  real(rp) :: unstable_factor = 0         ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
+  real(rp) :: t1_with_RF(6,6) = 0         ! Full 1-turn matrix with RF on.
+  real(rp) :: t1_no_RF(6,6) = 0           ! Full 1-turn matrix with RF off.
+  integer :: particle = positron$         ! Reference particle: positron$, electron$, etc.
+  integer :: lattice_type = 0             ! linear_lattice$, etc...
+  integer :: ixx = 0                      ! Integer for general use
+  logical :: stable = .false.             ! is closed lat stable?
+  logical :: aperture_limit_on = .true.   ! use apertures in tracking?
   type (bookkeeper_status_struct) bookkeeping_state
-                                              ! Overall status for the branch.
-  integer :: ix_lost = not_lost$              ! Index of element particle was lost at.
-  integer :: end_lost_at = 0                  ! entrance_end$ or exit_end$
-  integer :: plane_lost_at = 0                ! x_plane$, y_plane$, z_plane$ (reversed direction).
-  logical :: lost = .false.                   ! Particle alive and moving forward.
+                                          ! Overall status for the branch.
 end type
 
 !
@@ -614,8 +612,8 @@ integer, parameter :: phi0_err$=14, coef$=14, current$=14, fintx$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: quad_tilt$=15, x_ray_line_len$=15
 integer, parameter :: hgap$=15, dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15
-integer, parameter :: hgapx$=16, dphi0_ref$ = 16, bend_tilt$=16, fh_im$=16, f0_im2$=16
-integer, parameter :: dphi0_max$=17, h1$=17, x_quad$=17, ref_polarization$=17
+integer, parameter :: hgapx$=16, dphi0_ref$ = 16, bend_tilt$=16, fh_im$=16, f0_im2$=16, x_length$=16
+integer, parameter :: dphi0_max$=17, h1$=17, x_quad$=17, ref_polarization$=17, y_length$=17
 integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
 integer, parameter :: b_param$ = 19
 integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 20
@@ -758,13 +756,6 @@ character(16), parameter :: control_name(13) = [ &
             'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
             'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'PATCH_IN_SLAVE ', &
             'SLICE_SLAVE    ']
-
-! plane list, etc
-
-integer, parameter :: x_plane$ = 1, y_plane$ = 2
-integer, parameter :: z_plane$ = 3, n_plane$ = 4, s_plane$ = 5
-
-character(1), parameter :: plane_name(6) = ['X', 'Y', 'Z', 'N', 'S', ' ']
 
 logical, parameter :: set$ = .true., unset$ = .false.
 

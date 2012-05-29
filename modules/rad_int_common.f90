@@ -128,9 +128,9 @@ gamma = ele%value(e_tot$) / mass_of(info%branch%param%particle)
 
 ! Go to the local element frame if there has been caching.
 if (associated(info%cache_ele)) then
-  call offset_particle (ele, info%branch%param, start, set$, &
+  call offset_particle (ele, start, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
-  call offset_particle (ele, info%branch%param, end, set$, &
+  call offset_particle (ele, end, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false., ds_pos = ll)
 endif
 

@@ -1,5 +1,5 @@
 !+
-! Subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch)
+! Subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 !
 ! Subroutine to track from one point in the lat to another.
 !
@@ -27,7 +27,8 @@
 !
 ! Input:
 !   lat             -- lat_struct: Lat to track through.
-!     %param%aperture_limit_on -- Logical: Sets whether TRACK_MANY looks to
+!     %branch(ix_branch)%param%aperture_limit_on 
+!                     -- Logical: Sets whether track_many looks to
 !                                 see whether a particle is lost or not
 !   orbit(ix_start)  -- Coord_struct: Coordinates at start of tracking.
 !   ix_start         -- Integer: Start index (See Note).
@@ -38,18 +39,13 @@
 !   ix_branch        -- Integer, optional: Branch to track. Default is 0 (main lattice).
 !
 ! Output:
-!   lat%branch(ix_branch)%param -- Structure holding the info if the particle is lost.
-!     %lost          -- Logical: Set when a particle is lost with the 
-!                         aperture limit on.
-!     %ix_lost       -- Integer: Index of element where particle is lost.
-!     %param%end_lost_at -- Either entrance_end$ or exit_end$.
-!     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
-!                           z_plane$ (turned around in an lcavity).
 !   orbit(0:)    -- Coord_struct: Orbit. In particular orbit(ix_end) is
 !                       the coordinates at the end of tracking. 
+!   track_state  -- Integer, optional: Set to moving_forward$ if everything is OK.
+!                     Otherwise: set to index of element where particle was lost.
 !-
 
-subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch)
+subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 
 use bmad_struct
 use bmad_interface, except_dummy => track_many
@@ -62,8 +58,8 @@ type (lat_struct), target :: lat
 type (coord_struct) orbit(0:)
 type (branch_struct), pointer :: branch
 
-integer ix_start, ix_end, direction, ix_br, n_ele_track
-integer, optional :: ix_branch
+integer ix_start, ix_end, direction, ix_br, n_ele_track, track_end_state
+integer, optional :: ix_branch, track_state
 
 logical :: debug = .false.
 
@@ -75,31 +71,34 @@ if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 ix_br = integer_option (0, ix_branch)
 branch => lat%branch(ix_br)
-branch%param%ix_lost = not_lost$
+if (present(track_state)) track_state = moving_forward$
+track_end_state = moving_forward$
 
 n_ele_track = branch%n_ele_track
 
-! track through elements.
+! Track forward through the elements.
 
 if (direction == +1) then
 
-  if (orbit(ix_start)%status /= inside$) then
+  if (orbit(ix_start)%state /= inside$) then
     orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
-    orbit(ix_start)%status = outside$
+    orbit(ix_start)%state = entrance_end$
   endif
 
   if (ix_start < ix_end) then
-    call track_fwd (ix_start+1, ix_end)
+    call track_fwd (ix_start+1, ix_end, track_end_state)
     return
   else
-    call track_fwd (ix_start+1, n_ele_track)
-    if (branch%param%lost) then
+    call track_fwd (ix_start+1, n_ele_track, track_end_state)
+    if (track_end_state /= moving_forward$) then
       call zero_this_track (0, ix_end)
       return
     endif
     orbit(0) = orbit(n_ele_track) 
-    call track_fwd (1, ix_end)
+    call track_fwd (1, ix_end, track_end_state)
   endif
+
+! Track backwards
 
 elseif (direction == -1) then
 
@@ -108,16 +107,16 @@ elseif (direction == -1) then
   orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
 
   if (ix_start > ix_end) then
-    call track_back (ix_start, ix_end+1)
+    call track_back (ix_start, ix_end+1, track_end_state)
     return
   else
-    call track_back (ix_start, 1)
-    if (branch%param%lost) then
+    call track_back (ix_start, 1, track_end_state)
+    if (track_end_state /= moving_forward$) then
       call zero_this_track (ix_end, n_ele_track)
       return
     endif
     orbit(n_ele_track) = orbit(0)
-    call track_back (n_ele_track, ix_end+1)
+    call track_back (n_ele_track, ix_end+1, track_end_state)
   endif
 
 else
@@ -130,9 +129,9 @@ endif
 
 contains
 
-subroutine track_fwd (ix1, ix2)
+subroutine track_fwd (ix1, ix2, track_end_state)
 
-integer i, n, ix1, ix2
+integer i, n, ix1, ix2, track_end_state
 
 do n = ix1, ix2
 
@@ -140,15 +139,14 @@ do n = ix1, ix2
 
   ! check for lost particles
 
-  if (branch%param%lost) then
-    branch%param%ix_lost = n
-    if (branch%param%end_lost_at == exit_end$) then
-      call zero_this_track (n+1, ix2)
-    elseif (branch%param%end_lost_at == entrance_end$) then
+  if (.not. particle_is_moving_forward(orbit(n))) then
+    track_end_state = n
+    if (present(track_state)) track_state = n
+
+    if (orbit(n)%location == entrance_end$) then
       call zero_this_track (n, ix2)
     else
-      call out_io (s_abort$, r_name, 'INTERNAL ERROR')
-      call err_exit
+      call zero_this_track (n+1, ix2)
     endif
     return
   endif
@@ -170,11 +168,11 @@ end subroutine
 ! we need to transform to the flipped coordinate system, then track, then
 ! flip back to the standard coord system.
 
-subroutine track_back (ix1, ix2)
+subroutine track_back (ix1, ix2, track_end_state)
 
 type (ele_struct) :: ele
 
-integer i, n, ix1, ix2, ix_last 
+integer i, n, ix1, ix2, ix_last, track_end_state
 
 ! flip to reversed coords
 
@@ -194,17 +192,14 @@ do n = ix1, ix2, -1
 
   ! check for lost particles
 
-  if (branch%param%lost) then
-    branch%param%ix_lost = n
-    if (branch%param%end_lost_at == exit_end$) then
-      branch%param%end_lost_at = entrance_end$
-      call zero_this_track (ix2-1, n-2)
-    elseif (branch%param%end_lost_at == entrance_end$) then
-      branch%param%end_lost_at = exit_end$
+  if (.not. particle_is_moving_forward(orbit(n-1))) then
+    track_end_state = n
+    if (present(track_state)) track_state = n
+
+    if (orbit(n-1)%location == entrance_end$) then
       call zero_this_track (ix2-1, n-1)
     else
-      call out_io (s_abort$, r_name, 'INTERNAL ERROR')
-      call err_exit
+      call zero_this_track (ix2-1, n-2)
     endif
     exit
   endif
@@ -238,6 +233,7 @@ integer n, n1, n2
 do n = n1, n2
   if (n == ix_start) cycle  ! never zero starting coords.
   orbit(n)%vec = 0
+  orbit(n)%species = not_set$
 enddo
 
 end subroutine

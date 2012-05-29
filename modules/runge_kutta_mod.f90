@@ -192,9 +192,7 @@ end do
 
 ! Here if step size too small or too many steps
 
-orb_end%status = dead$
-param%lost = .true.
-param%plane_lost_at = z_plane$
+orb_end%state = lost$
 err_flag = .false.
 
 end subroutine odeint_bmad

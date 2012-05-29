@@ -154,7 +154,7 @@ do ib = 0, ubound(lat%branch, 1)
       call init_coord (start_orb, ele = gun_ele, particle = branch%param%particle)
       start_orb%vec(6) = (ele_init%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
       call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
-      if (branch%param%lost) then
+      if (.not. particle_is_moving_forward(end_orb)) then
         call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
                                        'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
         if (bmad_status%exit_on_error) call err_exit
@@ -533,9 +533,9 @@ bmad_com%auto_bookkeeper = .false.
 
 call zero_errors_in_ele (ele, changed)
 call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
-if (is_inside) orb_start%status = inside$ !to avoid entrance kick in time tracking
+if (is_inside) orb_start%location = inside$ !to avoid entrance kick in time tracking
 call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
-if (param%lost) then
+if (.not. particle_is_moving_forward(orb_end)) then
   call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
                                  'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
   if (bmad_status%exit_on_error) call err_exit

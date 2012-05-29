@@ -241,6 +241,8 @@ do i = 1, n_key
     call init_attrib (i, n_sample$,        'N_SAMPLE')
     call init_attrib (i, de_eta_meas$,     'DE_ETA_MEAS')
     call init_attrib (i, osc_amplitude$,   'OSC_AMPLITUDE')
+    call init_attrib (i, x_length$,        'X_LENGTH')
+    call init_attrib (i, y_length$,        'Y_LENGTH')
   end select
 
   if (i == hybrid$)         cycle

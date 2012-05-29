@@ -38,7 +38,7 @@ type (c_dummy_struct) c_coord
 call coord_to_c2 (c_coord, f_coord%vec, f_coord%s, f_coord%t, &
           real(f_coord%spin(1)), aimag(f_coord%spin(1)), real(f_coord%spin(2)), aimag(f_coord%spin(2)), &
           f_coord%e_field_x, f_coord%e_field_y, f_coord%phase_x, f_coord%phase_y, &
-          f_coord%charge, f_coord%p0c, f_coord%beta, f_coord%ix_z, f_coord%ix_lost, f_coord%status)
+          f_coord%charge, f_coord%p0c, f_coord%beta, f_coord%species, f_coord%ix_ele, f_coord%state)
 
 end subroutine
 
@@ -52,7 +52,7 @@ end subroutine
 !-
 
 subroutine coord_to_f2 (f_coord, vec, s, t, sp1_re, sp1_im, sp2_re, sp2_im, e_field_x, e_field_y, &
-                              phase_x, phase_y, charge, p0c, beta, ix_z, ix_lost, status)
+                              phase_x, phase_y, charge, p0c, beta, species, ix_ele, state, location)
 
 use fortran_and_cpp
 use bmad_struct
@@ -63,10 +63,10 @@ implicit none
 type (coord_struct) f_coord
 real(rp) vec(6), e_field_x, e_field_y, phase_x, phase_y, s, t, sp1_re, sp1_im, sp2_re
 real(rp) sp2_im, charge, p0c, beta
-integer ix_z, ix_lost, status
+integer species, ix_ele, state, location
 
 f_coord = coord_struct(vec, s, t, [cmplx(sp1_re, sp1_im), cmplx(sp2_re, sp2_im)], &
-              e_field_x, e_field_y, phase_x, phase_y, charge, p0c, beta, ix_z, ix_lost, status)
+              e_field_x, e_field_y, phase_x, phase_y, charge, p0c, beta, species, ix_ele, state, location)
 
 end subroutine
 
@@ -932,7 +932,7 @@ f => f_lat_param
 call lat_param_to_c2 (c_lat_param, f%n_part, f%total_length, f%unstable_factor, &
       mat2arr(f%t1_with_RF), mat2arr(f%t1_no_RF), &
       f%particle, f%lattice_type, f%ixx, c_logic(f%stable), c_logic(f%aperture_limit_on), &
-      f%bookkeeping_state, f%ix_lost, f%end_lost_at, f%plane_lost_at, c_logic(f%lost))
+      f%bookkeeping_state)
 
 end subroutine
 
@@ -947,7 +947,7 @@ end subroutine
 
 subroutine lat_param_to_f2 (f_lat_param, n_part, total_length, &
        growth_rate, m1, m2, particle, lat_type, ixx, stable, ap_limit_on, &
-       book_stat, ix_lost, end_lost_at, plane_lost_at, lost)
+       book_stat)
 
 use fortran_and_cpp
 use bmad_struct
@@ -959,13 +959,12 @@ type (lat_param_struct) f_lat_param
 type (bookkeeper_status_struct) book_stat
 real(rp) n_part, total_length, growth_rate
 real(rp) m1(36), m2(36)
-integer particle, ix_lost, lat_type, ixx, stable, &
-        ap_limit_on, lost, end_lost_at, plane_lost_at
+integer particle, lat_type, ixx, stable, ap_limit_on
 
 f_lat_param = lat_param_struct(n_part, total_length, growth_rate, &
       arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, &
       lat_type, ixx, f_logic(stable), f_logic(ap_limit_on), &
-      book_stat, ix_lost, end_lost_at, plane_lost_at, f_logic(lost))
+      book_stat)
 
 end subroutine
 
@@ -1514,8 +1513,6 @@ f%ic2_lord              = ic2_lord
 
 f%ix_pointer            = ix_point
 f%ixx                   = ixx
-
-! f%status !
 
 f%mat6_calc_method      = mat6_meth
 f%tracking_method       = tracking_meth

@@ -29,12 +29,6 @@
 !   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
 !
 ! Output:
-!   param      -- lat_param_struct: Structure holding the info if the particle is lost.
-!     %lost          -- Set True If the particle cannot make it through an element.
-!                         Set False otherwise.
-!     %end_lost_at   -- entrance_end$ or exit_end$.
-!     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
-!                         z_plane$ (turned around in an lcavity).
 !   orbit_end  -- Coord_struct, optional: End phase space coordinates. 
 !             If present then the orbit_start argument must also be present.
 !   ele_end   -- Ele_struct, optional: Holds the ending Twiss parameters at l_end.
@@ -96,7 +90,7 @@ if (err_flag) return
 
 if (present(orbit_start)) then
   call track1 (orbit_start, runt, param, orb_at_end)
-  if (param%lost) return
+  if (.not. particle_is_moving_forward(orb_at_end)) return
 endif
 
 if (present(ele_end)) then
@@ -110,7 +104,11 @@ if (present(ele_end)) then
   if (err_flag) return
 endif
 
-if (present(orbit_end)) orbit_end = orb_at_end
+if (present(orbit_end)) then
+  orbit_end = orb_at_end
+  orbit_end%ix_ele = ele%ix_ele  ! Since runt%ix_ele gets set to -2 to indicate it is a slice.
+  if (.not. do_exit) orbit_end%location = inside$
+endif
 
 if (present(err)) err = .false.
 

@@ -263,7 +263,6 @@ call save_taylor_elements (lat, old_ele)
 lat%param%particle = positron$
 lat%param%stable = .true.
 lat%param%aperture_limit_on = .true.
-lat%param%lost = .false.
 
 ! Put lattice information into root_node
 

@@ -73,7 +73,6 @@ this structure along with the default values are:
     logical absolute_time_tracking_default = F ! Default for lat%absolute_time_tracking
     logical rf_auto_scale_phase_default = T    ! Default for lat%rf_auto_scale_phase
     logical rf_auto_scale_amp_default = T      ! Default for lat%rf_auto_scale_amp
-    logical be_thread_safe = F                 ! Avoid thread unsafe practices?
   end type
 \end{example}
 
@@ -130,7 +129,7 @@ Toggle for turning on or off long-range higher order mode wake field effects.
 
 \item[\vn{\%mat6_track_symmetric}] \Newline
 Toggle to turn off whether the transfer matrix from tracking routine
-(\Hyperref{r:make.mat6.from.tracking}{make_mat6_from_tracking}) tracks 12 particles at both plus and
+(\Hyperref{r:twiss.from.tracking}{twiss_from_tracking}) tracks 12 particles at both plus and
 minus \vn{%d_orb} values or only tracks 7 particles to save time.
 
 \item[\vn{\%auto_bookkeeper}] \Newline
@@ -182,10 +181,6 @@ Default setting to be applied to a lattice if
 lattice file. Additionally, if an element that is not associated with a lattice
 is tracked, \vn{%rf_auto_scale_amp_default} will be used to
 determine whether amplitude auto scaling is done.
-
-\item[\vn{\%be_thread_safe}] \Newline
-Toggle to prevent non thread safe calculational optimizations from being done.
-See Section~\sref{s:thread.safe} for more details.
 
 \end{description}
 
@@ -459,3 +454,23 @@ the average number of crossovers is
 \vn{randomize_F} = True means that the F that is used for a given 
 generation  is randomly chosen to be within the range 
 [0, 2*F] with average F.
+
+%-----------------------------------------------------------------
+\section{Programming Common Parameters}
+\label{s:prog.com}
+\index{programming common parameters}
+
+The \vn{global_common_struct} is meant to hold common parameters that should
+not be modified by the user. 
+\begin{example}
+  type global_common_struct
+    logical :: be_thread_safe = .false.                   ! Avoid thread unsafe practices?
+  end type
+\end{example}
+
+\begin{description}
+\item[\vn{\%be_thread_safe}] \Newline
+Toggle to prevent non thread safe calculational optimizations from
+being done.  Currently, converting \bmad to be thread safe is an
+active project. Please contact the \bmad maintainers for more details.
+\end{description}

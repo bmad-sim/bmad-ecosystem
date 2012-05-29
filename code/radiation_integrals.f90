@@ -275,7 +275,7 @@ if (use_cache .or. init_cache) then
     ele2 = branch%ele(i)
     call zero_ele_offsets (ele2)
     orb_start = orbit(i-1)
-    call offset_particle (branch%ele(i), branch%param, orb_start, set$, &
+    call offset_particle (branch%ele(i), orb_start, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then

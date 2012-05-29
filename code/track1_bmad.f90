@@ -11,7 +11,7 @@
 ! Note: track1_bmad *never* relies on ele%mat6 for tracking excect for 
 ! hybrid elements.
 ! 
-! Note: end_orb%vec(6) will be set < -1 (and param%lost will be set) if the 
+! Note: end_orb%vec(6) will be set < -1 if the 
 ! particle fails to make it through an lcavity
 !
 ! Modules Needed:
@@ -25,8 +25,6 @@
 !
 ! Output:
 !   end_orb   -- Coord_struct: End position
-!   param     -- lat_param_struct:
-!     %lost       -- Set True if particle is lost. False otherwise.
 !   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
@@ -110,7 +108,7 @@ case (beambeam$)
   sig_y0 = ele%value(sig_y$)
   if (sig_x0 == 0 .or. sig_y0 == 0) return
 
-  call offset_particle (ele, param, end_orb, set$)
+  call offset_particle (ele, end_orb, set$)
 
   n_slice = max(1, nint(ele%value(n_slice$)))
   call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
@@ -141,7 +139,7 @@ case (beambeam$)
   end_orb%vec(1) = end_orb%vec(1) - end_orb%vec(2) * s_pos
   end_orb%vec(3) = end_orb%vec(3) - end_orb%vec(4) * s_pos
 
-  call offset_particle (ele, param, end_orb, unset$)  
+  call offset_particle (ele, end_orb, unset$)  
 
 !-----------------------------------------------
 ! bend_sol_quad
@@ -151,7 +149,7 @@ case (beambeam$)
 
 case (bend_sol_quad$)
 
-  call offset_particle (ele, param, end_orb, set$)
+  call offset_particle (ele, end_orb, set$)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   len_slice = length / n_slice
@@ -176,7 +174,7 @@ case (bend_sol_quad$)
     end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
   enddo
 
-  call offset_particle (ele, param, end_orb, unset$)
+  call offset_particle (ele, end_orb, unset$)
   call low_energy_z_correction (end_orb, ele, param)
 
 !-----------------------------------------------
@@ -185,8 +183,8 @@ case (bend_sol_quad$)
 case (capillary$) 
 
   call offset_photon (ele, param, end_orb, set$)
-  call track_a_capillary (end_orb, ele, param%lost)
-  call offset_particle (ele, param, end_orb, unset$)  
+  call track_a_capillary (end_orb, ele)
+  call offset_particle (ele, end_orb, unset$)  
 
 !-----------------------------------------------
 ! crystal
@@ -202,9 +200,9 @@ case (crystal$)
  
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
-  if (ele%is_on) call offset_particle (ele, param, end_orb, set$, .false.)
+  if (ele%is_on) call offset_particle (ele, end_orb, set$, .false.)
   call track_a_drift (end_orb, ele, length)
-  if (ele%is_on) call offset_particle (ele, param, end_orb, unset$, .false.)
+  if (ele%is_on) call offset_particle (ele, end_orb, unset$, .false.)
 
   call low_energy_z_correction (end_orb, ele, param)
 
@@ -213,7 +211,7 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
 case (elseparator$, kicker$, hkicker$, vkicker$) 
 
-  call offset_particle (ele, param, end_orb, set$)
+  call offset_particle (ele, end_orb, set$)
 
   end_orb%vec(1) = end_orb%vec(1) + length * end_orb%vec(2)
   end_orb%vec(3) = end_orb%vec(3) + length * end_orb%vec(4)
@@ -223,7 +221,7 @@ case (elseparator$, kicker$, hkicker$, vkicker$)
     end_orb%vec(3) = end_orb%vec(3) + ele%value(v_displace$)
   endif
 
-  call offset_particle (ele, param, end_orb, unset$)  
+  call offset_particle (ele, end_orb, unset$)  
   call end_z_calc
 
   call low_energy_z_correction (end_orb, ele, param)
@@ -275,9 +273,9 @@ case (lcavity$)
   ! the tracking is simple.
 
   if (gradient == 0 .and. gradient_ref == 0) then
-    if (ele%is_on) call offset_particle (ele, param, end_orb, set$, .false.)
+    if (ele%is_on) call offset_particle (ele, end_orb, set$, .false.)
     call track_a_drift (end_orb, ele, length)
-    if (ele%is_on) call offset_particle (ele, param, end_orb, unset$, .false.)
+    if (ele%is_on) call offset_particle (ele, end_orb, unset$, .false.)
     ! 1/gamma^2 low E correction
     end_orb%vec(5) = end_orb%vec(5) + length * end_orb%vec(6) * (1 - 3 * end_orb%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
     return
@@ -285,9 +283,7 @@ case (lcavity$)
 
   E_end = E_start + gradient * length
   if (E_end <= mass_of(param%particle)) then
-    param%lost = .true.
-    param%plane_lost_at = z_plane$
-    end_orb%status = dead$
+    end_orb%state = lost_z_aperture$
     end_orb%vec(6) = -1.01  ! Something less than -1
     return
   endif
@@ -296,7 +292,7 @@ case (lcavity$)
   E_ratio = E_end / E_start
   end_orb%beta = beta_end
 
-  call offset_particle (ele, param, end_orb, set$)
+  call offset_particle (ele, end_orb, set$)
 
   ! entrance kick
 
@@ -370,7 +366,7 @@ case (lcavity$)
     end_orb%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
 !  endif
 
-  call offset_particle (ele, param, end_orb, unset$)
+  call offset_particle (ele, end_orb, unset$)
 
   ! z propagation...
   ! Calculate for both particle and ref particle:
@@ -459,8 +455,7 @@ case (match$)
     ! Since there are cases where this error may be raised many 
     ! times, do not print an error message.
     if (present(err_flag)) err_flag = .true.
-    param%lost = .true.
-    end_orb%status = dead$
+    end_orb%state = lost$
     return
   endif
 
@@ -479,8 +474,8 @@ case (mirror$)
     temp_orb%vec(3) = end_orb%vec(3)
     temp_orb%vec(5) = -end_orb%vec(1) * sin(ele%value(graze_angle$))
     call check_aperture_limit (temp_orb, ele, surface$, param)
-    if (param%lost) then
-      end_orb%status = temp_orb%status
+    if (temp_orb%state /= alive$) then
+      end_orb%state = temp_orb%state
       return
     endif
   endif
@@ -509,12 +504,12 @@ case (multilayer_mirror$)
 
 case (multipole$, ab_multipole$) 
 
-  call offset_particle (ele, param, end_orb, set$, set_canonical = .false., set_multipoles = .false.)
+  call offset_particle (ele, end_orb, set$, set_canonical = .false., set_multipoles = .false.)
 
   call multipole_ele_to_kt(ele, param%particle, .false., has_nonzero_pole, knl, tilt)
   call multipole_kicks (knl, tilt, end_orb, .true.)
 
-  call offset_particle (ele, param, end_orb, unset$, set_canonical = .false., set_multipoles = .false.)
+  call offset_particle (ele, end_orb, unset$, set_canonical = .false., set_multipoles = .false.)
 
 !-----------------------------------------------
 ! octupole
@@ -526,7 +521,7 @@ case (octupole$)
 
   k3l = ele%value(k3$) * length / n_slice
 
-  call offset_particle (ele, param, end_orb, set$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, set$, set_canonical = .false.)
 
   end_orb%vec(2) = end_orb%vec(2) + k3l *  (3*end_orb%vec(1)*end_orb%vec(3)**2 - end_orb%vec(1)**3) / 12
   end_orb%vec(4) = end_orb%vec(4) + k3l *  (3*end_orb%vec(3)*end_orb%vec(1)**2 - end_orb%vec(3)**3) / 12
@@ -545,7 +540,7 @@ case (octupole$)
 
   enddo
 
-  call offset_particle (ele, param, end_orb, unset$, set_canonical = .false.)  
+  call offset_particle (ele, end_orb, unset$, set_canonical = .false.)  
 
   call low_energy_z_correction (end_orb, ele, param)
 
@@ -573,7 +568,7 @@ case (patch$)
 
 case (quadrupole$)
 
-  call offset_particle (ele, param, end_orb, set$)
+  call offset_particle (ele, end_orb, set$)
 
   k1 = ele%value(k1$) / rel_pc
 
@@ -591,7 +586,7 @@ case (quadrupole$)
 
   end_orb%vec(3:4) = matmul(mat2, end_orb%vec(3:4))
 
-  call offset_particle (ele, param, end_orb, unset$)  
+  call offset_particle (ele, end_orb, unset$)  
 
   call low_energy_z_correction (end_orb, ele, param)
 
@@ -600,7 +595,7 @@ case (quadrupole$)
 
 case (rfcavity$)
 
-  call offset_particle (ele, param, end_orb, set$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, set$, set_canonical = .false.)
 
   ! coupler kick
 
@@ -652,7 +647,7 @@ case (rfcavity$)
 
   if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
 
-  call offset_particle (ele, param, end_orb, unset$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, unset$, set_canonical = .false.)
 
   call low_energy_z_correction (end_orb, ele, param)
 
@@ -674,7 +669,7 @@ case (sextupole$)
 
   k2l = ele%value(k2$) * length / n_slice
 
-  call offset_particle (ele, param, end_orb, set$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, set$, set_canonical = .false.)
 
   end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/4
   end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3) / 2
@@ -690,7 +685,7 @@ case (sextupole$)
     endif
   enddo
 
-  call offset_particle (ele, param, end_orb, unset$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, unset$, set_canonical = .false.)
   call low_energy_z_correction (end_orb, ele, param)
 
 !-----------------------------------------------
@@ -698,7 +693,7 @@ case (sextupole$)
 
 case (solenoid$)
 
-  call offset_particle (ele, param, end_orb, set$)
+  call offset_particle (ele, end_orb, set$)
 
   ks = ele%value(ks$) / rel_pc
 
@@ -709,7 +704,7 @@ case (solenoid$)
   call solenoid_mat_calc (ks, length, mat4)
   end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
 
-  call offset_particle (ele, param, end_orb, unset$)
+  call offset_particle (ele, end_orb, unset$)
   call low_energy_z_correction (end_orb, ele, param)
 
 !-----------------------------------------------
@@ -717,7 +712,7 @@ case (solenoid$)
 
 case (sol_quad$)
 
-  call offset_particle (ele, param, end_orb, set$)
+  call offset_particle (ele, end_orb, set$)
 
   ks = ele%value(ks$) / rel_pc
   k1 = ele%value(k1$) / rel_pc
@@ -726,7 +721,7 @@ case (sol_quad$)
   end_orb%vec(5) = end_orb%vec(5) + sum(end_orb%vec(1:4) * matmul(dz4_coef, end_orb%vec(1:4)))   
   end_orb%vec(1:4) = matmul (mat6(1:4,1:4), end_orb%vec(1:4))
 
-  call offset_particle (ele, param, end_orb, unset$)
+  call offset_particle (ele, end_orb, unset$)
   call low_energy_z_correction (end_orb, ele, param)
 
 !-----------------------------------------------
@@ -757,7 +752,7 @@ case (wiggler$)
     return
   endif
 
-  call offset_particle (ele, param, end_orb, set$)
+  call offset_particle (ele, end_orb, set$)
 
   if (ele%value(l_pole$) == 0) then
     k_z = 0
@@ -780,7 +775,7 @@ case (wiggler$)
 
   end_orb%vec(4) = end_orb%vec(4) + k1 * length * k_z**2 * end_orb%vec(3)**3 / 3
 
-  call offset_particle (ele, param, end_orb, unset$)
+  call offset_particle (ele, end_orb, unset$)
   call end_z_calc
   call low_energy_z_correction (end_orb, ele, param)
 

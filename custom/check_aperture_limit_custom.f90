@@ -23,16 +23,10 @@
 !   param -- lat_param_struct: Parameter structure
 !     %aperture_limit_on -- The aperture limit is only checked if this is true.
 !               The exception is when the orbit is larger than 
-!               bmad_com%max_aperture_limit. In this case param%lost will
-!               be set to True.
+!               bmad_com%max_aperture_limit.
 !
 ! Output:
-!   param     -- lat_param_struct: Parameter structure:
-!     %lost     -- Set True if the orbit is outside the aperture. 
-!                  Note: %lost is NOT set False if the orbit is inside the aperture.
-!     %plane_lost_at   -- Integer: Plane where particle is lost:
-!                           x_plane$ or y_plane$
-!     %unstable_factor -- Real(rp): |orbit_amp/limit|
+!   orb       -- coord_struct: 
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 

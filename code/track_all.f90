@@ -1,5 +1,5 @@
 !+                       
-! Subroutine track_all (lat, orbit, ix_branch, err_flag)
+! Subroutine track_all (lat, orbit, ix_branch, track_state, err_flag)
 !
 ! Subroutine to track through the lat.
 !
@@ -13,25 +13,20 @@
 !   use bmad
 !
 ! Input:
-!   lat       -- lat_struct: Lat to track through.
+!   lat         -- lat_struct: Lat to track through.
 !     %param%aperture_limit_on -- Logical: Sets whether track_all looks to
 !                                 see whether a particle hits an aperture or not.
-!   orbit(0)  -- Coord_struct: Coordinates at beginning of lat.
-!   ix_branch -- Integer, optional: Branch to track. Default is 0 (main lattice).
+!   orbit(0)    -- Coord_struct: Coordinates at beginning of lat.
+!   ix_branch   -- Integer, optional: Index of branch to track. Default is 0 (main lattice).
 !
 ! Output:
-!   lat%branch(ix_branch)%param -- Structure holding the info if the particle is lost.
-!       %lost          -- Logical: Set True when a particle cannot make it 
-!                           through an element.
-!       %ix_lost       -- Integer: Set to index of element where particle is lost.
-!       %end_lost_at   -- entrance_end$ or exit_end$.
-!       %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
-!                           z_plane$ (turned around in an lcavity).
-!   orbit(0:*)  -- Coord_struct: Orbit array.
-!   err_flag    -- Logical, optional: Set true if particle lost or error. False otherwise
+!   orbit(0:*)   -- Coord_struct: Orbit array.
+!   track_state  -- Integer, optional: Set to moving_forward$ if everything is OK.
+!                     Otherwise: set to index of element where particle was lost.
+!   err_flag     -- Logical, optional: Set true if particle lost or error. False otherwise
 !-
 
-subroutine track_all (lat, orbit, ix_branch, err_flag)
+subroutine track_all (lat, orbit, ix_branch, track_state, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => track_all
@@ -45,7 +40,7 @@ type (ele_struct), pointer :: lord, slave
 type (branch_struct), pointer :: branch
 
 integer n, i, nn, ix_br
-integer, optional :: ix_branch
+integer, optional :: ix_branch, track_state
 
 logical, optional :: err_flag
 logical err
@@ -58,13 +53,13 @@ character(12), parameter :: r_name = 'track_all'
 if (present(err_flag)) err_flag = .true.
 ix_br = integer_option (0, ix_branch)
 branch => lat%branch(ix_br)
-branch%param%ix_lost = not_lost$
+if (present(track_state)) track_state = moving_forward$
 
 if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_max)
 
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
-orbit(0)%status = outside$
+orbit(0)%location = entrance_end$
 call convert_pc_to (branch%ele(0)%value(p0c$) * (1 + orbit(0)%vec(6)), branch%param%particle, beta = orbit(0)%beta)
 orbit(0)%p0c = branch%ele(0)%value(p0c$)
 
@@ -78,10 +73,11 @@ do n = 1, branch%n_ele_track
 
   ! check for lost particles
 
-  if (err .or. branch%param%lost) then
-    if (branch%param%lost) branch%param%ix_lost = n
+  if (err .or. .not. particle_is_moving_forward(orbit(n))) then
+    if (present(track_state)) track_state = n
     do nn = n+1, branch%n_ele_track
       orbit(nn)%vec = 0
+      orbit(nn)%species = not_set$
     enddo
     if (present(err_flag)) err_flag = .true.
     exit

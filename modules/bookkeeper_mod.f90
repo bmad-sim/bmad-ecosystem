@@ -2944,7 +2944,7 @@ end subroutine set_flags_for_changed_real_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
+! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch)
 !
 ! Subroutine to turn on or off a set of elements (quadrupoles, rfcavities,
 ! etc.) in a lattice. An element that is turned off acts like a drift.
@@ -2966,12 +2966,14 @@ end subroutine set_flags_for_changed_real_attribute
 !   orb(0:)     -- Coord_struct, optional: Needed for lat_make_mat6
 !   use_ref_orb -- Logical, optional: If present and true then use the
 !                    present ele%map_ref_orb. Default is false.
+!   ix_branch   -- integer, optional: If present then only set for 
+!                    this lattice branch.
 !
 ! Output:
 !   lat -- lat_struct: Modified lattice.
 !-
 
-subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch)
 
 implicit none
 
@@ -2982,6 +2984,7 @@ type (coord_struct) ref_orb
 
 integer i, ib, key
 integer, intent(in) :: switch
+integer, optional :: ix_branch
 
 logical, optional :: use_ref_orb
 logical old_state
@@ -2991,6 +2994,11 @@ character(20) :: r_name = 'set_on_off'
 !
 
 do ib = 0, ubound(lat%branch, 1)
+
+  if (present(ix_branch)) then
+    if (ix_branch /= ib) cycle
+  endif
+
   branch => lat%branch(ib)
 
   do i = 1, branch%n_ele_max

@@ -1,5 +1,5 @@
 !+                           
-! Subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, err_flag)
+! Subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
 !
 ! Subroutine to calculate the closed orbit for a circular machine.
 ! Closed_orbit_calc uses the 1-turn transfer matrix to converge upon a  
@@ -55,6 +55,8 @@
 !                       +1 --> forwad (default), -1 --> backward.
 !                       The closed orbit will be dependent on direction only
 !                       in the case that radiation damping is turned on.
+!   ix_branch      -- Integer, optional: Lattice branch to find the closed orbit of. 
+!                       Default is 0 (main branch).
 !
 !   bmad_status    -- Bmad_status_struct: Bmad status common block
 !     %type_out      -- If True then the subroutine will type out
@@ -69,7 +71,7 @@
 !   err_flag       -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, err_flag)
+subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => closed_orbit_calc
@@ -79,6 +81,7 @@ implicit none
 
 type (lat_struct), target ::  lat
 type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
 type (coord_struct)  del_co, del_orb
 type (coord_struct), allocatable, target ::  closed_orb(:)
 type (coord_struct), pointer :: start, end
@@ -86,8 +89,8 @@ type (coord_struct), pointer :: start, end
 real(rp) mat2(6,6), t1(6,6)
 real(rp) :: amp_co, amp_del, amp_del_old, i1_int
 
-integer, optional :: direction
-integer i, n, n_ele, i_dim, i_max, dir, nc
+integer, optional :: direction, ix_branch
+integer i, n, n_ele, i_dim, i_max, dir, nc, track_state
 
 logical, optional, intent(out) :: err_flag
 logical fluct_saved, aperture_saved, damp_saved, err
@@ -99,17 +102,18 @@ character(20) :: r_name = 'closed_orbit_calc'
 ! Random fluctuations must be turned off to find the closed orbit.
 
 if (present(err_flag)) err_flag = .true.
+branch => lat%branch(integer_option(0, ix_branch))
 
-call reallocate_coord (closed_orb, lat%n_ele_max)  ! allocate if needed
+call reallocate_coord (closed_orb, branch%n_ele_max)  ! allocate if needed
 
 fluct_saved = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.  
 
-aperture_saved = lat%param%aperture_limit_on
-lat%param%aperture_limit_on = .false.
+aperture_saved = branch%param%aperture_limit_on
+branch%param%aperture_limit_on = .false.
 
 dir = integer_option(+1, direction)
-n_ele = lat%n_ele_track
+n_ele = branch%n_ele_track
 
 if (dir == +1) then
   start => closed_orb(0)
@@ -137,8 +141,8 @@ case (4, 5)
 
   ! Check if rf is on and if so issue a warning message
 
-  do i = 1, lat%n_ele_track
-    ele => lat%ele(i)
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
     if (ele%key == rfcavity$ .and. ele%is_on .and. ele%value(voltage$) /= 0) then
       call out_io (s_warn$, r_name, &
                      'Inconsistant calculation: RF ON with i_dim = \i4\ ', i_dim)
@@ -151,12 +155,12 @@ case (4, 5)
   damp_saved  = bmad_com%radiation_damping_on
   bmad_com%radiation_damping_on = .false.  ! Want constant energy
 
-  if (all(lat%param%t1_no_RF == 0)) &
-              call transfer_matrix_calc (lat, .false., lat%param%t1_no_RF)
-  t1 = lat%param%t1_no_RF
+  if (all(branch%param%t1_no_RF == 0)) &
+              call transfer_matrix_calc (lat, .false., lat%param%t1_no_RF, ix_branch = branch%ix_branch)
+  t1 = branch%param%t1_no_RF
   start%vec(5) = 0
-  call set_on_off (rfcavity$, lat, save_state$)
-  call set_on_off (rfcavity$, lat, off$)
+  call set_on_off (rfcavity$, lat, save_state$, ix_branch = branch%ix_branch)
+  call set_on_off (rfcavity$, lat, off$, ix_branch = branch%ix_branch)
 
   call make_mat2 (err)
   if (err) then
@@ -168,11 +172,11 @@ case (4, 5)
     n = 4   ! Still only compute the transfer matrix for the transverse
     nc = 6  ! compare all 6 coords.
     i1_int = 0
-    do i = 1, lat%n_ele_track
-      ele => lat%ele(i)
+    do i = 1, branch%n_ele_track
+      ele => branch%ele(i)
       if (ele%key == sbend$) then
         i1_int = i1_int + ele%value(l$) * &
-            ele%value(g$) * (lat%ele(i-1)%x%eta + ele%x%eta) / 2
+            ele%value(g$) * (branch%ele(i-1)%x%eta + ele%x%eta) / 2
       endif
     enddo
   endif
@@ -180,9 +184,9 @@ case (4, 5)
 ! Variable energy case: i_dim = 6
 
 case (6)
-  if (all(lat%param%t1_with_RF == 0)) &
-              call transfer_matrix_calc (lat, .true., lat%param%t1_with_RF)
-  t1 = lat%param%t1_with_RF
+  if (all(branch%param%t1_with_RF == 0)) &
+              call transfer_matrix_calc (lat, .true., lat%param%t1_with_RF, ix_branch = branch%ix_branch)
+  t1 = branch%param%t1_with_RF
 
   if (t1(6,5) == 0) then
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
@@ -216,14 +220,14 @@ i_max = 100
 do i = 1, i_max
 
   if (dir == +1) then
-    call track_all (lat, closed_orb)
+    call track_all (lat, closed_orb, branch%ix_branch, track_state)
   else
-    call track_many (lat, closed_orb, n_ele, 0, -1)
+    call track_many (lat, closed_orb, n_ele, 0, -1, branch%ix_branch, track_state)
   endif
 
-  if (i == i_max .or. lat%param%lost) then
+  if (i == i_max .or. track_state /= moving_forward$) then
     if (bmad_status%type_out) then
-      if (lat%param%lost) then
+      if (track_state /= moving_forward$) then
         call out_io (s_error$, r_name, 'ORBIT DIVERGING TO INFINITY!')
       else
         call out_io (s_error$, r_name, 'NONLINEAR ORBIT NOT CONVERGING!')
@@ -252,8 +256,8 @@ do i = 1, i_max
     start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
     amp_del_old = amp_del
   else  ! not converging so remake mat2 matrix
-    call lat_make_mat6 (lat, -1, closed_orb)
-    call transfer_matrix_calc (lat, .true., t1)
+    call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)
+    call transfer_matrix_calc (lat, .true., t1, ix_branch = branch%ix_branch)
     call make_mat2 (err)
     if (err) then
       call end_cleanup
@@ -278,7 +282,7 @@ contains
 subroutine end_cleanup
 
 if (n == 4 .or. n == 5) then
-  call set_on_off (rfcavity$, lat, restore_state$)
+  call set_on_off (rfcavity$, lat, restore_state$, ix_branch = branch%ix_branch)
   bmad_com%radiation_damping_on = damp_saved   ! restore state
 endif
 

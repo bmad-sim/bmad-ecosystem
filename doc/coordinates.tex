@@ -303,7 +303,7 @@ attached to the element has coordinates
 \Endeq
 where
 \Begineq
-  s_{x} = \mbox{sin(x_pitch)}, \qquad  \mbox{s_{y} = sin(y_pitch)}
+  s_x = \mbox{sin(x_pitch)}, \qquad  s_y = \mbox{sin(y_pitch)}
 \Endeq
 The rotation vector that transforms between laboratory and element
 coordinates is defined to be perpendicular to the plane defined by the
@@ -331,7 +331,7 @@ standard formula
   \end{pmatrix}
 \Endeq
 The reverse transformation from laboratory to body coordinates is
-obtained by substituting $-\theta$ for $\theta$ in the above.
+obtained by reversing the sign of $s_x$ and $s_y$.
 
 %-----------------------------------------------------------------------------
 \subsection{Crystal and Mirror Element Coordinate Transformation}
@@ -592,17 +592,27 @@ $\psi_{1,2}$ are complex numbers (\sref{s:spin.dyn}).
 \label{s:photon.phase.space}
 \index{photon!phase space coordinates|hyperbf}
 
-The phase space coordinates $(x, p_x, y, p_y, z, p_z)$ for a photon
-are the same as for a particle with $v = c$. The photon frequency $\omega$ and
-wave number $k$ are given by the standard formulas
-\begin{align}
-  \omega &= \hbar \, c \, P_0 (1 + p_z) \CRNO
-  k &= \frac{2 \, \pi}{\lambda} = \frac{\omega}{c}
-\end{align}
+The phase space coordinates discussed above implicitly assume that
+particles are traveling longitudinally in only one direction. That is,
+the sign of the $s$ component of the momentum cannot be determined
+from the phase space coordinates. This is generally fine for tracking
+high energy beams of charged particles but for photon tracking this
+would oftentimes be problematical. For photons, therefore, a different
+phase space is used:
+\Begineq
+  (x, \beta_x, y, \beta_y, z, \beta_z)
+\Endeq
+Here $(\beta_x, \beta_y, \beta_z)$ is the normalized velocity component with
+\Begineq
+  \beta_x^2 + \beta_y^2 + \beta_z^2 = 1 
+\Endeq
+and $(x, y, z)$ are the reference orbit coordinates with $z$ being the
+distance from the start of the lattice element the photon is in.
 
-In addition to the above, a photon has
-four extra parameters $E_x, \phi_x$, and $E_y, \phi_y$ specifying the
-intensity and phase of the field along the $x$ and $y$ axes.
+In \bmad, the information associated with a photon include its phase
+space coordinates along with the photon energy and four parameters
+$E_x, \phi_x$, and $E_y, \phi_y$ specifying the intensity and phase of
+the field along the $x$ and $y$ axes.
 \Begineqs
   E_x (\Bf r, t) &\sim |E_x| \, e^{i (k \, z - \omega \, t + \phi_x)} \CRNO
   E_y (\Bf r, t) &\sim |E_y| \, e^{i (k \, z - \omega \, t + \phi_y)} \CRNO

@@ -648,9 +648,9 @@ case default
 end select
 
 ! offset particle coordinates at entrance of element
-call offset_particle (ele, param, temp_start, set$, .false., .true., .false., .false.)
+call offset_particle (ele, temp_start, set$, .false., .true., .false., .false.)
 ! offset particle coordinates at exit of element
-call offset_particle (ele, param, temp_end,   set$, .false., .true., .false., .false.)
+call offset_particle (ele, temp_end,   set$, .false., .true., .false., .false.)
 
 call offset_spin (ele, param, temp_start, set$, (isTreatedHere .or. isKicker))
 

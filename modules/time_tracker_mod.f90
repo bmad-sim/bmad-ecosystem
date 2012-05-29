@@ -120,17 +120,18 @@ do n_step = 1, max_step
     add_ds_safe = .true.
 
     if (orb%vec(5) < s1 + ds_safe) then 
+      orb%location = entrance_end$
       s_target = s1
       if (orb%vec(5) > s1 - ds_safe) zbrent_needed = .false.
       if (s1 == 0) add_ds_safe = .false.
     else
+      orb%location = exit_end$
       s_target = s2
       if (orb%vec(5) < s2 + ds_safe) zbrent_needed = .false.
       if (abs(s2 - ele%value(l$)) < ds_safe) add_ds_safe = .false.
     endif
 
     exit_flag = .true.
-    orb%status = outside$
 
     !Set common structures for zbrent's internal functions 
     ele_com => ele
@@ -156,7 +157,7 @@ do n_step = 1, max_step
   ! Check wall or aperture at every intermediate step and flag for exit if wall is hit
 
   call  particle_hit_wall_check_time(orb_old, orb, param, ele)
-  if (orb%status == dead$) exit_flag = .true.
+  if (orb%state /= alive$) exit_flag = .true.
   
   !Save track
   if ( present(track) ) then
@@ -185,7 +186,7 @@ end do
 if (bmad_status%type_out) then
   call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
   !print *, '  Skipping particle; coordinates will not be saved'
-  orb%status = inside$
+  orb%location = inside$
   return
 end if
 
@@ -389,8 +390,6 @@ end function delta_s_target
 !   ele     -- ele_struct: Lattice element
 !
 ! Output
-!   param   -- lat_param_struct: Lattice parameters
-!    %lost -- logical: True if orbit hit wall
 !   orb_new -- coord_struct: Location of hit
 !    %phase_x -- real(rp): Used to store hit angle
 !-
@@ -506,8 +505,7 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
 
    !Note that the time is not set!
 
-   param%lost = .true.
-   orb_new%status = dead$
+   orb_new%state = lost$
 endif
 
 end subroutine  particle_hit_wall_check_time
