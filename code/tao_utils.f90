@@ -911,8 +911,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     end select
 
     if (middle .and. ixe /= 0) then
-      call twiss_and_track_partial (branch%ele(ixe-1), branch%ele(ixe), &
-                lat%param, branch%ele(ixe)%value(l$)/2, ele3, this_orb(ixe-1), orb)
+      call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
+                .true., .false., this_orb(ixe-1), orb, branch%ele(ixe-1), ele3, err)
       if (parameter(1:6) == 'orbit_') then
         call tao_orbit_value (parameter, orb, values(n_tot+j), err)
       else

@@ -25,6 +25,7 @@ type (bunch_struct), pointer :: bunch
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (ele_struct), pointer :: ele
+type (coord_struct), pointer :: p
 
 real(rp) scale
 
@@ -149,9 +150,10 @@ case ('beam')
           write (iu, *) bunch%z_center, '  ! z_center'
           write (iu, *) bunch%t_center, '  ! t_center'
           do ip = 1, size(bunch%particle)
-            write (iu, '(6es19.10, es14.5, i6, 2(a, es19.10, a, es19.10, a))') &
-                  bunch%particle(ip)%vec, bunch%particle(ip)%charge, bunch%particle(ip)%ix_lost, &
-                  ('  (', real(bunch%particle(ip)%spin(j)), ',', aimag(bunch%particle(ip)%spin(j)), ')', j = 1, 2)
+            p => bunch%particle(ip)
+            write (iu, '(6es19.10, es14.5, i6, 2(a, es19.10, a, es19.10, a), 3i3)') &
+                  p%vec, p%charge, p%state, ('  (', real(p%spin(j)), ',', aimag(p%spin(j)), ')', j = 1, 2), &
+                  p%species, p%ix_ele, p%location
           enddo
           write (iu, *) 'END_BUNCH'
         enddo
@@ -161,8 +163,8 @@ case ('beam')
           bunch => beam%bunch(ib)
           write (iu) bunch%charge, bunch%z_center, bunch%t_center, size(bunch%particle)
           do ip = 1, size(bunch%particle)
-            write (iu) bunch%particle(ip)%vec, bunch%particle(ip)%charge, &
-                               bunch%particle(ip)%ix_lost, bunch%particle(ip)%spin
+            p => bunch%particle(ip)
+            write (iu) p%vec, p%charge, p%state, p%spin, p%species, p%ix_ele, p%location
           enddo
         enddo
       endif

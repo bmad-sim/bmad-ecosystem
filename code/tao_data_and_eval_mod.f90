@@ -451,6 +451,7 @@ implicit none
 
 type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
+type (tao_lattice_branch_struct), pointer :: lat_branch
 type (tao_data_struct), pointer :: dp
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_lattice_struct), target :: tao_lat
@@ -529,8 +530,9 @@ datum_value = 0           ! default
 datum%ix_ele_merit = -1   ! default
 
 branch => lat%branch(datum%ix_branch)
-orbit => tao_lat%lat_branch(datum%ix_branch)%orbit
-bunch_params => tao_lat%lat_branch(datum%ix_branch)%bunch_params
+lat_branch => tao_lat%lat_branch(datum%ix_branch)
+orbit => lat_branch%orbit
+bunch_params => lat_branch%bunch_params
 uni_ele => u%uni_branch(datum%ix_branch)%ele
 
 n_track = branch%n_ele_track
@@ -572,7 +574,7 @@ case ('periodic.tt', 'sigma.pz')
   endif
 end select
 
-if (lat%param%ix_lost /= not_lost$ .and. ix_ele >= lat%param%ix_lost) then
+if (lat_branch%track_state /= moving_forward$ .and. ix_ele >= lat_branch%track_state) then
   if ((data_source == 'beam' .and. data_type /= 'n_particle_loss') .or. &
                          data_type(1:4) == 'bpm_' .or. data_type == 'orbit.') then
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE DUE TO PARTICLE LOSS.'
@@ -768,7 +770,7 @@ case ('bpm_orbit.')
 
   if (data_source == 'beam') return ! bad
   call to_orbit_reading (orbit(ix_ele), ele, which, datum_value, err)
-  valid_value = .not. (err .or. (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost))
+  valid_value = .not. (err .or. (lat_branch%track_state /= moving_forward$ .and. ix_ele > lat_branch%track_state))
 
 !-----------
 
@@ -1335,7 +1337,7 @@ case ('n_particle_loss')
 
 case ('orbit.')
 
-  if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
+  if (lat_branch%track_state /= moving_forward$ .and. ix_ele > lat_branch%track_state) then
     valid_value = .false.
     if (present(why_invalid)) why_invalid = 'Particle lost.'
     return
@@ -2035,8 +2037,8 @@ case ('unstable.')
       datum%ix_ele_merit = -1
 
     else
-      iz = lat%param%ix_lost
-      if (iz /= not_lost$ .and. iz <= ix_ele) then
+      iz = lat_branch%track_state
+      if (iz /= moving_forward$ .and. iz <= ix_ele) then
         datum_value = 1 + ix_ele - iz
         if (orbit(iz)%s < branch%ele(iz)%s) then
           orb => orbit(iz-1)
@@ -2490,12 +2492,12 @@ endif
 dist =  beam%bunch(1)%particle%vec(1) * cos(-theta_rad ) &
         + beam%bunch(1)%particle%vec(3) * sin(-theta_rad)
   
-avg = sum (dist, mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
-          / count (beam%bunch(1)%particle%ix_lost == not_lost$)
+avg = sum (dist, mask = (beam%bunch(1)%particle%state == alive$)) &
+          / count (beam%bunch(1)%particle%state == alive$)
         
 moment = (1 + ele%value(noise$)*ran_num(2)) * sum ((dist-avg)*(dist-avg), &
-                 mask = (beam%bunch(1)%particle%ix_lost == not_lost$)) &
-          / count (beam%bunch(1)%particle%ix_lost == not_lost$)
+                 mask = (beam%bunch(1)%particle%state == alive$)) &
+          / count (beam%bunch(1)%particle%state == alive$)
 
 end function tao_do_wire_scan
 

@@ -219,7 +219,7 @@ type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: lat_branch
 
-integer i, ii, ix_lost, ix_branch, status
+integer i, ii, ix_branch, status, ix_lost
 
 character(20) :: r_name = "tao_single_track"
 
@@ -234,8 +234,7 @@ branch => tao_lat%lat%branch(ix_branch)
 lat_branch => tao_lat%lat_branch(ix_branch)
 
 calc_ok = .true.
-branch%param%ix_lost = not_lost$
-branch%param%lost = .false.
+lat_branch%track_state = moving_forward$
 
 ! Track.
 ! By design, Tao turns off radiation fluctuations (but not damping) for single particle tracking.
@@ -257,10 +256,10 @@ if (u%track_recalc_on) then
     u%model_orb0 = orbit(0)   ! Save beginning orbit
 
   else
-    call track_all (lat, lat_branch%orbit, ix_branch)
-    if (branch%param%lost) then
+    call track_all (lat, lat_branch%orbit, ix_branch, lat_branch%track_state)
+    if (lat_branch%track_state /= moving_forward$) then
       calc_ok = .false.
-      ix_lost = branch%param%ix_lost
+      ix_lost = lat_branch%track_state
       do ii = ix_lost+1, branch%n_ele_track
         orbit(ii)%vec = 0
       enddo
@@ -330,7 +329,7 @@ type (bunch_params_struct), pointer :: bunch_params
 
 integer what_lat
 integer i, j, i_uni, ip, ig, ic, ie1, ie2
-integer n_bunch, n_part, i_uni_to, ix_lost
+integer n_bunch, n_part, i_uni_to, ix_track
 integer extract_at_ix_ele, n_lost, ix_branch
 integer, allocatable, save :: ix_ele(:)
 
@@ -357,8 +356,8 @@ beam = uni_branch%ele(0)%beam
 lat => tao_lat%lat
 
 tao_lat%n_bunch_params2 = 0
-branch%param%ix_lost = not_lost$  ! Needed by tao_evaluate_a_datum
-ix_lost = not_lost$
+lat_branch%track_state = moving_forward$  ! Needed by tao_evaluate_a_datum
+ix_track = moving_forward$
 lost = .false.
 calc_ok = .true.
 too_many_lost = .false.
@@ -445,7 +444,7 @@ do j = ie1, ie2
   ! Lost particles
 
   n_bunch = s%global%bunch_to_plot
-  n_lost = count(beam%bunch(n_bunch)%particle(:)%ix_lost == j)
+  n_lost = count(beam%bunch(n_bunch)%particle(:)%ix_ele == j)
   if (n_lost /= 0) then
     if (size(s%u) == 1) then
       call out_io (s_blank$, r_name, &
@@ -459,7 +458,7 @@ do j = ie1, ie2
   endif
 
   if (tao_no_beam_left(beam, branch%param%particle) .and. .not. lost) then
-    ix_lost = j
+    ix_track = j
     lost = .true.
     call out_io (s_warn$, r_name, &
             "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
@@ -504,7 +503,7 @@ endif
 if (post) then
   n_lost = 0
   do n_bunch = 1, size(beam%bunch)
-    n_lost = n_lost + count(beam%bunch(n_bunch)%particle%ix_lost /= not_lost$)
+    n_lost = n_lost + count(beam%bunch(n_bunch)%particle%state /= alive$)
   enddo
   if (n_lost /= 0) &
     call out_io (s_blank$, r_name, &
@@ -512,9 +511,8 @@ if (post) then
                                   i_array = (/u%ix_uni, n_lost /))
 endif
 
-branch%param%lost = lost
-branch%param%ix_lost = ix_lost
-  
+lat_branch%track_state = ix_track
+ 
 end subroutine tao_beam_track
 
 !------------------------------------------------------------------------------
@@ -539,7 +537,7 @@ no_beam = .false.
 
 n_bunch = s%global%bunch_to_plot
 p =>beam%bunch(n_bunch)%particle(:)
-all_lost = all(p%ix_lost /= not_lost$)
+all_lost = all(p%state /= alive$)
 
 if (particle == photon$) then
   if (sum(p%e_field_x**2) + sum(p%e_field_y**2) == 0 .or. all_lost) no_beam = .true.

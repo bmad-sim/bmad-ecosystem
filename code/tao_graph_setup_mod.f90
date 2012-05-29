@@ -315,10 +315,10 @@ do k = 1, size(graph%curve)
     if (curve%ix_bunch == 0) then
       n = 0
       do ib = 1,  size(beam%bunch)
-        n = n + count(beam%bunch(ib)%particle%ix_lost == not_lost$)
+        n = n + count(beam%bunch(ib)%particle%state == alive$)
       enddo
     else
-      n = count(beam%bunch(curve%ix_bunch)%particle%ix_lost == not_lost$)
+      n = count(beam%bunch(curve%ix_bunch)%particle%state == alive$)
     endif
 
     call re_allocate (curve%ix_symb, n)
@@ -333,21 +333,21 @@ do k = 1, size(graph%curve)
         m = size(p)
         call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, axis1)
         call tao_phase_space_axis (curve%data_type,   ix2_ax, p, axis2)
-        curve%x_symb(n+1:n+m) = pack(axis1, mask = (p%ix_lost == not_lost$))
-        curve%y_symb(n+1:n+m) = pack(axis2, mask = (p%ix_lost == not_lost$))
+        curve%x_symb(n+1:n+m) = pack(axis1, mask = (p%state == alive$))
+        curve%y_symb(n+1:n+m) = pack(axis2, mask = (p%state == alive$))
         if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
-                             sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%ix_lost == not_lost$))
-        curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%ix_lost == not_lost$))
-        n = n + count(p%ix_lost == not_lost$)
+                             sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%state == alive$))
+        curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%state == alive$))
+        n = n + count(p%state == alive$)
       enddo
     else
       p => beam%bunch(curve%ix_bunch)%particle
       call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, axis1)
       call tao_phase_space_axis (curve%data_type,   ix2_ax, p, axis2)
-      curve%x_symb = pack(axis1, mask = (p%ix_lost == not_lost$))
-      curve%y_symb = pack(axis2, mask = (p%ix_lost == not_lost$))
+      curve%x_symb = pack(axis1, mask = (p%state == alive$))
+      curve%y_symb = pack(axis2, mask = (p%state == alive$))
       if (graph%symbol_size_scale > 0) curve%symb_size = pack(graph%symbol_size_scale * &
-                            sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%ix_lost == not_lost$))
+                            sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%state == alive$))
       forall (i = 1:m) curve%ix_symb(i) = i
     endif
 

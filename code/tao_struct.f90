@@ -616,6 +616,7 @@ end type
 type tao_lattice_branch_struct
   type (bunch_params_struct), allocatable :: bunch_params(:)
   type (coord_struct), allocatable :: orbit(:)
+  integer track_state
 end type
 
 type tao_lattice_struct

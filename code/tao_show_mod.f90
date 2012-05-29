@@ -138,6 +138,7 @@ use opti_de_mod
 implicit none
 
 type (tao_universe_struct), pointer :: u
+type (tao_lattice_branch_struct), pointer :: lat_branch
 type (tao_lattice_struct), pointer :: tao_lat
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
@@ -1818,9 +1819,9 @@ case ('particle')
     nl=nl+1; lines(nl) = 'Particles lost at:'
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
     do i = 1, size(bunch%particle)
-      if (bunch%particle(i)%ix_lost == not_lost$) cycle
+      if (bunch%particle(i)%state == alive$) cycle
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
-      ie = bunch%particle(i)%ix_lost
+      ie = bunch%particle(i)%ix_ele
       nl=nl+1; write (lines(nl), '(i6, i7, 2x, a)') i, ie, lat%ele(ie)%name
     enddo
     result_id = 'particle:lost'
@@ -1864,7 +1865,7 @@ case ('particle')
   nl=nl+1; write (lines(nl), imt) 'At lattice element:', ix_ele
   nl=nl+1; write (lines(nl), imt) 'Bunch:       ', nb
   nl=nl+1; write (lines(nl), imt) 'Particle:    ', ix_p
-  nl=nl+1; write (lines(nl), lmt) 'Is Alive?    ', bunch%particle(ix_p)%ix_lost == not_lost$
+  nl=nl+1; write (lines(nl), lmt) 'Is Alive?    ', bunch%particle(ix_p)%state == alive$
   if (u%model%lat%branch(ix_branch)%param%particle == photon$) then
     nl=nl+1; write (lines(nl), rmt) 'Intensity_x: ', bunch%particle(ix_p)%e_field_x**2
     nl=nl+1; write (lines(nl), rmt) 'Intensity_y: ', bunch%particle(ix_p)%e_field_y**2
@@ -2291,6 +2292,7 @@ case ('universe')
   ix_branch = 0
   uni_branch => u%uni_branch(ix_branch)
   branch => lat%branch(ix_branch)
+  lat_branch => u%model%lat_branch(ix_branch)
 
   nl = 0
   nl=nl+1; write (lines(nl), imt) 'Universe: ', ix_u
@@ -2324,11 +2326,11 @@ case ('universe')
   nl=nl+1; write (lines(nl), '(a, f0.3)')   'Lattice length:             ', branch%param%total_length
   nl=nl+1; write (lines(nl), lmt)           'Aperture limits on?:        ', branch%param%aperture_limit_on
 
-  if (branch%param%lattice_type == linear_lattice$ .and. branch%param%ix_lost /= not_lost$) then
+  if (branch%param%lattice_type == linear_lattice$ .and. lat_branch%track_state /= moving_forward$) then
     if (s%global%track_type == 'beam') then
-      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', branch%param%ix_lost
+      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', lat_branch%track_state
     else
-      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', branch%param%ix_lost
+      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', lat_branch%track_state
     endif
   endif
 
