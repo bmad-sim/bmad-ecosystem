@@ -1454,7 +1454,7 @@ program anaylzer
   integer number_turns
   integer icall
   integer ix_start, ix_end
-  integer ix
+  integer ix, track_state
   integer ix_det(16)
   integer istart, j
 
@@ -1511,31 +1511,31 @@ program anaylzer
     end do
 
     if(ix_end > ix_start)then
-       call track_many(ring, orbit, ix_start, ix_end, 1)
-       if(ring%param%lost) exit
+       call track_many(ring, orbit, ix_start, ix_end, 1, 0, track_state)
+       if(track_state /= moving_forward$) exit
        psp_save(i)%vec(1:6) = (orbit(ix_end)%vec(1:6) - co(ix_end)%vec(1:6))*1000.
-       call track_many(ring, orbit, ix_end, ring%n_ele_track, 1)
-       if(ring%param%lost) exit
+       call track_many(ring, orbit, ix_end, ring%n_ele_track, 1, 0, track_state)
+       if(track_state /= moving_forward$) exit
        orbit(0)%vec = orbit(ring%n_ele_track)%vec
-       call track_many(ring, orbit, 0, ix_start, 1)
-       if(ring%param%lost) exit
+       call track_many(ring, orbit, 0, ix_start, 1, 0, track_state)
+       if(track_state /= moving_forward$) exit
 
      else
-       call track_many(ring, orbit, ix_start, ring%n_ele_track, 1)
-       if(ring%param%lost) exit
+       call track_many(ring, orbit, ix_start, ring%n_ele_track, 1, 0, track_state)
+       if(track_state /= moving_forward$) exit
        orbit(0)%vec = orbit(ring%n_ele_track)%vec
-       call track_many(ring, orbit, 0, ix_end, 1)
-       if(ring%param%lost) exit
+       call track_many(ring, orbit, 0, ix_end, 1, 0, track_state)
+       if(track_state /= moving_forward$) exit
        psp_save(i)%vec(1:6) = (orbit(ix_end)%vec(1:6) - co(ix_end)%vec(1:6))*1000.
-       call track_many(ring, orbit, ix_end, ix_start,1)
-       if(ring%param%lost) exit
+       call track_many(ring, orbit, ix_end, ix_start, 1, 0, track_state)
+       if(track_state /= moving_forward$) exit
 
     endif
 
       do j=1,ring%n_ele_track
        if(abs(orbit(j)%vec(1))>0.045)print '(2i5,a12,4f12.4)',i,j,ring%ele(j)%name, orbit(j)%vec(1:4)
       enddo
-    if(ring%param%lost)exit
+    if(track_state /= moving_forward$)exit
 
     write(51,'(i6,a12,6e12.4)')i,end_name(1:ix),psp_all%vec(1:6)
     write(52,'(i6,6e12.4)')i,psp_save(i)%vec(1:6)
