@@ -16,7 +16,8 @@
 ! Output:
 !   time    -- Real(rp), optional: 
 !                 If command = 'READ': Elapsed time from last 'START' in seconds.
-!                 If command = 'ABS':  Time in seconds from January 1, 1970.
+!                 If command = 'ABS':  Time in seconds from reference year.
+!                   If not set using 'REF', Reference is January 1, 1970.
 !
 ! Example:
 !     call run_timer ('START')          ! Start (reset) the timer.
