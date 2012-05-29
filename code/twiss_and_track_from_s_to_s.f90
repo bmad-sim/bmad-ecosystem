@@ -28,13 +28,6 @@
 !   ix_branch      -- Integer, optional: Lattice branch index. Default is 0 (main branch).
 !
 ! Output:
-!   lat%branch(ix_branch)%param -- Structure holding the info if the particle is lost.
-!       %lost          -- Logical: Set True when a particle cannot make it 
-!                           through an element.
-!       %ix_lost       -- Integer: Set to index of element where particle is lost.
-!       %end_lost_at   -- entrance_end$ or exit_end$.
-!       %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
-!                           z_plane$ (turned around in an lcavity).
 !   orbit_end      -- Coord_struct, optional: End phase space coordinates. 
 !                       If present then the orbit_start argument must also be present.
 !   ele_end        -- Ele_struct, optional: Holds the ending Twiss parameters.
@@ -106,7 +99,7 @@ endif
 
 call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param, s_start-s0, branch%ele(ix_start)%value(l$), &
             track_entrance, .true., orbit_start, orbit_end, ele_start, ele_end, err)
-if (err .or. branch%param%lost) return
+if (err .or. .not. particle_is_moving_forward(orbit_end)) return
 
 ! Track to ending element
 
@@ -116,7 +109,7 @@ do
 
   if (present(orbit_end)) then
     call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
-    if (branch%param%lost) then
+    if (.not. particle_is_moving_forward(orbit_end)) then
       err = .true.
       return
     endif

@@ -112,13 +112,13 @@ interface
 end interface
 
 interface
-  subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, err_flag)
+  subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable, target :: closed_orb(:)
     integer i_dim
-    integer, optional :: direction
+    integer, optional :: direction, ix_branch
     logical, optional, intent(out) :: err_flag
   end subroutine
 end interface
@@ -449,12 +449,11 @@ interface
 end interface
 
 interface
-  subroutine offset_particle (ele, param, coord, set, &
+  subroutine offset_particle (ele, coord, set, &
            set_canonical, set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, rp
+    use bmad_struct, only: ele_struct, coord_struct, rp
     implicit none
     type (ele_struct) :: ele
-    type (lat_param_struct), intent(in) :: param
     type (coord_struct), intent(inout) :: coord
     logical, intent(in) :: set
     logical, optional, intent(in) :: set_canonical, set_multipoles
@@ -744,18 +743,18 @@ interface
 end interface
 
 interface
-  subroutine track_all (lat, orbit, ix_branch, err_flag)
+  subroutine track_all (lat, orbit, ix_branch, track_state, err_flag)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable :: orbit(:)
-    integer, optional :: ix_branch
+    integer, optional :: ix_branch, track_state
     logical, optional :: err_flag
   end subroutine
 end interface
 
 interface
-  subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch)
+  subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct)  lat
@@ -763,7 +762,7 @@ interface
     integer ix_start
     integer ix_end
     integer direction
-    integer, optional :: ix_branch
+    integer, optional :: ix_branch, track_state
   end subroutine
 end interface
 
@@ -863,14 +862,14 @@ interface
 end interface
 
 interface
-  subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch)
+  subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
     use bmad_struct, only: rp, ele_struct, lat_struct, coord_struct
     implicit none
     type (lat_struct) lat
     type (coord_struct) orbit_start, orbit_end
     type (coord_struct), optional, allocatable :: all_orb(:)
     real(rp) s_start, s_end
-    integer, optional :: ix_branch
+    integer, optional :: ix_branch, track_state
   end subroutine
 end interface
 
@@ -900,20 +899,6 @@ interface
     real(rp) l_start, l_end
     logical track_entrance, track_exit
     logical, optional :: err
-  end subroutine
-end interface
-
-interface
-  subroutine twiss_and_track_partial (ele0, ele_track, param, del_s, ele_end, &
-                                                  orb_start, orb_end, body_only, err)
-    use bmad_struct, only: coord_struct, ele_struct, lat_param_struct, rp
-    implicit none
-    type (ele_struct), optional :: ele_end
-    type (ele_struct) ele0, ele_track
-    type (coord_struct), optional :: orb_start, orb_end
-    type (lat_param_struct) param
-    logical, optional :: body_only, err
-    real(rp) del_s
   end subroutine
 end interface
 

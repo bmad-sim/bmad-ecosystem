@@ -1,5 +1,5 @@
 !+
-! Subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch)
+! Subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
 !
 ! Routine to track a particle between two s-positions.
 ! If the particle is lost in tracking, end_orb will hold the coordinates at the point of loss.
@@ -16,19 +16,14 @@
 !   ix_branch   -- Integer, optional: Lattice branch index. Default is 0 (main branch).
 !
 ! Output:
-!   lat%branch(ix_branch)%param -- Structure holding the info if the particle is lost.
-!     %lost          -- Set True If the particle cannot make it through an element.
-!                         Set False otherwise.
-!     %ix_lost       -- Integer: Set to index of element where particle is lost.
-!     %end_lost_at   -- entrance_end$ or exit_end$.
-!     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
-!                         z_plane$ (turned around in an lcavity).
 !   orbit_end   -- coord_struct: Ending coordinates.
 !   all_orb(0:) -- coord_struct, allocatable, optional: If present then the orbit at the exit ends
 !                   of the elements tracked through will be recorded in this structure. 
+!   track_state -- Integer, optional: Set to moving_forward$ if everything is OK.
+!                     Otherwise: set to index of element where particle was lost.
 !-   
 
-subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch)
+subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
 
 use bookkeeper_mod
 
@@ -42,7 +37,7 @@ type (coord_struct), optional, allocatable :: all_orb(:)
 real(rp) s_start, s_end
 real(rp) s0
 
-integer, optional :: ix_branch
+integer, optional :: ix_branch, track_state
 integer ix_start, ix_end
 integer ix_ele
 
@@ -53,7 +48,7 @@ character(40), parameter :: r_name = 'track_from_s_to_s'
 ! Easy case & error check
 
 branch => lat%branch(integer_option(0, ix_branch))
-branch%param%ix_lost = not_lost$
+if (present(track_state)) track_state = moving_forward$
 
 if (s_start == s_end .and. branch%param%lattice_type == linear_lattice$) then
   orbit_end = orbit_start
@@ -81,7 +76,7 @@ ix_end = element_at_s (lat, s_end, .true., ix_branch)
 if (s_end > s_start .and. ix_start == ix_end) then
   call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param, s_start-s0, s_end-s0, &
                                                .true., .true., orbit_start, orbit_end)
-  if (branch%param%lost) branch%param%ix_lost = ix_start
+  if (.not. particle_is_moving_forward(orbit_end) .and. present(track_state)) track_state = ix_start
   return
 endif
 
@@ -90,8 +85,8 @@ endif
 call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param,  &
             s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
 
-if (branch%param%lost) then
-  branch%param%ix_lost = ix_start
+if (.not. particle_is_moving_forward(orbit_end)) then
+  if (present(track_state)) track_state = ix_start
   return
 endif
 
@@ -109,8 +104,8 @@ do
   call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
 
   if (present(all_orb)) all_orb(ix_ele) = orbit_end
-  if (branch%param%lost) then
-    branch%param%ix_lost = ix_ele
+  if (.not. particle_is_moving_forward(orbit_end)) then
+    if (present(track_state)) track_state = ix_ele
     return
   endif
   ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
@@ -120,6 +115,6 @@ enddo
 
 call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-branch%ele(ix_end-1)%s, &
                                                                       .true., .true., orbit_end, orbit_end)
-if (branch%param%lost) branch%param%ix_lost = ix_end
+if (.not. particle_is_moving_forward(orbit_end) .and. present(track_state)) track_state = ix_end
 
 end subroutine

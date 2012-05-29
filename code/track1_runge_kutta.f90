@@ -45,7 +45,7 @@ logical err_flag
 
 start2_orb = start_orb
 
-call offset_particle (ele, param, start2_orb, set$, set_canonical = .false., &
+call offset_particle (ele, start2_orb, set$, set_canonical = .false., &
                                              set_hvkicks = .false., set_multipoles = .false.)
 
 ! Track.
@@ -67,6 +67,6 @@ end_orb%p0c = ele%value(p0c$)
 
 ! convert to lab coords.
 
-call offset_particle (ele, param, end_orb, unset$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
+call offset_particle (ele, end_orb, unset$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
 
 end subroutine

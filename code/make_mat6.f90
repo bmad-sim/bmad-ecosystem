@@ -30,9 +30,6 @@
 !     %vec0    -- Real(rp): 0th order transfer vector.
 !   end_orb  -- Coord_struct, optional: Coordinates at the end of element.
 !                 end is an output if end_in is not set to True.
-!   param    -- lat_param_struct:
-!     %lost    -- Since make_mat6 may do tracking %lost may be set to True if
-!                   tracking was unsuccessful. %lost set to False otherwise.
 !   err_flag -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
@@ -83,7 +80,6 @@ endif
 
 ! init
 
-param%lost = .false.
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
 mat6_calc_method = ele%mat6_calc_method

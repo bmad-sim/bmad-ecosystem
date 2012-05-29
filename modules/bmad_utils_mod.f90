@@ -354,32 +354,23 @@ subroutine init_coord (orb, vec, ele, particle)
 implicit none
 
 type (coord_struct) orb
+type (coord_struct), save :: init_orb
 type (ele_struct), optional :: ele
 
 real(rp), optional :: vec(:)
+real(rp) vec_save(6)
 integer, optional :: particle
 
 !
 
+if (present(vec)) vec_save = vec ! Just in case actual arg for vec is orb%vec.
+orb = init_orb                   ! See definition of coord_struct for default values.
+
 if (present(vec)) then
-  orb%vec = vec
+  orb%vec = vec_save
 else
   orb%vec = 0
 endif
-
-orb%spin      = 0
-orb%e_field_x = 0
-orb%e_field_y = 0
-orb%phase_x   = 0
-orb%phase_y   = 0
-orb%p0c       = 0
-orb%beta      = -1
-orb%charge    = 0
-orb%ix_z      = 0
-orb%ix_lost   = not_lost$
-orb%status    = outside$
-orb%s = 0
-orb%t = 0
 
 if (present(ele)) then
   if (ele%key == init_ele$) then
@@ -403,9 +394,75 @@ if (present(ele)) then
     orb%t = ele%value(ref_time_start$) - orb%vec(5) / (orb%beta * c_light)
   endif
 
+  orb%species = particle
+
 endif
 
 end subroutine init_coord
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function particle_is_moving_forward (orbit) result (is_moving_forward)
+!
+! Routine to determine if a particle is moving in the forward +s direction.
+! If not moving forward it is dead or is moving backward.
+!
+! Input:
+!   orbit  -- coord_struct: Particle coordinates
+!
+! Output:
+!   is_moving_forward -- Logical: True if moving forward. False otherwise.
+!-
+
+function particle_is_moving_forward (orbit) result (is_moving_forward)
+
+implicit none
+type (coord_struct) orbit
+logical is_moving_forward
+
+!
+
+if (orbit%species == photon$) then
+  is_moving_forward = (orbit%state == alive$) .and. (orbit%vec(6) > 0)
+else
+  is_moving_forward = (orbit%state == alive$) .and. (orbit%p0c > 0)
+endif
+
+end function particle_is_moving_forward
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function particle_is_moving_backward (orbit) result (is_moving_backward)
+!
+! Routine to determine if a particle is moving in the backward -s direction.
+! If not moving backward it is dead or is moving backward.
+!
+! Input:
+!   orbit  -- coord_struct: Particle coordinates
+!
+! Output:
+!   is_moving_backward -- Logical: True if moving backward. False otherwise.
+!-
+
+function particle_is_moving_backward (orbit) result (is_moving_backward)
+
+implicit none
+type (coord_struct) orbit
+logical is_moving_backward
+
+!
+
+if (orbit%species == photon$) then
+  is_moving_backward = (orbit%state == alive$) .and. (orbit%vec(6) < 0)
+else
+  is_moving_backward = (orbit%state == alive$) .and. (orbit%p0c < 0)
+endif
+
+end function particle_is_moving_backward
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -476,7 +533,7 @@ end function key_name_to_key_index
 !+
 ! Function ele_has_kick (ele) result (has_kick)
 !
-! Function to zero any kick attributes like hkick$, bl_vkick$, etc.
+! Function to determine if an element has kick attributes like hkick$, bl_vkick$, etc.
 ! See also: zero_ele_kicks, ele_has_offset, zero_ele_offsets.
 !
 ! Modules needed:
@@ -2827,7 +2884,7 @@ end function gradient_shift_sr_wake
 ! 
 ! Output:
 !   ele           -- ele_struct: Element.
-!     %status         -- Status block to set.
+!     %bookkeeping_state   -- Status block to set.
 !   status_group  -- Integer: Which flag groups to set. Possibilities are:
 !                      attribute_group$, control_group$, floor_position_group$,
 !                      length_group$, ref_energy_group$, or mat6_group$, all_groups$

@@ -38,20 +38,14 @@ contains
 !   param -- lat_param_struct: Parameter structure
 !     %aperture_limit_on -- The aperture limit is only checked if this is true.
 !               The exception is when the orbit is larger than 
-!               bmad_com%max_aperture_limit. In this case param%lost will
-!               be set to True.
+!               bmad_com%max_aperture_limit. 
 !   check_momentum
 !         -- Logical, optional -- If present and false then checking of p_x and 
 !               p_y will be disabled.
 !
 ! Output:
-!   param -- lat_param_struct: Parameter structure:
-!     %lost -- Set True if the orbit is outside the aperture. 
-!              Note: %lost is NOT set False if the orbit is inside 
-!                the aperture.
-!     %plane_lost_at   -- Integer: Plane where particle is lost:
-!                           x_plane$ or y_plane$
-!     %unstable_factor -- Real(rp): |orbit_amp/limit|
+!   orb   -- Coord_struct: coordinates of a particle.
+!     %state -- State of the particle
 !-
 
 subroutine check_aperture_limit (orb, ele, at, param, check_momentum)
@@ -63,7 +57,7 @@ type (coord_struct) orb2
 type (ele_struct) :: ele
 type (lat_param_struct), intent(inout) :: param
 
-real(rp) x_lim, y_lim, x_beam, y_beam, s_here, r
+real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r
 integer at
 logical do_tilt, err
 logical, optional :: check_momentum
@@ -87,17 +81,17 @@ endif
 ! Check p_x and p_y
 
 if (logic_option(.true., check_momentum)) then
-  if (abs(orb%vec(2)) > 1 .or. abs(orb%vec(4)) > 1) then
-    orb%status = dead$
-    param%lost = .true.
-    param%end_lost_at = at
-    if (abs(orb%vec(2)) > abs(orb%vec(4))) then
-      param%plane_lost_at = x_plane$
-      param%unstable_factor = 100 * abs(orb%vec(2)) 
-    else
-      param%plane_lost_at = y_plane$
-      param%unstable_factor = 100 * abs(orb%vec(4)) 
+  if (abs(orb%vec(2)) > 1 .and. abs(orb%vec(2)) > abs(orb%vec(4))) then
+    if (orb%vec(2) > 0) then; orb%state = lost_pos_x_aperture$
+    else;                     orb%state = lost_neg_x_aperture$
     endif
+    param%unstable_factor = 100 * abs(orb%vec(2)) 
+    return
+  elseif (abs(orb%vec(4)) > 1) then
+    if (orb%vec(4) > 0) then; orb%state = lost_pos_y_aperture$
+    else;                     orb%state = lost_neg_y_aperture$
+    endif
+    param%unstable_factor = 100 * abs(orb%vec(4)) 
     return
   endif
 endif
@@ -109,22 +103,22 @@ if (ele%offset_moves_aperture .and. (at == entrance_end$ .or. at == exit_end$)) 
   if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
   orb2 = orb
   s_here = orb2%s - (ele%s - ele%value(l$))
-  call offset_particle (ele, param, orb2, set$, set_canonical = .false., &
+  call offset_particle (ele, orb2, set$, set_canonical = .false., &
                set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
                ds_pos = s_here)
-  x_beam = orb2%vec(1)
-  y_beam = orb2%vec(3)
+  x_particle = orb2%vec(1)
+  y_particle = orb2%vec(3)
 elseif (ele%aperture_at == surface$) then
-  x_beam = orb%vec(5)
-  y_beam = orb%vec(3)
+  x_particle = orb%vec(5)
+  y_particle = orb%vec(3)
 else
-  x_beam = orb%vec(1)
-  y_beam = orb%vec(3)
+  x_particle = orb%vec(1)
+  y_particle = orb%vec(3)
 endif
 
 !
 
-if (x_beam < 0) then
+if (x_particle < 0) then
   x_lim = ele%value(x1_limit$)
 else
   x_lim = ele%value(x2_limit$)
@@ -132,14 +126,13 @@ endif
 
 if (x_lim <= 0 .or. .not. param%aperture_limit_on) x_lim = bmad_com%max_aperture_limit
 
-if (y_beam < 0) then
+if (y_particle < 0) then
   y_lim = ele%value(y1_limit$)
 else
   y_lim = ele%value(y2_limit$)
 endif
 
-if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
-                                  y_lim = bmad_com%max_aperture_limit
+if (y_lim <= 0 .or. .not. param%aperture_limit_on) y_lim = bmad_com%max_aperture_limit
 
 if (x_lim == 0 .and. y_lim == 0) return
 
@@ -152,31 +145,33 @@ case (elliptical$)
     if (bmad_status%exit_on_error) call err_exit
   endif
 
-  r = (x_beam / x_lim)**2 + (y_beam / y_lim)**2
+  r = (x_particle / x_lim)**2 + (y_particle / y_lim)**2
   if (r > 1) then
-    orb%status = dead$
-    param%lost = .true.
-    param%end_lost_at = at
-    if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
-      param%plane_lost_at = x_plane$
+    if (abs(x_particle / x_lim) > abs(y_particle / y_lim)) then
+      if (x_particle > 0) then; orb%state = lost_pos_x_aperture$
+      else;                     orb%state = lost_neg_x_aperture$
+      endif
     else
-      param%plane_lost_at = y_plane$
+      if (y_particle > 0) then; orb%state = lost_pos_y_aperture$
+      else;                     orb%state = lost_neg_y_aperture$
+      endif
     endif
     param%unstable_factor = sqrt(r) - 1
   endif
 
 case (rectangular$)
 
-  if (abs(x_beam) > x_lim .or. abs(y_beam) > y_lim) then
-    orb%status = dead$
-    param%lost = .true.
-    param%end_lost_at = at
-    if (abs(x_beam)/x_lim > abs(y_beam)/y_lim) then
-      param%plane_lost_at = x_plane$
-      param%unstable_factor = abs(x_beam) / x_lim - 1
+  if (abs(x_particle) > x_lim .or. abs(y_particle) > y_lim) then
+    if (abs(x_particle)/x_lim > abs(y_particle)/y_lim) then
+      if (x_particle > 0) then; orb%state = lost_pos_x_aperture$
+      else;                     orb%state = lost_neg_x_aperture$
+      endif
+      param%unstable_factor = abs(x_particle) / x_lim - 1
     else
-      param%plane_lost_at = y_plane$
-      param%unstable_factor = abs(y_beam) / y_lim - 1
+      if (y_particle > 0) then; orb%state = lost_pos_y_aperture$
+      else;                     orb%state = lost_neg_y_aperture$
+      endif
+      param%unstable_factor = abs(y_particle) / y_lim - 1
     endif
   endif
 
@@ -215,7 +210,20 @@ type (ele_struct) ele
 type (lat_param_struct) param
 real(rp) length, rel_pc, dz, px, py, pz
 
-!
+! Photon 
+! Notice that if orb%vec(6) is negative then the photon will be going back in time.
+
+if (orb%species == photon$) then
+  orb%vec(1) = orb%vec(1) + length * orb%vec(2) / orb%vec(6)
+  orb%vec(3) = orb%vec(3) + length * orb%vec(4) / orb%vec(6)
+  orb%vec(5) = orb%vec(5) + length
+  orb%s      = orb%s      + length
+  orb%t = orb%t + length * orb%vec(6) / c_light
+  return
+endif
+
+! Everything but photons
+
 rel_pc = 1 + orb%vec(6)
 px = orb%vec(2) / rel_pc
 py = orb%vec(4) / rel_pc
@@ -224,11 +232,11 @@ pz = sqrt(1 - px**2 - py**2)
 orb%vec(1) = orb%vec(1) + length * px / pz
 orb%vec(3) = orb%vec(3) + length * py / pz
 
-if (orb%beta == 0) then
-  dz = length * (1 - sqrt(1 + px**2 + py**2))
-else
+if (orb%beta > 0) then
   dz = length * (orb%beta * ele%value(e_tot$) / ele%value(p0c$) - sqrt(1 + px**2 + py**2))
   orb%t = orb%t + (length - dz) / (orb%beta * c_light)
+else
+  dz = length * (1 - sqrt(1 + px**2 + py**2))
 endif
 
 orb%vec(5) = orb%vec(5) + dz
@@ -294,7 +302,7 @@ endif
 !-----------------------------------------------------------------------
 
 end_orb = start_orb
-call offset_particle (ele, param, end_orb, set$, set_canonical = .false., set_multipoles = .false.)
+call offset_particle (ele, end_orb, set$, set_canonical = .false., set_multipoles = .false.)
 call apply_bend_edge_kick (end_orb, ele, entrance_end$, .false.)
 
 ! If we have a sextupole component then step through in steps of length ds_step
@@ -352,9 +360,7 @@ do n = 1, n_step
    
     pxy2 = px**2 + py**2
     if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
-      end_orb%status = dead$
-      param%lost = .true.
-      param%plane_lost_at = x_plane$
+      end_orb%state = lost$
       end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
       end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
       return
@@ -377,9 +383,9 @@ do n = 1, n_step
     dpx_t = -px*st*g + f*ct*g
 
     if (abs(px) > Dy .or. abs(px_t) > Dy) then
-      end_orb%status = dead$
-      param%lost = .true.
-      param%plane_lost_at = x_plane$
+      if (max(px, px_t) > 0) then; end_orb%state = lost_pos_x_aperture$
+      else;                        end_orb%state = lost_neg_x_aperture$
+      endif
       return
     endif    
 
@@ -430,7 +436,7 @@ enddo
 ! Track through the exit face. Treat as thin lens.
 
 call apply_bend_edge_kick (end_orb, ele, exit_end$, .false.)
-call offset_particle (ele, param, end_orb, unset$, set_canonical = .false., set_multipoles = .false.)
+call offset_particle (ele, end_orb, unset$, set_canonical = .false., set_multipoles = .false.)
 
 end subroutine track_a_bend
 
@@ -597,5 +603,59 @@ case (lcavity$, rfcavity$, e_gun$)
 end select
 
 end subroutine apply_hard_edge_kick
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine pitches_to_rotation_matrix (x_pitch, y_pitch, set, rot_mat)
+!
+! Routine to create a rotation matrix form the pitches and tilt
+!
+! Input:
+!   x_pitch -- Real(rp): X-pitch
+!   y_pitch -- Real(rp): Y-pitch
+!   set     -- Logical: set$ (True)    -> rot translates from lab to element coords.
+!                       unset$ (False) -> rot translates from element to lab coords.
+! Output:
+!   rot_mat(3,3) -- Real(rp): Rotation matrix.
+!-
+
+subroutine pitches_to_rotation_matrix (x_pitch, y_pitch, set, rot_mat)
+
+implicit none
+
+real(rp) x_pitch, y_pitch, rot_mat(3,3)
+real(rp) sx, sy, nx, ny, cos_t, norm
+
+logical set
+
+! Degenerate case
+
+if (x_pitch == 0 .and. y_pitch == 0) then
+  call mat_make_unit(rot_mat)
+  return
+endif
+
+!
+
+sx = sin(x_pitch)
+sy = sin(y_pitch)
+
+if (set) then
+  sx = -sx
+  sy = -sy
+endif
+
+norm = sqrt(sx**2 + sy**2)
+nx = -sy / norm
+ny =  sx / norm
+cos_t = sqrt(1 - norm**2)
+
+rot_mat(1,:) = [nx**2 + ny**2 * cos_t, nx * ny * (1 - cos_t), sx]
+rot_mat(2,:) = [nx * ny * (1 - cos_t), ny**2 + nx**2 * cos_t, sy]
+rot_mat(3,:) = [-sx,                   -sy,                   cos_t]
+
+end subroutine pitches_to_rotation_matrix
 
 end module

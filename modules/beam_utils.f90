@@ -71,7 +71,7 @@ if (ele%key /= lcavity$ .or. .not. associated(ele%rf_wake) .or. &
 
 
   bunch_end%charge = sum (bunch_end%particle(:)%charge, &
-                      mask = (bunch_end%particle(:)%status /= dead$))
+                      mask = (bunch_end%particle(:)%state == alive$))
   return
 endif
 
@@ -83,7 +83,7 @@ endif
 ! wakes applied in cononical coords so don't do canonical coord conversion
 
 do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, param, bunch_end%particle(i), set$, set_canonical = .false.)
+  call offset_particle (ele, bunch_end%particle(i), set$, set_canonical = .false.)
 enddo
 
 ! Modify ele temporarily so we can track through half the cavity.
@@ -110,8 +110,8 @@ endif
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
-  ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
-  if (bunch_end%particle(ix_z)%status == dead$) cycle
+  ix_z = bunch_end%ix_z(j) ! z-ordered index of the particles
+  if (bunch_end%particle(ix_z)%state /= alive$) cycle
   call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
   call track1 (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
@@ -134,8 +134,8 @@ ele%value(p0c$)          = value_save(p0c$)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
-  ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
-  if (bunch_end%particle(ix_z)%status == dead$) cycle
+  ix_z = bunch_end%ix_z(j) ! z-ordered index of the particles
+  if (bunch_end%particle(ix_z)%state /= alive$) cycle
   call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
   call track1 (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
@@ -143,7 +143,7 @@ enddo
 ele%value(grad_loss_sr_wake$) = 0.0
 
 bunch_end%charge = sum (bunch_end%particle(:)%charge, &
-                         mask = (bunch_end%particle(:)%status /= dead$))
+                         mask = (bunch_end%particle(:)%state == alive$))
 
 ! Unmodify ele
 
@@ -154,7 +154,7 @@ if (associated(a_pole_save)) ele%a_pole => a_pole_save
 ! Wakes applied in cononical coords so don't do canonical coord conversion
 
 do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, param, bunch_end%particle(i), unset$, &
+  call offset_particle (ele, bunch_end%particle(i), unset$, &
       set_canonical = .false.)
 enddo
 
@@ -221,9 +221,9 @@ if (n_sr_table > 0) then
   ! add up all wakes from front of bunch to follower
 
   do i = 1, num_in_front
-    if (bunch%particle(bunch%particle(i)%ix_z)%status /= dead$) &
-      call sr_table_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z), &
-               bunch%particle(bunch%particle(i)%ix_z)%charge, &
+    if (bunch%particle(bunch%ix_z(i))%state == alive$) &
+      call sr_table_add_long_kick (ele, bunch%particle(bunch%ix_z(i)), &
+               bunch%particle(bunch%ix_z(i))%charge, &
                bunch%particle(ix_follower))
   enddo
 
@@ -275,8 +275,8 @@ p => bunch%particle
 
 call order_particles_in_z (bunch)  
 if (size(ele%rf_wake%sr_mode_long) /= 0) then
-  i1 = p(1)%ix_z 
-  i2 = p(size(p))%ix_z
+  i1 = bunch%ix_z(1) 
+  i2 = bunch%ix_z(size(p))
   if (p(i1)%vec(5) - p(i2)%vec(5) > ele%rf_wake%z_sr_mode_max) then
     call out_io (s_abort$, r_name, &
         'Bunch longer than sr_mode wake can handle for element: ' // ele%name)
@@ -305,7 +305,7 @@ endif
 i_sr_mode = 1  ! index of next particle to be added to the sr_mode wake sums.
 
 do j = 1, size(p)
-  particle => p(p(j)%ix_z)
+  particle => p(bunch%ix_z(j))
 
   ! Particle_j is kicked by particles k = 1, ..., j-1.
   ! The particles 1, ... i_sr_mode-1 have already had their wakes added to the 
@@ -313,7 +313,7 @@ do j = 1, size(p)
 
   k_start = i_sr_mode
   do k = k_start, j-1
-    leader => p(p(k)%ix_z)
+    leader => p(bunch%ix_z(k))
     if ((particle%vec(5) - leader%vec(5)) > z_sr_table_max) then
       ! use sr_table table to add to particle j the wake of particle k
       call sr_table_apply_trans_kick (ele, leader, leader%charge, particle)
@@ -388,18 +388,18 @@ call order_particles_in_z (bunch)  ! needed for wakefield calc.
 ! Give the particles a kick
 
 do k = 1, size(bunch%particle)
-  j = bunch%particle(k)%ix_z
+  j = bunch%ix_z(k)
   particle => bunch%particle(j)
-  if (particle%status == dead$) cycle
+  if (particle%state /= alive$) cycle
   call lr_wake_apply_kick (ele, bunch%t_center, particle, particle%charge)
 enddo
 
 ! Add the wakes left by this bunch to the existing wakes.
 
 do k = 1, size(bunch%particle)
-  j = bunch%particle(k)%ix_z
+  j = bunch%ix_z(k)
   particle => bunch%particle(j)
-  if (particle%status == dead$) cycle
+  if (particle%state /= alive$) cycle
   call lr_wake_add_to (ele, bunch%t_center, particle, particle%charge)
 enddo
 
@@ -411,9 +411,8 @@ end subroutine
 !+
 ! Subroutine order_particles_in_z (bunch)
 !
-! Subroutine to order the particles longitudinally 
-! The ordering uses the centroid of the particles:
-!   %vec(5) 
+! Routine to order the particles longitudinally in terms of decreasing %vec(5).
+! That is from large z (head of bunch) to small z.
 !
 ! Modules needed:
 !   use beam_mod
@@ -424,10 +423,9 @@ end subroutine
 !
 ! Output:
 !   bunch     -- bunch_struct: collection of particles.
-!     %particle(j) -- particle ordered using %vec(5).
+!     %ix_z(:)     -- Index for the ordering. 
 !                     Order is from large z (head of bunch) to small z.
-!                     That is: %particle(1)%ix_z is the particle at the bunch head. 
-!       %ix_z        -- Index for the ordering
+!                     That is: %bunch%ix_z(1) is the particle at the bunch head. 
 !-
 
 Subroutine order_particles_in_z (bunch)
@@ -446,8 +444,8 @@ logical ordered
 particle => bunch%particle
 nm = size(particle)
 
-if (particle(1)%ix_z == 0) then
-  forall (i = 1:nm) particle(i)%ix_z = i
+if (bunch%ix_z(1) == 0) then
+  forall (i = 1:nm) bunch%ix_z(i) = i
 endif
 
 ! Order is from large z (head of bunch) to small z.
@@ -455,9 +453,9 @@ endif
 do
   ordered = .true.
   do i = 1, nm-1
-    i0 = particle(i)%ix_z; i1 = particle(i+1)%ix_z
+    i0 = bunch%ix_z(i); i1 = bunch%ix_z(i+1)
     if (particle(i0)%vec(5) < particle(i1)%vec(5)) then
-      particle(i:i+1)%ix_z = particle(i+1:i:-1)%ix_z
+      bunch%ix_z(i:i+1) = bunch%ix_z(i+1:i:-1)
       ordered = .false.
     endif
   enddo
@@ -543,10 +541,13 @@ integer i, n_particle
 ! Deallocate if needed
 
 if (allocated(bunch%particle)) then
-  if (size(bunch%particle) /= n_particle) deallocate (bunch%particle)
+  if (size(bunch%particle) /= n_particle) deallocate (bunch%particle, bunch%ix_z)
 endif
 
-if (.not. allocated(bunch%particle)) allocate (bunch%particle(n_particle))
+if (.not. allocated(bunch%particle)) then
+  allocate (bunch%particle(n_particle), bunch%ix_z(n_particle))
+  bunch%ix_z = 0
+endif
 
 end subroutine
 
@@ -761,7 +762,7 @@ call make_v_mats(ele, v_mat, v_inv)
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%charge = bunch%charge * p%charge
-  p%ix_lost = not_lost$
+  p%state = alive$
   ! Include Dispersion
   p%vec(1:4) =  p%vec(1:4) + p%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
   ! Include Coupling
@@ -1655,11 +1656,11 @@ call re_allocate (charge, size(bunch%particle))
 ! n_particle and centroid
 
 bunch_params%n_particle_tot = size(bunch%particle)
-bunch_params%n_particle_live = count(bunch%particle%status /= dead$)
-bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%status /= dead$))
+bunch_params%n_particle_live = count(bunch%particle%state == alive$)
+bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%state == alive$))
 
-bunch_params%centroid%e_field_x = sum(bunch%particle%e_field_x, mask = (bunch%particle%status /= dead$))
-bunch_params%centroid%e_field_y = sum(bunch%particle%e_field_y, mask = (bunch%particle%status /= dead$))
+bunch_params%centroid%e_field_x = sum(bunch%particle%e_field_x, mask = (bunch%particle%state == alive$))
+bunch_params%centroid%e_field_y = sum(bunch%particle%e_field_y, mask = (bunch%particle%state == alive$))
 
 if (param%particle == photon$) then
   charge = bunch%particle%e_field_x**2 + bunch%particle%e_field_y**2
@@ -1667,7 +1668,7 @@ else
   charge = bunch%particle%charge
 endif
 
-charge_live = sum(charge, mask = (bunch%particle%status /= dead$))
+charge_live = sum(charge, mask = (bunch%particle%state == alive$))
 
 !
 
@@ -1688,7 +1689,7 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
 ! average the energy
 
-avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%status /= dead$))
+avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%state == alive$))
 avg_energy = avg_energy * ele%value(E_TOT$) / charge_live
 
 ! Convert to geometric coords and find the sigma matrix
@@ -1939,7 +1940,7 @@ charge_live = 0
 
 ave_vec = 0.0
 do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%status == dead$) cycle
+  if (bunch%particle(i)%state /= alive$) cycle
   call spinor_to_vec (bunch%particle(i), vec)
   ave_vec = ave_vec + vec * bunch%particle(i)%charge
   charge_live = charge_live + bunch%particle(i)%charge
@@ -1989,10 +1990,10 @@ integer i
 
 !
 
-charge_live = sum(charge, mask = (particle%status /= dead$))
+charge_live = sum(charge, mask = (particle%state == alive$))
 
 do i = 1, 6
-  avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%status /= dead$)) / charge_live
+  avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%state == alive$)) / charge_live
 enddo
 
 sigma(s11$) = exp_calc (particle, charge, 1, 1, avg)
@@ -2083,7 +2084,7 @@ integer ix1, ix2
 !
                                     
 this_sigma = sum((particle(:)%vec(ix1) - avg(ix1)) * (particle(:)%vec(ix2) - avg(ix2)) * charge(:), &
-                               mask = (particle%status /= dead$))
+                               mask = (particle%state == alive$))
 
 this_sigma = this_sigma / charge_live
 

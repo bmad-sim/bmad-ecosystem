@@ -21,8 +21,6 @@
 !
 ! Output:
 !   end_orb   -- Coord_struct: End position.
-!   param     -- lat_param_struct: Lattice parameters.
-!     %lost     -- Logical. Set to true if a particle is lost.
 !   track     -- track_struct, optional: Structure holding the track information if the 
 !                 tracking method does tracking step-by-step.
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.

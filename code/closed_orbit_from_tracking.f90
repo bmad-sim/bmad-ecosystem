@@ -59,7 +59,7 @@ real(rp) mat6(6,6), mat6_inv(6,6), mat6_unit(6,6)
 real(rp) start_mat(6,6), end_mat(6,6)
 real(rp) :: error, rel_err(6), abs_err(6)
 
-integer i_dim, i, i1, i2, j, jmax, n_ele, j0, jj, nd, nnd, msk(6)
+integer i_dim, i, i1, i2, j, jmax, n_ele, j0, jj, nd, nnd, msk(6), track_state
 
 logical, optional :: err_flag
 logical :: debug = .false., rf_on, fluct_saved, aperture_saved
@@ -129,8 +129,8 @@ do j = 1, jmax
 
   ! track the current guess
 
-  call track_all (lat, closed_orb)
-  if (lat%param%lost) exit
+  call track_all (lat, closed_orb, track_state = track_state)
+  if (track_state /= moving_forward$) exit
 
   ! save start and end coords.
 

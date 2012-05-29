@@ -31,8 +31,8 @@ is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin)) .and. &
         (f1%e_field_x == f2%e_field_x) .and. (f1%e_field_y == f2%e_field_y) .and. &
         (f1%phase_x == f2%phase_x) .and. (f1%phase_y == f2%phase_y) .and. & 
         (f1%charge == f2%charge) .and. (f1%p0c == f2%p0c) .and. &
-        (f1%beta == f2%beta) .and. (f1%ix_z == f2%ix_z) .and. &
-        (f1%ix_lost == f2%ix_lost) .and. (f1%status == f2%status)
+        (f1%beta == f2%beta) .and. (f1%species == f2%species) .and. &
+        (f1%ix_ele == f2%ix_ele) .and. (f1%state == f2%state)
         
 
 end function eq_coord
@@ -350,12 +350,10 @@ is_eq = (f1%n_part == f2%n_part) .and. (f1%total_length == f2%total_length) .and
      (f1%unstable_factor == f2%unstable_factor) .and. &
      all(f1%t1_with_RF == f2%t1_with_RF) .and. &
      all(f1%t1_no_RF == f2%t1_no_RF) .and. &
-     (f1%particle == f2%particle) .and. (f1%ix_lost == f2%ix_lost) .and. &
-     (f1%plane_lost_at == f2%plane_lost_at) .and. &
-     (f1%end_lost_at == f2%end_lost_at) .and. &
+     (f1%particle == f2%particle) .and. &
      (f1%lattice_type == f2%lattice_type) .and. & 
      (f1%ixx == f2%ixx) .and. (f1%stable .eqv. f2%stable) .and. &
-     (f1%aperture_limit_on .eqv. f2%aperture_limit_on) .and. (f1%lost .eqv. f2%lost) 
+     (f1%aperture_limit_on .eqv. f2%aperture_limit_on) 
 
 end function eq_param
 

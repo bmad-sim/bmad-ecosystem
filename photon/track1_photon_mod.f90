@@ -91,7 +91,7 @@ endif
 if (ele%aperture_at == surface$) then
   end_orb%vec(1:5:2) = hit_point ! This is temporary
   call check_aperture_limit (end_orb, ele, surface$, param)
-  if (param%lost) return
+  if (end_orb%state /= alive$) return
 endif
 
 ! Note: Koln z-axis = Bmad x-axis.
@@ -289,7 +289,7 @@ endif
 if (ele%aperture_at == surface$) then
   end_orb%vec(1:5:2) = hit_point ! This is temporary
   call check_aperture_limit (end_orb, ele, surface$, param)
-  if (param%lost) return
+  if (end_orb%state /= alive$) return
 endif
 
 ! Construct h_norm = H * wavelength.

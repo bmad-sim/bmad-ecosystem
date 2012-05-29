@@ -469,9 +469,9 @@ call init_coord (start_orb, ele = ele_com, particle = param_com%particle)
 call track1 (start_orb, ele_com, param_com, end_orb, err_flag = err_flag, ignore_radiation = .true.)
 
 pz = end_orb%vec(6)
-if (param_com%lost) pz = -1
+is_lost = .not. particle_is_moving_forward(end_orb)
+if (is_lost) pz = -1
 
-is_lost = param_com%lost
 n_loop = n_loop + 1
 
 end function pz_calc

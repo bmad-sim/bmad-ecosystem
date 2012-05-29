@@ -69,7 +69,7 @@ The following helper routines are generally not useful for general use.
 
 \index[routine]{add_sr_long_wake}
 \label{r:add.sr.long.wake}
-\item[add_sr_long_wake (start_orb, ele, param, end_orb, track, err_flag)] \Newline 
+\item[add_sr_long_wake (ele, param, bunch, num_in_front, ix_follower)] \Newline 
 Adds the longitudinal wake for all particles in front of the follower.
 
 \index[routine]{apply_bend_edge_kick}
@@ -77,12 +77,6 @@ Adds the longitudinal wake for all particles in front of the follower.
 \item[apply_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)] \Newline 
 Subroutine to track through the edge field of an sbend.
 Reverse tracking starts with the particle just outside the bend and
-
-\index[routine]{apply_element_edge_kick}
-\label{r:apply.element.edge.kick}
-\item[apply_element_edge_kick (orb, ele, param, element_end)] \Newline 
-Subroutine to track through the edge field of an element.
-This routine is used with bmad_standard field_calc where the field
 
 \index[routine]{find_bunch_sigma_matrix}
 \label{r:find.bunch.sigma.matrix}
@@ -97,8 +91,8 @@ Initializes a spin distribution according to init_beam\%spin
 \index[routine]{order_particles_in_z}
 \label{r:order.particles.in.z}
 \item[order_particles_in_z (bunch)] \Newline 
-Routine to order the particles longitudinally 
-The ordering uses the centroid of the particles:
+Routine to order the particles longitudinally in terms of decreasing \%vec(5).
+That is from large z (head of bunch) to small z.
 
 \index[routine]{track1_beam}
 \label{r:track1.beam}
@@ -304,7 +298,7 @@ Routine to convert a Bmad taylor_struct to a C++ C_taylor.
 
 \index[routine]{rf_wake_to_c}
 \label{r:rf.wake.to.c}
-\item[rf_wake_to_c (f_wake, c_wake)] \Newline 
+\item[rf_wake_to_c (f_rf_wake, c_rf_wake)] \Newline 
 Routine to convert a Bmad wake_struct to a C++ C_wake.
 
 \index[routine]{wig_term_to_c}
@@ -402,7 +396,7 @@ by iterating over the equilibrium equations.
 
 \index[routine]{em_field_calc}
 \label{r:em.field.calc}
-\item[em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)] \Newline 
+\item[em_field_calc (ele, param, s_rel, time, orbit, local_ref_frame, field, calc_dfield, err_flag)] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
@@ -864,7 +858,7 @@ Routine to make a superimposed element.
 
 \index[routine]{attribute_bookkeeper}
 \label{r:attribute.bookkeeper}
-\item[attribute_bookkeeper (ele, param)] \Newline
+\item[attribute_bookkeeper (ele, param, force_bookkeeping)] \Newline
 Routine to make sure the attributes of an element are self-consistent. 
 
 \index[routine]{create_group}
@@ -929,6 +923,11 @@ Returns a pointer to an attribute of an element with name attrib_name.
 Returns an array of pointers to an attribute with name attrib_name within 
 elements with name ele_name.
 
+\index[routine]{pointer_to_branch}
+\label{r:pointer.to.branch}
+\item[pointer_to_branch] \Newline 
+Routine to return a pointer to a lattice branch.
+
 \index[routine]{pointer_to_ele}
 \label{r:pointer.to.ele}
 \item[\protect\parbox{6in}{
@@ -941,6 +940,17 @@ Routine to point to a given element.
 \label{r:remove.eles.from.lat}
 \item[remove_eles_from_lat (lat, check_controls)] \Newline 
 Routine to remove an elements from the lattice.
+
+\index[routine]{set_ele_status_stale}
+\label{r:set.ele.status.stale}
+\item[set_ele_status_stale (ele, status_group, set_slaves)] \Newline 
+Routine to set a status flags to stale in an element and the corresponding 
+ones for any slaves the element has.
+
+\index[routine]{set_status_flags}
+\label{r:set.status.flags}
+\item[set_status_flags (status_block, stat, n_modify)] \Newline 
+Routine to set the bookkeeping status block.
 
 \index[routine]{split_lat}
 \label{r:split.lat}
@@ -1041,15 +1051,30 @@ Routine to return the type (logical, integer, real, or named) of an attribute.
                                     is_default) result (val_name)] \Newline 
 Routine to return the name corresponding to the value of a given attribute.
 
+\index[routine]{check_if_s_in_bounds}
+\label{r:check.if.s.in.bounds}
+\item[check_if_s_in_bounds (branch, s, err_flag, translated_s)] \Newline 
+Routine to check if a given longitudinal position s is within the bounds of a given branch of a lattice.
+
 \index[routine]{check_lat_controls}
 \label{r:check.lat.controls}
 \item[check_lat_controls (lat, err_flag)] \Newline
 Routine to check if the control links in a lat structure are valid. 
 
-\index[routine]{ele_at_s}
-\label{r:ele.at.s}
-\item[ele_at_s (lat, s, ix_ele, ix_branch, err_flag, s_eff)] \Newline 
+\index[routine]{element_at_s}
+\label{r:element.at.s}
+\item[element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff) result (ix_ele)] \Newline 
 Routine to return the index of the element at position s.
+
+\index[routine]{ele_has_kick}
+\label{r:ele.has.kick}
+\item[ele_has_kick (ele) result (has_kick)] \Newline 
+Function to determine if an element has kick attributes like hkick$, bl_vkick$, etc.
+
+\index[routine]{ele_has_offset}
+\label{r:ele.has.offset}
+\item[ele_has_offset (ele) result (has_offset)] \Newline 
+Function to tell if an element has a non-zero offset, pitch or tilt.
 
 \index[routine]{ele_loc_to_string}
 \label{r:ele.loc.to.string}
@@ -1280,7 +1305,7 @@ RF cavities, etc.) in a lat.
 
 \index[routine]{transfer_ele}
 \label{r:transfer.ele}
-\item[transfer_ele (ele1, ele2)] \Newline 
+\item[transfer_ele (ele1, ele2, nullify_pointers)] \Newline 
      Routine to set ele2 = ele1. 
      This is a plain transfer of information not using the overloaded equal.
 
@@ -1306,6 +1331,12 @@ RF cavities, etc.) in a lat.
 Routine to transfer the lat parameters (such as lat\%name, 
 lat\%param, etc.) from one lat to another. 
 
+
+\index[routine]{zero_ele_kicks}
+\label{r:zero.ele.kicks}
+\item[zero_ele_kicks (ele)] \Newline 
+Subroutine to zero any kick attributes like hkick$, bl_vkick$, etc.
+See also: ele_has_kick, ele_has_offset, zero_ele_offsets.
 
 \index[routine]{zero_ele_offsets}
 \label{r:zero.ele.offsets}
@@ -1429,7 +1460,7 @@ Routine to write a digested file.
 
 \index[routine]{xsif_parser}
 \label{r:xsif.parser}
-\item[xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
+\item[xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline 
      Routine to parse an XSIF (extended standard input format) lattice file.
 
 \end{description}
@@ -1686,12 +1717,12 @@ Routine to convert ab type multipoles to kt (MAD standard) multipoles.
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
-\item[multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)] \Newline
+\item[multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)] \Newline
 Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
 \label{r:multipole.ele.to.kt}
-\item[multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)] \Newline
+\item[multipole_ele_to_kt (ele, particle, use_ele_tilt, has_nonzero_pole, knl, tilt)] \Newline
 Routine to put the scaled element multipole components (strength and tilt) 
 into 2 vectors. 
 
@@ -1850,7 +1881,7 @@ Routine to calculate the momentum, etc. from a particle's total energy.
 
 \index[routine]{init_coord}
 \label{r:init.coord}
-\item[init_coord (orb, vec)] \Newline 
+\item[init_coord (orb, vec, ele, particle)] \Newline 
 Routine to initialize a coord_struct.
 
 \index[routine]{type_coord}
@@ -2945,14 +2976,14 @@ matrix and the closed orbit offset.
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
-    offset_particle (ele, param, coord, set, set_canonical, set_tilt, \\
+    offset_particle (ele, coord, set, set_canonical, set_tilt, \\
     \hspace*{1in} set_multipoles, set_hvkicks, set_s_offset, ds_pos)}] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
 \index[routine]{offset_photon}
 \label{r:offset.photon}
-\item[offset_photon (ele, param, coord, set)] \Newline 
+\item[offset_photon (ele, param, coord, set, offset_position_only)] \Newline 
 Routine to effectively offset an element by instead offsetting
 the photon position to correspond to the local crystal or mirror coordinates.
 
@@ -2962,6 +2993,18 @@ the photon position to correspond to the local crystal or mirror coordinates.
 Routine to calculate the "invariant" amplitude of a particle at a 
 particular point in its orbit. 
 
+\index[routine]{particle_is_moving_backward}
+\label{r:particle.is.moving.backward}
+\item[particle_is_moving_backward (orbit) result (is_moving_backward)] \Newline 
+Routine to determine if a particle is moving in the backward -s direction.
+If not moving backward it is dead or is moving backward.
+
+\index[routine]{particle_is_moving_forward}
+\label{r:particle.is.moving.forward}
+\item[particle_is_moving_forward (orbit) result (is_moving_forward)] \Newline 
+Routine to determine if a particle is moving in the forward +s direction.
+If not moving forward it is dead or is moving backward.
+
 \index[routine]{tilt_coords}
 \label{r:tilt.coords}
 \item[tilt_coords (tilt_val, coord)] \Newline
@@ -2970,7 +3013,7 @@ instead rotating the particle position with negative the angle.
 
 \index[routine]{track1}
 \label{r:track1}
-\item[track1 (start_orb, ele, param, end_orb, track, err_flag)] \Newline
+\item[track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)] \Newline
 Routine to track through a single element. 
 
 \index[routine]{track1_beam_simple}
@@ -2985,14 +3028,20 @@ This routine does *not* include multiparticle effects.
 Routine to track a bunch of particles through the element lat\%ele(ix_ele)
 with csr radiation effects.
 
+\index[routine]{track1_spin_custom}
+\label{r:track1.spin.custom}
+\item[track1_spin_custom (start, ele, param, end, err_flag, track)] \Newline 
+Dummy routine for custom spin tracking. 
+This routine needs to be replaced for a custom calculation.
+
 \index[routine]{track_all}
 \label{r:track.all}
-\item[track_all (lat, orbit, ix_branch, err_flag)] \Newline
+\item[track_all (lat, orbit, ix_branch, track_state, err_flag)] \Newline
 Routine to track through the lat. 
 
 \index[routine]{track_from_s_to_s}
 \label{r:track.from.s.to.s}
-\item[track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch)] \Newline
+\item[track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)] \Newline
 Routine to track a particle between two s-positions.
 
 \index[routine]{track_many}
@@ -3010,7 +3059,7 @@ Routine to calculate the twiss parameters, transport matrices and orbit.
 
 \index[routine]{twiss_and_track_at_s}
 \label{r:twiss.and.track.at.s}
-\item[twiss_and_track_at_s (lat, s, ele, orb, orb_at_s, ix_branch, err, use_saved_data)] \Newline
+\item[twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_last)] \Newline
 Routine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 
 \index[routine]{twiss_and_track_intra_ele}
@@ -3019,13 +3068,6 @@ Routine to calculate the Twiss parameters and orbit at a particular longitudinal
   twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, \\
   \hspace*{1in} track_exit, orbit_start, orbit_end, ele_start, ele_end, err) }] \Newline 
 Routine to track a particle within an element.
-
-\index[routine]{twiss_and_track_partial}
-\label{r:twiss.and.track.partial}
-\item[\protect\parbox{6in}{
-    twiss_and_track_partial (ele0, ele_track, param, del_s, ele_end, \\
-    \hspace*{1in} orb_start, orb_end, body_only, err) }] \Newline
-Routine to calculate the Twiss parameters and orbit at a particular position inside an element. 
 
 \index[routine]{twiss_from_tracking}
 \item[twiss_from_tracking (lat, ref_orb0, symp_err, err_flag, d_orb)] \Newline
@@ -3043,7 +3085,7 @@ for every element in the lat.
 \index[routine]{odeint_bmad}
 \label{r:odeint.bmad}
 \item[\protect\parbox{6in}{
-    odeint_bmad (orb_start, ele, param, orb_end, s1, s2, rel_tol, abs_tol, h1, h_min, local_ref_frame, err_flag, track) }] \Newline
+    odeint_bmad (orb_start, ele, param, orb_end, s1, s2, local_ref_frame, err_flag, track) }] \Newline
 Routine to do Runge Kutta tracking. 
 
 \index[routine]{create_uniform_element_slice}
@@ -3054,12 +3096,12 @@ This routine can be used for detailed tracking through an element.
 
 \index[routine]{track1_boris_partial}
 \label{r:track1.boris.partial}
-\item[track1_boris_partial (start, ele, param, end, err_flag, track, s_start, s_end)] \Newline
+\item[track1_boris_partial (start, ele, param, s, t, ds, end)] \Newline
 Routine to track 1 step using boris tracking. 
 
 \index[routine]{track_a_drift}
 \label{r:track.a.drift}
-\item[track_a_drift (orb, length)] \Newline
+\item[track_a_drift (orb, ele, length)] \Newline
 Routine to track through a drift. 
 
 \index[routine]{track_a_bend}
@@ -3288,12 +3330,12 @@ Symplectic integration through an element to 0th or 1st order.
 
 \index[routine]{track1_boris}
 \label{r:track1.boris}
-\item[track1_boris (start, ele, param, end, track, s_start, s_end)] \Newline
+\item[track1_boris (start, ele, param, end, err_flag, track, s_start, s_end)] \Newline
 Routine to do Boris tracking.  
 
 \index[routine]{track1_bmad}
 \label{r:track1.bmad}
-\item[track1_bmad (start_orb, ele, param, end_orb)] \Newline
+\item[track1_bmad (start_orb, ele, param, end_orb, err_flag)] \Newline
 Particle tracking through a single element BMAD_standard style. 
 
 \index[routine]{track1_custom}
@@ -3417,10 +3459,6 @@ Routine to transfer the twiss parameters from one element to another.
 \item[twiss_and_track (lat, orb)] \Newline
 Routine to calculate the Twiss and orbit parameters. 
 This is not necessarily the fastest routine. 
-
-\index[routine]{twiss_and_track_partial}
-\item[twiss_and_track_partial (ele1, ele2, param, del_s, ele3, start, end)] \Newline
-Routine to propagate partially through ELE2 the Twiss parameters and the orbit. 
 
 \index[routine]{twiss_at_element}
 \label{r:twiss.at.element}

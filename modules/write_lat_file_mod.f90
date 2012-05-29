@@ -7,7 +7,7 @@ use multipass_mod
 use element_modeling_mod
 use lat_ele_loc_mod
 
-private str, rchomp
+private str, rchomp, cmplx_str, write_line_element, array_str
 
 contains
 
@@ -1144,10 +1144,31 @@ end function
 !-------------------------------------------------------
 !-------------------------------------------------------
 !-------------------------------------------------------
+!+
+! Subroutine write_lat_line (line, iu, end_is_neigh, continue_char)
+!
+! Routine to write strings to a lattice file.
+! This routine will break the string up into multiple lines
+! if the string is too long and add a continuation character if needed.
+!
+! If the "line" arg does not represent a full "sentence" (end_is_neigh = False), 
+! then only part of the line may be written and the part not writen will be returned.
+!
+! Module needed:
+!   use write_lat_file_mod
+!
 ! Input:
+!   line          -- character(*): String of text.
+!   iu            -- Integer: Unit number to write to.
 !   end_is_neigh  -- Logical: If true then write out everything.
 !                      Otherwise wait for a full line of max_char characters or so.
 !   continue_char -- character(1), optional. Default is '&'
+!
+! Output:
+!   line          -- Character(*): part of the string not writen. 
+!                       If end_id_neight = T then line will be blank.
+!-
+
 subroutine write_lat_line (line, iu, end_is_neigh, continue_char)
 
 implicit none
@@ -1161,6 +1182,7 @@ character(1), optional :: continue_char
 character(1) c_char
 
 !
+
 if (present(continue_char)) then
  c_char = continue_char
 else

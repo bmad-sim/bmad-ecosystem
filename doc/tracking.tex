@@ -1,5 +1,3 @@
-%\input{simple_header}
-
 \chapter{Tracking and Transfer Maps}
 \label{c:tracking}
 \index{tracking}
@@ -21,12 +19,12 @@ of handling the macroparticle sigma matrix more than offset the reduction in the
 number of particles needed. Hence, while the basic macroparticle tracking 
 routines still exist, macroparticle tracking is not currently maintained
 and the use of this code is discouraged. However macroparticle tracking could be revived
-in the future if there is a demonstated need for it.
+in the future if there is a demonstrated need for it.
 
 \index{beam}\index{bunch}
 Particle tracking can be divided into ``single particle'' tracking and ``beam''
 tracking. Single particle tracking is simply tracking a single particle.
-Beam tracking is tracking an ensable of particles divided up into a number of bunches
+Beam tracking is tracking an ensemble of particles divided up into a number of bunches
 that make up a ``beam''. Both types particle tracking are covered in this
 chapter.
 
@@ -41,20 +39,46 @@ longitudinal position in the lattice. The definition of the
 \vn{coord_struct} is
 \begin{example}
   type coord_struct
-    real(rp) vec(6)       ! (x, px, y, py, z, pz)
-    complex(rp) spin(2)   ! particle spin in spinor notation
-    real(rp) e_field_x    ! Photon field/sqrt(area), x-axis component
-    real(rp) e_field_y    ! Photon field/sqrt(area), y-axis component
-    real(rp) phase_x      ! Photon phase, x-axis component
-    real(rp) phase_y      ! Photon phase, y-axis component
-    real(rp) s            ! Longitudinal position 
-    real(rp) t            ! Time
-  end type
+    real(rp) vec(6)     ! (x, px, y, py, z, pz)
+    real(rp) s          ! Longitudinal position
+    real(rp) t          ! Absolute time (not relative to reference).
+    complex(rp) spin(2) ! Spin in spinor notation
+    real(rp) e_field_x  ! Photon field intensity, x-axis component
+    real(rp) e_field_y  ! Photon field intensity, y-axis component
+    real(rp) phase_x    ! Photon phase, x-axis component
+    real(rp) phase_y    ! Photon phase, y-axis component
+    real(rp) charge     ! charge in a particle (Coul).
+    real(rp) p0c        ! Reference momentum. For non-photons: Negative -> going backwards.
+    real(rp) beta       ! Velocity / c_light. deltaE/E for photons.
+    integer species     ! Type of particle. not_set\$ when initialized before tracking.
+    integer ix_ele      ! Index of element particle was tracked through.
+                        !   May be -1 or -2 if element is not associated with a lattice.
+    integer state       ! alive\$, lost\$, lost_neg_x_aperture\$, etc.
+    integer location    ! entrance_end\$, inside\$, or exit_end\$
+end type
 \end{example}
-The \vn{%vec(6)} array defines the phase space coordinants
-(\sref{s:phase.space}) and spin (\sref{s:spin.dyn}). The \vn{%s}
-component gives the absolute s-position of the particle and \vn{%t}
-gives the absolute time.
+
+The \vn{%vec(:)} array defines the phase space coordinants
+(\sref{s:phase.space}). Note that for photons, the definition of the
+phase space coordinates (\sref{s:photon.phase.space}) is different
+from that used for charged particles.
+
+The reference momentum in eV is stored in the \vn{p0c} component.  For
+charged-particles, \vn{%p0c} may be negative if the particle is
+traveling backwards longitudinally. The normalized velocity $v/c$ is
+stored in \vn{%beta}.
+
+For photons, the reference momentum \vn{%p0c} is always
+positive and \vn{%vec(6)} ($\beta_z$) will be negative if the photon
+is going backward. Since the velocity of a photon is always $c$, the 
+\vn{%beta} component is used to store the energy deviation from the
+reference particle. 
+
+The \vn{%spin} component gives a particles spin (\sref{s:spin.dyn}) in
+spinor notation.
+
+The \vn{%s} component gives the absolute s-position of the particle
+and \vn{%t} gives the absolute time.
 
 The \vn{%e_field_x} and \vn{%e_field_y} components are for photon
 tracking and are in units of field/sqrt(cross-section-area). That is,
@@ -62,39 +86,137 @@ the square of these units is an intensity. It is up to individual
 programs to define an overall scaling factor for the intensity if
 desired.
 
-When associated with a lattice element, a \vn{coord_struct} variable
-gives a particle's position at the exit end of the element.  To get an
-orbit through a lattice branch (\sref{s:lat.struct}), that is, the
-particle position at every element in the branch, an array of
-\vn{coord_struct}s is needed. Since the number of elements in the
-lattice is not known in advance, the array must be declared to be
-allocatable. The lower bound of the array must be set to zero to match
-a \vn{lat%branch(i)%ele(:)} array.  The upper bound should be the
-upper bound of the \vn{%branch(i)%ele(:)} array.  The routine
-\Hyperref{r:reallocate.coord}{reallocate_coord} will allocate an array
-of \vn{coord_struct}s:
+The \vn{%species} component shows the type of particle being
+tracked. Notice that this is different from the \vn{lat_param_struct}
+(\sref{s:lat.param.struct}) component \vn{lat_param%particle} in that
+\vn{%particle} gives the reference particle type which can be
+different from the type of particle being tracked.
+
+The \vn{%ix_ele} component gives the index of the element in the
+\vn{lat%branch(ib)%ele(:)} array that was tracked through. If the
+element tracked through is not associated with a lattice, \vn{%ix_ele}
+is set to -1. When initializing a \vn{coord_struct} (see below),
+\vn{%ix_ele} will be initialized to \vn{not_set\$}.
+
+The \vn{%state} component will be one of:
+\begin{example}
+  alive\$
+  lost\$
+  lost_neg_x_aperture\$
+  lost_pos_x_aperture\$
+  lost_neg_y_aperture\$
+  lost_pos_y_aperture\$
+  lost_z_aperture\$
+\end{example}
+The \vn{alive\$} setting indicates that the particle is alive. If a
+particle is ``dead'', \vn{%state} component will be set to on of the
+other settings. The \vn{lost_neg_x_aperture\$} setting indicates that
+the particle was lost at an aperture on the $-x$ side of the element.
+The \vn{lost_z_aperture\$} setting is used to indicate an energy
+aperture where a particle has been decelerated to the point where it
+is turning around. The \vn{lost\$} setting is used when neither of the
+\vn{lost_*_aperture\$} settings are not appropriate. For example,
+\vn{lost\$} is used in Runge-Kutta tracking when the adaptive step
+size becomes too small.
+
+Finally the \vn{%location} component Indicates where a particle is
+longitudinally with respect to the element being
+tracked. \vn{%location} will be on of:
+\begin{example}
+  entrance_end\$
+  inside\$
+  exit_end\$
+\end{example}
+\vn{entrance_end\$} indicates that the particle is at the element's
+entrance ($-s$) end and \vn{exit_end\$} indicates that the particle is
+at the element's exit ($+s$) end.  \vn{inside\$} indicates that the
+particle is in between. Normally, when tracking through and element, a
+particle starts with \vn{%location} set to \vn{entrance_end\$} and
+ends with \vn{%location} set to \vn{exit_end\$}. If the element has
+edge fields (for example, the \vn{e1} and \vn{e2} edge fields of a
+bend), a particle at the \vn{entrance_end\$} or \vn{exit_end\$} is
+considered to be just outside the edge field region.
+
+To initialize a \vn{coord_struct} so it can be used as the start of
+tracking, the \Hyperref{r:init.coord}{init_coord} routine can be used:
+\begin{example}
+  type (coord_struct) start_orb
+  real(rp) phase_space_start(6)
+
+  phase_space_start = [...]
+  call init_coord (start_orb, phase_space_start, lat%ele(i), lat%param%particle)
+\end{example}
+Here \vn{init_coord} will initialize \vn{start_orb} appropriately for 
+tracking through element \vn{lat%ele(i)} with the particle species set to the 
+species of the reference particle given by \vn{lat%param%particle}. 
+
+%----------------------------------------------------------------
+\section{Tracking Through a Single Element}
+\label{s:track1}
+
+\Hyperref{r:track1}{track1} is the routine used for tracking through a
+single element
+\begin{example}
+  type (coord_struct), start_orb, end_orb
+  type (ele_struct) ele
+  real(rp) start_phase_space(6)
+  logical err
+  ...
+  start_phase_space = [...]
+  call init_coord (start_orb, start_phase_space, ele, photon\$) 
+  call track1 (start_orb, ele, end_orb, err_flag = err)
+  if (.not. particle_is_moving_forward(end_orb)) then
+    print *, 'Particle is lost and gone forever...'
+  endif
+\end{example}
+To check if a particle is still traveling in the forward direction,
+the \Hyperref{r:particle.is.moving.forward}{particle_is_moving_forward} 
+routine can be used as shown in the above example.
+
+The ``virtual'' entrance and exit ends of a lattice element are, by
+definition, where the physical ends of the element would be if there
+were no offsets. In particular, if an element has a finite
+\vn{s_offset} (\sref{s:ele.offset}), the physical ends will be
+displaced from the virtual ends. The position \vn{ds} of a particle
+with respect to the physical entrance end of the element is
+\begin{example}
+  ds = coord%s - (ele%s + ele%value(s_offset_tot\$) - ele%value(l\$))
+\end{example}
+When tracking through an element, the starting and ending positions
+always correspond to the virtual ends. If there is a finite
+\vn{s_offset}, the tracking of the element will involve tracking
+through drifts just before and just after the tracking of the body of
+the element so that the particle ends at the proper virtual exit end.
+
+%----------------------------------------------------------------
+\section{Tracking Through a Lattice}
+
+When tracking through a lattice branch, one often defines an array of
+\vn{coord_struct}s -- one for each element of the lattice branch. In
+this case, the $i$\th \vn{coord_struct} corresponds to the particle
+coordinates at the end of the $i$\th element. Since the number of
+elements in the lattice is not known in advance, the array must be
+declared to be allocatable. The lower bound of the array must be set
+to zero to match a \vn{lat%branch(i)%ele(:)} array.  The upper bound
+should be the upper bound of the \vn{%branch(i)%ele(:)} array.  The
+routine \Hyperref{r:reallocate.coord}{reallocate_coord} will allocate
+an array of \vn{coord_struct}s:
 \begin{example}
   type (coord_struct), allocatable :: orbit(:)
   type (lat_struct) lat
   ...
   call reallocate_coord (orbit, lat%branch(i)%n_ele_max)
-  orbit(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
-  ...
-  deallocate(orbit) ! Needed if orbit is a local var
 \end{example}
-The deallocation at the end of this example is needed when the
-\vn{coord_struct} array is defined locally (not passed as an argument)
-in a subroutine or function. Alternatively, the \vn{save} attribute
-can be used so that the array stays around until the next time the
-routine is called
+Alternatively, the \vn{save} attribute can be used so that the array
+stays around until the next time the routine is called
 \begin{example}
   type (coord_struct), allocatable, save :: orb(:) 
 \end{example}
 Saving the \vn{coord_stuct} is faster but leaves memory tied up. Note
-that in the main program, the \vn{save} attribute is not permitted and
-the deallocation is not necessary.  If a \vn{coord_struct} array is
-passed to a routine, the routine must explicitly set the lower bound
-to zero if the array is not declared as allocatable:
+that in the main program, the \vn{save} attribute is not permitted If
+a \vn{coord_struct} array is passed to a routine, the routine must
+explicitly set the lower bound to zero if the array is not declared as
+allocatable:
 \begin{example}
   subroutine my_routine (orbit1, orbit2)
     use bmad
@@ -103,7 +225,7 @@ to zero if the array is not declared as allocatable:
     type (coord_struct) orbit2(0:)                 ! Also OK
     ...
 \end{example}
-Declaring the array allocatable is manditory if the array is to be resized
+Declaring the array allocatable is mandatory if the array is to be resized
 or the array is passed to a routine that declares it allocatable.
 
 \index{coord_array_struct}
@@ -122,50 +244,89 @@ The routine \Hyperref{r:reallocate.coord.array}{reallocate_coord_array} will all
   ...
   call reallocate_coord_array (all_orbit, lat)
   ...
-  deallocate(all_orbit) ! Needed if all_orbit is a local var
 \end{example}
 
-%----------------------------------------------------------------
-\section{Tracking Through a Lattice Element}
-\label{s:ele.track}
-
-The ``entrance'' and ``exit'' ends of a lattice element are, by definition,
-where the physical ends of the element would be if there were no
-offsets. In particular, if an element has a finite \vn{s_offset}
-(\sref{s:ele.offset}), the physical ends will be displaced from
-the entrance and exit ends. Thus, the position \vn{ds} of a particle with
-respect to the physical beginning of the element is
+\index{lat_param_struct!ix_track}
+Once an array of \vn{coord_struct} elements is defined, the \Hyperref{r:track.all}{track_all} 
+routine can be used to track through a given lattice branch
 \begin{example}
-  ds = coord%s - (ele%s + ele%value(s_offset_tot\$) - ele%value(l\$))
+  type (coord_struct), allocatable :: orbit(:)
+  integer ib, track_state
+  ...
+  ib = 1                      ! Branch to track through
+  call init_coord(orbit(0), init_phase_space, lat%branch(ib)%ele(0), proton$) 
+  call track_all (lat, orbit, ib, track_state, err_flag)
+  if (track_state /= moving_forward\$) print *, 'Particle lost at element:', track_state
 \end{example}
+After tracking, \vn{orbit(i)} will correspond to the particles orbit
+at the end of \vn{lat%branch(ib)%ele(i)}.  
 
-When tracking through a lattice element that has finite offsets, the
-\Hyperref{r:offset.particle}{offset_particle} routine can be called to
-convert between laboratory and element coordinates
-(\sref{s:misalign.track}). In particular, if there is a finite
-\vn{s_offset}, the \vn{offset_particle} routine will insert drifts
-just before and just after the tracking of the body of the element so
-that the particle begins at the entrance face and ends at the exit
-face independent of the actual physical placement of the element.
+For routines like \vn{track_all} where an array of \vn{coord_struct}s
+is used, an integer \vn{track_state} argument is provided that is set
+to \vn{moving_forward\$} if the particle survives to the end, or is
+set to the index of the element at which the particle either hit an
+aperture or the particle's longitudinal velocity is reversed. 
+
+The reason why the reversal of the particle's longitudinal velocity
+stops tracking is due to the fact that the standard tracking routines,
+which are $s$-based (that is, use longitudinal position $s$ as the
+independent coordinate), are not designed to handle particles that
+reverse direction. To properly handle this situation, time-based
+tracking needs to be used (\sref{s:time.tracking}). Notice that this is
+different from tracking a particle in the reversed ($-s$) direction
+which can be handled by constructing a ``reversed'' lattice
+(\sref{s:reverse.track}).
+
+Alternatively to \vn{track_all}, the routine
+\Hyperref{r:track.many}{track_many} can be used to track through a
+selected number of elements or to track backwards (See
+\sref{s:reverse.track}).
+
+The \vn{track_all} routine serves as a good example of how tracking
+works. A condensed version of the code is shown in
+Figure~\ref{f:track.all}. The call to \vn{track1} (line~18) tracks
+through one element from the exit end of the $n-1$\St\ element to the
+exit end of the $n$\Th element.
+
+\begin{figure}[h]
+\begin{centering}
+\small
+\begin{listing}{1}
+  subroutine track_all (lat, orbit, ix_branch, track_state, err_flag)
+    use bmad
+    implicit none
+    type (lat_struct), target :: lat
+    type (branch_struct), pointer :: branch
+    type (coord_struct), allocatable :: orbit(:)
+    integer, optional :: ix_branch, track_state
+    logical, optional :: err_flag
+    logical err
+
+    ! 
+
+    branch => lat%param(integer_option(0, ix_branch))
+    branch%param%ix_track = moving_forward
+    if (present(track_state)) track_state = moving_forward\$
+
+    do n = 1, branch%n_ele_track
+      call track1 (orbit(n-1), branch%ele(n), branch%param, orbit(n), err_flag = err)
+      if (.not. particle_is_moving_forward(orbit(n))) then
+        if (present(track_state)) track_state = n
+        orbit(n+1:)%species = not_set$
+        return
+      endif
+    enddo
+  end subroutine
+\end{listing}
+\label{f:track.all}
+\caption{Condensed track_all code.}
+\end{centering}
+\end{figure}
 
 %----------------------------------------------------------------
-\section{Closed Orbit and Particle Tracking}
+\section{Multi-turn Tracking}
 
-\index{closed orbit}
-For a circular lattice the closed orbit may be calculated using
-\vn{closed_orbit_calc}. By default this routine will track in the
-forward direction which is acceptable unless the particle you are
-trying to simulate is traveling in the reverse direction and there is
-radiation damping on. In this case you must tell
-\vn{closed_orbit_calc} to do backward tracking. This routine works by
-iteratively converging on the closed orbit using the 1--turn matrix to
-calculate the next guess. On rare occasions if the nonlinearities are
-strong enough, this can fail to converge. An alternative routine is
-\vn{closed_orbit_from_tracking} which tries to do things in a more
-robust way but with a large speed penalty.
-
-The routine \Hyperref{r:track.all}{track_all} tracks thourgh a given branch of the
-lattice.  Multi-turn tracking over a branch is then simply a matter of
+Multi-turn tracking over a branch is simply a matter of
 setting the coordinates at the beginning zeroth element equal to the
 last tracked element within a loop:
 \begin{example}
@@ -193,65 +354,21 @@ In this case, the above reduces to
   end do
 \end{example}
 
-The routine \Hyperref{r:track1}{track1} is the routine that tracks through one
-element in the lattice. The routine \Hyperref{r:track.all}{track_all} calls \vn{track1}
-in a loop over all elements to track through the entire
-lattice. Alternatively the routine \Hyperref{r:track.many}{track_many} can be used to
-track through a selective number of elements or to track backwards
-(See \sref{s:reverse.track}). The routines used for tracking
-and closed orbit calculations are listed in Section \sref{r:track}.
+%----------------------------------------------------------------
+\section{Closed Orbit Calculation}
 
-\index{lat_param_struct!lost}
-\index{lat_param_struct!ix_lost}
-\index{lat_param_struct!plane_lost_at}
-\index{lat_param_struct!end_lost_at}
-\index{tracking!example}
-The \vn{track_all} routine serves as a good example of how tracking
-works. \vn{track_all} tracks a particle through a lattice from
-beginning to end. Its code, condensed slightly, is shown in
-Figure~\ref{f:track.all}.  The \vn{reallocate_coord} call (line~13) is
-done in case the number of elements in the lattice has changed. The
-call to \vn{track1} (line~18) tracks through one element from the exit
-end of the $n-1$\St\ element to the exit end of the $n$\Th
-particle. \vn{lat%param%lost} is a logical that signals the
-calling routine whether a particle has been lost.  This generally
-happens when the particle's position is larger then the aperture. When
-a particle is lost \vn{lat%param%ix_lost} is used to record in
-what element the loss occurred.
-
-\begin{figure}[htb]
-\begin{centering}
-\small
-\begin{listing}{1}
-  subroutine track_all (lat, orbit)
-    use bmad_struct
-    use bmad_interface
-    implicit none
-    type (lat_struct)  lat
-    type (coord_struct), allocatable :: orbit(:)
-    integer n
-
-  ! Init
-
-    lat%param%lost = .false.
-    if (size(orbit) < lat%n_ele_max+1) &
-                    call reallocate_coord (orbit, lat%n_ele_max)
-
-  ! Track through the elements and check for lost particles.
-
-    do n = 1, lat%n_ele_track
-      call track1 (orbit(n-1), lat%ele(n), lat%param, orbit(n))
-      if (lat%param%lost) then
-        lat%param%ix_lost = n
-        return
-      endif
-    enddo
-  end subroutine
-\end{listing}
-\label{f:track.all}
-\caption{Condensed track_all code.}
-\end{centering}
-\end{figure}
+\index{closed orbit}
+For a circular lattice the closed orbit may be calculated using
+\vn{closed_orbit_calc}. By default this routine will track in the
+forward direction which is acceptable unless the particle you are
+trying to simulate is traveling in the reverse direction and there is
+radiation damping on. In this case you must tell
+\vn{closed_orbit_calc} to do backward tracking. This routine works by
+iteratively converging on the closed orbit using the 1--turn matrix to
+calculate the next guess. On rare occasions if the nonlinearities are
+strong enough, this can fail to converge. An alternative routine is
+\vn{closed_orbit_from_tracking} which tries to do things in a more
+robust way but with a large speed penalty.
 
 %----------------------------------------------------------------
 \section{Partial Tracking through elements}
@@ -333,42 +450,8 @@ parameter. Possible values for this are:
 \vn{x_plane\$} and \vn{y_plane\$} indicate that the particle was lost
 either horizontally, or vertically. \vn{z_plane\$} indicates that the
 particle was turned around in an \vn{lcavity} element. That is, the 
-cavity was deaccelerating the particle and the particle did not not have
+cavity was decelerating the particle and the particle did not not have
 enough energy going into the cavity to make it to the exit.
-
-%======================FIGURE===============================
-\begin{figure}[tb]
-\centering
-\includegraphics[width=\textwidth]{tracking-apertures}
-\caption[Example trajectories in the element coordinate system.]{
-Example trajectories in the element coordinate system. 
-Note that the wall and apertures are aligned at $s_{\rm ele} =0$, 
-but offset at $s_{\rm ele} = L.$}
-\label{fg:tracking-apertures}
-\end{figure}
-%===========================================================
-
-%======================TABLE=============================
-\begin{table}[tb]
-\caption[Possible aperture flags set when tracking an individual element.]{
-Possible aperture flags set when tracking an individual element. 
-Trajectories are labeled as in Fig.~\ref{fg:tracking-apertures}}
-\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrr}
-\toprule
- Example particle trajectory & \vn{lost} & \vn{plane_lost_at} & \vn{end_lost_at}\\ 
- \midrule
-1: Forward  					& F &  \vn{z_plane\$} & \vn{exit_end\$}  \\
-2: Forward kicked backwards	& T &  \vn{z_plane\$} & \vn{live_reversed\$} \\
-3: Hits exit aperture 		& T &  \vn{x_plane\$} & \vn{exit_end\$} \\
-4: Hits interior wall 		& T &  \vn{x_plane\$} & \vn{between_ends\$} \\
-5: Enters outside aperture 	& T &  \vn{x_plane\$} & \vn{entrance_end\$} \\
-6: Backwards 				& T &  \vn{z_plane\$} & \vn{live_reversed\$} \\
-7: Backwards kicked forward & F &  \vn{z_plane\$} & \vn{exit_end\$} \\
-\bottomrule
-\end{tabular*}
-\label{tb:tracking-apertures}
-\end{table}
-%=====================TABLE===============================
 
 %----------------------------------------------------------------
 \section {Tracking Methods}
@@ -377,12 +460,12 @@ Trajectories are labeled as in Fig.~\ref{fg:tracking-apertures}}
 For each element the method of tracking may be set either via the
 input lattice file (see \sref{s:tkm}) or directly in the
 program by setting the \vn{%tracking_method} attribute of an element
-\begin{verbatim}
+\begin{example}
   type (ele_struct) ele
   ...
   ele%tracking_method = boris$  ! for boris tracking
   print *, 'Tracking_method: ', calc_method_name(ele%tracking_method)
-\end{verbatim}
+\end{example}
 To form the corresponding parameter to a given tracking method just
 put ``\$'' after the name. For example, the \vn{bmad_standard}
 tracking method is specified by the \vn{bmad_standard\$} parameter. To
@@ -399,6 +482,21 @@ routines (\vn{lat_make_mat6}, etc.)  will do tracking.
 \index{synchrotron radiation!calculating}
 \bmad simulates radiation damping and excitation by applying a kick
 just before and after each element. 
+
+%----------------------------------------------------------------
+\section{Time Tracking}
+\label{s:time.tracking}
+
+Time tracking uses time as the independent variable as opposed to the
+standard $s$ based tracking. Time tracking is useful when a particle's
+trajectory can reverse itself longitudinally. For example, low energy
+particles generated when a relativistic particle hits the vacuum
+chamber wall are good candidates for time tracking. 
+
+Currently, the only \vn{ele%tracking_method} available for time
+tracking is \vn{time_runge_kutta\$}. Time tracking needs extra
+bookkeeping due to the fact that the particle may reverse directions.
+See the \vn{dark_current_tracker} program as an example. 
 
 %----------------------------------------------------------------
 \section{Taylor Maps}

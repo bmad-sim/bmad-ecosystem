@@ -22,15 +22,11 @@
 !    %ref_time             -- real(rp): time ref particle passes exit end
 !    %s                    -- real(rp): longitudinal ref position at exit end
 !   param                  -- lat_param_struct: lattice parameters
-!    %particle             -- integer: positron$, electron$, etc.  
 !
 ! Output:
 !   end_orb     -- coord_struct: end position, t-based global
 !   err_flag    -- Logical: Set True if there is an error. False otherwise
 !   track       -- track_struct (optional): particle path
-!   param       -- lat_param_struct: lattice parameters
-!    %particle             -- integer: positron$, electron$, etc.  
-!    %lost                 -- logical: False only if particle leaves exit end
 !-
 
 
@@ -74,7 +70,6 @@ logical :: abs_time, err_flag, err
 ! Reset particle lost status
 
 err_flag = .true.
-param%lost = .False.
 
 end_orb = start_orb
 
@@ -92,7 +87,11 @@ if (ele%value(l$) .eq. 0) then
   endif
   ! Reset particle to s-coordinates
   end_orb = start_orb
-  end_orb%status = outside$
+  if (end_orb%p0c > 0) then
+    end_orb%location = exit_end$
+  else
+    end_orb%location = entrance_end$
+  endif
   err_flag = .false.
   return
 end if
@@ -117,17 +116,17 @@ enddo
 !Convert particle to element coordinates
 
 ! Particle is moving forward towards the entrance
-if (end_orb%p0c > 0 .and. end_orb%status == outside$) then
-  call offset_particle(ele, param, end_orb, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
+if (end_orb%p0c > 0 .and. end_orb%location /= inside$) then
+  call offset_particle (ele, end_orb, set$, set_canonical = .false., ds_pos = 0.0_rp ) 
 
 ! Interior start, reference momentum is at the end. No edge kicks are given
-elseif (end_orb%status == inside$) then
-  call offset_particle(ele, param, end_orb, set$, set_canonical = .false., &
+elseif (end_orb%location == inside$) then
+  call offset_particle (ele, end_orb, set$, set_canonical = .false., &
                        ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
 
 ! Particle is at the exit surface, should be moving backwards
-elseif (end_orb%p0c < 0 .and. end_orb%status == outside$) then
-  call offset_particle(ele, param, end_orb, set$, set_canonical = .false., &
+elseif (end_orb%p0c < 0 .and. end_orb%location /= inside$) then
+  call offset_particle (ele, end_orb, set$, set_canonical = .false., &
                        ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
 
 else
@@ -151,10 +150,9 @@ time = particle_time(start_orb, ele)
 ele_origin%vec = [0.0_rp, 0.0_rp,  0.0_rp,  0.0_rp, s_rel,  0.0_rp ]
 call  particle_hit_wall_check_time(ele_origin, end_orb, param, ele)
 
-if (param%lost) then
+if (.not. particle_is_moving_forward(end_orb)) then
 
   end_orb = start_orb
-  end_orb%status = dead$
    
   !Allocate track array and set value
   if ( present(track) ) then
@@ -219,7 +217,7 @@ else
       enddo
       if (abs(end_orb%vec(5) - ele%value(L$)) < bmad_com%significant_length .and. end_orb%vec(6) > 0) exit
       if (abs(end_orb%vec(5) - 0.0_rp)        < bmad_com%significant_length .and. end_orb%vec(6) < 0) exit
-      if ( end_orb%status == dead$) exit
+      if (end_orb%state /= alive$) exit
       
       ! Track
       call odeint_bmad_time(end_orb, ele, param, s1, s2, time, dt_step, local_ref_frame, err, track)
@@ -235,7 +233,7 @@ deallocate (edge)
 !------
 !Convert back to s-based coordinates
 
-if (end_orb%status == outside$ .and. end_orb%vec(6) < 0) then
+if (end_orb%location /= inside$ .and. end_orb%vec(6) < 0) then
   !Particle left entrance end going backwards
   !set reference time and momentum
   end_orb%p0c = -1*ele%value(p0c_start$)
@@ -245,9 +243,9 @@ if (end_orb%status == outside$ .and. end_orb%vec(6) < 0) then
   call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
  ! call apply_hard_edge_kick (end_orb, ele, param, entrance_end$)
   !unset
-  call offset_particle(ele, param, end_orb, unset$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, unset$, set_canonical = .false.)
 
-elseif (end_orb%status == dead$) then
+elseif (end_orb%state /= alive$) then
     !Particle is lost in the interior of the element.
     !  The reference is a the end of the element
     if (end_orb%vec(6) < 0) then
@@ -259,10 +257,10 @@ elseif (end_orb%status == dead$) then
     !ele(t-based) -> ele(s-based)
     call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
     !unset
-    call offset_particle(ele, param, end_orb, unset$, set_canonical = .false., &
+    call offset_particle (ele, end_orb, unset$, set_canonical = .false., &
                                         ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
 
-elseif (end_orb%status == outside$ .and. end_orb%vec(6) .ge. 0) then
+elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   !Particle left exit end going forward
   end_orb%p0c = ele%value(p0c$)
   ref_time = ele%ref_time
@@ -270,7 +268,7 @@ elseif (end_orb%status == outside$ .and. end_orb%vec(6) .ge. 0) then
   call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
   !call apply_hard_edge_kick (end_orb, ele, param, exit_end$)
   !unset
-  call offset_particle(ele, param, end_orb, unset$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, unset$, set_canonical = .false.)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)

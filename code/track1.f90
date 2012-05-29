@@ -24,15 +24,9 @@
 !
 ! Output:
 !   end_orb   -- Coord_struct: End position.
-!   param
-!     %lost          -- Set True If the particle cannot make it through an element.
-!                         Set False otherwise.
-!     %end_lost_at   -- entrance_end$ or exit_end$.
-!     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
-!                         z_plane$ (turned around in an lcavity).
 !   track     -- track_struct, optional: Structure holding the track information if the 
 !                  tracking method does tracking step-by-step.
-!   err_flag  -- Logical: Set true if there is an error. False otherwise.
+!   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
 !
 ! Notes:
 ! It is assumed that HKICK and VKICK are the kicks in the horizontal
@@ -65,7 +59,7 @@ logical err, do_extra
 
 !
 
-if (start_orb%status == dead$) then
+if (start_orb%state /= alive$) then
   end_orb = start_orb
   end_orb%vec = 0
   if (present(err_flag)) err_flag = .false.
@@ -76,14 +70,22 @@ if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
 do_extra = .not. logic_option(.false., ignore_radiation)
 
-! Correct start_orb %beta and %p0c.
-! Doing this here to be compatible with programs that do not set this.
+! For historical reasons, the calling routine may not have correctly 
+! initialized the starting orbit. If so, we do an init here.
+! Time-Runge kutta is tricky so do not attempt to do a set.
 
-if (ele%tracking_method /= time_runge_kutta$ .and. start_orb%beta < 0) then
+if (start_orb%species == not_set$) then
+
+  if (ele%tracking_method == time_runge_kutta$) then
+    call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED!')
+    return
+  endif
+
   p0c_start = ele%value(p0c_start$)
   call convert_pc_to (p0c_start * (1 + start2_orb%vec(6)), param%particle, beta = start2_orb%beta)
   start2_orb%p0c = p0c_start
-  start2_orb%status = outside$
+  start2_orb%species = param%particle
+  start2_orb%location = entrance_end$
 endif
 
 ! custom tracking if the custom routine is to do everything
@@ -96,15 +98,14 @@ endif
 
 ! Init
 
-param%lost = .false.  ! assume everything will be OK
-
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
+
+end_orb%ix_ele = ele%ix_ele
 
 ! check for particles outside aperture.
 
 if (end_orb%p0c < 0) then
   call check_aperture_limit (start2_orb, ele, exit_end$, param)
-  param%lost = .true.  ! That is, not moving forward.
 else
   call check_aperture_limit (start2_orb, ele, entrance_end$, param)
 endif
@@ -113,9 +114,8 @@ if (ele%aperture_at == surface$) then
   call check_aperture_limit (start2_orb, ele, surface$, param)
 endif
 
-if (start2_orb%status == dead$) then
+if (start2_orb%state /= alive$) then
   end_orb = start2_orb
-  end_orb%ix_lost = ele%ix_ele
   if (present(err_flag)) err_flag = .false.
   return
 endif
@@ -183,6 +183,14 @@ case default
 
 end select
 
+if (tracking_method /= time_runge_kutta$) then
+  if (end_orb%state == alive$) then
+    end_orb%location = exit_end$
+  else
+    end_orb%location = inside$
+  endif
+endif
+
 ! Radiation damping and/or fluctuations for the last half of the element
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
@@ -205,12 +213,10 @@ if (bmad_com%spin_tracking_on .and. do_extra) call track1_spin (start2_orb, ele,
 
 if (end_orb%p0c < 0) then   ! At entrance end...
   call check_aperture_limit (start2_orb, ele, entrance_end$, param)
-  param%lost = .true.  ! That is, not moving forward.
 else                        ! At exit end...
   call check_aperture_limit (end_orb, ele, exit_end$, param)
 endif
 
 if (present(err_flag)) err_flag = .false.
-if (end_orb%status == dead$) end_orb%ix_lost = ele%ix_ele
 
 end subroutine

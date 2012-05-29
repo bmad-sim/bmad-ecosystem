@@ -115,7 +115,7 @@ if (calculate_mat6) then
   call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end_orb%vec)
 endif
 
-if (do_offset) call offset_particle (ele, param, end_orb, set$, set_canonical = .false.)
+if (do_offset) call offset_particle (ele, end_orb, set$, set_canonical = .false.)
 
 ! init
 
@@ -135,8 +135,8 @@ endif
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) then
 
-  mc2 = mass_of(param%particle)
-  gamma_0 = ele%value(e_tot$) / mass_of(param%particle)
+  mc2 = mass_of(start_orb%species)
+  gamma_0 = ele%value(e_tot$) / mass_of(start_orb%species)
 
   fact_d = 0
   if (bmad_com%radiation_damping_on) fact_d = 2 * classical_radius_factor * gamma_0**3 * ds / (3 * mc2)
@@ -354,7 +354,7 @@ if (calculate_mat6) then
   call mat6_add_pitch (x_pitch, y_pitch, mat6)
 endif
 
-if (do_offset) call offset_particle (ele, param, end_orb, unset$, set_canonical = .false.)
+if (do_offset) call offset_particle (ele, end_orb, unset$, set_canonical = .false.)
 
 ! Correct z-position for wigglers, etc. 
 
@@ -389,10 +389,19 @@ integer plane
 
 print *, 'ERROR IN SYMP_LIE_BMAD: FLOATING OVERFLOW IN WIGGLER TRACKING.'
 print *, '      PARTICLE WILL BE TAGGED AS LOST.'
-param%plane_lost_at = plane
-end_orb%status = dead$
-end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
-end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
+
+if (plane == x_plane$) then
+  end_orb%vec(1) = sign(2 * bmad_com%max_aperture_limit, end_orb%vec(1))
+  if (end_orb%vec(1) > 0) then ; end_orb%state = lost_pos_x_aperture$
+  else;                          end_orb%state = lost_neg_x_aperture$
+  endif
+else
+  end_orb%vec(3) = sign(2 * bmad_com%max_aperture_limit, end_orb%vec(3))
+  if (end_orb%vec(3) > 0) then ; end_orb%state = lost_pos_y_aperture$
+  else;                          end_orb%state = lost_neg_y_aperture$
+  endif
+endif
+
 err = .true.
 
 end subroutine err_set
@@ -409,7 +418,7 @@ integer ix
 !
 
 track%orb(ix) = end_orb
-call offset_particle (ele, param, track%orb(ix), unset$, set_canonical = .false.)
+call offset_particle (ele, track%orb(ix), unset$, set_canonical = .false.)
   
 if (calculate_mat6) track%map(ix)%mat6 = mat6
 
