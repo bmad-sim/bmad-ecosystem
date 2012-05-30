@@ -89,8 +89,9 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: phase_x = 0         ! Photon phase, x-axis component
   real(rp) :: phase_y = 0         ! Photon phase, y-axis component
   real(rp) :: charge = 0          ! charge in a particle (Coul).
-  real(rp) :: p0c = 0             ! Reference momentum. For non-photons: Negative -> going backwards.
-  real(rp) :: beta = -1           ! Velocity / c_light. deltaE/E for photons.
+  real(rp) :: p0c = 0             ! For non-photons: Reference momentum. Negative -> going backwards.
+                                  !     For photons: Photon momentum (not reference).
+  real(rp) :: beta = -1           ! Velocity / c_light.
   integer :: species = not_set$   ! Type of particle. not_set$ when initialized before tracking.
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.

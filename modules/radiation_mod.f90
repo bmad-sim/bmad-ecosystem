@@ -237,7 +237,7 @@ implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) start1, start, end
+type (coord_struct) start0_orb, start_orb, end_orb
 type (track_struct), save :: track
 
 real(rp), parameter :: del_orb = 1e-4
@@ -254,14 +254,14 @@ if (ele%sub_key /= map_type$) return
 if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
 ele%rad_int_cache%orb0 = ele%map_ref_orb_in
 
-call init_coord (start1, ele%map_ref_orb_in, ele, param%particle)
-call symp_lie_bmad (ele, param, start1, end, .false., track)
+call init_coord (start0_orb, ele%map_ref_orb_in, ele, param%particle)
+call symp_lie_bmad (ele, param, start0_orb, end_orb, .false., track)
 call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
 
 do j = 1, 4
-  start = start1
-  start%vec(j) = start%vec(j) + del_orb
-  call symp_lie_bmad (ele, param, start, end, .false., track)
+  start_orb = start0_orb
+  start_orb%vec(j) = start_orb%vec(j) + del_orb
+  call symp_lie_bmad (ele, param, start_orb, end_orb, .false., track)
   call calc_g (track, g2, g3)
   ele%rad_int_cache%dg2_dorb(j) = (g2 - ele%rad_int_cache%g2_0) / del_orb
   ele%rad_int_cache%dg3_dorb(j) = (g3 - ele%rad_int_cache%g3_0) / del_orb

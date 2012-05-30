@@ -48,7 +48,7 @@ type (ele_struct), target:: ele
 type (coord_struct), target:: end_orb
 type (lat_param_struct) :: param
 
-real(rp) k0_outside_norm(3), hit_point(3), wavelength, sin_g, cos_g, f
+real(rp) k0_outside_norm(3), hit_point(3), wavelength, sin_g, cos_g
 real(rp) s_len, kz_air, temp_vec(3)
 real(rp), pointer :: val(:)
 
@@ -61,7 +61,7 @@ character(32), parameter :: r_name = 'track1_multilayer_mirror'
 !
 
 val => ele%value
-wavelength = val(ref_wavelength$) / (1 + end_orb%vec(6))
+wavelength = c_light * h_planck / end_orb%p0c
 
 ! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
@@ -69,11 +69,10 @@ wavelength = val(ref_wavelength$) / (1 + end_orb%vec(6))
 
 sin_g = sin(val(graze_angle$))
 cos_g = cos(val(graze_angle$))
-f = sqrt (1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)
 
-k0_outside_norm(1) =  cos_g * end_orb%vec(2) + f * sin_g
+k0_outside_norm(1) =  cos_g * end_orb%vec(2) + sin_g * end_orb%vec(6)
 k0_outside_norm(2) =          end_orb%vec(4)
-k0_outside_norm(3) = -sin_g * end_orb%vec(2) + f * cos_g
+k0_outside_norm(3) = -sin_g * end_orb%vec(2) + cos_g * end_orb%vec(6)
 
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
@@ -126,6 +125,7 @@ endif
 
 end_orb%vec(2) = k0_outside_norm(1) * cos_g + k0_outside_norm(3) * sin_g
 end_orb%vec(4) = k0_outside_norm(2)
+end_orb%vec(6) = sqrt(1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)
 
 ! Compute position, backpropagating the ray
 !! end_orb%vec(5) not computed properly
@@ -134,7 +134,7 @@ temp_vec(1) = cos_g * hit_point(1) - sin_g * hit_point(3)
 temp_vec(2) = hit_point(2)
 temp_vec(3) = sin_g * hit_point(1) + cos_g * hit_point(3)
 
-temp_vec = temp_vec - [end_orb%vec(2), end_orb%vec(4), sqrt(1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)] * temp_vec(3)
+temp_vec = temp_vec - end_orb%vec(2:6:2) * temp_vec(3)
 
 end_orb%vec(1) = temp_vec(1)
 end_orb%vec(3) = temp_vec(2)
@@ -241,7 +241,7 @@ type (crystal_param_struct) c_param
 
 real(rp), target :: m_in(3, 3)
 real(rp), target :: k0_outside_norm(3)
-real(rp) f, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
+real(rp) sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc, tilt_cor_mat(3,3)
 real(rp) h_norm(3), kh_outside_norm(3), e_tot, pc, p_factor
 real(rp) m_out(3, 3), y_out(3)
@@ -253,7 +253,7 @@ logical curved_surface
 
 !
 
-wavelength = ele%value(ref_wavelength$) / (1 + end_orb%vec(6))
+wavelength = c_light * h_planck / end_orb%p0c
 
 ! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
@@ -261,11 +261,10 @@ wavelength = ele%value(ref_wavelength$) / (1 + end_orb%vec(6))
 
 sin_g = sin(ele%value(graze_angle_in$))
 cos_g = cos(ele%value(graze_angle_in$))
-f = sqrt (1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)
 
-k0_outside_norm(1) =  cos_g * end_orb%vec(2) + f * sin_g
+k0_outside_norm(1) =  cos_g * end_orb%vec(2) + sin_g * end_orb%vec(6)
 k0_outside_norm(2) = end_orb%vec(4)
-k0_outside_norm(3) = -sin_g * end_orb%vec(2) + f * cos_g
+k0_outside_norm(3) = -sin_g * end_orb%vec(2) + cos_g * end_orb%vec(6)
 
 ! m_in 
 
@@ -370,6 +369,7 @@ m_out(3,:) = [ele%value(kh_x_norm$), ele%value(kh_y_norm$), ele%value(kh_z_norm$
 direction = matmul(m_out, kh_outside_norm)
 end_orb%vec(2) = direction(1)
 end_orb%vec(4) = direction(2)
+end_orb%vec(6) = sqrt(1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)
 
 ! Compute position, backpropagating the ray
 

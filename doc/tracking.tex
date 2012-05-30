@@ -48,8 +48,9 @@ longitudinal position in the lattice. The definition of the
     real(rp) phase_x    ! Photon phase, x-axis component
     real(rp) phase_y    ! Photon phase, y-axis component
     real(rp) charge     ! charge in a particle (Coul).
-    real(rp) p0c        ! Reference momentum. For non-photons: Negative -> going backwards.
-    real(rp) beta       ! Velocity / c_light. deltaE/E for photons.
+    real(rp) p0c        ! For non-photons: Reference momentum. Negative -> going backwards.
+                        !     For photons: Photon momentum (not reference).
+    real(rp) beta       ! Velocity / c_light. 
     integer species     ! Type of particle. not_set\$ when initialized before tracking.
     integer ix_ele      ! Index of element particle was tracked through.
                         !   May be -1 or -2 if element is not associated with a lattice.
@@ -63,16 +64,14 @@ The \vn{%vec(:)} array defines the phase space coordinants
 phase space coordinates (\sref{s:photon.phase.space}) is different
 from that used for charged particles.
 
-The reference momentum in eV is stored in the \vn{p0c} component.  For
-charged-particles, \vn{%p0c} may be negative if the particle is
-traveling backwards longitudinally. The normalized velocity $v/c$ is
-stored in \vn{%beta}.
+For charged-particles, the reference momentum in eV is stored in the
+\vn{%p0c} component. For photons, \vn{%p0c} is the actual (not
+reference} momentum. For chanrged-particles, \vn{%p0c} may be negative
+if the particle is traveling backwards longitudinally. For photons,
+\vn{%vec(6)} ($\beta_z$) will be negative if the photon is going
+backward.
 
-For photons, the reference momentum \vn{%p0c} is always
-positive and \vn{%vec(6)} ($\beta_z$) will be negative if the photon
-is going backward. Since the velocity of a photon is always $c$, the 
-\vn{%beta} component is used to store the energy deviation from the
-reference particle. 
+The normalized velocity $v/c$ is stored in \vn{%beta}.
 
 The \vn{%spin} component gives a particles spin (\sref{s:spin.dyn}) in
 spinor notation.

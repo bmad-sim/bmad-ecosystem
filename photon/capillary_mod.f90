@@ -383,7 +383,7 @@ vec(2:6:2) = vec(2:6:2) - 2 * cos_perp * perp
 ! Check for absorbtion if the graze angle is too large.
 
 graze_angle = pi/2 - acos(cos_perp)
-energy = photon%now%orb%p0c * (1 + photon%now%orb%beta)
+energy = photon%now%orb%p0c 
 if (graze_angle > ele%value(critical_angle_factor$) / energy) photon%now%orb%state = lost$
 
 end subroutine capillary_reflect_photon

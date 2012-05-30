@@ -329,10 +329,11 @@ end subroutine check_controller_controls
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord (orb, vec, ele, particle)
+! Subroutine init_coord (orb, vec, ele, particle, E_photon)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! If the ele argument is present, the particle is taken to be at the entrance end of this element.
+!
 ! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
 ! Additionally, If ele is an init_ele  and vec is zero or not present, orb%vec(6) is shifted
 ! so that the particle's energy is maintained at ele%value(p0c_start$).
@@ -344,12 +345,14 @@ end subroutine check_controller_controls
 !   vec(6)   -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
 !   ele      -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
 !   particle -- Integer, optional: Particle type (electron$, etc.). Must be present if ele is present.
+!   E_photon -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
 !
 ! Output:
 !   orb -- Coord_struct: Initialized coordinate.
+!                 Note: For photons, orb%vec(6) is computed as sqrt(1 - vec(2)^2 - vec(4)^2) if needed.
 !-
 
-subroutine init_coord (orb, vec, ele, particle)
+subroutine init_coord (orb, vec, ele, particle, E_photon)
 
 implicit none
 
@@ -357,7 +360,7 @@ type (coord_struct) orb
 type (coord_struct), save :: init_orb
 type (ele_struct), optional :: ele
 
-real(rp), optional :: vec(:)
+real(rp), optional :: vec(:), E_photon
 real(rp) vec_save(6)
 integer, optional :: particle
 
@@ -372,29 +375,65 @@ else
   orb%vec = 0
 endif
 
-if (present(ele)) then
-  if (ele%key == init_ele$) then
-    orb%p0c = ele%value(p0c$)
-    ! Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
-    if (.not. present(vec)) orb%vec(6) = (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
-  else
-    orb%p0c = ele%value(p0c_start$)
-  endif
+orb%location = entrance_end$
+orb%state = alive$
 
-  if (orb%vec(6) == 0) then
-    orb%beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
-  else
-    call convert_pc_to (ele%value(p0c_start$) * (1 + orb%vec(6)), particle, beta = orb%beta)
+orb%species = positron$
+if (present(particle)) then
+  orb%species = particle
+elseif (present(ele)) then
+  if (associated (ele%lat)) then
+    orb%species = ele%lat%branch(ele%ix_branch)%param%particle
   endif
+endif
+
+orb%p0c = 0
+if (orb%species == photon$) then
+  if (present(E_photon)) then
+    orb%p0c = E_photon
+  elseif (present(ele)) then
+    orb%p0c = ele%value(p0c$)
+  endif
+endif
+
+! If ele is present...
+
+if (present(ele)) then
 
   orb%s = ele%s - ele%value(l$)
-  if (orb%beta == 0) then
-    orb%t = ele%value(ref_time_start$)
+
+  if (ele%key == init_ele$) then
+    orb%ix_ele = ele%ix_ele + 1
   else
-    orb%t = ele%value(ref_time_start$) - orb%vec(5) / (orb%beta * c_light)
+    orb%ix_ele = ele%ix_ele
   endif
 
-  orb%species = particle
+
+  if (orb%species == photon$) then
+    if (orb%vec(6) >= 0) orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
+    orb%beta = 1
+
+  else
+    if (ele%key == init_ele$) then
+      orb%p0c = ele%value(p0c$)
+      ! Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
+      if (.not. present(vec)) orb%vec(6) = (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
+    else
+      orb%p0c = ele%value(p0c_start$)
+    endif
+
+    if (orb%vec(6) == 0) then
+      orb%beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
+    else
+      call convert_pc_to (ele%value(p0c_start$) * (1 + orb%vec(6)), orb%species, beta = orb%beta)
+    endif
+
+    if (orb%beta == 0) then
+      orb%t = ele%value(ref_time_start$)
+    else
+      orb%t = ele%value(ref_time_start$) - orb%vec(5) / (orb%beta * c_light)
+    endif
+  endif
 
 endif
 

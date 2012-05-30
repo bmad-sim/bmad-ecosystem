@@ -150,7 +150,7 @@ time = particle_time(start_orb, ele)
 ele_origin%vec = [0.0_rp, 0.0_rp,  0.0_rp,  0.0_rp, s_rel,  0.0_rp ]
 call  particle_hit_wall_check_time(ele_origin, end_orb, param, ele)
 
-if (.not. particle_is_moving_forward(end_orb)) then
+if (end_orb%state /= alive$) then
 
   end_orb = start_orb
    
