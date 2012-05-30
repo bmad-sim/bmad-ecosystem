@@ -75,17 +75,11 @@ do_extra = .not. logic_option(.false., ignore_radiation)
 ! Time-Runge kutta is tricky so do not attempt to do a set.
 
 if (start_orb%species == not_set$) then
-
   if (ele%tracking_method == time_runge_kutta$) then
     call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED!')
     return
   endif
-
-  p0c_start = ele%value(p0c_start$)
-  call convert_pc_to (p0c_start * (1 + start2_orb%vec(6)), param%particle, beta = start2_orb%beta)
-  start2_orb%p0c = p0c_start
-  start2_orb%species = param%particle
-  start2_orb%location = entrance_end$
+  call init_coord(start2_orb, start2_orb%vec, ele, param%particle) 
 endif
 
 ! custom tracking if the custom routine is to do everything
