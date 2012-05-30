@@ -1,5 +1,5 @@
 !+
-! Subroutine offset_photon (ele, param, coord, set, offset_position_only)
+! Subroutine offset_photon (ele, coord, set, offset_position_only)
 !
 ! Routine to effectively offset an element by instead offsetting
 ! the photon position and field to correspond to the local crystal or mirror coordinates.
@@ -32,8 +32,6 @@
 !   coord     -- Coord_struct: Coordinates of the particle.
 !     %vec(6)            -- Energy deviation dE/E. 
 !                          Used to modify %vec(2) and %vec(4)
-!   param     -- lat_param_struct:
-!     %particle   -- What kind of particle (for elseparator elements).
 !   set       -- Logical: 
 !                   T (= set$)   -> Translate from lab coords to incoming local 
 !                                     element coords.
@@ -47,17 +45,16 @@
 !     coord -- Coord_struct: Coordinates of particle.
 !-
 
-subroutine offset_photon (ele, param, coord, set, offset_position_only)
+subroutine offset_photon (ele, coord, set, offset_position_only)
 
 use track1_mod
 
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) :: param
 type (coord_struct), target :: coord
 
-real(rp) c2g, s2g, ct, st, offset(6), tilt
+real(rp) c2g, s2g, ct, st, offset(6), tilt, r(3), ds_center
 real(rp) off(3), rot(3), project_x(3), project_y(3), project_s(3), rot_mat(3,3)
 real(rp), pointer :: p(:), vec(:)
 complex(rp) efield_x, efield_y, efieldout_x, efieldout_y
@@ -73,6 +70,7 @@ case (crystal$, mirror$, multilayer_mirror$)
   is_reflective_element = .true.
 case default
   is_reflective_element = .false.
+  ds_center = coord%vec(5) - ele%value(l$)/2
 end select
 
 !----------------------------------------------------------------
@@ -101,7 +99,9 @@ if (set) then
 
   if (p(x_offset_tot$) /= 0 .or. p(y_offset_tot$) /= 0) then
     call pitches_to_rotation_matrix (p(x_offset_tot$), p(y_offset_tot$), set, rot_mat)
-    vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
+    r = [vec(1:3:2), ds_center]
+    vec(1:5:2) = matmul(rot_mat, r)
+    vec(5) = vec(5) + ele%value(l$)/2
     vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
   endif
 
@@ -224,7 +224,9 @@ else
 
     if (p(x_offset_tot$) /= 0 .or. p(y_offset_tot$) /= 0) then
       call pitches_to_rotation_matrix (-p(x_offset_tot$), -p(y_offset_tot$), set, rot_mat)
-      vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
+      r = [vec(1:3:2), ds_center]
+      vec(1:5:2) = matmul(rot_mat, r)
+      vec(5) = vec(5) - ele%value(l$)/2
       vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
     endif
 

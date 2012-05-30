@@ -205,7 +205,7 @@ an array of \vn{coord_struct}s:
   type (coord_struct), allocatable :: orbit(:)
   type (lat_struct) lat
   ...
-  call reallocate_coord (orbit, lat%branch(i)%n_ele_max)
+  call reallocate_coord (orbit, lat, ix_branch)
 \end{example}
 Alternatively, the \vn{save} attribute can be used so that the array
 stays around until the next time the routine is called
@@ -333,7 +333,7 @@ last tracked element within a loop:
   type (lat_struct) lat             ! lattice to track through
   type (coord_struct), allocatable :: orbit(:)
   ...
-  call reallocate_coord (orbit, lat%branch(1)%n_ele_max)
+  call reallocate_coord (orbit, lat, ix_branch = 1)
   orbit(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
   do i = 1, n_turns
     call track_all (lat, orbit, 1)

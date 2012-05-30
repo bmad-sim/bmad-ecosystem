@@ -254,7 +254,7 @@ if (ele%sub_key /= map_type$) return
 if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
 ele%rad_int_cache%orb0 = ele%map_ref_orb_in
 
-start1%vec = ele%map_ref_orb_in
+call init_coord (start1, ele%map_ref_orb_in, ele, param%particle)
 call symp_lie_bmad (ele, param, start1, end, .false., track)
 call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
 
