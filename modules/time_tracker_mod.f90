@@ -411,32 +411,30 @@ real(rp) :: edge_tol = 1e-8
 
 !-----------------------------------------------
 !Do nothing if there is no wall
-if ( .not. associated(ele%wall3d%section) ) then
-   return
-end if
 
-   
+if (.not. associated(ele%wall3d%section)) return
+
 !Prepare coordinate structures for capillary_photon_d_radius
+
 old_orb => particle%old%orb
 now_orb => particle%now%orb
 old_orb = orb
 now_orb = orb_new
 
-
 !If now_orb is before element, change it
 !We can do this because it can't hit the element wall outside of the
 !element, and these do not affect tracks
+
 if (now_orb%vec(5) < 0) then
    now_orb%vec(5) = 0
 end if
 
-
 !If now_orb is too close to the wall, move it edge_tol away
+
 if (abs(capillary_photon_d_radius(particle%now, ele)) < edge_tol) then
    now_orb%vec(1) = now_orb%vec(1) + sign(edge_tol, now_orb%vec(1))
    now_orb%vec(3) = now_orb%vec(3) + sign(edge_tol, now_orb%vec(3))
 end if
-
 
 !Change from particle coordinates to photon coordinates
 ! (coord_struct to photon_coord_struct)

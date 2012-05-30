@@ -182,18 +182,18 @@ case (bend_sol_quad$)
 
 case (capillary$) 
 
-  call offset_photon (ele, param, end_orb, set$)
+  call offset_photon (ele, end_orb, set$)
   call track_a_capillary (end_orb, ele)
-  call offset_particle (ele, end_orb, unset$)  
+  call offset_photon (ele, end_orb, unset$)  
 
 !-----------------------------------------------
 ! crystal
 
 case (crystal$) 
 
-  call offset_photon (ele, param, end_orb, set$)
+  call offset_photon (ele, end_orb, set$)
   call track1_crystal (ele, param, end_orb)
-  call offset_photon (ele, param, end_orb, unset$)
+  call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------
 ! drift
@@ -466,7 +466,7 @@ case (match$)
 
 case (mirror$)
 
-  call offset_photon (ele, param, end_orb, set$)
+  call offset_photon (ele, end_orb, set$)
 
   ! Check aperture
 
@@ -488,16 +488,16 @@ case (mirror$)
          end_orb%vec(3), &
          end_orb%vec(4) - 2 * end_orb%vec(3) * ele%value(g_trans$)]
 
-  call offset_photon (ele, param, end_orb, unset$)
+  call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------
 ! multilayer_mirror
 
 case (multilayer_mirror$) 
 
-  call offset_photon (ele, param, end_orb, set$)
+  call offset_photon (ele, end_orb, set$)
   call track1_multilayer_mirror (ele, param, end_orb)
-  call offset_photon (ele, param, end_orb, unset$)
+  call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------
 ! multipole, ab_multipole
