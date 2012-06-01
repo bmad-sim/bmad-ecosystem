@@ -603,11 +603,7 @@ endif
 ! This is important with common_lattice since tao_lat%lat_branch(0)%orbit(0) has been overwritten.
 
 if (model%lat%branch(ix_branch)%param%lattice_type == linear_lattice$) then
-  ele0 => model%lat%ele(0)
-  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start%vec, &
-                                                            ele0, model%lat%param%particle)
-  model%lat_branch(ix_branch)%orbit(0)%vec(6) = model%lat_branch(ix_branch)%orbit(0)%vec(6) + &
-            (ele0%value(p0c_start$) - ele0%value(p0c$)) / ele0%value(p0c$)
+  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start, model%lat%ele(0))
 else
   model%lat_branch(ix_branch)%orbit(0) = u%model_orb0
 endif
