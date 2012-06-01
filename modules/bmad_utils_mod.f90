@@ -17,7 +17,46 @@ use basic_attribute_mod
 private pointer_to_ele1, pointer_to_ele2
 private pointer_to_branch_given_name, pointer_to_branch_given_ele
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine init_coord (...)
+!
+! Routine to initialize a coord_struct. 
+! If the ele argument is present, the particle is taken to be at the entrance end of this element.
+!
+! This routine is an overloaded name for:
+!   Subroutine init_coord1 (orb, vec, ele, particle, E_photon)
+!   Subroutine init_coord2 (orb, orb_in, ele)
+!
+! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
+! Additionally, If ele is an init_ele  and vec is zero or not present, orb%vec(6) is shifted
+! so that the particle's energy is maintained at ele%value(p0c_start$).
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   orb_in   -- Coord_struct: Input orbit.
+!   vec(6)   -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
+!   ele      -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
+!   particle -- Integer, optional: Particle type (electron$, etc.). Must be present if ele is present.
+!   E_photon -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
+!
+! Output:
+!   orb -- Coord_struct: Initialized coordinate.
+!                 Note: For photons, orb%vec(6) is computed as sqrt(1 - vec(2)^2 - vec(4)^2) if needed.
+!-
 
+interface init_coord
+  module procedure init_coord1
+  module procedure init_coord2
+end interface
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 !+
 ! Subroutine reallocate_coord (...)
 !
@@ -329,70 +368,53 @@ end subroutine check_controller_controls
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord (orb, vec, ele, particle, E_photon)
+! Subroutine init_coord1 (orb, vec, ele, particle, E_photon)
 ! 
 ! Subroutine to initialize a coord_struct. 
-! If the ele argument is present, the particle is taken to be at the entrance end of this element.
-!
-! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
-! Additionally, If ele is an init_ele  and vec is zero or not present, orb%vec(6) is shifted
-! so that the particle's energy is maintained at ele%value(p0c_start$).
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   vec(6)   -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
-!   ele      -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
-!   particle -- Integer, optional: Particle type (electron$, etc.). Must be present if ele is present.
-!   E_photon -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
-!
-! Output:
-!   orb -- Coord_struct: Initialized coordinate.
-!                 Note: For photons, orb%vec(6) is computed as sqrt(1 - vec(2)^2 - vec(4)^2) if needed.
+! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord (orb, vec, ele, particle, E_photon)
+subroutine init_coord1 (orb, vec, ele, particle, E_photon)
 
 implicit none
 
-type (coord_struct) orb
+type (coord_struct) orb, orb2
 type (coord_struct), save :: init_orb
 type (ele_struct), optional :: ele
 
 real(rp), optional :: vec(:), E_photon
-real(rp) vec_save(6)
 integer, optional :: particle
 
-!
+! Use temporary orb2 so if actual arg for vec, particle, or E_photon
+! is part of the orb actual arg things do not get overwriten.
 
-if (present(vec)) vec_save = vec ! Just in case actual arg for vec is orb%vec.
-orb = init_orb                   ! See definition of coord_struct for default values.
+orb2 = init_orb                   ! See definition of coord_struct for default values.
 
 if (present(vec)) then
-  orb%vec = vec_save
+  orb2%vec = vec
 else
-  orb%vec = 0
+  orb2%vec = 0
 endif
 
-orb%location = entrance_end$
-orb%state = alive$
+orb2%location = entrance_end$
+orb2%state = alive$
 
-orb%species = positron$
 if (present(particle)) then
-  orb%species = particle
+  orb2%species = particle
 elseif (present(ele)) then
   if (associated (ele%lat)) then
-    orb%species = ele%lat%branch(ele%ix_branch)%param%particle
+    orb2%species = ele%lat%branch(ele%ix_branch)%param%particle
   endif
+elseif (orb2%species == not_set$) then
+  orb2%species = positron$
 endif
 
-orb%p0c = 0
-if (orb%species == photon$) then
+orb2%p0c = 0
+
+if (orb2%species == photon$) then
+  if (present(ele)) orb2%p0c = ele%value(p0c_start$)
   if (present(E_photon)) then
-    orb%p0c = E_photon
-  elseif (present(ele)) then
-    orb%p0c = ele%value(p0c$)
+    if (E_photon /= 0) orb2%p0c = E_photon
   endif
 endif
 
@@ -400,44 +422,78 @@ endif
 
 if (present(ele)) then
 
-  orb%s = ele%s - ele%value(l$)
+  orb2%s = ele%s - ele%value(l$)
 
   if (ele%key == init_ele$) then
-    orb%ix_ele = ele%ix_ele + 1
+    orb2%ix_ele = ele%ix_ele + 1
   else
-    orb%ix_ele = ele%ix_ele
+    orb2%ix_ele = ele%ix_ele
   endif
 
 
-  if (orb%species == photon$) then
-    if (orb%vec(6) >= 0) orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
-    orb%beta = 1
+  if (orb2%species == photon$) then
+    if (orb2%vec(6) >= 0) orb2%vec(6) = sqrt(1 - orb2%vec(2)**2 - orb2%vec(4)**2)
+    orb2%beta = 1
 
   else
     if (ele%key == init_ele$) then
-      orb%p0c = ele%value(p0c$)
+      orb2%p0c = ele%value(p0c$)
       ! Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
-      if (.not. present(vec)) orb%vec(6) = (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
+      orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
     else
-      orb%p0c = ele%value(p0c_start$)
+      orb2%p0c = ele%value(p0c_start$)
     endif
 
-    if (orb%vec(6) == 0) then
-      orb%beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
+    if (orb2%vec(6) == 0) then
+      orb2%beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
     else
-      call convert_pc_to (ele%value(p0c_start$) * (1 + orb%vec(6)), orb%species, beta = orb%beta)
+      call convert_pc_to (ele%value(p0c_start$) * (1 + orb2%vec(6)), orb2%species, beta = orb2%beta)
     endif
 
-    if (orb%beta == 0) then
-      orb%t = ele%value(ref_time_start$)
+    if (orb2%beta == 0) then
+      orb2%t = ele%value(ref_time_start$)
     else
-      orb%t = ele%value(ref_time_start$) - orb%vec(5) / (orb%beta * c_light)
+      orb2%t = ele%value(ref_time_start$) - orb2%vec(5) / (orb2%beta * c_light)
     endif
   endif
 
 endif
 
-end subroutine init_coord
+orb = orb2
+
+end subroutine init_coord1
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine init_coord2 (orb, orb_in, ele)
+! 
+! Subroutine to initialize a coord_struct. 
+! This subroutine is overloaded by init_coord. See init_coord for more details.
+!-
+
+subroutine init_coord2 (orb, orb_in, ele)
+
+implicit none
+
+type (coord_struct) orb, orb_in, orb_save
+type (ele_struct), optional :: ele
+
+!
+
+orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
+
+call init_coord1 (orb, orb_in%vec, ele, orb_in%species, orb_in%p0c)
+
+orb%spin      = orb_save%spin
+orb%e_field_x = orb_save%e_field_x
+orb%e_field_y = orb_save%e_field_y
+orb%phase_x   = orb_save%phase_x
+orb%phase_y   = orb_save%phase_y
+orb%charge    = orb_save%charge
+
+end subroutine init_coord2
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1034,8 +1090,6 @@ lat%input_file_name = ' '
 lat%param = param0
 call set_status_flags (lat%param%bookkeeping_state, ok$)
 
-call init_coord(lat%beam_start)
-
 call init_mode_info (lat%a)
 call init_mode_info (lat%b)
 call init_mode_info (lat%z)
@@ -1380,17 +1434,11 @@ if (allocated (coord)) then
     coord(i) = old(i)
   enddo
 
-  do i = n_old+1, n_coord
-    call init_coord (coord(i))
-  enddo
-
   deallocate(old)
 
 else
   allocate (coord(0:n_coord))
-  do i = 0, n_coord
-    call init_coord (coord(i))
-  enddo
+  call init_coord (coord(0))
 endif
 
 end subroutine reallocate_coord_n
