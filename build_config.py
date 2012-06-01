@@ -4,7 +4,7 @@
 #-----------------------------------------------------
 
 offline_release_build_request = [
-    'Linux_i686_intel-offline',
+    #'Linux_i686_intel-offline',
     'Linux_x86_64_intel-offline' 
     ]
 
@@ -42,7 +42,6 @@ makefile_dir = '/home/cesrulib/bin/Gmake'
 #-----------------------------------------------------
 repository_addresses = {
     'ACC-LEPP' : 'https://accserv.lepp.cornell.edu/svn',
-    ####'ACC-LEPP' : 'https://lnx770.lepp.cornell.edu/svn',
     'ACC-LEPP-local' : '/mnt/svn',
     'UAP-Sourceforge' : 'https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap'
     }
@@ -68,6 +67,7 @@ build_specs = {
                 '/trunk/src/sim_utils',
                 '/trunk/src/mpmnet',
                 '/trunk/src/cbi_net',
+                '/trunk/src/cbpmfio',
                 '/trunk/src/BeamInstSupport',
                 '/trunk/src/CBPM-TSHARC',
                 '/trunk/src/CBIC',
@@ -89,6 +89,7 @@ build_specs = {
                 '/trunk/src/examples',
                 '/trunk/src/genplt',
                 '/trunk/src/CBSM/xBSM/XbsmAnalysis'
+                
                 ##'/trunk/src/displays'
                 ##ccon_det
                 ##logit
@@ -115,6 +116,7 @@ build_specs = {
                 '/trunk/src/sim_utils',
                 '/trunk/src/mpmnet',
                 '/trunk/src/cbi_net',
+                '/trunk/src/cbpmfio',
                 '/trunk/src/BeamInstSupport',
                 '/trunk/src/CBPM-TSHARC',
                 '/trunk/src/CBIC',
@@ -135,56 +137,10 @@ build_specs = {
                 '/trunk/src/BPM_tbt_gain',
                 '/trunk/src/examples',
                 '/trunk/src/genplt',
-                '/trunk/src/CBSM/xBSM/XbsmAnalysis'
-                 
-                ##'/trunk/src/displays'
+                '/trunk/src/CBSM/xBSM/XbsmAnalysis',
+                '/trunk/src/displays',
+                '/trunk/src/logit'
                 ##ccon_det
-                ##logit
-                ##magstat
-                ##rfintl
-                ##simcon
-            ]
-        }
-    },
-    'Linux_i686_intel-online' : {
-        'type' : 'release',
-        'platform' : 'Linux_i686_intel',
-        'basedir' : '/nfs/cesr/online/lib',
-        'domain' : 'ONLINE',
-        'host'   : 'lnx184c.lns.cornell.edu',
-        'repositories' : {
-            'ACC-LEPP' : [
-                '/trunk/util',
-                '/trunk/Gmake',
-                '/trunk/src/include',
-                '/trunk/src/lattice',
-                '/trunk/src/c_utils',
-                '/trunk/src/recipes_f-90_LEPP',
-                '/trunk/src/sim_utils',
-                '/trunk/src/CesrBPM',
-                '/trunk/src/mpmnet',
-                '/trunk/src/cbi_net',
-                '/trunk/src/bmad',
-                '/trunk/src/bsim',
-                '/trunk/src/cesr_utils',
-                '/trunk/src/BeamInstSupport',
-                '/trunk/src/CBPM-TSHARC',
-                '/trunk/src/CBIC',
-                '/trunk/src/mpm_utils',
-                '/trunk/src/nonlin_bpm',
-                '/trunk/src/tao',
-                '/trunk/src/tao_cesr',
-                '/trunk/src/cesr_programs',
-                '/trunk/src/bmadz',
-                '/trunk/src/cesrv',
-                '/trunk/src/bsim_cesr',
-                '/trunk/src/util_programs',
-                '/trunk/src/BPM_tbt_gain',
-                '/trunk/src/examples',
-                #'/trunk/src/genplt', # enable when SBP is ready
-                #'/trunk/src/displays'
-                ##ccon_det
-                ##logit
                 ##magstat
                 ##rfintl
                 ##simcon
@@ -233,59 +189,6 @@ build_specs = {
                 ##magstat
                 ##rfintl
                 ##simcon
-            ]
-        }
-    },    
-    'OSF_alpha_hp-offline' : {
-        'type' : 'release',
-        'platform' : 'OSF_alpha_hp',
-        'basedir' : '/nfs/acc/libs',
-        'host' : 'cesr66.lns.cornell.edu',
-        'repositories' : {
-            'ACC-LEPP' : [
-                '/trunk/util',
-                '/trunk/Gmake',
-                '/trunk/src/lattice',
-                '/trunk/src/c_utils',
-                '/trunk/src/recipes_f-90_LEPP',
-                '/trunk/src/sim_utils',
-                '/trunk/src/mpmnet',
-                '/trunk/src/cbi_net',
-                '/trunk/src/BeamInstSupport',
-                '/trunk/src/CBPM-TSHARC',
-                '/trunk/src/bmad',
-                '/trunk/src/cesr_utils',
-                '/trunk/src/mpm_utils',
-                '/trunk/src/nonlin_bpm',
-                '/trunk/src/tao',
-                '/trunk/src/tao_cesr',
-                '/trunk/src/cesr_programs',
-                '/trunk/src/CesrBPM',
-                '/trunk/src/bmadz',
-                '/trunk/src/bsim',
-                '/trunk/src/bsim_cesr',
-                '/trunk/src/util_programs',
-                '/trunk/src/BPM_tbt_gain',
-                '/trunk/src/examples'
-            ]
-        }
-    },
-
-    
-    'Linux_i686_intel' : {
-        'type' : 'packages',
-        'platform' : 'Linux_i686_intel',
-        'basedir' : '/nfs/acc/libs',
-        'domain' : 'OFFLINE',
-        'host' : 'lnx209.lns.cornell.edu',
-        'repositories' : {
-            'ACC-LEPP' : [
-                '/trunk/packages/cfortran',
-                '/trunk/packages/forest',
-                '/trunk/packages/num_recipes/recipes_f-90',
-                '/trunk/packages/num_recipes/recipes_c-ansi',
-                '/trunk/packages/xsif',
-                '/trunk/packages/PGPLOT'
             ]
         }
     },
@@ -347,11 +250,13 @@ build_specs = {
                 '/trunk/packages/lapack',
                     # cmake .
                     # make
-                    # cp lib/* ../lib
+                    # cp lib/* ../li
+                    # Symlink library to liblapack_g.a as well.
                 '/trunk/packages/lapack/LAPACK95'
                     # cd SRC
                     # make single_double_complex_dcomplex
                     # cp ../lapack95.a ../../../lib/liblapack95.a
+                    # Symlink library to liblapack95_g.a as well.
                 # fftw3
                     # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/..
                     # make
@@ -368,57 +273,5 @@ build_specs = {
     }    
 }
 
-
-
-## dist_build_specs = {
-##     'Linux_i686_intel' : {
-##         'type' : 'dist',
-##         'host' : 'lnx209.lns.cornell.edu',
-##         'repositories' : {
-##             'ACC-LEPP' : [
-##                 '/trunk/util',
-##                 '/trunk/Gmake',
-##                 '/trunk/src/include',
-##                 '/trunk/src/bmad',
-##                 '/trunk/src/examples',
-##                 '/trunk/src/recipes_f-90_LEPP',
-##                 '/trunk/src/cesr_utils',
-##                 '/trunk/packages/forest',
-##                 '/trunk/packages/PGPLOT',
-##                 '/trunk/packages/xsif',
-##                 '/trunk/src/lattice',
-##                 '/trunk/src/examples',
-##                 '/trunk/src/sim_utils',
-##                 '/trunk/src/bmadz',
-##                 '/trunk/src/tao',
-##                 '/trunk/src/bsim'
-##             ]
-##         }
-##     },
-##     'Linux_x86_64_intel' : {
-##         'type' : 'dist',
-##         'host' : 'acc101.lns.cornell.edu',
-##         'repositories' : {
-##             'ACC-LEPP' : [
-##                 '/trunk/util',
-##                 '/trunk/Gmake',
-##                 '/trunk/src/include',
-##                 '/trunk/src/bmad',
-##                 '/trunk/src/examples',
-##                 '/trunk/src/recipes_f-90_LEPP',
-##                 '/trunk/src/cesr_utils',
-##                 '/trunk/packages/forest',
-##                 '/trunk/packages/PGPLOT',
-##                 '/trunk/packages/xsif',
-##                 '/trunk/src/lattice',
-##                 '/trunk/src/examples',
-##                 '/trunk/src/sim_utils',
-##                 '/trunk/src/bmadz',
-##                 '/trunk/src/tao',
-##                 '/trunk/src/bsim'
-##             ]
-##         }
-##     }
-## }
 
 

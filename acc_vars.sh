@@ -211,12 +211,14 @@ esac
 #
 # Until full 64-bit OS migration takes place, all builds will
 # default to 32-bit on all hosts.  This can be changed to 
- # use the true machine architecture word length per user
+# use the true machine architecture word length per user
 # request by setting the ACC_FORCE_32_BIT variable to the 
 # value "N".
 #--------------------------------------------------------------
-if ( [ "${ACC_FORCE_32_BIT}" == "" ] ) then
-    ACC_FORCE_32_BIT=Y
+if ( [ "${ACC_FORCE_32_BIT}" == "" ] || [ "${ACC_FORCE_32_BIT}" == "N" ] ) then
+    #ACC_FORCE_32_BIT=N
+    export ACC_ARCH="x86_64"
+    export ACC_OS_ARCH="${ACC_OS}_${ACC_ARCH}"
 fi
 
 if (  [ "${ACC_FORCE_32_BIT}" = "Y" ] ) then
@@ -278,6 +280,7 @@ if ( [ "${ACC_TRUE_RELEASE}" == "" ] ) then
 fi
 export ACC_UTIL=${SETUP_SCRIPTS_DIR}
 export ACC_BIN=${ACC_RELEASE_DIR}/bin
+export ACC_CONFIG=${ACC_RELEASE_DIR}/config
 export ACC_EXE=${ACC_BIN} # For backwards compatibility
 export ACC_PKG=${ACC_RELEASE_DIR}/packages
 export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
@@ -338,14 +341,14 @@ case ${ACC_OS_ARCH} in
 	# Add ifort-9-specific path information to user's environment
 	# to allow running 32-bit fortran programs on a 64-bit machine.
 	# Then source the final 64-bit path information on top.
-	has_substring ${PATH} "/nfs/opt/intel/fc/9.1.045/bin"
-	if [ "${?}" == "1" ]; then
-	    source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
-	fi
+	#has_substring ${PATH} "/nfs/opt/intel/fc/9.1.045/bin"
+	#if [ "${?}" == "1" ]; then
+	#    source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
+	#fi
         ## 64-bit Intel Fortran (ifort) v12.1.0.233
-        # /nfs/opt/intel/composer_xe_2011_sp1.6.233/bin/intel64
 	has_substring ${PATH} "/nfs/opt/intel/composer_xe_2011_sp1.6.233/bin/intel64"
 	if [ "${?}" == "1" ]; then
+            # FIXME: Inherit from LIBRARY_PATH (not duplicated) as set by ifort setup scripts.
 	    source ${OPT_SOFTWARE_DIR}/intel/composerxe/bin/compilervars.sh intel64
 	fi
 	# 64-bit Intel Fortran (ifort) v9.1.052
@@ -365,7 +368,7 @@ del_path ${OLD_ACC_BIN}
 add_path ${ACC_UTIL}
 add_path ${ACC_PKG}/bin
 add_path ${ACC_BIN}
-
+add_path ${PLATFORM_DIR}/extra/bin
 
 
 #--------------------------------------------------------------
@@ -392,7 +395,7 @@ for part in ${LD_LIBRARY_PATH_TEMP}; do
 	  if ( [ "${LD_LIBRARY_PATH}" == "" ] ) then
 	      LD_LIBRARY_PATH=${part}
 	  else
-	      LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${part}
+	      LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${part}:/nfs/opt/intel/composer_xe_2011_sp1.6.233/compiler/lib/intel64
 	  fi  
 
   esac
@@ -432,8 +435,8 @@ alias ACC_INFO='accinfo'
 alias current='ACC_RELEASE_REQUEST=current; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 alias devel='ACC_RELEASE_REQUEST=devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 
-alias current64='ACC_FORCE_32_BIT=N; current'
-alias devel64='ACC_FORCE_32_BIT=N; devel'
+alias current32='ACC_FORCE_32_BIT=Y; current'
+alias devel32='ACC_FORCE_32_BIT=Y; devel;'
 
 # These are functions so that they may take arguments from the user.
 

@@ -1,172 +1,24 @@
-#!/bin/sh
-###########################################################################
-# This script will tag the code tree in SVN that was used 
-# to build an existing libraries release with its name 
-# (usually cesr_YYYY_MMDD_d) by default or a custom string if specified.
+#!/usr/bin/env python
+#-*- python -*-
 #
-# This script must be run on the machine 'accserv' (lnx209) as the 
-# rsvn.py script needs file-level access to the repository.
-# (put a krsh call in to guarantee that it is always run on the 
-#  proper host?)
-#
-# Requires: rsvn.py -- 3rd-party support script.  It allows multiple
-#           SVN operations to all be executed within the same transaction.
-#
-# Usage:  tag_release <release_name>
-#
-# Date   : 26 September 2006
-# Author : Matt Rendina
-#
-###########################################################################
+
+# Compose list of top-level directories in the release that are under
+# lab SVN version control.
+
+import sys
+import build_mgmt
+
+if len(sys.argv) == 2:
+    buildname = sys.argv[1]
+else:
+    print 'Usage:'
+    print ' Accepts a single argument, the name of the release to tag in SVN'
 
 
-###########################################################################
-# Set up environment variables to allow the use of the rsvn.py script
-# that needs to know where the Subversion Python bindings are located.
-# CAUTION: Those bindings are Python-version dependent!  They were built
-# to be compatible with the Python interpreter version 2.2.3.
-# Those binding have been installed on lnx209 (accserv).
-###########################################################################
-export PYTHONPATH=${PYTHONPATH}:/nfs/opt/svn/lib/svn-python
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/nfs/opt/svn/lib
-
-################################
-#  Set up other local variables
-################################
-#BIN_DIR=/home/cesrulib/bin
-#repo_path=/mnt/svn
-
-# One hardcoded line here necessary for subsequent getting of config vars.
-UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
-
-repo_path=`${UTIL_DIR}/getcfg Repository path`
-platforms=`${UTIL_DIR}/getcfg Platforms FULL`
-
-# Local vars
-tmpdir=/tmp
-tmpfile=tmp_svn_tag_operation_list
-hostname=`hostname`
-
-
-if ( [ $hostname != "acc101.lns.cornell.edu" ] ) then
-    echo "This script must be run on the same machine that serves the"
-    echo "ACC Subversion repository, ie. "
-    echo "                             acc101.lepp.cornell.edu"
-    exit 1
-fi
-
-
-myprint_help () {
-#       Print help info
-    echo ""
-    echo "Usage: tag_release [-current] release-name [TAG=optional_tagname]"
-    echo ""
-    echo " Absence of TAG= specifier will use the release name itself as the tag."
-    echo " Using the -current flag will automatically append   _current   to the release"
-    echo " name and use that as the tag."
-    echo ""
-    echo "The SVN log entry will always be of the form:"
-    echo "  \"Tagging DEVEL[CURRENT] release <release_name>\" "
-    exit 2
-}
-
-###########################
-#  Main script starts here
-###########################
-arg_list=""
-REL_NAME=""
-TAG_CURRENT=0
-TAG=""
-
-if ( [ $# = 0 ] ) then
-    myprint_help
-    exit 3
-fi
-
-################################################
-#  Get command-line arguments.
-################################################
-for i
-do 
-   arg_list="${arg_list} ${i}";
-   case $i in
-     "-current"   ) TAG_CURRENT=1;;
-     cesr_*         ) REL_NAME=`echo $i`;;
-     *              ) myprint_help;
-     exit 4;;
-   esac
-done
-
-echo ${TAG_CURRENT}
-if ( [ ${TAG_CURRENT} = 1 ] ) then
-    TAG="Tagging CURRENT release ${REL_NAME}"
-else
-    TAG="Tagging DEVEL release ${REL_NAME}"
-fi
-
-echo ""
-
-######################################################################
-#  Determine if the release actually exists before attempting to tag.
-#  Checks for existence in any FULLY ACTIVE platform area.  See 
-#  BUILD_SYSTEM.conf for details.
-######################################################################
-for platform in ${platforms}; do    
-    if ( [ -d /nfs/acc/libs/${platform}/${REL_NAME} ] ) then
-        FULL_REL_NAME=/nfs/acc/libs/${platform}/${REL_NAME}
-    else
-        echo "The release ${REL_NAME} does not exist."
-        exit 5
-    fi
-done
-
-
-######################################################################
-#  Obtain the revision number for the release to be tagged.
-######################################################################
-cd $FULL_REL_NAME
-rev=`svnversion ./src`
-if ( [ $? != 0 ] ) then
-    echo "Problem getting revision number from working copy of files."
-    exit 6
-fi
-
-echo "Revision # of ${REL_NAME} is ${rev}."
-
-
-######################################################################
-#  Set release type.
-######################################################################
-if ( [ ${TAG_CURRENT} -eq 1 ] ) then
-    echo "Tagging current"
-    TYPE="CURRENT"
-    TYPE_SPEC="_current"
-else
-    TYPE="DEVEL"
-    TYPE_SPEC=""
-fi
-
-
-######################################################################
-#  Create temporary file holding the sequence of SVN operations to be
-#  performed within this ONE transaction.
-######################################################################
-echo "rmkdir /tags/${REL_NAME}${TYPE_SPEC}" > ${tmpdir}/${tmpfile}
-echo "rcopy /trunk/Gmake/ /tags/${REL_NAME}${TYPE_SPEC}/Gmake/" >> ${tmpdir}/${tmpfile}
-echo "rcopy /trunk/src/ /tags/${REL_NAME}${TYPE_SPEC}/src/" >> ${tmpdir}/${tmpfile}
-echo "rcopy /trunk/util/ /tags/${REL_NAME}${TYPE_SPEC}/util/" >> ${tmpdir}/${tmpfile}
-
-
-######################################################################
-# Create the SVN transaction, execute the operations defined in the 
-# temporary file,  close repository.
-# All handled by rsvn.py script.
-######################################################################
-${UTIL_DIR}/3rd-party/rsvn.py --message="Tagging ${TYPE} release ${REL_NAME}" --revision=${rev} --username=cesrulib /mnt/svn < ${tmpdir}/${tmpfile}
-
-if ( [ $? -eq 0 ] ) then
-  # Clean up
-  rm -f ${tmpdir}/${tmpfile}
-fi
-
-exit 0
+# Does the release exist in all platform directories?
+for platform in build_mgmt.platforms:
+    
+if not build_mgmt.BuildExists(buildname):
+    print 'Build does not exist in all supported platform directories.'
+    print 'Use command line option "--force" to perform the tag anyway.'
+    sys.exit(1)

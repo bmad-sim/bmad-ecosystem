@@ -102,11 +102,20 @@ def link_to_packages( packages_name ):
 def build_directory( dir, statlist, target ):
     print '\n\n\n-------- Building: ' + dir
     os.chdir( dir )
-    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; ' + \
+    use_32bit = ' '
+    if 'lnx209' in hostname:
+        use_32bit = ' ACC_FORCE_32_BIT=Y; '
+        
+    build_command = 'ACCLIB='+invars.build_name+use_32bit + \
                     'UTIL_DIR_REQUEST='+invars.util_dir + \
                     '; source ' + invars.util_dir + \
                     '/acc_vars.sh; ifort -v; printenv | grep ACC; echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; gmake ' + \
                     target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
+#    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; ' + \
+#                    'UTIL_DIR_REQUEST='+invars.util_dir + \
+#                    '; source ' + invars.util_dir + \
+#                    '/acc_vars.sh; ifort -v; printenv | grep ACC; echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; gmake ' + \
+#                    target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
     p = sub.Popen(build_command,
                   bufsize=1,
                   shell=True,
