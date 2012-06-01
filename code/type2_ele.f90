@@ -70,6 +70,7 @@ type (rf_wake_sr_mode_struct), pointer :: sr_m
 type (em_field_mode_struct), pointer :: rfm
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
+type (ele_attribute_struct) attrib
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
@@ -162,9 +163,10 @@ if (ele%lord_status == overlay_lord$) then
 
 else
   do i = 1, n_attrib_maxx
-    a_name = attribute_name(ele, i)
+    attrib = attribute_record(ele, i)
+    a_name = attrib%name
     if (a_name == null_name$) cycle
-    if (a_name == reserved_slot$) cycle
+    if (attrib%private) cycle
     ix_tot = corresponding_tot_attribute_index (ele, i)
     if (ix_tot > 0) then
       if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle

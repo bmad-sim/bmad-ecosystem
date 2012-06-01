@@ -82,7 +82,7 @@ start2_orb = start_orb ! In case start_orb and end_orb share the same memory.
 
 end_orb = start_orb     ! transfer start to end
 end_orb%s = ele%s
-end_orb%p0c = ele%value(p0c$)
+if (end_orb%species /= photon$) end_orb%p0c = ele%value(p0c$)
 
 length = ele%value(l$)
 rel_pc = 1 + start_orb%vec(6)

@@ -47,6 +47,7 @@ end type
 
 type (multipass_info_struct), allocatable :: multipass(:)
 
+type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2, ele_dflt
@@ -595,41 +596,41 @@ do ib = 0, ubound(lat%branch, 1)
     ! Print the element attributes.
 
     do j = 1, n_attrib_maxx
-      attrib_name = attribute_name(ele, j)
+      attrib = attribute_record(ele, j)
       val = ele%value(j)
       if (val == 0) cycle
-      if (attrib_name == reserved_slot$) cycle
+      if (attrib%private) cycle
       if (j == check_sum$) cycle
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
-      if (.not. attribute_free (ele, attrib_name, lat, .false., .true.)) cycle
+      if (.not. attribute_free (ele, attrib%name, lat, .false., .true.)) cycle
       if (val == ele_dflt%value(j)) cycle
-      if (attrib_name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
-      if (attrib_name == null_name$) then
+      if (attrib%name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
+      if (attrib%name == null_name$) then
         print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
         print *, '      ELEMENT: ', ele%name
         print *, '      HAS AN UNKNOWN ATTRIBUTE INDEX:', j
         stop
       endif
 
-      if (attrib_name == 'COUPLER_AT') then
+      if (attrib%name == 'COUPLER_AT') then
         if (nint(val) /= exit_end$) then
           line = trim(line) // ', coupler_at = ' // coupler_at_name(nint(val))
         endif
         cycle
       endif
 
-      select case (attribute_type(attrib_name))
+      select case (attribute_type(attrib%name))
       case (is_logical$)
-        write (line, '(4a, l1)') trim(line), ', ', trim(attrib_name), ' = ', (val /= 0)
+        write (line, '(4a, l1)') trim(line), ', ', trim(attrib%name), ' = ', (val /= 0)
       case (is_integer$)
-        write (line, '(4a, i0)') trim(line), ', ', trim(attrib_name), ' = ', int(val)
+        write (line, '(4a, i0)') trim(line), ', ', trim(attrib%name), ' = ', int(val)
       case (is_real$)
-        line = trim(line) // ', ' // trim(attrib_name) // ' = ' // str(val)
+        line = trim(line) // ', ' // trim(attrib%name) // ' = ' // str(val)
       case (is_name$)
-        name = attribute_value_name (attrib_name, val, ele, is_default)
+        name = attribute_value_name (attrib%name, val, ele, is_default)
           if (.not. is_default) then
-            line = trim(line) // ', ' // trim(attrib_name) // ' = ' // name
+            line = trim(line) // ', ' // trim(attrib%name) // ' = ' // name
           endif
       end select
 

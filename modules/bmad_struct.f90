@@ -731,7 +731,6 @@ integer, parameter :: b20$ = 170, t20$ = 170
 integer, parameter :: n_attrib_special_maxx = t20$
 
 character(40), parameter :: null_name$ = '!NULL' 
-character(40), parameter :: reserved_slot$ = '!RESERVED' 
 character(40), parameter :: blank_name$ = ' '
 
 ! lattice logical names
