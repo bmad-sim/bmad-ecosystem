@@ -459,7 +459,8 @@ class c_side_trans_class:
     self.to_f2_call = ''
     self.to_c2_arg = ''
     self.to_c2_set = '  C.NAME = z_NAME;'
-    self.constructor = 'NAME(0)'
+    self.constructor = 'NAME(VALUE)'
+    self.construct_value = '0'
     self.destructor = ''
     self.equality_test = '  is_eq = is_eq && (x.NAME == y.NAME);\n'
     self.test_pat = '  rhs = XXX + offset; C.NAME = NNN;\n'
@@ -512,31 +513,31 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       c_type = 'Real'
       c_arg  = 'c_Real'
       test_value = 'rhs'
-      construct_value = '0.0'
+      c.construct_value = '0.0'
 
     if type == CMPLX:
       c_type = 'Complex'
       c_arg  = 'c_Complex'
       test_value = 'Complex(rhs, 100+rhs)'
-      construct_value = '0.0'
+      c.construct_value = '0.0'
 
     if type == INT:
       c_type = 'Int'
       c_arg  = 'c_Int'
       test_value = 'rhs'
-      construct_value = '0'
+      c.construct_value = '0'
 
     if type == LOGIC:
       c_type = 'Bool'
       c_arg  = 'c_Bool'
       test_value = '(rhs % 2 == 0)'
-      construct_value = 'false'
+      c.construct_value = 'false'
 
     if type == TYPE:
       c_type = 'C_KIND'
       c_arg  = 'const C_KIND'
       test_value = ''
-      construct_value = ''
+      c.construct_value = ''
 
     if type == SIZE:
       c.to_f2_arg  = 'Int'
@@ -565,7 +566,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       c.to_f2_arg    = c_arg + 'Arr'
       c.to_f2_call   = '&C.NAME[0]'
       c.to_c2_arg    = c_arg + 'Arr z_NAME'
-      c.constructor  = 'NAME(' + construct_value + ', DIM1)'
+      c.constructor  = 'NAME(VALUE, DIM1)'
       c.to_c2_set    = '  C.NAME = ' + c_type + '_Array(z_NAME, DIM1);'
       c.test_pat    = test_pat1
       c.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
@@ -583,7 +584,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       c.to_f2_arg    = c_arg + 'Arr'
       c.to_f2_call   = 'z_NAME'
       c.to_c2_arg    = c_arg + 'Arr z_NAME'
-      c.constructor  = 'NAME(' + c_type + '_Array(' + construct_value + ', DIM2), DIM1)'
+      c.constructor  = 'NAME(' + c_type + '_Array(VALUE, DIM2), DIM1)'
       c.to_c2_set    = '  C.NAME << z_NAME;'
       c.test_pat     = test_pat2
       c.to_f_setup  = '  ' + c_type + ' z_NAME[DIM1*DIM2]; matrix_to_vec(C.NAME, z_NAME);\n'
@@ -603,7 +604,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       c.to_f2_arg    = c_arg + 'Arr'
       c.to_f2_call   = 'z_NAME'
       c.to_c2_arg    = c_arg + 'Arr z_NAME'
-      c.constructor  = 'NAME(' + c_type + '_Matrix(' + c_type + '_Array(' + construct_value + ', DIM3), DIM2), DIM1)'
+      c.constructor  = 'NAME(' + c_type + '_Matrix(' + c_type + '_Array(VALUE, DIM3), DIM2), DIM1)'
       c.to_c2_set    = '  C.NAME << z_NAME;'
       c.test_pat     = test_pat3
       c.to_f_setup   = '  ' + c_type + ' z_NAME[DIM1*DIM2*DIM3]; tensor_to_vec(C.NAME, z_NAME);\n'
@@ -1044,8 +1045,6 @@ for struct in struct_definitions:
 for struct in struct_definitions:
   for arg in struct.arg:
 
-    # F side translation
-
     n_dim = len(arg.array)
     p_type = arg.pointer_type
 
@@ -1120,6 +1119,22 @@ for struct in struct_definitions:
     arg.c_side.to_c2_set            = arg.c_side.to_c2_set.replace('NAME', arg.name)
     arg.c_side.equality_test        = arg.c_side.equality_test.replace('NAME', arg.name)
     arg.c_side.test_pat             = arg.c_side.test_pat.replace('NAME', arg.name)
+
+    # On Fortran side "complex abc(2) = 0" is allowed but on C++ side want "0.0" for init value.
+    # Therefore, ignore "0" as an init value.
+
+    if arg.init_value == '':
+      pass
+    elif arg.init_value == '0':
+      pass
+    elif arg.init_value[0] == '>':
+      pass 
+    elif '$' in arg.init_value:
+      arg.c_side.construct_value = 'Bmad::' + arg.init_value[:-1].upper()
+    else:
+      arg.c_side.construct_value = arg.init_value
+
+    arg.c_side.constructor = arg.c_side.constructor.replace('VALUE', arg.c_side.construct_value)
 
 ##################################################################################
 ##################################################################################
