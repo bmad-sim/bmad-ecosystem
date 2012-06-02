@@ -793,10 +793,10 @@ for trans in c_side_trans.keys():
 struct_list_file = 'fortran_structs'
 if len(sys.argv) > 1: struct_list_file = sys.argv[1]
 
-module = __import__(struct_list_file)
+input = __import__(struct_list_file)
 
 struct_definitions = []
-for name in module.structs:
+for name in input.struct_list:
   struct_definitions.append(struct_def_class(name))
 
 ##################################################################################
@@ -818,7 +818,7 @@ re_end_type = re.compile('^\s*end\s*type')  # Match to: 'end type'
 re_match1 = re.compile('([,(]|::|\s+)')     # Match to: ',', '::', '(', ' '
 re_match2 = re.compile('([=[,(]|::)')       # Match to: ',', '::', '(', '[', '='
 
-for file_name in module.files:
+for file_name in input.struct_def_files:
   f_module_file = open(file_name)
 
   for line in f_module_file:
@@ -898,7 +898,7 @@ for file_name in module.files:
         print_debug('L1: ' + str(split_line))
 
         if len(split_line) > 1:
-          print 'Confused parsing of struct component: ' + line.strip()
+          print 'Confused parsing of struct component: ' + line.strip() + ' in: ' + struct.f_name
 
         split_line = re_match2.split(split_line[0], 1)
 
@@ -943,15 +943,20 @@ for file_name in module.files:
           split_line = re_match2.split(split_line[1].lstrip(), 1)
           print_debug('L3p1: ' + str(split_line))
 
-          # Combine back if have "(...)" or "[...]" construct as part of init string.
+          # If have EG: "b(2) = [3, 4], c => null()" need to 
+          # combine back "(...)" or "[...]" construct which is part of init string.
 
           if len(split_line) > 1 and split_line[1] == '(':
             s2 = split_line[2].partition(')')
-            split_line = [split_line[0] + '(' + s2[0] + ')', s2[2]]
+            s3 = re_match2.split(s2[2].lstrip(), 1)
+            s3[0] = split_line[0] + '(' + s2[0] + ')' + s3[0]
+            split_line = s3
 
           if len(split_line) > 1 and split_line[1] == '[':
             s2 = split_line[2].partition(']')
-            split_line = [split_line[0] + '[' + s2[0] + ']', s2[2]]
+            s3 = re_match2.split(s2[2].lstrip(), 1)
+            s3[0] = split_line[0] + '[' + s2[0] + ']' + s3[0]
+            split_line = s3
 
           arg.init_value = split_line[0]
           if len(split_line) == 1:
@@ -965,7 +970,7 @@ for file_name in module.files:
         if len(split_line) == 0 or split_line[0] == '': break
 
         if split_line[0] != ',':
-          print 'Confused parsing of struct2: ' + line.strip()
+          print 'Expected "," while parsing: ' + line.strip()  + ' in: ' + struct.f_name
 
         split_line.pop(0)
 
@@ -1164,6 +1169,12 @@ if len(struct_definitions) != n_found:
 
 ##################################################################################
 ##################################################################################
+# Customize the interface code
+
+input.customize(struct_definitions)
+
+##################################################################################
+##################################################################################
 # Create Fortran side of interface...
 
 # First the header
@@ -1183,7 +1194,7 @@ module bmad_cpp_convert_mod
 
 ''')
 
-f_face.write ('\n'.join(module.use))
+f_face.write ('\n'.join(input.use_statements))
 
 f_face.write ('''
 use fortran_cpp_utils
@@ -1351,7 +1362,7 @@ f_face.close()
 f_equ = open('code/bmad_equality.f90', 'w')
 
 f_equ.write ('module bmad_equality\n\n')
-f_equ.write ('\n'.join(module.use))
+f_equ.write ('\n'.join(input.use_statements))
 
 f_equ.write ('''
 
