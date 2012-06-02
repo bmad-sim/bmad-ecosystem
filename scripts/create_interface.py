@@ -167,7 +167,7 @@ f_side_trans = {}
 
 for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
   for dim in range(4):
-    f_side_trans[type, dim, NOT] = f_side_trans_class()
+    f_side_trans[type, dim, NOT] = copy.deepcopy(f_side_trans_class())
     f = f_side_trans[type, dim, NOT]
 
     if type == REAL:
@@ -203,9 +203,10 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
     #-----------------------------------------------
 
     if dim == 0: 
-      f.bindc_name = 'z_NAME'
+      f.bindc_name    = 'z_NAME'
       f.equality_test = 'is_eq = is_eq .and. (f1%NAME == f2%NAME)\n'
-      f.to_c2_call = 'F%NAME'
+      f.to_c2_call    = 'F%NAME'
+      f.test_pat      = f.test_pat
       if type == LOGIC:
         f.to_c2_call  = 'c_logic(F%NAME)'
         f.to_f2_trans = 'F%NAME = f_logic(z_NAME)'
@@ -222,6 +223,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       f.to_c2_call  = 'fvec2vec(F%NAME, DIM1)'
       f.bindc_name  = 'z_NAME(*)'
       f.to_f2_trans = 'F%NAME = z_NAME(1:DIM1)'
+      f.test_pat    = test_pat1
       if type == LOGIC:
         f.to_f2_trans = 'call vec2fvec (z_NAME, F%NAME)'
         f.equality_test = f.equality_test.replace('==', '.eqv.')
@@ -238,6 +240,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       f.to_f2_trans = 'call vec2mat(z_NAME, F%NAME)'
       f.to_c2_call  = 'mat2vec(F%NAME, SIZE2)'
       f.bindc_name  = 'z_NAME(*)'
+      f.test_pat    = test_pat2
       if type == LOGIC:
         f.equality_test = f.equality_test.replace('==', '.eqv.')
       if type == TYPE:
@@ -254,8 +257,9 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
 
     if dim == 3:
       f.to_f2_trans = 'call vec2tensor(z_NAME, F%NAME)'
-      f.to_c2_call = 'tensor2vec(F%NAME, SIZE3)'
-      f.bindc_name = 'z_NAME(*)'
+      f.to_c2_call  = 'tensor2vec(F%NAME, SIZE3)'
+      f.bindc_name  = 'z_NAME(*)'
+      f.test_pat    = test_pat3
       if type == LOGIC:
         f.equality_test = f.equality_test.replace('==', '.eqv.')
       if type == TYPE:
@@ -429,7 +433,6 @@ f_side_trans[CHAR, 0, NOT].equality_test = 'is_eq = is_eq .and. (f1%NAME == f2%N
 f_side_trans[CHAR, 0, NOT].test_pat    = \
         'do jd1 = 1, len(F%NAME)\n  F%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26))\nenddo\n'
 f_side_trans[CHAR, 0, NOT].to_f2_trans = 'call to_f_str(z_NAME, F%NAME)'
-
 
 # Allocatable components are very similar to pointer components
 # with the simple replacement of 'allocated' for 'associated'.
@@ -786,29 +789,14 @@ for trans in c_side_trans.keys():
 ##################################################################################
 # Get the list of structs
 
-##  struct_list_file = 'scripts/fortran_structs.list'
-struct_list_file = 'test.list'
+struct_list_file = 'fortran_structs'
 if len(sys.argv) > 1: struct_list_file = sys.argv[1]
 
-f_struct_list_file = open(struct_list_file)
+module = __import__(struct_list_file)
 
-struct_def = []
-f_module_files = []
-f_use_list = []
-
-for line in f_struct_list_file:
-  line = line.strip()
-  if len(line) == 0: continue
-  split_line = line.split()
-
-  if split_line[0] == 'FILE:':
-    f_module_files.append(split_line[1])
-  elif split_line[0] == 'USE:':
-    f_use_list.append('use ' + split_line[1])
-  else:
-    struct_def.append(struct_def_class(line.split()[0]))
-
-f_struct_list_file.close()
+struct_definitions = []
+for name in module.structs:
+  struct_definitions.append(struct_def_class(name))
 
 ##################################################################################
 ##################################################################################
@@ -829,8 +817,8 @@ re_end_type = re.compile('^\s*end\s*type')  # Match to: 'end type'
 re_match1 = re.compile('([,(]|::|\s+)')     # Match to: ',', '::', '(', ' '
 re_match2 = re.compile('([=[,(]|::)')       # Match to: ',', '::', '(', '[', '='
 
-for file_name in f_module_files:
-  f_module_file = open('../' + file_name)
+for file_name in module.files:
+  f_module_file = open(file_name)
 
   for line in f_module_file:
     split_line = line.lower().split()
@@ -838,7 +826,7 @@ for file_name in f_module_files:
     if split_line[0] != 'type': continue
 
     found = False
-    for struct in struct_def:
+    for struct in struct_definitions:
       if struct.f_name != split_line[1]: continue
       found = True
       break
@@ -956,11 +944,11 @@ for file_name in f_module_files:
 
           # Combine back if have "(...)" or "[...]" construct as part of init string.
 
-          if split_line[1] == '(':
+          if len(split_line) > 1 and split_line[1] == '(':
             s2 = split_line[2].partition(')')
             split_line = [split_line[0] + '(' + s2[0] + ')', s2[2]]
 
-          if split_line[1] == '[':
+          if len(split_line) > 1 and split_line[1] == '[':
             s2 = split_line[2].partition(']')
             split_line = [split_line[0] + '[' + s2[0] + ']', s2[2]]
 
@@ -988,7 +976,7 @@ for file_name in f_module_files:
 ##################################################################################
 # Add Fortran and C++ side translation info
 
-for struct in struct_def:
+for struct in struct_definitions:
   for arg in struct.arg:
 
     # F side translation
@@ -1000,14 +988,14 @@ for struct in struct_def:
       print 'NO TRANSLATION FOR: ' + struct.short_name + '%' + arg.name + ' [', arg.type + ', ' + str(n_dim) + ', ' + str(p_type) + ']'
       continue
 
-    arg.f_side = f_side_trans[arg.type, n_dim, p_type]
-    arg.c_side = c_side_trans[arg.type, n_dim, p_type]
+    arg.f_side = copy.deepcopy(f_side_trans[arg.type, n_dim, p_type])
+    arg.c_side = copy.deepcopy(c_side_trans[arg.type, n_dim, p_type])
 
 ##################################################################################
 ##################################################################################
 # Add array bound info for pointer structure components
 
-for struct in struct_def:
+for struct in struct_definitions:
 
   ia = 0
   while ia < len(struct.arg):
@@ -1053,7 +1041,7 @@ for struct in struct_def:
 ##################################################################################
 # Make name substitutions
 
-for struct in struct_def:
+for struct in struct_definitions:
   for arg in struct.arg:
 
     # F side translation
@@ -1137,21 +1125,26 @@ for struct in struct_def:
 ##################################################################################
 # As a check, write results to file. 
 
-f_out = open('f_structs.parsed', 'w')
+if debug: 
+  f_out = open('f_structs.parsed', 'w')
+  for struct in struct_definitions:
+    f_out.write('******************************************\n')
+    f_out.write (struct.f_name + '    ' + str(len(struct.arg)) + '\n')
+    for arg in struct.arg:
+      f_out.write ('    ' + arg.full_repr() + '\n')
+
+  f_out.close()
+
+#------
 
 n_found = 0
-for struct in struct_def:
+for struct in struct_definitions:
   if struct.short_name != '': n_found = n_found + 1
-  f_out.write('******************************************\n')
-  f_out.write (struct.f_name + '    ' + str(len(struct.arg)) + '\n')
-  for arg in struct.arg:
-    f_out.write ('    ' + arg.full_repr() + '\n')
-f_out.close()
 
-print 'Number of structs in input list: ' + str(len(struct_def))
+print 'Number of structs in input list: ' + str(len(struct_definitions))
 print 'Number of structs found:         ' + str(n_found)
 
-if len(struct_def) != n_found:
+if len(struct_definitions) != n_found:
   sys.exit('COULD NOT FIND ALL THE STRUCTS! STOPPING HERE!')  
 
 ##################################################################################
@@ -1175,7 +1168,7 @@ module bmad_cpp_convert_mod
 
 ''')
 
-f_face.write ('\n'.join(f_use_list))
+f_face.write ('\n'.join(module.use))
 
 f_face.write ('''
 use fortran_cpp_utils
@@ -1185,7 +1178,7 @@ use, intrinsic :: iso_c_binding
 ##############
 # ZZZ_to_f interface
 
-for struct in struct_def:
+for struct in struct_definitions:
   f_face.write ('''
 !--------------------------------------------------------------------------
 
@@ -1204,7 +1197,7 @@ f_face.write ('contains\n')
 ##############
 # ZZZ_to_c definitions
 
-for struct in struct_def:
+for struct in struct_definitions:
 
   s_name = struct.short_name
 
@@ -1343,22 +1336,22 @@ f_face.close()
 f_equ = open('code/bmad_equality.f90', 'w')
 
 f_equ.write ('module bmad_equality\n\n')
-f_equ.write ('\n'.join(f_use_list))
+f_equ.write ('\n'.join(module.use))
 
 f_equ.write ('''
 
 interface operator (==)
 ''')
 
-for i in range(0, len(struct_def), 5):
-  f_equ.write ('  module procedure ' + ', '.join('eq_' + f.short_name for f in struct_def[i:i+5]) + '\n')
+for i in range(0, len(struct_definitions), 5):
+  f_equ.write ('  module procedure ' + ', '.join('eq_' + f.short_name for f in struct_definitions[i:i+5]) + '\n')
 
 f_equ.write ('''end interface
 
 contains
 ''')
 
-for struct in struct_def:
+for struct in struct_definitions:
   f_equ.write ('''
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1403,7 +1396,7 @@ logical ok, all_ok
 all_ok = .true.
 ''')
 
-for struct in struct_def:
+for struct in struct_definitions:
   f_test.write ('call test1_f_' + struct.short_name + '(ok); if (.not. ok) all_ok = .false.\n')
 
 f_test.write('''
@@ -1432,7 +1425,7 @@ use bmad_equality
 contains
 ''')
 
-for struct in struct_def:
+for struct in struct_definitions:
   f_test.write('''
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -1589,7 +1582,7 @@ typedef valarray<Int_Matrix>       Int_Tensor;
 
 ''')
 
-for struct in struct_def:
+for struct in struct_definitions:
   f_class.write('''
 //--------------------------------------------------------------------
 // C_ZZZ
@@ -1817,7 +1810,7 @@ void void_tensor_to_vec (const valarray< valarray< valarray< void** > > >& tenso
 
 ''')
 
-for struct in struct_def:
+for struct in struct_definitions:
 
   # ZZZ_to_f2
   f_cpp.write('''
@@ -1952,7 +1945,7 @@ template bool is_all_equal (const Int_Tensor&,      const Int_Tensor&);
 
 ''')
 
-for struct in struct_def:
+for struct in struct_definitions:
   f_eq.write ('\n//--------------------------------------------------------------\n\n')
   f_eq.write ('bool operator== (const C_ZZZ& x, const C_ZZZ& y) {'.replace('ZZZ', struct.short_name) + '\n')
   f_eq.write ('  bool is_eq = true;\n')
@@ -1989,7 +1982,7 @@ f_test.write('''
 using namespace std;
 ''')
 
-for struct in struct_def:
+for struct in struct_definitions:
   f_test.write ('''
 //--------------------------------------------------------------
 //--------------------------------------------------------------
