@@ -124,6 +124,16 @@ x2 = ' ' * 2
 x4 = ' ' * 4
 x6 = ' ' * 6
 
+to_f2_trans_pointer0 = '''\
+if (n_NAME == 0) then
+  if (associated(F%NAME)) deallocate(F%NAME)
+else
+  call c_f_pointer (z_NAME, f_NAME)
+  if (.not. associated(F%NAME)) allocate(F%NAME)
+  SET
+endif
+'''
+
 to_f2_trans_pointer = \
 '''
 if (associated(F%NAME)) then
@@ -135,7 +145,8 @@ if (n1_NAME /= 0) then
   SET
 else
   if (associated(F%NAME)) deallocate(F%NAME)
-endif'''
+endif
+'''
 
 equality_test_pointer = \
 '''
@@ -143,7 +154,8 @@ is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = all(shape(f1%NAME) == shape(f2%NAME))
 if (.not. is_eq) return
-if (associated(f1%NAME)) is_eq = all(f1%NAME == f2%NAME)'''
+if (associated(f1%NAME)) is_eq = all(f1%NAME == f2%NAME)
+'''
 
 jd1_loop = 'do jd1 = 1, size(F%NAME,1); lb1 = lbound(F%NAME,1) - 1\n'
 jd2_loop = 'do jd2 = 1, size(F%NAME,2); lb2 = lbound(F%NAME,2) - 1\n'
@@ -291,19 +303,12 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
     fp.bindc_name = 'z_NAME'
 
     #---------------------
-    # dim = 0
+    # Pointer, dim = 0
 
     if dim == 0:
       fp.to_c2_call = 'c_loc(F%NAME)'
       fp.to_f2_extra_var_name = 'f_NAME'
-      fp.to_f2_trans = '''
-if (n_NAME == 0) then
-  if (associated(F%NAME)) deallocate(F%NAME)
-else
-  call c_f_pointer (z_NAME, f_NAME)
-  if (.not. associated(F%NAME)) allocate(F%NAME)
-  F%NAME = f_NAME
-endif'''
+      fp.to_f2_trans = to_f2_trans_pointer0.replace('SET', 'F%NAME = f_NAME')
 
       fp.to_c_trans = '''\
 n_NAME = 0
@@ -313,7 +318,8 @@ if (associated(F%NAME)) n_NAME = 1
       fp.equality_test = '''
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
-if (associated(f1%NAME)) is_eq = (f1%NAME == f2%NAME)'''
+if (associated(f1%NAME)) is_eq = (f1%NAME == f2%NAME)
+'''
 
       fp.test_pat    = '''
 if (ix_patt < 3) then
@@ -426,13 +432,30 @@ else
 # CHAR
 
 f_side_trans[CHAR, 0, NOT] = f_side_trans_class()
-f_side_trans[CHAR, 0, NOT].bindc_type = 'character(c_char)'
-f_side_trans[CHAR, 0, NOT].bindc_name = 'z_NAME(*)'
-f_side_trans[CHAR, 0, NOT].to_c2_call = 'trim(F%NAME) // c_null_char'
+f_side_trans[CHAR, 0, NOT].bindc_type    = 'character(c_char)'
+f_side_trans[CHAR, 0, NOT].bindc_name    = 'z_NAME(*)'
+f_side_trans[CHAR, 0, NOT].to_c2_call    = 'trim(F%NAME) // c_null_char'
 f_side_trans[CHAR, 0, NOT].equality_test = 'is_eq = is_eq .and. (f1%NAME == f2%NAME)\n'
-f_side_trans[CHAR, 0, NOT].test_pat    = \
+f_side_trans[CHAR, 0, NOT].test_pat      = \
         'do jd1 = 1, len(F%NAME)\n  F%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26))\nenddo\n'
-f_side_trans[CHAR, 0, NOT].to_f2_trans = 'call to_f_str(z_NAME, F%NAME)'
+f_side_trans[CHAR, 0, NOT].to_f2_trans   = 'call to_f_str(z_NAME, F%NAME)'
+
+#
+
+f_side_trans[CHAR, 0, PTR] = copy.deepcopy(f_side_trans[INT, 0, PTR])
+fc = f_side_trans[CHAR, 0, PTR] 
+fc.to_f2_extra_var_type = 'character(c_char), pointer'
+fc.to_f2_trans          = to_f2_trans_pointer0.replace('SET', 'call to_f_str(f_NAME, F%NAME)')
+fc.test_pat             = '''
+if (ix_patt < 3) then
+  if (associated(F%NAME)) deallocate (F%NAME)
+else
+  if (.not. associated(F%NAME)) allocate (F%NAME)
+  do jd1 = 1, len(F%NAME)
+    F%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26))
+  enddo
+endif
+'''
 
 # Allocatable components are very similar to pointer components
 # with the simple replacement of 'allocated' for 'associated'.
@@ -776,8 +799,34 @@ c_side_trans[CHAR,  0, NOT].c_class    = 'string'
 c_side_trans[CHAR,  0, NOT].to_f2_arg  = 'c_Char'
 c_side_trans[CHAR,  0, NOT].to_f2_call = 'C.NAME.c_str()'
 c_side_trans[CHAR,  0, NOT].to_c2_arg  = 'c_Char z_NAME'
-c_side_trans[CHAR,  0, NOT].test_pat    = 'C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
+c_side_trans[CHAR,  0, NOT].test_pat    = '  C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
 c_side_trans[CHAR,  0, NOT].constructor = 'NAME()'
+
+#
+
+
+c_side_trans[CHAR,  0, PTR] = copy.deepcopy(c_side_trans[INT, 0, PTR])
+cc = c_side_trans[CHAR, 0, PTR] 
+cc.c_class       = 'string'
+cc.constructor   = 'NAME()'
+cc.destructor    = ''
+cc.equality_test = c_side_trans[CHAR, 0, NOT].equality_test
+cc.to_f2_call    = 'C.NAME.c_str()'
+cc.to_f2_arg     = 'c_Char'
+cc.to_f_setup    = '  int n_NAME = 0; if (C.NAME.size() != 0) n_NAME = 1;\n'
+cc.to_c2_arg     = 'c_Char z_NAME'
+cc.to_c2_set     = '''
+  if (n_NAME == 0) 
+    C.NAME = "";
+  else
+    C.NAME = z_NAME;
+'''
+cc.test_pat    = '''
+  if (ix_patt < 3) 
+    C.NAME == "";
+  else {
+    C.NAME.resize(STR_LEN);
+  ''' +  test_pat1.replace('NNN', "'a' + rhs % 26") + '}\n'
 
 # Allocatable components on the C side are the same as pointer components.
 

@@ -1,11 +1,11 @@
 # List of files containing definitions of the structures to setup interfaces for.
 
 struct_def_files = ['../bmad/modules/bmad_struct.f90']
-##struct_def_files = ['old.code/test_mod.f90']
+struct_def_files = ['code/test_mod.f90']
 
 # List of use statements needed in various Fortran modules
 
-use_statements = ['use bmad_struct']
+use_statements = ['use bmad_struct', 'use test_mod']
 
 # List of structures to setup interfaces for.
 
@@ -51,6 +51,8 @@ struct_list = [
     'rad_int1_struct',
     'rad_int_all_ele_struct'
 ]
+
+struct_list = ['ttt_struct']
 
 # Function to customize the interface code.
 
