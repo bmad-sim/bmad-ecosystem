@@ -8,6 +8,8 @@ struct_def_files = ['code/test_mod.f90']
 use_statements = ['use bmad_struct', 'use test_mod']
 
 # List of structures to setup interfaces for.
+# List must be in ordered such that if struct A is a component of struct B,
+# then A must be before B in the list.
 
 struct_list = [
     'coord_struct',
@@ -28,8 +30,6 @@ struct_list = [
     'floor_position_struct',
     'space_charge_struct',
     'xy_disp_struct',
-    'ele_pointer_struct',
-    'lat_ele_loc_struct',
     'mode3_struct',
     'bookkeeper_status_struct',
     'rad_int_ele_cache_struct',
@@ -52,7 +52,12 @@ struct_list = [
     'rad_int_all_ele_struct'
 ]
 
-struct_list = ['ttt_struct']
+struct_list = ['z_struct', 'ttt_struct']
+
+# List of sub-structures to ignore.
+# That is, do not translate these sub-structure components.
+
+component_ignore_list = set(['fibre', 'genfield'])
 
 # Function to customize the interface code.
 

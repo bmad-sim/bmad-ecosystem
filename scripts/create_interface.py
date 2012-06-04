@@ -367,6 +367,37 @@ else
         fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
         fp.to_f2_trans = fp.to_f2_trans.replace('F%NAME = f_NAME(1:n1_NAME)', 'call vec2fvec (f_NAME, F%NAME)')
 
+      if type == TYPE:
+        fp.to_c2_call  = 'z_NAME'
+        fp.bindc_name  = 'z_NAME(*)'
+        fp.bindc_type  = 'type(c_ptr)'
+        fp.to_c_var    = 'type(c_ptr), allocatable :: z_NAME(:)'
+        fp.to_f2_extra_var_type = ''
+        fp.to_f2_extra_var_name = ''
+        fp.to_c_trans  = '''
+n1_NAME = 0
+if (associated(F%NAME)) then
+  n1_NAME = size(F%NAME)
+  allocate (z_NAME(n1_NAME))
+  do jd1 = 1, n1_NAME; lb1 = lbound(F%NAME, 1) - 1
+    z_NAME(jd1) = c_loc(F%NAME(jd1+lb1))
+  enddo
+endif
+'''
+      fp.to_f2_trans = '''
+if (n1_NAME == 0) then
+  if (associated(F%NAME)) deallocate(F%NAME)
+else
+  if (associated(F%NAME)) then
+    if (n1_NAME == 0 .or. any(shape(F%NAME) /= [n1_NAME])) deallocate(F%NAME)
+  endif
+  if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME))
+  do jd1 = 1, n1_NAME
+    call coord_to_f (z_NAME(jd1), c_loc(z_NAME(jd1)))
+  enddo
+endif
+'''
+
     #---------------------
     # Pointer, dim = 2
 
@@ -1029,11 +1060,25 @@ for file_name in input.struct_def_files:
 
 ##################################################################################
 ##################################################################################
-# Add Fortran and C++ side translation info
+# Add Fortran and C++ side translation info.
+# Also throw out any sub-structures that are not to be translated.
+
+print str(input.component_ignore_list)
 
 for struct in struct_definitions:
+
+  ia = 0
+  while ia < len(struct.arg):
+    if struct.arg[ia].kind in input.component_ignore_list: 
+      struct.arg.pop(ia)
+      continue
+    ia += 1
+
+  #--------
+
   for arg in struct.arg:
 
+      
     # F side translation
 
     n_dim = len(arg.array)
@@ -1118,16 +1163,24 @@ for struct in struct_definitions:
       arg.c_side.constructor = arg.c_side.constructor.replace('KIND', kind)
 
     if len(arg.array) >= 1 and p_type == NOT:
-      d1 = 1 + int(arg.ubound[0]) - int(arg.lbound[0])
-      dim1 = str(d1)
-      arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('DIM1', dim1)
-      arg.f_side.test_pat    = arg.f_side.test_pat.replace('DIM1', dim1)
-      arg.f_side.to_c_var    = arg.f_side.to_c_var.replace('DIM1', dim1)
-      arg.f_side.to_c_trans  = arg.f_side.to_c_trans.replace('DIM1', dim1)
-      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('DIM1', dim1)
-      arg.c_side.constructor = arg.c_side.constructor.replace('DIM1', dim1)
-      arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('DIM1', dim1)
-      arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('DIM1', dim1)
+      if arg.ubound[0][-1] == '$':
+        f_dim1 = arg.ubound[0]
+        c_dim1 = 'Bmad::' + arg.ubound[0][0:-1].upper()
+        if arg.lbound[0] != '1':
+          print 'lbound not "1" with parameter upper bound!'
+          sys.exit('STOPPING HERE')
+      else:
+        f_dim1 = str(1 + int(arg.ubound[0]) - int(arg.lbound[0]))
+        c_dim1 = f_dim1
+
+      arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('DIM1', f_dim1)
+      arg.f_side.test_pat    = arg.f_side.test_pat.replace('DIM1', f_dim1)
+      arg.f_side.to_c_var    = arg.f_side.to_c_var.replace('DIM1', f_dim1)
+      arg.f_side.to_c_trans  = arg.f_side.to_c_trans.replace('DIM1', f_dim1)
+      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('DIM1', f_dim1)
+      arg.c_side.constructor = arg.c_side.constructor.replace('DIM1', c_dim1)
+      arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('DIM1', c_dim1)
+      arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('DIM1', c_dim1)
 
     if len(arg.array) >= 2 and p_type == NOT:
       d2 = 1 + int(arg.ubound[1]) - int(arg.lbound[1])
@@ -1136,7 +1189,7 @@ for struct in struct_definitions:
       arg.f_side.test_pat    = arg.f_side.test_pat.replace('DIM2', dim2)
       arg.f_side.to_c_var    = arg.f_side.to_c_var.replace('DIM2', dim2)
       arg.f_side.to_c_trans  = arg.f_side.to_c_trans.replace('DIM2', dim2)
-      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('SIZE2', str(d1*d2))
+      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('SIZE2', f_dim1+'*'+dim2)
       arg.c_side.constructor = arg.c_side.constructor.replace('DIM2', dim2)
       arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('DIM2', dim2)
       arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('DIM2', dim2)
@@ -1148,7 +1201,7 @@ for struct in struct_definitions:
       arg.f_side.test_pat    = arg.f_side.test_pat.replace('DIM3', dim3)
       arg.f_side.to_c_var    = arg.f_side.to_c_var.replace('DIM3', dim3)
       arg.f_side.to_c_trans  = arg.f_side.to_c_trans.replace('DIM3', dim3)
-      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('SIZE3', str(d1*d2*d3))
+      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('SIZE3', f_dim1+'*'+dim2+'*'+d3)
       arg.c_side.constructor = arg.c_side.constructor.replace('DIM3', dim3)
       arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('DIM3', dim3)
       arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('DIM3', dim3)
