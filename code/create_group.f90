@@ -286,7 +286,7 @@ do i = 1, n_control
   else
 
     ! If the slave attribute is a multipole component, make sure it exists.
-    if (ix_attrib > n_attrib_maxx .and. .not. associated (slave%a_pole)) then
+    if (ix_attrib > num_ele_attrib$ .and. .not. associated (slave%a_pole)) then
       call multipole_init(slave)
     endif
 

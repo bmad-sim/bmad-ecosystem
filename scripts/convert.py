@@ -16,9 +16,13 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'ix_track_end' in line:
+    if 'n_attrib_maxx' in line:
       found = True
-      line = line.replace('ix_track_end', 'track_state')
+      line = line.replace('n_attrib_maxx', 'num_ele_attrib$')
+
+    if 'n_attrib_special_maxx' in line:
+      found = True
+      line = line.replace('n_attrib_special_maxx', 'num_ele_attrib_extended$')
 
     out_file.write(line)
 

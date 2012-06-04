@@ -595,7 +595,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Print the element attributes.
 
-    do j = 1, n_attrib_maxx
+    do j = 1, num_ele_attrib$
       attrib = attribute_record(ele, j)
       val = ele%value(j)
       if (val == 0) cycle

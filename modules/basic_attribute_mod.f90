@@ -7,11 +7,11 @@ type ele_attribute_struct
   logical :: private = .false.
 end type
 
-type (ele_attribute_struct), private, save :: attrib_array(n_key, n_attrib_special_maxx)
+type (ele_attribute_struct), private, save :: attrib_array(n_key, num_ele_attrib_extended$)
 
-character(40), private, save :: short_attrib_array(n_key, n_attrib_special_maxx)
+character(40), private, save :: short_attrib_array(n_key, num_ele_attrib_extended$)
 integer, private, save :: attrib_num(n_key)
-integer, private, save :: attrib_ix(n_key, n_attrib_special_maxx)
+integer, private, save :: attrib_ix(n_key, num_ele_attrib_extended$)
 logical, private, save :: init_needed = .true.
 logical, private, save :: has_orientation_attributes_key(n_key)
 
@@ -175,7 +175,7 @@ key = ele%key
 
 if (key <= 0 .or. key > n_key) then
   attrib_name = '!BAD ELE KEY'
-elseif (ix_att <= 0 .or. ix_att > n_attrib_special_maxx) then
+elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
 elseif (ele%lord_status == overlay_lord$) then
   if (ix_att == ele%ix_value) then
@@ -241,7 +241,7 @@ attrib_record%private = .false.
 
 if (ele%key <= 0 .or. ele%key > n_key) then
   attrib_record%name = '!BAD ELE KEY'
-elseif (ix_att <= 0 .or. ix_att > n_attrib_special_maxx) then
+elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_record%name = '!BAD INDEX'
 elseif (ele%lord_status == overlay_lord$) then
   if (ix_att == ele%ix_value) then
@@ -948,7 +948,7 @@ do i = 1, n_key
   if (attrib_array(i, hkick$)%name    == 'HKICK') has_hkick_attributes(i) = .true.
 
   num = 0
-  do j = 1, n_attrib_special_maxx
+  do j = 1, num_ele_attrib_extended$
     if (attrib_array(i, j)%name == null_name$) cycle
     if (attrib_array(i, j)%private) cycle
     num = num + 1
@@ -1287,7 +1287,7 @@ integer, save :: max_length = 0
 !
 
 if (init_needed) call init_attribute_name_array
-if (max_length == 0) max_length = maxval(len_trim(attrib_array(1:n_key, 1:n_attrib_special_maxx)%name))
+if (max_length == 0) max_length = maxval(len_trim(attrib_array(1:n_key, 1:num_ele_attrib_extended$)%name))
 max_len = max_length
 
 end function

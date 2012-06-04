@@ -8,7 +8,7 @@ type measurement_common_struct
   real(rp) :: M_m(2,2)
   real(rp) :: sqrt_beta_a, sqrt_beta_b
   real(rp) :: beta_a = 0, beta_b = 0
-  real(rp) :: value(n_attrib_maxx) = real_garbage$
+  real(rp) :: value(num_ele_attrib$) = real_garbage$
 end type
 
 type (measurement_common_struct), private, save :: m_com

@@ -754,7 +754,7 @@ if (attrib_word == 'FIELD') then
       case ('MASTER_SCALE')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
         ix = attribute_index(ele, word)
-        if (ix < 1 .or. ix > n_attrib_maxx) then
+        if (ix < 1 .or. ix > num_ele_attrib$) then
           call parser_error ('BAD NAME FOR "MASTER_SCALE = <NAME>" CONSTRUCT', &
                                'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
@@ -4169,10 +4169,10 @@ main_loop: do n = 1, n2
         slave => pointer_to_ele (lat, ix_ele(k), ix_branch(k))
         ix = attribute_index(slave, attrib_name)
         ! If attribute not found it may be a special attribute like accordian_edge$.
-        ! A special attribute will have ix > n_attrib_maxx
+        ! A special attribute will have ix > num_ele_attrib$
         if (ix < 1 .and. lord%lord_status == group_lord$) then
           ix = attribute_index(lord, attrib_name)
-          if (ix <= n_attrib_maxx) ix = 0  ! Mark as not valid
+          if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
         endif
         cs(j)%ix_attrib = ix
         if (ix < 1) then

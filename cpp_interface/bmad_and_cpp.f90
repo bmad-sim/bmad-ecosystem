@@ -1310,7 +1310,7 @@ type (ele_struct), pointer :: f
 type (wig_term_struct), pointer :: w
 type (c_dummy_struct) c_ele
 
-real(rp) m6(36), value(0:n_attrib_maxx)
+real(rp) m6(36), value(0:num_ele_attrib$)
 real(rp), allocatable :: r_arr(:)
 integer i, nr1, nr2, nr3, nd, n_wig
 character(200) descrip
@@ -1409,7 +1409,7 @@ integer reversed, is_on, old_is_on, logic, bmad_logic, on_girder, csr_calc, n_ty
 integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
 integer ix_value, n_slave, ix1_slave, scale_multi
 
-real(rp) value(n_attrib_maxx), gen0(6), vec0(6), mat6(36), c_mat(4), gamma_c, s, ref_t
+real(rp) value(num_ele_attrib$), gen0(6), vec0(6), mat6(36), c_mat(4), gamma_c, s, ref_t
 real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2*nr3), ref_orb_in(6), ref_orb_out(6)
 
 character(n_nam)  nam

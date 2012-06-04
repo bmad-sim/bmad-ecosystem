@@ -49,7 +49,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 
 real(rp), pointer :: a_pole_save(:)
-real(rp) charge, value_save(n_attrib_maxx)
+real(rp) charge, value_save(num_ele_attrib$)
 integer i, j, n, ix_z
 
 character(20) :: r_name = 'track1_bunch_hom'

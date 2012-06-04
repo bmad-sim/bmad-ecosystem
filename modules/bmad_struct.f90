@@ -27,9 +27,9 @@ integer, parameter :: bmad_inc_version$ = 111
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-! Size of ele%value(:) array
+! num_ele_attrib$ is size of ele%value(:) array.
 
-integer, parameter :: n_attrib_maxx = 70
+integer, parameter :: num_ele_attrib$ = 70
 
 ! ele%aperture_at logical definitions.
 
@@ -360,8 +360,8 @@ type ele_struct
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()  ! Wiggler field
-  real(rp) value(n_attrib_maxx)                ! attribute values.
-  real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
+  real(rp) value(num_ele_attrib$)                ! attribute values.
+  real(rp) old_value(num_ele_attrib$)            ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                             ! constant part of the genfield map.
   real(rp) vec0(6)                             ! 0th order transport vector.
   real(rp) mat6(6,6)                           ! 1st order transport matrix.
@@ -667,7 +667,7 @@ integer, parameter :: y1_limit$ = 68   ! Assumed unique. Do not overload.
 integer, parameter :: y2_limit$ = 69   ! Assumed unique. Do not overload.
 integer, parameter :: check_sum$ = 70  ! Assumed unique. Do not overload.
 
-!! 71 = 1 + n_attrib_maxx
+!! 71 = 1 + num_ele_attrib$
 
 integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71
 integer, parameter :: alias$ =72, eta_x$ = 72
@@ -728,7 +728,7 @@ integer, parameter :: a20$ = 140, k20l$ = 140
 integer, parameter :: b0$  = 150, t0$  = 150
 integer, parameter :: b20$ = 170, t20$ = 170 
 
-integer, parameter :: n_attrib_special_maxx = t20$
+integer, parameter :: num_ele_attrib_extended$ = t20$
 
 character(40), parameter :: null_name$ = '!NULL' 
 character(40), parameter :: blank_name$ = ' '

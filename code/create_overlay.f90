@@ -136,7 +136,7 @@ do j = 1, n_slave
     nc2 = nc2 + 4
   else
     ! If the slave attribute is a multipole component, make sure it exists.
-    if (ix_attrib > n_attrib_maxx .and. .not. associated (slave%a_pole)) then
+    if (ix_attrib > num_ele_attrib$ .and. .not. associated (slave%a_pole)) then
       call multipole_init(slave)
     endif
     free = attribute_free (slave, attribute_name(slave, ix_attrib), lat, err_print_flag, .true.)

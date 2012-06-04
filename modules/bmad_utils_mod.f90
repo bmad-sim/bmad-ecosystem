@@ -1153,7 +1153,7 @@ type (ele_struct) :: ele_taylor, ele2
 integer it
 
 logical equiv
-logical vmask(n_attrib_maxx), vnot(n_attrib_maxx)
+logical vmask(num_ele_attrib$), vnot(num_ele_attrib$)
 
 !
 
