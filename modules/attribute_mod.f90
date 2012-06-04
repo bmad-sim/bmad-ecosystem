@@ -235,7 +235,7 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   ! multipole attribute
     ptr_attrib => ele%a_pole(ix_attrib-a0$)
   endif
 
-elseif (ix_attrib < 1 .or. ix_attrib > n_attrib_maxx) then
+elseif (ix_attrib < 1 .or. ix_attrib > num_ele_attrib$) then
   if (do_print) call out_io (s_error$, r_name, &
           'INVALID ATTRIBUTE INDEX: \i0\ ', 'FOR THIS ELEMENT: ' // ele%name, &
           i_array = [ix_attrib])

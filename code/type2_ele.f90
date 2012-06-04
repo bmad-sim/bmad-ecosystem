@@ -162,7 +162,7 @@ if (ele%lord_status == overlay_lord$) then
   nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)') i, name(1:n_att), '=', r_ptr
 
 else
-  do i = 1, n_attrib_maxx
+  do i = 1, num_ele_attrib$
     attrib = attribute_record(ele, i)
     a_name = attrib%name
     if (a_name == null_name$) cycle

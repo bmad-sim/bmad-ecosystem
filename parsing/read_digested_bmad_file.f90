@@ -37,9 +37,9 @@ type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
 type (random_state_struct) :: ran_state, digested_ran_state
 
-real(rp) value(n_attrib_maxx)
+real(rp) value(num_ele_attrib$)
 
-integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(n_attrib_maxx)
+integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at, idum1
 integer ierr, stat, ios, n_wall_section, garbage, idum2, j1, j2
 

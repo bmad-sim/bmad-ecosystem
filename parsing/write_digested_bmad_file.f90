@@ -41,10 +41,10 @@ type (branch_struct), pointer :: branch
 type (ran_parsing_struct), optional :: ran_p
 type (random_state_struct), save :: dummy_ran_state
 
-real(rp) value(n_attrib_maxx)
+real(rp) value(num_ele_attrib$)
 
 integer, intent(in), optional :: n_files
-integer d_unit, i, j, k, n_file, ix_value(n_attrib_maxx), ierr
+integer d_unit, i, j, k, n_file, ix_value(num_ele_attrib$), ierr
 integer stat_b(24), stat, n_wake, n_wall_section
 integer :: ix_wake(lat%n_ele_max)
 

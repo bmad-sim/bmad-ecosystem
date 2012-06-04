@@ -801,7 +801,7 @@ type (branch_struct), pointer :: branch
 type (floor_position_struct), pointer :: f0, f1
 type (coord_struct) start, end
 
-real(rp) s, slave_val(n_attrib_maxx), arg
+real(rp) s, slave_val(num_ele_attrib$), arg
 real(rp) d, e, r_lord, r_slave, cos_lord, cos_e, sin_lord, sin_lorde
 real(rp) ang_slave, ang_lord, ang_slave_old, d1, d2
 real(rp) cos_e2, d_theta, ang_dlord, cos_lorde1, cos_dlord
@@ -1136,7 +1136,7 @@ integer i, j, ix_con, ix, ix_slave, ix_lord, ix_order
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
 real(rp) sin_n, cos_n, a(0:n_pole_maxx), b(0:n_pole_maxx)
-real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
+real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(num_ele_attrib$)
 real(rp) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
 real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
@@ -1824,7 +1824,7 @@ type (ele_struct), target :: slave, lord
 type (lat_param_struct) param
 
 real(rp) offset, s_del, coef
-real(rp) value(n_attrib_maxx)
+real(rp) value(num_ele_attrib$)
 integer i
 logical at_entrance_end, at_exit_end, err_flag
 character(24) :: r_name = 'makeup_super_slave1'
@@ -1958,7 +1958,7 @@ subroutine compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_
 implicit none
 
 type (ele_struct) slave, lord
-real(rp) value(n_attrib_maxx)
+real(rp) value(num_ele_attrib$)
 logical at_entrance_end, at_exit_end
 
 ! 
@@ -2005,7 +2005,7 @@ subroutine compute_slave_coupler (value, slave, lord, at_entrance_end, at_exit_e
 implicit none
 
 type (ele_struct) slave, lord
-real(rp) value(n_attrib_maxx)
+real(rp) value(num_ele_attrib$)
 logical at_entrance_end, at_exit_end
 
 !
@@ -2049,11 +2049,11 @@ type (ele_struct) slave
 type (ele_struct), pointer :: lord
 type (branch_struct), pointer :: branch
 
-real(rp) value(n_attrib_special_maxx), coef, ds, s_slave
+real(rp) value(num_ele_attrib_extended$), coef, ds, s_slave
 real(rp) t, x_off, y_off, x_pitch, y_pitch
 real(rp), pointer :: r_ptr
 integer i, ix_con, ix, iv, ix_slave, icom, l_stat
-logical used(n_attrib_special_maxx), multipole_set, err_flag
+logical used(num_ele_attrib_extended$), multipole_set, err_flag
 
 character(40) :: r_name = 'makeup_overlay_and_girder_slave'
 
@@ -2116,10 +2116,10 @@ do i = 1, slave%n_lord
   if (err_flag) call err_exit
   value(iv) = value(iv) + r_ptr * coef
   used(iv) = .true.
-  if (iv > n_attrib_maxx) multipole_set = .true.
+  if (iv > num_ele_attrib$) multipole_set = .true.
 enddo
 
-where (used(1:n_attrib_maxx)) slave%value = value(1:n_attrib_maxx)
+where (used(1:num_ele_attrib$)) slave%value = value(1:num_ele_attrib$)
 if (multipole_set) then
   where (used(a0$:a20$)) slave%a_pole = value(a0$:a20$)
   where (used(b0$:b20$)) slave%b_pole = value(b0$:b20$)
@@ -2210,7 +2210,7 @@ type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
 
-real(rp) factor, gc, f2, phase, E_tot, polarity, dval(n_attrib_maxx)
+real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$)
 real(rp), pointer :: val(:)
 
 integer i, n
@@ -2220,7 +2220,7 @@ character(20) ::  r_name = 'attribute_bookkeeper'
 logical, optional :: force_bookkeeping
 logical err_flag
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
-logical, save :: v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
+logical, save :: v_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 logical :: init_needed = .true.
 
 ! Some init

@@ -84,7 +84,7 @@ integer, parameter :: n_sample = 16
 
 real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
-real(rp) value_saved(n_attrib_maxx), dphi0_ref_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
+real(rp) value_saved(num_ele_attrib$), dphi0_ref_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
 real(rp) dE_max1, dE_max2
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
