@@ -334,52 +334,6 @@ logical err_flag, err, changed
 
 character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
-! Multipass lords with n_ref_pass = 0 define their own reference energ
-
-if (ele%lord_status == multipass_lord$ .and. nint(ele%value(n_ref_pass$)) == 0 .and. &
-              (ele%value(e_tot$) /= 0 .or. ele%value(p0c$) /= 0)) then
-  if (ele%value(e_tot$) == 0 .and. ele%value(p0c$) /= 0) then
-    call convert_pc_to (ele%value(p0c$), param%particle, e_tot = ele%value(e_tot$))
-  elseif (ele%value(p0c$) == 0 .and. ele%value(e_tot$) /= 0) then
-    call convert_total_energy_to (ele%value(e_tot$), param%particle, pc = ele%value(p0c$))
-  endif
-
-  select case (ele%key)
-
-  case (lcavity$)
-    if (ele%tracking_method == bmad_standard$) then
-      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-      ele%value(E_tot_start$) = ele%value(E_tot$) - &
-                    ele%value(gradient$) * ele%value(field_scale$) * ele%value(l$) * cos(phase)
-      call convert_total_energy_to (ele%value(E_tot_start$), param%particle, pc = ele%value(p0c_start$), err_flag = err)
-
-    else
-      print *, 'MULTIPASS LCAVITY WITH FIELD TRACKING NOT YET IMPLEMENTED!'
-      call err_exit
-      if (ele%value(e_tot_start$) == 0) then ! 
-        ele%value(E_tot_start$) = ele%value(e_tot$)
-        ele%value(p0c_start$) = ele%value(p0c$)
-      endif
-      call track_this_ele (.false.)
-      call calc_time_ref_orb_out
-
-      ele%value(p0c_start$) = ele%value(p0c$) * (1 + orb_end%vec(6))
-      call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
-    endif  
-
-  case (hybrid$, custom$)
-    ele%value(E_tot_start$) = ele%value(e_tot$) - ele%value(delta_e$)
-    call convert_total_energy_to (ele%value(E_tot_start$), param%particle, pc = ele%value(p0c_start$), err_flag = err)
-
-  case default
-    ele%value(e_tot_start$) = ele%value(e_tot$)
-    ele%value(p0c_start$) = ele%value(p0c$)
-  end select
-
-  return
-
-endif
-
 !
 
 err_flag = .true.
