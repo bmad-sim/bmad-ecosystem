@@ -567,6 +567,8 @@ type tao_common_struct
   logical :: optimizer_running     = .false. 
   logical :: noplot_arg_set        = .false.
   logical :: init_tao_file_arg_set = .false.
+  logical :: draw_wall_floor_plan  = .false.
+  logical :: draw_wall_lat_layout  = .false.
   character(100) :: cmd                                ! Used for the cmd history
   character(16) :: init_name = 'Tao'                   ! label for initialization          
   logical :: log_startup = .false.             ! '-log_startup' command line argument.

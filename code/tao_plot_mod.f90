@@ -379,6 +379,11 @@ do i = 1, size(tao_com%ele_shape_floor_plan)
   enddo
 enddo
 
+!
+
+if (tao_com%draw_wall_floor_plan) then
+endif
+
 ! Draw the tunnel wall
 
 if (allocated(s%wall)) then
@@ -1034,6 +1039,9 @@ y1 = max(y_bottom, min(y1, y_top))
 y2 = max(y_bottom, min(y2, y_top))
 
 call draw_lat_layout_shape (name_in, ele%s - ele%value(l$) / 2, ele_shape)
+
+if (tao_com%draw_wall_lat_layout) then
+endif
 
 end subroutine draw_lat_layout_ele_shape
 

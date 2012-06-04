@@ -1899,6 +1899,7 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Floor_plan Element Shapes:'
+    nl=nl+1; lines(nl) = '  Draw_wall = ', tao_com%draw_wall_floor_plan
     nl=nl+1; lines(nl) = &
           'Ele_Name                        Shape         Color           Size  Label  Draw  Name'
     nl=nl+1; lines(nl) = &
@@ -1914,6 +1915,7 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Lat_layout Element Shapes:'
+    nl=nl+1; lines(nl) = '  Draw_wall = ', tao_com%draw_wall_lat_layout
     nl=nl+1; lines(nl) = &
           'Ele_Name                        Shape         Color           Size  Label  Draw  Name'
     nl=nl+1; lines(nl) = &

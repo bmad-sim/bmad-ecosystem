@@ -59,12 +59,14 @@ character(100) plot_file, graph_name, full_file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
+logical draw_wall
+
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 namelist / element_shapes / shape
-namelist / element_shapes_floor_plan / ele_shape
-namelist / element_shapes_lat_layout / ele_shape
+namelist / element_shapes_floor_plan / ele_shape, draw_wall
+namelist / element_shapes_lat_layout / ele_shape, draw_wall
 
 logical err
 
@@ -190,6 +192,7 @@ enddo
 rewind (iu)
 shape(:)%key_name = ''
 shape(:)%ele_name = ''
+
 read (iu, nml = element_shapes, iostat = ios)
 
 if (ios > 0) then
@@ -199,8 +202,6 @@ if (ios > 0) then
 endif
 
 if (ios == 0) then
-!    call out_io (s_error$, r_name, 'DEPRECATED ELEMENT_SHAPES NAMELIST DETECTED.', &
-!                                   'PLEASE CHANGE TO THE NEW SYNTAX (SEE THE MANUAL)!')
   do i = 1, size(shape)
     ele_shape(i)%ele_name = shape(i)%ele_name
     if (shape(i)%key_name /= '') &
@@ -236,6 +237,8 @@ if (ios < 0) then
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
   ele_shape(:)%shape_name = ''
+  draw_wall = .false.
+
   read (iu, nml = element_shapes_floor_plan, iostat = ios)
 
   if (ios > 0) then
@@ -247,6 +250,7 @@ if (ios < 0) then
   call tao_uppercase_shapes (ele_shape, n, 'f')
   allocate (tao_com%ele_shape_floor_plan(n))
   tao_com%ele_shape_floor_plan = ele_shape(1:n)
+  tao_com%draw_wall_floor_plan = draw_wall
 
   ! Read element_shapes_lat_layout namelist
   rewind (iu)
@@ -254,6 +258,8 @@ if (ios < 0) then
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
   ele_shape(:)%shape_name = ''
+  draw_wall = .false.
+
   read (iu, nml = element_shapes_lat_layout, iostat = ios)
 
   if (ios > 0) then
@@ -265,6 +271,7 @@ if (ios < 0) then
   call tao_uppercase_shapes (ele_shape, n, 'l')
   allocate (tao_com%ele_shape_lat_layout(n))
   tao_com%ele_shape_lat_layout = ele_shape(1:n)
+  tao_com%draw_wall_lat_layout = draw_wall
 
 endif
 
