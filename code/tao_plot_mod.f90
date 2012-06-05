@@ -983,6 +983,8 @@ type (ele_struct), pointer :: ele1, ele2
 type (tao_ele_shape_struct), optional, target :: ele_shape_in
 type (tao_ele_shape_struct), pointer :: ele_shape
 
+integer section_id
+
 character(*) name_in
 
 !
@@ -1040,7 +1042,19 @@ y2 = max(y_bottom, min(y2, y_top))
 
 call draw_lat_layout_shape (name_in, ele%s - ele%value(l$) / 2, ele_shape)
 
-if (tao_com%lat_layout%draw_beam_chamber_wall) then
+if (tao_com%lat_layout%draw_beam_chamber_wall .and. associated(ele%wall3d%section)) then
+!Draw simple wall. Only use the first vertex, and assume cylindrical symmetry
+  do section_id = 1, size(ele%wall3d%section) - 1
+    x1 = ele%s - ele%value(l$) + ele%wall3d%section(section_id)%s
+    x2 = ele%s - ele%value(l$) + ele%wall3d%section(section_id + 1)%s
+    y1 = ele%wall3d%section(section_id)%v(1)%radius_x
+    y2 = ele%wall3d%section(section_id + 1)%v(1)%radius_x
+    !scale wall
+    y1 = tao_com%lat_layout%beam_chamber_wall_scale * y1
+    y2 = tao_com%lat_layout%beam_chamber_wall_scale * y2
+    call qp_draw_line (x1, x2, y1, y2)
+    call qp_draw_line (x1, x2, -y1, -y2)
+  end do
 endif
 
 end subroutine draw_lat_layout_ele_shape
