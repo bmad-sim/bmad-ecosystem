@@ -1899,8 +1899,8 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Floor_plan Element Shapes:'
-    nl=nl+1; write (lines(nl), lmt) '  Draw_wall  = ', tao_com%floor_plan%draw_wall
-    nl=nl+1; write (lines(nl), rmt) '  Wall_scale = ', tao_com%floor_plan%wall_scale
+    nl=nl+1; write (lines(nl), lmt) '  Draw_beam_chamber_wall  = ', tao_com%floor_plan%draw_beam_chamber_wall
+    nl=nl+1; write (lines(nl), rmt) '  Beam_chamber_wall_scale = ', tao_com%floor_plan%beam_chamber_wall_scale
     nl=nl+1; lines(nl) = &
           'Ele_Name                        Shape         Color           Size  Label  Draw  Name'
     nl=nl+1; lines(nl) = &
@@ -1916,8 +1916,8 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Lat_layout Element Shapes:'
-    nl=nl+1; write (lines(nl), lmt) '  Draw_wall  = ', tao_com%lat_layout%draw_wall
-    nl=nl+1; write (lines(nl), rmt) '  Wall_scale = ', tao_com%lat_layout%wall_scale
+    nl=nl+1; write (lines(nl), lmt) '  Draw_beam_chamber_wall  = ', tao_com%lat_layout%draw_beam_chamber_wall
+    nl=nl+1; write (lines(nl), rmt) '  Beam_chamber_wall_scale = ', tao_com%lat_layout%beam_chamber_wall_scale
     nl=nl+1; lines(nl) = &
           'Ele_Name                        Shape         Color           Size  Label  Draw  Name'
     nl=nl+1; lines(nl) = &

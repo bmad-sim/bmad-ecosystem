@@ -70,8 +70,8 @@ end type
 
 type tao_shape_struct
   type (tao_ele_shape_struct), allocatable :: ele_shape(:)
-  logical :: draw_wall = .false.
-  real(rp) :: wall_scale = 1
+  logical :: draw_beam_chamber_wall = .false.
+  real(rp) :: beam_chamber_wall_scale = 1
 end type
 
 type tao_wave_kick_pt_struct
@@ -460,20 +460,20 @@ end type
 
 
 !------------------------------------------------------------------------
-! Tunnel wall structure
+! Building wall structure
 
 integer, parameter :: arc$ = 1, point$ = 2
 integer, parameter :: left_side$ = 1, right_side$ = 2
 
-type tao_wall_point_struct
+type tao_building_wall_point_struct
   integer type              ! arc$ or point$
   real(rp) z, x                 ! floor position
   real(rp) r, theta1, theta2    ! For arcs
 end type
 
-type tao_wall_struct
+type tao_building_wall_struct
   integer side    ! left_side$ or right_side$
-  type (tao_wall_point_struct), allocatable :: point(:)
+  type (tao_building_wall_point_struct), allocatable :: point(:)
 end type
 
 !------------------------------------------------------------------------
@@ -586,7 +586,7 @@ type tao_common_struct
   character(100) :: plot_file = ''             ! '-plot'        command line argument.
   character(100) :: startup_file = ''          ! '-startup'     command line argument.
   character(100) :: var_file = ''              ! '-var'         command line argument.
-  character(100) :: wall_file = ''             ! '-wall'        command line argument.
+  character(100) :: building_wall_file = ''    ! '-building_wall' command line argument.
   character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
@@ -707,7 +707,7 @@ type tao_super_universe_struct
   type (tao_var_struct), allocatable :: var(:)             ! array of all variables.
   type (tao_universe_struct), allocatable :: u(:)          ! array of universes.
   integer, allocatable :: key(:)
-  type (tao_wall_struct), allocatable :: wall(:)
+  type (tao_building_wall_struct), allocatable :: building_wall(:)
   type (tao_wave_struct) :: wave 
   integer n_var_used
   integer n_v1_var_used

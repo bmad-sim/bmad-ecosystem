@@ -2543,7 +2543,7 @@ subroutine tao_parse_command_args (error, cmd_words)
 implicit none
 
 character(*), optional :: cmd_words(:)
-character(80) arg0, base
+character(80) arg0, base, switch
 character(24) :: r_name = 'tao_parse_command_args'
 
 integer n_arg, i_arg, ix
@@ -2573,7 +2573,15 @@ do
   if (i_arg == n_arg) exit
   call get_next_arg (arg0)
 
-  select case (arg0)
+  call match_word (arg0, ['-?          ', &
+          '-init         ', '-noinit       ', '-beam_all     ', '-beam0        ', &
+          '-noplot       ', '-lat          ', '-log_startup  ', '-beam         ', &
+          '-var          ', '-data         ', '-building_wall', '-plot         ', &
+          '-startup      ', 'help          ', '-help         ', '?             '], &
+                                  ix, .true., matched_name=switch)
+
+  select case (switch)
+
   case ('-init')
     call get_next_arg (tao_com%init_tao_file)
     tao_com%init_tao_file_arg_set = .true.
@@ -2616,12 +2624,12 @@ do
   case ('-startup')
     call get_next_arg (tao_com%startup_file)
 
+  case ('-building_wall')
+    call get_next_arg (tao_com%building_wall_file)
+
   case ('help', '-help', '?', '-?')
     call tao_print_command_line_info
     stop
-
-  case ('')
-    exit
 
   case default
     call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
@@ -2683,6 +2691,7 @@ call out_io (s_blank$, r_name, [ &
         '  -beam <beam_file>                ', &
         '  -beam_all <all_beam_file>        ', &
         '  -beam0 <beam0_file>              ', &
+        '  -building_wall <wall_file>       ', &
         '  -data <data_file>                ', &
         '  -init <tao_init_file>            ', &
         '  -lat <bmad_lattice_file>         ', &
@@ -2693,6 +2702,7 @@ call out_io (s_blank$, r_name, [ &
         '  -plot <plot_file>                ', &
         '  -startup <starup_command_file>   ', &
         '  -var <var_file>                  '])
+
 
 end subroutine tao_print_command_line_info
 

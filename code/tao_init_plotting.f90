@@ -48,7 +48,7 @@ type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 type (ele_pointer_struct), allocatable, save :: eles(:)
 
-real(rp) shape_height_max, y1, y2, wall_scale
+real(rp) shape_height_max, y1, y2, beam_chamber_wall_scale
 
 integer iu, i, j, k, ix, ip, n, ng, ios, i_uni
 integer graph_index, color, i_graph
@@ -59,14 +59,14 @@ character(100) plot_file, graph_name, full_file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
-logical draw_wall
+logical draw_beam_chamber_wall
 
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 namelist / element_shapes / shape
-namelist / element_shapes_floor_plan / ele_shape, draw_wall, wall_scale
-namelist / element_shapes_lat_layout / ele_shape, draw_wall, wall_scale
+namelist / element_shapes_floor_plan / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
+namelist / element_shapes_lat_layout / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
 
 logical err
 
@@ -237,8 +237,8 @@ if (ios < 0) then
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
   ele_shape(:)%shape_name = ''
-  draw_wall  = .false.
-  wall_scale = 1
+  draw_beam_chamber_wall  = .false.
+  beam_chamber_wall_scale = 1
 
   read (iu, nml = element_shapes_floor_plan, iostat = ios)
 
@@ -251,8 +251,8 @@ if (ios < 0) then
   call tao_uppercase_shapes (ele_shape, n, 'f')
   allocate (tao_com%floor_plan%ele_shape(n))
   tao_com%floor_plan%ele_shape = ele_shape(1:n)
-  tao_com%floor_plan%draw_wall = draw_wall
-  tao_com%floor_plan%wall_scale = wall_scale
+  tao_com%floor_plan%draw_beam_chamber_wall = draw_beam_chamber_wall
+  tao_com%floor_plan%beam_chamber_wall_scale = beam_chamber_wall_scale
 
   ! Read element_shapes_lat_layout namelist
   rewind (iu)
@@ -260,8 +260,8 @@ if (ios < 0) then
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
   ele_shape(:)%shape_name = ''
-  draw_wall  = .false.
-  wall_scale = 1
+  draw_beam_chamber_wall  = .false.
+  beam_chamber_wall_scale = 1
 
   read (iu, nml = element_shapes_lat_layout, iostat = ios)
 
@@ -274,8 +274,8 @@ if (ios < 0) then
   call tao_uppercase_shapes (ele_shape, n, 'l')
   allocate (tao_com%lat_layout%ele_shape(n))
   tao_com%lat_layout%ele_shape  = ele_shape(1:n)
-  tao_com%lat_layout%draw_wall  = draw_wall
-  tao_com%lat_layout%wall_scale = wall_scale
+  tao_com%lat_layout%draw_beam_chamber_wall  = draw_beam_chamber_wall
+  tao_com%lat_layout%beam_chamber_wall_scale = beam_chamber_wall_scale
 
 endif
 

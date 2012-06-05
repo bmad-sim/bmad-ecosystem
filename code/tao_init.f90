@@ -30,7 +30,7 @@ real(rp), pointer :: ptr_attrib
 
 character(80) arg, arg2, startup_file
 character(100) plot_file, data_file, var_file, file_name
-character(100) wall_file, beam_file, why_invalid, init_tao_file
+character(100) building_wall_file, beam_file, why_invalid, init_tao_file
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
@@ -41,7 +41,7 @@ integer iu_log
 logical err, calc_ok, valid_value
 logical, optional :: err_flag
 
-namelist / tao_start / startup_file, wall_file, &
+namelist / tao_start / startup_file, building_wall_file, &
                data_file, var_file, plot_file, n_universes, init_name, beam_file
 
 ! global inits
@@ -105,7 +105,7 @@ plot_file          = 'NOT SET!'         ! set default
 data_file          = 'NOT SET!'         ! set default
 var_file           = 'NOT SET!'         ! set default
 beam_file          = 'NOT SET!'         ! set default
-wall_file          = 'NOT SET!'       
+building_wall_file = 'NOT SET!'       
 n_universes        = 1                  ! set default
 init_name          = "Tao"              ! set default
 startup_file       = 'NOT SET!'       
@@ -136,7 +136,7 @@ call set_this_file_name (plot_file, init_tao_file, tao_com%plot_file)
 call set_this_file_name (data_file, init_tao_file, tao_com%data_file)
 call set_this_file_name (var_file,  init_tao_file, tao_com%var_file)
 call set_this_file_name (beam_file, init_tao_file, tao_com%beam_file)
-call set_this_file_name (wall_file, '',            tao_com%wall_file)
+call set_this_file_name (building_wall_file, '',   tao_com%building_wall_file)
 call set_this_file_name (startup_file, 'tao.startup', tao_com%startup_file)
 
 ! Tao inits.
@@ -152,7 +152,7 @@ call tao_init_connected_universes (init_tao_file)
 call tao_init_beams (beam_file)
 call tao_init_variables (var_file)
 call tao_init_data (data_file)
-call tao_init_wall (wall_file)
+call tao_init_building_wall (building_wall_file)
 
 call tao_hook_init1 (init_tao_file)
 
@@ -296,9 +296,9 @@ type (tao_universe_struct), pointer :: u
 
 integer i, j, k, istat
 
-! Tunnel walls
+! building walls
 
-if (allocated(s%wall)) deallocate (s%wall)
+if (allocated(s%building_wall)) deallocate (s%building_wall)
 
 ! Variables  
 

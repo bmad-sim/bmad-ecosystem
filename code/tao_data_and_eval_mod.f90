@@ -2071,9 +2071,9 @@ case ('unstable.')
 
 !-----------
 
-case ('wall')
+case ('building_wall')
   if (data_source == 'beam') return
-  call out_io (s_error$, r_name, 'WALL NOT YET IMPLEMENTED...')
+  call out_io (s_error$, r_name, 'BUILDING_WALL NOT YET IMPLEMENTED...')
   return
 
 !-----------

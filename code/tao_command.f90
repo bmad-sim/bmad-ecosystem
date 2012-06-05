@@ -43,7 +43,7 @@ character(200) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(36) = [  &
+character(16) :: cmd_names(36) = [ &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
@@ -53,11 +53,11 @@ character(16) :: cmd_names(36) = [  &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
     'python       ']
 
-character(16) :: cmd_names_old(6) = [ &
+character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-character(16) :: set_names(17) = [ &
+character(16) :: set_names(17) = [&
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
     'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
     'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param', 'ran_state    ', &
@@ -437,8 +437,8 @@ case ('scale')
   do 
     word = cmd_word(1)
     if (word(1:1) /= '-') exit
-    call match_word (word, (/ '-y     ', '-y2    ', &
-                              '-nogang', '-gang  ' /), ix, .true., matched_name=switch)
+    call match_word (word, ['-y     ', '-y2    ', &
+                              '-nogang', '-gang  '], ix, .true., matched_name=switch)
 
     select case (switch)
     case ('-y', '-y2') 
@@ -636,7 +636,7 @@ case ('x_scale')
   gang_str = ''
   do 
     if (cmd_word(1) /= '-') exit
-    call match_word (cmd_word(1), (/ '-nogang', '-gang  ' /), ix, .true., matched_name=switch)
+    call match_word (cmd_word(1), ['-nogang', '-gang  '], ix, .true., matched_name=switch)
 
     select case (switch)
     case ('-gang', '-nogang')

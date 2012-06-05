@@ -274,7 +274,7 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
 type (floor_position_struct) end1, end2, floor
-type (tao_wall_point_struct), pointer :: pt(:)
+type (tao_building_wall_point_struct), pointer :: pt(:)
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 type (tao_ele_shape_struct), pointer :: ele_shape
@@ -381,14 +381,14 @@ enddo
 
 !
 
-if (tao_com%floor_plan%draw_wall) then
+if (tao_com%floor_plan%draw_beam_chamber_wall) then
 endif
 
-! Draw the tunnel wall
+! Draw the building wall
 
-if (allocated(s%wall)) then
-  do i = 1, size(s%wall)
-    pt => s%wall(i)%point
+if (allocated(s%building_wall)) then
+  do i = 1, size(s%building_wall)
+    pt => s%building_wall(i)%point
 
     do j = 1, size(pt)
 
@@ -447,7 +447,7 @@ type (ele_struct) :: ele
 type (ele_struct) :: drift
 type (ele_struct), pointer :: ele1, ele2, lord
 type (floor_position_struct) end1, end2, floor, x_ray
-type (tao_wall_point_struct), pointer :: pt(:)
+type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape
 
 integer i, j, k, ix_shape, icol, isu, n_bend, n, ix, ixs, ic
@@ -1040,7 +1040,7 @@ y2 = max(y_bottom, min(y2, y_top))
 
 call draw_lat_layout_shape (name_in, ele%s - ele%value(l$) / 2, ele_shape)
 
-if (tao_com%lat_layout%draw_wall) then
+if (tao_com%lat_layout%draw_beam_chamber_wall) then
 endif
 
 end subroutine draw_lat_layout_ele_shape
