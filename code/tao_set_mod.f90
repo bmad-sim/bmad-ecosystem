@@ -1696,23 +1696,23 @@ namelist / params / shape
 
 nullify (shape0)
 
-do i = 1, size(tao_com%ele_shape_floor_plan)
-  if (shape_name == tao_com%ele_shape_floor_plan(i)%shape_name) then
+do i = 1, size(tao_com%floor_plan%ele_shape)
+  if (shape_name == tao_com%floor_plan%ele_shape(i)%shape_name) then
     if (associated (shape0)) then
       call out_io (s_error$, r_name, 'DUPLICATE NAME! ', shape_name)
       return
     endif
-    shape0 => tao_com%ele_shape_floor_plan(i)
+    shape0 => tao_com%floor_plan%ele_shape(i)
   endif
 enddo
 
-do i = 1, size(tao_com%ele_shape_lat_layout)
-  if (shape_name == tao_com%ele_shape_lat_layout(i)%shape_name) then
+do i = 1, size(tao_com%lat_layout%ele_shape)
+  if (shape_name == tao_com%lat_layout%ele_shape(i)%shape_name) then
     if (associated (shape0)) then
       call out_io (s_error$, r_name, 'DUPLICATE NAME! ', shape_name)
       return
     endif
-    shape0 => tao_com%ele_shape_lat_layout(i)
+    shape0 => tao_com%lat_layout%ele_shape(i)
   endif
 enddo
 

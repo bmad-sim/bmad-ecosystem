@@ -326,7 +326,7 @@ do n = 0, ubound(lat%branch, 1)
   branch%ele%logic = .false.  ! Used to mark as drawn.
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
-    call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, ix_shape)
+    call tao_find_ele_shape (ele, tao_com%floor_plan%ele_shape, ix_shape)
     if (ele%ix_ele > lat%n_ele_track .and. ix_shape == 0) cycle   ! Nothing to draw
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
@@ -341,8 +341,8 @@ enddo
 
 ! Draw data
 
-do i = 1, size(tao_com%ele_shape_floor_plan)
-  ele_shape => tao_com%ele_shape_floor_plan(i)
+do i = 1, size(tao_com%floor_plan%ele_shape)
+  ele_shape => tao_com%floor_plan%ele_shape(i)
   if (ele_shape%ele_name(1:5) /= 'dat::') cycle
   if (.not. ele_shape%draw) cycle
   call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
@@ -360,8 +360,8 @@ enddo
 
 ! Draw variables
 
-do i = 1, size(tao_com%ele_shape_floor_plan)
-  ele_shape => tao_com%ele_shape_floor_plan(i)
+do i = 1, size(tao_com%floor_plan%ele_shape)
+  ele_shape => tao_com%floor_plan%ele_shape(i)
   if (ele_shape%ele_name(1:5) /= 'var::') cycle
   if (.not. ele_shape%draw) cycle
   call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
@@ -381,7 +381,7 @@ enddo
 
 !
 
-if (tao_com%draw_wall_floor_plan) then
+if (tao_com%floor_plan%draw_wall) then
 endif
 
 ! Draw the tunnel wall
@@ -432,7 +432,7 @@ end subroutine
 !   lat      -- lat_struct: Lattice containing the element.
 !   ele      -- ele_struct: Element to draw.
 !   name_in  -- Character(*): If not blank then name to print beside the element.
-!   ix_shape -- Integer: Index in tao_com%ele_shape_floor_plan(:) array of shape to draw.
+!   ix_shape -- Integer: Index in tao_com%floor_plan%ele_shape(:) array of shape to draw.
 !   is_data  -- Logical: Are we drawing an actual lattice elment or marking where a Tao datum is being evaluated?
 !-
 
@@ -549,7 +549,7 @@ endif
 
 ! Here if element is to be drawn...
 
-ele_shape => tao_com%ele_shape_floor_plan(ix_shape)
+ele_shape => tao_com%floor_plan%ele_shape(ix_shape)
 shape = ele_shape%shape
 
 call qp_translate_to_color_index (ele_shape%color, icol)
@@ -617,9 +617,9 @@ endif
 if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
   drift%key = photon_branch$
   drift%name = ele%name
-  call tao_find_ele_shape (drift, tao_com%ele_shape_floor_plan, ixs)
+  call tao_find_ele_shape (drift, tao_com%floor_plan%ele_shape, ixs)
   if (ixs > 0) then
-    call qp_translate_to_color_index (tao_com%ele_shape_floor_plan(ixs)%color, ic)
+    call qp_translate_to_color_index (tao_com%floor_plan%ele_shape(ixs)%color, ic)
     call qp_draw_line (x_ray%x, end2%x, x_ray%y, end2%y, units = 'POINTS', color = ic)
   endif
 endif
@@ -862,7 +862,7 @@ call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
 ! loop over all elements in the branch. Only draw those element that
 ! are within bounds.
 
-ele_shapes => tao_com%ele_shape_lat_layout
+ele_shapes => tao_com%lat_layout%ele_shape
 height = s%plot_page%text_height * s%plot_page%legend_text_scale
 
 do i = 1, branch%n_ele_track
@@ -1040,7 +1040,7 @@ y2 = max(y_bottom, min(y2, y_top))
 
 call draw_lat_layout_shape (name_in, ele%s - ele%value(l$) / 2, ele_shape)
 
-if (tao_com%draw_wall_lat_layout) then
+if (tao_com%lat_layout%draw_wall) then
 endif
 
 end subroutine draw_lat_layout_ele_shape

@@ -328,8 +328,8 @@ do i = 1, size(s%template_plot)
 enddo
 deallocate (s%template_plot)
 
-if (allocated(tao_com%ele_shape_lat_layout)) deallocate (tao_com%ele_shape_lat_layout)
-if (allocated(tao_com%ele_shape_floor_plan)) deallocate (tao_com%ele_shape_floor_plan)
+if (allocated(tao_com%lat_layout%ele_shape)) deallocate (tao_com%lat_layout%ele_shape)
+if (allocated(tao_com%floor_plan%ele_shape)) deallocate (tao_com%floor_plan%ele_shape)
 if (allocated(tao_com%covar))                deallocate (tao_com%covar, tao_com%alpha)
 
 ! Universes 

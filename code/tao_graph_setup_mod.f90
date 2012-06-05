@@ -945,7 +945,7 @@ do k = 1, size(graph%curve)
       ! Mark all eles in branch if they match a shape.
       do i = 0, branch%n_ele_track
         ele => branch%ele(i)
-        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, ix)
+        call tao_find_ele_shape (ele, tao_com%lat_layout%ele_shape, ix)
         if (ix == 0) cycle
         call find_element_ends (model_lat, ele, ele1, ele2)
         ele1%logic = .true.
@@ -955,7 +955,7 @@ do k = 1, size(graph%curve)
       ! Mark slaves of lord elements that match a shape.
       do i = model_lat%n_ele_track+1, model_lat%n_ele_max
         ele => model_lat%ele(i)
-        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, ix)
+        call tao_find_ele_shape (ele, tao_com%lat_layout%ele_shape, ix)
         if (ix == 0) cycle
         if (ele%lord_status == multipass_lord$) then
           do j = 1, ele%n_slave

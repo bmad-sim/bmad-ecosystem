@@ -68,6 +68,12 @@ type tao_ele_shape_struct    ! for the element layout plot
   character(20) shape_name   ! shape name for "set shape" command
 end type
 
+type tao_shape_struct
+  type (tao_ele_shape_struct), allocatable :: ele_shape(:)
+  logical :: draw_wall = .false.
+  real(rp) :: wall_scale = 1
+end type
+
 type tao_wave_kick_pt_struct
   real(rp) :: phi_s, phi_r, phi, amp
   integer :: ix_dat
@@ -539,8 +545,8 @@ end type
 
 type tao_common_struct
   type (tao_alias_struct) alias(100)
-  type (tao_ele_shape_struct), allocatable :: ele_shape_floor_plan(:)
-  type (tao_ele_shape_struct), allocatable :: ele_shape_lat_layout(:)
+  type (tao_shape_struct) :: floor_plan
+  type (tao_shape_struct) :: lat_layout
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)
@@ -567,8 +573,6 @@ type tao_common_struct
   logical :: optimizer_running     = .false. 
   logical :: noplot_arg_set        = .false.
   logical :: init_tao_file_arg_set = .false.
-  logical :: draw_wall_floor_plan  = .false.
-  logical :: draw_wall_lat_layout  = .false.
   character(100) :: cmd                                ! Used for the cmd history
   character(16) :: init_name = 'Tao'                   ! label for initialization          
   logical :: log_startup = .false.             ! '-log_startup' command line argument.

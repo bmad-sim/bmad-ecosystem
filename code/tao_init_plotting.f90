@@ -48,7 +48,7 @@ type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 type (ele_pointer_struct), allocatable, save :: eles(:)
 
-real(rp) shape_height_max, y1, y2
+real(rp) shape_height_max, y1, y2, wall_scale
 
 integer iu, i, j, k, ix, ip, n, ng, ios, i_uni
 integer graph_index, color, i_graph
@@ -65,8 +65,8 @@ namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 namelist / element_shapes / shape
-namelist / element_shapes_floor_plan / ele_shape, draw_wall
-namelist / element_shapes_lat_layout / ele_shape, draw_wall
+namelist / element_shapes_floor_plan / ele_shape, draw_wall, wall_scale
+namelist / element_shapes_lat_layout / ele_shape, draw_wall, wall_scale
 
 logical err
 
@@ -219,12 +219,12 @@ if (ios == 0) then
   enddo
 
   call tao_uppercase_shapes (ele_shape, n, 'f')
-  allocate (tao_com%ele_shape_floor_plan(n), tao_com%ele_shape_lat_layout(n))
-  tao_com%ele_shape_floor_plan = ele_shape(1:n)
+  allocate (tao_com%floor_plan%ele_shape(n), tao_com%lat_layout%ele_shape(n))
+  tao_com%floor_plan%ele_shape = ele_shape(1:n)
   do i = 1, n
     ele_shape(i)%shape_name(1:1) = 'l'
   enddo
-  tao_com%ele_shape_lat_layout = ele_shape(1:n)
+  tao_com%lat_layout%ele_shape = ele_shape(1:n)
 endif
 
 ! Look for new style shape namelist if could not find old style
@@ -237,7 +237,8 @@ if (ios < 0) then
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
   ele_shape(:)%shape_name = ''
-  draw_wall = .false.
+  draw_wall  = .false.
+  wall_scale = 1
 
   read (iu, nml = element_shapes_floor_plan, iostat = ios)
 
@@ -248,9 +249,10 @@ if (ios < 0) then
   endif
 
   call tao_uppercase_shapes (ele_shape, n, 'f')
-  allocate (tao_com%ele_shape_floor_plan(n))
-  tao_com%ele_shape_floor_plan = ele_shape(1:n)
-  tao_com%draw_wall_floor_plan = draw_wall
+  allocate (tao_com%floor_plan%ele_shape(n))
+  tao_com%floor_plan%ele_shape = ele_shape(1:n)
+  tao_com%floor_plan%draw_wall = draw_wall
+  tao_com%floor_plan%wall_scale = wall_scale
 
   ! Read element_shapes_lat_layout namelist
   rewind (iu)
@@ -258,7 +260,8 @@ if (ios < 0) then
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
   ele_shape(:)%shape_name = ''
-  draw_wall = .false.
+  draw_wall  = .false.
+  wall_scale = 1
 
   read (iu, nml = element_shapes_lat_layout, iostat = ios)
 
@@ -269,31 +272,32 @@ if (ios < 0) then
   endif
 
   call tao_uppercase_shapes (ele_shape, n, 'l')
-  allocate (tao_com%ele_shape_lat_layout(n))
-  tao_com%ele_shape_lat_layout = ele_shape(1:n)
-  tao_com%draw_wall_lat_layout = draw_wall
+  allocate (tao_com%lat_layout%ele_shape(n))
+  tao_com%lat_layout%ele_shape  = ele_shape(1:n)
+  tao_com%lat_layout%draw_wall  = draw_wall
+  tao_com%lat_layout%wall_scale = wall_scale
 
 endif
 
 ! Error check
 
-if (allocated(tao_com%ele_shape_lat_layout)) then
-  do i = 1, size(tao_com%ele_shape_lat_layout)
-    select case (tao_com%ele_shape_lat_layout(i)%shape)
+if (allocated(tao_com%lat_layout%ele_shape)) then
+  do i = 1, size(tao_com%lat_layout%ele_shape)
+    select case (tao_com%lat_layout%ele_shape(i)%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
     case default
-      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%ele_shape_lat_layout(i)%shape)
+      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%lat_layout%ele_shape(i)%shape)
       call err_exit
     end select
   enddo
 endif
 
-if (allocated(tao_com%ele_shape_floor_plan)) then
-  do i = 1, size(tao_com%ele_shape_floor_plan)
-    select case (tao_com%ele_shape_floor_plan(i)%shape)
+if (allocated(tao_com%floor_plan%ele_shape)) then
+  do i = 1, size(tao_com%floor_plan%ele_shape)
+    select case (tao_com%floor_plan%ele_shape(i)%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
     case default
-      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%ele_shape_floor_plan(i)%shape)
+      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%floor_plan%ele_shape(i)%shape)
       call err_exit
     end select
   enddo
@@ -331,7 +335,7 @@ enddo
 ! If no plots have been defined then use default
 
 if (ip == 0) then
-  deallocate(tao_com%ele_shape_floor_plan, tao_com%ele_shape_lat_layout, s%plot_region)
+  deallocate(tao_com%floor_plan%ele_shape, tao_com%lat_layout%ele_shape, s%plot_region)
   call tao_setup_default_plotting()
   return
 endif
@@ -570,11 +574,11 @@ do  ! Loop over plot files
         call err_exit
       endif
 
-      if (grph%type == 'floor_plan' .and. .not. allocated (tao_com%ele_shape_floor_plan)) &
+      if (grph%type == 'floor_plan' .and. .not. allocated (tao_com%floor_plan%ele_shape)) &
                 call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.')
    
       if (grph%type == 'lat_layout') then
-        if (.not. allocated (tao_com%ele_shape_lat_layout)) call out_io (s_error$, r_name, &
+        if (.not. allocated (tao_com%lat_layout%ele_shape)) call out_io (s_error$, r_name, &
                               'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.')
         if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
                               'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!')
@@ -851,10 +855,10 @@ real(rp) y_top
 
 s%plot_page = plot_page
 
-allocate (tao_com%ele_shape_floor_plan(10), tao_com%ele_shape_lat_layout(10))
+allocate (tao_com%floor_plan%ele_shape(10), tao_com%lat_layout%ele_shape(10))
 
-tao_com%ele_shape_floor_plan(:)%ele_name = ''
-tao_com%ele_shape_floor_plan(1:6) = [&
+tao_com%floor_plan%ele_shape(:)%ele_name = ''
+tao_com%floor_plan%ele_shape(1:6) = [&
           tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none', .true., ''), &
           tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name', .true., ''), &
           tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none', .true., ''), &
@@ -862,7 +866,7 @@ tao_com%ele_shape_floor_plan(1:6) = [&
           tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none', .true., ''), &
           tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLACK',   12.0_rp, 'none', .true., '')]
 
-tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
+tao_com%lat_layout%ele_shape = tao_com%floor_plan%ele_shape
 
 allocate (s%template_plot(9)) 
 

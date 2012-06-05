@@ -1899,14 +1899,15 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Floor_plan Element Shapes:'
-    nl=nl+1; lines(nl) = '  Draw_wall = ', tao_com%draw_wall_floor_plan
+    nl=nl+1; write (lines(nl), lmt) '  Draw_wall  = ', tao_com%floor_plan%draw_wall
+    nl=nl+1; write (lines(nl), rmt) '  Wall_scale = ', tao_com%floor_plan%wall_scale
     nl=nl+1; lines(nl) = &
           'Ele_Name                        Shape         Color           Size  Label  Draw  Name'
     nl=nl+1; lines(nl) = &
           '----------------------------    --------      -----           ----  -----  ----  -----'
 
-    do i = 1, size(tao_com%ele_shape_floor_plan)
-      shape => tao_com%ele_shape_floor_plan(i)
+    do i = 1, size(tao_com%floor_plan%ele_shape)
+      shape => tao_com%floor_plan%ele_shape(i)
       if (shape%ele_name == '') cycle
       nl=nl+1; write (lines(nl), '(3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
@@ -1915,14 +1916,15 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Lat_layout Element Shapes:'
-    nl=nl+1; lines(nl) = '  Draw_wall = ', tao_com%draw_wall_lat_layout
+    nl=nl+1; write (lines(nl), lmt) '  Draw_wall  = ', tao_com%lat_layout%draw_wall
+    nl=nl+1; write (lines(nl), rmt) '  Wall_scale = ', tao_com%lat_layout%wall_scale
     nl=nl+1; lines(nl) = &
           'Ele_Name                        Shape         Color           Size  Label  Draw  Name'
     nl=nl+1; lines(nl) = &
           '----------------------------    --------      -----           ----  -----  ----  -----'
 
-    do i = 1, size(tao_com%ele_shape_lat_layout)
-      shape => tao_com%ele_shape_lat_layout(i)
+    do i = 1, size(tao_com%lat_layout%ele_shape)
+      shape => tao_com%lat_layout%ele_shape(i)
       if (shape%ele_name == '') cycle
       nl=nl+1; write (lines(nl), '(3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
