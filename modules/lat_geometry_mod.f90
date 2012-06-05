@@ -432,7 +432,8 @@ end subroutine
 !   w_mat(3,3) -- Real(rp): Orientation matrix.
 !   theta0     -- Real(rp): Reference azimuth angle. The output theta will be in the range:
 !                   [theta0 - pi, theta0 + pi]. Theta0 is used to keep track of the total
-!                   winding angle. If you don't care, set theta0 to 0.0_rp.
+!                   winding angle. If you care, set theta0 to the old value of theta.
+!                   If you don't care, set theta0 to 0.0_rp.
 !
 ! Output:
 !   theta -- Real(rp): Azimuth angle.
@@ -509,7 +510,7 @@ floor1%z = r(3)
 
 call floor_angles_to_w_mat (theta, phi, psi, w_mat)
 w_mat = matmul(w0_mat, w_mat)
-call floor_w_mat_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi)
+call floor_w_mat_to_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi)
 
 
 end subroutine shift_reference_frame
