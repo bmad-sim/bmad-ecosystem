@@ -65,10 +65,9 @@ type tao_ele_shape_struct    ! for the element layout plot
   real(rp) size              ! plot vertical height 
   character(16) label        ! Can be: 'name', 's', 'none' 
   logical draw               ! Draw the shape?
-  character(20) shape_name   ! shape name for "set shape" command
 end type
 
-type tao_shape_struct
+type tao_drawing_struct
   type (tao_ele_shape_struct), allocatable :: ele_shape(:)
   logical :: draw_beam_chamber_wall = .false.
   real(rp) :: beam_chamber_wall_scale = 1
@@ -545,8 +544,8 @@ end type
 
 type tao_common_struct
   type (tao_alias_struct) alias(100)
-  type (tao_shape_struct) :: floor_plan
-  type (tao_shape_struct) :: lat_layout
+  type (tao_drawing_struct) :: floor_plan
+  type (tao_drawing_struct) :: lat_layout
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)

@@ -50,7 +50,7 @@ type (ele_pointer_struct), allocatable, save :: eles(:)
 
 real(rp) shape_height_max, y1, y2, beam_chamber_wall_scale
 
-integer iu, i, j, k, ix, ip, n, ng, ios, i_uni
+integer iu, i, j, k, ix, ip, n, ng, ios, ios1, ios2, i_uni
 integer graph_index, color, i_graph
 
 character(*) plot_file_in
@@ -64,6 +64,12 @@ logical draw_beam_chamber_wall
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
+
+namelist / floor_plan_drawing / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
+namelist / lat_layout_drawing / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
+
+! These are old style
+
 namelist / element_shapes / shape
 namelist / element_shapes_floor_plan / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
 namelist / element_shapes_lat_layout / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
@@ -210,7 +216,6 @@ if (ios == 0) then
     ele_shape(i)%color      = shape(i)%color
     ele_shape(i)%size       = shape(i)%size
     ele_shape(i)%draw       = .true.
-    ele_shape(i)%shape_name = ''
     if (shape(i)%draw_name) then
       ele_shape(i)%label = 'name'
     else
@@ -221,9 +226,6 @@ if (ios == 0) then
   call tao_uppercase_shapes (ele_shape, n, 'f')
   allocate (tao_com%floor_plan%ele_shape(n), tao_com%lat_layout%ele_shape(n))
   tao_com%floor_plan%ele_shape = ele_shape(1:n)
-  do i = 1, n
-    ele_shape(i)%shape_name(1:1) = 'l'
-  enddo
   tao_com%lat_layout%ele_shape = ele_shape(1:n)
 endif
 
@@ -231,21 +233,36 @@ endif
 
 if (ios < 0) then
 
-  ! Read element_shapes_floor_plan namelist
+  ! Read floor_plan_drawing namelist
   rewind (iu)
   ele_shape(:)%ele_name   = ''
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
-  ele_shape(:)%shape_name = ''
   draw_beam_chamber_wall  = .false.
   beam_chamber_wall_scale = 1
 
-  read (iu, nml = element_shapes_floor_plan, iostat = ios)
+  read (iu, nml = element_shapes_floor_plan, iostat = ios1)  ! Deprecated name
+  read (iu, nml = floor_plan_drawing, iostat = ios2)
 
-  if (ios > 0) then
-    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_FLOOR_PLAN NAMELIST')
+  if (ios1 >= 0) then
+    call out_io (s_warn$, r_name, &
+            'Note: The "element_shapes_floor_plan" namelist has been renamed to', &
+            '      "floor_plan_drawing to reflect the fact that this namelist  ', &
+            '      now is used to specify more than element shapes. Please     ', &
+            '      make the appropriate change in your input file.             ', &
+            'For now, Tao will accept the old namelist name...                 ')
+  endif
+
+  if (ios1 > 0) then 
     rewind (iu)
+    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_FLOOR_PLAN NAMELIST')
     read (iu, nml = element_shapes_floor_plan)  ! To generate error message
+  endif
+
+  if (ios2 > 0) then 
+    rewind (iu)
+    call out_io (s_error$, r_name, 'ERROR READING FLOOR_PLAN_DRAWING NAMELIST')
+    read (iu, nml = floor_plan_drawing)
   endif
 
   call tao_uppercase_shapes (ele_shape, n, 'f')
@@ -255,20 +272,36 @@ if (ios < 0) then
   tao_com%floor_plan%beam_chamber_wall_scale = beam_chamber_wall_scale
 
   ! Read element_shapes_lat_layout namelist
+
   rewind (iu)
   ele_shape(:)%ele_name   = ''
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
-  ele_shape(:)%shape_name = ''
   draw_beam_chamber_wall  = .false.
   beam_chamber_wall_scale = 1
 
-  read (iu, nml = element_shapes_lat_layout, iostat = ios)
+  read (iu, nml = element_shapes_lat_layout, iostat = ios1)
+  read (iu, nml = element_shapes_lat_layout, iostat = ios2)
 
-  if (ios > 0) then
-    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_LAT_LAYOUT NAMELIST')
+  if (ios1 == 0) then
+    call out_io (s_warn$, r_name, &
+            'Note: The "element_shapes_lattice_list" namelist has been renamed to', &
+            '      "lattice_list_drawing to reflect the fact that this namelist  ', &
+            '      now is used to specify more than element shapes. Please       ', &
+            '      make the appropriate change in your input file.               ', &
+            'For now, Tao will accept the old namelist name...                   ')
+  endif
+
+  if (ios1 > 0) then 
     rewind (iu)
+    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_LAT_LAYOUT NAMELIST')
     read (iu, nml = element_shapes_lat_layout)  ! To generate error message
+  endif
+
+  if (ios2 > 0) then 
+    rewind (iu)
+    call out_io (s_error$, r_name, 'ERROR READING LAT_LAYOUT_DRAWING NAMELIST')
+    read (iu, nml = lat_layout_drawing)
   endif
 
   call tao_uppercase_shapes (ele_shape, n, 'l')
@@ -833,7 +866,6 @@ do n = 1, size(ele_shape)
   if (ele_shape(n)%label == '') ele_shape(n)%label = 'name'
   if (index('false', trim(ele_shape(n)%label)) == 1) ele_shape(n)%label = 'none'
   if (index('true', trim(ele_shape(n)%label)) == 1) ele_shape(n)%label = 'name'
-  if (ele_shape(n)%shape_name == '') write (ele_shape(n)%shape_name, '(a, i0)') prefix, n
   ! Convert old class:name format to new class::name format
   ix = index(ele_shape(n)%ele_name, ":")
   if (ix /= 0 .and. ele_shape(n)%ele_name(ix+1:ix+1) /= ':') &
@@ -859,12 +891,12 @@ allocate (tao_com%floor_plan%ele_shape(10), tao_com%lat_layout%ele_shape(10))
 
 tao_com%floor_plan%ele_shape(:)%ele_name = ''
 tao_com%floor_plan%ele_shape(1:6) = [&
-          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none', .true., ''), &
-          tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name', .true., ''), &
-          tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none', .true., ''), &
-          tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     20.0_rp, 'none', .true., ''), &
-          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none', .true., ''), &
-          tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLACK',   12.0_rp, 'none', .true., '')]
+          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none', .true.), &
+          tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name', .true.), &
+          tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none', .true.), &
+          tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     20.0_rp, 'none', .true.), &
+          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none', .true.), &
+          tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLACK',   12.0_rp, 'none', .true.)]
 
 tao_com%lat_layout%ele_shape = tao_com%floor_plan%ele_shape
 

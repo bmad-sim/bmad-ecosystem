@@ -677,14 +677,15 @@ variables, etc. Format:
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
   set element <element_list> <attribute> = <value>
+  set floor_plan <component> = <value>
   set global <component> = <value>
   set graph <graph> <component> = <value>
+  set lat_layout <component> = <value>
   set lattice \{n@\}<destination\_lat> = <source\_lat>
   set opti_de_param <component> = <value>
   set plot <plot> <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
   set ran_state = <random_number_generator_state>
-  set shape <shape_name> <component> = <value>
   set universe <what_universe> <on/off>
   set universe <what_universe> recalculate
   set universe <what_universe> mat6_recalc <on/off>
@@ -816,6 +817,28 @@ Examples:
   set ele q10w tracking_method = linear ! Set the tracking method
 \end{example}
 
+%% set floor_plan --------------------------------------------------------------
+
+\item[set floor_plan <component> = <value>] \Newline
+
+Sets parameters for \vn{floor_plan} plots (\sref{s:layout.and.floor}).
+Possible \vn{<components>} are:
+\begin{example}
+  <ele_shape_name>::<ele_shape_component>
+  draw_beam_chamber_wall
+  beam_chamber_wall_scale
+\end{example}
+Where \vn{<ele_shape_name>} is of the form ``\vn{shape<n>}'' where
+\vn{<n>} is the index of the \vn{ele_shape} in the
+\vn{floor_plan_drawing} namelist.  Use ``\vn{show plot floor_plan}''
+to see the current state of the \vn{floor_plan} parameters
+
+Example:
+\begin{example}
+  set floor_plan shape2::draw = F  ! Veto drawing of ele_shape(2)
+  set lat_layout beam_chamber_scale = 0.5
+\end{example}
+
 %% set global --------------------------------------------------------------
 
 \item[set global <component> = <value>] \Newline
@@ -845,6 +868,21 @@ Example:
 \begin{example}
   set graph orbit.x component = model - design  
                           ! Plot model orbit - design orbit in the graph
+\end{example}
+
+%% set lat_layout --------------------------------------------------------------
+
+\item[set lat_layout <component> = <value>] \Newline
+
+Sets parameters for \vn{lat_layout} plots (\sref{s:layout.and.floor}).
+Syntax for ``\vn{set lat_layout}'' is identical to syntax of ``\vn{set
+floor_plan}''.  See ``\vn{set floor_plan}'' for more details.
+
+Use ``\vn{show plot lat_layout}'' to see a listing of all shapes. 
+
+Example:
+\begin{example}
+  set shape f2 draw = F  ! Veto drawing of shape f2 
 \end{example}
 
 %% set lattice --------------------------------------------------------------
@@ -938,18 +976,6 @@ Example:
 
 Sets the state of the random number generator to a specific state. Use
 \vn{show global -ran_state} to show the random number generator state.
-
-%% set shape --------------------------------------------------------------
-
-\item[set shape <shape_name> <component> = <value>] \Newline
-
-Sets shape parameters for \vn{floor_plan} and \vn{lat_layout} plots.
-Use \vn{show plot -shape} to see a listing of all shapes. 
-
-Example:
-\begin{example}
-  set shape f2 draw = F  ! Veto drawing of shape f2 
-\end{example}
 
 %% set universe --------------------------------------------------------------
 
@@ -1063,10 +1089,7 @@ Format:
          \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
    optimizer
    particle \{-bunch <bunch_index>\} \{-particle <particle_index> \{-element <element_name_or_index>\} \{-lost\} \{-all\}
-   plot
-   plot \{<template_plot_name>\}
-   plot \{<plot_region_name>\}
-   plot -shapes
+   plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} \{<template_plot_name>\} 
    taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}
    top10 \{-derivative\}
    twiss_and_orbit \{-base\} \{-branch <name>\} \{-design\} \{-universe <ix_uni>\} <s_position>
@@ -1468,11 +1491,7 @@ Examples:
 
 %% show plot --------------------------------------------------------------
 
-\item[\protect\parbox{6in}{ 
-        show plot \\
-        show plot \{<template\_plot\_name>\} \\
-        show plot \{<plot\_region\_name>\} \\
-        show plot -shapes}] \Newline
+\item[plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} \{<template_plot_name>\} \Newline
 
 A simple \vn{show plot} displays which templates are being plotted and
 in which regions and also all available templates. See
@@ -1480,9 +1499,10 @@ in which regions and also all available templates. See
 \vn{show plot <plot_name>} will display information on a particular
 plot. 
 
-If the \vn{-shapes} switch is present, the shapes used in drawing 
-\vn{floor_plan} or \vn{lat_layout} plots are printed. Use the \vn{set shape}
-command to set shape parameters.
+The \vn{show plot -floor_plan} and \vn{show plot -lat_layout} commands
+show the parameters associated with the \vn{floor_plan} or
+\vn{lat_layout} plots (\sref{s:layout.and.floor}). Use the \vn{set
+floor_plan} or \vn{set lat_layout} commands to set these parameters.
 
 %% show top10 --------------------------------------------------------------
 

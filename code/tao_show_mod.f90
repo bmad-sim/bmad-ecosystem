@@ -1884,56 +1884,61 @@ case ('plot')
 
   ! Look for switches
 
-  show_shape = .false.
+  what = ''
 
   do
-    call tao_next_switch (stuff2, ['-shapes'], switch, err, ix)
+    call tao_next_switch (stuff2, ['-floor_plan', '-lat_layout'], switch, err, ix)
     if (err) return
     if (switch == '') exit
-    if (switch == '-shapes') show_shape = .true.
+    what = switch
   enddo
 
-  ! Element shapes
+  ! Floor plan info
 
-  if (show_shape) then
-
+  if (what == '-floor_plan') then
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = 'Floor_plan Element Shapes:'
     nl=nl+1; write (lines(nl), lmt) '  Draw_beam_chamber_wall  = ', tao_com%floor_plan%draw_beam_chamber_wall
     nl=nl+1; write (lines(nl), rmt) '  Beam_chamber_wall_scale = ', tao_com%floor_plan%beam_chamber_wall_scale
+    nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
-          'Ele_Name                        Shape         Color           Size  Label  Draw  Name'
+          'Ele_Name                        Shape         Color           Size  Label  Draw'
     nl=nl+1; lines(nl) = &
-          '----------------------------    --------      -----           ----  -----  ----  -----'
+          '----------------------------    --------      -----           ----  -----  ----'
 
     do i = 1, size(tao_com%floor_plan%ele_shape)
       shape => tao_com%floor_plan%ele_shape(i)
       if (shape%ele_name == '') cycle
       nl=nl+1; write (lines(nl), '(3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
-                shape%size, shape%label, shape%draw, trim(shape%shape_name)
+                shape%size, shape%label, shape%draw
     enddo
 
+    result_id = 'plot:floor_plan'
+    return
+  endif
+
+  ! lat_layout info
+
+  if (what == '-lat_layout') then
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = 'Lat_layout Element Shapes:'
     nl=nl+1; write (lines(nl), lmt) '  Draw_beam_chamber_wall  = ', tao_com%lat_layout%draw_beam_chamber_wall
     nl=nl+1; write (lines(nl), rmt) '  Beam_chamber_wall_scale = ', tao_com%lat_layout%beam_chamber_wall_scale
+    nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
-          'Ele_Name                        Shape         Color           Size  Label  Draw  Name'
+          'Ele_Name                        Shape         Color           Size  Label  Draw'
     nl=nl+1; lines(nl) = &
-          '----------------------------    --------      -----           ----  -----  ----  -----'
+          '----------------------------    --------      -----           ----  -----  ----'
 
     do i = 1, size(tao_com%lat_layout%ele_shape)
       shape => tao_com%lat_layout%ele_shape(i)
       if (shape%ele_name == '') cycle
       nl=nl+1; write (lines(nl), '(3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
-                shape%size, shape%label, shape%draw, trim(shape%shape_name)
+                shape%size, shape%label, shape%draw
     enddo
 
-    result_id = 'plot:shape'
+    result_id = 'plot:lat_layout'
     return 
-   
   endif
 
   ! stuff2 is blank => print overall info

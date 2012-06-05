@@ -1665,56 +1665,69 @@ end subroutine
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_shape_cmd (shape_name, component, set_value)
+! Subroutine tao_set_drawing_cmd (drawing, component, set_value)
 !
-! Routine to set element shape variables.
+! Routine to set floor_plan and lat_layout parameters.
 ! 
 ! Input:
-!   who       -- Character(*): which shape variable to set
+!   component -- Character(*): Which drawing component to set.
 !   set_value -- Character(*): Value to set to.
 !
 ! Output:
 !    s%shape  -- Shape variables structure.
 !-
 
-subroutine tao_set_shape_cmd (shape_name, component, set_value)
+subroutine tao_set_drawing_cmd (drawing, component, set_value)
 
 implicit none
 
+type (tao_drawing_struct) drawing
+character(*) component, set_value
+character(40) str
+character(20) :: r_name = 'tao_set_drawing_cmd'
+
+integer i, ix
+logical err, found
+
+! Is a shape? Find which shapes to modify
+
+ix = index(component, '%')
+found = .false.
+
+
+
+if (ix == 0) then
+      
+else
+  if (component(1:5) /= 'shape' .or. ix < 7) then
+  elseif (.not. is_integer(component(6:ix-1))) then
+  else
+    read (component(6:ix-1), *) ix
+    if (ix < 1 .or. ix > size(drawing%ele_shape)) then
+    else
+      call set_this_shape(drawing%ele_shape(ix), component(ix+1:))
+      if (err) return
+      found = .true.
+    endif
+  endif
+endif
+
+if (.not. found) then
+  call out_io (s_error$, r_name, 'COMPONENT NOT RECOGNIZED:  // component')
+endif
+
+!------------------------------------------------------------
+contains
+
+subroutine set_this_shape (shape, attrib)
+
 type (tao_ele_shape_struct) shape
-type (tao_ele_shape_struct), pointer :: shape0
 
-character(*) shape_name, component, set_value
-character(20) :: r_name = 'tao_set_shape_cmd'
-
-integer iu, ios, i
-logical err, needs_quotes
+character(*) attrib
+integer iu, ios
+logical needs_quotes
 
 namelist / params / shape
-
-! Find which shape to modify
-
-nullify (shape0)
-
-do i = 1, size(tao_com%floor_plan%ele_shape)
-  if (shape_name == tao_com%floor_plan%ele_shape(i)%shape_name) then
-    if (associated (shape0)) then
-      call out_io (s_error$, r_name, 'DUPLICATE NAME! ', shape_name)
-      return
-    endif
-    shape0 => tao_com%floor_plan%ele_shape(i)
-  endif
-enddo
-
-do i = 1, size(tao_com%lat_layout%ele_shape)
-  if (shape_name == tao_com%lat_layout%ele_shape(i)%shape_name) then
-    if (associated (shape0)) then
-      call out_io (s_error$, r_name, 'DUPLICATE NAME! ', shape_name)
-      return
-    endif
-    shape0 => tao_com%lat_layout%ele_shape(i)
-  endif
-enddo
 
 ! open a scratch file for a namelist read
 
@@ -1726,7 +1739,7 @@ if (ios /= 0) then
 endif
 
 needs_quotes = .false.
-select case (component)
+select case (attrib)
 case ('shape', 'color', 'label', 'ele_name')
   needs_quotes = .true.
 end select
@@ -1734,14 +1747,13 @@ if (set_value(1:1) == "'" .or. set_value(1:1) == '"') needs_quotes = .false.
 
 write (iu, *) '&params'
 if (needs_quotes) then
-  write (iu, *) ' shape%' // trim(component) // ' = "' // trim(set_value) // '"'
+  write (iu, *) ' shape%' // trim(attrib) // ' = "' // trim(set_value) // '"'
 else
-  write (iu, *) ' shape%' // trim(component) // ' = ' // trim(set_value)
+  write (iu, *) ' shape%' // trim(attrib) // ' = ' // trim(set_value)
 endif
 write (iu, *) '/'
 write (iu, *)
 rewind (iu)
-shape = shape0  ! set defaults
 read (iu, nml = params, iostat = ios)
 close (iu)
 
@@ -1750,17 +1762,15 @@ if (ios /= 0) then
   return
 endif
 
-shape0 = shape
-
 ! Cleanup
 
-if (shape0%ele_name(1:5) /= 'dat::' .and. shape0%ele_name(1:5) /= 'var::') &
-                   call str_upcase (shape0%ele_name, shape0%ele_name)
-call str_upcase (shape0%shape,    shape0%shape)
-call str_upcase (shape0%color,    shape0%color)
-call downcase_string (shape0%label)
+call str_upcase (shape%ele_name, shape%ele_name)
+call str_upcase (shape%shape,    shape%shape)
+call str_upcase (shape%color,    shape%color)
+call downcase_string (shape%label)
 
+end subroutine set_this_shape
 
-end subroutine tao_set_shape_cmd
+end subroutine tao_set_drawing_cmd
 
 end module tao_set_mod
