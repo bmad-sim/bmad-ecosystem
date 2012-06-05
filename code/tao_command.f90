@@ -57,11 +57,11 @@ character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-character(16) :: set_names(17) = [&
+character(16) :: set_names(18) = [&
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
     'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
     'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param', 'ran_state    ', &
-    'csr_param    ', 'shape        ']
+    'csr_param    ', 'floor_plan   ', 'lat_layout   ']
 
 logical quit_tao, err, silent, gang, abort
 
@@ -481,11 +481,11 @@ case ('set')
   cmd_line = cmd_word(2)
   select case (set_word)
   case ('ran_state'); n_word = 2; n_eq = 1
-  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', &
-        'lattice', 'opti_de_param', 'var', 'wave'); n_word = 3; n_eq = 2
+  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', &
+        'opti_de_param', 'var', 'wave', 'floor_plan', 'lat_layout'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 3; n_eq = 10
   case ('plot_page'); n_word = 4; n_eq = 2
-  case ('curve', 'element', 'graph', 'plot', 'shape'); n_word = 4; n_eq = 3
+  case ('curve', 'element', 'graph', 'plot'); n_word = 4; n_eq = 3
   end select
 
   call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
@@ -522,8 +522,10 @@ case ('set')
     call tao_set_plot_page_cmd (cmd_word(1), cmd_word(3), cmd_word(4))
   case ('ran_state')
     call tao_set_ran_state_cmd (cmd_word(2))
-  case ('shape')
-    call tao_set_shape_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
+  case ('floor_plan')
+    call tao_set_drawing_cmd (tao_com%floor_plan, cmd_word(1), cmd_word(3))
+  case ('lat_layout')
+    call tao_set_drawing_cmd (tao_com%lat_layout, cmd_word(1), cmd_word(3))
   case ('universe')    
     call tao_set_universe_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
   case ('var')
