@@ -129,8 +129,8 @@ end subroutine
 !+
 ! Subroutine ele_geometry (floor0, ele, floor)
 !
-! Subroutine to calculate the physical (floor) placement of an element given the
-! placement of the preceeding element. This is the same as the MAD convention.
+! Subroutine to calculate the global (floor) coordinates of an element given the
+! global coordinates of the preceeding element. This is the same as the MAD convention.
 !
 ! Modules Needed:
 !   use bmad
@@ -375,7 +375,7 @@ end subroutine
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat)
+! Subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat)
 !
 ! Routine to construct the W matrix that specifies the orientation of an element
 ! in the global "floor" coordinates. See the Bmad manual for more details.
@@ -420,7 +420,7 @@ end subroutine
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! subroutine floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi)
+! Subroutine floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi)
 !
 ! Routine to construct the angles that define the orientation of an element
 ! in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
@@ -430,8 +430,9 @@ end subroutine
 !
 ! Input:
 !   w_mat(3,3) -- Real(rp): Orientation matrix.
-!   theta0     -- Real(rp): The output theta will be in the range:
-!                   [theta0 - pi, theta + pi].
+!   theta0     -- Real(rp): Reference azimuth angle. The output theta will be in the range:
+!                   [theta0 - pi, theta0 + pi]. Theta0 is used to keep track of the total
+!                   winding angle. If you don't care, set theta0 to 0.0_rp.
 !
 ! Output:
 !   theta -- Real(rp): Azimuth angle.
@@ -463,5 +464,54 @@ else  ! normal case
 endif
 
 end subroutine
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! Subroutine shift_reference_frame (floor0, dr, theta, phi, psi, floor1)
+!
+! Starting from a given reference frame specified by its orientation and
+! position in the global (floor) coordinates, and given a shift in position
+! and angular orientation with respect to this reference frame, return the 
+! resulting reference frame orientation and position.
+!
+! Module needed:
+!   use lat_geometry_mod
+!
+! Input:
+!   floor0   -- floor_position_struct: Initial reference frame.
+!   dr(3)    -- real(rp): (x, y, z) positional shift of the reference frame.
+!   theta, phi, psi
+!            -- real(rp): Angular shift of the reference frame. See the 
+!                 Bmad manual on the Global Coordinate system for more details.
+!
+! Output:
+!   floor1   -- floor_position_struct: Shifted reference frame.
+!-
+
+subroutine shift_reference_frame (floor0, dr, theta, phi, psi, floor1)
+
+implicit none
+
+type (floor_position_struct) floor0, floor1
+real(rp) dr(3), theta, phi, psi
+real(rp) r(3), w_mat(3,3), w0_mat(3,3)
+
+!
+
+call floor_angles_to_w_mat (floor0%theta, floor0%phi, floor0%psi, w0_mat)
+
+r = matmul(w0_mat, dr) + [floor0%x, floor0%y, floor0%z]
+floor1%x = r(1)
+floor1%y = r(2)
+floor1%z = r(3)
+
+call floor_angles_to_w_mat (theta, phi, psi, w_mat)
+w_mat = matmul(w0_mat, w_mat)
+call floor_w_mat_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi)
+
+
+end subroutine shift_reference_frame
 
 end module
