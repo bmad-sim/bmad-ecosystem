@@ -2573,11 +2573,11 @@ do
   if (i_arg == n_arg) exit
   call get_next_arg (arg0)
 
-  call match_word (arg0, ['-?          ', &
-          '-init         ', '-noinit       ', '-beam_all     ', '-beam0        ', &
-          '-noplot       ', '-lat          ', '-log_startup  ', '-beam         ', &
-          '-var          ', '-data         ', '-building_wall', '-plot         ', &
-          '-startup      ', 'help          ', '-help         ', '?             '], &
+  call match_word (arg0, ['-?            ', &
+        '-init         ', '-noinit       ', '-beam_all     ', '-beam0        ', &
+        '-noplot       ', '-lat          ', '-log_startup  ', '-beam         ', &
+        '-var          ', '-data         ', '-building_wall', '-plot         ', &
+        '-startup      ', 'help          ', '-help         ', '?             '], &
                                   ix, .true., matched_name=switch)
 
   select case (switch)
