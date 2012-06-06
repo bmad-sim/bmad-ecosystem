@@ -91,8 +91,8 @@ elseif (m == 2) then
   n = 0
 else
   write (fmt2, '(a, i1, a)') '(f7.', p, ', a)'
-  write (exp_str, '(a, i3.3)') 'E', n
-  if (exp_str(2:2) == '0') exp_str(2:2) = '+'
+  write (exp_str, '(a, i3.2)') 'E', n
+  if (exp_str(2:2) == ' ') exp_str(2:2) = '+'
 endif
 
 write (model_str, fmt2) var%model_value / 10.0**n, exp_str
