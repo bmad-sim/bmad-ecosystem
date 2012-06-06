@@ -2206,6 +2206,7 @@ subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
 implicit none
 
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
@@ -2619,9 +2620,16 @@ endif
 ! conserve the taylor map.
 
 if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
-        offset_nonzero .and. bmad_com%conserve_taylor_maps .and. &
-        .not. non_offset_changed .and. ele%key /= patch$) then
+        offset_nonzero .and. offset_changed .and. .not. non_offset_changed .and. &
+        bmad_com%conserve_taylor_maps .and. ele%key /= patch$) then
   ele%map_with_offsets = .false.
+  if (associated(ele%lat) .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord(ele, i)
+      if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+      lord%map_with_offsets = .false.
+    enddo
+  endif
   if (any(ele%old_value /= 0 .and. offset_mask)) non_offset_changed = .true.  ! To trigger kill_taylor below
   call out_io (s_info$, r_name, &
       'Note: bmad_com%conserve_taylor_maps = True (this is the default)', &
