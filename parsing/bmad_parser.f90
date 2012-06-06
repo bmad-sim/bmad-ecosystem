@@ -28,8 +28,9 @@
 !   digested_read_ok -- Logical, optional: Set True if the digested file was
 !                        successfully read. False otherwise.
 !   err_flag         -- Logical, optional: Set true if there is an error, false otherwise.
-!                         Note: err_flag includes errors in lat_make_mat6 when make_mats6
-!                         argument if True.
+!                         Note: err_flag does *not* include errors in lat_make_mat6 since
+!                         if there is a match element, there is an error raised since
+!                         the Twiss parameters have not been set but this is expected. 
 !
 ! Defaults:
 !   lat%param%particle          = positron$
@@ -1026,11 +1027,13 @@ do n = 0, ubound(lat%branch, 1)
 enddo
 call remove_eles_from_lat (lat, .false.)  
 
-! Make the transfer matrices
+! Make the transfer matrices.
+! Note: The bmad_parser err_flag argument does *not* include errors in 
+! lat_make_mat6 since if there is a match element, there is an error raised 
+! here since the Twiss parameters have not been set. But this is expected. 
 
 call reuse_taylor_elements (old_lat, lat)
-if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, err_flag = err) 
-if (err) bp_com%error_flag = .true.
+if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1) 
 
 ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
 
@@ -1061,7 +1064,7 @@ enddo
 ! Correct beam_start info
 
 if (lat%beam_start%species == not_set$) lat%beam_start%species = lat%param%particle
-call init_coord (lat%beam_start, lat%beam_start, lat%ele(0))
+call init_coord (lat%beam_start, lat%beam_start, lat%ele(0), shift_vec6 = .false.)
 
 !-------------------------------------------------------------------------
 ! write out if debug is on
