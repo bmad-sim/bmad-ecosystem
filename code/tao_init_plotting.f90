@@ -48,7 +48,7 @@ type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 type (ele_pointer_struct), allocatable, save :: eles(:)
 
-real(rp) shape_height_max, y1, y2, beam_chamber_wall_scale
+real(rp) shape_height_max, y1, y2, beam_chamber_wall_scale, orbit_scale
 
 integer iu, i, j, k, ix, ip, n, ng, ios, ios1, ios2, i_uni
 integer graph_index, color, i_graph
@@ -59,20 +59,24 @@ character(100) plot_file, graph_name, full_file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
-logical draw_beam_chamber_wall
+logical draw_beam_chamber_wall, draw_orbit
 
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 
-namelist / floor_plan_drawing / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
-namelist / lat_layout_drawing / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
+namelist / floor_plan_drawing / ele_shape, draw_beam_chamber_wall, &
+                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
+namelist / lat_layout_drawing / ele_shape, draw_beam_chamber_wall, &
+                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
 
 ! These are old style
 
 namelist / element_shapes / shape
-namelist / element_shapes_floor_plan / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
-namelist / element_shapes_lat_layout / ele_shape, draw_beam_chamber_wall, beam_chamber_wall_scale
+namelist / element_shapes_floor_plan / ele_shape, draw_beam_chamber_wall, &
+                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
+namelist / element_shapes_lat_layout / ele_shape, draw_beam_chamber_wall, &
+                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
 
 logical err
 
@@ -239,7 +243,9 @@ if (ios < 0) then
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
   draw_beam_chamber_wall  = .false.
+  draw_orbit              = .false.
   beam_chamber_wall_scale = 1
+  orbit_scale             = 1
 
   read (iu, nml = element_shapes_floor_plan, iostat = ios1)  ! Deprecated name
   read (iu, nml = floor_plan_drawing, iostat = ios2)
@@ -268,8 +274,10 @@ if (ios < 0) then
   call tao_uppercase_shapes (ele_shape, n, 'f')
   allocate (tao_com%floor_plan%ele_shape(n))
   tao_com%floor_plan%ele_shape = ele_shape(1:n)
-  tao_com%floor_plan%draw_beam_chamber_wall = draw_beam_chamber_wall
+  tao_com%floor_plan%draw_beam_chamber_wall  = draw_beam_chamber_wall
+  tao_com%floor_plan%draw_orbit              = draw_orbit
   tao_com%floor_plan%beam_chamber_wall_scale = beam_chamber_wall_scale
+  tao_com%floor_plan%orbit_scale             = orbit_scale
 
   ! Read element_shapes_lat_layout namelist
 
@@ -278,7 +286,9 @@ if (ios < 0) then
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
   draw_beam_chamber_wall  = .false.
+  draw_orbit              = .false.
   beam_chamber_wall_scale = 1
+  orbit_scale             = 1
 
   read (iu, nml = element_shapes_lat_layout, iostat = ios1)
   read (iu, nml = element_shapes_lat_layout, iostat = ios2)
@@ -308,7 +318,9 @@ if (ios < 0) then
   allocate (tao_com%lat_layout%ele_shape(n))
   tao_com%lat_layout%ele_shape  = ele_shape(1:n)
   tao_com%lat_layout%draw_beam_chamber_wall  = draw_beam_chamber_wall
+  tao_com%lat_layout%draw_orbit              = draw_orbit
   tao_com%lat_layout%beam_chamber_wall_scale = beam_chamber_wall_scale
+  tao_com%lat_layout%orbit_scale             = orbit_scale
 
 endif
 
