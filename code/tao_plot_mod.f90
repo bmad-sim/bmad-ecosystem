@@ -273,6 +273,7 @@ implicit none
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
+type (tao_lattice_branch_struct), pointer :: lat_branch
 type (floor_position_struct) end1, end2, floor
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (ele_struct), pointer :: ele
@@ -379,11 +380,6 @@ do i = 1, size(tao_com%floor_plan%ele_shape)
   enddo
 enddo
 
-!
-
-if (tao_com%floor_plan%draw_beam_chamber_wall) then
-endif
-
 ! Draw the building wall
 
 if (allocated(s%building_wall)) then
@@ -416,7 +412,18 @@ if (allocated(s%building_wall)) then
   end do
 end if
 
-end subroutine
+! Draw orbit
+
+if (tao_com%floor_plan%draw_orbit) then
+  do n = 0, ubound(lat%branch, 1)
+    lat_branch => s%u(isu)%model%lat_branch(n)
+    branch => lat%branch(n)
+    do i = 1, branch%n_ele_track
+    enddo
+  enddo
+endif
+
+end subroutine tao_plot_floor_plan 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -427,13 +434,13 @@ end subroutine
 ! Routine to draw one lattice element or one datum location for the floor plan graph. 
 !
 ! Input:
-!   plot     -- Tao_plot_struct: Plot containing the graph.
-!   graph    -- Tao_graph_struct: Graph to plot.
-!   lat      -- lat_struct: Lattice containing the element.
-!   ele      -- ele_struct: Element to draw.
-!   name_in  -- Character(*): If not blank then name to print beside the element.
-!   ix_shape -- Integer: Index in tao_com%floor_plan%ele_shape(:) array of shape to draw.
-!   is_data  -- Logical: Are we drawing an actual lattice elment or marking where a Tao datum is being evaluated?
+!   plot       -- Tao_plot_struct: Plot containing the graph.
+!   graph      -- Tao_graph_struct: Graph to plot.
+!   lat        -- lat_struct: Lattice containing the element.
+!   ele        -- ele_struct: Element to draw.
+!   name_in    -- Character(*): If not blank then name to print beside the element.
+!   ix_shape   -- Integer: Index in tao_com%floor_plan%ele_shape(:) array of shape to draw.
+!   is_data    -- Logical: Are we drawing an actual lattice elment or marking where a Tao datum is being evaluated?
 !-
 
 recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, name_in, ix_shape, is_data)
@@ -834,6 +841,13 @@ if (ele_shape%label /= 'none') then
                                height = height, justify = justify, ANGLE = theta)    
 endif
 
+! Draw beam chamber wall
+
+if (is_data) return
+
+if (tao_com%floor_plan%draw_beam_chamber_wall) then
+endif
+
 end subroutine tao_draw_ele_for_floor_plan
 
 !--------------------------------------------------------------------------
@@ -855,6 +869,7 @@ implicit none
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
+type (tao_lattice_branch_struct), pointer :: lat_branch
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele, ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shapes(:), ele_shape
@@ -904,6 +919,7 @@ end select
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
 branch => lat%branch(graph%ix_branch)
+lat_branch => s%u(isu)%model%lat_branch(graph%ix_branch)
 
 lat_len = branch%param%total_length
 key_number_height = 10
@@ -1048,7 +1064,13 @@ if (s%global%label_keys) then
   enddo
 endif
 
-!-----------------------------------------------------------
+! Draw orbit
+
+if (tao_com%lat_layout%draw_orbit) then
+
+endif
+
+!--------------------------------------------------------------------------------------------------
 contains 
 
 subroutine draw_lat_layout_ele_shape (ele, name_in, ele_shape_in)
@@ -1117,8 +1139,9 @@ y2 = max(y_bottom, min(y2, y_top))
 
 call draw_lat_layout_shape (name_in, ele%s - ele%value(l$) / 2, ele_shape)
 
+! Draw wall. Only use the first vertex, and assume cylindrical symmetry
+
 if (tao_com%lat_layout%draw_beam_chamber_wall .and. associated(ele%wall3d%section)) then
-!Draw simple wall. Only use the first vertex, and assume cylindrical symmetry
   do section_id = 1, size(ele%wall3d%section) - 1
     x1 = ele%s - ele%value(l$) + ele%wall3d%section(section_id)%s
     x2 = ele%s - ele%value(l$) + ele%wall3d%section(section_id + 1)%s
@@ -1134,7 +1157,8 @@ endif
 
 end subroutine draw_lat_layout_ele_shape
 
-!------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
 ! contains
 
 subroutine draw_lat_layout_shape (name_in, s_pos, ele_shape)

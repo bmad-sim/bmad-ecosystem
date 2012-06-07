@@ -70,7 +70,9 @@ end type
 type tao_drawing_struct
   type (tao_ele_shape_struct), allocatable :: ele_shape(:)
   logical :: draw_beam_chamber_wall = .false.
+  logical :: draw_orbit             = .false.
   real(rp) :: beam_chamber_wall_scale = 1
+  real(rp) :: orbit_scale             = 1
 end type
 
 type tao_wave_kick_pt_struct
