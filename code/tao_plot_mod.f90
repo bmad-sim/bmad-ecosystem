@@ -450,14 +450,15 @@ type (floor_position_struct) end1, end2, floor, x_ray
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape
 
-integer i, j, k, ix_shape, icol, isu, n_bend, n, ix, ixs, ic
+integer i, j, k, ix_shape, icol, isu, n_bend, n, ix, ixs, ic, n_mid
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
 real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
-real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2
+real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
+real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
 
 character(*) name_in
 character(80) str
@@ -493,45 +494,55 @@ if ((end1%x < graph%x%min .or. graph%x%max < end1%x .or. &
 
 ! Bends can be tricky if they are not in the X-Z plane. 
 ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
-! centerline and a set of vectors (dx_bend, dy_bend) perpendicular to the centerline.
+! centerline and a set of vectors (dx_bend, dy_bend) tangent to the centerline.
 
 if (is_bend) then
 
-  if (ele%value(g$) == 0) then
-    n_bend = 1
-    x_bend(0) = end1%x; y_bend(0) = end1%y
-    x_bend(1) = end2%x; y_bend(1) = end2%y
+  floor = ele1%floor
+  v_old = [floor%x, floor%y, floor%z]
+  call floor_angles_to_w_mat (floor%theta, floor%phi, 0.0_rp, w_old)
 
-  else
-    floor = ele1%floor
-    v_old = (/ floor%x, floor%y, floor%z /)
-    cos_t = cos(floor%theta)
-    sin_t = sin(floor%theta)
-    cos_p = cos(floor%phi)
-    sin_p = sin(floor%phi)
-    w_old(1, 1:3) = (/  cos_t,  -sin_t * sin_p, sin_t * cos_p /)
-    w_old(2, 1:3) = (/ 0.0_rp,   cos_p,         sin_p /)
-    w_old(3, 1:3) = (/ -sin_t,  -cos_t * sin_p, cos_t * cos_p /)
+  n_bend = min(abs(int(100 * ele%value(angle$))) + 1, ubound(x_bend, 1))
+  do j = 0, n_bend
+    angle = j * ele%value(angle$) / n_bend
+    cos_t = cos(ele%value(tilt$))
+    sin_t = sin(ele%value(tilt$))
+    cos_a = cos(angle)
+    sin_a = sin(angle)
+    if (ele%value(g$) == 0) then
+      r_vec = ele%value(l$) * j * [0, 0, 1]
+    else
+      r_vec = ele%value(rho$) * [cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a]
+    endif
+    dr_vec = [-cos_t * sin_a, -sin_t * sin_a, cos_a]
+    ! This keeps dr_vec pointing to the inside (important for the labels).
+    if (cos_t < 0) dr_vec = -dr_vec
+    v_vec = matmul (w_old, r_vec) + v_old
+    dv_vec = matmul (w_old, dr_vec) 
+    call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
+    call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx_bend(j), dy_bend(j))
 
-    rho = ele%value(rho$)
+    ! Correct for e1 and e2 face angles which are a rotation of the faces about
+    ! the local y-axis.
 
-    n_bend = min(abs(int(100 * ele%value(angle$))) + 1, ubound(x_bend, 1))
-    do j = 0, n_bend
-      angle = j * ele%value(angle$) / n_bend
-      cos_t = cos(ele%value(tilt$))
-      sin_t = sin(ele%value(tilt$))
-      cos_a = cos(angle)
-      sin_a = sin(angle)
-      r_vec = rho * (/ cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a /)
-      dr_vec = rho * (/ -cos_t * sin_a, -sin_t * sin_a, cos_a /)
-      ! This keeps dr_vec pointing to the inside (important for the labels).
-      if (cos_t < 0) dr_vec = -dr_vec
-      v_vec = matmul (w_old, r_vec) + v_old
+    if (j == 0) then
+      dr_vec = tan(ele%value(e1$)) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
-      call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
-      call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx_bend(j), dy_bend(j))
-    enddo
-  endif
+      call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx1, dy1)
+      dx_bend(j) = dx_bend(j) + dx1
+      dy_bend(j) = dy_bend(j) + dy1
+      e1_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
+    endif
+
+    if (j == n_bend) then
+      dr_vec = tan(ele%value(e2$)) * [cos_t * cos_a, sin_t * cos_a, sin_a]
+      dv_vec = matmul (w_old, dr_vec) 
+      call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx1, dy1)
+      dx_bend(j) = dx_bend(j) - dx1
+      dy_bend(j) = dy_bend(j) - dy1
+      e2_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
+    endif
+  enddo
 
 endif
 
@@ -608,6 +619,70 @@ if (is_bend) then
     dx_bend(j) =  off * dt_y / sqrt(dt_x**2 + dt_y**2)
     dy_bend(j) = -off * dt_x / sqrt(dt_x**2 + dt_y**2)
   enddo
+  dx_bend(0) = dx_bend(0) * e1_factor
+  dy_bend(0) = dy_bend(0) * e1_factor
+  dx_bend(n_bend) = dx_bend(n_bend) * e2_factor
+  dy_bend(n_bend) = dy_bend(n_bend) * e2_factor
+
+  ! Finite e1 or e2 may mean some points extend beyound the outline of the bend.
+  ! Throw out these points.
+
+  ! First look at the first half of the bend for points that are beyound due to e1.
+
+  r0_plus  = [x_bend(0) + dx_bend(0), y_bend(0) + dy_bend(0)]
+  r0_minus = [x_bend(0) - dx_bend(0), y_bend(0) - dy_bend(0)]
+  n_mid = n_bend/2
+  dr2_p = [x_bend(n_mid) + dx_bend(n_mid), y_bend(n_mid) + dy_bend(n_mid)] - r0_plus
+  dr2_m = [x_bend(n_mid) - dx_bend(n_mid), y_bend(n_mid) - dy_bend(n_mid)] - r0_minus
+
+  j = n_bend/2 
+  do 
+    if (j == 0) exit
+    dr_p  = [x_bend(j) + dx_bend(j), y_bend(j) + dy_bend(j)] - r0_plus
+    dr_m  = [x_bend(j) - dx_bend(j), y_bend(j) - dy_bend(j)] - r0_minus
+    ! If one of the points is outside then exit
+    if (dot_product(dr_p, dr2_p) < 0 .or.dot_product(dr_m, dr2_m) < 0) exit
+    j = j - 1
+  enddo
+
+  ! If there are points outside, delete them
+
+  if (j > 0) then
+    x_bend(1:n_bend-j)  = x_bend(j+1:n_bend)
+    y_bend(1:n_bend-j)  = y_bend(j+1:n_bend)
+    dx_bend(1:n_bend-j) = dx_bend(j+1:n_bend)
+    dy_bend(1:n_bend-j) = dy_bend(j+1:n_bend)
+    n_bend = n_bend - j
+  endif
+
+  ! Now look at the last half of the bend for points that are beyound due to e2.
+
+  r0_plus  = [x_bend(n_bend) + dx_bend(n_bend), y_bend(n_bend) + dy_bend(n_bend)]
+  r0_minus = [x_bend(n_bend) - dx_bend(n_bend), y_bend(n_bend) - dy_bend(n_bend)]
+  n_mid = n_bend/2
+  dr2_p = [x_bend(n_mid) + dx_bend(n_mid), y_bend(n_mid) + dy_bend(n_mid)] - r0_plus
+  dr2_m = [x_bend(n_mid) - dx_bend(n_mid), y_bend(n_mid) - dy_bend(n_mid)] - r0_minus
+
+  j = n_bend/2 
+  do 
+    if (j == n_bend) exit
+    dr_p  = [x_bend(j) + dx_bend(j), y_bend(j) + dy_bend(j)] - r0_plus
+    dr_m  = [x_bend(j) - dx_bend(j), y_bend(j) - dy_bend(j)] - r0_minus
+    ! If one of the points is outside then exit
+    if (dot_product(dr_p, dr2_p) < 0 .or.dot_product(dr_m, dr2_m) < 0) exit
+    j = j + 1
+  enddo
+
+  ! If there are points outside, delete them
+
+  if (j < n_bend) then
+    x_bend(j)  = x_bend(n_bend)
+    y_bend(j)  = y_bend(n_bend)
+    dx_bend(j) = dx_bend(n_bend)
+    dy_bend(j) = dy_bend(n_bend)
+    n_bend = j
+  endif
+
 endif
 
 ! Draw the element...
