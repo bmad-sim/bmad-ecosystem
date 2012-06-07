@@ -1067,7 +1067,22 @@ endif
 ! Draw orbit
 
 if (tao_com%lat_layout%draw_orbit) then
-
+  do i = 1, size ( lat_branch%orbit) -1
+    !Plot only alive particles
+    if (lat_branch%orbit(i+1)%state /= alive$) exit
+    x1 = lat_branch%orbit(i)%s 
+    x2 = lat_branch%orbit(i+1)%s
+    if (x1 < graph%x%min) cycle
+    if (x2 > graph%x%max) cycle
+    !X orbit
+    y1 = tao_com%lat_layout%orbit_scale*lat_branch%orbit(i)%vec(1)
+    y2 = tao_com%lat_layout%orbit_scale*lat_branch%orbit(i+1)%vec(1)
+    call qp_draw_line (x1, x2, y1, y2, color = red$)
+    !Y orbit
+    y1 = tao_com%lat_layout%orbit_scale*lat_branch%orbit(i)%vec(3)
+    y2 = tao_com%lat_layout%orbit_scale*lat_branch%orbit(i+1)%vec(3)
+    call qp_draw_line (x1, x2, y1, y2, color = green$)
+  end do
 endif
 
 !--------------------------------------------------------------------------------------------------
@@ -1145,8 +1160,8 @@ if (tao_com%lat_layout%draw_beam_chamber_wall .and. associated(ele%wall3d%sectio
   do section_id = 1, size(ele%wall3d%section) - 1
     x1 = ele%s - ele%value(l$) + ele%wall3d%section(section_id)%s
     x2 = ele%s - ele%value(l$) + ele%wall3d%section(section_id + 1)%s
-    y1 = ele%wall3d%section(section_id)%v(1)%radius_x
-    y2 = ele%wall3d%section(section_id + 1)%v(1)%radius_x
+    call calc_wall_radius (ele%wall3d%section(section_id)%v,  1.0_rp, 0.0_rp,  y1, dummy)
+    call calc_wall_radius (ele%wall3d%section(section_id)%v, -1.0_rp, 0.0_rp,  y2, dummy)
     !scale wall
     y1 = tao_com%lat_layout%beam_chamber_wall_scale * y1
     y2 = tao_com%lat_layout%beam_chamber_wall_scale * y2
