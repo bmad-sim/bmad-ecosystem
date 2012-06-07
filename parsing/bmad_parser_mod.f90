@@ -3482,10 +3482,27 @@ do
 
           ! Need to remove super_lord/super_slave links otherwise the code below gets confused
           ! when it tries to connect the former super_slave drifts.
+
           do while (ele%n_slave /= 0)
             call remove_lord_slave_link (ele, pointer_to_slave(ele, 1))
           enddo
+        enddo
 
+        ! Reconnect drifts that were part of the multipass region.
+
+        do i = 1, size(m_info%top) ! Loop over multipass lords
+          do j = 1, size(m_info%top(i)%slave, 2)   ! loop over super_slaves
+            slave => m_info%top(i)%slave(1, j)%ele
+            if (slave%key /= drift$) cycle
+            if (slave%slave_status == multipass_slave$) cycle
+            do k = 1, size(m_info%top(i)%slave(:, j))   ! Loop over all passes
+              ele => m_info%top(i)%slave(k, j)%ele
+              m_slaves(k) = ele_to_lat_loc (ele)  ! Make a list slave elements
+              ib = index(ele%name, '\') ! '
+              if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
+            enddo
+            call add_this_multipass (lat, m_slaves) ! And create a multipass lord
+          enddo
         enddo
 
         ! Add a multipass_lord to control the created super_lords.
@@ -3528,23 +3545,6 @@ do
 
         call remove_eles_from_lat (lat, .false.)
         call add_this_multipass (lat, m_slaves, super_ele_saved) 
-
-        ! Reconnect drifts that were part of the multipass region.
-
-        do i = 1, size(m_info%top)
-          do j = 1, size(m_info%top(i)%slave, 2)
-            slave => m_info%top(i)%slave(1, j)%ele
-            if (slave%key /= drift$) cycle
-            if (slave%slave_status == multipass_slave$) cycle
-            do k = 1, size(m_info%top(i)%slave(:, j))
-              ele => m_info%top(i)%slave(k, j)%ele
-              m_slaves(k) = ele_to_lat_loc (ele)
-              ib = index(ele%name, '\') ! '
-              if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
-            enddo
-            call add_this_multipass (lat, m_slaves)
-          enddo
-        enddo
 
         call deallocate_multipass_all_info_struct (m_info)
         deallocate (m_slaves, multi_name)
