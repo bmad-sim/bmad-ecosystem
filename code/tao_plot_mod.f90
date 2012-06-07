@@ -529,8 +529,8 @@ if (is_bend) then
       dr_vec = tan(ele%value(e1$)) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
       call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx1, dy1)
-      dx_bend(j) = dx_bend(j) + dx1
-      dy_bend(j) = dy_bend(j) + dy1
+      dx_bend(j) = dx_bend(j) - dx1
+      dy_bend(j) = dy_bend(j) - dy1
       e1_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
     endif
 
@@ -538,8 +538,8 @@ if (is_bend) then
       dr_vec = tan(ele%value(e2$)) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
       call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx1, dy1)
-      dx_bend(j) = dx_bend(j) - dx1
-      dy_bend(j) = dy_bend(j) - dy1
+      dx_bend(j) = dx_bend(j) + dx1
+      dy_bend(j) = dy_bend(j) + dy1
       e2_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
     endif
   enddo
