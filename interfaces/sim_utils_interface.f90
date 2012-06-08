@@ -331,15 +331,6 @@ interface
 end interface
  
 interface
-  subroutine mat_det(mat, det)
-    use precision_def
-    implicit none
-    real(rp) mat(:,:)
-    real(rp) det
-  end subroutine
-end interface
- 
-interface
   subroutine mat_rotation (mat, angle, bet_1, bet_2, alph_1, alph_2)
     use precision_def
     implicit none

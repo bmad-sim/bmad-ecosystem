@@ -132,6 +132,8 @@ end function super_zbrent
 ! This routine is essentially mrqmin from Numerical Recipes with some added features and
 ! some code tweaking to make the code run faster.
 !
+! Note: This routine uses saved (global) variables. It is NOT thread safe.
+! 
 ! Modules needed:
 !   use super_recipes_mod
 !
