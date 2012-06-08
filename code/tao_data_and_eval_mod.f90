@@ -1302,10 +1302,6 @@ case ('momentum')
 
 case ('momentum_compaction')
   if (data_source == 'beam') return
-  if (datum%ix_branch /= 0) then
-    call out_io (s_fatal$, r_name, 'TRANSFER MATRIX CALC NOT YET MODIFIED FOR BRANCHES.')
-    return
-  endif
 
   if (ix_ref < 0) then
     ix_ref = 0
@@ -1320,7 +1316,7 @@ case ('momentum_compaction')
   eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
   eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
 
-  call transfer_matrix_calc (lat, .true., mat6, vec0, ix_ref, ix_start)
+  call transfer_matrix_calc (lat, .true., mat6, vec0, ix_ref, ix_start, datum%ix_branch)
 
   do i = ix_start, ix_ele
     value_vec(i) = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
