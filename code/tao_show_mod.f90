@@ -1903,15 +1903,15 @@ case ('plot')
     nl=nl+1; write (lines(nl), rmt) '  Orbit_scale             = ', tao_com%floor_plan%orbit_scale
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
-          'Ele_Name                        Shape         Color           Size  Label  Draw'
+          'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw'
     nl=nl+1; lines(nl) = &
-          '----------------------------    --------      -----           ----  -----  ----'
+          '----------  ----------------------------    --------      -----           ----  -----  ----'
 
     do i = 1, size(tao_com%floor_plan%ele_shape)
       shape => tao_com%floor_plan%ele_shape(i)
       if (shape%ele_name == '') cycle
-      nl=nl+1; write (lines(nl), '(3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
-                shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
+      nl=nl+1; write (lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
+                'shape', i, shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
                 shape%size, shape%label, shape%draw
     enddo
 
@@ -1929,15 +1929,15 @@ case ('plot')
     nl=nl+1; write (lines(nl), rmt) '  Orbit_scale             = ', tao_com%lat_layout%orbit_scale
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
-          'Ele_Name                        Shape         Color           Size  Label  Draw'
+          'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw'
     nl=nl+1; lines(nl) = &
-          '----------------------------    --------      -----           ----  -----  ----'
+          '----------  ----------------------------    --------      -----           ----  -----  ----'
 
     do i = 1, size(tao_com%lat_layout%ele_shape)
       shape => tao_com%lat_layout%ele_shape(i)
       if (shape%ele_name == '') cycle
-      nl=nl+1; write (lines(nl), '(3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
-                shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
+      nl=nl+1; write (lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
+                'shape', i, shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
                 shape%size, shape%label, shape%draw
     enddo
 
