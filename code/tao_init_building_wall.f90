@@ -30,7 +30,7 @@ subroutine tao_init_building_wall (wall_file)
   character(24) :: r_name = 'tao_init_building_wall'
   character(8) side
 
-  namelist / tao_building_wall / side, point
+  namelist / one_building_wall / side, point
 
 ! Open file
 
@@ -47,11 +47,11 @@ subroutine tao_init_building_wall (wall_file)
 
   n_wall = 0
   do
-    read (iu, nml = tao_building_wall, iostat = ios)
+    read (iu, nml = one_building_wall, iostat = ios)
     if (ios > 0) then
       call out_io (s_fatal$, r_name, 'ERROR READING TAO_BUILDING_WALL NAMELIST')
       do   ! Generate informational message
-        read (iu, nml = tao_building_wall)
+        read (iu, nml = one_building_wall)
       enddo
     endif
     if (ios < 0) exit
@@ -70,16 +70,19 @@ subroutine tao_init_building_wall (wall_file)
 
     side = ''
     point%type = ''
-    read (iu, nml = tao_building_wall, iostat = ios)
+    read (iu, nml = one_building_wall, iostat = ios)
 
-    if (side == 'left') then
-      s%building_wall(i)%side = left_side$
-    elseif (side == 'right') then
-      s%building_wall(i)%side = right_side$
-    else
+    select case (side)
+    case ('+x')
+      s%building_wall(i)%side = plus_x_side$
+    case ('-x')
+      s%building_wall(i)%side = minus_x_side$
+    case ('no_side')
+      s%building_wall(i)%side = no_side$
+    case default
       call out_io (s_error$, r_name, 'BAD "SIDE" FOR BUILDING WALL: ' // side)
       call err_exit
-    endif
+    end select
 
     do j = size(point), 1, -1
       if (point(j)%type == '') cycle
