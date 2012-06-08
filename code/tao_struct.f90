@@ -464,7 +464,7 @@ end type
 ! Building wall structure
 
 integer, parameter :: arc$ = 1, point$ = 2
-integer, parameter :: left_side$ = 1, right_side$ = 2
+integer, parameter :: plus_x_side$ = 1, minus_x_side$ = 2, no_side$ = 3
 
 type tao_building_wall_point_struct
   integer type              ! arc$ or point$
