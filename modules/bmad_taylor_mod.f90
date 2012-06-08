@@ -970,7 +970,7 @@ subroutine truncate_taylor_to_order (taylor_in, order, taylor_out)
 implicit none
 
 type (taylor_struct) :: taylor_in(:), taylor_out(:)
-type (taylor_struct), save :: taylor
+type (taylor_struct) :: taylor
 
 integer order
 integer i, j, n

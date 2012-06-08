@@ -34,7 +34,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
-type (ele_struct), save :: ave
+type (ele_struct) :: ave
 type (coord_struct), allocatable :: orb(:)
 
 real(rp) phi_a_set, phi_b_set, dphi_a, dphi_b, dQ_max

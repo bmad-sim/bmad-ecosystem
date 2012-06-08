@@ -39,9 +39,8 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
   integer, intent(in) :: i_dim
 
   real(rp) sum2, dsum2, chisq, dtrack(6)
-  real(rp), allocatable, save :: x(:), y(:), sig(:), v(:,:), &
-                                   w(:), a(:), m(:,:)
-  type (coord_struct), allocatable, target, save :: d0track(:)
+  real(rp), allocatable :: x(:), y(:), sig(:), v(:,:), w(:), a(:), m(:,:)
+  type (coord_struct), allocatable, target :: d0track(:)
   integer i, n
 
   interface

@@ -38,7 +38,7 @@ type (ele_struct), pointer :: ele1, ele2
 
 integer ix_start, ix_end, ix_start_branch, ix_end_branch
 integer ix1, ix2, n, n_end, n_slave, ix_slave, ix_branch
-integer, allocatable, save :: ix_slave_array(:), ix_branch_array(:)
+integer, allocatable :: ix_slave_array(:), ix_branch_array(:)
 
 !
 

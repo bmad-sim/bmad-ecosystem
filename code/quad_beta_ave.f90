@@ -23,8 +23,8 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 
   implicit none
 
-  type (lat_struct)  lat
-  type (ele_struct), save ::  ele
+  type (lat_struct), target :: lat
+  type (ele_struct), pointer :: ele
 
   integer ix_ele, ix
 
@@ -35,7 +35,7 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 ! Since the beta stored in the ELE is at the end we need
 ! to invert alpha for BEAVE routine
 
-  ele = lat%ele(ix_ele)
+  ele => lat%ele(ix_ele)
 
   if (ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. &
         ele%key /= wiggler$) then
