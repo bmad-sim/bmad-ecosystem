@@ -1063,7 +1063,7 @@ endif
 ! Draw orbit
 
 if (tao_com%lat_layout%draw_orbit) then
-  do i = 1, size ( lat_branch%orbit) -1
+  do i = 0, ubound (lat_branch%orbit, 1) -1
     !Plot only alive particles
     if (lat_branch%orbit(i+1)%state /= alive$) exit
     x1 = lat_branch%orbit(i)%s 
