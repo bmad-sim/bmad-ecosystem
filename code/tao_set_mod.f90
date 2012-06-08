@@ -1682,52 +1682,47 @@ subroutine tao_set_drawing_cmd (drawing, component, set_value)
 implicit none
 
 type (tao_drawing_struct) drawing
+type (tao_ele_shape_struct) shape(50)
+
 character(*) component, set_value
-character(40) str
+character(60) str
 character(20) :: r_name = 'tao_set_drawing_cmd'
 
-integer i, ix
-logical err, found
+real(rp) beam_chamber_wall_scale, orbit_scale
+integer i, ix, n, iu, ios
 
-! Is a shape? Find which shapes to modify
+logical err, needs_quotes
+logical draw_orbit, draw_beam_chamber_wall
 
+namelist / params / shape, draw_beam_chamber_wall, &
+                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
+
+! Init
+
+draw_beam_chamber_wall  = drawing%draw_beam_chamber_wall
+draw_orbit              = drawing%draw_orbit
+beam_chamber_wall_scale = drawing%beam_chamber_wall_scale
+orbit_scale             = drawing%orbit_scale
+
+n = size(drawing%ele_shape)
+shape(1:n) = drawing%ele_shape
+
+! Setup
+
+needs_quotes = .false.
 ix = index(component, '%')
-found = .false.
 
+if (ix /= 0) then
+  str = 'shape(' // component(6:ix-1) // ')%' // component(ix+1:)
+  select case (component(ix+1:))
+  case ('shape', 'color', 'label', 'ele_name')
+    needs_quotes = .true.
+  end select
+  if (set_value(1:1) == "'" .or. set_value(1:1) == '"') needs_quotes = .false.
 
-
-if (ix == 0) then
-      
 else
-  if (component(1:5) /= 'shape' .or. ix < 7) then
-  elseif (.not. is_integer(component(6:ix-1))) then
-  else
-    read (component(6:ix-1), *) ix
-    if (ix < 1 .or. ix > size(drawing%ele_shape)) then
-    else
-      call set_this_shape(drawing%ele_shape(ix), component(ix+1:))
-      if (err) return
-      found = .true.
-    endif
-  endif
+  str = component
 endif
-
-if (.not. found) then
-  call out_io (s_error$, r_name, 'COMPONENT NOT RECOGNIZED:  // component')
-endif
-
-!------------------------------------------------------------
-contains
-
-subroutine set_this_shape (shape, attrib)
-
-type (tao_ele_shape_struct) shape
-
-character(*) attrib
-integer iu, ios
-logical needs_quotes
-
-namelist / params / shape
 
 ! open a scratch file for a namelist read
 
@@ -1738,18 +1733,11 @@ if (ios /= 0) then
   return
 endif
 
-needs_quotes = .false.
-select case (attrib)
-case ('shape', 'color', 'label', 'ele_name')
-  needs_quotes = .true.
-end select
-if (set_value(1:1) == "'" .or. set_value(1:1) == '"') needs_quotes = .false.
-
 write (iu, *) '&params'
 if (needs_quotes) then
-  write (iu, *) ' shape%' // trim(attrib) // ' = "' // trim(set_value) // '"'
+  write (iu, *) trim(str) // ' = "' // trim(set_value) // '"'
 else
-  write (iu, *) ' shape%' // trim(attrib) // ' = ' // trim(set_value)
+  write (iu, *) trim(str) // ' = ' // trim(set_value)
 endif
 write (iu, *) '/'
 write (iu, *)
@@ -1764,12 +1752,20 @@ endif
 
 ! Cleanup
 
-call str_upcase (shape%ele_name, shape%ele_name)
-call str_upcase (shape%shape,    shape%shape)
-call str_upcase (shape%color,    shape%color)
-call downcase_string (shape%label)
+drawing%draw_beam_chamber_wall  = draw_beam_chamber_wall
+drawing%draw_orbit              = draw_orbit
+drawing%beam_chamber_wall_scale = beam_chamber_wall_scale
+drawing%orbit_scale             = orbit_scale
 
-end subroutine set_this_shape
+do i = 1, n
+  call str_upcase (shape(i)%ele_name, shape(i)%ele_name)
+  call str_upcase (shape(i)%shape,    shape(i)%shape)
+  call str_upcase (shape(i)%color,    shape(i)%color)
+  call downcase_string (shape(i)%label)
+enddo
+
+n = size(drawing%ele_shape)
+drawing%ele_shape(1:n) = shape
 
 end subroutine tao_set_drawing_cmd
 

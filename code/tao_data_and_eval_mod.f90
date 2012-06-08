@@ -469,7 +469,7 @@ type (bunch_params_struct), pointer :: bunch_params(:)
 type (tao_element_struct), pointer :: uni_ele(:)
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
-real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4)
+real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3)
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
@@ -946,7 +946,8 @@ case ('dpz_dz')
 
 case ('e_tot')
   if (data_source == 'beam') return
-  call tao_load_this_datum (branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)) / orbit(0:n_track)%beta, &
+  mc2 = mass_of(orbit(0)%species)
+  call tao_load_this_datum (sqrt((branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)))**2 + mc2**2), &
                             ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 !-----------

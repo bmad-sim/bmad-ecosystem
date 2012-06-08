@@ -238,7 +238,7 @@ endif
 if (ios < 0) then
 
   ! Read floor_plan_drawing namelist
-  rewind (iu)
+
   ele_shape(:)%ele_name   = ''
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
@@ -247,7 +247,9 @@ if (ios < 0) then
   beam_chamber_wall_scale = 1
   orbit_scale             = 1
 
+  rewind (iu)
   read (iu, nml = element_shapes_floor_plan, iostat = ios1)  ! Deprecated name
+  rewind (iu)
   read (iu, nml = floor_plan_drawing, iostat = ios2)
 
   if (ios1 >= 0) then
@@ -281,7 +283,6 @@ if (ios < 0) then
 
   ! Read element_shapes_lat_layout namelist
 
-  rewind (iu)
   ele_shape(:)%ele_name   = ''
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
@@ -290,8 +291,10 @@ if (ios < 0) then
   beam_chamber_wall_scale = 1
   orbit_scale             = 1
 
+  rewind (iu)
   read (iu, nml = element_shapes_lat_layout, iostat = ios1)
-  read (iu, nml = element_shapes_lat_layout, iostat = ios2)
+  rewind (iu)
+  read (iu, nml = lat_layout_drawing, iostat = ios2)
 
   if (ios1 == 0) then
     call out_io (s_warn$, r_name, &
@@ -329,7 +332,7 @@ endif
 if (allocated(tao_com%lat_layout%ele_shape)) then
   do i = 1, size(tao_com%lat_layout%ele_shape)
     select case (tao_com%lat_layout%ele_shape(i)%shape)
-    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
+    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case default
       call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%lat_layout%ele_shape(i)%shape)
       call err_exit
@@ -340,7 +343,7 @@ endif
 if (allocated(tao_com%floor_plan%ele_shape)) then
   do i = 1, size(tao_com%floor_plan%ele_shape)
     select case (tao_com%floor_plan%ele_shape(i)%shape)
-    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
+    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case default
       call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%floor_plan%ele_shape(i)%shape)
       call err_exit

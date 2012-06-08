@@ -533,6 +533,7 @@ type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: model_lat, base_lat
+type (tao_ele_shape_struct), pointer :: ele_shape
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
@@ -945,8 +946,8 @@ do k = 1, size(graph%curve)
       ! Mark all eles in branch if they match a shape.
       do i = 0, branch%n_ele_track
         ele => branch%ele(i)
-        call tao_find_ele_shape (ele, tao_com%lat_layout%ele_shape, ix)
-        if (ix == 0) cycle
+        ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
+        if (.not. associated(ele_shape)) cycle
         call find_element_ends (model_lat, ele, ele1, ele2)
         ele1%logic = .true.
         ele2%logic = .true.
@@ -955,8 +956,8 @@ do k = 1, size(graph%curve)
       ! Mark slaves of lord elements that match a shape.
       do i = model_lat%n_ele_track+1, model_lat%n_ele_max
         ele => model_lat%ele(i)
-        call tao_find_ele_shape (ele, tao_com%lat_layout%ele_shape, ix)
-        if (ix == 0) cycle
+        ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
+        if (.not. associated(ele_shape)) cycle
         if (ele%lord_status == multipass_lord$) then
           do j = 1, ele%n_slave
             slave => pointer_to_slave (ele, j)
