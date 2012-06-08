@@ -189,9 +189,8 @@ type (bunch_struct) bunch_start, bunch_end
 type (lat_struct), target :: lat
 type (ele_struct) :: ele
 type (ele_struct), pointer :: lord, slave
-type (ele_struct), save :: rf_ele
 type (rf_wake_lr_struct), pointer :: lr, lr_chain
-type (ele_pointer_struct), save, allocatable :: chain_ele(:)
+type (ele_pointer_struct), allocatable :: chain_ele(:)
 
 integer i, j, n, im, ix_pass, ixs, ix, n_links
 

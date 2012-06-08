@@ -71,7 +71,7 @@ real(rp) ref_time0
 
 integer j_in, i_out, k, n
 integer j, ix, ic, o_key, n_con, n_ic, n_lord
-integer, allocatable, save :: ica(:)
+integer, allocatable :: ica(:)
 integer, optional :: ix_out(:)
 
 logical init_hybrid_needed, remove_markers, keep_ele(:)
