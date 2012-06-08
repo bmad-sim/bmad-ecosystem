@@ -117,6 +117,8 @@ if (ele_name == 'BEAM_START') then
       ptr_array(1)%r => lat%beam_start%phase_x
     case (phase_y$)
       ptr_array(1)%r => lat%beam_start%phase_y
+    case (t$)
+      ptr_array(1)%r => lat%beam_start%t
     end select
   end select
 

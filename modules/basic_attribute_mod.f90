@@ -521,6 +521,7 @@ call init_attrib (def_beam_start$, e_field_x$,             'E_FIELD_X')
 call init_attrib (def_beam_start$, e_field_y$,             'E_FIELD_Y')
 call init_attrib (def_beam_start$, phase_x$,               'PHASE_X')
 call init_attrib (def_beam_start$, phase_y$,               'PHASE_Y')
+call init_attrib (def_beam_start$, t$,                     'T')
 
 call init_attrib (e_gun$, e_tot_start$,                    'e_tot_start', .true.)
 call init_attrib (e_gun$, p0c_start$,                      'p0c_start', .true.)

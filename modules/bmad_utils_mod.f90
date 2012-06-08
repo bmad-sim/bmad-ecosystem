@@ -27,8 +27,8 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 ! If the ele argument is present, the particle is taken to be at the entrance end of this element.
 !
 ! This routine is an overloaded name for:
-!   Subroutine init_coord1 (orb, vec, ele, particle, E_photon, shift_vec6)
-!   Subroutine init_coord2 (orb, orb_in, ele, shift_vec6)
+!   Subroutine init_coord1 (orb, vec, ele, particle, E_photon, t_ref_offset, shift_vec6)
+!   Subroutine init_coord2 (orb, orb_in, ele, t_ref_offset, shift_vec6)
 !
 ! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
 ! Additionally, If ele is an init_ele  and vec is zero or not present, orb%vec(6) is shifted
@@ -38,12 +38,16 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 !   use bmad
 !
 ! Input:
-!   orb_in     -- Coord_struct: Input orbit.
-!   vec(6)     -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
-!   ele        -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
-!   particle   -- Integer, optional: Particle type (electron$, etc.). Must be present if ele is present.
-!   E_photon   -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
-!   shift_vec6 -- Logical, optional: If present and False, prevent the shift of orb%vec(6).
+!   orb_in       -- Coord_struct: Input orbit.
+!   vec(6)       -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
+!   ele          -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
+!   particle     -- Integer, optional: Particle type (electron$, etc.). 
+!                     Must be present if ele is present.
+!   E_photon     -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
+!   t_ref_offset -- real(rp), optional: Offset of the reference time. This is non-zero when
+!                     there are multiple bunches and the reference time for a particular particle
+!                     is pegged to the time of the center of the bunch.
+!   shift_vec6   -- Logical, optional: If present and False, prevent the shift of orb%vec(6).
 !
 ! Output:
 !   orb -- Coord_struct: Initialized coordinate.
@@ -369,13 +373,13 @@ end subroutine check_controller_controls
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord1 (orb, vec, ele, particle, E_photon, shift_vec6)
+! Subroutine init_coord1 (orb, vec, ele, particle, E_photon, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord1 (orb, vec, ele, particle, E_photon, shift_vec6)
+subroutine init_coord1 (orb, vec, ele, particle, E_photon, t_ref_offset, shift_vec6)
 
 implicit none
 
@@ -383,9 +387,11 @@ type (coord_struct) orb, orb2
 type (coord_struct), save :: init_orb
 type (ele_struct), optional :: ele
 
-real(rp), optional :: vec(:), E_photon
+real(rp), optional :: vec(:), E_photon, t_ref_offset
 integer, optional :: particle
 logical, optional :: shift_vec6
+
+character(16), parameter :: r_name = 'init_coord1'
 
 ! Use temporary orb2 so if actual arg for vec, particle, or E_photon
 ! is part of the orb actual arg things do not get overwriten.
@@ -453,10 +459,17 @@ if (present(ele)) then
       call convert_pc_to (ele%value(p0c_start$) * (1 + orb2%vec(6)), orb2%species, beta = orb2%beta)
     endif
 
+    ! Do not set %t if %beta = 0 since %t may be a good value.
+
     if (orb2%beta == 0) then
-      orb2%t = ele%value(ref_time_start$)
+      if (orb2%vec(5) /= 0) then
+        call out_io (s_error$, r_name, 'Z-POSITION IS NONZERO WITH BETA = 0.', &
+                                       'THIS IS NONSENSE SO SETTING Z TO ZERO.')
+        orb2%vec(5) = 0
+      endif
     else
       orb2%t = ele%value(ref_time_start$) - orb2%vec(5) / (orb2%beta * c_light)
+      if (present(t_ref_offset)) orb2%t = orb2%t + t_ref_offset
     endif
   endif
 
@@ -470,25 +483,26 @@ end subroutine init_coord1
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord2 (orb, orb_in, ele, shift_vec6)
+! Subroutine init_coord2 (orb, orb_in, ele, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb, orb_in, ele, shift_vec6)
+subroutine init_coord2 (orb, orb_in, ele, t_ref_offset, shift_vec6)
 
 implicit none
 
 type (coord_struct) orb, orb_in, orb_save
 type (ele_struct), optional :: ele
+real(rp), optional :: t_ref_offset
 logical, optional :: shift_vec6
 
 !
 
 orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
 
-call init_coord1 (orb, orb_in%vec, ele, orb_in%species, orb_in%p0c, shift_vec6)
+call init_coord1 (orb, orb_in%vec, ele, orb_in%species, orb_in%p0c, t_ref_offset, shift_vec6)
 
 orb%spin      = orb_save%spin
 orb%e_field_x = orb_save%e_field_x
@@ -496,6 +510,7 @@ orb%e_field_y = orb_save%e_field_y
 orb%phase_x   = orb_save%phase_x
 orb%phase_y   = orb_save%phase_y
 orb%charge    = orb_save%charge
+if (orb%beta == 0) orb%t = orb_save%t
 
 end subroutine init_coord2
 
