@@ -1144,8 +1144,6 @@ real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
 logical is_first, is_last, err_flag, major_method_set_done 
 
-logical, save :: init_needed = .true.
-
 character(20) :: r_name = 'makeup_super_slave'
 
 ! Super_slave:

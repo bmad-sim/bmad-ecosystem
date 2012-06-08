@@ -88,7 +88,6 @@ type (coord_struct) start, end
 type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
 type (rad_int1_struct) rad_int1, int_tot
-type (rad_int1_struct), save :: rad_int1_zero  ! Is initialized to zero
 
 integer, parameter :: num_int = 9
 integer j, j0, n, n_pts
@@ -526,8 +525,6 @@ real(rp), intent(in) :: s_rel, t_rel
 real(rp), intent(out) :: g(3)
 real(rp), optional :: dg(3,3)
 real(rp) vel_unit(3), fact
-real(rp), save :: pc, gamma, beta
-real(rp), save :: pc_old = -1, particle_old = 0
 real(rp) f
 
 ! calculate the field
@@ -535,12 +532,6 @@ real(rp) f
 call em_field_calc (ele, param, s_rel, t_rel, orbit, .false., field, present(dg))
 
 !
-
-pc = ele%value(p0c$) * (1 + orbit%vec(6))
-if (pc /= pc_old .or. param%particle /= particle_old) then
-  call convert_pc_to (pc, param%particle, gamma = gamma, beta = beta)
-  pc_old = pc; particle_old = param%particle
-endif
 
 ! vel_unit is the velocity normalized to unit length
 
@@ -567,7 +558,7 @@ real(rp) force(3), force_perp(3)
 
 ! force_perp is the perpendicular component of the force.
 
-force = (E + cross_product(vel_unit, B) * beta * c_light) * charge_of(param%particle)
+force = (E + cross_product(vel_unit, B) * orbit%beta * c_light) * charge_of(param%particle)
 force_perp = force - vel_unit * (dot_product(force, vel_unit))
 g_bend = -force_perp * fact
 

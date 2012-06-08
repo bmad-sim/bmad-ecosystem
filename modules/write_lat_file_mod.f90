@@ -2063,7 +2063,7 @@ implicit none
 
 character(*) line_out
 integer ix, ix1, ix2
-integer, save :: ix_min = 65, ix_max = 85
+integer, parameter :: ix_min = 65, ix_max = 85
 
 !
 

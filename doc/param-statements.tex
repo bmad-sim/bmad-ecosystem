@@ -150,6 +150,7 @@ particle or to uses the absolute time (\sref{s:rf.time}). A value of
 \section{Beam_start Statement} \label{s:beam.start}
 \index{beam_start statement|hyperbf}
 
+\index{e_gun}
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \index{emittance_a}\index{emittance_b}\index{emittance_z}
 \index{e_field_x}\index{e_field_y}\index{phase_x}\index{phase_y}
@@ -172,6 +173,11 @@ pertain to the \vn{root} branch.
   beam_start[phase_y]     = <Real>   ! Photon beam phase along y-axis
   beam_start[t]           = <Real>   ! Absolute time
 \end{example}
+Normally the absolute time, set by \vn{beam_start[t]}, is a dependent
+parameter set by solving \Eq{zbctt} for $t$. The exception is when the
+initial velocity is zero. (This can happen if there is an \vn{e_gun}
+(\sref{s:e.gun}) element in the lattice). In this case, $z$ must be
+zero and $t$ is an independent parameter that can be set.
 
 \noindent
 Examples

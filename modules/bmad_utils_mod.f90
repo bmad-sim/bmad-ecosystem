@@ -913,9 +913,7 @@ implicit none
 
 real(rp), intent(in) :: pc
 real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, dbeta
-real(rp) g2
-real(rp), save :: particle_old = 0, pc_old = -1, mc2, E_tot_this 
-
+real(rp) g2, mc2, E_tot_this 
 
 integer, intent(in) :: particle
 logical, optional :: err_flag
@@ -926,12 +924,8 @@ character(20) :: r_name = 'convert_pc_to'
 
 if (present(err_flag)) err_flag = .false.
 
-if (particle_old /= particle .or. pc_old /= pc) then
-  mc2 = mass_of(particle)
-  E_tot_this = sqrt(pc**2 + mc2**2)
-  particle_old = particle
-  pc_old = pc
-endif
+mc2 = mass_of(particle)
+E_tot_this = sqrt(pc**2 + mc2**2)
 
 if (present(E_tot))   E_tot   = E_tot_this
 if (present(beta))    beta    = pc / E_tot_this
@@ -1523,7 +1517,7 @@ implicit none
 
 type (coord_array_struct), allocatable :: coord_array(:)
 type (lat_struct) lat
-type (coord_struct), allocatable, save :: start(:)
+type (coord_struct), allocatable :: start(:)
 
 integer i, j, nb
 
