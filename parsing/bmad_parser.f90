@@ -173,7 +173,7 @@ bp_com%p0c_set   = .false.
 call find_indexx2 (in_lat%ele(0)%name, in_name, in_indexx, 0, -1, ix, add_to_list = .true.)
 
 bp_com%beam_ele => in_lat%ele(1)
-bp_com%beam_ele%name = 'BEAM'                 ! fake beam element
+bp_com%beam_ele%name = 'BEAM'                 ! For mad compatibility.
 bp_com%beam_ele%key = def_beam$               ! "definition of beam"
 bp_com%beam_ele%value(particle$) = positron$  ! default
 call find_indexx2 (in_lat%ele(1)%name, in_name, in_indexx, 0, 0, ix, add_to_list = .true.)
@@ -185,8 +185,11 @@ bp_com%param_ele%value(lattice_type$) = -1
 bp_com%param_ele%value(particle$)     = positron$  ! default
 call find_indexx2 (in_lat%ele(2)%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
 
+! The parser actually puts beam_start parameters into in_lat%beam_start so
+! the beam_start_ele is actually only needed to act as a place holder.
+
 bp_com%beam_start_ele => in_lat%ele(3)
-bp_com%beam_start_ele%name = 'BEAM_START'           ! For parameters 
+bp_com%beam_start_ele%name = 'BEAM_START'           ! For beam starting parameters 
 bp_com%beam_start_ele%key = def_beam_start$
 call find_indexx2 (in_lat%ele(3)%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)
 
