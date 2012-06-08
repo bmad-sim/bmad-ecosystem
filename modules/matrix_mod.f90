@@ -172,7 +172,7 @@ subroutine mat_symplectify (mat_in, mat_symp)
   real(rp), intent(in)  :: mat_in(:,:)
   real(rp), intent(out) :: mat_symp(:,:)
 
-  real(rp), save, allocatable :: m1(:,:), m2(:,:), m3(:,:), m_symetric(:,:)
+  real(rp), dimension(size(mat_in, 1), size(mat_in, 2)) :: m1, m2, m3, m_symetric
 
   integer n,i,j
 
@@ -183,15 +183,6 @@ subroutine mat_symplectify (mat_in, mat_symp)
   if (ubound(mat_symp, 1) /= n) then
     print *, 'ERROR IN MAT_SYMPLECTIFY: UNEQUAL MATRIX SIZES.'
     if (bmad_status%exit_on_error) call err_exit
-  endif
-
-!
-
-  if (.not. allocated (m1)) then
-    allocate (m1(n,n), m2(n,n), m3(n,n), m_symetric(n,n))
-  elseif (ubound(m1, 1) /= n) then
-    deallocate (m1, m2, m3, m_symetric)
-    allocate (m1(n,n), m2(n,n), m3(n,n), m_symetric(n,n))
   endif
 
 ! form the symmetrix matrix:

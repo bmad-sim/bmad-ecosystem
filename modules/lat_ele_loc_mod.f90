@@ -70,7 +70,7 @@ implicit none
 
 type (lat_struct) lat
 type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_pointer_struct), allocatable, target, save :: eles2(:)
+type (ele_pointer_struct), allocatable, target :: eles2(:)
 type (ele_struct), pointer :: ele_start, ele_end
 
 character(*) loc_str

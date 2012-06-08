@@ -53,7 +53,7 @@ real(rp) delta(0:6), r(6), r0(6), r1(6)
 type multi_orb_struct
   type (coord_struct), allocatable :: orb(:) 
 end type
-type (multi_orb_struct), save :: mo(-6:6)
+type (multi_orb_struct) :: mo(-6:6)
 
 real(rp) mat(6,6), mat1(6,6), mat0(6,6), mat_inv(6,6), mat6_unit(6,6)
 integer i, j, n_ele, status
