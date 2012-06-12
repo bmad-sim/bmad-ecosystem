@@ -1,7 +1,6 @@
 module photon_reflection_mod
 
-use physical_constants
-use bmad_base_mod
+use bmad_struct
 
 ! Structure for holding the reflection probability tables.
 ! For a custom reflection calc: 
@@ -24,8 +23,6 @@ type photon_reflect_table_struct
   real(rp), allocatable :: p_reflect_scratch(:)       ! Scratch space
 end type
 
-logical, save :: photon_reflect_table_init_needed = .true.
-
 ! Each photon_reflect_reflect_table_array(:) represents a different surface type.
 ! photon_reflect_reflect_table_array(1) is initialized by the photon_reflection_init routine
 ! All others can be set by an outside programmer. 
@@ -34,10 +31,12 @@ type photon_reflect_surface_struct
   type (photon_reflect_table_struct), allocatable :: table(:)
   real(rp) :: surface_roughness_rms = 0       ! sigma in Dugan's notation
   real(rp) :: roughness_correlation_len = 0   ! T in Dugan's notation
+  logical :: initialized = .false.
+  integer :: ix_surface
 end type
 
 type (photon_reflect_surface_struct), save, target :: reflect_surface_array(10)
-type (photon_reflect_surface_struct), save, pointer :: reflect_surface => null()
+type (photon_reflect_surface_struct), save, pointer :: current_surface => null()
 
 !
 
@@ -86,21 +85,24 @@ integer i, j, k
 
 ! Pointer to first reflection
 
-reflect_surface => reflect_surface_array(1)
+current_surface => reflect_surface_array(1)
+
+do i = 1, size(reflect_surface_array)
+  reflect_surface_array(i)%ix_surface = i
+enddo
 
 ! Parameters used in generating the reflection values
 
-reflect_surface%surface_roughness_rms = 200d-9      ! sigma in Dugan's notation
-reflect_surface%roughness_correlation_len = 5500d-9 ! T in Dugan's notation
+current_surface%surface_roughness_rms = 200d-9      ! sigma in Dugan's notation
+current_surface%roughness_correlation_len = 5500d-9 ! T in Dugan's notation
 
 ! There are four tables.
 
-allocate(reflect_surface%table(4))
-photon_reflect_table_init_needed = .false.
+allocate(current_surface%table(4))
 
 ! Table 1: 0 - 500 eV, 10eV steps.
 
-prt => reflect_surface%table(1)
+prt => current_surface%table(1)
 
 n_energy = 58;  n_angles = 16
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles), prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
@@ -234,7 +236,7 @@ prt%p_reflect_smooth(:, 58) = [1.00, 0.850699, 0.671053, 0.264038, 0.032353, 0.0
 !---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ! Table 2: 500 - 1500 eV, 20 eV steps.
 
-prt => reflect_surface%table(2)
+prt => current_surface%table(2)
 
 n_energy = 41;  n_angles = 11
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles), prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
@@ -334,7 +336,7 @@ prt%p_reflect_smooth(:, 41) = [1.00, 0.964356, 0.914668, 0.866596, 0.096476, 0.0
 !---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ! Table 3: 1400 - 1600 eV, 10 eV steps. There is a resonance here
 
-prt => reflect_surface%table(3)
+prt => current_surface%table(3)
 
 n_energy = 21;  n_angles = 10
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles), prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
@@ -394,7 +396,7 @@ prt%p_reflect_smooth(:, 21) = [1.00, 0.978015, 0.951732, 0.912041, 0.831275, 0.6
 !---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ! Table 4: 1600 - 5000 eV, 50 eV steps
 
-prt => reflect_surface%table(4)
+prt => current_surface%table(4)
 
 n_energy = 69;  n_angles = 11
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles), prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
@@ -549,7 +551,7 @@ prt%p_reflect_smooth(:, 69) = [1.00, 0.989781, 0.199288, 0.012511, 0.007791, 0.0
 
 !---------------------------------------------------------------------------------------------
 
-call finalize_reflectivity_tables (reflect_surface)
+call finalize_reflectivity_tables (current_surface)
 
 end subroutine photon_reflection_init 
 
@@ -604,7 +606,140 @@ do i = 1, size(surface%table)
   enddo
 enddo
 
+surface%initialized = .true.
+
 end subroutine finalize_reflectivity_tables
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
+! Subroutine read_surface_reflection_file (file_name, ix_surface)
+!
+! Routine to read the reflection probability data for a given type of surface from a file. 
+! The current surface is set to this new surface. Also see: set_surface_roughness.
+! 
+! Input:
+!   file_name -- Character(*): Name of the file.
+!
+! Output:
+!   ix_surface -- Integer: Index for the data. Use this index with the 
+!                   routine set_surface.
+!-
+
+subroutine read_surface_reflection_file (file_name, ix_surface)
+
+implicit none
+
+type (photon_reflect_table_struct), pointer :: prt
+
+character(*) file_name
+
+integer i, j, iu, n_table, it, n_angles, n_energy, ix_surface, ix_row
+
+real(rp) angles(100), energy_min, energy_max, energy_delta, p_rough(200), p_smooth(200)
+
+character(40), parameter :: r_name = 'read_surface_reflection_file'
+
+namelist / surface / n_table
+namelist / table / angles, energy_min, energy_max, energy_delta
+namelist / row / ix_row, p_rough, p_smooth
+
+! Init standard table and find unused surface
+
+if (.not. associated(current_surface)) call photon_reflection_init()
+
+do ix_surface = 1, size(reflect_surface_array)
+  current_surface => reflect_surface_array(ix_surface)
+  if (current_surface%initialized) cycle
+  if (ix_surface == size(reflect_surface_array)) then
+    call out_io (s_fatal$, r_name, 'NO UNUSED SURFACE SLOTS FOR REFLECTION PROBABILITY TABLES.')
+    if (bmad_status%exit_on_error) call err_exit
+  endif
+enddo
+
+! Open file
+
+iu = lunget()
+open (iu, file = file_name, status = 'old')
+
+! Allocate the reflection tables global variables.
+! See photon_reflection_mod.f90
+
+read (iu, nml = surface)
+allocate (current_surface%table(n_table))
+
+! Fill in each table
+
+do it = 1, n_table
+  prt => current_surface%table(it)
+
+  angles = -1
+  read (iu, nml = table)
+  do i = 1, size(angles)
+    if (angles(i) < 0) then
+      n_angles = i - 1
+      exit
+    endif
+  enddo
+
+  n_energy = 1 + (energy_max - energy_min) / energy_delta
+  allocate(prt%angle(n_angles), prt%energy(n_energy))
+  allocate(prt%p_reflect_smooth(n_angles,n_energy), prt%p_reflect_rough(n_angles,n_energy))
+  allocate(prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
+
+  prt%angle = angles(1:n_angles)
+  prt%energy = [(energy_min + (i-1) * energy_delta, i = 1, n_energy)]
+  prt%max_energy = prt%energy(n_energy)
+
+  do i = 1, n_energy
+    read (iu, nml = row)
+    if (ix_row /= i) then
+      call out_io (s_fatal$, r_name, &
+              'ERROR READING SURFACE REFLECTION PROBABILITY FILE: ' // file_name, &
+              'ROW MISMATCH: \2i5\ ', &
+              'IN TABLE: \i0\ ', i_array = [i, ix_row, it])
+      if (bmad_status%exit_on_error) call err_exit
+    endif
+    prt%p_reflect_rough(:, i)  = p_rough(1:n_angles)
+    prt%p_reflect_smooth(:, i) = p_smooth(1:n_angles)
+  enddo
+
+enddo
+
+close (iu)
+
+call finalize_reflectivity_tables (current_surface)
+
+end subroutine read_surface_reflection_file
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
+! Subroutine set_or_get_surface (ix_surface_set, ix_surface_get)
+!
+! Routine to set which surface is used for calculating the reflection probabilities.
+! Surface #1 is always the default internal surface. The other surfaces
+! must be initialized using the routine: read_surface_reflection_file.
+!
+! Input:
+!   ix_surface_set -- Integer, optional: If present, set the surface to this index.
+!
+! Output:
+!   ix_surface_get -- Integer, optional: Set this to the current surface.
+!-
+
+subroutine set_or_get_surface (ix_surface_set, ix_surface_get)
+
+integer, optional :: ix_surface_set, ix_surface_get
+
+!
+
+if (present(ix_surface_set)) current_surface => reflect_surface_array(ix_surface_set)
+if (present(ix_surface_get)) ix_surface_get = current_surface%ix_surface
+
+end subroutine set_or_get_surface
 
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
@@ -612,8 +747,9 @@ end subroutine finalize_reflectivity_tables
 !+
 ! Subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
 !
-! Routine to set the surface roughness values.
+! Routine to set the surface roughness values for the current surface.
 ! If a value is less then zero it is ignored.
+! Also see: set_surface
 !
 ! Modules needed:
 !   use photon_reflection_mod
@@ -623,8 +759,8 @@ end subroutine finalize_reflectivity_tables
 !   roughness_correlation_len -- Real(rp): Roughness correlation length in meters.
 !
 ! Output:
-!   rms_set                   -- Real(rp), optional: RMS roughness after any set.
-!   correlation_set           -- Real(rp), optional: Correlation length after any set.
+!   rms_set                   -- Real(rp), optional: RMS roughness setting.
+!   correlation_set           -- Real(rp), optional: Correlation length setting.
 !- 
 
 subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
@@ -636,13 +772,13 @@ real(rp), optional :: rms_set, correlation_set
 
 !
 
-if (photon_reflect_table_init_needed) call photon_reflection_init
+if (.not. associated(current_surface)) call photon_reflection_init
 
-if (surface_roughness_rms >= 0)     reflect_surface%surface_roughness_rms     = surface_roughness_rms
-if (roughness_correlation_len >= 0) reflect_surface%roughness_correlation_len = roughness_correlation_len
+if (surface_roughness_rms >= 0)     current_surface%surface_roughness_rms     = surface_roughness_rms
+if (roughness_correlation_len >= 0) current_surface%roughness_correlation_len = roughness_correlation_len
 
-if (present(rms_set)) rms_set = reflect_surface%surface_roughness_rms
-if (present(correlation_set)) correlation_set = reflect_surface%roughness_correlation_len 
+if (present(rms_set)) rms_set = current_surface%surface_roughness_rms
+if (present(correlation_set)) correlation_set = current_surface%roughness_correlation_len 
 
 end subroutine
 
@@ -691,7 +827,7 @@ character(20), parameter :: r_name = 'photon_reflectivity'
 
 ! Init
 
-if (photon_reflect_table_init_needed) call photon_reflection_init
+if (.not. associated(current_surface)) call photon_reflection_init
 
 ! Singular cases
 
@@ -710,12 +846,12 @@ angle_deg = angle * 180 / pi
 
 ! If the energy is less than the minimum of the table then just use the minimum.
 
-e_tot = max(reflect_surface%table(1)%energy(1), energy)
+e_tot = max(current_surface%table(1)%energy(1), energy)
 
 ! If the energy is greater than what the tables covers assume that things scale as energy*angle
 
-n_table = size(reflect_surface%table)
-max_e = reflect_surface%table(n_table)%max_energy
+n_table = size(current_surface%table)
+max_e = current_surface%table(n_table)%max_energy
  
 if (e_tot > max_e) then
   angle_deg = angle_deg * e_tot / max_e
@@ -730,7 +866,7 @@ endif
 ! Find which table to use
 
 do i = 1, n_table 
-  prt => reflect_surface%table(i)
+  prt => current_surface%table(i)
   if (e_tot <= prt%max_energy) exit
 enddo
 
@@ -816,9 +952,6 @@ end subroutine photon_reflectivity
 ! Input:
 !   angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
 !   energy    -- Real(rp): Photon energy in eV.
-!   reflect_surface -- Photon_reflect_surface_struct: Surface reflection structure
-!       %surface_roughness_rms
-!       %roughness_correlation_len
 !
 ! Output:
 !   theta_out -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
@@ -841,8 +974,8 @@ character(28), parameter :: r_name = 'photon_diffuse_scattering'
 
 ! If the photon energy is lower than 1eV then use 1eV in the calculation.
 
-sigma = reflect_surface%surface_roughness_rms
-T = reflect_surface%roughness_correlation_len
+sigma = current_surface%surface_roughness_rms
+T = current_surface%roughness_correlation_len
 cheb_com%y = sin(angle_in)
 cheb_com%lambda = h_planck * c_light / max(1.0_rp, energy)
 
@@ -924,8 +1057,8 @@ real(rp) sigma, T
 
 !
 
-sigma = reflect_surface%surface_roughness_rms
-T = reflect_surface%roughness_correlation_len
+sigma = current_surface%surface_roughness_rms
+T = current_surface%roughness_correlation_len
 
 fn = cos_phi(sigma, T,  cheb_com%lambda, cheb_com%y, cheb_com%x, phi) / cheb_com%cnorm - cheb_com%ran2
 df = ptwo(sigma, T, cheb_com%lambda, cheb_com%y, cheb_com%x, phi) / cheb_com%cnorm
@@ -1208,8 +1341,8 @@ character(16), parameter :: r_name = 'prob_x_diffuse'
 !
 
 y = cheb_com%y
-sigma = reflect_surface%surface_roughness_rms
-T = reflect_surface%roughness_correlation_len
+sigma = current_surface%surface_roughness_rms
+T = current_surface%roughness_correlation_len
 lambda = cheb_com%lambda
 
 main_loop: do itt = 1, size(x)
@@ -1586,8 +1719,8 @@ character(40), parameter :: r_name = 'output_specular_reflection_input_params'
 cc => cheb_com
 
 call out_io (s_blank$, r_name, 'sigma, T, lambda, x, y: \4es14.5\ ', 'ran1, ran2 \2es14.5\ ', &
-          r_array = [reflect_surface%surface_roughness_rms, &
-          reflect_surface%roughness_correlation_len, cc%lambda, cc%x, cc%y, cc%ran1, cc%ran2])
+          r_array = [current_surface%surface_roughness_rms, &
+          current_surface%roughness_correlation_len, cc%lambda, cc%x, cc%y, cc%ran1, cc%ran2])
 
 
 end subroutine output_specular_reflection_input_params
