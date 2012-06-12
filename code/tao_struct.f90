@@ -69,10 +69,6 @@ end type
 
 type tao_drawing_struct
   type (tao_ele_shape_struct), allocatable :: ele_shape(:)
-  logical :: draw_beam_chamber_wall = .false.
-  logical :: draw_orbit             = .false.
-  real(rp) :: beam_chamber_wall_scale = 1
-  real(rp) :: orbit_scale             = 1
 end type
 
 type tao_wave_kick_pt_struct
@@ -463,13 +459,12 @@ end type
 !------------------------------------------------------------------------
 ! Building wall structure
 
-integer, parameter :: arc$ = 1, point$ = 2
 integer, parameter :: plus_x_side$ = 1, minus_x_side$ = 2, no_side$ = 3
 
 type tao_building_wall_point_struct
-  integer type              ! arc$ or point$
-  real(rp) z, x                 ! floor position
-  real(rp) r, theta1, theta2    ! For arcs
+  real(rp) z, x                      ! Floor position
+  real(rp) r                         ! Arcs radius. +r -> CW rotation, same as bends. 
+  real(rp) z0, x0                    ! Arc center.
 end type
 
 type tao_building_wall_struct

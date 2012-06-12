@@ -10,105 +10,120 @@
 
 subroutine tao_init_building_wall (wall_file)
 
-  use tao_mod
-  use tao_input_struct
+use tao_mod
+use tao_input_struct
 
-  implicit none
+implicit none
 
-  type tao_building_wall_point_input
-    character(8) type
-    real(rp) x, z, r, theta1, theta2
-  end type
+type (tao_building_wall_point_struct) point(100)
+type (tao_building_wall_point_struct), pointer :: pt(:)
 
-  type (tao_building_wall_point_input) point(100)
-  type (tao_building_wall_point_struct), pointer :: pt(:)
+real(rp) x_mid, z_mid, dx, dz, a, a2
+integer i, j, iu, ios, n_wall
 
-  integer i, j, iu, ios, n_wall
+character(*) wall_file
+character(200) complete_file_name
+character(24) :: r_name = 'tao_init_building_wall'
+character(8) side
 
-  character(*) wall_file
-  character(200) complete_file_name
-  character(24) :: r_name = 'tao_init_building_wall'
-  character(8) side
-
-  namelist / one_building_wall / side, point
+namelist / one_building_wall / side, point
 
 ! Open file
 
-  if (wall_file == '') return
+if (wall_file == '') return
 
-  call out_io (s_blank$, r_name, '*Init: Opening File: ' // complete_file_name)
-  call tao_open_file (wall_file, iu, complete_file_name, s_fatal$)
-  if (iu == 0) then
-    call out_io (s_blank$, r_name, 'ERROR OPENING BUILDING WALL FILE. WILL EXIT HERE...')
-    call err_exit
-  endif
+call out_io (s_blank$, r_name, '*Init: Opening File: ' // complete_file_name)
+call tao_open_file (wall_file, iu, complete_file_name, s_fatal$)
+if (iu == 0) then
+  call out_io (s_blank$, r_name, 'ERROR OPENING BUILDING WALL FILE. WILL EXIT HERE...')
+  call err_exit
+endif
 
 ! Count the number of walls
 
-  n_wall = 0
-  do
-    read (iu, nml = one_building_wall, iostat = ios)
-    if (ios > 0) then
-      call out_io (s_fatal$, r_name, 'ERROR READING TAO_BUILDING_WALL NAMELIST')
-      do   ! Generate informational message
-        read (iu, nml = one_building_wall)
-      enddo
-    endif
-    if (ios < 0) exit
-    n_wall = n_wall + 1
-  enddo
+n_wall = 0
+do
+  read (iu, nml = one_building_wall, iostat = ios)
+  if (ios > 0) then
+    call out_io (s_fatal$, r_name, 'ERROR READING ONE_BUILDING_WALL NAMELIST')
+    do   ! Generate informational message
+      read (iu, nml = one_building_wall)
+    enddo
+  endif
+  if (ios < 0) exit
+  n_wall = n_wall + 1
+enddo
 
-  call out_io (s_blank$, r_name, '  Number of building walls: \I2\ ', n_wall)
+call out_io (s_blank$, r_name, '  Number of building walls: \I2\ ', n_wall)
 
-  allocate (s%building_wall(n_wall))
-  if (n_wall == 0) return ! no walls
+allocate (s%building_wall(n_wall))
+if (n_wall == 0) return ! no walls
 
 ! Now transfer the information
 
-  rewind (iu)
-  do i = 1, n_wall
+rewind (iu)
+do i = 1, n_wall
 
-    side = ''
-    point%type = ''
-    read (iu, nml = one_building_wall, iostat = ios)
+  side = ''
+  point%r = 0
+  point%x = real_garbage$
+  read (iu, nml = one_building_wall, iostat = ios)
 
-    select case (side)
-    case ('+x')
-      s%building_wall(i)%side = plus_x_side$
-    case ('-x')
-      s%building_wall(i)%side = minus_x_side$
-    case ('no_side')
-      s%building_wall(i)%side = no_side$
-    case default
-      call out_io (s_error$, r_name, 'BAD "SIDE" FOR BUILDING WALL: ' // side)
-      call err_exit
-    end select
+  select case (side)
+  case ('+x')
+    s%building_wall(i)%side = plus_x_side$
+  case ('-x')
+    s%building_wall(i)%side = minus_x_side$
+  case ('no_side')
+    s%building_wall(i)%side = no_side$
+  case default
+    call out_io (s_error$, r_name, 'BAD "SIDE" FOR BUILDING WALL: ' // side)
+    call err_exit
+  end select
 
-    do j = size(point), 1, -1
-      if (point(j)%type == '') cycle
-      if (.not. allocated(s%building_wall(i)%point)) then
-        allocate (s%building_wall(i)%point(j))
-        pt => s%building_wall(i)%point
-      endif
-      if (point(j)%type == 'point') then
-        pt(j)%type = point$
-      elseif (point(j)%type == 'arc') then
-        pt(j)%type = arc$
-      else
-        call out_io (s_error$, r_name, 'BAD POINT "TYPE" FOR BUILDING WALL: ' // point%type)
-        call err_exit
-      endif
-      pt(j)%x = point(j)%x
-      pt(j)%z = point(j)%z
-      pt(j)%r = point(j)%r
-      pt(j)%theta1 = point(j)%theta1
-      pt(j)%theta2 = point(j)%theta2
-      if (pt(j)%theta2 < pt(j)%theta1) pt(j)%theta2 = pt(j)%theta2 + &
-                twopi * int((pt(j)%theta1 - pt(j)%theta2) / twopi)
-    enddo
-
+  do j = size(point), 1, -1
+    if (point(j)%x == real_garbage$) cycle
+    allocate (s%building_wall(i)%point(j))
+    exit
   enddo
 
-  close (iu)
+  if (.not. allocated(s%building_wall(i)%point)) then
+    call out_io (s_fatal$, r_name, 'ERROR READING ONE_BUILDING_WALL NAMELIST POINT ARRAY', &
+                                   'IN ONE_BUILDING_WALL NAMELIST NUMBER \i0\ ', i_array = [i])
+    return
+  endif
+
+  if (point(1)%r /= 0) then
+    call out_io (s_fatal$, r_name, 'ERROR IN POINT ARRAY OF ONE_BUILDING_WALL NAMELIST NUMBER \i0\ ', &
+                                   'FIRST POINT HAS NON-ZERO RADIUS', i_array = [i])
+    return
+  endif
+
+  pt => s%building_wall(i)%point
+
+  do j = 1, size(pt)
+    
+    pt(j)%x = point(j)%x
+    pt(j)%z = point(j)%z
+    pt(j)%r = point(j)%r
+    if (pt(j)%r /= 0) then
+      x_mid = (pt(j)%x + pt(j-1)%x) / 2; z_mid = (pt(j)%z + pt(j-1)%z) / 2 
+      dx    = (pt(j)%x - pt(j-1)%x) / 2; dz    = (pt(j)%z - pt(j-1)%z) / 2 
+      a2 = (pt(j)%r**2 - dx**2 - dz**2) / (dx**2 - dz**2)
+      if (a2 < 0) then
+        call out_io (s_fatal$, r_name, 'ERROR IN POINT ARRAY OF ONE_BUILDING_WALL NAMELIST NUMBER \i0\ ', &
+                                       'WALL POINTS TOO FAR APART FOR CIRCLE AT POINT \i0\ ', i_array = [i, j])
+        return
+      endif
+      a = sqrt(a2)
+      if (pt(j)%r < 0) a = -a
+      pt(j)%x0 = x_mid - a * dz
+      pt(j)%z0 = z_mid + a * dx
+    endif
+  enddo
+
+enddo
+
+close (iu)
 
 end subroutine tao_init_building_wall

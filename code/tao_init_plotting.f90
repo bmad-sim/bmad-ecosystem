@@ -48,7 +48,7 @@ type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 type (ele_pointer_struct), allocatable, save :: eles(:)
 
-real(rp) shape_height_max, y1, y2, beam_chamber_wall_scale, orbit_scale
+real(rp) shape_height_max, y1, y2
 
 integer iu, i, j, k, ix, ip, n, ng, ios, ios1, ios2, i_uni
 integer graph_index, color, i_graph
@@ -59,26 +59,20 @@ character(100) plot_file, graph_name, full_file_name
 character(80) label
 character(20) :: r_name = 'tao_init_plotting'
 
-logical draw_beam_chamber_wall, draw_orbit
+logical err
 
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 
-namelist / floor_plan_drawing / ele_shape, draw_beam_chamber_wall, &
-                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
-namelist / lat_layout_drawing / ele_shape, draw_beam_chamber_wall, &
-                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
+namelist / floor_plan_drawing / ele_shape
+namelist / lat_layout_drawing / ele_shape
 
 ! These are old style
 
 namelist / element_shapes / shape
-namelist / element_shapes_floor_plan / ele_shape, draw_beam_chamber_wall, &
-                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
-namelist / element_shapes_lat_layout / ele_shape, draw_beam_chamber_wall, &
-                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
-
-logical err
+namelist / element_shapes_floor_plan / ele_shape
+namelist / element_shapes_lat_layout / ele_shape
 
 ! See if this routine has been called before
 
@@ -242,10 +236,6 @@ if (ios < 0) then
   ele_shape(:)%ele_name   = ''
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
-  draw_beam_chamber_wall  = .false.
-  draw_orbit              = .false.
-  beam_chamber_wall_scale = 1
-  orbit_scale             = 1
 
   rewind (iu)
   read (iu, nml = element_shapes_floor_plan, iostat = ios1)  ! Deprecated name
@@ -276,20 +266,12 @@ if (ios < 0) then
   call tao_uppercase_shapes (ele_shape, n, 'f')
   allocate (tao_com%floor_plan%ele_shape(n))
   tao_com%floor_plan%ele_shape = ele_shape(1:n)
-  tao_com%floor_plan%draw_beam_chamber_wall  = draw_beam_chamber_wall
-  tao_com%floor_plan%draw_orbit              = draw_orbit
-  tao_com%floor_plan%beam_chamber_wall_scale = beam_chamber_wall_scale
-  tao_com%floor_plan%orbit_scale             = orbit_scale
 
   ! Read element_shapes_lat_layout namelist
 
   ele_shape(:)%ele_name   = ''
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
-  draw_beam_chamber_wall  = .false.
-  draw_orbit              = .false.
-  beam_chamber_wall_scale = 1
-  orbit_scale             = 1
 
   rewind (iu)
   read (iu, nml = element_shapes_lat_layout, iostat = ios1)
@@ -320,10 +302,6 @@ if (ios < 0) then
   call tao_uppercase_shapes (ele_shape, n, 'l')
   allocate (tao_com%lat_layout%ele_shape(n))
   tao_com%lat_layout%ele_shape  = ele_shape(1:n)
-  tao_com%lat_layout%draw_beam_chamber_wall  = draw_beam_chamber_wall
-  tao_com%lat_layout%draw_orbit              = draw_orbit
-  tao_com%lat_layout%beam_chamber_wall_scale = beam_chamber_wall_scale
-  tao_com%lat_layout%orbit_scale             = orbit_scale
 
 endif
 
@@ -819,6 +797,7 @@ do  ! Loop over plot files
         grph%y2%label = label
         grph%y2%label_color = color
       endif
+
     enddo  ! graph
   enddo  ! plot
 
@@ -864,7 +843,8 @@ contains
 
 subroutine tao_uppercase_shapes (ele_shape, n_shape, prefix)
 
-type (tao_ele_shape_struct) ele_shape(:)
+type (tao_ele_shape_struct), target :: ele_shape(:)
+type (tao_ele_shape_struct), pointer :: s
 integer n, n_shape
 character(1) prefix
 
@@ -872,21 +852,22 @@ character(1) prefix
 
 n_shape = 0
 do n = 1, size(ele_shape)
+  s => ele_shape(n)
   ! Bmad wants ele names upper case but Tao data is case sensitive.
-  if (ele_shape(n)%ele_name(1:5) /= 'dat::' .and. ele_shape(n)%ele_name(1:5) /= 'var::') &
-                     call str_upcase (ele_shape(n)%ele_name, ele_shape(n)%ele_name)
-  call str_upcase (ele_shape(n)%shape,    ele_shape(n)%shape)
-  call str_upcase (ele_shape(n)%color,    ele_shape(n)%color)
-  call downcase_string (ele_shape(n)%label)
-  if (ele_shape(n)%label == '') ele_shape(n)%label = 'name'
-  if (index('false', trim(ele_shape(n)%label)) == 1) ele_shape(n)%label = 'none'
-  if (index('true', trim(ele_shape(n)%label)) == 1) ele_shape(n)%label = 'name'
+  if (s%ele_name(1:5) /= 'dat::' .and. s%ele_name(1:5) /= 'var::' .and. &
+      s%ele_name(1:5) /= 'lat::' .and. s%ele_name(1:6) /= 'wall::') call str_upcase (s%ele_name, s%ele_name)
+  call str_upcase (s%shape,    s%shape)
+  call str_upcase (s%color,    s%color)
+  call downcase_string (s%label)
+  if (s%label == '') s%label = 'name'
+  if (index('false', trim(s%label)) == 1) s%label = 'none'
+  if (index('true', trim(s%label)) == 1) s%label = 'name'
   ! Convert old class:name format to new class::name format
-  ix = index(ele_shape(n)%ele_name, ":")
-  if (ix /= 0 .and. ele_shape(n)%ele_name(ix+1:ix+1) /= ':') &
-     ele_shape(n)%ele_name = ele_shape(n)%ele_name(1:ix) // ':' // ele_shape(n)%ele_name(ix+1:)
+  ix = index(s%ele_name, ":")
+  if (ix /= 0 .and. s%ele_name(ix+1:ix+1) /= ':') &
+     s%ele_name = s%ele_name(1:ix) // ':' // s%ele_name(ix+1:)
 
-  if (ele_shape(n)%ele_name /= '') n_shape = n
+  if (s%ele_name /= '') n_shape = n
 enddo
 
 end subroutine

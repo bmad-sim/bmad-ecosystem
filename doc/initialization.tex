@@ -1972,44 +1972,6 @@ suppressed by setting
 \end{example}
 
 %-----------------------------------------------------------------
-\subsection{Drawing a Key Table}
-\index{key table}
-\label{s:key.table}
-
-The \vn{key table} is explained more fully in
-Section~\sref{s:key.bind}.  An example is shown in
-Figure~\ref{f:layout.table}. A template to create a key table looks like:
-\begin{example}
-  &tao_template_plot
-    plot%name = "table" 
-    plot%n_graph = 1
-  /
-
-  &tao_template_graph
-    graph%type = "key_table" 
-    graph_index = 1
-    graph%n_curve = 0
-  /
-\end{example}
-
-The number in the upper left corner, to the left of the first column, 
-(\vn{1} in Fig.~\ref{f:layout.table})
-shows the active \vn{key bank}. The columns in the Key Table are:
-\begin{example}
-  Ix         ! Key index.
-  Name       ! Element name whose attribute is bound.
-  Attrib     ! Name of the element attribute that is bound.
-  Value      ! Current value of bound attribute.
-  Value0     ! Initial value of bound attribute.
-  Delta      ! Change in value when the appropriate key is pressed.
-  Uni        ! Universe that contains the element.
-  Opt        ! Shows if bound attribute is used in an optimization.
-\end{example}
-
-Note that in a \vn{Lattice Layout}, if a displayed element has a bound attribute, then
-the key index number will be displayed just above the element's glyph
-
-%-----------------------------------------------------------------
 \subsection{Floor Plan Drawing}
 \index{floor plan drawing}
 \label{s:floor.plan}
@@ -2225,6 +2187,44 @@ drawn. This is independent of what elements are drawn. The
 Note: There is an old, deprecated syntax where both the lattice layout
 and floor plan drawings are specified via one \vn{element_shapes}
 namelist.
+
+%-----------------------------------------------------------------
+\subsection{Drawing a Key Table}
+\index{key table}
+\label{s:key.table}
+
+The \vn{key table} is explained more fully in
+Section~\sref{s:key.bind}.  An example is shown in
+Figure~\ref{f:layout.table}. A template to create a key table looks like:
+\begin{example}
+  &tao_template_plot
+    plot%name = "table" 
+    plot%n_graph = 1
+  /
+
+  &tao_template_graph
+    graph%type = "key_table" 
+    graph_index = 1
+    graph%n_curve = 0
+  /
+\end{example}
+
+The number in the upper left corner, to the left of the first column, 
+(\vn{1} in Fig.~\ref{f:layout.table})
+shows the active \vn{key bank}. The columns in the Key Table are:
+\begin{example}
+  Ix         ! Key index.
+  Name       ! Element name whose attribute is bound.
+  Attrib     ! Name of the element attribute that is bound.
+  Value      ! Current value of bound attribute.
+  Value0     ! Initial value of bound attribute.
+  Delta      ! Change in value when the appropriate key is pressed.
+  Uni        ! Universe that contains the element.
+  Opt        ! Shows if bound attribute is used in an optimization.
+\end{example}
+
+Note that in a \vn{Lattice Layout}, if a displayed element has a bound attribute, then
+the key index number will be displayed just above the element's glyph
 
 %-----------------------------------------------------------------
 \subsection{Building Wall Plotting}

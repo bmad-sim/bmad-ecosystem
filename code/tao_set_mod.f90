@@ -1688,21 +1688,15 @@ character(*) component, set_value
 character(60) str
 character(20) :: r_name = 'tao_set_drawing_cmd'
 
-real(rp) beam_chamber_wall_scale, orbit_scale
+real(rp) beam_chamber_wall_scale
 integer i, ix, n, iu, ios
 
 logical err, needs_quotes
-logical draw_orbit, draw_beam_chamber_wall
+logical draw_beam_chamber_wall
 
-namelist / params / shape, draw_beam_chamber_wall, &
-                                    beam_chamber_wall_scale, draw_orbit, orbit_scale
+namelist / params / shape
 
 ! Init
-
-draw_beam_chamber_wall  = drawing%draw_beam_chamber_wall
-draw_orbit              = drawing%draw_orbit
-beam_chamber_wall_scale = drawing%beam_chamber_wall_scale
-orbit_scale             = drawing%orbit_scale
 
 n = size(drawing%ele_shape)
 shape(1:n) = drawing%ele_shape
@@ -1751,11 +1745,6 @@ if (ios /= 0) then
 endif
 
 ! Cleanup
-
-drawing%draw_beam_chamber_wall  = draw_beam_chamber_wall
-drawing%draw_orbit              = draw_orbit
-drawing%beam_chamber_wall_scale = beam_chamber_wall_scale
-drawing%orbit_scale             = orbit_scale
 
 do i = 1, n
   call str_upcase (shape(i)%ele_name, shape(i)%ele_name)
