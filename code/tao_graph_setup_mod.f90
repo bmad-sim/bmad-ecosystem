@@ -46,7 +46,7 @@ select case (graph%type)
 case ('phase_space')
   call tao_graph_phase_space_setup (plot, graph)
 
-case ('data')
+case ('data', 'lat_layout')
   if (plot%x_axis_type == 'data') then
     call tao_graph_data_slice_setup(plot, graph)
   else
@@ -948,6 +948,7 @@ do k = 1, size(graph%curve)
         ele => branch%ele(i)
         ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
         if (.not. associated(ele_shape)) cycle
+        if (.not. ele_shape%draw) cycle
         call find_element_ends (model_lat, ele, ele1, ele2)
         ele1%logic = .true.
         ele2%logic = .true.
@@ -958,6 +959,7 @@ do k = 1, size(graph%curve)
         ele => model_lat%ele(i)
         ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
         if (.not. associated(ele_shape)) cycle
+        if (.not. ele_shape%draw) cycle
         if (ele%lord_status == multipass_lord$) then
           do j = 1, ele%n_slave
             slave => pointer_to_slave (ele, j)

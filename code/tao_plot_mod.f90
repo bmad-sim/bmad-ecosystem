@@ -120,11 +120,11 @@ do i = 1, size(s%plot_region)
     case ('wave.0', 'wave.a', 'wave.b')
       call tao_plot_wave (plot, graph)
      case ('lat_layout')
-      call tao_plot_lat_layout (plot, graph)
+      call tao_draw_lat_layout (plot, graph)
     case ('key_table')
       call tao_plot_key_table (plot, graph)
     case ('floor_plan')
-      call tao_plot_floor_plan (plot, graph)
+      call tao_draw_floor_plan (plot, graph)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
@@ -257,7 +257,7 @@ end subroutine tao_plot_key_table
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_plot_floor_plan (plot, graph)
+! Subroutine tao_draw_floor_plan (plot, graph)
 !
 ! Routine to draw a floor plan graph.
 !
@@ -266,14 +266,14 @@ end subroutine tao_plot_key_table
 !   graph -- Tao_graph_struct: Graph to plot.
 !-
 
-subroutine tao_plot_floor_plan (plot, graph)
+subroutine tao_draw_floor_plan (plot, graph)
 
 implicit none
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
-type (tao_ele_shape_struct), pointer :: ele_shape
+type (tao_ele_shape_struct), pointer :: ele_shape, beam_chamber
 type (tao_lattice_branch_struct), pointer :: lat_branch
 type (floor_position_struct) end1, end2, floor
 type (tao_building_wall_point_struct), pointer :: pt(:)
@@ -285,12 +285,12 @@ type (tao_var_array_struct), allocatable, target :: v_array(:)
 type (tao_logical_array_struct), allocatable :: logic_array(:)
 type (tao_var_struct), pointer :: var
 
-real(rp) theta, v_vec(3)
+real(rp) theta, v_vec(3), theta1, dtheta
 real(rp) x_bend(0:1000), y_bend(0:1000)
 
-integer i, j, k, n, n_bend, isu, ic
+integer i, j, k, n, n_bend, isu, ic, ib
 
-character(20) :: r_name = 'tao_plot_floor_plan'
+character(20) :: r_name = 'tao_draw_floor_plan'
 
 logical err
 
@@ -300,9 +300,19 @@ logical err
 call qp_set_layout (x_axis = graph%x, y_axis = graph%y, y2_axis = graph%y2, &
                                         box = graph%box, margin = graph%margin)
 
-! Adjust the margins if there is to be no distortion of the drawing
 
 if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
+
+! Find shape associated with beam wall chamber if it exists
+! Adjust the margins if there is to be no distortion of the drawing
+
+nullify(beam_chamber)
+do n = 1, size(tao_com%floor_plan%ele_shape)
+  ele_shape => tao_com%floor_plan%ele_shape(n)
+  if (ele_shape%ele_name /= 'wall::beam_chamber') cycle
+  beam_chamber => ele_shape
+  exit
+enddo
 
 !
 
@@ -332,10 +342,10 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
         ic = lat%control(j)%ix_slave
-        call tao_draw_ele_for_floor_plan (plot, graph, lat, branch%ele(ic), '', ele_shape, .false.)
+        call tao_draw_ele_for_floor_plan (plot, graph, lat, branch%ele(ic), '', ele_shape, .false., beam_chamber)
       enddo
     else
-      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, '', ele_shape, .false.)
+      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, '', ele_shape, .false., beam_chamber)
     endif
   enddo
 enddo
@@ -350,12 +360,12 @@ do i = 1, size(tao_com%floor_plan%ele_shape)
   if (err) cycle
   do j = 1, size(d_array)
     datum => d_array(j)%d
-    if (datum%ix_branch /= graph%ix_branch) cycle
+    if (datum%d1%d2%ix_uni /= graph%ix_universe) cycle
     if (size(logic_array) /= 0) then
       if (.not. logic_array(j)%l) cycle
     endif
     ele => pointer_to_ele (lat, datum%ix_branch, datum%ix_ele)
-    call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, tao_datum_name(datum), ele_shape, .true.)
+    call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, tao_datum_name(datum), ele_shape, .true., beam_chamber)
   enddo
 enddo
 
@@ -373,9 +383,9 @@ do i = 1, size(tao_com%floor_plan%ele_shape)
       if (.not. logic_array(j)%l) cycle
     endif
     do k = 1, size(var%this)
-      if (var%this(k)%ix_branch /= graph%ix_branch) cycle
+      if (var%this(k)%ix_uni /= graph%ix_universe) cycle
       ele => pointer_to_ele(lat, var%this(k)%ix_ele, var%this(k)%ix_branch)
-      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, tao_var1_name(var), ele_shape, .true.)
+      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, tao_var1_name(var), ele_shape, .true., beam_chamber)
     enddo
   enddo
 enddo
@@ -383,68 +393,73 @@ enddo
 ! Draw the building wall
 
 if (allocated(s%building_wall)) then
-  do i = 1, size(s%building_wall)
-    pt => s%building_wall(i)%point
+  do i = 1, size(tao_com%floor_plan%ele_shape)
+    ele_shape => tao_com%floor_plan%ele_shape(i)
+    if (ele_shape%ele_name /= 'wall::building') cycle
+    if (.not. ele_shape%draw) cycle
 
-    do j = 1, size(pt)
+    do ib = 1, size(s%building_wall)
+      pt => s%building_wall(ib)%point
 
-      select case (pt(j)%type)
-      case (point$)
-        if (j == 1) cycle
-        call floor_to_screen (pt(j-1)%x, 0.0_rp, pt(j-1)%z, end1%x, end1%y)
-        call floor_to_screen (pt(j)%x, 0.0_rp, pt(j)%z, end2%x, end2%y)
-        call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
+      do j = 2, size(pt)
+        if (pt(j)%r == 0) then   ! line
+          call floor_to_screen (pt(j-1)%x, 0.0_rp, pt(j-1)%z, end1%x, end1%y)
+          call floor_to_screen (pt(j)%x, 0.0_rp, pt(j)%z, end2%x, end2%y)
+          call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
 
-      case (arc$)
-        n_bend = abs(int(100 * (pt(j)%theta2 - pt(j)%theta1))) + 1
-        do k = 0, n_bend
-          theta = pt(j)%theta1 + k * (pt(j)%theta2 - pt(j)%theta1) / n_bend
-          v_vec(1) = pt(j)%x + pt(j)%r * sin(theta)
-          v_vec(2) = 0
-          v_vec(3) = pt(j)%z + pt(j)%r * cos(theta)
-          call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
-        enddo
-        call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
-      end select
+        else                    ! arc
+          theta1 = atan2(pt(j-1)%x - pt(j)%x0, pt(j-1)%z - pt(j)%z0)
+          dtheta = atan2(pt(j)%x - pt(j)%x0, pt(j)%z - pt(j)%z0) - theta1
+          if (abs(dtheta) > pi) dtheta = modulo2(dtheta, pi)
+          n_bend = abs(50 * dtheta) + 1
+          do k = 0, n_bend
+            theta = theta1 + k * dtheta / n_bend
+            v_vec(1) = pt(j)%x + abs(pt(j)%r) * sin(theta)
+            v_vec(2) = 0
+            v_vec(3) = pt(j)%z + abs(pt(j)%r) * cos(theta)
+            call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
+          enddo
+          call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
+        endif
+      enddo
 
     enddo
-
-  end do
+    exit
+  enddo
 end if
 
-! Draw orbit
+! Draw lattice functions
 
-if (tao_com%floor_plan%draw_orbit) then
-  do n = 0, ubound(lat%branch, 1)
-    lat_branch => s%u(isu)%model%lat_branch(n)
-    branch => lat%branch(n)
-    do i = 1, branch%n_ele_track
-    enddo
-  enddo
-endif
+do i = 1, size(tao_com%floor_plan%ele_shape)
+  ele_shape => tao_com%floor_plan%ele_shape(i)
+  if (ele_shape%ele_name(1:5) /= 'lat::') cycle
+  if (.not. ele_shape%draw) cycle
+  ! ... needs to be filled in ..
+enddo
 
-end subroutine tao_plot_floor_plan 
+end subroutine tao_draw_floor_plan 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, name_in, ele_shape, is_data)
+! Subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, name_in, ele_shape, is_data, beam_chamber)
 !
 ! Routine to draw one lattice element or one datum location for the floor plan graph. 
 !
 ! Input:
-!   plot       -- Tao_plot_struct: Plot containing the graph.
-!   graph      -- Tao_graph_struct: Graph to plot.
-!   lat        -- lat_struct: Lattice containing the element.
-!   ele        -- ele_struct: Element to draw.
-!   name_in    -- Character(*): If not blank then name to print beside the element.
-!   ele_shape  -- tao_ele_shape_struct: Shape to draw from tao_com%floor_plan%ele_shape(:) array.
-!                  Will be NULL if no associated shape for this element.
-!   is_data    -- Logical: Are we drawing an actual lattice elment or marking where a Tao datum is being evaluated?
+!   plot         -- Tao_plot_struct: Plot containing the graph.
+!   graph        -- Tao_graph_struct: Graph to plot.
+!   lat          -- lat_struct: Lattice containing the element.
+!   ele          -- ele_struct: Element to draw.
+!   name_in      -- Character(*): If not blank then name to print beside the element.
+!   ele_shape    -- tao_ele_shape_struct: Shape to draw from tao_com%floor_plan%ele_shape(:) array.
+!                    Will be NULL if no associated shape for this element.
+!   is_data      -- Logical: Are we drawing an actual lattice elment or marking where a Tao datum is being evaluated?
+!   beam_chamber -- tao_ele_shape_struct, pointer: Associated beam_chamber drawing info.
 !-
 
-recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, name_in, ele_shape, is_data)
+recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, name_in, ele_shape, is_data, beam_chamber)
 
 implicit none
 
@@ -457,6 +472,7 @@ type (ele_struct), pointer :: ele1, ele2, lord
 type (floor_position_struct) end1, end2, floor, x_ray
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
+type (tao_ele_shape_struct), pointer :: beam_chamber
 
 integer i, j, k, icol, isu, n_bend, n, ix, ic, n_mid
 
@@ -565,8 +581,17 @@ if (.not. associated(ele_shape)) then
   return
 endif
 
+! Draw beam chamber wall
+
+if (associated(beam_chamber)) then
+  if (beam_chamber%draw .and. associated(ele%wall3d%section)) then
+
+  endif
+endif
+
 ! Here if element is to be drawn...
 
+if (.not. ele_shape%draw) return
 call qp_translate_to_color_index (ele_shape%color, icol)
 
 off = ele_shape%size
@@ -698,8 +723,10 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   drift%name = ele%name
   branch_shape => tao_pointer_to_ele_shape (drift, tao_com%floor_plan%ele_shape)
   if (associated(branch_shape)) then
-    call qp_translate_to_color_index (branch_shape%color, ic)
-    call qp_draw_line (x_ray%x, end2%x, x_ray%y, end2%y, units = 'POINTS', color = ic)
+    if (branch_shape%draw) then
+      call qp_translate_to_color_index (branch_shape%color, ic)
+      call qp_draw_line (x_ray%x, end2%x, x_ray%y, end2%y, units = 'POINTS', color = ic)
+    endif
   endif
 endif
 
@@ -838,20 +865,13 @@ if (ele_shape%label /= 'none') then
                                height = height, justify = justify, ANGLE = theta)    
 endif
 
-! Draw beam chamber wall
-
-if (is_data) return
-
-if (tao_com%floor_plan%draw_beam_chamber_wall) then
-endif
-
 end subroutine tao_draw_ele_for_floor_plan
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_plot_lat_layout (plot, graph)
+! Subroutine tao_draw_lat_layout (plot, graph)
 !
 ! Routine to draw a lattice layout graph.
 !
@@ -860,7 +880,7 @@ end subroutine tao_draw_ele_for_floor_plan
 !   graph -- Tao_graph_struct: Graph to plot.
 !-
 
-subroutine tao_plot_lat_layout (plot, graph)
+subroutine tao_draw_lat_layout (plot, graph)
 
 implicit none
 
@@ -869,7 +889,7 @@ type (tao_graph_struct) :: graph
 type (tao_lattice_branch_struct), pointer :: lat_branch
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele, ele1, ele2
-type (tao_ele_shape_struct), pointer :: ele_shape
+type (tao_ele_shape_struct), pointer :: ele_shape, beam_chamber
 type (branch_struct), pointer :: branch
 type (tao_data_array_struct), allocatable, target :: d_array(:)
 type (tao_var_array_struct), allocatable, target :: v_array(:)
@@ -880,14 +900,14 @@ type (tao_var_struct), pointer :: var
 real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, x0, y0
 real(rp) lat_len, height, dx, dy, key_number_height, dummy, l2
 
-integer i, j, k, kk, ix, ix1, isu
+integer i, j, k, n, kk, ix, ix1, isu
 integer ix_var, ixv
 
 logical shape_has_box, err
 
 character(80) str
 character(40) name
-character(20) :: r_name = 'tao_plot_lat_layout'
+character(20) :: r_name = 'tao_draw_lat_layout'
 character(20) shape_name
 
 ! Init
@@ -913,6 +933,14 @@ case default
   return
 end select
 
+nullify(beam_chamber)
+do n = 1, size(tao_com%lat_layout%ele_shape)
+  ele_shape => tao_com%lat_layout%ele_shape(n)
+  if (ele_shape%ele_name /= 'wall::beam_chamber') cycle
+  beam_chamber => ele_shape
+  exit
+enddo
+
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
 branch => lat%branch(graph%ix_branch)
@@ -931,15 +959,15 @@ call qp_set_layout (x_axis = graph%x, box = graph%box, margin = graph%margin)
 
 call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
 dy = (y2 - y1) 
-y_bottom = -dy / 2
 y_top = dy / 2
+y_bottom = -dy / 2
 
 if (s%global%label_lattice_elements) then
   y_off = s%plot_page%shape_height_max
   if (s%global%label_keys) y_off = y_off + key_number_height
   if (2*y_off < dy) then
     y_top = y_off
-    y_bottom = y_top - dy
+    y_bottom = y_off - dy
   endif
 endif
 
@@ -955,7 +983,7 @@ height = s%plot_page%text_height * s%plot_page%legend_text_scale
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
   if (ele%slave_status == super_slave$) cycle
-  call draw_lat_layout_ele_shape (ele, ele%name)
+  call draw_ele_for_lat_layout (ele, ele%name, beam_chamber)
 enddo
 
 ! Loop over all control elements.
@@ -963,7 +991,7 @@ enddo
 do i = lat%n_ele_track+1, lat%n_ele_max
   ele => branch%ele(i)
   if (ele%lord_status == multipass_lord$) cycle
-  call draw_lat_layout_ele_shape (ele, ele%name)
+  call draw_ele_for_lat_layout (ele, ele%name, beam_chamber)
 enddo
 
 ! Draw data
@@ -977,6 +1005,7 @@ do i = 1, size(tao_com%lat_layout%ele_shape)
   do j = 1, size(d_array)
     datum => d_array(j)%d
     if (datum%ix_branch /= graph%ix_branch) cycle
+    if (datum%d1%d2%ix_uni /= graph%ix_universe) cycle
     if (size(logic_array) /= 0) then
       if (.not. logic_array(j)%l) cycle
     endif
@@ -990,7 +1019,8 @@ do i = 1, size(tao_com%lat_layout%ele_shape)
     call qp_convert_point_rel (y, dummy, 'INCH', dx, dummy, 'DATA')
     x1 = x0 - dx
     x2 = x0 + dx
-    call draw_lat_layout_shape (tao_datum_name(datum), datum%s, ele_shape)
+    ele => pointer_to_ele (lat, datum%ix_branch, datum%ix_ele)
+    call draw_shape_for_lat_layout (tao_datum_name(datum), datum%s, ele_shape)
   enddo
 enddo
 
@@ -998,7 +1028,6 @@ enddo
 
 do i = 1, size(tao_com%lat_layout%ele_shape)
   ele_shape => tao_com%lat_layout%ele_shape(i)
-  if (plot%x_axis_type /= 's') exit
   if (.not. ele_shape%draw) cycle
   if (ele_shape%ele_name(1:5) /= 'var::') cycle
   call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
@@ -1009,9 +1038,10 @@ do i = 1, size(tao_com%lat_layout%ele_shape)
       if (.not. logic_array(j)%l) cycle
     endif
     do k = 1, size(var%this)
+      if (var%this(k)%ix_uni /= graph%ix_universe) cycle
       if (var%this(k)%ix_branch /= graph%ix_branch) cycle
       ele => pointer_to_ele(lat, var%this(k)%ix_ele, var%this(k)%ix_branch)
-      call draw_lat_layout_ele_shape(ele, tao_var1_name(var), ele_shape)
+      call draw_shape_for_lat_layout(tao_var1_name(var), ele%s, ele_shape)
     enddo
   enddo
 enddo
@@ -1060,31 +1090,14 @@ if (s%global%label_keys) then
   enddo
 endif
 
-! Draw orbit
+! Draw lattice functions
 
-if (tao_com%lat_layout%draw_orbit) then
-  do i = 0, ubound (lat_branch%orbit, 1) -1
-    !Plot only alive particles
-    if (lat_branch%orbit(i+1)%state /= alive$) exit
-    x1 = lat_branch%orbit(i)%s 
-    x2 = lat_branch%orbit(i+1)%s
-    if (x1 < graph%x%min) cycle
-    if (x2 > graph%x%max) cycle
-    !X orbit
-    y1 = tao_com%lat_layout%orbit_scale*lat_branch%orbit(i)%vec(1)
-    y2 = tao_com%lat_layout%orbit_scale*lat_branch%orbit(i+1)%vec(1)
-    call qp_draw_line (x1, x2, y1, y2, color = red$)
-    !Y orbit
-    y1 = tao_com%lat_layout%orbit_scale*lat_branch%orbit(i)%vec(3)
-    y2 = tao_com%lat_layout%orbit_scale*lat_branch%orbit(i+1)%vec(3)
-    call qp_draw_line (x1, x2, y1, y2, color = green$)
-  end do
-endif
+if (allocated(graph%curve)) call tao_plot_data (plot, graph)
 
 !--------------------------------------------------------------------------------------------------
 contains 
 
-subroutine draw_lat_layout_ele_shape (ele, name_in, ele_shape_in)
+subroutine draw_ele_for_lat_layout (ele, name_in, ele_shape_in)
 
 type (ele_struct) ele
 type (ele_struct), pointer :: ele1, ele2
@@ -1092,7 +1105,7 @@ type (tao_ele_shape_struct), optional, target :: ele_shape_in
 type (tao_ele_shape_struct), pointer :: ele_shape
 
 real(rp) y1_plus, y1_minus, y2_plus, y2_minus
-integer section_id
+integer section_id, icol
 
 character(*) name_in
 
@@ -1103,21 +1116,20 @@ if (present(ele_shape_in)) then
 else
   ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
   if (.not. associated(ele_shape)) return
+  if (.not. ele_shape%draw) return
 endif
 
 shape_name = ele_shape%shape
 
-if (plot%x_axis_type == 's') then
-  call find_element_ends (lat, ele, ele1, ele2)
-  if (.not. associated(ele1)) return
-  if (ele1%ix_branch /= graph%ix_branch) return
-  x1 = ele1%s
-  x2 = ele2%s
-  ! If out of range then try a negative position
-  if (branch%param%lattice_type == circular_lattice$ .and. x1 > graph%x%max) then
-    x1 = x1 - lat_len
-    x2 = x2 - lat_len
-  endif
+call find_element_ends (lat, ele, ele1, ele2)
+if (.not. associated(ele1)) return
+if (ele1%ix_branch /= graph%ix_branch) return
+x1 = ele1%s
+x2 = ele2%s
+! If out of range then try a negative position
+if (branch%param%lattice_type == circular_lattice$ .and. x1 > graph%x%max) then
+  x1 = x1 - lat_len
+  x2 = x2 - lat_len
 endif
   
 if (x1 > graph%x%max) return
@@ -1148,38 +1160,39 @@ end if
 y1 = max(y_bottom, min(y1, y_top))
 y2 = max(y_bottom, min(y2, y_top))
 
-call draw_lat_layout_shape (name_in, ele%s - ele%value(l$) / 2, ele_shape)
+call draw_shape_for_lat_layout (name_in, ele%s - ele%value(l$) / 2, ele_shape)
 
-! Draw wall. 
+! Draw beam chamber wall. 
 
-if (tao_com%lat_layout%draw_beam_chamber_wall .and. associated(ele%wall3d%section)) then
+if (associated(beam_chamber) .and. associated(ele%wall3d%section)) then
   call calc_wall_radius (ele%wall3d%section(1)%v,  1.0_rp, 0.0_rp,  y1_plus, dummy)
   call calc_wall_radius (ele%wall3d%section(1)%v, -1.0_rp, 0.0_rp,  y1_minus, dummy)
-  y1_plus  = tao_com%lat_layout%beam_chamber_wall_scale * y1_plus
-  y1_minus = tao_com%lat_layout%beam_chamber_wall_scale * y1_minus
+  y1_plus  = beam_chamber%size * y1_plus
+  y1_minus = beam_chamber%size * y1_minus
 
+  call qp_translate_to_color_index (beam_chamber%color, icol)
   do section_id = 2, size(ele%wall3d%section)
     x1 = ele%s - ele%value(l$) + ele%wall3d%section(section_id-1)%s
     x2 = ele%s - ele%value(l$) + ele%wall3d%section(section_id)%s
     call calc_wall_radius (ele%wall3d%section(section_id)%v,  1.0_rp, 0.0_rp,  y2_plus, dummy)
     call calc_wall_radius (ele%wall3d%section(section_id)%v, -1.0_rp, 0.0_rp,  y2_minus, dummy)
     !scale wall
-    y2_plus  = tao_com%lat_layout%beam_chamber_wall_scale * y2_plus
-    y2_minus = tao_com%lat_layout%beam_chamber_wall_scale * y2_minus
-    call qp_draw_line (x1, x2, y1_plus, y2_plus)
-    call qp_draw_line (x1, x2, -y1_minus, -y2_minus)
+    y2_plus  = beam_chamber%size * y2_plus
+    y2_minus = beam_chamber%size * y2_minus
+    call qp_draw_line (x1, x2, y1_plus, y2_plus, color = icol)
+    call qp_draw_line (x1, x2, -y1_minus, -y2_minus, color = icol)
     y1_plus  = y2_plus
     y1_minus = y2_minus 
   end do
 endif
 
-end subroutine draw_lat_layout_ele_shape
+end subroutine draw_ele_for_lat_layout
 
 !--------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine draw_lat_layout_shape (name_in, s_pos, ele_shape)
+subroutine draw_shape_for_lat_layout (name_in, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
 real(rp) s_pos
@@ -1192,7 +1205,6 @@ character(20) shape_name
 shape_name = ele_shape%shape
 shape_has_box = (index(shape_name, 'BOX') /= 0)
 call qp_translate_to_color_index (ele_shape%color, icol)
-
 
 ! Draw the shape
 
@@ -1252,9 +1264,9 @@ if (s%global%label_lattice_elements .and. ele_shape%label /= 'none') then
 
 endif
 
-end subroutine draw_lat_layout_shape
+end subroutine draw_shape_for_lat_layout
 
-end subroutine tao_plot_lat_layout
+end subroutine tao_draw_lat_layout
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1426,7 +1438,8 @@ do k = 1, size(ele_shapes)
   if (ele_shapes(k)%ele_name == '') cycle
   if (ele_shapes(k)%ele_name(1:5) == 'dat::') cycle
   if (ele_shapes(k)%ele_name(1:5) == 'var::') cycle
-  if (.not. ele_shapes(k)%draw) cycle
+  if (ele_shapes(k)%ele_name(1:5) == 'lat::') cycle
+  if (ele_shapes(k)%ele_name(1:6) == 'wall::') cycle
 
   call tao_string_to_element_id (ele_shapes(k)%ele_name, ix_class, ele_name, err, .false.)
   if (err) then

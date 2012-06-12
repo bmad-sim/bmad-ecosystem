@@ -1897,10 +1897,6 @@ case ('plot')
 
   if (what == '-floor_plan') then
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; write (lines(nl), lmt) '  Draw_beam_chamber_wall  = ', tao_com%floor_plan%draw_beam_chamber_wall
-    nl=nl+1; write (lines(nl), rmt) '  Beam_chamber_wall_scale = ', tao_com%floor_plan%beam_chamber_wall_scale
-    nl=nl+1; write (lines(nl), lmt) '  Draw_orbit              = ', tao_com%floor_plan%draw_orbit
-    nl=nl+1; write (lines(nl), rmt) '  Orbit_scale             = ', tao_com%floor_plan%orbit_scale
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
           'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw'
@@ -1923,10 +1919,6 @@ case ('plot')
 
   if (what == '-lat_layout') then
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; write (lines(nl), lmt) '  Draw_beam_chamber_wall  = ', tao_com%lat_layout%draw_beam_chamber_wall
-    nl=nl+1; write (lines(nl), rmt) '  Beam_chamber_wall_scale = ', tao_com%lat_layout%beam_chamber_wall_scale
-    nl=nl+1; write (lines(nl), lmt) '  Draw_orbit              = ', tao_com%lat_layout%draw_orbit
-    nl=nl+1; write (lines(nl), rmt) '  Orbit_scale             = ', tao_com%lat_layout%orbit_scale
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
           'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw'
