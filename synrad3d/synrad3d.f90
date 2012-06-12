@@ -8,6 +8,7 @@ program synrad3d
 
 use synrad3d_plot_mod
 use synrad3d_output_mod
+use synrad3d_test_mod
 use bookkeeper_mod
 
 implicit none
@@ -36,7 +37,7 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
-integer i, j, n, iu, n_wall_pt_max, random_seed, iu_start, n_shape_max
+integer i, j, n, iu, ix, n_wall_pt_max, random_seed, iu_start, n_shape_max
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_gen_shape
@@ -46,7 +47,7 @@ character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file, surface_reflection_file
 
 character(100) dat_file, dat2_file, wall_file, param_file, arg
-character(40) name, plotting
+character(40) name, plotting, test
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this, err
@@ -70,6 +71,7 @@ namelist / start / p, ran_state, random_seed
 
 ok = .true.
 plotting = ''
+test = ''
 param_file = ''
 surface_reflection_file = ''
 photon_start_input_file = '' 
@@ -81,9 +83,11 @@ do while (i < cesr_iargc())
   call cesr_getarg(i, arg)
   select case (arg)
   case ('-plot')
-    plotting = '-cross'
-  case ('-cross', '-rcross', '-norm', '-xs', '-ys', '-reflect')
-    plotting = arg
+    i = i + 1
+    call cesr_getarg(i, plotting)
+  case ('-test')
+    i = i + 1
+    call cesr_getarg(i, test)
   case ('-in')
     i = i + 1
     call cesr_getarg(i, photon_start_input_file)
@@ -108,23 +112,26 @@ if (.not. ok) then
   print *, '  synrad3d {options} {<init_file>}'
   print *, 'Default:'
   print *, '  <init_file> = synrad3d.init'
-  print *, 'Options: [Note: No photon tracking done with plotting.]'
-  print *, '  -cross        ! Plot wall x-y cross-sections.'
+  print *, 'Options: [Note: Standard photon tracking not done with -plot nor -test]'
+  print *, '  -plot <type>  ! <type> = "reflect", "xy", "xs", or "ys".'
+  print *, '  -test <who>   ! <who> = "reflect".'
   print *, '  -in <file>    ! Use <file> to initialize photon(s). '
   print *, '                !   This option is used for debugging synrad3d.'
-  print *, '  -norm         ! Plot wall x-y cross-sections along with wall normal vectors.'
   print *, '  -out <n>      ! Create error_photon_start file using the n^th generated photon.'
   print *, '                !   This option is used for debugging synrad3d.'
-  print *, '  -rcross       ! Plot wall x-y cross-sections with positive x-axis to the left.'
-  print *, '  -reflect      ! Plot reflection probability curves.'
-  print *, '  -xs           ! Plot wall x-s cross-section.'
-  print *, '  -ys           ! Plot wall x-s cross-section.'
+  stop
+endif
+
+! test 
+
+if (test /= '') then
+  call sr3d_reflection_test (param_file)
   stop
 endif
 
 ! Reflection plotting
 
-if (plotting == '-reflect') then
+if (plotting == 'reflect') then
   call sr3d_plot_reflection_probability(plot_param)
 endif
 
@@ -350,16 +357,19 @@ call ran_seed_put (random_seed)
 
 ! Load different surface reflection parameters if wanted
 
-if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file)
+if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, ix)
 call set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
 
 ! Plot wall cross-sections. 
 ! The plotting routines never return back to the main program.
 
-if (plotting == '-cross' .or. plotting == '-rcross' .or. plotting == '-norm') then
-  call sr3d_plot_wall_cross_sections (plot_param, wall, lat, plotting)
+if (plotting == 'xy') then
+  call sr3d_plot_wall_cross_sections (plot_param, wall, lat)
+elseif (plotting == 'xs' .or. plotting == 'ys') then
+  call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting)
 elseif (plotting /= '') then
-  call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting(2:2))
+  call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
+  call err_exit
 endif
 
 ! Find out much radiation is produced

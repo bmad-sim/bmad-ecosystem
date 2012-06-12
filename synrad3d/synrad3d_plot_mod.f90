@@ -228,7 +228,7 @@ end subroutine sr3d_plot_reflection_probability
 !   plot_param -- sr3d_plot_param_struct: Plot parameters.
 !   wall       -- sr3d_wall_struct: Wall structure.
 !   lat        -- Lat_struct: lattice
-!   plane      -- Character(*): section. 'x' or. 'y'
+!   plane      -- Character(*): section. 'xs' or. 'ys'
 !-
 
 subroutine sr3d_plot_wall_vs_s (plot_param, wall, lat, plane)
@@ -262,11 +262,11 @@ s_user_good = .false.
 r_max = 100
 allocate(s(plot_param%n_pt), xy_in(plot_param%n_pt), xy_out(plot_param%n_pt))
 
-if (plane == 'x') then
+if (plane == 'xs') then
   plane_str = 'X (cm)'
   photon_xy => photon%now%vec(1)
   wall_xy => x_wall
-elseif (plane == 'y') then
+elseif (plane == 'ys') then
   plane_str = 'Y (cm)'
   photon_xy => photon%now%vec(3)
   wall_xy => y_wall
@@ -372,7 +372,7 @@ end subroutine sr3d_plot_wall_vs_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat, extra)
+! Subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat)
 !
 ! Routine to interactively plot wall (x,y) cross-sections at constant s.
 ! Note: This routine never returns to the main program.
@@ -380,13 +380,9 @@ end subroutine sr3d_plot_wall_vs_s
 ! Input:
 !   wall    -- sr3d_wall_struct: Wall structure.
 !   lat     -- Lat_struct: lattice
-!   extra   -- Character(*): 
-!                   '-norm' -> Also plot a set of lines normal to the wall.
-!                             This is used as a check to the wall normal calculation.
-!                   '-rcross' -> flip x-axis
 !-
 
-subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat, extra)
+subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat)
 
 implicit none
 
@@ -402,19 +398,20 @@ real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
 real(rp), allocatable :: x1_norm(:), y1_norm(:), x2_norm(:), y2_norm(:)
 real(rp) minn, maxx
 
-integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu
+integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu, n_norm_max
 
 character(100) :: ans, label
 character(8) v_str
-character(*) extra
 
-logical at_section
+logical at_section, draw_norm, reverse_x_axis
 
 ! Open plotting window
 
 call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
+draw_norm = .false.
+reverse_x_axis = .false.
 x_max_user = -1
 r_max = 100
 n = plot_param%n_pt
@@ -454,11 +451,10 @@ do
     photon%now%vec(1) = r_max * cos(theta)  
     photon%now%vec(3) = r_max * sin(theta)
 
-    if (extra == '-norm' .and. modulo(i, 4) == 0) then
+    if (draw_norm .and. modulo(i, 4) == 0) then
       j = (i / 4)
       call sr3d_find_wall_point (wall, lat, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
-      x1_norm = x1_norm * 100; x2_norm = x2_norm * 100
-      y1_norm = y1_norm * 100; y2_norm = y2_norm * 100
+      n_norm_max = j
     else
       call sr3d_find_wall_point (wall, lat, photon, x(i), y(i))
     endif
@@ -494,16 +490,16 @@ do
     call qp_eliminate_xy_distortion()
   endif
 
-  if (extra == '-rcross') then
+  if (reverse_x_axis) then
     call qp_get_axis_attrib('X', minn, maxx)
     call qp_set_axis ('X', maxx, minn) 
   endif
 
   call qp_draw_graph (x, y, 'X', 'Y', label, .true., 0)
 
-  if (extra == '-norm') then
-    do j = 1, size(x1_norm)
-      call qp_draw_line(x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
+  if (draw_norm) then
+    do j = 1, n_norm_max
+      call qp_draw_line(100*x1_norm(j), 100*x2_norm(j), 100*y1_norm(j), 100*y2_norm(j))
     enddo
   endif
 
@@ -526,6 +522,9 @@ do
   print '(a)', '   x <x-max>        ! Set horizontal plot scale. Vertical will be scaled to match.'
   print '(a)', '   x auto           ! Auto scale plot.'
   print '(a)', '   write            ! Write (x,y) points to a file.'
+  print '(a)', '   normal           ! Toggle drawing of a set of vectors normal to the wall'
+  print '(a)', '   reverse          ! Toggle reversing the x-axis to point left for +x'
+
   call read_a_line ('Input: ', ans)
 
   call string_trim (ans, ans, ix)
@@ -556,6 +555,12 @@ do
     s_pos_old = s_pos
     s_pos = wall%pt(ix_section)%s
     at_section = .true.
+
+  elseif (index('normal', ans(1:ix)) == 1) then
+    draw_norm = .not. draw_norm
+
+  elseif (index('reverse', ans(1:ix)) == 1) then
+    reverse_x_axis = .not. reverse_x_axis
 
   elseif (index('write', ans(1:ix)) == 1) then
     iu = lunget()
