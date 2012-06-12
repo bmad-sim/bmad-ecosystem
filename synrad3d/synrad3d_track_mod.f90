@@ -34,7 +34,7 @@ contains
 !   wall      -- sr3d_wall_struct: Beam chamber walls
 !
 ! Output:
-!   photon      -- sr3d_photon_coord_struct: synch radiation photon propagated until absorbtion.
+!   photon      -- sr3d_photon_coord_struct: synch radiation photon propagated until absorption.
 !   wall_hit(:) -- sr3d_photon_wall_hit_struct: Array of wall hit data.
 !   err         -- Tracking calculation failed.
 !-
@@ -754,7 +754,7 @@ end subroutine sr3d_mesh_d_radius
 ! Routine to reflect a photon off of the chamber wall.
 !
 ! Additionally: this routine will calculate if the photon is to be absorbed or reflected.
-! The absorbtion calculation involves calculating the reflection probability and then,
+! The absorption calculation involves calculating the reflection probability and then,
 ! using a random number generator, deciding if the photon is indeed absorbed.
 !
 ! Input:
@@ -843,13 +843,13 @@ if (cos_perp < 0) then
   return
 endif
 
-! absorbtion or reflection...
+! absorption or reflection...
 
 call ran_uniform(r)
 
 if (sr3d_params%diffuse_scattering_on) then
   wall_hit(n_wall_hit)%reflectivity = reflectivity_smooth
-  if (r < reflectivity_smooth .or. .not. sr3d_params%allow_absorbtion) then
+  if (r < reflectivity_smooth .or. .not. sr3d_params%allow_absorption) then
     absorbed = .false.
     call photon_diffuse_scattering (graze_angle, photon%now%energy, theta_diffuse, phi_diffuse)
     ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
@@ -863,7 +863,7 @@ if (sr3d_params%diffuse_scattering_on) then
 ! For specular reflection the perpendicular component gets reflected and the parallel component is invarient.
 else
   wall_hit(n_wall_hit)%reflectivity = reflectivity_rough
-  if (r < reflectivity_rough .or. .not. sr3d_params%allow_absorbtion) then
+  if (r < reflectivity_rough .or. .not. sr3d_params%allow_absorption) then
     absorbed = .false.
     photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
   endif
