@@ -608,7 +608,6 @@ if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
   case (solenoid$)
     off1 = off * ele%value(ks$)
   end select
-  off1 = max(-s%plot_page%shape_height_max, min(off1, s%plot_page%shape_height_max))
   off2 = off1
   if (ele_shape%shape == 'ASYM_VAR_BOX') off1 = 0
 endif
@@ -897,7 +896,7 @@ type (tao_logical_array_struct), allocatable :: logic_array(:)
 type (tao_data_struct), pointer :: datum
 type (tao_var_struct), pointer :: var
 
-real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, x0, y0
+real(rp) x1, x2, y1, y2, y, s_pos, y_max, x0, y0
 real(rp) lat_len, height, dx, dy, key_number_height, dummy, l2
 
 integer i, j, k, n, kk, ix, ix1, isu
@@ -951,27 +950,10 @@ key_number_height = 10
   
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! Setup the placement of the graph on the plot page.
-! Without labels: Vertically Center the graph.
-! With labels: Shift the graph up to give room for the labels.
-! Center line is at y = 0
 
+y_max = 100
 call qp_set_layout (x_axis = graph%x, box = graph%box, margin = graph%margin)
-
-call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
-dy = (y2 - y1) 
-y_top = dy / 2
-y_bottom = -dy / 2
-
-if (s%global%label_lattice_elements) then
-  y_off = s%plot_page%shape_height_max
-  if (s%global%label_keys) y_off = y_off + key_number_height
-  if (2*y_off < dy) then
-    y_top = y_off
-    y_bottom = y_off - dy
-  endif
-endif
-
-call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
+call qp_set_axis ('Y', -y_max, y_max, 1, 0)
 
 call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
 
@@ -1013,7 +995,7 @@ do i = 1, size(tao_com%lat_layout%ele_shape)
     if (x0 > graph%x%max) cycle
     if (x0 < graph%x%min) cycle
     y1 = ele_shape%size
-    y1 = max(y_bottom, min(y1, y_top))
+    y1 = max(-y_max, min(y1, y_max))
     y2 = -y1
     call qp_convert_point_rel (dummy, y1, 'DATA', dummy, y, 'INCH') 
     call qp_convert_point_rel (y, dummy, 'INCH', dx, dummy, 'DATA')
@@ -1077,14 +1059,14 @@ if (s%global%label_keys) then
           s_pos = ele1%s - l2
           if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
           if (s_pos + l2 < graph%x%min .or. s_pos - l2 > graph%x%max) cycle
-          call qp_draw_text (trim(str), s_pos, y_top, justify = 'CT', height = key_number_height)  
+          call qp_draw_text (trim(str), s_pos, y_max, justify = 'CT', height = key_number_height)  
         enddo
       else
         l2 = ele%value(l$) / 2
         s_pos = ele%s - l2
         if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
         if (s_pos + l2 < graph%x%min .or. s_pos - l2 > graph%x%max) cycle
-        call qp_draw_text (trim(str), s_pos, y_top, justify = 'CT', height = key_number_height)  
+        call qp_draw_text (trim(str), s_pos, y_max, justify = 'CT', height = key_number_height)  
       endif
     enddo
   enddo
@@ -1097,11 +1079,11 @@ if (allocated(graph%curve)) call tao_plot_data (plot, graph)
 !--------------------------------------------------------------------------------------------------
 contains 
 
-subroutine draw_ele_for_lat_layout (ele, name_in, ele_shape_in)
+subroutine draw_ele_for_lat_layout (ele, name_in, beam_chamber)
 
 type (ele_struct) ele
 type (ele_struct), pointer :: ele1, ele2
-type (tao_ele_shape_struct), optional, target :: ele_shape_in
+type (tao_ele_shape_struct), pointer :: beam_chamber
 type (tao_ele_shape_struct), pointer :: ele_shape
 
 real(rp) y1_plus, y1_minus, y2_plus, y2_minus
@@ -1109,15 +1091,35 @@ integer section_id, icol
 
 character(*) name_in
 
-!
+! Draw beam chamber wall. 
 
-if (present(ele_shape_in)) then
-  ele_shape => ele_shape_in
-else
-  ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
-  if (.not. associated(ele_shape)) return
-  if (.not. ele_shape%draw) return
+if (associated(beam_chamber) .and. associated(ele%wall3d%section)) then
+  call calc_wall_radius (ele%wall3d%section(1)%v,  1.0_rp, 0.0_rp,  y1_plus, dummy)
+  call calc_wall_radius (ele%wall3d%section(1)%v, -1.0_rp, 0.0_rp,  y1_minus, dummy)
+  y1_plus  = beam_chamber%size * y1_plus
+  y1_minus = beam_chamber%size * y1_minus
+
+  call qp_translate_to_color_index (beam_chamber%color, icol)
+  do section_id = 2, size(ele%wall3d%section)
+    x1 = ele%s - ele%value(l$) + ele%wall3d%section(section_id-1)%s
+    x2 = ele%s - ele%value(l$) + ele%wall3d%section(section_id)%s
+    call calc_wall_radius (ele%wall3d%section(section_id)%v,  1.0_rp, 0.0_rp,  y2_plus, dummy)
+    call calc_wall_radius (ele%wall3d%section(section_id)%v, -1.0_rp, 0.0_rp,  y2_minus, dummy)
+    !scale wall
+    y2_plus  = beam_chamber%size * y2_plus
+    y2_minus = beam_chamber%size * y2_minus
+    call qp_draw_line (x1, x2, y1_plus, y2_plus, color = icol)
+    call qp_draw_line (x1, x2, -y1_minus, -y2_minus, color = icol)
+    y1_plus  = y2_plus
+    y1_minus = y2_minus 
+  end do
 endif
+
+! Draw element shape...
+
+ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
+if (.not. associated(ele_shape)) return
+if (.not. ele_shape%draw) return
 
 shape_name = ele_shape%shape
 
@@ -1152,39 +1154,14 @@ if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
   case (solenoid$)
     y2 = y * ele%value(ks$)
   end select
-  y2 = max(-s%plot_page%shape_height_max, min(y2, s%plot_page%shape_height_max))
   y1 = -y2
   if (shape_name == 'ASYM_VAR_BOX') y1 = 0
 end if
 
-y1 = max(y_bottom, min(y1, y_top))
-y2 = max(y_bottom, min(y2, y_top))
+y1 = max(-y_max, min(y1, y_max))
+y2 = max(-y_max, min(y2, y_max))
 
 call draw_shape_for_lat_layout (name_in, ele%s - ele%value(l$) / 2, ele_shape)
-
-! Draw beam chamber wall. 
-
-if (associated(beam_chamber) .and. associated(ele%wall3d%section)) then
-  call calc_wall_radius (ele%wall3d%section(1)%v,  1.0_rp, 0.0_rp,  y1_plus, dummy)
-  call calc_wall_radius (ele%wall3d%section(1)%v, -1.0_rp, 0.0_rp,  y1_minus, dummy)
-  y1_plus  = beam_chamber%size * y1_plus
-  y1_minus = beam_chamber%size * y1_minus
-
-  call qp_translate_to_color_index (beam_chamber%color, icol)
-  do section_id = 2, size(ele%wall3d%section)
-    x1 = ele%s - ele%value(l$) + ele%wall3d%section(section_id-1)%s
-    x2 = ele%s - ele%value(l$) + ele%wall3d%section(section_id)%s
-    call calc_wall_radius (ele%wall3d%section(section_id)%v,  1.0_rp, 0.0_rp,  y2_plus, dummy)
-    call calc_wall_radius (ele%wall3d%section(section_id)%v, -1.0_rp, 0.0_rp,  y2_minus, dummy)
-    !scale wall
-    y2_plus  = beam_chamber%size * y2_plus
-    y2_minus = beam_chamber%size * y2_minus
-    call qp_draw_line (x1, x2, y1_plus, y2_plus, color = icol)
-    call qp_draw_line (x1, x2, -y1_minus, -y2_minus, color = icol)
-    y1_plus  = y2_plus
-    y1_minus = y2_minus 
-  end do
-endif
 
 end subroutine draw_ele_for_lat_layout
 
@@ -1258,9 +1235,8 @@ if (s%global%label_lattice_elements .and. ele_shape%label /= 'none') then
     call err_exit
   endif 
 
-  y_off = y_bottom   
   if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
-  call qp_draw_text (name, s_pos, y_off, height = height, justify = 'LC', ANGLE = 90.0_rp)
+  call qp_draw_text (name, s_pos, -y_max, height = height, justify = 'LC', ANGLE = 90.0_rp)
 
 endif
 

@@ -1325,8 +1325,6 @@ plots go. The syntax of this block is:
     plot_page%floor_plan_rotation    = <num> ! Rotation of floor plan plot: 1.0 -> 360^deg 
     plot_page%key_table_text_scale   = <num> ! Relative to text_height. Def = 0.9
     plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
-    plot_page%shape_height_max       = <num> ! Max half height for drawing elements. 
-                                             !   Def = 40
     plot_page%n_curve_pts            = <num> ! Num points used to construct a 
                                              !   smooth curve. Def = 401
     plot_page%box_plots              = <T/F> ! For debugging. Def = F.
@@ -1406,10 +1404,6 @@ area (\vn{region(1)%l_x1} = 0) to the right border
 (\vn{region(1)%l_y1} = 0.5) to the top edge (\vn{region(1)%l_x2} =
 1.0). Regions may overlap any one can define as many regions as one
 likes.
-
-\vn{shape_height_max} sets the maximum size for drawing shapes in
-\vn{floor_plan}, and \vn{lat_layout} drawings. See
-Section~\sref{s:lat.layout} for more details.
 
 \vn{place(i)} determines the initial placement of plots.
 
@@ -2077,9 +2071,7 @@ The namelist syntax is the same for both:
 For Example:                 
 \begin{example}
   &floor_plan_drawing
-    draw_beam_chamber_wall = T
-    beam_chamber_wall_scale = 1.3
-    !              ele_name                 Shape     Color   Size    Label Draw?
+    !              ele_name                 Shape     Color V_Size    Label Draw?
     ele_shape(1) = "quadrupole::q*"         "box"     "red"     30     name  T    
     ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     none 
     ele_shape(3) = "sbend::*"               "box"     "blue"    15     none  F
@@ -2130,16 +2122,13 @@ The width of a drawn shape is the width of the associated element. The
 exception is the \vn{"x"} shape whose width is always the same as the
 height determined by the \vn{<v_size>} setting.
 
-\vn{<v_size>} is the vertical half height of the shape in points (72 points =
-1 inch). The measurement is from the centerline so, for example, a
-\vn{box} element will have a total height of twice \vn{<v_size>}. Since
-a \vn{var_box} or \vn{asym_var_box} can get arbitrarily large, the  
-parameter \vn{plot_page%shape_height_max} (\sref{s:plot.page}).
-sets the maximum drawn size. The height of a
-\vn{var_height_box} is proportional to the element strength. For
-example, for a quadrupole the height is proportional to the \vn{K1}
-focusing strength. Not all lattice elements can be used with a
-\vn{var_height_box}.
+\vn{<v_size>} is the vertical half height of the shape with
+\vn{<v_size>} = 100 corresponding to full scale. For
+\vn{var_height_box}, the height is proportional to the element
+strength and here \vn{<v_size>} is the multiplyer used to scale from
+element strength to vertical height. For example, for a quadrupole the
+height is proportional to the \vn{K1} focusing strength. Not all
+lattice elements can be used with a \vn{var_height_box}.
 
 \vn{<color>} is the color of the shape. Good colors to use are:
 \index{element shape!color}
@@ -2169,13 +2158,18 @@ default is \vn{T}. This can be useful for toggling on and off the
 drawing of shapes using the \vn{set shape} command (\sref{s:set}).
 
 \index{beam chamber wall}
+When an element has
+
 The \vn{draw_beam_chamber_wall} logical determines whether the beam
 chamber wall is drawn and the setting of \vn{beam_chamber_wall_scale}
 determines how the wall is scaled when it is drawn. Beam chamber walls
 are only drawn for an element if the element has an associated
 \vn{ele_shape}. To draw the wall without drawing a shape, set the
 \vn{shape} parameter for the appropriate \vn{ele_shape} to
-\vn{"none"}.  Note: Beam chamber walls, which are different from
+\vn{"none"}. 
+
+The \vn{<v_size>} 
+Note: Beam chamber walls, which are different from
 building walls (\sref{s:building.wall}), are defined in the \bmad
 lattice file and are associated with individual elements. See the
 \bmad manual for more details.
