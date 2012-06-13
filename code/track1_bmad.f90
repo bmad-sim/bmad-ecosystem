@@ -668,6 +668,8 @@ case (sextupole$)
     endif
   enddo
 
+  call offset_particle (ele, end_orb, unset$, set_canonical = .false.)
+
   return
 
 !-----------------------------------------------
