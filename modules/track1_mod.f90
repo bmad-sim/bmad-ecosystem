@@ -233,10 +233,10 @@ orb%vec(1) = orb%vec(1) + length * px / pz
 orb%vec(3) = orb%vec(3) + length * py / pz
 
 if (orb%beta > 0) then
-  dz = length * (orb%beta * ele%value(e_tot$) / ele%value(p0c$) - sqrt(1 + px**2 + py**2))
-  orb%t = orb%t + (length - dz) / (orb%beta * c_light)
+  dz = length * (orb%beta * ele%value(e_tot$) / ele%value(p0c$) - 1/pz)
+  orb%t = orb%t + length / (orb%beta * pz * c_light)
 else
-  dz = length * (1 - sqrt(1 + px**2 + py**2))
+  dz = length * (1 - 1/pz)
 endif
 
 orb%vec(5) = orb%vec(5) + dz
