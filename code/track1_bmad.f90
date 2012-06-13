@@ -198,33 +198,19 @@ case (crystal$)
 !-----------------------------------------------
 ! drift
  
-case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, &
+      elseparator$, kicker$, hkicker$, vkicker$) 
 
-  if (ele%is_on) call offset_particle (ele, end_orb, set$, .false.)
+  call offset_particle (ele, end_orb, set$, .false.)
   call track_a_drift (end_orb, ele, length)
-  if (ele%is_on) call offset_particle (ele, end_orb, unset$, .false.)
-
-  call low_energy_z_correction (end_orb, ele, param)
-
-!-----------------------------------------------
-! kicker, separator
-
-case (elseparator$, kicker$, hkicker$, vkicker$) 
-
-  call offset_particle (ele, end_orb, set$)
-
-  end_orb%vec(1) = end_orb%vec(1) + length * end_orb%vec(2)
-  end_orb%vec(3) = end_orb%vec(3) + length * end_orb%vec(4)
+  call offset_particle (ele, end_orb, unset$, .false.)
 
   if (ele%key == kicker$) then
     end_orb%vec(1) = end_orb%vec(1) + ele%value(h_displace$)
     end_orb%vec(3) = end_orb%vec(3) + ele%value(v_displace$)
   endif
 
-  call offset_particle (ele, end_orb, unset$)  
-  call end_z_calc
-
-  call low_energy_z_correction (end_orb, ele, param)
+  return  ! track_a_drift does correct time calc
 
 !-----------------------------------------------
 ! LCavity: Linac rf cavity
@@ -415,7 +401,6 @@ case (lcavity$)
   end_orb%vec(5) = end_orb%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
 
   ! Time calc
-  
 
   f = gradient_ref * length * mc2**2 / (pc_start_ref**2 * E_start_ref)
 
@@ -540,9 +525,7 @@ case (octupole$)
 
   enddo
 
-  call offset_particle (ele, end_orb, unset$, set_canonical = .false.)  
-
-  call low_energy_z_correction (end_orb, ele, param)
+  return
 
 !-----------------------------------------------
 ! patch
@@ -685,8 +668,7 @@ case (sextupole$)
     endif
   enddo
 
-  call offset_particle (ele, end_orb, unset$, set_canonical = .false.)
-  call low_energy_z_correction (end_orb, ele, param)
+  return
 
 !-----------------------------------------------
 ! solenoid
@@ -745,7 +727,7 @@ case (wiggler$)
   if (ele%sub_key == map_type$) then
     if (present(err_flag)) err_flag = .true.
     call out_io (s_fatal$, r_name, &
-            'NEW STYLE WIGGLER: ' // ele%name, &
+            'MAP_TYPE WIGGLER: ' // ele%name, &
             'HAS TRACKING_METHOD = BMAD_STANDARD.', &
             'THIS IS NOT A POSSIBLE OPTION FOR THE TRACKING_METHOD.')
     if (bmad_status%exit_on_error) call err_exit
