@@ -43,12 +43,13 @@ type (tao_curve_input) curve(n_curve_maxx), curve1, curve2, curve3, curve4
 type (tao_place_input) place(10)
 type (old_tao_ele_shape_struct) shape(20)
 type (tao_ele_shape_struct) ele_shape(20)
+type (tao_ele_shape_struct), pointer :: e_shape
 type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 type (ele_pointer_struct), allocatable, save :: eles(:)
 
-real(rp) shape_height_max, y1, y2
+real(rp) y1, y2
 
 integer iu, i, j, k, ix, ip, n, ng, ios, ios1, ios2, i_uni
 integer graph_index, color, i_graph
@@ -242,14 +243,14 @@ if (ios < 0) then
   rewind (iu)
   read (iu, nml = floor_plan_drawing, iostat = ios2)
 
-  if (ios1 >= 0) then
-    call out_io (s_warn$, r_name, &
-            'Note: The "element_shapes_floor_plan" namelist has been renamed to', &
-            '      "floor_plan_drawing to reflect the fact that this namelist  ', &
-            '      now is used to specify more than element shapes. Please     ', &
-            '      make the appropriate change in your input file.             ', &
-            'For now, Tao will accept the old namelist name...                 ')
-  endif
+!  if (ios1 >= 0) then
+!    call out_io (s_warn$, r_name, &
+!            'Note: The "element_shapes_floor_plan" namelist has been renamed to', &
+!            '      "floor_plan_drawing to reflect the fact that this namelist  ', &
+!            '      now is used to specify more than element shapes. Please     ', &
+!            '      make the appropriate change in your input file.             ', &
+!            'For now, Tao will accept the old namelist name...                 ')
+!  endif
 
   if (ios1 > 0) then 
     rewind (iu)
@@ -278,14 +279,18 @@ if (ios < 0) then
   rewind (iu)
   read (iu, nml = lat_layout_drawing, iostat = ios2)
 
+!  if (ios1 == 0) then
+!    call out_io (s_warn$, r_name, &
+!            'Note: The "element_shapes_lattice_list" namelist has been renamed to', &
+!            '      "lattice_list_drawing to reflect the fact that this namelist  ', &
+!            '      now is used to specify more than element shapes. Please       ', &
+!            '      make the appropriate change in your input file.               ', &
+!            'For now, Tao will accept the old namelist name...                   ')
+!  endif
+
   if (ios1 == 0) then
-    call out_io (s_warn$, r_name, &
-            'Note: The "element_shapes_lattice_list" namelist has been renamed to', &
-            '      "lattice_list_drawing to reflect the fact that this namelist  ', &
-            '      now is used to specify more than element shapes. Please       ', &
-            '      make the appropriate change in your input file.               ', &
-            'For now, Tao will accept the old namelist name...                   ')
-  endif
+    ele_shape(:)%size = ele_shape(:)%size * 100.0 / 40.0 ! scale to current def.
+  endif 
 
   if (ios1 > 0) then 
     rewind (iu)
@@ -309,10 +314,12 @@ endif
 
 if (allocated(tao_com%lat_layout%ele_shape)) then
   do i = 1, size(tao_com%lat_layout%ele_shape)
-    select case (tao_com%lat_layout%ele_shape(i)%shape)
+    e_shape => tao_com%lat_layout%ele_shape(i)
+    if (e_shape%ele_name(1:6) == 'wall::') cycle
+    select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case default
-      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%lat_layout%ele_shape(i)%shape)
+      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // e_shape%shape)
       call err_exit
     end select
   enddo
@@ -320,10 +327,11 @@ endif
 
 if (allocated(tao_com%floor_plan%ele_shape)) then
   do i = 1, size(tao_com%floor_plan%ele_shape)
-    select case (tao_com%floor_plan%ele_shape(i)%shape)
+    e_shape => tao_com%floor_plan%ele_shape(i)
+    select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case default
-      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%floor_plan%ele_shape(i)%shape)
+      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // e_shape%shape)
       call err_exit
     end select
   enddo

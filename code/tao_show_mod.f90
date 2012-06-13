@@ -1951,7 +1951,6 @@ case ('plot')
     nl=nl+1; write (lines(nl), f3mt) '%axis_label_text_scale      = ', s%plot_page%axis_label_text_scale 
     nl=nl+1; write (lines(nl), f3mt) '%key_table_text_scale       = ', s%plot_page%key_table_text_scale 
     nl=nl+1; write (lines(nl), f3mt) '%legend_text_scale          = ', s%plot_page%legend_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%shape_height_max           = ', s%plot_page%shape_height_max  
     nl=nl+1; write (lines(nl), f3mt) '%floor_plan_rotation        = ', s%plot_page%floor_plan_rotation
 
     nl=nl+1; lines(nl) = ''

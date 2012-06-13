@@ -1153,9 +1153,9 @@ do k = 1, size(graph%curve)
     curve%y_line = curve%y_line - f 
   endif 
 
-  graph%valid = .true.
-
 enddo
+
+graph%valid = .true.
 
 end subroutine tao_graph_data_setup
 

@@ -217,7 +217,6 @@ end type
 type tao_plot_page_struct
   character(8) :: plot_display_type = 'TK'       ! 'X' or 'TK'
   character(80) ps_scale             ! scaling when creating PS files.
-  real(rp) :: shape_height_max = 40  ! maximum half height for drawing elements.
   real(rp) size(2)                   ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
   real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
