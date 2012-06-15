@@ -16,13 +16,9 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'n_attrib_maxx' in line:
+    if 'section%section' in line:
       found = True
-      line = line.replace('n_attrib_maxx', 'num_ele_attrib$')
-
-    if 'n_attrib_special_maxx' in line:
-      found = True
-      line = line.replace('n_attrib_special_maxx', 'num_ele_attrib_extended$')
+      line = line.replace('section%section', 'section')
 
     out_file.write(line)
 
