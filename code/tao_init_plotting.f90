@@ -31,7 +31,6 @@ type old_tao_ele_shape_struct    ! for the element layout plot
   integer key                ! Element key index to match to
 end type
 
-type (tao_plot_page_struct), pointer :: page
 type (tao_plot_page_struct) plot_page, plot_page_default
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
@@ -171,23 +170,22 @@ if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist fou
 
 master_default_graph = default_graph
 
-s%plot_page = plot_page
-page => s%plot_page
+call set_plotting (plot_page, s%plotting)
 
 ! title
 
-forall (i = 1:size(page%title), (page%title(i)%string .ne. ' ')) &
-            page%title(i)%draw_it = .true.
+forall (i = 1:size(s%plotting%title), (s%plotting%title(i)%string .ne. ' ')) &
+            s%plotting%title(i)%draw_it = .true.
 
-! allocate a s%plot_page%plot structure for each region defined and
+! allocate a s%plotting%plot structure for each region defined and
 ! transfer the info from the input region structure.
 
 n = count(region%name /= ' ')
-allocate (s%plot_region(n))
+allocate (s%plotting%region(n))
 
 do i = 1, n
-  s%plot_region(i)%name     = region(i)%name
-  s%plot_region(i)%location = region(i)%location
+  s%plotting%region(i)%name     = region(i)%name
+  s%plotting%region(i)%location = region(i)%location
 enddo
 
 !-----------------------------------------------------------------------------------
@@ -223,9 +221,9 @@ if (ios == 0) then
   enddo
 
   call tao_uppercase_shapes (ele_shape, n, 'f')
-  allocate (tao_com%floor_plan%ele_shape(n), tao_com%lat_layout%ele_shape(n))
-  tao_com%floor_plan%ele_shape = ele_shape(1:n)
-  tao_com%lat_layout%ele_shape = ele_shape(1:n)
+  allocate (s%plotting%floor_plan%ele_shape(n), s%plotting%lat_layout%ele_shape(n))
+  s%plotting%floor_plan%ele_shape = ele_shape(1:n)
+  s%plotting%lat_layout%ele_shape = ele_shape(1:n)
 endif
 
 ! Look for new style shape namelist if could not find old style
@@ -265,8 +263,8 @@ if (ios < 0) then
   endif
 
   call tao_uppercase_shapes (ele_shape, n, 'f')
-  allocate (tao_com%floor_plan%ele_shape(n))
-  tao_com%floor_plan%ele_shape = ele_shape(1:n)
+  allocate (s%plotting%floor_plan%ele_shape(n))
+  s%plotting%floor_plan%ele_shape = ele_shape(1:n)
 
   ! Read element_shapes_lat_layout namelist
 
@@ -305,16 +303,16 @@ if (ios < 0) then
   endif
 
   call tao_uppercase_shapes (ele_shape, n, 'l')
-  allocate (tao_com%lat_layout%ele_shape(n))
-  tao_com%lat_layout%ele_shape  = ele_shape(1:n)
+  allocate (s%plotting%lat_layout%ele_shape(n))
+  s%plotting%lat_layout%ele_shape  = ele_shape(1:n)
 
 endif
 
 ! Error check
 
-if (allocated(tao_com%lat_layout%ele_shape)) then
-  do i = 1, size(tao_com%lat_layout%ele_shape)
-    e_shape => tao_com%lat_layout%ele_shape(i)
+if (allocated(s%plotting%lat_layout%ele_shape)) then
+  do i = 1, size(s%plotting%lat_layout%ele_shape)
+    e_shape => s%plotting%lat_layout%ele_shape(i)
     if (e_shape%ele_name(1:6) == 'wall::') cycle
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
@@ -325,9 +323,9 @@ if (allocated(tao_com%lat_layout%ele_shape)) then
   enddo
 endif
 
-if (allocated(tao_com%floor_plan%ele_shape)) then
-  do i = 1, size(tao_com%floor_plan%ele_shape)
-    e_shape => tao_com%floor_plan%ele_shape(i)
+if (allocated(s%plotting%floor_plan%ele_shape)) then
+  do i = 1, size(s%plotting%floor_plan%ele_shape)
+    e_shape => s%plotting%floor_plan%ele_shape(i)
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case default
@@ -369,7 +367,7 @@ enddo
 ! If no plots have been defined then use default
 
 if (ip == 0) then
-  deallocate(tao_com%floor_plan%ele_shape, tao_com%lat_layout%ele_shape, s%plot_region)
+  deallocate(s%plotting%floor_plan%ele_shape, s%plotting%lat_layout%ele_shape, s%plotting%region)
   call tao_setup_default_plotting()
   return
 endif
@@ -377,9 +375,9 @@ endif
 !---------------
 ! Allocate the template plot and define a scratch plot
 
-allocate (s%template_plot(ip+1))
+allocate (s%plotting%template(ip+1))
 
-plt => s%template_plot(ip+1)
+plt => s%plotting%template(ip+1)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -412,7 +410,7 @@ do  ! Loop over plot files
 
     call out_io (s_blank$, r_name, 'Init: Read tao_template_plot namelist: ' // plot%name)
     do i = 1, ip
-      if (plot%name == s%template_plot(ip)%name) then
+      if (plot%name == s%plotting%template(ip)%name) then
         call out_io (s_error$, r_name, 'DUPLICATE PLOT NAME: ' // plot%name)
         exit
       endif
@@ -420,7 +418,7 @@ do  ! Loop over plot files
 
     ip = ip + 1
 
-    plt => s%template_plot(ip)
+    plt => s%plotting%template(ip)
     nullify(plt%r)
     plt%name                 = plot%name
     plt%x_axis_type          = plot%x_axis_type
@@ -608,11 +606,11 @@ do  ! Loop over plot files
         call err_exit
       endif
 
-      if (grph%type == 'floor_plan' .and. .not. allocated (tao_com%floor_plan%ele_shape)) &
+      if (grph%type == 'floor_plan' .and. .not. allocated (s%plotting%floor_plan%ele_shape)) &
                 call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.')
    
       if (grph%type == 'lat_layout') then
-        if (.not. allocated (tao_com%lat_layout%ele_shape)) call out_io (s_error$, r_name, &
+        if (.not. allocated (s%plotting%lat_layout%ele_shape)) call out_io (s_error$, r_name, &
                               'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.')
         if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
                               'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!')
@@ -889,12 +887,12 @@ real(rp) y_top
 
 !
 
-s%plot_page = plot_page
+call set_plotting (plot_page, s%plotting)
 
-allocate (tao_com%floor_plan%ele_shape(10), tao_com%lat_layout%ele_shape(10))
+allocate (s%plotting%floor_plan%ele_shape(10), s%plotting%lat_layout%ele_shape(10))
 
-tao_com%floor_plan%ele_shape(:)%ele_name = ''
-tao_com%floor_plan%ele_shape(1:6) = [&
+s%plotting%floor_plan%ele_shape(:)%ele_name = ''
+s%plotting%floor_plan%ele_shape(1:6) = [&
           tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none', .true.), &
           tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name', .true.), &
           tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none', .true.), &
@@ -902,14 +900,14 @@ tao_com%floor_plan%ele_shape(1:6) = [&
           tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none', .true.), &
           tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLACK',   12.0_rp, 'none', .true.)]
 
-tao_com%lat_layout%ele_shape = tao_com%floor_plan%ele_shape
+s%plotting%lat_layout%ele_shape = s%plotting%floor_plan%ele_shape
 
-allocate (s%template_plot(9)) 
+allocate (s%plotting%template(9)) 
 
 !---------------
 ! beta plot
 
-plt => s%template_plot(1)
+plt => s%plotting%template(1)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -956,7 +954,7 @@ crv%data_type = 'beta.b'
 !---------------
 ! eta plot
 
-plt => s%template_plot(2)
+plt => s%plotting%template(2)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -966,7 +964,7 @@ plt%graph(2)%p => plt
 allocate (plt%graph(1)%curve(1))
 allocate (plt%graph(2)%curve(1))
 
-plt = s%template_plot(1)
+plt = s%plotting%template(1)
 plt%name           = 'eta'
 
 grph => plt%graph(1)
@@ -987,7 +985,7 @@ crv%data_type = 'eta.y'
 !---------------
 ! Orbit plot
 
-plt => s%template_plot(3)
+plt => s%plotting%template(3)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -997,7 +995,7 @@ plt%graph(2)%p => plt
 allocate (plt%graph(1)%curve(1))
 allocate (plt%graph(2)%curve(1))
 
-plt = s%template_plot(1)
+plt = s%plotting%template(1)
 plt%name           = 'orbit'
 
 grph => plt%graph(1)
@@ -1018,7 +1016,7 @@ crv%data_type = 'orbit.y'
 !---------------
 ! Lat Layout plot
 
-plt => s%template_plot(4)
+plt => s%plotting%template(4)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1039,7 +1037,7 @@ grph%x             = init_axis
 !---------------
 ! Floor Plan plot
 
-plt => s%template_plot(5)
+plt => s%plotting%template(5)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1062,7 +1060,7 @@ grph%y             = init_axis
 !---------------
 ! Momentum
 
-plt => s%template_plot(6)
+plt => s%plotting%template(6)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1093,7 +1091,7 @@ crv%data_type = 'momentum'
 !---------------
 ! Momentum
 
-plt => s%template_plot(7)
+plt => s%plotting%template(7)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1124,7 +1122,7 @@ crv%data_type = 'time'
 !---------------
 ! phase plot
 
-plt => s%template_plot(8)
+plt => s%plotting%template(8)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1171,7 +1169,7 @@ crv%data_type = 'phase.b'
 !---------------
 ! Scratch plot
 
-plt => s%template_plot(9)
+plt => s%plotting%template(9)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1181,20 +1179,20 @@ plt%name = 'scratch'
 
 ! Regions
 
-allocate (s%plot_region(20))
+allocate (s%plotting%region(20))
 
 y_top = 0.85
-s%plot_region(1)%name = 'r_top'
-s%plot_region(1)%location = [0.0_rp, 1.0_rp, y_top, 1.00_rp]
+s%plotting%region(1)%name = 'r_top'
+s%plotting%region(1)%location = [0.0_rp, 1.0_rp, y_top, 1.00_rp]
 
 k = 1
 do i = 1, 4
   do j = 1, i
     k = k + 1
-    write (s%plot_region(k)%name, '(a, 2i0)') 'r', j, i
+    write (s%plotting%region(k)%name, '(a, 2i0)') 'r', j, i
     y1 = y_top * real(j-1)/ i
     y2 = y_top * real(j) / i
-    s%plot_region(k)%location = [0.0_rp, 1.0_rp, y1, y2]
+    s%plotting%region(k)%location = [0.0_rp, 1.0_rp, y1, y2]
   enddo
 enddo
 

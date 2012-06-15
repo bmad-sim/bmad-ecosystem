@@ -132,7 +132,7 @@ Do not put any spaces in between. Example:
 If there is a problem with \tao is started, \vn{-log_startup} can be used
 to create a log file of the initialization process.
   \item[\vn{-noinit}] \Newline
-Supresses use of a \tao initialization file. In this case the use of
+Suppresses use of a \tao initialization file. In this case the use of
 the \vn{-lat} switch is mandatory and \tao will use a set of default
 plot templates for plotting.
   \item[\vn{-noplot}] \Newline
@@ -468,7 +468,7 @@ number generator. \vn{"quasi"} uses Sobel quasi-random number
 generator which generates a distribution that is smoother then the
 pseudo-random number generator. \vn{"pseudo"} is the default.
 
-\vn{global%random_gauss_converter} selects the alogithm used in the
+\vn{global%random_gauss_converter} selects the algorithm used in the
 conversion from a uniform distribution to a Gaussian distribution.
 \vn{"exact"} is an exact conversion and \vn{"limited"} has a cut-off
 so that no particles are generated beyond. This cutoff is set by
@@ -483,7 +483,7 @@ setting \vn{%lattice_calc_on} back to \vn{True}. This saves some of
 the calculational overhead that each command generates. Similarly,
 \vn{global%plot_on} can be toggled to save even more time.
 
-The \vn{global%command_file_print_on} switch controlles whether printing
+The \vn{global%command_file_print_on} switch controls whether printing
 is suppressed when a command file is called.
 
 The rf cavities in circular lattices can be automatically be turned
@@ -687,7 +687,7 @@ The syntax is as follows:
     beam_init%renorm_center = <logical>        ! Default is T
     beam_init%renorm_sigma  = <logical>        ! Default is F
     beam_init%center_jitter = <number>*6       ! Bunch center rms jitter (meters)
-    beam_init%emit_jitter   = <bumber>*2       ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
+    beam_init%emit_jitter   = <number>*2       ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
     beam_init%sig_z_jitter  = <number>         ! bunch length rms jitter (dz/z)
     beam_init%sig_e_jitter  = <number>         ! bunch energy spread rms jitter (dE/E)
     beam_init%spin%polarization = <number>     ! spin polarization (1.0 = 100%)
@@ -827,7 +827,7 @@ new distribution, use the \vn{reinitialize beam} command
 (\sref{s:reinit}).
 
 The default is single particle tracking. To turn on particle tracking the
-\vn{global%track_type} perameter must be set to \vn{"beam"}. This can be placed in
+\vn{global%track_type} parameter must be set to \vn{"beam"}. This can be placed in
 the \vn{tao_params} namelist above, for example,
 \begin{example}
   &tao_params
@@ -1282,6 +1282,111 @@ merit function. If not present then the default weight of
 \vni{default_weight} is used. 
 
 %-----------------------------------------------------------------
+\section{Initializing a Building Wall}
+\index{building walls}
+\label{s:building.wall}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{building-wall.pdf}
+  \caption[Floor plot showing the walls of the building]
+{Floor plot showing the walls of the building (along with a section
+of a recirculation arc). Defining building walls can be useful for
+such things as floor plots and designing a machine to fit in an
+existing building.}
+  \label{f:building.wall}
+\end{figure}
+
+A two dimensional outline of the building containing the machine under
+simulation may be defined in \tao. This may be useful when drawing
+floor plans of the machine (\sref{s:floor.plan}) or to design a
+machine to fit within an existing building by optimizing
+(\sref{c:opti}) the position of the machine to be within the
+building's walls.
+
+The walls of a building are defined by a set of ``sections'' which are
+just curves that mark the wall boundaries. One such section is
+highlighted in Figure~\ref{f:building.wall} starting at the point
+marked ``point(1)'' and ending at the point marked ``point(N)''. Each
+section is defined by a set of points which are connected together using
+straight lines or circular arcs.
+
+The name of the file containing the building wall definition is given
+by the \vn{building_wall_file} variable in the \vn{tao_start} namelist
+(\sref{s:init.global}). This file will contain a number of
+\vn{building_wall_section} namelists. Each \vn{building_wall_section}
+namelist defines a single wall section. The syntax of this namelist is
+\begin{example}
+  &building_wall_section
+    \{constraint = <type>\}
+    point(1) = <z1>, <x1>
+    point(2) = <z2>, <x2>, \{<r2>\}
+    point(3) = <z3>, <x3>, \{<r3>\}
+    ... etc ...
+    point(N) = <zN>, <xN>, \{<rN>\}
+  /
+\end{example}
+The global coordinate system in \bmad (see the \bmad manual) defines
+the $(Z, X)$ plane as being horizontal.  [Note: $(Z, X)$ is used
+instead of $(X, Z)$ since $(Z, X, Y)$ forms a right handed coordinate
+system.] The points that define a wall section are specified in this
+coordinate system.  In the \vn{building_wall_section} namelist, the
+$(Z, X)$ position of each point defining a wall section is given along
+with an optional radius $r$. If a non-zero radius is given for point
+$j$, then the segment between point $j-1$ and $j$ is a circular arc of
+the given radius. If no radius is given, or if it is zero, the segment
+is a straight line. A radius for the first point, number 1, cannot be
+specified since this does not make sense. Additionally, a radius must
+be at least half the distance between the two points that define the
+end points of the arc.
+
+In general, given two end points and a radius, there are four possible
+arcs that can be drawn. The arc chosen follows the following convention:
+\begin{enumerate}
+\item
+The angle subtended by the arc is 180 degrees or less.
+\item
+If the radius for the arc from $j-1$ to $j$ is positive, the arc
+curves in a clockwise manner. If the radius is negative, the arc
+curves counterclockwise. This convention mimics the convention used
+for \vn{rbend} and \vn{sbend} elements.
+\end{enumerate}
+To define a wall that is circular, use three points with two 180
+degree arcs in between.
+
+When designing a machine to fit within the walls of a building, the
+\vn{constraint} variable of the namelist is used to designate whether
+the given wall section is on the $+x$ side of the machine or the $-x$
+side. Here $x$ is the local reference frame transverse coordinate. See
+the write up of the \vn{wall.right_side} and \vn{wall.left_side} constraints in
+\sref{s:data.types} for more details. Possible values for
+\vn{constraint} are:
+\begin{example}
+  "right_side"  ! Section is to be used with wall.x+ constraints
+  "left_side"   ! Section is to be used with wall.x- constraints
+  ""            ! Section is ignored in any constraint calculation.
+\end{example}
+
+Example:
+\begin{example}
+  &building_wall_section
+    constraint = "left_side"   
+    point(1) =  23.2837,    8.2842
+    point(2) = -10.9703,   13.8712, 107.345
+    point(3) = -10.8229,   14.7737
+  /
+\end{example}
+In this example, point 1 is at $(Z, X) = (23.2837, 8.2842)$, the
+segment between points 1 and 2 is an arc with a radius of 107.345
+meters, and the segment between points 2 and 3 is a straight
+line. Also this wall section is to be used when evaluating any
+\vn{wall.x+} constraint.
+
+Note: To position a machine in the global coordinate system, the
+starting point and starting orientation can be adjusted using
+\vn{beginning[...]} statements as explained in the \bmad manual.
+
+%-----------------------------------------------------------------
 \section{Initializing Plotting}\index{plotting initializing}
 \label{s:init.plot} 
 
@@ -1425,7 +1530,7 @@ In the \vn{tao_plot.init} file there needs to be defined a set of
 ``template plots''. A template plot specifies the layout of a plot:
 How the graphs are placed within a plot, what curves are associated
 with what graphs, etc. When running \tao, the information in a
-template plot may then be transfered to a region using the \vn{place}
+template plot may then be transferred to a region using the \vn{place}
 command and this will produce a visible plot.
 
 Template plots are defined using namelists with a name of
@@ -1566,13 +1671,13 @@ namelists should be placed directly after their respective
     graph%x                = <qp_axis_struct> ! Horizontal axis.
     graph%y                = <qp_axis_struct> ! Left axis.
     graph%y2               = <qp_axis_struct> ! Right axis.
-    graph%n_curve          = <number>         ! number of curves
     graph%clip             = <logical>        ! Clip curves at boundary? Default = T
     graph%draw_axes        = <logical>        ! Default = T
     graph%component        = "<string>"       ! Eg: "model - design"
     graph%symbol_size_scale      = <real>     ! Phase_space plots symbol scale factor
     graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
     graph%x_axis_scale_factor    = <factor>   ! Scale the x-axis by this.
+    graph%n_curve                = <number>   ! number of curves
     curve(i)%name                = "<string>" ! Default is "c<i>", <i> = curve num.
     curve(i)%data_source         = "<string>" ! Source for the data curve points
     curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data" or "var".
@@ -1622,11 +1727,12 @@ For example:
 will also include information about what is being plotted and the
 horizontal axis type. To fully suppress the title leave it blank.
 
-If there are multiple curves drawn with a graph then a curve legend showing
-what lines are associated with what data will be drawn. The default is to
-draw this legend in the upper left hand corner of the graph. By default, the
-\vn{data_type} of each curve will be used as the text for that curve's line in the legend.
-This default can be changed by setting a curve's \vn{curve%legend_tex}.
+If there are multiple curves drawn with a graph then a curve legend
+showing what lines are associated with what data will be drawn. The
+default is to draw this legend in the upper left hand corner of the
+graph. By default, the \vn{data_type} of each curve will be used as
+the text for that curve's line in the legend.  This default can be
+changed by setting a curve's \vn{curve%legend_tex}.
 
 \vn{graph%name} and \vn{curve%name} define names to be used with
 commands. The default names are just the letter \vn{g} or \vn{c} with
@@ -1635,60 +1741,86 @@ of the curve defaults to \vn{c1} and it would be referred to as
 \vn{orbit.x.c1}.  It is important that these names do not contain any
 blank spaces since \tao uses this fact in parsing the command line.
 
-\vn{graph%component} sets what variable or data components are to be
-plotted. In the above example, what will be plotted is \vn{model -
-design}. Possible components are:
-\index{model}\index{design}\index{base}\index{meas}\index{ref}
-\begin{example}
-  "model"     ! model values.
-  "design"    ! design values.
-  "base"      ! Base values
-  "meas"      ! data values.
-  "ref"       ! reference data values.
-\end{example}
-The default, if \vn{graph%component} is not
-specified, is for the graph will show \vn{model} values. 
-
-\vn{graph%type} is the type of graph. \tao knows about the
-following types:
-\index{data}\index{lat_layout}\index{key_table}\index{phase_space}
-\index{floor_plan}
-\begin{example}
-  "data"         ! Data plots (default) 
-  "floor_plan"   ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
-  "key_table"    ! Key binding table for single mode (\sref{s:key.table}).
-  "lat_layout"   ! Schematic showing placement of the lattice elements (\sref{s:lat.layout}).
-  "phase_space"  ! Phase space plots (\sref{s:phase.space}).
-\end{example}
-The \vn{key_table} is drawn with respect to the upper left hand corner
-of the region in which it is placed.
-
-With \vn{graph%type} set to \vn{floor_plan}, the layout of the machine
-is drawn. The \bmad global reference system is covered in Chapter~1
-of the \bmad reference manual. With the \bmad global reference system
-the $X-Z$ axes define the horizontal plane The conversion between
-\bmad global axes and \tao graph axes is:
-\begin{example}
-  Bmad      Tao
-  X    ->   -y
-  Z    ->   -x
-\end{example}
-Unless there is an offset specified in the lattice file, a lattice
-will start at $(x, y) = (0, 0)$. Assuming that the machine lies in the
-plane with no negative bends, the reference orbit will start out
-pointing in the negative $x$ direction and will circle clockwise in
-the $(x, y)$ plane. To prevent the drawing of the axes set 
-\vn{graph%draw_axes} to F
-
 \vn{graph%box} sets the layout of the box which the \vn{graph} is
 placed in. For a definition of what a box is see the Quick Plot
 documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
 
+\vn{graph%type} is the type of graph. \tao knows about the
+following types:
+\index{data}\index{lat_layout}\index{key_table}\index{phase_space}
+\index{floor_plan}\index{beam_chamber_wall}
+\begin{example}
+  "beam_chamber_wall"  ! Draw the beam chamber wall (\sref{s:beam.wall.draw}).
+  "data"               ! Data and/or variable plots (default) (\sref{s:plot.data}).
+  "floor_plan"         ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
+  "key_table"          ! Key binding table for single mode (\sref{s:key.table}).
+  "lat_layout"         ! Schematic showing placement of the lattice elements (\sref{s:lat.layout}).
+  "phase_space"        ! Phase space plots (\sref{s:phase.space}).
+\end{example}
+Note: \vn{"floor_plan"}, \vn{"key_table"} and \vn{"lat_layout"} graphs
+do not have associated \vn{curve}s. The \vn{"beam_chamber_wall"} type
+graph can have a single associated \vn{curve}.
+
+With \vn{graph%type} set to \vn{"beam_chamber_wall"}
+(\sref{s:beam.wall.draw}), the beam chamber wall is drawn if it has
+been defined in the \bmad lattice file.
+
+With \vn{graph%type} set to \vn{"data"} (\sref{s:plot.data}), data such
+as orbits and/or variable values such as quadrupole strengths are
+plotted. Here ``data'' can be data from a defined data structure
+(\sref{c:data}) or computed directly from the lattice, beam tracking,
+etc. A \vn{"data"} graph type will contain a number of \vn{curves} and
+multiple data and variable curves can be drawn in one graph.
+
+With \vn{graph%type} set to \vn{floor_plan} (\sref{s:floor.plan}), the
+two dimensional layout of the machine is drawn.
+
+With \vn{graph%type} set to \vn{"key_table"} (\sref{s:key.table}), the 
+key bindings for use in single mode (\sref{s:key.bind}) are displayed.
+
+With \vn{graph%type} set to \vn{lat_layout} (\sref{s:lat.layout}), the
+elements of the lattice are symbolical drawn in a one dimensional
+line as a function of the longitudinal distance along the machine
+centerline.
+
+With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}),
+phase space plots are produced.
+
+%-----------------------------------------------------------------
+\subsection{Data and Variable plotting}
+\label{s:plot.data}
+
+A \vn{graph} (\sref{s:template}), with \vn{graph%type} equal to
+\vn{"data"}, is used to draw ``data'' such as orbits and/or variable
+values such as quadrupole strengths. A data \vn{graph} will have a
+number of associated \vn{curve}s with each curve defining a particular
+data type to plot. 
+
+The data values will depend upon where the data
+comes from. This is determined, in part, by the setting of
+\vn{graph%component}. \vn{graph%component} may be one of:
+\index{model}\index{design}\index{base}\index{meas}\index{ref}
+\begin{example}
+  "model"     ! model values. Default.
+  "design"    ! design values.
+  "base"      ! Base values
+  "meas"      ! data values.
+  "ref"       ! reference data values.
+\end{example}
+The default, if \vn{graph%component} is not specified, is to use
+\vn{"model"}. Additionally, \vn{graph%component} may be set to plot a
+linear combination of the above. For example:
+\begin{example}
+  graph%component = "model - design"
+\end{example}
+This will plot the difference between the \vn{model} and \vn{design}
+values.
+
 \index{dat}\index{var}\index{calculation}
 \index{curve!data_source}
-The \vn{curve} structure is used to define the curves that are plotted
+The \vn{curve} structure is used to define the data that is plotted
 in each graph. \vn{curve%data_source} is the type of information for
 the source of the data points. \vn{curve%data_source} must be one of:
 \begin{example}
@@ -1767,51 +1899,11 @@ component. If it is desired to have differing scales for different
 graphs, the \vn{graph%x} component can be used.
 
 %-----------------------------------------------------------------
-\subsection{Plotting With a Variable Value on the X-Axis}
-\index{plot!plotting as a function of a variable}
-\label{s:plot.var}
-
-Data can be plotted as a function of a variable by setting
-\vn{plot%x_axis_type} to \vn{"lat"} (for lattice variables) or
-\vn{"var"} (for \tao variables) and setting \vn{curve(:)%data_type_x}
-to the name of the variable. In this case, the \vn{curve(:)%data_type}
-must evaluate to a single number.
-
-Example:
-\begin{example}
-  &tao_template_plot
-    plot%x_axis_type = "lat"
-    ...
-  /
-
-  &tao_template_graph
-    ...
-    curve(1)%data_type_x = "beam_start[x]"  ! X-axis values.
-    curve(1)%data_type   = "orbit.x[10]"    ! Y-axis values.
-    ...
-  /
-\end{example}
-
-Note: \tao treats the \vn{design} and \vn{base} lattices as static so
-that varying a variable will not affect these lattices. Thus,
-constructing a plot with \vn{graph%component} set to, for example,
-\vn{"model - design"} will {\em not} produce a plot that is the
-difference between varying a variable in both \vn{model} and
-\vn{design} lattices. In the case where such a plot is desired, a
-second universe needs to be established. In this case, one would set
-\vn{curve(:)%data_type} to something like
-\begin{example}
-    curve(1)%data_type   = "1@orbit.x[10] - 2@orbit.x[10]"    
-\end{example}
-where the universe \#2 \vn{model} lattice would be setup to be equal
-to the universe \#1 \vn{design} lattice.
-
-%-----------------------------------------------------------------
 \subsection{Graphing a Data Slice}\index{plot!data slice}
 \label{s:graph.data.slice}
 
 The standard data graph, as presented in the previous subsection,
-plots data from a given \vn{d1_data} arrays. It is also possible to
+plots data from a given \vn{d1_data} array. It is also possible to
 graph data that has been ``sliced'' in other ways. For example,
 suppose a number of universes have been established, with each
 universe representing the same machine but with different steerings
@@ -1889,7 +1981,48 @@ components are specified, the \vn{graph%component} settings are ignored for
 that expression.
 
 %-----------------------------------------------------------------
-\subsection{Drawing a Lattice Layout}\index{lattice layout}
+\subsection{Plotting With a Variable Value on the X-Axis}
+\index{plot!plotting as a function of a variable}
+\label{s:plot.var}
+
+Data can be plotted as a function of a variable by setting
+\vn{plot%x_axis_type} to \vn{"lat"} (for lattice variables) or
+\vn{"var"} (for \tao variables) and setting \vn{curve(:)%data_type_x}
+to the name of the variable. In this case, the \vn{curve(:)%data_type}
+must evaluate to a single number.
+
+Example:
+\begin{example}
+  &tao_template_plot
+    plot%x_axis_type = "lat"
+    ...
+  /
+
+  &tao_template_graph
+    ...
+    curve(1)%data_type_x = "beam_start[x]"  ! X-axis values.
+    curve(1)%data_type   = "orbit.x[10]"    ! Y-axis values.
+    ...
+  /
+\end{example}
+
+Note: \tao treats the \vn{design} and \vn{base} lattices as static so
+that varying a variable will not affect these lattices. Thus,
+constructing a plot with \vn{graph%component} set to, for example,
+\vn{"model - design"} will {\em not} produce a plot that is the
+difference between varying a variable in both \vn{model} and
+\vn{design} lattices. In the case where such a plot is desired, a
+second universe needs to be established. In this case, one would set
+\vn{curve(:)%data_type} to something like
+\begin{example}
+    curve(1)%data_type   = "1@orbit.x[10] - 2@orbit.x[10]"    
+\end{example}
+where the universe \#2 \vn{model} lattice would be setup to be equal
+to the universe \#1 \vn{design} lattice.
+
+%-----------------------------------------------------------------
+\subsection{Drawing a Lattice Layout}
+\index{lattice layout}
 \label{s:lat.layout}
 
 \begin{figure}
@@ -1931,7 +2064,8 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
     graph%ix_universe = <integer> ! -1 => use currently viewed universe
     graph%ix_branch   = <integer> !  0 => use main lattice.
     graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
-    graph%n_curve     = 0
+    graph%y%min       = <real>    ! Default: -100
+    graph%y%max       = <real>    ! Default:  100
   /
 \end{example}
 Example:
@@ -1950,8 +2084,7 @@ Example:
     graph%type        = "lat_layout"
     graph%box         = 1, 1, 1, 1
     graph%ix_universe = 1
-    graph%margin      = 0.12, 0.12, 0.12, 0.12, "%BOX"
-    graph%n_curve     = 0
+    graph%margin      = 0.12, 0.12, 0.30, 0.06, "%BOX"
   /
 \end{example}
 
@@ -1966,7 +2099,7 @@ suppressed by setting
 \end{example}
 
 %-----------------------------------------------------------------
-\subsection{Floor Plan Drawing}
+\subsection{Drawing a Floor Plan}
 \index{floor plan drawing}
 \label{s:floor.plan}
 
@@ -1987,8 +2120,8 @@ and which elements are drawn is determined by an
 The placement of an element in the drawing is determined by the
 element's coordinates in \vn{global reference system}.  See the Bmad
 manual for more information on the \vn{global reference system}.  In
-the \vn{global reference system}, the $(X, Z)$ plane is horizontal
-plane.  The conversion between the $(X, Z)$ coordinates of the
+the \vn{global reference system}, the $(Z, X)$ plane is the horizontal
+plane.  The conversion between the $(Z, X)$ coordinates of the
 \vn{global reference system} and the $(x, y)$ coordinates of the floor
 plan plot are:
 \begin{example}
@@ -2001,9 +2134,14 @@ An overall rotation of the floor plan can be controlled by setting
 \begin{example}
   plot_page%floor_plan_rotation
 \end{example}
+
 Alternatively, the global coordinates at the start of the lattice can
-be defined in the lattice file and this can rotate the floor plan. See
-the Bmad manual for more details.
+be defined in the lattice file and this can rotate the floor plan.
+Unless there is an offset specified in the lattice file, a lattice
+will start at $(x, y) = (0, 0)$. Assuming that the machine lies in the
+horizontal plane with no negative bends, the reference orbit will
+start out pointing in the negative $x$ direction and will circle
+clockwise in the $(x, y)$ plane.
 
 Example Floor Plan template:
 \begin{example}
@@ -2030,17 +2168,19 @@ Example Floor Plan template:
     graph%correct_xy_distortion = T
   /
 \end{example}
+To prevent the drawing of the axes set 
+\vn{graph%draw_axes} to F
 
-If \vn{graph%correct_xy_distortion} is set to \vn{True} (default is
-\vn{False}), then the horizontal or vertical margins of the graph will be
-increased so that the horizontal scale (meters per plotting inch) is equal
-to the vertical scale.
+By default, the horizontal or vertical margins of the graph will be
+increased so that the horizontal scale (meters per plotting inch) is
+equal to the vertical scale.  If \vn{graph%correct_xy_distortion} is
+set to \vn{False}, this scaling will not be done.
 
-Note: The \vn{show ele} command (\sref{s:show}) can be used to view an
-element's global coordinates.
+Note: The \vn{show ele -floor} command (\sref{s:show}) can be used to
+view an element's global coordinates.
 
 %-----------------------------------------------------------------
-\subsection{Lat_layout and Floor_plan Drawings}
+\subsection{Defining Shapes for Lat_layout and Floor_plan Drawings}
 \index{lat_layout drawings}
 \index{floor_plan drawings}
 \label{s:layout.and.floor}
@@ -2048,20 +2188,15 @@ element's global coordinates.
 \vn{Floor plan} (\sref{s:floor.plan}) and \vn{lattice layout} drawings
 use various shapes, sizes, and colors to represent lattice
 elements. The association of a particular element with a given shape
-is determined via two namelists: \vn{lat_layout_drawing} for
-the lattice layout and \vn{floor_plan_drawing} for floor plan
-drawings.  Two different namelists are used since it is sometimes
-artistically pleasing to use, say, a different size for floor plans
-and lattice layouts.
+is determined via two namelists: \vn{lat_layout_drawing} for the
+lattice layout and \vn{floor_plan_drawing} for floor plan drawings.
+Two different namelists are used since, for example, a size that is
+good for a layout will not necessarily be good for a floor plan.
 
 The namelist syntax is the same for both:
 \begin{example}
   &lat_layout_drawing
-    draw_beam_chamber_wall  = <logical>
-    beam_chamber_wall_scale = <num> 
-    draw_orbit              = <logical>
-    orbit_scale             = <num> 
-    ele_shape(i) = "<ele_name>" "<shape>" "<color>" "<v_size>" "<label>" <draw> 
+    ele_shape(i) = "<name>" "<shape>" "<color>" "<v_size>" "<label>" <draw> 
   /
 
   &floor_plan_drawing
@@ -2071,7 +2206,7 @@ The namelist syntax is the same for both:
 For Example:                 
 \begin{example}
   &floor_plan_drawing
-    !              ele_name                 Shape     Color V_Size    Label Draw?
+    !               name                    Shape     Color  V_Size   Label Draw?
     ele_shape(1) = "quadrupole::q*"         "box"     "red"     30     name  T    
     ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     none 
     ele_shape(3) = "sbend::*"               "box"     "blue"    15     none  F
@@ -2081,7 +2216,7 @@ For Example:
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the
-\vn{<ele_name>} specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.
+\vn{<name>} specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.
 Thus, in the example above, \vn{ele_shape(1)} will match to all
 quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will
 match all quadrupoles. If an element matches more than one shape the
@@ -2109,26 +2244,25 @@ drawn. Valid Shapes are:
   "bow_tie"         -- Bow-tie shape.
   "circle"          -- Circle centered at center of element.
   "diamond"         -- Diamond shape.
-  "none"            -- No shape drawn.
   "var_box"         -- Rectangular box with variable height. 
                         The box is symmetric about the center line.
   "x"               -- "X" centered at center of element
   "xbox"            -- Rectangular box with an x through it.
 \end{example}
-The \vn{"none"} option is useful for only drawing the beam chamber wall
-without an accompanying drawn shape.
 
 The width of a drawn shape is the width of the associated element. The
 exception is the \vn{"x"} shape whose width is always the same as the
 height determined by the \vn{<v_size>} setting.
 
-\vn{<v_size>} is the vertical half height of the shape with
-\vn{<v_size>} = 100 corresponding to full scale. For
-\vn{var_height_box}, the height is proportional to the element
-strength and here \vn{<v_size>} is the multiplyer used to scale from
-element strength to vertical height. For example, for a quadrupole the
-height is proportional to the \vn{K1} focusing strength. Not all
-lattice elements can be used with a \vn{var_height_box}.
+\vn{<v_size>} is the vertical half height of the shape.  For
+\vn{lat_layout} drawings, \vn{<v_size>} = 100 corresponds to full
+scale if the default \vn{graph%y%min} and \vn{graph%y%max} are
+used. For \vn{var_height_box}, the height is proportional to the
+element strength and here \vn{<v_size>} is the multiplier used to
+scale from element strength to vertical height. For example, for a
+quadrupole the height is proportional to the \vn{K1} focusing
+strength. Not all lattice elements can be used with a
+\vn{var_height_box}.
 
 \vn{<color>} is the color of the shape. Good colors to use are:
 \index{element shape!color}
@@ -2157,30 +2291,28 @@ The \vn{<draw>} field determines if a shape is drawn or not. The
 default is \vn{T}. This can be useful for toggling on and off the
 drawing of shapes using the \vn{set shape} command (\sref{s:set}).
 
-\index{beam chamber wall}
-When an element has
-
-The \vn{draw_beam_chamber_wall} logical determines whether the beam
-chamber wall is drawn and the setting of \vn{beam_chamber_wall_scale}
-determines how the wall is scaled when it is drawn. Beam chamber walls
-are only drawn for an element if the element has an associated
-\vn{ele_shape}. To draw the wall without drawing a shape, set the
-\vn{shape} parameter for the appropriate \vn{ele_shape} to
-\vn{"none"}. 
-
-The \vn{<v_size>} 
-Note: Beam chamber walls, which are different from
-building walls (\sref{s:building.wall}), are defined in the \bmad
-lattice file and are associated with individual elements. See the
-\bmad manual for more details.
-
-The \vn{draw_orbit} logical determines whether the particle orbit is
-drawn. This is independent of what elements are drawn. The
-\vn{orbit_scale} determines how the orbit is scaled.
-
 Note: There is an old, deprecated syntax where both the lattice layout
 and floor plan drawings are specified via one \vn{element_shapes}
 namelist.
+
+%-----------------------------------------------------------------
+\subsection{Drawing the Beam Chamber Wall}
+\index{beam chamber wall}
+\label{s:beam.wall.draw}
+
+If a beam chamber wall has been defined in the lattice file, This wall
+can be drawn in a \vn{graph} by setting \vn{graph%type} to
+\vn{"beam_chamber_wall"}.
+
+Beam chamber walls are drawn, like a \vn{lat_layout}, on a one
+dimensional line as a function of longitudinal position along the
+machine centerline. A beam chamber wall graph may be combined with a
+\vn{lat_layout} graph by assigning both graphs to the same plot and 
+setting \vn{graph%box} to be the same for both to physically place
+both of them at the same spot.
+
+To set the line color or width for the beam chamber wall, 
+set \vn{curve(1)%line%color} or \vn{curve(1)%line%width}.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Key Table}
@@ -2189,7 +2321,8 @@ namelist.
 
 The \vn{key table} is explained more fully in
 Section~\sref{s:key.bind}.  An example is shown in
-Figure~\ref{f:layout.table}. A template to create a key table looks like:
+Figure~\ref{f:layout.table}. A template to create a key table looks
+like:
 \begin{example}
   &tao_template_plot
     plot%name = "table" 
@@ -2217,15 +2350,12 @@ shows the active \vn{key bank}. The columns in the Key Table are:
   Opt        ! Shows if bound attribute is used in an optimization.
 \end{example}
 
-Note that in a \vn{Lattice Layout}, if a displayed element has a bound attribute, then
-the key index number will be displayed just above the element's glyph
+Note that in a \vn{Lattice Layout}, if a displayed element has a bound
+attribute, then the key index number will be displayed just above the
+element's glyph.
 
-%-----------------------------------------------------------------
-\subsection{Building Wall Plotting}
-\index{building wall plotting}
-\label{s:building.wall}
-
-
+The \vn{key_table} is drawn with respect to the upper left hand corner
+of the region in which it is placed.
 
 %-----------------------------------------------------------------
 \subsection{Phase Space Plotting}
@@ -2240,7 +2370,10 @@ the key index number will be displayed just above the element's glyph
 \end{figure}
 
 A \vn{Phase Space} plot displays a particle or particles phase space
-coordinates at a given location. An example is show in Figure~\ref{f:phase.space}.
+coordinates at a given location. Phase space plotting is associated
+with a \vn{graph} by setting \vn{graph%type} equal to
+\vn{"phase_space"}. The concepts here are similar to data plotting
+(\sref{s:plot.data}). An example is show in Figure~\ref{f:phase.space}.
 Example Phase Space template:
 \begin{example}
   &tao_template_plot

@@ -3,6 +3,7 @@ module tao_set_mod
 use tao_mod
 use tao_data_and_eval_mod
 use tao_lattice_calc_mod
+use tao_input_struct
 
 contains
 
@@ -633,7 +634,7 @@ end subroutine tao_set_beam_init_cmd
 !   set_value2    -- Character(*): 2nd value if component is an array.
 !
 !  Output:
-!    s%plot_page  -- tao_plot_page_struct:
+!    s%plot       -- tao_plotting_struct:
 !-
 
 subroutine tao_set_plot_page_cmd (component, set_value, set_value2)
@@ -650,6 +651,7 @@ real(rp) x, y
 integer iu, ios
 logical error
 
+
 namelist / params / plot_page
 
 ! Special cases
@@ -657,12 +659,12 @@ namelist / params / plot_page
 select case (component)
 
 case ('title')
-  s%plot_page%title(1)%string = trim(set_value)
+  s%plotting%title(1)%string = trim(set_value)
   return
 
 case ('subtitle')
-  s%plot_page%title(2)%string = trim(set_value)
-  s%plot_page%title(2)%draw_it = .true.
+  s%plotting%title(2)%string = trim(set_value)
+  s%plotting%title(2)%draw_it = .true.
   return
 
 case ('subtitle_loc')
@@ -674,8 +676,8 @@ case ('subtitle_loc')
 
   read(set_value, '(f15.10)') x
   read(set_value2, '(f15.10)') y
-  s%plot_page%title(2)%x = x
-  s%plot_page%title(2)%y = y
+  s%plotting%title(2)%x = x
+  s%plotting%title(2)%y = y
   return
 
 end select
@@ -694,7 +696,9 @@ write (iu, *) '&params'
 write (iu, *) ' plot_page%' // trim(component) // ' = ' // trim(set_value)
 write (iu, *) '/'
 rewind (iu)
-plot_page = s%plot_page  ! set defaults
+
+call set_plot_page (s%plotting, plot_page)
+
 read (iu, nml = params, iostat = ios)
 close (iu)
 
@@ -703,7 +707,7 @@ if (ios /= 0) then
   return
 endif
 
-s%plot_page = plot_page
+call set_plotting (plot_page, s%plotting)
 
 end subroutine tao_set_plot_page_cmd
 

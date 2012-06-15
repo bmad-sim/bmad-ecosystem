@@ -62,9 +62,9 @@ y_max = y_max_in
 ! If the where argument is blank or '*', then scale all plots.
 
 if (len_trim(where) == 0 .or. where == '*' .or. where == 'all') then
-  do j = 1, size(s%plot_region)
-    if (.not. s%plot_region(j)%visible) cycle
-    call tao_scale_plot (s%plot_region(j)%plot, y_min, y_max, axis, gang)
+  do j = 1, size(s%plotting%region)
+    if (.not. s%plotting%region(j)%visible) cycle
+    call tao_scale_plot (s%plotting%region(j)%plot, y_min, y_max, axis, gang)
   enddo
   return
 endif
@@ -194,12 +194,13 @@ subroutine tao_scale_graph (graph, y_min, y_max, axis)
 
 type (tao_graph_struct) graph
 type (lat_struct), pointer :: lat
-type (floor_position_struct) end
+type (tao_ele_shape_struct), pointer :: shape
+type (floor_position_struct) floor, end
 type (qp_axis_struct) axis_save
 
 real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
 
-integer i, ix, ib, p1, p2
+integer i, j, k, ix, ib, p1, p2
 character(*), optional :: axis
 character(4) this_axis
 logical found_data, found_data2
@@ -265,6 +266,7 @@ if (graph%type == 'floor_plan') then
   lat => s%u(ix)%model%lat
   this_min = 1e30
   this_max = -1e30
+
   do ib = 0, ubound(lat%branch, 1)
     do i = 0, lat%branch(ib)%n_ele_track
       call floor_to_screen_coords (lat%branch(ib)%ele(i)%floor, end)
@@ -274,6 +276,25 @@ if (graph%type == 'floor_plan') then
     enddo
   enddo
 
+  if (allocated(s%building_wall%section)) then
+    do i = 1, size(s%plotting%floor_plan%ele_shape)
+      shape => s%plotting%floor_plan%ele_shape(i)
+      if (shape%ele_name /= 'wall::building') cycle
+      if (.not. shape%draw) cycle
+      do j = 1, size(s%building_wall%section)
+        do k = 1, size(s%building_wall%section(j)%point)
+          floor%x = s%building_wall%section(j)%point(k)%x
+          floor%z = s%building_wall%section(j)%point(k)%z
+          floor%y = 0
+          floor%theta = 0
+          call floor_to_screen_coords (floor, end)
+          if (end%x > graph%p%x%max .or. end%x < graph%p%x%min) cycle
+          this_min = min(this_min, end%y)
+          this_max = max(this_max, end%y)
+        enddo
+      enddo
+    enddo
+  endif
 
 ! Not a floor plan
 

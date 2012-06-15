@@ -573,9 +573,9 @@ integer i, j
 
 !
 
-do i = 1, size(s%plot_region)
-  if (.not. s%plot_region(i)%visible) cycle
-  plot => s%plot_region(i)%plot
+do i = 1, size(s%plotting%region)
+  if (.not. s%plotting%region(i)%visible) cycle
+  plot => s%plotting%region(i)%plot
   if (plot%autoscale_gang_x) then
     call tao_x_scale_plot (plot, plot%x%min * factor, plot%x%max * factor)
   else
@@ -601,8 +601,8 @@ real(rp) factor
 
 !
 
-do i = 1, size(s%plot_region)
-  plot => s%plot_region(i)%plot
+do i = 1, size(s%plotting%region)
+  plot => s%plotting%region(i)%plot
   if (.not. allocated (plot%graph)) cycle
   do j = 1, size(plot%graph)
     graph => plot%graph(j) 
@@ -627,8 +627,8 @@ real(rp) factor, w, c
 
 !
 
-do i = 1, size(s%plot_region)
-  plot => s%plot_region(i)%plot
+do i = 1, size(s%plotting%region)
+  plot => s%plotting%region(i)%plot
   do j = 1, size(plot%graph)
     graph => plot%graph(j)
     w = (graph%x%max - graph%x%min) * factor / 2
@@ -652,8 +652,8 @@ real(rp) factor, w, c
 
 !
 
-do i = 1, size(s%plot_region)
-  plot => s%plot_region(i)%plot
+do i = 1, size(s%plotting%region)
+  plot => s%plotting%region(i)%plot
   if (.not. allocated (plot%graph)) cycle
   do j = 1, size(plot%graph)
     graph => plot%graph(j) 
@@ -685,8 +685,8 @@ real(rp) factor, w
 
 !
 
-do i = 1, size(s%plot_region)
-  plot => s%plot_region(i)%plot
+do i = 1, size(s%plotting%region)
+  plot => s%plotting%region(i)%plot
   do j = 1, size(plot%graph)
     graph => plot%graph(j) 
     w = factor * (graph%x%max - graph%x%min)
@@ -709,8 +709,8 @@ real(rp) factor, w
 
 !
 
-do i = 1, size(s%plot_region)
-  plot => s%plot_region(i)%plot
+do i = 1, size(s%plotting%region)
+  plot => s%plotting%region(i)%plot
   if (.not. allocated (plot%graph)) cycle
   do j = 1, size(plot%graph)
     graph => plot%graph(j)

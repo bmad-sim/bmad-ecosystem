@@ -183,7 +183,7 @@ end type
 
 type (show_lat_column_struct) column(50)
 
-real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, beta
+real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z
 real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
@@ -225,11 +225,11 @@ logical bmad_format, good_opt_only, show_lords, show_custom, print_cross_section
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
+logical print_global, print_optimization, print_bmad_com, print_csr_param, print_rad_int
+logical valid_value, print_floor
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
-logical print_global, print_optimization, print_bmad_com, print_csr_param, print_rad_int
-logical valid_value
 
 namelist / custom_show_list / column
 
@@ -869,6 +869,7 @@ case ('derivative')
 
 case ('element')
 
+  print_floor = .false.
   print_taylor = .false.
   print_em_field = .false.
   print_all = .false.
@@ -881,18 +882,24 @@ case ('element')
     call tao_next_switch (stuff2, ['-taylor        ', '-em_field      ', &
                 '-all_attributes', '-data          ', '-design        ', &
                 '-no_slaves     ', '-cross_section ', '-base          ', &
-                '-field         '], switch, err, ix)
+                '-field         ', '-floor_coords  '], switch, err, ix)
     if (err) return
-    if (switch == '') exit
-    if (switch == '-taylor') print_taylor = .true.
-    if (switch == '-design') lat_type = design$
-    if (switch == '-base') lat_type = base$
-    if (switch == '-em_field') print_em_field = .true.  ! Old style. Use "-field".
-    if (switch == '-field')    print_em_field = .true.
-    if (switch == '-all_attributes') print_all = .true.
-    if (switch == '-data') print_data = .true.
-    if (switch == '-no_slaves') print_slaves = .false.
-    if (switch == '-cross_section') print_cross_section = .true.
+    select case (switch)
+    case ('');                exit
+    case ('-floor_coords');   print_floor = .true.
+    case ('-taylor');         print_taylor = .true.
+    case ('-design');         lat_type = design$
+    case ('-base');           lat_type = base$
+    case ('-em_field');       print_em_field = .true.  ! Old style. Use "-field".
+    case ('-field');          print_em_field = .true.
+    case ('-all_attributes'); print_all = .true.
+    case ('-data');           print_data = .true.
+    case ('-no_slaves');      print_slaves = .false.
+    case ('-cross_section');  print_cross_section = .true.
+    case default
+      call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND: ' // switch)
+      return
+    end select
   enddo
 
   call str_upcase (ele_name, stuff2)
@@ -963,7 +970,7 @@ case ('element')
   tao_lat => tao_pointer_to_tao_lat (u, lat_type)
 
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
-            .true., tao_lat%lat, .true., .true., print_em_field, print_cross_section)
+            .true., tao_lat%lat, .true., print_floor, print_em_field, print_cross_section)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = ptr_lines(1:n)
@@ -988,13 +995,12 @@ case ('element')
       nl=nl+1; write (lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%e_field_y**2, orb%phase_y
       nl=nl+1; write (lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
     else
-      call convert_pc_to ((1 + orb%vec(6)) * ele%value(p0c$), branch%param%particle, beta = beta)
-      z = (ele%ref_time - orb%t) * beta * c_light
-      fmt = '(2x, a, 3p2f15.8, a, es16.8)'
+      z = (ele%ref_time - orb%t) * orb%beta * c_light
+      fmt = '(2x, a, 2f15.8, a, es16.8, 2x, a, f9.6)'
       nl=nl+1; lines(nl) = 'Orbit:   Position[mm] Momentum[mrad]  |                            Time'
-      nl=nl+1; write (lines(nl), fmt) 'X:  ', orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t
-      nl=nl+1; write (lines(nl), fmt) 'Y:  ', orb%vec(3:4),   '  | Abs-Ref [sec]:    ', orb%t - ele%ref_time
-      nl=nl+1; write (lines(nl), fmt) 'Z:  ', orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z
+      nl=nl+1; write (lines(nl), fmt) 'X:  ', 1000*orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t
+      nl=nl+1; write (lines(nl), fmt) 'Y:  ', 1000*orb%vec(3:4),   '  | Abs-Ref [sec]:    ', orb%t - ele%ref_time
+      nl=nl+1; write (lines(nl), fmt) 'Z:  ', 1000*orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z, 'beta:', orb%beta
     endif
   endif
 
@@ -1903,8 +1909,8 @@ case ('plot')
     nl=nl+1; lines(nl) = &
           '----------  ----------------------------    --------      -----           ----  -----  ----'
 
-    do i = 1, size(tao_com%floor_plan%ele_shape)
-      shape => tao_com%floor_plan%ele_shape(i)
+    do i = 1, size(s%plotting%floor_plan%ele_shape)
+      shape => s%plotting%floor_plan%ele_shape(i)
       if (shape%ele_name == '') cycle
       nl=nl+1; write (lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 'shape', i, shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
@@ -1925,8 +1931,8 @@ case ('plot')
     nl=nl+1; lines(nl) = &
           '----------  ----------------------------    --------      -----           ----  -----  ----'
 
-    do i = 1, size(tao_com%lat_layout%ele_shape)
-      shape => tao_com%lat_layout%ele_shape(i)
+    do i = 1, size(s%plotting%lat_layout%ele_shape)
+      shape => s%plotting%lat_layout%ele_shape(i)
       if (shape%ele_name == '') cycle
       nl=nl+1; write (lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 'shape', i, shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
@@ -1942,23 +1948,23 @@ case ('plot')
   if (stuff2 == ' ') then
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
-    nl=nl+1; write (lines(nl), rmt)  '%size                       = ', s%plot_page%size       
-    nl=nl+1; write (lines(nl), imt)  '%n_curve_pts                = ', s%plot_page%n_curve_pts
-    nl=nl+1; write (lines(nl), f3mt) '%text_height                = ', s%plot_page%text_height 
-    nl=nl+1; write (lines(nl), f3mt) '%main_title_text_scale      = ', s%plot_page%main_title_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%graph_title_text_scale     = ', s%plot_page%graph_title_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%axis_number_text_scale     = ', s%plot_page%axis_number_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%axis_label_text_scale      = ', s%plot_page%axis_label_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%key_table_text_scale       = ', s%plot_page%key_table_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%legend_text_scale          = ', s%plot_page%legend_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%floor_plan_rotation        = ', s%plot_page%floor_plan_rotation
+    nl=nl+1; write (lines(nl), rmt)  '%size                       = ', s%plotting%size       
+    nl=nl+1; write (lines(nl), imt)  '%n_curve_pts                = ', s%plotting%n_curve_pts
+    nl=nl+1; write (lines(nl), f3mt) '%text_height                = ', s%plotting%text_height 
+    nl=nl+1; write (lines(nl), f3mt) '%main_title_text_scale      = ', s%plotting%main_title_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%graph_title_text_scale     = ', s%plotting%graph_title_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%axis_number_text_scale     = ', s%plotting%axis_number_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%axis_label_text_scale      = ', s%plotting%axis_label_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%key_table_text_scale       = ', s%plotting%key_table_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%legend_text_scale          = ', s%plotting%legend_text_scale 
+    nl=nl+1; write (lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
     nl=nl+1; lines(nl) = '   Plot                .Graph'
     nl=nl+1; lines(nl) = '   ------------------  ----------'
-    do i = 1, size(s%template_plot)
-      p => s%template_plot(i)
+    do i = 1, size(s%plotting%template)
+      p => s%plotting%template(i)
       if (p%name == '') cycle
       if (p%name == 'scratch') cycle
       if (allocated(p%graph)) then
@@ -1976,8 +1982,8 @@ case ('plot')
                          '         <-->  Template             x1    x2    y1    y2'  
     nl=nl+1; lines(nl) = '-------  -----------' // &
                          '               -----------------------------------------'
-    do i = 1, size(s%plot_region)
-      region => s%plot_region(i)
+    do i = 1, size(s%plotting%region)
+      region => s%plotting%region(i)
       if (region%name == '') cycle
       nl=nl+1; write (lines(nl), '(3x l1, 5x, a20, a, a18, 4f6.2)') region%visible, &
                                     region%name, '<-->  ', region%plot%name, region%location

@@ -60,18 +60,18 @@ if (allocated(graph)) deallocate(graph)
 
 if (len_trim(where) == 0 .or. where == '*' .or. where == 'all' .or. where == 's') then
   n = 0
-  do j = 1, size(s%plot_region)
-    if (.not. s%plot_region(j)%visible) cycle
-    if (where == 's' .and. s%plot_region(j)%plot%x_axis_type /= 's') cycle
+  do j = 1, size(s%plotting%region)
+    if (.not. s%plotting%region(j)%visible) cycle
+    if (where == 's' .and. s%plotting%region(j)%plot%x_axis_type /= 's') cycle
     n = n + 1
   enddo
   allocate (plot(n))
   n = 0
-  do j = 1, size(s%plot_region)
-    if (.not. s%plot_region(j)%visible) cycle
-    if (where == 's' .and. s%plot_region(j)%plot%x_axis_type /= 's') cycle
+  do j = 1, size(s%plotting%region)
+    if (.not. s%plotting%region(j)%visible) cycle
+    if (where == 's' .and. s%plotting%region(j)%plot%x_axis_type /= 's') cycle
     n = n + 1
-    plot(n)%p => s%plot_region(j)%plot
+    plot(n)%p => s%plotting%region(j)%plot
   enddo
 else
   call tao_find_plots (err, where, 'REGION', plot, graph)
@@ -198,7 +198,8 @@ implicit none
 
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
-type (floor_position_struct) end
+type (tao_ele_shape_struct), pointer :: shape
+type (floor_position_struct) floor, end
 type (lat_struct), pointer :: lat
 
 integer i, j, k, n, p1, p2, iu, ix, ib
@@ -241,6 +242,7 @@ curve_here = .false.
 if (graph%type == 'floor_plan') then
   ix = tao_universe_number(graph%ix_universe)
   lat => s%u(ix)%model%lat
+
   do ib = 0, ubound(lat%branch, 1)
     do i = 0, lat%branch(ib)%n_ele_track
       call floor_to_screen_coords (lat%branch(ib)%ele(i)%floor, end)
@@ -248,6 +250,26 @@ if (graph%type == 'floor_plan') then
       this_max = max(this_max, end%x)
     enddo
   enddo
+
+  if (allocated(s%building_wall%section)) then
+    do i = 1, size(s%plotting%floor_plan%ele_shape)
+      shape => s%plotting%floor_plan%ele_shape(i)
+      if (shape%ele_name /= 'wall::building') cycle
+      if (.not. shape%draw) cycle
+      do j = 1, size(s%building_wall%section)
+        do k = 1, size(s%building_wall%section(j)%point)
+          floor%x = s%building_wall%section(j)%point(k)%x
+          floor%z = s%building_wall%section(j)%point(k)%z
+          floor%y = 0
+          floor%theta = 0
+          call floor_to_screen_coords (floor, end)
+          this_min = min(this_min, end%x)
+          this_max = max(this_max, end%x)
+        enddo
+      enddo
+    enddo
+  endif
+
   curve_here = .true.
 
 else if (graph%p%x_axis_type == 's') then

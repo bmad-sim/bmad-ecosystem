@@ -43,9 +43,9 @@ logical err, gang
 nullify(d2_old)
 
 if (len_trim(where) == 0) then
-  do j = 1, size(s%plot_region)
-    p => s%plot_region(j)%plot
-    if (.not. s%plot_region(j)%visible) cycle
+  do j = 1, size(s%plotting%region)
+    p => s%plotting%region(j)%plot
+    if (.not. s%plotting%region(j)%visible) cycle
     do i = 1, size(p%graph)
       call clip_graph (p, p%graph(i))
     enddo

@@ -24,9 +24,9 @@ integer i, j, iu, ios, n_wall
 character(*) wall_file
 character(200) complete_file_name
 character(24) :: r_name = 'tao_init_building_wall'
-character(8) side
+character(16) constraint
 
-namelist / one_building_wall / side, point
+namelist / building_wall_section / constraint, point
 
 ! Open file
 
@@ -43,11 +43,11 @@ endif
 
 n_wall = 0
 do
-  read (iu, nml = one_building_wall, iostat = ios)
+  read (iu, nml = building_wall_section, iostat = ios)
   if (ios > 0) then
-    call out_io (s_fatal$, r_name, 'ERROR READING ONE_BUILDING_WALL NAMELIST')
+    call out_io (s_fatal$, r_name, 'ERROR READING BUILDING_WALL_SECTION NAMELIST')
     do   ! Generate informational message
-      read (iu, nml = one_building_wall)
+      read (iu, nml = building_wall_section)
     enddo
   endif
   if (ios < 0) exit
@@ -56,7 +56,7 @@ enddo
 
 call out_io (s_blank$, r_name, '  Number of building walls: \I2\ ', n_wall)
 
-allocate (s%building_wall(n_wall))
+allocate (s%building_wall%section(n_wall))
 if (n_wall == 0) return ! no walls
 
 ! Now transfer the information
@@ -64,61 +64,57 @@ if (n_wall == 0) return ! no walls
 rewind (iu)
 do i = 1, n_wall
 
-  side = ''
-  point%r = 0
+  constraint = ''
+  point%radius = 0
   point%x = real_garbage$
-  read (iu, nml = one_building_wall, iostat = ios)
+  read (iu, nml = building_wall_section, iostat = ios)
 
-  select case (side)
-  case ('+x')
-    s%building_wall(i)%side = plus_x_side$
-  case ('-x')
-    s%building_wall(i)%side = minus_x_side$
-  case ('no_side')
-    s%building_wall(i)%side = no_side$
+  select case (constraint)
+  case ('x+', 'x-', '')
+    s%building_wall%section(i)%constraint = constraint
   case default
-    call out_io (s_error$, r_name, 'BAD "SIDE" FOR BUILDING WALL: ' // side)
+    call out_io (s_error$, r_name, 'BAD "CONSTRAINT" FOR BUILDING WALL: ' // constraint)
     call err_exit
   end select
 
   do j = size(point), 1, -1
     if (point(j)%x == real_garbage$) cycle
-    allocate (s%building_wall(i)%point(j))
+    allocate (s%building_wall%section(i)%point(j))
     exit
   enddo
 
-  if (.not. allocated(s%building_wall(i)%point)) then
-    call out_io (s_fatal$, r_name, 'ERROR READING ONE_BUILDING_WALL NAMELIST POINT ARRAY', &
-                                   'IN ONE_BUILDING_WALL NAMELIST NUMBER \i0\ ', i_array = [i])
+  if (.not. allocated(s%building_wall%section(i)%point)) then
+    call out_io (s_fatal$, r_name, 'ERROR READING BUILDING_WALL_SECTION NAMELIST POINT ARRAY', &
+                                   'IN BUILDING_WALL_SECTION NAMELIST NUMBER \i0\ ', i_array = [i])
     return
   endif
 
-  if (point(1)%r /= 0) then
-    call out_io (s_fatal$, r_name, 'ERROR IN POINT ARRAY OF ONE_BUILDING_WALL NAMELIST NUMBER \i0\ ', &
+  if (point(1)%radius /= 0) then
+    call out_io (s_fatal$, r_name, 'ERROR IN POINT ARRAY OF BUILDING_WALL_SECTION NAMELIST NUMBER \i0\ ', &
                                    'FIRST POINT HAS NON-ZERO RADIUS', i_array = [i])
     return
   endif
 
-  pt => s%building_wall(i)%point
+  pt => s%building_wall%section(i)%point
 
   do j = 1, size(pt)
     
     pt(j)%x = point(j)%x
     pt(j)%z = point(j)%z
-    pt(j)%r = point(j)%r
-    if (pt(j)%r /= 0) then
+    pt(j)%radius = point(j)%radius
+    if (pt(j)%radius /= 0) then
       x_mid = (pt(j)%x + pt(j-1)%x) / 2; z_mid = (pt(j)%z + pt(j-1)%z) / 2 
       dx    = (pt(j)%x - pt(j-1)%x) / 2; dz    = (pt(j)%z - pt(j-1)%z) / 2 
-      a2 = (pt(j)%r**2 - dx**2 - dz**2) / (dx**2 - dz**2)
+      a2 = (pt(j)%radius**2 - dx**2 - dz**2) / (dx**2 - dz**2)
       if (a2 < 0) then
-        call out_io (s_fatal$, r_name, 'ERROR IN POINT ARRAY OF ONE_BUILDING_WALL NAMELIST NUMBER \i0\ ', &
+        call out_io (s_fatal$, r_name, 'ERROR IN POINT ARRAY OF BUILDING_WALL_SECTION NAMELIST NUMBER \i0\ ', &
                                        'WALL POINTS TOO FAR APART FOR CIRCLE AT POINT \i0\ ', i_array = [i, j])
         return
       endif
       a = sqrt(a2)
-      if (pt(j)%r < 0) a = -a
-      pt(j)%x0 = x_mid - a * dz
-      pt(j)%z0 = z_mid + a * dx
+      if (pt(j)%radius < 0) a = -a
+      pt(j)%x_center = x_mid - a * dz
+      pt(j)%z_center = z_mid + a * dx
     endif
   enddo
 
