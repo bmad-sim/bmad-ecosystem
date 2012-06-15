@@ -99,14 +99,21 @@ end interface
 !+
 ! Function pointer_to_branch
 !
-! Routine to return a pointer to a lattice branch.
+! Routine to return a pointer to the lattice branch associated with a given name
+! or a given element.
 !
 ! This routine is an overloaded name for:
 !   pointer_to_branch_given_ele (ele) result (branch_ptr)
 !   pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
 !
+! The lattice branch *associated* with a given element is not necessarily the
+! branch where the element is *located*. For example, all lords live in branch #0.
+! But the branch associated with a super_lord element is the branch of its slaves.
+!
+! To get the branch where the element is located, simply use ele%ix_branch.
+! 
 ! Note: Result is ambiguous if ele argument is associated with multiple branches 
-! which can happen, for example, with overlay lord elements.
+! which can happen, for example, with overlay_lord elements.
 !
 ! Modules Needed:
 !   use bmad_utils_mod
