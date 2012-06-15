@@ -298,7 +298,7 @@ integer i, j, k, istat
 
 ! building walls
 
-if (allocated(s%building_wall)) deallocate (s%building_wall)
+if (allocated(s%building_wall%section)) deallocate (s%building_wall%section)
 
 ! Variables  
 
@@ -319,17 +319,17 @@ if (allocated(s%key)) deallocate(s%key, stat=istat)
 
 ! Plotting  
 
-if (allocated(s%plot_region)) deallocate (s%plot_region)
+if (allocated(s%plotting%region)) deallocate (s%plotting%region)
 
-do i = 1, size(s%template_plot)
-  plot => s%template_plot(i)
+do i = 1, size(s%plotting%template)
+  plot => s%plotting%template(i)
   if (.not. allocated (plot%graph)) cycle
   deallocate(plot%graph, stat=istat)
 enddo
-deallocate (s%template_plot)
+deallocate (s%plotting%template)
 
-if (allocated(tao_com%lat_layout%ele_shape)) deallocate (tao_com%lat_layout%ele_shape)
-if (allocated(tao_com%floor_plan%ele_shape)) deallocate (tao_com%floor_plan%ele_shape)
+if (allocated(s%plotting%lat_layout%ele_shape)) deallocate (s%plotting%lat_layout%ele_shape)
+if (allocated(s%plotting%floor_plan%ele_shape)) deallocate (s%plotting%floor_plan%ele_shape)
 if (allocated(tao_com%covar))                deallocate (tao_com%covar, tao_com%alpha)
 
 ! Universes 

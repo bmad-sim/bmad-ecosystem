@@ -452,6 +452,8 @@ implicit none
 type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
 type (tao_lattice_branch_struct), pointer :: lat_branch
+type (tao_building_wall_section_struct), pointer :: section
+type (tao_building_wall_point_struct), pointer :: pt
 type (tao_data_struct), pointer :: dp
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_lattice_struct), target :: tao_lat
@@ -471,17 +473,21 @@ type (tao_element_struct), pointer :: uni_ele(:)
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3)
+real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt
+real(rp) z_center, x_center, x_wall
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
-real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) ! Cf: Sands Eq 5.46 pg 124.
+! Cf: Sands Eq 5.46 pg 124.
+real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
-integer i, j, k, m, n, k_old, ix, ix_ele, ix_start, ix_ref, expnt(6), n_track, n_max, iz
-integer n_size, ix0, which
+integer i, j, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref
+integer n_size, ix0, which, expnt(6), n_track, n_max
 
 character(*), optional :: why_invalid
+character(16) constraint
 character(20) :: r_name = 'tao_evaluate_a_datum'
-character(40) data_type, data_source, name, dflt_dat_index
+character(40) head_data_type, data_source, name, dflt_dat_index
 character(80) index_str
 
 logical found, valid_value, err
@@ -504,7 +510,7 @@ if (found) return
 ! Note: To check that a start element was set, need to look at datum%ele_start_name, not ix_start.
 
 data_source = datum%data_source
-data_type = datum%data_type
+head_data_type = datum%data_type
 lat => tao_lat%lat
 
 ele => tao_valid_datum_index (lat, datum%ele_name, datum%ix_ele, datum, valid_value, why_invalid)
@@ -541,15 +547,15 @@ n_max   = branch%n_ele_max
 call re_allocate2 (value_vec, 0, n_track, .false.) ! Make sure is large enough if used.
 call re_allocate2 (good,      0, n_track, .false.) ! Make sure is large enough if used.
 
-ix = index(data_type, '.')
-if (data_type(1:11) == 'expression:') then
-  data_type = 'expression:'
+ix = index(head_data_type, '.')
+if (head_data_type(1:11) == 'expression:') then
+  head_data_type = 'expression:'
 elseif (ix /= 0) then
-  data_type = data_type(1:ix)
+  head_data_type = head_data_type(1:ix)
 endif
 
-if (data_type  == 'rad_int.' .or. data_type == 'rad_int1.') then
-  if (index(data_type, '_e') /= 0 .and. (ix_ref > -1 .or. ix_ele > -1)) then
+if (head_data_type  == 'rad_int.' .or. head_data_type == 'rad_int1.') then
+  if (index(head_data_type, '_e') /= 0 .and. (ix_ref > -1 .or. ix_ele > -1)) then
     if (.not. allocated(tao_lat%rad_int%ele)) then
       call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
       return
@@ -557,11 +563,23 @@ if (data_type  == 'rad_int.' .or. data_type == 'rad_int1.') then
   endif
 endif
 
-if (data_source /= 'lat' .and. data_source /= 'beam' .and. data_type /= 'expression:') then
+if (data_source /= 'lat' .and. data_source /= 'beam' .and. head_data_type /= 'expression:') then
   call out_io (s_error$, r_name, 'UNKNOWN DATA_SOURCE: ' // data_source, 'FOR DATUM: ' // tao_datum_name(datum))
   if (present(why_invalid)) why_invalid = 'UNKNOWN DATA_SOURCE: "' // trim(data_source) // '"'
   return
 endif
+
+! ele_ref must not be specified for some data types. Check this.
+
+select case (head_data_type)
+case ('wall.')
+  if (datum%ele_ref_name /= '') then
+    call out_io (s_error$, r_name, 'SPECIFYING ELE_REF NOT VALID FOR: ' // tao_datum_name(datum))
+    if (present(why_invalid)) why_invalid = 'SPECIFYING ELE_START NOT VALID'
+    return
+ endif
+end select
+
 
 ! ele_start must not be specified for some data types. Check this.
 
@@ -575,8 +593,8 @@ case ('periodic.tt', 'sigma.pz')
 end select
 
 if (lat_branch%track_state /= moving_forward$ .and. ix_ele >= lat_branch%track_state) then
-  if ((data_source == 'beam' .and. data_type /= 'n_particle_loss') .or. &
-                         data_type(1:4) == 'bpm_' .or. data_type == 'orbit.') then
+  if ((data_source == 'beam' .and. head_data_type /= 'n_particle_loss') .or. &
+                         head_data_type(1:4) == 'bpm_' .or. head_data_type == 'orbit.') then
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE DUE TO PARTICLE LOSS.'
     return
   endif
@@ -586,7 +604,7 @@ endif
 
 if (present(why_invalid)) why_invalid = 'DATA_SOURCE = "' // trim(data_source) // '" NOT VALID'
 
-select case (data_type)
+select case (head_data_type)
 
 !-----------
 
@@ -699,7 +717,7 @@ case ('beta.')
         if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
       endif
     else
-      call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
+      call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type, &
                                      'WITH DATA_SOURCE: ' // data_source)
       if (present(why_invalid)) why_invalid = 'DATA_SOURCE: ' // trim(data_source) // ' INVALID WITH: beta.x DATA_TYPE'
     endif
@@ -712,7 +730,7 @@ case ('beta.')
         if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
       endif
     else
-      call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
+      call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type, &
                                      'WITH data_source: ' // data_source)
       if (present(why_invalid)) why_invalid = 'DATA_SOURCE: ' // trim(data_source) // ' INVALID WITH: beta.y DATA_TYPE'
     endif
@@ -995,7 +1013,7 @@ case ('emit.', 'norm_emit.')
   case ('emit.z', 'norm_emit.z')
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%z%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    if (data_type(1:4) == 'emit') then
+    if (head_data_type(1:4) == 'emit') then
       call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
       datum_value = datum_value / gamma
     endif
@@ -1016,7 +1034,7 @@ case ('emit.', 'norm_emit.')
         datum_value = gamma * tao_lat%modes%a%emittance
       endif
     endif
-    if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+    if (head_data_type(1:4) == 'emit') datum_value = datum_value / gamma
     valid_value = .true.
     
   case ('emit.b', 'norm_emit.b')  
@@ -1036,7 +1054,7 @@ case ('emit.', 'norm_emit.')
         datum_value = gamma * tao_lat%modes%b%emittance
       endif
     endif
-    if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+    if (head_data_type(1:4) == 'emit') datum_value = datum_value / gamma
     valid_value = .true.
 
   case default
@@ -1963,7 +1981,7 @@ case ('t.', 'tt.')
   if (data_source == 'beam') return
 
   expnt = 0
-  if (data_type == 't.') then
+  if (head_data_type == 't.') then
     i = tao_read_this_index (datum%data_type, 3)
     do j = 4, 5
       k = tao_read_this_index (datum%data_type, j); if (k == 0) exit
@@ -2068,10 +2086,54 @@ case ('unstable.')
 
 !-----------
 
-case ('building_wall')
+case ('wall.')
   if (data_source == 'beam') return
-  call out_io (s_error$, r_name, 'BUILDING_WALL NOT YET IMPLEMENTED...')
-  return
+
+  constraint = datum%data_type(6:)
+  z0_pt = 0
+  datum_value = 1e10   ! Something large
+
+  do i = 1, size(s%building_wall%section)
+    section => s%building_wall%section(i)
+    if (section%constraint /= constraint) cycle
+    do ie = ix_start, ix_ele
+      ele => branch%ele(ie)
+      
+      do is = 1, size(section%point)
+        pt => section%point(is)
+        dz = pt%z - ele%floor%z; dx = pt%x - ele%floor%x
+        cos_theta = cos(ele%floor%theta); sin_theta = sin(ele%floor%theta)
+        z_pt =  dz * cos_theta + dx * sin_theta
+        x_pt = -dz * sin_theta + dx * cos_theta
+
+        ! The perpendicular to the machine line intersects the segment if
+        ! z_pt and z0_pt have a different sign.
+
+        if (is > 1 .and. z_pt * z0_pt <= 0) then
+          if (pt%radius == 0 .or. z_pt == 0 .or. z0_pt == 0) then
+            x_wall = (x0_pt * z_pt - x_pt * z0_pt) / (z_pt - z0_pt)
+          else
+            dz = pt%z_center - ele%floor%z; dx = pt%x_center - ele%floor%x
+            z_center =  dz * cos_theta + dx * sin_theta
+            x_center = -dz * sin_theta + dx * cos_theta
+            if (pt%radius * z_pt > 0) then
+              x_wall = x_center - sqrt(pt%radius**2 - z_center**2)
+            else
+              x_wall = x_center + sqrt(pt%radius**2 - z_center**2)
+            endif
+          endif
+          if (datum%data_type =='wall.right_side')  x_wall = -x_wall
+          datum_value = min(datum_value, x_wall)
+        endif
+
+        z0_pt = z_pt
+        x0_pt = x_pt
+      enddo
+    enddo
+
+  enddo
+
+  valid_value = .true.
 
 !-----------
 

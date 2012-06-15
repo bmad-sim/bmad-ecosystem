@@ -208,13 +208,11 @@ type tao_plot_region_struct
   logical :: visible = .false.   ! To draw or not to draw.
 end type
 
-! The plot_page defines the whole plotting window. 
-! The plot_page contains a collection of regions along with 
-! other info (border margins etc.).
+! The tao_plotting_struct defines the whole plotting window. 
 ! Note that the qp_com structure of quick_plot also is used to hold 
 ! plot page info.
 
-type tao_plot_page_struct
+type tao_plotting_struct
   character(8) :: plot_display_type = 'TK'       ! 'X' or 'TK'
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                   ! width and height of window in pixels.
@@ -232,6 +230,10 @@ type tao_plot_page_struct
   integer id_window                      ! X window id number.
   type (tao_title_struct) title(2)       ! Titles at top of page.
   type (qp_rect_struct) border           ! Border around plots edge of page.
+  type (tao_drawing_struct) :: floor_plan
+  type (tao_drawing_struct) :: lat_layout
+  type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
+  type (tao_plot_region_struct), allocatable :: region(:)
 end type
 
 ! Arrays of structures
@@ -458,17 +460,19 @@ end type
 !------------------------------------------------------------------------
 ! Building wall structure
 
-integer, parameter :: plus_x_side$ = 1, minus_x_side$ = 2, no_side$ = 3
-
 type tao_building_wall_point_struct
-  real(rp) z, x                      ! Floor position
-  real(rp) r                         ! Arcs radius. +r -> CW rotation, same as bends. 
-  real(rp) z0, x0                    ! Arc center.
+  real(rp) z, x                      ! Global floor position
+  real(rp) radius                    ! Arcs radius. +r -> CW rotation, same as bends. 
+  real(rp) z_center, x_center        ! Arc center.
+end type
+
+type tao_building_wall_section_struct
+  character(16) :: constraint = ''   ! For constraints
+  type (tao_building_wall_point_struct), allocatable :: point(:)
 end type
 
 type tao_building_wall_struct
-  integer side    ! left_side$ or right_side$
-  type (tao_building_wall_point_struct), allocatable :: point(:)
+  type (tao_building_wall_section_struct), allocatable :: section(:)
 end type
 
 !------------------------------------------------------------------------
@@ -540,8 +544,6 @@ end type
 
 type tao_common_struct
   type (tao_alias_struct) alias(100)
-  type (tao_drawing_struct) :: floor_plan
-  type (tao_drawing_struct) :: lat_layout
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)
@@ -695,14 +697,12 @@ end type
 
 type tao_super_universe_struct
   type (tao_global_struct) global                          ! global variables.
-  type (tao_plot_struct), allocatable :: template_plot(:)  ! Templates for the plots.
-  type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
-  type (tao_plot_region_struct), allocatable :: plot_region(:)
+  type (tao_plotting_struct) :: plotting                   ! Defines the plot window.
   type (tao_v1_var_struct), allocatable :: v1_var(:)       ! The variable types
   type (tao_var_struct), allocatable :: var(:)             ! array of all variables.
   type (tao_universe_struct), allocatable :: u(:)          ! array of universes.
   integer, allocatable :: key(:)
-  type (tao_building_wall_struct), allocatable :: building_wall(:)
+  type (tao_building_wall_struct) :: building_wall
   type (tao_wave_struct) :: wave 
   integer n_var_used
   integer n_v1_var_used

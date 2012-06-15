@@ -177,4 +177,87 @@ type tao_key_input
   character(40) merit_type
 end type
 
+type tao_plot_page_struct
+  character(8) :: plot_display_type = 'TK'       ! 'X' or 'TK'
+  character(80) ps_scale             ! scaling when creating PS files.
+  real(rp) size(2)                   ! width and height of window in pixels.
+  real(rp) :: text_height = 12              ! In points. Scales the height of all text
+  real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
+  real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
+  real(rp) :: axis_number_text_scale = 0.9  ! Relative to text_height
+  real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
+  real(rp) :: legend_text_scale      = 0.8  ! Relative to text_height
+  real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
+  real(rp) :: curve_legend_line_len  = 50   ! Points
+  real(rp) :: curve_legend_text_offset = 10 ! Points
+  real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
+  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
+  type (tao_title_struct) title(2)       ! Titles at top of page.
+  type (qp_rect_struct) border           ! Border around plots edge of page.
+end type
+
+contains
+
+!------------------------------------------------------------------------------
+
+subroutine set_plot_page (plotting, plot_page)
+
+implicit none
+
+type (tao_plotting_struct) plotting
+type (tao_plot_page_struct) plot_page
+
+!
+
+plot_page%plot_display_type         = plotting%plot_display_type
+plot_page%ps_scale                  = plotting%ps_scale
+plot_page%size                      = plotting%size
+plot_page%text_height               = plotting%text_height
+plot_page%main_title_text_scale     = plotting%main_title_text_scale
+plot_page%graph_title_text_scale    = plotting%graph_title_text_scale
+plot_page%axis_number_text_scale    = plotting%axis_number_text_scale
+plot_page%axis_label_text_scale     = plotting%axis_label_text_scale
+plot_page%legend_text_scale         = plotting%legend_text_scale
+plot_page%key_table_text_scale      = plotting%key_table_text_scale
+plot_page%curve_legend_line_len     = plotting%curve_legend_line_len
+plot_page%curve_legend_text_offset  = plotting%curve_legend_text_offset
+plot_page%floor_plan_rotation       = plotting%floor_plan_rotation
+plot_page%n_curve_pts               = plotting%n_curve_pts
+plot_page%title                     = plotting%title 
+plot_page%border                    = plotting%border
+
+end subroutine set_plot_page
+
+!------------------------------------------------------------------------------
+
+subroutine set_plotting (plot_page, plotting)
+
+implicit none
+
+type (tao_plot_page_struct) plot_page
+type (tao_plotting_struct) plotting
+
+!
+
+plotting%plot_display_type         = plot_page%plot_display_type
+plotting%ps_scale                  = plot_page%ps_scale
+plotting%size                      = plot_page%size
+plotting%text_height               = plot_page%text_height
+plotting%main_title_text_scale     = plot_page%main_title_text_scale
+plotting%graph_title_text_scale    = plot_page%graph_title_text_scale
+plotting%axis_number_text_scale    = plot_page%axis_number_text_scale
+plotting%axis_label_text_scale     = plot_page%axis_label_text_scale
+plotting%legend_text_scale         = plot_page%legend_text_scale
+plotting%key_table_text_scale      = plot_page%key_table_text_scale
+plotting%curve_legend_line_len     = plot_page%curve_legend_line_len
+plotting%curve_legend_text_offset  = plot_page%curve_legend_text_offset
+plotting%floor_plan_rotation       = plot_page%floor_plan_rotation
+plotting%n_curve_pts               = plot_page%n_curve_pts
+plotting%title                     = plot_page%title 
+plotting%border                    = plot_page%border
+
+end subroutine set_plotting
+
+!------------------------------------------------------------------------------
+
 end module

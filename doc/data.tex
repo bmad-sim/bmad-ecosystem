@@ -64,7 +64,7 @@ selectable and is therefore not necessarily 1.
 It is important to note that the name given to \vn{d2_data} and \vn{d1_data}
 structures is arbitrary and does not have to correspond to the 
 type of data contained in the 
-structures. In fact, a \vn{d1_data} array can contain hetogeneous data types.
+structures. In fact, a \vn{d1_data} array can contain heterogeneous data types.
 Thus, for example, it is perfectly permissible (but definitely not recommended) 
 to set up the data structures so that, say, \vn{orbit.x[10]} 
 is the $a$-mode emittance at a certain element and \vn{orbit.x[11]}
@@ -304,18 +304,41 @@ Table~\ref{t:data.types} lists which \vn{data_source} values are valid
 for what data types.
 
 %------------------------------------------------------------------------
-\section{Lattice Elements Associated with a Datum}
+\section{Datum Evaluation and Associated Lattice Elements}
 \index{data!associated lattice elements}
 \label{s:data.lat.ele}
 
-Associated with a datum are three lattice elements called the
-\vn{evaluation element}, the \vn{reference element}, and the
-\vn{start element}. The corresponding components in a datum are
-shown in Table~\ref{t:datum.elements}.
-These three elements may be specified for a datum by either setting
-the name component or the index component of the datum. Using the
-element index over the element name is necessary when more than one
-element in the lattice has the same name.
+Datums can be divided up into two classes. In one class are the datums
+that are \vn{``local''}, like the beam orbit, which need to be evaluated at
+either a particular point are evaluated over some finite region of the
+machine. Other datums, like the emittance, are \vn{``global''} and do not
+have associated evaluation points.
+
+As mentioned, \vn{local} datums may be evaluated at a specific point
+or over some evaluation region, an evaluation region is used when, for
+example, the maximum or minimum value over a region is wanted. To
+specify an evaluation point, an \vn{evaluation element} must be
+associated with a datum. The evaluation point will be at the exit end
+of this element. To specify an evaluation region, a \vn{start element}
+must also be associated with a datum along with the \vn{evaluation
+element}. The evaluation region is from the exit end of the \vn{start
+element} to the exit end of the \vn{evaluation element}.
+
+In addition to the \vn{evaluation element} and the \vn{start element},
+a \vn{local} datum may have an associated \vn{reference element}.  A
+\vn{reference element} is used as a fiducial point and the datum value
+is calculated relative to that point. For example, a datum value may
+be the position of the \vn{evaluation element} relative to the
+position of the \vn{reference element}. The evaluation point of a
+\vn{reference element} is the exit end of that element.
+
+The components in a datum corresponding to the \vn{evaluation
+element}, the \vn{reference element}, and the \vn{start element}.  are
+shown in Table~\ref{t:datum.elements}.  These three elements may be
+specified for a datum by either setting the name component or the
+index component of the datum. Using the element index over the element
+name is necessary when more than one element in the lattice has the
+same name.
 
 \begin{table}[htb]
 \centering
@@ -334,41 +357,46 @@ setting the appropriate index component.}
 \label{t:datum.elements}
 \end{table}
 
-Some datums, like the emittance in a circular ring, do not have
-associated lattice elements and their corresponding element names will
-be blank. All other datums must have an associated evaluation element
-that is specifed by setting the \vn{ele_name} or \vn{ix_ele} datum
-component. If a datum has an associated evaluation element, but no
-associated start or reference elements, the \vn{model} value of that
-datum is the value of the \vn{data_type} at the evaluation
+If a datum has an associated \vn{evaluation} element, but no
+associated \vn{start} or \vn{reference} elements, the \vn{model} value
+of that datum is the value of the \vn{data_type} at the \vn{evaluation}
 element. For example, if a datum has:
 \begin{example}
   data_type      = "orbit.x"
   ele_name       = "q12"
 \end{example}
-then the \vn{model} value of this datum will be the horizontal orbit
+here the \vn{model} value of this datum will be the horizontal orbit
 at the element with name \vn{q12}.
 
-If a datum has an associated start element, specified by either
+If a datum has an associated \vn{start} element, specified by either
 setting the \vn{ele_start_name} or \vn{ix_ele_start} datum components, the
-datum is evaluated over a region from the exit end of the start element
-to the exit end of evaluation element. For example, if a datum has:
+datum is evaluated over a region from the exit end of the \vn{start} element
+to the exit end of \vn{evaluation} element. For example, if a datum has:
 \begin{example}
   data_type      = "beta.a"
   ele_name       = "q12"
   ele_start_name = "q45"
   merit_type     = "max"
 \end{example}
-then the \vn{model} value of this datum will be the maximum value of the a-mode
-beta function in the region from the exit end of the element with name
-\vn{q12} to the exit end of the element with name \vn{q45}. Notice
-that when a range of elements is used, a \vn{merit_type} of
-\vn{target} does not make sense.
+then the \vn{model} value of this datum will be the maximum value of
+the a-mode beta function in the region from the exit end of the
+element with name \vn{q12} to the exit end of the element with name
+\vn{q45}. Notice that when a range of elements is used, a
+\vn{merit_type} of \vn{target} does not make sense. 
 
-If a datum has an associated reference element, specified by either
+Typically, in evaluating a datum over some region to find the maximum
+or minimum, \tao will only evaluate the datum at the ends of the
+elements with the assumption that this is good enough. If this is not
+good enough, marker elements can be inserted into the lattice at
+locations that matter. For example, the maximum or minimum of the beta
+function typically occurs near the middle of a quadrupole so inserting
+marker elements in the middle of quadrupoles will improve the accuracy
+of finding the extremum beta.
+
+If a datum has an associated \vn{reference} element, specified by either
 setting the \vn{ele_ref_name} or \vn{ix_ele_ref} datum components, the
-\vn{model} value of the datum is the value at the evaluation element (or the value
-over the range \vn{ele_start} to the evaluation element if \vn{ele_start} is
+\vn{model} value of the datum is the value at the \vn{evaluation} element (or the value
+over the range \vn{ele_start} to the \vn{evaluation} element if \vn{ele_start} is
 specified), minus the \vn{model} value at \vn{ele_ref}. For example,
 if a datum has:
 \begin{example}
@@ -381,8 +409,8 @@ if a datum has:
 then the \vn{model} value of the datum will be the same as the
 previous example minus the value of the a-mode beta function at the
 exit end of element \vn{q1}. There are a number of exceptions to the
-above rule and datum types treat the reference element in a different
-manner. For example, the \vn{r.} data type uses the reference element
+above rule and datum types treat the \vn{reference} element in a different
+manner. For example, the \vn{r.} data type uses the \vn{reference} element
 as the starting point in constructing a transfer matrix.
 
 %------------------------------------------------------------------------
@@ -596,7 +624,7 @@ phase, the overall average phase is arbitrary and so the average phase
 is taken in \tao to be zero. This can be helpful in optimizations
 since one does not have to worry about arbitrary offsets between the
 \vn{model} and \vn{measured} values. If the reference element is
-specified then there is no arbitrary constant in the evalustion.
+specified then there is no arbitrary constant in the evaluation.
 
   \index{rad_int.}
   \item[rad_int, rad_int1] \Newline
@@ -682,22 +710,70 @@ largest growth rate of all the normal modes of oscillation if the ring
 is unstable. \vn{unstable.ring} is used in an optimization to avoid
 unstable solutions (\sref{s:generalized.design}).
 
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{building-wall-constraint.pdf}
+  \caption[Building wall datum]
+{A \vn{wall.} datum is a measure of the distance between the
+centerline of a machine and the walls of the containment building.}
+  \label{f:wall.constraint}
+\end{figure}
+
+  \index{wall.}
+  \item[wall.] \Newline
+The \vn{wall.} data types are used to constrain the shape of a machine
+to fit inside a building's walls (\sref{s:building.wall}). The general
+layout is shown in Figure~\ref{f:wall.constraint}. The machine
+centerline is projected onto the horizontal $(Z, X)$ plane in the
+Global (floor) coordinate system. Point \vn{A} is an evaluation point
+at the exit end of some element. $\wt z$ is the projection of the
+local $z$-axis onto the $(Z, X)$ plane and $\wt x$ is the coordinate
+in the $(Z, X)$ plane perpendicular to $\wt z$. In the typical
+situation, where a machine is planer (no out-of-plane bends), the $\wt
+z$-axis corresponds to the local $z$-axis and the $\wt x$-axis
+corresponds to the $x$-axis (see the \bmad manual for an explanation
+of local and global coordinate systems).
+
+The distance from the machine at point \vn{A} to the wall is defined
+to be the distance from \vn{A} to a point \vn{B} on the wall where
+point \vn{B} is along the $\wt x$ axis (has $\wt z = 0$) as shown in
+Figure~\ref{f:wall.constraint}.
+
+By definition, the \vn{``left side''} of the machine corresponds to be
+the $+\wt x$ side and the \vn{``right side''} corresponds to be the
+$-\wt x$ side. That is, left and right are relative to someone looking
+in the same direction as the beam is propagating. Correspondingly,
+there are two wall data types: \vn{wall.left_side} and
+\vn{wall.right_side}. With the \vn{wall.left_side} data type, the
+datum value is positive if point \vn{B} is on the left side and
+negative if on the right. Vice versa for a \vn{wall.right_side} datum.
+If there are multiple wall points \vn{B}, that is, if there are
+multiple points on the wall with $\wt z = 0$, the datum value will be
+the minimum value. Notice that only wall sections that have a
+\vn{constraint} matching the datum will be used when searching for
+possible points \vn{B}. If there are no wall points with $\wt z = 0$,
+the datum value is set to a large number.
+
+For \vn{wall} data there can be no reference element since this does
+not make sense.
+
   \index{wire.}
   \item[wire] \Newline
-\vn{wire} data simulates the measurement of a wire scanner. The angle specified
-is the angle of the wire with respect to the horizontal axis. The measurement
-then measures the second moment $<uu>$ along an axis which is 90 degrees off of
-the wire axis. For example, \vn{wire.90} is a wire scanner oriented in the
-vertical direction and measures the second moment of the beam along the
-horizontal axis, $<xx>$. The resultant data is not the beam size, but the beam
-size squared.
+\vn{wire} data simulates the measurement of a wire scanner. The angle
+specified is the angle of the wire with respect to the horizontal
+axis. The measurement then measures the second moment $<uu>$ along an
+axis which is 90 degrees off of the wire axis. For example,
+\vn{wire.90} is a wire scanner oriented in the vertical direction and
+measures the second moment of the beam along the horizontal axis,
+$<xx>$. The resultant data is not the beam size, but the beam size
+squared.
 
   \end{description}
 
 
 \index{data!calculation method}
 \index{unstable.orbit}\index{beta}\index{alpha}\index{eta}\index{eta}
-\index{etap}\index{phase}\index{orbit}\index{wire}\index{spin}
+\index{etap}\index{phase}\index{orbit}\index{wire}\index{building wall}\index{spin}
 \index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}
 \index{rad_int.i5a_e6}\index{rad_int.i5b_e6}\index{s_position}\index{e_tot}
 \index{unstable.ring}\index{emittance}\index{chrom}\index{norm_emittance}
@@ -848,6 +924,6 @@ size squared.
   unstable.orbit                      & Nonzero if particles are lost in tracking     & lat       \\ \hline
   unstable.ring                       & Nonzero if a ring is unstable                 & lat       \\ \hline
   wire.<angle>                        & Wire scanner at wire angle <angle>            & beam      \\ \hline
-
+  wall.left\_side, wall.right\_side   & Building wall constraint                      & lat       \\ \hline
 \end{longtable}
 }

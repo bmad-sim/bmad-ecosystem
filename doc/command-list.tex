@@ -198,7 +198,7 @@ Examples:
 \label{s:clip}
 
 The \vn{clip} command vetoes data points for plotting and
-optimizing. That is, the \vn{good_user} logical of the datums
+optimizing. That is, the \vn{good_user} logical of the data
 associated with the out-of-bound plotted points are set to False.
 Format:
 \begin{example}
@@ -543,7 +543,7 @@ and \vn{veto} commands.
 Examples:
 \begin{example}
   restore data orbit.x[23,34:56]   ! un-veto orbit.x 23 and 34 through 56.
-  restore data orbit.x[23,34:56:2] ! un-veto orbit.x 23 and even datums between 34 
+  restore data orbit.x[23,34:56:2] ! un-veto orbit.x 23 and even data between 34 
                                    !                                          and 56
   restore data *@orbit[34]         ! un-veto orbit data in all universes.
   restore var quad_k1[67]          ! un-veto variable
@@ -668,7 +668,7 @@ Examples:
 \label{s:set}
 
 
-The \vn{set} command is used to set values for datums,
+The \vn{set} command is used to set values for data,
 variables, etc. Format:
 \begin{example}
   set beam_init \{n@\}<component> = <value>
@@ -1100,7 +1100,7 @@ Format:
    data \{<data_name>\} 
    derivative <data_name(s)> <var_name(s)>
    element \{-all_attributes\} \{-cross_section\} \{-base\} \{-design\}
-         \{-data\} \{-no_slaves\} \{-taylor\} \{-field\} <ele_name>
+         \{-data\} \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-field\} <ele_name>
    global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
    graph <graph_name>
    hom
@@ -1242,7 +1242,7 @@ Example:
 
 \item[\protect\parbox{6in}{
   show element \{-all\_attributes\} \{-cross_section\} \{-base\} \{-design\} \\
-  \hspace*{0.35in} \{-data\} \{-no_slaves\} \{-taylor\} \{-field\} <ele\_name> }] \Newline
+  \hspace*{0.35in} \{-data\} \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-field\} <ele\_name> }] \Newline
 \vskip -0.1in
 This shows information on lattice elements. The syntax for \vn{<ele_name>} 
 is explained in section \sref{s:ele.list.format}. If
@@ -1265,8 +1265,13 @@ the \vn{base} or \vn{design} lattices respectively.
 If the \vn{-cross_section} switch is present, the cross-section
 information for a \vn{capillary} element is displayed.
 
-If the \vn{-data} switch is present, then information about the 
+If the \vn{-data} switch is present, information about the 
 all the datums associated with the element will be listed. 
+
+If the \vn{-floor_coords} switch is present, the global
+floor coordinates at the exit end of the element will
+be printed. See the \bmad manual for an explanation
+of the floor coordinates.
 
 When using wild cards in the element name, if the \vn{-no_slaves}
 switch is present, \vn{super_slave} and \vn{multipass} slave elements
@@ -1663,10 +1668,11 @@ Shows the value of an expression. Examples:
         show variable \{-no\_label\_lines\} \{<var\_name> <locations>\} \\
         show variable \{-no\_label\_lines\} <universe\_number>@  \\
         show variable \{-good\_opt\_only\} \{-no\_label\_lines\} -bmad\_format }] \Newline
-\vskip -0.1in
+\vskip -0.1in 
 Shows variable information. If \vn{<var_name>} is not
-present,  a list of all \vn{v1_var} classes is printed. To show variables
-associated with the \vn{n}th universe use the syntax \vn{show var n@}.
+present, a list of all \vn{v1_var} classes is printed. To show
+variables associated with the \vn{n}th universe use the syntax
+\vn{show var n@}.
 
 If the \vn{-bmad_format} switch is used then the Bmad lattice parameters that
 the \tao variables control will be printed in Bmad lattice

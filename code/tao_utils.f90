@@ -498,14 +498,14 @@ endif
 
 err = .false.
 
-call match_word (plot_name, s%plot_region%name, ix, .true.)
+call match_word (plot_name, s%plotting%region%name, ix, .true.)
 
 if (ix < 1) then
   if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
                                     'PLOT LOCATION NOT FOUND: ' // plot_name)
   err = .true.
 else
-  region => s%plot_region(ix)  
+  region => s%plotting%region(ix)  
 endif
 
 end subroutine tao_find_plot_region
@@ -619,15 +619,15 @@ endif
 np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
-  do i = 1, size(s%plot_region)
-    if (index(s%plot_region(i)%name, trim(plot_name)) == 1 .or. &
-        index(s%plot_region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
+  do i = 1, size(s%plotting%region)
+    if (index(s%plotting%region(i)%name, trim(plot_name)) == 1 .or. &
+        index(s%plotting%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
   enddo
 endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
-  do i = 1, size(s%template_plot)
-    if (index(s%template_plot(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
+  do i = 1, size(s%plotting%template)
+    if (index(s%plotting%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
   enddo
 endif
 
@@ -648,20 +648,20 @@ if (present(plot)) allocate(plot(np))
 np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
-  do i = 1, size(s%plot_region)
-    if (index(s%plot_region(i)%name, trim(plot_name)) == 1 .or. &
-        index(s%plot_region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') then
+  do i = 1, size(s%plotting%region)
+    if (index(s%plotting%region(i)%name, trim(plot_name)) == 1 .or. &
+        index(s%plotting%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') then
       np = np + 1
-      p(np)%p => s%plot_region(i)%plot
+      p(np)%p => s%plotting%region(i)%plot
     endif
   enddo
 endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
-  do i = 1, size(s%template_plot)
-    if (index(s%template_plot(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
+  do i = 1, size(s%plotting%template)
+    if (index(s%plotting%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
       np = np + 1
-      p(np)%p => s%template_plot(i)
+      p(np)%p => s%plotting%template(i)
     endif
   enddo
 endif
@@ -2886,7 +2886,7 @@ type (floor_position_struct) floor, screen
 !
 
 call floor_to_screen (floor%x, floor%y, floor%z, screen%x, screen%y)
-screen%theta = pi + floor%theta - twopi * s%plot_page%floor_plan_rotation
+screen%theta = pi + floor%theta - twopi * s%plotting%floor_plan_rotation
 
 end subroutine floor_to_screen_coords
 
@@ -2907,7 +2907,7 @@ real(rp), save :: cc, ss
 !    z   ->  -x
 !    x   ->  -y
 
-t = s%plot_page%floor_plan_rotation
+t = s%plotting%floor_plan_rotation
 
 if (t == 0) then
   x_screen = -z_floor
@@ -3031,12 +3031,12 @@ character(60) :: r_name = 'tao_turn_on_rad_int_calc_if_needed_for_plotting'
 
 s%u(:)%picked_uni = .false.  
 
-do i = 1, size(s%plot_region)
-  if (.not. s%plot_region(i)%visible) cycle
-  if (.not. allocated(s%plot_region(i)%plot%graph)) cycle
+do i = 1, size(s%plotting%region)
+  if (.not. s%plotting%region(i)%visible) cycle
+  if (.not. allocated(s%plotting%region(i)%plot%graph)) cycle
 
-  do j = 1, size(s%plot_region(i)%plot%graph)
-    graph => s%plot_region(i)%plot%graph(j)
+  do j = 1, size(s%plotting%region(i)%plot%graph)
+    graph => s%plotting%region(i)%plot%graph(j)
     if (.not. allocated(graph%curve)) cycle
 
     do k = 1, size(graph%curve)

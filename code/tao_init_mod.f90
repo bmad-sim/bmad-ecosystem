@@ -92,7 +92,7 @@ if (tao_com%noplot_arg_set) s%global%plot_on = .false.
 
 ! This for backwards compatibility.
 
-if (global%n_curve_pts > 0) s%plot_page%n_curve_pts = global%n_curve_pts  
+if (global%n_curve_pts > 0) s%plotting%n_curve_pts = global%n_curve_pts  
 
 if (s%global%track_type == "macro") then
   call out_io (s_error$, r_name, &

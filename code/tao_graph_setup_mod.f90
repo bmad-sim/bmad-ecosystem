@@ -403,7 +403,7 @@ do k = 1, size(graph%curve)
 
   elseif (curve%data_source == 'twiss') then
 
-    n = 2 * s%plot_page%n_curve_pts
+    n = 2 * s%plotting%n_curve_pts
     call re_allocate (curve%x_line, n)
     call re_allocate (curve%y_line, n)
 
@@ -444,7 +444,7 @@ do k = 1, size(graph%curve)
       write (graph%text_legend(3), '(a, f10.4)') 'Theta_tilt (rad):', phi
   endif
 
-    n = 2 * s%plot_page%n_curve_pts
+    n = 2 * s%plotting%n_curve_pts
     call re_allocate (curve%x_line, n)
     call re_allocate (curve%y_line, n)
 
@@ -634,11 +634,11 @@ do k = 1, size(graph%curve)
 
   case ('plot_x_axis_var')
 
-    call re_allocate (curve%ix_symb, s%plot_page%n_curve_pts)
-    call re_allocate (curve%x_symb, s%plot_page%n_curve_pts)
-    call re_allocate (curve%y_symb, s%plot_page%n_curve_pts)
-    call re_allocate (curve%x_line, s%plot_page%n_curve_pts)
-    call re_allocate (curve%y_line, s%plot_page%n_curve_pts)
+    call re_allocate (curve%ix_symb, s%plotting%n_curve_pts)
+    call re_allocate (curve%x_symb, s%plotting%n_curve_pts)
+    call re_allocate (curve%y_symb, s%plotting%n_curve_pts)
+    call re_allocate (curve%x_line, s%plotting%n_curve_pts)
+    call re_allocate (curve%y_line, s%plotting%n_curve_pts)
 
     if (plot%x_axis_type == 'lat') then
 
@@ -677,8 +677,8 @@ do k = 1, size(graph%curve)
 
     val0 = var_ptr
 
-    do i = 1, s%plot_page%n_curve_pts 
-      val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (s%plot_page%n_curve_pts - 1)
+    do i = 1, s%plotting%n_curve_pts 
+      val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (s%plotting%n_curve_pts - 1)
       if (plot%x_axis_type == 'lat')then
         var_ptr = val
         s%u(ix_uni)%lattice_recalc = .true.
@@ -946,7 +946,7 @@ do k = 1, size(graph%curve)
       ! Mark all eles in branch if they match a shape.
       do i = 0, branch%n_ele_track
         ele => branch%ele(i)
-        ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
+        ele_shape => tao_pointer_to_ele_shape (ele, s%plotting%lat_layout%ele_shape)
         if (.not. associated(ele_shape)) cycle
         if (.not. ele_shape%draw) cycle
         call find_element_ends (model_lat, ele, ele1, ele2)
@@ -957,7 +957,7 @@ do k = 1, size(graph%curve)
       ! Mark slaves of lord elements that match a shape.
       do i = model_lat%n_ele_track+1, model_lat%n_ele_max
         ele => model_lat%ele(i)
-        ele_shape => tao_pointer_to_ele_shape (ele, tao_com%lat_layout%ele_shape)
+        ele_shape => tao_pointer_to_ele_shape (ele, s%plotting%lat_layout%ele_shape)
         if (.not. associated(ele_shape)) cycle
         if (.not. ele_shape%draw) cycle
         if (ele%lord_status == multipass_lord$) then
@@ -1054,9 +1054,9 @@ do k = 1, size(graph%curve)
 
       ! allocate data space
 
-      call re_allocate (curve%y_line, s%plot_page%n_curve_pts) 
-      call re_allocate (curve%x_line, s%plot_page%n_curve_pts) 
-      call re_allocate (good,         s%plot_page%n_curve_pts) 
+      call re_allocate (curve%y_line, s%plotting%n_curve_pts) 
+      call re_allocate (curve%x_line, s%plotting%n_curve_pts) 
+      call re_allocate (good,         s%plotting%n_curve_pts) 
       curve%y_line = 0
       good = .true.
 
