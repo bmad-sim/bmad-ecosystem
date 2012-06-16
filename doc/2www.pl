@@ -20,7 +20,6 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 
 `pdflatex tao`;
 
-`cp /home/dcs/public_html/bmad/tao_template.html .`;
 $file = "tao_template.html";
 open (F_IN, $file) || die ("Cannot open File: $file\n");
 
