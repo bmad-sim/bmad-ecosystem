@@ -90,7 +90,7 @@
 
 %---------------------------------------------------------------------------------
 
-\title{ \srthree information}
+\title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
 \date{June 12, 2012}
 
@@ -99,6 +99,7 @@
 \begin{document}
 \maketitle
 
+\pdfbookmark[1]{Contents}{Contents}
 \tableofcontents
 
 %------------------------------------------------------------------
@@ -133,6 +134,10 @@ the photons from the wall. The advantage of \vn{Synrad} is that it
 is fast and directly gives wall heating numbers. The advantage of
 \srthree is that it tracks photons in three dimensions and it does
 simulate scattering from the wall.
+
+%------------------------------------------------------------------
+\section{Running \srthree} 
+\label{s:run}
 
 Syntax for invoking \srthree:
 \begin{example}
@@ -405,7 +410,7 @@ have been computed from Eq.~\ref{Eq.diffuse.power}.
    \end{figure}
 
 %------------------------------------------------------------------
-\section{Program Execution} 
+\section{Input Files} 
 \label{s:prog}
 
 %------------------------------------------------------------------
@@ -833,7 +838,7 @@ Notice that if symmetry is used in the input (as in the example with
 \vn{ix_gen_shape} = 2 above), extra vertex points will be generated to
 ``complete'' the wall perimeter. This must be taken into account when
 setting \vn{ix_vertex_ante}. To see these generated vertex points, run
-\srthree with the \vn{-cross} option (\sref{s:intro}).  If there is a
+\srthree with the \vn{-plot xy} option (\sref{s:run}).  If there is a
 second antechamber, \vn{ix_vertex_ante2} can be used.
 
 For a photon hitting the wall between two defined wall cross-sections,
@@ -1080,15 +1085,24 @@ lowest energy interval. A table is specified starting with a
 \end{example}
 In this example, the energy range is from 600 eV to 1400 eV in steps
 of 20 eV and the reflection probability is specified at 9 different
-grazing angles. Now, for each energy ``row'', p_smooth and p_rough are
-specified by a \vn{row} namelist. Example
+grazing angles. For each energy ``row'', p_smooth and p_rough are
+specified by a \vn{row} namelist. Example:
 \begin{example}
   &row
-    row_index = 2
+    row_index = 2   ! 620 eV
     p_smooth = 1.00, 0.888, 0.785, 0.736, 0.611, 0.479, 0.320, 0.007, 0.0
     p_rough =  1.00, 0.941, 0.882, 0.852, 0.771, 0.669, 0.514, 0.056, 0.0
   /
 \end{example}
+There must one \vn{row} namelist for each energy value in the
+table. For this example there would be 41 \vn{row} namelists. The
+\vn{row} namelists must be in order of increasing energy and each
+\vn{row} namelist has a \vn{row_index} component which must be set to
+\vn{1} for the first \vn{row} namelist, \vn{2} for the second,
+etc. \srthree uses \vn{row_index} as a sanity check when reading in
+the table. The \vn{p_smooth} and \vn{p_rough} components of the
+\vn{row} namelist give the reflection probabilities at the $N_\theta$
+angle points.
 
 %------------------------------------------------------------------
 \section{Output files} 
@@ -1242,7 +1256,7 @@ times, before being adsorbed on the fourth hit.
 
 Test modes are used to generate diagnostic data files. Test modes are
 specified using the \vn{-test <what>} option on the command line
-(\sref{s:intro}). Currently, only one test mode has been implemented:
+(\sref{s:run}). Currently, only one test mode has been implemented:
 \begin{example}
   -test reflect       
 \end{example}
@@ -1256,7 +1270,7 @@ Reflection test mode is used for studying the diffuse scattering
 distribution.  The simulation involves scattering photons at a given
 incident angle and energy and recording the output angles in a
 file. The parameters used for the test are read in from the master
-input file specified on the command line (\sref{s:intro}). The
+input file specified on the command line (\sref{s:run}). The
 namelist used for the input parameters for the reflection test is
 called \vn{reflection_test}.  Example:
 \begin{example}
