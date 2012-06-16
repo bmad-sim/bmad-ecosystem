@@ -22,7 +22,6 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 `chmod g+w bmad.pdf`;
 `mv bmad.pdf bmad-manual-$rev.pdf`; 
 
-`cp ~/public_html/bmad/manual_template.html .`;
 open (F_IN, "manual_template.html") || die ("Cannot open File: manual_template.html\n");
 
 open (F_OUT, ">manual.html") || die ("Cannot open manual.html file\n");
