@@ -1095,6 +1095,8 @@ Format:
 \begin{example}
    alias
    beam \{<element_name_or_index>\}
+   branches \{<universe>\}
+   building_wall  
    constraints
    curve \{-symbol\} \{-line\} <curve_name> 
    data \{<data_name>\} 
@@ -1170,6 +1172,25 @@ in a bunch, etc.  If \vn{<element_name_or_index>} is present, \vn{show
 beam} will show beam parameters at the selected element. Also see
 \vn{show particle}.  Use the \vn{set beam_init} command to set values
 of the \vn{beam_init} structure.
+
+%% show branches --------------------------------------------------------------
+
+\item[show branches \{<universe>\}] \Newline
+\vskip -0.2in
+Lists the lattice branches of the lattice associated with the given universe.
+If no universe is given, the currently viewed universe is used by default.
+
+Example:
+\begin{example}
+  show branches 2     ! Show lattice branches associated with universe 2
+\end{example}
+
+%% show building_wall --------------------------------------------------------------
+
+\item[show building_wall] \Newline
+\vskip -0.2in 
+List all building wall (\sref{s:building.wall}) sections
+along with the points that define the sections.
 
 %% show constraints --------------------------------------------------------------
 

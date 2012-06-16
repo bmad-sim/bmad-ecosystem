@@ -143,6 +143,8 @@ type (tao_lattice_struct), pointer :: tao_lat
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
+type (tao_building_wall_section_struct), pointer :: section
+type (tao_building_wall_point_struct), pointer :: pt
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
@@ -202,13 +204,13 @@ character(60) nam
 character(3) undef_str
 character(40) replacement_for_blank
 
-character(16) :: show_what, show_names(26) = [ &
+character(16) :: show_what, show_names(27) = [ &
    'data           ', 'variable       ', 'global         ', 'alias          ', 'top10          ', &
    'optimizer      ', 'element        ', 'lattice        ', 'constraints    ', 'plot           ', &
    'beam           ', 'tune           ', 'graph          ', 'curve          ', 'particle       ', &
    'hom            ', 'key_bindings   ', 'universe       ', 'orbit          ', 'derivative     ', &
    'branches       ', 'use            ', 'taylor_map     ', 'value          ', 'wave           ', &
-   'twiss_and_orbit' ]
+   'twiss_and_orbit', 'building_wall  ']
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -220,8 +222,9 @@ integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
+integer xfer_mat_print
 
-logical bmad_format, good_opt_only, show_lords, show_custom, print_cross_section, show_lost
+logical bmad_format, good_opt_only, show_lords, show_custom, print_wall, show_lost
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
@@ -470,8 +473,17 @@ case ('beam')
 
 case ('branches')
 
+  call tao_pick_universe (word1, line1, picked_uni, err, ix_u)
+  if (err) return
+  u => s%u(ix_u)
+  lat => u%model%lat
+
+  if (size(s%u) > 1) then
+    nl=nl+1; write(lines(nl), '()') 'For the lattice of universe: ', ix_u
+  endif
+
   if (ubound(lat%branch, 1) == 0) then
-    nl=1; lines(1) = 'NO BRANCHES'
+    nl=1; lines(1) = 'No branches besides the root branch.'
     result_id = show_what
     return
   endif
@@ -490,6 +502,31 @@ case ('branches')
     nl=nl+1; write (lines(nl), '(i6, 2x, a21, i6, i7, 3x, a20, i6)') &
                 i, branch%name, branch%n_ele_track, branch%n_ele_max, &
                 lat%branch(ele%ix_branch)%name, branch%ix_from_ele
+  enddo
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
+! building_wall
+
+case ('building_wall')
+
+  if (.not. allocated(s%building_wall%section)) then
+    nl=nl+1; lines(nl) = 'No building wall defined.'
+    result_id = 'building_wall:none'
+    return
+  endif
+
+  do i = 1, size(s%building_wall%section)
+    section => s%building_wall%section(i)
+    n = nl + size(section%point)
+    if (n + 10 > size(lines)) call re_allocate (lines, n, .false.)
+    nl=nl+1; write(lines(nl), '(a, i0, 2a)') 'Section(', i, ')   constraint: ', section%constraint
+    do j = 1, size(section%point)
+      pt => section%point(j)
+      nl=nl+1; write(lines(nl), '(a, i0, a, 3f10.3)') &
+              '  point(', j, ') z, x, r: ', pt%z, pt%x, pt%radius
+    enddo
   enddo
 
   result_id = show_what
@@ -874,18 +911,20 @@ case ('element')
   print_em_field = .false.
   print_all = .false.
   print_data = .false.
-  print_cross_section = .false.
+  print_wall = .false.
+  xfer_mat_print = 0
   print_slaves = .true.
   lat_type = model$
 
   do
     call tao_next_switch (stuff2, ['-taylor        ', '-em_field      ', &
                 '-all_attributes', '-data          ', '-design        ', &
-                '-no_slaves     ', '-cross_section ', '-base          ', &
-                '-field         ', '-floor_coords  '], switch, err, ix)
+                '-no_slaves     ', '-wall          ', '-base          ', &
+                '-field         ', '-floor_coords  ', '-xfer_mat      '], switch, err, ix)
     if (err) return
     select case (switch)
     case ('');                exit
+    case ('-xfer_mat');       xfer_mat_print = 6
     case ('-floor_coords');   print_floor = .true.
     case ('-taylor');         print_taylor = .true.
     case ('-design');         lat_type = design$
@@ -895,7 +934,7 @@ case ('element')
     case ('-all_attributes'); print_all = .true.
     case ('-data');           print_data = .true.
     case ('-no_slaves');      print_slaves = .false.
-    case ('-cross_section');  print_cross_section = .true.
+    case ('-wall');           print_wall = .true.
     case default
       call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND: ' // switch)
       return
@@ -969,15 +1008,15 @@ case ('element')
 
   tao_lat => tao_pointer_to_tao_lat (u, lat_type)
 
-  call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
-            .true., tao_lat%lat, .true., print_floor, print_em_field, print_cross_section)
+  call type2_ele (ele, ptr_lines, n, print_all, xfer_mat_print, print_taylor, s%global%phase_units, &
+            .true., tao_lat%lat, .true., print_floor, print_em_field, print_wall)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = ptr_lines(1:n)
   nl = nl + n
   deallocate (ptr_lines)
 
-  if (show_what == 'element') then
+  if (show_what == 'element' .and. print_floor) then
     nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
   endif
 

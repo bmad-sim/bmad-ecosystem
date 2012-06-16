@@ -614,6 +614,7 @@ do  ! Loop over plot files
                               'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.')
         if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
                               'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!')
+        plt%autoscale_gang_y = .false.  ! True does not make sense.
       endif
 
       if (graph%n_curve == 0) then
