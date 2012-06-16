@@ -1099,8 +1099,8 @@ Format:
    curve \{-symbol\} \{-line\} <curve_name> 
    data \{<data_name>\} 
    derivative <data_name(s)> <var_name(s)>
-   element \{-all_attributes\} \{-cross_section\} \{-base\} \{-design\}
-         \{-data\} \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-field\} <ele_name>
+   element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} 
+         \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
    global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
    graph <graph_name>
    hom
@@ -1241,8 +1241,8 @@ Example:
 %% show element --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show element \{-all\_attributes\} \{-cross_section\} \{-base\} \{-design\} \\
-  \hspace*{0.35in} \{-data\} \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-field\} <ele\_name> }] \Newline
+  show element \{-all\_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} \\
+  \hspace*{0.35in} \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele\_name> }] \Newline
 \vskip -0.1in
 This shows information on lattice elements. The syntax for \vn{<ele_name>} 
 is explained in section \sref{s:ele.list.format}. If
@@ -1262,8 +1262,10 @@ By default, the appropriate element(s) within the \vn{model} lattice
 \vn{-base} or the \vn{-design} switches which switch the lattice to
 the \vn{base} or \vn{design} lattices respectively.
 
-If the \vn{-cross_section} switch is present, the cross-section
-information for a \vn{capillary} element is displayed.
+If the \vn{-wall} switch is present, the wall information for the
+element, if it has been defined in the lattice file, is displayed. For
+an x-ray \vn{capillary} element, the wall is the inner surface of the
+capillary. For all other elements, the wall is the beam chamber wall.
 
 If the \vn{-data} switch is present, information about the 
 all the datums associated with the element will be listed. 
@@ -1288,6 +1290,10 @@ associated map, use the \vn{show taylor} command.
 If the \vn{-field} switch is present, any associated 
 Electro-magnetic field maps or grid data is printed. For example, 
 wiggler terms for a \vn{map_type} \vn{wiggler} element are printed.
+
+If the \vn{-xfer_mat} switch is present, the 6x6 transfer matrix (the
+first order part of the transfer map) along with the zeroth order part
+of the transfer map are printed.
 
 Example:
 \begin{example}
