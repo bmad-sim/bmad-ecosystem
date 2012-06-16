@@ -263,23 +263,6 @@ else
 
 endif
 
-! wiggler terms
-
-if (associated(ele%wig)) then
-  if (logic_option(.false., type_field)) then
-    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 9x, a)') ' Term#', &
-                                'Coef', 'K_x', 'K_y', 'K_z', 'phi_z   Type'
-    do i = 1, size(ele%wig%term)
-      term => ele%wig%term(i)
-      write (li(nl+i), '(i4, 4f12.6, f14.6, 3x, a)') i, term%coef, &
-            term%kx, term%ky, term%kz, term%phi_z, wig_term_type_name(term%type)
-    enddo
-    nl = nl + size(ele%wig%term)
-  else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of wiggler terms:', size(ele%wig%term)
-  endif
-endif
-
 ! RF field coefs
 
 if (associated(ele%em_field)) then
@@ -333,6 +316,33 @@ if (associated(ele%em_field)) then
   endif
 endif
 
+! Encode on/off status and s_position
+
+if (.not. ele%is_on) then
+  nl=nl+1; write (li(nl), *) '*** Note: Element is turned OFF ***'
+endif
+
+if (.not. ele%multipoles_on) then
+  nl=nl+1; write (li(nl), *) '*** Note: Element Multipoles are turned OFF ***'
+endif
+
+! wiggler terms
+
+if (associated(ele%wig)) then
+  if (logic_option(.false., type_field)) then
+    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 9x, a)') ' Term#', &
+                                'Coef', 'K_x', 'K_y', 'K_z', 'phi_z   Type'
+    do i = 1, size(ele%wig%term)
+      term => ele%wig%term(i)
+      write (li(nl+i), '(i4, 4f12.6, f14.6, 3x, a)') i, term%coef, &
+            term%kx, term%ky, term%kz, term%phi_z, wig_term_type_name(term%type)
+    enddo
+    nl = nl + size(ele%wig%term)
+  else
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of wiggler terms:', size(ele%wig%term)
+  endif
+endif
+
 ! wall3d cross-sections.
 ! Do not print more than 100 sections.
 
@@ -344,32 +354,22 @@ if (associated(ele%wall3d%section)) then
       n_max = nl + 100 
       if (n_max > size(li)) call re_associate (li, n_max) 
       section => ele%wall3d%section(i)
-      nl=nl+1; li(nl) = ''
-      nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Wall.Section# ', i, ':  S =', section%s
+      if (i == size(ele%wall3d%section)) then
+        nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Wall%Section(', i, '):  S =', section%s
+      elseif (section%dr_ds == real_garbage$) then
+        nl=nl+1; write (li(nl), '(a, i0, a, f10.6, a)') &
+              'Wall%Section(', i, '):  S =', section%s, ',  dr_ds = Not-set'
+      else
+        nl=nl+1; write (li(nl), '(a, i0, a, f10.6, a, es12.4)') &
+              'Wall%Section(', i, '):  S =', section%s, ',  dr_ds =', section%dr_ds
+      endif
       do j = 1, size(section%v)
         v => section%v(j)
         nl=nl+1; write (li(nl), '(4x, a, i0, a, 5f11.6)') &
                               'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
       enddo
-      if (i == size(ele%wall3d%section)) exit
-      nl=nl+1; li(nl) = ''
-      if (section%dr_ds /= real_garbage$) then
-        nl=nl+1; write (li(nl), '(a, es12.4)')    ' dr_ds         =', section%dr_ds
-      else
-        nl=nl+1; write (li(nl), '(a, es12.4)')    ' dr_ds         = Not set'
-      endif
     enddo
   endif
-endif
-
-! Encode on/off status and s_position
-
-if (.not. ele%is_on) then
-  nl=nl+1; write (li(nl), *) '*** Note: Element is turned OFF ***'
-endif
-
-if (.not. ele%multipoles_on) then
-  nl=nl+1; write (li(nl), *) '*** Note: Element Multipoles are turned OFF ***'
 endif
 
 ! Encode methods, etc.
