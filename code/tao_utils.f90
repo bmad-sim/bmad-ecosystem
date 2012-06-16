@@ -670,6 +670,8 @@ if (present(plot)) plot = p
 
 ! Find the number of graphs and allocate.
 
+if (.not. present(graph) .and. .not. present(curve)) return
+
 ix = index(graph_name, '.')
 if (ix == 0) then
   curve_name = ' '
@@ -713,6 +715,8 @@ enddo
 if (present(graph)) graph = g
 
 ! Find number of curves that match
+
+if (.not. present(curve)) return
 
 if (logic_option(.false., always_allocate) .and. curve_name == ' ') curve_name = '*'
 if (curve_name == ' ') return

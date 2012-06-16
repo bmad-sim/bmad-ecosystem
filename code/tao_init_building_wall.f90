@@ -64,13 +64,13 @@ if (n_wall == 0) return ! no walls
 rewind (iu)
 do i = 1, n_wall
 
-  constraint = ''
+  constraint = 'none'
   point%radius = 0
   point%x = real_garbage$
   read (iu, nml = building_wall_section, iostat = ios)
 
   select case (constraint)
-  case ('x+', 'x-', '')
+  case ('left_side', 'right_side', 'none')
     s%building_wall%section(i)%constraint = constraint
   case default
     call out_io (s_error$, r_name, 'BAD "CONSTRAINT" FOR BUILDING WALL: ' // constraint)

@@ -1364,7 +1364,7 @@ the write up of the \vn{wall.right_side} and \vn{wall.left_side} constraints in
 \begin{example}
   "right_side"  ! Section is to be used with wall.x+ constraints
   "left_side"   ! Section is to be used with wall.x- constraints
-  ""            ! Section is ignored in any constraint calculation.
+  "none"        ! Default. Section is ignored in any constraint calculation.
 \end{example}
 
 Example:
@@ -2207,12 +2207,13 @@ For Example:
 \begin{example}
   &floor_plan_drawing
     !               name                    Shape     Color  V_Size   Label Draw?
-    ele_shape(1) = "quadrupole::q*"         "box"     "red"     30     name  T    
-    ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     none 
-    ele_shape(3) = "sbend::*"               "box"     "blue"    15     none  F
-    ele_shape(4) = "wiggler::*"             "xbox"    "green"   20     name
-    ele_shape(5) = "var::quad_k1"           "circle"  "purple"  10     name
-    ele_shape(6) = "dat::orbit.x|useit_opt" "x"       "orange"  10     name
+    ele_shape(1) = "quadrupole::q*"         "box"     "red"     30     "name"  T    
+    ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     "none" 
+    ele_shape(3) = "sbend::*"               "box"     "blue"    15     "none"  F
+    ele_shape(4) = "wiggler::*"             "xbox"    "green"   20     "name"
+    ele_shape(5) = "var::quad_k1"           "circle"  "purple"  10     "name"
+    ele_shape(6) = "dat::orbit.x|useit_opt" "x"       "orange"  10     "name"
+    ele_shape(7) = "wall::building"         "-"       "black"    0     "-"
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the
@@ -2228,12 +2229,19 @@ Use the \vn{show plot -shape} command to see the defined shapes.  use
 the \vn{set shape} command (\sref{s:set})) to set shape parameters on the
 command line.
 
-Data and variables can also be specified to be drawn. In the above
-example, it is assumed that a \vn{quad_k1} variable array and a
-\vn{orbit.x} data array have been setup. A circle will be drawn at
-each element under control of a \vn{quad_k1} variable. For the
-\vn{orbit.x} data, an ``x'' will de drawn where the data is being
-evaluated but only for datums whose \vn{useit_opt} parameter is True.
+Data and variables can also be specified to be drawn by using a
+\vn{name} beginning with \vn{dat::} for drawing data and \vn{var::}
+for drawing variable locations. In the above example, it is assumed
+that a \vn{quad_k1} variable array and a \vn{orbit.x} data array have
+been setup. A circle will be drawn at each element under control of a
+\vn{quad_k1} variable. For the \vn{orbit.x} data, an ``x'' will de
+drawn where the data is being evaluated but only for datums whose
+\vn{useit_opt} parameter is True.
+
+For \vn{floor_plan} drawings, the building wall
+(\sref{s:building.wall}) can be drawn by specifying an \vn{ele_sape}
+whose name is \vn{"wall::building"}. For the building wall, the only
+\vn{ele_shape} attribute that is relavent is the \vn{color}.
 
 The \vn{<shape>} parameter is the shape of the figure
 drawn. Valid Shapes are:
