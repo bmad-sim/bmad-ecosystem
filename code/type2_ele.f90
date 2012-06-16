@@ -333,11 +333,16 @@ if (associated(ele%em_field)) then
   endif
 endif
 
-! wall3d cross-sections
+! wall3d cross-sections.
+! Do not print more than 100 sections.
 
 if (associated(ele%wall3d%section)) then
+  nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(ele%wall3d%section)
   if (logic_option(.false., type_wall)) then
-    do i = 1, size(ele%wall3d%section)
+    n = min(size(ele%wall3d%section), 100)
+    do i = 1, n
+      n_max = nl + 100 
+      if (n_max > size(li)) call re_associate (li, n_max) 
       section => ele%wall3d%section(i)
       nl=nl+1; li(nl) = ''
       nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Wall.Section# ', i, ':  S =', section%s
@@ -353,10 +358,7 @@ if (associated(ele%wall3d%section)) then
       else
         nl=nl+1; write (li(nl), '(a, es12.4)')    ' dr_ds         = Not set'
       endif
-
     enddo
-  else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(ele%wall3d%section)
   endif
 endif
 
