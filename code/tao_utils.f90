@@ -3289,4 +3289,54 @@ endif
 
 end function tao_beam_emit_calc
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+
+function tao_pointer_to_ele_shape (ele, ele_shapes) result (ele_shape)
+
+implicit none
+
+type (ele_struct) ele
+type (tao_ele_shape_struct), target :: ele_shapes(:)
+type (tao_ele_shape_struct), pointer :: ele_shape
+
+integer k, n_ele_track, ix_class
+
+character(28) :: r_name = 'tao_pointer_to_ele_shape'
+character(40) ele_name
+
+logical err
+
+!
+
+nullify(ele_shape)
+
+if (ele%lord_status == group_lord$) return
+if (ele%lord_status == overlay_lord$) return
+if (ele%slave_status == super_slave$) return
+
+do k = 1, size(ele_shapes)
+
+  if (ele_shapes(k)%ele_name == '') cycle
+  if (ele_shapes(k)%ele_name(1:5) == 'dat::') cycle
+  if (ele_shapes(k)%ele_name(1:5) == 'var::') cycle
+  if (ele_shapes(k)%ele_name(1:5) == 'lat::') cycle
+  if (ele_shapes(k)%ele_name(1:6) == 'wall::') cycle
+
+  call tao_string_to_element_id (ele_shapes(k)%ele_name, ix_class, ele_name, err, .false.)
+  if (err) then
+    call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // ele_shapes(k)%ele_name)
+    cycle
+  endif
+
+  if (ix_class /= 0 .and. ix_class /= ele%key) cycle
+  if (.not. match_wild(ele%name, ele_name)) cycle
+
+  ele_shape => ele_shapes(k)
+  return
+enddo
+
+end function tao_pointer_to_ele_shape 
+
 end module tao_utils

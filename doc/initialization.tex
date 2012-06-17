@@ -2130,9 +2130,12 @@ Global        Plot
   X    <--->   -y
 \end{example}
 An overall rotation of the floor plan can be controlled by setting
+\vn{plot_page%floor_plan_rotation} in the \vn{tao_plot_page} namelist. Example:
 (\sref{s:init.plot})
 \begin{example}
-  plot_page%floor_plan_rotation
+  &tao_plot_page
+    plot_page%floor_plan_rotation = 0.5  ! Rotate 180 degress
+  /
 \end{example}
 
 Alternatively, the global coordinates at the start of the lattice can
