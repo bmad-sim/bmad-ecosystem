@@ -524,8 +524,13 @@ case ('building_wall')
     nl=nl+1; write(lines(nl), '(a, i0, 2a)') 'Section(', i, ')   constraint: ', section%constraint
     do j = 1, size(section%point)
       pt => section%point(j)
-      nl=nl+1; write(lines(nl), '(a, i0, a, 3f10.3)') &
+      if (pt%radius == 0) then
+        nl=nl+1; write(lines(nl), '(a, i0, a, 3f10.3)') &
               '  point(', j, ') z, x, r: ', pt%z, pt%x, pt%radius
+      else
+        nl=nl+1; write(lines(nl), '(a, i0, a, 5f10.3)') &
+              '  point(', j, ') z, x, r: ', pt%z, pt%x, pt%radius, pt%z_center, pt%x_center
+      endif
     enddo
   enddo
 

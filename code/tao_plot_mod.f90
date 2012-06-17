@@ -290,7 +290,7 @@ type (tao_var_struct), pointer :: var
 real(rp) theta, v_vec(3), theta1, dtheta
 real(rp) x_bend(0:1000), y_bend(0:1000)
 
-integer i, j, k, n, n_bend, isu, ic, ib
+integer i, j, k, n, n_bend, isu, ic, ib, icol
 
 character(20) :: r_name = 'tao_draw_floor_plan'
 
@@ -388,6 +388,7 @@ if (allocated(s%building_wall%section)) then
     ele_shape => s%plotting%floor_plan%ele_shape(i)
     if (ele_shape%ele_name /= 'wall::building') cycle
     if (.not. ele_shape%draw) cycle
+    call qp_translate_to_color_index (ele_shape%color, icol)
 
     do ib = 1, size(s%building_wall%section)
       pt => s%building_wall%section(ib)%point
@@ -396,7 +397,7 @@ if (allocated(s%building_wall%section)) then
         if (pt(j)%radius == 0) then   ! line
           call floor_to_screen (pt(j-1)%x, 0.0_rp, pt(j-1)%z, end1%x, end1%y)
           call floor_to_screen (pt(j)%x, 0.0_rp, pt(j)%z, end2%x, end2%y)
-          call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
+          call qp_draw_line(end1%x, end2%x, end1%y, end2%y, color = icol)
 
         else                    ! arc
           theta1 = atan2(pt(j-1)%x - pt(j)%x_center, pt(j-1)%z - pt(j)%z_center)
@@ -405,12 +406,12 @@ if (allocated(s%building_wall%section)) then
           n_bend = abs(50 * dtheta) + 1
           do k = 0, n_bend
             theta = theta1 + k * dtheta / n_bend
-            v_vec(1) = pt(j)%x + abs(pt(j)%radius) * sin(theta)
+            v_vec(1) = pt(j)%x_center + abs(pt(j)%radius) * sin(theta)
             v_vec(2) = 0
-            v_vec(3) = pt(j)%z + abs(pt(j)%radius) * cos(theta)
-            call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
+            v_vec(3) = pt(j)%z_center + abs(pt(j)%radius) * cos(theta)
+            call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(k), y_bend(k))
           enddo
-          call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
+          call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), color = icol)
         endif
       enddo
 
@@ -1420,55 +1421,5 @@ endif
 deallocate (text, symbol, line)
 
 end subroutine tao_plot_data
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-
-function tao_pointer_to_ele_shape (ele, ele_shapes) result (ele_shape)
-
-implicit none
-
-type (ele_struct) ele
-type (tao_ele_shape_struct), target :: ele_shapes(:)
-type (tao_ele_shape_struct), pointer :: ele_shape
-
-integer k, n_ele_track, ix_class
-
-character(28) :: r_name = 'tao_pointer_to_ele_shape'
-character(40) ele_name
-
-logical err
-
-!
-
-nullify(ele_shape)
-
-if (ele%lord_status == group_lord$) return
-if (ele%lord_status == overlay_lord$) return
-if (ele%slave_status == super_slave$) return
-
-do k = 1, size(ele_shapes)
-
-  if (ele_shapes(k)%ele_name == '') cycle
-  if (ele_shapes(k)%ele_name(1:5) == 'dat::') cycle
-  if (ele_shapes(k)%ele_name(1:5) == 'var::') cycle
-  if (ele_shapes(k)%ele_name(1:5) == 'lat::') cycle
-  if (ele_shapes(k)%ele_name(1:6) == 'wall::') cycle
-
-  call tao_string_to_element_id (ele_shapes(k)%ele_name, ix_class, ele_name, err, .false.)
-  if (err) then
-    call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // ele_shapes(k)%ele_name)
-    cycle
-  endif
-
-  if (ix_class /= 0 .and. ix_class /= ele%key) cycle
-  if (.not. match_wild(ele%name, ele_name)) cycle
-
-  ele_shape => ele_shapes(k)
-  return
-enddo
-
-end function tao_pointer_to_ele_shape 
 
 end module

@@ -105,7 +105,7 @@ do i = 1, n_wall
     if (pt(j)%radius /= 0) then
       x_mid = (pt(j)%x + pt(j-1)%x) / 2; z_mid = (pt(j)%z + pt(j-1)%z) / 2 
       dx    = (pt(j)%x - pt(j-1)%x) / 2; dz    = (pt(j)%z - pt(j-1)%z) / 2 
-      a2 = (pt(j)%radius**2 - dx**2 - dz**2) / (dx**2 - dz**2)
+      a2 = (pt(j)%radius**2 - dx**2 - dz**2) / (dx**2 + dz**2)
       if (a2 < 0) then
         call out_io (s_fatal$, r_name, 'ERROR IN POINT ARRAY OF BUILDING_WALL_SECTION NAMELIST NUMBER \i0\ ', &
                                        'WALL POINTS TOO FAR APART FOR CIRCLE AT POINT \i0\ ', i_array = [i, j])
