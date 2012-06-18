@@ -1132,6 +1132,11 @@ case default   ! normal attribute
     elseif (ix_attrib == y_limit$) then
       ele%value(y1_limit$) = value
       ele%value(y2_limit$) = value
+    elseif (ix_attrib > num_ele_attrib$) then
+      call pointer_to_attribute (ele, attrib_word, .false., r_ptr, err_flag, print_err)
+      if (err_flag) return
+      r_ptr = value
+
     else
       ele%value(ix_attrib) = value
 

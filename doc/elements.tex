@@ -1056,6 +1056,12 @@ element.  Here, the transfer map through the \vn{floor_position} will
 be the unit map. That is, the phase space coordinates of a particle
 will not change when tracking through such an element.
 
+Setting the floor position at an element will affect the floor
+position of all elements following the element but will not affect the
+preceeding element. The \vn{floor_position} element can be used, for
+example, to restore the correct geometry when a section of the lattice
+is represented by, say, a \vn{taylor} type element.
+
 Example:
 \begin{example}
   floor_set: floor_position, x_position = 3.2
