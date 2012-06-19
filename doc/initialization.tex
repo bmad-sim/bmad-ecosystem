@@ -1752,16 +1752,12 @@ following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
 \index{floor_plan}\index{beam_chamber_wall}
 \begin{example}
-  "beam_chamber_wall"  ! Draw the beam chamber wall (\sref{s:beam.wall.draw}).
   "data"               ! Data and/or variable plots (default) (\sref{s:plot.data}).
   "floor_plan"         ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
   "key_table"          ! Key binding table for single mode (\sref{s:key.table}).
   "lat_layout"         ! Schematic showing placement of the lattice elements (\sref{s:lat.layout}).
   "phase_space"        ! Phase space plots (\sref{s:phase.space}).
 \end{example}
-Note: \vn{"floor_plan"}, \vn{"key_table"} and \vn{"lat_layout"} graphs
-do not have associated \vn{curve}s. The \vn{"beam_chamber_wall"} type
-graph can have a single associated \vn{curve}.
 
 With \vn{graph%type} set to \vn{"beam_chamber_wall"}
 (\sref{s:beam.wall.draw}), the beam chamber wall is drawn if it has
@@ -1777,8 +1773,10 @@ multiple data and variable curves can be drawn in one graph.
 With \vn{graph%type} set to \vn{floor_plan} (\sref{s:floor.plan}), the
 two dimensional layout of the machine is drawn.
 
-With \vn{graph%type} set to \vn{"key_table"} (\sref{s:key.table}), the 
+With \vn{graph%type} set to \vn{"key_table"} (\sref{s:key.table}), the
 key bindings for use in single mode (\sref{s:key.bind}) are displayed.
+Note: The \vn{"key_table"} graph type does not have any associated
+\vn{curve}s.
 
 With \vn{graph%type} set to \vn{lat_layout} (\sref{s:lat.layout}), the
 elements of the lattice are symbolical drawn in a one dimensional
@@ -1803,11 +1801,12 @@ comes from. This is determined, in part, by the setting of
 \vn{graph%component}. \vn{graph%component} may be one of:
 \index{model}\index{design}\index{base}\index{meas}\index{ref}
 \begin{example}
-  "model"     ! model values. Default.
-  "design"    ! design values.
-  "base"      ! Base values
-  "meas"      ! data values.
-  "ref"       ! reference data values.
+  "model"             ! model values. Default.
+  "design"            ! design values.
+  "base"              ! Base values
+  "meas"              ! data values.
+  "ref"               ! reference data values.
+  "beam_chamber_wall" ! Beam chamber wall
 \end{example}
 The default, if \vn{graph%component} is not specified, is to use
 \vn{"model"}. Additionally, \vn{graph%component} may be set to plot a
@@ -2312,18 +2311,12 @@ namelist.
 \label{s:beam.wall.draw}
 
 If a beam chamber wall has been defined in the lattice file, This wall
-can be drawn in a \vn{graph} by setting \vn{graph%type} to
+can be drawn in a \vn{curve} by setting \vn{curve%type} to
 \vn{"beam_chamber_wall"}.
 
 Beam chamber walls are drawn, like a \vn{lat_layout}, on a one
 dimensional line as a function of longitudinal position along the
-machine centerline. A beam chamber wall graph may be combined with a
-\vn{lat_layout} graph by assigning both graphs to the same plot and 
-setting \vn{graph%box} to be the same for both to physically place
-both of them at the same spot.
-
-To set the line color or width for the beam chamber wall, 
-set \vn{curve(1)%line%color} or \vn{curve(1)%line%width}.
+machine centerline.
 
 Note: Use the command \vn{show ele -wall} to print information about the
 beam chamber wall for a particular element.
