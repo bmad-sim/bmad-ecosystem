@@ -116,21 +116,84 @@ if (-r catfile( $curdir, "tao", "code", "tao_struct.f90" )) {
   $tao_dir = catfile( $ENV{"DIST_BASE_DIR"}, "tao" );
 }
 
-# Look for arguments.
+if (-r catfile( $curdir, "bmadz", "modules", "bmadz_struct.f90" )) {
+  $bmadz_dir = catfile( $curdir, "bmadz" );
+} elsif (-r catfile( $updir, "bmadz", "modules", "bmadz_struct.f90")) {
+  $bmadz_dir = catfile( $updir, "bmadz" );
+} elsif (-r catfile( $updir, $updir, "bmadz", "modules", "bmadz_struct.f90")) {
+  $bmadz_dir = catfile( $updir, $updir, "bmadz" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "bmadz")) {
+  $bmadz_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "bmadz" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}."/src", "bmadz")) {
+  $bmadz_dir = catfile( $ENV{"ACC_RELEASE_DIR"}."/src", "bmadz" );
+} else {
+  $bmadz_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bmadz" );
+}
 
-$str = @ARGV[0];
-$str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
+# Look for arguments
+
+$extra = 0;
+
+$_ = "@ARGV";  
+@field = split;
+$extra_dir = '';
+
+for ($i = 0; $i <= @field; $i++) {
+
+  $_ = $field[$i];
+
+  if (! /^\-/) {last;}
+
+  if ($_ eq '-d') {
+    $extra = 1; 
+    $extra_dir = $field[$i+1];
+    $i = $i + 1;
+    next;
+  }
+
+  if ($_ eq '-h') {
+    print "Standard Libraries searched:\n";
+    print "   bmad\n";
+    print "   sim_utils\n";
+    print "   cesr_utils\n";
+    print "   mpm_utils\n";
+    print "   tao\n";
+    print "   bmadz\n";
+    print "\n";
+    print "Use the '-d <dir>' command line option to search a non-standard directory\n";
+    exit
+  }
+
+  last;
+
+}
+
+# Search for a match
+
+$match_str = $field[$i];
+$match_str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
+
+if ($extra_dir ne '') {
+  print "Searching also: $extra_dir\n";
+  find(\&searchit, $extra_dir);
+}
 
 find(\&searchit, $bmad_dir);
 find(\&searchit, $sim_utils_dir);
-find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $tao_dir);
+find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $mpm_utils_dir);
+find(\&searchit, $bmadz_dir);
+
 ## find(\&searchit, $recipes_dir);
 ## find(\&searchit, $forest_dir);
 
-if ($found_one == 0) {print "Cannot match String! $str";}
-print "\n";
+if ($found_one == 0) {
+  print "Cannot match String! $match_str\n";
+  print "Use '-h' command line option to list options.\n";
+} else {
+  print "\n";
+}
 
 #---------------------------------------------------------
 
@@ -170,7 +233,7 @@ sub searchit {
 
         # If a match then print info
 
-        if ($routine_name =~ /^\s*$str[ \(\n]/i) {
+        if ($routine_name =~ /^\s*$match_str[ \(\n]/i) {
           if ($found_in_file == 0) {print "File: $File::Find::name\n";}
           $found_one = 1;
           $found_in_file = 1;
@@ -218,7 +281,7 @@ sub searchit {
     while (<F_IN>) {
 
       if (/^ *class +(\w+) +\{ *$/) {     # match to "class xyz {"
-        if ($1 =~ /^$str$/i) {
+        if ($1 =~ /^$match_str$/i) {
           $found_one = 1;
           if (!$found_in_file) {print "\n$File::Find::name\n";}
 
@@ -232,7 +295,7 @@ sub searchit {
   
 # See if the file name matches.
 
-  if (/^$str\.f90$/ && $found_in_file == 0) {
+  if (/^$match_str\.f90$/ && $found_in_file == 0) {
     $found_one = 1;
     print "$File::Find::name\n";
   }

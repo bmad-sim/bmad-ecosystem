@@ -120,12 +120,27 @@ if (-r catfile( $curdir, "tao", "code", "tao_struct.f90" )) {
   $tao_dir = catfile( $ENV{"DIST_BASE_DIR"}, "tao" );
 }
 
+if (-r catfile( $curdir, "bmadz", "modules", "bmadz_struct.f90" )) {
+  $bmadz_dir = catfile( $curdir, "bmadz" );
+} elsif (-r catfile( $updir, "bmadz", "modules", "bmadz_struct.f90")) {
+  $bmadz_dir = catfile( $updir, "bmadz" );
+} elsif (-r catfile( $updir, $updir, "bmadz", "modules", "bmadz_struct.f90")) {
+  $bmadz_dir = catfile( $updir, $updir, "bmadz" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "bmadz")) {
+  $bmadz_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "bmadz" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}."/src", "bmadz")) {
+  $bmadz_dir = catfile( $ENV{"ACC_RELEASE_DIR"}."/src", "bmadz" );
+} else {
+  $bmadz_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bmadz" );
+}
+
 # Look for arguments
 
 $extra = 0;
 
 $_ = "@ARGV";  
 @field = split;
+$extra_dir = '';
 
 for ($i = 0; $i <= @field; $i++) {
 
@@ -140,27 +155,49 @@ for ($i = 0; $i <= @field; $i++) {
     next;
   }
 
+  if ($_ eq '-h') {
+    print "Standard Libraries searched:\n";
+    print "   bmad\n";
+    print "   sim_utils\n";
+    print "   cesr_utils\n";
+    print "   mpm_utils\n";
+    print "   tao\n";
+    print "   bmadz\n";
+    print "\n";
+    print "Use the '-d <dir>' command line option to search a non-standard directory\n";
+    exit
+  }
+
   last;
 
 }
 
-#
- 
+# Search for a match.
+
 $match_str = $field[$i];
 $match_str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
 
-#
+if ($extra_dir ne '') {
+  print "Searching also: $extra_dir\n";
+  find(\&searchit, $extra_dir);
+}
 
 find(\&searchit, $bmad_dir);
 find(\&searchit, $sim_utils_dir);
-find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $tao_dir);
+find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $mpm_utils_dir);
+find(\&searchit, $bmadz_dir);
+
 ## find(\&searchit, $recipes_dir);
 ## find(\&searchit, $forest_dir);
 
-if ($found_one == 0) {print "Cannot match String! $match_str";}
-print "\n";
+if ($found_one == 0) {
+  print "Cannot match String! $match_str\n";
+  print "Use '-h' command line option to list options.\n";
+} else {
+  print "\n";
+}
 
 #---------------------------------------------------------
 
