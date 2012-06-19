@@ -164,7 +164,7 @@ for ($i = 0; $i <= @field; $i++) {
     print "   tao\n";
     print "   bmadz\n";
     print "\n";
-    print "Use the '-d <dir>' command line option to search a non-standard directory\n";
+    print "Use the '-d <head_dir>' command line option to search a non-standard directory tree\n";
     exit
   }
 
