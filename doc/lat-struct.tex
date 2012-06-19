@@ -209,15 +209,13 @@ Figure~\ref{f:lat.param.struct}
     real(rp) unstable_factor    ! Circular lats: growth rate/turn. Linear lats: |orbit/limit|
     real(rp) t1_with_RF(6,6)    ! Full 1-turn 6x6 matrix
     real(rp) t1_no_RF(6,6)      ! Transverse 1-turn 4x4 matrix (RF off).
-    integer particle            ! +1 = positrons, -1 = electrons
-    integer ix_lost             ! If lost at what element?
-    integer end_lost_at         ! entrance_end$ or exit_end$
-    integer plane_lost_at       ! x_plane$, y_plane$, or z_plane\$
-    integer lattice_type        ! linear_lattice$, circular_lattice$, etc...
+    integer particle            ! +1 = positrons, -1 = electrons, etc.
+    integer lattice_type        ! linear_lattice$, etc...
     integer ixx                 ! Integer for general use
-    logical stable              ! is closed lattice stable?
+    logical stable              ! For circular lattices: Is lat stable?
     logical aperture_limit_on   ! use apertures in tracking?
-    logical lost                ! for use in tracking
+    type (bookkeeper_status_struct) bookkeeping_state
+                                          ! Overall status for the branch.
   end type
 \end{verbatim}
 \caption{Definition of the \vn{param_struct}.}
@@ -240,32 +238,6 @@ Normally \vn{%ele(0)%s} = 0 so \vn{%param%total_length} =
 by \vn{beambeam} element to determine the strength of the beambeam
 interaction. \vn{%param%n_part} is also used by \vn{lcavity} elements
 for wake field calculations.
-
-\index{lat_param_struct!\%lost}
-\index{lat_param_struct!\%ix_lost}
-\index{lat_param_struct!\%end_lost_at}
-\index{lat_param_struct!\%aperture_limit_on}
-\index{lat_param_struct!\%plane_lost_at}
-When tracking particles through a lattice the variable
-\vn{%param%aperture_limit_on} determines if apertures are checked.
-\vn{%param%lost} is used to signal if a particle is lost and
-\vn{%param%ix_lost} gives the index of the element at which a particle
-is lost. Additionally, \vn{%param%end_lost_at} is used to indicate at
-which end the particle was lost at. Possible values for
-\vn{%end_lost_at} are
-\begin{example}
-  %entrance_end
-  %exit_end
-\end{example}
-The \vn{%plane_lost_at} component records whether
-the lost particle was lost horizontally, vertically or longitudinally.
-Possible values for \vn{%plane_lost_at} are
-\begin{example}
-  %x_plane
-  %y_plane
-  %z_plane
-\end{example}
-See Chapter~\ref{c:tracking} for more details.
 
 \index{lat_param_struct!\%t1_with_RF}
 \index{lat_param_struct!\%t1_no_RF}
@@ -292,6 +264,8 @@ integer variable \vn{%param%particle}. The value of this variable will
 correspond to one of the constants:
 \index{positron\$}\index{electron\$}\index{proton\$}\index{antiproton\$}
 \begin{example}
+  muon\$
+  antimuon\$
   positron\$
   electron\$
   proton\$
