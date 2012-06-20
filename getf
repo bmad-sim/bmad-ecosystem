@@ -134,9 +134,119 @@ if (-r catfile( $curdir, "bmadz", "modules", "bmadz_struct.f90" )) {
   $bmadz_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bmadz" );
 }
 
+if (-r catfile( $curdir, "nonlin_bpm", "code", "nonlin_bpm_init.f90")) {
+  $nonlin_bpm_dir = catfile( $curdir, "nonlin_bpm" );
+} elsif (-r catfile( $updir, "nonlin_bpm", "code", "nonlin_bpm_init.f90")) {
+  $nonlin_bpm_dir = catfile( $updir, "nonlin_bpm" );
+} elsif (-r catfile( $updir, $updir, "nonlin_bpm", "code", "nonlin_bpm_init.f90")) {
+  $nonlin_bpm_dir = catfile( $updir, $updir, "nonlin_bpm" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "nonlin_bpm")) {
+  $nonlin_bpm_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "nonlin_bpm" );
+} else {
+  $nonlin_bpm_dir = catfile( $ENV{"DIST_BASE_DIR"}, "nonlin_bpm" );
+}
+
+if (-r catfile( $curdir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
+  $recipes_dir = catfile( $curdir, "recipes_f-90_LEPP" );
+} elsif (-r catfile( $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
+  $recipes_dir = catfile( $updir, "recipes_f-90_LEPP" );
+} elsif (-r catfile( $updir, $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
+  $recipes_dir = catfile( $updir, $updir, "recipes_f-90_LEPP" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "recipes_f-90_LEPP")) {
+  $recipes_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "recipes_f-90_LEPP" );
+} else {
+  $recipes_dir = catfile( $ENV{"DIST_BASE_DIR"}, "recipes_f-90_LEPP" );
+}
+
+if (-r catfile( $curdir, "forest", "code", "a_scratch_size.f90")) {
+  $forest_dir = catfile( $curdir, "forest" );
+} elsif (-r catfile( $updir, "forest", "code", "a_scratch_size.f90")) {
+  $forest_dir = catfile( $updir, "forest" );
+} elsif (-r catfile( $updir, $updir, "forest", "code", "a_scratch_size.f90")) {
+  $forest_dir = catfile( $updir, $updir, "forest" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "forest")) {
+  $forest_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "forest" );
+} else {
+  $forest_dir = catfile( $ENV{"DIST_BASE_DIR"}, "forest" );
+}
+
+if (-r catfile( $curdir, "bsim", "code")) {
+  $bsim_dir = catfile( $curdir, "bsim" );
+} elsif (-r catfile( $updir, "bsim", "code")) {
+  $bsim_dir = catfile( $updir, "bsim" );
+} elsif (-r catfile( $updir, $updir, "bsim", "code")) {
+  $bsim_dir = catfile( $updir, $updir, "bsim" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "bsim")) {
+  $bsim_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "bsim" );
+} else {
+  $bsim_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bsim" );
+}
+
+if (-r catfile( $curdir, "bsim_cesr", "code")) {
+  $bsim_cesr_dir = catfile( $curdir, "bsim_cesr" );
+} elsif (-r catfile( $updir, "bsim_cesr", "code")) {
+  $bsim_cesr_dir = catfile( $updir, "bsim_cesr" );
+} elsif (-r catfile( $updir, $updir, "bsim_cesr", "code")) {
+  $bsim_cesr_dir = catfile( $updir, $updir, "bsim_cesr" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "bsim_cesr")) {
+  $bsim_cesr_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "bsim_cesr" );
+} else {
+  $bsim_cesr_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bsim_cesr" );
+}
+
+if (-r catfile( $curdir, "cesr_programs", "code")) {
+  $cesr_programs_dir = catfile( $curdir, "cesr_programs" );
+} elsif (-r catfile( $updir, "cesr_programs", "code")) {
+  $cesr_programs_dir = catfile( $updir, "cesr_programs" );
+} elsif (-r catfile( $updir, $updir, "cesr_programs", "code")) {
+  $cesr_programs_dir = catfile( $updir, $updir, "cesr_programs" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "cesr_programs")) {
+  $cesr_programs_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "cesr_programs" );
+} else {
+  $cesr_programs_dir = catfile( $ENV{"DIST_BASE_DIR"}, "cesr_programs" );
+}
+
+if (-r catfile( $curdir, "cesrv", "code")) {
+  $cesrv_dir = catfile( $curdir, "cesrv" );
+} elsif (-r catfile( $updir, "cesrv", "code")) {
+  $cesrv_dir = catfile( $updir, "cesrv" );
+} elsif (-r catfile( $updir, $updir, "cesrv", "code")) {
+  $cesrv_dir = catfile( $updir, $updir, "cesrv" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "cesrv")) {
+  $cesrv_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "cesrv" );
+} else {
+  $cesrv_dir = catfile( $ENV{"DIST_BASE_DIR"}, "cesrv" );
+}
+
+if (-r catfile( $curdir, "util_programs", "code")) {
+  $util_programs_dir = catfile( $curdir, "util_programs" );
+} elsif (-r catfile( $updir, "util_programs", "code")) {
+  $util_programs_dir = catfile( $updir, "util_programs" );
+} elsif (-r catfile( $updir, $updir, "util_programs", "code")) {
+  $util_programs_dir = catfile( $updir, $updir, "util_programs" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "util_programs")) {
+  $util_programs_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "util_programs" );
+} else {
+  $util_programs_dir = catfile( $ENV{"DIST_BASE_DIR"}, "util_programs" );
+}
+
+if (-r catfile( $curdir, "examples", "simple_program")) {
+  $examples_dir = catfile( $curdir, "examples" );
+} elsif (-r catfile( $updir, "examples", "simple_program")) {
+  $examples_dir = catfile( $updir, "examples" );
+} elsif (-r catfile( $updir, $updir, "examples", "simple_program")) {
+  $examples_dir = catfile( $updir, $updir, "examples" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "examples")) {
+  $examples_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "examples" );
+} else {
+  $examples_dir = catfile( $ENV{"DIST_BASE_DIR"}, "examples" );
+}
+
 # Look for arguments
 
 $extra = 0;
+$also_match_params = 1; 
+$search_all = 0;
 
 $_ = "@ARGV";  
 @field = split;
@@ -155,7 +265,24 @@ for ($i = 0; $i <= @field; $i++) {
     next;
   }
 
+  if ($_ eq '-p') {
+    $also_match_params = 1; 
+    next;
+  }
+
+  if ($_ eq '-a') {
+    $search_all = 1;
+    next;
+  }
+
   if ($_ eq '-h') {
+    print "Usage:\n";
+    print "  getf {options} <search_string>\n\n";
+    print "Options:\n";
+    print "   -a          # Search Numerical recipes, forest, and varies program directories as well.\n";
+    print "   -d <dir>    # Search files in <dir> and sub-directories for matches.\n";
+    ## print "   -p          # Match to parameters as well.\n";   # Not yet implemented!
+    print "\n";
     print "Standard Libraries searched:\n";
     print "   bmad\n";
     print "   sim_utils\n";
@@ -163,8 +290,6 @@ for ($i = 0; $i <= @field; $i++) {
     print "   mpm_utils\n";
     print "   tao\n";
     print "   bmadz\n";
-    print "\n";
-    print "Use the '-d <head_dir>' command line option to search a non-standard directory tree\n";
     exit
   }
 
@@ -189,8 +314,16 @@ find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $mpm_utils_dir);
 find(\&searchit, $bmadz_dir);
 
-## find(\&searchit, $recipes_dir);
-## find(\&searchit, $forest_dir);
+if ($search_all == 1) {
+  find(\&searchit, $recipes_dir);
+  find(\&searchit, $forest_dir);
+  find(\&searchit, $bsim_dir);
+  find(\&searchit, $bsim_cesr_dir);
+  find(\&searchit, $cesr_programs_dir);
+  find(\&searchit, $cesrv_dir);
+  find(\&searchit, $util_programs_dir);
+  find(\&searchit, $examples_dir);
+}
 
 if ($found_one == 0) {
   print "Cannot match String! $match_str\n";
@@ -209,6 +342,8 @@ sub searchit {
   if (/\#/) {return;}
   $file = $_;
   $matches_file_name = 0;
+  $have_printed_file_name = 0;
+  $in_module_header = 0;
 
   # Check contents of .f90 file.
 
@@ -239,6 +374,37 @@ sub searchit {
       if ($n_com == 0 && /^!\-\-\-\-\-\-\-\-\-/) {next;}
       if (/^#/) {next;}
 
+      # Search for parameters
+
+      if ($also_match_params == 1) {
+        if (/^ *module/i) {$in_module_header = 1;}
+        if ($in_module_header == 1) {
+          if (/^ *contains/i) {$in_module_header = 0;}
+          if (/parameter.* ::/) {
+            ## print $';    #'
+            $rest = ',' . $';       #'
+            chomp($rest);
+            $rest = (split(/!/, $rest))[0];
+            while ($rest =~ /,\s*([\$\w\(\)]+) *\=/) {
+              $rest = $';  # '
+              $param = (split(/\(/, $1))[0];
+              if ($param =~ /^$match_str$/i || $param =~ /^$match_str\$$/i) {
+                $found_one = 1;
+                if ($have_printed_file_name == 0) {
+                  print "\nFile: $File::Find::name\n";
+                  $have_printed_file_name = 1;
+                }
+                print $_;
+                last;
+              }
+              ## print ":::" . ($match) . ":::\n";
+              ## print ":::" . $rest . ":::\n";
+            }
+            next;
+          }
+        } 
+      }
+
       # Add to comment block if a comment line
 
       if (/^!/) {
@@ -249,7 +415,7 @@ sub searchit {
 
       } elsif (/^ *type +$match_str[ \n]/i) {
         $found_one = 1;
-        print "\n$File::Find::name\n";
+        print "\nFile: $File::Find::name\n";
         for ($i = 0; $i < $n_com; $i++) {print @comments[$i];}
         print "\n";
         print $_;
@@ -269,7 +435,7 @@ sub searchit {
 
         if (/^$match_str$/i) {
           $found_one = 1;
-          print "\n$File::Find::name\n";
+          print "\nFile: $File::Find::name\n";
           for ($i = 0; $i < $n_com; $i++) {print @comments[$i];}
         }
 
@@ -320,7 +486,7 @@ sub searchit {
         if ($1 =~ /^$match_str$/i) {
           $in_class = 1;
           $found_one = 1;
-          print "\n$File::Find::name\n";
+          print "\nFile: $File::Find::name\n";
         }
       }
 
@@ -340,7 +506,7 @@ sub searchit {
   if ($matches_file_name == 0 && $file =~ /^$match_str\.f90$/i) {
 
     $found_one = 1;
-    print "\n$File::Find::name\n";
+    print "\nFile: $File::Find::name\n";
 
     $stat = open (F_IN, $file);
     if (! $stat) {
