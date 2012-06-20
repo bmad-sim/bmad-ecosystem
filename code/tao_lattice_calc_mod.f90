@@ -41,6 +41,7 @@ type (tao_d2_data_struct), pointer :: d2_dat
 type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
+type (branch_struct), pointer :: branch
 
 integer iuni, j, ib, ix, n_max, iu, it, id, ie
 real(rp) :: delta_e = 0
@@ -61,12 +62,12 @@ if (.not. s%global%lattice_calc_on) return
 tao_com%ix_ref_taylor = -999   ! Reset taylor map
 call tao_hook_lattice_calc (calc_ok)
     
-! To save time, s%u(:)%lattice_recalc are used to determine what gets calculated. 
+! To save time, s%u(:)%calc%lattice are used to determine what gets calculated. 
 
 do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(iuni)
-  if (.not. u%is_on .or. .not. u%lattice_recalc) cycle
+  if (.not. u%is_on .or. .not. u%calc%lattice) cycle
 
   ! Pointer to appropriate lattice and zero data array
 
@@ -74,28 +75,33 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
   u%data(:)%good_model = .false. ! reset
   u%data%model_value = tiny(1.0_rp)
 
-  ! set up matching element
+  ! set up connecting element
 
-  call tao_match_lats_init (u)
+  call tao_connect_lats_init (u)
 
   call tao_lat_bookkeeper (u, tao_lat)
 
   ! Loop over all branches
 
+  u%info%lat_len_tot = 0
+
   do ib = 0, ubound(tao_lat%lat%branch, 1)
  
+    branch => tao_lat%lat%branch(ib)
+    u%info%lat_len_tot = u%info%lat_len_tot + branch%param%total_length
+
     do j = 1, 6
       tao_lat%lat_branch(ib)%orbit%vec(j) = 0.0
     enddo
 
     track_type = s%global%track_type
-    if (ib > 0 .and. tao_lat%lat%branch(ib)%param%particle == photon$) track_type = 'single'
+    if (ib > 0 .and. branch%param%particle == photon$) track_type = 'single'
 
     select case (track_type)
     case ('single') 
       call tao_inject_particle (u, tao_lat, ib)
       call tao_single_track (u, tao_lat, this_calc_ok, ib)
-      do ie = 0, tao_lat%lat%branch(ib)%n_ele_track
+      do ie = 0, branch%n_ele_track
         call tao_load_data_array (u, ie, ib, model$)
       enddo
       if (.not. this_calc_ok) calc_ok = .false.
@@ -129,13 +135,13 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     ! Radiation integrals. At some point should extend this to non-main branches.
 
     if (ib == 0) then
-      if (u%do_rad_int_calc_data .or. u%do_rad_int_calc_plotting) then
+      if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting) then
         call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(ib)%orbit, tao_lat%modes, &
                                                                tao_lat%ix_rad_int_cache, ib, tao_lat%rad_int)
       endif
     endif
 
-    if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom)
+    if (u%calc%chrom) call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom)
 
     ! do multi-turn tracking if needed. This is always the main lattice. 
 
@@ -189,9 +195,9 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Mark this lattice as done and mark any connected to universe as needing a calculation.
 
-  u%lattice_recalc = .false.
+  u%calc%lattice = .false.
   iu = u%connect%to_uni
-  if (iu > -1) s%u(iu)%lattice_recalc = .true.
+  if (iu > -1) s%u(iu)%calc%lattice = .true.
 
 enddo
 
@@ -239,7 +245,7 @@ lat_branch%track_state = moving_forward$
 ! Track.
 ! By design, Tao turns off radiation fluctuations (but not damping) for single particle tracking.
 
-if (u%track_recalc_on) then
+if (u%calc%track) then
 
   radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
   bmad_com%radiation_fluctuations_on = .false.
@@ -253,7 +259,7 @@ if (u%track_recalc_on) then
         orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
       enddo
     endif
-    u%model_orb0 = orbit(0)   ! Save beginning orbit
+    tao_lat%orb0 = orbit(0)   ! Save beginning orbit
 
   else
     call track_all (lat, lat_branch%orbit, ix_branch, lat_branch%track_state)
@@ -276,7 +282,7 @@ endif
 
 ! Twiss
 
-if (u%mat6_recalc_on) then
+if (u%calc%mat6) then
 
   do i = 1, branch%n_ele_track
     if (branch%ele(i)%tracking_method == linear$) then
@@ -348,9 +354,9 @@ lat_branch => tao_lat%lat_branch(ix_branch)
 uni_branch => u%uni_branch(ix_branch)
 uni_ele => uni_branch%ele
 
-beam_init => u%beam_info%beam_init
+beam_init => u%beam%beam_init
 
-beam => u%current_beam
+beam => u%beam%current
 beam = uni_branch%ele(0)%beam
 
 lat => tao_lat%lat
@@ -467,7 +473,7 @@ do j = ie1, ie2
 
   ! calc bunch params
 
-  call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
+  call calc_bunch_params (u%beam%current%bunch(s%global%bunch_to_plot), &
                      ele, branch%param, bunch_params, err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, ix_branch, model$) 
@@ -599,13 +605,13 @@ if (ix_branch /= 0) then
   return
 endif
 
-! In u%model_orb0 is saved the last computed orbit. 
+! In model%orb0 is saved the last computed orbit. 
 ! This is important with common_lattice since tao_lat%lat_branch(0)%orbit(0) has been overwritten.
 
 if (model%lat%branch(ix_branch)%param%lattice_type == linear_lattice$) then
   call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start, model%lat%ele(0))
 else
-  model%lat_branch(ix_branch)%orbit(0) = u%model_orb0
+  model%lat_branch(ix_branch)%orbit(0) = model%orb0
 endif
 
 orb0 => model%lat_branch(ix_branch)%orbit(0)
@@ -613,8 +619,8 @@ orb0 => model%lat_branch(ix_branch)%orbit(0)
 ! Not connected case is easy.
 
 if (.not. u%connect%connected) then
-  polar%theta = u%beam_info%beam_init%spin%theta
-  polar%phi = u%beam_info%beam_init%spin%phi
+  polar%theta = u%beam%beam_init%spin%theta
+  polar%phi = u%beam%beam_init%spin%phi
   call polar_to_spinor (polar, orb0)
   return
 endif
@@ -639,7 +645,7 @@ call twiss_and_track_at_s (s%u(u%connect%from_uni)%model%lat, &
 ! track through connect element
 
 if (u%connect%match_to_design) then
-  if (u%mat6_recalc_on) call make_mat6 (u%connect%match_ele, &
+  if (u%calc%mat6) call make_mat6 (u%connect%match_ele, &
                                              s%u(u%connect%from_uni)%model%lat%param)
   call twiss_propagate1 (extract_ele, u%connect%match_ele)
   call track1 (pos, u%connect%match_ele, &
@@ -721,14 +727,14 @@ endif
 
 ! Init for main branch
 
-beam_init => u%beam_info%beam_init
+beam_init => u%beam%beam_init
 model%lat%beam_start%vec = beam_init%center
 
 ! If there is an init file then read from the file
 
-if (u%beam_info%beam0_file /= "") then
-  if (u%beam_info%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
-    call tao_open_beam_file (u%beam_info%beam0_file, err)
+if (u%beam%beam0_file /= "") then
+  if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
+    call tao_open_beam_file (u%beam%beam0_file, err)
     if (err) call err_exit
     call tao_set_beam_params (beam_init%n_bunch, beam_init%n_particle, beam_init%bunch_charge)
     call tao_read_beam (uni_branch%ele(0)%beam, err)
@@ -743,7 +749,7 @@ if (u%beam_info%beam0_file /= "") then
       enddo
     enddo
     call out_io (s_info$, r_name, &
-                  'Read initial beam distribution from: ' // u%beam_info%beam0_file, &
+                  'Read initial beam distribution from: ' // u%beam%beam0_file, &
                   'Centroid Offset: \6es12.3\ ', &
                   'Number of particles: \i0\ ', &
                   r_array = model%lat%beam_start%vec, i_array = [n])
@@ -762,7 +768,7 @@ endif
 ! Only reinit beam has not already been initialized or if commanded via %init_beam0.
 
 if (.not. u%connect%connected) then
-  if (u%beam_info%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
+  if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
     beam_init%center = model%lat%beam_start%vec
     if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
     call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
@@ -778,7 +784,7 @@ if (.not. u%connect%connected) then
       call err_exit
     endif
 
-    u%beam_info%init_beam0 = .false.
+    u%beam%init_beam0 = .false.
   endif
   return
 endif
@@ -802,7 +808,7 @@ extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
 
 if (u%connect%match_to_design) then
   param => s%u(u%connect%from_uni)%model%lat%param
-  if (u%mat6_recalc_on) call make_mat6 (u%connect%match_ele, param)
+  if (u%calc%mat6) call make_mat6 (u%connect%match_ele, param)
   call twiss_propagate1 (extract_ele, u%connect%match_ele)
   call track1_beam_simple (u%connect%injecting_beam, u%connect%match_ele, &
                       param, u%connect%injecting_beam)
@@ -835,7 +841,7 @@ end subroutine tao_inject_beam
 ! extraction occurs will have already been calculated but the injected lattice
 ! will not have been calculated yet.
 
-subroutine tao_match_lats_init (u)
+subroutine tao_connect_lats_init (u)
 
 implicit none
 
@@ -845,7 +851,7 @@ type (ele_struct), save :: extract_ele
 type (ele_struct), pointer :: connection_ele, inject_ele
 type (beam_struct), pointer :: injecting_beam
 
-character(20) :: r_name = "match_lats_init"
+character(20) :: r_name = "connect_lats_init"
 
 !
 
@@ -856,7 +862,7 @@ connection_ele => u%connect%match_ele
 ! set up coupling%injecting_beam 
 
 if (s%global%track_type == 'beam') then
-  injecting_beam => s%u(u%connect%from_uni)%current_beam
+  injecting_beam => s%u(u%connect%from_uni)%beam%current
   call reallocate_beam (u%connect%injecting_beam, size(injecting_beam%bunch), &
             size(injecting_beam%bunch(1)%particle))
 endif
@@ -909,9 +915,9 @@ connection_ele%value(dphi_a$)   = mod(inject_ele%a%phi - extract_ele%a%phi,twopi
 connection_ele%value(dphi_b$)   = mod(inject_ele%b%phi - extract_ele%b%phi,twopi)
   
 ! it's a linear element so no orbit need be passed
-if (u%mat6_recalc_on) call make_mat6 (connection_ele, &
+if (u%calc%mat6) call make_mat6 (connection_ele, &
                                              s%u(u%connect%from_uni)%design%lat%param)
   
-end subroutine  tao_match_lats_init
+end subroutine  tao_connect_lats_init
  
 end module tao_lattice_calc_mod

@@ -2107,9 +2107,9 @@ do i = 1, size(var%this)
   ele => s%u(t%ix_uni)%model%lat%branch(t%ix_branch)%ele(t%ix_ele)
   call set_flags_for_changed_attribute (s%u(t%ix_uni)%model%lat, ele, t%model_value)
   if (tao_com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
-    s%u(:)%lattice_recalc = .true.
+    s%u(:)%calc%lattice = .true.
   else
-    s%u(t%ix_uni)%lattice_recalc = .true.
+    s%u(t%ix_uni)%calc%lattice = .true.
   endif
 enddo
 
@@ -3061,14 +3061,14 @@ do i = 1, size(s%plotting%region)
   enddo
 enddo
 
-! Now set u%do_rad_int_calc_plotting.
+! Now set u%calc%rad_int_for_plotting.
 
 do i = 1, size(s%u)
-  ! If a rad_int_calc (from plotting or data demand) is being toggled on, also set u%lattice_recalc = T
-  if (s%u(i)%picked_uni .and. .not. (s%u(i)%do_rad_int_calc_plotting .or. s%u(i)%do_rad_int_calc_data)) then
-    u%lattice_recalc = .true.
+  ! If a rad_int_calc (from plotting or data demand) is being toggled on, also set u%calc%lattice = T
+  if (s%u(i)%picked_uni .and. .not. (s%u(i)%calc%rad_int_for_plotting .or. s%u(i)%calc%rad_int_for_data)) then
+    u%calc%lattice = .true.
   endif
-  s%u(i)%do_rad_int_calc_plotting = s%u(i)%picked_uni
+  s%u(i)%calc%rad_int_for_plotting = s%u(i)%picked_uni
 enddo
 
 end subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting

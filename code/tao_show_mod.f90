@@ -316,16 +316,16 @@ case ('beam')
     nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', size(s%u)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam_info%beam0_file
-    nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam_info%beam_all_file
+    nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file
+    nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam%beam_all_file
     beam => uni_branch%ele(0)%beam
     if (allocated(beam%bunch)) then
       nl=nl+1; write(lines(nl), imt) 'n_particle                  = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                     = ', size(beam%bunch)
       nl=nl+1; write(lines(nl), rmt) 'bunch_charge                = ', beam%bunch(1)%charge
     endif
-    if (u%beam_info%beam_all_file == '' .and. u%beam_info%beam0_file == '') then
-      beam_init => u%beam_info%beam_init
+    if (u%beam%beam_all_file == '' .and. u%beam%beam0_file == '') then
+      beam_init => u%beam%beam_init
       nl=nl+1; lines(nl) = 'beam_init components:'
       nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', beam_init%distribution_type
       nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
@@ -411,7 +411,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt) 'track_end                  = ', trim(uni_branch%track_end)
     nl=nl+1; write(lines(nl), imt) 'ix_track_start             = ', uni_branch%ix_track_start 
     nl=nl+1; write(lines(nl), imt) 'ix_track_end               = ', uni_branch%ix_track_end
-    nl=nl+1; write(lines(nl), amt) 'u%beam_saved_at:           = ', trim(u%beam_saved_at)
+    nl=nl+1; write(lines(nl), amt) 'u%beam%saved_at:           = ', trim(u%beam%saved_at)
 
   ! have element index
 
@@ -1007,7 +1007,7 @@ case ('element')
   endif
 
   if (tao_com%common_lattice) then
-    u%lattice_recalc = .true.
+    u%calc%lattice = .true.
     call tao_lattice_calc (ok)
   endif
 
@@ -2353,14 +2353,14 @@ case ('universe')
   nl=nl+1; write (lines(nl), imt) 'Branch:   ', ix_branch
   nl=nl+1; write (lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
   nl=nl+1; write (lines(nl), imt) '%n_data_used           = ', u%n_data_used
-  nl=nl+1; write (lines(nl), lmt) '%do_rad_int_calc       = ', u%do_rad_int_calc_data .or. u%do_rad_int_calc_plotting
-  nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
-  nl=nl+1; write (lines(nl), lmt) '%mat6_recalc_on        = ', u%mat6_recalc_on
-  nl=nl+1; write (lines(nl), lmt) '%track_recalc_on       = ', u%track_recalc_on
+  nl=nl+1; write (lines(nl), lmt) '%do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
+  nl=nl+1; write (lines(nl), lmt) '%calc%chrom         = ', u%calc%chrom
+  nl=nl+1; write (lines(nl), lmt) '%calc%mat6        = ', u%calc%mat6
+  nl=nl+1; write (lines(nl), lmt) '%calc%track       = ', u%calc%track
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam_info%beam0_file)
-  nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam_info%beam_all_file)
-  nl=nl+1; write (lines(nl), amt) '%beam_saved_at:        = ', trim(u%beam_saved_at)
+  nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam%beam0_file)
+  nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam%beam_all_file)
+  nl=nl+1; write (lines(nl), amt) '%beam%saved_at:        = ', trim(u%beam%saved_at)
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', lat%lattice
   nl=nl+1; write(lines(nl), amt) 'Input_file_name:        ', lat%input_file_name

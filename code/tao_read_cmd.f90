@@ -46,7 +46,7 @@ case ('lattice')
 
   u => tao_pointer_to_universe(-1)
   call bmad_parser2 (file_name, u%model%lat)
-  u%lattice_recalc = .true.
+  u%calc%lattice = .true.
   
 
 end select

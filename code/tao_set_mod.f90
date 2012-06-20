@@ -151,7 +151,7 @@ err = .false.
 
 select case (dest1_name)
 case ('model')
-  u%lattice_recalc = .true.
+  u%calc%lattice = .true.
   dest1_lat => u%model
   dest_data => u%data%model_value
   dest_good => u%data%good_model
@@ -297,7 +297,7 @@ case ('track_type')
     call out_io (s_error$, r_name, 'BAD VALUE. MUST BE "single" OR "beam".')
     return
   endif
-  s%u%lattice_recalc = .true.
+  s%u%calc%lattice = .true.
 case ('random_seed')
   call ran_seed_put (global%random_seed)
 case ('random_engine')
@@ -365,7 +365,7 @@ if (ios /= 0) then
 endif
 
 csr_param = local_csr_param
-s%u%lattice_recalc = .true.
+s%u%calc%lattice = .true.
 
 end subroutine tao_set_csr_param_cmd
 
@@ -418,7 +418,7 @@ if (err) return
 
 if (ios == 0) then
   bmad_com = this_bmad_com
-  s%u%lattice_recalc = .true.
+  s%u%calc%lattice = .true.
 else
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
 endif
@@ -598,17 +598,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   rewind (iu)
   u => s%u(i)
-  beam_init = u%beam_info%beam_init  ! set defaults
+  beam_init = u%beam%beam_init  ! set defaults
   read (iu, nml = params, iostat = ios)
 
   call tao_data_check (err)
   if (err) exit
 
   if (ios == 0) then
-    u%beam_info%beam_init = beam_init
-    u%beam_info%init_beam0 = .true.  ! Force reinit
-    u%model%lat%beam_start%vec = u%beam_info%beam_init%center
-    u%lattice_recalc = .true.
+    u%beam%beam_init = beam_init
+    u%beam%init_beam0 = .true.  ! Force reinit
+    u%model%lat%beam_start%vec = u%beam%beam_init%center
+    u%calc%lattice = .true.
   else
     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
     exit
@@ -813,7 +813,7 @@ case ('ix_bunch')
   u => tao_pointer_to_universe (this_curve%ix_universe)
   if (.not. associated(u)) return
   call tao_integer_set_value (this_curve%ix_bunch, component, &
-                        set_value, error, -1, u%beam_info%beam_init%n_bunch)
+                        set_value, error, -1, u%beam%beam_init%n_bunch)
 
 case ('symbol_every')
   call tao_integer_set_value (this_curve%symbol_every, component, &
@@ -858,7 +858,7 @@ end select
 if (this_graph%type == 'phase_space') then
   uni_branch => s%u(i_uni)%uni_branch(i_branch)
   if (.not. uni_branch%ele(this_curve%ix_ele_ref)%save_beam) then
-    s%u(i_uni)%lattice_recalc = .true.
+    s%u(i_uni)%calc%lattice = .true.
     uni_branch%ele(this_curve%ix_ele_ref)%save_beam = .true.
   endif
 endif
@@ -1027,7 +1027,7 @@ select case (comp)
 end select
 
 u => tao_pointer_to_universe(this_graph%ix_universe)
-u%lattice_recalc = .true.
+u%calc%lattice = .true.
 
 end subroutine
 end subroutine
@@ -1388,11 +1388,11 @@ if (index('mat6_recalc', trim(who)) == 1) then
     return
   endif
   if (uni == '*') then
-    s%u(:)%mat6_recalc_on = is_on
-    if (is_on) s%u(:)%lattice_recalc = .true.
+    s%u(:)%calc%mat6 = is_on
+    if (is_on) s%u(:)%calc%lattice = .true.
   else
-    s%u(n_uni)%mat6_recalc_on = is_on
-    if (is_on) s%u(n_uni)%lattice_recalc = .true.
+    s%u(n_uni)%calc%mat6 = is_on
+    if (is_on) s%u(n_uni)%calc%lattice = .true.
   endif
   return
 endif
@@ -1407,11 +1407,11 @@ if (index('track_recalc', trim(who)) == 1) then
     return
   endif
   if (uni == '*') then
-    s%u(:)%track_recalc_on = is_on
-    if (is_on) s%u(:)%lattice_recalc = .true.
+    s%u(:)%calc%track = is_on
+    if (is_on) s%u(:)%calc%lattice = .true.
   else
-    s%u(n_uni)%track_recalc_on = is_on
-    if (is_on) s%u(n_uni)%lattice_recalc = .true.
+    s%u(n_uni)%calc%track = is_on
+    if (is_on) s%u(n_uni)%calc%lattice = .true.
   endif
   return
 endif
@@ -1425,9 +1425,9 @@ endif
 
 if (index('recalculate', trim(who)) == 1) then
   if (uni == '*') then
-    s%u(:)%lattice_recalc = .true.
+    s%u(:)%calc%lattice = .true.
   else
-    s%u(n_uni)%lattice_recalc = .true.
+    s%u(n_uni)%calc%lattice = .true.
   endif
   return
 endif
@@ -1498,7 +1498,7 @@ do i = 1, size(eles)
                                                           u%model%lat, err, .false.)
   if (.not. err) then
     all_err = .false.
-    u%lattice_recalc = .true.
+    u%calc%lattice = .true.
   endif
 enddo
 
@@ -1692,11 +1692,9 @@ character(*) component, set_value
 character(60) str
 character(20) :: r_name = 'tao_set_drawing_cmd'
 
-real(rp) beam_chamber_wall_scale
 integer i, ix, n, iu, ios
 
 logical err, needs_quotes
-logical draw_beam_chamber_wall
 
 namelist / params / shape
 

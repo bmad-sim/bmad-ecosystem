@@ -289,8 +289,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
         endif
       endif
 
-      u%beam_info%beam_init%center = u%model%lat%beam_start%vec
-      u%beam_info%init_beam0 = .true.
+      u%beam%beam_init%center = u%model%lat%beam_start%vec
+      u%beam%init_beam0 = .true.
     endif
 
     !
@@ -321,7 +321,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo
 
-  u%lattice_recalc = .true.
+  u%calc%lattice = .true.
 
 enddo
 

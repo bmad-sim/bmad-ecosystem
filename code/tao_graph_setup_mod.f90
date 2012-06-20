@@ -526,7 +526,11 @@ implicit none
 
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
-integer ic
+type (tao_curve_struct), target :: branch_curve
+type (tao_curve_struct), pointer :: curve
+type (tao_universe_struct), pointer :: u
+
+integer n, ic, ib, n0_line, n0_symb
 logical err
 
 !
@@ -551,8 +555,32 @@ endif
 graph%valid = .false.
 
 do ic = 1, size(graph%curve)
-  call tao_curve_data_setup (plot, graph, graph%curve(ic), err)
-  if (err) return
+  curve => graph%curve(ic)
+
+  ! Floor plan curves use all branches.
+  if (graph%type == 'floor_plan') then
+    u => tao_pointer_to_universe (graph%curve(ic)%ix_universe)
+    if (.not. associated(u)) return
+    n0_line = 0
+    n0_symb = 0
+    !! call deallocate_curve_arrays(curve)
+    branch_curve = graph%curve(ic)
+
+    do ib = 0, size(u%model%lat%branch)
+      curve%ix_branch = ib
+      call tao_curve_data_setup (plot, graph, branch_curve, err)
+      if (err) return
+      n = n0_line + size(branch_curve%x_line)
+      !! call re_allocate (curve%x_line, n);  curve%x_line(n0_line+1:) = branch_curve%x_line
+      !! call re_allocate (curve%y_line, n);  curve%y_line(n0_line+1:) = branch_curve%y_line
+      
+    enddo
+
+  else
+    call tao_curve_data_setup (plot, graph, graph%curve(ic), err)
+    if (err) return
+  endif
+
 enddo
 
 graph%valid = .true.
@@ -618,7 +646,7 @@ if (.not. associated(u)) then
 endif
 
 if (tao_com%common_lattice) then
-  u%lattice_recalc = .true.
+  u%calc%lattice = .true.
   call tao_lattice_calc (ok)
 endif
 
@@ -701,7 +729,7 @@ case ('plot_x_axis_var')
     val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (s%plotting%n_curve_pts - 1)
     if (plot%x_axis_type == 'lat')then
       var_ptr = val
-      s%u(ix_uni)%lattice_recalc = .true.
+      s%u(ix_uni)%calc%lattice = .true.
     else
       call tao_set_var_model_value (var_array(1)%v, val)
     endif
@@ -726,7 +754,7 @@ case ('plot_x_axis_var')
 
   if (plot%x_axis_type == 'lat')then
     var_ptr = val0
-    s%u(ix_uni)%lattice_recalc = .true.
+    s%u(ix_uni)%calc%lattice = .true.
   else
     call tao_set_var_model_value (var_array(1)%v, val0)
   endif

@@ -366,8 +366,8 @@ if (iu == 0) then
 endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%beam_info%beam0_file = tao_com%beam0_file
-  s%u(i)%beam_info%beam_all_file = tao_com%beam_all_file
+  s%u(i)%beam%beam0_file = tao_com%beam0_file
+  s%u(i)%beam%beam_all_file = tao_com%beam_all_file
   do ib = 0, ubound(s%u(i)%uni_branch, 1)
     s%u(i)%uni_branch(ib)%track_start    = ''
     s%u(i)%uni_branch(ib)%track_end      = ''
@@ -510,9 +510,9 @@ else
   uni_branch0%ix_track_end = ix_track_end
 endif
 
-u%beam_info%beam_init = beam_init
-u%beam_info%beam0_file = beam0_file
-u%beam_info%beam_all_file = beam_all_file
+u%beam%beam_init = beam_init
+u%beam%beam0_file = beam0_file
+u%beam%beam_all_file = beam_all_file
 call init_coord(u%design%lat_branch(0)%orbit(0), beam_init%center, &
                     u%design%lat%ele(0), u%design%lat%param%particle)
 
@@ -545,27 +545,27 @@ if (beam_saved_at /= '') then
   endif
 endif
 
-u%beam_saved_at = beam_saved_at
+u%beam%saved_at = beam_saved_at
 
 ! If beam_all_file is set, read in the beam distributions.
 
-if (u%beam_info%beam_all_file /= '') then
+if (u%beam%beam_all_file /= '') then
   tao_com%use_saved_beam_in_tracking = .true.
   call tao_open_beam_file (beam_all_file, err)
   if (err) call err_exit
-  call tao_read_beam_file_header (j, u%beam_info%beam_init%n_bunch, &
-                                             u%beam_info%beam_init%n_particle, err)  
+  call tao_read_beam_file_header (j, u%beam%beam_init%n_bunch, &
+                                             u%beam%beam_init%n_particle, err)  
   if (err) call err_exit
   do
     if (j == -1) exit
     call tao_read_beam (uni_branch0%ele(j)%beam, err)
     if (err) call err_exit
   enddo  
-  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam_info%beam_all_file)
+  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam%beam_all_file)
   call tao_close_beam_file ()
 endif
 
-if (u%connect%connected) u%connect%injecting_beam = u%current_beam
+if (u%connect%connected) u%connect%injecting_beam = u%beam%current
 if (allocated(eles)) deallocate (eles)
 
 end subroutine init_beam
@@ -1105,14 +1105,14 @@ do j = n1, n2
   source = dat%data_source
 
   if (tao_rad_int_calc_needed(data_type, source)) then
-    u%do_rad_int_calc_data = .true. 
+    u%calc%rad_int_for_data = .true. 
     if (dat%ix_branch /= 0) then
       call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
       call err_exit
     endif
   endif
 
-  if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
+  if (data_type(1:6) == 'chrom.') u%calc%chrom = .true.
 
   ! Some data types are global and are not associated with a particular element. Check for this.
 
