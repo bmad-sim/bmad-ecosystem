@@ -123,6 +123,8 @@ type tao_curve_struct
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph 
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
+  real(rp), allocatable :: y2_line(:)    ! Second array needed for beam chamber curve. 
+  integer, allocatable :: ix_line(:)     ! Branch index for multi lattice branch curves.
   real(rp), allocatable :: x_symb(:)     ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
   real(rp), allocatable :: symb_size(:)  ! Symbol size. Used with symbol_size_scale. 
@@ -595,12 +597,13 @@ integer, parameter :: n_char_show = 600
 ! for connected universes
 
 type tao_connected_uni_struct
-  logical connected       ! This universe is injected from another
-  logical match_to_design ! match the design lattices
-  integer to_uni          ! The universe to which we inject from this universe.
-  integer from_uni        ! The universe that injects into this universe
-  integer from_uni_ix_ele ! element index where the connection occurs
-  real(rp) from_uni_s     ! s position in from_uni where the connection occurs
+  logical connected              ! This universe is injected from another
+  logical match_to_design        ! match the design lattices
+  integer to_uni                 ! The universe to which we inject from this universe.
+  integer from_uni               ! The universe that injects into this universe
+  integer from_uni_ix_ele        ! element index where the connection occurs
+  integer from_uni_ix_branch     ! element branch index where the connection occurs
+  real(rp) from_uni_s            ! s position in from_uni where the connection occurs
   type (ele_struct) :: match_ele ! element used to match universes
   type (beam_struct) injecting_beam ! used for beam injection
 end type
@@ -622,15 +625,25 @@ type tao_lattice_branch_struct
   integer track_state
 end type
 
+! Structure to hold a single lat_struct (model, base, or design) in
+! a universe along with stuff like radiation integrals, etc.
+
 type tao_lattice_struct
-  type (lat_struct) lat                           ! lattice structures
+  type (lat_struct) lat                        ! lattice structures
   type (tao_lattice_branch_struct), allocatable :: lat_branch(:)
   type (bunch_params_struct), allocatable :: bunch_params2(:)
-  type (normal_modes_struct) modes                ! Synchrotron integrals stuff
+  type (normal_modes_struct) modes             ! Synchrotron integrals stuff
   type (rad_int_all_ele_struct) rad_int
   type (tao_lat_mode_struct) a, b
-  integer ix_rad_int_cache               ! Radiation integrals cache index.
-  integer n_bunch_params2                          ! bunch_params2 array size.
+  type (coord_struct) orb0                     ! For saving beginning orbit
+  integer ix_rad_int_cache                     ! Radiation integrals cache index.
+  integer n_bunch_params2                      ! bunch_params2 array size.
+end type
+
+! Universe wide structure for information that does not fit anywhere else.
+
+type tao_universe_info_struct
+  real(rp) lat_len_tot            ! Total lattice length of all branches
 end type
 
 !-----------------------------------------------------------------------
@@ -649,12 +662,7 @@ type tao_element_struct
   logical save_beam               ! Save beam here?
 end type
 
-type tao_beam_struct
-  type (beam_init_struct) :: beam_init ! Beam distrubution at beginning of lattice
-  logical :: init_beam0 = .false.      ! Init beam
-  character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
-  character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
-end type
+! Information for a particular lattice branch of a particular universe.
 
 type tao_universe_branch_struct
   type (tao_element_struct), allocatable :: ele(:) ! Per element information
@@ -663,32 +671,47 @@ type tao_universe_branch_struct
   integer ix_track_end                   ! Element end index of tracking
 end type
 
+! Beam information for a particular universe 
+
+type tao_beam_struct
+  type (beam_init_struct) :: beam_init ! Beam distrubution at beginning of lattice
+  type (beam_struct) current           ! Beam at the current position
+  logical :: init_beam0 = .false.      ! Init beam
+  character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
+  character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
+  character(160) saved_at
+end type
+
+! Logicals that determine what calculations need to be done
+
+type tao_universe_calc_struct
+  logical rad_int_for_data       ! Do the radiation integrals need to be computed for
+  logical rad_int_for_plotting   !   data or plotting?
+  logical chrom                  ! Does the chromaticity need to be computed?
+  logical lattice                ! Used to indicate which lattices need tracking done.
+  logical :: mat6 = .true.       ! calc linear transfer matri?
+  logical :: track = .true.      ! tracking needs to be done?
+end type
+
 !-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
   type (tao_universe_struct), pointer :: common => null()
   type (tao_lattice_struct), pointer :: model, design, base
-  type (tao_beam_struct) beam_info
+  type (tao_universe_info_struct) info
+  type (tao_beam_struct) beam
   type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
-  type (beam_struct) current_beam                  ! Beam at the current position
-  type (tao_connected_uni_struct)   :: connect     ! Connection data put in 'to' uni.
+  type (tao_connected_uni_struct)   :: connect           ! Connection data put in 'to' uni.
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
-  type (coord_struct) model_orb0                         ! For saving beginning orbit
   type (lat_struct) scratch_lat                          ! Scratch area.
+  type (tao_universe_calc_struct) calc                   ! What needs to be calculated?
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
-  character(160) beam_saved_at
   integer ix_uni                         ! Universe index.
   integer n_d2_data_used                 ! Number of used %d2_data(:) components.
   integer n_data_used                    ! Number of used %data(:) components.
-  logical do_rad_int_calc_data           ! Do the radiation integrals need to be computed due 
-  logical do_rad_int_calc_plotting       !   to data or a plot depending upon the calc?
-  logical do_chrom_calc                  ! Does the chromaticity need to be computed?
   logical is_on                          ! universe turned on
-  logical lattice_recalc                 ! Used to indicate which lattices need tracking done.
-  logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
-  logical :: track_recalc_on = .true.     ! calc linear transfer matrix
   logical picked_uni                     ! Scratch logical.
 end type
 

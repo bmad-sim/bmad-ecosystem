@@ -2048,7 +2048,7 @@ case ('unstable.')
       do i = 1, ix_ele
         datum_value = datum_value + (1 + ix_ele - i) * bunch_params(i)%n_particle_lost_in_ele
       enddo
-      datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
+      datum_value = datum_value / size(u%beam%current%bunch(s%global%bunch_to_plot)%particle)
       datum%ix_ele_merit = -1
 
     else
@@ -2140,7 +2140,7 @@ case ('wall.')
 case ('wire.')  
   if (data_source == 'lat') return
   read (datum%data_type(6:), '(a)') angle
-  datum_value = tao_do_wire_scan (ele, angle, u%current_beam)
+  datum_value = tao_do_wire_scan (ele, angle, u%beam%current)
   valid_value = .true.
   
 case default

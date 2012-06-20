@@ -185,7 +185,7 @@ logical, allocatable, save :: action_logic(:)
       end if
     end do
 
-    s%u(i)%lattice_recalc = .true.
+    s%u(i)%calc%lattice = .true.
   end do
 
 

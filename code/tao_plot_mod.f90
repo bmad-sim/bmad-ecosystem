@@ -4,7 +4,6 @@ use tao_mod
 use quick_plot
 use tao_plot_window_mod
 
-
 contains
 
 !--------------------------------------------------------------------------
@@ -125,8 +124,6 @@ do i = 1, size(s%plotting%region)
       call tao_plot_key_table (plot, graph)
     case ('floor_plan')
       call tao_draw_floor_plan (plot, graph)
-    case ('beam_chamber_wall')
-      call tao_draw_beam_chamber_wall (plot, graph)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
@@ -420,9 +417,11 @@ if (allocated(s%building_wall%section)) then
   enddo
 end if
 
-! Draw lattice functions
+! Draw any data curves and beam chamber wall curve
 
+do i = 1, size(graph%curve)
   ! ... needs to be filled in ..
+enddo
 
 end subroutine tao_draw_floor_plan 
 
@@ -879,7 +878,7 @@ real(rp) lat_len, height, dx, dy, key_number_height, dummy, l2
 integer i, j, k, n, kk, ix, ix1, isu
 integer ix_var, ixv
 
-logical shape_has_box, err
+logical shape_has_box, err, have_data
 
 character(80) str
 character(40) name
@@ -1036,6 +1035,14 @@ if (s%global%label_keys) then
         call qp_draw_text (trim(str), s_pos, graph%y%max, justify = 'CT', height = key_number_height)  
       endif
     enddo
+  enddo
+endif
+
+! Draw data and beam_chamber curves
+
+if (allocated(graph%curve)) then
+  do i = 1, size(graph%curve)
+    call tao_plot_curve_data (plot, graph, graph%curve(i), have_data)
   enddo
 endif
 
@@ -1222,7 +1229,6 @@ lat_len = branch%param%total_length
 ! Setup the placement of the graph on the plot page.
 
 call qp_set_layout (x_axis = graph%x, y_axis = graph%y, box = graph%box, margin = graph%margin)
-
 call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
 
 ! Loop over all elements
@@ -1287,7 +1293,6 @@ end subroutine tao_draw_beam_chamber_wall
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
-
 !+
 ! Subroutine tao_plot_data (plot, graph)
 !
@@ -1312,7 +1317,6 @@ integer i, j, k, n
 logical have_data
 real(rp) x, y, x1
 
-character(16) num_str
 character(100), allocatable :: text(:)
 
 ! Set scales, margens, etc
@@ -1352,45 +1356,12 @@ if (graph%limited .and. graph%clip .and. s%global%draw_curve_off_scale_warn) &
 have_data = .false.
 
 do k = 1, size(graph%curve)
-  curve => graph%curve(k)
-  if (curve%use_y2) call qp_use_axis (y = 'Y2')
-  call qp_set_symbol (curve%symbol)
-
-  if (curve%draw_symbols .and. allocated(curve%x_symb)) then
-    if (size(curve%x_symb) > 0) have_data = .true.
-    if (graph%symbol_size_scale > 0) then
-      do i = 1, size(curve%x_symb), max(1, curve%symbol_every)
-        call qp_draw_symbol (curve%x_symb(i), curve%y_symb(i), height = curve%symb_size(i), clip = graph%clip)
-      enddo
-    else
-      call qp_draw_symbols (curve%x_symb, curve%y_symb, symbol_every = curve%symbol_every, clip = graph%clip)
-    endif
-  endif
-
-  if (curve%draw_symbol_index .and. allocated(curve%ix_symb)) then
-    if (size(curve%ix_symb) > 0) have_data = .true.
-    do i = 1, size(curve%ix_symb)
-      if (graph%clip) then
-        if (curve%x_symb(i) < graph%x%min .or. curve%x_symb(i) > graph%x%max)  cycle
-        if (curve%y_symb(i) < graph%y%min .or. curve%y_symb(i) > graph%y%max) cycle
-      endif
-      write (num_str, '(i0)') curve%ix_symb(i)
-      call qp_draw_text (num_str, curve%x_symb(i), curve%y_symb(i))
-    enddo
-  endif
-
-  if (curve%draw_line .and. allocated(curve%x_line)) then
-    if (size(curve%x_line) > 0) have_data = .true.
-    call qp_set_line ('PLOT', curve%line) 
-    call qp_draw_polyline (curve%x_line, curve%y_line, clip = graph%clip, style = 'PLOT')
-  endif
-
-  call qp_use_axis (y = 'Y')  ! reset
-
+  call tao_plot_curve_data (plot, graph, graph%curve(k), have_data)
 enddo
 
 if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &
                             0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+
 ! Draw the text legend if there is one
 
 if (any(graph%text_legend /= ' ')) call qp_draw_text_legend (graph%text_legend, &
@@ -1402,14 +1373,15 @@ n = size(graph%curve)
 allocate (text(n), symbol(n), line(n))
 
 do i = 1, n
-  text(i) = graph%curve(i)%legend_text
-  if (text(i) == '') text(i) = graph%curve(i)%data_type
-  symbol(i) = graph%curve(i)%symbol
-  if (size(graph%curve(i)%x_symb) == 0) symbol(i)%type = -1 ! Do not draw
-  if (.not. graph%curve(i)%draw_symbols) symbol(i)%type = -1
-  line(i) = graph%curve(i)%line
-  if (size(graph%curve(i)%x_line) == 0) line(i)%width = -1 ! Do not draw
-  if (.not. graph%curve(i)%draw_line) line(i)%width = -1
+  curve => graph%curve(i)
+  text(i) = curve%legend_text
+  if (text(i) == '') text(i) = curve%data_type
+  symbol(i) = curve%symbol
+  if (size(curve%x_symb) == 0) symbol(i)%type = -1 ! Do not draw
+  if (.not. curve%draw_symbols) symbol(i)%type = -1
+  line(i) = curve%line
+  if (size(curve%x_line) == 0) line(i)%width = -1 ! Do not draw
+  if (.not. curve%draw_line) line(i)%width = -1
 enddo
 
 if (graph%draw_curve_legend .and. n > 1) then
@@ -1421,5 +1393,73 @@ endif
 deallocate (text, symbol, line)
 
 end subroutine tao_plot_data
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_plot_curve_data (plot, graph, curve, have_data)
+!
+! Routine to draw a graph with data and/or variable curves. 
+!
+! Input:
+!   plot      -- Tao_plot_struct: Plot containing the graph.
+!   graph     -- Tao_graph_struct: Graph containing the curve.
+!   curve     -- Tao_curve_struct: Curve to draw.
+!   have_data -- Logical: Intitial state.
+! Output:
+!    have_data -- Logical: Is there any data to plot? Set True if so.
+!                   But never reset to False. 
+!-
+
+subroutine tao_plot_curve_data (plot, graph, curve, have_data)
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct), target :: graph
+type (tao_curve_struct) :: curve
+
+integer i
+logical have_data
+character(16) num_str
+
+!
+
+if (curve%use_y2) call qp_use_axis (y = 'Y2')
+call qp_set_symbol (curve%symbol)
+
+if (curve%draw_symbols .and. allocated(curve%x_symb)) then
+  if (size(curve%x_symb) > 0) have_data = .true.
+  if (graph%symbol_size_scale > 0) then
+    do i = 1, size(curve%x_symb), max(1, curve%symbol_every)
+      call qp_draw_symbol (curve%x_symb(i), curve%y_symb(i), height = curve%symb_size(i), clip = graph%clip)
+    enddo
+  else
+    call qp_draw_symbols (curve%x_symb, curve%y_symb, symbol_every = curve%symbol_every, clip = graph%clip)
+  endif
+endif
+
+if (curve%draw_symbol_index .and. allocated(curve%ix_symb)) then
+  if (size(curve%ix_symb) > 0) have_data = .true.
+  do i = 1, size(curve%ix_symb)
+    if (graph%clip) then
+      if (curve%x_symb(i) < graph%x%min .or. curve%x_symb(i) > graph%x%max)  cycle
+      if (curve%y_symb(i) < graph%y%min .or. curve%y_symb(i) > graph%y%max) cycle
+    endif
+    write (num_str, '(i0)') curve%ix_symb(i)
+    call qp_draw_text (num_str, curve%x_symb(i), curve%y_symb(i))
+  enddo
+endif
+
+if (curve%draw_line .and. allocated(curve%x_line)) then
+  if (size(curve%x_line) > 0) have_data = .true.
+  call qp_set_line ('PLOT', curve%line) 
+  call qp_draw_polyline (curve%x_line, curve%y_line, clip = graph%clip, style = 'PLOT')
+endif
+
+call qp_use_axis (y = 'Y')  ! reset
+
+end subroutine tao_plot_curve_data
 
 end module

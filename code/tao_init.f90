@@ -222,7 +222,7 @@ if (bmad_com%radiation_fluctuations_on .and. s%global%track_type == 'single') th
           'Note: Radiation fluctuations are always turned off for single particle tracking...')
 endif
 
-s%u%lattice_recalc = .true.
+s%u%calc%lattice = .true.
 call tao_lattice_calc (calc_ok) 
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -363,7 +363,7 @@ if (allocated (s%u)) then
       deallocate (u%uni_branch)
     endif
 
-    call reallocate_beam(u%current_beam, 0, 0)
+    call reallocate_beam(u%beam%current, 0, 0)
 
     ! Connected universes
     call deallocate_ele_pointers (u%connect%match_ele)

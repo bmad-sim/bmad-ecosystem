@@ -65,14 +65,14 @@ allocate (do_rad_int_data(size(s%u)), do_rad_int_plotting(size(s%u)))
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
-  do_rad_int_data(i) = u%do_rad_int_calc_data
-  do_rad_int_plotting(i) = u%do_rad_int_calc_plotting
-  u%do_rad_int_calc_data = .false.
-  u%do_rad_int_calc_plotting = .false.
+  do_rad_int_data(i) = u%calc%rad_int_for_data
+  do_rad_int_plotting(i) = u%calc%rad_int_for_plotting
+  u%calc%rad_int_for_data = .false.
+  u%calc%rad_int_for_plotting = .false.
   do j = 1, size(u%data)
     if (.not. u%data(j)%useit_opt) cycle
     if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) then
-      u%do_rad_int_calc_data = .true.
+      u%calc%rad_int_for_data = .true.
       exit
     endif
   enddo
@@ -94,10 +94,10 @@ endif
 ! everything but the common universe.
 
 if (s%global%orm_analysis) then
-  s%u(:)%mat6_recalc_on = .false.
-  s%u(ix_common_uni$)%mat6_recalc_on = .true.
-  s%u(:)%track_recalc_on = .false.
-  s%u(ix_common_uni$)%track_recalc_on = .true.
+  s%u(:)%calc%mat6 = .false.
+  s%u(ix_common_uni$)%calc%mat6 = .true.
+  s%u(:)%calc%track = .false.
+  s%u(ix_common_uni$)%calc%track = .true.
 endif
 
 ! Optimize...
@@ -138,12 +138,12 @@ enddo
 
 tao_com%optimizer_running = .false.
 
-s%u(:)%do_rad_int_calc_data = do_rad_int_data
-s%u(:)%do_rad_int_calc_plotting = do_rad_int_plotting
+s%u(:)%calc%rad_int_for_data = do_rad_int_data
+s%u(:)%calc%rad_int_for_plotting = do_rad_int_plotting
 deallocate (do_rad_int_data, do_rad_int_plotting)
 
-if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
-s%u(:)%lattice_recalc = .true.
+if (s%global%orm_analysis) s%u(:)%calc%mat6 = .true.
+s%u(:)%calc%lattice = .true.
 
 
 end subroutine
