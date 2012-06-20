@@ -3,6 +3,9 @@
 !
 ! Routine to convert a string to upper case.
 !
+! Moule needed:
+!   use sim_utils_interface
+!
 ! Input:
 !   str_in  -- Character(*): Input string.
 !
