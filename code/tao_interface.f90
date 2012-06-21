@@ -234,12 +234,6 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_init_connected_uni ()
-    implicit none
-  end subroutine
-end interface
- 
-interface
   subroutine tao_hook_init_lattice_post_process (u)
     use tao_struct, only: tao_universe_struct
     implicit none

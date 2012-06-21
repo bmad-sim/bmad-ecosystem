@@ -563,7 +563,6 @@ type tao_common_struct
   logical :: single_mode = .false.
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
-  logical :: init_connected_uni    = .true.   ! Used by custom programs to control Tao init
   logical :: init_beam             = .true.   ! Used by custom programs to control Tao init
   logical :: init_var              = .true.   ! Used by custom programs to control Tao init
   logical :: init_read_lat_info    = .true.   ! Used by custom programs to control Tao init
@@ -592,21 +591,6 @@ type tao_common_struct
 end type
 
 integer, parameter :: n_char_show = 600
-
-!------------------------------------------------------------------------
-! for connected universes
-
-type tao_connected_uni_struct
-  logical connected              ! This universe is injected from another
-  logical match_to_design        ! match the design lattices
-  integer to_uni                 ! The universe to which we inject from this universe.
-  integer from_uni               ! The universe that injects into this universe
-  integer from_uni_ix_ele        ! element index where the connection occurs
-  integer from_uni_ix_branch     ! element branch index where the connection occurs
-  real(rp) from_uni_s            ! s position in from_uni where the connection occurs
-  type (ele_struct) :: match_ele ! element used to match universes
-  type (beam_struct) injecting_beam ! used for beam injection
-end type
 
 !-----------------------------------------------------------------------
 
@@ -702,7 +686,6 @@ type tao_universe_struct
   type (tao_universe_info_struct) info
   type (tao_beam_struct) beam
   type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
-  type (tao_connected_uni_struct)   :: connect           ! Connection data put in 'to' uni.
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
   type (lat_struct) scratch_lat                          ! Scratch area.

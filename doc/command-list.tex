@@ -1119,7 +1119,6 @@ Format:
    top10 \{-derivative\}
    twiss_and_orbit \{-base\} \{-branch <name>\} \{-design\} \{-universe <ix_uni>\} <s_position>
    universe \{universe_number\}
-   universe -connections
    use
    value <expression>
    variable \{-no_label_lines\} \{<var_name>\}
@@ -1659,16 +1658,11 @@ Examples:
 %% show universe --------------------------------------------------------------
 
 \vskip 0.1 in
-\item[\protect\parbox{6in}{ 
-        show universe \{universe\_number\} \\
-        show universe -connections}] \Newline
-\vskip -0.1in
-
-If the \vn{-connections} switch is present, show information on the
-connections between various universes. Otherwise, shows various
-parameters associated with a given universe. If no universe is
-specified then the current viewed universe is used. Parameters
-displayed include tune, chromaticity, radiation integrals, etc.
+\item[show universe \{universe\_number\}] \Newline
+\vskip -0.1in Shows various parameters associated with a given
+universe. If no universe is specified, the current viewed universe is
+used. Parameters displayed include tune, chromaticity, radiation
+integrals, etc.
 
 %% show use --------------------------------------------------------------
 

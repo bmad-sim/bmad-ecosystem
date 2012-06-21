@@ -212,7 +212,7 @@ namelists are taken from the first file on the list. All files,
 however, can contain \vn{tao_template_plot} and
 \vn{tao_template_graph} namelists.
 
-\index{tao_design_lattice}\index{tao_params}\index{tao_connected_uni_init}
+\index{tao_design_lattice}\index{tao_params}
 \index{tao_beam_init}\index{tao_var}\index{tao_d2_data}
 \index{tao_d1_data}\index{tao_plot_page}\index{tao_template_plot}
 \index{tao_template_graph}\index{lat_layout_drawing}
@@ -225,7 +225,6 @@ however, can contain \vn{tao_template_plot} and
   \vn{floor_plan_drawing}        & \vn{plot_file}$^*$ & Plotting      & \sref{s:layout.and.floor}     \\ \hline
   \vn{tao_beam_init}             & \vn{beam_file}     & Particle beam & \sref{s:beam.init}     \\ \hline
   \vn{tao_building_wall}         & \vn{building_wall_file} & Plotting & \sref{s:building.wall} \\ \hline 
-  \vn{tao_connected_uni_init}    & "tao.init"  & Connected Universes  & \sref{s:connected.uni} \\ \hline
   \vn{tao_design_lattice}        & "tao.init"  & lattice files        & \sref{s:init.lat}      \\ \hline
   \vn{tao_d1_data}               & \vn{data_file}     & Data          & \sref{s:init.data}     \\ \hline
   \vn{tao_d2_data}               & \vn{data_file}     & Data          & \sref{s:init.data}     \\ \hline
@@ -560,92 +559,6 @@ the calculational time to track through a lattice is reduced.
 
 See \sref{s:lattice.correction} for more details on
 \vn{global%n_opti_cycles} and \vn{global%n_opti_loops}. 
-
-%-----------------------------------------------------------------
-\section{Initializing Connected Universes}
-\index{initialization!connected universes}
-\label{s:connected.uni}
-
-\index{tao_connected_uni_init}\index{connect}\index{connect!from_universe}
-\index{connect!at_element}\index{connect!at_ele_index}\index{connect!at_s}
-\index{connect!match_to_design}
-Universes can be connected together. This can be useful, for example,
-to attach a damping ring a pre-accelerator to a linac. Only one
-connection between two given universes is allowed.  A universe can
-only inject into a universe with a greater universe index, so for
-example, universe 3 can inject into 4 or 5 but not 1 or 2. Each
-connection between two universes needs a separate
-\vn{tao_connected_uni_init} namelist. The syntax of this namelist is:
-\begin{example}
-  &tao_connected_uni_init
-    to_universe           = <Integer>     ! Injecting into this Universe.
-    connect%from_universe = <Integer>     ! connect from this universe
-    connect%at_element    = <ele_name>    ! connect at end of element 
-    connect%at_ele_index  = <ele_index>   ! connect at end of ele with this index
-    connect%at_s          = <number>      ! connect at position s 
-    connect%match_to_design = <logical>   ! match optics to design parameters
-  /
-\end{example}
-\vn{to_universe} refers to the universe which is to be injected
-into. Any of \vn{at_element}, \vn{at_ele_index} or \vn{at_s} must be
-specified but not more than one. These refer to the location in the
-``from'' lattice where the beam/particle is extracted.  The injection
-is always at the beginning of the ``to'' lattice. Note: Setting a
-lattice to inject back into itself will not work to make a circular
-lattice. This must be set in the lattice file.  If there are more than
-one element named \vn{<ele_name>} then the last element named as such
-will be used. If \vn{ele_name = "end"} then the end of the injection
-lattice will be used as the connection point.
-
-Setting \vn{match_to_design} to True will set up a \vn{match} element
-(see the \bmad manual for details on match elements) between the two
-universes that will match the \vn{design} Twiss parameters from the
-injecting lattice to the \vn{design} Twiss parameters as specified by
-the lattice injected into. This is, the input Twiss parameters of the
-match element will be the design Twiss parameters at the extraction
-point for the first lattice and the output Twiss parameters of the
-match element are the design Twiss parameters at the beginning of the
-second lattice. These input parameters to the match element are not
-affected by changes in the \vn{model} lattice so optics errors can be
-simulated.
-
-The match element is not inserted into either lattice. Instead, it
-resides in the \tao connection structure and is tracked through
-separately. Note that the match element is not an extraction kicker
-element. If an extraction kicker element is needed then it should be
-added to either the extraction point of the first lattice or the
-beginning of the second lattice.
-
-Setting \vn{match_to_design} to False (the default) will cause \tao to
-continually maintain the \vn{model} Twiss parameters and reference
-energy at the start of the injected lattice equal to the \vn{model}
-Twiss parameters and reference energy at the extraction point in the
-injecting lattice independent of any Twiss parameter or reference
-energy settings in the lattice file for the injected lattice.
-
-Initialization due to a connection between lattices takes precedence
-over other types of initialization. For example, any particle beam
-initialization settings (\sref{s:beam.init}) will be ignored for a
-lattice that is being injected into from another lattice.
-
-Even if the connection point is not the end of the injection lattice,
-the standard lattice calculations will still be performed through to
-the end of that lattice.
-
-Example:
-\begin{example}
-  &tao_connected_uni_init
-    to_universe = 1
-    coupled%from_universe = -1      ! no injection into this universe
-    coupled%at_element    = "none"
-  /
-  &tao_connected_uni_init
-    to_universe = 2
-    coupled%from_universe = 1      ! inject beam/particle form universe 1
-    coupled%at_element    = "end"  ! inject from the end of universe 1
-    coupled%match_to_design = T    ! match the design lattice optics
-  /
-\end{example}
 
 %-----------------------------------------------------------------
 \section{Initializing Particle Beams}\index{initialization!beams}

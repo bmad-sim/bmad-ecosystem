@@ -306,8 +306,7 @@ integer, allocatable, optional :: data_ix_dModel(:)
 integer i, j, iu
 integer n_data
 
-! 
-  
+!
   
 n_data = 0
 do iu = lbound(s%u, 1), ubound(s%u, 1)
@@ -461,6 +460,7 @@ type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
 type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
+type (ele_struct) ele_dum
 type (coord_struct), pointer :: orb0
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
@@ -478,6 +478,7 @@ real(rp) z_center, x_center, x_wall
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
+real(rp), pointer :: r_ptr
 ! Cf: Sands Eq 5.46 pg 124.
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
@@ -967,6 +968,29 @@ case ('e_tot')
   mc2 = mass_of(orbit(0)%species)
   call tao_load_this_datum (sqrt((branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)))**2 + mc2**2), &
                             ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
+!-----------
+
+case ('element_attrib.')
+
+  name = upcase(datum%data_type(16:))
+  ele_dum%key = overlay$  ! so entire attribute name table will be searched
+  i = attribute_index(ele_dum, name)
+  if (i < 1) return  ! Bad attribute name
+
+  value_vec = 0
+  do i = ix_start, ix_ele
+    call pointer_to_attribute (branch%ele(i), name, .false., r_ptr, err, .false.)
+    if (.not. associated (r_ptr)) cycle
+    value_vec(i) = r_ptr
+  enddo
+
+  if (ix_ref > -1) then
+    call pointer_to_attribute (ele_ref, name, .false., r_ptr, err, .false.)
+    if (associated (r_ptr)) value_vec(ix_ref) = r_ptr
+  endif
+
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 !-----------
 
@@ -2570,7 +2594,7 @@ end function tao_do_wire_scan
 ! location such as an overlay or multipass element.
 !
 ! If the element is a super_lord then the super_slave element at the exit end
-! of the lordwill be returned. Otherwise ix_loc will be set to ix_ele.
+! of the lord will be returned. Otherwise ix_loc will be set to ix_ele.
 !
 ! Input:
 !   lat    -- Lat_struct: Lattice
@@ -2629,7 +2653,6 @@ endif
 
 ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
 
-if (datum%data_type(1:14) == 'element_param.') return
 if (ix_ele <= n_track) return
 
 if (ele%lord_status == super_lord$) then
