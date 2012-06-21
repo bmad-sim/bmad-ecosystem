@@ -663,7 +663,6 @@ end subroutine init_beam_distribution
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
 !   param       -- Lat_param_struct: Lattice parameters
-!     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !
 ! Output:
@@ -684,7 +683,7 @@ type (kv_beam_init_struct), pointer :: kv
 real(rp) beta(3), alpha(3), emit(3), covar
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
 
-integer i, j, k, n
+integer i, j, k, n, species
 integer :: n_kv     ! counts how many phase planes are of KV type
 integer :: ix_kv(3) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
 
@@ -784,17 +783,22 @@ call init_spin_distribution (beam_init, bunch)
 ! Photons:
 ! For now just give one half e_field_x = 1 and one half e_field_y = 1
 
-if (param%particle == photon$) then
+species = beam_init%species
+if (species == not_set$) species = param%particle
+
+if (species == photon$) then
   n = size(bunch%particle)
   bunch%particle(1:n:2)%e_field_x = 1
   bunch%particle(2:n:2)%e_field_y = 1
 endif
 
-! Fill in %t and %s
+! Fill in %species, %t and %s
+
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
+  p%species = species
   p%s = ele%s
-  call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), param%particle, beta = beta_vel)
+  call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
   p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
 enddo
 
@@ -831,9 +835,32 @@ character(16) :: r_name = 'calc_this_emit'
 
 ! Convert old style emit components to new style
 
-if (beam_init%a_norm_emitt /= 0) beam_init%a_norm_emit = beam_init%a_norm_emitt 
-if (beam_init%b_norm_emitt /= 0) beam_init%b_norm_emit = beam_init%b_norm_emitt 
-if (any(beam_init%emitt_jitter /= 0)) beam_init%emit_jitter = beam_init%emitt_jitter
+if (beam_init%a_norm_emitt /= 0) then
+  beam_init%a_norm_emit = beam_init%a_norm_emitt 
+  call out_io (s_error$, r_name, &
+        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+        '!!! USING DEPRECATED "BEAM_INIT%A_NORM_EMITT".     !!!', &
+        '!!! PLEASE CHANGE THIS TO "BEAM_INIT%A_NORM_EMIT". !!!', &
+        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+endif
+
+if (beam_init%b_norm_emitt /= 0) then
+  beam_init%b_norm_emit = beam_init%b_norm_emitt 
+  call out_io (s_error$, r_name, &
+        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+        '!!! USING DEPRECATED "BEAM_INIT%B_NORM_EMITT".     !!!', &
+        '!!! PLEASE CHANGE THIS TO "BEAM_INIT%B_NORM_EMIT". !!!', &
+        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+endif
+
+if (any(beam_init%emitt_jitter /= 0)) then
+  beam_init%emit_jitter = beam_init%emitt_jitter
+  call out_io (s_error$, r_name, &
+        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+        '!!! USING DEPRECATED "BEAM_INIT%EMITT_JITTER".     !!!', &
+        '!!! PLEASE CHANGE THIS TO "BEAM_INIT%EMIT_JITTER". !!!', &
+        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+endif
 
 ! Check
 

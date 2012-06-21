@@ -200,30 +200,31 @@ the beam. The parameters of this structure are:
     type (kv_beam_init_struct) KV              ! For KV beam distribution
     type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
     !!! The following are for Random distributions
-    character(16) :: random_engine          ! "pseudo" (default) or "quasi". 
-    character(16) :: random_gauss_converter ! "exact" (default) or "quick". 
-    real(rp) :: random_sigma_cutoff = -1    ! -1 => no cutoff used.
-    real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
-    real(rp) :: emit_jitter(2)   = 0.0  ! %RMS a and b mode bunch emittance jitter
-    real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
-    real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
-    integer :: n_particle = 0           ! Number of simulated particles per bunch.
-    logical :: renorm_center = .true.   ! Renormalize centroid?
-    logical :: renorm_sigma = .true.    ! Renormalize sigma?
+    character(16) random_engine          ! "pseudo" (default) or "quasi". 
+    character(16) random_gauss_converter ! "exact" (default) or "quick". 
+    real(rp) random_sigma_cutoff = -1    ! -1 => no cutoff used.
+    real(rp) center_jitter(6) = 0.0      ! Bunch center rms jitter
+    real(rp) emit_jitter(2)   = 0.0      ! %RMS a and b mode bunch emittance jitter
+    real(rp) sig_z_jitter     = 0.0      ! bunch length RMS jitter 
+    real(rp) sig_e_jitter     = 0.0      ! energy spread RMS jitter 
+    integer n_particle = 0               ! Number of simulated particles per bunch.
+    logical renorm_center = .true.       ! Renormalize centroid?
+    logical renorm_sigma = .true.        ! Renormalize sigma?
     !!! The following are used  by all distribution types
-    type(beam_spin_struct) spin     ! Spin
-    real(rp) a_norm_emit            ! a-mode normalized emittance (= \(\gamma \, \epsilon\))
-    real(rp) b_norm_emit            ! b-mode normalized emittance (= \(\gamma \, \epsilon\))
-    real(rp) a_emit                 ! a-mode emittance (= \(\gamma \, \epsilon\))
-    real(rp) b_emit                 ! b-mode emittance (= \(\gamma \, \epsilon\))
-    real(rp) :: dPz_dz = 0          ! Correlation of Pz with long position.
-    real(rp) :: center(6) = 0       ! Bench center offset.
-    real(rp) dt_bunch               ! Time between bunches.
-    real(rp) sig_z                  ! Z sigma in m.
-    real(rp) sig_e                  ! dE/E (pz) sigma.
-    real(rp) bunch_charge           ! Charge in a bunch.
-    integer :: n_bunch = 1          ! Number of bunches.
-    logical :: init_spin = .false.  ! initialize beam spinors
+    type(beam_spin_struct) spin          ! Spin
+    real(rp) a_norm_emit                 ! a-mode normalized emittance (= \(\gamma \, \epsilon\))
+    real(rp) b_norm_emit                 ! b-mode normalized emittance (= \(\gamma \, \epsilon\))
+    real(rp) a_emit                      ! a-mode emittance (= \(\gamma \, \epsilon\))
+    real(rp) b_emit                      ! b-mode emittance (= \(\gamma \, \epsilon\))
+    real(rp) dPz_dz = 0                  ! Correlation of Pz with long position.
+    real(rp) center(6) = 0               ! Bench center offset.
+    real(rp) dt_bunch                    ! Time between bunches.
+    real(rp) sig_z                       ! Z sigma in m.
+    real(rp) sig_e                       ! dE/E (pz) sigma.
+    real(rp) bunch_charge                ! Charge in a bunch.
+    integer n_bunch = 1                  ! Number of bunches.
+    integer species = not_set\$           ! Species. Default is lattice reference species.
+    logical init_spin = .false.          ! initialize beam spinors
   end type
 \end{example}
 The number of bunches in the beam is set by \vn{n_bunch}. 
@@ -351,17 +352,17 @@ of \vn{csr_parameter_struct} and an \vn{instance name} of \vn{csr_param}.
 This structure has components
 \begin{example}
   type csr_parameter_struct 
-    real(rp) :: ds_track_step = 0          ! Tracking step size
-    real(rp) :: beam_chamber_height = 0    ! Used in shielding calculation.
-    real(rp) :: sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
+    real(rp) ds_track_step = 0          ! Tracking step size
+    real(rp) beam_chamber_height = 0    ! Used in shielding calculation.
+    real(rp) sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
                                            !  is < cutoff * sigma_ave then ignore.
-    integer :: n_bin = 0                   ! Number of bins used
-    integer :: particle_bin_span = 2       ! Longitudinal particle length / dz_bin
-    integer :: n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
-    logical :: lcsr_component_on = .true.  ! Longitudinal csr component
-    logical :: lsc_component_on = .true.   ! Longitudinal space charge component
-    logical :: tsc_component_on = .true.   ! Transverse space charge component
-    logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
+    integer n_bin = 0                   ! Number of bins used
+    integer particle_bin_span = 2       ! Longitudinal particle length / dz_bin
+    integer n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
+    logical lcsr_component_on = .true.  ! Longitudinal csr component
+    logical lsc_component_on = .true.   ! Longitudinal space charge component
+    logical tsc_component_on = .true.   ! Transverse space charge component
+    logical small_angle_approx = .true. ! Use lcsr small angle approximation?
   end type
 \end{example}
 The values for the various quantities shown above are their default values. 
@@ -464,7 +465,7 @@ The \vn{global_common_struct} is meant to hold common parameters that should
 not be modified by the user. 
 \begin{example}
   type global_common_struct
-    logical :: be_thread_safe = .false.                   ! Avoid thread unsafe practices?
+    logical be_thread_safe = .false.                   ! Avoid thread unsafe practices?
   end type
 \end{example}
 

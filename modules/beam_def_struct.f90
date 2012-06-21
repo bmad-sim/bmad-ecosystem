@@ -82,6 +82,7 @@ type beam_init_struct
   real(rp) sig_e                      ! e_sigma in dE/E.
   real(rp) bunch_charge               ! charge in a bunch.
   integer :: n_bunch = 1              ! Number of bunches.
+  integer :: species = not_set$       ! Species. Default is lattice reference species.
   logical :: init_spin     = .false.  ! initialize beam spinors
   ! OLD. DO NOT USE!
   real(rp) :: a_norm_emitt = 0           ! OLD DO NOT USE!

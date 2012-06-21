@@ -319,31 +319,6 @@ parsing_loop: do
     enddo
     cycle parsing_loop
   endif
-                 
-  ! LATTICE command
-
-  if (word_1(:ix_word) == 'LATTICE') then
-    if (delim /= ':' .and. delim /= '=') then
-      call parser_error ('"LATTICE" NOT FOLLOWED BY ":"')
-    else
-      if (delim == ':' .and. bp_com%parse_line(1:1) == '=') &
-                    bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
-      call get_next_word (lat%lattice, ix_word, ',', delim, delim_found, .true.)
-      call out_io (s_error$, r_name, [ &
-        '*********************************************************    ', &
-        '*********************************************************    ', &
-        '*********************************************************    ', &
-        'BMAD_PARSER NOTE:                                            ', &
-        '    DEPRECATED USE OF SYNTAX: "LATTICE = ...".               ', &
-        '    USE "PARAMETER[LATTICE] = ..." SYNTAX INSTEAD.           ', &
-        '*********************************************************    ', &
-        '*********************************************************    ', &
-        '*********************************************************    '])
-    endif
-    call out_io (s_error$, r_name, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!')
-    bp_com%write_digested = .false.
-    cycle parsing_loop
-  endif
 
   ! EXPAND_LATTICE command
 

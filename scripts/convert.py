@@ -16,9 +16,41 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'section%section' in line:
+    if '%do_rad_int_calc_data' in line:
       found = True
-      line = line.replace('section%section', 'section')
+      line = line.replace('%do_rad_int_calc_data', '%calc%rad_int_for_data')
+
+    if '%do_rad_int_calc_plotting' in line:
+      found = True
+      line = line.replace('%do_rad_int_calc_plotting', '%calc%rad_int_for_plotting')
+
+    if '%do_chrom_calc' in line:
+      found = True
+      line = line.replace('%do_chrom_calc', '%calc%chrom')
+
+    if '%lattice_recalc' in line:
+      found = True
+      line = line.replace('%lattice_recalc', '%calc%lattice')
+  
+    if '%mat6_recalc_on' in line:
+      found = True
+      line = line.replace('%mat6_recalc_on', '%calc%mat6')
+
+    if '%track_recalc_on' in line:
+      found = True
+      line = line.replace('%track_recalc_on', '%calc%track')
+
+    if '%beam_saved_at' in line:
+      found = True
+      line = line.replace('%beam_saved_at', '%beam%saved_at')
+
+    if '%current_beam' in line:
+      found = True
+      line = line.replace('%current_beam', '%beam%current')
+
+    if '%beam_info' in line:
+      found = True
+      line = line.replace('%beam_info', '%beam')
 
     out_file.write(line)
 
