@@ -1221,7 +1221,7 @@ type (bunch_params_struct), pointer :: bunch_params
 type (coord_struct), pointer :: orb(:)
 type (coord_struct), pointer :: orb_ref
 type (lat_struct), pointer :: lat
-type (ele_struct) ele
+type (ele_struct) ele, ele_dum
 type (ele_struct), pointer :: ele_ref
 type (coord_struct) here
 type (taylor_struct) t_map(6)
@@ -1230,10 +1230,11 @@ type (branch_struct), pointer :: branch
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign, mat6_ref_inv(6,6), vec0_ref(6), dmat6(6,6)
+real(rp), pointer :: r_ptr
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch
 
-character(40) data_type
+character(40) data_type, name
 character(40) data_type_select, data_source
 character(20) :: r_name = 'calc_data_at_s'
 logical err, good(:), use_last
@@ -1403,6 +1404,16 @@ do ii = 1, size(curve%x_line)
   case ('coupling.22a')
     call c_to_cbar (ele, cbar)
     value = cbar(2,2)* sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
+  case ('element_attrib.')
+    name = upcase(curve%data_source(16:))
+    ele_dum%key = overlay$  ! so entire attribute name table will be searched
+    i = attribute_index(ele_dum, name)
+    if (i < 1) then
+      good = .false.
+      return  ! Bad attribute name
+    endif
+    call pointer_to_attribute (ele_ref, name, .false., r_ptr, err, .false.)
+    if (associated (r_ptr)) value = r_ptr
   case ('emit.a')
     value = bunch_params%a%emit
   case ('emit.b')

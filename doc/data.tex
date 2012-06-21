@@ -466,6 +466,13 @@ where the average \vn{<>} is over all the particles in the beam.
 Note: If the beta function is calculated from the beam distribution,
 the emittance must be non-zero.
 
+  \index{element_attrib.}
+  \item{element_attrib.} \Newline
+The \vn{element_attrib.<attrib_name>} data type is associated with the
+lattice element attribute named \vn{<attrib_name>}. For any given
+element, if \vn{<attrib_name} is not associated with the element, the
+value of the datum is zero.
+
   \index{emit.}
   \item[emit.] \Newline
 The \vn{emit.} data type covers two types of
@@ -824,7 +831,7 @@ squared.
 
   e\_tot                              & Beam total energy (eV)                        & lat       \\ \hline
 
-  element\_param.<param\_name>        & lattice element parameter                     & lat       \\ \hline
+  element\_attrib.<attrib\_name>      & lattice element attribute                     & lat       \\ \hline
 
   emit.a, emit.b, emit.c              & Emittance                                     & beam, lat \\ \hline
 

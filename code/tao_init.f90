@@ -148,7 +148,6 @@ bmad_status%exit_on_error = .false.
 
 call tao_init_global(init_tao_file)
 call tao_init_lattice (init_tao_file)
-call tao_init_connected_universes (init_tao_file)
 call tao_init_beams (beam_file)
 call tao_init_variables (var_file)
 call tao_init_data (data_file)
@@ -365,11 +364,8 @@ if (allocated (s%u)) then
 
     call reallocate_beam(u%beam%current, 0, 0)
 
-    ! Connected universes
-    call deallocate_ele_pointers (u%connect%match_ele)
-    call reallocate_beam (u%connect%injecting_beam, 0, 0)
-
     ! Lattices
+
     call deallocate_lat_pointers (u%model%lat)
     call deallocate_lat_pointers (u%design%lat)
     call deallocate_lat_pointers (u%base%lat)

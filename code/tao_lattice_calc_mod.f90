@@ -75,9 +75,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
   u%data(:)%good_model = .false. ! reset
   u%data%model_value = tiny(1.0_rp)
 
-  ! set up connecting element
-
-  call tao_connect_lats_init (u)
+  ! Lattice bookkeeping
 
   call tao_lat_bookkeeper (u, tao_lat)
 
@@ -193,11 +191,9 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     enddo
   endif
 
-  ! Mark this lattice as done and mark any connected to universe as needing a calculation.
+  ! Mark this lattice as done 
 
   u%calc%lattice = .false.
-  iu = u%connect%to_uni
-  if (iu > -1) s%u(iu)%calc%lattice = .true.
 
 enddo
 
@@ -387,23 +383,10 @@ enddo
 
 call zero_lr_wakes_in_lat (lat)
 
-! Find if injecting into another lattice
+! Don't know what to do if the lattice is circular.
 
-extract_at_ix_ele = -1
-i_uni_to = u%connect%to_uni
-if (i_uni_to > -1) then
-  if (s%u(i_uni_to)%connect%from_uni_ix_ele == -1) then
-    call out_io (s_abort$, r_name, &
-         "Must specify an element when connecting lattices with a beam.")
-    call err_exit
-  endif
-  extract_at_ix_ele = s%u(i_uni_to)%connect%from_uni_ix_ele
-endif
-
-! Don't know what to do if not connected and the lattice is circular.
-
-if (.not. u%connect%connected .and. branch%param%lattice_type == circular_lattice$) then
-  call out_io (s_abort$, r_name, 'BEAM TRACKING IN CIRCULAR LATTICE WHEN NOT CONNECTED NOT YET IMPLEMENTED!')
+if (branch%param%lattice_type == circular_lattice$) then
+  call out_io (s_abort$, r_name, 'BEAM TRACKING IN CIRCULAR LATTICE NOT YET IMPLEMENTED!')
   call err_exit
 endif
 
@@ -441,12 +424,6 @@ do j = ie1, ie2
                                   ele%key == photon_branch$) uni_ele(j)%beam = beam
   endif
  
-  ! Save beam at location if injecting into another lattice
-
-  if (extract_at_ix_ele == j) then
-    s%u(i_uni_to)%connect%injecting_beam = beam
-  endif
-
   ! Lost particles
 
   n_bunch = s%global%bunch_to_plot
@@ -616,68 +593,18 @@ endif
 
 orb0 => model%lat_branch(ix_branch)%orbit(0)
 
-! Not connected case is easy.
+! 
 
-if (.not. u%connect%connected) then
-  polar%theta = u%beam%beam_init%spin%theta
-  polar%phi = u%beam%beam_init%spin%phi
-  call polar_to_spinor (polar, orb0)
-  return
-endif
+polar%theta = u%beam%beam_init%spin%theta
+polar%phi = u%beam%beam_init%spin%phi
+call polar_to_spinor (polar, orb0)
 
-! Connected case
-
-if (.not. s%u(u%connect%from_uni)%is_on) then
-  call out_io (s_error$, r_name, &
-                  "Injecting from a turned off universe! This will not do!", &
-                  "No injection will be performed")
-  return
-endif
-  
-call init_ele (extract_ele)
-  
-! get particle perameters from previous universe at position s
-
-call twiss_and_track_at_s (s%u(u%connect%from_uni)%model%lat, &
-                             u%connect%from_uni_s, extract_ele, &
-                             s%u(u%connect%from_uni)%model%lat_branch(0)%orbit, pos, ix_branch)
-
-! track through connect element
-
-if (u%connect%match_to_design) then
-  if (u%calc%mat6) call make_mat6 (u%connect%match_ele, &
-                                             s%u(u%connect%from_uni)%model%lat%param)
-  call twiss_propagate1 (extract_ele, u%connect%match_ele)
-  call track1 (pos, u%connect%match_ele, &
-                    s%u(u%connect%from_uni)%model%lat%param, pos)
-  u%connect%match_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-  u%connect%match_ele%floor = extract_ele%floor
-  extract_ele = u%connect%match_ele
-endif
-  
-! transfer to this lattice
-
-model%lat%ele(0)%a = extract_ele%a
-model%lat%ele(0)%b = extract_ele%b
-model%lat%ele(0)%x = extract_ele%x
-model%lat%ele(0)%y = extract_ele%y
-model%lat%ele(0)%z = extract_ele%z
-model%lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
-model%lat%ele(0)%c_mat   = extract_ele%c_mat
-model%lat%ele(0)%gamma_c = extract_ele%gamma_c
-model%lat%ele(0)%floor   = extract_ele%floor
-orb0      = pos
-        
 end subroutine tao_inject_particle
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !
-! This will inject a beam from a previous universe into this universe in
-! preparation for tracking. The lattice where the extraction occurs will have
-! already been calculated.
-!
-! If there is no connection between lattice then this will initialize the beam
+! This will initialize the beam.
 
 subroutine tao_inject_beam (u, model, ix_branch, init_ok)
 
@@ -764,160 +691,27 @@ if (u%beam%beam0_file /= "") then
   return
 endif
 
-! Not connected case...
 ! Only reinit beam has not already been initialized or if commanded via %init_beam0.
 
-if (.not. u%connect%connected) then
-  if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
-    beam_init%center = model%lat%beam_start%vec
-    if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
-    call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
-                                      model%lat%param, beam_init, uni_branch%ele(0)%beam)
-    if (size(uni_branch%ele(0)%beam%bunch(1)%particle) == 0) then
-      call out_io (s_fatal$, r_name, &
-        'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
-      call err_exit
-    endif
-
-    if (tao_no_beam_left(uni_branch%ele(0)%beam, branch%param%particle)) then
-      call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
-      call err_exit
-    endif
-
-    u%beam%init_beam0 = .false.
+if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
+  beam_init%center = model%lat%beam_start%vec
+  if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
+  call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
+                                    model%lat%param, beam_init, uni_branch%ele(0)%beam)
+  if (size(uni_branch%ele(0)%beam%bunch(1)%particle) == 0) then
+    call out_io (s_fatal$, r_name, &
+      'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
+    call err_exit
   endif
-  return
-endif
 
-! connected case...
-   
-if (.not. s%u(u%connect%from_uni)%is_on) then
-  call out_io (s_error$, r_name, &
-            "Injecting from a turned off universe! This will not do!", &
-            "No injection will be performed.")
-  init_ok = .false.
-  return
-endif
-  
-! beam from previous universe at end of extracting element should already be set
-! but we still need the twiss parameters and everything else
+  if (tao_no_beam_left(uni_branch%ele(0)%beam, branch%param%particle)) then
+    call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
+    call err_exit
+  endif
 
-extract_ele = s%u(u%connect%from_uni)%model%lat%ele(u%connect%from_uni_ix_ele)
-  
-! track through connection element
-
-if (u%connect%match_to_design) then
-  param => s%u(u%connect%from_uni)%model%lat%param
-  if (u%calc%mat6) call make_mat6 (u%connect%match_ele, param)
-  call twiss_propagate1 (extract_ele, u%connect%match_ele)
-  call track1_beam_simple (u%connect%injecting_beam, u%connect%match_ele, &
-                      param, u%connect%injecting_beam)
-  u%connect%match_ele%value(E_TOT$) = extract_ele%value(E_TOT$)
-  u%connect%match_ele%floor = extract_ele%floor
-  extract_ele = u%connect%match_ele
-endif
-    
-! transfer to this lattice
-
-model%lat%ele(0)%a = extract_ele%a
-model%lat%ele(0)%b = extract_ele%b
-model%lat%ele(0)%z = extract_ele%z
-model%lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
-model%lat%ele(0)%c_mat   = extract_ele%c_mat
-model%lat%ele(0)%gamma_c = extract_ele%gamma_c
-model%lat%ele(0)%floor   = extract_ele%floor
-uni_branch%ele(0)%beam = u%connect%injecting_beam
-if (tao_no_beam_left(u%connect%injecting_beam, model%lat%param%particle)) then
-  call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
-  call err_exit
+  u%beam%init_beam0 = .false.
 endif
 
 end subroutine tao_inject_beam
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!
-! This will set up the matching element if needed. The lattice where the
-! extraction occurs will have already been calculated but the injected lattice
-! will not have been calculated yet.
-
-subroutine tao_connect_lats_init (u)
-
-implicit none
-
-type (tao_universe_struct), target :: u
-type (coord_struct) extract_pos
-type (ele_struct), save :: extract_ele
-type (ele_struct), pointer :: connection_ele, inject_ele
-type (beam_struct), pointer :: injecting_beam
-
-character(20) :: r_name = "connect_lats_init"
-
-!
-
-if (.not. (u%connect%connected .and. u%connect%match_to_design)) return
-
-connection_ele => u%connect%match_ele
-  
-! set up coupling%injecting_beam 
-
-if (s%global%track_type == 'beam') then
-  injecting_beam => s%u(u%connect%from_uni)%beam%current
-  call reallocate_beam (u%connect%injecting_beam, size(injecting_beam%bunch), &
-            size(injecting_beam%bunch(1)%particle))
-endif
-
-! match design lattices
-
-if (.not. u%connect%match_to_design) then
-  call out_io (s_warn$, r_name, "The coupling element will only match the design lattices")
-  return
-endif
-
-! get twiss parameters from extracted lattice
-
-if (s%global%track_type == 'single') then
-  call twiss_and_track_at_s (s%u(u%connect%from_uni)%design%lat, u%connect%from_uni_s, &
-                 extract_ele, s%u(u%connect%from_uni)%design%lat_branch(0)%orbit, extract_pos)
-elseif (s%global%track_type == 'beam') then
-  extract_ele = s%u(u%connect%from_uni)%design%lat%ele(u%connect%from_uni_ix_ele)
-endif
-    
-! get twiss parameters for injected lattice
-! This is performed before the standard lattice calculation so the design
-! twiss parameters in ele(0) will still be as set in the lattice file.
-
-inject_ele => u%design%lat%ele(0)
-
-! set up matching element
-
-connection_ele%value( beta_a0$) = extract_ele%a%beta
-connection_ele%value(alpha_a0$) = extract_ele%a%alpha
-connection_ele%value(  eta_x0$) = extract_ele%x%eta
-connection_ele%value( etap_x0$) = extract_ele%x%etap
-
-connection_ele%value( beta_b0$) = extract_ele%b%beta
-connection_ele%value(alpha_b0$) = extract_ele%b%alpha
-connection_ele%value(  eta_y0$) = extract_ele%y%eta
-connection_ele%value( etap_y0$) = extract_ele%y%etap
-  
-connection_ele%value( beta_a1$) = inject_ele%a%beta
-connection_ele%value(alpha_a1$) = inject_ele%a%alpha
-connection_ele%value(  eta_x1$) = inject_ele%x%eta
-connection_ele%value( etap_x1$) = inject_ele%x%etap
-
-connection_ele%value( beta_b1$) = inject_ele%b%beta
-connection_ele%value(alpha_b1$) = inject_ele%b%alpha
-connection_ele%value(  eta_y1$) = inject_ele%y%eta
-connection_ele%value( etap_y1$) = inject_ele%y%etap
-  
-connection_ele%value(dphi_a$)   = mod(inject_ele%a%phi - extract_ele%a%phi,twopi)
-connection_ele%value(dphi_b$)   = mod(inject_ele%b%phi - extract_ele%b%phi,twopi)
-  
-! it's a linear element so no orbit need be passed
-if (u%calc%mat6) call make_mat6 (connection_ele, &
-                                             s%u(u%connect%from_uni)%design%lat%param)
-  
-end subroutine  tao_connect_lats_init
  
 end module tao_lattice_calc_mod

@@ -156,14 +156,6 @@ type tao_design_lat_input
   character(40) use_line
 end type
 
-type tao_connected_uni_input
-  integer from_universe
-  character(40) at_element !connected at end of element
-  integer at_ele_index ! connected at end of element
-  real(rp) :: at_s ! connected at position s
-  logical match_to_design
-end type
-
 type tao_key_input
   character(40) ele_name
   character(40) attrib_name
