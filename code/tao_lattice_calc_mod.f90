@@ -427,7 +427,7 @@ do j = ie1, ie2
   ! Lost particles
 
   n_bunch = s%global%bunch_to_plot
-  n_lost = count(beam%bunch(n_bunch)%particle(:)%ix_ele == j)
+  n_lost = count(beam%bunch(n_bunch)%particle(:)%state /= alive$)
   if (n_lost /= 0) then
     if (size(s%u) == 1) then
       call out_io (s_blank$, r_name, &
