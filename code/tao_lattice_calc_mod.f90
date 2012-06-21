@@ -332,14 +332,14 @@ type (bunch_params_struct), pointer :: bunch_params
 integer what_lat
 integer i, j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to, ix_track
-integer extract_at_ix_ele, n_lost, ix_branch
+integer n_lost, ix_branch
 integer, allocatable, save :: ix_ele(:)
 
 character(20) :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f, time, old_time
 
-logical post, calc_ok, too_many_lost, print_err, err, lost
+logical calc_ok, too_many_lost, print_err, err, lost
 
 ! Initialize 
 
@@ -477,22 +477,14 @@ enddo
 
 ! only post total lost if no extraction or extracting to a turned off lattice
 
-post = .false.
-if (extract_at_ix_ele == -1) post = .true.
-if (u%ix_uni < ubound(s%u, 1)) then
-  if (.not. s%u(u%ix_uni+1)%is_on) post = .true.
-endif
-
-if (post) then
-  n_lost = 0
-  do n_bunch = 1, size(beam%bunch)
-    n_lost = n_lost + count(beam%bunch(n_bunch)%particle%state /= alive$)
-  enddo
-  if (n_lost /= 0) &
-    call out_io (s_blank$, r_name, &
+n_lost = 0
+do n_bunch = 1, size(beam%bunch)
+  n_lost = n_lost + count(beam%bunch(n_bunch)%particle%state /= alive$)
+enddo
+if (n_lost /= 0) &
+  call out_io (s_blank$, r_name, &
       "Total number of lost particles by the end of universe \I2\: \I5\.", &
                                   i_array = (/u%ix_uni, n_lost /))
-endif
 
 lat_branch%track_state = ix_track
  
@@ -613,12 +605,13 @@ use tao_read_beam_mod
 implicit none
 
 type (tao_universe_struct), target :: u
-type (beam_init_struct), pointer :: beam_init
 type (tao_lattice_struct), target :: model
+type (tao_universe_branch_struct), pointer :: uni_branch
 type (ele_struct), save :: extract_ele
 type (lat_param_struct), pointer :: param
-type (tao_universe_branch_struct), pointer :: uni_branch
 type (branch_struct), pointer :: branch
+type (beam_init_struct), pointer :: beam_init
+type (beam_struct), pointer :: beam
 
 real(rp) v(6)
 integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib, ie
@@ -659,20 +652,23 @@ model%lat%beam_start%vec = beam_init%center
 
 ! If there is an init file then read from the file
 
+beam => uni_branch%ele(0)%beam
+
 if (u%beam%beam0_file /= "") then
-  if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
+  if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
     call tao_open_beam_file (u%beam%beam0_file, err)
     if (err) call err_exit
     call tao_set_beam_params (beam_init%n_bunch, beam_init%n_particle, beam_init%bunch_charge)
-    call tao_read_beam (uni_branch%ele(0)%beam, err)
+    call tao_read_beam (beam, err)
     if (err) call err_exit
     call tao_close_beam_file()
     n = 0
-    do i = 1, size(uni_branch%ele(0)%beam%bunch)
-      n = n + size(uni_branch%ele(0)%beam%bunch(i)%particle)
-      do j = 1, size(uni_branch%ele(0)%beam%bunch(i)%particle)
-        uni_branch%ele(0)%beam%bunch(i)%particle(j)%vec = &
-                  uni_branch%ele(0)%beam%bunch(i)%particle(j)%vec + model%lat%beam_start%vec
+    do i = 1, size(beam%bunch)
+      n = n + size(beam%bunch(i)%particle)
+      do j = 1, size(beam%bunch(i)%particle)
+        beam%bunch(i)%particle(j)%vec = beam%bunch(i)%particle(j)%vec + model%lat%beam_start%vec
+        call init_coord (beam%bunch(i)%particle(j), beam%bunch(i)%particle(j), &
+                         branch%ele(0), beam%bunch(i)%t_center)
       enddo
     enddo
     call out_io (s_info$, r_name, &
@@ -682,29 +678,28 @@ if (u%beam%beam0_file /= "") then
                   r_array = model%lat%beam_start%vec, i_array = [n])
   endif
 
-  if (tao_no_beam_left (uni_branch%ele(0)%beam, branch%param%particle)) then
+  if (tao_no_beam_left (beam, branch%param%particle)) then
     call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
     call err_exit
   endif
 
-  if (uni_branch%ele(0)%save_beam) uni_branch%ele(0)%beam = uni_branch%ele(0)%beam
   return
 endif
 
 ! Only reinit beam has not already been initialized or if commanded via %init_beam0.
 
-if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
+if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
   beam_init%center = model%lat%beam_start%vec
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
   call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
-                                    model%lat%param, beam_init, uni_branch%ele(0)%beam)
-  if (size(uni_branch%ele(0)%beam%bunch(1)%particle) == 0) then
+                                    model%lat%param, beam_init, beam)
+  if (size(beam%bunch(1)%particle) == 0) then
     call out_io (s_fatal$, r_name, &
       'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
     call err_exit
   endif
 
-  if (tao_no_beam_left(uni_branch%ele(0)%beam, branch%param%particle)) then
+  if (tao_no_beam_left(beam, branch%param%particle)) then
     call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
     call err_exit
   endif
