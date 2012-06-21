@@ -6,7 +6,6 @@
 !
 ! See also: 
 !   twiss_and_track_at_s
-!   twiss_and_track_from_s_to_s
 !   track_from_s_to_s
 !
 ! The track_entrance and track_exit arguments determine whether entrance and exit effects are 
