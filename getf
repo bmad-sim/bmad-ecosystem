@@ -385,7 +385,7 @@ sub searchit {
             $rest = ',' . $';       #'
             chomp($rest);
             $rest = (split(/!/, $rest))[0];
-            while ($rest =~ /,\s*([\$\w\(\)]+) *\=/) {
+            while ($rest =~ /,\s*([\$\w\(-:\)]+) *\=/) {  # match to EG: "charge_of(-3:3)"
               $rest = $';  # '
               $param = (split(/\(/, $1))[0];
               if ($param =~ /^$match_str$/i || $param =~ /^$match_str\$$/i) {
