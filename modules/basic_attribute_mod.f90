@@ -711,6 +711,7 @@ call init_attrib (patch$, ref_orbit$,                      'REF_ORBIT')
 call init_attrib (patch$, ref_patch$,                      'REF_PATCH')
 call init_attrib (patch$, n_ref_pass$,                     'N_REF_PASS')
 call init_attrib (patch$, translate_after$,                'TRANSLATE_AFTER')
+call init_attrib (patch$, z_offset$,                       'Z_OFFSET', override = .true.)
 
 call init_attrib (floor_position$, l$,                           'l', .true.)
 call init_attrib (floor_position$, x_position$,                  'X_POSITION')
@@ -964,16 +965,16 @@ init_needed = .false.
 !-------------------------------------------------------------------------
 contains
 
-subroutine init_attrib (ix_key, ix_attrib, name, private)
+subroutine init_attrib (ix_key, ix_attrib, name, private, override)
 
 integer ix_key, ix_attrib
 character(*) name
-logical, optional :: private
+logical, optional :: private, override
 
 ! Check that attrib_array(ix_key, ix_attrib)%name has not already been set.
 ! If so bomb program.
 
-if (attrib_array(ix_key, ix_attrib)%name /= null_name$) then
+if (.not. logic_option(.false., override) .and. attrib_array(ix_key, ix_attrib)%name /= null_name$) then
   call out_io (s_fatal$, 'init_attrib', 'ERROR IN INITIALIZING ATTRIB_ARRAY FOR: ' // key_name(ix_key), &
                   'IX_ATTRIB \i0\ ALREADY SET!', &
                   'OLD/NEW NAMES: ' // trim(attrib_array(ix_key, ix_attrib)%name) // ' : ' // name, &
