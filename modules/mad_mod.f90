@@ -148,6 +148,9 @@ case (solenoid$)
 case (sol_quad$)
   call mad_sol_quad (ele, energy, map)
 
+case (marker$, pipe$)
+  call make_unit_mad_map (map)
+
 case default
 
   call out_io (s_fatal$, r_name, 'ELEMENT NOT IMPLEMENTED: ' // ele%name)
