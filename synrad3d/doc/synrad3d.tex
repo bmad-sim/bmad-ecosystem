@@ -183,13 +183,19 @@ will be drawn at the vertex points \vn{v(i)} that define the
 cross-section.
 
 The \vn{-test <what>} option is for generating diagnostic
-files. Currently there is only one possible value for \vn{<what>}:
+files:
 \begin{example}
-  -test reflect
+  -test diffuse_reflection     ! \sref{s:test.diffuse}
+  -test specular_reflection    ! \sref{s:test.specular}
 \end{example}
-In \vn{-test reflect} mode, \srthree simulates a set of photons
+
+In \vn{-test diffuse_reflection} mode, \srthree simulates a set of photons
 reflected at a wall with all photons having the same incoming angle
-and energy. See \sref{s:test.reflect} for more details.
+and energy. See \sref{s:test.diffuse} for more details.
+
+In \vn{-test specular_reflection} mode, specular reflection is tested
+by simulating a single specular reflection from given photon
+starting positions. See \sref{s:test.specular} for more details.
 
 %------------------------------------------------------------------------
 \section{Simulation technique and physics models}
@@ -250,6 +256,15 @@ is included.
 %------------------------------------------------------------------
 \subsection{Photon scattering} 
 
+  \begin{figure}
+  \centering
+  \includegraphics[width=6in]{specular-probability.pdf}
+  \caption[Specular reflection probability vs. photon energy and angle]
+{\label{f:spec.prob}
+Specular reflection probability~\cite{b:beckmann}, vs. photon energy
+and angle, for an rms surface roughness of 200 nm.}
+  \end{figure}
+   
 Simulated photons are tracked until they hit the wall, where the
 probability of being scattered, and the scattering angle, are
 determined by their energy and angle of incidence.  This section
@@ -273,15 +288,6 @@ greater than most of the X-ray wavelengths of interest, for all except
 the lowest energy photons. In this regime, except at very small
 grazing angles, diffuse scattering from the surface dominates over
 specular reflection. This is illustrated in Fig.~\ref{f:spec.prob}.
-  \begin{figure}
-  \centering
-  \includegraphics[width=6in]{specular-probability.pdf}
-  \caption[Specular reflection probability vs. photon energy and angle]
-{\label{f:spec.prob}
-Specular reflection probability~\cite{b:beckmann}, vs. photon energy
-and angle, for an rms surface roughness of 200 nm.}
-  \end{figure}
-   
 The theory of diffuse scattering of electromagnetic waves from random
 rough surfaces is a well-developed subject, and is covered in detail
 in references \cite{b:beckmann} and \cite{b:ogilvy}. The model we use
@@ -289,6 +295,48 @@ assumes a Gaussian distribution for both the surface height variations
 (rms $\sigma$) and for the transverse distribution (equal in both
 transverse directions, with autocorrelation coefficient $T$).
 
+  \begin{figure}
+  \centering
+  \includegraphics[width=4.5in]{Daphne-fit-5-deg}
+  \caption{\label{f:Daphne.fit.5.deg}
+   Diffuse scattering at 5 deg from a surface layer on an aluminum substrate: comparison of data and model}
+   \includegraphics[width=4.5in]{Daphne-fit-45-deg}
+   \caption{\label{f:Daphne.fit.45.deg}
+   Diffuse scattering at 45 deg from a surface layer on an aluminum substrate: comparison of data and model}
+   \end{figure}
+
+  \begin{figure}
+  \includegraphics[width=4.5in]{Daphne-fit-85-deg}
+   \caption{\label{f:Daphne.fit.85.deg}
+   Diffuse scattering at 85 deg from a surface layer on an aluminum substrate: comparison of data and model}
+  \includegraphics[width=6in]{Smooth-surface-reflectivity}
+   \caption[Smooth surface reflectivity for a 10 nm C film on Al substrate]
+   {\label{f:Smooth.surface.reflectivity}
+   Smooth surface reflectivity for a 10 nm C film on Al substrate: from \cite{b:henke}}
+  \centering
+   \end{figure}
+
+      \begin{figure}
+  \centering
+  \includegraphics[width=6in]{Diffuse-out-of-plane-30ev}
+   \caption{   \label{f:Diffuse.out.of.plane.30ev}
+   Diffuse scattering out-of-plane angular distributions for 30 eV photons}
+ \includegraphics[width=6in]{Diffuse-polar-30ev}
+   \caption{   \label{f:Diffuse.polar.30ev}
+   Diffuse scattering polar angular distributions for 30 eV photons}
+   \end{figure}
+
+  \begin{figure}
+  \centering
+  \includegraphics[width=6in]{Diffuse-polar-HE}
+   \caption{   \label{f:Diffuse.polar.HE}
+    Diffuse scattering polar angular distributions for high energy photons}
+  \centering
+  \includegraphics[width=6in]{Diffuse-out-of-plane-HE}
+   \caption{   \label{f:Diffuse.out.of.plane.HE}
+   Diffuse scattering out-of-plane angular distributions for high energy photons}
+   \end{figure}
+   
 The most general expression for the diffusely scattered power is
 complex, and involves an infinite sum.  However, the expression
 simplifies substantially in the limit $g(x,y)\gg 1.$ For very rough
@@ -342,25 +390,6 @@ film was not consistent with the data. The data and the corresponding
 fits are shown in Fig.~\ref{f:Daphne.fit.5.deg},
 \ref{f:Daphne.fit.45.deg}, and \ref{f:Daphne.fit.85.deg}.
 
-   \begin{figure}
-  \centering
-  \includegraphics[width=4.5in]{Daphne-fit-5-deg}
-   \caption{\label{f:Daphne.fit.5.deg}
-   Diffuse scattering at 5 deg from a surface layer on an aluminum substrate: comparison of data and model}
-   \end{figure}
-      \begin{figure}
-  \centering
-  \includegraphics[width=4.5in]{Daphne-fit-45-deg}
-   \caption{\label{f:Daphne.fit.45.deg}
-   Diffuse scattering at 45 deg from a surface layer on an aluminum substrate: comparison of data and model}
-   \end{figure}
-      \begin{figure}
-  \centering
-  \includegraphics[width=4.5in]{Daphne-fit-85-deg}
-   \caption{\label{f:Daphne.fit.85.deg}
-   Diffuse scattering at 85 deg from a surface layer on an aluminum substrate: comparison of data and model}
-   \end{figure}
-   
 With the smooth-surface reflectivity determined, and the surface
 parameters established, the scattering model in \srthree is
 completely determined. The model currently in use has a smooth-surface
@@ -376,38 +405,6 @@ photons, for which $g(x,y)\gg 1$ are shown in
 Fig.~\ref{f:Diffuse.polar.HE} and
 Fig.~\ref{f:Diffuse.out.of.plane.HE}. These distributions
 have been computed from Eq.~\ref{Eq.diffuse.power}.
-
-    \begin{figure}
-  \centering
-  \includegraphics[width=6in]{Smooth-surface-reflectivity}
-   \caption[Smooth surface reflectivity for a 10 nm C film on Al substrate]
-   {\label{f:Smooth.surface.reflectivity}
-   Smooth surface reflectivity for a 10 nm C film on Al substrate: from \cite{b:henke}}
-   \end{figure}
-      \begin{figure}
-  \centering
- \includegraphics[width=6in]{Diffuse-polar-30ev}
-   \caption{   \label{f:Diffuse.polar.30ev}
-   Diffuse scattering polar angular distributions for 30 eV photons}
-   \end{figure}
-      \begin{figure}
-  \centering
-  \includegraphics[width=6in]{Diffuse-out-of-plane-30ev}
-   \caption{   \label{f:Diffuse.out.of.plane.30ev}
-   Diffuse scattering out-of-plane angular distributions for 30 eV photons}
-   \end{figure}
-    \begin{figure}
-  \centering
-  \includegraphics[width=6in]{Diffuse-polar-HE}
-   \caption{   \label{f:Diffuse.polar.HE}
-    Diffuse scattering polar angular distributions for high energy photons}
-   \end{figure}
-      \begin{figure}
-  \centering
-  \includegraphics[width=6in]{Diffuse-out-of-plane-HE}
-   \caption{   \label{f:Diffuse.out.of.plane.HE}
-   Diffuse scattering out-of-plane angular distributions for high energy photons}
-   \end{figure}
 
 %------------------------------------------------------------------
 \section{Input Files} 
@@ -510,8 +507,8 @@ This file defines the machine optics. The lattice file format may be
 the Bmad format or, if the \vn{lattice_file} string is prefixed by
 \vn{``xsif::''}, may be in xsif format. See the Bmad manual for more details.
   \item[\vn{wall_file}] \Newline
-This string gives the name of the vacuum chamber wall definition file. See below for
-more details.
+This string gives the name of the vacuum chamber wall definition
+file. See \sref{ss:wall.def} for more details.
   \item[\vn{dat_file}] \Newline
 This string gives the name of the output data file.
 See below for more details.
@@ -546,7 +543,7 @@ a given ``step'' see \sref{s:track} for more details.
 This string, if not blank, will create a data file listing the points
 where the photons hit the wall including all the reflection
 points. This will be in addition to the regular output file.  See
-below for more details.
+\sref{ss:reflection.file} for more details.
   \item[\vn{lat_ele_file}] \Newline
 This string, if not blank, will create a data file listing  the lattice
 elements within the emission region. For each element the following are given. 
@@ -591,9 +588,9 @@ of all photons generated, not just the photons that pass any filtering
 tests. Thus, if any of the filter parameters are set, the size of the
 file may be very large. See below for the syntax of this file.
   \item[\vn{photon_start_input_file}] \Newline
-This string, if not blank, will cause \srthree to initialize photon
-starting positions using the values in an input file. The name of the
-input file being given by the value of \vn{photon_start_input_file}.
+If not blank, the file named by \vn{photon_start_input_file}
+will be read by \srthree and used to initialize photon
+starting positions. See \sref{ss:photon.start} for the syntax of this file.
 The state of the random number generator at the time of a photon's
 initialization can also be specified in the file. In this case, the
 random number generator state will also be set along with the state of
@@ -987,6 +984,7 @@ upon the number of triangles.
 
 %------------------------------------------------------------------
 \subsection{photon\_start\_input\_file}
+\label{ss:photon.start}
 
 The \vn{photon_start_input_file} file is used to specify starting positions
 for the photons. This is done typically for debugging purposes.
@@ -996,7 +994,7 @@ The \vn{photon_start_input_file} file contains a number of
 format for a \vn{\&start} namelist is:
 \begin{example}
   &start
-    p%vec = <x>, <vx/c>, <y>, <vy/c>, <z>, <vy/c>  ! Photon position
+    p%vec = <x>, <vx/c>, <y>, <vy/c>, <z>, <vz/c>  ! Photon position
     p%energy = <ev>                                ! Photon energy
     ran_state = <random_state_struct>
     random_seed = <num>
@@ -1004,6 +1002,8 @@ format for a \vn{\&start} namelist is:
 \end{example}
 If needed, The \vn{ran_state} and \vn{random_see} parameters can be
 used to initialize the random number generator.
+
+The magnitude of the velocity, $\sqrt{v_x^2+v_y^2+v_z^2}/c$ must be 1.
 
 %------------------------------------------------------------------
 \subsection{Reflection Probability File}
@@ -1167,6 +1167,7 @@ provided so that the photon hits can be sorted by magnetic environment
 
 %------------------------------------------------------------------
 \subsection{Photon Reflection File}
+\label{ss:reflection.file}
 
 If the switch \vn{wall_hit_file} is non-blank, an additional output
 file is generated, which contains more detailed information. An
@@ -1256,39 +1257,45 @@ times, before being adsorbed on the fourth hit.
 
 Test modes are used to generate diagnostic data files. Test modes are
 specified using the \vn{-test <what>} option on the command line
-(\sref{s:run}). Currently, only one test mode has been implemented:
+(\sref{s:run}). 
 \begin{example}
-  -test reflect       
+  -test diffuse_reflection     ! \sref{s:test.diffuse}
+  -test specular_reflection    ! \sref{s:test.specular}
 \end{example}
 
+These test modes are explained below
 
 %------------------------------------------------------------------
-\subsection{Reflection Test Mode}
-\label{s:test.reflect}
+\subsection{Diffuse Reflection Test Mode}
+\label{s:test.diffuse}
 
-Reflection test mode is used for studying the diffuse scattering
-distribution.  The simulation involves scattering photons at a given
-incident angle and energy and recording the output angles in a
-file. The parameters used for the test are read in from the master
-input file specified on the command line (\sref{s:run}). The
-namelist used for the input parameters for the reflection test is
-called \vn{reflection_test}.  Example:
+Diffuse reflection test mode (\sref{s:run}), involked using the
+\vn{-test diffuse_reflection} option on the command line, is used for
+studying the diffuse scattering distribution.  The simulation involves
+scattering photons at a given incident angle and energy and recording
+the output angles in a file. 
+
+The parameters used for the test are read
+in from the master input file specified on the command line
+(\sref{s:run}). The namelist used for the input parameters for the
+reflection test is called \vn{diffuse_reflection_test}.  Example:
 \begin{example}
-  &reflection_test
+  &diffuse_reflection_test
     graze_angle_in              = 2.3      ! Incident grazing angle in degrees
     energy                      = 100      ! eV
     surface_roughness_rms       = -1       ! Surface roughness for diffuse scattering.
     roughness_correlation_len   = -1       ! Surface roughness correlation length.
     n_photons                   = 1000     ! Number of reflections simulated
     reflection_probability_file = ''       ! File for specifying reflection probabilities.
-    output_file                 = ''       ! Default is 'test_reflect.dat'
+    output_file                 = ''       ! Default is 'test_diffuse_reflection.dat'
   /
 \end{example}
 The \vn{graze_angle_in} is the incident grazing angle in degrees and
 \vn{energy} in the photon energy in eV. \vn{n_photons} are the number
 of reflections to simulate, and \vn{output_file} is the name of the
-output data file. The default data file name is "test_reflect.dat".
-The other parameters are explained in \sref{s:master.file}.
+output data file. The default data file name is
+"test_diffuse_reflection.dat".  The other parameters are explained in
+\sref{s:master.file}.
 
 The output contains a header with the input parameters a then
 \vn{n_photon} lines. Each line is of the form:
@@ -1300,6 +1307,49 @@ radians. That is, \vn{theta_out} = 0 means the photon is traveling
 perpendicular to the surface. The \vn{phi_out} angle is the azimuthal
 angle in radians. That is, \vn{phi_out} is zero when the incident and
 reflected rays are in the same plane.
+
+%------------------------------------------------------------------
+\subsection{Specular Reflection Test Mode}
+\label{s:test.specular}
+
+Specular reflection test mode (\sref{s:run}), involked using the
+\vn{-test specular_reflection} option on the command line, is used for
+studying specular (angle in = angle out) reflections. The simulation
+here is done by simulating a single specular reflection from a set of
+given photon starting positions. The initial and final photon position
+and velocity are recorded in an output file.
+
+The parameters used for the test are read
+in from the master input file specified on the command line
+(\sref{s:run}). The namelist used for the input parameters for the
+reflection test is called \vn{specular_reflection_test}.  Example:
+\begin{example}
+  &specular_reflection_test
+    photon_start_input_file = 'photon.start'  ! Photon starting positions
+    lattice_file            = 'lat.bmad'      ! Lattice file
+    wall_file               = 'synrad3d.wall' ! Wall definition file
+    output_file             = ''     ! Default is 'test_specular_reflection.dat'
+  /
+\end{example}
+
+The \vn{photon_start_input_file} is the file of initial photon
+positions. The format of this file is given in \vn{ss:photon.start}.
+Note that for the specular test, the photon energy and the random
+number generator state do not affect the results and do not have to be
+set. Also: The if the magnitude of the velocity
+$\sqrt{v_x^2+v_y^2+v_z^2}/c$ is not too far off from 1 then \srthree
+will renormalize so that $\sqrt{v_x^2+v_y^2+v_z^2}/c$ will be 1.
+
+\vn{lattice_file} give the name of the lattice.  The lattice file
+format may be the Bmad format or, if the \vn{lattice_file} string is
+prefixed by \vn{``xsif::''}, may be in xsif format. See the Bmad
+manual for more details.
+
+The \vn{wall_file} gives the name of the vacuum chamber will
+definition file. See \sref{ss:wall.def} for more details.
+
+The \vn{output_file} gives the name of the output data file.
+See \sref{ss:reflection.file} for details of the synax for this file.
 
 %------------------------------------------------------------------
 \appendix
