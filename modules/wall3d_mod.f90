@@ -586,7 +586,6 @@ if (v2%radius_y /= 0) then
     cos_a = cos_ang * ct + sin_ang * st
     sin_a = sin_ang * ct - cos_ang * st
   else
-    ct = 1; st = 0
     x0 = v2%x0; y0 = v2%y0
     cos_a = cos_ang; sin_a = sin_ang
   endif
@@ -604,16 +603,14 @@ if (v2%radius_y /= 0) then
   endif
 
   ! dr/dtheta comes from the equations:
-  !   /x\  =  /rad_x * cos(tilt)  -rad_y * sin(tilt)\  /cos(phi)\  +  /x0\
-  !   \y/     \rad_x * sin(tilt)   rad_y * cos(tilt)/  \sin(phi)/     \y0/
+  !   x  = rad_x * cos(phi) + x0
+  !   y  = rad_y * sin(phi) + y0
   !   r = sqrt(x^2 + y^2)
   !   Tan(theta) = y/x
  
-  r_x = r_wall * cos_ang; r_y = r_wall * sin_ang
-  cos_phi = ( ct * (r_x - x0) + st * (r_y - y0)) / v2%radius_x
-  sin_phi = (-st * (r_x - x0) + ct * (r_y - y0)) / v2%radius_y
-  dr_x = -v2%radius_x * ct * sin_phi - v2%radius_y * st * cos_phi
-  dr_y = -v2%radius_x * st * sin_phi + v2%radius_y * ct * cos_phi
+  r_x = r_wall * cos_a; r_y = r_wall * sin_a
+  dr_x = -v2%radius_x * (r_y - y0) / v2%radius_y 
+  dr_y =  v2%radius_y * (r_x - x0) / v2%radius_x 
   dr_dtheta = r_wall * (r_x * dr_x + r_y * dr_y) / (r_x * dr_y - r_y * dr_x)
 
   return
