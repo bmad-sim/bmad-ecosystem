@@ -23,31 +23,28 @@ type (normal_modes_struct) modes
 type (sr3d_photon_track_struct), allocatable, target :: photons(:)
 type (sr3d_photon_track_struct), pointer :: photon
 type (sr3d_wall_struct), target :: wall
-type (sr3d_wall_pt_input) section
 type (sr3d_photon_coord_struct) p
 type (sr3d_plot_param_struct) plot_param
 type (random_state_struct) ran_state
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
-type (wall3d_vertex_struct) v(100)
-type (wall3d_section_struct), pointer :: wall3d_section
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack, ix_vertex_ante(2), ix_vertex_ante2(2)
+real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
-integer i, j, n, iu, ix, n_wall_pt_max, random_seed, iu_start, n_shape_max
+integer i, j, n, iu, ix, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
-integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_gen_shape
+integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios
 integer n_photons_per_pass, num_ignore_generated_outside_wall, ix_photon_out
 
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file, surface_reflection_file
 
 character(100) dat_file, dat2_file, wall_file, param_file, arg
-character(40) name, plotting, test
+character(40) plotting, test, who
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this, err
@@ -61,9 +58,6 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
             e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file, &
             surface_roughness_rms, roughness_correlation_len
-
-namelist / wall_def / section, name
-namelist / gen_shape_def / ix_gen_shape, v, ix_vertex_ante, ix_vertex_ante2
 
 namelist / start / p, ran_state, random_seed
 
@@ -108,24 +102,32 @@ enddo
 if (param_file == '') param_file = 'synrad3d.init'
 
 if (.not. ok) then
-  print *, 'Usage:'
-  print *, '  synrad3d {options} {<init_file>}'
-  print *, 'Default:'
-  print *, '  <init_file> = synrad3d.init'
-  print *, 'Options: [Note: Standard photon tracking not done with -plot nor -test]'
-  print *, '  -plot <type>  ! <type> = "reflect", "xy", "xs", or "ys".'
-  print *, '  -test <who>   ! <who> = "reflect".'
-  print *, '  -in <file>    ! Use <file> to initialize photon(s). '
-  print *, '                !   This option is used for debugging synrad3d.'
-  print *, '  -out <n>      ! Create error_photon_start file using the n^th generated photon.'
-  print *, '                !   This option is used for debugging synrad3d.'
+  print '(a)', 'Usage:'
+  print '(a)', '  synrad3d {options} {<init_file>}'
+  print '(a)', 'Default:'
+  print '(a)', '  <init_file> = synrad3d.init'
+  print '(a)', 'Options: [Note: Standard photon tracking not done with -plot nor -test]'
+  print '(a)', '  -plot <type>  ! <type> = "reflect", "xy", "xs", or "ys".'
+  print '(a)', '  -test <who>   ! <who> = "diffuse_reflection" .or "specular_reflection".'
+  print '(a)', '  -in <file>    ! Use <file> to initialize photon(s). '
+  print '(a)', '                !   This option is used for debugging synrad3d.'
+  print '(a)', '  -out <n>      ! Create error_photon_start file using the n^th generated photon.'
+  print '(a)', '                !   This option is used for debugging synrad3d.'
   stop
 endif
 
 ! test 
 
 if (test /= '') then
-  call sr3d_reflection_test (param_file)
+  call match_word (trim(test), ['diffuse_reflection ', 'specular_reflection'], i, .true., .true., who)
+  select case (who)
+  case ('diffuse_reflection ')
+    call sr3d_diffuse_reflection_test (param_file)
+  case ('specular_reflection')
+    call sr3d_specular_reflection_test (param_file)
+  case default
+    print '(a)', 'I DO NOT UNDERSTAND THIS TEST: ' // trim(test)
+  end select
   stop
 endif
 
@@ -182,141 +184,6 @@ filter_on = (e_init_filter_min > 0) .or. (e_init_filter_max > 0) .or. &
             (e_filter_min > 0) .or. (e_filter_max > 0) .or. (s_filter_min >= 0) .or. (s_filter_max >= 0)
 s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > s_filter_max)
 
-! Get wall info
-! First count the cross-section number
-
-open (1, file = wall_file, status = 'old')
-n_wall_pt_max = -1
-do
-  read (1, nml = wall_def, iostat = ios)
-  if (ios > 0) then ! error
-    rewind (1)
-    do
-      read (1, nml = wall_def) ! will bomb program with error message
-    enddo  
-  endif
-  if (ios < 0) exit   ! End of file reached
-  n_wall_pt_max = n_wall_pt_max + 1
-enddo
-
-print *, 'number of wall cross-sections read:', n_wall_pt_max + 1
-if (n_wall_pt_max < 1) then
-  print *, 'NO WALL SPECIFIED. WILL STOP HERE.'
-  stop
-endif
-
-allocate (wall%pt(0:n_wall_pt_max))
-wall%n_pt_max = n_wall_pt_max
-
-! Now transfer info from the file to the wall%pt array
-
-n_shape_max = -1
-rewind (1)
-do i = 0, n_wall_pt_max
-  section%basic_shape = ''
-  section%ante_height2_plus = -1
-  section%ante_height2_minus = -1
-  section%width2_plus = -1
-  section%width2_minus = -1
-  name = ''
-  read (1, nml = wall_def)
-
-  wall%pt(i) = sr3d_wall_pt_struct(name, &
-          section%s, section%basic_shape, section%width2, section%height2, &
-          section%width2_plus, section%ante_height2_plus, &
-          section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null())
-  if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
-    n_shape_max = max (n_shape_max, nint(wall%pt(i)%width2))
-  endif
-enddo
-
-! Get the gen_shape info
-
-if (n_shape_max > 0) then
-  rewind(1)
-  allocate (wall%gen_shape(n_shape_max))
-  do
-    ix_gen_shape = 0
-    ix_vertex_ante = 0
-    ix_vertex_ante2 = 0
-    v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
-    read (1, nml = gen_shape_def, iostat = ios)
-    if (ios > 0) then ! If error
-      print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
-      rewind (1)
-      do
-        read (1, nml = gen_shape_def) ! Generate error message
-      enddo
-    endif
-    if (ios < 0) exit  ! End of file
-    if (ix_gen_shape > n_shape_max) cycle  ! Allow shape defs that are not used.
-    if (ix_gen_shape < 1) then
-      print *, 'BAD IX_GEN_SHAPE VALUE IN WALL FILE: ', ix_gen_shape
-      call err_exit
-    endif
-
-    ! Count number of vertices and calc angles.
-
-    wall3d_section => wall%gen_shape(ix_gen_shape)%wall3d_section
-    do n = 1, size(v)
-      if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
-    enddo
-
-    if (any(v(n:)%x /= 0) .or. any(v(n:)%y /= 0) .or. &
-        any(v(n:)%radius_x /= 0) .or. any(v(n:)%radius_y /= 0)) then
-      print *, 'MALFORMED GEN_SHAPE. NUMBER:', ix_gen_shape
-      call err_exit
-    endif
-
-    if (allocated(wall3d_section%v)) then
-      print *, 'ERROR: DUPLICATE IX_GEN_SHAPE =', ix_gen_shape
-      call err_exit
-    endif
-
-    allocate(wall3d_section%v(n-1))
-    wall3d_section%v = v(1:n-1)
-    wall3d_section%n_vertex_input = n-1    
-
-    call wall3d_section_initializer (wall3d_section, err)
-    if (err) then
-      print *, 'ERROR AT IX_GEN_SHAPE =', ix_gen_shape
-      call err_exit
-    endif
-
-    wall%gen_shape(ix_gen_shape)%ix_vertex_ante = ix_vertex_ante
-    if (ix_vertex_ante(1) > 0 .or. ix_vertex_ante(2) > 0) then
-      if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(wall3d_section%v) .or. &
-          ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(wall3d_section%v)) then
-        print *, 'ERROR IN IX_VERTEX_ANTE:', ix_vertex_ante
-        print *, '      FOR GEN_SHAPE =', ix_gen_shape
-        call err_exit
-      endif
-    endif
-
-    wall%gen_shape(ix_gen_shape)%ix_vertex_ante2 = ix_vertex_ante2
-    if (ix_vertex_ante2(1) > 0 .or. ix_vertex_ante2(2) > 0) then
-      if (ix_vertex_ante2(1) < 1 .or. ix_vertex_ante2(1) > size(wall3d_section%v) .or. &
-          ix_vertex_ante2(2) < 1 .or. ix_vertex_ante2(2) > size(wall3d_section%v)) then
-        print *, 'ERROR IN IX_VERTEX_ANTE2:', ix_vertex_ante2
-        print *, '      FOR GEN_SHAPE =', ix_gen_shape
-        call err_exit
-      endif
-    endif
-
-  enddo
-endif
-
-close (1)
-
-! point to gen_shapes
-
-do i = 0, n_wall_pt_max
-  if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
-    wall%pt(i)%gen_shape => wall%gen_shape(nint(wall%pt(i)%width2))
-  endif
-enddo
-
 ! Get lattice
 
 if (lattice_file(1:6) == 'xsif::') then
@@ -324,8 +191,6 @@ if (lattice_file(1:6) == 'xsif::') then
 else
   call bmad_parser (lattice_file, lat)
 endif
-
-call sr3d_init_and_check_wall (wall, lat)
 
 if (turn_off_kickers_in_lattice) then
   do i = 1, lat%n_ele_max
@@ -359,6 +224,10 @@ call ran_seed_put (random_seed)
 
 if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, ix)
 call set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
+
+! Wall init
+
+call sr3d_init_and_check_wall (wall_file, lat, wall)
 
 ! Plot wall cross-sections. 
 ! The plotting routines never return back to the main program.
@@ -475,7 +344,7 @@ if (photon_start_input_file /= '') then
         print *, 'Error reading photon starting position at photon index:', n_photon_generated
         call err_exit
       endif
-      call check_if_photon_init_coords_outside_wall (p, is_inside)
+      call sr3d_check_if_photon_init_coords_outside_wall (p, wall, is_inside, num_ignore_generated_outside_wall)
       if (is_inside) exit
     enddo
 
@@ -604,7 +473,7 @@ else
         do
           call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
                                emit_a, emit_b, sig_e, photon_direction, photon%start)
-          call check_if_photon_init_coords_outside_wall (photon%start, is_inside)
+          call sr3d_check_if_photon_init_coords_outside_wall (photon%start, wall, is_inside, num_ignore_generated_outside_wall)
           if (is_inside) exit
         enddo
 
@@ -734,44 +603,6 @@ if (filter_on) then
   if (filter_this) then
     n_photon_array = n_photon_array - 1  ! Delete photon from the array.
     ok = .false.
-  endif
-
-endif
-
-end subroutine
-
-!--------------------------------------------------------------------------------------------
-! contains
-
-subroutine check_if_photon_init_coords_outside_wall (photon_start, is_inside)
-
-type (sr3d_photon_coord_struct) photon_start
-type (sr3d_photon_track_struct) photon
-
-real(rp) d_radius
-
-logical is_inside
-
-! For gen_shape_mesh "outside wall" is defined here to be true if a ray from the 
-! center to photon_start crosses a wall boundary.
-
-photon%now = photon_start
-photon%old = photon_start
-photon%old%vec(1:3:2) = 0   ! 
-call sr3d_photon_status_calc (photon, wall)
-
-is_inside = .true.
-
-if (photon%status /= inside_the_wall$ .and. photon%status /= at_lat_end$) then
-  is_inside = .false.
-  print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
-  print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon_start%vec      
-
-  num_ignore_generated_outside_wall = num_ignore_generated_outside_wall - 1
-  if (num_ignore_generated_outside_wall < 0) then
-    print '(a)', '       STOPPING SYNRAD3D DUE TO NUMBER OF PHOTONS GENERATED OUTSIDE'
-    print '(a)', '       THE WALL EXCEEDING NUM_IGNORE_GENERATED_OUTSIDE_WALL VALUE!'
-    stop
   endif
 
 endif

@@ -13,35 +13,180 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_init_and_check_wall (wall, circular_lat)
+! Subroutine sr3d_init_and_check_wall (wall_file, lat, wall)
 !
 ! Routine to check the vacuum chamber wall for problematic values.
 ! Also compute some wall parameters
 !
 ! Input:
-!   wall -- sr3d_wall_struct: Wall structure.
-!   lat  -- lat_struct: lattice
+!   wall_file -- character(*): Name of the wall file.
+!   lat       -- lat_struct: lattice
 !
 ! Output:
 !   wall -- sr3d_wall_struct: Wall structure with computed parameters.
 !-
 
-subroutine sr3d_init_and_check_wall (wall, lat)
+subroutine sr3d_init_and_check_wall (wall_file, lat, wall)
 
 implicit none
 
 type (sr3d_wall_struct), target :: wall
 type (lat_struct) lat
 type (sr3d_wall_pt_struct), pointer :: pt, pt0
+type (sr3d_wall_pt_input) section
+type (wall3d_vertex_struct) v(100)
+type (wall3d_section_struct), pointer :: wall3d_section
 
+real(rp) ix_vertex_ante(2), ix_vertex_ante2(2)
 
-integer i
-
-logical circular_lat
+integer i, n, n_wall_pt_max, ios, n_shape_max, ix_gen_shape
 
 character(28), parameter :: r_name = 'sr3d_init_and_check_wall'
+character(40) name
+character(*) wall_file
 
-!
+logical err
+
+namelist / wall_def / section, name
+namelist / gen_shape_def / ix_gen_shape, v, ix_vertex_ante, ix_vertex_ante2
+
+
+! Get wall info
+! First count the cross-section number
+
+open (1, file = wall_file, status = 'old')
+n_wall_pt_max = -1
+do
+  read (1, nml = wall_def, iostat = ios)
+  if (ios > 0) then ! error
+    rewind (1)
+    do
+      read (1, nml = wall_def) ! will bomb program with error message
+    enddo  
+  endif
+  if (ios < 0) exit   ! End of file reached
+  n_wall_pt_max = n_wall_pt_max + 1
+enddo
+
+print *, 'number of wall cross-sections read:', n_wall_pt_max + 1
+if (n_wall_pt_max < 1) then
+  print *, 'NO WALL SPECIFIED. WILL STOP HERE.'
+  stop
+endif
+
+allocate (wall%pt(0:n_wall_pt_max))
+wall%n_pt_max = n_wall_pt_max
+
+! Now transfer info from the file to the wall%pt array
+
+n_shape_max = -1
+rewind (1)
+do i = 0, n_wall_pt_max
+  section%basic_shape = ''
+  section%ante_height2_plus = -1
+  section%ante_height2_minus = -1
+  section%width2_plus = -1
+  section%width2_minus = -1
+  name = ''
+  read (1, nml = wall_def)
+
+  wall%pt(i) = sr3d_wall_pt_struct(name, &
+          section%s, section%basic_shape, section%width2, section%height2, &
+          section%width2_plus, section%ante_height2_plus, &
+          section%width2_minus, section%ante_height2_minus, &
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null())
+  if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
+    n_shape_max = max (n_shape_max, nint(wall%pt(i)%width2))
+  endif
+enddo
+
+! Get the gen_shape info
+
+if (n_shape_max > 0) then
+  rewind(1)
+  allocate (wall%gen_shape(n_shape_max))
+  do
+    ix_gen_shape = 0
+    ix_vertex_ante = 0
+    ix_vertex_ante2 = 0
+    v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
+    read (1, nml = gen_shape_def, iostat = ios)
+    if (ios > 0) then ! If error
+      print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
+      rewind (1)
+      do
+        read (1, nml = gen_shape_def) ! Generate error message
+      enddo
+    endif
+    if (ios < 0) exit  ! End of file
+    if (ix_gen_shape > n_shape_max) cycle  ! Allow shape defs that are not used.
+    if (ix_gen_shape < 1) then
+      print *, 'BAD IX_GEN_SHAPE VALUE IN WALL FILE: ', ix_gen_shape
+      call err_exit
+    endif
+
+    ! Count number of vertices and calc angles.
+
+    wall3d_section => wall%gen_shape(ix_gen_shape)%wall3d_section
+    do n = 1, size(v)
+      if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
+    enddo
+
+    if (any(v(n:)%x /= 0) .or. any(v(n:)%y /= 0) .or. &
+        any(v(n:)%radius_x /= 0) .or. any(v(n:)%radius_y /= 0)) then
+      print *, 'MALFORMED GEN_SHAPE. NUMBER:', ix_gen_shape
+      call err_exit
+    endif
+
+    if (allocated(wall3d_section%v)) then
+      print *, 'ERROR: DUPLICATE IX_GEN_SHAPE =', ix_gen_shape
+      call err_exit
+    endif
+
+    allocate(wall3d_section%v(n-1))
+    wall3d_section%v = v(1:n-1)
+    wall3d_section%n_vertex_input = n-1    
+
+    call wall3d_section_initializer (wall3d_section, err)
+    if (err) then
+      print *, 'ERROR AT IX_GEN_SHAPE =', ix_gen_shape
+      call err_exit
+    endif
+
+    wall%gen_shape(ix_gen_shape)%ix_vertex_ante = ix_vertex_ante
+    if (ix_vertex_ante(1) > 0 .or. ix_vertex_ante(2) > 0) then
+      if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(wall3d_section%v) .or. &
+          ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(wall3d_section%v)) then
+        print *, 'ERROR IN IX_VERTEX_ANTE:', ix_vertex_ante
+        print *, '      FOR GEN_SHAPE =', ix_gen_shape
+        call err_exit
+      endif
+    endif
+
+    wall%gen_shape(ix_gen_shape)%ix_vertex_ante2 = ix_vertex_ante2
+    if (ix_vertex_ante2(1) > 0 .or. ix_vertex_ante2(2) > 0) then
+      if (ix_vertex_ante2(1) < 1 .or. ix_vertex_ante2(1) > size(wall3d_section%v) .or. &
+          ix_vertex_ante2(2) < 1 .or. ix_vertex_ante2(2) > size(wall3d_section%v)) then
+        print *, 'ERROR IN IX_VERTEX_ANTE2:', ix_vertex_ante2
+        print *, '      FOR GEN_SHAPE =', ix_gen_shape
+        call err_exit
+      endif
+    endif
+
+  enddo
+endif
+
+close (1)
+
+! point to gen_shapes
+
+do i = 0, n_wall_pt_max
+  if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
+    wall%pt(i)%gen_shape => wall%gen_shape(nint(wall%pt(i)%width2))
+  endif
+enddo
+
+! 
 
 wall%pt(wall%n_pt_max)%s = lat%ele(lat%n_ele_track)%s
 wall%lattice_type = lat%param%lattice_type

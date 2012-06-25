@@ -32,6 +32,8 @@ contains
 !     %start    -- Starting coords.
 !   lat       -- lat_struct: with twiss propagated and mat6s made
 !   wall      -- sr3d_wall_struct: Beam chamber walls
+!   one_reflection_only
+!               -- Logical, optional: If present and True then only one reflection is allowed
 !
 ! Output:
 !   photon      -- sr3d_photon_coord_struct: synch radiation photon propagated until absorption.
@@ -39,7 +41,7 @@ contains
 !   err         -- Tracking calculation failed.
 !-
 
-subroutine sr3d_track_photon (photon, lat, wall, wall_hit, err)
+subroutine sr3d_track_photon (photon, lat, wall, wall_hit, err, one_reflection_only)
 
 implicit none
 
@@ -49,6 +51,7 @@ type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
 logical absorbed, err
+logical, optional :: one_reflection_only
 
 !
 
@@ -66,7 +69,7 @@ do
   call sr3d_track_photon_to_wall (photon, lat, wall, wall_hit, err)
   if (err) return
   call sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed, err)
-  if (absorbed .or. err) return
+  if (absorbed .or. err .or. logic_option(.false., one_reflection_only)) return
 enddo
 
 end subroutine sr3d_track_photon
@@ -136,6 +139,47 @@ do
 enddo
 
 end subroutine sr3d_track_photon_to_wall
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+!-
+subroutine sr3d_check_if_photon_init_coords_outside_wall (photon_start, wall, is_inside, num_ignore_generated_outside_wall)
+
+type (sr3d_photon_coord_struct) photon_start
+type (sr3d_photon_track_struct) photon
+type (sr3d_wall_struct), target :: wall
+
+real(rp) d_radius
+integer num_ignore_generated_outside_wall
+logical is_inside
+
+! For gen_shape_mesh "outside wall" is defined here to be true if a ray from the 
+! center to photon_start crosses a wall boundary.
+
+photon%now = photon_start
+photon%old = photon_start
+photon%old%vec(1:3:2) = 0   ! 
+call sr3d_photon_status_calc (photon, wall)
+
+is_inside = .true.
+
+if (photon%status /= inside_the_wall$ .and. photon%status /= at_lat_end$) then
+  is_inside = .false.
+  print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', photon%ix_photon_generated
+  print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon_start%vec      
+
+  num_ignore_generated_outside_wall = num_ignore_generated_outside_wall - 1
+  if (num_ignore_generated_outside_wall < 0) then
+    print '(a)', '       STOPPING SYNRAD3D DUE TO NUMBER OF PHOTONS GENERATED OUTSIDE'
+    print '(a)', '       THE WALL EXCEEDING NUM_IGNORE_GENERATED_OUTSIDE_WALL VALUE!'
+    stop
+  endif
+
+endif
+
+end subroutine sr3d_check_if_photon_init_coords_outside_wall 
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -578,7 +622,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
       print *, '       Start: ', photon%start%vec
       print *, '       Now:   ', photon%now%vec
       print *, '       WILL IGNORE THIS PHOTON.'
-      call print_hit_points (-1, photon, wall_hit, '(6es25.15)')
+      call print_hit_points (-1, photon, wall_hit, .true.)
       err = .true.
       return
     endif
@@ -593,7 +637,7 @@ endif
 in_zbrent = .true.
 track_len = super_zbrent (sr3d_photon_hit_func, track_len0, track_len1, 1d-10, err)
 if (err) then
-  call print_hit_points (-1, photon, wall_hit, '(6es25.15)')
+  call print_hit_points (-1, photon, wall_hit, .true.)
   print *, 'WILL IGNORE THIS PHOTON.'
   print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
   print *, '       Start: ', photon%start%vec
@@ -838,7 +882,7 @@ if (cos_perp < 0) then
   print *, '       Start:  ', photon%start%vec
   print *, '       Now:    ', photon%now%vec
   print *, '       WILL IGNORE THIS PHOTON...'
-  call print_hit_points (-1, photon, wall_hit, '(6es25.15)')
+  call print_hit_points (-1, photon, wall_hit, .true.)
   err_flag = .true.
   return
 endif

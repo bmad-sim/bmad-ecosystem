@@ -8,7 +8,7 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 
-subroutine print_hit_points (iu_hit_file, photon, wall_hit, fmt)
+subroutine print_hit_points (iu_hit_file, photon, wall_hit, lots_of_digits)
 
 implicit none
 
@@ -18,13 +18,19 @@ type (sr3d_photon_wall_hit_struct), target :: wall_hit(0:)
 
 integer iu, n, iu_hit_file
 
-character(20) fm
-character(*), optional :: fmt
+logical, optional :: lots_of_digits
+character(20) fm, fm2
+
 !
 
+if (logic_option(.false., lots_of_digits)) then
+  fm  = '(6es25.15)'
+  fm2 = '(3(25x, es25.15))' 
+else
+  fm  = '(6f12.6)'
+  fm2 = '(3(12x, f12.6))'
+endif
 
-fm = '(6f12.6)'
-if (present(fmt)) fm = fmt
 
 iu = iu_hit_file 
 if (iu == 0) return
@@ -45,7 +51,7 @@ do n = 1, photon%n_wall_hit
   write (iu, *) '*********************************************'
   write (iu, '(2i8, f10.1)') photon%ix_photon, n, hit%before_reflect%energy
   write (iu, fm) hit%before_reflect%vec
-  write (iu, '(3(24x, f24.16))') hit%after_reflect%vec(2:6:2)
+  write (iu, fm2) hit%after_reflect%vec(2:6:2)
   write (iu, '(3f18.12, 10x, 3f16.10)') hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity
 enddo
 
