@@ -457,9 +457,10 @@ end subroutine track_a_bend
 !   orb         -- Coord_struct: Starting coords.
 !   ele         -- ele_struct: SBend element.
 !   element_end -- Integer: entrance_end$ or exit_end$
-!   reverse     -- Logical: If True then take the input orb as the position
-!                    just outside the bend and output the position just inside the bend. 
-!                    This does not affect the values of kx and ky
+!   reverse     -- Logical: If True then make the inverse transformation.
+!										 That is, for the entrance end take the input orb as the coordinates
+!										 just inside the entrance end of the bend and return the coordinates 
+!                    just oustide the entrance end.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
@@ -473,11 +474,13 @@ subroutine apply_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
 type (ele_struct) ele
 type (coord_struct) orb
 real(rp), optional :: kx, ky
-real(rp) e, g_tot, fint, hgap, k1x, k1y
+real(rp) e, g_tot, fint, hgap, k1x, k1y, cos_e, sin_e, tan_e, sec_e, v0(6)
+real(rp) ht2, hs2
 integer element_end
 logical reverse
 
-! Track through the entrence face. Treat as thin lens.
+! Track through the entrence face. 
+! See MAD physics guide for writeup.
 
 g_tot = ele%value(g$) + ele%value(g_err$)
 
@@ -487,19 +490,56 @@ else
   e = ele%value(e2$); fint = ele%value(fintx$); hgap = ele%value(hgapx$)
 endif
 
-k1x = g_tot * tan(e)
+cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
+k1x = g_tot * tan_e
+ht2 = g_tot * tan_e**2
+hs2 = g_tot * sec_e**2
+
 if (fint == 0) then
   k1y = -k1x
 else
-  k1y = -g_tot * tan(e - 2 * fint * g_tot * hgap * (1 + sin(e)**2) / cos(e))
+  k1y = -g_tot * tan(e - 2 * fint * g_tot * hgap * (1 + sin_e**2) / cos_e)
 endif
 
+v0 = orb%vec
+
 if (reverse) then
-  orb%vec(2) = orb%vec(2) - k1x * orb%vec(1)
-  orb%vec(4) = orb%vec(4) - k1y * orb%vec(3)
+	if (element_end == entrance_end$) then
+		orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
+    orb%vec(2) = v0(2) - k1x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) - &
+												 ele%value(k1$) * tan_e * (v0(1)**2 - v0(3)**2) + &
+												 k1x * ht2 * (v0(1)**2 + v0(3)**2) / 2
+		orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
+    orb%vec(4) = v0(4) - k1y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
+												 tan_e * (2 * ele%value(k1$) + g_tot * hs2) * v0(1) * v0(3)
+	else
+		orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
+    orb%vec(2) = v0(2) - k1x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) - &
+												 ele%value(k1$) * tan_e * (v0(1)**2 - v0(3)**2) - &
+												 g_tot * k1x * (1 + sec_e**2) * v0(3)**2 / 2
+		orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
+    orb%vec(4) = v0(4) - k1y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) + &
+												 2 * ele%value(k1$) * tan_e * v0(1) * v0(3) 
+	endif
+
 else
-  orb%vec(2) = orb%vec(2) + k1x * orb%vec(1)
-  orb%vec(4) = orb%vec(4) + k1y * orb%vec(3)
+  if (element_end == entrance_end$) then
+		orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
+    orb%vec(2) = v0(2) + k1x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) + &
+												 ele%value(k1$) * tan_e * (v0(1)**2 - v0(3)**2) + &
+												 g_tot * k1x * (1 + sec_e**2) * v0(3)**2 / 2
+		orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
+    orb%vec(4) = v0(4) + k1y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) - &
+												 2 * ele%value(k1$) * tan_e * v0(1) * v0(3) 
+  else
+		orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
+    orb%vec(2) = v0(2) + k1x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) + &
+												 ele%value(k1$) * tan_e * (v0(1)**2 - v0(3)**2) - &
+												 k1x * ht2 * (v0(1)**2 + v0(3)**2) / 2
+		orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
+    orb%vec(4) = v0(4) + k1y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) - &
+												 tan_e * (2 * ele%value(k1$) + g_tot * hs2) * v0(1) * v0(3)
+  endif
 endif
 
 if (present(kx)) kx = k1x 

@@ -3962,13 +3962,15 @@ type (ele_struct) ele_in, drift_ele
 
 !
 
-drift_ele%key = drift$
-drift_ele%value = 0
-drift_ele%value(p0c$) = ele_in%value(p0c$)
-drift_ele%value(e_tot$) = ele_in%value(e_tot$)
-drift_ele%value(l$) = (ele_in%value(l$) - ele_in%value(l_hard_edge$)) / 2 
-drift_ele%value(ds_step$) = drift_ele%value(l$)
-drift_ele%value(num_steps$) = 1
+drift_ele%key                 = drift$
+drift_ele%value               = 0
+drift_ele%value(p0c$)         = ele_in%value(p0c$)
+drift_ele%value(e_tot$)       = ele_in%value(e_tot$)
+drift_ele%value(p0c_start$)   = ele_in%value(p0c_start$)
+drift_ele%value(e_tot_start$) = ele_in%value(e_tot_start$)
+drift_ele%value(l$)           = (ele_in%value(l$) - ele_in%value(l_hard_edge$)) / 2 
+drift_ele%value(ds_step$)     = drift_ele%value(l$)
+drift_ele%value(num_steps$)   = 1
 
 end subroutine create_hard_edge_drift 
 
