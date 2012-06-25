@@ -707,7 +707,7 @@ if (ios /= 0) then
   return
 endif
 
-call set_plotting (plot_page, s%plotting)
+call set_plotting (plot_page, s%plotting, .false.)
 
 end subroutine tao_set_plot_page_cmd
 

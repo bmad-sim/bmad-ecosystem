@@ -57,6 +57,7 @@ character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
 character(100) plot_file, graph_name, full_file_name
 character(80) label
+character(40) str
 character(20) :: r_name = 'tao_init_plotting'
 
 logical err
@@ -170,13 +171,30 @@ if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist fou
 
 master_default_graph = default_graph
 
-call set_plotting (plot_page, s%plotting)
+call set_plotting (plot_page, s%plotting, .true.)
 
 ! title
 
 forall (i = 1:size(s%plotting%title), (s%plotting%title(i)%string .ne. ' ')) &
             s%plotting%title(i)%draw_it = .true.
 
+! Plot window geometry specified on cmd line?
+
+if (tao_com%plot_geometry /= '') then
+   str = tao_com%plot_geometry
+   ix = index(str, 'x')
+   if (ix == 0) then
+     call out_io (s_error$, r_name, 'Malformed -geometry argument. No "x" present: ' // str)
+   else
+     if (.not. is_integer(str(1:ix-1)) .or. .not. is_integer(str(ix+1:))) then
+       call out_io (s_error$, r_name, 'Malformed -geometry argument: ' // str)
+     else
+       read (str(:ix-1), *) plot_page%size(1)
+       read (str(ix+1:), *) plot_page%size(2)
+     endif
+   endif
+ endif
+ 
 ! allocate a s%plotting%plot structure for each region defined and
 ! transfer the info from the input region structure.
 
@@ -287,7 +305,7 @@ if (ios < 0) then
 !  endif
 
   if (ios1 == 0) then
-    ele_shape(:)%size = ele_shape(:)%size * 100.0 / 40.0 ! scale to current def.
+    ele_shape(:)%size = ele_shape(:)%size * 1.0 / 40.0 ! scale to current def.
   endif 
 
   if (ios1 > 0) then 
@@ -884,322 +902,500 @@ end subroutine
 
 subroutine tao_setup_default_plotting()
 
-real(rp) y_top
+type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1
+real(rp) y_layout
+integer np
 
 !
 
-call set_plotting (plot_page, s%plotting)
+call set_plotting (plot_page, s%plotting, .true.)
 
 allocate (s%plotting%floor_plan%ele_shape(10), s%plotting%lat_layout%ele_shape(10))
 
-s%plotting%floor_plan%ele_shape(:)%ele_name = ''
-s%plotting%floor_plan%ele_shape(1:6) = [&
-          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none', .true.), &
-          tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name', .true.), &
-          tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none', .true.), &
-          tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     20.0_rp, 'none', .true.), &
-          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none', .true.), &
-          tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLACK',   12.0_rp, 'none', .true.)]
+s%plotting%lat_layout%ele_shape(:)%ele_name = ''
+s%plotting%lat_layout%ele_shape(1:6) = [&
+          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    0.20_rp, 'none', .true.), &
+          tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 0.37_rp, 'name', .true.), &
+          tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   0.37_rp, 'none', .true.), &
+          tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     0.50_rp, 'none', .true.), &
+          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     0.50_rp, 'none', .true.), &
+          tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLACK',   0.30_rp, 'none', .true.)]
 
-s%plotting%lat_layout%ele_shape = s%plotting%floor_plan%ele_shape
+s%plotting%floor_plan%ele_shape = s%plotting%lat_layout%ele_shape
+s%plotting%floor_plan%ele_shape%size = 40 * s%plotting%floor_plan%ele_shape%size
 
-allocate (s%plotting%template(9)) 
+allocate (s%plotting%template(20)) 
+np = 0
 
 !---------------
-! beta plot
+! This plot defines the default 2-graph, 1-curve/graph plot
 
-plt => s%plotting%template(1)
+plt => default_plot_g2c1
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(2))
-plt%graph(1)%p => plt
-plt%graph(2)%p => plt
 allocate (plt%graph(1)%curve(1))
 allocate (plt%graph(2)%curve(1))
 
-plt%name                 = 'beta'
 plt%x_axis_type          = 's'
 plt%x                    = init_axis
 plt%x%major_div_nominal  = 8
-plt%x%minor_div_max = 6
-plt%autoscale_gang_x = .true.
-plt%autoscale_gang_y = .true.
-
+plt%x%minor_div_max      = 6
 
 grph => plt%graph(1)
-grph%name          = 'a'
-grph%title         = 'Horizontal Beta'
-grph%type          = 'data'
-grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
-grph%box           = [1, 2, 1, 2]
-grph%y             = init_axis
-grph%y%label       = '\gb\dA\u'
-grph%y%major_div_nominal   = 4
-grph%y2%draw_numbers = .false.
-grph%component     = 'model'
+grph%name                = 'g1'
+grph%type                = 'data'
+grph%margin              =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%box                 = [1, 1, 1, 1]
+grph%y                   = init_axis
+grph%y%major_div_nominal = 4
+grph%y2%draw_numbers     = .false.
+grph%draw_axes          = .true.
+grph%component           = 'model'
+grph%x%label = 's [m]'
+
 crv => grph%curve(1)
-crv%data_source = 'lat'
+crv%data_source  = 'lat'
 crv%draw_symbols = .false.
-crv%data_type = 'beta.a'
+crv%line%color   = blue$
+crv%line%width   = 2
 
 grph => plt%graph(2)
-grph               = plt%graph(1)
-grph%name          = 'b'
-grph%title         = 'Vertical Beta'
-grph%y%label       = '\gb\dB\u'
-grph%box           = [1, 1, 1, 2]
+grph%name                = 'g1'
+grph%type                = 'data'
+grph%margin              =  qp_rect_struct(0.05, 0.06, 0.12, 0.12, '%BOX')
+grph%box                 = [1, 2, 1, 2]
+grph%y                   = init_axis
+grph%y%major_div_nominal = 4
+grph%y2%draw_numbers     = .false.
+grph%draw_axes           = .true.
+grph%component           = 'model'
+
 crv => grph%curve(1)
-crv%data_type = 'beta.b'
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = blue$
+crv%line%width   = 2
 
 !---------------
-! eta plot
+! This plot defines the default 1-graph, 2-curve/graph plot
 
-plt => s%plotting%template(2)
-
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(2))
-plt%graph(1)%p => plt
-plt%graph(2)%p => plt
-allocate (plt%graph(1)%curve(1))
-allocate (plt%graph(2)%curve(1))
-
-plt = s%plotting%template(1)
-plt%name           = 'eta'
-
-grph => plt%graph(1)
-grph%name          = 'x'
-grph%title         = 'Horizontal Eta'
-grph%y%label       = '\gy\dX\u'
-grph%y%major_div_nominal   = 4
-crv => grph%curve(1)
-crv%data_type = 'eta.x'
-
-grph => plt%graph(2)
-grph%name          = 'y'
-grph%title         = 'Vertical Eta'
-grph%y%label       = '\gy\dY\u'
-crv => grph%curve(1)
-crv%data_type = 'eta.y'
-
-!---------------
-! Orbit plot
-
-plt => s%plotting%template(3)
-
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(2))
-plt%graph(1)%p => plt
-plt%graph(2)%p => plt
-allocate (plt%graph(1)%curve(1))
-allocate (plt%graph(2)%curve(1))
-
-plt = s%plotting%template(1)
-plt%name           = 'orbit'
-
-grph => plt%graph(1)
-grph%name          = 'x'
-grph%title         = 'Horizontal Orbit'
-grph%y%label       = 'X'
-grph%y%major_div_nominal   = 4
-crv => grph%curve(1)
-crv%data_type = 'orbit.x'
-
-grph => plt%graph(2)
-grph%name          = 'y'
-grph%title         = 'Vertical Orbit'
-grph%y%label       = 'Y'
-crv => grph%curve(1)
-crv%data_type = 'orbit.y'
-
-!---------------
-! Lat Layout plot
-
-plt => s%plotting%template(4)
+plt => default_plot_g1c2
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
-plt%graph(1)%p => plt
+allocate (plt%graph(1)%curve(2))
+
+plt%x_axis_type          = 's'
+plt%x                    = init_axis
+plt%x%major_div_nominal  = 8
+plt%x%minor_div_max = 6
+
+grph => plt%graph(1)
+grph%name                = 'g1'
+grph%type                = 'data'
+grph%margin              =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%box                 = [1, 1, 1, 1]
+grph%y                   = init_axis
+grph%y%major_div_nominal = 4
+grph%y2%draw_numbers     = .false.
+grph%component           = 'model'
+grph%draw_curve_legend   = .true.
+grph%draw_axes          = .true.
+grph%text_legend_origin  = default_graph%text_legend_origin
+grph%curve_legend_origin = default_graph%curve_legend_origin
+grph%x%label = 's [m]'
+
+crv => grph%curve(1)
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = blue$
+crv%line%width   = 2
+
+crv => grph%curve(2)
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = orange$
+crv%line%width   = 2
+
+!---------------
+! This plot defines the default 1-graph, 1-curve/graph plot
+
+plt => default_plot_g1c1 
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt%x_axis_type          = 's'
+plt%x                    = init_axis
+
+grph => plt%graph(1)
+grph%name                = 'g1'
+grph%type                = 'data'
+grph%margin              =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%box                 = [1, 1, 1, 1]
+grph%y                   = init_axis
+grph%y%major_div_nominal = 4
+grph%y2%draw_numbers     = .false.
+grph%draw_axes           = .true.
+grph%component           = 'model'
+grph%x%label             = 's [m]'
+
+crv => grph%curve(1)
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = blue$
+crv%line%width   = 2
+
+!---------------
+! beta plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(2))
+
+plt = default_plot_g1c2
+plt%name                 = 'beta'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title               = 'Beta Function'
+grph%y%label             = '\gb\dA\u, \gb\dB\u [m]'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type    = 'beta.a'
+crv%legend_text  = '\gb\dA\u'
+
+crv => grph%curve(2)
+crv%g => grph
+crv%data_type    = 'beta.b'
+crv%legend_text  = '\gb\dB\u'
+
+!---------------
+! emittance growth
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'emittance_growth'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Linac Emittance Growth [Rad_Integral:I5a_E6 * C_q * r_e * 2 / 3]'
+grph%y%label       = 'Emit Growth [mm-mrad]'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i5a_e6'
+crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
+
+!---------------
+! energy
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'energy'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Total Energy'
+grph%y%label       = 'E\dTot\u [eV]'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'e_tot'
+
+!---------------
+! eta plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(2))
+
+plt = default_plot_g1c2
+plt%name           = 'eta'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Dispersion'
+grph%y%label       = '\gy\dX\u, \gy\dY\u [m]'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type    = 'eta.x'
+crv%legend_text  = '\gy\dX\u'
+
+crv => grph%curve(2)
+crv%g => grph
+crv%data_type = 'eta.y'
+crv%legend_text  = '\gy\dY\u'
+
+!---------------
+! Floor Plan plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+
+plt%name               = 'floor_plan'
+plt%x_axis_type        = 'floor'
+plt%x                  = init_axis
+
+grph => plt%graph(1)
+grph%p => plt
+grph%name                  = 'g1'
+grph%box                   = [1, 1, 1, 1]
+grph%type                  = 'floor_plan'
+grph%margin                =  qp_rect_struct(0.15, 0.06, 0.05, 0.05, '%BOX')
+grph%correct_xy_distortion = .true.
+grph%x                     = init_axis
+grph%y                     = init_axis
+grph%draw_axes             = .true.
+grph%x%label               = 'Z'
+grph%x%major_div_nominal   = 4
+grph%y%label               = 'X'
+grph%y%major_div_nominal   = 4
+
+!---------------
+! Lat Layout plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
 
 plt%name           = 'lat_layout'
 plt%x_axis_type    = 's'
 plt%x              = init_axis
 
 grph => plt%graph(1)
+grph%p => plt
 grph%name          = 'g1'
 grph%box           = [1, 1, 1, 1]
 grph%type          = 'lat_layout'
-grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.03, '%BOX')
 grph%x             = init_axis
+grph%y%min         = -1
+grph%y%max         =  1
 
 !---------------
-! Floor Plan plot
+! Orbit plot
 
-plt => s%plotting%template(5)
+np = np + 1
+plt => s%plotting%template(np)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
-plt%graph(1)%p => plt
+allocate (plt%graph(1)%curve(2))
 
-plt%name           = 'floor_plan'
-plt%x_axis_type          = 'floor'
-plt%x                    = init_axis
+plt = default_plot_g1c2
+plt%name           = 'orbit'
 
 grph => plt%graph(1)
-grph%name          = 'g1'
-grph%box           = [1, 1, 1, 1]
-grph%type          = 'floor_plan'
-grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
-grph%correct_xy_distortion = .true.
-grph%x             = init_axis
-grph%y             = init_axis
+grph%p => plt
+grph%title         = 'Orbit'
+grph%y%label       = 'Orbit [mm]'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type           = 'orbit.x'
+crv%legend_text         = 'X'
+crv%y_axis_scale_factor = 1000
+
+crv => grph%curve(2)
+crv%g => grph
+crv%data_type           = 'orbit.y'
+crv%legend_text         = 'Y'
+crv%y_axis_scale_factor = 1000
 
 !---------------
 ! Momentum
 
-plt => s%plotting%template(6)
+np = np + 1
+plt => s%plotting%template(np)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
-plt%graph(1)%p => plt
 allocate (plt%graph(1)%curve(1))
 
+plt = default_plot_g1c1
 plt%name           = 'momentum'
-plt%x_axis_type          = 's'
-plt%x                    = init_axis
 
 grph => plt%graph(1)
-grph%name          = 'c'
-grph%title         = 'Particle Momentum PC (eV)'
-grph%type          = 'data'
-grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
-grph%box           = [1, 1, 1, 1]
-grph%y             = init_axis
+grph%p => plt
+grph%title         = 'Particle Momentum'
 grph%y%label       = 'PC [eV]'
-grph%y%major_div_nominal = 4
-grph%y2%draw_numbers = .false.
-grph%component     = 'model'
+
 crv => grph%curve(1)
-crv%data_source = 'lat'
-crv%draw_symbols = .false.
-crv%data_type = 'momentum'
+crv%g => grph
+crv%data_type    = 'momentum'
 
 !---------------
-! Momentum
+! momentum_compaction
 
-plt => s%plotting%template(7)
+np = np + 1
+plt => s%plotting%template(np)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
-plt%graph(1)%p => plt
 allocate (plt%graph(1)%curve(1))
 
-plt%name           = 'time'
-plt%x_axis_type          = 's'
-plt%x                    = init_axis
+plt = default_plot_g1c1 
+plt%name                 = 'momentum_compaction'
 
 grph => plt%graph(1)
-grph%name          = 'c'
-grph%title         = 'Particle Time (sec)'
-grph%type          = 'data'
-grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
-grph%box           = [1, 1, 1, 1]
-grph%y             = init_axis
-grph%y%label       = 'Time [sec]'
-grph%y%major_div_nominal = 4
-grph%y2%draw_numbers = .false.
-grph%component     = 'model'
+grph%p => plt
+grph%title         = 'Momentum Compaction'
+grph%y%label       = 'Momentum Compaction [m]'
+
 crv => grph%curve(1)
-crv%data_source = 'lat'
-crv%draw_symbols = .false.
-crv%data_type = 'time'
+crv%g => grph
+crv%data_type     = 'momentum_compaction'
 
 !---------------
-! phase plot
+! betatron phase plot
 
-plt => s%plotting%template(8)
+np = np + 1
+plt => s%plotting%template(np)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(2))
-plt%graph(1)%p => plt
-plt%graph(2)%p => plt
-allocate (plt%graph(1)%curve(1))
-allocate (plt%graph(2)%curve(1))
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(2))
 
+plt = default_plot_g1c2
 plt%name                 = 'phase'
-plt%x_axis_type          = 's'
-plt%x                    = init_axis
-plt%x%major_div_nominal  = 8
-plt%x%minor_div_max = 6
-plt%autoscale_gang_x = .true.
-plt%autoscale_gang_y = .true.
-
 
 grph => plt%graph(1)
-grph%name          = 'a'
-grph%title         = 'Horizontal Phase'
-grph%type          = 'data'
-grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
-grph%box           = [1, 2, 1, 2]
-grph%y             = init_axis
-grph%y%label       = 'Phase_a'
-grph%y%major_div_nominal   = 4
-grph%y2%draw_numbers = .false.
-grph%component     = 'model'
-crv => grph%curve(1)
-crv%data_source = 'lat'
-crv%draw_symbols = .false.
-crv%data_type = 'phase.a'
+grph%p => plt
+grph%title         = 'Betatron Phase'
+grph%y%label       = '\gf\dA\u, \gf\dB\u (deg)'
+grph%component     = 'model - design'
 
-grph => plt%graph(2)
-grph               = plt%graph(1)
-grph%name          = 'b'
-grph%title         = 'Vertical Phase'
-grph%y%label       = 'Phase_b'
-grph%box           = [1, 1, 1, 2]
 crv => grph%curve(1)
-crv%data_type = 'phase.b'
+crv%g => grph
+crv%data_type    = 'phase.a'
+crv%legend_text  = '\gf\dA\u'
+
+crv => grph%curve(2)
+crv%g => grph
+crv%data_type    = 'phase.b'
+crv%legend_text  = '\gf\dB\u'
+
+!---------------
+! sr energy loss
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'sr_energy_loss'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Synch Rad Energy Loss [Rad_Integral:I2_E4 * r_e * mc^2 * 2 / 3]'
+grph%y%label       = 'E\dLoss\u [MeV * m]'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i2_e4'
+crv%y_axis_scale_factor = 9.59976e-16 ! (2/3) * r_e *mec2 in MeV*m
+
+!---------------
+! time
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'time'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Particle Time (sec)'
+grph%y%label       = 'Time [sec]'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'time'
 
 !---------------
 ! Scratch plot
 
-plt => s%plotting%template(9)
+plt => s%plotting%template(size(s%plotting%template))
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
-plt%graph(1)%p => plt
 plt%name = 'scratch'
 
 ! Regions
 
 allocate (s%plotting%region(20))
 
-y_top = 0.85
-s%plotting%region(1)%name = 'r_top'
-s%plotting%region(1)%location = [0.0_rp, 1.0_rp, y_top, 1.00_rp]
+y_layout = 0.15
+s%plotting%region(1)%name = 'layout'
+s%plotting%region(1)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
 
 k = 1
 do i = 1, 4
   do j = 1, i
     k = k + 1
     write (s%plotting%region(k)%name, '(a, 2i0)') 'r', j, i
-    y1 = y_top * real(j-1)/ i
-    y2 = y_top * real(j) / i
+    y1 = y_layout + (1 - y_layout) * real(i-j)/ i
+    y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
     s%plotting%region(k)%location = [0.0_rp, 1.0_rp, y1, y2]
   enddo
 enddo
 
-call tao_place_cmd ('r_top', 'lat_layout')
-call tao_place_cmd ('r12', 'beta')
-call tao_place_cmd ('r22', 'eta')
+call tao_place_cmd ('layout', 'lat_layout')
+call tao_place_cmd ('r13', 'beta')
+call tao_place_cmd ('r23', 'eta')
+call tao_place_cmd ('r33', 'orbit')
 
 end subroutine
 

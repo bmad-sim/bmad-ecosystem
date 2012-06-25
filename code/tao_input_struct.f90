@@ -222,12 +222,17 @@ end subroutine set_plot_page
 
 !------------------------------------------------------------------------------
 
-subroutine set_plotting (plot_page, plotting)
+subroutine set_plotting (plot_page, plotting, use_cmd_line_geom)
 
 implicit none
 
 type (tao_plot_page_struct) plot_page
 type (tao_plotting_struct) plotting
+
+integer ix
+logical use_cmd_line_geom
+character(40) str
+character(16), parameter :: r_name = 'set_plotting'
 
 !
 
@@ -248,6 +253,23 @@ plotting%n_curve_pts               = plot_page%n_curve_pts
 plotting%title                     = plot_page%title 
 plotting%border                    = plot_page%border
 
+! Plot window geometry specified on cmd line?
+
+if (use_cmd_line_geom .and. tao_com%plot_geometry /= '') then
+   str = tao_com%plot_geometry
+   ix = index(str, 'x')
+   if (ix == 0) then
+     call out_io (s_error$, r_name, 'Malformed -geometry argument. No "x" present: ' // str)
+   else
+     if (.not. is_integer(str(1:ix-1)) .or. .not. is_integer(str(ix+1:))) then
+       call out_io (s_error$, r_name, 'Malformed -geometry argument: ' // str)
+     else
+       read (str(:ix-1), *) plotting%size(1)
+       read (str(ix+1:), *) plotting%size(2)
+     endif
+   endif
+ endif
+ 
 end subroutine set_plotting
 
 !------------------------------------------------------------------------------

@@ -1116,7 +1116,7 @@ end subroutine draw_ele_for_lat_layout
 subroutine draw_shape_for_lat_layout (name_in, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
-real(rp) s_pos
+real(rp) s_pos, r_dum, y_off
 integer icol
 character(*) name_in
 character(20) shape_name
@@ -1168,7 +1168,9 @@ endif
 ! Put on a label
 
 if (s%global%label_lattice_elements .and. ele_shape%label /= 'none') then
-  
+
+  call qp_from_inch_rel (0.0_rp, graph%y%label_offset, r_dum, y_off, 'DATA')
+
   if (ele_shape%label == 'name') then
     name = name_in
   elseif (ele_shape%label == 's') then
@@ -1181,7 +1183,7 @@ if (s%global%label_lattice_elements .and. ele_shape%label /= 'none') then
 
   if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
   height = s%plotting%text_height * s%plotting%legend_text_scale
-  call qp_draw_text (name, s_pos, graph%y%min, height = height, justify = 'LC', ANGLE = 90.0_rp)
+  call qp_draw_text (name, s_pos, graph%y%min-y_off, height = height, justify = 'LC', ANGLE = 90.0_rp)
 
 endif
 
