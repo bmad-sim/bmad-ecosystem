@@ -1122,7 +1122,7 @@ elseif (size(s_var) /= 0) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_var) /= 0) then
-  call tao_evaluate_expression (value_str, size(r_var),  .false., r_value, good, err)
+  call tao_evaluate_expression (value_str, size(r_var),  .false., r_value, good, err, dflt_source = 'var')
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
@@ -1313,7 +1313,7 @@ elseif (size(s_dat) /= 0) then
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_dat) /= 0) then
-  call tao_evaluate_expression (value_str, size(r_dat), .false., r_value, good, err)
+  call tao_evaluate_expression (value_str, size(r_dat), .false., r_value, good, err, dflt_source = 'dat')
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
     return
