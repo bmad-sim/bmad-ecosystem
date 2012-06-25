@@ -109,6 +109,10 @@ specified in the \tao initialization file.
   \item[\vn{-data <data_file>}] \Newline
 Overrides the \vn{data_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
+  \item[\vn{-geometry <width>x<height>}] \Newline
+Overrides the plot window geometry. \vn{<width>} and \vn{<height>}
+are in Points. This is equivalent to setting \vn{plot_page%size}
+in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
   \item[\vn{-init <tao_init_file>}] \Newline
 replaces the default \tao initialization file name
 (\vn{tao.init}). Note: A \tao initialization file is actually not
@@ -2037,9 +2041,9 @@ plane.  The conversion between the $(Z, X)$ coordinates of the
 \vn{global reference system} and the $(x, y)$ coordinates of the floor
 plan plot are:
 \begin{example}
-Global        Plot
-  Z    <--->   -x
-  X    <--->   -y
+Global       Plot
+  Z    <--->   x
+  X    <--->   y
 \end{example}
 An overall rotation of the floor plan can be controlled by setting
 \vn{plot_page%floor_plan_rotation} in the \vn{tao_plot_page} namelist. Example:
@@ -2122,13 +2126,13 @@ For Example:
 \begin{example}
   &floor_plan_drawing
     !               name                    Shape     Color  V_Size   Label Draw?
-    ele_shape(1) = "quadrupole::q*"         "box"     "red"     30     "name"  T    
-    ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     "none" 
-    ele_shape(3) = "sbend::*"               "box"     "blue"    15     "none"  F
-    ele_shape(4) = "wiggler::*"             "xbox"    "green"   20     "name"
-    ele_shape(5) = "var::quad_k1"           "circle"  "purple"  10     "name"
-    ele_shape(6) = "dat::orbit.x|useit_opt" "x"       "orange"  10     "name"
-    ele_shape(7) = "wall::building"         "-"       "black"    0     "-"
+    ele_shape(1) = "quadrupole::q*"         "box"     "red"     0.75     "name"  T    
+    ele_shape(2) = "quadrupole::*"          "xbox"    "red"     0.75     "none" 
+    ele_shape(3) = "sbend::*"               "box"     "blue"    0.37     "none"  F
+    ele_shape(4) = "wiggler::*"             "xbox"    "green"   0.50     "name"
+    ele_shape(5) = "var::quad_k1"           "circle"  "purple"  0.25     "name"
+    ele_shape(6) = "dat::orbit.x|useit_opt" "x"       "orange"  0.25     "name"
+    ele_shape(7) = "wall::building"         "-"       "black"    0       "-"
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the
@@ -2178,9 +2182,9 @@ exception is the \vn{"x"} shape whose width is always the same as the
 height determined by the \vn{<v_size>} setting.
 
 \vn{<v_size>} is the vertical half height of the shape.  For
-\vn{lat_layout} drawings, \vn{<v_size>} = 100 corresponds to full
-scale if the default \vn{graph%y%min} and \vn{graph%y%max} are
-used. For \vn{var_height_box}, the height is proportional to the
+\vn{lat_layout} drawings, \vn{<v_size>} = 1.0 corresponds to full
+scale if the default \vn{graph%y%min} = -1 and \vn{graph%y%max} = 1
+are used. For \vn{var_height_box}, the height is proportional to the
 element strength and here \vn{<v_size>} is the multiplier used to
 scale from element strength to vertical height. For example, for a
 quadrupole the height is proportional to the \vn{K1} focusing

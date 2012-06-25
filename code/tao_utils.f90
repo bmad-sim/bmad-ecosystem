@@ -2581,8 +2581,8 @@ do
         '-init         ', '-noinit       ', '-beam_all     ', '-beam0        ', &
         '-noplot       ', '-lat          ', '-log_startup  ', '-beam         ', &
         '-var          ', '-data         ', '-building_wall', '-plot         ', &
-        '-startup      ', 'help          ', '-help         ', '?             '], &
-                                  ix, .true., matched_name=switch)
+        '-startup      ', 'help          ', '-help         ', '?             ', &
+        '-geometry     '], ix, .true., matched_name=switch)
 
   select case (switch)
 
@@ -2595,8 +2595,8 @@ do
     endif
     ix = SplitFileName(tao_com%init_tao_file, tao_com%init_tao_file_path, base)
 
-  case ('-noinit')
-    tao_com%init_tao_file = ''
+  case ('-beam')
+    call get_next_arg (tao_com%beam_file)
 
   case ('-beam_all')
     call get_next_arg (tao_com%beam_all_file)
@@ -2604,8 +2604,18 @@ do
   case ('-beam0')
     call get_next_arg (tao_com%beam0_file)
 
-  case ('-noplot')
-    tao_com%noplot_arg_set = .true.
+  case ('-building_wall')
+    call get_next_arg (tao_com%building_wall_file)
+
+  case ('-data')
+    call get_next_arg (tao_com%data_file)
+
+  case ('-geometry')
+    call get_next_arg (tao_com%plot_geometry)
+
+  case ('help', '-help', '?', '-?')
+    call tao_print_command_line_info
+    stop
 
   case ('-lat')
     call get_next_arg (tao_com%lat_file)
@@ -2613,14 +2623,11 @@ do
   case ('-log_startup')
     tao_com%log_startup = .true.
 
-  case ('-beam')
-    call get_next_arg (tao_com%beam_file)
+  case ('-noinit')
+    tao_com%init_tao_file = ''
 
-  case ('-var')
-    call get_next_arg (tao_com%var_file)
-
-  case ('-data')
-    call get_next_arg (tao_com%data_file)
+  case ('-noplot')
+    tao_com%noplot_arg_set = .true.
 
   case ('-plot')
     call get_next_arg (tao_com%plot_file)
@@ -2628,12 +2635,8 @@ do
   case ('-startup')
     call get_next_arg (tao_com%startup_file)
 
-  case ('-building_wall')
-    call get_next_arg (tao_com%building_wall_file)
-
-  case ('help', '-help', '?', '-?')
-    call tao_print_command_line_info
-    stop
+  case ('-var')
+    call get_next_arg (tao_com%var_file)
 
   case default
     call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
@@ -2697,6 +2700,7 @@ call out_io (s_blank$, r_name, [ &
         '  -beam0 <beam0_file>              ', &
         '  -building_wall <wall_file>       ', &
         '  -data <data_file>                ', &
+        '  -geometry <width>x<height>       ', &
         '  -init <tao_init_file>            ', &
         '  -lat <bmad_lattice_file>         ', &
         '  -lat XSIF::<xsif_lattice_file>   ', &
@@ -2890,7 +2894,7 @@ type (floor_position_struct) floor, screen
 !
 
 call floor_to_screen (floor%x, floor%y, floor%z, screen%x, screen%y)
-screen%theta = pi + floor%theta - twopi * s%plotting%floor_plan_rotation
+screen%theta = floor%theta - twopi * s%plotting%floor_plan_rotation
 
 end subroutine floor_to_screen_coords
 
@@ -2908,22 +2912,22 @@ real(rp), save :: cc, ss
 
 ! Mapping from floor coords to screen coords is:
 !   Floor   Screen 
-!    z   ->  -x
-!    x   ->  -y
+!    z   ->  x
+!    x   ->  y
 
 t = s%plotting%floor_plan_rotation
 
 if (t == 0) then
-  x_screen = -z_floor
-  y_screen = -x_floor
+  x_screen = z_floor
+  y_screen = x_floor
 else
   if (t /= old_t) then
     cc = cos(twopi * t)
     ss = sin(twopi * t)
     old_t = t
   endif
-  x_screen = -z_floor * cc - x_floor * ss
-  y_screen =  z_floor * ss - x_floor * cc 
+  x_screen =  z_floor * cc + x_floor * ss
+  y_screen = -z_floor * ss + x_floor * cc 
 endif
 
 end subroutine floor_to_screen

@@ -1022,7 +1022,7 @@ case ('element')
   deallocate (ptr_lines)
 
   if (show_what == 'element' .and. print_floor) then
-    nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
+    nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (X, Y)]'
   endif
 
   ele => eles(1)%ele
@@ -1992,7 +1992,7 @@ case ('plot')
   if (stuff2 == ' ') then
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
-    nl=nl+1; write (lines(nl), rmt)  '%size                       = ', s%plotting%size       
+    nl=nl+1; write (lines(nl), imt)  '%size                       = ', nint(s%plotting%size)
     nl=nl+1; write (lines(nl), imt)  '%n_curve_pts                = ', s%plotting%n_curve_pts
     nl=nl+1; write (lines(nl), f3mt) '%text_height                = ', s%plotting%text_height 
     nl=nl+1; write (lines(nl), f3mt) '%main_title_text_scale      = ', s%plotting%main_title_text_scale 
