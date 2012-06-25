@@ -377,7 +377,7 @@ call set_up (ptc_layout)
 
 do i = 1, lat%n_ele_track
   allocate (fib)
-  call ele_to_fibre (lat%ele(i), fib, lat%param, .true.)
+  call ele_to_fibre (lat%ele(i), fib, lat%param%particle, .true.)
   call append (ptc_layout, fib)
   call kill (fib)
 enddo
@@ -1683,7 +1683,7 @@ beta0 = ele%value(p0c$)/ele%value(e_tot$)
 ! and create map corresponding to ele%taylor.
 
 param%particle = positron$  ! Actually this does not matter to the calculation
-call ele_to_fibre (ele, fib, param, use_offsets = .true.)
+call ele_to_fibre (ele, fib, param%particle, use_offsets = .true.)
 
 x_dp = 0
 x_ele = x_dp  ! x_ele = Identity map 
@@ -1773,19 +1773,19 @@ call taylor_to_real_8 (bmad_taylor, beta0, ptc_tlr)
 
 if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
+  call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
   call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
 endif
 
 ! Init ptc "element" (fibre) and track the map
 
-call ele_to_fibre (ele, ptc_fiber, param, .true.)
+call ele_to_fibre (ele, ptc_fiber, param%particle, .true.)
 call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
 
 ! Track exit side drift if PTC is using a hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
-  call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
+  call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
   call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
 endif
 
@@ -1908,20 +1908,20 @@ y = x   ! y = IdentityMap + x
 
 if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
+  call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
   call ptc_track (ptc_fiber, y, default) ! "track" in PTC
 endif
 
 ! Track element
 
-call ele_to_fibre (ele, ptc_fiber, param, use_offsets)
+call ele_to_fibre (ele, ptc_fiber, param%particle, use_offsets)
 call ptc_track (ptc_fiber, y, default) ! "track" in PTC
 
 ! Track exit end drift if PTC is using a hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fiber, param, .true.)
+  call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
   call ptc_track (ptc_fiber, y, default) ! "track" in PTC
 endif
 
@@ -2112,7 +2112,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
+! Subroutine ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps)
 !
 ! Subroutine to convert a Bmad element to a PTC fibre element.
 ! This subroutine allocates fresh storage for the fibre so after calling
@@ -2128,8 +2128,7 @@ end subroutine type_map
 !   ele    -- Ele_struct: Bmad element.
 !     %map_with_offsets -- If False then the values for x_pitch, x_offset, 
 !                           tilt, etc. for the  fiber element will be zero.
-!   param       -- lat_param_struct: 
-!     %particle     -- Particle type. Needed for elsep elements.
+!   particle    -- Integer: Particle type. Needed for elsep elements.
 !   use_offsets -- Logical: Does fiber include element offsets, pitches and tilt?
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
@@ -2142,7 +2141,7 @@ end subroutine type_map
 !   fiber -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
+subroutine ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps)
 
 use madx_ptc_module
 
@@ -2152,7 +2151,6 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele, ele2
 type (fibre), pointer :: fiber
 type (keywords) ptc_key
-type (lat_param_struct) :: param
 type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
 
@@ -2164,7 +2162,7 @@ real(rp), allocatable :: ds_offset(:)
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch, s_rel
 
-integer i, n, key, n_term, exception, n_field
+integer i, n, key, n_term, exception, n_field, particle
 integer, optional :: integ_order, steps
 
 logical kick_here, use_offsets, doneit, has_nonzero_pole
@@ -2253,6 +2251,12 @@ case (kicker$, hkicker$, vkicker$)
 ! 
 
 case (rfcavity$, lcavity$)
+  if (ele%value(rf_frequency$) == 0) then
+    call out_io (s_fatal$, r_name, 'RF FREQUENCY IS ZERO FOR: ' // ele%name)
+    if (bmad_status%exit_on_error) call err_exit
+    return
+  endif
+
   beta = ele%value(p0c$) / ele%value(e_tot$)
   ptc_key%magnet = 'rfcavity'
   ptc_key%list%freq0 = ele%value(rf_frequency$)
@@ -2281,7 +2285,7 @@ case (elseparator$)
   if (hk == 0 .and. vk == 0) then
     ptc_key%tiltd = 0
   else
-    if (param%particle < 0) then
+    if (particle < 0) then
       hk = -hk
       vk = -vk
     endif
@@ -2338,7 +2342,7 @@ if (ele%key /= elseparator$) then
     ptc_key%list%ks(1) =                   - hk * sin_t + vk * cos_t
   endif
 
-  call multipole_ele_to_ab (ele, param%particle, .false., has_nonzero_pole, an0, bn0)
+  call multipole_ele_to_ab (ele, particle, .false., has_nonzero_pole, an0, bn0)
   if (leng /= 0) then
     an0 = an0 / leng
     bn0 = bn0 / leng

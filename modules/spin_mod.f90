@@ -559,7 +559,7 @@ call spinor_to_vec (start_orb, spin_vec)
 spin_probe = re
 spin_probe%s(1)%x = real(spin_vec, dp)
 
-call ele_to_fibre (ele, fibre_ele, param, .true.)
+call ele_to_fibre (ele, fibre_ele, param%particle, .true.)
 call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele)
 
 spin_vec = spin_probe%s(1)%x
