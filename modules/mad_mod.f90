@@ -12,7 +12,7 @@ module mad_mod
 use bmad_struct
 use bmad_interface
 
-type energy_struct
+type mad_energy_struct
   real(rp) total 
   real(rp) beta         ! normalized velocity: v/c
   real(rp) gamma        ! relativistic factor: 1/sqrt(1-beta^2)
@@ -65,13 +65,14 @@ implicit none
 type (ele_struct) ele
 type (lat_param_struct) param
 type (mad_map_struct) map
+type (mad_energy_struct) energy
 type (coord_struct) c0, c1
 
 ! If ele%taylor does not exist then make it.
 
 if (.not. associated(ele%taylor(1)%term)) then
-  call make_mad_map (ele, param%particle, map)
-  call mad_map_to_taylor (map, ele%taylor)
+  call make_mad_map (ele, param%particle, energy, map)
+  call mad_map_to_taylor (map, energy, ele%taylor)
   ele%map_with_offsets = .true.
 endif
 
@@ -80,13 +81,13 @@ endif
 call taylor_to_mat6 (ele%taylor, c0%vec, ele%vec0, ele%mat6)
 call track_taylor (c0%vec, ele%taylor, c1%vec)
 
-end subroutine
+end subroutine make_mat6_mad
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine make_mad_map (ele, particle, map)
+! Subroutine make_mad_map (ele, particle, energy, map)
 !
 ! Subroutine to make a 2nd order transport map a la MAD.
 !
@@ -98,15 +99,16 @@ end subroutine
 !   particle -- Integer: Particle species.
 !
 ! Output:
-!   map -- Mad_map_struct: Structure holding the transfer map.
+!   energy -- mad_energy_struct: Energy of the particle
+!   map    -- Mad_map_struct: Structure holding the transfer map.
 !-
 
-subroutine make_mad_map (ele, particle, map) 
+subroutine make_mad_map (ele, particle, energy, map) 
 
 implicit none
 
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct) map
 
 integer particle
@@ -162,7 +164,7 @@ end select
 
 call mad_add_offsets_and_multipoles (ele, map)
 
-end subroutine
+end subroutine make_mad_map
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -178,7 +180,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Drift element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- mad_map_struct: Structure holding the transfer map.
@@ -319,7 +321,7 @@ endif
 
 call mad_concat_map2 (map, map2, map)
 
-end subroutine
+end subroutine mad_add_offsets_and_multipoles
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -335,7 +337,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Drift element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- Mad_map_struct: Structure holding the transfer map.
@@ -346,7 +348,7 @@ Subroutine mad_drift (ele, energy, map)
 implicit none
 
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct), target :: map
 
 real(rp) el, beta, gamma, f
@@ -380,7 +382,7 @@ te(5,2,2) = f
 te(5,4,4) = f
 te(5,6,6) = f * 3.0 / (beta * gamma) ** 2
 
-end subroutine
+end subroutine mad_drift
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -396,7 +398,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Electric seperator element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- Mad_map_struct: Structure holding the transfer map.
@@ -407,7 +409,7 @@ Subroutine mad_elsep (ele, energy, map)
 implicit none
 
 type (ele_struct) ele
-type (energy_struct) energy            
+type (mad_energy_struct) energy            
 type (mad_map_struct), target :: map
 
 real(rp) el, beta, gamma, fact
@@ -513,7 +515,7 @@ call mad_tmsymm(te)
 tilt = -atan2 (ele%value(vkick$), ele%value(hkick$))  
 call mad_tmtilt (map, tilt)
 
-end subroutine
+end subroutine mad_elsep
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -529,7 +531,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Sextupole element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- Mad_map_struct: Structure holding the transfer map.
@@ -540,7 +542,7 @@ subroutine mad_sextupole (ele, energy, map)
 implicit none
                         
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct), target :: map
 
 real(rp) el, beta, gamma
@@ -607,7 +609,7 @@ call mad_tmsymm(te)
 
 if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
 
-end subroutine
+end subroutine mad_sextupole
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -623,7 +625,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Sbend element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- Mad_map_struct: Structure holding the transfer map.
@@ -634,7 +636,7 @@ subroutine mad_sbend (ele, energy, map)
 implicit none
                         
 type (ele_struct), target :: ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct) map2, map_roll
 type (mad_map_struct) map
 
@@ -670,7 +672,7 @@ if (roll /= 0) map%k = map%k + map_roll%k
 
 if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
 
-end subroutine
+end subroutine mad_sbend
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -686,7 +688,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Solenoid element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !   into   -- Logical: If True then map is for particle entering a dipole
 !
 ! Output:
@@ -701,7 +703,7 @@ subroutine mad_sbend_fringe (ele, energy, into, map)
 implicit none
         
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct), target ::  map
 
 real(rp), pointer :: re(:,:), te(:,:,:)
@@ -760,7 +762,7 @@ endif
 
 call mad_tmsymm(te)
 
-end subroutine
+end subroutine mad_sbend_fringe
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -776,7 +778,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Solenoid element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !   into   -- Logical: If True then map is for particle entering a dipole
 !
 ! Output:
@@ -788,7 +790,7 @@ subroutine mad_sbend_body (ele, energy, map)
 implicit none
         
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct), target :: map
 
 real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
@@ -1000,7 +1002,7 @@ te(5,4,4) = (- h*sk2*zf + h*h2*fx - (el + sy*cy)/4.0) * bi
 
 call mad_tmsymm(te)
 
-end subroutine
+end subroutine mad_sbend_body
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1051,7 +1053,7 @@ else
   f = (el  - s) / sk1
 endif
 
-end subroutine
+end subroutine mad_tmfoc
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1067,7 +1069,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Quadrupole element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- Mad_map_struct: Structure holding the transfer map.
@@ -1078,7 +1080,7 @@ subroutine mad_quadrupole (ele, energy, map)
 implicit none
                         
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct), target :: map
 
 real(rp) el, beta, gamma
@@ -1170,7 +1172,7 @@ te(5,6,6) = (- 6.0 * re(5,6)) * biby4
 
 if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
 
-end subroutine
+end subroutine mad_quadrupole
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1186,7 +1188,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Rfcavity element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- Mad_map_struct: Structure holding the transfer map.
@@ -1197,7 +1199,7 @@ subroutine mad_rfcavity (ele, energy, map)
 implicit none
         
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct) map
 
 real(rp) omega, charge, vrf, phirf, c0, c1, c2
@@ -1223,7 +1225,7 @@ map%k(6) = c0                  ! - c1 * orbit(5) + c2 * orbit(5)**2
 map%r(6,5) = c1                ! - 2.0 * c2 * orbit(5)
 map%t(6,5,5) = c2
 
-end subroutine
+end subroutine mad_rfcavity
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1239,7 +1241,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Solenoid element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- Mad_map_struct: Structure holding the transfer map.
@@ -1250,7 +1252,7 @@ subroutine mad_solenoid (ele, energy, map)
 implicit none
         
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct), target :: map
 
 real(rp) el, beta, gamma, temp
@@ -1339,7 +1341,7 @@ te(5,6,6) = - 3.0 * re(5,6) / (2.0 * beta)
 
 call mad_tmsymm(te)
 
-end subroutine
+end subroutine mad_solenoid
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1355,7 +1357,7 @@ end subroutine
 !
 ! Input:
 !   ele    -- Ele_struct: Sol_quad element.
-!   energy -- Energy_struct: particle energy structure.
+!   energy -- Mad_energy_struct: particle energy structure.
 !
 ! Output:
 !   map -- Mad_map_struct: Structure holding the transfer map.
@@ -1366,7 +1368,7 @@ subroutine mad_sol_quad (ele, energy, map)
 implicit none
         
 type (ele_struct) ele
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct), target :: map
 
 real(rp), pointer :: re(:,:), te(:,:,:)
@@ -1517,7 +1519,7 @@ enddo
 
 call mad_tmsymm(te)
 
-end subroutine
+end subroutine mad_sol_quad
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1553,7 +1555,7 @@ do k = 1, 5
   enddo
 enddo
 
-end subroutine
+end subroutine mad_tmsymm
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1664,7 +1666,7 @@ do j = 1, 6
 
 enddo
 
-end subroutine
+end subroutine mad_tmtilt
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1749,7 +1751,7 @@ map3%k = ek
 map3%r = re
 map3%t = te2
 
-end subroutine
+end subroutine mad_concat_map2
       
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1794,8 +1796,7 @@ vec1 = map%k + matmul(mat, vec0)
 
 c1%vec = vec1 
 
-
-end subroutine
+end subroutine mad_track1
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1825,15 +1826,15 @@ implicit none
 type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) start_orb, end_orb, start2_orb
-type (energy_struct) energy
+type (mad_energy_struct) energy
 type (mad_map_struct) map
 real(rp) dtime_ref
 
 !
 
 if (.not. associated(ele%taylor(1)%term)) then
-  call make_mad_map (ele, param%particle, map)
-  call mad_map_to_taylor (map, ele%taylor)
+  call make_mad_map (ele, param%particle, energy, map)
+  call mad_map_to_taylor (map, energy, ele%taylor)
 endif
 
 start2_orb = start_orb
@@ -1855,44 +1856,84 @@ if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
 end_orb%t = start2_orb%t + dtime_ref + &
                             start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 
-end subroutine
+end subroutine track1_mad
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mad_map_to_taylor (map, taylor)
+! Subroutine mad_map_to_taylor (map, energy, taylor)
 !
-! Subroutine to convert a mad order 2 map to a taylor map.
+! Subroutine to convert a MAD order 2 map to a Bmad taylor map.
+! The conversion will also convert between MAD's (dE, t) and Bmad's (dP, beta*t) coords.
 !
 ! modules needed:
 !   use mad_mod
 !
 ! Input:
-!   map -- Mad_map_struct: Order 2 map.
+!   map       -- Mad_map_struct: Order 2 map.
+!   energy    -- mad_energy_struct: Energy numbers.
 !
 ! Output:
 !   taylor(6) -- Taylor_struct: Taylor map.
 !-
 
-subroutine mad_map_to_taylor (map, taylor)
+subroutine mad_map_to_taylor (map, energy, taylor)
 
-type (mad_map_struct) map
+type (mad_map_struct) map, m
+type (mad_energy_struct) energy
 type (taylor_struct) taylor(:)
+
+real(rp) dMAD_dBmad, d2MAD_dBmad2
 
 integer i, j, k, n, nt
 
-! count terms and allocate
+! Convert to Bmad phase space coords
+! dMAD_dBmad = dE/dP = dct/dz
+
+dMAD_dBmad = energy%beta
+d2MAD_dBmad2 = 1 / (energy%gamma**2 * energy%total)
+
+m = map
+
+do i = 1, 6
+  do j = 1, 6
+
+    do k = 1, 6
+      if (j == 5 .or. j == 6) m%t(i,j,k) = m%t(i,j,k) * dMAD_dBmad
+      if (k == 5 .or. k == 6) m%t(i,j,k) = m%t(i,j,k) * dMAD_dBmad
+    enddo
+
+    if (j == 5 .or. j == 6) then
+      m%r(i,j) = m%r(i,j) * dMAD_dBmad
+      m%t(i,j,j) = m%t(i,j,j) + m%r(i,j) * d2MAD_dBmad2
+    endif
+
+    if (i == 5 .or. i == 6) then
+      m%r(i,j) = m%r(i,j) / dMAD_dBmad
+      do k = 1, 6
+        m%t(i,j,k) = m%t(i,j,k) / dMAD_dBmad
+        m%t(i,j,k) = m%t(i,j,k) - m%r(i,j) * m%r(i,k) * d2MAD_dBmad2 / dMAD_dBmad 
+      enddo
+    endif  
+    
+  enddo
+
+  if (i == 5 .or. i == 6) m%k(i) = m%k(i) / dMAD_dBmad
+
+enddo
+
+! Count terms and allocate
 
 do i = 1, 6
 
   nt = 0
 
-  if (map%k(i) /= 0) nt = nt + 1
+  if (m%k(i) /= 0) nt = nt + 1
   do j = 1, 6
-    if (map%r(i,j) /= 0) nt = nt + 1
+    if (m%r(i,j) /= 0) nt = nt + 1
     do k = j, 6
-      if (map%t(i,j,k) /= 0) nt = nt + 1
+      if (m%t(i,j,k) /= 0) nt = nt + 1
     enddo
   enddo
 
@@ -1917,28 +1958,28 @@ do i = 1, 6
 
   nt = 0
 
-  if (map%k(i) /= 0) then
+  if (m%k(i) /= 0) then
     nt = nt + 1
-    taylor(i)%term(nt)%coef = map%k(i)
+    taylor(i)%term(nt)%coef = m%k(i)
   endif
 
   do j = 1, 6
 
-    if (map%r(i,j) /= 0) then
+    if (m%r(i,j) /= 0) then
       nt = nt + 1
-      taylor(i)%term(nt)%coef = map%r(i,j)
+      taylor(i)%term(nt)%coef = m%r(i,j)
       taylor(i)%term(nt)%expn(j) = 1
     endif
 
     do k = j, 6
 
-      if (map%t(i,j,k) /= 0) then
+      if (m%t(i,j,k) /= 0) then
         nt = nt + 1
         if (k == j) then
-          taylor(i)%term(nt)%coef = map%t(i,j,k)
+          taylor(i)%term(nt)%coef = m%t(i,j,k)
           taylor(i)%term(nt)%expn(j) = 2
         else
-          taylor(i)%term(nt)%coef = 2 * map%t(i,j,k)
+          taylor(i)%term(nt)%coef = 2 * m%t(i,j,k)
           taylor(i)%term(nt)%expn(j) = 1
           taylor(i)%term(nt)%expn(k) = 1
         endif
@@ -1950,13 +1991,13 @@ do i = 1, 6
 
 enddo
 
-end subroutine
+end subroutine mad_map_to_taylor
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_mad_map (taylor, map)
+! Subroutine taylor_to_mad_map (taylor, energy, map)
 !
 ! Subroutine to convert a Taylor map to a mad order 2 map.
 ! If any of the Taylor terms have order greater than 2 they are ignored.
@@ -1966,18 +2007,21 @@ end subroutine
 !
 ! Input:
 !   taylor(6) -- Taylor_struct: Taylor map.
+!   energy    -- mad_energy_struct: Energy numbers.
 !
 ! Output:
 !   map -- Mad_map_struct: Order 2 map.
 !-
 
-subroutine taylor_to_mad_map (taylor, map)
+subroutine taylor_to_mad_map (taylor, energy, map)
 
 type (mad_map_struct) map
+type (mad_energy_struct) energy
 type (taylor_struct)  :: taylor(:)
 type (taylor_term_Struct) tt
 
 integer i, j, k, n, sm
+real(rp) dBmad_dMAD, d2Bmad_dMAD2
 
 character(20), parameter :: r_name = 'taylor_to_mad_map'
 
@@ -2022,7 +2066,40 @@ do i = 1, 6
   enddo n_loop
 enddo
 
-end subroutine
+! Convert to Bmad phase space coords
+! dBmad_dMAD = dE/dP = dct/dz
+
+dBmad_dMAD = 1 / energy%beta
+d2Bmad_dMAD2 = -1 / (energy%gamma**2 * energy%p0c)
+
+do i = 1, 6
+  do j = 1, 6
+
+    do k = 1, 6
+      if (j == 5 .or. j == 6) map%t(i,j,k) = map%t(i,j,k) * dBmad_dMAD
+      if (k == 5 .or. k == 6) map%t(i,j,k) = map%t(i,j,k) * dBmad_dMAD
+    enddo
+
+    if (j == 5 .or. j == 6) then
+      map%r(i,j) = map%r(i,j) * dBmad_dMAD
+      map%t(i,j,j) = map%t(i,j,j) + map%r(i,j) * d2Bmad_dMAD2
+    endif
+
+    if (i == 5 .or. i == 6) then
+      map%r(i,j) = map%r(i,j) / dBmad_dMAD
+      do k = 1, 6
+        map%t(i,j,k) = map%t(i,j,k) / dBmad_dMAD
+        map%t(i,j,k) = map%t(i,j,k) - map%r(i,j) * map%r(i,k) * d2Bmad_dMAD2 / dBmad_dMAD 
+      enddo
+    endif  
+    
+  enddo
+
+  if (i == 5 .or. i == 6) map%k(i) = map%k(i) / dBmad_dMAD
+
+enddo
+
+end subroutine taylor_to_mad_map 
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -2058,7 +2135,7 @@ map%t = 0
 
 forall (i = 1:6) map%r(i,i) = 1
 
-end subroutine
+end subroutine make_unit_mad_map
 
 end module
              
