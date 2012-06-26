@@ -395,6 +395,10 @@ sub searchit {
                   $have_printed_file_name = 1;
                 }
                 print $_;
+                while (/\&/) {
+                  $_ = <F_IN>;
+                  print $_;
+                }
                 last;
               }
               ## print ":::" . ($match) . ":::\n";
