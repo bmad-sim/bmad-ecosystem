@@ -419,18 +419,19 @@ end subroutine rk_step1
 !     dt/ds = (1 + g*x) / v_s
 !     g = 1/rho, rho = bending radius (nonzero only in a dipole)
 !
-!   dr(2)/ds = dP_x/dt * dt/ds / P0
+!   dr(2)/ds = dP_x/dt * dt/ds / P0 + g_x * P_z
 !   where:
-!     dP_x/dt = EM_Force_x + gamma * mass * vec * (dtheta/dt)^2
-!     vec * (dtheta/dt)^2 = g * v_s^2 / (1 + g*x)^2   ! Centrifugal term
+!     dP_x/dt = EM_Force_x
+!     g_x = bending in x-plane.
 !
 !   dr(3)/ds = dy/dt * dt/ds
 !   where:
 !     dy/dt = v_x 
 ! 
-!   dr(4)/ds = dP_y/dt * ds/dt / P0
+!   dr(4)/ds = dP_y/dt * ds/dt / P0 + g_y * P_z
 !   where:
 !     dP_y/dt = EM_Force_y
+!     g_y = bending in y-plane.
 !
 !   dr(5)/ds = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * c_light * [t(ref) - t]
 !            = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * vec(5) / beta
@@ -473,7 +474,7 @@ real(rp), intent(in) :: s_rel, t_rel
 real(rp), intent(out) :: dr_ds(7)
 real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3)
-real(rp) e_tot, dt_ds_ref, p0, beta0, v2
+real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
 
 logical :: local_ref_frame, err
 
@@ -517,11 +518,12 @@ endif
 dt_ds = f_bend / vel(3)
 dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
 dbeta_ds = mass_of(param%particle)**2 * dp_ds * c_light / e_tot**3
+pz_p0 = (1 + orbit%vec(6)) * vel(3) / (orbit%beta * c_light)  ! Pz / P0
 
 dr_ds(1) = vel(1) * dt_ds
-dr_ds(2) = (E_force(1) + B_force(1) + e_tot * gx_bend / (dt_ds * c_light)**2) * dt_ds / p0
+dr_ds(2) = (E_force(1) + B_force(1)) * dt_ds / p0 + gx_bend * pz_p0
 dr_ds(3) = vel(2) * dt_ds
-dr_ds(4) = (E_force(2) + B_force(2) + e_tot * gy_bend / (dt_ds * c_light)**2) * dt_ds / p0
+dr_ds(4) = (E_force(2) + B_force(2)) * dt_ds / p0 + gy_bend * pz_p0
 dr_ds(5) = orbit%beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / orbit%beta
 dr_ds(6) = dp_ds / p0
 dr_ds(7) = dt_ds

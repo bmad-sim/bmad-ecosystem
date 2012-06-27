@@ -40,7 +40,7 @@ contains
 !               The exception is when the orbit is larger than 
 !               bmad_com%max_aperture_limit. 
 !   check_momentum
-!         -- Logical, optional -- If present and false then checking of p_x and 
+!         -- Logical, optional: If present and false then checking of p_x and 
 !               p_y will be disabled.
 !
 ! Output:
@@ -458,8 +458,8 @@ end subroutine track_a_bend
 !   ele         -- ele_struct: SBend element.
 !   element_end -- Integer: entrance_end$ or exit_end$
 !   reverse     -- Logical: If True then make the inverse transformation.
-!										 That is, for the entrance end take the input orb as the coordinates
-!										 just inside the entrance end of the bend and return the coordinates 
+!                     That is, for the entrance end take the input orb as the coordinates
+!                     just inside the entrance end of the bend and return the coordinates 
 !                    just oustide the entrance end.
 !
 ! Output:
@@ -508,41 +508,41 @@ endif
 v0 = orb%vec
 
 if (reverse) then
-	if (element_end == entrance_end$) then
-		orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
+  if (element_end == entrance_end$) then
+    orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
     orb%vec(2) = v0(2) - k1x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) - &
-												 k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
-												 k1x * ht2 * (v0(1)**2 + v0(3)**2) / 2
-		orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
+                         k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
+                         k1x * ht2 * (v0(1)**2 + v0(3)**2) / 2
+    orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
     orb%vec(4) = v0(4) - k1y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
-												 tan_e * (2 * k1_eff + k1x * hs2) * v0(1) * v0(3)
-	else
-		orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
+                         tan_e * (2 * k1_eff + k1x * hs2) * v0(1) * v0(3)
+  else
+    orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
     orb%vec(2) = v0(2) - k1x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) - &
-												 k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
-												 k1x * (ht2 + hs2) * v0(3)**2 / 2
-		orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
+                         k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
+                         k1x * (ht2 + hs2) * v0(3)**2 / 2
+    orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
     orb%vec(4) = v0(4) - k1y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) + &
-												 2 * k1_eff * tan_e * v0(1) * v0(3) 
-	endif
+                         2 * k1_eff * tan_e * v0(1) * v0(3) 
+  endif
 
 else
   if (element_end == entrance_end$) then
-		orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
+    orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
     orb%vec(2) = v0(2) + k1x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) + &
-												 k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
-												 k1x * (ht2 + hs2) * v0(3)**2 / 2
-		orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
+                         k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
+                         k1x * (ht2 + hs2) * v0(3)**2 / 2
+    orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
     orb%vec(4) = v0(4) + k1y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) - &
-												 2 * k1_eff * tan_e * v0(1) * v0(3) 
+                         2 * k1_eff * tan_e * v0(1) * v0(3) 
   else
-		orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
+    orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
     orb%vec(2) = v0(2) + k1x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) + &
-												 k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
-												 k1x * ht2 * (v0(1)**2 + v0(3)**2) / 2
-		orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
+                         k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
+                         k1x * ht2 * (v0(1)**2 + v0(3)**2) / 2
+    orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
     orb%vec(4) = v0(4) + k1y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) - &
-												 tan_e * (2 * k1_eff + k1x * hs2) * v0(1) * v0(3)
+                         tan_e * (2 * k1_eff + k1x * hs2) * v0(1) * v0(3)
   endif
 endif
 

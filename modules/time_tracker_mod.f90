@@ -605,7 +605,7 @@ if (ele%key == sbend$) then
     kappa_x = ele%value(g$)
     kappa_y = 0
   endif
-  h = 1 + kappa_x *  orbit%vec(1) + kappa_y *  orbit%vec(3) ! h = 1 + \kappa_x * x + \kappa_y * y
+  h = 1 + kappa_x * orbit%vec(1) + kappa_y * orbit%vec(3) ! h = 1 + \kappa_x * x + \kappa_y * y
 
   dvec_dt(2) = dvec_dt(2) + orbit%vec(6) * vel(3) * kappa_x / h
   dvec_dt(4) = dvec_dt(4) + orbit%vec(6) * vel(3) * kappa_y / h
