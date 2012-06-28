@@ -67,8 +67,11 @@ if (debug) then
   open (iu, file = 'twiss_at_start.dat')
 endif
 
-call set_on_off (rfcavity$, lat, save_state$)
-call set_on_off (rfcavity$, lat, off$, use_ref_orb = .true.)
+! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
+
+branch%ele%bmad_logic = branch%ele%old_is_on
+call set_on_off (rfcavity$, lat, save_state$, ix_branch = branch%ix_branch)
+call set_on_off (rfcavity$, lat, off$, use_ref_orb = .true., ix_branch = branch%ix_branch)
 
 do n = 1, branch%n_ele_track
   ele => branch%ele(n)
@@ -94,7 +97,8 @@ do n = 1, branch%n_ele_track
   endif
 enddo
 
-call set_on_off (rfcavity$, lat, restore_state$, use_ref_orb = .true.)
+call set_on_off (rfcavity$, lat, restore_state$, use_ref_orb = .true., ix_branch = branch%ix_branch)
+branch%ele%old_is_on = branch%ele%bmad_logic
 
 if (debug) close (iu)
 

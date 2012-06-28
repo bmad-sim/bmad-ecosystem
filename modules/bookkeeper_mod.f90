@@ -439,6 +439,7 @@ integer ix_pos_edge, ix_neg_edge, ixa, ixb
 
 logical pos_extension_lord_exists, neg_extension_lord_exists, all_extension_lord_exists
 logical length_adjustment_made, overlap_a, overlap_b, overlap_all
+logical, allocatable :: can_vary_length(:)
 
 character(40) :: r_name = 'super_lord_length_bookkeeper'
 
@@ -503,10 +504,12 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   ix_neg_edge = 0
 
   vary_sublength = 0
+  call re_allocate(can_vary_length, lord0%n_slave, .false.)
+
   slave_loop: do j = 1, lord0%n_slave
 
     slave => pointer_to_slave(lord0, j)
-    slave%bmad_logic = .true. ! Can be varied.
+    can_vary_length(j) = .true. ! Can be varied.
 
     do k = 1, slave%n_lord
       lord2 => pointer_to_lord(slave, k)
@@ -549,7 +552,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       ! Contained?
 
       if (overlap_a .and. overlap_b) then  ! If contained
-        slave%bmad_logic = .false.
+        can_vary_length(j) = .false.
       elseif (overlap_a) then
         pos_extension_lord_exists = .true.
         ix_pos_edge = min (ix_pos_edge, ixa_lord2)
@@ -562,7 +565,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
     enddo
 
-    if (slave%bmad_logic) vary_sublength = vary_sublength + slave%value(l$)
+    if (can_vary_length(j)) vary_sublength = vary_sublength + slave%value(l$)
   enddo slave_loop
 
   ! If we have not found any slaves to vary we are in trouble
@@ -583,7 +586,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     do j = 1, lord0%n_slave
       slave => pointer_to_slave(lord0, j)
       if (slave%ix_ele < ix_pos_edge) cycle
-      if (.not. slave%bmad_logic) cycle
+      if (.not. can_vary_length(j)) cycle
       length_pos = length_pos + slave%value(l$)
     enddo
     d_length_pos = length_pos * coef
@@ -594,7 +597,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     do j = 1, lord0%n_slave
       slave => pointer_to_slave(lord0, j)
       if (slave%ix_ele > ix_neg_edge) cycle
-      if (.not. slave%bmad_logic) cycle
+      if (.not. can_vary_length(j)) cycle
       length_neg = length_neg + slave%value(l$)
     enddo    
     d_length_neg = length_neg * coef
@@ -604,7 +607,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   do j = 1, lord0%n_slave
     slave => pointer_to_slave(lord0, j)
-    if (.not. slave%bmad_logic) cycle
+    if (.not. can_vary_length(j)) cycle
     slave%value(l$) = slave%value(l$) * (1 + coef)
     call set_ele_status_stale (slave, attribute_group$)
   enddo
@@ -2971,7 +2974,8 @@ end subroutine set_flags_for_changed_real_attribute
 !                     restore_state$ => Restore saved on/off state.
 !   orb(0:)     -- Coord_struct, optional: Needed for lat_make_mat6
 !   use_ref_orb -- Logical, optional: If present and true then use the
-!                    present ele%map_ref_orb. Default is false.
+!                    present ele%map_ref_orb for the reference orbit for
+!                    constructing %mat6. Default is false.
 !   ix_branch   -- integer, optional: If present then only set for 
 !                    this lattice branch.
 !

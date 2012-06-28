@@ -505,6 +505,8 @@ call init_attrib (def_parameter$, absolute_time_tracking$, 'ABSOLUTE_TIME_TRACKI
 call init_attrib (def_parameter$, use_ptc_layout$,         'USE_PTC_LAYOUT')
 call init_attrib (def_parameter$, rf_auto_scale_phase$,    'RF_AUTO_SCALE_PHASE')
 call init_attrib (def_parameter$, rf_auto_scale_amp$,      'RF_AUTO_SCALE_AMP')
+call init_attrib (def_parameter$, ptc_exact_calc$,         'PTC_EXACT_CALC')
+call init_attrib (def_parameter$, ptc_exact_misalign$,     'PTC_EXACT_MISALIGN')
 
 call init_attrib (def_beam$, particle$,                    'PARTICLE')
 call init_attrib (def_beam$, e_tot$,                       'ENERGY')

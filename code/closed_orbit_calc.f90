@@ -159,6 +159,10 @@ case (4, 5)
               call transfer_matrix_calc (lat, .false., lat%param%t1_no_RF, ix_branch = branch%ix_branch)
   t1 = branch%param%t1_no_RF
   start%vec(5) = 0
+
+  ! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
+
+  branch%ele%bmad_logic = branch%ele%old_is_on
   call set_on_off (rfcavity$, lat, save_state$, ix_branch = branch%ix_branch)
   call set_on_off (rfcavity$, lat, off$, ix_branch = branch%ix_branch)
 
@@ -283,6 +287,7 @@ subroutine end_cleanup
 
 if (n == 4 .or. n == 5) then
   call set_on_off (rfcavity$, lat, restore_state$, ix_branch = branch%ix_branch)
+  branch%ele%old_is_on = branch%ele%bmad_logic
   bmad_com%radiation_damping_on = damp_saved   ! restore state
 endif
 

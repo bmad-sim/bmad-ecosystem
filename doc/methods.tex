@@ -109,20 +109,20 @@ accurate. This method is non-symplectic.
 \item[\vn{Symp_Lie_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad routine. By bypassing some of the generality inherent in PTC
+\bmad routine. By bypassing some of the generality inherent in PTC (\sref{s:ptc}),
 \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
 \vn{Symp_Lie_PTC}.
 
 \index{symp_lie_ptc!tracking_method}
 \item[\vn{Symp_Lie_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
-This uses Etienne's PTC software for the calculation. This method is
-symplectic but can be slow.
+This uses Etienne Forest's PTC (\sref{s:ptc}) software for the
+calculation. This method is symplectic but can be slow.
 
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
-uses Etienne's PTC software.  Since the map is implicit, a Newton
+uses Etienne Forest's PTC software (\sref{s:ptc}).  Since the map is implicit, a Newton
 search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic. Note: Due to memory limitations
 in PTC, the number of elements using symp_map is limited to be of order 50.
@@ -138,7 +138,7 @@ directions.
 
 \index{taylor!tracking_method}
 \item[\vn{Taylor}]
-This uses a Taylor map generated from Etienne's PTC
+This uses a Taylor map generated from the PTC (\sref{s:ptc})
 package. Generating the map may take time but once you have it it
 should be very fast. One possible problem with using a Taylor map is
 that you have to worry about the accuracy if you do tracking at points
@@ -256,7 +256,7 @@ order gives the transfer matrix (Jacobian).  The order at which a
 Taylor series is truncated at is set by \vn{taylor_order} (see
 \sref{s:param}. Like ordinary integration there are various
 formulas that one can use to do symplectic integration. In \bmad (or
-more precisely Etienne's PTC) you can use one of 3 methods. This is
+more precisely in PTC (\sref{s:ptc})) you can use one of 3 methods. This is
 set by \vn{integrator_order}.  \vn{integrator_order} = n where $n$ is
 allowed by PTC to be 2, 4, or 6. With an integration order of $n$ the
 error in an integration step scales as $dz^n$ where $dz$ is step
@@ -305,7 +305,7 @@ of 10 improvement in speed over \vn{Symp_Lie_PTC}. However,
 \index{symp_lie_ptc!mat6_calc_method}
 \item[\vn{Symp_Lie_PTC}]
 Symplectic integration using a Hamiltonian and Lie operators.
-This uses Etienne's PTC software for the calculation.
+This uses the PTC (\sref{s:ptc}) software for the calculation.
 This method is symplectic but can be slow.
 
 \index{taylor!mat6_calc_method}
@@ -688,3 +688,15 @@ If the global parameter \vn{bmad_com%conserve_taylor_maps}
 element is offset within a program, and if \vn{map_with_offset} is set
 to True for that element, \bmad will toggle \vn{map_with_offset} to
 False to conserve the map.
+
+%-----------------------------------------------------------------
+\section{PTC: Polynomial Tracking Code}
+\label{s:ptc}
+\index{PTC}
+
+The PTC/FPP (Polymorphic Tracking Code / Fully Polymorphic Package)
+library of Etienne Forest handles Taylor maps to any arbitrary
+order. this is also known as Truncated Power Series Algebra
+(TPSA). The core Differential Algebra (DA) package used by PTC was
+developed by Martin Berz\cite{b:berz}.
+For more information see the FPP/PTC manual\cite{b:ptc}.
