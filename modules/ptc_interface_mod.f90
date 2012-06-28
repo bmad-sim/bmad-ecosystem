@@ -19,6 +19,11 @@ interface operator (-)
   module procedure taylor_minus_taylor
 end interface
 
+type ptc_parameter_struct
+  logical exact_calc
+  logical exact_misalign
+end type
+
 type ptc_common_struct
   integer :: real_8_map_init               ! See PTC doc.
   integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
@@ -338,7 +343,7 @@ end subroutine type_layout
 !+
 ! Subroutine lat_to_layout (lat, ptc_layout)
 !
-! Subroutine to create a PTC layout from a BMAD lat.
+! Subroutine to create a PTC layout from a Bmad lat.
 ! Note: If ptc_layout has been already used then you should first do a 
 !           call kill(ptc_layout)
 ! This deallocates the pointers in the layout
@@ -571,6 +576,8 @@ end subroutine type_fibre
 !     make_states
 !     set_mad
 !     init
+! Note: Use the routine get_ptc_param to get the state of PTC parameters.
+
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -616,7 +623,7 @@ real(rp), save :: old_e_tot = 0
 real(dp) this_energy
 
 logical, optional :: no_cavity, exact_calc, exact_misalign
-logical, save :: init_needed = .true.
+logical, save :: init_needed = .true., init2_needed = .true.
 logical params_present
 
 character(16) :: r_name = 'set_ptc'
@@ -625,6 +632,14 @@ character(16) :: r_name = 'set_ptc'
 
 if (present(particle)) then
   if (particle == photon$) return
+endif
+
+! Some init
+
+if (init2_needed) then
+  EXACT_MODEL = .false.
+  ALWAYS_EXACTMIS = .true.
+  init2_needed = .false.
 endif
 
 ! do not call set_mad
@@ -637,8 +652,6 @@ if (init_needed .and. params_present) then
   else
     call make_states(.false._lp)
   endif
-  EXACT_MODEL = .false.
-  ALWAYS_EXACTMIS = .true.
   ! Use PTC time tracking
   DEFAULT = DEFAULT + TIME0
   PHASE0 = 0
@@ -646,8 +659,7 @@ endif
 
 if (present (exact_calc))     EXACT_MODEL = exact_calc
 if (present (exact_misalign)) ALWAYS_EXACTMIS = exact_misalign
-  
-if (present(no_cavity)) DEFAULT = DEFAULT+NOCAVITY
+if (present(no_cavity))       DEFAULT = DEFAULT+NOCAVITY
 
 if (present (integ_order)) then
   this_method = integ_order
@@ -695,9 +707,36 @@ endif
 
 ! Superkill tells PTC to do a through cleanup when killing a fibre.
 
-superkill = .true.
+SUPERKILL = .true.
 
 end subroutine set_ptc
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine get_ptc_params (ptc_param)
+!
+! Routine to return ptc parameters.
+!
+! Output:
+!   ptc_param -- ptc_parameter_struct: PTC parameters.
+!-
+
+subroutine get_ptc_params (ptc_param)
+
+use mad_like, only: EXACT_MODEL, ALWAYS_EXACTMIS
+
+implicit none
+
+type (ptc_parameter_struct) ptc_param
+
+!
+
+ptc_param%exact_calc      = EXACT_MODEL
+ptc_param%exact_misalign  = ALWAYS_EXACTMIS
+
+end subroutine get_ptc_params
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -706,7 +745,7 @@ end subroutine set_ptc
 ! Subroutine taylor_equal_real_8 (bmad_taylor, y8)
 !
 ! Subroutine to convert from a real_8 taylor map in Etienne's PTC 
-! to a taylor map in BMAD. This does not do any
+! to a taylor map in Bmad. This does not do any
 ! conversion between Bmad units (z, dp/p0) and PTC units (dE/p0, c*t).
 !
 ! Subroutine overloads "=" in expressions
@@ -756,7 +795,7 @@ end subroutine taylor_equal_real_8
 !+
 ! Subroutine real_8_equal_taylor (y8, bmad_taylor)
 !
-! Subroutine to convert from a taylor map in BMAD to a
+! Subroutine to convert from a taylor map in Bmad to a
 ! real_8 taylor map in Etienne's PTC. This does not do any
 ! conversion between Bmad units (z, dp/p0) and PTC units (dE/p0, c*t).
 ! To convert coordinates, use the taylor_to_real_8 routine.
@@ -1178,7 +1217,7 @@ end subroutine real_8_init
 ! Subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor)
 !
 ! Subroutine to convert from a universal_taylor map in Etienne's PTC 
-! to a taylor map in BMAD.
+! to a taylor map in Bmad.
 !
 ! Modules needed:
 !   use ptc_interface_mod

@@ -15,6 +15,7 @@ the lattice as a whole and not simply associated with a single element.
 \index{p0c}\index{ran_seed}\index{absolute_time_tracking}
 \index{n_part}\index{no_end_marker}
 \index{rf_auto_scale_phase}\index{rf_auto_scale_amp}
+\index{ptc_exact_calc}\index{ptc_exact_misalign}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
 other variables. If branching is present (\sref{s:branching}), these
 variables pertain to the \vn{root} branch. The variables that can be
@@ -34,8 +35,10 @@ set by \vn{parameter} are
   parameter[rf_auto_scale_phase]    = <Logical>  ! RF automatic phase scaling.
   parameter[rf_auto_scale_amp]      = <Logical>  ! RF automatic amplitude scaling.
   parameter[root_branch_name]       = "<name>"   ! Name of the root branch.
-  parameter[taylor_order]  = <Integer>       ! Default: 3
-  parameter[use_single_ptc_fiber]   = <Logical>  ! Use single ptc fiber for calculations?
+  parameter[taylor_order]           = <Integer>  ! Default: 3
+  parameter[use_ptc_layout]         = <Logical>  ! Use single PTC fiber for calculations?
+  parameter[ptc_exact_calc]         = <Logical>  ! PTC to do "exact" tracking?
+  parameter[ptc_exact_misalignment] = <Logical>  ! PTC to "exactly" misalign elements?
 \end{example}
 
 \noindent
@@ -145,6 +148,9 @@ The \vn{absolute_time_tracking} switch sets whether the clock for the
 particle or to uses the absolute time (\sref{s:rf.time}). A value of
 \vn{False} (the default) mandates relative time and a value of
 \vn{True} mandates absolute time.
+
+\index{ptc_exact_calc}\index{ptc_exact_misalign}
+The \vn{ptc_exact_calc} and \vn{ptc_exact_misalign} switches 
 
 %-----------------------------------------------------------------------------
 \section{Beam_start Statement} \label{s:beam.start}

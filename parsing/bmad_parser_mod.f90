@@ -1046,6 +1046,14 @@ case ('RF_AUTO_SCALE_AMP')
 case ('CSR_CALC_ON')
   call get_logical (attrib_word, ele%csr_calc_on, err_flag)
 
+case ('PTC_EXACT_CALC')
+  call get_logical (attrib_word, logic, err_flag)
+  if (.not. err_flag) call set_ptc (exact_calc = logic)
+
+case ('PTC_EXACT_MISALIGN')
+  call get_logical (attrib_word, logic, err_flag)
+  if (.not. err_flag) call set_ptc (exact_misalign = logic)
+
 case ('MAP_WITH_OFFSETS')
   call get_logical (attrib_word, ele%map_with_offsets, err_flag)
 
