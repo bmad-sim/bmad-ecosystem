@@ -46,6 +46,7 @@ type (coord_struct), optional :: orbit_start, orbit_end
 type (ele_struct), optional :: ele_start, ele_end
 type (ele_struct) ele_here
 type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele0
 type (branch_struct), pointer :: branch
 
 real(rp) s_start, s_end
@@ -55,7 +56,7 @@ integer, optional :: ix_branch
 integer ix_start, ix_end
 integer ix_ele
 
-logical track_entrance, track_exit
+logical track_entrance, track_exit, error
 logical, optional :: err
 
 character(40), parameter :: r_name = 'twiss_and_track_from_s_to_s'
@@ -81,6 +82,7 @@ ix_start = element_at_s (lat, s_start, .true., ix_branch)
 if (branch%ele(ix_start)%s == s_start) then
   ix_start = modulo (ix_start, branch%n_ele_track) + 1
 endif
+ele0 => branch%ele(ix_start)
 s0 = branch%ele(ix_start-1)%s
 
 ix_end = element_at_s (lat, s_end, .true., ix_branch)
@@ -88,7 +90,7 @@ ix_end = element_at_s (lat, s_end, .true., ix_branch)
 ! Track within a single element case
 
 if (s_end > s_start .and. ix_start == ix_end) then
-  call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param, s_start-s0, s_end-s0, &
+  call twiss_and_track_intra_ele (ele0, branch%param, s_start-s0, s_end-s0, &
                       track_entrance, track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
   return
 endif
@@ -96,9 +98,13 @@ endif
 ! Track through multiple elements...
 ! First track to end of current element
 
-call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param, s_start-s0, branch%ele(ix_start)%value(l$), &
-            track_entrance, .true., orbit_start, orbit_end, ele_start, ele_end, err)
-if (err .or. .not. particle_is_moving_forward(orbit_end)) return
+call twiss_and_track_intra_ele (ele0, branch%param, s_start-s0, ele0%value(l$), &
+                      track_entrance, .true., orbit_start, orbit_end, ele_start, ele_end, error)
+if (present(err)) err = error
+if (error) return
+if (present(orbit_end)) then
+  if (.not. particle_is_moving_forward(orbit_end)) return
+endif
 
 ! Track to ending element
 
@@ -117,8 +123,9 @@ do
   if (present(ele_end)) then
     call transfer_twiss (ele_end, ele_here)
     ele_end%mat6 = branch%ele(ix_ele)%mat6
-    call twiss_propagate1 (ele_here, ele_end, err)
-    if (err) return
+    call twiss_propagate1 (ele_here, ele_end, error)
+    if (present(err)) err = error
+    if (error) return
   endif
 
   ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
@@ -127,6 +134,7 @@ enddo
 ! Track to s_end
 
 call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, &
-          0.0_rp, s_end-branch%ele(ix_end-1)%s, .true., track_exit, orbit_end, orbit_end, ele_end, ele_end)
+          0.0_rp, s_end-branch%ele(ix_end-1)%s, .true., track_exit, orbit_end, orbit_end, &
+          ele_end, ele_end)
 
 end subroutine
