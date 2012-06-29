@@ -693,7 +693,7 @@ integer, parameter :: aperture_limit_on$ = 89
 integer, parameter :: ptc_exact_misalign$ = 90
 integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90, ref_patch$ = 90
 integer, parameter :: ref_orbit$ = 91, term$ = 91, use_ptc_layout$ = 91
-integer, parameter :: x_position$ = 92, s_spline$ = 92, ptc_exact_calc$ = 92
+integer, parameter :: x_position$ = 92, s_spline$ = 92, ptc_exact_model$ = 92
 integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
 integer, parameter :: z_position$ = 94
 integer, parameter :: is_on$ = 95, theta_position$ = 95

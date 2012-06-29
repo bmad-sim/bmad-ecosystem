@@ -70,6 +70,9 @@ enddo
 call mat_make_unit (mat6_unit)
 n_ele = lat%n_ele_track
 
+! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
+
+lat%ele%bmad_logic = lat%ele%old_is_on
 call set_on_off (rfcavity$, lat, save_state$)
 call set_on_off (rfcavity$, lat, off$)
 
@@ -140,6 +143,8 @@ err_flag = .false.
 ! And reset
 
 9000 continue
+
 call set_on_off (rfcavity$, lat, restore_state$)
+lat%ele%old_is_on = lat%ele%bmad_logic
 
 end subroutine

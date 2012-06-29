@@ -20,8 +20,9 @@ interface operator (-)
 end interface
 
 type ptc_parameter_struct
-  logical exact_calc
+  logical exact_model
   logical exact_misalign
+  real(dp) phase0
 end type
 
 type ptc_common_struct
@@ -564,7 +565,7 @@ end subroutine type_fibre
 !------------------------------------------------------------------------
 !+
 ! Subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
-!                               n_step, no_cavity, exact_calc, exact_misalign)
+!                               n_step, no_cavity, exact_modeling, exact_misalign)
 !
 ! Subroutine to initialize PTC.
 ! Note: At some point before you use PTC to compute Taylor maps etc.
@@ -596,16 +597,16 @@ end subroutine type_fibre
 !                     Default = False.
 !                     Corresponds to the nocavity option of the PTC init routine.
 !                     Do not set this unless you know what you are doing.
-!   exact_calc   -- logical, optional: Sets the PTC EXACT_MODEL variable.
-!                     Default = False.
-!                     See the PTC guide for more details.
+!   exact_modeling -- logical, optional: Sets the PTC EXACT_MODEL variable.
+!                       Default = False.
+!                       See the PTC guide for more details.
 !   exact_misalign -- logical, optional: Sets the PTC ALWAYS_EXACTMIS variable.
 !                     Default = true.
 !                     See the PTC guide for more details.
 !-
 
 subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
-                                  n_step, no_cavity, exact_calc, exact_misalign) 
+                                  n_step, no_cavity, exact_modeling, exact_misalign) 
 
 use mad_like, only: make_states, exact_model, always_exactmis, &
               assignment(=), nocavity, default, operator(+), &
@@ -622,7 +623,7 @@ real(rp), optional :: e_tot
 real(rp), save :: old_e_tot = 0
 real(dp) this_energy
 
-logical, optional :: no_cavity, exact_calc, exact_misalign
+logical, optional :: no_cavity, exact_modeling, exact_misalign
 logical, save :: init_needed = .true., init2_needed = .true.
 logical params_present
 
@@ -657,7 +658,7 @@ if (init_needed .and. params_present) then
   PHASE0 = 0
 endif
 
-if (present (exact_calc))     EXACT_MODEL = exact_calc
+if (present (exact_modeling))     EXACT_MODEL = exact_modeling
 if (present (exact_misalign)) ALWAYS_EXACTMIS = exact_misalign
 if (present(no_cavity))       DEFAULT = DEFAULT+NOCAVITY
 
@@ -725,7 +726,7 @@ end subroutine set_ptc
 
 subroutine get_ptc_params (ptc_param)
 
-use mad_like, only: EXACT_MODEL, ALWAYS_EXACTMIS
+use mad_like, only: EXACT_MODEL, ALWAYS_EXACTMIS, DEFAULT, PHASE0
 
 implicit none
 
@@ -733,8 +734,9 @@ type (ptc_parameter_struct) ptc_param
 
 !
 
-ptc_param%exact_calc      = EXACT_MODEL
+ptc_param%exact_model     = EXACT_MODEL
 ptc_param%exact_misalign  = ALWAYS_EXACTMIS
+ptc_param%phase0          = PHASE0
 
 end subroutine get_ptc_params
 

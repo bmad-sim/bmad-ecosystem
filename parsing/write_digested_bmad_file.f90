@@ -33,13 +33,15 @@ subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, r
 
 use bmad_struct
 use equality_mod, only: operator(==)
+use ptc_interface_mod
 
 implicit none
 
 type (lat_struct), target, intent(in) :: lat
 type (branch_struct), pointer :: branch
 type (ran_parsing_struct), optional :: ran_p
-type (random_state_struct), save :: dummy_ran_state
+type (ran_parsing_struct), save :: dummy_ran_state
+type (ptc_parameter_struct) ptc_param
 
 real(rp) value(num_ele_attrib$)
 
@@ -166,13 +168,20 @@ do i = 1, ubound(lat%branch, 1)
   call write_this_wall3d (branch%wall3d)
 enddo
 
+! Write PTC info
+
+call get_ptc_params (ptc_param)
+write (d_unit) ptc_param
+
 ! Write random state info
 
 if (present(ran_p)) then
-  write (d_unit) ran_p%initial_state
+  write (d_unit) ran_p
 else
   write (d_unit) dummy_ran_state
 endif
+
+! End stuff
 
 close (d_unit)
 
@@ -180,6 +189,7 @@ if (present(err_flag)) err_flag = .false.
 
 return
 
+!------------------------------------------------------
 ! Errors
 
 9000  continue

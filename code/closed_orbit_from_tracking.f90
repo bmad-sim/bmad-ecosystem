@@ -95,6 +95,8 @@ nd = i_dim
 ! Make sure RF is on if i_dim = 6
 
 if (nd == 2 .or. nd == 4) then
+  ! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
+  lat%ele%bmad_logic = lat%ele%old_is_on
   call set_on_off (rfcavity$, lat, save_state$)
   call set_on_off (rfcavity$, lat, off$)
 elseif (nd == 6) then
@@ -144,8 +146,10 @@ do j = 1, jmax
 
   if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + &
                                        rel_err(1:nd) * amp(1:nd) ) ) then
-    if (nd == 2 .or. nd == 4) &
-                        call set_on_off (rfcavity$, lat, restore_state$)
+    if (nd == 2 .or. nd == 4) then
+      call set_on_off (rfcavity$, lat, restore_state$)
+      lat%ele%old_is_on = lat%ele%bmad_logic
+    endif
     bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
     lat%param%aperture_limit_on = aperture_saved
     if (present(err_flag)) err_flag = .false.

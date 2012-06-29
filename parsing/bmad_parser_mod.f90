@@ -1046,9 +1046,9 @@ case ('RF_AUTO_SCALE_AMP')
 case ('CSR_CALC_ON')
   call get_logical (attrib_word, ele%csr_calc_on, err_flag)
 
-case ('PTC_EXACT_CALC')
+case ('PTC_EXACT_MODEL')
   call get_logical (attrib_word, logic, err_flag)
-  if (.not. err_flag) call set_ptc (exact_calc = logic)
+  if (.not. err_flag) call set_ptc (exact_modeling = logic)
 
 case ('PTC_EXACT_MISALIGN')
   call get_logical (attrib_word, logic, err_flag)
