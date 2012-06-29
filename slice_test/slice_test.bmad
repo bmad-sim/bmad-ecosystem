@@ -1,0 +1,19 @@
+beginning[beta_a]  = 10  
+beginning[alpha_a] =  0    
+beginning[beta_b]  = 12
+beginning[alpha_b] =  0
+beginning[eta_a]   =  1.3
+beginning[etap_a]  =  0.1
+
+parameter[lattice_type] = linear_lattice
+beginning[e_tot]  = 7e5
+
+!
+
+sol: solenoid, ks = 0.3, l = 1
+s: sextupole, k2 = 0.7, l = 1
+b: sbend, angle = 0.3, l = 1, e1 = 0.1
+
+lat: line = (sol, s, b)
+use, lat
+
