@@ -30,12 +30,14 @@ subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag)
 use bmad_struct
 use bmad_interface, except_dummy => read_digested_bmad_file
 use multipole_mod
+use ptc_interface_mod
 
 implicit none
 
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
-type (random_state_struct) :: ran_state, digested_ran_state
+type (ran_parsing_struct) :: ran_state
+type (ptc_parameter_struct) ptc_param
 
 real(rp) value(num_ele_attrib$)
 
@@ -263,6 +265,24 @@ do i = 1, n_branch
   call read_this_wall3d (branch%wall3d, error)
   if (error) return
 enddo
+
+! Read PTC info
+
+read (d_unit, iostat = ios) ptc_param
+if (ios /= 0 .and. inc_version > 111) then
+  if (bmad_status%type_out) call out_io(s_error$, r_name, 'ERROR READING PTC PARAMETERS.')
+  close (d_unit)
+  return
+endif
+
+if (ios == 0) then
+  call set_ptc (exact_modeling = ptc_param%exact_model, exact_misalign = ptc_param%exact_misalign)
+endif
+
+! Read random state info.
+! At this point in time this is not used.
+
+read (d_unit, iostat = ios) ran_state
 
 ! And finish
 

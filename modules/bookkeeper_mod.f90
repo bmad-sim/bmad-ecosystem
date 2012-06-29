@@ -2959,6 +2959,21 @@ end subroutine set_flags_for_changed_real_attribute
 ! etc.) in a lattice. An element that is turned off acts like a drift.
 ! lat_make_mat6 will be called to remake lat%ele()%mat6.
 !
+! NOTE: When set_on_off is used with switch = save_state$ the state
+! of an element, ele%is_on, is saved in ele%old_is_on. That is, the saved
+! state "history" is only one level deep. A problem arises when a routine 
+! uses set_on_off with switch = save_state$ and then calls a routine which 
+! also calls set_on_off switch = save_state$. For example:
+!     call set_on_off (rfcavity$, lat, save_state$)
+!     call set_on_off (rfcavity$, lat, off$)
+!     call some_subroutine (lat)
+!     call set_on_off (rfcavity$, lat, restore_state$)
+! If some_subroutine also calls set_on_off with switch = save_state$ then
+! ele%old_is_on will be set to False erasing the saved state. The subsequent
+! call to set_on_off with switch = restore_state$ will switch all cavities off.
+! It is thus important to avoid this situation. To help avoid this situation,
+! All Bmad routines in the Bmad library will make sure to preserve ele%old_is_on.
+!
 ! Modules needed:
 !   use bmad
 !
