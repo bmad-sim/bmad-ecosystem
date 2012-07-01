@@ -203,5 +203,5 @@ endif
 # Set convenience aliases for release
 # selection and searching.
 #-------------------------------------------
-alias getf '/home/cesrulib/bin/util/getf.pl "\!*"'
-alias listf '/home/cesrulib/bin/util/listf.pl "\!*"'
+alias getf '/home/cesrulib/bin/util/getf "\!*"'
+alias listf '/home/cesrulib/bin/util/listf "\!*"'
