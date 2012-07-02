@@ -8,15 +8,15 @@ real(rp), parameter :: fourpi = 4 * pi
 real(rp), parameter :: sqrt_2 = 1.41421356237310d0
 real(rp), parameter :: sqrt_3 = 1.73205080757d0
 
-real(rp), parameter :: e_mass = 0.51099906d-3   ! DO NOT USE! In GeV
-real(rp), parameter :: p_mass   = 0.938271998d0   ! DO NOT USE! In GeV
+real(rp), parameter :: e_mass = 0.510998910d-3     ! DO NOT USE! In GeV
+real(rp), parameter :: p_mass   = 0.938272046d0    ! DO NOT USE! In GeV
 
-real(rp), parameter :: m_electron = 0.51099906d6   ! Mass in eV
-real(rp), parameter :: m_proton   = 0.938271998d9  ! Mass in eV
-real(rp), parameter :: m_muon     = 105.65838934d6 ! Mass in eV
+real(rp), parameter :: m_electron = 0.510998910d6  ! Mass in eV
+real(rp), parameter :: m_proton   = 0.938272046d9  ! Mass in eV
+real(rp), parameter :: m_muon     = 105.65836668d6 ! Mass in eV
 
 real(rp), parameter :: c_light = 2.99792458d8   ! speed of light
-real(rp), parameter :: r_e = 2.8179380d-15      ! classical electron radius
+real(rp), parameter :: r_e = 2.8179402894d-15      ! classical electron radius
 real(rp), parameter :: r_p = r_e * m_electron / m_proton  ! proton radius
 real(rp), parameter :: e_charge = 1.6021892d-19 ! electron charge
 
