@@ -97,7 +97,7 @@ plot_page%title(:)%y = 0.990
 plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
 plot_page%title(:)%units = '%PAGE'
-plot_page%size = [600, 800]
+plot_page%size = [400, 600]
 
 default_plot%name = ' '
 default_plot%x_axis_type = 'index'
