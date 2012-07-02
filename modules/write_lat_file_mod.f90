@@ -647,35 +647,35 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Encode methods, etc.
 
-    if (ele%mat6_calc_method /= ele_dflt%mat6_calc_method) &
+    if (ele_has(ele, 'MAT6_CALC_METHOD') .and. (ele%mat6_calc_method /= ele_dflt%mat6_calc_method)) &
                                       line = trim(line) // ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
-    if (ele%tracking_method /= ele_dflt%tracking_method) &
+    if (ele_has(ele, 'TRACKING_METHOD') .and. (ele%tracking_method /= ele_dflt%tracking_method)) &
                                       line = trim(line) // ', tracking_method = ' // calc_method_name(ele%tracking_method)
-    if (ele%spin_tracking_method /= ele_dflt%spin_tracking_method) &
+    if (ele_has(ele, 'SPIN_TRACKING_METHOD') .and. (ele%spin_tracking_method /= ele_dflt%spin_tracking_method)) &
                                       line = trim(line) // ', spin_tracking_method = ' // calc_method_name(ele%spin_tracking_method)
-    if (ele%field_calc /= ele_dflt%field_calc) &
+    if (ele_has(ele, 'FIELD_CALC') .and. (ele%field_calc /= ele_dflt%field_calc)) &
                                       line = trim(line) // ', field_calc = ' // field_calc_name(ele%field_calc)
 
-    if (ele%aperture_at /= ele_dflt%aperture_at) &
+    if (ele_has(ele, 'APERTURE_AT') .and. (ele%aperture_at /= ele_dflt%aperture_at)) &
                                       line = trim(line) // ', aperture_at = ' // aperture_at_name(ele%aperture_at)
-    if (ele%aperture_type /= ele_dflt%aperture_type) &
+    if (ele_has(ele, 'APERTURE_TYPE') .and. (ele%aperture_type /= ele_dflt%aperture_type)) &
                                       line = trim(line) // ', aperture_type = ' // aperture_type_name(ele%aperture_type)
 
-    if (ele%ref_orbit /= 0)           line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
+    if (ele_has(ele, 'REF_ORBIT') .and. (ele%ref_orbit /= 0)) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
 
-    if (ele%symplectify)              line = trim(line) // ', symplectify'
+    if (ele_has(ele, 'SYMPLECTIFY') .and. ele%symplectify) line = trim(line) // ', symplectify'
 
-    if (ele%field_master .neqv. ele_dflt%field_master) &
+    if (ele_has(ele, 'FIELD_MASTER') .and. (ele%field_master .neqv. ele_dflt%field_master)) &
                                       write (line, '(2a, l1)') trim(line), ', field_master = ', ele%field_master
-    if (ele%is_on .neqv. ele_dflt%is_on) &
+    if (ele_has(ele, 'IS_ON') .and. (ele%is_on .neqv. ele_dflt%is_on)) &
                                       write (line, '(2a, l1)') trim(line), ', is_on = ', ele%is_on
-    if (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles) &
+    if (ele_has(ele, 'SCALE_MULTIPOLES') .and. (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles)) &
                                       write (line, '(2a, l1)') trim(line), ', scale_multipoles = ', ele%scale_multipoles
-    if (ele%map_with_offsets .neqv. ele_dflt%map_with_offsets) &
+    if (ele_has(ele, 'MAP_WITH_OFFSETS') .and. (ele%map_with_offsets .neqv. ele_dflt%map_with_offsets)) &
                                       write (line, '(2a, l1)') trim(line), ', map_with_offsets = ', ele%map_with_offsets
-    if (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on) &
+    if (ele_has(ele, 'CSR_CALC_ON') .and. (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on)) &
                                       write (line, '(2a, l1)') trim(line), ', csr_calc_on = ', ele%csr_calc_on
-    if (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture) &
+    if (ele_has(ele, 'OFFSET_MOVES_APERTURE') .and. (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture)) &
                                       write (line, '(2a, l1)') trim(line), ', offset_moves_aperture = ', ele%offset_moves_aperture
 
     ! Multipass lord 
@@ -960,6 +960,21 @@ write (iu, *)
 expand_lat_out = .true.
 
 end subroutine write_expand_lat_header
+
+!--------------------------------------------------------------------------------
+! contains
+
+function ele_has (ele, name) result (has_it)
+
+type (ele_struct) ele
+character(*) name
+logical has_it
+
+!
+
+has_it = (attribute_index(ele, name) > 0)
+
+end function
 
 !--------------------------------------------------------------------------------
 ! contains

@@ -104,6 +104,7 @@ if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == line
   if (present(err_flag)) err_flag = .false.
   return
 endif
+
 ! Normal case
 
 if (ss1 < ss2) then 
@@ -457,7 +458,10 @@ do
   ! We only need to do the "split" bookkeeping if we are only partially tracking
   ! through the element and we have not done the bookkeeping before.
 
-  if (.not. track_entire_ele) then
+  if (track_entire_ele) then
+    if (present(orbit)) call track1 (orbit, runt, branch%param, orbit)
+
+  else
 
     ! Kill the saved matrix if it does not apply to the present integration step.
 
