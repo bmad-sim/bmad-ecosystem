@@ -272,7 +272,7 @@ end subroutine transfer_this_map
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start, err_flag)
+! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
@@ -298,6 +298,8 @@ end subroutine transfer_this_map
 !                   Default is 0.
 !   s2         -- Real(rp), optional: Element end index for the calculation.
 !                   Default is lat%param%total_length.
+!   orbit      -- coord_struct, optional: Starting coordinates of the reference orbit about 
+!                   which mat6 is made. Default is to make it around the zero-orbit.
 !   ix_branch  -- Integer, optional: Lattice branch index. Default is 0 (main branch).
 !   one_turn   -- Logical, optional: If present and True, and s1 = s2, and the lattice
 !                   is circular: Construct the one-turn matrix from s1 back to s1.
@@ -310,15 +312,18 @@ end subroutine transfer_this_map
 ! Output:
 !   mat6(6,6) -- Real(rp): Transfer matrix.
 !   vec0(6)   -- Real(rp): 0th order part of the map.
+!   orbit     -- coord_struct, optional: Ending coordinates of the reference orbit.
+!                  This is also the actual orbit of particle 
 !   err_flag  -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start, err_flag)
+subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
+type (coord_struct), optional :: orbit
 
 real(rp) mat6(:,:), vec0(:)
 real(rp), intent(in), optional :: s1, s2
@@ -357,21 +362,21 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then
-  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  ss2, error_flag)
+  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  ss2, error_flag, orbit)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%lattice_type == circular_lattice$) then
-  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  branch%param%total_length, error_flag)
+  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  branch%param%total_length, error_flag, orbit)
   if (error_flag) return
-  call transfer_this_mat (mat6, vec0, lat, branch, 0.0_rp, ss2, error_flag)
+  call transfer_this_mat (mat6, vec0, lat, branch, 0.0_rp, ss2, error_flag, orbit)
   if (error_flag) return
 
 ! For a linear lattice compute the backwards matrix
 
 else
-  call transfer_this_mat (mat6, vec0, lat, branch, ss2, ss1, error_flag)
+  call transfer_this_mat (mat6, vec0, lat, branch, ss2, ss1, error_flag, orbit)
   if (error_flag) return
   call mat_inverse (mat6, mat6)
   vec0 = -matmul(mat6, vec0)
@@ -386,12 +391,12 @@ end subroutine mat6_from_s_to_s
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag)
+! Subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag, orbit)
 !
 ! Private subroutine used by mat6_from_s_to_s
 !-
 
-subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag)
+subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag, orbit)
 
 use bookkeeper_mod, only: create_element_slice
 
@@ -403,6 +408,7 @@ type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt
 type (ele_struct), target, save :: runt_save
 type (ele_struct), target :: runt_nosave
+type (coord_struct), optional :: orbit
 
 real(rp) mat6(:,:), vec0(:)
 real(rp) s_1, s_2, s_end, s_now, ds
@@ -469,7 +475,7 @@ do
       call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
                                       branch%param, track_entrance, track_exit, error_flag)
       if (error_flag) exit
-      call make_mat6 (runt, branch%param)
+      call make_mat6 (runt, branch%param, orbit, orbit)
     endif
 
   endif
