@@ -122,10 +122,14 @@ do
 
   if (present(ele_end)) then
     call transfer_twiss (ele_end, ele_here)
+    ele_here%mat6 = ele_end%mat6
+    ele_here%vec0 = ele_end%vec0
     ele_end%mat6 = branch%ele(ix_ele)%mat6
     call twiss_propagate1 (ele_here, ele_end, error)
     if (present(err)) err = error
     if (error) return
+    ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + branch%ele(ix_ele)%vec0
+    ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
   endif
 
   ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
@@ -133,8 +137,18 @@ enddo
 
 ! Track to s_end
 
+if (present(ele_end)) then
+  ele_here%mat6 = ele_end%mat6
+  ele_here%vec0 = ele_end%vec0
+endif
+
 call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, &
           0.0_rp, s_end-branch%ele(ix_end-1)%s, .true., track_exit, orbit_end, orbit_end, &
           ele_end, ele_end)
+
+if (present(ele_end)) then
+  ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_end%vec0
+  ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
+endif
 
 end subroutine
