@@ -554,34 +554,36 @@ endif
 
 graph%valid = .false.
 
-do ic = 1, size(graph%curve)
-  curve => graph%curve(ic)
+if (allocated(graph%curve)) then
+  do ic = 1, size(graph%curve)
+    curve => graph%curve(ic)
 
-  ! Floor plan curves use all branches.
-  if (graph%type == 'floor_plan') then
-    u => tao_pointer_to_universe (graph%curve(ic)%ix_universe)
-    if (.not. associated(u)) return
-    n0_line = 0
-    n0_symb = 0
-    !! call deallocate_curve_arrays(curve)
-    branch_curve = graph%curve(ic)
+    ! Floor plan curves use all branches.
+    if (graph%type == 'floor_plan') then
+      u => tao_pointer_to_universe (graph%curve(ic)%ix_universe)
+      if (.not. associated(u)) return
+      n0_line = 0
+      n0_symb = 0
+      !! call deallocate_curve_arrays(curve)
+      branch_curve = graph%curve(ic)
 
-    do ib = 0, size(u%model%lat%branch)
-      curve%ix_branch = ib
-      call tao_curve_data_setup (plot, graph, branch_curve, err)
+      do ib = 0, size(u%model%lat%branch)
+        curve%ix_branch = ib
+        call tao_curve_data_setup (plot, graph, branch_curve, err)
+        if (err) return
+        n = n0_line + size(branch_curve%x_line)
+        !! call re_allocate (curve%x_line, n);  curve%x_line(n0_line+1:) = branch_curve%x_line
+        !! call re_allocate (curve%y_line, n);  curve%y_line(n0_line+1:) = branch_curve%y_line
+        
+      enddo
+
+    else
+      call tao_curve_data_setup (plot, graph, graph%curve(ic), err)
       if (err) return
-      n = n0_line + size(branch_curve%x_line)
-      !! call re_allocate (curve%x_line, n);  curve%x_line(n0_line+1:) = branch_curve%x_line
-      !! call re_allocate (curve%y_line, n);  curve%y_line(n0_line+1:) = branch_curve%y_line
-      
-    enddo
+    endif
 
-  else
-    call tao_curve_data_setup (plot, graph, graph%curve(ic), err)
-    if (err) return
-  endif
-
-enddo
+  enddo
+endif
 
 graph%valid = .true.
 
@@ -1223,7 +1225,7 @@ type (coord_struct), pointer :: orb_ref
 type (lat_struct), pointer :: lat
 type (ele_struct) ele, ele_dum
 type (ele_struct), pointer :: ele_ref
-type (coord_struct) here
+type (coord_struct) orbit, orbit_last
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 
@@ -1289,6 +1291,7 @@ endif
 ele_ref => branch%ele(ix_ref)
 orb_ref => orb(ix_ref)
 s_last = ele_ref%s
+orbit_last = orbit
 
 data_type_select = data_type
 if (data_type_select(1:2) == 'r.') data_type_select = 'r.'
@@ -1339,10 +1342,10 @@ do ii = 1, size(curve%x_line)
 
     ix_ele = element_at_s (lat, s_now, .true.)
     ele = branch%ele(ix_ele)
-    here = bunch_params%centroid
+    orbit = bunch_params%centroid
 
   case ('lat')
-    call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err, use_last)
+    call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, use_last)
     use_last = .true.  ! For next time around
     if (err) then
       good(ii:) = .false.
@@ -1350,8 +1353,7 @@ do ii = 1, size(curve%x_line)
     endif
 
   case default
-    call out_io (s_fatal$, r_name, &
-            'I DO NOT KNOW HOW TO HANDLE THIS curve%data_source: ' // curve%data_source)
+    call out_io (s_fatal$, r_name, 'I DO NOT KNOW HOW TO HANDLE THIS curve%data_source: ' // curve%data_source)
     call err_exit
   end select
 
@@ -1459,13 +1461,13 @@ do ii = 1, size(curve%x_line)
   case ('floor.z')
     value = ele%floor%z
   case ('e_tot')
-    if (here%beta == 0) then
+    if (orbit%beta == 0) then
       value = mass_of(branch%param%particle)
     else
-      value = here%p0c * (1 + here%vec(6)) / here%beta
+      value = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
     endif
   case ('momentum')
-    value = here%p0c * (1 + here%vec(6)) 
+    value = orbit%p0c * (1 + orbit%vec(6)) 
   case ('momentum_compaction')
     if (ii == 1) call mat_make_unit (mat6)
     mat6 = matmul(ele%mat6, mat6)
@@ -1484,25 +1486,25 @@ do ii = 1, size(curve%x_line)
   case ('norm_emit.z')
     value = bunch_params%z%norm_emit
   case ('orbit.x')
-    value = here%vec(1)
+    value = orbit%vec(1)
   case ('orbit.y')
-    value = here%vec(3)
+    value = orbit%vec(3)
   case ('orbit.z')
-    value = here%vec(5)
+    value = orbit%vec(5)
   case ('orbit.px')
-    value = here%vec(2)
+    value = orbit%vec(2)
   case ('orbit.py')
-    value = here%vec(4)
+    value = orbit%vec(4)
   case ('orbit.pz')
-    value = here%vec(6)
+    value = orbit%vec(6)
   case ('orbit.amp_a')
-    call orbit_amplitude_calc (ele, here, amp_a = value)
+    call orbit_amplitude_calc (ele, orbit, amp_a = value)
   case ('orbit.amp_b')
-    call orbit_amplitude_calc (ele, here, amp_b = value)
+    call orbit_amplitude_calc (ele, orbit, amp_b = value)
   case ('orbit.norm_amp_a')
-    call orbit_amplitude_calc (ele, here, amp_na = value)
+    call orbit_amplitude_calc (ele, orbit, amp_na = value)
   case ('orbit.norm_amp_b')
-    call orbit_amplitude_calc (ele, here, amp_nb = value)
+    call orbit_amplitude_calc (ele, orbit, amp_nb = value)
   case ('phase.a')
     value = ele%a%phi
   case ('phase.b')
@@ -1512,7 +1514,7 @@ do ii = 1, size(curve%x_line)
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
-    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, ix_branch, unit_start = .false.)
+    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, orbit_last, ix_branch, unit_start = .false.)
     value = mat6(i, j)
   case ('sigma.x')
     value = sqrt(bunch_params%sigma(s11$))
@@ -1527,7 +1529,7 @@ do ii = 1, size(curve%x_line)
   case ('sigma.pz')
     value = sqrt(bunch_params%sigma(s66$))
   case ('time')
-    value = here%t
+    value = orbit%t
   case ('t.')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
