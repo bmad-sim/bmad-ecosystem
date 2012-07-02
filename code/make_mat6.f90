@@ -28,8 +28,8 @@
 !   ele      -- Ele_struct: Element
 !     %mat6    -- Real(rp): 1st order 6x6 transfer matrix.
 !     %vec0    -- Real(rp): 0th order transfer vector.
-!   end_orb  -- Coord_struct, optional: Coordinates at the end of element.
-!                 end is an output if end_in is not set to True.
+!   end_orb  -- Coord_struct, optional: If end_in is not set to True:
+!                 Coordinates at the end of element.
 !   err_flag -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
