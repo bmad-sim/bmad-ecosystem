@@ -447,6 +447,9 @@ namelist / tao_d1_data / d1_data, data, datum, ix_d1_data, &
 
 call tao_hook_init_data() 
 if (.not. tao_com%init_data .or. data_file == '') then
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    call tao_init_data_in_universe (s%u(i), 0)
+  enddo
   call tao_init_data_end_stuff ()
   return
 endif
