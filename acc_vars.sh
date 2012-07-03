@@ -119,6 +119,14 @@ function has_substring() {
     fi
 }
 
+
+# Function to remove duplicate path entries for any path variable
+# passed as an argument.
+function remove_duplicates() {
+    echo ${1} | awk -F: '{for (i=1;i<=NF;i++) { if ( !x[$i]++ ) printf("%s:",$i); }}'
+}
+
+
 if ( [ "${ENV_USE_SNAPSHOTS}" == "Y" ] ) then
     ENV_SNAPSHOT_1="${HOME}/.ACC_env_snapshot_1.tmp"
     ENV_SNAPSHOT_2="${HOME}/.ACC_env_snapshot_2.tmp"
@@ -287,8 +295,8 @@ export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
 
 export ACC_GMAKE=${ACC_RELEASE_DIR}/Gmake
+export ACC_BUILD_SYSTEM=/nfs/acc/libs/build_system
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
-
 
 
 
@@ -351,8 +359,6 @@ case ${ACC_OS_ARCH} in
             # FIXME: Inherit from LIBRARY_PATH (not duplicated) as set by ifort setup scripts.
 	    source ${OPT_SOFTWARE_DIR}/intel/composerxe/bin/compilervars.sh intel64
 	fi
-	# 64-bit Intel Fortran (ifort) v9.1.052
-	#source /nfs/opt/intel/fce/9.1.052/bin/ifortvars.sh
 	;;
 
 esac
@@ -420,6 +426,7 @@ fi
 
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/solib:${ACC_RELEASE_DIR}/packages/lib
 
+
 #--------------------------------------------------------------
 # Useful aliases
 #--------------------------------------------------------------
@@ -448,6 +455,20 @@ function setrel64() {
     ACC_FORCE_32_BIT=N; ACC_RELEASE_REQUEST=${1}; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh
 }
 
+
+#--------------------------------------------------------------
+# Remove all duplicate path entries from variables composed during
+# the above process
+#--------------------------------------------------------------
+export PATH=`remove_duplicates ${PATH}`
+export LD_LIBRARY_PATH=`remove_duplicates ${LD_LIBRARY_PATH}`
+export DYLD_LIBRARY_PATH=`remove_duplicates ${DYLD_LIBRARY_PATH}`
+export MANPATH=`remove_duplicates ${MANPATH}`
+export LIBPATH=`remove_duplicates ${LIBPATH}`
+export LIBRARYPATH=`remove_duplicates ${LIBRARYPATH}`
+export SYSPATH=`remove_duplicates ${SYSPATH}`
+export PYTHONPATH=`remove_duplicates ${PYTHONPATH}`
+export SHLIB_PATH=`remove_duplicates ${SHLIB_PATH}`
 
 
 #--------------------------------------------------------------
