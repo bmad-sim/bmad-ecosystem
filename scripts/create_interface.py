@@ -389,7 +389,7 @@ if (associated(F%NAME)) then
   enddo
 endif
 '''
-      fp.to_f2_trans = '''
+        fp.to_f2_trans = '''
 if (n1_NAME == 0) then
   if (associated(F%NAME)) deallocate(F%NAME)
 else
@@ -398,7 +398,7 @@ else
   endif
   if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME))
   do jd1 = 1, n1_NAME
-    call coord_to_f (z_NAME(jd1), c_loc(z_NAME(jd1)))
+    call KIND_to_f (z_NAME(jd1), c_loc(F%NAME(jd1)))
   enddo
 endif
 '''
