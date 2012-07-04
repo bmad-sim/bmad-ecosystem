@@ -327,7 +327,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%NAME)) allocate (F%NAME)
   rhs = XXX + offset
-  F%NAME = NNN
+  SET
 endif
 '''
 
@@ -338,7 +338,7 @@ endif
 
       if type == TYPE:
         fp.to_f2_extra_var_type = 'type(KIND_struct), pointer'
-        fp.test_pat = fp.test_pat.replace('F%NAME = NNN', 'call set_KIND_test_pattern (F%NAME, ix_patt)')
+        fp.test_pat = fp.test_pat.replace('SET', 'call set_KIND_test_pattern (F%NAME, ix_patt)')
 
     #---------------------
     # Pointer, dim = 1
@@ -356,12 +356,14 @@ if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1)
 endif
 '''
-      fp.test_pat    = '''
+      tp1 = '''
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
   if (.not. associated(F%NAME)) allocate (F%NAME(-1:1))
-''' + x2 + jd1_loop + x2 + rhs1 + x2 + set1 + '  enddo\n' + 'endif\n'
+'''
+
+      fp.test_pat    = tp1 + x2 + jd1_loop + x2 + rhs1 + x2 + set1.replace('NNN', 'rhs') + '  enddo\n' + 'endif\n'
 
       if type == LOGIC:
         fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
@@ -374,6 +376,9 @@ else
         fp.to_c_var    = 'type(c_ptr), allocatable :: z_NAME(:)'
         fp.to_f2_extra_var_type = ''
         fp.to_f2_extra_var_name = ''
+        fp.test_pat    = tp1 + x2 + jd1_loop + x4 + \
+                        'call set_z_test_pattern (F%NAME(jd1+lb1), ix_patt+jd1)\n' + '  enddo\n' + 'endif\n'
+        ## fp.equality_test = fp.equality_test.replace
         fp.to_c_trans  = '''
 n1_NAME = 0
 if (associated(F%NAME)) then
@@ -457,7 +462,7 @@ else
 
     #----------
 
-    fp.test_pat = fp.test_pat.replace('NNN', test_value)
+    fp.test_pat = fp.test_pat.replace('SET', 'F%NAME = ' + test_value)
 
 #---------------------------
 # CHAR
@@ -525,19 +530,15 @@ class c_side_trans_class:
 
 #------------------
 
-to_c2_set_pointer = \
-'''
-  if (n1_NAME == 0) 
-    delete C.NAME;
+test_pat_pointer0 = \
+'''  if (ix_patt < 3) 
+    C.NAME = NULL;
   else {
-    C.NAME = new KIND;
-    SET
-  }
 '''
 
-test_pat_pointer = \
+test_pat_pointer1 = \
 '''  if (ix_patt < 3) 
-    C.NAME == NULL;
+    C.NAME.resize(0);
   else {
 '''
 
@@ -628,8 +629,15 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       if type == TYPE:
         c.constructor = 'NAME(C_KIND_Array(C_KIND(), DIM1))'
         c.to_c2_set   = for1 + ' KIND_to_c(z_NAME[i], C.NAME[i]);' 
-        c.test_pat    = test_pat1.replace('C.NAME[i] = NNN', 'set_C_KIND_test_pattern(C.NAME[i], ix_patt+i+1);')
-        c.to_f_setup  = '  const C_KIND* z_NAME[DIM1];\n' + for1 + ' z_NAME[i] = &C.NAME[i];\n'
+        c.test_pat    = test_pat1.replace('C.NAME[i] = NNN', 'set_C_KIND_test_pattern(C.NAME[i], ix_patt+i+1)')
+        c.to_f_setup  = '''
+  int n1_NAME = C.NAME.size();
+  const C_z** z_NAME = NULL;
+  if (n1_NAME != 0) {
+    z_NAME = new const C_z*[n1_NAME];
+    for (int i = 0; i < n1_NAME; i++) z_NAME[i] = &C.NAME[i];
+  }
+'''
 
     #-------------------------------------------------------
 
@@ -688,118 +696,140 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
 
     c_side_trans[type, dim, PTR] = copy.deepcopy(c)
     cp = c_side_trans[type, dim, PTR] 
-    cp.c_class       = c.c_class + '*'
-    cp.constructor   = 'NAME(NULL)'
-    cp.destructor    = 'delete NAME;'
-    cp.equality_test = equality_test_pointer.replace('TEST', 'is_all_equal(*x.NAME, *y.NAME)')
+    cp.constructor   = 'NAME(VALUE, 0)'
+    cp.destructor    = ''
 
-    if type != TYPE:
+    if type == TYPE:
+      cp.to_c2_arg     = 'KIND_struct** z_NAME'
+    else:
       cp.to_f2_arg     = c_arg + 'Arr'
       cp.to_c2_arg     = cp.to_f2_arg + ' z_NAME'
-    else:
-      cp.to_c2_arg     = 'KIND_struct* z_NAME'
 
     #------------------------------
     # Pointer, dim = 0
 
     if dim == 0:
-      cp.to_c2_set     = to_c2_set_pointer.replace('KIND', c_type).replace('n1_NAME', 'n_NAME')
-      cp.equality_test = equality_test_pointer.replace('TEST', '(*x.NAME == *y.NAME)')
-      cp.test_pat      = test_pat_pointer + '    C.NAME = new ' + c_type + ';\n' + \
+      cp.c_class       = c.c_class + '*'
+      cp.constructor   = 'NAME(NULL)'
+      cp.destructor    = 'delete NAME;'
+      cp.test_pat      = test_pat_pointer0 + '    C.NAME = new ' + c_type + ';\n' + \
                                     indent(c.test_pat.replace('C.NAME', '(*C.NAME)'), 2) + '  }\n'
       cp.to_f_setup    = '  int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;\n'
+      cp.equality_test = '''
+  is_eq = is_eq && ((x.NAME == NULL) == (y.NAME == NULL));
+  if (!is_eq) return false;
+  if (x.NAME != NULL) is_eq = (*x.NAME == *y.NAME);
+'''
+
+
+      cp.to_c2_set     = '''
+  if (n_NAME == 0)
+    delete C.NAME;
+  else {
+    C.NAME = new KIND;
+    SET
+  }
+'''.replace('KIND', c_type)
+
  
       if type == TYPE:
-        cp.test_pat   = cp.test_pat
-        cp.to_f2_call = '*C.NAME' 
-        cp.to_c2_set = cp.to_c2_set.replace('SET', 'KIND_to_c(z_NAME, *C.NAME);')
+        cp.test_pat      = cp.test_pat
+        cp.to_f2_call    = '*C.NAME' 
+        cp.to_c2_arg     = 'KIND_struct* z_NAME'
+        cp.to_c2_set     = cp.to_c2_set.replace('SET', 'KIND_to_c(z_NAME, *C.NAME);')
       else:
-        cp.to_c2_set = cp.to_c2_set.replace('SET', '*C.NAME = *z_NAME;')
+        cp.to_c2_set     = cp.to_c2_set.replace('SET', '*C.NAME = *z_NAME;')
 
     #------------------------------
     # Pointer, dim = 1
 
     if dim == 1:
       cp.to_f2_call  = 'z_NAME' 
-      cp.to_c2_set   = to_c2_set_pointer.replace('KIND', c_type + '_Array').replace('SET', \
-                                  '*C.NAME = ' + c_type + '_Array(z_NAME, n1_NAME);')
-      cp.test_pat    = test_pat_pointer + '    C.NAME = new ' + c_type + '_Array(3);\n' + \
-                                    indent(c.test_pat.replace('C.NAME', '(*C.NAME)'), 2) + '  }\n'
+      cp.to_c2_set   = '''
+  C.NAME.resize(n1_NAME);
+  C.NAME << z_NAME;
+'''
+      cp.test_pat    = test_pat_pointer1 + '    C.NAME.resize(3);\n' + indent(c.test_pat, 2) + '  }\n'
       cp.to_f_setup  = '''
-  int n1_NAME = 0;
+  int n1_NAME = C.NAME.size();
   c_TYPEArr z_NAME = NULL;
-  if (C.NAME != NULL) {
-    n1_NAME = (*C.NAME).size();
-    z_NAME = &(*C.NAME)[0];
+  if (n1_NAME > 0) {
+    z_NAME = &C.NAME[0];
   }
 '''.replace('TYPE', c_type)
 
       if type == TYPE:
-        cp.test_pat   = cp.test_pat.replace('C.NAME', 'C_KIND_test_pattern(C.NAME').replace(' = rhs', ', rhs)')
-        cp.to_f2_call = '*C.NAME' 
-  
+        cp.constructor = 'NAME(C_KIND_Array(C_KIND(), 0))'
+        cp.test_pat    = test_pat_pointer1 + '    C.NAME.resize(3);\n' + x2 + for1 + \
+            '  {set_C_KIND_test_pattern(C.NAME[i], ix_patt+i+1);}\n' + '  }\n'
+        cp.to_f_setup  = c.to_f_setup  
+        cp.to_c2_set   = '''
+  C.NAME.resize(n1_NAME);
+  for (int i = 0; i < n1_NAME; i++) KIND_to_c(z_NAME[i], C.NAME[i]);
+'''
+
     #------------------------------
     # Pointer, dim = 2
 
     if dim == 2:
-      s = '(*C.NAME).resize(n1_NAME);\n' + x2 + for1.replace('C.NAME', '(*C.NAME)') + '\n' + \
-          '      (*C.NAME)[i].resize(n2_NAME);\n' +  '    *C.NAME << z_NAME;\n'
-
-      cp.to_c2_set    = to_c2_set_pointer.replace('KIND', c_type + '_Matrix')\
-                                         .replace('SET', s)
-      cp.test_pat     = test_pat_pointer + '    C.NAME = new ' + c_type + '_Matrix(3);\n' + \
-                        indent((for1 + '\n    C.NAME[i].resize(2);\n' + c.test_pat)\
-                                .replace('C.NAME', '(*C.NAME)'), 2) + '  }\n'
+      cp.to_c2_set   = '''
+  C.NAME.resize(n1_NAME);
+  for (int i = 0; i < n1_NAME; i++) C.NAME[i].resize(n2_NAME);
+  C.NAME << z_NAME;
+'''
+      cp.test_pat     = test_pat_pointer1 + '    C.NAME.resize(3);\n' + \
+                        indent((for1 + '\n    C.NAME[i].resize(2);\n' + c.test_pat), 2) + '  }\n'
       cp.to_f_cleanup = '  delete z_NAME;\n' 
       cp.to_f_setup   = '''
   int n1_NAME = 0, n2_NAME = 0;
   TYPE* z_NAME = NULL;
   if (C.NAME != NULL) {
-    n1_NAME = (*C.NAME).size();
-    n2_NAME = (*C.NAME)[0].size();
-    z_NAME = new TYPE [(*C.NAME).size()*(*C.NAME)[0].size()];
-    matrix_to_vec (*C.NAME, z_NAME);
+    n1_NAME = C.NAME.size();
+    n2_NAME = C.NAME[0].size();
+    z_NAME = new TYPE [C.NAME.size()*C.NAME[0].size()];
+    matrix_to_vec (C.NAME, z_NAME);
   }
 '''.replace('TYPE', c_type)
 
       if type == TYPE:
+        cp.constructor = 'NAME(C_KIND_Array(C_KIND(), 0), 0)'
         cp.test_pat   = cp.test_pat.replace('C.NAME', 'C_KIND_test_pattern(C.NAME').replace(' = rhs', ', rhs)')
-        cp.to_f2_call = '*C.NAME' 
+        cp.to_c2_set   = '''
+  C.NAME.resize(n1_NAME);
+  for (int i = 0; i < n1_NAME; i++) {
+    C.NAME[i].resize(n2_NAME);
+    for (int j = 0; j < n2_NAME; j++) KIND_to_c(z_NAME[n2_NAME*i+j], C.NAME[i][j]);
+'''
   
     #------------------------------
     # Pointer, dim = 3
 
     if dim == 3:
-      s = '(*C.NAME).resize(n1_NAME);\n' + x2 + for1.replace('C.NAME', '(*C.NAME)') + '{\n' + \
-          '      (*C.NAME)[i].resize(n2_NAME);\n' +  x4 + for2.replace('C.NAME', '(*C.NAME)') + '\n' +\
-          x6 + '(*C.NAME)[i][j].resize(n3_NAME);\n' + x4 + '}\n' + x4 + '*C.NAME << z_NAME;\n'
+      s = 'C.NAME.resize(n1_NAME);\n' + x2 + for1 + '{\n' + \
+          '      C.NAME[i].resize(n2_NAME);\n' +  x4 + for2 + '\n' +\
+          x6 + 'C.NAME[i][j].resize(n3_NAME);\n' + x4 + '}\n' + x4 + 'C.NAME << z_NAME;\n'
 
       cp.to_c2_set = '''\
-  if (n1_NAME == 0) 
-    delete C.NAME;
-  else {
-    C.NAME = new TYPE_Tensor;
-    (*C.NAME).resize(n1_NAME);
-    for (int i = 0; i < (*C.NAME).size(); i++) {
-      (*C.NAME)[i].resize(n2_NAME);
-      for (int j = 0; j < (*C.NAME)[0].size(); j++)
-        (*C.NAME)[i][j].resize(n3_NAME);
-    }
-    *C.NAME << z_NAME;
+  C.NAME.resize(n1_NAME);
+  for (int i = 0; i < C.NAME.size(); i++) {
+    C.NAME[i].resize(n2_NAME);
+    for (int j = 0; j < C.NAME[0].size(); j++)
+      C.NAME[i][j].resize(n3_NAME);
   }
-'''.replace('TYPE', c_type)
+  C.NAME << z_NAME;
+'''
 
       cp.test_pat   = '''\
   if (ix_patt < 3) 
     C.NAME == NULL;
   else {
     C.NAME = new TYPE_Tensor(3);
-    for (int i = 0; i < (*C.NAME).size(); i++) {
-      (*C.NAME)[i].resize(2);
-      for (int j = 0; j < (*C.NAME)[0].size(); j++) {
-        (*C.NAME)[i][j].resize(1);
-        for (int k = 0; k < (*C.NAME)[0][0].size(); k++)
-          {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; (*C.NAME)[i][j][k] = NNN;}  
+    for (int i = 0; i < C.NAME.size(); i++) {
+      C.NAME[i].resize(2);
+      for (int j = 0; j < C.NAME[0].size(); j++) {
+        C.NAME[i][j].resize(1);
+        for (int k = 0; k < C.NAME[0][0].size(); k++)
+          {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; C.NAME[i][j][k] = NNN;}  
       }
     }
   }
@@ -810,13 +840,24 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
   int n1_NAME = 0, n2_NAME = 0, n3_NAME = 0;
   TYPE* z_NAME = NULL;
   if (C.NAME != NULL) {
-    n1_NAME = (*C.NAME).size();
-    n2_NAME = (*C.NAME)[0].size();
-    n3_NAME = (*C.NAME)[0][0].size();
-    z_NAME = new TYPE [(*C.NAME).size()*(*C.NAME)[0].size()*(*C.NAME)[0][0].size()];
-    tensor_to_vec (*C.NAME, z_NAME);
+    n1_NAME = C.NAME.size();
+    n2_NAME = C.NAME[0].size();
+    n3_NAME = C.NAME[0][0].size();
+    z_NAME = new TYPE [C.NAME.size()*C.NAME[0].size()*C.NAME[0][0].size()];
+    tensor_to_vec (C.NAME, z_NAME);
   }
 '''.replace('TYPE', c_type)
+
+      if type == TYPE:
+        cp.constructor = 'NAME(C_KIND_Matrix(C_KIND_Array(C_KIND(), DIM3), DIM2), DIM1)'
+        cp.to_c2_set   = '''
+  C.NAME.resize(n1_NAME);
+  for (int i = 0; i < n1_NAME; i++) {
+    C.NAME[i].resize(n2_NAME);
+    for (int j = 0; j < n2_NAME; j++) {
+      C.NAME[i][j].resize(n3_NAME);
+      KIND_to_c(z_NAME[n3_NAME*n2_NAME*i+n3_NAME*j+k], C.NAME[i][j][k]);
+'''
 
     #------------------------------
 
@@ -885,14 +926,14 @@ for name in input.struct_list:
 
 # Examples: 
 #  1) "type(abc), pointer :: a(:,:),b(7) = 23 ! Comment"
-#  2) "integer ZZZ"
+#  2) "integer abc"
 # Notice that only in example 2 is space significant.
 
 # Current restrictions. That is, syntax to avoid:
 #   1) Line continuations: '&'
 #   2) Dimensions: "integer, dimension(7) :: abc"
 #   3) Kind: "integer(kind = 8) abc"
-#   4) Variable inits using "," or "(" characters: "real ZZZ(2) = [1, 2]"
+#   4) Variable inits using "," or "(" characters: "real abc(2) = [1, 2]"
 
 re_end_type = re.compile('^\s*end\s*type')  # Match to: 'end type'
 re_match1 = re.compile('([,(]|::|\s+)')     # Match to: ',', '::', '(', ' '
@@ -1062,8 +1103,6 @@ for file_name in input.struct_def_files:
 ##################################################################################
 # Add Fortran and C++ side translation info.
 # Also throw out any sub-structures that are not to be translated.
-
-print str(input.component_ignore_list)
 
 for struct in struct_definitions:
 
