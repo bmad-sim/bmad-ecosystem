@@ -74,17 +74,6 @@ OFFLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
 OFFLINE_OPT_SOFTWARE_DIR='/nfs/opt'
 
 
-#--------------------------------------------------------------
-# Files to hold a 'printenv' environment snapshot before this
-# script defines all its variables, and again after for use
-# in the wrapper script that C-style shells only will source.
-# This is so that all the syntax remains in one language,
-# (bash) and need not be kept up-to-date between a bourne-shell
-# setup script and C-shell one.
-#
-# Take first environment snapshot for C-shell support.
-#--------------------------------------------------------------
-
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
 OLD_ACC_BIN=${ACC_BIN}
 
@@ -127,12 +116,21 @@ function remove_duplicates() {
 }
 
 
+#--------------------------------------------------------------
+# Files to hold a 'printenv' environment snapshot before this
+# script defines all its variables, and again after for use
+# in the wrapper script that only C-style shells will source.
+# This is so that all the syntax for environment setup remains
+# in one language, (bash) and need not be kept up-to-date
+# between a bourne-shell setup script and C-shell one.
+#
+# Take first environment snapshot for C-shell support.
+#--------------------------------------------------------------
 if ( [ "${ENV_USE_SNAPSHOTS}" == "Y" ] ) then
     ENV_SNAPSHOT_1="${HOME}/.ACC_env_snapshot_1.tmp"
     ENV_SNAPSHOT_2="${HOME}/.ACC_env_snapshot_2.tmp"
     printenv > ${ENV_SNAPSHOT_1}
 fi
-
 
 
 #--------------------------------------------------------------
@@ -144,11 +142,11 @@ CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
 
 
 #--------------------------------------------------------------
-# 'CESR ONLINE' hosts are interactive shell capable machines in
+# 'CESR ONLINE' hosts are interactive shell-capable machines
 # that follow the convention of having 'cesr' in their hostname.
 # If the machine on which this script is sourced is defined to
-# be a 'CESR_ONLINE' host, the follow value will be 
-# shell-TRUE(0) and (1) otherwise.
+# be a 'CESR_ONLINE' host, the following value will be 
+# shell-TRUE (0) and (1) otherwise.
 #
 #  TODO: Double check that no laboratory hostnames violate
 #        this convention.  'cesrweb'?
@@ -296,12 +294,13 @@ export ACCR=https://accserv.lepp.cornell.edu/svn/
 
 export ACC_GMAKE=${ACC_RELEASE_DIR}/Gmake
 export ACC_BUILD_SYSTEM=/nfs/acc/libs/build_system
+export ACC_CMAKE_VERSION=2.8
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 
 
 
 #--------------------------------------------------------------
-# Non-ACC naming convention variables. 
+# Non-ACC naming convention variables.
 # Named such for historical compatibility.
 # FIXME:  CESR_ONLINE  should be moved to a different script.
 #--------------------------------------------------------------
@@ -364,7 +363,6 @@ case ${ACC_OS_ARCH} in
 esac
 
 
-
 #--------------------------------------------------------------
 # Append necessary directories to the user's PATH environment
 # variable.
@@ -374,7 +372,11 @@ del_path ${OLD_ACC_BIN}
 add_path ${ACC_UTIL}
 add_path ${ACC_PKG}/bin
 add_path ${ACC_BIN}
-add_path ${PLATFORM_DIR}/extra/bin
+
+#--------------------------------------------------------------
+# Prepend path to guarantee proper cmake executable is used
+#--------------------------------------------------------------
+PATH=${PLATFORM_DIR}/extra/bin:$PATH
 
 
 #--------------------------------------------------------------
