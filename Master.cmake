@@ -74,9 +74,9 @@ message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 #   Path definitions
 #-----------------------------------
 IF (DEBUG)
-  set (OUTPUT_BASEDIR ../debug)
+  set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../debug)
 ELSE ()
-  set (OUTPUT_BASEDIR ../production)
+  set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
 ENDIF ()
 
 set (LIBRARY_OUTPUT_PATH ${OUTPUT_BASEDIR}/lib)
@@ -168,14 +168,30 @@ foreach(dir ${DIRS})
 endforeach(dir)
 
 
-
+#----------------------------------------------------------------
+# If any pre-build script is specified, run it before building
+# any code.  The pre-build script may generate code or header
+# files.
+#----------------------------------------------------------------
 IF (PREBUILD_ACTION)
   message("Executing pre-build action...")
   EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION})
 ENDIF ()
 
+
 add_library( ${LIBNAME} STATIC ${sources} )
 TARGET_LINK_LIBRARIES(${LIBNAME} ${DEPS})
+
+
+#----------------------------------------------------------------
+# Copy the contents of a config directory to 
+# <DIR>/../config/${LIBNAME} if one exists.
+#----------------------------------------------------------------
+IF (IS_DIRECTORY "../config")
+  message("Copying config directory contents to ${CMAKE_SOURCE_DIR}/../config/${LIBNAME}...")
+  file (MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../config")
+  EXECUTE_PROCESS (COMMAND cp -rfu ${CMAKE_SOURCE_DIR}/config ${CMAKE_SOURCE_DIR}/../config/${LIBNAME})
+ENDIF ()
 
 
 #----------------------------------------------------------------
