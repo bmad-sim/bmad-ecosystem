@@ -7,11 +7,11 @@
 "time_runge_kutta:diff:s"        0
 "time_runge_kutta:diff:t"        0
  
-"runge_kutta:vec(1)"   -4.3773842251E-03
-"runge_kutta:vec(2)"   -6.5925988744E-03
-"runge_kutta:vec(3)"   -1.0723648905E-02
-"runge_kutta:vec(4)"   -1.6108664276E-02
-"runge_kutta:vec(5)"   -1.0656614804E+00
-"runge_kutta:vec(6)"   -2.6073600801E-02
-"runge_kutta:s"        1.5000000000E+00
-"runge_kutta:t"        9.6694112867E-09
+"runge_kutta:vec(1)"   -4.3773877989E-03
+"runge_kutta:vec(2)"   -6.5926031275E-03
+"runge_kutta:vec(3)"   -1.0723657563E-02
+"runge_kutta:vec(4)"   -1.6108674581E-02
+"runge_kutta:vec(5)"   -1.0656610674E+00
+"runge_kutta:vec(6)"   -2.6073590485E-02
+"runge_kutta:s"   1.5000000000E+00
+"runge_kutta:t"   9.6694094434E-09

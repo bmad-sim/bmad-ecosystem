@@ -5,15 +5,25 @@ beginning[alpha_b] =  0
 beginning[eta_a]   =  1.3
 beginning[etap_a]  =  0.1
 
+!parameter[ptc_exact_model] = T
+!parameter[taylor_order] = 3
 parameter[lattice_type] = linear_lattice
-beginning[e_tot]  = 7e5
+beginning[e_tot]  = 7e6
+beam_start[x] = 0e-4
+beam_start[px] = 1e-4
 
 !
 
 sol: solenoid, ks = 0.3, l = 1
-s: sextupole, k2 = 0.7, l = 1
+s: sextupole, k2 = 0.7, l = 1, ds_step = 0.01
 b: sbend, angle = 0.3, l = 1, e1 = 0.1
 
 lat: line = (sol, s, b)
 use, lat
 
+d2: drift, l = 1
+s2: sextupole, k2 = 000, l = 0.001
+
+s2[k2] = 0
+lat2: line = (d2, s2, d2, d2)
+use, lat2
