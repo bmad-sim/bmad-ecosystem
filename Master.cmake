@@ -22,9 +22,11 @@ set(RELEASE_LIB ${RELEASE_DIR}/lib)
 set(PACKAGES_DIR ${RELEASE_DIR}/packages)
 
 
+
+#-------------------------------------------------------
 # Check to see if shared object creation is enabled.
-# If enabled, shared object libraries will only be created
-# for projects that define 
+# If enabled, shared object libraries will only be
+# created for projects that define 
 #   CREATE_SHARED
 # in their CmakeLists.txt file.
 #
@@ -59,6 +61,14 @@ ELSE ()
 ENDIF ()
 
 
+IF ($ENV{ACC_BUILD_EXES})
+  SET(BUILD_EXES 1)
+ELSE ()
+  SET(BUILD_EXES 0)
+ENDIF ()
+
+
+
 # Print some friendly build information
 #-----------------------------------------
 message("")
@@ -67,7 +77,7 @@ IF (DEBUG)
 ELSE ()
   message("Build type           : Production")
 ENDIF ()
-message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
+message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)\n")
 
 
 
@@ -137,14 +147,14 @@ SET(MASTER_LINK_DIRS
   ${PACKAGES_DIR}/lib
   ${PACKAGES_DIR}/root/lib
 )
-LINK_DIRECTORIES($MASTER_LINK_DIRS})
+LINK_DIRECTORIES(${MASTER_LINK_DIRS})
 
 
 
 # Collect list of all source files for all supported languages
 # from all directories mentioned in project CMakeLists.txt file.
 #----------------------------------------------------------------
-foreach(dir ${DIRS})
+foreach(dir ${SRC_DIRS})
     file(GLOB temp_contents ${dir}/*.c)
     LIST(APPEND sources ${temp_contents})
 
@@ -180,6 +190,7 @@ ENDIF ()
 
 
 add_library( ${LIBNAME} STATIC ${sources} )
+SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})  # new
 TARGET_LINK_LIBRARIES(${LIBNAME} ${DEPS})
 
 
@@ -215,8 +226,7 @@ foreach(dep ${DEPS})
 endforeach(dep)
 
 
-
-
+#----------------------------------------------------------------
 # For selectively producing shared object libraries (.so files).
 #
 # Shell variable ACC_ENABLE_SHARED needs to be set to 
@@ -232,4 +242,10 @@ IF (ENABLE_SHARED AND CREATE_SHARED)
 ENDIF ()
 
 
-
+#---------------------------------------------------------------
+# Process each EXE build description file mentioned in the
+# project's CMakeLists.txt file.
+#---------------------------------------------------------------
+foreach(exespec ${EXE_SPECS})
+    include(${exespec})
+endforeach(exespec)
