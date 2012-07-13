@@ -223,9 +223,20 @@ do ib = 0, ubound(lat%branch, 1)
           call multipass_chain(ele, lat, ix_pass, n_links)
           if (ix_pass /= 1) cycle
         endif
-        ! This adjusts the RF phase and amplitude
-        call ele_compute_ref_energy_and_time (lord, branch%param, &
+        ! This adjusts the RF phase and amplitude.
+        ! Note: Any multipass lord element where the reference energy is not constant must have n_ref_pass = 1.
+        if (lord%lord_status == multipass_lord$ .and. lord%value(n_ref_pass$) == 0) then
+          if (lord%value(p0c$) /= 0) then
+            call convert_pc_to(lord%value(p0c$), branch%param%particle, lord%value(e_tot$))
+          else
+            call convert_total_energy_to(lord%value(e_tot$), branch%param%particle, pc = lord%value(p0c$))
+          endif
+          call ele_compute_ref_energy_and_time (lord, branch%param, &
+                                              lord%value(e_tot$), lord%value(p0c$), 0.0_rp, err)
+        else
+          call ele_compute_ref_energy_and_time (lord, branch%param, &
                                               ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
+        endif
         if (err) return
         call control_bookkeeper (lat, lord)
       enddo
