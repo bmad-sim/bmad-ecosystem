@@ -276,11 +276,12 @@ implicit none
 
 type (sr3d_photon_track_struct) photon
 
-real(rp) pt0(3), pt1(3), pt2(3)
+real(rp) pt0(3), pt1(3), pt2(3), eps
 real(rp), optional :: dtrack_len
 real(rp) ratio
 real(rp) mat3(3,3), abc_vec(3)
 
+integer ip
 logical intersect, ok, line_intersect
 
 !
@@ -288,7 +289,7 @@ logical intersect, ok, line_intersect
 if (present(dtrack_len)) dtrack_len = -1
 
 ! Solve the matrix equation:
-!   photon_old + a * (photon_now - photon_old) = pt0 + b * (pt1 - pt0) + c * (pt2 = pt0)
+!   photon_old + a * (photon_now - photon_old) = pt0 + b * (pt1 - pt0) + c * (pt2 - pt0)
 
 mat3(1:3,1) = photon%now%vec(1:5:2) - photon%old%vec(1:5:2)
 mat3(1:3,2) = pt0 - pt1
@@ -303,13 +304,18 @@ endif
 abc_vec = matmul(mat3, pt0  - photon%old%vec(1:5:2))
 
 ! Intersection of photon trajectory between "old" and "now" positions with the triangle if:
-!   0 < a < 1
-!   0 < b
-!   0 < c
-!   b + c < 1
+!   0 <= a <= 1
+!   0 <= b
+!   0 <= c
+!   b + c <= 1
+! Roundoff errors can be a problem here. Better to count something as intersecting
+! that is not then miss something that is. So use eps.
+
+ip = precision(1.0_rp)  ! precision
+eps = 10.0_rp**(1-ip)   ! Something small used for preventing round off errors
 
 line_intersect = (abc_vec(1) >= 0 .and. abc_vec(2) >= 0 .and. &
-                  abc_vec(3) >= 0 .and. abc_vec(2) + abc_vec(3) <= 1)
+                  abc_vec(3) >= 0 .and. abc_vec(2) + abc_vec(3) <= 1+eps)
 
 intersect = (line_intersect .and. abc_vec(1) <= 1)
 

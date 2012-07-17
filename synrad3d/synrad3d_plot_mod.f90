@@ -277,7 +277,7 @@ endif
 ! Print wall info
 
 do i = 0, wall%n_pt_max
-  print '(i4, 2x, a, f12.2)', i, wall%pt(i)%basic_shape(1:12), wall%pt(i)%s
+  print '(i4, 2x, a, f12.2)', i, wall%pt(i)%basic_shape(1:16), wall%pt(i)%s
 enddo
 
 ! Loop
@@ -629,6 +629,7 @@ call sr3d_get_wall_index (photon%now, wall, ixp)
 photon%old%vec = 0
 photon%old%vec(5) = photon%now%vec(5)
 r_old = sqrt(photon%now%vec(1)**2 + photon%now%vec(3)**2)
+photon%now%track_len = photon%old%track_len + r_old
 
 if (wall%pt(ixp+1)%basic_shape == 'gen_shape_mesh') then
   do j = 1, 2*size(wall%pt(ixp)%gen_shape%wall3d_section%v)
@@ -637,6 +638,7 @@ if (wall%pt(ixp+1)%basic_shape == 'gen_shape_mesh') then
     if (is_through) then
       x_wall = dtrack * photon%now%vec(1) / r_old
       y_wall = dtrack * photon%now%vec(3) / r_old
+      photon%now%ix_triangle = j
       exit
     endif
   enddo
@@ -653,16 +655,15 @@ else
   endif
   x_wall = (r_old - d_radius) * photon%now%vec(1) / r_old
   y_wall = (r_old - d_radius) * photon%now%vec(3) / r_old
+endif
 
-  ! The length of the normal vector is 1 cm.
+! The length of the normal vector is 1 cm.
 
-  if (present(x1_norm)) then
-    photon%now%vec(1) = x_wall; photon%now%vec(3) = y_wall
-    call sr3d_photon_d_radius (photon%now, wall, d_radius, lat, dw_perp)
-    x1_norm = x_wall;                  y1_norm = y_wall
-    x2_norm = x_wall + dw_perp(1)/100; y2_norm = y_wall + dw_perp(2)/100
-  endif
-
+if (present(x1_norm)) then
+  photon%now%vec(1) = x_wall; photon%now%vec(3) = y_wall
+  call sr3d_photon_d_radius (photon%now, wall, d_radius, lat, dw_perp)
+  x1_norm = x_wall;                  y1_norm = y_wall
+  x2_norm = x_wall + dw_perp(1)/100; y2_norm = y_wall + dw_perp(2)/100
 endif
 
 end subroutine sr3d_find_wall_point
