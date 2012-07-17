@@ -610,7 +610,7 @@ end subroutine sr3d_emit_photon
 !   in_antechamber -- Logical, optional: At antechamber wall?
 !-
 
-Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, lat, dw_perp, in_antechamber, ix_tri)
+Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, lat, dw_perp, in_antechamber)
 
 implicit none
 
@@ -624,7 +624,6 @@ real(rp), optional :: dw_perp(3)
 real(rp) radius0, radius1, f, cos_ang, sin_ang, r_photon, disp
 real(rp) dr0_dtheta, dr1_dtheta, pt0(3), pt1(3), pt2(3), dp1(3), dp2(3)
 
-integer, optional :: ix_tri
 integer ix, ix_ele
 
 logical, optional :: in_antechamber
