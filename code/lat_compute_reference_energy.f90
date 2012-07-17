@@ -366,50 +366,28 @@ select case (key)
 
 case (lcavity$)
 
-  ! We can only use the formula dE = voltage * cos(phase) with bmad_standard$ tracking since with other 
-  ! tracking there is no guarantee that dE varies as cos(phase). Additionally, for multipass elements 
-  ! with tracking /= bmad_standard$, dE at phase = 0 may not even be equal to the voltage if this
-  ! is not the reference pass. 
-
-  if (ele%tracking_method == bmad_standard$) then
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-    E_tot = E_tot_start + ele%value(gradient$) * ele%value(field_scale$) * ele%value(l$) * cos(phase)
-    call convert_total_energy_to (E_tot, param%particle, pc = p0c, err_flag = err)
-    if (err) return
-    ele%value(E_tot$) = E_tot
-    ele%value(p0c$) = p0c
-
-    if (E_tot_start == E_tot) then
-      ele%ref_time = ref_time_start + ele%value(l$) * E_tot / (p0c * c_light)
-    else
-      ele%ref_time = ref_time_start + ele%value(l$) * &  ! lcavity with non-zero acceleration formula
-                (p0c - p0c_start) / ((E_tot - E_tot_start) * c_light)
-    endif
-
-  else
-    ! A zero e_tot (Can happen on first pass through this routine) can mess up tracking so put 
-    ! in a temp value if needed. This does not affect the phase & amp adjustment.
-    if (ele%value(e_tot$) == 0) then ! 
-      ele%value(E_tot$) = ele%value(e_tot_start$)      
-      ele%value(p0c$) = ele%value(p0c_start$)
-      ele%ref_time = ref_time_start
-    endif
-
-    if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
-      call rf_auto_scale_phase_and_amp (ele, param, err)
-      if (err) return
-    endif
-
-    ! Track
-
-    call track_this_ele (.false.)
-    ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
-    call calc_time_ref_orb_out
-
-    call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
-    if (err) return
-
+  ! A zero e_tot (Can happen on first pass through this routine) can mess up tracking so put 
+  ! in a temp value if needed. This does not affect the phase & amp adjustment.
+  if (ele%value(e_tot$) == 0) then ! 
+    ele%value(E_tot$) = ele%value(e_tot_start$)      
+    ele%value(p0c$) = ele%value(p0c_start$)
+    ele%ref_time = ref_time_start
   endif
+
+  if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
+    call rf_auto_scale_phase_and_amp (ele, param, err)
+    if (err) return
+  endif
+
+  ! Track
+
+  call track_this_ele (.false.)
+  ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
+  call calc_time_ref_orb_out
+
+  call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
+  if (err) return
+
 
 case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e$)
