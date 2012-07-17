@@ -47,7 +47,7 @@ real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const, voltage
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
 real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-real(rp) rel_pc, ff, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
+real(rp) rel_pc, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
 real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22, volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
@@ -243,7 +243,9 @@ case (lcavity$)
   pc_start = pc_start_ref * rel_pc
   call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
 
-  dphase = twopi * (ele%value(phi0_err$) - end_orb%vec(5) * ele%value(rf_frequency$) / (beta_start_ref * c_light))
+  dphase = twopi * (ele%value(phi0_err$) &
+                 + particle_time (end_orb, ele) * ele%value(rf_frequency$) &
+                 + ele%value(dphi0_ref$) )
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + dphase
 
   gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
@@ -608,9 +610,11 @@ case (rfcavity$)
       if (bmad_status%exit_on_error) call err_exit
       return
     endif
-    ff = twopi * ele%value(rf_frequency$) / c_light
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + ff * z
-    k  =  ff * cos(phase) / ele%value(p0c$)
+     
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)  - &
+                     (particle_time (end_orb, ele) * ele%value(rf_frequency$) + ele%value(dphi0_ref$) ) )
+    k  =  (twopi * ele%value(rf_frequency$) / c_light ) * cos(phase) / ele%value(p0c$)
+
   endif
 
   dE0 =  voltage * sin(phase) / ele%value(E_tot$)

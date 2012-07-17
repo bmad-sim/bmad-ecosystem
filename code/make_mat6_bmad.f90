@@ -211,7 +211,9 @@ case (lcavity$)
 
   f = twopi * ele%value(rf_frequency$) / (c0%beta * c_light)
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + &
-                            ele%value(phi0_err$)) - f * c0%vec(5)
+                            ele%value(phi0_err$) +  &
+                            particle_time (c0, ele) * ele%value(rf_frequency$) + &
+                            ele%value(dphi0_ref$) )
 
   cos_phi = cos(phase)
   gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) 
@@ -495,7 +497,9 @@ case (rfcavity$)
       return
     endif
     factor = twopi * ele%value(rf_frequency$) / c_light
-    phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + factor * c0%vec(5) 
+    phase = twopi * (ele%value(phi0$)+ele%value(dphi0$) - &
+                     (particle_time (c0, ele) * ele%value(rf_frequency$) + &
+                      ele%value(dphi0_ref$) ) )
     k  =  factor * voltage * cos(phase) / ele%value(p0c$)
   endif
 

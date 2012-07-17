@@ -118,7 +118,17 @@ if (.not. do_scale_phase .and. .not. do_scale_amp) return
 ! Init.
 ! Note: dphi0_ref is set in neg_pz_calc
 
-if (ele%tracking_method == bmad_standard$ .or. ele%tracking_method == mad$) return
+if (ele%tracking_method == mad$) return
+
+!bmad_standard with absolute_time_tracking just needs to set dphi0_ref
+if (ele%tracking_method == bmad_standard$) then
+  if (absolute_time_tracking(ele) ) then
+    ele%value(dphi0_ref$)   = - ele%value(rf_frequency$) * ele%value(ref_time_start$)
+  else
+    return
+  endif
+endif
+
 
 call pointers_to_rf_auto_scale_vars (ele, field_scale, dphi0_ref)
 dphi0_ref_original = dphi0_ref
