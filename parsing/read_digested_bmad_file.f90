@@ -27,8 +27,7 @@
 
 subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag)
 
-use bmad_struct
-use bmad_interface, except_dummy => read_digested_bmad_file
+use wall3d_mod
 use multipole_mod
 use ptc_interface_mod
 
@@ -209,11 +208,6 @@ read (d_unit, err = 9030)  &
         lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
         lat%use_ptc_layout, lat%pre_tracker
-
-if (bmad_inc_version$ == 110) then
-  if (lat%param%lattice_type == 10) lat%param%lattice_type = linear_lattice$
-  if (lat%param%lattice_type == 12) lat%param%lattice_type = circular_lattice$
-endif
 
 call read_this_wall3d (lat%wall3d, error)
 
@@ -407,7 +401,8 @@ if (file_version >= 99) then
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%ele_anchor_pt
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%ele_anchor_pt, &
+          ele%wall3d%priority, ele%bookkeeping_state
 endif
 
 ele%map_ref_orb_in  = map_ref_orb_in%vec

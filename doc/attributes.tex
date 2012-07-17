@@ -560,7 +560,7 @@ collimation is to be used with surface collimation.
 
 Examples:
 \begin{example}
-  q2: quad, aperture_type = elliptical  
+  q2: quad, aperture_type = elliptical, aperture_at = continuous
   q1: quad, l = 0.6, x1_limit = 0.045, offset_moves_aperture = T
   q1[y1_limit] = 0.03
   q1[y2_limit] = 0.03
@@ -710,6 +710,8 @@ Example:
         s = 0.34, 
         v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\} \} \}
 \end{example}
+In this example an element called \vn{this_cap} is a \vn{capillay}
+whose wall is defined by two cross-sections.
 
 The wall structure begins with ``\vn{wall = \{}'' and ends with a
 ``\vn{\}}''. In between are a number of individual cross-section
@@ -865,6 +867,13 @@ defined, the following syntax is used:
 \begin{example}
   ele_name[wall.section(n).v(j).x]   ! x value of j^th vertex of n^th cross-section
 \end{example}
+
+As an alternative, if an element defines an aperture (\sref{s:limit}
+with \vn{aperture_at} set to \vn{continuous}, and the element does
+{\it not} have a \vn{wall} structure defined for it, then the aperture
+defines the wall (which by construction has a constant cross-section).
+
+When superimposing elements (\sref{s:super}), walls must 
 
 %-----------------------------------------------------------------
 \section{Length Attributes}

@@ -1,6 +1,6 @@
 module bookkeeper_mod
 
-use bmad_interface
+use wall3d_mod
 use bmad_utils_mod
 use multipole_mod
 use lat_geometry_mod
@@ -86,7 +86,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
-type (bookkeeper_status_struct), pointer :: stat
+type (bookkeeping_state_struct), pointer :: stat
 
 integer i, j
 
@@ -142,34 +142,34 @@ if (.not. bmad_com%auto_bookkeeper) then
 
   stat => lat%lord_state
   if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
-      stat%length == stale$ .or. stat%ref_energy == stale$) then
+      stat%s_position == stale$ .or. stat%ref_energy == stale$) then
     call out_io (s_info$, r_name, 'Stale bookkeeping lord_status flags detected.', &
                                   'Please contact DCS!', 'Status: \5i6\ ', &
-            i_array = [stat%attributes, stat%control, stat%floor_position, stat%length, stat%ref_energy])
+            i_array = [stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
   endif
-  call reset_status_flags(stat)
+  call reset_status_flags_to_ok(stat)
 
   do i = 0, ubound(lat%branch, 1)
 
     branch => lat%branch(0)
     stat => branch%param%bookkeeping_state
     if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
-        stat%length == stale$ .or. stat%ref_energy == stale$) then
+        stat%s_position == stale$ .or. stat%ref_energy == stale$) then
       call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at: \i0\.', &
                                     'Please contact DCS!', 'Status: \5i6\ ', &
-              i_array = [i, stat%attributes, stat%control, stat%floor_position, stat%length, stat%ref_energy])
+              i_array = [i, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
     endif
-    call reset_status_flags(stat)
+    call reset_status_flags_to_ok(stat)
 
-    do j = 0, ubound(branch%ele, 1)
+    do j = 0, branch%n_ele_max
       stat => branch%ele(j)%bookkeeping_state
       if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
-          stat%length == stale$ .or. stat%ref_energy == stale$) then
+          stat%s_position == stale$ .or. stat%ref_energy == stale$) then
         call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at: \i0\, \i0\.', &
                                       'Please contact DCS!', 'Status: \5i6\ ', &
-              i_array = [i, j, stat%attributes, stat%control, stat%floor_position, stat%length, stat%ref_energy])
+              i_array = [i, j, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
       endif
-      call reset_status_flags(stat)
+      call reset_status_flags_to_ok(stat)
     enddo
 
   enddo
@@ -180,16 +180,16 @@ if (present(err_flag)) err_flag = .false.
 !----------------------------------------------------------
 contains
 
-subroutine reset_status_flags (stat)
-  type (bookkeeper_status_struct) stat
+subroutine reset_status_flags_to_ok (stat)
+  type (bookkeeping_state_struct) stat
 
   if (stat%control /= ok$        .and. stat%control /= super_ok$)        stat%control = ok$
   if (stat%attributes /= ok$     .and. stat%attributes /= super_ok$)     stat%attributes = ok$
   if (stat%floor_position /= ok$ .and. stat%floor_position /= super_ok$) stat%floor_position = ok$
-  if (stat%length /= ok$         .and. stat%length /= super_ok$)         stat%length = ok$
+  if (stat%s_position /= ok$         .and. stat%s_position /= super_ok$)         stat%s_position = ok$
   if (stat%ref_energy /= ok$     .and. stat%ref_energy /= super_ok$)     stat%ref_energy = ok$
 
-end subroutine reset_status_flags
+end subroutine reset_status_flags_to_ok
 
 end subroutine lattice_bookkeeper
 
@@ -446,7 +446,7 @@ character(40) :: r_name = 'super_lord_length_bookkeeper'
 !
 
 if (.not. bmad_com%auto_bookkeeper) then
-  if (lat%branch(0)%param%bookkeeping_state%length /= stale$) return
+  if (lat%branch(0)%param%bookkeeping_state%s_position /= stale$) return
 endif
 
 dl_tol = 10 * bmad_com%significant_length
@@ -464,7 +464,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     if (ele%ix_ele /= ie) cycle
   endif
 
-  if (.not. bmad_com%auto_bookkeeper .and. lord0%bookkeeping_state%length /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. lord0%bookkeeping_state%s_position /= stale$) cycle
 
   sum_len_slaves = 0
   do j = 1, lord0%n_slave
@@ -2240,7 +2240,7 @@ if (.not. bmad_com%auto_bookkeeper) then
   endif
 
   if (ele%old_value(l$) /= val(l$)) then
-    call set_ele_status_stale (ele, length_group$)
+    call set_ele_status_stale (ele, s_position_group$)
   endif
 
   if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. &
@@ -2812,7 +2812,7 @@ if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_
 
 if (associated(a_ptr, ele%value(l$))) then
   if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$) then
-    call set_ele_status_stale (ele, length_group$)
+    call set_ele_status_stale (ele, s_position_group$)
     call set_ele_status_stale (ele, floor_position_group$)
   endif
   if (ele%value(p0c$) /= ele%value(p0c_start$)) call set_ele_status_stale (ele, ref_energy_group$)

@@ -33,20 +33,24 @@ real(8) ss, s_end
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
-  if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%length /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%s_position /= stale$) cycle
+
   ! Branches that branch from another branch start from zero
-  if (branch%ix_from_branch > -1) branch%ele(0)%s = 0  
-  ss = branch%ele(0)%s
-  do n = 1, branch%n_ele_track
+  ele => branch%ele(0)
+  if (branch%ix_from_branch > -1) ele%s = 0  
+  if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
+
+  ss = ele%s
+  do n = 0, branch%n_ele_track
     ele => branch%ele(n)
+    if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
     ss = ss + ele%value(l$)
     ele%s = ss
-    if (ele%bookkeeping_state%length == stale$) ele%bookkeeping_state%length = ok$
   enddo
-  branch%param%total_length = ss - branch%ele(0)%s
-  branch%param%bookkeeping_state%length = ok$
-enddo
 
+  branch%param%total_length = ss - branch%ele(0)%s
+  branch%param%bookkeeping_state%s_position = ok$
+enddo
 
 ! Now fill in the s positions of the super_lords and zero everyone else.
 ! Exception: A null_ele lord element is the result of a superposition on a multipass section.
@@ -54,18 +58,18 @@ enddo
 
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
-  if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%length /= stale$) cycle
+  if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%s_position /= stale$) cycle
   if (lord%key == null_ele$) cycle
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
-  if (lord%lord_status == super_lord$) then
+  if (lord%lord_status == super_lord$ .or. lord%lord_status == overlay_lord$) then
     slave => pointer_to_slave(lord, lord%n_slave)
     lord%s = slave%s
   else
     lord%s = 0
   endif
-  lord%bookkeeping_state%length = ok$
+  lord%bookkeeping_state%s_position = ok$
 enddo
 
-lat%lord_state%length = ok$
+lat%lord_state%s_position = ok$
 
 end subroutine

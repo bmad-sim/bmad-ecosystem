@@ -1,7 +1,6 @@
 module capillary_mod
 
-use bmad_struct
-use bmad_interface
+use wall3d_mod
 
 type photon_coord_struct
   type (coord_struct) orb       ! Phase space: orb%vec = (x, vx/c, y, vy/c, s, vs/c)
@@ -107,7 +106,7 @@ character(40) :: r_name = 'capillary_track_photon_to_wall'
 
 ! Check if outside wall
 
-if (capillary_photon_d_radius (photon%now, ele) >= 0) then
+if (wall3d_d_radius (photon%now%orb%vec, ele, ix_section = photon%now%ix_section) >= 0) then
   photon%now%orb%state = lost$
   return
 endif
@@ -140,7 +139,7 @@ do
 
   call capillary_propagate_photon_a_step (photon, ele, dlen, .true.)
 
-  if (capillary_photon_d_radius (photon%now, ele) > 0) then
+  if (wall3d_d_radius (photon%now%orb%vec, ele, ix_section = photon%now%ix_section) > 0) then
     call capillary_photon_hit_spot_calc (photon, ele)
     return
   endif
@@ -321,7 +320,7 @@ real(rp) radius, d_track
 ! Easy case
 
 if (track_len == photon_com%now%track_len) then
-  d_radius = capillary_photon_d_radius (photon_com%now, ele_com)
+  d_radius = wall3d_d_radius (photon_com%now%orb%vec, ele_com)
   return
 endif
 
@@ -337,7 +336,7 @@ endif
 
 d_track = track_len - photon1_com%now%track_len
 call capillary_propagate_photon_a_step (photon1_com, ele_com, d_track, .false.)
-d_radius = capillary_photon_d_radius (photon1_com%now, ele_com) 
+d_radius = wall3d_d_radius (photon1_com%now%orb%vec, ele_com) 
 
 end function photon_hit_func
 
@@ -371,7 +370,7 @@ real(rp), pointer :: vec(:)
 ! perp is a vector perpendicular to the surface tangent plane
 
 photon%old = photon%now
-r = capillary_photon_d_radius (photon%now, ele, perp)
+r = wall3d_d_radius (photon%now%orb%vec, ele, perp)
 
 ! The component of the photon velocity that is perpendicular to the surface 
 ! tangent gets reflected.
@@ -387,123 +386,5 @@ energy = photon%now%orb%p0c
 if (graze_angle > ele%value(critical_angle_factor$) / energy) photon%now%orb%state = lost$
 
 end subroutine capillary_reflect_photon
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function capillary_photon_d_radius (p_orb, ele, perp, err_flag) result (d_radius)
-!
-! Routine to calculate the normalized radius = photon_radius - wall_radius.
-! Note: If the longitudinal position, p_orb%orb%vec(5), is outside the wall, the
-! wall is taken to have a uniform cross-section. 
-!
-! Input:
-!   p_orb   -- photon_coord_struct: Input coordinates.
-!   ele     -- ele_struct: Capillary element
-!
-! Output:
-!   d_radius  -- Real(rp), Normalized radius: r_photon - r_wall
-!   perp(3)   -- Real(rp), optional: Perpendicular normal to the wall.
-!   err_flag  -- Logical, optional: Set True if error, false otherwise.
-!-
-
-function capillary_photon_d_radius (p_orb, ele, perp, err_flag) result (d_radius)
-
-implicit none
-
-type (ele_struct), target :: ele
-type (photon_coord_struct), target :: p_orb
-type (wall3d_section_struct), pointer :: sec1, sec2
-
-real(rp) d_radius, r_photon, s_rel, spline, cos_theta, sin_theta
-real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
-real(rp) p1, p2, dp1, dp2
-real(rp), optional :: perp(3)
-real(rp), pointer :: vec(:)
-
-integer ix_w, n_slice, n_sec
-logical, optional :: err_flag
-
-character(32), parameter :: r_name = 'capillary_photon_d_radius' 
-
-! Calculate the photon radius and transverse angle.
-
-if (present(err_flag)) err_flag = .true.
-
-vec => p_orb%orb%vec
-
-if (vec(1) == 0 .and. vec(3) == 0) then
-  r_photon = 0
-  cos_theta = 1
-  sin_theta = 0
-else
-  r_photon = sqrt(vec(1)**2 + vec(3)**2)
-  cos_theta = vec(1) / r_photon
-  sin_theta = vec(3) / r_photon
-endif
-
-! Find the wall points (defined cross-sections) to either side of the particle.
-! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
-
-! The outward normal vector is discontinuous at the wall points.
-! If the particle is at a wall point, use the correct interval.
-! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
-
-n_sec = size(ele%wall3d%section)
-call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), vec(5), ix_w)
-if (vec(5) == ele%wall3d%section(ix_w)%s .and. vec(6) > 0) ix_w = ix_w - 1
-p_orb%ix_section = ix_w
-
-! Case where photon is outside the wall region.
-
-if (ix_w == 0 .or. ix_w == n_sec) then
-  if (ix_w == 0) then ! Outside wall region
-    sec1 => ele%wall3d%section(1)
-  else
-    sec1 => ele%wall3d%section(n_sec)
-  endif
-
-  call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
-  d_radius = r_photon - r1_wall
-  if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
-                            [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_photon
-  if (present(err_flag)) err_flag = .false.
-  return
-endif
-
-! Normal case where photon in inside the wall region.
-! sec1 and sec2 are the cross-sections to either side of the photon.
-! Calculate the radius values at the cross-sections.
-
-sec1 => ele%wall3d%section(ix_w)
-sec2 => ele%wall3d%section(ix_w+1)
-
-call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
-call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
-
-! Interpolate to get d_radius
-
-ds = sec2%s - sec1%s
-s_rel = (vec(5) - sec1%s) / ds
-p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
-p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
-
-d_radius = r_photon - (p1 * r1_wall + p2 * r2_wall)
-
-! Calculate the surface normal vector
-
-if (present (perp)) then
-  perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
-                        (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_photon
-  dp1 = -1 + sec1%p1_coef(1) + 2 * sec1%p1_coef(2)*s_rel + 3 * sec1%p1_coef(3)*s_rel**2
-  dp2 =  1 + sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
-  perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds
-  perp = perp / sqrt(sum(perp**2))  ! Normalize vector length to 1.
-endif
-
-if (present(err_flag)) err_flag = .false.
-
-end function capillary_photon_d_radius
 
 end module

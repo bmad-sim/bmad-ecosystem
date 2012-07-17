@@ -131,6 +131,7 @@ lord => lat%ele(ix_lord)
 lord%lord_status = group_lord$
 lord%key = group$
 lord%ix_value = command$
+call set_ele_defaults (lord)
 
 if (n_control == 0) return ! If no slaves then nothing to do.
 
@@ -312,11 +313,12 @@ do i = 1, n_control
 
 enddo
 
-! final bookkeping
+! End stuff
 
 lord%ix2_slave = n_con
 lord%n_slave = n_con - lord%ix1_slave + 1
 lat%n_control_max = n_con
+
 err = .false.
 
 !---------------------------------------------------------------------------

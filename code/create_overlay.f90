@@ -91,6 +91,7 @@ if (err) return
 
 lord%lord_status = overlay_lord$
 lord%key = overlay$
+call set_ele_defaults(lord)
 
 call str_upcase (at_name, attrib_name)
 ix_attrib =  attribute_index (lord, at_name)
@@ -177,6 +178,8 @@ do i = 1, lord%n_slave
   lat%ic(slave%ic2_lord) = ix_con
 
 enddo
+
+! Finish: Do control bookkeeping.
 
 call control_bookkeeper (lat, lord)
 

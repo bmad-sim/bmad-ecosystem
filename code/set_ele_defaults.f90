@@ -16,12 +16,13 @@
 subroutine set_ele_defaults (ele)
 
 use bmad_struct
+use bmad_interface
 
 implicit none
 
 type (ele_struct) ele
 
-!
+! %value() inits
 
 select case (ele%key)
 
@@ -89,6 +90,42 @@ case (e_gun$)
   ele%tracking_method = time_runge_kutta$
   ele%mat6_calc_method = tracking$
   ele%value(field_scale$) = 1
+
+end select
+
+! %bookkeeping_state inits
+! Note: Groups, for example, do not have a reference energy, etc. so set the bookkeeping
+! state to OK$ for these categories.
+
+call set_status_flags (ele%bookkeeping_state, stale$)
+
+select case (ele%key)
+
+case (group$)
+  ele%bookkeeping_state%attributes     = ok$
+  ele%bookkeeping_state%s_position     = ok$
+  ele%bookkeeping_state%floor_position = ok$
+  ele%bookkeeping_state%ref_energy     = ok$
+  ele%bookkeeping_state%mat6           = ok$
+  ele%bookkeeping_state%rad_int        = ok$
+
+case (overlay$)
+  ele%bookkeeping_state%attributes     = ok$
+  ele%bookkeeping_state%mat6           = ok$
+  ele%bookkeeping_state%rad_int        = ok$
+
+case (girder$)
+  ele%bookkeeping_state%attributes     = ok$
+  ele%bookkeeping_state%ref_energy     = ok$
+  ele%bookkeeping_state%mat6           = ok$
+  ele%bookkeeping_state%rad_int        = ok$
+
+case (init_ele$)
+  ele%bookkeeping_state%rad_int        = ok$
+  ele%bookkeeping_state%control        = ok$
+
+case default
+  ele%bookkeeping_state%control        = ok$
 
 end select
 

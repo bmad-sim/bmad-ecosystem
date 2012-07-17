@@ -1108,7 +1108,7 @@ lat%lattice = ' '
 lat%input_file_name = ' '
 
 lat%param = param0
-call set_status_flags (lat%param%bookkeeping_state, ok$)
+call set_status_flags (lat%param%bookkeeping_state, stale$)
 
 call init_mode_info (lat%a)
 call init_mode_info (lat%b)
@@ -1790,6 +1790,7 @@ ele%component_name = ' '
 
 ele%key = integer_option (0, key)
 ele%sub_key = integer_option (0, sub_key)
+if (present(key)) call set_ele_defaults(ele)
 
 ele%value(:) = 0
 ele%old_value(:) = 0
@@ -1813,7 +1814,7 @@ ele%ref_time = 0
 ele%ix_branch = 0
 ele%ix_ele = -1
 
-call set_status_flags (ele%bookkeeping_state, ok$, 0)
+call set_status_flags (ele%bookkeeping_state, stale$)
 
 if (present(ix_branch)) ele%ix_branch = ix_branch
 if (present(ix_ele)) ele%ix_ele = ix_ele
@@ -2045,6 +2046,7 @@ if (logic_option(.false., init_ele0) .and. curr_ub == -1) then
   ele(0)%name = 'BEGINNING'
   ele(0)%key = init_ele$
   call mat_make_unit (ele(0)%mat6)
+  call set_ele_defaults(ele(0))
 endif
 
 end subroutine allocate_element_array
@@ -2127,7 +2129,7 @@ do i = curr_ub+1, ub
   allocate(lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
   allocate(lat%branch(i)%wall3d)
   lat%branch(i)%param = lat%param
-  call set_status_flags (lat%branch(i)%param%bookkeeping_state, ok$, 0)
+  call set_status_flags (lat%branch(i)%param%bookkeeping_state, stale$)
 end do
 
 end subroutine allocate_branch_array
@@ -2994,7 +2996,7 @@ end function gradient_shift_sr_wake
 !     %bookkeeping_state   -- Status block to set.
 !   status_group  -- Integer: Which flag groups to set. Possibilities are:
 !                      attribute_group$, control_group$, floor_position_group$,
-!                      length_group$, ref_energy_group$, or mat6_group$, all_groups$
+!                      s_position_group$, ref_energy_group$, or mat6_group$, all_groups$
 !   set_slaves    -- Logical, optional: If present and False then do not set
 !                      the status for any slaves. Default is True.
 !-
@@ -3003,7 +3005,7 @@ recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
 
 implicit none
 
-type (bookkeeper_status_struct), pointer :: state
+type (bookkeeping_state_struct), pointer :: state
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave
 integer status_group, i
@@ -3038,8 +3040,8 @@ case (floor_position_group$)
   call set_floor_position
   call set_mat6
 
-case (length_group$)
-  call set_length
+case (s_position_group$)
+  call set_s_position
   call set_floor_position
   call set_mat6
 
@@ -3059,7 +3061,7 @@ case (all_groups$)
   call set_control
   call set_ref_energy
   call set_floor_position
-  call set_length
+  call set_s_position
   call set_mat6
   call set_rad_int
 
@@ -3108,16 +3110,17 @@ end subroutine set_floor_position
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine set_length
+subroutine set_s_position
   if (ele%key == overlay$ .or. ele%key == group$) return
-  ele%bookkeeping_state%length = stale$
-  if (associated(state)) state%length = stale$
-end subroutine set_length
+  ele%bookkeeping_state%s_position = stale$
+  if (associated(state)) state%s_position = stale$
+end subroutine set_s_position
 
 !----------------------------------------------------------------------------
 ! contains
 
 subroutine set_ref_energy
+  if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%ref_energy = stale$
   if (associated(state)) state%ref_energy = stale$
 end subroutine set_ref_energy
@@ -3126,6 +3129,7 @@ end subroutine set_ref_energy
 ! contains
 
 subroutine set_rad_int
+  if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%rad_int = stale$
   if (associated(state)) state%rad_int = stale$
 end subroutine set_rad_int
@@ -3150,38 +3154,33 @@ end subroutine set_ele_status_stale
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_status_flags (status_block, stat, n_modify)
+! Subroutine set_status_flags (bookkeeping_state, stat)
 !
 ! Routine to set the bookkeeping status block.
 !
 ! Input:
 !   stat          -- Integer: bookkeeping status. ok$, stale$, etc.
-!   n_modify      -- Integer: Number to set stat%n_modify to
 !
 ! Output:
-!   status_block -- bookkeeper_status_struct: 
+!   bookkeeping_state -- bookkeeping_state_struct: 
 !-
 
-subroutine set_status_flags (status_block, stat, n_modify)
+subroutine set_status_flags (bookkeeping_state, stat)
 
 implicit none
 
-type (bookkeeper_status_struct) status_block
+type (bookkeeping_state_struct) bookkeeping_state
 integer stat
-integer, optional :: n_modify
-logical no_keep
 
 !
 
-status_block%control        = stat
-status_block%length         = stat
-status_block%floor_position = stat
-status_block%ref_energy     = stat
-status_block%attributes     = stat
-status_block%mat6           = stat
-status_block%rad_int        = stat
-
-!! if (present(n_modify)) status_block%n_modify = n_modify
+bookkeeping_state%control        = stat
+bookkeeping_state%s_position     = stat
+bookkeeping_state%floor_position = stat
+bookkeeping_state%ref_energy     = stat
+bookkeeping_state%attributes     = stat
+bookkeeping_state%mat6           = stat
+bookkeeping_state%rad_int        = stat
 
 end subroutine set_status_flags
 

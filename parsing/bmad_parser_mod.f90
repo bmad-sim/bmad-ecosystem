@@ -205,6 +205,7 @@ subroutine parser_set_attribute (how, ele, lat, delim, delim_found, &
                                              err_flag, print_err, pele, check_free)
 
 use random_mod
+use wall3d_mod
        
 implicit none
 
@@ -3235,6 +3236,10 @@ lord%ix1_slave = 0
 lord%ix2_slave = -1
 call add_lattice_control_structs (lat, lord)
 if (lord%key == sbend$ .and. lord%ref_orbit == 0) lord%ref_orbit = single_ref$
+! Multipass_lord does not have a reference energy or s_position, etc. 
+lord%bookkeeping_state%ref_energy = ok$   
+lord%bookkeeping_state%s_position = ok$   
+lord%bookkeeping_state%mat6       = ok$   
 
 ! Setup bookkeeping between lord and slaves
 
