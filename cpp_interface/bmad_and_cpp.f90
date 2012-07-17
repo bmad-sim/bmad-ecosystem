@@ -956,7 +956,7 @@ use bmad_interface
 implicit none
 
 type (lat_param_struct) f_lat_param
-type (bookkeeper_status_struct) book_stat
+type (bookkeeping_state_struct) book_stat
 real(rp) n_part, total_length, growth_rate
 real(rp) m1(36), m2(36)
 integer particle, lat_type, ixx, stable, ap_limit_on

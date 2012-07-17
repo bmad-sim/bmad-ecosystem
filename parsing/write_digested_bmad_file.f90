@@ -279,7 +279,8 @@ write (d_unit) &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%ele_anchor_pt
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%ele_anchor_pt, &
+          ele%wall3d%priority, ele%bookkeeping_state
 
 ! This compresses the ele%value array
 

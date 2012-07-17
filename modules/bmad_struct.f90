@@ -9,7 +9,6 @@ module bmad_struct
 use twiss_mod
 use bmad_taylor_mod
 use random_mod
-use wall3d_mod
 
 use definition, only: genfield, fibre
 
@@ -21,7 +20,7 @@ use definition, only: genfield, fibre
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 111
+integer, parameter :: bmad_inc_version$ = 112
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -30,6 +29,61 @@ integer, parameter :: bmad_inc_version$ = 111
 ! num_ele_attrib$ is size of ele%value(:) array.
 
 integer, parameter :: num_ele_attrib$ = 70
+
+! wall3d definitions.
+
+integer, parameter :: anchor_beginning$ = 1, anchor_center$ = 2, anchor_end$ = 3
+character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Center   ', 'End      ']
+
+integer, parameter :: primary$ = 1, secondary$ = 2, ignore$ = 3
+character(12), parameter :: wall_priority_name(0:3) = ['GARBAGE! ', 'Primary  ', 'Secondary', 'Ignore   ']
+
+! Structures for defining cross-sections of beam pipes and capillaries
+! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.
+! Each vertex v(i) defines a point on the pipe/capillary.
+! Vertices are connected by straight lines, circular arcs, or ellipses.
+! The radius and tilt values are for the arc from the preceding vertex to this one.
+! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
+!   n = upper bound of v(:) array.
+
+type wall3d_vertex_struct
+  real(rp) x, y             ! Coordinates of the vertex.
+  real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
+  real(rp) :: radius_y = 0  ! Ellipse y-axis half height. 
+  real(rp) :: tilt = 0      ! Tilt of ellipse
+  real(rp) angle            ! Angle of (x, y) point.
+  real(rp) x0, y0           ! Center of ellipse
+end type
+
+! A beam pipe or capillary cross section is a collection of vertexes.
+! Vertices are always ordered in increasing angle.
+
+type wall3d_section_struct
+  integer type
+  real(rp) :: s = 0                     ! Longitudinal position
+  integer n_vertex_input                ! Number of vertices specified by the user.
+  type (wall3d_vertex_struct), allocatable :: v(:) 
+                                        ! Array of vertices
+  ! Center of wall spline
+  real(rp) :: x0 = 0, y0 = 0            ! Center of wall
+  real(rp) :: dx0_ds = 0                ! Center of wall derivative
+  real(rp) :: dy0_ds = 0                ! Center of wall derivative
+  real(rp) :: x0_coef(0:3) = 0          ! Spline coefs for x-center
+  real(rp) :: y0_coef(0:3) = 0          ! Spline coefs for y-center
+  ! Wall radius spline
+  real(rp) :: dr_ds = real_garbage$  ! derivative of wall radius 
+  real(rp) :: p1_coef(3) = 0            ! Spline coefs for p0 function
+  real(rp) :: p2_coef(3) = 0            ! Spline coefs for p1 function
+
+end type
+
+! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
+
+type wall3d_struct
+  integer :: priority = secondary$                  ! ignore$, secondary$, primary$
+  integer :: ele_anchor_pt = anchor_beginning$      ! anchor_beginning$, anchor_center$, or anchor_end$
+  type (wall3d_section_struct), pointer :: section(:) => null()  
+end type  
 
 ! ele%aperture_at logical definitions.
 
@@ -300,22 +354,22 @@ end type
 
 integer, parameter :: super_ok$ = 0, stale$ = 2
 integer, parameter :: attribute_group$ = 1, control_group$ = 2, floor_position_group$ = 3
-integer, parameter :: length_group$ = 4, ref_energy_group$ = 5, mat6_group$ = 6
+integer, parameter :: s_position_group$ = 4, ref_energy_group$ = 5, mat6_group$ = 6
 integer, parameter :: rad_int_group$ = 7, all_groups$ = 8
 
-! The bookkeeper_status_struct is used for keeping track of what bookkeeping has
+! The bookkeeping_state_struct is used for keeping track of what bookkeeping has
 ! been done on an element. NOTE: The information in this structure is ignored if 
 ! bmad_com%auto_bookkeeper = True which is the default.
 ! See the Bmad manual for more details.
 
-type bookkeeper_status_struct
-  integer :: attributes = ok$      ! Element dependent attributes: super_ok$, ok$ or stale$
-  integer :: control = ok$         ! Lord/slave bookkeeping status: super_ok$, ok$ or stale$ 
-  integer :: floor_position = ok$  ! Global (floor) geometry: super_ok$, ok$ or stale$
-  integer :: length = ok$          ! Length: super_ok$, ok$ or stale$
-  integer :: ref_energy = ok$      ! Reference energy and ref time: super_ok$, ok$ or stale$
-  integer :: mat6 = ok$            ! Linear transfer map status: super_ok$, ok$ or stale$
-  integer :: rad_int = ok$         ! Radiation integrals cache status
+type bookkeeping_state_struct
+  integer :: attributes = stale$      ! Element dependent attributes: super_ok$, ok$ or stale$
+  integer :: control = stale$         ! Lord/slave bookkeeping status: super_ok$, ok$ or stale$ 
+  integer :: floor_position = stale$  ! Global (floor) geometry: super_ok$, ok$ or stale$
+  integer :: s_position = stale$      ! Longitudinal position & element length: super_ok$, ok$ or stale$
+  integer :: ref_energy = stale$      ! Reference energy and ref time: super_ok$, ok$ or stale$
+  integer :: mat6 = stale$            ! Linear transfer map status: super_ok$, ok$ or stale$
+  integer :: rad_int = stale$         ! Radiation integrals cache status
 end type
 
 ! radiation integral data cache
@@ -345,7 +399,7 @@ type ele_struct
   character(200), pointer :: descrip => null() ! Description string.
   type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
   type (xy_disp_struct) x, y           ! Projected dispersions.
-  type (bookkeeper_status_struct) bookkeeping_state         ! Element attribute bookkeeping
+  type (bookkeeping_state_struct) bookkeeping_state         ! Element attribute bookkeeping
   type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
   type (floor_position_struct) floor                        ! Global floor position.
   type (lat_struct), pointer :: lat => null()               ! Pointer to lattice containing element.
@@ -439,7 +493,7 @@ type lat_param_struct
   integer :: ixx = 0                      ! Integer for general use
   logical :: stable = .false.             ! is closed lat stable?
   logical :: aperture_limit_on = .true.   ! use apertures in tracking?
-  type (bookkeeper_status_struct) bookkeeping_state
+  type (bookkeeping_state_struct) bookkeeping_state
                                           ! Overall status for the branch.
 end type
 
@@ -491,7 +545,7 @@ type lat_struct
   character(80) title                         ! General title
   type (mode_info_struct) a, b, z             ! Tunes, etc.
   type (lat_param_struct) param               ! Parameters
-  type (bookkeeper_status_struct) lord_state  ! lord bookkeeping status.
+  type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.
   type (ele_struct)  ele_init                 ! For use by any program
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (wall3d_struct) wall3d

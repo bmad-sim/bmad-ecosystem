@@ -414,7 +414,7 @@ real(rp) :: edge_tol = 1e-8
 
 if (.not. associated(ele%wall3d%section)) return
 
-!Prepare coordinate structures for capillary_photon_d_radius
+!Prepare coordinate structures for wall3d_d_radius
 
 old_orb => particle%old%orb
 now_orb => particle%now%orb
@@ -431,7 +431,7 @@ end if
 
 !If now_orb is too close to the wall, move it edge_tol away
 
-if (abs(capillary_photon_d_radius(particle%now, ele)) < edge_tol) then
+if (abs(wall3d_d_radius(particle%now%orb%vec, ele)) < edge_tol) then
    now_orb%vec(1) = now_orb%vec(1) + sign(edge_tol, now_orb%vec(1))
    now_orb%vec(3) = now_orb%vec(3) + sign(edge_tol, now_orb%vec(3))
 end if
@@ -474,14 +474,14 @@ now_orb%vec(4) = old_orb%vec(4)
 now_orb%vec(6) = old_orb%vec(6) 
 
 !If particle hit wall, find out where
-if (capillary_photon_d_radius(particle%now, ele) > 0) then
+if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
 
    call capillary_photon_hit_spot_calc (particle, ele)
 
    orb_new = now_orb
 
    !Calculate perpendicular to get angle of impact
-   dummy_real = capillary_photon_d_radius(particle%now, ele, perp)
+   dummy_real = wall3d_d_radius(particle%now%orb%vec, ele, perp)
 
    !Calculate angle of impact; cos(hit_angle) = norm_photon_vec \dot perp
    !****

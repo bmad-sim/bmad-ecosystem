@@ -1,58 +1,7 @@
 module wall3d_mod
 
-use re_allocate_mod
-use bmad_base_mod
-
-!
-
-integer, parameter :: anchor_beginning$ = 1, anchor_center$ = 2, anchor_end$ = 3
-character(12) :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Center   ', 'End      ']
-
-! Structures for defining cross-sections of beam pipes and capillaries
-! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.
-! Each vertex v(i) defines a point on the pipe/capillary.
-! Vertices are connected by straight lines, circular arcs, or ellipses.
-! The radius and tilt values are for the arc from the preceding vertex to this one.
-! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
-!   n = upper bound of v(:) array.
-
-type wall3d_vertex_struct
-  real(rp) x, y             ! Coordinates of the vertex.
-  real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
-  real(rp) :: radius_y = 0  ! Ellipse y-axis half height. 
-  real(rp) :: tilt = 0      ! Tilt of ellipse
-  real(rp) angle            ! Angle of (x, y) point.
-  real(rp) x0, y0           ! Center of ellipse
-end type
-
-! A beam pipe or capillary cross section is a collection of vertexes.
-! Vertices are always ordered in increasing angle.
-
-type wall3d_section_struct
-  integer type
-  real(rp) :: s = 0                     ! Longitudinal position
-  integer n_vertex_input                ! Number of vertices specified by the user.
-  type (wall3d_vertex_struct), allocatable :: v(:) 
-                                        ! Array of vertices
-  ! Center of wall spline
-  real(rp) :: x0 = 0, y0 = 0            ! Center of wall
-  real(rp) :: dx0_ds = 0                ! Center of wall derivative
-  real(rp) :: dy0_ds = 0                ! Center of wall derivative
-  real(rp) :: x0_coef(0:3) = 0          ! Spline coefs for x-center
-  real(rp) :: y0_coef(0:3) = 0          ! Spline coefs for y-center
-  ! Wall radius spline
-  real(rp) :: dr_ds = real_garbage$  ! derivative of wall radius 
-  real(rp) :: p1_coef(3) = 0            ! Spline coefs for p0 function
-  real(rp) :: p2_coef(3) = 0            ! Spline coefs for p1 function
-
-end type
-
-! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
-
-type wall3d_struct
-  integer :: ele_anchor_pt = anchor_beginning$      ! anchor_beginning$, anchor_center$, or anchor_end$
-  type (wall3d_section_struct), pointer :: section(:) => null()  
-end type  
+use bmad_struct
+use bmad_interface
 
 !
 
@@ -513,7 +462,7 @@ end subroutine wall3d_section_initializer
 ! Additionally, the transverse directional derivative is calculated.
 !
 ! Module needed:
-!   use capillary_mod
+!   use wall3d_mod
 !
 ! Input:
 !   v(:)         -- wall3d_vertex_struct: Array of vertices that make up the cross-section.
@@ -646,5 +595,130 @@ dr_x = -(r_y - y0);    dr_y = r_x - x0
 dr_dtheta = r_wall * (r_x * dr_x + r_y * dr_y) / (r_x * dr_y - r_y * dr_x)
 
 end subroutine calc_wall_radius
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function wall3d_d_radius (position, ele, perp, ix_section, err_flag) result (d_radius)
+!
+! Routine to calculate the normalized radius = particle_radius - wall_radius.
+! Note: If the longitudinal position, position(5), is outside the wall, the
+! wall is taken to have a uniform cross-section. 
+!
+! Module needed:
+!   use wall3d_mod
+!
+! Input:
+!   position(6)  -- real(rp): Particle position
+!                     [position(1), position(3)] = [x, y] transverse coords.
+!                     position(5)                = Longitudinal position relative to beginning of element.
+!                     position(6)                = Longitudinal velocity (only +/- sign matters).
+!   ele          -- ele_struct: Element with wall
+!
+! Output:
+!   d_radius   -- Real(rp), Normalized radius: r_particle - r_wall
+!   perp(3)    -- Real(rp), optional: Perpendicular normal to the wall.
+!   ix_section -- Integer, optional: Set to wall slice section particle is in.
+!   err_flag   -- Logical, optional: Set True if error, false otherwise.
+!-
+
+function wall3d_d_radius (position, ele, perp, ix_section, err_flag) result (d_radius)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (wall3d_section_struct), pointer :: sec1, sec2
+
+real(rp) d_radius, r_photon, s_rel, spline, cos_theta, sin_theta
+real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
+real(rp) p1, p2, dp1, dp2
+real(rp), intent(in) :: position(:)
+real(rp), optional :: perp(3)
+real(rp), pointer :: vec(:)
+
+integer ix_w, n_slice, n_sec
+integer, optional :: ix_section
+
+logical, optional :: err_flag
+
+character(32), parameter :: r_name = 'wall3d_d_radius' 
+
+! Calculate the photon radius and transverse angle.
+
+if (present(err_flag)) err_flag = .true.
+
+if (position(1) == 0 .and. position(3) == 0) then
+  r_photon = 0
+  cos_theta = 1
+  sin_theta = 0
+else
+  r_photon = sqrt(position(1)**2 + position(3)**2)
+  cos_theta = position(1) / r_photon
+  sin_theta = position(3) / r_photon
+endif
+
+! Find the wall points (defined cross-sections) to either side of the particle.
+! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
+
+! The outward normal vector is discontinuous at the wall points.
+! If the particle is at a wall point, use the correct interval.
+! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
+
+n_sec = size(ele%wall3d%section)
+call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), position(5), ix_w)
+if (position(5) == ele%wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
+if (present(ix_section)) ix_section = ix_w
+
+! Case where photon is outside the wall region.
+
+if (ix_w == 0 .or. ix_w == n_sec) then
+  if (ix_w == 0) then ! Outside wall region
+    sec1 => ele%wall3d%section(1)
+  else
+    sec1 => ele%wall3d%section(n_sec)
+  endif
+
+  call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+  d_radius = r_photon - r1_wall
+  if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
+                            [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_photon
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
+
+! Normal case where photon in inside the wall region.
+! sec1 and sec2 are the cross-sections to either side of the photon.
+! Calculate the radius values at the cross-sections.
+
+sec1 => ele%wall3d%section(ix_w)
+sec2 => ele%wall3d%section(ix_w+1)
+
+call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
+
+! Interpolate to get d_radius
+
+ds = sec2%s - sec1%s
+s_rel = (position(5) - sec1%s) / ds
+p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
+p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
+
+d_radius = r_photon - (p1 * r1_wall + p2 * r2_wall)
+
+! Calculate the surface normal vector
+
+if (present (perp)) then
+  perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
+                        (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_photon
+  dp1 = -1 + sec1%p1_coef(1) + 2 * sec1%p1_coef(2)*s_rel + 3 * sec1%p1_coef(3)*s_rel**2
+  dp2 =  1 + sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
+  perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds
+  perp = perp / sqrt(sum(perp**2))  ! Normalize vector length to 1.
+endif
+
+if (present(err_flag)) err_flag = .false.
+
+end function wall3d_d_radius
 
 end module

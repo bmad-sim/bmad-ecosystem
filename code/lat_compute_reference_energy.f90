@@ -115,6 +115,8 @@ do ib = 0, ubound(lat%branch, 1)
     ele_init%value(p0c_start$) = ele_init%value(p0c$)
   endif
 
+  if (ele_init%bookkeeping_state%ref_energy == stale$) ele_init%bookkeeping_state%ref_energy = ok$
+
   ! Look for an e_gun and if found then the starting energy must be computed accordingly.
   ! Remember that there may be markers or null_eles before an e_gun in the lattice but nothing else.
 
