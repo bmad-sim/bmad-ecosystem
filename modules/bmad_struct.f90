@@ -36,7 +36,7 @@ integer, parameter :: anchor_beginning$ = 1, anchor_center$ = 2, anchor_end$ = 3
 character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Center   ', 'End      ']
 
 integer, parameter :: primary$ = 1, secondary$ = 2, ignore$ = 3
-character(12), parameter :: wall_priority_name(0:3) = ['GARBAGE! ', 'Primary  ', 'Secondary', 'Ignore   ']
+character(12), parameter :: wall3d_priority_name(0:3) = ['GARBAGE! ', 'Primary  ', 'Secondary', 'Ignore   ']
 
 ! Structures for defining cross-sections of beam pipes and capillaries
 ! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.

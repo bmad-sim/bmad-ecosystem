@@ -620,7 +620,7 @@ end subroutine calc_wall_radius
 !   d_radius   -- Real(rp), Normalized radius: r_particle - r_wall
 !   perp(3)    -- Real(rp), optional: Perpendicular normal to the wall.
 !   ix_section -- Integer, optional: Set to wall slice section particle is in.
-!   err_flag   -- Logical, optional: Set True if error, false otherwise.
+!   err_flag   -- Logical, optional: Set True if error (for example no wall), false otherwise.
 !-
 
 function wall3d_d_radius (position, ele, perp, ix_section, err_flag) result (d_radius)
@@ -629,33 +629,116 @@ implicit none
 
 type (ele_struct), target :: ele
 type (wall3d_section_struct), pointer :: sec1, sec2
+type (wall3d_struct), pointer :: wall3d
+type (ele_struct), pointer :: ele_with_aperture, lord
+type (wall3d_vertex_struct), allocatable :: v(:)
 
-real(rp) d_radius, r_photon, s_rel, spline, cos_theta, sin_theta
+real(rp) d_radius, r_particle, s_rel, spline, cos_theta, sin_theta
 real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
 real(rp) p1, p2, dp1, dp2
 real(rp), intent(in) :: position(:)
 real(rp), optional :: perp(3)
 real(rp), pointer :: vec(:)
 
-integer ix_w, n_slice, n_sec
+integer i, ix_w, n_slice, n_sec
 integer, optional :: ix_section
 
+logical priority_conflict, aperture_conflict
 logical, optional :: err_flag
 
 character(32), parameter :: r_name = 'wall3d_d_radius' 
 
-! Calculate the photon radius and transverse angle.
+! Find the wall definition
 
 if (present(err_flag)) err_flag = .true.
+d_radius = -1
+
+nullify (wall3d)
+nullify (ele_with_aperture)
+if (ele%aperture_at == continuous$) ele_with_aperture => ele
+priority_conflict = .false.
+aperture_conflict = .false.
+
+if (associated(ele%wall3d%section)) then
+  wall3d => ele%wall3d
+else
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    if (.not. associated(lord)) exit
+    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+
+    if (lord%lord_status /= multipass_lord$ .and. lord%lord_status /= super_lord$) cycle
+
+    if (lord%aperture_at == continuous$) then
+      if (associated(ele_with_aperture)) aperture_conflict = .true.
+      ele_with_aperture => lord
+    endif
+
+    if (.not. associated(lord%wall3d%section)) cycle
+    if (lord%wall3d%priority == ignore$) cycle
+
+    if (associated(wall3d)) then
+      if (wall3d%priority == lord%wall3d%priority) priority_conflict = .true.
+      if (lord%wall3d%priority < wall3d%priority) then   ! Lower number -> higher priority.
+        wall3d => lord%wall3d
+        priority_conflict = .false.
+      endif
+    endif
+
+  enddo
+endif
+
+if (associated(wall3d)) then
+  if (priority_conflict) then
+    call out_io (s_error$, r_name, 'Wall priority conflict for: ' // ele%name)
+    return
+  endif
+elseif (associated(ele_with_aperture)) then
+  if (aperture_conflict) then
+    call out_io (s_error$, r_name, 'Aperture conflict for: ' // ele%name)
+    return
+  endif
+else
+  ! No messages to be generated if there is no wall. Just return with err_flag set.
+  return
+endif
+
+! If using a continuous aperture...
+
+if (.not. associated(wall3d)) then
+  if (ele%aperture_type == rectangular$) then
+    allocate (v(4))
+    v(1:4)%x = [ele%value(x1_limit$), -ele%value(x2_limit$), -ele%value(x2_limit$),  ele%value(x1_limit$)]
+    v(1:4)%y = [ele%value(y1_limit$),  ele%value(y1_limit$), -ele%value(y2_limit$), -ele%value(y2_limit$)]
+    do i = 1, 4
+      v(i)%angle = atan2(v(i)%y, v(i)%x)
+      if (i == 1) cycle
+      if (v(i)%angle <= v(i-1)%angle) v(i)%angle = v(i)%angle + twopi
+    enddo
+  else
+    allocate (v(1))
+    v(1) = wall3d_vertex_struct(0.0_rp, 0.0_rp, ele%value(x1_limit$), ele%value(y1_limit$), &
+                                0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
+  endif
+
+  call calc_wall_radius (v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+  d_radius = r_particle - r1_wall
+  if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
+                            [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
+
+! Calculate the particle radius and transverse angle.
 
 if (position(1) == 0 .and. position(3) == 0) then
-  r_photon = 0
+  r_particle = 0
   cos_theta = 1
   sin_theta = 0
 else
-  r_photon = sqrt(position(1)**2 + position(3)**2)
-  cos_theta = position(1) / r_photon
-  sin_theta = position(3) / r_photon
+  r_particle = sqrt(position(1)**2 + position(3)**2)
+  cos_theta = position(1) / r_particle
+  sin_theta = position(3) / r_particle
 endif
 
 ! Find the wall points (defined cross-sections) to either side of the particle.
@@ -665,34 +748,34 @@ endif
 ! If the particle is at a wall point, use the correct interval.
 ! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
 
-n_sec = size(ele%wall3d%section)
-call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), position(5), ix_w)
-if (position(5) == ele%wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
+n_sec = size(wall3d%section)
+call bracket_index (wall3d%section%s, 1, size(wall3d%section), position(5), ix_w)
+if (position(5) == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
 if (present(ix_section)) ix_section = ix_w
 
-! Case where photon is outside the wall region.
+! Case where particle is outside the wall region.
 
 if (ix_w == 0 .or. ix_w == n_sec) then
   if (ix_w == 0) then ! Outside wall region
-    sec1 => ele%wall3d%section(1)
+    sec1 => wall3d%section(1)
   else
-    sec1 => ele%wall3d%section(n_sec)
+    sec1 => wall3d%section(n_sec)
   endif
 
   call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
-  d_radius = r_photon - r1_wall
+  d_radius = r_particle - r1_wall
   if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
-                            [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_photon
+                            [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
   if (present(err_flag)) err_flag = .false.
   return
 endif
 
-! Normal case where photon in inside the wall region.
-! sec1 and sec2 are the cross-sections to either side of the photon.
+! Normal case where particle in inside the wall region.
+! sec1 and sec2 are the cross-sections to either side of the particle.
 ! Calculate the radius values at the cross-sections.
 
-sec1 => ele%wall3d%section(ix_w)
-sec2 => ele%wall3d%section(ix_w+1)
+sec1 => wall3d%section(ix_w)
+sec2 => wall3d%section(ix_w+1)
 
 call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
 call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
@@ -704,13 +787,13 @@ s_rel = (position(5) - sec1%s) / ds
 p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
 p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
 
-d_radius = r_photon - (p1 * r1_wall + p2 * r2_wall)
+d_radius = r_particle - (p1 * r1_wall + p2 * r2_wall)
 
 ! Calculate the surface normal vector
 
 if (present (perp)) then
   perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
-                        (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_photon
+                        (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_particle
   dp1 = -1 + sec1%p1_coef(1) + 2 * sec1%p1_coef(2)*s_rel + 3 * sec1%p1_coef(3)*s_rel**2
   dp2 =  1 + sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
   perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds

@@ -349,6 +349,8 @@ endif
 if (associated(ele%wall3d%section)) then
   nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(ele%wall3d%section)
   if (logic_option(.false., type_wall)) then
+    nl=nl+1; write (li(nl), '(2a)') 'Wall%ele_anchor_pt = ', anchor_pt_name(ele%wall3d%ele_anchor_pt)
+    nl=nl+1; write (li(nl), '(2a)') 'Wall%priority      = ', wall3d_priority_name(ele%wall3d%priority)
     n = min(size(ele%wall3d%section), 100)
     do i = 1, n
       n_max = nl + 100 
