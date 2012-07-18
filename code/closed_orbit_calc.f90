@@ -62,8 +62,8 @@
 !     %type_out      -- If True then the subroutine will type out
 !                         a warning message if the orbit does not converge.
 !   bmad_com       -- Bmad_common_struct: Bmad common block.
-!     %rel_tol_tracking -- Relative error. See above. Default = 1e-5
-!     %abs_tol_tracking -- Absolute error. See above. Default = 1e-8
+!     %rel_tol_tracking -- Relative error. See above. Default = 1e-8
+!     %abs_tol_tracking -- Absolute error. See above. Default = 1e-10
 !
 ! Output:
 !   closed_orb(0:) -- Coord_struct, allocatable: Closed orbit. closed_orb(i)

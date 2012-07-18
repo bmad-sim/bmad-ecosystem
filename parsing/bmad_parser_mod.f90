@@ -404,20 +404,35 @@ endif
 ! "WALL." redef
 
 if (word(1:5) == 'WALL.') then
-  if (delim /= '(') then
-    call parser_error ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
-    return
-  endif
-
-  ix_sec = evaluate_array_index (err_flag, ')', word2, '(=', delim)
-  if (err_flag .or. .not. associated(ele%wall3d%section) .or. ix_sec < 0 .or. ix_sec > size(ele%wall3d%section)) then
-    call parser_error('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-  section => ele%wall3d%section(ix_sec)
 
   select case (word(6:))
+
+  ! Priority redef
+
+  case ('PRIORITY')
+    if (delim /= '=') then
+      call parser_error ('MALFORMED WALL PRIORITY REDEF IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+    call get_switch ('wall3d.priority', wall3d_priority_name(1:), ele%wall3d%priority, err_flag)
+
+  ! Section redef
+
   case ('SECTION')
+
+    if (delim /= '(') then
+      call parser_error ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+    ix_sec = evaluate_array_index (err_flag, ')', word2, '(=', delim)
+    if (err_flag .or. .not. associated(ele%wall3d%section) .or. ix_sec < 0 .or. &
+                                                  ix_sec > size(ele%wall3d%section)) then
+      call parser_error('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
+      return
+    endif
+    section => ele%wall3d%section(ix_sec)
 
     if (word2 == '.S' .and. delim == '=') then
       r_ptr => section%s
@@ -448,11 +463,13 @@ if (word(1:5) == 'WALL.') then
       return
     endif
 
+    call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag)
+
+  ! Not recognized
+
   case default
     call parser_error ('BAD WALL COMPONENT REDEF: ' // word, 'IN ELEMENT: ' // ele%name)
   end select
-
-  call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag)
 
   return
 endif
@@ -508,9 +525,25 @@ if (attrib_word == 'WALL') then
     ! Possible "}" is end of wall 
     if (delim /= '}' .and. word == '') exit
 
-    ! "ele_anchor_pt ="
+    ! Is "priority = ..." ?
 
-    if (word == 'ELE_ANCHOR_PT') then
+    if (word == 'PRIORITY') then
+      if (delim /= '=') then
+        call parser_error ('NO "=" FOUND AFTER WALL PRIORITY FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      call get_next_word (word2, ix_word, ',}', delim, delim_found)
+      call match_word(word2, anchor_pt_name(1:), ele%wall3d%priority, can_abbreviate = .false.)
+      if (ele%wall3d%priority < 1) then
+        call parser_error ('BAD WALL3D PRIORITY: ' // word2, 'FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      ! delim is parsed below so just put it back on the parse line.
+      bp_com%parse_line = delim // bp_com%parse_line
+
+    ! Is "ele_anchor_pt = ..." ?
+
+    elseif (word == 'ELE_ANCHOR_PT') then
       if (delim /= '=') then
         call parser_error ('NO "=" FOUND AFTER WALL ELE_ANCHOR_PT FOR ELEMENT: ' // ele%name)
         return
@@ -639,7 +672,6 @@ if (attrib_word == 'WALL') then
     if (word /= '' .or. delim /= ',') then
       call parser_error ('BAD SYNTAX IN WALL DEFINITION FOR ELEMENT: ' // ele%name)
     endif
-
 
     ! Expect "section" or "ele_anchor_pt"
 
