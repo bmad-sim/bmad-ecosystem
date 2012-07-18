@@ -153,7 +153,7 @@ case ('beam')
             p => bunch%particle(ip)
             write (iu, '(6es19.10, es14.5, i6, 2(a, es19.10, a, es19.10, a), 3i3)') &
                   p%vec, p%charge, p%state, ('  (', real(p%spin(j)), ',', aimag(p%spin(j)), ')', j = 1, 2), &
-                  p%species, p%ix_ele, p%location
+                  p%ix_ele, p%location
           enddo
           write (iu, *) 'END_BUNCH'
         enddo
@@ -164,7 +164,7 @@ case ('beam')
           write (iu) bunch%charge, bunch%z_center, bunch%t_center, size(bunch%particle)
           do ip = 1, size(bunch%particle)
             p => bunch%particle(ip)
-            write (iu) p%vec, p%charge, p%state, p%spin, p%species, p%ix_ele, p%location
+            write (iu) p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location
           enddo
         enddo
       endif
