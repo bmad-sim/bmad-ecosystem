@@ -44,7 +44,7 @@ call vec_bmad_to_ptc (start_orb%vec, beta0, re)
 
 if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, drift_ele)
-  call ele_to_fibre (drift_ele, fibre_ele, start_orb%species, .true.)
+  call ele_to_fibre (drift_ele, fibre_ele, param%particle, .true.)
   call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 endif  
 
@@ -53,11 +53,11 @@ endif
 start2_orb = start_orb
 end_orb = start_orb
 
-call ele_to_fibre (ele, fibre_ele, start_orb%species, .true.)
+call ele_to_fibre (ele, fibre_ele, param%particle, .true.)
 call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 
 if (tracking_uses_hard_edge_model(ele)) then
-  call ele_to_fibre (drift_ele, fibre_ele, start_orb%species, .true.)
+  call ele_to_fibre (drift_ele, fibre_ele, param%particle, .true.)
   call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 endif  
 
@@ -68,7 +68,7 @@ if (ele%value(p0c$) /= ele%value(p0c_start$)) &
 ! Correct z-position for wigglers, etc. 
 
 if (ele%value(p0c$) /= ele%value(p0c_start$)) then
-  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), start_orb%species, beta = end_orb%beta)
+  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
 endif
 
 beta0 = ele%value(p0c$) / ele%value(e_tot$) 

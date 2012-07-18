@@ -38,7 +38,7 @@ real(rp) s_start, s_end
 real(rp) s0
 
 integer, optional :: ix_branch, track_state
-integer ix_start, ix_end
+integer ix_start, ix_end, particle
 integer ix_ele
 
 logical err
@@ -48,6 +48,7 @@ character(40), parameter :: r_name = 'track_from_s_to_s'
 ! Easy case & error check
 
 branch => lat%branch(integer_option(0, ix_branch))
+particle = branch%param%particle
 if (present(track_state)) track_state = moving_forward$
 
 if (s_start == s_end .and. branch%param%lattice_type == linear_lattice$) then
@@ -76,7 +77,7 @@ ix_end = element_at_s (lat, s_end, .true., ix_branch)
 if (s_end > s_start .and. ix_start == ix_end) then
   call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param, s_start-s0, s_end-s0, &
                                                .true., .true., orbit_start, orbit_end)
-  if (.not. particle_is_moving_forward(orbit_end) .and. present(track_state)) track_state = ix_start
+  if (.not. particle_is_moving_forward(orbit_end, particle) .and. present(track_state)) track_state = ix_start
   return
 endif
 
@@ -85,7 +86,7 @@ endif
 call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param,  &
             s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
 
-if (.not. particle_is_moving_forward(orbit_end)) then
+if (.not. particle_is_moving_forward(orbit_end, particle)) then
   if (present(track_state)) track_state = ix_start
   return
 endif
@@ -104,7 +105,7 @@ do
   call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
 
   if (present(all_orb)) all_orb(ix_ele) = orbit_end
-  if (.not. particle_is_moving_forward(orbit_end)) then
+  if (.not. particle_is_moving_forward(orbit_end, particle)) then
     if (present(track_state)) track_state = ix_ele
     return
   endif
@@ -115,6 +116,6 @@ enddo
 
 call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-branch%ele(ix_end-1)%s, &
                                                                       .true., .true., orbit_end, orbit_end)
-if (.not. particle_is_moving_forward(orbit_end) .and. present(track_state)) track_state = ix_end
+if (.not. particle_is_moving_forward(orbit_end, particle) .and. present(track_state)) track_state = ix_end
 
 end subroutine

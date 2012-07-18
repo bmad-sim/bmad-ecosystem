@@ -107,7 +107,7 @@ here = start
 here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, here)
-call offset_particle (ele, here, set$, set_canonical = .false.)
+call offset_particle (ele, here, param%particle, set$, set_canonical = .false.)
 
 t = particle_time(start, ele)
 
@@ -144,7 +144,7 @@ enddo
 
 ! back to lab coords
 
-call offset_particle (ele, here, unset$, set_canonical = .false.)
+call offset_particle (ele, here, param%particle, unset$, set_canonical = .false.)
 
 end = here
 err_flag = .false.
@@ -199,8 +199,8 @@ real(rp) :: p2, t, dt
 
 !
 
-charge = charge_of(start%species)
-mass = mass_of(start%species) / ele%value(p0c$)
+charge = charge_of(param%particle)
+mass = mass_of(param%particle) / ele%value(p0c$)
 
 end = start
 ds2 = ds / 2

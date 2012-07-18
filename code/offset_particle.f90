@@ -1,5 +1,5 @@
 !+
-! Subroutine offset_particle (ele, coord, set, set_canonical, 
+! Subroutine offset_particle (ele, coord, particle, set, set_canonical, 
 !                               set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
@@ -40,6 +40,7 @@
 !     %value(x_pitch$)  -- Horizontal roll of element.
 !     %value(tilt$)     -- tilt of element.
 !   coord          -- Coord_struct: Coordinates of the particle.
+!   particle       -- Integer: Type of particle. electron$, etc.
 !   set            -- Logical: 
 !                    T (= set$)   -> Translate from lab coords to the local 
 !                                      element coords.
@@ -67,7 +68,7 @@
 !     coord -- Coord_struct: Coordinates of particle.
 !-
 
-subroutine offset_particle (ele, coord, set, set_canonical, &
+subroutine offset_particle (ele, coord, particle, set, set_canonical, &
                               set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
 
 use bmad_interface, except_dummy => offset_particle
@@ -85,6 +86,7 @@ real(rp) :: del_x_vel, del_y_vel
 real(rp) angle, s_here, xp, yp, x_off, y_off, s_off, vec(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta
 
+integer particle
 integer n
 
 logical, intent(in) :: set
@@ -187,7 +189,7 @@ if (set) then
     endif
 
     if (s_off /= 0 .and. set_s) then
-      call track_a_drift (coord, ele, s_off)
+      call track_a_drift (coord, ele, particle, s_off)
     endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
@@ -213,7 +215,7 @@ if (set) then
   ! Set: Multipoles
 
   if (set_multi) then
-    call multipole_ele_to_kt(ele, coord%species, .true., has_nonzero_pole, knl, tilt)
+    call multipole_ele_to_kt(ele, particle, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
       knl = knl / 2
       call multipole_kicks (knl, tilt, coord)
@@ -241,7 +243,7 @@ if (set) then
   ! Note: Since this is applied after tilt_coords, kicks are dependent on any tilt.
 
   if (set_hv2) then
-    if (ele%key == elseparator$ .and. coord%species < 0) then
+    if (ele%key == elseparator$ .and. particle < 0) then
       coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
     elseif (ele%key == hkicker$) then
@@ -276,7 +278,7 @@ else
   ! Unset: HV kicks for kickers and separators only.
 
   if (set_hv2) then
-    if (ele%key == elseparator$ .and. coord%species < 0) then
+    if (ele%key == elseparator$ .and. particle < 0) then
       coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
     elseif (ele%key == hkicker$) then
@@ -308,7 +310,7 @@ else
   ! Unset: Multipoles
 
   if (set_multi) then
-    call multipole_ele_to_kt(ele, coord%species, .true., has_nonzero_pole, knl, tilt)
+    call multipole_ele_to_kt(ele, particle, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
       knl = knl / 2
       call multipole_kicks (knl, tilt, coord)
@@ -372,7 +374,7 @@ else
     endif
 
     if (s_off /= 0 .and. set_s) then
-      call track_a_drift (coord, ele, -s_off)
+      call track_a_drift (coord, ele, particle, -s_off)
     endif
 
   endif

@@ -57,14 +57,7 @@ character(8), parameter :: r_name = 'track1'
 logical, optional :: err_flag, ignore_radiation
 logical err, do_extra
 
-!
-
-if (start_orb%state /= alive$) then
-  end_orb = start_orb
-  end_orb%vec = 0
-  if (present(err_flag)) err_flag = .false.
-  return
-endif
+! Use start2_orb since start_orb is strictly input.
 
 if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
@@ -74,12 +67,21 @@ do_extra = .not. logic_option(.false., ignore_radiation)
 ! initialized the starting orbit. If so, we do an init here.
 ! Time-Runge kutta is tricky so do not attempt to do a set.
 
-if (start_orb%species == not_set$) then
+if (start2_orb%state == not_set$) then
   if (ele%tracking_method == time_runge_kutta$) then
     call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED!')
     return
   endif
   call init_coord(start2_orb, start2_orb%vec, ele, param%particle) 
+endif
+
+!
+
+if (start2_orb%state /= alive$) then
+  end_orb = start_orb
+  end_orb%vec = 0
+  if (present(err_flag)) err_flag = .false.
+  return
 endif
 
 ! custom tracking if the custom routine is to do everything

@@ -52,10 +52,10 @@ if (ele%map_with_offsets) then  ! simple case
   call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
 
 else
-  call offset_particle (ele, end_orb, set$, set_canonical = .false., &
+  call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false., &
                               set_multipoles = .false., set_hvkicks = .false.)
   call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
-  call offset_particle (ele, end_orb, unset$, set_canonical = .false., &
+  call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., &
                               set_multipoles = .false., set_hvkicks = .false.)
 endif
 

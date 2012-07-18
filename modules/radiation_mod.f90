@@ -123,7 +123,7 @@ if (s_len < 0) s_len = 0
 
 if (ele%key /= wiggler$) then
   start2 = start
-  call offset_particle (ele, start2, set)
+  call offset_particle (ele, start2, param%particle, set)
 endif
 
 ! Calculate the radius of curvature for an on-energy particle

@@ -103,7 +103,7 @@ call twiss_and_track_intra_ele (ele0, branch%param, s_start-s0, ele0%value(l$), 
 if (present(err)) err = error
 if (error) return
 if (present(orbit_end)) then
-  if (.not. particle_is_moving_forward(orbit_end)) return
+  if (.not. particle_is_moving_forward(orbit_end, branch%param%particle)) return
 endif
 
 ! Track to ending element
@@ -114,7 +114,7 @@ do
 
   if (present(orbit_end)) then
     call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
-    if (.not. particle_is_moving_forward(orbit_end)) then
+    if (.not. particle_is_moving_forward(orbit_end, branch%param%particle)) then
       err = .true.
       return
     endif

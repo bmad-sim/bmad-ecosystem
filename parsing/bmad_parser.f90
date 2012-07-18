@@ -1041,7 +1041,6 @@ enddo
 
 ! Correct beam_start info
 
-if (lat%beam_start%species == not_set$) lat%beam_start%species = lat%param%particle
 call init_coord (lat%beam_start, lat%beam_start, lat%ele(0), shift_vec6 = .false.)
 
 !-------------------------------------------------------------------------
