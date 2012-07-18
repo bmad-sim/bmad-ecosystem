@@ -49,7 +49,7 @@ if (.not. allocated (track%orb)) then
 endif
 
 if (ubound(track%orb, 1) < n_pt) then
-  deallocate(track%orb,  track%field, track%map)
+  deallocate(track%orb, track%field, track%map)
   allocate(track%orb(0:n_pt),  track%field(0:n_pt), track%map(0:n_pt))
 endif
 
@@ -114,7 +114,7 @@ end if
 ! Notice that a translation due to a finite ele%value(s_offset$) is not wanted here.
 
 orb2 = orb
-if (local_ref_frame) call offset_particle (ele, orb2, unset$, &
+if (local_ref_frame) call offset_particle (ele, orb2, param%particle, unset$, &
                                     set_canonical = .false., set_s_offset = .false., ds_pos = s)
 
 track%orb(n_pt) = orb2
@@ -214,7 +214,7 @@ if (.not. ele%is_on) return
 
 local_orb = orbit
 if (.not. local_ref_frame) then
-  call offset_particle (ele, local_orb, set$, &
+  call offset_particle (ele, local_orb, param%particle, set$, &
           set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 endif
 

@@ -139,7 +139,7 @@ do n = ix1, ix2
 
   ! check for lost particles
 
-  if (.not. particle_is_moving_forward(orbit(n))) then
+  if (.not. particle_is_moving_forward(orbit(n), branch%param%particle)) then
     track_end_state = n
     if (present(track_state)) track_state = n
 
@@ -192,7 +192,7 @@ do n = ix1, ix2, -1
 
   ! check for lost particles
 
-  if (.not. particle_is_moving_forward(orbit(n-1))) then
+  if (.not. particle_is_moving_forward(orbit(n-1), branch%param%particle)) then
     track_end_state = n
     if (present(track_state)) track_state = n
 
@@ -233,7 +233,7 @@ integer n, n1, n2
 do n = n1, n2
   if (n == ix_start) cycle  ! never zero starting coords.
   orbit(n)%vec = 0
-  orbit(n)%species = not_set$
+  orbit(n)%state = not_set$
 enddo
 
 end subroutine

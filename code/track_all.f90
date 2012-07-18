@@ -60,7 +60,7 @@ if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_m
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 orbit(0)%location = entrance_end$
-if (orbit(0)%species /= photon$) then
+if (branch%param%particle /= photon$) then
   call convert_pc_to (branch%ele(0)%value(p0c$) * (1 + orbit(0)%vec(6)), branch%param%particle, beta = orbit(0)%beta)
   orbit(0)%p0c = branch%ele(0)%value(p0c$)
 endif
@@ -75,11 +75,11 @@ do n = 1, branch%n_ele_track
 
   ! check for lost particles
 
-  if (err .or. .not. particle_is_moving_forward(orbit(n))) then
+  if (err .or. .not. particle_is_moving_forward(orbit(n), branch%param%particle)) then
     if (present(track_state)) track_state = n
     do nn = n+1, branch%n_ele_track
       orbit(nn)%vec = 0
-      orbit(nn)%species = not_set$
+      orbit(nn)%state = not_set$
     enddo
     if (present(err_flag)) err_flag = .true.
     exit

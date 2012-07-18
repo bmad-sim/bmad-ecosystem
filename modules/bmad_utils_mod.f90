@@ -28,7 +28,7 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 !
 ! This routine is an overloaded name for:
 !   Subroutine init_coord1 (orb, vec, ele, particle, E_photon, t_ref_offset, shift_vec6)
-!   Subroutine init_coord2 (orb, orb_in, ele, t_ref_offset, shift_vec6)
+!   Subroutine init_coord2 (orb, orb_in, ele, particle, t_ref_offset, shift_vec6)
 !
 ! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
 ! Additionally, If ele is an init_ele  and vec is zero or not present, orb%vec(6) is shifted
@@ -395,6 +395,7 @@ type (coord_struct), save :: init_orb
 type (ele_struct), optional :: ele
 
 real(rp), optional :: vec(:), E_photon, t_ref_offset
+integer species
 integer, optional :: particle
 logical, optional :: shift_vec6
 
@@ -415,18 +416,18 @@ orb2%location = entrance_end$
 orb2%state = alive$
 
 if (present(particle)) then
-  orb2%species = particle
+  species = particle
 elseif (present(ele)) then
   if (associated (ele%lat)) then
-    orb2%species = ele%lat%branch(ele%ix_branch)%param%particle
+    species = ele%lat%branch(ele%ix_branch)%param%particle
   endif
-elseif (orb2%species == not_set$) then
-  orb2%species = positron$
+elseif (init_orb%state == not_set$) then
+  species = positron$
 endif
 
 orb2%p0c = 0
 
-if (orb2%species == photon$) then
+if (species == photon$) then
   if (present(ele)) orb2%p0c = ele%value(p0c_start$)
   if (present(E_photon)) then
     if (E_photon /= 0) orb2%p0c = E_photon
@@ -446,7 +447,7 @@ if (present(ele)) then
   endif
 
 
-  if (orb2%species == photon$) then
+  if (species == photon$) then
     if (orb2%vec(6) >= 0) orb2%vec(6) = sqrt(1 - orb2%vec(2)**2 - orb2%vec(4)**2)
     orb2%beta = 1
 
@@ -463,7 +464,7 @@ if (present(ele)) then
     if (orb2%vec(6) == 0) then
       orb2%beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
     else
-      call convert_pc_to (ele%value(p0c_start$) * (1 + orb2%vec(6)), orb2%species, beta = orb2%beta)
+      call convert_pc_to (ele%value(p0c_start$) * (1 + orb2%vec(6)), species, beta = orb2%beta)
     endif
 
     ! Do not set %t if %beta = 0 since %t may be a good value.
@@ -496,20 +497,21 @@ end subroutine init_coord1
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb, orb_in, ele, t_ref_offset, shift_vec6)
+subroutine init_coord2 (orb, orb_in, ele, particle, t_ref_offset, shift_vec6)
 
 implicit none
 
 type (coord_struct) orb, orb_in, orb_save
 type (ele_struct), optional :: ele
 real(rp), optional :: t_ref_offset
+integer, optional :: particle
 logical, optional :: shift_vec6
 
 !
 
 orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
 
-call init_coord1 (orb, orb_in%vec, ele, orb_in%species, orb_in%p0c, t_ref_offset, shift_vec6)
+call init_coord1 (orb, orb_in%vec, ele, particle, orb_in%p0c, t_ref_offset, shift_vec6)
 
 orb%spin      = orb_save%spin
 orb%e_field_x = orb_save%e_field_x
@@ -531,21 +533,22 @@ end subroutine init_coord2
 ! If not moving forward it is dead or is moving backward.
 !
 ! Input:
-!   orbit  -- coord_struct: Particle coordinates
-!
+!   orbit     -- coord_struct: Particle coordinates
+!   particle  -- Integer: Type of particle. electron$, etc.
 ! Output:
 !   is_moving_forward -- Logical: True if moving forward. False otherwise.
 !-
 
-function particle_is_moving_forward (orbit) result (is_moving_forward)
+function particle_is_moving_forward (orbit, particle) result (is_moving_forward)
 
 implicit none
 type (coord_struct) orbit
+integer particle
 logical is_moving_forward
 
 !
 
-if (orbit%species == photon$) then
+if (particle == photon$) then
   is_moving_forward = (orbit%state == alive$) .and. (orbit%vec(6) > 0)
 else
   is_moving_forward = (orbit%state == alive$) .and. (orbit%p0c > 0)
@@ -557,13 +560,14 @@ end function particle_is_moving_forward
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function particle_is_moving_backward (orbit) result (is_moving_backward)
+! Function particle_is_moving_backward (orbit, particle) result (is_moving_backward)
 !
 ! Routine to determine if a particle is moving in the backward -s direction.
 ! If not moving backward it is dead or is moving backward.
 !
 ! Input:
 !   orbit  -- coord_struct: Particle coordinates
+!   particle  -- Integer: Type of particle. electron$, etc.
 !
 ! Output:
 !   is_moving_backward -- Logical: True if moving backward. False otherwise.
@@ -573,11 +577,12 @@ function particle_is_moving_backward (orbit) result (is_moving_backward)
 
 implicit none
 type (coord_struct) orbit
+integer particle
 logical is_moving_backward
 
 !
 
-if (orbit%species == photon$) then
+if (particle == photon$) then
   is_moving_backward = (orbit%state == alive$) .and. (orbit%vec(6) < 0)
 else
   is_moving_backward = (orbit%state == alive$) .and. (orbit%p0c < 0)

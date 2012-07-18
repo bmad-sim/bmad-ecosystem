@@ -31,8 +31,7 @@ is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin)) .and. &
         (f1%e_field_x == f2%e_field_x) .and. (f1%e_field_y == f2%e_field_y) .and. &
         (f1%phase_x == f2%phase_x) .and. (f1%phase_y == f2%phase_y) .and. & 
         (f1%charge == f2%charge) .and. (f1%p0c == f2%p0c) .and. &
-        (f1%beta == f2%beta) .and. (f1%species == f2%species) .and. &
-        (f1%ix_ele == f2%ix_ele) .and. (f1%state == f2%state)
+        (f1%beta == f2%beta) .and. (f1%ix_ele == f2%ix_ele) .and. (f1%state == f2%state)
         
 
 end function eq_coord

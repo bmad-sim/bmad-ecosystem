@@ -83,7 +83,7 @@ endif
 ! wakes applied in cononical coords so don't do canonical coord conversion
 
 do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, bunch_end%particle(i), set$, set_canonical = .false.)
+  call offset_particle (ele, bunch_end%particle(i), param%particle, set$, set_canonical = .false.)
 enddo
 
 ! Modify ele temporarily so we can track through half the cavity.
@@ -154,7 +154,7 @@ if (associated(a_pole_save)) ele%a_pole => a_pole_save
 ! Wakes applied in cononical coords so don't do canonical coord conversion
 
 do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, bunch_end%particle(i), unset$, &
+  call offset_particle (ele, bunch_end%particle(i), param%particle, unset$, &
       set_canonical = .false.)
 enddo
 
@@ -783,8 +783,7 @@ call init_spin_distribution (beam_init, bunch)
 ! Photons:
 ! For now just give one half e_field_x = 1 and one half e_field_y = 1
 
-species = beam_init%species
-if (species == not_set$) species = param%particle
+species = param%particle
 
 if (species == photon$) then
   n = size(bunch%particle)
@@ -796,7 +795,6 @@ endif
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
-  p%species = species
   p%s = ele%s
   call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
   p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)

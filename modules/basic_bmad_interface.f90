@@ -423,9 +423,10 @@ interface
 end interface
 
 interface
-  subroutine mat6_add_offsets (ele)
+  subroutine mat6_add_offsets (ele, particle)
     use bmad_struct, only: ele_struct
     type (ele_struct) ele
+    integer particle
   end subroutine
 end interface
 
@@ -449,12 +450,13 @@ interface
 end interface
 
 interface
-  subroutine offset_particle (ele, coord, set, &
+  subroutine offset_particle (ele, coord, particle, set, &
            set_canonical, set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
     use bmad_struct, only: ele_struct, coord_struct, rp
     implicit none
     type (ele_struct) :: ele
     type (coord_struct), intent(inout) :: coord
+    integer particle
     logical, intent(in) :: set
     logical, optional, intent(in) :: set_canonical, set_multipoles
     logical, optional, intent(in) :: set_tilt, set_hvkicks, set_s_offset

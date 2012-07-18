@@ -20,7 +20,7 @@ use definition, only: genfield, fibre
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 112
+integer, parameter :: bmad_inc_version$ = 113
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -146,10 +146,9 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: p0c = 0             ! For non-photons: Reference momentum. Negative -> going backwards.
                                   !     For photons: Photon momentum (not reference).
   real(rp) :: beta = -1           ! Velocity / c_light.
-  integer :: species = not_set$   ! Type of particle. not_set$ when initialized before tracking.
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.
-  integer :: state = alive$       ! alive$, lost$, lost_neg_x_aperture$, etc.
+  integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
   integer :: location = entrance_end$  ! entrance_end$, inside$, or exit_end$
 end type
 

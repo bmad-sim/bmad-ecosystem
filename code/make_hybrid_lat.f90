@@ -188,8 +188,10 @@ do j_in = 1, r_in%n_ele_track
       ele_out%value(l$) = ele_out%value(l$) + ele_in%value(l$)
       if (ele_in%value(hkick$) /= 0 .or. ele_in%value(vkick$) /= 0) then
         c2%vec = 0
-        call offset_particle (ele_in, c2, set$, set_canonical = .false., set_multipoles = .false.)
-        call offset_particle (ele_in, c2, unset$, set_canonical = .false., set_multipoles = .false.)
+        call offset_particle (ele_in, c2, r_in%param%particle, &
+                      set$, set_canonical = .false., set_multipoles = .false.)
+        call offset_particle (ele_in, c2, r_in%param%particle, &
+                      unset$, set_canonical = .false., set_multipoles = .false.)
         ele_out%value(hkick$) = ele_out%value(hkick$) + c2%vec(2)
         ele_out%value(vkick$) = ele_out%value(vkick$) + c2%vec(4)
       endif

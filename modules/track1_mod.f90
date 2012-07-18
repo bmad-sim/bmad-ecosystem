@@ -103,7 +103,7 @@ if (ele%offset_moves_aperture .and. (at == entrance_end$ .or. at == exit_end$)) 
   if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
   orb2 = orb
   s_here = orb2%s - (ele%s - ele%value(l$))
-  call offset_particle (ele, orb2, set$, set_canonical = .false., &
+  call offset_particle (ele, orb2, param%particle, set$, set_canonical = .false., &
                set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
                ds_pos = s_here)
   x_particle = orb2%vec(1)
@@ -185,7 +185,7 @@ end subroutine check_aperture_limit
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_drift (orb, ele, length)
+! Subroutine track_a_drift (orb, ele, species, length)
 !
 ! Subroutine to track a particle as through a drift.
 !
@@ -193,27 +193,30 @@ end subroutine check_aperture_limit
 !   use precision_def
 !
 ! Input:
-!   orb    -- coord_struct: Orbit at start of the drift.
-!   ele    -- Ele_struct: Element tracked through.
-!   length -- Real(rp): Length to drift through.
+!   orb      -- coord_struct: Orbit at start of the drift.
+!   ele      -- Ele_struct: Element tracked through.
+!   species  -- Integer: Species of particle. electron$, etc. 
+!   length   -- Real(rp): Length to drift through.
+
 !
 ! Output:
 !   orb%vec(:) -- coord_struct: Orbit at end of the drift
 !-
 
-subroutine track_a_drift (orb, ele, length)
+subroutine track_a_drift (orb, ele, species, length)
 
 implicit none
 
 type (coord_struct) orb
 type (ele_struct) ele
 type (lat_param_struct) param
+integer species
 real(rp) length, rel_pc, dz, px, py, pz
 
-! Photon 
+! Photon tracking uses a different coordinate system. 
 ! Notice that if orb%vec(6) is negative then the photon will be going back in time.
 
-if (orb%species == photon$) then
+if (species == photon$) then
   orb%vec(1) = orb%vec(1) + length * orb%vec(2) / orb%vec(6)
   orb%vec(3) = orb%vec(3) + length * orb%vec(4) / orb%vec(6)
   orb%vec(5) = orb%vec(5) + length
@@ -294,7 +297,7 @@ if (ele%value(g$) == 0) then
   length = ele%value(l$)
   end_orb = start_orb
   end_orb%vec(2) = end_orb%vec(2) - length * ele%value(g_err$) / 2
-  call track_a_drift (end_orb, ele, length)
+  call track_a_drift (end_orb, ele, param%particle, length)
   end_orb%vec(2) = end_orb%vec(2) - length * ele%value(g_err$) / 2
   return
 endif
@@ -302,7 +305,7 @@ endif
 !-----------------------------------------------------------------------
 
 end_orb = start_orb
-call offset_particle (ele, end_orb, set$, set_canonical = .false., set_multipoles = .false.)
+call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false., set_multipoles = .false.)
 call apply_bend_edge_kick (end_orb, ele, entrance_end$, .false.)
 
 ! If we have a sextupole component then step through in steps of length ds_step
@@ -436,7 +439,7 @@ enddo
 ! Track through the exit face. Treat as thin lens.
 
 call apply_bend_edge_kick (end_orb, ele, exit_end$, .false.)
-call offset_particle (ele, end_orb, unset$, set_canonical = .false., set_multipoles = .false.)
+call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., set_multipoles = .false.)
 
 end subroutine track_a_bend
 

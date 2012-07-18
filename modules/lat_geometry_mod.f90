@@ -98,9 +98,10 @@ enddo
 
 ! put info in super_lords and multipass_lords
 
-if (.not. stale_lord) return
-
+lat%lord_state%floor_position = ok$
 lat%param%bookkeeping_state%floor_position = ok$
+
+if (.not. stale_lord) return
 
 do i = lat%n_ele_track+1, lat%n_ele_max  
   lord => lat%ele(i)
@@ -118,8 +119,6 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   lord%bookkeeping_state%floor_position = ok$
 enddo
-
-lat%lord_state%floor_position = ok$
 
 end subroutine lat_geometry
 
