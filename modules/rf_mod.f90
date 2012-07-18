@@ -120,13 +120,25 @@ if (.not. do_scale_phase .and. .not. do_scale_amp) return
 
 if (ele%tracking_method == mad$) return
 
-!bmad_standard with absolute_time_tracking just needs to set dphi0_ref
+!bmad_standard just needs to set e_tot$, p0c$, and dphi0_ref$
+
 if (ele%tracking_method == bmad_standard$) then
+  if (ele%key == lcavity$) then 
+    !Set e_tot$ and p0c$ 
+    phi = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+    e_tot = ele%value(e_tot_start$) + &
+            ele%value(gradient$) * ele%value(field_scale$) * ele%value(l$) * cos(phi)
+    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag)
+    if (err_flag) return
+    ele%value(e_tot$) = e_tot
+  endif 
+  
   if (absolute_time_tracking(ele) ) then
     ele%value(dphi0_ref$)   = - ele%value(rf_frequency$) * ele%value(ref_time_start$)
   else
-    return
+    ele%value(dphi0_ref$)   = 0
   endif
+  return
 endif
 
 

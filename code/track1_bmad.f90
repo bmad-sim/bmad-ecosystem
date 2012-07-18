@@ -409,7 +409,7 @@ case (lcavity$)
   if (abs(f) < 1d-6) then
     end_orb%t = start2_orb%t + length * (E_start_ref / pc_start_ref) * (1 - f/2) / c_light
   else
-    end_orb%t = start2_orb%t + length * (pc_end_ref - pc_start_ref) / (gradient_ref * c_light)
+    end_orb%t = start2_orb%t + (pc_end_ref - pc_start_ref) / (gradient_ref * c_light)
   endif
 
 !-----------------------------------------------
