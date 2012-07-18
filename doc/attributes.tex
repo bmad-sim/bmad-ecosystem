@@ -569,26 +569,6 @@ Examples:
 \end{example}
 
 %-----------------------------------------------------------------
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=6in]{chamber-wall.pdf}
-  \caption[cross-sectional slices of a capillary.]
-{A) The inside wall of a capillary or the vacuum chamber wall of a
-non-capillary element is defined by a number of cross-sectional
-slices.  B) Each cross-section is made up of a number of vertices. The
-segments between the vertices can be either a line segment, the arc of
-a circle, or a section of an ellipse. The red line segment with one
-end at the center of the arc and the other end traversing the arc
-from, in this case $V(2)$ to $V(3)$, rotates in counter clockwise
-manner. There are two solutions for constructing an arc between two
-vertices. The solution with the center point furthest from the origin,
-the dashed line between $V(2)$ and $V(3)$ in the figure, is used if
-the radius (or radii for an ellipse section) is negative.}
-  \label{f:chamber.wall}
-\end{figure}
-
-%-----------------------------------------------------------------
 \section{Surface Curvature for X-Ray elements}
 \label{s:s.curve}
 
@@ -660,6 +640,26 @@ positive \vn{g_trans} indicates that the element is concave from the
 point of view of the photons.
 
 %-----------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{chamber-wall.pdf}
+  \caption[cross-sectional slices of a capillary.]
+{A) The inside wall of a capillary or the vacuum chamber wall of a
+non-capillary element is defined by a number of cross-sectional
+slices.  B) Each cross-section is made up of a number of vertices. The
+segments between the vertices can be either a line segment, the arc of
+a circle, or a section of an ellipse. The red line segment with one
+end at the center of the arc and the other end traversing the arc
+from, in this case $V(2)$ to $V(3)$, rotates in counter clockwise
+manner. There are two solutions for constructing an arc between two
+vertices. The solution with the center point furthest from the origin,
+the dashed line between $V(2)$ and $V(3)$ in the figure, is used if
+the radius (or radii for an ellipse section) is negative.}
+  \label{f:chamber.wall}
+\end{figure}
+
+%-----------------------------------------------------------------
 \section{Chamber and Capillary Wall}
 \label{s:wall}
 
@@ -686,6 +686,7 @@ The \vn{wall} structure defines the capillary wall. The
 syntax of the wall structure is:
 \begin{example}
   wall = \{
+    priority= <rank>,
     section = \{ 
       s = <longitudinal_position>, 
       dr_ds = <value>,
@@ -698,11 +699,12 @@ syntax of the wall structure is:
       ... \},
     ... \}
 \end{example}
-Note: Specifying \vn{s_spline} and \vn{n_cut_spline} is optional.
-Example:
+Note: Specifying \vn{priority}, \vn{s_spline} or
+\vn{n_cut_spline} is optional. Example:
 \begin{example}
   this_cap: capillary, 
     wall = \{   
+      priority = primary,
       section = \{ ! cross-section with top/bottom symmetry
         s = 0, v(1) =  \{0.02, 0.00\}, 
         v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\} \}, 
@@ -715,7 +717,7 @@ whose wall is defined by two cross-sections.
 
 The wall structure begins with ``\vn{wall = \{}'' and ends with a
 ``\vn{\}}''. In between are a number of individual cross-section
-structures.  Each individual cross-section begins with ``\vn{section =
+structures. Each individual cross-section begins with ``\vn{section =
 \{}'' and ends with a ``\vn{\}}''. The \vn{s} parameter of a
 cross-section gives the longitudinal position of the cross-section.
 For a capillary, \vn{s} must be zero for the first cross-section and
@@ -871,9 +873,24 @@ defined, the following syntax is used:
 As an alternative, if an element defines an aperture (\sref{s:limit}
 with \vn{aperture_at} set to \vn{continuous}, and the element does
 {\it not} have a \vn{wall} structure defined for it, then the aperture
-defines the wall (which by construction has a constant cross-section).
+defines the wall. By definition, such a wall has a constant cross-section.
 
-When superimposing elements (\sref{s:super}), walls must 
+When superimposing elements (\sref{s:super}), there is the problem of
+how to superimpose walls. If only one of the superimposed elements has
+a wall then this wall is used. If more than one superimposed elements
+has a wall then the wall with the highest \vn{priority} is used. The
+\vn{priority} switch in the wall structure can be set to one of
+\begin{example}
+  ignore
+  secondary  [default]
+  primary
+\end{example}
+a wall with \vn{priority} set to \vn{primary} takes precidence over a
+\vn{priority} of \vn{secondary}. A wall with \vn{priority} set to
+\vn{ignore} is always ignored even when there is no superposition. It
+is an error if there are multiple walls with the highest priority are
+superimposed. For example, two elements with walls whose \vn{priority}
+is set to \vn{secondary} cannot be superimposed on top of one another.
 
 %-----------------------------------------------------------------
 \section{Length Attributes}
