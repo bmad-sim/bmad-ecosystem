@@ -341,10 +341,10 @@ do i = 1, n_bunch
 
       call string_trim(line(ix+1:), line, ix)
       if (ix == 0) cycle
-      read (line, *, iostat = ios) p(j)%species, p(j)%ix_ele, p(j)%location
+      read (line, *, iostat = ios) p(j)%ix_ele, p(j)%location
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE SPECIES IN: ' // rb_com%file_name, &
+                        'ERROR READING PARTICLE LOCATION IN: ' // rb_com%file_name, &
                         'BAD LINE: ' // trim(line_in), &
                         'FOR BUNCH: \I0\ ', i_array = (/ i /) )
         return
@@ -366,7 +366,7 @@ do i = 1, n_bunch
     do j = 1, n_particle_lines
       if (j > n_particle) exit
       read (rb_com%iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, &
-                                     p(j)%species, p(j)%ix_ele, p(j)%location
+                                     p(j)%ix_ele, p(j)%location
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
                         'ERROR READING PARTICLE COORDINATES IN: ' // rb_com%file_name, &

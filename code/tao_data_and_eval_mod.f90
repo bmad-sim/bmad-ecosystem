@@ -965,7 +965,7 @@ case ('dpz_dz')
 
 case ('e_tot')
   if (data_source == 'beam') return
-  mc2 = mass_of(orbit(0)%species)
+  mc2 = mass_of(branch%param%particle)
   call tao_load_this_datum (sqrt((branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)))**2 + mc2**2), &
                             ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 

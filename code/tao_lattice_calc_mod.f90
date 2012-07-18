@@ -578,7 +578,8 @@ endif
 ! This is important with common_lattice since tao_lat%lat_branch(0)%orbit(0) has been overwritten.
 
 if (model%lat%branch(ix_branch)%param%lattice_type == linear_lattice$) then
-  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start, model%lat%ele(0))
+  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start, &
+                                                            model%lat%ele(0), branch%param%particle)
 else
   model%lat_branch(ix_branch)%orbit(0) = model%orb0
 endif
@@ -668,7 +669,7 @@ if (u%beam%beam0_file /= "") then
       do j = 1, size(beam%bunch(i)%particle)
         beam%bunch(i)%particle(j)%vec = beam%bunch(i)%particle(j)%vec + model%lat%beam_start%vec
         call init_coord (beam%bunch(i)%particle(j), beam%bunch(i)%particle(j), &
-                         branch%ele(0), beam%bunch(i)%t_center)
+                         branch%ele(0), branch%param%particle, beam%bunch(i)%t_center)
       enddo
     enddo
     call out_io (s_info$, r_name, &
