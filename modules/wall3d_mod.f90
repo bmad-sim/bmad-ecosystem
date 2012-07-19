@@ -660,7 +660,7 @@ priority_conflict = .false.
 aperture_conflict = .false.
 
 if (associated(ele%wall3d%section)) then
-  if (wall3d%priority /= ignore$) wall3d => ele%wall3d
+  if (ele%wall3d%priority /= ignore$) wall3d => ele%wall3d
 else
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
