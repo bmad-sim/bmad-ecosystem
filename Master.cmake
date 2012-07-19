@@ -30,17 +30,21 @@ set(PACKAGES_DIR ${RELEASE_DIR}/packages)
 #   CREATE_SHARED
 # in their CmakeLists.txt file.
 #
-# TWO variables need to be set to produce a shared object 
-# library for a given project.
+# TWO variables need to be set to produce a shared
+# object library for a given project.
 #  Shell: ACC_ENABLE_SHARED
 #  Cmake: CREATE_SHARED
 #-------------------------------------------------------
 set(ENABLE_SHARED $ENV{ACC_ENABLE_SHARED})
 
 
+IF (${LIBNAME})
+	project(${LIBNAME})
+ENDIF ()
+
+
 #   Compiler flags
 #-----------------------------------
-project(${LIBNAME})
 # Platform-dependent flag sets here.
 # Compiler-dependent also?
 set (CMAKE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -DCESR_F90_DOUBLE -DCESR_DOUBLE -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
@@ -143,7 +147,8 @@ INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
 #  Link directories
 #-------------------------
-SET(MASTER_LINK_DIRS 
+SET(MASTER_LINK_DIRS
+  /lib64
   ${PACKAGES_DIR}/lib
   ${PACKAGES_DIR}/root/lib
 )
@@ -188,10 +193,11 @@ IF (PREBUILD_ACTION)
   EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION})
 ENDIF ()
 
-
-add_library( ${LIBNAME} STATIC ${sources} )
-SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})  # new
-TARGET_LINK_LIBRARIES(${LIBNAME} ${DEPS})
+IF (LIBNAME)
+  add_library( ${LIBNAME} STATIC ${sources} )
+  SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
+  TARGET_LINK_LIBRARIES(${LIBNAME} ${DEPS})
+ENDIF ()
 
 
 #----------------------------------------------------------------
@@ -213,6 +219,7 @@ ENDIF ()
 #----------------------------------------------------------------
 foreach(dep ${DEPS})
 
+    message("Adding library as dependency: ${dep}")
     add_library(${dep} STATIC IMPORTED)
 
     IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
@@ -247,5 +254,59 @@ ENDIF ()
 # project's CMakeLists.txt file.
 #---------------------------------------------------------------
 foreach(exespec ${EXE_SPECS})
+
     include(${exespec})
+
+
+  # TODO: Convert this to macro or function
+  foreach(dir ${INC_DIRS})
+    STRING(FIND ${dir} "../" relative)
+    STRING(REPLACE "../" "" dirnew ${dir})
+    IF (${relative} EQUAL 0)
+      LIST(APPEND MASTER_INC_DIRS ${dir})
+      LIST(APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
+    ELSE ()
+      LIST(APPEND MASTER_INC_DIRS ${dir})
+    ENDIF ()
+  endforeach(dir)
+  LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
+  INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
+
+
+  IF (NOT DEPS)
+
+    set(DEPS ${LINK_LIBS})
+
+    #----------------------------------------------------------------
+    # Make this project's EXE build depend upon the product of each
+    # build that is listed as a dependency.  If those build
+    # products are newer than this project's EXE, relink this
+    # project's EXE.
+    #----------------------------------------------------------------
+    foreach(dep ${DEPS})
+  
+        message("Adding library as dependency: ${dep}")
+        IF( ${LIBNAME} MATCHES ${dep} )
+        ELSE()
+         
+          add_library(${dep} STATIC IMPORTED)
+
+          IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
+              set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
+          ELSEIF (EXISTS ${PACKAGES_DIR}/lib/lib${dep}.a)
+              set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_DIR}/lib/lib${dep}.a)
+          ELSE ()
+              set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
+          ENDIF ()
+
+        ENDIF()
+
+    endforeach(dep)
+
+  ENDIF ()
+
+  
+  include($ENV{ACC_BUILD_SYSTEM}/exe.cmake)
+
+
 endforeach(exespec)

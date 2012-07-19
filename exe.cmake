@@ -13,7 +13,7 @@ ENDIF ()
 
 add_executable(${EXENAME}-exe
     ${BUILD_EXE_TOGGLE}
-    ${MAIN_FILE})
+    ${SRC_FILES})
 
 SET_TARGET_PROPERTIES(${EXENAME}-exe
 	PROPERTIES
