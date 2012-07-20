@@ -949,7 +949,7 @@ ones for any slaves the element has.
 
 \index[routine]{set_status_flags}
 \label{r:set.status.flags}
-\item[set_status_flags (status_block, stat, n_modify)] \Newline 
+\item[set_status_flags (bookkeeping_state, stat)] \Newline 
 Routine to set the bookkeeping status block.
 
 \index[routine]{split_lat}
@@ -1005,6 +1005,12 @@ That is, the physical machine layout on the floor.
 \label{r:s.calc}
 \item[s_calc (lat)] \Newline
 Routine to calculate the longitudinal distance S for the elements in a lat. 
+
+\index[routine]{shift_reference_frame}
+\label{r:shift.reference.frame}
+\item[shift_reference_frame (floor0, dr, theta, phi, psi, floor1)] \Newline 
+Starting from a given reference frame specified by its orientation and
+position in the global (floor) coordinates, and given a shift in position
 
 \index[routine]{theta_floor}
 \label{r:theta.floor}
@@ -1304,7 +1310,7 @@ Subroutine to set the defaults for an element of a given type.
 
 \index[routine]{set_on_off}
 \label{r:set.on.off}
-\item[set_on_off (key, lat, switch, orb, use_ref_orb)] \Newline
+\item[set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch)] \Newline
 Routine to turn on or off a set of elements (quadrupoles,
 RF cavities, etc.) in a lat.
 
@@ -1533,7 +1539,7 @@ coords and vice versa.
 
 \index[routine]{mat6_from_s_to_s}
 \label{r:mat6.from.s.to.s}
-\item[mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start, err_flag)] \Newline 
+\item[mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag)] \Newline 
 Subroutine to calculate the transfer map between longitudinal positions
 s1 to s2.
 
@@ -1935,7 +1941,7 @@ Routine to concatenate two real_8 taylor series.
 
 \index[routine]{ele_to_fibre}
 \label{r:ele.to.fibre}
-\item[ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)] \Newline
+\item[ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps)] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -2946,7 +2952,7 @@ Used when \vn{ele%aperture_type} is set to \vn{custom\$}
 
 \index[routine]{closed_orbit_calc}
 \label{r:closed.orbit.calc}
-\item[closed_orbit_calc (lat, closed_orb, i_dim, direction, err_flag)] \Newline 
+\item[closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)] \Newline 
 Routine to calculate the closed orbit at the beginning of the lat.
 
 \index[routine]{closed_orbit_from_tracking}
@@ -2981,14 +2987,14 @@ matrix and the closed orbit offset.
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
-    offset_particle (ele, coord, set, set_canonical, set_tilt, \\
+    offset_particle (ele, coord, particle, set, set_canonical, set_tilt, \\
     \hspace*{1in} set_multipoles, set_hvkicks, set_s_offset, ds_pos)}] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
 \index[routine]{offset_photon}
 \label{r:offset.photon}
-\item[offset_photon (ele, param, coord, set, offset_position_only)] \Newline 
+\item[offset_photon (ele, coord, set, offset_position_only)] \Newline 
 Routine to effectively offset an element by instead offsetting
 the photon position to correspond to the local crystal or mirror coordinates.
 
@@ -3006,7 +3012,7 @@ If not moving backward it is dead or is moving backward.
 
 \index[routine]{particle_is_moving_forward}
 \label{r:particle.is.moving.forward}
-\item[particle_is_moving_forward (orbit) result (is_moving_forward)] \Newline 
+\item[particle_is_moving_forward (orbit, particle) result (is_moving_forward)] \Newline 
 Routine to determine if a particle is moving in the forward +s direction.
 If not moving forward it is dead or is moving backward.
 
@@ -3051,7 +3057,7 @@ Routine to track a particle between two s-positions.
 
 \index[routine]{track_many}
 \label{r:track.many}
-\item[track_many (lat, orbit, ix_start, ix_end, direction, ix_branch)] \Newline
+\item[track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)] \Newline
 Routine to track from one element in the lat to another. 
 
 \index[routine]{twiss_and_track}
@@ -3106,7 +3112,7 @@ Routine to track 1 step using boris tracking.
 
 \index[routine]{track_a_drift}
 \label{r:track.a.drift}
-\item[track_a_drift (orb, ele, length)] \Newline
+\item[track_a_drift (orb, ele, species, length)] \Newline
 Routine to track through a drift. 
 
 \index[routine]{track_a_bend}
@@ -3197,7 +3203,7 @@ Routine to track a macroparticle through an element.
 
 \index[routine]{make_mad_map}
 \label{r:make.mad.map}
-\item[make_mad_map (ele, particle, map)] \Newline 
+\item[make_mad_map (ele, particle, energy, map)] \Newline 
      Routine to make a 2nd order transport map a la MAD.
 
 \index[routine]{mad_add_offsets_and_multipoles}
@@ -3303,12 +3309,12 @@ Routine to track a macroparticle through an element.
 
 \index[routine]{mad_map_to_taylor}
 \label{r:mad.map.to.taylor}
-\item[mad_map_to_taylor (map, taylor)] \Newline 
+\item[mad_map_to_taylor (map, energy, taylor)] \Newline 
      Routine to convert a mad order 2 map to a taylor map.
 
 \index[routine]{taylor_to_mad_map}
 \label{r:taylor.to.mad.map}
-\item[taylor_to_mad_map (taylor, map)] \Newline 
+\item[taylor_to_mad_map (taylor, energy, map)] \Newline 
      Routine to convert a Taylor map to a mad order 2 map.
      If any of the Taylor terms have order greater than 2 they are ignored.
 
