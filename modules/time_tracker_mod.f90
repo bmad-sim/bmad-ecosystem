@@ -3,6 +3,7 @@ module time_tracker_mod
 use bmad_struct
 use beam_def_struct
 use em_field_mod
+use wall3d_mod
 
 type (ele_struct), save, private, pointer :: ele_com
 type (lat_param_struct), save, private, pointer :: param_com
@@ -406,7 +407,7 @@ type (lat_param_struct) :: param
 type (ele_struct) :: ele
 type (photon_track_struct), target :: particle
 integer :: section_ix
-real(rp) :: norm, perp(3), dummy_real
+real(rp) :: norm, perp(3), dummy_real, p_tot
 real(rp) :: edge_tol = 1e-8
 
 !-----------------------------------------------
@@ -440,15 +441,15 @@ end if
 ! (coord_struct to photon_coord_struct)
 
 !Get e_tot from momentum, calculate beta_i = c*p_i / p_tot, pretending that these are traveling at v=c
-!p_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2)
-!old_orb%vec(2) = orb%vec(2) / p_tot
-!old_orb%vec(4) = orb%vec(4) / p_tot
-!old_orb%vec(6) = orb%vec(6) / p_tot
+p_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2)
+old_orb%vec(2) = orb%vec(2) / p_tot
+old_orb%vec(4) = orb%vec(4) / p_tot
+old_orb%vec(6) = orb%vec(6) / p_tot
 
-!p_tot = sqrt(orb_new%vec(2)**2 + orb_new%vec(4)**2 + orb_new%vec(6)**2 )
-!now_orb%vec(2) = orb_new%vec(2) / p_tot
-!now_orb%vec(4) = orb_new%vec(4) / p_tot
-!now_orb%vec(6) = orb_new%vec(6) / p_tot
+p_tot = sqrt(orb_new%vec(2)**2 + orb_new%vec(4)**2 + orb_new%vec(6)**2 )
+now_orb%vec(2) = orb_new%vec(2) / p_tot
+now_orb%vec(4) = orb_new%vec(4) / p_tot
+now_orb%vec(6) = orb_new%vec(6) / p_tot
 
 
 !More coordinate changes

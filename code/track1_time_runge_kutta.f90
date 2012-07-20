@@ -147,13 +147,11 @@ time = particle_time(start_orb, ele)
 
 !------
 !Check wall
-ele_origin%vec = [0.0_rp, 0.0_rp,  0.0_rp,  0.0_rp, s_rel,  0.0_rp ]
-call  particle_hit_wall_check_time(ele_origin, end_orb, param, ele)
 
-if (end_orb%state /= alive$) then
-
-  end_orb = start_orb
+if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
    
+  !save state
+  i = end_orb%state
   !Allocate track array and set value
   if ( present(track) ) then
     call init_saved_orbit (track, 0)
@@ -161,71 +159,75 @@ if (end_orb%state /= alive$) then
     track%orb(0) = end_orb
   endif
 
+  !
   call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL, SKIPPING TRACKING")
+  !Particle won't be tracked, so set end = start with the saved state
+  end_orb = start_orb
+  end_orb%state = i
+  return
 
-else
+endif
 
-  if ( present(track) ) then
-    call init_saved_orbit (track, 10000)   !TODO: pass this from elsewhere
-    track%n_pt = 0
-    track%orb(0) = end_orb
-    !Query the local field to save
-    call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false.)
-    track%field(0) = saved_field
+if ( present(track) ) then
+  call init_saved_orbit (track, 10000)   !TODO: pass this from elsewhere
+  track%n_pt = 0
+  track%orb(0) = end_orb
+  !Query the local field to save
+  call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false.)
+  track%field(0) = saved_field
       
-  endif
+endif
 
 
-  !If particle passed wall check, track through element
-  
-  if (n_edge == 0) then
-    ! Track whole element with no hard edges
-    call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, &
-                                      dt_step, local_ref_frame, err, track)
-    if (err) return
-  else 
-    ! There are hard edges. Track between edges until final exit
-    do    
-      ! Bracket edges and kick if at edge
-      s1 = 0.0_rp
-      s2 = ele%value(l$)
-      do i = 1, n_edge
-        del_s = end_orb%vec(5) - edge(i)%s
+!Track through element
 
-        if (abs(del_s) < bmad_com%significant_length) then
-          ! At an edge. Kick.         
-          p0c_save = end_orb%p0c ! Fudge to kick orb in time coordinates by setting p0c = +/- 1
-          end_orb%p0c = sign(1.0_rp, p0c_save)
-          pc2 = end_orb%vec(2)**2 + end_orb%vec(4)**2 + end_orb%vec(6)**2
-          call apply_hard_edge_kick (end_orb, edge(i)%s_hard, time, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
-          end_orb%p0c = p0c_save
-          end_orb%vec(6) = sign(sqrt(pc2 - end_orb%vec(2)**2 - end_orb%vec(4)**2), end_orb%vec(6))
-          if (p0c_save > 0 ) then 
-            s1 = edge(i)%s
-          else 
-            s2 = edge(i)%s
-          end if
+if (n_edge == 0) then
+  ! Track whole element with no hard edges
+  call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, &
+								  dt_step, local_ref_frame, err, track)
+  if (err) return
 
-        elseif (del_s > 0) then
-      	  if (del_s < end_orb%vec(5) - s1) s1 = edge(i)%s  !new nearest left edge
+else 
+! There are hard edges. Track between edges until final exit
+  do    
+    ! Bracket edges and kick if at edge
+    s1 = 0.0_rp
+    s2 = ele%value(l$)
+    do i = 1, n_edge
+      del_s = end_orb%vec(5) - edge(i)%s
 
-        else  ! Must be del_s < 0
-          if (del_s > end_orb%vec(5) - s2) s2 = edge(i)%s  !new nearest right edge
+	  if (abs(del_s) < bmad_com%significant_length) then
+	    ! At an edge. Kick.         
+	    p0c_save = end_orb%p0c ! Fudge to kick orb in time coordinates by setting p0c = +/- 1
+	    end_orb%p0c = sign(1.0_rp, p0c_save)
+	    pc2 = end_orb%vec(2)**2 + end_orb%vec(4)**2 + end_orb%vec(6)**2
+	    call apply_hard_edge_kick (end_orb, edge(i)%s_hard, time, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
+	    end_orb%p0c = p0c_save
+	    end_orb%vec(6) = sign(sqrt(pc2 - end_orb%vec(2)**2 - end_orb%vec(4)**2), end_orb%vec(6))
+	    if (p0c_save > 0 ) then 
+		s1 = edge(i)%s
+	  else 
+		s2 = edge(i)%s
+	  end if
 
+	  elseif (del_s > 0) then
+	    if (del_s < end_orb%vec(5) - s1) s1 = edge(i)%s  !new nearest left edge
 
-        endif
-      enddo
-      if (abs(end_orb%vec(5) - ele%value(L$)) < bmad_com%significant_length .and. end_orb%vec(6) > 0) exit
-      if (abs(end_orb%vec(5) - 0.0_rp)        < bmad_com%significant_length .and. end_orb%vec(6) < 0) exit
-      if (end_orb%state /= alive$) exit
-      
-      ! Track
-      call odeint_bmad_time(end_orb, ele, param, s1, s2, time, dt_step, local_ref_frame, err, track)
-      if (err) return
+      else  ! Must be del_s < 0
+	    if (del_s > end_orb%vec(5) - s2) s2 = edge(i)%s  !new nearest right edge
+      endif
     enddo
-  endif   
+  if (abs(end_orb%vec(5) - ele%value(L$)) < bmad_com%significant_length .and. end_orb%vec(6) > 0) exit
+  if (abs(end_orb%vec(5) - 0.0_rp)        < bmad_com%significant_length .and. end_orb%vec(6) < 0) exit
+  if (end_orb%state /= alive$) exit
   
-end if
+  ! Track
+  call odeint_bmad_time(end_orb, ele, param, s1, s2, time, dt_step, local_ref_frame, err, track)
+  if (err) return
+  
+  enddo
+endif   
+
 
 ! Cleanup  
 deallocate (edge)
