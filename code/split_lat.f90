@@ -117,10 +117,21 @@ if (logic_option(.true., add_suffix)) then
   ele2%name = ele%name(:ix) // '#2'
 endif
 
-! kill any talyor series
+! kill any talyor series, etc.
+! Note that %a_pole and %b_pole components are the exception
 
-if (associated (ele1%taylor(1)%term)) call kill_taylor (ele1%taylor)
-if (associated (ele2%taylor(1)%term)) call kill_taylor (ele2%taylor)
+call deallocate_ele_pointers (ele1)
+call deallocate_ele_pointers (ele2)
+
+ele1%lat => lat ! reinstate
+ele2%lat => lat ! reinstate
+
+if (associated(ele%a_pole)) then
+  call multipole_init(ele1)
+  call multipole_init(ele2)
+  ele1%a_pole = ele%a_pole; ele1%b_pole = ele%b_pole
+  ele2%a_pole = ele%a_pole; ele2%b_pole = ele%b_pole
+endif
 
 ! put in correct lengths and s positions
 

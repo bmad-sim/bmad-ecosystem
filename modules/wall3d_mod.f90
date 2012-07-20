@@ -628,23 +628,23 @@ function wall3d_d_radius (position, ele, perp, ix_section, err_flag) result (d_r
 implicit none
 
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: wall3d_ele
 type (wall3d_section_struct), pointer :: sec1, sec2
 type (wall3d_struct), pointer :: wall3d
-type (ele_struct), pointer :: ele_with_aperture, lord
 type (wall3d_vertex_struct), allocatable :: v(:)
 
 real(rp) d_radius, r_particle, s_rel, spline, cos_theta, sin_theta
 real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
-real(rp) p1, p2, dp1, dp2
+real(rp) p1, p2, dp1, dp2, s_particle, ds_offset
 real(rp), intent(in) :: position(:)
 real(rp), optional :: perp(3)
-real(rp), pointer :: vec(:)
+real(rp), pointer :: vec(:), value(:)
 
 integer i, ix_w, n_slice, n_sec
 integer, optional :: ix_section
 
-logical priority_conflict, aperture_conflict
 logical, optional :: err_flag
+logical err
 
 character(32), parameter :: r_name = 'wall3d_d_radius' 
 
@@ -653,63 +653,23 @@ character(32), parameter :: r_name = 'wall3d_d_radius'
 if (present(err_flag)) err_flag = .true.
 d_radius = -1
 
-nullify (wall3d)
-nullify (ele_with_aperture)
-if (ele%aperture_at == continuous$) ele_with_aperture => ele
-priority_conflict = .false.
-aperture_conflict = .false.
-
-if (associated(ele%wall3d%section)) then
-  if (ele%wall3d%priority /= ignore$) wall3d => ele%wall3d
-else
-  do i = 1, ele%n_lord
-    lord => pointer_to_lord(ele, i)
-    if (.not. associated(lord)) exit
-    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-
-    if (lord%lord_status /= multipass_lord$ .and. lord%lord_status /= super_lord$) cycle
-
-    if (lord%aperture_at == continuous$) then
-      if (associated(ele_with_aperture)) aperture_conflict = .true.
-      ele_with_aperture => lord
-    endif
-
-    if (.not. associated(lord%wall3d%section)) cycle
-    if (lord%wall3d%priority == ignore$) cycle
-
-    if (associated(wall3d)) then
-      if (wall3d%priority == lord%wall3d%priority) priority_conflict = .true.
-      if (lord%wall3d%priority < wall3d%priority) then   ! Lower number -> higher priority.
-        wall3d => lord%wall3d
-        priority_conflict = .false.
-      endif
-    endif
-
-  enddo
+wall3d_ele => pointer_to_wall3d_ele (ele, ds_offset, err)
+if (err) then
+ call out_io (s_error$, r_name, 'Wall priority conflict for: ' // ele%name)
+ return
 endif
 
-if (associated(wall3d)) then
-  if (priority_conflict) then
-    call out_io (s_error$, r_name, 'Wall priority conflict for: ' // ele%name)
-    return
-  endif
-elseif (associated(ele_with_aperture)) then
-  if (aperture_conflict) then
-    call out_io (s_error$, r_name, 'Aperture conflict for: ' // ele%name)
-    return
-  endif
-else
-  ! No messages to be generated if there is no wall. Just return with err_flag set.
-  return
-endif
+if (.not. associated(wall3d_ele)) return
 
+!------------------
 ! If using a continuous aperture...
 
-if (.not. associated(wall3d)) then
-  if (ele%aperture_type == rectangular$) then
+if (.not. associated(wall3d_ele%wall3d%section)) then
+  value => wall3d_ele%value
+  if (wall3d_ele%aperture_type == rectangular$) then
     allocate (v(4))
-    v(1:4)%x = [ele%value(x1_limit$), -ele%value(x2_limit$), -ele%value(x2_limit$),  ele%value(x1_limit$)]
-    v(1:4)%y = [ele%value(y1_limit$),  ele%value(y1_limit$), -ele%value(y2_limit$), -ele%value(y2_limit$)]
+    v(1:4)%x = [value(x1_limit$), -value(x2_limit$), -value(x2_limit$),  value(x1_limit$)]
+    v(1:4)%y = [value(y1_limit$),  value(y1_limit$), -value(y2_limit$), -value(y2_limit$)]
     do i = 1, 4
       v(i)%angle = atan2(v(i)%y, v(i)%x)
       if (i == 1) cycle
@@ -717,7 +677,7 @@ if (.not. associated(wall3d)) then
     enddo
   else
     allocate (v(1))
-    v(1) = wall3d_vertex_struct(0.0_rp, 0.0_rp, ele%value(x1_limit$), ele%value(y1_limit$), &
+    v(1) = wall3d_vertex_struct(0.0_rp, 0.0_rp, value(x1_limit$), value(y1_limit$), &
                                 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
   endif
 
@@ -729,7 +689,11 @@ if (.not. associated(wall3d)) then
   return
 endif
 
+!------------------
 ! Calculate the particle radius and transverse angle.
+
+wall3d => wall3d_ele%wall3d
+s_particle = position(5) + ds_offset
 
 if (position(1) == 0 .and. position(3) == 0) then
   r_particle = 0
@@ -749,8 +713,8 @@ endif
 ! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
 
 n_sec = size(wall3d%section)
-call bracket_index (wall3d%section%s, 1, size(wall3d%section), position(5), ix_w)
-if (position(5) == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
+call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
+if (s_particle == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
 if (present(ix_section)) ix_section = ix_w
 
 ! Case where particle is outside the wall region.
@@ -783,7 +747,7 @@ call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
 ! Interpolate to get d_radius
 
 ds = sec2%s - sec1%s
-s_rel = (position(5) - sec1%s) / ds
+s_rel = (s_particle - sec1%s) / ds
 p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
 p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
 
@@ -803,5 +767,119 @@ endif
 if (present(err_flag)) err_flag = .false.
 
 end function wall3d_d_radius
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_wall3d_ele (ele, ds_offset, err_flag) result (wall3d_ele)
+!
+! Function to return a pointer to the element containing the wall associated
+! with a given lattice element. 
+!
+! Normally, wall_ele and ele are the same. The wall associated with a super_slave
+! will be contained in the super_lord. Similarly, the wall associated with
+! a multipass_slave will be contained in the multipass_lord. 
+!
+! Module needed:
+!   use wall3d_mod
+!
+! Input:
+!   ele        -- ele_struct: Lattice element
+!
+! Output:
+!   wall3d_ele -- ele_struct, pointer: Pointer to the element containing the associated wall.
+!                   Will be nullified if there is no associated wall.
+!   ds_offset  -- real(rp): Element offset: s(beginning of wall3d_ele) - s(beginning of ele)
+!   err_flag   -- logical: Set True if there is a priority conflict between multiple walls. 
+!                   False otherwise.
+!-
+
+function pointer_to_wall3d_ele (ele, ds_offset, err_flag) result (wall3d_ele)
+
+implicit none
+
+character(32), parameter :: r_name = 'pointer_to_wall3d_ele'
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: wall3d_ele, aperture_ele, lord
+
+real(rp) ds_offset
+
+integer i
+
+logical err_flag
+logical priority_conflict, aperture_conflict
+
+! Rule: If an element has a wall then any lords will *not* have a wall and vice versa.
+
+err_flag = .true.
+
+nullify (wall3d_ele)
+nullify (aperture_ele)
+
+priority_conflict = .false.
+aperture_conflict = .false.
+
+if (associated(ele%wall3d%section)) then
+  if (ele%wall3d%priority /= ignore$) wall3d_ele => ele
+else
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    if (.not. associated(lord)) exit
+    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+
+    if (lord%lord_status /= multipass_lord$ .and. lord%lord_status /= super_lord$) cycle
+
+    if (lord%aperture_at == continuous$) then
+      if (associated(aperture_ele)) aperture_conflict = .true.
+      aperture_ele => lord
+    endif
+
+    if (.not. associated(lord%wall3d%section)) cycle
+    if (lord%wall3d%priority == ignore$) cycle
+
+    if (associated(wall3d_ele)) then
+      if (wall3d_ele%wall3d%priority == lord%wall3d%priority) priority_conflict = .true.
+      if (lord%wall3d%priority < wall3d_ele%wall3d%priority) then   ! Lower number -> higher priority.
+        wall3d_ele => lord
+        priority_conflict = .false.
+      endif
+    endif
+
+  enddo
+endif
+
+if (.not. associated(aperture_ele) .and. ele%aperture_at == continuous$) aperture_ele => ele
+
+! Look for a conflict
+
+if (associated(wall3d_ele)) then
+  if (priority_conflict) then
+    nullify(wall3d_ele)
+    return
+  endif
+elseif (associated(aperture_ele)) then
+  if (aperture_conflict) return
+  wall3d_ele => aperture_ele
+endif
+
+! Offset
+
+err_flag = .false.
+ds_offset = 0
+
+if (associated(wall3d_ele)) then
+  if (ele%slave_status == super_slave$) then
+    if (wall3d_ele%lord_status == multipass_lord$) then
+      lord = pointer_to_slave(wall3d_ele, 1)
+    else
+      lord => wall3d_ele
+    endif
+    ds_offset = (lord%s - lord%value(l$)) - (ele%s - ele%value(l$))
+  endif
+endif
+
+end function pointer_to_wall3d_ele
 
 end module
