@@ -248,7 +248,11 @@ if (u%calc%track) then
 
   if (branch%param%lattice_type == circular_lattice$) then
     if (ix_branch /= 0) call err_exit  ! Needs to be fixed...
-    call closed_orbit_calc (lat, lat_branch%orbit, 4, err_flag = err)
+    if (s%global%rf_on) then
+      call closed_orbit_calc (lat, lat_branch%orbit, 6, err_flag = err)
+    else
+      call closed_orbit_calc (lat, lat_branch%orbit, 4, err_flag = err)
+    endif
     if (err) then
       calc_ok = .false.
       do i = 0, ubound(orbit, 1)

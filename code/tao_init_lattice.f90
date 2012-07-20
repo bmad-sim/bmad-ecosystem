@@ -219,9 +219,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     enddo
   endif
 
-  if (u%design%lat%param%lattice_type == circular_lattice$ .and. s%global%init_lats_with_rf_off) then
+  if (u%design%lat%param%lattice_type == circular_lattice$ .and. .not. s%global%rf_on) then
     call out_io (s_info$, r_name, &
-            "Note: global%init_lats_with_rf_off = True  -->  RFCavities will be turned off in lattices")
+            "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
     call calc_z_tune(u%design%lat)
     call set_on_off (rfcavity$, u%design%lat, off$)
   endif

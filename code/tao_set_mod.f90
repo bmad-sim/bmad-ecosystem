@@ -244,11 +244,12 @@ subroutine tao_set_global_cmd (who, set_value)
 implicit none
 
 type (tao_global_struct) global, old_global
+type (tao_universe_struct), pointer :: u
 
 character(*) who, set_value
 character(20) :: r_name = 'tao_set_global_cmd'
 
-integer iu, ios
+integer iu, ios, iuni
 logical err, needs_quotes
 
 namelist / params / global
@@ -304,6 +305,16 @@ case ('random_engine')
   call ran_engine (global%random_engine)
 case ('random_gauss_converter', 'random_sigma_cutoff')
  call ran_gauss_converter (global%random_gauss_converter, global%random_sigma_cutoff)
+case ('rf_on')
+  do iuni = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(iuni)
+    if (global%rf_on) then
+      call set_on_off (rfcavity$, u%model%lat, on$)
+    else
+      call set_on_off (rfcavity$, u%model%lat, off$)
+    endif
+  enddo
+  s%u%calc%lattice = .true.
 end select
 
 s%global = global
