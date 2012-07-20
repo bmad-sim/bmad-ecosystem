@@ -913,16 +913,14 @@ do i = 1, i_max
   enddo
 enddo
 
-allocate (expn(i_max, e_max))
+allocate (expn(0:e_max, i_max))
 
 ! Fill in cache matrix
 
-expn = 0
-do i = 1, i_max
-  do j = 1, e_max
-    if (start_orb(i) == 0) cycle
-    expn(i, j) = start_orb(i) ** j
-  enddo
+expn(0,:) = 1.0d0  !for when ie=0
+expn(1,:) = start_orb(:)
+do j = 2, e_max
+  expn(j,:) = expn(j-1,:) * start_orb(:)
 enddo
 
 ! compute taylor map
@@ -931,16 +929,15 @@ s0 = start_orb  ! in case start and end are the same in memory.
 end_orb = 0
 
 do i = 1, i_max
-  j_loop: do j = 1, size(bmad_taylor(i)%term)
-    delta =  bmad_taylor(i)%term(j)%coef
-    do k = 1, 6
-      ie = bmad_taylor(i)%term(j)%expn(k) 
-      if (ie == 0) cycle
-      if (s0(k) == 0) cycle j_loop  ! delta = 0 in this case 
-      delta = delta * expn(k, ie)
-    enddo
-    end_orb(i) = end_orb(i) + delta
-  enddo j_loop
+  do j = 1, size(bmad_taylor(i)%term)
+    end_orb(i) = end_orb(i) + bmad_taylor(i)%term(j)%coef * &
+                       expn(bmad_taylor(i)%term(j)%expn(1), 1) * &
+                       expn(bmad_taylor(i)%term(j)%expn(2), 2) * &
+                       expn(bmad_taylor(i)%term(j)%expn(3), 3) * &
+                       expn(bmad_taylor(i)%term(j)%expn(4), 4) * &
+                       expn(bmad_taylor(i)%term(j)%expn(5), 5) * &
+                       expn(bmad_taylor(i)%term(j)%expn(6), 6)
+  enddo
 enddo
 
 end subroutine
