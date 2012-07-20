@@ -190,7 +190,6 @@ character(len_lines), allocatable, save :: lines(:)
 character(20) abs_or_rel
 
 logical err, etc_added
-logical, allocatable, save :: good(:)
 logical, allocatable, save :: this_u(:)
 
 !-------------------------------------------------
@@ -232,23 +231,28 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
                                                   m_ptr, err, .true., eles)
   if (err) return
 
-  ! Count to see if any of the attributes are free
+  ! Make sure all attributes are free
 
   call re_allocate (old_value, size(d_ptr))
-  call re_allocate (good, size(d_ptr))
 
-  good = .false.
   do i = 1, size(d_ptr)
-    if (size(eles) > 0) then  ! beam_start variables are always free
-      if (.not. attribute_free (eles(i)%ele, a_name, u%model%lat, .false.)) cycle
-    endif
-    good(i) = .true.
-  end do
 
-  if (all (.not. good)) then
+    ! Can vary beam energy with RF off even in rings.
+    ! Or when doing multi_turn_orbit data taking.
+
+    if (e_name == 'BEAM_START' .and. u%model%lat%param%lattice_type == circular_lattice$) then
+      if (a_name == 'PZ' .and. .not. s%global%rf_on) cycle
+      write (name, '(i0, a)') iu, '@multi_turn_orbit'
+      call tao_find_data (err, name, d2_dat, print_err = .false.)
+      if (associated(d2_dat)) cycle
+    endif
+
+    if (size(eles) > 0) then
+      if (attribute_free (eles(i)%ele, a_name, u%model%lat, .false.)) cycle
+    endif
     call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
     return
-  endif
+  end do
 
   ! Find change value(s)
 
@@ -259,8 +263,6 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   ! put in change
 
   do i = 1, size(d_ptr)
-
-    if (.not. good(i)) cycle
 
     old_value(i) = m_ptr(i)%r
 
@@ -276,20 +278,12 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     delta = m_ptr(i)%r - old_value(i)
 
-    ! Beam_start. Cannot set in a circular lattice except when doing multi_turn_orbit data taking.
+    ! Beam_start. 
 
     if (e_name == 'BEAM_START') then
-
-      if (u%model%lat%param%lattice_type == circular_lattice$) then
-        write (name, '(i0, a)') iu, '@multi_turn_orbit'
-        call tao_find_data (err, name, d2_dat, print_err = .false.)
-        if (.not. associated(d2_dat)) then
-          call out_io (s_error$, r_name, 'CANNOT SET BEAM_START IN A CIRCULAR LATTICE!')
-          return
-        endif
-      endif
-
-      u%beam%beam_init%center = u%model%lat%beam_start%vec
+      u%beam%beam_init%center            = u%model%lat%beam_start%vec
+      u%model%lat_branch(0)%orbit(0)%vec = u%model%lat%beam_start%vec
+      u%model%orb0%vec                   = u%model%lat%beam_start%vec
       u%beam%init_beam0 = .true.
     endif
 

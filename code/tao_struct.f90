@@ -522,7 +522,7 @@ type tao_global_struct
   logical :: box_plots = .false.                ! For debugging plot layout issues.
   logical :: beam_timer_on = .false.            ! For timing the beam tracking calculation.
   logical :: optimizer_var_limit_warn = .true.  ! Warn when vars reach a limit with optimization.
-  logical :: init_lats_with_rf_off = .true.     ! Initalize lattices with the RF off?
+  logical :: rf_on = .false.                    ! RFcavities on or off? Does not affect lcavities.
   logical :: draw_curve_off_scale_warn = .true. ! Display warning on graphs?
 end type
 

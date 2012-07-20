@@ -418,7 +418,7 @@ type tao_global_struct
   logical lattice_calc_on = T           ! Master switch.
   logical svd_retreat_on_merit_increase = T    
   logical command_file_print_on = T     ! Toggle printing when using a command file.
-  logical init_lats_with_rf_off = T     ! Initialize lattices with the RF off?
+  logical rf_on = F                     ! RFcavities on?
   logical optimizer_var_limit_warn = T  ! Warn when variables reach a limit when
                                         !   optimizing.
   logical draw_curve_off_scale_warn = T ! Display warning on graphs when any part of the 
@@ -489,9 +489,10 @@ the calculational overhead that each command generates. Similarly,
 The \vn{global%command_file_print_on} switch controls whether printing
 is suppressed when a command file is called.
 
-The rf cavities in circular lattices can be automatically be turned
-off when \tao is initialized. The behavior is set by the
-\vn{global%init_lats_with_rf_off} switch. The default is True.
+The rf cavities in circular lattices can be be toggled on or off using
+the \vn{global%rf_on} switch. The default is False. Notice that with
+the RF off, the beam energy will be independent of the closed orbit
+which is not the case when the RF is on.
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}
