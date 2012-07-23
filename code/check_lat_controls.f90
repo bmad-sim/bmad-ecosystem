@@ -207,7 +207,8 @@ do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    ! sbend multipass lord must have non-zero ref_energy.
+    ! Sbend multipass lord must have non-zero ref_energy or n_ref_pass must be non-zero.
+    ! This restriction is necessary to compute the reference orbit.
     ! Check both p0c and e_tot since if this routine is called by bmad_parser we
     ! can have one zero and the other non-zero.
 
