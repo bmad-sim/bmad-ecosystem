@@ -3555,7 +3555,6 @@ do
           enddo
         enddo
 
-        ! Add a multipass_lord to control the created super_lords.
         ! If the super_lords have a single super_slave and the super_slave
         ! has only a single super_lord, the super_lords
         ! can be eliminated and the created multipass_lord can control the
@@ -3593,7 +3592,18 @@ do
           endif
         endif
 
+        ! Remove eles marked for deletion. But first shift m_slaves list
+
+        do i = 1, size(m_slaves)
+          ele => pointer_to_ele (lat, m_slaves(i))
+          m_slaves(i)%ix_ele = m_slaves(i)%ix_ele - &
+                                  count(lat%branch(ele%ix_branch)%ele(1:ele%ix_ele)%key == -1)
+        enddo
+
         call remove_eles_from_lat (lat, .false.)
+
+        ! Add a multipass_lord to control the created super_lords.
+
         call add_this_multipass (lat, m_slaves, super_ele_saved) 
 
         call deallocate_multipass_all_info_struct (m_info)

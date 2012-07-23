@@ -680,7 +680,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Multipass lord 
 
-    if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master) then
+    if (ele%key == sbend$ .or. (ele%lord_status == multipass_lord$ .and. .not. ele%field_master)) then
       select case (ele%key)
       case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
             hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
