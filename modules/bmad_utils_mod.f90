@@ -854,7 +854,7 @@ real(rp) pc_new, mc2, g2
 integer, intent(in) :: particle
 logical, optional :: err_flag
 
-character(20) :: r_name = 'convert_total_energy_to'
+character(24) :: r_name = 'convert_total_energy_to'
 
 !
 
