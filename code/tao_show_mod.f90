@@ -1546,7 +1546,7 @@ case ('lattice')
     enddo
 
   elseif (.not. show_lords) then
-    if (size(picked_ele) > 200) then
+    if (count(picked_ele) > 200) then
       picked_ele(201:) = .false.
       limited = .true.
     endif
