@@ -790,7 +790,7 @@ end function wall3d_d_radius
 ! Output:
 !   wall3d_ele -- ele_struct, pointer: Pointer to the element containing the associated wall.
 !                   Will be nullified if there is no associated wall.
-!   ds_offset  -- real(rp): Element offset: s(beginning of wall3d_ele) - s(beginning of ele)
+!   ds_offset  -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d_ele)
 !   err_flag   -- logical: Set True if there is a priority conflict between multiple walls. 
 !                   False otherwise.
 !-
@@ -840,12 +840,12 @@ else
     if (lord%wall3d%priority == ignore$) cycle
 
     if (associated(wall3d_ele)) then
+      if (lord%wall3d%priority > wall3d_ele%wall3d%priority) cycle   ! Higher number -> lowerpriority.
       if (wall3d_ele%wall3d%priority == lord%wall3d%priority) priority_conflict = .true.
-      if (lord%wall3d%priority < wall3d_ele%wall3d%priority) then   ! Lower number -> higher priority.
-        wall3d_ele => lord
-        priority_conflict = .false.
-      endif
+      if (wall3d_ele%wall3d%priority < lord%wall3d%priority) priority_conflict = .false.
     endif
+
+    wall3d_ele => lord
 
   enddo
 endif
@@ -872,11 +872,11 @@ ds_offset = 0
 if (associated(wall3d_ele)) then
   if (ele%slave_status == super_slave$) then
     if (wall3d_ele%lord_status == multipass_lord$) then
-      lord = pointer_to_slave(wall3d_ele, 1)
+      lord => pointer_to_slave(wall3d_ele, 1)
     else
       lord => wall3d_ele
     endif
-    ds_offset = (lord%s - lord%value(l$)) - (ele%s - ele%value(l$))
+    ds_offset = (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
   endif
 endif
 

@@ -230,8 +230,11 @@ do ib = 0, ubound(lat%branch, 1)
         if (lord%lord_status == multipass_lord$ .and. lord%value(n_ref_pass$) == 0) then
           if (lord%value(p0c$) /= 0) then
             call convert_pc_to(lord%value(p0c$), branch%param%particle, lord%value(e_tot$))
-          else
+          elseif (lord%value(e_tot$) /= 0) then
             call convert_total_energy_to(lord%value(e_tot$), branch%param%particle, pc = lord%value(p0c$))
+          else
+            ! Marker element, for example, may not set either p0c or e_tot.
+            cycle
           endif
           call ele_compute_ref_energy_and_time (lord, branch%param, &
                                               lord%value(e_tot$), lord%value(p0c$), 0.0_rp, err)

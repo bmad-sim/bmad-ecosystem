@@ -513,6 +513,10 @@ type (coord_struct)  coord
 
 real(rp) knl, tilt, x, y, sin_ang, cos_ang
 real(rp) x_vel, y_vel
+real(rp) x_value, y_value
+real(rp) cval
+real(rp) x_terms(0:n)
+real(rp) y_terms(0:n)
 
 integer n, m
 
@@ -548,16 +552,25 @@ endif
 
 ! normal case
 
-x_vel = 0
-y_vel = 0
+x_terms(0)=1.0
+y_terms(0)=1.0
+do m=1,n
+  x_terms(m) = x_terms(m-1)*x
+  y_terms(m) = y_terms(m-1)*y
+enddo
 
+x_value = 0
+y_value = 0
 do m = 0, n, 2
-  x_vel = x_vel + knl * c_multi(n, m) * mexp(x, n-m) * mexp(y, m)
+  x_value = x_value + c_multi(n, m) * x_terms(n-m) * y_terms(m)
 enddo
 
 do m = 1, n, 2
-  y_vel = y_vel + knl * c_multi(n, m) * mexp(x, n-m) * mexp(y, m)
+  y_value = y_value + c_multi(n, m) * x_terms(n-m) * y_terms(m)
 enddo
+
+x_vel = knl * x_value
+y_vel = knl * y_value
 
 if (tilt == 0) then
   coord%vec(2) = coord%vec(2) + x_vel
