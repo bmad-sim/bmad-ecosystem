@@ -39,7 +39,7 @@ type (wall3d_section_struct), pointer :: wall3d_section
 
 real(rp) ix_vertex_ante(2), ix_vertex_ante2(2)
 
-integer i, n, n_wall_pt_max, ios, n_shape_max, ix_gen_shape
+integer i, n, iu, n_wall_pt_max, ios, n_shape_max, ix_gen_shape
 
 character(28), parameter :: r_name = 'sr3d_init_and_check_wall'
 character(40) name
@@ -54,14 +54,15 @@ namelist / gen_shape_def / ix_gen_shape, v, ix_vertex_ante, ix_vertex_ante2
 ! Get wall info
 ! First count the cross-section number
 
-open (1, file = wall_file, status = 'old')
+iu = lunget()
+open (iu, file = wall_file, status = 'old')
 n_wall_pt_max = -1
 do
-  read (1, nml = wall_def, iostat = ios)
+  read (iu, nml = wall_def, iostat = ios)
   if (ios > 0) then ! error
-    rewind (1)
+    rewind (iu)
     do
-      read (1, nml = wall_def) ! will bomb program with error message
+      read (iu, nml = wall_def) ! will bomb program with error message
     enddo  
   endif
   if (ios < 0) exit   ! End of file reached
@@ -80,7 +81,7 @@ wall%n_pt_max = n_wall_pt_max
 ! Now transfer info from the file to the wall%pt array
 
 n_shape_max = -1
-rewind (1)
+rewind (iu)
 do i = 0, n_wall_pt_max
   section%basic_shape = ''
   section%ante_height2_plus = -1
@@ -88,7 +89,7 @@ do i = 0, n_wall_pt_max
   section%width2_plus = -1
   section%width2_minus = -1
   name = ''
-  read (1, nml = wall_def)
+  read (iu, nml = wall_def)
 
   wall%pt(i) = sr3d_wall_pt_struct(name, &
           section%s, section%basic_shape, section%width2, section%height2, &
@@ -103,19 +104,19 @@ enddo
 ! Get the gen_shape info
 
 if (n_shape_max > 0) then
-  rewind(1)
+  rewind(iu)
   allocate (wall%gen_shape(n_shape_max))
   do
     ix_gen_shape = 0
     ix_vertex_ante = 0
     ix_vertex_ante2 = 0
     v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
-    read (1, nml = gen_shape_def, iostat = ios)
+    read (iu, nml = gen_shape_def, iostat = ios)
     if (ios > 0) then ! If error
       print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
-      rewind (1)
+      rewind (iu)
       do
-        read (1, nml = gen_shape_def) ! Generate error message
+        read (iu, nml = gen_shape_def) ! Generate error message
       enddo
     endif
     if (ios < 0) exit  ! End of file
@@ -176,7 +177,7 @@ if (n_shape_max > 0) then
   enddo
 endif
 
-close (1)
+close (iu)
 
 ! point to gen_shapes
 

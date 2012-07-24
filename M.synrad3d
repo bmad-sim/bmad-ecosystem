@@ -61,7 +61,8 @@ MAKEFILE := M.synrad3d
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS  :=
 OBJ_SRC_DIRS  := synrad3d
-LOCAL_INCS    := synrad3d
+LOCAL_INCS    :=
+CODE_SRC_DIRS :=
 LOCAL_MODS    := ../modules
 
 #-------------------------------------------------------------
