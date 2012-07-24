@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set(INC_DIRS 
   ../include
-  synrad3d
 )
 
 #  /usr/lib64/openmpi/1.4-gcc/include
