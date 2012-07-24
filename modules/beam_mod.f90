@@ -249,7 +249,7 @@ if (associated(ele%rf_wake)) then
   ! A chain is a set of elements in the tracking lattice that all represent 
   ! the same physical element.
 
-  call multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
+  call multipass_chain (ele, ix_pass, n_links, chain_ele)
   do i = 1, n_links
     if (i == ix_pass) cycle
     do j = 1, size(ele%rf_wake%lr)
@@ -263,7 +263,7 @@ if (associated(ele%rf_wake)) then
     enddo
   enddo
 
-  lord => pointer_to_multipass_lord (ele, lat)
+  lord => pointer_to_multipass_lord (ele)
   if (associated(lord)) then 
     do j = 1, size(ele%rf_wake%lr)
       lr       => ele%rf_wake%lr(j)
