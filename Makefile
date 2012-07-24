@@ -55,7 +55,7 @@ OBJ_SRC_DIRS  :=
 CONFIG_DIRS   :=
 LOCAL_INCS    :=
 SRC_EXCLUDE   :=
-M_FILE_LIST   := M.slice_test M.twiss_track_test M.ptc_test M.time_runge_kutta_test
+M_FILE_LIST   := M.synrad3d_test M.slice_test M.twiss_track_test M.ptc_test M.time_runge_kutta_test
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
