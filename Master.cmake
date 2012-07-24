@@ -149,6 +149,7 @@ INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 #-------------------------
 SET(MASTER_LINK_DIRS
   /lib64
+  /usr/lib64
   ${PACKAGES_DIR}/lib
   ${PACKAGES_DIR}/root/lib
 )
