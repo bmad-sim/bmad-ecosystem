@@ -112,7 +112,7 @@ out_of_bounds = .false.
 ! Wall3d section
 
 if (a_name(1:10) == 'WALL.SECTION') then
-  if (.not. associated(ele%wall3d%section)) goto 9210
+  if (.not. associated(ele%wall3d)) goto 9210
   n_cc = get_cross_index(a_name, 11, err, 1, size(ele%wall3d%section))
   if (err) goto 9200
 

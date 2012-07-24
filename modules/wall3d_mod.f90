@@ -5,8 +5,8 @@ use bmad_interface
 
 !
 
-interface re_associate
-  module procedure re_associate_section_array
+interface re_allocate
+  module procedure re_allocate_section_array
 end interface
 
 interface re_allocate
@@ -72,10 +72,10 @@ end subroutine re_allocate_vertex_array
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine re_associate_section_array (section, n, exact)
+! Subroutine re_allocate_section_array (section, n, exact)
 !
-! Routine to reassociate an array of wall3d%section(:).
-! Overloaded by re_associate.
+! Routine to reallocate an array of wall3d%section(:).
+! Overloaded by re_allocate.
 !
 ! Modules needed:
 !   use wall3d_mod
@@ -88,14 +88,14 @@ end subroutine re_allocate_vertex_array
 !                    Default is True.
 !
 ! Output:
-!   section(:) -- Wall3d_section_struct, pointer: Associated array.
+!   section(:) -- Wall3d_section_struct, pointer: Allocated array.
 !-
 
-subroutine re_associate_section_array (section, n, exact)
+subroutine re_allocate_section_array (section, n, exact)
 
 implicit none
 
-type (wall3d_section_struct), pointer :: section(:), temp_section(:)
+type (wall3d_section_struct), allocatable :: section(:), temp_section(:)
 
 integer, intent(in) :: n
 integer n_save, n_old
@@ -105,15 +105,17 @@ logical, optional :: exact
 !
 
 if (n == 0) then
-  if (.not. associated(section)) return
+  if (.not. allocated(section)) return
   deallocate(section)
 
-elseif (associated(section)) then
+elseif (allocated(section)) then
   n_old = size(section)
   if (n == n_old) return
   if (.not. logic_option(.true., exact) .and. n < n_old) return
   n_save = min(n, n_old)
-  temp_section => section 
+  allocate (temp_section(n_old))
+  temp_section = section 
+  deallocate(section)
   allocate (section(n))
   section(1:n_save) = temp_section
   deallocate (temp_section)
@@ -122,7 +124,7 @@ else
   allocate (section(n))
 endif
 
-end subroutine re_associate_section_array
+end subroutine re_allocate_section_array
 
 
 !---------------------------------------------------------------------------------------
@@ -664,7 +666,7 @@ if (.not. associated(wall3d_ele)) return
 !------------------
 ! If using a continuous aperture...
 
-if (.not. associated(wall3d_ele%wall3d%section)) then
+if (.not. associated(wall3d_ele%wall3d)) then
   value => wall3d_ele%value
   if (wall3d_ele%aperture_type == rectangular$) then
     allocate (v(4))
@@ -778,8 +780,7 @@ end function wall3d_d_radius
 ! with a given lattice element. 
 !
 ! Normally, wall_ele and ele are the same. The wall associated with a super_slave
-! will be contained in the super_lord. Similarly, the wall associated with
-! a multipass_slave will be contained in the multipass_lord. 
+! will be contained in the super_lord.
 !
 ! Module needed:
 !   use wall3d_mod
@@ -821,22 +822,21 @@ nullify (aperture_ele)
 priority_conflict = .false.
 aperture_conflict = .false.
 
-if (associated(ele%wall3d%section)) then
+if (associated(ele%wall3d)) then
   if (ele%wall3d%priority /= ignore$) wall3d_ele => ele
 else
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (.not. associated(lord)) exit
-    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
 
-    if (lord%lord_status /= multipass_lord$ .and. lord%lord_status /= super_lord$) cycle
+    if (lord%lord_status /= super_lord$) cycle
 
     if (lord%aperture_at == continuous$) then
       if (associated(aperture_ele)) aperture_conflict = .true.
       aperture_ele => lord
     endif
 
-    if (.not. associated(lord%wall3d%section)) cycle
+    if (.not. associated(lord%wall3d)) cycle
     if (lord%wall3d%priority == ignore$) cycle
 
     if (associated(wall3d_ele)) then
@@ -870,14 +870,7 @@ err_flag = .false.
 ds_offset = 0
 
 if (associated(wall3d_ele)) then
-  if (ele%slave_status == super_slave$) then
-    if (wall3d_ele%lord_status == multipass_lord$) then
-      lord => pointer_to_slave(wall3d_ele, 1)
-    else
-      lord => wall3d_ele
-    endif
-    ds_offset = (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
-  endif
+  ds_offset = (ele%s - ele%value(l$)) - (wall3d_ele%s - wall3d_ele%value(l$))
 endif
 
 end function pointer_to_wall3d_ele

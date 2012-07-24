@@ -322,13 +322,13 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Wall
 
-    if (associated(ele%wall3d%section)) then
-      ! First find out out if an em_file has been written
+    if (associated(ele%wall3d)) then
+      ! First find out out if an wall file has been written
       found = .false.
       do ie2 = 1, ie-1
         ele2 => branch%ele(ie2)
-        if (.not. associated(ele2%wall3d%section)) cycle
-        if (.not. associated(ele2%wall3d%section, ele%wall3d%section)) cycle
+        if (.not. associated(ele2%wall3d)) cycle
+        if (.not. associated(ele2%wall3d, ele%wall3d)) cycle
         found = .true.
         exit
       enddo

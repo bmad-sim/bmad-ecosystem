@@ -209,7 +209,7 @@ read (d_unit, err = 9030)  &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
         lat%use_ptc_layout, lat%pre_tracker
 
-call read_this_wall3d (lat%wall3d, error)
+read (d_unit, err = 9035) idum1  ! Left over from lat%wall3d
 
 ! Allocate lat%ele, lat%control and lat%ic arrays
 
@@ -218,6 +218,7 @@ call reallocate_control (lat, lat%n_control_max+10)
 
 !
 
+branch => lat%branch(0)
 do i = 0, lat%n_ele_max
   call read_this_ele(lat%ele(i), i, error)
   if (error) return
@@ -243,7 +244,7 @@ do i = 1, n_branch
   branch%ix_branch = i
   read (d_unit, err = 9070) branch%param
   read (d_unit, err = 9070) branch%name, garbage, branch%ix_from_branch, &
-                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, branch%wall3d%ele_anchor_pt
+                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, idum1
 
   if (bmad_inc_version$ == 110) then
     if (branch%param%lattice_type == 10) branch%param%lattice_type = linear_lattice$
@@ -321,6 +322,15 @@ return
 
 !--------------------------------------------------------------
 
+9035  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE IDUM1.')
+endif
+close (d_unit)
+return
+
+!--------------------------------------------------------------
+
 9040  continue
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
@@ -374,10 +384,10 @@ type (ele_struct), target :: ele
 type (em_field_mode_struct), pointer :: mode
 type (coord_struct) map_ref_orb_in, map_ref_orb_out
 
-integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, n_wall_section
-integer n_rf_field_mode, i_min(3), i_max(3)
-integer ix_wig, ix_r, idum0, idum1, idum2, idum3, idum4, ix_d, ix_m, ix_t(6), ios, k_max
-integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
+integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
+integer n_em_field_mode, i_min(3), i_max(3)
+integer ix_wig, ix_r, ix_wig_branch, idum1, idum2, idum3, idum4, ix_d, ix_m, ix_t(6), ios, k_max
+integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d_branch
 
 logical error
 
@@ -386,8 +396,9 @@ logical error
 error = .true.
 
 if (file_version >= 99) then
-  read (d_unit, err = 9100) mode3, ix_wig, idum0, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum4
+  read (d_unit, err = 9100) mode3, ix_wig, ix_wig_branch, ix_r, ix_wall3d_branch, &
+          idum2, idum3, ix_d, ix_m, ix_t, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, &
+          ix_lr, ix_wall3d, n_em_field_mode, idum4
   read (d_unit, err = 9100) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -401,8 +412,8 @@ if (file_version >= 99) then
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%wall3d%ele_anchor_pt, &
-          ele%wall3d%priority, ele%bookkeeping_state
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1, &
+          idum2, ele%bookkeeping_state
 endif
 
 ele%map_ref_orb_in  = map_ref_orb_in%vec
@@ -418,12 +429,21 @@ enddo
 
 ! RF field def
 
-call init_em_field (ele%em_field, n_rf_field_mode)
-if (n_rf_field_mode > 0) then
-  do i = 1, n_rf_field_mode
+call init_em_field (ele%em_field, n_em_field_mode)
+if (n_em_field_mode > 0) then
+  do i = 1, n_em_field_mode
     mode => ele%em_field%mode(i)
-    read (d_unit, err = 9140) nf, ng, mode%harmonic, mode%f_damp, mode%dphi0_ref, mode%stored_energy, &
-                                 mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
+    read (d_unit, err = 9140) nf, ng, ix_ele, ix_branch, mode%harmonic, mode%f_damp, mode%dphi0_ref, &
+                         mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
+
+    if (ix_ele /= 0) then
+      mode%map  => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(i)%map
+      if (associated(mode%map)) mode%map%n_link = mode%map%n_link + 1
+      mode%grid => lat%branch(ix_branch)%ele(ix_ele)%em_field%mode(i)%grid
+      if (associated(mode%grid)) mode%grid%n_link = mode%grid%n_link + 1
+      cycle
+    endif
+
     if (nf > 0) then
       allocate (mode%map)
       allocate (mode%map%term(nf))
@@ -433,8 +453,8 @@ if (n_rf_field_mode > 0) then
 
     if (ng > 0) then
       allocate (mode%grid)
-      read (d_unit, err = 9140) lb1, ub1, lb2, ub2, lb3, ub3, &
-                                mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt
+      read (d_unit, err = 9140) lb1, ub1, lb2, ub2, lb3, ub3, mode%grid%type, mode%grid%file, &
+                                mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt
       allocate (mode%grid%pt(lb1:ub1, lb2:ub2, lb3:ub3))
       do j = lb3, ub3
         read (d_unit, err = 9140) mode%grid%pt(:,:,j)
@@ -451,21 +471,16 @@ if (mode3) then
   read (d_unit, err = 9150) ele%mode3
 endif
 
-if (ix_wig /= 0) then
+if (ix_wig > 0) then
   allocate (ele%wig)
   ele%wig%n_link = 1
   allocate (ele%wig%term(ix_wig))
   do j = 1, ix_wig
     read (d_unit, err = 9200) ele%wig%term(j)
   enddo
-endif
-
-! This is to cover up the change where periodic_type wigglers now have a single wig_term
-! where before they did not have any.
-
-if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$ .and. .not. associated(ele%wig)) then
-  allocate (ele%wig)
-  allocate (ele%wig%term(1))
+elseif (ix_wig < 0) then  ! Points to another wiggler with same field
+  ele%wig => lat%branch(ix_wig_branch)%ele(abs(ix_wig))%wig
+  ele%wig%n_link = ele%wig%n_link + 1
 endif
 
 if (ix_r /= 0) then
@@ -488,7 +503,7 @@ endif
   
 do j = 1, 6
   if (ix_t(j) == 0) cycle
-  read (d_unit) ele%taylor(j)%ref
+  read (d_unit, err = 9650) ele%taylor(j)%ref
   allocate (ele%taylor(j)%term(ix_t(j)))
   do k = 1, ix_t(j)
     read (d_unit, err = 9700) ele%taylor(j)%term(k)
@@ -500,7 +515,7 @@ enddo
 
 if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
   if (ix_lr < 0) then
-    call transfer_rf_wake (lat%ele(abs(ix_lr))%rf_wake, ele%rf_wake)
+    call transfer_rf_wake (branch%ele(abs(ix_lr))%rf_wake, ele%rf_wake)
 
   else
     call init_wake (ele%rf_wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
@@ -514,8 +529,16 @@ if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. i
   endif
 endif
 
-call read_this_wall3d (ele%wall3d, error)
-if (error) return
+if (ix_wall3d > 0) then
+  call read_this_wall3d (ele%wall3d, error)
+  if (error) return
+elseif (ix_wall3d < 0) then
+  read (d_unit, err = 9900) idum1
+  ele%wall3d => lat%branch(ix_wall3d_branch)%ele(ix_wall3d)%wall3d
+  ele%wall3d%n_link = ele%wall3d%n_link + 1
+else
+  read (d_unit, err = 9900) idum1
+endif
 
 !
 
@@ -613,6 +636,14 @@ endif
 close (d_unit)
 return
 
+9650  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING %TAYLOR(:)%REF FOR ELEMENT: ' // ele%name)
+endif
+close (d_unit)
+return
+
 9700  continue
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
@@ -677,6 +708,14 @@ endif
 close (d_unit)
 return
 
+9900  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING IDUM1 FOR ELEMENT: ' // ele%name)
+endif
+close (d_unit)
+return
+
 end subroutine
 
 !-----------------------------------------------------------------------------------
@@ -685,7 +724,7 @@ end subroutine
 
 subroutine read_this_wall3d (wall3d, error)
 
-type (wall3d_struct) wall3d
+type (wall3d_struct), target :: wall3d
 type (wall3d_section_struct), pointer :: sec
 type (wall3d_vertex_struct), pointer :: v
 
@@ -696,7 +735,7 @@ logical error
 
 error = .true.
 
-read (d_unit, iostat = ios) n_wall_section
+read (d_unit, iostat = ios) n_wall_section, wall3d%ele_anchor_pt, wall3d%priority
 if (ios /= 0) then
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
@@ -706,7 +745,7 @@ if (ios /= 0) then
   return
 endif
 
-call re_associate (wall3d%section, n_wall_section)
+call re_allocate (wall3d%section, n_wall_section)
 
 do j = 1, n_wall_section
   sec => wall3d%section(j)

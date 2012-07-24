@@ -8,7 +8,6 @@ interface assignment (=)
   module procedure lat_equal_lat 
   module procedure lat_vec_equal_lat_vec 
   module procedure branch_equal_branch
-  module procedure wall3d_equal_wall3d
 end interface
 
 contains
@@ -109,7 +108,7 @@ if (ele1%key == wiggler$ .and. ele1%sub_key == periodic_type$ .and. &
   endif
 
 else
-  ele1%wig => ele_save%wig ! Reinstate for trnasfer call 
+  ele1%wig => ele_save%wig ! Reinstate for transfer call 
   call transfer_wig (ele2%wig, ele1%wig)
 endif
 
@@ -166,8 +165,8 @@ enddo
 
 ! %wall3d
 
-ele1%wall3d%section => ele_save%wall3d%section  ! reinstate
-ele1%wall3d = ele2%wall3d                       ! use overloaded wall3d_equal_wall3d
+ele1%wall3d => ele_save%wall3d        ! reinstate
+call transfer_wall3d (ele2%wall3d, ele1%wall3d)
 
 ! %a_pole, and %b_pole
 
@@ -353,8 +352,6 @@ else
   if (allocated(lat_out%ic)) deallocate (lat_out%ic)
 endif
 
-lat_out%wall3d = lat_in%wall3d
-
 ! non-pointer transfer
 
 call transfer_lat_parameters (lat_in, lat_out)
@@ -444,7 +441,7 @@ branch1%a              = branch2%a
 branch1%b              = branch2%b
 branch1%z              = branch2%z
 branch1%ele%ix_branch  = branch2%ix_branch
-branch1%wall3d         = branch2%wall3d   
+branch1%wall3d         => branch2%wall3d   
 
 end subroutine branch_equal_branch
 
@@ -479,61 +476,6 @@ coord1%vec = coord2%vec
 coord1%spin = coord2%spin
  
 end subroutine coord_equal_coord
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine wall3d_equal_wall3d (wall3d_out, wall3d_in)
-!
-! Subroutine that is used to set one wall3d equal to another. 
-!
-! Note: This subroutine is called by the overloaded equal sign:
-!		wall3d_out = wall3d_in
-!
-! Input:
-!   wall3d_in -- wall3d_struct: Input wall3d.
-!
-! Output:
-!   wall3d_out -- wall3d_struct: Output wall3d.
-!-
-
-elemental subroutine wall3d_equal_wall3d (wall3d_out, wall3d_in)
-
-implicit none
-	
-type (wall3d_struct), intent(inout) :: wall3d_out
-type (wall3d_struct), intent(in) :: wall3d_in
-
-integer i, n_sec, nv
-
-!
-
-if (associated(wall3d_in%section)) then
-  n_sec = size(wall3d_in%section)
-  if (associated(wall3d_out%section)) then
-    if (size(wall3d_out%section) /= n_sec) deallocate (wall3d_out%section)
-  endif
-  if (.not. associated(wall3d_out%section)) allocate(wall3d_out%section(n_sec))
-
-  do i = 1, n_sec
-    if (allocated(wall3d_in%section(i)%v)) then
-      nv = size(wall3d_in%section(i)%v)
-      if (allocated(wall3d_out%section(i)%v)) then
-        if (size(wall3d_out%section(i)%v) /= nv) deallocate(wall3d_out%section(i)%v)
-      endif
-      if (.not. allocated(wall3d_out%section(i)%v)) allocate(wall3d_out%section(i)%v(nv))
-    else
-      if (allocated(wall3d_out%section(i)%v)) deallocate(wall3d_out%section(i)%v)
-    endif
-    wall3d_out%section(i) = wall3d_in%section(i)
-  enddo 
-
-else
-  if (associated(wall3d_out%section)) deallocate(wall3d_out%section)
-endif
- 
-end subroutine wall3d_equal_wall3d
 
 end module
 

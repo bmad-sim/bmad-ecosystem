@@ -80,9 +80,10 @@ end type
 ! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
 
 type wall3d_struct
+  integer :: n_link = 1                             ! For memory management of %section
   integer :: priority = secondary$                  ! ignore$, secondary$, primary$
   integer :: ele_anchor_pt = anchor_beginning$      ! anchor_beginning$, anchor_center$, or anchor_end$
-  type (wall3d_section_struct), pointer :: section(:) => null()  
+  type (wall3d_section_struct), allocatable :: section(:)
 end type  
 
 ! ele%aperture_at logical definitions.
@@ -190,7 +191,7 @@ end type
 ! Wiggler field
 
 type wig_struct
-  integer :: n_link = 1             ! For memory management of %term
+  integer :: n_link = 1                            ! For memory management of %term
   type (wig_term_struct), allocatable :: term(:)   ! Wiggler Coefs
 end type
 
@@ -391,13 +392,13 @@ end type
 !     Modify ele_equal_ele
 
 type ele_struct
-  character(40) name                   ! name of element.
-  character(40) type                   ! type name.
-  character(40) alias                  ! Another name.
-  character(40) component_name         ! Used by overlays, multipass patch, etc.
+  character(40) name                           ! name of element.
+  character(40) type                           ! type name.
+  character(40) alias                          ! Another name.
+  character(40) component_name                 ! Used by overlays, multipass patch, etc.
   character(200), pointer :: descrip => null() ! Description string.
-  type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
-  type (xy_disp_struct) x, y           ! Projected dispersions.
+  type (twiss_struct)  a, b, z                 ! Twiss parameters at end of element
+  type (xy_disp_struct) x, y                   ! Projected dispersions.
   type (bookkeeping_state_struct) bookkeeping_state         ! Element attribute bookkeeping
   type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
   type (floor_position_struct) floor                        ! Global floor position.
@@ -411,20 +412,20 @@ type ele_struct
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
-  type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
-  type (wig_struct), pointer :: wig => null()  ! Wiggler field
+  type (wall3d_struct), pointer :: wall3d                   ! Chamber or capillary wall
+  type (wig_struct), pointer :: wig => null()    ! Wiggler field
   real(rp) value(num_ele_attrib$)                ! attribute values.
   real(rp) old_value(num_ele_attrib$)            ! Used to see if %value(:) array has changed.
-  real(rp) gen0(6)                             ! constant part of the genfield map.
-  real(rp) vec0(6)                             ! 0th order transport vector.
-  real(rp) mat6(6,6)                           ! 1st order transport matrix.
-  real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
-  real(rp) gamma_c                             ! gamma associated with C matrix
-  real(rp) s                                   ! longitudinal ref position at the exit end.
-  real(rp) ref_time                            ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:,:) => null()      ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()     ! knl for multipole elements.
-  real(rp), pointer :: b_pole(:) => null()     ! tilt for multipole elements.
+  real(rp) gen0(6)                               ! constant part of the genfield map.
+  real(rp) vec0(6)                               ! 0th order transport vector.
+  real(rp) mat6(6,6)                             ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                            ! 2x2 C coupling matrix
+  real(rp) gamma_c                               ! gamma associated with C matrix
+  real(rp) s                                     ! longitudinal ref position at the exit end.
+  real(rp) ref_time                              ! Time ref particle passes exit end.
+  real(rp), pointer :: r(:,:,:) => null()        ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:) => null()       ! knl for multipole elements.
+  real(rp), pointer :: b_pole(:) => null()       ! tilt for multipole elements.
   real(rp) map_ref_orb_in(6)     ! Transfer map ref orbit at entrance end of element.
   real(rp) map_ref_orb_out(6)    ! Transfer map ref orbit at exit end of element.
   real(rp) time_ref_orb_in(6)    ! Reference orbit at entrance end for ref_time calc.
@@ -547,7 +548,6 @@ type lat_struct
   type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.
   type (ele_struct)  ele_init                 ! For use by any program
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
-  type (wall3d_struct) wall3d
   type (branch_struct), allocatable :: branch(:)   ! Branch arrays
   type (control_struct), allocatable :: control(:) ! Control list
   type (coord_struct) beam_start          ! Starting coords

@@ -413,7 +413,7 @@ real(rp) :: edge_tol = 1e-8
 !-----------------------------------------------
 !Do nothing if there is no wall
 
-if (.not. associated(ele%wall3d%section)) return
+if (.not. associated(ele%wall3d)) return
 
 !Prepare coordinate structures for wall3d_d_radius
 
