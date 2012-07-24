@@ -46,11 +46,11 @@
 # SRC_EXCLUDE     - Source files to exclude from compilation (just the base 
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := code
-OBJ_SRC_DIRS := test dynamic_aperture analyzer  synrad synrad3d bbu plot_freq_map plot_sb_scan plot_da find_quads ilc_lattice_list select_lines tune_plane_res_plot
+LIB_SRC_DIRS := code synrad3d
+OBJ_SRC_DIRS := test dynamic_aperture analyzer  synrad synrad3d bbu plot_freq_map plot_sb_scan plot_da find_quads ilc_lattice_list select_lines tune_plane_res_plot 
 CONFIG_DIRS  :=
-LOCAL_INCS   := synrad3d
-SRC_EXCLUDE  :=
+LOCAL_INCS   :=
+SRC_EXCLUDE  := synrad3d.f90
 
 ifneq (,$(findstring $(USE_PGPLOT),yY))	 
   M_FILE_LIST  := M.synrad3d M.dynamic_aperture M.synrad M.bbu M.synrad M.synrad_aperture_to_wall M.analyzer M.tune_plane_res_plot	 
