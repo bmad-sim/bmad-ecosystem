@@ -96,8 +96,6 @@ endif
 
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
-end_orb%ix_ele = ele%ix_ele
-
 ! check for particles outside aperture.
 
 if (end_orb%p0c < 0) then
@@ -178,6 +176,9 @@ case default
   return
 
 end select
+
+! set ix_ele
+end_orb%ix_ele = ele%ix_ele
 
 if (tracking_method /= time_runge_kutta$) then
   if (end_orb%state == alive$) then

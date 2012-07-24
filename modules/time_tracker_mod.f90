@@ -415,6 +415,10 @@ real(rp) :: edge_tol = 1e-8
 
 if (.not. associated(ele%wall3d)) return
 
+! Do nothing if orb_new is inside the wall
+
+if (wall3d_d_radius(orb_new%vec, ele) < 0) return
+
 !Prepare coordinate structures for wall3d_d_radius
 
 old_orb => particle%old%orb
@@ -441,16 +445,23 @@ end if
 ! (coord_struct to photon_coord_struct)
 
 !Get e_tot from momentum, calculate beta_i = c*p_i / p_tot, pretending that these are traveling at v=c
-p_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2)
-old_orb%vec(2) = orb%vec(2) / p_tot
-old_orb%vec(4) = orb%vec(4) / p_tot
-old_orb%vec(6) = orb%vec(6) / p_tot
 
 p_tot = sqrt(orb_new%vec(2)**2 + orb_new%vec(4)**2 + orb_new%vec(6)**2 )
 now_orb%vec(2) = orb_new%vec(2) / p_tot
 now_orb%vec(4) = orb_new%vec(4) / p_tot
 now_orb%vec(6) = orb_new%vec(6) / p_tot
 
+p_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2)
+if (p_tot > 0) then
+  old_orb%vec(2) = orb%vec(2) / p_tot
+  old_orb%vec(4) = orb%vec(4) / p_tot
+  old_orb%vec(6) = orb%vec(6) / p_tot
+else
+  !old_orb is at rest, just give it the velocity of now_orb
+  old_orb%vec(2) = now_orb%vec(2)
+  old_orb%vec(4) = now_orb%vec(4)
+  old_orb%vec(6) = now_orb%vec(6)
+endif
 
 !More coordinate changes
 !Equations taken from track_a_capillary in capillary_mod
@@ -475,7 +486,7 @@ now_orb%vec(4) = old_orb%vec(4)
 now_orb%vec(6) = old_orb%vec(6) 
 
 !If particle hit wall, find out where
-if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
+!if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
 
    call capillary_photon_hit_spot_calc (particle, ele)
 
@@ -505,7 +516,7 @@ if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
    !Note that the time is not set!
 
    orb_new%state = lost$
-endif
+!endif
 
 end subroutine  particle_hit_wall_check_time
 
