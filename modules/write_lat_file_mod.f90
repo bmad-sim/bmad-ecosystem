@@ -190,7 +190,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(ie)
     ele_dflt => ele_default(ele%key)
 
-    multi_lord => pointer_to_multipass_lord (ele, lat, ix_pass) 
+    multi_lord => pointer_to_multipass_lord (ele, ix_pass) 
 
     if (ele%key == null_ele$) cycle
     if (ele%slave_status == multipass_slave$) cycle ! Ignore for now
@@ -1033,7 +1033,7 @@ if (ele%slave_status == super_slave$) then
   do j = 1, ele%n_lord
     lord => pointer_to_lord(ele, j)
     lord_name = lord%name
-    m_lord => pointer_to_multipass_lord (lord, lat)
+    m_lord => pointer_to_multipass_lord (lord)
     if (associated(m_lord)) lord_name = m_lord%name
     slave => pointer_to_slave(lord, 1) 
     if (slave%ix_ele == ele%ix_ele) then

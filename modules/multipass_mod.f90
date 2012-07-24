@@ -191,7 +191,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)
+! Function pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord)
 !
 ! Routine to find the multipass lord of a lattice element.
 ! A multi_lord will be found for:
@@ -204,7 +204,6 @@ end subroutine
 !
 ! Input:
 !   ele   -- Ele_struct: Lattice element.
-!   lat   -- Lat_struct: Lattice containing the element.
 !
 ! Output:
 !   ix_pass    -- Integer, optional: Multipass turn number.
@@ -215,11 +214,10 @@ end subroutine
 !                      Set to NULL if there is no multipass_lord.
 !-
 
-function pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)
+function pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord)
 
 implicit none
 
-type (lat_struct), target :: lat
 type (ele_struct) ele
 type (ele_struct), pointer :: multi_lord, sup_lord
 type (ele_struct), pointer, optional :: super_lord
@@ -251,7 +249,7 @@ end function
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
+! Subroutine multipass_chain (ele, ix_pass, n_links, chain_ele)
 !
 ! Routine to return the chain of elements that represent the same physical element
 ! when there is multipass.
@@ -261,7 +259,6 @@ end function
 !
 ! Input:
 !   ele  -- Ele_pointer_struct: Element in a multipass chain.
-!   lat  -- Lat_struct: Lattice structure.
 !
 ! Output
 !   ix_pass      -- Integer: Multipass pass number of the input element. 
@@ -271,11 +268,10 @@ end function
 !                    elements of the chain. Note: chain_ele(ix_pass)%ele => ele
 !-
 
-subroutine multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
+subroutine multipass_chain (ele, ix_pass, n_links, chain_ele)
 
 implicit none
 
-type (lat_struct), target :: lat
 type (ele_struct) :: ele
 type (ele_struct), pointer :: m_lord, s_lord, slave
 type (ele_pointer_struct), allocatable, optional :: chain_ele(:)

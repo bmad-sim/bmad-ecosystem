@@ -162,6 +162,7 @@ if (.not. bmad_com%auto_bookkeeper) then
     call reset_status_flags_to_ok(stat)
 
     do j = 0, branch%n_ele_max
+      if (branch%ele(j)%key == null_ele$) cycle 
       stat => branch%ele(j)%bookkeeping_state
       if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
           stat%s_position == stale$ .or. stat%ref_energy == stale$) then

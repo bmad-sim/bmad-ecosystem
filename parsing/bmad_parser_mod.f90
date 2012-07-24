@@ -3338,7 +3338,7 @@ if (lord%key == drift$ .and. ixb > 0) then
       ! This routine will be called later to correct the name of such elements.
       if (ele%slave_status == super_slave$) cycle 
       if (ele%slave_status == multipass_slave$) then
-        call multipass_chain (ele, lat, ix_pass, n_links)
+        call multipass_chain (ele, ix_pass, n_links)
         if (ix_pass /= 1) cycle  ! Only do renaming once
         lord2 => pointer_to_lord(ele, 1)
         ix_n = ix_n + 1

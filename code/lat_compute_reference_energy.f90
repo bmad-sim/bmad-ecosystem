@@ -222,7 +222,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
         if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
         if (lord%lord_status == multipass_lord$) then
-          call multipass_chain(ele, lat, ix_pass, n_links)
+          call multipass_chain(ele, ix_pass, n_links)
           if (ix_pass /= 1) cycle
         endif
         ! This adjusts the RF phase and amplitude.
