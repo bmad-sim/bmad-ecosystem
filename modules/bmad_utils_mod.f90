@@ -1663,7 +1663,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%ptc_genfield)
   nullify (ele%ptc_fiber)
   nullify (ele%mode3)
-  nullify (ele%wall3d%section)
+  nullify (ele%wall3d)
   nullify (ele%em_field)
   return
 endif
@@ -1675,7 +1675,6 @@ if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
 if (associated (ele%a_pole))         deallocate (ele%a_pole, ele%b_pole)
 if (associated (ele%mode3))          deallocate (ele%mode3)
-if (associated (ele%wall3d%section)) deallocate (ele%wall3d%section)
 
 if (associated (ele%rf_wake)) then
   if (associated (ele%rf_wake%sr_table))      deallocate (ele%rf_wake%sr_table)
@@ -1684,6 +1683,8 @@ if (associated (ele%rf_wake)) then
   if (associated (ele%rf_wake%lr))            deallocate (ele%rf_wake%lr)
   deallocate (ele%rf_wake)
 endif
+
+call deallocate_wall3d_pointer (ele%wall3d)
 
 if (associated (ele%em_field)) then
   do i = 1, size(ele%em_field%mode)
@@ -2117,7 +2118,6 @@ else
   lat%branch(0)%a              => lat%a
   lat%branch(0)%b              => lat%b
   lat%branch(0)%z              => lat%z
-  lat%branch(0)%wall3d         => lat%wall3d
   lat%branch(0)%n_ele_track    => lat%n_ele_track
   lat%branch(0)%n_ele_max      => lat%n_ele_max
 endif
@@ -2133,7 +2133,6 @@ do i = curr_ub+1, ub
   allocate(lat%branch(i)%n_ele_max)
   allocate(lat%branch(i)%param)
   allocate(lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
-  allocate(lat%branch(i)%wall3d)
   lat%branch(i)%param = lat%param
   call set_status_flags (lat%branch(i)%param%bookkeeping_state, stale$)
 end do
@@ -2174,7 +2173,6 @@ endif
 
 if (allocated(lat%control))  deallocate (lat%control)
 if (allocated(lat%ic))       deallocate (lat%ic)
-if (associated(lat%wall3d%section)) deallocate(lat%wall3d%section)
 
 ! Do not need to deallocate stuff in lat%branch(0) since
 ! these pointers have been deallocated above.
@@ -2183,7 +2181,7 @@ if (allocated (lat%branch)) then
   do i = 1, ubound(lat%branch, 1)
     call deallocate_ele_array_pointers (lat%branch(i)%ele)
     deallocate (lat%branch(i)%param, lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
-    if (associated(lat%branch(i)%wall3d%section)) deallocate(lat%branch(i)%wall3d%section)
+    call deallocate_wall3d_pointer (lat%branch(i)%wall3d)
   enddo
   deallocate (lat%branch)
 endif
@@ -2230,6 +2228,41 @@ enddo
 deallocate (eles)
 
 end subroutine deallocate_ele_array_pointers
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!+
+! Subroutine deallocate_wall3d_pointer (wall3d)
+!
+! Routine to deallocate a wall3d pointer.
+!
+! Input:
+!   wall3d -- wall3d_struct, pointer: Pointer to wall3d structure.
+!
+! Output:
+!   wall3d -- wall3d_struct, pointer: deallocated
+!-
+
+subroutine deallocate_wall3d_pointer (wall3d)
+
+implicit none
+
+type (wall3d_struct), pointer :: wall3d
+
+!
+
+if (associated (wall3d)) then
+  wall3d%n_link = wall3d%n_link - 1
+  if (wall3d%n_link == 0) then
+    deallocate (wall3d%section)
+    deallocate (wall3d)
+  else
+    nullify(wall3d)
+  endif
+endif
+
+end subroutine deallocate_wall3d_pointer
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -2421,7 +2454,7 @@ end subroutine match_ele_to_mat6
 !   use bmad
 !
 ! Input:
-!   wig_in -- Wig_struct, pointer: Input wiggler field.
+!   wig_in  -- Wig_struct, pointer: Input wiggler field.
 !
 ! Output:
 !   wig_out -- Wig_struct, pointer: Output wiggler field.
@@ -2442,13 +2475,17 @@ if (associated(wig_in, wig_out)) return
 
 if (associated(wig_in) .and. associated(wig_out)) then
   wig_out%n_link = wig_out%n_link - 1
-  if (wig_out%n_link == 0) deallocate (wig_out)
+  if (wig_out%n_link == 0) then
+    deallocate (wig_out%term)
+    deallocate (wig_out)
+  endif
   wig_out => wig_in
   wig_out%n_link = wig_out%n_link + 1
 
 elseif (associated(wig_out)) then 
   wig_out%n_link = wig_out%n_link - 1
   if (wig_out%n_link == 0) then
+    deallocate (wig_out%term)
     deallocate (wig_out)
   else
     nullify (wig_out)
@@ -2460,6 +2497,46 @@ elseif (associated(wig_in)) then
 endif
 
 end subroutine transfer_wig
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine transfer_wall3d (wall3d_in, wall3d_out)
+!
+! Subroutine to point wall3d_out => wall3d_in
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   wall3d_in  -- Wall3d_struct, pointer: Input wall3dgler field.
+!
+! Output:
+!   wall3d_out -- Wall3d_struct, pointer: Output wall3dgler field.
+!-
+
+subroutine transfer_wall3d (wall3d_in, wall3d_out)
+
+implicit none
+
+type (wall3d_struct), pointer :: wall3d_in, wall3d_out
+
+!
+
+if (.not. associated(wall3d_in) .and. .not. associated(wall3d_out)) return
+if (associated(wall3d_in, wall3d_out)) return
+
+! If both associated must be pointing to different memory locations
+
+if (associated(wall3d_out)) call deallocate_wall3d_pointer(wall3d_out)
+
+if (associated(wall3d_in)) then 
+  wall3d_out => wall3d_in
+  wall3d_out%n_link = wall3d_out%n_link + 1
+endif
+
+end subroutine transfer_wall3d
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

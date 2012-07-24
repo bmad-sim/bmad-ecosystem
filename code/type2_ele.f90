@@ -346,7 +346,7 @@ endif
 ! wall3d cross-sections.
 ! Do not print more than 100 sections.
 
-if (associated(ele%wall3d%section)) then
+if (associated(ele%wall3d)) then
   nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(ele%wall3d%section)
   if (logic_option(.false., type_wall)) then
     nl=nl+1; write (li(nl), '(2a)') 'Wall%ele_anchor_pt = ', anchor_pt_name(ele%wall3d%ele_anchor_pt)

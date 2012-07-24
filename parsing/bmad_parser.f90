@@ -1015,25 +1015,34 @@ if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1)
 
 ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
 
+! NOTE: This code needs to be modified to take care of continuous aperture walls and 
+! wall priorities. OR: Is the branch%wall3d component even needed?
+
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
+  cycle
 
   n_wall = 0
   do j = 0, branch%n_ele_track
-    if (branch%ele(i)%key == capillary$) cycle
-    if (associated(branch%ele(i)%wall3d%section)) n_wall = n_wall + size(branch%ele(i)%wall3d%section)
+    ele => branch%ele(j)
+    if (ele%key == capillary$) cycle
+    if (.not. associated(ele%wall3d)) cycle
+    call wall3d_initializer (ele%wall3d, err_flag)
+    n_wall = n_wall + size(ele%wall3d%section)
   enddo
   if (n_wall == 0) cycle
 
+  allocate (branch%wall3d)
   allocate (branch%wall3d%section(n_wall))
   n_wall = 0
   do j = 0, branch%n_ele_track
-    if (branch%ele(i)%key == capillary$) cycle
-    if (.not. associated(branch%ele(i)%wall3d%section)) cycle
-    n = size(branch%ele(i)%wall3d%section)
-    branch%wall3d%section(n_wall+1:n_wall+n) = branch%ele(i)%wall3d%section
+    ele => branch%ele(j)
+    if (ele%key == capillary$) cycle
+    if (.not. associated(ele%wall3d)) cycle
+    n = size(ele%wall3d%section)
+    branch%wall3d%section(n_wall+1:n_wall+n) = ele%wall3d%section
     branch%wall3d%section(n_wall+1:n_wall+n)%s = branch%wall3d%section(n_wall+1:n_wall+n)%s + &
-                                                          branch%ele(i)%s - branch%ele(i)%value(l$)
+                                                                              ele%s - ele%value(l$)
     n_wall = n_wall + n
   enddo
 

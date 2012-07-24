@@ -880,13 +880,22 @@ if (associated (slave%a_pole)) then
   slave%scale_multipoles = lord%scale_multipoles
 endif
 
-! RF wakes and fields, and wigglers
+! RF wakes
 
 call transfer_rf_wake (lord%rf_wake, slave%rf_wake)
 
 if (associated (slave%rf_wake)) then
   do i = 1, size(lord%rf_wake%lr)
     slave%rf_wake%lr(i)%t_ref = lord%rf_wake%lr(i)%t_ref - slave%ref_time
+  enddo
+endif
+
+! EM fields
+! Note: %em_field%mode%map, %em_field_mode%grid are in common between lord and slave.
+
+if (associated(slave%em_field)) then
+  do i = 1, size(lord%em_field%mode)
+    slave%em_field%mode(i) = lord%em_field%mode(i)
   enddo
 endif
 
@@ -2276,10 +2285,6 @@ if (.not. ele%on_a_girder .and. has_orientation_attributes(ele)) then
   val(x_pitch_tot$)  = val(x_pitch$)
   val(y_pitch_tot$)  = val(y_pitch$)
 endif
-
-! Wall3d
-
-if (associated(ele%wall3d%section)) call wall3d_initializer (ele%wall3d, err_flag)
 
 ! Taylor elements need no more bookkeeping
 

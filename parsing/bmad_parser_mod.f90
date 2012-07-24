@@ -427,7 +427,7 @@ if (word(1:5) == 'WALL.') then
     endif
 
     ix_sec = evaluate_array_index (err_flag, ')', word2, '(=', delim)
-    if (err_flag .or. .not. associated(ele%wall3d%section) .or. ix_sec < 0 .or. &
+    if (err_flag .or. .not. associated(ele%wall3d) .or. ix_sec < 0 .or. &
                                                   ix_sec > size(ele%wall3d%section)) then
       call parser_error('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
       return
@@ -503,10 +503,12 @@ endif
 ! wall cross-section definition
 
 if (attrib_word == 'WALL') then
-  if (associated (ele%wall3d%section)) then
+  if (associated (ele%wall3d)) then
     call parser_error ('MULTIPLE WALL DEFINITIONS FOR ELEMENT: ' // ele%name)
     return
   endif
+
+  allocate (ele%wall3d)
 
   ! Expect "= {"
   call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
@@ -571,7 +573,7 @@ if (attrib_word == 'WALL') then
       ! Read in section
 
       i_section = i_section + 1
-      call re_associate (ele%wall3d%section, i_section)
+      call re_allocate (ele%wall3d%section, i_section)
       section => ele%wall3d%section(i_section)
 
       ! Expect "S ="

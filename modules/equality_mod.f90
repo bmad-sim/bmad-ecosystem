@@ -515,12 +515,12 @@ integer i
 
 !
 
-is_eq = (associated(f1%section) .eqv. associated(f2%section))
+is_eq = (allocated(f1%section) .eqv. allocated(f2%section))
 if (.not. is_eq) return
 
 is_eq = .false.
 
-if (associated (f1%section)) then
+if (allocated (f1%section)) then
   if (size(f1%section) /= size(f2%section)) return
   do i = 1, size(f1%section)
     if (.not. (f1%section(i) == f2%section(i))) return
@@ -817,7 +817,6 @@ is_eq = is_eq .and. (f1%ele_init == f2%ele_init)
 is_eq = is_eq .and. (size(f1%ele) == size(f2%ele)) 
 is_eq = is_eq .and. (size(f1%control) == size(f2%control)) 
 is_eq = is_eq .and. (size(f1%ic) == size(f2%ic)) 
-is_eq = is_eq .and. (f1%wall3d == f2%wall3d)
 is_eq = is_eq .and. (allocated(f1%branch) .eqv. allocated(f2%branch))
 
 if (.not. is_eq) return

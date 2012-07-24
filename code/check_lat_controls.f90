@@ -24,7 +24,7 @@ type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2
 type (branch_struct), pointer :: branch, slave_branch
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i
-integer ix1, ix2, ii, i_b, i_b2, n_pass, k
+integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is
 
 character(10) str_ix_slave, str_ix_lord, str_ix_ele
 character(24) :: r_name = 'check_lat_controls'
@@ -141,9 +141,9 @@ do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    ! Capillary check
+    ! wall3d check
 
-    if (associated(ele%wall3d%section)) then
+    if (associated(ele%wall3d)) then
       do k = 1, size(ele%wall3d%section)
         if (k > 1) then
           if (ele%wall3d%section(k-1)%s > ele%wall3d%section(k)%s) then
@@ -207,7 +207,131 @@ do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    ! Sbend multipass lord must have non-zero ref_energy or n_ref_pass must be non-zero.
+    ! multipass lords/slaves must share %wall3d memory
+
+    if (l_stat == multipass_lord$) then
+      do is = 1, ele%n_slave
+        slave => pointer_to_slave(ele, is)
+        if (.not. associated(ele%wall3d) .and. .not. associated(slave%wall3d)) cycle
+        if (associated(ele%wall3d) .and. .not. associated(slave%wall3d)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE LORD HAS A %WALL3D BUT THE SLAVE DOES NOT.')
+          err_flag = .true.
+        elseif (.not. associated(ele%wall3d) .and. associated(slave%wall3d)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE SLAVE HAS A %WALL3D BUT THE LORD DOES NOT.')
+          err_flag = .true.
+        elseif (.not. associated(ele%wall3d, slave%wall3d)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE %WALL3D OF BOTH DO NOT POINT TO THE SAME MEMORY LOCATION.')
+          err_flag = .true.
+        endif
+      enddo
+    endif
+
+    ! multipass lords/slaves must share %wig memory
+
+    if (l_stat == multipass_lord$) then
+      do is = 1, ele%n_slave
+        slave => pointer_to_slave(ele, is)
+        if (.not. associated(ele%wig) .and. .not. associated(slave%wig)) cycle
+        if (associated(ele%wig) .and. .not. associated(slave%wig)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE LORD HAS A %WIG BUT THE SLAVE DOES NOT.')
+          err_flag = .true.
+        elseif (.not. associated(ele%wig) .and. associated(slave%wig)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE SLAVE HAS A %WIG BUT THE LORD DOES NOT.')
+          err_flag = .true.
+        elseif (.not. associated(ele%wig, slave%wig)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE %WIG OF BOTH DO NOT POINT TO THE SAME MEMORY LOCATION.')
+          err_flag = .true.
+        endif
+      enddo
+    endif
+
+    ! multipass lords/slaves must share %em_field%mode%map and %em_field%mode%term memory
+
+    if (l_stat == multipass_lord$) then
+      do is = 1, ele%n_slave
+        slave => pointer_to_slave(ele, is)
+        if (.not. associated(ele%em_field) .and. .not. associated(slave%em_field)) cycle
+        if (associated(ele%em_field) .and. .not. associated(slave%em_field)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE LORD HAS A %EM_FIELD BUT THE SLAVE DOES NOT.')
+          err_flag = .true.
+          cycle
+        elseif (.not. associated(ele%em_field) .and. associated(slave%em_field)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE SLAVE HAS A %EM_FIELD BUT THE LORD DOES NOT.')
+          err_flag = .true.
+          cycle
+        elseif (size(ele%em_field%mode) /= size(slave%em_field%mode)) then
+          call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'THE SIZE OF %EM_FIELD%MODE(:) OF BOTH IS NOT THE SAME.')
+          err_flag = .true.
+        endif
+
+        do i = 1, size(ele%em_field%mode)
+          if (associated(ele%em_field%mode(i)%map) .neqv. &
+              associated(slave%em_field%mode(i)%map)) then
+            call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'WITH %EM_FIELD%MODE(\i0\)%MAP NOT BOTH ASSOCIATED.', i_array = [i])
+            err_flag = .true.
+          endif
+           
+          if (associated(ele%em_field%mode(i)%map) .and. &
+              .not. associated(ele%em_field%mode(i)%map, slave%em_field%mode(i)%map)) then
+            call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'WITH %EM_FIELD%MODE(\i0\)%MAP NOT SHARING THE SAME MEMORY LOCATION.', i_array = [i])
+            err_flag = .true.
+          endif
+
+          if (associated(ele%em_field%mode(i)%grid) .neqv. &
+              associated(slave%em_field%mode(i)%grid)) then
+            call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'WITH %EM_FIELD%MODE(\i0\)%GRID NOT BOTH ASSOCIATED.', i_array = [i])
+            err_flag = .true.
+          endif
+ 
+          if (associated(ele%em_field%mode(i)%grid) .and. &
+              .not. associated(ele%em_field%mode(i)%grid, slave%em_field%mode(i)%grid)) then
+            call out_io (s_fatal$, r_name, &
+                    'MULTIPASS_LORD: ' // ele%name, &
+                    'HAS A SLAVE:' // slave%name, &
+                    'WITH %EM_FIELD%MODE(\i0\)%GRID NOT SHARING THE SAME MEMORY LOCATION.', i_array = [i])
+            err_flag = .true.
+          endif
+        enddo
+      enddo
+    endif
+
+    ! sbend multipass lord must have non-zero ref_energy or n_ref_pass must be non-zero.
     ! This restriction is necessary to compute the reference orbit.
     ! Check both p0c and e_tot since if this routine is called by bmad_parser we
     ! can have one zero and the other non-zero.
