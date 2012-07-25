@@ -719,10 +719,10 @@ call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
 if (s_particle == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
 if (present(ix_section)) ix_section = ix_w
 
-! Case where particle is outside the wall region.
+! Case where particle is outside the wall region. No interpolation needed.
 
-if (ix_w == 0 .or. ix_w == n_sec) then
-  if (ix_w == 0) then ! Outside wall region
+if (s_particle <= wall3d%section(1)%s .or. s_particle >= wall3d%section(n_sec)%s) then
+  if (s_particle <= wall3d%section(1)%s) then ! Outside wall region
     sec1 => wall3d%section(1)
   else
     sec1 => wall3d%section(n_sec)
