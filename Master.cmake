@@ -184,6 +184,47 @@ foreach(dir ${SRC_DIRS})
 endforeach(dir)
 
 
+set( LAB_LIBS
+  c_utils
+  recipes_f-90_LEPP
+  sim_utils
+  mpmnet
+  cbi_net
+  cbpmfio
+  BeamInstSupport
+  CBPM-TSHARC
+  CBIC
+  bmad
+  cesr_utils
+  mpm_utils
+  nonlin_bpm
+  tao
+  tao_cesr
+  CesrBPM
+  bmadz
+  cesrv
+  bsim
+  bsim_cesr
+  genplt
+  displays
+  XbsmAnalysis
+)
+
+set(DEPS )
+
+
+IF (${LIBNAME})
+  foreach( lablib ${LAB_LIBS})
+    IF( ${LIBNAME} STREQUAL ${lablib} )
+    ELSE ()
+      LIST(APPEND DEPS ${lablib})
+    ENDIF ()
+  endforeach()
+ENDIF ()
+  
+##message("DEPS=${DEPS}")
+
+
 #----------------------------------------------------------------
 # If any pre-build script is specified, run it before building
 # any code.  The pre-build script may generate code or header
@@ -220,7 +261,7 @@ ENDIF ()
 #----------------------------------------------------------------
 foreach(dep ${DEPS})
 
-    message("Adding library as dependency: ${dep}")
+    ##message("Adding library as dependency: ${dep}")
     add_library(${dep} STATIC IMPORTED)
 
     IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
