@@ -1266,7 +1266,7 @@ integer section_id, icol
 icol = black$
 if (allocated (graph%curve)) icol = graph%curve(1)%line%color
 
-if (associated(ele%wall3d%section)) then
+if (associated(ele%wall3d)) then
   call calc_wall_radius (ele%wall3d%section(1)%v,  1.0_rp, 0.0_rp,  y1_plus, dummy)
   call calc_wall_radius (ele%wall3d%section(1)%v, -1.0_rp, 0.0_rp,  y1_minus, dummy)
   x1 = ele%s - ele%value(l$) + ele%wall3d%section(1)%s
