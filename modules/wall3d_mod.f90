@@ -707,22 +707,11 @@ else
   sin_theta = position(3) / r_particle
 endif
 
-! Find the wall points (defined cross-sections) to either side of the particle.
-! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
-
-! The outward normal vector is discontinuous at the wall points.
-! If the particle is at a wall point, use the correct interval.
-! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
-
-n_sec = size(wall3d%section)
-call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
-if (s_particle == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
-if (present(ix_section)) ix_section = ix_w
-
 ! Case where particle is outside the wall region. No interpolation needed.
 
-if (s_particle <= wall3d%section(1)%s .or. s_particle >= wall3d%section(n_sec)%s) then
-  if (s_particle <= wall3d%section(1)%s) then ! Outside wall region
+if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .and. position(6) > 0) .or. &
+    s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(n_sec)%s .and. position(6) < 0)) then
+  if (s_particle <= wall3d%section(1)%s) then 
     sec1 => wall3d%section(1)
   else
     sec1 => wall3d%section(n_sec)
@@ -735,6 +724,18 @@ if (s_particle <= wall3d%section(1)%s .or. s_particle >= wall3d%section(n_sec)%s
   if (present(err_flag)) err_flag = .false.
   return
 endif
+
+! Find the wall points (defined cross-sections) to either side of the particle.
+! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
+
+! The outward normal vector is discontinuous at the wall points.
+! If the particle is at a wall point, use the correct interval.
+! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
+
+n_sec = size(wall3d%section)
+call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
+if (s_particle == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
+if (present(ix_section)) ix_section = ix_w
 
 ! Normal case where particle in inside the wall region.
 ! sec1 and sec2 are the cross-sections to either side of the particle.
