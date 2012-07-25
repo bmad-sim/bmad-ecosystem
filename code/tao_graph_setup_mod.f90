@@ -1231,7 +1231,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
-real(rp) comp_sign, mat6_ref_inv(6,6), vec0_ref(6), dmat6(6,6)
+real(rp) comp_sign
 real(rp), pointer :: r_ptr
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch
@@ -1239,7 +1239,7 @@ integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch
 character(40) data_type, name
 character(40) data_type_select, data_source
 character(20) :: r_name = 'calc_data_at_s'
-logical err, good(:), use_last
+logical err, good(:)
 
 ! Some init
 
@@ -1269,11 +1269,6 @@ if (curve%data_source == 'lat') then
   end select 
 endif
 
-if (data_type == 'momentum_compaction') then
-  call transfer_matrix_calc (lat, .true., mat6_ref_inv, vec0_ref, 0, ix_ref, ix_branch)
-  call mat_inverse (mat6_ref_inv, mat6_ref_inv)
-endif
-
 ! x1 and x2 are the longitudinal end points of the plot
 
 x1 = branch%ele(0)%s
@@ -1299,8 +1294,6 @@ if (data_type_select(1:2) == 't.') data_type_select = 't.'
 if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
 
 !
-
-use_last = .false.
 
 do ii = 1, size(curve%x_line)
 
@@ -1345,12 +1338,26 @@ do ii = 1, size(curve%x_line)
     orbit = bunch_params%centroid
 
   case ('lat')
-    call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, use_last)
-    use_last = .true.  ! For next time around
+    if (ii == 1) then
+      call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err)
+    else
+      call twiss_and_track_from_s_to_s (lat, s_last, s_now, .true., .true., orbit, orbit, ele, ele, ix_branch, err)
+    endif
+
     if (err) then
       good(ii:) = .false.
       return
     endif
+
+    if (data_type == 'momentum_compaction') then
+      if (ii == 1) then
+        call mat6_from_s_to_s (lat, mat6, vec0, ele_ref%s, s_now, orb_ref, ix_branch, err_flag = err)
+      else
+        mat6 = matmul(ele%mat6, mat6)
+        vec0 = matmul(ele%mat6, vec0) + ele%vec0
+      endif
+    endif
+
 
   case default
     call out_io (s_fatal$, r_name, 'I DO NOT KNOW HOW TO HANDLE THIS curve%data_source: ' // curve%data_source)
@@ -1469,16 +1476,13 @@ do ii = 1, size(curve%x_line)
   case ('momentum')
     value = orbit%p0c * (1 + orbit%vec(6)) 
   case ('momentum_compaction')
-    if (ii == 1) call mat_make_unit (mat6)
-    mat6 = matmul(ele%mat6, mat6)
-    dmat6 = matmul(mat6, mat6_ref_inv)
     call make_v_mats (ele_ref, v_mat, v_inv_mat)
     eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
     eta_vec = matmul (v_mat, eta_vec)
     one_pz = 1 + orb_ref%vec(6)
     eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
     eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
-    value = sum(dmat6(5,1:4) * eta_vec) + dmat6(5,6)
+    value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
   case ('norm_emit.a')
     value = bunch_params%a%norm_emit
   case ('norm_emit.b')
