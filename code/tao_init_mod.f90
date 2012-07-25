@@ -940,7 +940,8 @@ do j = n1, n2
 
   if (u%design%lat%param%lattice_type == circular_lattice$ .and. &
               (data_type(1:6)  == 'chrom.' .or. data_type(1:17) == 'multi_turn_orbit.' .or. &
-               data_type(1:13) == 'unstable.ring' .or. index(data_type, 'emit.') /= 0)) then
+               data_type(1:13) == 'unstable.ring' .or. index(data_type, 'emit.') /= 0) .or. &
+               data_type(1:11) == 'expression:') then
     dat%exists = .true.
     if (dat%ele_name /= '') then
       call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
