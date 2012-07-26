@@ -111,7 +111,7 @@ endif
 
 if (.not. err .and. .not. bp_com%always_parse) then
   call set_taylor_order (lat%input_taylor_order, .false.)
-  call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
+  call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
   if (lat%input_taylor_order == bmad_com%taylor_order) then
     if (present(digested_read_ok)) digested_read_ok = .true.
     call parser_end_stuff (.false.)
@@ -869,7 +869,10 @@ endif
 ele%value(e_tot_start$) = ele%value(e_tot$)
 ele%value(p0c_start$) = ele%value(p0c$)
 
-call set_ptc (ele%value(e_tot$), lat%param%particle)
+! Use arbitrary energy above the rest mass energy since when tracking individual elements the
+! true reference energy is used.
+
+call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
 
 ! Add branch lines.
 ! Branch lines may contain branch elements so this is an iterative process

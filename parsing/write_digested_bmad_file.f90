@@ -456,7 +456,8 @@ integer j, k
 
 if (associated(wall3d)) then
 
-  write (d_unit) size(wall3d%section), wall3d%ele_anchor_pt, wall3d%priority
+  write (d_unit) size(wall3d%section)
+  write (d_unit) wall3d%ele_anchor_pt, wall3d%priority
 
   do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
     sec => wall3d%section(j)
