@@ -347,6 +347,32 @@ foreach(exespec ${EXE_SPECS})
 
   ENDIF ()
 
+
+  # Collect list of all source files for all supported languages
+  # from all directories mentioned in project CMakeLists.txt file.
+  #----------------------------------------------------------------
+  foreach(dir ${SRC_DIRS})
+      file(GLOB temp_contents ${dir}/*.c)
+      LIST(APPEND SRC_FILES ${temp_contents})
+
+      file(GLOB temp_contents ${dir}/*.cpp)
+      LIST(APPEND SRC_FILES ${temp_contents})
+  
+      file(GLOB temp_contents ${dir}/*.cc)
+      LIST(APPEND SRC_FILES ${temp_contents})
+ 
+      file(GLOB temp_contents ${dir}/*.cxx)
+      LIST(APPEND SRC_FILES ${temp_contents})
+
+      file(GLOB temp_contents ${dir}/*.f)
+      LIST(APPEND SRC_FILES ${temp_contents})
+
+      file(GLOB temp_contents ${dir}/*.F)
+      LIST(APPEND SRC_FILES ${temp_contents})
+
+      file(GLOB temp_contents ${dir}/*.f90)
+      LIST(APPEND SRC_FILES ${temp_contents})
+  endforeach(dir)
   
   include($ENV{ACC_BUILD_SYSTEM}/exe.cmake)
 
