@@ -534,7 +534,7 @@ if (ix_wall3d > 0) then
   if (error) return
 elseif (ix_wall3d < 0) then
   read (d_unit, err = 9900) idum1
-  ele%wall3d => lat%branch(ix_wall3d_branch)%ele(ix_wall3d)%wall3d
+  ele%wall3d => lat%branch(ix_wall3d_branch)%ele(abs(ix_wall3d))%wall3d
   ele%wall3d%n_link = ele%wall3d%n_link + 1
 else
   read (d_unit, err = 9900) idum1
@@ -724,7 +724,7 @@ end subroutine
 
 subroutine read_this_wall3d (wall3d, error)
 
-type (wall3d_struct), target :: wall3d
+type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
 type (wall3d_vertex_struct), pointer :: v
 
@@ -735,11 +735,23 @@ logical error
 
 error = .true.
 
-read (d_unit, iostat = ios) n_wall_section, wall3d%ele_anchor_pt, wall3d%priority
+read (d_unit, iostat = ios) n_wall_section
+if (n_wall_section == 0) return
 if (ios /= 0) then
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                    'ERROR READING WALL3D N_WALL_SECTION NUMBER')
+  endif
+  close (d_unit)
+  return
+endif
+
+allocate(wall3d)
+read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%priority
+if (ios /= 0) then
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                   'ERROR READING WALL PRIORITY')
   endif
   close (d_unit)
   return
