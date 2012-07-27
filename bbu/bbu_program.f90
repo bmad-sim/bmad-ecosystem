@@ -235,7 +235,7 @@ do istep = 1, nstep
   n_ele = 0
   do i = 1, size(bbu_beam%stage)
     j = bbu_beam%stage(i)%ix_ele_lr_wake
-    call multipass_chain (lat%ele(j), lat, ix_pass, n_links = n)
+    call multipass_chain (lat%ele(j), ix_pass, n_links = n)
     if (ix_pass /= 1 .and. n /= 0) cycle
     n_ele = n_ele + 1
   enddo
@@ -320,7 +320,7 @@ do istep = 1, nstep
       ele => lat%ele(j)
       ele2 => ele
       if (ele2%slave_status == multipass_slave$) then
-        ele2 => pointer_to_multipass_lord (ele, lat)
+        ele2 => pointer_to_multipass_lord (ele)
       endif
       i_lr = bbu_beam%stage(i)%ix_hom_max
       print *, 'Element with critical HOM:', ele2%ix_ele, ':   ', ele2%name
