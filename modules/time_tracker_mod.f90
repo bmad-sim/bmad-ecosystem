@@ -409,11 +409,14 @@ type (photon_track_struct), target :: particle
 integer :: section_ix
 real(rp) :: norm, perp(3), dummy_real, p_tot
 real(rp) :: edge_tol = 1e-8
+logical :: err
 
 !-----------------------------------------------
 !Do nothing if there is no wall
 
-if (.not. associated(ele%wall3d)) return
+
+
+if (.not. associated(pointer_to_wall3d_ele (ele, dummy_real, err))) return
 
 ! Do nothing if orb_new is inside the wall
 
