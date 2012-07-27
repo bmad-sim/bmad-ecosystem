@@ -385,12 +385,12 @@ case (lcavity$)
   ! Track
 
   call track_this_ele (.false.)
-  ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
-  call calc_time_ref_orb_out
 
+  ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
   call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
   if (err) return
 
+  call calc_time_ref_orb_out
 
 case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e$)
