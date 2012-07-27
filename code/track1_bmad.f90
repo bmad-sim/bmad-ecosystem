@@ -333,67 +333,18 @@ case (lcavity$)
   end_orb%vec(2) = end_orb%vec(2) + k2 * end_orb%vec(1)
   end_orb%vec(4) = end_orb%vec(4) + k2 * end_orb%vec(3)
 
-  ! Final momentum.
+  ! Final momentum and z calc
 
   mc2 = mass_of(param%particle)
 
-!  dPc_start = start2_orb%vec(6) * pc_start_ref
-!  dE_start = dpc_start * pc_start_ref / E_start_ref + (dPc_start * E_start_ref/ mc2)**2 / E_start_ref**3
-!  dE_end = dE_start + (gradient - gradient_ref) * length 
-
-!  if (ele%is_on .and. abs(dE_end/E_end_ref) < 1e-4) then
-!    if (abs(dphase) < 1e-5) then
-!      dcos_phi = -sin(phase0) * dphase - cos(phase0) * dphase**2 / 2
-!      dgradient = ele%value(gradient$) * dcos_phi + ele%value(gradient_err$) * cos_phi 
-!      dE_end = dE_start + dgradient * length
-!    endif
-!    f = dE_end / (beta_end_ref * pc_end_ref)
-!    end_orb%vec(6) = f - (f * mc2 / E_end_ref)**2 / 2
-!
-!  else
-    end_orb%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
-!  endif
+  end_orb%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
 
   call offset_particle (ele, end_orb, param%particle, unset$)
 
-  ! z propagation...
-  ! Calculate for both particle and ref particle:
-  !    dp_dg = c * Delta_t / length - 1 
-  ! The "- 1" is to cancel the large constant factor.
+  dp_dg = (pc_end - pc_start) / gradient
+  end_orb%vec(5) = end_orb%vec(5) * (beta_end / beta_start) - beta_end * (dp_dg - c_light * ele%value(delta_ref_time$))
 
-  dE = gradient * length
-  if (abs(dE/E_start) < 1e-4) then
-    if (E_start > 100 * mc2) then 
-      f = (mc2 / pc_start)**2 
-      dp_dg = f/2 - f**2/8 + f**3/16
-    else
-      dp_dg = (E_start - pc_start) / pc_start
-    endif
-    f = (dE  / E_start)
-    g = E_start / pc_start
-    dp_dg = dp_dg + (mc2 / pc_start)**2 * (-f/2 + f**2 * g / 2 - f**3 * g**2 / 8)
-  else
-    dp_dg = (pc_end - pc_start) / dE - 1
-  endif
-
-  dE = gradient_ref * length
-  if (abs(dE/E_start_ref) < 1e-4) then
-    if (E_start_ref > 100 * mc2) then 
-      f = (mc2 / pc_start_ref)**2 
-      dp_dg_ref = f/2 - f**2/8 + f**3/16
-    else
-      dp_dg_ref = (E_start_ref - pc_start_ref) / pc_start_ref
-    endif
-    f = (dE  / E_start_ref)
-    g = E_start_ref / pc_start_ref
-    dp_dg_ref = dp_dg_ref + (mc2 / pc_start_ref)**2 * (-f/2 + f**2 * g / 2 - f**3 * g**2 / 8)
-  else
-    dp_dg_ref = (pc_end_ref - pc_start_ref) / dE - 1
-  endif
-
-  end_orb%vec(5) = end_orb%vec(5) * (beta_end / beta_start) - beta_end * length * (dp_dg - dp_dg_ref)
-
-  ! This assumes a uniform change in slope.
+  ! Correction of z for finite transverse velocity assumes a uniform change in slope.
 
   xp0 = start2_orb%vec(2) / rel_pc
   xp1 = end_orb%vec(2) / (1 + end_orb%vec(6))
@@ -404,12 +355,12 @@ case (lcavity$)
 
   ! Time calc
 
-  f = gradient_ref * length * mc2**2 / (pc_start_ref**2 * E_start_ref)
+  f = gradient * length * mc2**2 / (pc_start**2 * E_start)
 
   if (abs(f) < 1d-6) then
-    end_orb%t = start2_orb%t + length * (E_start_ref / pc_start_ref) * (1 - f/2) / c_light
+    end_orb%t = start2_orb%t + length * (E_start / pc_start) * (1 - f/2) / c_light
   else
-    end_orb%t = start2_orb%t + (pc_end_ref - pc_start_ref) / (gradient_ref * c_light)
+    end_orb%t = start2_orb%t + (pc_end - pc_start) / (gradient * c_light)
   endif
 
 !-----------------------------------------------
