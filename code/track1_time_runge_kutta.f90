@@ -139,7 +139,16 @@ endif
 
 call convert_particle_coordinates_s_to_t(end_orb)
 s_rel =  end_orb%s - (ele%s - ele%value(l$) )
+if ( abs(s_rel)  < bmad_com%significant_length ) then
+  s_rel = 0
+else if ( abs(s_rel - ele%value(l$))  < bmad_com%significant_length ) then
+  s_rel = ele%value(l$)
+endif
+
+
 end_orb%vec(5) = s_rel
+
+
 
 ! Particle time 
 
