@@ -141,7 +141,7 @@ do i = 1, lat%n_ele_track
 
   bbu_beam%stage(j)%ix_ele_lr_wake = i
 
-  call multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
+  call multipass_chain (ele, ix_pass, n_links, chain_ele)
   bbu_beam%stage(j)%ix_pass = ix_pass
 
   if (ix_pass > 0) then
