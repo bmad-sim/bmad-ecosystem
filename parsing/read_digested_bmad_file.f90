@@ -388,14 +388,14 @@ return
 !-----------------------------------------------------------------------------------
 contains
 
-subroutine read_this_ele (ele, ix_ele, error)
+subroutine read_this_ele (ele, ix_ele_in, error)
 
 type (ele_struct), target :: ele
 type (em_field_mode_struct), pointer :: mode
 type (coord_struct) map_ref_orb_in, map_ref_orb_out
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
-integer n_em_field_mode, i_min(3), i_max(3)
+integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in
 integer ix_wig, ix_r, ix_wig_branch, idum1, idum2, idum3, idum4, ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d_branch
 
@@ -545,6 +545,13 @@ if (ix_wall3d > 0) then
 elseif (ix_wall3d < 0) then
   read (d_unit, err = 9900) idum1
   ele%wall3d => lat%branch(ix_wall3d_branch)%ele(abs(ix_wall3d))%wall3d
+  if (.not. associated(ele%wall3d)) then
+    if (bmad_status%type_out) then
+      call out_io(s_error$, r_name, 'ERROR IN WALL3D INIT.')
+    endif
+    close (d_unit)
+    return
+  endif
   ele%wall3d%n_link = ele%wall3d%n_link + 1
 else
   read (d_unit, err = 9900) idum1
@@ -567,7 +574,7 @@ return
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING ELEMENT # \i0\ ', &
-                                  i_array = [ix_ele ])
+                                  i_array = [ix_ele_in])
 endif
 close (d_unit)
 return
@@ -576,7 +583,7 @@ return
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING K_MAX OF ELEMENT # \i0\ ', &
-                                  i_array = [ix_ele ])
+                                  i_array = [ix_ele_in])
 endif
 close (d_unit)
 return
@@ -585,7 +592,7 @@ return
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING VALUES OF ELEMENT # \i0\ ', &
-                                  i_array = [ix_ele ])
+                                  i_array = [ix_ele_in])
 endif
 close (d_unit)
 return

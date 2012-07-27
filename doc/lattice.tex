@@ -234,7 +234,6 @@ For example:
   h10e: overlay = \{ b08e, b10e \}, hkick
 \end{example}
 
-
 %---------------------------------------------------------------------------
 \section{Lattice Element Names}
 \label{s:ele.names}
@@ -257,73 +256,46 @@ slave elements.
 There is a short list of names that cannot be used as an element name. 
 These reserved names are:
 \begin{example}
-  BEAM
-  BEAM_START
-  BEGINNING
-  END
-  PARAMETER
-  ROOT
+  beam
+  beam_start
+  beginning
+  end
+  parameter
+  root
 \end{example}
 
-%---------------------------------------------------------------------------
-\section{Lattice Element Attributes}
-\label{s:lat.attribs}
-\index{element attribute|hyperbf}
-
-Any lattice element has various attributes like its name, its length,
-its strength, etc. The values of element attributes can be specified
-when the element is defined. For example:
+Where appropriate, for example when setting element attributes
+(\sref{s:lat.attribs}), the wildcards \vn{``*''} and \vn{``%''} can be
+used to select multiple elements.  The \vn{``*''} character will match
+any number of characters (including zero) while \vn{``%''} maches to
+any single character. Additionally, matching can be restricted to a
+certain element class using the syntax:
 \begin{example}
-  b01w: sbend, l = 6.0, rho = 89.0 ! Define an element with attributes.
+  class::element_name
 \end{example}
-After an element's definition, an individual attribute may be referred
-to using the syntax
+where \vn{class} is a class name. For example:
 \begin{example}
-  element-name[attribute-name]
-\end{example}
-Element attributes can be set or used in an algebraic expression:
-\begin{example}
-  bo1w[roll] = 6.5                  ! Set an attribute value.
-  b01w[l] = 6.5                     ! Change an attribute value.
-  b01w[l] = b01w[rho] / 12          ! OK to reset an attribute value.
-  my_const = b01w[rho] / b01w[l]      ! Use of attribute values in an expression.
-\end{example}
-Notice that there can be no space between the element name and the
-\vn{[} opening bracket.  
-
-When setting an attribute value, if more than one element has the
-\vn{element-name} then {\it all} such elements will be set.  When
-setting an attribute value, if \vn{element-name} is the name of a type
-of element, all elements of that type will be set. For example
-\begin{example}
-  q_arc[k1] = 0.234                      ! Set all elements named Q_ARC. 
-  rfcavity[voltage] = 3.7                ! Set all RFcavity elements.
+  m*              ! Match to all elements whose name begins with "m".
+  a%c             ! Match to "abc" but not to "ac" or "azzc".
+  quadrupole::*w  ! Match to all quadrupoles whose name ends in "w"
 \end{example}
 
-With element attribute sets, The wild cards \vn{``*''},
-and \vn{``\%''} can be used to can be used where \vn{``*''} denotes
-any number of characters and \vn{``%''} denotes a single character. Examples:
+After lattice expansion (\sref{s:expand}), there are several ways to
+specify elements. The general syntax is:
 \begin{example}
-  *[tracking_method] = bmad_standard  ! Matches all elements.
-  Q*[k1] = 0.234                      ! Matches all elements with names beginning with Q.
-  Q%1[k1] = 0.234                     ! Matches to "Q01" but not "Q001".
+  \{class::\}{branch>>}element_id{##N}
 \end{example}
-\index{beginning element}
-Note: A name with wild cards will never match to the \vn{BEGINNING} element (\sref{s:use}).
+where \vn{class} is a class name, \vn{branch} is a branch name or
+index (\sref{s:branching}), \vn{element_id}
 
-After lattice expansion (\sref{s:expand}), The element index can be
-used to in element attribute sets. The element index is 1 for the
-first element in the lattice, etc. Example:
-\begin{example}
-  expand_lattice          ! Expand the lattice.
-  97[x_offset] = 0.0023   ! Set x_offset attribute of 97th element
-  ... etc ...
-\end{example}
-Generally using the element index should be avoided but it can be
-useful when dealing with a lattice where multiple elements share the
-same name.
+The element index can be used...
 
-\cref{c:elements} gives a list of elements with their attributes.
+After lattice expansion (\sref{s:expand}) a lattice can have multiple
+elements of the same name and sometimes it is convenient to be able
+single out a particular element.  The general
+
+
+Sometimes it is convenient to be able to select multiple elements
 
 Multiple elements in a lattice may share the same name.  When
 branching (\sref{s:branching}) is used, to differentiate elements that
@@ -337,6 +309,81 @@ is the ``regular'' name of the element. Example:
 \begin{example}
   root>>q10w
   x_branch>>crystal3
+\end{example}
+
+For branch lines (\sref{s:branching}), the full ``branch
+qualified'' name of an element is of the form
+\begin{example}
+  branch_name>>element_name
+\end{example}
+where \vn{branch_name} is the name of the branch and \vn{element_name} is the
+``regular'' name of the element. Example:
+\begin{example}
+  root>>q10w
+  xline>>cryst3
+\end{example}
+Using the full name is only needed to distinguish elements that have
+the same regular name in separate branches.  When parsing a lattice
+file, branches are not formed until the lattice is expanded
+(\sref{s:expand}). Therefore an \vn{expand_lattice} statement is
+required before full names can be used in statements.
+
+
+
+%---------------------------------------------------------------------------
+\section{Lattice Element Attributes}
+\label{s:lat.attribs}
+\index{element attribute|hyperbf}
+
+Any lattice element has various attributes like its name, its length,
+its strength, etc. The values of element attributes can be
+specified when the element is defined. For example:
+\begin{example}
+  b01w: sbend, l = 6.0, rho = 89.0 ! Define an element with attributes.
+\end{example}
+After an element's definition, an individual attribute may be referred
+to using the syntax
+\begin{example}
+  element-name[attribute-name]
+\end{example}
+Element attributes can be set or used in an algebraic expression:
+\begin{example}
+  bo1w[roll] = 6.5                  ! Set an attribute value.
+  b01w[l] = 6.5                     ! Change an attribute value.
+  b01w[l] = b01w[rho] / 12          ! OK to reset an attribute value.
+  my_const = b01w[rho] / b01w[l]    ! Use of attribute values in an expression.
+\end{example}
+Notice that there can be no space between the element name and the
+\vn{[} opening bracket.  
+
+Chapter \cref{c:elements} lists the attributes appropriate for each
+element class.
+
+When setting an attribute value, if more than one element has the
+\vn{element-name} then {\it all} such elements will be set.  When
+setting an attribute value, if \vn{element-name} is the name of a type
+of element, all elements of that type will be set. For example
+\begin{example}
+  q_arc[k1] = 0.234                      ! Set all elements named Q_ARC. 
+  rfcavity[voltage] = 3.7                ! Set all RFcavity elements.
+\end{example}
+
+With element attribute sets, The wild cards \vn{``*''},
+and \vn{``\%''} can be used to can be used (\sref{s:ele.names}). Examples:
+\begin{example}
+  *[tracking_method] = bmad_standard  ! Matches all elements.
+  quadrupole::Q*[k1] = 0.234    ! Matches all quadrupoles with names beginning with Q.
+  Q%1[k1] = 0.234               ! Matches to "Q01" but not "Q001".
+\end{example}
+\index{beginning element}
+Note: A name with wild cards will never match to the \vn{BEGINNING} element (\sref{s:use}).
+
+After lattice expansion (\sref{s:expand}), the attributes of specific elements
+may be set using the syntax as discussed in Section \sref{s:ele.names}. Example:
+\begin{example}
+  expand_lattice              ! Expand the lattice.
+  97[x_offset] = 0.0023       ! Set x_offset attribute of 97th element
+  b2>>si_cryst##2[tilt] = 0.1 ! Tilt the 2nd instance of "si_cryst" in branch "b2" 
 \end{example}
 
 %---------------------------------------------------------------------------
@@ -658,7 +705,7 @@ ignore anything beyond the \vn{return} or \vn{end_file} statement in
 the file.
 
 %----------------------------------------------------------------------------
-\section{Expand_lattice Statement}
+\section{Expand_Lattice Statement}
 \label{s:expand}
 \index{lattice!expansion|hyperbf}
 \index{expand_lattice|hyperbf}
@@ -691,10 +738,10 @@ slave may only be done after lattice expansion (\sref{s:multipass}).
 \index{tags for Lines and Lists}
 Setting individual element attributes for tagged elements can only be done
 after lattice expansion (\sref{s:tag}).
-\item
-\index{branching}
-Using the full branch-qualified name of an element (\sref{s:branching}).
 \end{Itemize}
+
+Lattice expansion is only done once so it is an error if multiple
+\vn{expand_lattice} statements are present.
 
 %--------------------------------------------------------------------------
 \section{Debugging Statements}
