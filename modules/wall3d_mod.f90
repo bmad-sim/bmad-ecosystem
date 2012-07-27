@@ -696,6 +696,7 @@ endif
 
 wall3d => wall3d_ele%wall3d
 s_particle = position(5) + ds_offset
+n_sec = size(wall3d%section)
 
 if (position(1) == 0 .and. position(3) == 0) then
   r_particle = 0
@@ -732,7 +733,6 @@ endif
 ! If the particle is at a wall point, use the correct interval.
 ! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
 
-n_sec = size(wall3d%section)
 call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
 if (s_particle == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
 if (present(ix_section)) ix_section = ix_w
