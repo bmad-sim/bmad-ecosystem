@@ -110,16 +110,19 @@ fname = '!DIGESTED:' // full_digested_name
 write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10), 0, 0  ! stat_b(10) = Modification date
  
 ! write other file names.
+! file names starting with '!' are not true file names but information to be stored in file.
 
 do j = 1, n_file
-  call simplify_path (file_names(j), fname)
   stat_b = 0
-#if defined (CESR_VMS) 
-  call get_file_time_stamp (fname, time_stamp)
-  fname = trim(fname) // '@' // time_stamp
+  if (file_names(j)(1:1) /= '!') then  
+    call simplify_path (file_names(j), fname)
+#if defined (CESR_VMS)
+    call get_file_time_stamp (fname, time_stamp)
+    fname = trim(fname) // '@' // time_stamp
 #else
-  ierr = stat(fname, stat_b)
+    ierr = stat(fname, stat_b)
 #endif
+  endif
   write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10), 0, 0  ! stat_b(10) = Modification date
 enddo
 

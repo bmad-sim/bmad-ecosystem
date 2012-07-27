@@ -63,7 +63,7 @@ character(40), allocatable ::  in_name(:), seq_name(:)
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0, n_ele
-integer, pointer :: n_max
+integer, pointer :: n_max, n_ptr
 
 character(*) lat_file
 character(*), optional :: use_line
@@ -235,9 +235,13 @@ parsing_loop: do
   ! PRINT
 
   if (word_1(:ix_word) == 'PRINT') then
-    call string_trim (bp_com%input_line2, parse_line_save, ix) ! Will strip off initial "print"
+    call string_trim (bp_com%input_line2, parse_line_save, ix) ! so can strip off initial "print"
+    n_ptr => bp_com%num_lat_files
+    if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
+    n_ptr = n_ptr + 1
+    bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(parse_line_save(ix+2:)) ! To save in digested
     if (bmad_status%type_out) call out_io (s_dwarn$, r_name, &
-                                      'Print Message in Lattice File: ' // parse_line_save(ix+1:))
+                                     'Print Message in Lattice File: ' // parse_line_save(ix+2:))
     cycle parsing_loop
   endif
 

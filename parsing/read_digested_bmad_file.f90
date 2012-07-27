@@ -77,17 +77,17 @@ open (unit = d_unit, file = full_digested_file, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
 read (d_unit, err = 9010) n_files, file_version
-
-can_read_this_old_version = .false.
+allocate (file_names(n_files))
 
 ! Version is old but recent enough to read.
+
+can_read_this_old_version = .false.
 
 if (file_version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_info$, r_name, &
          ['DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' ],  &
           i_array = [bmad_inc_version$, file_version ])
   if (can_read_this_old_version) then 
-    allocate (file_names(n_files))
     err_found = .true.
   else
     close (d_unit)
@@ -115,6 +115,7 @@ do i = 1, n_files
   stat_b = 0
 
   read (d_unit, err = 9020, end = 9020) fname_read, stat_b2, stat_b8, stat_b10, idum1, idum2
+  file_names(i) = fname_read
 
 #if defined (CESR_VMS) 
   ix = index(fname_read, '@')
@@ -162,8 +163,9 @@ do i = 1, n_files
     cycle
   endif
 
+  if (fname_read(1:7) == '!PRINT:') cycle  ! Only print at end if no errors.
+
   call simplify_path (fname_read, fname_read)
-  if (can_read_this_old_version) file_names(i) = fname_read  ! fake out
 
 #if defined (CESR_VMS) 
   ix = index(fname_read, ';')
@@ -287,6 +289,14 @@ lat%param%stable = .true.  ! Assume this
 inc_version = file_version
 
 if (present(err_flag)) err_flag = err_found
+
+if (.not. err_found .and. bmad_status%type_out) then
+  do i = 1, size(file_names)
+    fname_read = file_names(i)
+    if (fname_read(1:7) /= '!PRINT:') cycle
+    call out_io (s_dwarn$, r_name, 'Print Message in Lattice File: ' // fname_read(8:))
+  enddo
+endif
 
 return
 
