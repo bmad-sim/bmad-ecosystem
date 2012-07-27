@@ -5,22 +5,9 @@ set(INC_DIRS
   ../include
 )
 
-#  /usr/lib64/openmpi/1.4-gcc/include
-#  /usr/include/compat-openmpi-x86_64
-
+#  synrad3d
 set (SRC_DIRS
   code
-)
-
-set (DEPS
-  bmadz
-  cesr_utils
-  bmad
-  sim_utils
-  recipes_f-90_LEPP
-  forest
-  pgplot
-  xsif
 )
 
 set (EXE_SPECS

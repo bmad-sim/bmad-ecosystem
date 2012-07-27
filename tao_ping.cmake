@@ -20,6 +20,4 @@ set (LINK_LIBS
   forest
   pgplot
   xsif
-  -Bdynamic /usr/lib64/libX11.so
-  readline
 )
