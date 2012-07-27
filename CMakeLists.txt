@@ -11,21 +11,6 @@ set(INC_DIRS
 set(SRC_DIRS
 )
 
-set(DEPS
-    mpm_utils
-    bmadz
-    bmad
-    bsim
-    cesr_utils
-    sim_utils
-    mpmnet
-    c_utils
-    nonlin_bpm
-    pgplot
-    forest
-    recipes_f-90_LEPP
-)
-
 set (EXE_SPECS 
   bmad_to_autocad.cmake
   bmad_to_csrtrack.cmake

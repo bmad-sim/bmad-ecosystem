@@ -14,5 +14,4 @@ set (LINK_LIBS
   sim_utils
   recipes_f-90_LEPP 
   forest
-  stdc++
 )
