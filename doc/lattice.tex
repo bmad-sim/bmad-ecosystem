@@ -18,9 +18,9 @@ Throughout this manual, unless explicitly stated otherwise,
 the lattice format under discussion will always pertain to the \bmad
 standard format. 
 
-While \bmad cannot directlhy read in \mad\cite{b:maduser} files, 
+While \bmad cannot directly read in \mad\cite{b:maduser} files, 
 translation between \mad and \bmad lattice files is possible using
-the \vn{Universal Accelerator Parser} as disscused in Section~\sref{s:aml}.
+the \vn{Universal Accelerator Parser} as discussed in Section~\sref{s:aml}.
 
 %---------------------------------------------------------------------------
 \section{Lattice File Format}
@@ -143,7 +143,7 @@ and the entire lattice consists of element \vn{q} followed by element \vn{d}.
 
 %----------------------------------------------------------------------------
 \section{Digested Files}
-\label{s:lattice.files}
+\label{s:digested}
 \index{digested files}
 
 Normally the \bmad parser routine will create what is called a
@@ -532,6 +532,22 @@ Here the two \vn{a} elements in the lattice get different values for
 \vn{x_offset}.
 
 %-----------------------------------------------------------------------------
+\section{Print Statement}
+\label{s:print}
+\index{print statement|hyperbf}
+
+The \vn{print} statement prints a message at the terminal when the 
+lattice file is parsed. Syntax:
+\begin{example}
+  print <String>
+\end{example}
+For example
+\begin{example}
+  print Remember! Q01 quad strength shifted!
+\end{example}
+The \vn{print} statement is useful to remind the user of important details.
+
+%-----------------------------------------------------------------------------
 \section{Title Statement}
 \index{title statement|hyperbf}
 
@@ -586,9 +602,6 @@ Thus, in the above example, the first call will search for:
   1) ../layout/my_layout.bmad  (relative to the current directory)
 \end{example}
 
-\index{no_digested statement}
-\index{no_superimpose statement}
-\index{parser_debug statement}
 An XSIF (\sref{s:lattice.file.formats}) lattice file may be called
 from within an \bmad lattice file by prepending \vn{"xsif::"} to the
 file name. Example:
@@ -596,8 +609,8 @@ file name. Example:
   call, filename = "xsif::my_lattice.xsif"
 \end{example}
 This statement must be the first statement in the \bmad lattice file
-except for any \vn{no_digested}, \vn{parser_debug}, or
-\vn{no_superimpose} statements. The XSIF lattice file must define a
+except for any comments or debugging statements (\sref{s:debug}. 
+The XSIF lattice file must define a
 complete lattice and cannot contain any \bmad specific statements. The
 call to the XSIF file automatically expands the lattice
 (\sref{s:expand}) and any additional statements in the \bmad lattice
@@ -609,7 +622,7 @@ file operate on the expanded lattice.
 \index{call!inline}
 
 Any lattice elements will have a set of attributes that need to be defined.
-As a convenience, it is possible to segragate an element attribute or attributes
+As a convenience, it is possible to segregate an element attribute or attributes
 into a separate file and then ``call'' this file using an
 ``inline call''. The inline call has three forms. In an element definition,
 the inline call has the form
@@ -622,7 +635,7 @@ or
 \end{example}
 where \vn{<attribute_name>} is the name of the attribute and
 \vn{<file_name>} is the name of the where the attribute structure is
-given.  The third form of the inline call occures when an element
+given.  The third form of the inline call occurs when an element
 attribute is redefined and has the form
 \begin{example}
   <ele_name>[<attribute_name>] = call::<file_name>
@@ -684,25 +697,36 @@ Using the full branch-qualified name of an element (\sref{s:branching}).
 \end{Itemize}
 
 %--------------------------------------------------------------------------
-\section{No_superimpose Statement}
-\index{no_superimpose statement}
-\label{s:no.superimpose}
-
-The \vn{no_superimpose} statement is used to supress superpositions
-(\sref{s:super}). This is useful for debugging purposes.
-
-%--------------------------------------------------------------------------
 \section{Debugging Statements}
+\label{s:debug}
+\index{no_digested statement}
+\index{no_superimpose statement}
 \index{parser_debug statement}
+\index{debug_marker statement}
 \index{no_digested statement}
 \index{lattice files!parser debugging}
 
-There are two statements, \vn{parser_debug} and \vn{no_digested},
+There are a few statements
 which can help in debugging the \bmad lattice parser
-itself.  That is, these statements are generally only used by programmers.
+itself. That is, these statements are generally only used by programmers.
+These statements are:
+\begin{example}
+  debug_marker
+  no_digested
+  no_superimpose
+  parser_debug
+\end{example}
+
+The \vn{debug_marker} statement is used for marking a place in the lattice file
+where program execution is to be halted. This only works when running
+a program in conjunction with a program debugging tool. 
 
 The \vn{no_digested} statement if present, will prevent \bmad from 
-creating a digested file. 
+creating a digested file (\sref{s:digested}. That is, the lattice file will always
+be parsed when a program is run.
+
+The \vn{no_superimpose} statement is used to suppress superpositions
+(\sref{s:super}). This is useful for debugging purposes.
 
 The \vn{parser_debug} statement will cause information about the
 lattice to be printed out at the terminal. It is recommended that this
@@ -764,7 +788,7 @@ unity by default. Thus
 in an XSIF file will give a matrix with all elements being zero.
 
 %----------------------------------------------------------------------------
-\section{Translation between MAD, Bmad, and XSIF Using the Accelerator Markup Lanuage}
+\section{Translation between MAD, Bmad, and XSIF Using the Accelerator Markup Language}
 \label{s:aml}
 \index{Accelerator Markup Language (AML)}
 \index{Universal Accelerator Parser (UAP)}

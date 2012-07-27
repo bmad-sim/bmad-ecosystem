@@ -232,11 +232,21 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  ! PRINT
+
+  if (word_1(:ix_word) == 'PRINT') then
+    call string_trim (bp_com%input_line2, parse_line_save, ix) ! Will strip off initial "print"
+    if (bmad_status%type_out) call out_io (s_dwarn$, r_name, &
+                                      'Print Message in Lattice File: ' // parse_line_save(ix+1:))
+    cycle parsing_loop
+  endif
+
   ! NO_DIGESTED
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
     bp_com%write_digested = .false.
-    if (bmad_status%type_out) call out_io (s_info$, r_name, 'Found in file: "NO_DIGESTED". No digested file will be created')
+    if (bmad_status%type_out) call out_io (s_info$, r_name, &
+                            'Found in file: "NO_DIGESTED". No digested file will be created')
     cycle parsing_loop
   endif
 
@@ -273,8 +283,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'TITLE') then
     if (delim_found) then
-      if (delim /= " " .and. delim /= ",") call parser_error &
-                          ('BAD DELIMITOR IN "TITLE" COMMAND')
+      if (delim /= " " .and. delim /= ",") call parser_error ('BAD DELIMITOR IN "TITLE" COMMAND')
       call bmad_parser_type_get (this_ele, 'DESCRIP', delim, delim_found)
       lat%title = this_ele%descrip
       deallocate (this_ele%descrip)
