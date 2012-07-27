@@ -152,7 +152,7 @@ type bp_common_struct
   character(n_parse_line) input_line2          ! For debug messages
   character(40) parser_name
   character(200) :: dirs(2) 
-  logical :: bmad_parser_calling = .false.     ! used for expand_lattice
+  logical :: bmad_parser_calling = .false.              ! used for expand_lattice
   logical error_flag     
   logical input_line_meaningful
   logical do_superimpose
@@ -166,7 +166,7 @@ end type
 
 !
 
-type (bp_common_struct), save :: bp_com
+type (bp_common_struct), save, target :: bp_com
 
 contains
 
