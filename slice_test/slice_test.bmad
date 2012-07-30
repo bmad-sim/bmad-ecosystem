@@ -22,8 +22,7 @@ lat: line = (sol, s, b)
 use, lat
 
 d2: drift, l = 1
-s2: sextupole, k2 = 000, l = 0.001
+s2: sextupole, k2 = -100.0, l = 0.001
 
-s2[k2] = 0
 lat2: line = (d2, s2, d2, d2)
-use, lat2
+use, lat
