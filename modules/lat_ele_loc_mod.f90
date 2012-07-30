@@ -43,11 +43,10 @@ contains
 !
 ! Examples:
 !   "quad::x_br>>q*"   All quadrupoles of branch "x_br" whose name begins with "q"
-!   "*:*"              All elements.
 !   "3,5:7"            Elements with index 3, 5, 6, and 7 in branch 0.
 !   "2>>45:51"         Elements 45 through 51 of branch 2.
 !   "q1:q5"            Elements between "q1" and "q5"
-!   "marker::a*##2"    2^nd marker element whose name begins with "a".
+!   "marker::a*##2"    2^nd marker element in each branch whose name begins with "a".
 ! 
 ! Modules Needed:
 !   use lat_ele_loc_mod
@@ -313,9 +312,9 @@ if (index(name, "*") /= 0 .or. index(name, "%") /= 0) do_match_wild = .true.
 
 ! search for matches
 
-n_dup = 0
 n_loc = 0
-branch_loop: do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
+do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
+  n_dup = 0
   if (ix_branch /= -1 .and. k /= ix_branch) cycle
   do i = 0, lat%branch(k)%n_ele_max
     if (key /= 0 .and. lat%branch(k)%ele(i)%key /= key) cycle
@@ -326,14 +325,14 @@ branch_loop: do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
     endif
     if (ix_dup > 0) then
       n_dup = n_dup + 1
-      if (n_dup > ix_dup) exit branch_loop
+      if (n_dup > ix_dup) exit 
       if (n_dup /= ix_dup) cycle
     endif
     n_loc = n_loc + 1
     if (.not. allocated(eles) .or. size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
     eles(n_loc)%ele => lat%branch(k)%ele(i)
   enddo
-enddo branch_loop
+enddo 
 
 err = .false.
 

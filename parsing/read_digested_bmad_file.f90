@@ -753,7 +753,11 @@ logical error
 error = .true.
 
 read (d_unit, iostat = ios) n_wall_section
-if (n_wall_section == 0) return
+if (n_wall_section == 0) then
+  error = .false.
+  return
+endif
+
 if (ios /= 0) then
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
