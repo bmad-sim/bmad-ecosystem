@@ -4,15 +4,15 @@ parameter[lattice_type] = linear_lattice
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-wig0: wiggler, l= 1.6, tracking_method = symp_lie_bmad, num_steps = 10, &
+wig0: wiggler, l= 1.6, tracking_method = symp_lie_bmad, num_steps = 200, &
       mat6_calc_method = symp_lie_bmad, polarity = 1.2, 
-      term(001)={1.01E-2,0.00003, 0.00004, 0.00005, 0}
+      term(001)={1.01E-2,0.3, 0.4, 0.5, 0.6}
 
 xoff = 5e-3
 xpitch = 1e-4
 
 wig1: wig0, tracking_method = taylor, x_offset = xoff, x_pitch = xpitch
-wig2: wig0, tracking_method = taylor, map_with_offsets = F
+wig2: wig0, tracking_method = taylor, map_with_offsets = T
 
 
 l: line = (wig1, wig2)
@@ -29,5 +29,5 @@ end_file
 
 
 &params
-  start_orb%vec = 0.001, 0.002, 0.00003, 0.0004, 0.000, 0.005
+  start_orb%vec = 0.001, 0.002, 0.003, 0.004, 0.000, 0.005
 /

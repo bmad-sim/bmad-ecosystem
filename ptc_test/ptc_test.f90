@@ -72,10 +72,10 @@ diff_mat = lat2%ele(3)%mat6 - lat%ele(1)%mat6
 diff_vec = lat2%ele(3)%vec0 - lat%ele(1)%vec0
 
 write (1, *)
-write (1, '(a, 6es10.2)') '"PTC1:dvec"   ABS  1E-09', end_orb1%vec - end_orb1p%vec
-write (1, '(a, es10.2)')  '"PTC1:dorb%t" ABS  1E-18', end_orb1%t - end_orb1p%t
-write (1, '(a, 6es10.2)') '"PTC2:dvec"   ABS  1E-09', end_orb1%vec - end_orb2p%vec
-write (1, '(a, es10.2)')  '"PTC2:dmat"   ABS  1E-06', maxval(abs(diff_mat))
+write (1, '(a, 6es10.2)') '"PTC1:dvec"   ABS  2E-09', end_orb1%vec - end_orb1p%vec
+write (1, '(a, es10.2)')  '"PTC1:dorb%t" ABS  4E-18', end_orb1%t - end_orb1p%t
+write (1, '(a, 6es10.2)') '"PTC2:dvec"   ABS  2E-09', end_orb1%vec - end_orb2p%vec
+write (1, '(a, es10.2)')  '"PTC2:dmat"   ABS  1.1E-05', maxval(abs(diff_mat))
 write (1, '(a, es10.2)')  '"PTC2:dvec0"  ABS  1E-09', maxval(abs(diff_vec))
 write (1, '(a, es10.2)')  '"PTC2:dorb%t" ABS  3E-18', &
           (end_orb1%t - lat%ele(1)%ref_time) - (end_orb2%t - lat%ele(3)%ref_time)
