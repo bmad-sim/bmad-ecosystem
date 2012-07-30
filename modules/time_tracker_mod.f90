@@ -249,7 +249,9 @@ do
     dt_temp = dt / 10
   else
     r_scal(:) = abs(orb%vec) + abs(orb_new%vec) + TINY
-    r_scal(5) = ele%value(l$)
+    r_scal(1:5:2) = r_scal(1:5:2) + [0.01_rp, 0.01_rp, ele%value(L$)]
+    !Note that cp is in eV, so 1.0_rp is 1 eV
+    r_scal(2:6:2) = r_scal(2:6:2) + 1.0_rp + 1d-4* (abs(orb%vec(2))+abs(orb%vec(4))+abs(orb%vec(6)))
     err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit
     dt_temp = safety * dt * (err_max**p_shrink)
