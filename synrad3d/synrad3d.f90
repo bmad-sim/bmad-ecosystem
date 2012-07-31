@@ -556,10 +556,6 @@ enddo
 close (1)
 if (sr3d_params%stop_if_hit_antechamber) close (2)
 
-! For custom output
-
-include 'custom_output.inc'
-
 !--------------------------------------------------------------------------------------------
 contains
 
