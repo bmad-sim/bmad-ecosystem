@@ -345,23 +345,6 @@ foreach(exespec ${EXE_SPECS})
 
 
   endforeach(dep)
-
-
-      file(GLOB temp_contents ${dir}/*.cc)
-      LIST(APPEND SRC_FILES ${temp_contents})
- 
-      file(GLOB temp_contents ${dir}/*.cxx)
-      LIST(APPEND SRC_FILES ${temp_contents})
-
-      file(GLOB temp_contents ${dir}/*.f)
-      LIST(APPEND SRC_FILES ${temp_contents})
-
-      file(GLOB temp_contents ${dir}/*.F)
-      LIST(APPEND SRC_FILES ${temp_contents})
-
-      file(GLOB temp_contents ${dir}/*.f90)
-      LIST(APPEND SRC_FILES ${temp_contents})
-  endforeach(dir)
   
   include($ENV{ACC_BUILD_SYSTEM}/exe.cmake)
 
