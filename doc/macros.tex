@@ -68,21 +68,13 @@
 \newcommand{\W}{$^\wedge$}
 
 \newlength{\dPar}
-\newlength{\ExBeg}
-\newlength{\ExEnd}
 \setlength{\dPar}{1.5ex}
-\setlength{\ExBeg}{-\dPar}
-\addtolength{\ExBeg}{-1.5ex}
-\setlength{\ExEnd}{-\dPar}
-\addtolength{\ExEnd}{-1.0ex}
 
 \newenvironment{example}
-  {\vspace{\ExBeg} \begin{alltt}}
-  {\end{alltt} \vspace{\ExEnd}}
+  {\vspace{-3.0ex} \begin{alltt}}
+  {\end{alltt} \vspace{-2.5ex}}
 
 \newcommand\Strut{\rule[-2ex]{0mm}{6ex}}
-
-\newenvironment{Example}{\vspace{-1.5ex} \begin{alltt}}{\end{alltt}}
 
 \newenvironment{Itemize}
   {\begin{list}{$\bullet$}
