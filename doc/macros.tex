@@ -139,13 +139,7 @@
 \newcommand{\B}{$\backslash$}
 
 \newlength{\dPar}
-\newlength{\ExBeg}
-\newlength{\ExEnd}
 \setlength{\dPar}{1.5ex}
-\setlength{\ExBeg}{-\dPar}
-\addtolength{\ExBeg}{-1.5ex}
-\setlength{\ExEnd}{-\dPar}
-\addtolength{\ExEnd}{-1.0ex}
 
 % \ExampleNum is for numbering "example" blocks using the same numbering counter
 % as the "equation" counter
@@ -156,10 +150,8 @@
 \newcommand{\ExampleNum}[1]{\hfill \refstepcounter{equation} \((\arabic{equation})\protect\label{#1}\)}
 
 \newenvironment{example}
-  {\vspace{\ExBeg} \begin{alltt}}
-  {\end{alltt} \vspace{\ExEnd}}
-
-\newenvironment{Example}{\vspace{-1.5ex} \begin{alltt}}{\end{alltt}}
+  {\vspace{-3.0ex} \begin{alltt}}
+  {\end{alltt} \vspace{-2.5ex}}
 
 \newenvironment{Itemize}
   {\begin{list}{$\bullet$}
