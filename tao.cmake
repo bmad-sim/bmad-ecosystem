@@ -16,9 +16,7 @@ set (LINK_LIBS
   xsif 
   pgplot 
   forest 
-  -Bdynamic /usr/lib64/libX11.so
   readline
   curses
   termcap
-  stdc++
 )
