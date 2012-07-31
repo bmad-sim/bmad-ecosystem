@@ -1,7 +1,9 @@
 #-----------------------------------------------------------
-# Master cmake lists file with options that may be needed
-# to build any and all software during the course of normal
-# development here in the lab.
+# Master cmake lists file
+# Implements the ACC build system.  Called by boilerplate
+# text:
+#      include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
+# found in CMakeLists.txt files in project directories.
 #-----------------------------------------------------------
 cmake_minimum_required(VERSION 2.8)
 #-----------------------------------------------------------
@@ -11,16 +13,15 @@ cmake_minimum_required(VERSION 2.8)
 #-----------------------------------------------------------
 cmake_policy(SET CMP0015 NEW)
 
-
-#   Environment variables that influence the build
-#---------------------------------------------------
+#-------------------------------------------------------
+# Import environment variables that influence the build
+#-------------------------------------------------------
 set(RELEASE_NAME $ENV{ACC_RELEASE})
 set(RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
 set(RELEASE_DIR $ENV{ACC_RELEASE_DIR})
 
 set(RELEASE_LIB ${RELEASE_DIR}/lib)
 set(PACKAGES_DIR ${RELEASE_DIR}/packages)
-
 
 
 #-------------------------------------------------------
@@ -56,6 +57,7 @@ set (CMAKE_Fortran_FLAGS "-Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE -DCESR_UN
 set (CMAKE_Fortran_FLAGS_DEBUG "-g -Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
 
 
+set(CMAKE_EXE_LINKER_FLAGS "-lreadline -lpthread -lstdc++ -lX11")
 
 
 IF (CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
@@ -116,7 +118,7 @@ find_package(X11)
 #
 #   This is bad, no?  This is how the present build system is set up to operate as well?
 #
-SET (MASTER_INC_DIRS 
+SET (MASTER_INC_DIRS
   ${X11_INCLUDE_DIR}
   ${PACKAGES_DIR}/include
   ${PACKAGES_DIR}/forest/include
@@ -145,13 +147,17 @@ LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
 INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
 
-#  Link directories
-#-------------------------
+#  Link directories - order matters
+# Lowest level to highest, i.e. in
+# order of increasing abstraction.
+#-----------------------------------
 SET(MASTER_LINK_DIRS
   /lib64
   /usr/lib64
   ${PACKAGES_DIR}/lib
   ${PACKAGES_DIR}/root/lib
+  ${OUTPUT_BASEDIR}/lib
+  ${RELEASE_DIR}/lib
 )
 LINK_DIRECTORIES(${MASTER_LINK_DIRS})
 
@@ -235,8 +241,11 @@ IF (PREBUILD_ACTION)
   EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION})
 ENDIF ()
 
+set(TARGETS)
+
 IF (LIBNAME)
   add_library( ${LIBNAME} STATIC ${sources} )
+  LIST(APPEND TARGETS ${LIBNAME})
   SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
   TARGET_LINK_LIBRARIES(${LIBNAME} ${DEPS})
 ENDIF ()
@@ -253,26 +262,6 @@ IF (IS_DIRECTORY "../config")
 ENDIF ()
 
 
-#----------------------------------------------------------------
-# Make this project's EXE build depend upon the product of each
-# build that is listed as a dependency.  If those build
-# products are newer than this project's EXE, relink this
-# project's EXE.
-#----------------------------------------------------------------
-foreach(dep ${DEPS})
-
-    ##message("Adding library as dependency: ${dep}")
-    add_library(${dep} STATIC IMPORTED)
-
-    IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
-        set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
-    ELSEIF (EXISTS ${PACKAGES_DIR}/lib/lib${dep}.a)
-        set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_DIR}/lib/lib${dep}.a)
-    ELSE ()
-        set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
-    ENDIF ()
-
-endforeach(dep)
 
 
 #----------------------------------------------------------------
@@ -286,9 +275,14 @@ endforeach(dep)
 #----------------------------------------------------------------
 IF (ENABLE_SHARED AND CREATE_SHARED)
   add_library (${LIBNAME}-shared SHARED ${sources})
+  LIST(APPEND TARGETS ${LIBNAME}-shared)
   SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES OUTPUT_NAME ${LIBNAME})
   TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${DEPS})
 ENDIF ()
+
+
+
+
 
 
 #---------------------------------------------------------------
@@ -315,49 +309,44 @@ foreach(exespec ${EXE_SPECS})
   INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
 
-  IF (NOT DEPS)
 
-    set(DEPS ${LINK_LIBS})
+  set(DEPS ${LINK_LIBS})
 
-    #----------------------------------------------------------------
-    # Make this project's EXE build depend upon the product of each
-    # build that is listed as a dependency.  If those build
-    # products are newer than this project's EXE, relink this
-    # project's EXE.
-    #----------------------------------------------------------------
-    foreach(dep ${DEPS})
-  
-        message("Adding library as dependency: ${dep}")
-        IF( ${LIBNAME} MATCHES ${dep} )
-        ELSE()
-         
-          add_library(${dep} STATIC IMPORTED)
-
-          IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
-              set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
-          ELSEIF (EXISTS ${PACKAGES_DIR}/lib/lib${dep}.a)
-              set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_DIR}/lib/lib${dep}.a)
-          ELSE ()
-              set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
-          ENDIF ()
-
-        ENDIF()
-
-    endforeach(dep)
-
-  ENDIF ()
-
-
-  # Collect list of all source files for all supported languages
-  # from all directories mentioned in project CMakeLists.txt file.
   #----------------------------------------------------------------
-  foreach(dir ${SRC_DIRS})
-      file(GLOB temp_contents ${dir}/*.c)
-      LIST(APPEND SRC_FILES ${temp_contents})
+  # Make this project's EXE build depend upon the product of each
+  # build that is listed as a dependency.  If those build
+  # products are newer than this project's EXE, relink this
+  # project's EXE.  Only invoke add_library to tie in external
+  # dependencies a single time for each unique target.
+  #----------------------------------------------------------------
+  foreach(dep ${DEPS})
 
-      file(GLOB temp_contents ${dir}/*.cpp)
-      LIST(APPEND SRC_FILES ${temp_contents})
-  
+    IF(NOT ${LIBNAME} MATCHES ${dep})
+      LIST(FIND TARGETS ${dep} DEP_SEEN)
+      IF(NOT ${DEP_SEEN} EQUAL -1)
+        IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
+          message("Found ${dep} in ${OUTPUT_BASEDIR}/lib/")
+          add_library(${dep} STATIC IMPORTED)
+          LIST(APPEND TARGETS ${dep})
+          set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
+        ELSEIF (EXISTS ${PACKAGES_DIR}/lib/lib${dep}.a)
+          message("Found ${dep} in ${PACKAGES_DIR}/lib/")
+          add_library(${dep} STATIC IMPORTED)
+          LIST(APPEND TARGETS ${dep})
+          set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_DIR}/lib/lib${dep}.a)
+        ELSEIF (EXISTS ${RELEASE_DIR}/lib/lib${dep}.a)
+          message("Found ${dep} in ${RELEASE_DIR}/lib/")
+          add_library(${dep} STATIC IMPORTED)
+          LIST(APPEND TARGETS ${dep})
+          set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
+        ENDIF ()
+      ENDIF()
+    ENDIF()
+
+
+  endforeach(dep)
+
+
       file(GLOB temp_contents ${dir}/*.cc)
       LIST(APPEND SRC_FILES ${temp_contents})
  
