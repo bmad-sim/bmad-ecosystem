@@ -1029,24 +1029,27 @@ call remove_eles_from_lat (lat, .false.)
 call reuse_taylor_elements (old_lat, lat)
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1) 
 
-! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
-
-! NOTE: This code needs to be modified to take care of continuous aperture walls and 
-! wall priorities. OR: Is the branch%wall3d component even needed?
+! Wall3d init.
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
-  cycle
 
   n_wall = 0
   do j = 0, branch%n_ele_track
     ele => branch%ele(j)
-    if (ele%key == capillary$) cycle
     if (.not. associated(ele%wall3d)) cycle
     call wall3d_initializer (ele%wall3d, err_flag)
+    if (ele%key == capillary$) cycle
     n_wall = n_wall + size(ele%wall3d%section)
   enddo
+
+  ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
+
+  ! NOTE: This code needs to be modified to take care of continuous aperture walls and 
+  ! wall priorities. OR: Is the branch%wall3d component even needed?
+
   if (n_wall == 0) cycle
+  cycle   ! NOTE: AGGRAGATING CODE DISABLED FOR NOW UNTIL SOMEONE NEEDS IT!
 
   allocate (branch%wall3d)
   allocate (branch%wall3d%section(n_wall))
