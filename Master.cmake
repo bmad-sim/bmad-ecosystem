@@ -54,7 +54,6 @@ enable_language( Fortran )
 set (CMAKE_Fortran_FLAGS "-Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
 set (CMAKE_Fortran_FLAGS_DEBUG "-g -Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
 
-
 set(CMAKE_EXE_LINKER_FLAGS "-lreadline -lpthread -lstdc++ -lX11")
 
 
@@ -358,8 +357,29 @@ foreach(exespec ${EXE_SPECS})
 
   endforeach(dep)
 
-  # Call contents of file
-  include($ENV{ACC_BUILD_SYSTEM}/exe.cmake)
+  #----------------------------------------------
+  # Honor propagated control variable to build
+  # any EXEs provided in a list from the main
+  # CMakeLists.txt file.
+  #----------------------------------------------
+  IF (BUILD_EXES)
+    set(BUILD_EXE_TOGGLE "")
+  ELSE()
+    set(BUILD_EXE_TOGGLE "EXCLUDE_FROM_ALL")
+  ENDIF ()
+
+  # Actually request creation of executable target
+  add_executable(${EXENAME}-exe
+      ${BUILD_EXE_TOGGLE}
+      ${SRC_FILES})
+
+  SET_TARGET_PROPERTIES(${EXENAME}-exe
+          PROPERTIES
+          OUTPUT_NAME
+          ${EXENAME})
+
+  TARGET_LINK_LIBRARIES(${EXENAME}-exe
+          ${LINK_LIBS})
 
 
 endforeach(exespec)
