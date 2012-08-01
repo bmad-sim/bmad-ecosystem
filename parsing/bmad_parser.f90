@@ -1038,7 +1038,11 @@ do i = 0, ubound(lat%branch, 1)
   do j = 0, branch%n_ele_track
     ele => branch%ele(j)
     if (.not. associated(ele%wall3d)) cycle
-    call wall3d_initializer (ele%wall3d, err_flag)
+    call wall3d_initializer (ele%wall3d, err)
+    if (err) then
+      call parser_end_stuff (.false.)
+      return
+    endif
     if (ele%key == capillary$) cycle
     n_wall = n_wall + size(ele%wall3d%section)
   enddo
