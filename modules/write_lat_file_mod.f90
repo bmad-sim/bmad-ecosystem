@@ -49,7 +49,7 @@ type (multipass_info_struct), allocatable :: multipass(:)
 
 type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2, ele_dflt
 type (ele_struct), target :: ele_default(n_key)
 type (wig_term_struct) wt
@@ -79,7 +79,7 @@ character(10) angle
 integer i, j, k, n, ix, iu, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
-integer ix_top, ix_super, default_val
+integer ix_top, ix_super, default_val, imax, ibr
 integer, allocatable :: an_indexx(:)
 
 logical, optional :: err
@@ -320,17 +320,24 @@ do ib = 0, ubound(lat%branch, 1)
       line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
     endif
 
-    ! Wall
+    ! Wall3d
 
     if (associated(ele%wall3d)) then
-      ! First find out out if an wall file has been written
+
+      ! First find out out if a wall file has been written
       found = .false.
-      do ie2 = 1, ie-1
-        ele2 => branch%ele(ie2)
-        if (.not. associated(ele2%wall3d)) cycle
-        if (.not. associated(ele2%wall3d, ele%wall3d)) cycle
-        found = .true.
-        exit
+      do ibr = 0, ubound(lat%branch, 1)
+        branch2 => lat%branch(ibr)
+        imax = branch2%n_ele_max
+        if (ibr == branch%ix_branch) imax = ie-1
+        do ie2 = 1, imax
+          ele2 => branch2%ele(ie2)
+          if (ele2%slave_status == multipass_slave$) cycle
+          if (.not. associated(ele2%wall3d)) cycle
+          if (.not. associated(ele2%wall3d, ele%wall3d)) cycle
+          found = .true.
+          exit
+        enddo
       enddo
 
       if (found) then
@@ -384,12 +391,17 @@ do ib = 0, ubound(lat%branch, 1)
 
       ! First find out out if an em_file has been written
       found = .false.
-      do ie2 = 1, ie-1
-        ele2 => branch%ele(ie2)
-        if (.not. associated(ele2%em_field)) cycle
-        if (.not. (ele%em_field == ele2%em_field)) cycle
-        found = .true.
-        exit
+      do ibr = 0, ubound(lat%branch, 1)
+        branch2 => lat%branch(ibr)
+        imax = branch2%n_ele_max
+        if (ibr == branch%ix_branch) imax = ie-1
+        do ie2 = 1, imax
+          ele2 => branch2%ele(ie2)
+          if (.not. associated(ele2%em_field)) cycle
+          if (.not. (ele%em_field == ele2%em_field)) cycle
+          found = .true.
+          exit
+        enddo
       enddo
 
       if (found) then

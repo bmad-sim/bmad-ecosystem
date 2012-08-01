@@ -945,7 +945,6 @@ end type
 ! This is for debugging radiation damping and fluctuations.
 
 type synch_rad_common_struct
-  type (ele_struct), pointer :: ele0 => null()   ! Previous element. For i5 calc.
   real(rp) :: scale = 1.0               ! used to scale the radiation
   real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
   real(rp) :: i5a = 0, i5b = 0

@@ -3759,6 +3759,7 @@ type (lat_struct), target :: lat
 type (ele_struct) ref_ele, super_ele
 type (ele_struct), pointer :: ele1, ele2
 type (branch_struct), pointer :: branch
+real(rp) eps
 logical err_flag
 integer ix1, ix2
 
@@ -3767,12 +3768,13 @@ integer ix1, ix2
 
 branch => lat%branch(ref_ele%ix_branch)
 err_flag = .true.
+eps = bmad_com%significant_length
 
-ix1 = element_at_s (lat, super_ele%s - super_ele%value(l$), .true., ref_ele%ix_branch, err_flag)
+ix1 = element_at_s (lat, super_ele%s - super_ele%value(l$) + eps, .true., ref_ele%ix_branch, err_flag)
 ele1 => branch%ele(ix1)
 if (ele1%slave_status == super_slave$) ele1 => pointer_to_lord(ele1, 1)
 
-ix2 = element_at_s (lat, super_ele%s, .false., ref_ele%ix_branch, err_flag)
+ix2 = element_at_s (lat, super_ele%s - eps, .false., ref_ele%ix_branch, err_flag)
 ele2 => branch%ele(ix2)
 if (ele2%slave_status == super_slave$) ele2 => pointer_to_lord(ele2, 1)
 

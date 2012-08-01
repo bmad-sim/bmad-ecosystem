@@ -780,8 +780,15 @@ end function wall3d_d_radius
 ! Function to return a pointer to the element containing the wall associated
 ! with a given lattice element. 
 !
-! Normally, wall_ele and ele are the same. The wall associated with a super_slave
-! will be contained in the super_lord.
+! Normally, wall_ele and ele are the same. However, the wall associated with 
+! a super_slave will be contained in the super_lord.
+!
+! Output logic:
+!   1) There is no wall if not associated(wall3d_ele).                              
+!   2) There is a wall3d if wall3d_ele and wall3d_ele%wall3d are associated.
+!   3) There is a wall defined by the element aperture (%value(x1_limit$), etc.) if
+!      wall3d_ele is associated but wall3d%ele%wall3d is not. In this case the
+!      aperture will be continuous (wall3d_ele%aperture_at == continuous$).
 !
 ! Module needed:
 !   use wall3d_mod
