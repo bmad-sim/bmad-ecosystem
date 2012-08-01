@@ -473,7 +473,7 @@ if (logic_option(present(lattice), type_control)) then
   if (ele%n_lord /= 0) then
 
     nl=nl+1; write (li(nl), *) &
-      '    Name                       Lat_index  Attribute         Coefficient       Value  Lord_Type'
+      '    Index    Name                             Attribute         Coefficient       Value  Lord_Type'
 
     do i = 1, ele%n_lord
       lord => pointer_to_lord (ele, i, ic)
@@ -495,8 +495,8 @@ if (logic_option(present(lattice), type_control)) then
         endif
       end select
 
-      nl=nl+1; write (li(nl), '(5x, a30, i6, 2x, a18, a11, a12, 2x, a)') &
-            lord%name, lord%ix_ele, a_name, coef_str, val_str, trim(trim(key_name(lord%key)))
+      nl=nl+1; write (li(nl), '(i9, 3x, a32, a18, a11, a12, 2x, a)') &
+            lord%ix_ele, lord%name, a_name, coef_str, val_str, trim(trim(key_name(lord%key)))
     enddo
     nl=nl+1; li(nl) = ''
 
@@ -523,16 +523,16 @@ if (logic_option(present(lattice), type_control)) then
 
     case (multipass_lord$, super_lord$, girder_lord$)
       name = 'Name'
-      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), 'Type                 Lat_index'
+      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), '   Index       Type                 '
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
-        nl=nl+1; write (li(nl), '(3x, a, 3x, a20, a10)') &
+        nl=nl+1; write (li(nl), '(3x, a10, 2x, a, 3x, a20)') &
                     slave%name(1:n_char), key_name(slave%key), trim(ele_loc_to_string(slave))
       enddo
 
     case default
       name = 'Name'
-      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), ' Lat_index  Attribute         Coefficient'
+      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), ' Index      Attribute         Coefficient'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, i)
         iv = lattice%control(i)%ix_attrib
