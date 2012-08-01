@@ -1703,14 +1703,14 @@ end subroutine parser_file_stack
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine load_parse_line (load_type, ix_start, end_of_file) 
+! Subroutine load_parse_line (action, ix_start, end_of_file) 
 !
 ! Subroutine to load characters from the input file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   load_type -- Character(*): 'continue' or 'normal'
+!   action -- Character(*): 'continue', 'normal', or 'init'
 !   ix_start  -- Integer: index in bp_com%parse_line string where to append stuff.
 !
 ! Output:
@@ -1718,17 +1718,25 @@ end subroutine parser_file_stack
 !   bp_com%parse_line -- String to append to.
 !-
 
-subroutine load_parse_line (load_type, ix_start, end_of_file)
+subroutine load_parse_line (action, ix_start, end_of_file)
 
 implicit none
 
 integer ix_start, ix
 
-character(*) load_type
+character(*) action
 character(n_parse_line+20), save :: line, saved_line
 character(1), parameter :: tab = achar(9)
 
 logical :: have_saved_line = .false., end_of_file
+
+! action = 'init'
+
+if (action == 'init') then
+  have_saved_line = .false.
+  bp_com%parse_line = ''
+  return
+endif
 
 !
 
@@ -1750,13 +1758,13 @@ do
 
   ! %input_line1 and %input_line2 are for error messages if needed.
   ! Only the input string being parsed is saved in these lines.
-  ! 'normal' load_type means we are loading a new input string so start from scratch.
-  ! 'continue' load_type means keep the existing input string.
+  ! 'normal' action means we are loading a new input string so start from scratch.
+  ! 'continue' action means keep the existing input string.
 
-  if (load_type == 'continue') then
+  if (action == 'continue') then
     bp_com%input_line1 = bp_com%input_line2
     bp_com%input_line2 = line
-  elseif (load_type == 'normal') then
+  elseif (action == 'normal') then
     bp_com%input_line1 = ' '
     bp_com%input_line2 = line
   else
