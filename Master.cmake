@@ -38,16 +38,14 @@ set(PACKAGES_DIR ${RELEASE_DIR}/packages)
 #-------------------------------------------------------
 set(ENABLE_SHARED $ENV{ACC_ENABLE_SHARED})
 
-
 IF (${LIBNAME})
 	project(${LIBNAME})
 ENDIF ()
 
 
+#-----------------------------------
 #   Compiler flags
 #-----------------------------------
-# Platform-dependent flag sets here.
-# Compiler-dependent also?
 set (CMAKE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -DCESR_F90_DOUBLE -DCESR_DOUBLE -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
 set (CMAKE_C_FLAGS_DEBUG "-g -Df2cFortran -O2 -std=gnu99 -mcmodel=medium -DCESR_F90_DOUBLE -DCESR_DOUBLE -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
 
@@ -60,6 +58,10 @@ set (CMAKE_Fortran_FLAGS_DEBUG "-g -Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE 
 set(CMAKE_EXE_LINKER_FLAGS "-lreadline -lpthread -lstdc++ -lX11")
 
 
+#--------------------------------------
+# Honor requests for debug builds 
+# composed with any variation in case.
+#--------------------------------------
 IF (CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
   SET(DEBUG 1)
 ELSE ()
@@ -67,6 +69,10 @@ ELSE ()
 ENDIF ()
 
 
+#------------------------------------------
+# Honor requests for executable building
+# made via environment variable.
+#------------------------------------------
 IF ($ENV{ACC_BUILD_EXES})
   SET(BUILD_EXES 1)
 ELSE ()
@@ -74,7 +80,7 @@ ELSE ()
 ENDIF ()
 
 
-
+#-----------------------------------------
 # Print some friendly build information
 #-----------------------------------------
 message("")
@@ -86,8 +92,8 @@ ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)\n")
 
 
-
-#   Path definitions
+#-----------------------------------
+# Output path definitions
 #-----------------------------------
 IF (DEBUG)
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../debug)
@@ -100,12 +106,15 @@ set (EXECUTABLE_OUTPUT_PATH ${OUTPUT_BASEDIR}/bin)
 set (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
 
 
+#-----------------------------------
 #   System library locators
+# Also provides include directory
+# locations.
 #-----------------------------------
 find_package(X11)
 
 
-
+#-------------------------
 #   Include directories
 #-------------------------
 # TODO: Double each include directory entry to search for a local (../<xxx>) path and THEN
@@ -116,7 +125,7 @@ find_package(X11)
 #  This new build will then perform the divergent action of linking against the release library
 # but extracting constants and other header information from the LOCAL source tree.  
 #
-#   This is bad, no?  This is how the present build system is set up to operate as well?
+# This is how the present build system is set up to operate and is likely not ideal.
 #
 SET (MASTER_INC_DIRS
   ${X11_INCLUDE_DIR}
@@ -129,8 +138,9 @@ SET (MASTER_INC_DIRS
   ${ROOT_INC}
   ${RELEASE_DIR}/modules
 )
-  
 
+
+#------------------------------------------------------
 # Add local include paths to search list if they exist
 #------------------------------------------------------
 foreach(dir ${INC_DIRS})
@@ -147,6 +157,7 @@ LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
 INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
 
+#-----------------------------------
 #  Link directories - order matters
 # Lowest level to highest, i.e. in
 # order of increasing abstraction.
@@ -162,10 +173,11 @@ SET(MASTER_LINK_DIRS
 LINK_DIRECTORIES(${MASTER_LINK_DIRS})
 
 
-
-# Collect list of all source files for all supported languages
-# from all directories mentioned in project CMakeLists.txt file.
-#----------------------------------------------------------------
+#-------------------------------------------
+# Collect list of all source files for all
+# supported languages from all directories
+# mentioned in project CMakeLists.txt file.
+#-------------------------------------------
 foreach(dir ${SRC_DIRS})
     file(GLOB temp_contents ${dir}/*.c)
     LIST(APPEND sources ${temp_contents})
@@ -190,6 +202,13 @@ foreach(dir ${SRC_DIRS})
 endforeach(dir)
 
 
+#---------------------------------------------
+# List of lab-maintained libraries that shall
+# be attached to executables as dependencies
+# to accommodate the fact that they may also
+# be under active development in a user's
+# working area.
+#---------------------------------------------
 set( LAB_LIBS
   c_utils
   recipes_f-90_LEPP
@@ -219,6 +238,11 @@ set( LAB_LIBS
 set(DEPS )
 
 
+#-----------------------------------------------
+# If the project calling this build description
+# file is itself a member of the above list,
+# do not attach it as an external dependency.
+#-----------------------------------------------
 IF (${LIBNAME})
   foreach( lablib ${LAB_LIBS})
     IF( ${LIBNAME} STREQUAL ${lablib} )
@@ -228,8 +252,6 @@ IF (${LIBNAME})
   endforeach()
 ENDIF ()
   
-##message("DEPS=${DEPS}")
-
 
 #----------------------------------------------------------------
 # If any pre-build script is specified, run it before building
@@ -262,8 +284,6 @@ IF (IS_DIRECTORY "../config")
 ENDIF ()
 
 
-
-
 #----------------------------------------------------------------
 # For selectively producing shared object libraries (.so files).
 #
@@ -281,20 +301,15 @@ IF (ENABLE_SHARED AND CREATE_SHARED)
 ENDIF ()
 
 
-
-
-
-
 #---------------------------------------------------------------
 # Process each EXE build description file mentioned in the
 # project's CMakeLists.txt file.
 #---------------------------------------------------------------
 foreach(exespec ${EXE_SPECS})
 
-    include(${exespec})
+  include(${exespec})
 
-
-  # TODO: Convert this to macro or function
+  # TODO: Convert this to macro or function?
   foreach(dir ${INC_DIRS})
     STRING(FIND ${dir} "../" relative)
     STRING(REPLACE "../" "" dirnew ${dir})
@@ -308,16 +323,14 @@ foreach(exespec ${EXE_SPECS})
   LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
   INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
-
-
   set(DEPS ${LINK_LIBS})
 
   #----------------------------------------------------------------
   # Make this project's EXE build depend upon the product of each
-  # build that is listed as a dependency.  If those build
-  # products are newer than this project's EXE, relink this
-  # project's EXE.  Only invoke add_library to tie in external
-  # dependencies a single time for each unique target.
+  # build that is listed as a dependency.  If those binaries
+  # are newer than this project's EXE, relink this project's EXE.
+  # Only invoke add_library to tie in external dependencies a
+  # single time for each unique target.
   #----------------------------------------------------------------
   foreach(dep ${DEPS})
 
@@ -343,9 +356,9 @@ foreach(exespec ${EXE_SPECS})
       ENDIF()
     ENDIF()
 
-
   endforeach(dep)
-  
+
+  # Call contents of file
   include($ENV{ACC_BUILD_SYSTEM}/exe.cmake)
 
 
