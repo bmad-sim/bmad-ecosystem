@@ -81,13 +81,13 @@ endif
 ! Check p_x and p_y
 
 if (logic_option(.true., check_momentum)) then
-  if (abs(orb%vec(2)) > 1 .and. abs(orb%vec(2)) > abs(orb%vec(4))) then
+  if (abs(orb%vec(2)) > 1+orb%vec(6) .and. abs(orb%vec(2)) > abs(orb%vec(4))) then
     if (orb%vec(2) > 0) then; orb%state = lost_pos_x_aperture$
     else;                     orb%state = lost_neg_x_aperture$
     endif
     param%unstable_factor = 100 * abs(orb%vec(2)) 
     return
-  elseif (abs(orb%vec(4)) > 1) then
+  elseif (abs(orb%vec(4)) > 1 + orb%vec(6)) then
     if (orb%vec(4) > 0) then; orb%state = lost_pos_y_aperture$
     else;                     orb%state = lost_neg_y_aperture$
     endif
