@@ -837,7 +837,8 @@ else
     lord => pointer_to_lord(ele, i)
     if (.not. associated(lord)) exit
 
-    if (lord%lord_status /= super_lord$) cycle
+    if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+    if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
 
     if (lord%aperture_at == continuous$) then
       if (associated(aperture_ele)) aperture_conflict = .true.

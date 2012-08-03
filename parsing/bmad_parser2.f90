@@ -133,10 +133,25 @@ parsing_loop: do
   if (end_of_file) then
     word_1 = 'END_FILE'
     ix_word = 8
-  else
-    wildcards_permitted = (delim == '[')  ! For 'q*[x_offset] = ...' constructs
-    integer_permitted = (delim == '[')    ! For '78[x_offset] = ...' constructs
-    call verify_valid_name(word_1, ix_word, wildcards_permitted, integer_permitted)
+  endif
+
+  ! If input line is something like "quadrupole::*[k1] = ..." then shift delim from ":" to "["
+
+  if (delim == ':' .and. bp_com%parse_line(1:1) == ':') then
+    ix = index(bp_com%parse_line, '[')
+    if (ix /= 0) then
+      word_1 = trim(word_1) // bp_com%parse_line(:ix-1)
+      bp_com%parse_line = bp_com%parse_line(ix+1:)
+      delim = '['
+      ix_word = len_trim(word_1)
+    endif
+  endif
+
+  ! Name check. 
+  ! If delim = '[' then have attribute redef and things are complicated so do not check.
+
+  if (delim /= '[') then
+    call verify_valid_name(word_1, ix_word)
   endif
 
   ! PARSER_DEBUG
