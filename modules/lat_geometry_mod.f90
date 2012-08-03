@@ -3,6 +3,7 @@ module lat_geometry_mod
 use bmad_struct
 use bmad_interface
 use lat_ele_loc_mod
+use nr, only: zbrent
 
 contains
 
@@ -513,5 +514,131 @@ call floor_w_mat_to_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi)
 
 
 end subroutine shift_reference_frame
+
+
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! Function floor_to_local (floor0, r_global) result (r_local)
+!
+! Returns local position relative to floor0 given a global position
+!
+! Input:
+!   floor0        -- floor_position_struct: Coordinates to convert to.
+!   r_global(3)   -- real(rp): [X, Y, Z] global position 
+!
+! Output:
+!   r_local(3)    -- real(rp): [x, y, z] local position
+!
+!-
+
+function floor_to_local (floor0, r_global) result (r_local)
+
+implicit none
+
+type (floor_position_struct) floor0
+real(rp) :: r_local(3), r_global(3), w_mat(3,3)
+
+!  Get w_mat
+call floor_angles_to_w_mat (floor0%theta,floor0%phi, floor0%psi, w_mat)
+
+!Solve for r_local = [x, y, z]_local
+r_local = matmul(transpose(w_mat), r_global - [floor0%x, floor0%y, floor0%z])
+
+end function floor_to_local
+
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function position_in_local_frame  (r_global, floor0, ele) result(r_local)
+!
+! Given a point in global coordinates, return local curvilinear coordinates in ele
+!   to floor0
+!
+! Module needed:
+!   nr, only: zbrent
+!
+! Input:
+!   r_global    -- real(rp) (3): [X, Y, Z] position in global coordinates
+!   floor0      -- floor_position_struct: floor coordinates at the beginning of ele
+!   ele         -- ele_struct: element to find local coordinates of
+!
+! Result:
+!   r_local     -- real(rp) (3): [x, y, s] position in local curvilinear coordinates
+!   err         -- logical: position is outside ele's bounds.  
+
+function position_in_local_frame (r_global, floor0, ele, err) result(r_local)
+
+implicit none
+
+type (ele_struct)   :: ele
+type (floor_position_struct) :: floor0, floor_at_s
+real(rp) :: L_save, s_local, r_global(3), r_local(3) 
+real(rp) :: w_mat(3,3)
+logical  :: err
+
+!
+
+err = .false. 
+
+! Check to see if position is within 0 < s < ele%value(L$)
+r_local = floor_to_local (floor0, r_global)
+if (r_local(3) < 0) then
+  err = .true.
+  return
+endif
+r_local = floor_to_local (ele%floor, r_global)
+if (r_local(3) > 0) then
+  err = .true.
+  return
+endif
+
+! Save ele's L. We will vary this. 
+L_save = ele%value(L$)
+
+! Find s_local between 0 and L_save
+s_local = zbrent(delta_s_in_ele_for_zbrent, 0.0_rp, L_save, 1d-9) 
+
+! Restore ele's length
+ele%value(L$) = L_save
+
+! r_local was calculated in the zbrent function. Add in s_local
+r_local = [r_local(1), r_local(2), s_local]
+
+contains
+
+  !
+  ! function for zbrent to calculate s
+  !
+  !
+  ! r_global = w_mat(s_local).[x_local, y_local, 0] 
+  !             + [floor%x, floor%y, floor%z](s_local)
+  ! Invert:
+  ! => transpose(w_mat) . ( r_global - [floor%x, floor%y, floor%z](s_local) )
+  !     == [x_local, y_local, 0]  when w_mat and floor% are calculated from correct s. 
+
+  function delta_s_in_ele_for_zbrent (this_s)
+  
+  real(rp), intent(in)  :: this_s
+  real(rp) :: delta_s_in_ele_for_zbrent
+
+  !Vary L  
+  ele%value(L$) = this_s  
+  
+  !Get floor_at_s
+  call ele_geometry(floor0, ele, floor_at_s)
+  
+  !Get local coordinates   
+  r_local = floor_to_local (floor_at_s, r_global)
+
+  delta_s_in_ele_for_zbrent = r_local(3)
+  
+  end function  delta_s_in_ele_for_zbrent
+end function position_in_local_frame
+
 
 end module

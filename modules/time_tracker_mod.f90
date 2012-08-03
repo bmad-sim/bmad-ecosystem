@@ -4,6 +4,7 @@ use bmad_struct
 use beam_def_struct
 use em_field_mod
 use wall3d_mod
+use lat_geometry_mod
 
 type (ele_struct), save, private, pointer :: ele_com
 type (lat_param_struct), save, private, pointer :: param_com
@@ -167,6 +168,7 @@ do n_step = 1, max_step
       track%n_pt = track%n_pt + 1
       n_pt = track%n_pt
       track%orb(n_pt) = orb
+      track%orb(n_pt)%ix_ele = ele%ix_ele
       !Query the local field to save
       call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
       if (err_flag) return
@@ -778,6 +780,106 @@ subroutine drift_orbit_time(orbit, mc2, delta_s)
   orbit%t =  orbit%t + delta_t 
 
 end subroutine drift_orbit_time
+
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function particle_in_global_frame (orb, lat) result (particle) 
+!
+! Returns the particle in global time coordinates given is coordinates orb in lattice lat.
+!   
+!
+! Module needed:
+!   lat_geometry_mod
+!
+! Input:
+!   orb                 -- Coord_struct: particle in s-coordinates
+!   lat                 -- Lat_struct: lattice that contains ele(orb%ix_ele)
+!   in_time_coordinates -- Logical (optional): Default is false. If true, orb
+!                            will taken as in time coordinates.    
+!
+! Result:
+!   particle            -- Coord_struct: particle in global time coordinates
+!
+!-
+
+function particle_in_global_frame (orb, lat, in_time_coordinates, w_mat_out) result (particle)
+
+implicit none
+
+type (coord_struct) :: orb, particle
+type (lat_struct) :: lat
+type (floor_position_struct) :: floor, floor_at_particle
+type (ele_struct), pointer :: ele
+real(rp) :: L_save
+real(rp) :: dr(3)
+real(rp) :: w_mat(3,3)
+real(rp), optional :: w_mat_out(3,3)
+
+logical, optional :: in_time_coordinates
+logical :: in_t_coord
+
+! optional argument 
+in_t_coord =  logic_option( .false., in_time_coordinates)
+
+
+!
+
+!Get last tracked element  
+ele =>  lat%ele(orb%ix_ele)
+
+!Convert to time coordinates
+particle = orb;
+if (.not. in_t_coord) then
+  call convert_particle_coordinates_s_to_t (particle)
+  ! Set vec(5) to be relative to entrance of ele 
+  particle%vec(5) =  particle%vec(5) - (ele%s - ele%value(L$))
+endif
+
+ 
+!Set x and y for floor offset 
+dr(1) = particle%vec(1)
+dr(2) = particle%vec(3)
+
+ 
+if (ele%key == sbend$ .or. ele%key == rbend$) then
+  ! Element has a curved geometry. Shorten ele
+  L_save = ele%value(L$)
+  ele%value(L$) = particle%vec(5)
+  
+  ! calculate floor from previous element
+  call ele_geometry(lat%ele(particle%ix_ele - 1)%floor, ele,  floor)
+  ! particle is exactly at ele's exit now. 
+  dr(3) = 0
+  
+  !Restore ele's length
+  ele%value(L$) = L_save
+
+else
+   ! Element has Cartesian geometry. 
+   floor = ele%floor
+      
+   ! particle is relative to ele's exit: 
+   dr(3) =  particle%vec(5) - ele%value(L$) 
+endif 
+
+! Get x,y,z floor coordinates
+call shift_reference_frame (floor, dr, 0.0_rp, 0.0_rp, 0.0_rp, floor_at_particle)
+particle%vec(1) = floor_at_particle%x
+particle%vec(3) = floor_at_particle%y
+particle%vec(5) = floor_at_particle%z
+
+! Get W matrix and rotate momenta
+call floor_angles_to_w_mat (floor%theta, floor%phi, floor%psi, w_mat)
+particle%vec(2:6:2) = matmul(w_mat, particle%vec(2:6:2))
+
+if (present(w_mat_out)) w_mat_out = w_mat
+
+end function particle_in_global_frame
+
+
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
