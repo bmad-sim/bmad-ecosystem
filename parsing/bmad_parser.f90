@@ -62,7 +62,7 @@ character(40), allocatable ::  in_name(:), seq_name(:)
 
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
-integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0, n_ele
+integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0, n_ele, ixc
 integer, pointer :: n_max, n_ptr
 
 character(*) lat_file
@@ -212,18 +212,34 @@ parsing_loop: do
 
   loop_counter = loop_counter + 1
 
-  ! get a line from the input file and parse out the first word
-
+  ! get a line from the input file and parse out the first word.
   call load_parse_line ('normal', 1, end_of_file)  ! load an input line
   call get_next_word (word_1, ix_word, '[:](,)= ', delim, delim_found, .true.)
   if (end_of_file) then
     word_1 = 'END_FILE'
     ix_word = 8
-  else
-    wildcards_permitted = (delim == '[')  ! For 'q*[x_offset] = ...' constructs
-    call verify_valid_name(word_1, ix_word, wildcards_permitted)
   endif
 
+  ! If input line is something like "quadrupole::*[k1] = ..." then shift delim from ":" to "["
+
+  if (delim == ':' .and. bp_com%parse_line(1:1) == ':') then
+    ix = index(bp_com%parse_line, '[')
+    if (ix /= 0) then
+      word_1 = trim(word_1) // ':' // bp_com%parse_line(:ix-1)
+      bp_com%parse_line = bp_com%parse_line(ix+1:)
+      delim = '['
+      ix_word = len_trim(word_1)
+    endif
+  endif
+
+  ! Name check. 
+  ! If delim = '[' then have attribute redef and things are complicated so do not check.
+
+  if (delim /= '[') then
+    call verify_valid_name(word_1, ix_word)
+  endif
+
+  !-------------------------------------------
   ! PARSER_DEBUG
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
@@ -232,6 +248,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! PRINT
 
   if (word_1(:ix_word) == 'PRINT') then
@@ -247,6 +264,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! NO_DIGESTED
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
@@ -256,6 +274,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! NO_SUPERIMPOSE
 
   if (word_1(:ix_word) == 'NO_SUPERIMPOSE') then
@@ -263,6 +282,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! DEBUG_MARKER is used to be able to easily set a break within the debugger
 
   if (word_1(:ix_word) == 'DEBUG_MARKER') then
@@ -270,6 +290,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! USE command...
 
   if (word_1(:ix_word) == 'USE') then
@@ -285,6 +306,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! TITLE command
 
   if (word_1(:ix_word) == 'TITLE') then
@@ -300,6 +322,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! CALL command
 
   if (word_1(:ix_word) == 'CALL') then
@@ -320,6 +343,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! BEAM command
 
   if (word_1(:ix_word) == 'BEAM') then
@@ -335,6 +359,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! EXPAND_LATTICE command
 
   if (word_1(:ix_word) == 'EXPAND_LATTICE') then
@@ -342,6 +367,7 @@ parsing_loop: do
     exit parsing_loop
   endif
 
+  !-------------------------------------------
   ! RETURN or END_FILE command
 
   if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then
@@ -354,8 +380,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
-  ! variable definition or element redef...
-
+  !-------------------------------------------
   ! if an element attribute redef
 
   if (delim == '[') then
@@ -380,74 +405,73 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
-    ! Find associated element and evaluate the attribute value.
+    ! Find associated element and evaluate the attribute value...
 
-    wild_here = .false.
-    if (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) wild_here = .true.
-    matched = .false.
+    ixc = index(word_1, '::')
+    wild_here = (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) ! Wild card character found
+    key = key_name_to_key_index(word_1)
+    parse_line_save = trim(word_2) // ' = ' // bp_com%parse_line 
 
-    found = .false.
-    good_attrib = .false.
+    ! If just a name then we can look this up
 
-    print_err = .true.
-    if (word_1 == '*') print_err = .false.
-
-    if (wild_here .or. any(word_1 == key_name)) then
-      do i = 0, n_max
-
-        ele => in_lat%ele(i)
-
-        select case (ele%name)
-        case ('BEGINNING', 'BEAM', 'PARAMETER', 'BEAM_START')
-          matched = .false.
-        case default
-          matched = match_wild(ele%name, word_1)
-        end select
-
-        if (ele%name /= word_1 .and. key_name(ele%key) /= word_1 .and. .not. matched) cycle
-
-        bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
-        if (found) then   ! if not first time
-          bp_com%parse_line = parse_line_save
-        else
-          parse_line_save = bp_com%parse_line
-        endif
+    if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
+      call find_indexx2 (word_1, in_name, in_indexx, 0, n_max, ix)
+      if (ix == -1) then
+        call parser_error ('ELEMENT NOT FOUND: ' // word_1)
+      else
+        ele => in_lat%ele(ix)
+        bp_com%parse_line = parse_line_save
         call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
-                                                  err, print_err, plat%ele(ele%ixx))
+                                                    err, .true., plat%ele(ele%ixx))
         if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
-        found = .true.
-        if (.not. err) good_attrib = .true.
-
-      enddo
-
-    else  ! Not wild
-
-      call find_indexx2 (word_1, in_name, in_indexx, 0, n_max, ix, ix2)
-      do i = ix2, n_max
-        if (in_name(in_indexx(i)) /= word_1) exit
-
-        ele => in_lat%ele(in_indexx(i))
-        bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
-        if (found) then   ! if not first time
-          bp_com%parse_line = parse_line_save
-        else
-          parse_line_save = bp_com%parse_line
-        endif
-        call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
-                                                    err, print_err, plat%ele(ele%ixx))
-        if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
-        found = .true.
-        if (.not. err) good_attrib = .true.
-      enddo
-
+      endif
+      bp_com%parse_line = ''  ! Might be needed in case of error.
+      cycle parsing_loop
     endif
 
-    ! If not found then the parse line must be cleared.
-    ! If not found then issue a warning except if a general key redef ("quadrupole[...] = ...").
+    ! Not a simple name so have to loop over all elements and look for a match
+
+    if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
+      name = '*'
+
+    elseif (ixc == 0) then   ! Simple element name: "q01w[k1] = ..."
+      key = 0
+      name = word_1
+
+    else                    ! "key::name" syntax
+      key = key_name_to_key_index(word_1(1:ixc-1), .true.)
+      name = word_1(ixc+2:)
+      if (key == -1) then
+        bp_com%parse_line = ''
+        call parser_error ('BAD ELEMENT CLASS NAME: ' // word_1(1:ixc-1))
+        cycle parsing_loop
+      endif
+    endif
+
+    ! When setting an attribute for all errors then suppress error printing
+
+    found = .false.
+    print_err = (key == 0 .and. word_1 /= '*') ! False only when word_1 = "*"
+
+    do i = 0, n_max
+      ele => in_lat%ele(i)
+      if (key /= 0 .and. ele%key /= key) cycle
+      if (ele%name == 'BEGINNING' .or. ele%name == 'BEAM' .or. &
+          ele%name == 'PARAMETER' .or. ele%name == 'BEAM_START') cycle
+      bp_com%parse_line = parse_line_save
+      found = .true.
+      call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
+                                                err, print_err, plat%ele(ele%ixx))
+      if (.not. err) good_attrib = .true.
+      if (err .or. delim_found) then
+        if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
+        cycle parsing_loop
+      endif
+    enddo
 
     if (.not. found) then
       bp_com%parse_line = ''
-      if (key_name_to_key_index (word_1, .false.) == -1) call parser_error ('ELEMENT NOT FOUND: ' // word_1)
+      if (name /= '*') call parser_error ('ELEMENT NOT FOUND: ' // word_1)
     endif
 
     if (found .and. .not. print_err .and. .not. good_attrib) then
@@ -455,16 +479,19 @@ parsing_loop: do
     endif
 
     cycle parsing_loop
+  endif
 
-  ! else must be a variable
+  !-------------------------------------------
+  ! variable def
 
-  elseif (delim == '=') then
+  if (delim == '=') then
 
     call parser_add_variable (word_1, in_lat)
     cycle parsing_loop
 
   endif
 
+  !-------------------------------------------
   ! if a "(" delimitor then we are looking at a replacement line.
 
   if (delim == '(') then

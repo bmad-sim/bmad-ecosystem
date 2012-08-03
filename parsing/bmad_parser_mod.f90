@@ -1450,11 +1450,10 @@ end subroutine add_this_taylor_term
 !
 ! Output
 !   ix_word     -- Integer: length of word argument
-!   delim       -- Character1: Actual delimiter found
+!   delim       -- Character(1): Actual delimiter found
 !   delim_found -- Logical: Set true if a delimiter found. A delimiter
 !                    may not be found if the end of the line is reached first.
 !-
-
 
 subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word, call_check)
 
@@ -1525,7 +1524,7 @@ endif
 
 ! Get the first word in bp_com%parse_line
 
-call word_read (bp_com%parse_line, delim_list,  word, ix_word, delim, delim_found, bp_com%parse_line)
+call word_read (bp_com%parse_line, delim_list, word, ix_word, delim, delim_found, bp_com%parse_line)
 
 if (len(word) < ix_word) then
   call parser_error ('BAD WORD: ' // bp_com%parse_line)

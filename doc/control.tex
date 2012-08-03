@@ -570,13 +570,12 @@ passes is calculated with respect to this.}
 For a bend in a multipass line, there is the added complication of how
 to define the reference orbit when the reference energy is different
 from pass to pass. If, say, a different reference orbit is used for
-each pass there is a problem of how to interpret multipole values
-like \vn{k1}. On the other hand, it is sometimes very convenient to be
-able to use separate reference orbits. 
-
-A bend element has a \vn{ref_orbit} attribute that, when combined with
-the reference energy, define the reference orbit. \vn{ref_orbit} is a
-switch that can take the values:
+each pass there is a problem of how to interpret multipole values like
+\vn{k1}. On the other hand, it is sometimes very convenient to be able
+to use separate reference orbits. For this reason, a bend element has
+a \vn{ref_orbit} attribute that, when combined with the reference
+energy, define the reference orbit. \vn{ref_orbit} is a switch that
+can take the values:
 \begin{example}
   single_ref            ! Default. 
   match_global_coords   ! Must be used with n_ref_pass = 1
@@ -670,7 +669,7 @@ line. Similarly, the \vn{match_at_exit} value is useful for simulating
 a bend that combines beams of different energies. Such a bend should
 be placed at the beginning of a multipass line.
 
-With \vn{ref_orbit} set to \vn{match_global_coords} the reference
+With \vn{ref_orbit} set to \vn{match_global_coords}, the reference
 orbit on a given pass is determined by the global coordinates
 (\sref{s:global}) of the reference trajectory. Example:
 \begin{example} 
@@ -690,7 +689,7 @@ possible to have a lattice where this is not so and the calculation
 does not demand this. If $r_0$ does not lie on the entrance face, the
 reference orbit is extended (either forward or backward) in a straight
 line to a point where it intersects the entrance face (marked $r_1$ in
-Figure~\ref{f:multipass.bend}B)). The radius of curvature is
+Figure~\ref{f:multipass.bend}B)). The reference radius of curvature is
 calculated by scaling the radius as calculated from the first pass
 scaled by the change in reference momentum between the first and
 second passes. From the entrance point and the radius of curvature,
