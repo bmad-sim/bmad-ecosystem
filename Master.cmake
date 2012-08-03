@@ -357,6 +357,8 @@ foreach(exespec ${EXE_SPECS})
 
   endforeach(dep)
 
+  LINK_DIRECTORIES( ${LINK_DIRS} )
+
   #----------------------------------------------
   # Honor propagated control variable to build
   # any EXEs provided in a list from the main
