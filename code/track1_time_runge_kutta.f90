@@ -166,6 +166,7 @@ if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
     call init_saved_orbit (track, 0)
     track%n_pt = 0
     track%orb(0) = end_orb
+    track%orb(0)%ix_ele = ele%ix_ele
   endif
 
   !
@@ -181,6 +182,7 @@ if ( present(track) ) then
   call init_saved_orbit (track, 10000)   !TODO: pass this from elsewhere
   track%n_pt = 0
   track%orb(0) = end_orb
+  track%orb(0)%ix_ele = ele%ix_ele
   !Query the local field to save
   call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false.)
   track%field(0) = saved_field
