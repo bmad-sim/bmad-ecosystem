@@ -516,11 +516,9 @@ interface
   subroutine word_read (in_str, delim_list, word, &
                                        ix_word, delim, delim_found, out_str)
     implicit none
-    character(*) in_str
-    character(*) out_str
+    character(*) in_str, out_str
     character(*) word
-    character(*) delim_list
-    character(1) delim
+    character(*) delim_list, delim
     integer ix_word
     logical delim_found
   end subroutine
