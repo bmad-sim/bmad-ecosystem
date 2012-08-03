@@ -59,8 +59,8 @@ subroutine word_read (in_str, delim_list, word, &
 
 implicit none
 
-character(*) in_str, out_str, word, delim_list
-character(1) tab, delim
+character(*) in_str, out_str, word, delim_list, delim
+character(1) tab
 parameter (tab = char(9))
 
 integer i, j, ix_word, n_len, ix1, ix2
