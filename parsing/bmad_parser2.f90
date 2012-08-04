@@ -154,6 +154,7 @@ parsing_loop: do
     call verify_valid_name(word_1, ix_word)
   endif
 
+  !-------------------------------------------
   ! PARSER_DEBUG
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
@@ -162,6 +163,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! PRINT
 
   if (word_1(:ix_word) == 'PRINT') then
@@ -177,6 +179,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! NO_DIGESTED
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
@@ -186,15 +189,16 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! CALL command
 
   if (word_1(:ix_word) == 'CALL') then
     call get_called_file(delim, call_file, xsif_called, err)
     if (err) return
     cycle parsing_loop
-
   endif
 
+  !-------------------------------------------
   ! BEAM command
 
   if (word_1(:ix_word) == 'BEAM') then
@@ -215,9 +219,9 @@ parsing_loop: do
     enddo
 
     cycle parsing_loop
-
   endif
 
+  !-------------------------------------------
   ! LATTICE command
 
   if (word_1(:ix_word) == 'LATTICE') then
@@ -230,6 +234,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------
   ! RETURN or END_FILE command
 
   if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then
@@ -243,8 +248,6 @@ parsing_loop: do
   endif
 
   !---------------------------------------
-  ! Variable definition or element redef...
-
   ! if an element attribute redef.
 
   if (delim == '[') then
@@ -364,17 +367,17 @@ parsing_loop: do
     endif
 
     cycle parsing_loop
-
-  !---------------------------------------
-  ! else must be a variable
-
-  elseif (delim == '=') then
-
-    call parser_add_variable (word_1, lat)
-    cycle parsing_loop
-
   endif
 
+  !---------------------------------------
+  ! Variable definition 
+
+  if (delim == '=') then
+    call parser_add_variable (word_1, lat)
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
   ! bad delimiter
 
   if (delim /= ':') then
@@ -382,7 +385,8 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
-  ! only possibilities left are: element, list, or line
+  !-------------------------------------------
+  ! Only possibilities left are: element, list, or line
   ! to decide which look at 2nd word
 
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
@@ -393,118 +397,117 @@ parsing_loop: do
 
   call verify_valid_name(word_2, ix_word)
 
+  !-------------------------------------------------------
   ! if line or list then this is an error for bmad_parser2
 
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
     call parser_error ('LINES OR LISTS NOT PERMITTED: ' // word_1, ' ')
+    cycle parsing_loop
+  endif
 
   !-------------------------------------------------------
-  ! if not line or list then must be an element
+  ! if none of the above then must be an element
 
-  else
+  n_max = n_max + 1
+  if (n_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
+  ele => lat%ele(n_max)
 
-    n_max = n_max + 1
-    if (n_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
-    ele => lat%ele(n_max)
+  ele%name = word_1
 
-    ele%name = word_1
+  n_plat_ele = n_plat_ele + 1     ! next free slot
+  ele%ixx = n_plat_ele
+  if (n_plat_ele > ubound(plat%ele, 1)) call allocate_plat (plat, 2*size(plat%ele))
+  pele => plat%ele(n_plat_ele)
 
-    n_plat_ele = n_plat_ele + 1     ! next free slot
-    ele%ixx = n_plat_ele
-    if (n_plat_ele > ubound(plat%ele, 1)) call allocate_plat (plat, 2*size(plat%ele))
-    pele => plat%ele(n_plat_ele)
+  pele%lat_file = bp_com%current_file%full_name
+  pele%ix_line_in_file = bp_com%current_file%i_line
 
-    pele%lat_file = bp_com%current_file%full_name
-    pele%ix_line_in_file = bp_com%current_file%i_line
-
-    do i = 1, n_max-1
-      if (ele%name == lat%ele(i)%name) then
-        call parser_error ('DUPLICATE ELEMENT NAME ' // ele%name, ' ')
-        exit
-      endif
-    enddo
-
-    ! Check for valid element key name or if element is part of a element key.
-    ! If none of the above then we have an error.
-
-    found = .false.  ! found a match?
-
-    do i = 1, n_max-1
-      if (word_2 == lat%ele(i)%name) then
-        ixx = ele%ixx  ! save
-        ele = lat%ele(i)
-        ele%ixx = ixx   ! Restore correct value
-        ele%name = word_1
-        found = .true.
-        exit
-      endif
-    enddo
-
-    if (.not. found) then
-      ele%key = key_name_to_key_index(word_2, .true.)
-      if (ele%key > 0) then
-        call set_ele_defaults (ele)
-        found = .true.
-      endif
+  do i = 1, n_max-1
+    if (ele%name == lat%ele(i)%name) then
+      call parser_error ('DUPLICATE ELEMENT NAME ' // ele%name, ' ')
+      exit
     endif
+  enddo
 
-    if (.not. found) then
-      call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
+  ! Check for valid element key name or if element is part of a element key.
+  ! If none of the above then we have an error.
+
+  found = .false.  ! found a match?
+
+  do i = 1, n_max-1
+    if (word_2 == lat%ele(i)%name) then
+      ixx = ele%ixx  ! save
+      ele = lat%ele(i)
+      ele%ixx = ixx   ! Restore correct value
+      ele%name = word_1
+      found = .true.
+      exit
+    endif
+  enddo
+
+  if (.not. found) then
+    ele%key = key_name_to_key_index(word_2, .true.)
+    if (ele%key > 0) then
+      call set_ele_defaults (ele)
+      found = .true.
+    endif
+  endif
+
+  if (.not. found) then
+    call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
+                  'FOR ELEMENT: ' // ele%name)
+    ele%key = 1       ! dummy value
+  endif
+
+  ! now get the attribute values.
+  ! For control elements lat%ele()%ixx temporarily points to
+  ! the plat structure where storage for the control lists is
+               
+  key = ele%key
+  if (key == overlay$ .or. key == group$ .or. key == girder$) then
+    if (delim /= '=') then
+      call parser_error ('EXPECTING: "=" BUT GOT: ' // delim,  &
+                  'FOR ELEMENT: ' // ele%name)
+    else
+      if (key == overlay$) ele%lord_status = overlay_lord$
+      if (key == group$)   ele%lord_status = group_lord$
+      if (key == girder$)  ele%lord_status = girder_lord$
+      call get_overlay_group_names(ele, lat,  pele, delim, delim_found)
+    endif
+    if (key /= girder$ .and. .not. delim_found) then
+      call parser_error ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                     'FOR ELEMENT: ' // ele%name)
-      ele%key = 1       ! dummy value
-    endif
-
-    ! now get the attribute values.
-    ! For control elements lat%ele()%ixx temporarily points to
-    ! the plat structure where storage for the control lists is
-                 
-    key = ele%key
-    if (key == overlay$ .or. key == group$ .or. key == girder$) then
-      if (delim /= '=') then
-        call parser_error ('EXPECTING: "=" BUT GOT: ' // delim,  &
-                    'FOR ELEMENT: ' // ele%name)
-      else
-        if (key == overlay$) ele%lord_status = overlay_lord$
-        if (key == group$)   ele%lord_status = group_lord$
-        if (key == girder$)  ele%lord_status = girder_lord$
-        call get_overlay_group_names(ele, lat,  pele, delim, delim_found)
-      endif
-      if (key /= girder$ .and. .not. delim_found) then
-        call parser_error ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
-                      'FOR ELEMENT: ' // ele%name)
-        n_max = n_max - 1
-        cycle parsing_loop
-      endif
-    endif
-
-    parsing = .true.
-    do while (parsing)
-      if (.not. delim_found) then          ! if nothing more
-        parsing = .false.           ! break loop
-      elseif (delim /= ',') then
-        call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  &
-                      'FOR ELEMENT: ' // ele%name)
-        n_max = n_max - 1
-        cycle parsing_loop
-      else
-        call parser_set_attribute (def$, ele, lat, delim, delim_found, err, .true., pele)
-        call set_flags_for_changed_attribute (lat, ele)
-        if (err) then
-          n_max = n_max - 1
-          cycle parsing_loop
-        endif
-      endif
-    enddo
-
-    ! Element must be a group, overlay, or superimpose element
-
-    if (key /= overlay$ .and. key /= group$ .and. ele%lord_status /= super_lord$) then
-      call parser_error ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
-                                           'OR GROUP: ' // word_1, ' ')
       n_max = n_max - 1
       cycle parsing_loop
     endif
+  endif
 
+  parsing = .true.
+  do while (parsing)
+    if (.not. delim_found) then          ! if nothing more
+      parsing = .false.           ! break loop
+    elseif (delim /= ',') then
+      call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  &
+                    'FOR ELEMENT: ' // ele%name)
+      n_max = n_max - 1
+      cycle parsing_loop
+    else
+      call parser_set_attribute (def$, ele, lat, delim, delim_found, err, .true., pele)
+      call set_flags_for_changed_attribute (lat, ele)
+      if (err) then
+        n_max = n_max - 1
+        cycle parsing_loop
+      endif
+    endif
+  enddo
+
+  ! Element must be a group, overlay, or superimpose element
+
+  if (key /= overlay$ .and. key /= group$ .and. ele%lord_status /= super_lord$) then
+    call parser_error ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
+                                         'OR GROUP: ' // word_1, ' ')
+    n_max = n_max - 1
+    cycle parsing_loop
   endif
 
 enddo parsing_loop

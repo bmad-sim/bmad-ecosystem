@@ -33,7 +33,7 @@ contains
 ! Input:
 !   ele  -- Ele_struct: attribute_index will restrict the name search to 
 !             valid attributes of the given element. Note: If 
-!             ele%key = overlay then the entire name table will be searched.
+!             ele%key = overlay$ then the entire name table will be searched.
 !   name -- Character(40): Attribute name. Must be uppercase.
 !
 ! Output:
