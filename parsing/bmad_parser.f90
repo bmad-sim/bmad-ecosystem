@@ -78,7 +78,7 @@ character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, xsif_called, print_err, wild_here
-logical end_of_file, found, good_attrib, err, finished, exit_on_error
+logical end_of_file, found, err_if_not_found, err, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, wildcards_permitted, matched
 logical auto_bookkeeper_saved
 
@@ -407,6 +407,9 @@ parsing_loop: do
 
     ! Find associated element and evaluate the attribute value...
 
+    err_if_not_found = (.not. word_1(1:1) == '+') 
+    if (word_1(1:1) == '+') word_1 = word_1(2:)
+
     ixc = index(word_1, '::')
     wild_here = (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) ! Wild card character found
     key = key_name_to_key_index(word_1)
@@ -433,6 +436,7 @@ parsing_loop: do
 
     if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
       name = '*'
+      err_if_not_found = .false.
 
     elseif (ixc == 0) then   ! Simple element name: "q01w[k1] = ..."
       key = 0
@@ -453,6 +457,14 @@ parsing_loop: do
     found = .false.
     print_err = (key == 0 .and. word_1 /= '*') ! False only when word_1 = "*"
 
+    this_ele%key = key
+    if (key == 0) this_ele%key = overlay$
+    if (attribute_index (this_ele, word_2)  == 0) then
+      call parser_error ('BAD ATTRIBUTE')
+      bp_com%parse_line = '' 
+      cycle parsing_loop
+    endif
+
     do i = 0, n_max
       ele => in_lat%ele(i)
       if (key /= 0 .and. ele%key /= key) cycle
@@ -462,21 +474,15 @@ parsing_loop: do
       found = .true.
       call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
                                                 err, print_err, plat%ele(ele%ixx))
-      if (.not. err) good_attrib = .true.
-      if (err .or. delim_found) then
-        if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
-        cycle parsing_loop
+      if (.not. err .and. delim_found) then
+        call parser_error ('BAD DELIMITER: ' // delim)
+        exit
       endif
     enddo
 
-    if (.not. found) then
-      bp_com%parse_line = ''
-      if (name /= '*') call parser_error ('ELEMENT NOT FOUND: ' // word_1)
-    endif
+    bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.
 
-    if (found .and. .not. print_err .and. .not. good_attrib) then
-      call parser_error ('BAD ATTRIBUTE')
-    endif
+    if (.not. found .and. err_if_not_found) call parser_error ('ELEMENT NOT FOUND: ' // word_1)
 
     cycle parsing_loop
   endif
@@ -544,6 +550,7 @@ parsing_loop: do
     cycle parsing_loop
   endif
 
+  !-------------------------------------------------------
   ! if line or list
 
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
@@ -565,103 +572,103 @@ parsing_loop: do
     endif
     call seq_expand1 (sequence, iseq_tot, in_lat, .true.)
 
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------------------
   ! if not line or list then must be an element
 
-  else
+  if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START') then
+    call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
+    cycle parsing_loop
+  endif
 
-    if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START') then
-      call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
-      cycle parsing_loop
-    endif
+  n_max = n_max + 1
+  if (n_max > ubound(in_lat%ele, 1)) then
+    call allocate_lat_ele_array (in_lat)
+    call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
+    call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
+    bp_com%beam_ele => in_lat%ele(1)
+    bp_com%param_ele => in_lat%ele(2)
+    bp_com%beam_start_ele => in_lat%ele(3)
+    call allocate_plat (plat, ubound(in_lat%ele, 1))
+  endif
 
-    n_max = n_max + 1
-    if (n_max > ubound(in_lat%ele, 1)) then
-      call allocate_lat_ele_array (in_lat)
-      call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
-      call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
-      bp_com%beam_ele => in_lat%ele(1)
-      bp_com%param_ele => in_lat%ele(2)
-      bp_com%beam_start_ele => in_lat%ele(3)
-      call allocate_plat (plat, ubound(in_lat%ele, 1))
-    endif
+  call init_ele (in_lat%ele(n_max), lat = in_lat)
+  in_lat%ele(n_max)%name = word_1
+  call find_indexx2 (in_lat%ele(n_max)%name, in_name, in_indexx, 0, n_max-1, ix, add_to_list = .true.)
+  in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
 
-    call init_ele (in_lat%ele(n_max), lat = in_lat)
+  plat%ele(n_max)%lat_file = bp_com%current_file%full_name
+  plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
+
+  ! Check for valid element key name or if element is part of a element key.
+  ! If none of the above then we have an error.
+
+  found = .false.  ! found a match?
+
+  call find_indexx2 (word_2, in_name, in_indexx, 0, n_max, i)
+  if (i >= 0 .and. i < n_max) then ! i < n_max avoids "abc: abc" construct.
+    in_lat%ele(n_max) = in_lat%ele(i)
+    in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
     in_lat%ele(n_max)%name = word_1
-    call find_indexx2 (in_lat%ele(n_max)%name, in_name, in_indexx, 0, n_max-1, ix, add_to_list = .true.)
-    in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
+    found = .true.
+  endif
 
-    plat%ele(n_max)%lat_file = bp_com%current_file%full_name
-    plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
-
-    ! Check for valid element key name or if element is part of a element key.
-    ! If none of the above then we have an error.
-
-    found = .false.  ! found a match?
-
-    call find_indexx2 (word_2, in_name, in_indexx, 0, n_max, i)
-    if (i >= 0 .and. i < n_max) then ! i < n_max avoids "abc: abc" construct.
-      in_lat%ele(n_max) = in_lat%ele(i)
-      in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
-      in_lat%ele(n_max)%name = word_1
+  if (.not. found) then
+    in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
+    if (in_lat%ele(n_max)%key > 0) then
+      call set_ele_defaults (in_lat%ele(n_max))
       found = .true.
     endif
+  endif
 
-    if (.not. found) then
-      in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
-      if (in_lat%ele(n_max)%key > 0) then
-        call set_ele_defaults (in_lat%ele(n_max))
-        found = .true.
-      endif
+  if (.not. found) then
+    call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
+                  'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+    cycle parsing_loop
+  endif
+
+  ! Element definition...
+  ! Overlay/group/girder case.
+
+  key = in_lat%ele(n_max)%key
+  if (key == overlay$ .or. key == group$ .or. key == girder$) then
+    if (delim /= '=') then
+      call parser_error ('EXPECTING: "=" BUT GOT: ' // delim,  &
+                  'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+      cycle parsing_loop        
     endif
 
-    if (.not. found) then
-      call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
+    if (key == overlay$) in_lat%ele(n_max)%lord_status = overlay_lord$
+    if (key == group$)   in_lat%ele(n_max)%lord_status = group_lord$
+    if (key == girder$)  in_lat%ele(n_max)%lord_status = girder_lord$
+
+    call get_overlay_group_names(in_lat%ele(n_max), in_lat, &
+                                                plat%ele(n_max), delim, delim_found)
+
+    if (key /= girder$ .and. .not. delim_found) then
+      call parser_error ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                     'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       cycle parsing_loop
     endif
 
-    ! Element definition...
-    ! Overlay/group/girder case.
-
-    key = in_lat%ele(n_max)%key
-    if (key == overlay$ .or. key == group$ .or. key == girder$) then
-      if (delim /= '=') then
-        call parser_error ('EXPECTING: "=" BUT GOT: ' // delim,  &
-                    'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
-        cycle parsing_loop        
-      endif
-
-      if (key == overlay$) in_lat%ele(n_max)%lord_status = overlay_lord$
-      if (key == group$)   in_lat%ele(n_max)%lord_status = group_lord$
-      if (key == girder$)  in_lat%ele(n_max)%lord_status = girder_lord$
-
-      call get_overlay_group_names(in_lat%ele(n_max), in_lat, &
-                                                  plat%ele(n_max), delim, delim_found)
-
-      if (key /= girder$ .and. .not. delim_found) then
-        call parser_error ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
-                      'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
-        cycle parsing_loop
-      endif
-
-    endif
-
-    ! Not overlay/group/girder case.
-    ! Loop over all attributes...
-
-    do 
-      if (.not. delim_found) exit   ! If no delim then we are finished with this element.
-      if (delim /= ',') then
-        call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  &
-                      'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
-        exit
-      endif
-      call parser_set_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, &
-                      err, .true., plat%ele(n_max))
-      if (err) cycle parsing_loop
-    enddo
-
   endif
+
+  ! Not overlay/group/girder case.
+  ! Loop over all attributes...
+
+  do 
+    if (.not. delim_found) exit   ! If no delim then we are finished with this element.
+    if (delim /= ',') then
+      call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  &
+                    'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+      exit
+    endif
+    call parser_set_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, &
+                    err, .true., plat%ele(n_max))
+    if (err) cycle parsing_loop
+  enddo
 
 enddo parsing_loop       ! main parsing loop
 
