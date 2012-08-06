@@ -452,7 +452,7 @@ parsing_loop: do
       endif
     endif
 
-    ! When setting an attribute for all errors then suppress error printing
+    ! When setting an attribute for all elements then suppress error printing
 
     found = .false.
     print_err = (key == 0 .and. word_1 /= '*') ! False only when word_1 = "*"
@@ -468,6 +468,7 @@ parsing_loop: do
     do i = 0, n_max
       ele => in_lat%ele(i)
       if (key /= 0 .and. ele%key /= key) cycle
+      ! No wild card matches permitted for these.
       if (ele%name == 'BEGINNING' .or. ele%name == 'BEAM' .or. &
           ele%name == 'PARAMETER' .or. ele%name == 'BEAM_START') cycle
       bp_com%parse_line = parse_line_save

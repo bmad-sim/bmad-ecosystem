@@ -39,33 +39,32 @@ implicit none
 type (lat_struct), target :: lat
 type (lat_struct), save :: lat2
 type (ele_struct), pointer :: ele
-type (parser_ele_struct), pointer :: pele
 type (ele_struct), target, save :: beam_ele, param_ele, beam_start_ele
+type (ele_pointer_struct), allocatable :: eles(:)
+type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
 type (parser_lat_struct), target :: plat
 
 real(rp) v1, v2
 
 integer ix_word, i, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
-integer key, n_max_old
+integer key, n_max_old, n_loc
 integer, pointer :: n_max, n_ptr
 integer, allocatable :: lat_indexx(:)
 
 character(*) lat_file
 character(1) delim 
-character(40) word_2, name
-character(40), allocatable :: lat_name(:)
 character(16) :: r_name = 'bmad_parser2'
 character(32) word_1
-character(40) this_name
-character(280) parse_line_save
-character(200) call_file
+character(40) word_2, name, this_name
+character(40), allocatable :: lat_name(:)
 character(80) debug_line
+character(280) parse_line_save, call_file
 
 logical, optional :: make_mats6, err_flag
-logical parsing, found, delim_found, xsif_called, err, wild_here, key_here
+logical parsing, found, delim_found, xsif_called, err, key_here
 logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
-logical print_err, check
+logical print_err, check, err_if_not_found
 
 ! Init...
 
@@ -140,7 +139,7 @@ parsing_loop: do
   if (delim == ':' .and. bp_com%parse_line(1:1) == ':') then
     ix = index(bp_com%parse_line, '[')
     if (ix /= 0) then
-      word_1 = trim(word_1) // bp_com%parse_line(:ix-1)
+      word_1 = trim(word_1) // ':' // bp_com%parse_line(:ix-1)
       bp_com%parse_line = bp_com%parse_line(ix+1:)
       delim = '['
       ix_word = len_trim(word_1)
@@ -272,101 +271,77 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
-    ! find associated element and evaluate the attribute value
+    ! Find associated element and evaluate the attribute value
 
-    wild_here = .false.
-    if (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) wild_here = .true.
+    err_if_not_found = (.not. word_1(1:1) == '+') 
+    if (word_1(1:1) == '+') word_1 = word_1(2:)
 
-    key_here = .false.
-    do i = 1, size(key_name)
-      if (word_1 == key_name(i)) then
-        key_here = .true.
-        exit
-      endif
-    enddo
+    parse_line_save = trim(word_2) // ' = ' // bp_com%parse_line 
 
-    found = .false.
-    good_attrib = .false.
-
-    if (is_integer(word_1)) then
-      read (word_1, *) ix_word_1
+    if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
+      name = word_1 // '::*'
+      err_if_not_found = .false.
     else
-      ix_word_1 = -1
+      name = word_1
     endif
 
-    do i = 0, n_max
+    ! When setting an attribute for all elements then suppress error printing.
 
-      ele => lat%ele(i)
+    call lat_ele_locator (name, lat, eles, n_loc, err)
+    if (err) then
+      bp_com%error_flag = .true.
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    endif
 
-      ! See if element is a match
+    found = .false.
+    print_err = (word_1 /= '*')
 
-      print_err = .true.
-      check = .true.
+    do i = 1, n_loc
+      ele => eles(i)%ele
 
-      ! With wild cards and key names we ignore bad sets since this could not be a typo.
-
-      if (key_here) then
-        if (key_name(ele%key) /= word_1) cycle
-        print_err = .false.
-
-      elseif (wild_here) then
-        select case (ele%name)
-        case ('BEGINNING', 'BEAM', 'PARAMETER', 'BEAM_START')
-          cycle  ! Wild card matches not permitted for predefined elements
-        end select
-        if (.not. match_wild(ele%name, word_1)) cycle
-        print_err = .false.
-
-      elseif (word_1  == 'PARAMETER') then
-        ele => param_ele
-        check = .false.
-      elseif (word_1  == 'BEAM_START') then
-        ele => beam_start_ele
-        check = .false.
-      elseif (ix_word_1 > -1) then
-        if (i /= ix_word_1) cycle
-      elseif (ele%name /= word_1) then
-        cycle
+      ! No wild card matches permitted for these
+      if (ele%name == 'BEGINNING' .or. ele%name == 'BEAM' .or. &
+          ele%name == 'PARAMETER' .or. ele%name == 'BEAM_START') then
+        if (word_1 /= ele%name) cycle
       endif
-
-      bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
-      if (found) then   ! if not first time
-        bp_com%parse_line = parse_line_save
-      else
-        parse_line_save = bp_com%parse_line
-      endif
-
+      bp_com%parse_line = parse_line_save
       call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
                                                 err, print_err, check_free = check)
-      if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim, ' ')
-      found = .true.
-      if (.not. err) good_attrib = .true.
-      call set_flags_for_changed_attribute (lat, ele)
+      if (.not. err .and. delim_found) then
+        call parser_error ('BAD DELIMITER: ' // delim)
+        exit
+      endif
 
-      if (word_1  == 'PARAMETER' .or. word_1  == 'BEAM_START') cycle parsing_loop
+      if (.not. found) then   ! First time
+        if (attribute_index (ele, word_2)  == 0) then
+          call parser_error ('BAD ATTRIBUTE')
+          bp_com%parse_line = '' 
+          cycle parsing_loop
+        endif
+      endif
+
+      found = .true.
 
     enddo
+
+    bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.
 
     ! If bmad_parser2 has been called from bmad_parser then check if the
     ! element was just not used in the lattice. If so then just ignore it.
 
-    if (.not. found .and. .not. key_here) then
+    if (.not. found .and. err_if_not_found) then
       if (bp_com%bmad_parser_calling) then
         do i = 0, bp_com%old_lat%n_ele_max
-          if (bp_com%old_lat%ele(i)%name == word_1) then
-            bp_com%parse_line = ' '  ! discard rest of statement
-            cycle parsing_loop       ! goto next statement
-          endif
+          if (bp_com%old_lat%ele(i)%name == word_1) cycle parsing_loop
         enddo
       endif
+
       call parser_error ('ELEMENT NOT FOUND: ' // word_1)
     endif
 
-    if (found .and. (wild_here .or. key_here) .and. .not. good_attrib) then
-      call parser_error ('BAD ATTRIBUTE')
-    endif
-
     cycle parsing_loop
+
   endif
 
   !---------------------------------------
