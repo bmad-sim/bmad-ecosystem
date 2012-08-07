@@ -44,15 +44,19 @@ ENDIF ()
 
 
 #-----------------------------------
-#   Compiler flags
+# C Compiler flags
 #-----------------------------------
-set (CMAKE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -DCESR_F90_DOUBLE -DCESR_DOUBLE -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
-set (CMAKE_C_FLAGS_DEBUG "-g -Df2cFortran -O2 -std=gnu99 -mcmodel=medium -DCESR_F90_DOUBLE -DCESR_DOUBLE -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -DCESR_F90_DOUBLE -DCESR_DOUBLE -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
 
+
+#-----------------------------------
+# Fortran Compiler flags
+#-----------------------------------
 set (CMAKE_Fortran_COMPILER ifort)
 enable_language( Fortran )
-set (CMAKE_Fortran_FLAGS "-Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
-set (CMAKE_Fortran_FLAGS_DEBUG "-g -Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
+set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
+
+
 
 set(CMAKE_EXE_LINKER_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lX11")
 
@@ -128,6 +132,7 @@ find_package(X11)
 #
 SET (MASTER_INC_DIRS
   ${X11_INCLUDE_DIR}
+  ${INC_DIRS}
   ${PACKAGES_DIR}/include
   ${PACKAGES_DIR}/forest/include
   ${PACKAGES_DIR}/recipes_c-ansi/include
@@ -135,6 +140,8 @@ SET (MASTER_INC_DIRS
   ${PACKAGES_DIR}/root/include
   ${PACKAGES_DIR}/modules
   ${ROOT_INC}
+  ${RELEASE_DIR}/include
+  ${OUTPUT_BASEDIR}/modules
   ${RELEASE_DIR}/modules
 )
 
@@ -142,16 +149,18 @@ SET (MASTER_INC_DIRS
 #------------------------------------------------------
 # Add local include paths to search list if they exist
 #------------------------------------------------------
-foreach(dir ${INC_DIRS})
-  STRING(FIND ${dir} "../" relative)
-  STRING(REPLACE "../" "" dirnew ${dir})
-  IF (${relative} EQUAL 0)
-    LIST(APPEND MASTER_INC_DIRS ${dir})
-    LIST(APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
-  ELSE ()
-    LIST(APPEND MASTER_INC_DIRS ${dir})
-  ENDIF ()
-endforeach(dir)
+#foreach(dir ${INC_DIRS})
+#  STRING(FIND ${dir} "../" relative)
+#  STRING(REPLACE "../" "" dirnew ${dir})
+#  IF (${relative} EQUAL 0)
+#    LIST(APPEND MASTER_INC_DIRS ${dir})
+#    LIST(APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
+#  ELSE ()
+#    LIST(APPEND MASTER_INC_DIRS ${dir})
+#  ENDIF ()
+#endforeach(dir)
+
+
 LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
 INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
@@ -178,26 +187,44 @@ LINK_DIRECTORIES(${MASTER_LINK_DIRS})
 # mentioned in project CMakeLists.txt file.
 #-------------------------------------------
 foreach(dir ${SRC_DIRS})
-    file(GLOB temp_contents ${dir}/*.c)
-    LIST(APPEND sources ${temp_contents})
+    file(GLOB temp_list ${dir}/*.c)
+    LIST(APPEND c_sources ${temp_list})
 
-    file(GLOB temp_contents ${dir}/*.cpp)
-    LIST(APPEND sources ${temp_contents})
+    file(GLOB temp_list ${dir}/*.C)
+    LIST(APPEND c_sources ${temp_list})
 
-    file(GLOB temp_contents ${dir}/*.cc)
-    LIST(APPEND sources ${temp_contents})
+    file(GLOB temp_list ${dir}/*.cpp)
+    LIST(APPEND c_sources ${temp_list})
 
-    file(GLOB temp_contents ${dir}/*.cxx)
-    LIST(APPEND sources ${temp_contents})
+    file(GLOB temp_list ${dir}/*.cc)
+    LIST(APPEND c_sources ${temp_list})
 
-    file(GLOB temp_contents ${dir}/*.f)
-    LIST(APPEND sources ${temp_contents})
+    file(GLOB temp_list ${dir}/*.cxx)
+    LIST(APPEND c_sources ${temp_list})
 
-    file(GLOB temp_contents ${dir}/*.F)
-    LIST(APPEND sources ${temp_contents})
+    # Set compiler flag properties for all C source files.
+    foreach (file ${c_sources})
+      set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+    endforeach()
+    LIST(APPEND sources ${c_sources})
 
-    file(GLOB temp_contents ${dir}/*.f90)
-    LIST(APPEND sources ${temp_contents})
+
+    set(temp_list)
+    file(GLOB temp_list ${dir}/*.f)
+    LIST(APPEND f_sources ${temp_list})
+
+    file(GLOB temp_list ${dir}/*.F)
+    LIST(APPEND f_sources ${temp_list})
+
+    file(GLOB temp_list ${dir}/*.f90)
+    LIST(APPEND f_sources ${temp_list})
+
+    # Set compiler flag properties for all Fortran source files.
+    foreach (file ${f_sources})
+      set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+    endforeach()
+    LIST(APPEND sources ${f_sources})
+
 endforeach(dir)
 
 
@@ -300,11 +327,15 @@ IF (ENABLE_SHARED AND CREATE_SHARED)
 ENDIF ()
 
 
+
 #---------------------------------------------------------------
 # Process each EXE build description file mentioned in the
 # project's CMakeLists.txt file.
 #---------------------------------------------------------------
 foreach(exespec ${EXE_SPECS})
+
+  set(CFLAGS)
+  set(FFLAGS)
 
   include(${exespec})
 
@@ -370,18 +401,83 @@ foreach(exespec ${EXE_SPECS})
     set(BUILD_EXE_TOGGLE "EXCLUDE_FROM_ALL")
   ENDIF ()
 
+  #----------------------------------------------
+  # Apply user-specified compiler flags to each 
+  # file being built into the executable.
+  #----------------------------------------------
+  SET(COMPILER_FLAGS "${BASE_C_FLAGS} ${COMPILER_FLAGS} ${CFLAGS}")
+  SET(COMPILER_FLAGS "${BASE_Fortran_FLAGS} ${COMPILER_FLAGS} ${FFLAGS}")
+  if (COMPILER_FLAGS)
+    foreach(srcfile ${SRC_FILES})
+      set(ext_match)
+      STRING(FIND ${srcfile} ".c" ext_match)
+      IF(NOT ${ext_match} EQUAL -1)
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+      ENDIF()
+      set(ext_match)
+      STRING(FIND ${srcfile} ".C" ext_match)
+      IF(NOT ${ext_match} EQUAL -1)
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+      ENDIF()
+      set(ext_match)
+      STRING(FIND ${srcfile} ".cpp" ext_match)
+      IF(NOT ${ext_match} EQUAL -1)
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+      ENDIF()
+      set(ext_match)
+      STRING(FIND ${srcfile} ".cc" ext_match)
+      IF(NOT ${ext_match} EQUAL -1)
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+      ENDIF()
+      set(ext_match)
+      STRING(FIND ${srcfile} ".cxx" ext_match)
+      IF(NOT ${ext_match} EQUAL -1)
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+      ENDIF()
+      #------------
+      set(ext_match)
+      STRING(FIND ${srcfile} ".f90" ext_match)
+      IF(NOT ${ext_match} EQUAL -1)
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+      ENDIF()
+      set(ext_match)
+      STRING(FIND ${srcfile} ".f" ext_match)
+      IF(NOT ${ext_match} EQUAL -1)
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+      ENDIF()
+      set(ext_match)
+      STRING(FIND ${srcfile} ".F" ext_match)
+      IF(NOT ${ext_match} EQUAL -1)
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+      ENDIF()
+      set(ext_match)
+    endforeach(srcfile)
+  endif ()
+
+  SET(CFLAGS)
+  SET(FFLAGS)
+  SET(COMPILER_FLAGS)
+
   # Actually request creation of executable target
   add_executable(${EXENAME}-exe
       ${BUILD_EXE_TOGGLE}
-      ${SRC_FILES})
+      ${SRC_FILES}
+  )
 
   SET_TARGET_PROPERTIES(${EXENAME}-exe
           PROPERTIES
           OUTPUT_NAME
-          ${EXENAME})
+          ${EXENAME}
+  )
 
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
-          ${LINK_LIBS})
+          ${LINK_LIBS}
+          ${LINK_FLAGS}
+  )
 
+  SET(CFLAGS)
+  SET(FFLAGS)
+  SET(COMPILER_FLAGS)
+  SET(LINK_FLAGS)
 
 endforeach(exespec)
