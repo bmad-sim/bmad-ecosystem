@@ -366,7 +366,7 @@ foreach(exespec ${EXE_SPECS})
 
     IF(NOT ${LIBNAME} MATCHES ${dep})
       LIST(FIND TARGETS ${dep} DEP_SEEN)
-      IF(NOT ${DEP_SEEN} EQUAL -1)
+      IF(${DEP_SEEN} EQUAL -1)
         IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
           message("Found ${dep} in ${OUTPUT_BASEDIR}/lib/")
           add_library(${dep} STATIC IMPORTED)
