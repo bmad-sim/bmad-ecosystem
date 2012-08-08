@@ -149,16 +149,16 @@ SET (MASTER_INC_DIRS
 #------------------------------------------------------
 # Add local include paths to search list if they exist
 #------------------------------------------------------
-#foreach(dir ${INC_DIRS})
-#  STRING(FIND ${dir} "../" relative)
-#  STRING(REPLACE "../" "" dirnew ${dir})
-#  IF (${relative} EQUAL 0)
-#    LIST(APPEND MASTER_INC_DIRS ${dir})
-#    LIST(APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
-#  ELSE ()
-#    LIST(APPEND MASTER_INC_DIRS ${dir})
-#  ENDIF ()
-#endforeach(dir)
+foreach(dir ${INC_DIRS})
+  STRING(FIND ${dir} "../" relative)
+  STRING(REPLACE "../" "" dirnew ${dir})
+  IF (${relative} EQUAL 0)
+    LIST(APPEND MASTER_INC_DIRS ${dir})
+    LIST(APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
+  ELSE ()
+    LIST(APPEND MASTER_INC_DIRS ${dir})
+  ENDIF ()
+endforeach(dir)
 
 
 LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
