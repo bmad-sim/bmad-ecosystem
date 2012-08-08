@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set(INC_DIRS 
@@ -7,8 +6,6 @@ set(INC_DIRS
 )
 
 set(SRC_DIRS
-  code 
-  hook
 )
 
 set (EXE_SPECS ptc_test.cmake)
