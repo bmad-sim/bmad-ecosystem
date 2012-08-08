@@ -8,7 +8,8 @@ set(INC_DIRS
 set(SRC_DIRS
 )
 
-set (EXE_SPECS ptc_test.cmake)
+set (EXE_SPECS ptc_test.cmake time_runge_kutta_test.cmake
+twiss_track_test.cmake synrad3d_test.cmake)
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 
