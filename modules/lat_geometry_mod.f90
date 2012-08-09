@@ -521,31 +521,63 @@ end subroutine shift_reference_frame
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Function floor_to_local (floor0, r_global) result (r_local)
+! Function floor_to_local (floor0, global_position, calculate_angles = .true.)
+!   result (local_position)
 !
-! Returns local position relative to floor0 given a global position
+! Returns local floor position relative to floor0 given a global floor position.
+! This is an essentially an inverse of subroutine shift_reference_frame.
 !
 ! Input:
-!   floor0        -- floor_position_struct: Coordinates to convert to.
-!   r_global(3)   -- real(rp): [X, Y, Z] global position 
+!   floor0           -- floor_position_struct: reference position
+!   global_position  -- floor_position_struct: global position 
+!   calculate_angles -- logical (optional): calculate angles for local_position 
+!                                           Default: .true. 
+!                                           .false. returns:
+!                                              local_position%theta =0
+!                                              local_position%phi = 0
+!                                              local_position%psi = 0
+!                                      
 !
 ! Output:
-!   r_local(3)    -- real(rp): [x, y, z] local position
+!  local_position -- floor_position_struct: position relative to floor0
 !
 !-
 
-function floor_to_local (floor0, r_global) result (r_local)
+function floor_to_local (floor0, global_position, calculate_angles) result (local_position)
 
 implicit none
 
-type (floor_position_struct) floor0
-real(rp) :: r_local(3), r_global(3), w_mat(3,3)
+type (floor_position_struct) floor0, global_position, local_position
+real(rp) :: r_local(3), w0_mat(3,3), w_mat(3,3)
+logical, optional :: calculate_angles
 
-!  Get w_mat
-call floor_angles_to_w_mat (floor0%theta,floor0%phi, floor0%psi, w_mat)
+!
+
+!  Get w0_mat and invert
+call floor_angles_to_w_mat (floor0%theta,floor0%phi, floor0%psi, w0_mat)
+w0_mat = transpose(w0_mat)
+
 
 !Solve for r_local = [x, y, z]_local
-r_local = matmul(transpose(w_mat), r_global - [floor0%x, floor0%y, floor0%z])
+r_local = &
+   matmul(w0_mat, [global_position%x, global_position%y, global_position%z] &
+                            - [floor0%x, floor0%y, floor0%z])
+local_position%x = r_local(1)
+local_position%y = r_local(2)
+local_position%z = r_local(3)
+
+! If angles are not needed, just return zeros; 
+if (.not. logic_option(.true., calculate_angles) ) then
+  local_position%theta =0
+  local_position%phi =0
+  local_position%psi =0
+  return
+endif 
+
+call floor_angles_to_w_mat (global_position%theta, global_position%phi, global_position%psi, w_mat)
+w_mat = matmul(w0_mat, w_mat) !Remember that w0_mat is actually w0_mat^T
+call floor_w_mat_to_angles (w_mat, 0.0_rp, local_position%theta, local_position%phi, local_position%psi)
+
 
 end function floor_to_local
 
@@ -554,51 +586,74 @@ end function floor_to_local
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function position_in_local_frame  (r_global, floor0, ele) result(r_local)
+! Function position_in_local_frame  (global_position, ele, status, w_mat) 
+!   result(local_position)
 !
-! Given a point in global coordinates, return local curvilinear coordinates in ele
-!   to floor0
+! Given a position in global coordinates, return local curvilinear coordinates in ele
+!   relative to floor0
 !
 ! Module needed:
 !   nr, only: zbrent
 !
 ! Input:
-!   r_global    -- real(rp) (3): [X, Y, Z] position in global coordinates
-!   floor0      -- floor_position_struct: floor coordinates at the beginning of ele
-!   ele         -- ele_struct: element to find local coordinates of
+!   global_position -- floor_position_struct: [X, Y, Z] position in global coordinates
+!   ele             -- ele_struct: element to find local coordinates of
 !
 ! Result:
-!   r_local     -- real(rp) (3): [x, y, s] position in local curvilinear coordinates
-!   err         -- logical: position is outside ele's bounds.  
+!   local_position  -- floor_position_struct: [x, y, s] position in local curvilinear coordinates
+!   status          -- logical: inside$: s is inside ele
+!                               entrance_end$: s is before element's entrance
+!                               exit_end$: s is beyond element's end
+!
+!   w_mat           -- real(rp) (3,3) (optional): W matrix at s, to transform vectors. 
+!                                  v_global = w_mat.v_local
+!                                  v_local = transpose(w_mat).v_global
+!       
+!-  
 
-function position_in_local_frame (r_global, floor0, ele, err) result(r_local)
+function position_in_local_frame (global_position, ele, status, w_mat) result(local_position)
 
 implicit none
 
+type (floor_position_struct) :: global_position, local_position
 type (ele_struct)   :: ele
 type (floor_position_struct) :: floor0, floor_at_s
 real(rp) :: L_save, s_local, r_global(3), r_local(3) 
-real(rp) :: w_mat(3,3)
+real(rp), optional :: w_mat(3,3)
+integer :: status
 logical  :: err
 
 !
 
-err = .false. 
-
-! Check to see if position is within 0 < s < ele%value(L$)
-r_local = floor_to_local (floor0, r_global)
-if (r_local(3) < 0) then
-  err = .true.
-  return
-endif
-r_local = floor_to_local (ele%floor, r_global)
-if (r_local(3) > 0) then
-  err = .true.
-  return
-endif
+status = inside$
 
 ! Save ele's L. We will vary this. 
 L_save = ele%value(L$)
+
+
+if (associated (ele%lat) ) then
+  ! Get floor0 from previous element
+  floor0 = ele%lat%branch(ele%ix_branch)%ele(ele%ix_ele-1)%floor
+else
+  ! ele is without a lat. Propagate backwards to get floor0
+  ele%value(L$) = -L_save
+  call ele_geometry(ele%floor, ele, floor0)
+  ele%value(L$) = L_save
+endif
+
+
+! Check to see if position is within 0 < s < ele%value(L$)
+local_position = floor_to_local (floor0, global_position)
+if (local_position%z < 0) then
+  status = entrance_end$
+  return
+endif
+local_position = floor_to_local (ele%floor, global_position)
+if (local_position%z > 0) then
+  status = exit_end$
+  return
+endif
+
 
 ! Find s_local between 0 and L_save
 s_local = zbrent(delta_s_in_ele_for_zbrent, 0.0_rp, L_save, 1d-9) 
@@ -607,7 +662,12 @@ s_local = zbrent(delta_s_in_ele_for_zbrent, 0.0_rp, L_save, 1d-9)
 ele%value(L$) = L_save
 
 ! r_local was calculated in the zbrent function. Add in s_local
-r_local = [r_local(1), r_local(2), s_local]
+local_position%z = s_local
+
+! Optionally return w_mat
+if (present(w_mat) ) then
+  call floor_angles_to_w_mat (floor_at_s%theta,floor_at_s%phi,floor_at_s%psi, w_mat)
+endif
 
 contains
 
@@ -633,9 +693,9 @@ contains
   call ele_geometry(floor0, ele, floor_at_s)
   
   !Get local coordinates   
-  r_local = floor_to_local (floor_at_s, r_global)
+  local_position = floor_to_local (floor_at_s, global_position, calculate_angles = .false.)
 
-  delta_s_in_ele_for_zbrent = r_local(3)
+  delta_s_in_ele_for_zbrent = local_position%z
   
   end function  delta_s_in_ele_for_zbrent
 end function position_in_local_frame
