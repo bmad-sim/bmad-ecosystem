@@ -374,6 +374,111 @@ function delta_s_target (this_dt)
 
 end function delta_s_target
   
+  
+  
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function particle_in_new_frame_time(orb, ele) 
+!  result (orb_in_ele)
+! 
+! Takes a particle in time coordinates, and returns a particle in the local frame of ele.
+!   If the particle's s position is not within the bounds of ele, the function will 
+!   step to adjacent elements until a containing element is found. 
+!   Note that this function requires that there is an associated(ele%lat)
+!
+! Modules needed:
+!   use bmad
+!   use capillary_mod
+!
+! Input
+!   orb        -- coord_struct: Particle in [t-based] coordinates relative to
+!                               ele%lat%ele(orb%ix_ele)
+!   ele        -- ele_struct: Element to 
+!
+! Output
+!   orb_in_ele -- coord_struct: Particle in [t-based] coordinates, relative to 
+!                               ele%lat%ele(orb_in_ele%ix_ele)
+!           
+!
+!-
+  
+function particle_in_new_frame_time(orb, ele) result (orb_in_ele)
+
+implicit none
+
+type (coord_struct) :: orb, orb_in_ele
+type (floor_position_struct) :: global_position, local_position
+type (ele_struct) :: ele
+type (ele_struct), pointer :: ele_try
+type (lat_struct), pointer :: lat
+real(rp) :: w_mat_at_s(3,3)
+
+integer :: ix_ele, status
+logical :: err
+
+character(30), parameter :: r_name = 'particle_in_new_frame_time'
+
+!
+
+! Check that ele is in fact a different ele than orb%ix_ele
+if (orb%ix_ele == ele%ix_ele) then
+  orb_in_ele = orb
+  return
+endif
+
+!Multipass elements need to choose the correct wall
+
+! Make sure ele has a lat
+if (.not. associated (ele%lat) ) then
+      call out_io (s_fatal$, r_name, 'ELE HAS NO ASSOCIATED LAT')
+      if (bmad_status%exit_on_error) call err_exit
+endif
+
+ix_ele = ele%ix_ele
+lat => ele%lat
+!Move to global frame
+orb_in_ele = particle_in_global_frame (orb, lat, in_time_coordinates = .true.)
+global_position%x = orb_in_ele%vec(1)
+global_position%y = orb_in_ele%vec(3)
+global_position%z = orb_in_ele%vec(5)
+
+
+! Loop over neighboring elements until an encompassing one is found
+do
+  local_position = position_in_local_frame  (global_position, lat%ele(ix_ele), status, w_mat = w_mat_at_s) 
+  if (status == entrance_end$) then
+    ! Try previous element
+    ix_ele = ix_ele -1
+    cycle
+  else if (status == exit_end$) then
+    ! Try next element
+    ix_ele = ix_ele + 1
+    cycle
+  else if (status == inside$) then
+    ! This element contains orb
+    exit
+  end if  
+enddo
+
+! Assign [x, y, s]
+orb_in_ele%vec(1) = local_position%x
+orb_in_ele%vec(3) = local_position%y
+orb_in_ele%vec(5) = local_position%z
+
+! Use w_mat to rotate momenta 
+orb_in_ele%vec(1) = local_position%x
+orb_in_ele%vec(2:6:2) =  matmul(transpose(w_mat_at_s), orb_in_ele%vec(2:6:2) )
+
+! Set other things
+orb_in_ele%location = inside$
+orb_in_ele%ix_ele = ix_ele
+orb_in_ele%s = orb_in_ele%vec(5) + lat%ele(ix_ele)%s - lat%ele(ix_ele)%value(L$)
+
+end function
+
+
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -409,6 +514,7 @@ type (coord_struct) :: orb, orb_new
 type (coord_struct), pointer :: old_orb, now_orb
 type (lat_param_struct) :: param
 type (ele_struct) :: ele
+type (ele_struct), pointer :: wall3d_ele
 type (photon_track_struct), target :: particle
 integer :: section_ix
 real(rp) :: norm, perp(3), dummy_real, p_tot
@@ -418,20 +524,30 @@ logical :: err
 !-----------------------------------------------
 !Do nothing if there is no wall
 
+!Get wall3d_ele
+wall3d_ele => pointer_to_wall3d_ele (ele, dummy_real, err)
 
-
-if (.not. associated(pointer_to_wall3d_ele (ele, dummy_real, err))) return
-
-! Do nothing if orb_new is inside the wall
-
-if (wall3d_d_radius(orb_new%vec, ele) < 0) return
-
-!Prepare coordinate structures for wall3d_d_radius
+! if there isn't one, do nothing
+if (.not. associated(wall3d_ele)) return
 
 old_orb => particle%old%orb
 now_orb => particle%now%orb
-old_orb = orb
-now_orb = orb_new
+
+if (ele%ref_orbit == match_at_entrance$ .or. &
+    ele%ref_orbit == match_global_coords$ .or. &
+    ele%ref_orbit == match_at_exit$  ) then
+  ! We need to move orbs into the correct frame
+  old_orb = particle_in_new_frame_time(orb, wall3d_ele)
+  now_orb = particle_in_new_frame_time(orb_new, wall3d_ele)
+else
+  ! Prepare coordinate structures for wall3d_d_radius
+  old_orb = orb
+  now_orb = orb_new
+endif
+
+! Do nothing if orb_new is inside the wall
+if (wall3d_d_radius(now_orb%vec, wall3d_ele) < 0) return
+
 
 !If now_orb is before element, change it
 !We can do this because it can't hit the element wall outside of the
@@ -443,10 +559,10 @@ end if
 
 !If now_orb is too close to the wall, move it edge_tol away
 
-if (abs(wall3d_d_radius(particle%now%orb%vec, ele)) < edge_tol) then
-   now_orb%vec(1) = now_orb%vec(1) + sign(edge_tol, now_orb%vec(1))
-   now_orb%vec(3) = now_orb%vec(3) + sign(edge_tol, now_orb%vec(3))
-end if
+!if (abs(wall3d_d_radius(particle%now%orb%vec, ele)) < edge_tol) then
+!   now_orb%vec(1) = now_orb%vec(1) + sign(edge_tol, now_orb%vec(1))
+!   now_orb%vec(3) = now_orb%vec(3) + sign(edge_tol, now_orb%vec(3))
+!end if
 
 !Change from particle coordinates to photon coordinates
 ! (coord_struct to photon_coord_struct)
@@ -495,12 +611,12 @@ now_orb%vec(6) = old_orb%vec(6)
 !If particle hit wall, find out where
 !if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
 
-   call capillary_photon_hit_spot_calc (particle, ele)
+   call capillary_photon_hit_spot_calc (particle, wall3d_ele)
 
    orb_new = now_orb
 
    !Calculate perpendicular to get angle of impact
-   dummy_real = wall3d_d_radius(particle%now%orb%vec, ele, perp)
+   dummy_real = wall3d_d_radius(particle%now%orb%vec, wall3d_ele, perp)
 
    !Calculate angle of impact; cos(hit_angle) = norm_photon_vec \dot perp
    !****
