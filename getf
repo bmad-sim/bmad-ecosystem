@@ -301,6 +301,7 @@ for ($i = 0; $i <= @field; $i++) {
 
 $match_str = $field[$i];
 $match_str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
+if ($match_str eq '') {&print_help_message; exit}
 
 if ($extra_dir ne '') {
   print "Searching also: $extra_dir\n";
@@ -557,4 +558,22 @@ sub routine_here {
 
   return 0;
 
+}
+
+
+sub print_help_message {
+  print "Usage:\n";
+  print "  getf {options} <search_string>\n\n";
+  print "Options:\n";
+  print "   -a          # Search Numerical recipes, forest, and varies program directories as well.\n";
+  print "   -d <dir>    # Search files in <dir> and sub-directories for matches.\n";
+  ## print "   -p          # Match to parameters as well.\n";   # Not yet implemented!
+  print "\n";
+  print "Standard Libraries searched:\n";
+  print "   bmad\n";
+  print "   sim_utils\n";
+  print "   cesr_utils\n";
+  print "   mpm_utils\n";
+  print "   tao\n";
+  print "   bmadz\n";
 }
