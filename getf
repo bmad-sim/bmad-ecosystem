@@ -416,9 +416,10 @@ sub searchit {
         @comments[$n_com] = $_;
         $n_com++
 
-      # match to type statement
+      # Match to type or interface statement
+      # These we type the whole definition
 
-      } elsif (/^ *type +$match_str\s/i) {
+      } elsif (/^ *(type|interface) +$match_str\s/i) {
         $found_one = 1;
         print "\nFile: $File::Find::name\n";
         for ($i = 0; $i < $n_com; $i++) {print @comments[$i];}
@@ -426,7 +427,7 @@ sub searchit {
         print $_;
         while (<F_IN>) {
           print $_;
-          if (/^ *end type/i) {last;}
+          if (/^ *end +(type|interface)/i) {last;}
         }
 
         $n_com = 0;
@@ -434,7 +435,7 @@ sub searchit {
       # match to subroutine, function, etc.
 
       } elsif (&routine_here) {
-        $routine_name =~ /^\s*(\w+)[ |\(\n]/i;
+        $routine_name =~ /^\s*(\w+)[ |\(\s]/i;
         $_ = $1;     # strip off "subroutine"
         if ($file =~ /^$match_str\.f90/i || $file =~ /^$match_str\.inc/i) {$matches_file_name = 1;}
 
@@ -496,7 +497,7 @@ sub searchit {
       }
 
       if ($in_class) {print $_;}
-      if (m@// +end class@i) {$in_class = 0;}
+      if (m@// +end +class@i) {$in_class = 0;}
 
     }
     close (F_IN);
