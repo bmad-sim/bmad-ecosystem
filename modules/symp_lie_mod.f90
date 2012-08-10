@@ -85,6 +85,8 @@ real(rp), allocatable :: ds_offset(:)
 
 integer i, n_step, n_field
 
+integer num_wig_terms  ! number of wiggler terms
+
 logical calc_mat6, calculate_mat6, err, do_offset
 logical, optional :: offset_ele
 
@@ -167,7 +169,9 @@ Case (wiggler$)
   wig_term => field_ele%wig%term
   s_offset = ds_offset(i)
 
-  allocate (tm(size(wig_term)))
+  num_wig_terms = size(wig_term)
+
+  allocate (tm(num_wig_terms))
 
   call update_wig_coefs (calculate_mat6)
   call update_wig_y_terms (err); if (err) return
@@ -623,7 +627,7 @@ logical do_mat6
 
 factor = c_light / ele%value(p0c$)
 
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   coef = factor * wt%coef * field_ele%value(polarity$)
   tm(j)%a_y%coef         = -coef * wt%kz      ! / (wt%kx * wt%ky)
@@ -638,7 +642,7 @@ enddo
 
 if (.not. do_mat6) return
 
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   tm(j)%a_y%dx_coef = tm(j)%a_y%coef
   tm(j)%a_y%dy_coef = tm(j)%a_y%coef
@@ -667,36 +671,78 @@ end subroutine update_wig_coefs
 
 subroutine update_wig_y_terms (err)
 
-real(rp) kyy
+real(rp) kyy(1:num_wig_terms)
 integer j
 logical err
 
-do j = 1, size(wig_term)
+real(rp) exp_term
+real(rp) exp_term_inv
 
-  ! Update y-terms
+real(rp) hypr_kyy(1:num_wig_terms)
+real(rp) trig_kyy(1:num_wig_terms)
 
+real(rp) exp_kyy(1:num_wig_terms)
+real(rp) exp_kyy_inv(1:num_wig_terms)
+real(rp) sin_kyy(1:num_wig_terms)
+real(rp) cos_kyy(1:num_wig_terms)
+
+integer n_trig, n_hypr
+
+kyy(1:num_wig_terms) = wig_term(1:num_wig_terms)%ky * end_orb%vec(3)
+n_hypr = 0
+n_trig = 0
+do j = 1, num_wig_terms
   wt => wig_term(j)
-  kyy = wt%ky * end_orb%vec(3)
-  if (abs(kyy) < 1e-20) then
-    tm(j)%c_y = 1
-    tm(j)%s_y = kyy
-    tm(j)%s_y_ky = end_orb%vec(3)
-    tm(j)%c1_ky2 = end_orb%vec(3)**2 / 2
-    if (wt%type == hyper_x$) tm(j)%c1_ky2 = -tm(j)%c1_ky2 
+  if (abs(kyy(j)) < 1e-20) then
+    !do nothing
   elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
-    if (abs(kyy) > 30) then
+    if (abs(kyy(j)) > 30) then
       call err_set (err, y_plane$)
       return
     endif
-    tm(j)%c_y = cosh(kyy)
-    tm(j)%s_y = sinh(kyy)
-    tm(j)%s_y_ky = tm(j)%s_y / wt%ky
-    tm(j)%c1_ky2 = 2 * sinh(kyy/2)**2 / wt%ky**2
+    n_hypr = n_hypr + 1
+    hypr_kyy(n_hypr) = kyy(j)    
   else
-    tm(j)%c_y = cos(kyy)
-    tm(j)%s_y = sin(kyy)
+    n_trig = n_trig + 1
+    trig_kyy(n_trig) = kyy(j)
+  endif
+enddo
+
+exp_kyy(1:n_hypr) = EXP(hypr_kyy(1:n_hypr))
+exp_kyy_inv(1:n_hypr) = 1.0/exp_kyy(1:n_hypr)
+
+! !DIR$ vector always
+! do j=1,n_trig
+!   sin_kyy(j) = SIN(trig_kyy(j))
+!   cos_kyy(j) = COS(trig_kyy(j))
+! enddo
+sin_kyy(1:n_trig) = SIN(trig_kyy(1:n_trig))
+cos_kyy(1:n_trig) = COS(trig_kyy(1:n_trig))
+
+n_hypr = 0
+n_trig = 0
+do j = 1, num_wig_terms
+  wt => wig_term(j)
+  if (abs(kyy(j)) < 1e-20) then
+    tm(j)%c_y = 1
+    tm(j)%s_y = kyy(j)
+    tm(j)%s_y_ky = end_orb%vec(3)
+    tm(j)%c1_ky2 = end_orb%vec(3)**2 / 2
+    if (wt%type == hyper_x$) then
+      tm(j)%c1_ky2 = -tm(j)%c1_ky2 
+    endif
+  elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
+    n_hypr = n_hypr + 1
+    tm(j)%c_y = (exp_kyy(n_hypr)+exp_kyy_inv(n_hypr))*0.5d0 !  tm(j)%c_y = cosh(kyy)
+    tm(j)%s_y = (exp_kyy(n_hypr)-exp_kyy_inv(n_hypr))*0.5d0 !  tm(j)%s_y = sinh(kyy)
+    tm(j)%c1_ky2 = (tm(j)%c_y-1) / wt%ky**2   !  tm(j)%c1_ky2 = 2 * sinh(kyy(j)/2)**2 / wt%ky**2
     tm(j)%s_y_ky = tm(j)%s_y / wt%ky
-    tm(j)%c1_ky2 = -2 * sin(kyy/2)**2 / wt%ky**2
+  else
+    n_trig = n_trig + 1
+    tm(j)%c_y = cos_kyy(n_trig)
+    tm(j)%s_y = sin_kyy(n_trig)
+    tm(j)%s_y_ky = tm(j)%s_y / wt%ky
+    tm(j)%c1_ky2 = -1*(1.0d0 - cos_kyy(n_trig)) / wt%ky**2
   endif
 enddo
 
@@ -708,41 +754,91 @@ end subroutine update_wig_y_terms
 
 subroutine update_wig_x_s_terms (err)
 
-real(rp) kxx, kzz
 integer j
 logical err
 
-do j = 1, size(wig_term)
+real(rp) kxx(1:num_wig_terms)
+real(rp) kzz(1:num_wig_terms)
+
+real(rp) hypr_kxx(1:num_wig_terms)
+real(rp) trig_kxx(1:num_wig_terms)
+
+real(rp) exp_kxx(1:num_wig_terms)
+real(rp) exp_kxx_inv(1:num_wig_terms)
+real(rp) cos_kxx(1:num_wig_terms)
+real(rp) sin_kxx(1:num_wig_terms)
+
+real(rp) exp_term
+real(rp) exp_term_inv
+
+real(rp) sps_offset
+
+integer n_hypr, n_trig
+
+kxx(1:num_wig_terms) = wig_term(1:num_wig_terms)%kx * end_orb%vec(1)
+n_hypr = 0
+n_trig = 0
+do j = 1, num_wig_terms
   wt => wig_term(j)
-
-  ! Update x-terms
-
-  kxx = wt%kx * end_orb%vec(1)
-  if (abs(kxx) < 1e-20) then
-    tm(j)%c_x = 1
-    tm(j)%s_x = kxx
-    tm(j)%s_x_kx = end_orb%vec(1)
+  if (abs(kxx(j)) < 1e-20) then
+    !do nothing
   elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
-    if (abs(kxx) > 30) then
+    if (abs(kxx(j)) > 30) then
       call err_set (err, x_plane$)
       return
     endif
-    tm(j)%c_x = cosh(kxx)
-    tm(j)%s_x = sinh(kxx)
+    n_hypr = n_hypr + 1
+    hypr_kxx(n_hypr) = kxx(j)
+  else
+    n_trig = n_trig + 1
+    trig_kxx(n_trig) = kxx(j)
+  endif
+enddo
+
+exp_kxx(1:n_hypr) = EXP(hypr_kxx(1:n_hypr))
+exp_kxx_inv(1:n_hypr) = 1.0/exp_kxx(1:n_hypr)
+
+! !DIR$ vector always
+! do j=1,n_trig
+!   cos_kxx(j) = COS(trig_kxx(j))
+!   sin_kxx(j) = SIN(trig_kxx(j))
+! enddo
+sin_kxx(1:n_trig) = SIN(trig_kxx(1:n_trig))
+cos_kxx(1:n_trig) = COS(trig_kxx(1:n_trig))
+
+n_hypr = 0
+n_trig = 0
+do j = 1, num_wig_terms
+  wt => wig_term(j)
+
+  if (abs(kxx(j)) < 1e-20) then
+    tm(j)%c_x = 1
+    tm(j)%s_x = kxx(j)
+    tm(j)%s_x_kx = end_orb%vec(1)
+  elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
+    n_hypr = n_hypr + 1
+    tm(j)%c_x = (exp_kxx(n_hypr)+exp_kxx_inv(n_hypr))*0.5d0 ! tm(j)%c_x = cosh(kxx(j))
+    tm(j)%s_x = (exp_kxx(n_hypr)-exp_kxx_inv(n_hypr))*0.5d0 ! tm(j)%s_x = sinh(kxx(j))
     tm(j)%s_x_kx = tm(j)%s_x / wt%kx
   else
-    tm(j)%c_x = cos(kxx)
-    tm(j)%s_x = sin(kxx)
+    n_trig = n_trig + 1
+    tm(j)%c_x = cos_kxx(n_trig)
+    tm(j)%s_x = sin_kxx(n_trig)
     tm(j)%s_x_kx = tm(j)%s_x / wt%kx
   endif
-
-  ! update s-terms
-
-  kzz = wt%kz * (s + s_offset) + wt%phi_z
-  tm(j)%c_z = cos(kzz)
-  tm(j)%s_z = sin(kzz)
-
 enddo
+
+! update s-terms
+sps_offset = s + s_offset
+kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * sps_offset + wig_term(1:num_wig_terms)%phi_z
+
+! !DIR$ vector always
+! do j=1,num_wig_terms
+!   tm(j)%c_z = cos(kzz(j))
+!   tm(j)%s_z = sin(kzz(j))
+! enddo
+tm(1:num_wig_terms)%c_z = cos(kzz(1:num_wig_terms))
+tm(1:num_wig_terms)%s_z = sin(kzz(1:num_wig_terms))
 
 end subroutine update_wig_x_s_terms
 
