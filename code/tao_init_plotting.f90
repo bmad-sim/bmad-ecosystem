@@ -913,13 +913,14 @@ call set_plotting (plot_page, s%plotting, .true.)
 allocate (s%plotting%floor_plan%ele_shape(10), s%plotting%lat_layout%ele_shape(10))
 
 s%plotting%lat_layout%ele_shape(:)%ele_name = ''
-s%plotting%lat_layout%ele_shape(1:6) = [&
-          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    0.20_rp, 'none', .true.), &
+s%plotting%lat_layout%ele_shape(1:7) = [&
+          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLACK',   0.20_rp, 'none', .true.), &
           tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 0.37_rp, 'name', .true.), &
           tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   0.37_rp, 'none', .true.), &
           tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     0.50_rp, 'none', .true.), &
-          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     0.50_rp, 'none', .true.), &
-          tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLACK',   0.30_rp, 'none', .true.)]
+          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     0.50_rp, 'name', .true.), &
+          tao_ele_shape_struct('WIGGLER::*',    'XBOX', 'CYAN',    0.50_rp, 'name', .true.), &
+          tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLUE',    0.30_rp, 'name', .true.)]
 
 s%plotting%floor_plan%ele_shape = s%plotting%lat_layout%ele_shape
 s%plotting%floor_plan%ele_shape%size = 40 * s%plotting%floor_plan%ele_shape%size
