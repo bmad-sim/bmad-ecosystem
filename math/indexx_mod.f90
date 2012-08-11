@@ -30,7 +30,7 @@ contains
 !+
 ! Subroutine find_indexx0 (name, char_indexx, ix_match, ix2_match, add_to_list)
 ! Subroutine to find a matching name in a list of names.
-! Note that this simply calls find_indexx1
+! Note that this simply calls find_indexx2.
 !
 ! Input:
 !   name           -- Character(*): Name to match to.
