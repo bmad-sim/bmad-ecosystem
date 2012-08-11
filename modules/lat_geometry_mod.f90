@@ -631,9 +631,9 @@ status = inside$
 L_save = ele%value(L$)
 
 
-if (associated (ele%lat) ) then
+if (associated (ele%branch) ) then
   ! Get floor0 from previous element
-  floor0 = ele%lat%branch(ele%ix_branch)%ele(ele%ix_ele-1)%floor
+  floor0 = ele%branch%ele(ele%ix_ele-1)%floor
 else
   ! ele is without a lat. Propagate backwards to get floor0
   ele%value(L$) = -L_save

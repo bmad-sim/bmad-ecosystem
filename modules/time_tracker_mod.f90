@@ -386,7 +386,7 @@ end function delta_s_target
 ! Takes a particle in time coordinates, and returns a particle in the local frame of ele.
 !   If the particle's s position is not within the bounds of ele, the function will 
 !   step to adjacent elements until a containing element is found. 
-!   Note that this function requires that there is an associated(ele%lat)
+!   Note that this function requires that there is an associated(ele%branch)
 !
 ! Modules needed:
 !   use bmad
@@ -394,12 +394,12 @@ end function delta_s_target
 !
 ! Input
 !   orb        -- coord_struct: Particle in [t-based] coordinates relative to
-!                               ele%lat%ele(orb%ix_ele)
+!                               ele%branch%ele(orb%ix_ele)
 !   ele        -- ele_struct: Element to 
 !
 ! Output
 !   orb_in_ele -- coord_struct: Particle in [t-based] coordinates, relative to 
-!                               ele%lat%ele(orb_in_ele%ix_ele)
+!                               ele%branch%ele(orb_in_ele%ix_ele)
 !           
 !
 !-
@@ -412,7 +412,7 @@ type (coord_struct) :: orb, orb_in_ele
 type (floor_position_struct) :: global_position, local_position
 type (ele_struct) :: ele
 type (ele_struct), pointer :: ele_try
-type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
 real(rp) :: w_mat_at_s(3,3)
 
 integer :: ix_ele, status
@@ -430,16 +430,16 @@ endif
 
 !Multipass elements need to choose the correct wall
 
-! Make sure ele has a lat
-if (.not. associated (ele%lat) ) then
-      call out_io (s_fatal$, r_name, 'ELE HAS NO ASSOCIATED LAT')
+! Make sure ele has a branch
+if (.not. associated (ele%branch) ) then
+      call out_io (s_fatal$, r_name, 'ELE HAS NO ASSOCIATED BRANCH')
       if (bmad_status%exit_on_error) call err_exit
 endif
 
 ix_ele = ele%ix_ele
-lat => ele%lat
+branch => ele%branch
 !Move to global frame
-orb_in_ele = particle_in_global_frame (orb, lat, in_time_coordinates = .true.)
+orb_in_ele = particle_in_global_frame (orb, branch, in_time_coordinates = .true.)
 global_position%x = orb_in_ele%vec(1)
 global_position%y = orb_in_ele%vec(3)
 global_position%z = orb_in_ele%vec(5)
@@ -447,7 +447,7 @@ global_position%z = orb_in_ele%vec(5)
 
 ! Loop over neighboring elements until an encompassing one is found
 do
-  local_position = position_in_local_frame  (global_position, lat%ele(ix_ele), status, w_mat = w_mat_at_s) 
+  local_position = position_in_local_frame  (global_position, branch%ele(ix_ele), status, w_mat = w_mat_at_s) 
   if (status == entrance_end$) then
     ! Try previous element
     ix_ele = ix_ele -1
@@ -474,10 +474,9 @@ orb_in_ele%vec(2:6:2) =  matmul(transpose(w_mat_at_s), orb_in_ele%vec(2:6:2) )
 ! Set other things
 orb_in_ele%location = inside$
 orb_in_ele%ix_ele = ix_ele
-orb_in_ele%s = orb_in_ele%vec(5) + lat%ele(ix_ele)%s - lat%ele(ix_ele)%value(L$)
+orb_in_ele%s = orb_in_ele%vec(5) + branch%ele(ix_ele)%s - branch%ele(ix_ele)%value(L$)
 
-end function
-
+end function particle_in_new_frame_time
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -902,7 +901,7 @@ end subroutine drift_orbit_time
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function particle_in_global_frame (orb, lat) result (particle) 
+! Function particle_in_global_frame (orb, branch) result (particle) 
 !
 ! Returns the particle in global time coordinates given is coordinates orb in lattice lat.
 !   
@@ -912,7 +911,7 @@ end subroutine drift_orbit_time
 !
 ! Input:
 !   orb                 -- Coord_struct: particle in s-coordinates
-!   lat                 -- Lat_struct: lattice that contains ele(orb%ix_ele)
+!   branch              -- branch_struct: branch that contains ele(orb%ix_ele)
 !   in_time_coordinates -- Logical (optional): Default is false. If true, orb
 !                            will taken as in time coordinates.    
 !
@@ -921,12 +920,12 @@ end subroutine drift_orbit_time
 !
 !-
 
-function particle_in_global_frame (orb, lat, in_time_coordinates, w_mat_out) result (particle)
+function particle_in_global_frame (orb, branch, in_time_coordinates, w_mat_out) result (particle)
 
 implicit none
 
 type (coord_struct) :: orb, particle
-type (lat_struct) :: lat
+type (branch_struct) :: branch
 type (floor_position_struct) :: floor, floor_at_particle
 type (ele_struct), pointer :: ele
 real(rp) :: L_save
@@ -944,7 +943,7 @@ in_t_coord =  logic_option( .false., in_time_coordinates)
 !
 
 !Get last tracked element  
-ele =>  lat%ele(orb%ix_ele)
+ele =>  branch%ele(orb%ix_ele)
 
 !Convert to time coordinates
 particle = orb;
@@ -966,7 +965,7 @@ if (ele%key == sbend$ .or. ele%key == rbend$) then
   ele%value(L$) = particle%vec(5)
   
   ! calculate floor from previous element
-  call ele_geometry(lat%ele(particle%ix_ele - 1)%floor, ele,  floor)
+  call ele_geometry(branch%ele(particle%ix_ele - 1)%floor, ele,  floor)
   ! particle is exactly at ele's exit now. 
   dr(3) = 0
   
