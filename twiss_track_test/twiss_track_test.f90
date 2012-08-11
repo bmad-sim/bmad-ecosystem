@@ -220,7 +220,7 @@ call data_out (mode%b%synch_int(4),  1.0D-07, 'Lat2:B%Synch_int(4)')
 call data_out (mode%b%synch_int(5),  1.0D-11, 'Lat2:B%Synch_int(5)')
 call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat2:Z%Synch_int(4)')
 
-write (2, '(a, l1, a)') '"Lat2:Lat"      STR  "', associated(lat2%ele(100)%lat, lat2), '"'
+write (2, '(a, l1, a)') '"Lat2:Lat"      STR  "', associated(lat2%ele(100)%branch, lat2%branch(0)), '"'
 
 !--------------------------------------------------------------------
 ! Reverse
@@ -259,7 +259,7 @@ call data_out (lat2%ele(n_track)%floor%z, 1d-8, 'Reverse:floor%z')
 call data_out (lat2%ele(n_track)%floor%theta, 1d-8, 'Reverse:floor%theta')
 call data_out (lat2%ele(n_track)%s -lat%ele(n_track)%s, 1d-6, 'Reverse:s')
 call data_out (lat2%ele(n_track)%ref_time-lat%ele(n_track)%ref_time, 1d-14, 'Reverse:ref_time')
-write (2, '(a, l1, a)') '"Reverse:Lat"      STR  "', associated(lat2%ele(100)%lat, lat2), '"'
+write (2, '(a, l1, a)') '"Reverse:Lat"      STR  "', associated(lat2%ele(100)%branch, lat2%branch(0)), '"'
 
 
 !--------------------------------------------------------------------
