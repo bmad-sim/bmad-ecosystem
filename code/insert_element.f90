@@ -65,7 +65,7 @@ call deallocate_ele_pointers (inserted_ele, nullify_only = .true.)
 inserted_ele = insert_ele
 inserted_ele%ix_ele    = insert_index
 inserted_ele%ix_branch = ix_br
-inserted_ele%lat => lat
+inserted_ele%branch => branch
 
 ! Correct the control info
 

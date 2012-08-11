@@ -32,7 +32,7 @@ contains
 !
 ! The amplitude scaling is done based upon the setting of:
 !   Use the scale_amp arg if present.
-!   If scale_amp arg is not present: Use ele%lat%rf_auto_scale_amp if associated(ele%lat).
+!   If scale_amp arg is not present: Use ele%branch%lat%rf_auto_scale_amp if associated(ele%branch).
 !   If none of the above: Use bmad_com%rf_auto_scale_amp_default.
 !
 ! A similar procedure is used for phase scaling.
@@ -102,9 +102,9 @@ err_flag = .false.
 
 do_scale_phase = bmad_com%rf_auto_scale_phase_default
 do_scale_amp   = bmad_com%rf_auto_scale_amp_default
-if (associated (ele%lat)) then
-  do_scale_phase = ele%lat%rf_auto_scale_phase
-  do_scale_amp   = ele%lat%rf_auto_scale_amp
+if (associated (ele%branch)) then
+  do_scale_phase = ele%branch%lat%rf_auto_scale_phase
+  do_scale_amp   = ele%branch%lat%rf_auto_scale_amp
 endif
 do_scale_phase = logic_option(do_scale_phase, scale_phase)
 do_scale_amp   = logic_option(do_scale_amp,   scale_amp)
@@ -413,9 +413,9 @@ endif
 
 call cleanup_this()
 
-if (associated (ele%lat)) then
-  if (do_scale_amp)   call set_flags_for_changed_attribute (ele%lat, ele, field_scale)
-  if (do_scale_phase) call set_flags_for_changed_attribute (ele%lat, ele, dphi0_ref)
+if (associated (ele%branch)) then
+  if (do_scale_amp)   call set_flags_for_changed_attribute (ele%branch%lat, ele, field_scale)
+  if (do_scale_phase) call set_flags_for_changed_attribute (ele%branch%lat, ele, dphi0_ref)
 endif
 
 !------------------------------------

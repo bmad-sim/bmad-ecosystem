@@ -10,6 +10,8 @@
 ! Input:
 !   ele1        -- Ele_struct: Structure holding the starting parameters.
 !   ele2        -- Ele_struct: Structure holding the transfer matrix.
+!     %map_ref_orb_in(6)  -- Important for the dispersion calc.
+!     %map_ref_orb_out(6) -- Important for the dispersion calc.
 !   bmad_status -- Common block status structure:
 !       %type_out -- If True then will type a message if the modes are flipped.
 !       %exit_on_error -- If True then stop if there is an error.

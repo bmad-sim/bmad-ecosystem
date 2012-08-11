@@ -2630,7 +2630,7 @@ if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
         offset_nonzero .and. offset_changed .and. .not. non_offset_changed .and. &
         bmad_com%conserve_taylor_maps .and. ele%key /= patch$) then
   ele%map_with_offsets = .false.
-  if (associated(ele%lat) .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+  if (associated(ele%branch) .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)

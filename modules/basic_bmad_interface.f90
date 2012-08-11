@@ -4,9 +4,11 @@
 
 module basic_bmad_interface
 
+use bmad_struct
+
 interface
   subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     character(*) lat_file
     type (lat_struct), target :: lat
@@ -18,7 +20,7 @@ end interface
 
 interface
   subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     character(*) lat_file
     type (lat_struct), target :: lat
@@ -30,7 +32,7 @@ end interface
   
 interface
   subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     character(*) lat_file
     type (lat_struct), target :: lat
@@ -42,7 +44,7 @@ end interface
   
 interface
   subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, err_flag)
-    use bmad_struct, only: lat_struct, coord_struct
+    import
     implicit none
     character(*) in_file
     type (lat_struct), target :: lat
@@ -53,7 +55,7 @@ end interface
 
 interface
   subroutine c_to_cbar (ele, cbar_mat)
-    use bmad_struct, only: ele_struct, rp
+    import
     implicit none
     type (ele_struct) ele
     real(rp) cbar_mat(2,2)
@@ -62,7 +64,7 @@ end interface
 
 interface
   subroutine cbar_to_c (cbar_mat, a, b, c_mat)
-    use bmad_struct, only: twiss_struct, rp
+    import
     implicit none
     real(rp) cbar_mat(2,2), c_mat(2,2)
     type (twiss_struct) a, b
@@ -71,7 +73,7 @@ end interface
 
 interface
   subroutine calc_z_tune (lat)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
   end subroutine
@@ -79,7 +81,7 @@ end interface
 
 interface
   subroutine check_lat_controls (lat, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     logical, intent(out) :: err_flag
@@ -88,7 +90,7 @@ end interface
 
 interface
   subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag)
-    use bmad_struct, only: lat_struct, rp
+    import
     implicit none
     type (lat_struct) lat
     real(rp) delta_e
@@ -100,7 +102,7 @@ end interface
 
 interface
   subroutine chrom_tune (lat, delta_e, chrom_x, chrom_y, err_tol, err_flag)
-    use bmad_struct, only: lat_struct, rp
+    import
     implicit none
     type (lat_struct) lat
     real(rp) delta_e
@@ -113,7 +115,7 @@ end interface
 
 interface
   subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
-    use bmad_struct, only: lat_struct, coord_struct
+    import
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable, target :: closed_orb(:)
@@ -126,7 +128,7 @@ end interface
 interface
   subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
                                        eps_rel, eps_abs, init_guess, err_flag)
-    use bmad_struct, only: lat_struct, rp, coord_struct
+    import
     type (lat_struct) lat
     type (coord_struct), allocatable :: closed_orb(:)
     type (coord_struct), optional :: init_guess
@@ -138,14 +140,14 @@ end interface
 
 interface
   subroutine combine_consecutive_elements (lat)
-    use bmad_struct, only: lat_struct
+    import
     type (lat_struct), target :: lat
   end subroutine
 end interface
 
 interface
   subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele)
-    use bmad_struct, only: ele_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct) ele, sliced_ele
     type (lat_param_struct) param
@@ -155,7 +157,7 @@ end interface
 
 interface
   subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
-    use bmad_struct, only: rp, ele_struct, lat_param_struct
+    import
     type (ele_struct) ele
     type (lat_param_struct) param
     real(rp) e_tot_start, p0c_start, ref_time_start
@@ -165,7 +167,7 @@ end interface
 
 interface
   subroutine lat_compute_ref_energy_and_time (lat, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     type (lat_struct) lat
     logical, optional :: err_flag
   end subroutine
@@ -173,7 +175,7 @@ end interface
 
 interface
   subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, err_flag)
-    use bmad_struct, only: ele_struct, coord_struct
+    import
     implicit none
     character(*) in_type_str
     character(*) out_type_str
@@ -186,7 +188,7 @@ end interface
 
 interface
   subroutine create_group (lat, ix_ele, con, err, err_print_flag)
-    use bmad_struct, only: lat_struct, control_struct
+    import
     implicit none
     type (lat_struct) lat
     type (control_struct) con(:)
@@ -198,7 +200,7 @@ end interface
 
 interface
   subroutine create_girder (lat, ix_ele, con, init_ele)
-    use bmad_struct, only: lat_struct, ele_struct, control_struct
+    import
     implicit none
     type (lat_struct) lat
     type (ele_struct), optional :: init_ele
@@ -209,7 +211,7 @@ end interface
 
 interface
   subroutine create_overlay (lat, ix_overlay, attrib_value, contl, err, err_print_flag)
-    use bmad_struct, only: lat_struct, control_struct
+    import
     implicit none
     type (lat_struct) lat
     integer ix_overlay
@@ -222,7 +224,7 @@ end interface
 
 interface
   subroutine create_unique_ele_names (lat, key, suffix)
-    use bmad_struct, only: lat_struct
+    import
     type (lat_struct), target :: lat
     integer key
     character(*) suffix
@@ -231,7 +233,7 @@ end interface
 
 interface
   subroutine dispersion_to_orbit (ele, disp_orb)
-    use bmad_struct, only: ele_struct, coord_struct
+    import
     implicit none
     type (ele_struct) :: ele
     type (coord_struct), intent(out) :: disp_orb
@@ -240,7 +242,7 @@ end interface
 
 interface
   subroutine do_mode_flip (ele, err_flag)
-    use bmad_struct, only: ele_struct
+    import
     implicit none
     type (ele_struct) ele
     logical, optional :: err_flag
@@ -249,7 +251,7 @@ end interface
 
 interface
   subroutine element_locator (ele_name, lat, ix_ele)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
     integer ix_ele
@@ -259,7 +261,7 @@ end interface
 
 interface
   subroutine elements_locator_by_key (key, lat, indx)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     integer key
     type (lat_struct) lat
@@ -269,7 +271,7 @@ end interface
 
 interface
   subroutine elements_locator (ele_name, lat, indx, err)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     character(*) ele_name
     type (lat_struct) lat
@@ -280,7 +282,7 @@ end interface
 
 interface
   function element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff) result (ix_ele)
-    use bmad_struct, only: lat_struct, rp
+    import
     implicit none
     type (lat_struct) lat
     real(rp) s
@@ -294,7 +296,7 @@ end interface
 
 interface
   subroutine emit_calc (lat, what, mode)
-    use bmad_struct, only: lat_struct, normal_modes_struct
+    import
     implicit none
     type (lat_struct) lat
     type (normal_modes_struct) mode
@@ -304,7 +306,7 @@ end interface
 
 interface
   subroutine find_element_ends (lat, ele, ele1, ele2)
-    use bmad_struct, only: lat_struct, ele_struct
+    import
     implicit none
     type (lat_struct) lat
     type (ele_struct) ele
@@ -314,7 +316,7 @@ end interface
 
 interface
   subroutine insert_element (lat, insert_ele, insert_index, ix_branch)
-    use bmad_struct, only: lat_struct, ele_struct
+    import
     implicit none
     type (lat_struct) lat
     type (ele_struct) insert_ele
@@ -325,7 +327,7 @@ end interface
 
 interface
   subroutine make_g_mats (ele, g_mat, g_inv_mat)
-    use bmad_struct, only: ele_struct, rp
+    import
     implicit none
     type (ele_struct) ele
     real(rp) g_mat(4,4)
@@ -336,7 +338,7 @@ end interface
 interface
   subroutine make_hybrid_lat (r_in, use_ele, remove_markers, &
                                            r_out, ix_out, use_taylor, orb0)
-    use bmad_struct, only: lat_struct, coord_struct
+    import
     implicit none
     type (lat_struct), target :: r_in
     type (lat_struct), target :: r_out
@@ -350,7 +352,7 @@ end interface
 
 interface
   recursive subroutine make_mat6 (ele, param, start_orb, end_orb, end_in, err_flag)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct) ele
     type (coord_struct), optional :: start_orb, end_orb
@@ -362,7 +364,7 @@ end interface
 
 interface
   subroutine make_mat6_taylor (ele, param, start_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start_orb
@@ -372,7 +374,7 @@ end interface
 
 interface
   subroutine make_mat6_bmad (ele, param, start_orb, end_orb, end_in, err)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start_orb, end_orb
@@ -384,7 +386,7 @@ end interface
 
 interface
   subroutine make_mat6_runge_kutta (ele, param, start_orb, end_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start_orb, end_orb
@@ -394,7 +396,7 @@ end interface
 
 interface
   subroutine make_mat6_symp_lie_ptc (ele, param, start_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start_orb
@@ -404,7 +406,7 @@ end interface
 
 interface
   subroutine make_mat6_tracking (ele, param, start_orb, end_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct), target :: ele
     type (coord_struct) :: start_orb, end_orb
@@ -414,7 +416,7 @@ end interface
 
 interface
   subroutine make_v_mats (ele, v_mat, v_inv_mat)
-    use bmad_struct, only: ele_struct, rp
+    import
     implicit none
     type (ele_struct) ele
     real(rp), optional :: v_mat(4,4)
@@ -424,7 +426,7 @@ end interface
 
 interface
   subroutine mat6_add_offsets (ele, particle)
-    use bmad_struct, only: ele_struct
+    import
     type (ele_struct) ele
     integer particle
   end subroutine
@@ -432,7 +434,7 @@ end interface
 
 interface
   subroutine name_to_list (lat, ele_names, use_ele)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
     logical use_ele(:)
@@ -442,7 +444,7 @@ end interface
 
 interface
   subroutine new_control (lat, ix_ele)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
     integer ix_ele
@@ -452,7 +454,7 @@ end interface
 interface
   subroutine offset_particle (ele, coord, particle, set, &
            set_canonical, set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
-    use bmad_struct, only: ele_struct, coord_struct, rp
+    import
     implicit none
     type (ele_struct) :: ele
     type (coord_struct), intent(inout) :: coord
@@ -466,7 +468,7 @@ end interface
 
 interface
   subroutine offset_photon (ele, coord, set, offset_position_only)
-    use bmad_struct, only: ele_struct, coord_struct
+    import
     implicit none
     type (ele_struct) :: ele
     type (coord_struct) :: coord
@@ -477,7 +479,7 @@ end interface
 
 interface
   subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
-    use bmad_struct, only: ele_struct, rp
+    import
     type (ele_struct) ele
     real(rp) phi_a
     real(rp) phi_b
@@ -488,7 +490,7 @@ end interface
 interface
   subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
                                              stable, growth_rate, chi, err_flag)
-    use bmad_struct, only: ele_struct, rp, coord_struct
+    import
     implicit none
     type (coord_struct), intent(in) :: track(:)
     type (coord_struct), intent(out) :: track0
@@ -501,7 +503,7 @@ end interface
 
 interface
   subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, map0, track0, chi)
-    use bmad_struct, only: rp, coord_struct
+    import
     implicit none
     type (coord_struct), intent(in), target :: track(:)
     type (coord_struct), intent(out) :: track0
@@ -513,7 +515,7 @@ end interface
 
 interface
   subroutine offset_photon_mat6 (mat6, ele)
-    use bmad_struct, only: ele_struct, rp
+    import
     implicit none
     real(rp) mat6(6,6)
     type (ele_struct), target :: ele
@@ -522,7 +524,7 @@ end interface
 
 interface
   subroutine orbit_to_dispersion (orb_diff, ele)
-    use bmad_struct, only: ele_struct, coord_struct
+    import
     implicit none
     type (coord_struct), intent(in) :: orb_diff
     type (ele_struct) :: ele
@@ -531,7 +533,7 @@ end interface
 
 interface
   subroutine order_super_lord_slaves (lat, ix_lord)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     integer ix_lord
@@ -540,7 +542,7 @@ end interface
 
 interface
   subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
-    use bmad_struct, only: rp, twiss_struct
+    import
     implicit none
     type (twiss_struct) twiss
     real(rp), optional :: tol
@@ -553,7 +555,7 @@ end interface
 interface
   subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
                     ptr_attrib, err_flag, err_print_flag, ix_attrib)
-    use bmad_struct, only: ele_struct, rp
+    import
     implicit none
     type (ele_struct), target :: ele
     real(rp), pointer :: ptr_attrib
@@ -568,7 +570,7 @@ end interface
 interface
   subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
                     ptr_array, err_flag, err_print_flag, eles, ix_attrib)
-    use bmad_struct, only: lat_struct, real_pointer_struct, ele_pointer_struct
+    import
     implicit none
     type (lat_struct) lat
     type (real_pointer_struct), allocatable :: ptr_array(:)
@@ -583,7 +585,7 @@ end interface
 
 interface
   subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
-    use bmad_struct, only: lat_struct, rp
+    import
     implicit none
     type (lat_struct) lat
     integer ix_ele
@@ -594,7 +596,7 @@ end interface
 
 interface
   subroutine radiation_integrals (lat, orb, mode, ix_cache, ix_branch, rad_int_by_ele)
-    use bmad_struct, only: lat_struct, coord_struct, normal_modes_struct, rad_int_all_ele_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (rad_int_all_ele_struct), optional :: rad_int_by_ele
@@ -606,7 +608,7 @@ end interface
 
 interface
   subroutine remove_eles_from_lat (lat, check_controls)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
     logical, optional :: check_controls
@@ -615,7 +617,7 @@ end interface
 
 interface
   subroutine read_digested_bmad_file (in_file_name, lat, version, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct), target, intent(inout) :: lat
     integer version
@@ -626,7 +628,7 @@ end interface
 
 interface
   function relative_mode_flip (ele1, ele2)
-    use bmad_struct, only: ele_struct
+    import
     implicit none
     logical relative_mode_flip
     type (ele_struct) ele1
@@ -636,7 +638,7 @@ end interface
 
 interface
   recursive subroutine lat_make_mat6 (lat, ix_ele, coord, ix_branch, err_flag)
-    use bmad_struct, only: lat_struct, coord_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (coord_struct), optional :: coord(0:)
@@ -647,7 +649,7 @@ end interface
 
 interface
   subroutine s_calc (lat)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
   end subroutine
@@ -655,7 +657,7 @@ end interface
 
 interface
   subroutine set_on (key, lat, on_switch, orb)
-    use bmad_struct, only: lat_struct, coord_struct
+    import
     implicit none
     type (lat_struct) lat
     type (coord_struct), optional :: orb(0:)
@@ -666,7 +668,7 @@ end interface
 
 interface
   subroutine set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)
-    use bmad_struct, only: lat_struct, ele_struct
+    import
     implicit none
     type (ele_struct) ele
     type (lat_struct) lat
@@ -678,7 +680,7 @@ end interface
 
 interface
   subroutine set_ele_defaults (ele)
-    use bmad_struct, only: ele_struct
+    import
     implicit none
     type (ele_struct) ele
   end subroutine
@@ -686,7 +688,7 @@ end interface
 
 interface
   subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
-    use bmad_struct, only: lat_struct, rp, coord_struct
+    import
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable :: orb(:)
@@ -699,7 +701,7 @@ end interface
 
 interface
   subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)
-    use bmad_struct, only: lat_struct, rp
+    import
     implicit none
     type (lat_struct), target :: lat
     real(rp) s_split
@@ -712,7 +714,7 @@ end interface
 
 interface
   subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
-    use bmad_struct, only: lat_struct, rp
+    import
     implicit none
     type (lat_struct) lat
     logical :: rf_on
@@ -725,7 +727,7 @@ end interface
 interface
   subroutine transfer_map_calc (lat, t_map, ix1, ix2, &
                                            integrate, one_turn, unit_start)
-    use bmad_struct, only: lat_struct, rp, taylor_struct
+    import
     implicit none
     type (lat_struct) lat
     type (taylor_struct) :: t_map(:)
@@ -736,7 +738,7 @@ end interface
 
 interface
   subroutine tilt_coords (tilt_val, coord)
-    use precision_def
+    import
     implicit none
     real(rp) tilt_val
     real(rp) coord(:)
@@ -745,7 +747,7 @@ end interface
 
 interface
   subroutine track_all (lat, orbit, ix_branch, track_state, err_flag)
-    use bmad_struct, only: lat_struct, coord_struct
+    import
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable :: orbit(:)
@@ -756,7 +758,7 @@ end interface
 
 interface
   subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
-    use bmad_struct, only: lat_struct, coord_struct
+    import
     implicit none
     type (lat_struct)  lat
     type (coord_struct)  orbit(0:)
@@ -769,7 +771,7 @@ end interface
 
 interface
   recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -782,7 +784,7 @@ end interface
 
 interface
   subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -795,7 +797,7 @@ end interface
 
 interface
   subroutine track1_linear (start_orb, ele, param, end_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -806,7 +808,7 @@ end interface
 
 interface
   subroutine track1_taylor (start_orb, ele, param, end_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -817,7 +819,7 @@ end interface
 
 interface
   subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -830,7 +832,7 @@ end interface
 
 interface
   subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -842,7 +844,7 @@ end interface
 
 interface
   subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -853,7 +855,7 @@ end interface
 
 interface
   subroutine track1_symp_map (start_orb, ele, param, end_orb)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
@@ -864,7 +866,7 @@ end interface
 
 interface
   subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
-    use bmad_struct, only: rp, ele_struct, lat_struct, coord_struct
+    import
     implicit none
     type (lat_struct) lat
     type (coord_struct) orbit_start, orbit_end
@@ -877,7 +879,7 @@ end interface
 interface
   subroutine twiss_and_track_from_s_to_s (lat, s_start, s_end, track_entrance, &
                               track_exit, orbit_start, orbit_end, ele_start, ele_end, ix_branch, err)
-    use bmad_struct, only: coord_struct, lat_struct, ele_struct, rp
+    import
     implicit none
     type (coord_struct), optional :: orbit_start, orbit_end
     type (ele_struct), optional :: ele_start, ele_end
@@ -892,7 +894,7 @@ end interface
 interface
   subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, &
                               track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
-    use bmad_struct, only: coord_struct, ele_struct, lat_param_struct, rp
+    import
     implicit none
     type (coord_struct), optional :: orbit_start, orbit_end
     type (ele_struct), optional :: ele_start, ele_end
@@ -906,7 +908,7 @@ end interface
 
 interface
   recursive subroutine twiss_at_element (lat, ix_ele, start_ele, end_ele, average)
-    use bmad_struct, only: lat_struct, ele_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (ele_struct), optional :: start_ele
@@ -918,7 +920,7 @@ end interface
 
 interface
   subroutine twiss_at_start (lat, status, ix_branch)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
     integer, optional, intent(in) :: ix_branch
@@ -928,7 +930,7 @@ end interface
 
 interface
   subroutine twiss1_propagate (twiss1, mat2, length, twiss2, err)
-    use bmad_struct, only: twiss_struct, rp
+    import
     implicit none
     type (twiss_struct) twiss1, twiss2
     real(rp) mat2(2,2), length
@@ -938,7 +940,7 @@ end interface
 
 interface
   subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)
-    use bmad_struct, only: ele_struct, rp
+    import
     implicit none
     type (ele_struct) :: ele
     real(rp) :: mat6(:,:), map0(:)
@@ -950,7 +952,7 @@ end interface
 
 interface
   subroutine twiss_from_tracking (lat, ref_orb0, symp_err, err_flag, d_orb) 
-    use bmad_struct, only: lat_struct, rp, coord_struct
+    import
     type (lat_struct), intent(inout) :: lat
     type (coord_struct), intent(in) :: ref_orb0
     real(rp), intent(in), optional :: d_orb(:)   
@@ -961,7 +963,7 @@ end interface
 
 interface
   subroutine twiss_propagate1 (ele1, ele2, err)
-    use bmad_struct, only: ele_struct
+    import
     implicit none
     type (ele_struct) ele1
     type (ele_struct) ele2
@@ -971,7 +973,7 @@ end interface
 
 interface
   subroutine twiss_propagate_all (lat, ix_branch, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
     integer, optional :: ix_branch
@@ -981,7 +983,7 @@ end interface
 
 interface
   subroutine twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) :: lat
     integer, intent(in) :: ix_start
@@ -994,7 +996,7 @@ end interface
 
 interface
   subroutine type_coord (coord)
-    use bmad_struct, only: coord_struct
+    import
     implicit none
     type (coord_struct) coord
   end subroutine
@@ -1004,7 +1006,7 @@ interface
   subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
         twiss_type, type_control, lattice, type_wake, type_floor_coords, &
         type_field, type_wall, nunit)
-    use bmad_struct, only: lat_struct, ele_struct
+    import
     implicit none
     type (ele_struct) ele
     type (lat_struct), optional :: lattice
@@ -1019,7 +1021,7 @@ end interface
 
 interface
   subroutine type_twiss (ele, frequency_units)
-    use bmad_struct, only: ele_struct
+    import
     implicit none
     type (ele_struct) ele
     integer, optional :: frequency_units
@@ -1030,7 +1032,7 @@ interface
   subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
         type_taylor, twiss_type, type_control, lattice, type_wake, &
         type_floor_coords, type_field, type_wall)
-    use bmad_struct, only: lat_struct, ele_struct
+    import
     implicit none
     type (ele_struct), target :: ele
     type (lat_struct), optional :: lattice
@@ -1046,7 +1048,7 @@ end interface
 
 interface
   subroutine type2_twiss (ele, lines, n_lines, frequency_units, compact_format)
-    use bmad_struct, only: ele_struct
+    import
     implicit none
     type (ele_struct) ele
     integer, optional :: frequency_units
@@ -1058,7 +1060,7 @@ end interface
  
 interface
   subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran, err_flag)
-    use bmad_struct, only: lat_struct, ran_parsing_struct
+    import
     implicit none
     type (lat_struct), target, intent(in) :: lat
     integer, intent(in), optional :: n_files
@@ -1071,7 +1073,7 @@ end interface
 
 interface
   recursive subroutine update_hybrid_list (lat, n_in, use_ele, keep_overlays_and_groups)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
     logical use_ele(:)
@@ -1082,7 +1084,7 @@ end interface
 
 interface
   subroutine add_lattice_control_structs (lat, ele)
-    use bmad_struct, only: lat_struct, ele_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (ele_struct) ele
@@ -1092,7 +1094,7 @@ end interface
 interface
   subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, &
                                             amp_na, amp_nb, particle)
-    use bmad_struct, only: ele_struct, coord_struct, rp
+    import
     implicit none
     type (ele_struct) ele
     type (coord_struct) orb
@@ -1103,7 +1105,7 @@ end interface
 
 interface
   subroutine set_design_linear (lat)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     type (lat_struct) lat
   end subroutine
@@ -1111,7 +1113,7 @@ end interface
 
 interface
   subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
-    use bmad_struct, only: lat_struct
+    import
     implicit none
     character(*) xsif_file
     character(*), optional :: use_line
@@ -1123,7 +1125,7 @@ end interface
 
 interface
   subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
-    use bmad_struct, only: ele_struct, rp, coord_struct, lat_param_struct
+    import
     implicit none
     type (ele_struct) ele
     type (lat_param_struct) param

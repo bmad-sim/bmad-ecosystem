@@ -283,12 +283,12 @@ where \vn{class} is a class name. For example:
 After lattice expansion (\sref{s:expand}), the general syntax to
 specify a set of elements is:
 \begin{example}
-  \{class::\}{branch_id>>}element_id{##N}
+  \{class::\}\{branch_id>>\}element_id\{##N\}
 \end{example}
 where \vn{\{...\}} markes an optional component, \vn{class} is a class
 name, \vn{branch_id} is a branch name or index (\sref{s:branching}),
 \vn{element_id} is and element name or element index
-(\sref{s:lines.wo.arg}), and \vn{##N} indicates that the N\th matching
+(\sref{s:lines.wo.arg}), and \vn{\#\#N} indicates that the N\Th matching
 element is to be used. Examples:
 \begin{example}
   quad::x_br>>q*        ! All quadrupoles of branch "x_br" whose name begins with "q".

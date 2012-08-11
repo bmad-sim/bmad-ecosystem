@@ -88,7 +88,7 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
   do i = i2+1, branch%n_ele_max
-    call init_ele(branch%ele(i), ix_ele = i, lat = lat)
+    call init_ele(branch%ele(i), ix_ele = i, branch = branch)
   enddo
 
   branch%n_ele_max = i2

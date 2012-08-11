@@ -51,14 +51,14 @@ call transfer_ele (ele1, ele_save)
 call transfer_ele (ele2, ele1)
 
 ! ele1%ix_ele and ele1%ix_branch should not change.
-! ele1%lat should not change if ele1 is a component of a lat_struct.
+! ele1%branch should not change if ele1 is a component of a lat_struct.
 !   Otherwise ele1%lat should point to ele2%lat (For cases where ele1 
 !   represents a sliced piece of ele2)
 
 ele1%ix_ele    = ele_save%ix_ele    ! This should not change.
 ele1%ix_branch = ele_save%ix_branch ! This should not change.
 if (ele1%ix_ele > -1) then          ! If part of a lattice...
-  ele1%lat      => ele_save%lat     !   then ele1%lat should not change.
+  ele1%branch => ele_save%branch     !   then ele1%branch should not change.
 endif
 
 
@@ -300,6 +300,7 @@ implicit none
 
 type (lat_struct), intent(inout), target :: lat_out
 type (lat_struct), intent(in) :: lat_in
+type (branch_struct), pointer :: branch_out
 
 integer i, n, ie, n_out, n_in
 
@@ -318,16 +319,18 @@ call allocate_branch_array (lat_out, n)
 
 do i = 0, n
   call allocate_lat_ele_array (lat_out, ubound(lat_in%branch(i)%ele, 1), i)
-  lat_out%branch(i) = lat_in%branch(i)
-  do ie = 0, ubound(lat_out%branch(i)%ele, 1)
-    lat_out%branch(i)%ele(ie)%ix_ele = ie
-    lat_out%branch(i)%ele(ie)%ix_branch = i
-    lat_out%branch(i)%ele(ie)%lat => lat_out
+  branch_out => lat_out%branch(i)
+  branch_out =  lat_in%branch(i)
+  branch_out%lat => lat_out
+  do ie = 0, ubound(branch_out%ele, 1)
+    branch_out%ele(ie)%ix_ele = ie
+    branch_out%ele(ie)%ix_branch = i
+    branch_out%ele(ie)%branch => branch_out
   enddo
 enddo
 
 lat_out%ele_init = lat_in%ele_init
-lat_out%ele_init%lat => lat_out
+nullify(lat_out%ele_init%branch)
 
 ! Handle lat%control array
 
