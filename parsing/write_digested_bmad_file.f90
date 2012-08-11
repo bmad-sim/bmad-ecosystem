@@ -279,7 +279,7 @@ if (associated(ele%wig)) then
   enddo wig_branch_loop
 endif
 
-! Wiggler
+! Wall3d
 
 ix_wall3d_branch = 0
 
@@ -460,7 +460,7 @@ integer j, k
 if (associated(wall3d)) then
 
   write (d_unit) size(wall3d%section)
-  write (d_unit) wall3d%ele_anchor_pt, wall3d%priority
+  write (d_unit) wall3d%ele_anchor_pt, wall3d%priority, wall3d%crotch
 
   do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
     sec => wall3d%section(j)
