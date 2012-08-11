@@ -2,15 +2,13 @@
 ! Bmad_struct holds the structure definitions for Bmad routines.
 !-
 
-#include "CESR_platform.inc"
-
 module bmad_struct
 
 use twiss_mod
 use bmad_taylor_mod
 use random_mod
 
-use definition, only: genfield, fibre
+use definition, only: genfield, fibre, layout
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -400,9 +398,9 @@ type ele_struct
   type (twiss_struct)  a, b, z                 ! Twiss parameters at end of element
   type (xy_disp_struct) x, y                   ! Projected dispersions.
   type (bookkeeping_state_struct) bookkeeping_state         ! Element attribute bookkeeping
+  type (branch_struct), pointer :: branch => null()         ! Pointer to branch containing element.
   type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
   type (floor_position_struct) floor                        ! Global floor position.
-  type (lat_struct), pointer :: lat => null()               ! Pointer to lattice containing element.
   type (ele_struct), pointer :: lord => null()              ! Pointer to a slice lord.
   type (mode3_struct), pointer :: mode3 => null()           ! 6D normal mode structure.
   type (fibre), pointer :: ptc_fiber => null()              ! PTC tracking.
@@ -497,6 +495,16 @@ type lat_param_struct
                                           ! Overall status for the branch.
 end type
 
+! Structure for linking a branch_struct with a collection of ptc layouts
+
+type ptc_layout_pointer_struct
+  type (layout), pointer :: ptr
+end type
+
+type ptc_branch1_info_struct
+  type (ptc_layout_pointer_struct), allocatable :: layout(:)
+end type
+
 !
 
 type mode_info_struct
@@ -507,6 +515,8 @@ type mode_info_struct
   real(rp) sigmap    ! Beam divergence.
 end type
 
+!
+
 type branch_struct
   character(40) name
   integer ix_branch         !  0 => main lattice line
@@ -514,10 +524,12 @@ type branch_struct
   integer ix_from_ele
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
+  type (lat_struct), pointer :: lat => null()
   type (mode_info_struct), pointer :: a => null(), b => null(), z => null()
   type (ele_struct), pointer :: ele(:) => null()
   type (lat_param_struct), pointer :: param => null()
   type (wall3d_struct), pointer :: wall3d => null()
+  type (ptc_branch1_info_struct) ptc
 end type
 
 integer, parameter :: opal$ = 1, impactt$ = 2

@@ -46,7 +46,7 @@ type (coord_struct), optional :: orbit_start, orbit_end
 type (ele_struct), optional :: ele_start, ele_end
 type (ele_struct) ele_here
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele0
+type (ele_struct), pointer :: ele0, ele_track
 type (branch_struct), pointer :: branch
 
 real(rp) s_start, s_end
@@ -111,9 +111,10 @@ endif
 ix_ele = ix_start + 1
 do
   if (ix_ele == ix_end) exit
+  ele_track => branch%ele(ix_ele)
 
   if (present(orbit_end)) then
-    call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
+    call track1 (orbit_end, ele_track, branch%param, orbit_end)
     if (.not. particle_is_moving_forward(orbit_end, branch%param%particle)) then
       err = .true.
       return
@@ -124,11 +125,13 @@ do
     call transfer_twiss (ele_end, ele_here)
     ele_here%mat6 = ele_end%mat6
     ele_here%vec0 = ele_end%vec0
-    ele_end%mat6 = branch%ele(ix_ele)%mat6
+    ele_end%mat6 = ele_track%mat6
+    ele_end%map_ref_orb_in  = ele_track%map_ref_orb_in   ! Needed for dispersion calc.
+    ele_end%map_ref_orb_out = ele_track%map_ref_orb_out  ! Needed for dispersion calc.
     call twiss_propagate1 (ele_here, ele_end, error)
     if (present(err)) err = error
     if (error) return
-    ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + branch%ele(ix_ele)%vec0
+    ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_track%vec0
     ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
   endif
 

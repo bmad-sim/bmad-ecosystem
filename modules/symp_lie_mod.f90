@@ -1128,13 +1128,13 @@ end_orb%vec(6) = end_orb%vec(6)  - dE_p * (1 + end_orb%vec(6))
 if (synch_rad_com%i_calc_on) then
   synch_rad_com%i2 = synch_rad_com%i2 + g2 * ds
   synch_rad_com%i3 = synch_rad_com%i3 + g3 * ds
-  if (associated(ele%lat)) then
+  if (associated(ele%branch)) then
     temp_ele%mat6 = mat6
     temp_ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
     temp_ele%vec0(6) = 0
     temp_ele%map_ref_orb_in = start_orb%vec
     temp_ele%map_ref_orb_out = end_orb%vec
-    ele0 => ele%lat%branch(ele%ix_branch)%ele(ele%ix_ele-1)
+    ele0 => ele%branch%ele(ele%ix_ele-1)
     call twiss_propagate1 (ele0, temp_ele)
     synch_rad_com%i5a = synch_rad_com%i5a + g3 * ds * (temp_ele%a%gamma * temp_ele%a%eta**2 + &
           2 * temp_ele%a%alpha * temp_ele%a%eta * temp_ele%a%etap + temp_ele%a%beta * temp_ele%a%etap**2)

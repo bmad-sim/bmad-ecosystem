@@ -5,58 +5,213 @@ import shutil
 import os
 import re
 
-g = re.compile(r'(\s*)(call)( element_at_s.*?,.*?,) *(\w*)(.*)', re.IGNORECASE)
+class z_class:
+  def __init__(self):
+    self.line = ''
+    self.found = False
+
+def replaceit (rec, z, val):
+  a = rec.search(z.line)
+  while a:
+    if z.line.find('!') != -1:
+      if z.line.find('!') < a.start(2): break
+    z.line = z.line[:a.start(2)] + val + z.line[a.end(2):]
+    z.found = True
+    a = rec.search(z.line)
+
 
 print 'Number of files: ' + str(len(sys.argv[1:]))
+
+re_zero = re.compile(r'(^|[^_\w])(zero)([^_\w]|$)', re.IGNORECASE)
+re_one = re.compile(r'(^|[^_\w])(one)([^_\w]|$)', re.IGNORECASE)
+re_two = re.compile(r'(^|[^_\w])(two)([^_\w]|$)', re.IGNORECASE)
+re_three = re.compile(r'(^|[^_\w])(three)([^_\w]|$)', re.IGNORECASE)
+re_four = re.compile(r'(^|[^_\w])(four)([^_\w]|$)', re.IGNORECASE)
+re_five = re.compile(r'(^|[^_\w])(five)([^_\w]|$)', re.IGNORECASE)
+re_six = re.compile(r'(^|[^_\w])(six)([^_\w]|$)', re.IGNORECASE)
+re_seven = re.compile(r'(^|[^_\w])(seven)([^_\w]|$)', re.IGNORECASE)
+re_eight = re.compile(r'(^|[^_\w])(eight)([^_\w]|$)', re.IGNORECASE)
+re_nine = re.compile(r'(^|[^_\w])(nine)([^_\w]|$)', re.IGNORECASE)
+re_ten = re.compile(r'(^|[^_\w])(ten)([^_\w]|$)', re.IGNORECASE)
+re_eleven = re.compile(r'(^|[^_\w])(eleven)([^_\w]|$)', re.IGNORECASE)
+re_twelve = re.compile(r'(^|[^_\w])(twelve)([^_\w]|$)', re.IGNORECASE)
+re_c_14 = re.compile(r'(^|[^_\w])(c_14)([^_\w]|$)', re.IGNORECASE)
+re_c_15 = re.compile(r'(^|[^_\w])(c_15)([^_\w]|$)', re.IGNORECASE)
+re_c_16 = re.compile(r'(^|[^_\w])(c_16)([^_\w]|$)', re.IGNORECASE)
+re_c_20 = re.compile(r'(^|[^_\w])(c_20)([^_\w]|$)', re.IGNORECASE)
+re_c_24 = re.compile(r'(^|[^_\w])(c_24)([^_\w]|$)', re.IGNORECASE)
+re_c_27 = re.compile(r'(^|[^_\w])(c_27)([^_\w]|$)', re.IGNORECASE)
+re_c_30 = re.compile(r'(^|[^_\w])(c_30)([^_\w]|$)', re.IGNORECASE)
+re_c_32 = re.compile(r'(^|[^_\w])(c_32)([^_\w]|$)', re.IGNORECASE)
+re_c_40 = re.compile(r'(^|[^_\w])(c_40)([^_\w]|$)', re.IGNORECASE)
+re_c_48 = re.compile(r'(^|[^_\w])(c_48)([^_\w]|$)', re.IGNORECASE)
+re_c_50 = re.compile(r'(^|[^_\w])(c_50)([^_\w]|$)', re.IGNORECASE)
+re_c_55 = re.compile(r'(^|[^_\w])(c_55)([^_\w]|$)', re.IGNORECASE)
+re_c_72 = re.compile(r'(^|[^_\w])(c_72)([^_\w]|$)', re.IGNORECASE)
+re_c_80 = re.compile(r'(^|[^_\w])(c_80)([^_\w]|$)', re.IGNORECASE)
+re_c_85 = re.compile(r'(^|[^_\w])(c_85)([^_\w]|$)', re.IGNORECASE)
+re_c_90 = re.compile(r'(^|[^_\w])(c_90)([^_\w]|$)', re.IGNORECASE)
+re_c_100 = re.compile(r'(^|[^_\w])(c_100)([^_\w]|$)', re.IGNORECASE)
+re_c_120 = re.compile(r'(^|[^_\w])(c_120)([^_\w]|$)', re.IGNORECASE)
+re_c_160 = re.compile(r'(^|[^_\w])(c_160)([^_\w]|$)', re.IGNORECASE)
+re_c_180 = re.compile(r'(^|[^_\w])(c_180)([^_\w]|$)', re.IGNORECASE)
+re_c_1024 = re.compile(r'(^|[^_\w])(c_1024)([^_\w]|$)', re.IGNORECASE)
+re_half = re.compile(r'(^|[^_\w])(half)([^_\w]|$)', re.IGNORECASE)
+re_c_0_8 = re.compile(r'(^|[^_\w])(c_0_8)([^_\w]|$)', re.IGNORECASE)
+re_c_0_1 = re.compile(r'(^|[^_\w])(c_0_1)([^_\w]|$)', re.IGNORECASE)
+re_c_0_75 = re.compile(r'(^|[^_\w])(c_0_75)([^_\w]|$)', re.IGNORECASE)
+re_c_0_4375 = re.compile(r'(^|[^_\w])(c_0_4375)([^_\w]|$)', re.IGNORECASE)
+re_c_4d_1 = re.compile(r'(^|[^_\w])(c_4d_1)([^_\w]|$)', re.IGNORECASE)
+re_c_0_125 = re.compile(r'(^|[^_\w])(c_0_125)([^_\w]|$)', re.IGNORECASE)
+re_c_1d_2 = re.compile(r'(^|[^_\w])(c_1d_2)([^_\w]|$)', re.IGNORECASE)
+re_c_1d_3 = re.compile(r'(^|[^_\w])(c_1d_3)([^_\w]|$)', re.IGNORECASE)
+re_c_0_0001 = re.compile(r'(^|[^_\w])(c_0_0001)([^_\w]|$)', re.IGNORECASE)
+re_c_0_25d_3 = re.compile(r'(^|[^_\w])(c_0_25d_3)([^_\w]|$)', re.IGNORECASE)
+re_c_0_25 = re.compile(r'(^|[^_\w])(c_0_25)([^_\w]|$)', re.IGNORECASE)
+re_c_0_5d_3 = re.compile(r'(^|[^_\w])(c_0_5d_3)([^_\w]|$)', re.IGNORECASE)
+re_c_1d_8 = re.compile(r'(^|[^_\w])(c_1d_8)([^_\w]|$)', re.IGNORECASE)
+re_c_1_2 = re.compile(r'(^|[^_\w])(c_1_2)([^_\w]|$)', re.IGNORECASE)
+re_c_0_2 = re.compile(r'(^|[^_\w])(c_0_2)([^_\w]|$)', re.IGNORECASE)
+re_c_1d3 = re.compile(r'(^|[^_\w])(c_1d3)([^_\w]|$)', re.IGNORECASE)
+re_c_1d5 = re.compile(r'(^|[^_\w])(c_1d5)([^_\w]|$)', re.IGNORECASE)
+re_c_1d6 = re.compile(r'(^|[^_\w])(c_1d6)([^_\w]|$)', re.IGNORECASE)
+re_c_1d9 = re.compile(r'(^|[^_\w])(c_1d9)([^_\w]|$)', re.IGNORECASE)
+re_c_111110 = re.compile(r'(^|[^_\w])(c_111110)([^_\w]|$)', re.IGNORECASE)
+re_c_2d5 = re.compile(r'(^|[^_\w])(c_2d5)([^_\w]|$)', re.IGNORECASE)
+re_c_1d8 = re.compile(r'(^|[^_\w])(c_1d8)([^_\w]|$)', re.IGNORECASE)
+re_c_1d10 = re.compile(r'(^|[^_\w])(c_1d10)([^_\w]|$)', re.IGNORECASE)
+re_c_1d4 = re.compile(r'(^|[^_\w])(c_1d4)([^_\w]|$)', re.IGNORECASE)
+re_c_1d30 = re.compile(r'(^|[^_\w])(c_1d30)([^_\w]|$)', re.IGNORECASE)
+re_c_1d36 = re.compile(r'(^|[^_\w])(c_1d36)([^_\w]|$)', re.IGNORECASE)
+re_c_221 = re.compile(r'(^|[^_\w])(c_221)([^_\w]|$)', re.IGNORECASE)
+re_c_981 = re.compile(r'(^|[^_\w])(c_981)([^_\w]|$)', re.IGNORECASE)
+re_c_867 = re.compile(r'(^|[^_\w])(c_867)([^_\w]|$)', re.IGNORECASE)
+re_c_102 = re.compile(r'(^|[^_\w])(c_102)([^_\w]|$)', re.IGNORECASE)
+re_c_183 = re.compile(r'(^|[^_\w])(c_183)([^_\w]|$)', re.IGNORECASE)
+re_c_678 = re.compile(r'(^|[^_\w])(c_678)([^_\w]|$)', re.IGNORECASE)
+re_c_472 = re.compile(r'(^|[^_\w])(c_472)([^_\w]|$)', re.IGNORECASE)
+re_c_66 = re.compile(r'(^|[^_\w])(c_66)([^_\w]|$)', re.IGNORECASE)
+re_c_716 = re.compile(r'(^|[^_\w])(c_716)([^_\w]|$)', re.IGNORECASE)
+re_c_2079 = re.compile(r'(^|[^_\w])(c_2079)([^_\w]|$)', re.IGNORECASE)
+re_c_1002 = re.compile(r'(^|[^_\w])(c_1002)([^_\w]|$)', re.IGNORECASE)
+re_c_834 = re.compile(r'(^|[^_\w])(c_834)([^_\w]|$)', re.IGNORECASE)
+re_c_454 = re.compile(r'(^|[^_\w])(c_454)([^_\w]|$)', re.IGNORECASE)
+re_c_82 = re.compile(r'(^|[^_\w])(c_82)([^_\w]|$)', re.IGNORECASE)
+re_c_41 = re.compile(r'(^|[^_\w])(c_41)([^_\w]|$)', re.IGNORECASE)
+re_c_216 = re.compile(r'(^|[^_\w])(c_216)([^_\w]|$)', re.IGNORECASE)
+re_c_272 = re.compile(r'(^|[^_\w])(c_272)([^_\w]|$)', re.IGNORECASE)
+re_c_840 = re.compile(r'(^|[^_\w])(c_840)([^_\w]|$)', re.IGNORECASE)
+re_c_360 = re.compile(r'(^|[^_\w])(c_360)([^_\w]|$)', re.IGNORECASE)
+re_c_300 = re.compile(r'(^|[^_\w])(c_300)([^_\w]|$)', re.IGNORECASE)
+re_c_137 = re.compile(r'(^|[^_\w])(c_137)([^_\w]|$)', re.IGNORECASE)
+re_c_0_28 = re.compile(r'(^|[^_\w])(c_0_28)([^_\w]|$)', re.IGNORECASE)
+re_c_0_31 = re.compile(r'(^|[^_\w])(c_0_31)([^_\w]|$)', re.IGNORECASE)
+re_c_1_8 = re.compile(r'(^|[^_\w])(c_1_8)([^_\w]|$)', re.IGNORECASE)
+re_c_1d_5 = re.compile(r'(^|[^_\w])(c_1d_5)([^_\w]|$)', re.IGNORECASE)
+re_c_0_3079 = re.compile(r'(^|[^_\w])(c_0_3079)([^_\w]|$)', re.IGNORECASE)
 
 for arg in sys.argv[1:]:
   in_file = open(arg)
   out_file = open(r'temp.temp', 'w')
-  found = False
+  z = z_class()
 
-  for line in in_file.readlines(): 
+  for z.line in in_file.readlines(): 
 
-    if '%do_rad_int_calc_data' in line:
-      found = True
-      line = line.replace('%do_rad_int_calc_data', '%calc%rad_int_for_data')
+    replaceit (re_zero, z, '0.0_dp')
+    replaceit (re_one, z, '1.0_dp')
+    replaceit (re_two, z, '2.0_dp')
+    replaceit (re_three, z, '3.0_dp')
+    replaceit (re_four, z, '4.0_dp')
+    replaceit (re_five, z, '5.0_dp')
+    replaceit (re_six, z, '6.0_dp')
+    replaceit (re_seven, z, '7.0_dp')
+    replaceit (re_eight, z, '8.0_dp')
+    replaceit (re_nine, z, '9.0_dp')
+    replaceit (re_ten, z, '10.0_dp')
+    replaceit (re_eleven, z, '11.0_dp')
+    replaceit (re_twelve, z, '12.0_dp')
+    replaceit (re_c_14, z, '14.0_dp')
+    replaceit (re_c_15, z, '15.0_dp')
+    replaceit (re_c_16, z, '16.0_dp')
+    replaceit (re_c_20, z, '20.0_dp')
+    replaceit (re_c_24, z, '24.0_dp')
+    replaceit (re_c_27, z, '27.0_dp')
+    replaceit (re_c_30, z, '30.0_dp')
+    replaceit (re_c_32, z, '32.0_dp')
+    replaceit (re_c_40, z, '40.0_dp')
+    replaceit (re_c_48, z, '48.0_dp')
+    replaceit (re_c_50, z, '50.0_dp')
+    replaceit (re_c_55, z, '55.0_dp')
+    replaceit (re_c_72, z, '72.0_dp')
+    replaceit (re_c_80, z, '80.0_dp')
+    replaceit (re_c_85, z, '85.0_dp')
+    replaceit (re_c_90, z, '90.0_dp')
+    replaceit (re_c_100, z, '100.0_dp')
+    replaceit (re_c_120, z, '120.0_dp')
+    replaceit (re_c_160, z, '160.0_dp')
+    replaceit (re_c_180, z, '180.0_dp')
+    replaceit (re_c_1024, z, '1024.0_dp')
+    replaceit (re_half, z, '0.5_dp')
+    replaceit (re_c_0_8, z, '0.8_dp')
+    replaceit (re_c_0_1, z, '0.1_dp')
+    replaceit (re_c_0_75, z, '0.75_dp')
+    replaceit (re_c_0_4375, z, '0.4375_dp')
+    replaceit (re_c_4d_1, z, '0.4_dp')
+    replaceit (re_c_0_125, z, '0.125_dp')
+    replaceit (re_c_1d_2, z, '1e-2_dp')
+    replaceit (re_c_1d_3, z, '1e-3_dp')
+    replaceit (re_c_0_0001, z, '1e-4_dp')
+    replaceit (re_c_0_25d_3, z, '0.25e-3_dp')
+    replaceit (re_c_0_25, z, '0.25_dp')
+    replaceit (re_c_0_5d_3, z, '0.5e-3_dp')
+    replaceit (re_c_1d_8, z, '1e-8_dp')
+    replaceit (re_c_1_2, z, '1.2_dp')
+    replaceit (re_c_0_2, z, '0.2_dp')
+    replaceit (re_c_1d3, z, '1e3_dp')
+    replaceit (re_c_1d5, z, '1e5_dp')
+    replaceit (re_c_1d6, z, '1e6_dp')
+    replaceit (re_c_1d9, z, '1e9_dp')
+    replaceit (re_c_111110, z, '1.1111e5_dp')
+    replaceit (re_c_2d5, z, '2e5_dp')
+    replaceit (re_c_1d8, z, '1e8_dp')
+    replaceit (re_c_1d10, z, '1e10_dp')
+    replaceit (re_c_1d4, z, '1e4_dp')
+    replaceit (re_c_1d30, z, '1e30_dp')
+    replaceit (re_c_1d36, z, '1e36_dp')
+    replaceit (re_c_221, z, '221.0_dp')
+    replaceit (re_c_981, z, '981.0_dp')
+    replaceit (re_c_867, z, '867.0_dp')
+    replaceit (re_c_102, z, '102.0_dp')
+    replaceit (re_c_183, z, '183.0_dp')
+    replaceit (re_c_678, z, '678.0_dp')
+    replaceit (re_c_472, z, '472.0_dp')
+    replaceit (re_c_66, z, '66.0_dp')
+    replaceit (re_c_716, z, '716.0_dp')
+    replaceit (re_c_2079, z, '2079.0_dp')
+    replaceit (re_c_1002, z, '1002.0_dp')
+    replaceit (re_c_834, z, '834.0_dp')
+    replaceit (re_c_454, z, '454.0_dp')
+    replaceit (re_c_82, z, '82.0_dp')
+    replaceit (re_c_41, z, '41.0_dp')
+    replaceit (re_c_216, z, '216.0_dp')
+    replaceit (re_c_272, z, '272.0_dp')
+    replaceit (re_c_840, z, '840.0_dp')
+    replaceit (re_c_360, z, '360.0_dp')
+    replaceit (re_c_300, z, '300.0_dp')
+    replaceit (re_c_137, z, '137.0_dp')
+    replaceit (re_c_0_28, z, '0.28_dp')
+    replaceit (re_c_0_31, z, '0.31_dp')
+    replaceit (re_c_1_8, z, '1.8_dp')
+    replaceit (re_c_1d_5, z, '1e-5_dp')
+    replaceit (re_c_0_3079, z, '0.3079_dp')
 
-    if '%do_rad_int_calc_plotting' in line:
-      found = True
-      line = line.replace('%do_rad_int_calc_plotting', '%calc%rad_int_for_plotting')
+    out_file.write(z.line)
 
-    if '%do_chrom_calc' in line:
-      found = True
-      line = line.replace('%do_chrom_calc', '%calc%chrom')
-
-    if '%lattice_recalc' in line:
-      found = True
-      line = line.replace('%lattice_recalc', '%calc%lattice')
-  
-    if '%mat6_recalc_on' in line:
-      found = True
-      line = line.replace('%mat6_recalc_on', '%calc%mat6')
-
-    if '%track_recalc_on' in line:
-      found = True
-      line = line.replace('%track_recalc_on', '%calc%track')
-
-    if '%beam_saved_at' in line:
-      found = True
-      line = line.replace('%beam_saved_at', '%beam%saved_at')
-
-    if '%current_beam' in line:
-      found = True
-      line = line.replace('%current_beam', '%beam%current')
-
-    if '%beam_info' in line:
-      found = True
-      line = line.replace('%beam_info', '%beam')
-
-    out_file.write(line)
+  #------------------
 
   out_file.close()
 
-  if found: 
+  if z.found: 
     shutil.copy('temp.temp', arg)
     print 'File modified: ' + arg
   else:

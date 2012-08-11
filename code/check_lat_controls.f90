@@ -94,6 +94,15 @@ do i_b = 0, ubound(lat%branch, 1)
 
   endif
 
+  ! branch%lat check
+
+  if (.not. associated(branch%lat, lat)) then
+    call out_io (s_fatal$, r_name, &
+              'BRANCH: ' // trim(branch%name) // '   (\i0\)', &
+              'HAS BAD BRANCH%LAT POINTER.', i_array = [i_b])
+    err_flag = .true.
+  endif
+
   !--------------------------------
 
   do i_t = 1, branch%n_ele_max
@@ -119,12 +128,12 @@ do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    ! ele%lat check
+    ! ele%branch check
 
-    if (.not. associated(ele%lat, lat)) then
+    if (.not. associated(ele%branch, branch)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '   (\i0\)', &
-                'HAS BAD ELE%LAT POINTER.', i_array = [ele%ix_ele])
+                'HAS BAD ELE%BRANCH POINTER.', i_array = [ele%ix_ele])
       err_flag = .true.
     endif
 

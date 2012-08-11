@@ -418,8 +418,8 @@ orb2%state = alive$
 if (present(particle)) then
   species = particle
 elseif (present(ele)) then
-  if (associated (ele%lat)) then
-    species = ele%lat%branch(ele%ix_branch)%param%particle
+  if (associated (ele%branch)) then
+    species = ele%branch%param%particle
   endif
 elseif (init_orb%state == not_set$) then
   species = positron$
@@ -1103,7 +1103,7 @@ integer, optional :: n
 call init_attribute_name_array
 call deallocate_lat_pointers (lat)
 if (present(n)) call allocate_lat_ele_array(lat, n)
-call init_ele (lat%ele_init, lat = lat)
+call init_ele (lat%ele_init)
 
 call reallocate_control (lat, 100)
 
@@ -1290,8 +1290,8 @@ ele2 = ele1
 
 if (logic_option (.false., nullify_pointers)) then
   call deallocate_ele_pointers (ele2, .true.)
-  ele2%lat  => ele1%lat  ! Reinstate
-  ele2%lord => ele1%lord ! Reinstate
+  ele2%branch => ele1%branch  ! Reinstate
+  ele2%lord   => ele1%lord    ! Reinstate
 endif
 
 end subroutine transfer_ele
@@ -1646,7 +1646,7 @@ integer i
 ! %lord and %lat never point to something that has been allocated for the element
 ! so just nullify these pointers.
 
-nullify (ele%lat)
+nullify (ele%branch)
 nullify (ele%lord)
 
 ! nullify
@@ -1757,7 +1757,7 @@ end subroutine kill_ptc_genfield
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, lat)
+! Subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, branch)
 !
 ! Subroutine to initialize a Bmad element. Element is initialized to be free
 ! (not a lord or slave) and all %values set to zero.
@@ -1770,25 +1770,25 @@ end subroutine kill_ptc_genfield
 !   sub_key   -- Integer, optional: Sub-key to initialize to.
 !   ix_ele    -- Integer, optional: ix_ele index to initalize to. Default = -1.
 !   ix_branch -- Integer, optional: Branch index to initalize to. Default = 0.
-!   lat       -- Lat_struct: Lattice to point ele%lat to. Otherwise ele%lat is nullified.
+!   branch    -- branch_struct: Branch to point ele%branch to. Otherwise ele%branch is nullified.
 !
 ! Output:
 !   ele -- Ele_struct: Initialized element.
 !-
 
-subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, lat)
+subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, branch)
 
 implicit none
 
 type (ele_struct)  ele
-type (lat_struct), optional, target :: lat
+type (branch_struct), optional, target :: branch
 integer, optional :: key, sub_key
 integer, optional :: ix_branch, ix_ele
 
 !
 
 call deallocate_ele_pointers (ele)
-if (present(lat)) ele%lat => lat
+if (present(branch)) ele%branch => branch
 
 ele%type = ' '
 ele%alias = ' '
@@ -1960,14 +1960,14 @@ ix_br = integer_option (0, ix_branch)
 if (ix_br == 0) then
   call allocate_element_array (lat%ele, upper_bound, .true.)
   do i = 0, ubound(lat%ele, 1)
-    lat%ele(i)%lat => lat
+    lat%ele(i)%branch => lat%branch(0)
   enddo
   if (allocated(lat%branch)) lat%branch(0)%ele => lat%ele
 
 else
   call allocate_element_array (lat%branch(ix_br)%ele, upper_bound, .true.)
   do i = 0, ubound(lat%branch(ix_br)%ele, 1)
-    lat%branch(ix_br)%ele(i)%lat => lat
+    lat%branch(ix_br)%ele(i)%branch => lat%branch(ix_br)
   enddo
   lat%branch(ix_br)%ele%ix_branch = ix_br
 endif
@@ -2125,6 +2125,7 @@ endif
 ! 
 
 do i = curr_ub+1, ub
+  lat%branch(i)%lat => lat
   lat%branch(i)%ix_branch = i
   lat%branch(i)%ix_from_branch = -1
   lat%branch(i)%ix_from_ele = -1
@@ -3097,12 +3098,12 @@ logical, optional :: set_slaves
 ! Only set overall lattice status flags if the element is part of a lattice.
 
 
-if (ele%ix_ele > -1 .and. associated(ele%lat)) then
+if (ele%ix_ele > -1 .and. associated(ele%branch)) then
   ! If a lord
-  if (ele%ix_branch == 0 .and. ele%ix_ele > ele%lat%n_ele_track) then
-    state => ele%lat%lord_state
+  if (ele%ix_branch == 0 .and. ele%ix_ele > ele%branch%n_ele_track) then
+    state => ele%branch%lat%lord_state
   else
-    state => ele%lat%branch(ele%ix_branch)%param%bookkeeping_state
+    state => ele%branch%param%bookkeeping_state
   endif
 else
   nullify(state)
@@ -3399,7 +3400,7 @@ type (branch_struct), pointer :: branch_ptr
 
 ! Now associated with a lattice case
 
-if (.not. associated(ele%lat)) then
+if (.not. associated(ele%branch)) then
   nullify(branch_ptr)
   return
 endif
@@ -3407,7 +3408,7 @@ endif
 ! Not a lord case
 
 if (ele%n_slave == 0) then
-  branch_ptr => ele%lat%branch(ele%ix_branch)
+  branch_ptr => ele%branch
   return
 endif
 
@@ -3451,9 +3452,9 @@ integer ic_out, icon_out, ib, i, n
 
 !
 
-if (.not. associated(lord%lat, slave%lat)) call err_exit  ! Should not be
+if (.not. associated(lord%branch, slave%branch)) call err_exit  ! Should not be
 
-lat => lord%lat
+lat => lord%branch%lat
 
 ! Find lat%control(:) and lat%ic(:) elements associated with this link
 
@@ -3556,7 +3557,7 @@ if (ix_slave > lord%n_slave .or. ix_slave < 1) then
   return
 endif
 
-lat => lord%lat
+lat => lord%branch%lat
 icon = lord%ix1_slave + ix_slave - 1
 con => lat%control(icon)
 slave_ptr => lat%branch(con%ix_branch)%ele(con%ix_slave)
@@ -3615,7 +3616,7 @@ endif
 
 ! slice_ele stores info differently
 
-lat => slave%lat
+lat => slave%branch%lat
 
 if (slave%slave_status == slice_slave$) then
   lord_ptr => slave%lord
@@ -4053,6 +4054,7 @@ drift_ele%value(e_tot_start$) = ele_in%value(e_tot_start$)
 drift_ele%value(l$)           = (ele_in%value(l$) - ele_in%value(l_hard_edge$)) / 2 
 drift_ele%value(ds_step$)     = drift_ele%value(l$)
 drift_ele%value(num_steps$)   = 1
+drift_ele%name                = 'drift_' // ele_in%name(1:34)
 
 end subroutine create_hard_edge_drift 
 
@@ -4085,7 +4087,7 @@ integer i
 !
 
 is_abs_time = bmad_com%absolute_time_tracking_default
-if (associated(ele%lat)) is_abs_time = ele%lat%absolute_time_tracking
+if (associated(ele%branch)) is_abs_time = ele%branch%lat%absolute_time_tracking
 if (ele%key == e_gun$) is_abs_time = .true.
 
 if (ele%key == em_field$ .and. ele%slave_status == super_slave$) then

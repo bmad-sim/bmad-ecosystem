@@ -81,7 +81,7 @@ enddo
 
 split_done = .true.
 ele = branch%ele(ix_split)
-ele%lat => lat   ! So we can use pointer_to_lord
+ele%branch => branch   ! So we can use pointer_to_lord
 len_orig = ele%value(l$)
 len2 = branch%ele(ix_split)%s - s_split
 len1 = len_orig - len2
@@ -123,8 +123,8 @@ endif
 call deallocate_ele_pointers (ele1)
 call deallocate_ele_pointers (ele2)
 
-ele1%lat => lat ! reinstate
-ele2%lat => lat ! reinstate
+ele1%branch => branch ! reinstate
+ele2%branch => branch ! reinstate
 
 if (associated(ele%a_pole)) then
   call multipole_init(ele1)

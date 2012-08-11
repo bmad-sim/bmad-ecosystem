@@ -205,9 +205,9 @@ end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
 if (synch_rad_com%i_calc_on) then
   synch_rad_com%i2 = synch_rad_com%i2 + g2 * s_len
   synch_rad_com%i3 = synch_rad_com%i3 + g3 * s_len
-  if (associated(ele%lat)) then
+  if (associated(ele%branch)) then
     if (edge == start_edge$) then
-      ele0 => ele%lat%branch(ele%ix_branch)%ele(ele%ix_ele-1)
+      ele0 => ele%branch%ele(ele%ix_ele-1)
     else
       ele0 => ele
     endif

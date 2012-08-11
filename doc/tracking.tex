@@ -185,8 +185,8 @@ the element so that the particle ends at the proper virtual exit end.
 
 When tracking through a lattice branch, one often defines an array of
 \vn{coord_struct}s -- one for each element of the lattice branch. In
-this case, the $i$\th \vn{coord_struct} corresponds to the particle
-coordinates at the end of the $i$\th element. Since the number of
+this case, the $i$\Th \vn{coord_struct} corresponds to the particle
+coordinates at the end of the $i$\Th element. Since the number of
 elements in the lattice is not known in advance, the array must be
 declared to be allocatable. The lower bound of the array must be set
 to zero to match a \vn{lat%branch(i)%ele(:)} array.  The upper bound

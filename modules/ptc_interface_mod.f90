@@ -1,3 +1,10 @@
+!+
+! Module ptc_interface_mod
+!
+! Module of basic PTC interface routines.
+! Also see: ptc_layout_mod
+!-
+
 module ptc_interface_mod
 
 use bmad_struct
@@ -306,103 +313,6 @@ end function map_coef
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine type_layout (lay)
-!
-! Subroutine to print the global information in a layout
-!
-! Modules Needed:
-!   use ptc_interface_mod
-!
-! Input:
-!   lay - layout: layout to use.
-!+
-
-subroutine type_layout (lay)
-
-use s_def_all_kinds, only: layout
-
-implicit none
-
-type (layout) lay
-
-!
-
-if (.not. associated(lay%start)) then
-  print *, 'Warning from TYPE_LAYOUT: Layout NOT Associated'
-  return
-endif
-
-print *, 'Name:         ', lay%name
-print *, 'N:            ', lay%N,        '  ! Number of Elements'
-print *, 'LatPos:       ', lay%lastpos,  '  ! Last position'
-
-end subroutine type_layout
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine lat_to_layout (lat, ptc_layout)
-!
-! Subroutine to create a PTC layout from a Bmad lat.
-! Note: If ptc_layout has been already used then you should first do a 
-!           call kill(ptc_layout)
-! This deallocates the pointers in the layout
-!
-! Note: Before you call this routine you need to first call:
-!    call set_ptc (...)
-!
-! Modules needed:
-!   use ptc_interface_mod
-!
-! Input:
-!   lat -- lat_struct: 
-!
-! Output:
-!   ptc_layout -- Layout:
-!-
-
-subroutine lat_to_layout (lat, ptc_layout)
-
-use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
-use mad_like, only: set_up, kill
-
-implicit none
-
-type (lat_struct), intent(in) :: lat
-type (layout), intent(inout) :: ptc_layout
-type (fibre), pointer :: fib
-
-integer i
-
-! setup
-
-call set_up (ptc_layout)
-
-! transfer elements.
-
-do i = 1, lat%n_ele_track
-  allocate (fib)
-  call ele_to_fibre (lat%ele(i), fib, lat%param%particle, .true.)
-  call append (ptc_layout, fib)
-  call kill (fib)
-enddo
-
-! circular or not?
-
-if (lat%param%lattice_type == circular_lattice$) then
-  ptc_layout%closed = .true.
-  call ring_l (ptc_layout, .true._lp)
-else
-  ptc_layout%closed = .false.
-endif
-
-end subroutine lat_to_layout
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
 ! Subroutine type_map1 (y, type0, n_dim)
 !
 ! Subroutine to type the transfer map up to first order.
@@ -596,6 +506,7 @@ end subroutine type_fibre
 !   no_cavity    -- Logical, optional: No RF Cavity exists? 
 !                     Default = False.
 !                     Corresponds to the nocavity option of the PTC init routine.
+!                     no_cavity = .true. will turn any cavity into a drift.
 !                     Do not set this unless you know what you are doing.
 !   exact_modeling -- logical, optional: Sets the PTC EXACT_MODEL variable.
 !                       Default = False.
@@ -611,7 +522,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
 use mad_like, only: make_states, exact_model, always_exactmis, &
               assignment(=), nocavity, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0
-use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, set_up, m_u
+use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, set_up, m_u, bmadl
 
 implicit none
 
@@ -687,8 +598,7 @@ if (params_present) then
     ! Only do this once
     if (init_needed) then
       call ptc_ini_no_append 
-      call append_empty_layout(m_u)
-      call set_up(m_u%end)
+      call set_up(bmadl)
     endif
     init_needed = .false.
   endif
@@ -1063,7 +973,7 @@ end subroutine vec_bmad_to_ptc
 !+
 ! Subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad)
 !
-! Routine to convert a PTC real_8 map to a Bmad Taylor map.
+! Routine to convert a PTC real_8 orbit vector to a Bmad Taylor orbit vector.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
 !
 ! Modules needed:
@@ -1690,9 +1600,9 @@ type (fibre), pointer :: fib
 real(rp) beta0
 real(8) x_dp(6)
 
-! Patch and Match elements are not implemented in PTC so just use the matrix.
+! Match elements are not implemented in PTC so just use the matrix.
 
-if (ele%key == patch$ .or. ele%key == match$) then
+if (ele%key == match$) then
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
   call concat_taylor (taylor1, ele%taylor, taylor3)
   return
@@ -1913,18 +1823,18 @@ endif
 
 call attribute_bookkeeper (ele, param, .true.)
 
-! Patch and Match elements are not implemented in PTC so just use the matrix.
+! Match elements are not implemented in PTC so just use the matrix.
 ! Also Taylor elements already have a taylor map.
 
 if (ele%key == taylor$) return
 
-if (ele%key == match$ .or. ele%key == patch$) then
+if (ele%key == match$) then
   c0%vec = 0
   call make_mat6_bmad (ele, param, c0, c0, .true.)
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
   if (.not. warning_given) then
     call out_io (s_warn$, r_name, &
-      'Note: Taylor maps for Match, and Patch elements are always 1st order!')
+      'Note: Taylor maps for Match elements are always 1st order!')
     warning_given = .true.
   endif
   return
@@ -2153,7 +2063,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps)
+! Subroutine ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps, for_layout)
 !
 ! Subroutine to convert a Bmad element to a PTC fibre element.
 ! This subroutine allocates fresh storage for the fibre so after calling
@@ -2177,12 +2087,14 @@ end subroutine type_map
 !                    default = 2 (if not set with set_ptc).
 !   steps       -- Integer, optional: Number of integration steps.
 !                    Overrides ele%value(ds_step$).
+!   for_layout  -- Logical, optional: If True then fibre will be put in the layout.
+!                    Default is False.
 !
 ! Output:
 !   fiber -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps)
+subroutine ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps, for_layout)
 
 use madx_ptc_module
 
@@ -2195,18 +2107,18 @@ type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
 
+real(dp) beta, phi_tot
 
-real(dp) mis_rot(6), beta, phi_tot
-real(dp) omega(3), basis(3,3), angle(3)
 real(rp), allocatable :: ds_offset(:)
-
-real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
-real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch, s_rel
+real(rp) leng, hk, vk, s_rel
+real(rp), pointer :: val(:)
+real(rp), target, save :: value0(num_ele_attrib$) = 0
 
 integer i, n, key, n_term, exception, n_field, particle
 integer, optional :: integ_order, steps
 
-logical kick_here, use_offsets, doneit, has_nonzero_pole
+logical use_offsets
+logical, optional :: for_layout
 
 character(16) :: r_name = 'ele_to_fibre'
 
@@ -2246,7 +2158,11 @@ if (present(integ_order)) ptc_key%method = integ_order
 !
 
 key = ele%key
-if (.not. ele%is_on) key = drift$
+if (ele%is_on) then
+  val => ele%value
+else
+  val => value0  ! Not is on then has zero strength.
+endif
 
 select case (key)
 
@@ -2255,35 +2171,40 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
-  ptc_key%list%k(2) = ele%value(k1$)
 
 case (sbend$) 
   ptc_key%magnet = 'sbend'
   ptc_key%list%b0   = ele%value(g$) * leng ! Yep this is correct. 
   ptc_key%list%t1   = ele%value(e1$)
   ptc_key%list%t2   = ele%value(e2$)
-  ptc_key%list%k(1) = ele%value(g_err$)
-  ptc_key%list%k(2) = ele%value(k1$)
-  ptc_key%list%k(3) = ele%value(k2$) / 2
+  ptc_key%list%hgap = ele%value(hgap$)
+  ptc_key%list%fint = ele%value(fint$)
+
+  if (ele%value(fintx$) /= ele%value(fint$)) then
+    call out_io (s_error$, r_name, &
+        'FINT AND FINTX ARE NOT THE SAVE FOR BEND: ' // ele%name)
+  endif
+
+  if (ele%value(hgapx$) /= ele%value(hgap$)) then
+    call out_io (s_error$, r_name, &
+        'HGAP AND HGAPX ARE NOT THE SAVE FOR BEND: ' // ele%name)
+  endif
 
 case (sextupole$)
   ptc_key%magnet = 'sextupole'
-  ptc_key%list%k(3) = ele%value(k2$) / 2
 
 case (octupole$)
   ptc_key%magnet = 'octupole'
-  ptc_key%list%k(4) = ele%value(k3$) / 6
 
 case (solenoid$)
   ptc_key%magnet = 'solenoid'
-  ptc_key%list%bsol = ele%value(ks$)
+  ptc_key%list%bsol = val(ks$)
 
 case (sol_quad$)
   ptc_key%magnet = 'solenoid'
-  ptc_key%list%bsol = ele%value(ks$)
-  ptc_key%list%k(2) = ele%value(k1$)
+  ptc_key%list%bsol = val(ks$)
 
-case (marker$, branch$, photon_branch$, init_ele$)
+case (marker$, branch$, photon_branch$, init_ele$, patch$)
   ptc_key%magnet = 'marker'
 
 case (kicker$, hkicker$, vkicker$)
@@ -2307,11 +2228,11 @@ case (rfcavity$, lcavity$)
   if (ele%key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot
     ptc_key%list%volt = 2e-6 * ele%value(l$) * &
-                            (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+                            (val(gradient$) + val(gradient_err$)) * ele%value(field_scale$)
     ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
   else
     ptc_key%list%lag = twopi * phi_tot
-    ptc_key%list%volt = 2e-6 * ele%value(voltage$) * ele%value(field_scale$)
+    ptc_key%list%volt = 2e-6 * val(voltage$) * ele%value(field_scale$)
     ptc_key%list%n_bessel = -1 
   endif
 
@@ -2321,8 +2242,8 @@ case (rfcavity$, lcavity$)
 
 case (elseparator$)
   ptc_key%magnet = 'elseparator'
-  hk = ele%value(hkick$) / leng
-  vk = ele%value(vkick$) / leng
+  hk = val(hkick$) / leng
+  vk = val(vkick$) / leng
   if (hk == 0 .and. vk == 0) then
     ptc_key%tiltd = 0
   else
@@ -2333,11 +2254,6 @@ case (elseparator$)
     ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
   endif
   ptc_key%list%volt = 1e-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
-  call multipole_ele_to_ab (ele, +1, .false., has_nonzero_pole, an0, bn0) 
-  if (has_nonzero_pole) then
-    print *, 'ERROR IN ELE_TO_FIBRE: ', 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
-    if (bmad_status%exit_on_error) call err_exit
-  endif
 
 case (ab_multipole$, multipole$)
   ptc_key%magnet = 'multipole'
@@ -2357,71 +2273,29 @@ case default
 
 end select
 
-! multipole components
-! bmad an and bn are integrated fields. PTC uses just the field.
+! Multipole components
 
-if (ele%key /= elseparator$) then
-  kick_here = .false.
-  if (ele%key == hkicker$ .or. ele%key == vkicker$) then
-    hk = 0; vk = 0
-    if (ele%key == hkicker$) hk = ele%value(kick$) 
-    if (ele%key == vkicker$) vk = ele%value(kick$) 
-    kick_here = .true.
-  elseif (ele%key == kicker$) then
-    hk = ele%value(hkick$)
-    vk = ele%value(vkick$)
-    kick_here = .true.
-  elseif (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
-    hk = ele%value(hkick$) / leng
-    vk = ele%value(vkick$) / leng
-    kick_here = .true.
-  endif
-  if (kick_here) then
-    cos_t = cos(ele%value(tilt_tot$))
-    sin_t = sin(ele%value(tilt_tot$))
-    ptc_key%list%k(1)  = ptc_key%list%k(1) - hk * cos_t - vk * sin_t
-    ptc_key%list%ks(1) =                   - hk * sin_t + vk * cos_t
-  endif
+call ele_to_an_bn (ele, particle, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
-  call multipole_ele_to_ab (ele, particle, .false., has_nonzero_pole, an0, bn0)
-  if (leng /= 0) then
-    an0 = an0 / leng
-    bn0 = bn0 / leng
-  endif
+! Create fiber
+! EXCEPTION is an error_flag. Set to 1 if error. Never reset.
 
-  n = min(n_pole_maxx+1, size(ptc_key%list%k))
-  if (n-1 < n_pole_maxx) then
-    if (any(an0(n:n_pole_maxx) /= 0) .or. any(bn0(n:n_pole_maxx) /= 0)) then
-      print *, 'WARNING IN ELE_TO_FIBRE: MULTIPOLE NOT TRANSFERED TO FIBRE'
-      print *, '        FOR: ', ele%name
-    endif
-  endif
- 
-  ptc_key%list%ks(1:n) = ptc_key%list%ks(1:n) + an0(0:n-1)
-  ptc_key%list%k(1:n) = ptc_key%list%k(1:n) + bn0(0:n-1)
-
-  do n = nmax, 1, -1
-    if (ptc_key%list%ks(n) /= 0 .or. ptc_key%list%k(n) /= 0) exit
-  enddo
-  ptc_key%list%nmul  = n
-endif
-
-!!call create_fibre (fiber, ptc_key, EXCEPTION, .true.)   ! ptc routine
 n = lielib_print(12)
 lielib_print(12) = 0  ! No printing info messages
 
-call create_fibre_append (.false., m_u, ptc_key, EXCEPTION)   ! ptc routine
-fiber => m_u%end%start
+if (logic_option(.false., for_layout)) then
+  call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION)   ! ptc routine
+  fiber => m_u%end%end
 
-! 
-
-m_u%end%closed=.true.
-
-doneit=.true.
-call ring_l(m_u%end,doneit)
-
-call survey(m_u%end)
-call MAKE_NODE_LAYOUT( m_u%end)
+else
+  call set_madx (energy = ele%value(e_tot$), method = ptc_key%method , step = ptc_key%nstep)
+  call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION)   ! ptc routine
+  fiber => bmadl%start
+  bmadl%closed=.true.
+  call ring_l(bmadl, .true.)
+  call survey(bmadl)
+  call make_node_layout (bmadl)
+endif
 
 !
 
@@ -2466,26 +2340,278 @@ if (key == wiggler$) then
 endif
 
 ! Misalignments:
+
+if (use_offsets) call ptc_misalign_fiber (ele, fiber)
+
+end subroutine ele_to_fibre
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+                                
+! Subroutine ele_to_an_bn (ele, particle, k, ks, n_max)
+!
+! Routine to compute the a(n) and b(n) multipole components of a magnet.
+! This is used to interface between eles and PTC fibers
+!
+! Module needed:
+!   ptc_interface_mod
+!
+! Input:
+!   ele                 -- ele_struct: Bmad Element.
+!   particle            -- Integer: Type of particle: electron$, etc.
+!
+! Output:
+!   k(1:n_pole_maxx+1)  -- real(rp): Skew multipole component.
+!   ks(1:n_pole_maxx+1) -- real(rp): Normal multipole component.
+!   n_max               -- integer: Maximum non-zero multipole component.
+!-
+
+subroutine ele_to_an_bn (ele, particle, k, ks, n_max)
+
+implicit none
+
+type (ele_struct), target :: ele
+
+real(rp) k(:), ks(:)
+real(rp) cos_t, sin_t, leng, hk, vk
+real(rp), pointer :: val(:)
+real(rp), target, save :: value0(num_ele_attrib$) = 0
+real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
+
+integer n, n_max, key, particle
+logical kick_here, has_nonzero_pole
+
+character(16) :: r_name = 'ele_to_an_bn'
+
+!
+
+leng = ele%value(l$)
+
+key = ele%key
+if (ele%is_on) then
+  val => ele%value
+else
+  val => value0  ! Not is_on -> has zero strength.
+endif
+
+k = 0
+ks = 0
+n_max = 0
+
+select case (key)
+
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$) 
+  return
+
+case (marker$, branch$, photon_branch$, init_ele$, kicker$, hkicker$, vkicker$)
+  return
+
+case (quadrupole$) 
+  k(2) = val(k1$)
+
+case (sbend$) 
+  if (ele%is_on) then
+    k(1) = ele%value(g_err$)
+  else
+    k(1) = -ele%value(g$)
+  endif
+  k(2) = val(k1$)
+  k(3) = val(k2$) / 2
+
+case (sextupole$)
+  k(3) = val(k2$) / 2
+
+case (octupole$)
+  k(4) = val(k3$) / 6
+
+case (solenoid$)
+
+case (sol_quad$)
+  k(2) = val(k1$)
+
+case (elseparator$)
+  call multipole_ele_to_ab (ele, +1, .false., has_nonzero_pole, an0, bn0) 
+  if (has_nonzero_pole) then
+    print *, 'ERROR IN ELE_TO_FIBRE: ', 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
+    if (bmad_status%exit_on_error) call err_exit
+  endif
+  return
+
+case (ab_multipole$, multipole$, beambeam$, wiggler$)
+
+case default
+  print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', key_name(ele%key)
+  print *, '      FOR ELEMENT: ', trim(ele%name)
+  if (bmad_status%exit_on_error) call err_exit
+
+end select
+
+! multipole components
+! bmad an and bn are integrated fields. PTC uses just the field.
+
+kick_here = .false.
+if (ele%key == hkicker$ .or. ele%key == vkicker$) then
+  hk = 0; vk = 0
+  if (ele%key == hkicker$) hk = val(kick$) 
+  if (ele%key == vkicker$) vk = val(kick$) 
+  kick_here = .true.
+elseif (ele%key == kicker$) then
+  hk = val(hkick$)
+  vk = val(vkick$)
+  kick_here = .true.
+elseif (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
+  hk = val(hkick$) / leng
+  vk = val(vkick$) / leng
+  kick_here = .true.
+endif
+
+if (kick_here) then
+  cos_t = cos(ele%value(tilt_tot$))
+  sin_t = sin(ele%value(tilt_tot$))
+  k(1)  = k(1) - hk * cos_t - vk * sin_t
+  ks(1) =                   - hk * sin_t + vk * cos_t
+endif
+
+call multipole_ele_to_ab (ele, particle, .false., has_nonzero_pole, an0, bn0)
+if (leng /= 0) then
+  an0 = an0 / leng
+  bn0 = bn0 / leng
+endif
+
+n = min(n_pole_maxx+1, size(k))
+if (n-1 < n_pole_maxx) then
+  if (any(an0(n:n_pole_maxx) /= 0) .or. any(bn0(n:n_pole_maxx) /= 0)) then
+    print *, 'WARNING IN ELE_TO_FIBRE: MULTIPOLE NOT TRANSFERED TO FIBRE'
+    print *, '        FOR: ', ele%name
+  endif
+endif
+ 
+ks(1:n) = ks(1:n) + an0(0:n-1)
+k(1:n) = k(1:n) + bn0(0:n-1)
+
+do n = size(k), 1, -1
+  if (ks(n) /= 0 .or. k(n) /= 0) exit
+enddo
+n_max  = n
+
+end subroutine ele_to_an_bn
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+                                
+! Subroutine ptc_misalign_fiber (ele, fiber)
+!
+! Routine to misalign a fiber.
+!
+! Module needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   ele       -- ele_struct: Element containing misalignments.
+!
+! Output:
+!   fiber     -- fibre: Fiber to misalign
+!-
+
+subroutine ptc_misalign_fiber (ele, fiber)
+
+use s_family
+
+implicit none
+
+type (ele_struct) ele
+type (fibre) fiber
+
+real(dp) mis_rot(6)
+real(dp) omega(3), basis(3,3), angle(3)
+real(rp) x_off, y_off, x_pitch, y_pitch
+
+! Patch elements do not have misalignments
+
+if (ele%key == patch$) return
+
 ! in PTC the reference point for the offsets is the beginning of the element.
 ! In Bmad the reference point is the center of the element..
 
-if (use_offsets) then
-  x_off = ele%value(x_offset_tot$)
-  y_off = ele%value(y_offset_tot$)
-  x_pitch = ele%value(x_pitch_tot$)
-  y_pitch = ele%value(y_pitch_tot$)
+x_off = ele%value(x_offset_tot$)
+y_off = ele%value(y_offset_tot$)
+x_pitch = ele%value(x_pitch_tot$)
+y_pitch = ele%value(y_pitch_tot$)
 
-  if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0) then
-    mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp ]
-    angle = 0
-    angle(3) = -fiber%mag%p%tiltd
-    omega = fiber%chart%f%o
-    basis = fiber%chart%f%mid
-    call geo_rot(basis, angle, 1, basis)                 ! PTC call
-    call misalign_fibre (fiber, mis_rot, omega, basis)   ! PTC call
-  endif
+if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0) then
+  mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp ]
+  angle = 0
+  angle(3) = -fiber%mag%p%tiltd
+  omega = fiber%chart%f%o
+  basis = fiber%chart%f%mid
+  call geo_rot(basis, angle, 1, basis)                 ! PTC call
+  call misalign_fibre (fiber, mis_rot, omega, basis)   ! PTC call
 endif
 
-end subroutine ele_to_fibre
+end subroutine ptc_misalign_fiber
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine apply_patch_to_ptc_fiber (ele)
+!
+! Routine to take the patch parameters from a Bmad patch element and
+! transfer them to the associated fiber.
+!
+! Module needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   ele           -- ele_struct: Patch element.
+!
+! Output:
+!   ele%ptc_fiber -- Fiber which should be a marker.
+!-
+
+subroutine apply_patch_to_ptc_fiber (ele)
+
+use s_family
+
+implicit none
+
+type (ele_struct) ele
+
+real(dp) mis_rot(6), dr(3)
+real(dp) omega(3), basis(3,3), angle(3), origin(3), frame(3,3)
+
+!
+
+dr = [ele%value(x_offset$), ele%value(y_offset$), ele%value(s_offset$)]
+origin = 0
+omega = dr + origin
+
+
+frame = global_frame
+basis = global_frame
+
+angle = [0.0d0, 0.0d0, ele%value(tilt$)]
+call geo_rot(basis, angle, 1, basis=frame)     ! PTC call
+frame = basis
+
+
+angle = [0.0d0, ele%value(y_pitch$), 0.0d0]
+call geo_rot(basis, angle, 1, basis=frame)     ! PTC call
+frame = basis
+
+angle = [ele%value(x_pitch$), 0.0d0, 0.0d0]
+call geo_rot(basis, angle, 1, basis=frame)     ! PTC call
+frame = basis
+
+basis = global_frame
+call find_patch (origin, basis, omega, frame, dr, angle)
+
+ele%ptc_fiber%patch%patch = 2    ! Means entrance patch is not used exit patch is used.
+ele%ptc_fiber%patch%b_d = dr
+ele%ptc_fiber%patch%b_ang = angle
+
+end subroutine apply_patch_to_ptc_fiber
 
 end module

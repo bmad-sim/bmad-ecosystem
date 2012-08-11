@@ -401,7 +401,7 @@ a_name = attribute_name (ele, ix_attrib)
 ! x_offset_tot, etc are never free.
 
 select case (a_name)
-case ('CSR_CALC_ON', 'IS_ON')
+case ('CSR_CALC_ON', 'IS_ON', 'DS_STEP')
   free = .true.
   return
 
