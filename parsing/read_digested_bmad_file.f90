@@ -768,7 +768,7 @@ if (ios /= 0) then
 endif
 
 allocate(wall3d)
-read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%priority
+read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%priority, wall3d%crotch
 if (ios /= 0) then
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &

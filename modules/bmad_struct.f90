@@ -36,6 +36,19 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 integer, parameter :: primary$ = 1, secondary$ = 2, ignore$ = 3
 character(12), parameter :: wall3d_priority_name(0:3) = ['GARBAGE! ', 'Primary  ', 'Secondary', 'Ignore   ']
 
+! ele%aperture_at logical definitions.
+
+integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4
+integer, parameter :: continuous$ = 5, surface$ = 6
+
+character(16), parameter :: aperture_at_name(0:6) = [ &
+      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
+      'No_End       ', 'Continuous   ', 'Surface      ']
+
+character(16), parameter :: coupler_at_name(0:4) = [ &
+      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
+      'No_End       ']
+
 ! Structures for defining cross-sections of beam pipes and capillaries
 ! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.
 ! Each vertex v(i) defines a point on the pipe/capillary.
@@ -69,10 +82,17 @@ type wall3d_section_struct
   real(rp) :: x0_coef(0:3) = 0          ! Spline coefs for x-center
   real(rp) :: y0_coef(0:3) = 0          ! Spline coefs for y-center
   ! Wall radius spline
-  real(rp) :: dr_ds = real_garbage$  ! derivative of wall radius 
+  real(rp) :: dr_ds = real_garbage$     ! derivative of wall radius 
   real(rp) :: p1_coef(3) = 0            ! Spline coefs for p0 function
   real(rp) :: p2_coef(3) = 0            ! Spline coefs for p1 function
+end type
 
+! Wall3d crotch info
+
+type wall3d_crotch_struct
+  integer :: location = no_end$  ! or entrance_end$, exit_end$, both_ends$
+  integer :: ix_section = 0      ! 0 -> crotch section not defined here.
+  integer :: ix_v1_cut, ix_v2_cut
 end type
 
 ! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
@@ -81,21 +101,9 @@ type wall3d_struct
   integer :: n_link = 1                             ! For memory management of %section
   integer :: priority = secondary$                  ! ignore$, secondary$, primary$
   integer :: ele_anchor_pt = anchor_beginning$      ! anchor_beginning$, anchor_center$, or anchor_end$
+  type (wall3d_crotch_struct) crotch                ! Info on if there is a crotch
   type (wall3d_section_struct), allocatable :: section(:)
 end type  
-
-! ele%aperture_at logical definitions.
-
-integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4
-integer, parameter :: continuous$ = 5, surface$ = 6
-
-character(16), parameter :: aperture_at_name(0:6) = [ &
-      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ', 'Continuous   ', 'Surface      ']
-
-character(16), parameter :: coupler_at_name(0:4) = [ &
-      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ']
 
 ! electron/positron
 
