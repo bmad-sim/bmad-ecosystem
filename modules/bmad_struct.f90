@@ -45,7 +45,7 @@ character(16), parameter :: aperture_at_name(0:6) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
       'No_End       ', 'Continuous   ', 'Surface      ']
 
-character(16), parameter :: coupler_at_name(0:4) = [ &
+character(16), parameter :: end_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
       'No_End       ']
 

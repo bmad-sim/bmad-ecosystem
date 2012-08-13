@@ -627,7 +627,7 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (attrib%name == 'COUPLER_AT') then
         if (nint(val) /= exit_end$) then
-          line = trim(line) // ', coupler_at = ' // coupler_at_name(nint(val))
+          line = trim(line) // ', coupler_at = ' // end_at_name(nint(val))
         endif
         cycle
       endif
