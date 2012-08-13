@@ -1959,10 +1959,12 @@ ix_br = integer_option (0, ix_branch)
 
 if (ix_br == 0) then
   call allocate_element_array (lat%ele, upper_bound, .true.)
-  do i = 0, ubound(lat%ele, 1)
-    lat%ele(i)%branch => lat%branch(0)
-  enddo
-  if (allocated(lat%branch)) lat%branch(0)%ele => lat%ele
+  if (allocated(lat%branch)) then
+    do i = 0, ubound(lat%ele, 1)
+      lat%ele(i)%branch => lat%branch(0)
+    enddo
+    lat%branch(0)%ele => lat%ele
+  endif
 
 else
   call allocate_element_array (lat%branch(ix_br)%ele, upper_bound, .true.)
@@ -2120,6 +2122,11 @@ else
   lat%branch(0)%z              => lat%z
   lat%branch(0)%n_ele_track    => lat%n_ele_track
   lat%branch(0)%n_ele_max      => lat%n_ele_max
+  if (associated(lat%ele)) then
+    do i = 0, ubound(lat%ele, 1)
+      lat%ele(i)%branch => lat%branch(0)
+    enddo
+  endif
 endif
 
 ! 
