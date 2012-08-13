@@ -604,8 +604,38 @@ if (attrib_word == 'WALL') then
           endif
           call evaluate_value (trim(ele%name), section%dr_ds, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
+                  
+        elseif (word == 'CROTCH') then
+          ! Set ix_section
+          ele%wall3d%crotch%ix_section = i_section
 
-        !
+          ! Expect form: crotch = {entrance_end, 1, 3}, 
+          if (delim /= '=') then
+            call parser_error ('NO "=" AFTER "CROTCH" IN WALL SECTION FOR:' // ele%name)
+            return
+          endif
+          call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+          if (delim /= '{' .or. word /= '') then        
+            call parser_error ('NO { AFTER "CROTCH = " FOR ELEMENT '// ele%name)
+            return
+          endif
+          ! get %location
+          call get_switch ('LOCATION', end_at_name(1:),  ele%wall3d%crotch%location, err_flag)
+		  ! get %ix_v1_cut
+		  call get_integer(ele%wall3d%crotch%ix_v1_cut, err_flag)
+		  ! get %ix_v1_cut
+          call get_integer(ele%wall3d%crotch%ix_v2_cut, err_flag)
+          if (err_flag) return
+          ! Look for closing },
+          if (delim /= '}') then        
+            call parser_error ('NO } AFTER "CROTCH = {..." FOR ELEMENT '// ele%name)
+            return
+          endif
+          call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+          if (delim /= ',' .or. word /= '') then        
+            call parser_error ('NO "," AFTER "CROTCH = {...}" FOR '// ele%name)
+            return
+          endif
 
         elseif (word == 'V' .and. delim == '(') then
 
@@ -1267,6 +1297,27 @@ else
 endif
 
 end subroutine get_logical
+
+!--------------------------------------------------------
+! contains
+
+subroutine get_integer (i, err)
+
+integer i
+logical err
+
+!
+
+call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
+if (.not. is_integer(word) ) then
+   call parser_error ('INTEGER EXPECTED, I DO NOT UNDERSTAND: ' // word)
+   err = .true.
+else
+  read (word, *) i 
+  err = .false.
+endif
+
+end subroutine get_integer
 
 !--------------------------------------------------------
 ! contains
