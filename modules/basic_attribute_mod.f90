@@ -1241,7 +1241,7 @@ case ('LATTICE_TYPE')
   endif
 
 case ('COUPLER_AT')
-  attrib_val_name = coupler_at_name(nint(attrib_value))
+  attrib_val_name = end_at_name(nint(attrib_value))
   if (present(is_default)) then
     is_default = (nint(attrib_value) == exit_end$)
   endif

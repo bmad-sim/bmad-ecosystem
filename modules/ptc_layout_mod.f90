@@ -307,6 +307,15 @@ end Subroutine one_turn_map
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine output_ptc_fiber_info (fiber, lines, n_lines)
+!
+! Routine to put information on a PTC fiber element into a string array.
+! Also see: typ_ptc_fi 
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine write_ptc_flat_file_lattice (file_name, branch)
 !
 ! Routine to create a PTC flat file lattice from a Bmad branch.
@@ -368,7 +377,7 @@ character(32), parameter :: r_name = 'modify_ptc_fiber_attribute'
 select case (ele%key)
 
 case default
-  call out_io (s_fatal$, r_name, 'MODIFYING THIS ATTRIBUTE NOT YET IMPLEMENTED: ' // attribute)
+  call out_io (s_fatal$, r_name, 'UNKNOWN ELEMENT TYPE: ' // ele%name)
   if (bmad_status%exit_on_error) call err_exit
 end select
 

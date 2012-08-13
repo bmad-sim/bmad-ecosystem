@@ -1114,7 +1114,7 @@ case ('APERTURE_TYPE')
   call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag)
 
 case ('COUPLER_AT')
-  call get_switch (attrib_word, coupler_at_name(1:), ix, err_flag)
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
   ele%value(coupler_at$) = ix
 
 case ('TRACKING_METHOD')
