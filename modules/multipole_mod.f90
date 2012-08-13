@@ -517,7 +517,10 @@ real(rp) x_value, y_value
 real(rp) cval
 real(rp) x_terms(0:n)
 real(rp) y_terms(0:n)
+real(rp), SAVE :: cc(0:n_pole_maxx, 0:n_pole_maxx)
+real(rp) rp_dummy
 
+LOGICAL, SAVE :: first_call = .true.
 integer n, m
 
 logical, optional :: ref_orb_offset
@@ -552,22 +555,21 @@ endif
 
 ! normal case
 
-x_terms(0)=1.0
+x_terms(n)=1.0
 y_terms(0)=1.0
 do m=1,n
-  x_terms(m) = x_terms(m-1)*x
+  x_terms(n-m) = x_terms(n-m+1)*x
   y_terms(m) = y_terms(m-1)*y
 enddo
 
-x_value = 0
-y_value = 0
-do m = 0, n, 2
-  x_value = x_value + c_multi(n, m) * x_terms(n-m) * y_terms(m)
-enddo
+IF( first_call ) THEN
+  !populate cc 
+  rp_dummy = c_multi(0,0,c_full=cc)
+  first_call = .false.
+ENDIF
 
-do m = 1, n, 2
-  y_value = y_value + c_multi(n, m) * x_terms(n-m) * y_terms(m)
-enddo
+x_value = SUM(cc(n,0:n:2) * x_terms(0:n:2) * y_terms(0:n:2))
+y_value = SUM(cc(n,1:n:2) * x_terms(1:n:2) * y_terms(1:n:2))
 
 x_vel = knl * x_value
 y_vel = knl * y_value
