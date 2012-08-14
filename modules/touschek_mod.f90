@@ -16,16 +16,8 @@
 module touschek_mod
 
 use bmad
-
-! This common block is needed in order to pass parameters to
-! integrand.  We use NR's qromb function, which requires that the
-! function it integrates be one variable only.
-TYPE touschek_common_struct
-  REAL(rp) B1    !argument to the exponential in the integrand.  Piwinski Eqn. 33
-  REAL(rp) B2    !argument to the Bessel function in the integrand.  Piwinski Eqn. 34
-  REAL(rp) tau_m !momentum aperture
-END TYPE touschek_common_struct
-TYPE(touschek_common_struct), PRIVATE :: touschek_com
+use fgsl
+use, intrinsic :: iso_c_binding
 
 !This structure contains the positive and negative momentum aperture for locations s.
 TYPE momentum_aperture_struct
@@ -43,8 +35,10 @@ PRIVATE integrand_base_cov     ! Change of variables from t to exp(y) for integr
 PRIVATE exp_bessi0             ! Exponential times Bessel I0, needed for integrand_base
 
 ! Data Types
-PUBLIC touschek_common_struct
 PUBLIC momentum_aperture_struct
+
+REAL(fgsl_double), PARAMETER :: eps7 = 1.0d-7
+INTEGER(fgsl_size_t), PARAMETER :: limit = 1000_fgsl_size_t
 
 CONTAINS
 
@@ -260,8 +254,6 @@ END SUBROUTINE touschek_lifetime_with_aperture
 
 SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
 
-  use nr, only: qtrap
-
   IMPLICIT NONE
 
   TYPE(normal_modes_struct), INTENT(IN) :: mode
@@ -280,7 +272,18 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
   REAL(rp) sigma_h2
   REAL(rp) sigma_x_t2
   REAL(rp) tau_min, tau_max
+  REAL(rp) tau_m
+  REAL(rp) B1
+  REAL(rp) B2
   TYPE(ele_struct) ele
+
+  REAL(fgsl_double) args(1:3)
+  TYPE(fgsl_function) :: integrand_ready
+  REAL(fgsl_double) :: integration_result
+  REAL(fgsl_double) :: abserr
+  TYPE(c_ptr) :: ptr
+  TYPE(fgsl_integration_workspace) :: integ_wk
+  INTEGER(fgsl_int) :: fgsl_status
 
   pi_2 = pi/2._rp
 
@@ -306,7 +309,7 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
     !Emittance is assumed to be normalized here.
     emit_x = mode%a%emittance
     emit_y = mode%b%emittance 
-    touschek_com%tau_m = beta2 * mode%pz_aperture**2
+    tau_m = beta2 * mode%pz_aperture**2
   ELSEIF (lat%param%lattice_type == linear_lattice$) THEN
     sigma_p2 = ele%z%sigma_p**2
     sigma_z = ele%z%sigma
@@ -317,7 +320,7 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
     !Emittance is assumes to be UNNORMALIZED here
     emit_x = mode%a%emittance / gamma
     emit_y = mode%b%emittance / gamma
-    touschek_com%tau_m = beta2 * mode%pz_aperture**2
+    tau_m = beta2 * mode%pz_aperture**2
   ELSE
     WRITE(*,*) "ERROR: lattice_type unknown. Halting."
     STOP
@@ -344,20 +347,29 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
   sigma_h2 = 1._rp/( 1._rp/sigma_p2 &
     + ( (Dx**2)+(Dxt**2))/sigma_x_beta2 + ((Dy**2)+(Dyt**2))/sigma_y_beta2 )
 
-  touschek_com%B1 = &
-    beta_a2/2.0_rp/beta2/g2/sigma_x_beta2*(1.0_rp - sigma_h2*(Dxt**2)/sigma_x_beta2) &
-    + beta_b2/2.0_rp/beta2/g2/sigma_y_beta2*(1.0_rp - sigma_h2*(Dyt**2)/sigma_y_beta2) 
+  B1 = beta_a2/2.0_rp/beta2/g2/sigma_x_beta2*(1.0_rp - sigma_h2*(Dxt**2)/sigma_x_beta2) &
+       + beta_b2/2.0_rp/beta2/g2/sigma_y_beta2*(1.0_rp - sigma_h2*(Dyt**2)/sigma_y_beta2) 
 
-  touschek_com%B2 = SQRT( (0.25_rp)/(beta2**2)/(g2**2) &
+  B2 = SQRT( (0.25_rp)/(beta2**2)/(g2**2) &
                     *( beta_a2/sigma_x_beta2*(1._rp-sigma_h2*(Dxt**2)/sigma_x_beta2) - &
                       beta_b2/sigma_y_beta2*(1._rp-sigma_h2*(Dyt**2)/sigma_y_beta2) )**2 &
                     + ( (sigma_h2**2)*beta_a2*beta_b2*(Dxt**2)*(Dyt**2)/(beta2**2)/(g2**2) &
-                        /(sigma_x_beta2**2)/(sigma_x_beta2**2) ) )
+                      /(sigma_x_beta2**2)/(sigma_x_beta2**2) ) )
 
-  tau_min = touschek_com%tau_m
+  tau_min = tau_m
   tau_max = 1.0_rp
 
-  integral = qtrap(integrand_base_cov, LOG(tau_min), LOG(tau_max))
+  integ_wk = fgsl_integration_workspace_alloc(limit)
+  ptr = c_loc(args)
+  integrand_ready = fgsl_function_init(integrand_base_cov, ptr)
+  args = (/tau_m, B1, B2/)
+  fgsl_status = fgsl_integration_qag(integrand_ready, LOG(tau_min), LOG(tau_max), eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  integral = integration_result
+  CALL fgsl_integration_workspace_free(integ_wk)
+  CALL fgsl_function_free(integrand_ready)
+
+  !integral = qtrap(integrand_base_cov, LOG(tau_min), LOG(tau_max))
 
   rate = (r_e**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ &
          (g2*g2)/beta2/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_x/emit_y* &
@@ -389,28 +401,25 @@ END SUBROUTINE touschek_rate1
 !   <return value> -- REAL(rp): Array of reals containing values of integrand at t(:).
 !-
 
-FUNCTION integrand_base(t)
+FUNCTION integrand_base(t,args)
 
 !this is the the integral in equation 42 from Piwinski 1998
 
 implicit none
 
-REAL(rp), DIMENSION(:), INTENT(IN) :: t
-REAL(rp), DIMENSION(size(t)) :: integrand_base
+REAL(rp) :: t
+REAL(rp) :: integrand_base
+REAL(rp) args(:)
 REAL(rp) tm, B1, B2
 
-INTEGER i
+tm = args(1)
+B1 = args(2)
+B2 = args(3)
 
-tm = touschek_com%tau_m
-B1 = touschek_com%B1
-B2 = touschek_com%B2
-
-DO i=1, size(t)
-  integrand_base(i) = ( (2._rp+1._rp/t(i))**2*(t(i)/tm/(1.+t(i))-1._rp)+ 1._rp - SQRT(1._rp+t(i))/SQRT(t(i)/tm) &
-                        - 0.5_rp/t(i)*(4._rp+1._rp/t(i))*LOG(t(i)/tm/(1._rp+t(i))) ) * SQRT(t(i)) / SQRT(1._rp+t(i)) &
-                      * exp_bessi0(t(i), B1, B2)
-  integrand_base(i) = MAX(integrand_base(i),0._rp)
-ENDDO
+integrand_base = ( (2._rp+1._rp/t)**2*(t/tm/(1.+t)-1._rp)+ 1._rp - SQRT(1._rp+t)/SQRT(t/tm) &
+                        - 0.5_rp/t*(4._rp+1._rp/t)*LOG(t/tm/(1._rp+t)) ) * SQRT(t) / SQRT(1._rp+t) &
+                      * exp_bessi0(t, B1, B2)
+integrand_base = MAX(integrand_base,0._rp)
 
 END FUNCTION integrand_base
 
@@ -428,14 +437,19 @@ END FUNCTION integrand_base
 !   <return value> -- Real(rp): Array of reals containing the values of the integrand evaluated at t(:)
 !-
 
-FUNCTION integrand_base_cov(y)
+FUNCTION integrand_base_cov(y,params) BIND(c)
 
 implicit none
 
-REAL(rp), DIMENSION(:), INTENT(IN) :: y
-REAL(rp), DIMENSION(size(y)) :: integrand_base_cov
+REAL(c_double), VALUE :: y
+TYPE(c_ptr), VALUE :: params
+REAL(c_double) :: integrand_base_cov
+REAL(c_double), POINTER :: args(:)
+REAL(c_double) :: tau_m, B1, B2
 
-integrand_base_cov=integrand_base(EXP(y))*EXP(y)
+CALL c_f_pointer(params,args,[3])
+
+integrand_base_cov=integrand_base(EXP(y),args)*EXP(y)
 
 END FUNCTION integrand_base_cov
 

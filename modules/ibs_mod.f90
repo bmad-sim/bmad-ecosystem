@@ -1,12 +1,19 @@
-module ibs_mod
+MODULE ibs_mod
 
-use bmad_struct
-use bmad_interface
-use nr
+USE bmad
+USE nr
+USE fgsl
+USE, INTRINSIC :: iso_c_binding
+
+TYPE lat_container
+  TYPE(lat_struct), POINTER :: lat
+  REAL(rp) tau_a        ! horizontal damping rate (needed for coulomb log tail cut)
+  INTEGER clog_to_use   ! 1=Wolski, 2=Raubenheimer Tail Cut, 3=Bane Tail Cut
+END TYPE
 
 TYPE ibs_struct
-  REAL(rp) inv_Tx
-  REAL(rp) inv_Ty
+  REAL(rp) inv_Ta
+  REAL(rp) inv_Tb
   REAL(rp) inv_Tz
 END TYPE
 
@@ -22,31 +29,21 @@ TYPE ibs_maxratio_struct
   REAL(rp) r_p
 END TYPE
 
-TYPE bjmt_struct
-  REAL(rp) Lp(3,3)
-  REAL(rp) Lh(3,3)
-  REAL(rp) Lv(3,3)
-  REAL(rp) L_sum(3,3)
-END TYPE
-!bjmt_struct is a bjmt common struct for passing matrices
-!to the integrand functions of the bjmt subroutine
-TYPE(bjmt_struct) :: bjmt_com
+REAL(fgsl_double), PARAMETER :: eps7 = 1.0d-7
+INTEGER(fgsl_size_t), PARAMETER :: limit = 1000_fgsl_size_t
 
-!Elpha is a variable common between the bane subroutine and
-!the integrand function.
-REAL(rp) Elpha
-
-PUBLIC ibs_equilibrium
-PUBLIC ibsequilibrium2
+PUBLIC ibs_equib_rlx
+PUBLIC ibs_equib_der
 PUBLIC ibs_rates1turn
 PUBLIC ibs_blowup1turn
-PRIVATE cimp1
-PRIVATE bane1
-PRIVATE bjmt1
+PUBLIC cimp1
+PUBLIC bane1
+PUBLIC bjmt1
 
 CONTAINS
 !+
-!  Subroutine ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
+!  Subroutine ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up,granularity)
+!  Iterates to equilibrium beam conditions using relaxation method
 !
 !  Computes the equilibrium beam size using the equilibrium equations given in 
 !  'Intrabeam scattering formulas for high energy beams' by Kubo et al.
@@ -76,27 +73,36 @@ CONTAINS
 !
 !  See ibs_rates subroutine for available IBS rate formulas.
 !-
-SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
+SUBROUTINE ibs_equib_rlx(lat,inmode,ibsmode,formula,ratio,initial_blow_up,granularity,clog_to_use,inductance,resistance)
 
   IMPLICIT NONE
                                                                                                          
-  TYPE(lat_struct), INTENT(INOUT), target :: lat
-  TYPE(normal_modes_struct), INTENT(IN) :: inmode
-  TYPE(normal_modes_struct), INTENT(OUT) :: ibsmode
-  CHARACTER*4, INTENT(IN) :: formula
-  REAL(rp), INTENT(IN) :: ratio
-  REAL(rp), INTENT(IN) :: initial_blow_up
+  TYPE(lat_struct), target :: lat
+  TYPE(lat_container) :: ibs_lat
+  TYPE(normal_modes_struct) :: inmode
+  TYPE(normal_modes_struct) :: ibsmode
+  REAL(rp) :: granularity
+  CHARACTER*4 :: formula
+  REAL(rp) :: ratio
+  REAL(rp) :: initial_blow_up
   TYPE(ibs_struct) rates
+  INTEGER clog_to_use
 
   REAL(rp) time_for_one_turn
-  REAL(rp) tau_x, tau_y, tau_z
-  REAL(rp) Tx, Ty, Tz
-  REAL(rp) xfactor,yfactor,zfactor
-  REAL(rp) emit_x, emit_y
-  REAL(rp) emit_x0, emit_y0
+  REAL(rp) cur
+  REAL(rp) alpha_c
+  REAL(rp) inductance
+  REAL(rp) resistance
+  REAL(rp) pwd_ratio
+  REAL(rp) sigma_z_nat
+  REAL(rp) sigma_z_vlassov
+  REAL(rp) tau_a, tau_b, tau_z
+  REAL(rp) Ta, Tb, Tz
+  REAL(rp) afactor,bfactor,zfactor
+  REAL(rp) emit_a, emit_b
+  REAL(rp) emit_a0, emit_b0
   REAL(rp) advance, threshold
   REAL(rp) sigE_E, sigE_E0, sigma_z0, L_ratio
-  REAL(rp) fpw, Rz, Re
   REAL(rp) running_emit_x(1:10), running_emit_y(1:10), running_sigE_E(1:10)
   INTEGER half
   REAL(rp) runavg_emit_x_A, runavg_emit_y_A, runavg_sigE_E_A
@@ -104,41 +110,55 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
   REAL(rp) E_tot, gamma, KE, rbeta
   LOGICAL converged
   INTEGER counter, i
-  REAL(rp) cur, vbs, v_emit_data !FOO
+
+  REAL(rp) Vrf
+  REAL(rp) U0
+  REAL(rp) rf_freq, rf_omega
 
   CHARACTER(20) :: r_name = 'ibsequilibrium2'
 
-  !FOO for vertical beam size
-  cur = lat%param%n_part*e_charge/(2.56E-6) * 1.0E3
+  ! Used to plug in vertical beam size data
+  !cur = lat%param%n_part*e_charge/(2.56E-6) * 1.0E3
   !(2.1 GeV Run 16) vbs = ( 0.057*cur**3 + 0.025*cur**2 - 0.552*cur + 21.833 ) * 1.0E-6
   !(1.8 GeV Run k) vbs = ( 0.130*cur**3 - 0.370*cur**2 + 0.997*cur + 22.655 ) * 1.0E-6
-  vbs = ( 0.363*cur**3 - 2.571*cur**2 + 5.668*cur + 30.854 ) * 1.0E-6
-  v_emit_data = vbs**2/40.0
-  ibsmode%b%emittance = v_emit_data
-  !FOO
+  !vbs = ( 0.363*cur**3 - 2.571*cur**2 + 5.668*cur + 30.854 ) * 1.0E-6
+  !v_emit_data = vbs**2/40.0
+  !ibsmode%b%emittance = v_emit_data
+
+  Vrf = 0.0d0
+  DO i=1,lat%n_ele_track
+    IF(lat%ele(i)%key .eq. rfcavity$) THEN
+      Vrf = Vrf + lat%ele(i)%value(voltage$)
+      rf_freq = lat%ele(i)%value(rf_frequency$)
+    ENDIF
+  ENDDO
+  rf_omega = twopi*rf_freq
+  U0 = inmode%e_loss
 
   !compute the SR betatron damping times
   time_for_one_turn = lat%param%total_length / c_light
-  tau_x = time_for_one_turn / inmode%a%alpha_damp
-  tau_y = time_for_one_turn / inmode%b%alpha_damp
+  tau_a = time_for_one_turn / inmode%a%alpha_damp
+  tau_b = time_for_one_turn / inmode%b%alpha_damp
   tau_z = time_for_one_turn / inmode%z%alpha_damp 
 
-  !fpw is a simple way of modeling potential well bunch lengthing.
-  !This factor is multiplied by the zero current L_ratio when 
-  !determining bunch length from energy spread.
-  !fpw = 1.0  !fpw off
-  !fpw = 1.0 + .0062/(12.0E9) * lat%param%n_part  !2.1 GeV
-  fpw = 1.0 + .0200/(12.0E9) * lat%param%n_part  !2.1 GeV
   sigma_z0 = inmode%sig_z
   sigE_E0 = inmode%sigE_E 
   L_ratio = sigma_z0 / sigE_E0
-  emit_x0 = inmode%a%emittance
-  emit_y0 = inmode%b%emittance 
+  emit_a0 = inmode%a%emittance
+  emit_b0 = inmode%b%emittance 
 
-  ibsmode%a%emittance = emit_x0 * initial_blow_up
-  !FOO ibsmode%b%emittance = emit_y0 * initial_blow_up !FOO
+  cur = lat%param%n_part*e_charge/time_for_one_turn
+  alpha_c = inmode%synch_int(1)/lat%param%total_length
+  E_tot = lat%ele(0)%value(E_TOT$)
+
+  ibsmode%a%emittance = emit_a0 * initial_blow_up
+  ibsmode%b%emittance = emit_b0 * initial_blow_up
   ibsmode%sig_z = sigma_z0      * sqrt(initial_blow_up)
   ibsmode%sigE_E = sigE_E0      * sqrt(initial_blow_up)
+
+  ibs_lat%lat => lat
+  ibs_lat%tau_a = tau_a
+  ibs_lat%clog_to_use = clog_to_use
 
   !compute equilibrium
   converged = .false.
@@ -165,28 +185,28 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
       lat%ele(i)%z%sigma = ibsmode%sig_z
       lat%ele(i)%z%sigma_p = ibsmode%sigE_E
     ENDDO
-    CALL ibs_rates1turn(lat,rates,formula)
+    CALL ibs_rates1turn(ibs_lat,rates,formula,granularity)
     counter = counter + 1
     !It is possible that this method can give negative emittances
     !at some point in the iterative process, in which case the case
     !structure below will terminate the program.  If this happens, try
     !using different values for initial_blow_up.
-    IF( rates%inv_Tx .gt. 0.0 ) THEN
-      Tx = 1.0/rates%inv_Tx
-      xfactor = 1.0/(1.0-(tau_x/Tx))
-    ELSEIF( rates%inv_Tx .eq. 0.0 ) THEN
-      xfactor = 1.0
+    IF( rates%inv_Ta .gt. 0.0 ) THEN
+      Ta = 1.0/rates%inv_Ta
+      afactor = 1.0/(1.0-(tau_a/Ta))
+    ELSEIF( rates%inv_Ta .eq. 0.0 ) THEN
+      afactor = 1.0
     ELSE
       CALL out_io(s_abort$, r_name, &
          'FATAL ERROR: Negative emittance encountered: ', &
          'Try adjusting initial_blow_up.')
       STOP
     ENDIF
-    IF( rates%inv_Ty .gt. 0.0 ) THEN
-      Ty = 1.0/rates%inv_Ty
-      yfactor = 1.0/(1.0-(tau_y/Ty))
-    ELSEIF( rates%inv_Ty .eq. 0.0 ) THEN
-      yfactor = 1.0
+    IF( rates%inv_Tb .gt. 0.0 ) THEN
+      Tb = 1.0/rates%inv_Tb
+      bfactor = 1.0/(1.0-(tau_b/Tb))
+    ELSEIF( rates%inv_Tb .eq. 0.0 ) THEN
+      bfactor = 1.0
     ELSE
       CALL out_io(s_abort$, r_name, &
          'FATAL ERROR: Negative emittance encountered: ', &
@@ -205,17 +225,16 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
       STOP
     ENDIF
 
-    emit_x = ibsmode%a%emittance + advance*( xfactor*emit_x0 - ibsmode%a%emittance ) 
-    !FOO emit_y = ibsmode%b%emittance + advance*( &
-    !FOO         ((1.0-ratio)*yfactor+ratio*xfactor)*emit_y0 - ibsmode%b%emittance )
-    emit_y = ibsmode%b%emittance !FOO
+    emit_a = ibsmode%a%emittance + advance*( afactor*emit_a0 - ibsmode%a%emittance ) 
+    emit_b = ibsmode%b%emittance + advance*( &
+            ((1.0-ratio)*bfactor+ratio*afactor)*emit_b0 - ibsmode%b%emittance )
     sigE_E = ibsmode%sigE_E      + advance*( zfactor*sigE_E0 - ibsmode%sigE_E )
 
     running_emit_x = CSHIFT(running_emit_x, -1)
     running_emit_y = CSHIFT(running_emit_y, -1)
     running_sigE_E = CSHIFT(running_sigE_E, -1)
-    running_emit_x(1) = emit_x
-    running_emit_y(1) = emit_y
+    running_emit_x(1) = emit_a
+    running_emit_y(1) = emit_b
     running_sigE_E(1) = sigE_E
     runavg_emit_x_A = SUM(running_emit_x(1:half))/(half)
     runavg_emit_y_A = SUM(running_emit_y(1:half))/(half)
@@ -235,15 +254,19 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
     ENDIF        
 
     IF(.not.converged) THEN
-      ibsmode%a%emittance = emit_x
-      !FOO ibsmode%b%emittance = emit_y !FOO
+      ibsmode%a%emittance = emit_a
+      ibsmode%b%emittance = emit_b
       ibsmode%sigE_E = sigE_E 
-      ibsmode%sig_z = L_ratio * sigE_E * fpw
+      !sigma_z_nat = L_ratio * sigE_E
+      !CALL potential_well_distortion(cur,alpha_c,E_tot,lat%z%tune/twopi,lat%param%total_length,inductance,sigma_z_nat,pwd_ratio)
+      !ibsmode%sig_z = sigma_z_nat * pwd_ratio
+      CALL bl_via_vlassov(cur,alpha_c,E_tot,sigE_E,Vrf,rf_omega,U0,lat%param%total_length,resistance,inductance,sigma_z_vlassov)
+      ibsmode%sig_z = sigma_z_vlassov
     ENDIF
 
   ENDDO
 
-END SUBROUTINE ibsequilibrium2
+END SUBROUTINE ibs_equib_rlx
 
 !+
 !  Subroutine ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
@@ -266,58 +289,83 @@ END SUBROUTINE ibsequilibrium2
 !
 !  See ibs_rates subroutine for available IBS rate formulas.
 !-
-SUBROUTINE ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
+SUBROUTINE ibs_equib_der(lat,inmode,ibsmode,formula,ratio,granularity,clog_to_use,inductance,resistance)
+  ! Iterates to equilibrium beam conditions using derivatives
 
   IMPLICIT NONE
                                                                                                          
   TYPE(lat_struct), INTENT(INOUT), target :: lat
+  TYPE(lat_container) ibs_lat
   TYPE(normal_modes_struct), INTENT(IN) :: inmode
   TYPE(normal_modes_struct), INTENT(OUT) :: ibsmode
+  REAL(rp), INTENT(IN) :: granularity
   CHARACTER*4, INTENT(IN) :: formula
-  REAL(rp), INTENT(IN), OPTIONAL :: coupling
   TYPE(ibs_struct) rates
   TYPE(normal_modes_struct) :: naturalmode
+  INTEGER clog_to_use
+  REAL(rp) inductance
+  REAL(rp) resistance
 
   REAL(rp) time_for_one_turn
-  REAL(rp) tau_x, tau_y, tau_z
-  REAL(rp) Tx, Ty, Tz
-  REAL(rp) emit_x, emit_y, emit_z
-  REAL(rp) emit_x0, emit_y0, emit_z0
-  REAL(rp) dxdt, dydt, dzdt, dT
+  REAL(rp) tau_a, tau_b, tau_z
+  REAL(rp) Ta, Tb, Tz
+  REAL(rp) emit_a, emit_b, sigE_E
+  REAL(rp) emit_a0, emit_b0, sigE_E0
+  REAL(rp) dadt, dbdt, dsEdt, dT
   REAL(rp) threshold
-  REAL(rp) sigE_E0, sigma_z0, L_ratio
-  REAL(rp) ka, ka_one, ka_small
+  REAL(rp) sigma_z0, L_ratio
+  REAL(rp) sigma_z_vlassov
+  REAL(rp) ratio
+  REAL(rp) cur
+  REAL(rp) alpha_c
+  REAL(rp) E_tot
+  REAL(rp) sigma_z_nat
+  REAL(rp) pwd_ratio
+
+  REAL(rp) Vrf
+  REAL(rp) U0
+  REAL(rp) rf_freq, rf_omega
 
   LOGICAL converged
   INTEGER counter, i
 
   !natural mode here means emittances before IBS effects
   naturalmode = inmode
-  IF(present(coupling)) THEN
-    ka = coupling
-    naturalmode%b%emittance = coupling * inmode%a%emittance
-  ELSE
-    ka = inmode%b%emittance / inmode%a%emittance
-  ENDIF
 
   !compute the SR betatron damping times
   time_for_one_turn = lat%param%total_length / c_light
-  tau_x = time_for_one_turn / naturalmode%a%alpha_damp
-  tau_y = time_for_one_turn / naturalmode%b%alpha_damp
-  tau_z = time_for_one_turn / naturalmode%z%alpha_damp 
+  tau_a = time_for_one_turn / naturalmode%a%alpha_damp
+  tau_b = time_for_one_turn / naturalmode%b%alpha_damp
+  tau_z = time_for_one_turn / naturalmode%z%alpha_damp
+
+  cur = lat%param%n_part*e_charge/time_for_one_turn
+  alpha_c = inmode%synch_int(1)/lat%param%total_length
+  E_tot = lat%ele(0)%value(E_TOT$)
+
+  Vrf = 0.0d0
+  DO i=1,lat%n_ele_track
+    IF(lat%ele(i)%key .eq. rfcavity$) THEN
+      Vrf = Vrf + lat%ele(i)%value(voltage$)
+      rf_freq = lat%ele(i)%value(rf_frequency$)
+    ENDIF
+  ENDDO
+  rf_omega = twopi*rf_freq
+  U0 = inmode%e_loss
+
+  ibs_lat%lat => lat
+  ibs_lat%tau_a = tau_a
+  ibs_lat%clog_to_use = clog_to_use
 
   sigma_z0 = naturalmode%sig_z
   sigE_E0 = naturalmode%sigE_E
-  emit_x0 = naturalmode%a%emittance
-  emit_y0 = naturalmode%b%emittance
-  emit_z0 = sigma_z0 * sigE_E0
+  emit_a0 = naturalmode%a%emittance
+  emit_b0 = naturalmode%b%emittance
   L_ratio = sigma_z0 / sigE_E0
   threshold = .00001 !fractional changes in emittance smaller than this
                      !indicate convergence
   converged = .false.
-  dT = tau_x / 40.0 !Time to advance per iteration
-  ka_one = 1. / (1.+ka) !Used in determining de_dt
-  ka_small = ka / (1.+ka) !Used in determining de_dt
+  !dT = tau_a / 240.0 !Time to advance per iteration
+  dT = tau_a / 10.0 !Time to advance per iteration
 
   counter = 0
   ibsmode = naturalmode
@@ -328,39 +376,42 @@ SUBROUTINE ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
       lat%ele(i)%z%sigma = ibsmode%sig_z
       lat%ele(i)%z%sigma_p = ibsmode%sigE_E
     ENDDO
-    CALL ibs_rates1turn(lat,rates,formula)
+    CALL ibs_rates1turn(ibs_lat,rates,formula,granularity)
     counter = counter + 1
-    Tx = 1.0/rates%inv_Tx
-    Ty = 1.0/rates%inv_Ty
+    Ta = 1.0/rates%inv_Ta
+    Tb = 1.0/rates%inv_Tb
     Tz = 1.0/rates%inv_Tz
-    emit_x = ibsmode%a%emittance
-    emit_y = ibsmode%b%emittance
-    emit_z = ibsmode%sigE_E*ibsmode%sig_z
+    emit_a = ibsmode%a%emittance
+    emit_b = ibsmode%b%emittance
+    sigE_E = ibsmode%sigE_E
 
     !Compute change in emittance per time for x,y,z dimensions, taking
-    !into account radiation damping, IBS blow-up, and x-y coupling
-    dxdt = -(emit_x-ka_one*emit_x0)*2./tau_x + emit_x*2./Tx
-    dydt = -(emit_y-ka_small*emit_x)*2./tau_y + emit_y*2./Ty
-    dzdt = -(emit_z-emit_z0)*2./tau_z + 2./Tz*emit_z
+    !into account radiation damping and IBS blow-up
+    dadt = -(emit_a-emit_a0)*2./tau_a + emit_a*2./Ta
+    dbdt = -(emit_b-emit_b0)*2./tau_b + emit_b*2./Tb 
+    dsEdt= -(sigE_E-sigE_E0)/tau_z + sigE_E/Tz
 
-    IF( (dxdt*dT)/emit_x .lt. threshold ) THEN
-      IF( (dydt*dT)/emit_y .lt. threshold ) THEN
-        IF( (dzdt*dT)/emit_z .lt. threshold ) THEN
+    IF( (dadt*dT)/emit_a .lt. threshold ) THEN
+      IF( (dbdt*dT)/emit_b .lt. threshold ) THEN
+        IF( (dsEdt*dT)/ibsmode%sigE_E .lt. threshold ) THEN
           converged = .true.
         ENDIF
       ENDIF
     ENDIF
     IF(.not.converged) THEN
-      ibsmode%a%emittance = emit_x + dxdt*dT
-      ibsmode%b%emittance = emit_y + dydt*dT
-      emit_z = emit_z + dzdt*dT
-      ibsmode%sig_z =  SQRT(emit_z*L_ratio)
-      ibsmode%sigE_E = emit_z / ibsmode%sig_z
+      ibsmode%a%emittance = emit_a + dadt*dT
+      ibsmode%b%emittance = emit_b + dbdt*dT
+      ibsmode%sigE_E = ibsmode%sigE_E + dsEdt*dT
+      !sigma_z_nat = L_ratio * sigE_E
+      !CALL potential_well_distortion(cur,alpha_c,E_tot,lat%z%tune/twopi,lat%param%total_length,inductance,sigma_z_nat,pwd_ratio)
+      !ibsmode%sig_z = sigma_z_nat * pwd_ratio
+      CALL bl_via_vlassov(cur,alpha_c,E_tot,ibsmode%sigE_E,Vrf,rf_omega,U0,lat%param%total_length,resistance,inductance,sigma_z_vlassov)
+      ibsmode%sig_z = sigma_z_vlassov
     ENDIF
 
   ENDDO
 
-END SUBROUTINE ibs_equilibrium
+END SUBROUTINE ibs_equib_der
 
 !+
 !  Subroutine ibs_lifetime(lat, mode, maxratio, lifetime, formula)
@@ -384,13 +435,17 @@ END SUBROUTINE ibs_equilibrium
 !  Output:
 !    lifetime(ibs_lifetime_struct) --structure returning IBS lifetimes
 !-
-SUBROUTINE ibs_lifetime(lat,maxratio,lifetime,formula)
+SUBROUTINE ibs_lifetime(lat,tau_a,maxratio,lifetime,formula,granularity,clog_to_use)
   IMPLICIT NONE
 
   TYPE(lat_struct), INTENT(IN), target :: lat
+  REAL(rp) tau_a
+  TYPE(lat_container) ibs_lat
   TYPE(ibs_maxratio_struct), INTENT(IN) :: maxratio
   TYPE(ibs_lifetime_struct), INTENT(OUT) :: lifetime
+  REAL(rp), INTENT(IN) :: granularity
   CHARACTER*4, INTENT(IN) :: formula
+  INTEGER clog_to_use
 
   TYPE(ibs_struct) rates
 
@@ -400,10 +455,13 @@ SUBROUTINE ibs_lifetime(lat,maxratio,lifetime,formula)
   Ry = maxratio%ry**2
   R_p = maxratio%r_p**2
 
-  CALL ibs_rates1turn(lat, rates, formula)
+  ibs_lat%lat => lat
+  ibs_lat%tau_a = tau_a
+  ibs_lat%clog_to_use = clog_to_use
+  CALL ibs_rates1turn(ibs_lat, rates, formula, granularity)
 
-  lifetime%Tlx = exp(Rx)/2/Rx/rates%inv_Tx
-  lifetime%Tly = exp(Ry)/2/Ry/rates%inv_Ty
+  lifetime%Tlx = exp(Rx)/2/Rx/rates%inv_Ta
+  lifetime%Tly = exp(Ry)/2/Ry/rates%inv_Tb
   lifetime%Tlp = exp(R_p)/2/R_p/rates%inv_Tz
 END SUBROUTINE ibs_lifetime
 
@@ -427,26 +485,37 @@ END SUBROUTINE ibs_lifetime
 !  Output:
 !    delta_eV         -- change in energy spread in eV
 !-
-SUBROUTINE ibs_delta_eV1(lat, ix, delta_eV, formula)
+SUBROUTINE ibs_delta_eV1(lat, tau_a, ix, delta_eV, formula, clog_to_use)
   IMPLICIT NONE
 
   TYPE(lat_struct), INTENT(IN), target :: lat
+  REAL(rp) tau_a
+  TYPE(lat_container) ibs_lat
   INTEGER, INTENT(IN) :: ix
   REAL(rp), INTENT(OUT) :: delta_eV
   CHARACTER*4, INTENT(IN) ::  formula
   TYPE(ibs_struct) rates1ele
+  INTEGER clog_to_use
+
+  ibs_lat%lat => lat
+  ibs_lat%tau_a = tau_a
+  ibs_lat%clog_to_use = clog_to_use
 
   IF(lat%ele(ix)%value(l$) .gt. 0.0) THEN
     IF(formula == 'cimp') THEN
-      CALL cimp1(lat, ix, rates1ele)
+      CALL cimp1(ibs_lat, rates1ele, i=ix)
     ELSEIF(formula == 'bjmt') THEN
-      CALL bjmt1(lat, ix, rates1ele)
+      CALL bjmt1(ibs_lat, rates1ele, i=ix)
     ELSEIF(formula == 'bane') THEN
-      CALL bane1(lat, ix, rates1ele)
+      CALL bane1(ibs_lat, rates1ele, i=ix)
+    ELSEIF(formula == 'mpzt') THEN
+      CALL mpzt1(ibs_lat, rates1ele, i=ix)
+    ELSEIF(formula == 'mpxx') THEN
+      CALL mpxx1(ibs_lat, rates1ele, i=ix)
     ELSE
       WRITE(*,*) "Invalid IBS formula selected ... returning zero"
-      rates1ele%inv_Tx = 0.0
-      rates1ele%inv_Ty = 0.0
+      rates1ele%inv_Ta = 0.0
+      rates1ele%inv_Tb = 0.0
       rates1ele%inv_Tz = 0.0
       RETURN
     ENDIF
@@ -457,7 +526,7 @@ SUBROUTINE ibs_delta_eV1(lat, ix, delta_eV, formula)
 END SUBROUTINE ibs_delta_eV1
 
 !+
-!  Subroutine ibs_rates(lat, mode, rates, formula,linac)
+!  Subroutine ibs_rates1turn(lat, rates1turn, formula, granularity)
 !
 !  Calculates IBS risetimes for given lat and mode.
 !  This is basically a front-end for the various formulas 
@@ -478,49 +547,96 @@ END SUBROUTINE ibs_delta_eV1
 !  Output:
 !    rates          -- ibs_struct: ibs rates in x,y,z 
 !-
-SUBROUTINE ibs_rates1turn(lat, rates1turn, formula)
+SUBROUTINE ibs_rates1turn(ibs_lat, rates1turn, formula, granularity)
   IMPLICIT NONE
 
-  REAL(rp) sum_inv_Tz, sum_inv_Tx, sum_inv_Ty
-  TYPE(lat_struct), INTENT(IN), target :: lat
+  REAL(rp) sum_inv_Tz, sum_inv_Ta, sum_inv_Tb
+  !TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(lat_container) :: ibs_lat
   TYPE(ibs_struct) :: rates1ele
   TYPE(ibs_struct), INTENT(OUT) :: rates1turn
+  REAL(rp), INTENT(IN) :: granularity
   CHARACTER*4, INTENT(IN) ::  formula
   INTEGER i
+  INTEGER n_steps
+  REAL(rp), ALLOCATABLE :: steps(:)
+  REAL(rp) step_size
   REAL(rp) length_multiplier
 
+
   sum_inv_Tz = 0.0
-  sum_inv_Tx = 0.0
-  sum_inv_Ty = 0.0
+  sum_inv_Ta = 0.0
+  sum_inv_Tb = 0.0
 
-  DO i=1,lat%n_ele_track
-    IF(lat%ele(i)%value(l$) .eq. 0.0) THEN
-      CYCLE
-    ENDIF
-    IF(formula == 'cimp') THEN
-      CALL cimp1(lat, i, rates1ele)
-    ELSEIF(formula == 'bjmt') THEN
-      CALL bjmt1(lat, i, rates1ele)
-    ELSEIF(formula == 'bane') THEN
-      CALL bane1(lat, i, rates1ele)
-    ELSE
-      WRITE(*,*) "Invalid IBS formula selected ... returning zero"
-      rates1turn%inv_Tx = 0.0
-      rates1turn%inv_Ty = 0.0
-      rates1turn%inv_Tz = 0.0
-      RETURN
-    ENDIF
 
-    !length_multiplier = lat%ele(i)%value(l$)/2.0 + lat%ele(i+1)%value(l$)/2.0
-    length_multiplier = lat%ele(i)%value(l$)
-    sum_inv_Tz = sum_inv_Tz + rates1ele%inv_Tz * length_multiplier
-    sum_inv_Tx = sum_inv_Tx + rates1ele%inv_Tx * length_multiplier
-    sum_inv_Ty = sum_inv_Ty + rates1ele%inv_Ty * length_multiplier
-  ENDDO
+  IF( granularity .lt. 0.0 ) THEN
+    DO i=1,ibs_lat%lat%n_ele_track
+      IF(ibs_lat%lat%ele(i)%value(l$) .eq. 0.0) THEN
+        CYCLE
+      ENDIF
+      IF(formula == 'cimp') THEN
+        CALL cimp1(ibs_lat, rates1ele, i=i)
+      ELSEIF(formula == 'bjmt') THEN
+        CALL bjmt1(ibs_lat, rates1ele, i=i)
+      ELSEIF(formula == 'bane') THEN
+        CALL bane1(ibs_lat, rates1ele, i=i)
+      ELSEIF(formula == 'mpzt') THEN
+        CALL mpzt1(ibs_lat, rates1ele, i=i)
+      ELSEIF(formula == 'mpxx') THEN
+        CALL mpxx1(ibs_lat, rates1ele, i=i)
+      ELSE
+        WRITE(*,*) "Invalid IBS formula selected ... returning zero"
+        rates1turn%inv_Ta = 0.0
+        rates1turn%inv_Tb = 0.0
+        rates1turn%inv_Tz = 0.0
+        RETURN
+      ENDIF
 
-  rates1turn%inv_Tz = sum_inv_Tz / lat%param%total_length
-  rates1turn%inv_Tx = sum_inv_Tx / lat%param%total_length
-  rates1turn%inv_Ty = sum_inv_Ty / lat%param%total_length
+      !length_multiplier = ibs_lat%lat%ele(i)%value(l$)/2.0 + ibs_lat%lat%ele(i+1)%value(l$)/2.0
+      length_multiplier = ibs_lat%lat%ele(i)%value(l$)
+      sum_inv_Tz = sum_inv_Tz + rates1ele%inv_Tz * length_multiplier
+      sum_inv_Ta = sum_inv_Ta + rates1ele%inv_Ta * length_multiplier
+      sum_inv_Tb = sum_inv_Tb + rates1ele%inv_Tb * length_multiplier
+    ENDDO
+  ELSE
+    n_steps = CEILING(ibs_lat%lat%param%total_length / granularity)
+    step_size = ibs_lat%lat%param%total_length / n_steps
+
+    ALLOCATE(steps(1:n_steps))
+    DO i=1,n_steps-1
+      steps(i) = i*step_size
+    ENDDO
+    steps(n_steps) = ibs_lat%lat%param%total_length
+
+    DO i=1,n_steps
+      IF(formula == 'cimp') THEN
+        CALL cimp1(ibs_lat, rates1ele, s=steps(i))
+      ELSEIF(formula == 'bjmt') THEN
+        CALL bjmt1(ibs_lat, rates1ele, s=steps(i))
+      ELSEIF(formula == 'bane') THEN
+        CALL bane1(ibs_lat, rates1ele, s=steps(i))
+      ELSEIF(formula == 'mpzt') THEN
+        CALL mpzt1(ibs_lat, rates1ele, s=steps(i))
+      ELSEIF(formula == 'mpxx') THEN
+        CALL mpxx1(ibs_lat, rates1ele, s=steps(i))
+      ELSE
+        WRITE(*,*) "Invalid IBS formula selected ... returning zero"
+        rates1turn%inv_Ta = 0.0
+        rates1turn%inv_Tb = 0.0
+        rates1turn%inv_Tz = 0.0
+        RETURN
+      ENDIF
+
+      sum_inv_Tz = sum_inv_Tz + rates1ele%inv_Tz * step_size
+      sum_inv_Ta = sum_inv_Ta + rates1ele%inv_Ta * step_size
+      sum_inv_Tb = sum_inv_Tb + rates1ele%inv_Tb * step_size
+    ENDDO
+    DEALLOCATE(steps)
+  ENDIF
+
+  rates1turn%inv_Tz = sum_inv_Tz / ibs_lat%lat%param%total_length
+  rates1turn%inv_Ta = sum_inv_Ta / ibs_lat%lat%param%total_length
+  rates1turn%inv_Tb = sum_inv_Tb / ibs_lat%lat%param%total_length
 END SUBROUTINE ibs_rates1turn
 
 !+
@@ -539,53 +655,57 @@ END SUBROUTINE ibs_rates1turn
 !  Output:
 !    rates          -- ibs_struct: ibs rates in x,y,z 
 !-
-SUBROUTINE ibs_blowup1turn(lat,formula)
+SUBROUTINE ibs_blowup1turn(ibs_lat, formula)
   IMPLICIT NONE
 
-  TYPE(lat_struct), INTENT(INOUT), target :: lat
+  !TYPE(lat_struct), INTENT(INOUT), target :: lat
+  TYPE(lat_container) ibs_lat
   CHARACTER*4, INTENT(IN) ::  formula
   TYPE(ibs_struct) :: rates1ele
   INTEGER i
   REAL(rp) delta_t, pp, gg, gamma1, gamma2
 
-  DO i=1,lat%n_ele_track
-    delta_t = lat%ele(i)%value(l$)/c_light
+  DO i=1,ibs_lat%lat%n_ele_track
+    delta_t = ibs_lat%lat%ele(i)%value(l$)/c_light
     IF(delta_t .gt. 0.) THEN
-      rates1ele%inv_Tx = 0.0_rp
-      rates1ele%inv_Ty = 0.0_rp
+      rates1ele%inv_Ta = 0.0_rp
+      rates1ele%inv_Tb = 0.0_rp
       rates1ele%inv_Tz = 0.0_rp
 
-
-      IF(lat%ele(i)%value(l$) .ne. 0.0) THEN
+      IF(ibs_lat%lat%ele(i)%value(l$) .ne. 0.0) THEN
         IF(formula == 'cimp') THEN
-          CALL cimp1(lat, i, rates1ele)
+          CALL cimp1(ibs_lat, rates1ele, i=i)
         ELSEIF(formula == 'bjmt') THEN
-          CALL bjmt1(lat, i, rates1ele)
+          CALL bjmt1(ibs_lat, rates1ele, i=i)
         ELSEIF(formula == 'bane') THEN
-          CALL bane1(lat, i, rates1ele)
+          CALL bane1(ibs_lat, rates1ele, i=i)
+        ELSEIF(formula == 'mpzt') THEN
+          CALL mpzt1(ibs_lat, rates1ele, i=i)
+        ELSEIF(formula == 'mpxx') THEN
+          CALL mpxx1(ibs_lat, rates1ele, i=i)
         ELSE
           WRITE(*,*) "Invalid IBS formula selected ... terminating"
           STOP
         ENDIF
       ENDIF
 
-      CALL convert_total_energy_to(lat%ele(i)%value(E_TOT$), lat%param%particle, gamma1)
-      CALL convert_total_energy_to(lat%ele(i+1)%value(E_TOT$), lat%param%particle, gamma2)
+      CALL convert_total_energy_to(ibs_lat%lat%ele(i)%value(E_TOT$), ibs_lat%lat%param%particle, gamma1)
+      CALL convert_total_energy_to(ibs_lat%lat%ele(i+1)%value(E_TOT$), ibs_lat%lat%param%particle, gamma2)
       gg = gamma1/gamma2
-      pp = lat%ele(i)%value(p0c$)/lat%ele(i+1)%value(p0c$)
-      lat%ele(i+1)%a%emit = lat%ele(i)%a%emit * (1 + delta_t*rates1ele%inv_Tx) * gg
-      lat%ele(i+1)%b%emit = lat%ele(i)%b%emit * (1 + delta_t*rates1ele%inv_Ty) * gg
-      lat%ele(i+1)%z%sigma_p = lat%ele(i)%z%sigma_p * (1 + delta_t*rates1ele%inv_Tz*2.0) * pp
+      pp = ibs_lat%lat%ele(i)%value(p0c$)/ibs_lat%lat%ele(i+1)%value(p0c$)
+      ibs_lat%lat%ele(i+1)%a%emit = ibs_lat%lat%ele(i)%a%emit * (1 + delta_t*rates1ele%inv_Ta) * gg
+      ibs_lat%lat%ele(i+1)%b%emit = ibs_lat%lat%ele(i)%b%emit * (1 + delta_t*rates1ele%inv_Tb) * gg
+      ibs_lat%lat%ele(i+1)%z%sigma_p = ibs_lat%lat%ele(i)%z%sigma_p * (1 + delta_t*rates1ele%inv_Tz*2.0) * pp
     ELSE
-      lat%ele(i+1)%a%emit = lat%ele(i)%a%emit 
-      lat%ele(i+1)%b%emit = lat%ele(i)%b%emit 
-      lat%ele(i+1)%z%sigma_p = lat%ele(i)%z%sigma_p 
+      ibs_lat%lat%ele(i+1)%a%emit = ibs_lat%lat%ele(i)%a%emit 
+      ibs_lat%lat%ele(i+1)%b%emit = ibs_lat%lat%ele(i)%b%emit 
+      ibs_lat%lat%ele(i+1)%z%sigma_p = ibs_lat%lat%ele(i)%z%sigma_p 
     ENDIF
   ENDDO
 END SUBROUTINE ibs_blowup1turn
 
 !+
-!  subroutine bjmt1(lat, i, rates)
+!  subroutine bjmt1(ibs_lat, rates, i, s)
 !
 !  This is a private subroutine.  To access this subroutine, call
 !  ibs_rates.
@@ -597,41 +717,61 @@ END SUBROUTINE ibs_blowup1turn
 !
 !  This formulation takes a very long time to evaluate.
 !-
-SUBROUTINE bjmt1(lat, i, rates)
+SUBROUTINE bjmt1(ibs_lat, rates, i, s)
+
   IMPLICIT NONE
 
-  TYPE(lat_struct), INTENT(IN), target :: lat
-  INTEGER, INTENT(IN) :: i
+  !TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(lat_container) ibs_lat
+  INTEGER, INTENT(IN), OPTIONAL :: i
+  REAL(rp), INTENT(IN), OPTIONAL :: s
   TYPE(ibs_struct), INTENT(OUT) :: rates
   TYPE(ele_struct), pointer :: ele
+  TYPE(ele_struct), TARGET :: stubele
 
-  REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
+  REAL(rp) sigma_p, emit_a, emit_b, sigma_z, E_tot
   REAL(rp) gamma, KE, rbeta, beta_a, beta_b
   REAL(rp) sigma_y
   REAL(rp) Dx, Dy, Dxp, Dyp
   REAL(rp) alpha_a, alpha_b, coulomb_log
   REAL(rp) NB, big_A
   REAL(rp) Hx, Hy
-  REAL(rp) inv_Tz, inv_Tx, inv_Ty
+  REAL(rp) inv_Tz, inv_Ta, inv_Tb
 
   REAL(rp) phi_h, phi_v
-  REAL(rp) piece,last_piece,sum_x,sum_y,sum_z
-  REAL(rp) endpoint
-  LOGICAL far_enough
 
-  NB = lat%param%n_part
+  REAL(c_double) :: Lp(3,3), Lh(3,3), Lv(3,3), L(3,3)
+  REAL(c_double) :: mats(2,3,3)
 
-  ele => lat%ele(i)
+  REAL(fgsl_double), TARGET :: Elpha
+  TYPE(fgsl_function) :: integrand_ready
+  REAL(fgsl_double) :: integration_result
+  REAL(fgsl_double) :: abserr
+  TYPE(c_ptr) :: ptr
+  TYPE(fgsl_integration_workspace) :: integ_wk
+  INTEGER(fgsl_int) :: fgsl_status
 
-  E_tot = lat%ele(i)%value(E_TOT$)
-  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, rbeta)
+  NB = ibs_lat%lat%param%n_part
+
+  IF(PRESENT(i) .and. .not.PRESENT(s)) THEN
+    ele => ibs_lat%lat%ele(i)
+  ELSEIF(PRESENT(s) .and. .not.PRESENT(i)) THEN
+    CALL twiss_and_track_at_s(ibs_lat%lat,s,stubele)
+    ele => stubele
+  ELSE
+    WRITE(*,*) "FATAL ERROR IN ibs_mod: Either i or s (and not both) must be specified"
+    STOP
+  ENDIF
+
+  E_tot = ele%value(E_TOT$)
+  CALL convert_total_energy_to(E_tot, ibs_lat%lat%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
-  emit_x = ele%a%emit
-  emit_y = ele%b%emit
+  emit_a = ele%a%emit
+  emit_b = ele%b%emit
 
-  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
+  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -641,9 +781,10 @@ SUBROUTINE bjmt1(lat, i, rates)
   Dy = ele%b%eta
   Dxp = ele%a%etap
   Dyp = ele%b%etap
-  sigma_y = SQRT(beta_b*emit_y + (Dy*sigma_p)**2)
+  sigma_y = SQRT(beta_b*emit_b + (Dy*sigma_p)**2)
 
-  coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_a )
+  !coulomb_log = LOG( (gamma**2)*sigma_y*emit_a/r_e/beta_a )
+  CALL multi_coulomb_log(ibs_lat, ele, coulomb_log)
 
   Hx = ( Dx**2 + (beta_a*Dxp + alpha_a*Dx)**2 ) / beta_a
   Hy = ( Dy**2 + (beta_b*Dyp + alpha_b*Dy)**2 ) / beta_b
@@ -651,169 +792,108 @@ SUBROUTINE bjmt1(lat, i, rates)
   phi_h = Dxp + alpha_a*Dx/beta_a
   phi_v = Dyp + alpha_b*Dy/beta_b
 
-  bjmt_com%Lp = 0.0
-  bjmt_com%Lp(2,2) = 1.0
-  bjmt_com%Lp = (gamma**2)/(sigma_p**2)*bjmt_com%Lp
+  Lp = 0.0
+  Lp(2,2) = 1.0
+  Lp = (gamma**2)/(sigma_p**2)*Lp
 
-  bjmt_com%Lh = 0.0
-  bjmt_com%Lh(1,1) = 1.0
-  bjmt_com%Lh(1,2) = -1.0*gamma*phi_h
-  bjmt_com%Lh(2,1) = -1.0*gamma*phi_h
-  bjmt_com%Lh(2,2) = (gamma**2)*Hx/beta_a
-  bjmt_com%Lh = beta_a/emit_x*bjmt_com%Lh
+  Lh = 0.0
+  Lh(1,1) = 1.0
+  Lh(1,2) = -1.0*gamma*phi_h
+  Lh(2,1) = -1.0*gamma*phi_h
+  Lh(2,2) = (gamma**2)*Hx/beta_a
+  Lh = beta_a/emit_a*Lh
 
-  bjmt_com%Lv = 0.0
-  bjmt_com%Lv(2,2) = (gamma**2)*Hy/beta_b
-  bjmt_com%Lv(2,3) = -1.0*gamma*phi_v
-  bjmt_com%Lv(3,2) = -1.0*gamma*phi_v
-  bjmt_com%Lv(3,3) = 1.0
-  bjmt_com%Lv = beta_b/emit_y*bjmt_com%Lv
+  Lv = 0.0
+  Lv(2,2) = (gamma**2)*Hy/beta_b
+  Lv(2,3) = -1.0*gamma*phi_v
+  Lv(3,2) = -1.0*gamma*phi_v
+  Lv(3,3) = 1.0
+  Lv = beta_b/emit_b*Lv
 
-  bjmt_com%L_sum = bjmt_com%Lp + bjmt_com%Lh + bjmt_com%Lv
+  L = Lp + Lh + Lv
 
-  !The bjmt integrals are slow to converge.  To help out qromo, the
-  !integrals are evaluated in segments, each segment 10 times longer
-  !than its predecessor.  When the integral of the segment contributes
-  !less than 1% to the total thus far, we call it converged.  This typically
-  !results in the integrals being evaluated out to 10^19 and higher.
+  mats(1,:,:) = L
 
-  far_enough = .false.
-  endpoint = 1.0E5
-  piece = qromo(bjmt_int_p, 0.0_rp, endpoint, midpnt)
-  sum_z = piece
-  last_piece = piece
-  DO WHILE(.not. far_enough) 
-    piece = qromo(bjmt_int_p, endpoint, endpoint*1.0E1, midpnt)
-    IF( (ABS(piece) .le. ABS(last_piece)) .and. (ABS(piece/sum_z) .le. .01) ) THEN
-      far_enough = .true.
-    ELSE
-      sum_z = sum_z + piece
-      last_piece = piece
-      endpoint = endpoint*1.0E1
-    ENDIF
-  ENDDO
-  inv_Tz=4.0*pi*big_A*coulomb_log*sum_z
+  integ_wk = fgsl_integration_workspace_alloc(limit)
+  ptr = c_loc(mats)
+  integrand_ready = fgsl_function_init(bjmt_integrand, ptr)
 
-  far_enough = .false.
-  endpoint = 1.0E5
-  piece = qromo(bjmt_int_h, 0.0_rp, endpoint, midpnt)
-  sum_x = piece
-  last_piece = piece
-  DO WHILE(.not. far_enough) 
-    piece = qromo(bjmt_int_h, endpoint, endpoint*1.0E1, midpnt)
-    IF( (ABS(piece) .le. ABS(last_piece)) .and. (ABS(piece/sum_x) .le. .01) ) THEN
-      far_enough = .true.
-    ELSE
-      sum_x = sum_x + piece
-      last_piece = piece
-      endpoint = endpoint*1.0E1
-    ENDIF
-  ENDDO
-  inv_Tx=4.0*pi*big_A*coulomb_log*sum_x
+  mats(2,:,:) = Lp
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 100.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  inv_Tz=4.0*pi*big_A*coulomb_log*integration_result
 
-  far_enough = .false.
-  endpoint = 1.0E5
-  piece = qromo(bjmt_int_v, 0.0_rp, endpoint, midpnt)
-  sum_y = piece
-  last_piece = piece
-  DO WHILE(.not. far_enough) 
-    piece = qromo(bjmt_int_v, endpoint, endpoint*1.0E1, midpnt)
-    IF( (ABS(piece) .le. ABS(last_piece)) .and. (ABS(piece/sum_y) .le. .01) ) THEN
-      far_enough = .true.
-    ELSE
-      sum_y = sum_y + piece
-      last_piece = piece
-      endpoint = endpoint*1.0E1
-    ENDIF
-  ENDDO
-  inv_Ty=4.0*pi*big_A*coulomb_log*sum_y
+  mats(2,:,:) = Lh
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 100.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  inv_Ta=4.0*pi*big_A*coulomb_log*integration_result
+
+  mats(2,:,:) = Lv
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 100.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  inv_Tb=4.0*pi*big_A*coulomb_log*integration_result
+
+  CALL fgsl_integration_workspace_free(integ_wk)
+  CALL fgsl_function_free(integrand_ready)
 
   rates%inv_Tz = inv_Tz
-  rates%inv_Tx = inv_Tx
-  rates%inv_Ty = inv_Ty
+  rates%inv_Ta = inv_Ta
+  rates%inv_Tb = inv_Tb
 
 END SUBROUTINE bjmt1
 
-FUNCTION bjmt_int_p(u)
-  real(rp), DIMENSION(:), INTENT(IN) :: u
-  real(rp), DIMENSION(size(u)) :: bjmt_int_p
-    
-  real(rp) det, TrLi, TrInv, TrMult
-  real(rp) inv(3,3), ident(3,3), mult(3,3)
-  integer i
+FUNCTION bjmt_integrand(xx,params) BIND(c)
+  REAL(c_double), VALUE :: xx
+  REAL(c_double) :: x
+  TYPE(c_ptr), VALUE :: params
+  REAL(c_double) :: bjmt_integrand
 
-  ident = 0.0
-  ident(1,1) = 1.0
-  ident(2,2) = 1.0
-  ident(3,3) = 1.0
+  REAL(c_double), POINTER :: mats(:,:,:)
 
-  TrLi = bjmt_com%Lp(1,1)+bjmt_com%Lp(2,2)+bjmt_com%Lp(3,3)
+  REAL(c_double) :: im(3,3)
+  REAL(c_double) :: L(3,3)
+  REAL(c_double) :: Li(3,3)
+  REAL(c_double) :: Li_im(3,3)
 
-  DO i=1, size(u)
-    det = determinant (bjmt_com%L_sum + u(i)*ident)
-    CALL mat_inverse(bjmt_com%L_sum + u(i)*ident, inv)
-    TrInv = inv(1,1)+inv(2,2)+inv(3,3)
-    mult = matmul(bjmt_com%Lp,inv)
-    TrMult = mult(1,1)+mult(2,2)+mult(3,3)
+  REAL(c_double) :: Tr_Li
+  REAL(c_double) :: Tr_im
+  REAL(c_double) :: Tr_Li_im
+  REAL(c_double) :: Det_L_l
 
-    bjmt_int_p(i)=(u(i)**.5)/(det**.5)*(TrLi*TrInv-3.0*TrMult)
-  ENDDO
-END FUNCTION bjmt_int_p
+  CALL c_f_pointer(params,mats,[2,3,3])
 
-FUNCTION bjmt_int_h(u)
-  real(rp), DIMENSION(:), INTENT(IN) :: u
-  real(rp), DIMENSION(size(u)) :: bjmt_int_h
+  L = mats(1,:,:)
+  Li = mats(2,:,:)
 
-  real(rp) det, TrLi, TrInv, TrMult
-  real(rp) inv(3,3), ident(3,3), mult(3,3)
-  integer i
+  x = EXP(xx) !change of variables
 
-  ident = 0.0
-  ident(1,1) = 1.0
-  ident(2,2) = 1.0
-  ident(3,3) = 1.0
+  Tr_Li = Li(1,1) + Li(2,2) + Li(3,3)
 
-  TrLi = bjmt_com%Lh(1,1)+bjmt_com%Lh(2,2)+bjmt_com%Lh(3,3)
+  im(1,1) = (L(2,2)+x)*(L(3,3)+x)-L(2,3)*L(3,2)
+  im(1,2) = -L(1,2)*(L(3,3)+x)
+  im(1,3) = L(1,2)*L(2,3)
+  im(2,1) = -L(2,1)*(L(3,3)+x)
+  im(2,2) = (L(1,1)+x)*(L(3,3)+x)
+  im(2,3) = -(L(1,1)+x)*L(2,3)
+  im(3,1) = L(2,3)*L(3,2)
+  im(3,2) = -(L(1,1)+x)*L(3,2)
+  im(3,3) = (L(1,1)+x)*(L(2,2)+x)-L(1,2)*L(2,1)
 
-  DO i=1, size(u)
-    det = determinant (bjmt_com%L_sum + u(i)*ident)
-    CALL mat_inverse(bjmt_com%L_sum + u(i)*ident, inv)
-    TrInv = inv(1,1)+inv(2,2)+inv(3,3)
-    mult = matmul(bjmt_com%Lh,inv)
-    TrMult = mult(1,1)+mult(2,2)+mult(3,3)
+  im(:,:) = im(:,:) / ( (L(1,1)+x)*(L(2,2)+x)*(L(3,3)+x) - (L(1,1)+x)*L(3,2)*L(2,3) - L(1,2)*L(2,1)*(L(3,3)+x) )
 
-   bjmt_int_h(i)=(u(i)**.5)/(det**.5)*(TrLi*TrInv-3.0*TrMult)
-  ENDDO
-END FUNCTION bjmt_int_h
-!-
-FUNCTION bjmt_int_v(u)
-  real(rp), DIMENSION(:), INTENT(IN) :: u
-  real(rp), DIMENSION(size(u)) :: bjmt_int_v
+  Tr_im = im(1,1)+im(2,2)+im(3,3)
 
-  real(rp) det, TrLi, TrInv, TrMult
-  real(rp) inv(3,3), ident(3,3), mult(3,3)
-  integer i
+  Li_im = matmul(Li,im)
+  Tr_Li_im = Li_im(1,1)+Li_im(2,2)+Li_im(3,3)
 
-  ident = 0.0
-  ident(1,1) = 1.0
-  ident(2,2) = 1.0
-  ident(3,3) = 1.0
+  Det_L_l = (L(1,1)+x)*( (L(2,2)+x)*(L(3,3)+x) - L(3,2)*L(2,3) ) - L(1,2)*L(2,1)*(L(3,3)+x)
 
-  TrLi = bjmt_com%Lv(1,1)+bjmt_com%Lv(2,2)+bjmt_com%Lv(3,3)
+  bjmt_integrand = SQRT(x/Det_L_l) * ( Tr_Li*Tr_im - 3.0_rp*Tr_Li_im )
+  bjmt_integrand = bjmt_integrand * x  !COV
+END FUNCTION bjmt_integrand
 
-  DO i=1, size(u)
-    det = determinant (bjmt_com%L_sum + u(i)*ident)
-    CALL mat_inverse(bjmt_com%L_sum + u(i)*ident, inv)
-    TrInv = inv(1,1)+inv(2,2)+inv(3,3)
-    mult = matmul(bjmt_com%Lv,inv)
-    TrMult = mult(1,1)+mult(2,2)+mult(3,3)
-
-    bjmt_int_v(i)=(u(i)**.5)/(det**.5)*(TrLi*TrInv-3.0*TrMult)
-  ENDDO
-END FUNCTION bjmt_int_v
- 
 !+
-!  subroutine bane1(lat, i, mode, rates)
+!  subroutine bane1(lat, rates, i, s)
 !
 !  This is a private subroutine. To access this subroutine, call
 !  ibs_rates.
@@ -823,88 +903,399 @@ END FUNCTION bjmt_int_v
 !  It is a high energy approximation of the Bjorken-Mtingwa IBS
 !  formulation.
 !-
-SUBROUTINE bane1(lat, i, rates)
+SUBROUTINE bane1(ibs_lat, rates, i, s)
 
   IMPLICIT NONE
 
-  TYPE(lat_struct), INTENT(IN), target :: lat
-  INTEGER, INTENT(IN) :: i
+  !TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(lat_container) ibs_lat
+  INTEGER, INTENT(IN), OPTIONAL :: i
+  REAL(rp), INTENT(IN), OPTIONAL :: s
   TYPE(ibs_struct), INTENT(OUT) :: rates
   TYPE(ele_struct), pointer :: ele
+  TYPE(ele_struct), TARGET :: stubele
 
-  REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
+  REAL(rp) sigma_p, emit_a, emit_b, sigma_z, E_tot
   REAL(rp) gamma, KE, rbeta, beta_a, beta_b
-  REAL(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
-  REAL(rp) Dx, Dy, Dxp, Dyp
+  REAL(rp) sigma_b, sigma_b_beta
+  REAL(rp) Da, Db, Dap, Dbp
   REAL(rp) alpha_a, alpha_b, coulomb_log
   REAL(rp) a, b, g_bane
   REAL(rp) NB, big_A
-  REAL(rp) sigma_H, Hx, Hy
-  REAL(rp) inv_Tz, inv_Tx, inv_Ty
+  REAL(rp) sigma_H, Ha, Hb
+  REAL(rp) inv_Tz, inv_Ta, inv_Tb
 
-  NB = lat%param%n_part
+  REAL(fgsl_double), TARGET :: Elpha
+  TYPE(fgsl_function) :: integrand_ready
+  REAL(fgsl_double) :: integration_result
+  REAL(fgsl_double) :: abserr
+  TYPE(c_ptr) :: ptr
+  TYPE(fgsl_integration_workspace) :: integ_wk
+  INTEGER(fgsl_int) :: fgsl_status
 
-  ele => lat%ele(i)
+  NB = ibs_lat%lat%param%n_part
+
+  IF(PRESENT(i) .and. .not.PRESENT(s)) THEN
+    ele => ibs_lat%lat%ele(i)
+  ELSEIF(PRESENT(s) .and. .not.PRESENT(i)) THEN
+    CALL twiss_and_track_at_s(ibs_lat%lat,s,stubele)
+    ele => stubele
+  ELSE
+    WRITE(*,*) "FATAL ERROR IN ibs_mod: Either i or s (and not both) must be specified"
+    STOP
+  ENDIF
 
   E_tot = ele%value(E_TOT$)
-  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, rbeta)
+  CALL convert_total_energy_to(E_tot, ibs_lat%lat%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
-  emit_x = ele%a%emit
-  emit_y = ele%b%emit
+  emit_a = ele%a%emit
+  emit_b = ele%b%emit
 
-  big_A=(r_e**2)*c_light*NB/16.0/(gamma**3)/(emit_x**(3./4.))/(emit_y**(3./4.))/sigma_z/(sigma_p**3)
+  big_A=(r_e**2)*c_light*NB/16.0/(gamma**3)/(emit_a**(3./4.))/(emit_b**(3./4.))/sigma_z/(sigma_p**3)
 
   beta_a = ele%a%beta
   beta_b = ele%b%beta
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
-  Dxp = ele%a%etap
-  Dyp = ele%b%etap
-  Dx = ele%a%eta
-  Dy = ele%b%eta
-  sigma_x_beta = SQRT(beta_a * emit_x)
-  sigma_y_beta = SQRT(beta_b * emit_y)
-  sigma_x = SQRT(sigma_x_beta**2 + (Dx**2)*(sigma_p**2))
-  sigma_y = SQRT(sigma_y_beta**2 + (Dy**2)*(sigma_p**2))
-                                                                                                     
-  coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_a )
-                                                                                                   
-  Hx = ( (Dx**2) + (beta_a*Dxp + alpha_a*Dx)**2 ) / beta_a
-  Hy = ( (Dy**2) + (beta_b*Dyp + alpha_b*Dy)**2 ) / beta_b
-  !-for atf-! Hy = 5.13E-7
-  sigma_H = 1.0/SQRT(1.0/(sigma_p**2) + Hx/emit_x + Hy/emit_y)
+  Dap = ele%a%etap
+  Dbp = ele%b%etap
+  Da = ele%a%eta
+  Db = ele%b%eta
+  sigma_b_beta = SQRT(beta_b * emit_b)
+  sigma_b = SQRT(sigma_b_beta**2 + (Db**2)*(sigma_p**2))
 
-  a = sigma_H/gamma*SQRT(beta_a/emit_x)
-  b = sigma_H/gamma*SQRT(beta_b/emit_y)
-                                                                                                   
+  !coulomb_log = LOG( (gamma**2)*sigma_b*emit_a/r_e/beta_a )
+
+  CALL multi_coulomb_log(ibs_lat, ele, coulomb_log)
+
+  Ha = ( (Da**2) + (beta_a*Dap + alpha_a*Da)**2 ) / beta_a
+  Hb = ( (Db**2) + (beta_b*Dbp + alpha_b*Db)**2 ) / beta_b
+  sigma_H = 1.0/SQRT(1.0/(sigma_p**2) + Ha/emit_a + Hb/emit_b)
+
+  a = sigma_H/gamma*SQRT(beta_a/emit_a)
+  b = sigma_H/gamma*SQRT(beta_b/emit_b)
+
   Elpha = a/b
-  g_bane = 2.*SQRT(Elpha)/pi*qromo(integrand, 0._rp, 9999._rp, midexp)
-                                                                                               
+  ptr = c_loc(Elpha)
+  integ_wk = fgsl_integration_workspace_alloc(limit)
+  integrand_ready = fgsl_function_init(integrand, ptr)
+  fgsl_status = fgsl_integration_qagiu(integrand_ready, 0.0d0, eps7, eps7, &
+                                       limit, integ_wk, integration_result, abserr)
+  g_bane = 2.0d0 * SQRT(Elpha) / pi * integration_result
+
+  CALL fgsl_function_free(integrand_ready)
+  CALL fgsl_integration_workspace_free(integ_wk)
+
   inv_Tz = big_A*coulomb_log*sigma_H*g_bane*((beta_a*beta_b)**(-1./4.))
-  inv_Tx = (sigma_p**2)*Hx/emit_x*inv_Tz
-  inv_Ty = (sigma_p**2)*Hy/emit_y*inv_Tz
-                                                                                               
+  inv_Ta = (sigma_p**2)*Ha/emit_a*inv_Tz
+  inv_Tb = (sigma_p**2)*Hb/emit_b*inv_Tz
+
   rates%inv_Tz = inv_Tz
-  rates%inv_Tx = inv_Tx
-  rates%inv_Ty = inv_Ty
+  rates%inv_Ta = inv_Ta
+  rates%inv_Tb = inv_Tb
 
 END SUBROUTINE bane1
 
-FUNCTION integrand(u)
-  real(rp), DIMENSION(:), INTENT(IN) :: u
-  real(rp), DIMENSION(size(u)) :: integrand
+FUNCTION integrand(x, params) BIND(c)
+    REAL(c_double), VALUE :: x
+    TYPE(c_ptr), VALUE :: params
+    REAL(c_double) :: integrand
 
-  integer i
+    REAL(c_double), POINTER :: alpha
+    CALL c_f_pointer(params, alpha)
 
-  DO i=1, size(u)
-    integrand(i) = 1 / (SQRT(1+u(i)**2)*SQRT(Elpha**2+u(i)**2))
-  ENDDO
+    integrand = 1.0_c_double / ( SQRT(1+x*x)*SQRT(alpha*alpha+x*x) )
 END FUNCTION integrand
 
 !+
-!  SUBROUTINE cimp1(lat, i, mode, rates)
+!  SUBROUTINE mpxx1(lat, rates, i, s)
+!
+!  This is a private subroutine. To access this subroutine, call
+!  ibs_rates.
+!
+!-
+SUBROUTINE mpxx1(ibs_lat, rates, i, s)
+
+  IMPLICIT NONE
+
+  !TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(lat_container) ibs_lat
+  INTEGER, INTENT(IN), OPTIONAL :: i
+  REAL(rp), INTENT(IN), OPTIONAL :: s
+  TYPE(ibs_struct), INTENT(OUT), OPTIONAL :: rates
+  TYPE(ele_struct), pointer :: ele
+  TYPE(ele_struct), TARGET :: stubele
+
+  REAL(rp) sigma_p, emit_a, emit_b, sigma_z, E_tot
+  REAL(rp) gamma, KE, rbeta, beta_a, beta_b
+  REAL(rp) sigma_a, sigma_b, sigma_a_beta, sigma_b_beta
+  REAL(rp) Da, Db, Dap, Dbp
+  REAL(rp) alpha_a, alpha_b, coulomb_log
+  REAL(rp) a,b,q
+  REAL(rp) NB, big_A
+  REAL(rp) sigma_H, Ha, Hb
+  REAL(rp) inv_Tz, inv_Ta, inv_Tb
+  REAL(rp) fab, f1b, f1a
+
+  REAL(fgsl_double) args(1:2)
+  TYPE(fgsl_function) :: integrand_ready
+  REAL(fgsl_double) :: integration_result
+  REAL(fgsl_double) :: abserr
+  TYPE(c_ptr) :: ptr
+  TYPE(fgsl_integration_workspace) :: integ_wk
+  INTEGER(fgsl_int) :: fgsl_status
+
+  NB = ibs_lat%lat%param%n_part
+
+  IF(PRESENT(i) .and. .not.PRESENT(s)) THEN
+    ele => ibs_lat%lat%ele(i)
+  ELSEIF(PRESENT(s) .and. .not.PRESENT(i)) THEN
+    CALL twiss_and_track_at_s(ibs_lat%lat,s,stubele)
+    ele => stubele
+  ELSE
+    WRITE(*,*) "FATAL ERROR IN ibs_mod: Either i or s (and not both) must be specified"
+    STOP
+  ENDIF
+
+  E_tot = ele%value(E_TOT$)
+  CALL convert_total_energy_to(E_tot, ibs_lat%lat%param%particle, gamma, KE, rbeta)
+
+  sigma_p = ele%z%sigma_p
+  sigma_z = ele%z%sigma
+  emit_a = ele%a%emit
+  emit_b = ele%b%emit
+
+  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+
+  alpha_a = ele%a%alpha
+  alpha_b = ele%b%alpha
+  beta_a = ele%a%beta
+  beta_b = ele%b%beta
+  sigma_a_beta = SQRT(beta_a * emit_a)
+  sigma_b_beta = SQRT(beta_b * emit_b)
+  Da = ele%a%eta
+  Db = ele%b%eta
+  Dap = ele%a%etap
+  Dbp = ele%b%etap
+  sigma_a = SQRT(sigma_a_beta**2 + (Da**2)*(sigma_p**2))
+  sigma_b = SQRT(sigma_b_beta**2 + (Db**2)*(sigma_p**2))
+
+  Ha = ( Da**2 + (beta_a*Dap + alpha_a*Da)**2 ) / beta_a
+  Hb = ( Db**2 + (beta_b*Dbp + alpha_b*Db)**2 ) / beta_b
+
+  sigma_H = 1.0/SQRT( 1.0/(sigma_p**2)+ Ha/emit_a + Hb/emit_b )
+
+  a = sigma_H/gamma*SQRT(beta_a/emit_a)
+  b = sigma_H/gamma*SQRT(beta_b/emit_b)
+
+  !------------------------Begin calls to GSL integrator
+  integ_wk = fgsl_integration_workspace_alloc(limit)
+  ptr = c_loc(args)
+  integrand_ready = fgsl_function_init(mpxx_integrand, ptr)
+
+  args = (/a,b/)
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 1.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  fab = integration_result
+
+  args = (/ 1.0_rp/a, b/a /) 
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 1.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  f1b = integration_result
+
+  args = (/ 1.0_rp/b, a/b /)
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 1.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  f1a = integration_result
+
+  CALL fgsl_integration_workspace_free(integ_wk)
+  CALL fgsl_function_free(integrand_ready)
+  !------------------------End calls to GSL integrator
+
+  CALL multi_coulomb_log(ibs_lat, ele, coulomb_log)
+
+  inv_Tz = coulomb_log * big_A * sigma_H**2 / sigma_p**2 * fab
+  inv_Ta = coulomb_log * big_A * (f1b + Ha*sigma_H**2/emit_a*fab)
+  inv_Tb = coulomb_log * big_A * (f1a + Hb*sigma_H**2/emit_b*fab)
+
+  rates%inv_Tz = inv_Tz
+  rates%inv_Ta = inv_Ta
+  rates%inv_Tb = inv_Tb
+END SUBROUTINE mpxx1
+
+FUNCTION mpxx_integrand(x, params) BIND(c)
+    REAL(c_double), VALUE :: x
+    TYPE(c_ptr), VALUE :: params
+    REAL(c_double) :: mpxx_integrand
+
+    REAL(c_double), POINTER :: args(:)
+    REAL(c_double) av, bv
+
+    REAL(c_double) u
+
+    CALL c_f_pointer(params,args,[2])
+    av = args(1)
+    bv = args(2)
+
+    mpxx_integrand = 8.0d0*pi*(1-3.0d0*x*x) / &
+                     SQRT(av*av+(1-av*av)*x*x) / &
+                     SQRT(bv*bv+(1-bv*bv)*x*x)
+
+END FUNCTION mpxx_integrand
+
+!+
+!  SUBROUTINE mpzt1(lat, rates, i, s)
+!
+!  This is a private subroutine. To access this subroutine, call
+!  ibs_rates.
+!
+!-
+SUBROUTINE mpzt1(ibs_lat, rates, i, s)
+
+  IMPLICIT NONE
+
+  !TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(lat_container) ibs_lat
+  INTEGER, INTENT(IN), OPTIONAL :: i
+  REAL(rp), INTENT(IN), OPTIONAL :: s
+  TYPE(ibs_struct), INTENT(OUT), OPTIONAL :: rates
+  TYPE(ele_struct), pointer :: ele
+  TYPE(ele_struct), TARGET :: stubele
+
+  REAL(rp) sigma_p, emit_a, emit_b, sigma_z, E_tot
+  REAL(rp) gamma, KE, rbeta, beta_a, beta_b
+  REAL(rp) sigma_a, sigma_b, sigma_a_beta, sigma_b_beta
+  REAL(rp) Da, Db, Dap, Dbp
+  REAL(rp) alpha_a, alpha_b, coulomb_log
+  REAL(rp) a,b,q
+  REAL(rp) NB, big_A
+  REAL(rp) sigma_H, Ha, Hb
+  REAL(rp) inv_Tz, inv_Ta, inv_Tb
+  REAL(rp) fabq, f1bq, f1aq
+
+  REAL(fgsl_double) args(1:3)
+  TYPE(fgsl_function) :: integrand_ready
+  REAL(fgsl_double) :: integration_result
+  REAL(fgsl_double) :: abserr
+  TYPE(c_ptr) :: ptr
+  TYPE(fgsl_integration_workspace) :: integ_wk
+  INTEGER(fgsl_int) :: fgsl_status
+
+  NB = ibs_lat%lat%param%n_part
+
+  IF(PRESENT(i) .and. .not.PRESENT(s)) THEN
+    ele => ibs_lat%lat%ele(i)
+  ELSEIF(PRESENT(s) .and. .not.PRESENT(i)) THEN
+    CALL twiss_and_track_at_s(ibs_lat%lat,s,stubele)
+    ele => stubele
+  ELSE
+    WRITE(*,*) "FATAL ERROR IN ibs_mod: Either i or s (and not both) must be specified"
+    STOP
+  ENDIF
+
+  E_tot = ele%value(E_TOT$)
+  CALL convert_total_energy_to(E_tot, ibs_lat%lat%param%particle, gamma, KE, rbeta)
+
+  sigma_p = ele%z%sigma_p
+  sigma_z = ele%z%sigma
+  emit_a = ele%a%emit
+  emit_b = ele%b%emit
+
+  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+
+  alpha_a = ele%a%alpha
+  alpha_b = ele%b%alpha
+  beta_a = ele%a%beta
+  beta_b = ele%b%beta
+  sigma_a_beta = SQRT(beta_a * emit_a)
+  sigma_b_beta = SQRT(beta_b * emit_b)
+  Da = ele%a%eta
+  Db = ele%b%eta
+  Dap = ele%a%etap
+  Dbp = ele%b%etap
+  sigma_a = SQRT(sigma_a_beta**2 + (Da**2)*(sigma_p**2))
+  sigma_b = SQRT(sigma_b_beta**2 + (Db**2)*(sigma_p**2))
+
+  Ha = ( Da**2 + (beta_a*Dap + alpha_a*Da)**2 ) / beta_a
+  Hb = ( Db**2 + (beta_b*Dbp + alpha_b*Db)**2 ) / beta_b
+
+  sigma_H = 1.0/SQRT( 1.0/(sigma_p**2)+ Ha/emit_a + Hb/emit_b )
+
+  a = sigma_H/gamma*SQRT(beta_a/emit_a)
+  b = sigma_H/gamma*SQRT(beta_b/emit_b)
+  q = sigma_H*rbeta*SQRT(2.0_rp*sigma_b/r_e)
+  !---- q = (gamma**2)*sigma_b*emit_a/r_e/beta_a  !effective coulomb log 
+
+  !------------------------Begin calls to GSL integrator
+  integ_wk = fgsl_integration_workspace_alloc(limit)
+  ptr = c_loc(args)
+  integrand_ready = fgsl_function_init(zot_integrand, ptr)
+
+  args = (/a,b,q/)
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 1.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  fabq = integration_result
+
+  args = (/ 1.0_rp/a, b/a, q/a /) 
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 1.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  f1bq = integration_result
+
+  args = (/ 1.0_rp/b, a/b, q/b /)
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 1.0d0, eps7, eps7, &
+                                     limit, 3, integ_wk, integration_result, abserr)
+  f1aq = integration_result
+
+  CALL fgsl_integration_workspace_free(integ_wk)
+  CALL fgsl_function_free(integrand_ready)
+  !------------------------End calls to GSL integrator
+
+  inv_Tz = big_A * sigma_H**2 / sigma_p**2 * fabq
+  inv_Ta = big_A * (f1bq + Ha*sigma_H**2/emit_a*fabq)
+  inv_Tb = big_A * (f1aq + Hb*sigma_H**2/emit_b*fabq)
+
+  rates%inv_Tz = inv_Tz
+  rates%inv_Ta = inv_Ta
+  rates%inv_Tb = inv_Tb
+END SUBROUTINE mpzt1
+
+FUNCTION zot_integrand(x, params) BIND(c)
+    REAL(c_double), VALUE :: x
+    TYPE(c_ptr), VALUE :: params
+    REAL(c_double) :: zot_integrand
+
+    REAL(c_double), POINTER :: args(:)
+    REAL(c_double) av, bv, qv, P, Q
+
+    REAL(c_double) u
+
+    CALL c_f_pointer(params,args,[3])
+    av = args(1)
+    bv = args(2)
+    qv = args(3)
+
+    !COV to remove singularity at endpoints
+    u=30.*((x**5.)/5. - (x**4.)/2. + (x**3.)/3.)
+
+    P = SQRT(av*av + (1.-av*av)*u*u)
+    Q = SQRT(bv*bv + (1.-bv*bv)*u*u)
+    zot_integrand = 8.0_rp*pi * (1.0_rp-3.0_rp*u*u)/P/Q * &
+                (2.0_rp*LOG(qv/2.0_rp*(1/P+1/Q)) - 0.577215665)
+
+    zot_integrand = zot_integrand * 30.*(x**4. - 2.*(x**3.) + x**2.)  !COV to remove singularity
+
+    !without COV
+    !P = SQRT(av*av + (1-av*av)*x*x)
+    !Q = SQRT(bv*bv + (1-bv*bv)*x*x)
+    !zot_integrand = 8.0_rp*pi * (1.0_rp-3.0_rp*x*x)/P/Q * &
+    !            (2.0_rp*LOG(qv/2.0_rp*(1/P+1/Q)) - 0.577215665)
+
+END FUNCTION zot_integrand
+
+!+
+!  SUBROUTINE cimp1(lat, rates, i, s)
 !
 !  This is a private subroutine. To access this subroutine, call
 !  ibs_rates.
@@ -918,16 +1309,19 @@ END FUNCTION integrand
 !
 !  This is the quickest of the three IBS formuations in this module. 
 !-
-SUBROUTINE cimp1(lat, i, rates)
+SUBROUTINE cimp1(ibs_lat, rates, i, s)
 
   IMPLICIT NONE
 
-  TYPE(lat_struct), INTENT(IN), target :: lat
-  INTEGER, INTENT(IN) :: i
-  TYPE(ibs_struct), INTENT(OUT) :: rates
+  !TYPE(lat_struct), INTENT(IN), target :: lat
+  TYPE(lat_container) ibs_lat
+  INTEGER, INTENT(IN), OPTIONAL :: i
+  REAL(rp), INTENT(IN), OPTIONAL :: s
+  TYPE(ibs_struct), INTENT(OUT), OPTIONAL :: rates
   TYPE(ele_struct), pointer :: ele
+  TYPE(ele_struct), TARGET :: stubele
 
-  REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
+  REAL(rp) sigma_p, emit_a, emit_b, sigma_z, E_tot
   REAL(rp) gamma, KE, rbeta, beta_a, beta_b
   REAL(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
   REAL(rp) Dx, Dy, Dxp, Dyp
@@ -935,29 +1329,42 @@ SUBROUTINE cimp1(lat, i, rates)
   REAL(rp) a, b
   REAL(rp) NB, big_A
   REAL(rp) sigma_H, Hx, Hy
-  REAL(rp) inv_Tz, inv_Tx, inv_Ty
+  REAL(rp) inv_Tz, inv_Ta, inv_Tb
   REAL(rp) g_ab,g_ba
+  REAL(rp) bminstar, bmax
 
-  NB = lat%param%n_part
+  !- Code specific to alternitive log representation
+  REAL(rp) q, lnqa, lnqb
+  !-
 
-  ele => lat%ele(i)
+  NB = ibs_lat%lat%param%n_part
+
+  IF(PRESENT(i) .and. .not.PRESENT(s)) THEN
+    ele => ibs_lat%lat%ele(i)
+  ELSEIF(PRESENT(s) .and. .not.PRESENT(i)) THEN
+    CALL twiss_and_track_at_s(ibs_lat%lat,s,stubele)
+    ele => stubele
+  ELSE
+    WRITE(*,*) "FATAL ERROR IN ibs_mod: Either i or s (and not both) must be specified"
+    STOP
+  ENDIF
 
   E_tot = ele%value(E_TOT$)
-  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, rbeta)
+  CALL convert_total_energy_to(E_tot, ibs_lat%lat%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
-  emit_x = ele%a%emit
-  emit_y = ele%b%emit
+  emit_a = ele%a%emit
+  emit_b = ele%b%emit
 
-  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
+  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
   beta_a = ele%a%beta
   beta_b = ele%b%beta
-  sigma_x_beta = SQRT(beta_a * emit_x)
-  sigma_y_beta = SQRT(beta_b * emit_y)
+  sigma_x_beta = SQRT(beta_a * emit_a)
+  sigma_y_beta = SQRT(beta_b * emit_b)
   Dx = ele%a%eta
   Dy = ele%b%eta
   Dxp = ele%a%etap
@@ -968,28 +1375,39 @@ SUBROUTINE cimp1(lat, i, rates)
   Hx = ( Dx**2 + (beta_a*Dxp + alpha_a*Dx)**2 ) / beta_a
   Hy = ( Dy**2 + (beta_b*Dyp + alpha_b*Dy)**2 ) / beta_b
 
-  sigma_H = 1.0/SQRT( 1.0/(sigma_p**2)+ Hx/emit_x + Hy/emit_y )
+  sigma_H = 1.0/SQRT( 1.0/(sigma_p**2)+ Hx/emit_a + Hy/emit_b )
 
-  coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_a )
+  CALL multi_coulomb_log(ibs_lat, ele, coulomb_log)
 
-  a = sigma_H/gamma*SQRT(beta_a/emit_x)
-  b = sigma_H/gamma*SQRT(beta_b/emit_y)
+  a = sigma_H/gamma*SQRT(beta_a/emit_a)
+  b = sigma_H/gamma*SQRT(beta_b/emit_b)
 
   g_ba = g(b/a)
   g_ab = g(a/b)
 
   inv_Tz = 2.*(pi**(3./2.))*big_A*(sigma_H**2)/(sigma_p**2) * &
     coulomb_log * ( g_ba/a + g_ab/b ) 
-  inv_Tx = 2.*(pi**(3./2.))*big_A*coulomb_log*&
-    (-a*g_ba + Hx*(sigma_H**2)/emit_x* &
+  inv_Ta = 2.*(pi**(3./2.))*big_A*coulomb_log*&
+    (-a*g_ba + Hx*(sigma_H**2)/emit_a* &
     ( g_ba/a + g_ab/b ) ) 
-  inv_Ty = 2.*(pi**(3./2.))*big_A*coulomb_log*&
-    (-b*g_ab + Hy*(sigma_H**2)/emit_y* &
+  inv_Tb = 2.*(pi**(3./2.))*big_A*coulomb_log*&
+    (-b*g_ab + Hy*(sigma_H**2)/emit_b* &
     ( g_ba/a + g_ab/b ) )
 
+  !!- Code specific to alternitive log representation
+  !inv_Tz = 2.*(pi**(3./2.))*big_A*(sigma_H**2)/(sigma_p**2) * &
+  !  ( lnqa*g_ba/a + lnqb*g_ab/b ) 
+  !inv_Ta = 2.*(pi**(3./2.))*big_A* &
+  !  (-a*lnqa*g_ba + Hx*(sigma_H**2)/emit_a* &
+  !  ( lnqa*g_ba/a + lnqb*g_ab/b ) ) 
+  !inv_Tb = 2.*(pi**(3./2.))*big_A* &
+  !  (-b*lnqb*g_ab + Hy*(sigma_H**2)/emit_b* &
+  !  ( lnqa*g_ba/a + lnqb*g_ab/b ) )
+  !!-
+
   rates%inv_Tz = inv_Tz
-  rates%inv_Tx = inv_Tx
-  rates%inv_Ty = inv_Ty
+  rates%inv_Ta = inv_Ta
+  rates%inv_Tb = inv_Tb
 END SUBROUTINE cimp1
 
 !+
@@ -1009,55 +1427,55 @@ FUNCTION g(u)
   REAL(rp) :: g
   REAL(rp), DIMENSION(0:13) ::  o,p,pa,pb,qb,qa,q,ra,rb,r
 
-  o = [0.27537408880308967,-0.0014411559647655005,4.760237316963749E-6,-1.056200254057877E-8, &
+  o = (/ 0.27537408880308967,-0.0014411559647655005,4.760237316963749E-6,-1.056200254057877E-8, &
        1.652957676252096E-11,-1.8807607644579788E-14,1.582497859744359E-17,-9.911417850544026E-21, &
        4.606212267581107E-24,-1.5661683056801226E-27,3.7836532348260456E-31,-6.148053455724941E-35, &
-       6.021954146486214E-29,-2.6856345839264216E-33 ]!last two terms have E-10 multiplied in function
+       6.021954146486214E-29,-2.6856345839264216E-33 /) !last two terms have E-10 multiplied in function
 
-  p = [1.3728514796955633,-0.06329159139596323,0.0019843996282577487,-0.00004282113130209425, &
+  p = (/ 1.3728514796955633,-0.06329159139596323,0.0019843996282577487,-0.00004282113130209425, &
        6.588299268041797E-7,-7.411644739022654E-9,6.186473337975396E-11,-3.851874112809632E-13, &
        1.7820926145729545E-15,-6.038143148108221E-18,1.454670683108795E-20,-2.358356775328005E-23, &
-       2.305700018891372E-26,-1.026694954987225E-29 ]
+       2.305700018891372E-26,-1.026694954987225E-29 /)
 
-  pa = [2.4560269972177395,-0.34483385959575796,0.04060452194930618,-0.0036548931452558006, &
+  pa = (/ 2.4560269972177395,-0.34483385959575796,0.04060452194930618,-0.0036548931452558006, &
         0.00024651396218017436,-0.000012205596049761074,4.224156486889531E-7,-8.746709793365587E-9, &
       	2.0010958003696878E-11,5.293109492480939E-12,-1.8692549451553078E-13,3.313011636321362E-15, &
-        -3.191257818162888E-17,1.333629848206322E-19 ]
+        -3.191257818162888E-17,1.333629848206322E-19 /)
 
-  pb = [0.2509305915339517, 3.655027986910339, -3.538178517122364, 2.0378515154003622, &
+  pb = (/ 0.2509305915339517, 3.655027986910339, -3.538178517122364, 2.0378515154003622, &
         -0.8131215410970869, 0.23600479506508648, -0.0508941392205539, 0.008214142113823073, &
         -0.000988882504551898, 0.00008751565040446301, -5.526659141312207E-6, &
-        2.3564088895171855E-7, -6.0770418816204626E-9, 7.15762060347684E-11 ]
+        2.3564088895171855E-7, -6.0770418816204626E-9, 7.15762060347684E-11 /)
 
-  qb = [-4.5128859976303835, 44.038623289844345, -201.50265131380843, 685.7422921643122, &
+  qb = (/ -4.5128859976303835, 44.038623289844345, -201.50265131380843, 685.7422921643122, &
         -1733.9460775721304, 3272.7093350374225, -4637.724347309373, 4940.122242846527, &
         -3931.6350463124686, 2301.047404938234, -960.7211908043258, 270.6618330819612, &
-        -46.088423620894815, 3.581345541476106 ]
+        -46.088423620894815, 3.581345541476106 /)
 
-  qa= [-7.9542527228302164, 207.51519155414007, -4406.431743148087, 75592.0699189963, &
+  qa= (/ -7.9542527228302164, 207.51519155414007, -4406.431743148087, 75592.0699189963, &
        -992747.0161009694, 9.983494244578896E6, -7.72264540055081E7, 4.593887542691004E8, &
        -2.0856924957059484E9, 7.103526742990105E9, -1.758262228582309E10, 2.9881056304916122E10, &
-       -3.11970246734184E10, 1.5092353688380434E10 ]
+       -3.11970246734184E10, 1.5092353688380434E10 /)
 
-  q = [-10.427660034546474, 614.5741414073021, -37752.0301748355, 1.8467024380709291E6, &
+  q = (/ -10.427660034546474, 614.5741414073021, -37752.0301748355, 1.8467024380709291E6, &
        -6.787056202900247E7, 1.87800146779508E9, -3.9344782189063065E10, 6.245185690585099E11, &
        -7.460242970344108E12, 6.596837840619067E13, -4.186282233147678E14, 1.8023052362000775E15, &
-       -4.713009373619726E15, 5.649407049035322E15 ]
+       -4.713009373619726E15, 5.649407049035322E15 /)
 
-  ra = [-13.151132987122772, 2076.0767607226853, -439312.2888781302, 7.549171067948443E7, &
+  ra = (/ -13.151132987122772, 2076.0767607226853, -439312.2888781302, 7.549171067948443E7, &
         -9.918579267112797E9, 9.97612075477821E11, -7.717556597617397E13, 4.591087739048907E15, &
         -2.0844941927298595E17, 7.099636713666537E18, -1.757338267407412E20, 2.986592440773308E21, &
-        -3.1181759869417024E22, 1.5085206738847978E23 ]
+        -3.1181759869417024E22, 1.5085206738847978E23 /)
 
-  rb = [-16.158250737444753, 7653.567961683397, -5.677248220833501E6, 3.2736621037820387E9, &
+  rb = (/ -16.158250737444753, 7653.567961683397, -5.677248220833501E6, 3.2736621037820387E9, &
         -1.3885723919300298E12, 4.356123741560311E14, -1.018979723977809E17, 1.782083486703034E19, &
         -2.31837909173977E21, 2.209799968074478E23, -1.4978388984105023E25, 6.831861840241021E26, &
-        -1.878873461985899E28, 2.3529610201488045E29 ]
+        -1.878873461985899E28, 2.3529610201488045E29 /)
 
-  r = [-21.460085854969584, 80412.06002488811, -6.294777676054858E8, 3.84371292991909E12, &
+  r = (/ -21.460085854969584, 80412.06002488811, -6.294777676054858E8, 3.84371292991909E12, &
         -1.7311478313121348E16, 5.7791722579515556E19, -1.4411700564165495E23, +2.6910329100895636E26, &
         -3.742607580627404E29, 3.8178627111416235E32, -2.7722017774216816E35, 1.3556698189607729E38, &
-        -4.000249119089512E30, 5.378513442816346E32 ]! E10 added to these last two in formula
+        -4.000249119089512E30, 5.378513442816346E32 /) ! E10 added to these last two in formula
 
   IF    (u .gt. 3000.0) THEN
     WRITE(*,*) "CRITICAL WARNING: interpolation range exceeded"
@@ -1107,6 +1525,204 @@ FUNCTION g(u)
     g = 0.
   ENDIF
 END FUNCTION g
+
+!+
+!-
+SUBROUTINE multi_coulomb_log(ibs_lat,ele,coulomb_log)
+  TYPE(lat_container) ibs_lat
+  REAL(rp) coulomb_log
+
+  TYPE(ele_struct) ele
+  REAL(rp) gamma, E_tot, g2
+  REAL(rp) sigma_a, sigma_b, sigma_z, sigma_p, sp2
+  REAL(rp) sigma_a_beta, sigma_b_beta
+  REAL(rp) emit_a, emit_b
+  REAL(rp) beta_a, beta_b
+  REAL(rp) alpha_a, alpha_b
+  REAL(rp) Da, Db, Dap, Dbp
+  REAL(rp) NB
+  REAL(rp) bminstar
+  REAL(rp) bmax
+  REAL(rp) gamma_a, gamma_b
+  REAL(rp) Ha, Hb
+  REAL(rp) Bbar
+  REAL(rp) u, v, w  !used for Raubenheimer's calculation
+  REAL(rp) qmin, qmax
+
+  !fgsl variables
+  TYPE(c_ptr) :: ptr
+  REAL(fgsl_double) args(1:3)
+  TYPE(fgsl_integration_workspace) :: integ_wk
+  TYPE(fgsl_function) :: integrand_ready
+  INTEGER(fgsl_int) :: fgsl_status
+  REAL(fgsl_double) :: integration_result
+  REAL(fgsl_double) :: abserr
+
+  NB = ibs_lat%lat%param%n_part
+
+  E_tot = ele%value(E_TOT$)
+  CALL convert_total_energy_to(E_tot, ibs_lat%lat%param%particle, gamma=gamma)
+
+  sigma_p = ele%z%sigma_p
+  sigma_z = ele%z%sigma
+  emit_a = ele%a%emit
+  emit_b = ele%b%emit
+
+  beta_a = ele%a%beta
+  beta_b = ele%b%beta
+  alpha_a = ele%a%alpha
+  alpha_b = ele%b%alpha
+  gamma_a = ele%a%gamma
+  gamma_b = ele%b%gamma
+  sigma_a_beta = SQRT(beta_a * emit_a)
+  sigma_b_beta = SQRT(beta_b * emit_b)
+  Da = ele%a%eta
+  Db = ele%b%eta
+  Dap = ele%a%etap
+  Dbp = ele%b%etap
+  sigma_a = SQRT(sigma_a_beta**2 + (Da**2)*(sigma_p**2))
+  sigma_b = SQRT(sigma_b_beta**2 + (Db**2)*(sigma_p**2))
+
+  IF( ibs_lat%clog_to_use == 1 ) THEN
+    !Classic Coulomb Log.
+    coulomb_log = LOG( (gamma**2)*sigma_b*emit_a/r_e/beta_a )
+  ELSEIF( ibs_lat%clog_to_use == 2 ) THEN
+    !Tail cut Raubenheimer gstar (ignores vertical dispersion !)
+    Ha = ( Da**2 + (beta_a*Dap + alpha_a*Da)**2 ) / beta_a
+    g2 = gamma*gamma
+    sp2 = sigma_p*sigma_p
+    u = g2*( Ha/emit_a + 1.0/sp2 + beta_a/g2/emit_a + beta_b/g2/emit_b )
+    v = g2*( Ha*beta_b/emit_a/emit_b + beta_a*beta_b/g2/emit_a/emit_b + beta_a/sp2/emit_a + beta_b/sp2/emit_b + Da*Da/emit_a/emit_a ) 
+    w = g2*( Da*Da*beta_b/emit_a/emit_a/emit_b + beta_a*beta_b/sp2/emit_a/emit_b )
+
+    Bbar = gamma*SQRT( gamma_a*emit_a + gamma_b*emit_b + sp2/g2)
+    qmin = 2.0 * r_e / sigma_b / Bbar
+
+    !FGSL integration
+    ptr = c_loc(args)
+    args = (/u,v,w/)
+    integ_wk = fgsl_integration_workspace_alloc(limit)
+    integrand_ready = fgsl_function_init(rclog_integrand, ptr)
+    fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 40.0d0, eps7, eps7, &
+                                           limit, 3, integ_wk, integration_result, abserr)
+
+    CALL fgsl_function_free(integrand_ready)
+    CALL fgsl_integration_workspace_free(integ_wk)
+
+    qmax = SQRT( ibs_lat%tau_a*NB*c_light*r_e*r_e/4.0/pi/g2/emit_a/emit_b/sigma_z/sigma_p * integration_result )
+
+    coulomb_log = LOG(qmax/qmin)
+  ELSEIF( ibs_lat%clog_to_use == 3 ) THEN
+    !Tail cut Bane form: SLAC-PUB-9227
+    bminstar = SQRT(4.0d0*pi*sigma_a*sigma_b*sigma_z*gamma*gamma/NB/c_light/ibs_lat%tau_a) * (beta_a/emit_a)**0.25
+    bmax = sigma_b
+    coulomb_log = LOG(bmax/bminstar)
+  ELSEIF( ibs_lat%clog_to_use == 4) THEN
+    !Tail cut Bane, but using relative velocity in all 3 dims, rather than just horizontal
+    Bbar = gamma*SQRT( gamma_a*emit_a + gamma_b*emit_b + sigma_p*sigma_p/gamma/gamma)
+    bminstar = SQRT(8.0_rp * SQRT(pi) *sigma_a*sigma_b*sigma_z*gamma*gamma/NB/c_light/ibs_lat%tau_a) / SQRT(Bbar)
+    bmax = sigma_b
+    coulomb_log = LOG(bmax/bminstar)
+  ENDIF
+
+END SUBROUTINE multi_coulomb_log
+
+FUNCTION rclog_integrand(x, params) BIND(c)
+    REAL(c_double), VALUE :: x
+    TYPE(c_ptr), VALUE :: params
+    REAL(c_double) :: rclog_integrand
+
+    REAL(c_double), POINTER :: args(:)
+    REAL(c_double) u, v, w
+
+    CALL c_f_pointer(params, args, [3])
+    u = args(1)
+    v = args(2)
+    w = args(3)
+
+    rclog_integrand = 2.0_rp/SQRT(EXP(6.0_rp*x) + u*EXP(4.0_rp*x) + v*EXP(2.0_rp*x) + w)*EXP(x)
+END FUNCTION rclog_integrand
+
+!+
+!-
+SUBROUTINE bl_via_vlassov(current,alpha,Energy,sigma_p,Vrf,omega,U0,circ,R,L,sigma_z)
+  USE longitudinal_profile_mod
+
+  IMPLICIT none
+
+  REAL(rp) current
+  REAL(rp) alpha
+  REAL(rp) Energy
+  REAL(rp) sigma_p
+  REAL(rp) Vrf
+  REAL(rp) omega
+  REAL(rp) U0
+  REAL(rp) circ
+  REAL(rp) R
+  REAL(rp) L
+  REAL(rp) sigma_z
+
+  REAL(rp) delta_e
+  REAL(rp) A
+  REAL(rp) Q
+  REAL(rp) T0
+  REAL(rp) phi
+  REAL(rp), PARAMETER :: bound = 500.0d-12
+
+  REAL(rp) args(1:8)
+
+  delta_e = sigma_p * Energy
+  T0 = circ/c_light
+  Q = current * T0
+  phi = -ACOS(U0/Vrf)
+  A = Energy/delta_e/delta_e/alpha/T0
+
+  args(1) = A
+  args(2) = Vrf
+  args(3) = Q
+  args(4) = omega
+  args(5) = phi
+  args(6) = R
+  args(7) = L
+  args(8) = U0
+
+  CALL get_bl_from_fwhm(bound,args,sigma_z)
+END SUBROUTINE bl_via_vlassov
+
+!+
+!-
+!SUBROUTINE potential_well_distortion(I,alpha,Energy,tune,circ,inductance,sig_nat,ratio)
+!  ! Computes the ratio between energy spread and bunch length, taking potential well distortion into account.
+!  real(rp) i             ! current
+!  real(rp) alpha         ! momentum compaction
+!  real(rp) energy        ! beam energy in ev
+!  real(rp) tune          ! fractional part of synchrotron tune
+!  real(rp) circ          ! circumpherence of storage ring
+!  real(rp) inductance    ! longitudinal inductance of maching (typically 10s of nh)
+!  real(rp) sig_nat       ! bunch length in absence of pwd
+!  real(rp) ratio         ! use to calculate bunch length:  sigma_pwd(i) = sigma_nat * ratio(i)
+!
+!  REAL(rp) :: onethird = 0.333333333333333333333_rp
+!  REAL(rp) :: twothird = 0.666666666666666666666_rp
+!  REAL(rp) :: roottwopi = 2.506628274631_rp
+!  COMPLEX(rp) :: pioverthree = (0.5_rp,0.8660254037844_rp)
+!  REAL(rp) Zn
+!  REAL(rp) R
+!  REAL(rp) A
+!  REAL(rp) term
+!  COMPLEX(rp) arg, argcubed
+!
+!  R = circ / twopi
+!  Zn = twopi/(circ/c_light) * inductance
+!  A = alpha/Energy/tune/tune*((R/sig_nat)**3)*Zn/roottwopi
+!
+!  term = 9.0_rp*A*I
+!  argcubed = SQRT(CMPLX(term*term-12.0)) - CMPLX(term)
+!  arg = argcubed**onethird
+!
+!  ratio = -1.0*( (-2.,0)*pioverthree*(3.,0)**onethird + pioverthree**2*(2.,0)**onethird*arg*arg ) / (6.,0)**twothird / arg
+!
+!END SUBROUTINE potential_well_distortion
 
 END MODULE ibs_mod
 
