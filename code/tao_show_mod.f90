@@ -195,7 +195,6 @@ character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
-character(200), pointer :: ptr_lines(:)
 character(100), allocatable :: alloc_lines(:)
 character(100) file_name, name, why_invalid
 character(120) header, str
@@ -1013,13 +1012,12 @@ case ('element')
 
   tao_lat => tao_pointer_to_tao_lat (u, lat_type)
 
-  call type2_ele (ele, ptr_lines, n, print_all, xfer_mat_print, print_taylor, s%global%phase_units, &
+  call type2_ele (ele, alloc_lines, n, print_all, xfer_mat_print, print_taylor, s%global%phase_units, &
             .true., tao_lat%lat, .true., print_floor, print_em_field, print_wall)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
-  lines(nl+1:nl+n) = ptr_lines(1:n)
+  lines(nl+1:nl+n) = alloc_lines(1:n)
   nl = nl + n
-  deallocate (ptr_lines)
 
   if (show_what == 'element' .and. print_floor) then
     nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (X, Y)]'
