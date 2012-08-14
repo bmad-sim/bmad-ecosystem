@@ -1042,7 +1042,7 @@ interface
     logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
     logical, optional, intent(in) :: type_zero_attrib, type_wake
     logical, optional :: type_field, type_wall
-    character(*), pointer :: lines(:)
+    character(*), allocatable :: lines(:)
   end subroutine
 end interface
 

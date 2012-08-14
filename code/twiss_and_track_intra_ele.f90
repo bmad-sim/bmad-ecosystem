@@ -90,7 +90,10 @@ if (err_flag) return
 
 if (present(orbit_start)) then
   call track1 (orbit_start, runt, param, orb_at_end)
-  if (.not. particle_is_moving_forward(orb_at_end, param%particle)) return
+  if (.not. particle_is_moving_forward(orb_at_end, param%particle)) then
+    if (present(orbit_end)) orbit_end = orb_at_end
+    return
+  endif
 endif
 
 if (present(ele_end)) then

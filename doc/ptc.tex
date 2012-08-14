@@ -1,5 +1,5 @@
 \chapter{Etienne Forest's PTC/FPP}
-\label{c:etienne}
+\label{c:ptc}
 \index{PTC/FPP}
 %----------------------------------------------------------------------------
 
@@ -44,14 +44,20 @@ conjunction with FPP) subroutines directly.
 \index{PTC/FPP!phase space}
 
 PTC uses different longitudinal phase space coordinates compared to \bmad.
-\bmad's phase space coordinates are
+\bmad's phase space coordinates are (\sref{s:phase.space})
 \Begineq
   (x, p_x, y, p_y, z, p_z)
 \Endeq
-PTC uses
+In PTC one can choose between several different coordinate systems. The one
+that Bmad uses is 
 \Begineq
-  (x, p_x, y, p_y, p_z, ct \sim -z)
+  (x, p_x, y, p_y, p_t, c \Delta t)
 \Endeq
+where
+\begineq
+  p_t = \frac{\Delta E}{P_0}
+\endeq
+This choice of phase space is set in \zzz{set_ptc}.
 \vn{vec_bmad_to_ptc} and \vn{vec_ptc_to_bmad} are conversion routines
 that translate between the two. Actually there are a number of
 conversion routines that translate between \bmad and PTC
