@@ -66,11 +66,9 @@ integer, optional :: type_mat6, twiss_out, nunit
 logical, optional :: type_control, type_zero_attrib, type_taylor, type_wake
 logical, optional :: type_floor_coords, type_field, type_wall
 
-character(200), pointer :: lines(:) 
+character(200), allocatable :: lines(:) 
 
 !
-
-nullify (lines)
 
 call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, &
       twiss_out, type_control, lattice, type_wake, type_floor_coords, type_field, &
@@ -89,7 +87,5 @@ if (iu /= 0) then
     write (abs(iu), '(1x, a)') trim(lines(i))
   enddo
 endif
-
-deallocate (lines)
 
 end subroutine

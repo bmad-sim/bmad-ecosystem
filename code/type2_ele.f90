@@ -42,10 +42,9 @@
 !   type_wall         -- Logical, optional: If True then print wall info. Default is False.
 !
 ! Output       
-!   lines(:)     -- Character(100), pointer: Character array to hold the 
+!   lines(:)     -- Character(100), allocatable :: Character array to hold the 
 !                     output. The array size of lines(:) will be set by
-!                     this subroutine. Note: You need to deallocate lines
-!                     between each call to type2_ele.
+!                     this subroutine.
 !   n_lines      -- Number of lines in lines(:).
 !-
 
@@ -82,7 +81,7 @@ real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp), pointer :: r_ptr
 
-character(*), pointer :: lines(:)
+character(*), allocatable :: lines(:)
 character(len(lines)), pointer :: li(:)
 character(len(lines)), allocatable :: li2(:)
 character(40) a_name, name, fmt_a, fmt_i, fmt_l, coef_str
@@ -687,7 +686,7 @@ endif
 
 ! finish
 
-allocate(lines(nl))
+call re_allocate(lines, nl, .false.)
 n_lines = nl
 lines(1:nl) = li(1:nl)
 deallocate (li)

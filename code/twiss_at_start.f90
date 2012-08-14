@@ -48,7 +48,7 @@ integer i, j, n, iu, n_lines, stat
 logical :: debug = .false. 
 logical saved_state
 
-character(200), pointer :: lines(:)
+character(200), allocatable :: lines(:)
 
 ! init one turn. T0 is the transverse part of the matrix
 
@@ -85,7 +85,6 @@ do n = 1, branch%n_ele_track
     do i = 1, n_lines
       write (iu, '(a)') trim(lines(i))
     enddo
-    deallocate (lines)
     write (iu, *) 'Symplectic Check:', mat_symp_error(t0_4)
 
     do i = 1, 4

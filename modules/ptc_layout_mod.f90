@@ -307,10 +307,35 @@ end Subroutine one_turn_map
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine output_ptc_fiber_info (fiber, lines, n_lines)
+! Subroutine type2_ptc_fiber (fiber, lines, n_lines)
 !
 ! Routine to put information on a PTC fiber element into a string array.
-! Also see: typ_ptc_fi 
+!
+! Module Needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   fiber     -- fibre: 
+!
+! Output:
+!   lines(:)  -- character(100), allocatable: Character array to hold the output.
+!   n_lines   -- integer: Number of lines used in lines(:)
+!-
+
+subroutine type2_ptc_fiber (fiber, lines, n_lines)
+
+implicit none
+
+type (fibre) fiber
+
+integer n_lines
+character(*), allocatable :: lines(:)
+
+!
+
+
+
+end subroutine type2_ptc_fiber
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
