@@ -659,6 +659,7 @@ call init_attrib (kicker$, E_tot_start$,                   'E_tot_start', .true.
 call init_attrib (kicker$, p0c_start$,                     'p0c_start', .true.)
 
 call init_attrib (sbend$, angle$,                          'ANGLE')
+call init_attrib (sbend$, exact_fringe$,                   'EXACT_FRINGE')
 call init_attrib (sbend$, e1$,                             'E1')
 call init_attrib (sbend$, e2$,                             'E2')
 call init_attrib (sbend$, h1$,                             'H1')
@@ -1062,7 +1063,7 @@ integer attrib_type
 
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'TRANSLATE_AFTER', 'FOLLOW_DIFFRACTED_BEAM', &
-      'NEGATIVE_GRAZE_ANGLE', 'SCALE_MULTIPOLES', 'NO_END_MARKER')
+      'NEGATIVE_GRAZE_ANGLE', 'SCALE_MULTIPOLES', 'NO_END_MARKER', 'EXACT_FRINGE')
   attrib_type = is_logical$
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
       'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS')

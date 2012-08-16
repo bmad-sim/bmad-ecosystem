@@ -1175,7 +1175,6 @@ case default   ! normal attribute
   if (attribute_type(attrib_word) == is_logical$) then
     call get_logical_real (attrib_word, ele%value(ix_attrib), err_flag)
 
-
   else
     call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
     if (err_flag) return
