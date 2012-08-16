@@ -87,6 +87,8 @@ type beam_init_struct
   real(rp) :: a_norm_emitt = 0           ! OLD DO NOT USE!
   real(rp) :: b_norm_emitt = 0           ! OLD DO NOT USE!
   real(rp) :: emitt_jitter(2)  = 0.0     ! OLD DO NOT USE!
+
+  logical :: full_6D_coupling_calc = .false.    ! True: use V from 6x6 1-turn mat to match distribution.  Else 4x4 1-turn mat used.
 end type
 
 type bunch_params_struct

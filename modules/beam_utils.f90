@@ -671,6 +671,8 @@ end subroutine init_beam_distribution
 
 subroutine init_bunch_distribution (ele, param, beam_init, bunch)
 
+use mode3_mod
+
 implicit none
 
 type (ele_struct) ele
@@ -682,6 +684,10 @@ type (kv_beam_init_struct), pointer :: kv
 
 real(rp) beta(3), alpha(3), emit(3), covar
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
+
+real(rp) tunes(1:3)
+REAL(rp) G6mat(6,6)
+REAL(rp) V6mat(6,6)
 
 integer i, j, k, n, species
 integer :: n_kv     ! counts how many phase planes are of KV type
@@ -756,16 +762,24 @@ if (ran_gauss_here) call init_random_distribution (ele, param, beam_init, bunch)
 bunch%charge = beam_init%bunch_charge
 bunch%ix_ele = ele%ix_ele
 
-call make_v_mats(ele, v_mat, v_inv)
+if( beam_init%full_6D_coupling_calc ) then
+  call normal_mode3_calc(param%t1_with_RF,tunes,G6mat,V6mat,.true.)
+else
+  call make_v_mats(ele, v_mat, v_inv)
+endif
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%charge = bunch%charge * p%charge
   p%state = alive$
-  ! Include Dispersion
-  p%vec(1:4) =  p%vec(1:4) + p%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
-  ! Include Coupling
-  p%vec(1:4) = matmul(v_mat, p%vec(1:4))
+  if( beam_init%full_6D_coupling_calc ) then
+    p%vec(1:6) = matmul(V6mat, p%vec(1:6))
+  else
+    ! Include Dispersion
+    p%vec(1:4) =  p%vec(1:4) + p%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
+    ! Include Coupling
+    p%vec(1:4) = matmul(v_mat, p%vec(1:4))
+  endif
 enddo
 
 ! recenter the bunch and include beam jitter
