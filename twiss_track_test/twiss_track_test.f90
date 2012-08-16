@@ -19,7 +19,7 @@ integer i, j, n, n_lines, version, ix_cache, n_track
 
 character(40) lattice
 character(200) lat_file
-character(100), pointer :: lines(:)
+character(200), allocatable :: lines(:)
 
 !---------------------------------------------------------
 
