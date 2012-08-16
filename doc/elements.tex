@@ -338,6 +338,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   angle       = <Real>     ! Design bend angle. A settable dependent variable (\sref{s:depend}).
   rho         = <Real>     ! Design bend radius. A settable dependent variable (\sref{s:depend}).
   e1, e2      = <Real>     ! Face angles.
+  exact_bend  = <Logical>  ! Use better edge tracking.
   fint, fintx = <Real>     ! Face field integrals.
   hgap, hgapx = <Real>     ! Pole half gap.
   h1, h2      = <Real>     ! Face curvature.
@@ -400,6 +401,13 @@ for an \vn{sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
 An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
 to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
 This formula holds for both positive and negative angles.
+  \index{exact_edge}
+  \item[exact_edge]
+When \vn{e1} or \vn{e2} are non-zero, \vn{bmad_standard} tracking uses a second order
+map to handle the edge focusing. In some cases, for instance in a chicane, this is
+not good enough. With \vn{exact_edge} to True, the wedge shape of the edge is properly 
+taken into account. The hard edge model is still used here. \vn{exact_edge} = True will
+be somewhat slower.
   \index{angle}
   \item[angle] \Newline
 The total design bend angle. A positive \vn{angle} represents a

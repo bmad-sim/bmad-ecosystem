@@ -324,16 +324,50 @@ end Subroutine one_turn_map
 
 subroutine type2_ptc_fiber (fiber, lines, n_lines)
 
+use s_status
+
 implicit none
 
 type (fibre) fiber
 
-integer n_lines
+integer n_lines, nl
 character(*), allocatable :: lines(:)
+character(40) str
 
 !
 
+nl = 0
+call re_allocate(lines, 100, .false.)
 
+select case (fiber%mag%kind)
+case (KIND0);   str = 'KIND0 [Marker, Patch]'
+case (KIND1);   str = 'KIND1 [Drift]'
+case (KIND2);   str = 'KIND2 [Drift-Kick-Drift EXACT_MODEL = F]'
+case (KIND3);   str = 'KIND3 [Thin Element, L == 0]'
+case (KIND4);   str = 'KIND4 [RFcavity]'
+case (KIND5);   str = 'KIND5 [Solenoid]'
+case (KIND6);   str = 'KIND6 [Kick-SixTrack-Kick]'
+case (KIND7);   str = 'KIND7 [Matrix-Kick-Matrix]'
+case (KIND8);   str = 'KIND8 [Normal SMI]'
+case (KIND9);   str = 'KIND9 [Skew SMI]'
+case (KIND10);  str = 'KIND10 [Sector Bend, Exact_Model]'
+case (KIND11);  str = 'KIND11 [Monitor]'
+case (KIND12);  str = 'KIND12 [HMonitor]'
+case (KIND13);  str = 'KIND13 [VMonitor]'
+case (KIND14);  str = 'KIND14 [Instrument]'
+case (KIND15);  str = 'KIND15 [ElSeparator]'
+case (KIND16);  str = 'KIND16 [True RBend, EXACT_MODEL = T]'
+case (KIND17);  str = 'KIND17 [SixTrack Solenoid]'
+case (KIND18);  str = 'KIND18 [Rcollimator]'
+case (KIND19);  str = 'KIND19 [Ecollimator]'
+case (KIND20);  str = 'KIND20 [Straight Geometry MAD RBend]'
+case (KIND21);  str = 'KIND21 [Traveling Wave Cavity]'
+case (KIND22);  str = 'KIND22'
+case (KIND23);  str = 'KIND23'
+case (KINDWIGGLER);  str = 'KINDWIGGLER [Wiggler]'
+case (KINDPA);  str = 'KINDPA'
+case default;   write (str, '(a, i0, a)') 'UNKNOWN! [', fiber%mag%kind, ']'
+end select
 
 end subroutine type2_ptc_fiber
 
