@@ -40,7 +40,7 @@ Usage:
    scripts/run_test.py {-bin <exe_dir>} {-test <test_dir>} {-list <test_list_file>} {-debug}
 
 Defaults:
-   <exe_dir>  = "../../bin"       ! This is relative to the test directories.
+   <exe_dir>  = "../bin"          ! This is relative to current directory.
    <test_dir> = ""                ! For running a single test. Overrides using a test_list_file.
    <test_list_file> = "test.list" ! For running multiple tests.
 
