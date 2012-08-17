@@ -85,12 +85,20 @@ ENDIF ()
 
 #-----------------------------------------
 # Print some friendly build information
+# and according to the build type, set
+# the following:
+#    C Flags
+#    F90 Flags
 #-----------------------------------------
 message("")
 IF (DEBUG)
   message("Build type           : Debug")
+  set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../debug)
+  set(BASE_C_FLAGS "${BASE_C_FLAGS}")
+  set(BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -check bounds -check format -check uninit -warn declarations -ftrapuv")
 ELSE ()
   message("Build type           : Production")
+  set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
 ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)\n")
 
@@ -98,12 +106,6 @@ message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)\n")
 #-----------------------------------
 # Output path definitions
 #-----------------------------------
-IF (DEBUG)
-  set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../debug)
-ELSE ()
-  set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
-ENDIF ()
-
 set (LIBRARY_OUTPUT_PATH ${OUTPUT_BASEDIR}/lib)
 set (EXECUTABLE_OUTPUT_PATH ${OUTPUT_BASEDIR}/bin)
 set (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
@@ -111,8 +113,8 @@ set (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
 
 #-----------------------------------
 #   System library locators
-# Also provides include directory
-# locations.
+# (Also provides include directory
+# locations.)
 #-----------------------------------
 find_package(X11)
 
@@ -202,12 +204,14 @@ foreach(dir ${SRC_DIRS})
     file(GLOB temp_list ${dir}/*.cxx)
     LIST(APPEND c_sources ${temp_list})
 
-    # Set compiler flag properties for all C source files.
+    #-----------------------------------
+    # Set compiler flag properties for 
+    # all C source files.
+    #-----------------------------------
     foreach (file ${c_sources})
       set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
     endforeach()
     LIST(APPEND sources ${c_sources})
-
 
     set(temp_list)
     file(GLOB temp_list ${dir}/*.f)
@@ -219,7 +223,10 @@ foreach(dir ${SRC_DIRS})
     file(GLOB temp_list ${dir}/*.f90)
     LIST(APPEND f_sources ${temp_list})
 
-    # Set compiler flag properties for all Fortran source files.
+    #-----------------------------------
+    # Set compiler flag properties for
+    # all Fortran source files.
+    #-----------------------------------
     foreach (file ${f_sources})
       set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
     endforeach()
@@ -230,10 +237,14 @@ endforeach(dir)
 
 #---------------------------------------------
 # List of lab-maintained libraries that shall
-# be attached to executables as dependencies
-# to accommodate the fact that they may also
-# be under active development in a user's
-# working area.
+# be associated with executables as
+# dependencies to accommodate the fact that
+# they may also be under active development
+# in a user's working area and require local
+# path references to find.
+#
+#  TODO: Relocate to simpler, external file
+#        for easier location and maintenance.
 #---------------------------------------------
 set( LAB_LIBS
   c_utils
