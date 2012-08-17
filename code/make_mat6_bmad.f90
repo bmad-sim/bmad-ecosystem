@@ -564,11 +564,27 @@ case (sbend$)
   ! Notice that kx_2 and ky_2 are not affected by reverse tracking
 
   call offset_particle (ele, c00, param%particle, set$, set_canonical = .false.)
-  call apply_bend_edge_kick (c00, ele, entrance_end$, .false., kx_1, ky_1)
+    
+  ! Entrance edge kick
+  if ( nint(ele%value(exact_fringe$)) == 1) then
+    !Note: No kx_1 or ky_1
+    call exact_bend_edge_kick (c00, ele, entrance_end$, .false.)
+  else
+    call apply_bend_edge_kick (c00, ele, entrance_end$, .false., kx_1, ky_1)
+  endif
+
 
   call offset_particle (ele, c11, param%particle, set$, set_canonical = .false., ds_pos = length)
-  call apply_bend_edge_kick (c11, ele, exit_end$, .true., kx_2, ky_2)  
-
+ 
+  ! Exit edge kick
+  if ( nint(ele%value(exact_fringe$)) == 1) then
+    !Note: No kx_1 or ky_1
+    call exact_bend_edge_kick (c11, ele, exit_end$, .false.)
+  else
+    call apply_bend_edge_kick (c11, ele, exit_end$, .true., kx_2, ky_2) 
+  endif
+ 
+   
   ! Body
 
   if (k1 /= 0) then
