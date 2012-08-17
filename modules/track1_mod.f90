@@ -11,6 +11,9 @@ use bmad_interface
 use make_mat6_mod
 use em_field_mod
 
+! Private routines for exact_bend_edge_kick
+private ptc_rot_xz, ptc_wedger, ptc_fringe_dipoler
+
 contains
 
 !---------------------------------------------------------------------------
@@ -306,7 +309,16 @@ endif
 
 end_orb = start_orb
 call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false., set_multipoles = .false.)
-call apply_bend_edge_kick (end_orb, ele, entrance_end$, .false.)
+
+
+! Entrance edge kick
+if ( nint(ele%value(exact_fringe$)) == 1) then
+  call exact_bend_edge_kick (end_orb, ele, entrance_end$, .false.)
+else
+  call apply_bend_edge_kick (end_orb, ele, entrance_end$, .false.)
+endif
+
+
 
 ! If we have a sextupole component then step through in steps of length ds_step
 
@@ -438,7 +450,14 @@ enddo
 
 ! Track through the exit face. Treat as thin lens.
 
-call apply_bend_edge_kick (end_orb, ele, exit_end$, .false.)
+! Exit edge kick
+if ( nint(ele%value(exact_fringe$)) == 1) then
+  call exact_bend_edge_kick (end_orb, ele, exit_end$, .false.)
+else
+  call apply_bend_edge_kick (end_orb, ele, exit_end$, .false.)
+endif
+
+
 call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., set_multipoles = .false.)
 
 end subroutine track_a_bend
@@ -704,5 +723,315 @@ rot_mat(2,:) = [nx * ny * (1 - cos_t), ny**2 + nx**2 * cos_t, sy]
 rot_mat(3,:) = [-sx,                   -sy,                   cos_t]
 
 end subroutine pitches_to_rotation_matrix
+
+
+
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! private subroutine ptc_wedger(a, g_tot, beta0, X)
+!
+! Subroutine to track PTC coordinates through a wedge
+!
+! Adapted from forest/code/Sh_def_kind.f90 : WEDGER
+!
+! Input:
+!   a      -- real(rp): wedge angle (rad)
+!   g_tot  -- real(rp): reference bending radius
+!   beta0  -- real(rp): reference relativistic beta
+!   X(6)   -- real(rp): PTC phase space coordinates
+!
+! Output:
+!   X(6)   -- real(rp): PTC phase space coordinates
+!
+!
+!-
+subroutine ptc_wedger(a, g_tot, beta0, X)
+
+implicit none
+
+real(rp) :: X(6)
+real(rp) :: a, beta0, g_tot
+real(rp) :: Xn(6),pz,pzs,pt,b1
+character(20) :: r_name = 'ptc_wedger'
+
+!
+
+!   b1=el1%p%dir*el1%p%charge*el1%bn(1) -> g_tot
+!   b=el1%p%beta0  -> beta0
+
+!CHECK
+b1 = g_tot
+
+if(b1==0) then
+   call ptc_rot_xz(a, X, beta0)
+   return
+endif
+
+pz=sqrt(1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(2)**2-X(4)**2)
+
+Xn(2)=X(2)*cos(a)+(pz-b1*X(1))*sin(a)
+
+pt=sqrt(1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(4)**2)
+pzs=sqrt(1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-Xn(2)**2-X(4)**2)
+
+Xn(1)=X(1)*cos(a)+(X(1)*X(2)*sin(2.0_rp*a)+sin(a)**2*(2.0_rp*X(1)*pz-b1*X(1)**2) )&
+    / (pzs+pz*cos(a)-X(2)*sin(a))
+Xn(3)=(a+asin(X(2)/pt)-asin(Xn(2)/pt))/b1
+
+Xn(6)=X(6)+Xn(3)*(1.0_rp/beta0+X(5))
+
+Xn(3)=X(3)+X(4)*Xn(3)
+
+X(1)=Xn(1)
+X(2)=Xn(2)
+X(3)=Xn(3)
+X(6)=Xn(6)
+
+end subroutine ptc_wedger
+
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! private subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end)
+!
+! Subroutine to compute the exact hard edge fringe field of a bend.
+! 
+! Adapted from forest/code/Sh_def_kind.f90 : FRINGE_DIPOLER
+!
+!
+! Input:
+!   X(6)   -- real(rp): PTC phase space coordinates
+!   beta0  -- real(rp): reference relativistic beta
+!   g_tot  -- real(rp): reference bending radius
+!   fint   -- real(rp): field integral for pole face
+!   hgap   -- real(rp): gap height at pole face in meters
+!                       Only the product fint*hgap is used
+!   element_end -- Integer: entrance_end$ or exit_end$
+!
+!
+! Output:
+!   X(6)   -- real(rp): PTC phase space coordinates
+!
+!
+!-
+subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end)
+
+implicit none
+
+real(rp) :: X(6) !PTC phase space coordinates
+real(rp) :: FINT, HGAP
+real(rp) :: beta0, g_tot
+real(rp) :: PZ,XP,YP,TIME_FAC
+real(rp) :: D(3,3),FI(3),FI0,B,co1,co2
+integer  :: i
+integer  :: element_end
+character(20) :: r_name = 'ptc_fringe_dipoler'
+
+!
+
+if (element_end == exit_end$) then
+   B = -g_tot  !EL%CHARGE*BN(1)
+else if (element_end == entrance_end$) then
+   B = g_tot       
+else
+  call out_io (s_fatal$, r_name, 'INVALID ELEMENT_END')
+  call err_exit
+endif
+
+
+pz=sqrt(1.0_rp+2.0_rp*x(5)/beta0+x(5)**2-x(2)**2-x(4)**2)
+time_fac=1.0_rp/beta0+x(5)
+
+xp=x(2)/pz
+yp=x(4)/pz
+
+d(1,1)=(1.0_rp+xp**2)/pz
+d(2,1)=xp*yp/pz
+d(3,1)=-xp
+d(1,2)=xp*yp/pz
+d(2,2)=(1.0_rp+yp**2)/pz
+d(3,2)=-yp
+d(1,3)=-time_fac*xp/pz**2
+d(2,3)=-time_fac*yp/pz**2
+d(3,3)= time_fac/pz
+
+fi0= atan((xp/(1.0_rp+yp**2)))-b*fint*hgap*2.0_rp*( 1.0_rp + xp**2*(2.0_rp+yp**2) )*pz
+co2=b/cos(fi0)**2
+co1=co2/(1.0_rp+(xp/(1.0_rp+yp**2))**2 )
+
+fi(1)=co1/(1.0_rp+yp**2)-co2*b*fint*hgap*2.0_rp*( 2.0_rp*xp*(2.0_rp+yp**2)*pz )
+fi(2)=-co1*2.0_rp*xp*yp/(1.0_rp+yp**2)**2-co2*b*fint*hgap*2.0_rp*( 2.0_rp*xp**2*yp)*pz
+fi(3)=-co2*b*fint*hgap*2.0_rp*( 1.0_rp + xp**2*(2.0_rp+yp**2) )
+
+fi0=b*tan(fi0)
+
+b=0
+do i=1,3
+   b=fi(i)*d(i,2)+b
+enddo
+x(3)=2.0_rp*x(3)/(1.0_rp+ sqrt(1.0_rp-2.0_rp*b*x(3)) )
+x(4)=x(4)-fi0*x(3)
+
+b=0
+do i=1,3
+   b=fi(i)*d(i,1)+b
+enddo
+x(1)=x(1)+0.5_rp*b*x(3)**2
+
+b=0
+do i=1,3
+   b=fi(i)*d(i,3)+b
+enddo
+x(6)=x(6)-0.5_rp*b*x(3)**2
+    
+end subroutine ptc_fringe_dipoler
+
+
+
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! private subroutine ptc_rot_xz(a, X, beta0)
+!
+! Subroutine to rotate the local reference frame about the Y axis in PTC coordinates.  
+! Adapted from forest/code/Sc_euclidean.f90 : ROT_XZ
+!
+!
+! Input:
+!   a      -- real(rp): rotation angle (rad)
+!   X(6)   -- real(rp): PTC phase space coordinates
+!   beta0  -- real(rp): reference relativistic beta
+!
+! Output:
+!   X(6)   -- real(rp): PTC phase space coordinates
+!
+!
+!-
+
+subroutine ptc_rot_xz(a, X, beta0)
+
+implicit none
+
+real(rp) :: x(6)
+real(rp) :: xn(6),pz,pt
+real(rp) :: a, beta0
+character(20) :: r_name = 'ptc_rot_xz'
+
+!
+
+pz=sqrt(1.0_rp+2.0_rp*x(5)/ beta0+x(5)**2-x(2)**2-x(4)**2)
+pt=1.0_rp-x(2)*tan(a)/pz
+xn(1)=x(1)/cos(a)/pt
+xn(2)=x(2)*cos(a)+sin(a)*pz
+xn(3)=x(3)+x(4)*x(1)*tan(a)/pz/pt
+xn(6)=x(6)+x(1)*tan(a)/pz/pt*(1.0_rp/ beta0+x(5))
+
+x(1)=xn(1)
+x(2)=xn(2)
+x(3)=xn(3)
+x(6)=xn(6)
+
+end subroutine ptc_rot_xz
+
+
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine exact_bend_edge_kick (orb, ele, element_end, reverse)
+!
+! Subroutine to track through the edge field of an sbend.
+! Reverse tracking starts with the particle just outside the bend and
+! returns the orbit that the particle had just inside the bend.
+!
+! Uses routines adapted from PTC
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   orb         -- Coord_struct: Starting coords.
+!   ele         -- ele_struct: SBend element.
+!   element_end -- Integer: entrance_end$ or exit_end$
+!   reverse     -- Logical: If True then make the inverse transformation.
+!                     That is, for the entrance end take the input orb as the coordinates
+!                     just inside the entrance end of the bend and return the coordinates 
+!                    just oustide the entrance end.
+!
+! Output:
+!   orb        -- Coord_struct: Coords after tracking.
+!-
+
+subroutine exact_bend_edge_kick (orb, ele, element_end, reverse)
+
+use ptc_interface_mod
+
+implicit none
+
+type(coord_struct) :: orb
+type(ele_struct) :: ele
+real(rp) :: X(6), ct
+real(rp) :: beta0, g_tot, edge_angle
+integer :: element_end
+logical :: reverse
+
+character(20) :: r_name = 'exact_bend_edge_kick'
+
+!
+if (reverse) then
+  call out_io (s_fatal$, r_name, 'REVERSE NOT IMPLEMENTED')
+  call err_exit
+endif
+
+!Get reference beta0
+beta0 = ele%value(e_tot$) / ele%value(p0c$)
+g_tot = ele%value(g$) + ele%value(g_err$)
+
+
+! Convert to PTC coordinates
+call vec_bmad_to_ptc(orb%vec, beta0, X)
+!Save time
+ct = X(6)
+
+
+if (element_end == entrance_end$) then
+  edge_angle = ele%value(e1$)
+  ! Drift forward
+  call ptc_wedger(edge_angle, 0.0_rp, beta0, X)
+  ! Edge kick
+  call ptc_fringe_dipoler(X, g_tot, beta0, ele%value(FINT$), ele%value(HGAP$), element_end)
+  ! Backtrack
+  call ptc_wedger(-edge_angle, g_tot, beta0, X)
+
+else if (element_end == exit_end$) then
+  edge_angle = ele%value(e2$)
+  ! Backtrack
+  call ptc_wedger(-edge_angle, g_tot, beta0, X)
+  ! Edge kick
+  call ptc_fringe_dipoler(X, g_tot, beta0, ele%value(FINT$), ele%value(HGAP$), element_end)
+  ! Drift forward
+  call ptc_wedger(edge_angle, 0.0_rp, beta0, X)
+
+else
+  !error!
+  call err_exit
+endif
+
+! Convert back to bmad coordinates
+call vec_ptc_to_bmad (X, beta0, orb%vec)
+
+!Correct time
+orb%t = orb%t + (X(6) - ct)/c_light
+
+end subroutine exact_bend_edge_kick
+
 
 end module
