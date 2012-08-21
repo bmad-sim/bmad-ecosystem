@@ -2131,6 +2131,7 @@ leng = ele%value(l$)
 
 ptc_key%list%name = ele%name
 ptc_key%list%l    = leng
+ptc_key%list%permfringe = .false.
 
 if (use_offsets) then
   ptc_key%tiltd = ele%value(tilt_tot$)
@@ -2171,6 +2172,7 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
+  ptc_key%list%permfringe = (ele%value(include_fringe$) /= 0)
 
 case (sbend$) 
   ptc_key%magnet = 'sbend'
@@ -2179,6 +2181,7 @@ case (sbend$)
   ptc_key%list%t2   = ele%value(e2$)
   ptc_key%list%hgap = ele%value(hgap$)
   ptc_key%list%fint = ele%value(fint$)
+  ptc_key%list%permfringe = (ele%value(exact_fringe$) /= 0)
 
   if (ele%value(fintx$) /= ele%value(fint$)) then
     call out_io (s_error$, r_name, &
@@ -2238,7 +2241,6 @@ case (rfcavity$, lcavity$)
 
   ptc_key%list%delta_e = 0     ! For radiation calc.
   ptc_key%list%cavity_totalpath = 1  ! 
-  ptc_key%list%permfringe = .false.
 
 case (elseparator$)
   ptc_key%magnet = 'elseparator'

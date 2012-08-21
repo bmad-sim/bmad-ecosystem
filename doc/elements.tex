@@ -401,12 +401,12 @@ for an \vn{sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
 An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
 to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
 This formula holds for both positive and negative angles.
-  \index{exact_edge}
-  \item[exact_edge]
-When \vn{e1} or \vn{e2} are non-zero, \vn{bmad_standard} tracking uses a second order
+  \index{exact_fringe}
+  \item[exact_fringe]
+When \vn{e1} or \vn{e2} are non-zero, \vn{bmad_standard} tracking, by default, uses a second order
 map to handle the edge focusing. In some cases, for instance in a chicane, this is
-not good enough. With \vn{exact_edge} to True, the wedge shape of the edge is properly 
-taken into account. The hard edge model is still used here. \vn{exact_edge} = True will
+not good enough. With \vn{exact_fringe} to True, the wedge shape of the edge is properly 
+taken into account. The hard edge model is still used here. \vn{exact_fringe} = True will
 be somewhat slower.
   \index{angle}
   \item[angle] \Newline
@@ -1880,21 +1880,26 @@ General \vn{quadrupole} attributes are:
 \index{b1_gradient}
 Attributes specific to a \vn{quadrupole} element are:
 \begin{example}
-  k1          = <Real>   ! Quadrupole strength.
-  b1_gradient = <Real>   ! Field strength. (\sref{s:depend}).
-\end{example}
+  k1             = <Real>    ! Quadrupole strength.
+  b1_gradient    = <Real>    ! Field strength. (\sref{s:depend}).
+  include_fringe = <Logical> ! Model quadrupole fringe fields? Default: False.
+ \end{example}
 
 \index{tilt}
 If the \vn{tilt} attribute is present without a value then a value of $\pi/4$
 is used.
-Example:
-\begin{example}
-  q03w: quad, l = 0.6, k1 = 0.003, tilt  ! same as tilt = pi/4
-\end{example}
+
+The \vn{include_fringe} switch toggles whether the fringe  fields are taken into account.
+This is only used if the tracking method involves PTC (\sref{c:methods}).
 
 For a quadrupole with zero \vn{tilt} and a positive \vn{k1}, the
 quadrupole is horizontally focusing and vertically defocussing
 (\sref{s:fields}).
+
+Example:
+\begin{example}
+  q03w: quad, l = 0.6, k1 = 0.003, tilt  ! same as tilt = pi/4
+\end{example}
 
 %-----------------------------------------------------------------
 \section{RFcavity}
