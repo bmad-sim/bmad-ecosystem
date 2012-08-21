@@ -742,10 +742,8 @@ end subroutine
 subroutine read_this_wall3d (wall3d, error)
 
 type (wall3d_struct), pointer :: wall3d
-type (wall3d_section_struct), pointer :: sec
-type (wall3d_vertex_struct), pointer :: v
 
-integer j, k, nv, n_wall_section, ios
+integer j, k, n_wall_section, ios
 logical error
 
 !
@@ -768,7 +766,9 @@ if (ios /= 0) then
 endif
 
 allocate(wall3d)
-read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%priority, wall3d%crotch
+read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%priority, &
+      wall3d%crotch%location, wall3d%crotch%ix_section, &
+      wall3d%crotch%ix_v1_cut, wall3d%crotch%ix_v2_cut
 if (ios /= 0) then
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
@@ -781,7 +781,25 @@ endif
 call re_allocate (wall3d%section, n_wall_section)
 
 do j = 1, n_wall_section
-  sec => wall3d%section(j)
+  call read_wall3d_section (wall3d%section(j))
+enddo
+
+if (n_wall_section /= 0) call read_wall3d_section(wall3d%crotch%section)
+
+error = .false.
+
+end subroutine
+
+!-----------------------------------------------
+! contains
+
+subroutine read_wall3d_section (sec)
+
+  type (wall3d_section_struct), target :: sec
+  type (wall3d_vertex_struct), pointer :: v
+  integer nv
+
+!
 
   read (d_unit, iostat = ios) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
                  sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input
@@ -806,10 +824,7 @@ do j = 1, n_wall_section
       return
     endif
   enddo
-enddo
 
-error = .false.
-
-end subroutine
+end subroutine read_wall3d_section
 
 end subroutine

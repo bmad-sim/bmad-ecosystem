@@ -450,8 +450,6 @@ end subroutine
 subroutine write_this_wall3d (wall3d)
 
 type (wall3d_struct), pointer :: wall3d
-type (wall3d_section_struct), pointer :: sec
-type (wall3d_vertex_struct), pointer :: v
 
 integer j, k
 
@@ -460,20 +458,42 @@ integer j, k
 if (associated(wall3d)) then
 
   write (d_unit) size(wall3d%section)
-  write (d_unit) wall3d%ele_anchor_pt, wall3d%priority, wall3d%crotch
+  write (d_unit) wall3d%ele_anchor_pt, wall3d%priority, &
+      wall3d%crotch%location, wall3d%crotch%ix_section, &
+      wall3d%crotch%ix_v1_cut, wall3d%crotch%ix_v2_cut
 
   do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
-    sec => wall3d%section(j)
-    write (d_unit) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
-                   sec%dr_ds, sec%p1_coef, sec%p2_coef, size(sec%v), sec%n_vertex_input
-    do k = 1, size(sec%v)
-      write (d_unit) sec%v(k)
-    enddo
+    call write_this_wall3d_section (wall3d%section(j))
   enddo
 
 else
   write (d_unit) 0
 endif
+
+end subroutine
+
+!-------------------------------------------------------------------------------------
+! contains
+
+subroutine write_this_wall3d_section (sec)
+
+type (wall3d_section_struct), target :: sec
+type (wall3d_vertex_struct), pointer :: v
+integer nv, k
+
+!
+
+if (allocated(sec%v)) then
+  nv = size(sec%v)
+else
+  nv = 0
+endif
+
+write (d_unit) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
+                   sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input
+do k = 1, nv
+  write (d_unit) sec%v(k)
+enddo
 
 end subroutine
 
