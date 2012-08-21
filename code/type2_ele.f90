@@ -74,7 +74,7 @@ type (ele_attribute_struct) attrib
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
 integer i, i1, j, n, ix, ix_tot, iv, ic, nl2, l_status, a_type, default_val
-integer nl, nt, n_max, particle, n_term, n_att, attrib_type, n_char
+integer nl, nt, particle, n_term, n_att, attrib_type, n_char
 
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -290,7 +290,7 @@ if (associated(ele%em_field)) then
         nl=nl+1; write (li(nl), '(a, es16.8)')  '    dz:            ', rfm%map%dz
         nl=nl+1; write (li(nl), '(a)')          '  Term                e                           b'
         do j = 1, min(10, size(rfm%map%term))
-          if (nl+1 > size(li)) call re_associate(li, 2 * nl)
+          if (nl+1 > size(li)) call re_associate(li, 2 * nl, .false.)
           nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
                                              '(', rfm%map%term(j)%e_coef, ')  (', rfm%map%term(j)%b_coef, ')'
         enddo
@@ -352,8 +352,7 @@ if (associated(ele%wall3d)) then
     nl=nl+1; write (li(nl), '(2a)') 'Wall%priority      = ', wall3d_priority_name(ele%wall3d%priority)
     n = min(size(ele%wall3d%section), 100)
     do i = 1, n
-      n_max = nl + 100 
-      if (n_max > size(li)) call re_associate (li, n_max) 
+      call re_associate (li, nl+100, .false.) 
       section => ele%wall3d%section(i)
       if (i == size(ele%wall3d%section)) then
         nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Wall%Section(', i, '):  S =', section%s
@@ -588,7 +587,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     nl=nl+1; write (li(nl), '(a, l1)') 'map_with_offsets: ', ele%map_with_offsets
     if (logic_option(.false., type_taylor)) then
       call type2_taylors (ele%taylor, li2, nt)
-      call re_associate (li, nl+nt+100)
+      call re_associate (li, nl+nt+100, .false.)
       li(1+nl:nt+nl) = li2(1:nt)
       deallocate (li2)
       nl = nl + nt
@@ -610,7 +609,7 @@ if (associated(ele%rf_wake)) then
   if (size(ele%rf_wake%sr_table) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%rf_wake%sr_table)+100)
+      call re_associate (li, nl+size(ele%rf_wake%sr_table)+100, .false.)
       nl=nl+1; li(nl) = 'Short-range wake table:'
       nl=nl+1; li(nl) = &
             '   #           Z   Longitudinal     Transverse'
@@ -626,6 +625,7 @@ if (associated(ele%rf_wake)) then
   if (size(ele%rf_wake%sr_mode_long) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
+      call re_associate (li, nl+size(ele%rf_wake%sr_mode_long)+100, .false.)
       nl=nl+1; li(nl) = 'Short-range pseudo modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
@@ -641,6 +641,7 @@ if (associated(ele%rf_wake)) then
   if (size(ele%rf_wake%sr_mode_trans) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
+      call re_associate (li, nl+size(ele%rf_wake%sr_mode_trans)+100, .false.)
       nl=nl+1; li(nl) = 'Short-range pseudo modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
@@ -656,6 +657,7 @@ if (associated(ele%rf_wake)) then
   if (size(ele%rf_wake%lr) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
+      call re_associate (li, nl+size(ele%rf_wake%lr)+100, .false.)
       nl=nl+1; li(nl) = 'Long-range HOM modes:'
       nl=nl+1; li(nl) = &
             '  #       Freq         R/Q           Q   m   Angle' // &
