@@ -726,6 +726,7 @@ call init_attrib (floor_position$, psi_position$,                'PSI_POSITION')
 
 
 call init_attrib (quadrupole$, k1$,                        'K1')
+call init_attrib (quadrupole$, include_fringe$,            'INCLUDE_FRINGE')
 call init_attrib (quadrupole$, B1_gradient$,               'B1_GRADIENT')
 call init_attrib (quadrupole$, radius$,                    'RADIUS')
 call init_attrib (quadrupole$, field_calc$,                'FIELD_CALC')
