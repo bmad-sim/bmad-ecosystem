@@ -604,8 +604,7 @@ end function floor_to_local
 !   status          -- logical: inside$: s is inside ele
 !                               entrance_end$: s is before element's entrance
 !                               exit_end$: s is beyond element's end
-!
-!   w_mat           -- real(rp) (3,3) (optional): W matrix at s, to transform vectors. 
+!   w_mat(3,3)      -- real(rp) (optional): W matrix at s, to transform vectors. 
 !                                  v_global = w_mat.v_local
 !                                  v_local = transpose(w_mat).v_global
 !       
@@ -700,5 +699,81 @@ contains
   end function  delta_s_in_ele_for_zbrent
 end function position_in_local_frame
 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+! Function position_in_global_frame (local_position, ele, w_mat) 
+!  result (global_position)
+!
+! Given a position local to ele, return global floor coordinates
+!
+! Input:
+!   local_position  -- floor_position_struct: [x, y, s] position and
+!                              [theta, phi, psi] angles in local curvilinear coordinates
+!   ele             -- ele_struct: element that local_position coordinates are relative to
+!
+! Result:
+!   global_position -- floor_position_struct: [X, Y, Z] position in global coordinates
+!   w_mat(3,3)      -- real(rp) (optional): W matrix at s, to transform vectors. 
+!                                  v_global = w_mat.v_local
+!                                  v_local = transpose(w_mat).v_global
+!       
+!-  
+
+function position_in_global_frame (local_position, ele, w_mat) result (global_position)
+
+implicit none
+
+type (floor_position_struct) :: local_position, global_position, floor, floor0
+type (ele_struct)  ele
+real(rp) :: L_save
+real(rp) :: dr(3)
+real(rp), optional :: w_mat(3,3)
+
+!Set x and y for floor offset 
+dr(1) = local_position%x
+dr(2) = local_position%y
+ 
+if (ele%key == sbend$ .or. ele%key == rbend$) then
+  ! Element has a curved geometry. Shorten ele
+  L_save = ele%value(L$)
+  ele%value(L$) = local_position%z
+  
+  ! calculate floor from previous element
+  if (associated (ele%branch) ) then
+    ! Get floor0 from previous element
+    floor0 = ele%branch%ele(ele%ix_ele-1)%floor
+  else
+    ! ele is without a lat. Propagate backwards to get floor0
+    ele%value(L$) = -L_save
+    call ele_geometry(ele%floor, ele, floor0)
+    ele%value(L$) = L_save
+  endif
+    
+  call ele_geometry(floor0, ele, floor)
+  ! position is exactly at ele's exit now. 
+  dr(3) = 0
+  
+  !Restore ele's length
+  ele%value(L$) = L_save
+
+else
+   ! Element has Cartesian geometry. 
+   floor = ele%floor
+      
+   ! position is relative to ele's exit: 
+   dr(3) =  local_position%z - ele%value(L$) 
+endif 
+
+! Get global floor coordinates
+call shift_reference_frame (floor, dr, local_position%theta, local_position%phi, local_position%psi, global_position)
+
+! Optionally return w_mat
+if (present(w_mat) ) then
+  call floor_angles_to_w_mat (global_position%theta, global_position%phi,global_position%psi, w_mat)
+endif 
+
+end function position_in_global_frame
 
 end module
