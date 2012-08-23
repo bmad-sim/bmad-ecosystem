@@ -665,7 +665,7 @@ local_position%z = s_local
 
 ! Optionally return w_mat
 if (present(w_mat) ) then
-  call floor_angles_to_w_mat (floor_at_s%theta,floor_at_s%phi,floor_at_s%psi, w_mat)
+  call floor_angles_to_w_mat (local_position%theta, local_position%phi, local_position%psi, w_mat)
 endif
 
 contains
@@ -775,5 +775,83 @@ if (present(w_mat) ) then
 endif 
 
 end function position_in_global_frame
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+!  Subroutine switch_local_positions (position0, ele0, ele_try, position1, ele1, ww_mat)
+! 
+!  Subroutine to take a local position0 in ele0 and find a local position near ele_try
+!    If this position is beyond the bounds of ele_try, neighboring elements will be 
+!    stepped to until a containing element is found.
+!    Optionally returns the ww_mat = W1^T.W0 matrix needed to rotate vectors:  
+!      W0.v0 = W1.v1 => W1^T.W0.v0 = v1
+!
+! Input:
+!   position0   -- floor_position_struct: local position in ele0
+!   ele0        -- ele_struct: Element that position0 is local to
+!   ele_try     -- ele_struct: Element to try to find a local position
+!
+! Output: 
+!   position1   -- floor_position_struct: local position in ele1
+!   ele1        --  ele_struct, pointer :: element that contains position1
+!   ww_mat(3,3) -- real(rp), optional: W1^T.W0 matrix
+!
+!-
+subroutine switch_local_positions (position0, ele0, ele_try, position1, ele1, ww_mat)
+
+implicit none
+
+type (floor_position_struct) :: position0, position1, global_position
+type (ele_struct) :: ele0
+type (ele_struct), target :: ele_try
+type (ele_struct), pointer :: ele1
+real(rp), optional :: ww_mat(3,3)
+real(rp) :: w_mat0(3,3),  w_mat1(3,3)
+integer :: ix_ele, status
+
+character(30), parameter :: r_name = 'switch_local_positions'
+
+!
+
+! Make sure ele_try has a branch
+if (.not. associated (ele_try%branch) ) then
+      call out_io (s_fatal$, r_name, 'ELE_TRY HAS NO ASSOCIATED BRANCH')
+      if (bmad_status%exit_on_error) call err_exit
+endif
+
+!
+ix_ele = ele_try%ix_ele
+
+! Get global position
+global_position = position_in_global_frame (position0, ele0)
+
+! Loop over neighboring elements until an encompassing one is found
+do
+  position1 = position_in_local_frame  (global_position, ele_try%branch%ele(ix_ele), status) 
+  if (status == entrance_end$) then
+    ! Try previous element
+    ix_ele = ix_ele -1
+    cycle
+  else if (status == exit_end$) then
+    ! Try next element
+    ix_ele = ix_ele + 1
+    cycle
+  else if (status == inside$) then
+    ! This element contains position
+    ele1 => ele_try%branch%ele(ix_ele)
+    exit
+  end if  
+enddo
+
+! Optionally return rotation matrix
+if (present(ww_mat) ) then
+  call floor_angles_to_w_mat (global_position%theta, global_position%phi,global_position%psi, w_mat0)
+  call floor_angles_to_w_mat (position1%theta, position1%phi, position1%psi, w_mat1)
+  ww_mat = matmul( transpose(w_mat1), w_mat0)
+endif
+  
+end subroutine switch_local_positions
 
 end module
