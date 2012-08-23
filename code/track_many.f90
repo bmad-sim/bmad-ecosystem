@@ -80,11 +80,6 @@ n_ele_track = branch%n_ele_track
 
 if (direction == +1) then
 
-  if (orbit(ix_start)%state /= inside$) then
-    orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
-    orbit(ix_start)%state = entrance_end$
-  endif
-
   if (ix_start < ix_end) then
     call track_fwd (ix_start+1, ix_end, track_end_state)
     return

@@ -328,11 +328,17 @@ use s_status
 
 implicit none
 
-type (fibre) fiber
+type (fibre), target :: fiber
+type (patch), pointer :: ptch
+type (element), pointer :: mag
 
 integer n_lines, nl
+
 character(*), allocatable :: lines(:)
-character(40) str
+character(100) str
+
+character(16) :: patch_at(0:3) = [character(16) :: &
+              'Nothing (0)', 'Front only (1)', 'Back only (2)', 'Both (3)']
 
 !
 
@@ -368,6 +374,82 @@ case (KINDWIGGLER);  str = 'KINDWIGGLER [Wiggler]'
 case (KINDPA);  str = 'KINDPA'
 case default;   write (str, '(a, i0, a)') 'UNKNOWN! [', fiber%mag%kind, ']'
 end select
+
+!
+
+nl=nl+1; lines(nl) = 'Fiber:'
+nl=nl+1; write (lines(nl), '(2x, a, i0)')     'Index in layout:   ', fiber%pos
+nl=nl+1; write (lines(nl), '(2x, a, i0)')     'Index in universe: ', fiber%loc
+nl=nl+1; write (lines(nl), '(2x, a, a)')     'Direction:         ', int_of (fiber%dir, 'i0')
+nl=nl+1; write (lines(nl), '(2x, a, es16.4)') 'Beta velocity:     ', fiber%beta0
+nl=nl+1; write (lines(nl), '(2x, a, es16.4)') 'Mass:              ', fiber%mass * 1e9
+nl=nl+1; write (lines(nl), '(2x, a, es16.4)') 'Charge:            ', fiber%charge
+
+!
+
+ptch => fiber%patch
+nl=nl+1; lines(nl) = 'Patch (fiber%patch):'
+nl=nl+1; write (lines(nl), '(2x, a, a)') 'Patch at: ', patch_at(ptch%patch)
+
+!
+
+mag => fiber%mag
+nl=nl+1; lines(nl) = 'Element (fiber%mag):'
+nl=nl+1; lines(nl) = '  Kind:     ' // str
+nl=nl+1; write (lines(nl), '(2x, a, a)') 'Name:   ', name_of(mag%name)
+nl=nl+1; write (lines(nl), '(2x, a, a)') 'L       ', real_of(mag%l, 'es16.4')
+nl=nl+1; write (lines(nl), '(2x, a, a)')
+nl=nl+1; write (lines(nl), '(2x, a, a)')
+
+!-----------------------------------------------------------------------------
+contains
+
+function name_of (name_in) result (name_out)
+
+character(*), pointer :: name_in
+character(len(name_in)) :: name_out
+
+if (associated(name_in)) then
+  name_out = name_in
+else
+  name_out = 'Not Associated'
+endif
+
+end function name_of
+
+!-----------------------------------------------------------------------------
+! contains
+
+function real_of (real_in, fmt) result (str)
+
+real(dp), pointer :: real_in
+character(*) fmt
+character(20) str
+
+if (associated(real_in)) then
+  write (str, fmt) real_in
+else
+  str = 'Not Associated'
+endif
+
+end function real_of
+
+!-----------------------------------------------------------------------------
+! contains
+
+function int_of (int_in, fmt) result (str)
+
+integer, pointer :: int_in
+character(*) fmt
+character(20) str
+
+if (associated(int_in)) then
+  write (str, fmt) int_in
+else
+  str = 'Not Associated'
+endif
+
+end function int_of
 
 end subroutine type2_ptc_fiber
 
