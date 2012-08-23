@@ -6,15 +6,6 @@ use em_field_mod
 use wall3d_mod
 use lat_geometry_mod
 
-type (ele_struct), save, private, pointer :: ele_com
-type (lat_param_struct), save, private, pointer :: param_com
-type (coord_struct), save, private, pointer ::  orb_old_com
-type (coord_struct), save, private, pointer :: orb_com
-real(rp), save, private, pointer :: vec_err_com(:)
-real(rp), save, private, pointer :: s_target_com, t_old_com
-real(rp), save, private, pointer :: t_rel_com
-logical, save, private, pointer :: local_ref_frame_com
-
 contains
 
 !-------------------------------------------------------------------------
@@ -135,17 +126,6 @@ do n_step = 1, max_step
 
     exit_flag = .true.
 
-    !Set common structures for zbrent's internal functions 
-    ele_com => ele
-    param_com => param
-    orb_old_com => orb_old
-    orb_com => orb
-    vec_err_com => vec_err
-    local_ref_frame_com => local_ref_frame
-    s_target_com => s_target
-    t_rel_com => t_rel
-    t_old_com => t_old
-
     !---
     dt_tol = ds_safe / (orb%beta * c_light)
     if (zbrent_needed) dt = zbrent (delta_s_target, 0.0_rp, dt, dt_tol)
@@ -194,6 +174,27 @@ if (bmad_status%type_out) then
 end if
 
 if (bmad_status%exit_on_error) call err_exit
+
+
+
+
+contains
+
+  !------------------------------------------------------------------------------------------------
+  ! function for zbrent to calculate timestep to exit face surface
+
+  function delta_s_target (this_dt)
+  
+  real(rp), intent(in)  :: this_dt
+  real(rp) :: delta_s_target
+  logical err_flag
+  !
+  call rk_time_step1 (ele, param, orb_old, t_old, this_dt, &
+	 				  orb, vec_err, local_ref_frame, err_flag = err_flag)
+  delta_s_target = orb%vec(5) - s_target
+  t_rel = t_old + this_dt
+	
+  end function delta_s_target
 
 end subroutine odeint_bmad_time
 
@@ -357,290 +358,7 @@ r_err = dt*(dc1*dr_dt1+dc3*dr_dt3+dc4*dr_dt4+dc5*dr_dt5+dc6*dr_dt6)
 
 end subroutine rk_time_step1
 
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-! function for zbrent to calculate timestep to exit face surface
 
-function delta_s_target (this_dt)
-  real(rp), intent(in)  :: this_dt
-  real(rp) :: delta_s_target
-  logical err_flag
-  !
-  call rk_time_step1 (ele_com, param_com, orb_old_com, t_old_com, this_dt, &
-                          orb_com, vec_err_com, local_ref_frame_com, err_flag = err_flag)
-  delta_s_target = orb_com%vec(5) - s_target_com
-  t_rel_com = t_old_com + this_dt
-
-end function delta_s_target
-  
-  
-  
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Function particle_in_new_frame_time(orb, ele) 
-!  result (orb_in_ele)
-! 
-! Takes a particle in time coordinates, and returns a particle in the local frame of ele.
-!   If the particle's s position is not within the bounds of ele, the function will 
-!   step to adjacent elements until a containing element is found. 
-!   Note that this function requires that there is an associated(ele%branch)
-!
-! Modules needed:
-!   use bmad
-!   use capillary_mod
-!
-! Input
-!   orb        -- coord_struct: Particle in [t-based] coordinates relative to
-!                               ele%branch%ele(orb%ix_ele)
-!   ele        -- ele_struct: Element to 
-!
-! Output
-!   orb_in_ele -- coord_struct: Particle in [t-based] coordinates, relative to 
-!                               ele%branch%ele(orb_in_ele%ix_ele)
-!           
-!
-!-
-  
-function particle_in_new_frame_time(orb, ele) result (orb_in_ele)
-
-implicit none
-
-type (coord_struct) :: orb, orb_in_ele
-type (floor_position_struct) :: global_position, local_position
-type (ele_struct) :: ele
-type (ele_struct), pointer :: ele_try
-type (branch_struct), pointer :: branch
-real(rp) :: w_mat_at_s(3,3)
-
-integer :: ix_ele, status
-logical :: err
-
-character(30), parameter :: r_name = 'particle_in_new_frame_time'
-
-!
-
-! Check that ele is in fact a different ele than orb%ix_ele
-if (orb%ix_ele == ele%ix_ele) then
-  orb_in_ele = orb
-  return
-endif
-
-!Multipass elements need to choose the correct wall
-
-! Make sure ele has a branch
-if (.not. associated (ele%branch) ) then
-      call out_io (s_fatal$, r_name, 'ELE HAS NO ASSOCIATED BRANCH')
-      if (bmad_status%exit_on_error) call err_exit
-endif
-
-ix_ele = ele%ix_ele
-branch => ele%branch
-!Move to global frame
-orb_in_ele = particle_in_global_frame (orb, branch, in_time_coordinates = .true.)
-global_position%x = orb_in_ele%vec(1)
-global_position%y = orb_in_ele%vec(3)
-global_position%z = orb_in_ele%vec(5)
-
-
-! Loop over neighboring elements until an encompassing one is found
-do
-  local_position = position_in_local_frame  (global_position, branch%ele(ix_ele), status, w_mat = w_mat_at_s) 
-  if (status == entrance_end$) then
-    ! Try previous element
-    ix_ele = ix_ele -1
-    cycle
-  else if (status == exit_end$) then
-    ! Try next element
-    ix_ele = ix_ele + 1
-    cycle
-  else if (status == inside$) then
-    ! This element contains orb
-    exit
-  end if  
-enddo
-
-! Assign [x, y, s]
-orb_in_ele%vec(1) = local_position%x
-orb_in_ele%vec(3) = local_position%y
-orb_in_ele%vec(5) = local_position%z
-
-! Use w_mat to rotate momenta 
-orb_in_ele%vec(1) = local_position%x
-orb_in_ele%vec(2:6:2) =  matmul(transpose(w_mat_at_s), orb_in_ele%vec(2:6:2) )
-
-! Set other things
-orb_in_ele%location = inside$
-orb_in_ele%ix_ele = ix_ele
-orb_in_ele%s = orb_in_ele%vec(5) + branch%ele(ix_ele)%s - branch%ele(ix_ele)%value(L$)
-
-end function particle_in_new_frame_time
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine particle_hit_wall_check_time
-!
-! Subroutine to check whether particle has collided with element walls,
-! and to calculate location of impact if it has
-!
-! Modules needed:
-!   use bmad
-!   use capillary_mod
-!
-! Input
-!   orb     -- coord_struct: Previous particle coordinates  [t-based]
-!   orb_new -- coord_struct: Current particle coordinates [t-based]
-!   param   -- lat_param_struct: Lattice parameters
-!    %particle -- integer: Type of particle
-!   ele     -- ele_struct: Lattice element
-!
-! Output
-!   orb_new -- coord_struct: Location of hit
-!    %phase_x -- real(rp): Used to store hit angle
-!-
-
-subroutine  particle_hit_wall_check_time(orb, orb_new, param, ele)
- 
-use capillary_mod
-
-implicit none
-
-type (coord_struct) :: orb, orb_new
-type (coord_struct), pointer :: old_orb, now_orb
-type (lat_param_struct) :: param
-type (ele_struct) :: ele
-type (ele_struct), pointer :: wall3d_ele
-type (photon_track_struct), target :: particle
-integer :: section_ix
-real(rp) :: norm, perp(3), dummy_real, p_tot
-real(rp) :: edge_tol = 1e-8
-logical :: err
-
-!-----------------------------------------------
-!Do nothing if there is no wall
-
-!Get wall3d_ele
-wall3d_ele => pointer_to_wall3d_ele (ele, dummy_real, err)
-
-! if there isn't one, do nothing
-if (.not. associated(wall3d_ele)) return
-
-old_orb => particle%old%orb
-now_orb => particle%now%orb
-
-if (ele%ref_orbit == match_at_entrance$ .or. &
-    ele%ref_orbit == match_global_coords$ .or. &
-    ele%ref_orbit == match_at_exit$  ) then
-  ! We need to move orbs into the correct frame
-  old_orb = particle_in_new_frame_time(orb, wall3d_ele)
-  now_orb = particle_in_new_frame_time(orb_new, wall3d_ele)
-else
-  ! Prepare coordinate structures for wall3d_d_radius
-  old_orb = orb
-  now_orb = orb_new
-endif
-
-! Do nothing if orb_new is inside the wall
-if (wall3d_d_radius(now_orb%vec, wall3d_ele) < 0) return
-
-
-!If now_orb is before element, change it
-!We can do this because it can't hit the element wall outside of the
-!element, and these do not affect tracks
-
-if (now_orb%vec(5) < 0) then
-   now_orb%vec(5) = 0
-end if
-
-!If now_orb is too close to the wall, move it edge_tol away
-
-!if (abs(wall3d_d_radius(particle%now%orb%vec, ele)) < edge_tol) then
-!   now_orb%vec(1) = now_orb%vec(1) + sign(edge_tol, now_orb%vec(1))
-!   now_orb%vec(3) = now_orb%vec(3) + sign(edge_tol, now_orb%vec(3))
-!end if
-
-!Change from particle coordinates to photon coordinates
-! (coord_struct to photon_coord_struct)
-
-!Get e_tot from momentum, calculate beta_i = c*p_i / p_tot, pretending that these are traveling at v=c
-
-p_tot = sqrt(orb_new%vec(2)**2 + orb_new%vec(4)**2 + orb_new%vec(6)**2 )
-now_orb%vec(2) = orb_new%vec(2) / p_tot
-now_orb%vec(4) = orb_new%vec(4) / p_tot
-now_orb%vec(6) = orb_new%vec(6) / p_tot
-
-p_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2)
-if (p_tot > 0) then
-  old_orb%vec(2) = orb%vec(2) / p_tot
-  old_orb%vec(4) = orb%vec(4) / p_tot
-  old_orb%vec(6) = orb%vec(6) / p_tot
-else
-  !old_orb is at rest, just give it the velocity of now_orb
-  old_orb%vec(2) = now_orb%vec(2)
-  old_orb%vec(4) = now_orb%vec(4)
-  old_orb%vec(6) = now_orb%vec(6)
-endif
-
-!More coordinate changes
-!Equations taken from track_a_capillary in capillary_mod
-!particle%old%energy = ele%value(e_tot$) * (1 + orb%vec(6))
-
-!particle%old%ix_section = 1
-
-!particle%now%energy = ele%value(e_tot$) * (1 + orb_new%vec(6))
-
-!Pretend that now_orb and old_orb are photons to calculate the wall intersection
-particle%old%track_len = 0
-particle%now%track_len = sqrt( &
-     (now_orb%vec(1) - old_orb%vec(1))**2 + &
-     (now_orb%vec(3) - old_orb%vec(3))**2 + &
-     (now_orb%vec(5) - old_orb%vec(5))**2)
-
-old_orb%vec(2) = (now_orb%vec(1) - old_orb%vec(1)) /particle%now%track_len
-old_orb%vec(4) = (now_orb%vec(3) - old_orb%vec(3)) /particle%now%track_len
-old_orb%vec(6) = (now_orb%vec(5) - old_orb%vec(5)) /particle%now%track_len
-now_orb%vec(2) = old_orb%vec(2) 
-now_orb%vec(4) = old_orb%vec(4) 
-now_orb%vec(6) = old_orb%vec(6) 
-
-!If particle hit wall, find out where
-!if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
-
-   call capillary_photon_hit_spot_calc (particle, wall3d_ele)
-
-   orb_new = now_orb
-
-   !Calculate perpendicular to get angle of impact
-   dummy_real = wall3d_d_radius(particle%now%orb%vec, wall3d_ele, perp)
-
-   !Calculate angle of impact; cos(hit_angle) = norm_photon_vec \dot perp
-   !****
-   !Notice we store this in orb_new%phase_x; this is so that we don't have
-   !to add another argument- yeah, it's a hack.
-   !****
-   orb_new%phase_x = acos( &
-        ((now_orb%vec(1) - old_orb%vec(1)) * perp(1) + &
-        (now_orb%vec(3) - old_orb%vec(3)) * perp(2) + &
-        (now_orb%vec(5) - old_orb%vec(5)) * perp(3)) / particle%now%track_len)
-
-   !Restore momenta from original orb 
-   orb_new%vec(2) = orb%vec(2) 
-   orb_new%vec(4) = orb%vec(4) 
-   orb_new%vec(6) = orb%vec(6) 
-
-   !Set orb%s
-   orb_new%s = orb_new%vec(5) + ele%s - ele%value(l$)
-
-   !Note that the time is not set!
-
-   orb_new%state = lost$
-!endif
-
-end subroutine  particle_hit_wall_check_time
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -748,6 +466,357 @@ if (ele%key == sbend$) then
 endif
 
 end subroutine em_field_kick_vector_time
+  
+  
+  
+
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine particle_hit_wall_check_time
+!
+! Subroutine to check whether particle has collided with element walls,
+! and to calculate location of impact if it has
+!
+! Modules needed:
+!   use bmad
+!   use capillary_mod
+!
+! Input
+!   orb     -- coord_struct: Previous particle coordinates  [t-based]
+!   orb_new -- coord_struct: Current particle coordinates [t-based]
+!   param   -- lat_param_struct: Lattice parameters
+!    %particle -- integer: Type of particle
+!   ele     -- ele_struct: Lattice element
+!
+! Output
+!   orb_new -- coord_struct: Location of hit
+!    %phase_x -- real(rp): Used to store hit angle
+!-
+
+subroutine  particle_hit_wall_check_time(orb, orb_new, param, ele)
+ 
+use capillary_mod
+
+implicit none
+
+type (coord_struct) :: orb, orb_new
+type (coord_struct), pointer :: old_orb, now_orb
+type (lat_param_struct) :: param
+type (ele_struct) :: ele
+type (ele_struct), pointer :: wall3d_ele
+type (photon_track_struct), target :: particle
+integer :: section_ix
+real(rp) :: norm, perp(3), dummy_real, p_tot
+real(rp) :: edge_tol = 1e-8
+logical :: err
+
+character(30), parameter :: r_name = 'particle_hit_wall_check_time'
+
+!-----------------------------------------------
+!Do nothing if there is no wall
+
+!Get wall3d_ele
+wall3d_ele => pointer_to_wall3d_ele (ele, dummy_real, err)
+
+! if there isn't one, do nothing
+if (.not. associated(wall3d_ele)) return
+
+old_orb => particle%old%orb
+now_orb => particle%now%orb
+
+if (ele%ref_orbit == match_at_entrance$ .or. &
+    ele%ref_orbit == match_global_coords$ .or. &
+    ele%ref_orbit == match_at_exit$  ) then
+  ! We need to move orbs into the correct frame
+  old_orb = particle_in_new_frame_time(orb, wall3d_ele)
+  now_orb = particle_in_new_frame_time(orb_new, wall3d_ele)
+  ! and point the the correct wall element
+  if (old_orb%ix_ele == now_orb%ix_ele) then 
+    wall3d_ele => ele%branch%ele(now_orb%ix_ele)
+  else
+    !Special case: orbs straddle an element boundary. This can happen in a multipass bend.
+    !FIXME
+    call out_io (s_fatal$, r_name, 'ORBs straddle element boundary FIXME')
+    if (bmad_status%exit_on_error) call err_exit
+  endif
+  
+else
+  ! Prepare coordinate structures for wall3d_d_radius
+  old_orb = orb
+  now_orb = orb_new
+endif
+
+! Do nothing if orb_new is inside the wall
+if (wall3d_d_radius(now_orb%vec, wall3d_ele) < 0) return
+
+!If now_orb is before element, change it
+!We can do this because it can't hit the element wall outside of the
+!element, and these do not affect tracks
+
+!if (now_orb%vec(5) < 0) then
+!   now_orb%vec(5) = 0
+!end if
+
+!If now_orb is too close to the wall, move it edge_tol away
+
+!if (abs(wall3d_d_radius(particle%now%orb%vec, ele)) < edge_tol) then
+!   now_orb%vec(1) = now_orb%vec(1) + sign(edge_tol, now_orb%vec(1))
+!   now_orb%vec(3) = now_orb%vec(3) + sign(edge_tol, now_orb%vec(3))
+!end if
+
+!Change from particle coordinates to photon coordinates
+! (coord_struct to photon_coord_struct)
+
+!Get e_tot from momentum, calculate beta_i = c*p_i / p_tot, pretending that these are traveling at v=c
+
+p_tot = sqrt(orb_new%vec(2)**2 + orb_new%vec(4)**2 + orb_new%vec(6)**2 )
+now_orb%vec(2) = orb_new%vec(2) / p_tot
+now_orb%vec(4) = orb_new%vec(4) / p_tot
+now_orb%vec(6) = orb_new%vec(6) / p_tot
+
+p_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2)
+if (p_tot > 0) then
+  old_orb%vec(2) = orb%vec(2) / p_tot
+  old_orb%vec(4) = orb%vec(4) / p_tot
+  old_orb%vec(6) = orb%vec(6) / p_tot
+else
+  !old_orb is at rest, just give it the velocity of now_orb
+  old_orb%vec(2) = now_orb%vec(2)
+  old_orb%vec(4) = now_orb%vec(4)
+  old_orb%vec(6) = now_orb%vec(6)
+endif
+
+!More coordinate changes
+!Equations taken from track_a_capillary in capillary_mod
+!particle%old%energy = ele%value(e_tot$) * (1 + orb%vec(6))
+
+!particle%old%ix_section = 1
+
+!particle%now%energy = ele%value(e_tot$) * (1 + orb_new%vec(6))
+
+!Pretend that now_orb and old_orb are photons to calculate the wall intersection
+particle%old%track_len = 0
+particle%now%track_len = sqrt( &
+     (now_orb%vec(1) - old_orb%vec(1))**2 + &
+     (now_orb%vec(3) - old_orb%vec(3))**2 + &
+     (now_orb%vec(5) - old_orb%vec(5))**2)
+
+old_orb%vec(2) = (now_orb%vec(1) - old_orb%vec(1)) /particle%now%track_len
+old_orb%vec(4) = (now_orb%vec(3) - old_orb%vec(3)) /particle%now%track_len
+old_orb%vec(6) = (now_orb%vec(5) - old_orb%vec(5)) /particle%now%track_len
+now_orb%vec(2) = old_orb%vec(2) 
+now_orb%vec(4) = old_orb%vec(4) 
+now_orb%vec(6) = old_orb%vec(6) 
+
+!If particle hit wall, find out where
+!if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
+
+   call capillary_photon_hit_spot_calc (particle, wall3d_ele)
+
+   orb_new = now_orb
+
+   !Calculate perpendicular to get angle of impact
+   dummy_real = wall3d_d_radius(particle%now%orb%vec, wall3d_ele, perp)
+
+   !Calculate angle of impact; cos(hit_angle) = norm_photon_vec \dot perp
+   !****
+   !Notice we store this in orb_new%phase_x; this is so that we don't have
+   !to add another argument- yeah, it's a hack.
+   !****
+   orb_new%phase_x = acos( &
+        ((now_orb%vec(1) - old_orb%vec(1)) * perp(1) + &
+        (now_orb%vec(3) - old_orb%vec(3)) * perp(2) + &
+        (now_orb%vec(5) - old_orb%vec(5)) * perp(3)) / particle%now%track_len)
+
+   !Restore momenta from original orb 
+   orb_new%vec(2) = orb%vec(2) 
+   orb_new%vec(4) = orb%vec(4) 
+   orb_new%vec(6) = orb%vec(6) 
+
+   !Set orb%s
+   orb_new%s = orb_new%vec(5) + ele%s - ele%value(l$)
+
+   !Note that the time is not set!
+
+   orb_new%state = lost$
+!endif
+
+end subroutine  particle_hit_wall_check_time
+
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function particle_in_new_frame_time(orb, ele) 
+!  result (orb_in_ele)
+! 
+! Takes a particle in time coordinates, and returns a particle in the local frame of ele.
+!   If the particle's s position is not within the bounds of ele, the function will 
+!   step to adjacent elements until a containing element is found. 
+!   Note that this function requires that there is an associated(ele%branch)
+!
+! Modules needed:
+!   use bmad
+!   use capillary_mod
+!
+! Input
+!   orb        -- coord_struct: Particle in [t-based] coordinates relative to
+!                               ele%branch%ele(orb%ix_ele)
+!   ele        -- ele_struct: Element to 
+!
+! Output
+!   orb_in_ele -- coord_struct: Particle in [t-based] coordinates, relative to 
+!                               ele%branch%ele(orb_in_ele%ix_ele)
+!           
+!
+!-
+  
+function particle_in_new_frame_time(orb, ele) result (orb_in_ele)
+
+implicit none
+
+type (coord_struct) :: orb, orb_in_ele
+type (floor_position_struct) :: position0, position1
+type (ele_struct) :: ele
+type (ele_struct), pointer :: ele1
+type (branch_struct), pointer :: branch
+real(rp) :: ww_mat(3,3)
+
+integer :: ix_ele, status
+logical :: err
+
+character(30), parameter :: r_name = 'particle_in_new_frame_time'
+
+!
+
+! Check that ele is in fact a different ele than orb%ix_ele
+if (orb%ix_ele == ele%ix_ele) then
+  orb_in_ele = orb
+  return
+endif
+
+!Multipass elements need to choose the correct wall
+
+! Make sure ele has a branch
+if (.not. associated (ele%branch) ) then
+      call out_io (s_fatal$, r_name, 'ELE HAS NO ASSOCIATED BRANCH')
+      if (bmad_status%exit_on_error) call err_exit
+endif
+
+
+branch => ele%branch
+
+!set [x, y, z]_0
+position0%x = orb%vec(1)
+position0%y = orb%vec(3)
+position0%z = orb%vec(5)
+position0%theta = 0.0_rp
+position0%phi = 0.0_rp
+position0%psi = 0.0_rp
+
+! Find [x, y, s]_1
+call switch_local_positions (position0, branch%ele(orb%ix_ele), ele, position1, ele1, ww_mat)
+
+! Assign [x, y, s]
+orb_in_ele%vec(1) = position1%x
+orb_in_ele%vec(3) = position1%y
+orb_in_ele%vec(5) = position1%z
+
+! Use ww_mat to rotate momenta
+orb_in_ele%vec(2:6:2) =  matmul(ww_mat, orb%vec(2:6:2) )
+
+! Set other things
+orb_in_ele%location = inside$
+orb_in_ele%ix_ele = ele1%ix_ele
+orb_in_ele%s = orb_in_ele%vec(5) + ele1%s - ele1%value(L$)
+
+end function particle_in_new_frame_time
+
+
+
+
+
+
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function particle_in_global_frame (orb, branch) result (particle) 
+!
+! Returns the particle in global time coordinates given is coordinates orb in lattice lat.
+!   
+!
+! Module needed:
+!   lat_geometry_mod
+!
+! Input:
+!   orb                 -- Coord_struct: particle in s-coordinates
+!   branch              -- branch_struct: branch that contains ele(orb%ix_ele)
+!   in_time_coordinates -- Logical (optional): Default is false. If true, orb
+!                            will taken as in time coordinates.    
+!
+! Result:
+!   particle            -- Coord_struct: particle in global time coordinates
+!
+!-
+
+function particle_in_global_frame (orb, branch, in_time_coordinates, w_mat_out) result (particle)
+
+implicit none
+
+type (coord_struct) :: orb, particle
+type (branch_struct) :: branch
+type (floor_position_struct) :: floor_at_particle, global_position
+type (ele_struct), pointer :: ele
+real(rp) :: w_mat(3,3)
+real(rp), optional :: w_mat_out(3,3)
+
+logical, optional :: in_time_coordinates
+logical :: in_t_coord
+
+! optional argument 
+in_t_coord =  logic_option( .false., in_time_coordinates)
+
+!Get last tracked element  
+ele =>  branch%ele(orb%ix_ele)
+
+!Convert to time coordinates
+particle = orb;
+if (.not. in_t_coord) then
+  call convert_particle_coordinates_s_to_t (particle)
+  ! Set vec(5) to be relative to entrance of ele 
+  particle%vec(5) =  particle%vec(5) - (ele%s - ele%value(L$))
+endif
+
+!Set for position_in_global_frame
+floor_at_particle%x = particle%vec(1)
+floor_at_particle%y = particle%vec(3)
+floor_at_particle%z = particle%vec(5)
+floor_at_particle%theta = 0.0_rp
+floor_at_particle%phi = 0.0_rp
+floor_at_particle%psi = 0.0_rp
+! Get [X,Y,Z] and w_mat for momenta rotation below
+global_position = position_in_global_frame (floor_at_particle, ele, w_mat)
+
+!Set x, y, z
+particle%vec(1) = global_position%x
+particle%vec(3) = global_position%y
+particle%vec(5) = global_position%z
+
+!Rotate momenta 
+particle%vec(2:6:2) = matmul(w_mat, particle%vec(2:6:2))
+
+if (present(w_mat_out)) w_mat_out = w_mat
+
+end function particle_in_global_frame
+
+
+
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -897,102 +966,6 @@ subroutine drift_orbit_time(orbit, mc2, delta_s)
 end subroutine drift_orbit_time
 
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function particle_in_global_frame (orb, branch) result (particle) 
-!
-! Returns the particle in global time coordinates given is coordinates orb in lattice lat.
-!   
-!
-! Module needed:
-!   lat_geometry_mod
-!
-! Input:
-!   orb                 -- Coord_struct: particle in s-coordinates
-!   branch              -- branch_struct: branch that contains ele(orb%ix_ele)
-!   in_time_coordinates -- Logical (optional): Default is false. If true, orb
-!                            will taken as in time coordinates.    
-!
-! Result:
-!   particle            -- Coord_struct: particle in global time coordinates
-!
-!-
-
-function particle_in_global_frame (orb, branch, in_time_coordinates, w_mat_out) result (particle)
-
-implicit none
-
-type (coord_struct) :: orb, particle
-type (branch_struct) :: branch
-type (floor_position_struct) :: floor, floor_at_particle
-type (ele_struct), pointer :: ele
-real(rp) :: L_save
-real(rp) :: dr(3)
-real(rp) :: w_mat(3,3)
-real(rp), optional :: w_mat_out(3,3)
-
-logical, optional :: in_time_coordinates
-logical :: in_t_coord
-
-! optional argument 
-in_t_coord =  logic_option( .false., in_time_coordinates)
-
-
-!
-
-!Get last tracked element  
-ele =>  branch%ele(orb%ix_ele)
-
-!Convert to time coordinates
-particle = orb;
-if (.not. in_t_coord) then
-  call convert_particle_coordinates_s_to_t (particle)
-  ! Set vec(5) to be relative to entrance of ele 
-  particle%vec(5) =  particle%vec(5) - (ele%s - ele%value(L$))
-endif
-
- 
-!Set x and y for floor offset 
-dr(1) = particle%vec(1)
-dr(2) = particle%vec(3)
-
- 
-if (ele%key == sbend$ .or. ele%key == rbend$) then
-  ! Element has a curved geometry. Shorten ele
-  L_save = ele%value(L$)
-  ele%value(L$) = particle%vec(5)
-  
-  ! calculate floor from previous element
-  call ele_geometry(branch%ele(particle%ix_ele - 1)%floor, ele,  floor)
-  ! particle is exactly at ele's exit now. 
-  dr(3) = 0
-  
-  !Restore ele's length
-  ele%value(L$) = L_save
-
-else
-   ! Element has Cartesian geometry. 
-   floor = ele%floor
-      
-   ! particle is relative to ele's exit: 
-   dr(3) =  particle%vec(5) - ele%value(L$) 
-endif 
-
-! Get x,y,z floor coordinates
-call shift_reference_frame (floor, dr, 0.0_rp, 0.0_rp, 0.0_rp, floor_at_particle)
-particle%vec(1) = floor_at_particle%x
-particle%vec(3) = floor_at_particle%y
-particle%vec(5) = floor_at_particle%z
-
-! Get W matrix and rotate momenta
-call floor_angles_to_w_mat (floor%theta, floor%phi, floor%psi, w_mat)
-particle%vec(2:6:2) = matmul(w_mat, particle%vec(2:6:2))
-
-if (present(w_mat_out)) w_mat_out = w_mat
-
-end function particle_in_global_frame
 
 
 
