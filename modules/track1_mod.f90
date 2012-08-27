@@ -724,9 +724,6 @@ rot_mat(3,:) = [-sx,                   -sy,                   cos_t]
 
 end subroutine pitches_to_rotation_matrix
 
-
-
-
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -745,8 +742,6 @@ end subroutine pitches_to_rotation_matrix
 !
 ! Output:
 !   X(6)   -- real(rp): PTC phase space coordinates
-!
-!
 !-
 subroutine ptc_wedger(a, g_tot, beta0, X)
 
@@ -757,18 +752,16 @@ real(rp) :: a, beta0, g_tot
 real(rp) :: Xn(6),pz,pzs,pt,b1
 character(20) :: r_name = 'ptc_wedger'
 
-!
+! No net field case...
 
-!   b1=el1%p%dir*el1%p%charge*el1%bn(1) -> g_tot
-!   b=el1%p%beta0  -> beta0
-
-!CHECK
 b1 = g_tot
 
 if(b1==0) then
    call ptc_rot_xz(a, X, beta0)
    return
 endif
+
+! Normal case
 
 pz=sqrt(1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(2)**2-X(4)**2)
 
@@ -792,7 +785,6 @@ X(6)=Xn(6)
 
 end subroutine ptc_wedger
 
-
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -813,12 +805,10 @@ end subroutine ptc_wedger
 !                       Only the product fint*hgap is used
 !   element_end -- Integer: entrance_end$ or exit_end$
 !
-!
 ! Output:
 !   X(6)   -- real(rp): PTC phase space coordinates
-!
-!
 !-
+
 subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end)
 
 implicit none
@@ -891,9 +881,6 @@ x(6)=x(6)-0.5_rp*b*x(3)**2
     
 end subroutine ptc_fringe_dipoler
 
-
-
-
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -911,8 +898,6 @@ end subroutine ptc_fringe_dipoler
 !
 ! Output:
 !   X(6)   -- real(rp): PTC phase space coordinates
-!
-!
 !-
 
 subroutine ptc_rot_xz(a, X, beta0)
@@ -940,8 +925,6 @@ x(6)=xn(6)
 
 end subroutine ptc_rot_xz
 
-
-
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -964,7 +947,7 @@ end subroutine ptc_rot_xz
 !   reverse     -- Logical: If True then make the inverse transformation.
 !                     That is, for the entrance end take the input orb as the coordinates
 !                     just inside the entrance end of the bend and return the coordinates 
-!                    just oustide the entrance end.
+!                     just oustide the entrance end.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
@@ -1032,6 +1015,5 @@ call vec_ptc_to_bmad (X, beta0, orb%vec)
 orb%t = orb%t + (X(6) - ct)/c_light
 
 end subroutine exact_bend_edge_kick
-
 
 end module

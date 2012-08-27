@@ -564,7 +564,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
 
   if (n /= 0) then
     nl=nl+1; li(nl) = ' '
-    nl=nl+1; write (li(nl), '(a, f12.6, a)') 'Transfer Matrix : Kick  [Matrix symplectic error:', &
+    nl=nl+1; write (li(nl), '(a, es12.3, a)') 'Transfer Matrix : Kick  [Matrix symplectic error:', &
                   mat_symp_error(ele%mat6), ']'
   endif
 
