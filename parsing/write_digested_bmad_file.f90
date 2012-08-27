@@ -436,11 +436,7 @@ if (associated(ele%rf_wake) .and. write_wake) then
   write (d_unit) ele%rf_wake%z_sr_mode_max
 endif
 
-if (ix_wall3d > 0) then
-  call write_this_wall3d (ele%wall3d)
-else
-  write (d_unit) 0
-endif
+call write_this_wall3d (ele%wall3d)
 
 end subroutine
 
@@ -465,6 +461,8 @@ if (associated(wall3d)) then
   do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
     call write_this_wall3d_section (wall3d%section(j))
   enddo
+
+  if (wall3d%crotch%ix_section /= 0) call write_this_wall3d_section(wall3d%crotch%section)
 
 else
   write (d_unit) 0
@@ -495,7 +493,7 @@ do k = 1, nv
   write (d_unit) sec%v(k)
 enddo
 
-end subroutine
+end subroutine write_this_wall3d_section
 
 end subroutine
 
