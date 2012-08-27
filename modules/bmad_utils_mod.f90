@@ -2088,10 +2088,11 @@ subroutine allocate_branch_array (lat, upper_bound)
 implicit none
 
 type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (branch_struct), pointer :: temp_branch(:)
 
 integer :: upper_bound
-integer curr_ub, ub, i
+integer curr_ub, ub, i, j
 
 character(20) :: r_name = 'allocate_branch_array'
 
@@ -2144,6 +2145,14 @@ do i = curr_ub+1, ub
   lat%branch(i)%param = lat%param
   call set_status_flags (lat%branch(i)%param%bookkeeping_state, stale$)
 end do
+
+do i = 0, ub
+  branch => lat%branch(i)
+  if (.not. associated (branch%ele)) cycle
+  do j = 0, ubound(branch%ele, 1)
+    branch%ele(j)%branch => branch
+  enddo
+enddo
 
 end subroutine allocate_branch_array
 
