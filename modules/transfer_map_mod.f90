@@ -175,7 +175,8 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-ix_ele = element_at_s (lat, s_1, .true., branch%ix_branch)
+ix_ele = element_at_s (lat, s_1, .false., branch%ix_branch)
+if (ix_ele == 0) ix_ele = 1
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -202,7 +203,7 @@ do
   elseif (global_com%be_thread_safe) then
     runt => runt_nosave
     runt = ele
-  else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
+  else if (.not. associated(runt, ele) .or. .not. associated(runt, runt_save)) then ! partial track
     call transfer_ele (ele, runt_save, .true.)
     runt => runt_save
     runt_points_to_new = .true.
@@ -422,7 +423,8 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-ix_ele = element_at_s (lat, s_1, .true., branch%ix_branch)
+ix_ele = element_at_s (lat, s_1, .false., branch%ix_branch)
+if (ix_ele == 0) ix_ele = 1
 s_now = s_1
 
 ! Loop over all the element to track through.
@@ -449,7 +451,7 @@ do
   elseif (global_com%be_thread_safe) then
     runt => runt_nosave
     runt = ele
-  else if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then ! partial track
+  else if (.not. associated(runt, ele) .or. .not. associated(runt, runt_save)) then ! partial track
     call transfer_ele (ele, runt_save, .true.)
     runt => runt_save
     runt_points_to_new = .true.
