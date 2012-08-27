@@ -179,11 +179,7 @@ Case (wiggler$)
 
   ! Start correction for finite vector potential
 
-  end_orb%vec(4) = end_orb%vec(4) + a_y()
-
-  if (calculate_mat6) then
-    mat6(4,:) = mat6(4,:) + da_y_dx() * mat6(1,:) + da_y_dy() * mat6(3,:)
-  endif
+  call apply_wig_exp_int_ay(1, calculate_mat6)
 
   ! loop over all steps
 
@@ -249,11 +245,7 @@ Case (wiggler$)
   call update_wig_y_terms (err); if (err) return
   call update_wig_x_s_terms (err); if (err) return
 
-  end_orb%vec(4) = end_orb%vec(4) - a_y()
-
-  if (calculate_mat6) then
-    mat6(4,:) = mat6(4,:) - da_y_dx() * mat6(1,:) - da_y_dy() * mat6(3,:)
-  endif
+  call apply_wig_exp_int_ay(-1, calculate_mat6)
 
 !----------------------------------------------------------------------------
 ! rf cavity
