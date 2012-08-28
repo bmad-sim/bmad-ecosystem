@@ -6,6 +6,7 @@ set (EXE_SPECS
   synrad3d_test.cmake
   twiss_track_test.cmake
   slice_test.cmake
+  abs_time_test.cmake
 )
 
 set(SRC_DIRS

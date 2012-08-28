@@ -1,0 +1,17 @@
+beginning[beta_a]  = 10  
+beginning[beta_b]  = 12
+
+parameter[lattice_type] = linear_lattice
+beginning[p0c]  = 2e5
+
+beam_start[x] = 0e-4
+beam_start[px] = 1e-4
+beam_start[z] = 1e-4
+
+!
+
+d: drift, l = 1
+rf: lcavity, l = 1, rf_frequency = 1e9, gradient = 1e6, phi0 = 0.1, ds_step = 0.001
+
+lat: line = (d, rf)
+use, lat
