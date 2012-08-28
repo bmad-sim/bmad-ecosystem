@@ -812,6 +812,7 @@ do i = 1, size(bunch%particle)
   p%s = ele%s
   call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
   p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
+  call init_coord (p, p, ele, .true.)
 enddo
 
 end subroutine init_bunch_distribution

@@ -171,7 +171,7 @@ do i = 1, ubound(lat%branch, 1)
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
-  call write_this_wall3d (branch%wall3d)
+  call write_this_wall3d (branch%wall3d, associated(branch%wall3d))
 enddo
 
 ! Write PTC info
@@ -436,22 +436,22 @@ if (associated(ele%rf_wake) .and. write_wake) then
   write (d_unit) ele%rf_wake%z_sr_mode_max
 endif
 
-call write_this_wall3d (ele%wall3d)
+call write_this_wall3d (ele%wall3d, (ix_wall3d > 0))
 
 end subroutine
 
 !-------------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_wall3d (wall3d)
+subroutine write_this_wall3d (wall3d, write_wall)
 
 type (wall3d_struct), pointer :: wall3d
-
 integer j, k
+logical write_wall
 
 !
 
-if (associated(wall3d)) then
+if (write_wall) then
 
   write (d_unit) size(wall3d%section)
   write (d_unit) wall3d%ele_anchor_pt, wall3d%priority, &

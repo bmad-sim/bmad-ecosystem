@@ -58,8 +58,14 @@ end subroutine type_ptc_layout
 !           call kill(ptc_layout)
 ! This deallocates the pointers in the layout
 !
-! Note: Before you call this routine you need to first call:
+! Note: If not already done, before you call this routine you need to first call:
 !    call set_ptc (...)
+! [This is normally done in bmad_parser.]
+!
+! Note: If a Bmad element is using a hard edge model (EG: RFcavity element), there 
+! will be three corresponding fiber elements: (drift, RF. drift) for example.
+! In this case, ele%ptc_fiber will be set to point to the last fiber. That is the 
+! exit end of ele will correspond to the exit end of ele%ptc_fiber.
 !
 ! Module Needed:
 !   use ptc_layout_mod
@@ -111,6 +117,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (tracking_uses_hard_edge_model(ele)) then
       call ele_to_fibre (drift_ele, fib, branch%param%particle, .true., for_layout = .true.)
+      ele%ptc_fiber => drift_ele%ptc_fiber  ! ele%ptc_fiber points to last fiber.
     endif
   enddo
 

@@ -153,7 +153,7 @@ do ib = 0, ubound(lat%branch, 1)
       call convert_total_energy_to (gun_ele%value(e_tot$), branch%param%particle, pc = gun_ele%value(p0c$))
       gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
       gun_ele%value(p0c_start$) = gun_ele%value(p0c$)
-      call init_coord (start_orb, ele = gun_ele, particle = branch%param%particle)
+      call init_coord (start_orb, ele = gun_ele, at_exit_end = .false., particle = branch%param%particle)
       start_orb%vec(6) = (ele_init%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
       call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
       if (.not. particle_is_moving_forward(end_orb, branch%param%particle)) then
@@ -480,7 +480,7 @@ auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .false.
 
 call zero_errors_in_ele (ele, changed)
-call init_coord (orb_start, ele%time_ref_orb_in, ele, param%particle)
+call init_coord (orb_start, ele%time_ref_orb_in, ele, .false., param%particle)
 if (is_inside) orb_start%location = inside$ !to avoid entrance kick in time tracking
 call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
 if (.not. particle_is_moving_forward(orb_end, param%particle)) then
