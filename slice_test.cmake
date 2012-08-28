@@ -1,6 +1,6 @@
-set (EXENAME ptc_test)
+set (EXENAME slice_test)
 set (SRC_FILES
-  ptc_test/ptc_test.f90
+  slice_test/slice_test.f90
 )
 
 set (INC_DIRS
