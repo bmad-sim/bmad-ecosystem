@@ -1696,6 +1696,7 @@ type (ele_struct) :: ele2
 type (lat_param_struct) param
 
 real(rp) l_slice, offset, e_len, ref_time_start, p0c_start, e_tot_start
+real(rp) time_ref_orb_out(6)
 
 logical at_entrance_end, at_exit_end, err_flag, err2_flag
 
@@ -1729,6 +1730,15 @@ if (e_len == 0) then
   sliced_ele = ele_in
   err_flag = .false.
   return
+endif
+
+! Save values from old_slice if present
+
+if (present(old_slice)) then
+  p0c_start       = old_slice%value(p0c$)
+  e_tot_start     = old_slice%value(e_tot$)
+  ref_time_start  = old_slice%ref_time
+  time_ref_orb_out = old_slice%time_ref_orb_out
 endif
 
 ! The sliced element is treated as a super_slave to the original element except
@@ -1776,10 +1786,7 @@ if (offset == 0) then
   ref_time_start = ele_in%value(ref_time_start$)
   sliced_ele%time_ref_orb_in = ele_in%time_ref_orb_in
 elseif (present(old_slice)) then
-  p0c_start      = old_slice%value(p0c$)
-  e_tot_start    = old_slice%value(e_tot$)
-  ref_time_start = old_slice%ref_time
-  sliced_ele%time_ref_orb_in = old_slice%time_ref_orb_out
+  sliced_ele%time_ref_orb_in = time_ref_orb_out
 elseif (ele_has_constant_ds_dt_ref(ele_in)) then
   p0c_start      = ele_in%value(p0c$)
   e_tot_start    = ele_in%value(e_tot$)

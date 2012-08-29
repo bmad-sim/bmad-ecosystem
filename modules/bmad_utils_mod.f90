@@ -4191,4 +4191,48 @@ endif
 
 end function particle_time
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function slave_time_offset (ele) result (time)
+!
+! Routine to return the reference time at the start of a slave element relative
+! to the the reference time at the beginning of the lord.
+! 
+! Use of this routine is ambiguous if there are multiple lords.
+!
+! Input:
+!   ele   -- ele_struct: Element being tracked through.
+!
+! Ouput:
+!   time  -- Real(rp): Reference time as start of element relative to the lord.
+!             Returns 0 if element is not a slave.
+!-
+
+function slave_time_offset (ele) result (time)
+
+implicit none
+
+type (coord_struct) orbit
+type (ele_struct) ele
+type (ele_struct), pointer :: lord
+real(rp) time
+logical abs_time
+character(16), parameter :: r_name = 'slave_time_offset'
+
+! If not a slave then return 0
+
+if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$) then
+  time = 0
+  return
+endif
+
+!
+
+lord => pointer_to_lord (ele, 1)
+time = ele%value(ref_time_start$) - lord%value(ref_time_start$)
+
+end function slave_time_offset
+
 end module
