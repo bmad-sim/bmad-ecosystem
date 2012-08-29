@@ -210,10 +210,12 @@ case (lcavity$)
   if (length == 0) return
 
   f = twopi * ele%value(rf_frequency$) / (c0%beta * c_light)
+
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + &
-                            ele%value(phi0_err$) +  &
-                            particle_time (c0, ele) * ele%value(rf_frequency$) + &
-                            ele%value(dphi0_ref$) )
+                   ele%value(dphi0_ref$) +  ele%value(phi0_err$) + &
+                   particle_time (c0, ele) * ele%value(rf_frequency$))
+  if (absolute_time_tracking(ele)) phase = phase - &
+                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$) 
 
   cos_phi = cos(phase)
   gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) 
@@ -496,11 +498,13 @@ case (rfcavity$)
       if (bmad_status%exit_on_error) call err_exit
       return
     endif
-    factor = twopi * ele%value(rf_frequency$) / c_light
-    phase = twopi * (ele%value(phi0$)+ele%value(dphi0$) - &
-                     (particle_time (c0, ele) * ele%value(rf_frequency$) + &
-                      ele%value(dphi0_ref$) ) )
-    k  =  factor * voltage * cos(phase) / ele%value(p0c$)
+
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
+                     particle_time (c0, ele) * ele%value(rf_frequency$))
+    if (absolute_time_tracking(ele)) phase = phase + &
+                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$) 
+
+    k = twopi * ele%value(rf_frequency$) * voltage * cos(phase) / (ele%value(p0c$) * c_light)
   endif
 
   px = c0%vec(2)

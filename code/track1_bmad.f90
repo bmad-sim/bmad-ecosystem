@@ -53,7 +53,7 @@ real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22, volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
 real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, len_slice, k0l, k1l
-real(rp) dphase, dcos_phi, dgradient, dpz
+real(rp) dcos_phi, dgradient, dpz
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 
@@ -243,10 +243,14 @@ case (lcavity$)
   pc_start = pc_start_ref * rel_pc
   call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
 
-  dphase = twopi * (ele%value(phi0_err$) &
-                 + particle_time (end_orb, ele) * ele%value(rf_frequency$) &
-                 + ele%value(dphi0_ref$) )
-  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + dphase
+  ! The RF phase is defined with respect to the time at the beginning of the element.
+  ! So if dealing with a slave element and absolute time tracking then need to correct.
+
+  phase = twopi * (ele%value(phi0_err$) + ele%value(dphi0_ref$) + &
+             ele%value(phi0$) + ele%value(dphi0$) + &
+             particle_time (end_orb, ele) * ele%value(rf_frequency$))
+  if (absolute_time_tracking(ele)) phase = phase - &
+                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$) 
 
   gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
 
@@ -561,9 +565,15 @@ case (rfcavity$)
       if (bmad_status%exit_on_error) call err_exit
       return
     endif
-     
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)  - &
-                     (particle_time (end_orb, ele) * ele%value(rf_frequency$) + ele%value(dphi0_ref$) ) )
+
+    ! The RF phase is defined with respect to the time at the beginning of the element.
+    ! So if dealing with a slave element and absolute time tracking then need to correct.
+
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
+               particle_time (end_orb, ele) * ele%value(rf_frequency$))
+    if (absolute_time_tracking(ele)) phase = phase + &
+                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$) 
+
     k  =  (twopi * ele%value(rf_frequency$) / c_light ) * cos(phase) / ele%value(p0c$)
 
   endif

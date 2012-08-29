@@ -214,11 +214,8 @@ do
 
   if (.not. track_entire_ele) then
 
-    ! Kill the saved taylor map if it does not apply to the present integration step.
-
     create_it = .false.
 
-    create_it = .false.
     if (global_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
       create_it = .true.
     elseif (ele%key == sbend$) then
@@ -274,7 +271,7 @@ end subroutine transfer_this_map
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag)
+! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag, ele_save)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
@@ -288,6 +285,10 @@ end subroutine transfer_this_map
 ! transfer matrix is computed.
 !
 ! If s2 = s1 then you get the unit matrix except if one_turn = True and the lattice is circular.
+!
+! Important Note: To save time, it is assumed that the transfer matrices stored in the
+! elements (ele%mat6) are consistant with the reference orbit given by the "orbit" argument.
+! If this is not true, lat_make_mat6 must be called before hand.
 !
 ! Modules Needed:
 !   use bmad
@@ -310,22 +311,27 @@ end subroutine transfer_this_map
 !   unit_start -- Logical, optional: If present and False then mat6 will be
 !                   used as the starting matrix instead of the unit matrix.
 !                   Default = True
+!   ele_save   -- ele_struct, optional: Used as scratch space to save values between calls.
+!                   Only useful if the next call has s1 equal to the present s2. 
 !
 ! Output:
-!   mat6(6,6) -- Real(rp): Transfer matrix.
-!   vec0(6)   -- Real(rp): 0th order part of the map.
-!   orbit     -- coord_struct, optional: Ending coordinates of the reference orbit.
-!                  This is also the actual orbit of particle 
-!   err_flag  -- Logical, optional: Set True if there is an error. False otherwise.
+!   mat6(6,6)  -- Real(rp): Transfer matrix.
+!   vec0(6)    -- Real(rp): 0th order part of the map.
+!   orbit      -- coord_struct, optional: Ending coordinates of the reference orbit.
+!                   This is also the actual orbit of particle 
+!   err_flag   -- Logical, optional: Set True if there is an error. False otherwise.
+!   ele_save   -- ele_struct, optional: Used as scratch space to save values between calls.
+!                   Only useful if the next call has s1 equal to the present s2. 
 !-
 
-subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag)
+subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag, ele_save)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (coord_struct), optional :: orbit
+type (ele_struct), optional, target :: ele_save
 
 real(rp) mat6(:,:), vec0(:)
 real(rp), intent(in), optional :: s1, s2
@@ -364,7 +370,7 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then
-  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  ss2, error_flag, orbit)
+  call transfer_this_mat (mat6, vec0, lat, branch, ss1,  ss2, error_flag, orbit, ele_save)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
@@ -372,13 +378,13 @@ if (ss1 < ss2) then
 elseif (branch%param%lattice_type == circular_lattice$) then
   call transfer_this_mat (mat6, vec0, lat, branch, ss1,  branch%param%total_length, error_flag, orbit)
   if (error_flag) return
-  call transfer_this_mat (mat6, vec0, lat, branch, 0.0_rp, ss2, error_flag, orbit)
+  call transfer_this_mat (mat6, vec0, lat, branch, 0.0_rp, ss2, error_flag, orbit, ele_save)
   if (error_flag) return
 
 ! For a linear lattice compute the backwards matrix
 
 else
-  call transfer_this_mat (mat6, vec0, lat, branch, ss2, ss1, error_flag, orbit)
+  call transfer_this_mat (mat6, vec0, lat, branch, ss2, ss1, error_flag, orbit, ele_save)
   if (error_flag) return
   call mat_inverse (mat6, mat6)
   vec0 = -matmul(mat6, vec0)
@@ -393,12 +399,12 @@ end subroutine mat6_from_s_to_s
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag, orbit)
+! Subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag, orbit, ele_save)
 !
 ! Private subroutine used by mat6_from_s_to_s
 !-
 
-subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag, orbit)
+subroutine transfer_this_mat (mat6, vec0, lat, branch, s_1, s_2, error_flag, orbit, ele_save)
 
 use bookkeeper_mod, only: create_element_slice
 
@@ -408,8 +414,8 @@ type (lat_struct), target :: lat
 type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt
-type (ele_struct), target, save :: runt_save
 type (ele_struct), target :: runt_nosave
+type (ele_struct), optional, target :: ele_save
 type (coord_struct), optional :: orbit
 
 real(rp) mat6(:,:), vec0(:)
@@ -417,9 +423,8 @@ real(rp) s_1, s_2, s_end, s_now, ds
 
 integer ix_ele
 
-logical track_entrance, track_exit, track_entire_ele, create_it
-logical runt_points_to_new, error_flag
-logical, save :: old_track_end = .false.
+logical track_entrance, track_exit, track_entire_ele
+logical use_saved, error_flag
 
 ! Init
 
@@ -444,45 +449,30 @@ do
   ! at runt_save if only a partial track. We do this since we will mangle
   ! the element with a partial track.
 
-  runt_points_to_new = .false.
+  use_saved = .false.
+  if (present(ele_save)) then
+    if (ele_save%s == s_now .and. ele_save%ix_value == ele%ix_ele) use_saved = .true.
+  endif
 
   if (track_entire_ele) then
     runt => ele
-  elseif (global_com%be_thread_safe) then
-    runt => runt_nosave
-    runt = ele
-  else if (.not. associated(runt, ele) .or. .not. associated(runt, runt_save)) then ! partial track
-    call transfer_ele (ele, runt_save, .true.)
-    runt => runt_save
-    runt_points_to_new = .true.
-  endif
-
-  ! We only need to do the "split" bookkeeping if we are only partially tracking
-  ! through the element and we have not done the bookkeeping before.
-
-  if (track_entire_ele) then
     if (present(orbit)) call track1 (orbit, runt, branch%param, orbit)
 
+  elseif (use_saved) then
+    runt => ele_save
+    call transfer_ele (ele, runt, .true.)
+    call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
+                           branch%param, track_entrance, track_exit, error_flag, runt)
+    if (error_flag) exit
+    call make_mat6 (runt, branch%param, orbit, orbit)
+
   else
-
-    ! Kill the saved matrix if it does not apply to the present integration step.
-
-    create_it = .false.
-
-    if (global_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
-      create_it = .true.
-    elseif (ele%key == sbend$) then
-      if (track_entrance .or. track_exit .or. old_track_end) create_it = .true.
-    elseif (.not. ele_has_constant_ds_dt_ref(ele)) then
-      create_it = .true.
-    endif
-
-    if (create_it) then
-      call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
+    runt => runt_nosave
+    call transfer_ele (ele, runt, .true.)
+    call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
                                       branch%param, track_entrance, track_exit, error_flag)
-      if (error_flag) exit
-      call make_mat6 (runt, branch%param, orbit, orbit)
-    endif
+    if (error_flag) exit
+    call make_mat6 (runt, branch%param, orbit, orbit)
 
   endif
 
@@ -490,11 +480,6 @@ do
 
   mat6 = matmul (runt%mat6, mat6)
   vec0 = matmul (runt%mat6, vec0) + runt%vec0
-
-  ! Save the present integration step parameters so that if this routine
-  ! is called in the future we can tell if the saved mat is still valid.
-
-  old_track_end = track_entrance .or. track_exit
 
   ! Are we done?
 
