@@ -292,8 +292,6 @@ character(24), parameter :: r_name = 'multipole_ele_to_ab'
 
 a = 0
 b = 0
-this_a = 0
-this_b = 0
 has_nonzero_pole = .false.
 
 ! Multipole type element case. Note: use_ele_tilt is ignored in this case.
@@ -332,7 +330,11 @@ logical a, b ! protect symbols
 
 !
 
-if (.not. this_ele%multipoles_on .or. .not. this_ele%is_on .or. .not. associated(this_ele%a_pole)) return
+if (.not. (this_ele%multipoles_on .and. this_ele%is_on .and. associated(this_ele%a_pole))) then
+  this_a = 0
+  this_b = 0
+  return
+endif
 
 this_a = this_ele%a_pole
 this_b = this_ele%b_pole
