@@ -292,6 +292,8 @@ character(24), parameter :: r_name = 'multipole_ele_to_ab'
 
 a = 0
 b = 0
+this_a = 0
+this_b = 0
 has_nonzero_pole = .false.
 
 ! Multipole type element case. Note: use_ele_tilt is ignored in this case.
@@ -316,6 +318,7 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
 else
   call convert_this_ab (ele, a, b)
 endif
+
 
 !---------------------------------------------
 contains
