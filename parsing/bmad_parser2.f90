@@ -579,7 +579,7 @@ if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, orbit)
 
 if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
-call check_lat_controls (lat, err)
+call lat_sanity_check (lat, err)
 if (err) bp_com%error_flag = .true.
 
 if (bp_com%error_flag .and. bmad_status%exit_on_error) then

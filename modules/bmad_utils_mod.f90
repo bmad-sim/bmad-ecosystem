@@ -440,6 +440,10 @@ endif
 ! Energy values
 
 if (present(ele)) then
+  if (.not. present(at_exit_end)) then
+    call out_io (s_fatal$, r_name, 'Rule: "at_exit_end" argument must be present if "ele" argument is.')
+    call err_exit
+  endif
   if (at_exit_end .or. ele%key == init_ele$) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)

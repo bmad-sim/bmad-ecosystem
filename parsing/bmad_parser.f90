@@ -1006,7 +1006,7 @@ call parser_add_lord (in_lat, n_max, plat, lat)
 
 ! Consistancy check
 
-call check_lat_controls (lat, err)
+call lat_sanity_check (lat, err)
 if (err) then
   bp_com%error_flag = .true.
   call parser_end_stuff

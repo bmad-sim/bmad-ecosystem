@@ -326,7 +326,7 @@ endif
 
 r_out%ele_init = r_in%ele_init
 
-call check_lat_controls (r_out, err_flag)
+call lat_sanity_check (r_out, err_flag)
 if (present (ix_out)) ix_out(1:r_in%n_ele_max) = r_in%ele(1:r_in%n_ele_max)%ixx
 
 end subroutine

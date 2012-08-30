@@ -1,5 +1,5 @@
 !+
-! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)
+! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
 !
 ! Subroutine to split a lat at a point. Subroutine will not split the lat if the split
 ! would create a "runt" element with length less than bmad_com%significant_length.
@@ -17,7 +17,7 @@
 !   s_split         -- Real(rp): Position at which lat is to be split.
 !   add_suffix      -- Logical, optional: If True (default) add '#1' and '#2" suffixes
 !                        to the split elements. 
-!   check_controls  -- Logical, optional: If True (default) then call check_lat_controls
+!   check_sanity  -- Logical, optional: If True (default) then call lat_sanity_check
 !                        after the split to make sure everything is ok.
 !   save_null_drift -- Logical, optional: Save a copy of a drift to be split as a null_ele?
 !                         This is useful if when superpositions are done. See add_superimpose for more info.
@@ -30,7 +30,7 @@
 !   err_flag   -- Logical, optional: Set true if there is an error, false otherwise.
 !-
 
-subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)
+subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
 
 use bmad_struct
 use bmad_interface, except_dummy => split_lat
@@ -50,7 +50,7 @@ integer ix_split, ixc, ix_attrib, ix_super_lord
 integer icon, ix2, inc, nr, n_ic2, ct
 
 logical split_done, err
-logical, optional :: add_suffix, check_controls, save_null_drift, err_flag
+logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
 
 character(16) :: r_name = "split_lat"
 
@@ -290,8 +290,8 @@ enddo
 call control_bookkeeper (lat, ele1)
 call control_bookkeeper (lat, ele2)
 
-err = .false.  ! In case check_lat_controls is not called.
-if (logic_option(.true., check_controls)) call check_lat_controls (lat, err)
+err = .false.  ! In case lat_sanity_check is not called.
+if (logic_option(.true., check_sanity)) call lat_sanity_check (lat, err)
 if (present(err_flag)) err_flag = err
 
 end subroutine

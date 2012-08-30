@@ -101,7 +101,7 @@ allocate (li(300))
 
 type_zero = logic_option(.false., type_zero_attrib)
 
-if (associated(ele%branch)) call check_lat_controls(ele%branch%lat, err_flag)
+if (associated(ele%branch)) call lat_sanity_check(ele%branch%lat, err_flag)
 
 ! Encode element name and type
 

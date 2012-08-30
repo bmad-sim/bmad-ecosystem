@@ -1,21 +1,21 @@
 !+
-! Subroutine check_lat_controls (lat, err_flag)
+! Subroutine lat_sanity_check (lat, err_flag)
 !
-! Subroutine to check if the control links in a lat structure are valid
+! Subroutine to check if the control links in a lat structure are valid, etc.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   lat -- lat_struct: Lat to check
+!   lat -- lat_struct: Lattice to check
 !
 ! Output:
-!   err_flag -- Logical: Set True if there is an error. False otherwise
+!   err_flag -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine check_lat_controls (lat, err_flag)
+subroutine lat_sanity_check (lat, err_flag)
 
-use lat_ele_loc_mod, except_dummy => check_lat_controls
+use lat_ele_loc_mod, except_dummy => lat_sanity_check
 
 implicit none
      
@@ -23,11 +23,11 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2
 type (branch_struct), pointer :: branch, slave_branch
 
-integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i
+integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw
 integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is
 
 character(10) str_ix_slave, str_ix_lord, str_ix_ele
-character(24) :: r_name = 'check_lat_controls'
+character(24) :: r_name = 'lat_sanity_check'
 
 logical, intent(out) :: err_flag
 logical good_control(12,12), girder_here
@@ -50,7 +50,7 @@ good_control(multipass_lord$, [multipass_slave$, patch_in_slave$]) = .true.
 
 err_flag = .false.
            
-! loop over all elements
+! loop over all branches
 
 do i_b = 0, ubound(lat%branch, 1)
 
@@ -104,11 +104,28 @@ do i_b = 0, ubound(lat%branch, 1)
   endif
 
   !--------------------------------
+  ! Loop over all elements
 
   do i_t = 1, branch%n_ele_max
 
     ele => branch%ele(i_t)
     str_ix_ele = ele_loc_to_string(ele)
+
+    ! Check wakes
+
+    if (associated(ele%rf_wake)) then
+      if (associated(ele%rf_wake%lr)) then
+        do iw = 1, size(ele%rf_wake%lr)
+          if (ele%rf_wake%lr(iw)%Q < 0) then
+            call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'HAS LR wake (#\i0\) with negative Q!  \es10.1\ ', &
+                      i_array = [iw], r_array = [ele%rf_wake%lr(iw)%Q])
+            err_flag = .true.
+          endif
+        enddo
+      endif
+    endif
 
     ! Check that %ix_ele and %ix_branch are correct. 
 
