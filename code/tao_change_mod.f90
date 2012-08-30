@@ -240,7 +240,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     ! Can vary beam energy with RF off even in rings.
     ! Or when doing multi_turn_orbit data taking.
 
-    if (e_name == 'BEAM_START' .and. u%model%lat%param%lattice_type == circular_lattice$) then
+    if (e_name == 'BEAM_START') then
+      if (u%model%lat%param%lattice_type == linear_lattice$) cycle
       if (a_name == 'PZ' .and. .not. s%global%rf_on) cycle
       write (name, '(i0, a)') iu, '@multi_turn_orbit'
       call tao_find_data (err, name, d2_dat, print_err = .false.)
