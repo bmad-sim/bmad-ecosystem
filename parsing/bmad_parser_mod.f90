@@ -3327,10 +3327,18 @@ lord%ix1_slave = 0
 lord%ix2_slave = -1
 call add_lattice_control_structs (lat, lord)
 if (lord%key == sbend$ .and. lord%ref_orbit == 0) lord%ref_orbit = single_ref$
-! Multipass_lord does not have a reference energy or s_position, etc. 
+
+! Multipass_lord does not have reference energy or s_position or map bookkeeping. 
+
 lord%bookkeeping_state%ref_energy = ok$   
 lord%bookkeeping_state%s_position = ok$   
 lord%bookkeeping_state%mat6       = ok$   
+
+! A multipass lord defaults to n_ref_pass = 1 if neither n_ref_pass, p0c and e_tot are not set.
+
+if (nint(lord%value(n_ref_pass$)) == 0 .and. lord%value(p0c$) == 0 .and. lord%value(e_tot$) == 0) then
+  lord%value(n_ref_pass$) = 1
+endif
 
 ! Setup bookkeeping between lord and slaves
 
@@ -4691,26 +4699,6 @@ if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for thi
     endif
   endif
 endif
-
-! multipass lord needs to have field_master = T or must define a reference energy.
-
-if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master) then
-  select case (ele%key)
-  case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
-        hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
-    n = 0
-    if (nint(ele%value(n_ref_pass$)) /= 0) n = n + 1 
-    if (ele%value(p0c$) /= 0) n = n + 1
-    if (ele%value(e_tot$) /= 0) n = n + 1
-    if (n == 0) call parser_error ( &
-          'FOR MULTIPASS LORD: ' // ele%name, &
-          'N_REF_PASS, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
-    if (n > 1) call parser_error ( &
-          'FOR MULTIPASS LORD: ' // ele%name, &
-          'MORE THAN ONE OF N_REF_PASS, E_TOT, AND P0C ARE SET NON-ZERO!')
-  end select
-endif
-
 
 end subroutine settable_dep_var_bookkeeping 
 

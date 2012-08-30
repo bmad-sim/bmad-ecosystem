@@ -549,7 +549,8 @@ multipass line must have their magnetic or electric field strength set
 as the independent attribute (\sref{s:depend}), {\em or} a reference
 energy (\sref{s:energy}) must be defined. A reference energy is
 defined by setting \vn{e_tot} or \vn{p0c}, or by setting
-\vn{n_ref_pass} as described below. 
+\vn{n_ref_pass} as described below. The default is for \vn{n_ref_pass}
+to be set to 1.
 
 \begin{figure}[tb]
 \centering 
@@ -592,11 +593,11 @@ reference orbit will be used for all passes. The \vn{match_global_coords},
 To set the reference energy, one (and only one) of the attributes
 \vn{n_ref_pass}, \vn{e_tot} or \vn{p0c} needs to be
 set. \vn{n_ref_pass} is an integer indicating which pass is used to
-define the reference energy for the lord element. Note: If
-\vn{ref_orbit} is set to \vn{match_global_coords}, or for
-any element where the reference energy is not constant (like
-an \vn{lcavity}), \vn{n_ref_pass} must be
-used and must be set to 1.
+define the reference energy for the lord element. The default if
+nothing is set, is for \vn{n_ref_pass} to be set to 1.  Note: If
+\vn{ref_orbit} is set to \vn{match_global_coords}, or for any element
+where the reference energy is not constant (like an \vn{lcavity}),
+\vn{n_ref_pass} must be used and must be set to 1.
 
 An example will make this clear. Consider a bend defined by
 \begin{example} 
