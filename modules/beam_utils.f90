@@ -1,10 +1,10 @@
 module beam_utils
 
 use beam_def_struct
-use bmad_interface
 use spin_mod
 use eigen_mod
 use wake_mod
+use bookkeeper_mod
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
@@ -44,13 +44,13 @@ subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end)
 implicit none
 
 type (bunch_struct) bunch_start, bunch_end
-type (ele_struct) ele
+type (ele_struct) ele, half_ele
 
 type (lat_param_struct) param
 
-real(rp), pointer :: a_pole_save(:)
-real(rp) charge, value_save(num_ele_attrib$)
+real(rp) charge
 integer i, j, n, ix_z
+logical err_flag
 
 character(20) :: r_name = 'track1_bunch_hom'
 
@@ -68,8 +68,6 @@ if (ele%key /= lcavity$ .or. .not. associated(ele%rf_wake) .or. &
     call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
   enddo
 
-
-
   bunch_end%charge = sum (bunch_end%particle(:)%charge, &
                       mask = (bunch_end%particle(:)%state == alive$))
   return
@@ -78,42 +76,21 @@ endif
 !------------------------------------------------
 ! This calculation is for an cavity with wakefields.
 ! Put the sr wakefield transverse kicks at the half way point.
+! First track half way through. This includes the sr longitudinal wakes 
 
-! first offset the cavity
-! wakes applied in cononical coords so don't do canonical coord conversion
-
-do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, bunch_end%particle(i), param%particle, set$, set_canonical = .false.)
-enddo
-
-! Modify ele temporarily so we can track through half the cavity.
-
-value_save = ele%value
-ele%value(l$)      = ele%value(l$) / 2
-ele%value(e_tot$)  = (ele%value(e_tot_start$) + ele%value(e_tot$)) / 2
-call convert_total_energy_to (ele%value(e_tot$), param%particle, pc = ele%value(p0c$))
-ele%value(e_loss$) = ele%value(e_loss$) / 2
-
-! zero all offsets and kicks (offsetting already performed above)
-
-call zero_ele_offsets (ele)
-ele%value(hkick$) = 0.0
-ele%value(vkick$) = 0.0
-if (associated(ele%a_pole)) then
-   a_pole_save => ele%a_pole
-   nullify(ele%a_pole)
-else
-   nullify(a_pole_save)
+call transfer_ele (ele, half_ele, .true.)
+call create_element_slice (half_ele, ele, ele%value(l$)/2, 0.0_rp, param, .true., .false., err_flag)
+if (err_flag) then
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
-    
-! Track half way through. This includes the sr longitudinal wakes 
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%ix_z(j) ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%state /= alive$) cycle
   call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
-  call track1 (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
+  call track1 (bunch_end%particle(ix_z), half_ele, param, bunch_end%particle(ix_z))
 enddo
 
 ele%value(grad_loss_sr_wake$) = 0.0
@@ -125,38 +102,20 @@ call track1_lr_wake (bunch_end, ele)
 
 ! Track the last half of the cavity. This includes the sr longitudinal wakes 
 
-if (ele%key == lcavity$) then
-  ele%value(e_tot_start$)  = ele%value(e_tot$)
-  ele%value(p0c_start$)    = ele%value(p0c$)
-endif
-ele%value(e_tot$)        = value_save(e_tot$)
-ele%value(p0c$)          = value_save(p0c$)
+call create_element_slice (half_ele, ele, ele%value(l$)/2, ele%value(l$)/2, param, .true., .false., err_flag, half_ele)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%ix_z(j) ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%state /= alive$) cycle
   call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
-  call track1 (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
+  call track1 (bunch_end%particle(ix_z), half_ele, param, bunch_end%particle(ix_z))
 enddo
 
 ele%value(grad_loss_sr_wake$) = 0.0
 
 bunch_end%charge = sum (bunch_end%particle(:)%charge, &
                          mask = (bunch_end%particle(:)%state == alive$))
-
-! Unmodify ele
-
-ele%value = value_save
-if (associated(a_pole_save)) ele%a_pole => a_pole_save
-      
-! Unset the cavity offset.
-! Wakes applied in cononical coords so don't do canonical coord conversion
-
-do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, bunch_end%particle(i), param%particle, unset$, &
-      set_canonical = .false.)
-enddo
 
 end subroutine track1_bunch_hom
 
