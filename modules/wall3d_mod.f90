@@ -298,8 +298,8 @@ if (all(v(1:n)%x >= 0) .and. all(v(1:n)%y >= 0)) then
     v(n+1:nn) = v(n:1:-1)
     v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
   endif
-  v(n+1:nn)%x     = -v(n+1:nn)%x
-  v(n+1:nn)%angle = pi - v(n+1:nn)%angle
+  v(n+1:nn)%x           = -v(n+1:nn)%x
+  v(n+1:nn)%angle       = pi - v(n+1:nn)%angle
   v(nn-n+2:nn)%radius_x = v(n:2:-1)%radius_x
   v(nn-n+2:nn)%radius_y = v(n:2:-1)%radius_y
   v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
@@ -323,8 +323,8 @@ if (all(v(1:n)%y >= 0)) then
     v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
   endif
 
-  v(n+1:nn)%y     = -v(n+1:nn)%y
-  v(n+1:nn)%angle = twopi - v(n+1:nn)%angle
+  v(n+1:nn)%y           = -v(n+1:nn)%y
+  v(n+1:nn)%angle       = twopi - v(n+1:nn)%angle
   v(nn-n+2:nn)%radius_x = v(n:2:-1)%radius_x
   v(nn-n+2:nn)%radius_y = v(n:2:-1)%radius_y
   v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
@@ -353,8 +353,8 @@ elseif (all(v(1:n)%x >= 0)) then
     v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
   endif
 
-  v(n+1:nn)%x     = -v(n+1:nn)%x
-  v(n+1:nn)%angle = twopi - v(n+1:nn)%angle
+  v(n+1:nn)%x           = -v(n+1:nn)%x
+  v(n+1:nn)%angle       = pi - v(n+1:nn)%angle
   v(nn-n+2:nn)%radius_x = v(n:2:-1)%radius_x
   v(nn-n+2:nn)%radius_y = v(n:2:-1)%radius_y
   v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
