@@ -10,7 +10,7 @@ template <class T> bool is_all_equal (const valarray<T>& v1, const valarray<T>& 
   bool is_true = true;
   T t1, t2;
   if (v1.size() != v2.size()) return false;
-  for (int i = 0; i < v1.size(); i++) {
+  for (unsigned int i = 0; i < v1.size(); i++) {
     t1 = v1[i];
     t2 = v2[i];
     is_true = is_true && (v1[i] == v2[i]);
@@ -39,16 +39,16 @@ template bool is_all_equal(const C_wall3d_section_array&, const C_wall3d_section
 
 bool is_all_equal (const Bool_Array& v) {
   bool is_true = true;
-  for (int i = 0; i < v.size(); i++) is_true = is_true && v[i];
+  for (unsigned int i = 0; i < v.size(); i++) is_true = is_true && v[i];
   return is_true; 
 };
 
 bool is_all_equal (const Real_Matrix& mat1, const Real_Matrix& mat2) {
   bool is_true = true;
   if (mat1.size() != mat2.size()) return false;
-  for (int i = 0; i < mat1.size(); i++) {
+  for (unsigned int i = 0; i < mat1.size(); i++) {
     if (mat1[i].size() != mat2[i].size()) return false;
-    for (int j = 0; j < mat1[i].size(); j++) {
+    for (unsigned int j = 0; j < mat1[i].size(); j++) {
       is_true = is_true && (mat1[i][j] == mat2[i][j]);
     }
   }
@@ -58,11 +58,11 @@ bool is_all_equal (const Real_Matrix& mat1, const Real_Matrix& mat2) {
 bool is_all_equal (const Real_Tensor& tensor1, const Real_Tensor& tensor2) {
   bool is_true = true;
   if (tensor1.size() != tensor2.size()) return false;
-  for (int i = 0; i < tensor1.size(); i++) {
+  for (unsigned int i = 0; i < tensor1.size(); i++) {
     if (tensor1[i].size() != tensor2[i].size()) return false;
-    for (int j = 0; j < tensor1[i].size(); j++) {
+    for (unsigned int j = 0; j < tensor1[i].size(); j++) {
       if (tensor1[i][j].size() != tensor2[i][j].size()) return false;
-      for (int k = 0; k < tensor1[i][j].size(); k++) {
+      for (unsigned int k = 0; k < tensor1[i][j].size(); k++) {
         is_true = is_true && (tensor1[i][j][k] == tensor2[i][j][k]);
       }
     }

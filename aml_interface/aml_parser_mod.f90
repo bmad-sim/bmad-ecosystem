@@ -690,7 +690,7 @@ if (bp_com%error_flag) then
   endif
 endif
               
-call check_lat_controls (lat, err_flag)
+call lat_sanity_check (lat, err_flag)
 
 end subroutine
 

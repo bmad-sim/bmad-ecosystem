@@ -80,7 +80,7 @@ interface
 end interface
 
 interface
-  subroutine check_lat_controls (lat, err_flag)
+  subroutine lat_sanity_check (lat, err_flag)
     import
     implicit none
     type (lat_struct), target :: lat
@@ -607,11 +607,11 @@ interface
 end interface
 
 interface
-  subroutine remove_eles_from_lat (lat, check_controls)
+  subroutine remove_eles_from_lat (lat, check_sanity)
     import
     implicit none
     type (lat_struct) lat
-    logical, optional :: check_controls
+    logical, optional :: check_sanity
   end subroutine
 end interface
 
@@ -700,7 +700,7 @@ interface
 end interface
 
 interface
-  subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)
+  subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
     import
     implicit none
     type (lat_struct), target :: lat
@@ -708,7 +708,7 @@ interface
     integer ix_branch
     integer ix_split
     logical split_done
-    logical, optional :: add_suffix, check_controls, save_null_drift, err_flag
+    logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
   end subroutine
 end interface
 

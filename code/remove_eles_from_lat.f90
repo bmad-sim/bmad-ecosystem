@@ -1,5 +1,5 @@
 !+
-! Subroutine remove_eles_from_lat (lat, check_controls)
+! Subroutine remove_eles_from_lat (lat, check_sanity)
 !
 ! Subroutine to compress the ele(:), control(:), and ic(:) arrays to remove
 ! elements no longer used. Note: to mark an element for removal use:
@@ -10,14 +10,14 @@
 !
 ! Input:
 !   lat            -- lat_struct: Lattice to compress.
-!   check_controls -- Logical, optional: If True (default) then call check_lat_controls
+!   check_sanity -- Logical, optional: If True (default) then call lat_sanity_check
 !                       after the remove to make sure everything is ok.
 !
 ! Output:
 !   lat -- lat_struct: Compressed lattice.
 !-
 
-subroutine remove_eles_from_lat (lat, check_controls)
+subroutine remove_eles_from_lat (lat, check_sanity)
 
 use bmad_struct
 use bmad_interface, except => remove_eles_from_lat
@@ -37,7 +37,7 @@ type (ele_index_temp), allocatable :: ibr(:)
 integer i, j, ib, ix, i1, i2
 integer, allocatable :: ic(:), control(:)
 
-logical, optional :: check_controls
+logical, optional :: check_sanity
 logical err_flag
 
 ! Allocate
@@ -195,7 +195,7 @@ enddo
 
 deallocate (ibr, control, ic)
 
-if (logic_option(.true., check_controls)) call check_lat_controls (lat, err_flag)
+if (logic_option(.true., check_sanity)) call lat_sanity_check (lat, err_flag)
 
 end subroutine
           

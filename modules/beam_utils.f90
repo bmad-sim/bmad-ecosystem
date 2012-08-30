@@ -102,7 +102,7 @@ call track1_lr_wake (bunch_end, ele)
 
 ! Track the last half of the cavity. This includes the sr longitudinal wakes 
 
-call create_element_slice (half_ele, ele, ele%value(l$)/2, ele%value(l$)/2, param, .true., .false., err_flag, half_ele)
+call create_element_slice (half_ele, ele, ele%value(l$)/2, ele%value(l$)/2, param, .false., .true., err_flag, half_ele)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
