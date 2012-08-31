@@ -1,6 +1,8 @@
 module precision_def
 
-#include "CESR_precision.inc"
+integer, parameter :: rdef = selected_real_kind(11)
+integer, parameter :: rdef2 = 2*rdef    ! used for nr.
+integer, parameter :: rp = rdef
 
 integer, parameter :: sp = kind(1e0)
 integer, parameter :: dp = selected_real_kind(2*precision(1e0_sp))
