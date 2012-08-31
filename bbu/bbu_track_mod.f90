@@ -669,7 +669,7 @@ call mat_make_unit(imat)
 time=0
 k=1     
 
-do i = 1, bbu_param%ix_ele_track_end
+do i = 1, lat%n_ele_track
 
   gamma=lat%ele(i)%value(E_TOT$)/m_electron       ! Calculate the z component of the velocity
   Vz=c_light*sqrt(1.-1./gamma**2)
@@ -709,7 +709,7 @@ anavalid = .true.
 !print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq  R/Q(ohms/m^2)     Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 
-do i=0, bbu_param%ix_ele_track_end
+do i=0, lat%n_ele_track
    
    mat=matmul(lat%ele(i)%mat6, oldmat) 
   
