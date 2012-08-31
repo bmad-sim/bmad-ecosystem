@@ -346,8 +346,9 @@ endif
     if dim == 1:
 
       fp.to_c2_call = 'c_loc(fvec2vec(F%NAME, n1_NAME))'
-      fp.to_f2_trans = to_f2_trans_pointer.replace('DIMS', \
-                    'n1_NAME').replace('TOTDIM', 'n1_NAME').replace('SET', 'F%NAME = f_NAME(1:n1_NAME)')
+      fp.to_f2_trans = to_f2_trans_pointer.replace('DIMS', 'n1_NAME')\
+                                          .replace('TOTDIM', 'n1_NAME')\
+                                          .replace('SET', 'F%NAME = f_NAME(1:n1_NAME)')
       fp.equality_test = equality_test_pointer
 
       fp.to_c_trans  = \
@@ -382,9 +383,9 @@ else
         fp.to_c_trans  = '''
 n1_NAME = 0
 if (associated(F%NAME)) then
-  n1_NAME = size(F%NAME)
+  n1_NAME = size(F%NAME); lb1 = lbound(F%NAME, 1) - 1
   allocate (z_NAME(n1_NAME))
-  do jd1 = 1, n1_NAME; lb1 = lbound(F%NAME, 1) - 1
+  do jd1 = 1, n1_NAME
     z_NAME(jd1) = c_loc(F%NAME(jd1+lb1))
   enddo
 endif
@@ -420,16 +421,54 @@ if (associated(F%NAME)) then
   n2_NAME = size(F%NAME, 2)
 endif
 '''
-      fp.test_pat    = '''
+      tp2 = '''
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
   if (.not. associated(F%NAME)) allocate (F%NAME(-1:1, 2))
-''' + x2 + jd1_loop + x2 + jd2_loop + x2 + rhs2 + \
-      x2 + set2 + '  enddo; enddo\n' + 'endif\n'
+''' 
+      fp.test_pat    = tp2 + x2 + jd1_loop + x2 + jd2_loop + x2 + rhs2 + \
+      x2 + set2.replace('NNN', 'rhs') + '  enddo; enddo\n' + 'endif\n'
 
       if type == LOGIC:
         fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
+
+      if type == TYPE:
+        fp.to_c2_call  = 'z_NAME'
+        fp.bindc_name  = 'z_NAME(*)'
+        fp.bindc_type  = 'type(c_ptr)'
+        fp.to_c_var    = 'type(c_ptr), allocatable :: z_NAME(:)'
+        fp.to_f2_extra_var_type = ''
+        fp.to_f2_extra_var_name = ''
+        fp.test_pat    = tp2 + x2 + jd1_loop + x4 + \
+                        'call set_z_test_pattern (F%NAME(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)\n' + '  enddo\n' + 'endif\n'
+        ## fp.equality_test = fp.equality_test.replace
+        fp.to_c_trans  = '''
+n1_NAME = 0
+if (associated(F%NAME)) then
+  n1_NAME = size(F%NAME, 1); lb1 = lbound(F%NAME, 1) - 1
+  n2_NAME = size(F%NAME, 2); lb2 = lbound(F%NAME, 2) - 1
+  allocate (z_NAME(n1_NAME * n2_NAME))
+  do jd1 = 1, n1_NAME; do jd2 = 1, n2_NAME
+    z_NAME(n2_NAME*(jd1-1) + jd2) = c_loc(F%NAME(jd1+lb1, jd2+lb2))
+  enddo;  enddo
+endif
+'''
+        fp.to_f2_trans = '''
+if (n1_NAME == 0) then
+  if (associated(F%NAME)) deallocate(F%NAME)
+else
+  if (associated(F%NAME)) then
+    if (n1_NAME == 0 .or. any(shape(F%NAME) /= [n1_NAME, n2_NAME])) deallocate(F%NAME)
+  endif
+  if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME, n2_NAME))
+  do jd1 = 1, n1_NAME
+  do jd2 = 1, n2_NAME
+    call KIND_to_f (z_NAME(n2_NAME*(jd1-1) + jd2), c_loc(F%NAME(jd1,jd2)))
+  enddo
+  enddo
+endif
+'''
 
     #---------------------
     # Pointer, dim = 3
@@ -783,23 +822,40 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       cp.to_f_setup   = '''
   int n1_NAME = 0, n2_NAME = 0;
   TYPE* z_NAME = NULL;
-  if (C.NAME != NULL) {
+  if (n1_NAME > 0) {
     n1_NAME = C.NAME.size();
     n2_NAME = C.NAME[0].size();
-    z_NAME = new TYPE [C.NAME.size()*C.NAME[0].size()];
+    z_NAME = new TYPE [n1_NAME*n2_NAME];
     matrix_to_vec (C.NAME, z_NAME);
   }
 '''.replace('TYPE', c_type)
 
       if type == TYPE:
         cp.constructor = 'NAME(C_KIND_Array(C_KIND(), 0), 0)'
-        cp.test_pat   = cp.test_pat.replace('C.NAME', 'C_KIND_test_pattern(C.NAME').replace(' = rhs', ', rhs)')
+        cp.test_pat   = test_pat_pointer1 + '    C.NAME.resize(3);\n' + \
+                        x2 + for1 + x2 + for2 + '{\n' + \
+                        '      set_C_KIND_test_pattern(C.NAME[i][j], ix_patt+i+2*j+3);\n' + \
+                        '    }\n' + \
+                        '  }\n'
+
         cp.to_c2_set   = '''
   C.NAME.resize(n1_NAME);
   for (int i = 0; i < n1_NAME; i++) {
     C.NAME[i].resize(n2_NAME);
     for (int j = 0; j < n2_NAME; j++) KIND_to_c(z_NAME[n2_NAME*i+j], C.NAME[i][j]);
+  }
 '''
+        cp.to_f_setup   = '''
+  int n1_NAME = 0, n2_NAME = 0;
+  const TYPE** z_NAME = NULL;
+  if (n1_NAME > 0) {
+    n1_NAME = C.NAME.size();
+    n2_NAME = C.NAME[0].size();
+    z_NAME = new const TYPE* [n1_NAME*n2_NAME];
+    for (int i = 0; i < n1_NAME; i++) {
+      for (int j = 0; j < n2_NAME; j++) z_NAME[i*n2_NAME + j] = &C.NAME[i][j];}
+  }
+'''.replace('TYPE', c_type)
   
     #------------------------------
     # Pointer, dim = 3
@@ -1549,10 +1605,10 @@ f_equ.close()
 # Create code check main program
 
 if not os.path.exists('interface_test'): os.makedirs('interface_test')
-f_test = open('interface_test/bmad_cpp_test.f90', 'w')
+f_test = open('interface_test/main.f90', 'w')
 
 f_test.write('''
-program bmad_cpp_test
+program interface_test
 
 use bmad_cpp_test_mod
 
