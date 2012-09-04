@@ -493,3 +493,23 @@ foreach(exespec ${EXE_SPECS})
   SET(LINK_FLAGS)
 
 endforeach(exespec)
+
+
+#-------------------------------------------------------------------
+# If a shared object library has been built, and if a Makefile.mex
+# file exists for building Matlab MEX wrappers, call that makefile.
+#-------------------------------------------------------------------
+FOREACH(target ${TARGETS})
+
+  IF(target MATCHES ${LIBNAME}-shared)
+    IF(EXISTS ../Makefile.mex)
+      message("MATCHES!")
+      ADD_CUSTOM_COMMAND(TARGET ${LIBNAME}-shared
+      POST_BUILD
+      COMMAND gmake -f Makefile.mex
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      )
+    ENDIF(EXISTS ../Makefile.mex)
+  ENDIF()
+
+ENDFOREACH()
