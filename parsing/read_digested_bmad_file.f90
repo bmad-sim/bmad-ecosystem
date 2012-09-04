@@ -49,7 +49,6 @@ character(200) fname_read, fname_versionless, fname_full
 character(200) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
 character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
-character(40) old_vms_time_stamp, new_vms_time_stamp
 
 logical, optional :: err_flag
 logical deterministic_ran_function_used, is_ok
@@ -110,20 +109,10 @@ endif
 
 do i = 1, n_files
 
-  old_vms_time_stamp = ''
-  new_vms_time_stamp = ''
   stat_b = 0
 
   read (d_unit, err = 9020, end = 9020) fname_read, stat_b2, stat_b8, stat_b10, idum1, idum2
   file_names(i) = fname_read
-
-#if defined (CESR_VMS) 
-  ix = index(fname_read, '@')
-  if (ix /= 0) then
-    old_vms_time_stamp = fname_read(ix+1:)
-    fname_read = fname_read(:ix-1)
-  endif
-#endif
 
   ! Cannot use full file name to check if this is the original digested file since
   ! the path may change depending upon what system the program is running on and how
@@ -131,9 +120,6 @@ do i = 1, n_files
 
   if (fname_read(1:10) == '!DIGESTED:') then
   fname_read = fname_read(11:)
-#if defined (CESR_VMS)
-    inquire (file = fname_read, opened = is_match)
-#else
     ierr = stat(full_digested_file, stat_b)
     ! Time stamp in file is created while file is being written to so is not accurate.
     is_match = (stat_b2 == stat_b(2))            !!!! .and. (stat_b10 == stat_b(10))
@@ -144,7 +130,6 @@ do i = 1, n_files
     enddo
     digested_prefix_in = fname_read(1:j1-j)
     digested_prefix_out = full_digested_file(1:j2-j)
-#endif
     if (.not. is_match) then
       if (bmad_status%type_out .and. .not. err_found) &
                       call out_io(s_info$, r_name, ' NOTE: MOVED DIGESTED FILE.')
@@ -167,12 +152,6 @@ do i = 1, n_files
 
   call simplify_path (fname_read, fname_read)
 
-#if defined (CESR_VMS) 
-  ix = index(fname_read, ';')
-  fname_versionless = fname_read(:ix-1)
-  call get_file_time_stamp (fname_versionless, new_vms_time_stamp)
-  is_match = old_vms_time_stamp == new_vms_time_stamp
-#else
   is_ok = .true.
   if (digested_prefix_in /= '') then
     if (index(fname_read, trim(digested_prefix_in)) == 1) then
@@ -188,7 +167,6 @@ do i = 1, n_files
   ierr = stat(fname_read, stat_b)
   fname_versionless = fname_read
   is_match = (stat_b2 == stat_b(2)) .and. (stat_b10 == stat_b(10))
-#endif
 
   inquire (file = fname_versionless, exist = found_it, name = fname_full)
   call simplify_path (fname_full, fname_full)

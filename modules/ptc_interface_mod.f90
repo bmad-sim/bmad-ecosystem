@@ -7,8 +7,6 @@
 
 module ptc_interface_mod
 
-use bmad_struct
-use bmad_interface
 use multipole_mod
 use bookkeeper_mod
 
@@ -169,7 +167,7 @@ end function taylor_minus_taylor
 ! just sets a global variable and returns.
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   order         -- Integer: Taylor order.
@@ -354,121 +352,499 @@ enddo
 
 end subroutine type_map1
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine type_ptc_fiber (fiber, lines, n_lines)
+!
+! Routine to put information on a PTC fiber element into a string array.
+! If "lines" is not present, the information will be printed to the screen.
+!
+! Module Needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   fiber     -- fibre, pointer: Fiber.
+!
+! Output:
+!   lines(:)  -- character(100), optional, allocatable: Character array to hold the output.
+!   n_lines   -- integer, optional: Number of lines used in lines(:)
+!-
+
+subroutine type_ptc_fiber (fiber, lines, n_lines)
+
+use definition, only: patch, element, elementp, magnet_chart, lp
+
+implicit none
+
+type (fibre), pointer :: fiber
+type (patch), pointer :: ptch
+type (element), pointer :: mag
+type (elementp), pointer :: magp
+type (magnet_chart), pointer :: p
+
+integer, optional :: n_lines
+integer i, nl
+
+character(*), allocatable, optional :: lines(:)
+character(100), allocatable :: li(:)
+character(100) str
+character(16), parameter :: r_name = 'type_ptc_fiber'
+
+logical printit, mag_chart_exists
+
+!
+
+nl = 0
+call re_allocate(li, 100, .false.)
+
+!
+
+if (.not. associated(fiber)) then
+  nl=nl+1; li(nl) = 'Fiber pointer not associated!'
+  call end_stuff()
+  return
+endif
+
+!
+
+nl=nl+1; li(nl) = 'Fiber:'
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%pos    [Index in layout]:   ', int_of(fiber%pos, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%loc    [Index in universe]: ', int_of(fiber%loc, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%dir    [Direction]:         ', int_of(fiber%dir, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%beta0  [Beta velocity]:     ', real_of(fiber%beta0, 'es13.5')
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%mass   [Mass]:              ', real_of(fiber%mass, 'es13.5', 1e9_rp)
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%charge [Charge]:            ', real_of(fiber%charge, 'es13.5')
+
+! fiber%mag
+
+mag_chart_exists = .false.
+
+mag => fiber%mag
+if (associated(mag)) then
+  nl=nl+1; li(nl) = 'fiber%mag (Type: element):'
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)')  '%name   [Name]:     ', name_of(mag%name)
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)')  '%kind   [Kind]:     ', kind_name(mag%kind)
+  call is_associated (associated(mag%d0),     '%d0     [Drift]:')
+  call is_associated (associated(mag%k2),     '%k2     [Integrator]:')
+  call is_associated (associated(mag%k3),     '%k3     [Thin Kick]:')
+  call is_associated (associated(mag%c4),     '%c4     [Cavity]:')
+  call is_associated (associated(mag%s5),     '%s5     [Solenoid]:')
+  call is_associated (associated(mag%t6),     '%t6     [Integrator thick,slow]:')
+  call is_associated (associated(mag%t7),     '%t7     [Integrator thick,fast]:')
+  call is_associated (associated(mag%s8),     '%s8     [Normal SMI]:')
+  call is_associated (associated(mag%s9),     '%s9     [Skew SMI]:')
+  call is_associated (associated(mag%tp10),   '%tp10   [Sector Teapot]:')
+  call is_associated (associated(mag%mon14),  '%mon14  [Monitor/Instrument]:')
+  call is_associated (associated(mag%sep15),  '%sep15  [Monitor/Instrument]:')
+  call is_associated (associated(mag%k16),    '%k16    [Exact Straight Integrator]:')
+  call is_associated (associated(mag%enge17), '%enge17 [Solenoid Sixtrack style]:')
+  call is_associated (associated(mag%rcol18), '%rcol18 [Rcollimator]:')
+  call is_associated (associated(mag%ecol19), '%ecol19 [Ecollimator]:')
+  call is_associated (associated(mag%cav21),  '%cav21  [Cavity. Traveling Wave]:')
+  call is_associated (associated(mag%wi),     '%wi     [Wiggler]:')
+  call is_associated (associated(mag%pa),     '%pa     [General B]:')
+  call is_associated (associated(mag%he22),   '%he22   [Helical Dipole]:')
+
+  call write_real ('%l      [Len]:    ',  mag%volt,    'es13.5', writeit = .true.)
+  call write_real ('%volt             ',  mag%volt,    'es13.5')
+  call write_real ('%freq             ',  mag%freq,    'es13.5')
+  call write_real ('%phas             ',  mag%phas,    'es13.5')
+  call write_real ('%volt             ',  mag%volt,    'es13.5')
+  call write_real ('%delta_e          ',  mag%delta_e, 'es13.5')
+  call write_real ('%fint             ',  mag%fint,    'es13.5')
+  call write_real ('%hgap             ',  mag%hgap,    'es13.5')
+  call write_real ('%h1               ',  mag%h1,      'es13.5')
+  call write_real ('%h2               ',  mag%h2,      'es13.5')
+  call write_real ('%b_sol            ',  mag%b_sol,   'es13.5')
+  if (associated(mag%an)) then
+    do i = lbound(mag%an, 1), ubound(mag%an, 1)
+      if (mag%an(i) == 0 .and. mag%bn(i) == 0) cycle
+      nl=nl+1; write (li(nl), '(2x, 2(a, i0), a, t38, 2es13.5)') &
+                          '%an(', i, '), %bn(', i, '):           ', mag%an(i), mag%bn(i)
+    enddo
+  endif
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%thin:        ', logical_of(mag%thin)
+
+  if (associated(mag%p)) mag_chart_exists = .true.
+
+else
+  nl=nl+1; li(nl) = 'fiber%mag (Type: element): Not Associated.'
+endif
+
+! fiber%mag%p
+
+if (mag_chart_exists) then
+  nl=nl+1; li(nl) = 'fiber%mag%p (Type: magnet_chart):'
+  p => fiber%mag%p
+  
+  call write_real  ('%ld    [L]:      ',  p%ld,    'es13.5')
+  call write_real  ('%lc    [L_chord]:',  p%lc,    'es13.5')
+  call write_real  ('%tiltd [Tilt]:   ',  p%tiltd, 'es13.5')
+  call write_real  ('%b0    [Rho]:    ',  p%b0,    'es13.5')
+  call write_reals ('%edge  [E1, E2]: ',  p%edge,  '10es13.5')
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%method [Integration order]: ', int_of(p%method, 'i0')
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%nst    [Integration steps]: ', int_of(p%nst, 'i0')
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%exact  [Exact integration]: ', logical_of(p%exact)
+
+
+else
+  nl=nl+1; li(nl) = 'fiber%mag%p (Type: magnet_chart): Not Associated.'
+endif
+
+
+! fiber%magp
+
+magp => fiber%magp
+if (associated(magp)) then
+  nl=nl+1; li(nl) = 'fiber%magp (Type: elementp):'
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%knob:        ', logical_of(magp%knob)
+
+else
+  nl=nl+1; li(nl) = 'fiber%magp (Type: elementp): Not Associated.'
+endif
+
+!
+
+ptch => fiber%patch
+if (associated(ptch)) then
+  nl=nl+1; li(nl) = 'fiber%patch (Type: patch):'
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%patch  [Patch at]:            ', patch_name(ptch%patch)
+
+  printit = .false.
+  if (integer2_value(0, ptch%patch) == 1 .or. integer2_value(0, ptch%patch) == 3) printit = .true.
+
+  if (printit) then
+    nl=nl+1
+    call write_reals ('%a_d    [Entrance translation]:', ptch%a_d,   '10f12.9', writeit = .true.)
+    call write_reals ('%a_ang  [Entrance angle]:      ', ptch%a_ang, '10f12.9', writeit = .true.)
+  endif
+
+  printit = .false.
+  if (integer2_value(0, ptch%patch) == 2 .or. integer2_value(0, ptch%patch) == 3) printit = .true.
+
+  if (printit) then
+    call write_reals ('%b_d    [Exit translation]:', ptch%b_d,   '10f12.9', writeit = .true.)
+    call write_reals ('%b_ang  [Exit angle]:      ', ptch%b_ang, '10f12.9', writeit = .true.)
+  endif
+
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%energy [Energy Patch at]:     ', patch_name(ptch%energy)
+  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%time   [Time Patch at]:       ', patch_name(ptch%time)
+
+  printit = .false.
+  if (integer2_value(0, ptch%time) == 1 .or. integer2_value(0, ptch%time) == 3) printit = .true.
+
+  if (printit) then
+    call write_real ('%a_t    [Entrance dTime]:', ptch%a_t,   'es13.5', writeit = .true.)
+  endif
+
+  printit = .false.
+  if (integer2_value(0, ptch%time) == 2 .or. integer2_value(0, ptch%time) == 3) printit = .true.
+
+  if (printit) then
+    call write_real ('%b_t    [Exit dTime]:', ptch%b_t,   'es13.5', writeit = .true.)
+  endif
+
+
+
+else
+  nl=nl+1; li(nl) = 'fiber%patch (Type: patch): Not Associated.'
+endif
+
+!
+
+call end_stuff()
+
+!--------------------------------------------------------
+contains
+
+subroutine end_stuff()
+
+if (present(lines)) then
+  call re_allocate(lines, nl, .false.)
+  n_lines = nl
+  lines(1:nl) = li(1:nl)
+else
+  do i = 1, nl
+    print *, trim(li(i))
+  enddo
+endif
+
+end subroutine end_stuff
+
+!-----------------------------------------------------------------------------
+! contains
+
+function integer2_value (default, int_ptr) result (int_val)
+
+integer default, int_val
+integer(2), pointer :: int_ptr
+
+!
+
+if (associated(int_ptr)) then
+  int_val = int_ptr
+else
+  int_val = default
+endif
+
+end function integer2_value
+
+!-----------------------------------------------------------------------------
+! contains
+
+function logical_of (logical_in) result (str)
+
+logical(lp), pointer :: logical_in
+character(20) str
+
+!
+
+if (associated(logical_in)) then
+  write (str, '(l1)') logical_in
+else
+  str = 'Not Associated'
+endif
+
+end function logical_of
+
+!-----------------------------------------------------------------------------
+! contains
+
+subroutine is_associated (is_assoc, str)
+
+logical is_assoc
+character(*) str
+
+!
+
+if (.not. is_assoc) return
+nl= nl+1; write (li(nl), '(2x, a, t40, a)') str, 'Associated'
+
+end subroutine is_associated
+
+!-----------------------------------------------------------------------------
+! contains
+
+function patch_name (patch) result (patch_str)
+
+integer(2), pointer :: patch
+character(16) patch_str
+
+!
+
+if (.not. associated(patch)) then
+  patch_str = 'Not Associated.'
+  return
+endif
+
+!
+
+select case (patch)
+case (0); patch_str = 'No patches (0)'
+case (1); patch_str = 'Entrance patch (1)'
+case (2); patch_str = 'Exit patch (2)'
+case (3); patch_str = 'Patch both ends (3)'
+case default; write (patch_str, '(a, i0, a)') 'UNKNOWN! [', patch, ']'
+end select
+
+end function patch_name
+
+!-----------------------------------------------------------------------------
+! contains
+
+function name_of (name_in) result (name_out)
+
+character(*), pointer :: name_in
+character(len(name_in)) :: name_out
+
+if (associated(name_in)) then
+  name_out = name_in
+else
+  name_out = 'Not Associated'
+endif
+
+end function name_of
+
+!-----------------------------------------------------------------------------
+! contains
+
+function real_of (real_in, fmt, mult) result (str)
+
+real(dp), pointer :: real_in
+real(rp), optional :: mult
+
+character(*) fmt
+character(20) str, fmt2
+
+if (associated(real_in)) then
+  fmt2 = '(' // trim(fmt) // ')'
+  if (present(mult)) then
+    write (str, fmt2) real_in * mult
+  else
+    write (str, fmt2) real_in
+  endif
+  str = adjustl(str)
+  if (str(1:1) /= '-') str = ' ' // str
+else
+  str = 'Not Associated'
+endif
+
+end function real_of
+
+!-----------------------------------------------------------------------------
+! contains
+
+subroutine write_real (pre_str, real_in, real_fmt, mult, writeit)
+
+real(dp), pointer :: real_in
+real(rp), optional :: mult
+
+logical, optional :: writeit
+character(*) real_fmt, pre_str
+character(20) str, fmt2
+
+! Default is to no write if real_in is not present
+
+if (.not. associated(real_in)) then
+  if (.not. logic_option(.false., writeit)) return
+  str = ' Not Associated'
+else
+  fmt2 = '(' // trim(real_fmt) // ')'
+  if (present(mult)) then
+    write (str, fmt2) real_in * mult
+  else
+    write (str, fmt2) real_in
+  endif
+  str = adjustl(str)
+  if (str(1:1) /= '-') str = ' ' // str
+endif
+
+nl = nl + 1
+write (li(nl), '(2x, a, t39, a)') pre_str, str
+
+end subroutine write_real
+
+!-----------------------------------------------------------------------------
+! contains
+
+subroutine write_reals (pre_str, real_in, real_fmt, mult, writeit)
+
+real(dp), pointer :: real_in(:)
+real(rp), optional :: mult
+
+logical, optional :: writeit
+character(*) real_fmt, pre_str
+character(20) str, fmt2
+
+! Default is to no write if real_in is not present
+
+if (.not. associated(real_in)) then
+  if (.not. logic_option(.false., writeit)) return
+  str = ' Not Associated'
+else
+  fmt2 = '(' // trim(real_fmt) // ')'
+  if (present(mult)) then
+    write (str, fmt2) real_in * mult
+  else
+    write (str, fmt2) real_in
+  endif
+  str = adjustl(str)
+  if (str(1:1) /= '-') str = ' ' // str
+endif
+
+nl = nl + 1
+write (li(nl), '(2x, a, t39, a)') pre_str, str
+
+end subroutine write_reals
+
+!-----------------------------------------------------------------------------
+! contains
+
+function int_of (int_in, fmt) result (str)
+
+integer, pointer :: int_in
+character(*) fmt
+character(20) str, fmt2
+
+if (associated(int_in)) then
+  fmt2 = '(' // trim(fmt) // ')'
+  write (str, fmt2) int_in
+else
+  str = 'Not Associated'
+endif
+
+end function int_of
+
+end subroutine type_ptc_fiber
+
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! function kind_name (this_kind)
+! Function kind_name (this_kind) result (kind_str)
 !
 ! function to return the name of a PTC kind.
 !
 ! Input:
-!   this_kind -- Integer: 
+!   this_kind -- Integer, pointer: PTC kind 
 !
 ! Output:
-!   kind_name -- Character(20): 
+!   kind_str -- Character(40): String representation
 !-
 
-function kind_name (this_kind)
+function kind_name (this_kind) result (kind_str)
 
-use s_status, only: kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, kind8, kind9, kind10
+use s_status, only: kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, kind8, kind9, &
+                    kind10, kind11, kind12, kind13, kind14, kind15, kind16, kind17, kind18, &
+                    kind19, kind20, kind21, kind22, kind23, kindwiggler, kindpa
 
 implicit none
 
-integer this_kind
-character(20) kind_name
+integer, pointer :: this_kind
+character(40) kind_str
+
+!
+
+if (.not. associated(this_kind)) then
+  kind_str = 'Not Associated.'
+  return
+endif
 
 !
 
 select case (this_kind)
-case (kind0); kind_name  = 'KIND0'
-case (kind1); kind_name  = 'DRIFT1'
-case (kind2); kind_name  = 'DKD2 (Gen Element)' 
-case (kind3); kind_name  = 'KICKT3 (Thin Ele)'
-case (kind4); kind_name  = 'CAV4 (RF Cavity)'
-case (kind5); kind_name  = 'SOL5 (Solenoid)'
-case (kind6); kind_name  = 'KTK (Slow Thick)'
-case (kind7); kind_name  = 'TKTF (Fast Thick)'
-case (kind8); kind_name  = 'NSMI (Normal SMI)'
-case (kind9); kind_name  = 'SSMI (Skew SMI)'
-case (kind10); kind_name = 'TEAPOT (Sector Bend)'
-case default; write (kind_name, '(a, i5)') 'UNKNOWN KIND!', this_kind 
+case (KIND0);   kind_str = 'KIND0 [Marker, Patch]'
+case (KIND1);   kind_str = 'KIND1 [Drift]'
+case (KIND2);   kind_str = 'KIND2 [Drift-Kick-Drift EXACT_MODEL = F]'
+case (KIND3);   kind_str = 'KIND3 [Thin Element, L == 0]'
+case (KIND4);   kind_str = 'KIND4 [RFcavity]'
+case (KIND5);   kind_str = 'KIND5 [Solenoid]'
+case (KIND6);   kind_str = 'KIND6 [Kick-SixTrack-Kick]'
+case (KIND7);   kind_str = 'KIND7 [Matrix-Kick-Matrix]'
+case (KIND8);   kind_str = 'KIND8 [Normal SMI]'
+case (KIND9);   kind_str = 'KIND9 [Skew SMI]'
+case (KIND10);  kind_str = 'KIND10 [Sector Bend, Exact_Model]'
+case (KIND11);  kind_str = 'KIND11 [Monitor]'
+case (KIND12);  kind_str = 'KIND12 [HMonitor]'
+case (KIND13);  kind_str = 'KIND13 [VMonitor]'
+case (KIND14);  kind_str = 'KIND14 [Instrument]'
+case (KIND15);  kind_str = 'KIND15 [ElSeparator]'
+case (KIND16);  kind_str = 'KIND16 [True RBend, EXACT_MODEL = T]'
+case (KIND17);  kind_str = 'KIND17 [SixTrack Solenoid]'
+case (KIND18);  kind_str = 'KIND18 [Rcollimator]'
+case (KIND19);  kind_str = 'KIND19 [Ecollimator]'
+case (KIND20);  kind_str = 'KIND20 [Straight Geometry MAD RBend]'
+case (KIND21);  kind_str = 'KIND21 [Traveling Wave Cavity]'
+case (KIND22);  kind_str = 'KIND22'
+case (KIND23);  kind_str = 'KIND23'
+case (KINDWIGGLER);  kind_str = 'KINDWIGGLER [Wiggler]'
+case (KINDPA);  kind_str = 'KINDPA'
+case default;   write (kind_str, '(a, i0, a)') 'UNKNOWN! [', this_kind, ']'
 end select
 
 end function kind_name
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine type_fibre (fib)
-!
-! Subroutine to print the global information in a fibre
-!
-! Modules Needed:
-!   use ptc_interface_mod
-!
-! Input:
-!   fib - fibre: fibre to use.
-!-
-
-subroutine type_fibre (fib)
-
-use s_status, only: kind4, kind5, kind2, fibre
-
-implicit none
-
-type (fibre), intent(in) :: fib
-
-integer i
-
-!
-
-if (.not. associated (fib%mag)) then
-  print *, 'Warning from TYPE_FIBRE: Fibre NOT associated with anything.'
-  return
-endif
-
-print *, 'Name:        ', fib%mag%name
-print *, 'Vorname:     ', fib%mag%vorname
-print *, 'Kind:        ', kind_name(fib%mag%kind)
-print *, 'Knob:        ', fib%magp%knob
-print *, 'L:           ', fib%mag%l
-
-if (fib%mag%kind == kind4) then
-  print *, 'Voltage:  ', fib%mag%volt
-  print *, 'Frequency:', fib%mag%freq
-  print *, 'Voltage:  ', fib%mag%volt
-  print *, 'Phase:    ', fib%mag%phas
-  print *, 'Delta_e:  ', fib%mag%delta_e
-  print *, 'Thin: ', fib%mag%thin
-endif
-
-if (fib%mag%kind == kind5) then
-  print *, 'KS:       ', fib%mag%b_sol
-  print *, 'Thin:     ', fib%mag%thin
-endif
-
-if (fib%mag%kind == kind2 .and. fib%mag%p%b0 /= 0) then
-  print *, 'E1:       ', fib%mag%p%edge(1)
-  print *, 'E2:       ', fib%mag%p%edge(2)
-  print *, 'Rho:      ', fib%mag%p%b0
-  print *, 'L_chord:  ', fib%mag%p%lc
-endif
-
-print *, 'Integration Order: ', fib%mag%p%method
-print *, 'Integration Steps: ', fib%mag%p%nst
-
-
-do i = lbound(fib%mag%bn, 1), ubound(fib%mag%bn, 1)
-  if (fib%mag%bn(i) /= 0) print '(a, i2, a, 5x, 1pd12.3)', ' BN(', i, '):', fib%mag%bn(i)
-enddo  
-do i = lbound(fib%mag%an, 1), ubound(fib%mag%an, 1)
-  if (fib%mag%an(i) /= 0) print '(a, i2, a, 5x, 1pd12.3)', ' AN(', i, '):', fib%mag%an(i)
-enddo  
-
-
-end subroutine type_fibre
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -507,7 +883,6 @@ end subroutine type_fibre
 !                     Default = False.
 !                     Corresponds to the nocavity option of the PTC init routine.
 !                     no_cavity = .true. will turn any cavity into a drift.
-!                     Do not set this unless you know what you are doing.
 !   exact_modeling -- logical, optional: Sets the PTC EXACT_MODEL variable.
 !                       Default = False.
 !                       See the PTC guide for more details.
@@ -958,8 +1333,8 @@ implicit none
 real(rp) vec_bmad(:), vec_ptc(:)
 real(rp) beta0
 
-! vec_ptc(5) = (E - E0) / P0
-! vec_ptc(6) = t - t_ref
+! vec_ptc(5) = (E - E0) / P0c
+! vec_ptc(6) = c (t - t0)
 
 vec_ptc = vec_bmad
 vec_ptc(5) = (vec_bmad(6)**2+2.d0*vec_bmad(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+vec_bmad(6)**2+2.d0*vec_bmad(6)) )
@@ -1971,7 +2346,7 @@ end subroutine type_real_8_taylors
 
 subroutine sort_universal_terms (ut_in, ut_sorted)
 
-use nr
+use nr, only: indexx
 use definition, only: universal_taylor
 
 implicit none

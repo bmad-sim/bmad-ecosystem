@@ -23,7 +23,7 @@
 
 subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 
-use bmad, except_dummy => make_mat6_bmad
+use track1_mod
 
 implicit none
 
