@@ -29,6 +29,7 @@
 
 subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
+use ptc_interface_mod
 use xsif_lat_file_names_mod
 use xsif_inout
 use xsif_interfaces

@@ -8,7 +8,7 @@
 
 module bmad_parser_mod
 
-use ptc_interface_mod
+use ptc_interface_mod, only: set_ptc
 use bookkeeper_mod
 use wake_mod
 use attribute_mod
@@ -4742,19 +4742,6 @@ if (present (full_lat_file)) full_lat_file = full_name
 
 ix = SplitFileName(full_name, path, basename)
 digested_file = trim(path) // 'digested_' // basename
-
-! This only affects VMS programs.
-! What we want to do is change the directory for lattice files in
-! $CESR_ONLINE/machine_data/lattice...
-! However 'CESR_ONLINE' is a logical that will get translated by the inquire function so
-! we only check that 'lattice' is the top directory.
-
-ix = max (index_nocase(digested_file, '[lattice.'), &
-          index_nocase(digested_file, '[000000.lattice.'))
-if (ix /= 0) then
-  ix = index_nocase(digested_file, 'lattice.')
-  digested_file = 'CESR_ONLINE:[machine_data.lattice.' // digested_file(ix+8:)
-endif
 
 end subroutine form_digested_bmad_file_name
 

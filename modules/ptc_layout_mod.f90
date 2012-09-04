@@ -276,9 +276,10 @@ end subroutine ptc_emit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine one_turn_ptc_map (ele, map, order, rf_on)
+! Subroutine one_turn_map_at_ele (ele, map, order)
 !
-! Routine to calculate the one turn map for a ring
+! Routine to calculate the one turn map for a ring.
+! Note: Use set_ptc(no_cavity = True/False) set turn on/off the RF cavities.
 !
 ! Module Needed:
 !   use ptc_layout_mod
@@ -286,13 +287,12 @@ end subroutine ptc_emit_calc
 ! Input:
 !   ele     -- ele_struct: Element determining start/end position for one turn map.
 !   order   -- integer, optional: Order of the map. If not given then default order is used.
-!   rf_on   -- logical, optional: Turn RF on or off? Default is to leave things as they are.
 !
 ! Output:
 !   map(6)  -- taylor_struct: Bmad taylor map
 !-
 
-subroutine one_turn_map (ele, map, order, rf_on)
+subroutine one_turn_map_at_ele (ele, map, order)
 
 implicit none
 
@@ -301,164 +301,16 @@ type (taylor_struct) map(6)
 
 
 integer, optional :: order
-logical, optional :: rf_on
 
 !
 
+!ptc_layout => ele%branch%ptc%layout(1)%ptr
 
+!x = 0
+!call find_orbit_x (x, default, 1.0d-5, fibre1 = ele%ptc_fiber%next)  ! find_orbit == find closed orbit
+!closed_orb%vec = x
 
-
-end Subroutine one_turn_map
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Subroutine type2_ptc_fiber (fiber, lines, n_lines)
-!
-! Routine to put information on a PTC fiber element into a string array.
-!
-! Module Needed:
-!   use ptc_layout_mod
-!
-! Input:
-!   fiber     -- fibre: 
-!
-! Output:
-!   lines(:)  -- character(100), allocatable: Character array to hold the output.
-!   n_lines   -- integer: Number of lines used in lines(:)
-!-
-
-subroutine type2_ptc_fiber (fiber, lines, n_lines)
-
-use s_status
-
-implicit none
-
-type (fibre), target :: fiber
-type (patch), pointer :: ptch
-type (element), pointer :: mag
-
-integer n_lines, nl
-
-character(*), allocatable :: lines(:)
-character(100) str
-
-character(16) :: patch_at(0:3) = [character(16) :: &
-              'Nothing (0)', 'Front only (1)', 'Back only (2)', 'Both (3)']
-
-!
-
-nl = 0
-call re_allocate(lines, 100, .false.)
-
-select case (fiber%mag%kind)
-case (KIND0);   str = 'KIND0 [Marker, Patch]'
-case (KIND1);   str = 'KIND1 [Drift]'
-case (KIND2);   str = 'KIND2 [Drift-Kick-Drift EXACT_MODEL = F]'
-case (KIND3);   str = 'KIND3 [Thin Element, L == 0]'
-case (KIND4);   str = 'KIND4 [RFcavity]'
-case (KIND5);   str = 'KIND5 [Solenoid]'
-case (KIND6);   str = 'KIND6 [Kick-SixTrack-Kick]'
-case (KIND7);   str = 'KIND7 [Matrix-Kick-Matrix]'
-case (KIND8);   str = 'KIND8 [Normal SMI]'
-case (KIND9);   str = 'KIND9 [Skew SMI]'
-case (KIND10);  str = 'KIND10 [Sector Bend, Exact_Model]'
-case (KIND11);  str = 'KIND11 [Monitor]'
-case (KIND12);  str = 'KIND12 [HMonitor]'
-case (KIND13);  str = 'KIND13 [VMonitor]'
-case (KIND14);  str = 'KIND14 [Instrument]'
-case (KIND15);  str = 'KIND15 [ElSeparator]'
-case (KIND16);  str = 'KIND16 [True RBend, EXACT_MODEL = T]'
-case (KIND17);  str = 'KIND17 [SixTrack Solenoid]'
-case (KIND18);  str = 'KIND18 [Rcollimator]'
-case (KIND19);  str = 'KIND19 [Ecollimator]'
-case (KIND20);  str = 'KIND20 [Straight Geometry MAD RBend]'
-case (KIND21);  str = 'KIND21 [Traveling Wave Cavity]'
-case (KIND22);  str = 'KIND22'
-case (KIND23);  str = 'KIND23'
-case (KINDWIGGLER);  str = 'KINDWIGGLER [Wiggler]'
-case (KINDPA);  str = 'KINDPA'
-case default;   write (str, '(a, i0, a)') 'UNKNOWN! [', fiber%mag%kind, ']'
-end select
-
-!
-
-nl=nl+1; lines(nl) = 'Fiber:'
-nl=nl+1; write (lines(nl), '(2x, a, i0)')     'Index in layout:   ', fiber%pos
-nl=nl+1; write (lines(nl), '(2x, a, i0)')     'Index in universe: ', fiber%loc
-nl=nl+1; write (lines(nl), '(2x, a, a)')     'Direction:         ', int_of (fiber%dir, 'i0')
-nl=nl+1; write (lines(nl), '(2x, a, es16.4)') 'Beta velocity:     ', fiber%beta0
-nl=nl+1; write (lines(nl), '(2x, a, es16.4)') 'Mass:              ', fiber%mass * 1e9
-nl=nl+1; write (lines(nl), '(2x, a, es16.4)') 'Charge:            ', fiber%charge
-
-!
-
-ptch => fiber%patch
-nl=nl+1; lines(nl) = 'Patch (fiber%patch):'
-nl=nl+1; write (lines(nl), '(2x, a, a)') 'Patch at: ', patch_at(ptch%patch)
-
-!
-
-mag => fiber%mag
-nl=nl+1; lines(nl) = 'Element (fiber%mag):'
-nl=nl+1; lines(nl) = '  Kind:     ' // str
-nl=nl+1; write (lines(nl), '(2x, a, a)') 'Name:   ', name_of(mag%name)
-nl=nl+1; write (lines(nl), '(2x, a, a)') 'L       ', real_of(mag%l, 'es16.4')
-nl=nl+1; write (lines(nl), '(2x, a, a)')
-nl=nl+1; write (lines(nl), '(2x, a, a)')
-
-!-----------------------------------------------------------------------------
-contains
-
-function name_of (name_in) result (name_out)
-
-character(*), pointer :: name_in
-character(len(name_in)) :: name_out
-
-if (associated(name_in)) then
-  name_out = name_in
-else
-  name_out = 'Not Associated'
-endif
-
-end function name_of
-
-!-----------------------------------------------------------------------------
-! contains
-
-function real_of (real_in, fmt) result (str)
-
-real(dp), pointer :: real_in
-character(*) fmt
-character(20) str
-
-if (associated(real_in)) then
-  write (str, fmt) real_in
-else
-  str = 'Not Associated'
-endif
-
-end function real_of
-
-!-----------------------------------------------------------------------------
-! contains
-
-function int_of (int_in, fmt) result (str)
-
-integer, pointer :: int_in
-character(*) fmt
-character(20) str
-
-if (associated(int_in)) then
-  write (str, fmt) int_in
-else
-  str = 'Not Associated'
-endif
-
-end function int_of
-
-end subroutine type2_ptc_fiber
+end Subroutine one_turn_map_at_ele
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

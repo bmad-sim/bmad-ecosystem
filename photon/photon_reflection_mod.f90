@@ -1496,10 +1496,6 @@ implicit none
 real(rp) a, b, phi, h
 real(rp) arg, hzz1, h2zz
 
-#if defined (CESR_VMS) || defined (CESR_TRU64) 
-  real erf
-#endif
-
 ! This routine computes the phi integral used in the cumulative distribution function. 
 ! Good for all b, but makes a small phi approximation. Use for b>100.
 

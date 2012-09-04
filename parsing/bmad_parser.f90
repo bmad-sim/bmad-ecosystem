@@ -41,9 +41,9 @@
 subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
 use bmad_parser_mod, except_dummy => bmad_parser
-use sim_utils
 use multipole_mod
 use random_mod
+use ptc_interface_mod
 
 implicit none
 
