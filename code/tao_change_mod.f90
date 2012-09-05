@@ -178,7 +178,7 @@ type (tao_d2_data_struct), pointer :: d2_dat
 real(rp), allocatable, save :: change_number(:), old_value(:)
 real(rp) new_merit, old_merit, new_value, delta, max_val
 
-integer i, ix, iu, nl, len_name
+integer i, ix, iu, nl, len_name, nd
 integer, parameter :: len_lines = 200
 
 character(*) ele_name
@@ -190,7 +190,7 @@ character(len_lines), allocatable, save :: lines(:)
 character(20) abs_or_rel
 
 logical err, etc_added
-logical, allocatable, save :: this_u(:)
+logical, allocatable :: this_u(:), free(:)
 
 !-------------------------------------------------
 
@@ -231,39 +231,46 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
                                                   m_ptr, err, .true., eles)
   if (err) return
 
-  ! Make sure all attributes are free
+  ! Make sure attributes are free to vary. 
+  ! With something like "change ele quad::* x_offset ..." then need to ignore any super_slave elements.
+  ! So things are OK if at least one free attribute exists.
 
-  call re_allocate (old_value, size(d_ptr))
+  nd = size(d_ptr)
+  allocate (old_value(nd), free(nd))
 
-  do i = 1, size(d_ptr)
+  free = .true.
 
-    ! Can vary beam energy with RF off even in rings.
-    ! Or when doing multi_turn_orbit data taking.
+  ! Can vary beam energy with RF off even in rings.
+  ! Or when doing multi_turn_orbit data taking.
 
-    if (e_name == 'BEAM_START') then
-      if (u%model%lat%param%lattice_type == linear_lattice$) cycle
-      if (a_name == 'PZ' .and. .not. s%global%rf_on) cycle
-      write (name, '(i0, a)') iu, '@multi_turn_orbit'
-      call tao_find_data (err, name, d2_dat, print_err = .false.)
-      if (associated(d2_dat)) cycle
-    endif
+  if (e_name == 'BEAM_START') then
+    if (u%model%lat%param%lattice_type == linear_lattice$) cycle
+    if (a_name == 'PZ' .and. .not. s%global%rf_on) cycle
+    write (name, '(i0, a)') iu, '@multi_turn_orbit'
+    call tao_find_data (err, name, d2_dat, print_err = .false.)
+    if (associated(d2_dat)) cycle
 
-    if (size(eles) > 0) then
-      if (attribute_free (eles(i)%ele, a_name, u%model%lat, .false.)) cycle
-    endif
+  else
+    do i = 1, nd
+      free(i) = attribute_free (eles(i)%ele, a_name, u%model%lat, .false.)
+    end do
+  endif
+
+  if (all(.not. free)) then
     call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')
     return
-  end do
+  endif
 
   ! Find change value(s)
 
-  call to_number (num_str, size(d_ptr), change_number, abs_or_rel, err);  if (err) return
+  call to_number (num_str, nd, change_number, abs_or_rel, err);  if (err) return
   old_merit = tao_merit()
-  call re_allocate (old_value, size(d_ptr))
 
   ! put in change
 
-  do i = 1, size(d_ptr)
+  do i = 1, nd
+
+    if (.not. free(i)) cycle
 
     old_value(i) = m_ptr(i)%r
 
