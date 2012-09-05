@@ -236,7 +236,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   ! So things are OK if at least one free attribute exists.
 
   nd = size(d_ptr)
-  allocate (old_value(nd), free(nd))
+  call re_allocate (old_value, nd)
+  call re_allocate (free, nd)
 
   free = .true.
 
