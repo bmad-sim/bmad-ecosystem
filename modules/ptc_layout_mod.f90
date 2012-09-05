@@ -109,13 +109,14 @@ do ib = 0, ubound(lat%branch, 1)
   do ie = 0, branch%n_ele_track
     ele => branch%ele(ie)
     if (tracking_uses_hard_edge_model(ele)) then
-      call create_hard_edge_drift (ele, drift_ele)
+      call create_hard_edge_drift (ele, entrance_end$, drift_ele)
       call ele_to_fibre (drift_ele, fib, branch%param%particle, .true., for_layout = .true.)
     endif
 
     call ele_to_fibre (ele, ele%ptc_fiber, branch%param%particle, .true., for_layout = .true.)
 
     if (tracking_uses_hard_edge_model(ele)) then
+      call create_hard_edge_drift (ele, exit_end$, drift_ele)
       call ele_to_fibre (drift_ele, fib, branch%param%particle, .true., for_layout = .true.)
       ele%ptc_fiber => drift_ele%ptc_fiber  ! ele%ptc_fiber points to last fiber.
     endif

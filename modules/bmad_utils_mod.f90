@@ -4068,7 +4068,7 @@ end subroutine calc_next_hard_edge
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine create_hard_edge_drift (ele_in, drift_ele)
+! Subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
 !
 ! Routine to create the drift element for the end drifts of an element.
 ! The end drifts are present, for example, when doing runge_kutta tracking
@@ -4079,29 +4079,47 @@ end subroutine calc_next_hard_edge
 !
 ! Input:
 !   ele_in     -- ele_struct: Input element.
+!   which_end  -- Integer: Which end is being created. entrance_end$ or exit_end$.
+!                   For an Lcavity one can have differences in reference energy.
 !
 ! Output:
 !   drift_ele  -- ele_struct: drift elment.
 !-
 
-subroutine create_hard_edge_drift (ele_in, drift_ele)
+subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
 
 implicit none
 
 type (ele_struct) ele_in, drift_ele
+real(rp) E_tot, p0c
+integer which_end
 
 !
 
-drift_ele%key                 = drift$
-drift_ele%value               = 0
-drift_ele%value(p0c$)         = ele_in%value(p0c$)
-drift_ele%value(e_tot$)       = ele_in%value(e_tot$)
-drift_ele%value(p0c_start$)   = ele_in%value(p0c_start$)
-drift_ele%value(e_tot_start$) = ele_in%value(e_tot_start$)
-drift_ele%value(l$)           = (ele_in%value(l$) - ele_in%value(l_hard_edge$)) / 2 
-drift_ele%value(ds_step$)     = drift_ele%value(l$)
-drift_ele%value(num_steps$)   = 1
-drift_ele%name                = 'drift_' // ele_in%name(1:34)
+select case (which_end)
+case (entrance_end$)
+  e_tot = ele_in%value(e_tot_start$)
+  p0c   = ele_in%value(p0c_start$)
+  drift_ele%name                   = 'drift1_' // ele_in%name(1:33)
+case (exit_end$)
+  e_tot = ele_in%value(e_tot$)
+  p0c   = ele_in%value(p0c$)
+  drift_ele%name                   = 'drift2_' // ele_in%name(1:33)
+case default
+  if (bmad_status%exit_on_error) call err_exit
+end select
+
+drift_ele%key                    = drift$
+
+drift_ele%value                  = 0
+drift_ele%value(p0c$)            = p0c
+drift_ele%value(e_tot$)          = e_tot
+drift_ele%value(p0c_start$)      = p0c
+drift_ele%value(e_tot_start$)    = e_tot
+drift_ele%value(l$)              = (ele_in%value(l$) - ele_in%value(l_hard_edge$)) / 2 
+drift_ele%value(ds_step$)        = drift_ele%value(l$)
+drift_ele%value(num_steps$)      = 1
+drift_ele%value(delta_ref_time$) = drift_ele%value(l$) * e_tot / (c_light * p0c)
 
 end subroutine create_hard_edge_drift 
 
