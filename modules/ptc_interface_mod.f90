@@ -356,13 +356,74 @@ end subroutine type_map1
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine type_ptc_internal_state (intern_state, line, n_lines)
+!
+! Routine to print information on a PTC internal state.
+!
+! Module Needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   intern_state -- Internal_state, optional: PTC state. If not present then the PTC 
+!                     state DEFAULT is used.
+!
+! Output:
+!   lines(:)  -- character(100), optional, allocatable: Character array to hold the output.
+!   n_lines   -- integer, optional: Number of lines used in lines(:)
+!-
+
+subroutine type_ptc_internal_state (intern_state, lines, n_lines)
+
+use s_status, only: internal_state, default
+
+implicit none
+
+type (internal_state), optional, target :: intern_state
+type (internal_state), pointer :: state_ptr
+
+integer, optional :: n_lines
+integer i, nl
+
+character(*), allocatable, optional :: lines(:)
+character(100), allocatable :: li(:)
+
+!
+
+state_ptr => default
+if (present(intern_state)) state_ptr => intern_state
+
+allocate (li(20))
+
+nl = 0
+nl=nl+1; li(nl) = 'Internal_state:'
+nl=nl+1; write (li(nl), '(a, t16, i0)') '  %totalpath:    ', state_ptr%totalpath
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %time:         ', state_ptr%time
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %radiation:    ', state_ptr%radiation
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %nocavity:     ', state_ptr%nocavity
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %fringe:       ', state_ptr%fringe
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %stochastic:   ', state_ptr%stochastic
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %envelope:     ', state_ptr%envelope
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %para_in:      ', state_ptr%para_in
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %only_4d:      ', state_ptr%only_4d
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %delta:        ', state_ptr%delta
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %spin:         ', state_ptr%spin
+nl=nl+1; write (li(nl), '(a, t16, l1)') '  %modulation:   ', state_ptr%modulation
+
+call type_end_stuff(li, nl, lines, n_lines)
+
+end subroutine type_ptc_internal_state
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine type_ptc_fiber (fiber, lines, n_lines)
 !
 ! Routine to put information on a PTC fiber element into a string array.
 ! If "lines" is not present, the information will be printed to the screen.
 !
 ! Module Needed:
-!   use ptc_layout_mod
+!   use ptc_interface_mod
 !
 ! Input:
 !   fiber     -- fibre, pointer: Fiber.
@@ -403,7 +464,7 @@ call re_allocate(li, 100, .false.)
 
 if (.not. associated(fiber)) then
   nl=nl+1; li(nl) = 'Fiber pointer not associated!'
-  call end_stuff()
+  call type_end_stuff(li, nl, lines, n_lines)
   return
 endif
 
@@ -554,27 +615,10 @@ endif
 
 !
 
-call end_stuff()
-
-!--------------------------------------------------------
-contains
-
-subroutine end_stuff()
-
-if (present(lines)) then
-  call re_allocate(lines, nl, .false.)
-  n_lines = nl
-  lines(1:nl) = li(1:nl)
-else
-  do i = 1, nl
-    print *, trim(li(i))
-  enddo
-endif
-
-end subroutine end_stuff
+call type_end_stuff(li, nl, lines, n_lines)
 
 !-----------------------------------------------------------------------------
-! contains
+contains
 
 function integer2_value (default, int_ptr) result (int_val)
 
@@ -778,6 +822,33 @@ endif
 end function int_of
 
 end subroutine type_ptc_fiber
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+!
+!-
+
+subroutine type_end_stuff(li, nl, lines, n_lines)
+
+integer, optional :: n_lines
+integer i, nl
+
+character(*), allocatable, optional :: lines(:)
+character(*), allocatable :: li(:)
+
+if (present(lines)) then
+  call re_allocate(lines, nl, .false.)
+  n_lines = nl
+  lines(1:nl) = li(1:nl)
+else
+  do i = 1, nl
+    print *, trim(li(i))
+  enddo
+endif
+
+end subroutine type_end_stuff
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
