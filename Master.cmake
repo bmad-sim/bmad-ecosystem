@@ -482,9 +482,12 @@ foreach(exespec ${EXE_SPECS})
           ${EXENAME}
   )
 
+  # Set up linking for the executable.
+  # Always produce a map file.  It is placed in the <build_type> directory.
+  # (production / debug)
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${LINK_LIBS}
-          ${LINK_FLAGS}
+          ${LINK_FLAGS} "-Wl,-M=${EXENAME}.map"
   )
 
   SET(CFLAGS)
