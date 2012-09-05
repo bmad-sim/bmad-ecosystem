@@ -13,11 +13,18 @@ num_failures = 0
 num_flow_failures = 0
 num_programs = 0
 
+warning_color = '\033[91m\033[1m'   # Red + Bold
+normal_color = '\033[0m'
+
 #----------------------------------------------------------
 
-def print_all(str, terminate = False):
+def print_all(str, terminate = False, color = False):
   results.write(str + '\n')
-  print str
+  if color:
+    print warning_color + str + normal_color
+  else:
+    print str
+
   if terminate: 
     str2 = '     Stopping here for this regression.'
     results.write(str2 + '\n')
@@ -80,11 +87,11 @@ for line in dir_list:
   num_local_failures = 0
 
   if len(dir_split) > 2:
-    print_all ('\nExtra stuff on line in "tests.list": ' + dir_split, True)
+    print_all ('\nExtra stuff on line in "tests.list": ' + dir_split, True, True)
     continue
 
   if not os.path.exists(dir_split[0]):
-    print_all ('\nNon-existant subdirectory given in "tests.list": ' + dir_split[0], True)
+    print_all ('\nNon-existant subdirectory given in "tests.list": ' + dir_split[0], True, True)
     continue
 
   os.chdir(dir_split[0])
@@ -104,19 +111,19 @@ for line in dir_list:
   print_all ('     Running program: ' + program)
   
   if not os.path.isfile(program):
-    print_all ('     !!! Program does not exist!', True)
+    print_all ('     !!! Program does not exist!', True, True)
     os.chdir('..')
     continue
 
   os.system(program)
 
   if not os.path.isfile('output.now'):
-    print_all ('     !!! Program failed to create "output.now" file', True)
+    print_all ('     !!! Program failed to create "output.now" file', True, True)
     os.chdir('..')
     continue
 
   if not os.path.isfile('output.correct'):
-    print_all ('     !!! No "output.correct" file', True)
+    print_all ('     !!! No "output.correct" file', True, True)
     os.chdir('..')
     continue
 
@@ -144,9 +151,9 @@ for line in dir_list:
 
     if len(now_line) == 0 or len(correct_line) == 0: 
       if len(now_line) != 0:
-        print_all ('     Confusion! End of "output.correct" reached before End of "output.now"', True)
+        print_all ('     Confusion! End of "output.correct" reached before End of "output.now"', True, True)
       if len(correct_line) != 0:
-        print_all ('     Confusion! End of "output.now" reached before End of "output.correct"', True)
+        print_all ('     Confusion! End of "output.now" reached before End of "output.correct"', True, True)
       break
 
     now_line = now_line.strip()
@@ -156,16 +163,16 @@ for line in dir_list:
     correct_split = correct_line.split('"', 2)
     
     if now_split[0] != '' or len(now_split) != 3:
-      print_all ('     Cannot parse line from "output.now": ' + now_line, True)
+      print_all ('     Cannot parse line from "output.now": ' + now_line, True, True)
       break
 
     if correct_split[0] != '' or len(correct_split) != 3:
-      print_all ('     Cannot parse line from "output.correct": ' + correct_line, True)
+      print_all ('     Cannot parse line from "output.correct": ' + correct_line, True, True)
       break
 
     if now_split[1] != correct_split[1]:
-      print_all ('     Identification string for a line in "output.now":    ' + now_split[1])
-      print_all ('     Does not match corresponding ID in "output.correct": ' + correct_split[1], True)
+      print_all ('     Identification string for a line in "output.now":    ' + now_split[1], color = True)
+      print_all ('     Does not match corresponding ID in "output.correct": ' + correct_split[1], True, True)
 
     now_end = now_split[2].strip().split()
 
@@ -179,28 +186,26 @@ for line in dir_list:
       correct2_split = correct_split[2].split('"')[1:]
 
       if len(now2_split) < 2:
-        print_all ('     Bad line line "output.now": ' + now_line, True)
+        print_all ('     Bad line line "output.now": ' + now_line, True, True)
         break
 
       now2_split.pop(0)    # Get rid of STR item.
 
       if len(now2_split) != len(correct2_split):
-        print_all ('     Number of components in "output.now" line: ' + now_line)
-        print_all ('     Does not match number in "output.correct:  ' + correct_line, True)
+        print_all ('     Number of components in "output.now" line: ' + now_line, color = True)
+        print_all ('     Does not match number in "output.correct:  ' + correct_line, True, True)
         break
 
       for ix, (now1, correct1) in enumerate(zip(now2_split, correct2_split)):
         if now1 != correct1:
           if len(now2_split) == 2:     # Will always have blank item in list.
-            print_all ('     Regression test failed:')
+            print_all ('     Regression test failed:', color = True)
           else:
-            print_all ('     Regression test failed for datum number: ' + str(ix))
-          print_all ('          Line from "output.now": ' + now_line)
-          print_all ('          Line from "output.correct": ' + correct_line)
+            print_all ('     Regression test failed for datum number: ' + str(ix), color = True)
+          print_all ('          Line from "output.now": ' + now_line, color = True)
+          print_all ('          Line from "output.correct": ' + correct_line, color = True)
           num_local_failures += 1
           break
-
-
 
     #----------------------------------------------
     # Real test
@@ -210,15 +215,15 @@ for line in dir_list:
       correct2_split = correct_split[2].strip().split()
       
       if len(now2_split) < 3:
-        print_all ('     Bad line line "output.now": ' + now_line, True)
+        print_all ('     Bad line line "output.now": ' + now_line, True, color = True)
         break
 
       tol_type = now2_split.pop(0)           # Pop REL or ABS item.
       tol_val  = float(now2_split.pop(0))    # Pop tollerance
 
       if len(now2_split) != len(correct2_split):
-        print_all ('     Number of components in "output.now" line: ' + now_line)
-        print_all ('     Does not match number in "output.correct:  ' + correct_line, True)
+        print_all ('     Number of components in "output.now" line: ' + now_line, color = True)
+        print_all ('     Does not match number in "output.correct:  ' + correct_line, True, color = True)
         break
 
       for ix, (now1, correct1) in enumerate(zip(now2_split, correct2_split)):
@@ -235,14 +240,14 @@ for line in dir_list:
 
         if ok == False:
           if now_end[0] == 'STR':
-            print_all ('     Regression test failed for: "' + now_split[1] + '"')
+            print_all ('     Regression test failed for: "' + now_split[1] + '"', color = True)
           else:
-            print_all ('     Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1])
+            print_all ('     Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1], color = True)
           if len(now2_split) != 1: 
-            print_all ('     Regression test failed for datum number: ' + str(ix))
-          print_all ('        Data from "output.now":     ' + str(now2_split))
-          print_all ('        Data from "output.correct": ' + str(correct2_split))
-          print_all ('        Diff: ' + str(diff_val) + '  Diff/Val: ' + str(abs(diff_val) / ave_abs_val))
+            print_all ('     Regression test failed for datum number: ' + str(ix), color = True)
+          print_all ('        Data from "output.now":     ' + str(now2_split), color = True)
+          print_all ('        Data from "output.correct": ' + str(correct2_split), color = True)
+          print_all ('        Diff: ' + str(diff_val) + '  Diff/Val: ' + str(abs(diff_val) / ave_abs_val), color = True)
           num_local_failures += 1
           break
 
@@ -250,14 +255,14 @@ for line in dir_list:
     # Error test
 
     else:
-      print_all ('     Bad data ID string in "correct.now" file: ' + now_line)
-      print_all ('     Should be one of: STR, REL, or ABS.', True)
+      print_all ('     Bad data ID string in "correct.now" file: ' + now_line, color = True)
+      print_all ('     Should be one of: STR, REL, or ABS.', True, True)
       break
 
   #------------------
 
   print_all ('     Number of tests:        ' + str(num_local_tests))
-  print_all ('     Number of failed tests: ' + str(num_local_failures))
+  print_all ('     Number of failed tests: ' + str(num_local_failures), color = (num_local_failures != 0))
 
   num_tests += num_local_tests
   num_failures += num_local_failures
@@ -268,8 +273,8 @@ for line in dir_list:
 
 print_all ('\n')
 print_all ('Total number of tests:           ' + str(num_tests))
-print_all ('Total number of failed tests:    ' + str(num_failures))
-print_all ('Number of Program flow failures: ' + str(num_flow_failures))
+print_all ('Total number of failed tests:    ' + str(num_failures), color = (num_failures != 0))
+print_all ('Number of Program flow failures: ' + str(num_flow_failures), color = (num_flow_failures != 0))
 
 results.close()
 print '\nResults file: regression.results\n'
