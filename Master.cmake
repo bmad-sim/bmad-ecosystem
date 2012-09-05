@@ -487,7 +487,7 @@ foreach(exespec ${EXE_SPECS})
   # (production / debug)
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${LINK_LIBS}
-          ${LINK_FLAGS} "-Wl,-M=${EXENAME}.map"
+          ${LINK_FLAGS} "-Wl,-Map=${EXENAME}.map"
   )
 
   SET(CFLAGS)
