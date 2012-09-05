@@ -31,7 +31,7 @@ type (ele_struct) :: ele, drift_ele
 type (lat_param_struct) :: param
 type (fibre), pointer :: fibre_ele
 
-real(dp) re(6), beta0, z_patch, dref_time
+real(dp) re(6), beta0
 
 character(20) :: r_name = 'track1_symp_lie_ptc'
 
@@ -43,7 +43,7 @@ call vec_bmad_to_ptc (start_orb%vec, beta0, re)
 ! Track a drift if using hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
-  call create_hard_edge_drift (ele, drift_ele)
+  call create_hard_edge_drift (ele, entrance_end$, drift_ele)
   call ele_to_fibre (drift_ele, fibre_ele, param%particle, .true.)
   call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 endif  
@@ -57,6 +57,7 @@ call ele_to_fibre (ele, fibre_ele, param%particle, .true.)
 call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 
 if (tracking_uses_hard_edge_model(ele)) then
+  call create_hard_edge_drift (ele, exit_end$, drift_ele)
   call ele_to_fibre (drift_ele, fibre_ele, param%particle, .true.)
   call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 endif  
@@ -65,16 +66,11 @@ call vec_ptc_to_bmad (re, beta0, end_orb%vec)
 if (ele%value(p0c$) /= ele%value(p0c_start$)) &
       call vec_bmad_ref_energy_correct(end_orb%vec, ele%value(p0c$) / ele%value(p0c_start$))
 
-! Correct z-position for wigglers, etc. 
+! 
 
 if (ele%value(p0c$) /= ele%value(p0c_start$)) then
   call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
 endif
-
-beta0 = ele%value(p0c$) / ele%value(e_tot$) 
-dref_time = ele%value(l$) / (beta0 * c_light)
-z_patch = (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light 
-end_orb%vec(5) = end_orb%vec(5) + z_patch
 
 end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)

@@ -2169,7 +2169,7 @@ call taylor_to_real_8 (bmad_taylor, beta0, ptc_tlr)
 ! Track entrance drift if PTC is using a hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
-  call create_hard_edge_drift (ele, drift_ele)
+  call create_hard_edge_drift (ele, entrance_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
   call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
 endif
@@ -2182,6 +2182,7 @@ call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
 ! Track exit side drift if PTC is using a hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
+  call create_hard_edge_drift (ele, exit_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
   call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
 endif
@@ -2196,13 +2197,6 @@ if (ele%value(p0c$) /= ele%value(p0c_start$)) &
 ! cleanup
 
 call kill (ptc_tlr)
-
-! Correct z-position for wigglers, etc. 
-
-z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
-if (abs(z_patch) > bmad_com%significant_length) then
-  call add_taylor_term (bmad_taylor(5), z_patch)
-endif
 
 end subroutine taylor_propagate1
 
@@ -2304,7 +2298,7 @@ y = x   ! y = IdentityMap + x
 ! Track entrance drift if PTC is using a hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
-  call create_hard_edge_drift (ele, drift_ele)
+  call create_hard_edge_drift (ele, entrance_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
   call ptc_track (ptc_fiber, y, default) ! "track" in PTC
 endif
@@ -2317,7 +2311,7 @@ call ptc_track (ptc_fiber, y, default) ! "track" in PTC
 ! Track exit end drift if PTC is using a hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
-  call create_hard_edge_drift (ele, drift_ele)
+  call create_hard_edge_drift (ele, exit_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
   call ptc_track (ptc_fiber, y, default) ! "track" in PTC
 endif
@@ -2343,14 +2337,6 @@ if (ele%value(p0c$) /= ele%value(p0c_start$)) &
 call kill(y)
 
 if (associated (ele%ptc_genfield)) call kill_ptc_genfield (ele%ptc_genfield)
-
-! For wigglers, etc. there is a z_patch to take out the non-zero z offset that an
-! on axis particle gets.
-
-z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
-if (abs(z_patch) > bmad_com%significant_length) then
-  call add_taylor_term (ele%taylor(5), z_patch)
-endif
 
 call set_ele_status_stale (ele, mat6_group$)
 
@@ -2556,7 +2542,7 @@ type (work) energy_work
 real(dp) beta, phi_tot
 
 real(rp), allocatable :: ds_offset(:)
-real(rp) leng, hk, vk, s_rel
+real(rp) leng, hk, vk, s_rel, z_patch
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
@@ -2785,6 +2771,14 @@ if (key == wiggler$) then
   fiber%mag%wi%w%form(1:n_term) = ele2%wig%term%type
 
   call copy (fiber%mag, fiber%magp)
+endif
+
+! Correct z-position for wigglers, etc. 
+
+z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
+if (abs(z_patch) > bmad_com%significant_length) then
+  fiber%patch%time = 2   ! Patch exit end
+  fiber%patch%b_t = z_patch
 endif
 
 ! Misalignments:
