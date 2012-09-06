@@ -100,7 +100,9 @@ ELSE ()
   message("Build type           : Production")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
 ENDIF ()
-message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)\n")
+message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
+message("C Compiler           : ${CMAKE_C_COMPILER}")
+message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}\n")
 
 
 #-----------------------------------
@@ -482,12 +484,19 @@ foreach(exespec ${EXE_SPECS})
           ${EXENAME}
   )
 
+
+  # Create map file output directory if it doesn't yet exist.
+  IF(IS_DIRECTORY ${OUTPUT_BASEDIR}/map)
+  ELSE()
+    file(MAKE_DIRECTORY ${OUTPUT_BASEDIR}/map)
+  ENDIF()
+
   # Set up linking for the executable.
-  # Always produce a map file.  It is placed in the <build_type> directory.
-  # (production / debug)
+  # Always produce a map file.  It is placed in the ../<build_type>/map directory
+  # created during build setup.
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${LINK_LIBS}
-          ${LINK_FLAGS} "-Wl,-Map=${EXENAME}.map"
+          ${LINK_FLAGS} "-Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map"
   )
 
   SET(CFLAGS)
