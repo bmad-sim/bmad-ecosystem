@@ -506,7 +506,6 @@ FOREACH(target ${TARGETS})
 
   IF(target MATCHES ${LIBNAME}-shared)
     IF(EXISTS ../Makefile.mex)
-      message("MATCHES!")
       ADD_CUSTOM_COMMAND(TARGET ${LIBNAME}-shared
       POST_BUILD
       COMMAND gmake -f Makefile.mex
