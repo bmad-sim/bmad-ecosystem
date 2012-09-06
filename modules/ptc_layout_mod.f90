@@ -88,7 +88,6 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (fibre), pointer :: fib
 type (ele_struct) drift_ele
 type (ele_struct), pointer :: ele
 
@@ -110,15 +109,15 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(ie)
     if (tracking_uses_hard_edge_model(ele)) then
       call create_hard_edge_drift (ele, entrance_end$, drift_ele)
-      call ele_to_fibre (drift_ele, fib, branch%param%particle, .true., for_layout = .true.)
+      call ele_to_fibre (drift_ele, drift_ele%ptc_fiber, branch%param%particle, .true., for_layout = .true.)
     endif
 
     call ele_to_fibre (ele, ele%ptc_fiber, branch%param%particle, .true., for_layout = .true.)
 
     if (tracking_uses_hard_edge_model(ele)) then
       call create_hard_edge_drift (ele, exit_end$, drift_ele)
-      call ele_to_fibre (drift_ele, fib, branch%param%particle, .true., for_layout = .true.)
-      ele%ptc_fiber => drift_ele%ptc_fiber  ! ele%ptc_fiber points to last fiber.
+      ! ele%ptc_fiber points to last fiber.
+      call ele_to_fibre (drift_ele, ele%ptc_fiber, branch%param%particle, .true., for_layout = .true.)
     endif
   enddo
 
