@@ -10,8 +10,8 @@ contains
 !+
 ! Function integer_option (integer_default, opt_integer)
 !
-! Function to retrun True or False dependending upon the state of an 
-! optional integer.
+! Function to return the value of an integer if it is present or a default value
+! if it is not.
 !
 ! Modules needed:
 !   use sim_utils
@@ -42,7 +42,7 @@ function integer_option (integer_default, opt_integer) result (integer_out)
     integer_out = integer_default
   endif
 
-end function
+end function integer_option
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -50,7 +50,7 @@ end function
 !+
 ! Function logic_option (logic_default, opt_logic)
 !
-! Function to retrun True or False dependending upon the state of an 
+! Function to return True or False dependending upon the state of an 
 ! optional logical.
 !
 ! Modules needed:
@@ -82,7 +82,7 @@ function logic_option (logic_default, opt_logic) result (logic_out)
     logic_out = logic_default
   endif
 
-end function
+end function logic_option
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -90,8 +90,8 @@ end function
 !+
 ! Function real_option (real_default, opt_real)
 !
-! Function to retrun True or False dependending upon the state of an 
-! optional real.
+! Function to return the value of a real if it is present or a default value
+! if it is not.
 !
 ! Modules needed:
 !   use sim_utils
@@ -122,7 +122,7 @@ function real_option (real_default, opt_real) result (real_out)
     real_out = real_default
   endif
 
-end function
+end function real_option
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -130,8 +130,8 @@ end function
 !+
 ! Subroutine string_option (string_default, opt_string)
 !
-! Subroutine to retrun True or False dependending upon the state of an 
-! optional string.
+! Subroutine to return either opt_string if it is present, or string_default 
+! if opt_string is not present.
 !
 ! Modules needed:
 !   use sim_utils
@@ -162,7 +162,7 @@ subroutine string_option (string_out, string_default, opt_string)
     string_out = string_default
   endif
 
-end subroutine
+end subroutine string_option
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -211,7 +211,7 @@ else
   err = .true.
 endif
   
-end function
+end function eval_logical
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -244,6 +244,6 @@ function on_off_logic (logic) result (name)
     name = 'OFF'
   endif
 
-end function
+end function on_off_logic
 
 end module
