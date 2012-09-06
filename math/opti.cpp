@@ -141,7 +141,7 @@ public:
 protected:
  int population, length;
 public:
- GenePool() : population(0), strand(0), length(0) {}
+ GenePool() : strand(0), population(0), length(0) {}
  GenePool(int pop) : population(pop), length(0){
   strand = new Strand[population];
  }
@@ -202,7 +202,7 @@ protected:
  }
 public:
  Opti(int gen, int pop, int len, EvalFunc func)
-   : GenePool(pop, len), trial(len), generations(gen) { f = func; }
+   : GenePool(pop, len), generations(gen), trial(len) { f = func; }
  void Setf(EvalFunc func) {f = func;}
  virtual Strand& Optimize();
  virtual Strand& Optimize(int numgen){generations = numgen; return Optimize();}
