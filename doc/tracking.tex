@@ -30,6 +30,7 @@ chapter.
 
 %----------------------------------------------------------------
 \section{The coord_struct}
+\label{s:coord.struct}
 \index{coord_struct}
 
 \index{spin}
@@ -65,7 +66,7 @@ from that used for charged particles.
 
 For charged-particles, the reference momentum in eV is stored in the
 \vn{%p0c} component. For photons, \vn{%p0c} is the actual (not
-reference) momentum. For chanrged-particles, \vn{%p0c} may be negative
+reference) momentum. For charged-particles, \vn{%p0c} may be negative
 if the particle is traveling backwards longitudinally. For photons,
 \vn{%vec(6)} ($\beta_z$) will be negative if the photon is going
 backward.
@@ -598,13 +599,63 @@ orbit. However, it should always be kept in mind that radiation
 damping or excitation breaks this symmetry.
 
 %----------------------------------------------------------------
-\section{Particle Distribution Tracking}
+\section{Beam (Particle Distribution) Tracking}
 \label{s:part.track}
 \index{tracking!particle distributions}
 
-Initializing a distribution of particles to conform to some initial set of
-Twiss parameters and emittances can be done using the routine
-\Hyperref{r:init.beam.distribution}{init_beam_distribution}. 
+Tracking with multiple particles is done with a \vn{beam_struct} instance:
+\begin{example}
+  type beam_struct
+    type (bunch_struct), allocatable :: bunch(:)
+  end type
+\end{example}
+A \vn{beam_struct} is composed of an array of bunches of type
+\vn{bunch_struct}:
+\begin{example}
+  type bunch_struct
+    type (coord_struct), allocatable :: particle(:)
+    integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
+    real(rp) charge   ! Total charge in a bunch (Coul).
+    real(rp) z_center ! Longitudinal center of bunch (m). Note: Generally, z_center of 
+                      !   bunch #1 is 0 and z_center of the other bunches is negative.
+    real(rp) t_center ! Center of bunch creation time relative to head bunch.
+    integer species   ! electron\$, proton\$, etc.
+    integer ix_ele    ! Element this bunch is at.
+    integer ix_bunch  ! Bunch index. Head bunch = 1, etc.
+  end type
+\end{example}
+The \vn{bunch_struct} has an array of particles of type
+\vn{coord_struct} (\sref{s:coord.struct}).
+
+Initializing a \vn{beam_struct} to conform to some initial set of
+Twiss parameters and emittances is done using the routine
+\Hyperref{r:init.beam.distribution}{init_beam_distribution}: 
+\begin{example}
+  type (lat_struct) lat
+  type (beam_init_struct) beam_init
+  type (beam_struct) beam
+  ...
+  call init_beam_distribution (lat%ele(0), lat%param, beam_init, beam)
+\end{example}
+The \vn{lat%ele(0)} argument, which is of type \vn{ele_struct}, gives
+the twiss parameters to initialize the beam to. In this case, we are
+starting tracking from the beginning of the lattice. The
+\vn{beam_init} argument which is of type \vn{beam_init} gives
+additional information, like emittances, which is needed to initialize
+the beam. See Section~\sref{s:beam.init} for more details.
+
+Tracking a beam is done using the \Hyperref{r:track.beam}{track_beam} routine
+\begin{example}
+  type (lat_struct) lat
+  type (beam_struct) beam
+  ...
+  call track_beam (lat, beam)
+\end{example}
+or, for tracking element by element, \zzz{track1_beam} can be used.
+
+For analyzing a bunch of particles, that is, for computing such things
+as the sigma matrix from the particle distribution, the
+\zzz{calc_bunch_params} routine can be used. 
 
 %----------------------------------------------------------------
 \section{Spin Tracking}

@@ -30,8 +30,8 @@ type ele_struct
   character(40) alias                      ! Another name \sref{c:ele.string}.
   character(40) component_name             ! Used by overlays, multipass patch, etc.
   character(200), pointer :: descrip       ! Description string.
-  type (twiss_struct)  a, b, z             ! Twiss parameters at end of element \sref{c:twiss}.
-  type (xy_disp_struct) x, y               ! Projected dispersions \sref{c:twiss}.
+  type (twiss_struct)  a, b, z             ! Twiss parameters at end of element \sref{c:normal.modes}.
+  type (xy_disp_struct) x, y               ! Projected dispersions \sref{c:normal.modes}.
   type (em_fields_struct), pointer :: em_field ! DC and RF E/M fields
   type (floor_position_struct) floor           ! Global floor position.
   type (lat_struct), pointer :: lat            ! Pointer to lattice containing element.
@@ -370,7 +370,7 @@ for more details.
 The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat}, 
 \vn{%gamma_c}, \vn{%mode_flip}, and \vn{mode3} 
 hold information on the Twiss parameters, dispersion, and coupling
-at the exit end of the element. See \cref{c:twiss} for more details.
+at the exit end of the element. See \cref{c:normal.modes} for more details.
 
 %--------------------------------------------------------------------------
 \section{Element Lords and Element Slaves}

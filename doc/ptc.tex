@@ -54,10 +54,10 @@ that Bmad uses is
   (x, p_x, y, p_y, p_t, c \Delta t)
 \Endeq
 where
-\begineq
+\Begineq
   p_t = \frac{\Delta E}{P_0}
-\endeq
-This choice of phase space is set in \zzz{set_ptc}.  Specificially,
+\Endeq
+This choice of phase space is set in \Hyperref{r:set.ptc}{set_ptc}.  Specificially,
 the PTC global variable \vn{DEFAULT}, which is of type
 \vn{internal_states}, has the \vn{%time} switch set to \vn{True}.
 
@@ -88,7 +88,7 @@ to change the order in mid program.
 \index{fibre}
 
 When a PTC \vn{layout} is created from a \bmad \vn{lat_struct}
-instance using the routine \xxx{lat_to_ptc_layout}, the correspondence
+instance using the routine \Hyperref{r:lat.to.ptc.layout}{lat_to_ptc_layout}, the correspondence
 between the \bmad elements and the PTC fibres is maintained through
 the \vn{ele%ptc_fiber} pointer. The following rules apply:
   \begin{enumerate}
