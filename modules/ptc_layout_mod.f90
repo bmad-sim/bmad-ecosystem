@@ -81,7 +81,7 @@ end subroutine type_ptc_layout
 subroutine lat_to_ptc_layout (lat)
 
 use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
-use mad_like, only: set_up, kill
+use mad_like, only: set_up, kill, lielib_print
 use madx_ptc_module, only: m_u, append_empty_layout, survey, make_node_layout
 
 implicit none
@@ -92,7 +92,7 @@ type (fibre), pointer :: fib
 type (ele_struct) drift_ele
 type (ele_struct), pointer :: ele
 
-integer ib, ie
+integer n, ib, ie
 logical doneit
 
 ! transfer elements.
@@ -106,7 +106,7 @@ do ib = 0, ubound(lat%branch, 1)
   allocate(branch%ptc%layout(1))
   branch%ptc%layout(1)%ptr => m_u%end   ! Save layout
 
-  do ie = 0, branch%n_ele_track
+  do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
     if (tracking_uses_hard_edge_model(ele)) then
       call create_hard_edge_drift (ele, entrance_end$, drift_ele)
@@ -130,10 +130,18 @@ do ib = 0, ubound(lat%branch, 1)
     m_u%end%closed = .false.
   endif
 
+
+  n = lielib_print(12)
+  lielib_print(12) = 0  ! No printing info messages
+
   doneit = .true.
   call ring_l (m_u%end, doneit)
   call survey (m_u%end)
   call make_node_layout (m_u%end)
+
+  lielib_print(12) = n
+
+  branch%ele(0)%ptc_fiber => branch%ele(1)%ptc_fiber%previous
 
 enddo
 
@@ -195,8 +203,8 @@ end subroutine kill_ptc_layouts
 !     %a%tune, %b%tune, %z%tune
 !     %a%alpha_damp, etc.
 !     %a%emittance, etc.
-!   sigma_map(6,6)  -- real(rp): Sigma matrix.
-!   closed_orb      -- coord_struct: Closed orbit at ele.
+!   sigma_map(6,6)  -- real(rp): Sigma matrix (Bmad coordinates).
+!   closed_orb      -- coord_struct: Closed orbit at ele (Bmad coordinates).
 !-
 
 subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
@@ -228,7 +236,7 @@ state = (default - nocavity0) + radiation0  ! Set state flags
 
 x = 0
 call find_orbit_x (x, state, 1.0d-5, fibre1 = ele%ptc_fiber%next)  ! find_orbit == find closed orbit
-closed_orb%vec = x
+call vec_ptc_to_bmad (x, ele%ptc_fiber%next%beta0, closed_orb%vec)
 
 call get_loss (ptc_layout, energy, deltap)
 norm_mode%e_loss = 1d9 * energy
@@ -265,7 +273,7 @@ norm_mode%a%emittance = normal%emittance(1)
 norm_mode%b%emittance = normal%emittance(2)
 norm_mode%z%emittance = normal%emittance(3)
 
-sigma_mat = normal%s_ij0
+call sigma_mat_ptc_to_bmad (normal%s_ij0, ele%ptc_fiber%next%beta0, sigma_mat)
 
 call kill(normal)
 call kill(da_map)

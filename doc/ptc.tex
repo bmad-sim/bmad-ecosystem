@@ -57,7 +57,10 @@ where
 \begineq
   p_t = \frac{\Delta E}{P_0}
 \endeq
-This choice of phase space is set in \zzz{set_ptc}.
+This choice of phase space is set in \zzz{set_ptc}.  Specificially,
+the PTC global variable \vn{DEFAULT}, which is of type
+\vn{internal_states}, has the \vn{%time} switch set to \vn{True}.
+
 \vn{vec_bmad_to_ptc} and \vn{vec_ptc_to_bmad} are conversion routines
 that translate between the two. Actually there are a number of
 conversion routines that translate between \bmad and PTC
@@ -78,6 +81,33 @@ That is, if a program does not use \vn{bmad_parser} then to use PTC it
 must call \vn{set_ptc}. Note that resetting PTC to a different order
 reinitializes PTC's internal memory so one must be careful if one wants
 to change the order in mid program.
+
+%--------------------------------------------------------------------------
+\section{Correspondence between Bmad elements and PTC fibres}.
+\label{s:ele.fib}
+\index{fibre}
+
+When a PTC \vn{layout} is created from a \bmad \vn{lat_struct}
+instance using the routine \xxx{lat_to_ptc_layout}, the correspondence
+between the \bmad elements and the PTC fibres is maintained through
+the \vn{ele%ptc_fiber} pointer. The following rules apply:
+  \begin{enumerate}
+  \item There will be marker \vn{fibre}s at the beginning and end 
+of the \vn{layout}. The beginning \vn{fibre} will correspond to
+\vn{branch%ele(0)}. The end \vn{fibre} will not have a corresponding
+\bmad element.
+  \item Generally there will be a one-to-one correspondence between
+\vn{fibre}s and \vn{branch%ele} elements. The exception is where a
+``hard edge'' model is used for tracking. In this case, there will be
+three \vn{fibre}s for the \bmad element: Two drift \vn{fibre}s with a
+\vn{fibre} of the appropriate type inbetween.  In this case,
+\vn{ele%ptc_fiber} will point to the last (drift) \vn{fibre}.
+  \end{enumerate}
+
+Remember: The attributes like reference energy, etc. for a \bmad
+\vn{ele_struct} instance are referenced to the exit end of the
+element. For PTC the reference edge for a \vn{fibre} is the entrance
+end.
 
 %--------------------------------------------------------------------------
 \section{Taylor Maps}
