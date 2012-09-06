@@ -1406,10 +1406,11 @@ real(rp) beta0
 
 ! vec_ptc(5) = (E - E0) / P0c
 ! vec_ptc(6) = c (t - t0)
+! 1/beta0 + vec_ptc(5) == E / P0c
 
 vec_ptc = vec_bmad
-vec_ptc(5) = (vec_bmad(6)**2+2.d0*vec_bmad(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+vec_bmad(6)**2+2.d0*vec_bmad(6)) )
-vec_ptc(6) = -vec_bmad(5)/((1.d0+vec_bmad(6))/(1.d0/beta0+vec_ptc(5)))
+vec_ptc(5) = (vec_bmad(6)**2 + 2*vec_bmad(6)) / (1/beta0 + sqrt(1/beta0**2+vec_bmad(6)**2+2*vec_bmad(6)) )
+vec_ptc(6) = -vec_bmad(5) * (1/beta0 + vec_ptc(5)) / (1 + vec_bmad(6))
 
 end subroutine vec_bmad_to_ptc 
 
@@ -1426,11 +1427,11 @@ end subroutine vec_bmad_to_ptc
 !   use ptc_interface_mod
 !
 ! Input:
-!   vec_bmad(6) -- real(rp): Bmad coordinates.
+!   vec_ptc(6)  -- real(rp): PTC coordinates.
 !   beta0       -- real(rp): Reference particle velocity
 !
 ! Output:
-!   vec_ptc(6)  -- real(rp): PTC coordinates.
+!   vec_bmad(6) -- real(rp): Bmad coordinates.
 !-
 
 subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad)
@@ -1443,10 +1444,58 @@ real(rp) beta0
 !
 
 vec_bmad = vec_ptc
-vec_bmad(6) = (2.d0*vec_ptc(5)/beta0+vec_ptc(5)**2)/(sqrt(1.d0+2.d0*vec_ptc(5)/beta0+vec_ptc(5)**2)+1.d0)
-vec_bmad(5) = -vec_ptc(6)*((1.d0+vec_bmad(6))/(1.d0/beta0+vec_ptc(5)))
+vec_bmad(6) = (2*vec_ptc(5)/beta0+vec_ptc(5)**2)/(sqrt(1+2*vec_ptc(5)/beta0+vec_ptc(5)**2)+1)
+vec_bmad(5) = -vec_ptc(6) * (1 + vec_bmad(6)) / (1/beta0 + vec_ptc(5))
 
 end subroutine vec_ptc_to_bmad 
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine sigma_mat_ptc_to_bmad (sigma_mat_ptc, beta0, sigma_mat_bmad)
+!
+! Routine to convert a PTC sigma matrix to a Bmad sigma matrix.
+! The conversion includes the conversion between Bmad and PTC time coordinate systems.
+!
+! Since PTC uses delta_E/P0c and Bmad uses delta_P/P0c coordinates, and since 
+! the relationship between delta_E and delta_P is nonlinear, this routine 
+! simplifies the calculation and assumes that the particle beta is constant
+! over the range of particle energies.
+!
+! Modules needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   sigma_mat_ptc(6,6)  -- real(rp): PTC sigma matrix.
+!   beta0               -- real(rp): Reference particle velocity
+!
+! Output:
+!   sigma_mat_bmad(6,6) -- real(rp): Bmad sigma matrix.
+!-
+
+subroutine sigma_mat_ptc_to_bmad (sigma_mat_ptc, beta0, sigma_mat_bmad)
+
+implicit none
+
+real(rp) sigma_mat_bmad(6,6), sigma_mat_ptc(6,6)
+real(rp) beta0, temp_mat(6,6)
+
+!
+
+temp_mat = sigma_mat_ptc
+sigma_mat_bmad = temp_mat
+
+sigma_mat_bmad(5,1:4) = temp_mat(6,1:4) * beta0
+sigma_mat_bmad(6,1:4) = temp_mat(5,1:4) / beta0
+
+sigma_mat_bmad(1:4,5) = temp_mat(1:4,6) * beta0
+sigma_mat_bmad(1:4,6) = temp_mat(1:4,5) / beta0
+
+sigma_mat_bmad(5,5) = temp_mat(6,6) * beta0**2
+sigma_mat_bmad(6,6) = temp_mat(5,5) / beta0**2
+
+end subroutine sigma_mat_ptc_to_bmad 
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
