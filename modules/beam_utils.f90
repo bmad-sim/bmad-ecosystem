@@ -720,6 +720,7 @@ if (ran_gauss_here) call init_random_distribution (ele, param, beam_init, bunch)
 
 bunch%charge = beam_init%bunch_charge
 bunch%ix_ele = ele%ix_ele
+bunch%species = param%particle
 
 if( beam_init%full_6D_coupling_calc ) then
   call normal_mode3_calc(param%t1_with_RF,tunes,G6mat,V6mat,.true.)
@@ -1497,7 +1498,7 @@ end subroutine init_spin_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine calc_bunch_params_slice (bunch, ele, param, bunch_params, 
+! subroutine calc_bunch_params_slice (bunch, bunch_params, 
 !                           plane, slice_center, slice_spread, err, print_err)
 !
 ! Finds all bunch parameters for a slice through the beam distribution.
@@ -1507,7 +1508,6 @@ end subroutine init_spin_distribution
 !
 ! Input:
 !   bunch        -- Bunch_struct
-!   ele          -- ele_struct: element to find parameters at
 !   plane        -- Integer: plane to slice through (x$, px$, & etc...)
 !   slice_center -- Real(rp): Center to take slice about
 !   slice_spread -- Real(rp): hard-wall spread in slice about center
@@ -1519,15 +1519,13 @@ end subroutine init_spin_distribution
 !   err    -- Logical: Set True if there is an error in mat_eigen routine.
 ! -
 
-subroutine calc_bunch_params_slice (bunch, ele, param, bunch_params, &
+subroutine calc_bunch_params_slice (bunch, bunch_params, &
                           plane, slice_center, slice_spread, err, print_err)
 
 implicit none
 
 type (bunch_struct), intent(in) :: bunch
 type (beam_struct) :: beam
-type (ele_struct) :: ele
-type (lat_param_struct) param
 type (bunch_params_struct) bunch_params
 
 real(rp) slice_center, slice_spread
@@ -1562,7 +1560,7 @@ do i = 1, size(bunch%particle)
   endif
 enddo
 
-call calc_bunch_params (beam%bunch(1), ele, param, bunch_params, err, print_err)
+call calc_bunch_params (beam%bunch(1), bunch_params, err, print_err)
 
 end subroutine calc_bunch_params_slice
 
@@ -1570,7 +1568,7 @@ end subroutine calc_bunch_params_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, ele, param, bunch_params, err, print_err)
+! Subroutine calc_bunch_params (bunch, bunch_params, err, print_err)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 ! and projected. Projected parameters are found purely from the geometrical
@@ -1587,9 +1585,6 @@ end subroutine calc_bunch_params_slice
 !
 ! Input:
 !   bunch     -- Bunch_struct
-!   ele       -- ele_struct: element to find parameters at
-!   param -- Param_struct: lattice parameters.
-!     %particle -- Particle being tracked.
 !   print_err -- Logical, optional: If present and False then suppress 
 !                  "no eigen-system found" messages.
 !
@@ -1613,13 +1608,11 @@ end subroutine calc_bunch_params_slice
 !   err   -- Logical: Set True if there is an error in mat_eigen routine.
 !-
 
-subroutine calc_bunch_params (bunch, ele, param, bunch_params, err, print_err)
+subroutine calc_bunch_params (bunch, bunch_params, err, print_err)
 
 implicit none
 
 type (bunch_struct), intent(in) :: bunch
-type (ele_struct) :: ele
-type (lat_param_struct) param
 type (bunch_params_struct) bunch_params
 
 real(rp) exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
@@ -1661,7 +1654,7 @@ bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%sta
 bunch_params%centroid%e_field_x = sum(bunch%particle%e_field_x, mask = (bunch%particle%state == alive$))
 bunch_params%centroid%e_field_y = sum(bunch%particle%e_field_y, mask = (bunch%particle%state == alive$))
 
-if (param%particle == photon$) then
+if (bunch%species == photon$) then
   charge = bunch%particle%e_field_x**2 + bunch%particle%e_field_y**2
 else
   charge = bunch%particle%charge
@@ -1689,7 +1682,7 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
 ! average the energy
 
 avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%state == alive$))
-avg_energy = avg_energy * ele%value(E_TOT$) / charge_live
+avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
 
 ! Convert to geometric coords and find the sigma matrix
 
@@ -1719,9 +1712,9 @@ bunch_params%a%emit = d_i(1)
 bunch_params%b%emit = d_i(3)
 bunch_params%c%emit = d_i(5)
 
-bunch_params%a%norm_emit = d_i(1) * (avg_energy/mass_of(param%particle))
-bunch_params%b%norm_emit = d_i(3) * (avg_energy/mass_of(param%particle))
-bunch_params%c%norm_emit = d_i(5) * (avg_energy/mass_of(param%particle))
+bunch_params%a%norm_emit = d_i(1) * (avg_energy/mass_of(bunch%species))
+bunch_params%b%norm_emit = d_i(3) * (avg_energy/mass_of(bunch%species))
+bunch_params%c%norm_emit = d_i(5) * (avg_energy/mass_of(bunch%species))
 
 ! Now find normal-mode sigma matrix and twiss parameters
 ! N = E.Q from eq. 44
@@ -1840,7 +1833,7 @@ endif
 emit = sqrt(max(0.0_rp, x2*px2 - x_px**2)) ! Roundoff may give negative argument.
 
 twiss%emit      = emit
-twiss%norm_emit = (avg_energy/mass_of(param%particle)) * emit
+twiss%norm_emit = (avg_energy/mass_of(bunch%species)) * emit
 
 if (emit /= 0) then
   twiss%alpha = -x_px / emit

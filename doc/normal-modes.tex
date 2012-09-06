@@ -1,5 +1,5 @@
-\chapter{Twiss Parameters, Coupling, Chromaticity, Etc.}
-\label{c:twiss}
+\chapter{Normal Modes: Twiss Parameters, Coupling, Emittances, Etc.}
+\label{c:normal.modes}
 
 %-----------------------------------------------------------------------------
 \section{Components in the Ele\_struct}
@@ -187,6 +187,58 @@ To set the longitudinal (synchrotron) tune, the routine
 \Hyperref{r:set.z.tune}{set_z_tune} can be used. 
 \Hyperref{r:set.z.tune}{set_z_tune} works by varying rf cavity
 voltages until the desired tune is achieved.
+
+%-----------------------------------------------------------------------------
+\section{Emittances \& Radiation Integrals}
+\label{s:emit}
+
+See Section~\sref{s:synch.ints} for details on the radiation integral
+formulas.
+
+The routine \Hyperref{r:radiation.integrals}{radiation_integrals} is used to calculate the 
+normal mode emittances along with the radiation integrals:
+\begin{example}
+  type (lat_struct) lat
+  type (normal_modes_struct) modes
+  type (rad_int_all_ele_struct) ele_rad_int
+  ...
+  call radiation_integrals (lat, orbit, modes, rad_int_by_ele = ele_rad_int)
+\end{example}
+The \vn{modes} argument, which is of type \vn{normal_modes_struct},
+holds the radiation integrals integrated over the entire lattice.
+\begin{example}
+  type normal_modes_struct
+    real(rp) synch_int(0:3) ! Synchrotron integrals I0, I1, I2, and I3
+    real(rp) sigE_E         ! SigmaE/E
+    real(rp) sig_z          ! Sigma_Z
+    real(rp) e_loss         ! Energy loss / turn (eV)
+    real(rp) rf_voltage     ! Total rfcavity voltage (eV)
+    real(rp) pz_aperture    ! pz aperture limit
+    type (anormal_mode_struct)  a, b, z
+    type (linac_normal_mode_struct) lin
+  end type
+\end{example}
+In particular, the \vn{%a}, \vn{%b}, and \vn{%z} components, which are
+of type \vn{anormal_mode_struct} hold the emittance values:
+\begin{example}
+  type anormal_mode_struct
+    real(rp) emittance        ! Beam emittance
+    real(rp) synch_int(4:6)   ! Synchrotron integrals
+    real(rp) j_damp           ! damping partition number
+    real(rp) alpha_damp       ! damping per turn
+    real(rp) chrom            ! Chromaticity
+    real(rp) tune             ! "Fractional" tune in radians
+  end type
+\end{example}
+
+The \vn{ele_rad_int} argument, which is is of type
+\vn{rad_int_all_ele_struct}, holds the radiation integrals on an
+element-by-element basis.
+\begin{example}
+  type rad_int_all_ele_struct
+    type (rad_int1_struct), allocatable :: ele(:) ! Array is indexed from 0
+  end type
+\end{example}
 
 %-----------------------------------------------------------------------------
 \section{Chromaticity Calculation}

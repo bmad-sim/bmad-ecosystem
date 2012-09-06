@@ -831,7 +831,7 @@ Routine to convert a string to uppercase:
 
 \index[routine]{ibs_lifetime}
 \label{r:ibs.lifetime}
-\item[ibs_lifetime(lat,maxratio,lifetime,formula)] \Newline 
+\item[ibs_lifetime(lat,tau_a,maxratio,lifetime,formula,granularity,clog_to_use)] \Newline 
  This module computes the beam lifetime due to
  the diffusion process according to equation 12
 
@@ -938,7 +938,7 @@ Routine to point to a given element.
 
 \index[routine]{remove_eles_from_lat}
 \label{r:remove.eles.from.lat}
-\item[remove_eles_from_lat (lat, check_controls)] \Newline 
+\item[remove_eles_from_lat (lat, check_sanity)] \Newline 
 Routine to remove an elements from the lattice.
 
 \index[routine]{set_ele_status_stale}
@@ -954,7 +954,9 @@ Routine to set the bookkeeping status block.
 
 \index[routine]{split_lat}
 \label{r:split.lat}
-\item[split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls, save_null_drift, err_flag)] \Newline
+\item[\protect\parbox{6in}{
+    split_lat (lat, s_split, ix_branch, ix_split, split_done, \\
+    \hspace*{1in} add_suffix, check_sanity, save_null_drift, err_flag)} ] \Newline
 Routine to split a lat at a point.
 
 \index[routine]{update_hybrid_list}
@@ -1062,10 +1064,10 @@ Routine to return the name corresponding to the value of a given attribute.
 \item[check_if_s_in_bounds (branch, s, err_flag, translated_s)] \Newline 
 Routine to check if a given longitudinal position s is within the bounds of a given branch of a lattice.
 
-\index[routine]{check_lat_controls}
-\label{r:check.lat.controls}
-\item[check_lat_controls (lat, err_flag)] \Newline
-Routine to check if the control links in a lat structure are valid. 
+\index[routine]{lat_sanity_check}
+\label{r:lat.sanity.check}
+\item[lat_sanity_check (lat, err_flag)] \Newline
+Routine to check the control links in a lat structure, etc.
 
 \index[routine]{element_at_s}
 \label{r:element.at.s}
@@ -1146,7 +1148,9 @@ Returns a pointer to an attribute of an element ele with attribute index ix_attr
 \item[pointer_to_lord (slave, ix_lord, ix_control, ix_slave) result (lord_ptr)] \Newline 
 Function to point to a lord of a slave.
 
-\item[pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)] \Newline 
+\index[routine]{pointer_to_multipass_lord}
+\label{r:pointer.to.multipass.lord}
+\item[pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord)] \Newline 
 Routine to find the multipass lord of a lattice element.
 A multi_lord will be found for:
 
@@ -1266,7 +1270,7 @@ Routine to deallocate the pointers in a lat.
 
 \index[routine]{init_ele}
 \label{r:init.ele}
-\item[init_ele (ele, key, sub_key, ix_ele, ix_branch, lat)] \Newline
+\item[init_ele (ele, key, sub_key, ix_ele, ix_branch, branch)] \Newline
 Routine to initialize an element. 
 
 \index[routine]{init_lat}
@@ -1364,7 +1368,7 @@ Routine to zero the offsets, pitches and tilt of an element.
 
 \index[routine]{c_multi}
 \label{r:c.multi}
-\item[c_multi (n, m, no_n_fact)] \Newline
+\item[c_multi (n, m, no_n_fact, c_full)] \Newline
 Routine to compute multipole factors: 
 c_multi(n, m) = +/- ("n choose m")/n! 
 
@@ -1539,7 +1543,7 @@ coords and vice versa.
 
 \index[routine]{mat6_from_s_to_s}
 \label{r:mat6.from.s.to.s}
-\item[mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag)] \Newline 
+\item[mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag, ele_save)] \Newline 
 Subroutine to calculate the transfer map between longitudinal positions
 s1 to s2.
 
@@ -1687,12 +1691,11 @@ Routine to put multipass to a multipass_all_info_struct structure.
 
 \index[routine]{multipass_chain}
 \label{r:multipass.chain}
-\item[multipass_chain (ele, lat, ix_pass, n_links, chain_ele)] \Newline 
+\item[multipass_chain (ele, ix_pass, n_links, chain_ele)] \Newline 
 Routine to return the chain of elements that represent the same physical element
 when there is multipass.
 
 \index[routine]{pointer_to_multipass_lord}
-\label{r:pointer.to.multipass.lord}
 \item[pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)] \Newline 
 Routine to find the multipass lord of a lattice element.
 A multi_lord will be found for:
@@ -1941,13 +1944,18 @@ Routine to concatenate two real_8 taylor series.
 
 \index[routine]{ele_to_fibre}
 \label{r:ele.to.fibre}
-\item[ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps)] \Newline
+\item[ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps, for_layout)] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
 \label{r:map.coef}
 \item[map_coef (y, i, j, k, l)] \Newline
 Function to return the coefficient of the map y(:) up to 3rd order. 
+
+\index[routine]{kill_ptc_genfield}
+\label{r:kill.ptc.genfield}
+\item[kill_ptc_genfield (ptc_genfield)] \Newline 
+Subroutine to kill a ptc_genfield.
 
 \index[routine]{kind_name}
 \label{r:kind.name}
@@ -1974,9 +1982,9 @@ Routine to allocate a PTC real_8 variable.
 \item[remove_constant_taylor (taylor_in, taylor_out, c0, remove_higher_order_terms)] \Newline
 Routine to remove the constant part of a taylor series. 
 
-\index[routine]{lat_to_layout}
-\label{r:lat.to.layout}
-\item[lat_to_layout (lat, ptc_layout)] \Newline
+\index[routine]{lat_to_ptc_layout}
+\label{r:lat.to.ptc.layout}
+\item[lat_to_ptc_layout (lat)] \Newline
 Routine to create a PTC layout from a Bmad lat. 
 
 \index[routine]{set_ptc}
@@ -2005,7 +2013,7 @@ Routine to overload "=" in expressions bmad_taylor = y8
 \item[taylor_to_real_8 (bmad_taylor, beta0, y8)] \Newline
 Routine to convert from a taylor map in Bmad to a real_8 taylor map in Etienne's PTC. 
 
-\index[routine]{type_layout}
+\index[routine]{type_ptc_layout}
 \label{r:type.layout}
 \item[type_layout (lay)] \Newline
 Routine to print the global information in a PTC layout.
@@ -2015,7 +2023,7 @@ Routine to print the global information in a PTC layout.
 \item[type_map1 (y, type0, n_dim)] \Newline
 Routine to type the transfer map up to first order. 
 
-\index[routine]{type_fibre}
+\index[routine]{type_ptc_fibre}
 \label{r:type.fibre}
 \item[type_fibre (fib)] \Newline
 Routine to print the global information in a fibre.
