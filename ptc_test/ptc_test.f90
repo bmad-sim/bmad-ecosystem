@@ -10,9 +10,10 @@ use bmad
 
 implicit none
 
-type (lat_struct), target :: lat, lat2
+type (lat_struct), target :: lat, lat2, lat3
 type (ele_struct), pointer :: ele
 type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
+type (coord_struct) end_orb1t, end_orb2t
 
 real(rp) diff_mat(6,6), diff_vec(6)
 
@@ -49,10 +50,10 @@ write (1, '(a, es20.10)') '"Bmad:vec(6)" REL  1E-10', end_orb1%vec(6)
 write (1, '(a, es20.10)') '"Bmad:orb%t " REL  1E-10', end_orb1%t
 
 write (1, *)
-write (1, '(a, 6es10.2)') '"Bmad:dvec"   ABS  2E-09', end_orb1%vec - end_orb2%vec
-write (1, '(a, es10.2)')  '"Bmad:dmat"   ABS  2E-09', maxval(abs(diff_mat))
-write (1, '(a, es10.2)')  '"Bmad:dvec0"  ABS  1E-09', maxval(abs(diff_vec))
-write (1, '(a, es10.2)')  '"Bmad:dorb%t" ABS  3E-18', &
+write (1, '(a, 6es10.2)') '"Bmad2:dvec"   ABS  1E-11', end_orb1%vec - end_orb2%vec
+write (1, '(a, es10.2)')  '"Bmad2:dmat"   ABS  1E-11', maxval(abs(diff_mat))
+write (1, '(a, es10.2)')  '"Bmad2:dvec0"  ABS  1E-11', maxval(abs(diff_vec))
+write (1, '(a, es10.2)')  '"Bmad2:dorb%t" ABS  1E-22', &
           (end_orb1%t - lat%ele(1)%ref_time) - (end_orb2%t - lat%ele(3)%ref_time)
 
 !
@@ -72,13 +73,38 @@ diff_mat = lat2%ele(3)%mat6 - lat%ele(1)%mat6
 diff_vec = lat2%ele(3)%vec0 - lat%ele(1)%vec0
 
 write (1, *)
-write (1, '(a, 6es10.2)') '"PTC1:dvec"   ABS  2E-09', end_orb1%vec - end_orb1p%vec
-write (1, '(a, es10.2)')  '"PTC1:dorb%t" ABS  4E-18', end_orb1%t - end_orb1p%t
-write (1, '(a, 6es10.2)') '"PTC2:dvec"   ABS  2E-09', end_orb1%vec - end_orb2p%vec
-write (1, '(a, es10.2)')  '"PTC2:dmat"   ABS  1.1E-05', maxval(abs(diff_mat))
-write (1, '(a, es10.2)')  '"PTC2:dvec0"  ABS  1E-09', maxval(abs(diff_vec))
-write (1, '(a, es10.2)')  '"PTC2:dorb%t" ABS  3E-18', &
+write (1, '(a, 6es10.2)') '"PTC1:dvec"   ABS  5E-09', end_orb1%vec - end_orb1p%vec
+write (1, '(a, es10.2)')  '"PTC1:dorb%t" ABS  1E-20', end_orb1%t - end_orb1p%t
+write (1, '(a, 6es10.2)') '"PTC2:dvec"   ABS  5E-09', end_orb1%vec - end_orb2p%vec
+write (1, '(a, es10.2)')  '"PTC2:dmat"   ABS  2E-06', maxval(abs(diff_mat))
+write (1, '(a, es10.2)')  '"PTC2:dvec0"  ABS  2E-11', maxval(abs(diff_vec))
+write (1, '(a, es10.2)')  '"PTC2:dorb%t" ABS  1E-22', &
           (end_orb1%t - lat%ele(1)%ref_time) - (end_orb2%t - lat%ele(3)%ref_time)
+
+!
+
+lat3 = lat2
+lat3%ele%tracking_method = taylor$
+lat3%ele%mat6_calc_method = taylor$
+
+call track1 (start_orb, lat3%ele(1), lat3%param, end_orb1t)
+call track1 (start_orb, lat3%ele(2), lat3%param, end_orb2t)
+call track1 (end_orb2t, lat3%ele(3), lat3%param, end_orb2t)
+call lat_make_mat6(lat3, -1)
+lat3%ele(3)%vec0 = lat3%ele(3)%vec0 + matmul(lat3%ele(3)%mat6, lat3%ele(2)%vec0)
+lat3%ele(3)%mat6 = matmul(lat3%ele(3)%mat6, lat3%ele(2)%mat6)
+
+diff_mat = lat3%ele(3)%mat6 - lat2%ele(1)%mat6
+diff_vec = lat3%ele(3)%vec0 - lat2%ele(1)%vec0
+
+write (1, *)
+write (1, '(a, 6es10.2)') '"TAYLOR1:dvec"   ABS  1E-9', end_orb1p%vec - end_orb1t%vec
+write (1, '(a, es10.2)')  '"TAYLOR1:dorb%t" ABS  1E-17', end_orb1p%t - end_orb1t%t
+write (1, '(a, 6es10.2)') '"TAYLOR2:dvec"   ABS  1E-09', end_orb1p%vec - end_orb2t%vec
+write (1, '(a, es10.2)')  '"TAYLOR2:dmat"   ABS  1E-11', maxval(abs(diff_mat))
+write (1, '(a, es10.2)')  '"TAYLOR2:dvec0"  ABS  1E-11', maxval(abs(diff_vec))
+write (1, '(a, es10.2)')  '"TAYLOR2:dorb%t" ABS  1E-22', &
+          (end_orb1p%t - lat2%ele(1)%ref_time) - (end_orb2p%t - lat2%ele(3)%ref_time)
 
 
 end program

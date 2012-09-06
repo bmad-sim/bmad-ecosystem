@@ -1,18 +1,20 @@
 no_digested
-parameter[e_tot] = 1.885e9
+! Wiggler tracking uses ultra relativistic approximation so want to compare methods
+! at very large energies.
+parameter[e_tot] = 1e12
 parameter[lattice_type] = linear_lattice
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-wig0: wiggler, l= 1.6, tracking_method = symp_lie_bmad, num_steps = 200, &
+wig0: wiggler, l= 1.2, tracking_method = symp_lie_bmad, num_steps = 100, &
       mat6_calc_method = symp_lie_bmad, polarity = 1.2, 
-      term(001)={1.01E-2,0.3, 0.4, 0.5, 0.6}
+      term(001)={1.0E+0, 0.3, 0.4, 0.5, 0.6}
 
 xoff = 5e-3
 xpitch = 1e-4
 
-wig1: wig0, tracking_method = taylor, x_offset = xoff, x_pitch = xpitch
-wig2: wig0, tracking_method = taylor, map_with_offsets = T
+wig1: wig0, x_offset = xoff, x_pitch = xpitch
+wig2: wig0, map_with_offsets = T
 
 
 l: line = (wig1, wig2)
