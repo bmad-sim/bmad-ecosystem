@@ -232,15 +232,6 @@ interface
 end interface
 
 interface
-  subroutine dispersion_to_orbit (ele, disp_orb)
-    import
-    implicit none
-    type (ele_struct) :: ele
-    type (coord_struct), intent(out) :: disp_orb
-  end subroutine
-end interface
-
-interface
   subroutine do_mode_flip (ele, err_flag)
     import
     implicit none
@@ -519,15 +510,6 @@ interface
     implicit none
     real(rp) mat6(6,6)
     type (ele_struct), target :: ele
-  end subroutine
-end interface
-
-interface
-  subroutine orbit_to_dispersion (orb_diff, ele)
-    import
-    implicit none
-    type (coord_struct), intent(in) :: orb_diff
-    type (ele_struct) :: ele
   end subroutine
 end interface
 
