@@ -455,7 +455,7 @@ do j = ie1, ie2
   ! calc bunch params
 
   call calc_bunch_params (u%beam%current%bunch(s%global%bunch_to_plot), &
-                     ele, branch%param, bunch_params, err, print_err)
+                                                  bunch_params, err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, ix_branch, model$) 
 
