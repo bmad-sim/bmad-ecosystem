@@ -2895,8 +2895,8 @@ select case (key)
 case (marker$, branch$, photon_branch$, init_ele$, em_field$)
   return
 
-case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, &
-      rfcavity$, lcavity$, ab_multipole$, multipole$, beambeam$, wiggler$)
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$, &
+      ab_multipole$, multipole$, beambeam$, wiggler$, kicker$, hkicker$, vkicker$)
   ! Nothing to be done
 
 case (quadrupole$) 
