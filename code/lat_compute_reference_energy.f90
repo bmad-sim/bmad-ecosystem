@@ -531,7 +531,7 @@ if (ele_has_offset(ele)) then
   has_changed = .true.
 endif
 
-if (ele_has_kick(ele)) then
+if (ele_has_nonzero_kick(ele)) then
   call zero_ele_kicks (ele)
   has_changed = .true.
 endif
