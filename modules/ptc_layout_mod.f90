@@ -170,14 +170,16 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
-integer ib
+integer ib, il
 
 !
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  call kill_layout_in_universe(branch%ptc%layout(1)%ptr)
-  nullify(branch%ptc%layout(1)%ptr)
+  do il = 1, size(branch%ptc%layout)
+    call kill_layout_in_universe(branch%ptc%layout(il)%ptr)
+  enddo
+  deallocate(branch%ptc%layout)
 enddo
 
 end subroutine kill_ptc_layouts
