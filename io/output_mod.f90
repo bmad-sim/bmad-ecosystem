@@ -199,7 +199,7 @@ integer level, ix
 logical, optional :: indent
 character(16) fmt_p, fmt_w
 character(40) :: blank = ''
-character(200) line_out
+character(len(line)) line_out
 
 ! compose string
 
