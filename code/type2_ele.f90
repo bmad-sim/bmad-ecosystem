@@ -86,7 +86,7 @@ character(len(lines)), pointer :: li(:)
 character(len(lines)), allocatable :: li2(:)
 character(40) a_name, name, fmt_a, fmt_i, fmt_l, coef_str
 character(12) val_str
-character(8) angle
+character(8) angle, index_str
 character(2) str_i
 character(12), parameter :: r_name = 'type2_ele'
 
@@ -471,7 +471,7 @@ if (logic_option(present(lattice), type_control)) then
   if (ele%n_lord /= 0) then
 
     nl=nl+1; write (li(nl), *) &
-      '    Index    Name                             Attribute         Coefficient       Value  Lord_Type'
+      '   Index   Name                            Attribute         Coefficient       Value  Lord_Type'
 
     do i = 1, ele%n_lord
       lord => pointer_to_lord (ele, i, ic)
@@ -536,8 +536,9 @@ if (logic_option(present(lattice), type_control)) then
         iv = lattice%control(i)%ix_attrib
         coef = lattice%control(i)%coef
         a_name = attribute_name(slave, iv)
-        nl=nl+1; write (li(nl), '(3x, a, 3x, a10, 2x, a18, es11.3, es12.3)') &
-                           slave%name(1:n_char), trim(ele_loc_to_string(slave)), a_name, coef
+        index_str = trim(ele_loc_to_string(slave))
+        nl=nl+1; write (li(nl), '(3x, a, 5x, a8, 2x, a18, es11.3, es12.3)') &
+                           slave%name(1:n_char), index_str, a_name, coef
       enddo
     end select
 
