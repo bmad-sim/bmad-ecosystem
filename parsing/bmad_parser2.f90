@@ -313,6 +313,8 @@ parsing_loop: do
         exit
       endif
 
+      call set_flags_for_changed_attribute (lat, ele)
+
       if (.not. found) then   ! First time
         if (attribute_index (ele, word_2)  == 0) then
           call parser_error ('BAD ATTRIBUTE')
