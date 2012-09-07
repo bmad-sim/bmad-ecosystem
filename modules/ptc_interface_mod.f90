@@ -2892,11 +2892,12 @@ n_max = 0
 
 select case (key)
 
-case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$) 
+case (marker$, branch$, photon_branch$, init_ele$, em_field$)
   return
 
-case (marker$, branch$, photon_branch$, init_ele$, kicker$, hkicker$, vkicker$)
-  return
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, &
+      rfcavity$, lcavity$, ab_multipole$, multipole$, beambeam$, wiggler$)
+  ! Nothing to be done
 
 case (quadrupole$) 
   k(2) = val(k1$)
@@ -2929,8 +2930,6 @@ case (elseparator$)
   endif
   return
 
-case (ab_multipole$, multipole$, beambeam$, wiggler$)
-
 case default
   print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', key_name(ele%key)
   print *, '      FOR ELEMENT: ', trim(ele%name)
@@ -2947,12 +2946,14 @@ if (ele%key == hkicker$ .or. ele%key == vkicker$) then
   if (ele%key == hkicker$) hk = val(kick$) 
   if (ele%key == vkicker$) vk = val(kick$) 
   kick_here = .true.
+
 elseif (ele%key == kicker$) then
   hk = val(hkick$)
   vk = val(vkick$)
   kick_here = .true.
-elseif (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
-  hk = val(hkick$) / leng
+
+elseif (has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. val(vkick$) /= 0)) then
+  hk = val(hkick$) / leng   ! PTC uses scaled kick for non-kicker elements.
   vk = val(vkick$) / leng
   kick_here = .true.
 endif

@@ -688,9 +688,10 @@ end function key_name_to_key_index
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function ele_has_kick (ele) result (has_kick)
+! Function ele_has_nonzero_kick (ele) result (has_kick)
 !
-! Function to determine if an element has kick attributes like hkick$, bl_vkick$, etc.
+! Function to determine if an element has nonzero kick values.
+! Kicks are something hkick$, bl_vkick$, etc.
 ! See also: zero_ele_kicks, ele_has_offset, zero_ele_offsets.
 !
 ! Modules needed:
@@ -703,7 +704,7 @@ end function key_name_to_key_index
 !   ele -- Ele_struct: Element with no kicks.
 !-
 
-function ele_has_kick (ele) result (has_kick)
+function ele_has_nonzero_kick (ele) result (has_kick)
 
 implicit none
 
@@ -722,7 +723,7 @@ elseif (has_kick_attributes(ele%key)) then
   if (ele%value(bl_kick$) /= 0) has_kick = .true.
 endif
 
-end function ele_has_kick
+end function ele_has_nonzero_kick
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -731,7 +732,7 @@ end function ele_has_kick
 ! Subroutine zero_ele_kicks (ele)
 !
 ! Subroutine to zero any kick attributes like hkick$, bl_vkick$, etc.
-! See also: ele_has_kick, ele_has_offset, zero_ele_offsets.
+! See also: ele_has_nonzero_kick, ele_has_offset, zero_ele_offsets.
 !
 ! Modules needed:
 !   use bmad
@@ -771,7 +772,7 @@ end subroutine zero_ele_kicks
 ! Function ele_has_offset (ele) result (has_offset)
 !
 ! Function to tell if an element has a non-zero offset, pitch or tilt.
-! Also see: zero_ele_offsets, zero_ele_kicks, ele_has_kicks
+! Also see: zero_ele_offsets, zero_ele_kicks, ele_has_nonzero_kick
 !
 ! Modules needed:
 !   use bmad
@@ -811,7 +812,7 @@ end function ele_has_offset
 ! Subroutine zero_ele_offsets (ele)
 !
 ! Subroutine to zero the offsets, pitches and tilt of an element.
-! Also see: ele_has_offset, zero_ele_kicks, ele_has_kicks
+! Also see: ele_has_offset, zero_ele_kicks, ele_has_nonzero_kick
 !
 ! Modules needed:
 !   use bmad
