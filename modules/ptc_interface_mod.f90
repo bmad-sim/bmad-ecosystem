@@ -2943,12 +2943,12 @@ end select
 kick_here = .false.
 if (ele%key == hkicker$ .or. ele%key == vkicker$) then
   hk = 0; vk = 0
-  if (ele%key == hkicker$) hk = val(kick$) 
+  if (ele%key == hkicker$) hk = -val(kick$) 
   if (ele%key == vkicker$) vk = val(kick$) 
   kick_here = .true.
 
 elseif (ele%key == kicker$) then
-  hk = val(hkick$)
+  hk = -val(hkick$)
   vk = val(vkick$)
   kick_here = .true.
 
