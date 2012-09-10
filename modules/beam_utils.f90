@@ -635,9 +635,11 @@ use mode3_mod
 implicit none
 
 type (ele_struct) ele
+type (ele_struct) twiss_ele
 type (lat_param_struct) param
 type (beam_init_struct), target :: beam_init
 type (bunch_struct), target :: bunch
+type (coord_struct) p_temp
 type (coord_struct), pointer :: p
 type (kv_beam_init_struct), pointer :: kv
 
@@ -646,7 +648,9 @@ real(rp) v_mat(4,4), v_inv(4,4), beta_vel
 
 real(rp) tunes(1:3)
 REAL(rp) G6mat(6,6)
+REAL(rp) G6inv(6,6)
 REAL(rp) V6mat(6,6)
+REAL(rp) t6(6,6)
 
 integer i, j, k, n, species
 integer :: n_kv     ! counts how many phase planes are of KV type
@@ -654,6 +658,7 @@ integer :: ix_kv(3) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
 
 character(22) :: r_name = "init_bunch_distribution"
 
+logical ok, correct_for_coupling(6)
 logical ran_gauss_here
 
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
@@ -666,21 +671,30 @@ endif
 ! Compute the Twiss parameters beta and alpha, and the emittance for each plane
 ! 1 = (x,px), 2 = (y,py), 3 = (z,pz)
 
-beta(1) = ele%a%beta
-beta(2) = ele%b%beta
-alpha(1) = ele%a%alpha
-alpha(2) = ele%b%alpha
+if (beam_init%full_6D_coupling_calc) then
+  twiss_ele%a%beta = 1.0d0
+  twiss_ele%a%alpha = 0.0d0
+  twiss_ele%b%beta = 1.0d0
+  twiss_ele%b%alpha = 0.0d0
+  twiss_ele%value(e_tot$) = ele%value(e_tot$)
+else
+  twiss_ele%a%beta = ele%a%beta
+  twiss_ele%a%alpha = ele%a%alpha
+  twiss_ele%b%beta = ele%b%beta
+  twiss_ele%b%alpha = ele%b%alpha
+  twiss_ele%value(e_tot$) = ele%value(e_tot$)
+endif
 
-call calc_this_emit (beam_init, ele, param, emit) 
+call calc_this_emit (beam_init, twiss_ele, param)
 
 covar = beam_init%dPz_dz * beam_init%sig_z**2
-emit(3) = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
-if (emit(3) == 0) then
-  beta(3) = 1
-  alpha(3) = 0
+twiss_ele%z%emit = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
+if (twiss_ele%z%emit == 0) then
+  twiss_ele%z%beta = 1
+  twiss_ele%z%alpha = 0
 else
-  beta(3) = beam_init%sig_z**2 / emit(3)
-  alpha(3) = - covar / emit(3)
+  twiss_ele%z%beta = beam_init%sig_z**2 / twiss_ele%z%emit
+  twiss_ele%z%alpha = - covar / twiss_ele%z%emit
 endif
 
 ! Init
@@ -688,9 +702,11 @@ endif
 n_kv = 0
 ix_kv = 0
 ran_gauss_here = .false.
+correct_for_coupling = .true.
 
 ! Fill the corresponding struct and generate the distribution for each phase plane.
-! init_random_distribution must be called last.
+! init_random_distribution must be called last since the other distributions "multiply"
+! the number of particles (see the combine_bunch_distribution routine).
 
 call reallocate_bunch (bunch, 0)
 
@@ -700,46 +716,58 @@ do i = 1, 3
   case ('', 'RAN_GAUSS')
     ran_gauss_here = .true.
   case ('ELLIPSE')
-    call init_ellipse_distribution (i, beam_init%ellipse(i), beta(i), alpha(i), emit(i), bunch)
+    call init_ellipse_distribution (i, beam_init%ellipse(i), twiss_ele, bunch)
   case ('GRID')
     call init_grid_distribution (i, beam_init%grid(i), bunch)
+    ! The grid distribution ignores the local twiss parameters.
+    correct_for_coupling(2*i-1:2*i) = .false.
   case ('KV') 
     n_kv = n_kv + 1
     ix_kv(n_kv) = i
   case default
     call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
     if (bmad_status%exit_on_error) call err_exit
+    return
   end select
 enddo
 
-if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, beta, alpha, emit, bunch)
+if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, twiss_ele, bunch)
 
-if (ran_gauss_here) call init_random_distribution (ele, param, beam_init, bunch)
+if (ran_gauss_here) then
+  call init_random_distribution (twiss_ele, param, beam_init, bunch)
+endif
 
-!
+if (beam_init%full_6D_coupling_calc) then
+  call transfer_matrix_calc(ele%branch%lat, .true., t6, ix1=0)
+  call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true.)
+  call mat_inverse(G6mat, G6inv, ok)
+  do i = 1, size(bunch%particle)
+    p => bunch%particle(i)
+    p%vec = matmul(G6inv, p%vec)
+  enddo
+else
+  call make_v_mats(ele, v_mat, v_inv)
+endif
 
 bunch%charge = beam_init%bunch_charge
 bunch%ix_ele = ele%ix_ele
 bunch%species = param%particle
 
-if( beam_init%full_6D_coupling_calc ) then
-  call normal_mode3_calc(param%t1_with_RF,tunes,G6mat,V6mat,.true.)
-else
-  call make_v_mats(ele, v_mat, v_inv)
-endif
-
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%charge = bunch%charge * p%charge
   p%state = alive$
-  if( beam_init%full_6D_coupling_calc ) then
-    p%vec(1:6) = matmul(V6mat, p%vec(1:6))
+  if (beam_init%full_6D_coupling_calc) then
+    p_temp%vec(1:6) = matmul(V6mat, p%vec(1:6))
   else
     ! Include Dispersion
-    p%vec(1:4) =  p%vec(1:4) + p%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
+    p_temp%vec(1:4) =  p%vec(1:4) + p%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
     ! Include Coupling
-    p%vec(1:4) = matmul(v_mat, p%vec(1:4))
+    p_temp%vec(1:4) = matmul(v_mat, p%vec(1:4))
   endif
+
+  where (correct_for_coupling) p%vec = p_temp%vec  
+
 enddo
 
 ! recenter the bunch and include beam jitter
@@ -781,7 +809,7 @@ end subroutine init_bunch_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_this_emit (beam_init, ele, param, emit)
+! Subroutine calc_this_emit (beam_init, ele, param)
 !
 ! Private routine to calculate the emittances
 !
@@ -791,10 +819,11 @@ end subroutine init_bunch_distribution
 !   param     -- lat_param_struct:
 !
 ! Ouput:
-!   emit(2)  -- Real(rp): emittances
+!   ele%a  -- Real(rp): a emittance
+!   ele%b  -- Real(rp): b emittance
 !-
 
-subroutine calc_this_emit (beam_init, ele, param, emit)
+subroutine calc_this_emit (beam_init, ele, param)
 
 implicit none
 
@@ -802,38 +831,9 @@ type (beam_init_struct) beam_init
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp) emit(:), ran_g(2)
+real(rp) ran_g(2)
 
 character(16) :: r_name = 'calc_this_emit'
-
-! Convert old style emit components to new style
-
-if (beam_init%a_norm_emitt /= 0) then
-  beam_init%a_norm_emit = beam_init%a_norm_emitt 
-  call out_io (s_error$, r_name, &
-        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
-        '!!! USING DEPRECATED "BEAM_INIT%A_NORM_EMITT".     !!!', &
-        '!!! PLEASE CHANGE THIS TO "BEAM_INIT%A_NORM_EMIT". !!!', &
-        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-endif
-
-if (beam_init%b_norm_emitt /= 0) then
-  beam_init%b_norm_emit = beam_init%b_norm_emitt 
-  call out_io (s_error$, r_name, &
-        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
-        '!!! USING DEPRECATED "BEAM_INIT%B_NORM_EMITT".     !!!', &
-        '!!! PLEASE CHANGE THIS TO "BEAM_INIT%B_NORM_EMIT". !!!', &
-        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-endif
-
-if (any(beam_init%emitt_jitter /= 0)) then
-  beam_init%emit_jitter = beam_init%emitt_jitter
-  call out_io (s_error$, r_name, &
-        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
-        '!!! USING DEPRECATED "BEAM_INIT%EMITT_JITTER".     !!!', &
-        '!!! PLEASE CHANGE THIS TO "BEAM_INIT%EMIT_JITTER". !!!', &
-        '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-endif
 
 ! Check
 
@@ -846,22 +846,23 @@ endif
 !
 
 if (beam_init%a_norm_emit /= 0) then
-  emit(1) = beam_init%a_norm_emit * mass_of(param%particle) / ele%value(e_tot$)
+  ele%a%emit = beam_init%a_norm_emit * mass_of(param%particle) / ele%value(e_tot$)
 else
-  emit(1) = beam_init%a_emit
+  ele%a%emit = beam_init%a_emit
 endif
 
 if (beam_init%b_norm_emit /= 0) then
-  emit(2) = beam_init%b_norm_emit * mass_of(param%particle) / ele%value(e_tot$)
+  ele%b%emit = beam_init%b_norm_emit * mass_of(param%particle) / ele%value(e_tot$)
 else
-  emit(2) = beam_init%b_emit 
+  ele%b%emit = beam_init%b_emit 
 endif
 
 ! Add jitter if needed
 
 if (any(beam_init%emit_jitter /= 0)) then
   call ran_gauss(ran_g) ! ran(3:4) for z and e jitter used below
-  emit(1:2) = emit(1:2) * (1 + beam_init%emit_jitter * ran_g) 
+  ele%a%emit = ele%a%emit * (1 + beam_init%emit_jitter(1) * ran_g(1))
+  ele%b%emit = ele%b%emit * (1 + beam_init%emit_jitter(2) * ran_g(2))
 endif
 
 end subroutine calc_this_emit 
@@ -892,7 +893,7 @@ type (beam_init_struct) beam_init
 type (bunch_struct), target :: bunch
 type (coord_struct), allocatable :: p(:)
   
-real(rp) dpz_dz, denom, emit(2)
+real(rp) dpz_dz, denom
 real(rp) a_emit, b_emit, y, a, b
 real(rp) ave(6), sigma(6), alpha(6), sig_mat(6,6), r(6)
 real(rp) center(6), ran_g(2), old_cutoff
@@ -993,17 +994,22 @@ endif
 
 ! Compute sigmas
 
-call calc_this_emit(beam_init, ele, param, emit)
+call calc_this_emit(beam_init, ele, param)
 
 dpz_dz = beam_init%dpz_dz
   
 call ran_gauss(ran_g) 
-sigma(1) = sqrt(emit(1) * ele%a%beta)
-sigma(2) = sqrt(emit(1) / ele%a%beta)
-sigma(3) = sqrt(emit(2) * ele%b%beta)
-sigma(4) = sqrt(emit(2) / ele%b%beta)
-sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran_g(1))
-sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran_g(2))
+sigma(1) = sqrt(ele%a%emit * ele%a%beta)
+sigma(2) = sqrt(ele%a%emit / ele%a%beta)
+sigma(3) = sqrt(ele%b%emit * ele%b%beta)
+sigma(4) = sqrt(ele%b%emit / ele%b%beta)
+if (beam_init%full_6D_coupling_calc) then
+  sigma(5) = sqrt(beam_init%sig_z*beam_init%sig_e)
+  sigma(6) = sqrt(beam_init%sig_z*beam_init%sig_e)
+else
+  sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran_g(1))
+  sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran_g(2))
+endif
 
 if (sigma(6) == 0 .or. dpz_dz == 0) then
   a = 0
@@ -1118,7 +1124,7 @@ end subroutine init_grid_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_ellipse_distribution (ix_plane, ellipse, ix_plane, beta, alpha, emit, bunch)
+! Subroutine init_ellipse_distribution (ix_plane, ellipse, ix_plane, twiss_ele, bunch)
 !
 ! Subroutine to initalize a phase space distribution as a set of concentric
 ! ellipses of macroparticles representing a Gaussian distribution.
@@ -1129,8 +1135,12 @@ end subroutine init_grid_distribution
 !     %part_per_ellipse  -- number of particles per ellipse
 !     %sigma_cutoff      -- sigma cutoff of the representation
 !   ix_plane          -- Integer: Plane of distribution. 1, 2, or 3.
-!   beta, alpha       -- Twiss parameters
-!   emit              -- emittance
+!   twiss_ele%a       -- Twiss parameters
+!   twiss_ele%b       -- Twiss parameters
+!   twiss_ele%z       -- Twiss parameters
+!   twiss_ele%a%emit  -- emittance
+!   twiss_ele%b%emit  -- emittance
+!   twiss_ele%z%emit  -- emittance
 !
 ! Output:
 !   bunch     -- Bunch_struct: Bunch structure
@@ -1138,13 +1148,14 @@ end subroutine init_grid_distribution
 ! See manual for more details.
 !-
 
-subroutine init_ellipse_distribution (ix_plane, ellipse, beta, alpha, emit, bunch)
+subroutine init_ellipse_distribution (ix_plane, ellipse, twiss_ele, bunch)
 
 implicit none
 
 type (bunch_struct) bunch
 type (coord_struct), allocatable :: p(:)
 type (ellipse_beam_init_struct), target :: ellipse
+type (ele_struct) twiss_ele
 type (ellipse_beam_init_struct), pointer :: e
 
 real(rp) beta, alpha, emit
@@ -1162,6 +1173,20 @@ logical where(3)
 character(28) :: r_name = 'init_ellipse_distribution'
 
 !
+
+if (ix_plane == 1) then
+  beta = twiss_ele%a%beta
+  alpha = twiss_ele%a%alpha
+  emit = twiss_ele%a%emit
+elseif (ix_plane == 2) then
+  beta = twiss_ele%b%beta
+  alpha = twiss_ele%b%alpha
+  emit = twiss_ele%b%emit
+elseif (ix_plane == 3) then
+  beta = twiss_ele%z%beta
+  alpha = twiss_ele%z%alpha
+  emit = twiss_ele%z%emit
+endif
 
 e => ellipse
 n_particle = e%n_ellipse * e%part_per_ellipse
@@ -1211,7 +1236,7 @@ end subroutine init_ellipse_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, beta, alpha, emit, bunch)
+! Subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, ele, bunch)
 !
 ! Subroutine to initalize a phase space distribution as a set of concentric
 ! ellipses of macroparticles representing a Kapchinsky-Vladimirsky distribution.
@@ -1219,25 +1244,27 @@ end subroutine init_ellipse_distribution
 ! See manual for more details.
 !
 ! Input:
-!   ix1_plane   -- Integer: Index of first plane.
-!   ix2_plane   -- Integer: Index of second plane.
-!   kv          -- kv_beam_init_struct: KV info.
-!   beta, alpha -- Twiss parameters of each phase plane
-!   emit        -- emittance of each phase plane
+!   ix1_plane        -- Integer: Index of first plane.
+!   ix2_plane        -- Integer: Index of second plane.
+!   kv               -- kv_beam_init_struct: KV info.
+!   twiss_ele%a,b,z  -- Twiss parameters of each phase plane
+!   twiss_ele%a%emit -- emittance of a phase plane
+!   twiss_ele%b%emit -- emittance of b phase plane
+!   twiss_ele%z%emit -- emittance of z phase plane
 !
 ! Output:
 !   bunch     -- Bunch_struct: Bunch structure
 !-
 
-subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, beta, alpha, emit, bunch)
+subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, ele, bunch)
 
 implicit none
 
 type (bunch_struct) bunch
 type (kv_beam_init_struct) kv
+type (ele_struct) ele
 type (coord_struct), allocatable :: p(:)
 
-real(rp) beta(:), alpha(:), emit(:)
 real(rp) beta1, beta2, alpha1, alpha2, emit1, emit2
 
 integer i_I2, i_phi1, i_phi2, k, n_particle, ix1_plane, ix2_plane, n_p1, n_p2
@@ -1253,9 +1280,33 @@ character(28) :: r_name = 'init_kv_distribution'
 
 !
 
-beta1 = beta(ix1_plane); beta2 = beta(ix2_plane)
-alpha1 = alpha(ix1_plane); alpha2 = alpha(ix2_plane)
-emit1 = emit(ix1_plane); emit2 = emit(ix2_plane)
+if (ix1_plane == 1) then
+  beta1 = ele%a%beta
+  alpha1 = ele%a%alpha
+  emit1 = ele%a%emit
+elseif (ix1_plane == 2) then
+  beta1 = ele%b%beta
+  alpha1 = ele%b%alpha
+  emit1 = ele%b%emit
+elseif (ix1_plane == 3) then
+  beta1 = ele%z%beta
+  alpha1 = ele%z%alpha
+  emit1 = ele%z%emit
+endif
+
+if (ix2_plane == 1) then
+  beta2 = ele%a%beta
+  alpha2 = ele%a%alpha
+  emit2 = ele%a%emit
+elseif (ix2_plane == 2) then
+  beta2 = ele%b%beta
+  alpha2 = ele%b%alpha
+  emit2 = ele%b%emit
+elseif (ix2_plane == 3) then
+  beta2 = ele%z%beta
+  alpha2 = ele%z%alpha
+  emit2 = ele%z%emit
+endif
 
 n_p1 = kv%part_per_phi(1)
 n_p2 = kv%part_per_phi(2)

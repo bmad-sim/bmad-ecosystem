@@ -208,8 +208,8 @@ the beam. The parameters of this structure are:
     real(rp) sig_z_jitter     = 0.0      ! bunch length RMS jitter 
     real(rp) sig_e_jitter     = 0.0      ! energy spread RMS jitter 
     integer n_particle = 0               ! Number of simulated particles per bunch.
-    logical renorm_center = .true.       ! Renormalize centroid?
-    logical renorm_sigma = .true.        ! Renormalize sigma?
+    logical renorm_center = T            ! Renormalize centroid?
+    logical renorm_sigma = T             ! Renormalize sigma?
     !!! The following are used  by all distribution types
     type(beam_spin_struct) spin          ! Spin
     real(rp) a_norm_emit                 ! a-mode normalized emittance (= \(\gamma \, \epsilon\))
@@ -223,8 +223,9 @@ the beam. The parameters of this structure are:
     real(rp) sig_e                       ! dE/E (pz) sigma.
     real(rp) bunch_charge                ! Charge in a bunch.
     integer n_bunch = 1                  ! Number of bunches.
-    integer species = not_set\$           ! Species. Default is lattice reference species.
-    logical init_spin = .false.          ! initialize beam spinors
+    integer species = not_set\$          ! Species. Default is lattice reference species.
+    logical init_spin = F                ! initialize beam spinors
+    logical full_6D_coupling_calc = F    ! Use V from 6x6 1-turn mat to match distribution?  
   end type
 \end{example}
 The number of bunches in the beam is set by \vn{n_bunch}. 
@@ -242,6 +243,14 @@ Since the Kapchinsky-Vladimirsky distribution is for a 4D
 phase space, if the Kapchinsky-Vladimirsky distribution is used,
 \vn{"KV"} must appear exactly twice in the \vn{%distributeion_type(:)}
 array. 
+
+Unlike all other distribution types, the \vn{GRID} distribution is
+independent of the Twiss parameters at the point of generation.  For
+the non-\vn{GRID} distributions, the distributions are adjusted if
+there is local $x$-$y$ coupling (\sref{s:coupling}). If
+\vn{full_6D_coupling_calc} is set to \vn{True}, the full 6-dimensional
+coupling matrix is used. If \vn{False}, which is the default, The
+4-dimensional $\bfV$ matrix of \Eq{vgicc1} is used.
 
 The parameters common to all the distribution types are marked in the
 \vn{beam_init_struct} above. Either \vn{a_norm_emit} or \vn{a_emit}
@@ -352,17 +361,17 @@ of \vn{csr_parameter_struct} and an \vn{instance name} of \vn{csr_param}.
 This structure has components
 \begin{example}
   type csr_parameter_struct 
-    real(rp) ds_track_step = 0          ! Tracking step size
-    real(rp) beam_chamber_height = 0    ! Used in shielding calculation.
-    real(rp) sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
-                                           !  is < cutoff * sigma_ave then ignore.
-    integer n_bin = 0                   ! Number of bins used
-    integer particle_bin_span = 2       ! Longitudinal particle length / dz_bin
-    integer n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
-    logical lcsr_component_on = .true.  ! Longitudinal csr component
-    logical lsc_component_on = .true.   ! Longitudinal space charge component
-    logical tsc_component_on = .true.   ! Transverse space charge component
-    logical small_angle_approx = .true. ! Use lcsr small angle approximation?
+    real(rp) ds_track_step = 0        ! Tracking step size
+    real(rp) beam_chamber_height = 0  ! Used in shielding calculation.
+    real(rp) sigma_cutoff = 0.1       ! Cutoff for the lsc calc. If a bin sigma
+                                      !  is < cutoff * sigma_ave then ignore.
+    integer n_bin = 0                 ! Number of bins used
+    integer particle_bin_span = 2     ! Longitudinal particle length / dz_bin
+    integer n_shield_images = 0       ! Chamber wall shielding. 0 = no shielding.
+    logical lcsr_component_on = T     ! Longitudinal csr component
+    logical lsc_component_on = T      ! Longitudinal space charge component
+    logical tsc_component_on = T      ! Transverse space charge component
+    logical small_angle_approx = T    ! Use lcsr small angle approximation?
   end type
 \end{example}
 The values for the various quantities shown above are their default values. 
