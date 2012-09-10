@@ -46,7 +46,7 @@ ENDIF ()
 #-----------------------------------
 # C Compiler flags
 #-----------------------------------
-set (BASE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -DCESR_F90_DOUBLE -DCESR_DOUBLE -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
 
 
 #-----------------------------------
@@ -54,7 +54,7 @@ set (BASE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -DCESR_F90_DOUBLE
 #-----------------------------------
 set (CMAKE_Fortran_COMPILER ifort)
 enable_language( Fortran )
-set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_F90_DOUBLE -DCESR_DOUBLE -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
+set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
 
 
 
@@ -94,11 +94,13 @@ message("")
 IF (DEBUG)
   message("Build type           : Debug")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../debug)
+  set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/debug)
   set(BASE_C_FLAGS "${BASE_C_FLAGS}")
   set(BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -check bounds -check format -check uninit -warn declarations -ftrapuv")
 ELSE ()
   message("Build type           : Production")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
+  set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/production)
 ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 message("C Compiler           : ${CMAKE_C_COMPILER}")
@@ -146,6 +148,7 @@ SET (MASTER_INC_DIRS
   ${ROOT_INC}
   ${RELEASE_DIR}/include
   ${OUTPUT_BASEDIR}/modules
+  ${RELEASE_OUTPUT_BASEDIR}/modules
   ${RELEASE_DIR}/modules
 )
 
@@ -180,6 +183,7 @@ SET(MASTER_LINK_DIRS
   ${OUTPUT_BASEDIR}/lib
   ${PACKAGES_DIR}/lib
   ${PACKAGES_DIR}/root/lib
+  ${RELEASE_OUTPUT_BASEDIR}/lib
   ${RELEASE_DIR}/lib
 )
 LINK_DIRECTORIES(${MASTER_LINK_DIRS})
@@ -299,7 +303,9 @@ ENDIF ()
 #----------------------------------------------------------------
 IF (PREBUILD_ACTION)
   message("Executing pre-build action...")
-  EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION})
+  EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
 ENDIF ()
 
 set(TARGETS)
