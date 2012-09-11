@@ -82,7 +82,6 @@ if (present(err_flag)) err_flag = .false.
 start2_orb = start_orb ! In case start_orb and end_orb share the same memory.
 
 end_orb = start_orb     ! transfer start to end
-end_orb%s = ele%s
 if (param%particle /= photon$) end_orb%p0c = ele%value(p0c$)
 
 length = ele%value(l$)
@@ -177,6 +176,7 @@ case (bend_sol_quad$)
 
   call offset_particle (ele, end_orb, param%particle, unset$)
   call low_energy_z_correction (end_orb, ele, param)
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! capillary
@@ -210,8 +210,6 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, &
     end_orb%vec(1) = end_orb%vec(1) + ele%value(h_displace$)
     end_orb%vec(3) = end_orb%vec(3) + ele%value(v_displace$)
   endif
-
-  return  ! track_a_drift does correct time calc
 
 !-----------------------------------------------
 ! LCavity: Linac rf cavity
@@ -358,7 +356,7 @@ case (lcavity$)
 
   end_orb%vec(5) = end_orb%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
 
-  ! Time calc
+  ! Time & s calc
 
   f = gradient * length * mc2**2 / (pc_start**2 * E_start)
 
@@ -367,6 +365,8 @@ case (lcavity$)
   else
     end_orb%t = start2_orb%t + (pc_end - pc_start) / (gradient * c_light)
   endif
+
+  end_orb%s = ele%s
 
 !-----------------------------------------------
 ! marker, etc.
@@ -403,6 +403,8 @@ case (match$)
   endif
 
   end_orb%vec = matmul (mat6, end_orb%vec) + vec0
+
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! mirror
@@ -483,8 +485,6 @@ case (octupole$)
 
   enddo
 
-  return
-
 !-----------------------------------------------
 ! patch
 
@@ -530,6 +530,7 @@ case (quadrupole$)
   call offset_particle (ele, end_orb, param%particle, unset$)  
 
   call low_energy_z_correction (end_orb, ele, param)
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! rfcavity
@@ -599,6 +600,7 @@ case (rfcavity$)
   call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false.)
 
   call low_energy_z_correction (end_orb, ele, param)
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! sbend
@@ -607,6 +609,7 @@ case (sbend$)
 
   call track_a_bend (start_orb, ele, param, end_orb)
   call low_energy_z_correction (end_orb, ele, param)
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! sextupole
@@ -636,8 +639,6 @@ case (sextupole$)
 
   call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false.)
 
-  return
-
 !-----------------------------------------------
 ! solenoid
 
@@ -656,6 +657,7 @@ case (solenoid$)
 
   call offset_particle (ele, end_orb, param%particle, unset$)
   call low_energy_z_correction (end_orb, ele, param)
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! sol_quad
@@ -673,6 +675,7 @@ case (sol_quad$)
 
   call offset_particle (ele, end_orb, param%particle, unset$)
   call low_energy_z_correction (end_orb, ele, param)
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! Taylor
@@ -680,6 +683,7 @@ case (sol_quad$)
 case (taylor$)
 
   call track1_taylor (start_orb, ele, param, end_orb)
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! wiggler:
@@ -728,6 +732,7 @@ case (wiggler$)
   call offset_particle (ele, end_orb, param%particle, unset$)
   call end_z_calc
   call low_energy_z_correction (end_orb, ele, param)
+  call time_and_s_calc ()
 
 !-----------------------------------------------
 ! unknown
@@ -744,22 +749,25 @@ case default
 end select
 
 !------------------------------------------
-! Time calc
-
-if (ele%key /= lcavity$) then
-  end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
-endif
-
 contains
 
+subroutine time_and_s_calc ()
+
+end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
+end_orb%s = ele%s
+
+end subroutine time_and_s_calc
+
 !--------------------------------------------------------------
+! contains
+
 ! Rough calculation for change in longitudinal position using:
 !      dz = -L * (<x'^2> + <y'^2>)/ 2 
 ! where <...> means average.
 ! The formula below assumes a linear change in velocity between 
 ! the beginning and the end:
 
-subroutine end_z_calc
+subroutine end_z_calc ()
 
 implicit none
 
@@ -767,7 +775,7 @@ end_orb%vec(5) = end_orb%vec(5) - (length / rel_pc**2) * &
       (start2_orb%vec(2)**2 + end_orb%vec(2)**2 + start2_orb%vec(2) * end_orb%vec(2) + &
        start2_orb%vec(4)**2 + end_orb%vec(4)**2 + start2_orb%vec(4) * end_orb%vec(4)) / 6
 
-end subroutine
+end subroutine end_z_calc
 
 !--------------------------------------------------------------
 ! contains
@@ -792,7 +800,7 @@ if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
   end_orb%vec(4) = end_orb%vec(4) + dp_y_coupler / pc_start
 endif
 
-end subroutine
+end subroutine coupler_kick_entrance
 
 !--------------------------------------------------------------
 ! contains
@@ -807,7 +815,7 @@ if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
   end_orb%vec(4) = end_orb%vec(4) + dp_y_coupler / pc_end
 endif
 
-end subroutine
+end subroutine coupler_kick_exit
 
 !--------------------------------------------------------------
 ! contains
@@ -837,6 +845,6 @@ else
   end_orb%vec(5) = end_orb%vec(5) + length * (beta - beta0) / beta0
 endif
 
-end subroutine
+end subroutine low_energy_z_correction
 
-end subroutine
+end subroutine track1_bmad

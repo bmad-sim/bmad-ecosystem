@@ -272,10 +272,11 @@ interface
 end interface
 
 interface
-  function element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff) result (ix_ele)
+  function element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff, position) result (ix_ele)
     import
     implicit none
     type (lat_struct) lat
+    type (coord_struct), optional :: position
     real(rp) s
     integer ix_ele
     logical choose_max
@@ -859,16 +860,12 @@ interface
 end interface
 
 interface
-  subroutine twiss_and_track_from_s_to_s (lat, s_start, s_end, track_entrance, &
-                              track_exit, orbit_start, orbit_end, ele_start, ele_end, ix_branch, err)
+  subroutine twiss_and_track_from_s_to_s (branch, orbit_start, orbit_end, ele_start, ele_end, err)
     import
     implicit none
-    type (coord_struct), optional :: orbit_start, orbit_end
+    type (coord_struct) :: orbit_start, orbit_end
     type (ele_struct), optional :: ele_start, ele_end
-    type (lat_struct) lat
-    real(rp) s_start, s_end
-    integer, optional :: ix_branch
-    logical track_entrance, track_exit
+    type (branch_struct) branch
     logical, optional :: err
   end subroutine
 end interface

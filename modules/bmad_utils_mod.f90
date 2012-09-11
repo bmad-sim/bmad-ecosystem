@@ -476,12 +476,8 @@ endif
 
 if (present(ele)) then
 
-  if (ele%key == init_ele$) then
-    orb2%ix_ele = ele%ix_ele + 1
-  else
-    orb2%ix_ele = ele%ix_ele
-  endif
-
+  orb2%ix_ele = ele%ix_ele
+  if (ele%key == init_ele$) orb2%location = exit_end$
 
   if (species /= photon$) then
 
