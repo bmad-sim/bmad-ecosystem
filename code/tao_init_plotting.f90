@@ -100,6 +100,7 @@ plot_page%title(:)%units = '%PAGE'
 plot_page%size = [500, 600]
 
 default_plot%name = ' '
+default_plot%description = ''
 default_plot%x_axis_type = 'index'
 default_plot%x = init_axis
 default_plot%x%minor_div_max = 6
@@ -439,6 +440,7 @@ do  ! Loop over plot files
     plt => s%plotting%template(ip)
     nullify(plt%r)
     plt%name                 = plot%name
+    plt%description          = plot%description
     plt%x_axis_type          = plot%x_axis_type
     plt%x                    = plot%x
     plt%autoscale_gang_x     = plot%autoscale_gang_x 
@@ -958,13 +960,14 @@ grph%component           = 'model'
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
+crv%name         = 'c'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
 crv%line%width   = 2
 
 grph => plt%graph(2)
-grph%name                = 'g1'
+grph%name                = 'g2'
 grph%type                = 'data'
 grph%margin              =  qp_rect_struct(0.05, 0.06, 0.12, 0.12, '%BOX')
 grph%box                 = [1, 2, 1, 2]
@@ -976,6 +979,7 @@ grph%draw_axes           = .true.
 grph%component           = 'model'
 
 crv => grph%curve(1)
+crv%name         = 'c'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
@@ -997,7 +1001,7 @@ plt%x%major_div_nominal  = 8
 plt%x%minor_div_max = 6
 
 grph => plt%graph(1)
-grph%name                = 'g1'
+grph%name                = 'g'
 grph%type                = 'data'
 grph%margin              =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%box                 = [1, 1, 1, 1]
@@ -1013,12 +1017,14 @@ grph%curve_legend_origin = default_graph%curve_legend_origin
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
+crv%name         = 'c1'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
 crv%line%width   = 2
 
 crv => grph%curve(2)
+crv%name         = 'c2'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = orange$
@@ -1038,7 +1044,7 @@ plt%x_axis_type          = 's'
 plt%x                    = init_axis
 
 grph => plt%graph(1)
-grph%name                = 'g1'
+grph%name                = 'g'
 grph%type                = 'data'
 grph%margin              =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%box                 = [1, 1, 1, 1]
@@ -1051,6 +1057,7 @@ grph%component           = 'model'
 grph%x%label             = 's [m]'
 
 crv => grph%curve(1)
+crv%name         = 'c'
 crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
@@ -1069,6 +1076,7 @@ allocate (plt%graph(1)%curve(2))
 
 plt = default_plot_g1c2
 plt%name                 = 'beta'
+plt%description          = 'Twiss beta function'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1076,11 +1084,13 @@ grph%title               = 'Beta Function'
 grph%y%label             = '\gb\dA\u, \gb\dB\u [m]'
 
 crv => grph%curve(1)
+crv%name         = 'a'
 crv%g => grph
 crv%data_type    = 'beta.a'
 crv%legend_text  = '\gb\dA\u'
 
 crv => grph%curve(2)
+crv%name         = 'b'
 crv%g => grph
 crv%data_type    = 'beta.b'
 crv%legend_text  = '\gb\dB\u'
@@ -1094,19 +1104,29 @@ plt => s%plotting%template(np)
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c1 
-plt%name                 = 'emittance_growth'
+plt = default_plot_g1c2
+plt%name                 = 'emittance'
+plt%description          = 'Linac emittance'
 
 grph => plt%graph(1)
 grph%p => plt
-grph%title         = 'Linac Emittance Growth [Rad_Integral:I5a_E6 * C_q * r_e * 2 / 3]'
+grph%title         = 'Linac Emittance Growth [Rad_Integrals: (I5a_E6, I5b_E6) * 2 * C_q * r_e / 3]'
 grph%y%label       = 'Emit Growth [mm-mrad]'
 
 crv => grph%curve(1)
+crv%name         = 'a'
 crv%g => grph
-crv%data_type     = 'rad_int.i5a_e6'
+crv%data_type    = 'rad_int.i5a_e6'
+crv%legend_text  = 'a-mode emit'
+crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
+
+crv => grph%curve(2)
+crv%name         = 'b'
+crv%g => grph
+crv%data_type    = 'rad_int.i5b_e6'
+crv%legend_text  = 'b-mode emit'
 crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
 
 !---------------
@@ -1122,6 +1142,7 @@ allocate (plt%graph(1)%curve(1))
 
 plt = default_plot_g1c1 
 plt%name                 = 'energy'
+plt%description          = 'Particle energy'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1145,6 +1166,7 @@ allocate (plt%graph(1)%curve(2))
 
 plt = default_plot_g1c2
 plt%name           = 'eta'
+plt%description    = 'Dispersion'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1152,11 +1174,13 @@ grph%title         = 'Dispersion'
 grph%y%label       = '\gy\dX\u, \gy\dY\u [m]'
 
 crv => grph%curve(1)
+crv%name         = 'x'
 crv%g => grph
 crv%data_type    = 'eta.x'
 crv%legend_text  = '\gy\dX\u'
 
 crv => grph%curve(2)
+crv%name         = 'y'
 crv%g => grph
 crv%data_type = 'eta.y'
 crv%legend_text  = '\gy\dY\u'
@@ -1172,6 +1196,7 @@ if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
 
 plt%name               = 'floor_plan'
+plt%description        = 'Floor plan drawing of lattice elements.'
 plt%x_axis_type        = 'floor'
 plt%x                  = init_axis
 
@@ -1201,6 +1226,7 @@ if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
 
 plt%name           = 'lat_layout'
+plt%description    = 'Lattice elements drawn as a function of S'
 plt%x_axis_type    = 's'
 plt%x              = init_axis
 
@@ -1227,6 +1253,7 @@ allocate (plt%graph(1)%curve(2))
 
 plt = default_plot_g1c2
 plt%name           = 'orbit'
+plt%description    = 'x-y particle orbit'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1234,12 +1261,14 @@ grph%title         = 'Orbit'
 grph%y%label       = 'Orbit [mm]'
 
 crv => grph%curve(1)
+crv%name                = 'x'
 crv%g => grph
 crv%data_type           = 'orbit.x'
 crv%legend_text         = 'X'
 crv%y_axis_scale_factor = 1000
 
 crv => grph%curve(2)
+crv%name                = 'y'
 crv%g => grph
 crv%data_type           = 'orbit.y'
 crv%legend_text         = 'Y'
@@ -1258,6 +1287,7 @@ allocate (plt%graph(1)%curve(1))
 
 plt = default_plot_g1c1
 plt%name           = 'momentum'
+plt%description    = 'Particle momentum'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1281,6 +1311,7 @@ allocate (plt%graph(1)%curve(1))
 
 plt = default_plot_g1c1 
 plt%name                 = 'momentum_compaction'
+plt%description          = 'Momentum compaction'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1292,7 +1323,7 @@ crv%g => grph
 crv%data_type     = 'momentum_compaction'
 
 !---------------
-! betatron phase plot
+! phase
 
 np = np + 1
 plt => s%plotting%template(np)
@@ -1304,6 +1335,7 @@ allocate (plt%graph(1)%curve(2))
 
 plt = default_plot_g1c2
 plt%name                 = 'phase'
+plt%description          = 'Betatron phase'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1312,14 +1344,40 @@ grph%y%label       = '\gf\dA\u, \gf\dB\u (deg)'
 grph%component     = 'model - design'
 
 crv => grph%curve(1)
+crv%name         = 'a'
 crv%g => grph
 crv%data_type    = 'phase.a'
 crv%legend_text  = '\gf\dA\u'
 
 crv => grph%curve(2)
+crv%name         = 'b'
 crv%g => grph
 crv%data_type    = 'phase.b'
 crv%legend_text  = '\gf\dB\u'
+
+!---------------
+! pz
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'pz'
+plt%description          = 'Particle Pz momentum deviation'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Particle Momentum deviation Delta_P / P0'
+grph%y%label       = 'Pz'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'orbit.pz'
 
 !---------------
 ! sr energy loss
@@ -1334,6 +1392,7 @@ allocate (plt%graph(1)%curve(1))
 
 plt = default_plot_g1c1 
 plt%name                 = 'sr_energy_loss'
+plt%description          = 'Synch Radiation energy loss'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1358,6 +1417,7 @@ allocate (plt%graph(1)%curve(1))
 
 plt = default_plot_g1c1 
 plt%name                 = 'time'
+plt%description          = 'particle time'
 
 grph => plt%graph(1)
 grph%p => plt
@@ -1367,6 +1427,31 @@ grph%y%label       = 'Time [sec]'
 crv => grph%curve(1)
 crv%g => grph
 crv%data_type     = 'time'
+
+!---------------
+! z
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'z'
+plt%description          = 'Particle z position'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Particle Z-position'
+grph%y%label       = 'Z [mm]'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'orbit.z'
+crv%y_axis_scale_factor = 1000
 
 !---------------
 ! Scratch plot

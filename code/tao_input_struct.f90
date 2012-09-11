@@ -136,6 +136,7 @@ end type
 
 type tao_plot_input
   character(40) name
+  character(60) description
   character(16) x_axis_type
   integer n_graph
   logical independent_graphs

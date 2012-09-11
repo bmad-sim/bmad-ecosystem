@@ -229,11 +229,10 @@ logical calc_ok, err, radiation_fluctuations_on
 
 !
 
-orbit => tao_lat%lat_branch(ix_branch)%orbit
-
 lat => tao_lat%lat
 branch => tao_lat%lat%branch(ix_branch)
 lat_branch => tao_lat%lat_branch(ix_branch)
+orbit => lat_branch%orbit
 
 calc_ok = .true.
 lat_branch%track_state = moving_forward$
