@@ -44,9 +44,11 @@ ENDIF ()
 
 
 #-----------------------------------
-# C Compiler flags
+# C / C++ Compiler flags
 #-----------------------------------
 set (BASE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+
+set (BASE_CXX_FLAGS "-Wno-deprecated -mcmodel=medium -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC")
 
 
 #-----------------------------------
@@ -195,21 +197,13 @@ LINK_DIRECTORIES(${MASTER_LINK_DIRS})
 # mentioned in project CMakeLists.txt file.
 #-------------------------------------------
 foreach(dir ${SRC_DIRS})
+
+    set(temp_list)
     file(GLOB temp_list ${dir}/*.c)
     LIST(APPEND c_sources ${temp_list})
 
     file(GLOB temp_list ${dir}/*.C)
     LIST(APPEND c_sources ${temp_list})
-
-    file(GLOB temp_list ${dir}/*.cpp)
-    LIST(APPEND c_sources ${temp_list})
-
-    file(GLOB temp_list ${dir}/*.cc)
-    LIST(APPEND c_sources ${temp_list})
-
-    file(GLOB temp_list ${dir}/*.cxx)
-    LIST(APPEND c_sources ${temp_list})
-
     #-----------------------------------
     # Set compiler flag properties for 
     # all C source files.
@@ -218,6 +212,26 @@ foreach(dir ${SRC_DIRS})
       set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
     endforeach()
     LIST(APPEND sources ${c_sources})
+
+
+    set(temp_list)
+    file(GLOB temp_list ${dir}/*.cpp)
+    LIST(APPEND cpp_sources ${temp_list})
+
+    file(GLOB temp_list ${dir}/*.cc)
+    LIST(APPEND cpp_sources ${temp_list})
+
+    file(GLOB temp_list ${dir}/*.cxx)
+    LIST(APPEND cpp_sources ${temp_list})
+    #-----------------------------------
+    # Set compiler flag properties for 
+    # all C source files.
+    #-----------------------------------
+    foreach (file ${cpp_sources})
+      set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
+    endforeach()
+    LIST(APPEND sources ${cpp_sources})
+
 
     set(temp_list)
     file(GLOB temp_list ${dir}/*.f)
@@ -228,7 +242,6 @@ foreach(dir ${SRC_DIRS})
 
     file(GLOB temp_list ${dir}/*.f90)
     LIST(APPEND f_sources ${temp_list})
-
     #-----------------------------------
     # Set compiler flag properties for
     # all Fortran source files.
@@ -355,6 +368,7 @@ foreach(exespec ${EXE_SPECS})
 
   set(CFLAGS)
   set(FFLAGS)
+  set(CPPFLAGS)
 
   include(${exespec})
 
