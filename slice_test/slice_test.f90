@@ -14,6 +14,8 @@ type (taylor_struct) t_map(6)
 real(rp) s1, s2
 real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6)
 
+integer idum
+
 !
 
 call bmad_parser ('slice_test.bmad', lat)
@@ -33,8 +35,9 @@ call twiss_and_track_at_s (lat, s2, ele2a, ref_orb, orb2a)
 orb2c = orb1
 call mat6_from_s_to_s (lat, xmat_c, vec0_c, s1, s2, orb2c)
 
-call twiss_and_track_from_s_to_s (lat, s1, s2, .true., .true.,  &
-                                                   orb1, orb2b, ele1, ele2b)
+idum = element_at_s (lat, s1, .true., position = orb1)
+idum = element_at_s (lat, s2, .true., position = orb2b)
+call twiss_and_track_from_s_to_s (lat%branch(0), orb1, orb2b, ele1, ele2b)
 
 call transfer_map_from_s_to_s (lat, t_map, s1, s2)
 call taylor_to_mat6 (t_map, orb1%vec, vec0_d, xmat_d, orb2d%vec)
