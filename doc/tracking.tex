@@ -123,19 +123,17 @@ tracked. \vn{%location} will be on of:
 \vn{entrance_end\$} indicates that the particle is at the element's
 entrance ($-s$) end and \vn{exit_end\$} indicates that the particle is
 at the element's exit ($+s$) end.  \vn{inside\$} indicates that the
-particle is in between. Normally, when tracking through and element, a
-particle starts with \vn{%location} set to \vn{entrance_end\$} and
-ends with \vn{%location} set to \vn{exit_end\$}. If the element has
-edge fields (for example, the \vn{e1} and \vn{e2} edge fields of a
-bend), a particle at the \vn{entrance_end\$} or \vn{exit_end\$} is
-considered to be just outside the edge field region.
+particle is in between. If the element has edge fields (for example,
+the \vn{e1} and \vn{e2} edge fields of a bend), a particle at the
+\vn{entrance_end\$} or \vn{exit_end\$} is considered to be just
+outside the element.
 
 To initialize a \vn{coord_struct} so it can be used as the start of
 tracking, the \Hyperref{r:init.coord}{init_coord} routine can be used:
 \begin{example}
   type (coord_struct) start_orb
   real(rp) phase_space_start(6)
-
+  ...
   phase_space_start = [...]
   call init_coord (start_orb, phase_space_start, lat%ele(i), lat%param%particle)
 \end{example}
