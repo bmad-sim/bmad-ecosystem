@@ -1879,10 +1879,13 @@ value(num_steps$)      = slave%value(num_steps$)
 !
 
 if (lord%key == hkicker$ .or. lord%key == vkicker$) then
-  value(kick$) = lord%value(kick$) * coef
+  value(kick$)    = lord%value(kick$) * coef
+  value(bl_kick$) = lord%value(bl_kick$) * coef
 else
-  value(hkick$) = lord%value(hkick$) * coef
-  value(vkick$) = lord%value(vkick$) * coef
+  value(hkick$)    = lord%value(hkick$) * coef
+  value(vkick$)    = lord%value(vkick$) * coef
+  value(bl_hkick$) = lord%value(bl_hkick$) * coef
+  value(bl_vkick$) = lord%value(bl_vkick$) * coef
 endif
 
 if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
