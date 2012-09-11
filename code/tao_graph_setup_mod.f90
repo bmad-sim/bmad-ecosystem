@@ -1220,8 +1220,8 @@ implicit none
 type (tao_lattice_struct), target :: tao_lat
 type (tao_curve_struct) curve
 type (bunch_params_struct), pointer :: bunch_params
-type (coord_struct), pointer :: orb(:)
-type (coord_struct), pointer :: orb_ref
+type (coord_struct), pointer :: orb(:), orb_ref
+type (coord_struct) orbit_end
 type (lat_struct), pointer :: lat
 type (ele_struct) ele, ele_dum
 type (ele_struct), pointer :: ele_ref
@@ -1234,7 +1234,7 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign
 real(rp), pointer :: r_ptr
 
-integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch
+integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum
 
 character(40) data_type, name
 character(40) data_type_select, data_source
@@ -1341,7 +1341,9 @@ do ii = 1, size(curve%x_line)
     if (ii == 1) then
       call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err)
     else
-      call twiss_and_track_from_s_to_s (lat, s_last, s_now, .true., .true., orbit, orbit, ele, ele, ix_branch, err)
+      idum = element_at_s(lat, s_now, .false., ix_branch, err, position = orbit_end)
+      call twiss_and_track_from_s_to_s (branch, orbit, orbit_end, ele, ele, err)
+      orbit = orbit_end
     endif
 
     if (err) then

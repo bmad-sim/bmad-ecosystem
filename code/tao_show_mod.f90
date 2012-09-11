@@ -337,7 +337,7 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
       nl=nl+1; write(lines(nl), rmt) '  %sig_e                  = ', beam_init%sig_e
       nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %emitt_jitter           = ', beam_init%emitt_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
       nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
       nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter           = ', beam_init%sig_e_jitter
       nl=nl+1; write(lines(nl), rmt) '  %spin%polarization      = ', beam_init%spin%polarization
@@ -2003,15 +2003,16 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
-    nl=nl+1; lines(nl) = '   Plot                .Graph'
-    nl=nl+1; lines(nl) = '   ------------------  ----------'
+    nl=nl+1; lines(nl) = '   Plot                          .Graph                   Description        '
+    nl=nl+1; lines(nl) = '   ----------------------------  -----------------------  -------------------'
     do i = 1, size(s%plotting%template)
       p => s%plotting%template(i)
       if (p%name == '') cycle
       if (p%name == 'scratch') cycle
       if (allocated(p%graph)) then
-          nl=nl+1; write (lines(nl), '(3x, a, 100(2a, 2x))') &
-                            p%name(1:20), ('.', trim(p%graph(j)%name), j = 1, size(p%graph))
+          write (fmt, '(a, i0, a)') '(3x, a30, ', size(p%graph), '(2a, 2x), t57, a)'
+          nl=nl+1; write (lines(nl), fmt) p%name, &
+                      ('.', trim(p%graph(j)%name), j = 1, size(p%graph)), p%description
       else
         nl=nl+1; write (lines(nl), '(3x, a)') p%name 
       endif

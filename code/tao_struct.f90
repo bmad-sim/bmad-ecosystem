@@ -186,6 +186,7 @@ end type
 
 type tao_plot_struct
   character(40) :: name = ' '                 ! Identifying name
+  character(60) :: description                ! Descriptive string.
   type (tao_graph_struct), allocatable :: graph(:)
                                               ! individual graphs of a plot
   type (qp_axis_struct) x                     ! X-axis parameters.
