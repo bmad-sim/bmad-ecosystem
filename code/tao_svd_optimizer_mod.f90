@@ -130,6 +130,8 @@ if (status /= 0 .or. (merit > merit0 .and. s%global%svd_retreat_on_merit_increas
   call out_io (s_blank$, r_name, 'Retreating to initial state.')
 endif
 
+if (.not. abort) abort = tao_user_is_terminating_optimization()
+
 ! Cleanup: Reinstate vars vetoed with zero dmerit
 
 s%var(:)%good_var = .true.  

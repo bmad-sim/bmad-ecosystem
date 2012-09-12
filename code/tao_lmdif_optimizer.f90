@@ -103,21 +103,13 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   write (line, '(i5, es14.4, es10.2)') i, merit
   call out_io (s_blank$, r_name, line)
 
-#ifndef CESR_WINCVF
   ! look for keyboard input to end optimization
 
-  do
-    call get_tty_char (char, .false., .false.) 
-    if (char == '.') then
-      call out_io (s_blank$, r_name, line)
-      call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
-                                                             'Stopping now.')
-      abort = .true.
-      exit cycle_loop
-    endif
-    if (char == achar(0)) exit   ! only exit if there is no more input
-  enddo
-#endif
+  abort = tao_user_is_terminating_optimization()
+  if (abort) then
+    call out_io (s_blank$, r_name, line)
+    exit cycle_loop
+  endif
 
   if (at_end) exit
 
