@@ -1,8 +1,49 @@
 module tao_var_mod
 
 use tao_mod
+use input_mod
 
 contains
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function tao_user_is_terminating_optimization () result (is_terminating)
+!
+! Routine to check for keyboard input of a period '.' signaling optimization termination.
+!
+! Module needed:
+!   use tao_var_mod
+!
+! Output:
+!   is_terminating -- logical: Set True of '.' is detected. False otherwise.
+!-
+
+function tao_user_is_terminating_optimization () result (is_terminating)
+
+implicit none
+
+logical is_terminating
+
+character(52) :: r_name = 'tao_user_is_terminating_optimization'
+character(1) char
+
+!
+
+is_terminating = .false.
+
+do
+  call get_tty_char (char, .false., .false.) 
+  if (char == '.') then
+    call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', 'Stopping now.')
+    is_terminating = .true.
+    return
+  endif
+  if (char == achar(0)) return   ! return if there is no more input
+enddo
+
+end function tao_user_is_terminating_optimization
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

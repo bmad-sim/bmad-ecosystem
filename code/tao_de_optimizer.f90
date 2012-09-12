@@ -121,17 +121,7 @@ endif
 ! look for keyboard input to end optimization
 
 status = 0  ! continue
-
-#ifndef CESR_WINCVF
-do
-  call get_tty_char (char, .false., .false.) 
-  if (char == '.') then
-    status = 1     ! signal stop
-    call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', 'Stopping now.')
-  endif
-  if (char == achar(0)) exit   ! only exit if there is no more input
-enddo
-#endif
+if (tao_user_is_terminating_optimization()) status = 1
 
 !
 

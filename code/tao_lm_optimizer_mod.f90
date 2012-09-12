@@ -49,7 +49,6 @@ logical abort
 
 character(20) :: r_name = 'tao_lm_optimizer'
 character(80) line
-character(1) char
 
 ! Calc derivative matrix
 
@@ -135,18 +134,10 @@ do i = 1, s%global%n_opti_cycles+1
 
   ! look for keyboard input to end optimization
 
-#ifndef CESR_WINCVF
-  do
-    call get_tty_char (char, .false., .false.) 
-    if (char == '.') then
-      call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', 'Stopping now.')
-      abort = .true.
-      finished = .true.
-      exit
-    endif
-    if (char == achar(0)) exit   ! only exit if there is no more input
-  enddo
-#endif
+  if (tao_user_is_terminating_optimization()) then
+    abort = .true.
+    finished = .true.
+  endif
 
   if (finished .or. status /= 0) exit
 
