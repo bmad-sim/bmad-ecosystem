@@ -678,11 +678,7 @@ if (beam_init%full_6D_coupling_calc) then
   twiss_ele%b%alpha = 0.0d0
   twiss_ele%value(e_tot$) = ele%value(e_tot$)
 else
-  twiss_ele%a%beta = ele%a%beta
-  twiss_ele%a%alpha = ele%a%alpha
-  twiss_ele%b%beta = ele%b%beta
-  twiss_ele%b%alpha = ele%b%alpha
-  twiss_ele%value(e_tot$) = ele%value(e_tot$)
+  twiss_ele = ele
 endif
 
 call calc_this_emit (beam_init, twiss_ele, param)
@@ -702,7 +698,12 @@ endif
 n_kv = 0
 ix_kv = 0
 ran_gauss_here = .false.
-correct_for_coupling = .true.
+if (beam_init%full_6D_coupling_calc) then
+  correct_for_coupling = .true.
+else
+  correct_for_coupling(1:4) = .true.
+  correct_for_coupling(5:6) = .false.
+endif
 
 ! Fill the corresponding struct and generate the distribution for each phase plane.
 ! init_random_distribution must be called last since the other distributions "multiply"
