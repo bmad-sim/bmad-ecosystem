@@ -50,7 +50,6 @@ results = open('regression.results', 'w')
 bin_dir = '../production/bin/'
 dir_list = []
 dir_name = 'tests.list'
-debug = False
 
 i = 1
 while i < len(sys.argv):
@@ -105,7 +104,6 @@ for line in dir_list:
   program = dir_split[0]
   if len(dir_split) == 2: program = dir_split[1]
   program = bin_dir + program
-  if debug: program = program + '_g'
 
   print_all ('\nStarting testing in subdirectory: ' + dir_split[0])
   print_all ('     Running program: ' + program)
