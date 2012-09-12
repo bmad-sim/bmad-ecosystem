@@ -30,34 +30,17 @@ real(rp) time
 logical lost
 logical, allocatable :: keep_ele(:)
 
+!New variables needed for regression test output
+character(15) :: proto_th_str
+character(15) :: proto_num_str
+character(1) ::  nstep_str
+character(13) ::  tail_str
+character(29) :: final_th_str
+character(29) :: final_num_str
+
 namelist / bbu_params / bbu_param, beam_init, bmad_com
 
 ! Read in parameters
-
-bbu_param%lat_file_name = 'erl.lat'  ! Bmad lattice file name
-bbu_param%simulation_turns_max = 20 ! 
-bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
-bbu_param%init_particle_offset = 1e-8  ! Initial particle offset for particles born 
-                                       !  in the first turn period.
-bbu_param%limit_factor = 2           ! Init_hom_amp * limit_factor = simulation unstable limit
-bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
-bbu_param%keep_overlays_and_groups = .false. ! keep when hybridizing?
-bbu_param%keep_all_lcavities       = .false. ! keep when hybridizing?
-bbu_param%use_taylor_for_hybrids   = .false. ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
-bbu_param%current = 20e-3            ! Starting current (amps)
-bbu_param%rel_tol = 1e-2             ! Final threshold current accuracy.
-bbu_param%write_hom_info = .true.  
-bbu_param%drscan = .true.        ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
-bbu_param%nstep = 100
-bbu_param%begdr = 5.234
-bbu_param%enddr = 6.135
-bbu_param%use_interpolated_threshold = .true.
-bbu_param%nrep = 1     ! Number of times to repeat threshold calculation
-bbu_param%ran_seed = 0
-bbu_param%ran_gauss_sigma_cut = -1
-bbu_param%stable_orbit_anal = .false.
-bbu_param%ele_track_end = ' '
-bbu_param%ix_ele_track_end = -1
 
 beam_init%n_particle = 1
 
@@ -72,8 +55,10 @@ read (1, nml = bbu_params)
 close (1)
 
 if (bbu_param%stable_orbit_anal) bbu_param%nstep = 1
+if (bbu_param%regression) bbu_param%drscan = .true.
+if (bbu_param%regression) bbu_param%nstep = 2
 
-write(*,'(a,f6.1/,a,l/,a,i5/,a,l/)') &
+if (bbu_param%verbose) write(*,'(a,f6.1/,a,l/,a,i5/,a,l/)') &
         ' Maximum number of turns: ',bbu_param%simulation_turns_max, &
         ' DRSCAN analysis: ', bbu_param%drscan,&
         ' Number of repetitions: ',bbu_param%nrep,&
@@ -83,16 +68,16 @@ write(*,'(a,f6.1/,a,l/,a,i5/,a,l/)') &
 
 beam_init%dt_bunch = 1 / bbu_param%bunch_freq
 call ran_seed_put (bbu_param%ran_seed)
-print *, 'Random number seed:', bbu_param%ran_seed
+if (bbu_param%verbose) print *, 'Random number seed:', bbu_param%ran_seed
 
 if (bbu_param%ran_gauss_sigma_cut > 0) then
   call ran_gauss_converter (set_sigma_cut = bbu_param%ran_gauss_sigma_cut)
-  print *, 'ran_gauss sigma cut: ', bbu_param%ran_gauss_sigma_cut 
+  if (bbu_param%verbose) print *, 'ran_gauss sigma cut: ', bbu_param%ran_gauss_sigma_cut 
 endif
 
 ! Init
 
-print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
+if (bbu_param%verbose) print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
 call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
 call run_timer ('START')
@@ -108,10 +93,11 @@ if (bbu_param%drscan) then
   do i = 1, lat_in%n_ele_max
     if (lat_in%ele(i)%name .eq. bbu_param%elname)then
       bbu_param%elindex = i
-      write(6,'(a,i6,a,a40)')&
+      if (bbu_param%verbose) write(6,'(a,i6,a,a40)')&
             ' Element index ',i,' found for DR scan element ',bbu_param%elname
 ! Open DRSCAN output file for threshold current calculation comparison
-      open (50, file = 'drscan.out', status = 'unknown') 
+      if(.not. bbu_param%regression) open (50, file = 'drscan.out', status = 'unknown')
+      if(bbu_param%regression) open (40, file = 'output.now', status = 'unknown') 
       nstep = bbu_param%nstep
       exit  ! Exit loop over elements
     else
@@ -124,19 +110,19 @@ endif
 
 ! Open file for storing output of repeated threshold calculations
 if (bbu_param%nrep.gt.1)then
-  write(6,'(a,i10,a)')&
+  if (bbu_param%verbose) write(6,'(a,i10,a)')&
         ' Opening output file REP.OUT for',bbu_param%nrep,' repetitions'
   open (55, file = 'rep.out', status = 'unknown')
 endif
 
 ! Open file for stable orbit analysis data
 if (bbu_param%stable_orbit_anal)then
-  write(6,'(a,i10,a)')&
+  if (bbu_param%verbose) write(6,'(a,i10,a)')&
         ' Opening output file STABLE_ORBIT.OUT for stable orbit analysis'
   open (56, file = 'stable_orbit.out', status = 'unknown')
 
 ! Open file for HOM voltage stability data
-  write(6,'(a,i10,a)')&
+  if (bbu_param%verbose) write(6,'(a,i10,a)')&
         ' Opening output file HOM_VOLTAGE.OUT for stable orbit analysis'
   open (57, file = 'hom_voltage.out', status = 'unknown')
 
@@ -154,14 +140,14 @@ do istep = 1, nstep
     dr = bbu_param%begdr + (istep-1) * deldr
     ie = bbu_param%elindex
     lat_in%ele(ie)%value(l$) = dr * c_light / bbu_param%bunch_freq
-    write(6,'(a,2f8.3)')' DRSCAN analysis step: dr, scan element length = ', &
+    if (bbu_param%verbose) write(6,'(a,2f8.3)')' DRSCAN analysis step: dr, scan element length = ', &
                  dr, lat_in%ele(bbu_param%elindex)%value(l$)
     call set_flags_for_changed_attribute (lat_in, lat_in%ele(ie), lat_in%ele(ie)%value(l$))
     call lattice_bookkeeper(lat_in)
   endif
 
   if (bbu_param%hybridize) then
-    print *, 'Note: Hybridizing lattice...'
+    if (bbu_param%verbose) print *, 'Note: Hybridizing lattice...'
     allocate (keep_ele(lat_in%n_ele_max))
     allocate (ix_out(lat_in%n_ele_max))
     keep_ele = .false.
@@ -193,27 +179,27 @@ do istep = 1, nstep
       call lat_ele_locator(bbu_param%ele_track_end,lat, eles, n_loc, err)
       if(err)call err_exit
       if(n_loc.eq.0)then
-       print '(2a)', 'No matching element found for ',bbu_param%ele_track_end  
+       if (bbu_param%verbose) print '(2a)', 'No matching element found for ',bbu_param%ele_track_end  
        call err_exit
       elseif(n_loc.gt.1) then
-       print '(2a)', 'Multiple matching elements found for ',bbu_param%ele_track_end  
-       print '(a)', 'Will use the first instance as the end of the tracking'
+       if (bbu_param%verbose) print '(2a)', 'Multiple matching elements found for ',bbu_param%ele_track_end  
+       if (bbu_param%verbose) print '(a)', 'Will use the first instance as the end of the tracking'
       endif
       ele => eles(1)%ele
       if (eles(1)%ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave)
       ix = ele%ix_ele
       if (ix > lat%n_ele_track) then
-         print *, 'STOPPING ELEMENT IS A LORD! ', bbu_param%ele_track_end
+         if (bbu_param%verbose) print *, 'STOPPING ELEMENT IS A LORD! ', bbu_param%ele_track_end
          call err_exit
       endif
       bbu_param%ix_ele_track_end = ix
-      print *,' Tracking will be halted after element ',bbu_param%ele_track_end
+      if (bbu_param%verbose) print *,' Tracking will be halted after element ',bbu_param%ele_track_end
   endif
 
   !
 
   if (bbu_param%write_hom_info) then
-   call write_homs(lat, bbu_param%bunch_freq, trtb, currth)
+   call write_homs(lat, bbu_param%bunch_freq, trtb, currth,bbu_param%verbose)
   ! Update starting current according to analytic approximation
    if (currth.gt.0.)bbu_param%current = currth
   else
@@ -224,13 +210,13 @@ do istep = 1, nstep
 
   ! Print some information and get the analytic approximation result for the threshold current
 
-  print '(2a)', ' Lattice File: ', trim(lat%input_file_name)
-  print '(2a)', ' Lattice Name: ', trim(lat%lattice)
-  print '(a, i7)', ' Num Elements to Track: ', bbu_param%ix_ele_track_end
-  print '(a, i7)', ' Num Elements Elements: ', lat%n_ele_track
-  print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
+  if (bbu_param%verbose) print '(2a)', ' Lattice File: ', trim(lat%input_file_name)
+  if (bbu_param%verbose) print '(2a)', ' Lattice Name: ', trim(lat%lattice)
+  if (bbu_param%verbose) print '(a, i7)', ' Num Elements to Track: ', bbu_param%ix_ele_track_end
+  if (bbu_param%verbose) print '(a, i7)', ' Num Elements Elements: ', lat%n_ele_track
+  if (bbu_param%verbose) print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
 
-  print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
+  if (bbu_param%verbose) print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
   n_ele = 0
   do i = 1, size(bbu_beam%stage)
@@ -240,8 +226,8 @@ do istep = 1, nstep
     n_ele = n_ele + 1
   enddo
 
-  print *, 'Number of physical lr wake elements:', n_ele
-  print *, 'Number of elements in lattice:      ', lat%n_ele_track
+  if (bbu_param%verbose) print *, 'Number of physical lr wake elements:', n_ele
+  if (bbu_param%verbose) print *, 'Number of elements in lattice:      ', lat%n_ele_track
 
   ! Loop over calculation repetitions
   do irep = 1,bbu_param%nrep
@@ -250,13 +236,13 @@ do istep = 1, nstep
 
     if (bbu_param%stable_orbit_anal) then
 
-      print *,' Analyzing stable orbit for repetition ', irep
+      if (bbu_param%verbose) print *,' Analyzing stable orbit for repetition ', irep
 
       lat = lat0 ! Restore lr wakes
       call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 
       if (lost) then
-         print *, 'PARTICLE(S) LOST. ASSUMING UNSTABLE...'
+         if (bbu_param%verbose) print *, 'PARTICLE(S) LOST. ASSUMING UNSTABLE...'
       else
     ! Print output for stable orbit analysis
                   do i = 1, size(bbu_beam%stage)
@@ -288,7 +274,7 @@ do istep = 1, nstep
     charge_old = -1   ! Mark as not set yet 
     charge_try = -1   ! Mark as not set yet 
 
-    Print *, 'Searching for a current where the tracking is unstable...'
+    if (bbu_param%verbose) Print *, 'Searching for a current where the tracking is unstable...'
 
     do
       lat = lat0 ! Restore lr wakes
@@ -296,25 +282,25 @@ do istep = 1, nstep
       call calc_next_charge_try
       if (hom_voltage_gain > 1) exit
       if (lost) then
-        print *, 'PARTICLE(S) LOST. ASSUMING UNSTABLE...'
+        if (bbu_param%verbose) print *, 'PARTICLE(S) LOST. ASSUMING UNSTABLE...'
         exit
       endif
     enddo
 
      ! Track to bracket threshold
 
-      print *, 'Now converging on the threshold...'
+      if (bbu_param%verbose) print *, 'Now converging on the threshold...'
 
       do
         lat = lat0 ! Restore lr wakes
         call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
-        if (lost) print *, 'Particle(s) lost. Assuming unstable...'
+        if (lost .and. bbu_param%verbose) print *, 'Particle(s) lost. Assuming unstable...'
         call calc_next_charge_try
         if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
       enddo
 
       beam_init%bunch_charge = (charge0 + charge1) / 2
-      print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
+      if (bbu_param%verbose) print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
       i = bbu_beam%ix_stage_voltage_max
       j = bbu_beam%stage(i)%ix_ele_lr_wake
       ele => lat%ele(j)
@@ -323,12 +309,12 @@ do istep = 1, nstep
         ele2 => pointer_to_multipass_lord (ele)
       endif
       i_lr = bbu_beam%stage(i)%ix_hom_max
-      print *, 'Element with critical HOM:', ele2%ix_ele, ':   ', ele2%name
-      print *, 'Critical HOM: Input Frequency: ', ele%rf_wake%lr(i_lr)%freq_in 
-      print *, 'Critical HOM: Actual Frequency:', ele%rf_wake%lr(i_lr)%freq
-      print *, 'Critical HOM: R_overQ:         ', ele%rf_wake%lr(i_lr)%r_over_q
-      print *, 'Critical HOM: Q:               ', ele%rf_wake%lr(i_lr)%q
-      print *, 'Critical HOM: Angle:           ', ele%rf_wake%lr(i_lr)%angle
+      if (bbu_param%verbose) print *, 'Element with critical HOM:', ele2%ix_ele, ':   ', ele2%name
+      if (bbu_param%verbose) print *, 'Critical HOM: Input Frequency: ', ele%rf_wake%lr(i_lr)%freq_in 
+      if (bbu_param%verbose) print *, 'Critical HOM: Actual Frequency:', ele%rf_wake%lr(i_lr)%freq
+      if (bbu_param%verbose) print *, 'Critical HOM: R_overQ:         ', ele%rf_wake%lr(i_lr)%r_over_q
+      if (bbu_param%verbose) print *, 'Critical HOM: Q:               ', ele%rf_wake%lr(i_lr)%q
+      if (bbu_param%verbose) print *, 'Critical HOM: Angle:           ', ele%rf_wake%lr(i_lr)%angle
 
       if (bbu_param%nrep.gt.1)write(55,'(i6,e14.6,2i7,6(e14.6,1x))') &
           irep, beam_init%bunch_charge / beam_init%dt_bunch, ele%ix_ele, ele2%ix_ele, ele%s, &
@@ -343,11 +329,24 @@ do istep = 1, nstep
 
   enddo  ! End of repetition loop
 
-  if (bbu_param%drscan) write(50,*) trtb, currth, beam_init%bunch_charge / beam_init%dt_bunch 
-
+  if (bbu_param%drscan .and. .not. bbu_param%regression) write(50,*) trtb, currth, beam_init%bunch_charge / beam_init%dt_bunch
+  if (bbu_param%regression) then
+     proto_th_str = '"Theor_current('
+     proto_num_str = '"Numer_current('
+     if (istep == 1) nstep_str = '1'
+     if (istep == 2) nstep_str = '2'
+     tail_str = ')" REL  1E-10'
+     final_th_str = proto_th_str//nstep_str//tail_str
+     final_num_str = proto_num_str//nstep_str//tail_str
+     
+     write(40, '(a, es22.15)') final_th_str, currth
+     write(40, '(a, es22.15)') final_num_str, beam_init%bunch_charge / beam_init%dt_bunch
+  end if
+  
 enddo  ! End of DRSCAN loop
 
-if (bbu_param%drscan) close(50)
+if (bbu_param%drscan .and. .not. bbu_param%regression) close(50)
+if (bbu_param%regression) close(40)
 if (bbu_param%nrep.gt.1)close(55)
 if (bbu_param%stable_orbit_anal) then
  close(56)
@@ -372,13 +371,13 @@ real(rp) c, min_delta, dc0, dc1, c0, c1, g0, g1
 ! Print info
 
 if (growth_rate > 0 .or. lost) then
-  print *, '  Unstable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
+  if (bbu_param%verbose) print *, '  Unstable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
 else
-  print *, '  Stable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
+  if (bbu_param%verbose) print *, '  Stable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
 endif
 
-print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
-print *, '         Growth rate: ', growth_rate
+if (bbu_param%verbose) print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
+if (bbu_param%verbose) print *, '         Growth rate: ', growth_rate
 
 !
 
@@ -489,7 +488,7 @@ if (charge_old > 0) then  ! If we have two trackings.
   endif
 
 
-  print *, '         Predicted threshold:', 1d3 * charge_threshold / beam_init%dt_bunch 
+  if (bbu_param%verbose) print *, '         Predicted threshold:', 1d3 * charge_threshold / beam_init%dt_bunch 
 
 endif
 
@@ -509,7 +508,7 @@ else
   endif
 endif
 
-print *, '         Current to try next:', 1d3 * beam_init%bunch_charge / beam_init%dt_bunch 
+if (bbu_param%verbose) print *, '         Current to try next:', 1d3 * beam_init%bunch_charge / beam_init%dt_bunch 
 
 end subroutine
 
