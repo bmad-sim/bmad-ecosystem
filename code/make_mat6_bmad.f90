@@ -460,6 +460,53 @@ case (quadrupole$)
     mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4)
   endif
 
+  ! Edge effects
+
+  if (ele%value(include_fringe$) /= 0) then
+    ! Entrance edge effect
+
+    x = c00%vec(1); px = c00%vec(2); y = c00%vec(3); py = c00%vec(4)
+    mat4 = 0
+
+    mat4(1,1) = 1 + k1 * (x**2 + y**2) / 4
+    mat4(1,3) =     k1 * x*y/2
+    mat4(2,1) =     k1 * (y*py - x*px) / 2
+    mat4(2,2) = 1 - k1 * (x**2 + y**2) / 4
+    mat4(2,3) =     k1 * (x*py - y*px) / 2
+    mat4(2,4) =     k1 * x*y/2
+
+    mat4(3,3) = 1 - k1 * (y**2 + x**2) / 4
+    mat4(3,1) =   - k1 * y*x/2
+    mat4(4,3) =   - k1 * (x*px - y*py) / 2
+    mat4(4,4) = 1 + k1 * (y**2 + x**2) / 4
+    mat4(4,1) =   - k1 * (y*px - x*py) / 2
+    mat4(4,2) =   - k1 * y*x/2
+
+    mat6(1:4,1:4) = matmul(mat6(1:4,1:4), mat4)
+
+    ! Exit edge effect
+
+    x = c11%vec(1); px = c11%vec(2); y = c11%vec(3); py = c11%vec(4)
+    mat4 = 0
+
+    mat4(1,1) = 1 - k1 * (x**2 + y**2) / 4
+    mat4(1,3) =   - k1 * x*y/2
+    mat4(2,1) =   - k1 * (y*py - x*px) / 2
+    mat4(2,2) = 1 + k1 * (x**2 + y**2) / 4
+    mat4(2,3) =   - k1 * (x*py - y*px) / 2
+    mat4(2,4) =   - k1 * x*y/2
+
+    mat4(3,3) = 1 + k1 * (y**2 + x**2) / 4
+    mat4(3,1) =     k1 * y*x/2
+    mat4(4,3) =     k1 * (x*px - y*py) / 2
+    mat4(4,4) = 1 - k1 * (y**2 + x**2) / 4
+    mat4(4,1) =     k1 * (y*px - x*py) / 2
+    mat4(4,2) =     k1 * y*x/2
+
+    mat6(1:4,1:4) = matmul(mat4, mat6(1:4,1:4))
+
+  endif
+
   ! tilt and multipoles
 
   if (ele%value(tilt_tot$) /= 0) then

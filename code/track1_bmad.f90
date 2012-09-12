@@ -513,6 +513,18 @@ case (quadrupole$)
 
   k1 = ele%value(k1$) / rel_pc
 
+  ! Entrance edge
+
+  if (ele%value(include_fringe$) /= 0) then
+    x = end_orb%vec(1); px = end_orb%vec(2); y = end_orb%vec(3); py = end_orb%vec(4)
+    end_orb%vec(1) = x  + k1 * (x**3/12 + x*y**2/4)
+    end_orb%vec(2) = px + k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
+    end_orb%vec(3) = y  - k1 * (y**3/12 + y*x**2/4)
+    end_orb%vec(4) = py - k1 * (y*x*px/2 - py*(y**2 + x**2)/4)
+  endif
+
+  ! Body
+
   call quad_mat2_calc (-k1, length, mat2, dz_coef)
   end_orb%vec(5) = end_orb%vec(5) + dz_coef(1) * end_orb%vec(1)**2 + &
                             dz_coef(2) * end_orb%vec(1) * end_orb%vec(2) + &
@@ -526,6 +538,16 @@ case (quadrupole$)
                             dz_coef(3) * end_orb%vec(4)**2 
 
   end_orb%vec(3:4) = matmul(mat2, end_orb%vec(3:4))
+
+  ! Exit edge
+
+  if (ele%value(include_fringe$) /= 0) then
+    x = end_orb%vec(1); px = end_orb%vec(2); y = end_orb%vec(3); py = end_orb%vec(4)
+    end_orb%vec(1) = x  - k1 * (x**3/12 + x*y**2/4)
+    end_orb%vec(2) = px - k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
+    end_orb%vec(3) = y  + k1 * (y**3/12 + y*x**2/4)
+    end_orb%vec(4) = py + k1 * (y*x*px/2 - py*(y**2 + x**2)/4)
+  endif
 
   call offset_particle (ele, end_orb, param%particle, unset$)  
 
