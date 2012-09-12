@@ -41,31 +41,34 @@ end type
 
 
 type bbu_param_struct
-  character(80) lat_file_name
-  type (bbu_current_variation_struct) current_vary
-  logical hybridize
-  logical write_hom_info
-  logical keep_overlays_and_groups  ! Keep when hybridizing?
-  logical keep_all_lcavities        ! Keep when hybridizing?
-  logical use_taylor_for_hybrids    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
-  logical stable_orbit_anal
-  real(rp) limit_factor
-  real(rp) simulation_turns_max, bunch_freq
-  real(rp) init_particle_offset
-  real(rp) current
-  real(rp) rel_tol
-  logical drscan
-  logical use_interpolated_threshold
-  integer elindex
-  character*40 elname
-  integer nstep
-  real(rp) begdr
-  real(rp) enddr
-  integer nrep
-  integer ran_seed
-  real(rp) ran_gauss_sigma_cut
-  character(40) ele_track_end
-  integer ix_ele_track_end   ! Default: set to last element with a wake
+  character(80) :: lat_file_name = 'erl.lat'     ! Bmad lattice file name
+  type (bbu_current_variation_struct) :: current_vary
+  logical :: hybridize = .true.                  ! Combine non-hom elements to speed up simulation?
+  logical :: write_hom_info = .true.             ! Write HOM parameters to main output file?
+  logical :: keep_overlays_and_groups = .false.  ! Keep when hybridizing?
+  logical :: keep_all_lcavities  = .false.       ! Keep when hybridizing?
+  logical :: use_taylor_for_hybrids = .false.    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
+  logical :: stable_orbit_anal = .false.         ! Write stable_orbit.out and hom_voltage.out?
+  real(rp) :: limit_factor = 2                   ! Init_hom_amp * limit_factor = simulation unstable limit
+  real(rp) :: simulation_turns_max = 20          ! Sets the duration of the simulation.
+  real(rp) :: bunch_freq = 1.3e9                 ! Freq in Hz.
+  real(rp) :: init_particle_offset = 1e-8        ! Initial particle offset for particles born in the first turn period.
+  real(rp) :: current = 20e-3                    ! Starting current (amps)
+  real(rp) :: rel_tol = 1e-2                     ! Final threshold current accuracy.
+  logical :: drscan = .true.                     ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
+  logical :: use_interpolated_threshold = .true.
+  integer :: elindex
+  character*40 :: elname = 'T1'                  ! Element to step length for DRSCAN
+  integer :: nstep = 100                         ! Number of steps for DRSCAN.      
+  real(rp) :: begdr = 5.234                      ! Beginning DR value for DRSCAN.          
+  real(rp) :: enddr = 6.135                      ! End DR value for DRSCAN.
+  integer :: nrep  = 1                           ! Number of times to repeat threshold calculation
+  integer :: ran_seed = 0                        ! If set to 0, the output results will vary from run to run.
+  real(rp) :: ran_gauss_sigma_cut = -1
+  character(40) :: ele_track_end = ' '
+  integer :: ix_ele_track_end = -1               ! Default: set to last element with a wake
+  logical :: regression = .false.                ! Do regression test?
+  logical :: verbose = .true.                    ! Verbose output? 
 end type
 
 contains
@@ -94,7 +97,7 @@ character(16) :: r_name = 'bbu_setup'
 ! Size bbu_beam%bunch
 
 if (dt_bunch == 0) then
-  call out_io (s_fatal$, r_name, 'DT_BUNCH IS ZERO!')
+  if (bbu_param%verbose) call out_io (s_fatal$, r_name, 'DT_BUNCH IS ZERO!')
   call err_exit
 endif
 
@@ -109,7 +112,7 @@ do i = 1, lat%n_ele_track
 enddo
 
 if (n_stage == 0) then
-  call out_io (s_fatal$, r_name, 'NO LR WAKES FOUND IN LATTICE!')
+  if (bbu_param%verbose) call out_io (s_fatal$, r_name, 'NO LR WAKES FOUND IN LATTICE!')
   call err_exit
 endif
 
@@ -152,7 +155,7 @@ do i = 1, lat%n_ele_track
       endif
     enddo
     if (k > j) then
-      call out_io (s_fatal$, r_name, 'BOOKKEEPING ERROR.')
+      if (bbu_param%verbose) call out_io (s_fatal$, r_name, 'BOOKKEEPING ERROR.')
       call err_exit
     endif
   else
@@ -278,7 +281,7 @@ do
       hom_voltage_gain = -1   ! Dummy value for output
     endif
 
-    write(*,'(a,i3,a,es15.6,5x,a,es15.6/,a,es13.6,a,i9,a/,a,es13.6)')&
+    if (bbu_param%verbose) write(*,'(a,i3,a,es15.6,5x,a,es15.6/,a,es13.6,a,i9,a/,a,es13.6)')&
          ' Period ', n_period_old,'   Time: ',bbu_beam%time_now, &
          ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
          ' Sum of max HOM wake amplitudes (V): ', hom_voltage_sum, &
@@ -300,14 +303,14 @@ do
     max_y = maxval(abs(orbit(1:n)%vec(3)))
     rms_x = sqrt(sum(orbit(1:n)%vec(1)**2)/n)
     rms_y = sqrt(sum(orbit(1:n)%vec(3)**2)/n)
-    print *,'      Orbit max and rms  X:',max_x,rms_x, &
-            '      -----------------  Y:',max_y,rms_y
+    if (bbu_param%verbose) print *,'      Orbit max and rms  X:',max_x,rms_x, &
+                                   '      -----------------  Y:',max_y,rms_y
 
     ! Exit loop over periods of max period reached
 
     if (r_period > bbu_param%simulation_turns_max) then
-      call out_io (s_warn$, r_name, 'SIMULATION_TURNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
-                            r_array = (/ hom_voltage_gain /) )
+      if (bbu_param%verbose) call out_io (s_warn$, r_name, 'SIMULATION_TURNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
+                                                   r_array = (/ hom_voltage_gain /) )
       exit
     endif
 
@@ -383,7 +386,7 @@ do j = ix_ele_start+1, ix_ele_end
 
   call track1_bunch (bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
   if (.not. all(bbu_beam%bunch(ib)%particle%state == alive$)) then
-    print *, 'PARTICLE(S) LOST WHILE TRACKING ELEMENT: ', trim(lat%ele(j)%name), '  (', j, ')'
+    if (bbu_param%verbose) print *, 'PARTICLE(S) LOST WHILE TRACKING ELEMENT: ', trim(lat%ele(j)%name), '  (', j, ')'
     lost = .true.
     return
   endif
@@ -414,7 +417,7 @@ endif
 ! for the stage.
 
 if (ib == bbu_beam%ix_bunch_end) then
-  call out_io (s_fatal$, r_name, 'NO BUNCHES FOR THE FIRST STAGE. GET HELP!')
+  if (bbu_param%verbose) call out_io (s_fatal$, r_name, 'NO BUNCHES FOR THE FIRST STAGE. GET HELP!')
   call err_exit
 else
   ib2 = modulo (ib, size(bbu_beam%bunch)) + 1 ! Next bunch upstream
@@ -476,7 +479,7 @@ if (bbu_beam%ix_bunch_end == -1) then ! if no bunches
 else
   ixb = modulo (bbu_beam%ix_bunch_end, size(bbu_beam%bunch)) + 1 ! Next empty slot
   if (ixb == bbu_beam%ix_bunch_head) then
-    call out_io (s_fatal$, r_name, 'BBU_BEAM%BUNCH ARRAY OVERFLOW')
+    if (bbu_param%verbose) call out_io (s_fatal$, r_name, 'BBU_BEAM%BUNCH ARRAY OVERFLOW')
     call err_exit
   endif
 endif
@@ -625,7 +628,7 @@ end subroutine bbu_hom_voltage_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine write_homs (lat, bunch_freq, trtb, currth)
+subroutine write_homs (lat, bunch_freq, trtb, currth, verbose)
 
 ! Write out information on lattice and HOMs
 ! Adapted from Changsheng's Get_Info.f90
@@ -655,6 +658,7 @@ real(rp) epsilon,kappa
 real(rp) stest
 integer nr
 real(rp) bunch_freq
+logical verbose
 allocate(erlmat(800, matrixsize, matrixsize))
 allocate(erltime(800))
 
@@ -683,7 +687,7 @@ do i = 1, lat%n_ele_track
       enddo
     endif
     if (judge) then
-      print *, ' Storing time for HOM cavity',k,time
+      if (verbose) print *, ' Storing time for HOM cavity',k,time
       erltime(k)=time
       time=0
       k=k+1       
@@ -707,7 +711,7 @@ judge =.false.
 anavalid = .true.
 
 !print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
-print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq  R/Q(ohms/m^2)     Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
+if (verbose) print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq  R/Q(ohms/m^2)     Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 
 do i=0, lat%n_ele_track
    
@@ -810,10 +814,10 @@ kk=1
 !
               if ( mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )  .le. pi )then
                currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi ) / nr )**2 )
-               print *,' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
+               if (verbose) print *,' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
               else
                currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )) / nr )**2 )
-               print *,' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
+               if (verbose) print *,' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
               endif
 !!!!!!!!             currth = abs ( cnumerator / mat(1,2) )
            else
@@ -827,12 +831,12 @@ kk=1
           currthc = -1
           if (matc /= 0) currthc = currth * abs ( mat(1,2) / matc )
 
-          print '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)', k, j, currth, currthc, erltime(k), &
+          if (verbose) print '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)', k, j, currth, currthc, erltime(k), &
                            lat%ele(i)%rf_wake%lr(j)%freq, lat%ele(i)%rf_wake%lr(j)%R_over_Q,lat%ele(i)%rf_wake%lr(j)%Q,lat%ele(i)%rf_wake%lr(j)%angle, &
                            mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
                            sin (2*pi*lat%ele(i)%rf_wake%lr(j)%freq*erltime(k)),trtb
 
-          print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, ' Ohms  epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
+          if (verbose) print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, ' Ohms  epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
 
           if(kk.ne.1)anavalid=.false.
 
