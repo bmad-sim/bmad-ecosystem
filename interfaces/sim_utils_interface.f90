@@ -244,27 +244,6 @@ interface
 end interface
  
 interface
-  subroutine ion_kick (x, y, x_kicker, y_kicker, s_kicker)
-    use precision_def
-    real(rp) x
-    real(rp) y
-    real(rp) x_kicker
-    real(rp) y_kicker
-    real(rp) s_kicker
-  end subroutine
-end interface
- 
-interface
-  subroutine ion_kick_2d (x, y, x_kicker, y_kicker)
-    use precision_def
-    real(rp) x
-    real(rp) y
-    real(rp) x_kicker
-    real(rp) y_kicker
-  end subroutine
-end interface
- 
-interface
   function is_integer (string) result (valid)
     character(*) string
     logical valid
