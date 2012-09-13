@@ -370,6 +370,11 @@ foreach(exespec ${EXE_SPECS})
   set(FFLAGS)
   set(CPPFLAGS)
 
+  set(SRC_DIRS)
+  set(c_sources)
+  set(cpp_sources)
+  set(f_sources)
+
   include(${exespec})
 
   # TODO: Convert this to macro or function?
@@ -435,6 +440,70 @@ foreach(exespec ${EXE_SPECS})
     set(BUILD_EXE_TOGGLE "EXCLUDE_FROM_ALL")
   ENDIF ()
 
+
+  #-------------------------------------------
+  # Collect list of all source files for all
+  # supported languages from all directories
+  # mentioned in project CMakeLists.txt file.
+  #-------------------------------------------
+  foreach(dir ${SRC_DIRS})
+
+      set(temp_list)
+      file(GLOB temp_list ${dir}/*.c)
+      LIST(APPEND c_sources ${temp_list})
+
+      file(GLOB temp_list ${dir}/*.C)
+      LIST(APPEND c_sources ${temp_list})
+      #-----------------------------------
+      # Set compiler flag properties for 
+      # all C source files.
+      #-----------------------------------
+      foreach (file ${c_sources})
+	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+      endforeach()
+      LIST(APPEND SRC_FILES ${c_sources})
+
+
+      set(temp_list)
+      file(GLOB temp_list ${dir}/*.cpp)
+      LIST(APPEND cpp_sources ${temp_list})
+
+      file(GLOB temp_list ${dir}/*.cc)
+      LIST(APPEND cpp_sources ${temp_list})
+
+      file(GLOB temp_list ${dir}/*.cxx)
+      LIST(APPEND cpp_sources ${temp_list})
+      #-----------------------------------
+      # Set compiler flag properties for 
+      # all C source files.
+      #-----------------------------------
+      foreach (file ${cpp_sources})
+	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
+      endforeach()
+      LIST(APPEND SRC_FILES ${cpp_sources})
+
+
+      set(temp_list)
+      file(GLOB temp_list ${dir}/*.f)
+      LIST(APPEND f_sources ${temp_list})
+
+      file(GLOB temp_list ${dir}/*.F)
+      LIST(APPEND f_sources ${temp_list})
+
+      file(GLOB temp_list ${dir}/*.f90)
+      LIST(APPEND f_sources ${temp_list})
+      #-----------------------------------
+      # Set compiler flag properties for
+      # all Fortran source files.
+      #-----------------------------------
+      foreach (file ${f_sources})
+	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+      endforeach()
+      LIST(APPEND SRC_FILES ${f_sources})
+
+  endforeach(dir)
+
+
   #----------------------------------------------
   # Apply user-specified compiler flags to each 
   # file being built into the executable.
@@ -487,6 +556,8 @@ foreach(exespec ${EXE_SPECS})
       set(ext_match)
     endforeach(srcfile)
   endif ()
+
+
 
   SET(CFLAGS)
   SET(FFLAGS)
