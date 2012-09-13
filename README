@@ -9,16 +9,20 @@ the program output to a file which has the "correct" output.
 The main "regression_tests" directory contains a file called
 "tests.list".  In this file is a list of subdirectories of
 "regression_tests". These subdirectories are called the "regression"
-subdirectories. In the "tests.list" file there is also listed the
-program associated with each regression subdirectory.
+subdirectories. 
 
 When the regression test script is run, each regression subdirectory
 is visited in turn. In each regression subdirectory, the appropriate
-program is run. The program will create an output file called
+program is run. The name of the program is assumed to be the same as
+the name of the regression subdirectory. However, if the regression 
+subdirectory has a file name 'exe_file', the name of the program is 
+read from this file.   
+
+The program will create an output file called
 "output.now".  The regression script will compare this file to an
 existing file in the subdirectory named "output.correct". The
 regression test is sucessful if the numbers in two files are the same
-within the tollerances given in the "output.now" file. See the
+within the tolerances given in the "output.now" file. See the
 "Constructing a new test" section for details on the syntax of these
 files.
 
@@ -46,10 +50,10 @@ Defaults:
 
 <exe_dir> is the directory where all the programs are.  If <exe_dir>
 is a relative path name, it must be relative to any subdirectory of
-regression_tests.  <program_dir> is optional and, if not present, will
+regression_tests.  <exe_dir> is optional and, if not present, will
 default to "../../bin"
 
-3) The results will be saved in a file "test.results"
+3) The results will be saved in a file "regression.results"
 
 ------------------------------------------------- 
 Constructing a new test:
@@ -59,8 +63,7 @@ For this documentation call this subdirectory "zzz".
 
 2) Add a line to the "regression_tests/tests.list" file. Each line in
 this file is of the format:
-  <subdir_name> <program_name>
-The <program_name> is optional if it is the same as <subdir_name>.
+  <subdir_name>
 
 3) If needed: In this subdirectory put your testing program code and any input
 files needed for running the program. Additionally, a file
@@ -102,7 +105,13 @@ In this example the "Orbit at s = 34.5" data has values 0.023,
 corresponding values in "output.correct" must not differ by more than
 0.01%
 
-5) Makefile setup for compiling/linking the program:
+5) This step should be skipped if the regression subdirectory
+does  not contain any testing program code that needs to be compiled.
+In that case, the regression subdirectory should contain a file called
+'exe_file' which contains just one word: the name of the program to be 
+run. The user should make sure that this program is available in <exe_dir>.
+
+Makefile setup for compiling/linking the program:
   A) Add a "M.zzz" makefile in the regression_tests directory. 
 Use, say, the existing "M.twiss_track_test" file as a template.
 In the M.zzz makefile substitute "zzz" for "twiss_track_test".
@@ -118,8 +127,8 @@ a "output.now" file to create a new file named "output.temp" which has
 the correct format for "output.correct". 
   C) mv output.temp output.correct
 
-6) You are now done. The scripts/run_tests.py script will parse the
-Makefile in order to determine the list of programs to be run.
+7) You are now done. The scripts/run_tests.py script will parse the
+tests.list file in order to determine the list of programs to be run.
 
 Guideline:
   Make the running time for programs short (few minutes max).
