@@ -30,12 +30,12 @@ if ( [ ! -e CMakeLists.txt ] ) then
 fi
 
 # Assign build type based on invoked name of script.
-if [[ ${THIS_SCRIPT} == "mk" ]]
+if [[ ${THIS_SCRIPT} == "mk2" ]]
 then
   BUILD_TYPE="production"
 fi
 
-if [[ ${THIS_SCRIPT} == "mkd" ]]
+if [[ ${THIS_SCRIPT} == "mkd2" ]]
 then
   BUILD_TYPE="debug"
 fi
@@ -49,13 +49,18 @@ fi
 
 cd ${BUILD_TYPE}
 # Only invoke cmake if the user has not requested a 'clean'.
-if [[ ${1} != "clean" ]]
+if [[ ${1} == "clean" ]]
 then
+  gmake clean
+elif [[ ${1} == "cleaner" ]]
+then
+  gmake clean
+  cd ..
+  rm -rf `pwd`/${BUILD_TYPE}
+  echo ""
+  echo "Removed cached files.  This will force a reconfiguration upon the next build request."
+  echo ""
+else
   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
+  gmake -j2 ${@}
 fi
-
-if [[ $? -eq 0 ]]
-then
-  gmake -j2 $@
-fi
-
