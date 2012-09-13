@@ -85,7 +85,7 @@ for line in dir_list:
   num_local_tests = 0
   num_local_failures = 0
 
-  if len(dir_split) > 2:
+  if len(dir_split) > 1:
     print_all ('\nExtra stuff on line in "tests.list": ' + dir_split, True, True)
     continue
 
@@ -102,7 +102,10 @@ for line in dir_list:
   # Run process and make sure output.now has been created
 
   program = dir_split[0]
-  if len(dir_split) == 2: program = dir_split[1]
+  # if len(dir_split) == 2: program = dir_split[1]
+  if os.path.exists('exe_file'):
+    exe_file = open ('exe_file', 'r')
+    program = exe_file.readline().strip().split()[0]
   program = bin_dir + program
 
   print_all ('\nStarting testing in subdirectory: ' + dir_split[0])
