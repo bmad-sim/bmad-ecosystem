@@ -31,6 +31,12 @@ graph%valid = .true.   ! assume everything OK
 graph%why_invalid = ''
 graph%text_legend = ''
 
+if (allocated (graph%curve)) then
+  do i = 1, size(graph%curve)
+    graph%curve(i)%message_text = ''
+  enddo
+endif
+
 call tao_hook_graph_setup (plot, graph, found)
 if (found) return
 
@@ -1348,6 +1354,10 @@ do ii = 1, size(curve%x_line)
 
     if (err) then
       good(ii:) = .false.
+      if (orbit_end%state /= alive$) then
+        write (curve%message_text, '(f10.3)') s_now
+        curve%message_text = 'Particle lost at s = ' // trim(adjustl(curve%message_text))
+      endif
       return
     endif
 

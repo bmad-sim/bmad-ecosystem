@@ -192,9 +192,10 @@ end subroutine
 
 subroutine tao_scale_graph (graph, y_min, y_max, axis)
 
-type (tao_graph_struct) graph
+type (tao_graph_struct), target :: graph
 type (lat_struct), pointer :: lat
 type (tao_ele_shape_struct), pointer :: shape
+type (tao_curve_struct), pointer :: curve
 type (floor_position_struct) floor, end
 type (qp_axis_struct) axis_save
 
@@ -315,30 +316,31 @@ else
   found_data2 = .false.
 
   do i = 1, size(graph%curve)
+    curve => graph%curve(i)
 
-    if (allocated(graph%curve(i)%y_symb)) then
-      if (size(graph%curve(i)%y_symb) > 0) then
-        if (graph%curve(i)%use_y2) then
-          this_min2 = min(this_min2, minval(graph%curve(i)%y_symb))
-          this_max2 = max(this_max2, maxval(graph%curve(i)%y_symb))
+    if (allocated(curve%y_symb) .and. curve%draw_symbols) then
+      if (size(curve%y_symb) > 0) then
+        if (curve%use_y2) then
+          this_min2 = min(this_min2, minval(curve%y_symb))
+          this_max2 = max(this_max2, maxval(curve%y_symb))
           found_data2 = .true.
         else
-          this_min = min(this_min, minval(graph%curve(i)%y_symb))
-          this_max = max(this_max, maxval(graph%curve(i)%y_symb))
+          this_min = min(this_min, minval(curve%y_symb))
+          this_max = max(this_max, maxval(curve%y_symb))
           found_data = .true.
         endif
       endif
     endif
 
-    if (allocated(graph%curve(i)%y_line)) then
-      if (size(graph%curve(i)%y_line) > 0) then
-        if (graph%curve(i)%use_y2) then
-          this_min2 = min(this_min2, minval(graph%curve(i)%y_line))
-          this_max2 = max(this_max2, maxval(graph%curve(i)%y_line))
+    if (allocated(curve%y_line) .and. curve%draw_line) then
+      if (size(curve%y_line) > 0) then
+        if (curve%use_y2) then
+          this_min2 = min(this_min2, minval(curve%y_line))
+          this_max2 = max(this_max2, maxval(curve%y_line))
           found_data2 = .true.
         else
-          this_min = min(this_min, minval(graph%curve(i)%y_line))
-          this_max = max(this_max, maxval(graph%curve(i)%y_line))
+          this_min = min(this_min, minval(curve%y_line))
+          this_max = max(this_max, maxval(curve%y_line))
           found_data = .true.
         endif
       endif

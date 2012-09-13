@@ -1392,6 +1392,22 @@ if (graph%draw_curve_legend .and. n > 1) then
             symbol, text, s%plotting%curve_legend_text_offset)
 endif
 
+! Draw any curve info messages
+
+j = 0
+do i = 1, n
+  curve => graph%curve(i)
+  if (curve%message_text == '') cycle
+  j = j + 1
+  text(j) = trim(curve%data_type) // ' : ' // trim(curve%message_text)
+enddo
+
+if (j > 1) then
+  call qp_draw_text_legend (text(1:j), 0.50_rp, 0.95_rp, '%GRAPH/LB')
+endif
+
+!
+
 deallocate (text, symbol, line)
 
 end subroutine tao_plot_data

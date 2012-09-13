@@ -610,8 +610,14 @@ case ('curve')
       if (n > size(lines)) call re_allocate(lines, n, .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Symbol points:'
-      nl=nl+1; lines(nl) = '      i  index             x             y'
       err = .false.
+
+      nl=nl+1; lines(nl) = '      i  index        x-axis'
+      do j = 1, size(curve)
+        str = curve(j)%c%name
+        lines(nl) = lines(nl)(1:28+(j-2)*14) // adjustr(str(1:14))
+      enddo
+
       do j = 2, size(curve)
         if (size(curve(j)%c%y_symb) /= size(c1%y_symb)) then
           nl=nl+1; lines(nl) = 'NUMBER OF SYMBOL POINTS NOT THE SAME IN ALL CURVES!'
@@ -619,6 +625,7 @@ case ('curve')
           exit
         endif
       enddo
+
       if (.not. err) then
         do i = 1, size(c1%x_symb)
           nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') i, c1%ix_symb(i), &
@@ -630,7 +637,13 @@ case ('curve')
     if (show_line) then
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Smooth line points:'
-      nl=nl+1; lines(nl) = ' Index             x             y'
+      nl=nl+1; lines(nl) = ' Index        x-axis'
+
+      do j = 1, size(curve)
+        str = curve(j)%c%name
+        lines(nl) = lines(nl)(1:20+(j-2)*14) // adjustr(str(1:14))
+      enddo
+
       do j = 2, size(curve)
         if (size(curve(j)%c%y_line) /= size(c1%y_line)) then
           nl=nl+1; lines(nl) = 'NUMBER OF LINE POINTS NOT THE SAME IN ALL CURVES!'
@@ -638,6 +651,7 @@ case ('curve')
           exit
         endif
       enddo
+
       if (.not. err) then
         call re_allocate (lines, nl+size(c1%x_line)+100, .false.)
         do i = 1, size(c1%x_line)
