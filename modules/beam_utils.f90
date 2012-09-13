@@ -678,14 +678,14 @@ if (beam_init%full_6D_coupling_calc) then
   twiss_ele%b%alpha = 0.0d0
   twiss_ele%value(e_tot$) = ele%value(e_tot$)
 else
-  twiss_ele = ele
+  call transfer_ele (ele, twiss_ele, .true.)
 endif
 
 call calc_this_emit (beam_init, twiss_ele, param)
 
 covar = beam_init%dPz_dz * beam_init%sig_z**2
 twiss_ele%z%emit = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
-if (twiss_ele%z%emit == 0) then
+if (twiss_ele%z%emit == 0 .or. beam_init%full_6D_coupling_calc) then
   twiss_ele%z%beta = 1
   twiss_ele%z%alpha = 0
 else
@@ -698,12 +698,7 @@ endif
 n_kv = 0
 ix_kv = 0
 ran_gauss_here = .false.
-if (beam_init%full_6D_coupling_calc) then
-  correct_for_coupling = .true.
-else
-  correct_for_coupling(1:4) = .true.
-  correct_for_coupling(5:6) = .false.
-endif
+correct_for_coupling = .true.
 
 ! Fill the corresponding struct and generate the distribution for each phase plane.
 ! init_random_distribution must be called last since the other distributions "multiply"
@@ -758,16 +753,16 @@ do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%charge = bunch%charge * p%charge
   p%state = alive$
-  if (beam_init%full_6D_coupling_calc) then
-    p_temp%vec(1:6) = matmul(V6mat, p%vec(1:6))
-  else
-    ! Include Dispersion
-    p_temp%vec(1:4) =  p%vec(1:4) + p%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
-    ! Include Coupling
-    p_temp%vec(1:4) = matmul(v_mat, p%vec(1:4))
-  endif
 
-  where (correct_for_coupling) p%vec = p_temp%vec  
+  ! Include Dispersion and coupling
+  if (beam_init%full_6D_coupling_calc) then
+    p%vec(1:6) = matmul(V6mat, p%vec(1:6))
+
+  else
+    p_temp%vec(1:4) = p%vec(1:4) + p%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
+    p_temp%vec(1:4) = matmul(v_mat, p_temp%vec(1:4))
+    where (correct_for_coupling(1:4)) p%vec(1:4) = p_temp%vec(1:4)
+  endif
 
 enddo
 
