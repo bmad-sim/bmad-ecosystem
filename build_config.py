@@ -50,67 +50,19 @@ repository_addresses = {
 #-----------------------------------------------------
 #-----------------------------------------------------
 build_specs = {
-    'Linux_i686_intel-offline' : {
-        'type' : 'release',
-        'platform' : 'Linux_i686_intel',
-        'basedir' : '/nfs/acc/libs',
-        'domain' : 'OFFLINE',
-        'host'   : 'lnx209.lns.cornell.edu',
-        'repositories' : {
-            'ACC-LEPP' : [
-                '/trunk/util',
-                '/trunk/Gmake',
-                '/trunk/src/include',
-                '/trunk/src/lattice',
-                '/trunk/src/c_utils',
-                '/trunk/src/recipes_f-90_LEPP',
-                '/trunk/src/sim_utils',
-                '/trunk/src/mpmnet',
-                '/trunk/src/cbi_net',
-                '/trunk/src/cbpmfio',
-                '/trunk/src/BeamInstSupport',
-                '/trunk/src/CBPM-TSHARC',
-                '/trunk/src/CBIC',
-                '/trunk/src/bmad',
-                '/trunk/src/cesr_utils',
-                '/trunk/src/mpm_utils',
-                '/trunk/src/nonlin_bpm',
-                '/trunk/src/tao',
-                '/trunk/src/tao_cesr',
-                '/trunk/src/CesrBPM',
-                '/trunk/src/bmadz',
-                '/trunk/src/cesrv',
-                '/trunk/src/bsim',
-                '/trunk/src/bsim_cesr',
-                '/trunk/src/cesr_programs',
-                '/trunk/src/fbph',
-                '/trunk/src/util_programs',
-                '/trunk/src/BPM_tbt_gain',
-                '/trunk/src/examples',
-                '/trunk/src/genplt',
-                '/trunk/src/CBSM/xBSM/XbsmAnalysis'
-                
-                ##'/trunk/src/displays'
-                ##ccon_det
-                ##logit
-                ##magstat
-                ##rfintl
-                ##simcon
-            ]
-        }
-    },
     'Linux_x86_64_intel-offline' : {
         'type' : 'release',
         'platform' : 'Linux_x86_64_intel',
         'basedir' : '/nfs/acc/libs',
         'domain' : 'OFFLINE',
-        'host'   : 'acc101.lns.cornell.edu',
+        #'host'   : 'acc101.lns.cornell.edu',
+        'host'   : 'lnx6212.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
                 '/trunk/Gmake',
                 '/trunk/src/include',
-                '/trunk/src/lattice',
+#                '/trunk/src/lattice',
                 '/trunk/src/c_utils',
                 '/trunk/src/recipes_f-90_LEPP',
                 '/trunk/src/sim_utils',
@@ -122,17 +74,16 @@ build_specs = {
                 '/trunk/src/CBIC',
                 '/trunk/src/bmad',
                 '/trunk/src/cesr_utils',
+                '/trunk/src/CesrBPM',                
                 '/trunk/src/mpm_utils',
                 '/trunk/src/nonlin_bpm',
                 '/trunk/src/tao',
                 '/trunk/src/tao_cesr',
-                '/trunk/src/CesrBPM',
                 '/trunk/src/bmadz',
                 '/trunk/src/cesrv',
                 '/trunk/src/bsim',
                 '/trunk/src/bsim_cesr',
                 '/trunk/src/cesr_programs',
-                '/trunk/src/fbph',
                 '/trunk/src/util_programs',
                 '/trunk/src/BPM_tbt_gain',
                 '/trunk/src/examples',
@@ -257,6 +208,7 @@ build_specs = {
                     # make single_double_complex_dcomplex
                     # cp ../lapack95.a ../../../lib/liblapack95.a
                     # Symlink library to liblapack95_g.a as well.
+                    # cp lapack95_modules/* ../../modules
                 # fftw3
                     # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/..
                     # make
