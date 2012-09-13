@@ -293,7 +293,9 @@ export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
 
 export ACC_GMAKE=${ACC_RELEASE_DIR}/Gmake
+
 export ACC_BUILD_SYSTEM=/nfs/acc/libs/build_system
+export ACC_BUILD_EXES=Y
 export ACC_CMAKE_VERSION=2.8
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 
