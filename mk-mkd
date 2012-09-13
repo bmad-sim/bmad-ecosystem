@@ -30,12 +30,12 @@ if ( [ ! -e CMakeLists.txt ] ) then
 fi
 
 # Assign build type based on invoked name of script.
-if [[ ${THIS_SCRIPT} == "mk2" ]]
+if [[ ${THIS_SCRIPT} == "mk" ]]
 then
   BUILD_TYPE="production"
 fi
 
-if [[ ${THIS_SCRIPT} == "mkd2" ]]
+if [[ ${THIS_SCRIPT} == "mkd" ]]
 then
   BUILD_TYPE="debug"
 fi
