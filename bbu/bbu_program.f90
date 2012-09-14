@@ -86,7 +86,7 @@ call run_timer ('START')
 
 if (bbu_param%hom_order_cutoff > 0) then
   do i = 1, lat_in%n_ele_max
-    ele => lat%ele(i)
+    ele => lat_in%ele(i)
     if (.not. associated(ele%rf_wake)) cycle
     if (.not. associated(ele%rf_wake%lr)) cycle
     n = count(ele%rf_wake%lr(:)%m > bbu_param%hom_order_cutoff)
@@ -103,6 +103,7 @@ if (bbu_param%hom_order_cutoff > 0) then
       if (lr(j)%m > bbu_param%hom_order_cutoff) cycle
       n = n + 1; ele%rf_wake%lr(n) = lr(j)
     enddo
+    deallocate(lr)
   enddo
 endif
 
