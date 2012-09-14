@@ -417,43 +417,45 @@ end subroutine type_ptc_internal_state
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine type_ptc_fiber (fiber, lines, n_lines)
+! Subroutine type_ptc_fibre (ptc_fibre, lines, n_lines)
 !
-! Routine to put information on a PTC fiber element into a string array.
+! Routine to put information on a PTC fibre element into a string array.
 ! If "lines" is not present, the information will be printed to the screen.
 !
 ! Module Needed:
 !   use ptc_interface_mod
 !
 ! Input:
-!   fiber     -- fibre, pointer: Fiber.
+!   ptc_fibre -- fibre, pointer: Fibre to type info of.
 !
 ! Output:
-!   lines(:)  -- character(100), optional, allocatable: Character array to hold the output.
+!   lines(:)  -- character(120), optional, allocatable: Character array to hold the output.
 !   n_lines   -- integer, optional: Number of lines used in lines(:)
 !-
 
-subroutine type_ptc_fiber (fiber, lines, n_lines)
+subroutine type_ptc_fibre (ptc_fibre, lines, n_lines)
 
-use definition, only: patch, element, elementp, magnet_chart, lp
+use definition, only: patch, element, elementp, magnet_chart, lp, chart, magnet_frame
 
 implicit none
 
-type (fibre), pointer :: fiber
+type (fibre), pointer :: ptc_fibre
 type (patch), pointer :: ptch
 type (element), pointer :: mag
 type (elementp), pointer :: magp
 type (magnet_chart), pointer :: p
+type (chart), pointer :: chrt
+type (magnet_frame), pointer :: frame
 
 integer, optional :: n_lines
 integer i, nl
 
 character(*), allocatable, optional :: lines(:)
-character(100), allocatable :: li(:)
-character(100) str
-character(16), parameter :: r_name = 'type_ptc_fiber'
+character(160), allocatable :: li(:)
+character(160) str
+character(16), parameter :: r_name = 'type_ptc_fibre'
 
-logical printit, mag_chart_exists
+logical printit
 
 !
 
@@ -462,29 +464,65 @@ call re_allocate(li, 100, .false.)
 
 !
 
-if (.not. associated(fiber)) then
-  nl=nl+1; li(nl) = 'Fiber pointer not associated!'
+if (.not. associated(ptc_fibre)) then
+  nl=nl+1; li(nl) = 'Fibre pointer not associated!'
   call type_end_stuff(li, nl, lines, n_lines)
   return
 endif
 
 !
 
-nl=nl+1; li(nl) = 'Fiber:'
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%pos    [Index in layout]:   ', int_of(fiber%pos, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%loc    [Index in universe]: ', int_of(fiber%loc, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%dir    [Direction]:         ', int_of(fiber%dir, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%beta0  [Beta velocity]:     ', real_of(fiber%beta0, 'es13.5')
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%mass   [Mass]:              ', real_of(fiber%mass, 'es13.5', 1e9_rp)
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%charge [Charge]:            ', real_of(fiber%charge, 'es13.5')
+nl=nl+1; li(nl) = 'Fibre:'
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%pos    [Index in layout]:   ', int_of(ptc_fibre%pos, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%loc    [Index in universe]: ', int_of(ptc_fibre%loc, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%dir    [Direction]:         ', int_of(ptc_fibre%dir, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%beta0  [Beta velocity]:     ', real_of(ptc_fibre%beta0, 'es13.5')
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%mass   [Mass]:              ', real_of(ptc_fibre%mass, 'es13.5', 1e9_rp)
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%charge [Charge]:            ', real_of(ptc_fibre%charge, 'es13.5')
 
-! fiber%mag
+! ptc_fibre%chart
 
-mag_chart_exists = .false.
+nullify(frame)
+chrt => ptc_fibre%chart
 
-mag => fiber%mag
+nl=nl+1; li(nl) = ''
+if (associated(chrt)) then
+  nl=nl+1; li(nl) = 'fibre%chart (Type: chart):'
+  nl=nl+1; li(nl) = '  [Fibre to Magnet patch at Entrance End:]'
+  call write_reals ('%d_in   [displacement]  ', chrt%d_in,   '3f11.7')
+  call write_reals ('%ang_in [angle]         ', chrt%ang_in, '3f11.7')
+  nl=nl+1; li(nl) = '  [Magnet to Fibre patch at Exit End:]'
+  call write_reals ('%d_out   [displacement]  ', chrt%d_out,   '3f11.7')
+  call write_reals ('%ang_out [angle]         ', chrt%ang_out, '3f11.7')
+  frame => chrt%f
+else
+  nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated.'
+endif
+
+! ptc_fibre%chart%f
+
+nl=nl+1; li(nl) = ''
+if (associated(frame)) then
+  nl=nl+1; li(nl) = 'fibre%chart%f (Type: magnet_frame):'
+  nl=nl+1; li(nl) = '  [Global orientation of the Entrance end of the Fibre]:'
+  call write_reals  ('%a   [position]:   ', frame%a,   '3f11.7')
+  call write_real2d ('%ent [Orientation]:', frame%ent, '3f11.7')
+  nl=nl+1; li(nl) = '  [Global orientation of the Exit end of the Fibre]:'
+  call write_reals  ('%b   [position]:   ', frame%b,   '3f11.7')
+  call write_real2d ('%exi [Orientation]:', frame%exi, '3f11.7')
+
+else
+  nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated'
+endif
+
+! ptc_fibre%mag
+
+nullify(p)
+
+mag => ptc_fibre%mag
+nl=nl+1; li(nl) = ''
 if (associated(mag)) then
-  nl=nl+1; li(nl) = 'fiber%mag (Type: element):'
+  nl=nl+1; li(nl) = 'fibre%mag (Type: element):'
   nl=nl+1; write (li(nl), '(2x, a, t40, a)')  '%name   [Name]:     ', name_of(mag%name)
   nl=nl+1; write (li(nl), '(2x, a, t40, a)')  '%kind   [Kind]:     ', kind_name(mag%kind)
   call is_associated (associated(mag%d0),     '%d0     [Drift]:')
@@ -528,18 +566,20 @@ if (associated(mag)) then
   endif
   nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%thin:        ', logical_of(mag%thin)
 
-  if (associated(mag%p)) mag_chart_exists = .true.
+  p =>  ptc_fibre%mag%p
 
 else
-  nl=nl+1; li(nl) = 'fiber%mag (Type: element): Not Associated.'
+  nl=nl+1; li(nl) = 'fibre%mag (Type: element): Not Associated.'
 endif
 
-! fiber%mag%p
+! ptc_fibre%mag%p
 
-if (mag_chart_exists) then
-  nl=nl+1; li(nl) = 'fiber%mag%p (Type: magnet_chart):'
-  p => fiber%mag%p
-  
+nullify(frame)
+
+nl=nl+1; li(nl) = ''
+if (associated(p)) then
+  nl=nl+1; li(nl) = 'fibre%mag%p (Type: magnet_chart):'
+  call write_real  ('%p0c   [P0C]     ',  p%p0c,   'es13.5', 1e9_rp)
   call write_real  ('%ld    [L]:      ',  p%ld,    'es13.5')
   call write_real  ('%lc    [L_chord]:',  p%lc,    'es13.5')
   call write_real  ('%tiltd [Tilt]:   ',  p%tiltd, 'es13.5')
@@ -548,29 +588,47 @@ if (mag_chart_exists) then
   nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%method [Integration order]: ', int_of(p%method, 'i0')
   nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%nst    [Integration steps]: ', int_of(p%nst, 'i0')
   nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%exact  [Exact integration]: ', logical_of(p%exact)
-
+  frame => p%f
 
 else
-  nl=nl+1; li(nl) = 'fiber%mag%p (Type: magnet_chart): Not Associated.'
+  nl=nl+1; li(nl) = 'fibre%mag%p (Type: magnet_chart): Not Associated.'
+endif
+
+! ptc_fibre%mag%p%f
+
+nl=nl+1; li(nl) = ''
+if (associated(frame)) then
+  nl=nl+1; li(nl) = 'fibre%mag%p%f (Type: magnet_frame):'
+  nl=nl+1; li(nl) = '  [Global orientation of the Entrance end of the Magnet]:'
+  call write_reals  ('%a   [position]:   ', frame%a,   '3f11.7')
+  call write_real2d ('%ent [Orientation]:', frame%ent, '3f11.7')
+  nl=nl+1; li(nl) = '  [Global orientation of the Exit end of the Magnet]:'
+  call write_reals  ('%b   [position]:   ', frame%b,   '3f11.7')
+  call write_real2d ('%exi [Orientation]:', frame%exi, '3f11.7')
+
+else
+  nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated'
 endif
 
 
-! fiber%magp
+! ptc_fibre%magp
 
-magp => fiber%magp
+magp => ptc_fibre%magp
+nl=nl+1; li(nl) = ''
 if (associated(magp)) then
-  nl=nl+1; li(nl) = 'fiber%magp (Type: elementp):'
+  nl=nl+1; li(nl) = 'fibre%magp (Type: elementp):'
   nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%knob:        ', logical_of(magp%knob)
 
 else
-  nl=nl+1; li(nl) = 'fiber%magp (Type: elementp): Not Associated.'
+  nl=nl+1; li(nl) = 'fibre%magp (Type: elementp): Not Associated.'
 endif
 
 !
 
-ptch => fiber%patch
+ptch => ptc_fibre%patch
+nl=nl+1; li(nl) = ''
 if (associated(ptch)) then
-  nl=nl+1; li(nl) = 'fiber%patch (Type: patch):'
+  nl=nl+1; li(nl) = 'fibre%patch (Type: patch):'
   nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%patch  [Patch at]:            ', patch_name(ptch%patch)
 
   printit = .false.
@@ -610,7 +668,7 @@ if (associated(ptch)) then
 
 
 else
-  nl=nl+1; li(nl) = 'fiber%patch (Type: patch): Not Associated.'
+  nl=nl+1; li(nl) = 'fibre%patch (Type: patch): Not Associated.'
 endif
 
 !
@@ -720,7 +778,8 @@ real(dp), pointer :: real_in
 real(rp), optional :: mult
 
 character(*) fmt
-character(20) str, fmt2
+character(20) fmt2
+character(100) str
 
 if (associated(real_in)) then
   fmt2 = '(' // trim(fmt) // ')'
@@ -747,7 +806,8 @@ real(rp), optional :: mult
 
 logical, optional :: writeit
 character(*) real_fmt, pre_str
-character(20) str, fmt2
+character(20) fmt2
+character(100) str
 
 ! Default is to no write if real_in is not present
 
@@ -780,7 +840,8 @@ real(rp), optional :: mult
 
 logical, optional :: writeit
 character(*) real_fmt, pre_str
-character(20) str, fmt2
+character(20) fmt2
+character(100) str
 
 ! Default is to no write if real_in is not present
 
@@ -806,11 +867,45 @@ end subroutine write_reals
 !-----------------------------------------------------------------------------
 ! contains
 
+subroutine write_real2d (pre_str, real2d, real_fmt, mult, writeit)
+
+real(dp), pointer :: real2d(:, :)
+real(dp), pointer :: real1d(:)
+real(rp), optional :: mult
+
+integer i, n
+logical, optional :: writeit
+character(*) real_fmt, pre_str
+character(100) str
+
+! Default is to no write if real_in is not present
+
+if (.not. associated(real2d)) then
+  nullify(real1d)
+  call write_reals(pre_str, real1d, real_fmt, mult, writeit)
+else
+  real1d  => real2d(1,:)
+  call write_reals(pre_str, real1d, real_fmt, mult, writeit)
+
+  str = ''
+  do i = 2, size(real2d, 1)
+    real1d  => real2d(i,:)
+    call write_reals(str(1:len(pre_str)), real1d, real_fmt, mult, writeit)
+  enddo
+
+endif
+
+end subroutine write_real2d
+
+!-----------------------------------------------------------------------------
+! contains
+
 function int_of (int_in, fmt) result (str)
 
 integer, pointer :: int_in
 character(*) fmt
-character(20) str, fmt2
+character(20) fmt2
+character(100) str
 
 if (associated(int_in)) then
   fmt2 = '(' // trim(fmt) // ')'
@@ -821,7 +916,7 @@ endif
 
 end function int_of
 
-end subroutine type_ptc_fiber
+end subroutine type_ptc_fibre
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -2200,7 +2295,7 @@ type (taylor_struct) bmad_taylor(:)
 type (real_8), save :: ptc_tlr(6)
 type (ele_struct) ele, drift_ele
 type (lat_param_struct) param
-type (fibre), pointer :: ptc_fiber
+type (fibre), pointer :: ptc_fibre
 
 real(rp) beta0, m2_rel, z_patch
 
@@ -2219,21 +2314,21 @@ call taylor_to_real_8 (bmad_taylor, beta0, ptc_tlr)
 
 if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, entrance_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
-  call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
+  call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
+  call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 endif
 
 ! Init ptc "element" (fibre) and track the map
 
-call ele_to_fibre (ele, ptc_fiber, param%particle, .true.)
-call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
+call ele_to_fibre (ele, ptc_fibre, param%particle, .true.)
+call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 
 ! Track exit side drift if PTC is using a hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, exit_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
-  call ptc_track (ptc_fiber, ptc_tlr, default)  ! "track" in PTC
+  call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
+  call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 endif
 
 ! transfer ptc map back to bmad map
@@ -2290,7 +2385,7 @@ type (lat_param_struct) :: param
 type (coord_struct), optional, intent(in) :: orb0
 type (coord_struct) start0, end0, c0
 
-type (fibre), pointer :: ptc_fiber
+type (fibre), pointer :: ptc_fibre
 type (real_8) y(6), y2(6)
 
 real(dp) x(6), beta0
@@ -2348,21 +2443,21 @@ y = x   ! y = IdentityMap + x
 
 if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, entrance_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
-  call ptc_track (ptc_fiber, y, default) ! "track" in PTC
+  call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
+  call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 endif
 
 ! Track element
 
-call ele_to_fibre (ele, ptc_fiber, param%particle, use_offsets)
-call ptc_track (ptc_fiber, y, default) ! "track" in PTC
+call ele_to_fibre (ele, ptc_fibre, param%particle, use_offsets)
+call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 
 ! Track exit end drift if PTC is using a hard edge model
 
 if (tracking_uses_hard_edge_model(ele)) then
   call create_hard_edge_drift (ele, exit_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fiber, param%particle, .true.)
-  call ptc_track (ptc_fiber, y, default) ! "track" in PTC
+  call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
+  call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 endif
 
 ! take out the offset
@@ -2544,12 +2639,12 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps, for_layout)
+! Subroutine ele_to_fibre (ele, ptc_fibre, particle, use_offsets, integ_order, steps, for_layout)
 !
 ! Subroutine to convert a Bmad element to a PTC fibre element.
 ! This subroutine allocates fresh storage for the fibre so after calling
 ! this routine you need to deallocate at some point with:
-!       call kill (fiber)
+!       call kill (ptc_fibre)
 !
 ! Note: You need to call set_ptc before using this routine.
 !
@@ -2559,9 +2654,9 @@ end subroutine type_map
 ! Input:
 !   ele    -- Ele_struct: Bmad element.
 !     %map_with_offsets -- If False then the values for x_pitch, x_offset, 
-!                           tilt, etc. for the  fiber element will be zero.
+!                           tilt, etc. for the  ptc_fibre element will be zero.
 !   particle    -- Integer: Particle type. Needed for elsep elements.
-!   use_offsets -- Logical: Does fiber include element offsets, pitches and tilt?
+!   use_offsets -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
 !                    Overrides ele%value(integrator_order$).
@@ -2572,10 +2667,10 @@ end subroutine type_map
 !                    Default is False.
 !
 ! Output:
-!   fiber -- Fibre: PTC fibre element.
+!   ptc_fibre -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps, for_layout)
+subroutine ele_to_fibre (ele, ptc_fibre, particle, use_offsets, integ_order, steps, for_layout)
 
 use madx_ptc_module
 
@@ -2583,7 +2678,7 @@ implicit none
  
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele, ele2
-type (fibre), pointer :: fiber
+type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
@@ -2760,7 +2855,7 @@ end select
 
 call ele_to_an_bn (ele, particle, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
-! Create fiber
+! Create ptc_fibre
 ! EXCEPTION is an error_flag. Set to 1 if error. Never reset.
 
 n = lielib_print(12)
@@ -2768,12 +2863,12 @@ lielib_print(12) = 0  ! No printing info messages
 
 if (logic_option(.false., for_layout)) then
   call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION)   ! ptc routine
-  fiber => m_u%end%end
+  ptc_fibre => m_u%end%end
 
 else
   call set_madx (energy = ele%value(e_tot$), method = ptc_key%method , step = ptc_key%nstep)
   call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION)   ! ptc routine
-  fiber => bmadl%start
+  ptc_fibre => bmadl%start
   bmadl%closed=.true.
   call ring_l(bmadl, .true.)
   call survey(bmadl)
@@ -2786,7 +2881,7 @@ lielib_print(12) = n
 
 energy_work = 0
 call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c_start$))
-fiber = energy_work
+ptc_fibre = energy_work
 
 ! wiggler
 
@@ -2810,29 +2905,29 @@ if (key == wiggler$) then
   endif
 
   n_term = size(ele2%wig%term)
-  call init_sagan_pointers (fiber%mag%wi%w, n_term)   
+  call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
 
-  fiber%mag%wi%w%a(1:n_term) = c_light * ele2%value(polarity$) * ele2%wig%term%coef / ele%value(e_tot$)
-  fiber%mag%wi%w%k(1,1:n_term)  = ele2%wig%term%kx
-  fiber%mag%wi%w%k(2,1:n_term)  = ele2%wig%term%ky
-  fiber%mag%wi%w%k(3,1:n_term)  = ele2%wig%term%kz
-  fiber%mag%wi%w%f(1:n_term)    = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
-  fiber%mag%wi%w%form(1:n_term) = ele2%wig%term%type
+  ptc_fibre%mag%wi%w%a(1:n_term) = c_light * ele2%value(polarity$) * ele2%wig%term%coef / ele%value(e_tot$)
+  ptc_fibre%mag%wi%w%k(1,1:n_term)  = ele2%wig%term%kx
+  ptc_fibre%mag%wi%w%k(2,1:n_term)  = ele2%wig%term%ky
+  ptc_fibre%mag%wi%w%k(3,1:n_term)  = ele2%wig%term%kz
+  ptc_fibre%mag%wi%w%f(1:n_term)    = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
+  ptc_fibre%mag%wi%w%form(1:n_term) = ele2%wig%term%type
 
-  call copy (fiber%mag, fiber%magp)
+  call copy (ptc_fibre%mag, ptc_fibre%magp)
 endif
 
 ! Correct z-position for wigglers, etc. 
 
 z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
 if (abs(z_patch) > bmad_com%significant_length) then
-  fiber%patch%time = 2   ! Patch exit end
-  fiber%patch%b_t = z_patch
+  ptc_fibre%patch%time = 2   ! Patch exit end
+  ptc_fibre%patch%b_t = z_patch
 endif
 
 ! Misalignments:
 
-if (use_offsets) call ptc_misalign_fiber (ele, fiber)
+if (use_offsets) call misalign_ptc_fibre (ele, ptc_fibre)
 
 end subroutine ele_to_fibre
 
@@ -2843,7 +2938,7 @@ end subroutine ele_to_fibre
 ! Subroutine ele_to_an_bn (ele, particle, k, ks, n_max)
 !
 ! Routine to compute the a(n) and b(n) multipole components of a magnet.
-! This is used to interface between eles and PTC fibers
+! This is used to interface between eles and PTC fibres
 !
 ! Module needed:
 !   ptc_interface_mod
@@ -2993,9 +3088,9 @@ end subroutine ele_to_an_bn
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ptc_misalign_fiber (ele, fiber)
+! Subroutine misalign_ptc_fibre (ele, ptc_fibre)
 !
-! Routine to misalign a fiber.
+! Routine to misalign a PTC fibre.
 !
 ! Module needed:
 !   use ptc_interface_mod
@@ -3004,17 +3099,17 @@ end subroutine ele_to_an_bn
 !   ele       -- ele_struct: Element containing misalignments.
 !
 ! Output:
-!   fiber     -- fibre: Fiber to misalign
+!   ptc_fibre     -- fibre: PTC Fibre to misalign
 !-
 
-subroutine ptc_misalign_fiber (ele, fiber)
+subroutine misalign_ptc_fibre (ele, ptc_fibre)
 
 use s_family
 
 implicit none
 
 type (ele_struct) ele
-type (fibre) fiber
+type (fibre) ptc_fibre
 
 real(dp) mis_rot(6)
 real(dp) omega(3), basis(3,3), angle(3)
@@ -3035,23 +3130,23 @@ y_pitch = ele%value(y_pitch_tot$)
 if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0) then
   mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp ]
   angle = 0
-  angle(3) = -fiber%mag%p%tiltd
-  omega = fiber%chart%f%o
-  basis = fiber%chart%f%mid
+  angle(3) = -ptc_fibre%mag%p%tiltd
+  omega = ptc_fibre%chart%f%o
+  basis = ptc_fibre%chart%f%mid
   call geo_rot(basis, angle, 1, basis)                 ! PTC call
-  call misalign_fibre (fiber, mis_rot, omega, basis)   ! PTC call
+  call misalign_fibre (ptc_fibre, mis_rot, omega, basis)   ! PTC call
 endif
 
-end subroutine ptc_misalign_fiber
+end subroutine misalign_ptc_fibre
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine apply_patch_to_ptc_fiber (ele)
+! Subroutine apply_patch_to_ptc_fibre (ele)
 !
 ! Routine to take the patch parameters from a Bmad patch element and
-! transfer them to the associated fiber.
+! transfer them to the associated PTC fibre.
 !
 ! Module needed:
 !   use ptc_interface_mod
@@ -3060,10 +3155,10 @@ end subroutine ptc_misalign_fiber
 !   ele           -- ele_struct: Patch element.
 !
 ! Output:
-!   ele%ptc_fiber -- Fiber which should be a marker.
+!   ele%ptc_fibre -- PTC Fibre which should be a marker.
 !-
 
-subroutine apply_patch_to_ptc_fiber (ele)
+subroutine apply_patch_to_ptc_fibre (ele)
 
 use s_family
 
@@ -3100,10 +3195,10 @@ frame = basis
 basis = global_frame
 call find_patch (origin, basis, omega, frame, dr, angle)
 
-ele%ptc_fiber%patch%patch = 2    ! Means entrance patch is not used exit patch is used.
-ele%ptc_fiber%patch%b_d = dr
-ele%ptc_fiber%patch%b_ang = angle
+ele%ptc_fibre%patch%patch = 2    ! Means entrance patch is not used exit patch is used.
+ele%ptc_fibre%patch%b_d = dr
+ele%ptc_fibre%patch%b_ang = angle
 
-end subroutine apply_patch_to_ptc_fiber
+end subroutine apply_patch_to_ptc_fibre
 
 end module

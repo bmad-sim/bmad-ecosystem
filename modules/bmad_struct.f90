@@ -412,14 +412,14 @@ type ele_struct
   type (floor_position_struct) floor                        ! Global floor position.
   type (ele_struct), pointer :: lord => null()              ! Pointer to a slice lord.
   type (mode3_struct), pointer :: mode3 => null()           ! 6D normal mode structure.
-  type (fibre), pointer :: ptc_fiber => null()              ! PTC tracking.
+  type (fibre), pointer :: ptc_fibre => null()              ! PTC tracking.
   type (genfield), pointer :: ptc_genfield => null()        ! For symp_map$
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
                                                             ! Radiation integral calc cached values 
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
-  type (wall3d_struct), pointer :: wall3d                   ! Chamber or capillary wall
+  type (wall3d_struct), pointer :: wall3d => null()         ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()    ! Wiggler field
   real(rp) value(num_ele_attrib$)                ! attribute values.
   real(rp) old_value(num_ele_attrib$)            ! Used to see if %value(:) array has changed.
@@ -507,7 +507,7 @@ end type
 ! Structure for linking a branch_struct with a collection of ptc layouts
 
 type ptc_layout_pointer_struct
-  type (layout), pointer :: ptr
+  type (layout), pointer :: ptr => null()
 end type
 
 type ptc_branch1_info_struct

@@ -1689,7 +1689,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
             ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
   nullify (ele%ptc_genfield)
-  nullify (ele%ptc_fiber)
+  nullify (ele%ptc_fibre)
   nullify (ele%mode3)
   nullify (ele%wall3d)
   nullify (ele%em_field)

@@ -63,9 +63,9 @@ end subroutine type_ptc_layout
 ! [This is normally done in bmad_parser.]
 !
 ! Note: If a Bmad element is using a hard edge model (EG: RFcavity element), there 
-! will be three corresponding fiber elements: (drift, RF. drift) for example.
-! In this case, ele%ptc_fiber will be set to point to the last fiber. That is the 
-! exit end of ele will correspond to the exit end of ele%ptc_fiber.
+! will be three corresponding PTC fibre elements: (drift, RF. drift) for example.
+! In this case, ele%ptc_fibre will be set to point to the last PTC fibre. That is the 
+! exit end of ele will correspond to the exit end of ele%ptc_fibre.
 !
 ! Module Needed:
 !   use ptc_layout_mod
@@ -74,8 +74,8 @@ end subroutine type_ptc_layout
 !   lat -- lat_struct: Input lattice
 !
 ! Output:
-!   lat%branch(:)%ptc          -- Pointers to generated layouts.
-!   lat%branch(:)%ele(:)%fiber -- Pointer to fibers
+!   lat%branch(:)%ptc              -- Pointers to generated layouts.
+!   lat%branch(:)%ele(:)%ptc_fibre -- Pointer to PTC fibres
 !-
 
 subroutine lat_to_ptc_layout (lat)
@@ -109,15 +109,15 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(ie)
     if (tracking_uses_hard_edge_model(ele)) then
       call create_hard_edge_drift (ele, entrance_end$, drift_ele)
-      call ele_to_fibre (drift_ele, drift_ele%ptc_fiber, branch%param%particle, .true., for_layout = .true.)
+      call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
     endif
 
-    call ele_to_fibre (ele, ele%ptc_fiber, branch%param%particle, .true., for_layout = .true.)
+    call ele_to_fibre (ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
 
     if (tracking_uses_hard_edge_model(ele)) then
       call create_hard_edge_drift (ele, exit_end$, drift_ele)
-      ! ele%ptc_fiber points to last fiber.
-      call ele_to_fibre (drift_ele, ele%ptc_fiber, branch%param%particle, .true., for_layout = .true.)
+      ! ele%ptc_fibre points to last PTC fibre.
+      call ele_to_fibre (drift_ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
     endif
   enddo
 
@@ -140,7 +140,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   lielib_print(12) = n
 
-  branch%ele(0)%ptc_fiber => branch%ele(1)%ptc_fiber%previous
+  branch%ele(0)%ptc_fibre => branch%ele(1)%ptc_fibre%previous
 
 enddo
 
@@ -236,8 +236,8 @@ ptc_layout => ele%branch%ptc%layout(1)%ptr
 state = (default - nocavity0) + radiation0  ! Set state flags
 
 x = 0
-call find_orbit_x (x, state, 1.0d-5, fibre1 = ele%ptc_fiber%next)  ! find_orbit == find closed orbit
-call vec_ptc_to_bmad (x, ele%ptc_fiber%next%beta0, closed_orb%vec)
+call find_orbit_x (x, state, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find_orbit == find closed orbit
+call vec_ptc_to_bmad (x, ele%ptc_fibre%next%beta0, closed_orb%vec)
 
 call get_loss (ptc_layout, energy, deltap)
 norm_mode%e_loss = 1d9 * energy
@@ -258,7 +258,7 @@ x_probe8 = x_probe + da_map
 ! Bmad references things at the exit end.
 
 state = state+envelope0
-call track_probe (x_probe8, state, fibre1 = ele%ptc_fiber%next)
+call track_probe (x_probe8, state, fibre1 = ele%ptc_fibre%next)
 da_map = x_probe8
 normal = da_map
 
@@ -274,7 +274,7 @@ norm_mode%a%emittance = normal%emittance(1)
 norm_mode%b%emittance = normal%emittance(2)
 norm_mode%z%emittance = normal%emittance(3)
 
-call sigma_mat_ptc_to_bmad (normal%s_ij0, ele%ptc_fiber%next%beta0, sigma_mat)
+call sigma_mat_ptc_to_bmad (normal%s_ij0, ele%ptc_fibre%next%beta0, sigma_mat)
 
 call kill(normal)
 call kill(da_map)
@@ -317,7 +317,7 @@ integer, optional :: order
 !ptc_layout => ele%branch%ptc%layout(1)%ptr
 
 !x = 0
-!call find_orbit_x (x, default, 1.0d-5, fibre1 = ele%ptc_fiber%next)  ! find_orbit == find closed orbit
+!call find_orbit_x (x, default, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find_orbit == find closed orbit
 !closed_orb%vec = x
 
 end Subroutine one_turn_map_at_ele
@@ -357,21 +357,21 @@ end subroutine write_ptc_flat_file_lattice
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine modify_ptc_fiber (ele)
+! Subroutine modify_ptc_fibre (ele)
 !
-! Routine to modify an existing fiber. 
+! Routine to modify an existing PTC fibre. 
 !
 ! Module Needed:
 !   use ptc_layout_mod
 !
 ! Input:
-!   ele           -- ele_struct: Element with corresponding fiber.
+!   ele           -- ele_struct: Element with corresponding PTC fibre.
 !
 ! Output:
-!   ele%ptc_fiber 
+!   ele%ptc_fibre 
 !-
 
-subroutine modify_ptc_fiber_attribute (ele, attribute, value)
+subroutine modify_ptc_fibre_attribute (ele, attribute, value)
 
 implicit none
 
@@ -380,7 +380,7 @@ type (ele_struct), target :: ele
 real(rp) value
 
 character(*) attribute
-character(32), parameter :: r_name = 'modify_ptc_fiber_attribute'
+character(32), parameter :: r_name = 'modify_ptc_fibre_attribute'
 
 !
 
@@ -393,6 +393,6 @@ end select
 
 !
 
-end subroutine modify_ptc_fiber_attribute 
+end subroutine modify_ptc_fibre_attribute 
 
 end module

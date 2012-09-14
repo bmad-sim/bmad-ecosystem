@@ -11,12 +11,8 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'check_controls' in line:
-      line = line.replace('check_controls', 'check_sanity')
-      found = True
-
-    if 'check_lat_controls' in line:
-      line = line.replace('check_lat_controls', 'lat_sanity_check')
+    if 'ptc_fiber' in line:
+      line = line.replace('ptc_fiber', 'ptc_fibre')
       found = True
 
     out_file.write(line)
