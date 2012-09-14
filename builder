@@ -105,17 +105,34 @@ def build_directory( dir, statlist, target ):
     use_32bit = ' '
     if 'lnx209' in hostname:
         use_32bit = ' ACC_FORCE_32_BIT=Y; '
-        
-    build_command = 'ACCLIB='+invars.build_name+use_32bit + \
-                    'UTIL_DIR_REQUEST='+invars.util_dir + \
-                    '; source ' + invars.util_dir + \
-                    '/acc_vars.sh; ifort -v; printenv | grep ACC; echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; gmake ' + \
-                    target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
-#    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; ' + \
-#                    'UTIL_DIR_REQUEST='+invars.util_dir + \
-#                    '; source ' + invars.util_dir + \
-#                    '/acc_vars.sh; ifort -v; printenv | grep ACC; echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; gmake ' + \
-#                    target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
+
+
+
+    # Legacy build system
+    #---------------------
+    #build_command = 'ACCLIB='+invars.build_name+use_32bit + \
+    #                'UTIL_DIR_REQUEST='+invars.util_dir + \
+    #                '; source ' + invars.util_dir + \
+    #                '/acc_vars.sh; ifort -v; printenv | grep ACC; echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; gmake ' + \
+    #                target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
+
+
+
+
+    # New build system
+    #---------------------
+    make_command = 'mk'
+    if target == 'debug':
+        make_command = 'mkd'
+    build_command = 'ACCLIB='+invars.build_name + \
+                    ' UTIL_DIR_REQUEST='+invars.util_dir + \
+                    '; source ' + invars.util_dir + '/acc_vars.sh;' + \
+                    ' export ACC_BUILD_EXES=Y; export ACC_ENABLE_SHARED=Y; ' + make_command
+    print build_command
+
+
+
+    
     p = sub.Popen(build_command,
                   bufsize=1,
                   shell=True,

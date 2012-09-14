@@ -90,11 +90,12 @@ build_specs = {
                 '/trunk/src/genplt',
                 '/trunk/src/CBSM/xBSM/XbsmAnalysis',
                 '/trunk/src/displays',
-                '/trunk/src/logit'
+                '/trunk/src/logit',
+                '/trunk/src/magstat',
+                '/trunk/src/simcon',
+		'/CESR/CESR_services/intloc'
                 ##ccon_det
-                ##magstat
                 ##rfintl
-                ##simcon
             ]
         }
     },
