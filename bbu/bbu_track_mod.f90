@@ -64,6 +64,7 @@ type bbu_param_struct
   real(rp) :: enddr = 6.135                      ! End DR value for DRSCAN.
   integer :: nrep  = 1                           ! Number of times to repeat threshold calculation
   integer :: ran_seed = 0                        ! If set to 0, the output results will vary from run to run.
+  integer :: hom_order_cutoff = 0                ! If positive -> ignore HOM's with order greater than this.
   real(rp) :: ran_gauss_sigma_cut = -1
   character(40) :: ele_track_end = ' '
   integer :: ix_ele_track_end = -1               ! Default: set to last element with a wake

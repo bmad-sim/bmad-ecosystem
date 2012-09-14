@@ -13,14 +13,14 @@ type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
 type (ele_struct), pointer :: ele, ele2
+type (rf_wake_lr_struct), pointer :: lr(:)
 
-integer i, ix, j, n_hom, n, n_ele, ix_pass, i_lr, ie
-integer, allocatable :: ix_out(:)
-
+integer i, ix, j, n_hom, n, nn, n_ele, ix_pass, i_lr, ie
+integer irep
 integer istep
 integer :: nstep = 100
+integer, allocatable :: ix_out(:)
 
-integer irep
 
 real(rp) deldr,dr, charge_try
 real(rp) hom_voltage_gain, charge0, charge1, charge_old, charge_threshold
@@ -81,6 +81,30 @@ if (bbu_param%verbose) print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
 call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
 call run_timer ('START')
+
+! Remove HOM's of higher order
+
+if (bbu_param%hom_order_cutoff > 0) then
+  do i = 1, lat_in%n_ele_max
+    ele => lat%ele(i)
+    if (.not. associated(ele%rf_wake)) cycle
+    if (.not. associated(ele%rf_wake%lr)) cycle
+    n = count(ele%rf_wake%lr(:)%m > bbu_param%hom_order_cutoff)
+    if (n == 0) cycle  ! Nothing to remove
+    if (n == size(ele%rf_wake%lr)) then
+      deallocate (ele%rf_wake%lr)
+      cycle
+    endif
+    lr => ele%rf_wake%lr
+    nn = size(ele%rf_wake%lr) - n
+    allocate(ele%rf_wake%lr(nn))
+    n = 0
+    do j = 1, size(lr)
+      if (lr(j)%m > bbu_param%hom_order_cutoff) cycle
+      n = n + 1; ele%rf_wake%lr(n) = lr(j)
+    enddo
+  enddo
+endif
 
 ! Initialize DR scan
 
