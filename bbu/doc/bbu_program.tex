@@ -145,6 +145,7 @@ the main input file will look like:
   bbu_param%nrep = 10                       ! Threshold or stable orbit calculation reps.
   bbu_param%ran_seed = 0                    ! Set specific seedd (0 uses system clock).
   bbu_param%ran_gauss_sigma_cut = 3         ! Limit ran_gauss values to within N sigma.
+  bbu_param%hom_order_cutoff = 0            ! If positive -> ignore HOM's of hither order.
   bbu_param%stable_orbit_anal = F           ! Write out cavity orbit data.
 /
 \end{example}
@@ -212,6 +213,9 @@ are limited to a maximum deviation of \vn{ran_gauss_sigma_cut} rms deviations.
 If this parameter is set true, then the output files \tt{stable_orbit.out} and \tt{hom_voltage.out}
 are written for each bunch train passage and each repetition, allowing the orbit deviations
 and HOM loading to be analyzed as the equilibrium level is reached.
+  \item[\vn{hom_order_cutoff}] \Newline
+If this parameter is set to some positive number, any HOM modes that have an order that
+is higher than \vn{hom_order_cutoff} will be ignored in tracking.
 \end{description}
 
 Additionally, \vn{bmad_com} parameters may be set. \vn{bmad_com}
