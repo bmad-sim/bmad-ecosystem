@@ -3113,7 +3113,7 @@ type (fibre) ptc_fibre
 
 real(dp) mis_rot(6)
 real(dp) omega(3), basis(3,3), angle(3)
-real(rp) x_off, y_off, x_pitch, y_pitch
+real(rp) x_off, y_off, x_pitch, y_pitch, roll
 
 ! Patch elements do not have misalignments
 
@@ -3126,9 +3126,11 @@ x_off = ele%value(x_offset_tot$)
 y_off = ele%value(y_offset_tot$)
 x_pitch = ele%value(x_pitch_tot$)
 y_pitch = ele%value(y_pitch_tot$)
+roll = 0
+if (ele%key == sbend$) roll = ele%value(roll$)
 
-if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0) then
-  mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp ]
+if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0 .or. roll /= 0) then
+  mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch, roll]
   angle = 0
   angle(3) = -ptc_fibre%mag%p%tiltd
   omega = ptc_fibre%chart%f%o
