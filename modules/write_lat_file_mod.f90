@@ -608,10 +608,9 @@ do ib = 0, ubound(lat%branch, 1)
     ! Print the element attributes.
 
     do j = 1, num_ele_attrib$
-      attrib = attribute_record(ele, j)
+      attrib = attribute_info(ele, j)
       val = ele%value(j)
       if (val == 0) cycle
-      if (attrib%private) cycle
       if (j == check_sum$) cycle
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle

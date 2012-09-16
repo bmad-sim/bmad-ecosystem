@@ -417,7 +417,7 @@ end subroutine type_ptc_internal_state
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine type_ptc_fibre (ptc_fibre, lines, n_lines)
+! Subroutine type_ptc_fibre (ptc_fibre, print_coords, lines, n_lines)
 !
 ! Routine to put information on a PTC fibre element into a string array.
 ! If "lines" is not present, the information will be printed to the screen.
@@ -426,14 +426,16 @@ end subroutine type_ptc_internal_state
 !   use ptc_interface_mod
 !
 ! Input:
-!   ptc_fibre -- fibre, pointer: Fibre to type info of.
+!   ptc_fibre    -- fibre, pointer: Fibre to type info of.
+!   print_coords -- logical, optional: If True then print coordinate and  patch information. 
+!                     Default is True.
 !
 ! Output:
 !   lines(:)  -- character(120), optional, allocatable: Character array to hold the output.
 !   n_lines   -- integer, optional: Number of lines used in lines(:)
 !-
 
-subroutine type_ptc_fibre (ptc_fibre, lines, n_lines)
+subroutine type_ptc_fibre (ptc_fibre, print_coords, lines, n_lines)
 
 use definition, only: patch, element, elementp, magnet_chart, lp, chart, magnet_frame
 
@@ -455,6 +457,7 @@ character(160), allocatable :: li(:)
 character(160) str
 character(16), parameter :: r_name = 'type_ptc_fibre'
 
+logical, optional :: print_coords
 logical printit
 
 !
@@ -470,7 +473,7 @@ if (.not. associated(ptc_fibre)) then
   return
 endif
 
-!
+! Fibre
 
 nl=nl+1; li(nl) = 'Fibre:'
 nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%pos    [Index in layout]:   ', int_of(ptc_fibre%pos, 'i0')
@@ -480,39 +483,48 @@ nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%beta0  [Beta velocity]:     ', real
 nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%mass   [Mass]:              ', real_of(ptc_fibre%mass, 'es13.5', 1e9_rp)
 nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%charge [Charge]:            ', real_of(ptc_fibre%charge, 'es13.5')
 
-! ptc_fibre%chart
+!
 
-nullify(frame)
-chrt => ptc_fibre%chart
+if (logic_option(.true., print_coords)) then
 
-nl=nl+1; li(nl) = ''
-if (associated(chrt)) then
-  nl=nl+1; li(nl) = 'fibre%chart (Type: chart):'
-  nl=nl+1; li(nl) = '  [Fibre to Magnet patch at Entrance End:]'
-  call write_reals ('%d_in   [displacement]  ', chrt%d_in,   '3f11.7')
-  call write_reals ('%ang_in [angle]         ', chrt%ang_in, '3f11.7')
-  nl=nl+1; li(nl) = '  [Magnet to Fibre patch at Exit End:]'
-  call write_reals ('%d_out   [displacement]  ', chrt%d_out,   '3f11.7')
-  call write_reals ('%ang_out [angle]         ', chrt%ang_out, '3f11.7')
-  frame => chrt%f
-else
-  nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated.'
-endif
+  ! ptc_fibre%chart
 
-! ptc_fibre%chart%f
+  nullify(frame)
+  chrt => ptc_fibre%chart
 
-nl=nl+1; li(nl) = ''
-if (associated(frame)) then
-  nl=nl+1; li(nl) = 'fibre%chart%f (Type: magnet_frame):'
-  nl=nl+1; li(nl) = '  [Global orientation of the Entrance end of the Fibre]:'
-  call write_reals  ('%a   [position]:   ', frame%a,   '3f11.7')
-  call write_real2d ('%ent [Orientation]:', frame%ent, '3f11.7')
-  nl=nl+1; li(nl) = '  [Global orientation of the Exit end of the Fibre]:'
-  call write_reals  ('%b   [position]:   ', frame%b,   '3f11.7')
-  call write_real2d ('%exi [Orientation]:', frame%exi, '3f11.7')
+  nl=nl+1; li(nl) = ''
+  if (associated(chrt)) then
+    nl=nl+1; li(nl) = 'fibre%chart (Type: chart):'
+    nl=nl+1; li(nl) = '  [Fibre to Magnet patch at Entrance End:]'
+    call write_reals ('%d_in   [displacement]  ', chrt%d_in,   '3f11.7')
+    call write_reals ('%ang_in [angle]         ', chrt%ang_in, '3f11.7')
+    nl=nl+1; li(nl) = '  [Magnet to Fibre patch at Exit End:]'
+    call write_reals ('%d_out   [displacement]  ', chrt%d_out,   '3f11.7')
+    call write_reals ('%ang_out [angle]         ', chrt%ang_out, '3f11.7')
+    frame => chrt%f
+  else
+    nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated.'
+  endif
 
-else
-  nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated'
+  ! ptc_fibre%chart%f
+
+  nl=nl+1; li(nl) = ''
+  if (associated(frame)) then
+    nl=nl+1; li(nl) = 'fibre%chart%f (Type: magnet_frame):'
+    nl=nl+1; li(nl) = '  [Global orientation of the Entrance end of the Fibre]:'
+    call write_reals  ('%a   [position]:   ', frame%a,   '3f11.7')
+    call write_real2d ('%ent [Orientation]:', frame%ent, '3f11.7')
+    nl=nl+1; li(nl) = '  [Global orientation of the Center of the Fibre]:'
+    call write_reals  ('%o   [position]:   ', frame%o,   '3f11.7')
+    call write_real2d ('%mid [Orientation]:', frame%mid, '3f11.7')
+    nl=nl+1; li(nl) = '  [Global orientation of the Exit end of the Fibre]:'
+    call write_reals  ('%b   [position]:   ', frame%b,   '3f11.7')
+    call write_real2d ('%exi [Orientation]:', frame%exi, '3f11.7')
+
+  else
+    nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated'
+  endif
+
 endif
 
 ! ptc_fibre%mag
@@ -594,22 +606,25 @@ else
   nl=nl+1; li(nl) = 'fibre%mag%p (Type: magnet_chart): Not Associated.'
 endif
 
-! ptc_fibre%mag%p%f
+if (logic_option(.true., print_coords)) then
 
-nl=nl+1; li(nl) = ''
-if (associated(frame)) then
-  nl=nl+1; li(nl) = 'fibre%mag%p%f (Type: magnet_frame):'
-  nl=nl+1; li(nl) = '  [Global orientation of the Entrance end of the Magnet]:'
-  call write_reals  ('%a   [position]:   ', frame%a,   '3f11.7')
-  call write_real2d ('%ent [Orientation]:', frame%ent, '3f11.7')
-  nl=nl+1; li(nl) = '  [Global orientation of the Exit end of the Magnet]:'
-  call write_reals  ('%b   [position]:   ', frame%b,   '3f11.7')
-  call write_real2d ('%exi [Orientation]:', frame%exi, '3f11.7')
+  ! ptc_fibre%mag%p%f
 
-else
-  nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated'
+  nl=nl+1; li(nl) = ''
+  if (associated(frame)) then
+    nl=nl+1; li(nl) = 'fibre%mag%p%f (Type: magnet_frame):'
+    nl=nl+1; li(nl) = '  [Global orientation of the Entrance end of the Magnet]:'
+    call write_reals  ('%a   [position]:   ', frame%a,   '3f11.7')
+    call write_real2d ('%ent [Orientation]:', frame%ent, '3f11.7')
+    nl=nl+1; li(nl) = '  [Global orientation of the Exit end of the Magnet]:'
+    call write_reals  ('%b   [position]:   ', frame%b,   '3f11.7')
+    call write_real2d ('%exi [Orientation]:', frame%exi, '3f11.7')
+
+  else
+    nl=nl+1; li(nl) = 'fibre%chart (Type: chart): Not Associated'
+  endif
+
 endif
-
 
 ! ptc_fibre%magp
 
@@ -625,50 +640,54 @@ endif
 
 !
 
-ptch => ptc_fibre%patch
-nl=nl+1; li(nl) = ''
-if (associated(ptch)) then
-  nl=nl+1; li(nl) = 'fibre%patch (Type: patch):'
-  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%patch  [Patch at]:            ', patch_name(ptch%patch)
+if (logic_option(.true., print_coords)) then
 
-  printit = .false.
-  if (integer2_value(0, ptch%patch) == 1 .or. integer2_value(0, ptch%patch) == 3) printit = .true.
+  ptch => ptc_fibre%patch
+  nl=nl+1; li(nl) = ''
+  if (associated(ptch)) then
+    nl=nl+1; li(nl) = 'fibre%patch (Type: patch):'
+    nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%patch  [Patch at]:            ', patch_name(ptch%patch)
 
-  if (printit) then
-    nl=nl+1
-    call write_reals ('%a_d    [Entrance translation]:', ptch%a_d,   '10f12.9', writeit = .true.)
-    call write_reals ('%a_ang  [Entrance angle]:      ', ptch%a_ang, '10f12.9', writeit = .true.)
+    printit = .false.
+    if (integer2_value(0, ptch%patch) == 1 .or. integer2_value(0, ptch%patch) == 3) printit = .true.
+
+    if (printit) then
+      nl=nl+1
+      call write_reals ('%a_d    [Entrance translation]:', ptch%a_d,   '10f12.9', writeit = .true.)
+      call write_reals ('%a_ang  [Entrance angle]:      ', ptch%a_ang, '10f12.9', writeit = .true.)
+    endif
+
+    printit = .false.
+    if (integer2_value(0, ptch%patch) == 2 .or. integer2_value(0, ptch%patch) == 3) printit = .true.
+
+    if (printit) then
+      call write_reals ('%b_d    [Exit translation]:', ptch%b_d,   '10f12.9', writeit = .true.)
+      call write_reals ('%b_ang  [Exit angle]:      ', ptch%b_ang, '10f12.9', writeit = .true.)
+    endif
+
+    nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%energy [Energy Patch at]:     ', patch_name(ptch%energy)
+    nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%time   [Time Patch at]:       ', patch_name(ptch%time)
+
+    printit = .false.
+    if (integer2_value(0, ptch%time) == 1 .or. integer2_value(0, ptch%time) == 3) printit = .true.
+
+    if (printit) then
+      call write_real ('%a_t    [Entrance dTime]:', ptch%a_t,   'es13.5', writeit = .true.)
+    endif
+
+    printit = .false.
+    if (integer2_value(0, ptch%time) == 2 .or. integer2_value(0, ptch%time) == 3) printit = .true.
+
+    if (printit) then
+      call write_real ('%b_t    [Exit dTime]:', ptch%b_t,   'es13.5', writeit = .true.)
+    endif
+
+
+
+  else
+    nl=nl+1; li(nl) = 'fibre%patch (Type: patch): Not Associated.'
   endif
 
-  printit = .false.
-  if (integer2_value(0, ptch%patch) == 2 .or. integer2_value(0, ptch%patch) == 3) printit = .true.
-
-  if (printit) then
-    call write_reals ('%b_d    [Exit translation]:', ptch%b_d,   '10f12.9', writeit = .true.)
-    call write_reals ('%b_ang  [Exit angle]:      ', ptch%b_ang, '10f12.9', writeit = .true.)
-  endif
-
-  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%energy [Energy Patch at]:     ', patch_name(ptch%energy)
-  nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%time   [Time Patch at]:       ', patch_name(ptch%time)
-
-  printit = .false.
-  if (integer2_value(0, ptch%time) == 1 .or. integer2_value(0, ptch%time) == 3) printit = .true.
-
-  if (printit) then
-    call write_real ('%a_t    [Entrance dTime]:', ptch%a_t,   'es13.5', writeit = .true.)
-  endif
-
-  printit = .false.
-  if (integer2_value(0, ptch%time) == 2 .or. integer2_value(0, ptch%time) == 3) printit = .true.
-
-  if (printit) then
-    call write_real ('%b_t    [Exit dTime]:', ptch%b_t,   'es13.5', writeit = .true.)
-  endif
-
-
-
-else
-  nl=nl+1; li(nl) = 'fibre%patch (Type: patch): Not Associated.'
 endif
 
 !

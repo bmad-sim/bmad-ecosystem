@@ -162,10 +162,10 @@ if (ele%lord_status == overlay_lord$) then
 
 else
   do i = 1, num_ele_attrib$
-    attrib = attribute_record(ele, i)
+    attrib = attribute_info(ele, i)
     a_name = attrib%name
     if (a_name == null_name$) cycle
-    if (attrib%private) cycle
+    if (attrib%type == private$) cycle
     ix_tot = corresponding_tot_attribute_index (ele, i)
     if (ix_tot > 0) then
       if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle

@@ -1258,10 +1258,11 @@ contains
 
 function attrib_free_problem (attrib_name) result (is_problem)
 
+type (ele_attribute_struct) attrib_info
 character(*) attrib_name
 logical is_problem, is_free
 
-!
+! If not check_free then at least check if it is a dependent attribute
 
 is_problem = .false.
 
@@ -1272,6 +1273,9 @@ if (logic_option(.false., check_free)) then
     err_flag = .true.
     is_problem = .true.
   endif
+else
+  attrib_info = attribute_info(ele, attribute_index(ele, attrib_name))
+  if (attrib_info%type == dependent$) is_problem = .true.
 endif
 
 end function attrib_free_problem

@@ -164,7 +164,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !+
 ! Subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,
-!                                      ptr_attrib, err_flag, err_print_flag)
+!                                                ptr_attrib, err_flag, err_print_flag)
 !
 ! Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
 ! 
@@ -194,7 +194,7 @@ end subroutine
 !-
 
 subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, &
-                                        ptr_attrib, err_flag, err_print_flag)
+                                                  ptr_attrib, err_flag, err_print_flag)
 
 implicit none
 
@@ -257,14 +257,12 @@ end subroutine pointer_to_indexed_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free1 (ix_ele, attrib_name, 
-!                                 lat, err_print_flag, except_overlay) result (free)
+! Function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free1 (ix_ele, attrib_name, lat, &
-                                  err_print_flag, except_overlay) result (free)
+function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
 
 implicit none
 
@@ -291,8 +289,7 @@ end function attribute_free1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free2 (ele, attrib_name, 
-!                                 lat, err_print_flag, except_overlay) result (free)
+! Function attribute_free2 (ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
@@ -324,14 +321,14 @@ end function attribute_free2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free3 (ix_ele, ix_branch, 
-!                           lat, err_print_flag, except_overlay) result (free)
+! Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, 
+!                                                 err_print_flag, except_overlay) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free3 (ix_ele, ix_branch, attrib_name, &
-                            lat, err_print_flag, except_overlay) result (free)
+function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, &
+                                                  err_print_flag, except_overlay) result (free)
 
 implicit none
 
@@ -366,6 +363,7 @@ type (ele_struct), target :: ele
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_p, lord
 type (branch_struct), pointer :: branch
+type (ele_attribute_struct) attrib_info
 
 integer ix_branch, ix_recursion, i, ir, ix_attrib, ix, ic
 integer, optional :: ix_lord
@@ -384,40 +382,65 @@ if (ix_recursion == 0) then
   attrib_name0 = attrib_name
 endif
 
-! Check that the name corresponds to an attribute
-
-free = .false.
+! Init & check that the name corresponds to an attribute
 
 ix_attrib = attribute_index(ele, attrib_name)
-if (ix_attrib < 1) then
+attrib_info = attribute_info(ele, ix_attrib)
+
+a_name = attribute_name (ele, ix_attrib)
+
+if (attrib_info%type == does_not_exist$ .or. attrib_info%type == private$) then
   if (do_print) call print_error (ele, ix_attrib, &
-          'THIS ATTRIBUTE INDEX DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
+          'THIS NAME DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
   return
 endif
 
-a_name = attribute_name (ele, ix_attrib)
+! only one particular attribute of an overlay lord is allowed to be adjusted
+
+if (ele%lord_status == overlay_lord$) then
+  if (ix_attrib /= ele%ix_value) then
+    if (do_print) call print_error (ele, ix_attrib, &
+           'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
+    return
+  endif
+endif
+
+if (ele%lord_status == group_lord$) then
+  if (ix_attrib /= command$ .and. ix_attrib /= old_command$) then
+    if (do_print) call print_error (ele, ix_attrib, &
+          'FOR THIS GROUP ELEMENT THE ATTRIBUTE TO VARY IS: "COMMAND" OR "OLD_COMMAND"')
+    return
+  endif
+endif
+
+! check slaves
+
+if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
+  do i = 1, ele%n_slave
+    ele_p => pointer_to_slave(ele, i, ic)
+    call check_this_attribute_free (ele_p, attribute_name(ele_p, lat%control(ic)%ix_attrib), &
+                            lat, do_print, do_except_overlay, free, 1, ele%ix_ele)
+    if (.not. free) return
+  enddo
+  return
+endif
+
+! Since not an overlay or group lord then dependent attribute is not free.
+
+if (attrib_info%type == dependent$) then
+  if (do_print) call print_error (ele, ix_attrib, 'THIS ATTRIBUTE CANNOT BE VARIED.')
+  return
+endif
 
 ! csr_calc_on, etc. are always free.
 ! x_offset_tot, etc are never free.
 
 select case (a_name)
-case ('CSR_CALC_ON', 'IS_ON', 'DS_STEP')
-  free = .true.
-  return
-
-case ('X_OFFSET_TOT', 'Y_OFFSET_TOT', 'S_OFFSET_TOT', 'TILT_TOT', &
-      'X_PITCH_TOT', 'Y_PITCH_TOT', 'NUM_STEPS')
+case ('NUM_STEPS')
   return
 
 case ('FIELD_SCALE', 'DPHI0_REF')
   free = .true.   ! This may not be true with autoscaling
-  return
-
-case ('E_TOT', 'E_TOT_START', 'P0C', 'P0C_START')
-  if (ele%key == init_ele$ .and. branch%ix_from_branch < 0) free = .true.
-  return
-
-case ('L_HARD_EDGE')
   return
 
 end select
@@ -459,8 +482,7 @@ if (ele%slave_status == multipass_slave$) then
     if (ix_attrib == dphi0$) return
   case (patch$)
     lord => pointer_to_lord(ele, 1)
-    if (associated (pointer_to_slave(lord, 1), ele) .and. &
-                                    ele%ref_orbit == patch_in$) return
+    if (associated (pointer_to_slave(lord, 1), ele) .and. ele%ref_orbit == patch_in$) return
   end select
 
   free = .false.
@@ -468,43 +490,18 @@ if (ele%slave_status == multipass_slave$) then
   return
 endif
 
-! only one particular attribute of an overlay lord is allowed to be adjusted
-
-if (ele%lord_status == overlay_lord$) then
-  if (ix_attrib /= ele%ix_value) then
-    if (do_print) call print_error (ele, ix_attrib, &
-           'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
-    return
-  endif
-endif
-
-if (ele%lord_status == group_lord$) then
-  if (ix_attrib /= command$ .and. ix_attrib /= old_command$) then
-    if (do_print) call print_error (ele, ix_attrib, &
-          'FOR THIS GROUP ELEMENT THE ATTRIBUTE TO VARY IS: "COMMAND" OR "OLD_COMMAND"')
-    return
-  endif
-endif
-
 ! check if it is a dependent variable.
 
 free = .true.
-
-if (ix_attrib == delta_ref_time$) then
-  if (ele%key /= custom$ .and. ele%key /= hybrid$) free = .false.
-endif
+if (attrib_info%type == free$) return
 
 select case (ele%key)
 case (sbend$)
   if (any(ix_attrib == [angle$, l_chord$, rho$])) free = .false.
 case (rfcavity$)
   if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) free = .false.
-case (beambeam$)
-  if (ix_attrib == bbi_const$) free = .false.
-case (wiggler$)
-  if (ix_attrib == k1$ .or. ix_attrib == rho$) free = .false. 
 case (lcavity$)
-  if (any(ix_attrib == [voltage$, p0c_start$, e_tot_start$])) free = .false.
+  if (ix_attrib == voltage$) free = .false.
 case (elseparator$)
   if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
 end select
@@ -580,17 +577,6 @@ if (.not. free) then
        "THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE", &
        "THE ELEMENT'S FIELD_MASTER IS " // on_off_logic (ele%field_master))
   return
-endif
-
-! check slaves
-
-if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
-  do i = 1, ele%n_slave
-    ele_p => pointer_to_slave(ele, i, ic)
-    call check_this_attribute_free (ele_p, attribute_name(ele_p, lat%control(ic)%ix_attrib), &
-                            lat, do_print, do_except_overlay, free, 1, ele%ix_ele)
-    if (.not. free) return
-  enddo
 endif
 
 end subroutine
