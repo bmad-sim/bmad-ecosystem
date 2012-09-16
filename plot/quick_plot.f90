@@ -2800,9 +2800,6 @@ end subroutine qp_draw_text_legend
 ! Subroutine to draw a legend with each line in the legend having
 !   a line, a symbol, some text.
 !
-! Note: If origin is not given then by default the legend is drawn in the
-!   upper left hand corner of the graph.
-!
 ! Input:
 !   x_origin    -- Real(rp), optional: x-postion of start of the first line.
 !   y_origin    -- Real(rp), optional: y-postion of start of the first line.

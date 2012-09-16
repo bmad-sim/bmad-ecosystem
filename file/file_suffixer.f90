@@ -52,13 +52,9 @@ subroutine file_suffixer (in_file_name, out_file_name, suffix, add_switch)
 
   character(*) in_file_name, out_file_name, suffix
   character(80) suffix2
-#if defined (CESR_VMS)
-  character(1) :: dir_str = ']'
-#else
   character(1) :: dir_str = '/'
-#endif
 
-! SUFFIX2 is used so that SUFFIX is not changed by program
+  ! SUFFIX2 is used so that SUFFIX is not changed by program
 
   suffix2 = suffix
   call string_trim (suffix2, suffix2, isl)  ! trim suffix of leading blanks
@@ -70,7 +66,7 @@ subroutine file_suffixer (in_file_name, out_file_name, suffix, add_switch)
   call string_trim (out_file_name, out_file_name, ifl) ! trim leading blanks
   out_file_name = out_file_name(1:ifl)                 ! trim trailing words
 
-! Locate period in file name if it exists. 
+  ! Locate period in file name if it exists. 
 
   pix = ifl+1
   do i = ifl, 1, -1
