@@ -2,9 +2,18 @@ module basic_attribute_mod
 
 use bmad_struct
 
+! The type of an attribute may be one of:
+!   does_not_exist$ -- Does not exist.
+!   is_free$        -- Free to vary as long as attribute has not controlled by, eg, overlay_lord.
+!   quasi_free$     -- May be free or not. For example, k1 is only free if field_master = F.
+!   dependent$      -- Cannot be varied as an independent parameter..
+!   private$        -- Internal, parameter used in calculations. Is dependent by definition.
+
+integer, parameter :: does_not_exist$ = -1, is_free$ = 1, quasi_free$ = 2, dependent$ = 3, private$ = 4
+
 type ele_attribute_struct
   character(40) :: name = null_name$
-  logical :: private = .false.
+  integer :: type = does_not_exist$
 end type
 
 type (ele_attribute_struct), private, save :: attrib_array(n_key, num_ele_attrib_extended$)
@@ -184,7 +193,7 @@ elseif (ele%lord_status == overlay_lord$) then
     attrib_name = '!INVALID INDEX'
   endif
 else
-  if (attrib_array(key, ix_att)%private) then
+  if (attrib_array(key, ix_att)%type == private$) then
     attrib_name = null_name$
   else
     attrib_name = attrib_array(key, ix_att)%name
@@ -197,9 +206,9 @@ end function attribute_name
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_record (ele, ix_att) result (attrib_record)
+! Function attribute_info (ele, ix_att) result (attrib_info)
 !
-! Function to return the record structure associated with an attribute for 
+! Function to return the info structure associated with an attribute for 
 ! a particular type of BMAD element. 
 !
 ! Modules Needed:
@@ -211,7 +220,7 @@ end function attribute_name
 !   ix_att -- Integer: Index of attribute (e.g. k1$)
 !
 ! Output:
-!   attrib_record -- ele_attribute_struct: Info on this attribute.
+!   attrib_info -- ele_attribute_struct: Info on this attribute.
 !     %name -- Character(40): Name of attribute. 
 !        = "!BAD ELE KEY"                 %key is invalid
 !        = "!BAD INDEX"                   ix_att is invalid (out of range).
@@ -225,35 +234,36 @@ end function attribute_name
 !   name -> "K1"
 !-
 
-function attribute_record (ele, ix_att) result (attrib_record)
+function attribute_info (ele, ix_att) result (attrib_info)
 
 implicit none
 
 type (ele_struct) ele
-type (ele_attribute_struct) attrib_record
+type (ele_attribute_struct) attrib_info
 integer i, key, ix_att
 
 !
 
 if (init_needed) call init_attribute_name_array()
 
-attrib_record%private = .false.
+attrib_info%type = does_not_exist$
 
 if (ele%key <= 0 .or. ele%key > n_key) then
-  attrib_record%name = '!BAD ELE KEY'
+  attrib_info%name = '!BAD ELE KEY'
 elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
-  attrib_record%name = '!BAD INDEX'
+  attrib_info%name = '!BAD INDEX'
 elseif (ele%lord_status == overlay_lord$) then
   if (ix_att == ele%ix_value) then
-    attrib_record%name = ele%component_name
+    attrib_info%name = ele%component_name
+    attrib_info%type = free$
   else
-    attrib_record%name = '!INVALID INDEX'
+    attrib_info%name = '!INVALID INDEX'
   endif
 else
-  attrib_record = attrib_array(ele%key, ix_att)
+  attrib_info = attrib_array(ele%key, ix_att)
 endif
 
-end function attribute_record
+end function attribute_info
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -277,11 +287,11 @@ if (.not. init_needed) return
 
 do i = 1, n_key
 
-  call init_attrib (i, general1$,  'general1', .true.)
-  call init_attrib (i, general2$,  'general2', .true.)
-  call init_attrib (i, general3$,  'general3', .true.)
-  call init_attrib (i, check_sum$, 'check_sum', .true.)
-  call init_attrib (i, scratch$,   'scratch', .true.)
+  call init_attrib (i, general1$,  'general1', private$)
+  call init_attrib (i, general2$,  'general2', private$)
+  call init_attrib (i, general3$,  'general3', private$)
+  call init_attrib (i, check_sum$, 'check_sum', private$)
+  call init_attrib (i, scratch$,   'scratch', private$)
 
   if (i == crystal$ .or. i == multilayer_mirror$ .or. i == mirror$) then
     call init_attrib (i, d_source$,             'D_SOURCE')
@@ -355,10 +365,10 @@ do i = 1, n_key
   call init_attrib (i, tracking_method$,        'TRACKING_METHOD')
   call init_attrib (i, spin_tracking_method$,   'SPIN_TRACKING_METHOD')
 
-  call init_attrib (i, E_tot$,                  'E_TOT')
-  call init_attrib (i, p0c$,                    'P0C')
-  call init_attrib (i, delta_ref_time$,         'DELTA_REF_TIME')
-  call init_attrib (i, ref_time_start$,         'ref_time_start', .true.)
+  call init_attrib (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
+  call init_attrib (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
+  call init_attrib (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
+  call init_attrib (i, ref_time_start$,         'ref_time_start', private$)
 
   if (i == match$) cycle
   if (i == floor_position$) cycle
@@ -369,12 +379,12 @@ do i = 1, n_key
   call init_attrib (i, s_offset$,      'S_OFFSET')
   call init_attrib (i, x_pitch$,       'X_PITCH')
   call init_attrib (i, y_pitch$,       'Y_PITCH')
-  call init_attrib (i, tilt_tot$,      'TILT_TOT')
-  call init_attrib (i, x_offset_tot$,  'X_OFFSET_TOT')
-  call init_attrib (i, y_offset_tot$,  'Y_OFFSET_TOT')
-  call init_attrib (i, s_offset_tot$,  'S_OFFSET_TOT')
-  call init_attrib (i, x_pitch_tot$,   'X_PITCH_TOT')
-  call init_attrib (i, y_pitch_tot$,   'Y_PITCH_TOT')
+  call init_attrib (i, tilt_tot$,      'TILT_TOT', dependent$)
+  call init_attrib (i, x_offset_tot$,  'X_OFFSET_TOT', dependent$)
+  call init_attrib (i, y_offset_tot$,  'Y_OFFSET_TOT', dependent$)
+  call init_attrib (i, s_offset_tot$,  'S_OFFSET_TOT', dependent$)
+  call init_attrib (i, x_pitch_tot$,   'X_PITCH_TOT', dependent$)
+  call init_attrib (i, y_pitch_tot$,   'Y_PITCH_TOT', dependent$)
 
   if (i == mirror$)     cycle
   if (i == crystal$)    cycle
@@ -398,14 +408,14 @@ do i = 1, n_key
   if (i == taylor$)       cycle
 
   call init_attrib (i, l$,            'L')
-  call init_attrib (i, l_hard_edge$,  'L_HARD_EDGE')
+  call init_attrib (i, l_hard_edge$,  'L_HARD_EDGE', dependent$)
 
   call init_attrib (i, integrator_order$,   'INTEGRATOR_ORDER')
-  call init_attrib (i, num_steps$,          'NUM_STEPS')
+  call init_attrib (i, num_steps$,          'NUM_STEPS', quasi_free$)
   call init_attrib (i, ds_step$,            'DS_STEP')
   call init_attrib (i, csr_calc_on$,        'CSR_CALC_ON')
   call init_attrib (i, n_ref_pass$,         'N_REF_PASS')
-  call init_attrib (i, field_scale$,        'FIELD_SCALE')
+  call init_attrib (i, field_scale$,        'FIELD_SCALE', quasi_free$)
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
@@ -414,10 +424,10 @@ do i = 1, n_key
   if (i == em_field$)     cycle
   if (i == drift$)        cycle
 
-  call init_attrib (i, hkick$,     'HKICK')
-  call init_attrib (i, vkick$,     'VKICK')
-  call init_attrib (i, bl_hkick$,  'BL_HKICK')
-  call init_attrib (i, bl_vkick$,  'BL_VKICK')
+  call init_attrib (i, hkick$,     'HKICK', quasi_free$)
+  call init_attrib (i, vkick$,     'VKICK', quasi_free$)
+  call init_attrib (i, bl_hkick$,  'BL_HKICK', quasi_free$)
+  call init_attrib (i, bl_vkick$,  'BL_VKICK', quasi_free$)
 
 enddo
 
@@ -428,24 +438,27 @@ do i = 1, n_key
   case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, bend_sol_quad$, &
          hkicker$, vkicker$)
-     attrib_array(i, a0$:a20$)%name = [ 'A0 ', &
+    attrib_array(i, a0$:a20$)%name = [ 'A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
                                    'A11', 'A12', 'A13', 'A14', 'A15', &
                                    'A16', 'A17', 'A18', 'A19', 'A20' ]
-     attrib_array(i, b0$:b20$)%name = [ 'B0 ', &
+    attrib_array(i, b0$:b20$)%name = [ 'B0 ', &
                                    'B1 ', 'B2 ', 'B3 ', 'B4 ', 'B5 ', & 
                                    'B6 ', 'B7 ', 'B8 ', 'B9 ', 'B10', &
                                    'B11', 'B12', 'B13', 'B14', 'B15', &
                                    'B16', 'B17', 'B18', 'B19', 'B20' ]
+    attrib_array(i, a0$:b20$)%type = is_free$
     if (i == ab_multipole$) cycle
     call init_attrib (i, scale_multipoles$,  'SCALE_MULTIPOLES')
   end select
 enddo
 
+
+
 !
 
-call init_attrib (photon_branch$, ix_branch_to$,         'ix_branch_to', .true.)
+call init_attrib (photon_branch$, ix_branch_to$,         'ix_branch_to', private$)
 call init_attrib (photon_branch$, direction$,            'DIRECTION')
 call init_attrib (photon_branch$, to$,                   'TO')
 call init_attrib (photon_branch$, particle$,             'PARTICLE')
@@ -455,8 +468,8 @@ call init_attrib (photon_branch$, p0c_start$,            'P0C_START')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
-call init_attrib (init_ele$, delta_ref_time$,              'delta_ref_time', .true.)
-call init_attrib (init_ele$, ref_time_start$,              'ref_time_start', .true.)
+call init_attrib (init_ele$, delta_ref_time$,              'delta_ref_time', private$)
+call init_attrib (init_ele$, ref_time_start$,              'ref_time_start', private$)
 call init_attrib (init_ele$, e_tot_start$,                 'E_TOT_START')
 call init_attrib (init_ele$, p0c_start$,                   'P0C_START')
 call init_attrib (init_ele$, e_tot$,                       'E_TOT')
@@ -525,8 +538,8 @@ call init_attrib (def_beam_start$, phase_x$,               'PHASE_X')
 call init_attrib (def_beam_start$, phase_y$,               'PHASE_Y')
 call init_attrib (def_beam_start$, t$,                     'T')
 
-call init_attrib (e_gun$, e_tot_start$,                    'e_tot_start', .true.)
-call init_attrib (e_gun$, p0c_start$,                      'p0c_start', .true.)
+call init_attrib (e_gun$, e_tot_start$,                    'e_tot_start', private$)
+call init_attrib (e_gun$, p0c_start$,                      'p0c_start', private$)
 call init_attrib (e_gun$, voltage$,                        'VOLTAGE')
 call init_attrib (e_gun$, voltage_err$,                    'VOLTAGE_ERR')
 call init_attrib (e_gun$, gradient$,                       'GRADIENT')
@@ -539,12 +552,12 @@ call init_attrib (em_field$, p0c_start$,                   'P0C_START')
 call init_attrib (em_field$, field$,                       'FIELD')
 
 call init_attrib (taylor$, l$,                             'L')
-call init_attrib (taylor$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (taylor$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (taylor$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (taylor$, p0c_start$,                     'p0c_start', private$)
 
-call init_attrib (marker$, l$,                             'l', .true.)
-call init_attrib (marker$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (marker$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (marker$, l$,                             'l', private$)
+call init_attrib (marker$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (marker$, p0c_start$,                     'p0c_start', private$)
 
 call init_attrib (match$, l$,                              'L')
 call init_attrib (match$, beta_a0$,                        'BETA_A0')
@@ -580,8 +593,8 @@ call init_attrib (match$, z1$,                             'Z1')
 call init_attrib (match$, pz1$,                            'PZ1')
 call init_attrib (match$, match_end_orbit$,                'MATCH_END_ORBIT')
 call init_attrib (match$, is_on$,                          'IS_ON')
-call init_attrib (match$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (match$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (match$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (match$, p0c_start$,                     'p0c_start', private$)
 
 call init_attrib (girder$, l$,                             'L')
 call init_attrib (girder$, x_offset$,                      'X_OFFSET')
@@ -601,7 +614,7 @@ call init_attrib (lcavity$, phi0$,                         'PHI0')
 call init_attrib (lcavity$, gradient$,                     'GRADIENT')
 call init_attrib (lcavity$, rf_frequency$,                 'RF_FREQUENCY')
 call init_attrib (lcavity$, e_loss$,                       'E_LOSS')
-call init_attrib (lcavity$, voltage$,                      'VOLTAGE')
+call init_attrib (lcavity$, voltage$,                      'VOLTAGE', quasi_free$)
 call init_attrib (lcavity$, sr_wake_file$,                 'SR_WAKE_FILE')
 call init_attrib (lcavity$, lr_wake_file$,                 'LR_WAKE_FILE')
 call init_attrib (lcavity$, field_calc$,                   'FIELD_CALC')
@@ -614,9 +627,9 @@ call init_attrib (lcavity$, coupler_at$,                   'COUPLER_AT')
 call init_attrib (lcavity$, gradient_err$,                 'GRADIENT_ERR')
 call init_attrib (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attrib (lcavity$, field$,                        'FIELD')
-call init_attrib (lcavity$, dphi0_ref$,                    'DPHI0_REF')
+call init_attrib (lcavity$, dphi0_ref$,                    'DPHI0_REF', quasi_free$)
 call init_attrib (lcavity$, n_cell$,                       'N_CELL')
-call init_attrib (lcavity$, grad_loss_sr_wake$,            'grad_loss_sr_wake', .true.)
+call init_attrib (lcavity$, grad_loss_sr_wake$,            'grad_loss_sr_wake', private$)
 
 
 call init_attrib (group$, command$,                        'COMMAND')
@@ -629,23 +642,23 @@ call init_attrib (group$, symmetric_edge$,                 'SYMMETRIC_EDGE')
 
 call init_attrib (drift$, field_calc$,                     'FIELD_CALC')
 call init_attrib (drift$, field_master$,                   'FIELD_MASTER')
-call init_attrib (drift$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (drift$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (drift$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (drift$, p0c_start$,                     'p0c_start', private$)
 
 call init_attrib (monitor$, field_master$,                 'FIELD_MASTER')
-call init_attrib (monitor$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (monitor$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (monitor$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (monitor$, p0c_start$,                     'p0c_start', private$)
 
 attrib_array(instrument$, :)                         = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                               = attrib_array(monitor$, :)
 
-call init_attrib (hkicker$, kick$,                         'KICK')
+call init_attrib (hkicker$, kick$,                         'KICK', quasi_free$)
 call init_attrib (hkicker$, field_calc$,                   'FIELD_CALC')
 call init_attrib (hkicker$, field_master$,                 'FIELD_MASTER')
-call init_attrib (hkicker$, bl_kick$,                      'BL_KICK')
+call init_attrib (hkicker$, bl_kick$,                      'BL_KICK', quasi_free$)
 call init_attrib (hkicker$, pole_radius$,                  'POLE_RADIUS')
-call init_attrib (hkicker$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (hkicker$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (hkicker$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (hkicker$, p0c_start$,                     'p0c_start', private$)
 
 attrib_array(vkicker$, :) = attrib_array(hkicker$, :)
 
@@ -655,36 +668,36 @@ call init_attrib (kicker$, radius$,                        'RADIUS')
 call init_attrib (kicker$, field_calc$,                    'FIELD_CALC')
 call init_attrib (kicker$, field_master$,                  'FIELD_MASTER')
 call init_attrib (kicker$, pole_radius$,                   'POLE_RADIUS')
-call init_attrib (kicker$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (kicker$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (kicker$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (kicker$, p0c_start$,                     'p0c_start', private$)
 
-call init_attrib (sbend$, angle$,                          'ANGLE')
+call init_attrib (sbend$, angle$,                          'ANGLE', quasi_free$)
 call init_attrib (sbend$, exact_fringe$,                   'EXACT_FRINGE')
 call init_attrib (sbend$, e1$,                             'E1')
 call init_attrib (sbend$, e2$,                             'E2')
 call init_attrib (sbend$, h1$,                             'H1')
 call init_attrib (sbend$, h2$,                             'H2')
-call init_attrib (sbend$, k1$,                             'K1')
-call init_attrib (sbend$, k2$,                             'K2')
-call init_attrib (sbend$, g$,                              'G')
-call init_attrib (sbend$, g_err$,                          'G_ERR')
+call init_attrib (sbend$, k1$,                             'K1', quasi_free$)
+call init_attrib (sbend$, k2$,                             'K2', quasi_free$)
+call init_attrib (sbend$, g$,                              'G', quasi_free$)
+call init_attrib (sbend$, g_err$,                          'G_ERR', quasi_free$)
 call init_attrib (sbend$, roll$,                           'ROLL')
 call init_attrib (sbend$, hgap$,                           'HGAP')
 call init_attrib (sbend$, hgapx$,                          'HGAPX')
 call init_attrib (sbend$, fint$,                           'FINT')
 call init_attrib (sbend$, fintx$,                          'FINTX')
-call init_attrib (sbend$, rho$,                            'RHO')
-call init_attrib (sbend$, l_chord$,                        'L_CHORD')
-call init_attrib (sbend$, b_field$,                        'B_FIELD')
-call init_attrib (sbend$, b_field_err$,                    'B_FIELD_ERR')
-call init_attrib (sbend$, b1_gradient$,                    'B1_GRADIENT')
-call init_attrib (sbend$, b2_gradient$,                    'B2_GRADIENT')
+call init_attrib (sbend$, rho$,                            'RHO', quasi_free$)
+call init_attrib (sbend$, l_chord$,                        'L_CHORD', quasi_free$)
+call init_attrib (sbend$, b_field$,                        'B_FIELD', quasi_free$)
+call init_attrib (sbend$, b_field_err$,                    'B_FIELD_ERR', quasi_free$)
+call init_attrib (sbend$, b1_gradient$,                    'B1_GRADIENT', quasi_free$)
+call init_attrib (sbend$, b2_gradient$,                    'B2_GRADIENT', quasi_free$)
 call init_attrib (sbend$, radius$,                         'RADIUS')
 call init_attrib (sbend$, field_calc$,                     'FIELD_CALC')
 call init_attrib (sbend$, field_master$,                   'FIELD_MASTER')
 call init_attrib (sbend$, ref_orbit$,                      'REF_ORBIT')
-call init_attrib (sbend$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (sbend$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (sbend$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (sbend$, p0c_start$,                     'p0c_start', private$)
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -702,8 +715,8 @@ call init_attrib (bend_sol_quad$, radius$,                 'RADIUS')
 call init_attrib (bend_sol_quad$, field_calc$,             'FIELD_CALC')
 call init_attrib (bend_sol_quad$, field_master$,           'FIELD_MASTER')
 call init_attrib (bend_sol_quad$, field$,                  'FIELD')
-call init_attrib (bend_sol_quad$, E_tot_start$,            'E_tot_start', .true.)
-call init_attrib (bend_sol_quad$, p0c_start$,              'p0c_start', .true.)
+call init_attrib (bend_sol_quad$, E_tot_start$,            'E_tot_start', private$)
+call init_attrib (bend_sol_quad$, p0c_start$,              'p0c_start', private$)
 
 call init_attrib (patch$, l$,                              'L')
 call init_attrib (patch$, t_offset$,                       'T_OFFSET')
@@ -716,7 +729,7 @@ call init_attrib (patch$, n_ref_pass$,                     'N_REF_PASS')
 call init_attrib (patch$, translate_after$,                'TRANSLATE_AFTER')
 call init_attrib (patch$, z_offset$,                       'Z_OFFSET', override = .true.)
 
-call init_attrib (floor_position$, l$,                           'l', .true.)
+call init_attrib (floor_position$, l$,                           'l', private$)
 call init_attrib (floor_position$, x_position$,                  'X_POSITION')
 call init_attrib (floor_position$, y_position$,                  'Y_POSITION')
 call init_attrib (floor_position$, z_position$,                  'Z_POSITION')
@@ -725,52 +738,52 @@ call init_attrib (floor_position$, phi_position$,                'PHI_POSITION')
 call init_attrib (floor_position$, psi_position$,                'PSI_POSITION')
 
 
-call init_attrib (quadrupole$, k1$,                        'K1')
+call init_attrib (quadrupole$, k1$,                        'K1', quasi_free$)
+call init_attrib (quadrupole$, B1_gradient$,               'B1_GRADIENT', quasi_free$)
 call init_attrib (quadrupole$, include_fringe$,            'INCLUDE_FRINGE')
-call init_attrib (quadrupole$, B1_gradient$,               'B1_GRADIENT')
 call init_attrib (quadrupole$, radius$,                    'RADIUS')
 call init_attrib (quadrupole$, field_calc$,                'FIELD_CALC')
 call init_attrib (quadrupole$, field_master$,              'FIELD_MASTER')
 call init_attrib (quadrupole$, pole_radius$,               'POLE_RADIUS')
 call init_attrib (quadrupole$, field$,                     'FIELD')
-call init_attrib (quadrupole$, E_tot_start$,               'E_tot_start', .true.)
-call init_attrib (quadrupole$, p0c_start$,                 'p0c_start', .true.)
+call init_attrib (quadrupole$, E_tot_start$,               'E_tot_start', private$)
+call init_attrib (quadrupole$, p0c_start$,                 'p0c_start', private$)
 
-call init_attrib (sextupole$, k2$,                         'K2')
-call init_attrib (sextupole$, B2_gradient$,                'B2_GRADIENT')
+call init_attrib (sextupole$, k2$,                         'K2', quasi_free$)
+call init_attrib (sextupole$, B2_gradient$,                'B2_GRADIENT', quasi_free$)
 call init_attrib (sextupole$, radius$,                     'RADIUS')
 call init_attrib (sextupole$, field_calc$,                 'FIELD_CALC')
 call init_attrib (sextupole$, field_master$,               'FIELD_MASTER')
 call init_attrib (sextupole$, pole_radius$,                'POLE_RADIUS')
 call init_attrib (sextupole$, field$,                      'FIELD')
-call init_attrib (sextupole$, E_tot_start$,                'E_tot_start', .true.)
-call init_attrib (sextupole$, p0c_start$,                  'p0c_start', .true.)
+call init_attrib (sextupole$, E_tot_start$,                'E_tot_start', private$)
+call init_attrib (sextupole$, p0c_start$,                  'p0c_start', private$)
 
-call init_attrib (octupole$, k3$,                          'K3')
-call init_attrib (octupole$, B3_gradient$,                 'B3_GRADIENT')
+call init_attrib (octupole$, k3$,                          'K3', quasi_free$)
+call init_attrib (octupole$, B3_gradient$,                 'B3_GRADIENT', quasi_free$)
 call init_attrib (octupole$, radius$,                      'RADIUS')
 call init_attrib (octupole$, field_calc$,                  'FIELD_CALC')
 call init_attrib (octupole$, field_master$,                'FIELD_MASTER')
 call init_attrib (octupole$, pole_radius$,                 'POLE_RADIUS')
 call init_attrib (octupole$, field$,                       'FIELD')
-call init_attrib (octupole$, E_tot_start$,                 'E_tot_start', .true.)
-call init_attrib (octupole$, p0c_start$,                   'p0c_start', .true.)
+call init_attrib (octupole$, E_tot_start$,                 'E_tot_start', private$)
+call init_attrib (octupole$, p0c_start$,                   'p0c_start', private$)
 
-call init_attrib (solenoid$, ks$,                          'KS')
-call init_attrib (solenoid$, bs_field$,                    'BS_FIELD')
+call init_attrib (solenoid$, ks$,                          'KS', quasi_free$)
+call init_attrib (solenoid$, bs_field$,                    'BS_FIELD', quasi_free$)
 call init_attrib (solenoid$, radius$,                      'RADIUS')
 call init_attrib (solenoid$, field_calc$,                  'FIELD_CALC')
 call init_attrib (solenoid$, field_master$,                'FIELD_MASTER')
 call init_attrib (solenoid$, pole_radius$,                 'POLE_RADIUS')
 call init_attrib (solenoid$, field$,                       'FIELD')
-call init_attrib (solenoid$, E_tot_start$,                 'E_tot_start', .true.)
-call init_attrib (solenoid$, p0c_start$,                   'p0c_start', .true.)
+call init_attrib (solenoid$, E_tot_start$,                 'E_tot_start', private$)
+call init_attrib (solenoid$, p0c_start$,                   'p0c_start', private$)
 
 call init_attrib (rfcavity$, dphi0$,                       'DPHI0')
 call init_attrib (rfcavity$, voltage$,                     'VOLTAGE')
 call init_attrib (rfcavity$, rf_frequency$,                'RF_FREQUENCY')
 call init_attrib (rfcavity$, phi0$,                        'PHI0')
-call init_attrib (rfcavity$, phi0_err$,                    'phi0_err', .true.)
+call init_attrib (rfcavity$, phi0_err$,                    'phi0_err', private$)
 call init_attrib (rfcavity$, harmon$,                      'HARMON')
 call init_attrib (rfcavity$, field_calc$,                  'FIELD_CALC')
 call init_attrib (rfcavity$, field_master$,                'FIELD_MASTER')
@@ -784,38 +797,38 @@ call init_attrib (rfcavity$, coupler_at$,                  'COUPLER_AT')
 call init_attrib (rfcavity$, field$,                       'FIELD')
 call init_attrib (rfcavity$, dphi0_ref$,                   'DPHI0_REF')
 call init_attrib (rfcavity$, n_cell$,                      'N_CELL')
-call init_attrib (rfcavity$, grad_loss_sr_wake$,           'grad_loss_sr_wake', .true.)
-call init_attrib (rfcavity$, dphi0_max$,                   'dphi0_max', .true.)
-call init_attrib (rfcavity$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (rfcavity$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (rfcavity$, grad_loss_sr_wake$,           'grad_loss_sr_wake', private$)
+call init_attrib (rfcavity$, dphi0_max$,                   'dphi0_max', private$)
+call init_attrib (rfcavity$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (rfcavity$, p0c_start$,                     'p0c_start', private$)
 
 call init_attrib (elseparator$, gap$,                      'GAP')
-call init_attrib (elseparator$, e_field$,                  'E_FIELD')
-call init_attrib (elseparator$, voltage$,                  'VOLTAGE')
+call init_attrib (elseparator$, e_field$,                  'E_FIELD', quasi_free$)
+call init_attrib (elseparator$, voltage$,                  'VOLTAGE', quasi_free$)
 call init_attrib (elseparator$, radius$,                   'RADIUS')
 call init_attrib (elseparator$, field_calc$,               'FIELD_CALC')
 call init_attrib (elseparator$, field_master$,             'FIELD_MASTER')
 call init_attrib (elseparator$, field$,                    'FIELD')
-call init_attrib (elseparator$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (elseparator$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (elseparator$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (elseparator$, p0c_start$,                     'p0c_start', private$)
 
-call init_attrib (beambeam$, l$,                           'l', .true.)
+call init_attrib (beambeam$, l$,                           'l', private$)
 call init_attrib (beambeam$, sig_x$,                       'SIG_X')
 call init_attrib (beambeam$, sig_y$,                       'SIG_Y')
 call init_attrib (beambeam$, sig_z$,                       'SIG_Z')
-call init_attrib (beambeam$, bbi_const$,                   'BBI_CONSTANT')
+call init_attrib (beambeam$, bbi_const$,                   'BBI_CONSTANT', dependent$)
 call init_attrib (beambeam$, charge$,                      'CHARGE')
 call init_attrib (beambeam$, n_slice$,                     'N_SLICE')
 call init_attrib (beambeam$, symplectify$,                 'N_SLICE')
 call init_attrib (beambeam$, field_calc$,                  'FIELD_CALC')
 call init_attrib (beambeam$, field_master$,                'FIELD_MASTER')
-call init_attrib (beambeam$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (beambeam$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (beambeam$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (beambeam$, p0c_start$,                     'p0c_start', private$)
 
-call init_attrib (wiggler$, k1$,                           'K1')
+call init_attrib (wiggler$, k1$,                           'K1', dependent$)
 call init_attrib (wiggler$, l_pole$,                       'L_POLE')
 call init_attrib (wiggler$, b_max$,                        'B_MAX')
-call init_attrib (wiggler$, rho$,                          'RHO')
+call init_attrib (wiggler$, rho$,                          'RHO', dependent$)
 call init_attrib (wiggler$, n_pole$,                       'N_POLE')
 call init_attrib (wiggler$, term$,                         'TERM')
 call init_attrib (wiggler$, polarity$,                     'POLARITY')
@@ -824,19 +837,19 @@ call init_attrib (wiggler$, field_calc$,                   'FIELD_CALC')
 call init_attrib (wiggler$, field_master$,                 'FIELD_MASTER')
 call init_attrib (wiggler$, x_ray_line_len$,               'X_RAY_LINE_LEN')
 call init_attrib (wiggler$, field$,                        'FIELD')
-call init_attrib (wiggler$, E_tot_start$,                   'E_tot_start', .true.)
-call init_attrib (wiggler$, p0c_start$,                     'p0c_start', .true.)
+call init_attrib (wiggler$, E_tot_start$,                   'E_tot_start', private$)
+call init_attrib (wiggler$, p0c_start$,                     'p0c_start', private$)
 
-call init_attrib (sol_quad$, k1$,                          'K1')
-call init_attrib (sol_quad$, ks$,                          'KS')
+call init_attrib (sol_quad$, k1$,                          'K1', quasi_free$)
+call init_attrib (sol_quad$, ks$,                          'KS', quasi_free$)
+call init_attrib (sol_quad$, b1_gradient$,                 'B1_GRADIENT', quasi_free$)
+call init_attrib (sol_quad$, bs_field$,                    'BS_FIELD', quasi_free$)
 call init_attrib (sol_quad$, radius$,                      'RADIUS')
 call init_attrib (sol_quad$, field_calc$,                  'FIELD_CALC')
 call init_attrib (sol_quad$, field_master$,                'FIELD_MASTER')
-call init_attrib (sol_quad$, b1_gradient$,                 'B1_GRADIENT')
-call init_attrib (sol_quad$, bs_field$,                    'BS_FIELD')
 call init_attrib (sol_quad$, field$,                       'FIELD')
-call init_attrib (sol_quad$, E_tot_start$,                 'E_tot_start', .true.)
-call init_attrib (sol_quad$, p0c_start$,                   'p0c_start', .true.)
+call init_attrib (sol_quad$, E_tot_start$,                 'E_tot_start', private$)
+call init_attrib (sol_quad$, p0c_start$,                   'p0c_start', private$)
 
 call init_attrib (multipole$, l$,                          'L')
 attrib_array(multipole$, k0l$:k20l$)%name    = &
@@ -847,6 +860,7 @@ attrib_array(multipole$, t0$:t20$)%name = ['T0 ', &
                                'T6 ', 'T7 ', 'T8 ', 'T9 ', 'T10', &
                                'T11', 'T12', 'T13', 'T14', 'T15', &
                                'T16', 'T17', 'T18', 'T19', 'T20' ]
+attrib_array(multipole$, k0l$:t20$)%type = is_free$
 
 call init_attrib (ab_multipole$, l$,                       'L')
 
@@ -871,11 +885,11 @@ call init_attrib (custom$, p0c_start$,                     'P0C_START')
 call init_attrib (hybrid$, l$,                             'L')
 call init_attrib (hybrid$, delta_e$,                       'DELTA_E')
 call init_attrib (hybrid$, delta_ref_time$,                'DELTA_REF_TIME')
-call init_attrib (hybrid$, ref_time_start$,                'ref_time_start', .true.)
+call init_attrib (hybrid$, ref_time_start$,                'ref_time_start', private$)
 call init_attrib (hybrid$, e_tot_start$,                   'E_TOT_START')
 call init_attrib (hybrid$, p0c_start$,                     'P0C_START')
 
-call init_attrib (mirror$, l$,                             'l', .true.)
+call init_attrib (mirror$, l$,                             'l', private$)
 call init_attrib (mirror$, graze_angle$,                   'GRAZE_ANGLE')
 call init_attrib (mirror$, graze_angle_err$,               'GRAZE_ANGLE_ERR')
 call init_attrib (mirror$, critical_angle$,                'CRITICAL_ANGLE')
@@ -883,7 +897,7 @@ call init_attrib (mirror$, tilt_err$,                      'TILT_ERR')
 call init_attrib (mirror$, g_trans$,                       'G_TRANS')
 call init_attrib (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
 
-call init_attrib (multilayer_mirror$, l$,                    'l', .true.)
+call init_attrib (multilayer_mirror$, l$,                    'l', private$)
 call init_attrib (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
 call init_attrib (multilayer_mirror$, graze_angle_err$,      'GRAZE_ANGLE_ERR')
 call init_attrib (multilayer_mirror$, tilt_err$,             'TILT_ERR')
@@ -901,7 +915,7 @@ call init_attrib (multilayer_mirror$, crystal_type$,         'CRYSTAL_TYPE')
 call init_attrib (multilayer_mirror$, ref_polarization$,     'REF_POLARIZATION')
 call init_attrib (multilayer_mirror$, negative_graze_angle$, 'NEGATIVE_GRAZE_ANGLE')
 
-call init_attrib (crystal$, l$,                            'l', .true.)
+call init_attrib (crystal$, l$,                            'l', private$)
 call init_attrib (crystal$, graze_angle_in$,               'GRAZE_ANGLE_IN')
 call init_attrib (crystal$, graze_angle_out$,              'GRAZE_ANGLE_OUT')
 call init_attrib (crystal$, graze_angle_err$,              'GRAZE_ANGLE_ERR')
@@ -923,12 +937,12 @@ call init_attrib (crystal$, diffraction_type$,             'DIFFRACTION_TYPE')  
 call init_attrib (crystal$, crystal_type$,                 'CRYSTAL_TYPE')
 call init_attrib (crystal$, thickness$,                    'THICKNESS')
 call init_attrib (crystal$, follow_diffracted_beam$,       'FOLLOW_DIFFRACTED_BEAM')
-call init_attrib (crystal$, kh_x_norm$,                    'kh_x_norm', .true.)
-call init_attrib (crystal$, kh_y_norm$,                    'kh_y_norm', .true.)
-call init_attrib (crystal$, kh_z_norm$,                    'kh_z_norm', .true.)
-call init_attrib (crystal$, l_x$,                          'l_x', .true.)
-call init_attrib (crystal$, l_y$,                          'l_y', .true.)
-call init_attrib (crystal$, l_z$,                          'l_z', .true.)
+call init_attrib (crystal$, kh_x_norm$,                    'kh_x_norm', private$)
+call init_attrib (crystal$, kh_y_norm$,                    'kh_y_norm', private$)
+call init_attrib (crystal$, kh_z_norm$,                    'kh_z_norm', private$)
+call init_attrib (crystal$, l_x$,                          'l_x', private$)
+call init_attrib (crystal$, l_y$,                          'l_y', private$)
+call init_attrib (crystal$, l_z$,                          'l_z', private$)
 call init_attrib (crystal$, ref_polarization$,             'REF_POLARIZATION')
 call init_attrib (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA')
 call init_attrib (crystal$, negative_graze_angle$,         'NEGATIVE_GRAZE_ANGLE')
@@ -956,7 +970,7 @@ do i = 1, n_key
   num = 0
   do j = 1, num_ele_attrib_extended$
     if (attrib_array(i, j)%name == null_name$) cycle
-    if (attrib_array(i, j)%private) cycle
+    if (attrib_array(i, j)%type == private$) cycle
     num = num + 1
     short_attrib_array(i, num) = attrib_array(i, j)%name
     attrib_ix(i, num) = j
@@ -969,11 +983,12 @@ init_needed = .false.
 !-------------------------------------------------------------------------
 contains
 
-subroutine init_attrib (ix_key, ix_attrib, name, private, override)
+subroutine init_attrib (ix_key, ix_attrib, name, attrib_state, override)
 
 integer ix_key, ix_attrib
 character(*) name
-logical, optional :: private, override
+integer, optional :: attrib_state
+logical, optional :: override
 
 ! Check that attrib_array(ix_key, ix_attrib)%name has not already been set.
 ! If so bomb program.
@@ -987,7 +1002,7 @@ if (.not. logic_option(.false., override) .and. attrib_array(ix_key, ix_attrib)%
 endif
 
 attrib_array(ix_key, ix_attrib)%name    = name
-attrib_array(ix_key, ix_attrib)%private = logic_option(.false., private)
+attrib_array(ix_key, ix_attrib)%type = integer_option(is_free$, attrib_state)
 
 end subroutine init_attrib 
 
