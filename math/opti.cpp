@@ -44,30 +44,17 @@ end function
 #ifndef _OPTI_H_
 #define _OPTI_H_
 
-#if defined(CESR_LINUX)
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#elif defined(CESR_UNIX)
-#include <math>
-#include <stdlib.h>
-#include <iostream>
-#elif defined(CESR_WINCVF)
-#include <math.h>
-#include <stdlib.h>
-#include <iostream>
-#elif defined(CESR_VMS)
-#include <math.h>
-#include <stdlib.h>
-#include <iostream.h>
-#endif
 
-// namespace specification used on Windows, disable for VMS
-#if ! defined(CESR_VMS)
+// #elif defined(CESR_WINCVF)
+// #include <math.h>
+// #include <stdlib.h>
+// #include <iostream>
+// #endif
+
 using namespace std;
-#endif
-
-
 
 typedef double (*EvalFunc) (double *, int&);
 
@@ -254,9 +241,7 @@ double MaxiDel(double solution[], const int& gen, const int& pop,
 //########          END OPTI.H      ####################################
 //######################################################################
 
-#if defined(CESR_VMS)
-extern "C" void err_exit();
-#elif defined(CESR_WINCVF)
+#if defined(CESR_WINCVF)
 extern "C" void ERR_EXIT(); 
 #else
 extern "C" void err_exit_();
@@ -323,11 +308,7 @@ double MiniVec(double solution[], const int& gen, const int& pop,
  return sol.Cost();
 }
 
-#if defined(CESR_VMS)
-extern "C" double opti(double solution[], const int& gen, const int& pop, 
-	const int& len, EvalFunc func, double v0[], 
-	double vdel[]){
-#elif defined(CESR_WINCVF)
+#if defined(CESR_WINCVF)
 extern "C" double OPTI(double solution[], const int& gen, const int& pop, 
 	const int& len, EvalFunc func, double v0[], 
 	double vdel[]){
@@ -341,9 +322,7 @@ extern "C" double opti_(double solution[], const int& gen, const int& pop,
  if (pop < 4) {
    cout << "ERROR IN OPTI: POPULATION MUST BE AT LEAST 4!\n";
 
-#if defined(CESR_VMS)
-   err_exit();
-#elif defined(CESR_WINCVF)
+#if defined(CESR_WINCVF)
    ERR_EXIT(); 
 #else
    err_exit_();

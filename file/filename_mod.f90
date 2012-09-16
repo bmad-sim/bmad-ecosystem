@@ -11,7 +11,7 @@ contains
 !
 ! Description:  
 !   Returns the full filename with a leading environment variable expanded
-!   into the proper form (full path on Unix, logical on VMS).  NOTE: It is
+!   into the proper form (full path on Unix).  NOTE: It is
 !   the responsibility of the calling routine to provide a large enough
 !   string to hold a fully expanded file name on return.
 !
@@ -24,7 +24,6 @@ contains
 ! Input:
 !   filename -- Character(*): Name requiring expansion of an environment
 !                  variable.  The name can be of the form:
-!                      LOGICAL:foo.bar        (VMS form)
 !                      $ENV_VARIABLE/foo.bar  (UNIX form) 
 !                  Hardwired paths are also accepted but strongly discouraged 
 !                  because of the resulting platform dependence (see above).
@@ -48,208 +47,156 @@ contains
 !      UNIX     '$DUMMY/foo.bar'            '/home/cesr/dummy/foo.bar'
 !      UNIX     '/home/cesr/dummy/foo.bar'  '/home/cesr/dummy/foo.bar'
 !      UNIX     '[cesr.dummy]foo.bar'        NOT a valid Unix file name.
-!
-!      VMS      'DUMMY:foo.bar'             'DUMMY:foo.bar'
-!      VMS      '$DUMMY/foo.bar'            'DUMMY:foo.bar'
-!      VMS       $DUMMY/../a/foo.bar'       'DUMMY:[-.a]foo.bar'
-!      VMS      '/home/cesr/dummy/foo.bar'  '[home.cesr.dummy]foo.bar
-!      VMS      'sub/foo.bar'               '[.sub]foo.bar'
-!      VMS      './sub/foo.bar'             '[.sub]foo.bar'
-!      VMS      '../sub/foo.bar'            '[-.sub]foo.bar'
-!      VMS      '[cesr.dummy]foo.bar'       '[cesr.dummy]foo.bar' 
-!      VMS      './'                        '[]' 
 ! 
 ! Author     :  M. Palmer   9/20/01
 !-
 
 subroutine FullFileName (filename, outfile, valid)
 
-  implicit none
+implicit none
 
 ! Argument Declarations         
 
-  character(*) filename
-  character(*) outfile
-  logical, optional :: valid
+character(*) filename
+character(*) outfile
+logical, optional :: valid
 
-  character(16) :: r_name = 'FullFileName'
-  character(len(outfile)) ExpandName        ! Expanded Name
+character(16) :: r_name = 'FullFileName'
+character(len(outfile)) ExpandName        ! Expanded Name
 
-  Integer InLen, iDollar, iColon, iSlash, iLeftB, iRightB
+Integer InLen, iDollar, iColon, iSlash, iLeftB, iRightB
 
-#if defined(CESR_VMS)
-  Integer i, ix
-
-#else
-  Integer i
-  !!External GetEnv ! Removed because it caused a mac link problem. DCS.
-  integer explen
-  logical, save :: rcsini = .true.
-#endif
+Integer i
+!!External GetEnv ! Removed because it caused a mac link problem. DCS.
+integer explen
+logical, save :: rcsini = .true.
 
 ! Assign input to output by default
 
-  if (present(valid)) valid = .false.
-  outfile = FileName
+if (present(valid)) valid = .false.
+outfile = FileName
 
 !     Get length of input file name
 
-  InLen = Len_Trim(FileName)
+InLen = Len_Trim(FileName)
 
 !     
 
-  If (InLen .gt. len(outfile)) then
-    Write(6, '(a12, a, i4, a)') r_name, &
-        '[Warning]:  Filename too large (', len(outfile), ' char. limit):'
-    Write(6, '(a)') FileName
-    Return
-  Endif
+If (InLen .gt. len(outfile)) then
+  Write(6, '(a12, a, i4, a)') r_name, &
+      '[Warning]:  Filename too large (', len(outfile), ' char. limit):'
+  Write(6, '(a)') FileName
+  Return
+Endif
 
 ! Locate special characters (first dollar-sign, first colon, first slash)
 
-  iDollar = Index(FileName(:InLen), '$' )
-  iColon  = Index(FileName(:InLen), ':' )
-  iSlash  = Index(FileName(:InLen), '/' )
+iDollar = Index(FileName(:InLen), '$' )
+iColon  = Index(FileName(:InLen), ':' )
+iSlash  = Index(FileName(:InLen), '/' )
 
-  ExpandName = FileName
-
-!-----------------------------------------------------------------------
-! Translation on UNIX
-
-#if defined(CESR_UNIX)
-
-! A UNIX-style environment variable will have a leading '$' 
-
-  If (iDollar == 1) then
-        
-! Expand Unix-style environment variable names
-! Environment variable specifies the full name
-
-    If (iSlash == 0) then
-          
-      Call GetEnv(Filename(2:InLen), ExpandName)
-      if (len_trim(ExpandName) == 0) return
-
-! Environment variable plus short name specifies the full name
-
-    Elseif (iSlash > 2) then
-      Call GetEnv(Filename(2:iSlash-1), ExpandName)
-      ExpLen = Len_Trim(ExpandName)
-      if (ExpLen == 0) return
-      ExpandName(ExpLen+1:) = FileName(iSlash:InLen)
-    Endif
-
-! VMS-style logicals will have a trailing colon
-
-  else
-
-    if (iColon > 1) then
-      Call GetEnv(Filename(1:iColon-1), ExpandName)
-      ExpLen = Len_Trim(ExpandName)
-      if (ExpLen == 0) return
-      ExpandName(ExpLen+1:) = '/' // FileName(iColon+1:InLen)
-    endif
-
-    
-    iLeftB  = index(ExpandName, '[')
-    iRightB = index(ExpandName, ']')    
-
-    if (iLeftB == 0) then
-      if (iRightB /= 0) return
-    else
-      if (iRightB < iLeftB) return
-      do i = iLeftB+1, iRightB
-        if (ExpandName(i:i) == '.') ExpandName(i:i) = '/'
-        if (ExpandName(i:i) == ']') ExpandName(i:i) = '/'
-      enddo
-      ExpandName = ExpandName(1:iLeftB-1) // ExpandName(iLeftB+1:)
-    endif
-
-  Endif
-
-  outfile = ExpandName
-  if (present(valid)) valid = .true.
-
-!-----------------------------------------------------------------------
-! Translation on VMS
-
-#elif defined(CESR_VMS)
-      
-!   '$DUMMY/foo.bar'     --> 'DUMMY:foo.bar'
-!   '$DUMMY/a/b/foo.bar' --> 'DUMMY:[a.b]foo.bar'
-
-  if (iDollar == 1) then  ! has environment variable
-    ExpandName = ExpandName(2:InLen)
-    if (iColon /= 0) return  ! Error
-    ix = Index (ExpandName, '/' )  
-    if (ix /= 0) then
-      ! If there are multiple "/" then need "[...]" construct.
-      if (index (ExpandName(ix+1:), '/') == 0) then
-        ExpandName = ExpandName(:ix-1) // ':' // ExpandName(ix+1:)
-      else
-        call dir_unix_to_vms (ExpandName(ix:))
-        ExpandName = ExpandName(:ix-1) // ':' // ExpandName(ix:)
-      endif
-    endif
-
-! Translation from UXIX to VMS for names that have a slash but do not 
-! look like they have a logical directory. 
-
-  elseif (iColon == 0 .and. iSlash /= 0 .and. index(ExpandName, ']') == 0) then
-    call dir_unix_to_vms (ExpandName)
-  endif
-
-  outfile = ExpandName
-  if (present(valid)) valid = .true.
+ExpandName = FileName
 
 !-----------------------------------------------------------------------
 ! Translation on WINDOWS (from unix to windows)
 
-#elif defined(CESR_WINCVF)
+#if defined(CESR_WINCVF)
 
 ! A UNIX-style environment variable will have a leading '$' 
 
-  If ( iDollar == 1 ) then
-        
+If ( iDollar == 1 ) then
+      
 ! Expand Unix-style environment variable names
 ! Environment variable specifies the full name
 
-    If (iSlash == 0) then
-          
-      Call GetEnv(Filename(2:InLen), ExpandName)
-      if (Len_Trim(ExpandName) == 0) return
+  If (iSlash == 0) then
+        
+    Call GetEnv(Filename(2:InLen), ExpandName)
+    if (Len_Trim(ExpandName) == 0) return
 
 ! Environment variable plus short name specifies the full name
 
-    Elseif (iSlash > 2) then
-      Call GetEnv(Filename(2:iSlash-1), ExpandName)
-      ExpLen = Len_Trim(ExpandName)
-      if (ExpLen == 0) return
-      ExpandName(ExpLen+1:) = FileName(iSlash:InLen)
-    Endif
+  Elseif (iSlash > 2) then
+    Call GetEnv(Filename(2:iSlash-1), ExpandName)
+    ExpLen = Len_Trim(ExpandName)
+    if (ExpLen == 0) return
+    ExpandName(ExpLen+1:) = FileName(iSlash:InLen)
+  Endif
 
 ! VMS-style logicals will have a trailing colon
 
-  Elseif (iColon > 1) then
-    Call GetEnv(Filename(1:iColon-1), ExpandName)
-    ExpLen      = Len_Trim(ExpandName)
-    if (ExpLen == 0) return
-    ExpandName(ExpLen+1:) = '/' // FileName(iColon+1:InLen)
-    outfile = ExpandName
-  Endif
-  
-  
-  do i=1, Len_Trim(ExpandName)
-     If (ExpandName(i:i)=='/') ExpandName(i:i)='\' ! '
-  end do
-
+Elseif (iColon > 1) then
+  Call GetEnv(Filename(1:iColon-1), ExpandName)
+  ExpLen      = Len_Trim(ExpandName)
+  if (ExpLen == 0) return
+  ExpandName(ExpLen+1:) = '/' // FileName(iColon+1:InLen)
   outfile = ExpandName
-  if (present(valid)) valid = .true.
+Endif
+
+
+do i=1, Len_Trim(ExpandName)
+   If (ExpandName(i:i)=='/') ExpandName(i:i)='\' ! '
+end do
+
+outfile = ExpandName
+if (present(valid)) valid = .true.
+
+!-----------------------------------------------------------------------
+! Translation on UNIX
 
 #else
 
-!-----------------------------------------------------------------------
-! Translation on other platforms.  NONE PRESENTLY DEFINED
+! A UNIX-style environment variable will have a leading '$' 
+
+If (iDollar == 1) then
+      
+! Expand Unix-style environment variable names
+! Environment variable specifies the full name
+
+  If (iSlash == 0) then
+        
+    Call GetEnv(Filename(2:InLen), ExpandName)
+    if (len_trim(ExpandName) == 0) return
+
+! Environment variable plus short name specifies the full name
+
+  Elseif (iSlash > 2) then
+    Call GetEnv(Filename(2:iSlash-1), ExpandName)
+    ExpLen = Len_Trim(ExpandName)
+    if (ExpLen == 0) return
+    ExpandName(ExpLen+1:) = FileName(iSlash:InLen)
+  Endif
+
+! VMS-style logicals will have a trailing colon
+
+else
+
+  if (iColon > 1) then
+    Call GetEnv(Filename(1:iColon-1), ExpandName)
+    ExpLen = Len_Trim(ExpandName)
+    if (ExpLen == 0) return
+    ExpandName(ExpLen+1:) = '/' // FileName(iColon+1:InLen)
+  endif
+
+  
+  iLeftB  = index(ExpandName, '[')
+  iRightB = index(ExpandName, ']')    
+
+  if (iLeftB == 0) then
+    if (iRightB /= 0) return
+  else
+    if (iRightB < iLeftB) return
+    do i = iLeftB+1, iRightB
+      if (ExpandName(i:i) == '.') ExpandName(i:i) = '/'
+      if (ExpandName(i:i) == ']') ExpandName(i:i) = '/'
+    enddo
+    ExpandName = ExpandName(1:iLeftB-1) // ExpandName(iLeftB+1:)
+  endif
+
+Endif
+
+outfile = ExpandName
+if (present(valid)) valid = .true.
 
 #endif
 
@@ -265,8 +212,8 @@ integer i, ix, isl, isl2
 ! Special case
 
 if (outfile == './') then
-  outfile = '[]'
-  return
+outfile = '[]'
+return
 endif
 
 !
@@ -339,39 +286,39 @@ end subroutine
 
 function SplitFileName(FileName, Path, BaseName, is_relative) result (ix_char)
 
-  implicit none
+implicit none
 
-  character(*) FileName, Path, BaseName
-  logical, optional :: is_relative
+character(*) FileName, Path, BaseName
+logical, optional :: is_relative
 
-  character(16), parameter :: r_name = 'SplitFileName'
+character(16), parameter :: r_name = 'SplitFileName'
 
-  Integer InLen, ix_char, ix
-  Integer iBracket, iColon, iSlash
+Integer InLen, ix_char, ix
+Integer iBracket, iColon, iSlash
 
 ! Get length of input file name
 
-  InLen = Len_Trim(FileName)
+InLen = Len_Trim(FileName)
 
 ! Locate special characters (last dollar-sign, last colon, last slash)
 
-  ix   = 0
-  iBracket = Scan( FileName(:InLen), ']', .True. )
-  If (iBracket .gt. ix) ix = iBracket
-  iColon   = Scan( FileName(:InLen), ':', .True. )
-  If (iColon .gt. ix) ix = iColon
-  iSlash   = Scan( FileName(:InLen), '/', .True. )
-  If (iSlash .gt. ix) ix = iSlash
+ix   = 0
+iBracket = Scan( FileName(:InLen), ']', .True. )
+If (iBracket .gt. ix) ix = iBracket
+iColon   = Scan( FileName(:InLen), ':', .True. )
+If (iColon .gt. ix) ix = iColon
+iSlash   = Scan( FileName(:InLen), '/', .True. )
+If (iSlash .gt. ix) ix = iSlash
 
-      
-  Path     = FileName(:ix)
-  BaseName = FileName(ix+1:InLen)
-  call string_trim(path, path, ix)
-  ix_char = ix
+    
+Path     = FileName(:ix)
+BaseName = FileName(ix+1:InLen)
+call string_trim(path, path, ix)
+ix_char = ix
 
 ! find if path name is relative or absolute.
 
-  if (present(is_relative)) is_relative = file_name_is_relative(path)
+if (present(is_relative)) is_relative = file_name_is_relative(path)
 
 End function
 
