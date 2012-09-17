@@ -124,6 +124,8 @@ do i = 1, size(s%plotting%region)
       call tao_plot_key_table (plot, graph)
     case ('floor_plan')
       call tao_draw_floor_plan (plot, graph)
+    case ('histogram')
+      call tao_plot_histogram (plot, graph)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
@@ -140,6 +142,45 @@ do i = 1, size(s%plotting%region)
 enddo
 
 end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_plot_histogram (plot, graph)
+!
+! Routine to draw one graph for the histogram analysis plot.
+!
+! Input:
+!   plot  -- Tao_plot_struct: Plot containing the graph.
+!   graph -- Tao_graph_struct: Graph to plot.
+!-
+
+subroutine tao_plot_histogram (plot, graph)
+
+type (tao_plot_struct) :: plot
+type (tao_graph_struct), target :: graph
+
+integer k
+logical have_data
+
+! Draw the graph outline.
+
+call tao_draw_data_graph (plot, graph)
+if (.not. graph%valid) return
+
+! loop over all the curves of the graph and draw them
+
+have_data = .false.
+
+do k = 1, size(graph%curve)
+  call tao_draw_histogram_data (plot, graph, graph%curve(k), have_data)
+enddo
+
+if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &
+                            0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
+
+end subroutine tao_plot_histogram
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1042,7 +1083,7 @@ endif
 
 if (allocated(graph%curve)) then
   do i = 1, size(graph%curve)
-    call tao_plot_curve_data (plot, graph, graph%curve(i), have_data)
+    call tao_draw_curve_data (plot, graph, graph%curve(i), have_data)
   enddo
 endif
 
@@ -1311,104 +1352,25 @@ implicit none
 
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
-type (tao_curve_struct), pointer :: curve
-type (qp_line_struct), allocatable :: line(:)
-type (qp_symbol_struct), allocatable :: symbol(:)
 
-integer i, j, k, n
+integer k
 logical have_data
-real(rp) x, y, x1
 
-character(100), allocatable :: text(:)
+! Draw the graph outline.
 
-! Set scales, margens, etc
-
-call qp_set_layout (box = graph%box, margin = graph%margin)
-call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
-call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, &
-                                                y2_mirrors_y = graph%y2_mirrors_y)
-if (graph%title == '') then
-  call qp_set_graph (title = '')
-else
-  call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
-endif
-call qp_draw_axes
-
-! Draw the default x-axis label if there is none. 
-
-if (graph%x%draw_label .and. graph%x%label == '') then
-  select case (plot%x_axis_type) 
-  case ('index', 'ele_index', 's')
-    call qp_to_inch_rel (1.0_rp, 0.0_rp, x1, y, '%GRAPH')
-    x = x1 * (graph%x%major_div - 0.5) / graph%x%major_div
-    y = -graph%x%number_offset
-    call qp_draw_text (plot%x_axis_type, x, y, 'INCH', justify = 'CT')
-  end select
-endif
-
-!
-
+call tao_draw_data_graph (plot, graph)
 if (.not. graph%valid) return
-
-if (graph%limited .and. graph%clip .and. s%global%draw_curve_off_scale_warn) &
-  call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
 
 ! loop over all the curves of the graph and draw them
 
 have_data = .false.
 
 do k = 1, size(graph%curve)
-  call tao_plot_curve_data (plot, graph, graph%curve(k), have_data)
+  call tao_draw_curve_data (plot, graph, graph%curve(k), have_data)
 enddo
 
 if (.not. have_data) call qp_draw_text ('**No Plottable Data**', &
                             0.18_rp, -0.15_rp, '%/GRAPH/LT', color = red$) 
-
-! Draw the text legend if there is one
-
-if (any(graph%text_legend /= ' ')) call qp_draw_text_legend (graph%text_legend, &
-       graph%text_legend_origin%x, graph%text_legend_origin%y, graph%text_legend_origin%units)
-
-! Draw the curve legend if needed
-
-n = size(graph%curve)
-allocate (text(n), symbol(n), line(n))
-
-do i = 1, n
-  curve => graph%curve(i)
-  text(i) = curve%legend_text
-  if (text(i) == '') text(i) = curve%data_type
-  symbol(i) = curve%symbol
-  if (size(curve%x_symb) == 0) symbol(i)%type = -1 ! Do not draw
-  if (.not. curve%draw_symbols) symbol(i)%type = -1
-  line(i) = curve%line
-  if (size(curve%x_line) == 0) line(i)%width = -1 ! Do not draw
-  if (.not. curve%draw_line) line(i)%width = -1
-enddo
-
-if (graph%draw_curve_legend .and. n > 1) then
-  call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
-            graph%curve_legend_origin%units, line, s%plotting%curve_legend_line_len, &
-            symbol, text, s%plotting%curve_legend_text_offset)
-endif
-
-! Draw any curve info messages
-
-j = 0
-do i = 1, n
-  curve => graph%curve(i)
-  if (curve%message_text == '') cycle
-  j = j + 1
-  text(j) = trim(curve%data_type) // ' : ' // trim(curve%message_text)
-enddo
-
-if (j > 1) then
-  call qp_draw_text_legend (text(1:j), 0.50_rp, 0.95_rp, '%GRAPH/LB')
-endif
-
-!
-
-deallocate (text, symbol, line)
 
 end subroutine tao_plot_data
 
@@ -1416,7 +1378,7 @@ end subroutine tao_plot_data
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_plot_curve_data (plot, graph, curve, have_data)
+! Subroutine tao_draw_curve_data (plot, graph, curve, have_data)
 !
 ! Routine to draw a graph with data and/or variable curves. 
 !
@@ -1430,7 +1392,7 @@ end subroutine tao_plot_data
 !                   But never reset to False. 
 !-
 
-subroutine tao_plot_curve_data (plot, graph, curve, have_data)
+subroutine tao_draw_curve_data (plot, graph, curve, have_data)
 
 implicit none
 
@@ -1478,6 +1440,146 @@ endif
 
 call qp_use_axis (y = 'Y')  ! reset
 
-end subroutine tao_plot_curve_data
+end subroutine tao_draw_curve_data
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_draw_histogram_data (plot, graph, curve, have_data)
+!
+! Routine to draw a graph with data and/or variable histograms. 
+!
+! Input:
+!   plot      -- Tao_plot_struct: Plot containing the graph.
+!   graph     -- Tao_graph_struct: Graph containing the histogram.
+!   curve     -- Tao_curve_struct: Histogram to draw.
+!   have_data -- Logical: Intitial state.
+! Output:
+!    have_data -- Logical: Is there any data to plot? Set True if so.
+!                   But never reset to False. 
+!-
+
+subroutine tao_draw_histogram_data (plot, graph, curve, have_data)
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct), target :: graph
+type (tao_curve_struct) :: curve
+
+integer i
+logical have_data
+character(16) num_str
+
+end subroutine tao_draw_histogram_data
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_draw_data_graph (plot, graph)
+!
+! Routine to draw a just the graph part of a data graph.
+! The calling routine takes care of drawing any curves.
+!
+! Input:
+!   plot  -- Tao_plot_struct: Plot containing the graph.
+!   graph -- Tao_graph_struct: Graph to plot.
+!-
+
+subroutine tao_draw_data_graph (plot, graph)
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct), target :: graph
+type (tao_curve_struct), pointer :: curve
+type (qp_line_struct), allocatable :: line(:)
+type (qp_symbol_struct), allocatable :: symbol(:)
+
+integer i, j, k, n
+real(rp) x, y, x1
+character(100), allocatable :: text(:)
+
+! Set scales, margens, etc
+
+call qp_set_layout (box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
+call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, y2_mirrors_y = graph%y2_mirrors_y)
+if (graph%title == '') then
+  call qp_set_graph (title = '')
+else
+  call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+endif
+call qp_draw_axes
+
+! Draw the default x-axis label if there is none. 
+
+if (graph%x%draw_label .and. graph%x%label == '') then
+  select case (plot%x_axis_type) 
+  case ('index', 'ele_index', 's')
+    call qp_to_inch_rel (1.0_rp, 0.0_rp, x1, y, '%GRAPH')
+    x = x1 * (graph%x%major_div - 0.5) / graph%x%major_div
+    y = -graph%x%number_offset
+    call qp_draw_text (plot%x_axis_type, x, y, 'INCH', justify = 'CT')
+  end select
+endif
+
+!
+
+if (.not. graph%valid) return
+
+if (graph%limited .and. graph%clip .and. s%global%draw_curve_off_scale_warn) &
+  call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
+
+
+! Draw the text legend if there is one
+
+if (any(graph%text_legend /= ' ')) call qp_draw_text_legend (graph%text_legend, &
+       graph%text_legend_origin%x, graph%text_legend_origin%y, graph%text_legend_origin%units)
+
+! Draw the curve legend if needed
+
+n = size(graph%curve)
+allocate (text(n), symbol(n), line(n))
+
+do i = 1, n
+  curve => graph%curve(i)
+  text(i) = curve%legend_text
+  if (text(i) == '') text(i) = curve%data_type
+  symbol(i) = curve%symbol
+  if (size(curve%x_symb) == 0) symbol(i)%type = -1 ! Do not draw
+  if (.not. curve%draw_symbols) symbol(i)%type = -1
+  line(i) = curve%line
+  if (size(curve%x_line) == 0) line(i)%width = -1 ! Do not draw
+  if (.not. curve%draw_line) line(i)%width = -1
+enddo
+
+if (graph%draw_curve_legend .and. n > 1) then
+  call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
+            graph%curve_legend_origin%units, line, s%plotting%curve_legend_line_len, &
+            symbol, text, s%plotting%curve_legend_text_offset)
+endif
+
+! Draw any curve info messages
+
+j = 0
+do i = 1, n
+  curve => graph%curve(i)
+  if (curve%message_text == '') cycle
+  j = j + 1
+  text(j) = curve%message_text
+enddo
+
+if (j > 1) then
+  call qp_draw_text_legend (text(1:j), 0.50_rp, 0.95_rp, '%GRAPH/LB')
+endif
+
+!
+
+deallocate (text, symbol, line)
+
+end subroutine tao_draw_data_graph
 
 end module

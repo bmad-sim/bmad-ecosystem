@@ -651,7 +651,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
   case ('apparent_emit.x', 'norm_apparent_emit.x')
     do i = ix_start, ix_ele
       if (data_source == 'lat') then
-        value_vec(i) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(i), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+        value_vec(i) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(i), tao_lat%modes)
       else
         value_vec(i) = tao_beam_emit_calc (x_plane$, apparent_emit$, branch%ele(i), bunch_params(i))
       endif
@@ -659,7 +659,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     if (ix_ref > -1) then
       if (data_source == 'lat') then
-        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(ix_ref), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(ix_ref), tao_lat%modes)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (x_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
       endif
@@ -675,7 +675,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
   case ('apparent_emit.y', 'norm_apparent_emit.y')
     do i = ix_start, ix_ele
       if (data_source == 'lat') then
-        value_vec(i) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(i), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+        value_vec(i) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(i), tao_lat%modes)
       else
         value_vec(i) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(i))
       endif
@@ -683,7 +683,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     if (ix_ref > -1) then
       if (data_source == 'lat') then
-        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), tao_lat%modes)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
       endif
@@ -996,57 +996,51 @@ case ('element_attrib.')
 
 case ('emit.', 'norm_emit.')
 
+  call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
+
   select case (datum%data_type)
 
   case ('emit.x', 'norm_emit.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(i), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+        value_vec(i) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(i), tao_lat%modes)
       enddo
       if (ix_ref > -1) then
-        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(ix_ref), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(ix_ref), tao_lat%modes)
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    else
+    elseif (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%x%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
-    if (datum%data_type == 'norm_emit.x') then
-      call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-      datum_value = datum_value * gamma
-    endif
+    if (datum%data_type == 'norm_emit.x') datum_value = datum_value * gamma
 
   case ('emit.y', 'norm_emit.y')  
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+        value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), tao_lat%modes)
       enddo
       if (ix_ref > -1) then
-        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(ix_ref), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(ix_ref), tao_lat%modes)
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    else
+    elseif (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%y%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
-    if (datum%data_type == 'norm_emit.y') then
-      call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-      datum_value = datum_value * gamma
-    endif
+    if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
 
   case ('emit.z', 'norm_emit.z')
-    if (data_source == 'lat') return
-    call tao_load_this_datum (bunch_params(:)%z%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    if (head_data_type(1:4) == 'emit') then
-      call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-      datum_value = datum_value / gamma
+    if (data_source == 'lat') then
+      return
+    elseif (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%z%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
+    if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
+
   case ('emit.a', 'norm_emit.a')
-    call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
-    if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%a%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    elseif (data_source == 'lat') then
+    if (data_source == 'lat') then
       if (lat%param%lattice_type == linear_lattice$) then
         if (.not. allocated(tao_lat%rad_int%ele)) then
           call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
@@ -1054,32 +1048,43 @@ case ('emit.', 'norm_emit.')
         endif
         call tao_load_this_datum (tao_lat%rad_int%ele%lin_norm_emit_a, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+        datum_value = datum_value / gamma
       else
-        datum_value = gamma * tao_lat%modes%a%emittance
+        datum_value = tao_lat%modes%a%emittance
       endif
+    elseif (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%a%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
-    if (head_data_type(1:4) == 'emit') datum_value = datum_value / gamma
-    valid_value = .true.
+
+    if (datum%data_type == 'norm_emit.a') datum_value = datum_value * gamma
     
   case ('emit.b', 'norm_emit.b')  
-    call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
-    if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%b%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    elseif (data_source == 'lat') then
+    if (data_source == 'lat') then
       if (lat%param%lattice_type == linear_lattice$) then
         if (.not. allocated(tao_lat%rad_int%ele)) then
           call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
-          valid_value = .false.
           return
         endif
         call tao_load_this_datum (tao_lat%rad_int%ele%lin_norm_emit_b, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+        datum_value = datum_value / gamma
       else
-        datum_value = gamma * tao_lat%modes%b%emittance
+        datum_value = tao_lat%modes%b%emittance
       endif
+    elseif (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%b%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
-    if (head_data_type(1:4) == 'emit') datum_value = datum_value / gamma
-    valid_value = .true.
+
+    if (datum%data_type == 'norm_emit.b') datum_value = datum_value * gamma
+
+  case ('emit.c', 'norm_emit.c')  
+    if (data_source == 'lat') then
+      return
+    elseif (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%c%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+    if (datum%data_type == 'norm_emit.y') datum_value = datum_value * gamma
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)

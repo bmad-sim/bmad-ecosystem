@@ -3157,7 +3157,7 @@ end function tao_subin_uni_number
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function tao_lat_emit_calc (plane, emit_type, ele, emit_a, emit_b) result (emit)
+! Function tao_lat_emit_calc (plane, emit_type, ele, modes) result (emit)
 !
 ! Routine to calculate the emittance.
 ! The "projected" emittance is:
@@ -3170,32 +3170,33 @@ end function tao_subin_uni_number
 !   plane     -- Integer: x_plane$ or y_plane$.
 !   emit_type -- Integer: Either projected_emit$ or apparent_emit$
 !   ele       -- ele_struct: Element holding the Twiss and coupling parameters.
-!   emit_a    -- Real(rp): a-mode emittance.
-!   emit_b    -- Real(rp): b-mode emittance.
+!   modes     -- normal_modes_struct: Structure holding the emittances
 !
 ! Output:
 !   emit -- Real(rp): emittance.
 !-
 
-function tao_lat_emit_calc (plane, emit_type, ele, emit_a, emit_b) result (emit)
+function tao_lat_emit_calc (plane, emit_type, ele, modes) result (emit)
 
 implicit none
 
 type (ele_struct) ele
-real(rp) emit_a, emit_b, s_mat(4,4), v_mat(4,4), emit
+type (normal_modes_struct) modes
+
+real(rp) s_mat(4,4), v_mat(4,4), emit
 real(rp), save :: a_mat(4,4) = 0
 integer plane, emit_type
 
 !
 
-a_mat(1,1) =  emit_a * ele%a%beta
-a_mat(1,2) = -emit_a * ele%a%alpha
-a_mat(2,2) =  emit_a * ele%a%gamma
+a_mat(1,1) =  modes%a%emittance * ele%a%beta
+a_mat(1,2) = -modes%a%emittance * ele%a%alpha
+a_mat(2,2) =  modes%a%emittance * ele%a%gamma
 a_mat(2,1) = a_mat(1,2)
 
-a_mat(3,3) =  emit_b * ele%b%beta
-a_mat(3,4) = -emit_b * ele%b%alpha
-a_mat(4,4) =  emit_b * ele%b%gamma
+a_mat(3,3) =  modes%b%emittance * ele%b%beta
+a_mat(3,4) = -modes%b%emittance * ele%b%alpha
+a_mat(4,4) =  modes%b%emittance * ele%b%gamma
 a_mat(4,3) = a_mat(3,4)
 
 call make_v_mats (ele, v_mat)

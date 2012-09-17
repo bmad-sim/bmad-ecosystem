@@ -1031,6 +1031,9 @@ select case (comp)
   case ('margin%y2')
     call tao_real_set_value(this_graph%margin%y2, comp, set_value, error)
 
+  case ('bin_width')
+    call tao_real_set_value(this_graph%bin_width, comp, set_value, error)
+
   case default
     call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
     return
