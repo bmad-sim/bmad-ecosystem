@@ -46,9 +46,9 @@ do ik = 1, n_key
   write (1, '(i3, 2x, a)') i, key_name(i)
   ele%key = i
   do j = 1, a0$
-    attrib = attribute_record(ele, j)
+    attrib = attribute_info(ele, j)
     if (attrib%name == null_name$) cycle
-    if (attrib%private) then
+    if (attrib%type == private$) then
       write (1, '(i10, 2x, 2a)') j, attrib%name, '  [private]'
     else
       write (1, '(i10, 2x, a)') j, attrib%name
@@ -76,7 +76,7 @@ do i = 1, a0$
   do j = 1, n_key
     if (j == overlay_lord$) cycle
     ele%key = j
-    attrib = attribute_record(ele, i)
+    attrib = attribute_info(ele, i)
     if (attrib%name == null_name$) cycle
     write (1, *) '   ', key_name(ele%key)
   enddo
@@ -96,7 +96,7 @@ do i = 1, n_key
   write (1, '(i3, 2x, a)') i, key_name(i)
   ele%key = i
   do j = 1, a0$
-    attrib = attribute_record(ele, j)
+    attrib = attribute_info(ele, j)
     if (attrib%name == null_name$) cycle
     write (1, '(i10, 2x, a)') j, attrib%name
     n_used(j) = n_used(j) + 1
