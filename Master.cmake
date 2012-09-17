@@ -23,7 +23,7 @@ set(RELEASE_DIR $ENV{ACC_RELEASE_DIR})
 set(RELEASE_LIB ${RELEASE_DIR}/lib)
 set(PACKAGES_DIR ${RELEASE_DIR}/packages)
 
-
+get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
 #-------------------------------------------------------
 # Check to see if shared object creation is enabled.
 # If enabled, shared object libraries will only be
@@ -338,7 +338,7 @@ ENDIF ()
 IF (IS_DIRECTORY "../config")
   message("Copying config directory contents to ${CMAKE_SOURCE_DIR}/../config/${LIBNAME}...")
   file (MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../config")
-  EXECUTE_PROCESS (COMMAND cp -rfu ${CMAKE_SOURCE_DIR}/config ${CMAKE_SOURCE_DIR}/../config/${LIBNAME})
+  EXECUTE_PROCESS (COMMAND cp -rfu ${CMAKE_SOURCE_DIR}/config ${CMAKE_SOURCE_DIR}/../config/${SHORT_DIRNAME})
 ENDIF ()
 
 
