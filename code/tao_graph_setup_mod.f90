@@ -58,6 +58,9 @@ case ('data', 'lat_layout')
     call tao_graph_data_setup(plot, graph)
   endif
 
+case ('histogram')
+  call tao_graph_histogram_setup (plot, graph)
+
 case ('wave.0')  ! Everything done with 'wave.0' graph. 'wave.a' and 'wave.b' are ignored .
   call tao_wave_analysis(plot)
 
@@ -331,30 +334,20 @@ do k = 1, size(graph%curve)
     call re_allocate (curve%y_symb, n)
     if (graph%symbol_size_scale > 0) call re_allocate (curve%symb_size, n)
 
-    if (curve%ix_bunch == 0) then
-      n = 0
-      do ib = 1, size(beam%bunch)
-        p => beam%bunch(ib)%particle
-        m = size(p)
-        call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, axis1)
-        call tao_phase_space_axis (curve%data_type,   ix2_ax, p, axis2)
-        curve%x_symb(n+1:n+m) = pack(axis1, mask = (p%state == alive$))
-        curve%y_symb(n+1:n+m) = pack(axis2, mask = (p%state == alive$))
-        if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
-                             sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%state == alive$))
-        curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%state == alive$))
-        n = n + count(p%state == alive$)
-      enddo
-    else
-      p => beam%bunch(curve%ix_bunch)%particle
+    n = 0
+    do ib = 1, size(beam%bunch)
+      if (curve%ix_bunch /= 0 .and. curve%ix_bunch /= ib) cycle
+      p => beam%bunch(ib)%particle
+      m = size(p)
       call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, axis1)
       call tao_phase_space_axis (curve%data_type,   ix2_ax, p, axis2)
-      curve%x_symb = pack(axis1, mask = (p%state == alive$))
-      curve%y_symb = pack(axis2, mask = (p%state == alive$))
-      if (graph%symbol_size_scale > 0) curve%symb_size = pack(graph%symbol_size_scale * &
-                            sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%state == alive$))
-      forall (i = 1:m) curve%ix_symb(i) = i
-    endif
+      curve%x_symb(n+1:n+m) = pack(axis1, mask = (p%state == alive$))
+      curve%y_symb(n+1:n+m) = pack(axis2, mask = (p%state == alive$))
+      if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
+                           sqrt(p(:)%e_field_x**2 + p(:)%e_field_y**2), mask = (p%state == alive$))
+      curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%state == alive$))
+      n = n + count(p%state == alive$)
+    enddo
 
   !----------------------------
 
@@ -471,6 +464,168 @@ enddo
 graph%valid = .true.
 
 end subroutine tao_graph_phase_space_setup
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_graph_histogram_setup (plot, graph)
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct), target :: graph
+type (tao_curve_struct), pointer :: curve
+type (tao_universe_struct), pointer :: u
+type (ele_struct), pointer :: ele
+type (beam_struct), pointer :: beam
+type (tao_d2_data_struct), pointer :: d2_ptr
+type (tao_d1_data_struct), pointer :: d1
+type (coord_struct), pointer :: p(:)
+
+real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
+real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
+real(rp) emit_a, emit_b
+real(rp), allocatable :: data(:)
+real(rp), allocatable, save :: axis1(:)
+
+integer k, n, m, ib, ix1_ax, ix, i
+integer, allocatable :: number_in_bin(:)
+
+logical err, same_uni
+
+character(40) name
+character(40) :: r_name = 'tao_graph_histogram_setup'
+
+! Valid?
+
+graph%valid = .false.
+if (size(graph%curve) == 0) return
+
+if (graph%bin_width <= 0) then
+  graph%why_invalid = 'Bin_width not positive.'
+  return
+endif
+
+! Set up the graph suffix
+
+same_uni = .true.
+ix = tao_universe_number(graph%curve(1)%ix_universe)
+do k = 2, size(graph%curve)
+  curve => graph%curve(k)
+  if (tao_universe_number(curve%ix_universe) /= ix) same_uni = .false.
+enddo
+
+graph%title_suffix = ''
+do k = 1, size(graph%curve)
+  curve => graph%curve(k)
+  u => tao_pointer_to_universe (curve%ix_universe)
+  if (.not. associated(u)) return
+  if (curve%ix_ele_ref_track < 0) then
+    call out_io (s_error$, r_name, &
+                'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name, &
+                'CANNOT PLOT HISTOGRAM FOR: ' // tao_curve_name(curve))
+    return
+  endif
+  ele => u%model%lat%ele(curve%ix_ele_ref_track)
+  name = curve%ele_ref_name
+  if (name == ' ') name = ele%name
+  if (same_uni) then
+    write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), &
+                                '[', curve%ix_ele_ref, ': ', trim(name), ']'
+  else
+    write (graph%title_suffix, '(2a, i0, a, i0, 3a)') trim(graph%title_suffix), &
+            '[', u%ix_uni, '@', curve%ix_ele_ref, ': ', trim(name), ']'
+  endif
+enddo
+
+! loop over all curves
+
+do k = 1, size(graph%curve)
+
+  curve => graph%curve(k)
+  u => tao_pointer_to_universe (curve%ix_universe)
+
+  ! find phase space axes to plot
+
+  err = .false.
+  call tao_phase_space_axis (curve%data_type, ix1_ax, err = err); if (err) return
+
+  ! fill the data array
+
+  if (allocated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
+  if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
+
+  if (curve%data_source == 'beam') then
+    beam => u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
+    if (.not. allocated(beam%bunch)) then
+      call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
+      if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
+      return
+    endif
+
+    if (curve%ix_bunch == 0) then
+      n = 0
+      do ib = 1,  size(beam%bunch)
+        n = n + count(beam%bunch(ib)%particle%state == alive$)
+      enddo
+    else
+      n = count(beam%bunch(curve%ix_bunch)%particle%state == alive$)
+    endif
+
+    allocate (data(n))
+
+    n = 0
+    do ib = 1, size(beam%bunch)
+      p => beam%bunch(ib)%particle
+      m = size(p)
+      call tao_phase_space_axis (curve%data_type, ix1_ax, p, axis1)
+      data(n+1:n+m) = pack(axis1, mask = (p%state == alive$))
+      n = n + count(p%state == alive$)
+    enddo
+
+  !----------------------------
+
+  elseif (curve%data_source == 'multi_turn_orbit') then
+    
+    call tao_find_data (err, curve%data_source, d2_ptr, ix_uni = curve%ix_universe)
+    if (err) then
+      call out_io (s_error$, r_name, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
+      graph%valid = .false.
+      return
+    endif
+
+    nullify (d1)
+    do i = 1, size(d2_ptr%d1)
+      if (curve%data_type == d2_ptr%d1(i)%name) d1 => d2_ptr%d1(i)
+    enddo
+    if (.not. associated(d1)) then
+      call out_io (s_error$, r_name, &
+              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
+              'FOR CURVE: ' // curve%name)
+      call err_exit
+    endif
+
+    allocate(data(size(d1%d)))
+    data = d1%d(i)%model_value
+
+  ! Unrecognized
+
+  else
+    call out_io (s_abort$, r_name, &
+        'INVALID CURVE%DATA_SOURCE: ' // curve%data_source, &
+        'FOR CURVE: '// curve%name)
+    call err_exit
+  endif
+
+  ! Bin the data
+
+
+enddo
+
+graph%valid = .true.
+
+end subroutine tao_graph_histogram_setup
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1356,7 +1511,8 @@ do ii = 1, size(curve%x_line)
       good(ii:) = .false.
       if (orbit_end%state /= alive$) then
         write (curve%message_text, '(f10.3)') s_now
-        curve%message_text = 'Particle lost at s = ' // trim(adjustl(curve%message_text))
+        curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
+                             trim(adjustl(curve%message_text))
       endif
       return
     endif
@@ -1387,14 +1543,14 @@ do ii = 1, size(curve%x_line)
     if (curve%data_source == 'beam') then
       value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
     else
-      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_lat%modes)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case ('apparent_emit.y', 'norm_apparent_emit.y')
     if (curve%data_source == 'beam') then
       value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele, bunch_params)
     else
-      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_lat%modes)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case ('beta.a')
@@ -1443,14 +1599,14 @@ do ii = 1, size(curve%x_line)
     if (curve%data_source == 'beam') then
       value = bunch_params%x%emit
     else
-      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_lat%modes)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case ('emit.y', 'norm_emit.y')
     if (curve%data_source == 'beam') then
       value = bunch_params%y%emit
     else
-      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_lat%modes)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case ('eta.x')

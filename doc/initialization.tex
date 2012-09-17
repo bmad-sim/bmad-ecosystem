@@ -1672,6 +1672,7 @@ following types:
 \begin{example}
   "data"               ! Data and/or variable plots (default) (\sref{s:plot.data}).
   "floor_plan"         ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
+  "histogram"          ! Histogram of plot (\sref{s:histogram}).
   "key_table"          ! Key binding table for single mode (\sref{s:key.table}).
   "lat_layout"         ! Schematic showing placement of the lattice elements (\sref{s:lat.layout}).
   "phase_space"        ! Phase space plots (\sref{s:phase.space}).
@@ -1690,6 +1691,9 @@ multiple data and variable curves can be drawn in one graph.
 
 With \vn{graph%type} set to \vn{floor_plan} (\sref{s:floor.plan}), the
 two dimensional layout of the machine is drawn.
+
+With \vn{graph%type} set to \vn{histogram} (\sref{s:histogram}), such
+things such as beam densities can be histogrammed.
 
 With \vn{graph%type} set to \vn{"key_table"} (\sref{s:key.table}), the
 key bindings for use in single mode (\sref{s:key.bind}) are displayed.
@@ -2224,6 +2228,91 @@ and floor plan drawings are specified via one \vn{element_shapes}
 namelist.
 
 %-----------------------------------------------------------------
+\subsection{Drawing a Histogram}
+\index{histogram drawing}
+\label{s:histogram}
+
+A \vn{historgram} drawing displays a histogram of phase space beam
+density. Histogram plotting is associated with a \vn{graph} by setting
+\vn{graph%type} equal to \vn{"histogram"}. The concepts here are
+similar to \vn{phase space} plotting (\sref{s:phase.space}). Example
+histogram template:
+\begin{example}
+  &tao_template_plot
+    plot%name = "zphase"
+    plot%x%min =   -10e-3
+    plot%x%max = 10e-3
+    plot%x%major_div_nominal = 4
+    plot%x%label = "z"
+    plot%n_graph = 1
+  /
+
+  &tao_template_graph
+    graph_index = 1
+    graph%name = "z"
+    graph%type = "histogram"
+    graph%box = 1, 1, 1, 1
+    graph%title = "Z"
+    graph%margin =  0.12, 0.12, 0.12, 0.12, "%BOX"
+    graph%y%label = "Density"
+    graph%y%max = 3
+    graph%y%min = -3
+    graph%y%major_div_nominal = 4
+    graph%n_curve = 1
+    graph%bin_width = 1e-4
+    curve(1)%data_type = "z" 
+    curve(1)%data_source = "beam"
+    curve(1)%ele_ref_name = "BEGINNING"
+  /
+\end{example}
+
+For a \vn{"histogram"} type graph, \vn{curve%data_type} determines
+what coordinate is plotted along the x-axis.
+Valid \vn{curve%data_type} values are:
+\index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
+\begin{example}
+  "x"
+  "px"
+  "y"
+  "py"
+  "z"
+  "pz"
+  "intensity"       -- Photon total intensity 
+  "intensity_x"     -- Photon intensity along x-axis 
+  "intensity_y"     -- Photon intensity along y-axis
+  "phase_x"         -- Photon phase along x-axis
+  "phase_y"         -- Photon phase along y-axis
+\end{example}
+In this example above, the $x$-axis of the plot will correspond to the
+$z$ phase space coordinate.
+
+The \vn{graph%bin_width} establishes the width of the histogram bins.
+
+\index{curve!ele_ref_name}\index{curve!ix_ele_ref}
+To change the place in the lattice where the data for the
+\vn{histogram} is evaluated, use the \vn{set curve ele_ref_name} or
+\vn{set curve ix_ele_ref} commands.
+
+If \vn{graph%type} is \vn{"histogram"} then \vn{curve%data_source} 
+must be either:
+\begin{example}
+  "beam"
+  "multi_turn_orbit"
+\end{example} 
+\vn{"beam"} indicates that the points of the histogram plot
+will be obtained correspond to the positions of the particles within a
+tracked beam. \vn{multi_turn_orbit"} is used for rings where a single
+particle is tracked multiple turns and the position of this particle
+is recorded each turn. In this case, a \vn{d2_data} structure must
+have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
+structure must be called \vn{multi_turn_orbit} and must have
+\vn{d1_data} data arrays for the histogram planes to be plotted. For
+example, if the histogram plot is \vn{x} versus \vn{px}, then there
+must be \vn{d1_data} arrays named \vn{"x"} and \vn{"px"}. The number
+of turns is determined by the setting of \vn{ix_max_data} in the
+\vn{tao_d1_data} namelist (\sref{s:init.data}).
+
+%-----------------------------------------------------------------
 \subsection{Drawing the Beam Chamber Wall}
 \index{beam chamber wall}
 \label{s:beam.wall.draw}
@@ -2294,7 +2383,7 @@ of the region in which it is placed.
   \label{f:phase.space}
 \end{figure}
 
-A \vn{Phase Space} plot displays a particle or particles phase space
+A \vn{phase space} plot displays a particle or particles phase space
 coordinates at a given location. Phase space plotting is associated
 with a \vn{graph} by setting \vn{graph%type} equal to
 \vn{"phase_space"}. The concepts here are similar to data plotting
@@ -2348,12 +2437,13 @@ along the y-axis. The phase space coordinates are:
   "phase_y"         -- Photon phase along y-axis
 \end{example}
 In this example above, the $x$-axis of the plot will correspond to the
-$x$ phase space coordinate and the $y$-axis will correspond to the
+$z$ phase space coordinate and the $pz$-axis will correspond to the
 $px$ coordinate.
 
 \index{curve!ele_ref_name}\index{curve!ix_ele_ref}
-To change the place at which the \vn{phase_space} curve is drawn use
-the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.
+To change the place in the lattice where the data for the
+\vn{phase_space} curve is evaluated, use the \vn{set curve
+ele_ref_name} or \vn{set curve ix_ele_ref} commands.
 
 If \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source} 
 must be either:

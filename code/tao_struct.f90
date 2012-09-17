@@ -121,7 +121,7 @@ type tao_curve_struct
   character(40) :: ele_ref_name = ''     ! Reference element.
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
   character(40) :: message_text = ''     ! Informational message to draw with graph.
-  type (tao_graph_struct), pointer :: g  ! pointer to parent graph 
+  type (tao_graph_struct), pointer :: g  ! pointer to parent graph
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
   real(rp), allocatable :: y2_line(:)    ! Second array needed for beam chamber curve. 
@@ -152,7 +152,7 @@ end type
 
 type tao_graph_struct
   character(40) :: name = ''          ! Name identifying the graph
-  character(40) :: type = ''          ! 'data', 'lat_layout', 'key_table', 'phase_space'
+  character(40) :: type = ''          ! 'data', 'lat_layout', 'phase_space', 'histogram'
   character(100) :: title = ''
   character(100) :: title_suffix = ''
   character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
@@ -168,6 +168,7 @@ type tao_graph_struct
   type (qp_rect_struct) margin        ! Margin around the graph.
   real(rp) :: x_axis_scale_factor = 1 ! x-axis conversion from internal to plotting units.
   real(rp) symbol_size_scale          ! Symbol size scale factor for phase_space plots.
+  real(rp) :: bin_width = 0              ! bin width for histogram
   integer box(4)                      ! Defines which box the plot is put in.
   integer :: ix_branch = 0            ! Branch in lattice.
   integer :: ix_universe = -1         ! Used for lat_layout plots.
