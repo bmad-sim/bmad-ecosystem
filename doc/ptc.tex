@@ -4,30 +4,35 @@
 %----------------------------------------------------------------------------
 
 Etienne Forest\cite{b:forest} has written what is actually two
-software libraries: FPP and PTC. The software and a manual can be
-obtained at
-\begin{example} 
-  <http://acc-physics.kek.jp/forest/PTC/Introduction.html>    
-\end{example}
+software libraries: FPP and PTC.  FPP stands for ``Fully Polymorphic
+Package.'' What this library does is implement Taylor maps (aka
+Truncated Power Series Algebra or TPSA) and Lie algebraic
+operations. Thus in FPP you can define a Hamiltonian and then generate
+the Taylor map for this Hamiltonian. FPP is very general. It can work
+with an arbitrary number of dimensions.  FPP, however, is a purely
+mathematical package in the sense that it knows nothing about
+accelerator physics. That is, it does not know about bends,
+quadrupoles or any other kind of element, it has no conception of a
+lattice (a string of elements), it doesn't know anything about Twiss
+parameters, etc. This is where PTC (Polymorphic Tracking Code) comes
+in PTC. PTC implements the high energy physics stuff and uses FPP as
+the engine to do the Lie algebraic calculations.  For the purposes of
+this discussion, PTC and FPP are considered one package and the
+combined PTC/FPP will be referred to as simply ``PTC''.
 
-FPP stands for ``Fully Polymorphic Package.'' What this library does
-is implement Taylor maps (aka Truncated Power Series Algebra or TPSA)
-and Lie algebraic operations. Thus in FPP you can define a Hamiltonian
-and then generate the Taylor map for this Hamiltonian. FPP is very
-general. It can work with an arbitrary number of dimensions.  FPP,
-however, is a purely mathematical package in the sense that it knows
-nothing about accelerator physics. That is, it does not know about
-bends, quadrupoles or any other kind of element, it has no conception
-of a lattice (a string of elements), it doesn't know anything about
-Twiss parameters, etc.
 
-This is where PTC (Polymorphic Tracking Code) comes in PTC. PTC
-implements the high energy physics stuff and uses FPP as the engine to
-do the Lie algebraic calculations.  PTC is a very general package and
-\bmad only makes use of a small part of its features. Essentially
-the part that \bmad uses is the part that creates Taylor maps and
-does symplectic integration. Not used is, for example, the
-Calculational part that does normal form analysis Twiss parameters
+
+
+\bmad uses PTC in two ways: One way, called ``single element'' mode,
+uses PTC on a per element basis. That is, if a tracking method
+(\sref{c:tracking}) of a given element is set to a tracking method
+that uses PTC, then PTC will be used for tracking through that
+element.  The advantage of single element mode is that it is quite
+flexible in that different tracking methods can be assigned to
+different element. The drawback of single element mode is that PTC's
+powerful analysis tools cannot be used in this case.
+
+normal form analysis Twiss parameters
 (\bmad does its own), beam envelope tracking, etc. PTC also has the
 ability, which \bmad does not take advantage of, to define ``knobs''
 which means that the Taylor map can be a function of the phase space
