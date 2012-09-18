@@ -53,21 +53,24 @@
 #   acc_vars.csh  instead.
 #--------------------------------------------------------------
 
-#HAC_ARCHIVE_BASE_DIR='/gfs/cesr/online/lib'
-#HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
-#HAC_OPT_SOFTWARE_DIR='/nfs/opt'
-
-HAC_ARCHIVE_BASE_DIR='/nfs/acc/libs'
-HAC_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
+HAC_ARCHIVE_BASE_DIR='/gfs/cesr/online/lib'
+HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
 HAC_OPT_SOFTWARE_DIR='/nfs/opt'
 
-#ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
-#ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
+#HAC_ARCHIVE_BASE_DIR='/nfs/acc/libs'
+#HAC_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
+#HAC_OPT_SOFTWARE_DIR='/nfs/opt'
+
+ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
+ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
+ONLINE_OPT_SOFTWARE_DIR='/nfs/opt'
+
+#ONLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
+#ONLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
 #ONLINE_OPT_SOFTWARE_DIR='/nfs/opt'
 
-ONLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
-ONLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
-ONLINE_OPT_SOFTWARE_DIR='/nfs/opt'
+#--------------------------------------------------------------
+
 
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
 OFFLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
@@ -285,7 +288,7 @@ if ( [ "${ACC_TRUE_RELEASE}" == "" ] ) then
     ACC_TRUE_RELEASE=${ACC_RELEASE}
 fi
 export ACC_UTIL=${SETUP_SCRIPTS_DIR}
-export ACC_BIN=${ACC_RELEASE_DIR}/bin
+export ACC_BIN=${ACC_RELEASE_DIR}/production/bin
 export ACC_CONFIG=${ACC_RELEASE_DIR}/config
 export ACC_EXE=${ACC_BIN} # For backwards compatibility
 export ACC_PKG=${ACC_RELEASE_DIR}/packages
@@ -294,7 +297,7 @@ export ACCR=https://accserv.lepp.cornell.edu/svn/
 
 export ACC_GMAKE=${ACC_RELEASE_DIR}/Gmake
 
-export ACC_BUILD_SYSTEM=/nfs/acc/libs/build_system
+export ACC_BUILD_SYSTEM=${RELEASE_ARCHIVE_BASE_DIR}/build_system
 export ACC_BUILD_EXES=Y
 export ACC_CMAKE_VERSION=2.8
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
