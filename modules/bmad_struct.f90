@@ -564,6 +564,7 @@ type lat_struct
   character(40) lattice                       ! Lattice
   character(200) input_file_name              ! Name of the lattice input file
   character(80) title                         ! General title
+  character(60), pointer :: general_parameter_name(:) => null()  ! Aliases for general1$, etc.
   type (mode_info_struct) a, b, z             ! Tunes, etc.
   type (lat_param_struct) param               ! Parameters
   type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.

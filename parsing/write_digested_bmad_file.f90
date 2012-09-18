@@ -46,7 +46,7 @@ type (ptc_parameter_struct) ptc_param
 real(rp) value(num_ele_attrib$)
 
 integer, intent(in), optional :: n_files
-integer d_unit, i, j, k, n_file, ix_value(num_ele_attrib$), ierr
+integer d_unit, i, j, k, n, n_file, ix_value(num_ele_attrib$), ierr
 integer stat_b(24), stat, n_wake, n_wall_section
 integer, allocatable :: ix_wake(:)
 
@@ -126,7 +126,9 @@ write (d_unit) &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
         lat%use_ptc_layout, lat%pre_tracker
 
-write (d_unit) 0   ! for lat%wall3d which no longer exists.
+n = 0
+if (associated(lat%general_parameter_name)) n = size(lat%general_parameter_name)
+write (d_unit) n   ! for lat%wall3d which no longer exists.
 
 n_wake = 0  ! number of wakes written to the digested file for main branch.
 allocate (ix_wake(100))

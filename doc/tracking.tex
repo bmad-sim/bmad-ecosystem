@@ -662,9 +662,10 @@ as the sigma matrix from the particle distribution, the
 
 See Section~\sref{s:spin.methods} for a list of spin tracking methods
 available. To turn spin tracking on, use the
-\vn{bmad_com%spin_tracking_on} flag. After properly initializing the
-spin in the \vn{coord_struct}, calls to \vn{track1} will track both
-the particle orbit and the spin.
+\vn{bmad_com%spin_tracking_on} flag. \vn{ele%spin_tracking_method}
+sets the method used for spin tracking. After properly initializing
+the spin in the \vn{coord_struct}, calls to \vn{track1} will track
+both the particle orbit and the spin.
 
 %-----------------------------------------------------------------------------
 \section{Custom Field Calculations}
