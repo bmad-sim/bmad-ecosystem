@@ -102,7 +102,7 @@ build_specs = {
     'Linux_x86_64_intel-online' : {
         'type' : 'release',
         'platform' : 'Linux_x86_64_intel',
-        'basedir' : '/nfs/cesr/online/lib',
+        'basedir' : '/gfs/cesr/online/lib',
         'domain' : 'ONLINE',
         'host'   : 'cesr109.lns.cornell.edu',
         'repositories' : {
@@ -110,37 +110,47 @@ build_specs = {
                 '/trunk/util',
                 '/trunk/Gmake',
                 '/trunk/src/include',
-                '/trunk/src/lattice',
                 '/trunk/src/c_utils',
                 '/trunk/src/recipes_f-90_LEPP',
                 '/trunk/src/sim_utils',
-                '/trunk/src/CesrBPM',
                 '/trunk/src/mpmnet',
                 '/trunk/src/cbi_net',
-                '/trunk/src/bmad',
-                '/trunk/src/bsim',
-                '/trunk/src/cesr_utils',
+                '/trunk/src/cbpmfio',
                 '/trunk/src/BeamInstSupport',
                 '/trunk/src/CBPM-TSHARC',
                 '/trunk/src/CBIC',
+                '/trunk/src/bmad',
+                '/trunk/src/cesr_utils',
+                '/trunk/src/CesrBPM',                
                 '/trunk/src/mpm_utils',
                 '/trunk/src/nonlin_bpm',
                 '/trunk/src/tao',
                 '/trunk/src/tao_cesr',
-                '/trunk/src/cesr_programs',
                 '/trunk/src/bmadz',
                 '/trunk/src/cesrv',
+                '/trunk/src/bsim',
                 '/trunk/src/bsim_cesr',
+                '/trunk/src/cesr_programs',
                 '/trunk/src/util_programs',
                 '/trunk/src/BPM_tbt_gain',
                 '/trunk/src/examples',
-                #'/trunk/src/genplt', # enable when SBP is ready
-                #'/trunk/src/displays'
-                ##ccon_det
-                ##logit
-                ##magstat
-                ##rfintl
-                ##simcon
+                '/trunk/src/genplt',
+                '/trunk/src/CBSM/xBSM/XbsmAnalysis',
+                '/trunk/src/displays',
+                '/trunk/src/logit',
+                '/trunk/src/magstat',
+                '/trunk/src/simcon',
+                '/trunk/src/err_mon',
+                '/trunk/src/fastlog',
+                '/trunk/src/fbph',
+                '/trunk/src/gen_log',
+                '/trunk/src/newin',
+                '/trunk/src/show',
+                '/trunk/src/synchv',
+                '/trunk/src/tao_cesr',
+                '/trunk/src/vacmon',
+                '/trunk/src/xscope',
+		'/CESR/CESR_services/intloc'
             ]
         }
     },
