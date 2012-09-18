@@ -294,21 +294,6 @@ set( LAB_LIBS
 set(DEPS )
 
 
-#-----------------------------------------------
-# If the project calling this build description
-# file is itself a member of the above list,
-# do not attach it as an external dependency.
-#-----------------------------------------------
-IF (${LIBNAME})
-  foreach( lablib ${LAB_LIBS})
-    IF( ${LIBNAME} STREQUAL ${lablib} )
-    ELSE ()
-      LIST(APPEND DEPS ${lablib})
-    ENDIF ()
-  endforeach()
-ENDIF ()
-  
-
 #----------------------------------------------------------------
 # If any pre-build script is specified, run it before building
 # any code.  The pre-build script may generate code or header
@@ -327,7 +312,6 @@ IF (LIBNAME)
   add_library( ${LIBNAME} STATIC ${sources} )
   LIST(APPEND TARGETS ${LIBNAME})
   SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
-  TARGET_LINK_LIBRARIES(${LIBNAME} ${DEPS})
 ENDIF ()
 
 
@@ -351,11 +335,12 @@ ENDIF ()
 # set (CREATE_SHARED true) needs to be present in the individual
 #  project's CMakeLists.txt file.
 #----------------------------------------------------------------
+message("SHARED DEPS: ${SHARED_DEPS}")
 IF (ENABLE_SHARED AND CREATE_SHARED)
   add_library (${LIBNAME}-shared SHARED ${sources})
   LIST(APPEND TARGETS ${LIBNAME}-shared)
   SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES OUTPUT_NAME ${LIBNAME})
-  TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${DEPS})
+  TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS})
 ENDIF ()
 
 
