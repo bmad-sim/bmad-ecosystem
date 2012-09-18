@@ -230,41 +230,41 @@ for more details.
 \subsection{Main output file}
 The standard output stream contains information on the progression of the job,
 including a calculation of total elapsed wall clock time at the end.
-\subsection{\tt{drscan.out}}
+\subsection{{\tt drscan.out}}
 For each successive BBU threshold calculation convergence, a line is written
-to \tt{drscan.out} containing the {tr\/tb} variable~\cite{ref:Hoffstaetter04},
+to {\tt drscan.out} containing the {tr\/tb} variable~\cite{ref:Hoffstaetter04},
 the analytic approximation to the threshold current, and the result for the
 threshold current, in standard format.
-\subsection{\tt{rep.out}}
-The output file \tt{rep.out} contains one line per threshold calculation which
+\subsection{{\tt rep.out}}
+The output file {\tt rep.out} contains one line per threshold calculation which
 consists of the repetition number, the threshold current, and the index number, the 
 ring position, the input file HOM frequency, the HOM frequency used after randomization,
-the input file \tt{R/Q} value, the HOM Q value, and the HOM polarization angle.
-The format is \tt{(i6,e14.6,2i7,6(e14.6,1x))}.
-\subsection{\tt{hom_voltage.out}}
+the input file {\tt R/Q} value, the HOM Q value, and the HOM polarization angle.
+The format is {\tt (i6,e14.6,2i7,6(e14.6,1x))}.
+\subsection{{\tt hom_voltage.out}}
 The stable orbit analysis proceeds at a fixed current without iteration, calculating
 the for multiple bunch train passages the voltages excited in the HOM elements and
-the resulting orbit distortions. The output file \tt{hom_voltage.out} contains one
+the resulting orbit distortions. The output file {\tt hom_voltage.out} contains one
 line for each train passage the reptition number, the passage number, the sum over HOM
 elements of the greatest HOM voltage excited by any of the HOM modes in that element,
 the total number of contributions to that HOM voltage, and the HOM voltage gain factor which
 would be used in a threshold current convergence calculation.
-The format is \tt{(2i10,e13.6,x,i8,x,e15.6)}. The successive values of this sum over
+The format is {\tt (2i10,e13.6,x,i8,x,e15.6)}. The successive values of this sum over
 maximum HOM voltages can be used to estimate when the equilibrium loading condition has
 been reached for this value of the beam current.
-\subsection{\tt{stable_orbit.out}}
+\subsection{{\tt stable_orbit.out}}
 The stable orbit analysis also writes output for each HOM element for each bunch train passage to
-the file \tt{stable_orbit.out}. This line contains the HOM element ordinal number, the HOM
-arrival time, its maximum HOM voltage, the HOM frequency, the \tt{R/Q} value, the Q value, and five
-statistical variables characterizing the orbit distortion: the number of orbits analyzed, the average orbit distortion, the rms orbit distortion, the minimum orbit distortion and the maximum orbit distortion. The latter five variables are repeated six times for each of the six coordinates of the orbit: x, px, y, py, z, and ${\delta}$. The format is \tt{(i10,5(1x,e15.8),i10/,4(6(1x,e15.6)/))}.
+the file {\tt stable_orbit.out}. This line contains the HOM element ordinal number, the HOM
+arrival time, its maximum HOM voltage, the HOM frequency, the {\tt R/Q} value, the Q value, and five
+statistical variables characterizing the orbit distortion: the number of orbits analyzed, the average orbit distortion, the rms orbit distortion, the minimum orbit distortion and the maximum orbit distortion. The latter five variables are repeated six times for each of the six coordinates of the orbit: x, px, y, py, z, and ${\delta}$. The format is {\tt (i10,5(1x,e15.8),i10/,4(6(1x,e15.6)/))}.
 %------------------------------------------------------------------
 \section{Appendix}
 The BBU threshold calculations produced by setting the parameter \vn{drscan}
 true and using the default values of \vn{begdr}, \vn{enddr} and \vn{nstep} reproduce
 the results of Fig.~3 of Ref.~\cite{ref:Hoffstaetter04}, writing them to
-the output file \tt{drscan.out} when the following Bmad lattice file is used:\\\\*[5mm]
+the output file {\tt drscan.out} when the following Bmad lattice file is used:\\\\*[5mm]
 \parbox{\textwidth}{
-\tt{
+{\tt 
 parameter[lattice] = "PRSTAB 7, 2004 Toy Lattice"\\
 betaa=20\\
 betab=20\\
@@ -288,8 +288,8 @@ use, dual
 }
 \vskip 5mm
 %\minipage{\textwidth}{
-The required HOM parameter file \tt{prstab2004.dat} is\\*[5mm]
-\tt{\begin{verbatim}
+The required HOM parameter file {\tt prstab2004.dat} is\\*[5mm]
+{\tt \begin{verbatim}
           Frequency           R/Q           Q         n     Polarization_Angle
            [Hz]           [Ohm/m^(2n)]                        [Radians/2pi]
 
