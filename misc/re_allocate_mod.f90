@@ -246,12 +246,10 @@ subroutine re_allocate_string (str, n, exact)
     n_old = size(str)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
-    n_save = min(n, n_old)
-    allocate (temp_str(n_save))
-    temp_str = str(1:n_save)
-    deallocate (str)
+    call move_alloc (str, temp_str)
     allocate (str(n))
-    str(1:n_save) = temp_str
+    n_save = min(n, n_old)
+    str(1:n_save) = temp_str(1:n_save)
     deallocate (temp_str)  
   else
     allocate (str(n))
@@ -298,12 +296,10 @@ subroutine re_allocate_integer (inte, n, exact)
     n_old = size(inte)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
-    n_save = min(n, n_old)
-    allocate (temp_inte(n_save))
-    temp_inte = inte(1:n_save)
-    deallocate (inte)
+    call move_alloc (inte, temp_inte)
     allocate (inte(n))
-    inte(1:n_save) = temp_inte
+    n_save = min(n, n_old)
+    inte(1:n_save) = temp_inte(1:n_save)
     deallocate (temp_inte)  
   else
     allocate (inte(n))
@@ -350,12 +346,10 @@ subroutine re_allocate_complex (cmpl, n, exact)
     n_old = size(cmpl)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
-    n_save = min(n, n_old)
-    allocate (temp_cmpl(n_save))
-    temp_cmpl = cmpl(1:n_save)
-    deallocate (cmpl)
+    call move_alloc (cmpl, temp_cmpl)
     allocate (cmpl(n))
-    cmpl(1:n_save) = temp_cmpl
+    n_save = min(n, n_old)
+    cmpl(1:n_save) = temp_cmpl(1:n_save)
     deallocate (temp_cmpl)  
   else
     allocate (cmpl(n))
@@ -402,12 +396,10 @@ subroutine re_allocate_real (re, n, exact)
     n_old = size(re)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
-    n_save = min(n, n_old)
-    allocate (temp_re(n_save))
-    temp_re = re(1:n_save)
-    deallocate (re)
+    call move_alloc (re, temp_re)
     allocate (re(n))
-    re(1:n_save) = temp_re
+    n_save = min(n, n_old)
+    re(1:n_save) = temp_re(1:n_save)
     deallocate (temp_re)  
   else
     allocate (re(n))
@@ -454,11 +446,9 @@ subroutine re_allocate_real_pointer (re_ptr, n, exact)
     n_old = size(re_ptr)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
-    n_save = min(n, n_old)
-    allocate (temp_re(n_save))
-    forall (i = 1:n_save) temp_re(i)%r => re_ptr(i)%r
-    deallocate (re_ptr)
+    call move_alloc(re_ptr, temp_re)
     allocate (re_ptr(n))
+    n_save = min(n, n_old)
     forall (i = 1:n_save) re_ptr(i)%r => temp_re(i)%r
     deallocate (temp_re)  
   else
@@ -506,12 +496,10 @@ subroutine re_allocate_logical (logic, n, exact)
     n_old = size(logic)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
-    n_save = min(n, n_old)
-    allocate (temp_logic(n_save))
-    temp_logic = logic(1:n_save)
-    deallocate (logic)
+    call move_alloc(logic, temp_logic)
     allocate (logic(n))
-    logic(1:n_save) = temp_logic
+    n_save = min(n, n_old)
+    logic(1:n_save) = temp_logic(1:n_save)
     deallocate (temp_logic)  
   else
     allocate (logic(n))
@@ -559,12 +547,10 @@ subroutine re_allocate2_string (str, n1, n2, exact)
     n1_old = lbound(str, 1); n2_old = ubound(str, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
-    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_str(n1_save:n2_save))
-    temp_str = str(n1_save:n2_save)
-    deallocate (str)
+    call move_alloc(str, temp_str)
     allocate (str(n1:n2))
-    str(n1_save:n2_save) = temp_str
+    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+    str(n1_save:n2_save) = temp_str(n1_save:n2_save)
     deallocate (temp_str)  
   else
     allocate (str(n1:n2))
@@ -613,12 +599,10 @@ subroutine re_allocate2_integer (inte, n1, n2, exact)
     n1_old = lbound(inte, 1); n2_old = ubound(inte, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
-    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_inte(n1_save:n2_save))
-    temp_inte = inte(n1_save:n2_save)
-    deallocate (inte)
+    call move_alloc(inte, temp_inte)
     allocate (inte(n1:n2))
-    inte(n1_save:n2_save) = temp_inte
+    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+    inte(n1_save:n2_save) = temp_inte(n1_save:n2_save)
     deallocate (temp_inte)  
   else
     allocate (inte(n1:n2))
@@ -667,12 +651,10 @@ subroutine re_allocate2_complex (cmpl, n1, n2, exact)
     n1_old = lbound(cmpl, 1); n2_old = ubound(cmpl, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
-    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_cmpl(n1_save:n2_save))
-    temp_cmpl = cmpl(n1_save:n2_save)
-    deallocate (cmpl)
+    call move_alloc(cmpl, temp_cmpl)
     allocate (cmpl(n1:n2))
-    cmpl(n1_save:n2_save) = temp_cmpl
+    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+    cmpl(n1_save:n2_save) = temp_cmpl(n1_save:n2_save)
     deallocate (temp_cmpl)  
   else
     allocate (cmpl(n1:n2))
@@ -721,12 +703,10 @@ subroutine re_allocate2_real (re, n1, n2, exact)
     n1_old = lbound(re, 1); n2_old = ubound(re, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
-    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_re(n1_save:n2_save))
-    temp_re = re(n1_save:n2_save)
-    deallocate (re)
+    call move_alloc(re, temp_re)
     allocate (re(n1:n2))
-    re(n1_save:n2_save) = temp_re
+    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+    re(n1_save:n2_save) = temp_re(n1_save:n2_save)
     deallocate (temp_re)  
   else
     allocate (re(n1:n2))
@@ -775,12 +755,10 @@ subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
     n1_old = lbound(re_ptr, 1); n2_old = ubound(re_ptr, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
-    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_re_ptr(n1_save:n2_save))
-    temp_re_ptr = re_ptr(n1_save:n2_save)
-    deallocate (re_ptr)
+    call move_alloc(re_ptr, temp_re_ptr)
     allocate (re_ptr(n1:n2))
-    re_ptr(n1_save:n2_save) = temp_re_ptr
+    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+    re_ptr(n1_save:n2_save) = temp_re_ptr(n1_save:n2_save)
     deallocate (temp_re_ptr)  
   else
     allocate (re_ptr(n1:n2))
@@ -829,12 +807,10 @@ subroutine re_allocate2_logical (logic, n1, n2, exact)
     n1_old = lbound(logic, 1); n2_old = ubound(logic, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
-    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_logic(n1_save:n2_save))
-    temp_logic = logic(n1_save:n2_save)
-    deallocate (logic)
+    call move_alloc(logic, temp_logic)
     allocate (logic(n1:n2))
-    logic(n1_save:n2_save) = temp_logic
+    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+    logic(n1_save:n2_save) = temp_logic(n1_save:n2_save)
     deallocate (temp_logic)  
   else
     allocate (logic(n1:n2))
@@ -881,12 +857,10 @@ subroutine re_allocate_string2d (str2, n1, n2, exact)
     n1_old = ubound(str2, 1); n2_old = ubound(str2, 2)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
-    n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_str2(n1_save,n2_save))
-    temp_str2 = str2(1:n1_save,1:n2_save)
-    deallocate (str2)
+    call move_alloc(str2, temp_str2)
     allocate (str2(n1,n2))
-    str2(1:n1_save,1:n2_save) = temp_str2
+    n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
+    str2(1:n1_save,1:n2_save) = temp_str2(1:n1_save,1:n2_save)
     deallocate (temp_str2)  
   else
     allocate (str2(n1,n2))
@@ -934,12 +908,10 @@ subroutine re_allocate_integer2d (inte2, n1, n2, exact)
     n1_old = ubound(inte2, 1); n2_old = ubound(inte2, 2)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
-    n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_inte2(n1_save,n2_save))
-    temp_inte2 = inte2(1:n1_save,1:n2_save)
-    deallocate (inte2)
+    call move_alloc(inte2, temp_inte2)
     allocate (inte2(n1,n2))
-    inte2(1:n1_save,1:n2_save) = temp_inte2
+    n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
+    inte2(1:n1_save,1:n2_save) = temp_inte2(1:n1_save,1:n2_save)
     deallocate (temp_inte2)  
   else
     allocate (inte2(n1,n2))
@@ -1040,12 +1012,10 @@ subroutine re_allocate_logical2d (logic2, n1, n2, exact)
     n1_old = ubound(logic2, 1); n2_old = ubound(logic2, 2)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
-    n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
-    allocate (temp_logic2(n1_save,n2_save))
-    temp_logic2 = logic2(1:n1_save,1:n2_save)
-    deallocate (logic2)
+    call move_alloc(logic2, temp_logic2)
     allocate (logic2(n1,n2))
-    logic2(1:n1_save,1:n2_save) = temp_logic2
+    n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
+    logic2(1:n1_save,1:n2_save) = temp_logic2(1:n1_save,1:n2_save)
     deallocate (temp_logic2)  
   else
     allocate (logic2(n1,n2))
