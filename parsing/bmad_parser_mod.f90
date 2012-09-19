@@ -1067,7 +1067,7 @@ endif
 ! Stuff like TYPE, ALIAS, and DESCRIP attributes are special because their "values"
 ! are character strings
 
-if (attrib_word(1:7) == 'GENERAL') then
+if (attrib_word(1:16) == 'CUSTOM_ATTRIBUTE') then
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found, str)
   if (allocated(lat%attribute_alias)) then
     n = size(lat%attribute_alias) + 1
