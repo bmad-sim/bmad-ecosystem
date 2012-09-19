@@ -126,9 +126,19 @@ write (d_unit) &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
         lat%use_ptc_layout, lat%pre_tracker
 
-n = 0
-if (associated(lat%general_parameter_name)) n = size(lat%general_parameter_name)
-write (d_unit) n   ! for lat%wall3d which no longer exists.
+! General parameter names
+
+if (allocated(lat%attribute_alias)) then
+  n = size(lat%attribute_alias)
+  write (d_unit) n
+  do i = 1, n
+    write (d_unit)lat%attribute_alias(i)
+  enddo
+else
+  write (d_unit) 0
+endif
+
+!
 
 n_wake = 0  ! number of wakes written to the digested file for main branch.
 allocate (ix_wake(100))

@@ -21,8 +21,9 @@ type (ele_attribute_struct), private, save :: attrib_array(n_key, num_ele_attrib
 character(40), private, save :: short_attrib_array(n_key, num_ele_attrib_extended$)
 integer, private, save :: attrib_num(n_key)
 integer, private, save :: attrib_ix(n_key, num_ele_attrib_extended$)
-logical, private, save :: init_needed = .true.
+logical, private, save :: attribute_array_init_needed = .true.
 logical, private, save :: has_orientation_attributes_key(n_key)
+private init_short_attrib_array
 
 contains
 
@@ -70,7 +71,7 @@ character(40) name40
 
 !-----------------------------------------------------------------------
 
-if (init_needed) call init_attribute_name_array
+if (attribute_array_init_needed) call init_attribute_name_array
 
 name40 = name           ! make sure we have 40 characters
 key = ele%key
@@ -178,7 +179,7 @@ character(40) attrib_name
 
 !
 
-if (init_needed) call init_attribute_name_array()
+if (attribute_array_init_needed) call init_attribute_name_array()
 
 key = ele%key
 
@@ -244,7 +245,7 @@ integer i, key, ix_att
 
 !
 
-if (init_needed) call init_attribute_name_array()
+if (attribute_array_init_needed) call init_attribute_name_array()
 
 attrib_info%type = does_not_exist$
 
@@ -283,13 +284,13 @@ integer i, j, num
 
 !
 
-if (.not. init_needed) return
+if (.not. attribute_array_init_needed) return
 
 do i = 1, n_key
 
-  call init_attribute_name1 (i, general1$,  'general1', private$)
-  call init_attribute_name1 (i, general2$,  'general2', private$)
-  call init_attribute_name1 (i, general3$,  'general3', private$)
+  call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
+  call init_attribute_name1 (i, custom_attribute2$,  'CUSTOM_ATTRIBUTE2', private$)
+  call init_attribute_name1 (i, custom_attribute3$,  'CUSTOM_ATTRIBUTE3', private$)
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
   call init_attribute_name1 (i, scratch$,   'scratch', private$)
 
@@ -454,8 +455,6 @@ do i = 1, n_key
   end select
 enddo
 
-
-
 !
 
 call init_attribute_name1 (photon_branch$, ix_branch_to$,         'ix_branch_to', private$)
@@ -503,9 +502,9 @@ call init_attribute_name1 (init_ele$, phase_x$,                     'PHASE_X')
 call init_attribute_name1 (init_ele$, phase_y$,                     'PHASE_Y')
 call init_attribute_name1 (init_ele$, wall_attribute$,              'WALL')
 
-call init_attribute_name1 (def_parameter$, general1$,               'GENERAL1', override = .true.)
-call init_attribute_name1 (def_parameter$, general2$,               'GENERAL2', override = .true.)
-call init_attribute_name1 (def_parameter$, general3$,               'GENERAL3', override = .true.)
+call init_attribute_name1 (def_parameter$, custom_attribute1$, 'CUSTOM_ATTRIBUTE1', override = .true.)
+call init_attribute_name1 (def_parameter$, custom_attribute2$, 'CUSTOM_ATTRIBUTE2', override = .true.)
+call init_attribute_name1 (def_parameter$, custom_attribute3$, 'CUSTOM_ATTRIBUTE3', override = .true.)
 call init_attribute_name1 (def_parameter$, e_tot$,                  'E_TOT')
 call init_attribute_name1 (def_parameter$, p0c$,                    'P0C')
 call init_attribute_name1 (def_parameter$, lattice_type$,           'LATTICE_TYPE')
@@ -970,20 +969,41 @@ do i = 1, n_key
   if (attrib_array(i, kick$)%name     == 'KICK')  has_kick_attributes(i) = .true.
   if (attrib_array(i, hkick$)%name    == 'HKICK') has_hkick_attributes(i) = .true.
 
-  num = 0
-  do j = 1, num_ele_attrib_extended$
-    if (attrib_array(i, j)%name == null_name$) cycle
-    if (attrib_array(i, j)%type == private$) cycle
-    num = num + 1
-    short_attrib_array(i, num) = attrib_array(i, j)%name
-    attrib_ix(i, num) = j
-  enddo
-  attrib_num(i) = num
+  call init_short_attrib_array(i)
 enddo
 
-init_needed = .false.
+attribute_array_init_needed = .false.
 
 end subroutine init_attribute_name_array
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine init_short_attrib_array (ix_key)
+!
+! Internal routine to init the short_attrib_array array.
+!-
+
+subroutine init_short_attrib_array (ix_key)
+
+implicit none
+
+integer ix_key, num, j
+
+!
+
+num = 0
+do j = 1, num_ele_attrib_extended$
+  if (attrib_array(ix_key, j)%name == null_name$) cycle
+  if (attrib_array(ix_key, j)%type == private$) cycle
+  num = num + 1
+  short_attrib_array(ix_key, num) = attrib_array(ix_key, j)%name
+  attrib_ix(ix_key, num) = j
+enddo
+attrib_num(ix_key) = num
+
+end subroutine init_short_attrib_array 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1009,6 +1029,8 @@ end subroutine init_attribute_name_array
 
 subroutine init_attribute_name1 (ix_key, ix_attrib, name, attrib_state, override)
 
+implicit none
+
 integer ix_key, ix_attrib
 character(*) name
 integer, optional :: attrib_state
@@ -1028,6 +1050,11 @@ endif
 attrib_array(ix_key, ix_attrib)%name    = name
 attrib_array(ix_key, ix_attrib)%type = integer_option(is_free$, attrib_state)
 
+! If things are done after the attribute array has been inited then the short table has
+! to be reinited.
+
+if (.not. attribute_array_init_needed) call init_short_attrib_array(ix_key)
+
 end subroutine init_attribute_name1 
 
 !--------------------------------------------------------------------------
@@ -1038,7 +1065,7 @@ end subroutine init_attribute_name1
 !
 ! Routine to determine whether an element has orientation attributes like x_offset, etc.
 !
-! Modules needed:
+! Module needed:
 !   use bmad
 !
 ! Input:
@@ -1329,7 +1356,7 @@ integer, save :: max_length = 0
 
 !
 
-if (init_needed) call init_attribute_name_array
+if (attribute_array_init_needed) call init_attribute_name_array
 if (max_length == 0) max_length = maxval(len_trim(attrib_array(1:n_key, 1:num_ele_attrib_extended$)%name))
 max_len = max_length
 
