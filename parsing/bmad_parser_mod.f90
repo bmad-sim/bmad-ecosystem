@@ -225,7 +225,7 @@ type (em_field_mode_struct), pointer :: em_mode
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
 
-integer i, j, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef
+integer i, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
 
 character(40) :: word, str_ix, attrib_word, word2
@@ -1064,8 +1064,23 @@ if (delim /= '=')  then
 endif
 
 ! get the value of the attribute.
-! The TYPE, ALIAS, and DESCRIP attributes are special because their "values"
+! Stuff like TYPE, ALIAS, and DESCRIP attributes are special because their "values"
 ! are character strings
+
+if (attrib_word(1:7) == 'GENERAL') then
+  call bmad_parser_type_get (ele, attrib_word, delim, delim_found, str)
+  if (allocated(lat%attribute_alias)) then
+    n = size(lat%attribute_alias) + 1
+    call re_allocate(lat%attribute_alias, n)
+  else
+    n = 1
+    allocate(lat%attribute_alias(1))
+  endif
+  lat%attribute_alias(n) = str
+  ix = index(str, '=')
+  call set_attribute_alias(str(1:ix-1), str(ix+1:), err_flag)
+  return
+endif
 
 select case (attrib_word)
 
@@ -2544,7 +2559,7 @@ end subroutine parser_add_variable
 ! This subroutine is not intended for general use.
 !-
 
-subroutine bmad_parser_type_get (ele, attrib_name, delim, delim_found)
+subroutine bmad_parser_type_get (ele, attrib_name, delim, delim_found, name)
 
 implicit none
 
@@ -2553,6 +2568,7 @@ type (ele_struct)  ele
 integer ix, ix_word
 
 character(*) attrib_name
+character(*), optional :: name
 character(40)  word
 character(1)   delim, str_end
 character(200) type_name
@@ -2600,6 +2616,9 @@ case ('TO', 'REF_PATCH')
   call upcase_string (ele%component_name)
 case ('CRYSTAL_TYPE')
   ele%component_name = type_name
+case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3')
+  name = trim(attrib_name) // '=' // type_name
+  call upcase_string (name)
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
   if (bmad_status%exit_on_error) call err_exit

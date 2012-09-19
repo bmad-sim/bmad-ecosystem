@@ -48,6 +48,7 @@ character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
 character(200) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
 character(200), allocatable :: file_names(:)
+character(60) p_name
 character(25) :: r_name = 'read_digested_bmad_file'
 
 logical, optional :: err_flag
@@ -186,10 +187,22 @@ read (d_unit, err = 9030)  &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
         lat%n_ele_track, lat%n_ele_max, lat%lord_state, &
         lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
-        lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
-        lat%use_ptc_layout, lat%pre_tracker
+        lat%absolute_time_tracking, lat%rf_auto_scale_phase, &
+        lat%rf_auto_scale_amp, lat%use_ptc_layout, lat%pre_tracker
 
-read (d_unit, err = 9035) idum1  ! Left over from lat%wall3d
+! General parameter names
+
+read (d_unit, err = 9035) n
+if (n > 0) then
+  allocate (lat%attribute_alias(n))
+  do i = 1, n
+    read (d_unit, err = 9035) p_name
+    lat%attribute_alias(i) = p_name
+    ix = index(lat%attribute_alias(i), '=')
+    call set_attribute_alias(p_name(1:ix-1), p_name(ix+1:), err_found)
+    if (err_found) return
+  enddo
+endif
 
 ! Allocate lat%ele, lat%control and lat%ic arrays
 
@@ -312,7 +325,7 @@ return
 
 9035  continue
 if (bmad_status%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE IDUM1.')
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE GENERAL PARAMETER NAME LIST.')
 endif
 close (d_unit)
 return

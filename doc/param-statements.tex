@@ -39,6 +39,7 @@ set by \vn{parameter} are
   parameter[use_ptc_layout]         = <Logical>  ! Use single PTC fiber for calculations?
   parameter[ptc_exact_model]        = <Logical>  ! PTC to do "exact" tracking?
   parameter[ptc_exact_misalignment] = <Logical>  ! PTC to "exactly" misalign elements?
+  parameter[custom_attributeN]      = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
 \end{example}
 
 \noindent
@@ -55,6 +56,8 @@ The \vn{parameter[no_end_marker]} is use to suppress the automatic inclusion
 of a marker named \vn{END} at the end of the lattice (\sref{s:use}). 
 
 For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
+
+For more information on defining custom attributes, see \sref{s:custom.attrib}.
 
 Valid \vn{parameter[particle]} switches are:
 \index{positron}\index{electron}\index{proton}\index{antiproton}

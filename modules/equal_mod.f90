@@ -355,6 +355,20 @@ else
   if (allocated(lat_out%ic)) deallocate (lat_out%ic)
 endif
 
+! lat%attribute_alias
+
+if (allocated(lat_in%attribute_alias)) then
+  n = size(lat_in%attribute_alias)
+  if (.not. allocated(lat_out%attribute_alias)) allocate (lat_out%attribute_alias(n))
+  if (size(lat_out%attribute_alias) /= n) then
+    deallocate(lat_out%attribute_alias)
+    allocate (lat_out%attribute_alias(n))
+  endif
+  lat_out%attribute_alias = lat_in%attribute_alias
+else
+  if (allocated(lat_out%attribute_alias)) deallocate(lat_out%attribute_alias)
+endif
+
 ! non-pointer transfer
 
 call transfer_lat_parameters (lat_in, lat_out)

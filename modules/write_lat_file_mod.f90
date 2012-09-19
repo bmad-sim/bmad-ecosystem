@@ -67,10 +67,11 @@ real(rp) s0, x_lim, y_lim, val
 
 character(*) bmad_file
 character(4000) line
+character(200) wake_name, file_name, path, basename
+character(60) alias
+character(40) name, look_for, attrib_name
 character(4) end_str
 character(4) last
-character(40) name, look_for, attrib_name
-character(200) wake_name, file_name, path, basename
 character(40), allocatable :: names(:)
 character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
@@ -120,6 +121,16 @@ open (iu, file = file_name, iostat = ios)
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(bmad_file))
   return
+endif
+
+! Attribute aliases
+
+if (allocated(lat%attribute_alias)) then
+  do i = 1, size(lat%attribute_alias)
+    alias = lat%attribute_alias(i)
+    ix = index(alias, '=')
+    write (iu, '(4a)') 'parameter[', alias(1:ix-1), '] = ', alias(ix+1:) 
+  enddo
 endif
 
 ! Non-elemental stuff

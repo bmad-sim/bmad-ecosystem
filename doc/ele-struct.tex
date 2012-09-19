@@ -278,13 +278,13 @@ indexes, the program \vn{element_attributes} can be used. This program
 is included in the standard \bmad distribution.
 
 There are also 5 slots in the \vn{%value(:)} array for general use.
-they have indexes labeled \vn{general1\$} through \vn{general5\$}. These
+they have indexes labeled \vn{custom1\$} through \vn{general5\$}. These
 slots are not used by \bmad so a program can take advantage of them.
 The index names can be redefined to fit a particular need. For example, suppose
 a program needs to store a time stamp number. The code to do this could look
 like:
 \begin{example}
-  integer, parameter :: time_stamp\$ = general1\$
+  integer, parameter :: time_stamp\$ = custom1\$
   ...
   lat%ele(i)%value(time_stamp$) = ...
 \end{example}

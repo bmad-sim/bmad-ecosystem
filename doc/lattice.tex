@@ -332,7 +332,7 @@ required before full names can be used in statements.
 %---------------------------------------------------------------------------
 \section{Lattice Element Attributes}
 \label{s:lat.attribs}
-\index{element attribute|hyperbf}
+\index{element attributes|hyperbf}
 
 Any lattice element has various attributes like its name, its length,
 its strength, etc. The values of element attributes can be
@@ -391,6 +391,44 @@ may be set using the syntax as discussed in Section \sref{s:ele.names}. Example:
   97[x_offset] = 0.0023       ! Set x_offset attribute of 97th element
   b2>>si_cryst##2[tilt] = 0.1 ! Tilt the 2nd instance of "si_cryst" in branch "b2" 
 \end{example}
+
+%---------------------------------------------------------------------------
+\section{Custom Element Attribute Names}
+\label{s:custom.attrib}
+\index{element attributes!defining custom attributes}
+
+Custom element attributes may be defined for any class of element.
+Custom element attributes are useful with programs that need to
+associate ``extra'' information with particular lattice elements and
+it is desired that this extra information be settable from within a
+lattice file. For example, a program might need error tollerances for
+the strength of quadrupoles.
+
+Adding custom attributes will not disrupt programs that are not
+designed to use the custom attributes. Currently, up to three custom
+attributes may be defined for any given element type. The syntax for
+defining custom attributes is:
+\begin{example}
+  parameter[custom_attributeN] = "\{class::\}attribute_name"
+\end{example}
+\vn{custom_attributeN} may be one of:
+\begin{example}
+  custom_attribute1
+  custom_attribute2
+  custom_attribute3
+\end{example}
+and "\vn{attribute_name}" is the name of the attribute. To restrict the
+custom attribute to a particular element class, the element class
+can be prefixed to the attribute name. Examples:
+\begin{example}
+  parameter[custom_attribute1] = "quadrupole::error"
+  parameter[custom_attribute2] = "mag_id"
+\end{example}
+The first example assigns a custom attribute name of \vn{error} to all
+quadrupoles.  The second example assigns a custom attributge name of
+\vn{mag_id} to all elements. Once a particular \vn{custom_attributeN}
+has been assigned to a particular element class, the particular
+\vn{custom_attributeN} may not be reassigned for that element class.
 
 %---------------------------------------------------------------------------
 \section{Variable Types}

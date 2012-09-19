@@ -138,7 +138,6 @@ call pointer_to_attribute (ele, attrib_name, do_allocation, &
                   ptr_attrib, err_flag, err_print_flag, ix_attrib)
 if (associated(ptr_attrib)) attrib_value = ptr_attrib
 
-
 !---------------------------------------------
 contains
 
@@ -155,9 +154,105 @@ else
   real_val = 0
 endif
 
-end function
+end function logic_val
 
-end subroutine
+end subroutine ele_attribute_value
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine set_attribute_alias (attrib_name, alias_name)
+!
+! Routine to setup an alias for element attributes like custom_attribute1$, etc. in
+! the attribute name table.
+!
+! Module needed:
+!   use basic_attribute_mod
+!
+! Input:
+!   attrib_name -- Character(*): Name of attribute to define an alias for.
+!   alias_name  -- Character(*): Name of alias.
+!
+! Output:
+!   err_flag    -- Logical: Set True if an error. False otherwise.
+!-
+
+subroutine set_attribute_alias (attrib_name, alias_name, err_flag)
+
+implicit none
+
+character(*) attrib_name, alias_name
+character(40) attrib_str, alias_str 
+character(20) :: r_name = 'set_attribute_alias'
+logical err_flag
+
+!
+
+err_flag = .false.
+
+attrib_str = upcase(attrib_name)
+alias_str = upcase(alias_name)
+
+select case(attrib_str)
+case ('CUSTOM_ATTRIBUTE1'); call set_it (custom_attribute1$)
+case ('CUSTOM_ATTRIBUTE2'); call set_it (custom_attribute2$)
+case ('CUSTOM_ATTRIBUTE3'); call set_it (custom_attribute3$)
+case default
+  err_flag = .true.
+  call out_io (s_error$, r_name, 'ATTRIBUTE NAME NOT VALID FOR ALIAS SETUP: ' // attrib_str)
+end select
+
+!------------------------------
+contains
+
+subroutine set_it (ix_attrib)
+
+type (ele_struct) ele
+integer ix_attrib, ix, i
+character(40) old_str, a_str
+
+! If alias_str is of the form "ele_class::alias_name" then need to split string
+
+a_str = alias_str
+ix = index(alias_str, '::')
+if (ix /= 0) then
+  a_str = alias_str(ix+2:)
+  ix = key_name_to_key_index(alias_str(1:ix-1), .true.)
+  if (ix < 1) then
+    call out_io (s_error$, r_name, 'ELEMENT CLASS NOT RECOGNIZED: ' // alias_str)
+    err_flag = .true.
+    return
+  endif
+endif
+
+! Check alias name for invalid characters
+
+if (str_find_first_not_in_set(trim(a_str), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_') > 0) then
+  call out_io (s_error$, r_name, 'ALIAS NAME HAS INVALID CHARACTERS: ' // a_str)
+  err_flag = .true.
+  return
+endif
+
+! Set
+
+do i = 1, n_key
+  if (i == def_parameter$) cycle
+  if (ix /= 0 .and. ix /= i) cycle
+  ele%key = i
+  old_str = attribute_name (ele, ix_attrib)
+  if (old_str /= null_name$ .and. old_str /= a_str) then
+    call out_io (s_error$, r_name, 'ATTRIBUTE NAME ALIAS MAY NOT BE REDEFINED: ' // &
+                    trim(attrib_str) // '=' // alias_str)
+    err_flag = .true.
+    return
+  endif
+  call init_attribute_name1 (i, ix_attrib, a_str, override = .true.)
+enddo
+
+end subroutine set_it
+
+end subroutine set_attribute_alias
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

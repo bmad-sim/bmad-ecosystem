@@ -564,7 +564,7 @@ type lat_struct
   character(40) lattice                       ! Lattice
   character(200) input_file_name              ! Name of the lattice input file
   character(80) title                         ! General title
-  character(60), pointer :: general_parameter_name(:) => null()  ! Aliases for general1$, etc.
+  character(60), allocatable :: attribute_alias(:)  ! Aliases for custom1$, etc.
   type (mode_info_struct) a, b, z             ! Tunes, etc.
   type (lat_param_struct) param               ! Parameters
   type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.
@@ -735,9 +735,9 @@ integer, parameter :: num_steps$ = 56, l_x$ = 56
 integer, parameter :: ds_step$ = 57, l_y$ = 57
 integer, parameter :: l_z$ = 58
 integer, parameter :: scratch$ = 59
-integer, parameter :: general1$ = 60   ! For general use
-integer, parameter :: general2$ = 61   ! For general use
-integer, parameter :: general3$ = 62   ! For general use
+integer, parameter :: custom_attribute1$ = 60   ! For general use
+integer, parameter :: custom_attribute2$ = 61   ! For general use
+integer, parameter :: custom_attribute3$ = 62   ! For general use
 integer, parameter :: x1_limit$ = 66   ! Assumed unique. Do not overload.
 integer, parameter :: x2_limit$ = 67   ! Assumed unique. Do not overload.
 integer, parameter :: y1_limit$ = 68   ! Assumed unique. Do not overload.
