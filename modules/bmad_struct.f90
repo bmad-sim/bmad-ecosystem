@@ -735,9 +735,11 @@ integer, parameter :: num_steps$ = 56, l_x$ = 56
 integer, parameter :: ds_step$ = 57, l_y$ = 57
 integer, parameter :: l_z$ = 58
 integer, parameter :: scratch$ = 59
-integer, parameter :: custom_attribute1$ = 60   ! For general use
-integer, parameter :: custom_attribute2$ = 61   ! For general use
-integer, parameter :: custom_attribute3$ = 62   ! For general use
+integer, parameter :: custom_attribute1$ = 61   ! For general use
+integer, parameter :: custom_attribute2$ = 62   ! For general use
+integer, parameter :: custom_attribute3$ = 63   ! For general use
+integer, parameter :: custom_attribute4$ = 64   ! For general use
+integer, parameter :: custom_attribute5$ = 65   ! For general use
 integer, parameter :: x1_limit$ = 66   ! Assumed unique. Do not overload.
 integer, parameter :: x2_limit$ = 67   ! Assumed unique. Do not overload.
 integer, parameter :: y1_limit$ = 68   ! Assumed unique. Do not overload.
