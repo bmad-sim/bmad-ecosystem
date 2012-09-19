@@ -1069,16 +1069,8 @@ endif
 
 if (attrib_word(1:16) == 'CUSTOM_ATTRIBUTE') then
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found, str)
-  if (allocated(lat%attribute_alias)) then
-    n = size(lat%attribute_alias) + 1
-    call re_allocate(lat%attribute_alias, n)
-  else
-    n = 1
-    allocate(lat%attribute_alias(1))
-  endif
-  lat%attribute_alias(n) = str
-  ix = index(str, '=')
-  call set_attribute_alias(str(1:ix-1), str(ix+1:), err_flag)
+  call set_attribute_alias(attrib_word, str, err_flag, lat)
+  if (err_flag) call parser_error ('CANNOT SET PARAMETER[' // trim(attrib_word) // ']')
   return
 endif
 
@@ -2616,8 +2608,9 @@ case ('TO', 'REF_PATCH')
   call upcase_string (ele%component_name)
 case ('CRYSTAL_TYPE')
   ele%component_name = type_name
-case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3')
-  name = trim(attrib_name) // '=' // type_name
+case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
+      'CUSTOM_ATTRIBUTE4', 'CUSTOM_ATTRIBUTE5')
+  name = type_name
   call upcase_string (name)
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')

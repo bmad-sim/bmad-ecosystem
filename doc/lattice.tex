@@ -405,7 +405,7 @@ lattice file. For example, a program might need error tollerances for
 the strength of quadrupoles.
 
 Adding custom attributes will not disrupt programs that are not
-designed to use the custom attributes. Currently, up to three custom
+designed to use the custom attributes. Currently, up to five custom
 attributes may be defined for any given element type. The syntax for
 defining custom attributes is:
 \begin{example}
@@ -414,8 +414,8 @@ defining custom attributes is:
 \vn{custom_attributeN} may be one of:
 \begin{example}
   custom_attribute1
-  custom_attribute2
-  custom_attribute3
+  ...
+  custom_attribute5
 \end{example}
 and "\vn{attribute_name}" is the name of the attribute. To restrict the
 custom attribute to a particular element class, the element class
@@ -429,6 +429,18 @@ quadrupoles.  The second example assigns a custom attributge name of
 \vn{mag_id} to all elements. Once a particular \vn{custom_attributeN}
 has been assigned to a particular element class, the particular
 \vn{custom_attributeN} may not be reassigned for that element class.
+
+Once a custom attribute has been defined it may be set for an element
+of the correct type. Example:
+\begin{example}
+  parameter[custom_attribute2] = "lcavity::rms_phase_err"
+  ...
+  l2a: lcavity, rms_phase_err = 0.0034, ...
+\end{example}
+
+Note: If custom string information needs to be associated with an
+element, the \vn{type}, \vn{alias} and \vn{descrip} element components
+(\sref{s:alias} are available.
 
 %---------------------------------------------------------------------------
 \section{Variable Types}

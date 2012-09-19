@@ -1,5 +1,6 @@
 #!/usr/bin/python
-# converts something like "\zzz{lat_geometry} to "\Hyperref{r:lat.geometry}{lat_geometry}"
+# Converts something like "\zzz{lat_geometry} to "\Hyperref{r:lat.geometry}{lat_geometry}"
+# This is a convenience script to save typing when editing a *.tex file.
 
 import sys, os
 

@@ -53,7 +53,7 @@ character(25) :: r_name = 'read_digested_bmad_file'
 
 logical, optional :: err_flag
 logical deterministic_ran_function_used, is_ok
-logical found_it, can_read_this_old_version, mode3, error, is_match, err_found
+logical found_it, can_read_this_old_version, mode3, error, is_match, err, err_found
 
 ! init all elements in lat
 
@@ -190,17 +190,13 @@ read (d_unit, err = 9030)  &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, &
         lat%rf_auto_scale_amp, lat%use_ptc_layout, lat%pre_tracker
 
-! General parameter names
+! custom attribute names
 
 read (d_unit, err = 9035) n
 if (n > 0) then
   allocate (lat%attribute_alias(n))
   do i = 1, n
-    read (d_unit, err = 9035) p_name
-    lat%attribute_alias(i) = p_name
-    ix = index(lat%attribute_alias(i), '=')
-    call set_attribute_alias(p_name(1:ix-1), p_name(ix+1:), err_found)
-    if (err_found) return
+    read (d_unit, err = 9035) lat%attribute_alias(i)
   enddo
 endif
 
@@ -271,6 +267,19 @@ endif
 ! At this point in time this is not used.
 
 read (d_unit, iostat = ios) ran_state
+
+! Setup any attribute aliases in the global attribute name table.
+! This is done last in read_digested bmad_file so as to not to pollute the name table if 
+! there is an error.
+
+if (.not. err_found .and. allocated(lat%attribute_alias)) then
+  do i = 1, size(lat%attribute_alias)
+    p_name = lat%attribute_alias(i)
+    ix = index(lat%attribute_alias(i), '=')
+    call set_attribute_alias(p_name(1:ix-1), p_name(ix+1:), err)
+    if (err) err_found = .true.
+  enddo
+endif
 
 ! And finish
 

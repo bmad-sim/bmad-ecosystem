@@ -790,6 +790,8 @@ lat%absolute_time_tracking      = in_lat%absolute_time_tracking
 lat%rf_auto_scale_phase         = in_lat%rf_auto_scale_phase
 lat%rf_auto_scale_amp           = in_lat%rf_auto_scale_amp
 lat%use_ptc_layout              = in_lat%use_ptc_layout
+if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
+call move_alloc (in_lat%attribute_alias, lat%attribute_alias)
 
 call mat_make_unit (lat%ele(0)%mat6)
 call clear_lat_1turn_mats (lat)
