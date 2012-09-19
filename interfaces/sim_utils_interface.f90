@@ -414,6 +414,24 @@ interface
 end interface
  
 interface
+  function str_find_first_in_set(line, set) result (ix_match)
+    implicit none
+    character(*) line
+    character(*) set
+    integer ix_match
+  end function
+end interface
+ 
+interface
+  function str_find_first_not_in_set(line, set) result (ix_match)
+    implicit none
+    character(*) line
+    character(*) set
+    integer ix_match
+  end function
+end interface
+ 
+interface
   subroutine string_to_int (line, default, value, err_flag)
     implicit none
     integer default
