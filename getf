@@ -100,8 +100,8 @@ if (-r catfile( $curdir, "forest", "code", "i_tpsa.f90" )) {
   $forest_dir = catfile( $updir, "forest" );
 } elsif (-r catfile( $updir, $updir, "forest", "code", "i_tpsa.f90")) {
   $forest_dir = catfile( $updir, $updir, "forest" );
-} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}."/src", "forest")) {
-  $forest_dir = catfile( $ENV{"ACC_RELEASE_DIR"}."/src", "forest" );
+} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}."/packages", "forest")) {
+  $forest_dir = catfile( $ENV{"ACC_RELEASE_DIR"}."/packages", "forest" );
 } else {
   $forest_dir = catfile( $ENV{"DIST_BASE_DIR"}, "forest" );
 }
@@ -156,18 +156,6 @@ if (-r catfile( $curdir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
   $recipes_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "recipes_f-90_LEPP" );
 } else {
   $recipes_dir = catfile( $ENV{"DIST_BASE_DIR"}, "recipes_f-90_LEPP" );
-}
-
-if (-r catfile( $curdir, "forest", "code", "a_scratch_size.f90")) {
-  $forest_dir = catfile( $curdir, "forest" );
-} elsif (-r catfile( $updir, "forest", "code", "a_scratch_size.f90")) {
-  $forest_dir = catfile( $updir, "forest" );
-} elsif (-r catfile( $updir, $updir, "forest", "code", "a_scratch_size.f90")) {
-  $forest_dir = catfile( $updir, $updir, "forest" );
-} elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "forest")) {
-  $forest_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "forest" );
-} else {
-  $forest_dir = catfile( $ENV{"DIST_BASE_DIR"}, "forest" );
 }
 
 if (-r catfile( $curdir, "bsim", "code")) {
@@ -336,9 +324,6 @@ if ($found_one == 0) {
 #---------------------------------------------------------
 
 sub searchit {
-
-  # Do not search this directory.
-  if ($File::Find::name =~ /cesr_utils\/original_from_vms/) {return;}  
 
   if (/\#/) {return;}
   $file = $_;
