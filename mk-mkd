@@ -57,6 +57,8 @@ then
   gmake clean
   cd ..
   rm -rf `pwd`/${BUILD_TYPE}
+  DIR=`pwd`
+  rm -rf "../config/$(basename $DIR)"
   echo ""
   echo "Removed cached files.  This will force a reconfiguration upon the next build request."
   echo ""
