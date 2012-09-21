@@ -421,14 +421,18 @@ and "\vn{attribute_name}" is the name of the attribute. To restrict the
 custom attribute to a particular element class, the element class
 can be prefixed to the attribute name. Examples:
 \begin{example}
-  parameter[custom_attribute1] = "quadrupole::error"
+  parameter[custom_attribute1] = "quadrupole::error_k1"
+  parameter[custom_attribute1] = "sextupole::error_k2"
   parameter[custom_attribute2] = "mag_id"
 \end{example}
 The first example assigns a custom attribute name of \vn{error} to all
-quadrupoles.  The second example assigns a custom attributge name of
+quadrupoles.  The third example assigns a custom attributge name of
 \vn{mag_id} to all elements. Once a particular \vn{custom_attributeN}
 has been assigned to a particular element class, the particular
-\vn{custom_attributeN} may not be reassigned for that element class.
+\vn{custom_attributeN} may not be reassigned for that element class
+but may be used for classes that have not been set. Thus, in the above
+example, the set of \vn{custom_attribute1} for quadrupoles and
+sextupoles is valid.
 
 Once a custom attribute has been defined it may be set for an element
 of the correct type. Example:
