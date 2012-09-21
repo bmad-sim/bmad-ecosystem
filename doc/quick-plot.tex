@@ -167,18 +167,21 @@ like a number) in the data file. In this instance
 and fifth data columns and put them into the \vn{x}, \vn{y}, \vn{z}, and
 \vn{t} arrays.
 
-\Hyperref{r:qp.set.page.border}{qp_set_page_border}, 
-\Hyperref{r:qp.set.box}{qp_set_box}, and \Hyperref{r:qp.set.margin}{qp_set_margin}
-sets where the graph is going to be placed.  \Hyperref{r:qp.set.box}{qp_set_box}\vn{(1,
-1, 2, 1)} on line 37 tells \quickplot to put the first graph in the
-left box of a 2 box grid. The \Hyperref{r:qp.set.margin}{qp_set_margin} on line 33 sets the
-margins between the box and the graph axes.
+\Hyperref{r:qp.set.page.border}{qp_set_page_border},
+\Hyperref{r:qp.set.box}{qp_set_box}, and
+\Hyperref{r:qp.set.margin}{qp_set_margin} sets where the graph is
+going to be placed.  \Hyperref{r:qp.set.box}{qp_set_box}\vn{(1, 1, 2,
+1)} on line 37 tells \quickplot to put the first graph in the left box
+of a 2 box grid. The \Hyperref{r:qp.set.margin}{qp_set_margin} on line
+33 sets the margins between the box and the graph axes.
 
-\Hyperref{r:qp.calc.and.set.axis}{qp_calc_and_set_axis} on lines 38 and 39 are used to scale the
-axes. \vn{"ZERO_AT_END"} ensures that the $x$--axis starts (or stops)
-at zero.  \Hyperref{r:qp.calc.and.set.axis}{qp_calc_and_set_axis} is told to restrict the number of
-major divisions to be between 4 and 8. For the horizontal axis, as can be
-seen in Figure~\ref{f:plot.out}, it chooses 5 divisions.
+\Hyperref{r:qp.calc.and.set.axis}{qp_calc_and_set_axis} on lines 38
+and 39 are used to scale the axes. \vn{"ZERO_AT_END"} ensures that the
+$x$--axis starts (or stops) at zero.
+\Hyperref{r:qp.calc.and.set.axis}{qp_calc_and_set_axis} is told to
+restrict the number of major divisions to be between 4 and 8. For the
+horizontal axis, as can be seen in Figure~\ref{f:plot.out}, it chooses
+5 divisions.
 
 After drawing the first data curve (the solid curve) in the left
 graph, the routines

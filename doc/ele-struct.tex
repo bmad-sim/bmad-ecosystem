@@ -201,7 +201,7 @@ details.
 The \vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} components
 of the \vn{ele_struct} all have a direct correspondence with
 the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element attributes in
-an input lattice file (\sref{s:string}). On input (\sref{s:lat.readin}), 
+an input lattice file (\sref{s:alias}). On input (\sref{s:lat.readin}), 
 from a lattice file,  
 \vn{name}, \vn{type}, and \vn{alias} attributes will be converted to
 to uppercase before being loaded 
@@ -792,9 +792,9 @@ file, to associate \vn{"time_stamp"} with \vn{custom_attribute1}:
   parameter[custom_attribute1] = "time_stamp"
 \end{example}
 Defining the custom attribute in the lattice file allows the
-\zzz{type_ele} routine to print the custom information. To setup the
+\Hyperref{r:type.ele}{type_ele} routine to print the custom information. To setup the
 association between a string and a custom attribute from within a
-program, the \zzz{set_attribute_alias} routine is used
+program, the \Hyperref{r:set.attribute.alias}{set_attribute_alias} routine is used
 \begin{example}
   type (lat_struct) lat
   logical err_flag
@@ -802,7 +802,7 @@ program, the \zzz{set_attribute_alias} routine is used
   call set_attribute_alias ('CUSTOM_ATTRIBUTE2', 'QUADRUPOLE::ERROR', err_flag, lat) 
 \end{example}
 The \vn{lat} argument is only needed if the lattice is to be written to a file using
-\zzz{write_bmad_lattice_file}.
+\Hyperref{r:write.bmad.lattice.file}{write_bmad_lattice_file}.
 
 %--------------------------------------------------------------------------
 \section{Bmad Reserved Variables}

@@ -20,28 +20,69 @@ the engine to do the Lie algebraic calculations.  For the purposes of
 this discussion, PTC and FPP are considered one package and the
 combined PTC/FPP will be referred to as simply ``PTC''.
 
+%--------------------------------------------------------------------------
 
+\begin{figure}
+  \centering
+  \includegraphics{ptc-structures.pdf}
+  \caption[PTC structure relationships] { 
+Simplified diagram showing the organization of the major PTC
+structures involved in defining a lattice contrasted with \Bmad. With
+PTC, The top level structure is an array of \vn{layout_array}
+structures. Each \vn{layout_array} holds a \vn{layout} structure. A
+\vn{layout} structure has pointers to the previous and next
+\vn{layout}s making a linked list of \vn{layout}s indicated by the
+horizontal arrows. Each layout has pointers to a linked list of
+\vn{fibre} structures. The \vn{fibre} structures represent the
+reference trajectory through an element. Each \vn{fibre} structure has
+a pointer to a \vn{element} and an \vn{elementp} structures which
+represent the physical element. With \bmad, the \vn{lat_struct}
+roughly corresponds to the PTC \vn{layout_array(:)}, the
+\vn{branch_struct} roughly corresponds to the PTC \vn{layout} and the
+\vn{element_struct} roughly corresponds to the PTC \vn{fibre},
+\vn{element} and \vn{elementp} structures.
 
+%--------------------------------------------------------------------------
+\section{Accessing PTC}
+\label{s:ptc.structures}
 
+\bmad uses a \vn{lat_struct} structure to hold the information on a
+machine and a \vn{lat_struct} has an array of \vn{branch_struct}s with
+each \vn{branch_struct} holding an array of \vn{ele_struct}s. The
+\vn{ele_struct} holds the information on the individual elements. An
+\vn{ele_struct} holds information about both the physical element and
+the reference orbit through it.
+
+PTC has a somewhat different philosopy as illustrated in . A PTC \vn{layout} structure is
+roughly equivalent to a \bmad \vn{branch_struct}. A \vn{layout} has a
+pointer to a linked list of \vn{fibre} structures. Each \vn{fibre} has
+a pointer to a \vn{magnet} structure which holds the information about
+the physical element and each \vn{fibre} holds information about the
+reference orbit through the element.
+
+separates the actual uses
+a \vn{layout} structure
+
+%--------------------------------------------------------------------------
+\section{Accessing PTC}
+\label{s:ptc.access}
+
+\index{PTC!single element mode}
 \bmad uses PTC in two ways: One way, called ``single element'' mode,
-uses PTC on a per element basis. That is, if a tracking method
-(\sref{c:tracking}) of a given element is set to a tracking method
-that uses PTC, then PTC will be used for tracking through that
-element.  The advantage of single element mode is that it is quite
-flexible in that different tracking methods can be assigned to
-different element. The drawback of single element mode is that PTC's
-powerful analysis tools cannot be used in this case.
+uses PTC on a per element basis. Single element mode is used whenever
+the tracking method (\sref{c:tracking}) of a given element is set to a
+tracking method that uses PTC. The advantage of single element mode is
+that it is quite flexible in that different tracking methods,
+including non-PTC methods, can be assigned to different element. The
+drawback of single element mode is that PTC's powerful analysis tools,
+which rely on the entire lattice being tracked via PTC, cannot be used
+in this case. Such tools include normal form analysis beam envelope
+tracking, etc.
 
-normal form analysis Twiss parameters
-(\bmad does its own), beam envelope tracking, etc. PTC also has the
-ability, which \bmad does not take advantage of, to define ``knobs''
-which means that the Taylor map can be a function of the phase space
-coordinates plus other variables (for example the strength of a
-quadrupole). The list goes on. 
-
-\bmad has been structured so that ``normally'' a programmer will not have
-to deal with PTC (in general when PTC is written it is meant PTC in
-conjunction with FPP) subroutines directly. 
+\index{PTC!whole lattice mode}
+The alternative to single element mode is ``whole lattice'' mode where
+a PTC \vn{layout} is created from a Bmad lattice. The routine
+\zzz{lat_to_ptc_layout} creates a PTC layout from a \bmad lattice.
 
 %--------------------------------------------------------------------------
 \section{Phase Space}

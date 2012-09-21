@@ -100,7 +100,7 @@ General \vn{ab_multipole} Attributes are:
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets and tilt           & \ref{s:offset}  \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
@@ -140,7 +140,7 @@ General \vn{beambeam} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Aperture Limits        & \ref{s:limit}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                     & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
@@ -227,7 +227,7 @@ General \vn{bend_sol_quad} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \HH
   Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
   Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings        & \ref{s:string}    & Reference energy           & \ref{s:energy}  \HH 
+  Description strings        & \ref{s:alias}    & Reference energy           & \ref{s:energy}  \HH 
   Field table or map         & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
   Integration settings       & \ref{s:integ}     &                            &                 \HH
@@ -317,7 +317,7 @@ General \vn{rbend} and \vn{sbend} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \HH
   Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
   Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings        & \ref{s:string}    & Reference energy           & \ref{s:energy}  \HH 
+  Description strings        & \ref{s:alias}    & Reference energy           & \ref{s:energy}  \HH 
   Field table or map         & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
   Integration settings       & \ref{s:integ}     &                            &                 \HH
@@ -530,7 +530,7 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
                          &                 & Is_on                      & \ref{s:is.on}   \HH 
@@ -613,7 +613,7 @@ General \vn{capillary} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Is_on                      & \ref{s:is.on}   \HH 
   Capillary Wall         & \ref{s:wall}    &                            &                 \HH
@@ -647,7 +647,7 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Symplectify            & \ref{s:symp}    & Integration settings       & \ref{s:integ}   \HH
@@ -692,7 +692,7 @@ General \vn{crystal} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Chamber Wall           & \ref{s:wall}    & Surface Curvature          & \ref{s:s.curve} \HH
@@ -850,7 +850,7 @@ General \vn{custom} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
@@ -890,7 +890,7 @@ General \vn{drift} attributes are:
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:string}  & Symplectify                & \ref{s:symp}    \HH 
+  Description strings    & \ref{s:alias}  & Symplectify                & \ref{s:symp}    \HH 
   Integration settings   & \ref{s:integ}   & Hkick \& Vkick             & \ref{s:kick}    \HH
   Chamber wall           & \ref{s:wall}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
 \end{tabular}
@@ -914,7 +914,7 @@ General \vn{e_gun} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -966,7 +966,7 @@ General \vn{elseparator} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -1014,7 +1014,7 @@ attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -1039,7 +1039,7 @@ General \vn{floor_position} element attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:string}  & Reference energy           & \ref{s:energy}  \HH
+  Description strings    & \ref{s:alias}  & Reference energy           & \ref{s:energy}  \HH
   is_on                  & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
@@ -1088,7 +1088,7 @@ General \vn{girder} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH 
+  Description strings    & \ref{s:alias}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH 
 \end{tabular}
 \end{center}
 \toffset
@@ -1198,7 +1198,7 @@ General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
   Symplectify            & \ref{s:symp}        & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}      & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}       & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:string}      & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}      & Is_on                      & \ref{s:is.on}   \HH 
   Integration settings   & \ref{s:integ}       & Hkick \& Vkick             & \ref{s:kick}    \HH
   Instrumental variables & \ref{s:meas.attrib} & Chamber wall               & \ref{s:wall}    \HH
 \end{tabular}
@@ -1234,7 +1234,7 @@ General \vn{hkicker} \vn{vkicker} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Kick                   & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -1274,7 +1274,7 @@ General \vn{kicker} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                     & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -1304,7 +1304,7 @@ General \vn{lcavity} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s                 & {\sl Attribute Class}      & \s               \HH
   Symplectify            & \ref{s:symp}       & Offsets, and pitches       & \ref{s:offset}   \HH
-  Description strings    & \ref{s:string}     & Is_on                      & \ref{s:is.on}    \HH 
+  Description strings    & \ref{s:alias}     & Is_on                      & \ref{s:is.on}    \HH 
   Reference energy       & \ref{s:energy}     & Tracking \& transfer map   & \ref{c:methods}  \HH
   Aperture Limits        & \ref{s:limit}      & Length                     & \ref{s:l}        \HH
   Hkick \& Vkick         & \ref{s:kick}       & Integration settings       & \ref{s:integ}    \HH
@@ -1440,7 +1440,7 @@ General \vn{marker} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s                  & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}      & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}      & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}      & Offsets and tilt           & \ref{s:offset}  \HH
   Aperture Limits        & \ref{s:limit}       & Tracking \& transfer map   & \ref{c:methods} \HH
   Instrumental variables & \ref{s:meas.attrib} &                            &                 \HH
@@ -1471,7 +1471,7 @@ General \vn{match} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Reference energy       & \ref{s:energy}  & Integration settings       & \ref{s:integ}   \HH
 \end{tabular}
@@ -1596,7 +1596,7 @@ General \vn{mirror} attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Chamber wall               & \ref{s:wall}    \HH
   Surface Curvature      & \ref{s:s.curve} &                            &                 \HH
@@ -1647,7 +1647,7 @@ General \vn{multipole} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   K$n$L, T$n$ multipoles & \ref{s:multip}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   &                            &                 \HH
 \end{tabular}
@@ -1683,7 +1683,7 @@ General \vn{crystal} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Chamber Wall           & \ref{s:wall}    & Surface Curvature          & \ref{s:s.curve} \HH
@@ -1775,7 +1775,7 @@ General \vn{octupole} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                     & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -1815,7 +1815,7 @@ General \vn{patch} element attributes are:
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   is_on                 & \ref{s:is.on}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Description strings        & \ref{s:string}  \HH 
+  Aperture Limits        & \ref{s:limit}   & Description strings        & \ref{s:alias}  \HH 
   Length                 & \ref{s:l}       &                            &                 \HH
 \end{tabular}
 \end{center}
@@ -1867,7 +1867,7 @@ General \vn{quadrupole} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                     & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -1918,7 +1918,7 @@ General \vn{rfcavity} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s                 & {\sl Attribute Class}      & \s                \HH
   Symplectify            & \ref{s:symp}       & Offsets, \& pitches        & \ref{s:offset}    \HH
-  Description strings    & \ref{s:string}     & Is_on                      & \ref{s:is.on}     \HH 
+  Description strings    & \ref{s:alias}     & Is_on                      & \ref{s:is.on}     \HH 
   Reference energy       & \ref{s:energy}     & Tracking \& transfer map   & \ref{c:methods}   \HH
   Aperture Limits        & \ref{s:limit}      & Length                     & \ref{s:l}         \HH
   Hkick \& Vkick         & \ref{s:kick}       & RF Fields                  & \ref{s:em.fields} \HH
@@ -2014,7 +2014,7 @@ General \vn{sextupole} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -2054,7 +2054,7 @@ General \vn{solenoid} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets \& pitches         & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -2093,7 +2093,7 @@ General \vn{sol_quad} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -2129,7 +2129,7 @@ General \vn{taylor} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Length                 & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \HH
   Reference energy       & \ref{s:energy}  & Offsets and tilt           & \ref{s:offset}  \HH
@@ -2197,7 +2197,7 @@ General \vn{wiggler} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
