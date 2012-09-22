@@ -233,7 +233,7 @@ check_krein = .false.
 
 ptc_layout => ele%branch%ptc%layout(1)%ptr
 
-state = (default - nocavity0) + radiation0  ! Set state flags
+state = (default - nocavity0) + radiation0  ! Make sure have RF + radiation on.
 
 x = 0
 call find_orbit_x (x, state, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find_orbit == find closed orbit
@@ -286,7 +286,7 @@ end subroutine ptc_emit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine one_turn_map_at_ele (ele, map, order)
+! Subroutine ptc_one_turn_map_at_ele (ele, map, order)
 !
 ! Routine to calculate the one turn map for a ring.
 ! Note: Use set_ptc(no_cavity = True/False) set turn on/off the RF cavities.
@@ -302,7 +302,7 @@ end subroutine ptc_emit_calc
 !   map(6)  -- taylor_struct: Bmad taylor map
 !-
 
-subroutine one_turn_map_at_ele (ele, map, order)
+subroutine ptc_one_turn_map_at_ele (ele, map, order)
 
 implicit none
 
@@ -320,7 +320,7 @@ integer, optional :: order
 !call find_orbit_x (x, default, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find_orbit == find closed orbit
 !closed_orb%vec = x
 
-end Subroutine one_turn_map_at_ele
+end Subroutine ptc_one_turn_map_at_ele
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

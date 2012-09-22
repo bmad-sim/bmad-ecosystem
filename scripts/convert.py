@@ -11,28 +11,16 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'GENERAL1' in line:
-      line = line.replace('GENERAL1', 'CUSTOM1')
+    if 'Fig.~\\ref{' in line:
+      line = line.replace('Fig.~\\ref{', '\\fig{')
       found = True
 
-    if 'GENERAL2' in line:
-      line = line.replace('GENERAL2', 'CUSTOM2')
+    if 'Figure~\\ref{' in line:
+      line = line.replace('Figure~\\ref{', '\\fig{')
       found = True
 
-    if 'GENERAL3' in line:
-      line = line.replace('GENERAL3', 'CUSTOM3')
-      found = True
-
-    if 'general1' in line:
-      line = line.replace('general1', 'custom1')
-      found = True
-
-    if 'general2' in line:
-      line = line.replace('general2', 'custom2')
-      found = True
-
-    if 'general3' in line:
-      line = line.replace('general3', 'custom3')
+    if 'Figure~\\ref{' in line:
+      line = line.replace('Figure~\\ref{', '\\fig{')
       found = True
 
     out_file.write(line)

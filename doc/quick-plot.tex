@@ -125,13 +125,13 @@ careful of this.
 \label{s:plot.example}
 
 An example of how \quickplot can be used in a program is shown in
-Figure~\ref{f:plot.example}. In the \bmad distribution a copy of this
+\fig{f:plot.example}. In the \bmad distribution a copy of this
 program is in the file
 \begin{example}
   sim_utils/plot_example/plot_example.f90
 \end{example}
 The \vn{plot_example.f90} program generates the figure shown in
-Figure~\ref{f:plot.out} from the input file named \vn{plot.dat}. The
+\fig{f:plot.out} from the input file named \vn{plot.dat}. The
 first few lines of the data file are
 \begin{example}
   \&parameters
@@ -180,7 +180,7 @@ and 39 are used to scale the axes. \vn{"ZERO_AT_END"} ensures that the
 $x$--axis starts (or stops) at zero.
 \Hyperref{r:qp.calc.and.set.axis}{qp_calc_and_set_axis} is told to
 restrict the number of major divisions to be between 4 and 8. For the
-horizontal axis, as can be seen in Figure~\ref{f:plot.out}, it chooses
+horizontal axis, as can be seen in \fig{f:plot.out}, it chooses
 5 divisions.
 
 After drawing the first data curve (the solid curve) in the left
@@ -218,7 +218,7 @@ special symbols along with subscripts and superscripts.
   \label{f:plot.coords}
 \end{figure}
 
-\quickplot uses the following concepts as shown in Figure~\ref{f:plot.coords}
+\quickplot uses the following concepts as shown in \fig{f:plot.coords}
 \begin{example}
   PAGE  -- The entire drawing surface.
   BOX   -- The area of the page that a graph is placed into.
@@ -240,7 +240,7 @@ WINDOW are always the same region.
 
 \Hyperref{r:qp.open.page}{qp_open_page} determines the size of the \vn{page} if it is
 settable (like for X--windows). The page is divided up into a grid of
-boxes. For example, in Figure~\ref{f:plot.coords}, the grid is 1 box
+boxes. For example, in \fig{f:plot.coords}, the grid is 1 box
 wide by 3 boxes tall. The border between the grid of boxes and the
 edges of the page are set by \Hyperref{r:qp.set.page.border}{qp_set_page_border}.  The box that
 the graph falls into is set by \Hyperref{r:qp.set.box}{qp_set_box}. The default is to
@@ -329,7 +329,7 @@ Examples:
 \index{quick_plot!axes}
 
 The top and right axes of a graph are known as \vn{X2} and \vn{Y2}
-respectively as shown in Figure~\ref{f:plot.coords}. Normally the
+respectively as shown in \fig{f:plot.coords}. Normally the
 \vn{X2} axis mirrors the \vn{X} axis and the \vn{Y2} axis mirrors the
 \vn{Y} axis in that the tick marks and axis numbering for the \vn{X2}
 and \vn{Y2} axes are the same as the \vn{X} and \vn{Y} axes
@@ -370,7 +370,7 @@ To plot data using the \vn{X2} or \vn{Y2} scale use the
 
 Symbolic constants have been defined for \quickplot subroutine
 arguments that are used to choose various styles. As an example of
-this is in lines 44 and 45 of Figure~\ref{f:plot.example}. The
+this is in lines 44 and 45 of \fig{f:plot.example}. The
 numbers in the following are the PGPLOT equivalents.
 
 \index{quick_plot!line styles}

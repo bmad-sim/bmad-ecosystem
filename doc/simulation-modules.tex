@@ -22,7 +22,7 @@ In general, a PLL is a control system for matching the frequency of a
 VCO to some incoming periodic reference signal.  It does this by
 adjusting the frequency of the VCO according to the phase difference
 between the VCO output and the reference signal.  A general diagram of
-a PLL is shown in Fig.~[\ref{f:PLL}].
+a PLL is shown in \fig{f:PLL}.
 
   \begin{figure}[ht]
   \centering
@@ -34,7 +34,7 @@ signal.}
   \label{f:PLL}
   \end{figure}
 
-In Fig.~[\ref{f:PLL}], the phase detector compares the two incoming
+In \fig{f:PLL}, the phase detector compares the two incoming
 signals, and outputs a signal that is proportional to the difference
 in phase.  There are various ways to implement a phase detector.  The
 tune tracker phase detector is a mixer followed by low-pass filter,
@@ -50,13 +50,13 @@ incorrect initial frequency.  A real-world PLL also needs to track
 perturbations to the reference frequency.
 
 A diagram of the digital tune tracker is shown in
-Fig.~[\ref{f:CdTT}].  This function takes in one new BPM measurement
+\fig{f:CdTT}.  This function takes in one new BPM measurement
 per call, and returns a sinusoidal signal that has the same frequency
 as the BPM signal.  The phase of the returned signal differs from the
 phase of the BPM signal by $\phi_0$, the phase advance from position
 at the BPM to position at the kicker on the next turn.
 
-Comparing this diagram to the PLL in Fig.~[\ref{f:PLL}], the boxes
+Comparing this diagram to the PLL in \fig{f:PLL}, the boxes
 from {\it Subtract closed orbit offset} to the end of the {\it Low
 Pass Filter} comprise the phase detector.  After the {\it Low Pass
 Filter} to just before the {\it Gain Kvco} box comprises the loop
@@ -226,7 +226,7 @@ the ability of the tune tracker to track a varying fractional tune is
 also important.
 
 A plot of the VCO speed during typical tune tracker operation is shown
-in Fig.~[\ref{f:typ-tt}].  A tune tracker with a base period of 0.571
+in \fig{f:typ-tt}.  A tune tracker with a base period of 0.571
 oscillations per ring period tracks a beam with a fractional tune of
 0.5691.  Marked on this plot are 4 important features.  They are the
 rise time, overshoot, settling rate, and precision.  The rise time is

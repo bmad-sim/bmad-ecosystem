@@ -110,7 +110,7 @@ corresponding \vn{ele.value[]} array has goes from 0 to
 \end{figure}
 
 A simple example of a Fortran routine calling a \cpp routine is shown
-in figures~\ref{f:f/fc} and \ref{f:c/fc}. The Fortran calling routine
+in \figs{f:f/fc} and \ref{f:c/fc}. The Fortran calling routine
 simply passes the \vn{lat_struct} structure to the \cpp routine. On
 the \cpp side the \cpp routine must be declared as \vn{external "C"} to
 make sure the name mangling between \cpp and Fortran is consistent
@@ -175,7 +175,7 @@ forth looks like:
 \end{figure}
 
 An example of a \cpp routine calling a Fortran routine is shown in
-figures~\ref{f:f/cf} and \ref{f:c/cf}. \vn{lat_to_f} and
+\figs{f:f/cf} and \ref{f:c/cf}. \vn{lat_to_f} and
 \vn{lat_to_c} converts between a \vn{lat_struct} and a \vn{C_lat}.
 In general the routines names to convert between a \vn{xyz_struct}
 structure and a \vn{C_xyz} class are called \vn{xyz_to_f} and

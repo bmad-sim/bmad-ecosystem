@@ -322,13 +322,13 @@ names are shown in bold. Italicized names are arbitrary.}
 
 To facilitate the automatic compiling and linking of programs there is
 a standard directory structure, an example of which is shown in
-Figure~\ref{f:devel.dir}. In Figure~\ref{f:devel.dir} names in italics
+\fig{f:devel.dir}. In \fig{f:devel.dir} names in italics
 have been arbitrarily chossen for the purposes of this example. Names
 in bold are standardized names that will be the same between different
 implementations of this directory structure.
 
 \vn{ifort_dir} is the root development directory.  In
-Figure~\ref{f:devel.dir} \vn{prog1} and \vn{prog2}
+\fig{f:devel.dir} \vn{prog1} and \vn{prog2}
 are directories for developing programs. Although only two program
 directories are shown, there is no limit as to their number. Code
 files can be put in a program directory or in sub--directories. The
@@ -352,7 +352,7 @@ use the command
 \end{example}
 the default \vn{gmake} behavior in this case is to name the executable
 file after the program directory name and not the program file
-name. For example, in Figure~\ref{f:devel.dir}, the executable made
+name. For example, in \fig{f:devel.dir}, the executable made
 from \vn{test.f90} in \vn{prog2} is
 \vn{bin/prog2}. There are actually two different executables:
 A \vn{production} executable and a \vn{debug} one. The \vn{debug}

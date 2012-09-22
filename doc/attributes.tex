@@ -263,7 +263,7 @@ The exception here is the \vn{patch} element which uses these
 attributes to modify the reference orbit itself.
 
 \vn{x_offset} translates an element in the local $x$--direction
-as shown in Figure~\ref{f:pitch}. Similarly, \vn{y_offset} and 
+as shown in \fig{f:pitch}. Similarly, \vn{y_offset} and 
 \vn{s_offset} translate an element along the local $y$ and 
 $z$--directions respectively. For a bend it is assumed that
 the bend angle is small and the rotation of the local reference
@@ -594,7 +594,7 @@ From the input attributes, the following attributes are derived:
 \end{example}
 
 The curvature of the surface in the plane of the $x$-$z$ plane of the
-Element Reference Frame (see Fig.~\ref{f:crystal}) is determined by
+Element Reference Frame (see \fig{f:crystal}) is determined by
 the \vn{d_source}, \vn{d_detec}, \vn{c2_curve}, \vn{c2_curve}, and
 \vn{c2_curve} parameters. The curvature is surface is parameterized by
 a fourth order polynomial
@@ -631,7 +631,7 @@ detector.
 
 The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
 \vn{R_graze} is the radius of curvature of the element surface in the
-bend plane as shown in Fig.~\ref{f:mirror}. A positive \vn{g_graze}
+bend plane as shown in \fig{f:mirror}. A positive \vn{g_graze}
 indicates that the element is concave from the point of view of the
 photons. Similarly, the \vn{g_trans} parameter is equal to
 1/\vn{R_trans} where \vn{R_trans} is the radius of curvature of the
@@ -673,7 +673,7 @@ is specifically enabled, the presence of a chamber wall for a
 non-capillary element will not affect particle tracking.
 
 The wall is defined by a number of cross-sectional slices as shown in
-Fig.~\ref{f:chamber.wall}A. Each cross-section is defined by a number of
+\fig{f:chamber.wall}A. Each cross-section is defined by a number of
 vertices. The arc between each vertex may be either a straight line,
 an arc of a circle, or a section of an ellipse. For a capillary it is
 mandatory that a cross-section be convex. That is, given any two
@@ -763,7 +763,7 @@ vertex. For vertices connected by an arc, ``counter clockwise manner''
 means that the line segment with one end at the center of the arc and
 the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>}
 rotates in counter clockwise as shown in
-Fig.~\ref{f:chamber.wall}B. In general, there are two solutions for
+\fig{f:chamber.wall}B. In general, there are two solutions for
 constructing such an arc. For positive radii, the solution chosen is
 the one whose center is closest to the origin.  
 
@@ -771,7 +771,7 @@ A restriction on cross-sections is that the origin $(0,0)$ must be in the
 interior of any cross-section and that for any cross-section a line
 drawn from the origin at any given angle $\theta$ will intersect the
 cross-section at exactly one point as shown in
-Fig.~\ref{f:chamber.wall}B. This is an important point in the
+\fig{f:chamber.wall}B. This is an important point in the
 construction of the wall between cross-sections as explained
 below.
 
@@ -861,7 +861,7 @@ For a capillary, in order for \bmad to quickly track photons,
 convex. The volume will be convex if each cross-section $r_c(\theta,
 s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
 for $r_c(\theta, s)$ to be convex at the specified cross-sections as
-shown in Fig.~\ref{f:concave.capillary}. Also note that it is perfectly
+shown in \fig{f:concave.capillary}. Also note that it is perfectly
 fine for the total capillary volume to not be convex.
 
 To refer to a cross-section parameters after an element has been

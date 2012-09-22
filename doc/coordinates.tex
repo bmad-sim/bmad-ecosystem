@@ -24,7 +24,7 @@ radius.}
 
 The \vn{local reference orbit} is the curved path used to define a
 coordinate system for particles as shown in
-Figure~\ref{f:local.coords}. At a given time $t$, a particle's
+\fig{f:local.coords}. At a given time $t$, a particle's
 position can be described by a point on the reference orbit a distance
 $s$ relative to the reference orbit's zero position plus a transverse
 offset. This point on the reference orbit is used as the origin of the
@@ -91,7 +91,7 @@ orbit with respect to the laboratory coordinate system.  \bmad,
 following the \mad\ convention, uses a Cartesian coordinate system
 $(X, Y, Z)$ for the global coordinate system, along with three angles
 $\theta, \phi, \psi$ used to define the reference orbit's orientation
-as shown in Figure~\ref{f:global.coords}. Conventionally, $Y$ is the
+as shown in \fig{f:global.coords}. Conventionally, $Y$ is the
 ``vertical'' coordinate and $(X, Z)$ are the ``horizontal'' coordinates.  
 The three angles are defined as follows:
 \begin{description}
@@ -257,7 +257,7 @@ rotation axis is invariant under the bend transformation. For example,
 for $\theta_t = 0$ (or $\pi$) the $y$-axis is the rotation axis and
 the $y$-axis of the local coordinates before the bend will be parallel
 to the $y$-axis of the local coordinates after the bend as shown in
-Fig.~\ref{f:tilt.bend}. That is, a lattice with only bends with
+\fig{f:tilt.bend}. That is, a lattice with only bends with
 $\theta_t = 0$ or $\pi$ will lie in the horizontal plane (this
 assuming that the $y$-axis starts out pointing along the $Y$-axis as
 it does by default).  For $\theta_t = \pm\pi/2$, the bend axis is the
@@ -342,14 +342,14 @@ A \vn{crystal} element (\sref{s:mirror}) diffracts photons and a
 \vn{mirror} element (\sref{s:mirror}) reflects them. For a crystal
 setup for Bragg diffraction, and for a mirror, the reference orbit is
 modeled as a zero length bend with $\bftilde L = (0, 0, 0)$, as shown
-in Fig.~\ref{f:mirror}A. Shown in the figure is the geometry
+in \fig{f:mirror}A. Shown in the figure is the geometry
 appropriate for a tilt angle of $\theta_t = 0$ (the rotation axis is
 here the $y$-axis). Since the mirror or crystal element is modeled to
 be of zero length, the origin points (marked $\calO$ in the figure)
 of the entrance and exit local coordinates are the same. For Laue
 diffraction, the only difference is that $\bftilde L$ is non-zero due
 to the finite thickness of the crystal as shown in
-Fig.~\ref{f:mirror}B. This results in a separation between the
+\fig{f:mirror}B. This results in a separation between the
 entrance coordinate origin $\calO_{in}$ and the exit coordinate
 origin $\calO_{out}$.
 
@@ -493,18 +493,18 @@ through an element is
 \Begineq
   \Delta z = L_0 - L_p
 \Endeq
-where, as shown in Figure~\ref{f:canonical.z}A, $L_0$ is the path
+where, as shown in \fig{f:canonical.z}A, $L_0$ is the path
 length of the reference particle (which is just the length of the
 element) and $L_p$ is the path length of the particle in traversing
 the element.  Another way of interpreting phase space $z$ is that, at
 constant $\beta$, and constant time, $z$ is the longitudinal distance
 between the particle and the reference particle as shown in
-Figure~\ref{f:canonical.z}B. with positive $z$ indicating that the
+\fig{f:canonical.z}B. with positive $z$ indicating that the
 particle is ahead of the reference particle.
 
 Do not confuse the phase space $z$ with the $z$ that is the particle's
 longitudinal coordinate in the local reference frame as shown in
-Figure~\ref{f:local.coords}. By construction, this latter $z$ is
+\fig{f:local.coords}. By construction, this latter $z$ is
 always zero.
 
 Notice that if a particle gets an instantaneous longitudinal kick so
@@ -626,7 +626,7 @@ individual simulation programs and is not part of the \bmad standard.
 Some specialized routines use $(x, c p_x, y, c p_y, s, c p_s)_t$ phase
 space coordinates with time $t$ as the independent variable. The
 positions $x$, $y$, and $s$ are the same as in
-Fig.~\ref{f:local.coords}. The momenta are defined as
+\fig{f:local.coords}. The momenta are defined as
 \begin{align}
 c p_x &\equiv m c^2 \gamma \beta_x \\
 c p_y &\equiv m c^2 \gamma \beta_y \\
