@@ -396,8 +396,8 @@ are not yet implemented in terms of tracking and other calculations.
   \item[e1, e2] \Newline
 The rotation angle of the entrance pole face is \vn{e1} and at the
 exit face it is \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{rbend}
-gives a rectangular magnet  (Figure~\ref{f:bend}a). Zero \vn{e1} and \vn{e2}
-for an \vn{sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
+gives a rectangular magnet  (\fig{f:bend}a). Zero \vn{e1} and \vn{e2}
+for an \vn{sbend} gives a wedge shaped magnet (\fig{f:bend}b).
 An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
 to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
 This formula holds for both positive and negative angles.
@@ -411,7 +411,7 @@ be somewhat slower.
   \index{angle}
   \item[angle] \Newline
 The total design bend angle. A positive \vn{angle} represents a
-bend towards negative $x$ values (see Figure~\ref{f:local.coords}).
+bend towards negative $x$ values (see \fig{f:local.coords}).
   \index{k1}\index{b1_gradient}
   \item[k1, b1_gradient] \Newline
 The normalized and unnormalized quadrupole strength.
@@ -467,7 +467,7 @@ The roll angle about the longitudinal axis at the entrance face of the
 bend is given by \vn{tilt}.  \vn{tilt} = 0 bends the reference
 trajectory in the $-x$ direction.  If the \vn{tilt} attribute is given
 without any value then the value $\pi/2$ will be used. This makes for
-a \vn{downward} pointing vertical bend. See Fig.~\ref{f:tilt.bend}.
+a \vn{downward} pointing vertical bend. See \fig{f:tilt.bend}.
   \end{description}
 
 The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
@@ -555,7 +555,7 @@ or incoming (\vn{direction} = -1). A \vn{patch} element
 (\sref{s:patch}) can be used at the beginning of a branch line to
 reorient the reference orbit as needed.  For \vn{direction} = -1, the
 local coordinate system orientation is ``reversed''
-using the transformation (cf.~Figure~\ref{f:global.coords})
+using the transformation (cf.~\fig{f:global.coords})
 \begin{equation}
   \theta \longrightarrow \theta + \pi \comma\qquad
   \phi   \longrightarrow -\phi \comma\qquad
@@ -758,10 +758,10 @@ where $\theta_B$ is the Bragg angle (\vn{bragg_angle})
 \Endeq
 and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprocal
 lattice $\bfH$ vector with respect to the surface normal as shown in
-Fig.~\ref{f:crystal}.  If \vn{b_param} is set to -1 then there is
+\fig{f:crystal}.  If \vn{b_param} is set to -1 then there is
 Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1
 then there is Laue diffraction again with \vn{alpha_H} zero. With the
-orientation shown in Fig.~\ref{f:crystal}, \vn{alpha_H} is positive.
+orientation shown in \fig{f:crystal}, \vn{alpha_H} is positive.
 
 The \vn{thickness} parameter is used with Laue diffraction only.
 
@@ -772,7 +772,7 @@ with Laue diffraction.
 If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
 reference orbit, $\bfhat n$ and $\bfH$ are all coplanar. A non-zero
 \vn{psi_angle} Rotates the $\bfH$ vector around the $+\bfhat x$ axis
-of the \vn{Element Reference Frame} (See Fig.~\ref{f:crystal}).
+of the \vn{Element Reference Frame} (See \fig{f:crystal}).
 
 The reference trajectory for a \vn{crystal} is that of a zero length
 bend (\sref{s:mirror.coords}) and hence the length (\vn{l}) parameter
@@ -780,7 +780,7 @@ of a crystal is fixed at zero. The orientation of the reference
 trajectory with respect to the crystal surface is specified by the
 incoming graze angle \vn{graze_angle_in} ($\theta_{g,in}$) and
 outgoing graze angle \vn{graze_angle_out} ($\theta_{g,out}$) as shown
-in Fig.~\ref{f:crystal}. These angles are computed from the photon
+in \fig{f:crystal}. These angles are computed from the photon
 reference energy and the other crystal parameters such that a photon
 with the reference energy traveling along the reference trajectory
 will be in the center of the Darwin curve (\sref{s:crystal.tracking}).

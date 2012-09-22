@@ -5,7 +5,7 @@
 The \vn{lat_struct} is the structure that holds of all the information
 about a lattice including any \vn{branch} and \vn{photon_branch} lines
 (\sref{s:branch}). The components of a \vn{lat_struct} are listed in
-Figure~\ref{f:lat.struct}.
+\fig{f:lat.struct}.
 \begin{figure}[htb]
 \centering
 \begin{verbatim}
@@ -199,7 +199,7 @@ The direction will be +1 for forward branching and -1 for backward branching.
 
 The \vn{%param} component within each \vn{lat%branch(:)} is a
 \vn{lat_param_struct} structure whose definition is shown in
-Figure~\ref{f:lat.param.struct}
+\fig{f:lat.param.struct}
 \begin{figure}[tb]
 \centering
 \begin{verbatim}
@@ -478,7 +478,7 @@ the elements in the tracking part of the lattice will be
 \vn{super_slave}s.  These elements will be controlled by
 \vn{super_lord}s which will also be \vn{multipass_slave}s and these
 \vn{super_lord}/\vn{multipass_slave} elements will be controlled by
-\vn{multipass_lord}s. This is illustrated in Figure~\ref{f:super.mul}.
+\vn{multipass_lord}s. This is illustrated in \fig{f:super.mul}.
 
 \index{ele_struct!\%n_lord}\index{ele_struct!\%n_slave}
 The number of slave elements that a lord controls is given by the value

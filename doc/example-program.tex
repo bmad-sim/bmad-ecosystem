@@ -10,7 +10,7 @@ chapter analyzes an example test program.
 \label{s:first.program}
 \index{programming!example program}
 
-Consider the example program shown in Figure~\ref{f:program}.  This
+Consider the example program shown in \fig{f:program}.  This
 program is provided with the \bmad distribution in a file called
 \vn{simple_program.f90}. \vn{simple_program.f90} is in the library
 area in a directory called \vn{examples/simple_program}. Directions on
@@ -139,7 +139,7 @@ element is basically a marker element to denote the beginning of the
 array (\sref{c:sequence}). Using the pointer \vn{ele} to point to the
 individual elements (line 35) makes for a cleaner syntax and reduces
 typing. The table that is produced is shown in lines 1 through 12 of
-Figure~\ref{f:output}.  The first column is the element index $i$. The
+\fig{f:output}.  The first column is the element index $i$. The
 second column, \vn{ele%name}, is the name of the element. The third
 column, key_name(ele%key), is the name of the element
 class. \vn{ele%key} is an integer denoting what type of element
@@ -170,7 +170,7 @@ to define the element order looks like
   use, cesr
 \end{example}
 If you compare this to the listing of the elements in
-Figure~\ref{f:output} you will find differences. For example, element
+\fig{f:output} you will find differences. For example, element
 \#2 in the program listing is named \vn{CLEO_SOL\B3}. From the
 definition of the \vn{cesr} line this should be \vn{d001} which, if
 you look up its definition in \vn{layout.bmad} is a drift.  The
@@ -232,7 +232,7 @@ command will compiling and link the program.  The
 executables, \vn{simple_program} and \vn{simple_program_g}, are to be
 found in \vn{../bin/}. Running the program with the command
 \vn{../bin/simple_program} gives the output as shown in
-Figure~\ref{f:output}.
+\fig{f:output}.
 
 \begin{figure}[ht]
 \small

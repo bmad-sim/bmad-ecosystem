@@ -27,7 +27,7 @@ combined PTC/FPP will be referred to as simply ``PTC''.
   \includegraphics{ptc-structures.pdf}
   \caption[PTC structure relationships] { 
 Simplified diagram showing the organization of the major PTC
-structures involved in defining a lattice contrasted with \Bmad. With
+structures involved in defining a lattice contrasted with \bmad. With
 PTC, The top level structure is an array of \vn{layout_array}
 structures. Each \vn{layout_array} holds a \vn{layout} structure. A
 \vn{layout} structure has pointers to the previous and next
@@ -41,6 +41,9 @@ roughly corresponds to the PTC \vn{layout_array(:)}, the
 \vn{branch_struct} roughly corresponds to the PTC \vn{layout} and the
 \vn{element_struct} roughly corresponds to the PTC \vn{fibre},
 \vn{element} and \vn{elementp} structures.
+  }
+\label{f:ptc-struct}
+\end{figure}
 
 %--------------------------------------------------------------------------
 \section{Accessing PTC}
@@ -53,12 +56,13 @@ each \vn{branch_struct} holding an array of \vn{ele_struct}s. The
 \vn{ele_struct} holds information about both the physical element and
 the reference orbit through it.
 
-PTC has a somewhat different philosopy as illustrated in . A PTC \vn{layout} structure is
-roughly equivalent to a \bmad \vn{branch_struct}. A \vn{layout} has a
-pointer to a linked list of \vn{fibre} structures. Each \vn{fibre} has
-a pointer to a \vn{magnet} structure which holds the information about
-the physical element and each \vn{fibre} holds information about the
-reference orbit through the element.
+PTC has a somewhat different philosopy as illustrated in
+\fig{f:ptc-struct}. A PTC \vn{layout} structure is roughly equivalent
+to a \bmad \vn{branch_struct}. A \vn{layout} has a pointer to a linked
+list of \vn{fibre} structures. Each \vn{fibre} has a pointer to a
+\vn{magnet} structure which holds the information about the physical
+element and each \vn{fibre} holds information about the reference
+orbit through the element.
 
 separates the actual uses
 a \vn{layout} structure
@@ -82,7 +86,7 @@ tracking, etc.
 \index{PTC!whole lattice mode}
 The alternative to single element mode is ``whole lattice'' mode where
 a PTC \vn{layout} is created from a Bmad lattice. The routine
-\zzz{lat_to_ptc_layout} creates a PTC layout from a \bmad lattice.
+\Hyperref{r:lat.to.ptc.layout}{lat_to_ptc_layout} creates a PTC layout from a \bmad lattice.
 
 %--------------------------------------------------------------------------
 \section{Phase Space}
