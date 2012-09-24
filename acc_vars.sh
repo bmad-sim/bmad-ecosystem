@@ -386,10 +386,10 @@ PATH=${PLATFORM_DIR}/extra/bin:$PATH
 
 #--------------------------------------------------------------
 # Ensure that there is only one reference to the release's
-# solib directory by searching the LD_LIBRARY_PATH variable
+# lib directory by searching the LD_LIBRARY_PATH variable
 # value for paths that are prefixed with the
 # RELEASE_ARCHIVE_BASE_DIR and removing them.  The last
-# step is appending the presently valid solib path for
+# step is appending the presently valid lib path for
 # the active release.
 #--------------------------------------------------------------
 LD_LIBRARY_PATH_TEMP=${LD_LIBRARY_PATH}
@@ -431,7 +431,7 @@ if [ -f ${ACC_PKG}/bin/thisroot.sh ]; then
     #fi
 fi
 
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/solib:${ACC_RELEASE_DIR}/packages/lib
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/production/lib:${ACC_RELEASE_DIR}/packages/lib
 
 
 #--------------------------------------------------------------
