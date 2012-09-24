@@ -1,18 +1,8 @@
-#include "CESR_platform.inc"
-
 module matrix_mod
 
 use precision_def
 use sim_utils
 use basic_bmad_mod
-
-integer, parameter :: ok$              = 1
-integer, parameter :: in_stop_band$    = 2
-integer, parameter :: non_symplectic$  = 3
-integer, parameter :: unstable$        = 4
-
-character(16) :: status_name(5) = [    'OK            ', &
-    'IN_STOP_BAND  ', 'NON_SYMPLECTIC', 'UNSTABLE      ', '              ' ]
 
 contains
     
@@ -235,45 +225,6 @@ forall (i = 1:n) m3(i,i) = m3(i,i) + 1
 call mat_inverse (m3, m3)
 
 mat_symp = matmul (m2, m3)
-
-end subroutine
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine mat6_dispersion (m_i6, mat6)
-!
-! Subroutine to set the mat6(5, 1:4) terms given the vector mat6(1:4, 6)
-! which is a measure of the dispersion.
-!
-! Input:
-!   m_i6(4)   -- Real(rp): mat6(1:4, 6) components.
-!   mat6(6,6) -- Real(rp): Matrix with 4x4 x-y submatrix already made.
-!
-! Output:
-!   mat6(6,6) -- Real(rp): mat6(5, 1:4) components set. 
-!-
-
-subroutine mat6_dispersion (m_i6, mat6)
-
-implicit none
-
-real(rp), intent(inout) :: mat6(:,:)
-real(rp), intent(in) :: m_i6(:)
-
-real(rp) vec4(4)
-
-!
-
-mat6(1:4, 6) = m_i6(1:4)
-
-vec4(1) = -m_i6(2)
-vec4(2) =  m_i6(1)
-vec4(3) = -m_i6(4)
-vec4(4) =  m_i6(3)
-
-mat6(5,1:4) = matmul (vec4, mat6(1:4,1:4))
 
 end subroutine
 

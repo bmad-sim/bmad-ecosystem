@@ -53,7 +53,7 @@ end subroutine type_ptc_layout
 !+
 ! Subroutine lat_to_ptc_layout (lat)
 !
-! Subroutine to create a PTC layout from a Bmad lat.
+! Subroutine to create a PTC layout from a Bmad lattice branch.
 ! Note: If ptc_layout has been already used then you should first do a 
 !           call kill(ptc_layout)
 ! This deallocates the pointers in the layout
@@ -80,14 +80,59 @@ end subroutine type_ptc_layout
 
 subroutine lat_to_ptc_layout (lat)
 
+implicit none
+
+type (lat_struct) lat
+integer i
+
+!
+
+do i = 0, ubound(lat%branch, 1)
+  call branch_to_ptc_layout (lat%branch(i))
+enddo
+
+end subroutine lat_to_ptc_layout 
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine branch_to_ptc_layout (lat)
+!
+! Subroutine to create a PTC layout from a Bmad lattice branch..
+! Note: If ptc_layout has been already used then you should first do a 
+!           call kill(ptc_layout)
+! This deallocates the pointers in the layout
+!
+! Note: If not already done, before you call this routine you need to first call:
+!    call set_ptc (...)
+! [This is normally done in bmad_parser.]
+!
+! Note: If a Bmad element is using a hard edge model (EG: RFcavity element), there 
+! will be three corresponding PTC fibre elements: (drift, RF. drift) for example.
+! In this case, ele%ptc_fibre will be set to point to the last PTC fibre. That is the 
+! exit end of ele will correspond to the exit end of ele%ptc_fibre.
+!
+! Module Needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   branch -- branch_struct: Input branch.
+!
+! Output:
+!   branch(:)%ptc              -- Pointers to generated layouts.
+!   branch(:)%ele(:)%ptc_fibre -- Pointer to PTC fibres
+!-
+
+subroutine branch_to_ptc_layout (branch)
+
 use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
 use mad_like, only: set_up, kill, lielib_print
 use madx_ptc_module, only: m_u, append_empty_layout, survey, make_node_layout
 
 implicit none
 
-type (lat_struct), target :: lat
-type (branch_struct), pointer :: branch
+type (branch_struct) :: branch
 type (ele_struct) drift_ele
 type (ele_struct), pointer :: ele
 
@@ -96,55 +141,49 @@ logical doneit
 
 ! transfer elements.
 
-do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
+call append_empty_layout(m_u)
+call set_up(m_u%end)
 
-  call append_empty_layout(m_u)
-  call set_up(m_u%end)
+allocate(branch%ptc%layout(1))
+branch%ptc%layout(1)%ptr => m_u%end   ! Save layout
 
-  allocate(branch%ptc%layout(1))
-  branch%ptc%layout(1)%ptr => m_u%end   ! Save layout
-
-  do ie = 1, branch%n_ele_track
-    ele => branch%ele(ie)
-    if (tracking_uses_hard_edge_model(ele)) then
-      call create_hard_edge_drift (ele, entrance_end$, drift_ele)
-      call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
-    endif
-
-    call ele_to_fibre (ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
-
-    if (tracking_uses_hard_edge_model(ele)) then
-      call create_hard_edge_drift (ele, exit_end$, drift_ele)
-      ! ele%ptc_fibre points to last PTC fibre.
-      call ele_to_fibre (drift_ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
-    endif
-  enddo
-
-  ! End stuff
-
-  if (branch%param%lattice_type == circular_lattice$) then
-    m_u%end%closed = .true.
-  else
-    m_u%end%closed = .false.
+do ie = 1, branch%n_ele_track
+  ele => branch%ele(ie)
+  if (tracking_uses_hard_edge_model(ele)) then
+    call create_hard_edge_drift (ele, entrance_end$, drift_ele)
+    call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
   endif
 
+  call ele_to_fibre (ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
 
-  n = lielib_print(12)
-  lielib_print(12) = 0  ! No printing info messages
-
-  doneit = .true.
-  call ring_l (m_u%end, doneit)
-  call survey (m_u%end)
-  call make_node_layout (m_u%end)
-
-  lielib_print(12) = n
-
-  branch%ele(0)%ptc_fibre => branch%ele(1)%ptc_fibre%previous
-
+  if (tracking_uses_hard_edge_model(ele)) then
+    call create_hard_edge_drift (ele, exit_end$, drift_ele)
+    ! ele%ptc_fibre points to last PTC fibre.
+    call ele_to_fibre (drift_ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
+  endif
 enddo
 
-end subroutine lat_to_ptc_layout
+! End stuff
+
+if (branch%param%lattice_type == circular_lattice$) then
+  m_u%end%closed = .true.
+else
+  m_u%end%closed = .false.
+endif
+
+n = lielib_print(12)
+lielib_print(12) = 0  ! No printing info messages
+
+doneit = .true.
+call ring_l (m_u%end, doneit)
+call survey (m_u%end)
+call make_node_layout (m_u%end)
+
+lielib_print(12) = n
+
+branch%ele(0)%ptc_fibre => branch%ele(1)%ptc_fibre%previous
+
+end subroutine branch_to_ptc_layout
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -281,6 +320,40 @@ call kill(da_map)
 call kill(x_probe8)
 
 end subroutine ptc_emit_calc 
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine ptc_closed_orbit_calc (branch, closed_orbit)
+!
+! Routine to calculate the closed orbit of a lattice branch using PTC.
+! This routine will use the associate PTC layout if it exists and will
+! create one if it does not.
+!
+! Module Needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   branch          -- branch_struct: Branch of a lattice.
+!
+! Output:
+!   closed_orbit(:) -- coord_struct, allocatable: closed_orbit
+!-
+
+subroutine ptc_closed_orbit_calc (branch, closed_orbit)
+
+implicit none
+
+type (branch_struct) branch
+type (coord_struct), allocatable :: closed_orbit(:)
+
+real(dp) x
+
+!
+
+
+end subroutine ptc_closed_orbit_calc 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
