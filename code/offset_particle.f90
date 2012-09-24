@@ -356,7 +356,7 @@ else
     endif
 
     if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. s_off /= 0)) then
-      angle = -ele%value(g$) * s_here  ! Notice negative sign
+      angle = ele%value(g$) * s_here 
       cos_a = cos(angle); sin_a = sin(angle)
       cos_t = cos(ele%value(tilt$));    sin_t = sin(ele%value(tilt$))
       m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
