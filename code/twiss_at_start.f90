@@ -121,4 +121,45 @@ lat%b%tune = branch%ele(0)%b%phi
 branch%ele(0)%a%phi = 0
 branch%ele(0)%b%phi = 0
 
+contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine mat6_dispersion (m_i6, mat6)
+!
+! Subroutine to set the mat6(5, 1:4) terms given the vector mat6(1:4, 6)
+! which is a measure of the dispersion.
+!
+! Input:
+!   m_i6(4)   -- Real(rp): mat6(1:4, 6) components.
+!   mat6(6,6) -- Real(rp): Matrix with 4x4 x-y submatrix already made.
+!
+! Output:
+!   mat6(6,6) -- Real(rp): mat6(5, 1:4) components set. 
+!-
+
+subroutine mat6_dispersion (m_i6, mat6)
+
+implicit none
+
+real(rp), intent(inout) :: mat6(:,:)
+real(rp), intent(in) :: m_i6(:)
+
+real(rp) vec4(4)
+
+!
+
+mat6(1:4, 6) = m_i6(1:4)
+
+vec4(1) = -m_i6(2)
+vec4(2) =  m_i6(1)
+vec4(3) = -m_i6(4)
+vec4(4) =  m_i6(3)
+
+mat6(5,1:4) = matmul (vec4, mat6(1:4,1:4))
+
+end subroutine mat6_dispersion
+
 end subroutine

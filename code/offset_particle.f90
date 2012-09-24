@@ -181,15 +181,16 @@ if (set) then
       angle = ele%value(g$) * s_here  ! Notice that this is generally negative
       cos_a = cos(angle); sin_a = sin(angle)
       cos_t = cos(ele%value(tilt$));    sin_t = sin(ele%value(tilt$))
-      m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, -cos_t * sin_a]
-      m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, -sin_a * sin_t]
-      m_trans(3,1:3) = [cos_t * sin_a, sin_a * sin_t, cos_a]
+      m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
+      m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
+      m_trans(3,1:3) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
       vec = matmul(m_trans, [x_off, y_off, s_off])
       x_off = vec(1); y_off = vec(2); s_off = vec(3)
     endif
 
     if (s_off /= 0 .and. set_s) then
       call track_a_drift (coord, ele, particle, s_off)
+      coord%vec(5) = coord%vec(5) - s_off
     endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
@@ -358,9 +359,9 @@ else
       angle = -ele%value(g$) * s_here  ! Notice negative sign
       cos_a = cos(angle); sin_a = sin(angle)
       cos_t = cos(ele%value(tilt$));    sin_t = sin(ele%value(tilt$))
-      m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, -cos_t * sin_a]
-      m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, -sin_a * sin_t]
-      m_trans(3,1:3) = [cos_t * sin_a, sin_a * sin_t, cos_a]
+      m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
+      m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
+      m_trans(3,1:3) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
       vec = matmul(m_trans, [x_off, y_off, s_off])
       x_off = vec(1); y_off = vec(2); s_off = vec(3)
     endif
@@ -375,6 +376,7 @@ else
 
     if (s_off /= 0 .and. set_s) then
       call track_a_drift (coord, ele, particle, -s_off)
+      coord%vec(5) = coord%vec(5) + s_off
     endif
 
   endif

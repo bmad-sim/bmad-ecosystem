@@ -1,11 +1,19 @@
 module twiss_mod
 
-  use matrix_mod
+use matrix_mod
 
-  type twiss_struct
-    real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0
-    real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
-  end type
+type twiss_struct
+  real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0
+  real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
+end type
+
+integer, parameter :: ok$              = 1
+integer, parameter :: in_stop_band$    = 2
+integer, parameter :: non_symplectic$  = 3
+integer, parameter :: unstable$        = 4
+
+character(16) :: status_name(5) = [    'OK            ', &
+    'IN_STOP_BAND  ', 'NON_SYMPLECTIC', 'UNSTABLE      ', '              ' ]
 
 contains
 
