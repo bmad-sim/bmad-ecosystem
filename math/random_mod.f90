@@ -611,7 +611,7 @@ if (r_state%engine == quasi_random$) then
   if (ix_q == 1) call sobseq (r)
   if (ix_q > 6) then
     call out_io (s_error$, r_name, 'NUMBER OF DIMENSIONS WANTED IS TOO LARGE!')
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   harvest = r(ix_q)
   return

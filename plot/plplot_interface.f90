@@ -598,7 +598,7 @@ subroutine qp_set_color_basic (ix_color)
   if (ix_color < 0 .or. ix_color > ubound(inverse_color, 1)) then
     print *, 'ERROR IN QP_SET_COLOR_BASIC: IX_COLOR ARGUMENT OUT OF RANGE:', &
                                                                       ix_color
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
 ! Set plplot color
@@ -699,7 +699,7 @@ subroutine qp_draw_polyline_basic (x, y)
   if (size(x) /= size(y)) then
     print *, 'ERROR IN QP_DRAW_POLYLINE_BASIC: X, Y COORD VECTORS HAVE'
     print *, '      UNEQUAL LENGTH!', size(x), size(y)
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   
   xm = pl_com%x_inch_to_mm * x
@@ -807,7 +807,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
   case default
     call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   end select
 
 ! Set output file name  
@@ -907,7 +907,7 @@ subroutine qp_select_page_basic (iw)
   integer iw
   !
   call out_io (s_abort$, 'qp_select_page_basic', 'NOT YET IMPLEMENTED!')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
   call plsstrm(iw)
 end subroutine
 

@@ -162,7 +162,7 @@ integer i
 if (present(to_routine)) then
   if (to_routine > 1 .or. to_routine < -1) then
     print *, 'OUTPUT_DIRECT: SHOULD NOT BE HERE!'
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 endif
 

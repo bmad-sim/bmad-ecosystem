@@ -51,7 +51,7 @@ call lib$spawn ('delete file_date.temp;*')
 
 #else
   print *, 'ERROR: GET_FILE_TIME_STAMP NOT IMPLEMENTED FOR UNIX.'
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 #endif
 
 end subroutine

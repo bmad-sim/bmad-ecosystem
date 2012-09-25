@@ -36,7 +36,7 @@ integer n, i
 
 if (n < 0) then
   print *, 'ERROR IN FACTORIAL(N). N < 0!'
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Use Sterling's formula if n is very large

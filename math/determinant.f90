@@ -53,7 +53,7 @@ enddo
 
 mat1 = mat
 call super_ludcmp(mat1, indx, det, err)
-if (err) call err_exit
+if (err .and. global_com%exit_on_error) call err_exit
 
 do i = 1, ns
   det = det * mat1(i, i)

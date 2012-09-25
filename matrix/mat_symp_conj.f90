@@ -30,7 +30,7 @@ nn = size(mat1, 1)
 
 if (mod(nn, 2) /= 0) then
   print *, 'ERROR IN MAT_SYMP_CONJ SUBROUTINE: ARRAY SIZE IS NOT EVEN'
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! compute conjugate

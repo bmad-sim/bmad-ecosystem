@@ -42,7 +42,7 @@ n = ubound(mat_in, 1)
 
 if (ubound(mat_symp, 1) /= n) then
   print *, 'ERROR IN MAT_SYMPLECTIFY: UNEQUAL MATRIX SIZES.'
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Form the symmetrix matrix:

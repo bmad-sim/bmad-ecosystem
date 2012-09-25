@@ -133,18 +133,18 @@ nd = size(v_best)
 if (size(v_del) /= nd) then
   print *, 'ERROR IN OPTI_DE: ARRAY SIZES NOT THE SAME!'
   print *, '       FOR V_DEL, AND V_BEST:', size(v_del), nd
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (population < 4) then
   print *, 'ERROR IN OPTI_DE: POPULATION MUST BE AT LEAST 4!', population
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (population < 6 .and. opti_de_param%use_2nd_diff) then
   print *, 'ERROR IN OPTI_DE: POPULATION MUST BE AT LEAST 6 WITH'
   print *, '      USE_2ND_DIFF!', population
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Initialize

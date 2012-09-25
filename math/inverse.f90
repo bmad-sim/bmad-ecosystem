@@ -46,7 +46,7 @@ function inverse(funct, y, x1, x2, tol) result (x)
 
   IF(FB*FA>0.) then
     print *, 'Root must be bracketed for INVERSE.'
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   C=B

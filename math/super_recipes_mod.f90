@@ -613,7 +613,7 @@ do iter=1,ITMAX
   end if
 end do
 call out_io (s_fatal$, r_name, 'EXCEED MAXIMUM ITERATIONS.')
-call err_exit
+if (global_com%exit_on_error) call err_exit
 
 !-------------------------------------------------
 contains
