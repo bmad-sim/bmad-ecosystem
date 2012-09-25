@@ -7,13 +7,15 @@ integer, parameter :: rp = rdef
 integer, parameter :: sp = kind(1e0)
 integer, parameter :: dp = selected_real_kind(2*precision(1e0_sp))
 
-! This is to suppress the ranlib "has no symbols" message
-integer, private :: private_dummy
-
 type global_common_struct
-  logical :: be_thread_safe = .false.                   ! Avoid thread unsafe practices?
+  logical :: be_thread_safe = .false.    ! Avoid thread unsafe practices?
+  logical :: type_out       = .true.     ! Print error messages?
+  logical :: exit_on_error  = .true.     ! Exit program on error?
 end type
 
 type (global_common_struct), save :: global_com
+
+! This is to suppress the ranlib "has no symbols" message
+integer, private :: private_dummy
 
 end module

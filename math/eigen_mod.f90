@@ -84,7 +84,7 @@ do i = 2, n, 2
 
   else
     call out_io (s_fatal$, 'mat_eigen', 'BAD IV FROM EIGENSYS')
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 enddo
 
@@ -148,7 +148,7 @@ end subroutine
 
       IF (N.GT.NMX) then
         CALL out_io(s_fatal$, 'EIGENSYS', 'dimension too high, increase NMX')
-        call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
 
       DNS(1:n,1:n) = DN(1:n,1:n)

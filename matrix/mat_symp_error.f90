@@ -39,7 +39,7 @@ n = ubound(mat, 1)
 
 if (mod(n, 2) /= 0) then
   print *, 'ERROR IN MAT_SYMP_ERROR: MATRIX DOES NOT HAVE EVEN SIZE'
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 !

@@ -66,7 +66,7 @@ case ('REF')
 
 case default
   print *, 'ERROR IN RUN_TIMER SUBROUTINE: INVALID COMMAND: ', command
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 end select
 

@@ -34,7 +34,7 @@ function match_reg(str, pat)
 
 #if defined(CESR_VMS)
   write(*,*) "function match_reg not supported on VMS"
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 #else
   stat = match_reg_c(trim(str)//char(0),trim(pat)//char(0))

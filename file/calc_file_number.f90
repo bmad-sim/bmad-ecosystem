@@ -54,7 +54,7 @@ subroutine calc_file_number (file_name, num_in, num_out, err_flag)
   if (ios /= 0) then
     print *, 'ERROR IN CALC_FILE_NUMBER: FILE DOES NOT EXIST: '
     print *, '      ', trim(f_name)
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   read (lun, *, iostat = ios) num_in_file
@@ -62,7 +62,7 @@ subroutine calc_file_number (file_name, num_in, num_out, err_flag)
   if (ios /= 0) then
     print *, 'ERROR IN CALC_FILE_NUM_OUT: CANNOT READ NUM_OUT IN FILE: '
     print *, '     ', trim(f_name)
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   num_out = num_in_file + num_in

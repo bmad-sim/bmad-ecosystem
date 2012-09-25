@@ -86,7 +86,7 @@ subroutine file_suffixer (in_file_name, out_file_name, suffix, add_switch)
   if ((pix + isl) > len(out_file_name)) then
     print *, 'ERROR IN FILE_SUFFIXER: OUTPUT FILE NAME CHARACTER ARRAY'
     print *, '              FROM CALLING ROUTINE IS TOO SHORT!'
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   out_file_name(pix:) = '.' // suffix2   ! add suffix
 

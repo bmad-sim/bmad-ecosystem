@@ -345,7 +345,7 @@ elseif (who == 'BORDER') then
   rect = qp_com%border
 else
   call out_io (s_fatal$, r_name, 'BAD "WHO": ' // who)
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 qp_com%dflt_units = dflt_set$
@@ -422,7 +422,7 @@ if (buffer_basic) call qp_save_state_basic
 
 if (ix_qp_com == size(qp_save_com)) then
   call out_io (s_fatal$, r_name, 'TRYING TO SAVE TOO MANY STATES!')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (ix_qp_com == 0) call qp_init_com_struct
@@ -468,7 +468,7 @@ if (qp_com%buffer) call qp_restore_state_basic
 
 if (ix_qp_com == 0) then
   call out_io (s_fatal$, r_name, 'NO STATE TO RESTORE!')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ix_qp_com = ix_qp_com - 1
@@ -516,7 +516,7 @@ elseif (axis_str == 'Y2') then
   axis_ptr => qp_com%plot%y2
 else
   call out_io (s_fatal$, r_name, 'INVALID AXIS: ' // axis_str)
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 end subroutine qp_pointer_to_axis
@@ -1051,7 +1051,7 @@ character(20) :: r_name = 'qp_calc_axis_scale'
 if (axis%major_div < 1) then
   call out_io (s_abort$, r_name, &
                     '"AXIS%MAJOR_DIV" NUMBER IS LESS THAN 1! \i\ ', axis%major_div)
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! 'LOG' axis
@@ -1061,7 +1061,7 @@ if (axis%type == 'LOG') then
   if (data_min <= 0 .or. data_max <= 0) then
     call out_io (s_abort$, r_name, &
                     'DATA IS NEGATIVE FOR LOG AXIS CALC: \2es12.2\ ', min(data_min, data_max))
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   a_min = log10(data_min)
@@ -1118,7 +1118,7 @@ elseif (axis%bounds == 'GENERAL') then
   a_max = max (data_min, data_max)
 else
   call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND "AXIS%BOUNDS": ' // axis%bounds)
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! add slop factor
@@ -2122,7 +2122,7 @@ u_type = u(:ix)
 
 if (all(u_type /= ['DATA  ', 'MM    ', 'INCH  ', 'POINTS', '%     ' ])) then
   call out_io (s_fatal$, r_name, 'BAD UNITS TYPE: "' // trim(units) // '"')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! get region
@@ -2133,7 +2133,7 @@ region = u(:ix)
 
 if (all(region /= ['PAGE ', 'BOX  ', 'GRAPH' ])) then
   call out_io (s_fatal$, r_name, 'BAD REGION: "' // trim(units) // '"')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! get corner
@@ -2144,13 +2144,13 @@ corner = u(:ix)
 
 if (all(corner /= ['LB', 'LT', 'RB', 'RT' ])) then
   call out_io (s_fatal$, r_name, 'BAD CORNER: "' // trim(units) // '"')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 call string_trim (u(ix+1:), u, ix)
 if (ix /= 0) then
   call out_io (s_fatal$, r_name, 'EXTRA CHARACTERS IN UNITS: "' // trim(units) // '"')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 end subroutine qp_split_units_string
@@ -2387,7 +2387,7 @@ logical, optional :: clip
 
 if (size(x) /= size(y)) then
   call out_io (s_fatal$, r_name, 'X, Y COORD VECTORS HAVE UNEQUAL LENGTH!')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 i_skip = integer_option(1, symbol_every)
@@ -2470,12 +2470,12 @@ character(16) :: r_name = 'qp_draw_graph'
 
 if (qp_com%plot%xx%max == qp_com%plot%xx%min) then
   call out_io (s_fatal$, r_name, 'X_MAX = X_MIN')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (qp_com%plot%yy%max == qp_com%plot%yy%min) then
   call out_io (s_fatal$, r_name, 'Y_MAX = Y_MIN')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
            
 ! Draw the axes and the data
@@ -2666,12 +2666,12 @@ character(16) :: r_name = 'qp_draw_histogram'
 
 if (qp_com%plot%xx%max == qp_com%plot%xx%min) then
   call out_io (s_fatal$, r_name, 'X_MAX = X_MIN')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (qp_com%plot%yy%max == qp_com%plot%yy%min) then
   call out_io (s_fatal$, r_name, 'Y_MAX = Y_MIN')
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Find which points are inside the plot horizontally.
@@ -3306,7 +3306,7 @@ if (page_scale == 0) then ! Auto scale to fit standard paper size.
   if (.not. output_to_file) then
     call out_io (s_abort$, r_name, &
                   'SCALE = 0 CAN NOT BE USE WITH PAGE_TYPE = ' // qp_com%page_type)
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   if (landscape) then
@@ -3526,7 +3526,7 @@ if (present(justify)) then
     y1 = y1 - dy 
   elseif (justify(2:2) /= 'B') then
     call out_io (s_fatal$, r_name, 'UNKNOWN "JUSTIFY": ' // justify)
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 endif
 
@@ -3586,7 +3586,7 @@ if (present(justify)) then
     horiz_justy = 1.0
   elseif (justify(1:1) /= 'L') then
     call out_io (s_fatal$, r_name, 'BAD "JUSTIFY": ' // justify)
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 endif
 
@@ -3800,7 +3800,7 @@ elseif (who == 'LEGEND') then
   qp_com%legend_line = line
 else
   call out_io (s_fatal$, r_name, 'UNKNOWN LINE "WHO": ' // who)
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 call qp_set_line_attrib (who)
@@ -3853,7 +3853,7 @@ elseif (style == 'LEGEND') then
   line = qp_com%legend_line
 else
   call out_io (s_fatal$, r_name, 'UNKNOWN LINE "STYLE": ' // style)
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 end subroutine qp_get_line_attrib
@@ -3911,7 +3911,7 @@ elseif (style == 'LEGEND') then
   this => qp_com%legend_line
 else
   call out_io (s_fatal$, r_name, 'UNKNOWN LINE "STYLE": ' // style)
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (present(width)) this%width = width
@@ -4054,7 +4054,7 @@ elseif (who == "AXIS_LABEL") then
   call qp_get_this_text_attrib (qp_com%axis_label)
 else
   call out_io (s_fatal$, r_name, 'BAD "WHO": "' // trim(who) // '"' )
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 !----------------------------------------------------------------
@@ -4148,7 +4148,7 @@ elseif (who == "AXIS_LABEL") then
   call qp_set_this_text_attrib (qp_com%axis_label)
 else
   call out_io (s_fatal$, r_name, 'BAD "WHO": "' // trim(who) // '"' )
-  call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 !----------------------------------------------------------------
@@ -5255,7 +5255,11 @@ character(1) ax_to_scale
 
 ax_to_scale = ''
 if (present(axis_to_scale)) ax_to_scale = axis_to_scale
-if (ax_to_scale /= '' .and. ax_to_scale /= 'X' .and. ax_to_scale /= 'Y') call err_exit
+
+if (ax_to_scale /= '' .and. ax_to_scale /= 'X' .and. ax_to_scale /= 'Y') then
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
 
 call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
 
