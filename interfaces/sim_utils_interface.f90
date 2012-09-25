@@ -1,10 +1,10 @@
-#include "CESR_platform.inc"
-
 module sim_utils_interface
+
+use precision_def
 
 interface
   subroutine abs_sort (array, index, n)
-    use precision_def
+    import
     implicit none
     real(rp) array(*)
     integer index(*)
@@ -14,7 +14,7 @@ end interface
  
 interface
   subroutine bbi_kick (x, y, r, kx, ky)
-    use precision_def
+    import
     implicit none
     real(rp) x
     real(rp) y
@@ -26,7 +26,7 @@ end interface
  
 interface
   subroutine bracket_index (s_arr, i_min, i_max, s, ix)
-    use precision_def
+    import
     implicit none
     integer i_min, i_max
     real(rp) s_arr(i_min:), s
@@ -54,7 +54,7 @@ end interface
  
 interface
   subroutine complex_error_function (wr, wi, zr, zi)
-    use precision_def
+    import
     implicit none
     real(rp) wr
     real(rp) wi
@@ -65,7 +65,7 @@ end interface
  
 interface
   function cross_product (a, b) result (c)
-    use precision_def
+    import
     implicit none
     real(rp) a(:), b(:)
     real(rp) c(3)
@@ -74,7 +74,7 @@ end interface
  
 interface
   function determinant (mat) result (det)
-    use precision_def
+    import
     implicit none
     real(rp) mat(:,:)
     real(rp) det
@@ -99,7 +99,7 @@ end interface
  
 interface
   function factorial(n) result (fact)
-    use precision_def
+    import
     implicit none
     real(rp) fact
     integer n
@@ -221,13 +221,13 @@ end interface
  
 interface
   function inverse (funct, y, x1, x2, tol) result (x)
-    use precision_def
+    import
     implicit none
     real(rp) x 
     real(rp) y, x1, x2, tol
     interface
       function funct(x)
-        use precision_def
+        import
         real(rp) funct, x
       end function funct
      end interface
@@ -236,7 +236,7 @@ end interface
  
 interface
   function inverse_prob (val) result (prob)
-    use precision_def
+    import
     implicit none
     real(rp) prob 
     real(rp) val
@@ -268,7 +268,7 @@ end interface
 
 interface
   subroutine linear_fit (x, y, n_data, a, b, sig_a, sig_b)
-    use precision_def
+    import
     implicit none
     integer n_data
     real(rp) x(*)
@@ -310,8 +310,17 @@ interface
 end interface
  
 interface
+  subroutine mat_inverse (mat, mat_inv, ok, print_err)
+    import
+    real(rp) :: mat(:,:)
+    real(rp) :: mat_inv(:,:)
+    logical, optional :: ok, print_err
+  end subroutine
+end interface
+
+interface
   subroutine mat_rotation (mat, angle, bet_1, bet_2, alph_1, alph_2)
-    use precision_def
+    import
     implicit none
     real(rp) angle
     real(rp) bet_1, bet_2
@@ -322,7 +331,7 @@ end interface
  
 interface
   subroutine mat_symp_conj(mat1, mat2)
-    use precision_def
+    import
     implicit none
     real(rp) mat1(:,:)
     real(rp) mat2(:,:)
@@ -330,8 +339,25 @@ interface
 end interface
  
 interface
+  function mat_symp_error (mat) result (error)
+    import
+    real(rp), intent(in) :: mat(:,:)
+    real(rp) error
+  end function
+end interface
+ 
+interface
+  subroutine mat_symplectify (mat_in, mat_symp, f_scale)
+    import
+    real(rp), intent(in)  :: mat_in(:,:)
+    real(rp), intent(out) :: mat_symp(:,:)
+    real(rp), intent(in), optional :: f_scale
+  end subroutine
+end interface
+ 
+interface
   subroutine mat_type (mat, nunit, header, num_form)
-    use precision_def
+    import
     implicit none
     real(rp) mat(:,:)
     integer, optional :: nunit
@@ -341,7 +367,7 @@ end interface
  
 interface
   subroutine mat_make_unit (mat)
-    use precision_def
+    import
     real(rp) mat(:,:)
   end subroutine
 end interface
@@ -369,7 +395,7 @@ end interface
  
 interface
   function probability_funct(x) result (prob)
-    use precision_def
+    import
     implicit none
     real(rp) prob
     real(rp) x
@@ -389,7 +415,7 @@ end interface
  
 interface
   function real_read(error_message)
-    use precision_def
+    import
     implicit none
     real(rp) real_read
     character(*) error_message
@@ -398,7 +424,7 @@ end interface
  
 interface
   subroutine run_timer(command, time)
-    use precision_def
+    import
     implicit none
     real(rp), optional :: time
     character(*) command
@@ -443,7 +469,7 @@ end interface
  
 interface
   subroutine string_to_real (line, default, value, err_flag)
-    use precision_def
+    import
     implicit none
     real(rp) default
     real(rp) value
