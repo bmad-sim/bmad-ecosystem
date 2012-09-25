@@ -308,6 +308,17 @@ interface
     character(*) template
   end function
 end interface
+
+interface
+  subroutine cplx_mat_inverse(mat_r, mat_i, inv_r, inv_i, ok, print_err)
+    import
+    real(rp) :: mat_r(:,:)
+    real(rp) :: mat_i(:,:)
+    real(rp) :: inv_r(:,:)
+    real(rp) :: inv_i(:,:)
+    logical, optional :: ok, print_err
+  end subroutine
+end interface
  
 interface
   subroutine mat_inverse (mat, mat_inv, ok, print_err)
