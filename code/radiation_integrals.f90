@@ -205,13 +205,13 @@ elseif (ix_cache == 0) then
     exit
     if (i == size(rad_int_cache_common)) then
       print *, 'ERROR IN RADIATION_INTEGRALS: CACHE OUT OF MEMORY!'
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
   enddo
 elseif (ix_cache > 0) then
   if (ix_cache > ubound(rad_int_cache_common, 1)) then
     print *, 'ERROR IN RADIATION_INTEGRALS: INVALID IX_CACHE ARGUMENT', ix_cache
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   cache => rad_int_cache_common(ix_cache)
   init_cache = .false.

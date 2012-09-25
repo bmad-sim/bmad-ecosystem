@@ -52,7 +52,7 @@ if (present(err_flag)) err_flag = .true.
 if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
   call out_io (s_fatal$, r_name, 'ZERO BETA DETECTED AT: ' // trim(ele1%name), &
                                  'ELEMENT # \i0\ ',  i_array = [ele1%ix_ele])
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 

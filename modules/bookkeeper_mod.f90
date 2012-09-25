@@ -573,7 +573,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   if (vary_sublength == 0) then
     call out_io (s_fatal$, r_name, 'CANNOT VARY LENGTH OF SUPER_LORD: ' // lord0%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     return
   endif
 
@@ -667,7 +667,7 @@ if (length_adjustment_made) then
               'LORD: ' // lord0%name, &
               'LENGTH: \es16.9\ ', &
               'SUM OF SLAVE LENGTHS: \es16.9\ ', r_array = [lord0%value(l$), sum_len_slaves] )
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       return
     endif
   enddo
@@ -701,7 +701,7 @@ character(40) :: r_name = 'adjust_super_lord_s_position'
 
 if (lord%lord_status /= super_lord$) then
   call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return 
 endif
 
@@ -988,7 +988,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
             'WITH THE REF_ORBIT ATTRIBUTE SET TO: ' // ref_orbit_name(lord%ref_orbit), &
             'HAS A NONZERO HIGHER ORDER MULTIPOLE!', &
             'THIS IS NOT ALLOWED. SEE THE BMAD MANUAL FOR MORE DETAILS.')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
   endif
 
@@ -1018,7 +1018,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     if (slave%floor%phi /= 0 .or. slave%floor%psi /= 0) then
        call out_io (s_fatal$, r_name, 'MULTIPASS ELEMENT: ' // lord%name, &
                      'WHICH HAS REF_ORBIT = MATCH_GLOBAL_COORDS DOES NOT LIE IN THE (X, Z) PLANE!')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
 
     ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
@@ -1058,7 +1058,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
         call out_io (s_error$, r_name, &
               'MULTIPASS MATCH_GLOBAL_COORDS CALC ERROR FOR: ' // lord%name, &
               'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
       ang_slave = asin(arg)
       if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
@@ -1098,7 +1098,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
           call out_io (s_error$, r_name, &
                 'MULTIPASS MATCH_AT_ENTRANCE/EXIT CALC ERROR FOR: ' // lord%name, &
                 'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
-          if (bmad_status%exit_on_error) call err_exit
+          if (global_com%exit_on_error) call err_exit
         endif
         ang_slave = asin(arg)
         if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
@@ -1117,7 +1117,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
   case default
     call out_io (s_fatal$, r_name, 'BAD REF_ORBIT VALUE: \i0\ ', &
                            'FOR: ' // lord%name, i_array = [lord%ref_orbit] )
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
 
   end select
 endif
@@ -1169,7 +1169,7 @@ call set_ele_status_stale (slave, attribute_group$)
 
 if (slave%slave_status /= super_slave$) then
   call out_io(s_abort$, r_name, "ELEMENT IS NOT A SUPER SLAVE: " // slave%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -1266,14 +1266,14 @@ do j = 1, slave%n_lord
           "SUPER_SLAVE HAS A CONTROL ELEMENT THAT IS NOT A SUPER_LORD", &
           'SLAVE: ' //  slave%name // '  \i\ ', &
           'LORD:  ' //  lord%name  // '  \i\ ', i_array = [ix_slave, lord%ix_ele] )
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   if (associated(lord%rf_wake)) then
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   ! Physically, the lord length cannot be less than the slave length.
@@ -1323,19 +1323,19 @@ do j = 1, slave%n_lord
         lord1 => pointer_to_lord(slave, 1)
         call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
       if (slave%tracking_method /= lord%tracking_method) then
         lord1 => pointer_to_lord(slave, 1)
         call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
       if (slave%map_with_offsets .neqv. lord%map_with_offsets) then
         lord1 => pointer_to_lord(slave, 1)
         call out_io(s_abort$, r_name, 'MAP_WITH_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
     endif
 
@@ -1438,7 +1438,7 @@ do j = 1, slave%n_lord
 
   case (bend_sol_quad$)
     call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR: ' // key_name(slave%key))
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
 
   ! Everything else
 
@@ -1633,7 +1633,7 @@ case (solenoid$, sol_quad$, quadrupole$)
 case (bend_sol_quad$)
   call out_io (s_abort$, r_name, &
                'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 end select
 
@@ -1711,7 +1711,7 @@ if (ele_in%key == taylor$ .or. ele_in%key == hybrid$) then
   call out_io (s_fatal$, r_name, &
         'CANNOT SLICE ELEMENT OF TYPE: ' // key_name(ele_in%key), &
         'CANNOT SLICE: ' // ele_in%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -1720,7 +1720,7 @@ if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_leng
   call out_io (s_fatal$, r_name, &
         'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele_in%name, &
         'LENGTH: \2es12.3\ ', r_array = [l_slice, e_len])
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -1854,7 +1854,7 @@ err_flag = .true.
 
 if (lord%value(l$) == 0) then
   call out_io (s_fatal$, r_name, 'LORD HAS ZERO LENGTH!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -2128,7 +2128,7 @@ do i = 1, slave%n_lord
   if (lord%lord_status /= overlay_lord$) then
     call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_slave)
     call type_ele (slave, .true., 0, .false., 0, .true., lat)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif     
 
   coef = lat%control(ix_con)%coef
@@ -2488,7 +2488,7 @@ case (beambeam$)
     if (val(sig_x$) == 0 .or. val(sig_y$) == 0) then
       call out_io(s_abort$, r_name, 'ZERO SIGMA IN BEAMBEAM ELEMENT!')
       call type_ele(ele, .true., 0, .false., 0, .false.)
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
 
     val(bbi_const$) = -param%n_part * val(charge$) * classical_radius_factor /  &
@@ -3060,7 +3060,7 @@ do ib = 0, ubound(lat%branch, 1)
       branch%ele(i)%is_on = branch%ele(i)%old_is_on
     case default
       call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     end select
 
     if (old_state .neqv. branch%ele(i)%is_on) then

@@ -171,7 +171,7 @@ parsing_loop: do
     if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
     n_ptr = n_ptr + 1
     bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(parse_line_save(ix+2:)) ! To save in digested
-    if (bmad_status%type_out) call out_io (s_dwarn$, r_name, &
+    if (global_com%type_out) call out_io (s_dwarn$, r_name, &
                                      'Print Message in Lattice File: ' // parse_line_save(ix+2:))
     ! This prevents bmad_parser from thinking print string is a command.
     call load_parse_line ('init', 1, end_of_file)
@@ -369,7 +369,7 @@ parsing_loop: do
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
     call parser_error ('NO NAME FOUND AFTER: ' // word_1, ' ')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   call verify_valid_name(word_2, ix_word)
@@ -584,7 +584,7 @@ if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 call lat_sanity_check (lat, err)
 if (err) bp_com%error_flag = .true.
 
-if (bp_com%error_flag .and. bmad_status%exit_on_error) then
+if (bp_com%error_flag .and. global_com%exit_on_error) then
   call out_io (s_info$, r_name, 'FINISHED. EXITING ON ERRORS')
   stop
 endif

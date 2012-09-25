@@ -156,7 +156,7 @@ case (marker$, pipe$)
 case default
 
   call out_io (s_fatal$, r_name, 'ELEMENT NOT IMPLEMENTED: ' // ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 end select
 
@@ -245,7 +245,7 @@ endif
 
 if (associated(ele%a_pole)) then
   call out_io (s_fatal$, r_name, 'YOUR MOTHER DOES NOT WORK HERE! CLEAN UP THIS MESS!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   map2%k(2) = map2%k(2) - ele%b_pole(0) / 2
   map2%k(4) = map2%k(4) + ele%a_pole(0) / 2
   map2%r(2,1) = -ele%b_pole(1) / 2
@@ -273,7 +273,7 @@ call make_unit_mad_map (map2)
 
 if (associated(ele%a_pole)) then
   call out_io (s_fatal$, r_name, 'YOUR MOTHER DOES NOT WORK HERE! CLEAN UP THIS MESS!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   map2%k(2) = map2%k(2) - ele%b_pole(0) / 2
   map2%k(4) = map2%k(4) + ele%a_pole(0) / 2
   map2%r(2,1) = -ele%b_pole(1) / 2
@@ -2057,7 +2057,7 @@ do i = 1, 6
             cycle n_loop
           endif
           call out_io (s_fatal$, r_name, 'INTERNAL ERROR')
-          if (bmad_status%exit_on_error) call err_exit  ! should not be here
+          if (global_com%exit_on_error) call err_exit  ! should not be here
         enddo
       endif
 

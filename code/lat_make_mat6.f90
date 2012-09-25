@@ -64,14 +64,14 @@ branch => lat%branch(i_branch)
 
 if (i_ele == 0 .or. i_ele > branch%n_ele_max) then
   call out_io (s_fatal$, r_name, 'ELEMENT INDEX OUT OF BOUNDS: \i0\ ', i_ele)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
 if (present(ref_orb)) then
   if (ubound(ref_orb, 1) < branch%n_ele_track) then
     call out_io (s_fatal$, r_name, 'REF_ORB(:) ARRAY SIZE IS TOO SMALL!')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     return
   endif
 endif

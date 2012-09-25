@@ -92,7 +92,7 @@ do i = 1, girder_ele%n_slave
                                           slave%lord_status == overlay_lord$) then
     print *, 'ERROR IN CREATE_GIRDER: ILLEGAL GIRDER ON ', slave%name
     print *, '      BY: ', girder_ele%name
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   ! update controller info for the slave ele

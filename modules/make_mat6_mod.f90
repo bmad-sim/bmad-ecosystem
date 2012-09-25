@@ -699,7 +699,7 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
     enddo
   else
     print *, 'ERROR IN BBI_SLICE_CALC: N_SLICE IS NEGATIVE:', n_slice
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   z_slice(n_slice+1) = 0

@@ -499,7 +499,7 @@ case (tracking$)
 case default
   call out_io (s_fatal$, r_name, 'BAD SPIN_TRACKING_METHOD: ' // calc_method_name(ele%spin_tracking_method), &
                                  'FOR ELEMENT: ', ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 end select
 
 end subroutine track1_spin
@@ -799,7 +799,7 @@ if(isTreatedHere) then
 
     if (ele%value(E_TOT_START$) == 0) then
       call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &

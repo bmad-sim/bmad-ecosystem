@@ -210,7 +210,7 @@ enddo
 
 ! error
 
-if (bmad_status%type_out) then
+if (global_com%type_out) then
   if (j == jmax+1) then
     print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ORBIT NOT CONVERGING!'
   else

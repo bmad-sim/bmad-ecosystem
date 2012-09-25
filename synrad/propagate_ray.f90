@@ -23,7 +23,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
   if (abs(s_target - ray%now%vec(5)) > 200) then
     print *, ' ERROR IN PROPAGATE_RAY: TRYING TO PROPAGATE TOO FAR.'
     print *, '      ', ray%now%vec(5), s_end, s_target
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   ! update old (but only if we have moved or gone through the IP)
@@ -57,7 +57,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
           ray%ix_ele = ray%ix_ele - 1
           if (ray%ix_ele == 0) then
             print *, 'ERROR IN PROPAGATE_RAY: INTERNAL + ERROR'
-            if (bmad_status%exit_on_error) call err_exit
+            if (global_com%exit_on_error) call err_exit
           endif
         else
           exit
@@ -78,7 +78,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
           ray%ix_ele = ray%ix_ele + 1
           if (ray%ix_ele == lat%n_ele_track+1) then
             print *, 'ERROR IN PROPAGATE_RAY: INTERNAL - ERROR'
-            if (bmad_status%exit_on_error) call err_exit
+            if (global_com%exit_on_error) call err_exit
           endif
         else
           exit

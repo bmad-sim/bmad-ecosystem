@@ -40,7 +40,7 @@ lord => lat%ele(ix_lord)
 
 if (lord%lord_status /= super_lord$) then
   call out_io (s_fatal$, r_name, 'ELEMENT NOT A SUPER_LORD')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Make an array of distances between the slave elements and the lord element.
@@ -57,7 +57,7 @@ do i = 1, lord%n_slave
   if (ds > bmad_com%significant_length) ds = ds - lat%branch(slave%ix_branch)%param%total_length
   if (-ds > lord%value(l$)) then
     call out_io (s_fatal$, r_name, 'INTERNAL ERROR! ' // trim(slave%name))
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   s_rel(i) = ds
 enddo

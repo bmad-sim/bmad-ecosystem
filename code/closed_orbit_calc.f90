@@ -230,7 +230,7 @@ do i = 1, i_max
   endif
 
   if (i == i_max .or. track_state /= moving_forward$) then
-    if (bmad_status%type_out) then
+    if (global_com%type_out) then
       if (track_state /= moving_forward$) then
         call out_io (s_error$, r_name, 'ORBIT DIVERGING TO INFINITY!')
       else
@@ -315,7 +315,7 @@ mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
 call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n), ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
-  if (bmad_status%type_out) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
+  if (global_com%type_out) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
   return
 endif
   

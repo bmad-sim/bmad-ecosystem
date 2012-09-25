@@ -187,7 +187,7 @@ elseif (axis == y_plane$) then
 else
   reading = 0.0
   call out_io (s_warn$, r_name, "This axis not supported for BPM reading!")
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 err = .false.
@@ -279,7 +279,7 @@ elseif (axis == y_plane$) then
 else
   reading = 0.0
   call out_io (s_warn$, r_name, "This axis not supported for BPM reading!")
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 err = .false.

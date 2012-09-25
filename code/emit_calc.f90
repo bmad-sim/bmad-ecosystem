@@ -93,7 +93,7 @@ subroutine emit_calc (lat, what, mode)
     do_wigs  = .true.
   else
     print *, 'ERROR IN EMIT_CALC: UNKNOWN "WHAT" SWITCH:', what
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
 
@@ -315,7 +315,7 @@ subroutine emit_calc (lat, what, mode)
     elseif (do_wigs .and. lat%ele(ir)%key == custom$) then
       ! depracated. use radiation_integrals instead.
       ! call emit_calc_custom (lat, ir, i2, i3, i5a, i5b)
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
 
     elseif (lat%ele(ir)%key == rfcavity$) then
       m65 = m65 + lat%ele(ir)%mat6(6,5)   ! add up the m65s

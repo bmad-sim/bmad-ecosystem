@@ -94,7 +94,7 @@ do ib = 0, ubound(lat%branch, 1)
           'E_TOT_START OR P0C_START MUST BE SET IN A BRANCHING ELEMENT IF THE PARTICLE IN ', &
           'THE "FROM" BRANCH IS DIFFERENT FROM THE PARTICLE IN THE "TO" BRANCH.', &
           'PROBLEM OCCURS WITH BRANCH ELEMENT: ' // branch_ele%name) 
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
         return
       endif
 
@@ -159,7 +159,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (.not. particle_is_moving_forward(end_orb, branch%param%particle)) then
         call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
                                        'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
         return
       endif
       ele_init%value(p0c$) = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
@@ -486,7 +486,7 @@ call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
 if (.not. particle_is_moving_forward(orb_end, param%particle)) then
   call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
                                  'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 call restore_errors_in_ele (ele)

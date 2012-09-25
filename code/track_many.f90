@@ -116,7 +116,7 @@ elseif (direction == -1) then
 
 else
   print *, 'ERROR IN TRACK_MANY: BAD DIRECTION:', direction
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 !--------------------------------------------------------------------------

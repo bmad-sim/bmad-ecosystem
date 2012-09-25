@@ -453,7 +453,7 @@ if (logic_option(present(lattice), type_control)) then
 
   if (.not. present (lattice)) then
     call out_io (s_fatal$, r_name, 'TYPE_CONTROL IS TRUE BUT NO LATTICE PRESENT.')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   if (li(nl) /= '') then

@@ -1,6 +1,5 @@
 module bmad_taylor_mod
 
-use bmad_base_mod
 use sim_utils
 
 ! Note: the taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 

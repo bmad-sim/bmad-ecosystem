@@ -40,8 +40,8 @@ character(12), parameter :: r_name = 'do_mode_flip'
 if (present(err_flag)) err_flag = .true.
 
 if (ele%gamma_c >= 1.0) then
-  if (bmad_status%type_out) call out_io (s_fatal$, r_name, 'CANNOT MODE FLIP ELEMENT')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%type_out) call out_io (s_fatal$, r_name, 'CANNOT MODE FLIP ELEMENT')
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 

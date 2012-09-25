@@ -114,7 +114,7 @@ else
 
   else
     print *, 'ERROR IN HIT_SPOT_CALC: ALLEY ERROR'
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
 endif
@@ -166,7 +166,7 @@ do i = 1, 20
 
   if (i == 20) then
     print *, 'ERROR IN HIT_SPOT_CALC: CALCULATION IS NOT CONVERGING'
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   ! Linear interpolation step
@@ -174,7 +174,7 @@ do i = 1, 20
   s1 = (del2 * ray0%now%vec(5) - del0 * ray2%now%vec(5)) / (del2 - del0)
   if (s1 < min(pt(ix0)%s, pt(ix2)%s) .or. s1 > max(pt(ix0)%s, pt(ix2)%s)) then
     print *, 'ERROR IN HIT_SPOT_CALC: INTERPOLATION ERROR'
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   call propagate_this ()
@@ -196,7 +196,7 @@ if (r_wall < 0 .and. r_wall > -0.0001) r_wall = 0
 
 if (r_wall > 1 .or. r_wall < 0) then
   print *, 'ERROR IN HIT_SPOT_CALC: R_WALL OUT OF BOUNDS.', r_wall
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ray%now = ray1%now

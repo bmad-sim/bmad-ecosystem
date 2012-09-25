@@ -166,14 +166,14 @@ do n_step = 1, max_step
 
 end do
 
-if (bmad_status%type_out) then
+if (global_com%type_out) then
   call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
   !print *, '  Skipping particle; coordinates will not be saved'
   orb%location = inside$
   return
 end if
 
-if (bmad_status%exit_on_error) call err_exit
+if (global_com%exit_on_error) call err_exit
 
 
 
@@ -246,7 +246,7 @@ do
   if (err_flag) then
     if (dt < 1d-3/c_light) then
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. ABORTING.')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       return
     endif
     dt_temp = dt / 10
@@ -265,7 +265,7 @@ do
   if (t_new == t) then
     err_flag = .true.
     call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     return
   endif
 
@@ -540,7 +540,7 @@ if (ele%ref_orbit == match_at_entrance$ .or. &
     !Special case: orbs straddle an element boundary. This can happen in a multipass bend.
     !FIXME
     call out_io (s_fatal$, r_name, 'ORBs straddle element boundary FIXME')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   
 else
@@ -704,7 +704,7 @@ endif
 ! Make sure ele has a branch
 if (.not. associated (ele%branch) ) then
       call out_io (s_fatal$, r_name, 'ELE HAS NO ASSOCIATED BRANCH')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
 endif
 
 

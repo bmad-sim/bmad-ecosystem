@@ -81,7 +81,7 @@ endif
 call transfer_ele (ele, half_ele, .true.)
 call create_element_slice (half_ele, ele, ele%value(l$)/2, 0.0_rp, param, .true., .false., err_flag)
 if (err_flag) then
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -239,7 +239,7 @@ if (size(ele%rf_wake%sr_mode_long) /= 0) then
   if (p(i1)%vec(5) - p(i2)%vec(5) > ele%rf_wake%z_sr_mode_max) then
     call out_io (s_abort$, r_name, &
         'Bunch longer than sr_mode wake can handle for element: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 endif
 
@@ -665,7 +665,7 @@ logical ran_gauss_here
 
 if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Compute the Twiss parameters beta and alpha, and the emittance for each plane
@@ -722,7 +722,7 @@ do i = 1, 3
     ix_kv(n_kv) = i
   case default
     call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     return
   end select
 enddo
@@ -836,7 +836,7 @@ character(16) :: r_name = 'calc_this_emit'
 if ((beam_init%a_norm_emit /= 0 .and. beam_init%a_emit /= 0) .or. &
     (beam_init%b_norm_emit /= 0 .and. beam_init%b_emit /= 0)) then
   call out_io (s_fatal$, r_name, 'SETTING BOTH NORM_EMIT AND EMIT IN BEAM_INIT STRUCTURE IS NOT ALLOWED.')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 !
@@ -911,7 +911,7 @@ if (any(.not. is_ran_plane)) n_particle = size(bunch%particle)
 
 if (n_particle < 1) then
   call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 allocate(p(n_particle))
@@ -1011,7 +1011,7 @@ if (sigma(6) == 0 .or. dpz_dz == 0) then
   a = 0
 else if (abs(dpz_dz * sigma(5)) > sigma(6)) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 else
   a = dpz_dz * sigma(5) / sigma(6)
 endif
@@ -1079,7 +1079,7 @@ character(28) :: r_name = 'init_grid_distribution'
 n_particle = grid%n_x * grid%n_px       ! total number of particles
 if (n_particle < 1) then
   call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 allocate (p(n_particle))
@@ -1188,7 +1188,7 @@ e => ellipse
 n_particle = e%n_ellipse * e%part_per_ellipse
 if (n_particle < 1) then
   call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 allocate (p(n_particle))
@@ -1310,7 +1310,7 @@ n_p2 = kv%part_per_phi(2)
 n_particle = kv%n_i2 * n_p1 * n_p2
 if (n_particle < 1) then
   call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 allocate (p(n_particle))

@@ -1661,7 +1661,7 @@ case ('push', 'push_inline')
   i_level = i_level + 1    ! number of files currently open
   if (i_level > f_maxx) then
     call parser_error ('CALL NESTING GREATER THAN 20 LEVELS')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   if (how == 'push_inline') then
@@ -1685,7 +1685,7 @@ case ('push', 'push_inline')
   call fullfilename (file_name_in, file_name2, valid)
   if (.not. valid) then
     call parser_error ('MALFORMED FILE NAME: ' // file_name_in, stop_here = .true.)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     do i = 1, i_level-1
       close (file(i_level)%f_unit)
     enddo
@@ -1752,7 +1752,7 @@ case ('pop')
 
 case default
   call parser_error ('INTERNAL ERROR IN PARSER_FILE_STACK SUBROUTINE!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 end select
 
 if (present(err)) err = .false.
@@ -1829,7 +1829,7 @@ do
     bp_com%input_line2 = line
   else
     call parser_error ('INTERNAL ERROR #4: CALL HELP')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   ! strip off comments
@@ -2330,13 +2330,13 @@ do i = 1, i_lev
     call ran_gauss(stk(i2)%value)
   else
     call parser_error ('INTERNAL ERROR #02: GET HELP')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 enddo
 
 if (i2 /= 1) then
   call parser_error ('INTERNAL ERROR #03: GET HELP')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 value = stk(1)%value
@@ -2374,7 +2374,7 @@ i_lev = i_lev + 1
 
 if (i_lev > size(stack)) then
   call parser_error ('STACK OVERFLOW.', 'EXPERT HELP IS NEEDED!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 stack(i_lev) = value
@@ -2614,7 +2614,7 @@ case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
   call upcase_string (name)
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 end select
 
 end subroutine bmad_parser_type_get
@@ -3190,7 +3190,7 @@ logical, optional :: stop_here, warn_only
 
 ! bp_com%error_flag is a common logical used so program will stop at end of parsing
 
-if (bmad_status%type_out) then
+if (global_com%type_out) then
 
   nl = 0
 
@@ -3244,7 +3244,7 @@ endif
 
 if (.not. logic_option(.false., warn_only)) then
   bp_com%error_flag = .true.
-  if (logic_option(.false., stop_here) .and. bmad_status%exit_on_error) stop
+  if (logic_option(.false., stop_here) .and. global_com%exit_on_error) stop
 endif
 
 end subroutine parser_error
@@ -3367,7 +3367,7 @@ do i = 1, n_multipass
   if (slave%n_lord /= 0) then
     call parser_error ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
                   'PLEASE GET EXPERT HELP!')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   slave%n_lord = 1
   write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
@@ -3765,7 +3765,7 @@ elseif (pele%ele_pt == center$ .or. pele%ele_pt == not_set$) then
   super_ele%s = super_ele%s + super_ele%value(l$) / 2
 elseif (pele%ele_pt /= end$) then
   call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Find the refernce point in the lattice.
@@ -3797,7 +3797,7 @@ elseif (pele%ref_pt == end$) then
   super_ele%s = super_ele%s + s_ref_end
 else
   call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #2 INTERNAL ERROR!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! For circular lattices a superimpose can wrap around the beginning or 
@@ -4356,7 +4356,7 @@ main_loop: do n = 1, n2
     do ii = 1, n_list-1
       if (name_list(r_indexx(ii)) > name_list(r_indexx(ii+1))) then
         call parser_error ('PARER_ADD_LORD INTERNAL ERROR!')
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
     enddo
 
@@ -4921,7 +4921,7 @@ do j = 1, n_ele_use
     b_ele => pointer_to_ele(lat, lat%branch(n)%ix_from_ele, lat%branch(n)%ix_from_branch)
     if (b_ele%name == ele2%name) then
       call parser_error ('ENDLESS BRANCHING LOOP DETECTED. BRANCHING ON BRANCHING ELEMENT: ' // ele2%name)
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
     n = b_ele%ix_branch
   enddo
@@ -5048,7 +5048,7 @@ sequence(:)%ix = 1  ! Init. Used for replacement list index
 
 if (stack(1)%multipass) then
   call parser_error ('"USE"D LINE FOR LATTICE EXPANSION IS MARKED MULTIPASS!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 !-------------------------------------------------------------------------
@@ -5106,7 +5106,7 @@ line_expansion: do
       if (j == 0) then  ! if not a sequence then I don't know what it is
         call parser_error ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, seq = seq)
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
         return
       endif
       s_ele%ix_ele = j
@@ -5185,7 +5185,7 @@ line_expansion: do
     i_lev = i_lev + 1
     if (i_lev > size(stack)) then
       call parser_error ('NESTED LINES EXCEED STACK DEPTH! SUSPECT INFINITE LOOP!')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
     if (s_ele%type == replacement_line$) then
       seq2 => sequence(s_ele%ix_ele)

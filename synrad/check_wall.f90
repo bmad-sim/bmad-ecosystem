@@ -38,26 +38,26 @@ do n = 1, np
     call out_io (s_fatal$, r_name, &
                     trim(wall_name(wall%side)) // ' WALL IX_PT ARRAY NOT ORDERED', &
                     '           N Ix_pt          S    Name', line1, line2)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   if (n0 == n1) then
     call out_io (s_fatal$, r_name, &
                     wall_name(wall%side) // ' WALL IX_PT DEGENERACY: \i0\  \i0\ ', &
                     'BOTH POINT TO: \i0\  \i0\ ', i_array = [n-1, n, n0, n1])
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
 enddo
 
 if (pt(0)%s /= 0) then
   call out_io (s_fatal$, r_name, wall_name(wall%side) // ' WALL DOES NOT START AT S = 0')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (pt(np)%s /= s_lat) then
   call out_io (s_fatal$, r_name, wall_name(wall%side) // ' WALL DOES NOT GO A FULL TURN')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! If the lattice is circular then the end x must be equal to the start x.
@@ -65,7 +65,7 @@ endif
 if (lat_type == circular_lattice$) then
   if (pt(np)%x /= pt(0)%x) then
     call out_io (s_fatal$, r_name, 'BEGINNING X DOES NOT EQUAL FINAL X FOR: ' // wall_name(wall%side))
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 endif
 

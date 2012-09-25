@@ -32,7 +32,7 @@ subroutine get_initial_pt (ray, wall, ix_wall, lat)
   if (wall%n_pt_tot == 0) then
     print *, 'There are no points in the wall!'
     print *, 'You should check the wall first with check_wall!'
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
 

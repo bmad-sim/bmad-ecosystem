@@ -235,7 +235,7 @@ do
   if (err_flag) then
     if (ds < 1d-3) THEN
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE STEP. ABORTING.')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       return
     endif
     ds_temp = ds / 10
@@ -250,7 +250,7 @@ do
   if (s_new == s) then
     err_flag = .true.
     call out_io (s_fatal$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     return
   endif
 

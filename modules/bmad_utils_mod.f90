@@ -184,7 +184,7 @@ contains
 ! "Normally" means that starting s-position in the branch is zero. This routine does
 ! adjust for non-zero starting s-positions.
 !
-! This routine will bomb the program if bmad_status%exit_on_error is True.
+! This routine will bomb the program if global_com%exit_on_error is True.
 !
 ! Optionally: translated_s is a translated longitudinal position which is normally
 ! in the range [0, branch_length].
@@ -241,10 +241,10 @@ endif
 ! Finish
 
 if (err_flag) then
-  if (bmad_status%type_out) call out_io (s_fatal$, r_name, &
+  if (global_com%type_out) call out_io (s_fatal$, r_name, &
         'S-POSITION \es20.12\ PAST EDGE OF LATTICE. ' , &
         'PAST LATTICE EDGE AT: \es20.12\ ', r_array = [s, s_bound])
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (present(translated_s)) translated_s = ss
@@ -891,7 +891,7 @@ if (present(err_flag)) err_flag = .true.
 mc2 = mass_of(particle)
 if (E_tot < mc2) then
   call out_io (s_abort$, r_name, 'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -2350,12 +2350,12 @@ character(20) :: r_name = 'transfer_mat_from_twiss'
 
 if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
   call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele1%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (ele2%a%beta == 0 .or. ele2%b%beta == 0) then
   call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele2%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Transfer matrices without coupling or dispersion
@@ -3194,7 +3194,7 @@ case (all_groups$)
   call set_rad_int
 
 case default
-   if (bmad_status%exit_on_error) call err_exit   ! Should not be here
+   if (global_com%exit_on_error) call err_exit   ! Should not be here
 
 end select
 
@@ -3689,7 +3689,7 @@ if (present(ix_slave)) then
   enddo
 
   ! If ix_slave not found then this is an error
-  if (bmad_status%exit_on_error) call err_exit   
+  if (global_com%exit_on_error) call err_exit   
 
 endif
 
@@ -4103,7 +4103,7 @@ case (exit_end$)
   p0c   = ele_in%value(p0c$)
   drift_ele%name                   = 'drift2_' // ele_in%name(1:33)
 case default
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 end select
 
 drift_ele%key                    = drift$
@@ -4201,7 +4201,7 @@ if (absolute_time_tracking(ele)) then
 else
   if (orbit%beta == 0) then
     call out_io (s_fatal$, r_name, 'PARTICLE IN NON E-GUN ELEMENT HAS VELOCITY = 0!')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     time = orbit%t  ! Just to keep on going
     return
   endif

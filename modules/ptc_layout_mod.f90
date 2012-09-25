@@ -461,7 +461,7 @@ select case (ele%key)
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN ELEMENT TYPE: ' // ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 end select
 
 !

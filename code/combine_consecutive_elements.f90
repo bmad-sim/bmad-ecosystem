@@ -40,7 +40,7 @@ do i = 1, lat%n_ele_track
 
   if (lat%ele(i-1)%name == ele1%name .and. ele2%key /= marker$) then
     call out_io (s_error$, r_name, 'TRIPLE CONSECUTIVE ELEMENTS HAVE SAME NAME! ' // ele1%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   if (ele1%key == sbend$) then

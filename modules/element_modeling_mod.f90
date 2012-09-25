@@ -71,7 +71,7 @@ character(40) :: r_name = 'create_sol_quad_model'
 !
 
 call out_io (s_fatal$, r_name, 'THIS ROUTINE NOT YET IMPLEMENTED! PLEASE CONTACT DCS')
-if (bmad_status%exit_on_error) call err_exit
+if (global_com%exit_on_error) call err_exit
 
 end subroutine
 
@@ -144,7 +144,7 @@ lat_com => lat      ! For yfit_calc
 
 if (wiggler%key /= wiggler$) then
   call out_io (s_fatal$, r_name, 'Element is not a wiggler!: ' // wiggler%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Calculate integrals and maximum field
@@ -220,7 +220,7 @@ if (wiggler%sub_key == map_type$) then
   if (n_pole < 3  .and. g_max /= 0) then
     call out_io (s_fatal$, r_name, 'WIGGLER: ' // wiggler%name, &
                'HAS LESS THAN 3 POLES. CANNOT CREATE A WIGGLER MODEL.')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
 ! Else it is a periodic type wiggler
