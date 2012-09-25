@@ -1,6 +1,5 @@
 module bmad_interface
 
-use matrix_mod
 use basic_bmad_mod
 use equal_mod
 use nrutil, only: reallocate

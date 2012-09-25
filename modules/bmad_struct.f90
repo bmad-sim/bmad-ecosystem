@@ -4,9 +4,9 @@
 
 module bmad_struct
 
-use twiss_mod
 use bmad_taylor_mod
 use random_mod
+use twiss_mod
 
 use definition, only: genfield, fibre, layout
 

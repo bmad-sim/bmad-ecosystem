@@ -576,6 +576,19 @@ defined, symbolic constants cannot be redefined. For example:
   my_const = 2  ! No: my_const cannot be redefined.
 \end{example}
 
+Another potential pitfall with immediate substitution is when using
+dependent element attributes (\sref{s:depend}). For example:
+\begin{example}
+  b01w: sbend, l = 0.5, angle = 0.02
+  a_const = b01w[g]    ! No: bend g has not yet been computed!
+\end{example}
+Here the bend strength \vn{g} (\sref{s:bend}) will eventually be
+computed to be 0.04 (= angle / l) but that computation does not happen
+until lattice expansion (\sref{s:expand}). In this case, the value of
+\vn{a_const} will be the default value of \vn{g} which is zero.  As a
+rule of thumb, never rely on dependent attributes having their correct
+value.
+
 %---------------------------------------------------------------------------
 \section{Intrinsic functions}
 \label{s:functions}
