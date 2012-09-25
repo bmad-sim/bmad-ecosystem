@@ -148,7 +148,7 @@ dphi0_ref_original = dphi0_ref
 if (.not. associated(field_scale)) then
   call out_io (s_fatal$, r_name, 'CANNOT DETERMINE WHAT TO SCALE. NO FIELD MODE WITH HARMONIC = 1, M = 0', &
                                  'FOR ELEMENT: ' // ele%name)
-  if (bmad_status%exit_on_error) call err_exit ! exit on error.
+  if (global_com%exit_on_error) call err_exit ! exit on error.
   return
 endif
 
@@ -166,7 +166,7 @@ case (lcavity$, e_gun$)
   e_tot_start = ele%value(e_tot_start$)
 case default
   call out_io (s_fatal$, r_name, 'CONFUSED ELEMENT TYPE!')
-  if (bmad_status%exit_on_error) call err_exit ! exit on error.
+  if (global_com%exit_on_error) call err_exit ! exit on error.
   return
 end select
 
@@ -183,7 +183,7 @@ if (field_scale == 0) then
   if (.not. do_scale_amp) then
     call out_io (s_fatal$, &
             r_name, 'CANNOT AUTO PHASE IF NOT ALLOWED TO MAKE THE FIELD_SCALE NON-ZERO FOR: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit ! exit on error.
+    if (global_com%exit_on_error) call err_exit ! exit on error.
     return 
   endif
   field_scale = 1  ! Initial guess.

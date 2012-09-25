@@ -333,7 +333,7 @@ case default
 
   print *, 'ERROR IN SYMP_LIE_BMAD: NOT YET IMPLEMENTED:', ele%key
   print *, '      FOR ELEMENT: ', ele%name
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 end select
 

@@ -127,7 +127,7 @@ case (static$)
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN MAT6_CALC_METHOD: ' // calc_method_name(ele%mat6_calc_method))
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 end select
 

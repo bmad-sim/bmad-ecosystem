@@ -417,7 +417,7 @@ case (ab_multipole$, multipole$) ! multipoles do not scale
 
 case default
   call out_io (s_fatal$, r_name, 'ELEMENT NOT A AB_MULTIPOLE, QUAD, ETC. ' // this_ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 end select
 

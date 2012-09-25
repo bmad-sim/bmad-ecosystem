@@ -227,7 +227,7 @@ case (lcavity$)
   if (ele%value(E_tot_start$) == 0) then
     if (present(err_flag)) err_flag = .true.
     call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     return
   endif
 
@@ -586,7 +586,7 @@ case (rfcavity$)
       call out_io (s_fatal$, r_name, &
                  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // ele%name, &
                  'YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       return
     endif
 
@@ -724,7 +724,7 @@ case (wiggler$)
             'MAP_TYPE WIGGLER: ' // ele%name, &
             'HAS TRACKING_METHOD = BMAD_STANDARD.', &
             'THIS IS NOT A POSSIBLE OPTION FOR THE TRACKING_METHOD.')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     return
   endif
 
@@ -765,7 +765,7 @@ case default
   call out_io (s_fatal$, r_name, &
           'BMAD_STANDARD TRACKING_METHOD NOT IMPLMENTED FOR: ' // key_name(ele%key), &
           'FOR ELEMENT: ' // ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 
 end select

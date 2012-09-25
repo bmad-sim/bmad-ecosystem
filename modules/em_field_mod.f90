@@ -335,7 +335,7 @@ select case (ele%field_calc)
 
     if (df_calc) then
       call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY!')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
 
   !------------------------------------------
@@ -514,7 +514,7 @@ select case (ele%field_calc)
 
   case default
     call out_io (s_fatal$, r_name, 'ELEMENT NOT YET CODED: ' // key_name(ele%key), 'FOR: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
     return
   end select
@@ -527,7 +527,7 @@ select case (ele%field_calc)
 
     if (ele%value(l$) == 0) then
       call out_io (s_fatal$, r_name, 'dField NOT YET IMPLEMENTED FOR MULTIPOLES!', 'FOR: ' // ele%name)
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return
     endif
@@ -587,7 +587,7 @@ case(map$)
   case(rfcavity$, lcavity$)
     if (.not. associated(ele%em_field)) then
       call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Map', 'FOR: ' // ele%name) 
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return  
     endif
@@ -605,7 +605,7 @@ case(map$)
       call out_io (s_fatal$, r_name, 'Frequency is zero for map in cavity: ' // ele%name)
       if (ele%em_field%mode(1)%harmonic == 0) &
             call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return  
     endif
@@ -627,7 +627,7 @@ case(map$)
       case (anchor_end$);       s0 = ele%value(l$)
       case default
         call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD MODE IN ELEMENT: ' // ele%name)
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       end select
 
       do n = 1, size(mode%map%term)
@@ -708,7 +708,7 @@ case(map$)
   case default
     call out_io (s_fatal$, r_name, 'ELEMENT NOT YET CODED FOR MAP METHOD: ' // key_name(ele%key), &
                                    'FOR: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   end select
 
 !----------------------------------------------------------------------------
@@ -721,7 +721,7 @@ case(grid$)
 
   if (.not. associated(ele%em_field)) then
     call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Grid', 'FOR: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
     return
   endif
@@ -738,7 +738,7 @@ case(grid$)
       call out_io (s_fatal$, r_name, 'Frequency is zero for grid in cavity: ' // ele%name)
       if (ele%em_field%mode(1)%harmonic == 0) &
             call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return  
     endif
@@ -760,7 +760,7 @@ case(grid$)
     case (anchor_end$);       s0 = ele%value(l$)
     case default
       call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD GRID IN ELEMENT: ' // ele%name)
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return
     end select
@@ -773,7 +773,7 @@ case(grid$)
     ! Check for grid
     if (.not. associated(mode%grid)) then
       call out_io (s_fatal$, r_name, 'MISSING GRID FOR ELE: ' // ele%name)
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return
     endif
@@ -790,7 +790,7 @@ case(grid$)
 
       call em_grid_linear_interpolate(ele, mode%grid, local_field, err, r, s_rel-s0)
       if (err) then
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
         return
       endif
@@ -818,7 +818,7 @@ case(grid$)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN GRID TYPE: \i0\ ', &
                                      'FOR ELEMENT: ' // ele%name, i_array = [mode%grid%type])
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return
     end select
@@ -829,7 +829,7 @@ case(grid$)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   if (present(err_flag)) err_flag = .true.
   return
 end select
@@ -995,7 +995,7 @@ case (3)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD DIMENSION: \i0\ ', em_grid_dimension(grid%type))
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   err_flag = .true.
   return
 end select

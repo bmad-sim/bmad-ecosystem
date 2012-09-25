@@ -187,7 +187,7 @@ case (custom$)
 
   if (present(err)) err = .true.
   call out_io (s_fatal$, r_name,  'MAT6_CALC_METHOD = BMAD_STANDARD IS NOT ALLOWED FOR A CUSTOM ELEMENT: ' // ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 
 !--------------------------------------------------------
@@ -523,7 +523,7 @@ case (rbend$)
 
   if (present(err)) err = .true.
   call out_io (s_fatal$, r_name,  'RBEND ELEMENTS NOT ALLOWED INTERNALLY!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 
 !--------------------------------------------------------
@@ -542,7 +542,7 @@ case (rfcavity$)
       if (present(err)) err = .true.
       call out_io (s_fatal$, r_name,  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // trim(ele%name), &
                                       '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       return
     endif
 
@@ -954,7 +954,7 @@ case default
   if (present(err)) err = .true.
   call out_io (s_fatal$, r_name,  'UNKNOWN ELEMENT KEY: \i0\ ', &
                                   'FOR ELEMENT: ' // ele%name, i_array = [ele%key])
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 
 end select

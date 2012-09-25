@@ -256,13 +256,13 @@ do ie = npos1, npos2-1
       if (abs(pdata(dat_indx+43) - 1) > 1e-6) then
         call xsif_error ('MULTLIPOLE WITH SCALEFAC: ' // ele%name, &
                          'NOT IMPLEMENTED IN BMAD.')
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
 
       if (pdata(dat_indx+45) /= 0 .or. pdata(dat_indx+46) /= 0) then
         call xsif_error ('MULTLIPOLE WITH SOLENOID: ' // ele%name, &
                          'NOT IMPLEMENTED IN BMAD.')
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
 
     case (mad_soln)
@@ -286,19 +286,19 @@ do ie = npos1, npos2-1
       if (pdata(dat_indx+4) /= 0) then
         call xsif_error ('ENERGY ATTRIBUTE WITH RFCAVITY: ' // ele%name, &
                               'NOT IMPLEMENTED IN BMAD.')
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
 
       if (pdata(dat_indx+5) /= 0 .or. pdata(dat_indx+6) /= 0) then
         call xsif_error ('WAKEFIELD FILES WITH RFCAVITY: ' // ele%name, &
                               'NOT IMPLEMENTED IN BMAD.')
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
 
       if (pdata(dat_indx+7) /= 0) then
         call xsif_error ('ELOSS ATTRIBUTE WITH RFCAVITY: ' // ele%name, &
                               'NOT IMPLEMENTED IN BMAD.')
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
 
     case (mad_sepa)
@@ -390,7 +390,7 @@ do ie = npos1, npos2-1
       ele%value(val1$:val12$) = pdata(dat_indx+1:dat_indx+12)
       if (any (pdata(dat_indx+13:dat_indx+20) /= 0)) then
         call xsif_error ('NON-ZERO Pn WITH n > 12 FOR: ' // ele%name)
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
 
     case (mad_mtwis)
@@ -444,7 +444,7 @@ do ie = npos1, npos2-1
 
       if ((ix1 /= 0) .neqv. (ix2 /= 0)) then
         call xsif_error ( 'LCAVITY DOES NOT HAVE BOTH L AND T WAKE FILES: ' // ele%name)
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
 
       if ((ix1 /= 0) .and. (ix2 /= 0)) then
@@ -471,7 +471,7 @@ do ie = npos1, npos2-1
     case default
       write (line, '(a, i8)') 'UNKNOWN ELEMENT TYPE:', key
       call xsif_error (line)
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
 
   end select
 
@@ -545,7 +545,7 @@ if (ibeam_ptr /= 0) then
   case default
     write (line, '(a, i8)') 'UNKNOWN PARTICLE TYPE:', nint(pdata(dat_indx))
     call xsif_error (line)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   end select
 
   lat%param%n_part = pdata(dat_indx+14)
@@ -632,9 +632,9 @@ if (bp_com%write_digested) then
   enddo
   call write_digested_bmad_file (digested_file, lat, n_names, file_names) 
   deallocate (file_names)
-  if (bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+  if (global_com%type_out) call out_io (s_info$, r_name, 'Created new digested file')
 else
-  if (bmad_status%type_out) call out_io (s_info$, r_name, 'NOT crating a digested file due to warnings.')
+  if (global_com%type_out) call out_io (s_info$, r_name, 'NOT crating a digested file due to warnings.')
 endif
 
 !------------------------------------------------------------------------
@@ -705,7 +705,7 @@ iu = lunget()
 open (iu, file = file_name, status = 'old', iostat = ios)
 if (ios /= 0) then
   call xsif_error ('CANNOT OPEN WAKE FILE: ' // file_name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 n = 0
@@ -720,14 +720,14 @@ do
   if (ios /= 0) then
     call xsif_error ('CANNOT READ WAKEFILE: ' // file_name, &
                                     'CANNOT READ LINE: ' // line)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 enddo
 close (iu)
 
 if (n < 1) then
   call xsif_error ('WAKE FILE SEEMS TO BE EMPTY: ' // file_name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! Signs: In Bmad +z is pointing forward. In XSIF/LIAR this is the opposite.
@@ -741,7 +741,7 @@ do i = 1, n
   if (abs(s_pos(i) - ds * (i - 1)) > -1e-4 * ds) then
     write (line, '(a, i5)') 'NOT UNIFORMLY ASSENDING. PROBLEM IS INDEX:', i
     call xsif_error ('"S" VALUES IN WAKE FILE: ' // file_name, line)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 enddo
 
@@ -752,12 +752,12 @@ if (associated(wake)) then
   if (size(wake) /= n) then
     call xsif_error ('WAKE FILES HAVE UNEQUAL LENGTHS!', &
                                   'FOR ELEMENT: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   if (abs(ds - wake(n-1)%z / (n-1)) > -1e-4 * ds) then
     call xsif_error ('WAKE FILES HAVE DIFFERENT dZ BETWEEN POINTS.', &
                                                 'FOR ELEMENT: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 else
   allocate (wake(0:n-1))
@@ -773,7 +773,7 @@ elseif (this == 'TRANS') then
   wake%trans = -field(1:n)
 else
   call xsif_error ('INTERNAL ERROR!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 end subroutine
@@ -832,7 +832,7 @@ character(*), optional :: line2
 
 !
 
-if (.not. bmad_status%type_out) return
+if (.not. global_com%type_out) return
 call out_io (s_error$, r_name, 'FOR XSIF FILE: ' // xsif_file, line1, line2)
 bp_com%write_digested = .false.
 
@@ -848,7 +848,7 @@ character(*), optional :: line2
 
 !
 
-if (.not. bmad_status%type_out) return
+if (.not. global_com%type_out) return
 call out_io (s_warn$, r_name, 'FOR XSIF FILE: ' // xsif_file, line1, line2)
 bp_com%write_digested = .false.
 

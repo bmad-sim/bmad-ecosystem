@@ -818,7 +818,7 @@ character(30), parameter :: r_name = 'switch_local_positions'
 ! Make sure ele_try has a branch
 if (.not. associated (ele_try%branch) ) then
       call out_io (s_fatal$, r_name, 'ELE_TRY HAS NO ASSOCIATED BRANCH')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
 endif
 
 !

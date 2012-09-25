@@ -113,12 +113,12 @@ do i = 1, n_control
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
     call out_io (s_fatal$, r_name, 'BRANCH INDEX OUT OF BOUNDS. \i0\ ', ix_branch)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
     call out_io (s_fatal$, r_name, 'INDEX OUT OF BOUNDS. \i0\ ', ix_slave)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 enddo
 

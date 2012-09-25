@@ -117,7 +117,7 @@ if (.not. err .and. .not. bp_com%always_parse) then
     call parser_end_stuff (.false.)
     return
   else
-    if (bmad_status%type_out) then
+    if (global_com%type_out) then
        call out_io (s_info$, r_name, 'Taylor_order has changed.', &
            'Taylor_order in digested file: \i4\ ', &
            'Taylor_order now:              \i4\ ', &
@@ -147,7 +147,7 @@ do i = 0, ubound(in_lat%ele, 1)
   in_lat%ele(i)%ixx = i   ! Pointer to plat%ele() array
 enddo
 
-if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
+if (global_com%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then
@@ -244,7 +244,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
     debug_line = bp_com%parse_line
-    if (bmad_status%type_out) call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on')
+    if (global_com%type_out) call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on')
     cycle parsing_loop
   endif
 
@@ -257,7 +257,7 @@ parsing_loop: do
     if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
     n_ptr = n_ptr + 1
     bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(parse_line_save(ix+2:)) ! To save in digested
-    if (bmad_status%type_out) call out_io (s_dwarn$, r_name, &
+    if (global_com%type_out) call out_io (s_dwarn$, r_name, &
                                      'Print Message in Lattice File: ' // parse_line_save(ix+2:))
     ! This prevents bmad_parser from thinking print string is a command.
     call load_parse_line ('init', 1, end_of_file)
@@ -269,7 +269,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
     bp_com%write_digested = .false.
-    if (bmad_status%type_out) call out_io (s_info$, r_name, &
+    if (global_com%type_out) call out_io (s_info$, r_name, &
                             'Found in file: "NO_DIGESTED". No digested file will be created')
     cycle parsing_loop
   endif
@@ -334,7 +334,7 @@ parsing_loop: do
 
     if (xsif_called) then
       call parser_error ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
       ! call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line) 
       detected_expand_lattice_cmd = .true.
       goto 8000  ! Skip the lattice expansion since xsif_parser does this
@@ -558,7 +558,7 @@ parsing_loop: do
     iseq_tot = iseq_tot + 1
     if (iseq_tot > size(sequence)-1) then
       call out_io (s_fatal$, r_name, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY SIZE!')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
 
     sequence(iseq_tot)%name = word_1
@@ -880,7 +880,7 @@ if (ix > 0) then  ! lattice_type has been set.
 else              ! else use default
   lat%param%lattice_type = circular_lattice$      ! default 
   if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
-    if (bmad_status%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
+    if (global_com%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
                                   'SETTING THE LATTICE_TYPE TO LINEAR_LATTICE.')
     lat%param%lattice_type = linear_lattice$
   endif
@@ -899,11 +899,11 @@ ele => lat%ele(0)
 
 err = .true.
 if (bp_com%e_tot_set .and. ele%value(e_tot$) < mass_of(lat%param%particle)) then
-  if (bmad_status%type_out) call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2! WILL USE 1000 * MC^2!')
+  if (global_com%type_out) call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2! WILL USE 1000 * MC^2!')
 elseif (bp_com%p0c_set .and. ele%value(p0c$) < 0) then
-  if (bmad_status%type_out) call out_io (s_error$, r_name, 'REFERENCE MOMENTUM IS NEGATIVE! WILL USE 1000 * MC^2!')
+  if (global_com%type_out) call out_io (s_error$, r_name, 'REFERENCE MOMENTUM IS NEGATIVE! WILL USE 1000 * MC^2!')
 elseif (.not. (bp_com%p0c_set .or. bp_com%e_tot_set)) then
-  if (bmad_status%type_out) call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
+  if (global_com%type_out) call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
 else
   err = .false.
 endif
@@ -1034,13 +1034,13 @@ lat%input_taylor_order = bmad_com%taylor_order
 8000 continue
 
 if (detected_expand_lattice_cmd) then
-  exit_on_error = bmad_status%exit_on_error
-  bmad_status%exit_on_error = .false.
+  exit_on_error = global_com%exit_on_error
+  global_com%exit_on_error = .false.
   bp_com%bmad_parser_calling = .true.
   bp_com%old_lat => in_lat
   call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false.)
   bp_com%bmad_parser_calling = .false.
-  bmad_status%exit_on_error = exit_on_error
+  global_com%exit_on_error = exit_on_error
 endif
 
 ! Remove all null_ele elements and init custom stuff.
@@ -1126,14 +1126,14 @@ if (.not. bp_com%error_flag) then
   if (bp_com%write_digested) then
     call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, &
                                                             bp_com%lat_file_names, bp_com%ran, err)
-    if (.not. err .and. bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+    if (.not. err .and. global_com%type_out) call out_io (s_info$, r_name, 'Created new digested file')
   endif
 endif
 
 call parser_end_stuff ()
 
 if (bp_com%ran%ran_function_was_called) then
-  if (bmad_status%type_out) call out_io(s_warn$, r_name, &
+  if (global_com%type_out) call out_io(s_warn$, r_name, &
                 'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
 endif
@@ -1183,7 +1183,7 @@ if (logic_option (.true., do_dealloc)) then
 endif
 
 if (bp_com%error_flag) then
-  if (bmad_status%exit_on_error) then
+  if (global_com%exit_on_error) then
     call out_io (s_fatal$, r_name, 'BMAD_PARSER FINISHED. EXITING ON ERRORS')
     stop
   endif

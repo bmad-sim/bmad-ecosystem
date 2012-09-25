@@ -404,7 +404,7 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
         if (z > 0) then
           call out_io (s_abort$, r_name, &
              'MACROPARTICLE Z POSITION HAS SHIFTED ACROSS A SLICE BOUNDARY.')
-          if (bmad_status%exit_on_error) call err_exit
+          if (global_com%exit_on_error) call err_exit
         endif
         if (iw+1 > n_wake) then
           call out_io (s_error$, r_name, &
@@ -846,7 +846,7 @@ subroutine mp_sigma_to_mat (s, mat)
     mat(6,:) = [s(s16$), s(s26$), s(s36$), s(s46$), s(s56$), s(s66$)]
   else
     print *, 'ERROR IN MP_SIGMA_TO_MAT: MATRIX SIZE NOT 4 OR 6!'
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
 end subroutine
@@ -908,7 +908,7 @@ subroutine mat_to_mp_sigma (mat, sig)
     sig(s66$) = mat(6,6)
   else
     print *, 'ERROR IN NAT_TO_MP_SIGMA: MATRIX SIZE IS NOT 4 OR 6!'
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
 end subroutine

@@ -83,7 +83,7 @@ logical aperture_bracketed
 if (track_input%x_init == 0 .or. track_input%y_init == 0) then
   print *, 'ERROR IN DYNAMIC_APERTURE: TRACK_INPUT.X_INIT OR',  &
                                            ' TRACK_INPUT.Y_INIT = 0'
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 param_save = lat%param
@@ -162,7 +162,7 @@ test_loop: do
 
   if (x1 > 1000*track_input%x_init .or. y1 > 1000*track_input%y_init) then
     print *, 'ERROR IN DYNAMIC_APERTURE: CANNOT FIND APERTURE LIMIT'
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   ! see if we are accurate enough

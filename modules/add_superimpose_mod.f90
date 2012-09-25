@@ -88,7 +88,7 @@ if (super_ele_in%value(l$) < 0) then
                   'Superposition of element with negative length not allowed!', &
                   'Element: ' // super_ele_in%name, &
                   'Length: \es10.2\ ', r_array = [super_ele_in%value(l$)] )
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -140,7 +140,7 @@ if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2
     'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_saved%name, &
     'ELEMENT WANTS TO BE PLACED AT: [\F10.1\, \F10.1\] ', &
     'lATTICE EXTENT:                [\f10.1\, \F10.1\]', r_array = [s1_in, s2_in, s1_lat, s2_lat])
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
  
@@ -414,7 +414,7 @@ do
             'I DO NOT KNOW HOW TO SUPERIMPOSE ELEMENT: "' // trim(super_saved%name) // &
                                                '" OF TYPE: ' // key_name(super_saved%key), &
             'UPON: "' // trim(slave_saved%name) // '" OF TYPE: ' // key_name(slave_saved%key))
-    if (bmad_status%exit_on_error) call err_exit 
+    if (global_com%exit_on_error) call err_exit 
     return                   
   endif
 

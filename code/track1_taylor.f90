@@ -34,7 +34,7 @@ real(rp) dtime_ref
 !
 
 if (.not. associated(ele%taylor(1)%term)) then
-  if (bmad_status%type_out) then
+  if (global_com%type_out) then
     ! 'WARNING: TAYLOR SERIES NOT PRESENT FOR: ' // ele%name
     ! 'I WILL MAKE A TAYLOR SERIES AROUND THE GIVEN ORBIT...'
   endif

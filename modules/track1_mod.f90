@@ -145,7 +145,7 @@ case (elliptical$)
   if (x_lim == 0 .or. y_lim == 0) then
     call out_io (s_fatal$, r_name, &
               'ECOLLIMATOR HAS ONE LIMIT ZERO AND THE OTHER NOT: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   r = (x_particle / x_lim)**2 + (y_particle / y_lim)**2

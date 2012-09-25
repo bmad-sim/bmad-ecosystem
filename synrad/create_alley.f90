@@ -119,7 +119,7 @@ subroutine create_alley (wall)
         do j = i1, i6-1
           print '(i6, 2x, a, f11.4)', j, wall%pt(j)%name, wall%pt(j)%s
         enddo
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
       if (pt(i6)%s > s_max_local) exit
       i6 = i6 + 1
@@ -136,7 +136,7 @@ subroutine create_alley (wall)
         do j = max(1,i1-1), i6
           print '(i6, 2x, a, f11.4)', j, wall%pt(j)%name, wall%pt(j)%s
         enddo
-        if (bmad_status%exit_on_error) call err_exit
+        if (global_com%exit_on_error) call err_exit
       endif
     enddo
 

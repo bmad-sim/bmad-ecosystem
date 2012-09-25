@@ -112,7 +112,7 @@ branch%param%t1_no_RF = mat6
 ! Compute twiss parameters
 
 call twiss_from_mat6 (mat6, map0, branch%ele(0), branch%param%stable, &
-              branch%param%unstable_factor, stat, bmad_status%type_out)
+              branch%param%unstable_factor, stat, global_com%type_out)
 if (present(status)) status = stat
 
 lat%a%tune = branch%ele(0)%a%phi

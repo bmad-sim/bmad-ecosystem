@@ -119,7 +119,7 @@ subroutine parser_error (what1, what2, what3, node)
 
 ! BP_COM%ERROR_FLAG is a common logical used so program will stop at end of parsing
 
-  if (bmad_status%type_out) then
+  if (global_com%type_out) then
 
     print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', trim(what1)
 
@@ -237,7 +237,7 @@ if (bmad_status%ok) then
     if (present(digested_read_ok)) digested_read_ok = .true.
     return
   else
-    if (bmad_status%type_out) then
+    if (global_com%type_out) then
        call out_io (s_info$, r_name, 'Taylor_order has changed.', &
            'Taylor_order in digested file: \i4\ ', &
            'Taylor_order now:              \i4\ ', &
@@ -271,9 +271,9 @@ call aml_parser_cpp (c_str(lat_file), expand_node, c_ok)
 bmad_status%ok = f_logic(c_ok)
 
 if (.not. bmad_status%ok) then
-  if (bmad_status%exit_on_error) then
+  if (global_com%exit_on_error) then
     call out_io (s_fatal$, r_name, 'AML_PARSER FINISHED. EXITING ON ERRORS')
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   return
 endif
@@ -681,7 +681,7 @@ if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 ! error check
 
 if (bp_com%error_flag) then
-  if (bmad_status%exit_on_error) then
+  if (global_com%exit_on_error) then
     call out_io (s_fatal$, r_name, 'AML_PARSER FINISHED. EXITING ON ERRORS')
     stop
   else

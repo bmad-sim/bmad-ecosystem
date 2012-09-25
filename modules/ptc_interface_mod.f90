@@ -189,7 +189,7 @@ if (order == 0) return
 
 if (order < 0 .or. order > 100) then
   print *, 'ERROR IN SET_TAYLOR_ORDER: ORDER OUT OF BOUNDS:', order
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! check for override_flag and do nothing if the taylor order has been set
@@ -1151,7 +1151,7 @@ if (params_present) then
     this_energy = 1e-9 * e_tot
     if (this_energy == 0) then
       call out_io (s_fatal$, r_name, 'E_TOT IS 0.')
-      if (bmad_status%exit_on_error) call err_exit
+      if (global_com%exit_on_error) call err_exit
     endif
     call set_madx (energy = this_energy, method = this_method, step = this_steps)
     old_e_tot  = e_tot
@@ -2584,7 +2584,7 @@ nv = ut_in%nv
 
 if (nv /= 6) then
   print *, 'ERROR IN SORT_UNIVERSAL_TERMS: I AM NOT SET UP FOR NV /= 6'
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (associated(ut_sorted%n)) deallocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c, ut_sorted%j)
@@ -2741,7 +2741,7 @@ elseif (leng == 0) then
 else
   if (ele%value(ds_step$) == 0) then
     call out_io (s_fatal$, r_name, 'DS_STEP IS ZERO FOR ELEMENT: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   ptc_key%nstep = nint(abs(leng) / ele%value(ds_step$))
   if (ptc_key%nstep == 0) ptc_key%nstep = 1
@@ -2813,7 +2813,7 @@ case (kicker$, hkicker$, vkicker$)
 case (rfcavity$, lcavity$)
   if (ele%value(rf_frequency$) == 0) then
     call out_io (s_fatal$, r_name, 'RF FREQUENCY IS ZERO FOR: ' // ele%name)
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
     return
   endif
 
@@ -2858,7 +2858,7 @@ case (ab_multipole$, multipole$)
 case (beambeam$)
   ptc_key%magnet = 'beambeam'
   print *, 'ERROR IN ELE_TO_FIBRE: BEAMBEAM ELEMENT NOT YET IMPLEMENTED!'
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 case (wiggler$)
   ptc_key%magnet = 'wiggler'
@@ -2866,7 +2866,7 @@ case (wiggler$)
 case default
   print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', key_name(ele%key)
   print *, '      FOR ELEMENT: ', trim(ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 end select
 
@@ -2920,7 +2920,7 @@ if (key == wiggler$) then
     print *, 'ERROR IN ELE_TO_FIBRE: WIGGLER FORM/TYPE MISMATCH!'
     print *, '     ', hyper_y$, hyper_xy$, hyper_x$
     print *, '     ', hyperbolic_ydollar, hyperbolic_xydollar, hyperbolic_xdollar
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
 
   n_term = size(ele2%wig%term)
@@ -3040,14 +3040,14 @@ case (elseparator$)
   call multipole_ele_to_ab (ele, +1, .false., has_nonzero_pole, an0, bn0) 
   if (has_nonzero_pole) then
     print *, 'ERROR IN ELE_TO_FIBRE: ', 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
-    if (bmad_status%exit_on_error) call err_exit
+    if (global_com%exit_on_error) call err_exit
   endif
   return
 
 case default
   print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', key_name(ele%key)
   print *, '      FOR ELEMENT: ', trim(ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 end select
 

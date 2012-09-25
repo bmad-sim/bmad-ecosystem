@@ -675,6 +675,6 @@ enddo
 
 !
 
-if (err_flag .and. bmad_status%exit_on_error) call err_exit
+if (err_flag .and. global_com%exit_on_error) call err_exit
 
 end subroutine

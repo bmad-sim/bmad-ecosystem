@@ -55,7 +55,7 @@ enddo
 if (branch%param%lattice_type == circular_lattice$) then
   if (branch%ele(0)%mode_flip .neqv. branch%ele(n_track)%mode_flip) then
     call do_mode_flip (branch%ele(n_track), err)
-    if (err .and. bmad_status%type_out) then
+    if (err .and. global_com%type_out) then
       print *, 'ERROR IN TWISS_PROPAGATE_ALL: CANNOT MAKE FINAL FLIP STATE'
       print *, '      EQUAL TO THE INITIAL'
     endif

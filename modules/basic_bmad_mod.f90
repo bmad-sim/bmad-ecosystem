@@ -1,7 +1,6 @@
 module basic_bmad_mod
 
 use sim_utils
-use bmad_base_mod
 
 integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
 

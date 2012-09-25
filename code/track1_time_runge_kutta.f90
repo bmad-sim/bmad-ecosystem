@@ -131,7 +131,7 @@ elseif (end_orb%p0c < 0 .and. end_orb%location /= inside$) then
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 
 endif
 
@@ -285,7 +285,7 @@ elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 !Set relativistic beta

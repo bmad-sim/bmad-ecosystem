@@ -11,16 +11,16 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'Fig.~\\ref{' in line:
-      line = line.replace('Fig.~\\ref{', '\\fig{')
+    if 'bmad_status%type_out' in line:
+      line = line.replace('bmad_status%type_out', 'global_com%type_out')
       found = True
 
-    if 'Figure~\\ref{' in line:
-      line = line.replace('Figure~\\ref{', '\\fig{')
+    if 'bmad_status%exit_on_error' in line:
+      line = line.replace('bmad_status%exit_on_error', 'global_com%exit_on_error')
       found = True
 
-    if 'Figure~\\ref{' in line:
-      line = line.replace('Figure~\\ref{', '\\fig{')
+    if 'call err_exit' in line:
+      line = line.replace('call err_exit', 'if (global_com%exit_on_error) call err_exit')
       found = True
 
     out_file.write(line)

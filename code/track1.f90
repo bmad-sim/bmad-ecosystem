@@ -172,7 +172,7 @@ case (time_runge_kutta$)
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 
 end select

@@ -154,12 +154,12 @@ bunch_end = bunch_start
 if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
   call out_io (s_fatal$, r_name, &
             'CSR_PARAM%N_BIN MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (csr_param%ds_track_step == 0) then
   call out_io (s_fatal$, r_name, 'CSR_PARAM%DS_TRACK_STEP NOT SET!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! make sure that ele_len / track_step is an integer.
@@ -1033,7 +1033,7 @@ do j = 1, 100
 enddo
 
 call out_io (s_abort$, r_name, 'ALGORITHM NOT CONVERGING.')
-if (bmad_status%exit_on_error) call err_exit
+if (global_com%exit_on_error) call err_exit
 
 end function d_calc_csr
 
@@ -1178,7 +1178,7 @@ vec => particle%vec
 
 if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
   print *, 'CSR INTERNAL ERROR!'
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (csr_param%lcsr_component_on) then
@@ -1282,12 +1282,12 @@ bunch_end = bunch_start
 if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
   call out_io (s_fatal$, r_name, &
             'CSR_PARAM%N_BIN MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 if (csr_param%ds_track_step == 0) then
   call out_io (s_fatal$, r_name, 'CSR_PARAM%DS_TRACK_STEP NOT SET!')
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! make sure that ele_len / track_step is an integer.

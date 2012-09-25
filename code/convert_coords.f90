@@ -66,18 +66,18 @@ if (present(err_flag)) err_flag = .true.
 call match_word (in_type_str, type_names, in_type)
 
 if (in_type <= 0) then
-  if (bmad_status%type_out) print *, &
+  if (global_com%type_out) print *, &
               'ERROR IN CONVERT_COORDS: UNKNOWN IN_TYPE_STR: ', in_type_str
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
 call match_word (out_type_str, type_names, out_type)
 
 if (out_type <= 0) then
-  if (bmad_status%type_out) print *, &
+  if (global_com%type_out) print *, &
              'ERROR IN CONVERT_COORDS: UNKNOWN OUT_TYPE_STR: ', out_type_str
-  if (bmad_status%exit_on_error) call err_exit
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
