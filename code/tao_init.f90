@@ -144,7 +144,7 @@ call set_this_file_name (startup_file, 'tao.startup', tao_com%startup_file)
 
 if (allocated(s%u)) call deallocate_everything ()
 
-bmad_status%exit_on_error = .false.
+global_com%exit_on_error = .false.
 
 call tao_init_global(init_tao_file)
 call tao_init_lattice (init_tao_file)
