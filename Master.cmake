@@ -265,33 +265,33 @@ endforeach(dir)
 #  TODO: Relocate to simpler, external file
 #        for easier location and maintenance.
 #---------------------------------------------
-set( LAB_LIBS
-  c_utils
-  recipes_f-90_LEPP
-  sim_utils
-  mpmnet
-  cbi_net
-  cbpmfio
-  BeamInstSupport
-  CBPM-TSHARC
-  CBIC
-  bmad
-  cesr_utils
-  mpm_utils
-  nonlin_bpm
-  tao
-  tao_cesr
-  CesrBPM
-  bmadz
-  cesrv
-  bsim
-  bsim_cesr
-  genplt
-  displays
-  XbsmAnalysis
-)
+#set( LAB_LIBS
+#  c_utils
+#  recipes_f-90_LEPP
+#  sim_utils
+#  mpmnet
+#  cbi_net
+#  cbpmfio
+#  BeamInstSupport
+#  CBPM-TSHARC
+#  CBIC
+#  bmad
+#  cesr_utils
+#  mpm_utils
+#  nonlin_bpm
+#  tao
+#  tao_cesr
+#  CesrBPM
+#  bmadz
+#  cesrv
+#  bsim
+#  bsim_cesr
+#  genplt
+#  displays
+#  XbsmAnalysis
+#)
 
-set(DEPS )
+set(DEPS)
 
 
 #----------------------------------------------------------------
