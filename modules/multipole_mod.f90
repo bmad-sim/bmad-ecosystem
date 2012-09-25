@@ -1,7 +1,6 @@
 module multipole_mod
 
 use bmad_struct
-use matrix_mod
 use bmad_utils_mod
 
 contains

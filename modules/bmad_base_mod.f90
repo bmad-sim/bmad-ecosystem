@@ -1,7 +1,6 @@
 module bmad_base_mod
 
-use precision_def
-use output_mod
+use sim_utils
 
 ! common flags
 ! status structure

@@ -1,6 +1,7 @@
 module twiss_mod
 
-use matrix_mod
+use sim_utils_interface
+use bmad_base_mod
 
 type twiss_struct
   real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0
