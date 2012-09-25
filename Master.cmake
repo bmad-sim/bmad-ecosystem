@@ -46,9 +46,9 @@ ENDIF ()
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
-set (BASE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
 
-set (BASE_CXX_FLAGS "-Wno-deprecated -mcmodel=medium -Wall -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC")
+set (BASE_CXX_FLAGS "-Wno-deprecated -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC")
 
 
 #-----------------------------------
