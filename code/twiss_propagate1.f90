@@ -10,6 +10,8 @@
 ! Input:
 !   ele1        -- Ele_struct: Structure holding the starting parameters.
 !   ele2        -- Ele_struct: Structure holding the transfer matrix.
+!     %key                -- Needed since, for example, Match element are handled 
+!                              differently from other elements.
 !     %map_ref_orb_in(6)  -- Important for the dispersion calc.
 !     %map_ref_orb_out(6) -- Important for the dispersion calc.
 !   bmad_status -- Common block status structure:
