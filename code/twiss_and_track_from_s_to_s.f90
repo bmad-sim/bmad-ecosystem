@@ -134,7 +134,8 @@ do
     call transfer_twiss (ele_end, ele_here)
     ele_here%mat6 = ele_end%mat6
     ele_here%vec0 = ele_end%vec0
-    ele_end%mat6 = ele_track%mat6
+    ele_end%key             = ele_track%key
+    ele_end%mat6            = ele_track%mat6
     ele_end%map_ref_orb_in  = ele_track%map_ref_orb_in   ! Needed for dispersion calc.
     ele_end%map_ref_orb_out = ele_track%map_ref_orb_out  ! Needed for dispersion calc.
     call twiss_propagate1 (ele_here, ele_end, error)
