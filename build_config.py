@@ -55,14 +55,12 @@ build_specs = {
         'platform' : 'Linux_x86_64_intel',
         'basedir' : '/nfs/acc/libs',
         'domain' : 'OFFLINE',
-        #'host'   : 'acc101.lns.cornell.edu',
-        'host'   : 'lnx6212.lns.cornell.edu',
+        'host'   : 'acc101.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
                 '/trunk/Gmake',
                 '/trunk/src/include',
-#                '/trunk/src/lattice',
                 '/trunk/src/c_utils',
                 '/trunk/src/recipes_f-90_LEPP',
                 '/trunk/src/sim_utils',
@@ -94,8 +92,6 @@ build_specs = {
                 '/trunk/src/magstat',
                 '/trunk/src/simcon',
 		'/CESR/CESR_services/intloc'
-                ##ccon_det
-                ##rfintl
             ]
         }
     },
@@ -166,71 +162,65 @@ build_specs = {
                     # A copy, perhaps, to central include directory?
                     # Makefiles need to know how to find this, so perhaps not, for now.
                 '/trunk/packages/forest',
-                    # gmake is all that is necessary
-                ###'/trunk/packages/num_recipes/recipes_f-90',
-                ###    # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations" lib
-                ###    # cp -p *.mod ../modules
-                ###    # cp -p librecipes_f90.a ../lib/librecipes_f90.a
-                ###    # gmake NRROOT=`pwd` clean
-                ###    #---------debug------------------
-                ###    # gmake F90="ifort" NRROOT=`pwd` F90OPTS="-Bstatic -cpp -u -check bounds -check format -warn declarations -g" lib
-                ###    # cp -p *.mod ../modules
-                ###    # cp -p librecipes_f90.a ../lib/librecipes_f90_g.a
-                ###    # gmake NRROOT=`pwd` clean
+                    # mk
+		    # mkd
                 '/trunk/packages/num_recipes/recipes_c-ansi',
                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` lib
                     # cp -p librecipes_c-ansi.a ../lib/librecipes_c-ansi.a
                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` clean
-                    #---------debug------------------
+                    #  ---debug------------------
                     # gmake -fmakefile_cesr CC="gcc -DANSI -g" NRROOT=`pwd` lib
                     # cp -p librecipes_c-ansi.a ../lib/librecipes_c-ansi_g.a
                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` clean
                 '/trunk/packages/xsif',
-                    # gmake
+                    # mk
+		    # mkd
                 '/trunk/packages/PGPLOT',
                     # ./makemake . linux ifort_gcc
                     # gmake
                     # gmake cpg
-                    # cp -p libpgplot.a ../lib/libpgplot.a
-                    # cp -p libcpgplot.a ../lib/libcpgplot.a
+                    # cp -p libpgplot.a ../production/lib/libpgplot.a
+                    # cp -p libcpgplot.a ../production/lib/libcpgplot.a
                     # gmake clean
                     #---------debug------------------
                     # ./makemake . linux ifort_gcc_g
                     # gmake
                     # gmake cpg
-                    # cp -p libpgplot.a ../lib/libpgplot_g.a
-                    # cp -p libcpgplot.a ../lib/libcpgplot_g.a
+                    # cp -p libpgplot.a ../debug/lib/libpgplot.a
+                    # cp -p libcpgplot.a ../debug/lib/libcpgplot.a
                     # gmake clean
                 '/trunk/packages/gsl',
-                    # ./configure --prefix `pwd`/..
+                    # ./configure --prefix `pwd`/../production
                     # make
                     # make install
                 '/trunk/packages/fgsl',
-                    # ./configure --prefix `pwd`/.. --f90 ifort --gsl `pwd`/..
+                    # ./configure --prefix `pwd`/../production --f90 ifort --gsl `pwd`/../production
                     # make
                     # make install
                 '/trunk/packages/lapack',
                     # cmake .
                     # make
-                    # cp lib/* ../li
-                    # Symlink library to liblapack_g.a as well.
-                '/trunk/packages/lapack/LAPACK95'
+                    # cp lib/* ../production/lib
+		    # cp lib/* ../debug/lib
+                '/trunk/packages/lapack/LAPACK95',
                     # cd SRC
                     # make single_double_complex_dcomplex
-                    # cp ../lapack95.a ../../../lib/liblapack95.a
-                    # Symlink library to liblapack95_g.a as well.
-                    # cp lapack95_modules/* ../../modules
-                # fftw3
-                    # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/..
+		    # cd ..
+                    # cp lapack95.a ../../../production/lib
+		    # cp lapack95.a ../../../debug/lib
+                    # cp lapack95_modules/* ../../production/modules
+                    # cp lapack95_modules/* ../../debug/modules
+                'fftw3'
+                    # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/../production
                     # make
                     # make install
-                # root
+                'root',
                     # This employs 32-bit Python 2.7
                     # ./configure --enable-fftw3 --with-fftw3-incdir=`pwd`/../include --with-fftw3-libdir=`pwd`/../lib --disable-python --prefix=`pwd`/.. --etcdir=`pwd`/../etc
                     # make
                     # make install
-                    # User must run 'thisroot.sh' script in the directory
-                    #   as part of their environment setup.
+		    # cp bin/thisroot.sh ../production/bin
+		    # cp bin/thisroot.s
             ]
         }
     }    
