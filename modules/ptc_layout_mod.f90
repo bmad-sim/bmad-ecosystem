@@ -275,7 +275,7 @@ ptc_layout => ele%branch%ptc%layout(1)%ptr
 state = (default - nocavity0) + radiation0  ! Make sure have RF + radiation on.
 
 x = 0
-call find_orbit_x (x, state, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find_orbit == find closed orbit
+call find_orbit_x (x, state, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find closed orbit
 call vec_ptc_to_bmad (x, ele%ptc_fibre%next%beta0, closed_orb%vec)
 
 call get_loss (ptc_layout, energy, deltap)
@@ -343,14 +343,19 @@ end subroutine ptc_emit_calc
 
 subroutine ptc_closed_orbit_calc (branch, closed_orbit)
 
+use madx_ptc_module
+
 implicit none
 
 type (branch_struct) branch
 type (coord_struct), allocatable :: closed_orbit(:)
 
-real(dp) x
+real(dp) x(6)
 
 !
+
+x = 0
+call find_orbit_x (x, default, 1.0d-5, fibre1 = branch%ele(0)%ptc_fibre%next)  ! find closed orbit
 
 
 end subroutine ptc_closed_orbit_calc 
