@@ -6,6 +6,8 @@ use quick_plot
 implicit none
 
 type (lat_struct), target :: lat
+character(40) :: input_file  = 'compare_tracking_methods.bmad'
+character(40) :: output_file = 'compare_tracking_methods.out'
 character(20) :: base_method, element_to_vary, attrib_to_vary
 character(20) :: veto_methods(10)
 real(rp) :: scan_start, scan_end, step_size
@@ -34,13 +36,15 @@ type (qp_line_struct), dimension(:), allocatable :: lines
 character(3), parameter :: short_method_name(16) = [ 'STD', 'SLP', 'RK', 'LIN', '', 'SM', '', 'TAY', '', 'SLB', '', 'BOR', '', 'MAD', 'TRK', '']
 character(10), parameter :: y_axis_label(6) = [ "\gDx", "\gDp\dx\u", "\gDy", "\gDp\dy\u", "\gDz", "\gDp\dz\u" ]
 
+if (cesr_iargc() == 1) call cesr_getarg (1, input_file)
+
 veto_methods = ''
 
-namelist / scan_params / base_method, veto_methods, element_to_vary, attrib_to_vary, scan_start, scan_end, nsteps
+namelist / scan_params / output_file, base_method, veto_methods, element_to_vary, attrib_to_vary, scan_start, scan_end, nsteps
 
-call bmad_parser ('compare_tracking_methods/compare_tracking_methods.bmad', lat)
+call bmad_parser (input_file, lat)
 
-open (1, file = 'compare_tracking_methods/compare_tracking_methods.bmad')
+open (1, file = input_file)
 read (1, nml = scan_params)
 close (1)
 
@@ -92,7 +96,7 @@ do i = 1, nmethods
    if(.not. (i == nmethods)) allocate (dmethod(i)%step(nsteps+1))
 end do
 
-open (1, file = 'compare_tracking_methods/compare_tracking_methods.out')
+open (1, file = output_file)
 write (1,'(a)',advance='no') "Compare tracking methods as "; write (1,'(a)',advance='no') trim(adjustl(element_to_vary)); write (1,'(a)',advance='no') "%"; write (1,'(a)',advance='no') trim(adjustl(attrib_to_vary))
 write (1,'(a)',advance='no') " is varied. Look at phase space coordinates at exit for lattice with only a "; write (1,'(a)',advance='no') trim(adjustl(key_name(lat%ele(1)%key))); write (1,'(a)',advance='no') "."
 write (1,*); write (1,*)
