@@ -54,28 +54,25 @@
 #--------------------------------------------------------------
 
 HAC_ARCHIVE_BASE_DIR='/gfs/cesr/online/lib'
-HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
-HAC_OPT_SOFTWARE_DIR='/nfs/opt'
+### HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
+HAC_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
 
-#HAC_ARCHIVE_BASE_DIR='/nfs/acc/libs'
-#HAC_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
-#HAC_OPT_SOFTWARE_DIR='/nfs/opt'
 
 ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
-ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
-ONLINE_OPT_SOFTWARE_DIR='/nfs/opt'
+### ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
+ONLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
 
-#ONLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
-#ONLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
-#ONLINE_OPT_SOFTWARE_DIR='/nfs/opt'
+ONLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2011_sp1.6.233/bin'
+ONLINE_IFORT_SETUP_COMMAND='/nfs/cesr/opt/intel/composer_xe_2011_sp1.6.233/bin/compilervars.sh intel64'
 
 #--------------------------------------------------------------
 
 
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
 OFFLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
-OFFLINE_OPT_SOFTWARE_DIR='/nfs/opt'
 
+OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composerxe/bin'
+OFFLINE_IFORT_SETUP_COMMAND='/nfs/opt/intel/composerxe/bin/compilervars.sh intel64'
 
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
 OLD_ACC_BIN=${ACC_BIN}
@@ -94,7 +91,7 @@ function add_path() {
   [ -d ${1:-.} ] && no_path $* && eval ${2:-PATH}="\$${2:-PATH}:$1"
 }
 
-# If argument ($1) is in path, remove it.
+# If argument ($1) is in PATH (or 2nd argument), remove it.
 function del_path() {
   no_path $* || eval ${2:-PATH}=`eval echo :'$'${2:-PATH}: |
     /bin/sed -e "s;:$1:;:;g" -e "s;^:;;" -e "s;:\$;;"`
@@ -166,20 +163,26 @@ if ( [ "${IS_CESR_ONLINE_HOST}" == "true" ] ) then
     if ( [ "${CESR_ONLINE}" == "/gfs/cesr/online" ] )then
 	SETUP_SCRIPTS_DIR=${HAC_RELEASE_MGMT_DIR}
 	RELEASE_ARCHIVE_BASE_DIR=${HAC_ARCHIVE_BASE_DIR}
-	OPT_SOFTWARE_DIR=${HAC_OPT_SOFTWARE_DIR}
+	HOST_TYPE="CESR HAC ONLINE"
     else
     #-- CESR Online Host
 	SETUP_SCRIPTS_DIR=${ONLINE_RELEASE_MGMT_DIR}
 	RELEASE_ARCHIVE_BASE_DIR=${ONLINE_ARCHIVE_BASE_DIR}
-	OPT_SOFTWARE_DIR=${ONLINE_OPT_SOFTWARE_DIR}
+	HOST_TYPE="CESR ONLINE"
     fi
+    IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
+
+    # Purge any OFFILNE (opposite sense) compiler setup paths from environment
+    #  Iterate through all 
 
 #-- CESR OFFLINE Host
 else
     SETUP_SCRIPTS_DIR=${OFFLINE_RELEASE_MGMT_DIR}
     RELEASE_ARCHIVE_BASE_DIR=${OFFLINE_ARCHIVE_BASE_DIR}
-    OPT_SOFTWARE_DIR=${OFFLINE_OPT_SOFTWARE_DIR}
+    IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
+    HOST_TYPE="CESR OFFLINE"
 
+    # Purge any ONLINE (opposite sense) compiler setup paths from environment
 fi 
 
 
@@ -289,7 +292,6 @@ if ( [ "${ACC_TRUE_RELEASE}" == "" ] ) then
 fi
 export ACC_UTIL=${SETUP_SCRIPTS_DIR}
 export ACC_BIN=${ACC_RELEASE_DIR}/production/bin
-export ACC_CONFIG=${ACC_RELEASE_DIR}/config
 export ACC_EXE=${ACC_BIN} # For backwards compatibility
 export ACC_PKG=${ACC_RELEASE_DIR}/packages
 export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
@@ -301,20 +303,6 @@ export ACC_BUILD_SYSTEM=${RELEASE_ARCHIVE_BASE_DIR}/build_system
 export ACC_BUILD_EXES=Y
 export ACC_CMAKE_VERSION=2.8
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
-
-
-
-#--------------------------------------------------------------
-# Non-ACC naming convention variables.
-# Named such for historical compatibility.
-# FIXME:  CESR_ONLINE  should be moved to a different script.
-#--------------------------------------------------------------
-export BMAD_LAT=${ACC_RELEASE_DIR}/config/bmad
-export CESR_LAT=${ACC_RELEASE_DIR}/config/cesr
-export CTA_LAT=${ACC_RELEASE_DIR}/config/cta
-export ERL_LAT=${ACC_RELEASE_DIR}/config/erl
-export ILC_LAT=${ACC_RELEASE_DIR}/config/ilc
-
 
 
 #--------------------------------------------------------------
@@ -335,34 +323,12 @@ export PGPLOT_FONTS=${ACC_PKG}/PGPLOT
 #--------------------------------------------------------------
 case ${ACC_OS_ARCH} in
 
-    "Linux_i686" )
-        # 32-bit Intel Fortran (ifort)
-	# If this string is not present
-        #    /nfs/opt/intel/fc/9.1.045/bin
-	# source the vendor script, otherwise do nothing.
-        # I.e. only source this script a single time to
-        # prevent unchecked growth of environment variable
-        # length.
-	has_substring ${PATH} "/nfs/opt/intel/fc/9.1.045/bin"
-	if [ "${?}" == "1" ]; then
-	    source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
-	fi
-	;;
-
     "Linux_x86_64" )
-	# Add ifort-9-specific path information to user's environment
-	# to allow running 32-bit fortran programs on a 64-bit machine.
-	# Then source the final 64-bit path information on top.
-	#has_substring ${PATH} "/nfs/opt/intel/fc/9.1.045/bin"
+	#has_substring ${PATH} "/nfs/opt/intel/composer_xe_2011_sp1.6.233/bin/intel64"
 	#if [ "${?}" == "1" ]; then
-	#    source ${OPT_SOFTWARE_DIR}/ifc/bin/ifortvars.sh
-	#fi
-        ## 64-bit Intel Fortran (ifort) v12.1.0.233
-	has_substring ${PATH} "/nfs/opt/intel/composer_xe_2011_sp1.6.233/bin/intel64"
-	if [ "${?}" == "1" ]; then
             # FIXME: Inherit from LIBRARY_PATH (not duplicated) as set by ifort setup scripts.
-	    source ${OPT_SOFTWARE_DIR}/intel/composerxe/bin/compilervars.sh intel64
-	fi
+            source ${IFORT_SETUP_COMMAND}
+	#fi
 	;;
 
 esac
@@ -378,6 +344,7 @@ add_path ${ACC_UTIL}
 add_path ${ACC_PKG}/bin
 add_path ${ACC_BIN}
 
+
 #--------------------------------------------------------------
 # Prepend path to guarantee proper cmake executable is used
 #--------------------------------------------------------------
@@ -392,44 +359,46 @@ PATH=${PLATFORM_DIR}/extra/bin:$PATH
 # step is appending the presently valid lib path for
 # the active release.
 #--------------------------------------------------------------
-LD_LIBRARY_PATH_TEMP=${LD_LIBRARY_PATH}
-LD_LIBRARY_PATH=""
 DEFAULT_IFS=${IFS} # bash 'internal field separator' reserved variable
 IFS=":"
-for part in ${LD_LIBRARY_PATH_TEMP}; do
+LD_LIBRARY_PATH_TEMP=""
+for part in ${LD_LIBRARY_PATH}; do
   case ${part} in
 
       "${RELEASE_ARCHIVE_BASE_DIR}"*)
-	  #echo "ACC path found. Will remove from LD_LIBRARY_PATH."
+	#  echo "ACC path found. Will remove from LD_LIBRARY_PATH."
 	  continue
 	  ;;
 
+      #"")
+      #    continue
+#	  ;;
+
       *)
-	  if ( [ "${LD_LIBRARY_PATH}" == "" ] ) then
-	      LD_LIBRARY_PATH=${part}
-	  else
-	      LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${part}:/nfs/opt/intel/composer_xe_2011_sp1.6.233/compiler/lib/intel64
-	  fi  
+        if ( [ "${LD_LIBRARY_PATH_TEMP}" == "" ] ) then
+	  LD_LIBRARY_PATH_TEMP=${part}
+	else
+	  LD_LIBRARY_PATH_TEMP=${LD_LIBRARY_PATH_TEMP}:${part}
+	fi
+	;;
 
   esac
 done
 IFS=${DEFAULT_IFS}
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH_TEMP}
 
 
 #--------------------------------------------------------------
 # Source ROOT setup script for the set of ROOT libraries and
 # programs built as 3rd-party packages in the selected release.
 #--------------------------------------------------------------
-if [ -f ${ACC_PKG}/bin/thisroot.sh ]; then
+#if [ -f ${ACC_PKG}/root/bin/thisroot.sh ]; then
     # To prevent multiple sourcing
-# When active, Test never invokes thisroot on 'mcr' account.
-# When active, Test does invoke thisroot on 'cesrulib' account.  
-#  WHY the difference?
     #has_substring ${PATH} "root/../bin" 
     #if [ "${?}" == "1" ]; then
-	source ${ACC_PKG}/bin/thisroot.sh
+	source ${ACC_RELEASE_DIR}/packages/root/bin/thisroot.sh
     #fi
-fi
+#fi
 
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/production/lib:${ACC_RELEASE_DIR}/packages/lib
 
