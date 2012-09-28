@@ -164,7 +164,7 @@ build_specs = {
                 '/trunk/packages/forest',
                     # mk
 		    # mkd
-                '/trunk/packages/num_recipes/recipes_c-ansi',
+                '/trunk/packages/num_recipes/recipes_c-ansi',  # Used?
                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` lib
                     # cp -p librecipes_c-ansi.a ../lib/librecipes_c-ansi.a
                     # gmake -fmakefile_cesr CC="gcc -DANSI" NRROOT=`pwd` clean
