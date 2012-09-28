@@ -9,6 +9,7 @@ SUBROUTINE cplx_ludcmp(a,indx,d)
   COMPLEX(dp), DIMENSION(size(a,1),size(a,1)) :: outerproduct
   REAL(dp), INTENT(OUT) :: d
   INTEGER(I4B) :: k,n
+  INTEGER i
 
   n=assert_eq(size(a,1),size(a,2),size(indx),'cplx_ludcmp')
 
