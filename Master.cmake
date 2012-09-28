@@ -97,12 +97,14 @@ IF (DEBUG)
   message("Build type           : Debug")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../debug)
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/debug)
+  set (PACKAGES_OUTPUT_BASEDIR ${RELEASE_DIR}/packages/debug)
   set(BASE_C_FLAGS "${BASE_C_FLAGS}")
   set(BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -check bounds -check format -check uninit -warn declarations -ftrapuv")
 ELSE ()
   message("Build type           : Production")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/production)
+  set (PACKAGES_OUTPUT_BASEDIR ${RELEASE_DIR}/packages/production)
 ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 message("C Compiler           : ${CMAKE_C_COMPILER}")
@@ -146,7 +148,7 @@ SET (MASTER_INC_DIRS
   ${PACKAGES_DIR}/recipes_c-ansi/include
   ${PACKAGES_DIR}/cfortran/include
   ${PACKAGES_DIR}/root/include
-  ${PACKAGES_DIR}/modules
+  ${PACKAGES_OUTPUT_BASEDIR}/modules
   ${ROOT_INC}
   ${RELEASE_DIR}/include
   ${OUTPUT_BASEDIR}/modules
@@ -183,7 +185,7 @@ SET(MASTER_LINK_DIRS
   /lib64
   /usr/lib64
   ${OUTPUT_BASEDIR}/lib
-  ${PACKAGES_DIR}/lib
+  ${PACKAGES_OUTPUT_BASEDIR}/lib
   ${PACKAGES_DIR}/root/lib
   ${RELEASE_OUTPUT_BASEDIR}/lib
   ${RELEASE_DIR}/lib
@@ -396,11 +398,11 @@ foreach(exespec ${EXE_SPECS})
           add_library(${dep} STATIC IMPORTED)
           LIST(APPEND TARGETS ${dep})
           set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
-        ELSEIF (EXISTS ${PACKAGES_DIR}/lib/lib${dep}.a)
-          ##message("Found ${dep} in ${PACKAGES_DIR}/lib/")
+        ELSEIF (EXISTS ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.a)
+          ##message("Found ${dep} in ${PACKAGES_OUTPUT_BASEDIR}/lib/")
           add_library(${dep} STATIC IMPORTED)
           LIST(APPEND TARGETS ${dep})
-          set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_DIR}/lib/lib${dep}.a)
+          set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.a)
         ELSEIF (EXISTS ${RELEASE_DIR}/lib/lib${dep}.a)
           ##message("Found ${dep} in ${RELEASE_DIR}/lib/")
           add_library(${dep} STATIC IMPORTED)
