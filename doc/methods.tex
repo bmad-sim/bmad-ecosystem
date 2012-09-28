@@ -127,15 +127,6 @@ search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic. Note: Due to memory limitations
 in PTC, the number of elements using symp_map is limited to be of order 50.
 
-\index{time_runge_kutta!tracking_method}
-\item[\vn{Symp_Map}]
-This method uses time as the independent variable instead of
-longitudinal position. The advantage of this method is that it can
-handle particles which reverse direction longitudinally.  One use for
-this method is ``dark current'' tracking where low energy particles
-generated at the vacuum chamber walls can be found traveling in all
-directions.
-
 \index{taylor!tracking_method}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from the PTC (\sref{s:ptc})
@@ -148,6 +139,15 @@ point. Whether the Taylor map is generated taking into account the
 offset an element has is governed by the \vn{map_with_offsets}
 attribute (\sref{s:mapoff}). Note: Taylor maps for \vn{lcavity}, \vn{match},
 and \vn{patch} elements are limited to first order.
+
+\index{time_runge_kutta!tracking_method}
+\item[\vn{Time_Runge_Kutta}]
+This method uses time as the independent variable instead of
+longitudinal position. The advantage of this method is that it can
+handle particles which reverse direction longitudinally.  One use for
+this method is ``dark current'' tracking where low energy particles
+generated at the vacuum chamber walls can be found traveling in all
+directions.
 
 \end{description}
 
@@ -175,7 +175,7 @@ and \vn{patch} elements are limited to first order.
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Symp_Map}\end{sideways} &
-\begin{sideways}\vn{Taylor}\end{sideways}
+\begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Time_Runge_Kutta}\end{sideways} &
 \\ \midrule
 %                               BS   B   C   L   M   RK    SLB   SLP   SM     T   TRK
@@ -307,6 +307,14 @@ of 10 improvement in speed over \vn{Symp_Lie_PTC}. However,
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses the PTC (\sref{s:ptc}) software for the calculation.
 This method is symplectic but can be slow.
+
+\index{symp_map!tracking_method}
+\item[\vn{Symp_Map}]
+This uses a partially inverted, implicit Taylor map. The calculation
+uses Etienne Forest's PTC software (\sref{s:ptc}).  Since the map is implicit, a Newton
+search method must be used. This will slow things down from the Taylor
+method but this is guaranteed symplectic. Note: Due to memory limitations
+in PTC, the number of elements using symp_map is limited to be of order 50.
 
 \index{taylor!mat6_calc_method}
 \item[\vn{Taylor}]
