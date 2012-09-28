@@ -54,13 +54,10 @@
 #--------------------------------------------------------------
 
 HAC_ARCHIVE_BASE_DIR='/gfs/cesr/online/lib'
-### HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
-HAC_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
-
+HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
 
 ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
-### ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
-ONLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
+ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
 
 ONLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2011_sp1.6.233/bin'
 ONLINE_IFORT_SETUP_COMMAND='/nfs/cesr/opt/intel/composer_xe_2011_sp1.6.233/bin/compilervars.sh intel64'
