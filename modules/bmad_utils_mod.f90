@@ -3911,7 +3911,8 @@ end function ele_has_constant_ds_dt_ref
 ! Function to determine if the tracking for an element uses a "hard edge model"
 ! in which case the tracking looks like (drift, model, drift). For example,
 ! RF cavity fields with ele%field_calc = bmad_standard$ use a hard edge model where
-! the length of the cavity is c_light / (2 * freq).
+! the length of the cavity is c_light / (2 * freq). Also bends use a hard edge model
+! but there is no drifts in this case.
 !
 ! Module needed:
 !   use bmad
@@ -3935,7 +3936,7 @@ logical is_hard
 is_hard = .false.
 
 select case (ele%key)
-case (lcavity$, rfcavity$, solenoid$)
+case (lcavity$, rfcavity$, solenoid$, sbend$)
     if (ele%field_calc == bmad_standard$) is_hard = .true.
 end select
 
