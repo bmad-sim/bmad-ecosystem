@@ -110,7 +110,7 @@ E_rel = (1 + coord%vec(6))
 set_canon = logic_option(.true., set_canonical)
 if (.not. bmad_com%canonical_coords) set_canon = .not. set_canon
 
-set_multi = logic_option (.true., set_multipoles) .and. associated(ele%a_pole)
+set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)

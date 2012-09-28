@@ -2,22 +2,22 @@
 
 module dynamic_aperture_mod
 
-  use bmad_struct
-  use bmad_interface
+use bmad_struct
+use bmad_interface
 
-  type aperture_struct
-    type (coord_struct)  closed_orbit
-    real(rp) x, y
-    integer plane
-    integer ix_lat
-    integer i_turn
-  end type
+type aperture_struct
+  type (coord_struct)  closed_orbit
+  real(rp) x, y
+  integer plane
+  integer ix_lat
+  integer i_turn
+end type
 
-  type track_input_struct
-    integer n_turn
-    real(rp) x_init, y_init
-    real(rp) accuracy
-  end type
+type track_input_struct
+  integer n_turn
+  real(rp) x_init, y_init
+  real(rp) accuracy
+end type
 
 contains
 
