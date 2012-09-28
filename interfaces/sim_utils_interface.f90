@@ -310,6 +310,26 @@ interface
 end interface
 
 interface
+  subroutine cplx_lubksb(a,indx,b)
+    use nrtype
+    import
+    complex(dp), dimension(:,:), intent(in) :: a
+    integer(I4B), dimension(:), intent(in) :: indx
+    complex(dp), dimension(:), intent(inout) :: b
+  end subroutine
+end interface
+
+interface
+  subroutine cplx_ludcmp(a,indx,d)
+    use nrtype
+    import
+    complex(dp), dimension(:,:), intent(inout) :: a
+    integer(I4B), dimension(:), intent(out) :: indx
+    real(dp), intent(out) :: d
+  end subroutine
+end interface
+
+interface
   subroutine cplx_mat_inverse(mat_r, mat_i, inv_r, inv_i, ok, print_err)
     import
     real(rp) :: mat_r(:,:)
