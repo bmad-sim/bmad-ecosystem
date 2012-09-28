@@ -1501,6 +1501,7 @@ do ii = 1, size(curve%x_line)
   case ('lat')
     if (ii == 1) then
       call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err)
+      orbit_end = orbit
     else
       idum = element_at_s(lat, s_now, .false., ix_branch, err, position = orbit_end)
       call twiss_and_track_from_s_to_s (branch, orbit, orbit_end, ele, ele, err)
@@ -1509,11 +1510,13 @@ do ii = 1, size(curve%x_line)
 
     if (err) then
       good(ii:) = .false.
-      if (orbit_end%state /= alive$) then
-        write (curve%message_text, '(f10.3)') s_now
-        curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
-                             trim(adjustl(curve%message_text))
-      endif
+      return
+    endif
+
+    if (orbit_end%state /= alive$) then
+      write (curve%message_text, '(f10.3)') s_now
+      curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
+                           trim(adjustl(curve%message_text))
       return
     endif
 

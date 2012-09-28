@@ -45,6 +45,8 @@ design_lattice%file2  = ''
 design_lattice%language = ''
 design_lattice%use_line = ''
 
+design_lat = design_lattice(0)
+
 ! Read lattice info
 
 call tao_hook_init_read_lattice_info (input_file_name)
@@ -97,6 +99,11 @@ if (tao_com%common_lattice) then
   allocate (s%u(0:tao_com%n_universes))
   allocate (tao_com%u_working)
 
+  if (any(design_lattice(2:)%file /= '')) then
+    call out_io (s_fatal$, r_name, 'ONLY ONE LATTICE MAY BE SPECIFIED WHEN USING COMMON_LATTICE')
+    call err_exit
+  endif
+
 else
   allocate (s%u(tao_com%n_universes))
   nullify (tao_com%u_working)
@@ -134,6 +141,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   else
     ! If %file is blank then default is to use last one
     if (design_lattice(i)%file /= '') design_lat = design_lattice(i)
+  endif
+
+  ! Can happen when design_lattice(1) is set and not design_lattice(0)
+
+  if (tao_com%common_lattice .and. design_lat%file == '') then
+    design_lat = design_lattice(i+1)
   endif
 
   ! Split off language name and/or use_line if needed

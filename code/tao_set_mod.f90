@@ -186,6 +186,9 @@ case default
   return
 end select
 
+! dest_lat = source_lat will not mess up the pointers in s%var since both lattices have the same
+! number of elements and therefore no reallocation needs to be done.
+
 dest1_lat%lat          = source1_lat%lat
 dest1_lat%lat_branch   = source1_lat%lat_branch
 dest1_lat%modes        = source1_lat%modes
