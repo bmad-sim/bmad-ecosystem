@@ -627,7 +627,11 @@ if (hard_ele%field_calc /= bmad_standard$) return
 
 select case (hard_ele%key)
 case (sbend$)
-  call apply_bend_edge_kick (orb, hard_ele, element_end, .false.)
+  if ( nint(hard_ele%value(exact_fringe$)) == 1) then
+    call exact_bend_edge_kick (orb, hard_ele, element_end, .false.)
+  else
+    call apply_bend_edge_kick (orb, hard_ele, element_end, .false.)
+  endif
 
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
 ! So use hard_ele%value(bs_field$).
