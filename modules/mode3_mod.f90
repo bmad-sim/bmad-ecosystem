@@ -42,10 +42,10 @@ real(rp), allocatable ::  ReZ(:,:), ImZ(:,:)
 real(rp), allocatable ::  ReZt(:,:), ImZt(:,:), Z(:,:)
 real(rp), allocatable ::  ReKInv(:,:), ImKInv(:,:)
 real(rp), allocatable :: Jtot(:,:)
-real(rp), allocatable :: sum(:)
+real(rp), allocatable :: summ(:)
 real(rp) Jzero(2,2), g2_mat(2,2), r_mat(2,2), h_mat(2,2)
 real(rp) sdetZi, oroot2
-real(rp) phi
+real(rp) phi, norm
 
 integer n, i, j, l, p1, p2
 
@@ -65,7 +65,7 @@ logical, optional :: synchrotron_motion
 
 allocate(ReKInv(1:n,1:n), ImKInv(1:n,1:n))
 
-oroot2 = 1/sqrt(2.)
+oroot2 = 1/sqrt(2.0d0)
 
 ReKInv = 0
 ImKInv = 0
@@ -110,21 +110,21 @@ allocate(Z(1:n,1:n))
 
 !normalize so that Z is symplectic and determinant of diagonal block is > 0
 
-allocate(sum(n))
+allocate(summ(n))
 do i = 1, n/2
 
-  sum(i) = 0.
+  summ(i) = 0.
 
   do j=1,n/2
-    sum(i) = sum(i) + determinant(ReZt(2*j-1:2*j,2*i-1:2*i))
+    summ(i) = summ(i) + determinant(ReZt(2*j-1:2*j,2*i-1:2*i))
   end do
 
   if (determinant(ReZt(2*i-1:2*i,2*i-1:2*i)) > 0) then
-    Z(1:n,2*i-1) = ReZt(1:n,2*i-1) /sqrt(abs(sum(i)))
-    Z(1:n,2*i) = ReZt(1:n,2*i) /sqrt(abs(sum(i)))
+    Z(1:n,2*i-1) = ReZt(1:n,2*i-1) /sqrt(abs(summ(i)))
+    Z(1:n,2*i) = ReZt(1:n,2*i) /sqrt(abs(summ(i)))
    else !swap the columns
-    Z(1:n,2*i) = ReZt(1:n,2*i-1) /sqrt(abs(sum(i)))
-    Z(1:n,2*i-1) = ReZt(1:n,2*i) /sqrt(abs(sum(i)))
+    Z(1:n,2*i) = ReZt(1:n,2*i-1) /sqrt(abs(summ(i)))
+    Z(1:n,2*i-1) = ReZt(1:n,2*i) /sqrt(abs(summ(i)))
     tune(i) = twopi-tune(i)
    endif
 
@@ -163,10 +163,37 @@ V = matmul(matmul(Z, Jtot), G)
 
 deallocate(ReZ, ReZt, ImZt, Z)
 deallocate(ReKInv, ImKInv)
-deallocate(sum, Jtot)
+deallocate(summ, Jtot)
 deallocate(eval_r, eval_i, evec_r, evec_i)
 
 end subroutine normal_mode3_calc
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!+
+! Subroutine make_Vbar(G,V,Vbar)
+!
+! Subroutine to calculate Vbar from G and V.
+! Vbar = G.V.G^-1
+!-
+subroutine make_Vbar(G,V,Vbar)
+
+real(rp) G(:,:)
+real(rp) V(:,:)
+real(rp) Vbar(:,:)
+
+real(rp) Ginv(size(G),size(G))
+logical ok
+
+CALL mat_inverse(G,Ginv,ok)
+IF(.not. ok) THEN
+  WRITE(*,*) "BAD: Inverse of G not found in make_Vbar"
+ENDIF
+
+Vbar = MATMUL(MATMUL(G,V),Ginv)
+
+end subroutine make_Vbar
 
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
