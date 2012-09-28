@@ -76,6 +76,8 @@ logical, save :: rcsini = .true.
 if (present(valid)) valid = .false.
 outfile = FileName
 
+if (FileName == '') return  ! Blank is invalid
+
 !     Get length of input file name
 
 InLen = Len_Trim(FileName)
