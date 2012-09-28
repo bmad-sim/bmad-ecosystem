@@ -473,8 +473,8 @@ case ('set')
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
 
   call match_word (cmd_word(1), set_names, ix, .true., matched_name=set_word)
-  if (ix == 0) then
-    call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
+  if (ix < 1) then
+    call out_io (s_error$, r_name, 'NOT RECOGNIZED OR AMBIGUOUS: ' // cmd_word(1))
     return
   endif
 
