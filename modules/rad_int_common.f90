@@ -266,11 +266,14 @@ real(rp) z_here, v(4,4), v_inv(4,4), s1, s2, error
 real(rp) f0, f1, del_z, c, s, x, y
 real(rp) eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
 real(rp) dz, z1
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky
 
 integer particle
 integer i0, i1, tm_saved, m6cm_saved
-integer i, ix, j_loop, n_pt, n, n1, n2
+integer i, ix, ip, j_loop, n_pt, n, n1, n2
 integer, save :: ix_ele = -1
+
+logical has_nonzero_pole
 
 ! Init
 
@@ -422,8 +425,8 @@ info%eta_b = matmul(v, [0.0_rp,   0.0_rp,    info%b%eta, info%b%etap ])
 if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then 
   call calc_wiggler_g_params (ele, z_here, orb, pt, info)
 else
-  info%g_x   = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
-  info%g_y   = pt%g_y0 - (orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
+  info%g_x = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
+  info%g_y = pt%g_y0 - (orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
 endif
 
 info%dg2_x = 2 * (info%g_x * pt%dgx_dx + info%g_y * pt%dgy_dx)
@@ -431,6 +434,20 @@ info%dg2_y = 2 * (info%g_x * pt%dgx_dy + info%g_y * pt%dgy_dy)
 
 info%g2 = info%g_x**2 + info%g_y**2
 info%g = sqrt(info%g2)
+
+! Add in multipole gradient
+
+if (ele%key /= wiggler$ .or. ele%sub_key /= map_type$) then 
+  call multipole_ele_to_ab (ele, info%branch%param%particle, .true., has_nonzero_pole, a_pole, b_pole)
+  if (has_nonzero_pole) then
+    do ip = 0, ubound(a_pole, 1)
+      if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
+      call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, orb_end, kx, ky, dk)
+      info%dg2_x = info%dg2_x + 2 * (info%g_x * dk(1,1) + info%g_y * dk(2,1))
+      info%dg2_y = info%dg2_y + 2 * (info%g_x * dk(1,2) + info%g_y * dk(2,2)) 
+    enddo
+  endif
+endif
 
 end subroutine
 

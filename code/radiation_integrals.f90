@@ -124,8 +124,9 @@ type (rad_int1_struct) int_tot
 type (rad_int1_struct), save :: rad_int1_zero  ! All components zero by construction.
 type (rad_int1_struct), pointer :: rad_int1
 
-real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
+real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky
 real(rp) v(4,4), v_inv(4,4), del_z, z_here, z_start, mc2, gamma, gamma4, gamma6
 real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q, mat6(6,6), vec0(6)
 ! Cf: Sands Eq 5.46 pg 124.
@@ -133,11 +134,11 @@ real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt
 
 
 integer, optional :: ix_cache, ix_branch
-integer i, j, k, ir, key, n_step, particle
+integer i, j, k, ip, ir, key, n_step, particle
 
 character(20) :: r_name = 'radiation_integrals'
 
-logical do_alloc, use_cache, init_cache, cache_only_wig, err
+logical do_alloc, use_cache, init_cache, cache_only_wig, err, has_nonzero_pole
 logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
@@ -277,7 +278,7 @@ if (use_cache .or. init_cache) then
     call zero_ele_offsets (ele2)
     orb_start = orbit(i-1)
     call offset_particle (branch%ele(i), orb_start, particle, set$, &
-       set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
+                          set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
       n_step = nint(10 * ele2%value(l$) / ele2%value(l_pole$))
@@ -350,7 +351,7 @@ if (use_cache .or. init_cache) then
         c_pt%dgy_dx = 0
         c_pt%dgy_dy = 0
 
-        if (ele2%key == quadrupole$ .or. ele2%key == sol_quad$) then
+        if (ele2%key == quadrupole$ .or. ele2%key == sol_quad$ .or. ele2%key == bend_sol_quad$) then
           c_pt%dgx_dx =  ele2%value(k1$)
           c_pt%dgy_dy = -ele2%value(k1$)
 
@@ -358,7 +359,18 @@ if (use_cache .or. init_cache) then
           c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
           c_pt%dgx_dx =  ele2%value(k1$)
           c_pt%dgy_dy = -ele2%value(k1$)
+        endif
 
+        call multipole_ele_to_ab (ele, branch%param%particle, .false., has_nonzero_pole, a_pole, b_pole)
+        if (has_nonzero_pole) then
+          do ip = 0, ubound(a_pole, 1)
+            if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
+            call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, orb_end, kx, ky, dk)
+            c_pt%dgx_dx = c_pt%dgx_dx + dk(1,1)
+            c_pt%dgx_dy = c_pt%dgx_dy + dk(1,2)
+            c_pt%dgy_dx = c_pt%dgy_dx + dk(2,1)
+            c_pt%dgy_dy = c_pt%dgy_dy + dk(2,2)
+          enddo
         endif
 
       enddo
