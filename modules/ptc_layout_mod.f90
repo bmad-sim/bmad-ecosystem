@@ -149,14 +149,14 @@ branch%ptc%layout(1)%ptr => m_u%end   ! Save layout
 
 do ie = 1, branch%n_ele_track
   ele => branch%ele(ie)
-  if (tracking_uses_hard_edge_model(ele)) then
+  if (tracking_uses_end_drifts(ele)) then
     call create_hard_edge_drift (ele, entrance_end$, drift_ele)
     call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
   endif
 
   call ele_to_fibre (ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
 
-  if (tracking_uses_hard_edge_model(ele)) then
+  if (tracking_uses_end_drifts(ele)) then
     call create_hard_edge_drift (ele, exit_end$, drift_ele)
     ! ele%ptc_fibre points to last PTC fibre.
     call ele_to_fibre (drift_ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)

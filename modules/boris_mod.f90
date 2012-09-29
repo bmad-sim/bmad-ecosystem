@@ -94,7 +94,7 @@ endif
 ! to apply the appropriate hard edge kick.
 
 nullify (hard_ele)
-call calc_next_hard_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
+call calc_next_fringe_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
 
@@ -128,7 +128,7 @@ do
   do
     if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(hard_ele)) exit
     call apply_hard_edge_kick (end, s_edge_hard, t, hard_ele, ele, param, hard_end)
-    call calc_next_hard_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
+    call calc_next_fringe_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
   enddo
 
   s_target = min(s2, s_edge_track)
