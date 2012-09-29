@@ -3906,13 +3906,12 @@ end function ele_has_constant_ds_dt_ref
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function tracking_uses_hard_edge_model (ele) result (is_hard)
+! Function tracking_uses_end_drifts (ele) result (has_drifts)
 !
 ! Function to determine if the tracking for an element uses a "hard edge model"
-! in which case the tracking looks like (drift, model, drift). For example,
+! where the tracking looks like (drift, model, drift). For example,
 ! RF cavity fields with ele%field_calc = bmad_standard$ use a hard edge model where
-! the length of the cavity is c_light / (2 * freq). Also bends use a hard edge model
-! but there is no drifts in this case.
+! the length of the cavity is c_light / (2 * freq).
 !
 ! Module needed:
 !   use bmad
@@ -3921,32 +3920,71 @@ end function ele_has_constant_ds_dt_ref
 !   ele    -- ele_struct: Element.
 !
 ! Output:
-!   is_hard -- Logical: True if tracking uses a hard edge model.
+!   has_drifts -- Logical: True if tracking uses end drifts.
 !-
 
-function tracking_uses_hard_edge_model (ele) result (is_hard)
+function tracking_uses_end_drifts (ele) result (has_drifts)
 
 implicit none
 
 type (ele_struct) ele
-logical is_hard
+logical has_drifts
 
 !
 
-is_hard = .false.
+has_drifts = .false.
 
 select case (ele%key)
-case (lcavity$, rfcavity$, solenoid$, sbend$)
-    if (ele%field_calc == bmad_standard$) is_hard = .true.
+case (lcavity$, rfcavity$, solenoid$)
+    if (ele%field_calc == bmad_standard$) has_drifts = .true.
 end select
 
-end function tracking_uses_hard_edge_model
+end function tracking_uses_end_drifts
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine calc_next_hard_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
+! Function element_has_fringe_fields (ele) result (has_fringe)
+!
+! Function to determine if the element has fringe fields that must be accounted
+! for when tracking through the element. For example, a solenoid has edge fields.
+! Note: If an element has end drifts (see tracking_uses_end_drifts function), 
+! Then the fringe_fields will not be internal to the element and not at the ends.
+!
+! Module needed:
+!   use bmad
+!
+! Input:
+!   ele    -- ele_struct: Element.
+!
+! Output:
+!   has_fringe -- Logical: True if the element has fringe fields.
+!-
+
+function element_has_fringe_fields (ele) result (has_fringe)
+
+implicit none
+
+type (ele_struct) ele
+logical has_fringe
+
+!
+
+has_fringe = .false.
+
+select case (ele%key)
+case (lcavity$, rfcavity$, solenoid$, sbend$)
+    if (ele%field_calc == bmad_standard$) has_fringe = .true.
+end select
+
+end function element_has_fringe_fields
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine calc_next_fringe_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
 !
 ! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
 ! This routine is used by integration tracking routines like Runge-Kutta.
@@ -3972,7 +4010,7 @@ end function tracking_uses_hard_edge_model
 !   hard_end     -- Integer: Describes hard edge. Set to entrance_end$ or exit_end$.
 !-
 
-subroutine calc_next_hard_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
+subroutine calc_next_fringe_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 implicit none
 
@@ -4027,7 +4065,7 @@ integer this_end
 
 !
 
-if (.not. tracking_uses_hard_edge_model (this_ele)) return
+if (.not. element_has_fringe_fields (this_ele)) return
 if (this_ele%ixx == 2) return
 
 s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
@@ -4060,7 +4098,7 @@ s_edge_hard = s_edge_track - s_off
 
 end subroutine does_this_ele_contain_the_next_edge
 
-end subroutine calc_next_hard_edge
+end subroutine calc_next_fringe_edge
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

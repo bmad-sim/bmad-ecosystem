@@ -106,7 +106,7 @@ nullify (edge(1)%hard_ele)
 n_edge = 0
 do i = 1, size(edge)
   if (i > 1) edge(i)%hard_ele => edge(i-1)%hard_ele
-  call calc_next_hard_edge (ele, edge(i)%s, edge(i)%hard_ele, edge(i)%s_hard, edge(i)%hard_end) 
+  call calc_next_fringe_edge (ele, edge(i)%s, edge(i)%hard_ele, edge(i)%s_hard, edge(i)%hard_end) 
   if (.not.  associated(edge(i)%hard_ele)) exit
   n_edge = n_edge + 1
 enddo 
