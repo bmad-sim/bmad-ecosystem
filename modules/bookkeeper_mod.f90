@@ -2427,6 +2427,8 @@ case (sbend$)
     call set_ele_status_stale (ele, floor_position_group$)
   endif
 
+  val(l_hard_edge$) = val(l$)
+
 ! Lcavity
 
 case (lcavity$)

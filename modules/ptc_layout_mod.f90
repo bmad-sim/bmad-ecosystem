@@ -351,12 +351,18 @@ type (branch_struct) branch
 type (coord_struct), allocatable :: closed_orbit(:)
 
 real(dp) x(6)
+integer i
 
 !
 
 x = 0
 call find_orbit_x (x, default, 1.0d-5, fibre1 = branch%ele(0)%ptc_fibre%next)  ! find closed orbit
+call init_coord (closed_orbit(0), x, branch%ele(0), .true., branch%param%particle)
 
+do i = 1, branch%n_ele_track
+  
+  call init_coord (closed_orbit(i), x, branch%ele(i), .true., branch%param%particle)
+enddo
 
 end subroutine ptc_closed_orbit_calc 
 
