@@ -56,7 +56,7 @@ type (track_struct), optional :: track
 type (hard_edge_struct), allocatable :: edge(:)
 type (em_field_struct) :: saved_field
 
-real(rp)  dt_step, ref_time, vec6, pc2
+real(rp)  dt_step, ref_time, vec6
 real(rp)   s_rel, time, s1, s2, del_s, p0c_save
 
 integer :: i, n_edge
@@ -80,6 +80,8 @@ if (ele%value(l$) .eq. 0) then
   if ( present(track) ) then
    !Convert to global-s to local-t coordinates
     call convert_particle_coordinates_s_to_t(end_orb)
+    !Tracks use vec(5) = s_rel
+    end_orb%vec(5) = 0.0_rp
     !convert to element coordinates for track_struct
     call init_saved_orbit (track, 0)
     track%n_pt = 0
@@ -209,18 +211,20 @@ else
 
 	  if (abs(del_s) < bmad_com%significant_length) then
 	    ! At an edge. Kick.         
-	    p0c_save = end_orb%p0c ! Fudge to kick orb in time coordinates by setting p0c = +/- 1
-	    end_orb%p0c = sign(1.0_rp, p0c_save)
-	    pc2 = end_orb%vec(2)**2 + end_orb%vec(4)**2 + end_orb%vec(6)**2
+        ! Get s and ref_time
+	    if (end_orb%p0c > 0 ) then 
+   		  s1 = edge(i)%s
+   		  ref_time = edge(i)%hard_ele%ref_time - edge(i)%hard_ele%value(delta_ref_time$)
+	    else 
+	  	  s2 = edge(i)%s
+	  	  ref_time = edge(i)%hard_ele%ref_time
+	    end if
+	    !Convert to s-coordinates for hard edge kick, kick, and convert back
+	    call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time) 
 	    call apply_hard_edge_kick (end_orb, edge(i)%s_hard, time, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
-	    end_orb%p0c = p0c_save
-	    end_orb%vec(6) = sign(sqrt(pc2 - end_orb%vec(2)**2 - end_orb%vec(4)**2), end_orb%vec(6))
-	    if (p0c_save > 0 ) then 
-		s1 = edge(i)%s
-	  else 
-		s2 = edge(i)%s
-	  end if
-
+	    call convert_particle_coordinates_s_to_t(end_orb)
+	    end_orb%vec(5) = edge(i)%s
+	    
 	  elseif (del_s > 0) then
 	    if (del_s < end_orb%vec(5) - s1) s1 = edge(i)%s  !new nearest left edge
 
