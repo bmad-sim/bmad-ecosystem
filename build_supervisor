@@ -135,6 +135,7 @@ class BuildController(threading.Thread):
         self.type = build_config.build_specs[spec]['type']
         self.platform = build_config.build_specs[spec]['platform']
         self.basedir = build_config.build_specs[spec]['basedir']
+        self.util_dir = build_config.build_specs[spec]['util_dir']
         self.nightly = argresults.nightly
         
         if not self.is_platform_supported():

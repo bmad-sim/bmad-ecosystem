@@ -54,6 +54,7 @@ build_specs = {
         'type' : 'release',
         'platform' : 'Linux_x86_64_intel',
         'basedir' : '/nfs/acc/libs',
+        'util_dir' : '/nfs/acc/libs/util',
         'domain' : 'OFFLINE',
         'host'   : 'acc101.lns.cornell.edu',
         'repositories' : {
@@ -99,6 +100,7 @@ build_specs = {
         'type' : 'release',
         'platform' : 'Linux_x86_64_intel',
         'basedir' : '/gfs/cesr/online/lib',
+        'util_dir' : '/gfs/cesr/online/lib/util',
         'domain' : 'ONLINE',
         'host'   : 'cesr109.lns.cornell.edu',
         'repositories' : {
@@ -131,7 +133,6 @@ build_specs = {
                 '/trunk/src/BPM_tbt_gain',
                 '/trunk/src/examples',
                 '/trunk/src/genplt',
-                '/trunk/src/CBSM/xBSM/XbsmAnalysis',
                 '/trunk/src/displays',
                 '/trunk/src/logit',
                 '/trunk/src/magstat',
@@ -141,12 +142,14 @@ build_specs = {
                 '/trunk/src/fbph',
                 '/trunk/src/gen_log',
                 '/trunk/src/newin',
+                '/trunk/src/save',
                 '/trunk/src/show',
                 '/trunk/src/synchv',
                 '/trunk/src/tao_cesr',
                 '/trunk/src/vacmon',
                 '/trunk/src/xscope',
 		'/CESR/CESR_services/intloc'
+		'/CESR/CESR_progs/vac'
             ]
         }
     },
@@ -154,6 +157,7 @@ build_specs = {
         'type' : 'packages',
         'platform' : 'Linux_x86_64_intel',
         'basedir' : '/nfs/acc/libs',
+        'util_dir' : '/nfs/acc/libs/util',
         'domain' : 'OFFLINE',
         'host' : 'acc101.lns.cornell.edu',
         'repositories' : {
@@ -219,8 +223,9 @@ build_specs = {
                     # ./configure --enable-fftw3 --with-fftw3-incdir=`pwd`/../include --with-fftw3-libdir=`pwd`/../lib --disable-python --prefix=`pwd`/.. --etcdir=`pwd`/../etc
                     # make
                     # make install
-		    # cp bin/thisroot.sh ../production/bin
-		    # cp bin/thisroot.s
+                    # FOR AN ONLINE BUILD:
+                    # perl -pi~ -e 's!/.fs/cesr/online!\$\{CESR_ONLINE}!' bin/thisroot.sh
+
             ]
         }
     }    
