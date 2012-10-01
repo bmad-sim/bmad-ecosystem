@@ -72,10 +72,9 @@ def manifest_to_build_list( manifest ):
     build_list = []
     for repo in manifest:
         for dir in checkout_manifest[repo]:
+	    print('----->'+dir)
             full_dir = normpath(invars.full_release_dir) + '/' + basename(normpath(dir))
-            if os.path.exists(full_dir + '/Makefile'):
-                print full_dir
-                build_list.append(full_dir)
+            build_list.append(full_dir)
     return build_list
 
 
@@ -158,7 +157,7 @@ def build_pkg_directory( dir, statlist, target ) :
 link_to_packages( invars.packages_name )
 
 blist = manifest_to_build_list( checkout_manifest )
-
+print(blist)
 
 targets = ['production', 'debug']
 
