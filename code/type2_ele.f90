@@ -84,7 +84,7 @@ real(rp), pointer :: r_ptr
 character(*), allocatable :: lines(:)
 character(len(lines)), pointer :: li(:)
 character(len(lines)), allocatable :: li2(:)
-character(40) a_name, name, fmt_a, fmt_i, fmt_l, coef_str
+character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, coef_str
 character(12) val_str
 character(8) angle, index_str
 character(2) str_i
@@ -377,8 +377,13 @@ endif
 write (fmt_a, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, a)'
 write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
 write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
+write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es12.6)'
 
 nl=nl+1; write (li(nl), *) ' '
+
+if (ele%key == beambeam$ .and. associated(ele%branch)) then
+  nl=nl+1; write (li(nl), fmt_r) 'PARAMETER[N_PART]', '=', ele%branch%param%n_part
+endif
 
 if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
   nl=nl+1; write (li(nl), fmt_a) 'CRYSTAL_TYPE', '=', ele%component_name
