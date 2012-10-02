@@ -147,7 +147,7 @@ write (iu, '(4a)')    'parameter[p0c]                    =', trim(str(lat%ele(0)
 write (iu, '(4a)')    'parameter[particle]               = ', particle_name(lat%param%particle)
 
 if (.not. lat%param%aperture_limit_on) write (iu, '(4a)')    'parameter[aperture_limit_on]      = F'
-if (lat%param%n_part /= 0)             write (iu, '(a, i0)') 'parameter[n_part]                 = ', lat%param%n_part
+if (lat%param%n_part /= 0)             write (iu, '(a, es12.4)') 'parameter[n_part]                 = ', lat%param%n_part
 
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_phase]    = ', lat%rf_auto_scale_phase
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_amp]      = ', lat%rf_auto_scale_amp
