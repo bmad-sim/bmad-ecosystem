@@ -312,7 +312,7 @@ case ('beam')
 
     ix_branch = 0
     uni_branch => u%uni_branch(ix_branch)
-    nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', size(s%u)
+    nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file

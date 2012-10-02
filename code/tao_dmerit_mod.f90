@@ -115,7 +115,7 @@ if (s%global%derivative_uses_design) then
     s%var(j)%scratch_value = s%var(j)%model_value  ! Save
     call tao_set_var_model_value (s%var(j), s%var(j)%design_value)
   enddo
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     s%u(i)%scratch_lat = s%u(i)%model%lat ! Save
     s%u(i)%model%lat = s%u(i)%design%lat
   enddo
@@ -202,7 +202,7 @@ enddo
 if (s%global%orm_analysis) s%u(:)%calc%mat6 = .true.
 
 if (s%global%derivative_uses_design) then
-  do i = 1, size(s%u)
+  do i = lbound(s%u, 1), ubound(s%u, 1)
     s%u(i)%model%lat = s%u(i)%scratch_lat
   enddo
   do j = 1, s%n_var_used

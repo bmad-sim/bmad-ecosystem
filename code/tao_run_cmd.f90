@@ -29,7 +29,7 @@ type (tao_universe_struct), pointer :: u
 
 real(rp), allocatable, save :: var_vec(:)
 real(rp) merit
-integer n_data, i, j
+integer n_data, i, j, iu0, iu1
 
 character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
@@ -61,9 +61,10 @@ endif
 
 ! Do not do radiation_integrals calc if not needed
 
-allocate (do_rad_int_data(size(s%u)), do_rad_int_plotting(size(s%u)))
+iu0 = lbound(s%u, 1); iu1 = ubound(s%u, 1)
+allocate (do_rad_int_data(iu0:iu1), do_rad_int_plotting(iu0:iu1))
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = iu0, iu1
   u => s%u(i)
   do_rad_int_data(i) = u%calc%rad_int_for_data
   do_rad_int_plotting(i) = u%calc%rad_int_for_plotting
@@ -81,7 +82,7 @@ enddo
 ! See if there are any constraints
 
 n_data = 0
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i = iu0, iu1
   n_data = n_data + count(s%u(i)%data(:)%useit_opt)
 enddo
 if (n_data == 0) then

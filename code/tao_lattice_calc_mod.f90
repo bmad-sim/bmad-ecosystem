@@ -585,7 +585,8 @@ if (model%lat%branch(ix_branch)%param%lattice_type == linear_lattice$) then
   call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start, &
                                                  model%lat%ele(0), .true., branch%param%particle)
 else
-  model%lat_branch(ix_branch)%orbit(0) = model%orb0
+  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%orb0, &
+                                                 model%lat%ele(0), .true., branch%param%particle)
 endif
 
 orb0 => model%lat_branch(ix_branch)%orbit(0)
