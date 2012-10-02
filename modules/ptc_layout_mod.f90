@@ -181,7 +181,7 @@ call make_node_layout (m_u%end)
 
 lielib_print(12) = n
 
-branch%ele(0)%ptc_fibre => branch%ele(1)%ptc_fibre%previous
+branch%ele(0)%ptc_fibre => branch%ele(1)%ptc_fibre%parent_layout%start
 
 end subroutine branch_to_ptc_layout
 
@@ -347,21 +347,28 @@ use madx_ptc_module
 
 implicit none
 
-type (branch_struct) branch
+type (branch_struct), target :: branch
 type (coord_struct), allocatable :: closed_orbit(:)
+type (fibre), pointer :: fib
 
 real(dp) x(6)
+real(rp) vec(6)
+
 integer i
 
 !
 
 x = 0
-call find_orbit_x (x, default, 1.0d-5, fibre1 = branch%ele(0)%ptc_fibre%next)  ! find closed orbit
-call init_coord (closed_orbit(0), x, branch%ele(0), .true., branch%param%particle)
+fib => branch%ele(0)%ptc_fibre%next
+call find_orbit_x (x, default, 1.0d-5, fibre1 = fib)  ! find closed orbit
+call vec_ptc_to_bmad (x, fib%beta0, vec)
+call init_coord (closed_orbit(0), vec, branch%ele(0), .true., branch%param%particle)
 
 do i = 1, branch%n_ele_track
-  
-  call init_coord (closed_orbit(i), x, branch%ele(i), .true., branch%param%particle)
+  fib => branch%ele(i)%ptc_fibre%next
+  call track_probe_x (x, default, branch%ele(i-1)%ptc_fibre%next, fib)
+  call vec_ptc_to_bmad (x, fib%beta0, vec)
+  call init_coord (closed_orbit(i), vec, branch%ele(i), .true., branch%param%particle)
 enddo
 
 end subroutine ptc_closed_orbit_calc 
