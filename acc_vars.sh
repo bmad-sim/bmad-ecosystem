@@ -404,9 +404,13 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/production/lib:${AC
 # Useful aliases
 #--------------------------------------------------------------
 # Information about build system setup for the current shell session.
-alias accinfo=' echo -e "ACC release      : \"${ACC_RELEASE}\" [${ACC_TRUE_RELEASE}]
+function accinfo() {
+    export ACC_TRUE_RELEASE=`readlink ${ACC_RELEASE_DIR}`
+    echo -e "ACC release      : \"${ACC_RELEASE}\" [${ACC_TRUE_RELEASE}]
 Architecture     : ${ACC_ARCH}
-Fortran compiler : ${ACC_FC}" '
+Fortran compiler : ${ACC_FC}"
+}
+
 alias ACCINFO='accinfo'
 alias acc_info='accinfo'
 alias ACC_INFO='accinfo'
