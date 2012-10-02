@@ -138,8 +138,6 @@ find_package(X11)
 #  This new build will then perform the divergent action of linking against the release library
 # but extracting constants and other header information from the LOCAL source tree.  
 #
-# This is how the present build system is set up to operate and is likely not ideal.
-#
 SET (MASTER_INC_DIRS
   ${X11_INCLUDE_DIR}
   ${INC_DIRS}
@@ -256,43 +254,6 @@ foreach(dir ${SRC_DIRS})
 endforeach(dir)
 
 
-#---------------------------------------------
-# List of lab-maintained libraries that shall
-# be associated with executables as
-# dependencies to accommodate the fact that
-# they may also be under active development
-# in a user's working area and require local
-# path references to find.
-#
-#  TODO: Relocate to simpler, external file
-#        for easier location and maintenance.
-#---------------------------------------------
-#set( LAB_LIBS
-#  c_utils
-#  recipes_f-90_LEPP
-#  sim_utils
-#  mpmnet
-#  cbi_net
-#  cbpmfio
-#  BeamInstSupport
-#  CBPM-TSHARC
-#  CBIC
-#  bmad
-#  cesr_utils
-#  mpm_utils
-#  nonlin_bpm
-#  tao
-#  tao_cesr
-#  CesrBPM
-#  bmadz
-#  cesrv
-#  bsim
-#  bsim_cesr
-#  genplt
-#  displays
-#  XbsmAnalysis
-#)
-
 set(DEPS)
 
 
@@ -394,17 +355,14 @@ foreach(exespec ${EXE_SPECS})
       LIST(FIND TARGETS ${dep} DEP_SEEN)
       IF(${DEP_SEEN} EQUAL -1)
         IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
-          ##message("Found ${dep} in ${OUTPUT_BASEDIR}/lib/")
           add_library(${dep} STATIC IMPORTED)
           LIST(APPEND TARGETS ${dep})
           set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
         ELSEIF (EXISTS ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.a)
-          ##message("Found ${dep} in ${PACKAGES_OUTPUT_BASEDIR}/lib/")
           add_library(${dep} STATIC IMPORTED)
           LIST(APPEND TARGETS ${dep})
           set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${PACKAGES_OUTPUT_BASEDIR}/lib/lib${dep}.a)
         ELSEIF (EXISTS ${RELEASE_DIR}/lib/lib${dep}.a)
-          ##message("Found ${dep} in ${RELEASE_DIR}/lib/")
           add_library(${dep} STATIC IMPORTED)
           LIST(APPEND TARGETS ${dep})
           set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
@@ -544,11 +502,6 @@ foreach(exespec ${EXE_SPECS})
     endforeach(srcfile)
   endif ()
 
-
-
-  SET(CFLAGS)
-  SET(FFLAGS)
-  SET(COMPILER_FLAGS)
 
   # Actually request creation of executable target
   add_executable(${EXENAME}-exe
