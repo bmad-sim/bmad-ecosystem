@@ -3067,7 +3067,7 @@ enddo
 
 ! Now set u%calc%rad_int_for_plotting.
 
-do i = 1, size(s%u)
+do i = lbound(s%u, 1), ubound(s%u, 1)
   ! If a rad_int_calc (from plotting or data demand) is being toggled on, also set u%calc%lattice = T
   if (s%u(i)%picked_uni .and. .not. (s%u(i)%calc%rad_int_for_plotting .or. s%u(i)%calc%rad_int_for_data)) then
     u%calc%lattice = .true.

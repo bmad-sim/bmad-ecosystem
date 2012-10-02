@@ -16,6 +16,7 @@ implicit none
 
 type (tao_super_universe_struct), pointer :: s_ptr  ! For debug purposes
 type (tao_common_struct), pointer :: t_ptr          ! For debug purposes
+type (tao_universe_struct), pointer :: u
 
 character(200) cmd_line
 character(16) :: r_name = 'tao_top_level'
@@ -39,6 +40,8 @@ if (err) then
   call out_io (s_fatal$, r_name, 'TAO INIT FILE NOT FOUND. STOPPING.')
   stop
 endif
+
+u => s%u(1)
 
 ! Command loop
 
