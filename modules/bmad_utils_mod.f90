@@ -353,7 +353,8 @@ subroutine check_controller_controls (contrl, name, err)
 
 implicit none
 
-type (control_struct) contrl(:)
+type (control_struct), target :: contrl(:)
+type (control_struct), pointer :: c1, c2
 integer i, j
 logical err
 character(*) name
@@ -364,9 +365,11 @@ character(40) :: r_name = 'check_controller_controls'
 err = .true.
 
 do i = 1, size(contrl)
+  c1 => contrl(i)
   do j = i+1, size(contrl)
-    if (contrl(i)%ix_slave == contrl(j)%ix_slave .and. &
-              contrl(i)%ix_attrib == contrl(j)%ix_attrib) then
+    c2 => contrl(j)
+    if (c1%ix_slave == c2%ix_slave .and. c1%ix_branch == c2%ix_branch .and. &
+                                         c1%ix_attrib == c2%ix_attrib) then
       call out_io (s_error$, r_name, 'DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
       return
     endif
