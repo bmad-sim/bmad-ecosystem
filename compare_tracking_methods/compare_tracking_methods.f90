@@ -6,17 +6,19 @@ use quick_plot
 implicit none
 
 type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele
+type (real_pointer_struct), allocatable :: ptr_array(:)
 
 character(40) :: input_file  = 'compare_tracking_methods.bmad'
 character(40) :: output_file = 'compare_tracking_methods'
 character(20) :: base_method, element_to_vary, attrib_to_vary
 character(20) :: veto_methods(10)
+
 real(rp) :: scan_start, scan_end, step_size
-integer :: nsteps, nmethods, i, j, k, l, m, id, xbox, ybox
 real(rp), dimension(:), allocatable   :: scan_var
-type (real_pointer_struct), allocatable :: ptr_array(:)
+integer :: nsteps, nmethods, i, j, k, l, m, id, xbox, ybox
+logical is_valid(n_methods$)
 logical :: err_flag
-logical :: valid_tracking_method(49,16) ! x coordinate indexes the element, y coordinate indexes the tracking method
 
 type mystep           ! stores the phase space coordinates for a particular iteration of the scan
    real(rp) :: vec(6) ! (x, px, y, py, z, pz)
@@ -44,6 +46,7 @@ veto_methods = ''
 namelist / scan_params / output_file, base_method, veto_methods, element_to_vary, attrib_to_vary, scan_start, scan_end, nsteps
 
 call bmad_parser (input_file, lat)
+ele => lat%ele(1)
 
 open (1, file = input_file)
 read (1, nml = scan_params)
@@ -51,45 +54,22 @@ close (1)
 
 start_orb_desc = "Starting orbit: (" // trim(adjustl(convert_to_string(lat%beam_start%vec(1)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(2)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(3)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(4)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(5)))) // "," // trim(adjustl(convert_to_string(lat%beam_start%vec(6)))) // ")"
 
-! Define valid tracking methods for different lattice elements 
-valid_tracking_method = .false.
-valid_tracking_method(ab_multipole$, [1, 2, 4, 6, 8]) = .true.
-valid_tracking_method(beambeam$, [1, 4]) = .true.
-valid_tracking_method(drift$, [1, 2, 3, 4, 6, 8, 12, 14, 15]) = .true.
-valid_tracking_method(e_gun$, [3, 12, 15]) = .true.
-valid_tracking_method(ecollimator$, [1, 2, 3, 4, 6, 8, 12, 15]) = .true.
-valid_tracking_method(elseparator$, [1, 2, 3, 4, 6, 8, 12, 14, 15]) = .true.
-valid_tracking_method(em_field$, [3, 12, 15]) = .true.
-valid_tracking_method(hkicker$, [1, 2, 3, 4, 6, 8, 12, 15]) = .true.
-valid_tracking_method(instrument$, [1, 2, 3, 4, 6, 8, 12, 15]) = .true.
-valid_tracking_method(kicker$, [1, 2, 3, 4, 6, 8, 12, 15]) = .true.
-valid_tracking_method(lcavity$, [1, 2, 3, 4, 6, 8, 10, 12, 15]) = .true.
-valid_tracking_method(marker$, [1, 2, 4, 6, 8]) = .true.
-valid_tracking_method(match$, [1, 8]) = .true.
-valid_tracking_method(monitor$, [1, 2, 3, 4, 6, 8, 12, 15]) = .true.
-valid_tracking_method(multipole$, [1, 2, 4, 6, 8]) = .true.
-valid_tracking_method(octupole$, [1, 2, 3, 4, 6, 8, 12, 15]) = .true.
-valid_tracking_method(patch$, [1, 8]) = .true.
-valid_tracking_method(quadrupole$, [1, 2, 3, 4, 6, 8, 10, 12, 14, 15]) = .true.
-valid_tracking_method(rbend$, [1, 2, 4, 6, 8, 14]) = .true.
-valid_tracking_method(rcollimator$, [1, 2, 3, 4, 6, 8, 12, 15]) = .true.
-valid_tracking_method(rfcavity$, [1, 2, 3, 4, 6, 8, 10, 12, 14, 15]) = .true.
-valid_tracking_method(sbend$, [1, 2, 4, 6, 8, 14]) = .true.
-valid_tracking_method(sextupole$, [1, 2, 3, 4, 6, 8, 12, 14, 15]) = .true.
-valid_tracking_method(solenoid$, [1, 2, 3, 4, 6, 8, 10, 12, 14, 15]) = .true.
-valid_tracking_method(sol_quad$, [1, 2, 3, 4, 6, 8, 10, 12, 14, 15]) = .true.
-valid_tracking_method(taylor$, [1, 4]) = .true.
-valid_tracking_method(vkicker$, [1, 2, 3, 4, 6, 8, 12, 15]) = .true.
-if(lat%ele(1)%key == wiggler$ .and. lat%ele(1)%sub_key == map_type$) valid_tracking_method(wiggler$, [1, 2, 3, 4, 6, 8, 10, 12, 15]) = .true.
-if(lat%ele(1)%key == wiggler$ .and. lat%ele(1)%sub_key == periodic_type$) valid_tracking_method(wiggler$, [1, 2, 3, 4, 6, 8, 10]) = .true.
+! Make a list of methods to use
 
-! Remove vetoed methods from list of valid methods 
+do i = 1, n_methods$
+  is_valid = valid_tracking_method(ele, i)
+enddo
+
 DO i = 1, size(veto_methods)
    call match_word (veto_methods(i), calc_method_name(1:), j)
-   if(.not. j == 0) valid_tracking_method(lat%ele(1)%key,j) = .false.
+   if(j > 0) is_valid(j) = .false.
 END DO
 
-nmethods = count(valid_tracking_method(lat%ele(1)%key,:))
+is_valid(custom$) = .false.
+
+!
+
+nmethods = count(is_valid)
 
 allocate (scan_var(nsteps+1), method(nmethods), dmethod(nmethods-1), lines(nmethods-1))
 do i = 1, nmethods
@@ -112,7 +92,7 @@ step_size = (scan_end - scan_start) / nsteps
 ! For each method, perform scan and store phase space coordinates at exit
 k = 0
 DO i = 1, ubound(calc_method_name, 1)
-   if(.not. valid_tracking_method(lat%ele(1)%key,i)) cycle
+   if (.not. is_valid(i)) cycle
    lat%ele(1)%tracking_method = i
    k = k+1
    method(k)%method_name = calc_method_name(i)

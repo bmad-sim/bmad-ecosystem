@@ -14,7 +14,7 @@ implicit none
 
 type (ele_struct) ele
 type (ele_attribute_struct) attrib
-integer i, ik, j, n_used(num_ele_attrib_extended$), key_indx(n_key)
+integer i, ik, j, n_used(num_ele_attrib_extended$), key_indx(n_key$)
 character(20) date
 
 ! Element keys
@@ -28,7 +28,7 @@ write (1, *)
 
 call indexx(key_name, key_indx)
 
-do i = 1, n_key
+do i = 1, n_key$
   j = key_indx(i)
   write (1, '(i4, 3x, a, i4, 3x, a)') i, key_name(i), j, trim(key_name(j))
 enddo
@@ -39,7 +39,7 @@ write (1, *)
 
 n_used = 0
 
-do ik = 1, n_key
+do ik = 1, n_key$
   i = key_indx(ik)
   if (i == overlay_lord$) cycle
   write (1, *) '!---------------------------------'
@@ -73,7 +73,7 @@ do i = 1, a0$
   write (1, *)
   write (1, *) '!---------------------------------'
   write (1, '(a, i0)') 'Index: ', i
-  do j = 1, n_key
+  do j = 1, n_key$
     if (j == overlay_lord$) cycle
     ele%key = j
     attrib = attribute_info(ele, i)
@@ -90,7 +90,7 @@ close (1)
 
 open (1, file = 'element-attributes-list.tex')
 
-do i = 1, n_key
+do i = 1, n_key$
   if (i == overlay_lord$) cycle
   write (1, *) '!---------------------------------'
   write (1, '(i3, 2x, a)') i, key_name(i)
