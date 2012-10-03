@@ -46,7 +46,7 @@ ENDIF ()
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
-set (BASE_C_FLAGS "-Df2cFortran -O2 -std=gnu99 -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
 
 set (BASE_CXX_FLAGS "-Wno-deprecated -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC")
 
@@ -105,6 +105,7 @@ ELSE ()
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/production)
   set (PACKAGES_OUTPUT_BASEDIR ${RELEASE_DIR}/packages/production)
+  set (BASE_C_FLAGS "${BASE_C_FLAGS} -O2")
 ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 message("C Compiler           : ${CMAKE_C_COMPILER}")
