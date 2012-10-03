@@ -11,8 +11,8 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'calc_next_hard_edge' in line:
-      line = line.replace('calc_next_hard_edge', 'calc_next_fringe_edge')
+    if 'n_key' in line:
+      line = line.replace('n_key', 'n_key$')
       found = True
 
     out_file.write(line)

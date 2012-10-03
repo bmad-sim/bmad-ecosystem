@@ -610,11 +610,11 @@ integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_position$ = 49
 
-integer, parameter :: n_key = 49
+integer, parameter :: n_key$ = 49
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-character(40), parameter :: key_name(n_key) = [ &
+character(40), parameter :: key_name(n_key$) = [ &
     'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
     'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
     'RFCAVITY         ', 'ELSEPARATOR      ', 'BEAMBEAM         ', 'WIGGLER          ', &
@@ -637,8 +637,8 @@ character(40), parameter :: key_name(n_key) = [ &
 !   internally to have all attributes so any routine can safely work with all the 
 !   orientation attributes as a block.
 
-logical has_hkick_attributes(n_key)
-logical has_kick_attributes(n_key)
+logical has_hkick_attributes(n_key$)
+logical has_kick_attributes(n_key$)
 
 ! Element attribute name logical definitions
 
@@ -847,8 +847,9 @@ integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
 integer, parameter :: hard_edge_model$ = 9, symp_lie_bmad$ = 10, static$ = 11
 integer, parameter :: boris$ = 12, mad$ = 14
 integer, parameter :: time_runge_kutta$ = 15, custom2$ = 16
+integer, parameter :: n_methods$ = 16
 
-character(16), parameter :: calc_method_name(0:16) = [ &
+character(16), parameter :: calc_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
       'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
       'Taylor          ', 'Hard_Edge_Model ', 'Symp_Lie_Bmad   ', 'Static          ', &

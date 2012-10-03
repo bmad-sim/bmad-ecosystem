@@ -38,7 +38,7 @@ logical :: do_print = .true.
 ! Keeping map allocationg between calls should speed things up
 ! So, a map for each element is required
 
-type (spin_map_struct), save, target :: maps(n_key)
+type (spin_map_struct), save, target :: maps(n_key$)
 
 private initialize_pauli_vector
 

@@ -665,7 +665,7 @@ call string_trim (name, name, n_name)
 
 abbrev = logic_option(.false., abbrev_allowed)
 
-do i = 1, n_key
+do i = 1, n_key$
   if (abbrev .and. (n_name > 2 .or. name(1:2) == "RF")) then
     if (name(:n_name) == key_name(i)(1:n_name)) then
       key_index = i
