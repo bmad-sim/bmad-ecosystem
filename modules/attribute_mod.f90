@@ -261,7 +261,7 @@ endif
 ! def_parameter$ type elements are not set since the def_parameter$ type is only
 ! used by bmad_parser and setting this would mess up the parser's bookkeeping.
 
-do i = 1, n_key
+do i = 1, n_key$
   if (i == def_parameter$) cycle
   if (ix /= 0 .and. ix /= i) cycle
   ele%key = i

@@ -51,7 +51,7 @@ type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2, ele_dflt
-type (ele_struct), target :: ele_default(n_key)
+type (ele_struct), target :: ele_default(n_key$)
 type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm

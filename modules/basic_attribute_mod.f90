@@ -16,13 +16,13 @@ type ele_attribute_struct
   integer :: type = does_not_exist$
 end type
 
-type (ele_attribute_struct), private, save :: attrib_array(n_key, num_ele_attrib_extended$)
+type (ele_attribute_struct), private, save :: attrib_array(n_key$, num_ele_attrib_extended$)
 
-character(40), private, save :: short_attrib_array(n_key, num_ele_attrib_extended$)
-integer, private, save :: attrib_num(n_key)
-integer, private, save :: attrib_ix(n_key, num_ele_attrib_extended$)
+character(40), private, save :: short_attrib_array(n_key$, num_ele_attrib_extended$)
+integer, private, save :: attrib_num(n_key$)
+integer, private, save :: attrib_ix(n_key$, num_ele_attrib_extended$)
 logical, private, save :: attribute_array_init_needed = .true.
-logical, private, save :: has_orientation_attributes_key(n_key)
+logical, private, save :: has_orientation_attributes_key(n_key$)
 private init_short_attrib_array
 
 contains
@@ -88,7 +88,7 @@ n_abbrev = 0            ! number of abbreviation matches.
 ! Overlays search all types of elements
 
 if (key == overlay$) then
-  do k = 1, n_key
+  do k = 1, n_key$
     do i = 1, attrib_num(k)
       if (short_attrib_array(k, i) == name40) then
         attrib_index = attrib_ix(k, i)
@@ -108,7 +108,7 @@ if (key == overlay$) then
 
 ! else only search this type of element
 
-elseif (key > 0 .and. key <= n_key) then
+elseif (key > 0 .and. key <= n_key$) then
   do i = 1, attrib_num(key)
     if (short_attrib_array(key, i) == name40) then
       attrib_index = attrib_ix(key, i)
@@ -183,7 +183,7 @@ if (attribute_array_init_needed) call init_attribute_name_array()
 
 key = ele%key
 
-if (key <= 0 .or. key > n_key) then
+if (key <= 0 .or. key > n_key$) then
   attrib_name = '!BAD ELE KEY'
 elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
@@ -249,7 +249,7 @@ if (attribute_array_init_needed) call init_attribute_name_array()
 
 attrib_info%type = does_not_exist$
 
-if (ele%key <= 0 .or. ele%key > n_key) then
+if (ele%key <= 0 .or. ele%key > n_key$) then
   attrib_info%name = '!BAD ELE KEY'
 elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_info%name = '!BAD INDEX'
@@ -286,7 +286,7 @@ integer i, j, num
 
 if (.not. attribute_array_init_needed) return
 
-do i = 1, n_key
+do i = 1, n_key$
 
   call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
   call init_attribute_name1 (i, custom_attribute2$,  'CUSTOM_ATTRIBUTE2', private$)
@@ -434,7 +434,7 @@ enddo
 
 !
 
-do i = 1, n_key
+do i = 1, n_key$
   select case (i)
   case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, bend_sol_quad$, &
@@ -963,7 +963,7 @@ has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
 has_kick_attributes  = .false.  ! Defined in bmad_struct.f90
 has_orientation_attributes_key = .false.  ! Defined in bmad_struct.f90
 
-do i = 1, n_key
+do i = 1, n_key$
   if (attrib_array(i, tilt$)%name     == 'TILT')  has_orientation_attributes_key(i) = .true.
   if (attrib_array(i, x_offset$)%name == 'X_OFFSET') has_orientation_attributes_key(i) = .true.
   if (attrib_array(i, kick$)%name     == 'KICK')  has_kick_attributes(i) = .true.
@@ -1357,7 +1357,7 @@ integer, save :: max_length = 0
 !
 
 if (attribute_array_init_needed) call init_attribute_name_array
-if (max_length == 0) max_length = maxval(len_trim(attrib_array(1:n_key, 1:num_ele_attrib_extended$)%name))
+if (max_length == 0) max_length = maxval(len_trim(attrib_array(1:n_key$, 1:num_ele_attrib_extended$)%name))
 max_len = max_length
 
 end function
