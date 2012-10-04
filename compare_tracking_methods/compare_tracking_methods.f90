@@ -16,7 +16,7 @@ character(20) :: veto_methods(10)
 
 real(rp) :: scan_start, scan_end, step_size
 real(rp), dimension(:), allocatable   :: scan_var
-integer :: nsteps, nmethods, i, j, k, l, m, id, xbox, ybox
+integer :: nsteps, nmethods, i, j, k, l, ix_base, id, xbox, ybox
 logical is_valid(n_methods$)
 logical :: err_flag
 
@@ -36,8 +36,21 @@ real(rp) :: ymin(6), ymax(6)
 character(200) :: start_orb_desc, x_axis_desc, y_axis_desc
 character(1) ans
 type (qp_line_struct), dimension(:), allocatable :: lines
-character(3), parameter :: short_method_name(16) = [ 'STD', 'SLP', 'RK', 'LIN', '', 'SM', '', 'TAY', '', 'SLB', '', 'BOR', '', 'MAD', 'TRK', '']
+character(3) :: short_method_name(16)
 character(10), parameter :: y_axis_label(6) = [ "\gDx", "\gDp\dx\u", "\gDy", "\gDp\dy\u", "\gDz", "\gDp\dz\u" ]
+
+!
+
+short_method_name(bmad_standard$)     = 'STD'
+short_method_name(symp_lie_ptc$)      = 'SLP'
+short_method_name(runge_kutta$)       = 'RK'
+short_method_name(linear$)            = 'LIN'
+short_method_name(symp_map$)          = 'SM'
+short_method_name(taylor$)            = 'TAY'
+short_method_name(symp_lie_bmad$)     = 'SLB'
+short_method_name(boris$)             = 'BOR'
+short_method_name(mad$)               = 'MAD'
+short_method_name(time_runge_kutta$)  = 'TRK'
 
 if (cesr_iargc() == 1) call cesr_getarg (1, input_file)
 
@@ -57,7 +70,7 @@ start_orb_desc = "Starting orbit: (" // trim(adjustl(convert_to_string(lat%beam_
 ! Make a list of methods to use
 
 do i = 1, n_methods$
-  is_valid = valid_tracking_method(ele, i)
+  is_valid(i) = valid_tracking_method(ele, i)
 enddo
 
 DO i = 1, size(veto_methods)
@@ -79,35 +92,53 @@ end do
 
 open (1, file = trim(adjustl(output_file)) // '.abs')
 write (1,'(a)',advance='no') "Compare tracking methods as "; write (1,'(a)',advance='no') trim(adjustl(element_to_vary)); write (1,'(a)',advance='no') "%"; write (1,'(a)',advance='no') trim(adjustl(attrib_to_vary))
-write (1,'(a)',advance='no') " is varied. Look at phase space coordinates at exit for lattice with only a "; write (1,'(a)',advance='no') trim(adjustl(key_name(lat%ele(1)%key))); write (1,'(a)',advance='no') "."
+write (1,'(a)',advance='no') " is varied. Look at phase space coordinates at exit for lattice with only a "; write (1,'(a)',advance='no') trim(adjustl(key_name(ele%key))); write (1,'(a)',advance='no') "."
 write (1,*); write (1,*)
 
 open (2, file = trim(adjustl(output_file)) // '.diff')
 write (2,'(a)',advance='no') "Compare tracking methods as "; write (2,'(a)',advance='no') trim(adjustl(element_to_vary)); write (2,'(a)',advance='no') "%"; write (2,'(a)',advance='no') trim(adjustl(attrib_to_vary))
-write (2,'(a)',advance='no') " is varied. Look at difference in phase space coordinates at exit for lattice with only a "; write (2,'(a)',advance='no') trim(adjustl(key_name(lat%ele(1)%key))); write (2,'(a)',advance='no') "."
+write (2,'(a)',advance='no') " is varied. Look at difference in phase space coordinates at exit for lattice with only a "; write (2,'(a)',advance='no') trim(adjustl(key_name(ele%key))); write (2,'(a)',advance='no') "."
 write (2,*); write (2,*)
 
 step_size = (scan_end - scan_start) / nsteps
 
-! For each method, perform scan and store phase space coordinates at exit
+! Figure out which method is the base method
+
 k = 0
 DO i = 1, ubound(calc_method_name, 1)
    if (.not. is_valid(i)) cycle
-   lat%ele(1)%tracking_method = i
+   ele%tracking_method = i
    k = k+1
    method(k)%method_name = calc_method_name(i)
    method(k)%short_method_name = short_method_name(i)
+enddo
+
+call match_word (base_method, method%method_name, ix_base, can_abbreviate = .false.)
+if (ix_base == 0) then 
+   print *, "Base method is not valid"; stop
+end if 
+
+! For each method, perform scan and store phase space coordinates at exit
+
+k = 0
+DO i = 1, ubound(calc_method_name, 1)
+   if (.not. is_valid(i)) cycle
+   ele%tracking_method = i
+   k = k+1
    write (1,*) "Tracking Method = ", calc_method_name(i)
    DO j = 1, nsteps+1
       if (k == 1) scan_var(j) = scan_start + (j-1) * step_size 
       call pointers_to_attribute (lat, element_to_vary, attrib_to_vary, .false., ptr_array, err_flag)
       ptr_array(1)%r = scan_start + (j-1) * step_size    
-      call init_coord (lat%beam_start, lat%beam_start, ele = lat%ele(1), at_exit_end = .false.)
-      call track1 (lat%beam_start, lat%ele(1), lat%param, end_orb)
-      DO l = 1, 6
-         method(k)%step(j)%vec(l) = end_orb%vec(l)
-      END DO
-      write (1,'(es24.15,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)',advance='no') ptr_array(1)%r, end_orb%vec(1), end_orb%vec(2), end_orb%vec(3), end_orb%vec(4), end_orb%vec(5), end_orb%vec(6)
+      if (j == 1 .and. i == linear$) then
+        ele%tracking_method = ix_base
+        call make_mat6 (ele, lat%param, lat%beam_start)
+        ele%tracking_method = i
+      endif
+      call init_coord (lat%beam_start, lat%beam_start, ele = ele, at_exit_end = .false.)
+      call track1 (lat%beam_start, ele, lat%param, end_orb)
+      method(k)%step(j)%vec = end_orb%vec
+      write (1,'(es24.15,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)',advance='no') ptr_array(1)%r, end_orb%vec
       write (1,*)
    END DO
    write (1,*)
@@ -115,25 +146,17 @@ END DO
 
 close(1)
 
-! Figure out which method is the base method
-call match_word (base_method, method%method_name, m, can_abbreviate = .false.)
-if (m == 0) then 
-   print *, "Base method is not valid"; stop
-end if 
-
 ! For each method, calculate difference in phase space coordinates w.r.t. base method   
 k = 0
 DO i = 1, nmethods
-   if (i == m) cycle
+   if (i == ix_base) cycle
    k = k+1
    write (2,*) "Tracking Method = ", method(i)%method_name
    dmethod(k)%method_name = method(i)%method_name
    dmethod(k)%short_method_name = method(i)%short_method_name
    DO j = 1, nsteps+1
-      DO l = 1, 6
-         dmethod(k)%step(j)%vec(l)  = method(i)%step(j)%vec(l) - method(m)%step(j)%vec(l)
-      END DO
-      write (2,'(es24.15,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)',advance='no') scan_start + (j-1) * step_size, dmethod(k)%step(j)%vec(1), dmethod(k)%step(j)%vec(2), dmethod(k)%step(j)%vec(3), dmethod(k)%step(j)%vec(4), dmethod(k)%step(j)%vec(5), dmethod(k)%step(j)%vec(6)
+      dmethod(k)%step(j)%vec  = method(i)%step(j)%vec - method(ix_base)%step(j)%vec
+      write (2,'(es24.15,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)',advance='no') scan_start + (j-1) * step_size, dmethod(k)%step(j)%vec
       write (2,*)
    END DO
    write (2,*)
@@ -244,7 +267,7 @@ subroutine create_plot
   call qp_draw_text (start_orb_desc, 0.53_rp, 0.98_rp, "%PAGE", height = 15.0_rp) 
   x_axis_desc = "X axis: parameter being varied (" // trim(adjustl(element_to_vary)) // "%" // trim(adjustl(attrib_to_vary)) // ")."
   call qp_draw_text (x_axis_desc, 0.53_rp, 0.95_rp, "%PAGE", height = 15.0_rp)
-  y_axis_desc = "Y axis: absolute difference w.r.t. " // trim(adjustl(method(m)%method_name)) // " tracking."
+  y_axis_desc = "Y axis: absolute difference w.r.t. " // trim(adjustl(method(ix_base)%method_name)) // " tracking."
   call qp_draw_text (y_axis_desc, 0.53_rp, 0.92_rp, "%PAGE", height = 15.0_rp)
 end subroutine
 
