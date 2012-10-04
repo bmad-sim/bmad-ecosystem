@@ -7,12 +7,11 @@
 # -build names of promoted builds
 #
 # To employ in a program place
-#  'import build_mgmt_common' at beginning of source.
+#  'import build_mgmt' at beginning of source.
 #------------------------------------------------------------
 
 import os
 
-#platforms = ['Linux_i686_intel', 'Linux_x86_64_intel']
 platforms = ['Linux_x86_64_intel']
 promotion_labels = ['devel', 'current']
 release_prefix = 'cesr'
@@ -71,6 +70,10 @@ for platform in platforms:
                 releases[platform].append(truename)
             if os.path.split(fulldiritem)[1] == promotion_label:
                 active_releases[platform][promotion_label] = truename
+
+
+# These methods provide access to information about the release archive contents
+# harvested by the above code or obtained by their own execution.
 
 def Platforms():
     """Returns a list of all supported platforms."""
