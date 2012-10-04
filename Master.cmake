@@ -16,11 +16,36 @@ cmake_policy(SET CMP0015 NEW)
 #-------------------------------------------------------
 # Import environment variables that influence the build
 #-------------------------------------------------------
-set(RELEASE_NAME $ENV{ACC_RELEASE})
-set(RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
-set(RELEASE_DIR $ENV{ACC_RELEASE_DIR})
+set(DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 
-set(RELEASE_LIB ${RELEASE_DIR}/lib)
+IF (${DISTRIBUTION_BUILD})
+  set (FORTRAN_COMPILER $ENV{DIST_F90})
+ELSE ()
+  set (FORTRAN_COMPILER "ifort")
+ENDIF ()
+  
+IF (FORTRAN_COMPILER MATCHES "gfortran")
+
+  set (RELEASE_NAME $ENV{DIST_BASE_DIR})
+  set (RELEASE_NAME_TRUE "Off-site Distribution")
+  set (RELEASE_DIR $ENV{DIST_BASE_DIR})
+  set (COMPILER_CHOICE $ENV{DIST_F90})
+  set (CMAKE_Fortran_COMPILER gfortran)
+  set (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
+  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0")
+
+ELSE ()
+
+  set (RELEASE_NAME $ENV{ACC_RELEASE})
+  set (RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
+  set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
+  set (CMAKE_Fortran_COMPILER ifort)
+  set (COMPILER_SPECIFIC_F_FLAGS "-fpp")
+  set (COMPILER_SPECIFIC DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
+
+ENDIF ()
+
+
 set(PACKAGES_DIR ${RELEASE_DIR}/packages)
 
 get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
@@ -54,9 +79,8 @@ set (BASE_CXX_FLAGS "-Wno-deprecated -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LI
 #-----------------------------------
 # Fortran Compiler flags
 #-----------------------------------
-set (CMAKE_Fortran_COMPILER ifort)
 enable_language( Fortran )
-set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -fpp -u -traceback -mcmodel=medium")
+set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS}")
 
 
 
@@ -99,7 +123,7 @@ IF (DEBUG)
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/debug)
   set (PACKAGES_OUTPUT_BASEDIR ${RELEASE_DIR}/packages/debug)
   set(BASE_C_FLAGS "${BASE_C_FLAGS}")
-  set(BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -check bounds -check format -check uninit -warn declarations -ftrapuv")
+  set(BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} ${COMPILER_SPECIFIC_DEBUG_F_FLAGS}")
 ELSE ()
   message("Build type           : Production")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
