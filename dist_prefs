@@ -16,8 +16,12 @@
 # Setting the variable DIST_F90_REQUEST here to the name
 # of the desired Fortran compiler will allow for its use
 # during the build.
-#  Common options are:
-#   "intel"
+#
+#    NOTE: gfortran support is limited to version
+#          4.6.x and later.
+#
+#  Supported options are:
+#   "ifort"
 #   "gfortran"
 #-----------------------------------------------------------
 export DIST_F90_REQUEST="gfortran"
