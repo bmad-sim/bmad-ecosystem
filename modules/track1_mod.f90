@@ -1052,14 +1052,14 @@ logical is_valid
 !
 
 is_valid = .false.
-num_valid = 0
+if (present(num_valid)) num_valid = 0
 
 select case (ele%key)
 
 case (ab_multipole$)
   if (present(num_valid)) num_valid = 6
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, tracking$, taylor$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
     is_valid = .true.
   end select
 
@@ -1073,7 +1073,7 @@ case (beambeam$)
 case (drift$)
   if (present(num_valid)) num_valid = 10
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -1087,14 +1087,14 @@ case (e_gun$)
 case (ecollimator$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (elseparator$)
   if (present(num_valid)) num_valid = 10
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -1108,35 +1108,35 @@ case (em_field$)
 case (hkicker$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (instrument$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (kicker$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (lcavity$)
   if (present(num_valid)) num_valid = 10
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (marker$)
   if (present(num_valid)) num_valid = 6
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, tracking$, taylor$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
     is_valid = .true.
   end select
 
@@ -1150,21 +1150,21 @@ case (match$)
 case (monitor$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (multipole$)
   if (present(num_valid)) num_valid = 6
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, tracking$, taylor$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
     is_valid = .true.
   end select
 
 case (octupole$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -1178,56 +1178,56 @@ case (patch$)
 case (quadrupole$)
   if (present(num_valid)) num_valid = 11
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (rbend$)
   if (present(num_valid)) num_valid = 7
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, tracking$, taylor$, mad$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$)
     is_valid = .true.
   end select
 
 case (rcollimator$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (rfcavity$)
   if (present(num_valid)) num_valid = 11
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (sbend$)
   if (present(num_valid)) num_valid = 7
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, tracking$, taylor$, mad$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$)
     is_valid = .true.
   end select
 
 case (sextupole$)
   if (present(num_valid)) num_valid = 10
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (solenoid$)
   if (present(num_valid)) num_valid = 11
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (sol_quad$)
   if (present(num_valid)) num_valid = 11
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -1241,7 +1241,7 @@ case (taylor$)
 case (vkicker$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -1249,13 +1249,13 @@ case (wiggler$)
   if (ele%sub_key == map_type$) then
     if (present(num_valid)) num_valid = 10
     select case (tracking_method)
-    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
+    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
   elseif (ele%sub_key == periodic_type$) then
     if (present(num_valid)) num_valid = 8
     select case (tracking_method)
-    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, tracking$, taylor$, symp_lie_bmad$, custom$)
+    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, custom$)
       is_valid = .true.
     end select
   endif
