@@ -1448,12 +1448,24 @@ General \vn{marker} attributes are:
 \end{center}
 \toffset
 
+\index{x_ray_line_len}
+Attributes specific to a \vn{marker} element are:
+\begin{example}
+  x_ray_line_len = <Real>
+\end{example}
+\vn{x_ray_line_len} is the length of an associated x-ray synchrotron
+light line measured from the marker element. This is used for
+machine geometry calculations and is irrelevant for lattice
+computations.
+
 \index{x_offset}\index{y_offset}
 \index{tilt}\index{is_on}
 The \vn{x_offset}, \vn{y_offset} and \vn{tilt} attributes are not used
-by any \bmad routines. Typically if these attributes are used by a
-program they are used to simulate things like BPM offsets. The
-\vn{is_on} attribute is also not used by \bmad proper. Example:
+by any \bmad routines. Typically, if these attributes are used by a
+program, they are used to simulate things like BPM offsets. The
+\vn{is_on} attribute is also not used by \bmad proper. 
+
+Example:
 \begin{example}
   mm: mark, type = "BPM"
 \end{example}

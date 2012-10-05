@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 113
+integer, parameter :: bmad_inc_version$ = 114
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -688,7 +688,7 @@ integer, parameter :: exact_fringe$=12, include_fringe$=12
 integer, parameter :: phi0$=13, fint$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
 integer, parameter :: phi0_err$=14, coef$=14, current$=14, fintx$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
-integer, parameter :: quad_tilt$=15, x_ray_line_len$=15
+integer, parameter :: quad_tilt$=15
 integer, parameter :: hgap$=15, dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15
 integer, parameter :: hgapx$=16, dphi0_ref$ = 16, bend_tilt$=16, fh_im$=16, f0_im2$=16, x_length$=16
 integer, parameter :: dphi0_max$=17, h1$=17, x_quad$=17, ref_polarization$=17, y_length$=17
@@ -696,7 +696,7 @@ integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
 integer, parameter :: b_param$ = 19
 integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 20
 integer, parameter :: field_scale$ = 21
-integer, parameter :: roll$=22, n_cell$=22
+integer, parameter :: roll$=22, n_cell$=22, x_ray_line_len$=22
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
 integer, parameter :: x_offset$ = 25

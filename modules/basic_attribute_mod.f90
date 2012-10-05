@@ -560,6 +560,7 @@ call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start',
 call init_attribute_name1 (marker$, l$,                             'l', private$)
 call init_attribute_name1 (marker$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (marker$, p0c_start$,                     'p0c_start', private$)
+call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_LEN')
 
 call init_attribute_name1 (match$, l$,                              'L')
 call init_attribute_name1 (match$, beta_a0$,                        'BETA_A0')
