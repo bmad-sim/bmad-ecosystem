@@ -17,7 +17,7 @@ character(20) :: veto_methods(10)
 real(rp) :: scan_start, scan_end, step_size
 real(rp), dimension(:), allocatable   :: scan_var
 integer :: nsteps, nmethods, i, j, k, l, ix_base, id, xbox, ybox
-logical is_valid(n_methods$)
+logical :: is_valid(n_methods$+1)
 logical :: err_flag
 
 type mystep           ! stores the phase space coordinates for a particular iteration of the scan
@@ -26,8 +26,8 @@ end type mystep
 
 type mymethod                            ! stores the relevant information for a particular method
    type (mystep), allocatable :: step(:)
-   character(16) :: method_name
-   character(3)  :: short_method_name
+   character(18) :: method_name
+   character(4)  :: short_method_name
 end type mymethod
 
 type (mymethod), allocatable :: method(:), dmethod(:) 
@@ -36,7 +36,7 @@ real(rp) :: ymin(6), ymax(6)
 character(200) :: start_orb_desc, x_axis_desc, y_axis_desc
 character(1) ans
 type (qp_line_struct), dimension(:), allocatable :: lines
-character(3) :: short_method_name(16)
+character(4) :: short_method_name(16)
 character(10), parameter :: y_axis_label(6) = [ "\gDx", "\gDp\dx\u", "\gDy", "\gDp\dy\u", "\gDz", "\gDp\dz\u" ]
 
 !
@@ -69,13 +69,18 @@ start_orb_desc = "Starting orbit: (" // trim(adjustl(convert_to_string(lat%beam_
 
 ! Make a list of methods to use
 
-do i = 1, n_methods$
-  is_valid(i) = valid_tracking_method(ele, i)
+do i = 1, size(is_valid)
+  if (i /= n_methods$+1) then 
+     is_valid(i) = valid_tracking_method(ele, i)
+  else
+     is_valid(i) = valid_tracking_method(ele, symp_lie_ptc$)
+  end if
 enddo
 
 DO i = 1, size(veto_methods)
    call match_word (veto_methods(i), calc_method_name(1:), j)
    if(j > 0) is_valid(j) = .false.
+   if(j == symp_lie_ptc$) is_valid(n_methods$+1) = .false.
 END DO
 
 is_valid(custom$) = .false.
@@ -105,12 +110,16 @@ step_size = (scan_end - scan_start) / nsteps
 ! Figure out which method is the base method
 
 k = 0
-DO i = 1, ubound(calc_method_name, 1)
+DO i = 1, size(is_valid)
    if (.not. is_valid(i)) cycle
-   ele%tracking_method = i
    k = k+1
-   method(k)%method_name = calc_method_name(i)
-   method(k)%short_method_name = short_method_name(i)
+   if (i /= n_methods$+1) then
+      method(k)%method_name = calc_method_name(i)
+      method(k)%short_method_name = short_method_name(i)
+   else   
+      method(k)%method_name = 'Symp_Lie_PTC_Exact'
+      method(k)%short_method_name = 'SLPE'
+   end if
 enddo
 
 call match_word (base_method, method%method_name, ix_base, can_abbreviate = .false.)
@@ -121,11 +130,17 @@ end if
 ! For each method, perform scan and store phase space coordinates at exit
 
 k = 0
-DO i = 1, ubound(calc_method_name, 1)
+DO i = 1, size(is_valid)
    if (.not. is_valid(i)) cycle
-   ele%tracking_method = i
    k = k+1
-   write (1,*) "Tracking Method = ", calc_method_name(i)
+   if (i /= n_methods$+1) then
+      ele%tracking_method = i  
+      write (1,*) "Tracking Method = ", calc_method_name(i)
+   else 
+      call set_ptc(exact_modeling = .true.)
+      ele%tracking_method = symp_lie_ptc$
+      write (1,*) "Tracking Method = Symp_Lie_PTC_Exact"
+   end if
    DO j = 1, nsteps+1
       if (k == 1) scan_var(j) = scan_start + (j-1) * step_size 
       call pointers_to_attribute (lat, element_to_vary, attrib_to_vary, .false., ptr_array, err_flag)
@@ -254,10 +269,10 @@ subroutine create_plot
   if (nmethods > 6) then
      if (mod(nmethods+1,2)) then
         call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines(1:(nmethods+1)/2), text = dmethod(1:(nmethods+1)/2)%method_name, draw_symbol = .false.)
-        call qp_draw_curve_legend (0.3_rp, 0.99_rp, "%PAGE", line = lines((nmethods+3)/2:(nmethods-1)), text = dmethod((nmethods+3)/2:(nmethods-1))%method_name, draw_symbol = .false.)
+        call qp_draw_curve_legend (0.28_rp, 0.99_rp, "%PAGE", line = lines((nmethods+3)/2:(nmethods-1)), text = dmethod((nmethods+3)/2:(nmethods-1))%method_name, draw_symbol = .false.)
      else
         call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines(1:nmethods/2), text = dmethod(1:nmethods/2)%method_name, draw_symbol = .false.)
-        call qp_draw_curve_legend (0.3_rp, 0.99_rp, "%PAGE", line = lines(nmethods/2+1:(nmethods-1)), text = dmethod(nmethods/2+1:(nmethods-1))%method_name, draw_symbol = .false.)
+        call qp_draw_curve_legend (0.28_rp, 0.99_rp, "%PAGE", line = lines(nmethods/2+1:(nmethods-1)), text = dmethod(nmethods/2+1:(nmethods-1))%method_name, draw_symbol = .false.)
      end if
   else
      call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines, text = dmethod(:)%method_name, draw_symbol = .false.)   
