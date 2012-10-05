@@ -618,8 +618,7 @@ case (sbend$)
     
   ! Entrance edge kick
   if ( nint(ele%value(exact_fringe$)) == 1) then
-    !Note: No kx_1 or ky_1
-    call exact_bend_edge_kick (c00, ele, entrance_end$, .false.)
+    call exact_bend_edge_kick (c00, ele, entrance_end$, .false., kx_1, ky_1)
   else
     call apply_bend_edge_kick (c00, ele, entrance_end$, .false., kx_1, ky_1)
   endif
@@ -629,8 +628,7 @@ case (sbend$)
  
   ! Exit edge kick
   if ( nint(ele%value(exact_fringe$)) == 1) then
-    !Note: No kx_1 or ky_1
-    call exact_bend_edge_kick (c11, ele, exit_end$, .false.)
+    call exact_bend_edge_kick (c11, ele, exit_end$, .false., kx_2, ky_2)
   else
     call apply_bend_edge_kick (c11, ele, exit_end$, .true., kx_2, ky_2) 
   endif
