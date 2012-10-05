@@ -20,15 +20,18 @@ set(DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 
 IF (${DISTRIBUTION_BUILD})
   set (FORTRAN_COMPILER $ENV{DIST_F90})
+  set (RELEASE_DIR $ENV{DIST_BASE_DIR})
+  set (PACKAGES_DIR ${RELEASE_DIR})
 ELSE ()
   set (FORTRAN_COMPILER "ifort")
+  set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
+  set (PACKAGES_DIR ${RELEASE_DIR}/packages)
 ENDIF ()
   
 IF (FORTRAN_COMPILER MATCHES "gfortran")
 
   set (RELEASE_NAME $ENV{DIST_BASE_DIR})
   set (RELEASE_NAME_TRUE "Off-site Distribution")
-  set (RELEASE_DIR $ENV{DIST_BASE_DIR})
   set (COMPILER_CHOICE $ENV{DIST_F90})
   set (CMAKE_Fortran_COMPILER gfortran)
   set (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
@@ -38,7 +41,6 @@ ELSE ()
 
   set (RELEASE_NAME $ENV{ACC_RELEASE})
   set (RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
-  set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
   set (CMAKE_Fortran_COMPILER ifort)
   set (COMPILER_SPECIFIC_F_FLAGS "-fpp")
   set (COMPILER_SPECIFIC DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
@@ -46,7 +48,6 @@ ELSE ()
 ENDIF ()
 
 
-set(PACKAGES_DIR ${RELEASE_DIR}/packages)
 
 get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
 #-------------------------------------------------------
