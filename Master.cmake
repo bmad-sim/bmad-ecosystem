@@ -129,14 +129,14 @@ IF (DEBUG)
   message("Build type           : Debug")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../debug)
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/debug)
-  set (PACKAGES_OUTPUT_BASEDIR ${RELEASE_DIR}/packages/debug)
+  set (PACKAGES_OUTPUT_BASEDIR ${PACKAGES_DIR}/debug)
   set(BASE_C_FLAGS "${BASE_C_FLAGS}")
   set(BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} ${COMPILER_SPECIFIC_DEBUG_F_FLAGS}")
 ELSE ()
   message("Build type           : Production")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/production)
-  set (PACKAGES_OUTPUT_BASEDIR ${RELEASE_DIR}/packages/production)
+  set (PACKAGES_OUTPUT_BASEDIR ${PACKAGES_DIR}/production)
   set (BASE_C_FLAGS "${BASE_C_FLAGS} -O2")
 ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
@@ -205,7 +205,6 @@ INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 # order of increasing abstraction.
 #-----------------------------------
 SET(MASTER_LINK_DIRS
-  /lib64
   /usr/lib64
   ${OUTPUT_BASEDIR}/lib
   ${PACKAGES_OUTPUT_BASEDIR}/lib
