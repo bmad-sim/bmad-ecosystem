@@ -37,8 +37,6 @@
 !                     attribute in the ele%value(:) array.
 !-
 
-#include "CESR_platform.inc"
-
 Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
                         ptr_array, err_flag, err_print_flag, eles, ix_attrib)
 
@@ -71,9 +69,10 @@ logical, optional :: err_print_flag
 err_flag = .false.
 do_print = logic_option (.true., err_print_flag)
 
-! beam_start
+! Special elements like beam_start
 
-if (ele_name == 'BEAM_START') then
+select case (ele_name)
+case ('BEAM_START')
 
   if (present(eles)) then
     call re_allocate_eles (eles, 0)
@@ -124,7 +123,28 @@ if (ele_name == 'BEAM_START') then
 
   return
 
-endif
+!
+
+case ('PARAMETER')
+  if (present(eles)) then
+    call re_allocate_eles (eles, 0)
+  endif
+
+  call re_allocate (ptr_array, 1)
+
+  select case(attrib_name)
+  case ('N_PART')
+    ptr_array(1)%r => lat%param%n_part
+  case default
+    if (do_print) call out_io (s_error$, r_name, &
+           'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
+    deallocate (ptr_array)
+    err_flag = .true.
+  end select
+
+  return
+
+end select
 
 ! Locate elements
 
