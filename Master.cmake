@@ -70,6 +70,13 @@ ENDIF ()
 
 
 #-----------------------------------
+#   System library locators
+# (Also provides include directory
+# locations.)
+#-----------------------------------
+find_package(X11)
+
+#-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
 set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
@@ -85,7 +92,7 @@ set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mc
 
 
 
-set(CMAKE_EXE_LINKER_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lX11")
+set(CMAKE_EXE_LINKER_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++")
 
 
 #--------------------------------------
@@ -143,14 +150,6 @@ message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}\n")
 set (LIBRARY_OUTPUT_PATH ${OUTPUT_BASEDIR}/lib)
 set (EXECUTABLE_OUTPUT_PATH ${OUTPUT_BASEDIR}/bin)
 set (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
-
-
-#-----------------------------------
-#   System library locators
-# (Also provides include directory
-# locations.)
-#-----------------------------------
-find_package(X11)
 
 
 #-------------------------
@@ -551,9 +550,14 @@ foreach(exespec ${EXE_SPECS})
   # Set up linking for the executable.
   # Always produce a map file.  It is placed in the ../<build_type>/map directory
   # created during build setup.
+  set(MAPLINE "-Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map")
+  IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
+  ENDIF ()
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${LINK_LIBS}
-          ${LINK_FLAGS} "-Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map"
+          ${X11_LIBRARIES}
+          ${LINK_FLAGS} ${MAPLINE}
   )
 
   SET(CFLAGS)
