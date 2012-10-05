@@ -332,8 +332,8 @@ type (tao_element_struct), pointer :: uni_ele(:)
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (bunch_params_struct), pointer :: bunch_params
 
-integer what_lat
-integer i, j, i_uni, ip, ig, ic, ie1, ie2
+integer what_lat, n_lost_old
+integer i, j, n, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to, ix_track
 integer n_lost, ix_branch
 integer, allocatable, save :: ix_ele(:)
@@ -408,6 +408,7 @@ if (s%global%beam_timer_on) then
   old_time = 0
 endif
 
+n_lost_old = 0
 do j = ie1, ie2
 
   bunch_params => lat_branch%bunch_params(j)
@@ -431,16 +432,20 @@ do j = ie1, ie2
 
   n_bunch = s%global%bunch_to_plot
   n_lost = count(beam%bunch(n_bunch)%particle(:)%state /= alive$)
-  if (n_lost /= 0) then
+  if (n_lost /= n_lost_old) then
+    n = size(beam%bunch(n_bunch)%particle(:))
     if (size(s%u) == 1) then
       call out_io (s_blank$, r_name, &
-            '\i0\ particle(s) lost at element \i0\: ' // ele%name, &
-            i_array = [n_lost, j])
+            '\i0\ particle(s) lost at element \i0\: ' // trim(ele%name) // &
+            '  Total lost: \i0\  of \i0\ ', &
+            i_array = [n_lost-n_lost_old, j, n_lost, n])
     else
       call out_io (s_blank$, r_name, &
-            '\i0\ particle(s) lost in universe \i0\ at element \i0\: ' // ele%name, &
-            i_array = [n_lost, u%ix_uni, j])
+            '\i0\ particle(s) lost in universe \i0\ at element \i0\: ' // trim(ele%name) // &
+            '  Total lost: \i0\  of \i0\ ', &
+            i_array = [n_lost-n_lost_old, u%ix_uni, j, n_lost, n])
     endif
+    n_lost_old = n_lost
   endif
 
   if (tao_no_beam_left(beam, branch%param%particle) .and. .not. lost) then
