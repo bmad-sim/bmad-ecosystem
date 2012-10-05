@@ -203,7 +203,7 @@ end subroutine check_aperture_limit
 
 !
 ! Output:
-!   orb%vec(:) -- coord_struct: Orbit at end of the drift
+!   orb      -- coord_struct: Orbit at end of the drift
 !-
 
 subroutine track_a_drift (orb, ele, species, length)
@@ -214,7 +214,7 @@ type (coord_struct) orb
 type (ele_struct) ele
 type (lat_param_struct) param
 integer species
-real(rp) length, rel_pc, dz, px, py, pz
+real(rp) length, rel_pc, dz, px, py, pz, pxy2
 
 ! Photon tracking uses a different coordinate system. 
 ! Notice that if orb%vec(6) is negative then the photon will be going back in time.
@@ -233,7 +233,12 @@ endif
 rel_pc = 1 + orb%vec(6)
 px = orb%vec(2) / rel_pc
 py = orb%vec(4) / rel_pc
-pz = sqrt(1 - px**2 - py**2)
+pxy2 = px**2 + py**2
+if (pxy2 >= 1) then
+  orb%state = lost_z_aperture$
+  return
+endif
+pz = sqrt(1 - pxy2)
 
 orb%vec(1) = orb%vec(1) + length * px / pz
 orb%vec(3) = orb%vec(3) + length * py / pz
