@@ -199,17 +199,17 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
 
 
   #--------------------------------------------------------------
-  #  Add the distribution's bin area to user's PATH
+  #  Add the distribution's scripts area to user's PATH
   #--------------------------------------------------------------
   PATH_LIST=`"echo" $PATH | sed s/:/\ /g`
   found=0
   for dir in ${PATH_LIST}; do
-    if ( [ "${dir}" = "${BMAD_BIN}" ] ) then 
+    if ( [ "${dir}" = "${DIST_UTIL}" ] ) then 
       found=1
     fi
   done
   if ( [ ${found} -eq 0 ] ) then
-    PATH=${PATH}:${BMAD_BIN}
+    PATH=${PATH}:${DIST_UTIL}
     export PATH
   fi
 

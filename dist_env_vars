@@ -14,6 +14,8 @@ export DIST_BUILD="TRUE"
 
 export ACC_BUILD_SYSTEM=$DIST_BASE_DIR/build_system
 export ACC_BUILD_EXES=Y
+export ACC_ENABLE_SHARED=Y
+export ACC_CMAKE_VERSION=2.8
 #--------------------------------------------------------------
 # Distribution directory tree assignments
 #--------------------------------------------------------------
