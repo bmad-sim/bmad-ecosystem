@@ -935,7 +935,7 @@ end subroutine ptc_rot_xz
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine exact_bend_edge_kick (orb, ele, element_end, reverse)
+! Subroutine exact_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
 !
 ! Subroutine to track through the edge field of an sbend.
 ! Reverse tracking starts with the particle just outside the bend and
@@ -957,9 +957,12 @@ end subroutine ptc_rot_xz
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
+!   kx, ky     -- Real(rp), optional: Horizontal and vertical edge focusing strengths.
+!                  Useful for constructing the edge transfer matrix.
+!                  The values of kx and ky are not affected by the reverse argument.
 !-
 
-subroutine exact_bend_edge_kick (orb, ele, element_end, reverse)
+subroutine exact_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
 
 use ptc_interface_mod
 
@@ -967,8 +970,9 @@ implicit none
 
 type(coord_struct) :: orb
 type(ele_struct) :: ele
+real(rp), optional :: kx, ky
 real(rp) :: X(6), ct
-real(rp) :: beta0, g_tot, edge_angle
+real(rp) :: beta0, g_tot, edge_angle, hgap, fint
 integer :: element_end
 logical :: reverse
 
@@ -993,19 +997,23 @@ ct = X(6)
 
 if (element_end == entrance_end$) then
   edge_angle = ele%value(e1$)
+  fint = ele%value(FINT$)
+  hgap = ele%value(HGAP$)
   ! Drift forward
   call ptc_wedger(edge_angle, 0.0_rp, beta0, X)
   ! Edge kick
-  call ptc_fringe_dipoler(X, g_tot, beta0, ele%value(FINT$), ele%value(HGAP$), element_end)
+  call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end)
   ! Backtrack
   call ptc_wedger(-edge_angle, g_tot, beta0, X)
 
 else if (element_end == exit_end$) then
   edge_angle = ele%value(e2$)
+  fint = ele%value(FINTX$)
+  hgap = ele%value(HGAPX$)
   ! Backtrack
   call ptc_wedger(-edge_angle, g_tot, beta0, X)
   ! Edge kick
-  call ptc_fringe_dipoler(X, g_tot, beta0, ele%value(FINT$), ele%value(HGAP$), element_end)
+  call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end)
   ! Drift forward
   call ptc_wedger(edge_angle, 0.0_rp, beta0, X)
 
@@ -1017,8 +1025,18 @@ endif
 ! Convert back to bmad coordinates
 call vec_ptc_to_bmad (X, beta0, orb%vec)
 
-!Correct time
+! Correct time
 orb%t = orb%t + (X(6) - ct)/c_light
+
+! Focusing terms 
+if (present(kx)) kx = g_tot * tan(edge_angle)
+if (present(ky)) then
+  if (fint == 0) then
+    ky = -g_tot * tan(edge_angle)
+  else
+    ky = -g_tot * tan(edge_angle - 2 * fint * g_tot * hgap * (1 + sin(edge_angle)**2) / cos(edge_angle))
+  endif
+endif
 
 end subroutine exact_bend_edge_kick
 
