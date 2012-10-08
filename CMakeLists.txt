@@ -7,6 +7,7 @@ set (EXE_SPECS
   twiss_track_test.cmake
   slice_test.cmake
   abs_time_test.cmake
+  tracking_method_test.cmake
 )
 
 set(SRC_DIRS
