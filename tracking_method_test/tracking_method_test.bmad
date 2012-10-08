@@ -1,0 +1,48 @@
+no_digested
+! Lattice containing only 1 quadrupole
+parameter[e_tot] = 1e6
+parameter[lattice_type] = linear_lattice
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+beam_start[x]  = 0.001 ! Horizontal position.
+beam_start[px] = 0.002 ! Horizontal momentum.
+beam_start[y]  = 0.003 ! Vertical position.
+beam_start[py] = 0.004 ! Vertical momentum.
+beam_start[z]  = 0.000 ! Longitudinal position.
+beam_start[pz] = 0.005 ! Longitudinal momentum (energy deviation).
+
+!Definitions of elements are taken from examples in BMAD manual
+
+abm:  ab_multipole, a2 = 0.034e-2, b3 = 5.7, a11 = 5.6e6/2
+bb:   beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05
+dr:   drift, l = 4.5, num_steps = 1000
+eg:   e_gun, voltage = 0.5e6, num_steps = 1000
+ec:   ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 1000
+es:   elseparator, l = 4.5, hkick = 0.003, gap = 0.11, num_steps = 1000
+hk:   hkicker, l = 4.5, kick = 0.003, num_steps = 1000
+ins:  instrument, l = 4.5, num_steps = 1000
+ki:   kicker, l = 4.5, hkick = 0.003, num_steps = 1000
+lc:   lcavity, rf_frequency = 500e6, num_steps = 1000
+mon:  monitor, l = 4.5, num_steps = 1000
+mul:  multipole, k1l = 0.034e-2, t1, k3l = 4.5, t3 = 0.31*pi
+oct:  octupole, l = 4.5, k3 = 0.003, tilt, num_steps = 1000
+quad: quadrupole, l = 0.6, k1 = 0.003, tilt, num_steps = 1000
+rb:   rbend, l = 0.6, k1 = 0.003, num_steps = 1000
+rc:   rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 1000
+rf:   rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_steps = 1000
+sb:   sbend, l = 0.6, k1 = 0.003, num_steps = 1000
+sex:  sextupole, l = 0.6, k2 = 0.3, tilt, num_steps = 1000
+sol:  solenoid, l = 2.6, ks = 1.5e-9 * parameter[e_tot], num_steps = 1000
+sq:   sol_quad, l = 2.6, k1 = 0.632, ks = 1.5*beam[energy], num_steps = 1000
+vk:   vkicker, l = 4.5, kick = 0.003, num_steps = 1000
+wm:   wiggler, l = 1.6, b_max = 2.1, n_pole = 7, term(1) = {0.03, 3.00, 4.00, 5.00, 0.63}, num_steps = 1000
+wp:   wiggler, l = 1.6, b_max = 2.1, n_pole = 8, num_steps = 1000
+
+l: line = (eg, abm, bb, dr, ec, hk, ins, ki, mon, mul, oct, quad, rb, rc, rf, sb, sex, sol, sq, vk, wp, lc)
+
+use, l
+
+end_file
+
+
