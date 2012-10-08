@@ -1,7 +1,5 @@
 module make_mat6_mod
 
-use sim_utils
-use physical_constants
 use basic_bmad_mod
 
 contains

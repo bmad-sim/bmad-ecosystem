@@ -10,9 +10,9 @@
 
 module bmad_utils_mod
 
-use bmad_struct
 use make_mat6_mod
 use basic_attribute_mod
+use basic_bmad_interface
 
 private pointer_to_ele1, pointer_to_ele2
 private pointer_to_branch_given_name, pointer_to_branch_given_ele
