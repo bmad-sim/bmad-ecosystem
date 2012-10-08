@@ -182,6 +182,15 @@ interface
 end interface
 
 interface
+  function I_bessel(m, arg) result (i_bes)
+    import
+    implicit none
+    integer m
+    real(rp) arg, i_bes
+  end function
+end interface
+
+interface
   subroutine if_error (idelim, icmd, error_string, line_number, end_check)
     implicit none
     integer idelim
