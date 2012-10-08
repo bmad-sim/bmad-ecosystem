@@ -57,6 +57,7 @@ sub searchit {
 
   $module = $file;
   $module =~ s/\.f90//;
+  $mod_found = 0;
 
 #  print "\nFile: $_\n";
 
@@ -65,8 +66,11 @@ sub searchit {
   @names = ();
 
   while (<F_IN>) {
+
+    if (/^ *module/) {$mod_found = 1;}
+
     if (/^ *use */) {
-      $name = $';
+      $name = $';   #'
       chomp $name;
       $name =~ s/,.*//;
       push @names, $name;
@@ -76,6 +80,8 @@ sub searchit {
   }
 
   close (F_IN);
+
+  if ($mod_found == 0) {return;}
 
   $_ = $file;
 
