@@ -18,8 +18,7 @@
 
 subroutine mat_inverse (mat, mat_inv, ok, print_err)
 
-use precision_def
-use output_mod
+use output_mod, except => mat_inverse
 use nr
 
 implicit none

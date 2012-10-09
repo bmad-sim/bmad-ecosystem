@@ -18,10 +18,8 @@
 
 subroutine cplx_mat_inverse (mat_r, mat_i, inv_r, inv_i, ok, print_err)
 
-use precision_def
-use output_mod
+use output_mod, except => cplx_mat_inverse
 use nr
-use sim_utils_interface
 
 implicit none
 

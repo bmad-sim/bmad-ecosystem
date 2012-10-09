@@ -9,7 +9,7 @@
 
 subroutine type_this_file(filename)
 
-use filename_mod
+use filename_mod, except => type_this_file
 
 implicit none
 

@@ -17,7 +17,7 @@
 
 subroutine date_and_time_stamp (string, numeric_month)
 
-  use sim_utils
+  use sim_utils, except => date_and_time_stamp
 
   implicit none
 
