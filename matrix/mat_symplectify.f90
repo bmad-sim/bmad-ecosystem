@@ -23,8 +23,7 @@
 
 subroutine mat_symplectify (mat_in, mat_symp, f_scale)
 
-use precision_def
-use output_mod
+use output_mod, except => mat_symplectify
 
 implicit none
 

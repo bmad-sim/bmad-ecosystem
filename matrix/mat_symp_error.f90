@@ -20,8 +20,7 @@
 
 function mat_symp_error (mat) result (error)
 
-use precision_def
-use output_mod
+use output_mod, except => mat_symp_error
 
 implicit none
 
