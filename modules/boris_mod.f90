@@ -146,6 +146,9 @@ enddo
 
 call offset_particle (ele, here, param%particle, unset$, set_canonical = .false.)
 
+! set the z coordinate correctly
+here%vec(5) = here%beta * c_light * (start%vec(5)/(start%beta*c_light) + ele%value(delta_ref_time$) - (here%t - start%t))
+
 end = here
 err_flag = .false.
 
@@ -215,7 +218,7 @@ old_beta = p_tot / U_tot  ! particle velocity: v/c
 
 end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
 end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
+!end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
 
 end%s = end%s + ds2
 dt = ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (old_beta * c_light)
@@ -280,7 +283,7 @@ p_tot = sqrt (U_tot**2 - mass**2)
 ! Since beta changes in steps 2-5 we need to update vec(5)
 
 beta = p_tot / U_tot
-end%vec(5) = end%vec(5) * beta / old_beta
+!end%vec(5) = end%vec(5) * beta / old_beta
 
 ! 6) Push the position 1/2 step.
 
@@ -289,13 +292,14 @@ ds2_f = ds2 / p_z
 
 end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
 end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
+!end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot)
 end%vec(6) = p_tot - 1
 
 end%s = end%s + ds2
 dt = ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (beta * c_light)
 end%t = end%t + dt
 t = t + dt
+end%beta = beta
 
 ! 6.5) Push the spin 1/2 step
 
