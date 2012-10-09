@@ -168,6 +168,21 @@ do ib = 0, ubound(lat%branch, 1)
 
   endif
 
+  ! Since Bmad is S-based it cannot handle zero reference energy. 
+  ! To avoid roundoff problems set a lower limit of 1e-6 eV.
+
+  if (ele_init%value(p0c$) < 1e-6) then
+    if (ix_e_gun == 0) then
+      call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW.')
+    else
+      call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW.', &
+                                     'PROBLEM IN PART IS ZERO OR LOW VOLTAGE ON THE E-GUN.')
+    endif
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+    
+
   !----------------------------
   ! Loop over all elements in the branch
 
