@@ -10,7 +10,12 @@
 
 subroutine tao_init (err_flag)
 
-use tao_all_mod, dummy => tao_init
+use tao_mod, dummy => tao_init
+use tao_init_mod, only: tao_init_global, tao_init_beams, tao_init_variables, tao_init_data
+use tao_lattice_calc_mod, only: tao_lattice_calc
+use tao_plot_mod, only: tao_draw_plots
+use tao_data_and_eval_mod, only: tao_evaluate_a_datum
+use tao_command_mod, only: tao_cmd_history_record
 
 implicit none
 

@@ -17,8 +17,10 @@
 
 subroutine tao_lmdif_optimizer (abort)
 
-use tao_all_mod, dummy => tao_lmdif_optimizer
 use lmdif_mod
+use tao_mod, dummy => tao_lmdif_optimizer
+use tao_var_mod, only: tao_get_opt_vars, tao_set_opt_vars, tao_user_is_terminating_optimization
+use tao_top10_mod, only: tao_var_write
 
 implicit none
 
