@@ -17,8 +17,6 @@ use tao_plot_mod
 use tao_init_mod
 use tao_top10_mod
 use tao_var_mod
-use input_mod
-use lmdif_mod
 
 ! This is to suppress the ranlib "has no symbols" message
 

@@ -11,7 +11,7 @@
 
 subroutine tao_single_mode (char)
 
-use tao_all_mod, dummy => tao_single_mode
+use tao_all_mod
 use input_mod
 
 implicit none
