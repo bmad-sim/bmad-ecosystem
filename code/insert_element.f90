@@ -25,9 +25,7 @@
 
 subroutine insert_element (lat, insert_ele, insert_index, ix_branch)
 
-use bmad_struct
-use bmad_interface, except_dummy => insert_element
-use bookkeeper_mod
+use bookkeeper_mod, except_dummy => insert_element
 
 implicit none
 

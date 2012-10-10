@@ -27,13 +27,10 @@
 !                 Set False if everything is OK.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran_p, err_flag)
 
-use bmad_struct
 use equality_mod, only: operator(==)
-use ptc_interface_mod
+use ptc_interface_mod, dummy => write_digested_bmad_file
 
 implicit none
 

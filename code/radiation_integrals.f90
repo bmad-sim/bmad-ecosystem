@@ -101,7 +101,7 @@ subroutine radiation_integrals (lat, orbit, mode, ix_cache, ix_branch, rad_int_b
 
 use radiation_mod, except_dummy => radiation_integrals
 use symp_lie_mod, only: symp_lie_bmad
-use transfer_map_mod
+use transfer_map_mod, only: concat_transfer_mat
 
 implicit none
 

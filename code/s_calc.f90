@@ -16,9 +16,7 @@
 
 subroutine s_calc (lat)
 
-use bmad_struct
 use bmad_interface, except_dummy => s_calc
-use lat_ele_loc_mod
 
 implicit none
 

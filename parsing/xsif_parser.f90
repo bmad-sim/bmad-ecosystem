@@ -29,15 +29,14 @@
 
 subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 
-use ptc_interface_mod
+use bmad_parser_mod, except_dummy => xsif_parser
+use ptc_interface_mod, except2 => xsif_parser
 use xsif_lat_file_names_mod
 use xsif_inout
 use xsif_interfaces
 use xsif_elements
 use xsif_size_pars
 use xsif_elem_pars
-use bmad_parser_mod, except_dummy => xsif_parser
-use lat_geometry_mod
 
 implicit none
 

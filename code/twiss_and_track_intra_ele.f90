@@ -41,7 +41,7 @@
 subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, &
                           track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
 
-use bookkeeper_mod
+use bookkeeper_mod, dummy => twiss_and_track_intra_ele
 
 implicit none
 

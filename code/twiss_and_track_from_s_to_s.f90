@@ -44,7 +44,7 @@
 
 subroutine twiss_and_track_from_s_to_s (branch, orbit_start, orbit_end, ele_start, ele_end, err)
 
-use bookkeeper_mod
+use bookkeeper_mod, dummy => twiss_and_track_from_s_to_s
 
 implicit none
 

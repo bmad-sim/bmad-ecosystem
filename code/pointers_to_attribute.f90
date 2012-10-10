@@ -40,9 +40,7 @@
 Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
                         ptr_array, err_flag, err_print_flag, eles, ix_attrib)
 
-use bmad_struct
 use bmad_interface, except_dummy => pointers_to_attribute
-use lat_ele_loc_mod
 
 implicit none
 
