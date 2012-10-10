@@ -15,7 +15,7 @@
 
 subroutine tao_get_user_input (cmd_line, prompt_str)
 
-use tao_mod
+use tao_mod, dummy => tao_get_user_input
 use input_mod
 
 implicit none

@@ -10,7 +10,8 @@
 
 subroutine tao_hook_optimizer (abort)
 
-use tao_mod
+use tao_mod, dummy => tao_hook_optimizer
+
 implicit none
 
 character(20) :: r_name = 'tao_hook_optimizer'

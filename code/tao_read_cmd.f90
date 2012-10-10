@@ -10,7 +10,7 @@
 
 subroutine tao_read_cmd (who, file_name)
 
-use tao_mod
+use tao_mod, dummy => tao_read_cmd
 
 implicit none
 

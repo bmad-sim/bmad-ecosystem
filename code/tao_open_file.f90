@@ -17,7 +17,7 @@
 
 subroutine tao_open_file (file_name, iunit, full_file_name, error_severity)
 
-  use tao_mod
+  use tao_mod, dummy => tao_open_file
 
   implicit none
 

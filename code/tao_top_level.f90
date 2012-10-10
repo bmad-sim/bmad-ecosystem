@@ -9,8 +9,7 @@
 
 subroutine tao_top_level ()
 
-use tao_mod
-use tao_command_mod
+use tao_command_mod, dummy => tao_top_level
 
 implicit none
 

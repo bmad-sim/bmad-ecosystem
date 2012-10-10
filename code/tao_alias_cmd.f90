@@ -13,7 +13,7 @@
 
 subroutine tao_alias_cmd (alias, string)
 
-use tao_mod
+use tao_mod, dummy => tao_alias_cmd
 
 implicit none
 

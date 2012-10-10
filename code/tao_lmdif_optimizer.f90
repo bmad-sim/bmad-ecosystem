@@ -17,12 +17,7 @@
 
 subroutine tao_lmdif_optimizer (abort)
 
-use tao_mod
-use tao_dmerit_mod
-use tao_top10_mod
-use tao_var_mod
-use input_mod
-use lmdif_mod
+use tao_all_mod, dummy => tao_lmdif_optimizer
 
 implicit none
 

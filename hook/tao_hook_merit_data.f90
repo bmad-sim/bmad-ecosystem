@@ -18,7 +18,7 @@
 
 subroutine tao_hook_merit_data (i_uni, j_data, data)
 
-use tao_mod
+use tao_mod, dummy => tao_hook_merit_data
 
 implicit none
 
