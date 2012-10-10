@@ -274,7 +274,11 @@ end do
 if (err_max > err_con) then
   dt_next = safety*dt*(err_max**p_grow)
 else
+  ! Increase step size, limited by an estimated next step ds = L/4
   dt_next = 5.0_rp * dt
+  if (abs(dr_dt(5)*dt_next) > ele%value(L$)/4.0_rp) then
+    dt_next = ele%value(L$)/8.0_rp / dr_dt(5)
+  endif
 end if
 
 dt_did = dt
