@@ -11,8 +11,12 @@
 
 subroutine tao_single_mode (char)
 
-use tao_all_mod, dummy => tao_single_mode
 use input_mod
+use tao_mod, dummy => tao_single_mode
+use tao_top10_mod, only:  tao_show_constraints, tao_var_write
+use tao_x_scale_mod, only:  tao_x_scale_cmd, tao_x_scale_plot, tao_x_scale_graph
+use tao_scale_mod, only:  tao_scale_cmd, tao_scale_graph
+
 
 implicit none
 

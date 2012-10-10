@@ -9,9 +9,12 @@
 
 subroutine tao_write_cmd (what)
 
-use tao_all_mod, dummy => tao_write_cmd
 use quick_plot
 use write_lat_file_mod
+use tao_mod, dummy => tao_write_cmd
+use tao_command_mod, only: tao_next_switch, tao_cmd_split
+use tao_plot_mod, only: tao_draw_plots
+use tao_top10_mod, only: tao_var_write
 
 implicit none
 

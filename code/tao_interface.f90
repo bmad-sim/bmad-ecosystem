@@ -6,7 +6,7 @@
 
 module tao_interface
 
-integer, private, save :: dummy = 0 ! So ranlib will not complain about no symbols
+use tao_struct
 
 interface
   subroutine tao_alias_cmd (alias, string)
@@ -32,7 +32,7 @@ end interface
  
 interface
   subroutine tao_clip_cmd (gang, where, value1, value2)
-    use precision_def
+    import
     implicit none
     logical gang
     character(*) :: where
@@ -56,7 +56,7 @@ end interface
  
 interface
   subroutine tao_data_show_use (d2_data, lines, nl)
-    use tao_struct, only: tao_d2_data_struct
+    import
     implicit none
     type (tao_d2_data_struct) :: d2_data
     character(*), optional, allocatable :: lines(:)
@@ -113,7 +113,7 @@ end interface
 
 interface
   subroutine tao_hook_draw_graph (plot, graph, found)
-    use tao_struct, only: tao_plot_struct, tao_graph_struct
+    import
     implicit none
     type (tao_plot_struct) plot
     type (tao_graph_struct) graph
@@ -123,7 +123,7 @@ end interface
  
 interface
   subroutine tao_hook_graph_setup (plot, graph, found)
-    use tao_struct, only: tao_plot_struct, tao_graph_struct
+    import
     implicit none
     type (tao_plot_struct) plot
     type (tao_graph_struct) graph
@@ -133,7 +133,7 @@ end interface
  
 interface
   subroutine tao_hook_graph_postsetup (plot, graph)
-    use tao_struct, only: tao_plot_struct, tao_graph_struct
+    import
     implicit none
     type (tao_plot_struct) plot
     type (tao_graph_struct) graph
@@ -143,8 +143,8 @@ end interface
 interface
   subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, &
                                         datum_value, valid_value, why_invalid)
-    use tao_struct, only: tao_data_struct, tao_universe_struct, tao_lattice_struct
-    use precision_def, only: rp
+    import
+    import
     implicit none
     type (tao_data_struct) datum
     type (tao_universe_struct) u
@@ -157,7 +157,7 @@ end interface
 
 interface
   subroutine tao_hook_merit_data (i_uni, j_data, data)
-    use tao_struct, only: tao_data_struct
+    import
     implicit none
     type (tao_data_struct) data
     integer i_uni, j_data
@@ -166,7 +166,7 @@ end interface
 
 interface
   subroutine tao_hook_merit_var (i_uni, j_var, var)
-    use tao_struct, only: tao_var_struct
+    import
     implicit none
     type (tao_var_struct) var
     integer i_uni, j_var
@@ -216,7 +216,7 @@ end interface
 
 interface
   subroutine tao_hook_init_global (init_file, global)
-    use tao_struct, only: tao_global_struct
+    import
     implicit none
     type (tao_global_struct) global
     character(*) init_file
@@ -225,7 +225,7 @@ end interface
  
 interface
   subroutine tao_hook_init_lattice_post_process (u)
-    use tao_struct, only: tao_universe_struct
+    import
     implicit none
     type (tao_universe_struct) u
   end subroutine
@@ -295,7 +295,7 @@ end interface
  
 interface
   function tao_merit (calc_ok) result (this_merit)
-    use precision_def
+    import
     implicit none
     real(rp) this_merit
     logical, optional :: calc_ok
@@ -320,7 +320,7 @@ end interface
  
 interface
   subroutine tao_pause_cmd (time)
-    use precision_def
+    import
     implicit none
     real(rp) time
   end subroutine
@@ -350,7 +350,7 @@ end interface
  
 interface
   subroutine tao_plot_struct_transfer (plot_in, plot_out)
-    use tao_struct, only: tao_plot_struct
+    import
     implicit none
     type (tao_plot_struct) plot_in
     type (tao_plot_struct) plot_out
@@ -374,7 +374,7 @@ end interface
  
 interface
   subroutine tao_set_data_useit_opt (data)
-    use tao_struct, only : tao_data_struct
+    import
     implicit none
     type (tao_data_struct), optional :: data(:)
   end subroutine
@@ -410,7 +410,7 @@ end interface
  
 interface
   subroutine tao_var_show_use (v1_var, lines, nl)
-    use tao_struct, only: tao_v1_var_struct
+    import
     implicit none
     type (tao_v1_var_struct) :: v1_var
     character(*), optional, allocatable :: lines(:)
@@ -432,6 +432,8 @@ interface
     character(*) what
   end subroutine
 end interface
+
+integer, private, save :: dummy = 0 ! So ranlib will not complain about no symbols
 
 end module
 

@@ -18,9 +18,10 @@
 
 subroutine tao_run_cmd (which, abort)
 
-use tao_all_mod, dummy => tao_run_cmd
+use tao_mod, dummy => tao_run_cmd
 use tao_lm_optimizer_mod, only: tao_lm_optimizer
 use tao_svd_optimizer_mod, only: tao_svd_optimizer
+use tao_var_mod, only: tao_get_opt_vars
 
 implicit none
 
