@@ -1201,9 +1201,9 @@ end subroutine
 !-
 
 subroutine bmad_com_to_f2 (max_ap, orb, ds_step, signif, rel, abs, rel_track, &
-        abs_track, taylor_ord, dflt_integ, cc, sr, lr, sym, a_book, tsc_on, csr_on, &
-        st_on, rad_d, rad_f, conserve_t, use_ptc_layout, absolute_time, &
-        rf_auto_phase, rf_auto_amp)
+        abs_track, init_ds_adapt, min_ds_adapt, taylor_ord, dflt_integ, cc, sr, lr, sym, &
+        a_book, tsc_on, csr_on, st_on, rad_d, rad_f, conserve_t, &
+        absolute_time, rf_auto_phase, rf_auto_amp, use_ptc_layout)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1211,17 +1211,18 @@ use bmad_interface
 
 implicit none
 
-real(rp) orb(6), max_ap, rel, abs, rel_track, abs_track, ds_step, signif
+real(rp) orb(6), max_ap, rel, abs, rel_track, abs_track
+real(rp) ds_step, init_ds_adapt, min_ds_adapt, signif
 integer taylor_ord, dflt_integ, cc, sr, lr, sym
-integer st_on, rad_d, rad_f, a_book, tsc_on, csr_on
-integer conserve_t, rf_auto_phase, rf_auto_amp, use_ptc_layout, absolute_time
+integer st_on, rad_d, rad_f, a_book, tsc_on, csr_on, use_ptc_layout
+integer conserve_t, rf_auto_phase, rf_auto_amp, absolute_time
 
 bmad_com = bmad_common_struct(max_ap, orb, ds_step, signif, &
-    rel, abs, rel_track, abs_track, taylor_ord, dflt_integ, &
+    rel, abs, rel_track, abs_track, init_ds_adapt, min_ds_adapt, taylor_ord, dflt_integ, &
     f_logic(cc), f_logic(sr), f_logic(lr), f_logic(sym), &
     f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
-    f_logic(rad_d), f_logic(rad_f), f_logic(conserve_t), f_logic(use_ptc_layout), &
-    f_logic(absolute_time), f_logic(rf_auto_phase), f_logic(rf_auto_amp))
+    f_logic(rad_d), f_logic(rad_f), f_logic(conserve_t), f_logic(absolute_time), &
+    f_logic(rf_auto_phase), f_logic(rf_auto_amp), f_logic(use_ptc_layout))
 
 end subroutine
 
