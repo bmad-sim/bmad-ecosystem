@@ -558,10 +558,10 @@ foreach(exespec ${EXE_SPECS})
     set(MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
   ENDIF ()
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
-          ${LINK_FLAGS} "-Bstatic -Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map"
-          ${LINK_LIBS}
           ${X11_LIBRARIES}
           ${LINK_FLAGS} ${MAPLINE}
+          ${LINK_FLAGS} "-Bstatic -Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map"
+          ${LINK_LIBS}
   )
 
   SET(CFLAGS)
