@@ -15,8 +15,7 @@
 
 subroutine set_ele_defaults (ele)
 
-use bmad_struct
-use bmad_interface
+use bmad_interface, dummy => set_ele_defaults
 
 implicit none
 

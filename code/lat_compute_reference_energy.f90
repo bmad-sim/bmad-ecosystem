@@ -21,10 +21,9 @@
 
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
 
-use lat_ele_loc_mod
-use bookkeeper_mod
-use multipass_mod
-use rf_mod
+
+use multipass_mod, dummy => lat_compute_ref_energy_and_time
+use rf_mod, dummy2 => lat_compute_ref_energy_and_time
 
 implicit none
 
@@ -349,8 +348,7 @@ end subroutine lat_compute_ref_energy_and_time
 
 subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
 
-use lat_ele_loc_mod
-use rf_mod
+use rf_mod, dummy => ele_compute_ref_energy_and_time
 
 implicit none
 

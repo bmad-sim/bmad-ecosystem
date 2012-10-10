@@ -30,10 +30,8 @@
 
 subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
-use bmad_struct
-use bmad_interface
-use capillary_mod
-use track1_photon_mod
+use capillary_mod, dummy => track1_bmad
+use track1_photon_mod, dummy2 => track1_bmad
 
 implicit none
 

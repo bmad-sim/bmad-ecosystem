@@ -23,13 +23,9 @@
 !   err_flag    -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag)
 
-use wall3d_mod
-use multipole_mod
-use ptc_interface_mod
+use ptc_interface_mod, dummy => read_digested_bmad_file
 
 implicit none
 

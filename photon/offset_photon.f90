@@ -47,7 +47,7 @@
 
 subroutine offset_photon (ele, coord, set, offset_position_only)
 
-use track1_mod
+use track1_mod, dummy => offset_photon
 
 implicit none
 

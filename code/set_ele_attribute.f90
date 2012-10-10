@@ -30,7 +30,7 @@
 
 subroutine set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)
 
-use bmad_parser_mod
+use bmad_parser_mod, dummy => set_ele_attribute
 
 implicit none
 

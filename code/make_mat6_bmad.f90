@@ -23,7 +23,7 @@
 
 subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 
-use track1_mod
+use track1_mod, dummy => make_mat6_bmad
 
 implicit none
 
@@ -1121,8 +1121,7 @@ end subroutine bbi_kick_matrix
 
 subroutine offset_photon_mat6 (mat6, ele)
 
-use bmad_struct
-use bmad_interface
+use bmad_interface, dummy => offset_photon_mat6
 
 implicit none
 

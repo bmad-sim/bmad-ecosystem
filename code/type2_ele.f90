@@ -52,10 +52,8 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                 type_taylor, twiss_out, type_control, lattice, type_wake, &
                 type_floor_coords, type_field, type_wall)
 
-use bmad_struct
-use bmad_interface, except_dummy => type2_ele
-use multipole_mod
-use lat_ele_loc_mod
+use multipole_mod, except_dummy => type2_ele
+use attribute_mod, only: pointer_to_indexed_attribute
 
 implicit none
 

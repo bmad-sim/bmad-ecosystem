@@ -33,9 +33,7 @@
 subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
                   ptr_attrib, err_flag, err_print_flag, ix_attrib)
 
-use bmad_struct
 use bmad_interface, except_dummy => pointer_to_attribute
-use multipole_mod
 
 implicit none
 

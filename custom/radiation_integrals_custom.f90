@@ -23,8 +23,7 @@
 
 subroutine radiation_integrals_custom (lat, ir, orb, err_flag)
 
-use bmad_struct
-use bmad_interface
+use bmad_interface, dummy => radiation_integrals_custom
 
 implicit none
 

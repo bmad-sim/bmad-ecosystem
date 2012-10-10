@@ -30,9 +30,7 @@
 
 subroutine mat6_add_offsets (ele, particle)
 
-use bmad_struct
 use bmad_interface, except_dummy => mat6_add_offsets
-use bmad_utils_mod
 
 implicit none
 
