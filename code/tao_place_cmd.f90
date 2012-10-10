@@ -17,8 +17,7 @@
 
 subroutine tao_place_cmd (where, who)
 
-use tao_mod
-use tao_x_scale_mod
+use tao_x_scale_mod, dummy => tao_place_cmd
 use beam_mod
 
 implicit none

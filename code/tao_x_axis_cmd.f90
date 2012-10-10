@@ -10,9 +10,8 @@
 
 subroutine tao_x_axis_cmd (where, what)
 
-use tao_mod
-use tao_graph_setup_mod
-use tao_x_scale_mod
+use tao_graph_setup_mod, dummy => tao_x_axis_cmd
+use tao_x_scale_mod, only: tao_x_scale_plot
 
 implicit none
 

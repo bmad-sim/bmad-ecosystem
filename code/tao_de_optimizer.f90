@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 !+
 ! Subroutine tao_de_optimizer (abort)
 !
@@ -16,10 +14,10 @@
 
 subroutine tao_de_optimizer (abort)
 
-use tao_mod
-use tao_top10_mod
-use tao_var_mod
-use opti_de_mod
+use tao_mod, dummy => tao_de_optimizer
+use tao_top10_mod, only: tao_var_write
+use opti_de_mod, only: opti_de
+use tao_var_mod, only: tao_get_opt_vars, tao_set_opt_vars
 
 implicit none
 
@@ -34,6 +32,16 @@ character(20) :: r_name = 'tao_de_optimizer'
 character(80) line
 
 logical abort
+
+interface
+  function merit_wrapper (var_vec, status, iter_count) result (merit)
+    use precision_def
+    real(rp) var_vec(:)           ! Input: trial solution.
+    integer status
+    integer iter_count
+    real(rp) merit                ! Output: Merit value corresponting to vec.
+  end function
+end interface
 
 ! setup
 

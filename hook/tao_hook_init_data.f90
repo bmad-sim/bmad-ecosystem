@@ -7,7 +7,7 @@
 
 subroutine tao_hook_init_data () 
 
-use tao_mod
+use tao_mod, dummy => tao_hook_init_data
 
 implicit none
 

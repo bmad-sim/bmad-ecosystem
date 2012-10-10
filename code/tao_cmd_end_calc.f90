@@ -14,10 +14,10 @@
 
 subroutine tao_cmd_end_calc
 
-use tao_mod
-use tao_plot_mod
-use tao_scale_mod
-use tao_x_scale_mod
+use tao_struct
+use tao_plot_mod, only: tao_draw_plots, tao_merit
+use tao_scale_mod, only: tao_scale_plot
+use tao_x_scale_mod, only: tao_x_scale_plot
 
 implicit none
 

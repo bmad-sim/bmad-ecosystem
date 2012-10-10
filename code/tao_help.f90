@@ -15,8 +15,7 @@
 subroutine tao_help (what1, what2)
 
 use tao_struct
-use tao_interface
-use sim_utils
+use tao_interface, dummy => tao_help
 
 implicit none
 

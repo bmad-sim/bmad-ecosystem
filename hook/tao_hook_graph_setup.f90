@@ -15,7 +15,7 @@
 
 subroutine tao_hook_graph_setup (plot, graph, found)
 
-use tao_mod
+use tao_mod, dummy => tao_hook_graph_setup
 
 implicit none
 

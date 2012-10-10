@@ -14,10 +14,9 @@
 
 subroutine tao_init_plotting (plot_file_in)
 
-use tao_mod
 use tao_input_struct
+use tao_plot_window_mod, dummy => tao_init_plotting
 use quick_plot
-use tao_plot_window_mod
 
 implicit none
 

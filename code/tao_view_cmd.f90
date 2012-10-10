@@ -11,10 +11,9 @@
 
 subroutine tao_view_cmd (i_universe)
 
-use tao_mod
+use tao_mod, dummy => tao_view_cmd
 
 implicit none
-
 
 integer i_universe
 
