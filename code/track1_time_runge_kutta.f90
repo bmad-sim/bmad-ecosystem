@@ -83,6 +83,7 @@ if (ele%value(l$) .eq. 0) then
     call init_saved_orbit (track, 0)
     track%n_pt = 0
     track%orb(0) = end_orb
+    track%orb(0)%ix_ele = ele%ix_ele
   endif
   ! Reset particle to s-coordinates
   end_orb = start_orb
