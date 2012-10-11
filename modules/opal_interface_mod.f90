@@ -185,29 +185,33 @@ ele_loop: do ie = ix_start, ix_end
 	write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(l$)
 	call value_to_line (line, q_sign*val(b_field$), 'k0', rfmt, 'R')
 	call value_to_line (line, val(e_tot$), 'designenergy', rfmt, 'R')
-	call value_to_line (line, q_sign*val(e1$), 'E1', rfmt, 'R')
-	call value_to_line (line, q_sign*val(e2$), 'E2', rfmt, 'R')
-  !Full GAP (OPAL) =  2*H_GAP (BMAD)
-  !OPAL will not use the field map if the gap is zero
+	!Edge angles are (unfortunately) in degrees
+	call value_to_line (line, val(e1$)*180.0_rp/pi, 'E1', rfmt, 'R')
+	call value_to_line (line, val(e2$)*180.0_rp/pi, 'E2', rfmt, 'R')
+   ! Full GAP (OPAL) =  2*H_GAP (BMAD)
+   ! OPAL will the default fieldmap if the gap is zero  
     if ( val(hgap$) == 0) then
       gap = 1e-6_rp
+      write (line, '(2a)') trim(line),  ', fmapfn = "1DPROFILE1-DEFAULT"' 
 	else
       gap = 2*val(hgap$)
+      ! Write new fieldgrid file, based on the element's name
+	  fieldgrid_output_name = ''
+	  write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
+      iu_fieldgrid = lunget()
+      open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
+      call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
+      close(iu_fieldgrid)
+      !Add FMAPFN to line
+      write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
 	endif
+	
 	call value_to_line (line, gap, 'GAP', rfmt, 'R')
 
-  write (line, '(2a)') trim(line),  ', fmapfn = "1DPROFILE1-DEFAULT"' 
+   
 
 
-	! Write new fieldgrid file, based on the element's name
-!	fieldgrid_output_name = ''
-!	write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
- ! iu_fieldgrid = lunget()
- ! open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
- ! call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
- ! close(iu_fieldgrid)
-  ! Add FMAPFN to line
-  !      write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
+
   ! elemedge
         call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', ignore_if_zero = .false.)
 
@@ -465,7 +469,7 @@ type (em_field_grid_pt_struct), allocatable :: pt(:,:,:)
 type (em_field_grid_pt_struct) :: ref_field
 real(rp) :: x_step, z_step, x_min, x_max, z_min, z_max
 real(rp) :: freq, x, z, phase_ref
-real(rp) :: gap
+real(rp) :: gap, edge_range
 complex ::  phasor_rotation
 
 integer :: nx, nz, iz, ix
@@ -670,28 +674,32 @@ case (lcavity$, rfcavity$, e_gun$)
   ! 1e-6  #coefficient 1 for exit
   ! 2e-6  #coefficient 2 for exit
 
-  ! TODO:
-  ! Only a simple order 1 map will be used in this routine. Dummy numbers will be used. 
-  gap = 0.02_rp
-  
-  ! maxfield isn't used for this type of map
-  maxfield = 0
+  ! We will use just one Enge coefficent, equivalent using a field integral FINT and half gap HGAP (see the Bmad manual)
+  ! F_bmad(z) = (1 + exp (c0 + c1 z + ...) )^-1
+  ! F_opal(z) = (1 + exp(d0 + d1 z/(2H) + ... ) )^-1
+  ! c0 and d0 just shift the map, use c0=0, d0=0
+  ! c1(bmad) = 1/(2*HGAP*FINT)
+  ! => d1(opal) = 1/FINT
 
+  gap = 2*ele%value(HGAP$)
+  edge_range = 10*gap*ele%value(FINT$)
+  ! maxfield isn't used for this type of map
+  maxfield = -1.0_rp
 
   ! Write to file
   if (opal_file_unit > 0 )  then
     ! Write header
     write (opal_file_unit, '(a,'//rfmt//', 2a )' ) '1DProfile1 1 1 ', 100*gap, '  # Created from ele: ', trim(ele%name)
-    write (opal_file_unit, '(3'//rfmt//', i8, a)') -100*gap, 0, 100*gap, 666,  &
+    write (opal_file_unit, '(3'//rfmt//', i8, a)') -100*edge_range, 0.0_rp, 100*edge_range, 666,  &
           ' #entrance: edge start(cm), edge center(cm), edge end(cm), unusued'
-    write (opal_file_unit, '(3'//rfmt//', i8, a)') 100*(ele%value(L$) - gap) , 100*ele%value(L$), 100*(ele%value(L$) + gap), 666,  &
+    write (opal_file_unit, '(3'//rfmt//', i8, a)') 100*(ele%value(L$) - edge_range) , 100*ele%value(L$), 100*(ele%value(L$) + edge_range), 666,  &
           ' #exit:     edge start(cm), edge center(cm), edge end(cm), unusued'
     ! Entrance coefficients
-    write (opal_file_unit, '('//rfmt//')') 0     ! TODO: The specification for these is unknown!
-    write (opal_file_unit, '('//rfmt//')') 1/gap
+    write (opal_file_unit, '('//rfmt//')')  0.0_rp   
+    write (opal_file_unit, '('//rfmt//')') 1/ele%value(FINT$)
     ! Exit coefficients
-    write (opal_file_unit, '('//rfmt//')') 0
-    write (opal_file_unit, '('//rfmt//')') 1/gap
+    write (opal_file_unit, '('//rfmt//')')  0.0_rp
+    write (opal_file_unit, '('//rfmt//')')  1/ele%value(FINT$)
   end if
 
 
