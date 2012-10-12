@@ -138,7 +138,6 @@ ELSE ()
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/production)
   set (PACKAGES_OUTPUT_BASEDIR ${PACKAGES_DIR}/production)
   set (BASE_C_FLAGS "${BASE_C_FLAGS} -O2")
-  set (BASE_C_FLAGS "${BASE_C_FLAGS} -O2")
 ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 message("C Compiler           : ${CMAKE_C_COMPILER}")
@@ -558,10 +557,9 @@ foreach(exespec ${EXE_SPECS})
     set(MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
   ENDIF ()
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
+          ${LINK_LIBS}
           ${X11_LIBRARIES}
           ${LINK_FLAGS} ${MAPLINE}
-          ${LINK_FLAGS} "-Bstatic -Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map"
-          ${LINK_LIBS}
   )
 
   SET(CFLAGS)
