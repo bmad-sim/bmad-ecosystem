@@ -173,7 +173,7 @@ case (bend_sol_quad$)
   enddo
 
   call offset_particle (ele, end_orb, param%particle, unset$)
-  call low_energy_z_correction (end_orb, ele, param)
+  call track1_low_energy_z_correction (end_orb, ele, param%particle)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -549,7 +549,7 @@ case (quadrupole$)
 
   call offset_particle (ele, end_orb, param%particle, unset$)  
 
-  call low_energy_z_correction (end_orb, ele, param)
+  call track1_low_energy_z_correction (end_orb, ele, param%particle)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -619,7 +619,7 @@ case (rfcavity$)
 
   call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false.)
 
-  call low_energy_z_correction (end_orb, ele, param)
+  call track1_low_energy_z_correction (end_orb, ele, param%particle)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -628,7 +628,6 @@ case (rfcavity$)
 case (sbend$)
 
   call track_a_bend (start_orb, ele, param, end_orb)
-  call low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -676,7 +675,7 @@ case (solenoid$)
   end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
 
   call offset_particle (ele, end_orb, param%particle, unset$)
-  call low_energy_z_correction (end_orb, ele, param)
+  call track1_low_energy_z_correction (end_orb, ele, param%particle)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -694,7 +693,7 @@ case (sol_quad$)
   end_orb%vec(1:4) = matmul (mat6(1:4,1:4), end_orb%vec(1:4))
 
   call offset_particle (ele, end_orb, param%particle, unset$)
-  call low_energy_z_correction (end_orb, ele, param)
+  call track1_low_energy_z_correction (end_orb, ele, param%particle)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -751,7 +750,7 @@ case (wiggler$)
 
   call offset_particle (ele, end_orb, param%particle, unset$)
   call end_z_calc
-  call low_energy_z_correction (end_orb, ele, param)
+  call track1_low_energy_z_correction (end_orb, ele, param%particle)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -836,35 +835,5 @@ if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
 endif
 
 end subroutine coupler_kick_exit
-
-!--------------------------------------------------------------
-! contains
-
-subroutine low_energy_z_correction (end_orb, ele, param)
-
-implicit none
-
-type (coord_struct) end_orb
-type (ele_struct) ele
-type (lat_param_struct) param
-
-real(rp) p0c, pc, beta, beta0, mass
-
-!
-
-mass = mass_of(param%particle)
-e_tot = ele%value(e_tot$)
-p0c = ele%value(p0c$)
-
-if (abs(end_orb%vec(6)) < 1e-6 * mass**2 * p0c / e_tot**3) then
-  end_orb%vec(5) = end_orb%vec(5) + length * end_orb%vec(6) * (1 - 3 * end_orb%vec(6) / 2) * (mass / e_tot)**2
-else
-  pc = (1 + end_orb%vec(6)) * ele%value(p0c$)
-  call convert_pc_to (pc, param%particle, beta = beta)
-  beta0 = ele%value(p0c$) / ele%value(e_tot$)
-  end_orb%vec(5) = end_orb%vec(5) + length * (beta - beta0) / beta0
-endif
-
-end subroutine low_energy_z_correction
 
 end subroutine track1_bmad
