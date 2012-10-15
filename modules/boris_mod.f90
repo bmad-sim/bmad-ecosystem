@@ -221,7 +221,7 @@ end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
 !end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
 
 end%s = end%s + ds2
-dt = ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (old_beta * c_light)
+dt = ds2 * p_tot / (p_z * old_beta * c_light)
 end%t = end%t + dt
 t = t + dt
 
@@ -296,7 +296,7 @@ end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
 end%vec(6) = p_tot - 1
 
 end%s = end%s + ds2
-dt = ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (beta * c_light)
+dt = ds2 * p_tot / (p_z * beta * c_light)
 end%t = end%t + dt
 t = t + dt
 end%beta = beta
