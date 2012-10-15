@@ -299,18 +299,6 @@ integer n, n_step
 logical has_nonzero_pole
 
 !-----------------------------------------------------------------------
-! simple case
-
-if (ele%value(g$) == 0) then
-  length = ele%value(l$)
-  end_orb = start_orb
-  end_orb%vec(2) = end_orb%vec(2) - length * ele%value(g_err$) / 2
-  call track_a_drift (end_orb, ele, param%particle, length)
-  end_orb%vec(2) = end_orb%vec(2) - length * ele%value(g_err$) / 2
-  return
-endif
-
-!-----------------------------------------------------------------------
 
 end_orb = start_orb
 call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false., set_multipoles = .false.)
@@ -355,7 +343,7 @@ do n = 1, n_step
 
   ! with k1 /= 0 use small angle approximation
 
-  if (k_1 /= 0) then
+  if (g == 0 .or. k_1 /= 0) then
 
     call sbend_body_with_k1_map (g, g_err, length, k_1, end_orb%vec, end = end_orb%vec)
 
@@ -459,8 +447,9 @@ else
   call apply_bend_edge_kick (end_orb, ele, exit_end$, .false.)
 endif
 
-
 call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., set_multipoles = .false.)
+
+call track1_low_energy_z_correction (end_orb, ele, param%particle)
 
 end subroutine track_a_bend
 
@@ -505,6 +494,8 @@ real(rp) ht2, hs2
 integer element_end
 logical reverse
 
+character(24), parameter :: r_name = 'apply_bend_edge_kick'
+
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
 
@@ -521,7 +512,7 @@ cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
 k1x = g_tot * tan_e
 ht2 = g * tan_e**2
 hs2 = g * sec_e**2
-k1_eff = ele%value(k1$) * g_tot / g
+k1_eff = ele%value(k1$)
 
 if (fint == 0) then
   k1y = -k1x
@@ -1568,5 +1559,53 @@ case (wiggler$)
 end select
 
 end function valid_mat6_calc_method 
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine track1_low_energy_z_correction (orbit, ele, species)
+! 
+! Routine to add a correction to z due to speed < c corrections when tracking through an element.
+! This routine assumes a constant velocity.
+!
+! Moudle needed:
+!   use track1_mod
+!
+! Input:
+!   orbit   -- coord_struct: Position before correction
+!   ele     -- ele_struct: Element being tracked through
+!   species -- integer: EG: positron$, etc.
+!
+! Output:
+!   orbit   -- coord_struct: Position after correction.
+!-
+
+subroutine track1_low_energy_z_correction (orbit, ele, species)
+
+implicit none
+
+type (coord_struct) orbit
+type (ele_struct) ele
+
+real(rp) p0c, pc, beta, beta0, mass, e_tot
+integer species
+
+!
+
+mass = mass_of(species)
+e_tot = ele%value(e_tot$)
+p0c = ele%value(p0c$)
+
+if (abs(orbit%vec(6)) < 1e-6 * mass**2 * p0c / e_tot**3) then
+  orbit%vec(5) = orbit%vec(5) + ele%value(l$) * orbit%vec(6) * (1 - 3 * orbit%vec(6) / 2) * (mass / e_tot)**2
+else
+  pc = (1 + orbit%vec(6)) * ele%value(p0c$)
+  call convert_pc_to (pc, species, beta = beta)
+  beta0 = ele%value(p0c$) / ele%value(e_tot$)
+  orbit%vec(5) = orbit%vec(5) + ele%value(l$) * (beta - beta0) / beta0
+endif
+
+end subroutine track1_low_energy_z_correction
 
 end module
