@@ -1141,9 +1141,9 @@ case (kicker$)
   end select
 
 case (lcavity$)
-  if (present(num_valid)) num_valid = 10
+  if (present(num_valid)) num_valid = 9
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -1211,9 +1211,9 @@ case (rcollimator$)
   end select
 
 case (rfcavity$)
-  if (present(num_valid)) num_valid = 11
+  if (present(num_valid)) num_valid = 10
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -1409,9 +1409,9 @@ case (kicker$)
   end select
 
 case (lcavity$)
-  if (present(num_valid)) num_valid = 7
+  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
