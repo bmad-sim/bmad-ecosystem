@@ -10,12 +10,13 @@ chapter analyzes an example test program.
 \label{s:first.program}
 \index{programming!example program}
 
-Consider the example program shown in \fig{f:program}.  This
-program is provided with the \bmad distribution in a file called
-\vn{simple_program.f90}. \vn{simple_program.f90} is in the library
-area in a directory called \vn{examples/simple_program}. Directions on
-how to compile and run the program are given on the \bmad web
-page\cite{b:bmad.web}. On the \bmad web page, click on the ``Run Programs''
+Consider the example program shown in \fig{f:program}.  This program
+is provided with the \bmad distribution in a file called
+\vn{simple_bmad_program.f90}. \vn{simple_bmad_program.f90} is in the
+library area in a directory called
+\vn{examples/simple_bmad_program}. Directions on how to compile and
+run the program are given on the \bmad web page\cite{b:bmad.web}. On
+the \bmad web page, click on the ``Run Programs''
 
 \begin{figure}[htp]
 \index[routine]{bmad_parser}
@@ -83,7 +84,7 @@ end program
 \end{figure}
 
 %-----------------------------------------------------------------------------
-\section{Explanation of the Simple_Program}
+\section{Explanation of the Simple_Bmad_Program}
 
 \index{lat_struct!example use of}
 A line by line explanation of the example program follows. The \vn{use
@@ -156,7 +157,7 @@ this later).
 
 This brings us to the lattice file used for the input to the program.
 The call to \vn{bmad_parser} shows that this file is called 
-\vn{simple_program/lat.bmad}.
+\vn{simple_bmad_program/lat.bmad}.
 In this file there is a call to another file
   \begin{example}
   call, file = "layout.bmad"
@@ -227,12 +228,12 @@ to \vn{control_bookkeeper} may not be necessary.
 \index{programming!gmake}
 \index{programming!production executable}
 \index{programming!debug executable}
-Making \vn{bmad} the working directory, the \vn{gmake -f M.simple_program}
-command will compiling and link the program.  The
-executables, \vn{simple_program} and \vn{simple_program_g}, are to be
-found in \vn{../bin/}. Running the program with the command
-\vn{../bin/simple_program} gives the output as shown in
-\fig{f:output}.
+Making \vn{bmad} the working directory, the \vn{gmake -f
+M.simple_bmad_program} command will compiling and link the program.
+The executables, \vn{simple_bmad_program} and
+\vn{simple_bmad_program_g}, are to be found in \vn{../bin/}. Running
+the program with the command \vn{../bin/simple_bmad_program} gives the
+output as shown in \fig{f:output}.
 
 \begin{figure}[ht]
 \small

@@ -31,32 +31,23 @@ subroutine mat6_add_pitch (x_pitch_tot, y_pitch_tot, mat6)
 
 implicit none
 
-real(rp) mat6(:,:), x_pitch_tot, y_pitch_tot
+real(rp) mat6(6,6), x_pitch_tot, y_pitch_tot
 
 !
 
 if (x_pitch_tot == 0 .and. y_pitch_tot == 0) return
 
-mat6(5,6) = mat6(5,6) - mat6(5,2) * x_pitch_tot - mat6(5,4) * y_pitch_tot
+mat6(:,6) = mat6(:,6) - mat6(:,2) * x_pitch_tot ! (2,6)
+mat6(:,1) = mat6(:,1) + mat6(:,5) * x_pitch_tot ! (5,1)
 
-mat6(5,1) = mat6(5,1) - x_pitch_tot * (mat6(1,1) - 1) 
-mat6(5,2) = mat6(5,2) - x_pitch_tot *  mat6(1,2)
-mat6(5,3) = mat6(5,3) - x_pitch_tot *  mat6(1,3)
-mat6(5,4) = mat6(5,4) - x_pitch_tot *  mat6(1,4)
+mat6(:,6) = mat6(:,6) - mat6(:,4) * y_pitch_tot ! (4,6)
+mat6(:,3) = mat6(:,3) + mat6(:,5) * y_pitch_tot ! (5,3)
 
-mat6(5,1) = mat6(5,1) - y_pitch_tot *  mat6(3,1)
-mat6(5,2) = mat6(5,2) - y_pitch_tot *  mat6(3,2)
-mat6(5,3) = mat6(5,3) - y_pitch_tot * (mat6(3,3) - 1)
-mat6(5,4) = mat6(5,4) - y_pitch_tot *  mat6(3,4)
+mat6(2,:) = mat6(2,:) + x_pitch_tot * mat6(6,:) ! (2,6)
+mat6(5,:) = mat6(5,:) - x_pitch_tot * mat6(1,:) ! (5,1)
 
-mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
-                    mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
-mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
-                    mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
-mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
-                    mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
-mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
-                    mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
+mat6(4,:) = mat6(4,:) + y_pitch_tot * mat6(6,:) ! (4,6)
+mat6(5,:) = mat6(5,:) - y_pitch_tot * mat6(3,:) ! (5,3)
 
 end subroutine mat6_add_pitch
 
