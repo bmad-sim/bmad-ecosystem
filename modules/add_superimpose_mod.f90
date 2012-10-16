@@ -395,6 +395,11 @@ do
     call add_lattice_control_structs (lat, slave)
   endif
 
+  ! Components like %wall3d, %em_field are contained in the lord so
+  ! deallocate any of these components in the future slave.
+  ! Note that %a_pole and %b_pole components are the exception
+
+  call deallocate_ele_pointers (slave, nullify_branch = .false., dealloc_poles = .false.)
   slave%slave_status = super_slave$
 
   ! add control info for main super lord to list

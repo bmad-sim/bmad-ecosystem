@@ -120,18 +120,8 @@ endif
 ! kill any talyor series, etc.
 ! Note that %a_pole and %b_pole components are the exception
 
-call deallocate_ele_pointers (ele1)
-call deallocate_ele_pointers (ele2)
-
-ele1%branch => branch ! reinstate
-ele2%branch => branch ! reinstate
-
-if (associated(ele%a_pole)) then
-  call multipole_init(ele1)
-  call multipole_init(ele2)
-  ele1%a_pole = ele%a_pole; ele1%b_pole = ele%b_pole
-  ele2%a_pole = ele%a_pole; ele2%b_pole = ele%b_pole
-endif
+call deallocate_ele_pointers (ele1, nullify_branch = .false., dealloc_poles = .false.)
+call deallocate_ele_pointers (ele2, nullify_branch = .false., dealloc_poles = .false.)
 
 ! put in correct lengths and s positions
 
