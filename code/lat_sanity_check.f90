@@ -1,7 +1,7 @@
 !+
 ! Subroutine lat_sanity_check (lat, err_flag)
 !
-! Subroutine to check if the control links in a lat structure are valid, etc.
+! Routine to do lattice self-consistency checks including checking control links, etc.
 !
 ! Modules needed:
 !   use bmad
@@ -478,6 +478,42 @@ do i_b = 0, ubound(lat%branch, 1)
                 'HAS ZERO LORDS!', i_array = [i_t] )
       err_flag = .true.
     endif
+
+    if (s_stat == super_slave$ .and. associated(ele%wall3d)) then
+      call out_io (s_fatal$, r_name, &
+                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %WALL3D COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
+    if (s_stat == super_slave$ .and. associated(ele%em_field)) then
+      call out_io (s_fatal$, r_name, &
+                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %EM_FIELD COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
+    if (s_stat == super_slave$ .and. associated(ele%wig)) then
+      call out_io (s_fatal$, r_name, &
+                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %WIG COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
+    if (s_stat == super_slave$ .and. associated(ele%rf_wake)) then
+      call out_io (s_fatal$, r_name, &
+                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %RF_WAKE COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
+    if (s_stat == multipass_slave$ .and. associated(ele%wall3d)) then
+      call out_io (s_fatal$, r_name, &
+                'MULTIPASS_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                'HAS ASSOCIATED %WALL3D COMPONENT.', i_array = [i_t] )
+      err_flag = .true.
+    endif
+
 
     ! check that super_lord elements have their slaves in the correct order
 

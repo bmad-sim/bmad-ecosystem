@@ -1649,35 +1649,37 @@ end subroutine reallocate_control
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine deallocate_ele_pointers (ele, nullify_only)
+! Subroutine deallocate_ele_pointers (ele, nullify_only, nullify_branch, dealloc_poles)
 !
 ! Subroutine to deallocate the pointers in an element.
+! Note: ele%branch is always nullified. 
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ele -- ele_struct: Element with pointers.
-!   nullify_only -- Logical, optional: If present and True then
-!               Just nullify. Do not deallocate.
+!   ele            -- ele_struct: Element with pointers.
+!   nullify_only   -- Logical, optional: If present and True: Nullify & do not deallocate.
+!   nullify_branch -- Logical, optional: Nullify ele%branch? Default is True.
+!   dealloc_poles  -- Logical, optional: Dealloc ele%a_pole, ele%b_pole? Default is True.
 !
 ! Output:
 !   ele -- Ele_struct: Element with deallocated pointers.
 !-
 
-subroutine deallocate_ele_pointers (ele, nullify_only)
+subroutine deallocate_ele_pointers (ele, nullify_only, nullify_branch, dealloc_poles)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (em_field_mode_struct), pointer :: mode
-logical, optional, intent(in) :: nullify_only
+logical, optional, intent(in) :: nullify_only, nullify_branch, dealloc_poles
 integer i
 
 ! %lord and %lat never point to something that has been allocated for the element
 ! so just nullify these pointers.
 
-nullify (ele%branch)
+if (logic_option(.true., nullify_branch)) nullify (ele%branch)
 nullify (ele%lord)
 
 ! nullify
@@ -1701,10 +1703,11 @@ endif
 
 ! Normal deallocate.
 
+if (associated (ele%a_pole) .and. logic_option(.true., dealloc_poles)) &
+                                     deallocate (ele%a_pole, ele%b_pole)
 if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
-if (associated (ele%a_pole))         deallocate (ele%a_pole, ele%b_pole)
 if (associated (ele%mode3))          deallocate (ele%mode3)
 
 if (associated (ele%rf_wake)) then
