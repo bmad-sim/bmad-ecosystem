@@ -488,20 +488,20 @@ select case (ele%field_calc)
   ! HKicker
 
   case (hkicker$)
-    field%b(2) = -ele%value(kick$) * f_p0c 
+    field%b(2) = -ele%value(kick$) * f_p0c / ele%value(l$)
 
   !------------------------------------------
   ! VKicker
 
   case (vkicker$)
-    field%b(1) =  ele%value(kick$) * f_p0c 
+    field%b(1) =  ele%value(kick$) * f_p0c / ele%value(l$)
 
   !------------------------------------------
   ! Kicker  
 
   case (kicker$)
-    field%b(1) =  ele%value(vkick$) * f_p0c 
-    field%b(2) = -ele%value(hkick$) * f_p0c 
+    field%b(1) =  ele%value(vkick$) * f_p0c / ele%value(l$)
+    field%b(2) = -ele%value(hkick$) * f_p0c / ele%value(l$)
 
   !------------------------------------------
   ! E_Gun
