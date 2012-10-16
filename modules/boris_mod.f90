@@ -107,7 +107,8 @@ here = start
 here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, here)
-call offset_particle (ele, here, param%particle, set$, set_canonical = .false.)
+call offset_particle (ele, here, param%particle, set$, set_canonical = .false., &
+                                             set_hvkicks = .false., set_multipoles = .false.)
 
 t = particle_time(start, ele)
 
@@ -144,7 +145,8 @@ enddo
 
 ! back to lab coords
 
-call offset_particle (ele, here, param%particle, unset$, set_canonical = .false.)
+call offset_particle (ele, here, param%particle, unset$, set_canonical = .false., &
+                                                            set_hvkicks = .false., set_multipoles = .false.)
 
 ! set the z coordinate correctly
 here%vec(5) = here%beta * c_light * (start%vec(5)/(start%beta*c_light) + ele%value(delta_ref_time$) - (here%t - start%t))
