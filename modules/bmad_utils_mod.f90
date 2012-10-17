@@ -3980,7 +3980,7 @@ logical has_fringe
 has_fringe = .false.
 
 select case (ele%key)
-case (lcavity$, rfcavity$, solenoid$, sbend$)
+case (lcavity$, rfcavity$, solenoid$, sbend$, sol_quad$, bend_sol_quad$)
     if (ele%field_calc == bmad_standard$) has_fringe = .true.
 end select
 

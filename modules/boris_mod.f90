@@ -27,7 +27,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine track1_boris (start, ele, param, end, err_flag, track, s_start, s_end)
+! Subroutine track1_boris (start, ele, param, orb_end, err_flag, track, s_start, s_end)
 !
 ! Subroutine to do Boris tracking. For more information on Boris tracking 
 ! see the boris_mod module documentation.
@@ -54,20 +54,19 @@ contains
 !   track      -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine track1_boris (start, ele, param, end, err_flag, track, s_start, s_end)
+subroutine track1_boris (start, ele, param, orb_end, err_flag, track, s_start, s_orb)
 
 implicit none
 
 type (coord_struct), intent(in) :: start
-type (coord_struct), intent(out) :: end
+type (coord_struct), intent(out) :: orb_end
 type (ele_struct) ele
 type (ele_struct) :: loc_ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
-type (coord_struct) here
 type (ele_struct), pointer :: hard_ele
 
-real(rp), optional, intent(in) :: s_start, s_end
+real(rp), optional, intent(in) :: s_start, s_orb
 real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target, s_edge_hard
 
 integer i, n_step, hard_end
@@ -84,8 +83,8 @@ else
   s1 = 0
 endif
 
-if (present(s_end)) then
-  s2 = s_end
+if (present(s_orb)) then
+  s2 = s_orb
 else 
   s2 = ele%value(l$)
 endif
@@ -103,21 +102,21 @@ call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, d
 call transfer_ele (ele, loc_ele)
 call zero_ele_offsets (loc_ele)
 
-here = start
-here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
+orb_end = start
+orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
-call lcavity_reference_energy_correction (ele, param, here)
-call offset_particle (ele, here, param%particle, set$, set_canonical = .false., &
+call lcavity_reference_energy_correction (ele, param, orb_end)
+call offset_particle (ele, orb_end, param%particle, set$, set_canonical = .false., &
                                              set_hvkicks = .false., set_multipoles = .false.)
 
-t = particle_time(start, ele)
+t = particle_time(orb_end, ele)
 
 ! if we are saving the trajectory then allocate enough space in the arrays
 
 if (present(track)) then
   s_sav = s1 - 2.0_rp * track%ds_save
   call init_saved_orbit (track, n_step+10)
-  call save_a_step (track, ele, param, .true., s1, here, s_sav)
+  call save_a_step (track, ele, param, .true., s1, orb_end, s_sav)
 endif
 
 ! track through the body
@@ -128,30 +127,29 @@ do
 
   do
     if (abs(s - s_edge_track) > bmad_com%significant_length .or. .not. associated(hard_ele)) exit
-    call apply_hard_edge_kick (end, s_edge_hard, t, hard_ele, ele, param, hard_end)
+    call apply_hard_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
     call calc_next_fringe_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
   enddo
 
   s_target = min(s2, s_edge_track)
   call compute_even_steps (ele%value(ds_step$), s_target-s, bmad_com%default_ds_step, ds, n_step)
 
-  call track1_boris_partial (here, loc_ele, param, s, t, ds, here)
+  call track1_boris_partial (orb_end, loc_ele, param, s, t, ds, orb_end)
   s = s + ds
 
-  if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
+  if (present(track)) call save_a_step (track, ele, param, .true., s, orb_end, s_sav)
   if (abs(s - s2) < bmad_com%significant_length) exit
 
 enddo
 
 ! back to lab coords
 
-call offset_particle (ele, here, param%particle, unset$, set_canonical = .false., &
+call offset_particle (ele, orb_end, param%particle, unset$, set_canonical = .false., &
                                                             set_hvkicks = .false., set_multipoles = .false.)
 
 ! set the z coordinate correctly
-here%vec(5) = here%beta * c_light * (start%vec(5)/(start%beta*c_light) + ele%value(delta_ref_time$) - (here%t - start%t))
+orb_end%vec(5) = orb_end%beta * c_light * (start%vec(5)/(start%beta*c_light) + ele%value(delta_ref_time$) - (orb_end%t - start%t))
 
-end = here
 err_flag = .false.
 
 end subroutine

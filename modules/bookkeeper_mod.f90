@@ -2476,6 +2476,16 @@ case (rfcavity$)
 case (solenoid$)
   val(l_hard_edge$) = val(l$)
 
+! Sol_quad
+
+case (sol_quad$)
+  val(l_hard_edge$) = val(l$)
+
+! Bend_sol_quad
+
+case (bend_sol_quad$)
+  val(l_hard_edge$) = val(l$)
+
 ! BeamBeam
 
 case (beambeam$)
