@@ -131,6 +131,8 @@ do
     call calc_next_fringe_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
   enddo
 
+  if (abs(s - s2) < bmad_com%significant_length) exit
+
   s_target = min(s2, s_edge_track)
   call compute_even_steps (ele%value(ds_step$), s_target-s, bmad_com%default_ds_step, ds, n_step)
 
@@ -138,8 +140,7 @@ do
   s = s + ds
 
   if (present(track)) call save_a_step (track, ele, param, .true., s, orb_end, s_sav)
-  if (abs(s - s2) < bmad_com%significant_length) exit
-
+  
 enddo
 
 ! back to lab coords
