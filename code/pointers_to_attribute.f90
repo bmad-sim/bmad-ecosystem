@@ -121,26 +121,19 @@ case ('BEAM_START')
 
   return
 
-!
+! This section is for things like "parameter[n_part]" whose value is stored
+! in a non-standard location. Things like "parameter[e_tot]" are handled in 
+! the usual way in the code section after this one.
 
 case ('PARAMETER')
-  if (present(eles)) then
-    call re_allocate_eles (eles, 0)
-  endif
-
-  call re_allocate (ptr_array, 1)
 
   select case(attrib_name)
   case ('N_PART')
+    if (present(eles)) call re_allocate_eles (eles, 0)
+    call re_allocate (ptr_array, 1)
     ptr_array(1)%r => lat%param%n_part
-  case default
-    if (do_print) call out_io (s_error$, r_name, &
-           'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-    deallocate (ptr_array)
-    err_flag = .true.
+    return
   end select
-
-  return
 
 end select
 
