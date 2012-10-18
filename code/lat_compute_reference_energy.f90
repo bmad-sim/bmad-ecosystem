@@ -40,7 +40,7 @@ integer ix_super_end, ix_e_gun
 logical did_set, stale, err
 logical, optional :: err_flag
 
-character(24), parameter :: r_name = 'lat_compute_ref_energy_and_time'
+character(40), parameter :: r_name = 'lat_compute_ref_energy_and_time'
 
 ! propagate the energy through the tracking part of the lattice
 
