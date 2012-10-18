@@ -274,6 +274,8 @@ case (lcavity$, rfcavity$)
 
 !----------------------------------------------------------------------------
 ! solenoid, quadrupole, sol_quad, or bend_sol_quad
+! Notice that we don't have to worry about a solenoid hard edge since we are
+! using canonical coords so the hard edge is automatically included.
 
 case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
