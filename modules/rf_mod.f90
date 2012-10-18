@@ -79,15 +79,17 @@ implicit none
 
 type (ele_struct), target :: ele
 type (lat_param_struct), target :: param
-
+type (coord_struct) orbit0
+type (em_field_struct) field1, field2
 integer, parameter :: n_sample = 16
 
 real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
 real(rp) value_saved(num_ele_attrib$), dphi0_ref_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
-real(rp) dE_max1, dE_max2
+real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
+integer n_pts, n_pts_tot
 
 logical step_up_seen, err_flag, do_scale_phase, do_scale_amp, phase_scale_good, amp_scale_good
 logical, optional :: scale_phase, scale_amp
@@ -120,7 +122,7 @@ if (.not. do_scale_phase .and. .not. do_scale_amp) return
 
 if (ele%tracking_method == mad$) return
 
-!bmad_standard just needs to set e_tot$, p0c$, and dphi0_ref$
+! bmad_standard just needs to set e_tot$, p0c$, and dphi0_ref$
 
 if (ele%tracking_method == bmad_standard$) then
   if (ele%key == lcavity$) then 
@@ -134,9 +136,9 @@ if (ele%tracking_method == bmad_standard$) then
   endif 
   
   if (absolute_time_tracking(ele) ) then
-    ele%value(dphi0_ref$)   = - ele%value(rf_frequency$) * ele%value(ref_time_start$)
+    ele%value(dphi0_ref$) = -ele%value(rf_frequency$) * ele%value(ref_time_start$)
   else
-    ele%value(dphi0_ref$)   = 0
+    ele%value(dphi0_ref$) = 0
   endif
   return
 endif
@@ -263,10 +265,45 @@ if (.not. is_lost) then
   endif
 endif
 
+! The field_scale may be orders of magnitude off so do an initial guess
+! based upon the integral of abs(voltage) through the element.
+
+if (do_scale_amp) then
+  n_pts = 1
+  int_tot = 0
+  n_pts_tot = 0
+
+  do 
+    integral = 0
+    do i = 1, n_pts
+      s = ele%value(l$) * (2*i - 1.0) / (2*n_pts)
+      ! Sample field at two phases and take the max. This is crude but effective.
+      dphi0_ref = 0
+      call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field1)
+      dphi0_ref = pi/2
+      call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field2)
+      integral = integral + max(abs(field1%e(3)), abs(field2%e(3))) * ele%value(l$) / n_pts
+    enddo
+
+    n_pts_tot = n_pts_tot + n_pts
+    int_old = int_tot
+    int_tot = ((n_pts_tot - n_pts) * int_tot + n_pts * integral) / n_pts_tot
+    if (n_pts_tot > 16) then
+      if (abs(int_tot - int_old) < 0.2 * (int_tot + int_old)) then
+        field_scale = field_scale * dE_peak_wanted / integral
+        exit
+      endif
+    endif
+
+    n_pts = 2 * n_pts
+
+  enddo
+endif
+
 ! OK so the input %dphi0_ref or %field_scale are not set correctly...
 ! First choose a starting phi_max by finding an approximate phase for max acceleration.
-! We start by testing 4 phases 90 deg apart.
-! pz_max1 gives the maximal acceleration of the 4. pz_max2 gives the second largest.
+! We start by testing n_sample phases.
+! pz_max1 gives the maximal acceleration. pz_max2 gives the second largest.
 
 pz_arr(0) = pz_max
 dphi = 1.0_rp / n_sample
@@ -283,6 +320,9 @@ pz_arr(i_max1) = -1  ! To find next max
 i_max2 = maxloc(pz_arr, 1) - 1
 pz_max2 = pz_arr(i_max2)
 dE_max2 = dE_particle(pz_max2)
+
+! If we do not have any phase that shows acceleration this generally means that the
+! initial particle energy is low and the field_scale is much to large.
 
 if (dE_max1 < 0) then
   call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION FOR: ' // ele%name)
