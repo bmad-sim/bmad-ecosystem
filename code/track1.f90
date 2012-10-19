@@ -85,6 +85,14 @@ if (start2_orb%state /= alive$) then
   return
 endif
 
+! If a particle is inside the element then only time_runge_kutta
+! can handle this situation.
+
+if (start2_orb%state == inside$ .and. ele%tracking_method /= time_runge_kutta$) then
+  call out_io (s_error$, r_name, 'PARTICLE''S STARTING POSITION IS INSIDE THE ELEMENT! ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+endif
+
 ! custom tracking if the custom routine is to do everything
 
 if (ele%tracking_method == custom$) then
