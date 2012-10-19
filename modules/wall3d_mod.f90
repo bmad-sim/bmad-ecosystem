@@ -794,6 +794,11 @@ end function wall3d_d_radius
 !   2) There is an aperture wall if wall3d_ele is associated but wall3d_ele%wall3d is not.
 !   3) There is no wall of any sort if not associated(wall3d_ele).
 !
+! Why is the wall3d stored in the first multipass_slave instead of the multipass_lord?
+! The reason is that the reference trajectory can be different for different multipass_slaves.
+! By convention, the wall structure is defined with respect to the reference trajectory 
+! of the first multipass_slave so that slave is returned by this routine.
+!
 ! Module needed:
 !   use wall3d_mod
 !
