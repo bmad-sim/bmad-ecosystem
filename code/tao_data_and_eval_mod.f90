@@ -996,7 +996,11 @@ case ('element_attrib.')
 
 case ('emit.', 'norm_emit.')
 
-  call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
+  if (associated(ele)) then
+    call convert_total_energy_to (ele%value(e_tot$), lat%param%particle, gamma = gamma)
+  else
+    gamma = 0
+  endif
 
   select case (datum%data_type)
 
