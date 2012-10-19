@@ -418,6 +418,8 @@ alias ACC_INFO='accinfo'
 
 alias current='ACC_RELEASE_REQUEST=current; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 alias devel='ACC_RELEASE_REQUEST=devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
+alias online='ACC_RELEASE_REQUEST=online; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
+alias online-devel='ACC_RELEASE_REQUEST=online-devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 
 alias current32='ACC_FORCE_32_BIT=Y; current'
 alias devel32='ACC_FORCE_32_BIT=Y; devel;'

@@ -50,7 +50,7 @@ sys.stdout = file
 
 
 hostname = socket.gethostname()
-p = sub.Popen('kinit -k -t /etc/cesrulib-keytab cesrulib/'+hostname,
+p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib/' + hostname,
               bufsize=1,
               shell=True,
               stdout=sub.PIPE )
