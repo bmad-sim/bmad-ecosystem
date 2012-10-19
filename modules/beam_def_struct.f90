@@ -86,6 +86,10 @@ type beam_init_struct
   logical :: init_spin     = .false.  ! initialize beam spinors
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
                                              !   Else use 4x4 1-turn mat used.
+  logical :: use_t_coords = .false.   ! If true, the distributions will be taken as in t-coordinates  
+  logical :: use_z_as_t   = .false.   ! Only used if  use_t_coords = .true.
+                                      !   If true,  z describes the t distribution 
+                                      !   If false, z describes the s distribution
 end type
 
 type bunch_params_struct

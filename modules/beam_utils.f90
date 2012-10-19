@@ -5,6 +5,7 @@ use spin_mod
 use eigen_mod
 use wake_mod
 use bookkeeper_mod
+use time_tracker_mod
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
@@ -752,8 +753,6 @@ bunch%species = param%particle
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%charge = bunch%charge * p%charge
-  p%state = alive$
-
   ! Include Dispersion and coupling
   if (beam_init%full_6D_coupling_calc) then
     p%vec(1:6) = matmul(V6mat, p%vec(1:6))
@@ -789,16 +788,48 @@ if (species == photon$) then
   bunch%particle(2:n:2)%e_field_y = 1
 endif
 
-! Fill in %species, %t and %s
+! Fill in %t and %s
 
-do i = 1, size(bunch%particle)
-  p => bunch%particle(i)
-  p%s = ele%s
-  call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
-  p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
-  call init_coord (p, p, ele, .true.)
-enddo
+if(beam_init%use_t_coords) then
+  ! Time coordinates 
+  do i = 1, size(bunch%particle)
+    
+    p => bunch%particle(i)
+    
+    if (beam_init%use_z_as_t) then
+      ! Fixed s, particles distributed in time using vec(5)
+      p%s = ele%s
+      p%t = p%vec(5)
+      p%location = exit_end$
+      p%vec(5) = 0 !init_coord will not complain when beta == 0 and vec(5) == 0
+      
+    else
+      ! Fixed time, particles distributed in space using vec(5)
+      p%s = p%vec(5)
+      p%t = ele%ref_time + bunch%t_center
+      p%location = inside$
+    endif
 
+    ! Convert to s coordinates
+    p%p0c = ele%value(p0c$)
+    call convert_particle_coordinates_t_to_s (p, mass_of(param%particle), ele%ref_time)
+    ! beta calc
+    call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = p%beta)  
+    p%state = alive$
+    
+  enddo
+else
+  ! Usual s-coordinates
+  do i = 1, size(bunch%particle)
+    p => bunch%particle(i)
+    p%s = ele%s
+    call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
+    p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
+    call init_coord (p, p, ele, .true.)
+  enddo
+endif
+
+  
 end subroutine init_bunch_distribution
 
 !--------------------------------------------------------------------------
