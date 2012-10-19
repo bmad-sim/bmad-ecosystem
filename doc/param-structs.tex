@@ -1,3 +1,5 @@
+%\input{simple_header}
+
 \chapter{Bmad Parameter Structures}
 
 \bmad has various parameters which affect various
@@ -226,6 +228,10 @@ the beam. The parameters of this structure are:
     integer species = not_set\$          ! Species. Default is lattice reference species.
     logical init_spin = F                ! initialize beam spinors
     logical full_6D_coupling_calc = F    ! Use V from 6x6 1-turn mat to match distribution?  
+    logical use_t_coords = .false.  ! If true, the distributions will be taken as in t-coordinates  
+    logical use_z_as_t   = .false.  ! Only used if  use_t_coords = .true.
+                                    !   If true,  particles will be distributed in t
+                                    !   If false, particles will be distributed in s
   end type
 \end{example}
 The number of bunches in the beam is set by \vn{n_bunch}. 
@@ -345,6 +351,12 @@ instead of multiplying. For example:
 Here the number of particle is $300 \times 600$. Notice that when
 \vn{RAN_GAUSS} is mixed with other distributions, the value of
 \vn{beam_init%n_particle} is ignored.
+
+%\item[\%use_t_coords] \Newline
+If \vn{use_t_coords} is true, then the distributions are taken as describing particles in $t$-coordinates (\sref{s:time.phase.space}).
+Furthermore, if \vn{use_z_as_t} is true, then the $z$ coordinates from the distribution will be taken as describing the time coordinates. For example, particles may originate at a cathode at the same $s$, but different times. 
+If false, then the $z$ coordinate from the distribution describes particles at the same time but different $s$ positions, and each particle gets \vn{\% location=inside\$}. In this case, the bunch will need to be tracked with a tracking method that can handle inside particles, such as \vn{time_runge_kutta}. 
+All particles are finally converted to proper $s$-coordinate distributions for Bmad to use. 
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}
@@ -484,3 +496,5 @@ Toggle to prevent non thread safe calculational optimizations from
 being done.  Currently, converting \bmad to be thread safe is an
 active project. Please contact the \bmad maintainers for more details.
 \end{description}
+
+%\end{document}

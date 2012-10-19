@@ -787,6 +787,8 @@ real(rp), optional :: w_mat_out(3,3)
 logical, optional :: in_time_coordinates
 logical :: in_t_coord
 
+character(28), parameter :: r_name = 'particle_in_global_frame'
+
 ! optional argument 
 in_t_coord =  logic_option( .false., in_time_coordinates)
 
@@ -932,6 +934,8 @@ end subroutine convert_particle_coordinates_s_to_t
 ! Subroutine drift_orbit_time(orbit, mc2, delta_s)
 !
 ! Simple routine to drift a particle orbit in time-based coordinates by a distance delta_s
+!   If the particle has zero longitudinal velocity, then the particle is not drifted
+!   and a warning is printed.  
 !
 ! Modules Needed:
 !   use bmad_struct
@@ -947,29 +951,37 @@ end subroutine convert_particle_coordinates_s_to_t
 !                                     
 !-
 subroutine drift_orbit_time(orbit, mc2, delta_s)
-  use bmad_struct
+use bmad_struct
   
-  implicit none
+implicit none
   
-  type (coord_struct) :: orbit
-  real(rp) :: mc2, delta_s, delta_t, v_s, e_tot, vel(3)
+type (coord_struct) :: orbit
+real(rp) :: mc2, delta_s, delta_t, v_s, e_tot, vel(3)
+
+character(28), parameter :: r_name = 'drift_orbit_time'
   
-  ! Get e_tot from momentum
+! Get e_tot from momentum
 
-  e_tot = sqrt( orbit%vec(2)**2 + orbit%vec(4)**2 +  orbit%vec(6)**2 + mc2**2) 
+e_tot = sqrt( orbit%vec(2)**2 + orbit%vec(4)**2 +  orbit%vec(6)**2 + mc2**2) 
 
-  ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
+! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
 
-  vel(1:3) = c_light*[  orbit%vec(2), orbit%vec(4), orbit%vec(6) ]/ e_tot 
+vel(1:3) = c_light*[  orbit%vec(2), orbit%vec(4), orbit%vec(6) ]/ e_tot 
 
-  delta_t = delta_s / vel(3)
+if( vel(3) == 0 )then
+   ! Do not drift
+   call out_io (s_warn$, r_name, 'v_s == 0, will not drift')
+   return
+endif 
   
-  ! Drift x, y, s
-  orbit%vec(1) = orbit%vec(1) + vel(1)*delta_t  !x
-  orbit%vec(3) = orbit%vec(3) + vel(2)*delta_t  !y
-  orbit%vec(5) = orbit%vec(5) + vel(3)*delta_t  !s
-  orbit%s =  orbit%s + delta_s
-  orbit%t =  orbit%t + delta_t 
+delta_t = delta_s / vel(3)
+
+! Drift x, y, s
+orbit%vec(1) = orbit%vec(1) + vel(1)*delta_t  !x
+orbit%vec(3) = orbit%vec(3) + vel(2)*delta_t  !y
+orbit%vec(5) = orbit%vec(5) + vel(3)*delta_t  !s
+orbit%s =  orbit%s + delta_s
+orbit%t =  orbit%t + delta_t 
 
 end subroutine drift_orbit_time
 
