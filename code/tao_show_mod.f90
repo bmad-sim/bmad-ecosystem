@@ -315,6 +315,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
+    nl=nl+1; write (lines(nl), amt) 'tao_com%beam_file          = ', tao_com%beam_file
     nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file
     nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam%beam_all_file
     beam => uni_branch%ele(0)%beam
