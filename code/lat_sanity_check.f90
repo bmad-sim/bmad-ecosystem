@@ -507,14 +507,6 @@ do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    if (s_stat == multipass_slave$ .and. associated(ele%wall3d)) then
-      call out_io (s_fatal$, r_name, &
-                'MULTIPASS_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %WALL3D COMPONENT.', i_array = [i_t] )
-      err_flag = .true.
-    endif
-
-
     ! check that super_lord elements have their slaves in the correct order
 
     if (l_stat == super_lord$) then
