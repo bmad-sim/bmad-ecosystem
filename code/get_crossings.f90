@@ -45,6 +45,7 @@ if(test > 0 .and. test < 20 .and. ios == 0) then
   print *,' spacing = ', spacing  
 con%n_trains = trains
 con%n_cars = bunches
+con%electron_offset = 0
 
 con%n_14ns_space = spacing
 else
