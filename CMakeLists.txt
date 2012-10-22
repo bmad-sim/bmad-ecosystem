@@ -8,6 +8,7 @@ set (EXE_SPECS
   slice_test.cmake
   abs_time_test.cmake
   tracking_method_test.cmake
+  mat6_calc_method_test.cmake
 )
 
 set(SRC_DIRS
