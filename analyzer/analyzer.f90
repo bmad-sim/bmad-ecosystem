@@ -6,6 +6,7 @@ program anaylzer
   use cbar_mod
   use bookkeeper_mod
   use bsim_interface
+  use mode3_mod
 
   implicit none
 
@@ -42,7 +43,7 @@ program anaylzer
   integer plot_flag/0/, last
   integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
   integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8, rad_int$=9, sext$=10
-  integer, parameter :: phase$=11, de_phase$=12
+  integer, parameter :: phase$=11, de_phase$=12, v15$=13
   integer ix_cache
   integer, allocatable :: n_ele(:)
   integer i_dim/4/
@@ -81,6 +82,7 @@ program anaylzer
   real(rp) slopes(4)
   real(rp) delta_frf, frf
   real(rp) betah_tot, betav_tot
+  real(rp) energy
      
   character*40 lattice
   character*120 lat_file
@@ -102,7 +104,8 @@ program anaylzer
   logical cbarve/.false./
   logical path_length_patch/.false./
   logical set_synchronous_phase/.false./
-
+  logical err_flag
+  logical error/.false./
 !
   nargs = cesr_iargc()
   if (nargs == 1)then
@@ -329,6 +332,19 @@ program anaylzer
      exit
    endif
 
+   if(line(1:4) == 'ENER')then
+     call string_trim(line(ix+1:),line,ix)
+     if (ix /= 0)then
+       read(line,*)energy
+       ring%ele(0)%value(E_TOT$) = energy * 1.e9
+       call lattice_bookkeeper(ring, err_flag)
+       call lat_make_mat6(ring, -1)  
+    endif  
+     print '(a,es12.4)', 'Energy (GeV) = ',ring%ele(0)%value(E_TOT$)/1.e9 
+     cycle
+     exit
+   endif
+
    ix= index(line, 'PLOT_WIDTH')
    if(ix /= 0)then
       read(line(ix+11:),*)new_width
@@ -377,6 +393,7 @@ program anaylzer
 
       print *, ' '
       print *,ring%input_file_name
+      print '(a,es12.4)',' Beam energy (GeV) = ', ring%ele(0)%value(E_TOT$)/1.e9
       print '(a42,a12,1x,6f9.4)',' e+ orbit at start (mm/mr)       Element: ', &
                   ring%ele(1)%name , (co(0)%vec(i)*1000.,i=1,6)
       print '(a42,a12,1x,6f9.4)',' e+ closed orbit (mm/mr) at end, Element: ', &
@@ -414,6 +431,10 @@ program anaylzer
      call calc_z_tune (ring)
 
       call twiss_propagate_all(ring)
+       call twiss3_at_start(ring,error)
+        if(error)print *,' mode3 calc error'
+       call twiss3_propagate_all(ring)
+
        frev=c_light/ring%ele(ring%n_ele_track)%s
 !      print *,' Recompute tunes with new matrices'
       print '(23x,3a14)','  Horizontal  ','  Vertical    ',' Longitudinal '
@@ -586,7 +607,7 @@ program anaylzer
 
 20   print *, ' '
      write = .false.
-     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, DPHASE/DE,  ETA, DCBAR/DE, RAD_INT, DIFF, SEXT, PHASE]) > '
+     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, DPHASE/DE,  ETA, DCBAR/DE, RAD_INT, DIFF, SEXT, PHASE, V15]) > '
      read(5, '(a)', err=20)answer
      save_answer = answer
 
@@ -620,6 +641,8 @@ program anaylzer
        plot_flag=sext$
       elseif(index(answer(1:ix),'PHA') /=0)then
        plot_flag=phase$
+      elseif(index(answer(1:ix),'V15') /=0)then
+       plot_flag=v15$
       elseif(index(answer,'DI') /= 0 .or. diff)then
        diff = .true.
       elseif(index(answer,'WRITE') /= 0)then
@@ -737,6 +760,12 @@ program anaylzer
       if(plot_flag == phase$)then
        x(0:n_all) = ring%ele(0:n_all)%a%phi
        y(0:n_all) = ring%ele(0:n_all)%b%phi
+      endif
+
+      if(plot_flag == v15$)then
+       
+       forall(i=0:n_all)x(i) = ring%ele(i)%mode3%v(1,5)
+       forall(i=0:n_all)y(i) = ring%ele(i)%mode3%v(3,5)
       endif
 
       if(plot_flag == de_beta$)then
@@ -866,6 +895,11 @@ program anaylzer
        yy_diff(l) = ring%ele(i)%b%phi -y(j)
       endif
 
+      if(plot_flag == v15$)then
+       xx_diff(l) = ring%ele(i)%mode3%v(1,5) -x(j)
+       yy_diff(l) = ring%ele(i)%mode3%v(3,5) -y(j)
+      endif
+
       if(plot_flag == de_beta$)then
        xx_diff(l) = (ring_two(1)%ele(i)%a%beta - ring_two(-1)%ele(i)%a%beta)/2/de/ &
                   ring%ele(i)%a%beta - x(j)
@@ -940,6 +974,15 @@ program anaylzer
          print *,' p,f, xmax, xscale ',p,f, xmax, xscale
          call pgenv(start, end,-xscale,xscale,0,1)
          call pglab('z (m)','x(mm)',' Closed orbit')
+       endif
+       if(plot_flag==v15$)then
+         p = int(log10(xmax))
+         if(p<=0)p=p-1
+         f=xmax/10**p
+         xscale=(int(f*2+1)/2.)*10**p
+         print *,' p,f, xmax, xscale ',p,f, xmax, xscale
+         call pgenv(start, end,-xscale,xscale,0,1)
+         call pglab('z (m)','v(1,5) (mrad)',' x-z tilt')
        endif
        if(plot_flag == beta$)then
          xscale=(int(xmax/10.)+1)*10
@@ -1063,6 +1106,16 @@ program anaylzer
          print *,' p,f, ymax, yscale ',p,f, ymax, yscale
          call pgenv(start, end,-yscale,yscale,0,1)
          call pglab('z (m)','y(mm)',' Closed orbit')
+       endif
+       if(plot_flag == v15$)then
+         p = int(log10(ymax))
+         if(p<=0)p=p-1
+         f=ymax/10**p
+         yscale=(int(f*2+1)/2.)*10**p
+         if(yscale < 1.e-20)yscale = 1.e-20
+         print *,' p,f, ymax, yscale ',p,f, ymax, yscale
+         call pgenv(start, end,-yscale,yscale,0,1)
+         call pglab('z (m)','V(3,5) (mrad)',' y-z tilt')
        endif
        if(plot_flag == beta$)then
          yscale=(int(ymax/10.)+1)*10
@@ -1291,6 +1344,7 @@ program anaylzer
     print *,' "TRACK" :track and plot phase space'
     print *,' "SYNCH_PHASE" : set synchronous phase (SET) or nochange (NOCHANGE)' 
     print *,' "PRETZ" :write orbit and crossing point data for PRETZEL plot'
+    print *,' "ENERGY #" :change energy to #(GeV)'
     print *,'           fort.35 - Electron and positron orbits'
     print *,'           fort.37 - Origin and Injection point'
     print *,'           fort.40 - Separators'
@@ -1408,8 +1462,9 @@ program anaylzer
      endif
     end do
 
-    synch_phase = asin(mode%e_loss/volt)
-    print '(a,es12.4,a,i3,a)',' total accelerating voltage = ',volt,'  with ',ncav,' RF cavities '
+    synch_phase = 0.
+    if(volt /= 0)synch_phase = asin(mode%e_loss/volt)
+     print '(a,es12.4,a,i3,a)',' total accelerating voltage = ',volt,'  with ',ncav,' RF cavities '
 !    print '(a,es12.4)',' energy loss /turn = ',mode%e_loss
     print '(a,es12.4,a,es12.4,a,es12.4)',' synchronous phase (deg) = ',synch_phase * 360./twopi, &
                               '     phi/360 =', synch_phase/twopi, &
@@ -1657,7 +1712,7 @@ program anaylzer
    begin = ring%ele(i-1)%s
    ele = ring%ele(i)
    if(ele%key /= sbend$ .and. ele%key /= quadrupole$ .and.ele%key /= rbend$ &
-            .and. ele%key /= sextupole$)cycle
+            .and. ele%key /= sextupole$ .and. ele%key /= rfcavity$)cycle
    if(ele%key == sbend$ .or. ele%key == rbend$)then
      width = 1.
      call pgsci(1)
@@ -1669,6 +1724,10 @@ program anaylzer
    if(ele%key == sextupole$)then
      width = 1.5
      call pgsci(5)
+   endif    
+   if(ele%key == rfcavity$)then
+     width = 0.5
+     call pgsci(6)
    endif    
    x(1) = begin
    x(2) = begin
