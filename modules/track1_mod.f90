@@ -1267,9 +1267,9 @@ case (wiggler$)
       is_valid = .true.
     end select
   elseif (ele%sub_key == periodic_type$) then
-    if (present(num_valid)) num_valid = 8
+    if (present(num_valid)) num_valid = 9
     select case (tracking_method)
-    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, custom$)
+    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
   endif
