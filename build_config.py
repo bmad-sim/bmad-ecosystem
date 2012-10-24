@@ -220,7 +220,7 @@ build_specs = {
                     # make install
                 'root',
                     # This employs 32-bit Python 2.7
-                    # ./configure --enable-fftw3 --with-fftw3-incdir=`pwd`/../include --with-fftw3-libdir=`pwd`/../lib --disable-python --prefix=`pwd`/.. --etcdir=`pwd`/../etc
+                    # ./configure --enable-fftw3 --with-fftw3-incdir=`pwd`/../production/include --with-fftw3-libdir=`pwd`/../production/lib --disable-python --prefix=`pwd`/../production --etcdir=`pwd`/../production/etc
                     # make
                     # make install
                     # FOR AN ONLINE BUILD:
