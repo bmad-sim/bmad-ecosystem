@@ -49,11 +49,11 @@ type seq_struct
 end type
 
 type used_seq_struct
-  character(40) :: name = ''           ! name of sequence
-  character(40) :: multipass_line = '' ! name of root multipass line
+  character(40) :: name = ''            ! name of sequence or element
   character(40) :: tag = ''             ! tag name.
-  integer :: ix_multipass = 0           ! index used to sort elements
-end type    
+  integer :: ix_multi = 0               ! Multipass indentifier
+  logical :: reversed = .false.         ! Multipass reversed.
+end type
 
 ! A LIFO stack structure is used in the final evaluation of the line that is
 ! used to form a lattice
@@ -1173,9 +1173,6 @@ case ('PARTICLE')
 case ('LATTICE_TYPE')
   call get_switch (attrib_word, lattice_type(1:), ix, err_flag)
   ele%value(lattice_type$) = ix
-
-case ('ROOT_BRANCH_NAME')
-  call get_next_word(bp_com%root_branch_ele%name, ix_word,  ':=,', delim, delim_found, .true.)
 
 case default   ! normal attribute
 
@@ -3381,7 +3378,7 @@ do i = 1, n_multipass
     slave2 => pointer_to_slave(slave, j)
     if (slave2%n_lord == 1) then
       i1 = i1 + 1
-      write (slave2%name, '(2a, i0, a, i0)') trim(lord%name), '#', i1, '\', i      ! '
+      write (slave2%name, '(2a, i0, a, i0)') trim(lord%name), '\', i, '#', i1      ! '
     else
       slave2_name = ''
       lmax = len(slave2%name) - 2
@@ -3589,6 +3586,7 @@ do
           if (branch%ele(i)%ix_pointer /= j+1) cycle
           j = j + 1
           call compute_super_lord_s (lat, branch%ele(i), super_ele, pele)
+          super_ele%iyy = branch%ele(i)%iyy   ! Multipass info
           call check_for_multipass_superimpose_problem (lat, branch%ele(i), super_ele, err_flag); if (err_flag) return
           ! Don't need to save drifts since a multipass_lord drift already exists.
           call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
@@ -3696,6 +3694,7 @@ do
 
       else
         call compute_super_lord_s (lat, branch%ele(i_ele), super_ele, pele)
+        super_ele%iyy = branch%ele(i_ele)%iyy   ! Multipass info
         call check_for_multipass_superimpose_problem (lat, branch%ele(i_ele), super_ele, err_flag); if (err_flag) return
         call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
         super_ele%name = super_ele_saved%name(:ix)            
@@ -4884,7 +4883,9 @@ character(*), allocatable ::  in_name(:), seq_name(:)
 !
 
 nb = ubound(lat%branch, 1) + 1
-call allocate_branch_array (lat, nb)
+call parser_expand_line (nb, lat, branch_ele%component_name, sequence, in_name, &
+                              in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+
 branch_ele%value(ix_branch_to$) = nb
 branch => lat%branch(nb)
 
@@ -4901,16 +4902,12 @@ endif
 
 !
 
+branch%name           = branch_ele%name
 branch%param%particle = nint(branch_ele%value(particle$))
 branch%param%lattice_type = nint(branch_ele%value(lattice_type$))
-branch%ix_branch      = nb
 branch%ix_from_branch = branch_ele%ix_branch
 branch%ix_from_ele    = branch_ele%ix_ele
-branch%name           = branch_ele%name
-call parser_expand_line (nb, lat, branch_ele%component_name, sequence, in_name, &
-                              in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
-branch%n_ele_track = n_ele_use
-branch%n_ele_max   = n_ele_use
+branch%ix_root_branch = lat%branch(branch_ele%ix_branch)%ix_root_branch
 
 do j = 1, n_ele_use
   ele2 => lat%branch(nb)%ele(j)
@@ -4960,6 +4957,7 @@ type (seq_stack_struct) stack(40)
 type (seq_struct), pointer :: seq, seq2
 type (used_seq_struct), allocatable ::  used2(:)
 type (seq_ele_struct), target :: dummy_seq_ele
+type (branch_struct), pointer :: branch
 
 integer, allocatable :: ix_lat(:)
 integer, allocatable :: seq_indexx(:), in_indexx(:)
@@ -4968,7 +4966,7 @@ integer i, j, k, n, ix, ix_multipass, ix_branch
 
 character(*), allocatable ::  in_name(:), seq_name(:)
 character(*) use_name
-character(40) name, multipass_line
+character(40) name
 
 ! find line corresponding to the "use" statement.
 
@@ -5079,8 +5077,9 @@ line_expansion: do
       !   then we need to do some bookkeeping to keep the elements straight.
       if (.not. stack(i_lev)%multipass .and. stack(i_lev+1)%multipass) then
         if (stack(i_lev+1)%direction == -1) then
-          bp_com%used_line(n0_multi:n_ele_use)%ix_multipass = &
-                        bp_com%used_line(n_ele_use:n0_multi:-1)%ix_multipass
+          bp_com%used_line(n0_multi:n_ele_use)%ix_multi = &
+                        bp_com%used_line(n_ele_use:n0_multi:-1)%ix_multi
+          bp_com%used_line(n0_multi:n_ele_use)%reversed = .true.
         endif
       endif
       cycle
@@ -5169,12 +5168,10 @@ line_expansion: do
 
     if (stack(i_lev)%multipass) then
       ix_multipass = ix_multipass + 1
-      bp_com%used_line(n_ele_use)%ix_multipass = ix_multipass
-      bp_com%used_line(n_ele_use)%multipass_line = multipass_line
+      bp_com%used_line(n_ele_use)%ix_multi = ix_multipass + 1000000 * stack(i_lev)%ix_seq
     else
-      bp_com%used_line(n_ele_use)%ix_multipass = 0
+      bp_com%used_line(n_ele_use)%ix_multi = 0
     endif
-
 
   ! if a line:
   !     a) move pointer on current level past line element
@@ -5233,7 +5230,6 @@ line_expansion: do
     if (stack(i_lev)%multipass .and. .not. stack(i_lev-1)%multipass) then
       ix_multipass = 1
       n0_multi = n_ele_use + 1
-      multipass_line = sequence(stack(i_lev)%ix_seq)%name
     endif
 
   case default
@@ -5252,25 +5248,31 @@ if (bp_com%error_flag) return
 
 if (ix_branch == 0) then  ! Main branch
   call allocate_lat_ele_array(lat, n_ele_use)
+  lat%n_ele_track = n_ele_use
+  lat%n_ele_max   = n_ele_use
   ele_line => lat%ele
 else                    ! branch line
+  call allocate_branch_array (lat, ix_branch)
   call allocate_lat_ele_array(lat, n_ele_use, ix_branch)
   ele_line => lat%branch(ix_branch)%ele
 endif
+
+branch => lat%branch(ix_branch)
+branch%n_ele_track = n_ele_use
+branch%n_ele_max   = n_ele_use
+branch%ix_branch   = ix_branch
 
 ele_line(0)%ix_branch = ix_branch
 
 do i = 1, n_ele_use
   ele_line(i) = in_lat%ele(ix_lat(i)) 
-  ele_line(i)%name = bp_com%used_line(i)%name
+  ele_line(i)%name      = bp_com%used_line(i)%name
+  ele_line(i)%iyy       = bp_com%used_line(i)%ix_multi
+  ele_line(i)%reversed  = bp_com%used_line(i)%reversed
   if (bp_com%used_line(i)%tag /= '') ele_line(i)%name = &
                 trim(bp_com%used_line(i)%tag) // '.' // ele_line(i)%name
   call settable_dep_var_bookkeeping (ele_line(i))
 enddo
-
-! Cleanup
-
-deallocate (ix_lat)
 
 end subroutine parser_expand_line
 

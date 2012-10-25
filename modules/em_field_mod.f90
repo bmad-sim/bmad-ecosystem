@@ -284,13 +284,13 @@ select case (ele%field_calc)
 
   !------------------------------------------
   ! RFcavity and Lcavity
-  ! Use half-wave pillbox formulas for standing wave TM_011 mode with infinite wall radius.
+  ! Use N_cell half-wave pillbox formulas for standing wave TM_011 mode with infinite wall radius.
   ! See S.Y. Lee, "Accelerator Physics"
   !   E_s   = 2 * gradient * cos(k s) * cos(omega t + phase)
   !   E_r   = gradient * k * r * sin(k s) * cos(omega t + phase)
   !   B_phi = -gradient * k * r * cos(k s) * sin(omega t + phase) / c_light
   ! where
-  !   k = pi / L
+  !   k = n_cell * pi / L
   !   omega = c * k
   ! Field extends to +/- c_light * freq / 2 from centerline of element.
   ! Note: There is a discontinuity in the field at the edge. Edge focusing due to this 

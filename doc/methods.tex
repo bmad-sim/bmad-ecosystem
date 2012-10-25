@@ -214,7 +214,7 @@ directions.
   \vn{taylor}                  & X &   & X & X &   &     &     &     &     &  D  &    \\ 
   \vn{vkicker}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{wiggler} (map type)      &   & X & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{wiggler} (periodic type) & D &   & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
+  \vn{wiggler} (periodic type) & D & X & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
    \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 } 
@@ -537,9 +537,11 @@ method. ``X'' denotes an available method.}
 \index{symp_lie_bmad!and Taylor maps}
 \index{symp_lie_ptc!and Taylor maps}
 \index{taylor!and Taylor maps}
-Integration methods are split into two classes: Those that involve
-Taylor maps and those that simply track a particle's position.  The
-Taylor map methods are
+``Integration methods'' are tracking methods that involve integrating
+through an element's magnetic and electric fields.  Integration
+methods are split into two classes: Those that involve Taylor maps and
+those that simply track a particle's position.  The Taylor map methods
+are
 \begin{example}
   symp_lie_bmad
   symp_lie_ptc
@@ -553,17 +555,18 @@ maps are
 \begin{example}
   boris
   runge_kutta
+  time_runge_kutta
 \end{example}
 
-\index{ds_step}\index{num_steps}\index{integrator_order}\index{rel_tol}
-\index{abs_tol}\index{field_calc}
-there are a number of attributes that can affect the calculation. They are
+\index{ds_step}\index{num_steps}\index{integrator_order}
+\index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
+\index{field_calc}
+there are a number of element attributes that can affect the
+calculation. They are
 \begin{example}
   ds_step = <Real>              ! Integration step length
   num_steps = <Integer>         ! Number of integration steps.
   integrator_order = <Integer>  ! Integrator order
-  rel_tol = <Real>              ! Relative tolerance
-  abs_tol = <Real>              ! Absolute tolerance
   field_calc = Switch           ! How the field is calculated
 \end{example}
 
@@ -573,9 +576,9 @@ Example:
         mat6_calc_method = symp_lie_ptc, ds_step = 0.2, field_calc = custom
 \end{example}
 
-\index{ds_step}
-\index{num_steps}
-\index{taylor}\index{symp_lie_ptc}\index{symp_lie_bmad}\index{runge_kutta}\index{boris}
+\index{ds_step}\index{num_steps}
+\index{taylor}\index{symp_lie_ptc}\index{symp_lie_bmad}
+\index{runge_kutta}\index{boris}
 One way to create a transfer map through an element is to divide the
 element up into slices and then to propagate the transfer map slice by
 slice.  There are several ways to do this integration. The \vn{boris}
@@ -607,12 +610,15 @@ that \vn{symp_lie_bmad} always uses an order 2 integrator
 independent of the setting of \vn{integrator_order}.
 
 \index{ds_step}
-\index{rel_tol}
-\index{abs_tol}\index{runge_kutta}
-The \vn{runge_kutta} tracking uses adaptive step
-control independent of \vn{ds_step}. These methods use the \vn{rel_tol} and
-\vn{abs_tol} attributes to try to keep the estimated error of the integration
-such that
+\index{runge_kutta}\index{time_runge_kutta}
+The \vn{runge_kutta} and \vn{time_runge_kutta} tracking uses adaptive step
+control independent of \vn{ds_step}. These methods use two prameters
+from the \bmad global parameters structure (\sref{s:bmad.params}) namely:
+\begin{example}
+  bmad_com\%rel_tol_adaptive_tracking
+  bmad_com\%abs_to_adaptive_tracking
+\end{example}
+The estimated error of the integration is then bounded by
 \begin{example}
   error < abs_tol + |orbit| * rel_tol
 \end{example}

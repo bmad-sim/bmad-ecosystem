@@ -12,7 +12,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err)
+! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
 !
@@ -54,7 +54,10 @@ contains
 ! Input:
 !   loc_str  -- Character(*): Element name.
 !   lat      -- lat_struct: Lattice to search through.
-!
+!   above_ubound_is_err
+!            -- Logical, optional: If the upper bound "e2" on an "e1:e2" range construct 
+!                 is above the maximum element index then treat this as an error? 
+!                 Default is True. If False then set e2 to the maximum element index. 
 ! Output:
 !   eles(:) -- Ele_pointer_struct, allocatable: Array of matching elements.
 !              Note: This routine does not try to deallocate eles.
@@ -65,7 +68,7 @@ contains
 !                Note: not finding any element is not an error.
 !-
 
-subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err)
+subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err)
 
 implicit none
 
@@ -83,7 +86,8 @@ character(20) :: r_name = 'lat_ele_locator'
 integer i, j, ib, ios, ix, n_loc, n_loc2
 integer in_range, step, ix_word, key
 
-logical err, err2, delim_found
+logical, optional :: above_ubound_is_err
+logical err, err2, delim_found, above_ub_is_err
 
 ! init
 
@@ -134,7 +138,8 @@ do
     endif
     in_range = in_range + 1
   else
-    call lat_ele1_locator (name, lat, eles2, n_loc2, err2)
+    above_ub_is_err = (logic_option(.true., above_ubound_is_err) .or. in_range /= 1)
+    call lat_ele1_locator (name, lat, eles2, n_loc2, err2, above_ub_is_err)
     if (err2) return
   endif
 
@@ -220,13 +225,13 @@ end subroutine lat_ele_locator
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine lat_ele1_locator (name, lat, eles, n_loc, err)
+! Subroutine lat_ele1_locator (name, lat, eles, n_loc, err, above_ub_is_err)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
 ! Note: This routine is private and meant to be used only by lat_ele_locator
 !-
 
-subroutine lat_ele1_locator (name, lat, eles, n_loc, err)
+subroutine lat_ele1_locator (name, lat, eles, n_loc, err, above_ub_is_err)
 
 implicit none
 
@@ -241,6 +246,7 @@ integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc
 integer key, ix_dup, n_dup
 
 logical err, do_match_wild
+logical :: above_ub_is_err
 
 ! init
 
@@ -294,7 +300,9 @@ if (is_integer(name)) then
   endif
   if (.not. allocated(eles)) allocate (eles(1))
   if (ix_branch == -1) ix_branch = 0
-  if (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) then
+  if (.not. above_ub_is_err .and. ix_ele > lat%branch(ix_branch)%n_ele_max) then
+    ix_ele = lat%branch(ix_branch)%n_ele_max
+  elseif (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) then
     call out_io (s_error$, r_name, 'ELEMENT LOCATION INDEX OUT OF RANGE: ' // name)
     return
   endif

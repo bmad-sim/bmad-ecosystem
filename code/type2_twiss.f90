@@ -21,7 +21,7 @@
 !  Y:     1.3982     0.015     0.715   11.6300    -0.0006     0.0033     
 !
 ! Else the default is for a format like:
-!                                X                   Y
+!                                A                   B
 ! Beta (m)              29.89292748          1.39825638
 ! Alpha (-)             -2.95314539          0.01539874
 ! Gamma (1/m)            0.32495843          0.71532874
@@ -97,15 +97,31 @@ if (logic_option (.false., compact_format)) then
 else
   write (lines(7), '(9x, 4(19x, a))') 'X', 'Y','A','B'  
 
-  write (lines(1), '(9x, 2(19x, a))') 'A', 'B'
-  write (lines(2), '(a11, 2f20.8)') 'Beta (m)      ', ele%a%beta, ele%b%beta
-  write (lines(3), '(a11, 2f20.8)') 'Alpha (-)     ', ele%a%alpha, ele%b%alpha
-  write (lines(4), '(a11, 2f20.8)') 'Gamma (1/m)   ', ele%a%gamma, ele%b%gamma
-  write (lines(5), '(a11, 2f20.8, 17x, a, 19x, a)') &
-                                       freq_str(:14), ele%a%phi*coef, ele%b%phi*coef, 'X', 'Y'
-  write (lines(6), '(a11, 4f20.8)') 'Eta (m)       ', ele%a%eta,  ele%b%eta, ele%x%eta,  ele%y%eta
-  write (lines(7), '(a11, 4f20.8)') 'Etap (-)      ', ele%a%etap, ele%b%etap, ele%x%etap, ele%y%etap
+  write (lines(1), '(10x, 2(14x, a))') 'A', 'B'
+  write (lines(2), '(a12, 2a)') 'Beta (m)   ', v(ele%a%beta), v(ele%b%beta)
+  write (lines(3), '(a12, 2a)') 'Alpha (-)  ', v(ele%a%alpha), v(ele%b%alpha)
+  write (lines(4), '(a12, 2a)') 'Gamma (1/m)', v(ele%a%gamma), v(ele%b%gamma)
+  write (lines(5), '(a12, 2a, 12x, a, 3(14x, a))') freq_str, v(ele%a%phi*coef), v(ele%b%phi*coef), 'X', 'Y', 'Z'
+  write (lines(6), '(a12, 5a)') 'Eta (m)    ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
+  write (lines(7), '(a12, 5a)') 'Etap (-)   ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
   n_lines = 7
 endif
+
+!--------------------------------------------
+contains
+
+function v(val) result (str)
+real(rp) val
+character(15) str
+
+!
+
+if (abs(val) < 9999) then
+  write (str, '(f15.8)') val
+else
+  write (str, '(es15.5)') val
+endif
+
+end function v
 
 end subroutine

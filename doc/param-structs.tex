@@ -36,6 +36,7 @@ Section~\sref{s:bmad.params} the syntax is
 \index{max_aperture_limit}\index{d_orb(6)}
 \index{grad_loss_sr_wake}\index{default_ds_step}
 \index{rel_tol_tracking}\index{abs_tol_tracking}
+\index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 \index{taylor_order}\index{default_integ_order}
 \index{sr_wakes_on}\index{lr_wakes_on}
 \index{mat6_track_symmetric}\index{auto_bookkeeper}
@@ -111,11 +112,11 @@ when finding the closed orbit.
 
 \item[\vn{\%rel_tol_adaptive_tracking}] \Newline
 Relative tolerance to use in tracking. Specifically, Tolerance to use
-in Runge-Kutta tracking.
+in \vn{runge_kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
 
 \item[\vn{\%abs_tol_adaptive_tracking}] \Newline
 Absolute tolerance to use in tracking. Specifically, Tolerance to use
-in Runge-Kutta tracking.
+in \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
 
 \item[\vn{\%taylor_order}] \Newline
 Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.

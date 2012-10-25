@@ -79,7 +79,7 @@ integer :: n_step, hard_end
 
 logical local_ref_frame, err_flag, err, at_hard_edge
 
-! init
+! Init. Note:
 !   rel_tol: Same as eps for odeint scalled by sqrt(ds/(s2-s1))
 !                   where ds is the step size for the current step. rel_tol
 !                   sets the %error of the result
@@ -97,8 +97,6 @@ orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 ! taken, by convention, to be the reference energy at the exit end.
 
 call lcavity_reference_energy_correction (ele, param, orb_end)
-
-if (s1 == s2) return
 
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.

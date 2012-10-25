@@ -34,7 +34,6 @@ set by \vn{parameter} are
   parameter[ran_seed]      = <Integer>       ! Random number generator init.
   parameter[rf_auto_scale_phase]    = <Logical>  ! RF automatic phase scaling.
   parameter[rf_auto_scale_amp]      = <Logical>  ! RF automatic amplitude scaling.
-  parameter[root_branch_name]       = "<name>"   ! Name of the root branch.
   parameter[taylor_order]           = <Integer>  ! Default: 3
   parameter[use_ptc_layout]         = <Logical>  ! Use single PTC fiber for calculations?
   parameter[ptc_exact_model]        = <Logical>  ! PTC to do "exact" tracking?
@@ -133,13 +132,6 @@ Historically it is possible to set the Taylor order using the syntax
   taylor_order = <Integer>   ! DO NOT USE THIS SYNTAX
 \end{example}
 This syntax is obsolete since a typographical error is not easily caught.
-
-\index{root_branch_name}
-The name of the root branch (\sref{s:branching}) can be changed from its 
-default value of ``ROOT'' using the \vn{parameter[root_branch_name]} parmeter. Example:
-\begin{example}
-  parameter[root_branch_name] = "ring"
-\end{example}
 
 \index{rf_auto_scale_phase}\index{rf_auto_scale_amp}
 \index{rfcavity}\index{lcavity}\index{em_field}
