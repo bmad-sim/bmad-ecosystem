@@ -20,7 +20,7 @@ use ptc_interface_mod
 implicit none
 
 type (tao_design_lat_input) design_lattice(0:200), design_lat
-type (tao_universe_struct), pointer :: u
+type (tao_universe_struct), pointer :: u, u_work
 
 character(*) input_file_name
 character(200) full_input_name, init_lat_file
@@ -275,26 +275,25 @@ enddo
 
 if (tao_com%common_lattice) then
 
-  u => tao_com%u_working
-  u%common     => s%u(ix_common_uni$)
-  u%uni_branch => s%u(ix_common_uni$)%uni_branch
-  allocate (u%design, u%base, u%model)
-  u%design%lat = u%common%design%lat
-  u%base%lat   = u%common%base%lat
-  u%model%lat  = u%common%model%lat
+  u_work => tao_com%u_working
+  u_work%common     => s%u(ix_common_uni$)
+  allocate (u_work%design, u_work%base, u_work%model)
+  u_work%design%lat = u_work%common%design%lat
+  u_work%base%lat   = u_work%common%base%lat
+  u_work%model%lat  = u_work%common%model%lat
 
-  n = ubound(u%design%lat%branch, 1)
-  allocate (u%model%lat_branch(0:n))
-  allocate (u%design%lat_branch(0:n))
-  allocate (u%base%lat_branch(0:n))
-  allocate (u%uni_branch(0:n))
+  n = ubound(u_work%design%lat%branch, 1)
+  allocate (u_work%model%lat_branch(0:n))
+  allocate (u_work%design%lat_branch(0:n))
+  allocate (u_work%base%lat_branch(0:n))
+  allocate (u_work%uni_branch(0:n))
 
-  do k = 0, ubound(u%design%lat%branch, 1)
-    n = u%design%lat%branch(k)%n_ele_max
-    allocate (u%model%lat_branch(k)%orbit(0:n), u%model%lat_branch(k)%bunch_params(0:n))
-    allocate (u%design%lat_branch(k)%orbit(0:n), u%design%lat_branch(k)%bunch_params(0:n))
-    allocate (u%base%lat_branch(k)%orbit(0:n), u%base%lat_branch(k)%bunch_params(0:n))
-    allocate (u%uni_branch(k)%ele(-1:n))
+  do k = 0, ubound(u_work%design%lat%branch, 1)
+    n = u_work%design%lat%branch(k)%n_ele_max
+    allocate (u_work%model%lat_branch(k)%orbit(0:n), u_work%model%lat_branch(k)%bunch_params(0:n))
+    allocate (u_work%design%lat_branch(k)%orbit(0:n), u_work%design%lat_branch(k)%bunch_params(0:n))
+    allocate (u_work%base%lat_branch(k)%orbit(0:n), u_work%base%lat_branch(k)%bunch_params(0:n))
+    allocate (u_work%uni_branch(k)%ele(-1:n))
   enddo
 
   ! If unified then point back to the common universe (#1) and the working universe (#2)
