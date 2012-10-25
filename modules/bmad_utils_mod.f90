@@ -1162,7 +1162,6 @@ lat%rf_auto_scale_amp        = bmad_com%rf_auto_scale_amp_default
 lat%use_ptc_layout           = bmad_com%use_ptc_layout_default
 
 call allocate_branch_array (lat, 0)
-lat%branch(0)%name = 'ROOT'
 
 !----------------------------------------
 contains
@@ -3980,7 +3979,7 @@ logical has_fringe
 has_fringe = .false.
 
 select case (ele%key)
-case (lcavity$, rfcavity$, solenoid$, sbend$, sol_quad$, bend_sol_quad$)
+case (lcavity$, rfcavity$, solenoid$, sbend$, sol_quad$, bend_sol_quad$, e_gun$)
     if (ele%field_calc == bmad_standard$) has_fringe = .true.
 end select
 

@@ -590,7 +590,6 @@ This is analogous to the \vn{parameter[particle]} attribute for the root branch.
 
 Example showing an injection line branching to a ring branching to an x-ray line:
 \begin{example}
-  parameter[root_branch_name] = inj_line
   inj: line = (..., ring, ...)               ! Define the injection line
   use, inj                                   ! Injection line is the root
   ring: branch, to = ring_layout, 
@@ -936,6 +935,8 @@ The \vn{voltage} is simply related to the \vn{gradient} via the element length \
 \begin{example}
   voltage = gradient * l
 \end{example}
+If the \vn{voltage} is set to a non-zero value, the length \vn{l} must
+also be non-zero to keep the gradient finite.
 
 \index{marker}\index{null_ele}
 The \vn{e_gun} element is meant to solve the problem of simulating
@@ -948,10 +949,13 @@ in a lattice branch and, if it is present, it must be, except for
 possibly \vn{marker} or \vn{null_ele} elements, the first element in
 any branch.
  
-
 Note: In order to be able to avoid problems with a zero reference
-momentum, the reference momentum and energy associated with an \vn{e_gun} element
-is calculated as outlined in Section~\sref{s:energy}.
+momentum at the beginning of the \vn{e_gun}, the reference momentum
+and energy associated with an \vn{e_gun} element is calculated as
+outlined in Section~\sref{s:energy}. Additionally, the reference
+momentum at the exit end of the \vn{e_gun}, that is \vn{p0c}, must be
+non-zero. Thus, for example, if \vn{p0c} is zero at the start of the
+lattice, the \vn{e_gun} voltage must be non-zero. 
 
 %-----------------------------------------------------------------
 \section{Elseparator}
@@ -1066,7 +1070,7 @@ will not change when tracking through such an element.
 
 Setting the floor position at an element will affect the floor
 position of all elements following the element but will not affect the
-preceeding element. The \vn{floor_position} element can be used, for
+preceding element. The \vn{floor_position} element can be used, for
 example, to restore the correct geometry when a section of the lattice
 is represented by, say, a \vn{taylor} type element.
 
@@ -1319,18 +1323,18 @@ The attributes specific to an \vn{lcavity} are
 \index{dphi0}\index{e_loss}
 \index{rf_frequency}\index{voltage}
 \begin{example}
-  gradient         = <Real>   ! Accelerating gradient (V/m).
-  gradient_err     = <Real>   ! Accelerating gradient error (V/m).
-  phi0             = <Real>   ! Phase (rad/2\(\pi\)) of the reference particle with 
-                              !   respect to the RF. phi0 = 0 is on crest.
-  dphi0            = <Real>   ! Phase with respect to a multipass lord (rad/2\(\pi\)).
-  phi0_err         = <Real>   ! Phase error (rad/2\(\pi\))
-  dphi0_ref        = <Real>   ! Phase offset used to deal with absolute time tracking
-                              !  and other issues (see below).
-  e_loss           = <Real>   ! Loss parameter for short range wake fields (V/Coul).
-  rf_frequency     = <Real>   ! Rf frequency (Hz).
-  voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
-  n_cell       = <Integer> ! Number of cavity cells.
+  gradient       = <Real>    ! Accelerating gradient (V/m).
+  gradient_err   = <Real>    ! Accelerating gradient error (V/m).
+  phi0           = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
+                             !   respect to the RF. phi0 = 0 is on crest.
+  dphi0          = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  phi0_err       = <Real>    ! Phase error (rad/2\(\pi\))
+  dphi0_ref      = <Real>    ! Phase offset used to deal with absolute time tracking
+                             !  and other issues (see below).
+  e_loss         = <Real>    ! Loss parameter for short range wake fields (V/Coul).
+  rf_frequency   = <Real>    ! Rf frequency (Hz).
+  voltage                    ! Cavity voltage. Dependent attribute (\sref{s:depend}).
+  n_cell         = <Integer> ! Number of cavity cells. Default is 1.
 \end{example}
 The dependent variable \vn{voltage} attribute can be used in place of
 \vn{gradient} as discussed in \sref{s:depend}.  \vn{voltage} is a
@@ -1411,22 +1415,14 @@ details.  Note: The transfer matrix for an \vn{lcavity} with finite
 addition, couplers (\sref{s:rf.coupler}) and HOM wakes
 (\sref{s:rf.wakes}) can be modeled.
 
-\index{RF field map}
-\index{runge_kutta!and field maps}
-\index{boris!and field maps}\index{symp_lie_bmad!and field maps}
-\index{symp_lie_bmad}
-If a field map is specified (\sref{s:em.fields}), tracking using an
-integrator is possible. A field map is only used for \vn{runge_kutta},
-\vn{boris} and \vn{symp_lie_bmad} tracking
-(\sref{s:tkm}).  For \vn{symp_lie_bmad} tracking, only the
-accelerating mode(s) are used.  This is done for a practical reason:
-Only the fundamental mode has an analytical formula for the symplectic
-tracking. In the future, the other modes could be used with
-\vn{symp_lie_bmad} tracking using a field expansion about the
-centerline.
+When using \vn{boris} or \vn{runge_kutta}, tracking (\sref{s:tkm})
+through a field map (\sref{s:em.fields}), the \vn{bmad_standard} field
+is \vn{n_cell} half wave resonators.
 
-\index{n_cell}
-When 
+Example:
+\begin{example}
+  lwf: lcavity, l = 2.3, rf_frequency = 500e6, voltage = 20e6
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Marker}
@@ -1740,7 +1736,7 @@ Dependent attributes (\sref{s:depend}) are
 
 A \vn{multilayer_mirror} is constructed of a number of ``cells''. The
 number of cells is set by \vn{n_cell}. Each cell consists of two
-layers of differencing material. The materials used is given by
+layers of dielectric material. The materials used is given by
 the \vn{crystal_type} attribute. The format for this is
 \begin{example}
   crystal_type = "<material_1>:<material_2>"
@@ -1906,7 +1902,7 @@ taken into account\cite{b:quad.fringe}. Note: Fringe fields may not be
 accounted for in all tracking methods.
 
 For a quadrupole with zero \vn{tilt} and a positive \vn{k1}, the
-quadrupole is horizontally focusing and vertically defocussing
+quadrupole is horizontally focusing and vertically defocusing
 (\sref{s:fields}).
 
 Example:
@@ -2359,6 +2355,19 @@ the center of the wiggler
 \Endeq
 With this choice, a particle that enters the wiggler on-axis will
 leave the wiggler on-axis provided there is an even number of poles.
+
+When using a tracking through a periodic wiggler with a tracking
+method that integrates through the magnetic field (\sref{s:integ}),
+The magnetic field is approximated using a single wiggler \vn{term} as
+if the wiggler were a \vn{map type} wiggler. This wiggler model has
+unphysical end effects and will give results that are different from
+the results obtained when using the \vn{bmad_standard} tracking
+method. 
+
+Example:
+\begin{example}
+  wig_w: wiggler, l = 2.3, b_max = 2.3, l_pole = 6
+\end{example}
 
 %-----------------------------------------------------
 \subsection{Common Wiggler Parameters}

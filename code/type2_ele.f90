@@ -150,6 +150,10 @@ else
 endif
 
 n_att = n_attrib_string_max_len() + 2
+write (fmt_a, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, a)'
+write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
+write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
+write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es12.6)'
 
 if (ele%lord_status == overlay_lord$) then
   i = ele%ix_value
@@ -313,7 +317,7 @@ if (associated(ele%em_field)) then
   endif
 endif
 
-! Encode on/off status and s_position
+! Encode on/off status etc.
 
 if (.not. ele%is_on) then
   nl=nl+1; write (li(nl), *) '*** Note: Element is turned OFF ***'
@@ -372,11 +376,6 @@ endif
 
 ! Encode methods, etc.
 
-write (fmt_a, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, a)'
-write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
-write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
-write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es12.6)'
-
 nl=nl+1; write (li(nl), *) ' '
 
 if (ele%key == beambeam$ .and. associated(ele%branch)) then
@@ -411,6 +410,10 @@ if (attribute_name(ele, aperture_at$) == 'APERTURE_AT' .and. ele%aperture_at /= 
     nl=nl+1; write (li(nl), fmt_a) 'APERTURE_TYPE', '=', aperture_type_name(ele%aperture_type)
   endif
   nl=nl+1; write (li(nl), fmt_l) 'OFFSET_MOVES_APERTURE', '=', ele%offset_moves_aperture
+endif
+
+if (ele%reversed) then
+  nl=nl+1; write (li(nl), fmt_a) 'Longitudinally Reversed = T'
 endif
 
 if (ele%ref_orbit /= 0) then

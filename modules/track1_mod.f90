@@ -581,7 +581,9 @@ end subroutine apply_bend_edge_kick
 !   sbend
 !   solenoid
 !   sol_quad
-!   lcavity and rfcavity 
+!   bend_sol_quad
+!   lcavity
+!   rfcavity 
 !   e_gun
 !
 ! Module needed:
@@ -629,7 +631,7 @@ case (sbend$)
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
 ! So use hard_ele%value(bs_field$).
 
-case (solenoid$, sol_quad$)
+case (solenoid$, sol_quad$, bend_sol_quad$)
   ks = hard_ele%value(bs_field$) * c_light / orb%p0c
   if (element_end == entrance_end$) then
     orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2

@@ -31,11 +31,6 @@
 !                         Note: err_flag does *not* include errors in lat_make_mat6 since
 !                         if there is a match element, there is an error raised since
 !                         the Twiss parameters have not been set but this is expected. 
-!
-! Defaults:
-!   lat%param%particle          = positron$
-!   lat%param%lattice_type      = circular_lattice$
-!   lat%param%aperture_limit_on = .true.
 !-
 
 subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
@@ -48,9 +43,9 @@ implicit none
 
 type (lat_struct), target :: lat, in_lat, old_lat, lat2
 type (ele_struct) this_ele
-type (ele_struct), save, pointer :: ele, slave, lord
+type (ele_struct), pointer :: ele, slave, lord, ele2
 type (ele_struct), save :: marker_ele
-type (seq_struct), save, target :: sequence(1000)
+type (seq_struct), target :: sequence(1000)
 type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
@@ -61,7 +56,8 @@ character(40), allocatable ::  in_name(:), seq_name(:)
 
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
-integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0, n_ele, ixc
+integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc
+integer ib, ie, ib2, ie2
 integer, pointer :: n_max, n_ptr
 
 character(*) lat_file
@@ -72,7 +68,7 @@ character(40) word_2, name
 character(16), parameter :: r_name = 'bmad_parser'
 character(40) this_name, word_1
 character(200) full_lat_file_name, digested_file, call_file
-character(280) parse_line_save
+character(280) parse_line_save, line
 character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
@@ -192,13 +188,8 @@ bp_com%beam_start_ele%name = 'BEAM_START'           ! For beam starting paramete
 bp_com%beam_start_ele%key = def_beam_start$
 call find_indexx2 (in_lat%ele(3)%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)
 
-bp_com%root_branch_ele => in_lat%ele(4)
-bp_com%root_branch_ele%name = 'ROOT_BRANCH'           ! For parameters 
-bp_com%root_branch_ele%key = branch$
-call find_indexx2 (in_lat%ele(4)%name, in_name, in_indexx, 0, 3, ix, add_to_list = .true.)
-
 n_max => in_lat%n_ele_max
-n_max = 4                              ! Number of elements encountered
+n_max = 3                              ! Number of elements encountered
 
 lat%n_control_max = 0
 detected_expand_lattice_cmd = .false.
@@ -293,16 +284,21 @@ parsing_loop: do
   ! USE command...
 
   if (word_1(:ix_word) == 'USE') then
-    if (delim /= ',') call parser_error ('"USE" NOT FOLLOWED BY COMMA')
-    call get_next_word(word_2, ix_word, ':(=,)', delim, delim_found, .true.)
-    if (ix_word == 0) then 
-      call parser_error ('NO BEAM LINE SPECIFIED WITH "USE"', ' ')
-      call parser_end_stuff ()
-      return
-    endif
-    call verify_valid_name(word_2, ix_word)
-    lat%use_name = word_2
-    cycle parsing_loop
+    lat%use_name = ''
+    do
+      if (delim /= ',') call parser_error ('MISSING COMMA IN "USE" STATEMENT.')
+      call get_next_word(word_2, ix_word, ':(=,)', delim, delim_found, .true.)
+      if (ix_word == 0) then 
+        call parser_error ('CONFUSED "USE" STATEMENT', '')
+        cycle parsing_loop
+      endif
+      call verify_valid_name(word_2, ix_word)
+      lat%use_name = trim(lat%use_name) // ',' // word_2
+      if (.not. delim_found .and. bp_com%parse_line == '') then
+        lat%use_name = lat%use_name(2:)   ! Trim initial comma
+        cycle parsing_loop
+      endif
+    enddo
   endif
 
   !-------------------------------------------
@@ -729,16 +725,32 @@ endif
 
 allocate (bp_com%used_line(n_max))
 
-call parser_expand_line (0, lat, lat%use_name, sequence, in_name, in_indexx, &
+line = lat%use_name
+n = 0
+do
+  ix = index(line, ',')
+  if (ix == 0) then
+    this_name = line
+    line = ''
+  else
+    this_name = line(1:ix-1)
+    line = line(ix+1:)
+  endif
+  call parser_expand_line (n, lat, this_name, sequence, in_name, in_indexx, &
                                       seq_name, seq_indexx, in_lat, n_ele_use)
+  branch => lat%branch(n)
+  branch%name = this_name
+  branch%ix_from_branch = -1
+  branch%ix_root_branch = -1
+  if (line == '') exit
+  n = n + 1
+enddo
+
 
 if (bp_com%error_flag) then
   call parser_end_stuff ()
   return
 endif
-
-lat%n_ele_track = n_ele_use
-lat%n_ele_max   = n_ele_use
 
 !---------------------------------------------------------------
 ! If a girder elements refer to a line then must expand that line.
@@ -813,25 +825,6 @@ if (associated(bp_com%param_ele%descrip)) then
   lat%lattice = bp_com%param_ele%descrip
   deallocate (bp_com%param_ele%descrip)
 endif
-
-! Work on multipass before overlays, groups, and superimpose. 
-! This is important since the elements in the lattice get
-! renamed and if not done first would confuse any overlays, girders, etc.
-! Multipass elements are paired by multipass index and multipass line name
-
-do i = 1, lat%n_ele_track
-  if (bp_com%used_line(i)%ix_multipass == 0) cycle
-  n_multi = 0  ! number of elements to slave together
-  ix_multipass = bp_com%used_line(i)%ix_multipass
-  do j = i, lat%n_ele_track
-    if (bp_com%used_line(j)%ix_multipass /= ix_multipass) cycle
-    if (bp_com%used_line(j)%multipass_line /= bp_com%used_line(i)%multipass_line) cycle
-    n_multi = n_multi + 1
-    m_slaves(n_multi) = ele_to_lat_loc (lat%ele(j))
-    bp_com%used_line(j)%ix_multipass = 0  ! mark as taken care of
-  enddo
-  call add_this_multipass (lat, m_slaves(1:n_multi))
-enddo
 
 ! A patch element with ref_orb = patch_out$ gets a lat%control element to keep
 ! track of there the corresponding patch with ref_orb = patch_in$ is.
@@ -975,7 +968,7 @@ if (nint(bp_com%param_ele%value(no_end_marker$)) == 0) then
 endif
 
 ! Go through the IN_LAT elements and put in the superpositions.
-! If the superposition is a branch elemen, need to add the branch line.
+! If the superposition is a branch element, need to add the branch line.
 
 call s_calc (lat)              ! calc longitudinal distances
 call control_bookkeeper (lat)
@@ -999,6 +992,31 @@ do i = 1, n_max
 
   call s_calc (lat)  ! calc longitudinal distances of new branche elements
 
+enddo
+
+! Work on multipass...
+! Multipass elements are paired by ele%iyy tag and ele%name must both match.
+
+do ib = 0, ubound(lat%branch, 1)
+  do ie = 1, lat%n_ele_max
+    ele => lat%branch(ib)%ele(ie)
+    if (ele%iyy == 0) cycle
+    if (ele%slave_status == super_slave$) cycle
+    n_multi = 0  ! number of elements to slave together
+    iyy = ele%iyy
+    do ib2 = ib, ubound(lat%branch, 1)
+      do ie2 = 1, lat%n_ele_max
+        if (ib == ib2 .and. ie2 < ie) cycle
+        ele2 => lat%branch(ib2)%ele(ie2)
+        if (ele2%iyy /= iyy) cycle
+        if (ele2%name /= ele%name) cycle
+        n_multi = n_multi + 1
+        m_slaves(n_multi) = ele_to_lat_loc (ele2)
+        ele2%iyy = 0  ! mark as taken care of
+      enddo
+    enddo
+    call add_this_multipass (lat, m_slaves(1:n_multi))
+  enddo
 enddo
 
 ! Now put in the overlay_lord, girder, and group elements

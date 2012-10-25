@@ -1,22 +1,34 @@
 \chapter{Beam Lines, Replacement Lists, and Branching}
 \label{c:sequence}
 
+\index{MAD}
+\index{lattice}
+To \bmad, a ``lattice'' is the sequence of physical
+elements that is to be studied. As explained below, the lattice is
+constructed in the input lattice file using what are known as \vn{beam
+lines} and \vn{replacement lists}. There are two types of \vn{beam
+lines} - lines with and lines without \vn{replacement arguments}. This
+essentially corresponds to the \mad definition of lines and
+lists. There can be multiple \vn{beam lines} and \vn{replacement
+lists} defined in a lattice file and lines and lists can be nested
+inside other lines and lists. 
+
+Lattices can be connected together to form a ``complete'' description
+of a machine. For example, a LINAC can be connected to a storage ring
+which, in turn, can be connected to X-Ray lines etc. Connecting
+lattices together is called \vn{branching} and is explained in
+\sref{s:branching}. Furthermore, multiple machines may be defined
+using multiple branches and the common elements of the machines may
+be logically joind using \vn{multipass} lines \sref{s:multipass}. So,
+for example, intersecting colliding rings may be simulated.
+
 %-----------------------------------------------------------------------------
 \section{Use Statement}
 \label{s:use}
 
-\index{MAD}
 \index{use statement|hyperbf}
-\index{lattice}
-To \bmad, a ``lattice''\index{lattice} is the sequence of physical
-elements that is to be studied. The lattice is constructed in the
-input lattice file using what are know as \vn{beam lines} and \vn{replacement
-lists}. \vn{beam lines} are further subdivided into lines with and without
-\vn{replacement arguments}. This essentially corresponds to the \mad
-definition of lines and lists. There can be multiple \vn{beam lines} and
-\vn{replacement lists} defined in a lattice file and lines and lists can be
-nested inside other lines and lists. The particular line that defines
-the lattice to be analyzed by \bmad is selected by the \vn{use}
+The particular line that defines the
+lattice to be analyzed by \bmad is selected by the \vn{use}
 statement. For example
 \begin{example}
   use, my_line
@@ -305,17 +317,17 @@ is modified do not have any effect on the lattice elements.
 \index{branching}\index{photon_branch}\index{branch}
 \label{s:branching}
 
-The ``root'' lattice (also called the ``root branch'') is defined by
-the \vn{use} (\sref{s:use}) statement. To defined such things as dump
+The ``root branch'') is defined by
+the \vn{use} (\sref{s:use}) statement. To define such things as dump
 lines, x-ray \vn{beam lines}, transfer lines, etc., that branch off from
-the root lattice can be defined in \bmad. The place in the lattice
+the root branch can be defined in \bmad. The place in the lattice
 where a branch line starts is defined by using a \vn{branch} or
 \vn{photon_branch} element (collectively they can be called branching elements).
 \vn{Branch} elements can define where the particle beam
 can branch off, say to a beam dump. \vn{photon_branch} elements can
 define the source point for X-ray beams.  Example:
 \begin{example}
-  erl: line = (..., dump, ...)               ! Define the root lattice with a branch 
+  erl: line = (..., dump, ...)               ! Define the root branch 
   use, erl
   dump: branch, to = d_line                  ! Define the branch point
 
@@ -338,7 +350,7 @@ incoming (direction = -1). A \vn{patch} element (\sref{s:patch}) can
 be used at the beginning of a branch line to reorient the reference
 orbit as needed.
 
-Like the root lattice, \bmad always automatically creates an element
+Like the root branch \bmad always automatically creates an element
 with \vn{element index} 0 at the beginning of each branch called
 \vn{beginning}. The longitudinal \vn{s} position of an element in a
 branch is determined by the distance from the beginning of the branch.
@@ -349,12 +361,10 @@ by setting the appropriate attribute of the \vn{branch} or
 \vn{photon_branch} element used to orient the branch.
 See \sref{s:branch} for more details.
 
-\index{root_branch_name}
 Branches are named after the branching element name. In the above
-example, the branch line would be named \vn{DUMP}. The root lattice,
-by default, is called \vn{ROOT}. This default name for the root branch
-can be changed using the \vn{parameter[root_branch_name]} parameter
-(\sref{s:param}).
+example, the branch line would be named \vn{DUMP}. The root branch, by
+default, is called after the name in the \vn{use} statement
+(\sref{s:use}).
 
 For branch lines (\sref{s:branching}), the ``branch
 qualified'' name of an element is of the form

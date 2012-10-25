@@ -528,7 +528,8 @@ end type
 
 type branch_struct
   character(40) name
-  integer ix_branch         !  0 => main lattice line
+  integer ix_branch         ! Index of this branch. 0 => Main branch
+  integer ix_root_branch    ! Root branch index for this machine.
   integer ix_from_branch    ! -1 => Not connected
   integer ix_from_ele
   integer, pointer :: n_ele_track => null()
@@ -765,7 +766,7 @@ integer, parameter :: spin_tracking_method$ = 84
 integer, parameter :: aperture$ = 85, rf_auto_scale_amp$ = 85
 integer, parameter :: x_limit$ = 86, absolute_time_tracking$ = 86
 integer, parameter :: y_limit$ = 87, rf_auto_scale_phase$ = 87
-integer, parameter :: offset_moves_aperture$ = 88, root_branch_name$ = 88
+integer, parameter :: offset_moves_aperture$ = 88
 integer, parameter :: aperture_limit_on$ = 89
 
 integer, parameter :: ptc_exact_misalign$ = 90

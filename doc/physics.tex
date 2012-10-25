@@ -739,8 +739,8 @@ defined by the equations
 Given the dispersion at a given point, the dispersion at some other
 point is calculated as follows: Let $\Bf r = (x, p_x, y, p_y, z, p_z)$
 be the reference orbit, around which the dispersion is to be
-calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order components of 
-the transfer map between two points labeled 1 and 2:
+calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order
+components of the transfer map between two points labeled 1 and 2:
 \Begineq
   \Bf r_2 = \bfM \, \Bf r_1 + \bfV
   \label{rmrv}
@@ -755,11 +755,14 @@ Define the dispersion vector $\bfeta$ by
 Differentiating \Eq{rmrv} with respect to energy, 
 the dispersion at point 2 in terms of the dispersion at point 1 is
 \Begineq
-  \bfeta_2 = \frac{dp_{z1}}{dp_{z2}} \left[ \bfM \, \bfeta_1 \right] + \bfV_\eta 
+  \bfeta_2 = \left[ \frac{dp_{z2}}{dp_{z1}} \right]^{-1} \, 
+    \left[ \bfM \, \bfeta_1 \right] + \bfV_\eta 
+    label{eppmev}
 \Endeq
 where
 \Begineq
-  \bfV_\eta = \frac{dp_{z1}}{dp_{z2}} \, \frac{1}{1 + p_{z1}}
+  \bfV_\eta = \left[ \frac{dp_{z2}}{dp_{z1}} \right]^{-1} \, 
+  \frac{1}{1 + p_{z1}}
   \left(
   \begin{array}{c}
     M_{12} \, p_{x1} + M_{14} \, p_{y1} \\
@@ -785,12 +788,36 @@ where
 The sixth row of the matrix equation gives $dp_{z1}/dp_{z2}$. 
 Explicitly
 \Begineq
-  \left[ \frac{dp_{z1}}{dp_{z2}} \right]^{-1} =
+  \frac{dp_{z2}}{dp_{z1}} =
   \sum_{i=1}^6 M_{6i} \, \eta_{1i} + 
   \frac{M_{62} \, p_{x1} + M_{64} \, p_{y1}}{1 + p_{z1}}
 \Endeq
 For everything except \vn{RFcavity} and \vn{Lcavity} elements, 
-$dp_{z1}/dp_{z2}$ is 1.
+$dp_{z2}/dp_{z1}$ is 1.
+
+For a non-circular machine, there are two ways one can imagine
+defining the dispersion: Either with respect to changes in energy at
+the beginning of the machine or with respect to the local change in
+energy at the point of measurement. The former definition will be
+called ``non-local dispersion'' and the latter definition will be
+called ``local dispersion''. For a circular machine, local dispersion
+is always used.  The dispersion defined in the above equations, which
+is what \bmad uses in calculations, is the local dispersion. The
+non-local dispersion $\wt\bfeta(s_1)$ at some point $s_1$ is related
+to the local dispersion $\bfeta(s_1)$ via
+\Begineq
+  \wt\bfeta(s_1) = \frac{dp_{z1}}{dp_{z0}} \, \wt\bfeta(s_1)
+\Endeq
+where $s_0$ is the beginning of the machine.
+
+For a non-circular machine, there are advantages and disadvantages to
+using either local or non-local dispersion. Local dispersion has the
+problem that $dp_{z2}/dp_{z1}$ in \Eq{eppmev} may go through zero at a
+point producing infinite dispersions at that point. The non-local
+dispersion has the merit of reflecting what one would measure if the
+starting energy of the beam is veried. The local dispersion, on the
+other hand, reflects the correlations between the particle energy and
+particle position within a beam.
 
 %-----------------------------------------------------------------
 \section{Instrumental Measurements}
