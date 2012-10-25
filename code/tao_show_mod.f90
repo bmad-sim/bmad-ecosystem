@@ -642,7 +642,7 @@ case ('curve')
 
       do j = 1, size(curve)
         str = curve(j)%c%name
-        lines(nl) = lines(nl)(1:20+(j-2)*14) // adjustr(str(1:14))
+        lines(nl) = lines(nl)(1:20+(j-1)*14) // adjustr(str(1:14))
       enddo
 
       do j = 2, size(curve)
@@ -1552,7 +1552,7 @@ case ('lattice')
     ! picked_ele already set
 
   elseif (ix_s2 /= 0) then
-    call tao_locate_elements (stuff2, u%ix_uni, eles, err, lat_type, ignore_blank = .true.)
+    call tao_locate_elements (stuff2, u%ix_uni, eles, err, lat_type, ignore_blank = .true., above_ubound_is_err = .false.)
     if (err) return
     picked_ele = .false.
     do i = 1, size(eles)
