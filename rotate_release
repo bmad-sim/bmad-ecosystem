@@ -118,7 +118,7 @@ def send_notification_email(old_relname):
     f.write('Accelerator Code Support Links -\n')
     f.write('Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/ACC/ACL/WebHome\n')
     f.write('Bug Reports        : cesr-libraries@rt.lepp.cornell.edu\n')
-    f.write('Librarian Email    : cesrulib@mail.lepp.cornell.edu\n')
+    f.write('Librarian Email    : cesrulib@cornell.edu\n')
     f.write('Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/\n')
 
     mail_command = '/bin/mail -s "Accelerator Libraries Rotation" '+mailing_list_address+' < '+mail_tempfile
