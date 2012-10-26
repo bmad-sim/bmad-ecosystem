@@ -135,7 +135,13 @@ fi
 # hosts if it hasn't already been set upon entering this
 # script.
 #--------------------------------------------------------------
-export CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
+#export CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
+if [ -d /gfs/cesr/online/lost+found ]; then
+    export CESR_ONLINE=/gfs/cesr/online
+else
+    export CESR_ONLINE=/nfs/cesr/online
+fi
+
 
 
 #--------------------------------------------------------------
