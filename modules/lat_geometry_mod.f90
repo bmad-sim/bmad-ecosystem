@@ -89,7 +89,7 @@ do n = 0, ubound(lat%branch, 1)
       lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
     endif
     if (ele%n_lord > 0) then
-      call set_lords_status_stale (ele, lat, floor_position_group$)
+      call set_lords_status_stale (ele, floor_position_group$)
       stale_lord = .true.
     endif
     ele%bookkeeping_state%floor_position = ok$

@@ -182,13 +182,14 @@ implicit none
 
 integer, intent(in) :: order
 logical, optional :: override_flag
+character(16), parameter :: r_name = 'set_taylor_order'
 
 ! do nothing if order = 0
 
 if (order == 0) return
 
 if (order < 0 .or. order > 100) then
-  print *, 'ERROR IN SET_TAYLOR_ORDER: ORDER OUT OF BOUNDS:', order
+  call out_io (s_fatal$, r_name, 'ORDER OUT OF BOUNDS: /i0/ ', order)
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -337,17 +338,23 @@ integer :: i, j
 
 logical, intent(in) :: type0
 
+character(80) line
+character(16), parameter :: r_name = 'type_map1'
 !
 
 if (type0) then
-  print *, '0th Order Map:'
-  print '(6f11.5)', (map_coef(y(:), i), i = 1, n_dim)
-  print *
+  call out_io (s_blank$, r_name, '0th Order Map:')
+  do i = 1, n_dim
+    write (line, '(6f11.5)') map_coef(y(:), i) 
+    call out_io (s_blank$, r_name, line)
+  enddo
+  call out_io (s_blank$, r_name, '')
 endif
 
-print *, '1st Order Map:'
+call out_io (s_blank$, r_name, '1st Order Map:')
 do i = 1, n_dim
-  print '(6f11.5)', (map_coef(y(:), i, j), j = 1, n_dim)
+  write (line, '(6f11.5)') (map_coef(y(:), i, j), j = 1, n_dim)
+  call out_io (s_blank$, r_name, line)
 enddo
 
 end subroutine type_map1

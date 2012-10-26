@@ -3321,7 +3321,7 @@ end subroutine set_status_flags
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_lords_status_stale (ele, lat, stat_group, flag)
+! Subroutine set_lords_status_stale (ele, stat_group, flag)
 !
 ! Routine to recursively set the status flag of all slaves of an element.
 !
@@ -3332,14 +3332,13 @@ end subroutine set_status_flags
 !   flag       -- Logical, optional: Do not use. For determining recursion depth.
 !
 ! Output:
-!   lat        -- Lat_struct: Lattice with status flags of lords of ele set.
+!   ele%lat    -- Lat_struct: Lattice with status flags of lords of ele set.
 !-
 
-recursive subroutine set_lords_status_stale (ele, lat, stat_group, flag)
+recursive subroutine set_lords_status_stale (ele, stat_group, flag)
 
 implicit none
 
-type (lat_struct) lat
 type (ele_struct) ele
 type (ele_struct), pointer :: lord
 integer stat_group, i
@@ -3353,7 +3352,7 @@ if (present(flag)) call set_ele_status_stale (ele, stat_group, .false.)
 
 do i = 1, ele%n_lord
   lord => pointer_to_lord (ele, i)
-  call set_lords_status_stale (lord, lat, stat_group, .true.)
+  call set_lords_status_stale (lord, stat_group, .true.)
 enddo
 
 end subroutine set_lords_status_stale
