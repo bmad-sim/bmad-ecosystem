@@ -172,7 +172,7 @@ if (i_ele < 0) then
       branch%ele(n_taylor)%iyy = i  ! Keep track of where Taylor maps are.
     endif
 
-    call set_lords_status_stale (ele, lat, mat6_group$)
+    call set_lords_status_stale (ele, mat6_group$)
     ele%bookkeeping_state%mat6 = ok$
 
   enddo

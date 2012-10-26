@@ -1,22 +1,19 @@
 \chapter{Lattice File Overview}
+\label{c:lat.file}
 \index{lattice files|hyperbf}
 
 \index{Bmad!lattice file format}
-A lattice defines
-the sequence of elements that a particle will travel
-through along with the attributes (length,
-strength, orientation, etc.) of the elements. 
-A lattice file (or files) is a file that is used to describe an 
-accelerator or storage ring. 
-The \bmad software library comes with
-routines to parse lattice files. There are two input formats
-that \bmad understands: The \bmad standard format and
-XSIF\cite{b:xsif}. XSIF, developed at SLAC,
-has its own documentation and will not be discussed in detail
-here except for a few brief notes in Section~(\sref{s:xsif}). 
-Throughout this manual, unless explicitly stated otherwise,
-the lattice format under discussion will always pertain to the \bmad
-standard format. 
+A lattice (\sref{c:lat.conventions}) defines the sequence of elements
+that a particle will travel through along with the attributes (length,
+strength, orientation, etc.) of the elements.  A lattice file (or
+files) is a file that is used to describe an accelerator or storage
+ring. The \bmad software library comes with routines to parse lattice
+files. There are two input formats that \bmad understands: The \bmad
+standard format and XSIF\cite{b:xsif}. XSIF, developed at SLAC, has
+its own documentation and will not be discussed in detail here except
+for a few brief notes in Section~(\sref{s:xsif}).  Throughout this
+manual, unless explicitly stated otherwise, the lattice format under
+discussion will always pertain to the \bmad standard format.
 
 While \bmad cannot directly read in \mad\cite{b:maduser} files, 
 translation between \mad and \bmad lattice files is possible using

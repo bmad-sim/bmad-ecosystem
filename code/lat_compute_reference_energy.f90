@@ -268,7 +268,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ele%bookkeeping_state%ref_energy = ok$
     call set_ele_status_stale (ele, attribute_group$)
-    call set_lords_status_stale (ele, lat, ref_energy_group$)
+    call set_lords_status_stale (ele, ref_energy_group$)
 
   enddo
 
