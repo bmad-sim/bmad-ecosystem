@@ -148,8 +148,9 @@ build_specs = {
                 '/trunk/src/tao_cesr',
                 '/trunk/src/vacmon',
                 '/trunk/src/xscope',
-		'/CESR/CESR_services/intloc'
-		'/CESR/CESR_progs/vac'
+		'/CESR/CESR_services/intloc',
+		'/CESR/CESR_progs/vac',
+		'/CESR/CESR_progs/linac'
             ]
         }
     },
