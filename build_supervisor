@@ -21,6 +21,13 @@ import logging
 import threading
 import datetime
 
+# Print status of the script files with respect to the svn repository.
+
+print 'SVN Status for util directory:'
+os.system('svn st -u $ACC_UTIL')
+
+print '\nSVN Status for build_system directory:'
+os.system('svn st -u $ACC_BUILD_SYSTEM')
 
 # Get 'repositories' and 'source_trees' dictionaries.
 import build_config
