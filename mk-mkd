@@ -63,6 +63,6 @@ then
   echo "Removed cached files.  This will force a reconfiguration upon the next build request."
   echo ""
 else
-  cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
+  cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
   gmake -j2 ${@}
 fi
