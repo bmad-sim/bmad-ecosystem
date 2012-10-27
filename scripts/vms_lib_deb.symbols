@@ -1,10 +1,10 @@
 !!! stulib
-Directory of ALPHA OBJECT library USER$DISK:[CESR.AXLIB]STULIB_DEB.OLB;3012 on 12-OCT-2011 17:07:35
+Directory of ALPHA OBJECT library USER$DISK:[CESR.AXLIB]STULIB_DEB.OLB;3012 on 26-OCT-2012 22:28:28
 Creation date:   2-MAR-2001 15:36:15      Creator:  Librarian A09-22
-Revision date:  12-OCT-2011 14:35:14      Library format:   3.0
-Number of modules:    314                 Max. key length:  128
-Other entries:        464                 Preallocated index blocks:    222
-Recoverable deleted blocks:     1431      Total index blocks used:       61
+Revision date:  25-SEP-2012 08:33:02      Library format:   3.0
+Number of modules:    315                 Max. key length:  128
+Other entries:        468                 Preallocated index blocks:    222
+Recoverable deleted blocks:     1445      Total index blocks used:       61
 Max. Number history records:      20      Library history records:       20
 
 ACMSR3
@@ -62,7 +62,6 @@ FILLPREV_GET
 FINDBUMP
 FIND_CHRLOC
 FITLEAST
-FORM_SAVE_SET_FILE_NAME
 FSCALE_SETUP
 GATHER_QUEUE
 GBUTSHOW
@@ -163,6 +162,7 @@ IS_HOLIDAY
 IS_IT_LOGIT
 IS_OLDGET
 IVCOPY
+J1980MDY
 J1980TOJUL
 J80NOW
 JJ1980
@@ -301,6 +301,7 @@ TLOCVEC
 TOCSTRING
 TOFORTRANSTRING
 TRIM77
+TTYCHR_VMS
 TV4BIN
 TV4CHR
 TV4CHRCHR
@@ -322,12 +323,12 @@ XBUTSHOW
 YEARLEN
 YYMMDD_HHMMSS
 !!! vmpmlib
-Directory of ALPHA OBJECT library USER$DISK:[CESR.AXLIB]VMPMLIB_DEB.OLB;2 on 12-OCT-2011 17:07:35
+Directory of ALPHA OBJECT library USER$DISK:[CESR.AXLIB]VMPMLIB_DEB.OLB;2 on 26-OCT-2012 22:28:28
 Creation date:   1-DEC-1998 12:26:53      Creator:  Librarian A09-22
-Revision date:  12-OCT-2011 12:15:17      Library format:   3.0
+Revision date:  25-SEP-2012 21:30:25      Library format:   3.0
 Number of modules:    228                 Max. key length:  128
 Other entries:        359                 Preallocated index blocks:    213
-Recoverable deleted blocks:     3927      Total index blocks used:       48
+Recoverable deleted blocks:     3905      Total index blocks used:       48
 Max. Number history records:      20      Library history records:       20
 
 CESR_MON
@@ -559,12 +560,12 @@ XBB_PLABEL
 XBGETN
 XBPUTN
 !!! grlib
-Directory of ALPHA OBJECT library USER$DISK:[CESR.AXLIB]GRLIB_DEB.OLB;1 on 12-OCT-2011 17:07:35
+Directory of ALPHA OBJECT library USER$DISK:[CESR.AXLIB]GRLIB_DEB.OLB;1 on 26-OCT-2012 22:28:28
 Creation date:  13-MAR-2000 19:52:33      Creator:  Librarian A09-22
-Revision date:  10-OCT-2011 08:52:30      Library format:   3.0
-Number of modules:    178                 Max. key length:  128
-Other entries:        197                 Preallocated index blocks:    213
-Recoverable deleted blocks:      151      Total index blocks used:       20
+Revision date:  21-NOV-2011 08:11:05      Library format:   3.0
+Number of modules:    177                 Max. key length:  128
+Other entries:        196                 Preallocated index blocks:    213
+Recoverable deleted blocks:      177      Total index blocks used:       20
 Max. Number history records:      20      Library history records:       20
 
 AX2MAK
@@ -661,7 +662,6 @@ GIF_COLOR_SETUP
 GIF_FILL
 GIF_FILNAM
 GIF_GETFONT
-GIF_INDEX
 GIF_MAKEFL
 GIF_ORBIT
 GIF_PRECLEAR

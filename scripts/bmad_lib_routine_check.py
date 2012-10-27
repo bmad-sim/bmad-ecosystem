@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 #+
 # Script to check that all library symbols are unique.
 # Script checks the libraries:
@@ -6,9 +9,9 @@
 #   vmpmlib
 #   grlib
 # On the linux side:
-#   $ACC_RELEASE_DIR/lib/mpm_utils
-#   $ACC_RELEASE_DIR/lib/cesr_utils
-#   $ACC_RELEASE_DIR/lib/sim_utils
+#   $ACC_RELEASE_DIR/production/lib/mpm_utils
+#   $ACC_RELEASE_DIR/production/lib/cesr_utils
+#   $ACC_RELEASE_DIR/production/lib/sim_utils
 #
 # How to run:
 #   1) Run the script
@@ -88,9 +91,9 @@ vms_deb_sym = get_vms_symbols ('vms_lib_deb.symbols')
 # mpm_utils
 
 symbols = vms_sym.copy()
-get_linux_symbols('$ACC_RELEASE_DIR/lib/libmpm_utils.a', 'mpm_utils') 
-get_linux_symbols('$ACC_RELEASE_DIR/lib/libcesr_utils.a', 'cesr_utils') 
-get_linux_symbols('$ACC_RELEASE_DIR/lib/libsim_utils.a', 'sim_utils') 
+get_linux_symbols('$ACC_RELEASE_DIR/production/lib/libmpm_utils.a', 'mpm_utils') 
+get_linux_symbols('$ACC_RELEASE_DIR/production/lib/libcesr_utils.a', 'cesr_utils') 
+get_linux_symbols('$ACC_RELEASE_DIR/production/lib/libsim_utils.a', 'sim_utils') 
 
 #
 
