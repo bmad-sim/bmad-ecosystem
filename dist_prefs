@@ -60,11 +60,11 @@ export USE_PGPLOT="Y"
 export USE_PLPLOT="N"
 export PLPLOT_LIBDIR="/opt/local/lib"
 
+#-----------------------------------------------------------
+# Trying to make shared object libraries with a distribution generates a gmake error.
+# This bug is being worked on and for now the making of shared
+# object libraries is disabled. That is, static libraries will be used.
+#-----------------------------------------------------------
+export ACC_ENABLE_SHARED="N"
 
 
-#-----------------------------------------------------------
-# Set this to 'Y' to enable the linking of applications 
-# along with the building of libraries.  Set to 'N' to 
-# disable the creation of application binaries.
-#-----------------------------------------------------------
-export DO_EXTRA_MAKES="Y"
