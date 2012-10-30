@@ -1,6 +1,6 @@
-&wall_def section =     0.0000 "gen_shape_mesh" 118  , name = "BEAMPIPE_Q00: 1"/
-&wall_def section =     1.0000 "gen_shape_mesh" 119  , name = "BEAMPIPE_Q00: 2"/
-&wall_def section =    10.0000 "gen_shape_mesh" 118  , name = "BEAMPIPE_Q00: 3"/
+&wall_def section =     0.0000 "gen_shape_mesh" 118 /
+&wall_def section =     1.0000 "gen_shape_mesh" 119 /
+&wall_def section =    10.0000 "gen_shape_mesh" 118 /
 
 &gen_shape_def
 ix_gen_shape = 118
