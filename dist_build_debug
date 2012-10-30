@@ -10,7 +10,7 @@ do
   cd ${DIST_BASE_DIR}/${DIR};
   echo "Building directory: ${DIR}"
   if ( [ "${DIR}" == "PGPLOT" ] ) then
-    ./accbuild
+    ./acc_build -debug
   else
     mkd ${1}
   fi
