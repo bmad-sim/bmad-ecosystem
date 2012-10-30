@@ -32,12 +32,13 @@ subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
 use capillary_mod, dummy => track1_bmad
 use track1_photon_mod, dummy2 => track1_bmad
+use mad_mod
 
 implicit none
 
 type (coord_struct) :: start_orb, start2_orb
 type (coord_struct) :: end_orb, temp_orb
-type (ele_struct) :: ele
+type (ele_struct) :: ele, temp_ele
 type (lat_param_struct) :: param
 
 real(rp) k1, k2, k2l, k3l, length, phase, beta_start
@@ -72,6 +73,9 @@ logical, optional :: err_flag
 logical err, has_nonzero_pole
 
 character(16) :: r_name = 'track1_bmad'
+
+type (mad_map_struct) map
+type (mad_energy_struct) energy
 
 ! initially set end_orb = start_orb
 
@@ -198,7 +202,7 @@ case (crystal$)
 ! drift
  
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, &
-      elseparator$, kicker$, hkicker$, vkicker$) 
+      kicker$, hkicker$, vkicker$) 
 
   call offset_particle (ele, end_orb, param%particle, set$, .false.)
   call track_a_drift (end_orb, ele, param%particle, length)
@@ -209,6 +213,29 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, &
     end_orb%vec(3) = end_orb%vec(3) + ele%value(v_displace$)
   endif
 
+  call end_z_calc
+  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+
+!-----------------------------------------------
+! elseparator
+
+case (elseparator$)
+   
+  call offset_particle (ele, end_orb, param%particle, set$, .false., set_hvkicks = .false.) 
+  call transfer_ele(ele, temp_ele, .true.)
+  temp_ele%value(hkick$) = temp_ele%value(hkick$) / (1. + end_orb%vec(6))
+  temp_ele%value(vkick$) = temp_ele%value(vkick$) / (1. + end_orb%vec(6))
+
+  call make_mad_map (temp_ele, param%particle, energy, map)
+  end_orb%vec(6) = 0
+  call mad_track1 (end_orb, map, end_orb)
+   
+  call offset_particle (ele, end_orb, param%particle, unset$, .false., set_hvkicks = .false.)
+  call end_z_calc
+  end_orb%vec(6) = start2_orb%vec(6)
+  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+  call time_and_s_calc ()
+   
 !-----------------------------------------------
 ! LCavity: Linac rf cavity
 ! Ultra-relativistic formalism from:
@@ -790,7 +817,7 @@ subroutine end_z_calc ()
 
 implicit none
 
-end_orb%vec(5) = end_orb%vec(5) - (length / rel_pc**2) * &
+end_orb%vec(5) = start2_orb%vec(5) - (length / rel_pc**2) * &
       (start2_orb%vec(2)**2 + end_orb%vec(2)**2 + start2_orb%vec(2) * end_orb%vec(2) + &
        start2_orb%vec(4)**2 + end_orb%vec(4)**2 + start2_orb%vec(4) * end_orb%vec(4)) / 6
 
