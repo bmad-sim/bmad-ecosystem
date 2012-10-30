@@ -20,6 +20,7 @@ DO i = 1, lat%n_ele_max - 1
    DO j = 1, n_methods$
       if(.not. valid_tracking_method(lat%ele(i),j) .or. j == symp_map$ .or. j == custom$) cycle
       if(lat%ele(i)%key == elseparator$ .and. (j == runge_kutta$ .or. j == boris$ .or. j == time_runge_kutta$)) cycle
+      call kill_taylor(lat%ele(i)%taylor)
       lat%ele(i)%tracking_method = j
       if (j == linear$) then
         lat%ele(i)%tracking_method = symp_lie_ptc$
