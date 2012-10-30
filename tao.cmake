@@ -16,7 +16,10 @@ set (LINK_LIBS
   xsif 
   pgplot 
   forest 
+)
+
+set (SHARED_LINK_LIBS
   readline
   curses
   termcap
-)
+)  
