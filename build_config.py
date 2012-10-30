@@ -60,7 +60,7 @@ build_specs = {
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
-                '/trunk/Gmake',
+                '/trunk/build_system',
                 '/trunk/src/include',
                 '/trunk/src/c_utils',
                 '/trunk/src/recipes_f-90_LEPP',
@@ -106,7 +106,7 @@ build_specs = {
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
-                '/trunk/Gmake',
+                '/trunk/build_system',
                 '/trunk/src/include',
                 '/trunk/src/c_utils',
                 '/trunk/src/recipes_f-90_LEPP',
