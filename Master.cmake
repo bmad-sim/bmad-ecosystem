@@ -65,7 +65,7 @@ get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
 set(ENABLE_SHARED $ENV{ACC_ENABLE_SHARED})
 
 IF (${LIBNAME})
-	project(${LIBNAME})
+  project(${LIBNAME})
 ENDIF ()
 
 
@@ -431,7 +431,7 @@ foreach(exespec ${EXE_SPECS})
       # all C source files.
       #-----------------------------------
       foreach (file ${c_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+        set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${c_sources})
 
@@ -450,7 +450,7 @@ foreach(exespec ${EXE_SPECS})
       # all C source files.
       #-----------------------------------
       foreach (file ${cpp_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
+				set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${cpp_sources})
 
@@ -469,7 +469,7 @@ foreach(exespec ${EXE_SPECS})
       # all Fortran source files.
       #-----------------------------------
       foreach (file ${f_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+				set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${f_sources})
 
@@ -542,6 +542,10 @@ foreach(exespec ${EXE_SPECS})
           ${EXENAME}
   )
 
+  if (DEFINED LINKER_LANGUAGE_PROP)
+    SET_TARGET_PROPERTIES (${EXENAME}-exe PROPERTIES LINKER_LANGUAGE ${LINKER_LANGUAGE_PROP})
+		unset (LINKER_LANGUAGE_PROP)
+  endif ()
 
   # Create map file output directory if it doesn't yet exist.
   IF(IS_DIRECTORY ${OUTPUT_BASEDIR}/map)
