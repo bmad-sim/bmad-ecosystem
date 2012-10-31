@@ -20,7 +20,7 @@ for now_line in now_file:
       print 'Cannot parse line: ' + now_line
       continue
 
-    print split
+    ## print split
 
     s2 = split[2].split()
     if len(s2) < 1:
