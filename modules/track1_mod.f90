@@ -1243,7 +1243,7 @@ case (solenoid$)
 case (sol_quad$)
   if (present(num_valid)) num_valid = 11
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
