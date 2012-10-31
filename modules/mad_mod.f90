@@ -512,7 +512,7 @@ call mad_tmsymm(te)
 
 ! apply tilt
                   
-tilt = -atan2 (ele%value(vkick$), ele%value(hkick$))  
+tilt = -atan2 (ele%value(hkick$), ele%value(vkick$))  
 call mad_tmtilt (map, tilt)
 
 end subroutine mad_elsep
