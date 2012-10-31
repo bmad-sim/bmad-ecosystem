@@ -510,6 +510,8 @@ case (octupole$)
 
   enddo
 
+  call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false.)
+
 !-----------------------------------------------
 ! patch
 
