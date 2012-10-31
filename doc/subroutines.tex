@@ -368,18 +368,6 @@ tracking routine track1_space_charge.
 \item[touschek_lifetime (mode, Tl, lat)] \Newline
 Routine to calculate the Touschek lifetime for a lat.
 
-\index[routine]{ibs_equilibrium}
-\label{r:ibs.equilibrium}
-\item[ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)] \Newline
-Routine to calculate the equilibrium mode of a lat due to IBS effects
-by iterating over derivatives of the equilibrium equations.
-
-\index[routine]{ibsequilibrium2}
-\label{r:ibsequilibrium2}
-\item[ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)] \Newline
-Routine to calculate the equilibrium mode of a lat due to IBS effects
-by iterating over the equilibrium equations.
-
 \end{description}
 
 %------------------------------------------------------------------------
@@ -1068,11 +1056,6 @@ Routine to check the control links in a lat structure, etc.
 \item[element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff) result (ix_ele)] \Newline 
 Routine to return the index of the element at position s.
 
-\index[routine]{ele_has_kick}
-\label{r:ele.has.kick}
-\item[ele_has_kick (ele) result (has_kick)] \Newline 
-Function to determine if an element has kick attributes like hkick$, bl_vkick$, etc.
-
 \index[routine]{ele_has_offset}
 \label{r:ele.has.offset}
 \item[ele_has_offset (ele) result (has_offset)] \Newline 
@@ -1177,6 +1160,16 @@ Routine to type out the Twiss parameters from an element.
 \item[type2_twiss (ele, lines, n_lines, frequency_units, compact_format)] \Newline
 Like \vn{type_twiss} but the output is stored in a string array. 
 
+\index[routine]{valid_tracking_method}
+\label{r:valid.tracking.method}
+\item[valid_tracking_method (ele, tracking_method, num_valid) result (is_valid)] \Newline 
+Routine to return whether a given tracking method is valid for a given element.
+
+\index[routine]{valid_mat6_calc_method}
+\label{r:valid.mat6.calc.method}
+\item[valid_mat6_calc_method (ele, mat6_calc_method, num_valid) result (is_valid)] \Newline 
+Routine to return whether a given mat6_calc method is valid for a given element.
+
 \end{description}
 
 %------------------------------------------------------------------------
@@ -1206,16 +1199,6 @@ Routine to check for problems when setting up group or overlay controllers.
 \label{r:deallocate.ele.pointers}
 \item[deallocate_ele_pointers (ele, nullify_only)] \Newline
 Routine to deallocate the pointers in an element. 
-
-\index[routine]{dispersion_to_orbit}
-\label{r:dispersion.to.orbit}
-\item[dispersion_to_orbit (ele, disp_orb)] \Newline
-Routine to make an orbit vector proportional to the dispersion. 
-
-\index[routine]{orbit_to_dispersion}
-\label{r:orbit.to.dispersion}
-\item[orbit_to_dispersion (orb_diff, ele)] \Newline
-Routine to take an orbit vector difference and calculate the dispersion. 
 
 \index[routine]{re_allocate_eles}
 \label{r:re.allocate.eles}
@@ -1622,11 +1605,6 @@ Listed below are helper routines that are not meant for general use.
 \label{r:drift.mat6.calc}
 \item[drift_mat6_calc (mat6, length, start, end)] \Newline
 Routine to calculate a drift transfer matrix with a possible kick. 
-
-\index[routine]{mat6_dispersion}
-\label{r:mat6.dispersion}
-\item[mat6_dispersion (m_i6, mat6)] \Newline
-Routine to put the dispersion into ele\%mat6 given the dispersion vector E_VEC 
 
 \index[routine]{sol_quad_mat6_calc}
 \label{r:sol.quad.mat6.calc}
