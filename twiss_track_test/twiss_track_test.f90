@@ -237,7 +237,7 @@ write (2, *)
 call data_out (orb2(0)%vec(1)-orb(0)%vec(1), 1d-8, 'Reverse:dvec(1)')
 call data_out (orb2(0)%vec(2)+orb(0)%vec(2), 1d-8, 'Reverse:dvec(2)')
 call data_out (orb2(0)%vec(3)-orb(0)%vec(3), 1d-8, 'Reverse:dvec(3)')
-call data_out (orb2(0)%vec(4)+orb(0)%vec(4), 1d-8, 'Reverse:dvec(4)')
+call data_out (orb2(0)%vec(4)+orb(0)%vec(4), 4d-8, 'Reverse:dvec(4)')
 
 write (2, *)
 call data_out (lat2%ele(0)%a%beta - lat%ele(0)%a%beta, 2d-5, 'Reverse:dbeta_a')
