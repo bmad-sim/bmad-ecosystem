@@ -4,8 +4,7 @@ set(LIBNAME bmad)
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set(INC_DIRS
-  ../include 
-  include
+  ../include
   $ENV{ACC_PKG}/fgsl
 )
 
@@ -13,7 +12,6 @@ set(SRC_DIRS
   code 
   custom
   modules
-  cpp_interface
   synrad
   photon
   parsing

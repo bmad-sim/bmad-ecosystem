@@ -44,7 +44,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, ele0
 
 integer xsif_unit, err_unit, std_out_unit, internal_unit
-integer i, ie, ierr, dat_indx, err_lcl, i_ele, indx, key
+integer i, ie, ierr, dat_indx, ierr_lcl, i_ele, indx, key
 integer ip0, n, it, ix, iep, id, n_names
 integer xsif_io_setup, parchk, ix1, ix2, digested_version
 
@@ -60,7 +60,7 @@ character(200), allocatable, save :: file_names(:)
 character(16) :: r_name = 'xsif_parser'
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
-logical echo_output, err
+logical echo_output, err, error_lcl
 
 ! See if the digested file is OK
 
@@ -130,9 +130,9 @@ endif
 ! Expand the USEd beamline...
 ! First perform parameter evaluation
 
-call parord (err_lcl)
+call parord (error_lcl)
 
-if (err_lcl /= 0) then
+if (error_lcl) then
   call xsif_error ('"PARORD" ERROR')
   call xsif_io_close
   return
@@ -140,9 +140,9 @@ endif
 
 call parevl  
 
-err_lcl = parchk (.true.)
+ierr_lcl = parchk (.true.)
 
-if (err_lcl /= 0) then
+if (ierr_lcl /= 0) then
   call xsif_error ('UNDEFINED PARAMETERS')
   call xsif_io_close
   return
