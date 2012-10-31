@@ -1,6 +1,8 @@
 set (EXENAME interface_test)
+
 set (SRC_FILES 
-  program/interface_test.f90
+  interface_test
+	util
 )
 
 set (LINK_LIBS
@@ -11,3 +13,5 @@ set (LINK_LIBS
   forest
 )
 
+# This is so CMake will not be confused and know that the main program is in Fortran.
+set (LINKER_LANGUAGE_PROP Fortran)

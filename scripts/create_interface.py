@@ -588,9 +588,9 @@ equality_test_pointer = \
   if (x.NAME != NULL) is_eq = TEST;
 '''
 
-for1 = '  for (int i = 0; i < C.NAME.size(); i++)'
-for2 = ' for (int j = 0; j < C.NAME[0].size(); j++) ' 
-for3 = ' for (int k = 0; k < C.NAME[0][0].size(); k++)'
+for1 = '  for (unsigned int i = 0; i < C.NAME.size(); i++)'
+for2 = ' for (unsigned int j = 0; j < C.NAME[0].size(); j++) ' 
+for3 = ' for (unsigned int k = 0; k < C.NAME[0][0].size(); k++)'
 
 test_pat1 = for1 + '\n    {int rhs = 101 + i + XXX + offset; C.NAME[i] = NNN;}'
 test_pat2 = for1 + for2 + '\n    {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
@@ -753,7 +753,7 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
       cp.destructor    = 'delete NAME;'
       cp.test_pat      = test_pat_pointer0 + '    C.NAME = new ' + c_type + ';\n' + \
                                     indent(c.test_pat.replace('C.NAME', '(*C.NAME)'), 2) + '  }\n'
-      cp.to_f_setup    = '  int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;\n'
+      cp.to_f_setup    = '  unsigned int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;\n'
       cp.equality_test = '''
   is_eq = is_eq && ((x.NAME == NULL) == (y.NAME == NULL));
   if (!is_eq) return false;
@@ -867,9 +867,9 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
 
       cp.to_c2_set = '''\
   C.NAME.resize(n1_NAME);
-  for (int i = 0; i < C.NAME.size(); i++) {
+  for (unsigned int i = 0; i < C.NAME.size(); i++) {
     C.NAME[i].resize(n2_NAME);
-    for (int j = 0; j < C.NAME[0].size(); j++)
+    for (unsigned int j = 0; j < C.NAME[0].size(); j++)
       C.NAME[i][j].resize(n3_NAME);
   }
   C.NAME << z_NAME;
@@ -880,11 +880,11 @@ for type in [REAL, CMPLX, INT, LOGIC, TYPE, SIZE]:
     C.NAME == NULL;
   else {
     C.NAME = new TYPE_Tensor(3);
-    for (int i = 0; i < C.NAME.size(); i++) {
+    for (unsigned int i = 0; i < C.NAME.size(); i++) {
       C.NAME[i].resize(2);
-      for (int j = 0; j < C.NAME[0].size(); j++) {
+      for (unsigned int j = 0; j < C.NAME[0].size(); j++) {
         C.NAME[i][j].resize(1);
-        for (int k = 0; k < C.NAME[0][0].size(); k++)
+        for (unsigned int k = 0; k < C.NAME[0][0].size(); k++)
           {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; C.NAME[i][j][k] = NNN;}  
       }
     }
@@ -941,7 +941,7 @@ cc.destructor    = ''
 cc.equality_test = c_side_trans[CHAR, 0, NOT].equality_test
 cc.to_f2_call    = 'C.NAME.c_str()'
 cc.to_f2_arg     = 'c_Char'
-cc.to_f_setup    = '  int n_NAME = 0; if (C.NAME.size() != 0) n_NAME = 1;\n'
+cc.to_f_setup    = '  unsigned int n_NAME = 0; if (C.NAME.size() != 0) n_NAME = 1;\n'
 cc.to_c2_arg     = 'c_Char z_NAME'
 cc.to_c2_set     = '''
   if (n_NAME == 0) 
@@ -1379,8 +1379,11 @@ params.customize(struct_definitions)
 
 # First the header
 
-if not os.path.exists(params.output_dir): os.makedirs(params.output_dir)
-f_face = open(params.output_dir + 'bmad_cpp_convert_mod.f90', 'w')
+if not os.path.exists(params.output_dir): 
+  sys.exit ('DIRECTORY DOES NOT EXIST: ' + params.output_dir)
+
+
+f_face = open(params.output_dir + '/bmad_cpp_convert_mod.f90', 'w')
 
 f_face.write ('''
 !+
@@ -1559,7 +1562,7 @@ f_face.close()
 ##################################################################################
 # Create Fortran struct equality check code
 
-f_equ = open(params.output_dir + 'bmad_equality.f90', 'w')
+f_equ = open(params.output_dir + '/bmad_equality.f90', 'w')
 
 f_equ.write ('module bmad_equality\n\n')
 f_equ.write ('\n'.join(params.use_statements))
@@ -1607,8 +1610,9 @@ f_equ.close()
 ##################################################################################
 # Create code check main program
 
-if not os.path.exists(params.test_dir): os.makedirs(params.test_dir)
-f_test = open(params.test_dir + 'main.f90', 'w')
+if not os.path.exists(params.test_dir): 
+    sys.exit ('DIRECTORY DOES NOT EXIST: ' + params.test_dir)
+f_test = open(params.test_dir + '/main.f90', 'w')
 
 f_test.write('''
 program interface_test
@@ -1641,7 +1645,7 @@ f_test.close()
 ##################################################################################
 # Create Fortran side check code
 
-f_test = open(params.test_dir + 'bmad_cpp_test_mod.f90', 'w')
+f_test = open(params.test_dir + '/bmad_cpp_test_mod.f90', 'w')
 f_test.write('''
 module bmad_cpp_test_mod
 
@@ -1875,7 +1879,7 @@ f_class.close()
 ##################################################################################
 # Create C++ side of interface
 
-f_cpp = open(params.output_dir + 'cpp_bmad_convert.cpp', 'w')
+f_cpp = open(params.output_dir + '/cpp_bmad_convert.cpp', 'w')
 f_cpp.write('''
 //+
 // C++ side of the Bmad / C++ structure interface.
@@ -1892,29 +1896,29 @@ f_cpp.write('''
 //---------------------------------------------------------------------------
 
 template <class T> void operator<< (valarray<T>& arr, const T* ptr) {
-  int n = arr.size();
-  for (int i = 0; i < n; i++) arr[i] = ptr[i];
+  unsigned int n = arr.size();
+  for (unsigned int i = 0; i < n; i++) arr[i] = ptr[i];
 }
 
 template <class T> void operator<< (valarray< valarray<T> >& mat, const T* ptr) {
-  int n1 = mat.size();
+  unsigned int n1 = mat.size();
   if (n1 == 0) return;
-  int n2 = mat[0].size();
-  for (int i = 0; i < n1; i++) {
-    for (int j = 0; j < n2; j++) {
+  unsigned int n2 = mat[0].size();
+  for (unsigned int i = 0; i < n1; i++) {
+    for (unsigned int j = 0; j < n2; j++) {
       mat[i][j] = ptr[i*n2+j];
     }
   }
 }
 
 template <class T> void operator<< (valarray< valarray< valarray<T> > >& tensor, const T* ptr) {
-  int n1 = tensor.size();
+  unsigned int n1 = tensor.size();
   if (n1 == 0) return;
-  int n2 = tensor[0].size();
-  int n3 = tensor[0][0].size();
-  for (int i = 0; i < n1; i++) {
-    for (int j = 0; j < n2; j++) {
-      for (int k = 0; k < n3; k++) {
+  unsigned int n2 = tensor[0].size();
+  unsigned int n3 = tensor[0][0].size();
+  for (unsigned int i = 0; i < n1; i++) {
+    for (unsigned int j = 0; j < n2; j++) {
+      for (unsigned int k = 0; k < n3; k++) {
         tensor[i][j][k] = ptr[i*n2*n3 + j*n3 + k];
       }
     }
@@ -1922,41 +1926,41 @@ template <class T> void operator<< (valarray< valarray< valarray<T> > >& tensor,
 }
 
 template <class T> void operator<< (valarray<T>& arr1, const valarray<T>& arr2) {
-  int n1 = arr1.size(), n2 = arr2.size();
+  unsigned int n1 = arr1.size(), n2 = arr2.size();
   if (n1 != n2) arr1.resize(n2);
   arr1 = arr2;
 }
 
 template <class T> void operator<< (valarray< valarray<T> >& mat1, 
                               const valarray< valarray<T> >& mat2) {
-  int n1_1 = mat1.size(), n2_1 = mat2.size();
-  int n1_2 = 0, n2_2 = 0;
+  unsigned int n1_1 = mat1.size(), n2_1 = mat2.size();
+  unsigned int n1_2 = 0, n2_2 = 0;
   if (n1_1 > 0) n1_2 = mat1[0].size();
   if (n2_1 > 0) n2_2 = mat2[0].size();
   if (n1_1 != n2_1) mat1.resize(n2_1);
-  if (n1_2 != n2_2) {for (int i = 0; i < n1_1; i++) mat1[i].resize(n2_2);}
+  if (n1_2 != n2_2) {for (unsigned int i = 0; i < n1_1; i++) mat1[i].resize(n2_2);}
   mat1 = mat2;
 }
 
 template <class T> void matrix_to_vec (const valarray< valarray<T> >& mat, T* vec) {
-  int n1 = mat.size();
+  unsigned int n1 = mat.size();
   if (n1 == 0) return;
-  int n2 = mat[0].size();
-  for (int i = 0; i < n1; i++) {
-    for (int j = 0; j < n2; j++) {
+  unsigned int n2 = mat[0].size();
+  for (unsigned int i = 0; i < n1; i++) {
+    for (unsigned int j = 0; j < n2; j++) {
       vec[i*n2+j] = mat[i][j];
     }
   }
 }
 
 template <class T> void tensor_to_vec (const valarray< valarray< valarray<T> > >& tensor, T* vec) {
-  int n1 = tensor.size();
+  unsigned int n1 = tensor.size();
   if (n1 == 0) return;
-  int n2 = tensor[0].size();
-  int n3 = tensor[0][0].size();
-  for (int i = 0; i < n1; i++) {
-    for (int j = 0; j < n2; j++) {
-      for (int k = 0; k < n3; k++) {
+  unsigned int n2 = tensor[0].size();
+  unsigned int n3 = tensor[0][0].size();
+  for (unsigned int i = 0; i < n1; i++) {
+    for (unsigned int j = 0; j < n2; j++) {
+      for (unsigned int k = 0; k < n3; k++) {
         vec[i*n2*n3 + j*n3 + k] = tensor[i][j][k];
       }
     }
@@ -2010,24 +2014,24 @@ template void tensor_to_vec (const Int_Tensor&,      Int*);
 //---------------------------------------------------------------------------
 
 void void_matrix_to_vec (const valarray< valarray< void** > >& mat, void** vec) {
-  int n1 = mat.size();
+  unsigned int n1 = mat.size();
   if (n1 == 0) return;
-  int n2 = mat[0].size();
-  for (int i = 0; i < n1; i++) {
-    for (int j = 0; j < n2; j++) {
+  unsigned int n2 = mat[0].size();
+  for (unsigned int i = 0; i < n1; i++) {
+    for (unsigned int j = 0; j < n2; j++) {
       vec[i*n2+j] = mat[i][j];
     }
   }
 }
 
 void void_tensor_to_vec (const valarray< valarray< valarray< void** > > >& tensor, void** vec) {
-  int n1 = tensor.size();
+  unsigned int n1 = tensor.size();
   if (n1 == 0) return;
-  int n2 = tensor[0].size();
-  int n3 = tensor[0][0].size();
-  for (int i = 0; i < n1; i++) {
-    for (int j = 0; j < n2; j++) {
-      for (int k = 0; k < n3; k++) {
+  unsigned int n2 = tensor[0].size();
+  unsigned int n3 = tensor[0][0].size();
+  for (unsigned int i = 0; i < n1; i++) {
+    for (unsigned int j = 0; j < n2; j++) {
+      for (unsigned int k = 0; k < n3; k++) {
         vec[i*n2*n3 + j*n3 + k] = tensor[i][j][k];
       }
     }
@@ -2099,7 +2103,7 @@ f_cpp.close()
 ##################################################################################
 # Create C++ class equality check code
 
-f_eq = open(params.output_dir + 'cpp_equality.cpp', 'w')
+f_eq = open(params.output_dir + '/cpp_equality.cpp', 'w')
 
 f_eq.write('''
 //+
@@ -2120,7 +2124,7 @@ using namespace std;
 template <class T> bool is_all_equal (const valarray<T>& vec1, const valarray<T>& vec2) {
   bool is_eq = true;
   if (vec1.size() != vec2.size()) return false;
-  for (int i = 0; i < vec1.size(); i++) {
+  for (unsigned int i = 0; i < vec1.size(); i++) {
     is_eq = is_eq && (vec1[i] == vec2[i]);
   }
   return is_eq;
@@ -2129,9 +2133,9 @@ template <class T> bool is_all_equal (const valarray<T>& vec1, const valarray<T>
 template <class T> bool is_all_equal (const valarray< valarray<T> >& mat1, const valarray< valarray<T> >& mat2) {
   bool is_eq = true;
   if (mat1.size() != mat2.size()) return false;
-  for (int i = 0; i < mat1.size(); i++) {
+  for (unsigned int i = 0; i < mat1.size(); i++) {
     if (mat1[i].size() != mat2[i].size()) return false;
-    for (int j = 0; j < mat1[i].size(); j++) {
+    for (unsigned int j = 0; j < mat1[i].size(); j++) {
       is_eq = is_eq && (mat1[i][j] == mat2[i][j]);
     }
   }
@@ -2141,11 +2145,11 @@ template <class T> bool is_all_equal (const valarray< valarray<T> >& mat1, const
 template <class T> bool is_all_equal (const valarray< valarray< valarray<T> > >& tensor1, const valarray< valarray< valarray<T> > >& tensor2) {
   bool is_eq = true;
   if (tensor1.size() != tensor2.size()) return false;
-  for (int i = 0; i < tensor1.size(); i++) {
+  for (unsigned int i = 0; i < tensor1.size(); i++) {
     if (tensor1[i].size() != tensor2[i].size()) return false;
-    for (int j = 0; j < tensor1[i].size(); j++) {
+    for (unsigned int j = 0; j < tensor1[i].size(); j++) {
       if (tensor1[i][j].size() != tensor2[i][j].size()) return false;
-      for (int k = 0; k < tensor1[i][j].size(); k++) {
+      for (unsigned int k = 0; k < tensor1[i][j].size(); k++) {
         is_eq = is_eq && (tensor1[i][j][k] == tensor2[i][j][k]);
       }
     }
@@ -2192,7 +2196,7 @@ f_eq.close()
 ##################################################################################
 # Create C++ side code check
 
-f_test = open(params.test_dir + 'cpp_bmad_test.cpp', 'w')
+f_test = open(params.test_dir + '/cpp_bmad_test.cpp', 'w')
 f_test.write('''
 //+
 // C++ classes definitions for Bmad / C++ structure interface.
