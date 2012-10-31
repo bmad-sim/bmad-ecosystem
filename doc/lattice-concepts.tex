@@ -1,0 +1,78 @@
+\chapter{Lattice Concepts and Structure}
+\label{c:lat.concepts}
+
+This chapter presents the basic concepts, such as \vn{element},
+\bn{branch}, and \vn{lattice}, that \bmad uses to describe an
+``accelerator''. Here ``accelerator'' can refer to ... machine
+complex. Additionally, the organization of the structure used to
+represent
+
+\index{element}
+The basic component \bmad uses to describe an accelerator is the
+\vn{element} An element can be a physical thing like a bending magnet,
+quadrupole, etc. or something like a \vn{marker} element that is used
+to mark a particular point the machine. Chapter~\sref{c:elements}
+lists the complete set of different element types that \bmad knows
+about.
+
+\index{branch}
+The next level up from an \vn{element} is the \vn{branch}.  A
+\vn{branch} is just a sequence of elements that a particle will travel
+through. A 
+
+
+\index{lattice}
+A ``lattice'' is just a collection of branches or may sequence of
+elements that a particle will travel through. The ``lattice'' may
+refer to an enti accelerator complex or may refer to some specific
+part.
+
+--> If there is only one branch then it can be ignored.
+
+
+along with the attributes (length, strength, orientation,
+etc.) of the elements.  A lattice file (or files) (\sref{c:lat.file}
+is a file that is used to describe an accelerator or storage ring.
+
+\index{beginning element}\index{end element}
+\bmad associates a number with each element staring at 1 for the first
+element in the lattice, 2 for the second element, etc. Additionally,
+\bmad always automatically creates a 0\Th \vn{init_ele}
+(\sref{s:init.ele}) element to mark the beginning of the lattice. The
+name of this element is always \vn{beginning}.
+
+
+\index{MAD}
+\index{lattice}
+To \bmad, a ``lattice'' is the sequence of physical elements that is
+to be studied. As explained below, the lattice is constructed in the
+input lattice file using what are known as \vn{beam lines} and
+\vn{replacement lists}. A simple example:
+\begin{example}
+  q1: quadrupole
+  d1: drift
+  my_machine: line = (q1, d1)
+  use, my_machine
+\end{example}
+This lattice has two elements: A quadrupole \vn{q1} and a drift
+\vn{d1}.  The line named \vn{my_machine} gives the ordered list of
+elements and the \vn{use} statement chooses \vn{my_machine} as the
+line to be used for the lattice.
+
+There will also be a marker element named \vn{end} automatically
+placed at the end of the lattice. This end marker will not be
+automatically placed in the lattice if a marker named \vn{end} is
+defined in the lattice file at the end of the lattice. The
+\vn{parameter[no_end_marker]} statement (\sref{s:param}) can be used
+to suppress the insertion of the end marker.
+
+If there are multiple branches (\sref{s:branching}) in the lattice,
+beginning and end markers will be placed at the beginning and end of
+all branches.
+
+One is also allowed in \bmad to work with multiple lattices that can
+be interconnected togeter using \vn{branching} (\sref{s:branching})
+and multipass \vn{s:multipass} to form a description of an accelerator
+complex.
+
+
