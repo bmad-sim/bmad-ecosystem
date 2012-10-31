@@ -1,11 +1,10 @@
 # List of files containing definitions of the structures to setup interfaces for.
 
 struct_def_files = ['../bmad/modules/bmad_struct.f90']
-struct_def_files = ['code/test_mod.f90']
 
 # List of use statements needed in various Fortran modules
 
-use_statements = ['use bmad_struct', 'use test_mod']
+use_statements = ['use bmad_struct']
 
 # List of structures to setup interfaces for.
 # List must be in ordered such that if struct A is a component of struct B,
@@ -51,8 +50,6 @@ struct_list = [
     'rad_int1_struct',
     'rad_int_all_ele_struct'
 ]
-
-struct_list = ['z_struct', 'ttt_struct']
 
 # List of sub-structures to ignore.
 # That is, do not translate these sub-structure components.

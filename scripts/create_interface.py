@@ -966,14 +966,17 @@ for trans in c_side_trans.keys():
 ##################################################################################
 ##################################################################################
 # Get the list of structs
+# See test_interface_input.py (or whatever file is used).
 
-struct_list_file = 'fortran_structs'
-if len(sys.argv) > 1: struct_list_file = sys.argv[1]
+master_input_file = 'test_interface_input'
+if len(sys.argv) > 1: master_input_file = sys.argv[1]
+print 'Input file: ' + master_input_file
 
-input = __import__(struct_list_file)
+
+params = __import__(master_input_file)
 
 struct_definitions = []
-for name in input.struct_list:
+for name in params.struct_list:
   struct_definitions.append(struct_def_class(name))
 
 ##################################################################################
@@ -995,7 +998,7 @@ re_end_type = re.compile('^\s*end\s*type')  # Match to: 'end type'
 re_match1 = re.compile('([,(]|::|\s+)')     # Match to: ',', '::', '(', ' '
 re_match2 = re.compile('([=[,(]|::)')       # Match to: ',', '::', '(', '[', '='
 
-for file_name in input.struct_def_files:
+for file_name in params.struct_def_files:
   f_module_file = open(file_name)
 
   for line in f_module_file:
@@ -1164,7 +1167,7 @@ for struct in struct_definitions:
 
   ia = 0
   while ia < len(struct.arg):
-    if struct.arg[ia].kind in input.component_ignore_list: 
+    if struct.arg[ia].kind in params.component_ignore_list: 
       struct.arg.pop(ia)
       continue
     ia += 1
@@ -1368,7 +1371,7 @@ if len(struct_definitions) != n_found:
 ##################################################################################
 # Customize the interface code
 
-input.customize(struct_definitions)
+params.customize(struct_definitions)
 
 ##################################################################################
 ##################################################################################
@@ -1376,8 +1379,8 @@ input.customize(struct_definitions)
 
 # First the header
 
-if not os.path.exists('code'): os.makedirs('code')
-f_face = open('code/bmad_cpp_convert_mod.f90', 'w')
+if not os.path.exists(params.output_dir): os.makedirs(params.output_dir)
+f_face = open(params.output_dir + 'bmad_cpp_convert_mod.f90', 'w')
 
 f_face.write ('''
 !+
@@ -1391,7 +1394,7 @@ module bmad_cpp_convert_mod
 
 ''')
 
-f_face.write ('\n'.join(input.use_statements))
+f_face.write ('\n'.join(params.use_statements))
 
 f_face.write ('''
 use fortran_cpp_utils
@@ -1556,10 +1559,10 @@ f_face.close()
 ##################################################################################
 # Create Fortran struct equality check code
 
-f_equ = open('code/bmad_equality.f90', 'w')
+f_equ = open(params.output_dir + 'bmad_equality.f90', 'w')
 
 f_equ.write ('module bmad_equality\n\n')
-f_equ.write ('\n'.join(input.use_statements))
+f_equ.write ('\n'.join(params.use_statements))
 
 f_equ.write ('''
 
@@ -1604,8 +1607,8 @@ f_equ.close()
 ##################################################################################
 # Create code check main program
 
-if not os.path.exists('interface_test'): os.makedirs('interface_test')
-f_test = open('interface_test/main.f90', 'w')
+if not os.path.exists(params.test_dir): os.makedirs(params.test_dir)
+f_test = open(params.test_dir + 'main.f90', 'w')
 
 f_test.write('''
 program interface_test
@@ -1638,7 +1641,7 @@ f_test.close()
 ##################################################################################
 # Create Fortran side check code
 
-f_test = open('interface_test/bmad_cpp_test_mod.f90', 'w')
+f_test = open(params.test_dir + 'bmad_cpp_test_mod.f90', 'w')
 f_test.write('''
 module bmad_cpp_test_mod
 
@@ -1872,7 +1875,7 @@ f_class.close()
 ##################################################################################
 # Create C++ side of interface
 
-f_cpp = open('code/cpp_bmad_convert.cpp', 'w')
+f_cpp = open(params.output_dir + 'cpp_bmad_convert.cpp', 'w')
 f_cpp.write('''
 //+
 // C++ side of the Bmad / C++ structure interface.
@@ -2096,7 +2099,7 @@ f_cpp.close()
 ##################################################################################
 # Create C++ class equality check code
 
-f_eq = open('code/cpp_equality.cpp', 'w')
+f_eq = open(params.output_dir + 'cpp_equality.cpp', 'w')
 
 f_eq.write('''
 //+
@@ -2189,7 +2192,7 @@ f_eq.close()
 ##################################################################################
 # Create C++ side code check
 
-f_test = open('interface_test/cpp_bmad_test.cpp', 'w')
+f_test = open(params.test_dir + 'cpp_bmad_test.cpp', 'w')
 f_test.write('''
 //+
 // C++ classes definitions for Bmad / C++ structure interface.
