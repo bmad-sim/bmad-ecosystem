@@ -1601,7 +1601,7 @@ re => map%r
 te => map%t
 
 c =  cos(tilt)
-s = -sin(tilt)
+s = sin(tilt)
 
 ! Rotate at entrance.
 
@@ -1912,7 +1912,7 @@ do i = 1, 6
     if (i == 5 .or. i == 6) then
       m%r(i,j) = m%r(i,j) / dMAD_dBmad
       do k = 1, 6
-        m%t(i,j,k) = m%t(i,j,k) / dMAD_dBmad
+        m%t(i,j,k) = m%t(i,j,k) * dMAD_dBmad
         m%t(i,j,k) = m%t(i,j,k) - m%r(i,j) * m%r(i,k) * d2MAD_dBmad2 / dMAD_dBmad 
       enddo
     endif  
