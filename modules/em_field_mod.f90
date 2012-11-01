@@ -431,18 +431,18 @@ select case (ele%field_calc)
     endif
 
   !------------------------------------------
-  ! Sextupole 
+  ! Octupole 
 
   case (octupole$)
 
-    field%b(1) = -(y**3 - 3*y*x**2) / 6 * ele%value(k2$) * f_p0c 
-    field%b(2) =  (x**3 - 3*x*y**2) / 6 * ele%value(k2$) * f_p0c 
+    field%b(1) = -(y**3 - 3*y*x**2) / 6 * ele%value(k3$) * f_p0c 
+    field%b(2) =  (x**3 - 3*x*y**2) / 6 * ele%value(k3$) * f_p0c 
 
     if (df_calc) then
-      field%dB(1,1) =  y * ele%value(k2$) * f_p0c
-      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
-      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
-      field%dB(2,2) = -y * ele%value(k2$) * f_p0c
+      field%dB(1,1) =  y * ele%value(k3$) * f_p0c
+      field%dB(1,2) =  x * ele%value(k3$) * f_p0c
+      field%dB(2,1) = -x * ele%value(k3$) * f_p0c
+      field%dB(2,2) = -y * ele%value(k3$) * f_p0c
     endif
 
   !------------------------------------------
