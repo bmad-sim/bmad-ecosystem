@@ -42,7 +42,7 @@ write (1, '(a, es22.12)') '"dvec(1)" ABS  2E-19', orb2(2)%vec(1) - orb1(2)%vec(1
 write (1, '(a, es22.12)') '"dvec(2)" ABS  1E-19', orb2(2)%vec(2) - orb1(2)%vec(2)
 write (1, '(a, es22.12)') '"dvec(3)" ABS  2E-19', orb2(2)%vec(3) - orb1(2)%vec(3)
 write (1, '(a, es22.12)') '"dvec(4)" ABS  1E-19', orb2(2)%vec(4) - orb1(2)%vec(4)
-write (1, '(a, es22.12)') '"dvec(5)" ABS  1E-15', orb2(2)%vec(5) - orb1(2)%vec(5)
+write (1, '(a, es22.12)') '"dvec(5)" ABS  2E-15', orb2(2)%vec(5) - orb1(2)%vec(5)
 write (1, '(a, es22.12)') '"dvec(6)" ABS  5E-15', orb2(2)%vec(6) - orb1(2)%vec(6)
 write (1, '(a, es22.12)') '"dt"      ABS  1E-23', orb2(2)%t - orb1(2)%t
 
