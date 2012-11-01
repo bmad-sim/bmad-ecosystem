@@ -1,4 +1,3 @@
-message(STATUS "*** This is a test version of Master.cmake! ***")
 #-----------------------------------------------------------
 # Master cmake lists file
 # Implements the ACC build system.  Called by boilerplate
