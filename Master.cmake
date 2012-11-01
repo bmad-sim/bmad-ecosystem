@@ -1,3 +1,4 @@
+message(STATUS "*** This is a test version of Master.cmake! ***")
 #-----------------------------------------------------------
 # Master cmake lists file
 # Implements the ACC build system.  Called by boilerplate
@@ -310,9 +311,9 @@ ENDIF ()
 # <DIR>/../config/${LIBNAME} if one exists.
 #----------------------------------------------------------------
 IF (IS_DIRECTORY "../config")
-  message("Copying config directory contents to ${CMAKE_SOURCE_DIR}/../config/${LIBNAME}...")
+  message("Copying config directory contents to ${CMAKE_SOURCE_DIR}/../config/${SHORT_DIRNAME}...")
   file (MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../config")
-  EXECUTE_PROCESS (COMMAND cp -rfu ${CMAKE_SOURCE_DIR}/config ${CMAKE_SOURCE_DIR}/../config/${SHORT_DIRNAME})
+  EXECUTE_PROCESS (COMMAND cp -rfu ${CMAKE_SOURCE_DIR}/config/. ${CMAKE_SOURCE_DIR}/../config/${SHORT_DIRNAME})
 ENDIF ()
 
 
@@ -560,8 +561,10 @@ foreach(exespec ${EXE_SPECS})
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
   ENDIF ()
+	set(STATIC_FLAG "-Wl,-Bstatic")
+	set(SHARED_FLAG "-Wl,-Bdynamic")
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
-          ${LINK_LIBS}
+          ${STATIC_FLAG} ${LINK_LIBS} ${SHARED_FLAG} ${SHARED_LINK_LIBS}
           ${X11_LIBRARIES}
           ${LINK_FLAGS} ${MAPLINE}
   )
