@@ -1,4 +1,4 @@
-program compare_tracking_methods
+program compare_tracking_methods_plot
 
 use bmad
 use quick_plot
@@ -9,8 +9,8 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (real_pointer_struct), allocatable :: ptr_array(:)
 
-character(40) :: input_file  = 'compare_tracking_methods.bmad'
-character(40) :: output_file = 'compare_tracking_methods'
+character(40) :: input_file  = 'compare_tracking_methods_plot.bmad'
+character(40) :: output_file = 'compare_tracking_methods_plot'
 character(20) :: base_method, element_to_vary, attrib_to_vary
 character(20) :: veto_methods(10)
 

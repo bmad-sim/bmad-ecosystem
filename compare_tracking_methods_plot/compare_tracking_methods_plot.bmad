@@ -12,7 +12,7 @@ beam_start[py] = 0.004 ! Vertical momentum.
 beam_start[z]  = 0.000 ! Longitudinal position.
 beam_start[pz] = 0.005 ! Longitudinal momentum (energy deviation).
 
-quad: quadrupole, l = 0.5, k1 = 0.2
+quad: quadrupole, l = 0.5, k1 = 0.2, num_steps = 1000
 
 l: line = (quad)
 

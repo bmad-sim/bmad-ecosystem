@@ -1,6 +1,6 @@
-set (EXENAME compare_tracking_methods)
+set (EXENAME compare_tracking_methods_plot)
 set (SRC_FILES
-  compare_tracking_methods/compare_tracking_methods.f90
+  compare_tracking_methods_plot/compare_tracking_methods_plot.f90
 )
 
 set (INC_DIRS
