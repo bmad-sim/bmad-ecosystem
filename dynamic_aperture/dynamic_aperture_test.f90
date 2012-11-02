@@ -104,6 +104,7 @@ end interface
   real(rp) phy_x_set, phy_y_set
   real(rp), allocatable :: dk1(:)
   real(rp) delta_fRF/0./, fRF
+  real(rp) :: x_limit = 0., y_limit = 0. ! for setting all apertures at once 
 
   character*60 da_file, in_file
   character*100 lat_file
@@ -115,14 +116,15 @@ end interface
   logical rec_taylor
   logical path_length_patch/.false./
   logical qtune_match !if true insert match element in custom_set_tune to qtune
-  logical :: auto_bookkeeper = .true. ! set to 'false' for intelligent bookkeeping
+  logical :: auto_bookkeeper = .false. ! set to 'false' for intelligent bookkeeping
 
   namelist / input / lat_file,n_turn, n_xy_pts, point_range, n_energy_pts,  &
                      x_init, y_init, e_max, energy, accuracy, &
                      aperture_multiplier, Qx, Qy, Qz, particle, &
                      i_train, j_car, n_trains_tot, n_cars, current, lat_file, &
                      Qx_ini, Qy_ini, Qp_x, Qp_y, rec_taylor, delta_fRF, fRF, &
-                     qp_tune1, qp_tune2, qtune_match, auto_bookkeeper
+                     qp_tune1, qp_tune2, qtune_match, auto_bookkeeper, &
+                     x_limit, y_limit
 
 ! init
 
@@ -192,7 +194,7 @@ end interface
     int_Q_y = int(ring%ele(ring%n_ele_track)%b%phi / twopi)
     phy_x_set = (int_Q_x + Qx_ini)*twopi
     phy_y_set = (int_Q_y + Qy_ini)*twopi
-    call choose_quads(ring, dk1)
+    if (.not. qtune_match) call choose_quads(ring, dk1)
     do i=0,ring%n_ele_track
      co(i)%vec = 0
     end do
@@ -206,6 +208,14 @@ end interface
   print '(a28,f12.6,a9,f12.6)', &
        '  After initial Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
+  if ((x_limit .ne. 0.) .or. (y_limit .ne. 0.)) then
+     do ix = 1, ring%n_ele_track
+        ring%ele(ix)%value(x1_limit$) = x_limit
+        ring%ele(ix)%value(x2_limit$) = x_limit
+        ring%ele(ix)%value(y1_limit$) = y_limit
+        ring%ele(ix)%value(y2_limit$) = y_limit
+     enddo
+  endif
 
 
   call twiss_at_start(ring)
