@@ -495,7 +495,7 @@ end subroutine
 !     MACHEP = R1MACH(4)
 !
       IERR = 0
-      n_max_iter = 40  ! Originally: 30
+      n_max_iter = 50  ! Originally: 30
       NORM = 0.0
       K = 1
 !     STORE ROOTS ISOLATED BY BALANC AND COMPUTE MATRIX NORM
