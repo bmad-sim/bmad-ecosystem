@@ -740,7 +740,7 @@ integer, parameter :: custom_attribute1$ = 61   ! For general use
 integer, parameter :: custom_attribute2$ = 62   ! For general use
 integer, parameter :: custom_attribute3$ = 63   ! For general use
 integer, parameter :: custom_attribute4$ = 64   ! For general use
-integer, parameter :: custom_attribute5$ = 65   ! For general use
+integer, parameter :: custom_attribute5$ = 65, custom_attribute_max$ = 65   ! For general use
 integer, parameter :: x1_limit$ = 66   ! Assumed unique. Do not overload.
 integer, parameter :: x2_limit$ = 67   ! Assumed unique. Do not overload.
 integer, parameter :: y1_limit$ = 68   ! Assumed unique. Do not overload.

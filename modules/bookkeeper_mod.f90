@@ -2282,6 +2282,7 @@ if (bmad_com%auto_bookkeeper) then
 
   dval = val - ele%old_value
   dval(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
+  dval(custom_attribute1$:custom_attribute_max$) = 0
   dval(scratch$) = 0
   if (all(dval == 0) .and. ele%key /= capillary$) return
 endif
@@ -2629,6 +2630,7 @@ if (init_needed) then
             tilt_tot$, x_pitch_tot$, y_pitch_tot$]) = .false.
   offset_mask = .not. v_mask
   v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
+  v_mask(custom_attribute1$:custom_attribute_max$) = .false.
   init_needed = .false.
 endif
 
