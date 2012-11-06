@@ -1,4 +1,3 @@
-message(WARNING "This is a test version of Master.cmake!")
 #-----------------------------------------------------------
 # Master cmake lists file
 # Implements the ACC build system.  Called by boilerplate
@@ -66,7 +65,7 @@ get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
 set(ENABLE_SHARED $ENV{ACC_ENABLE_SHARED})
 
 IF (${LIBNAME})
-	project(${LIBNAME})
+  project(${LIBNAME})
 ENDIF ()
 
 
@@ -80,9 +79,9 @@ find_package(X11)
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
-set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
 
-set (BASE_CXX_FLAGS "-Wno-deprecated -mcmodel=medium -Wall -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC")
+set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
 
 
 #-----------------------------------
@@ -131,14 +130,14 @@ IF (DEBUG)
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../debug)
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/debug)
   set (PACKAGES_OUTPUT_BASEDIR ${PACKAGES_DIR}/debug)
-  set(BASE_C_FLAGS "${BASE_C_FLAGS}")
-  set(BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} ${COMPILER_SPECIFIC_DEBUG_F_FLAGS}")
+  set (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} ${COMPILER_SPECIFIC_DEBUG_F_FLAGS}")
 ELSE ()
   message("Build type           : Production")
   set (OUTPUT_BASEDIR ${CMAKE_SOURCE_DIR}/../production)
   set (RELEASE_OUTPUT_BASEDIR ${RELEASE_DIR}/production)
   set (PACKAGES_OUTPUT_BASEDIR ${PACKAGES_DIR}/production)
   set (BASE_C_FLAGS "${BASE_C_FLAGS} -O2")
+  set (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -O2")
 ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 message("C Compiler           : ${CMAKE_C_COMPILER}")
@@ -311,9 +310,9 @@ ENDIF ()
 # <DIR>/../config/${LIBNAME} if one exists.
 #----------------------------------------------------------------
 IF (IS_DIRECTORY "../config")
-  message("Copying config directory contents to ${CMAKE_SOURCE_DIR}/../config/${LIBNAME}...")
+  message("Copying config directory contents to ${CMAKE_SOURCE_DIR}/../config/${SHORT_DIRNAME}...")
   file (MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/../config")
-  EXECUTE_PROCESS (COMMAND cp -rfu ${CMAKE_SOURCE_DIR}/config ${CMAKE_SOURCE_DIR}/../config/${SHORT_DIRNAME})
+  EXECUTE_PROCESS (COMMAND cp -rfu ${CMAKE_SOURCE_DIR}/config/. ${CMAKE_SOURCE_DIR}/../config/${SHORT_DIRNAME})
 ENDIF ()
 
 
@@ -432,7 +431,7 @@ foreach(exespec ${EXE_SPECS})
       # all C source files.
       #-----------------------------------
       foreach (file ${c_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+        set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${c_sources})
 
@@ -451,7 +450,7 @@ foreach(exespec ${EXE_SPECS})
       # all C source files.
       #-----------------------------------
       foreach (file ${cpp_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
+				set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${cpp_sources})
 
@@ -470,7 +469,7 @@ foreach(exespec ${EXE_SPECS})
       # all Fortran source files.
       #-----------------------------------
       foreach (file ${f_sources})
-	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+				set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${f_sources})
 
@@ -498,17 +497,17 @@ foreach(exespec ${EXE_SPECS})
       set(ext_match)
       STRING(FIND ${srcfile} ".cpp" ext_match)
       IF(NOT ${ext_match} EQUAL -1)
-        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_CXX_FLAGS} ${CFLAGS}")
       ENDIF()
       set(ext_match)
       STRING(FIND ${srcfile} ".cc" ext_match)
       IF(NOT ${ext_match} EQUAL -1)
-        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_CXX_FLAGS} ${CFLAGS}")
       ENDIF()
       set(ext_match)
       STRING(FIND ${srcfile} ".cxx" ext_match)
       IF(NOT ${ext_match} EQUAL -1)
-        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_C_FLAGS} ${CFLAGS}")
+        set_source_files_properties(${srcfile} PROPERTIES COMPILE_FLAGS "${BASE_CXX_FLAGS} ${CFLAGS}")
       ENDIF()
       #------------
       set(ext_match)
@@ -543,6 +542,10 @@ foreach(exespec ${EXE_SPECS})
           ${EXENAME}
   )
 
+  if (DEFINED LINKER_LANGUAGE_PROP)
+    SET_TARGET_PROPERTIES (${EXENAME}-exe PROPERTIES LINKER_LANGUAGE ${LINKER_LANGUAGE_PROP})
+		unset (LINKER_LANGUAGE_PROP)
+  endif ()
 
   # Create map file output directory if it doesn't yet exist.
   IF(IS_DIRECTORY ${OUTPUT_BASEDIR}/map)
@@ -557,8 +560,15 @@ foreach(exespec ${EXE_SPECS})
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
   ENDIF ()
-	set(STATIC_FLAG "-Wl,-Bstatic")
-	set(SHARED_FLAG "-Wl,-Bdynamic")
+
+	set(STATIC_FLAG "")
+  set(SHARED_FLAG "")
+  IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    IF (FORTRAN_COMPILER MATCHES "ifort")
+  	  set(STATIC_FLAG "-Wl,-Bstatic")
+	    set(SHARED_FLAG "-Wl,-Bdynamic")
+	  ENDIF ()
+  ENDIF ()
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${STATIC_FLAG} ${LINK_LIBS} ${SHARED_FLAG} ${SHARED_LINK_LIBS}
           ${X11_LIBRARIES}

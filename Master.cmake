@@ -560,8 +560,15 @@ foreach(exespec ${EXE_SPECS})
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
   ENDIF ()
-	set(STATIC_FLAG "-Wl,-Bstatic")
-	set(SHARED_FLAG "-Wl,-Bdynamic")
+
+	set(STATIC_FLAG "")
+  set(SHARED_FLAG "")
+  IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    IF (FORTRAN_COMPILER MATCHES "ifort")
+  	  set(STATIC_FLAG "-Wl,-Bstatic")
+	    set(SHARED_FLAG "-Wl,-Bdynamic")
+	  ENDIF ()
+  ENDIF ()
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${STATIC_FLAG} ${LINK_LIBS} ${SHARED_FLAG} ${SHARED_LINK_LIBS}
           ${X11_LIBRARIES}
