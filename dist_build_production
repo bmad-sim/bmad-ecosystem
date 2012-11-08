@@ -18,5 +18,6 @@ do
   fi
 done
 
+cd ${DIST_BASE_DIR}
 
 
