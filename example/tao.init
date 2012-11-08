@@ -33,8 +33,8 @@
   default_weight = 1e6
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%ele_name = "DET_00W"
-  data(1:99)%ele_name =
+  datum(0)%ele_name = "DET_00W"
+  datum(1:99)%ele_name =
           "DET_01W", "DET_02W", "DET_03W", "DET_04W", "DET_05W", "DET_06W", 
           "DET_07W", "DET_08W", "DET_09W", "DET_10W", "DET_11W", "DET_12W", 
           "DET_13W", "DET_14W", "DET_15W", "DET_16W", "DET_17W", "DET_18W", 
