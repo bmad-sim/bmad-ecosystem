@@ -53,7 +53,7 @@ character(40) use_same_lat_eles_as, source
 character(100) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
 
-logical err, free, gang
+logical err, free, gang, old_style_warning 
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
@@ -86,6 +86,7 @@ if (iu == 0) then
 endif
 
 n_d2_data = 0
+old_style_warning = .false.
 
 do 
   universe = '*'
@@ -173,18 +174,6 @@ do
     ix_min_data            = int_garbage$
     ix_max_data            = int_garbage$
 
-    data(:)%data_type      = ''
-    data(:)%merit_type     = ''
-    data(:)%merit_type     = ''
-    data(:)%ele_name       = ''
-    data(:)%ele0_name      = ''
-    data(:)%meas           = real_garbage$  ! used to tag when %meas_value is set in file
-    data(:)%weight         = 0.0
-    data(:)%invalid_value  = 0.0
-    data(:)%ix_bunch       = 0
-    data(:)%data_source    = ''
-    data(:)%good_user      = .true.
-
     datum(:)%data_type      = ''
     datum(:)%merit_type     = ''
     datum(:)%merit_type     = ''
@@ -198,6 +187,22 @@ do
     datum(:)%data_source    = ''
     datum(:)%good_user      = .true.
 
+    ! data(:) is old style
+
+    data(:)%data_type      = ''
+    data(:)%merit_type     = ''
+    data(:)%merit_type     = ''
+    data(:)%ele_name       = ''
+    data(:)%ele0_name      = ''
+    data(:)%meas           = real_garbage$  ! used to tag when %meas_value is set in file
+    data(:)%weight         = 0.0
+    data(:)%invalid_value  = 0.0
+    data(:)%ix_bunch       = 0
+    data(:)%data_source    = ''
+    data(:)%good_user      = .true.
+
+    ! Read datum/data
+
     read (iu, nml = tao_d1_data, iostat = ios)
     if (ios > 0) then
       call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
@@ -210,6 +215,14 @@ do
     ! Transfer data(:) to datum(:) if needed
 
     if (any(data%data_type /= '') .or. any(data%ele_name /= '')) then
+      if (.not. old_style_warning) then  ! Only give warning once
+        call out_io (s_warn$, r_name, &
+                  'OLD STYPE "DATA(:) = ..." SYNTAX DETECTED.', &
+                  'THIS HAS BEEN DEPRECATED.', &
+                  'PLEASE SWITCH TO NEW STYLE DATUM(:) = ..." SYNTAX.', &
+                  'IN THE MEANTIME, TAO WILL RUN AS NORMAL...')
+        old_style_warning = .true.
+      endif
       datum(:)%data_type      = data(:)%data_type
       datum(:)%merit_type     = data(:)%merit_type
       datum(:)%merit_type     = data(:)%merit_type
