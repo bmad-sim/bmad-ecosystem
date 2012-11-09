@@ -634,6 +634,9 @@ case (lcavity$, rfcavity$, e_gun$)
     end do
   end do
   
+  ! Restore the sign
+  maxfield = ref_field%B(3)
+  
   ! Write to file
   if (opal_file_unit > 0 )  then
 
@@ -761,7 +764,7 @@ real(rp)            :: mc2
 logical, optional   :: err
 
 type (coord_struct) :: orb
-real(rp)       :: dt, pc, gmc
+real(rp)       :: dt, pc, gmc, gammabeta(3)
 character(40)  :: r_name = 'write_opal_particle_distribution'
 character(10)   ::  rfmt 
 integer n_particle, i
@@ -798,13 +801,18 @@ do i = 1, n_particle
   ! get \gamma m c
   gmc = sqrt(pc**2 + mc2**2) / c_light
   
+  gammabeta =  orb%vec(2:6:2) / mc2
+  
+  ! OPAL has a problem with zero beta_z
+  if ( gammabeta(3) == 0 ) gammabeta(3) = 1e-30
+  
   !'track' particles backwards in time and write to file
   write(opal_file_unit, '(6'//rfmt//')') orb%vec(1) - dt*orb%vec(2)/gmc, &   ! x - dt mc2 \beta_x \gamma / \gamma m c
-                                         orb%vec(2) / mc2, &
+                                         gammabeta(1), &
                                          orb%vec(3) - dt*orb%vec(4)/gmc, &   ! y - dt mc2 \beta_y \gamma / \gamma m c
-                                         orb%vec(4) / mc2, &
+                                         gammabeta(2),  &
                                          orb%vec(5) - dt*orb%vec(6)/gmc, &   ! s - dt mc2 \beta_s \gamma / \gamma m c
-                                         orb%vec(6) / mc2
+                                         gammabeta(3) 
 end do 
 
 end subroutine  write_opal_particle_distribution
