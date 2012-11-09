@@ -54,7 +54,7 @@ type (hard_edge_struct), allocatable :: edge(:)
 type (em_field_struct) :: saved_field
 
 real(rp)  dt_step, ref_time, vec6
-real(rp)   s_rel, time, s1, s2, del_s, p0c_save
+real(rp)   s_rel, time, s1, s2, del_s, p0c_save, s_save
 
 integer :: i, n_edge
 
@@ -80,10 +80,20 @@ if (ele%value(l$) .eq. 0) then
     !Tracks use vec(5) = s_rel
     end_orb%vec(5) = 0.0_rp
     !convert to element coordinates for track_struct
-    call init_saved_orbit (track, 0)
-    track%n_pt = 0
-    track%orb(0) = end_orb
-    track%orb(0)%ix_ele = ele%ix_ele
+  !  call init_saved_orbit (track, 0)
+  !  track%n_pt = 0
+  !  track%orb(0) = end_orb
+  !  track%orb(0)%ix_ele = ele%ix_ele
+  if (.not. allocated(track%orb) ) call init_saved_orbit (track, 0)
+  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save)
+  !Query the local field to save
+  call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false., err_flag)
+  !call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
+  if (err_flag) return
+  track%field(track%n_pt) = saved_field    
+    
+    
+    
   endif
   ! Reset particle to s-coordinates
   end_orb = start_orb
@@ -150,10 +160,7 @@ else if ( abs(s_rel - ele%value(l$))  < bmad_com%significant_length ) then
   s_rel = ele%value(l$)
 endif
 
-
 end_orb%vec(5) = s_rel
-
-
 
 ! Particle time 
 
@@ -167,15 +174,15 @@ if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
   !save state
   i = end_orb%state
   !Allocate track array and set value
-  if ( present(track) ) then
-    call init_saved_orbit (track, 0)
-    track%n_pt = 0
-    track%orb(0) = end_orb
-    track%orb(0)%ix_ele = ele%ix_ele
-  endif
+  !if ( present(track) ) then
+  !  call init_saved_orbit (track, 0)
+  !  track%n_pt = 0
+  !  track%orb(0) = end_orb
+  !  track%orb(0)%ix_ele = ele%ix_ele
+  !endif
 
   !
-  call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL, SKIPPING TRACKING")
+  call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL, SKIPPING TRACKING FOR ELE: "//trim(ele%name))
   !Particle won't be tracked, so set end = start with the saved state
   end_orb = start_orb
   end_orb%state = i
@@ -184,13 +191,20 @@ if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
 endif
 
 if ( present(track) ) then
-  call init_saved_orbit (track, 10000)   !TODO: pass this from elsewhere
-  track%n_pt = 0
-  track%orb(0) = end_orb
-  track%orb(0)%ix_ele = ele%ix_ele
+  if (.not. allocated(track%orb)) call init_saved_orbit (track, 10000)   !TODO: pass this from elsewhere
+  !track%n_pt = 0
+  !track%orb(0) = end_orb
+  !track%orb(0)%ix_ele = ele%ix_ele
+
+  !track%field(0) = saved_field
+      
+  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save)
   !Query the local field to save
-  call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false.)
-  track%field(0) = saved_field
+  call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false., err_flag)
+  !call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
+  if (err_flag) return
+  track%field(track%n_pt) = saved_field    
+      
       
 endif
 
