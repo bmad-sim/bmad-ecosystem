@@ -216,14 +216,24 @@ build_specs = {
                     # cp lapack95_modules/* ../../production/modules
                     # cp lapack95_modules/* ../../debug/modules
                 'fftw3'
-                    # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/../production
-                    # make
-                    # make install
+		    # Production pass
+		    # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/../production --includedir=`pwd`/../include
+		    # make
+		    # make install
+
+		    # Debug pass
+		    # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/../debug --includedir=`pwd`/../include CFLAGS='-g -O0' FFLAGS='-g -O0'
+		    # make
+		    # make install
                 'root',
                     # This employs 32-bit Python 2.7
-                    # ./configure --enable-fftw3 --with-fftw3-incdir=`pwd`/../production/include --with-fftw3-libdir=`pwd`/../production/lib --disable-python --prefix=`pwd`/../production --etcdir=`pwd`/../production/etc
-                    # make
-                    # make install
+		    # ./configure --enable-fftw3 --with-fftw3-incdir=`pwd`/../production/include --with-fftw3-libdir=`pwd`/../production/lib --disable-python --prefix=`pwd`/../production --etcdir=`pwd`/../production/etc --incdir=`pwd`/../include/root --enable-soversion
+		    # make
+		    # make install
+		    # make clean
+		    # ./configure --enable-fftw3 --with-fftw3-incdir=`pwd`/../debug/include --with-fftw3-libdir=`pwd`/../debug/lib --disable-python --prefix=`pwd`/../debug --etcdir=`pwd`/../debug/etc --incdir=`pwd`/../include/root --build=debug --enable-soversion
+		    # make
+		    # make install
                     # FOR AN ONLINE BUILD:
                     # perl -pi~ -e 's!/.fs/cesr/online!\$\{CESR_ONLINE}!' bin/thisroot.sh
 
