@@ -12,14 +12,6 @@ type photon_track_struct
   type (photon_coord_struct) old, now
 end type
 
-! This is for passing info to the photon_hit_func routine used by zbrent
-
-type (photon_track_struct), pointer, private, save :: photon_com
-type (photon_track_struct), private, save :: photon1_com
-type (ele_struct), private, pointer, save :: ele_com
-
-private photon_hit_func
-
 contains
 
 !---------------------------------------------------------------------------
@@ -260,6 +252,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (photon_track_struct), target :: photon
+type (photon_track_struct) :: photon1
 
 real(rp) d_rad, track_len0, track_len
 
@@ -271,9 +264,7 @@ character(40) :: r_name = 'capillary_photon_hit_spot_calc'
 ! Note: After the first reflection, the photon will start at the wall so
 ! if photon%old is at the wall we must avoid bracketing this point.
 
-photon1_com = photon
-photon_com => photon
-ele_com => ele
+photon1 = photon
 
 track_len0 = (photon%now%track_len + photon%old%track_len) / 2
 do i = 1, 30
@@ -295,7 +286,9 @@ track_len = zbrent (photon_hit_func, track_len0, photon%now%track_len, 1d-10)
 photon%now = photon%old
 call capillary_propagate_photon_a_step (photon, ele, track_len-photon%now%track_len, .false.)
 
-end subroutine capillary_photon_hit_spot_calc
+
+
+contains
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -319,26 +312,28 @@ real(rp) radius, d_track
 
 ! Easy case
 
-if (track_len == photon_com%now%track_len) then
-  d_radius = wall3d_d_radius (photon_com%now%orb%vec, ele_com)
+if (track_len == photon%now%track_len) then
+  d_radius = wall3d_d_radius (photon%now%orb%vec, ele)
   return
 endif
 
-! Track starting from the present position (photon1_com%now) if track_length > photon1_com%now%track_len.
+! Track starting from the present position (photon1%now) if track_length > photon1%now%track_len.
 ! Otherwise, track starting from the beginning of the region (photon%old).
 
-if (track_len < photon1_com%now%track_len) then
-  photon1_com = photon_com
-  photon1_com%now = photon_com%old
+if (track_len < photon1%now%track_len) then
+  photon1 = photon
+  photon1%now = photon%old
 endif
 
 ! And track
 
-d_track = track_len - photon1_com%now%track_len
-call capillary_propagate_photon_a_step (photon1_com, ele_com, d_track, .false.)
-d_radius = wall3d_d_radius (photon1_com%now%orb%vec, ele_com) 
+d_track = track_len - photon1%now%track_len
+call capillary_propagate_photon_a_step (photon1, ele, d_track, .false.)
+d_radius = wall3d_d_radius (photon1%now%orb%vec, ele) 
 
 end function photon_hit_func
+
+end subroutine capillary_photon_hit_spot_calc
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
