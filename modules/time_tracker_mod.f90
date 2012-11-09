@@ -67,7 +67,7 @@ type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2, dt1
 real(rp), target :: t_rel, t_old, dt_tol
-real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save
+real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save
 real(rp), target  :: dvec_dt(6), vec_err(6), s_target
 
 integer, parameter :: max_step = 100000
@@ -145,14 +145,17 @@ do n_step = 1, max_step
   if ( present(track) ) then
     !Check if we are past a save time, or if exited
     if (t_rel >= t_save .or. exit_flag) then
-      track%n_pt = track%n_pt + 1
-      n_pt = track%n_pt
-      track%orb(n_pt) = orb
-      track%orb(n_pt)%ix_ele = ele%ix_ele
+      !TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
+      call save_a_step (track, ele, param, .false., orb%vec(5), orb, s_save)
+    
+      !track%n_pt = track%n_pt + 1
+      !n_pt = track%n_pt
+      !track%orb(n_pt) = orb
+      !track%orb(n_pt)%ix_ele = ele%ix_ele
       !Query the local field to save
       call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
       if (err_flag) return
-      track%field(n_pt) = saved_field
+      track%field(track%n_pt) = saved_field
        !Set next save time 
        t_save = t_rel + dt_save
     end if
@@ -168,7 +171,6 @@ end do
 
 if (global_com%type_out) then
   call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
-  !print *, '  Skipping particle; coordinates will not be saved'
   orb%location = inside$
   return
 end if
