@@ -60,6 +60,7 @@ implicit none
 
 type (coord_struct), intent(inout), target :: orb
 type (coord_struct), target :: orb_old
+type (coord_struct) :: orb_save
 type (ele_struct), target :: ele
 type (lat_param_struct), target ::  param
 type (em_field_struct) :: saved_field
@@ -128,7 +129,12 @@ do n_step = 1, max_step
 
     !---
     dt_tol = ds_safe / (orb%beta * c_light)
-    if (zbrent_needed) dt = zbrent (delta_s_target, 0.0_rp, dt, dt_tol)
+    if (zbrent_needed) then
+      ! Save old_orb, and reinstate after zbrent so that the wall check can still work. 
+      orb_save = orb_old
+      dt = zbrent (delta_s_target, 0.0_rp, dt, dt_tol)
+      orb_old = orb_save
+    endif
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
     orb%vec(5) = s_target 
@@ -137,9 +143,9 @@ do n_step = 1, max_step
   endif
 
   ! Check wall or aperture at every intermediate step and flag for exit if wall is hit
-
   call  particle_hit_wall_check_time(orb_old, orb, param, ele)
   if (orb%state /= alive$) exit_flag = .true.
+  
   
   !Save track
   if ( present(track) ) then
@@ -519,7 +525,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: wall3d_ele
 type (photon_track_struct), target :: particle
 integer :: section_ix
-real(rp) :: norm, perp(3), dummy_real, p_tot
+real(rp) :: d_radius, norm, perp(3), dummy_real, p_tot
 real(rp) :: edge_tol = 1e-8
 logical :: err
 
@@ -561,6 +567,16 @@ endif
 
 ! Do nothing if orb_new is inside the wall
 if (wall3d_d_radius(now_orb%vec, wall3d_ele) < 0) return
+
+
+! Check that old_orb was inside the wall
+d_radius = wall3d_d_radius(old_orb%vec, wall3d_ele)
+if (d_radius > 0) then
+  call out_io (s_fatal$, r_name, 'OLD ORB ALSO OUTSIDE WALL IN &
+     WALL3D_ELE: '//trim(wall3d_ele%name)//', D_RADIUS =  \f12.6\', d_radius )
+  !print *, 'orb s, vec(5), radius: ', old_orb%s, old_orb%vec(5), sqrt(old_orb%vec(1)**2 + old_orb%vec(3)**2)
+  if (global_com%exit_on_error) call err_exit
+endif
 
 !If now_orb is before element, change it
 !We can do this because it can't hit the element wall outside of the
@@ -629,7 +645,7 @@ now_orb%vec(6) = old_orb%vec(6)
    orb_new = now_orb
 
    !Calculate perpendicular to get angle of impact
-   dummy_real = wall3d_d_radius(particle%now%orb%vec, wall3d_ele, perp)
+   d_radius = wall3d_d_radius(particle%now%orb%vec, wall3d_ele, perp)
 
    !Calculate angle of impact; cos(hit_angle) = norm_photon_vec \dot perp
    !****
