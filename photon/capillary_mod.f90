@@ -272,7 +272,7 @@ do i = 1, 30
   if (d_rad < 0) exit
   track_len0 = (track_len0 + photon%old%track_len) / 2
   if (i == 30) then
-    call out_io (s_abort$, r_name, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!')
+    call out_io (s_abort$, r_name, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND IN ELE: '//trim(ele%name) )
     if (global_com%exit_on_error) call err_exit
   endif
 enddo
