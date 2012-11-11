@@ -2647,11 +2647,11 @@ case ('variable')
     if (.not. allocated (v_ptr%this)) then
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
     else
+      n = nl + 3*size(v_ptr%this) + 100
+      if (size(lines) < n) call re_allocate(lines, n)
       do i = 1, size(v_ptr%this)
-        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_uni:        ', &
-                                                            v_ptr%this(i)%ix_uni
-        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_branch:     ', v_ptr%this(i)%ix_branch
-        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_ele:        ', v_ptr%this(i)%ix_ele
+        nl=nl+1; write(lines(nl), '(4(a, i0))')  '%this(', i, ')%uni@branch>>ele:        ', &
+                        v_ptr%this(i)%ix_uni, '@', v_ptr%this(i)%ix_branch, '>>', v_ptr%this(i)%ix_ele
         if (associated (v_ptr%this(i)%model_value)) then
           nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_value: ', &
                                                             v_ptr%this(i)%model_value
