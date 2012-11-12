@@ -1,39 +1,40 @@
 \chapter{Beam Lines and Replacement Lists}
 \label{c:sequence}
 
-The basic lattice branch (\sref{s:branching}) is defined in a lattice
-file using what are called \vn{beam lines} and \vn{replacement lists}.
-The \vn{beam lines} are divided into two types - lines with and lines without
+\index{branch}
+This chapter describes how to define the ordered list of 
+elements that make up a lattice branch (\sref{c:lat.concepts}).
+The next chapter (\sref{c:branch.multi}) covers how 
+branches are connected together.
+
+%-----------------------------------------------------------------------------
+\section{Branch Construction Overview}
+\label{s:branch.construct}
+
+\index{line}\index{list}
+A lattice branch is defined in a lattice
+file using what are called \vn{beam lines} (\sref{s:lines.wo.arg}) and 
+\vn{replacement lists} (\sref{s:replace.list}).
+The \vn{beam lines} are divided into two types - lines with 
+(\sref{s:lines.with.arg}) and lines without (\sref{s:lines.wo.arg})
 \vn{replacement arguments}. This essentially corresponds to the \mad
 definition of lines and lists. There can be multiple \vn{beam lines}
 and \vn{replacement lists} defined in a lattice file and lines and
 lists can be nested inside other lines and lists.
 
-%-----------------------------------------------------------------------------
-\section{Use Statement}
-\label{s:use}
+Since lines can be nexted within other lines, The same element name
+may be repeated multiple times in a brach. To distinguish between
+mutiple elements of the same name, lines and lists may be\vn{tagged} 
+(\sref{s:tag}) to produce unique element names.
 
-\index{use statement|hyperbf}
-The particular line or lines that defines the ma to be analyzed by \bmad
-is selected by the \vn{use} statement. The general syntax is
-\begin{example}
-  use, line1, line2 ...
-\end{example}
-Only the use of \vn{line1} is manditory. The lines \vn{line1},
-\vn{line2}, etc are the lines of the machines to be simulated. For
-example, \vn{line1} may correspond to one ring and \vn{line2} may
-correspond to the other ring of a dual ring colliding beam machine. In
-this case, \vn{multipass} (\sref{s:multipass}) will be needed to
-describe the common elements of the two rings. Example
-\begin{example}
-  use, my_line
-\end{example}
-would pick the line \vn{my_line} for analysis. 
 
-\vn{use} statements can come anywhere in the lattice, even before the
-definition of the lines they refer to. Additionally, there can be
-multiple \vn{use} statements.  The last \vn{use} statement in the file
-defines which \vn{line} to use.
+
+There will also be a marker element named \vn{end} automatically
+placed at the end of the lattice. This end marker will not be
+automatically placed in the lattice if a marker named \vn{end} is
+defined in the lattice file at the end of the lattice. The
+\vn{parameter[no_end_marker]} statement (\sref{s:param}) can be used
+to suppress the insertion of the end marker.
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines and Lattice Expansion}
@@ -52,6 +53,7 @@ Example:
   line2: line = (d, line1, e)
   use, line2
 \end{example}
+The \vn{use} statement is explained in Section~\sref{s:use}.
 This example shows how a \vn{beam line} member can refer to another
 \vn{beam line}. This is helpful if the same sequence of elements
 appears repeatedly in the lattice. 
@@ -153,6 +155,7 @@ A line can have the \vn{multipass} attribute. This is covered in
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines with Replaceable Arguments}
+\label{s:lines.with.arg}
 \index{line!with arguments}
 
 \vn{Beam lines} can have an argument list using the following syntax
@@ -180,6 +183,7 @@ Thus the following is not allowed
 
 %-----------------------------------------------------------------------------
 \section{Replacement Lists}
+\label{s:replace.list}
 \index{list|hyperbf}
 
 When a lattice is expanded, all the lattice members that correspond to
@@ -211,6 +215,31 @@ For example the following is not allowed:
 \begin{example}
   list1: list = (2*a, b)  ! NO: No repetition count allowed.
 \end{example}
+
+%-----------------------------------------------------------------------------
+\section{Use Statement}
+\label{s:use}
+
+\index{use statement|hyperbf}
+The particular line or lines that defines the root branches 
+to be used in the lattice 
+is selected by the \vn{use} statement. The general syntax is
+\begin{example}
+  use, line1, line2 ...
+\end{example}
+For example, \vn{line1} may correspond to one ring and \vn{line2} may
+correspond to the other ring of a dual ring colliding beam machine. In
+this case, \vn{multipass} (\sref{s:multipass}) will be needed to
+describe the common elements of the two rings. Example
+\begin{example}
+  use, my_line
+\end{example}
+would pick the line \vn{my_line} for analysis. 
+
+\vn{use} statements can come anywhere in the lattice, even before the
+definition of the lines they refer to. Additionally, there can be
+multiple \vn{use} statements.  The last \vn{use} statement in the file
+defines which \vn{line} to use.
 
 %-----------------------------------------------------------------------------
 \section{Line and List Tags}
@@ -296,4 +325,3 @@ After the lattice has been expanded there is no connection between
 the original \vn{a} and \vn{b} elements and the elements in the lattice like
 \vn{t1.b}. Thus the last line in the example where the \vn{k1} attribute of\vn{b} 
 is modified do not have any effect on the lattice elements. 
-

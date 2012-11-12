@@ -1,21 +1,28 @@
-\chapter{Branching, and Multipass}
+\chapter{Branching and Multipass}
 \label{c:branch.multi}
 
-\index{branching}
+\index{branch}
 \index{multipass}
-The branches of a lattice (\sref{c:lat.concepts}) can be connected
-together to form a ``complete'' description of a machine. For example,
-a LINAC can be connected to a storage ring which, in turn, can be
-connected to X-Ray lines etc. Connecting lattices together is called
-\vn{branching} and is explained in \sref{s:branching}. Furthermore,
-multiple machines may be defined using multiple branches and the
-common elements of the machines may be logically joind using
-\vn{multipass} lines \sref{s:multipass}. So, for example, intersecting
-colliding rings may be simulated.
+The previous chapter (\sref{c:sequence}) covered how to construct a 
+lattice branch using \vn{line}s and \vn{list}s. This chapter covers
+how to connect the individual branches together to form an entire
+accelerator complex. There are two ways this is done. To
+describe a fork in an accelerator, \vn{branch} and \vn{photon_branch}
+elements may be used. This is described in Section~\sref{s:branching}
+With these elements, the connection between a transfer line and a
+storage ring or the connection between a storage ring and an X-ray 
+line can be simulated.
+
+Branches may also share common elements such as the interaction region
+shared by two storage rings. Here a \vn{multipass} line can be used
+to describe this. Additionally, \vn{multipass} lines can be used
+to describe the case where a beam goes through the same physical
+element in a branch multiple times as in an energy recovery linac.
+\vn{multipass} lines are described in Section~\sref{s:multipass}.
 
 %-----------------------------------------------------------------------------
-\section{Branching}
-\index{branching}\index{photon_branch}\index{branch}
+\section{Branching with Branch Elements}
+\index{photon_branch}\index{branch}
 \label{s:branching}
 
 The root branches of a lattice are defined by the \vn{use}

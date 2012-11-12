@@ -30,7 +30,7 @@ solely meant for \bmad internal use.
   Lattice: Geometry                           & \ref{r:geom}           \\ \hline
   Lattice: Low Level Stuff                    & \ref{r:lat.low}        \\ \hline
   Lattice: Manipulation                       & \ref{r:trans}          \\ \hline
-  Lattice: Miscellaneous                      & \ref{r:lat.misc}      \\ \hline
+  Lattice: Miscellaneous                      & \ref{r:lat.misc}       \\ \hline
   Lattice: Reading and Writing Files          & \ref{r:read}           \\ \hline
   Matrices                                    & \ref{r:mat}            \\ \hline
   Matrix: Low Level Routines                  & \ref{r:low.mat}        \\ \hline
@@ -130,14 +130,14 @@ interaction using the normalized position for input.
 
 \index[routine]{calc_bunch_params}
 \label{r:calc.bunch.params}
-\item[calc_bunch_params (bunch, ele, param, bunch_params, err, print_err)] \Newline 
+\item[calc_bunch_params (bunch, bunch_params, err, print_err)] \Newline 
 Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 and projected
 
 \index[routine]{calc_bunch_params_slice}
 \label{r:calc.bunch.params.slice}
 \item[\protect\parbox{6in}{
-    calc_bunch_params (bunch, ele, param, bunch_params, plane, slice_center, \\
+    calc_bunch_params (bunch, bunch_params, plane, slice_center, \\
     \hspace*{1in} slice_spread, err, print_err) }] \Newline 
 Finds all bunch parameters for a slice through the beam distribution.
 
@@ -618,7 +618,7 @@ Routine to take the inverse of a square matrix.
 
 \index[routine]{mat_symplectify}
 \label{r:mat.symplectify}
-\item[mat_symplectify (mat_in, mat_symp)] \Newline
+\item[mat_symplectify (mat_in, mat_symp, f_scale)] \Newline
 Routine to form a symplectic matrix that is approximately equal to the input matrix. 
 
 \index[routine]{mat_symp_error}
@@ -993,8 +993,8 @@ Routine to calculate the longitudinal distance S for the elements in a lat.
 \index[routine]{shift_reference_frame}
 \label{r:shift.reference.frame}
 \item[shift_reference_frame (floor0, dr, theta, phi, psi, floor1)] \Newline 
-Starting from a given reference frame specified by its orientation and
-position in the global (floor) coordinates, and given a shift in position
+Starting from a given reference frame, and given a shift in position,
+return the resulting reference frame.
 
 \index[routine]{theta_floor}
 \label{r:theta.floor}
@@ -1053,7 +1053,7 @@ Routine to check the control links in a lat structure, etc.
 
 \index[routine]{element_at_s}
 \label{r:element.at.s}
-\item[element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff) result (ix_ele)] \Newline 
+\item[element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff, position) result (ix_ele)] \Newline 
 Routine to return the index of the element at position s.
 
 \index[routine]{ele_has_offset}
@@ -1098,7 +1098,7 @@ Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
 
 \index[routine]{lat_ele_locator}
 \label{r:lat.ele.locator}
-\item[lat_ele_locator (loc_str, lat, eles, n_loc, err)] \Newline 
+\item[lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err)] \Newline 
 Routine to locate all the elements in a lattice that corresponds to loc_str. 
 
 \index[routine]{n_attrib_string_max_len}
@@ -1112,6 +1112,12 @@ name known to bmad.
 \item[name_to_list (lat, ele_names, use_ele)] \Newline
 Routine to make a list of the elements in a lat 
 whose name matches the names in the ele_names list. 
+
+\index[routine]{pointer_to_ele}
+\label{r:pointer.to.ele}
+\item[pointer_to_ele (...)] \Newline 
+Routine to return a pointer to an element.
+pointer_to_ele is an overloaded name for:
 
 \index[routine]{pointer_to_indexed_attribute}
 \label{r:pointer.to.indexed.attribute}
@@ -1197,7 +1203,7 @@ Routine to check for problems when setting up group or overlay controllers.
 
 \index[routine]{deallocate_ele_pointers}
 \label{r:deallocate.ele.pointers}
-\item[deallocate_ele_pointers (ele, nullify_only)] \Newline
+\item[deallocate_ele_pointers (ele, nullify_only, nullify_branch, dealloc_poles)] \Newline
 Routine to deallocate the pointers in an element. 
 
 \index[routine]{re_allocate_eles}
@@ -1354,6 +1360,12 @@ Routine to zero the offsets, pitches and tilt of an element.
 \item[c_multi (n, m, no_n_fact, c_full)] \Newline
 Routine to compute multipole factors: 
 c_multi(n, m) = +/- ("n choose m")/n! 
+
+\index[routine]{ele_compute_ref_energy_and_time}
+\label{r:ele.compute.ref.energy.and.time}
+\item[ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)] \Newline 
+Routine to compute the reference energy and reference time at the end of an element 
+given the reference enegy and reference time at the start of the element.
 
 \index[routine]{lat_compute_ref_energy_and_time}
 \label{r:lat.compute.ref.energy.and.time}
@@ -1922,7 +1934,7 @@ Routine to concatenate two real_8 taylor series.
 
 \index[routine]{ele_to_fibre}
 \label{r:ele.to.fibre}
-\item[ele_to_fibre (ele, fiber, particle, use_offsets, integ_order, steps, for_layout)] \Newline
+\item[ele_to_fibre (ele, ptc_fibre, particle, use_offsets, integ_order, steps, for_layout)] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -2003,7 +2015,7 @@ Routine to type the transfer map up to first order.
 
 \index[routine]{type_ptc_fibre}
 \label{r:type.fibre}
-\item[type_fibre (fib)] \Newline
+\item[type_fibre (ptc_fibre, print_coords, lines, n_lines)] \Newline
 Routine to print the global information in a fibre.
 
 \index[routine]{type_map}
@@ -3258,12 +3270,6 @@ Routine to track a macroparticle through an element.
      Routine to make a transport map for an solenoid.
      The equivalent MAD-8 routine is: TMSEXT
 
-\index[routine]{mad_sol_quad}
-\label{r:mad.sol.quad}
-\item[mad_sol_quad (ele, energy, map)] \Newline 
-     Routine to make a transport map for a combination solenoid/quadrupole.
-     Note: There is no equivalent MAD-8 routine.
-
 \index[routine]{mad_tmsymm}
 \label{r:mad.tmsymm}
 \item[mad_tmsymm (te)] \Newline 
@@ -3327,7 +3333,7 @@ Symplectic integration through an element to 0th or 1st order.
 
 \index[routine]{track1_boris}
 \label{r:track1.boris}
-\item[track1_boris (start, ele, param, end, err_flag, track, s_start, s_end)] \Newline
+\item[track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_end)] \Newline
 Routine to do Boris tracking.  
 
 \index[routine]{track1_bmad}
