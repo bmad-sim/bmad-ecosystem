@@ -1160,7 +1160,7 @@ case ('global')
   endif
 
   if (print_ran_state) then
-    call ran_seed_get (state = ran_state)
+    call ran_default_state (get_state = ran_state)
     nl=nl+1; write (lines(nl), '(a, i0, 2x, i0, l3, es26.16)') 'ran_state = ', ran_state
   endif
 

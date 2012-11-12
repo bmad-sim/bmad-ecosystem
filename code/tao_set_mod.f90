@@ -30,6 +30,8 @@ integer ix, ios
 
 !
 
+call ran_default_state (get_state = ran_state)
+
 call string_trim(state_string, state_str, ix)
 read (state_str, *, iostat = ios) ran_state%ix 
 if (ios /= 0) then
@@ -58,7 +60,7 @@ if (ios /= 0 .or. ix == 0) then
   return
 endif
 
-call ran_seed_put (state = ran_state)
+call ran_default_state (set_state = ran_state)
 
 end subroutine tao_set_ran_state_cmd
 
