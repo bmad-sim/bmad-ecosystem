@@ -153,7 +153,7 @@ endif
 
 iseq_tot = 0                            ! number of sequences encountered
 
-call ran_seed_get (state = bp_com%ran%initial_state) ! Get initial random state.
+call ran_default_state (get_state = bp_com%ran%initial_state) ! Get initial random state.
 if (bp_com%ran%initial_state%ix == -1) then
   bp_com%ran%deterministic = 0
 else
