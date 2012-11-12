@@ -1,3 +1,8 @@
+!+
+! Actually this module is more properly named constants since
+! it evolved to define more than just physical constants.
+!-
+
 module physical_constants
 
 use precision_def
@@ -42,6 +47,11 @@ complex(rp), parameter :: i_imaginary = (0.0d0, 1.0d0)
 
 integer, parameter :: int_garbage$ = -987654
 real(rp), parameter :: real_garbage$ = -987654.3
+
+! lf$ (the line feed or LF character) can be used to encode a multiline string.
+! EG: string = 'First Line' // lf$ // 'Second Line'
+
+character(1), parameter :: lf$ = achar(10)
 
 ! This is to suppress the ranlib "has no symbols" message
 
