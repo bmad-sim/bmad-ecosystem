@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (EXE_SPECS 
+  math_test.cmake
   ptc_test.cmake
   time_runge_kutta_test.cmake
   synrad3d_test.cmake
