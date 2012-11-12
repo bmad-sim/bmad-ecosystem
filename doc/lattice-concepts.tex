@@ -2,30 +2,46 @@
 \label{c:lat.concepts}
 
 This chapter presents the basic concepts, such as \vn{element},
-\vn{branch}, and \vn{lattice}, that \bmad uses to describe an
-``accelerator''. Here ``accelerator'' can refer to ... machine
-complex. Additionally, the organization of the structure used to
-represent
+\vn{branch}, and \vn{lattice}, that \bmad uses to describe 
+such things as LINACs, storage rings, X-ray beam lines, etc.
+In fact, \bmad is capable of 
+simulating a whole machine complex of 
+interconnected parts: Including transfer lines connected to 
+storage rings and storage rings interconnected together for
+colliding beams.
 
 \index{element}
-The basic component \bmad uses to describe an accelerator is the
-\vn{element} An element can be a physical thing like a bending magnet,
-quadrupole, etc. or something like a \vn{marker} element that is used
-to mark a particular point the machine. Chapter~\sref{c:elements}
+The basic component \bmad uses to describe a machine is the
+\vn{element} (also called a ``lattice element''). 
+An element can be a physical thing like a bending magnet,
+quadrupole or Bragg crystal, or something like a \vn{marker} 
+element that is used
+to mark a particular point in the machine. Chapter~\sref{c:elements}
 lists the complete set of different element types that \bmad knows
 about.
 
-\index{branch}
-The next level up from an \vn{element} is the \vn{branch}.  A
-\vn{branch} is just a sequence of elements that a particle will travel
-through. A 
-
+\index{branch}\index{end element}
+\index{beginning element}\index{end element}
+The next level up from an \vn{element} is the 
+\vn{branch} (\sref{s:branching}).
+A \vn{branch} can also be called a ``lattice branch'' to 
+distinguish it from a \vn{branch} element.
+A lattice \vn{branch} is just an ordered  sequence of elements that a 
+particle will travel through. A branch can represent a LINAC, X-Ray
+line, storage ring or anything else that can be represented as a 
+simple ordered list of elements. All elements in a branch
+are assigned a number
+starting from zero. The 0\Th \vn{init_ele}
+(\sref{s:init.ele}) element is automatically included
+in every branch and is used as a marker for the beginning of the branch.
+The 0\Th element is always named \vn{BEGINNING}. 
+Additionally, every branch will,
+by default have a final marker (\sref{s:mark}) element named \vn{END}. 
 
 \index{lattice}
-A ``lattice'' is just a collection of branches or may sequence of
-elements that a particle will travel through. The ``lattice'' may
-refer to an enti accelerator complex or may refer to some specific
-part.
+A \vn{lattice} is just an interconnected collection of branches. 
+As such, a \vn{lattice} can describe an entire machine complex.
+
 
 --> If there is only one branch then it can be ignored.
 
@@ -34,12 +50,6 @@ along with the attributes (length, strength, orientation,
 etc.) of the elements.  A lattice file (or files) (\sref{c:lat.file}
 is a file that is used to describe an accelerator or storage ring.
 
-\index{beginning element}\index{end element}
-\bmad associates a number with each element staring at 1 for the first
-element in the lattice, 2 for the second element, etc. Additionally,
-\bmad always automatically creates a 0\Th \vn{init_ele}
-(\sref{s:init.ele}) element to mark the beginning of the lattice. The
-name of this element is always \vn{beginning}.
 
 
 \index{MAD}
@@ -59,12 +69,6 @@ This lattice has two elements: A quadrupole \vn{q1} and a drift
 elements and the \vn{use} statement chooses \vn{my_machine} as the
 line to be used for the lattice.
 
-There will also be a marker element named \vn{end} automatically
-placed at the end of the lattice. This end marker will not be
-automatically placed in the lattice if a marker named \vn{end} is
-defined in the lattice file at the end of the lattice. The
-\vn{parameter[no_end_marker]} statement (\sref{s:param}) can be used
-to suppress the insertion of the end marker.
 
 If there are multiple branches (\sref{s:branching}) in the lattice,
 beginning and end markers will be placed at the beginning and end of
