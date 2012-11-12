@@ -357,7 +357,7 @@ if (photon_start_input_file /= '') then
     photon%start = p
     photon%n_wall_hit = 0
     photon%ix_photon_generated = n_photon_generated
-    if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
+    if (ran_state%iy > 0) call ran_default_state (set_state = ran_state)
     if (random_seed > -1) call ran_seed_put (seed = random_seed)
     call check_filter_restrictions(ok, .true.)
     if (.not. ok) cycle
@@ -478,7 +478,7 @@ else
         enddo
 
         if (photon_start_output_file /= '') then
-          call ran_seed_get (state = ran_state)
+          call ran_default_state (get_state = ran_state)
           write (iu_start, '(a)')           '&start'
           write (iu_start, '(a, 6es20.12)') '  p%vec = ', photon%start%vec
           write (iu_start, '(a, es20.12)')  '  p%energy =', photon%start%energy

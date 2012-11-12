@@ -59,7 +59,7 @@ photon%start%track_len = 0
 photon%now = photon%start
 wall_hit(0)%after_reflect = photon%start
 
-call ran_seed_get (state = sr3d_params%ran_state)  ! Save 
+call ran_default_state (get_state = sr3d_params%ran_state)  ! Save 
 
 !
 
