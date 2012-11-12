@@ -27,6 +27,8 @@ type mad_map_struct
   real(rp) t(6,6,6)     ! 2nd order map.
 end type
 
+logical, save :: mad_print_if_misaligned = .true.
+
 !---------------------------------------------------------------------------
 contains
 
@@ -107,9 +109,10 @@ subroutine make_mad_map (ele, particle, energy, map)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target ::  ele
 type (mad_energy_struct) energy
 type (mad_map_struct) map
+real(rp), pointer :: val(:)
 
 integer particle
 
@@ -159,7 +162,17 @@ end select
 
 ! offsets and multipoles
 
-call mad_add_offsets_and_multipoles (ele, map)
+!call mad_add_offsets_and_multipoles (ele, map)
+
+val => ele%value
+
+if (.not.(val(s_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
+    val(x_pitch_tot$) == 0  .and. val(y_offset_tot$) == 0 .and. &
+    val(y_pitch_tot$) == 0 .and. .not. associated(ele%a_pole) .and. &
+    ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. &
+    ele%key == elseparator$)) .and. mad_print_if_misaligned) &
+    call out_io (s_error$, r_name, &
+    'ELEMENT HAS OFFSET, PITCH, OR KICK. MAD DOES NOT SUPPORT THIS. ' // ele%name)
 
 end subroutine make_mad_map
 
