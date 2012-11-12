@@ -14,7 +14,8 @@ use sim_utils_interface
 !
 
 integer, private, parameter :: kr4b = selected_int_kind(9)
-integer(kr4b), private, parameter :: im = 2147483647
+integer(kr4b), private, parameter :: im_nr_ran = 2147483647
+integer(i4_b), private, parameter :: sobseq_maxbit = 30, sobseq_maxdim = 6
 
 ! common variables for random number generator.
 
@@ -32,6 +33,9 @@ type random_state_struct
   integer :: gauss_converter = exact_gaussian$
   real(rp) :: gauss_sigma_cut = -1
   integer :: n_pts_per_sigma = 20
+  integer(i4_b) :: in_sobseq = 0
+  integer(i4_b) :: ix_sobseq(sobseq_maxdim) = 0
+  real(rp) :: x_sobseq(sobseq_maxdim)
 end type
 
 type (random_state_struct), private, target, save :: ran_state_dflt
@@ -454,8 +458,6 @@ end subroutine ran_gauss_converter
 
 subroutine ran_seed_put (seed, ran_state)
 
-use nr, only: sobseq
-
 implicit none
 
 type (random_state_struct), pointer :: r_state
@@ -474,13 +476,12 @@ else
   r_state => ran_state_dflt
 endif
 
-! Quasi-random number generator init
-
-call sobseq (dum, 0)
-
-r_state%am = nearest(1.0,-1.0) / im
-
 ! init
+
+r_state%in_sobseq = 0
+r_state%ix_sobseq = 0
+
+r_state%am = nearest(1.0,-1.0) / im_nr_ran
 
 if (seed == 0) then
   call date_and_time (values = v)
@@ -589,15 +590,12 @@ end subroutine ran_default_state
 
 subroutine ran_uniform_scaler (harvest, ran_state, index_quasi)
 
-use nr, only: sobseq
-
 implicit none
 
 type (random_state_struct), pointer :: r_state
 type (random_state_struct), optional, target :: ran_state
 
 real(rp), intent(out) :: harvest
-real(rp), save :: r(6)
 
 integer(kr4b) k, ix_q
 integer, optional :: index_quasi
@@ -624,12 +622,12 @@ if (r_state%iy < 0) call ran_seed_put(r_state%seed)
 
 if (r_state%engine == quasi_random$) then
   ix_q = integer_option(1, index_quasi)
-  if (ix_q == 1) call sobseq (r)
-  if (ix_q > 6) then
+  if (ix_q == 1) call super_sobseq (r_state%x_sobseq, r_state)
+  if (ix_q > sobseq_maxdim) then
     call out_io (s_error$, r_name, 'NUMBER OF DIMENSIONS WANTED IS TOO LARGE!')
     if (global_com%exit_on_error) call err_exit
   endif
-  harvest = r(ix_q)
+  harvest = r_state%x_sobseq(ix_q)
   return
 endif
 
@@ -642,11 +640,11 @@ r_state%ix = ieor(r_state%ix, ishft(r_state%ix, 5))
 k = r_state%iy/iq         ! Park-Miller sequence by Schrage's method,
 r_state%iy = ia*(r_state%iy - k*iq) - ir * k       ! period 2^31-2.
 
-if (r_state%iy < 0) r_state%iy = r_state%iy + im
+if (r_state%iy < 0) r_state%iy = r_state%iy + im_nr_ran
 
 ! Combine the two generators with masking to ensure nonzero value.
 
-harvest = r_state%am * ior(iand(im, ieor(r_state%ix, r_state%iy)), 1) 
+harvest = r_state%am * ior(iand(im_nr_ran, ieor(r_state%ix, r_state%iy)), 1) 
 
 end subroutine ran_uniform_scaler
 
@@ -677,6 +675,111 @@ do i = 1, size(harvest)
 enddo
 
 end subroutine ran_uniform_vector
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine super_sobseq (x, ran_state)
+!
+! Routine patterened after sobseq in Numerical Recipes.
+! Difference is that this version has an argument for the internal state.
+!
+! Module needed:
+!   use random_mod
+!
+! Input:
+!   ran_state -- random_state_struct, optional: Generator state.
+!                     See the ran_seed_put documentation for more details.
+!
+! Output: 
+!   x(:)      -- real(dp): Random vector.
+!   ran_state -- random_state_struct, optional: Generator state.
+!-
+
+subroutine super_sobseq (x, state)
+
+implicit none
+
+type (random_state_struct), optional, target :: state
+type (random_state_struct), pointer :: r_state
+
+real(rp), dimension(:), intent(out) :: x
+real(dp), parameter :: fac=1.0_dp/2.0_dp**sobseq_maxbit
+
+integer(i4_b) :: im, j
+integer(i4_b), parameter :: ip(sobseq_maxdim) = [0,1,1,2,1,4], mdeg(sobseq_maxdim) = [1,2,3,3,4,4] 
+! Note: If sobseq_maxbit or sobseq_maxdim are changed, iv needs to be recomputed by
+! running the original sobseq routine.
+integer(i4_b), parameter :: iv(sobseq_maxdim*sobseq_maxbit) = [ &
+											536870912, 536870912, 536870912, 536870912, 536870912, &
+											536870912, 805306368, 268435456, 805306368, 805306368, &
+											268435456, 268435456, 671088640, 939524096, 939524096, &
+											402653184, 402653184, 671088640, 1006632960, 738197504, &
+											335544320, 1006632960, 872415232, 603979776, 570425344, &
+											436207616, 234881024, 167772160, 838860800, 100663296, &
+											855638016, 1023410176, 721420288, 285212672, 150994944, &
+											385875968, 713031680, 562036736, 411041792, 713031680, &
+											763363328, 1031798784, 1069547520, 331350016, 616562688, &
+											566231040, 88080384, 465567744, 538968064, 975175680, &
+											920649728, 853540864, 941621248, 497025024, 808452096, &
+											756023296, 1062207488, 489684992, 605028352, 198180864, &
+											673710080, 431489024, 381157376, 952631296, 706215936, &
+											898105344, 1010565120, 1072431104, 258736128, 208928768, &
+											1026818048, 804519936, 572653568, 540672000, 771883008, &
+											316801024, 531759104, 864944128, 858980352, 271384576, &
+											453181440, 758317056, 206110720, 954400768, 715816960, &
+											941195264, 545488896, 550076416, 361594880, 238256128, &
+											1073725440, 742375424, 817971200, 813154304, 559235072, &
+											590921728, 536879104, 438312960, 954261504, 417505280, &
+											301998080, 328081408, 805318656, 1024462848, 340963328, &
+											1009913856, 419434496, 685969408, 671098880, 565721088, &
+											238651392, 172697600, 897587200, 640919552, 1006648320, &
+											334244864, 732843008, 297131008, 826291200, 121168896, &
+											570434048, 976886272, 417426944, 704744960, 169882112, &
+											361637376, 855651072, 757939456, 609285376, 553894656, &
+											756025600, 1071843072, 713042560, 429498752, 909831040, &
+											847291520, 127413632, 464754048, 1069563840, 1073730496, &
+											1068349120, 499194688, 947127616, 486080448, 538976288, &
+											536877600, 383778848, 954376224, 663894048, 137247648, &
+											808464432, 268451088, 256901168, 204607536, 676930576, &
+											875760848, 673720360, 939532728, 783810616, 306915352, &
+											1066773016, 775659528, 1010580540, 738202604, 460062740, &
+											766893116, 476151092, 856477748, 572662306, 436222522, &
+											537001998, 536972810, 229785522, 1000343598, 858993459, &
+											1023421741, 805503019, 805552913, 357112905, 214971443]
+
+character(16), parameter :: r_name = 'super_sobseq'
+
+! which state to use?
+
+if (present(state)) then
+	r_state => state
+else
+	r_state => ran_state_dflt
+endif
+
+! calc
+
+im = r_state%in_sobseq
+do j = 1, sobseq_maxbit
+  if (.not. btest(im,0)) exit
+  im = im/2
+end do
+
+if (j > sobseq_maxbit) then
+  call out_io (s_fatal$, r_name, 'SOBSEQ_MAXBIT TOO SMALL')
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+im = (j-1) * sobseq_maxdim
+j = min(size(x), sobseq_maxdim)
+r_state%ix_sobseq(1:j) = ieor(r_state%ix_sobseq(1:j),iv(1+im:j+im))
+x(1:j) = r_state%ix_sobseq(1:j) * fac
+r_state%in_sobseq = r_state%in_sobseq + 1
+
+end subroutine super_sobseq
 
 end module
 
