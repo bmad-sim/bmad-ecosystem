@@ -9,11 +9,8 @@ set (INC_DIRS
 )
 
 set (LINK_LIBS
-  tao 
   bmad 
   sim_utils
   recipes_f-90_LEPP 
-  xsif 
-  pgplot 
   forest 
 )

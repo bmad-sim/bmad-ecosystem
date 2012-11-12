@@ -12,6 +12,5 @@ set (LINK_LIBS
   bmad 
   sim_utils
   recipes_f-90_LEPP 
-  xsif 
   forest 
 )
