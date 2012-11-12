@@ -26,9 +26,7 @@ type random_state_struct
   logical :: number_stored = .false.
   real(rp) :: h_saved = 0
   integer :: engine = pseudo_random$
-end type
-
-type random_params_struct
+  ! Params
   integer :: seed = 0
   real(sp) :: am
   integer :: gauss_converter = exact_gaussian$
@@ -36,16 +34,15 @@ type random_params_struct
   integer :: n_pts_per_sigma = 20
 end type
 
-type (random_state_struct), private, target, save :: ran_state(10)
-type (random_params_struct), private, target, save :: ran_param(10)
+type (random_state_struct), private, target, save :: ran_state_dflt
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss (harvest, ix_generator)
+! Subroutine ran_gauss (harvest, ran_state)
 !
-! Subroutine to return a gaussian distributed random number with unit sigma.
+! Routine to return a gaussian distributed random number with unit sigma.
 ! This routine uses the same algorithm as gasdev from Numerical Recipes.
 !
 ! Note: ran_gauss is an overloaded name for:
@@ -56,12 +53,11 @@ type (random_params_struct), private, target, save :: ran_param(10)
 ! Note: Use ran_engine to set which random number generator to use.
 ! Note: Use ran_gauss_converter to set which conversion routine to use.
 !
-! Modules needed:
+! Module needed:
 !   use random_mod
 !
 ! Input:
-!   ix_generator -- Integer, optional: Index of the random number generator.
-!                     Can be between 1 and 10. Default is 1. 
+!   ran_state -- random_state_struct, optional: Internal state.
 !                     See the ran_seed_put documentation for more details.
 !
 ! Output:
@@ -80,9 +76,9 @@ end interface
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !+
-! Subroutine ran_uniform (harvest, ix_generator)
+! Subroutine ran_uniform (harvest, ran_state)
 !
-! Subroutine to return a random number uniformly distributed in the 
+! Routine to return a random number uniformly distributed in the 
 ! interval [0, 1]. This routine uses the same algorithm as ran or sobseq
 ! from Numberical Recipes in Fortran90.
 ! See ran_engine.
@@ -98,8 +94,7 @@ end interface
 !   use random_mod
 !
 ! Input:
-!   ix_generator -- Integer, optional: Index of the random number generator.
-!                     Can be between 1 and 10. Default is 1. 
+!   ran_state -- random_state_struct, optional: Internal state.
 !                     See the ran_seed_put documentation for more details.
 !
 ! Output:
@@ -120,29 +115,29 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss_scaler (harvest, ix_generator, index_quasi)
+! Subroutine ran_gauss_scaler (harvest, ran_state, index_quasi)
 !
-! Subroutine to return a gaussian distributed random number with unit sigma.
+! Routine to return a gaussian distributed random number with unit sigma.
 ! See ran_gauss for more details.
 !
 ! Note: The index_quasi argument is used internally for the quasi-random number generator.
 !-
 
-subroutine ran_gauss_scaler (harvest, ix_generator, index_quasi)
+subroutine ran_gauss_scaler (harvest, ran_state, index_quasi)
 
 use nr, only: erf_s, erf
 
 implicit none
 
+type (random_state_struct), optional, target :: ran_state
 type (random_state_struct), pointer :: r_state
-type (random_params_struct), pointer :: r_param
 
 real(rp), intent(out) :: harvest
 real(rp) a(2), v1, v2, r, sigma_cut, fac
 real(rp), allocatable, save :: g(:)
 
-integer, optional :: ix_generator, index_quasi
-integer i, ss, ix, n_g_new, ix_gen
+integer, optional :: index_quasi
+integer i, ss, ix, n_g_new
 integer, save :: n_g = -1
 
 ! quasi-random must use the quick_gaussian since the exact_gaussian can
@@ -152,18 +147,20 @@ integer, save :: n_g = -1
 ! g is the normalized error function and maps from the 
 ! interval [0, 0.5] to [0, infinity].
 
-ix_gen = integer_option(1, ix_generator)
-r_state => ran_state(ix_gen)
-r_param => ran_param(ix_gen)
+if (present(ran_state)) then
+  r_state => ran_state
+else
+  r_state => ran_state_dflt
+endif
 
-if (r_state%engine == quasi_random$ .or. r_param%gauss_converter == quick_gaussian$) then
+if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussian$) then
 
-  if (r_param%gauss_sigma_cut > 0) then
-    sigma_cut = r_param%gauss_sigma_cut
+  if (r_state%gauss_sigma_cut > 0) then
+    sigma_cut = r_state%gauss_sigma_cut
   else 
     sigma_cut = 10
   endif
-  n_g_new = max(nint(sigma_cut * r_param%n_pts_per_sigma), 10)
+  n_g_new = max(nint(sigma_cut * r_state%n_pts_per_sigma), 10)
 
   if (n_g_new /= n_g) then
     n_g = n_g_new
@@ -176,7 +173,7 @@ if (r_state%engine == quasi_random$ .or. r_param%gauss_converter == quick_gaussi
     g(n_g) = 0.50000000001_rp
   endif
 
-  call ran_uniform_scaler (r, ix_gen, index_quasi)
+  call ran_uniform_scaler (r, r_state, index_quasi)
   if (r > 0.5) then
     r = r - 0.5
     ss = 1
@@ -199,13 +196,13 @@ do
   if (r_state%number_stored) then
     r_state%number_stored = .false.
     harvest = r_state%h_saved
-    if (r_param%gauss_sigma_cut < 0 .or. abs(harvest) < r_param%gauss_sigma_cut) return
+    if (r_state%gauss_sigma_cut < 0 .or. abs(harvest) < r_state%gauss_sigma_cut) return
   endif
 
   ! else we generate a number
 
   do
-    call ran_uniform(a, ix_gen)
+    call ran_uniform(a, r_state)
     v1 = 2*a(1) - 1
     v2 = 2*a(2) - 1
     r = v1**2 + v2**2
@@ -217,45 +214,46 @@ do
   r_state%number_stored = .true.
 
   harvest = v1 * r
-  if (r_param%gauss_sigma_cut < 0 .or. abs(harvest) < r_param%gauss_sigma_cut) return
+  if (r_state%gauss_sigma_cut < 0 .or. abs(harvest) < r_state%gauss_sigma_cut) return
 
 enddo
 
-end subroutine
+end subroutine ran_gauss_scaler
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss_vector (harvest, ix_generator)
+! Subroutine ran_gauss_vector (harvest, ran_state)
 !
-! Subroutine to return a gaussian distributed random number with unit sigma.
+! Routine to return a gaussian distributed random number with unit sigma.
 ! See ran_gauss for more details.
 !-
 
-subroutine ran_gauss_vector (harvest, ix_generator)
+subroutine ran_gauss_vector (harvest, ran_state)
 
 implicit none
 
+type (random_state_struct), optional, target :: ran_state
+
 real(rp), intent(out) :: harvest(:)
 integer i
-integer, optional :: ix_generator
 
 !
 
 do i = 1, size(harvest)
-  call ran_gauss_scaler (harvest(i), ix_generator, i)
+  call ran_gauss_scaler (harvest(i), ran_state, i)
 enddo
 
-end subroutine
+end subroutine ran_gauss_vector
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_engine (set, get, ix_generator)
+! Subroutine ran_engine (set, get, ran_state)
 !
-! Subroutine to set what random number generator algorithm is used.
+! Routine to set what random number generator algorithm is used.
 ! If this routine is never called then pseudo_random$ is used.
 ! With sobseq quasi-random numbers the maximum dimension is 6.
 !
@@ -267,27 +265,27 @@ end subroutine
 !                'pseudo' -> Uses ran from Numerical Recipies (F90).
 !                'quasi'  -> Uses sobseq from Numerical Recipes.
 !   get -- Character, optional: Get the current (before any set) random number engine. 
-!   ix_generator -- Integer, optional: Index of the random number generator.
-!                     Can be between 1 and 10. Default is 1. 
+!   ran_state -- random_state_struct, optional: Internal state.
 !                     See the ran_seed_put documentation for more details.
 !-
 
-subroutine ran_engine (set, get, ix_generator)
+subroutine ran_engine (set, get, ran_state)
 
 implicit none
 
+type (random_state_struct), optional, target :: ran_state
 type (random_state_struct), pointer :: r_state
-
-integer, optional :: ix_generator
-integer ix_gen
 
 character(*), optional :: set, get
 character(16) :: r_name = 'ran_engine'
 
-!
+! Set state to use
 
-ix_gen = integer_option(1, ix_generator)
-r_state => ran_state(ix_gen)
+if (present(ran_state)) then
+  r_state => ran_state
+else
+  r_state => ran_state_dflt
+endif
 
 ! get
 
@@ -314,15 +312,15 @@ if (present(set)) then
   end select
 endif
 
-end subroutine
+end subroutine ran_engine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut, ix_generator)
+! Subroutine ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut, ran_state)
 !
-! Subroutine to set what conversion routine is used for converting
+! Routine to set what conversion routine is used for converting
 ! uniformly distributed random numbers to Gaussian distributed random numbers.
 !
 ! If this routine is not called then exact_gaussian$ is used.
@@ -347,34 +345,38 @@ end subroutine
 !             'exact'
 !             'quick'  (Old deprecated: 'limited')
 !   set_sigma_cut -- Real(rp), optional: Sigma cutoff. Initially: sigma_cut = -1.
-!   ix_generator  -- Integer, optional: Index of the random number generator.
-!                      Can be between 0 and 10. 
-!                      Default is 0 which equals 1 on get and all generators on set.
-!                      See the ran_seed_put documentation for more details.
+!   ran_state -- random_state_struct, optional: Internal state.
+!                     See the ran_seed_put documentation for more details.
 !
 ! Output:
 !   get -- Character(*), optional: Get the current (before any set) gaussian converter.
 !   get_sigma_cut -- Real(rp), optional: Get the current (before andy set) sigma cutoff.
 !-
 
-subroutine ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut, ix_generator)
+subroutine ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut, ran_state)
 
 implicit none
 
-real(rp), optional :: set_sigma_cut, get_sigma_cut
+type (random_state_struct), optional, target :: ran_state
+type (random_state_struct), pointer :: r_state
 
-integer, optional :: ix_generator
-integer ix_gen
+real(rp), optional :: set_sigma_cut, get_sigma_cut
 
 character(*), optional :: set, get
 character(16) :: r_name = 'ran_gauss_converter'
 
+! Set state to use
+
+if (present(ran_state)) then
+  r_state => ran_state
+else
+  r_state => ran_state_dflt
+endif
+
 ! get converter
 
 if (present (get)) then
-  ix_gen = min(integer_option(1, ix_generator), 1)
-
-  select case (ran_param(ix_gen)%gauss_converter)
+  select case (r_state%gauss_converter)
   case (quick_gaussian$)
     get = 'quick'
   case (exact_gaussian$)
@@ -385,27 +387,17 @@ endif
 ! get sigma_cut
 
 if (present(get_sigma_cut)) then
-  ix_gen = min(integer_option(1, ix_generator), 1)
-  get_sigma_cut = ran_param(ix_gen)%gauss_sigma_cut
+  get_sigma_cut = r_state%gauss_sigma_cut
 endif
 
 ! set converter
 
 if (present(set)) then
-  ix_gen = integer_option(0, ix_generator)
   select case (set)
   case ('quick', 'limited')
-    if (ix_gen == 0) then
-      ran_param%gauss_converter = quick_gaussian$
-    else
-      ran_param(ix_gen)%gauss_converter = quick_gaussian$
-    endif
+    r_state%gauss_converter = quick_gaussian$
   case ('exact')
-    if (ix_gen == 0) then
-      ran_param%gauss_converter = exact_gaussian$
-    else
-      ran_param(ix_gen)%gauss_converter = exact_gaussian$
-    endif
+    r_state%gauss_converter = exact_gaussian$
   case default
     call out_io (s_error$, r_name, 'BAD RANDOM NUMBER GAUSS_CONVERTER NAME: ' // set)
   end select
@@ -414,29 +406,29 @@ endif
 ! set sigma_cut
 
 if (present(set_sigma_cut)) then
-  ix_gen = integer_option(0, ix_generator)
-  if (ix_gen == 0) then
-    ran_param%gauss_sigma_cut = set_sigma_cut
-  else
-    ran_param(ix_gen)%gauss_sigma_cut = set_sigma_cut
-  endif
+  r_state%gauss_sigma_cut = set_sigma_cut
 endif
 
-end subroutine
+end subroutine ran_gauss_converter
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_seed_put (seed, state, ix_generator)
+! Subroutine ran_seed_put (seed, ran_state)
 !
-! Subroutine to seed a random number generator. 
+! Routine to seed a random number generator. 
 !
-! There are 10 random number generators. The generator to seed is selected by ix_generator.
+! Independent random number "generators" are implemented by supplying a ran_state argument.
+! The actual ran_state argument for independent generators must be different.
+! If the ran_state arg is not present, the default generator is used.
+!
 ! Each generator is independent of the others. That is the sequence of "random" numbers
 ! generated with a given generator is unaffected by usage of the other generators.
 ! Multiple generators are useful in cases where you want to maintain the same random number 
-! sequence in one part of the program independent of other parts of the program.
+! sequence in one part of the program independent of other parts of the program or
+! when parallel computing is used.
+!
 ! For example, suppose you were tracking particles whose initial position was determined
 ! with a random number generator. Additionally suppose that these particles could interact 
 ! with the residual gas background and that this interaction is modeled using a random
@@ -449,8 +441,6 @@ end subroutine
 !
 ! Note: The seed is only used with the pseudo_random$ engine.
 !
-! Note: If state is given, that will be used instead of seed
-! 
 ! Note: Use the subroutine ran_seed_get(seed) to get the seed used.
 !
 ! Modules needed:
@@ -459,70 +449,60 @@ end subroutine
 ! Intput:
 !   seed  -- Integer, optional: Seed number. If seed = 0 then a 
 !              seed will be choosen based upon the system clock.
-!   state -- random_state_struct, optional: Internal state of the random engine.
-!   ix_generator -- Integer, optional: Index of the random number generator.
-!                     Can be between 1 and 10. Default is 1. 
+!   ran_state -- random_state_struct, optional: Internal state.
 !-
 
-subroutine ran_seed_put (seed, state, ix_generator)
+subroutine ran_seed_put (seed, ran_state)
 
 use nr, only: sobseq
 
 implicit none
 
-type (random_state_struct), optional :: state
 type (random_state_struct), pointer :: r_state
+type (random_state_struct), optional, target :: ran_state
 
 integer, optional :: seed
 integer v(10)
-integer, optional :: ix_generator
-integer, pointer :: my_seed
-integer ix_gen
 
 real(rp) dum(2)
 
-!
+! Set state to use
 
-ix_gen = integer_option(1, ix_generator)
-r_state => ran_state(ix_gen)
-my_seed => ran_param(ix_gen)%seed
+if (present(ran_state)) then
+  r_state => ran_state
+else
+  r_state => ran_state_dflt
+endif
 
 ! Quasi-random number generator init
 
 call sobseq (dum, 0)
 
-ran_param(ix_gen)%am = nearest(1.0,-1.0) / im
-
-! Init Random number generator with state
-
-if (present(state)) then
-  r_state = state
-  return
-endif
+r_state%am = nearest(1.0,-1.0) / im
 
 ! init
 
 if (seed == 0) then
   call date_and_time (values = v)
-  my_seed = v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
+  r_state%seed = v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
 else
-  my_seed = seed
+  r_state%seed = seed
 endif
 
-r_state%iy = ior(ieor(888889999, abs(my_seed)), 1)
-r_state%ix = ieor(777755555, abs(my_seed))
+r_state%iy = ior(ieor(888889999, abs(r_state%seed)), 1)
+r_state%ix = ieor(777755555, abs(r_state%seed))
 
 r_state%number_stored = .false.
 
-end subroutine
+end subroutine ran_seed_put
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_seed_get (seed, state, ix_generator)
+! Subroutine ran_seed_get (seed, ran_state)
 ! 
-! Subroutine to return the seed used for the random number generator.
+! Routine to return the seed used for the random number generator.
 !
 ! Note: The internal state can be used to put the pseudo-random
 ! number generator into a known state. See ran_seed_put
@@ -531,63 +511,96 @@ end subroutine
 !   use random_mod
 !
 ! Input:
-!   ix_generator -- Integer, optional: Index of the random number generator.
-!                     Can be between 1 and 10. Default is 1. 
+!   ran_state -- random_state_struct, optional: Internal state.
 !                     See the ran_seed_put documentation for more details.
 !
 ! Output:
-!   seed  -- Integer, optional: Random number seed used.
-!   state -- random_state_struct, optional: Internal state of the random engine.
+!   seed      -- Integer, optional: Random number seed used.
+!   ran_state -- random_state_struct, optional: Internal state.
 !-
 
-subroutine ran_seed_get (seed, state, ix_generator)
+subroutine ran_seed_get (seed, ran_state)
 
 implicit none
 
-type (random_state_struct), optional :: state
+type (random_state_struct), optional, target :: ran_state
+type (random_state_struct), pointer :: r_state
 
 integer, optional :: seed
-integer, optional :: ix_generator
-integer ix_gen
 
+! Set state to use
+
+if (present(ran_state)) then
+  r_state => ran_state
+else
+  r_state => ran_state_dflt
+endif
 
 !
 
-ix_gen = integer_option(1, ix_generator)
+if (present(seed)) seed = r_state%seed
 
-if (present(seed)) seed = ran_param(ix_gen)%seed
-if (present(state)) state = ran_state(ix_gen)
-
-end subroutine
+end subroutine ran_seed_get 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_uniform_scaler (harvest, ix_generator, index_quasi)
+! Subroutine ran_default_state (set_state, get_state)
 !
-! Subroutine to return a random number uniformly distributed in the 
+! Routine to set or get the state of the default random number generator.
+! See the ran_seed_put documentation for more details
+!
+! Module needed:
+!   use random_mod
+!
+! Input:
+!   set_state -- random_state_struct, optional: State to set the default generator to.
+!
+! Output:
+!   get_state -- random_state_struct, optional: Returns the state of the default generator.
+!-
+
+subroutine ran_default_state (set_state, get_state)
+
+implicit none
+
+type (random_state_struct), optional :: set_state, get_state
+
+!
+
+if (present(set_state)) ran_state_dflt = set_state
+if (present(get_state)) get_state = ran_state_dflt
+
+end subroutine ran_default_state
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine ran_uniform_scaler (harvest, ran_state, index_quasi)
+!
+! Routine to return a random number uniformly distributed in the 
 ! interval [0, 1]. 
 ! See ran_uniform for more details.
 !
 ! Note: The index_quasi argument is used internally for the quasi-random number generator.
 !-
 
-subroutine ran_uniform_scaler (harvest, ix_generator, index_quasi)
+subroutine ran_uniform_scaler (harvest, ran_state, index_quasi)
 
 use nr, only: sobseq
 
 implicit none
 
 type (random_state_struct), pointer :: r_state
+type (random_state_struct), optional, target :: ran_state
 
 real(rp), intent(out) :: harvest
 real(rp), save :: r(6)
 
 integer(kr4b) k, ix_q
 integer, optional :: index_quasi
-integer, optional :: ix_generator
-integer ix_gen
 
 
 integer(kr4b), parameter :: ia = 16807
@@ -595,14 +608,17 @@ integer(kr4b), parameter :: iq = 127773, ir = 2836
 
 character :: r_name = 'ran_uniform_scaler'
 
-!
+! Set state to use
 
-ix_gen = integer_option(1, ix_generator)
-r_state => ran_state(ix_gen)
+if (present(ran_state)) then
+  r_state => ran_state
+else
+  r_state => ran_state_dflt
+endif
 
 ! If r_state%iy < 0 then the random number generator has never bee initialized.
 
-if (r_state%iy < 0) call ran_seed_put(ran_param(ix_gen)%seed)
+if (r_state%iy < 0) call ran_seed_put(r_state%seed)
 
 ! quasi-random
 
@@ -630,36 +646,37 @@ if (r_state%iy < 0) r_state%iy = r_state%iy + im
 
 ! Combine the two generators with masking to ensure nonzero value.
 
-harvest = ran_param(ix_gen)%am * ior(iand(im, ieor(r_state%ix, r_state%iy)), 1) 
+harvest = r_state%am * ior(iand(im, ieor(r_state%ix, r_state%iy)), 1) 
 
-end subroutine
+end subroutine ran_uniform_scaler
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_uniform_vector (harvest, ix_generator)
+! Subroutine ran_uniform_vector (harvest, ran_state)
 !
-! Subroutine to return a vector of random numbers uniformly distributed in the 
+! Routine to return a vector of random numbers uniformly distributed in the 
 ! interval [0, 1]. 
 ! See ran_uniform for more details.
 !-
 
-subroutine ran_uniform_vector (harvest, ix_generator)
+subroutine ran_uniform_vector (harvest, ran_state)
 
 implicit none
 
+type (random_state_struct), optional, target :: ran_state
+
 real(rp), intent(out) :: harvest(:)
-integer, optional :: ix_generator
 integer i
 
 !
 
 do i = 1, size(harvest)
-  call ran_uniform_scaler (harvest(i), ix_generator, i)
+  call ran_uniform_scaler (harvest(i), ran_state, i)
 enddo
 
-end subroutine
+end subroutine ran_uniform_vector
 
 end module
 
