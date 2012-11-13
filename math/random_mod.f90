@@ -50,7 +50,7 @@ type (random_state_struct), private, target, save :: ran_state_dflt
 ! This routine uses the same algorithm as gasdev from Numerical Recipes.
 !
 ! Note: ran_gauss is an overloaded name for:
-!     ran_gauss_scaler   ! harvest is a scaler
+!     ran_gauss_scalar   ! harvest is a scalar
 !     ran_gauss_vector   ! harvest is a 1-D array.
 !
 ! Note: Use ran_seed_put for initialization.
@@ -72,7 +72,7 @@ type (random_state_struct), private, target, save :: ran_state_dflt
 !-
 
 interface ran_gauss
-  module procedure ran_gauss_scaler
+  module procedure ran_gauss_scalar
   module procedure ran_gauss_vector
 end interface
 
@@ -88,7 +88,7 @@ end interface
 ! See ran_engine.
 !
 ! Note: ran_uniform is an overloaded name for:
-!     ran_uniform_scaler   ! harvest is a scaler
+!     ran_uniform_scalar   ! harvest is a scalar
 !     ran_uniform_vector   ! harvest is a 1-D array.
 !
 ! Note: Use ran_seed_put for initialization.
@@ -109,7 +109,7 @@ end interface
 !-
 
 interface ran_uniform
-  module procedure ran_uniform_scaler
+  module procedure ran_uniform_scalar
   module procedure ran_uniform_vector
 end interface
 
@@ -119,7 +119,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss_scaler (harvest, ran_state, index_quasi)
+! Subroutine ran_gauss_scalar (harvest, ran_state, index_quasi)
 !
 ! Routine to return a gaussian distributed random number with unit sigma.
 ! See ran_gauss for more details.
@@ -127,7 +127,7 @@ contains
 ! Note: The index_quasi argument is used internally for the quasi-random number generator.
 !-
 
-subroutine ran_gauss_scaler (harvest, ran_state, index_quasi)
+subroutine ran_gauss_scalar (harvest, ran_state, index_quasi)
 
 use nr, only: erf_s, erf
 
@@ -177,7 +177,7 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
     g(n_g) = 0.50000000001_rp
   endif
 
-  call ran_uniform_scaler (r, r_state, index_quasi)
+  call ran_uniform_scalar (r, r_state, index_quasi)
   if (r > 0.5) then
     r = r - 0.5
     ss = 1
@@ -222,7 +222,7 @@ do
 
 enddo
 
-end subroutine ran_gauss_scaler
+end subroutine ran_gauss_scalar
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -246,7 +246,7 @@ integer i
 !
 
 do i = 1, size(harvest)
-  call ran_gauss_scaler (harvest(i), ran_state, i)
+  call ran_gauss_scalar (harvest(i), ran_state, i)
 enddo
 
 end subroutine ran_gauss_vector
@@ -579,7 +579,7 @@ end subroutine ran_default_state
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_uniform_scaler (harvest, ran_state, index_quasi)
+! Subroutine ran_uniform_scalar (harvest, ran_state, index_quasi)
 !
 ! Routine to return a random number uniformly distributed in the 
 ! interval [0, 1]. 
@@ -588,7 +588,7 @@ end subroutine ran_default_state
 ! Note: The index_quasi argument is used internally for the quasi-random number generator.
 !-
 
-subroutine ran_uniform_scaler (harvest, ran_state, index_quasi)
+subroutine ran_uniform_scalar (harvest, ran_state, index_quasi)
 
 implicit none
 
@@ -604,7 +604,7 @@ integer, optional :: index_quasi
 integer(kr4b), parameter :: ia = 16807
 integer(kr4b), parameter :: iq = 127773, ir = 2836
 
-character :: r_name = 'ran_uniform_scaler'
+character :: r_name = 'ran_uniform_scalar'
 
 ! Set state to use
 
@@ -646,7 +646,7 @@ if (r_state%iy < 0) r_state%iy = r_state%iy + im_nr_ran
 
 harvest = r_state%am * ior(iand(im_nr_ran, ieor(r_state%ix, r_state%iy)), 1) 
 
-end subroutine ran_uniform_scaler
+end subroutine ran_uniform_scalar
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -671,7 +671,7 @@ integer i
 !
 
 do i = 1, size(harvest)
-  call ran_uniform_scaler (harvest(i), ran_state, i)
+  call ran_uniform_scalar (harvest(i), ran_state, i)
 enddo
 
 end subroutine ran_uniform_vector
