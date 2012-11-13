@@ -2731,7 +2731,7 @@ end subroutine
 ! Input:
 !   expression     -- Character(*): Arithmetic expression.
 !   n_size         -- Integer: Size of the value array. If the expression
-!                      is a scaler then the value will be spread.
+!                      is a scalar then the value will be spread.
 !                      If n_size = 0, the natural size is determined by expression is used.
 !   use_good_user  -- Logical: Use the good_user logical in evaluating good(:)
 !   print_err      -- Logical, optional: If False then supress evaluation error messages.
