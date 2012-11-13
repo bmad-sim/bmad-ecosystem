@@ -14,22 +14,22 @@ end interface
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function fscaler2scaler (f_scaler, n) result (c_scaler)
+! Function fscalar2scalar (f_scalar, n) result (c_scalar)
 !
-! Overloaded function to translate a scaler from Fortran form to C form.
+! Overloaded function to translate a scalar from Fortran form to C form.
 ! Overloads:
-!   bool_fscaler2scaler (bool_f_scaler, n) result (bool_c_scaler)
+!   bool_fscalar2scalar (bool_f_scalar, n) result (bool_c_scalar)
 !
 ! Input:
-!   bool_f_scaler  -- Logical: Input scaler.
-!   n              -- Integer: 0 if actual scaler is not allocated, 1 otherwise.
+!   bool_f_scalar  -- Logical: Input scalar.
+!   n              -- Integer: 0 if actual scalar is not allocated, 1 otherwise.
 !
 ! Output:
-!   bool_c_scaler  -- Logical(c_bool): Output scaler
+!   bool_c_scalar  -- Logical(c_bool): Output scalar
 !-
 
-interface fscaler2scaler
-  module procedure bool_fscaler2scaler
+interface fscalar2scalar
+  module procedure bool_fscalar2scalar
 end interface
 
 !-----------------------------------------------------------------------------
@@ -602,25 +602,25 @@ end subroutine to_f_str
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function bool_fscaler2scaler (f_scaler, n) result (c_scaler)
+! Function bool_fscalar2scalar (f_scalar, n) result (c_scalar)
 !
 ! Function transform from Fortran to C.
-! See fscaler2scaler for more details
+! See fscalar2scalar for more details
 !-
 
-function bool_fscaler2scaler (f_scaler, n) result (c_scaler)
+function bool_fscalar2scalar (f_scalar, n) result (c_scalar)
 
 implicit none
 
 integer n, i
-logical f_scaler
-logical(c_bool) c_scaler
+logical f_scalar
+logical(c_bool) c_scalar
 
-c_scaler = 0
+c_scalar = 0
 if (n == 0) return
-c_scaler = c_logic(f_scaler)
+c_scalar = c_logic(f_scalar)
 
-end function bool_fscaler2scaler
+end function bool_fscalar2scalar
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
