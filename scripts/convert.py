@@ -11,8 +11,8 @@ for arg in sys.argv[1:]:
 
   for line in in_file.readlines(): 
 
-    if 'n_key' in line:
-      line = line.replace('n_key', 'n_key$')
+    if 'scaler' in line:
+      line = line.replace('scaler', 'scalar')
       found = True
 
     out_file.write(line)

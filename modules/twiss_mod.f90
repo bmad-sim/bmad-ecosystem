@@ -60,7 +60,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
   real(rp) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
   real(rp) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
   real(rp) gamma, det_H, det,  trace_t0_diff, denom
-  real(rp) scaler, tol
+  real(rp) scalar, tol
   logical type_out
   character(20), parameter :: r_name = 'mat_symp_decouple'
 
@@ -111,8 +111,8 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
 
 ! Construct C matrix (MGB Eq. 13 with Eq. 14) and symplectic conjugate.
 
-  scaler = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
-  c = scaler * H
+  scalar = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
+  c = scalar * H
   call mat_symp_conj (c, c_conj)
 
 ! Compute matrix V and inverse V_INV (MGB Eq. 10)
