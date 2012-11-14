@@ -143,13 +143,13 @@ do
   
 enddo
 
+! set the z coordinate correctly
+orb_end%vec(5) = orb_end%beta * c_light * (start%vec(5)/(start%beta*c_light) + ele%value(delta_ref_time$) - (orb_end%t - start%t))
+
 ! back to lab coords
 
 call offset_particle (ele, orb_end, param%particle, unset$, set_canonical = .false., &
                                                             set_hvkicks = .false., set_multipoles = .false.)
-
-! set the z coordinate correctly
-orb_end%vec(5) = orb_end%beta * c_light * (start%vec(5)/(start%beta*c_light) + ele%value(delta_ref_time$) - (orb_end%t - start%t))
 
 err_flag = .false.
 
