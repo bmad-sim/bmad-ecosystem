@@ -228,7 +228,7 @@ t = t + dt
 
 ! 2) Evaluate the fields.
 
-call em_field_calc (ele, param, s+ds2, t+dt, end, .true., field)
+call em_field_calc (ele, param, s+ds2, t, end, .true., field)
 
 ! 2.5) Push the spin 1/2 step
 ! This uses the momentum at the beginning and the fields at (ds2)
