@@ -784,6 +784,9 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   case ('TK')
     call plsdev ('tk')
 
+  case ('QT')
+    call plsdev ('qtwidget')
+
   case ('PS')
     call plsori(1)   ! portrait mode
     call plsdev ('psc')
@@ -812,7 +815,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
 ! Set output file name  
 
-  if (page_type /= 'X' .and. page_type /= 'TK') then
+  if (page_type /= 'X' .and. page_type /= 'TK' .and. page_type /= 'QT') then
      call plsfnam (trim(plot_file))
   endif
 
@@ -822,7 +825,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Set size of x-window.
 ! Work around for bug in plplot-5.9.5 is to set the geometry
 
-  if (page_type == 'X' .or. page_type == 'TK') then
+  if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
     ix_len = nint(85*x_len)
     iy_len = nint(85*y_len)
     call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
@@ -845,7 +848,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
   if (page_type == 'X') then 
     call plschr(0.7 * point_to_mm_conv, 1.0_rp)
-  elseif (page_type == 'TK') then
+  elseif (page_type == 'TK' .or. page_type == 'QT') then
     call plschr(point_to_mm_conv, 1.0_rp)
   else
     call plschr(point_to_mm_conv, 1.0_rp)
@@ -870,7 +873,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   pl_com%page_scale = 1    ! real_option(1.0_rp, page_scale)
   pl_com%page_type = page_type
 
-  if (page_type == 'X' .or. page_type == 'TK') then
+  if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
     pl_com%x_inch_to_mm = pl_com%page_scale * x2i / x_len
     pl_com%y_inch_to_mm = pl_com%page_scale * y2i / y_len
     x_page = x_len

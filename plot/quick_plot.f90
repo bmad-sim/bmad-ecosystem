@@ -3209,6 +3209,7 @@ end subroutine qp_draw_line
 !                 TYPE = 'PS'    --> To create a Color PostScript file.
 !                 TYPE = 'PS-L'  --> PostScript w/ landscape page orientation.
 !                 TYPE = 'TK'    --> Open a tk window. plplot only. Will map to X for PGPLOT.
+!                 TYPE = 'QT'    --> Open a qt window. plplot only. Will map to X for PGPLOT.
 !                 TYPE = 'X'     --> Open an X-window.
 !   x_len     -- Real(rp), optional: Page horizontal width before scaling. Default: See above.
 !   y_len     -- Real(rp), optional: Page vertical width before scaling. Default: See above.
@@ -3255,7 +3256,8 @@ landscape = .false.
 if (index(qp_com%page_type, '-L') /= 0) landscape = .true.
 
 output_to_file = .true.
-if (qp_com%page_type == 'X' .or. qp_com%page_type == 'TK') output_to_file = .false.
+if (qp_com%page_type == 'X' .or. qp_com%page_type == 'TK' .or. &
+                                 qp_com%page_type == 'QT') output_to_file = .false.
 
 ! set the name for the output plot file.
 
