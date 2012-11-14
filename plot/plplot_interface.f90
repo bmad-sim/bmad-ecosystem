@@ -279,7 +279,7 @@ subroutine qp_set_line_width_basic (line_width)
   implicit none
   integer line_width
 
-  call plwid (line_width) ! set line width
+  call plwid (line_width/2) ! set line width
 
   !Save this state
   pl_com%line_width = line_width
@@ -363,7 +363,7 @@ subroutine qp_set_char_size_basic (height)
   ! call plschr(pl_com%default_cs, height)
   h = height
   if (pl_com%page_type(1:2) == 'X') then
-    h = h * 0.7
+    !do nothing. Old: h = h ! !0.7
   elseif (pl_com%page_type == 'TK') then
     h = h * 1.3    
   elseif (pl_com%page_type(1:2) == 'PS') then
@@ -842,8 +842,8 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
     ix_len = nint(85*x_len)
     iy_len = nint(85*y_len)
     call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
-    write (geom, '(i0, a, i0, a)') ix_len, 'x', iy_len, '+10+10'
-    call plsetopt ("geometry", trim(geom))
+    !write (geom, '(i0, a, i0, a)') ix_len, 'x', iy_len, '+10+10'
+    !call plsetopt ("geometry", trim(geom))
   endif
 
 ! Initialize plplot
