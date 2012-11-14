@@ -361,7 +361,7 @@ if (use_cache .or. init_cache) then
           c_pt%dgy_dy = -ele2%value(k1$)
         endif
 
-        call multipole_ele_to_ab (ele, branch%param%particle, .false., has_nonzero_pole, a_pole, b_pole)
+        call multipole_ele_to_ab (ele2, branch%param%particle, .false., has_nonzero_pole, a_pole, b_pole)
         if (has_nonzero_pole) then
           do ip = 0, ubound(a_pole, 1)
             if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
