@@ -114,7 +114,7 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
       h = h * 0.73
     end select
 
-    if (pg_com%page_type == 'X' .or. pg_com%page_type == 'TK') then
+    if (pg_com%page_type == 'X' .or. pg_com%page_type == 'TK' .or. pg_com%page_type == 'QT') then
       select case (symbol_type)
       case (4)           ! circle$
         h = h * 0.89
@@ -554,7 +554,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Set plot type
 ! GIF does not work well so create a ps file and convert to gif on closing.
 
-  if (page_type == 'X' .or. page_type == 'TK') then
+  if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
 #if defined (CESR_WINCVF)
     iw = pgopen ('/WV')
 #else
