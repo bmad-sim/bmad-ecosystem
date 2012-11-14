@@ -446,7 +446,7 @@ end function
 subroutine qp_draw_text_basic (text, len_text, x0, y0, angle, justify)
   implicit none
   character(*) text
-  character(len(text)) text2
+  character(len(text)+20) text2
   integer len_text, i, ix
   real(rp) x0, y0, angle, justify, dx, dy, x0m, y0m, d, h, t_len
   real(rp), parameter :: pi=3.141592
@@ -454,6 +454,19 @@ subroutine qp_draw_text_basic (text, len_text, x0, y0, angle, justify)
   ! plplot uses '#' for the meta character instead of pgplot's '\'
 
   text2 = text
+
+  do
+    ix = index(text2, '\A')
+    if (ix == 0) exit
+    text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
+  enddo
+
+  do
+    ix = index(text2, '\x')
+    if (ix == 0) exit
+    text2 = text2(1:ix-1) // 'x' // text2(ix+2:)
+  enddo
+
   do
     ix = index(text2, '\') ! '
     if (ix == 0) exit
