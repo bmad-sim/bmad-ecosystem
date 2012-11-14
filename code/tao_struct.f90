@@ -218,7 +218,7 @@ end type
 ! plot page info.
 
 type tao_plotting_struct
-  character(8) :: plot_display_type = 'TK'       ! 'X' or 'TK'
+  character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                   ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
