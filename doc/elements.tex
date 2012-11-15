@@ -3,24 +3,24 @@
 \index{element|hyperbf}
 
 A lattice is made up of a collection of elements --- quadrupoles,
-bends, etc. This chapter discusses the various classes of elements
+bends, etc. This chapter discusses the various types of elements
 available in \bmad.
 
 \index{MAD}
-Most element classes available in \mad are provided in \bmad.
-Additionally, \bmad provides a number of element classes that are not
+Most element types available in \mad are provided in \bmad.
+Additionally, \bmad provides a number of element types that are not
 available in \mad.  A word of caution: In some cases where both \mad
-and \bmad provide the same element class, there will be an overlap of
+and \bmad provide the same element type, there will be an overlap of
 the attributes available but the two sets of attributes will not be
-the same.  The list of element classes known to \bmad is shown in
+the same.  The list of element types known to \bmad is shown in
 Table~\ref{t:particle.classes}, \ref{t:photon.classes}, and
 \ref{t:control.classes}.  Table~\ref{t:particle.classes} lists the
 elements suitable for use with relativistic particles,
 Table~\ref{t:photon.classes} which lists the elements suitable for use
 with photons, and finally Table~\ref{t:control.classes} lists the
-element classes that can be used for parameter control of other
-elements.  Note that some classes are suitable for both particle and
-photon use.
+\vn{controller} element types that can be used for parameter control
+of other elements. Note that some element types are suitable for both
+particle and photon use.
 
 \begin{table}[ht]
 \centering
@@ -40,14 +40,15 @@ photon use.
   Floor_Position    & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \HH
   HKicker           & \ref{s:hvkicker}    &  Sbend             & \ref{s:bend}     \HH
   Hybrid            & \ref{s:hybrid}      &  Sextupole         & \ref{s:sex}      \HH
-  Instrument        & \ref{s:monitor}     &  Solenoid          & \ref{s:sol}      \HH
-  Kicker            & \ref{s:kicker}      &  Sol_Quad          & \ref{s:sq}       \HH
-  Lcavity           & \ref{s:lcav}        &  Taylor            & \ref{s:tay}      \HH
-  Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \HH  
-  Match             & \ref{s:match}       &  Wiggler           & \ref{s:wiggler}  \HH
+  Init_Ele          & \ref{s:init.ele}    &  Solenoid          & \ref{s:sol}      \HH
+  Instrument        & \ref{s:monitor}     &  Sol_Quad          & \ref{s:sq}       \HH
+  Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:tay}      \HH
+  Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \HH  
+  Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \HH
+  Match             & \ref{s:match}       &                    &                  \HH
 \end{tabular}
 }
-\caption{Table of element classes suitable for use with relativistic particles.}
+\caption{Table of element types suitable for use with relativistic particles.}
 \label{t:particle.classes}\center
 \end{table}
 
@@ -56,17 +57,17 @@ photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}      & {\it Section}         & {\it Element}      & {\it Section}      \HH
-  Branch             & \ref{s:branch}        &  Match             & \ref{s:match}      \HH
-  Capillary          & \ref{s:capillary}     &  Monitor           & \ref{s:monitor}    \HH 
-  Crystal            & \ref{s:crystal}       &  Mirror            & \ref{s:mirror}     \HH
-  Custom             & \ref{s:custom}        &  Multilayer_Mirror & \ref{s:multilayer} \HH
-  Drift              & \ref{s:drift}         &  Patch             & \ref{s:patch}      \HH
-  Floor_Position     & \ref{s:floor.ele}     &  Photon_Branch     & \ref{s:branch}     \HH 
+  Branch             & \ref{s:branch}        &  Marker            & \ref{s:mark}       \HH
+  Capillary          & \ref{s:capillary}     &  Match             & \ref{s:match}      \HH
+  Crystal            & \ref{s:crystal}       &  Monitor           & \ref{s:monitor}    \HH 
+  Custom             & \ref{s:custom}        &  Mirror            & \ref{s:mirror}     \HH
+  Drift              & \ref{s:drift}         &  Multilayer_Mirror & \ref{s:multilayer} \HH
+  Floor_Position     & \ref{s:floor.ele}     &  Patch             & \ref{s:patch}      \HH
+  Init_Ele           & \ref{s:init.ele}      &  Photon_Branch     & \ref{s:branch}     \HH
   Instrument         & \ref{s:monitor}       &  Pipe              & \ref{s:monitor}    \HH
-  Marker             & \ref{s:mark}          &                    &                    \HH
 \end{tabular}
 }
-\caption{Table of element classes suitable for use with photons.}
+\caption{Table of element types suitable for use with photons.}
 \label{t:photon.classes}\center
 \end{table}
 
@@ -75,11 +76,11 @@ photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \HH
-  Group          & \ref{s:group}     &   Init_Ele     & \ref{s:init.ele} \HH
+  Group          & \ref{s:group}     &                &                  \HH
   Girder         & \ref{s:girder}    &   Overlay      & \ref{s:overlay}  \HH
 \end{tabular}
 }
-\caption{Table of element classes not directly used for tracking.}
+\caption{Table of controller elements.}
 \label{t:control.classes}\center
 \end{table}
 
@@ -1170,7 +1171,7 @@ lattice file but are created by a program, usually for speed purposes.
 An \vn{init_ele} element, named \vn{BEGINNING}, is placed at the
 beginning of every branch (\sref{s:branching}) of a lattice to mark
 the start of the branch. The \vn{init_ele} always has element index 0
-(\sref{s:use}).
+(\sref{c:lat.concepts}).
 
 \vn{init_ele} attributes are generally set using either \vn{parameter}
 (\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statements.
