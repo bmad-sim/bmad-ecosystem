@@ -35,7 +35,7 @@ real(rp) :: delta_factor(4) = (/ 10, -10, 1, -1 /)
 character(10) :: set_char(4) = &
             (/'!@#$%^&*()', 'QWERTYUIOP', '1234567890', 'qwertyuiop' /)
 
-character(1) :: char, ignore_space(1) = (/ ' ' /)
+character(1) :: char
 character(2) char2
 character(80) this_file, line
 character(40) :: this_opt, str, r_name = 'tao_single_mode'
@@ -153,8 +153,8 @@ case default
 
 case (achar(27))
 
-  call get_a_char (char2(1:1), .false.)
-  call get_a_char (char2(2:2), .false.)
+  call tao_get_user_input (char2(1:1), wait_flag = .false.)
+  call tao_get_user_input (char2(2:2), wait_flag = .false.)
 
   select case (char2)
 
@@ -190,7 +190,7 @@ case (achar(27))
 
 case ('-')
 
-  call get_a_char (char, .true., ignore_space)
+  call tao_get_user_input (char, wait_flag = .true.)
 
   select case (char)
 
@@ -215,7 +215,7 @@ case ('-')
 
 case ('=')
 
-  call get_a_char (char, .true., ignore_space)
+  call tao_get_user_input (char, wait_flag = .true.)
 
   select case (char)
 
@@ -246,8 +246,8 @@ case ('=')
 
   case (achar(27))
 
-    call get_a_char (char2(1:1), .false.)
-    call get_a_char (char2(2:2), .false.)
+    call tao_get_user_input (char2(1:1), wait_flag = .false.)
+    call tao_get_user_input (char2(2:2), wait_flag = .false.)
 
     select case (char2)
 
@@ -284,7 +284,7 @@ case ('=')
 
 case ('a')
 
-  call get_a_char (char, .true., ignore_space)
+  call tao_get_user_input (char, wait_flag = .true.)
 
   select case (char)
 
@@ -293,8 +293,8 @@ case ('a')
 
   case (achar(27))
 
-    call get_a_char (char2(1:1), .false.)
-    call get_a_char (char2(2:2), .false.)
+    call tao_get_user_input (char2(1:1), wait_flag = .false.)
+    call tao_get_user_input (char2(2:2), wait_flag = .false.)
 
     select case (char2)
 
@@ -337,7 +337,7 @@ case ('a')
 
 case ('s')
 
-  call get_a_char (char, .true., ignore_space)
+  call tao_get_user_input (char, wait_flag = .true.)
 
   select case (char)
 
@@ -346,8 +346,8 @@ case ('s')
 
   case (achar(27))
 
-    call get_a_char (char2(1:1), .false.)
-    call get_a_char (char2(2:2), .false.)
+    call tao_get_user_input (char2(1:1), wait_flag = .false.)
+    call tao_get_user_input (char2(2:2), wait_flag = .false.)
 
     select case (char2)
 
@@ -391,7 +391,7 @@ case ('s')
 
 case ('z')
 
-  call get_a_char (char, .true., ignore_space)
+  call tao_get_user_input (char, wait_flag = .true.)
 
   select case (char)
 
@@ -400,8 +400,8 @@ case ('z')
 
   case (achar(27))
 
-    call get_a_char (char2(1:1), .false.)
-    call get_a_char (char2(2:2), .false.)
+    call tao_get_user_input (char2(1:1), wait_flag = .false.)
+    call tao_get_user_input (char2(2:2), wait_flag = .false.)
 
     select case (char2)
 
@@ -445,7 +445,7 @@ case ('z')
 
 case ('/')
 
-  call get_a_char (char, .true., ignore_space)
+  call tao_get_user_input (char, wait_flag = .true.)
 
   select case (char)
 

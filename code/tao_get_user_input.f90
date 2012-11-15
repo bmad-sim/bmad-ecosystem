@@ -1,19 +1,18 @@
-#include "CESR_platform.inc"
-                                    
 !+
-! Subroutine tao_get_user_input (cmd_line, prompt_str)
+! Subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag)
 !
 ! Subroutine to get input from the terminal.
 !
 ! Input:
 !   prompt_str -- Character(*), optional: Primpt string to print at terminal. If not
 !                   present then s%global%prompt_string will be used.
+!   wait_flag  -- logical, optional: Used for single mode: Wait state for get_a_char call.
 !
 ! Output:
 !   cmd_line -- Character(*): Command line from the user.
 !-
 
-subroutine tao_get_user_input (cmd_line, prompt_str)
+subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag)
 
 use tao_mod, dummy => tao_get_user_input
 use input_mod
@@ -39,9 +38,10 @@ character(80) prompt_string
 character(5) :: sub_str(9) = (/ '[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
                             '[[6]]', '[[7]]', '[[8]]', '[[9]]' /)
 character(40) tag, name
-character(200), save :: saved_line
+character(200), save :: saved_line, single_mode_buffer = ''
 character(40) :: r_name = 'tao_get_user_input'
 
+logical, optional :: wait_flag
 logical err, wait, flush
 logical, save :: init_needed = .true.
 
@@ -60,10 +60,22 @@ endif
 ! If single character input wanted then...
 
 if (tao_com%single_mode) then
-  call get_a_char (cmd_line(1:1), .true., (/ ' ' /))  ! ignore blanks
-  tao_com%cmd_from_cmd_file = .false.
+  if (s%global%wait_for_CR_in_single_mode) then
+    if (single_mode_buffer == '') then
+      cmd_line(1:1) = single_mode_buffer(1:1)
+      single_mode_buffer = single_mode_buffer(2:)
+    else
+      accept *, single_mode_buffer
+    endif
+  else
+    wait = logic_option(.true., wait_flag)
+    call get_a_char (cmd_line(1:1), wait, [' '])  ! ignore blanks
+    tao_com%cmd_from_cmd_file = .false.
+  endif
   return
 endif
+
+single_mode_buffer = '' ! Reset buffer when not in single mode
 
 ! check if we still have something from a line with multiple commands
 
