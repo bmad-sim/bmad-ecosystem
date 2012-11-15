@@ -223,6 +223,7 @@ case (elseparator$)
    
   call offset_particle (ele, end_orb, param%particle, set$, .false., set_hvkicks = .false.) 
   call transfer_ele(ele, temp_ele, .true.)
+  call zero_ele_offsets(temp_ele)
   temp_ele%value(hkick$) = temp_ele%value(hkick$) / (1. + end_orb%vec(6))
   temp_ele%value(vkick$) = temp_ele%value(vkick$) / (1. + end_orb%vec(6))
 
@@ -778,9 +779,10 @@ case (wiggler$)
   end_orb%vec(4) = end_orb%vec(4) + k1 * length * k_z**2 * end_orb%vec(3)**3 / 3
 
   call offset_particle (ele, end_orb, param%particle, unset$)
-  call end_z_calc
+  end_orb%vec(5) = start2_orb%vec(5) - k1 * (0.5*k_z*length) / k_z**3 * (1 - rel_pc**2)
   call track1_low_energy_z_correction (end_orb, ele, param%particle)
-  call time_and_s_calc ()
+  end_orb%t = start2_orb%t + (ele%value(l$) - k1 * (0.5*k_z*length) / k_z**3 * rel_pc**2) / (end_orb%beta * c_light)
+  end_orb%s = ele%s
 
 !-----------------------------------------------
 ! unknown
