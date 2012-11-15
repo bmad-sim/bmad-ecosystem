@@ -132,6 +132,7 @@ do
   call eliminate2 ('\vn{', '}', '"', '"')
   call eliminate_inbetween ('& \sref{', '}', .true.)
   call eliminate_inbetween ('\hspace*{', '}', .true.)
+  call eliminate_inbetween ('(\sref{', '})', .false.)
   call eliminate_inbetween ('\sref{', '}', .false.)
   call eliminate_inbetween ('{\it ', '}', .false.)
   call eliminate_inbetween ('\parbox{', '}', .false.)
