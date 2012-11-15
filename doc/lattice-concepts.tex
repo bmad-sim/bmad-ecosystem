@@ -1,82 +1,86 @@
-\chapter{Lattice Concepts and Structure}
+\chapter{Lattice Concepts and Organization}
 \label{c:lat.concepts}
 
 This chapter presents the basic concepts, such as \vn{element},
-\vn{branch}, and \vn{lattice}, that \bmad uses to describe 
-such things as LINACs, storage rings, X-ray beam lines, etc.
-In fact, \bmad is capable of 
-simulating a whole machine complex of 
-interconnected parts: Including transfer lines connected to 
-storage rings and storage rings interconnected together for
-colliding beams.
+\vn{branch}, and \vn{lattice}, that \bmad uses to describe such things
+as LINACs, storage rings, X-ray beam lines, etc.  In fact, \bmad is
+capable of simulating a whole machine complex of interconnected parts.
+This includes simulating transfer lines connected to storage rings or 
+simulating interconnected colliding beam storage rings.
 
-\index{element}
+In addition to simulating the 
+
+Chapter~\sref{c:lat.file} covers the syntax of how to construct a
+lattice file for input to \bmad based programs.
+
+%---------------------------------------------------------------------------
+\section{Lattice Elements}
+\label{s:element.def}
+
+\index{element}\index{marker element}
 The basic component \bmad uses to describe a machine is the
-\vn{element} (also called a ``lattice element''). 
-An element can be a physical thing like a bending magnet,
-quadrupole or Bragg crystal, or something like a \vn{marker} 
-element that is used
-to mark a particular point in the machine. Chapter~\sref{c:elements}
-lists the complete set of different element types that \bmad knows
-about.
+\vn{element} (also called a \vn{lattice element}).  An element can be
+a physical thing like a bending magnet, a quadrupole or a Bragg
+crystal, or something like a \vn{marker} element (\sref{s:mark})
+that is used to mark a particular point in the machine.
 
-\index{branch}\index{end element}
-\index{beginning element}\index{end element}
-The next level up from an \vn{element} is the 
-\vn{branch} (\sref{s:branching}).
-A \vn{branch} can also be called a ``lattice branch'' to 
-distinguish it from a \vn{branch} element.
-A lattice \vn{branch} is just an ordered  sequence of elements that a 
+\index{controller element}
+Another class of element are the \vn{controller} elements
+(Table~\ref{t:control.classes}) that can be used for parameter control
+of other elements (\sref{c:control}).
+
+Chapter~\sref{c:elements} lists the complete set of different element
+types that \bmad knows about.
+
+%---------------------------------------------------------------------------
+\section{Lattice Branches}
+\label{s:branch.def}
+
+\index{branch}
+The next level up from an \vn{element} is the \vn{branch}
+(\sref{s:branching}).  A \vn{branch}, also called a \vn{lattice
+branch} to distinguish it from a \vn{branch} element
+(\sref{s:branch}), is just an ordered sequence of elements that a
 particle will travel through. A branch can represent a LINAC, X-Ray
-line, storage ring or anything else that can be represented as a 
-simple ordered list of elements. All elements in a branch
-are assigned a number
-starting from zero. The 0\Th \vn{init_ele}
-(\sref{s:init.ele}) element is automatically included
-in every branch and is used as a marker for the beginning of the branch.
-The 0\Th element is always named \vn{BEGINNING}. 
-Additionally, every branch will,
-by default have a final marker (\sref{s:mark}) element named \vn{END}. 
+line, storage ring or anything else that can be represented as a
+simple ordered list of elements. 
+
+Chapter~\sref{c:sequence} shows how a \vn{branch} is defined in a
+lattice file with \vn{line}, \vn{list}, and \vn{use} statements.
+
+\index{beginning element}\index{end element}
+All elements in a branch are assigned a number starting from zero. The
+zeroth \vn{init_ele} (\sref{s:init.ele}) element is automatically
+included in every branch and is used as a marker for the beginning of
+the branch.  The zeroth element is always named \vn{BEGINNING}.
+Additionally, every branch will, by default, have a final marker
+element (\sref{s:mark}) named \vn{END}.
+
+%---------------------------------------------------------------------------
+\section{Lattice}
+\label{s:lattice.def}
 
 \index{lattice}
-A \vn{lattice} is just an interconnected collection of branches. 
-As such, a \vn{lattice} can describe an entire machine complex.
+\vn{branch element} A \vn{lattice} is just an array of branches that
+can be interconnected together to describe an entire machine complex.
+The array of \vn{branches} in a \vn{lattice} is numbered starting from
+zero.
+
+Branches can be interconnected in one of two ways: \vn{branch} and
+\vn{photon_branch} elements (\sref{s:branch}) may be used to simulate
+forking beam lines (\sref{s:branching}) such as what occurs when there
+is a dump line connection or an X-ray beam line which is connected to
+a wiggler or undulator. Additionally, \vn{multipass} lines
+(\sref{s:multipass}) can be used to simulate branches that share
+common elements such as the interaction region in colliding beam
+machines.
+
+%---------------------------------------------------------------------------
+\section{Lord and Slave Elements}
+\label{s:lattice}
+
+Under construction...
 
 
---> If there is only one branch then it can be ignored.
-
-
-along with the attributes (length, strength, orientation,
-etc.) of the elements.  A lattice file (or files) (\sref{c:lat.file}
-is a file that is used to describe an accelerator or storage ring.
-
-
-
-\index{MAD}
-\index{lattice}
-To \bmad, a ``lattice'' is the sequence of physical elements that is
-to be studied. As explained below, the lattice is constructed in the
-input lattice file using what are known as \vn{beam lines} and
-\vn{replacement lists}. A simple example:
-\begin{example}
-  q1: quadrupole
-  d1: drift
-  my_machine: line = (q1, d1)
-  use, my_machine
-\end{example}
-This lattice has two elements: A quadrupole \vn{q1} and a drift
-\vn{d1}.  The line named \vn{my_machine} gives the ordered list of
-elements and the \vn{use} statement chooses \vn{my_machine} as the
-line to be used for the lattice.
-
-
-If there are multiple branches (\sref{s:branching}) in the lattice,
-beginning and end markers will be placed at the beginning and end of
-all branches.
-
-One is also allowed in \bmad to work with multiple lattices that can
-be interconnected togeter using \vn{branching} (\sref{s:branching})
-and multipass \vn{s:multipass} to form a description of an accelerator
-complex.
 
 

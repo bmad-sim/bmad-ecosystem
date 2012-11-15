@@ -3,7 +3,7 @@
 
 \index{branch}
 This chapter describes how to define the ordered list of 
-elements that make up a lattice branch (\sref{c:lat.concepts}).
+elements that make up a lattice branch (\sref{s:branch.def}).
 The next chapter (\sref{c:branch.multi}) covers how 
 branches are connected together.
 
@@ -11,25 +11,23 @@ branches are connected together.
 \section{Branch Construction Overview}
 \label{s:branch.construct}
 
-\index{line}\index{list}
-A lattice branch is defined in a lattice
-file using what are called \vn{beam lines} (\sref{s:lines.wo.arg}) and 
-\vn{replacement lists} (\sref{s:replace.list}).
-The \vn{beam lines} are divided into two types - lines with 
-(\sref{s:lines.with.arg}) and lines without (\sref{s:lines.wo.arg})
-\vn{replacement arguments}. This essentially corresponds to the \mad
-definition of lines and lists. There can be multiple \vn{beam lines}
-and \vn{replacement lists} defined in a lattice file and lines and
-lists can be nested inside other lines and lists.
+\index{list}
+A lattice branch is defined in a lattice file using what are called
+\vn{beam lines} (\sref{s:lines.wo.arg}) and \vn{replacement lists}
+(\sref{s:replace.list}).  The \vn{beam lines} are divided into two
+types - lines with (\sref{s:lines.with.arg}) and lines without
+(\sref{s:lines.wo.arg}) \vn{replacement arguments}. This essentially
+corresponds to the \mad definition of lines and lists. There can be
+multiple \vn{beam lines} and \vn{replacement lists} defined in a
+lattice file and lines and lists can be nested inside other lines and
+lists.
 
 Since lines can be nexted within other lines, The same element name
 may be repeated multiple times in a brach. To distinguish between
-mutiple elements of the same name, lines and lists may be\vn{tagged} 
+mutiple elements of the same name, lines and lists may be \vn{tagged} 
 (\sref{s:tag}) to produce unique element names.
 
-
-
-There will also be a marker element named \vn{end} automatically
+There will also be a marker element named \vn{END} automatically
 placed at the end of the lattice. This end marker will not be
 automatically placed in the lattice if a marker named \vn{end} is
 defined in the lattice file at the end of the lattice. The

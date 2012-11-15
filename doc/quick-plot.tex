@@ -362,7 +362,16 @@ To plot data using the \vn{X2} or \vn{Y2} scale use the
 \section{Text}
 \label{s:text}
 
+PGPLOT defines certain escape sequences that can be used in text strings
+to draw Greek letters, etc. These escape sequences are given in 
+Table~\ref{t:pgplot.escape}.
 
+PGPLOT defines a text background index:
+\begin{example}
+         -1 - Transparent background.
+          0 - Erase underlying graphics before drawing text.
+   1 to 255 - Opaque with the number specifying the color index.
+\end{example}
 
 %----------------------------------------------------------------------------
 \section{Styles}
@@ -501,17 +510,6 @@ is a Roman letter, map onto the Greek character set.
 Greek character.}
 \label{t:greek}
 \end{table}
-
-PGPLOT defines certain escape sequences that can be used in text strings
-to draw Greek letters, etc. These escape sequences are given in 
-Table~\ref{t:pgplot.escape}.
-
-PGPLOT defines a text background index:
-\begin{example}
-         -1 - Transparent background.
-          0 - Erase underlying graphics before drawing text.
-   1 to 255 - Opaque with the number specifying the color index.
-\end{example}
 
 %----------------------------------------------------------------------------
 \section{Structures}

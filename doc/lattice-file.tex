@@ -7,20 +7,10 @@ A lattice (\sref{c:lat.concepts}) defines the sequence of elements
 that a particle will travel through along with the attributes (length,
 strength, orientation, etc.) of the elements.  A lattice file (or
 files) is a file that is used to describe an accelerator or storage
-ring. The \bmad software library comes with routines to parse lattice
-files. There are two input formats that \bmad understands: The \bmad
-standard format and XSIF\cite{b:xsif}. XSIF, developed at SLAC, has
-its own documentation and will not be discussed in detail here except
-for a few brief notes in Section~(\sref{s:xsif}).  Throughout this
-manual, unless explicitly stated otherwise, the lattice format under
-discussion will always pertain to the \bmad standard format.
-
-While \bmad cannot directly read in \mad\cite{b:maduser} files, 
-translation between \mad and \bmad lattice files is possible using
-the \vn{Universal Accelerator Parser} as discussed in Section~\sref{s:aml}.
+ring. 
 
 %---------------------------------------------------------------------------
-\section{Lattice File Format}
+\section{Bmad Lattice File Format}
 \label{s:lattice.file.formats}
 
 \index{MAD!lattice format}
@@ -36,6 +26,24 @@ the \bmad library provides the routines to perform many of the standard
 calculations). A program is not required to use the \bmad parser
 routines but, if it does, the following chapters describe how to
 construct a valid lattice file.
+
+%---------------------------------------------------------------------------
+\section{MAD and XSIF Lattice Files}
+\label{s:mad.xsif}
+\index{MAD lattice files}
+\index{XSIF lattice files}
+
+The \bmad software library comes with routines to parse \bmad lattice
+files. Additionally, \bmad has software to parse XSIF\cite{b:xsif}
+lattice files. XSIF, developed at SLAC, has its own documentation and
+will not be discussed in detail here except for a few brief notes in
+Section~(\sref{s:xsif}).  Throughout this manual, unless explicitly
+stated otherwise, the lattice format under discussion will always
+pertain to the \bmad standard format.
+
+While \bmad cannot directly read in \mad\cite{b:maduser} files, 
+translation between \mad and \bmad lattice files is possible using
+the \vn{Universal Accelerator Parser} as discussed in Section~\sref{s:aml}.
 
 %---------------------------------------------------------------------------
 \section{File Example and Syntax}
