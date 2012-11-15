@@ -38,7 +38,7 @@ character(80) prompt_string
 character(5) :: sub_str(9) = (/ '[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
                             '[[6]]', '[[7]]', '[[8]]', '[[9]]' /)
 character(40) tag, name
-character(200), save :: saved_line, single_mode_buffer = ''
+character(200), save :: saved_line
 character(40) :: r_name = 'tao_get_user_input'
 
 logical, optional :: wait_flag
@@ -61,12 +61,14 @@ endif
 
 if (tao_com%single_mode) then
   if (s%global%wait_for_CR_in_single_mode) then
-    if (single_mode_buffer == '') then
-      cmd_line(1:1) = single_mode_buffer(1:1)
-      single_mode_buffer = single_mode_buffer(2:)
-    else
-      accept *, single_mode_buffer
+    if (tao_com%single_mode_buffer == '') then
+      do
+        read '(a)', tao_com%single_mode_buffer
+        if (tao_com%single_mode_buffer /= '') exit
+      enddo
     endif
+    cmd_line(1:1) = tao_com%single_mode_buffer(1:1)
+    tao_com%single_mode_buffer = tao_com%single_mode_buffer(2:)
   else
     wait = logic_option(.true., wait_flag)
     call get_a_char (cmd_line(1:1), wait, [' '])  ! ignore blanks
@@ -75,7 +77,7 @@ if (tao_com%single_mode) then
   return
 endif
 
-single_mode_buffer = '' ! Reset buffer when not in single mode
+tao_com%single_mode_buffer = '' ! Reset buffer when not in single mode
 
 ! check if we still have something from a line with multiple commands
 
