@@ -38,7 +38,7 @@ character(10) :: set_char(4) = &
 character(1) :: char
 character(2) char2
 character(80) this_file, line
-character(40) :: this_opt, str, r_name = 'tao_single_mode'
+character(40) :: this_opt, r_name = 'tao_single_mode'
 
 logical doit, found, err, abort
 
@@ -147,6 +147,7 @@ case(achar(13))  ! Ignore a <CR>
 
 case default
   write (*, *) 'What is this you are typing?', iachar(char)
+  tao_com%single_mode_buffer = ''
 
 !--------------------------------------------------------
 ! 'Escape' -> Must be an arrow key. Look for the rest of the sequence:
@@ -182,6 +183,7 @@ case (achar(27))
 
   case default
     write (*, *) 'What is this you are typing?', char2
+    tao_com%single_mode_buffer = ''
 
   end select
 
@@ -207,6 +209,7 @@ case ('-')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
+    tao_com%single_mode_buffer = ''
 
   end select
 
@@ -226,8 +229,7 @@ case ('=')
       call out_io (s_error$, r_name, 'THE KEY TABLE HAS NOT BEEN SET UP IN THE INIT FILES!')
       return
     endif
-    write (*, '(a)', advance = "NO") 'Enter Key# and Value: '
-    read (*, '(a)') line
+    call read_this_input ('Enter Key# and Value: ')
     read (line, *, iostat = ios) ix, value
     if (ios /= 0 .or. .not. is_integer(line)) then
       call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND THIS. NOTHING CHANGED.')
@@ -271,11 +273,13 @@ case ('=')
 
     case default
       write (*, *) 'What is this you are typing?', char2
+      tao_com%single_mode_buffer = ''
 
     end select
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
+    tao_com%single_mode_buffer = ''
 
   end select
 
@@ -322,6 +326,7 @@ case ('a')
 
     case default
       write (*, *) 'What is this you are typing?', char2
+      tao_com%single_mode_buffer = ''
 
     end select
 
@@ -329,6 +334,7 @@ case ('a')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
+    tao_com%single_mode_buffer = ''
 
   end select
 
@@ -375,6 +381,7 @@ case ('s')
 
     case default
       write (*, *) 'What is this you are typing?', char2
+      tao_com%single_mode_buffer = ''
 
     end select
 
@@ -382,6 +389,7 @@ case ('s')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
+    tao_com%single_mode_buffer = ''
 
   end select
 
@@ -429,6 +437,7 @@ case ('z')
 
     case default
       write (*, *) 'What is this you are typing?', char2
+      tao_com%single_mode_buffer = ''
 
     end select
 
@@ -436,6 +445,7 @@ case ('z')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
+    tao_com%single_mode_buffer = ''
 
   end select
 
@@ -452,10 +462,9 @@ case ('/')
   ! '/e' Element
 
   case ('e')
-    write (*, '(/, a)', advance = "NO") ' Element Name or Index: '
-    read (*, '(a)', iostat = ios) str
-    if (ios /= 0 .or. str == '') return
-    call tao_locate_elements (str, 0, eles, err)
+    call read_this_input (' Element Name or Index: ')
+    if (ios /= 0 .or. line == '') return
+    call tao_locate_elements (line, 0, eles, err)
     u => tao_pointer_to_universe(0)  
     lat => u%model%lat
     do i = 1, size(eles)
@@ -495,8 +504,7 @@ case ('/')
 
   case ('u')
 
-    write (*, '(a, $)') ' Universe number to view: '
-    read '(a)', line
+    call read_this_input (' Universe number to view: ')
     call string_trim (line, line, ix)
     if (ix == 0) then
       write (*, *) 'ERROR: NO UNIVERSE NUMBER.'
@@ -518,8 +526,7 @@ case ('/')
 
   case ('x')
 
-    write (*, '(a, $)') ' Input x-axis min, max: '
-    read '(a)', line
+    call read_this_input (' Input x-axis min, max: ')
     call string_trim (line, line, ix)
     if (ix == 0) then
       call tao_x_scale_cmd ('*', 0.0_rp, 0.0_rp, err)
@@ -535,8 +542,7 @@ case ('/')
   ! '/y' Scale y-axis
 
   case ('y')
-    write (*, '(a, $)') ' Input scale min, max: '
-    read '(a)', line
+    call read_this_input (' Input scale min, max: ')
     call string_trim (line, line, ix)
     if (ix == 0) then
       call tao_scale_cmd ('*', 0.0_rp, 0.0_rp)
@@ -553,6 +559,7 @@ case ('/')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
+    tao_com%single_mode_buffer = ''
 
   end select
 
@@ -722,6 +729,27 @@ do i = 1, size(s%plotting%region)
 
   enddo
 enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------
+! contains
+
+subroutine read_this_input (string)
+
+character(*) string
+
+if (s%global%wait_for_CR_in_single_mode) then
+  line = ''
+  do i = 1, len(line)
+    read '(a)', line(i:i)
+    if (line(i:i) == ' ') exit
+  enddo
+
+else
+  write (*, '(a)', advance = "NO") string
+  read (*, '(a)', iostat = ios) line
+endif
 
 end subroutine
 

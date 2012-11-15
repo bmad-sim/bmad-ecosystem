@@ -1123,6 +1123,7 @@ case ('global')
     nl=nl+1; write (lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
     nl=nl+1; write (lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
     nl=nl+1; write (lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
+    nl=nl+1; write (lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
     nl=nl+1; write (lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
     nl=nl+1; write (lines(nl), amt) '  %print_command                 = ', s%global%print_command
     nl=nl+1; write (lines(nl), amt) '  %random_engine                 = ', s%global%random_engine
