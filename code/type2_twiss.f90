@@ -97,13 +97,13 @@ if (logic_option (.false., compact_format)) then
 else
   write (lines(7), '(9x, 4(19x, a))') 'X', 'Y','A','B'  
 
-  write (lines(1), '(10x, 2(14x, a))') 'A', 'B'
-  write (lines(2), '(a12, 2a)') 'Beta (m)   ', v(ele%a%beta), v(ele%b%beta)
-  write (lines(3), '(a12, 2a)') 'Alpha (-)  ', v(ele%a%alpha), v(ele%b%alpha)
-  write (lines(4), '(a12, 2a)') 'Gamma (1/m)', v(ele%a%gamma), v(ele%b%gamma)
-  write (lines(5), '(a12, 2a, 12x, a, 3(14x, a))') freq_str, v(ele%a%phi*coef), v(ele%b%phi*coef), 'X', 'Y', 'Z'
-  write (lines(6), '(a12, 5a)') 'Eta (m)    ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
-  write (lines(7), '(a12, 5a)') 'Etap (-)   ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
+  write (lines(1), '(12x, 2(14x, a))') 'A', 'B'
+  write (lines(2), '(2x, a12, 2a)') 'Beta (m)    ', v(ele%a%beta), v(ele%b%beta)
+  write (lines(3), '(2x, a12, 2a)') 'Alpha (-)   ', v(ele%a%alpha), v(ele%b%alpha)
+  write (lines(4), '(2x, a12, 2a)') 'Gamma (1/m) ', v(ele%a%gamma), v(ele%b%gamma)
+  write (lines(5), '(2x, a12, 2a, 12x, a, 3(14x, a))') freq_str, v(ele%a%phi*coef), v(ele%b%phi*coef), 'X', 'Y', 'Z'
+  write (lines(6), '(2x, a12, 5a)') 'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
+  write (lines(7), '(2x, a12, 5a)') 'Etap (-)    ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
   n_lines = 7
 endif
 
