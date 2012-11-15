@@ -400,7 +400,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function qp_text_len_basic (text, len_text) result (t_len)
+! Function qp_text_len_basic (text) result (t_len)
 !
 ! Function to find the length of a text string.
 !
@@ -411,19 +411,24 @@ end subroutine
 !   t_len -- Real(rp): Length of text in inches.
 !-
 
-function qp_text_len_basic (text, len_text) result (t_len)
+function qp_text_len_basic (text) result (t_len)
 
   implicit none
 
   real(rp) t_len, d, h
-  integer len_text
+  integer i, n_text
   character(*) text
 
-  ! This is kind-of a 1st order approx since there is no subroutine for this action
+  ! This is kind-of a 1st order approx since there is no plplot subroutine for this action
 
   call plgchr(d,h)
+  
+  n_text = len_trim(text)
+  do i = 1, len_trim(text)
+    if (text(i:i) == '\') n_text = n_text - 1    !'
+  enddo
 
-  t_len = 0.8 * 0.03937 * len_trim(text) * h  
+  t_len = 0.8 * 0.03937 * n_text * h  
 
 end function
 
@@ -458,7 +463,18 @@ subroutine qp_draw_text_basic (text, len_text, x0, y0, angle, justify)
   do
     ix = index(text2, '\A')
     if (ix == 0) exit
-    text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
+    ! PS does not backspace properly so leave off the "o"
+    if (pl_com%page_type(1:2) == 'PS') then
+      text2 = text2(1:ix-1) // 'A' // text2(ix+2:)
+    else
+      text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
+    endif
+  enddo
+
+  do
+    ix = index(text2, '\.')
+    if (ix == 0) exit
+    text2 = text2(1:ix-1) // '\u.\d' // text2(ix+2:)
   enddo
 
   do
@@ -734,13 +750,7 @@ end subroutine
 !
 ! Input:
 !   page_type -- Character(*). Device name for the type of plot.
-!                 TYPE is passed to GG_SETUP. E.g.
-!                 TYPE = 'X'     --> Open an X-window.
-!                 TYPE = 'TK'    --> Open a tk window.
-!                 TYPE = 'GIF'   --> To create a gif file.
-!                 TYPE = 'GIF-L' --> Gif w/ landscape page orientation.
-!                 TYPE = 'PS'    --> To create a Color PostScript file.
-!                 TYPE = 'PS-L'  --> PostScript w/ landscape page orientation.
+!                  See qp_open_page for more details.
 !   x_len     -- Real(rp), optional: Horizontal width in inches, Not used with PS.
 !   y_len     -- Real(rp), optional: Vertical width in inches, Not used with PS.
 !   plot_file -- Character(*), optional: Name for the plot file.

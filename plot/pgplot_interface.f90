@@ -253,7 +253,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function qp_text_len_basic (text, len_text)
+! Function qp_text_len_basic (text) result (t_len)
 !
 ! Function to find the length of a text string.
 !
@@ -261,16 +261,15 @@ end subroutine
 !   text -- Character(*): Text string.
 !
 ! Output:
-!   qp_text_len -- Real(rp): Length of text in inches.
+!   t_len -- Real(rp): Length of text in inches.
 !-
 
-function qp_text_len_basic (text, len_text) result (t_len)
+function qp_text_len_basic (text) result (t_len)
 
   implicit none
 
   real(rp) t_len
   real tl, dum, f
-  integer len_text
   character(*) text
 
 !

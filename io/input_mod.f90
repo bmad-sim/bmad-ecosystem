@@ -24,8 +24,7 @@ contains
 !   use input_mod
 !
 ! System Libraries that need to be linked to:
-!   SYS_LIBS := readline curses
-! [The list of libraries to link to are generally in your Makefile.]
+!   readline curses
 !
 ! Input:
 !   wait      -- Logical: If True then routine will wait until a keystroke
@@ -40,39 +39,29 @@ contains
 
 subroutine get_tty_char (this_char, wait, flush)
 
-  implicit none
+implicit none
 
-  integer ic
+integer ic
 
-  character this_char
-!  character ttychr     ! for VMS
+character this_char
 
-  logical :: wait, flush
-  logical :: init_needed = .true.
+logical :: wait, flush
+logical :: init_needed = .true.
 
-!
+! Init
 
-  if (init_needed) then
-    call init_tty_char
-    init_needed = .false.
-  endif
+if (init_needed) then
+  call init_tty_char
+  init_needed = .false.
+endif
 
-! Unix version
+! Get character
 
-  call get_tty_char_c(ic, wait, flush)
-  this_char = achar(ic)
+call get_tty_char_c(ic, wait, flush)
+this_char = achar(ic)
 
-! VMS version
 
-!  call milli_sleep(10)
-!
-!  do
-!    char = ttychr()
-!    if (.not. wait) return
-!    call milli_sleep(100)
-!  enddo
-
-end subroutine
+end subroutine get_tty_char
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -87,8 +76,7 @@ end subroutine
 !   use input_mod
 !
 ! System Libraries that need to be linked to:
-!   SYS_LIBS := readline curses
-! [The list of libraries to link to are generally in your Makefile.]
+!   readline curses
 !
 ! Input:
 !   wait        -- Logical: If True then routine will wait until a keystroke
@@ -103,37 +91,41 @@ end subroutine
 
 subroutine get_a_char (this_char, wait, ignore_this)
 
-  implicit none
+implicit none
 
-  logical :: wait
+logical :: wait
 
-  character this_char
-  character, optional :: ignore_this(:)
-  integer ios
+character this_char
+character, optional :: ignore_this(:)
+integer ios
+
 !
+
 #ifndef CESR_WINCVF
-  do 
-    call get_tty_char (this_char, wait, .false.)  ! no flush
-    if (.not. wait) return
-    if (present(ignore_this)) then
-      if (this_char /= achar(0) .and. all(this_char /= ignore_this)) return
-    else
-      if (this_char /= achar(0)) return  ! finished if not a null char
-    endif
-  enddo
+do 
+  call get_tty_char (this_char, wait, .false.)  ! no flush
+  if (.not. wait) return
+  if (present(ignore_this)) then
+    if (this_char /= achar(0) .and. all(this_char /= ignore_this)) return
+  else
+    if (this_char /= achar(0)) return  ! finished if not a null char
+  endif
+enddo
+
 #else
-  do
-   read (*, '(a)', iostat = ios) this_char
-   if (ios /= 0) cycle
-   if (.not. wait) return
-   if (present(ignore_this)) then
-     if (all(this_char /= ignore_this)) return
-   else
-     return  ! finished if not a null char
-   endif
-  enddo
+do
+ read (*, '(a)', iostat = ios) this_char
+ if (ios /= 0) cycle
+ if (.not. wait) return
+ if (present(ignore_this)) then
+   if (all(this_char /= ignore_this)) return
+ else
+   return  ! finished if not a null char
+ endif
+enddo
 #endif
-end subroutine
+
+end subroutine get_a_char
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -149,8 +141,7 @@ end subroutine
 !   use input_mod
 !
 ! System Libraries that need to be linked to:
-!   SYS_LIBS := readline curses
-! [The list of libraries to link to are generally in your Makefile.]
+!   readline curses
 !
 ! Input:
 !   prompt      -- Character(*): Prompt string to use.
@@ -189,6 +180,6 @@ read (*, '(a)', iostat = ios) line_out
 #endif
 
 
-end subroutine
+end subroutine read_a_line
 
 end module

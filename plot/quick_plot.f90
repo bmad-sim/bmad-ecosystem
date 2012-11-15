@@ -4696,7 +4696,7 @@ character(*) text
 
 !
 
-t_len = qp_text_len_basic (text, len_trim(text))
+t_len = qp_text_len_basic (text)
 
 end function qp_text_len
 
