@@ -82,7 +82,7 @@ type (coord_struct), intent(inout) :: coord
 
 real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-real(rp) :: del_x_vel, del_y_vel
+real(rp) :: del_x_vel, del_y_vel, dz
 real(rp) angle, s_here, xp, yp, x_off, y_off, s_off, vec(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta
 
@@ -190,7 +190,7 @@ if (set) then
 
     if (s_off /= 0 .and. set_s) then
       call track_a_drift (coord, ele, particle, s_off)
-      coord%vec(5) = coord%vec(5) - s_off
+      coord%vec(5) = coord%vec(5) - s_off  ! Correction due to reference particle is also offset.
     endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
@@ -198,7 +198,9 @@ if (set) then
       coord%vec(2) = coord%vec(2) - xp * E_rel
       coord%vec(3) = coord%vec(3) - y_off - yp * s_here
       coord%vec(4) = coord%vec(4) - yp * E_rel
-      coord%vec(5) = coord%vec(5) + xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * s_here / 2
+      dz = xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * s_here / 2
+      coord%vec(5) = coord%vec(5) + dz
+      coord%t = coord%t - dz / (coord%beta * c_light) 
     endif
   endif
 
@@ -367,7 +369,9 @@ else
     endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
-      coord%vec(5) = coord%vec(5) - xp * coord%vec(1) - yp * coord%vec(3) - (xp**2 + yp**2) * s_here / 2
+      dz = -yp * coord%vec(3) - (xp**2 + yp**2) * s_here / 2
+      coord%t = coord%t - dz / (coord%beta * c_light) 
+      coord%vec(5) = coord%vec(5) - xp * coord%vec(1) + dz
       coord%vec(1) = coord%vec(1) + x_off + xp * s_here
       coord%vec(2) = coord%vec(2) + xp * E_rel
       coord%vec(3) = coord%vec(3) + y_off + yp * s_here
@@ -376,7 +380,7 @@ else
 
     if (s_off /= 0 .and. set_s) then
       call track_a_drift (coord, ele, particle, -s_off)
-      coord%vec(5) = coord%vec(5) + s_off
+      coord%vec(5) = coord%vec(5) + s_off  ! Correction due to reference particle is also offset.
     endif
 
   endif

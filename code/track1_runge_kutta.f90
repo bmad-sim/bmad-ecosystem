@@ -53,6 +53,14 @@ call offset_particle (ele, start2_orb, param%particle, set$, set_canonical = .fa
 call odeint_bmad (start2_orb, ele, param, end_orb, 0.0_rp, ele%value(l$), .true., err_flag, track)
 if (err_flag) return
 
+end_orb%s = ele%s
+end_orb%p0c = ele%value(p0c$)
+
+! convert to lab coords.
+
+call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., &
+                                                            set_hvkicks = .false., set_multipoles = .false.)
+
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
 ! constant (see odeint_bmad for more details). In this case make the needed correction.
 ! dref_time is reference time for transversing the element under the assumption, used by odeint_bmad, that 
@@ -61,13 +69,5 @@ if (err_flag) return
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
 dref_time = ele%value(l$) / (beta0 * c_light)
 end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
-
-end_orb%s = ele%s
-end_orb%p0c = ele%value(p0c$)
-
-! convert to lab coords.
-
-call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., &
-                                                            set_hvkicks = .false., set_multipoles = .false.)
 
 end subroutine
