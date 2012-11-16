@@ -27,7 +27,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine track1_boris (start, ele, param, orb_end, err_flag, track, s_start, s_end)
+! Subroutine track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_end)
 !
 ! Subroutine to do Boris tracking. For more information on Boris tracking 
 ! see the boris_mod module documentation.
@@ -36,17 +36,17 @@ contains
 !   use bmad
 !
 ! Input: 
-!   start    -- Coord_struct: Starting coords.
-!   ele      -- Ele_struct: Element to track through.
+!   orb_start  -- Coord_struct: Orb_starting coords.
+!   ele        -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field
 !     %value(ds_step$) -- Step size.
-!   param    -- lat_param_struct: Beam parameters.
+!   param      -- lat_param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]
-!   s_start  -- Real, optional: Starting point.
-!   s_end    -- Real, optional: Ending point.
+!   s_start    -- Real, optional: Starting point.
+!   s_end      -- Real, optional: Ending point.
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
@@ -54,11 +54,11 @@ contains
 !   track      -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine track1_boris (start, ele, param, orb_end, err_flag, track, s_start, s_orb)
+subroutine track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_orb)
 
 implicit none
 
-type (coord_struct), intent(in) :: start
+type (coord_struct), intent(in) :: orb_start
 type (coord_struct), intent(out) :: orb_end
 type (ele_struct) ele
 type (ele_struct) :: loc_ele
@@ -68,6 +68,7 @@ type (ele_struct), pointer :: hard_ele
 
 real(rp), optional, intent(in) :: s_start, s_orb
 real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target, s_edge_hard
+real(rp) beta0, dref_time
 
 integer i, n_step, hard_end
 
@@ -102,7 +103,7 @@ call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, d
 call transfer_ele (ele, loc_ele)
 call zero_ele_offsets (loc_ele)
 
-orb_end = start
+orb_end = orb_start
 orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, orb_end)
@@ -143,13 +144,19 @@ do
   
 enddo
 
-! set the z coordinate correctly
-orb_end%vec(5) = orb_end%beta * c_light * (start%vec(5)/(start%beta*c_light) + ele%value(delta_ref_time$) - (orb_end%t - start%t))
-
 ! back to lab coords
 
 call offset_particle (ele, orb_end, param%particle, unset$, set_canonical = .false., &
                                                             set_hvkicks = .false., set_multipoles = .false.)
+
+! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
+! constant (see odeint_bmad for more details). In this case make the needed correction.
+! dref_time is reference time for transversing the element under the assumption, used by odeint_bmad, that 
+! the reference velocity is constant and equal to the velocity at the final enegy.
+
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
+dref_time = ele%value(l$) / (beta0 * c_light)
+orb_end%vec(5) = orb_end%vec(5) + (ele%value(delta_ref_time$) - dref_time) * orb_end%beta * c_light
 
 err_flag = .false.
 
@@ -199,7 +206,7 @@ type (em_field_struct) :: field
 real(rp), intent(in) :: s, ds
 real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot, ds2
 real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
-real(rp) :: p2, t, dt
+real(rp) :: p2, t, dt, beta_ref
 
 !
 
@@ -208,6 +215,7 @@ mass = mass_of(param%particle) / ele%value(p0c$)
 
 end = start
 ds2 = ds / 2
+beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 
 ! 1) Push the position 1/2 step
 
@@ -216,13 +224,13 @@ p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
 ds2_f = ds2 / p_z
 U_tot = sqrt (p_tot**2 + mass**2)
 old_beta = p_tot / U_tot  ! particle velocity: v/c
+dt = ds2 * p_tot / (p_z * old_beta * c_light)
 
 end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
 end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-!end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
+end%vec(5) = end%vec(5) + ds2 * (old_beta/beta_ref - p_tot/p_z) 
 
 end%s = end%s + ds2
-dt = ds2 * p_tot / (p_z * old_beta * c_light)
 end%t = end%t + dt
 t = t + dt
 
@@ -284,7 +292,7 @@ p_tot = sqrt (U_tot**2 - mass**2)
 ! Since beta changes in steps 2-5 we need to update vec(5)
 
 beta = p_tot / U_tot
-!end%vec(5) = end%vec(5) * beta / old_beta
+end%vec(5) = end%vec(5) * beta / old_beta
 
 ! 6) Push the position 1/2 step.
 
@@ -293,7 +301,7 @@ ds2_f = ds2 / p_z
 
 end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
 end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-!end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot)
+end%vec(5) = end%vec(5) + ds2 * (beta/beta_ref - p_tot/p_z) 
 end%vec(6) = p_tot - 1
 
 end%s = end%s + ds2

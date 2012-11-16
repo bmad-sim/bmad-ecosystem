@@ -25,6 +25,9 @@ type (ele_struct) ele
 
 select case (ele%key)
 
+case (beambeam$)
+  ele%value(charge$) = -1
+
 case (bend_sol_quad$) 
   ele%mat6_calc_method = symp_lie_bmad$
   ele%tracking_method  = symp_lie_bmad$
