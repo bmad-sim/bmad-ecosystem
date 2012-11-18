@@ -16,7 +16,10 @@ struct_list = [
     'bpm_phase_coupling_struct',
     'wig_term_struct',
     'wig_struct',
-    'rf_wake_sr_table_struct',
+    'rf_wake_sr_table_struct'
+]
+
+to_do_struct_list = [
     'rf_wake_sr_mode_struct',
     'rf_wake_lr_struct',
     'rf_wake_struct',
@@ -55,6 +58,11 @@ struct_list = [
 # That is, do not translate these sub-structure components.
 
 component_ignore_list = set(['fibre', 'genfield'])
+
+# Directory where the output is put
+
+output_dir = 'interface_test'
+test_dir = 'interface_test'
 
 # Function to customize the interface code.
 
