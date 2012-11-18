@@ -18,6 +18,7 @@ import shutil
 import os
 import copy
 import re
+import textwrap
 
 ##################################################################################
 ##################################################################################
@@ -25,6 +26,13 @@ import re
 
 n_char_max = 90
 debug = False # Change to True to enable printout
+
+def wrap_line (line, indent, cont_char):
+  lines = textwrap.wrap(line, n_char_max, initial_indent = indent, subsequent_indent = indent + '    ')
+  for i in range(len(lines)-1):
+    lines[i] += cont_char + '\n'
+  lines[-1] += '\n'
+  return ''.join(lines)
  
 def print_debug (line):
   if (debug): print line
@@ -1544,18 +1552,13 @@ interface
     if not arg.f_side.bindc_type in to_c2_call_def: to_c2_call_def[arg.f_side.bindc_type] = []
     to_c2_call_def[arg.f_side.bindc_type].append(arg.f_side.bindc_name)
 
-  f_face.write ('  subroutine ZZZ_to_c2 (C'.replace('ZZZ', s_name))
-  n = 23 + len(s_name)
-
+  line = 'subroutine ZZZ_to_c2 (C'.replace('ZZZ', s_name)
   for arg in struct.arg: 
-    if n > n_char_max or n+len(arg.f_side.to_c2_f2_sub_arg) > n_char_max+10:
-      f_face.write (', &\n    ' + arg.f_side.to_c2_f2_sub_arg)
-      n = 4 + len(arg.f_side.to_c2_f2_sub_arg)
-    else:
-      f_face.write (', ' + arg.f_side.to_c2_f2_sub_arg)
-      n = n + 2 + len(arg.f_side.to_c2_f2_sub_arg)
+      line += ', ' + arg.f_side.to_c2_f2_sub_arg
+  line += ') bind(c)\n'
 
-  f_face.write (') bind(c)\n')
+  f_face.write (wrap_line(line, '  ', ' &'))
+
   f_face.write ('    import ' + ', '.join(import_set) + '\n')
   f_face.write ('    type(c_ptr), value :: C\n')
   for arg_type, args in to_c2_call_def.items():
@@ -1588,19 +1591,14 @@ call c_f_pointer (Fp, F)
     f_face.write (arg.f_side.to_c_trans)
 
   f_face.write ('\n' + '!! f_side.to_c2_call\n')
-  f_face.write ('call ZZZ_to_c2 (C'.replace('ZZZ', s_name))
-  n = 14 + len(s_name)
 
+  line = 'call ZZZ_to_c2 (C'.replace('ZZZ', s_name)
   for arg in struct.arg:
-    if n > n_char_max or n+len(arg.f_side.to_c2_call) > n_char_max+10:
-      f_face.write (', &\n  ' + arg.f_side.to_c2_call)
-      n = 2 + len(arg.f_side.to_c2_call)
-    else:
-      f_face.write (', ' + arg.f_side.to_c2_call)
-      n = n + 2 + len(arg.f_side.to_c2_call)
+      line += ', ' + arg.f_side.to_c2_call
+  line += ')'
+  f_face.write(wrap_line(line, '', ' &'))
 
-  f_face.write(''')
-
+  f_face.write('''
 end subroutine ZZZ_to_c
 
 !--------------------------------------------------------------------------
@@ -2159,15 +2157,19 @@ for struct in struct_definitions:
 
 extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
 
-extern "C" void ZZZ_to_f2 (ZZZ_struct*'''.replace('ZZZ', struct.short_name))
+'''.replace('ZZZ', struct.short_name))
 
+  line = 'extern "C" void ZZZ_to_f2 (ZZZ_struct*'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
-    f_cpp.write (', ' + arg.c_side.to_f2_arg.replace('ZZZ', struct.short_name))
+    line += ', ' + arg.c_side.to_f2_arg.replace('ZZZ', struct.short_name)
+  line += ');'
 
-  f_cpp.write(');\n\n')
+  f_cpp.write (wrap_line(line, '', ''))
+
 
   # ZZZ_to_f
 
+  f_cpp.write('\n')
   f_cpp.write('extern "C" void ZZZ_to_f (const CPP_ZZZ& C, ZZZ_struct* F) {\n'.replace('ZZZ', struct.short_name))
 
   for arg in struct.arg:
@@ -2176,14 +2178,15 @@ extern "C" void ZZZ_to_f2 (ZZZ_struct*'''.replace('ZZZ', struct.short_name))
                   ', ' + str(len(arg.array)) + ', ' +  arg.pointer_type + ']\n')
     f_cpp.write (arg.c_side.to_f_setup)
 
-  f_cpp.write('\n  ZZZ_to_f2 (F'.replace('ZZZ', struct.short_name))
+  f_cpp.write('\n')
 
+  line = 'ZZZ_to_f2 (F'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
-    if arg.c_side.to_f2_call == '': continue
-    f_cpp.write (', ' + arg.c_side.to_f2_call)
+    line += ', ' + arg.c_side.to_f2_call
+  line += ');'
+  f_cpp.write(wrap_line(line, '  ', ''))
 
-  f_cpp.write(');\n\n')
-
+  f_cpp.write('\n')
   for arg in struct.arg:
     f_cpp.write (arg.c_side.to_f_cleanup)
 
@@ -2192,13 +2195,14 @@ extern "C" void ZZZ_to_f2 (ZZZ_struct*'''.replace('ZZZ', struct.short_name))
   # ZZZ_to_c2
 
   f_cpp.write('\n')
-  f_cpp.write('extern "C" void ZZZ_to_c2 (CPP_ZZZ& C'.replace('ZZZ', struct.short_name))
 
+  line = 'extern "C" void ZZZ_to_c2 (CPP_ZZZ& C'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
-    f_cpp.write (', ' + arg.c_side.to_c2_arg.replace('ZZZ', struct.short_name))
+    line += ', ' + arg.c_side.to_c2_arg.replace('ZZZ', struct.short_name)
+  line += ') {'
+  f_cpp.write(wrap_line(line, '', ''))
 
-  f_cpp.write(') {\n')
-
+  f_cpp.write('\n')
   for arg in struct.arg:
     if not arg.is_component: continue
     f_cpp.write ('  // c_side.to_c2_set[' + arg.type + \
