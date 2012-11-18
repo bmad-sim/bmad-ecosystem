@@ -1,6 +1,6 @@
 # List of files containing definitions of the structures to setup interfaces for.
 
-struct_def_files = ['../bmad/modules/bmad_struct.f90']
+struct_def_files = ['../bmad/modules/bmad_struct.f90', '../bmad/modules/twiss_mod.f90']
 
 # List of use statements needed in various Fortran modules
 
@@ -16,10 +16,7 @@ struct_list = [
     'bpm_phase_coupling_struct',
     'wig_term_struct',
     'wig_struct',
-    'rf_wake_sr_table_struct'
-]
-
-to_do_struct_list = [
+    'rf_wake_sr_table_struct',
     'rf_wake_sr_mode_struct',
     'rf_wake_lr_struct',
     'rf_wake_struct',
@@ -32,10 +29,14 @@ to_do_struct_list = [
     'floor_position_struct',
     'space_charge_struct',
     'xy_disp_struct',
+    'twiss_struct',
     'mode3_struct',
-    'bookkeeper_status_struct',
-    'rad_int_ele_cache_struct',
-    'ele_struct',
+    'bookkeeping_state_struct',
+    'rad_int_ele_cache_struct'
+    ##'ele_struct'
+]
+
+to_do_struct_list = [
     'control_struct',
     'lat_param_struct',
     'mode_info_struct',

@@ -22,10 +22,17 @@ import textwrap
 
 ##################################################################################
 ##################################################################################
-# For printing of intermediate steps, etc.
+# Init
 
-n_char_max = 90
+master_input_file = 'test_interface_input'
+master_input_file = 'interface_input_params'
+
+n_char_max = 95
 debug = False # Change to True to enable printout
+
+##################################################################################
+##################################################################################
+# For printing of intermediate steps, etc.
 
 def wrap_line (line, indent, cont_char):
   lines = textwrap.wrap(line, n_char_max, initial_indent = indent, subsequent_indent = indent + '    ')
@@ -350,6 +357,14 @@ endif
       if type == STRUCT:
         fp.to_f2_extra_var_type = 'type(KIND_struct), pointer'
         fp.test_pat = fp.test_pat.replace('SET', 'call set_KIND_test_pattern (F%NAME, ix_patt)')
+        fp.to_f2_trans = '''\
+if (n_NAME == 0) then
+  if (associated(F%NAME)) deallocate(F%NAME)
+else
+  if (.not. associated(F%NAME)) allocate(F%NAME)
+  call KIND_to_f (z_NAME, c_loc(F%NAME))
+endif
+'''
 
     #---------------------
     # Pointer, dim = 1
@@ -452,7 +467,7 @@ else
         fp.to_f2_extra_var_type = ''
         fp.to_f2_extra_var_name = ''
         fp.test_pat    = tp2 + x2 + jd1_loop + x2 + jd2_loop + x4 + \
-                        'call set_z_test_pattern (F%NAME(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)\n' + \
+                        'call set_KIND_test_pattern (F%NAME(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)\n' + \
                          '  enddo\n' + '  enddo\n' + 'endif\n'
         ## fp.equality_test = fp.equality_test.replace
         fp.to_c_trans  = ''' \
@@ -521,7 +536,7 @@ else
         fp.to_f2_extra_var_type = ''
         fp.to_f2_extra_var_name = ''
         fp.test_pat    = tp3 + x2 + jd1_loop + x2 + jd2_loop + x2 + jd3_loop + x4 + \
-                        'call set_z_test_pattern (F%NAME(jd1+lb1,jd2+lb2,jd3+lb3), ix_patt+jd1+2*jd2+3*jd3)\n' + \
+                        'call set_KIND_test_pattern (F%NAME(jd1+lb1,jd2+lb2,jd3+lb3), ix_patt+jd1+2*jd2+3*jd3)\n' + \
                          '  enddo\n' + '  enddo\n' + '  enddo\n' + 'endif\n'
         ## fp.equality_test = fp.equality_test.replace
         fp.to_c_trans  = ''' \
@@ -1052,9 +1067,6 @@ for trans in c_side_trans.keys():
 # Get the list of structs
 # See test_interface_input.py (or whatever file is used).
 
-master_input_file = 'interface_input_params'
-master_input_file = 'test_interface_input'
-
 if len(sys.argv) > 1: master_input_file = sys.argv[1]
 print 'Input file: ' + master_input_file
 
@@ -1422,8 +1434,12 @@ for struct in struct_definitions:
       pass
     elif arg.init_value == '0':
       pass
-    elif arg.init_value[0] == '>':
+    elif arg.init_value[0] == '>':   # Pointer: '=> null()'
       pass 
+    elif arg.init_value == '.true.':
+      arg.c_side.construct_value = 'true'
+    elif arg.init_value == '.false.':
+      arg.c_side.construct_value = 'false'
     elif '$' in arg.init_value:
       arg.c_side.construct_value = 'Bmad::' + arg.init_value[:-1].upper()
     else:
@@ -1449,7 +1465,10 @@ if debug:
 
 n_found = 0
 for struct in struct_definitions:
-  if struct.short_name != '': n_found = n_found + 1
+  if struct.short_name == '': 
+    print 'NOT FOUND: ' + struct.f_name
+  else:
+    n_found = n_found + 1
 
 print 'Number of structs in input list: ' + str(len(struct_definitions))
 print 'Number of structs found:         ' + str(n_found)
@@ -1616,12 +1635,15 @@ end subroutine ZZZ_to_c
 !   Fp -- type(c_ptr), value :: Bmad ZZZ_struct structure.
 !-
 
-subroutine ZZZ_to_f2 (Fp'''.replace('ZZZ', struct.short_name))
+'''.replace('ZZZ', struct.short_name))
 
+  line = 'subroutine ZZZ_to_f2 (Fp'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
-    f_face.write(', ' + arg.f_side.to_c2_f2_sub_arg)
+    line += ', ' + arg.f_side.to_c2_f2_sub_arg
+  line += ') bind(c)'
+  f_face.write (wrap_line (line, '', ' &'))
 
-  f_face.write(''') bind(c)\n
+  f_face.write('''
 
 implicit none
 
