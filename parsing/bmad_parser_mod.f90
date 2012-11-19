@@ -225,7 +225,7 @@ type (em_field_mode_struct), pointer :: em_mode
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
 
-integer i, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef
+integer i, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
 
 character(40) :: word, str_ix, attrib_word, word2
@@ -1124,7 +1124,8 @@ case ('PTC_EXACT_MODEL')
 
 case ('PTC_EXACT_MISALIGN')
   call get_logical (attrib_word, logic, err_flag)
-  if (.not. err_flag) call set_ptc (exact_misalign = logic)
+  if (err_flag) return
+  call set_ptc (exact_misalign = logic)
 
 case ('MAP_WITH_OFFSETS')
   call get_logical (attrib_word, ele%map_with_offsets, err_flag)
@@ -1155,13 +1156,27 @@ case ('COUPLER_AT')
   ele%value(coupler_at$) = ix
 
 case ('TRACKING_METHOD')
-  call get_switch (attrib_word, calc_method_name(1:), ele%tracking_method, err_flag)
+  call get_switch (attrib_word, calc_method_name(1:), switch, err_flag)
+  if (err_flag) return
+  if (.not. valid_tracking_method (ele, switch)) then
+    call parser_error ('NOT A VALID TRACKING_METHOD: ' // word, &
+                       'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
+    return
+  endif
+  ele%tracking_method = switch
 
 case ('SPIN_TRACKING_METHOD')
   call get_switch (attrib_word, calc_method_name(1:), ele%spin_tracking_method, err_flag)
 
 case ('MAT6_CALC_METHOD')
-  call get_switch (attrib_word, calc_method_name(1:), ele%mat6_calc_method, err_flag)
+  call get_switch (attrib_word, calc_method_name(1:), switch, err_flag)
+  if (err_flag) return
+  if (.not. valid_mat6_calc_method (ele, switch)) then
+    call parser_error ('NOT A VALID MAT6_CALC_METHOD: ' // word, &
+                       'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
+    return
+  endif
+  ele%mat6_calc_method = switch
 
 case ('REF_ORBIT')
   call get_switch (attrib_word, ref_orbit_name(1:), ele%ref_orbit, err_flag)
@@ -1273,7 +1288,8 @@ is_problem = .false.
 if (logic_option(.false., check_free)) then
   is_free = attribute_free (ele, attrib_name, lat, print_err)
   if (.not. is_free) then
-    if (print_err) call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
+    if (print_err) call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
+                                      'FOR: ' // ele%name)
     err_flag = .true.
     is_problem = .true.
   endif
@@ -1329,10 +1345,10 @@ end subroutine get_integer
 !--------------------------------------------------------
 ! contains
 
-subroutine get_switch (name, name_list, this_switch, err)
+subroutine get_switch (name, name_list, switch, err)
 
 character(*) name, name_list(:)
-integer this_switch
+integer this_switch, switch
 logical err
 
 !
@@ -1344,6 +1360,7 @@ if (this_switch < 1) then
   err = .true.
 else
   err = .false.
+  switch = this_switch
 endif
 
 end subroutine get_switch
