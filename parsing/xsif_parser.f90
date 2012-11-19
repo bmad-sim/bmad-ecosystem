@@ -45,7 +45,7 @@ type (ele_struct), pointer :: ele, ele0
 
 integer xsif_unit, err_unit, std_out_unit, internal_unit
 integer i, ie, ierr, dat_indx, ierr_lcl, i_ele, indx, key
-integer ip0, n, it, ix, iep, id, n_names
+integer ip0, n, it, ix, iep, id, n_names, ierr2
 integer xsif_io_setup, parchk, ix1, ix2, digested_version
 
 real(rp) k2, angle, aperture
@@ -112,7 +112,7 @@ endif
 ierr = xsif_cmd_loop ( ) 
 
 if (present(use_line)) then
-  if (use_line /= '') call xuse2 (use_line)
+  if (use_line /= '') ierr2 = xuse2 (use_line)
 endif
 
 if (ierr /= 0) then
