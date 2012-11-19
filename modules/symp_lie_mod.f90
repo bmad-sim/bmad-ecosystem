@@ -333,9 +333,8 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
 case default
 
-  print *, 'ERROR IN SYMP_LIE_BMAD: NOT YET IMPLEMENTED:', ele%key
-  print *, '      FOR ELEMENT: ', ele%name
-  if (global_com%exit_on_error) call err_exit
+  call out_io (s_fatal$, r_name, 'TRACKING NOT YET IMPLEMENTED FOR: ' // key_name(ele%key), &
+                                 'FOR ELEMENT: ', ele%name)
 
 end select
 
@@ -385,8 +384,9 @@ integer plane
 
 !
 
-print *, 'ERROR IN SYMP_LIE_BMAD: FLOATING OVERFLOW IN WIGGLER TRACKING.'
-print *, '      PARTICLE WILL BE TAGGED AS LOST.'
+call out_io (s_warn$, r_name, &
+                'FLOATING OVERFLOW IN TRACKING:' // ele%name, &
+                'PARTICLE WILL BE TAGGED AS LOST.')
 
 if (plane == x_plane$) then
   end_orb%vec(1) = sign(2 * bmad_com%max_aperture_limit, end_orb%vec(1))
