@@ -40,7 +40,6 @@ end function
 //########        START OPTI.H      ####################################
 //######################################################################
 // Use genetic algorithm to optimize functions
-#include "CESR_platform.h"
 #ifndef _OPTI_H_
 #define _OPTI_H_
 

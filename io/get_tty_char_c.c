@@ -1,5 +1,3 @@
-#include "CESR_platform.h"
-
 #ifndef CESR_WINCVF
 #ifndef CESR_VMS
 #include <stdio.h> 
