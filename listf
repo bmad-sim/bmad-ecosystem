@@ -419,7 +419,7 @@ sub searchit {
 
   # match to C++ files
 
-  } elsif ($file =~ /\.cpp$/ || $file =~ /\.h$/) {
+  } elsif ($file =~ /\.cpp$/ || $file =~ /\.h$/ || $file =~ /\.c$/) {
 
 
     $found_in_file = 0;
