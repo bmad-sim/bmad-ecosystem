@@ -296,7 +296,7 @@ has_nonzero_pole = .false.
 ! Multipole type element case. Note: use_ele_tilt is ignored in this case.
 
 if (ele%key == multipole$) then
-  if (any(ele%a_pole /= 0)) return
+  if (all(ele%a_pole == 0)) return
   has_nonzero_pole = .true.
   call multipole_kt_to_ab (ele%a_pole, ele%b_pole, a, b)
   return
