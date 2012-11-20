@@ -3061,29 +3061,21 @@ end select
 ! multipole components
 ! bmad an and bn are integrated fields. PTC uses just the field.
 
-kick_here = .false.
 if (ele%key == hkicker$ .or. ele%key == vkicker$) then
-  hk = 0; vk = 0
-  if (ele%key == hkicker$) hk = -val(kick$) 
-  if (ele%key == vkicker$) vk = val(kick$) 
-  kick_here = .true.
+  if (ele%key == hkicker$) k(1)  = k(1)  + val(kick$) 
+  if (ele%key == vkicker$) ks(1) = ks(1) + val(kick$) 
 
 elseif (ele%key == kicker$) then
-  hk = -val(hkick$)
-  vk = val(vkick$)
-  kick_here = .true.
+  k(1)  = k(1)  + val(hkick$) 
+  ks(1) = ks(1) + val(vkick$) 
 
 elseif (has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. val(vkick$) /= 0)) then
   hk = val(hkick$) / leng   ! PTC uses scaled kick for non-kicker elements.
   vk = val(vkick$) / leng
-  kick_here = .true.
-endif
-
-if (kick_here) then
   cos_t = cos(ele%value(tilt_tot$))
   sin_t = sin(ele%value(tilt_tot$))
-  k(1)  = k(1) - hk * cos_t - vk * sin_t
-  ks(1) =                   - hk * sin_t + vk * cos_t
+  k(1)  = k(1)  - hk * cos_t - vk * sin_t
+  ks(1) = ks(1) - hk * sin_t + vk * cos_t
 endif
 
 call multipole_ele_to_ab (ele, particle, .false., has_nonzero_pole, an0, bn0)

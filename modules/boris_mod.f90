@@ -61,7 +61,6 @@ implicit none
 type (coord_struct), intent(in) :: orb_start
 type (coord_struct), intent(out) :: orb_end
 type (ele_struct) ele
-type (ele_struct) :: loc_ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
 type (ele_struct), pointer :: hard_ele
@@ -100,9 +99,6 @@ call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, d
 
 ! go to local coords
 
-call transfer_ele (ele, loc_ele)
-call zero_ele_offsets (loc_ele)
-
 orb_end = orb_start
 orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
@@ -137,7 +133,7 @@ do
   s_target = min(s2, s_edge_track)
   call compute_even_steps (ele%value(ds_step$), s_target-s, bmad_com%default_ds_step, ds, n_step)
 
-  call track1_boris_partial (orb_end, loc_ele, param, s, t, ds, orb_end)
+  call track1_boris_partial (orb_end, ele, param, s, t, ds, orb_end)
   s = s + ds
 
   if (present(track)) call save_a_step (track, ele, param, .true., s, orb_end, s_sav)
