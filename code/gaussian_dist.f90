@@ -37,8 +37,6 @@
 !
 !........................................................................
 !
-#include "CESR_platform.inc"
-
  subroutine gaussian_dist (ele, mode, coupling, min_sig, coord)
 
   use bmad_struct

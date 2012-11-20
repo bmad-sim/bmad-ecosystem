@@ -25,8 +25,6 @@
 !
 !........................................................................
 !
-#include "CESR_platform.inc"
-
   subroutine q_tune (ring, Q_x, Q_y, ok)
 
 !  set fractional tunes to Q_x, Q_y
