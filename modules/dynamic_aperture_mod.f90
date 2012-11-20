@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module dynamic_aperture_mod
 
 use bmad_struct

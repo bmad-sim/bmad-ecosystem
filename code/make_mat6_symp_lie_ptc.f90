@@ -17,8 +17,6 @@
 !     %mat6  -- 6x6 transfer matrix.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine make_mat6_symp_lie_ptc (ele, param, c0)
 
   use ptc_interface_mod, except_dummy => make_mat6_symp_lie_ptc

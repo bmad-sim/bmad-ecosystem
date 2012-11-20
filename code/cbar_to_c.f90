@@ -16,8 +16,6 @@
 !   c_mat(2,2) -- Real(rp): C matrix.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine cbar_to_c (cbar_mat, a, b, c_mat)
 
   use bmad_struct

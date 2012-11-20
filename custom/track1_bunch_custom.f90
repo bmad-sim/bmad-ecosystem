@@ -21,8 +21,6 @@
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end, err_flag)
 
 use bmad_interface, except_dummy => track1_bunch_custom

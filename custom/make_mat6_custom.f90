@@ -26,8 +26,6 @@
 !   err_flag -- Logical: Set true if there is an error. False otherwise.
 !+
 
-#include "CESR_platform.inc"
-
 subroutine make_mat6_custom (ele, param, c0, c1, err_flag)
 
 use bmad_struct

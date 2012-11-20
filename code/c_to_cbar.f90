@@ -16,8 +16,6 @@
 !   cbar_mat(2,2) -- Real(rp): Cbar matrix.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine c_to_cbar (ele, cbar_mat)
 
   use bmad_struct

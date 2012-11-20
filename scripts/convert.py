@@ -21,6 +21,11 @@ for arg in sys.argv[1:]:
       skip_blank = True
       continue
 
+    if '#include "CESR_platform.h' in line:
+      found = True
+      skip_blank = True
+      continue
+
     if skip_blank and line == '\n': 
       skip_blank = False
       continue

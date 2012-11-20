@@ -12,8 +12,6 @@
 !           set on.
 !-
 
-#include "CESR_platform.inc"
-
 
 subroutine set_design_linear (lat)
 

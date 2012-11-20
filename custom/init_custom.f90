@@ -23,8 +23,6 @@
 !   err_flag -- Logical: Set true if there is an error. False otherwise.
 !+
 
-#include "CESR_platform.inc"
-
 subroutine init_custom (ele, err_flag)
 
 use bmad_struct
