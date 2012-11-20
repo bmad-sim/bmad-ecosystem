@@ -51,7 +51,8 @@ prompt_string = s%global%prompt_string
 if (present(prompt_str)) prompt_string = prompt_str
 
 if (init_needed) then
-#ifndef CESR_WINCVF
+#ifdef CESR_WINCVF
+#else
   call init_tty_char
 #endif
   init_needed = .false.
