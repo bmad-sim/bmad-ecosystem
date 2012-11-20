@@ -26,8 +26,6 @@
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, track)
 
 use bmad_interface, except_dummy => track1_custom

@@ -16,8 +16,6 @@
 !                       = cycles$   => Type Twiss, use cycles (1 = 2pi) units.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine type_twiss (ele, frequency_units)
 
   use bmad_struct

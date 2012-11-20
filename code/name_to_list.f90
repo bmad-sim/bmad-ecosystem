@@ -25,8 +25,6 @@
 !   ele_names(3) = ' '       ! end of ELE_NAMES list
 !-
 
-#include "CESR_platform.inc"
-
 subroutine name_to_list (lat, ele_names, use_ele)
 
   use bmad_struct

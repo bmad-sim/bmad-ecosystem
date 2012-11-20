@@ -21,8 +21,6 @@
 !             tracking method does tracking step-by-step.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine track1_spin_custom (start, ele, param, end, err_flag, track)
 
 use bmad_struct

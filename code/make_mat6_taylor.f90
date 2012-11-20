@@ -17,8 +17,6 @@
 !     %mat6  -- 1st order map component (6x6 transfer matrix).
 !-
 
-#include "CESR_platform.inc"
-
 subroutine make_mat6_taylor (ele, param, orb_in)
 
 use ptc_interface_mod, except_dummy => make_mat6_taylor

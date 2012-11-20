@@ -15,8 +15,6 @@
 !   g_inv_mat(4,4) -- Real(rp): The inverse of G_MAT
 !-
 
-#include "CESR_platform.inc"
-
 subroutine make_g_mats (ele, g_mat, g_inv_mat)
 
   use bmad_struct

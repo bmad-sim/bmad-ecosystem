@@ -34,8 +34,6 @@
 !   n_lines      -- Number of lines used
 !-
 
-#include "CESR_platform.inc"
-
 subroutine type2_twiss (ele, lines, n_lines, frequency_units, compact_format)
 
 use bmad_struct

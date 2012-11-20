@@ -22,8 +22,6 @@
 !                   = 1 => terrible fit
 !-
 
-#include "CESR_platform.inc"
-
 subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
 
   use bmad_struct

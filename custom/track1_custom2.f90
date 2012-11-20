@@ -25,8 +25,6 @@
 !             tracking method does tracking step-by-step.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine track1_custom2 (start, ele, param, end, err_flag, track)
 
 use bmad_interface, except_dummy => track1_custom2

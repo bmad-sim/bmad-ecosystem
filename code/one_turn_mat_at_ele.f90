@@ -20,8 +20,6 @@
 !   mat4(4,4) -- Real(rp): 1-Turn coupled matrix.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
   use bmad_struct
