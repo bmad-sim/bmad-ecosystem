@@ -556,20 +556,20 @@ select case (ele%field_calc)
   !-------------------------------
   ! Add kicks. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
 
-  if (has_kick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
+  if (has_hkick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
     select case (ele%key)
     ! Handled above
     case (kicker$, hkicker$, vkicker$, elseparator$)  
     ! Everything else
     case default
-      if (.not. local_ref_frame .or. ele%value(tilt$) == 0) then
-        field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c 
-        field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c 
+      if (.not. local_ref_frame .or. ele%value(tilt_tot$) == 0) then
+        field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c / ele%value(l$)
+        field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c / ele%value(l$)
       else
         ! Rotate from lab to local
-        tilt = ele%value(tilt$)
-        field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) - ele%value(hkick$) * sin(tilt)) * f_p0c 
-        field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) - ele%value(vkick$) * sin(tilt)) * f_p0c 
+        tilt = ele%value(tilt_tot$)
+        field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) - ele%value(hkick$) * sin(tilt)) * f_p0c / ele%value(l$)
+        field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) - ele%value(vkick$) * sin(tilt)) * f_p0c / ele%value(l$)
       endif
     end select
   endif
