@@ -37,8 +37,6 @@
 !     ix   => 2
 !-
 
-#include "CESR_platform.inc" 
-
 subroutine string_trim (in_string, out_string, word_len)
 
 implicit none

@@ -5,8 +5,6 @@
 ! of a test to exit if the function F is not varying significantly.
 !-
 
-#include "CESR_platform.inc"
-
 FUNCTION BRENT2 (AX,BX,CX,F,TOL,XMIN)
 
 

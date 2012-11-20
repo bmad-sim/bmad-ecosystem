@@ -1,4 +1,3 @@
-!  INTEGER_RE  SUBROUTINE  PROGRAMING  C.DCS.LIB   DCS         96.7
 !+
 ! function INTEGER_READ(error_message)
 !
@@ -10,47 +9,29 @@
 !     integer = integer_read('ERROR: ')
 !-
 
-!$Id$
-!$Log$
-!Revision 1.4  2003/04/30 16:26:40  dcs
-!F90 Standard conforming update.
-!
-!Revision 1.3  2002/02/23 20:34:44  dcs
-!Modified for Single/Double Real Toggle
-!
-!Revision 1.2  2001/09/27 17:47:06  rwh24
-!UNIX compatibility updates
-!
+integer function integer_read(error_message)
 
-#include "CESR_platform.inc"
+use precision_def
 
+implicit none
 
-  integer function integer_read(error_message)
+integer idelim, inttyp
 
+logical lwait
 
-  use precision_def
-
-  implicit none
-
-  integer idelim, inttyp
-
-  logical lwait
-
-  character*(*) error_message
+character*(*) error_message
 
 !
 
-  lwait = .false.
+lwait = .false.
 
-  integer_read = inttyp(lwait, idelim)
+integer_read = inttyp(lwait, idelim)
 
-  if (idelim > 0) then
-    print *
-    print *, error_message
-    call zertyp(' ')
-    stop
-  endif
+if (idelim > 0) then
+  print *
+  print *, error_message
+  call zertyp(' ')
+  stop
+endif
 
-  return
-
-  end
+end function

@@ -14,8 +14,6 @@
 ! *Note: strings are trimmed before comparison
 !-
 
-#include "CESR_platform.inc"
-
 function match_reg(str, pat)
   implicit none
   logical :: match_reg

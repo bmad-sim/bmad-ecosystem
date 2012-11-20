@@ -5,8 +5,6 @@
 ! This routine is typically used when a program detects an error condition.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine err_exit
 
   use precision_def

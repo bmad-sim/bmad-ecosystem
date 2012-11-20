@@ -12,8 +12,6 @@
 !   this_match -- Logical: Set true if matched
 !-
 
-#include "CESR_platform.inc"
-
 function match_wild (string, template) result (this_match)
 
   use sim_utils, except => match_wild

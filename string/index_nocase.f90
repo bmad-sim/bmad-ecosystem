@@ -15,8 +15,6 @@
 !              > 0  -> index of where match starts.
 !-
 
-#include "CESR_platform.inc"
-
 function index_nocase(string, match_str) result (indx)
 
   implicit none

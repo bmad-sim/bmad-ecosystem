@@ -1,4 +1,3 @@
-#include "CESR_platform.inc"
                                     
 !+
 ! Module pgplot_interface

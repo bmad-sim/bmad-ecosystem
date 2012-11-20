@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module eigen_mod
 
 use precision_def

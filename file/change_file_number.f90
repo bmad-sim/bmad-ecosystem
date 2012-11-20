@@ -14,8 +14,6 @@
 !     NUMBER  -- Integer: Incremented number.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine change_file_number (file_name, change)
 
   use precision_def

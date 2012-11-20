@@ -15,8 +15,6 @@
 !   ios         -- Integer: I/O status (= 0 if not an error like ^Z typed).
 !-
 
-#include "CESR_platform.inc"
-
 subroutine query_string (query_str, do_upcase, return_str, ix, ios)
 
   use sim_utils, except => query_string

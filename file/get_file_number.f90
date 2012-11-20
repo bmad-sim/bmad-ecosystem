@@ -23,8 +23,6 @@
 !     num_out = 31
 !-
 
-#include "CESR_platform.inc"
-
 subroutine get_file_number (file_name, cnum_in, num_out, err_flag)
 
   use precision_def

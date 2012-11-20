@@ -2,8 +2,6 @@
 ! Subroutine : query_real( parameter, default, fmt)
 !-
 
-#include "CESR_platform.inc"
-
 subroutine query_real (parameter, result, fmt)
 
   use precision_def

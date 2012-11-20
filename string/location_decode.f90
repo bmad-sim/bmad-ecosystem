@@ -33,8 +33,6 @@
 !     num = 44
 !-
 
-#include "CESR_platform.inc"
-
 subroutine location_decode(string, array, ix_min, num, names, exact_case)
 
 use word_mod

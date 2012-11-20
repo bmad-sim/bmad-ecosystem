@@ -12,8 +12,6 @@
 !   err_flag -- Logical: Set .true. if there is a decoding error
 !-
 
-#include "CESR_platform.inc"
-
 subroutine string_to_int (line, default, value, err_flag)
 
   implicit none

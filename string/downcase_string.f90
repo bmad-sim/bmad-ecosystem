@@ -10,8 +10,6 @@
 !   string -- Character(*): String with all letters converted to lower case.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine downcase_string(string)
 
   implicit none

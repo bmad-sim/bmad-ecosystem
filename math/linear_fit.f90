@@ -4,8 +4,6 @@
 ! Subroutine to fit to y = A + B x
 !-
 
-#include "CESR_platform.inc"
-
 subroutine linear_fit (x, y, n_data, a, b, sig_a, sig_b)
 
   use precision_def

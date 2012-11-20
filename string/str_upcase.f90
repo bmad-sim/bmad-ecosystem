@@ -13,8 +13,6 @@
 !   destination -- Character(*): Upper cased string.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine str_upcase(dst, src)
   implicit none
   
