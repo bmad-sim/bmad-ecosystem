@@ -32,7 +32,7 @@ subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
 use capillary_mod, dummy => track1_bmad
 use track1_photon_mod, dummy2 => track1_bmad
-use mad_mod
+use mad_mod, dummy3 => track1_bmad
 
 implicit none
 
