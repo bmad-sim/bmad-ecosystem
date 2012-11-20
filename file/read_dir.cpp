@@ -1,5 +1,3 @@
-#include "CESR_platform.h"
-
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>

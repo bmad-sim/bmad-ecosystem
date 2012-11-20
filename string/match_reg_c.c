@@ -3,8 +3,6 @@
  * by the user.
  */
 
-#include "CESR_platform.h"
-
 #if defined(CESR_UNIX) || defined(CESR_WINCVF)
 #include <regex.h>
 #include <stdlib.h>
