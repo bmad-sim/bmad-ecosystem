@@ -37,8 +37,6 @@
 !
 !........................................................................
 !
-#include "CESR_platform.inc"
-
   program closed_orbit
 
   use bmadz_interface
