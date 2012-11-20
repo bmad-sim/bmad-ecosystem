@@ -213,8 +213,6 @@ use sim_utils_interface
 use utilities_mod
 use output_mod
 
-#include "CESR_platform.inc"
-
 #if defined (USE_PLPLOT)
   use plplot_interface
 #else

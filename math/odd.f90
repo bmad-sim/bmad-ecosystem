@@ -20,8 +20,6 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
-
 
   function odd (num)
 

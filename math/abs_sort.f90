@@ -27,8 +27,6 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
-
 
 subroutine abs_sort (array, index, n)
 

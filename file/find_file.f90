@@ -19,8 +19,6 @@
 !                   If file is not found then file_out = file_in 
 !-
 
-#include "CESR_platform.inc"
-
 subroutine find_file (file_in, found, file_out, dirs)
 
   use sim_utils, except => find_file

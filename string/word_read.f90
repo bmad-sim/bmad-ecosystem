@@ -52,8 +52,6 @@
 !     out_str = ',,    '
 !-
 
-#include "CESR_platform.inc"
-
 subroutine word_read (in_str, delim_list, word, &
                                      ix_word, delim, delim_found, out_str)
 

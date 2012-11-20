@@ -1,4 +1,3 @@
-#include "CESR_platform.inc"
                                     
 !+
 ! Modue input_mod

@@ -10,8 +10,6 @@
 !   string -- Character(*): String with all letters converted to uppercase.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine upcase_string(string)
 
   implicit none

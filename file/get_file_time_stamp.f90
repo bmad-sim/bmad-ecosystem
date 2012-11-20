@@ -13,8 +13,6 @@
 !   time_stamp  -- Character(23): Modification time: "dd-mmm-yyyy hh:mm:ss.xx"
 !-
 
-#include "CESR_platform.inc"
-
 subroutine get_file_time_stamp (file, time_stamp)
 
 use sim_utils_interface, except => get_file_time_stamp

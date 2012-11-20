@@ -27,8 +27,6 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
-
 
 function probability_funct(x)
 

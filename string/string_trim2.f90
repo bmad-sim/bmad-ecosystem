@@ -35,8 +35,6 @@
 !     ix_delim: 6
 !-
 
-#include "CESR_platform.inc"
-
 subroutine string_trim2 (in_str, delimitors, out_str, &
                                         ix_word, delim, ix_next)
 

@@ -13,8 +13,6 @@
 !   destination -- Character(*): Down cased string.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine str_downcase(dst, src)
   implicit none
   

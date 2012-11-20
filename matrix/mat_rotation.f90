@@ -16,8 +16,6 @@
 !   mat(:,:)       -- Real(rp): 2x2 rotation matrix.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine mat_rotation (mat, angle, bet_1, bet_2, alph_1, alph_2)
 
   use precision_def

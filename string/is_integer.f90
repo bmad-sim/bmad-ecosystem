@@ -13,8 +13,6 @@
 !   is_integer -- Logical: Is a valid integer 
 !-
 
-#include "CESR_platform.inc"
-
 function is_integer (string) result (valid)
 
   character(*) string

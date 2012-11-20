@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module modulo2_mod
 
 use precision_def

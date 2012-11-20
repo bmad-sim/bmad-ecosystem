@@ -7,8 +7,6 @@
 !   mat(:,:) -- Real(rp): Square matrix
 !-
 
-#include "CESR_platform.inc"
-
 subroutine mat_make_unit (mat)
 
   use precision_def

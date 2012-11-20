@@ -21,8 +21,6 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
-
 
 subroutine make_legal_comment (comment_in, comment_out)
 

@@ -10,8 +10,6 @@
 !   milli_sec -- Integer: Number of milli-seconds to pause.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine milli_sleep (milli_sec)
 
 use precision_def

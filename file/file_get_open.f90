@@ -21,8 +21,6 @@
 !   call file_get_open ('input file:', '[cesr.default].in', file_name, funit, .true.)
 !-           
 
-#include "CESR_platform.inc"
-
 subroutine file_get_open (string, dflt_file_name, file_name, file_unit, readonly)
 
   use sim_utils_interface, except => file_get_open

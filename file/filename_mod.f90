@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module filename_mod
 
 use output_mod

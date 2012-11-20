@@ -22,8 +22,6 @@
 !     num_out = 31
 !-
 
-#include "CESR_platform.inc"
-
 subroutine calc_file_number (file_name, num_in, num_out, err_flag)
 
   use sim_utils, except => calc_file_number

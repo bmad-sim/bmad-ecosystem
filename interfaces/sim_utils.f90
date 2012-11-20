@@ -1,5 +1,3 @@
-#include "CESR_platform.inc" 
-
 module sim_utils
 
   use sim_utils_struct

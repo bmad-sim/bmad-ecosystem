@@ -23,8 +23,6 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
-
 
 
   integer function word_len (wording)

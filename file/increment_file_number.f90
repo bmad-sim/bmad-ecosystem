@@ -23,8 +23,6 @@
 !   CNUMBER(1:5) = '00035'
 !-
 
-#include "CESR_platform.inc"
-
 subroutine increment_file_number (file_name, digits, number, cnumber)
 
   implicit none

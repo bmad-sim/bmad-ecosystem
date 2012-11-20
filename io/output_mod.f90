@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module output_mod
 
 use sim_utils_interface

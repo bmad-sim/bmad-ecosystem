@@ -13,8 +13,6 @@
 !                = .true. if no data is found
 !-
 
-#include "CESR_platform.inc"
-
 subroutine skip_header (ix_unit, error_flag)
 
   use precision_def

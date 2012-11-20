@@ -38,8 +38,6 @@
 !
 !-
 
-#include "CESR_platform.inc"
-
 subroutine file_suffixer (in_file_name, out_file_name, suffix, add_switch)
 
   use precision_def

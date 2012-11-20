@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module command_line_mod
 
 contains

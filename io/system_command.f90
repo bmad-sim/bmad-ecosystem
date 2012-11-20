@@ -1,4 +1,3 @@
-#include "CESR_platform.inc"
                                     
 !+
 ! Subroutine system_command (line)

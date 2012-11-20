@@ -51,8 +51,6 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
-
 
 
 subroutine if_error (idelim, icmd, error_string, line_number, end_check)
