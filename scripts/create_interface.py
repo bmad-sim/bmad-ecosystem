@@ -24,8 +24,8 @@ import textwrap
 ##################################################################################
 # Init
 
-master_input_file = 'test_interface_input'
 master_input_file = 'interface_input_params'
+master_input_file = 'test_interface_input'
 
 n_char_max = 95
 debug = False # Change to True to enable printout
@@ -142,6 +142,7 @@ class f_side_trans_class:
 x2 = ' ' * 2
 x4 = ' ' * 4
 x6 = ' ' * 6
+x8 = ' ' * 8
 
 to_f2_trans_pointer0 = '''\
 if (n_NAME == 0) then
@@ -167,7 +168,7 @@ endif
 '''
 
 equality_test_pointer = \
-'''
+'''\
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = all(shape(f1%NAME) == shape(f2%NAME))
@@ -416,7 +417,7 @@ if (associated(F%NAME)) then
   enddo
 endif
 '''
-        fp.to_f2_trans = ''' \
+        fp.to_f2_trans = '''\
 if (n1_NAME == 0) then
   if (associated(F%NAME)) deallocate(F%NAME)
 else
@@ -470,7 +471,7 @@ else
                         'call set_KIND_test_pattern (F%NAME(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)\n' + \
                          '  enddo\n' + '  enddo\n' + 'endif\n'
         ## fp.equality_test = fp.equality_test.replace
-        fp.to_c_trans  = ''' \
+        fp.to_c_trans  = '''\
 n1_NAME = 0
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1); lb1 = lbound(F%NAME, 1) - 1
@@ -481,7 +482,7 @@ if (associated(F%NAME)) then
   enddo;  enddo
 endif
 '''
-        fp.to_f2_trans = ''' \
+        fp.to_f2_trans = '''\
 if (n1_NAME == 0) then
   if (associated(F%NAME)) deallocate(F%NAME)
 else
@@ -516,7 +517,7 @@ if (associated(F%NAME)) then
 endif
 '''
 
-      tp3 = ''' \
+      tp3 = '''\
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
@@ -539,7 +540,7 @@ else
                         'call set_KIND_test_pattern (F%NAME(jd1+lb1,jd2+lb2,jd3+lb3), ix_patt+jd1+2*jd2+3*jd3)\n' + \
                          '  enddo\n' + '  enddo\n' + '  enddo\n' + 'endif\n'
         ## fp.equality_test = fp.equality_test.replace
-        fp.to_c_trans  = ''' \
+        fp.to_c_trans  = '''\
 n1_NAME = 0
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1); lb1 = lbound(F%NAME, 1) - 1
@@ -551,7 +552,7 @@ if (associated(F%NAME)) then
   enddo;  enddo; enddo
 endif
 '''
-        fp.to_f2_trans = ''' \
+        fp.to_f2_trans = '''\
 if (n1_NAME == 0) then
   if (associated(F%NAME)) deallocate(F%NAME)
 else
@@ -570,7 +571,7 @@ endif
     fp.test_pat = fp.test_pat.replace('SET', 'F%NAME = ' + test_value)
 
 #---------------------------
-# CHAR
+# CHAR 0 NOT
 
 f_side_trans[CHAR, 0, NOT] = f_side_trans_class()
 f_side_trans[CHAR, 0, NOT].bindc_type    = 'character(c_char)'
@@ -581,13 +582,13 @@ f_side_trans[CHAR, 0, NOT].test_pat      = \
         'do jd1 = 1, len(F%NAME)\n  F%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26))\nenddo\n'
 f_side_trans[CHAR, 0, NOT].to_f2_trans   = 'call to_f_str(z_NAME, F%NAME)'
 
-#
+# CHAR 0 PTR
 
 f_side_trans[CHAR, 0, PTR] = copy.deepcopy(f_side_trans[INT, 0, PTR])
 fc = f_side_trans[CHAR, 0, PTR] 
 fc.to_f2_extra_var_type = 'character(c_char), pointer'
 fc.to_f2_trans          = to_f2_trans_pointer0.replace('SET', 'call to_f_str(f_NAME, F%NAME)')
-fc.test_pat             = ''' \
+fc.test_pat             = '''\
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
@@ -595,6 +596,37 @@ else
   do jd1 = 1, len(F%NAME)
     F%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26))
   enddo
+endif
+'''
+
+# CHAR 1 NOT
+
+f_side_trans[CHAR, 1, NOT] = copy.deepcopy(f_side_trans[STRUCT, 1, NOT])
+f_side_trans[CHAR, 1, NOT].bindc_name    = 'z_NAME(*)'
+f_side_trans[CHAR, 1, NOT].test_pat      = '''\
+do jd1 = lbound(F%NAME, 1), ubound(F%NAME, 1)
+  do jd = 1, len(F%NAME(jd1))
+    F%NAME(jd1)(jd:jd) = char(ichar("a") + modulo(100+XXX+offset+jd, 26))
+  enddo
+enddo
+'''
+f_side_trans[CHAR, 1, NOT].to_f2_trans = jd1_loop + '  call string_to_f(z_NAME(jd1), c_loc(F%NAME(jd1+lb1)))\nenddo\n' 
+
+# CHAR 1 PTR
+
+f_side_trans[CHAR, 1, PTR] = copy.deepcopy(f_side_trans[STRUCT, 1, PTR])
+fc = f_side_trans[CHAR, 1, PTR] 
+fc.to_f2_extra_var_type = 'character(c_char), pointer'
+fc.to_f2_trans          = fc.to_f2_trans.replace('ZZZ', 'string')
+fc.test_pat             = '''\
+if (ix_patt < 3) then
+  if (associated(F%NAME)) deallocate (F%NAME)
+else
+  if (.not. associated(F%NAME)) allocate (F%NAME(3))
+  do jd1 = 1, 3
+  do jd = 1, len(F%NAME)
+    F%NAME(jd1)(jd:jd) = char(ichar("a") + modulo(100+XXX+offset+jd, 26))
+  enddo; enddo
 endif
 '''
 
@@ -635,20 +667,20 @@ class c_side_trans_class:
 
 #------------------
 
-test_pat_pointer0 = \
-'''  if (ix_patt < 3) 
+test_pat_pointer0 = '''\
+  if (ix_patt < 3) 
     C.NAME = NULL;
   else {
 '''
 
-test_pat_pointer1 = \
-'''  if (ix_patt < 3) 
+test_pat_pointer1 = '''\
+  if (ix_patt < 3) 
     C.NAME.resize(0);
   else {
+    C.NAME.resize(3);
 '''
 
-equality_test_pointer = \
-'''
+equality_test_pointer = '''\
   is_eq = is_eq && ((x.NAME == NULL) == (y.NAME == NULL));
   if (!is_eq) return false;
   if (x.NAME != NULL) is_eq = TEST;
@@ -660,7 +692,8 @@ for3 = '  for (unsigned int k = 0; k < C.NAME[0][0].size(); k++)'
 
 test_pat1 = for1 + '\n    {int rhs = 101 + i + XXX + offset; C.NAME[i] = NNN;}'
 test_pat2 = for1 + for2 + '\n    {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = NNN;}'
-test_pat3 = for1 + for2 + for3 + '\n    {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'
+test_pat3 = for1 + for2 + for3 + '\n' + x4 +\
+                  '{int rhs = 101 + i + 10*(j+1) + 100*(k+1) + XXX + offset; C.NAME[i][j][k] = NNN;}'
 
 c_side_trans = {}
 
@@ -735,7 +768,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
         c.constructor = 'NAME(CPP_KIND_ARRAY(CPP_KIND(), DIM1))'
         c.to_c2_set   = for1 + ' KIND_to_c(z_NAME[i], C.NAME[i]);' 
         c.test_pat    = test_pat1.replace('C.NAME[i] = NNN', 'set_CPP_KIND_test_pattern(C.NAME[i], ix_patt+i+1)')
-        c.to_f_setup  = ''' \
+        c.to_f_setup  = '''\
   int n1_NAME = C.NAME.size();
   const CPP_KIND** z_NAME = NULL;
   if (n1_NAME != 0) {
@@ -820,14 +853,14 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
       cp.test_pat      = test_pat_pointer0 + '    C.NAME = new ' + c_type + ';\n' + \
                                     indent(c.test_pat.replace('C.NAME', '(*C.NAME)'), 2) + '  }\n'
       cp.to_f_setup    = '  unsigned int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;\n'
-      cp.equality_test = ''' \
+      cp.equality_test = '''\
   is_eq = is_eq && ((x.NAME == NULL) == (y.NAME == NULL));
   if (!is_eq) return false;
   if (x.NAME != NULL) is_eq = (*x.NAME == *y.NAME);
 '''
 
 
-      cp.to_c2_set     = ''' \
+      cp.to_c2_set     = '''\
   if (n_NAME == 0)
     delete C.NAME;
   else {
@@ -854,8 +887,8 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
   C.NAME.resize(n1_NAME);
   C.NAME << z_NAME;
 '''
-      cp.test_pat    = test_pat_pointer1 + '    C.NAME.resize(3);\n' + indent(c.test_pat, 2) + '  }\n'
-      cp.to_f_setup  = ''' \
+      cp.test_pat    = test_pat_pointer1 + indent(c.test_pat, 2) + '  }\n'
+      cp.to_f_setup  = '''\
   int n1_NAME = C.NAME.size();
   c_TYPEArr z_NAME = NULL;
   if (n1_NAME > 0) {
@@ -865,10 +898,10 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
       if type == STRUCT:
         cp.constructor = 'NAME(CPP_KIND_ARRAY(CPP_KIND(), 0))'
-        cp.test_pat    = test_pat_pointer1 + '    C.NAME.resize(3);\n' + x2 + for1 + \
+        cp.test_pat    = test_pat_pointer1 + x2 + for1 + \
             '  {set_CPP_KIND_test_pattern(C.NAME[i], ix_patt+i+1);}\n' + '  }\n'
         cp.to_f_setup  = c.to_f_setup  
-        cp.to_c2_set   = ''' \
+        cp.to_c2_set   = '''\
   C.NAME.resize(n1_NAME);
   for (int i = 0; i < n1_NAME; i++) KIND_to_c(z_NAME[i], C.NAME[i]);
 '''
@@ -877,15 +910,15 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     # Pointer, dim = 2
 
     if dim == 2:
-      cp.to_c2_set   = ''' \
+      cp.to_c2_set   = '''\
   C.NAME.resize(n1_NAME);
   for (int i = 0; i < n1_NAME; i++) C.NAME[i].resize(n2_NAME);
   C.NAME << z_NAME;
 '''
-      cp.test_pat     = test_pat_pointer1 + '    C.NAME.resize(3);\n' + \
+      cp.test_pat     = test_pat_pointer1 + \
                         indent((for1 + '\n    C.NAME[i].resize(2);\n' + c.test_pat), 2) + '  }\n'
       cp.to_f_cleanup = '  delete z_NAME;\n' 
-      cp.to_f_setup   = ''' \
+      cp.to_f_setup   = '''\
   int n1_NAME = C.NAME.size(), n2_NAME = 0;
   TYPE* z_NAME = NULL;
   if (n1_NAME > 0) {
@@ -898,7 +931,6 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
       if type == STRUCT:
         cp.constructor = 'NAME(CPP_KIND_ARRAY(CPP_KIND(), 0), 0)'
         cp.test_pat   = test_pat_pointer1 + '''\
-    C.NAME.resize(3);
     for (unsigned int i = 0; i < C.NAME.size(); i++) {
       C.NAME[i].resize(2);\n
       for (unsigned int j = 0; j < C.NAME[0].size(); j++) {
@@ -907,7 +939,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     }
   }
 '''
-        cp.to_c2_set   = ''' \
+        cp.to_c2_set   = '''\
   C.NAME.resize(n1_NAME);
   for (int i = 0; i < n1_NAME; i++) {
     C.NAME[i].resize(n2_NAME);
@@ -1019,7 +1051,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     cp.test_pat = cp.test_pat.replace('NNN', test_value)
 
 #----------------------------------------------------------------------
-# CHAR
+# CHAR, 0, NOT
 
 c_side_trans[CHAR,  0, NOT] = c_side_trans_class()
 c_side_trans[CHAR,  0, NOT].c_class    = 'string'
@@ -1029,15 +1061,13 @@ c_side_trans[CHAR,  0, NOT].to_c2_arg  = 'c_Char z_NAME'
 c_side_trans[CHAR,  0, NOT].test_pat    = '  C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
 c_side_trans[CHAR,  0, NOT].constructor = 'NAME()'
 
-#
+# CHAR, 0, PTR
 
-
-c_side_trans[CHAR,  0, PTR] = copy.deepcopy(c_side_trans[INT, 0, PTR])
+c_side_trans[CHAR,  0, PTR] = copy.deepcopy(c_side_trans[STRUCT, 0, PTR])
 cc = c_side_trans[CHAR, 0, PTR] 
 cc.c_class       = 'string'
 cc.constructor   = 'NAME()'
 cc.destructor    = ''
-cc.equality_test = c_side_trans[CHAR, 0, NOT].equality_test
 cc.to_f2_call    = 'C.NAME.c_str()'
 cc.to_f2_arg     = 'c_Char'
 cc.to_f_setup    = '  unsigned int n_NAME = 0; if (C.NAME.size() != 0) n_NAME = 1;\n'
@@ -1048,12 +1078,51 @@ cc.to_c2_set     = '''
   else
     C.NAME = z_NAME;
 '''
-cc.test_pat    = ''' \
+cc.test_pat    = '''\
   if (ix_patt < 3) 
     C.NAME == "";
   else {
     C.NAME.resize(STR_LEN);
   ''' +  test_pat1.replace('NNN', "'a' + rhs % 26") + '}\n'
+
+# CHAR, 1, NOT
+
+c_side_trans[CHAR,  1, NOT] = c_side_trans_class()
+cc = c_side_trans[CHAR, 1, NOT] 
+cc.c_class       = 'String_ARRAY'
+cc.to_f2_arg     = 'c_String**'
+cc.to_f_setup    = c_side_trans[STRUCT, 1, NOT].to_f_setup.replace('CPP_KIND', 'c_String')
+cc.to_c2_arg     = 'c_String** z_NAME'
+cc.test_pat      = for1 + for2 + \
+                   "\n    {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = 'a' + rhs % 26;}"
+cc.constructor   = 'NAME(String_ARRAY(string(), DIM1))'
+cc.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
+cc.to_f2_call    = c_side_trans[STRUCT, 1, NOT].to_f2_call
+cc.to_c2_set     = for1 + ' z_NAME[i] = C.NAME[i];'
+
+# CHAR, 1, PTR
+
+c_side_trans[CHAR,  1, PTR] = copy.deepcopy(c_side_trans[STRUCT, 1, PTR])
+cc = c_side_trans[CHAR, 1, PTR] 
+cc.c_class       = 'String_ARRAY'
+cc.constructor   = 'NAME(String_ARRAY(string(), 0))'
+cc.destructor    = ''
+cc.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
+cc.to_f2_arg     = 'c_String**'
+cc.to_c2_arg     = 'c_String z_NAME'
+cc.to_f_setup    = c_side_trans[STRUCT, 1, NOT].to_f_setup.replace('CPP_KIND', 'c_String')
+cc.to_c2_set     = '''
+  if (n_NAME == 0) 
+    C.NAME = "";
+  else
+    C.NAME = z_NAME;
+'''
+c_side_trans[CHAR,  1, PTR].test_pat    = test_pat_pointer1 + x2 + for1 + '{\n' + \
+                x6 + 'C.NAME[i].resize(STR_LEN);\n' + \
+                x4 + for2 + "{\n" + \
+                x8 + "int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = 'a' + rhs % 26;\n" + \
+                x4 + '} }\n' + x2 + '}\n'
+
 
 # Allocatable components on the C side are the same as pointer components.
 
@@ -1476,6 +1545,19 @@ print 'Number of structs found:         ' + str(n_found)
 if len(struct_definitions) != n_found:
   sys.exit('COULD NOT FIND ALL THE STRUCTS! STOPPING HERE!')  
 
+struct_names = set([struct.f_name for struct in struct_definitions])
+
+err = False
+
+for struct in struct_definitions:
+  for arg in struct.arg:
+    if arg.type != STRUCT: continue
+    if arg.kind not in struct_names:
+      print (arg.kind + ' NOT IN ' + struct.short_name)
+      err = True
+
+if err: sys.exit()
+
 ##################################################################################
 ##################################################################################
 # Customize the interface code
@@ -1589,7 +1671,7 @@ end interface
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
 type(ZZZ_struct), pointer :: F
-integer jd1, jd2, jd3, lb1, lb2, lb3
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 '''.replace('ZZZ', s_name))
 
   for arg in struct.arg:
@@ -1649,7 +1731,7 @@ implicit none
 
 type(c_ptr), value :: Fp
 type(ZZZ_struct), pointer :: F
-integer jd1, jd2, jd3, lb1, lb2, lb3
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 '''.replace('ZZZ', struct.short_name))
 
   f2_arg_list = {}
@@ -1725,6 +1807,7 @@ is_eq = .true.
 
   for arg in struct.arg:
     if not arg.is_component: continue
+    f_equ.write ('!! f_side.equality_test[' + arg.type + ', ' + str(len(arg.array)) + ', ' +  arg.pointer_type + ']\n')
     f_equ.write (arg.f_side.equality_test)
 
   f_equ.write ('\n' + 'end function eq_ZZZ\n'.replace('ZZZ', struct.short_name))
@@ -1858,7 +1941,7 @@ subroutine set_ZZZ_test_pattern (F, ix_patt)
 implicit none
 
 type(ZZZ_struct) F
-integer ix_patt, offset, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
 
@@ -1917,6 +2000,7 @@ typedef const bool               c_Bool;
 typedef const Complex            c_Complex;
 typedef const double             c_Real;
 typedef const int                c_Int;
+typedef const string             c_String;
 typedef const char*              c_Char;
 
 typedef const bool*              c_BoolArr;
@@ -1928,6 +2012,7 @@ typedef valarray<bool>           Bool_ARRAY;
 typedef valarray<Complex>        Complex_ARRAY;
 typedef valarray<double>         Real_ARRAY;
 typedef valarray<int>            Int_ARRAY;
+typedef valarray<string>         String_ARRAY;
 
 typedef valarray<Bool_ARRAY>     Bool_MATRIX;
 typedef valarray<Complex_ARRAY>  Complex_MATRIX;
@@ -2181,6 +2266,8 @@ extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
 
 '''.replace('ZZZ', struct.short_name))
 
+  f_cpp.write ('// c_side.to_f2_arg\n')
+
   line = 'extern "C" void ZZZ_to_f2 (ZZZ_struct*'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
     line += ', ' + arg.c_side.to_f2_arg.replace('ZZZ', struct.short_name)
@@ -2201,6 +2288,7 @@ extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
     f_cpp.write (arg.c_side.to_f_setup)
 
   f_cpp.write('\n')
+  f_cpp.write('// c_side.to_f2_call\n')
 
   line = 'ZZZ_to_f2 (F'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
@@ -2209,6 +2297,8 @@ extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
   f_cpp.write(wrap_line(line, '  ', ''))
 
   f_cpp.write('\n')
+  f_cpp.write('// c_side.to_f_cleanup\n')
+
   for arg in struct.arg:
     f_cpp.write (arg.c_side.to_f_cleanup)
 
@@ -2217,6 +2307,7 @@ extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
   # ZZZ_to_c2
 
   f_cpp.write('\n')
+  f_cpp.write('// c_side.to_c2_arg\n')
 
   line = 'extern "C" void ZZZ_to_c2 (CPP_ZZZ& C'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
@@ -2304,6 +2395,7 @@ template bool is_all_equal (const Bool_ARRAY&,     const Bool_ARRAY&);
 template bool is_all_equal (const Complex_ARRAY&,  const Complex_ARRAY&);
 template bool is_all_equal (const Real_ARRAY&,     const Real_ARRAY&);
 template bool is_all_equal (const Int_ARRAY&,      const Int_ARRAY&);
+template bool is_all_equal (const String_ARRAY&,   const String_ARRAY&);
 
 template bool is_all_equal (const Bool_MATRIX&,     const Bool_MATRIX&);
 template bool is_all_equal (const Complex_MATRIX&,  const Complex_MATRIX&);

@@ -32,15 +32,18 @@ struct_list = [
     'twiss_struct',
     'mode3_struct',
     'bookkeeping_state_struct',
-    'rad_int_ele_cache_struct'
-    ##'ele_struct'
-]
-
-to_do_struct_list = [
+    'rad_int_ele_cache_struct',
+    'ptc_layout_pointer_struct',
+    'ptc_branch1_info_struct',
+    'wall3d_vertex_struct',
+    'wall3d_section_struct',
+    'wall3d_crotch_struct',
+    'wall3d_struct',
+    'ele_struct',
+    'branch_struct',
     'control_struct',
     'lat_param_struct',
     'mode_info_struct',
-    'branch_struct',
     'pre_tracker_struct',
     'lat_struct',
     'anormal_mode_struct',
@@ -53,6 +56,9 @@ to_do_struct_list = [
     'bmad_common_struct',
     'rad_int1_struct',
     'rad_int_all_ele_struct'
+]
+
+to_do_struct_list = [
 ]
 
 # List of sub-structures to ignore.
