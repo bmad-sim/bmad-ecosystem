@@ -5,6 +5,7 @@ use bmad
 implicit none
 
 type (lat_struct), target :: lat
+type (ele_struct), dimension(:,:), allocatable :: temp_ele
 
 character(40) :: input_file  = 'mat6_calc_method_test.bmad'
 character(44) :: final_str
@@ -17,22 +18,35 @@ call bmad_parser ('mat6_calc_method_test.bmad', lat)
 
 open (1, file = 'output.now')
 
+allocate (temp_ele(lat%n_ele_max - 1, n_methods$)) 
+
 DO i = 1, lat%n_ele_max - 1
    DO j = 1, n_methods$
       if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == tracking$ .or. j == custom$) cycle     
       lat%ele(i)%mat6_calc_method = j  
       call make_mat6 (lat%ele(i), lat%param, lat%beam_start)
-      DO k = 1, 6
-         final_str = '"' // trim(lat%ele(i)%name) // ':' // trim(calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
-         write (1,fmt,advance='no') final_str, 'REL  1E-10', lat%ele(i)%mat6(k,1), lat%ele(i)%mat6(k,2), lat%ele(i)%mat6(k,3), lat%ele(i)%mat6(k,4), lat%ele(i)%mat6(k,5), lat%ele(i)%mat6(k,6)
+      call transfer_ele(lat%ele(i), temp_ele(i,j), .true.)
+   END DO
+END DO
+
+DO k = 1, 7
+   DO i = 1, lat%n_ele_max - 1
+      DO j = 1, n_methods$
+         if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == tracking$ .or. j == custom$) cycle
+         if (k /= 7) then
+            final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
+            write (1,fmt,advance='no') final_str, 'REL  1E-10', temp_ele(i,j)%mat6(k,1), temp_ele(i,j)%mat6(k,2), temp_ele(i,j)%mat6(k,3), temp_ele(i,j)%mat6(k,4), temp_ele(i,j)%mat6(k,5), temp_ele(i,j)%mat6(k,6)
+         else
+            final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(calc_method_name(j)) // ':Vector"' 
+            write (1,fmt,advance='no') final_str, 'REL  1E-10', temp_ele(i,j)%vec0(1), temp_ele(i,j)%vec0(2), temp_ele(i,j)%vec0(3), temp_ele(i,j)%vec0(4), temp_ele(i,j)%vec0(5), temp_ele(i,j)%vec0(6)
+         end if
          write (1,*)
       END DO
-      final_str = '"' // trim(lat%ele(i)%name) // ':' // trim(calc_method_name(j)) // ':Vector"' 
-      write (1,fmt,advance='no') final_str, 'REL  1E-10', lat%ele(i)%vec0(1), lat%ele(i)%vec0(2), lat%ele(i)%vec0(3), lat%ele(i)%vec0(4), lat%ele(i)%vec0(5), lat%ele(i)%vec0(6)
       write (1,*)
    END DO
-   write (1,*)
 END DO
+
+deallocate (temp_ele)
 
 close(1)
 
