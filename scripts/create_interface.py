@@ -772,7 +772,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
   int n1_NAME = C.NAME.size();
   const CPP_KIND** z_NAME = NULL;
   if (n1_NAME != 0) {
-    z_NAME = new const CPP_KIND*[n1_NAME];
+    z_NAME = const CPP_KIND*[n1_NAME];
     for (int i = 0; i < n1_NAME; i++) z_NAME[i] = &C.NAME[i];
   }
 '''
@@ -1055,9 +1055,9 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
 c_side_trans[CHAR,  0, NOT] = c_side_trans_class()
 c_side_trans[CHAR,  0, NOT].c_class    = 'string'
-c_side_trans[CHAR,  0, NOT].to_f2_arg  = 'c_Char'
+c_side_trans[CHAR,  0, NOT].to_f2_arg  = 'c_String'
 c_side_trans[CHAR,  0, NOT].to_f2_call = 'C.NAME.c_str()'
-c_side_trans[CHAR,  0, NOT].to_c2_arg  = 'c_Char z_NAME'
+c_side_trans[CHAR,  0, NOT].to_c2_arg  = 'c_String z_NAME'
 c_side_trans[CHAR,  0, NOT].test_pat    = '  C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
 c_side_trans[CHAR,  0, NOT].constructor = 'NAME()'
 
@@ -1065,25 +1065,30 @@ c_side_trans[CHAR,  0, NOT].constructor = 'NAME()'
 
 c_side_trans[CHAR,  0, PTR] = copy.deepcopy(c_side_trans[STRUCT, 0, PTR])
 cc = c_side_trans[CHAR, 0, PTR] 
-cc.c_class       = 'string'
+cc.c_class       = 'string*'
 cc.constructor   = 'NAME()'
 cc.destructor    = ''
-cc.to_f2_call    = 'C.NAME.c_str()'
-cc.to_f2_arg     = 'c_Char'
-cc.to_f_setup    = '  unsigned int n_NAME = 0; if (C.NAME.size() != 0) n_NAME = 1;\n'
-cc.to_c2_arg     = 'c_Char z_NAME'
-cc.to_c2_set     = '''
+cc.to_f2_call    = '*C.NAME'
+cc.to_f2_arg     = 'c_String&'
+cc.to_f_setup    = '  unsigned int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;\n'
+cc.to_c2_arg     = 'string* z_NAME'
+cc.to_c2_set     = '''\
   if (n_NAME == 0) 
-    C.NAME = "";
-  else
+    delete C.NAME;
+  else {
+    C.NAME = new string;
     C.NAME = z_NAME;
+  }
 '''
 cc.test_pat    = '''\
   if (ix_patt < 3) 
-    C.NAME == "";
+    C.NAME == NULL;
   else {
-    C.NAME.resize(STR_LEN);
-  ''' +  test_pat1.replace('NNN', "'a' + rhs % 26") + '}\n'
+    C.NAME = new string;
+    for (unsigned int i = 0; i < C.NAME->size(); i++) {
+      C.NAME[i] = 'a' + (101 + i + 6) % 26; }
+  }
+'''
 
 # CHAR, 1, NOT
 
@@ -1092,13 +1097,13 @@ cc = c_side_trans[CHAR, 1, NOT]
 cc.c_class       = 'String_ARRAY'
 cc.to_f2_arg     = 'c_String**'
 cc.to_f_setup    = c_side_trans[STRUCT, 1, NOT].to_f_setup.replace('CPP_KIND', 'c_String')
-cc.to_c2_arg     = 'c_String** z_NAME'
+cc.to_c2_arg     = 'string** z_NAME'
 cc.test_pat      = for1 + for2 + \
                    "\n    {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = 'a' + rhs % 26;}"
 cc.constructor   = 'NAME(String_ARRAY(string(), DIM1))'
 cc.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
 cc.to_f2_call    = c_side_trans[STRUCT, 1, NOT].to_f2_call
-cc.to_c2_set     = for1 + ' z_NAME[i] = C.NAME[i];'
+cc.to_c2_set     = for1 + ' C.NAME[i] = *z_NAME[i];'
 
 # CHAR, 1, PTR
 
@@ -1109,13 +1114,11 @@ cc.constructor   = 'NAME(String_ARRAY(string(), 0))'
 cc.destructor    = ''
 cc.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
 cc.to_f2_arg     = 'c_String**'
-cc.to_c2_arg     = 'c_String z_NAME'
+cc.to_c2_arg     = 'string** z_NAME'
 cc.to_f_setup    = c_side_trans[STRUCT, 1, NOT].to_f_setup.replace('CPP_KIND', 'c_String')
-cc.to_c2_set     = '''
-  if (n_NAME == 0) 
-    C.NAME = "";
-  else
-    C.NAME = z_NAME;
+cc.to_c2_set     = '''\
+  C.NAME.resize(n1_NAME);
+  for (int i = 0; i < n1_NAME; i++) C.NAME[i] = *z_NAME[i];
 '''
 c_side_trans[CHAR,  1, PTR].test_pat    = test_pat_pointer1 + x2 + for1 + '{\n' + \
                 x6 + 'C.NAME[i].resize(STR_LEN);\n' + \
@@ -2288,7 +2291,7 @@ extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
     f_cpp.write (arg.c_side.to_f_setup)
 
   f_cpp.write('\n')
-  f_cpp.write('// c_side.to_f2_call\n')
+  f_cpp.write('  // c_side.to_f2_call\n')
 
   line = 'ZZZ_to_f2 (F'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
