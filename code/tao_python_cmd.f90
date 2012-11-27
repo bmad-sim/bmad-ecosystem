@@ -287,11 +287,31 @@ case ('data_d1')
       d_ptr => d1_ptr%d(i)
       if (.not. d_ptr%exists) cycle
       if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
-      nl=nl+1; write(lines(nl), '(i0, 11a, 3(es15.8, a), 3(l1, a))') &
-                       d_ptr%ix_d1, ';', trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
-                       trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', &
-                       trim(d_ptr%ele_name), ';', d_ptr%meas_value, ';', d_ptr%model_value, ';', &
-                       d_ptr%design_value, ';', d_ptr%good_user, ';', d_ptr%useit_opt, ';', d_ptr%useit_plot, ';'
+!      nl=nl+1; write(lines(nl), '(i0, 11a, 3(es15.8, a), 3(l1, a))') &
+!                       d_ptr%ix_d1, ';', trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
+!                       trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', &
+!                       trim(d_ptr%ele_name), ';', d_ptr%meas_value, ';', d_ptr%model_value, ';', &
+!                       d_ptr%design_value, ';', d_ptr%good_user, ';', d_ptr%useit_opt, ';', d_ptr%useit_plot, ';'
+!      nl=nl+1; write(lines(nl), '( (a, i0,a), 15a, 3(a, es15.8, a), 9a)') &
+!                       "ix_d1=",           d_ptr%ix_d1, ";", &
+!                       "data_type='",      trim(d_ptr%data_type), "';", &
+!                       "merit_type='",     trim(d_ptr%merit_type), "';", &
+!                       "ele_ref_name='",   trim(d_ptr%ele_ref_name), "';", &
+!                       "ele_start_name='", trim(d_ptr%ele_start_name), "';", &
+!                       "ele_name='",       trim(d_ptr%ele_name), "';", &
+!                       "meas_value=",      d_ptr%meas_value, ";", &
+!                       "model_value=",     d_ptr%model_value, ";", &
+!                       "design_value=",    d_ptr%design_value, ";", &
+!                       "good_user=",       py_bool(d_ptr%good_user), ";", &
+!                       "useit_opt=",       py_bool(d_ptr%useit_opt), ";", &
+!                       "useit_plot=",      py_bool(d_ptr%useit_plot), ";"                         
+      nl=nl+1; write(lines(nl), '(i0, 11a, 3(es15.8, a), 6a)') &
+                       d_ptr%ix_d1, ';', trim(d_ptr%data_type), ';', &
+                       py_string(d_ptr%merit_type),     ';', py_string(d_ptr%ele_ref_name), ';', &
+                       py_string(d_ptr%ele_start_name), ';', py_string(d_ptr%ele_name), ';', &
+                       d_ptr%meas_value, ';', d_ptr%model_value, ';', &
+                       d_ptr%design_value, ';',  py_bool(d_ptr%good_user), ';',  &
+                       py_bool(d_ptr%useit_opt), ';',  py_bool(d_ptr%useit_plot)
     enddo
   endif
 
@@ -643,5 +663,25 @@ case default
 end select
 
 call out_io (s_blank$, r_name, lines(1:nl))
+
+contains
+
+! Helper function to write 'True' or 'False' strings from a logical
+function py_bool(bool) result(boolstring)
+logical :: bool
+character(5) :: boolstring 
+if (bool) then
+  boolstring = trim('True')
+else
+  boolstring = trim('False')
+endif
+end function
+
+function py_string(chars) result(pystring)
+character(*)::  chars
+character(len_trim(chars)+2) :: pystring
+pystring="'"//trim(chars)//"'"
+end function
+
 
 end subroutine
