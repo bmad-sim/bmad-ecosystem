@@ -25,7 +25,7 @@ THIS_SCRIPT=`basename $0`
 
 # Determine if the current working directory is a buildable project
 if ( [ ! -e CMakeLists.txt ] ) then
-  echo "This working directory is not a project supported by the ACC build system."
+  echo "No CMakeLists.txt file found.\nThis working directory is not a project supported by the ACC build system."
   exit 1
 fi
 
