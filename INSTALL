@@ -96,14 +96,16 @@ From the PGPLOT web page:
 ENVIRONMENTAL SETUP
 -------------------
 
- 1. The following stuff should be put in your ~/.cshrc file:
+ 1. 
+If you are using csh / tcsh: The following stuff should be put in your ~/.cshrc file:
         limit core 0
-        limit stack unlimited
+        limit stack unlimited  # Remove this line when using a Mac
         limit datasize unlimited
 
-      or ~/.bashrc file:
+If you are using sh / ksh / bash: Put in your ~/.bashrc file (or ~/.bash or ~/.profile file 
+whatever one is appropriate):
         ulimit -c 0
-        ulimit -s unlimited
+        ulimit -s unlimited  # Remove this line when using a Mac
         ulimit -d unlimited
 
   The first line prevents core dump files from being generated (takes up
@@ -412,21 +414,23 @@ INSTRUCTIONS FOR SETTING UP A GENERIC USER ACCOUNT TO USE THE DISTRIBUTION
    first line in the login script examples below, but it is entirely
    optional.
 
-   For csh/tcsh users - add the text found between the lines, replacing
-   BMAD_DIST_PATH for the full path to the directory where the distribution archive
-   was unpacked.
+   Add the following text found between the lines, replacing
+   BMAD_DIST_PATH for the full path to the directory where the distribution 
+   archive was unpacked.
+
+   For csh / tcsh users:
       ______________________________________________
        setenv DIST_SETUP_QUIET Y
-       setenv DIST_BASE_BMAD_DIST "BMAD_DIST_PATH"
-       source ${DIST_BASE_BMAD_DIST}/util/dist_source_me
+       setenv DIST_BASE_DIR "BMAD_DIST_PATH"
+       source ${DIST_BASE_DIR}/util/dist_source_me
       ______________________________________________
 
 
-   For sh/ksh/bash users - likewise
+   For sh / ksh / bash users:
       ______________________________________________
        export DIST_SETUP_QUIET=Y
-       export DIST_BASE_BMAD_DIST="BMAD_DIST_PATH"
-       source ${DIST_BASE_BMAD_DIST}/util/dist_source_me
+       export DIST_BASE_DIR="BMAD_DIST_PATH"
+       source ${DIST_BASE_DIR}/util/dist_source_me
       ______________________________________________
 
    The default behavior is for the setup process to print out informational
