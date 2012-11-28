@@ -9,7 +9,8 @@ type (ele_struct), dimension(:,:), allocatable :: temp_ele
 
 character(40) :: input_file  = 'mat6_calc_method_test.bmad'
 character(44) :: final_str
-character(*), PARAMETER  :: fmt = '(a,a,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)'
+character(*), PARAMETER  :: fmt1 = '(a,a,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)'
+character(*), PARAMETER  :: fmt2 = '(a,a,es24.15)'
 integer :: i, j, k
  
 type (coord_struct) end_orb
@@ -29,16 +30,19 @@ DO i = 1, lat%n_ele_max - 1
    END DO
 END DO
 
-DO k = 1, 7
+DO k = 1, 8
    DO i = 1, lat%n_ele_max - 1
       DO j = 1, n_methods$
          if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == tracking$ .or. j == custom$) cycle
-         if (k /= 7) then
+         if (k < 7) then
             final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
-            write (1,fmt,advance='no') final_str, 'REL  1E-10', temp_ele(i,j)%mat6(k,1), temp_ele(i,j)%mat6(k,2), temp_ele(i,j)%mat6(k,3), temp_ele(i,j)%mat6(k,4), temp_ele(i,j)%mat6(k,5), temp_ele(i,j)%mat6(k,6)
-         else
+            write (1,fmt1,advance='no') final_str, 'REL  1E-10', temp_ele(i,j)%mat6(k,1), temp_ele(i,j)%mat6(k,2), temp_ele(i,j)%mat6(k,3), temp_ele(i,j)%mat6(k,4), temp_ele(i,j)%mat6(k,5), temp_ele(i,j)%mat6(k,6)
+         else if (k == 7) then
             final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(calc_method_name(j)) // ':Vector"' 
-            write (1,fmt,advance='no') final_str, 'REL  1E-10', temp_ele(i,j)%vec0(1), temp_ele(i,j)%vec0(2), temp_ele(i,j)%vec0(3), temp_ele(i,j)%vec0(4), temp_ele(i,j)%vec0(5), temp_ele(i,j)%vec0(6)
+            write (1,fmt1,advance='no') final_str, 'REL  1E-10', temp_ele(i,j)%vec0(1), temp_ele(i,j)%vec0(2), temp_ele(i,j)%vec0(3), temp_ele(i,j)%vec0(4), temp_ele(i,j)%vec0(5), temp_ele(i,j)%vec0(6)
+         else if (k == 8) then
+            final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(calc_method_name(j)) // ':Symp_Err"' 
+            write (1,fmt2,advance='no') final_str, 'REL  1E-10', mat_symp_error(temp_ele(i,j)%mat6)
          end if
          write (1,*)
       END DO
