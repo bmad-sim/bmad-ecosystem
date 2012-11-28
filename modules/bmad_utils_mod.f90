@@ -1854,6 +1854,9 @@ ele%ref_time = 0
 ele%ix_branch = 0
 ele%ix_ele = -1
 
+ele%ixx = 0
+ele%iyy = 0
+
 call set_status_flags (ele%bookkeeping_state, stale$)
 
 if (present(ix_branch)) ele%ix_branch = ix_branch
