@@ -129,6 +129,8 @@ class f_side_trans_class:
     self.to_f2_trans = 'F%NAME = z_NAME'
     self.to_f2_extra_var_name = ''
     self.to_f2_extra_var_type = ''
+    self.to_c_extra_var_name = ''
+    self.to_c_extra_var_type = ''
     self.test_pat = 'rhs = XXX + offset; F%NAME = NNN\n'
     self.to_c_var = ''
     self.to_c_trans = ''
@@ -587,7 +589,17 @@ f_side_trans[CHAR, 0, NOT].to_f2_trans   = 'call to_f_str(z_NAME, F%NAME)'
 f_side_trans[CHAR, 0, PTR] = copy.deepcopy(f_side_trans[INT, 0, PTR])
 fc = f_side_trans[CHAR, 0, PTR] 
 fc.to_f2_extra_var_type = 'character(c_char), pointer'
-fc.to_f2_trans          = to_f2_trans_pointer0.replace('SET', 'call to_f_str(f_NAME, F%NAME)')
+fc.to_f2_trans          = '''\
+call c_f_pointer (z_NAME, f_NAME)
+if (associated(f_NAME)) then
+  if (.not. associated(F%NAME)) allocate(F%NAME)
+  call to_f_str(f_NAME, F%NAME)
+else
+  if (associated(F%NAME)) deallocate(F%NAME)
+endif
+'''
+
+fc.to_c_trans           = ''
 fc.test_pat             = '''\
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
@@ -602,21 +614,36 @@ endif
 # CHAR 1 NOT
 
 f_side_trans[CHAR, 1, NOT] = copy.deepcopy(f_side_trans[STRUCT, 1, NOT])
-f_side_trans[CHAR, 1, NOT].bindc_name    = 'z_NAME(*)'
-f_side_trans[CHAR, 1, NOT].test_pat      = '''\
+fc = f_side_trans[CHAR, 1, NOT]
+fc.bindc_name    = 'z_NAME(*)'
+fc.to_f2_extra_var_type = 'character(c_char), pointer'
+fc.to_f2_extra_var_name = 'f_NAME'
+fc.test_pat      = '''\
 do jd1 = lbound(F%NAME, 1), ubound(F%NAME, 1)
   do jd = 1, len(F%NAME(jd1))
-    F%NAME(jd1)(jd:jd) = char(ichar("a") + modulo(100+XXX+offset+jd, 26))
+    F%NAME(jd1)(jd:jd) = char(ichar("a") + modulo(100+XXX+offset+10*jd+jd1, 26))
   enddo
 enddo
 '''
-f_side_trans[CHAR, 1, NOT].to_f2_trans = jd1_loop + '  call string_to_f(z_NAME(jd1), c_loc(F%NAME(jd1+lb1)))\nenddo\n' 
+fc.to_f2_trans = jd1_loop + '''\
+  call c_f_pointer (z_NAME(jd1), f_NAME)
+  call to_f_str(f_NAME, F%NAME(jd1+lb1))
+enddo
+''' 
+fc.to_c_trans  = jd1_loop + '''\
+  a_NAME(jd1) = trim(F%NAME(jd1+lb1)) // c_null_char
+  z_NAME(jd1) = c_loc(a_NAME(jd1))
+enddo
+'''
+fc.to_c_extra_var_type = 'character(STR_LEN+1)'
+fc.to_c_extra_var_name = 'a_NAME(DIM1)'
 
 # CHAR 1 PTR
 
 f_side_trans[CHAR, 1, PTR] = copy.deepcopy(f_side_trans[STRUCT, 1, PTR])
 fc = f_side_trans[CHAR, 1, PTR] 
 fc.to_f2_extra_var_type = 'character(c_char), pointer'
+fc.to_f2_extra_var_name = 'f_NAME'
 fc.to_f2_trans          = fc.to_f2_trans.replace('ZZZ', 'string')
 fc.test_pat             = '''\
 if (ix_patt < 3) then
@@ -625,11 +652,26 @@ else
   if (.not. associated(F%NAME)) allocate (F%NAME(3))
   do jd1 = 1, 3
   do jd = 1, len(F%NAME)
-    F%NAME(jd1)(jd:jd) = char(ichar("a") + modulo(100+XXX+offset+jd, 26))
+    F%NAME(jd1)(jd:jd) = char(ichar("a") + modulo(100+XXX+offset+jd+jd1, 26))
   enddo; enddo
 endif
 '''
 
+fc.to_f2_trans = '''\
+if (n1_NAME == 0) then
+  if (associated(F%NAME)) deallocate(F%NAME)
+else
+  if (associated(F%NAME)) then
+    if (n1_NAME == 0 .or. any(shape(F%NAME) /= [n1_NAME])) deallocate(F%NAME)
+  endif
+  if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME))
+  do jd1 = 1, n1_NAME
+    call c_f_pointer (z_NAME(jd1), f_NAME)
+    call to_f_str(f_NAME, F%NAME(jd1))
+  enddo
+endif
+'''
+#--------------------------------------------------------------------------------------
 # Allocatable components are very similar to pointer components
 # with the simple replacement of 'allocated' for 'associated'.
 
@@ -769,12 +811,8 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
         c.to_c2_set   = for1 + ' KIND_to_c(z_NAME[i], C.NAME[i]);' 
         c.test_pat    = test_pat1.replace('C.NAME[i] = NNN', 'set_CPP_KIND_test_pattern(C.NAME[i], ix_patt+i+1)')
         c.to_f_setup  = '''\
-  int n1_NAME = C.NAME.size();
-  const CPP_KIND** z_NAME = NULL;
-  if (n1_NAME != 0) {
-    z_NAME = const CPP_KIND*[n1_NAME];
-    for (int i = 0; i < n1_NAME; i++) z_NAME[i] = &C.NAME[i];
-  }
+  const CPP_KIND* z_NAME[DIM1];
+  for (int i = 0; i < DIM1; i++) {z_NAME[i] = &C.NAME[i];}
 '''
 
     #-------------------------------------------------------
@@ -901,10 +939,19 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
         cp.test_pat    = test_pat_pointer1 + x2 + for1 + \
             '  {set_CPP_KIND_test_pattern(C.NAME[i], ix_patt+i+1);}\n' + '  }\n'
         cp.to_f_setup  = c.to_f_setup  
+        cp.to_f_setup  = '''\
+  int n1_NAME = C.NAME.size();
+  const CPP_KIND** z_NAME = NULL;
+  if (n1_NAME != 0) {
+    z_NAME = new const CPP_KIND*[n1_NAME];
+    for (int i = 0; i < n1_NAME; i++) z_NAME[i] = &C.NAME[i];
+  }
+'''
         cp.to_c2_set   = '''\
   C.NAME.resize(n1_NAME);
   for (int i = 0; i < n1_NAME; i++) KIND_to_c(z_NAME[i], C.NAME[i]);
 '''
+        cp.to_f_cleanup = ' delete[] z_NAME;\n'
 
     #------------------------------
     # Pointer, dim = 2
@@ -927,6 +974,8 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     matrix_to_vec (C.NAME, z_NAME);
   }
 '''.replace('TYPE', c_type)
+      cp.to_f_cleanup = '  delete[] z_NAME;\n'
+
 
       if type == STRUCT:
         cp.constructor = 'NAME(CPP_KIND_ARRAY(CPP_KIND(), 0), 0)'
@@ -1003,6 +1052,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     tensor_to_vec (C.NAME, z_NAME);
   }
 '''.replace('TYPE', c_type)
+      cp.to_f_cleanup = '  delete[] z_NAME;\n'
 
       if type == STRUCT:
         cp.constructor = 'NAME(CPP_KIND_MATRIX(CPP_KIND_ARRAY(CPP_KIND(), 0), 0), 0)'
@@ -1055,9 +1105,9 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
 c_side_trans[CHAR,  0, NOT] = c_side_trans_class()
 c_side_trans[CHAR,  0, NOT].c_class    = 'string'
-c_side_trans[CHAR,  0, NOT].to_f2_arg  = 'c_String'
+c_side_trans[CHAR,  0, NOT].to_f2_arg  = 'c_Char'
 c_side_trans[CHAR,  0, NOT].to_f2_call = 'C.NAME.c_str()'
-c_side_trans[CHAR,  0, NOT].to_c2_arg  = 'c_String z_NAME'
+c_side_trans[CHAR,  0, NOT].to_c2_arg  = 'c_Char z_NAME'
 c_side_trans[CHAR,  0, NOT].test_pat    = '  C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
 c_side_trans[CHAR,  0, NOT].constructor = 'NAME()'
 
@@ -1066,27 +1116,30 @@ c_side_trans[CHAR,  0, NOT].constructor = 'NAME()'
 c_side_trans[CHAR,  0, PTR] = copy.deepcopy(c_side_trans[STRUCT, 0, PTR])
 cc = c_side_trans[CHAR, 0, PTR] 
 cc.c_class       = 'string*'
-cc.constructor   = 'NAME()'
-cc.destructor    = ''
-cc.to_f2_call    = '*C.NAME'
-cc.to_f2_arg     = 'c_String&'
-cc.to_f_setup    = '  unsigned int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;\n'
-cc.to_c2_arg     = 'string* z_NAME'
+cc.constructor   = 'NAME(NULL)'
+cc.destructor    = 'delete NAME;'
+cc.to_f2_call    = 'z_NAME'
+cc.to_f2_arg     = 'c_Char'
+cc.to_f_setup    = '''\
+  const char* z_NAME = NULL;  
+  if (C.NAME != NULL) z_NAME = C.NAME->c_str();
+'''
+cc.to_c2_arg     = 'c_Char z_NAME'
 cc.to_c2_set     = '''\
-  if (n_NAME == 0) 
+  if (z_NAME == NULL) 
     delete C.NAME;
   else {
     C.NAME = new string;
-    C.NAME = z_NAME;
+    *(C.NAME) = z_NAME;
   }
 '''
 cc.test_pat    = '''\
   if (ix_patt < 3) 
     C.NAME == NULL;
   else {
-    C.NAME = new string;
+    C.NAME = new string(4, ' ');
     for (unsigned int i = 0; i < C.NAME->size(); i++) {
-      C.NAME[i] = 'a' + (101 + i + 6) % 26; }
+      (*C.NAME)[i] = 'a' + (101 + i + XXX + offset) % 26; }
   }
 '''
 
@@ -1095,15 +1148,22 @@ cc.test_pat    = '''\
 c_side_trans[CHAR,  1, NOT] = c_side_trans_class()
 cc = c_side_trans[CHAR, 1, NOT] 
 cc.c_class       = 'String_ARRAY'
-cc.to_f2_arg     = 'c_String**'
-cc.to_f_setup    = c_side_trans[STRUCT, 1, NOT].to_f_setup.replace('CPP_KIND', 'c_String')
-cc.to_c2_arg     = 'string** z_NAME'
-cc.test_pat      = for1 + for2 + \
-                   "\n    {int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = 'a' + rhs % 26;}"
+cc.to_f2_arg     = 'c_Char*'
+cc.to_f_setup    = '''\
+  c_Char z_NAME[DIM1];
+  for (int i = 0; i < DIM1; i++) {z_NAME[i] = C.NAME[i].c_str();}
+'''
+cc.to_c2_arg     = 'c_Char* z_NAME'
+cc.test_pat      = for1 + ''' {
+    C.NAME[i].resize(STR_LEN);
+    for (unsigned int j = 0; j < C.NAME[i].size(); j++) 
+      {C.NAME[i][j] = 'a' + (101 + i + 10*(j+1) + XXX + offset) % 26;}
+  }
+'''
 cc.constructor   = 'NAME(String_ARRAY(string(), DIM1))'
 cc.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
 cc.to_f2_call    = c_side_trans[STRUCT, 1, NOT].to_f2_call
-cc.to_c2_set     = for1 + ' C.NAME[i] = *z_NAME[i];'
+cc.to_c2_set     = for1 + ' C.NAME[i] = z_NAME[i];'
 
 # CHAR, 1, PTR
 
@@ -1113,14 +1173,21 @@ cc.c_class       = 'String_ARRAY'
 cc.constructor   = 'NAME(String_ARRAY(string(), 0))'
 cc.destructor    = ''
 cc.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
-cc.to_f2_arg     = 'c_String**'
-cc.to_c2_arg     = 'string** z_NAME'
-cc.to_f_setup    = c_side_trans[STRUCT, 1, NOT].to_f_setup.replace('CPP_KIND', 'c_String')
+cc.to_f2_arg     = 'c_Char*'
+cc.to_c2_arg     = 'c_Char* z_NAME'
+cc.to_f_setup  = '''\
+  int n1_NAME = C.NAME.size();
+  c_Char* z_NAME = NULL;
+  if (n1_NAME != 0) {
+    z_NAME = new c_Char[n1_NAME];
+    for (int i = 0; i < n1_NAME; i++) z_NAME[i] = C.NAME[i].c_str();
+  }
+'''
 cc.to_c2_set     = '''\
   C.NAME.resize(n1_NAME);
   for (int i = 0; i < n1_NAME; i++) C.NAME[i] = *z_NAME[i];
 '''
-c_side_trans[CHAR,  1, PTR].test_pat    = test_pat_pointer1 + x2 + for1 + '{\n' + \
+cc.test_pat    = test_pat_pointer1 + x2 + for1 + '{\n' + \
                 x6 + 'C.NAME[i].resize(STR_LEN);\n' + \
                 x4 + for2 + "{\n" + \
                 x8 + "int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = 'a' + rhs % 26;\n" + \
@@ -1371,21 +1438,26 @@ for struct in struct_definitions:
     ia += 1
     if arg.pointer_type == NOT: continue
 
-    struct.arg.insert(ia, arg_class())
-    arg1 = struct.arg[ia]
-    ia += 1
-
-    arg1.is_component = False
-    arg1.type = 'integer'
-
     if len(arg.array) == 0: 
-      arg1.f_side = copy.deepcopy(f_side_trans[SIZE, 1, NOT])
-      arg1.c_side = copy.deepcopy(c_side_trans[SIZE, 1, NOT])
-      arg1.f_name = 'n_' + arg.f_name
-      arg1.c_name = 'n_' + arg.c_name
+      if 'n_' in arg.c_side.to_f_setup: 
+        struct.arg.insert(ia, arg_class())
+        arg1 = struct.arg[ia]
+        ia += 1
+        arg1.is_component = False
+        arg1.type = 'integer'
+        arg1.f_side = copy.deepcopy(f_side_trans[SIZE, 1, NOT])
+        arg1.c_side = copy.deepcopy(c_side_trans[SIZE, 1, NOT])
+        arg1.f_name = 'n_' + arg.f_name
+        arg1.c_name = 'n_' + arg.c_name
       continue
 
     if len(arg.array) >= 1:
+      if 'n1_' not in arg.c_side.to_f_setup: continue
+      struct.arg.insert(ia, arg_class())
+      arg1 = struct.arg[ia]
+      ia += 1
+      arg1.is_component = False
+      arg1.type = 'integer'
       arg1.f_side = copy.deepcopy(f_side_trans[SIZE, 1, NOT])
       arg1.c_side = copy.deepcopy(c_side_trans[SIZE, 1, NOT])
       arg1.f_name = 'n1_' + arg.f_name
@@ -1419,12 +1491,14 @@ for struct in struct_definitions:
     n_dim = len(arg.array)
     p_type = arg.pointer_type
 
-    arg.c_side.test_pat = arg.c_side.test_pat.replace('STR_LEN', arg.kind)
+    arg.c_side.test_pat            = arg.c_side.test_pat.replace('STR_LEN', arg.kind)
+    arg.f_side.to_c_extra_var_type = arg.f_side.to_c_extra_var_type.replace('STR_LEN', arg.kind)
 
     if arg.type == 'type':
       kind = arg.kind[:-7]
       arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('KIND', kind)
       arg.f_side.to_f2_extra_var_type = arg.f_side.to_f2_extra_var_type.replace('KIND', kind)
+      arg.f_side.to_c_extra_var_type  = arg.f_side.to_c_extra_var_type.replace('KIND', kind)
       arg.f_side.test_pat    = arg.f_side.test_pat.replace('KIND', kind)
       arg.c_side.test_pat    = arg.c_side.test_pat.replace('KIND', kind)
       arg.c_side.c_class     = arg.c_side.c_class.replace('KIND', kind)
@@ -1445,38 +1519,41 @@ for struct in struct_definitions:
         f_dim1 = str(1 + int(arg.ubound[0]) - int(arg.lbound[0]))
         c_dim1 = f_dim1
 
-      arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('DIM1', f_dim1)
-      arg.f_side.test_pat    = arg.f_side.test_pat.replace('DIM1', f_dim1)
-      arg.f_side.to_c_var    = arg.f_side.to_c_var.replace('DIM1', f_dim1)
-      arg.f_side.to_c_trans  = arg.f_side.to_c_trans.replace('DIM1', f_dim1)
-      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('DIM1', f_dim1)
-      arg.c_side.constructor = arg.c_side.constructor.replace('DIM1', c_dim1)
-      arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('DIM1', c_dim1)
-      arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('DIM1', c_dim1)
+      arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM1', f_dim1)
+      arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM1', f_dim1)
+      arg.f_side.to_c_var            = arg.f_side.to_c_var.replace('DIM1', f_dim1)
+      arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM1', f_dim1)
+      arg.f_side.to_c_extra_var_name = arg.f_side.to_c_extra_var_name.replace('DIM1', f_dim1)
+      arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM1', f_dim1)
+      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM1', c_dim1)
+      arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM1', c_dim1)
+      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM1', c_dim1)
 
     if len(arg.array) >= 2 and p_type == NOT:
       d2 = 1 + int(arg.ubound[1]) - int(arg.lbound[1])
       dim2 = str(d2)
-      arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('DIM2', dim2)
-      arg.f_side.test_pat    = arg.f_side.test_pat.replace('DIM2', dim2)
-      arg.f_side.to_c_var    = arg.f_side.to_c_var.replace('DIM2', dim2)
-      arg.f_side.to_c_trans  = arg.f_side.to_c_trans.replace('DIM2', dim2)
-      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('DIM2', f_dim1+'*'+dim2)
-      arg.c_side.constructor = arg.c_side.constructor.replace('DIM2', dim2)
-      arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('DIM2', dim2)
-      arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('DIM2', dim2)
+      arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM2', dim2)
+      arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM2', dim2)
+      arg.f_side.to_c_var            = arg.f_side.to_c_var.replace('DIM2', dim2)
+      arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM2', dim2)
+      arg.f_side.to_c_extra_var_name = arg.f_side.to_c_extra_var_name.replace('DIM2', dim2)
+      arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM2', f_dim1+'*'+dim2)
+      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM2', dim2)
+      arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM2', dim2)
+      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM2', dim2)
 
     if len(arg.array) >= 3 and p_type == NOT:
       d3 = 1 + int(arg.ubound[2]) - int(arg.lbound[2])
       dim3 = str(d3)
-      arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('DIM3', dim3)
-      arg.f_side.test_pat    = arg.f_side.test_pat.replace('DIM3', dim3)
-      arg.f_side.to_c_var    = arg.f_side.to_c_var.replace('DIM3', dim3)
-      arg.f_side.to_c_trans  = arg.f_side.to_c_trans.replace('DIM3', dim3)
-      arg.f_side.to_c2_call  = arg.f_side.to_c2_call.replace('DIM3', f_dim1+'*'+dim2+'*'+dim3)
-      arg.c_side.constructor = arg.c_side.constructor.replace('DIM3', dim3)
-      arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('DIM3', dim3)
-      arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('DIM3', dim3)
+      arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM3', dim3)
+      arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM3', dim3)
+      arg.f_side.to_c_var            = arg.f_side.to_c_var.replace('DIM3', dim3)
+      arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM3', dim3)
+      arg.f_side.to_c_extra_var_name = arg.f_side.to_c_extra_var_name.replace('DIM3', dim3)
+      arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM3', f_dim1+'*'+dim2+'*'+dim3)
+      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM3', dim3)
+      arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM3', dim3)
+      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM3', dim3)
 
     arg.f_side.bindc_name           = arg.f_side.bindc_name.replace('NAME', arg.f_name)
     arg.f_side.to_c2_f2_sub_arg     = arg.f_side.to_c2_f2_sub_arg.replace('NAME', arg.f_name)
@@ -1487,6 +1564,8 @@ for struct in struct_definitions:
     arg.f_side.bindc_name           = arg.f_side.bindc_name.replace('NAME', arg.f_name)
     arg.f_side.to_f2_extra_var_name = arg.f_side.to_f2_extra_var_name.replace('NAME', arg.f_name)
     arg.f_side.to_f2_trans          = arg.f_side.to_f2_trans.replace('NAME', arg.f_name)
+    arg.f_side.to_c_extra_var_name  = arg.f_side.to_c_extra_var_name.replace('NAME', arg.f_name)
+    arg.f_side.to_c_trans           = arg.f_side.to_c_trans.replace('NAME', arg.f_name)
     arg.f_side.equality_test        = arg.f_side.equality_test.replace('NAME', arg.f_name)
     arg.f_side.test_pat             = arg.f_side.test_pat.replace('NAME', arg.f_name)
     arg.c_side.constructor          = arg.c_side.constructor.replace('NAME', arg.c_name)
@@ -1679,8 +1758,10 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 
   for arg in struct.arg:
     if arg.f_side.to_c_var != '': f_face.write (arg.f_side.to_c_var + '\n')
+    if arg.f_side.to_c_extra_var_name != '': f_face.write( \
+              arg.f_side.to_c_extra_var_type + ' :: ' + arg.f_side.to_c_extra_var_name)
 
-  f_face.write (
+  f_face.write ( \
 '''
 !
 
@@ -2300,9 +2381,11 @@ extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
   f_cpp.write(wrap_line(line, '  ', ''))
 
   f_cpp.write('\n')
-  f_cpp.write('// c_side.to_f_cleanup\n')
 
   for arg in struct.arg:
+    if arg.c_side.to_f_cleanup == '': continue
+    f_cpp.write ('  // c_side.to_f_cleanup[' + arg.type + \
+                  ', ' + str(len(arg.array)) + ', ' +  arg.pointer_type + ']\n')
     f_cpp.write (arg.c_side.to_f_cleanup)
 
   f_cpp.write('}\n')
