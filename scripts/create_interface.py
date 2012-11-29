@@ -409,8 +409,8 @@ else
         fp.test_pat    = tp1 + x2 + jd1_loop + x4 + \
                         'call set_KIND_test_pattern (F%NAME(jd1+lb1), ix_patt+jd1)\n' + '  enddo\n' + 'endif\n'
         ## fp.equality_test = fp.equality_test.replace
-        fp.to_c_trans  = \
-''' n1_NAME = 0
+        fp.to_c_trans  = ''' \
+n1_NAME = 0
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME); lb1 = lbound(F%NAME, 1) - 1
   allocate (z_NAME(n1_NAME))
@@ -652,7 +652,7 @@ else
   if (.not. associated(F%NAME)) allocate (F%NAME(3))
   do jd1 = 1, 3
   do jd = 1, len(F%NAME)
-    F%NAME(jd1)(jd:jd) = char(ichar("a") + modulo(100+XXX+offset+jd+jd1, 26))
+    F%NAME(jd1)(jd:jd) = char(ichar("a") + modulo(100+XXX+offset+10*jd+jd1, 26))
   enddo; enddo
 endif
 '''
@@ -671,6 +671,23 @@ else
   enddo
 endif
 '''
+
+fc.to_c_trans  = '''\
+n1_NAME = 0
+if (associated(F%NAME)) then
+  n1_NAME = size(F%NAME); lb1 = lbound(F%NAME, 1) - 1
+  allocate (a_NAME(n1_NAME))
+  allocate (z_NAME(n1_NAME))
+  do jd1 = 1, n1_NAME
+    a_NAME(jd1) = trim(F%NAME(jd1+lb1)) // c_null_char
+    z_NAME(jd1) = c_loc(a_NAME(jd1))
+  enddo
+endif
+'''
+
+fc.to_c_extra_var_type = 'character(STR_LEN+1), allocatable'
+fc.to_c_extra_var_name = 'a_NAME(:)'
+
 #--------------------------------------------------------------------------------------
 # Allocatable components are very similar to pointer components
 # with the simple replacement of 'allocated' for 'associated'.
@@ -1185,12 +1202,12 @@ cc.to_f_setup  = '''\
 '''
 cc.to_c2_set     = '''\
   C.NAME.resize(n1_NAME);
-  for (int i = 0; i < n1_NAME; i++) C.NAME[i] = *z_NAME[i];
+  for (int i = 0; i < n1_NAME; i++) C.NAME[i] = z_NAME[i];
 '''
 cc.test_pat    = test_pat_pointer1 + x2 + for1 + '{\n' + \
                 x6 + 'C.NAME[i].resize(STR_LEN);\n' + \
                 x4 + for2 + "{\n" + \
-                x8 + "int rhs = 101 + i + 10*(j+1) + XXX + offset; C.NAME[i][j] = 'a' + rhs % 26;\n" + \
+                x8 + "C.NAME[i][j] = 'a' + (101 + i + 10*(j+1) + XXX + offset) % 26;\n" + \
                 x4 + '} }\n' + x2 + '}\n'
 
 
@@ -1758,8 +1775,10 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 
   for arg in struct.arg:
     if arg.f_side.to_c_var != '': f_face.write (arg.f_side.to_c_var + '\n')
+
+  for arg in struct.arg:
     if arg.f_side.to_c_extra_var_name != '': f_face.write( \
-              arg.f_side.to_c_extra_var_type + ' :: ' + arg.f_side.to_c_extra_var_name)
+              arg.f_side.to_c_extra_var_type + ' :: ' + arg.f_side.to_c_extra_var_name + '\n')
 
   f_face.write ( \
 '''
