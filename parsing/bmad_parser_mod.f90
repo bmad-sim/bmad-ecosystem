@@ -3964,7 +3964,7 @@ type (seq_ele_struct), pointer :: s_ele2(:)
 type (seq_ele_struct), pointer :: this_ele
 type (lat_struct) lat
 
-integer ix_ele, iseq_tot, ix_word, ix, i, n
+integer ix_ele, iseq_tot, ix_word, ix, i, n, ios
 integer, save :: ix_internal = 0
 
 real(rp) rcount
@@ -4007,31 +4007,24 @@ this_ele => s_ele(ix_ele)
 
 do 
 
-  call get_next_word (word, ix_word, ':=(,)[]', delim, delim_found, .true.)
+  call get_next_word (word, ix_word, ':=(,)[]*', delim, delim_found, .true.)
 
-  ix = index(word, '*')          ! E.g. word = '-3*LINE'
-  if (ix /= 0) then
-    ! Evaluate the rep count. The ":" is to prevent confusion if the rep count
-    ! has an ending like "," that would signal line continuation.
-    parse_line_saved = bp_com%parse_line
-    bp_com%parse_line = word(:ix-1) // ":" 
-    call evaluate_value (trim(seq%name) // ' Repetition Count', rcount, &
-                            lat, c_delim, c_delim_found, err_flag)
-    this_ele%rep_count = nint(rcount)
-    if (err_flag) return
-    if (bp_com%parse_line /= '' .or. c_delim /= ":") then
+  if (delim == '*') then    ! E.g. '-3*(A,B)'
+    ! Evaluate the rep count.
+    read (word, *, iostat = ios) rcount
+    if (ix_word == 0 .or. ios /= 0) then
       call parser_error ('MALFORMED REPETION COUNT FOUND IN SEQUENCE: ' // seq%name)
       return
     endif
-    bp_com%parse_line = parse_line_saved
-    this_ele%name = word(ix+1:)
+    this_ele%rep_count = nint(rcount)
+    call get_next_word (word, ix_word, ':=(,)[]*', delim, delim_found, .true.)
+    this_ele%name = word
     if (this_ele%rep_count < 0) then
       this_ele%reflect = .true.
     else
       this_ele%reflect = .false.
     endif
     this_ele%rep_count = abs(this_ele%rep_count)
-    ix_word = ix_word - ix
   elseif (word(1:1) == '-') then
     this_ele%reflect = .true.
     this_ele%rep_count = 1
