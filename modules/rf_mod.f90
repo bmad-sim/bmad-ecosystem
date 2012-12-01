@@ -337,8 +337,8 @@ if (dE_max2 < dE_max1/2) then  ! Just use dE_max1 point
   phi_max = phi_max + dphi * i_max1
   pz_max = pz_max1
 ! wrap around case when i_max1 = 0 and i_max2 = n_sample-1 or vice versa.
-elseif (abs(i_max1 - i_max2) == n_sample - 1) then   
-  phi_max = phi_max - dphi / 2.0
+elseif (abs(i_max1 - i_max2) > n_sample/2) then   
+  phi_max = phi_max + dphi * (i_max1 + i_max2 - n_sample) / 2.0
   pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
 else
   phi_max = phi_max + dphi * (i_max1 + i_max2) / 2.0
