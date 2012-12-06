@@ -1204,6 +1204,7 @@ character(20) component
 character(20) :: r_name = 'tao_set_data_cmd'
 character(40) :: merit_type_names(5) = &
               (/ 'target ', 'min    ', 'max    ', 'abs_min', 'abs_max' /)
+character(40), target :: dummy
 logical err, l_value, valid_value
 logical, allocatable :: good(:)
 
@@ -1289,9 +1290,10 @@ elseif (size(s_dat) /= 0) then
       call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
       return
     endif
-    do i = 1, size(s_dat)
-      s_dat(i)%s = value_str
-    enddo
+    if (allocated(s_set)) deallocate(s_set)
+    allocate(s_set(1))
+    s_set(1)%s => dummy
+    s_set(1)%s = value_str
 
   else
     call tao_find_data (err, value_str, str_array=s_set)
@@ -1299,24 +1301,16 @@ elseif (size(s_dat) /= 0) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
     endif
-
-    do i = 1, size(s_dat)
-      if (size(s_set) == 1) then
-        s_dat(i)%s = s_set(1)%s
-      else
-        s_dat(i)%s = s_set(i)%s
-      endif
-    enddo
-
   endif
 
   if (component == 'ele_name' .or. component == 'ele_start_name' .or. component == 'ele_ref_name') then
     do i = 1, size(d_dat)
       u => s%u(d_dat(i)%d%d1%d2%ix_uni)
-      call element_locator (s_dat(i)%s, u%design%lat, ix)
+      if (size(s_set) > 1) dummy = s_set(i)%s
+      call element_locator (dummy, u%design%lat, ix)
       if (ix < 0) then
-        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // s_dat(i)%s)
-        cycle
+        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // dummy)
+        return
       endif
       if (component == 'ele_name') then
         d_dat(i)%d%ix_ele = ix
@@ -1327,6 +1321,14 @@ elseif (size(s_dat) /= 0) then
       endif
     enddo
   endif
+
+  do i = 1, size(s_dat)
+    if (size(s_set) == 1) then
+      s_dat(i)%s = s_set(1)%s
+    else
+      s_dat(i)%s = s_set(i)%s
+    endif
+  enddo
 
 ! Only possibility left is real. The value_str might be a number or it might 
 ! be a mathematical expression involving datum values or array of values.

@@ -718,8 +718,7 @@ case ('beta.')
         if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
       endif
     else
-      call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type, &
-                                     'WITH DATA_SOURCE: ' // data_source)
+      call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type, 'WITH DATA_SOURCE: ' // data_source)
       if (present(why_invalid)) why_invalid = 'DATA_SOURCE: ' // trim(data_source) // ' INVALID WITH: beta.x DATA_TYPE'
     endif
     
@@ -731,8 +730,7 @@ case ('beta.')
         if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
       endif
     else
-      call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type, &
-                                     'WITH data_source: ' // data_source)
+      call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type, 'WITH DATA_SOURCE: ' // data_source)
       if (present(why_invalid)) why_invalid = 'DATA_SOURCE: ' // trim(data_source) // ' INVALID WITH: beta.y DATA_TYPE'
     endif
 
@@ -816,7 +814,6 @@ case ('bpm_phase.')
 
   if (data_source == 'beam') return ! bad
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
-  datum_value = bpm_data%phi_a
 
   select case (datum%data_type)
   case ('bpm_phase.a')
@@ -826,6 +823,7 @@ case ('bpm_phase.')
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     if (present(why_invalid)) why_invalid = 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID'
+    valid_value = .false.
     return
   end select
 
@@ -848,6 +846,7 @@ case ('bpm_k.')
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     if (present(why_invalid)) why_invalid = 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID'
+    valid_value = .false.
     return
   end select
 
@@ -870,6 +869,7 @@ case ('bpm_cbar.')
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     if (present(why_invalid)) why_invalid = 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID'
+    valid_value = .false.
     return
   end select
 
@@ -1055,6 +1055,7 @@ case ('emit.', 'norm_emit.')
         datum_value = datum_value / gamma
       else
         datum_value = tao_lat%modes%a%emittance
+        valid_value = .true.
       endif
     elseif (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%a%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -1074,6 +1075,7 @@ case ('emit.', 'norm_emit.')
         datum_value = datum_value / gamma
       else
         datum_value = tao_lat%modes%b%emittance
+        valid_value = .true.
       endif
     elseif (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%b%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -1868,31 +1870,26 @@ case ('sigma.')
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%sigma(s11$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
-    valid_value = .true.
 
   case ('sigma.px')  
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%sigma(s22$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
-    valid_value = .true.
     
   case ('sigma.y')  
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%sigma(s33$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
-    valid_value = .true.
     
   case ('sigma.py')  
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%sigma(s44$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
-    valid_value = .true.
     
   case ('sigma.z')
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%sigma(s55$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
-    valid_value = .true.
     
   case ('sigma.pz')  
     if (data_source == 'lat') then
@@ -1905,12 +1902,10 @@ case ('sigma.')
     endif
     call tao_load_this_datum (bunch_params(:)%sigma(s66$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
-    valid_value = .true.
     
   case ('sigma.xy')  
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%sigma(s13$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    valid_value = .true.
     
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
@@ -1936,8 +1931,8 @@ case ('spin.')
     else
       call spinor_to_polar (orbit(ix_ele), polar)
       datum_value = polar%theta
+      valid_value = .true.
     endif
-    valid_value = .true.
     
   case ('spin.phi')
     if (data_source == 'beam') then
@@ -1945,16 +1940,16 @@ case ('spin.')
     else
       call spinor_to_polar (orbit(ix_ele), polar)
       datum_value = polar%phi
+      valid_value = .true.
     endif
-    valid_value = .true.
     
   case ('spin.polarity')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%spin%polarization, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
       datum_value = 1.0
+      valid_value = .true.
     endif
-    valid_value = .true.
     
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
@@ -1978,8 +1973,7 @@ case ('s_position')
 
 case ('time')
   if (data_source == 'beam') return
-  call tao_load_this_datum (orbit(0:n_track)%t, &
-                            ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (orbit(0:n_track)%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 !-----------
 
@@ -2078,6 +2072,7 @@ case ('unstable.')
     if (datum%ele_name == '') ix_ele = branch%n_ele_track
 
     if (data_source == 'beam') then
+      datum_value = 0
       do i = 1, ix_ele
         datum_value = datum_value + (1 + ix_ele - i) * bunch_params(i)%n_particle_lost_in_ele
       enddo
