@@ -847,7 +847,7 @@ implicit none
 real(rp) start(:)
 real(rp), optional :: end(:)
 real(rp) ave(6)
-real(rp) mat6(:,:), length, rel_p, len_p2, len_p3
+real(rp) mat6(:,:), length, rel_pc, px, py, pxy2, pz, rel_len
 
 !
 
@@ -861,22 +861,22 @@ else
   ave = start
 endif
 
-rel_p = 1 + ave(6)
-len_p2 = length / rel_p**2
-len_p3 = len_p2 / rel_p
+rel_pc = 1 + ave(6)
+px = ave(2) / rel_pc
+py = ave(4) / rel_pc
+pxy2 = px**2 + py**2
+pz = sqrt(1 - pxy2)
+rel_len = length / (rel_pc * pz)
 
-mat6(1,2) = length / rel_p
-mat6(3,4) = length / rel_p
-mat6(1,6) = -ave(2) * len_p2
-mat6(3,6) = -ave(4) * len_p2
-mat6(5,2) = -ave(2) * len_p2
-mat6(5,4) = -ave(4) * len_p2
-if (present(end)) then
-  mat6(5,6) = (start(2)**2 + start(2)*end(2) + end(2)**2 + &
-               start(4)**2 + start(4)*end(4) + end(4)**2) * len_p3 / 3
-else
-  mat6(5,6) = (start(2)**2 + start(4)**2) * len_p3
-endif
+mat6(1,2) = rel_len * (px**2 / pz**2 + 1)
+mat6(3,4) = rel_len * (py**2 / pz**2 + 1)
+mat6(1,4) = rel_len * px*py / pz**2
+mat6(3,2) = rel_len * px*py / pz**2
+mat6(1,6) = - rel_len * px * ((px**2 + py**2) / pz**2 + 1)
+mat6(3,6) = - rel_len * py * ((px**2 + py**2) / pz**2 + 1)
+mat6(5,2) = - rel_len * px / pz**2 
+mat6(5,4) = - rel_len * py / pz**2
+mat6(5,6) = rel_len * (px**2 + py**2) / pz**2
 
 end subroutine drift_mat6_calc
 
