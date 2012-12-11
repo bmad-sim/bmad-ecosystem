@@ -525,6 +525,8 @@ mode%lin%i5b_E6 = 0
 
 factor = 2 * const_q * classical_radius_factor / (3 * mc2)
 
+rad_int_all%ele%i4z = rad_int_all%ele%i4a + rad_int_all%ele%i4b
+
 do i = 0, branch%n_ele_track
   gamma = branch%ele(i)%value(e_tot$) / mc2
   gamma4 = gamma**4
@@ -553,6 +555,7 @@ do i = branch%n_ele_track+1, branch%n_ele_max
     rad_int_all%ele(i)%i3 = rad_int_all%ele(i)%i3 + rad_int_all%ele(k)%i3
     rad_int_all%ele(i)%i4a = rad_int_all%ele(i)%i4a + rad_int_all%ele(k)%i4a
     rad_int_all%ele(i)%i4b = rad_int_all%ele(i)%i4b + rad_int_all%ele(k)%i4b
+    rad_int_all%ele(i)%i4z = rad_int_all%ele(i)%i4z + rad_int_all%ele(k)%i4z
     rad_int_all%ele(i)%i5a = rad_int_all%ele(i)%i5a + rad_int_all%ele(k)%i5a
     rad_int_all%ele(i)%i5b = rad_int_all%ele(i)%i5b + rad_int_all%ele(k)%i5b
     rad_int_all%ele(i)%i6b = rad_int_all%ele(i)%i6b + rad_int_all%ele(k)%i6b

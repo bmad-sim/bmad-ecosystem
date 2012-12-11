@@ -1066,6 +1066,7 @@ type rad_int1_struct
   real(rp) :: i3   = 0
   real(rp) :: i4a  = 0
   real(rp) :: i4b  = 0
+  real(rp) :: i4z  = 0
   real(rp) :: i5a  = 0
   real(rp) :: i5b  = 0
   real(rp) :: i6b  = 0
