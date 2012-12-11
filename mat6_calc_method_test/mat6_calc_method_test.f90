@@ -23,7 +23,8 @@ allocate (temp_ele(lat%n_ele_max - 1, n_methods$))
 
 DO i = 1, lat%n_ele_max - 1
    DO j = 1, n_methods$
-      if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == tracking$ .or. j == custom$) cycle     
+      if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == custom$) cycle   
+      call kill_taylor(lat%ele(i)%taylor)
       lat%ele(i)%mat6_calc_method = j  
       call make_mat6 (lat%ele(i), lat%param, lat%beam_start)
       call transfer_ele(lat%ele(i), temp_ele(i,j), .true.)
@@ -33,7 +34,7 @@ END DO
 DO k = 1, 8
    DO i = 1, lat%n_ele_max - 1
       DO j = 1, n_methods$
-         if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == tracking$ .or. j == custom$) cycle
+         if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == custom$) cycle
          if (k < 7) then
             final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
             write (1,fmt1,advance='no') final_str, 'REL  1E-10', temp_ele(i,j)%mat6(k,1), temp_ele(i,j)%mat6(k,2), temp_ele(i,j)%mat6(k,3), temp_ele(i,j)%mat6(k,4), temp_ele(i,j)%mat6(k,5), temp_ele(i,j)%mat6(k,6)
