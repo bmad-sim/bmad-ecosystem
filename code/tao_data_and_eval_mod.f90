@@ -927,6 +927,33 @@ case ('chrom.')
 
 !-----------
 
+case ('damp.')
+
+  if (data_source == 'beam') return ! bad
+
+  select case (datum%data_type)
+
+  case ('damp.j_a')
+    datum_value = tao_lat%modes%a%j_damp
+    valid_value = .true.
+
+  case ('damp.j_b')
+    datum_value = tao_lat%modes%b%j_damp
+    valid_value = .true.
+
+  case ('damp.j_z')
+    datum_value = tao_lat%modes%b%j_damp
+    valid_value = .true.
+
+  case default
+    call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
+    if (present(why_invalid)) why_invalid = 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID'
+    return
+
+  end select
+
+!-----------
+
 case ('dpx_dx') 
   if (data_source == 'lat') return
 
@@ -1671,6 +1698,20 @@ case ('rad_int.')
       datum_value = tao_lat%modes%a%synch_int(4)
     endif
 
+  case ('i4b')
+    if (ix_ele > -1) then
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i4b)
+    else
+      datum_value = tao_lat%modes%b%synch_int(4)
+    endif
+
+  case ('i4z')
+    if (ix_ele > -1) then
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i4z)
+    else
+      datum_value = tao_lat%modes%z%synch_int(4)
+    endif
+
   case ('i5a')
     if (ix_ele > -1) then
       datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i5a)
@@ -1683,13 +1724,6 @@ case ('rad_int.')
       datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%lin_i5a_e6)
     else
       datum_value = tao_lat%modes%lin%i5a_e6
-    endif
-
-  case ('i4b')
-    if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i4b)
-    else
-      datum_value = tao_lat%modes%b%synch_int(4)
     endif
 
   case ('i5b')
