@@ -1006,7 +1006,7 @@ do ib = 0, ubound(lat%branch, 1)
     n_multi = 0  ! number of elements to slave together
     iyy = ele%iyy
     do ib2 = ib, ubound(lat%branch, 1)
-      do ie2 = 1, lat%n_ele_max
+      do ie2 = 1, lat%branch(ib2)%n_ele_max
         if (ib == ib2 .and. ie2 < ie) cycle
         ele2 => lat%branch(ib2)%ele(ie2)
         if (ele2%iyy /= iyy) cycle
