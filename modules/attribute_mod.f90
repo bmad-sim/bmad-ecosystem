@@ -114,6 +114,13 @@ case (beambeam$)
     is_valid = .true.
   end select
 
+case (branch$, photon_branch$)
+  if (present(num_valid)) num_valid = 3
+  select case (tracking_method)
+  case (bmad_standard$, linear$, custom$)
+    is_valid = .true.
+  end select
+  
 case (drift$)
   if (present(num_valid)) num_valid = 10
   select case (tracking_method)
@@ -156,7 +163,7 @@ case (hkicker$)
     is_valid = .true.
   end select
 
-case (instrument$)
+case (instrument$, pipe$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, time_runge_kutta$, custom$)
@@ -365,6 +372,13 @@ case (bend_sol_quad$)
     is_valid = .true.
   end select
 
+case (branch$, photon_branch$)
+  if (present(num_valid)) num_valid = 4
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+  
 case (capillary$)
   if (present(num_valid)) num_valid = 3
   select case (mat6_calc_method)
@@ -421,7 +435,7 @@ case (hkicker$)
     is_valid = .true.
   end select
 
-case (instrument$)
+case (instrument$, pipe$)
   if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
