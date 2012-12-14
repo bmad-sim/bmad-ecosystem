@@ -2170,6 +2170,7 @@ endif
 
 do i = curr_ub+1, ub
   lat%branch(i)%lat => lat
+  lat%branch(i)%name = ''
   lat%branch(i)%ix_branch = i
   lat%branch(i)%ix_from_branch = -1
   lat%branch(i)%ix_from_ele = -1
