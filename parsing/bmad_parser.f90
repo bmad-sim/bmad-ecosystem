@@ -999,7 +999,7 @@ enddo
 ! Multipass elements are paired by ele%iyy tag and ele%name must both match.
 
 do ib = 0, ubound(lat%branch, 1)
-  do ie = 1, lat%n_ele_max
+  do ie = 1, lat%branch(ib)%n_ele_max
     ele => lat%branch(ib)%ele(ie)
     if (ele%iyy == 0) cycle
     if (ele%slave_status == super_slave$) cycle
