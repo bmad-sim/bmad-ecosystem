@@ -4,8 +4,6 @@ set (SRC_FILES
 )
 
 set (INC_DIRS
-  ../include
-  include
 )
 
 set (LINK_LIBS

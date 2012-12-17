@@ -5,17 +5,17 @@ parameter[lattice_type] = linear_lattice
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-beam_start[x]  = 0.001 ! Horizontal position.
-beam_start[px] = 0.002 ! Horizontal momentum.
-beam_start[y]  = 0.003 ! Vertical position.
-beam_start[py] = 0.004 ! Vertical momentum.
+beam_start[x]  = 0.00 ! Horizontal position.
+beam_start[px] = 0.00 ! Horizontal momentum.
+beam_start[y]  = 0.00 ! Vertical position.
+beam_start[py] = 0.00 ! Vertical momentum.
 beam_start[z]  = 0.000 ! Longitudinal position.
-beam_start[pz] = 0.005 ! Longitudinal momentum (energy deviation).
+beam_start[pz] = 0.001 ! Longitudinal momentum (energy deviation).
 
 !Definitions of elements are taken from examples in BMAD manual
 
 ab_multipole1:     ab_multipole, a2 = 0.034e-2, b3 = 5.7, a11 = 5.6e6/2
-drift1:            drift, l = 4.5, num_steps = 1000
+drift1:            drift, l = 4.5, num_steps = 10
 ecollimator1:      ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 1000
 elseparator1:      elseparator, l = 4.5, hkick = 0.001, gap = 0.11, num_steps = 1000
 hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 1000
@@ -25,7 +25,6 @@ lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_st
 monitor1:          monitor, l = 4.5, num_steps = 1000
 multipole1:        multipole, k1l = 0.034e-2, t1, k3l = 4.5, t3 = 0.31*pi
 octupole1:         octupole, l = 4.5, k3 = 0.003, tilt, num_steps = 1000
-quadrupole1:       quadrupole, l = 0.6, k1 = 0.003, tilt, num_steps = 1000
 rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 1000
 rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_steps = 1000
 sbend1:            sbend, l = 0.6, k1 = 0.003, num_steps = 1000
@@ -41,6 +40,12 @@ l1: line = (ab_multipole1, drift1, ecollimator1, elseparator1, hkicker1, instrum
 l2: line = (l1, rcollimator1, rfcavity1, sbend1, sbend2, sextupole1, solenoid1, sol_quad1, vkicker1, wiggler_map1, wiggler_periodic1, lcavity1)
 
 use, l2
+
+
+quadrupole1:       quadrupole, l = 0.6, k1 = 0, tilt = 0.1, num_steps = 100
+
+l3: line = (quadrupole1)
+use, l3
 
 end_file
 

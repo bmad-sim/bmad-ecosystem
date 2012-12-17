@@ -1,6 +1,6 @@
-set (EXENAME math_test)
+set (EXENAME multipass_test)
 set (SRC_FILES
-  math_test/math_test.f90
+  multipass_test/multipass_test.f90
 )
 
 set (INC_DIRS
