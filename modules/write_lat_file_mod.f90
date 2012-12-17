@@ -301,7 +301,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
       n = nint(ele%value(ix_branch_to$))
-      line = trim(line) // ', to = ' // trim(lat%branch(n)%name) // '_line'
+      line = trim(line) // ', to = line_' // trim(lat%branch(n)%name)
     endif
 
     ! Other elements
@@ -878,7 +878,7 @@ end if
 ! But only write this once.
 
 write (iu, *)
-line = trim(lat%branch(0)%name) // '_line: line = ('
+line = 'line_' // trim(lat%branch(0)%name) // ': line = ('
 
 in_multi_region = .false.
 do ie = 1, lat%n_ele_track
@@ -916,7 +916,7 @@ line = line(:len_trim(line)-1) // ')'
 call write_lat_line (line, iu, .true.)
 
 write (iu, *)
-write (iu, *) 'use, ' // trim(lat%branch(0)%name) // '_line'
+write (iu, *) 'use, line_' // trim(lat%branch(0)%name)
 
 ! Branch lines
 
@@ -927,7 +927,7 @@ do ib = 1, ubound(lat%branch, 1)
   write (iu, *)
   write (iu, '(a)') '!-------------------------------------------------------'
   write (iu, *)
-  line = trim(branch%name) // '_line: line = ('
+  line = 'line_' // trim(branch%name) // ': line = ('
 
   do ie = 1, branch%n_ele_track
     call write_line_element (line, iu, branch%ele(ie), lat) 
