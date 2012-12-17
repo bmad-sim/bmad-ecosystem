@@ -1003,6 +1003,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele => lat%branch(ib)%ele(ie)
     if (ele%iyy == 0) cycle
     if (ele%slave_status == super_slave$) cycle
+    if (ele%key == null_ele$) cycle
     n_multi = 0  ! number of elements to slave together
     iyy = ele%iyy
     do ib2 = ib, ubound(lat%branch, 1)

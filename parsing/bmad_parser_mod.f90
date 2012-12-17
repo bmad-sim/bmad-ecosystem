@@ -3402,7 +3402,7 @@ do i = 1, n_multipass
       lmax = len(slave2%name) - 2
       do k = 1, slave2%n_lord
         lord2 => pointer_to_lord(slave2, k)
-        lord2 => pointer_to_lord(lord2, 1)
+        if (lord2%n_lord > 0) lord2 => pointer_to_lord(lord2, 1)
         slave2_name = trim(slave2_name) // trim(lord2%name) // '\'     ! '
         if (len_trim(slave2_name) > lmax) exit
       enddo
