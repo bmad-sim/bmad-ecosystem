@@ -10,6 +10,7 @@ set (EXE_SPECS
   abs_time_test.cmake
   tracking_method_test.cmake
   mat6_calc_method_test.cmake
+  multipass_test.cmake
 )
 
 set(SRC_DIRS
