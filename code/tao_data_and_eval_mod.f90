@@ -2017,12 +2017,12 @@ case ('tune.')
 
   case ('tune.a')
     if (data_source == 'beam') return ! bad
-    datum_value = lat%a%tune
+    datum_value = branch%ele(branch%n_ele_track)%a%phi
     valid_value = .true.
 
   case ('tune.b')
     if (data_source == 'beam') return ! bad
-    datum_value = lat%b%tune
+    datum_value = branch%ele(branch%n_ele_track)%b%phi
     valid_value = .true.
 
   case default
