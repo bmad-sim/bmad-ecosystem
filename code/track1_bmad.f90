@@ -241,7 +241,11 @@ case (elseparator$)
 
   call make_mad_map (temp_ele, param%particle, energy, map)
   end_orb%vec(6) = 0
+  end_orb%vec(2) = end_orb%vec(2) / (1 + start2_orb%vec(6))
+  end_orb%vec(4) = end_orb%vec(4) / (1 + start2_orb%vec(6))
   call mad_track1 (end_orb, map, end_orb)
+  end_orb%vec(2) = end_orb%vec(2) * (1 + start2_orb%vec(6))
+  end_orb%vec(4) = end_orb%vec(4) * (1 + start2_orb%vec(6))
    
   call offset_particle (ele, end_orb, param%particle, unset$, .false., set_hvkicks = .false.)
   call end_z_calc
