@@ -665,30 +665,24 @@ case (rfcavity$)
 
   voltage = ele%value(voltage$) * ele%value(field_scale$) 
 
-  if (voltage == 0) then
-    phase = 0
-    k = 0
-  else
-    if (ele%value(RF_frequency$) == 0) then
-      if (present(err_flag)) err_flag = .true.
-      call out_io (s_fatal$, r_name, &
+  if (voltage /= 0 .and. ele%value(RF_frequency$) == 0) then
+     if (present(err_flag)) err_flag = .true.
+     call out_io (s_fatal$, r_name, &
                  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // ele%name, &
                  'YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif
+     if (global_com%exit_on_error) call err_exit
+     return
+  endif
 
-    ! The RF phase is defined with respect to the time at the beginning of the element.
-    ! So if dealing with a slave element and absolute time tracking then need to correct.
+  ! The RF phase is defined with respect to the time at the beginning of the element.
+  ! So if dealing with a slave element and absolute time tracking then need to correct.
 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
+  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
                particle_time (end_orb, ele) * ele%value(rf_frequency$))
-    if (absolute_time_tracking(ele)) phase = phase + &
+  if (absolute_time_tracking(ele)) phase = phase + &
                             twopi * slave_time_offset(ele) * ele%value(rf_frequency$) 
 
-    k  =  (twopi * ele%value(rf_frequency$) / c_light ) * cos(phase) / ele%value(p0c$)
-
-  endif
+  k = twopi * ele%value(rf_frequency$) * voltage * cos(phase) / (ele%value(p0c$) * c_light)
 
   dE0 =  voltage * sin(phase) / ele%value(E_tot$)
   L = ele%value(l$)
