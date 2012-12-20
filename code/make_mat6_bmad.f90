@@ -24,6 +24,7 @@
 subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 
 use track1_mod, dummy => make_mat6_bmad
+use mad_mod, dummy1  => make_mat6_bmad
 
 implicit none
 
@@ -35,7 +36,7 @@ type (lat_param_struct)  param
 
 real(rp), pointer :: mat6(:,:)
 
-real(rp) mat6_m(6,6), mat4(4,4), kmat1(4,4), kmat2(4,4)
+real(rp) mat6_m(6,6), mat4(4,4), kmat(4,4)
 real(rp) angle, k1, ks, length, e2, g, g_err
 real(rp) k2l, k3l, c2, s2, cs, ks2, del_l
 real(rp) factor, kmat6(6,6), drift(6,6)
@@ -99,12 +100,11 @@ c00 = c0
 c11 = c1
 
 !--------------------------------------------------------
-! Drift or element is off or
-! Electric Separator or Kicker.
+! Drift or element is off or Kicker.
 
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
-if (any (key == [drift$, capillary$, elseparator$, kicker$, rcollimator$, &
+if (any (key == [drift$, capillary$, kicker$, rcollimator$, &
         ecollimator$, monitor$, instrument$, hkicker$, vkicker$, pipe$ ])) then
   call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
   call add_multipoles_and_s_offset (.true.)
@@ -189,6 +189,13 @@ case (custom$)
   call out_io (s_fatal$, r_name,  'MAT6_CALC_METHOD = BMAD_STANDARD IS NOT ALLOWED FOR A CUSTOM ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
   return
+
+!-----------------------------------------------
+! elseparator
+
+case (elseparator$)
+   
+   call make_mat6_mad (ele, param, c0, c1)
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity
@@ -378,19 +385,25 @@ case (octupole$)
   call offset_particle (ele, c00, param%particle, set$, set_canonical = .false.)
   call offset_particle (ele, c11, param%particle, set$, set_canonical = .false., ds_pos = length)
 
-  k3l = ele%value(k3$) * length 
-  call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat1)
-  call mat4_multipole (k3l/2, 0.0_rp, 3, c11%vec, kmat2)
+  n_slice = max(1, nint(length / ele%value(ds_step$)))
+  k3l = ele%value(k3$) * length / n_slice
 
-  c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
-  call drift_mat6_calc (drift, length, c00%vec)
+  call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat)
+  c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
+  mat6(1:4,1:4) = kmat
 
-  mat6 = drift
-  mat6(1:4,1:4) = matmul(kmat2, matmul(drift(1:4,1:4), kmat1))
-  mat6(5,1) = drift(5,2) * kmat1(2,1) + drift(5,4) * kmat1(4,1)
-  mat6(5,3) = drift(5,2) * kmat1(2,3) + drift(5,4) * kmat1(4,3)
-  mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
-  mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
+  do i = 1, n_slice
+     call drift_mat6_calc (drift, length/n_slice, c00%vec)
+     call track_a_drift (c00, ele, param%particle, length/n_slice)
+     mat6 = matmul(drift,mat6)
+     if(i == n_slice) then
+        call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat)
+     else 
+        call mat4_multipole (k3l, 0.0_rp, 3, c00%vec, kmat)
+     end if
+     c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
+     mat6(1:4,1:4) = matmul(kmat,mat6(1:4,1:4))
+  end do
 
   if (ele%value(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
@@ -534,25 +547,24 @@ case (rfcavity$)
 
   voltage = ele%value(voltage$) * ele%value(field_scale$) 
 
-  if (voltage == 0) then
-    phase = 0
-    k = 0
-  else
-    if (ele%value(RF_frequency$) == 0) then
-      if (present(err)) err = .true.
-      call out_io (s_fatal$, r_name,  '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // trim(ele%name), &
-                                      '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif
-
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
-                     particle_time (c0, ele) * ele%value(rf_frequency$))
-    if (absolute_time_tracking(ele)) phase = phase + &
-                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$) 
-
-    k = twopi * ele%value(rf_frequency$) * voltage * cos(phase) / (ele%value(p0c$) * c_light)
+  if (voltage /= 0 .and. ele%value(RF_frequency$) == 0) then
+     if (present(err)) err = .true.
+     call out_io (s_fatal$, r_name, &
+                 '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // ele%name, &
+                 'YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
+     if (global_com%exit_on_error) call err_exit
+     return
   endif
+
+  ! The RF phase is defined with respect to the time at the beginning of the element.
+  ! So if dealing with a slave element and absolute time tracking then need to correct.
+
+ phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
+                  particle_time (c0, ele) * ele%value(rf_frequency$))
+ if (absolute_time_tracking(ele)) phase = phase + &
+                         twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
+
+  k = twopi * ele%value(rf_frequency$) * voltage * cos(phase) / (ele%value(p0c$) * c_light)
 
   px = c0%vec(2)
   py = c0%vec(4)
@@ -740,23 +752,28 @@ case (sbend$)
 
 case (sextupole$)
 
-
   call offset_particle (ele, c00, param%particle, set$, set_canonical = .false.)
   call offset_particle (ele, c11, param%particle, set$, set_canonical = .false., ds_pos = length)
 
-  k2l = ele%value(k2$) * length 
-  call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat1)
-  call mat4_multipole (k2l/2, 0.0_rp, 2, c11%vec, kmat2)
+  n_slice = max(1, nint(length / ele%value(ds_step$)))
+  k2l = ele%value(k2$) * length / n_slice
 
-  c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
-  call drift_mat6_calc (drift, length, c00%vec)
+  call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat)
+  c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
+  mat6(1:4,1:4) = kmat
 
-  mat6 = drift
-  mat6(1:4,1:4) = matmul(kmat2, matmul(drift(1:4,1:4), kmat1))
-  mat6(5,1) = drift(5,2) * kmat1(2,1) + drift(5,4) * kmat1(4,1)
-  mat6(5,3) = drift(5,2) * kmat1(2,3) + drift(5,4) * kmat1(4,3)
-  mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
-  mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
+  do i = 1, n_slice
+     call drift_mat6_calc (drift, length/n_slice, c00%vec)
+     call track_a_drift (c00, ele, param%particle, length/n_slice)
+     mat6 = matmul(drift,mat6)
+     if(i == n_slice) then
+        call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat)
+     else 
+        call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, kmat)
+     end if
+     c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
+     mat6(1:4,1:4) = matmul(kmat,mat6(1:4,1:4))
+  end do
 
   if (ele%value(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
