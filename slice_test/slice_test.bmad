@@ -1,9 +1,11 @@
+no_digested
+
 beginning[beta_a]  = 10  
 beginning[alpha_a] =  0    
 beginning[beta_b]  = 12
 beginning[alpha_b] =  0
-beginning[eta_a]   =  1.3
-beginning[etap_a]  =  0.1
+beginning[eta_x]   =  1.3
+beginning[etap_x]  =  0.1
 
 !parameter[ptc_exact_model] = T
 !parameter[taylor_order] = 3
