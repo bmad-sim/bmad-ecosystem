@@ -223,46 +223,6 @@ call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat2:Z%Synch_int(4)')
 write (2, '(a, l1, a)') '"Lat2:Lat"      STR  "', associated(lat2%ele(100)%branch, lat2%branch(0)), '"'
 
 !--------------------------------------------------------------------
-! Reverse
-
-call set_on_off (rfcavity$, lat, off$)
-call lat_reverse (lat, lat2)
-call closed_orbit_calc (lat2, orb2, 4)
-call lat_make_mat6(lat2, -1, orb2)
-call twiss_at_start (lat2)
-call twiss_propagate_all (lat2)
-
-n_track = lat%n_ele_track
-write (2, *)
-call data_out (orb2(0)%vec(1)-orb(0)%vec(1), 1d-8, 'Reverse:dvec(1)')
-call data_out (orb2(0)%vec(2)+orb(0)%vec(2), 1d-8, 'Reverse:dvec(2)')
-call data_out (orb2(0)%vec(3)-orb(0)%vec(3), 1d-8, 'Reverse:dvec(3)')
-call data_out (orb2(0)%vec(4)+orb(0)%vec(4), 4d-8, 'Reverse:dvec(4)')
-
-write (2, *)
-call data_out (lat2%ele(0)%a%beta - lat%ele(0)%a%beta, 2d-5, 'Reverse:dbeta_a')
-call data_out (lat2%ele(0)%a%alpha + lat%ele(0)%a%alpha, 1d-4, 'Reverse:dalpha_a')
-call data_out (lat2%ele(n_track)%a%phi - lat%ele(n_track)%a%phi, 2d-5, 'Reverse:dphi_a')
-call data_out (lat2%ele(0)%a%eta - lat%ele(0)%a%eta, 1d-5, 'Reverse:deta_a')
-call data_out (lat2%ele(0)%a%etap + lat%ele(0)%a%etap, 1d-5, 'Reverse:detap_a')
-
-write (2, *)
-call data_out (lat2%ele(0)%b%beta - lat%ele(0)%b%beta, 1d-6, 'Reverse:dbeta_b')
-call data_out (lat2%ele(0)%b%alpha + lat%ele(0)%b%alpha, 1d-6, 'Reverse:dalpha_b')
-call data_out (lat2%ele(n_track)%b%phi - lat%ele(n_track)%b%phi, 1d-5, 'Reverse:dphi_b')
-call data_out (lat2%ele(0)%b%eta - lat%ele(0)%b%eta, 1d-8, 'Reverse:deta_b')
-call data_out (lat2%ele(0)%b%etap + lat%ele(0)%b%etap, 1d-6, 'Reverse:detap_b')
-
-write (2, *)
-call data_out (lat2%ele(n_track)%floor%x, 1d-8, 'Reverse:floor%x')
-call data_out (lat2%ele(n_track)%floor%z, 1d-8, 'Reverse:floor%z')
-call data_out (lat2%ele(n_track)%floor%theta, 1d-8, 'Reverse:floor%theta')
-call data_out (lat2%ele(n_track)%s -lat%ele(n_track)%s, 1d-6, 'Reverse:s')
-call data_out (lat2%ele(n_track)%ref_time-lat%ele(n_track)%ref_time, 1d-14, 'Reverse:ref_time')
-write (2, '(a, l1, a)') '"Reverse:Lat"      STR  "', associated(lat2%ele(100)%branch, lat2%branch(0)), '"'
-
-
-!--------------------------------------------------------------------
 contains
 
 subroutine data_out (now, err_tol, what)
