@@ -14,7 +14,7 @@ type (taylor_struct) t_map(6)
 real(rp) s1, s2
 real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6)
 
-integer idum
+integer idum 
 
 !
 
