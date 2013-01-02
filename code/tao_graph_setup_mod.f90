@@ -979,7 +979,7 @@ case ('dat')
     else ! s
       where (d1_ptr%d%s > graph%x%min-eps .and. &
              d1_ptr%d%s < graph%x%max+eps) d1_ptr%d%good_plot = .true.
-      if (branch%param%lattice_type == circular_lattice$) then 
+      if (branch%param%geometry == closed$) then 
         l_tot = branch%param%total_length
         where (d1_ptr%d%s-l_tot > graph%x%min-eps .and. &
                d1_ptr%d%s-l_tot < graph%x%max+eps) d1_ptr%d%good_plot = .true.
@@ -1021,7 +1021,7 @@ case ('dat')
   elseif (plot%x_axis_type == 's') then
     curve%x_symb = branch%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
     ! If there is a wrap-around then reorder data
-    if (branch%param%lattice_type == circular_lattice$) then
+    if (branch%param%geometry == closed$) then
       do i = 1, n_dat
         if (curve%x_symb(i) > graph%x%max+eps) curve%x_symb(i) = curve%x_symb(i)-l_tot
         if (curve%x_symb(i) < graph%x%min-eps) curve%x_symb(i) = curve%x_symb(i)+l_tot
@@ -1194,7 +1194,7 @@ case ('lat', 'beam')
       s1 = ele%s
       in_graph = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
       l_tot = branch%param%total_length
-      if (branch%param%lattice_type == circular_lattice$) in_graph = in_graph .or. &
+      if (branch%param%geometry == closed$) in_graph = in_graph .or. &
                       (s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps)
       ele%logic = ele%logic .and. in_graph                                 
     enddo
@@ -1321,7 +1321,7 @@ case ('s')
       s0 = ele%s - ele%value(l$)
       s1 = ele%s
       ele%logic = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
-      if (branch%param%lattice_type == circular_lattice$) then
+      if (branch%param%geometry == closed$) then
         ele%logic = ele%logic .or. &
                    ((s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps))
       endif
@@ -1414,7 +1414,7 @@ branch => lat%branch(ix_branch)
 ix_ref = curve%ix_ele_ref_track
 if (ix_ref < 0) ix_ref = 0
 
-if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) then
+if (lat%param%geometry == closed$ .and. .not. lat%param%stable) then
   good = .false.
   return
 endif
@@ -1436,7 +1436,7 @@ x1 = branch%ele(0)%s
 x2 = branch%ele(branch%n_ele_track)%s
 len_tot = x2 - x1
 if (curve%g%x%min /= curve%g%x%max) then
-  if (branch%param%lattice_type == circular_lattice$) then
+  if (branch%param%geometry == closed$) then
     x1 = min(branch%ele(branch%n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
     x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s-len_tot))
   else

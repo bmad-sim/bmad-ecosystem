@@ -245,7 +245,7 @@ if (u%calc%track) then
   radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
   bmad_com%radiation_fluctuations_on = .false.
 
-  if (branch%param%lattice_type == circular_lattice$) then
+  if (branch%param%geometry == closed$) then
     if (s%global%rf_on) then
       call closed_orbit_calc (lat, lat_branch%orbit, 6, 1, ix_branch, err_flag = err)
     else
@@ -290,7 +290,7 @@ if (u%calc%mat6) then
     endif
   enddo
 
-  if (branch%param%lattice_type == circular_lattice$) then
+  if (branch%param%geometry == closed$) then
     call twiss_at_start (lat, status = status)
     if (status /= ok$) then
       calc_ok = .false.
@@ -369,7 +369,7 @@ too_many_lost = .false.
 lat_branch%bunch_params(:)%n_particle_lost_in_ele = 0
 lat_branch%bunch_params(:)%n_particle_live = 0
 
-if (branch%param%lattice_type == circular_lattice$) then
+if (branch%param%geometry == closed$) then
   call out_io (s_fatal$, r_name, &
                'BEAM TRACKING WITH CIRCULAR LATTICE NOT YET IMPLEMENTED.', &
                'PLEASE SEE DCS IF YOU NEED THIS.')
@@ -387,7 +387,7 @@ call zero_lr_wakes_in_lat (lat)
 
 ! Don't know what to do if the lattice is circular.
 
-if (branch%param%lattice_type == circular_lattice$) then
+if (branch%param%geometry == closed$) then
   call out_io (s_abort$, r_name, 'BEAM TRACKING IN CIRCULAR LATTICE NOT YET IMPLEMENTED!')
   call err_exit
 endif
@@ -585,7 +585,7 @@ endif
 ! In model%branch()%orb0 is saved the last computed orbit. 
 ! This is important with common_lattice since tao_lat%lat_branch(0)%orbit(0) has been overwritten.
 
-if (model%lat%branch(ix_branch)%param%lattice_type == linear_lattice$) then
+if (model%lat%branch(ix_branch)%param%geometry == open$) then
   call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start, &
                                                  model%lat%ele(0), .true., branch%param%particle)
 else

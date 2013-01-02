@@ -524,12 +524,11 @@ case ('branch')
     nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_root_branch            =', branch%ix_root_branch 
     nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from_branch            =', branch%ix_from_branch 
     nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from ele               =', branch%ix_from_ele
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_to_ele                 =', branch%ix_to_ele
     nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_track               =', branch%n_ele_track
     nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_max                 =', branch%n_ele_max
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%particle            =' // trim(particle_name(branch%param%particle))
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%lattice_type        =', branch%param%lattice_type
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%particle            = ' // trim(particle_name(branch%param%particle))
+    nl=nl+1; write (lines(nl), '(a, f6.1)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
+    nl=nl+1; write (lines(nl), '(a, a)')   '%param%geometry            = ', geometry_name(branch%param%geometry)
 
   else
     nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele  Ix_From  From                Ix_From  From '
@@ -1509,7 +1508,7 @@ case ('lattice')
       column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '', .false.)
       column(4)  = show_lat_column_struct('ele::#[key]',           'a16',      16, '', .false.)
       column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false.)
-      if (branch%param%lattice_type == linear_lattice$) then
+      if (branch%param%geometry == open$) then
         column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true.)
         column(7)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '', .false.)
         column(8)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '', .false.)
@@ -2203,7 +2202,7 @@ case ('taylor_map')
 
     if (ele2 == '') then
       s2 = s1
-      if (lat%param%lattice_type == linear_lattice$) s1 = 0
+      if (lat%param%geometry == open$) s1 = 0
     else 
       read (ele2, *, iostat = ios) s2
       if (ios /= 0) then
@@ -2233,7 +2232,7 @@ case ('taylor_map')
 
     if (ele2 == '') then
       ix2 = ix1
-      if (lat%param%lattice_type == linear_lattice$) then
+      if (lat%param%geometry == open$) then
         ix1 = 0
       else
         ix1 = ix1 - 1
@@ -2411,7 +2410,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) 'RF_Auto_Scale_Phase:    ', lat%rf_auto_scale_phase
   nl=nl+1; write(lines(nl), lmt) 'RF_Auto_scale_Amp:      ', lat%rf_auto_scale_amp
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking: ', lat%absolute_time_tracking
-  nl=nl+1; lines(nl) =           'Lattice Type:           ' // lattice_type(branch%param%lattice_type)
+  nl=nl+1; lines(nl) =           'Geometry:               ' // geometry_name(branch%param%geometry)
   nl=nl+1; write (lines(nl), imt) &
                 'Elements used in tracking: From 1 through ', branch%n_ele_track
   if (branch%n_ele_max .gt. branch%n_ele_track) then
@@ -2424,7 +2423,7 @@ case ('universe')
   nl=nl+1; write (lines(nl), '(a, f0.3)')   'Lattice length:             ', branch%param%total_length
   nl=nl+1; write (lines(nl), lmt)           'Aperture limits on?:        ', branch%param%aperture_limit_on
 
-  if (branch%param%lattice_type == linear_lattice$ .and. lat_branch%track_state /= moving_forward$) then
+  if (branch%param%geometry == open$ .and. lat_branch%track_state /= moving_forward$) then
     if (s%global%track_type == 'beam') then
       nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', lat_branch%track_state
     else
@@ -2441,7 +2440,7 @@ case ('universe')
  
   call radiation_integrals (u%model%lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache)
   call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%design%ix_rad_int_cache)
-  if (lat%param%lattice_type == circular_lattice$) then
+  if (lat%param%geometry == closed$) then
     call chrom_calc (lat, delta_e, u%model%a%chrom, u%model%b%chrom)
     call chrom_calc (u%design%lat, delta_e, u%design%a%chrom, u%design%b%chrom)
   endif
@@ -2456,7 +2455,7 @@ case ('universe')
   l_lat = lat%param%total_length
   gamma2 = (lat%ele(0)%value(e_tot$) / mass_of(lat%param%particle))**2
   n = lat%n_ele_track
-  if (lat%param%lattice_type == circular_lattice$) then
+  if (lat%param%geometry == closed$) then
     nl=nl+1; write (lines(nl), fmt2) 'Q', f_phi*lat%ele(n)%a%phi, &
           f_phi*u%design%lat%ele(n)%a%phi, f_phi*lat%ele(n)%b%phi, &
           f_phi*u%design%lat%ele(n)%b%phi,  '! Tune'
@@ -2484,7 +2483,7 @@ case ('universe')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), '(19x, a)') 'Model     Design'
   fmt = '(1x, a12, 1p2e11.3, 3x, a)'
-  if (lat%param%lattice_type == circular_lattice$) then
+  if (lat%param%geometry == closed$) then
     call calc_z_tune(u%model%lat)
     nl=nl+1; write (lines(nl), '(1x, a12, 2f11.4, 3x, a)') 'Z_tune:', &
          -u%model%lat%z%tune/twopi, -u%design%lat%z%tune/twopi, '! The design value is calculated with RF on'

@@ -141,7 +141,7 @@ do i = 2, 4
   wg => wave_plot%graph(i)
   p1 = nint(0.7 * wg%x%major_div_nominal)
   p2 = nint(1.3 * wg%x%major_div_nominal)
-  if (u%model%lat%param%lattice_type == circular_lattice$) then
+  if (u%model%lat%param%geometry == closed$) then
     call qp_calc_and_set_axis ('X', 0.0_rp, 1.5*wg1%x%max, p1, p2, 'GENERAL', wg%x%type)
   else
     call qp_calc_and_set_axis ('X', 0.0_rp, wg1%x%max, p1, p2, 'GENERAL', wg%x%type)
@@ -208,7 +208,7 @@ s%wave%i_wrap_pt = n_pt_curve
 
 u => tao_pointer_to_universe (wc1%ix_universe)
 
-if (u%model%lat%param%lattice_type == circular_lattice$) then
+if (u%model%lat%param%geometry == closed$) then
   do i = 1, n_pt_curve
     if (wc1%ix_symb(i) > nint(0.5 * n_dat_arr)) then
       n_tot = n_pt_curve + i - 1

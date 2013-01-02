@@ -329,7 +329,7 @@ call init_coord(u%design%lat_branch(0)%orbit(0), beam_init%center, &
 
 ! No initialization for a circular lattice
 
-if (u%model%lat%param%lattice_type == circular_lattice$) return
+if (u%model%lat%param%geometry == closed$) return
 
 ! Find where to save the beam at.
 ! Always save at branch points.

@@ -28,7 +28,7 @@ logical ok
 u => tao_pointer_to_universe(-1)
 lat => u%model%lat
 
-lat%param%lattice_type = linear_lattice$
+lat%param%geometry = open$
 u%calc%lattice = .true.
 u%model%lat%beam_start%vec = 0
 call tao_lattice_calc (ok)
