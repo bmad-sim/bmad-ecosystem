@@ -6,16 +6,6 @@ by \bmad. Presented are the basic concepts, such as \vn{element},
 \vn{branch}, and \vn{lattice}, that \bmad uses to describe such things
 as LINACs, storage rings, X-ray beam lines, etc.  
 
------ \needswork
-
-In fact, \bmad is
-capable of simulating a whole machine complex of interconnected parts.
-This includes simulating transfer lines connected to storage rings or 
-simulating interconnected colliding beam storage rings.
-
-Chapter~\sref{c:lat.file} covers the syntax of how to construct a
-lattice file for input to \bmad based programs.
-
 %---------------------------------------------------------------------------
 \section{Lattice Elements}
 \label{s:element.def}
@@ -84,6 +74,11 @@ list the \vn{root} \vn{branches} of a lattice. To connect together
 lattice elements that are physically shared between branches, for
 example, the interaction region in colliding beam machines,
 \vn{multipass} lines (\sref{s:multipass}) can be used.
+
+\bmad is capable of simulating a whole machine complex of
+interconnected parts. This includes simulating transfer lines
+connected to storage rings or simulating interconnected colliding beam
+storage rings.
 
 %---------------------------------------------------------------------------
 \section{Lord and Slave Elements}
@@ -185,23 +180,6 @@ structures to separate the physical element, which PTC calls an
 version.] This \vn{element} and \vn{fibre} combination corresponds to
 \bmad \vn{multipass_lord} and \vn{multipass_slave} elements. PTC does
 not handle overlapping fields.
-
-%---------------------------------------------------------------------------
-\section{Element Orientation}
-\label{s:ele.orientation}
-
-To orient an element in space, \bmad starts with the \vn{global
-coordinate} system as outlined in Section~\sref{s:global}. Within the
-global coordinate system, \bmad constructs a \vn{local} \vn{reference}
-orbit (also called the \vn{laboratory} \vn{coordinate} system) for
-each lattice branch (\sref{s:ref}). Finally, the
-physical element is oriented with respect to that element's local
-reference system. 
-
-
-Lattice elements have an 
-
-\etcetc
 
 %---------------------------------------------------------------------------
 \section{PTC: Polynomial Tracking Code}

@@ -152,7 +152,9 @@ if (lat%param%n_part /= 0)             write (iu, '(a, es12.4)') 'parameter[n_pa
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_phase]    = ', lat%rf_auto_scale_phase
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_amp]      = ', lat%rf_auto_scale_amp
 write (iu, '(a, l1)') 'parameter[absolute_time_tracking] = ', lat%absolute_time_tracking
-write (iu, '(a, l1)') 'parameter[no_end_marker]          = ', .true.
+if (lat%ele(lat%n_ele_track)%name /= 'END') then
+  write (iu, '(a)') 'parameter[no_end_marker]          =  T'
+endif
 
 ele => lat%ele(0) 
 
@@ -199,6 +201,8 @@ do ib = 0, ubound(lat%branch, 1)
   ele_loop: do ie = 1, branch%n_ele_max
 
     ele => branch%ele(ie)
+    if (ele%name == 'END') cycle
+
     ele_dflt => ele_default(ele%key)
 
     multi_lord => pointer_to_multipass_lord (ele, ix_pass) 
@@ -301,7 +305,11 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
       n = nint(ele%value(ix_to_branch$))
-      line = trim(line) // ', to = ' // trim(lat%branch(n)%name) // '_line'
+      line = trim(line) // ', to_line = ' // trim(lat%branch(n)%name)
+      if (ele%value(ix_to_element$) > 0) then
+        i = nint(ele%value(ix_to_element$))
+        line = trim(line) // ', to_element = ' // trim(lat%branch(n)%ele(i)%name)
+      endif
     endif
 
     ! Other elements
@@ -871,10 +879,11 @@ end if
 ! But only write this once.
 
 write (iu, *)
-line = trim(lat%branch(0)%name) // '_line: line = ('
+line = trim(lat%branch(0)%name) // ': line = ('
 
 in_multi_region = .false.
 do ie = 1, lat%n_ele_track
+  if (lat%ele(ie)%name == 'END') cycle
 
   if (.not. m_info%bottom(ie)%multipass) then
     call write_line_element (line, iu, lat%ele(ie), lat)
@@ -908,8 +917,15 @@ enddo
 line = line(:len_trim(line)-1) // ')'
 call write_lat_line (line, iu, .true.)
 
+line = 'use, ' // trim(lat%branch(0)%name)
+do ib = 1, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  if (branch%ix_from_branch > -1) cycle
+  line = trim(line) // ', ' // branch%name
+enddo
+
 write (iu, *)
-write (iu, *) 'use, ' // trim(lat%branch(0)%name) // '_line'
+write (iu, *) trim(line)
 
 ! Branch lines
 
@@ -920,14 +936,28 @@ do ib = 1, ubound(lat%branch, 1)
   write (iu, *)
   write (iu, '(a)') '!-------------------------------------------------------'
   write (iu, *)
-  line = trim(branch%name) // '_line: line = ('
+  line = trim(branch%name) // ': line = ('
 
   do ie = 1, branch%n_ele_track
+    if (branch%ele(ie)%name == 'END') cycle
     call write_line_element (line, iu, branch%ele(ie), lat) 
   enddo
 
   line = line(:len_trim(line)-1) // ')'
   call write_lat_line (line, iu, .true.)
+
+  write (iu, *)
+  write (iu, '(3a)') trim(branch%name), '[geometry]            = ', geometry_name(branch%param%geometry)
+  write (iu, '(3a)') trim(branch%name), '[rel_tracking_charge] = ', str(branch%param%rel_tracking_charge)
+ 
+
+  if (branch%ix_from_branch > -1) then
+    branch2 => lat%branch(branch%ix_from_branch)
+    if (branch2%param%particle == branch%param%particle) cycle
+  endif
+
+  write (iu, '(3a)') trim(branch%name), '[particle] = ', particle_name(branch%param%particle)
+  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', str(branch%ele(0)%value(p0c$))
 
 enddo
 

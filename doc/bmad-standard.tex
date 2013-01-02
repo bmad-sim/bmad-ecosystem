@@ -102,7 +102,7 @@ element coordinates for an element that has a
 straight reference trajectory through it is accomplished in a number of steps.
 \begin{enumerate}
 \item
-Track as in a drift a distance \vn{s_offset_tot}.
+Track as in a drift a distance \vn{z_offset_tot}.
 \item
 Apply offsets and pitches
 \begin{align}
@@ -149,7 +149,7 @@ Apply offsets and pitches
     \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch})      \nonumber
 \end{align}
 \item
-Track as in a drift a distance \vn{-s_offset_tot}.
+Track as in a drift a distance \vn{-z_offset_tot}.
 \end{enumerate}
 
 
@@ -168,13 +168,13 @@ order terms can be ignored.
 \subsection{Transformation from Laboratory to Element Coordinates}
 \label{ss:crystal.trans.le}
 
-\index{s_offset_tot}
+\index{z_offset_tot}
 With photons, the intensities must also be transformed.
 The transformation from the the entrance laboratory coordinates to
 the entrance element coordinates is:
 \begin{enumerate}
 \item
-Track as in a drift a distance \vn{s_offset_tot}.
+Track as in a drift a distance \vn{z_offset_tot}.
 \item
 \index{x_offset}\index{x_pitch}\index{y_offset}\index{y_pitch}
 Apply offsets and pitches: The effective ``length'' of the element is

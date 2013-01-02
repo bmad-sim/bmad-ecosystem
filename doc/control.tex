@@ -135,7 +135,7 @@ attribute and this change will be added to the value of
 \index{start_edge}
 \index{end_edge}
 \index{symmetric_edge}
-\index{s_offset}
+\index{z_offset}
 A \vn{group} can be used to control an elements position and length
 using the attributes
 \begin{example}
@@ -143,12 +143,12 @@ using the attributes
   start_edge      ! Varies element's starting edge s-position
   end_edge        ! Varies element's ending edge s-position
   symmetric_edge  ! Varies element's overall s-position. Constant length.
-  s_offset        ! Similar to symmetric_edge
+  z_offset        ! Similar to symmetric_edge
 \end{example}
 With \vn{accordion_edge}, \vn{start_edge}, \vn{end_edge}, and
 \vn{symmetric_edge} the longitudinal position of an elements edges are
 varied. This is done by appropriate control of the element's length
-and the lengths of the elements to either side. With \vn{s_offset} the
+and the lengths of the elements to either side. With \vn{z_offset} the
 physical element is offset from its reference position
 (\sref{s:offset}) and the elements on either side are untouched.
 In all cases the total length of the lattice is kept invariant.

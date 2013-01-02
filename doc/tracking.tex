@@ -167,15 +167,15 @@ routine can be used as shown in the above example.
 The ``virtual'' entrance and exit ends of a lattice element are, by
 definition, where the physical ends of the element would be if there
 were no offsets. In particular, if an element has a finite
-\vn{s_offset} (\sref{s:ele.offset}), the physical ends will be
+\vn{z_offset} (\sref{s:ele.offset}), the physical ends will be
 displaced from the virtual ends. The position \vn{ds} of a particle
 with respect to the physical entrance end of the element is
 \begin{example}
-  ds = coord%s - (ele%s + ele%value(s_offset_tot\$) - ele%value(l\$))
+  ds = coord%s - (ele%s + ele%value(z_offset_tot\$) - ele%value(l\$))
 \end{example}
 When tracking through an element, the starting and ending positions
 always correspond to the virtual ends. If there is a finite
-\vn{s_offset}, the tracking of the element will involve tracking
+\vn{z_offset}, the tracking of the element will involve tracking
 through drifts just before and just after the tracking of the body of
 the element so that the particle ends at the proper virtual exit end.
 

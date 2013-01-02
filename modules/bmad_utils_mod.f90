@@ -736,7 +736,7 @@ end function key_name_to_key_index
 !
 ! Function to determine if an element has nonzero kick values.
 ! Kicks are something hkick$, bl_vkick$, etc.
-! See also: zero_ele_kicks, ele_haz_offset, zero_ele_offsets.
+! See also: zero_ele_kicks, ele_has_offset, zero_ele_offsets.
 !
 ! Modules needed:
 !   use bmad
@@ -776,7 +776,7 @@ end function ele_has_nonzero_kick
 ! Subroutine zero_ele_kicks (ele)
 !
 ! Subroutine to zero any kick attributes like hkick$, bl_vkick$, etc.
-! See also: ele_has_nonzero_kick, ele_haz_offset, zero_ele_offsets.
+! See also: ele_has_nonzero_kick, ele_has_offset, zero_ele_offsets.
 !
 ! Modules needed:
 !   use bmad
@@ -813,7 +813,7 @@ end subroutine zero_ele_kicks
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function ele_haz_offset (ele) result (haz_offset)
+! Function ele_has_offset (ele) result (haz_offset)
 !
 ! Function to tell if an element has a non-zero offset, pitch or tilt.
 ! Also see: zero_ele_offsets, zero_ele_kicks, ele_has_nonzero_kick
@@ -828,7 +828,7 @@ end subroutine zero_ele_kicks
 !   haz_offset -- Logical: Set true is element has a non-zero offset.
 !-
 
-function ele_haz_offset (ele) result (haz_offset)
+function ele_has_offset (ele) result (haz_offset)
 
 implicit none
 
@@ -847,7 +847,7 @@ if (ele%value(x_offset_tot$) /= 0) haz_offset = .true.
 if (ele%value(y_offset_tot$) /= 0) haz_offset = .true.
 if (ele%value(z_offset_tot$) /= 0) haz_offset = .true.
 
-end function ele_haz_offset
+end function ele_has_offset
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -856,7 +856,7 @@ end function ele_haz_offset
 ! Subroutine zero_ele_offsets (ele)
 !
 ! Subroutine to zero the offsets, pitches and tilt of an element.
-! Also see: ele_haz_offset, zero_ele_kicks, ele_has_nonzero_kick
+! Also see: ele_has_offset, zero_ele_kicks, ele_has_nonzero_kick
 !
 ! Modules needed:
 !   use bmad
