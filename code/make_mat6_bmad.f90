@@ -394,7 +394,7 @@ case (octupole$)
 
   do i = 1, n_slice
      call drift_mat6_calc (drift, length/n_slice, c00%vec)
-     call track_a_drift (c00, ele, param%particle, length/n_slice)
+     call track_a_drift (c00, ele, length/n_slice)
      mat6 = matmul(drift,mat6)
      if(i == n_slice) then
         call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat)
@@ -768,7 +768,7 @@ case (sextupole$)
 
   do i = 1, n_slice
      call drift_mat6_calc (drift, length/n_slice, c00%vec)
-     call track_a_drift (c00, ele, param%particle, length/n_slice)
+     call track_a_drift (c00, ele, length/n_slice)
      mat6 = matmul(drift,mat6)
      if(i == n_slice) then
         call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat)

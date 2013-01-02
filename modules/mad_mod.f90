@@ -218,8 +218,7 @@ val => ele%value
 if (val(z_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
     val(x_pitch_tot$) == 0  .and. val(y_offset_tot$) == 0 .and. &
     val(y_pitch_tot$) == 0 .and. .not. associated(ele%a_pole) .and. &
-    ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. &
-                                     ele%key == elseparator$)) return
+    ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. ele%key == elseparator$)) return
 
 ! Front side: Unit map.
 
@@ -247,8 +246,7 @@ endif
 ! Front side: HV kicks.
 ! Note: Separator already has the kicks put in the map
 
-if ((val(hkick$) /= 0 .or. val(vkick$) /= 0) .and. &
-                                     ele%key /= elseparator$) then
+if ((val(hkick$) /= 0 .or. val(vkick$) /= 0) .and. ele%key /= elseparator$) then
   map2%k(2) = map2%k(2) + val(hkick$) / 2
   map2%k(4) = map2%k(4) + val(vkick$) / 2
 endif
@@ -304,8 +302,7 @@ endif
 ! Back side: HV Kicks.
 ! Note: Separator already has the kicks put in the map
 
-if ((val(hkick$) /= 0 .or. val(vkick$) /= 0) .and. &
-                                     ele%key /= elseparator$) then
+if ((val(hkick$) /= 0 .or. val(vkick$) /= 0) .and. ele%key /= elseparator$) then
   map2%k(2) = map2%k(2) + val(hkick$) / 2
   map2%k(4) = map2%k(4) + val(vkick$) / 2
 endif
