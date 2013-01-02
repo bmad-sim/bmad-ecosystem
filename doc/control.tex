@@ -327,8 +327,8 @@ to use the element center. \vn{offset} is the longitudinal offset
 between the reference point on the reference element and the reference
 point on the superimposed element. The default if not present is zero.
 
-\index{lattice_type}
-\index{linear_lattice}
+\index{geometry}
+\index{open}
 \index{drift}
 \index{overlay}
 \index{group}
@@ -338,8 +338,8 @@ Superposition may be done with any element except \vn{Drift},
 superimposed element that extends beyond either end of the lattice
 will be wrapped around so part of the element will be at the beginning
 of the lattice and part of the element will be at the end. For
-consistency's sake, this is done even if the \vn{lattice_type} is set
-to \vn{linear_lattice} (for example, it is sometimes convenient to
+consistency's sake, this is done even if the \vn{geometry} is set
+to \vn{open} (for example, it is sometimes convenient to
 treat a circular lattice as linear). Example:
 \begin{example}
   d: drift, l = 10

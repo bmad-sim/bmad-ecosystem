@@ -502,7 +502,7 @@ type lat_param_struct
   real(rp) :: t1_no_RF(6,6) = 0           ! Full 1-turn matrix with RF off.
   real(rp) :: rel_tracking_charge = 1     ! Charge relative to referece charge
   integer :: particle = positron$         ! Reference particle: positron$, electron$, etc.
-  integer :: lattice_type = 0             ! linear_lattice$, etc...
+  integer :: geometry = 0                 ! open$ or closed$
   integer :: ixx = 0                      ! Integer for general use
   logical :: stable = .false.             ! is closed lat stable?
   logical :: aperture_limit_on = .true.   ! use apertures in tracking?
@@ -650,7 +650,7 @@ logical has_kick_attributes(n_key$)
 ! Element attribute name logical definitions
 
 integer, parameter :: n_part$ = 2, taylor_order$ = 3, particle$ = 14
-integer, parameter :: lattice_type$ = 15, symmetry$ = 6
+integer, parameter :: geometry$ = 15, symmetry$ = 6
 
 integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
           val6$=9, val7$=10, val8$=11, val9$=12, val10$=13, val11$=14, &
@@ -831,10 +831,11 @@ character(40), parameter :: blank_name$ = ' '
 
 ! lattice logical names
 
-integer, parameter :: linear_lattice$ = 1
-integer, parameter :: circular_lattice$ = 2
+integer, parameter :: linear_lattice$ = 1, circular_lattice$ = 2
+integer, parameter :: open$ = 1, closed$ = 2
 
-character(16), parameter :: lattice_type(0:2) = ['GARBAGE!        ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE']
+character(16), parameter :: lattice_type_name(0:2) = ['GARBAGE!        ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE']
+character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'OPEN        ', 'CLOSED      ']
 
 ! logicals for MAKE_HYBIRD_lat
 

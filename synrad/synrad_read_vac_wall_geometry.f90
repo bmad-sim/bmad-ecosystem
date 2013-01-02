@@ -10,7 +10,7 @@
 !   component_file -- Character(*): Name of the file specifying the component geometry.
 !   dflt_dir       -- Character(*): Default directory to use if not found in the current directory.
 !   s_lat          -- Real(rp): Lattice length
-!   lat_type       -- Integer: Type of lattice. Circular_lattice$ or linear_lattice$.
+!   lat_type       -- Integer: Type of lattice. Circular_lattice$ or open$.
 !
 ! Output:
 !   walls -- Walls_struct: wall structure.

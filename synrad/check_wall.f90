@@ -62,7 +62,7 @@ endif
 
 ! If the lattice is circular then the end x must be equal to the start x.
 
-if (lat_type == circular_lattice$) then
+if (lat_type == closed$) then
   if (pt(np)%x /= pt(0)%x) then
     call out_io (s_fatal$, r_name, 'BEGINNING X DOES NOT EQUAL FINAL X FOR: ' // wall_name(wall%side))
     if (global_com%exit_on_error) call err_exit

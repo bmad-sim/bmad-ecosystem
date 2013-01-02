@@ -59,7 +59,7 @@ enddo
 
 ! Make sure final mode is same as initial mode
 
-if (branch%param%lattice_type == circular_lattice$) then
+if (branch%param%geometry == closed$) then
   if (branch%ele(0)%mode_flip .neqv. branch%ele(n_track)%mode_flip) then
     call do_mode_flip (branch%ele(n_track), err)
     if (err .and. global_com%type_out) then

@@ -10,7 +10,7 @@ the lattice as a whole and not simply associated with a single element.
 \index{parameter statement|hyperbf}
 
 
-\index{lattice}\index{lattice_type}
+\index{lattice}\index{geometry}
 \index{taylor_order}\index{e_tot}
 \index{p0c}\index{ran_seed}\index{absolute_time_tracking}
 \index{n_part}\index{no_end_marker}
@@ -26,7 +26,7 @@ set by \vn{parameter} are
   parameter[e_tot]         = <Real>          ! Reference total Energy. 
                                              !      Default: 1000 * rest_energy.
   parameter[lattice]       = <String>        ! Lattice name 
-  parameter[lattice_type]  = <Switch>        ! 
+  parameter[geometry]      = <Switch>        ! Open or closed
   parameter[n_part]        = <Real>          ! Number of particles in a bunch.
   parameter[no_end_marker] = <Logical>       ! Default: False.
   parameter[p0c]           = <Real>          ! Reference momentum.
@@ -47,7 +47,7 @@ set by \vn{parameter} are
 Examples
 \begin{example}
   parameter[lattice]      = "L9A19C501.FD93S_4S_15KG"
-  parameter[lattice_type] = circular_lattice
+  parameter[geometry]     = closed
   parameter[taylor_order] = 5
   parameter[E_tot]        = 5.6e9    ! eV
 \end{example}
@@ -103,21 +103,22 @@ The \vn{lattice} name is stored by \bmad for use by a program but it does
 not otherwise effect any \bmad routines. 
 
 \noindent
-\index{circular_lattice}
-\index{linear_lattice}
-\index{lcavity!and lattice_type}
-Valid \vn{lattice_type} switches are
+\index{closed}
+\index{open}
+\index{lcavity!and geometry}
+Valid \vn{geometry} switches are
 \begin{example}
-  circular_lattice  ! Default w/o LCavity element present.
-  linear_lattice    ! Default if LCavity elements present.
+  closed  ! Default w/o LCavity element present.
+  open    ! Default if LCavity elements present.
 \end{example}
-a \vn{circular_lattice} is for a closed lattice where one expects a
-periodic solution for the Twiss parameters. A \vn{linear_lattice} is
-not closed so that the initial Twiss parameters need to be specified
-in the lattice file. If the \vn{lattice_type} is not specified, a
-\vn{circular_lattice} is the default. The exception is that if there
+A machine with a \vn{closed} geometry is something like a storage ring
+where the particle beam recirculates through the machine.
+A machine with an \vn{open} geometry is something like a linac.
+In this case, the initial Twiss parameters need to be specified
+in the lattice file. If the \vn{geometry} is not specified, 
+\vn{closed} is the default. The exception is that if there
 is an \vn{Lcavity} element present in the lattice file (even if it is
-not used in constructing the lattice), \vn{linear_lattice} will be the
+not used in constructing the lattice), \vn{open} will be the
 default.
 
 \index{taylor_order statement}

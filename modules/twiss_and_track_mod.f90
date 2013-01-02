@@ -32,8 +32,8 @@ use lat_geometry_mod
 !
 ! Input:
 !   lat                  -- lat_struct: Input lat holding the lattice.
-!     %param%lattice_type -- Used to determine if lattice is open or closed.
-!                                = circular_lattice$ implies a closed lattice.
+!     %param%geometry -- Used to determine if lattice is open or closed.
+!                                = closed$ implies a closed lattice.
 !                                all others imply an open lattice.
 !   orb(0:)             -- Coord_struct, allocatable: Orbit to be computed
 !     orb(0)            -- Initial conditions to be used for an open lat.
@@ -122,7 +122,7 @@ call reallocate_coord_array (orb_array, lat)
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
   if (branch%param%particle == photon$) cycle
-  if (i /= 0 .and. branch%param%lattice_type == linear_lattice$) then
+  if (i /= 0 .and. branch%param%geometry == open$) then
     orb_array(i)%orb(0) = orb_array(branch%ix_from_branch)%orb(branch%ix_from_ele) 
     call transfer_twiss (lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele), branch%ele(0))
   endif
@@ -171,7 +171,7 @@ branch => lat%branch(ix_branch)
 ! A match with match_end$ complicates things since in order to track correctly we
 ! need to know the Twiss parameters. This situation is only allowed for linear lattices.
 
-if (branch%param%lattice_type == circular_lattice$) then
+if (branch%param%geometry == closed$) then
   if (ix_branch /= 0) then
     call out_io (s_fatal$, r_name, 'CIRCULAR NON-MAIN BRANCHES NOT YET IMPLEMENTED!')
     if (global_com%exit_on_error) call err_exit
@@ -197,7 +197,7 @@ endif
 call lat_make_mat6 (lat, -1, orb, ix_branch = ix_branch, err_flag = err)
 if (err) return
 
-if (lat%param%lattice_type == circular_lattice$) then
+if (lat%param%geometry == closed$) then
   call twiss_at_start (lat, status)
   if (status /= ok$) return
 endif

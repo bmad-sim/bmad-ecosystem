@@ -488,6 +488,8 @@ endif
 ix_attrib = attribute_index(ele, word)
 attrib_word = word
 
+if (attrib_word == 'LATTICE_TYPE') ix_attrib = geometry$  ! For backwards compatibility.
+
 if (attrib_free_problem(attrib_word)) return
 
 if (ix_word == 0) then  ! no word
@@ -1212,9 +1214,13 @@ case ('PTC_FIELD_GEOMETRY')
     return
   endif
 
+case ('GEOMETRY')
+  call get_switch (attrib_word, geometry_name(1:), ix, err_flag)
+  ele%value(geometry$) = ix
+
 case ('LATTICE_TYPE')
-  call get_switch (attrib_word, lattice_type(1:), ix, err_flag)
-  ele%value(lattice_type$) = ix
+  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag)
+  ele%value(geometry$) = ix
 
 case default   ! normal attribute
 
@@ -3852,7 +3858,7 @@ endif
 ! the end of the lattice.
 
 branch => ref_ele%branch
-if (branch%param%lattice_type == circular_lattice$) then
+if (branch%param%geometry == closed$) then
   if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
     super_ele%s = super_ele%s - branch%param%total_length
   elseif (super_ele%s < 0) then
@@ -4441,7 +4447,7 @@ main_loop: do n = 1, n2
         slave_loop: do            ! loop over all girder slaves
 
           if (ix_ele_now > branch%n_ele_track) then
-            if (branch%param%lattice_type == linear_lattice$) cycle ele_loop
+            if (branch%param%geometry == open$) cycle ele_loop
             ix_ele_now = ix_ele_now - branch%n_ele_track
           endif
 

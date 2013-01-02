@@ -524,7 +524,7 @@ call init_attribute_name1 (init_ele$, phase_x_photon$,              'PHASE_X_PHO
 call init_attribute_name1 (init_ele$, phase_y_photon$,              'PHASE_Y_PHOTON')
 call init_attribute_name1 (init_ele$, abs_time_start$,              'ABS_TIME_START')
 call init_attribute_name1 (init_ele$, particle$,                    'PARTICLE')
-call init_attribute_name1 (init_ele$, lattice_type$,                'LATTICE_TYPE')
+call init_attribute_name1 (init_ele$, geometry$,                    'GEOMETRY')
 call init_attribute_name1 (init_ele$, rel_tracking_charge$,         'REL_TRACKING_CHARGE')
 
 call init_attribute_name1 (def_parameter$, custom_attribute1$, 'CUSTOM_ATTRIBUTE1', override = .true.)
@@ -532,7 +532,7 @@ call init_attribute_name1 (def_parameter$, custom_attribute2$, 'CUSTOM_ATTRIBUTE
 call init_attribute_name1 (def_parameter$, custom_attribute3$, 'CUSTOM_ATTRIBUTE3', override = .true.)
 call init_attribute_name1 (def_parameter$, e_tot$,                  'E_TOT')
 call init_attribute_name1 (def_parameter$, p0c$,                    'P0C')
-call init_attribute_name1 (def_parameter$, lattice_type$,           'LATTICE_TYPE')
+call init_attribute_name1 (def_parameter$, geometry$,           'GEOMETRY')
 call init_attribute_name1 (def_parameter$, lattice$,                'LATTICE')
 call init_attribute_name1 (def_parameter$, taylor_order$,           'TAYLOR_ORDER')
 call init_attribute_name1 (def_parameter$, ran_seed$,               'RAN_SEED')
@@ -1180,7 +1180,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', 'PTC_MAX_FRINGE_ORDER')
   attrib_type = is_integer$
 
-case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'LATTICE_TYPE', &
+case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'GEOMETRY', &
       'FRINGE_TYPE', 'KILL_FRINGE', 'DIFFRACTION_TYPE', 'FIELD_CALC', 'APERTURE_AT', &
       'APERTURE_TYPE', 'TRACKING_METHOD', 'SPIN_TRACKING_METHOD', 'MAT6_CALC_METHOD', &
       'PTC_INTEGRATION_TYPE', 'PTC_FIELD_GEOMETRY')
@@ -1363,10 +1363,10 @@ case ('PARTICLE')
     endif
   endif
 
-case ('LATTICE_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, lattice_type, lbound(lattice_type, 1))
+case ('GEOMETRY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == linear_lattice$)
+    is_default = (ix_attrib == open$)
   endif
 
 case ('COUPLER_AT')

@@ -619,7 +619,7 @@ Example showing an injection line branching to a ring branching to an x-ray line
   inj: line = (..., ring, ...)               ! Define the injection line
   use, inj                                   ! Injection line is the root
   ring: branch, to_line = ring_layout, 
-          lattice_type = circular_lattice    ! Branch to the ring
+          geometry = closed    ! Branch to the ring
   ring_layout: line = (..., x_ray, ...)      ! Define the ring
   x_ray: photon_branch, E_tot_start = 1e3,   ! 1 KeV reference photon.
                         to_line = x_layout 
@@ -1707,7 +1707,7 @@ Example:
 \end{example}
 
   \begin{description} 
-  \index{linear_lattice}
+  \index{open}
   \index{match_end}
   \item[Match_end] \Newline
 The \vn{match_end} attribute is used for setting the beginning Twiss
@@ -1718,8 +1718,8 @@ exit end of the previous element. That is, when the Twiss parameters
 are calculated, the calculated Twiss parameters at the exit end of the
 match element will be the exit Twiss attributes (\vn{beta_a1},
 \vn{alpha_a1}, etc.) as set in the \vn{match} element. The
-\vn{match_end} attribute may only be used with \vn{linear_lattice}
-lattices (\sref{s:param}) since, for a \vn{circular_lattice}, it is
+\vn{match_end} attribute may only be used with \vn{open}
+lattices (\sref{s:param}) since, for a \vn{closed}, it is
 not possible to calculate the Twiss parameters at the previous element
 independently of the exit Twiss attributes at the \vn{match} element.
 
@@ -1745,7 +1745,7 @@ coordinates equal to \vn{(x1, px1, y1, py1, z1, pz1)} at the end of
 the \vn{match} element.  If \vn{match_end_orbit} is now toggled to
 False, the ending coordinate attributes, and hence the $\Bf V$ vector,
 will become fixed. As with the \vn{match_end} attribute, the
-\vn{match_end_orbit} attribute may only be used with \vn{linear_lattice}
+\vn{match_end_orbit} attribute may only be used with \vn{open}
 lattices (\sref{s:param}).
 
 

@@ -81,7 +81,7 @@ subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
 
     ! See if we have hit the end of the machine
 
-    if (lat%param%lattice_type == linear_lattice$) then
+    if (lat%param%geometry == open$) then
       if ((ray%direction ==  1 .and. ray%now%vec(5) == lat%ele(lat%n_ele_track)%s) .or. &
           (ray%direction == -1 .and. ray%now%vec(5) == lat%ele(0)%s)) then
         if (ray%direction == 1) then

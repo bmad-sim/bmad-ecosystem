@@ -27,7 +27,7 @@ the \bmad web page, click on the ``Run Programs''
 \index{ele_struct}
 \index{lat_struct}
 \index{ele_pointer_struct}
-\index{lattice_type}
+\index{geometry}
 \begin{listing}{1}
 program test
 
@@ -56,7 +56,7 @@ call lat_make_mat6 (lat, cleo%ix_ele)      ! Remake transfer matrix
 ! Calculate starting Twiss params if the lattice is closed, 
 ! and then propagate the Twiss parameters through the lattice.
 
-if (lat%param%lattice_type == circular_lattice$) call twiss_at_start (lat)
+if (lat%param%geometry == closed$) call twiss_at_start (lat)
 call twiss_propagate_all (lat)      ! Propagate Twiss parameters
 
 ! Print info on the first 11 elements

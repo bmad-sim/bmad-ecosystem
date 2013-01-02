@@ -9,12 +9,12 @@
 ! The transfer map is from the end of element ix1 to the end of element ix2.
 ! If ix1 and ix2 are not present, the full 1-turn map is calculated.
 !
-! If ix2 < ix1 and lat%param%lattice_type is circular_lattice$ then the
+! If ix2 < ix1 and lat%param%geometry is closed$ then the
 ! calculation will "wrap around" the lattice end.
 ! For example, if ix1 = 900 and ix2 = 10 then the xfer_mat is the matrix from
 ! element 900 to the lattice end plus from 0 through 10.
 !
-! If ix2 < ix1 and lat%param%lattice_type is linear_lattice$ then the backwards
+! If ix2 < ix1 and lat%param%geometry is open$ then the backwards
 ! transfer matrix is computed.
 !
 ! If ix2 = ix1 then you get the unit map except if one_turn = True and the lattice is circular.
@@ -72,7 +72,7 @@ character(20) :: r_name = "transfer_map_calc"
 
 integrate_this  = logic_option (.false., integrate)
 one_turn_this   = logic_option (.false., one_turn) .and. &
-                                    lat%param%lattice_type == circular_lattice$
+                                    lat%param%geometry == closed$
 unit_start_this = logic_option(.true., unit_start)
 
 i1 = integer_option(0, ix1) 
@@ -91,7 +91,7 @@ if (i1 < i2) then
 
 ! Circular lattice with i1 > i2: Track through origin.
 
-elseif (lat%param%lattice_type == circular_lattice$) then
+elseif (lat%param%geometry == closed$) then
   do i = i1+1, lat%n_ele_track
     call add_on_to_map (t_map, lat%ele(i))
   enddo

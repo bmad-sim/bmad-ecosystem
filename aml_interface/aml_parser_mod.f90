@@ -171,7 +171,7 @@ end module
 !
 ! Defaults:
 !   lat%param%particle          = positron$
-!   lat%param%lattice_type      = circular_lattice$
+!   lat%param%geometry      = closed$
 !   lat%param%aperture_limit_on = .true.
 !-
 
@@ -308,7 +308,7 @@ lat%n_ele_max = n_track
 
 lat%ele(0)%name = 'BEGINNING'
 lat%ele(0)%key  = init_ele$
-lat%param%lattice_type = circular_lattice$
+lat%param%geometry = closed$
 lat%param%particle = positron$
 
 
@@ -632,13 +632,13 @@ do i = lbound(param_node%children, 1), ubound(param_node%children, 1)
     case ('N_PART')
       call read_parameter (child_node, value_str, value)
       lat%param%n_part = value
-    case ("LATTICE_TYPE")
-      call match_word(value_str, lattice_type, ix)
+    case ("GEOMETRY")
+      call match_word(value_str, geometry, ix)
       if (ix == 0) then
-        call parser_error ('BAD LATTICE_TYPE', node = child_node)
+        call parser_error ('BAD GEOMETRY', node = child_node)
         cycle 
       endif
-      lat%param%lattice_type = ix + (lbound(lattice_type, 1) - 1)
+      lat%param%geometry = ix + (lbound(geometry, 1) - 1)
     case ("LATTICE")
       lat%lattice = value_str
     case ("E_TOT")

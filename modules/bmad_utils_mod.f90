@@ -227,7 +227,7 @@ ss = s
 if (s > s_max + ds_fudge) then
   err_flag = .true.
   s_bound = s_max
-elseif (branch%param%lattice_type == circular_lattice$) then
+elseif (branch%param%geometry == closed$) then
   if (s < s_min - (s_max - s_min) - ds_fudge) then
     err_flag = .true.
     s_bound = s_min - (s_max - s_min)
@@ -3862,7 +3862,7 @@ endif
 
 if (integer_option(+1, dir) > 0) then
   if (an_ele%ix_ele == branch%n_ele_track) then
-    if (branch%param%lattice_type == linear_lattice$) return
+    if (branch%param%geometry == open$) return
     next_ele => branch%ele(0)
   else
    next_ele => branch%ele(an_ele%ix_ele+1)
@@ -3870,7 +3870,7 @@ if (integer_option(+1, dir) > 0) then
 
 else
   if (an_ele%ix_ele == 0) then
-    if (branch%param%lattice_type == linear_lattice$) return
+    if (branch%param%geometry == open$) return
     next_ele => branch%ele(branch%n_ele_track)
   else
    next_ele => branch%ele(an_ele%ix_ele-1)

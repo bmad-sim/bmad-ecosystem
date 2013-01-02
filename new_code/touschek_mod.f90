@@ -299,7 +299,7 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
     STOP
   ENDIF
 
-  IF (lat%param%lattice_type == circular_lattice$) THEN
+  IF (lat%param%geometry == closed$) THEN
     sigma_p2 = mode%sigE_E**2
     sigma_z = mode%sig_z
     E_tot = lat%ele(0)%value(E_TOT$)
@@ -310,7 +310,7 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
     emit_x = mode%a%emittance
     emit_y = mode%b%emittance 
     tau_m = beta2 * mode%pz_aperture**2
-  ELSEIF (lat%param%lattice_type == linear_lattice$) THEN
+  ELSEIF (lat%param%geometry == open$) THEN
     sigma_p2 = ele%z%sigma_p**2
     sigma_z = ele%z%sigma
     E_tot = ele%value(E_TOT$)
@@ -322,7 +322,7 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
     emit_y = mode%b%emittance / gamma
     tau_m = beta2 * mode%pz_aperture**2
   ELSE
-    WRITE(*,*) "ERROR: lattice_type unknown. Halting."
+    WRITE(*,*) "ERROR: geometry unknown. Halting."
     STOP
   ENDIF
 
