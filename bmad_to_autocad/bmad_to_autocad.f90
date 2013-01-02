@@ -47,7 +47,7 @@ if (i0 < 0) then
   i0 = 0
 endif
 
-x0=erl%ele(i0)%floor%x ; z0=erl%ele(i0)%floor%z ; th0=erl%ele(i0)%floor%theta
+x0=erl%ele(i0)%floor%r(1) ; z0=erl%ele(i0)%floor%r(3) ; th0=erl%ele(i0)%floor%theta
 c0 = cos(tmap-th0) ; s0 = sin(tmap-th0)
 
 do n = 0, ubound(erl%branch, 1)
@@ -56,14 +56,14 @@ do n = 0, ubound(erl%branch, 1)
     if (i == 0 .and. n == 0) cycle
     ele => erl%branch(n)%ele(i)
 
-    xloc = xmap + c0*(ele%floor%x-x0) +  s0*(ele%floor%z-z0)
-    zloc = zmap - s0*(ele%floor%x-x0) +  c0*(ele%floor%z-z0)
+    xloc = xmap + c0*(ele%floor%r(1)-x0) +  s0*(ele%floor%r(3)-z0)
+    zloc = zmap - s0*(ele%floor%r(1)-x0) +  c0*(ele%floor%r(3)-z0)
 
     name = ele%name
     if (i == 0) name = 'BRANCH'
 
     write (1, '(2es18.10, 2x, a)') xloc, zloc, name
-    write (2, '(i6, 2es18.10, 2x, a)') i, ele%floor%x, ele%floor%z, name
+    write (2, '(i6, 2es18.10, 2x, a)') i, ele%floor%r(1), ele%floor%r(3), name
   end do
 enddo
 

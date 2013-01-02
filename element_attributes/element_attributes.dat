@@ -1,4 +1,4 @@
- 2012-09-14 15:41:28 
+ 2012-12-14 12:44:38 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -16,39 +16,40 @@
   14   MARKER                                    10   ELSEPARATOR
   15   KICKER                                    48   EM_FIELD
   16   HYBRID                                    47   E_GUN
-  17   OCTUPOLE                                  49   FLOOR_POSITION
-  18   RBEND                                     37   GIRDER
-  19   MULTIPOLE                                  4   GROUP
-  20   BEND_SOL_                                 33   HKICKER
-  21   DEF_BEAM                                  29   HOM
-  22   AB_MULTIPOLE                              16   HYBRID
-  23   SOLENOID                                  28   INIT_ELE
-  24   PATCH                                     32   INSTRUMENT
-  25   LCAVITY                                   15   KICKER
-  26   DEF_PARAMETER                             25   LCAVITY
-  27   NULL_ELE                                  14   MARKER
-  28   INIT_ELE                                  30   MATCH
-  29   HOM                                       42   MIRROR
-  30   MATCH                                     31   MONITOR
-  31   MONITOR                                   46   MULTILAYER_MIRROR
-  32   INSTRUMENT                                19   MULTIPOLE
-  33   HKICKER                                   27   NULL_ELE
-  34   VKICKER                                   17   OCTUPOLE
-  35   RCOLLIMATOR                                6   OVERLAY
-  36   ECOLLIMATOR                               24   PATCH
-  37   GIRDER                                    40   PHOTON_BRANCH
-  38   BEND_SOL_QUAD                             44   PIPE
-  39   DEF_BEAM_START                             3   QUADRUPOLE
-  40   PHOTON_BRANCH                             18   RBEND
-  41   BRANCH                                    35   RCOLLIMATOR
-  42   MIRROR                                     9   RFCAVITY
-  43   CRYSTAL                                    2   SBEND
-  44   PIPE                                       5   SEXTUPOLE
-  45   CAPILLARY                                 23   SOLENOID
-  46   MULTILAYER_MIRROR                         13   SOL_QUAD
-  47   E_GUN                                      8   TAYLOR
-  48   EM_FIELD                                  34   VKICKER
-  49   FLOOR_POSITION                            12   WIGGLER
+  17   OCTUPOLE                                  50   FIDUCIAL
+  18   RBEND                                     49   FLOOR_POSITION
+  19   MULTIPOLE                                 37   GIRDER
+  20   BEND_SOL_                                  4   GROUP
+  21   DEF_BEAM                                  33   HKICKER
+  22   AB_MULTIPOLE                              29   HOM
+  23   SOLENOID                                  16   HYBRID
+  24   PATCH                                     28   INIT_ELE
+  25   LCAVITY                                   32   INSTRUMENT
+  26   DEF_PARAMETER                             15   KICKER
+  27   NULL_ELE                                  25   LCAVITY
+  28   INIT_ELE                                  14   MARKER
+  29   HOM                                       30   MATCH
+  30   MATCH                                     42   MIRROR
+  31   MONITOR                                   31   MONITOR
+  32   INSTRUMENT                                46   MULTILAYER_MIRROR
+  33   HKICKER                                   19   MULTIPOLE
+  34   VKICKER                                   27   NULL_ELE
+  35   RCOLLIMATOR                               17   OCTUPOLE
+  36   ECOLLIMATOR                                6   OVERLAY
+  37   GIRDER                                    24   PATCH
+  38   BEND_SOL_QUAD                             40   PHOTON_BRANCH
+  39   DEF_BEAM_START                            44   PIPE
+  40   PHOTON_BRANCH                              3   QUADRUPOLE
+  41   BRANCH                                    18   RBEND
+  42   MIRROR                                    35   RCOLLIMATOR
+  43   CRYSTAL                                    9   RFCAVITY
+  44   PIPE                                       2   SBEND
+  45   CAPILLARY                                  5   SEXTUPOLE
+  46   MULTILAYER_MIRROR                         23   SOLENOID
+  47   E_GUN                                     13   SOL_QUAD
+  48   EM_FIELD                                   8   TAYLOR
+  49   FLOOR_POSITION                            34   VKICKER
+  50   FIDUCIAL                                  12   WIGGLER
  
  !---------------------------------
  22  AB_MULTIPOLE                            
@@ -70,9 +71,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -82,6 +83,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -132,9 +134,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -144,6 +146,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -172,6 +175,8 @@
  20  BEND_SOL_                               
          1  L                                       
          2  TILT                                    
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -198,9 +203,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -212,6 +217,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -244,10 +250,12 @@
          8  RHO                                     
          9  KS                                      
         10  DKS_DS                                  
-        15  QUAD_TILT                               
-        16  BEND_TILT                               
-        17  X_QUAD                                  
-        18  Y_QUAD                                  
+        14  QUAD_TILT                               
+        15  BEND_TILT                               
+        16  X_QUAD                                  
+        17  Y_QUAD                                  
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -277,9 +285,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -291,6 +299,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -322,17 +331,14 @@
  41  BRANCH                                  
          2  TILT                                    
          3  DIRECTION                               
-         4  PARTICLE                                
-         5  LATTICE_TYPE                            
-         7  ix_branch_to                              [private]
+         7  ix_to_branch                              [private]
+         8  ix_to_element                             [private]
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
         39  DELTA_REF_TIME                          
-        40  P0C_START                               
-        41  E_TOT_START                             
         42  P0C                                     
         43  E_TOT                                   
         45  X_PITCH_TOT                             
@@ -343,9 +349,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -355,6 +361,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -362,7 +369,8 @@
         88  OFFSET_MOVES_APERTURE                   
         95  IS_ON                                   
         98  APERTURE_AT                             
-       100  TO                                      
+       100  TO_LINE                                 
+       101  TO_ELEMENT                              
        102  DESCRIP                                 
        104  WALL                                    
        107  TYPE                                    
@@ -397,9 +405,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -409,6 +417,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -487,9 +496,9 @@
         57  l_y                                       [private]
         58  l_z                                       [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -500,6 +509,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -538,6 +548,8 @@
         13  VAL10                                   
         14  VAL11                                   
         15  VAL12                                   
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -562,9 +574,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -576,6 +588,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -603,13 +616,13 @@
  !---------------------------------
  21  DEF_BEAM                                
          2  N_PART                                  
-         4  PARTICLE                                
+        14  PARTICLE                                
         42  PC                                      
         43  ENERGY                                  
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         70  check_sum                                 [private]
  
  !---------------------------------
@@ -626,30 +639,31 @@
         12  PHASE_X                                 
         13  PHASE_Y                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         70  check_sum                                 [private]
  
  !---------------------------------
  26  DEF_PARAMETER                           
          2  N_PART                                  
          3  TAYLOR_ORDER                            
-         4  PARTICLE                                
-         5  LATTICE_TYPE                            
+        14  PARTICLE                                
+        15  LATTICE_TYPE                            
         42  P0C                                     
         43  E_TOT                                   
         45  NO_END_MARKER                           
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                       
+        62  CUSTOM_ATTRIBUTE2                       
+        63  CUSTOM_ATTRIBUTE3                       
         70  check_sum                                 [private]
+        71  USE_HARD_EDGE_DRIFTS                    
+        72  PTC_MAX_FRINGE_ORDER                    
         76  LATTICE                                 
         85  RF_AUTO_SCALE_AMP                       
         86  ABSOLUTE_TIME_TRACKING                  
         87  RF_AUTO_SCALE_PHASE                     
-        88  ROOT_BRANCH_NAME                        
         89  APERTURE_LIMIT_ON                       
         90  PTC_EXACT_MISALIGN                      
         91  USE_PTC_LAYOUT                          
@@ -660,7 +674,8 @@
   1  DRIFT                                   
          1  L                                       
          2  TILT                                    
-        20  L_HARD_EDGE                             
+        18  fringe_type                               [private]
+        19  kill_fringe                               [private]
         21  FIELD_SCALE                             
         23  X_PITCH                                 
         24  Y_PITCH                                 
@@ -684,9 +699,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -698,6 +713,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -725,6 +741,8 @@
  36  ECOLLIMATOR                             
          1  L                                       
          2  TILT                                    
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -751,9 +769,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -765,6 +783,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -793,6 +812,8 @@
          2  TILT                                    
          8  VOLTAGE                                 
         10  GAP                                     
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -823,9 +844,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -837,6 +858,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -868,6 +890,8 @@
  48  EM_FIELD                                
          1  L                                       
          2  TILT                                    
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -892,9 +916,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -906,6 +930,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -937,6 +962,8 @@
          7  GRADIENT_ERR                            
          8  VOLTAGE                                 
          9  VOLTAGE_ERR                             
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -961,9 +988,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -975,6 +1002,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1000,16 +1028,64 @@
        119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
- 49  FLOOR_POSITION                          
+ 50  FIDUCIAL                                
          1  l                                         [private]
+         2  TILT                                    
+        16  X_ORIGIN                                
+        17  Y_ORIGIN                                
+        18  Z_ORIGIN                                
+        19  THETA_ORIGIN                            
+        20  PHI_ORIGIN                              
+        21  PSI_ORIGIN                              
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  Z_OFFSET                                
         39  DELTA_REF_TIME                          
         42  P0C                                     
         43  E_TOT                                   
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
+        70  check_sum                                 [private]
+        72  ALIAS                                   
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
+        84  SPIN_TRACKING_METHOD                    
+        99  ORIGIN_ELE                              
+       102  DESCRIP                                 
+       107  TYPE                                    
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+ 
+ !---------------------------------
+ 49  FLOOR_POSITION                          
+         1  l                                         [private]
+         2  TILT                                    
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  Z_OFFSET                                
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        54  ref_time_start                            [private]
+        59  scratch                                   [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1019,17 +1095,12 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        92  X_POSITION                              
-        93  Y_POSITION                              
-        94  Z_POSITION                              
-        95  THETA_POSITION                          
-        96  PHI_POSITION                            
-        97  PSI_POSITION                            
         98  APERTURE_AT                             
        102  DESCRIP                                 
        104  WALL                                    
@@ -1058,9 +1129,9 @@
         26  Y_OFFSET                                
         27  S_OFFSET                                
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         70  check_sum                                 [private]
         72  ALIAS                                   
        102  DESCRIP                                 
@@ -1072,9 +1143,9 @@
          3  OLD_COMMAND                             
         14  COEF                                    
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         70  check_sum                                 [private]
         72  ALIAS                                   
         73  START_EDGE                              
@@ -1089,6 +1160,8 @@
          1  L                                       
          2  TILT                                    
          3  KICK                                    
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -1115,9 +1188,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1129,6 +1202,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1174,9 +1248,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1186,6 +1260,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1216,17 +1291,27 @@
         41  E_TOT_START                             
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         70  check_sum                                 [private]
  
  !---------------------------------
  28  INIT_ELE                                
-        10  E_FIELD_X                               
-        11  E_FIELD_Y                               
-        12  PHASE_X                                 
-        13  PHASE_Y                                 
+         1  X_BEAM_START                            
+         2  PX_BEAM_START                           
+         3  Y_BEAM_START                            
+         4  PY_BEAM_START                           
+         5  Z_BEAM_START                            
+         6  PZ_BEAM_START                           
+         8  ABS_TIME_START                          
+        10  E_FIELD_X_PHOTON                        
+        11  E_FIELD_Y_PHOTON                        
+        12  PHASE_X_PHOTON                          
+        13  PHASE_Y_PHOTON                          
+        14  PARTICLE                                
+        15  LATTICE_TYPE                            
+        18  floor_set                                 [private]
         39  delta_ref_time                            [private]
         40  P0C_START                               
         41  E_TOT_START                             
@@ -1234,9 +1319,9 @@
         43  E_TOT                                   
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         70  check_sum                                 [private]
         71  ALPHA_B                                 
         72  ETA_X                                   
@@ -1282,6 +1367,8 @@
         15  N_SAMPLE                                
         16  X_LENGTH                                
         17  Y_LENGTH                                
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -1310,9 +1397,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1324,6 +1411,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1353,6 +1441,8 @@
          2  TILT                                    
          4  H_DISPLACE                              
          5  V_DISPLACE                              
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -1383,9 +1473,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1397,6 +1487,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1438,6 +1529,8 @@
         14  PHI0_ERR                                
         15  DPHI0                                   
         16  DPHI0_REF                               
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         22  N_CELL                                  
@@ -1471,9 +1564,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1486,6 +1579,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1531,6 +1625,7 @@
         15  N_SAMPLE                                
         16  X_LENGTH                                
         17  Y_LENGTH                                
+        22  X_RAY_LINE_LEN                          
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1549,9 +1644,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1561,6 +1656,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1624,9 +1720,9 @@
         43  E_TOT                                   
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1636,6 +1732,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1691,9 +1788,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1703,6 +1800,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1742,6 +1840,8 @@
         15  N_SAMPLE                                
         16  X_LENGTH                                
         17  Y_LENGTH                                
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -1770,9 +1870,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1784,6 +1884,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1850,9 +1951,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1862,6 +1963,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1903,9 +2005,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -1915,6 +2017,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -1940,9 +2043,9 @@
  !---------------------------------
  27  NULL_ELE                                
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         70  check_sum                                 [private]
         72  ALIAS                                   
        102  DESCRIP                                 
@@ -1956,13 +2059,14 @@
        116  REF_BEGINNING                           
        117  REF_CENTER                              
        118  REF_END                                 
-       119  CREATE_EM_FIELD_SLAVE                   
  
  !---------------------------------
  17  OCTUPOLE                                
          1  L                                       
          2  TILT                                    
          6  K3                                      
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -1994,9 +2098,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2008,6 +2112,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2039,31 +2144,24 @@
  24  PATCH                                   
          1  L                                       
          2  TILT                                    
+         5  NEXT_ELE_DEFINES_POSITION               
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  Z_OFFSET                                
         28  T_OFFSET                                
-        37  TRANSLATE_AFTER                         
         38  E_TOT_OFFSET                            
         39  DELTA_REF_TIME                          
         40  P0C_START                               
         41  E_TOT_START                             
         42  P0C                                     
         43  E_TOT                                   
-        45  X_PITCH_TOT                             
-        46  Y_PITCH_TOT                             
-        47  X_OFFSET_TOT                            
-        48  Y_OFFSET_TOT                            
-        49  S_OFFSET_TOT                            
-        50  TILT_TOT                                
-        51  N_REF_PASS                              
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2073,14 +2171,12 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        90  REF_PATCH                               
-        91  REF_ORBIT                               
-        95  IS_ON                                   
         98  APERTURE_AT                             
        102  DESCRIP                                 
        104  WALL                                    
@@ -2100,17 +2196,14 @@
  40  PHOTON_BRANCH                           
          2  TILT                                    
          3  DIRECTION                               
-         4  PARTICLE                                
-         5  LATTICE_TYPE                            
-         7  ix_branch_to                              [private]
+         7  ix_to_branch                              [private]
+         8  ix_to_element                             [private]
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
         26  Y_OFFSET                                
         27  S_OFFSET                                
         39  DELTA_REF_TIME                          
-        40  P0C_START                               
-        41  E_TOT_START                             
         42  P0C                                     
         43  E_TOT                                   
         45  X_PITCH_TOT                             
@@ -2121,9 +2214,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2133,6 +2226,7 @@
         77  APERTURE_TYPE                           
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2140,7 +2234,8 @@
         88  OFFSET_MOVES_APERTURE                   
         95  IS_ON                                   
         98  APERTURE_AT                             
-       100  TO                                      
+       100  TO_LINE                                 
+       101  TO_ELEMENT                              
        102  DESCRIP                                 
        104  WALL                                    
        107  TYPE                                    
@@ -2174,6 +2269,8 @@
         15  N_SAMPLE                                
         16  X_LENGTH                                
         17  Y_LENGTH                                
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -2202,9 +2299,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2216,6 +2313,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2244,6 +2342,8 @@
          1  L                                       
          2  TILT                                    
          4  K1                                      
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -2275,9 +2375,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2289,6 +2389,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2329,13 +2430,14 @@
          9  L_CHORD                                 
         10  E1                                      
         11  E2                                      
-        12  EXACT_FRINGE                            
-        13  FINT                                    
-        14  FINTX                                   
-        15  HGAP                                    
-        16  HGAPX                                   
-        17  H1                                      
-        18  H2                                      
+        12  FINT                                    
+        13  FINTX                                   
+        14  HGAP                                    
+        15  HGAPX                                   
+        16  H1                                      
+        17  H2                                      
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         22  ROLL                                    
@@ -2370,9 +2472,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2384,12 +2486,12 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        91  REF_ORBIT                               
         93  SYMPLECTIFY                             
         95  IS_ON                                   
         96  FIELD_CALC                              
@@ -2415,6 +2517,8 @@
  35  RCOLLIMATOR                             
          1  L                                       
          2  TILT                                    
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -2441,9 +2545,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2455,6 +2559,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2491,6 +2596,8 @@
         15  DPHI0                                   
         16  DPHI0_REF                               
         17  dphi0_max                                 [private]
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         22  N_CELL                                  
@@ -2524,9 +2631,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2539,6 +2646,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2578,13 +2686,14 @@
          9  L_CHORD                                 
         10  E1                                      
         11  E2                                      
-        12  EXACT_FRINGE                            
-        13  FINT                                    
-        14  FINTX                                   
-        15  HGAP                                    
-        16  HGAPX                                   
-        17  H1                                      
-        18  H2                                      
+        12  FINT                                    
+        13  FINTX                                   
+        14  HGAP                                    
+        15  HGAPX                                   
+        16  H1                                      
+        17  H2                                      
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         22  ROLL                                    
@@ -2619,9 +2728,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2633,12 +2742,12 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        91  REF_ORBIT                               
         93  SYMPLECTIFY                             
         95  IS_ON                                   
         96  FIELD_CALC                              
@@ -2665,6 +2774,8 @@
          1  L                                       
          2  TILT                                    
          5  K2                                      
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -2696,9 +2807,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2710,6 +2821,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2742,6 +2854,8 @@
          1  L                                       
          2  TILT                                    
          9  KS                                      
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -2773,9 +2887,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2787,6 +2901,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2820,6 +2935,8 @@
          2  TILT                                    
          4  K1                                      
          9  KS                                      
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -2851,9 +2968,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2865,6 +2982,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2914,9 +3032,9 @@
         50  TILT_TOT                                
         54  ref_time_start                            [private]
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2927,6 +3045,7 @@
         78  MAP_WITH_OFFSETS                        
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -2954,6 +3073,8 @@
          1  L                                       
          2  TILT                                    
          3  KICK                                    
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
         23  X_PITCH                                 
@@ -2980,9 +3101,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -2994,6 +3115,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -3030,9 +3152,11 @@
          8  RHO                                     
         10  POLARITY                                
         14  L_POLE                                  
-        15  X_RAY_LINE_LEN                          
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
         20  L_HARD_EDGE                             
         21  FIELD_SCALE                             
+        22  X_RAY_LINE_LEN                          
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -3060,9 +3184,9 @@
         56  NUM_STEPS                               
         57  DS_STEP                                 
         59  scratch                                   [private]
-        60  general1                                  [private]
-        61  general2                                  [private]
-        62  general3                                  [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
         66  X1_LIMIT                                
         67  X2_LIMIT                                
         68  Y1_LIMIT                                
@@ -3074,6 +3198,7 @@
         79  CSR_CALC_ON                             
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
         84  SPIN_TRACKING_METHOD                    
         85  APERTURE                                
         86  X_LIMIT                                 
@@ -3105,33 +3230,33 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    39
-     2    44
-     3    21
-     4    22
-     5    20
-     6    15
+     1    41
+     2    47
+     3    22
+     4    19
+     5    19
+     6    16
      7    16
-     8    20
+     8    23
      9    15
     10    16
     11    15
     12    13
     13    15
-    14    14
-    15    14
-    16    12
-    17    11
-    18     6
-    19     2
+    14    18
+    15    15
+    16    13
+    17    12
+    18    30
+    19    28
     20    27
-    21    26
-    22     6
-    23    40
-    24    40
-    25    40
-    26    40
-    27    40
+    21    27
+    22     8
+    23    42
+    24    42
+    25    42
+    26    42
+    27    42
     28    23
     29    23
     30    23
@@ -3141,42 +3266,42 @@
     34     7
     35     9
     36     6
-    37     3
+    37     2
     38     4
-    39    42
-    40    31
-    41    31
-    42    43
-    43    43
+    39    43
+    40    29
+    41    29
+    42    44
+    43    44
     44     3
-    45    39
-    46    38
-    47    38
-    48    38
-    49    38
-    50    38
-    51    27
+    45    38
+    46    37
+    47    37
+    48    37
+    49    37
+    50    37
+    51    26
     52    12
     53     8
-    54    42
+    54    43
     55    26
     56    26
     57    26
     58     1
-    59    48
-    60    48
-    61    48
-    62    48
-    63     0
+    59    49
+    60     0
+    61    49
+    62    49
+    63    49
     64     0
     65     0
     66    40
     67    40
     68    40
     69    40
-    70    48
-    71     3
-    72    44
+    70    49
+    71     4
+    72    46
     73     2
     74     2
     75     2
@@ -3185,45 +3310,45 @@
     78    27
     79    26
     80     2
-    81    41
-    82    41
-    83     1
-    84    40
+    81    42
+    82    42
+    83    42
+    84    41
     85    41
     86    41
     87    41
-    88    41
+    88    40
     89     1
-    90     5
-    91     5
-    92     4
-    93    30
-    94     2
-    95    36
-    96    21
-    97     2
+    90     4
+    91     2
+    92     3
+    93    29
+    94     1
+    95    34
+    96    20
+    97     1
     98    41
-    99     2
+    99     3
    100     2
-   101    21
-   102    43
+   101    23
+   102    44
    103    13
    104    41
    105    12
    106     3
-   107    43
+   107    44
    108     0
    109     0
-   110    41
-   111    41
-   112    41
-   113    41
-   114    41
-   115    41
-   116    41
-   117    41
-   118    41
-   119    41
+   110    42
+   111    42
+   112    42
+   113    42
+   114    42
+   115    42
+   116    42
+   117    42
+   118    42
+   119    40
    120    15
    121     0
    122     0
@@ -3300,6 +3425,7 @@ Index: 1
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
@@ -3317,6 +3443,7 @@ Index: 1
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 2
@@ -3344,6 +3471,7 @@ Index: 2
     PATCH                                   
     LCAVITY                                 
     DEF_PARAMETER                           
+    INIT_ELE                                
     HOM                                     
     MATCH                                   
     MONITOR                                 
@@ -3364,6 +3492,8 @@ Index: 2
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 3
@@ -3375,6 +3505,7 @@ Index: 3
     RBEND                                   
     LCAVITY                                 
     DEF_PARAMETER                           
+    INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
@@ -3401,15 +3532,12 @@ Index: 4
     MARKER                                  
     KICKER                                  
     RBEND                                   
-    DEF_BEAM                                
-    DEF_PARAMETER                           
+    INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     BEND_SOL_QUAD                           
     DEF_BEAM_START                          
-    PHOTON_BRANCH                           
-    BRANCH                                  
     CRYSTAL                                 
     PIPE                                    
     CAPILLARY                               
@@ -3425,14 +3553,13 @@ Index: 5
     MARKER                                  
     KICKER                                  
     RBEND                                   
+    PATCH                                   
     LCAVITY                                 
-    DEF_PARAMETER                           
+    INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     DEF_BEAM_START                          
-    PHOTON_BRANCH                           
-    BRANCH                                  
     MIRROR                                  
     PIPE                                    
     MULTILAYER_MIRROR                       
@@ -3446,6 +3573,7 @@ Index: 6
     OCTUPOLE                                
     RBEND                                   
     LCAVITY                                 
+    INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
@@ -3486,11 +3614,14 @@ Index: 8
     HYBRID                                  
     RBEND                                   
     LCAVITY                                 
+    INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     BEND_SOL_QUAD                           
     DEF_BEAM_START                          
+    PHOTON_BRANCH                           
+    BRANCH                                  
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
@@ -3595,10 +3726,14 @@ Index: 14
     WIGGLER                                 
     MARKER                                  
     RBEND                                   
+    DEF_BEAM                                
     LCAVITY                                 
+    DEF_PARAMETER                           
+    INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    BEND_SOL_QUAD                           
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
@@ -3608,10 +3743,11 @@ Index: 15
     SBEND                                   
     CUSTOM                                  
     RFCAVITY                                
-    WIGGLER                                 
     MARKER                                  
     RBEND                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
+    INIT_ELE                                
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
@@ -3634,6 +3770,7 @@ Index: 16
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 17
@@ -3648,23 +3785,43 @@ Index: 17
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 18
+    DRIFT                                   
     SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    CUSTOM                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    WIGGLER                                 
+    SOL_QUAD                                
+    KICKER                                  
+    OCTUPOLE                                
     RBEND                                   
+    BEND_SOL_                               
+    SOLENOID                                
+    LCAVITY                                 
+    INIT_ELE                                
     MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
     BEND_SOL_QUAD                           
     CRYSTAL                                 
+    PIPE                                    
     MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 19
-    MATCH                                   
-    CRYSTAL                                 
- 
- !---------------------------------
-Index: 20
     DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
@@ -3692,6 +3849,37 @@ Index: 20
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    FIDUCIAL                                
+ 
+ !---------------------------------
+Index: 20
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    CUSTOM                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    WIGGLER                                 
+    SOL_QUAD                                
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    BEND_SOL_                               
+    SOLENOID                                
+    LCAVITY                                 
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    BEND_SOL_QUAD                           
+    CRYSTAL                                 
+    PIPE                                    
+    E_GUN                                   
+    EM_FIELD                                
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 21
@@ -3721,11 +3909,14 @@ Index: 21
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 22
     SBEND                                   
     RFCAVITY                                
+    WIGGLER                                 
+    MARKER                                  
     RBEND                                   
     LCAVITY                                 
     MATCH                                   
@@ -3773,6 +3964,8 @@ Index: 23
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 24
@@ -3816,6 +4009,8 @@ Index: 24
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 25
@@ -3859,6 +4054,8 @@ Index: 25
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 26
@@ -3902,6 +4099,8 @@ Index: 26
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 27
@@ -3945,6 +4144,8 @@ Index: 27
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 28
@@ -4107,7 +4308,6 @@ Index: 36
  !---------------------------------
 Index: 37
     OCTUPOLE                                
-    PATCH                                   
     CRYSTAL                                 
  
  !---------------------------------
@@ -4161,6 +4361,7 @@ Index: 39
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 40
@@ -4190,8 +4391,6 @@ Index: 40
     HKICKER                                 
     VKICKER                                 
     BEND_SOL_QUAD                           
-    PHOTON_BRANCH                           
-    BRANCH                                  
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
@@ -4224,8 +4423,6 @@ Index: 41
     HKICKER                                 
     VKICKER                                 
     BEND_SOL_QUAD                           
-    PHOTON_BRANCH                           
-    BRANCH                                  
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
@@ -4275,6 +4472,7 @@ Index: 42
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 43
@@ -4321,6 +4519,7 @@ Index: 43
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 44
@@ -4349,7 +4548,6 @@ Index: 45
     BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     DEF_PARAMETER                           
     HOM                                     
@@ -4391,7 +4589,6 @@ Index: 46
     BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     HOM                                     
     MONITOR                                 
@@ -4432,7 +4629,6 @@ Index: 47
     BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     HOM                                     
     MONITOR                                 
@@ -4473,7 +4669,6 @@ Index: 48
     BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     HOM                                     
     MONITOR                                 
@@ -4514,7 +4709,6 @@ Index: 49
     BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     HOM                                     
     MONITOR                                 
@@ -4555,7 +4749,6 @@ Index: 50
     BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     HOM                                     
     MONITOR                                 
@@ -4591,7 +4784,6 @@ Index: 51
     RBEND                                   
     BEND_SOL_                               
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     MONITOR                                 
     INSTRUMENT                              
@@ -4675,6 +4867,7 @@ Index: 54
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 55
@@ -4817,57 +5010,10 @@ Index: 59
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 60
-    DRIFT                                   
-    SBEND                                   
-    QUADRUPOLE                              
-    GROUP                                   
-    SEXTUPOLE                               
-    CUSTOM                                  
-    TAYLOR                                  
-    RFCAVITY                                
-    ELSEPARATOR                             
-    BEAMBEAM                                
-    WIGGLER                                 
-    SOL_QUAD                                
-    MARKER                                  
-    KICKER                                  
-    HYBRID                                  
-    OCTUPOLE                                
-    RBEND                                   
-    MULTIPOLE                               
-    BEND_SOL_                               
-    DEF_BEAM                                
-    AB_MULTIPOLE                            
-    SOLENOID                                
-    PATCH                                   
-    LCAVITY                                 
-    DEF_PARAMETER                           
-    NULL_ELE                                
-    INIT_ELE                                
-    HOM                                     
-    MATCH                                   
-    MONITOR                                 
-    INSTRUMENT                              
-    HKICKER                                 
-    VKICKER                                 
-    RCOLLIMATOR                             
-    ECOLLIMATOR                             
-    GIRDER                                  
-    BEND_SOL_QUAD                           
-    DEF_BEAM_START                          
-    PHOTON_BRANCH                           
-    BRANCH                                  
-    MIRROR                                  
-    CRYSTAL                                 
-    PIPE                                    
-    CAPILLARY                               
-    MULTILAYER_MIRROR                       
-    E_GUN                                   
-    EM_FIELD                                
-    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 61
@@ -4919,6 +5065,7 @@ Index: 61
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 62
@@ -4970,9 +5117,59 @@ Index: 62
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 63
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    GROUP                                   
+    SEXTUPOLE                               
+    CUSTOM                                  
+    TAYLOR                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
+    KICKER                                  
+    HYBRID                                  
+    OCTUPOLE                                
+    RBEND                                   
+    MULTIPOLE                               
+    BEND_SOL_                               
+    DEF_BEAM                                
+    AB_MULTIPOLE                            
+    SOLENOID                                
+    PATCH                                   
+    LCAVITY                                 
+    DEF_PARAMETER                           
+    NULL_ELE                                
+    INIT_ELE                                
+    HOM                                     
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    GIRDER                                  
+    BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    MIRROR                                  
+    CRYSTAL                                 
+    PIPE                                    
+    CAPILLARY                               
+    MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
+    FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 64
@@ -5202,11 +5399,13 @@ Index: 70
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 71
     RFCAVITY                                
     LCAVITY                                 
+    DEF_PARAMETER                           
     INIT_ELE                                
  
  !---------------------------------
@@ -5233,6 +5432,7 @@ Index: 72
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
+    DEF_PARAMETER                           
     NULL_ELE                                
     INIT_ELE                                
     HOM                                     
@@ -5255,6 +5455,7 @@ Index: 72
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 73
@@ -5428,6 +5629,7 @@ Index: 81
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 82
@@ -5472,10 +5674,52 @@ Index: 82
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 83
+    DRIFT                                   
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    CUSTOM                                  
+    TAYLOR                                  
+    RFCAVITY                                
+    ELSEPARATOR                             
+    BEAMBEAM                                
+    WIGGLER                                 
+    SOL_QUAD                                
+    MARKER                                  
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    MULTIPOLE                               
+    BEND_SOL_                               
+    AB_MULTIPOLE                            
+    SOLENOID                                
+    PATCH                                   
+    LCAVITY                                 
     INIT_ELE                                
+    HOM                                     
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    HKICKER                                 
+    VKICKER                                 
+    RCOLLIMATOR                             
+    ECOLLIMATOR                             
+    BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
+    MIRROR                                  
+    CRYSTAL                                 
+    PIPE                                    
+    CAPILLARY                               
+    MULTILAYER_MIRROR                       
+    E_GUN                                   
+    EM_FIELD                                
+    FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 84
@@ -5519,6 +5763,7 @@ Index: 84
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 85
@@ -5675,7 +5920,6 @@ Index: 88
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    DEF_PARAMETER                           
     HOM                                     
     MATCH                                   
     MONITOR                                 
@@ -5703,17 +5947,13 @@ Index: 89
  !---------------------------------
 Index: 90
     RFCAVITY                                
-    PATCH                                   
     LCAVITY                                 
     DEF_PARAMETER                           
     INIT_ELE                                
  
  !---------------------------------
 Index: 91
-    SBEND                                   
     WIGGLER                                 
-    RBEND                                   
-    PATCH                                   
     DEF_PARAMETER                           
  
  !---------------------------------
@@ -5721,7 +5961,6 @@ Index: 92
     DEF_PARAMETER                           
     INIT_ELE                                
     CAPILLARY                               
-    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 93
@@ -5754,12 +5993,10 @@ Index: 93
     CAPILLARY                               
     E_GUN                                   
     EM_FIELD                                
-    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 94
     INIT_ELE                                
-    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 95
@@ -5781,7 +6018,6 @@ Index: 95
     BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     INIT_ELE                                
     HOM                                     
@@ -5798,7 +6034,6 @@ Index: 95
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
-    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 96
@@ -5822,12 +6057,10 @@ Index: 96
     VKICKER                                 
     BEND_SOL_QUAD                           
     E_GUN                                   
-    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 97
     INIT_ELE                                
-    FLOOR_POSITION                          
  
  !---------------------------------
 Index: 98
@@ -5877,6 +6110,7 @@ Index: 98
 Index: 99
     DEF_PARAMETER                           
     INIT_ELE                                
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 100
@@ -5905,6 +6139,8 @@ Index: 101
     HKICKER                                 
     VKICKER                                 
     BEND_SOL_QUAD                           
+    PHOTON_BRANCH                           
+    BRANCH                                  
     PIPE                                    
  
  !---------------------------------
@@ -5952,6 +6188,7 @@ Index: 102
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 103
@@ -6079,6 +6316,7 @@ Index: 107
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 108
@@ -6129,6 +6367,7 @@ Index: 110
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 111
@@ -6173,6 +6412,7 @@ Index: 111
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 112
@@ -6217,6 +6457,7 @@ Index: 112
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 113
@@ -6261,6 +6502,7 @@ Index: 113
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 114
@@ -6305,6 +6547,7 @@ Index: 114
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 115
@@ -6349,6 +6592,7 @@ Index: 115
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 116
@@ -6393,6 +6637,7 @@ Index: 116
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 117
@@ -6437,6 +6682,7 @@ Index: 117
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 118
@@ -6481,6 +6727,7 @@ Index: 118
     E_GUN                                   
     EM_FIELD                                
     FLOOR_POSITION                          
+    FIDUCIAL                                
  
  !---------------------------------
 Index: 119
@@ -6505,7 +6752,6 @@ Index: 119
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    NULL_ELE                                
     HOM                                     
     MATCH                                   
     MONITOR                                 
