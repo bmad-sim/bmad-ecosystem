@@ -2,6 +2,7 @@ NO_DIGESTED
 
 ! BMAD input file
 
+beam, energy =   5.28900
  
 parameter[lattice] =  L9A18A000-_MOVEREC
  
@@ -9,7 +10,6 @@ call, file=bmad_CESR_RECMOVE.layout
  
 ! cleo solenoid
  
-beam, energy =   5.28900
 solenoid_tesla := 1.5
 ks_solenoid    := -1.0e-9 * clight * solenoid_tesla / beam[energy]
 cleo_sol: solenoid, l = 3.51, ks = ks_solenoid, superimpose
