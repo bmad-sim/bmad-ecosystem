@@ -588,7 +588,7 @@ if (is_bend) then
 
     if (j == n_bend) then
       e_edge = ele%value(e2$)
-      if (ele%orientation) e_edge = -ele%value(e1$)
+      if (ele%orientation == -1) e_edge = -ele%value(e1$)
       dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
       call floor_to_screen (dv_vec, dx1, dy1)
