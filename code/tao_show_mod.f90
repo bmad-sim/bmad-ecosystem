@@ -208,7 +208,7 @@ character(16) :: show_what, show_names(27) = [ &
    'optimizer      ', 'element        ', 'lattice        ', 'constraints    ', 'plot           ', &
    'beam           ', 'tune           ', 'graph          ', 'curve          ', 'particle       ', &
    'hom            ', 'key_bindings   ', 'universe       ', 'orbit          ', 'derivative     ', &
-   'branches       ', 'use            ', 'taylor_map     ', 'value          ', 'wave           ', &
+   'branch         ', 'use            ', 'taylor_map     ', 'value          ', 'wave           ', &
    'twiss_and_orbit', 'building_wall  ']
 
 character(*), allocatable :: lines(:)
@@ -471,38 +471,88 @@ case ('beam')
 !----------------------------------------------------------------------
 ! constraints
 
-case ('branches')
+case ('branch')
 
-  call tao_pick_universe (word1, line1, picked_uni, err, ix_u)
-  if (err) return
-  u => s%u(ix_u)
+  sub_name = ''
+
+  do 
+
+    call tao_next_switch (stuff2, ['-branch     ', '-universe   '], switch, err, ix_s2)
+
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+    case ('-branch')
+      sub_name = stuff2(1:ix_s2)
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+
+    case ('-universe')
+      read (stuff2(1:ix_s2), *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
+        return
+      endif
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+
+    end select
+  enddo
+
+  if (sub_name == '') then
+    sub_name = stuff2
+  elseif (stuff2 /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // stuff2)
+    return
+  endif
+
   lat => u%model%lat
 
   if (size(s%u) > 1) then
     nl=nl+1; write(lines(nl), '()') 'For the lattice of universe: ', ix_u
   endif
 
-  if (ubound(lat%branch, 1) == 0) then
-    nl=1; lines(1) = 'No branches besides the root branch.'
-    result_id = show_what
-    return
+  if (sub_name /= '') then
+    branch => pointer_to_branch(sub_name, u%model%lat)
+    if (.not. associated(branch)) then
+      nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
+      return
+    endif
+
+    nl=nl+1; lines(nl) =                   '%name                      = ' // trim(branch%name)
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_branch                 =', branch%ix_branch 
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_root_branch            =', branch%ix_root_branch 
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from_branch            =', branch%ix_from_branch 
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from ele               =', branch%ix_from_ele
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_to_ele                 =', branch%ix_to_ele
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_track               =', branch%n_ele_track
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_max                 =', branch%n_ele_max
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%particle            =' // trim(particle_name(branch%param%particle))
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%lattice_type        =', branch%param%lattice_type
+
+  else
+    nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele  Ix_From  From                Ix_From  From '
+    nl=nl+1; lines(nl) = ' Index  Name                  Track    Max   Branch  Branch                  Ele  Ele'
+
+
+    branch => lat%branch(0)
+    nl=nl+1; write (lines(nl), '(i6, 2x, a21, i6, i7)') &
+                  0, branch%name, branch%n_ele_track, branch%n_ele_max
+
+    fmt = '(i6, 2x, a21, i6, i7, i9, 3x, a20, i6, 3x, a)'
+    do i = 1, ubound(lat%branch, 1)
+      branch => lat%branch(i)
+      if (branch%ix_from_ele < 0) then
+        nl=nl+1; write (lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
+                  branch%ix_from_branch
+      else
+        ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
+        nl=nl+1; write (lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
+                  branch%ix_from_branch, lat%branch(ele%ix_branch)%name, ele%ix_ele, ele%name
+      endif
+    enddo
   endif
-
-  nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele   From                Branch'
-  nl=nl+1; lines(nl) = ' Index  Name                  Track    Max   Branch           Ele Index'
-
-
-  branch => lat%branch(0)
-  nl=nl+1; write (lines(nl), '(i6, 2x, a21, i6, i7)') &
-                0, branch%name, branch%n_ele_track, branch%n_ele_max
-
-  do i = 1, ubound(lat%branch, 1)
-    branch => lat%branch(i)
-    ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-    nl=nl+1; write (lines(nl), '(i6, 2x, a21, i6, i7, 3x, a20, i6)') &
-                i, branch%name, branch%n_ele_track, branch%n_ele_max, &
-                lat%branch(ele%ix_branch)%name, branch%ix_from_ele
-  enddo
 
   result_id = show_what
 
@@ -984,10 +1034,16 @@ case ('element')
         endif
         if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
         n_tot = n_tot + 1
-        if (count(picked_uni) > 1) then
-          nl=nl+1; write (lines(nl), '(i8, 2x, i0, 2a)') ele%ix_ele, i_uni, '@', ele%name
+        if (size(ele%branch%lat%branch) == 1) then
+          write (str, '(i10)') ele%ix_ele
         else
-          nl=nl+1; write (lines(nl), '(i8, 2x, a)') ele%ix_ele, ele%name
+          write (str, '(i0, a, i0)') ele%ix_branch, '>>', ele%ix_ele
+          str(1:10) = adjustr(str(1:10))
+        endif
+        if (count(picked_uni) > 1) then
+          nl=nl+1; write (lines(nl), '(a10, 2x, i0, 2a)') str, i_uni, '@', ele%name
+        else
+          nl=nl+1; write (lines(nl), '(a10, 2x, a)') str, ele%name
         endif
       enddo
     enddo

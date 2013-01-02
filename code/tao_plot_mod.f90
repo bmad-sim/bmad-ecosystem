@@ -551,11 +551,8 @@ if (is_bend) then
   call floor_angles_to_w_mat (floor%theta, floor%phi, 0.0_rp, w_old)
 
   n_bend = min(abs(int(100 * ele%value(angle$))) + 1, ubound(x_bend, 1))
-  ang    = ele%value(angle$)
-  length = ele%value(l$)
-  if (ele%reversed) then
-    ang = -ang; length = -length
-  endif
+  ang    = ele%value(angle$) * ele%orientation
+  length = ele%value(l$)     * ele%orientation
   do j = 0, n_bend
     angle = j * ang / n_bend
     cos_t = cos(ele%value(tilt$))
@@ -580,7 +577,7 @@ if (is_bend) then
 
     if (j == 0) then
       e_edge = ele%value(e1$)
-      if (ele%reversed) e_edge = -ele%value(e2$)
+      if (ele%orientation == -1) e_edge = -ele%value(e2$)
       dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
       call floor_to_screen (dv_vec, dx1, dy1)
@@ -591,7 +588,7 @@ if (is_bend) then
 
     if (j == n_bend) then
       e_edge = ele%value(e2$)
-      if (ele%reversed) e_edge = -ele%value(e1$)
+      if (ele%orientation) e_edge = -ele%value(e1$)
       dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
       call floor_to_screen (dv_vec, dx1, dy1)

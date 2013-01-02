@@ -612,6 +612,7 @@ end type
 type tao_lattice_branch_struct
   type (bunch_params_struct), allocatable :: bunch_params(:)
   type (coord_struct), allocatable :: orbit(:)
+  type (coord_struct) orb0                     ! For saving beginning orbit
   integer track_state
 end type
 
@@ -625,7 +626,6 @@ type tao_lattice_struct
   type (normal_modes_struct) modes             ! Synchrotron integrals stuff
   type (rad_int_all_ele_struct) rad_int
   type (tao_lat_mode_struct) a, b
-  type (coord_struct) orb0                     ! For saving beginning orbit
   integer ix_rad_int_cache                     ! Radiation integrals cache index.
   integer n_bunch_params2                      ! bunch_params2 array size.
 end type
