@@ -943,7 +943,7 @@ do i = 0, ubound(lat%branch, 1)
     flip = 1
     do j = n_track, 0, -1
       ele2 => branch%ele(j)
-      if (ele2%key == patch$ .or. ele2%key == floor_position$) then
+      if (ele2%key == patch$ .or. ele2%key == floor_shift$) then
         if (patch_flips_propagation_direction (ele2%value(x_pitch$), ele2%value(y_pitch$))) flip = -flip
         cycle
       endif

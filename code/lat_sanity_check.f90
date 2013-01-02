@@ -215,7 +215,7 @@ do i_b = 0, ubound(lat%branch, 1)
     if (i_t <  branch%n_ele_track .and. ele%value(l$) /= 0) then
       do i2 = i_t + 1, branch%n_ele_track
         ele2 => branch%ele(i2)
-        if (ele2%key == patch$ .or. ele2%key == floor_position$) exit
+        if (ele2%key == patch$ .or. ele2%key == floor_shift$) exit
         if (ele2%value(l$) == 0) cycle
         if (ele%orientation * ele2%orientation /= 1) then
           call out_io (s_fatal$, r_name, &

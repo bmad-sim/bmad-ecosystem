@@ -377,7 +377,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, offset_moves_aperture$,  'OFFSET_MOVES_APERTURE')
 
   if (i == match$) cycle
-  if (i == floor_position$) cycle
+  if (i == floor_shift$) cycle
 
   call init_attribute_name1 (i, tilt$,          'TILT' )
   call init_attribute_name1 (i, x_offset$,      'X_OFFSET')
@@ -758,13 +758,13 @@ call init_attribute_name1 (patch$, ptc_dir$,                        'ptc_dir', p
 
 !call init_attribute_name1 (patch$, next_ele_defines_position$,      'NEXT_ELE_DEFINES_POSITION')
 
-call init_attribute_name1 (floor_position$, l$,                      'l', private$)
-call init_attribute_name1 (floor_position$, tilt$,                   'TILT', dependent$)
-call init_attribute_name1 (floor_position$, x_offset$,               'X_OFFSET', dependent$)
-call init_attribute_name1 (floor_position$, y_offset$,               'Y_OFFSET', dependent$)
-call init_attribute_name1 (floor_position$, z_offset$,               'Z_OFFSET', dependent$)
-call init_attribute_name1 (floor_position$, x_pitch$,                'X_PITCH', dependent$)
-call init_attribute_name1 (floor_position$, y_pitch$,                'Y_PITCH', dependent$)
+call init_attribute_name1 (floor_shift$, l$,                      'l')
+call init_attribute_name1 (floor_shift$, tilt$,                   'TILT', dependent$)
+call init_attribute_name1 (floor_shift$, x_offset$,               'X_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, y_offset$,               'Y_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, z_offset$,               'Z_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, x_pitch$,                'X_PITCH', dependent$)
+call init_attribute_name1 (floor_shift$, y_pitch$,                'Y_PITCH', dependent$)
 
 call init_attribute_name1 (fiducial$, l$,                      'l', private$)
 call init_attribute_name1 (fiducial$, tilt$,                   'TILT')

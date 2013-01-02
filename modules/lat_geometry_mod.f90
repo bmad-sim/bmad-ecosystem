@@ -295,7 +295,7 @@ endif
 ! General case where layout is not in the horizontal plane
 
 if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(tilt_tot$) /= 0) .or. &
-         phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == floor_position$ .or. &
+         phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == floor_shift$ .or. &
          (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
   if (old_theta /= theta .or. old_phi /= phi .or. old_psi /= psi) then
@@ -378,7 +378,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
 
   ! patch
 
-  case (patch$, floor_position$)
+  case (patch$, floor_shift$)
 
     r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
 

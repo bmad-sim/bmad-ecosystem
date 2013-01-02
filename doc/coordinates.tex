@@ -49,7 +49,7 @@ axis between the entrance and exit frams is the $y$-axis.}
 
 \index{sbend}\index{rbend}
 \index{crystal}\index{mirror}\index{entrance_end}
-\index{exit_end}\index{patch}
+\index{exit_end}\index{patch}\index{floor_shift}
 In \bmad, a lattice is comprised of a sequence of elements such as
 quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a
@@ -57,10 +57,10 @@ point, an exit point, and a reference curve between them. For a
 circular arc as shown in \fig{f:ele.coord.frame}B. For \vn{crystal}
 and \vn{mirror} elements, the reference curve is a zero length bend
 (\sref{s:mirror.coords}). All other elements, except for \vn{patch}
-and \vn{global_position} elements, are ``straight'' as shown in
+and \vn{floor_shift} elements, are ``straight'' as shown in
 \fig{f:ele.coord.frame}A. That is, the reference curve is a straight
-line segment. \vn{patch} (\sref{s:patch}), and \vn{global_position}
-(\sref{s:global.pos} elements can arbitrarily orient the entrance
+line segment. \vn{patch} (\sref{s:patch}), and \vn{floor_shift}
+(\sref{s:floor.ele} elements can arbitrarily orient the entrance
 point of an element with respect to the exit point of the previous
 element. With multiple elements, the reference orbit is constructed by
 arranging the elements so that the reference orbit at exit point of
@@ -391,13 +391,14 @@ trajectory is in the middle of the Darwin curve. Calculation of the
 graze angles for a crystal is given in Section~\ref{ss:crystal.ref}.
 
 %-----------------------------------------------------------------------------
-\subsection{Patch Element}
+\subsection{Patch and Floor_Shift Elements}
 \label{s:patch.coords}
 
-\index{patch}\index{tilt}
-A \vn{patch} element shifts the reference orbit (\sref{s:patch}).
-\Eqs{vwlv} and \eq{wws} are used to propagate $\Bf W$ and $\Bf V$ through a
-\vn{patch}. The $\Bf L$ vector for a patch is
+\index{patch}\index{tilt}\index{floor_shift}
+A \vn{patch} (\sref{s:patch}) or \vn{floor_shift} \vn{s:floor.ele}
+element shifts the reference orbit.  \Eqs{vwlv} and \eq{wws} are used
+to propagate $\Bf W$ and $\Bf V$ through a \vn{patch}. The $\Bf L$
+vector for a patch is
 \Begineq
   \Bf L = 
   \begin{pmatrix}

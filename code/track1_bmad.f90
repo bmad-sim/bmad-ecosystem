@@ -460,7 +460,7 @@ case (lcavity$)
 !-----------------------------------------------
 ! marker, etc.
 
-case (marker$, branch$, photon_branch$, floor_position$, fiducial$)
+case (marker$, branch$, photon_branch$, floor_shift$, fiducial$)
 
   return
 

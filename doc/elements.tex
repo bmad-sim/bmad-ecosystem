@@ -37,7 +37,7 @@ particle and photon use.
   Ecollimator       & \ref{s:col}         &  Quadrupole        & \ref{s:quad}     \HH
   ElSeparator       & \ref{s:elsep}       &  Rbend             & \ref{s:bend}     \HH
   EM_Field          & \ref{s:em.field}    &  Rcollimator       & \ref{s:col}      \HH
-  Floor_Position    & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \HH
+  Floor_Shift       & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \HH
   HKicker           & \ref{s:hvkicker}    &  Sbend             & \ref{s:bend}     \HH
   Hybrid            & \ref{s:hybrid}      &  Sextupole         & \ref{s:sex}      \HH
   Init_Ele          & \ref{s:init.ele}    &  Solenoid          & \ref{s:sol}      \HH
@@ -62,7 +62,7 @@ particle and photon use.
   Crystal            & \ref{s:crystal}       &  Monitor           & \ref{s:monitor}    \HH 
   Custom             & \ref{s:custom}        &  Mirror            & \ref{s:mirror}     \HH
   Drift              & \ref{s:drift}         &  Multilayer_Mirror & \ref{s:multilayer} \HH
-  Floor_Position     & \ref{s:floor.ele}     &  Patch             & \ref{s:patch}      \HH
+  Floor_Shift        & \ref{s:floor.ele}     &  Patch             & \ref{s:patch}      \HH
   Init_Ele           & \ref{s:init.ele}      &  Photon_Branch     & \ref{s:branch}     \HH
   Instrument         & \ref{s:monitor}       &  Pipe              & \ref{s:monitor}    \HH
 \end{tabular}
@@ -543,7 +543,7 @@ False, a simplified sector tracking model is used in all cases.
 
 The \vn{true_rbend} tracking of \vn{ptc_field_geometry} is used only
 with \vn{rbend} elements and the entrance and exit faces must be parallel
-as shown in \fig~{f:true.rbend}. That is
+as shown in \fig{f:true.rbend}. That is
 \begin{example}
   e1 + e2 = 0
 \end{example}
@@ -1080,13 +1080,13 @@ attributes are:
 no other suitable element class.
 
 %-----------------------------------------------------------------
-\section{Floor_Position}
+\section{Floor_Shift}
 \label{s:floor.ele}
-\index{floor_position|hyperbf}
+\index{floor_shift|hyperbf}
 
-A \vn{floor_position} element sets the global floor coordinates.
+A \vn{floor_shift} element shifts the global floor coordinates without affecting particle tracking.xs.
 
-General \vn{floor_position} element attributes are:
+General \vn{floor_shift} element attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
@@ -1101,31 +1101,40 @@ General \vn{floor_position} element attributes are:
 \index{x_position}\index{y_position}
 \index{z_position}\index{theta_position}
 \index{phi_position}\index{psi_position}
-Attributes specific to a \vn{floor_position} elements are:
+Attributes specific to a \vn{floor_shift} elements are:
 \begin{example}
-  x_offset        = <Real>
-  y_offset        = <Real>
-  z_offset        = <Real>
-  x_pitch         = <Real>
-  y_pitch         = <Real>
-  tilt            = <Real>
+  l               = <Real>    ! Length
+  x_offset        = <Real>    ! x offset from previous element
+  y_offset        = <Real>    ! y offset from previous element
+  z_offset        = <Real>    ! z offset from previous element
+  x_pitch         = <Real>    ! rotation in the reference coords.
+  y_pitch         = <Real>    ! rotation in the reference coords.
+  tilt            = <Real>    ! rotation in the reference coords.
 \end{example}
 
-The \vn{floor_position} element sets the global position
-(\sref{s:global}) of the reference coordinates. The transfer map
-through the \vn{floor_position} will be the unit map. That is, the
-phase space coordinates of a particle will not change when tracking
-through a \vn{floor_position} element.
+The \vn{floor_shift} element shifts the global position
+(\sref{s:global}) of the reference coordinates relative to the
+proceeding element. Unlike the \vn{patch element} \sref{s:patch}, the
+transfer map through a \vn{floor_shift} element will be the unit map. That
+is, the phase space coordinates of a particle will not change when
+tracking through a \vn{floor_shift} element. The reference position
+transformation through a \vn{floor_shift} element is given in
+Section~\sref{{s:patch.coords}. 
 
-Setting the floor position at an element will affect the floor
-position of all elements following the element but will not affect any
-preceding elements. The \vn{floor_position} element can be used, for
+The \vn{l} attribute can be used to adjust the longitudinal $s$
+position.
+
+The \vn{floor_shift} element can be used, for
 example, to restore the correct geometry when a section of the lattice
 is represented by, say, a \vn{taylor} type element.
 
+PTC does not have an analogous element for the \vn{Floor_shift}
+element. When converting to PTC, a \vn{floor_shift} element will be treated
+as a \vn{marker} element.
+
 Example:
 \begin{example}
-  floor_set: floor_position, x_position = 3.2
+  floor: floor_shift, z_offset = 3.2
 \end{example}
 
 %-----------------------------------------------------------------
