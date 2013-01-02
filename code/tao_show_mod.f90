@@ -1027,8 +1027,8 @@ case ('element')
 
   tao_lat => tao_pointer_to_tao_lat (u, lat_type)
 
-  call type2_ele (ele, alloc_lines, n, print_all, xfer_mat_print, print_taylor, s%global%phase_units, &
-            .true., tao_lat%lat, .true., print_floor, print_em_field, print_wall)
+  call type2_ele (ele, alloc_lines, n, print_all, xfer_mat_print, print_taylor, &
+            s%global%phase_units, .true., .true., print_floor, print_em_field, print_wall)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = alloc_lines(1:n)

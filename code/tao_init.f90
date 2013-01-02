@@ -11,13 +11,13 @@
 subroutine tao_init (err_flag)
 
 use tao_mod, dummy => tao_init
-use tao_init_mod, only: tao_init_global, tao_init_beams
-use tao_init_data_mod, only: tao_init_data
-use tao_init_variables_mod, only: tao_init_variables
-use tao_lattice_calc_mod, only: tao_lattice_calc
-use tao_plot_mod, only: tao_draw_plots
-use tao_data_and_eval_mod, only: tao_evaluate_a_datum
-use tao_command_mod, only: tao_cmd_history_record
+use tao_init_mod, dummy2 => tao_init
+use tao_init_data_mod, dummy3 => tao_init
+use tao_init_variables_mod, dummy4 => tao_init
+use tao_lattice_calc_mod, dummy5 => tao_init
+use tao_plot_mod, dummy6 => tao_init
+use tao_data_and_eval_mod, dummy7 => tao_init
+use tao_command_mod, dummy8 => tao_init
 
 implicit none
 
@@ -42,7 +42,7 @@ integer i, j, i2, j2, n_universes, iu, ix, n_arg, ib, ip, ios
 integer iu_log
 
 logical err, calc_ok, valid_value
-logical, optional :: err_flag
+logical :: err_flag
 
 namelist / tao_start / startup_file, building_wall_file, &
                data_file, var_file, plot_file, n_universes, init_name, beam_file
@@ -79,7 +79,7 @@ endif
 ! Additionally, if there is an open failure and no lattice file has been specified
 ! by the user, then there is nothing to do and is considered fatal.
 
-if (present(err_flag)) err_flag = .true.
+err_flag = .true.
 
 iu = 0
 if (tao_com%init_tao_file /= '') then
@@ -280,7 +280,7 @@ endif
 
 call tao_set_data_useit_opt()
 call tao_set_var_useit_opt()
-if (present(err_flag)) err_flag = .false.
+err_flag = .false.
 
 !------------------------------------------------------------------------------
 contains

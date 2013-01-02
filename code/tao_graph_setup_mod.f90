@@ -1633,11 +1633,11 @@ do ii = 1, size(curve%x_line)
   case ('ref_time')
     value = ele%ref_time
   case ('floor.x')
-    value = ele%floor%x
+    value = ele%floor%r(1)
   case ('floor.y')
-    value = ele%floor%y
+    value = ele%floor%r(2)
   case ('floor.z')
-    value = ele%floor%z
+    value = ele%floor%r(3)
   case ('e_tot')
     if (orbit%beta == 0) then
       value = mass_of(branch%param%particle)
