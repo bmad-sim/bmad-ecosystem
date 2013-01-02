@@ -564,8 +564,8 @@ if (in_to_out) then
                          k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
                          ht_x * ht2 * (v0(1)**2 + v0(3)**2) / 2
     orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
-    orb%vec(4) = v0(4) - ht_y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
-                         tan_e * (2 * k1_eff + ht_x * hs2) * v0(1) * v0(3)
+    orb%vec(4) = v0(4) - ht_y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) - &
+                         (ht_x * hs2 - 2 * tan_e * k1_eff + ) * v0(1) * v0(3)
   else
     orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
     orb%vec(2) = v0(2) - ht_x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) - &
