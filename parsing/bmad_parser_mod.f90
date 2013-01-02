@@ -146,7 +146,6 @@ type bp_common_struct
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
-  type (used_seq_struct), allocatable ::  used_line(:)
   type (bp_var_struct), allocatable :: var(:)   ! variable name
   type (ran_parsing_struct) ran
   integer num_lat_files               ! Number of files opened
@@ -3541,13 +3540,12 @@ end subroutine reallocate_bp_com_var
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_all_superimpose (lat, super_ele_in, pele, in_lat)
+subroutine add_all_superimpose (branch, super_ele_in, pele, in_lat)
 
 use multipass_mod
 
 implicit none
 
-type (lat_struct), target :: lat
 type (ele_struct) super_ele_in
 type (ele_struct), save :: super_ele_saved, super_ele
 type (ele_struct), pointer :: ref_ele, ele, slave, lord, super_ele_out
@@ -3555,7 +3553,8 @@ type (parser_ele_struct) pele
 type (multipass_all_info_struct) m_info
 type (lat_struct), optional :: in_lat
 type (lat_ele_loc_struct), allocatable :: m_slaves(:)
-type (branch_struct), pointer :: branch
+type (branch_struct), target :: branch
+type (lat_struct), pointer :: lat
 
 integer ix, i, j, k, it, nic, nn, i_ele, ib
 integer n_inserted, n_con, i_br, ix_branch
@@ -3578,26 +3577,18 @@ call init_ele(super_ele)
 super_ele_saved = super_ele_in      ! in case super_ele_in changes
 super_ele = super_ele_saved        ! 
 n_inserted = 0
+lat => branch%lat
 
 ! If no refrence point then superposition is simple
 
 if (pele%ref_name == blank_name$) then
-  call compute_super_lord_s (lat, lat%ele(0), super_ele, pele)
-  call check_for_multipass_superimpose_problem (lat, lat%ele(0), super_ele, err_flag); if (err_flag) return
+  call compute_super_lord_s (branch%ele(0), super_ele, pele)
+  call check_for_multipass_superimpose_problem (branch%ele(0), super_ele, err_flag); if (err_flag) return
   call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
                                  create_em_field_slave = pele%create_em_field_slave)
   if (err_flag) bp_com%error_flag = .true.
   return
 endif
-
-! Insert ele in the lat.
-! Do not insert twice at the same spot.
-
-do i_br = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i_br)
-  branch%ele%old_is_on = .false.    ! to keep track of where we have inserted
-  branch%ele%ix_pointer = -1
-enddo
 
 !
 
@@ -3605,176 +3596,172 @@ do
 
   have_inserted = .false.
 
-  do i_br = 0, ubound(lat%branch, 1)
-    branch => lat%branch(i_br)
+  ele_loop: do i_ele = 1, branch%n_ele_max
 
-    ele_loop: do i_ele = 1, branch%n_ele_max
-
-      ref_ele => branch%ele(i_ele)
-       
-      if (ref_ele%lord_status == group_lord$ .or. ref_ele%slave_status == super_slave$) cycle
-      if (ref_ele%lord_status == girder_lord$) cycle
-      if (ref_ele%old_is_on) cycle
-      if (.not. match_wild(ref_ele%name, pele%ref_name)) cycle
-
-      do i = 1, n_inserted
-        if (ref_ele%name == matched_name(i)) cycle ele_loop
-      enddo
+    ref_ele => branch%ele(i_ele)
      
-      ref_ele%old_is_on = .true.
+    if (ref_ele%lord_status == group_lord$ .or. ref_ele%slave_status == super_slave$) cycle
+    if (ref_ele%lord_status == girder_lord$) cycle
+    if (ref_ele%old_is_on) cycle
+    if (.not. match_wild(ref_ele%name, pele%ref_name)) cycle
 
-      ! If superimposing on a multipass_lord then the superposition
-      ! must be done at all multipass locations.
+    do i = 1, n_inserted
+      if (ref_ele%name == matched_name(i)) cycle ele_loop
+    enddo
+   
+    ref_ele%old_is_on = .true.
 
-      if (ref_ele%lord_status == multipass_lord$) then
-        allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
-        do i = 1, ref_ele%n_slave
-          slave => pointer_to_slave(ref_ele, i)
-          slave%ix_pointer = i  ! tag ref element
-        enddo
-        ix_branch = slave%ix_branch  ! Branch of slaves
-        branch => lat%branch(ix_branch)
-        call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
-        super_ele%name = super_ele_saved%name(:ix)
+    ! If superimposing on a multipass_lord then the superposition
+    ! must be done at all multipass locations.
 
-        ! Put in the superposition at the multipass locations.
-        ! Since elements get shuffled around, tag the superimposed elements 
-        !     with "temp_name!" to identify them later.
+    if (ref_ele%lord_status == multipass_lord$) then
+      allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
+      allocate (ele_loc_com%branch(1))
+      allocate (ele_loc_com%branch(1)%ele(ref_ele%n_slave))
+      do i = 1, ref_ele%n_slave
+        slave => pointer_to_slave(ref_ele, i)
+        ele_loc_com%branch(1)%ele(i)%ix_ele    = slave%ix_ele
+        ele_loc_com%branch(1)%ele(i)%ix_branch = slave%ix_branch
+      enddo
+      call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+      super_ele%name = super_ele_saved%name(:ix)
 
-        i = 0  ! Element index
-        j = 0  ! Number of superpositions done.
-        do while (i < branch%n_ele_max)
-          i = i + 1
-          if (branch%ele(i)%ix_pointer /= j+1) cycle
-          j = j + 1
-          call compute_super_lord_s (lat, branch%ele(i), super_ele, pele)
-          super_ele%iyy = branch%ele(i)%iyy   ! Multipass info
-          call check_for_multipass_superimpose_problem (lat, branch%ele(i), super_ele, err_flag); if (err_flag) return
-          ! Don't need to save drifts since a multipass_lord drift already exists.
-          call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
-                        save_null_drift = .false., create_em_field_slave = pele%create_em_field_slave)
-          if (err_flag) bp_com%error_flag = .true.
-          super_ele_out%name = 'temp_name!'
-        enddo
+      ! Put in the superposition at the multipass locations.
+      ! Since elements get shuffled around, tag the superimposed elements 
+      !     with "temp_name!" to identify them later.
 
-        ! Mark any super_lord drifts (along with any lords that control the super_lord) for 
-        ! future deletion at the end of lattice parsing.
-
-        call multipass_all_info (lat, m_info) ! Save multipass info for later.
-
-        do i = lat%n_ele_track+1, lat%n_ele_max 
-          ele => lat%ele(i)
-          if (ele%key /= drift$) cycle
-          if (ele%lord_status /= super_lord$) cycle 
-          ele%key = -1 ! mark for deletion
-
-          do j = 1, ele%n_lord
-            lord => pointer_to_lord(ele, j)
-            lord%key = -1  ! Mark lord for deletion
-          enddo
-
-          ! Need to remove super_lord/super_slave links otherwise the code below gets confused
-          ! when it tries to connect the former super_slave drifts.
-
-          do while (ele%n_slave /= 0)
-            call remove_lord_slave_link (ele, pointer_to_slave(ele, 1))
-          enddo
-        enddo
-
-        ! Reconnect drifts that were part of the multipass region.
-
-        do i = 1, size(m_info%top) ! Loop over multipass lords
-          do j = 1, size(m_info%top(i)%slave, 2)   ! loop over super_slaves
-            slave => m_info%top(i)%slave(1, j)%ele
-            if (slave%key /= drift$) cycle
-            if (slave%slave_status == multipass_slave$) cycle
-            do k = 1, size(m_info%top(i)%slave(:, j))   ! Loop over all passes
-              ele => m_info%top(i)%slave(k, j)%ele
-              m_slaves(k) = ele_to_lat_loc (ele)  ! Make a list slave elements
-              ib = index(ele%name, '\') ! '
-              if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
-            enddo
-            call add_this_multipass (lat, m_slaves) ! And create a multipass lord
-          enddo
-        enddo
-
-        ! If the super_lords have a single super_slave and the super_slave
-        ! has only a single super_lord, the super_lords
-        ! can be eliminated and the created multipass_lord can control the
-        ! super_slaves directly.
-
-        j = 0
-
-        do i = 1, branch%n_ele_track
-          if (branch%ele(i)%name == 'temp_name!') then
-            branch%ele(i)%name = super_ele_saved%name
-            j = j + 1
-            m_slaves(j) = ele_to_lat_loc (branch%ele(i))
-          endif
-        enddo
-
-        do i = lat%n_ele_track+1, lat%n_ele_max
-          if (lat%ele(i)%name == 'temp_name!') then
-            lat%ele(i)%name = super_ele_saved%name
-            j = j + 1
-            m_slaves(j) = ele_to_lat_loc (lat%ele(i))
-          endif
-        enddo
-
-        ele => pointer_to_ele (lat, m_slaves(1))
-        if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
-          slave => pointer_to_slave(ele, 1)
-          if (slave%n_lord == 1) then
-            do i = 1, size(m_slaves)
-              ele => pointer_to_ele (lat, m_slaves(i))
-              ele%key = -1 ! Mark for deletion
-              ele => pointer_to_slave(ele, 1)
-              ele%name = super_ele_saved%name
-              m_slaves(i) = ele_to_lat_loc (ele)
-            enddo
-          endif
-        endif
-
-        ! Remove eles marked for deletion. But first shift m_slaves list
-
-        do i = 1, size(m_slaves)
-          ele => pointer_to_ele (lat, m_slaves(i))
-          m_slaves(i)%ix_ele = m_slaves(i)%ix_ele - &
-                                  count(lat%branch(ele%ix_branch)%ele(1:ele%ix_ele)%key == -1)
-        enddo
-
-        call remove_eles_from_lat (lat, .false.)
-
-        ! Add a multipass_lord to control the created super_lords.
-
-        call add_this_multipass (lat, m_slaves, super_ele_saved) 
-
-        call deallocate_multipass_all_info_struct (m_info)
-        deallocate (m_slaves, multi_name)
-
-      ! Else not superimposing on a multipass_lord ...
-
-      else
-        call compute_super_lord_s (lat, branch%ele(i_ele), super_ele, pele)
-        super_ele%iyy = branch%ele(i_ele)%iyy   ! Multipass info
-        call check_for_multipass_superimpose_problem (lat, branch%ele(i_ele), super_ele, err_flag); if (err_flag) return
-        call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
-        super_ele%name = super_ele_saved%name(:ix)            
-        call add_superimpose (lat, super_ele, i_br, err_flag, super_ele_out, &
-                    save_null_drift = .true., create_em_field_slave = pele%create_em_field_slave)
+      do i = 1, ref_ele%n_slave
+        ele => pointer_to_ele (lat, ele_loc_com%branch(1)%ele(i))
+        call compute_super_lord_s (ele, super_ele, pele)
+        super_ele%iyy = ele%iyy   ! Multipass info
+        call check_for_multipass_superimpose_problem (ele, super_ele, err_flag); if (err_flag) return
+        ! Don't need to save drifts since a multipass_lord drift already exists.
+        call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
+                      save_null_drift = .false., create_em_field_slave = pele%create_em_field_slave)
         if (err_flag) bp_com%error_flag = .true.
-        call control_bookkeeper (lat, super_ele_out)
+        super_ele_out%name = 'temp_name!'
+      enddo
+
+      ! Mark any super_lord drifts (along with any lords that control the super_lord) for 
+      ! future deletion at the end of lattice parsing.
+
+      call multipass_all_info (lat, m_info) ! Save multipass info for later.
+
+      do i = lat%n_ele_track+1, lat%n_ele_max 
+        ele => lat%ele(i)
+        if (ele%key /= drift$) cycle
+        if (ele%lord_status /= super_lord$) cycle 
+        ele%key = -1 ! mark for deletion
+
+        do j = 1, ele%n_lord
+          lord => pointer_to_lord(ele, j)
+          lord%key = -1  ! Mark lord for deletion
+        enddo
+
+        ! Need to remove super_lord/super_slave links otherwise the code below gets confused
+        ! when it tries to connect the former super_slave drifts.
+
+        do while (ele%n_slave /= 0)
+          call remove_lord_slave_link (ele, pointer_to_slave(ele, 1))
+        enddo
+      enddo
+
+      ! Reconnect drifts that were part of the multipass region.
+
+      do i = 1, size(m_info%top) ! Loop over multipass lords
+        do j = 1, size(m_info%top(i)%slave, 2)   ! loop over super_slaves
+          slave => m_info%top(i)%slave(1, j)%ele
+          if (slave%key /= drift$) cycle
+          if (slave%slave_status == multipass_slave$) cycle
+          do k = 1, size(m_info%top(i)%slave(:, j))   ! Loop over all passes
+            ele => m_info%top(i)%slave(k, j)%ele
+            m_slaves(k) = ele_to_lat_loc (ele)  ! Make a list slave elements
+            ib = index(ele%name, '\') ! '
+            if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
+          enddo
+          call add_this_multipass (lat, m_slaves) ! And create a multipass lord
+        enddo
+      enddo
+
+      ! If the super_lords have a single super_slave and the super_slave
+      ! has only a single super_lord, the super_lords
+      ! can be eliminated and the created multipass_lord can control the
+      ! super_slaves directly.
+
+      j = 0
+
+      do i = 1, branch%n_ele_track
+        if (branch%ele(i)%name == 'temp_name!') then
+          branch%ele(i)%name = super_ele_saved%name
+          j = j + 1
+          m_slaves(j) = ele_to_lat_loc (branch%ele(i))
+        endif
+      enddo
+
+      do i = lat%n_ele_track+1, lat%n_ele_max
+        if (lat%ele(i)%name == 'temp_name!') then
+          lat%ele(i)%name = super_ele_saved%name
+          j = j + 1
+          m_slaves(j) = ele_to_lat_loc (lat%ele(i))
+        endif
+      enddo
+
+      ele => pointer_to_ele (lat, m_slaves(1))
+      if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
+        slave => pointer_to_slave(ele, 1)
+        if (slave%n_lord == 1) then
+          do i = 1, size(m_slaves)
+            ele => pointer_to_ele (lat, m_slaves(i))
+            ele%key = -1 ! Mark for deletion
+            ele => pointer_to_slave(ele, 1)
+            ele%name = super_ele_saved%name
+            m_slaves(i) = ele_to_lat_loc (ele)
+          enddo
+        endif
       endif
 
-      call s_calc (lat)
+      ! Remove eles marked for deletion. But first shift m_slaves list
 
-      n_inserted = n_inserted + 1
-      matched_name(n_inserted) = super_ele%name
-      have_inserted = .true.   
+      do i = 1, size(m_slaves)
+        ele => pointer_to_ele (lat, m_slaves(i))
+        m_slaves(i)%ix_ele = m_slaves(i)%ix_ele - &
+                                count(lat%branch(ele%ix_branch)%ele(1:ele%ix_ele)%key == -1)
+      enddo
 
-    enddo ele_loop
+      call remove_eles_from_lat (lat, .false.)
 
-  enddo
+      ! Add a multipass_lord to control the created super_lords.
+
+      call add_this_multipass (lat, m_slaves, super_ele_saved) 
+
+      call deallocate_multipass_all_info_struct (m_info)
+      deallocate (m_slaves, multi_name)
+      deallocate (ele_loc_com%branch)
+
+    !-----------------------
+    ! Else not superimposing on a multipass_lord ...
+
+    else
+      call compute_super_lord_s (branch%ele(i_ele), super_ele, pele)
+      super_ele%iyy = branch%ele(i_ele)%iyy   ! Multipass info
+      call check_for_multipass_superimpose_problem (branch%ele(i_ele), super_ele, err_flag); if (err_flag) return
+      call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+      super_ele%name = super_ele_saved%name(:ix)            
+      call add_superimpose (lat, super_ele, i_br, err_flag, super_ele_out, &
+                  save_null_drift = .true., create_em_field_slave = pele%create_em_field_slave)
+      if (err_flag) bp_com%error_flag = .true.
+      call control_bookkeeper (lat, super_ele_out)
+    endif
+
+    !---------------------
+
+    call s_calc (lat)
+
+    n_inserted = n_inserted + 1
+    matched_name(n_inserted) = super_ele%name
+    have_inserted = .true.   
+
+  enddo ele_loop
 
   if (.not. have_inserted) exit
 
@@ -3802,7 +3789,7 @@ end subroutine add_all_superimpose
 ! This subroutine is not intended for general use.
 !-
 
-subroutine compute_super_lord_s (lat, ref_ele, super_ele, pele)
+subroutine compute_super_lord_s (ref_ele, super_ele, pele)
 
 implicit none
 
@@ -3864,7 +3851,7 @@ endif
 ! For circular lattices a superimpose can wrap around the beginning or 
 ! the end of the lattice.
 
-branch => lat%branch(ref_ele%ix_branch)
+branch => ref_ele%branch
 if (branch%param%lattice_type == circular_lattice$) then
   if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
     super_ele%s = super_ele%s - branch%param%total_length
@@ -3879,7 +3866,7 @@ end subroutine compute_super_lord_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine check_for_multipass_superimpose_problem (lat, ref_ele, super_ele, err_flag)
+! Subroutine check_for_multipass_superimpose_problem (ref_ele, super_ele, err_flag)
 !
 ! Subroutine to check if there is a problem superimposing an element when there is multipass.
 ! In particular will check that:
@@ -3893,11 +3880,10 @@ end subroutine compute_super_lord_s
 ! This subroutine is not intended for general use.
 !-
 
-subroutine check_for_multipass_superimpose_problem (lat, ref_ele, super_ele, err_flag)
+subroutine check_for_multipass_superimpose_problem (ref_ele, super_ele, err_flag)
 
 implicit none
 
-type (lat_struct), target :: lat
 type (ele_struct) ref_ele, super_ele
 type (ele_struct), pointer :: ele1, ele2
 type (branch_struct), pointer :: branch
@@ -3908,15 +3894,15 @@ integer ix1, ix2
 
 !
 
-branch => lat%branch(ref_ele%ix_branch)
+branch => ref_ele%branch
 err_flag = .true.
 eps = bmad_com%significant_length
 
-ix1 = element_at_s (lat, super_ele%s - super_ele%value(l$) + eps, .true., ref_ele%ix_branch, err_flag)
+ix1 = element_at_s (branch%lat, super_ele%s - super_ele%value(l$) + eps, .true., ref_ele%ix_branch, err_flag)
 ele1 => branch%ele(ix1)
 if (ele1%slave_status == super_slave$) ele1 => pointer_to_lord(ele1, 1)
 
-ix2 = element_at_s (lat, super_ele%s - eps, .false., ref_ele%ix_branch, err_flag)
+ix2 = element_at_s (branch%lat, super_ele%s - eps, .false., ref_ele%ix_branch, err_flag)
 ele2 => branch%ele(ix2)
 if (ele2%slave_status == super_slave$) ele2 => pointer_to_lord(ele2, 1)
 
@@ -4913,89 +4899,66 @@ end subroutine reuse_taylor_elements
 !-
 
 recursive subroutine parser_add_branch (branch_ele, lat, sequence, in_name, in_indexx, &
-                                                        seq_name, seq_indexx, in_lat, plat)
+                                                   seq_name, seq_indexx, in_lat, plat, created_new_branch)
 
 implicit none
 
 type (lat_struct), target :: lat, in_lat
 type (parser_lat_struct) plat
 type (ele_struct) branch_ele
-type (ele_struct), pointer :: b_ele, ele2, line_ele
+type (ele_struct), pointer :: b_ele, ele2
 type (seq_struct), target :: sequence(:)
 type (branch_struct), pointer :: branch
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
-integer j, nb, n_ele_use, n, ix
+integer i, j, nb, n_ele_use, n, ix
 
 character(*), allocatable ::  in_name(:), seq_name(:)
 character(40) name
 
+logical created_new_branch
+
 !
 
-nb = ubound(lat%branch, 1) + 1
-call parser_expand_line (nb, lat, branch_ele%component_name, sequence, in_name, &
-                              in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+created_new_branch = .true.
 
-branch_ele%value(ix_to_branch$) = nb
-branch => lat%branch(nb)
-
-! If branch_ele%value(particle$) has not been set then use default.
-! Default for branch$ is just the same particle as the current branch.
-
-if (branch_ele%value(particle$) == real_garbage$) then 
-  if (branch_ele%key == branch$) then
-    branch_ele%value(particle$) = lat%branch(branch_ele%ix_branch)%param%particle
-  else
-    branch_ele%value(particle$) = photon$
-  endif
+if (branch_ele%value(clone$) == 0) then ! Branch back if
+  do i = 0, ubound(lat%branch, 1)-1
+    branch => lat%branch(i)
+    if (branch%name /= branch_ele%component_name) cycle
+    branch_ele%value(ix_to_branch$) = i
+    created_new_branch = .false.
+  enddo
 endif
 
-!
+if (created_new_branch) then
+  call parser_expand_line (lat, branch_ele%component_name, sequence, in_name, &
+                                in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
 
-call find_indexx2 (branch_ele%component_name, in_name, in_indexx, 0, in_lat%n_ele_max, ix)
-line_ele => in_lat%ele(ix)    
+  nb = ubound(lat%branch, 1)
+  branch_ele%value(ix_to_branch$) = nb
+  branch => lat%branch(nb)
 
-branch%name               = branch_ele%component_name
-branch%param%particle     = nint(line_ele%value(particle$))
-branch%param%lattice_type = nint(line_ele%value(lattice_type$))
-branch%ix_from_branch     = branch_ele%ix_branch
-branch%ix_from_ele        = branch_ele%ix_ele
-branch%ix_root_branch     = lat%branch(branch_ele%ix_branch)%ix_root_branch
+  branch%ix_from_branch     = branch_ele%ix_branch
+  branch%ix_from_ele        = branch_ele%ix_ele
+  branch%ix_root_branch     = lat%branch(branch_ele%ix_branch)%ix_root_branch
+endif
 
 name = plat%ele(branch_ele%ixx)%ele_name
 if (name == '') then
-  branch%ix_to_ele = 0
+  branch_ele%value(ix_to_element$) = 0
 else
-  branch%ix_to_ele = -1
+  branch_ele%value(ix_to_element$) = -1
   do j = 0, branch%n_ele_max
     if (branch%ele(j)%name == name) then
-      if (branch%ix_to_ele /= -1) then
+      if (branch_ele%value(ix_to_element$) /= -1) then
         call parser_error('DUPLICATE TO_ELEMENT: ' // name, 'FOR BRANCH ELEMENT: ' // branch_ele%name)
         exit
       endif
-      branch%ix_to_ele = j
+      branch_ele%value(ix_to_element$) = j
     endif
   enddo
 endif
-
-do j = 1, n_ele_use
-  ele2 => lat%branch(nb)%ele(j)
-  ! Make sure we don't have an endless loop
-  n = nb
-  do
-    if (n == 0) exit
-    b_ele => pointer_to_ele(lat, lat%branch(n)%ix_from_ele, lat%branch(n)%ix_from_branch)
-    if (b_ele%name == ele2%name) then
-      call parser_error ('ENDLESS BRANCHING LOOP DETECTED. BRANCHING ON BRANCHING ELEMENT: ' // ele2%name)
-      if (global_com%exit_on_error) call err_exit
-    endif
-    n = b_ele%ix_branch
-  enddo
-  ! Now add the branch
-  if (ele2%key == photon_branch$ .or. ele2%key == branch$) then
-    call parser_add_branch (ele2, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat)
-  endif
-enddo
 
 end subroutine parser_add_branch
 
@@ -5003,7 +4966,7 @@ end subroutine parser_add_branch
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_expand_line (ix_branch, lat, use_name, sequence, in_name, &
+! Subroutine parser_expand_line (lat, use_name, sequence, in_name, &
 !                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
 !
 ! Subroutine to do line expansion.
@@ -5012,13 +4975,13 @@ end subroutine parser_add_branch
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_expand_line (ix_branch, lat, use_name, sequence, in_name, &
+subroutine parser_expand_line (lat, use_name, sequence, in_name, &
                                in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
 
 implicit none
 
 type (lat_struct), target :: lat, in_lat
-type (ele_struct), pointer :: ele_line(:)
+type (ele_struct), pointer :: ele_line(:), ele, ele2
 type (seq_struct), target :: sequence(:)
 type (seq_ele_struct), pointer :: s_ele, this_seq_ele
 type (seq_stack_struct) stack(40)
@@ -5026,11 +4989,12 @@ type (seq_struct), pointer :: seq, seq2
 type (used_seq_struct), allocatable ::  used2(:)
 type (seq_ele_struct), target :: dummy_seq_ele
 type (branch_struct), pointer :: branch
+type (used_seq_struct), allocatable ::  used_line(:)
 
 integer, allocatable :: ix_lat(:)
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 integer iseq_tot, i_lev, i_use, n0_multi, n_ele_use, n_max
-integer i, j, k, n, ix, ix_multipass, ix_branch
+integer i, j, k, n, ix, ix_multipass, ix_branch, flip
 
 character(*), allocatable ::  in_name(:), seq_name(:)
 character(*) use_name
@@ -5040,6 +5004,7 @@ character(40) name
 
 iseq_tot = size(seq_indexx)
 n_max = in_lat%n_ele_max
+allocate (used_line(n_max))
 
 call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
 if (i_use == 0) then
@@ -5201,36 +5166,36 @@ line_expansion: do
     if (this_seq_ele%ix_ele < 1) call parser_error('NOT A DEFINED ELEMENT: ' // &
                           s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
 
-    if (n_ele_use+1 > size(ix_lat)) then
+    if (n_ele_use+2 > size(ix_lat)) then
       n = 1.5*n_ele_use
       call re_allocate (ix_lat, n)
-      ix = size(bp_com%used_line) 
+      ix = size(used_line) 
       if (ix < n) then
-        call move_alloc (bp_com%used_line, used2)
-        allocate (bp_com%used_line(1:n))
-        bp_com%used_line(1:ix) = used2(1:ix)
+        call move_alloc (used_line, used2)
+        allocate (used_line(1:n))
+        used_line(1:ix) = used2(1:ix)
         deallocate (used2)
       endif
     endif
 
     call pushit (ix_lat, n_ele_use, this_seq_ele%ix_ele)
 
-    bp_com%used_line(n_ele_use)%name = this_seq_ele%name
-    bp_com%used_line(n_ele_use)%orientation = stack(i_lev)%orientation_direction * this_seq_ele%ele_orientation
+    used_line(n_ele_use)%name = this_seq_ele%name
+    used_line(n_ele_use)%orientation = stack(i_lev)%orientation_direction * this_seq_ele%ele_orientation
 
     if (stack(i_lev)%tag /= '' .and. s_ele%tag /= '') then
-      bp_com%used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
+      used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
     elseif (s_ele%tag /= '') then
-      bp_com%used_line(n_ele_use)%tag = s_ele%tag
+      used_line(n_ele_use)%tag = s_ele%tag
     else
-      bp_com%used_line(n_ele_use)%tag =  stack(i_lev)%tag
+      used_line(n_ele_use)%tag =  stack(i_lev)%tag
     endif
 
     if (stack(i_lev)%multipass) then
       ix_multipass = ix_multipass + 1
-      bp_com%used_line(n_ele_use)%ix_multi = ix_multipass + 1000000 * stack(i_lev)%ix_seq
+      used_line(n_ele_use)%ix_multi = ix_multipass + 1000000 * stack(i_lev)%ix_seq
     else
-      bp_com%used_line(n_ele_use)%ix_multi = 0
+      used_line(n_ele_use)%ix_multi = 0
     endif
 
   ! if a line:
@@ -5310,14 +5275,20 @@ if (bp_com%error_flag) return
 ! Transfer the ele information from the in_lat to lat and
 ! do the bookkeeping for settable dependent variables.
 
+if (lat%n_ele_max < 1) then
+  ix_branch = 0
+else
+  ix_branch = ubound(lat%branch, 1) + 1
+endif
+
 if (ix_branch == 0) then  ! Main branch
-  call allocate_lat_ele_array(lat, n_ele_use)
+  call allocate_lat_ele_array(lat, n_ele_use+1)
   lat%n_ele_track = n_ele_use
   lat%n_ele_max   = n_ele_use
   ele_line => lat%ele
 else                    ! branch line
   call allocate_branch_array (lat, ix_branch)
-  call allocate_lat_ele_array(lat, n_ele_use, ix_branch)
+  call allocate_lat_ele_array(lat, n_ele_use+1, ix_branch)
   ele_line => lat%branch(ix_branch)%ele
 endif
 
@@ -5325,18 +5296,40 @@ branch => lat%branch(ix_branch)
 branch%n_ele_track = n_ele_use
 branch%n_ele_max   = n_ele_use
 branch%ix_branch   = ix_branch
-
-ele_line(0)%ix_branch = ix_branch
+branch%name        = use_name
 
 do i = 1, n_ele_use
   ele_line(i) = in_lat%ele(ix_lat(i)) 
-  ele_line(i)%name        = bp_com%used_line(i)%name
-  ele_line(i)%iyy         = bp_com%used_line(i)%ix_multi
-  ele_line(i)%orientation = bp_com%used_line(i)%orientation
-  if (bp_com%used_line(i)%tag /= '') ele_line(i)%name = &
-                trim(bp_com%used_line(i)%tag) // '.' // ele_line(i)%name
+  ele_line(i)%name        = used_line(i)%name
+  ele_line(i)%iyy         = used_line(i)%ix_multi
+  ele_line(i)%orientation = used_line(i)%orientation
+  if (used_line(i)%tag /= '') ele_line(i)%name = trim(used_line(i)%tag) // '.' // ele_line(i)%name
   call settable_dep_var_bookkeeping (ele_line(i))
 enddo
+
+ele_line(0)%ix_branch = ix_branch
+ele_line(0)%orientation = ele_line(1)%orientation
+
+deallocate(used_line)
+
+! Add End marker and make sure it's orientation is consistant
+
+if (nint(bp_com%param_ele%value(no_end_marker$)) == 0) then
+  n_ele_use = n_ele_use + 1
+  ele => ele_line(n_ele_use)
+  ele%name = 'END'
+  ele%key = marker$
+  flip = 1
+  do j = n_ele_use-1, 0, -1
+    ele2 => ele_line(j)
+    if (ele2%key == patch$ .or. ele2%key == floor_shift$) then
+      if (patch_flips_propagation_direction (ele2%value(x_pitch$), ele2%value(y_pitch$))) flip = -flip
+      cycle
+    endif
+    exit
+  enddo
+  ele%orientation = ele2%orientation * flip
+endif
 
 end subroutine parser_expand_line
 

@@ -34,8 +34,9 @@ type (ele_struct)  insert_ele
 type (ele_struct), pointer :: inserted_ele, ele0
 type (branch_struct), pointer :: branch, branch2
 type (control_struct), pointer :: con
+type (lat_ele_loc_struct), pointer :: loc
 
-integer insert_index, ix, ix_br
+integer insert_index, ix, ix_br, i, j
 integer, optional :: ix_branch
 
 character(16), parameter :: r_name = 'insert_element'
@@ -87,6 +88,18 @@ do ix = 1, ubound(lat%branch, 1)
   if (branch2%ix_from_ele >= insert_index .and. branch2%ix_from_branch == ix_br) &
                                         branch2%ix_from_ele = branch2%ix_from_ele + 1
 enddo
+
+! 
+
+if (allocated(ele_loc_com%branch)) then
+  do i = lbound(ele_loc_com%branch, 1), ubound(ele_loc_com%branch, 1)
+    do j = lbound(ele_loc_com%branch(i)%ele, 1), ubound(ele_loc_com%branch(i)%ele, 1)
+      loc => ele_loc_com%branch(i)%ele(j)
+      if (loc%ix_branch /= ix_branch) cycle
+      if (loc%ix_ele >= insert_index) loc%ix_ele = loc%ix_ele + 1
+    enddo
+  enddo
+endif
 
 call set_flags_for_changed_attribute (lat, inserted_ele)
 

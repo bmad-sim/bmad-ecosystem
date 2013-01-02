@@ -358,6 +358,7 @@ end subroutine lat_ele1_locator
 !   use lat_ele_loc_mod
 !
 ! Input:
+!   eles(:) -- ele_pointer_struct, allocatable: Array of element pointers with possible old data.
 !   n        -- Integer: Array size to set.
 !   save_old -- Logical, optional: If present and True then save the old data.
 !   exact    -- Logical, optional: If present and True then eles will have size = n
@@ -384,21 +385,16 @@ if (.not. allocated(eles)) then
 endif
 
 if (.not. logic_option(.false., exact) .and. size(eles) >= n) return
-
 if  (size(eles) == n) return
 
 if (logic_option (.false., save_old)) then
-  n_old = min(size(eles), n)
-  allocate (l_temp(n_old))
-  l_temp = eles(1:n_old)
-endif
-
-deallocate (eles)
-allocate (eles(n))
-
-if (logic_option (.false., save_old)) then
-  eles(1:n_old) = l_temp
+  call move_alloc (eles, l_temp)
+  allocate (eles(n))
+  eles(1:size(l_temp)) = l_temp
   deallocate (l_temp)
+else
+  deallocate (eles)
+  allocate (eles(n))
 endif
 
 end subroutine re_allocate_eles

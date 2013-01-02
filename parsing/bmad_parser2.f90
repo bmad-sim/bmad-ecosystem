@@ -48,7 +48,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) v1, v2
 
-integer ix_word, i, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
+integer ix_word, i, j, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
 integer key, n_max_old, n_loc
 integer, pointer :: n_max, n_ptr
 integer, allocatable :: lat_indexx(:)
@@ -560,7 +560,10 @@ do i = 1, ele_num
   end select
 
   ixx = ele%ixx
-  call add_all_superimpose (lat, ele, plat%ele(ixx))
+
+  do j = 0, ubound(lat%branch, 1)
+    call add_all_superimpose (lat%branch(j), ele, plat%ele(ixx))
+  enddo
 enddo
 
 ! Go through and create the overlay, girder, and group lord elements.

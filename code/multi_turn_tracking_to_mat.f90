@@ -32,6 +32,9 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
 
   type (coord_struct), intent(in), target :: track(:)
   type (coord_struct), intent(out) :: track0
+  type (coord_struct), pointer, save :: multi_turn_func_common(:) => null()
+
+
   real(rp), intent(out) :: map1(:,:), map0(:)
   real(rp), intent(out) :: chi
   integer, intent(in) :: i_dim
@@ -40,15 +43,6 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
   real(rp), allocatable :: x(:), y(:), sig(:), v(:,:), w(:), a(:), m(:,:)
   type (coord_struct), allocatable, target :: d0track(:)
   integer i, n
-
-  interface
-    function multi_turn_func (x, n)
-      use precision_def
-      real(rp), intent(in) :: x
-      integer, intent(in) :: n
-      real(rp) :: multi_turn_func(n)
-    end function
-  end interface
 
 ! init
 
@@ -126,10 +120,8 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, map1, map0, track0, chi)
 
   chi = sqrt(dsum2/sum2)
 
-end subroutine
-
 !-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
+contains
 
 function multi_turn_func (x, id)
 
@@ -147,3 +139,6 @@ function multi_turn_func (x, id)
   multi_turn_func = [multi_turn_func_common(nint(x))%vec(1:id-1), 1.0_rp ]
 
 end function
+
+end subroutine
+

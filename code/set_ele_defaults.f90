@@ -66,6 +66,10 @@ case (multilayer_mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
 
+case (patch$)
+  ele%value(flexible$) = 0 ! False
+  ele%value(clone$) = 1    ! True
+
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
   ele%value(hgapx$) = real_garbage$

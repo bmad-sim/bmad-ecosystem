@@ -28,6 +28,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord
 type (branch_struct), pointer :: branch
 type (control_struct), pointer :: ctl
+type (lat_ele_loc_struct), pointer :: loc
 
 type ele_index_temp
   type (lat_ele_loc_struct), allocatable :: new(:)  ! new(old_ele_index) => new_ele_index
@@ -75,7 +76,8 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
     if (ele%key == -1) then
-      ibr(ib)%new(i)%ix_ele = -1
+      ibr(ib)%new(i)%ix_ele    = -1
+      ibr(ib)%new(i)%ix_branch = -1
     else
       i2 = i2 + 1
       ibr(ib)%new(i)%ix_ele    = i2
@@ -190,6 +192,17 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
 enddo
+
+! 
+
+if (allocated(ele_loc_com%branch)) then
+  do i = lbound(ele_loc_com%branch, 1), ubound(ele_loc_com%branch, 1)
+    do j = lbound(ele_loc_com%branch(i)%ele, 1), ubound(ele_loc_com%branch(i)%ele, 1)
+      loc => ele_loc_com%branch(i)%ele(j)
+      loc = ibr(loc%ix_branch)%new(loc%ix_ele)
+    enddo
+  enddo
+endif
 
 ! deallocate and do a check
 

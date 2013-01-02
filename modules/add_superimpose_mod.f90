@@ -64,10 +64,11 @@ type (ele_struct) super_saved, slave_saved, drift, null_ele
 type (ele_struct), pointer :: slave, lord
 type (control_struct)  sup_con(100)
 type (branch_struct), pointer :: branch
+type (lat_ele_loc_struct), pointer :: loc
 
 real(rp) s1, s2, length, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge, s1_in, s2_in
 
-integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch
+integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch, ii
 integer ix1_split, ix2_split, ix_super, ix_super_con
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
@@ -289,31 +290,41 @@ endif
 
 do i = ix1_split+1, ix2_split
   slave => branch%ele(i)
-  if (slave%slave_status == multipass_slave$) then
-    ! Create a lord for this multipass_slave
-    call new_control(lat, ixs)
-    slave => branch%ele(i) ! need this if branch%ele was reallocated
-    lord => lat%ele(ixs)
-    lord = slave
-    lord%lord_status = super_lord$
-    ! Point control info to this new lord
-    do j = 1, lat%n_control_max
-      if (lat%control(j)%ix_slave == i) lat%control(j)%ix_slave = ixs
+  if (slave%slave_status /= multipass_slave$) cycle
+  ! Create a lord for this multipass_slave
+  call new_control(lat, ixs)
+  slave => branch%ele(i) ! need this if branch%ele was reallocated
+  lord => lat%ele(ixs)
+  lord = slave
+  lord%lord_status = super_lord$
+  ! Point control info to this new lord
+  do j = 1, lat%n_control_max
+    if (lat%control(j)%ix_slave == i) lat%control(j)%ix_slave = ixs
+  enddo
+  ! Now put in the info to make the original element a super_slave
+  lord%n_slave = 1
+  call add_lattice_control_structs (lat, lord)
+  ix = lord%ix1_slave
+  lat%control(ix)%ix_slave = i
+  lat%control(ix)%ix_branch = ix_branch
+  slave%slave_status = super_slave$
+  slave%name = trim(slave%name) // '#1'
+  slave%n_lord = 1
+  slave%ic1_lord = 0   ! So add_lattice_control_structs does the right thing
+  slave%ic2_lord = -1  ! So add_lattice_control_structs does the right thing
+  call add_lattice_control_structs (lat, slave)
+  ic = slave%ic1_lord
+  lat%ic(ic) = ix
+  !
+  if (allocated(ele_loc_com%branch)) then
+    do ii = lbound(ele_loc_com%branch, 1), ubound(ele_loc_com%branch, 1)
+      do jj = lbound(ele_loc_com%branch(ii)%ele, 1), ubound(ele_loc_com%branch(ii)%ele, 1)
+        loc => ele_loc_com%branch(ii)%ele(jj)
+        if (loc%ix_branch /= branch%ix_branch .or. loc%ix_ele /= slave%ix_ele) cycle
+        loc%ix_branch = lord%ix_branch
+        loc%ix_ele = lord%ix_ele
+      enddo
     enddo
-    ! Now put in the info to make the original element a super_slave
-    lord%n_slave = 1
-    call add_lattice_control_structs (lat, lord)
-    ix = lord%ix1_slave
-    lat%control(ix)%ix_slave = i
-    lat%control(ix)%ix_branch = ix_branch
-    slave%slave_status = super_slave$
-    slave%name = trim(slave%name) // '#1'
-    slave%n_lord = 1
-    slave%ic1_lord = 0   ! So add_lattice_control_structs does the right thing
-    slave%ic2_lord = -1  ! So add_lattice_control_structs does the right thing
-    call add_lattice_control_structs (lat, slave)
-    ic = slave%ic1_lord
-    lat%ic(ic) = ix
   endif
 enddo
 

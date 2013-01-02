@@ -585,6 +585,7 @@ Attributes specific to a \vn{branch} and \vn{photon_branch} elements are:
   direction    = <+/- 1>      ! Direction of branch.
   to_line      = <LineName>   ! What line to branch to.
   to_element   = <ElementID>  ! What element to in the line to attach to.
+  new_branch   = <T/F>        ! Make a new branch from the to_line? Default = True.
 \end{example}
 
 Branch lines can themselves have branching elements. A branch line
@@ -606,34 +607,12 @@ and the particle phase space coordinates are transformed using
   (x, p_x, y, p_y, z, p_z) \longrightarrow (-x, p_x, y, -p_y, -z, p_z)
 \Endeq
 
-If the branch line is to transport particles different from
-the originating line (such as in a photon line branching
-from an electron line), the particle type and the beginning reference energy
-must be set for that line (\sreffff{}). Additionally, the \etcetc...
-
-Setting the start
-
-The \vn{E_tot_start} and \vn{p0c_start} attributes set the starting
-reference energy of the branch. This is analogous to the
-\vn{parameter[E_tot]} and \vn{parameter[p0c]} parameters used to set
-the root branch (\sref{s:param}). This is useful, for example, for a
-photon branch that is branching from a storage ring where the photon
-energy is not simply related to the particle energy. If
-\vn{E_tot_start} and \vn{p0c_start} are both not set, the starting
-reference energy of the root branch is taken to be the same as the reference
-energy at the branch element in the that is being branched from (the ``from''
-branch). Not setting both \vn{E_tot_start} and \vn{p0c_start} is only
-allowed if the mass of the particle of the ``from'' branch is the same
-as the mass of the particle in the ``to'' branch.
-
-The \vn{lattice_type} attribute sets whether the branch is linear or
-circular and is analogous to the \vn{parameter[lattice_type]} parameter. 
-The default is \vn{linear_lattice}. Notice a difference here: The default for
-the \vn{parameter[lattice_type]} parameter is determined by whether there is
-an \vn{lcavity} element in the root branch. 
-
-The \vn{particle} attribute sets the type of particle used for calculations in the branch.
-This is analogous to the \vn{parameter[particle]} attribute for the root branch. 
+If the branch line is to transport particles different from the
+originating line the particle type and the beginning reference energy
+must be set for that line using line parameter statements
+(\sref{s:beginning}). This is useful, for example, for a photon branch
+that is branching from a storage ring where the photon energy is not
+simply related to the particle energy. 
 
 Example showing an injection line branching to a ring branching to an x-ray line:
 \begin{example}
@@ -1137,9 +1116,9 @@ starting with an \vn{origin reference point}. This reference point can
 either be specified by specifying an absolute global position using
 the attributes \vn{x_origin}, \vn{y_origin}, etc. or by specifying an
 \vn{origin_ele} element. If specified, the \vn{origin_ele} element
-must be a \vn{marker} or \vn{init_ele} element. If the \vn{origin_ele} is specified,
-the alsolute reference position attributes \vn{x_origin}, etc., are
-ignored.
+must be a \vn{marker} or \vn{init_ele} element. If the \vn{origin_ele}
+is specified, the alsolute reference position attributes
+\vn{x_origin}, etc., are ignored.
 
 Once the origin reference position is determined, the reference
 position of the \vn{fiducial} element is calculated using the offset
@@ -1171,17 +1150,30 @@ or the \vn{origin_ele} in the same branch as the \vn{fiducial} element
 but is positioned upstream from the \vn{fiducial} element and there is
 a \vn{flexible} \vn{patch} in between the two elements.
   \item
-Two \vn{fiducial} elements may not appear in the same lattice branch
-unless separated by a \vn{flexible} \vn{patch}
-  \item
 If a \vn{fiducial} element affets the position of element 0 in the
-lattice branch, any positioning of element 0 via \vn{beginning} or
-\vn{line initialization} statements (\sref{s:beginning}) are
-ignored.
+lattice branch (that is, there are no flexible \vn{branch} elements
+inbetween), any positioning of element 0 via \vn{beginning} or
+\vn{line parameter} statements (\sref{s:beginning}) are ignored.
+  \item
+\vn{Fiducial} elements must not over constrain the lattice geometry.
+For example, two \vn{fiducial} elements may not appear in the same
+lattice branch unless separated by a \vn{flexible} \vn{patch}. 
+
+Another example is that if there are no flexible \vn{patch} elements
+in the lattice, and if branch \vn{A} has a \vn{branch} element
+connecting to branch \vn{B}, the geometry of branch \vn{A} will be
+calculated first and the geometry of branch \vn{B} can then be
+calculated from the known coordinates of the \vn{branch} element. If
+branch \vn{B} contains a \vn{fiducial} element then this is an error
+since the coordinate calculation never backtracks to recalculate the
+coordinates of the elements of a branch once the calculation has
+finished with that branch.
   \end{description}
 
-\etcetc
-
+Example:
+\begin{example}
+  f1: fiducial, origin_ele = mark1, x_offset = 0.04
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Floor_Shift}
