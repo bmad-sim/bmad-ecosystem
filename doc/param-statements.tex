@@ -268,12 +268,8 @@ default values are all zero.  \vn{beginning[e_tot]} and
 set but not both. Similarly, \vn{beginning[p0c]} and
 \vn{parameter[p0c]} are equivalent.
 
-\index{x_position}
-\index{y_position}
-\index{z_position}
-\index{theta_position}
-\index{phi_position}
-\index{psi_position}
+\index{x_position}\index{y_position}\index{z_position}
+\index{theta_position}\index{phi_position}\index{psi_position}
 For any lattice the \vn{beginning} statement can be used to set the
 starting floor position of the first lattice branch
 (see~\ref{s:global}). The syntax is
@@ -285,6 +281,8 @@ starting floor position of the first lattice branch
   beginning[phi_position]   = <Real>  ! Angle of attack
   beginning[psi_position]   = <Real>  ! Roll angle
 \end{example}
+If the floor position is not specified, the default is to place
+beginning element at the origin with all angles set to zero.
 
 \index{root branch}\index{branch}
 The \vn{beginning} statement is useful in situations where only parameters for

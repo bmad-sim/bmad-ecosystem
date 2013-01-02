@@ -1240,10 +1240,11 @@ PTC does not have an analogous element for the \vn{Floor_shift}
 element. When converting to PTC, a \vn{floor_shift} element will be treated
 as a \vn{marker} element.
 
-Example:
+Example: 
 \begin{example}
   floor: floor_shift, z_offset = 3.2
 \end{example}
+This is equivalent to a drift.
 
 %-----------------------------------------------------------------
 \section{Girder}
@@ -2026,7 +2027,14 @@ to the downstream face and the suitable coordinate transformation is
 made to translate the particle's coordinates from the upstream coordinate
 frame to the downstream coordinate frame (\sref{s:patch.std}).
 
-\index{flexible}\index{flexible patch}
+To have in a branch both normally oriented and reversed elements
+(\sref{s:ref.construct}), a \vn{patch}, (or series of \vn{patches}),
+which reflects the $z$ direction must be placed in between. Such a
+\vn{patch}, (or patches) is called a \vn{reflection}
+\vn{patch}. See Section~\sref{s:patch.coords} for more details.
+
+\index{rigid patch}\index{infleible patch}
+\index{flexible patch}
 With the \vn{flexible} attribute set to \vn{False}, the default, The
 exit face of the \vn{patch} will be determined from the offset, tilt
 and pitch attributes as described in \sref{s:patch.coords}. This type
@@ -2036,23 +2044,23 @@ and is independent of everything else.
 
 With \vn{flexible} set to \vn{True}, the exit face is taken to be the
 reference frame of the entrance face of the next element in the
-lattice. In this case, as explained in \sreff, it must be possible to
-compute the recerence coordinates of the next element before the
-reference coordinates of the \vn{patch} are computed. In this case,
-the offsets, pitches, and tilt of the \vn{patch} are dependent
-parameters (\sref{s:depend}) and will be computed. Here the \vn{patch}
-is called ``flexible'' since the geometry of the patch will depend
-upon the geometry of the rest of the lattice and, therefore, if the
-geometry of the rest of the lattice is modified (is ``flexed''), the
-geometry of the \vn{patch} will vary as well.
-
-\index{rigid patch}\index{infleible}
+lattice. In this case, it must be possible to compute the recerence
+coordinates of the next element before the reference coordinates of
+the \vn{patch} are computed. A \vn{flexible} \vn{patch} will have the
+its offsets, pitches, and tilt as dependent parameters
+(\sref{s:depend}) and these parameters will be computed. Here the
+\vn{patch} is called ``flexible'' since the geometry of the patch will
+depend upon the geometry of the rest of the lattice and, therefore, if
+the geometry of the rest of the lattice is modified (is ``flexed''),
+the geometry of the \vn{patch} will vary as well. See
+Section~\sref{s:ex.erl} for an example.
 
 
 Example:
 \begin{example}
   pt: patch, z_offset = 3.2   ! Equivalent to a drift
 \end{example}
+This is equivalent to a drift.
 
 %-----------------------------------------------------------------
 \section{Quadrupole}
@@ -2420,32 +2428,32 @@ The \vn{map type} wigglers are modeled using the method of Sagan,
 Crittenden, and Rubin\cite{b:wiggler}. In this model the magnetic
 field is written as a sum of terms $B_i$
 \Begineq
-  \bfB(x,y,s) = \sum_i \bfB_i(x, y, s; C, k_x, k_y, k_s, \phi_s)
+  \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; C, k_x, k_y, k_z, \phi_z)
 \Endeq 
 Each term $B_i$ is specified using five numbers: 
-$(C, k_x, k_y, k_s, \phi_s)$. A term can take one of three forms: The first
+$(C, k_x, k_y, k_z, \phi_z)$. A term can take one of three forms: The first
 form is
 \begin{alignat}{4}
-  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \label{f1} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \nonumber
+  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\kzzz) \CRNEG
+  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\kzzz) \CRNEG
+  B_s &= -&C &\dfrac{k_z}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\kzzz) \label{f1} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&&  \nonumber
 \end{alignat}
 The second form is
 \begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \label{f2} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \nonumber
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\kzzz) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\kzzz) \CRNEG
+  B_s &= -&C &\dfrac{k_z}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\kzzz) \label{f2} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_z^2 - k_x^2$ ,} &&&  \nonumber
 \end{alignat}
 The third form is
 \begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \label{f3} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \nonumber
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\kzzz) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\kzzz) \CRNEG
+  B_s &= -&C &\dfrac{k_z}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\kzzz) \label{f3} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_z^2$ .} &&& \nonumber
 \end{alignat}
-The relationship between $k_x$, $k_y$, and $k_s$ ensures that
+The relationship between $k_x$, $k_y$, and $k_z$ ensures that
 Maxwell's equations are satisfied.
 
 \index{polarity}
@@ -2511,14 +2519,14 @@ octupole. Vertical motion is calculated using a kick-drift-kick model.
 \vn{Periodic type} wigglers use a simplified model where the magnetic
 field components are
 \begin{alignat}{1}
-  B_y &= \hphantom{-} B_{\max} \, \cosh(k_s \, y) \, \cos(k_s \, s) \CRNO
-  B_s &= -B_{\max} \, \sinh(k_s \, y) \, \sin(k_s \, s) 
-  \label{bbkyks}
+  B_y &= \hphantom{-} B_{\max} \, \cosh(k_z \, y) \, \cos(k_z \, z) \CRNO
+  B_z &= -B_{\max} \, \sinh(k_z \, y) \, \sin(k_z \, z) 
+  \label{bbkykz}
 \end{alignat}
 where $B_{\max}$ is the maximum field on the centerline and $k$ is
 given in terms of the pole length (\vn{l_pole}) by
 \Begineq
-  k_s = \frac{\pi}{l_{\mbox{pole}}}
+  k_z = \frac{\pi}{l_{\mbox{pole}}}
 \Endeq
 This type of wiggler has infinitely wide poles. With
 \vn{bmad_standard} tracking and transfer matrix calculations the
@@ -2527,7 +2535,7 @@ horizontal motion looks like a drift and the vertical motion is
 modeled as a combination focusing quadrupole and focusing octupole
 giving a kick\cite{b:corbett}
 \Begineq
-  \frac{dp_y}{ds} = k_1 \left( y + \frac{2}{3} \, k_s^2 \, y^3 \right)
+  \frac{dp_y}{dz} = k_1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
 \Endeq
 where
 \begin{alignat}{1}
@@ -2536,7 +2544,7 @@ where
 with $k_1$ being the linear focusing constant. For radiation
 calculations the true horizontal trajectory with $y = 0$ is needed
 \Begineq
-  x = \frac{\sqrt{2 \, |k_1|}}{k_s^2} \, \cos (k_s \, s)
+  x = \frac{\sqrt{2 \, |k_1|}}{k_z^2} \, \cos (k_z \, z)
 \Endeq
 
 With \vn{periodic type} wigglers and \vn{bmad_standard} tracking, the
@@ -2545,7 +2553,7 @@ involves Taylor maps and symplectic integration, the phase is
 important. Here the phase is chosen so that $B_y$ is symmetric about
 the center of the wiggler
 \Begineq
-  \phi_s = \frac{-k_y \, L}{2}
+  \phi_z = \frac{-k_y \, L}{2}
 \Endeq
 With this choice, a particle that enters the wiggler on-axis will
 leave the wiggler on-axis provided there is an even number of poles.

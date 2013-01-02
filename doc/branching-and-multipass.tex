@@ -188,12 +188,14 @@ to describe complicated machine geometries.
 \subsection{Example: Flexible Patch in an ERL}
 \label{s:ex.erl}
 
+\more_\needed
+
 Consider the case of an Energy Recovery Linac (ERL) where the beam
 goes through the linac section of the ERL twice. Once to accelerate
 the beam and once to decellerate and recover the energy from the
 beam. The basic ERL lattice is then
 \begin{example}
-  erl: line = (injector, linac, arc, linac, dump)
+  erl: line = (injector, merge, linac, arc, linac, dump)
   injector: line = (...)
   linac: line[multipass] = (..., rf1, ...)
   arc: line = (..., patch2)
@@ -219,6 +221,50 @@ beam. The basic ERL lattice is then
 An injection line into a dipole magnet is illustrated in \fig{f:inject}.
 
 
+%-----------------------------------------------------------------------------
+\subsection{Example: Patch Between reversed and non-reversed elements.}
+\label{s:ex.patch}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{patch-between.pdf}
+  \caption[Patching between reversed and non-reversed elements.]{
+Dirft element \vn{D} is followed by a reversed drift element \vn{B}.
+The view is from $+y$ onto the $x$-$z$ plane. A) If no patch is
+present then the geometry does not make physical sense. B) With a
+patch in between, a sensical geometry obtained.}
+  \label{f:patch.between}
+\end{figure}
+
+Between normal and reversed elements there must be a reversing \vn{patch}. 
+This is illustrated in \fig{f:patch.between}. The basic lattice is
+\begin{example}
+  D: drift, l = 2
+  g_design = pi/12
+  B: sbend, l = 2, g = g_design, g_err = -2*g_design
+  P: patch, x_pitch = pi
+  fig_A: line = (D, --B)     ! Illegal. Do not use!
+  fig_B: line = (D, P, --B)  ! Correct
+\end{example}
+Line \vn{fig_A} represents the situation shown in
+\fig{f:patch.between}A.  With no patch between the drift \vn{D} and
+the reversed bend \vn{B}, a particle leaving \vn{D} at \vn{D}'s
+downstream end will find itself outside of of \vn{B} as well. Clearly
+this is an unphysical situation. Sanity is restored is line \vn{fig_B}
+is used. In this instance, the patch \vn{P} rotates the reference
+coordinates around the $y$-axis leaving the $y$-axis invarient the
+bend of \vn{B} is in the $x$-$z$ plane. Of course there are many other
+patches that could be used here. For example, Setting \vn{y_pitch} to
+\vn{pi}. 
+
+Since bend \vn{B} is reversed, A particle moving downstream within
+\vn{B} is going the opposite direction from the normal direction. If
+\vn{g_err} were zero in this instance, a downstream moving particle
+would feel a force that will rotate the particle in a clockwise manner
+opposite from the counterclockwise direction of the bend. To counter
+this, \vn{g_err} is set so the total bending field \vn{g_tot = g +
+g_err} is opposite the design field. That is, \vn{g_err} is set so
+that \vn{g_tot = -g}.
 
 %-----------------------------------------------------------------------------
 \subsection{Example: Colliding Beam Storage Rings}

@@ -30,9 +30,10 @@
 
 subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
+use track1_mod, dummy2 => track1_bmad
 use mad_mod, dummy3 => track1_bmad
 use lat_geometry_mod, dummy4 => track1_bmad
-use track1_mod, dummy2 => track1_bmad
+use ptc_interface_mod, dummy5 => track1_bmad
 
 implicit none
 
@@ -41,9 +42,10 @@ type (coord_struct) :: end_orb, temp_orb
 type (ele_struct) :: ele, temp_ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
+type (taylor_struct) taylor(6), taylor2(6)
 
 real(rp) k1, k2, k2l, k3l, length, phase, beta_start
-real(rp) beta_end, beta_start_ref, beta_end_ref
+real(rp) beta_end, beta_start_ref, beta_end_ref, hkick, vkick, kick
 real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const, voltage
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
@@ -64,7 +66,7 @@ real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 
 real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
-real(rp) test, nn, mm, temp_vec(3), p_vec(3), r_vec(3)
+real(rp) test, nn, mm, temp_vec(3), p_vec(3), r_vec(3), charge_dir
 
 complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
@@ -90,6 +92,7 @@ if (param%particle /= photon$) then
 endif
 length = ele%value(l$)
 rel_pc = 1 + start_orb%vec(6)
+charge_dir = param%rel_tracking_charge * ele%orientation
 
 !-----------------------------------------------
 ! Select
@@ -157,9 +160,9 @@ case (bend_sol_quad$)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   len_slice = length / n_slice
-  ks = ele%value(ks$) / rel_pc 
-  k0l = ele%value(g$) * len_slice
-  k1l = ele%value(k1$) * len_slice
+  ks  = charge_dir * ele%value(ks$) / rel_pc 
+  k0l = charge_dir * ele%value(g$) * len_slice
+  k1l = charge_dir * ele%value(k1$) * len_slice
 
   call solenoid_mat_calc (ks, length, mat4)
 
@@ -194,11 +197,11 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
   do i = 1, n_slice
     call track_a_drift (end_orb, ele, length/n_slice)
     if(i == n_slice) then
-      end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / (2 * n_slice)
-      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
+      end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) * charge_dir / (2 * n_slice)
+      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) * charge_dir / (2 * n_slice)
     else
-      end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / n_slice
-      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / n_slice
+      end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) * charge_dir / n_slice
+      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) * charge_dir / n_slice
     end if
   end do
   call offset_particle (ele, end_orb, param, unset$, .false., set_tilt = .false., set_hvkicks = .false.)
@@ -220,8 +223,12 @@ case (elseparator$)
   call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.) 
   call transfer_ele(ele, temp_ele, .true.)
   call zero_ele_offsets(temp_ele)
-  temp_ele%value(hkick$) = temp_ele%value(hkick$) / (1. + end_orb%vec(6))
-  temp_ele%value(vkick$) = temp_ele%value(vkick$) / (1. + end_orb%vec(6))
+  temp_ele%value(hkick$) = temp_ele%value(hkick$) * param%rel_tracking_charge / (1. + end_orb%vec(6))
+  temp_ele%value(vkick$) = temp_ele%value(vkick$) * param%rel_tracking_charge / (1. + end_orb%vec(6))
+  if (param%particle < 0) then
+    temp_ele%value(hkick$) = -temp_ele%value(hkick$)
+    temp_ele%value(vkick$) = -temp_ele%value(vkick$)
+  endif
 
   call make_mad_map (temp_ele, param, energy, map)
   end_orb%vec(6) = 0
@@ -242,35 +249,39 @@ case (elseparator$)
  
 case (kicker$, hkicker$, vkicker$) 
 
+  hkick = charge_dir * ele%value(hkick$) 
+  vkick = charge_dir * ele%value(vkick$) 
+  kick  = charge_dir * ele%value(kick$) 
+
   call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.)
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   if (ele%key == hkicker$) then
-     end_orb%vec(2) = end_orb%vec(2) + ele%value(kick$) / (2 * n_slice)
+     end_orb%vec(2) = end_orb%vec(2) + kick / (2 * n_slice)
   elseif (ele%key == vkicker$) then
-     end_orb%vec(4) = end_orb%vec(4) + ele%value(kick$) / (2 * n_slice)
+     end_orb%vec(4) = end_orb%vec(4) + kick / (2 * n_slice)
   else
-     end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / (2 * n_slice)
-     end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
+     end_orb%vec(2) = end_orb%vec(2) + hkick / (2 * n_slice)
+     end_orb%vec(4) = end_orb%vec(4) + vkick / (2 * n_slice)
   endif
   do i = 1, n_slice
      call track_a_drift (end_orb, ele, length/n_slice)
      if (i == n_slice) then
         if (ele%key == hkicker$) then
-           end_orb%vec(2) = end_orb%vec(2) + ele%value(kick$) / (2 * n_slice)
+           end_orb%vec(2) = end_orb%vec(2) + kick / (2 * n_slice)
         elseif (ele%key == vkicker$) then
-           end_orb%vec(4) = end_orb%vec(4) + ele%value(kick$) / (2 * n_slice)
+           end_orb%vec(4) = end_orb%vec(4) + kick / (2 * n_slice)
         else
-           end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / (2 * n_slice)
-           end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
+           end_orb%vec(2) = end_orb%vec(2) + hkick / (2 * n_slice)
+           end_orb%vec(4) = end_orb%vec(4) + vkick / (2 * n_slice)
         endif
      else 
         if (ele%key == hkicker$) then
-           end_orb%vec(2) = end_orb%vec(2) + ele%value(kick$) / n_slice
+           end_orb%vec(2) = end_orb%vec(2) + kick / n_slice
         elseif (ele%key == vkicker$) then
-           end_orb%vec(4) = end_orb%vec(4) + ele%value(kick$) / n_slice
+           end_orb%vec(4) = end_orb%vec(4) + kick / n_slice
         else
-           end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / n_slice
-           end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / n_slice
+           end_orb%vec(2) = end_orb%vec(2) + hkick / n_slice
+           end_orb%vec(4) = end_orb%vec(4) + vkick / n_slice
         endif
      endif
   end do
@@ -496,7 +507,7 @@ case (octupole$)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
 
-  k3l = ele%value(k3$) * length / n_slice
+  k3l = charge_dir * ele%value(k3$) * length / n_slice
 
   call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
@@ -556,7 +567,7 @@ case (quadrupole$)
 
   call offset_particle (ele, end_orb, param, set$)
 
-  k1 = ele%value(k1$) / rel_pc
+  k1 = charge_dir * ele%value(k1$) / rel_pc
 
   ! Entrance edge
 
@@ -680,7 +691,7 @@ case (sextupole$)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
 
-  k2l = ele%value(k2$) * length / n_slice
+  k2l = charge_dir * ele%value(k2$) * length / n_slice
 
   call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
@@ -702,12 +713,13 @@ case (sextupole$)
 
 !-----------------------------------------------
 ! solenoid
+! Notice that ks is independent of the ele orientation
 
 case (solenoid$)
 
   call offset_particle (ele, end_orb, param, set$)
 
-  ks = ele%value(ks$) / rel_pc
+  ks = param%rel_tracking_charge * ele%value(ks$) / rel_pc
 
   xp_start = end_orb%vec(2) + ks * end_orb%vec(3) / 2
   yp_start = end_orb%vec(4) - ks * end_orb%vec(1) / 2
@@ -727,8 +739,8 @@ case (sol_quad$)
 
   call offset_particle (ele, end_orb, param, set$)
 
-  ks = ele%value(ks$) / rel_pc
-  k1 = ele%value(k1$) / rel_pc
+  ks = param%rel_tracking_charge * ele%value(ks$) / rel_pc
+  k1 = charge_dir * ele%value(k1$) / rel_pc
   vec0 = 0
   call sol_quad_mat6_calc (ks, k1, length, mat6, vec0, dz4_coef)
   end_orb%vec(5) = end_orb%vec(5) + sum(end_orb%vec(1:4) * matmul(dz4_coef, end_orb%vec(1:4)))   
@@ -743,7 +755,18 @@ case (sol_quad$)
 
 case (taylor$)
 
-  call track1_taylor (start_orb, ele, param, end_orb)
+  if (ele%orientation == 1) then
+    call track1_taylor (start_orb, ele, param, end_orb)
+
+  else
+    call taylor_inverse (ele%taylor, taylor)
+    taylor2 = ele%taylor
+    ele%taylor = taylor
+    call track1_taylor (start_orb, ele, param, end_orb)
+    ele%taylor = taylor2
+    call kill_taylor(taylor)
+  endif
+
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -774,7 +797,7 @@ case (wiggler$)
   else
     k_z = pi / ele%value(l_pole$)
   endif
-  k1 = -0.5 * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_pc))**2
+  k1 = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_pc))**2
 
   ! 1/2 of the octupole octupole kick at the entrance face.
 

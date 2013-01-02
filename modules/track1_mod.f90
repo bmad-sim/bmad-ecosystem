@@ -521,7 +521,7 @@ type (coord_struct) orb
 type (lat_param_struct) param
 
 real(rp), optional :: kx, ky
-real(rp) e, g, g_tot, fint, hgap, k1x, k1y, cos_e, sin_e, tan_e, sec_e, v0(6), k1_eff
+real(rp) e, g, g_tot, fint, hgap, ht_x, ht_y, cos_e, sin_e, tan_e, sec_e, v0(6), k1_eff
 real(rp) ht2, hs2, c_dir
 integer stream_end, element_end
 logical in_to_out
@@ -532,6 +532,7 @@ character(24), parameter :: r_name = 'apply_bend_edge_kick'
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
 
 c_dir = param%rel_tracking_charge * ele%orientation
+element_end = physical_ele_end(stream_end, ele%orientation)
 
 g     = ele%value(g$)
 g_tot = (g + ele%value(g_err$)) * c_dir
@@ -543,62 +544,60 @@ else
 endif
 
 cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
-k1x = g_tot * tan_e
+ht_x = g_tot * tan_e
 ht2 = g * tan_e**2
 hs2 = g * sec_e**2
 k1_eff = ele%value(k1$) * c_dir
 
-element_end = physical_ele_end(stream_end, ele%orientation)
-
 if (fint == 0) then
-  k1y = -k1x
+  ht_y = -ht_x
 else
-  k1y = -g_tot * tan(e - 2 * fint * g_tot * hgap * (1 + sin_e**2) / cos_e)
+  ht_y = -g_tot * tan(e - 2 * fint * g_tot * hgap * (1 + sin_e**2) / cos_e)
 endif
 
 v0 = orb%vec
 
 if (in_to_out) then
-  if (element_end == entrance_end$) then
+  if (stream_end == upstream_end$) then
     orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
-    orb%vec(2) = v0(2) - k1x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) - &
+    orb%vec(2) = v0(2) - ht_x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) - &
                          k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
-                         k1x * ht2 * (v0(1)**2 + v0(3)**2) / 2
+                         ht_x * ht2 * (v0(1)**2 + v0(3)**2) / 2
     orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
-    orb%vec(4) = v0(4) - k1y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
-                         tan_e * (2 * k1_eff + k1x * hs2) * v0(1) * v0(3)
+    orb%vec(4) = v0(4) - ht_y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
+                         tan_e * (2 * k1_eff + ht_x * hs2) * v0(1) * v0(3)
   else
     orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
-    orb%vec(2) = v0(2) - k1x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) - &
+    orb%vec(2) = v0(2) - ht_x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) - &
                          k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
-                         k1x * (ht2 + hs2) * v0(3)**2 / 2
+                         ht_x * (ht2 + hs2) * v0(3)**2 / 2
     orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
-    orb%vec(4) = v0(4) - k1y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) + &
+    orb%vec(4) = v0(4) - ht_y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) + &
                          2 * k1_eff * tan_e * v0(1) * v0(3) 
   endif
 
 else
-  if (element_end == entrance_end$) then
+  if (stream_end == upstream_end$) then
     orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
-    orb%vec(2) = v0(2) + k1x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) + &
+    orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) + &
                          k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
-                         k1x * (ht2 + hs2) * v0(3)**2 / 2
+                         ht_x * (ht2 + hs2) * v0(3)**2 / 2
     orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
-    orb%vec(4) = v0(4) + k1y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) - &
+    orb%vec(4) = v0(4) + ht_y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) - &
                          2 * k1_eff * tan_e * v0(1) * v0(3) 
   else
     orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
-    orb%vec(2) = v0(2) + k1x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) + &
+    orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) + &
                          k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
-                         k1x * ht2 * (v0(1)**2 + v0(3)**2) / 2
+                         ht_x * ht2 * (v0(1)**2 + v0(3)**2) / 2
     orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
-    orb%vec(4) = v0(4) + k1y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) - &
-                         tan_e * (2 * k1_eff + k1x * hs2) * v0(1) * v0(3)
+    orb%vec(4) = v0(4) + ht_y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
+                         (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1) * v0(3)
   endif
 endif
 
-if (present(kx)) kx = k1x 
-if (present(ky)) ky = k1y
+if (present(kx)) kx = ht_x 
+if (present(ky)) ky = ht_y
 
 end subroutine apply_bend_edge_kick
 

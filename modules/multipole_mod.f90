@@ -116,7 +116,7 @@ end subroutine multipole_ab_to_kt
 ! Subroutine multipole_ele_to_kt (ele, param, use_ele_tilt, has_nonzero_pole, knl, tilt)
 !
 ! Subroutine to put the multipole components (strength and tilt)
-! into 2 vectors along with the appropriate scaling.
+! into 2 vectors along with the appropriate scaling for the relative tracking charge, etc.
 ! Note: tilt(:) does includes ele%value(tilt_tot$).
 !
 ! Modules needed:
@@ -159,7 +159,7 @@ has_nonzero_pole = .false.
 ! Also multipoles cannot be slaves.
 
 if (ele%key == multipole$) then
-  knl  = ele%a_pole
+  knl  = ele%a_pole * (ele%orientation * param%rel_tracking_charge)
   tilt = ele%b_pole + ele%value(tilt_tot$)
   if (any(knl /= 0)) has_nonzero_pole = .true.
   return
@@ -300,6 +300,8 @@ if (ele%key == multipole$) then
   if (all(ele%a_pole == 0)) return
   has_nonzero_pole = .true.
   call multipole_kt_to_ab (ele%a_pole, ele%b_pole, a, b)
+  a = a * (ele%orientation * param%rel_tracking_charge)
+  b = b * (ele%orientation * param%rel_tracking_charge)
   return
 endif
 
@@ -317,6 +319,20 @@ else
   call convert_this_ab (ele, a, b)
 endif
 
+! flip sign for electrons or antiprotons with a separator.
+
+if (ele%key == elseparator$) then
+  if (param%particle < 0) then
+    this_a = -this_a
+    this_b = -this_b
+  endif
+  a = a * param%rel_tracking_charge
+  b = b * param%rel_tracking_charge
+
+else
+  a = a * (ele%orientation * param%rel_tracking_charge)
+  b = b * (ele%orientation * param%rel_tracking_charge)
+endif
 
 !---------------------------------------------
 contains
@@ -347,13 +363,6 @@ if (all(this_a == 0) .and. all(this_b == 0)) return
 has_nonzero_pole = .true.
 
 if (.not. this_ele%scale_multipoles) return
-
-! flip sign for electrons or antiprotons with a separator.
-
-if (this_ele%key == elseparator$ .and. param%particle*param%rel_tracking_charge < 0) then
-  this_a = -this_a
-  this_b = -this_b
-endif
 
 ! use tilt?
 

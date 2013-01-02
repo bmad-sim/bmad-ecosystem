@@ -20,23 +20,32 @@ to the $s$-axis but for reversed elements it will be antiparallel.}
 \end{figure}
 
 The \vn{local reference orbit} is the curved path used to define a
-coordinate system for particles as shown in \fig{f:local.coords} and
-for orientating lattice elements in space. At a given time $t$, a
-particle's position can be described by a point on the reference orbit
-a distance $s$ relative to the reference orbit's zero position plus a
-transverse offset. This point on the reference orbit is used as the
-origin of the local $(x, y, z)$ coordinate system with the $z$--axis
-tangent to the reference orbit. The $z$--axis will generally be
-pointing in the direction of increasing $s$ but, as discussed in
-detail below, will point counter to $s$ for elements that are
-reversed. The $x$ and $y$--axes are perpendicular to the reference
-orbit. As will be shown later, If the lattice has no vertical bends,
-the $y$--axis is in the vertical direction and the $x$--axis is in the
-horizontal plane. Notice that by construction, the particle is always
-at $z = 0$. The coordinate system so constructed is called the
-\vn{``local coordinate system''} or sometimes the \vn{``laboratory
-coordinate system''} when there is need to distinguish it from the
-\vn{``element coordinate system''} (\sref{s:misalign.track}).
+coordinate system for describing a particle's position as shown in
+\fig{f:local.coords}. The reference orbit is also used for orientating
+lattice elements in space. At a given time $t$, a particle's position
+can be described by a point on the reference orbit a distance $s$
+relative to the reference orbit's zero position plus a transverse
+offset. This point on the reference orbit is used as the origin of the
+local $(x, y, z)$ coordinate system with the $z$--axis tangent to the
+reference orbit. The $z$--axis will generally be pointing in the
+direction of increasing $s$ but, as discussed in detail below, will
+point counter to $s$ for elements that are reversed. The $x$ and
+$y$--axes are perpendicular to the reference orbit. As will be shown
+later, If the lattice has no vertical bends, the $y$--axis is in the
+vertical direction and the $x$--axis is in the horizontal
+plane. Notice that, by construction, the particle is always at $z =
+0$. The coordinate system so constructed is called the \vn{``local
+coordinate system''} or sometimes the \vn{``laboratory coordinate
+system''} when there is need to distinguish it from the \vn{``element
+coordinate system''} (\sref{s:misalign.track}) which is attached to
+the physical element.
+
+There is a separate reference orbit for each branch
+(\sref{s:branch.def}) of a lattice. When there are multiple branches,
+the reference orbit of a branch must not depend upon the configuration
+of branches later on in the array of branches in the lattice. As a
+consequence, the reference orbits of the branches can be calculated
+one at a time stirting with the first branch.
 
 \index{x_offset}\index{y_offset}
 \index{x_pitch}\index{y_pitch}\index{wiggler}
@@ -65,13 +74,14 @@ lattice while the latter can be any arbitrary orbit.
   \begin{figure}[tb]
   \centering
   \includegraphics{element-coord-frame.pdf}
-\caption[Local reference frame with respect to an element.]{The local
-coordinate reference frame at the entrance and exit ends of a lattice
-element. A) For straight line elements the two frames are colinear. B)
-For bends elements, the two frames are rotated with respectto each
-other. With a zero \vn{tilt}, the rotation axis between the entrance
-and exit frams is the $y$-axis. The physical element may be displaced
-in the local coordinate frame using offsets, tilt, and pitches.}
+\caption[Element LEGO blocks.]{Element reference frame LEGO
+blocks. Shown are the blocks along with the entrance and exit
+reference frames. The physical element may be displaced in the local
+coordinate frame using offsets, tilt, and pitches. A) For straight
+line elements the two frames are colinear. B) For bends elements, the
+two frames are rotated with respectto each other. C) For \vn{patch}
+and \vn{floor_shift} elements the exit frame may be arbitrarily
+positioned with respect to the entrance.}
   \label{f:ele.coord.frame}
   \end{figure}
 
@@ -80,61 +90,92 @@ in the local coordinate frame using offsets, tilt, and pitches.}
 \begin{figure}[tb]
   \centering
   \includegraphics{element-stream.pdf}
-  \caption[Element longitudinal orientation.]{
-Element longitudinal orientation. A) For normal (non-reversed)
-elements the $z$-axis is parallel with the $s$-axis. B) For reversed
-elements the $z$-axis is antiparalled with the $s$-axis. By
-definition, the ``entrance'' and ``exit'' ends of an element are fixed
-relative to the element (realtive to the $z$-axis) while the
-``upstream'' and ``downstream'' ends are fixed relative to the
-$s$-axis.}
+  \caption[Element LEGO block concatination.]{
+Element LEGO block concatination. A) The reference orbit is
+constructed by concatenating the LEGO blocks together. B) For normal
+(non-reversed) elements the $z$-axis is parallel with the $s$-axis. C)
+For reversed elements the $z$-axis is antiparalled with the
+$s$-axis. By definition, the ``entrance'' and ``exit'' ends of an
+element are fixed relative to the element (realtive to the $z$-axis)
+while the ``upstream'' and ``downstream'' ends are fixed relative to
+the $s$-axis.}
   \label{f:stream}
 \end{figure}
 
 %--------------------------------------
 
-There is a separate reference orbit for each branch
-(\sref{s:branch.def}) of a lattice.  When there are multiple branches,
-the reference orbit of a branch must not depend upon the configuration
-of branches later on in the array of branches in the lattice. As a
-consequence, the reference orbits of the branches can be calculated
-one at a time stirting with the first branch.
-
 \index{sbend}\index{rbend}
 \index{crystal}\index{mirror}\index{entrance_end}
 \index{exit_end}\index{patch}\index{floor_shift}
-A lattice branch is comprised of a sequence of elements such as
-quadrupoles, bends, RF cavities, etc. Each element has an entrance
-point, an exit point, and a reference curve between them. For a
-\vn{bend} (\sref{s:bend}), the reference curve is a segment of a
-circular arc as shown in \fig{f:ele.coord.frame}B. For \vn{crystal}
-and \vn{mirror} elements, the reference curve is a zero length bend
-(\sref{s:mirror.coords}). All other elements, except for \vn{patch}
-and \vn{floor_shift} elements, are ``straight'' as shown in
-\fig{f:ele.coord.frame}A. That is, the reference curve is a straight
-line segment. \vn{patch} (\sref{s:patch}), and \vn{floor_shift}
-(\sref{s:floor.ele}) elements can arbitrarily orient the entrance
-point of an element with respect to the exit point of the previous
-element. 
+Another way of thinking about the reference orbit is to imagine that
+each element has assigned to it a local coordinate reference frame
+assigned to it in the shape of a LEGO block\footnote{Thanks to Dan
+Abell for this analogy.} as shown in \fig{f:ele.coord.frame}.  Every
+block has an ``\vn{entrance}'' and an ``\vn{exit}'' reference frame.
+For most types of elements, the LEGO block for the element is
+``straight'' as shown in \fig{f:ele.coord.frame}A. That is, the
+reference curve through the block is a straight line segment and the
+length of the block is the length of the element. For a \vn{bend}
+(\sref{s:bend}), the reference curve through the block is a segment of
+a circular arc as shown in \fig{f:ele.coord.frame}B. With a zero
+\vn{tilt}, the rotation axis between the entrance and exit frames of a
+bend is the $y$-axis (\sref{s:global}). For \vn{patch}
+(\sref{s:patch}), and \vn{floor_shift} (\sref{s:floor.ele}) elements,
+the exit face can can arbitrarily oriented with respect to the
+entrance end. In this case, the reference orbit between the entrance
+and exit faces is not defined.
 
-To 
+\index{root branch}
+Assuming for the moment that there are no \vn{fiducial} elements
+present, the construction of the reference orbit starts at the
+beginning element of a branch. If the branch is a \vn{root} branch
+(\sref{s:lattice.def}), The orientation of the beginning element can
+be set via the appropriate positioning statements
+(\sref{s:beginning}). If the branch is not a \vn{root} branch, the
+position of the beginning element is determined by the position of the
+\vn{branch} or \vn{photon_branch} element from which the branch forks
+from.
 
-If an element is {\em not} reversed (\sref{s:ele.reverse}), the
-upstream and downstream ends of the element correspond to the entrance
-and exit ends of the element.  If an element is reversed then entrance
-and exit ends are reversed with respect to upstream and downstream.
-In a branch, the reference orbit is constructed by arranging the
-elements downstream point of one element coincides with the reference
-curve at the upstream point of the next element.  The reference orbit
-is then the sum of the reference curves. If not specified otherwise
-(\sref{s:beginning}), the $s = 0$ position is the entrance point of
-the first element.
+Once the beginning element in a branch is positioned, succeeding
+element LEGO blocks are concatenated together as illustrated in
+\fig{f:stream}A. When a block is joined, the end of the block that is
+mated to the previous block is called the ``\vn{upstream}'' end and
+the other end which will be mated to the following block is called the
+``\vn{downstream}'' end.  Normally, the \vn{entrance} end of a block
+is used as the \vn{upsteam} end the \vn{exit} end is used as the
+\vn{downstream} end as shown in \fig{f:stream}B. However, for
+\vn{reversed} elements (\sref{s:ele.reverse}), the \vn{upstream} end
+is the \vn{exit} end of the block and vice versa. To put it another
+way, the \vn{entrance} and \vn{exit} end of the blocks reference the
+physical element. Thus, for example, the \vn{e1} edge of a bend
+(\sref{s:bend}) is always at the \vn{entrance} face and the \vn{e2} is
+always at the \vn{exit}face. Also the field of a wiggler is
+(\sref{s:wiggler}) is referenced to $z = 0$ which is at the
+\vn{entrance} end. The \vn{upstream} and \vn{downstream} ends, on the
+other hand, are referenced to the reference orbit and the
+\vn{downstream} end always is at a larger $s$ position relative to the
+\vn{upstream} end.
 
-For a given lattice branch, if there are no \vn{fiducial} elements
-\sref{s:fiducial}, The local reference frame is constructed beginning
-at the first element in the branch. If there are \vn{fiducial}
-elements, the local referece frame is constructed beginning at these
-elements.
+In all cases, when a LEGO block is joined to the previous block, the
+coordinate system at the mating end of the block (the \vn{upstream}
+end) will be aligned with the mating end of the previous block (the
+\vn{downstream} end). The situation where one of the blocks is
+reversed and the other one not, and neither is a \vn{patch} nor
+\vn{floor_shift} elemeent, does not make physical sense since a
+particle which is moving downstream, when it comes to the face joining
+the blocks will have to magically reverse direction in order to travel
+through the next block. Thus, to have normal and reversed elements in
+a branch, \vn{reflection} \vn{patches} must be used in between.
+Whether it makes physical sense to put a \vn{patch} element next to
+another element is more complicated. This depends upon whether the
+other element is reversed or not and whether the \vn{patch} is
+reversed, whether the \vn{patch} is \vn{reflecting}, and the sign of
+\vn{z_offset} for the \vn{patch}. The basic criterion is that a
+particle leaving one block must enter the next. See
+Section~\sref{s:ex.patch} for an example.
+
+If there are \vn{fiducial} elements, the local referece frame is
+constructed beginning at these elements.
 
 %-----------------------------------------------------------------------------
 \section{Global Coordinates}
@@ -475,6 +516,24 @@ with
   \(\Psi\) = tilt
 \end{example} 
 Note: The form of \Eq{swww} was chosen to be similar to \Eq{wwww}, 
+
+A \vn{Patche} (or a series of patches) that reflects the direction of
+the \vn{z}-axis is called a \vn{reflection} \vn{patch}. By ``reflected
+direction'' it is meant that the dot product $\Bf z_1 \cdot \Bf z_2$ is
+negative where $\Bf z_1$ is the $z$-axis vector at the \vn{entrance}
+face and $\Bf z_2$ is the $z$-axis vector at the \vn{exit} face. This
+condition is equivalent to the condition on $\bfS$ of
+\Begineq
+  S(3,3) < 0
+  \label{s330}
+\Endeq
+Using \Eq{swww} gives after some simple algebra
+\Begineq
+  \cos(\text{x_pitch}) \, \cos(\text{y_pitch}) < 0
+\Endeq
+When there are a series of patches, The transformations of all the
+patches are concatenated together to form an effective $\bfS$ which
+can then be used with \Eq{s330}.
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}

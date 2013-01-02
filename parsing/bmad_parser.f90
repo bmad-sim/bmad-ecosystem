@@ -57,7 +57,7 @@ integer, allocatable :: seq_indexx(:), in_indexx(:)
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc
-integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_branch, n_branch_max
+integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_loop, n_branch_max
 integer, pointer :: n_max, n_ptr
 
 character(*) lat_file
@@ -706,7 +706,7 @@ n_branch_ele = 0
 allocate (branch_ele(20))
 
 n_branch_max = 1000
-branch_loop: do i_branch = 1, n_branch_max
+branch_loop: do i_loop = 1, n_branch_max
 
   ! Expand branches from branch elements before expanding branches from the use command. 
 
@@ -852,7 +852,7 @@ branch_loop: do i_branch = 1, n_branch_max
     branch_ele(j)%ele => branch%ele(i)
   enddo
 
-  if (i_branch == n_branch_max) then
+  if (i_loop == n_branch_max) then
     call parser_error ('1000 BRANCHES GENERATED. LOOKS LIKE AN ENDLESS LOOP')
     call parser_end_stuff ()
     return
@@ -881,7 +881,8 @@ do i = 0, ubound(lat%branch, 1)
   else
     if (global_com%type_out) then
       if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
-        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (\i0\) ' // branch%name,  'WILL USE 1000 * MC^2!')
+        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (\i0\) ' // branch%name, &
+                                       'WILL USE 1000 * MC^2!', i_array = [i])
       else
         call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (\i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
       endif

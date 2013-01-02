@@ -186,6 +186,16 @@ if (lat%param%geometry /= closed$) then
   if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]  = ', trim(str(ele%c_mat(2,2)))
 endif
 
+! beam_start
+
+if (lat%beam_start%vec(1) /= 0) write (iu, '(2a)') 'beam_start[x]  = ', trim(str(lat%beam_start%vec(1)))
+if (lat%beam_start%vec(2) /= 0) write (iu, '(2a)') 'beam_start[px] = ', trim(str(lat%beam_start%vec(2)))
+if (lat%beam_start%vec(3) /= 0) write (iu, '(2a)') 'beam_start[y]  = ', trim(str(lat%beam_start%vec(3)))
+if (lat%beam_start%vec(4) /= 0) write (iu, '(2a)') 'beam_start[py] = ', trim(str(lat%beam_start%vec(4)))
+if (lat%beam_start%vec(5) /= 0) write (iu, '(2a)') 'beam_start[z]  = ', trim(str(lat%beam_start%vec(5)))
+if (lat%beam_start%vec(6) /= 0) write (iu, '(2a)') 'beam_start[pz] = ', trim(str(lat%beam_start%vec(6)))
+
+
 ! Element stuff
 
 write (iu, *)
@@ -1082,7 +1092,11 @@ elseif (ele%slave_status == multipass_slave$) then
   write (line, '(4a)') trim(line), ' ', trim(lord%name), ','
 
 else
-  write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
+  if (ele%orientation == 1) then
+    write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
+  else
+    write (line, '(4a)') trim(line), ' --', trim(ele%name), ','
+  endif
 endif
 
 if (len_trim(line) > 80) call write_lat_line(line, iu, .false.)
