@@ -3451,7 +3451,7 @@ do i = 1, n_multipass
       lmax = len(slave2%name) - 2
       do k = 1, slave2%n_lord
         lord2 => pointer_to_lord(slave2, k)
-        lord2 => pointer_to_lord(lord2, 1)
+        if (lord2%n_lord > 0) lord2 => pointer_to_lord(lord2, 1)
         slave2_name = trim(slave2_name) // trim(lord2%name) // '\'     ! '
         if (len_trim(slave2_name) > lmax) exit
       enddo
@@ -5299,10 +5299,6 @@ else                    ! branch line
 endif
 
 branch => lat%branch(ix_branch)
-branch%n_ele_track = n_ele_use
-branch%n_ele_max   = n_ele_use
-branch%ix_branch   = ix_branch
-branch%name        = use_name
 
 do i = 1, n_ele_use
   ele_line(i) = in_lat%ele(ix_lat(i)) 
@@ -5336,6 +5332,13 @@ if (nint(bp_com%param_ele%value(no_end_marker$)) == 0) then
   enddo
   ele%orientation = ele2%orientation * flip
 endif
+
+! Branch info
+
+branch%n_ele_track = n_ele_use
+branch%n_ele_max   = n_ele_use
+branch%ix_branch   = ix_branch
+branch%name        = use_name
 
 end subroutine parser_expand_line
 

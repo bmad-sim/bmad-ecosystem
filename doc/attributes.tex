@@ -242,8 +242,9 @@ dependent attribute calculated from the reference energy.
 
 %-----------------------------------------------------------------
 \section{Offset, Pitch, Tilt, and Roll Attributes}
-\label{s:offset}\index{x_offset|hyperbf}
-\index{y_offset|hyperbf}\index{s_offset|hyperbf}
+\label{s:offset}
+\index{x_offset|hyperbf}
+\index{y_offset|hyperbf}\index{z_offset|hyperbf}
 \index{x_pitch|hyperbf}\index{y_pitch|hyperbf}
 \index{roll|hyperbf}\index{tilt|hyperbf}
 
@@ -252,7 +253,7 @@ from the reference orbit. They are
 \begin{example}
   x_offset = <Real>
   y_offset = <Real>
-  s_offset = <Real>
+  z_offset = <Real>
   x_pitch  = <Real>
   y_pitch  = <Real>
   tilt     = <Real>
@@ -264,7 +265,7 @@ attributes to modify the reference orbit itself.
 
 \vn{x_offset} translates an element in the local $x$--direction
 as shown in \fig{f:pitch}. Similarly, \vn{y_offset} and 
-\vn{s_offset} translate an element along the local $y$ and 
+\vn{z_offset} translate an element along the local $y$ and 
 $z$--directions respectively. For a bend it is assumed that
 the bend angle is small and the rotation of the local reference
 axes through the bend is ignored.
@@ -361,7 +362,7 @@ the center of the bend. Shown here is the geometry for a bend with
   \label{f:roll}
 \end{figure}
 
-\index{x_offset_tot|hyperbf}\index{y_offset_tot|hyperbf}\index{s_offset_tot|hyperbf}
+\index{x_offset_tot|hyperbf}\index{y_offset_tot|hyperbf}\index{z_offset_tot|hyperbf}
 \index{x_pitch_tot|hyperbf}\index{y_pitch_tot|hyperbf}
 \index{tilt_tot|hyperbf}
 If an element is supported by a \vn{girder} element (\sref{s:girder}),
@@ -371,7 +372,7 @@ respect to the local reference coordinates are stored in the dependent attribute
 \begin{example}
   x_offset_tot
   y_offset_tot
-  s_offset_tot
+  z_offset_tot
   x_pitch_tot
   y_pitch_tot
   tilt_tot

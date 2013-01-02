@@ -190,13 +190,8 @@ bp_com%beam_start_ele%name = 'BEAM_START'           ! For beam starting paramete
 bp_com%beam_start_ele%key = def_beam_start$
 call find_indexx2 (in_lat%ele(3)%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)
 
-ele => in_lat%ele(4)
-ele%name = 'END'            ! Reserve END name for the last element
-ele%key = marker$
-call find_indexx2 (in_lat%ele(4)%name, in_name, in_indexx, 0, 3, ix, add_to_list = .true.)
-
 n_max => in_lat%n_ele_max
-n_max = 4                              ! Number of elements encountered
+n_max = 3                              ! Number of elements encountered
 
 lat%n_control_max = 0
 detected_expand_lattice_cmd = .false.
@@ -909,6 +904,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele => lat%branch(ib)%ele(ie)
     if (ele%iyy == 0) cycle
     if (ele%slave_status == super_slave$) cycle
+    if (ele%key == null_ele$) cycle
     n_multi = 0  ! number of elements to slave together
     iyy = ele%iyy
     do ib2 = ib, ubound(lat%branch, 1)
@@ -1192,7 +1188,8 @@ logical err
 
 !
 
-if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START') then
+if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START' .or. &
+    word_1 == 'END') then
   call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
   err = .true.
   return

@@ -9,12 +9,13 @@
 \begin{figure}[!b]
   \centering
   \includegraphics[height=8.4cm]{local-coords.pdf}
-  \caption[The Local Reference System.]
+  \caption[The local Reference System.]
 {The local reference coordinate system. By construction, a particle's
 $z$ coordinate is zero.  This is not to be confused with the phase
 space $z$ coordinate (\sref{s:phase.space}). The curvature vector
 $\bfg$ lies in the $x$-$y$ plane and has a magnitude of $1/\rho$ where
-$\rho$ is the bending radius.}
+$\rho$ is the bending radius. The $z$-axis will normally be parallel
+to the $s$-axis but for reversed elements it will be antiparallel.}
   \label{f:local.coords}
 \end{figure}
 
@@ -25,12 +26,14 @@ particle's position can be described by a point on the reference orbit
 a distance $s$ relative to the reference orbit's zero position plus a
 transverse offset. This point on the reference orbit is used as the
 origin of the local $(x, y, z)$ coordinate system with the $z$--axis
-tangent to the reference orbit and pointing in the direction of
-increasing $s$. The $x$ and $y$--axes are perpendicular to the
-reference orbit. As will be sown later, If the lattice has no vertical
-bends, the $y$--axis is in the vertical direction and the $x$--axis is
-in the horizontal plane. Notice that by construction, the particle is
-always at $z = 0$. The coordinate system so constructed is called the
+tangent to the reference orbit. The $z$--axis will generally be
+pointing in the direction of increasing $s$ but, as discussed in
+detail below, will point counter to $s$ for elements that are
+reversed. The $x$ and $y$--axes are perpendicular to the reference
+orbit. As will be shown later, If the lattice has no vertical bends,
+the $y$--axis is in the vertical direction and the $x$--axis is in the
+horizontal plane. Notice that by construction, the particle is always
+at $z = 0$. The coordinate system so constructed is called the
 \vn{``local coordinate system''} or sometimes the \vn{``laboratory
 coordinate system''} when there is need to distinguish it from the
 \vn{``element coordinate system''} (\sref{s:misalign.track}).
@@ -59,10 +62,10 @@ lattice while the latter can be any arbitrary orbit.
 
 %--------------------------------------
 
-  \begin{figure}
+  \begin{figure}[tb]
   \centering
   \includegraphics{element-coord-frame.pdf}
-\caption[Local reference frame with respect to an element.]{The Local
+\caption[Local reference frame with respect to an element.]{The local
 coordinate reference frame at the entrance and exit ends of a lattice
 element. A) For straight line elements the two frames are colinear. B)
 For bends elements, the two frames are rotated with respectto each
@@ -74,22 +77,34 @@ in the local coordinate frame using offsets, tilt, and pitches.}
 
 %--------------------------------------
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics{element-stream.pdf}
+  \caption[Element longitudinal orientation.]{
+Element longitudinal orientation. A) For normal (non-reversed)
+elements the $z$-axis is parallel with the $s$-axis. B) For reversed
+elements the $z$-axis is antiparalled with the $s$-axis. By
+definition, the ``entrance'' and ``exit'' ends of an element are fixed
+relative to the element (realtive to the $z$-axis) while the
+``upstream'' and ``downstream'' ends are fixed relative to the
+$s$-axis.}
+  \label{f:stream}
+\end{figure}
+
+%--------------------------------------
+
 There is a separate reference orbit for each branch
 (\sref{s:branch.def}) of a lattice.  When there are multiple branches,
 the reference orbit of a branch must not depend upon the configuration
 of branches later on in the array of branches in the lattice. As a
 consequence, the reference orbits of the branches can be calculated
-one at a time stirting with the first branch in the array.
-
-For a given lattice branch, assuming there are no \vn{fiducial} elements,
-The local reference frame is constructed beginning at the first element in
-the branch. 
+one at a time stirting with the first branch.
 
 \index{sbend}\index{rbend}
 \index{crystal}\index{mirror}\index{entrance_end}
 \index{exit_end}\index{patch}\index{floor_shift}
-a lattice branch is comprised of a sequence of elements such
-as quadrupoles, bends, RF cavities, etc. Each element has an entrance
+A lattice branch is comprised of a sequence of elements such as
+quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a
 \vn{bend} (\sref{s:bend}), the reference curve is a segment of a
 circular arc as shown in \fig{f:ele.coord.frame}B. For \vn{crystal}
@@ -100,27 +115,46 @@ and \vn{floor_shift} elements, are ``straight'' as shown in
 line segment. \vn{patch} (\sref{s:patch}), and \vn{floor_shift}
 (\sref{s:floor.ele}) elements can arbitrarily orient the entrance
 point of an element with respect to the exit point of the previous
-element. With multiple elements, the reference orbit is constructed by
-arranging the elements so that the reference orbit at exit point of
-one element coincides with the reference curve at the entrance point
-of the next element. The reference orbit is then the sum of the
-reference curves. If not specified otherwise, the $s = 0$ position is
-the entrance point of the first element.
+element. 
+
+To 
+
+If an element is {\em not} reversed (\sref{s:ele.reverse}), the
+upstream and downstream ends of the element correspond to the entrance
+and exit ends of the element.  If an element is reversed then entrance
+and exit ends are reversed with respect to upstream and downstream.
+In a branch, the reference orbit is constructed by arranging the
+elements downstream point of one element coincides with the reference
+curve at the upstream point of the next element.  The reference orbit
+is then the sum of the reference curves. If not specified otherwise
+(\sref{s:beginning}), the $s = 0$ position is the entrance point of
+the first element.
+
+For a given lattice branch, if there are no \vn{fiducial} elements
+\sref{s:fiducial}, The local reference frame is constructed beginning
+at the first element in the branch. If there are \vn{fiducial}
+elements, the local referece frame is constructed beginning at these
+elements.
 
 %-----------------------------------------------------------------------------
 \section{Global Coordinates}
 \label{s:global}
 \index{global coordinates|hyperbf}
 
-The global coordinate system, also called the `floor'' coordinates,
-describes the orientation of the reference
-orbit with respect to the laboratory coordinate system.  \bmad,
-following the \mad\ convention, uses a Cartesian coordinate system
-$(X, Y, Z)$ for the global coordinate system, along with three angles
-$\theta, \phi, \psi$ used to define the reference orbit's orientation
-as shown in \fig{f:global.coords}. Conventionally, $Y$ is the
-``vertical'' coordinate and $(X, Z)$ are the ``horizontal'' coordinates.  
-The three angles are defined as follows:
+along with three angles
+
+The Cartesian \vn{global} coordinate system, also called the `floor''
+coordinate system, is the coordinate system ``attached to the earth''
+that is used to describe the local coordinate system. Following the
+\mad\ convention, the \vn{global} coordinate axis are labeled $(X, Y,
+Z)$. Conventionally, $Y$ is the ``vertical'' coordinate and $(X, Z)$
+are the ``horizontal'' coordinates. To describe how the local
+coordinate system is oriented within the global coordinate system,
+each point on the $s$-axis of the local coordinate system is
+characterized by its $(X, Y, Z)$ position and by three angles $\theta,
+\phi, and \psi$ that describe the orientation of the local coordinate axes
+as shown in \fig{f:global.coords}. These threee angles are defined as
+follows:
 \begin{description}
 \item[$\theta$ Azimuth angle:] Angle in the $(X, Z)$ plane 
 between the $Z$--axis and the projection of the $z$--axis onto the

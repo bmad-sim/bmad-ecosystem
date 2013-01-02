@@ -181,6 +181,9 @@ where the reference energy is not constant (like an \vn{lcavity}),
 %-----------------------------------------------------------------------------
 \section{Branching and Multipass Examples}
 
+Below are several examples of how branching and multipass can be used
+to describe complicated machine geometries.
+
 %-----------------------------------------------------------------------------
 \subsection{Example: Flexible Patch in an ERL}
 \label{s:ex.erl}
@@ -203,10 +206,71 @@ beam. The basic ERL lattice is then
 \end{example}
 
 %-----------------------------------------------------------------------------
-\subsection{Example: Injection Line}
+\subsection{Example: Injection Line Into a Dipole}
 \label{s:ex.inj}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{injection.pdf}
+  \caption[Injection line into a dipole magnet.]{Injection line into a dipole magnet.}
+  \label{f:inject}
+\end{figure}
+
+An injection line into a dipole magnet is illustrated in \fig{f:inject}.
+
+
 
 %-----------------------------------------------------------------------------
 \subsection{Example: Colliding Beam Storage Rings}
 \label{s:ex.collide}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{colliding-beams.pdf}
+  \caption[Dual ring colliding beam machine]{Dual ring colliding beam machine. 
+The beam in the \vn{A} ring rotates clockwise and in the \vn{B} ring
+counterclockwise.}
+  \label{f:collide}
+\end{figure}
+
+The idealized layout of a pair of storage rings used for colliding
+counter rotating beams is shown in \fig{f:collide}. Rings \vn{A} and
+\vn{B} intersect at two interaction regions labeled \vn{ir1} and
+\vn{ir2} where the beams collide. The basic lattice description is:
+\begin{example}
+  ir1: line[multipass] = (...)
+  ir2: line[multipass] = (...)
+  m: marker
+  fid: fiducial, origin_ele = m
+  ...
+  a: line = (arc_a1, pa1_in, ir1, m, pa1_out, arc_a2, pa2_in, ir2, pa2_out)
+  b_rev: line = (arc_b1, pb1_in, ir1, fid, pb1_out, arc_b2, pb2_in, ir2, pb2_out)
+  b: line = (--b_rev)
+  use, a, b
+\end{example}
+Lines \vn{ir1} and \vn{ir2} are the two interaction regions which are
+declaired \vn{multipass} since they are shared by the two rings. Line
+\vn{a} represents ring \vn{A} where the beam which, by definition,
+travels in the same direction as increasing $s$, rotates clockwise.
+Line \vn{b_rev} is a ``reversed'' line of ring \vn{B} and, like
+\vn{a}, represents a beam rotating clockwise.  Line \vn{b}, which
+represents ring \vn{B}, is the reverse of \vn{b_rev} and here the beam
+rotates counterclockwise. In this construction, all elements of \vn{b}
+are reversed.  While this is not manditory (only the interaction
+regions must be reversed in \vn{b}), having all of \vn{b} reversed
+simplifies the geometry since this means that the local coordinate
+systems of both lines \vn{a} and \vn{b} will be ``aligned'' with the
+$x$-axis pointing to the outside of the ring and the $y$-axis pointing
+up, out of the page. Having non-aligned coordinate systems is possible
+but potentially very confusing.
+
+The two rings are physically aligned using a marker \vn{m} in \vn{a}
+and a \vn{fiducial} element \vn{fid} in \vn{b} that aligns with
+\vn{m}.  Each ring has four rigid \vn{patch} elements, whose name
+begins with \vn{p}, on either side of each interaction region.
+
+The finished lattice will have two branches, The first branch (with
+index 0) will be derived from line \vn{a} and the second branch (with
+index 1) will be derived from line \vn{b}. The multipass lords
+representing the physical IR elements will be in the ``lord section''
+of branch 0. 
