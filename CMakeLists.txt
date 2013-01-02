@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (EXE_SPECS 
+  multipass_test.cmake
   math_test.cmake
   ptc_test.cmake
   time_runge_kutta_test.cmake
@@ -10,7 +11,6 @@ set (EXE_SPECS
   abs_time_test.cmake
   tracking_method_test.cmake
   mat6_calc_method_test.cmake
-  multipass_test.cmake
 )
 
 set(SRC_DIRS
