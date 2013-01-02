@@ -103,7 +103,7 @@ bp_com%param_ele => param_ele
 call init_ele (param_ele)
 param_ele%name = 'PARAMETER'
 param_ele%key = def_parameter$
-param_ele%value(lattice_type$) = lat%param%lattice_type
+param_ele%value(geometry$) = lat%param%geometry
 param_ele%value(taylor_order$) = lat%input_taylor_order
 param_ele%value(n_part$)       = lat%param%n_part
 param_ele%value(particle$)     = lat%param%particle
@@ -493,7 +493,7 @@ enddo parsing_loop
 
 bp_com%input_line_meaningful = .false.
 
-lat%param%lattice_type = nint(param_ele%value(lattice_type$))
+lat%param%geometry = nint(param_ele%value(geometry$))
 lat%input_taylor_order = nint(param_ele%value(taylor_order$))
 
 if (associated(bp_com%param_ele%descrip)) then

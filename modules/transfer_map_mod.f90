@@ -17,12 +17,12 @@ contains
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
 !
-! If s2 < s1 and lat%param%lattice_type is circular_lattice$ then the
+! If s2 < s1 and lat%param%geometry is closed$ then the
 ! calculation will 'wrap around' the lattice end.
 ! For example, if s1 = 900 and s2 = 10 then the t_map is the map from
 ! element 900 to the lattice end plus from 0 through 10.
 !
-! If s2 < s1 and lat%param%lattice_type is linear_lattice$ then the backwards
+! If s2 < s1 and lat%param%geometry is open$ then the backwards
 ! transfer map is computed.
 !
 ! If s2 = s1 then you get the unit map except if one_turn = True and the lattice is circular.
@@ -100,7 +100,7 @@ if (unit_start_this) call taylor_make_unit (t_map)
 
 ! One turn or not calc?
 
-if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == linear_lattice$)) then
+if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%geometry == open$)) then
   if (present(err_flag)) err_flag = .false.
   return
 endif
@@ -113,7 +113,7 @@ if (ss1 < ss2) then
 
 ! For a circular lattice push through the origin.
 
-elseif (branch%param%lattice_type == circular_lattice$) then
+elseif (branch%param%geometry == closed$) then
   call transfer_this_map (t_map, lat, branch, ss1, branch%param%total_length, integrate_this, error_flag)
   if (error_flag) return
   call transfer_this_map (t_map, lat, branch, 0.0_rp, ss2, integrate_this, error_flag)
@@ -276,12 +276,12 @@ end subroutine transfer_this_map
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
 !
-! If s2 < s1 and lat%param%lattice_type is circular_lattice$ then the
+! If s2 < s1 and lat%param%geometry is closed$ then the
 ! calculation will "wrap around" the lattice end.
 ! For example, if s1 = 900 and s2 = 10 then the xfer_mat is the matrix from
 ! element 900 to the lattice end plus from 0 through 10.
 !
-! If s2 < s1 and lat%param%lattice_type is linear_lattice$ then the backwards
+! If s2 < s1 and lat%param%geometry is open$ then the backwards
 ! transfer matrix is computed.
 !
 ! If s2 = s1 then you get the unit matrix except if one_turn = True and the lattice is circular.
@@ -362,7 +362,7 @@ endif
 
 ! One turn or not calc?
 
-if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == linear_lattice$)) then
+if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%geometry == open$)) then
   if (present(err_flag)) err_flag = .false.
   return
 endif
@@ -375,7 +375,7 @@ if (ss1 < ss2) then
 
 ! For a circular lattice push through the origin.
 
-elseif (branch%param%lattice_type == circular_lattice$) then
+elseif (branch%param%geometry == closed$) then
   call transfer_this_mat (mat6, vec0, lat, branch, ss1,  branch%param%total_length, error_flag, orbit)
   if (error_flag) return
   call transfer_this_mat (mat6, vec0, lat, branch, 0.0_rp, ss2, error_flag, orbit, ele_save)

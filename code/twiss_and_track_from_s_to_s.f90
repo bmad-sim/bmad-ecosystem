@@ -71,13 +71,13 @@ character(40), parameter :: r_name = 'twiss_and_track_from_s_to_s'
 s_start = orbit_start%s
 s_end   = orbit_end%s
 
-if (s_start == s_end .and. branch%param%lattice_type == linear_lattice$) then
+if (s_start == s_end .and. branch%param%geometry == open$) then
   orbit_end = orbit_start
   if (present(ele_end)) ele_end = ele_start
   return
 endif
 
-if (s_end < s_start .and. branch%param%lattice_type == linear_lattice$) then
+if (s_end < s_start .and. branch%param%geometry == open$) then
   call out_io (s_abort$, r_name, 'S_END < S_START WITH A LINEAR LATTICE.')
   if (global_com%exit_on_error) call err_exit
 endif

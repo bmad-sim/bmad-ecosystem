@@ -126,7 +126,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
     ray%track_len = ray%track_len + abs(del_s)
     ray%now%vec(5) = s_next
 
-    if (ray%crossed_end .and. lat%param%lattice_type == linear_lattice$) return
+    if (ray%crossed_end .and. lat%param%geometry == open$) return
 
     if (s_next == s_target) return
 

@@ -167,7 +167,7 @@ do i = 2, i_ray
 
   do iss = int(r_i1), int(r_i2)
 
-    if (lat%param%lattice_type == linear_lattice$ .and. iss > wall%n_seg_tot) exit
+    if (lat%param%geometry == open$ .and. iss > wall%n_seg_tot) exit
 
     is = iss
     if (is > wall%n_seg_tot) is = is - wall%n_seg_tot

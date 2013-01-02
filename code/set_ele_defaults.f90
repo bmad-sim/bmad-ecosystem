@@ -35,7 +35,7 @@ case (bend_sol_quad$)
 case (branch$, photon_branch$)
   ele%value(direction$) = 1
   ele%value(particle$) = real_garbage$
-  ele%value(lattice_type$) = linear_lattice$
+  ele%value(geometry$) = open$
 
 case (crystal$)
   ele%value(follow_diffracted_beam$) = 1  ! True

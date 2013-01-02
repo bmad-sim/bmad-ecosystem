@@ -138,7 +138,7 @@ endif
 if (lat%title /= ' ')            write (iu, '(4a)')    'title, "', trim(lat%title), '"'
 if (lat%lattice /= ' ')          write (iu, '(4a)')    'parameter[lattice]     = "', trim(lat%lattice), '"'
 
-write (iu, '(4a)') 'parameter[lattice_type] = ', lattice_type(lat%param%lattice_type)
+write (iu, '(4a)') 'parameter[geometry] = ', geometry_name(lat%param%geometry)
 
 if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] = ', lat%input_taylor_order
 
@@ -166,7 +166,7 @@ if (ele%floor%psi /= 0)    write (iu, '(2a)') 'beginning[psi_position]   = ', tr
 if (ele%s /= 0)            write (iu, '(2a)') 'beginning[s]        = ', trim(str(ele%s))
 if (ele%ref_time /= 0)     write (iu, '(2a)') 'beginning[ref_time] = ', trim(str(ele%ref_time))
 
-if (lat%param%lattice_type /= circular_lattice$) then
+if (lat%param%geometry /= closed$) then
   write (iu, '(2a)')
   if (ele%a%beta /= 0)     write (iu, '(2a)') 'beginning[beta_a]   = ', trim(str(ele%a%beta))
   if (ele%a%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_a]  = ', trim(str(ele%a%alpha))
@@ -2026,7 +2026,7 @@ endif
 ! Write twiss parameters for a linear lattice.
 
 ele => lat_out%ele(ie1-1)
-if (lat_out%param%lattice_type /= circular_lattice$ .and. out_type /= 'OPAL-T') then
+if (lat_out%param%geometry /= closed$ .and. out_type /= 'OPAL-T') then
   write (iu, *)
   write (iu, *) comment_char, '---------------------------------', trim(eol_char)
   write (iu, *)

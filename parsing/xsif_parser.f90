@@ -6,7 +6,7 @@
 ! Standard output messages will be recorded in a local file: 'xsif.out'
 !
 ! Note: The presence of an LCavity element in the input file (even if it is not
-! used in the lattice) will make lat%lattice_type = linear_lattice$.
+! used in the lattice) will make lat%geometry = open$.
 !
 ! Note: xsif has default 1 meter apertures. This is problematical for some programs
 ! that expect the default to be zero (no aperture present). 
@@ -152,11 +152,11 @@ endif
 ! a linear lattice.
 
 call init_lat (lat, npos2-npos1+100)
-lat%param%lattice_type = circular_lattice$
+lat%param%geometry = closed$
 
 do ie = 1, maxelm
   if (ietyp(ie) == mad_lcav) then
-    lat%param%lattice_type = linear_lattice$
+    lat%param%geometry = open$
     call xsif_warning ('LCavity is present. Assuming a Linear Lattice')
     exit
   endif
@@ -457,7 +457,7 @@ do ie = npos1, npos2-1
         ele%rf_wake%z_sr_mode_max = 0
       endif
 
-      lat%param%lattice_type = linear_lattice$
+      lat%param%geometry = open$
 
     case (mad_inst, mad_blmo, mad_prof, mad_wire, mad_slmo, mad_imon)
       call add_ele (instrument$)

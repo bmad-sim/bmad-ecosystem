@@ -292,7 +292,7 @@ end subroutine layout_init_stuff
 
 subroutine layout_end_stuff ()
 
-if (branch%param%lattice_type == circular_lattice$ .and. ie == branch%n_ele_track) then
+if (branch%param%geometry == closed$ .and. ie == branch%n_ele_track) then
   m_u%end%closed = .true.
 else
   m_u%end%closed = .false.

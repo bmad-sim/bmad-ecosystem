@@ -178,7 +178,7 @@ call find_indexx2 (in_lat%ele(1)%name, in_name, in_indexx, 0, 0, ix, add_to_list
 bp_com%param_ele => in_lat%ele(2)
 bp_com%param_ele%name = 'PARAMETER'           ! For parameters 
 bp_com%param_ele%key = def_parameter$
-bp_com%param_ele%value(lattice_type$) = -1
+bp_com%param_ele%value(geometry$) = -1
 bp_com%param_ele%value(particle$)     = positron$  ! default
 call find_indexx2 (in_lat%ele(2)%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
 
@@ -576,7 +576,7 @@ parsing_loop: do
         ele => in_lat%ele(n_max)
         ele%key = init_ele$
         ele%value(particle$) = real_garbage$
-        ele%value(lattice_type$) = real_garbage$
+        ele%value(geometry$) = real_garbage$
         ele%value(rel_tracking_charge$) = real_garbage$
         ele%value(e_tot$) = -1
         ele%value(p0c$) = -1
@@ -790,17 +790,17 @@ branch_loop: do i_branch = 1, n_branch_max
       deallocate (bp_com%param_ele%descrip)
     endif
 
-    ! Set lattice_type.
+    ! Set geometry.
 
-    ix = nint(bp_com%param_ele%value(lattice_type$))
-    if (ix > 0) then  ! lattice_type has been set.
-      lat%param%lattice_type = ix
+    ix = nint(bp_com%param_ele%value(geometry$))
+    if (ix > 0) then  ! geometry has been set.
+      lat%param%geometry = ix
     else              ! else use default
-      lat%param%lattice_type = circular_lattice$      ! default 
+      lat%param%geometry = closed$      ! default 
       if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
         if (global_com%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
-                                      'SETTING THE LATTICE_TYPE TO LINEAR_LATTICE.')
-        lat%param%lattice_type = linear_lattice$
+                                      'SETTING THE GEOMETRY TO LINEAR_LATTICE.')
+        lat%param%geometry = open$
       endif
     endif
 
@@ -818,7 +818,7 @@ branch_loop: do i_branch = 1, n_branch_max
     branch%param%particle = ele%value(particle$)
   endif
 
-  if (ele%value(lattice_type$) /= real_garbage$) branch%param%lattice_type = nint(ele%value(lattice_type$))
+  if (ele%value(geometry$) /= real_garbage$) branch%param%geometry = nint(ele%value(geometry$))
   if (ele%value(rel_tracking_charge$) /= real_garbage$) &
                                    branch%param%rel_tracking_charge = nint(ele%value(rel_tracking_charge$))
 

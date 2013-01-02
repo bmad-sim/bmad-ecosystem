@@ -7,12 +7,12 @@
 ! The transfer matrix is from the end of element ix1 to the end of element ix2.
 ! If ix1 and ix2 are not present, the full 1-turn matrix is calculated.
 !
-! If ix2 < ix1 and lat%param%lattice_type is circular_lattice$ then the
+! If ix2 < ix1 and lat%param%geometry is closed$ then the
 ! calculation will "wrap around" the lattice end.
 ! For example, if ix1 = 900 and ix2 = 10 then the xfer_mat is the matrix from
 ! element 900 to the lattice end plus from 0 through 10.
 !
-! If ix2 < ix1 and lat%param%lattice_type is linear_lattice$ then the backwards
+! If ix2 < ix1 and lat%param%geometry is open$ then the backwards
 ! transfer matrix is computed.
 !
 ! If ix1 = ix2 then xfr_mat is the unit matrix. 
@@ -75,7 +75,7 @@ i1 = integer_option(0, ix1)
 i2 = integer_option(branch%n_ele_track, ix2) 
 one_turn = .false.
 
-if (branch%param%lattice_type == circular_lattice$ .and. &
+if (branch%param%geometry == closed$ .and. &
                     present(ix1) .and. .not. present(ix2)) then
   i2 = i1
   one_turn = .true.
@@ -90,7 +90,7 @@ if (i1 <= i2 .and. .not. one_turn) then
 
 ! For a circular lattice push through the origin.
 
-elseif (branch%param%lattice_type == circular_lattice$ .or. one_turn) then
+elseif (branch%param%geometry == closed$ .or. one_turn) then
   do i = i1+1, branch%n_ele_track
     call add_on_to_xfer_mat
   enddo

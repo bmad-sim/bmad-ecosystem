@@ -8,7 +8,7 @@
 !   lat_file = 'xsif::/nfs/user/dcs/this_lat'
 !
 ! Note: The presence of an LCavity element in the input file (even if it is not
-! used in the lattice) will make lat%lattice_type = linear_lattice$.
+! used in the lattice) will make lat%geometry = open$.
 !
 ! Modules needed:
 !   use bmad

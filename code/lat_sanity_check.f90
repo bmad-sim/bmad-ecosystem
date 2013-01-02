@@ -34,9 +34,9 @@ logical good_control(12,12), girder_here
 
 ! check energy
 
-if (any(lat%ele(:)%key == lcavity$) .and. lat%param%lattice_type /= linear_lattice$) then
+if (any(lat%ele(:)%key == lcavity$) .and. lat%param%geometry /= open$) then
   call out_io (s_fatal$, r_name, &
-            'THERE IS A LCAVITY BUT THE LATTICE_TYPE IS NOT SET TO LINEAR_LATTICE!')
+            'THERE IS A LCAVITY BUT THE GEOMETRY IS NOT SET TO LINEAR_LATTICE!')
 endif
 
 ! good_control specifies what elements can control what other elements.
@@ -197,10 +197,10 @@ do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! match elements with match_end set should only appear in linear_lattices
+    ! match elements with match_end set should only appear in opens
 
     if (ele%key == match$) then
-      if (ele%value(match_end$) /= 0 .and. lat%param%lattice_type /= linear_lattice$) then
+      if (ele%value(match_end$) /= 0 .and. lat%param%geometry /= open$) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'WHICH IS A: MATCH ELEMENT', &

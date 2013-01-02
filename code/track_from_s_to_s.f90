@@ -52,12 +52,12 @@ branch => lat%branch(integer_option(0, ix_branch))
 particle = branch%param%particle
 if (present(track_state)) track_state = moving_forward$
 
-if (s_start == s_end .and. branch%param%lattice_type == linear_lattice$) then
+if (s_start == s_end .and. branch%param%geometry == open$) then
   orbit_end = orbit_start
   return
 endif
 
-if (s_end < s_start .and. lat%param%lattice_type == linear_lattice$) then
+if (s_end < s_start .and. lat%param%geometry == open$) then
   call out_io (s_abort$, r_name, 'S_END < S_START WITH A LINEAR LATTICE.')
   if (global_com%exit_on_error) call err_exit
 endif

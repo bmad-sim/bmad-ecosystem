@@ -123,7 +123,7 @@ may be used (\sref{s:beginning})
 \begin{example}
   type (lat_struct) lat
   ...
-  if (lat%param%lattice_type == circular_lattice$) call twiss_at_start(lat)
+  if (lat%param%geometry == closed$) call twiss_at_start(lat)
 \end{example}
 In either case, the initial Twiss parameters are placed in \vn{lat%ele(0)}. 
 The tune is placed in the variables \vn{lat%a%tune} and \vn{lat%b%tune}.
