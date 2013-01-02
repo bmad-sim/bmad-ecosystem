@@ -35,9 +35,10 @@ def print_all(str, terminate = False, color = False):
 #----------------------------------------------------------
 def print_help():
   print 'Usage:'
-  print '   run_test.py {-bin <exe_dir>} {-test <test_dir>} {-list <test_list_file>}'
+  print '   run_test.py {-bin <exe_dir>} {-debug} {-test <test_dir>} {-list <test_list_file>}'
   print 'Defaults:'
   print '   <exe_dir>  = "../production/bin" ! Relative to current directory.' 
+  print '              = "../debug/bin"      ! If -debug switch is present'
   print '   <test_dir> = ""                  ! For running a single test. Overrides test.list list.'
   print '   <test_list_file> = "test.list"   ! For running multiple tests.'
   exit()
@@ -62,8 +63,11 @@ while i < len(sys.argv):
   elif sys.argv[i] == '-list':
     dir_name = [sys.argv[i+1]]
     i += 1
+  elif sys.argv[i] == '-debug':
+    bin_dir = '../debug/bin'
   else:
     print_help()
+
   i += 1
 
 if bin_dir[0] != '/' and bin_dir[0] != '$': bin_dir = '../' + bin_dir
