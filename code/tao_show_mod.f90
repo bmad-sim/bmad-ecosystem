@@ -1173,6 +1173,7 @@ case ('global')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
     nl=nl+1; write (lines(nl), imt) '  %taylor_order              = ', bmad_com%taylor_order
+    nl=nl+1; write (lines(nl), imt) '  %ptc_max_fringe_order      = ', bmad_com%ptc_max_fringe_order
     nl=nl+1; write (lines(nl), lmt) '  %auto_bookkeeper           = ', bmad_com%auto_bookkeeper
     nl=nl+1; write (lines(nl), lmt) '  %space_charge_on           = ', bmad_com%space_charge_on
     nl=nl+1; write (lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
@@ -1180,6 +1181,7 @@ case ('global')
     nl=nl+1; write (lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on
     nl=nl+1; write (lines(nl), lmt) '  %radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
     nl=nl+1; write (lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
+    nl=nl+1; write (lines(nl), lmt) '  %use_hard_edge_drifts      = ', bmad_com%use_hard_edge_drifts
   endif
 
   if (print_csr_param) then
