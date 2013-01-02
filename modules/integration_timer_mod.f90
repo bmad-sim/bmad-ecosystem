@@ -59,7 +59,7 @@ subroutine integration_timer_ele (ele, param, start, orb_max, tol)
 
 !
 
-  call ele_to_fibre (ele, a_fibre, param%particle, .true.)
+  call ele_to_fibre (ele, a_fibre, param, .true.)
 
   beta0 = ele%value(p0c$) / ele%value(e_tot$)
   call vec_bmad_to_ptc (start%vec, beta0, orbit)

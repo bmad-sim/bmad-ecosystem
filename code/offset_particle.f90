@@ -191,7 +191,7 @@ if (set) then
     endif
 
     if (z_off /= 0 .and. set_s) then
-      call track_a_drift (coord, ele, param%particle, z_off)
+      call track_a_drift (coord, ele, z_off)
       coord%vec(5) = coord%vec(5) - z_off  ! Correction due to reference particle is also offset.
     endif
 
@@ -381,7 +381,7 @@ else
     endif
 
     if (z_off /= 0 .and. set_s) then
-      call track_a_drift (coord, ele, param%particle, -z_off)
+      call track_a_drift (coord, ele, -z_off)
       coord%vec(5) = coord%vec(5) + z_off  ! Correction due to reference particle is also offset.
     endif
 

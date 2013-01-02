@@ -139,7 +139,7 @@ select case (tracking_method)
 
 case (bmad_standard$)
   if (param%particle == photon$) then
-    call track1_photon_bmad (start2_orb, ele, param, end_orb, err)
+    call track1_bmad_photon (start2_orb, ele, param, end_orb, err)
   else
     call track1_bmad (start2_orb, ele, param, end_orb, err)
   endif

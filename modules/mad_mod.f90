@@ -18,6 +18,7 @@ type mad_energy_struct
   real(rp) gamma        ! relativistic factor: 1/sqrt(1-beta^2)
   real(rp) kinetic      ! kinetic energy
   real(rp) p0c          ! particle momentum
+  real(rp) rel_tracking_charge
   integer particle      ! particle species
 end type
 
@@ -73,7 +74,7 @@ type (coord_struct) c0, c1
 ! If ele%taylor does not exist then make it.
 
 if (.not. associated(ele%taylor(1)%term)) then
-  call make_mad_map (ele, param%particle, energy, map)
+  call make_mad_map (ele, param, energy, map)
   call mad_map_to_taylor (map, energy, ele%taylor)
   ele%map_with_offsets = .true.
 endif
@@ -89,7 +90,7 @@ end subroutine make_mat6_mad
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine make_mad_map (ele, particle, energy, map)
+! Subroutine make_mad_map (ele, param, energy, map)
 !
 ! Subroutine to make a 2nd order transport map a la MAD.
 !
@@ -98,32 +99,33 @@ end subroutine make_mat6_mad
 !
 ! Input:
 !   ele      -- Ele_struct: Element
-!   particle -- Integer: Particle species.
+!   param    -- lat_param_struct: particle id
 !
 ! Output:
 !   energy -- mad_energy_struct: Energy of the particle
 !   map    -- Mad_map_struct: Structure holding the transfer map.
 !-
 
-subroutine make_mad_map (ele, particle, energy, map) 
+subroutine make_mad_map (ele, param, energy, map) 
 
 implicit none
 
 type (ele_struct), target ::  ele
 type (mad_energy_struct) energy
 type (mad_map_struct) map
-real(rp), pointer :: val(:)
+type (lat_param_struct) param
 
-integer particle
+real(rp), pointer :: val(:)
 
 character(16), parameter :: r_name = 'make_mad_map'
 
 ! energy structure
 
 energy%total = ele%value(E_TOT$)
-energy%particle = particle
+energy%particle = param%particle
+energy%rel_tracking_charge = param%rel_tracking_charge
 call convert_total_energy_to (energy%total, energy%particle, energy%gamma, &
-                                  energy%kinetic, energy%beta, energy%p0c)
+                                               energy%kinetic, energy%beta, energy%p0c)
 
 ! choose element key
 
@@ -450,7 +452,7 @@ te => map%t
 !    DY = (COSH(K*L) - 1) / K.
 
 ekick = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * &
-                                          charge_of(energy%particle) / el
+                     energy%rel_tracking_charge * charge_of(energy%particle) / el
 ekl   = ekick * el
 
 if (abs(ekl) > 1d-6) then
@@ -1665,7 +1667,7 @@ real(rp) dtime_ref
 !
 
 if (.not. associated(ele%taylor(1)%term)) then
-  call make_mad_map (ele, param%particle, energy, map)
+  call make_mad_map (ele, param, energy, map)
   call mad_map_to_taylor (map, energy, ele%taylor)
 endif
 

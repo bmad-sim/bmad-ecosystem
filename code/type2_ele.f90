@@ -68,11 +68,12 @@ type (em_field_mode_struct), pointer :: rfm
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (ele_attribute_struct) attrib
+type (lat_param_struct) param
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
 integer i, i1, j, n, ix, ix_tot, iv, ic, nl2, l_status, a_type, default_val
-integer nl, nt, particle, n_term, n_att, attrib_type, n_char
+integer nl, nt, n_term, n_att, attrib_type, n_char
 
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -228,15 +229,14 @@ else
   enddo
 
   if (associated(ele%a_pole)) then
-    particle = +1
-    if (associated(lat)) particle = branch%param%particle
+    if (associated(branch)) param = branch%param
 
     if (ele%key == multipole$) then
-      call multipole_ele_to_kt (ele, particle, .false., has_nonzero_pole, a,  b)
-      call multipole_ele_to_kt (ele, particle, .true.,  has_nonzero_pole, a2, b2)
+      call multipole_ele_to_kt (ele, param, .false., has_nonzero_pole, a,  b)
+      call multipole_ele_to_kt (ele, param, .true.,  has_nonzero_pole, a2, b2)
     else
-      call multipole_ele_to_ab (ele, particle, .false., has_nonzero_pole, a,  b)
-      call multipole_ele_to_ab (ele, particle, .true.,  has_nonzero_pole, a2, b2)
+      call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, a,  b)
+      call multipole_ele_to_ab (ele, param, .true.,  has_nonzero_pole, a2, b2)
     endif
 
     if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then

@@ -1,5 +1,5 @@
 !+
-! Subroutine synrad_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, lat_type, walls)
+! Subroutine synrad_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, geometry, walls)
 !
 ! Routine to read the vacuum wall geometry from two files: A file specifying the outline
 ! of the components used in constructing the machine and a file specifying where the components
@@ -10,12 +10,12 @@
 !   component_file -- Character(*): Name of the file specifying the component geometry.
 !   dflt_dir       -- Character(*): Default directory to use if not found in the current directory.
 !   s_lat          -- Real(rp): Lattice length
-!   lat_type       -- Integer: Type of lattice. Circular_lattice$ or open$.
+!   geometry       -- Integer: Type of lattice. open$ or closed$
 !
 ! Output:
 !   walls -- Walls_struct: wall structure.
 
-subroutine synrad_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, lat_type, walls)
+subroutine synrad_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, geometry, walls)
 
 use synrad_mod, except => synrad_read_vac_wall_geometry
 use filename_mod
@@ -29,7 +29,7 @@ type (outline_struct) outline_(100), outline, outline_in, z
 type (wall_list_struct) vac_ele(2000)
 type (concat_struct) concat
 
-integer lat_type
+integer geometry
 integer n, i, j, n1, n2, ixx
 integer n_vac_parts, n_outline, ix_in, ix_out, n_concat_parts
 integer lun, ix, ios
@@ -553,8 +553,8 @@ close (lun)
 
 ! do some checking
 
-call check_wall (inside, s_lat, lat_type)
-call check_wall (outside, s_lat, lat_type)
+call check_wall (inside, s_lat, geometry)
+call check_wall (outside, s_lat, geometry)
 
 ! segment wall
 

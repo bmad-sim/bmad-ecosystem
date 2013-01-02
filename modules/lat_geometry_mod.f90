@@ -222,6 +222,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (floor_position_struct) floor0, floor
 type (ele_pointer_struct), allocatable :: eles(:)
+type (lat_param_struct) param
 
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
 real(rp) r0(3)
@@ -259,7 +260,7 @@ key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
 if (key == multipole$) then
-  call multipole_ele_to_kt (ele, positron$, .true., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
 endif
 
 ! Fiducial element is independent of floor0

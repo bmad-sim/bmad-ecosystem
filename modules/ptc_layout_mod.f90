@@ -257,15 +257,15 @@ do ie = 0, branch%n_ele_track
 
   if (tracking_uses_end_drifts(ele)) then
     call create_hard_edge_drift (ele, upstream_end$, drift_ele)
-    call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
+    call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param, .true., for_layout = .true.)
   endif
 
-  call ele_to_fibre (ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
+  call ele_to_fibre (ele, ele%ptc_fibre, branch%param, .true., for_layout = .true.)
 
   if (tracking_uses_end_drifts(ele)) then
     call create_hard_edge_drift (ele, downstream_end$, drift_ele)
     ! ele%ptc_fibre points to last PTC fibre.
-    call ele_to_fibre (drift_ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
+    call ele_to_fibre (drift_ele, ele%ptc_fibre, branch%param, .true., for_layout = .true.)
   endif
 
   ele_inserted_in_layout = .true.
@@ -604,7 +604,7 @@ end subroutine write_ptc_flat_file_lattice
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine modify_ptc_fibre (ele, particle)
+! Subroutine modify_ptc_fibre (ele, param)
 !
 ! Routine to modify an existing PTC fibre. 
 !
@@ -613,29 +613,31 @@ end subroutine write_ptc_flat_file_lattice
 !
 ! Input:
 !   ele           -- ele_struct: Element with corresponding PTC fibre.
+!   param         -- lat_param_struct:
 !
 ! Output:
 !   ele%ptc_fibre 
 !-
 
-subroutine modify_ptc_fibre_attribute (ele, particle)
+subroutine modify_ptc_fibre_attribute (ele, param)
 
 use madx_ptc_module
 
 implicit none
 
 type (ele_struct), target :: ele
+type (lat_param_struct) param
 type (keywords) ptc_key
 
 real(rp) value
 
-integer particle, i
+integer i
 
 character(32), parameter :: r_name = 'modify_ptc_fibre_attribute'
 
 !
 
-call ele_to_an_bn (ele, particle, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+call ele_to_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
 do i = ptc_key%list%nmul, 1, -1
   call add (ele%ptc_fibre,  i, 0, ptc_key%list%k(i))
