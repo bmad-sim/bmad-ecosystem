@@ -1,0 +1,23 @@
+no_digested
+
+beginning[beta_a] =  10
+beginning[beta_b] =  10
+
+parameter[lattice_type] = linear_lattice
+beginning[e_tot] = 1e9
+
+fork: photon_branch, to_line = l2, superimpose, ref = d1
+fork2: branch, to_line = l1, to_element = m, new_branch = F
+
+d1: pipe, l = 1
+d2: pipe, l = 1
+m: marker
+
+l1: line = (d1, m)
+l2: line = (d2, fork2)
+
+l2[e_tot] = 100
+
+use, l1
+
+
