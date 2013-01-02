@@ -9,6 +9,8 @@ given element (\sref{c:methods}). This chapter discusses the
 element types and the \vn{symp_lie_bmad} calculation that does
 symplectic integration.
 
+Generally it will be assumed that tracking is in the forward direction.
+
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
 \section{Tracking with Non-Zero Offsets, Pitches, or Tilt}
@@ -1229,10 +1231,12 @@ In addition, the phase space $z$ must be corrected due to the finite drift dista
 and/or a finite \vn{t_offset}
 \Begineq
   z_{\text{exi}}(\text{canon}) = 
-  z_{\text{ent}}(\text{canon}) + z_1 \, \frac{|\Bf P|}{P_{s1}} + 
-  \beta \, c \, \, \text{\vn{t_offset}}
+    z_{\text{ent}}(\text{canon}) + z_1 \, \frac{|\Bf P|}{P_{s1}} + 
+    \beta \, (\text{z_offset} + c \, \text{t_offset})
 \Endeq
-where $\beta$ is the particle velocity.
+where $\beta$ is the particle velocity. The \vn{z_offset} factor here is
+to make the \vn{patch} transformation the same as a drift transformation when
+only \vn{z_offset} is nonzero.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
