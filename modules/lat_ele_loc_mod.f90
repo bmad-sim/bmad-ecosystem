@@ -502,7 +502,7 @@ end subroutine get_slave_list
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine get_field_ele_list (ele, field_eles, ds_offset, n_field_ele)
+! Subroutine get_field_ele_list (ele, field_eles, dz_offset, n_field_ele)
 !
 ! Subroutine to get the list of elements that specify the field for the given element.
 !
@@ -526,18 +526,18 @@ end subroutine get_slave_list
 !
 ! Output:
 !   field_eles(:) -- Ele_pointer_struct, allocatable :: Array of field_eles.
-!   ds_offset(:)  -- Offsets of ele from field elements.
+!   dz_offset(:)  -- Offsets of ele from field elements.
 !   n_field_ele   -- Integer: Number of field_eles.
 !-
 
-subroutine get_field_ele_list (ele, field_eles, ds_offset, n_field_ele)
+subroutine get_field_ele_list (ele, field_eles, dz_offset, n_field_ele)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (ele_pointer_struct), allocatable :: field_eles(:)
 
-real(rp), allocatable :: ds_offset(:)
+real(rp), allocatable :: dz_offset(:)
 real(rp) offset
 integer n_field_ele
 
@@ -545,7 +545,7 @@ integer n_field_ele
 
 n_field_ele = 0
 if (.not. allocated(field_eles)) call re_allocate_eles (field_eles, 3)
-allocate (ds_offset(3))
+allocate (dz_offset(3))
 
 offset = 0
 call get_field_eles (ele, offset)
@@ -553,11 +553,11 @@ call get_field_eles (ele, offset)
 !--------------------------------------------------------------------------
 contains
 
-recursive subroutine get_field_eles (this_ele, this_offset)
+recursive subroutine get_field_eles (this_ele, thiz_offset)
 
 type (ele_struct), target :: this_ele
 type (ele_struct), pointer :: field_ele
-real(rp) this_offset, this_offset2
+real(rp) thiz_offset, thiz_offset2
 integer i, ix
 
 !
@@ -572,20 +572,20 @@ if (this_ele%field_calc == refer_to_lords$) then
 
     if (field_ele%lord_status == multipass_lord$) cycle
 
-    this_offset2 = this_offset + (this_ele%s - this_ele%value(l$)) - (field_ele%s - field_ele%value(l$))
+    thiz_offset2 = thiz_offset + (this_ele%s - this_ele%value(l$)) - (field_ele%s - field_ele%value(l$))
 
-    call get_field_eles (field_ele, this_offset2)
+    call get_field_eles (field_ele, thiz_offset2)
 
   enddo
 
 else
   n_field_ele = n_field_ele + 1
-  if (n_field_ele > size(field_eles) .or. n_field_ele > size(ds_offset)) then
+  if (n_field_ele > size(field_eles) .or. n_field_ele > size(dz_offset)) then
     call re_allocate_eles(field_eles, n_field_ele + 10, .true.)
-    call re_allocate (ds_offset, n_field_ele + 10, .false.)
+    call re_allocate (dz_offset, n_field_ele + 10, .false.)
   endif
   field_eles(n_field_ele)%ele => this_ele
-  ds_offset(n_field_ele) = this_offset
+  dz_offset(n_field_ele) = thiz_offset
 endif
 
 end subroutine get_field_eles

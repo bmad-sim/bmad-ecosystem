@@ -2718,7 +2718,7 @@ type (floor_position_struct) :: floor0, floor1
 
 real(dp) beta, phi_tot
 
-real(rp), allocatable :: ds_offset(:)
+real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
@@ -2951,11 +2951,11 @@ ptc_fibre = energy_work
 
 if (key == wiggler$) then
 
-  call get_field_ele_list (ele, field_eles, ds_offset, n_field)
+  call get_field_ele_list (ele, field_eles, dz_offset, n_field)
   do i = 1, n_field
     ele2 => field_eles(i)%ele
     if (ele2%key == wiggler$) then
-      s_rel = ds_offset(i)
+      s_rel = dz_offset(i)
       exit
     endif
   enddo
@@ -3324,7 +3324,7 @@ real(dp) omega(3), basis(3,3), angle(3), origin(3), frame(3,3)
 
 !
 
-dr = [ele%value(x_offset$), ele%value(y_offset$), ele%value(s_offset$)]
+dr = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
 origin = 0
 omega = dr + origin
 

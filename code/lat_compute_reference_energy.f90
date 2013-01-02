@@ -514,7 +514,7 @@ if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   enddo
 endif
 
-if (ele_has_offset(ele)) then
+if (ele_haz_offset(ele)) then
   call zero_ele_offsets (ele)
   has_changed = .true.
 endif

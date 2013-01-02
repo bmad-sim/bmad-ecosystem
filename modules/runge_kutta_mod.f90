@@ -91,7 +91,7 @@ direction = sign(1.0_rp, s2-s1)
 ds_next = bmad_com%init_ds_adaptive_tracking * direction
 
 orb_end = orb_start
-orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
+orb_end%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken, by convention, to be the reference energy at the exit end.

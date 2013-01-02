@@ -2003,7 +2003,7 @@ if (out_type(1:3) == 'MAD') then
     n_repeat(ix_match) = n_repeat(ix_match) + 1
     
     if (val(x_pitch$) == 0 .and. val(y_pitch$) == 0 .and. &
-        val(x_offset_tot$) == 0 .and. val(y_offset_tot$) == 0 .and. val(s_offset_tot$) == 0) cycle
+        val(x_offset_tot$) == 0 .and. val(y_offset_tot$) == 0 .and. val(z_offset_tot$) == 0) cycle
 
     write (iu, *) 'select, flag = error, clear', trim(eol_char)
     write (iu, '(3a, i0, 2a)') 'select, flag = error, range = ', trim(ele%name), &
@@ -2014,7 +2014,7 @@ if (out_type(1:3) == 'MAD') then
     call value_to_line (line_out, -val(y_pitch$), 'dphi', 'es12.4', 'R')
     call value_to_line (line_out, val(x_offset$) - val(x_pitch$) * val(l$) / 2, 'dx', 'es12.4', 'R')
     call value_to_line (line_out, val(y_offset$) - val(y_pitch$) * val(l$) / 2, 'dy', 'es12.4', 'R')
-    call value_to_line (line_out, val(s_offset$), 'ds', 'es12.4', 'R')
+    call value_to_line (line_out, val(z_offset$), 'ds', 'es12.4', 'R')
     call element_out (line_out)
 
   enddo

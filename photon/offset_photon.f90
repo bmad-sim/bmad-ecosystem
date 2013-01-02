@@ -81,13 +81,13 @@ vec => coord%vec
 
 if (set) then
 
-  ! Set: s_offset
+  ! Set: z_offset
 
-  if (p(s_offset_tot$) /= 0) then
-    vec(1) = vec(1) + vec(2) * p(s_offset_tot$) / vec(6)
-    vec(3) = vec(3) + vec(4) * p(s_offset_tot$) / vec(6)
-    coord%t = coord%t + p(s_offset_tot$)  / vec(6) / c_light 
-    coord%s = coord%s + p(s_offset_tot$)
+  if (p(z_offset_tot$) /= 0) then
+    vec(1) = vec(1) + vec(2) * p(z_offset_tot$) / vec(6)
+    vec(3) = vec(3) + vec(4) * p(z_offset_tot$) / vec(6)
+    coord%t = coord%t + p(z_offset_tot$)  / vec(6) / c_light 
+    coord%s = coord%s + p(z_offset_tot$)
   endif
 
   ! Set: X and Y offsets
@@ -200,15 +200,15 @@ else
     ! Unset: offset
     ! Translate offsets to the local output coords.
 
-    off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * p(s_offset_tot$)
+    off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * p(z_offset_tot$)
 
     vec(1) = vec(1) + off(1)
     vec(3) = vec(3) + off(2)
     if (off(3) /= 0) then
       vec(1) = vec(1) - vec(2) * off(3)
       vec(3) = vec(3) - vec(4) * off(3)
-      coord%t = coord%t - p(s_offset_tot$)  / vec(6) / c_light 
-      coord%s = coord%s - p(s_offset_tot$)
+      coord%t = coord%t - p(z_offset_tot$)  / vec(6) / c_light 
+      coord%s = coord%s - p(z_offset_tot$)
     endif
 
   ! non-reflective element
@@ -237,11 +237,11 @@ else
 
     ! Unset S Offset
 
-    if (p(s_offset_tot$) /= 0) then
-      vec(1) = vec(1) - vec(2) * p(s_offset_tot$) / vec(6)
-      vec(3) = vec(3) - vec(4) * p(s_offset_tot$) / vec(6)
-      coord%t = coord%t - p(s_offset_tot$)  / vec(6) / c_light 
-      coord%s = coord%s - p(s_offset_tot$)
+    if (p(z_offset_tot$) /= 0) then
+      vec(1) = vec(1) - vec(2) * p(z_offset_tot$) / vec(6)
+      vec(3) = vec(3) - vec(4) * p(z_offset_tot$) / vec(6)
+      coord%t = coord%t - p(z_offset_tot$)  / vec(6) / c_light 
+      coord%s = coord%s - p(z_offset_tot$)
     endif
 
   endif

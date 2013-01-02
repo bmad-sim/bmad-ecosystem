@@ -79,9 +79,9 @@ real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
-real(rp) dE_p, dpx, dpy, mc2, s_offset
+real(rp) dE_p, dpx, dpy, mc2, z_offset
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
-real(rp), allocatable :: ds_offset(:)
+real(rp), allocatable :: dz_offset(:)
 
 integer i, n_step, n_field
 
@@ -114,7 +114,7 @@ y_pitch = ele%value(y_pitch_tot$)
 
 if (calculate_mat6) then
   mat6 => ele%mat6
-  call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end_orb%vec)
+  call drift_mat6_calc (mat6, ele%value(z_offset_tot$), end_orb%vec)
 endif
 
 if (do_offset) call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
@@ -160,14 +160,14 @@ select case (ele%key)
 
 Case (wiggler$)
 
-  call get_field_ele_list (ele, field_eles, ds_offset, n_field)
+  call get_field_ele_list (ele, field_eles, dz_offset, n_field)
   do i = 1, n_field
     field_ele => field_eles(i)%ele
     if (field_ele%key == wiggler$) exit
   enddo
 
   wig_term => field_ele%wig%term
-  s_offset = ds_offset(i)
+  z_offset = dz_offset(i)
 
   num_wig_terms = size(wig_term)
 
@@ -342,7 +342,7 @@ end select
 ! element offset
 
 if (calculate_mat6) then
-  call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end_orb%vec)
+  call drift_mat6_calc (m6, -ele%value(z_offset_tot$), end_orb%vec)
   mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
   mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
   mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
@@ -764,7 +764,7 @@ real(rp) sin_kxx(1:num_wig_terms)
 real(rp) exp_term
 real(rp) exp_term_inv
 
-real(rp) sps_offset
+real(rp) spz_offset
 
 integer n_hypr, n_trig
 
@@ -822,8 +822,8 @@ do j = 1, num_wig_terms
 enddo
 
 ! update s-terms
-sps_offset = s + s_offset
-kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * sps_offset + wig_term(1:num_wig_terms)%phi_z
+spz_offset = s + z_offset
+kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * spz_offset + wig_term(1:num_wig_terms)%phi_z
 
 ! !DIR$ vector always
 ! do j=1,num_wig_terms
