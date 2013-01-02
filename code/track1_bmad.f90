@@ -30,8 +30,6 @@
 
 subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
-use capillary_mod, dummy => track1_bmad
-use track1_photon_mod, dummy2 => track1_bmad
 use mad_mod, dummy3 => track1_bmad
 use lat_geometry_mod, dummy4 => track1_bmad
 
@@ -113,7 +111,7 @@ case (beambeam$)
   sig_y0 = ele%value(sig_y$)
   if (sig_x0 == 0 .or. sig_y0 == 0) return
 
-  call offset_particle (ele, end_orb, param%particle, set$)
+  call offset_particle (ele, end_orb, param, set$)
 
   n_slice = max(1, nint(ele%value(n_slice$)))
   call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
@@ -144,7 +142,7 @@ case (beambeam$)
   end_orb%vec(1) = end_orb%vec(1) - end_orb%vec(2) * s_pos
   end_orb%vec(3) = end_orb%vec(3) - end_orb%vec(4) * s_pos
 
-  call offset_particle (ele, end_orb, param%particle, unset$)  
+  call offset_particle (ele, end_orb, param, unset$)  
 
 !-----------------------------------------------
 ! bend_sol_quad
@@ -154,7 +152,7 @@ case (beambeam$)
 
 case (bend_sol_quad$)
 
-  call offset_particle (ele, end_orb, param%particle, set$)
+  call offset_particle (ele, end_orb, param, set$)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   len_slice = length / n_slice
@@ -179,70 +177,52 @@ case (bend_sol_quad$)
     end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
   enddo
 
-  call offset_particle (ele, end_orb, param%particle, unset$)
-  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+  call offset_particle (ele, end_orb, param, unset$)
+  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
-
-!-----------------------------------------------
-! capillary
-
-case (capillary$) 
-
-  call offset_photon (ele, end_orb, set$)
-  call track_a_capillary (end_orb, ele)
-  call offset_photon (ele, end_orb, unset$)  
 
 !-----------------------------------------------
 ! collimator
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
-  call offset_particle (ele, end_orb, param%particle, set$, .false., set_tilt = .false., set_hvkicks = .false.)
+  call offset_particle (ele, end_orb, param, set$, .false., set_tilt = .false., set_hvkicks = .false.)
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / (2 * n_slice)
   end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
   do i = 1, n_slice
-     call track_a_drift (end_orb, ele, param%particle, length/n_slice)
-     if(i == n_slice) then
-        end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / (2 * n_slice)
-        end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
-     else
-        end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / n_slice
-        end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / n_slice
-     end if
+    call track_a_drift (end_orb, ele, length/n_slice)
+    if(i == n_slice) then
+      end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / (2 * n_slice)
+      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
+    else
+      end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / n_slice
+      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / n_slice
+    end if
   end do
-  call offset_particle (ele, end_orb, param%particle, unset$, .false., set_tilt = .false., set_hvkicks = .false.)
-
-!-----------------------------------------------
-! crystal
-
-case (crystal$) 
-
-  call offset_photon (ele, end_orb, set$)
-  call track1_crystal (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$)
+  call offset_particle (ele, end_orb, param, unset$, .false., set_tilt = .false., set_hvkicks = .false.)
 
 !-----------------------------------------------
 ! drift
  
 case (drift$) 
 
-  call offset_particle (ele, end_orb, param%particle, set$, .false.)
-  call track_a_drift (end_orb, ele, param%particle, length)
-  call offset_particle (ele, end_orb, param%particle, unset$, .false.)
+  call offset_particle (ele, end_orb, param, set$, .false.)
+  call track_a_drift (end_orb, ele, length)
+  call offset_particle (ele, end_orb, param, unset$, .false.)
 
 !-----------------------------------------------
 ! elseparator
 
 case (elseparator$)
    
-  call offset_particle (ele, end_orb, param%particle, set$, .false., set_hvkicks = .false.) 
+  call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.) 
   call transfer_ele(ele, temp_ele, .true.)
   call zero_ele_offsets(temp_ele)
   temp_ele%value(hkick$) = temp_ele%value(hkick$) / (1. + end_orb%vec(6))
   temp_ele%value(vkick$) = temp_ele%value(vkick$) / (1. + end_orb%vec(6))
 
-  call make_mad_map (temp_ele, param%particle, energy, map)
+  call make_mad_map (temp_ele, param, energy, map)
   end_orb%vec(6) = 0
   end_orb%vec(2) = end_orb%vec(2) / (1 + start2_orb%vec(6))
   end_orb%vec(4) = end_orb%vec(4) / (1 + start2_orb%vec(6))
@@ -250,10 +230,10 @@ case (elseparator$)
   end_orb%vec(2) = end_orb%vec(2) * (1 + start2_orb%vec(6))
   end_orb%vec(4) = end_orb%vec(4) * (1 + start2_orb%vec(6))
    
-  call offset_particle (ele, end_orb, param%particle, unset$, .false., set_hvkicks = .false.)
+  call offset_particle (ele, end_orb, param, unset$, .false., set_hvkicks = .false.)
   call end_z_calc
   end_orb%vec(6) = start2_orb%vec(6)
-  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -261,7 +241,7 @@ case (elseparator$)
  
 case (kicker$, hkicker$, vkicker$) 
 
-  call offset_particle (ele, end_orb, param%particle, set$, .false., set_hvkicks = .false.)
+  call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.)
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   if (ele%key == hkicker$) then
      end_orb%vec(2) = end_orb%vec(2) + ele%value(kick$) / (2 * n_slice)
@@ -272,7 +252,7 @@ case (kicker$, hkicker$, vkicker$)
      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
   endif
   do i = 1, n_slice
-     call track_a_drift (end_orb, ele, param%particle, length/n_slice)
+     call track_a_drift (end_orb, ele, length/n_slice)
      if (i == n_slice) then
         if (ele%key == hkicker$) then
            end_orb%vec(2) = end_orb%vec(2) + ele%value(kick$) / (2 * n_slice)
@@ -293,7 +273,7 @@ case (kicker$, hkicker$, vkicker$)
         endif
      endif
   end do
-  call offset_particle (ele, end_orb, param%particle, unset$, .false., set_hvkicks = .false.)
+  call offset_particle (ele, end_orb, param, unset$, .false., set_hvkicks = .false.)
 
   if (ele%key == kicker$) then
     end_orb%vec(1) = end_orb%vec(1) + ele%value(h_displace$)
@@ -329,7 +309,7 @@ case (lcavity$)
   beta_end_ref   = pc_end_ref / E_end_ref
 
   pc_start = pc_start_ref * rel_pc
-  call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
+  call convert_pc_to (pc_start, param, E_tot = E_start, beta = beta_start)
 
   ! The RF phase is defined with respect to the time at the beginning of the element.
   ! So if dealing with a slave element and absolute time tracking then need to correct.
@@ -353,9 +333,9 @@ case (lcavity$)
   ! the tracking is simple.
 
   if (gradient == 0 .and. gradient_ref == 0) then
-    if (ele%is_on) call offset_particle (ele, end_orb, param%particle, set$, .false.)
-    call track_a_drift (end_orb, ele, param%particle, length)
-    if (ele%is_on) call offset_particle (ele, end_orb, param%particle, unset$, .false.)
+    if (ele%is_on) call offset_particle (ele, end_orb, param, set$, .false.)
+    call track_a_drift (end_orb, ele, length)
+    if (ele%is_on) call offset_particle (ele, end_orb, param, unset$, .false.)
     ! 1/gamma^2 low E correction
     end_orb%vec(5) = end_orb%vec(5) + length * end_orb%vec(6) * (1 - 3 * end_orb%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
     return
@@ -372,7 +352,7 @@ case (lcavity$)
   E_ratio = E_end / E_start
   end_orb%beta = beta_end
 
-  call offset_particle (ele, end_orb, param%particle, set$)
+  call offset_particle (ele, end_orb, param, set$)
 
   ! entrance kick
 
@@ -431,7 +411,7 @@ case (lcavity$)
 
   end_orb%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
 
-  call offset_particle (ele, end_orb, param%particle, unset$)
+  call offset_particle (ele, end_orb, param, unset$)
 
   dp_dg = (pc_end - pc_start) / gradient
   end_orb%vec(5) = end_orb%vec(5) * (beta_end / beta_start) - beta_end * (dp_dg - c_light * ele%value(delta_ref_time$))
@@ -496,54 +476,16 @@ case (match$)
   call time_and_s_calc ()
 
 !-----------------------------------------------
-! mirror
-
-case (mirror$)
-
-  call offset_photon (ele, end_orb, set$)
-
-  ! Check aperture
-
-  if (ele%aperture_at == surface$) then
-    temp_orb%vec(3) = end_orb%vec(3)
-    temp_orb%vec(5) = -end_orb%vec(1) * sin(ele%value(graze_angle$))
-    call check_aperture_limit (temp_orb, ele, surface$, param)
-    if (temp_orb%state /= alive$) then
-      end_orb%state = temp_orb%state
-      return
-    endif
-  endif
-
-  ! Reflect
-
-  end_orb%vec(1:4) = [ &
-        -end_orb%vec(1), &
-        -end_orb%vec(2), &
-         end_orb%vec(3), &
-         end_orb%vec(4) - 2 * end_orb%vec(3) * ele%value(g_trans$)]
-
-  call offset_photon (ele, end_orb, unset$)
-
-!-----------------------------------------------
-! multilayer_mirror
-
-case (multilayer_mirror$) 
-
-  call offset_photon (ele, end_orb, set$)
-  call track1_multilayer_mirror (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$)
-
-!-----------------------------------------------
 ! multipole, ab_multipole
 
 case (multipole$, ab_multipole$) 
 
-  call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false., set_multipoles = .false.)
+  call offset_particle (ele, end_orb, param, set$, set_canonical = .false., set_multipoles = .false.)
 
-  call multipole_ele_to_kt(ele, param%particle, .false., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt(ele, param, .false., has_nonzero_pole, knl, tilt)
   call multipole_kicks (knl, tilt, end_orb, .true.)
 
-  call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., set_multipoles = .false.)
+  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., set_multipoles = .false.)
 
 !-----------------------------------------------
 ! octupole
@@ -555,14 +497,14 @@ case (octupole$)
 
   k3l = ele%value(k3$) * length / n_slice
 
-  call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
   end_orb%vec(2) = end_orb%vec(2) + k3l *  (3*end_orb%vec(1)*end_orb%vec(3)**2 - end_orb%vec(1)**3) / 12
   end_orb%vec(4) = end_orb%vec(4) + k3l *  (3*end_orb%vec(3)*end_orb%vec(1)**2 - end_orb%vec(3)**3) / 12
 
   do i = 1, n_slice
 
-    call track_a_drift (end_orb, ele, param%particle, length / n_slice)
+    call track_a_drift (end_orb, ele, length / n_slice)
 
     if (i == n_slice) then
       end_orb%vec(2) = end_orb%vec(2) + k3l *  (3*end_orb%vec(1)*end_orb%vec(3)**2 - end_orb%vec(1)**3) / 12
@@ -574,7 +516,7 @@ case (octupole$)
 
   enddo
 
-  call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
 
 !-----------------------------------------------
 ! patch
@@ -611,7 +553,7 @@ case (patch$)
 
 case (quadrupole$)
 
-  call offset_particle (ele, end_orb, param%particle, set$)
+  call offset_particle (ele, end_orb, param, set$)
 
   k1 = ele%value(k1$) / rel_pc
 
@@ -652,9 +594,9 @@ case (quadrupole$)
     end_orb%vec(4) = py + k1 * (y*x*px/2 - py*(y**2 + x**2)/4)
   endif
 
-  call offset_particle (ele, end_orb, param%particle, unset$)  
+  call offset_particle (ele, end_orb, param, unset$)  
 
-  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -662,7 +604,7 @@ case (quadrupole$)
 
 case (rfcavity$)
 
-  call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
   ! coupler kick
 
@@ -716,9 +658,9 @@ case (rfcavity$)
 
   if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
 
-  call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
 
-  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -739,13 +681,13 @@ case (sextupole$)
 
   k2l = ele%value(k2$) * length / n_slice
 
-  call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
   end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/4
   end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3) / 2
 
   do i = 1, n_slice
-    call track_a_drift (end_orb, ele, param%particle, length/n_slice)
+    call track_a_drift (end_orb, ele, length/n_slice)
     if (i == n_slice) then
       end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/4
       end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3) / 2
@@ -755,14 +697,14 @@ case (sextupole$)
     endif
   enddo
 
-  call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false.)
+  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
 
 !-----------------------------------------------
 ! solenoid
 
 case (solenoid$)
 
-  call offset_particle (ele, end_orb, param%particle, set$)
+  call offset_particle (ele, end_orb, param, set$)
 
   ks = ele%value(ks$) / rel_pc
 
@@ -773,8 +715,8 @@ case (solenoid$)
   call solenoid_mat_calc (ks, length, mat4)
   end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
 
-  call offset_particle (ele, end_orb, param%particle, unset$)
-  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+  call offset_particle (ele, end_orb, param, unset$)
+  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -782,7 +724,7 @@ case (solenoid$)
 
 case (sol_quad$)
 
-  call offset_particle (ele, end_orb, param%particle, set$)
+  call offset_particle (ele, end_orb, param, set$)
 
   ks = ele%value(ks$) / rel_pc
   k1 = ele%value(k1$) / rel_pc
@@ -791,8 +733,8 @@ case (sol_quad$)
   end_orb%vec(5) = end_orb%vec(5) + sum(end_orb%vec(1:4) * matmul(dz4_coef, end_orb%vec(1:4)))   
   end_orb%vec(1:4) = matmul (mat6(1:4,1:4), end_orb%vec(1:4))
 
-  call offset_particle (ele, end_orb, param%particle, unset$)
-  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+  call offset_particle (ele, end_orb, param, unset$)
+  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
@@ -824,7 +766,7 @@ case (wiggler$)
     return
   endif
 
-  call offset_particle (ele, end_orb, param%particle, set$)
+  call offset_particle (ele, end_orb, param, set$)
 
   if (ele%value(l_pole$) == 0) then
     k_z = 0
@@ -846,12 +788,12 @@ case (wiggler$)
   ! 1/2 of the octupole octupole kick at the exit face.
 
   end_orb%vec(4) = end_orb%vec(4) + k1 * length * k_z**2 * end_orb%vec(3)**3 / 3
-
-  call offset_particle (ele, end_orb, param%particle, unset$)
+  call offset_particle (ele, end_orb, param, unset$)
   end_orb%vec(5) = start2_orb%vec(5) + length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) - &
                    1/sqrt(1 - (end_orb%vec(2) / rel_pc)**2 - (end_orb%vec(4) / rel_pc)**2)) &
                    - 0.5*k1*length / k_z**2 * (1 - rel_pc**2)
-  call track1_low_energy_z_correction (end_orb, ele, param%particle)
+  call track1_low_energy_z_correction (end_orb, ele, param)
+
   end_orb%t = start2_orb%t + (ele%value(l$) - 0.5*k1*length / k_z**2 * rel_pc**2) / (end_orb%beta * c_light)
   end_orb%s = ele%s
 

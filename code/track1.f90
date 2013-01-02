@@ -138,7 +138,11 @@ if (.not. ele%is_on) tracking_method = bmad_standard$
 select case (tracking_method)
 
 case (bmad_standard$)
-  call track1_bmad (start2_orb, ele, param, end_orb, err)
+  if (param%particle == photon$) then
+    call track1_photon_bmad (start2_orb, ele, param, end_orb, err)
+  else
+    call track1_bmad (start2_orb, ele, param, end_orb, err)
+  endif
   if (err) return
 
 case (custom$)

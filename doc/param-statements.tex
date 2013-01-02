@@ -30,7 +30,7 @@ set by \vn{parameter} are
   parameter[n_part]        = <Real>          ! Number of particles in a bunch.
   parameter[no_end_marker] = <Logical>       ! Default: False.
   parameter[p0c]           = <Real>          ! Reference momentum.
-  parameter[particle]      = <particle_type> ! Eg: positron, antiproton, etc.
+  parameter[particle]      = <particle_type> ! Reference particle. positron, antiproton, etc.
   parameter[ran_seed]      = <Integer>       ! Random number generator init.
   parameter[rf_auto_scale_phase]    = <Logical>  ! RF automatic phase scaling.
   parameter[rf_auto_scale_amp]      = <Logical>  ! RF automatic amplitude scaling.
@@ -41,6 +41,8 @@ set by \vn{parameter} are
   parameter[ptc_max_finge_order]    = <Integer>  ! Max fringe order (2 (default) => Quadrupole).
   parameter[use_hard_edge_model_drifts] = <Logical>
   parameter[custom_attributeN]      = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
+  parameter[rel_tracking_charge]    = <Real>     ! Charge of tracked particles relative to 
+                                                 !   reference charge. Default is 1.
 \end{example}
 
 \noindent
@@ -121,7 +123,16 @@ is an \vn{Lcavity} element present in the lattice file (even if it is
 not used in constructing the lattice), \vn{open} will be the
 default.
 
-\index{taylor_order statement}
+Note: \vn{geometry} used to be called \vn{lattice_type}, \vn{closed}
+used to be called \vn{circular_lattice} and \vn{open} used to be
+called \vn{linear_lattice}. This old syntax is still accepted in
+lattice files.
+
+\index{rel_tracking_charge}
+The \vn{rel_tracking_charge} establishes the charge of particles being
+tracked relative to the charge of the reference particle. The default
+is 1. See Section~\sreffff{} for more details.
+
 \index{taylor_order}
 The Taylor order (\sref{s:taylor.phys}) is set by
 \vn{parameter[taylor_order]} and is the maximum order for a Taylor map.

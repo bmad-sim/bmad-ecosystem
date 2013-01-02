@@ -102,30 +102,30 @@ in the beam. In \bmad this situation can simulated using the
 \vn{multipass} attribute. A simple example shows how this works.
 \index{expand_lattice}
 \begin{example}
-  A: lcavity
-  linac_part: line[multipass] = (A, ...)
+  RF1: lcavity
+  linac_part: line[multipass] = (RF1, ...)
   my_line: line = (linac_part, ..., linac_part)
   use, my_line
   expand_lattice
-  A\B2[dphi0] = 0.5
+  RF1\B2[dphi0] = 0.5
 \end{example}
 The tracking part of the lattice consists of two slave elements
 \begin{example}
-  A\B1, ..., A\B2, ...
+  RF1\B1, ..., RF1\B2, ...
 \end{example}
 Since the two elements are derived from a \vn{multipass} line they are
 given unique names by adding a \vn{{\B}n} suffix. In addition there is
-a lord element (that doesn't get tracked through) called \vn{A} in the
-lord part of the lattice. Changes to attributes of the lord \vn{A}
+a lord element (that doesn't get tracked through) called \vn{RF1} in the
+lord part of the lattice. Changes to attributes of the lord \vn{RF1}
 element will be passed to the slave elements by \bmad's bookkeeping
-routines. Assuming \vn{A\B1} is an accelerating cavity, to make
-\vn{A\B2} a decelerating cavity the \vn{dphi0} attribute of
-\vn{A\B2} is set to 0.5. This is the one attribute that \bmad's
+routines. Assuming \vn{RF1\B1} is an accelerating cavity, to make
+\vn{RF1\B2} a decelerating cavity the \vn{dphi0} attribute of
+\vn{RF1\B2} is set to 0.5. This is the one attribute that \bmad's
 bookkeeping routines will not touch when transferring attribute values
-from \vn{A} to its slaves. Notice that the \vn{dphi0} attribute had to
+from \vn{RF1} to its slaves. Notice that the \vn{dphi0} attribute had to
 be set after \vn{expand_lattice} (\sref{s:expand})
 is used to expand the lattice since
-\bmad does immediate evaluation and \vn{A\B2} does not exist before
+\bmad does immediate evaluation and \vn{RF1\B2} does not exist before
 the lattice is expanded.
 
 Sublines of a multipass line are automatically multipass:
@@ -152,10 +152,11 @@ controls the 1\St and 4\Th elements in the tracking part of the lattice
 and the second \vn{A} lord controls the 2\Nd and 5\Th elements.
 
 %-----------------------------------------------------------------------------
-\subsection{The Reference Orbit in a Multipass Line}
+\subsection{The Reference Energy in a Multipass Line}
+\label{s:ref.e.multi}
 
 \index{lcavity}
-\index{p0c}\index{e_tot}
+\index{p0c}\index{e_tot}\index{n_ref_pass}
 If there are \vn{lcavity} elements in the lattice then the reference
 energy at a given element may differ from pass to pass. In this case,
 the normalized strength (k1, kick, etc.) for magnetic and electric
@@ -176,4 +177,36 @@ nothing is set, is for \vn{n_ref_pass} to be set to 1.  Note: If
 \vn{ref_orbit} is set to \vn{match_global_coords}, or for any element
 where the reference energy is not constant (like an \vn{lcavity}),
 \vn{n_ref_pass} must be used and must be set to 1.
+
+%-----------------------------------------------------------------------------
+\section{Branching and Multipass Examples}
+
+%-----------------------------------------------------------------------------
+\subsection{Example: Flexible Patch in an ERL}
+\label{s:ex.erl}
+
+Consider the case of an Energy Recovery Linac (ERL) where the beam
+goes through the linac section of the ERL twice. Once to accelerate
+the beam and once to decellerate and recover the energy from the
+beam. The basic ERL lattice is then
+\begin{example}
+  erl: line = (injector, linac, arc, linac, dump)
+  injector: line = (...)
+  linac: line[multipass] = (..., rf1, ...)
+  arc: line = (..., patch2)
+  dump: line = (...)
+  patch2: patch, flexible = True
+  ...
+  expand_lattice
+  rf1\B2[dphi0] = 0.5
+  ...
+\end{example}
+
+%-----------------------------------------------------------------------------
+\subsection{Example: Injection Line}
+\label{s:ex.inj}
+
+%-----------------------------------------------------------------------------
+\subsection{Example: Colliding Beam Storage Rings}
+\label{s:ex.collide}
 

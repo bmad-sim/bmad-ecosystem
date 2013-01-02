@@ -124,8 +124,8 @@ select case (key)
 
 case (beambeam$)
 
- call offset_particle (ele, c00, param%particle, set$)
- call offset_particle (ele, c11, param%particle, set$, ds_pos = length)
+ call offset_particle (ele, c00, param, set$)
+ call offset_particle (ele, c11, param, set$, ds_pos = length)
 
   n_slice = nint(ele%value(n_slice$))
   if (n_slice < 1) then
@@ -361,7 +361,7 @@ case (multipole$, ab_multipole$)
 
   if (.not. ele%multipoles_on) return
 
-  call multipole_ele_to_kt (ele, param%particle, .true., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
   call mat6_multipole (knl, tilt, c0%vec, 1.0_rp, ele%mat6)
 
   ! if knl(0) is non-zero then the reference orbit itself is bent
@@ -382,8 +382,8 @@ case (multipole$, ab_multipole$)
 
 case (octupole$)
 
-  call offset_particle (ele, c00, param%particle, set$, set_canonical = .false.)
-  call offset_particle (ele, c11, param%particle, set$, set_canonical = .false., ds_pos = length)
+  call offset_particle (ele, c00, param, set$, set_canonical = .false.)
+  call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   k3l = ele%value(k3$) * length / n_slice
@@ -437,8 +437,8 @@ case (patch$)
 
 case (quadrupole$)
 
-  call offset_particle (ele, c00, param%particle, set$)
-  call offset_particle (ele, c11, param%particle, set$, ds_pos = length)
+  call offset_particle (ele, c00, param, set$)
+  call offset_particle (ele, c11, param, set$, ds_pos = length)
 
   k1 = ele%value(k1$) / rel_p
 
@@ -627,7 +627,7 @@ case (sbend$)
   ! Reverse track here for c11 since c11 needs to be the orbit just inside the bend.
   ! Notice that kx_2 and ky_2 are not affected by reverse tracking
 
-  call offset_particle (ele, c00, param%particle, set$, set_canonical = .false.)
+  call offset_particle (ele, c00, param, set$, set_canonical = .false.)
     
   ! Entrance edge kick
 
@@ -640,7 +640,7 @@ case (sbend$)
   endif
 
 
-  call offset_particle (ele, c11, param%particle, set$, set_canonical = .false., ds_pos = length)
+  call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
  
   ! Exit edge kick
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
@@ -756,8 +756,8 @@ case (sbend$)
 
 case (sextupole$)
 
-  call offset_particle (ele, c00, param%particle, set$, set_canonical = .false.)
-  call offset_particle (ele, c11, param%particle, set$, set_canonical = .false., ds_pos = length)
+  call offset_particle (ele, c00, param, set$, set_canonical = .false.)
+  call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   k2l = ele%value(k2$) * length / n_slice
@@ -791,8 +791,8 @@ case (sextupole$)
 
 case (solenoid$)
 
-  call offset_particle (ele, c00, param%particle, set$)
-  call offset_particle (ele, c11, param%particle, set$, ds_pos = length)
+  call offset_particle (ele, c00, param, set$)
+  call offset_particle (ele, c11, param, set$, ds_pos = length)
 
   ks = ele%value(ks$) / rel_p
 
@@ -877,8 +877,8 @@ case (solenoid$)
 
 case (sol_quad$)
 
-  call offset_particle (ele, c00, param%particle, set$)
-  call offset_particle (ele, c11, param%particle, set$, ds_pos = length)
+  call offset_particle (ele, c00, param, set$)
+  call offset_particle (ele, c11, param, set$, ds_pos = length)
 
   call sol_quad_mat6_calc (ele%value(ks$), ele%value(k1$), length, mat6, c00%vec)
 
@@ -901,8 +901,8 @@ case (taylor$)
 
 case (wiggler$)
 
-  call offset_particle (ele, c00, param%particle, set$)
-  call offset_particle (ele, c11, param%particle, set$, ds_pos = length)
+  call offset_particle (ele, c00, param, set$)
+  call offset_particle (ele, c11, param, set$, ds_pos = length)
 
   call mat_make_unit (mat6)     ! make a unit matrix
 
@@ -994,7 +994,7 @@ logical add_m56_correction, has_nonzero_pole
 !
 
 if (key /= multipole$ .and. key /= ab_multipole$) then
-  call multipole_ele_to_kt (ele, param%particle, .true., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
   if (has_nonzero_pole) then
     mat6_m = 0
     call mat6_multipole (knl, tilt, c0%vec, 0.5_rp, mat6_m)

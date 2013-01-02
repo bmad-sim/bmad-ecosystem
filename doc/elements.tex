@@ -564,7 +564,7 @@ A \vn{branch} or \vn{photon_branch} element marks the start of an
 alternative line for the beam. The only difference between \vn{branch}
 and \vn{photon_branch} is that the default particle type for a
 \vn{branch} is the same particle type in use at where the branching
-occurs.  The default particle type for a \vn{photon_branch} element is
+occurs. The default particle type for a \vn{photon_branch} element is
 a photon. See \sref{s:branching} for more details.
 
 General \vn{branch} and \vn{photon_branch} attributes are:
@@ -614,17 +614,27 @@ must be set for that line using line parameter statements
 that is branching from a storage ring where the photon energy is not
 simply related to the particle energy. 
 
-Example showing an injection line branching to a ring branching to an x-ray line:
+Example showing an injection line branching to a ring branching to two
+x-ray lines:
 \begin{example}
   inj: line = (..., ring, ...)               ! Define the injection line
   use, inj                                   ! Injection line is the root
-  ring: branch, to_line = ring_layout, 
-          geometry = closed    ! Branch to the ring
-  ring_layout: line = (..., x_ray, ...)      ! Define the ring
-  x_ray: photon_branch, E_tot_start = 1e3,   ! 1 KeV reference photon.
-                        to_line = x_layout 
-  x_layout: line = (...)                     ! Define the x-ray line
+  ring_br: branch, to_line = ring, 
+          geometry = closed                  ! Branch to the ring
+  ring: line = (..., x_br, ..., x_br, ...)   ! Define the ring
+  x_br: photon_branch, to_line = x_line 
+  x_line: line = (...)                       ! Define the x-ray line
+  x_line[E_tot] = 1e3
 \end{example}
+
+The \vn{new_branch} attribute is, by default, \vn{True} which means
+that the lattice branch created out of the \vn{to_line} line is distinct
+from other lattice branches of the same name. Thus, in the above example,
+the two lattice branches made from the \vn{x_line}
+will be distinct. If \vn{new_branch} is set to \vn{False}, a new lattice
+branch will not be created if a lattice branch createda from the same
+line already exists. This is useful, for example, when a chicane line
+branches off from the main line and then branches back to it.
 
 %-----------------------------------------------------------------
 \section{Capillary}

@@ -61,17 +61,19 @@ type (ele_struct) :: ele
 type (lat_param_struct), intent(inout) :: param
 
 real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r
-integer at
+integer at, at2
 logical do_tilt, err
 logical, optional :: check_momentum
 character(20) :: r_name = 'check_aperture_limit'
 
 ! Check if there is a limit here. If not, simply return.
 
-if (at == upstream_end$) then
-  if (ele%aperture_at /= upstream_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
-elseif (at == downstream_end$) then
-  if (ele%aperture_at /= downstream_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
+at2 = physical_ele_end (at, ele%orientation)
+
+if (at2 == entrance_end$) then
+  if (ele%aperture_at /= entrance_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
+elseif (at2 == exit_end$) then
+  if (ele%aperture_at /= exit_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
 endif
 
 ! Custom
@@ -101,7 +103,7 @@ endif
 
 !
 
-if (ele%offset_moves_aperture .and. (at == upstream_end$ .or. at == downstream_end$)) then
+if (ele%offset_moves_aperture .and. (at2 == entrance_end$ .or. at2 == exit_end$)) then
   do_tilt = .false.
   if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
   orb2 = orb
@@ -188,7 +190,7 @@ end subroutine check_aperture_limit
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_drift (orb, ele, species, length)
+! Subroutine track_a_drift (orb, ele, length)
 !
 ! Subroutine to track a particle as through a drift.
 !
@@ -198,35 +200,20 @@ end subroutine check_aperture_limit
 ! Input:
 !   orb      -- coord_struct: Orbit at start of the drift.
 !   ele      -- Ele_struct: Element tracked through.
-!   species  -- Integer: Species of particle. electron$, etc. 
 !   length   -- Real(rp): Length to drift through.
-
 !
 ! Output:
 !   orb      -- coord_struct: Orbit at end of the drift
 !-
 
-subroutine track_a_drift (orb, ele, species, length)
+subroutine track_a_drift (orb, ele, length)
 
 implicit none
 
 type (coord_struct) orb
 type (ele_struct) ele
 type (lat_param_struct) param
-integer species
 real(rp) length, rel_pc, dz, px, py, pz, pxy2
-
-! Photon tracking uses a different coordinate system. 
-! Notice that if orb%vec(6) is negative then the photon will be going back in time.
-
-if (species == photon$) then
-  orb%vec(1) = orb%vec(1) + length * orb%vec(2) / orb%vec(6)
-  orb%vec(3) = orb%vec(3) + length * orb%vec(4) / orb%vec(6)
-  orb%vec(5) = orb%vec(5) + length
-  orb%s      = orb%s      + length
-  orb%t = orb%t + length * orb%vec(6) / c_light
-  return
-endif
 
 ! Everything but photons
 
@@ -254,6 +241,46 @@ orb%vec(5) = orb%vec(5) + dz
 orb%s = orb%s + length
 
 end subroutine track_a_drift
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine track_a_drift_photon (orb, ele, length)
+!
+! Subroutine to track a particle as through a drift.
+!
+! Modules needed:
+!   use precision_def
+!
+! Input:
+!   orb      -- coord_struct: Orbit at start of the drift.
+!   ele      -- Ele_struct: Element tracked through.
+!   length   -- Real(rp): Length to drift through.
+!
+! Output:
+!   orb      -- coord_struct: Orbit at end of the drift
+!-
+
+subroutine track_a_drift_photon (orb, ele, length)
+
+implicit none
+
+type (coord_struct) orb
+type (ele_struct) ele
+type (lat_param_struct) param
+real(rp) length, rel_pc, dz, px, py, pz, pxy2
+
+! Photon tracking uses a different coordinate system. 
+! Notice that if orb%vec(6) is negative then the photon will be going back in time.
+
+orb%vec(1) = orb%vec(1) + length * orb%vec(2) / orb%vec(6)
+orb%vec(3) = orb%vec(3) + length * orb%vec(4) / orb%vec(6)
+orb%vec(5) = orb%vec(5) + length
+orb%s      = orb%s      + length
+orb%t = orb%t + length * orb%vec(6) / c_light
+
+end subroutine track_a_drift_photon
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -289,8 +316,8 @@ type (ele_struct),   intent(inout)  :: ele
 type (lat_param_struct), intent(inout) :: param
 
 real(rp) angle, ct, st, x, px, y, py, z, pz, dpx_t, p_long
-real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err
-real(rp) length, g_tot, del_p, eps, pxy2, f, k_2, alpha, beta
+real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err, c_dir
+real(rp) length, g_tot, del_p, eps, pxy2, f, k_2, alpha, beta, ct
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
@@ -307,9 +334,9 @@ call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false
 
 ix_fringe = nint(ele%value(fringe_type$))
 if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-  call exact_bend_edge_kick (end_orb, ele, upstream_end$, .false.)
+  call exact_bend_edge_kick (end_orb, ele, param, upstream_end$, .false.)
 elseif (ix_fringe == basic_bend$) then
-  call apply_bend_edge_kick (end_orb, ele, upstream_end$, .false.)
+  call apply_bend_edge_kick (end_orb, ele, param, upstream_end$, .false.)
 endif
 
 ! If we have a sextupole component then step through in steps of length ds_step
@@ -322,17 +349,18 @@ knl = knl / n_step
 
 ! Set some parameters
 
+c_dir = ele%direction * param%rel_tracking_charge
 length = ele%value(l$) / n_step
 g = ele%value(g$)
-g_err = ele%value(g_err$)
-g_tot = g + g_err
-angle = ele%value(g$) * length
+g_tot = (g + ele%value(g_err$)) * c_dir
+g_err = g_tot - g
+angle = g * length
 rho = 1 / g
 del_p = start_orb%vec(6)
 rel_p  = 1 + del_p
 rel_p2 = rel_p**2
-k_1 = ele%value(k1$)
-k_2 = ele%value(k2$) * length
+k_1 = ele%value(k1$) * c_dir
+k_2 = ele%value(k2$) * c_dir
 
 ! 1/2 sextupole kick at the beginning.
 
@@ -443,14 +471,14 @@ enddo
 ! Track through the exit face. Treat as thin lens.
 
 if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-  call exact_bend_edge_kick (end_orb, ele, downstream_end$, .false.)
+  call exact_bend_edge_kick (end_orb, ele, param, downstream_end$, .false.)
 elseif (ix_fringe == basic_bend$) then
-  call apply_bend_edge_kick (end_orb, ele, downstream_end$, .false.)
+  call apply_bend_edge_kick (end_orb, ele, param, downstream_end$, .false.)
 endif
 
-call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., set_multipoles = .false.)
+call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., set_multipoles = .false.)
 
-call track1_low_energy_z_correction (end_orb, ele, param%particle)
+call track1_low_energy_z_correction (end_orb, ele, param)
 
 end subroutine track_a_bend
 
@@ -458,10 +486,10 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine apply_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
+! Subroutine apply_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
 !
 ! Subroutine to track through the edge field of an sbend.
-! Reverse tracking starts with the particle just outside the bend and
+! In_to_out tracking starts with the particle just outside the bend and
 ! returns the orbit that the particle had just inside the bend.
 !
 ! Module needed:
@@ -470,40 +498,45 @@ end subroutine track_a_bend
 ! Input:
 !   orb         -- Coord_struct: Starting coords.
 !   ele         -- ele_struct: SBend element.
-!   element_end -- Integer: upstream_end$ or downstream_end$
-!   reverse     -- Logical: If True then make the inverse transformation.
-!                     That is, for the entrance end take the input orb as the coordinates
-!                     just inside the entrance end of the bend and return the coordinates 
+!   param       -- lat_param_struct: Rel charge.
+!   stream_end  -- Integer: upstream_end$ or downstream_end$
+!   in_to_out   -- Logical: If True then make the inverse transformation.
+!                    That is, for the entrance end take the input orb as the coordinates
+!                    just inside the entrance end of the bend and return the coordinates 
 !                    just oustide the entrance end.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
 !   kx, ky     -- Real(rp), optional: Horizontal and vertical edge focusing strengths.
 !                  Useful for constructing the edge transfer matrix.
-!                  The values of kx and ky are not affected by the reverse argument.
+!                  The values of kx and ky are not affected by the in_to_out argument.
 !-
 
-subroutine apply_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
+subroutine apply_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
 
 implicit none
 
 type (ele_struct) ele
 type (coord_struct) orb
+type (lat_param_struct) param
+
 real(rp), optional :: kx, ky
 real(rp) e, g, g_tot, fint, hgap, k1x, k1y, cos_e, sin_e, tan_e, sec_e, v0(6), k1_eff
-real(rp) ht2, hs2
-integer element_end
-logical reverse
+real(rp) ht2, hs2, c_dir
+integer stream_end, element_end
+logical in_to_out
 
 character(24), parameter :: r_name = 'apply_bend_edge_kick'
 
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
 
-g     = ele%value(g$)
-g_tot = ele%value(g$) + ele%value(g_err$)
+c_dir = param%rel_tracking_charge * ele%direction
 
-if (element_end == upstream_end$) then
+g     = ele%value(g$)
+g_tot = (g + ele%value(g_err$)) * c_dir
+
+if (element_end == entrance_end$) then
   e = ele%value(e1$); fint = ele%value(fint$); hgap = ele%value(hgap$)
 else
   e = ele%value(e2$); fint = ele%value(fintx$); hgap = ele%value(hgapx$)
@@ -513,7 +546,9 @@ cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
 k1x = g_tot * tan_e
 ht2 = g * tan_e**2
 hs2 = g * sec_e**2
-k1_eff = ele%value(k1$)
+k1_eff = ele%value(k1$) * c_dir
+
+element_end = physical_ele_end(stream_end, ele)
 
 if (fint == 0) then
   k1y = -k1x
@@ -523,8 +558,8 @@ endif
 
 v0 = orb%vec
 
-if (reverse) then
-  if (element_end == upstream_end$) then
+if (in_to_out) then
+  if (element_end == entrance_end$) then
     orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
     orb%vec(2) = v0(2) - k1x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) - &
                          k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
@@ -543,7 +578,7 @@ if (reverse) then
   endif
 
 else
-  if (element_end == upstream_end$) then
+  if (element_end == entrance_end$) then
     orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
     orb%vec(2) = v0(2) + k1x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) + &
                          k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
@@ -634,7 +669,7 @@ case (sbend$)
 ! So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
-  ks = hard_ele%value(bs_field$) * c_light / orb%p0c
+  ks = param%rel_tracking_charge * hard_ele%value(bs_field$) * c_light / orb%p0c
   if (element_end == upstream_end$) then
     orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
     orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
@@ -729,7 +764,7 @@ end subroutine pitches_to_rotation_matrix
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! private subroutine ptc_wedger(a, g_tot, beta0, X)
+! private subroutine ptc_wedger (a, g_tot, beta0, X)
 !
 ! Subroutine to track PTC coordinates through a wedge
 !
@@ -744,7 +779,7 @@ end subroutine pitches_to_rotation_matrix
 ! Output:
 !   X(6)   -- real(rp): PTC phase space coordinates
 !-
-subroutine ptc_wedger(a, g_tot, beta0, X)
+subroutine ptc_wedger (a, g_tot, beta0, X)
 
 implicit none
 
@@ -930,10 +965,10 @@ end subroutine ptc_rot_xz
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine exact_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
+! Subroutine exact_bend_edge_kick (orb, ele, element_end, in_to_out, kx, ky)
 !
 ! Subroutine to track through the edge field of an sbend.
-! Reverse tracking starts with the particle just outside the bend and
+! In_to_out tracking starts with the particle just outside the bend and
 ! returns the orbit that the particle had just inside the bend.
 !
 ! Uses routines adapted from PTC
@@ -944,8 +979,9 @@ end subroutine ptc_rot_xz
 ! Input:
 !   orb         -- Coord_struct: Starting coords.
 !   ele         -- ele_struct: SBend element.
+!   param       -- lat_param_struct: 
 !   element_end -- Integer: upstream_end$ or downstream_end$
-!   reverse     -- Logical: If True then make the inverse transformation.
+!   in_to_out   -- Logical: If True then make the inverse transformation.
 !                     That is, for the entrance end take the input orb as the coordinates
 !                     just inside the entrance end of the bend and return the coordinates 
 !                     just oustide the entrance end.
@@ -954,10 +990,10 @@ end subroutine ptc_rot_xz
 !   orb        -- Coord_struct: Coords after tracking.
 !   kx, ky     -- Real(rp), optional: Horizontal and vertical edge focusing strengths.
 !                  Useful for constructing the edge transfer matrix.
-!                  The values of kx and ky are not affected by the reverse argument.
+!                  The values of kx and ky are not affected by the in_to_out argument.
 !-
 
-subroutine exact_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)
+subroutine exact_bend_edge_kick (orb, ele, param, element_end, in_to_out, kx, ky)
 
 use ptc_interface_mod
 
@@ -965,21 +1001,23 @@ implicit none
 
 type(coord_struct) :: orb
 type(ele_struct) :: ele
+type (lat_param_struct) param
 real(rp), optional :: kx, ky
 real(rp) :: X(6), ct
 real(rp) :: beta0, g_tot, edge_angle, hgap, fint
 integer :: element_end
-logical :: reverse
+logical :: in_to_out
 
 character(20) :: r_name = 'exact_bend_edge_kick'
 
 !
-if (reverse) then
-  call out_io (s_fatal$, r_name, 'REVERSE NOT IMPLEMENTED')
+if (in_to_out) then
+  call out_io (s_fatal$, r_name, 'IN_TO_OUT NOT IMPLEMENTED')
   call err_exit
 endif
 
 !Get reference beta0
+
 beta0 = ele%value(e_tot$) / ele%value(p0c$)
 g_tot = ele%value(g$) + ele%value(g_err$)
 

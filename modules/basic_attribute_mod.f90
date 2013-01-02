@@ -382,7 +382,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, tilt$,          'TILT' )
   call init_attribute_name1 (i, x_offset$,      'X_OFFSET')
   call init_attribute_name1 (i, y_offset$,      'Y_OFFSET')
-  call init_attribute_name1 (i, s_offset$,      'S_OFFSET')
+  call init_attribute_name1 (i, z_offset$,      'Z_OFFSET')
   call init_attribute_name1 (i, x_pitch$,       'X_PITCH')
   call init_attribute_name1 (i, y_pitch$,       'Y_PITCH')
 
@@ -391,7 +391,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, tilt_tot$,      'TILT_TOT', dependent$)
   call init_attribute_name1 (i, x_offset_tot$,  'X_OFFSET_TOT', dependent$)
   call init_attribute_name1 (i, y_offset_tot$,  'Y_OFFSET_TOT', dependent$)
-  call init_attribute_name1 (i, s_offset_tot$,  'S_OFFSET_TOT', dependent$)
+  call init_attribute_name1 (i, z_offset_tot$,  'Z_OFFSET_TOT', dependent$)
   call init_attribute_name1 (i, x_pitch_tot$,   'X_PITCH_TOT', dependent$)
   call init_attribute_name1 (i, y_pitch_tot$,   'Y_PITCH_TOT', dependent$)
 
@@ -473,7 +473,7 @@ call init_attribute_name1 (photon_branch$, ix_to_element$,           'IX_TO_ELEM
 call init_attribute_name1 (photon_branch$, direction$,               'DIRECTION')
 call init_attribute_name1 (photon_branch$, to_line$,                 'TO_LINE')
 call init_attribute_name1 (photon_branch$, to_element$,              'TO_ELEMENT')
-call init_attribute_name1 (photon_branch$, new_branch$,                   'CLONE')
+call init_attribute_name1 (photon_branch$, new_branch$,              'NEW_BRANCH')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
@@ -628,7 +628,7 @@ call init_attribute_name1 (match$, p0c_start$,                     'p0c_start', 
 call init_attribute_name1 (girder$, l$,                             'L')
 call init_attribute_name1 (girder$, x_offset$,                      'X_OFFSET')
 call init_attribute_name1 (girder$, y_offset$,                      'Y_OFFSET')
-call init_attribute_name1 (girder$, s_offset$,                      'S_OFFSET')
+call init_attribute_name1 (girder$, z_offset$,                      'Z_OFFSET')
 call init_attribute_name1 (girder$, x_pitch$,                       'X_PITCH')
 call init_attribute_name1 (girder$, y_pitch$,                       'Y_PITCH')
 call init_attribute_name1 (girder$, s_min$,                         'S_MIN')
@@ -753,7 +753,6 @@ call init_attribute_name1 (patch$, t_offset$,                       'T_OFFSET')
 call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START')
 call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START')
 call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSET')
-call init_attribute_name1 (patch$, z_offset$,                       'Z_OFFSET', override = .true.)
 call init_attribute_name1 (patch$, flexible$,                       'FLEXIBLE')
 call init_attribute_name1 (patch$, ptc_dir$,                        'ptc_dir', private$)
 
@@ -998,7 +997,7 @@ call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_AN
 ! We make a short list to compare against to make things go faster.
 ! For has_orientation_attributes_key check both tilt and x_offset attributes
 ! since, for example, a solenoid does not have a tilt.
-! Also note: A patch element has a z_offset, not an s_offset.
+! Also note: A patch element has a z_offset, not an z_offset.
 
 has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
 has_kick_attributes  = .false.  ! Defined in bmad_struct.f90
@@ -1173,7 +1172,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'FOLLOW_DIFFRACTED_BEAM', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'RF_AUTO_SCALE_PHASE', &
       'RF_AUTO_SCALE_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'CLONE')
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
@@ -1237,7 +1236,7 @@ case ('X_PITCH');     ix_tot_attrib = x_pitch_tot$
 case ('Y_PITCH');     ix_tot_attrib = y_pitch_tot$
 case ('X_OFFSET');    ix_tot_attrib = x_offset_tot$
 case ('Y_OFFSET');    ix_tot_attrib = y_offset_tot$
-case ('S_OFFSET');    ix_tot_attrib = s_offset_tot$
+case ('Z_OFFSET');    ix_tot_attrib = z_offset_tot$
 case ('TILT');        ix_tot_attrib = tilt_tot$
 case ('C2_CURVE');    ix_tot_attrib = c2_curve_tot$
 case ('C3_CURVE');    ix_tot_attrib = c3_curve_tot$
@@ -1286,7 +1285,7 @@ logical is_a_tot_attrib
 
 select case (attribute_name(ele, ix_attrib))
 case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', &
-      'S_OFFSET_TOT', 'TILT_TOT', 'C2_CURVE_TOT', 'C3_CURVE_TOT', 'C4_CURVE_TOT')
+      'Z_OFFSET_TOT', 'TILT_TOT', 'C2_CURVE_TOT', 'C3_CURVE_TOT', 'C4_CURVE_TOT')
   is_a_tot_attrib = .true.
 case default
   is_a_tot_attrib = .false.

@@ -36,7 +36,7 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 integer, parameter :: primary$ = 1, secondary$ = 2, ignore$ = 3
 character(12), parameter :: wall3d_priority_name(0:3) = ['GARBAGE! ', 'Primary  ', 'Secondary', 'Ignore   ']
 
-! ele%aperture_at logical definitions.
+! Note: upstream_end$ = entrance_end$ & downstream_end$ = exit_end$
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4
 integer, parameter :: continuous$ = 5, surface$ = 6
@@ -638,7 +638,7 @@ character(40), parameter :: key_name(n_key$) = [ &
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
-! The orientation attributes are: tilt, x/y/s_offset, x/y_pitch, and *_tot versions.
+! The orientation attributes are: tilt, x/y/z_offset, x/y_pitch, and *_tot versions.
 ! Note: A solenoid does not formally have a tilt but has everything else.
 ! Rule: Any element that formally has some but not all orientation attributes is considered
 !   internally to have all attributes so any routine can safely work with all the 
@@ -717,7 +717,7 @@ integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
 integer, parameter :: x_offset$ = 25
 integer, parameter :: y_offset$ = 26 
-integer, parameter :: s_offset$ = 27, z_offset$ = 27 ! Assumed unique. Do not overload further.
+integer, parameter :: z_offset$ = 27 ! Assumed unique. Do not overload further.
 integer, parameter :: hkick$ = 28, g_trans$=28, t_offset$ = 28
 integer, parameter :: vkick$ = 29, c2_curve$ = 29
 integer, parameter :: BL_hkick$ = 30, c3_curve$ = 30
@@ -740,7 +740,7 @@ integer, parameter :: x_pitch_tot$ = 45, no_end_marker$ = 45
 integer, parameter :: y_pitch_tot$ = 46
 integer, parameter :: x_offset_tot$ = 47
 integer, parameter :: y_offset_tot$ = 48
-integer, parameter :: s_offset_tot$ = 49
+integer, parameter :: z_offset_tot$ = 49
 integer, parameter :: tilt_tot$ = 50
 integer, parameter :: n_ref_pass$ = 51, ref_cap_gamma$ = 51
 integer, parameter :: radius$ = 52, kh_y_norm$ = 52

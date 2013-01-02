@@ -174,6 +174,49 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function physical_ele_end (stream_end, ele_orientation) result (physical_end)
+!
+! Rotine to determine which physical end of an element a particle is at given 
+! the position in terms of upstream/downstream and the element's orientation
+!
+! Input:
+!   stream_end       -- Integer: Either upstream_end$ or downstream_end$
+!   ele_orientation  -- Integer: Either 1 = Normal or -1 = element reversed.
+!
+! Output:
+!   physical_end     -- Integer: Either entrance_end$ or exit_end$
+!-
+
+function physical_ele_end (stream_end, ele_orientation) result (physical_end)
+
+implicit none
+
+integer stream_end, ele_orientation, physical_end
+
+!
+
+select case (ele_orientation)
+
+case (1) 
+  select case (stream_end)
+  case (upstream_end$);   physical_end = entrance_end$
+  case (downstream_end$); physical_end = exit_end$
+  end select
+
+case (-1) 
+  select case (stream_end)
+  case (upstream_end$);   physical_end = exit_end$
+  case (downstream_end$); physical_end = entrance_end$
+  end select
+
+end select
+
+end function physical_ele_end 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
 !
 ! Routine to check if a given longitudinal position s is within the bounds of a given branch of a lattice.

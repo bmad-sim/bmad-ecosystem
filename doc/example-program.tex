@@ -15,8 +15,7 @@ is provided with the \bmad distribution in a file called
 \vn{simple_bmad_program.f90}. \vn{simple_bmad_program.f90} is in the
 library area in a directory called
 \vn{examples/simple_bmad_program}. Directions on how to compile and
-run the program are given on the \bmad web page\cite{b:bmad.web}. On
-the \bmad web page, click on the ``Run Programs''
+run the program are given on the \bmad web page\cite{b:bmad.web}. 
 
 \begin{figure}[htp]
 \index[routine]{bmad_parser}
@@ -109,10 +108,11 @@ variable named \vn{cleo} which is used here as shortcut notation
 rather than having to write \vn{eles(1)%ele} when refering to this
 element. Line 21 changes the \vn{ks} solenoid strength of this
 element. Since an element attribute has been changed, the call to
-\Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute} in line 22 is needed for \bmad
-to correctly do the necessary lattice bookkeeping
-(\sref{s:lat.bookkeeping}). The call to \Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 23
-recalculates the linear transfer matrix for the \vn{CLEO_SOL} element.
+\Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
+in line 22 is needed for \bmad to correctly do the necessary lattice
+bookkeeping (\sref{s:lat.bookkeeping}). The call to
+\Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 23 recalculates the
+linear transfer matrix for the \vn{CLEO_SOL} element.
 
 In line 28, the program checks if the lattice 
 is circular (\sref{s:param}) and, if so, uses the
@@ -225,15 +225,13 @@ solenoid strength by 1\%
 automatically called when transfer matrices are remade so the direct call
 to \vn{control_bookkeeper} may not be necessary.
 
-\index{programming!gmake}
-\index{programming!production executable}
-\index{programming!debug executable}
-Making \vn{bmad} the working directory, the \vn{gmake -f
-M.simple_bmad_program} command will compiling and link the program.
-The executables, \vn{simple_bmad_program} and
-\vn{simple_bmad_program_g}, are to be found in \vn{../bin/}. Running
-the program with the command \vn{../bin/simple_bmad_program} gives the
-output as shown in \fig{f:output}.
+Making \vn{examples} the working directory, the \vn{mk} command will
+compiling and link the program.  The executable,
+\vn{simple_bmad_program} is to be found in \vn{../productionbin/}
+directory. Go to the \vn{simple_bmad_program} directory and run the
+program with the command
+\vn{../../production/bin/simple_bmad_program}.  This gives the output
+as shown in \fig{f:output}.
 
 \begin{figure}[ht]
 \small

@@ -417,10 +417,10 @@ interface
 end interface
 
 interface
-  subroutine mat6_add_offsets (ele, particle)
+  subroutine mat6_add_offsets (ele, param)
     import
     type (ele_struct) ele
-    integer particle
+    type (lat_param_struct) param
   end subroutine
 end interface
 
@@ -444,11 +444,12 @@ interface
 end interface
 
 interface
-  subroutine offset_particle (ele, coord, particle, set, &
+  subroutine offset_particle (ele, coord, param, set, &
            set_canonical, set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
     import
     implicit none
     type (ele_struct) :: ele
+    type (lat_param_struct) param
     type (coord_struct), intent(inout) :: coord
     integer particle
     logical, intent(in) :: set
@@ -815,6 +816,18 @@ end interface
 
 interface
   subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
+    import
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+    logical, optional :: err_flag
+  end subroutine
+end interface
+
+interface
+  subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
     import
     implicit none
     type (coord_struct) :: start_orb
