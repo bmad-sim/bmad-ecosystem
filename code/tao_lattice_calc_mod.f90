@@ -246,11 +246,10 @@ if (u%calc%track) then
   bmad_com%radiation_fluctuations_on = .false.
 
   if (branch%param%lattice_type == circular_lattice$) then
-    if (ix_branch /= 0) call err_exit  ! Needs to be fixed...
     if (s%global%rf_on) then
-      call closed_orbit_calc (lat, lat_branch%orbit, 6, err_flag = err)
+      call closed_orbit_calc (lat, lat_branch%orbit, 6, 1, ix_branch, err_flag = err)
     else
-      call closed_orbit_calc (lat, lat_branch%orbit, 4, err_flag = err)
+      call closed_orbit_calc (lat, lat_branch%orbit, 4, 1, ix_branch, err_flag = err)
     endif
     if (err) then
       calc_ok = .false.
@@ -258,7 +257,7 @@ if (u%calc%track) then
         orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
       enddo
     endif
-    tao_lat%orb0 = orbit(0)   ! Save beginning orbit
+    lat_branch%orb0 = orbit(0)   ! Save beginning orbit
 
   else
     call track_all (lat, lat_branch%orbit, ix_branch, lat_branch%track_state)
@@ -583,14 +582,14 @@ if (i_br_from > -1) then
   return
 endif
 
-! In model%orb0 is saved the last computed orbit. 
+! In model%branch()%orb0 is saved the last computed orbit. 
 ! This is important with common_lattice since tao_lat%lat_branch(0)%orbit(0) has been overwritten.
 
 if (model%lat%branch(ix_branch)%param%lattice_type == linear_lattice$) then
   call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start, &
                                                  model%lat%ele(0), .true., branch%param%particle)
 else
-  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%orb0, &
+  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat_branch(ix_branch)%orb0, &
                                                  model%lat%ele(0), .true., branch%param%particle)
 endif
 
