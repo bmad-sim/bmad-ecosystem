@@ -1259,8 +1259,7 @@ program anaylzer
 
        do i=1,ring%n_ele_track
   write(34,'(1x,a13,7es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
-                        ring%ele(i)%floor%x,ring%ele(i)%floor%y,ring%ele(i)%floor%z, &
-                        ring%ele(i)%floor%theta,ring%ele(i)%floor%phi,ring%ele(i)%floor%psi
+          ring%ele(i)%floor%r,ring%ele(i)%floor%theta,ring%ele(i)%floor%phi,ring%ele(i)%floor%psi
 
        end do
 

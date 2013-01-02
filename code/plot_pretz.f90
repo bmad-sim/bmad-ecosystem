@@ -42,23 +42,23 @@ subroutine plot_pretz(lat,ncross, cross)
 
    do i = 2, lat%n_ele_track
 
-   xlast = lat%ele(i-1)%floor%z
-   ylast = lat%ele(i-1)%floor%x
+   xlast = lat%ele(i-1)%floor%r(3)
+   ylast = lat%ele(i-1)%floor%r(1)
    slast = lat%ele(i-1)%s
 
    ele = lat%ele(i)
    theta =  ele%floor%theta
 
    
-   x = ele%floor%z
-   y = ele%floor%x
+   x = ele%floor%r(3)
+   y = ele%floor%r(1)
    s = lat%ele(i)%s
    if(s >=0. .and. x==0. .and. y == 0.)cycle
    j=1
    do while((x-xlast == 0. .and. y-ylast == 0.) .or. (slast >0. .and. xlast == 0. .and. ylast == 0.))
     j=j+1
-    ylast = lat%ele(i-j)%floor%x
-    xlast = lat%ele(i-j)%floor%z
+    ylast = lat%ele(i-j)%floor%r(1)
+    xlast = lat%ele(i-j)%floor%r(3)
     slast = lat%ele(i-j)%s
    end do
 
@@ -93,8 +93,8 @@ subroutine plot_pretz(lat,ncross, cross)
     spast = lat%ele(i-1)%s
     if(s-spast == 0.)cycle
     if(cross(k) >= spast .and. cross(k) < s)then
-    ypast = lat%ele(i-1)%floor%x
-    xpast = lat%ele(i-1)%floor%z
+    ypast = lat%ele(i-1)%floor%r(1)
+    xpast = lat%ele(i-1)%floor%r(3)
      
       z = (cross(k)-spast)/(s-spast)
       xc = (x-xpast)* z + xpast
@@ -115,8 +115,8 @@ subroutine plot_pretz(lat,ncross, cross)
     spast = lat%ele(i-1)%s
     if(s-spast == 0.)cycle
     if(sfeed(k) >= spast .and. sfeed(k) < s)then
-      ypast = lat%ele(i-1)%floor%x
-      xpast = lat%ele(i-1)%floor%z
+      ypast = lat%ele(i-1)%floor%r(1)
+      xpast = lat%ele(i-1)%floor%r(3)
 
       z=(sfeed(k)-spast)/(s-spast)
       xfeed(k) = (x-xpast) * z + xpast
@@ -127,8 +127,8 @@ subroutine plot_pretz(lat,ncross, cross)
 
     do k=1,10
      if(ele%name(1:5) == sources(k)(1:5))then
-       xpast = lat%ele(i-1)%floor%z
-       ypast = lat%ele(i-1)%floor%x
+       xpast = lat%ele(i-1)%floor%r(3)
+       ypast = lat%ele(i-1)%floor%r(1)
        xx(1) = xpast -mag*sin(-theta)
        yy(1) = ypast -mag*cos(theta)
 
@@ -154,8 +154,8 @@ subroutine plot_pretz(lat,ncross, cross)
      if(ele%key == quadrupole$ .or. ele%key == sbend$ .or.ele%key == rbend$ &
                              .or. ele%key == wiggler$ .or. ele%key == rfcavity$)then
        
-       xpast = lat%ele(i-1)%floor%z
-       ypast = lat%ele(i-1)%floor%x
+       xpast = lat%ele(i-1)%floor%r(3)
+       ypast = lat%ele(i-1)%floor%r(1)
        xx(1) = xpast -magg*sin(-theta)
        yy(1) = ypast -magg*cos(theta)
 
