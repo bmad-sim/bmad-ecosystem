@@ -583,7 +583,7 @@ case (patch$)
 
   end_orb%vec(1) = end_orb%vec(1) - ele%value(x_offset$)
   end_orb%vec(3) = end_orb%vec(3) - ele%value(y_offset$)
-  r_vec = [end_orb%vec(1), end_orb%vec(3), -ele%value(s_offset$)]
+  r_vec = [end_orb%vec(1), end_orb%vec(3), -ele%value(z_offset$)]
   
   rel_pc = 1 + end_orb%vec(6)
   p_vec = [end_orb%vec(2)/rel_pc, end_orb%vec(2)/rel_pc, 0.0_rp]
@@ -602,7 +602,8 @@ case (patch$)
   end_orb%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
   end_orb%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
 
-  end_orb%vec(5) = end_orb%vec(5) + r_vec(3) / p_vec(3) + end_orb%beta * c_light * ele%value(t_offset$)
+  end_orb%vec(5) = end_orb%vec(5) + r_vec(3) / p_vec(3) + &
+                    end_orb%beta * (ele%value(z_offset$) + c_light * ele%value(t_offset$))
   end_orb%vec(6) = (end_orb%vec(6) * ele%value(p0c_start$) + (ele%value(p0c_start$) - ele%value(p0c$))) / ele%value(p0c$) 
 
 !-----------------------------------------------

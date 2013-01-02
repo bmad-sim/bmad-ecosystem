@@ -236,9 +236,9 @@ For example the following is not allowed:
 \label{s:use}
 
 \index{use statement|hyperbf}
-The particular line or lines that defines the root branches 
-to be used in the lattice 
-is selected by the \vn{use} statement. The general syntax is
+The particular line or lines that defines the root branches
+(\sref{s:lattice.def}) to be used in the lattice is selected by the
+\vn{use} statement. The general syntax is
 \begin{example}
   use, line1, line2 ...
 \end{example}
@@ -247,9 +247,9 @@ correspond to the other ring of a dual ring colliding beam machine. In
 this case, \vn{multipass} (\sref{s:multipass}) will be needed to
 describe the common elements of the two rings. Example
 \begin{example}
-  use, my_line
+  use, e_ring, p_ring
 \end{example}
-would pick the line \vn{my_line} for analysis. 
+would pick the lines \vn{e_ring} and \vn{p_ring} for analysis. 
 
 \vn{use} statements can come anywhere in the lattice, even before the
 definition of the lines they refer to. Additionally, there can be

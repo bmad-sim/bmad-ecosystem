@@ -59,7 +59,7 @@ a \vn{layout} structure
 
 %--------------------------------------------------------------------------
 \section{Phase Space}
-\label{s:etienne.space}
+\label{s:ptc.space}
 \index{PTC/FPP!phase space}
 
 PTC uses different longitudinal phase space coordinates compared to \bmad.
@@ -87,7 +87,7 @@ structures. See \sref{r:ptc} for more details.
 
 %--------------------------------------------------------------------------
 \section{Initialization}
-\label{s:etienne.init}
+\label{s:ptc.init}
 \index{PTC/FPP!initialization}
 
 One important parameter in PTC is the order of the Taylor maps.
@@ -130,7 +130,7 @@ end.
 
 %--------------------------------------------------------------------------
 \section{Taylor Maps}
-\label{s:etienne.taylor}
+\label{s:ptc.taylor}
 \index{PTC/FPP!Taylor Maps}
 
 \index{PTC/FPP!real_8}\index{PTC/FPP!universal_taylor}
@@ -156,3 +156,21 @@ routines to convert between Etienne's
   tlr = ut                       ! Convert universal_taylor -> real_8
   ut = tlr                       ! Convert real_8 -> universal_taylor
 \end{example}
+
+%--------------------------------------------------------------------------
+\section{Patches}
+\label{s:ptc.patch}
+\index{PTC/FPP!patch}
+
+There is a significant difference between how patches are treated in
+PTC and \bmad.  In PTC, a patch is just though of as a coordinate
+transformation for propagating a particle from one \vm{fibre} to the
+next. As such, the \vn{patch} is part of a \vn{fibre}. That is, any
+\vn{fibre} representing tracking through quadrupoles, bends, etc. will
+have patches for the entrance and exit ends of the \vn{fibre}.
+
+With \bmad, on the other hand, a \vn{patch} is a ``first class''
+element on par with all other elements be they quadrupoles, bends,
+etc. When translating a \vn{patch} from \bmad to PTC, the \vn{patch}
+is represented in PTC as a \vn{marker} element with a patch at the
+exit end.

@@ -19,61 +19,24 @@ $\rho$ is the bending radius.}
 \end{figure}
 
 The \vn{local reference orbit} is the curved path used to define a
-coordinate system for particles as shown in
-\fig{f:local.coords}. At a given time $t$, a particle's
-position can be described by a point on the reference orbit a distance
-$s$ relative to the reference orbit's zero position plus a transverse
-offset. This point on the reference orbit is used as the origin of the
-local $(x, y, z)$ coordinate system with the $z$--axis tangent to the
-reference orbit and pointing in the direction of increasing $s$. The
-$x$ and $y$--axes are perpendicular to the reference orbit. If the
-lattice has no vertical bends, the $y$--axis is in the vertical
-direction and the $x$--axis is in the horizontal plane. Notice that by
-construction, the particle is always at $z = 0$. The coordinate system
-so constructed is called the \vn{``local coordinate system''} or sometimes
-the \vn{``laboratory coordinate system''} when there is need to
-distinguish it from the \vn{``element coordinate system''}
-(\sref{s:misalign.track}).
+coordinate system for particles as shown in \fig{f:local.coords} and
+for orientating lattice elements in space. At a given time $t$, a
+particle's position can be described by a point on the reference orbit
+a distance $s$ relative to the reference orbit's zero position plus a
+transverse offset. This point on the reference orbit is used as the
+origin of the local $(x, y, z)$ coordinate system with the $z$--axis
+tangent to the reference orbit and pointing in the direction of
+increasing $s$. The $x$ and $y$--axes are perpendicular to the
+reference orbit. As will be sown later, If the lattice has no vertical
+bends, the $y$--axis is in the vertical direction and the $x$--axis is
+in the horizontal plane. Notice that by construction, the particle is
+always at $z = 0$. The coordinate system so constructed is called the
+\vn{``local coordinate system''} or sometimes the \vn{``laboratory
+coordinate system''} when there is need to distinguish it from the
+\vn{``element coordinate system''} (\sref{s:misalign.track}).
 
-  \begin{figure}
-  \centering
-  \includegraphics{element-coord-frame.pdf}
-\caption[Element coordinate frame.]{The element coordinate frame of
-reference.  All elements have an entrance frame of reference and and
-exit frame of reference.  A) For straight line elements the two frames
-are colinear. B) For bends elements, the two frames are rotated with
-respectto each other. With a zero \vn{tilt} for a bend, the rotation
-axis between the entrance and exit frams is the $y$-axis.}
-  \label{f:ele.coord.frame}
-  \end{figure}
-
-\index{sbend}\index{rbend}
-\index{crystal}\index{mirror}\index{entrance_end}
-\index{exit_end}\index{patch}\index{floor_shift}
-In \bmad, a lattice is comprised of a sequence of elements such as
-quadrupoles, bends, RF cavities, etc. Each element has an entrance
-point, an exit point, and a reference curve between them. For a
-\vn{bend} (\sref{s:bend}), the reference curve is a segment of a
-circular arc as shown in \fig{f:ele.coord.frame}B. For \vn{crystal}
-and \vn{mirror} elements, the reference curve is a zero length bend
-(\sref{s:mirror.coords}). All other elements, except for \vn{patch}
-and \vn{floor_shift} elements, are ``straight'' as shown in
-\fig{f:ele.coord.frame}A. That is, the reference curve is a straight
-line segment. \vn{patch} (\sref{s:patch}), and \vn{floor_shift}
-(\sref{s:floor.ele} elements can arbitrarily orient the entrance
-point of an element with respect to the exit point of the previous
-element. With multiple elements, the reference orbit is constructed by
-arranging the elements so that the reference orbit at exit point of
-one element coincides with the reference curve at the entrance point
-of the next element. The reference orbit is then the sum of the
-reference curves. If not specified otherwise, the $s = 0$ position is
-the entrance point of the first element.
-
-\index{x_offset}
-\index{y_offset}
-\index{x_pitch}
-\index{y_pitch}
-\index{wiggler}
+\index{x_offset}\index{y_offset}
+\index{x_pitch}\index{y_pitch}\index{wiggler}
 Notice that, in a \vn{Wiggler}, the reference orbit, which is a
 straight line, does {\em not} correspond to the orbit that any actual
 particle could travel. Typically the physical element is
@@ -89,7 +52,58 @@ coordinate system) with the reference orbit about which the transfer
 maps are calculated (\sref{s:twiss}). The former is fixed by the
 lattice while the latter can be any arbitrary orbit.
 
+%-----------------------------------------------------------------------------
+\section{Reference Orbit Construction}
+\label{s:ref.construct}
+\index{reference orbit!construction}
 
+%--------------------------------------
+
+  \begin{figure}
+  \centering
+  \includegraphics{element-coord-frame.pdf}
+\caption[Local reference frame with respect to an element.]{The Local
+coordinate reference frame at the entrance and exit ends of a lattice
+element. A) For straight line elements the two frames are colinear. B)
+For bends elements, the two frames are rotated with respectto each
+other. With a zero \vn{tilt}, the rotation axis between the entrance
+and exit frams is the $y$-axis. The physical element may be displaced
+in the local coordinate frame using offsets, tilt, and pitches.}
+  \label{f:ele.coord.frame}
+  \end{figure}
+
+%--------------------------------------
+
+There is a separate reference orbit for each branch
+(\sref{s:branch.def}) of a lattice.  When there are multiple branches,
+the reference orbit of the lattice branches are calculated in order
+starting from the first branch (branch \# 0).
+
+For a given lattice branch, assuming there are no \vn{fiducial} elements,
+The local reference frame is constructed beginning at the first element in
+the branch. 
+
+\index{sbend}\index{rbend}
+\index{crystal}\index{mirror}\index{entrance_end}
+\index{exit_end}\index{patch}\index{floor_shift}
+a lattice branch is comprised of a sequence of elements such
+as quadrupoles, bends, RF cavities, etc. Each element has an entrance
+point, an exit point, and a reference curve between them. For a
+\vn{bend} (\sref{s:bend}), the reference curve is a segment of a
+circular arc as shown in \fig{f:ele.coord.frame}B. For \vn{crystal}
+and \vn{mirror} elements, the reference curve is a zero length bend
+(\sref{s:mirror.coords}). All other elements, except for \vn{patch}
+and \vn{floor_shift} elements, are ``straight'' as shown in
+\fig{f:ele.coord.frame}A. That is, the reference curve is a straight
+line segment. \vn{patch} (\sref{s:patch}), and \vn{floor_shift}
+(\sref{s:floor.ele}) elements can arbitrarily orient the entrance
+point of an element with respect to the exit point of the previous
+element. With multiple elements, the reference orbit is constructed by
+arranging the elements so that the reference orbit at exit point of
+one element coincides with the reference curve at the entrance point
+of the next element. The reference orbit is then the sum of the
+reference curves. If not specified otherwise, the $s = 0$ position is
+the entrance point of the first element.
 
 %-----------------------------------------------------------------------------
 \section{Global Coordinates}
@@ -391,14 +405,19 @@ trajectory is in the middle of the Darwin curve. Calculation of the
 graze angles for a crystal is given in Section~\ref{ss:crystal.ref}.
 
 %-----------------------------------------------------------------------------
-\subsection{Patch and Floor_Shift Elements}
+\subsection{Patch, Floor_Shift and Fiducial Elements}
 \label{s:patch.coords}
 
 \index{patch}\index{tilt}\index{floor_shift}
-A \vn{patch} (\sref{s:patch}) or \vn{floor_shift} \vn{s:floor.ele}
-element shifts the reference orbit.  \Eqs{vwlv} and \eq{wws} are used
-to propagate $\Bf W$ and $\Bf V$ through a \vn{patch}. The $\Bf L$
-vector for a patch is
+The shift in the reference coordinates from the entrance end to the
+exit end of\vn{patch} (\sref{s:patch}) or \vn{floor_shift}
+\vn{s:floor.ele} element is given by \Eqs{vwlv} and \eq{wws}. These
+equations are also used to calculate the shift in the reference
+coordinates between the origin reference coordinates of a
+\vn{fiducial} element and the reference coordinates of the
+\vn{fiducial} element itself.
+
+The $\Bf L$ vector in the transformation is
 \Begineq
   \Bf L = 
   \begin{pmatrix}
@@ -408,7 +427,7 @@ vector for a patch is
   \end{pmatrix}
   \label{xyz}
 \Endeq
-The $\Bf S$ matrix for a patch is defined in analogy with \Eq{wwww} to be\
+The $\Bf S$ matrix used for the coordinate transformation is defined to be
 \Begineq
   \bfS = \Bf W_\Theta \, \Bf W_\Phi \, \Bf W_\Psi
   \label{swww}
@@ -419,6 +438,7 @@ with
   \(\Phi\) = y_pitch
   \(\Psi\) = tilt
 \end{example} 
+Note: The form of \Eq{swww} was chosen to be similar to \Eq{wwww}, 
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}

@@ -63,20 +63,27 @@ element (\sref{s:mark}) named \vn{END}.
 \section{Lattice}
 \label{s:lattice.def}
 
-\index{lattice}
-\vn{branch element} A \vn{lattice} is just an array of branches that
+\index{lattice}\index{branch} 
+A \vn{lattice} is just an array of \vn{branches} that
 can be interconnected together to describe an entire machine complex.
 The array of \vn{branches} in a \vn{lattice} is numbered starting from
 zero.
 
-Branches can be interconnected in one of two ways: \vn{branch} and
-\vn{photon_branch} elements (\sref{s:branch}) may be used to simulate
+\index{root branch}
+Branches can be interconnected using \vn{branch} and
+\vn{photon_branch} elements (\sref{s:branch}). This is used to simulate
 forking beam lines (\sref{s:branching}) such as what occurs when there
-is a dump line connection or an X-ray beam line which is connected to
-a wiggler or undulator. Additionally, \vn{multipass} lines
-(\sref{s:multipass}) can be used to simulate branches that share
-common elements such as the interaction region in colliding beam
-machines.
+is a dump line or an X-ray beam line which is connected to a wiggler
+or undulator. The \vn{branch} from which other \vn{branches} fork is
+called a \vn{root} branch.
+
+A lattice may contain multiple \vn{root} \vn{branches}. For example, a
+pair of intersecting storage rings will genarally have two \vn{root}
+branches, one for each ring. The \vn{use} statement (\sref{s:use} will
+list the \vn{root} \vn{branches} of a lattice. To connect together
+lattice elements that are physically shared between branches, for
+example, the interaction region in colliding beam machines,
+\vn{multipass} lines (\sref{s:multipass}) can be used.
 
 %---------------------------------------------------------------------------
 \section{Lord and Slave Elements}
@@ -183,7 +190,16 @@ not handle overlapping fields.
 \section{Element Orientation}
 \label{s:ele.orientation}
 
-Lattice elements have an
+To orient an element in space, \bmad starts with the \vn{global
+coordinate} system as outlined in Section~\sref{s:global}. Within the
+global coordinate system, \bmad constructs a \vn{local} \vn{reference}
+orbit (also called the \vn{laboratory} \vn{coordinate} system) for
+each lattice branch (\sref{s:ref}). Finally, the
+physical element is oriented with respect to that element's local
+reference system. 
+
+
+Lattice elements have an 
 
 \etcetc
 
