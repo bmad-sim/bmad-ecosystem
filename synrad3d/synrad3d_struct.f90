@@ -103,7 +103,7 @@ type sr3d_wall_struct
   type (sr3d_wall_pt_struct), allocatable :: pt(:)  ! lbound index = 0
   type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
   integer n_pt_max
-  integer lattice_type   ! linear_lattice$ or circular_lattice$
+  integer geometry      ! closed$ or open$
 end type
 
 ! Some parameters that can be set. 

@@ -190,7 +190,7 @@ enddo
 ! 
 
 wall%pt(wall%n_pt_max)%s = lat%ele(lat%n_ele_track)%s
-wall%lattice_type = lat%param%lattice_type
+wall%geometry = lat%param%geometry
 
 do i = 0, wall%n_pt_max
   pt => wall%pt(i)
@@ -292,14 +292,14 @@ enddo
 
 ! If circular lattice then start and end shapes must match
 
-if (wall%lattice_type == circular_lattice$) then
+if (wall%geometry == closed$) then
   pt0 => wall%pt(0)
   pt  => wall%pt(wall%n_pt_max)
   if (pt0%basic_shape /= pt%basic_shape .or. pt0%width2 /= pt%width2 .or. pt0%height2 /= pt%height2 .or. &
         pt0%ante_height2_plus /= pt%ante_height2_plus .or. pt0%width2_plus /= pt%width2_plus .or. &
         pt0%ante_height2_minus /= pt%ante_height2_minus .or. pt0%width2_minus /= pt%width2_minus) then
       call out_io (s_fatal$, r_name, &
-              'FOR A "CIRCULAR" LATTICE THE LAST WALL CROSS-SECTION MUST BE THE SAME AS THE FIRST.')
+              'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION MUST BE THE SAME AS THE FIRST.')
       call err_exit
   endif
 endif

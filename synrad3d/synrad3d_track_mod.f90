@@ -238,7 +238,7 @@ endif
 
 ! Is through if at ends of a linear lattice
 
-if (wall%lattice_type == linear_lattice$) then
+if (wall%geometry == open$) then
   if (photon%now%vec(5) == 0 .and. photon%now%vec(6) < 0) photon%status = at_lat_end$
   if (photon%now%vec(5) == wall%pt(wall%n_pt_max)%s .and. photon%now%vec(6) > 0) photon%status = at_lat_end$
 endif
@@ -391,7 +391,7 @@ propagation_loop: do
     do
       if (now%vec(5) >= lat%ele(now%ix_ele)%s) then
         if (now%ix_ele == lat%n_ele_track) then
-          if (lat%param%lattice_type == linear_lattice$) return
+          if (lat%param%geometry == open$) return
           now%vec(5) = now%vec(5) - lat%param%total_length
           now%ix_ele = 1
           photon%crossed_lat_end = .not. photon%crossed_lat_end
@@ -422,7 +422,7 @@ propagation_loop: do
     do
       if (now%vec(5) <= lat%ele(now%ix_ele-1)%s) then
         if (now%ix_ele <= 1) then
-          if (lat%param%lattice_type == linear_lattice$) return
+          if (lat%param%geometry == open$) return
           now%vec(5) = now%vec(5) + lat%param%total_length
           now%ix_ele = lat%n_ele_track
           photon%crossed_lat_end = .not. photon%crossed_lat_end
