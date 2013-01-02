@@ -1120,7 +1120,7 @@ if (ele1%ix_branch /= graph%ix_branch) return
 x1 = ele1%s
 x2 = ele2%s
 ! If out of range then try a negative position
-if (branch%param%lattice_type == circular_lattice$ .and. x1 > graph%x%max) then
+if (branch%param%geometry == closed$ .and. x1 > graph%x%max) then
   x1 = x1 - lat_len
   x2 = x2 - lat_len
 endif

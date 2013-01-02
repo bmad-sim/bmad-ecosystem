@@ -1072,7 +1072,7 @@ case ('emit.', 'norm_emit.')
 
   case ('emit.a', 'norm_emit.a')
     if (data_source == 'lat') then
-      if (lat%param%lattice_type == linear_lattice$) then
+      if (lat%param%geometry == open$) then
         if (.not. allocated(tao_lat%rad_int%ele)) then
           call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
           return
@@ -1092,7 +1092,7 @@ case ('emit.', 'norm_emit.')
     
   case ('emit.b', 'norm_emit.b')  
     if (data_source == 'lat') then
-      if (lat%param%lattice_type == linear_lattice$) then
+      if (lat%param%geometry == open$) then
         if (.not. allocated(tao_lat%rad_int%ele)) then
           call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
           return
@@ -1535,7 +1535,7 @@ case ('periodic.')
 
   case ('periodic.tt.')
     if (data_source == 'beam') return
-    if (lat%param%lattice_type /= circular_lattice$ .and. .not. associated(ele_ref)) then
+    if (lat%param%geometry /= closed$ .and. .not. associated(ele_ref)) then
       call out_io (s_fatal$, r_name, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // datum%data_type)
       call err_exit
     endif
@@ -1927,7 +1927,7 @@ case ('sigma.')
     
   case ('sigma.pz')  
     if (data_source == 'lat') then
-      if (lat%param%lattice_type == circular_lattice$) return
+      if (lat%param%geometry == closed$) return
       if (ix_ele == -1) ix_ele = branch%n_ele_track
       datum_value = sqrt(4 * const_q_factor * classical_radius_factor * &
                                sum(tao_lat%rad_int%ele(ix_ref+1:ix_ele)%lin_i3_e7) / 3) / mass_of(lat%param%particle)
@@ -2102,7 +2102,7 @@ case ('unstable.')
 
   case ('unstable.orbit')
 
-    if (lat%param%lattice_type /= linear_lattice$) return
+    if (lat%param%geometry /= open$) return
     if (datum%ele_name == '') ix_ele = branch%n_ele_track
 
     if (data_source == 'beam') then
@@ -2267,7 +2267,7 @@ if (ix_ele < 0) then
   return
 endif
 
-if (ix_ele < ix_start .and. lat%param%lattice_type == linear_lattice$) then
+if (ix_ele < ix_start .and. lat%param%geometry == open$) then
   if (datum%useit_opt) call out_io (s_error$, r_name, &
                 'ERROR: ELEMENTS ARE REVERSED FOR: ' // tao_datum_name(datum), &
                 'STARTING ELEMENT: ' // ele_start%name, &

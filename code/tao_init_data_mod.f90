@@ -573,7 +573,7 @@ do j = n1, n2
     endif
   endif
 
-  if (u%design%lat%param%lattice_type == circular_lattice$ .and. &
+  if (u%design%lat%param%geometry == closed$ .and. &
               (data_type(1:6)  == 'chrom.' .or. data_type(1:5)  == 'damp.' .or. &
                data_type(1:17) == 'multi_turn_orbit.' .or. data_type(1:5) == 'tune.' .or. &
                data_type(1:13) == 'unstable.ring' .or. index(data_type, 'emit.') /= 0)) then

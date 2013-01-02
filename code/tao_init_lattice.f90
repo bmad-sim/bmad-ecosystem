@@ -232,7 +232,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     enddo
   endif
 
-  if (u%design%lat%param%lattice_type == circular_lattice$ .and. .not. s%global%rf_on) then
+  if (u%design%lat%param%geometry == closed$ .and. .not. s%global%rf_on) then
     call out_io (s_info$, r_name, &
             "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
     call calc_z_tune(u%design%lat)
@@ -246,7 +246,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! In case there is a match element with match_end = T, propagate the twiss parameters which
   ! makes the beginning Twiss of the match element match the end Twiss of the previous element
 
-  if (u%design%lat%param%lattice_type == linear_lattice$) then
+  if (u%design%lat%param%geometry == open$) then
     call twiss_propagate_all (u%design%lat)
   endif
 
