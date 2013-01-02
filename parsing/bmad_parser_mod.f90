@@ -4922,7 +4922,7 @@ logical created_new_branch
 
 created_new_branch = .true.
 
-if (branch_ele%value(clone$) == 0) then ! Branch back if
+if (branch_ele%value(new_branch$) == 0) then ! Branch back if
   do i = 0, ubound(lat%branch, 1)-1
     branch => lat%branch(i)
     if (branch%name /= branch_ele%component_name) cycle

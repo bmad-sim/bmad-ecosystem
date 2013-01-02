@@ -473,7 +473,7 @@ call init_attribute_name1 (photon_branch$, ix_to_element$,           'IX_TO_ELEM
 call init_attribute_name1 (photon_branch$, direction$,               'DIRECTION')
 call init_attribute_name1 (photon_branch$, to_line$,                 'TO_LINE')
 call init_attribute_name1 (photon_branch$, to_element$,              'TO_ELEMENT')
-call init_attribute_name1 (photon_branch$, clone$,                   'CLONE')
+call init_attribute_name1 (photon_branch$, new_branch$,                   'CLONE')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 

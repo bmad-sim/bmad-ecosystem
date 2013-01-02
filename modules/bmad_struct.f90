@@ -684,7 +684,7 @@ integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displac
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
 integer, parameter :: flexible$ = 5, crunch$=5
-integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, clone$ = 6
+integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, new_branch$ = 6
 integer, parameter :: g$=6, graze_angle_in$ = 6
 integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: gradient_err$=7, critical_angle$ = 7
