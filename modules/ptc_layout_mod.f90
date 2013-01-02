@@ -8,6 +8,7 @@
 module ptc_layout_mod
 
 use ptc_interface_mod
+use multipass_mod
 
 contains
 
@@ -80,16 +81,100 @@ end subroutine type_ptc_layout
 
 subroutine lat_to_ptc_layout (lat)
 
+use madx_ptc_module, only: m_u, m_t, fibre, append_empty_layout, survey, make_node_layout, append_point, &
+                           set_up, ring_l
+
 implicit none
 
-type (lat_struct) lat
-integer i
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: chain_ele(:)
+type (fibre), pointer :: fib
+type (layout), pointer :: lay
 
-!
+real(rp) ptc_orientation(3,3), ang(3)
+
+integer i, j, ix_pass, n_links
+logical logic
+
+character(20), parameter :: r_name = 'lat_to_ptc_layout'
+
+! Setup m_u
 
 do i = 0, ubound(lat%branch, 1)
   call branch_to_ptc_layout (lat%branch(i))
 enddo
+
+! If there are multipass sections then setup m_t
+
+!!!if (.not. any(lat%ele(lat%n_ele_track+1:lat%n_ele_max)%lord_status == multipass_lord$)) return
+
+do i = 0, ubound(lat%branch, 1)
+
+  call append_empty_layout(m_t)
+  call set_up (m_t%end)
+  write (m_t%end%name, '(a, i4)') 'm_t Bmad branch:', i  ! For diagnostic purposes
+
+  branch => lat%branch(i)
+!!  branch%ptc%layout(1)%ptr => m_t%end   ! Save layout
+
+  lay => m_t%end
+
+  do j = 0, branch%n_ele_track
+    ele => branch%ele(j)
+
+    if (.not. associated(ele%ptc_fibre)) then
+      call out_io (s_fatal$, r_name, 'NO FIBRE ASSOCIATED WITH ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+    endif
+
+    if (tracking_uses_end_drifts(ele)) then
+      call append_this_fibre(ele%ptc_fibre%p%p)
+      call append_this_fibre(ele%ptc_fibre%p)
+    endif
+
+    call append_this_fibre(ele%ptc_fibre, .true.)
+
+  enddo
+
+  lay%closed = .true.
+
+  logic = .true.
+  call ring_l(lay, logic)
+
+  ele => branch%ele(0)
+  ang = [ele%floor%phi, ele%floor%theta, ele%floor%psi]
+  call bmad_patch_parameters_to_ptc (ang, ptc_orientation)
+
+  call survey (m_t%end, ptc_orientation, ele%floor%r)
+
+enddo
+
+!-----------------------------------------------------------------------------
+contains
+
+subroutine append_this_fibre(ele_fib, do_point)
+
+type (fibre), pointer :: ele_fib
+logical, optional :: do_point
+
+!
+
+call append_point(lay, ele_fib)
+fib => lay%end
+
+if (ele%key == patch$ .or. ele%key == floor_position$) then
+  fib%dir = ele%value(ptc_dir$)
+else
+  fib%dir = ele%orientation
+endif
+
+fib%charge = ele%branch%param%rel_tracking_charge
+
+if (logic_option(.false., do_point)) ele%ptc_fibre => fib
+
+end subroutine append_this_fibre
 
 end subroutine lat_to_ptc_layout 
 
@@ -128,44 +213,86 @@ subroutine branch_to_ptc_layout (branch)
 
 use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
 use mad_like, only: set_up, kill, lielib_print
-use madx_ptc_module, only: m_u, append_empty_layout, survey, make_node_layout
+use madx_ptc_module, only: m_u, m_t, append_empty_layout, survey, make_node_layout
 
 implicit none
 
 type (branch_struct) :: branch
 type (ele_struct) drift_ele
 type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: chain_ele(:)
 
-integer n, ib, ie
-logical doneit
+integer n, ib, ie, ix_pass, ix_pass0
+logical doneit, ele_inserted_in_layout
 
-! transfer elements.
+! Transfer elements.
 
-call append_empty_layout(m_u)
-call set_up(m_u%end)
+ix_pass0 = 0
+ele_inserted_in_layout = .false.
 
-allocate(branch%ptc%layout(1))
-branch%ptc%layout(1)%ptr => m_u%end   ! Save layout
+call layout_init_stuff
 
-do ie = 1, branch%n_ele_track
+!! allocate(branch%ptc%layout(1))
+!! branch%ptc%layout(1)%ptr => m_u%end   ! Save layout
+
+do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
+
+  call multipass_chain(ele, ix_pass, chain_ele = chain_ele)
+  if (ix_pass > 1) then
+    ele%ptc_fibre => chain_ele(1)%ele%ptc_fibre
+    ix_pass0 = ix_pass
+    cycle
+  endif
+
+  ! Use new layout for multipass regions.
+
+  if (ix_pass0 /= ix_pass .and. ele_inserted_in_layout) then
+    call layout_end_stuff
+    call layout_init_stuff
+    ele_inserted_in_layout = .false.
+  endif
+
+  !
+
   if (tracking_uses_end_drifts(ele)) then
-    call create_hard_edge_drift (ele, entrance_end$, drift_ele)
+    call create_hard_edge_drift (ele, upstream_end$, drift_ele)
     call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
   endif
 
   call ele_to_fibre (ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
 
   if (tracking_uses_end_drifts(ele)) then
-    call create_hard_edge_drift (ele, exit_end$, drift_ele)
+    call create_hard_edge_drift (ele, downstream_end$, drift_ele)
     ! ele%ptc_fibre points to last PTC fibre.
     call ele_to_fibre (drift_ele, ele%ptc_fibre, branch%param%particle, .true., for_layout = .true.)
   endif
+
+  ele_inserted_in_layout = .true.
+  ix_pass0 = ix_pass
+
 enddo
 
-! End stuff
+call layout_end_stuff
 
-if (branch%param%lattice_type == circular_lattice$) then
+!-----------------------------------------------------------------------------
+contains
+
+subroutine layout_init_stuff ()
+
+call append_empty_layout(m_u)
+call set_up(m_u%end)
+
+write (m_u%end%name, '(a, i4)') 'm_u Bmad branch:', branch%ix_branch ! Diagnostic
+
+end subroutine layout_init_stuff
+
+!-----------------------------------------------------------------------------
+! contains
+
+subroutine layout_end_stuff ()
+
+if (branch%param%lattice_type == circular_lattice$ .and. ie == branch%n_ele_track) then
   m_u%end%closed = .true.
 else
   m_u%end%closed = .false.
@@ -174,6 +301,7 @@ endif
 n = lielib_print(12)
 lielib_print(12) = 0  ! No printing info messages
 
+m_u%end%closed = .true.
 doneit = .true.
 call ring_l (m_u%end, doneit)
 call survey (m_u%end)
@@ -181,7 +309,7 @@ call make_node_layout (m_u%end)
 
 lielib_print(12) = n
 
-branch%ele(0)%ptc_fibre => branch%ele(1)%ptc_fibre%parent_layout%start
+end subroutine layout_end_stuff
 
 end subroutine branch_to_ptc_layout
 
@@ -377,7 +505,7 @@ end subroutine ptc_closed_orbit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_map_at_ele (ele, map, order)
+! Subroutine ptc_one_turn_map_at_ele (ele, rf_on, pz, map)
 !
 ! Routine to calculate the one turn map for a ring.
 ! Note: Use set_ptc(no_cavity = True/False) set turn on/off the RF cavities.
@@ -393,23 +521,51 @@ end subroutine ptc_closed_orbit_calc
 !   map(6)  -- taylor_struct: Bmad taylor map
 !-
 
-subroutine ptc_one_turn_map_at_ele (ele, map, order)
+subroutine ptc_one_turn_map_at_ele (ele, rf_on, pz, map)
+
+use madx_ptc_module
 
 implicit none
 
 type (ele_struct), target :: ele
 type (taylor_struct) map(6)
+type (internal_state) state
+type (fibre), pointer :: fib
+type (damap) da_map
+type (real_8) ray(6)
 
+real(rp) pz
+real(dp) x(6)
 
-integer, optional :: order
+logical rf_on
 
 !
 
-!ptc_layout => ele%branch%ptc%layout(1)%ptr
+if (rf_on) then
+  state = default - nocavity0 
+else
+  state = default + nocavity0 
+endif
 
-!x = 0
-!call find_orbit_x (x, default, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find_orbit == find closed orbit
-!closed_orb%vec = x
+! Find closed orbit
+
+x = 0
+x(5) = pz
+fib => ele%ptc_fibre%next
+call find_orbit_x (x, state, 1.0d-5, fibre1 = fib)  ! find closed orbit
+
+! Construct map.
+
+call alloc(da_map)
+call alloc(ray)
+da_map = 1   ! Identity
+ray = da_map + x
+call track_probe_x (ray, state, fibre1 = fib)
+
+call real_8_to_taylor(ray, fib%beta0, map)
+
+call kill(ray)
+call kill(da_map)
 
 end Subroutine ptc_one_turn_map_at_ele
 
@@ -448,7 +604,7 @@ end subroutine write_ptc_flat_file_lattice
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine modify_ptc_fibre (ele)
+! Subroutine modify_ptc_fibre (ele, particle)
 !
 ! Routine to modify an existing PTC fibre. 
 !
@@ -462,28 +618,91 @@ end subroutine write_ptc_flat_file_lattice
 !   ele%ptc_fibre 
 !-
 
-subroutine modify_ptc_fibre_attribute (ele, attribute, value)
+subroutine modify_ptc_fibre_attribute (ele, particle)
+
+use madx_ptc_module
 
 implicit none
 
 type (ele_struct), target :: ele
+type (keywords) ptc_key
 
 real(rp) value
 
-character(*) attribute
+integer particle, i
+
 character(32), parameter :: r_name = 'modify_ptc_fibre_attribute'
 
 !
 
-select case (ele%key)
+call ele_to_an_bn (ele, particle, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
-case default
-  call out_io (s_fatal$, r_name, 'UNKNOWN ELEMENT TYPE: ' // ele%name)
-  if (global_com%exit_on_error) call err_exit
-end select
+do i = ptc_key%list%nmul, 1, -1
+  call add (ele%ptc_fibre,  i, 0, ptc_key%list%k(i))
+  call add (ele%ptc_fibre, -i, 0, ptc_key%list%ks(i))
+enddo
+
+end subroutine modify_ptc_fibre_attribute 
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine ptc_calculate_tracking_step_size (ptc_layout, kl_max, ds_max, 
+!                                 even_steps, r_typical, dx_tol_bend, use_2nd_order)
+!
+! Routine to calculate the optimum number of tracking steps and order
+! of the integrator (2, 4, or 6) for each fibre in a layout.
+!
+! Module needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   ptc_layout    -- layout:
+!   kl_max        -- real(rp): Maximum K1*L per tracking step.
+!   ds_max        -- real(rp): Maximum ds for any step. 
+!                      Useful when including other physicas like space charge.
+!   even_steps    -- logical, optional: Always use an even number of steps for a fibre?
+!                      Useful if need to evaluate at the center of fibres.
+!   r_typical     -- real(rp), optional: Typical transverse offset. Used for computing the
+!                      effective contribution of K1*L due to sextupoles.
+!   dx_tol_bend   -- real(rp): Tollerable residual orbit in a bend.
+!   use_2nd_order -- logical, optional: If present and True then force the use of 2nd order
+!                       integrator.
+!
+! Output:
+!   ptc_layout -- layout: Lattice with the optimum number of tracking steps.
+!-
+
+subroutine ptc_calculate_tracking_step_size (ptc_layout, kl_max, ds_max, &
+                                    even_steps, r_typical, dx_tol_bend, use_2nd_order)
+
+use madx_ptc_module
+
+implicit none
+
+type (layout) ptc_layout
+
+real(rp) kl_max
+real(rp), optional :: ds_max, dx_tol_bend, r_typical
+
+integer :: limit_int(2)
+
+logical, optional :: even_steps, use_2nd_order
 
 !
 
-end subroutine modify_ptc_fibre_attribute 
+resplit_cutting = 0   ! Ignore ds_max
+if (present(ds_max)) then
+  if (ds_max > 0) resplit_cutting = 2
+endif
+
+limit_int = [4, 18]
+if (logic_option(.false., use_2nd_order)) limit_int = [10000, 10001] ! Something big.
+
+call thin_lens_resplit (ptc_layout, kl_max, lim = limit_int, &
+                        lmax0 = ds_max, sexr = r_typical, xbend = dx_tol_bend)
+
+end subroutine ptc_calculate_tracking_step_size
 
 end module

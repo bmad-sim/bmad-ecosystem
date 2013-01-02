@@ -156,9 +156,9 @@ write (iu, '(a, l1)') 'parameter[no_end_marker]          = ', .true.
 
 ele => lat%ele(0) 
 
-if (ele%floor%x /= 0)      write (iu, '(2a)') 'beginning[x_position]     = ', trim(str(ele%floor%x))
-if (ele%floor%y /= 0)      write (iu, '(2a)') 'beginning[y_position]     = ', trim(str(ele%floor%y))
-if (ele%floor%z /= 0)      write (iu, '(2a)') 'beginning[z_position]     = ', trim(str(ele%floor%z))
+if (ele%floor%r(1) /= 0)   write (iu, '(2a)') 'beginning[x_position]     = ', trim(str(ele%floor%r(1)))
+if (ele%floor%r(2) /= 0)   write (iu, '(2a)') 'beginning[y_position]     = ', trim(str(ele%floor%r(2)))
+if (ele%floor%r(3) /= 0)   write (iu, '(2a)') 'beginning[z_position]     = ', trim(str(ele%floor%r(3)))
 if (ele%floor%theta /= 0)  write (iu, '(2a)') 'beginning[theta_position] = ', trim(str(ele%floor%theta))
 if (ele%floor%phi /= 0)    write (iu, '(2a)') 'beginning[phi_position]   = ', trim(str(ele%floor%phi))
 if (ele%floor%psi /= 0)    write (iu, '(2a)') 'beginning[psi_position]   = ', trim(str(ele%floor%psi))
@@ -300,8 +300,8 @@ do ib = 0, ubound(lat%branch, 1)
     ! Branch
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
-      n = nint(ele%value(ix_branch_to$))
-      line = trim(line) // ', to = line_' // trim(lat%branch(n)%name)
+      n = nint(ele%value(ix_to_branch$))
+      line = trim(line) // ', to = ' // trim(lat%branch(n)%name) // '_line'
     endif
 
     ! Other elements
@@ -309,13 +309,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
     if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'
-
-    ! patch_in_slave
-
-    if (ele%slave_status == patch_in_slave$) then
-      lord => pointer_to_lord(ele, 1)
-      line = trim(line) // ', ref_patch = ' // trim(lord%name)
-    endif
 
     ! Create a null_ele element for a superposition and fill in the superposition
     ! information.
@@ -636,7 +629,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (attrib%name == 'COUPLER_AT') then
-        if (nint(val) /= exit_end$) then
+        if (nint(val) /= downstream_end$) then
           line = trim(line) // ', coupler_at = ' // end_at_name(nint(val))
         endif
         cycle
@@ -649,8 +642,8 @@ do ib = 0, ubound(lat%branch, 1)
         write (line, '(4a, i0)') trim(line), ', ', trim(attrib%name), ' = ', int(val)
       case (is_real$)
         line = trim(line) // ', ' // trim(attrib%name) // ' = ' // str(val)
-      case (is_name$)
-        name = attribute_value_name (attrib%name, val, ele, is_default)
+      case (is_switch$)
+        name = switch_attrib_value_name (attrib%name, val, ele, is_default)
           if (.not. is_default) then
             line = trim(line) // ', ' // trim(attrib%name) // ' = ' // name
           endif
@@ -675,6 +668,8 @@ do ib = 0, ubound(lat%branch, 1)
                                       line = trim(line) // ', tracking_method = ' // calc_method_name(ele%tracking_method)
     if (ele_has(ele, 'SPIN_TRACKING_METHOD') .and. (ele%spin_tracking_method /= ele_dflt%spin_tracking_method)) &
                                       line = trim(line) // ', spin_tracking_method = ' // calc_method_name(ele%spin_tracking_method)
+    if (ele_has(ele, 'PTC_INTEGRATION_TYPE') .and. (ele%ptc_integration_type /= ele_dflt%ptc_integration_type)) &
+                                      line = trim(line) // ', ptc_integration_type = ' // ptc_integration_type_name(ele%ptc_integration_type)
     if (ele_has(ele, 'FIELD_CALC') .and. (ele%field_calc /= ele_dflt%field_calc)) &
                                       line = trim(line) // ', field_calc = ' // field_calc_name(ele%field_calc)
 
@@ -682,8 +677,6 @@ do ib = 0, ubound(lat%branch, 1)
                                       line = trim(line) // ', aperture_at = ' // aperture_at_name(ele%aperture_at)
     if (ele_has(ele, 'APERTURE_TYPE') .and. (ele%aperture_type /= ele_dflt%aperture_type)) &
                                       line = trim(line) // ', aperture_type = ' // aperture_type_name(ele%aperture_type)
-
-    if (ele_has(ele, 'REF_ORBIT') .and. (ele%ref_orbit /= 0)) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
 
     if (ele_has(ele, 'SYMPLECTIFY') .and. ele%symplectify) line = trim(line) // ', symplectify'
 
@@ -878,7 +871,7 @@ end if
 ! But only write this once.
 
 write (iu, *)
-line = 'line_' // trim(lat%branch(0)%name) // ': line = ('
+line = trim(lat%branch(0)%name) // '_line: line = ('
 
 in_multi_region = .false.
 do ie = 1, lat%n_ele_track
@@ -916,7 +909,7 @@ line = line(:len_trim(line)-1) // ')'
 call write_lat_line (line, iu, .true.)
 
 write (iu, *)
-write (iu, *) 'use, line_' // trim(lat%branch(0)%name)
+write (iu, *) 'use, ' // trim(lat%branch(0)%name) // '_line'
 
 ! Branch lines
 
@@ -927,7 +920,7 @@ do ib = 1, ubound(lat%branch, 1)
   write (iu, *)
   write (iu, '(a)') '!-------------------------------------------------------'
   write (iu, *)
-  line = 'line_' // trim(branch%name) // ': line = ('
+  line = trim(branch%name) // '_line: line = ('
 
   do ie = 1, branch%n_ele_track
     call write_line_element (line, iu, branch%ele(ie), lat) 
@@ -950,16 +943,6 @@ do ie = 1, lat%n_ele_max
     if (ele%value(dphi0$) == 0) cycle
     if (.not. expand_lat_out) call write_expand_lat_header
     write (iu, '(3a)') trim(ele%name), '[dphi0] = ', trim(str(ele%value(dphi0$)))
-  endif
-
-  if (ele%key == patch$ .and. ele%ref_orbit /= 0) then
-    if (.not. expand_lat_out) call write_expand_lat_header
-    if (ele%value(x_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[x_offset] = ', trim(str(ele%value(x_offset$)))
-    if (ele%value(y_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[y_offset] = ', trim(str(ele%value(y_offset$)))
-    if (ele%value(z_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[z_offset] = ', trim(str(ele%value(z_offset$)))
-    if (ele%value(x_pitch$) /= 0)  write (iu, '(3a)') trim(ele%name), '[x_pitch] = ', trim(str(ele%value(x_pitch$)))
-    if (ele%value(y_pitch$) /= 0)  write (iu, '(3a)') trim(ele%name), '[y_pitch] = ', trim(str(ele%value(y_pitch$)))
-    if (ele%value(tilt$) /= 0)     write (iu, '(3a)') trim(ele%name), '[tilt]    = ', trim(str(ele%value(tilt$)))
   endif
 
 enddo
@@ -1461,11 +1444,11 @@ do
         col_ele%value(l$) = 0
         val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
         aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
-        if (aperture_at == both_ends$ .or. aperture_at == exit_end$ .or. aperture_at == continuous$) then
+        if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
           call insert_element (lat_out, col_ele, ix_ele+1)
           ie2 = ie2 + 1
         endif
-        if (aperture_at == both_ends$ .or. aperture_at == entrance_end$ .or. aperture_at == continuous$) then
+        if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
           call insert_element (lat_out, col_ele, ix_ele)
           ie2 = ie2 + 1
         endif

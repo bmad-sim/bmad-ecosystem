@@ -1088,7 +1088,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
 
 use mad_like, only: make_states, exact_model, always_exactmis, &
               assignment(=), nocavity, default, operator(+), &
-              berz, init, set_madx, lp, superkill, TIME0, PHASE0
+              berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, set_up, m_u, bmadl
 
 implicit none
@@ -1120,6 +1120,10 @@ if (init2_needed) then
   ALWAYS_EXACTMIS = .true.
   init2_needed = .false.
 endif
+
+! More init
+
+HIGHEST_FRINGE = bmad_com%ptc_max_fringe_order
 
 ! do not call set_mad
 
@@ -1185,7 +1189,7 @@ endif
 
 ! Superkill tells PTC to do a through cleanup when killing a fibre.
 
-SUPERKILL = .true.
+SUPERKILL = .false.
 
 end subroutine set_ptc
 
@@ -2339,7 +2343,7 @@ call taylor_to_real_8 (bmad_taylor, beta0, ptc_tlr)
 ! Track entrance drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, entrance_end$, drift_ele)
+  call create_hard_edge_drift (ele, upstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
   call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 endif
@@ -2352,7 +2356,7 @@ call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 ! Track exit side drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, exit_end$, drift_ele)
+  call create_hard_edge_drift (ele, downstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
   call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 endif
@@ -2417,7 +2421,7 @@ type (real_8) y(6), y2(6)
 real(dp) x(6), beta0
 real(rp) z_patch
 
-integer i
+integer i, ix
 
 logical, optional :: map_with_offsets
 logical :: warning_given = .false.
@@ -2468,7 +2472,7 @@ y = x   ! y = IdentityMap + x
 ! Track entrance drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, entrance_end$, drift_ele)
+  call create_hard_edge_drift (ele, upstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
   call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 endif
@@ -2481,7 +2485,7 @@ call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 ! Track exit end drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, exit_end$, drift_ele)
+  call create_hard_edge_drift (ele, downstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
   call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 endif
@@ -2705,9 +2709,12 @@ implicit none
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele, ele2
 type (fibre), pointer :: ptc_fibre
+type (fibre) dummy_fibre
 type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
+type (el_list) ptc_el_list
+type (floor_position_struct) :: floor0, floor1
 
 real(dp) beta, phi_tot
 
@@ -2715,11 +2722,12 @@ real(rp), allocatable :: ds_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
+real(rp) dr(3), ang(3), exi(3,3)
 
-integer i, n, key, n_term, exception, n_field, particle
+integer i, n, key, n_term, exception, n_field, particle, ix
 integer, optional :: integ_order, steps
 
-logical use_offsets
+logical use_offsets, energy
 logical, optional :: for_layout
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -2727,13 +2735,18 @@ character(16) :: r_name = 'ele_to_fibre'
 !
 
 call zero_key(ptc_key)  ! init key
-ptc_key%model = 'MATRIX_KICK'
+
+select case (ele%ptc_integration_type)
+case (drift_kick$);  ptc_key%model = 'DRIFT_KICK'
+case (matrix_kick$); ptc_key%model = 'MATRIX_KICK'
+case (ripken_kick$); ptc_key%model = 'DELTA_MATRIX_KICK'
+end select
+
 
 leng = ele%value(l$)
 
 ptc_key%list%name = ele%name
 ptc_key%list%l    = leng
-ptc_key%list%permfringe = .false.
 
 if (use_offsets) then
   ptc_key%tiltd = ele%value(tilt_tot$)
@@ -2774,7 +2787,6 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
-  ptc_key%list%permfringe = (ele%value(include_fringe$) /= 0)
 
 case (sbend$) 
   ptc_key%magnet = 'sbend'
@@ -2783,7 +2795,6 @@ case (sbend$)
   ptc_key%list%t2   = ele%value(e2$)
   ptc_key%list%hgap = ele%value(hgap$)
   ptc_key%list%fint = ele%value(fint$)
-  ptc_key%list%permfringe = (ele%value(exact_fringe$) /= 0)
 
   if (ele%value(fintx$) /= ele%value(fint$)) then
     call out_io (s_error$, r_name, &
@@ -2793,6 +2804,17 @@ case (sbend$)
   if (ele%value(hgapx$) /= ele%value(hgap$)) then
     call out_io (s_error$, r_name, &
         'HGAP AND HGAPX ARE NOT THE SAVE FOR BEND: ' // ele%name)
+  endif
+
+  ix = nint(ele%value(ptc_field_geometry$))
+  if (ix == straight$) then
+    ptc_key%magnet = 'wedgrbend'
+    ptc_key%list%t1   = ele%value(e1$) - ele%value(angle$)/2
+    ptc_key%list%t2   = ele%value(e2$) - ele%value(angle$)/2
+  elseif (ix == true_rbend$) then
+    ptc_key%magnet = 'truerbend'
+    ptc_key%list%t1   = ele%value(e1$) - ele%value(angle$)/2
+    !! ptc_key%list%t2   = ele%value(e2$) - ele%value(angle$)/2 ! Determined by %t1 in this case.
   endif
 
 case (sextupole$)
@@ -2809,7 +2831,7 @@ case (sol_quad$)
   ptc_key%magnet = 'solenoid'
   ptc_key%list%bsol = val(ks$)
 
-case (marker$, branch$, photon_branch$, init_ele$, patch$)
+case (marker$, branch$, photon_branch$, init_ele$, patch$, floor_position$, fiducial$)
   ptc_key%magnet = 'marker'
 
 case (kicker$, hkicker$, vkicker$)
@@ -2828,7 +2850,7 @@ case (rfcavity$, lcavity$)
   ptc_key%magnet = 'rfcavity'
   ptc_key%list%freq0 = ele%value(rf_frequency$)
   phi_tot = ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$)
-  if (tracking_uses_end_drifts(ele)) ptc_key%list%l    = ele%value(l_hard_edge$)
+  if (tracking_uses_end_drifts(ele)) ptc_key%list%l = hard_edge_model_length(ele)
 
   if (ele%key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot
@@ -2864,18 +2886,32 @@ case (ab_multipole$, multipole$)
 
 case (beambeam$)
   ptc_key%magnet = 'beambeam'
-  print *, 'ERROR IN ELE_TO_FIBRE: BEAMBEAM ELEMENT NOT YET IMPLEMENTED!'
+  call out_io (s_fatal$, r_name,  'BEAMBEAM ELEMENT NOT YET IMPLEMENTED!')
   if (global_com%exit_on_error) call err_exit
 
 case (wiggler$)
   ptc_key%magnet = 'wiggler'
 
 case default
-  print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', key_name(ele%key)
-  print *, '      FOR ELEMENT: ', trim(ele%name)
+  call out_io (s_fatal$, r_name,  'UNKNOWN ELEMENT CLASS: ' // key_name(ele%key), &
+                                  'FOR ELEMENT: ' // trim(ele%name))
   if (global_com%exit_on_error) call err_exit
 
 end select
+
+! Fringe
+
+if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
+  ix = nint(ele%value(fringe_type$)) 
+  ptc_key%list%permfringe = (ix == full_straight$ .or. ix == full_bend$)
+  ptc_key%list%bend_fringe = (ix == full_bend$ .or. ix == basic_bend$)
+endif
+
+if (attribute_index(ele, 'KILL_FRINGE') > 0) then  ! If kill_fringe is a valid attribute
+  ix = nint(ele%value(kill_fringe$))
+  ptc_key%list%kill_ent_fringe = (ix == upstream_end$ .or. ix == both_ends$)
+  ptc_key%list%kill_ent_fringe = (ix == downstream_end$ .or. ix == both_ends$)
+endif
 
 ! Multipole components
 
@@ -2900,6 +2936,8 @@ else
   call survey(bmadl)
   call make_node_layout (bmadl)
 endif
+
+ptc_fibre%dir = ele%orientation
 
 !
 
@@ -2951,11 +2989,105 @@ if (abs(z_patch) > bmad_com%significant_length) then
   ptc_fibre%patch%b_t = z_patch
 endif
 
-! Misalignments:
+! Misalignments and patches...
 
-if (use_offsets) call misalign_ptc_fibre (ele, ptc_fibre)
+! In ptc there is no such thing as a reversed patch. Therefore need to
+! use the reverse transformation if the patch is reversed in Bmad.
+
+! Also fibre%dir for a patch must agree with the preceeding element in a layout
+
+if (ele%key == patch$ .or. ele%key == floor_position$) then
+  if (ele%orientation == -1) then
+    call ele_geometry (floor0, ele, floor1)
+    dr = floor1%r
+    ang = [floor1%theta, floor1%phi, floor1%psi]
+  else
+    dr = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
+    ang = [ele%value(y_pitch$), ele%value(x_pitch$), ele%value(tilt$)]
+  endif
+
+  call bmad_patch_parameters_to_ptc (ang, exi)
+
+  call set_madx_(.true., .false.)
+  dummy_fibre = marker('dummy')
+  !!ptc_el_list = marker('dummy')
+  !!call el_q_for_madx (dummy_fibre, ptc_el_list)
+  call set_madx_(.false., .false.)
+
+  ele2 => pointer_to_next_ele (ele)
+  if (.not. associated(ele2)) then
+    dummy_fibre%dir = 1
+  else 
+    dummy_fibre%dir = ele2%orientation
+  endif
+
+  ele2 => pointer_to_next_ele(ele, -1)  ! Previous element
+  if (.not. associated(ele2)) then
+    ptc_fibre%dir = 1
+  else
+    ptc_fibre%dir = ele2%orientation
+  endif
+
+  ele%value(ptc_dir$) = ptc_fibre%dir  ! Save for later
+
+  call survey (dummy_fibre, exi, dr)
+  call find_patch (ptc_fibre, dummy_fibre, next = .false., energy_patch = energy)
+
+  call super_zero_fibre(dummy_fibre, -1)
+
+elseif (use_offsets) then
+  call misalign_ptc_fibre (ele, ptc_fibre)
+endif
+
+! Set charge
+
+if (associated(ele%branch)) then
+  ptc_fibre%charge = ele%branch%param%rel_tracking_charge
+endif
 
 end subroutine ele_to_fibre
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+! converts patch parameters from bmad to ptc
+
+subroutine bmad_patch_parameters_to_ptc(ang, exi)
+
+use madx_ptc_module
+
+implicit none
+
+real(dp) ent(3,3), exi(3,3), e(3), kak(3)
+real(dp) a(3), ang(3)
+real(dp) dd(3)
+
+!
+
+ent=global_frame
+exi=ent
+dd=0.0_dp
+a=0.0_dp
+a(3)=ang(3)
+
+call geo_rot(ent, a, 1, basis=exi)
+exi=ent
+a=0.0_dp
+a(1)=-ang(1)
+
+call geo_rot(ent, a, 1, basis=exi)
+exi=ent
+a=0.0_dp
+a(2)=-ang(2)
+
+call geo_rot(ent, a, 1, basis=exi)
+exi=ent
+!ent=global_frame
+
+!call find_patch(dd, ent, d, exi, e, kak)
+!print *, 'e-kak', e, kak
+
+end subroutine bmad_patch_parameters_to_ptc
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -3013,7 +3145,7 @@ n_max = 0
 
 select case (key)
 
-case (marker$, branch$, photon_branch$, init_ele$, em_field$)
+case (marker$, branch$, photon_branch$, init_ele$, em_field$, patch$, fiducial$, floor_position$)
   return
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$, &
@@ -3046,14 +3178,14 @@ case (sol_quad$)
 case (elseparator$)
   call multipole_ele_to_ab (ele, +1, .false., has_nonzero_pole, an0, bn0) 
   if (has_nonzero_pole) then
-    print *, 'ERROR IN ELE_TO_FIBRE: ', 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
+    call out_io (s_fatal$, r_name, 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.')
     if (global_com%exit_on_error) call err_exit
   endif
   return
 
 case default
-  print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', key_name(ele%key)
-  print *, '      FOR ELEMENT: ', trim(ele%name)
+  call out_io (s_fatal$, r_name, 'UNKNOWN ELEMENT CLASS: ' // key_name(ele%key), &
+                                 'FOR ELEMENT: ' // trim(ele%name))
   if (global_com%exit_on_error) call err_exit
 
 end select
@@ -3135,7 +3267,8 @@ real(rp) x_off, y_off, x_pitch, y_pitch, roll
 
 ! Patch elements do not have misalignments
 
-if (ele%key == patch$) return
+if (ele%key == patch$ .or. ele%key == fiducial$ .or. ele%key == floor_position$) return
+if (attribute_index(ele, 'X_OFFSET_TOT') < 1) return
 
 ! in PTC the reference point for the offsets is the beginning of the element.
 ! In Bmad the reference point is the center of the element..

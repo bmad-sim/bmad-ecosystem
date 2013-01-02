@@ -11,13 +11,13 @@
 !
 ! set = set$:
 !    Transforms from lab to element coords. 
-!    Assumes the particle is at the entrance end of the element if coord%p0c > 0. 
-!    Assumes the particle is at the exit end of the elment if coord%p0c < 0.
+!    Assumes the particle is at the upstream (-S) end of the element if coord%p0c > 0. 
+!    Assumes the particle is at the downstream (+S) end of the elment if coord%p0c < 0.
 !
 ! set = unset$:
 !    Transforms from element to lab coords.
-!    Assumes the particle is at the exit end of the element if coord%p0c > 0.
-!    Assumes the particle is at the entrance end of the elment if coord%p0c < 0.
+!    Assumes the particle is at the downstream (+S) end of the element if coord%p0c > 0.
+!    Assumes the particle is at the upstream (-S) end of the elment if coord%p0c < 0.
 !
 ! Note: the assumption of where the particle is can be overridden by using the ds_pos argument.
 !
@@ -108,7 +108,6 @@ E_rel = (1 + coord%vec(6))
 !   the right output
 
 set_canon = logic_option(.true., set_canonical)
-if (.not. bmad_com%canonical_coords) set_canon = .not. set_canon
 
 set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &

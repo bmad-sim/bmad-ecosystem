@@ -109,13 +109,6 @@ example:
   d, c, b, z, y, e
 \end{example}
 \index{sbend}\index{rbend}
-Notice that reflection only reverses the order of the elements in the
-expanded list and does {\em not} indicate that elements are physically
-``flipped'' so that the entrance end becomes the exit end and vice
-versa. This only matters with elements that are not symmetric back to
-front. For example, to physically traverse an \vn{sbend} or \vn{rbend}
-element backwards, the sign of the bending angle must be flipped and
-the face angles \vn{e1} and \vn{e2} must be interchanged, etc.
 
 A repetition count, which is an integer followed by an asterisk, 
 means that the member is
@@ -150,6 +143,30 @@ them.
 
 A line can have the \vn{multipass} attribute. This is covered in
 \sref{s:multipass}.
+
+%-----------------------------------------------------------------------------
+\section{Element Reversal}
+\label{s:ele.reverse}
+\index{element reversal}
+
+An element is \vn{reversed} if particles traveling through it enter at
+the ``exit'' end and leave at the ``entrance'' end. Being able to
+reverse elements is useful, for example, in describing the interaction
+region of a pair of rings where particles of one ring are going in the
+opposite direction relative to the particles in the other ring.
+
+Elment reversal is indicated by using a double negative sign ``--''
+prefix. The double negative sign prefix can be applied to individual
+elements or to a line. If it is applied to a line, the line is both
+reflected (same as if a single negative sign is used) and each element
+is reflected. For example:
+\begin{example}
+  line1: line = (a, b, --c)
+  line2: line = (--line1)
+  line3: line = (c, --b, --a)
+\end{example}
+In this example, \vn{line2} and \vn{line3} are identical. Notice that
+the reversal of a reversed element makes the element unreversed.
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines with Replaceable Arguments}

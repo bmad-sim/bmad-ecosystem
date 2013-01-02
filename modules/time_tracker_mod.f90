@@ -114,12 +114,12 @@ do n_step = 1, max_step
     add_ds_safe = .true.
 
     if (orb%vec(5) < s1 + ds_safe) then 
-      orb%location = entrance_end$
+      orb%location = upstream_end$
       s_target = s1
       if (orb%vec(5) > s1 - ds_safe) zbrent_needed = .false.
       if (s1 == 0) add_ds_safe = .false.
     else
-      orb%location = exit_end$
+      orb%location = downstream_end$
       s_target = s2
       if (orb%vec(5) < s2 + ds_safe) zbrent_needed = .false.
       if (abs(s2 - ele%value(l$)) < ds_safe) add_ds_safe = .false.
@@ -157,7 +157,7 @@ do n_step = 1, max_step
       !track%n_pt = track%n_pt + 1
       !n_pt = track%n_pt
       !track%orb(n_pt) = orb
-      !track%orb(n_pt)%ix_ele = ele%ix_ele
+      !track%orb(n_pt)%ix_ele => ele%ix_ele
       !Query the local field to save
       call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
       if (err_flag) return
@@ -543,27 +543,27 @@ if (.not. associated(wall3d_ele)) return
 old_orb => particle%old%orb
 now_orb => particle%now%orb
 
-if (ele%ref_orbit == match_at_entrance$ .or. &
-    ele%ref_orbit == match_global_coords$ .or. &
-    ele%ref_orbit == match_at_exit$  ) then
-  ! We need to move orbs into the correct frame
-  old_orb = particle_in_new_frame_time(orb, wall3d_ele)
-  now_orb = particle_in_new_frame_time(orb_new, wall3d_ele)
-  ! and point the the correct wall element
-  if (old_orb%ix_ele == now_orb%ix_ele) then 
-    wall3d_ele => ele%branch%ele(now_orb%ix_ele)
-  else
-    !Special case: orbs straddle an element boundary. This can happen in a multipass bend.
-    !FIXME
-    call out_io (s_fatal$, r_name, 'ORBs straddle element boundary FIXME')
-    if (global_com%exit_on_error) call err_exit
-  endif
-  
-else
+!if (ele%ref_orbit == match_at_entrance$ .or. &
+!    ele%ref_orbit == match_global_coords$ .or. &
+!    ele%ref_orbit == match_at_exit$  ) then
+!  ! We need to move orbs into the correct frame
+!  old_orb = particle_in_new_frame_time(orb, wall3d_ele)
+!  now_orb = particle_in_new_frame_time(orb_new, wall3d_ele)
+!  ! and point the the correct wall element
+!  if (old_orb%ix_ele == now_orb%ix_ele) then 
+!    wall3d_ele => ele%branch%ele(now_orb%ix_ele)
+!  else
+!    !Special case: orbs straddle an element boundary. This can happen in a multipass bend.
+!    !FIXME
+!    call out_io (s_fatal$, r_name, 'ORBs straddle element boundary FIXME')
+!    if (global_com%exit_on_error) call err_exit
+!  endif
+!  
+!else
   ! Prepare coordinate structures for wall3d_d_radius
   old_orb = orb
   now_orb = orb_new
-endif
+!endif
 
 ! Do nothing if orb_new is inside the wall
 if (wall3d_d_radius(now_orb%vec, wall3d_ele) < 0) return
@@ -691,12 +691,12 @@ end subroutine  particle_hit_wall_check_time
 !
 ! Input
 !   orb        -- coord_struct: Particle in [t-based] coordinates relative to
-!                               ele%branch%ele(orb%ix_ele)
+!                               orb%ix_ele
 !   ele        -- ele_struct: Element to 
 !
 ! Output
 !   orb_in_ele -- coord_struct: Particle in [t-based] coordinates, relative to 
-!                               ele%branch%ele(orb_in_ele%ix_ele)
+!                               orb_in_ele%ix_ele
 !           
 !
 !-
@@ -707,7 +707,7 @@ implicit none
 
 type (coord_struct) :: orb, orb_in_ele
 type (floor_position_struct) :: position0, position1
-type (ele_struct) :: ele
+type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele1
 type (branch_struct), pointer :: branch
 real(rp) :: ww_mat(3,3)
@@ -737,9 +737,7 @@ endif
 branch => ele%branch
 
 !set [x, y, z]_0
-position0%x = orb%vec(1)
-position0%y = orb%vec(3)
-position0%z = orb%vec(5)
+position0%r = orb%vec(1:5:2)
 position0%theta = 0.0_rp
 position0%phi = 0.0_rp
 position0%psi = 0.0_rp
@@ -748,9 +746,7 @@ position0%psi = 0.0_rp
 call switch_local_positions (position0, branch%ele(orb%ix_ele), ele, position1, ele1, ww_mat)
 
 ! Assign [x, y, s]
-orb_in_ele%vec(1) = position1%x
-orb_in_ele%vec(3) = position1%y
-orb_in_ele%vec(5) = position1%z
+orb_in_ele%vec(1:5:2) = position1%r
 
 ! Use ww_mat to rotate momenta
 orb_in_ele%vec(2:6:2) =  matmul(ww_mat, orb%vec(2:6:2) )
@@ -761,12 +757,6 @@ orb_in_ele%ix_ele = ele1%ix_ele
 orb_in_ele%s = orb_in_ele%vec(5) + ele1%s - ele1%value(L$)
 
 end function particle_in_new_frame_time
-
-
-
-
-
-
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -782,7 +772,7 @@ end function particle_in_new_frame_time
 !
 ! Input:
 !   orb                 -- Coord_struct: particle in s-coordinates
-!   branch              -- branch_struct: branch that contains ele(orb%ix_ele)
+!   branch              -- branch_struct: branch that contains branch%ele(orb%ix_ele)
 !   in_time_coordinates -- Logical (optional): Default is false. If true, orb
 !                            will taken as in time coordinates.    
 !
@@ -822,9 +812,7 @@ if (.not. in_t_coord) then
 endif
 
 !Set for position_in_global_frame
-floor_at_particle%x = particle%vec(1)
-floor_at_particle%y = particle%vec(3)
-floor_at_particle%z = particle%vec(5)
+floor_at_particle%r = particle%vec(1:5:2)
 floor_at_particle%theta = 0.0_rp
 floor_at_particle%phi = 0.0_rp
 floor_at_particle%psi = 0.0_rp
@@ -832,9 +820,7 @@ floor_at_particle%psi = 0.0_rp
 global_position = position_in_global_frame (floor_at_particle, ele, w_mat)
 
 !Set x, y, z
-particle%vec(1) = global_position%x
-particle%vec(3) = global_position%y
-particle%vec(5) = global_position%z
+particle%vec(1:5:2) = global_position%r
 
 !Rotate momenta 
 particle%vec(2:6:2) = matmul(w_mat, particle%vec(2:6:2))
@@ -842,9 +828,6 @@ particle%vec(2:6:2) = matmul(w_mat, particle%vec(2:6:2))
 if (present(w_mat_out)) w_mat_out = w_mat
 
 end function particle_in_global_frame
-
-
-
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

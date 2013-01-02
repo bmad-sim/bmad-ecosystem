@@ -1,6 +1,3 @@
-%\input{simple_header}
-
-
 \chapter{Coordinates}
 \index{coordinates|hyperbf}
 
@@ -9,16 +6,15 @@
 \label{s:ref}
 \index{reference orbit|hyperbf}
 
-
 \begin{figure}[!b]
   \centering
   \includegraphics[height=8.4cm]{local-coords.pdf}
   \caption[The Local Reference System.]
-{The local reference coordinate system. By construction, a
-particle's $z$ coordinate is zero.  This is not to be confused with
-the phase space $z$ coordinate (\sref{s:phase.space}).  The curvature
-vector $\bfg$ has a magnitude of $1/\rho$ where $\rho$ is the bending
-radius.}
+{The local reference coordinate system. By construction, a particle's
+$z$ coordinate is zero.  This is not to be confused with the phase
+space $z$ coordinate (\sref{s:phase.space}). The curvature vector
+$\bfg$ lies in the $x$-$y$ plane and has a magnitude of $1/\rho$ where
+$\rho$ is the bending radius.}
   \label{f:local.coords}
 \end{figure}
 
@@ -39,6 +35,18 @@ the \vn{``laboratory coordinate system''} when there is need to
 distinguish it from the \vn{``element coordinate system''}
 (\sref{s:misalign.track}).
 
+  \begin{figure}
+  \centering
+  \includegraphics{element-coord-frame.pdf}
+\caption[Element coordinate frame.]{The element coordinate frame of
+reference.  All elements have an entrance frame of reference and and
+exit frame of reference.  A) For straight line elements the two frames
+are colinear. B) For bends elements, the two frames are rotated with
+respectto each other. With a zero \vn{tilt} for a bend, the rotation
+axis between the entrance and exit frams is the $y$-axis.}
+  \label{f:ele.coord.frame}
+  \end{figure}
+
 \index{sbend}\index{rbend}
 \index{crystal}\index{mirror}\index{entrance_end}
 \index{exit_end}\index{patch}
@@ -46,19 +54,20 @@ In \bmad, a lattice is comprised of a sequence of elements such as
 quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a
 \vn{bend} (\sref{s:bend}), the reference curve is a segment of a
-circular arc. For \vn{crystal} and \vn{mirror} elements, the reference
-curve is a zero length bend (\sref{s:mirror.coords}). All other
-elements are ``straight''. That is, the reference curve is a straight
-line segment. With multiple elements, the reference orbit is
-constructed by arranging the elements so that the reference orbit at
-exit point of one element coincides, and is collinear with, the
-reference curve at the entrance point of the next element. The
-reference orbit is then the sum of the reference curves. Exceptions to
-this construction method may be made by using \vn{patch}
-(\sref{s:patch}) elements which can arbitrarily orient the entrance
+circular arc as shown in \fig{f:ele.coord.frame}B. For \vn{crystal}
+and \vn{mirror} elements, the reference curve is a zero length bend
+(\sref{s:mirror.coords}). All other elements, except for \vn{patch}
+and \vn{global_position} elements, are ``straight'' as shown in
+\fig{f:ele.coord.frame}A. That is, the reference curve is a straight
+line segment. \vn{patch} (\sref{s:patch}), and \vn{global_position}
+(\sref{s:global.pos} elements can arbitrarily orient the entrance
 point of an element with respect to the exit point of the previous
-element. If not specified otherwise, the $s = 0$ position is the
-entrance point of the first element.
+element. With multiple elements, the reference orbit is constructed by
+arranging the elements so that the reference orbit at exit point of
+one element coincides with the reference curve at the entrance point
+of the next element. The reference orbit is then the sum of the
+reference curves. If not specified otherwise, the $s = 0$ position is
+the entrance point of the first element.
 
 \index{x_offset}
 \index{y_offset}
@@ -70,7 +79,7 @@ straight line, does {\em not} correspond to the orbit that any actual
 particle could travel. Typically the physical element is
 centered with respect to the reference curve. However, by specifying offsets, 
 pitches or a tilt (See \sref{s:offset}), the physical element may be
-arbitrarily shifted with respect to its reference curve.  Shifting a
+arbitrarily shifted with respect to its reference curve. Shifting a
 physical magnet with respect to its reference curve generally means
 that the reference curve does {\em not} correspond to the orbit that
 any actual particle could travel.
@@ -79,6 +88,8 @@ Do not confuse this reference orbit (which defines the local
 coordinate system) with the reference orbit about which the transfer
 maps are calculated (\sref{s:twiss}). The former is fixed by the
 lattice while the latter can be any arbitrary orbit.
+
+
 
 %-----------------------------------------------------------------------------
 \section{Global Coordinates}
@@ -108,7 +119,7 @@ intersection of the $(X, Z)$ plane with the $(x, y)$ plane. A
 positive $\psi$ forms a right--handed screw with the $z$--axis.
 \end{description}
 
-\begin{figure}
+\begin{figure}[tb]
 \centering
 \includegraphics{global-coords.pdf}
 \caption{The Global Coordinate System}
@@ -144,6 +155,7 @@ expressed in terms of the angles $\theta$, $\phi$, and $\psi$ via the
 formula
 \Begineq
   \Bf W = \Bf W_\Theta \, \Bf W_\Phi \, \Bf W_\Psi
+  \label{wwww}
 \Endeq
 where
 \Begineq
@@ -384,7 +396,7 @@ graze angles for a crystal is given in Section~\ref{ss:crystal.ref}.
 
 \index{patch}\index{tilt}
 A \vn{patch} element shifts the reference orbit (\sref{s:patch}).
-\Eqs{vwlv} and \eq{wws} are used to propagate the $\Bf W$ matrix through a
+\Eqs{vwlv} and \eq{wws} are used to propagate $\Bf W$ and $\Bf V$ through a
 \vn{patch}. The $\Bf L$ vector for a patch is
 \Begineq
   \Bf L = 
@@ -393,48 +405,19 @@ A \vn{patch} element shifts the reference orbit (\sref{s:patch}).
     y_{\text{offset}} \,
     z_{\text{offset}}
   \end{pmatrix}
+  \label{xyz}
 \Endeq
-The $\Bf S$ matrix corresponding to a
-non--zero \vn{tilt} for a \vn{patch} element is
+The $\Bf S$ matrix for a patch is defined in analogy with \Eq{wwww} to be\
 \Begineq
-  \Bf S = 
-  \begin{pmatrix}
-    \cos\theta_t & -\sin\theta_t & 0 \\
-    \sin\theta_t &  \cos\theta_t & 0 \\
-    0            &  0            & 1                
-  \end{pmatrix}
+  \bfS = \Bf W_\Theta \, \Bf W_\Phi \, \Bf W_\Psi
+  \label{swww}
 \Endeq
-\index{x_pitch}
-The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} of a
-\vn{patch} element is
-\Begineq
-  \Bf S = 
-  \begin{pmatrix}
-    \cos\theta_x & 0 & -\sin\theta_x \\
-    0            & 1 & 0             \\
-    \sin\theta_x & 0 & \cos\theta_x
-  \end{pmatrix}
-\Endeq
-\index{y_pitch}
-where $\theta_x$ is the value of \vn{x_pitch}. Finally, the $\Bf S$
-matrix corresponding to a non-zero \vn{y_pitch} of a \vn{patch}
-element is
-\Begineq
-  \Bf S = 
-  \begin{pmatrix}
-    1 & 0             & 0            \\
-    0 & \cos\theta_y  & \sin\theta_y \\
-    0 & -\sin\theta_y & \cos\theta_y 
-  \end{pmatrix}
-\Endeq
-where $\theta_y$ is the value of \vn{y_pitch}. 
-
-If a \vn{patch}'s \vn{translate_after} is set to True, the offsets are
-applied after the pitches and tilts. In this case, \Eq{vwlv} is
-replaced by
-\Begineq
-  \Bf V_i = \Bf W_{i} \, \Bf L_i + \Bf V_{i-1}, 
-\Endeq
+with
+\begin{example}
+  \(\Theta\) = x_pitch
+  \(\Phi\) = y_pitch
+  \(\Psi\) = tilt
+\end{example} 
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}

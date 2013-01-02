@@ -38,6 +38,7 @@ type (lat_struct), target :: lat
 type (coord_struct), allocatable :: orbit(:)
 type (ele_struct), pointer :: lord, slave
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 
 integer n, i, nn, ix_br
 integer, optional :: ix_branch, track_state
@@ -60,7 +61,7 @@ if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_m
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 orbit(0)%ix_ele   = 0
-orbit(0)%location = exit_end$
+orbit(0)%location = downstream_end$
 
 if (branch%param%particle /= photon$) then
   call convert_pc_to (branch%ele(0)%value(p0c$) * (1 + orbit(0)%vec(6)), branch%param%particle, beta = orbit(0)%beta)
@@ -73,11 +74,12 @@ if (present(err_flag)) err_flag = .false.
 
 do n = 1, branch%n_ele_track
 
-  call track1 (orbit(n-1), branch%ele(n), branch%param, orbit(n), err_flag = err)
+  ele => branch%ele(n)
+  call track1 (orbit(n-1), ele, branch%param, orbit(n), err_flag = err)
 
   ! check for lost particles
 
-  if (err .or. .not. particle_is_moving_forward(orbit(n), branch%param%particle)) then
+  if (err .or. .not. particle_is_moving_forward(orbit(n))) then
     if (present(track_state)) track_state = n
     do nn = n+1, branch%n_ele_track
       orbit(nn)%vec = 0
@@ -88,7 +90,7 @@ do n = 1, branch%n_ele_track
   endif
 
   if (debug) then
-    call out_io (s_blank$, r_name, branch%ele(n)%name, '\6es16.6\ ', r_array = orbit(n)%vec)
+    call out_io (s_blank$, r_name, ele%name, '\6es16.6\ ', r_array = orbit(n)%vec)
   endif
 
 enddo

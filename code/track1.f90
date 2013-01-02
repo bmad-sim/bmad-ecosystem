@@ -108,9 +108,9 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 ! check for particles outside aperture.
 
 if (end_orb%p0c < 0) then
-  call check_aperture_limit (start2_orb, ele, exit_end$, param)
+  call check_aperture_limit (start2_orb, ele, downstream_end$, param)
 else
-  call check_aperture_limit (start2_orb, ele, entrance_end$, param)
+  call check_aperture_limit (start2_orb, ele, upstream_end$, param)
 endif
 
 if (ele%aperture_at == surface$) then
@@ -197,7 +197,7 @@ endif
 
 if (tracking_method /= time_runge_kutta$) then
   if (end_orb%state == alive$) then
-    end_orb%location = exit_end$
+    end_orb%location = downstream_end$
   else
     end_orb%location = inside$
   endif
@@ -224,9 +224,9 @@ if (bmad_com%spin_tracking_on .and. do_extra) call track1_spin (start2_orb, ele,
 
 
 if (end_orb%p0c < 0) then   ! At entrance end...
-  call check_aperture_limit (start2_orb, ele, entrance_end$, param)
+  call check_aperture_limit (start2_orb, ele, upstream_end$, param)
 else                        ! At exit end...
-  call check_aperture_limit (end_orb, ele, exit_end$, param)
+  call check_aperture_limit (end_orb, ele, downstream_end$, param)
 endif
 
 if (present(err_flag)) err_flag = .false.

@@ -110,31 +110,6 @@ call control_bookkeeper (lat, super_and_multipass_only = .true., do_free_eles = 
 call s_calc (lat)
 call lat_geometry (lat)
 
-! multipass slaves with ref_orbit set may depend upon the geometry so recalc.
-! Also free elements may have had their control status set but this is bogus so just reset to ok$
-
-found = .false.
-
-do i = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i)
-  do j = 1, branch%n_ele_track
-    ele => branch%ele(j)
-    if (ele%slave_status == free$ .and. ele%bookkeeping_state%control == stale$) ele%bookkeeping_state%control = ok$
-    if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%control /= stale$) cycle
-    if (ele%slave_status == multipass_slave$ .and. ele%ref_orbit /= 0) then
-      call makeup_multipass_slave (lat, ele)
-      call attribute_bookkeeper (ele, branch%param)
-      found = .true.
-    endif
-  enddo
-  branch%param%bookkeeping_state%attributes = ok$
-enddo
-
-if (found) then
-  call s_calc (lat)
-  call lat_geometry (lat)
-endif
-
 ! See if all status flags have been properly reset.
 ! Exception is mat6 flag since the bookkeeping routines do not touch this.
 
@@ -800,7 +775,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
-type (ele_struct), pointer :: lord, patch_in_lord, patch_in_slave
+type (ele_struct), pointer :: lord, patch_in_lord
 type (branch_struct), pointer :: branch
 type (floor_position_struct), pointer :: f0, f1
 type (coord_struct) start, end
@@ -812,7 +787,7 @@ real(rp) cos_e2, d_theta, ang_dlord, cos_lorde1, cos_dlord
 real(rp) w0_mat(3,3), w1_mat(3,3), w1_inv_mat(3,3), offset(3), dw_mat(3,3)
 real(rp) theta, phi, psi, w0_inv_mat(3,3)
 
-integer i, j, ix_slave, ic, ix_s0, ix_patch_in_slave, n_pass
+integer i, j, ix_slave, ic, ix_s0, n_pass
 character(40) :: r_name = 'makeup_multipass_slave'
 
 !
@@ -902,225 +877,15 @@ endif
 
 ! methods
 
-slave%mat6_calc_method = lord%mat6_calc_method
-slave%tracking_method  = lord%tracking_method
 slave%map_with_offsets = lord%map_with_offsets
 slave%is_on            = lord%is_on
-slave%aperture_at      = lord%aperture_at
-slave%aperture_type    = lord%aperture_type
 
-! patch element.
-! The reference energy may be zero while parsing in a lattice file so only do
-! the computation if we have a non-zero energy.
+! Handled by set_flags_for_changed_attribute
 
-if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
-
-  select case (lord%ref_orbit)
-
-  case (patch_in$)
-    ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
-    ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
-
-    if (.not. has_orientation_attributes(slave)) call err_exit ! This should not be
-
-    ! ref pass slave parameters are fixed.
-    if (ix_s0 == ix_slave) then
-      slave%value(x_offset$) = slave_val(x_offset$)
-      slave%value(y_offset$) = slave_val(y_offset$)
-      slave%value(z_offset$) = slave_val(z_offset$)
-      slave%value(x_pitch$)  = slave_val(x_pitch$)
-      slave%value(y_pitch$)  = slave_val(y_pitch$)
-      slave%value(tilt$)     = slave_val(tilt$)
-      return     
-    endif
-
-    f0 => branch%ele(ix_s0)%floor      ! Coords at ref slave exit end.
-    f1 => branch%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
-    call floor_angles_to_w_mat (f0%theta, f0%phi, f0%psi, w0_mat)
-    call floor_angles_to_w_mat (f1%theta, f1%phi, f1%psi, w1_mat)
-
-    call mat_inverse (w1_mat, w1_inv_mat)
-    dw_mat = matmul (w1_inv_mat, w0_mat) 
-    call floor_w_mat_to_angles (dw_mat, 0.0_rp, theta, phi, psi)
-    slave%value(x_pitch$) = theta
-    slave%value(y_pitch$) = phi
-    slave%value(tilt$) = psi
-
-    offset = [f0%x-f1%x, f0%y-f1%y, f0%z-f1%z]
-    if (slave%value(translate_after$) == 0) then
-      offset = matmul(w1_inv_mat, offset)
-    else
-      call mat_inverse (w0_mat, w0_inv_mat)
-      offset = matmul(w0_inv_mat, offset)
-    endif
-    slave%value(x_offset$) = offset(1)
-    slave%value(y_offset$) = offset(2)
-    slave%value(z_offset$) = offset(3)
-
-  case (patch_out$)
-    ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
-    ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
-
-    patch_in_lord => pointer_to_lord(lord, 1)
-    patch_in_slave => pointer_to_slave(patch_in_lord, n_pass)
-    start%vec = 0
-    do i = patch_in_slave%ix_ele, ix_slave - 1
-      call track1 (start, branch%ele(i), branch%param, end)
-      start = end
-    enddo
-    slave%value(x_offset$) = end%vec(1) 
-    slave%value(y_offset$) = end%vec(3)
-    slave%value(z_offset$) = end%vec(5)
-    slave%value(x_pitch$) = end%vec(2)
-    slave%value(y_pitch$) = end%vec(4)
-
-  end select
-endif
-
-! An sbend is tricky since the reference orbit changes with energy.
-
-if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) then
-
-  if (lord%ref_orbit /= single_ref$) then
-    if (lord%value(k1$) /= 0 .or. lord%value(k2$) /= 0 .or. associated(lord%a_pole)) then
-      call out_io (s_fatal$, r_name, &
-            'MULTIPASS BEND ELEMENT: ' // lord%name, &
-            'WITH THE REF_ORBIT ATTRIBUTE SET TO: ' // ref_orbit_name(lord%ref_orbit), &
-            'HAS A NONZERO HIGHER ORDER MULTIPOLE!', &
-            'THIS IS NOT ALLOWED. SEE THE BMAD MANUAL FOR MORE DETAILS.')
-      if (global_com%exit_on_error) call err_exit
-    endif
-  endif
-
-  ! 
-
-  select case (lord%ref_orbit)
-
-  ! %ref_orbit = single_ref$
-
-  case (single_ref$)
-    slave%value(b_field$)     = lord%value(b_field$) * slave%value(p0c$) / lord%value(p0c$) 
-    slave%value(b_field_err$) = lord%value(b_field$) + lord%value(b_field_err$) - &
-                                                                   slave%value(b_field$)
-    slave%value(g_err$) = (lord%value(g$) + lord%value(g_err$)) * &
-                                    lord%value(p0c$) / slave%value(p0c$) - lord%value(g$)
-
-  ! %ref_orbit = match_global_coords$
-
-  case (match_global_coords$)
-
-    slave%value(g$) = lord%value(g$) * lord%value(p0c$) / slave%value(p0c$)
-
-    ! e1 and e2 and l are determined by the reference orbit of this pass with respect
-    ! to the reference orbit of the reference pass. 
-    ! Assumption: the slave element lies in the (x, z) plane.
-
-    if (slave%floor%phi /= 0 .or. slave%floor%psi /= 0) then
-       call out_io (s_fatal$, r_name, 'MULTIPASS ELEMENT: ' // lord%name, &
-                     'WHICH HAS REF_ORBIT = MATCH_GLOBAL_COORDS DOES NOT LIE IN THE (X, Z) PLANE!')
-      if (global_com%exit_on_error) call err_exit
-    endif
-
-    ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
-    ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
-    if (ix_s0 == ix_slave) return     ! Do not need calculation for ref slave.
-
-    f0 => branch%ele(ix_s0-1)%floor    ! Coords at ref slave entrance end.
-    f1 => branch%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
-
-    d_theta = modulo2(f1%theta - f0%theta, pi)
-    !! if (abs(d_theta) > pi/4) return  ! Stop calc if too unphysical.
-
-    ! d1 is the distance between the reference trajectory entrance points between 
-    ! the slave and the lord.
-    d1 = ((f1%x - f0%x) * cos(f1%theta) - (f1%y - f0%y) * cos(f1%theta)) / &
-                                        cos(d_theta + lord%value(e1$))
-    !! if (abs(d1 * slave%value(g$)) > 0.1) return  ! Stop calc if too unphysical.
-
-    ! Iterate to converge to a solution.
-
-    r_lord  = 1 / lord%value(g$)
-    r_slave = 1 / slave%value(g$)
-    ang_lord = lord%value(angle$)
-    ang_dlord = d_theta + ang_lord
-    cos_lord = cos(ang_lord);   cos_lorde1 = cos(ang_lord - lord%value(e1$))
-    sin_lord = sin(ang_lord);   cos_dlord = cos(ang_dlord)
-    cos_e2 = cos(lord%value(e2$))
-    ang_slave     = ang_lord   ! Init guess
-    ang_slave_old = ang_slave  
-    do i = 1, 10  ! limit interations in case of nonconvergance
-      d2 = (r_lord * (cos_lord - 1) + d1 * cos_lorde1 + r_slave * &
-              (cos(ang_dlord - ang_slave) - cos_dlord)) / cos_e2
-      arg = (r_lord * (sin(ang_dlord) - sin(d_theta)) - &
-                        d1 * sin(d_theta + lord%value(e1$)) + &
-                        d2 * sin(ang_dlord - lord%value(e2$))) / r_slave
-      if (abs(arg) > 1) then
-        call out_io (s_error$, r_name, &
-              'MULTIPASS MATCH_GLOBAL_COORDS CALC ERROR FOR: ' // lord%name, &
-              'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
-        if (global_com%exit_on_error) call err_exit
-      endif
-      ang_slave = asin(arg)
-      if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
-      ang_slave_old = ang_slave
-    enddo
-
-    slave%value(angle$) = ang_slave
-    slave%value(l$) = ang_slave * r_slave
-    slave%value(rho$) = r_slave
-    slave%value(e1$) = lord%value(e1$) + d_theta
-    slave%value(e2$) = lord%value(e2$) + ang_slave - ang_lord - d_theta
-
-  ! %ref_orbit = match_at_entrance$ or match_at_exit$
-
-  case (match_at_entrance$, match_at_exit$)
-    slave%value(g$) = lord%value(g$) * lord%value(p0c$) / slave%value(p0c$)
-    ! Iterate to converge to a solution
-    if (slave%value(g$) /= lord%value(g$)) then
-      if (lord%ref_orbit == match_at_entrance$) then
-        e = lord%value(e2$)
-      else
-        e = lord%value(e1$)
-      endif
-      r_lord  = 1 / lord%value(g$)
-      r_slave = 1 / slave%value(g$)
-      ang_lord = lord%value(angle$)
-      cos_lord = cos(ang_lord); cos_e = cos(e)
-      sin_lord = sin(ang_lord); sin_lorde = sin(ang_lord - e)
-      ang_slave     = ang_lord
-      ang_slave_old = ang_slave
-      ! d is the distance between the reference trajectory end points between the slave
-      ! and the lord at the opposite end of the match end.
-      do
-        d = (r_lord * (cos_lord - 1) + r_slave * (cos(ang_lord - ang_slave) - cos_lord) ) / cos_e
-        arg = (r_lord * sin_lord + d * sin_lorde) / r_slave
-        if (abs(arg) > 1) then
-          call out_io (s_error$, r_name, &
-                'MULTIPASS MATCH_AT_ENTRANCE/EXIT CALC ERROR FOR: ' // lord%name, &
-                'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
-          if (global_com%exit_on_error) call err_exit
-        endif
-        ang_slave = asin(arg)
-        if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
-        ang_slave_old = ang_slave
-      enddo
-      slave%value(angle$) = ang_slave
-      slave%value(l$) = ang_slave * r_slave
-      slave%value(rho$) = r_slave
-      if (lord%ref_orbit == match_at_entrance$) then
-        slave%value(e2$) = e + ang_slave - ang_lord 
-      else
-        slave%value(e1$) = e + ang_slave - ang_lord 
-      endif
-    endif
-
-  case default
-    call out_io (s_fatal$, r_name, 'BAD REF_ORBIT VALUE: \i0\ ', &
-                           'FOR: ' // lord%name, i_array = [lord%ref_orbit] )
-    if (global_com%exit_on_error) call err_exit
-
-  end select
-endif
+!! slave%aperture_at      = lord%aperture_at
+!! slave%aperture_type    = lord%aperture_type
+!! slave%mat6_calc_method = lord%mat6_calc_method
+!! slave%tracking_method  = lord%tracking_method
 
 end subroutine makeup_multipass_slave
 
@@ -1656,7 +1421,7 @@ end subroutine makeup_super_slave
 !--------------------------------------------------------------------------
 !+
 ! Subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset,
-!                                    param, at_entrance_end, at_exit_end, err_flag, old_slice)
+!                                    param, at_upstream_end, at_downstream_end, err_flag, old_slice)
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
 ! Note: This routine assumes that the following call has been made before hand:
@@ -1675,8 +1440,8 @@ end subroutine makeup_super_slave
 !   l_slice         -- Real(rp): Length of the slice
 !   offset          -- Real(rp): Offset of entrance end of sliced_ele from entrance end of ele_in.
 !   param           -- Lat_param_struct: lattice paramters.
-!   at_entrance_end -- Logical: Sliced_ele contains the ele's entrance end?
-!   at_exit_end     -- Logical: Sliced_ele contains the ele's exit end?
+!   at_upstream_end -- Logical: Sliced_ele contains the ele's entrance end?
+!   at_downstream_end     -- Logical: Sliced_ele contains the ele's exit end?
 !   old_slice       -- Logical, optional: Previous slice. If present this saves computation
 !                        time of the refernece energy and time at the start of the present slice.
 !
@@ -1686,7 +1451,7 @@ end subroutine makeup_super_slave
 !-
 
 recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
-                                       param, at_entrance_end, at_exit_end, err_flag, old_slice)
+                                       param, at_upstream_end, at_downstream_end, err_flag, old_slice)
 
 implicit none
 
@@ -1698,7 +1463,7 @@ type (lat_param_struct) param
 real(rp) l_slice, offset, e_len, ref_time_start, p0c_start, e_tot_start
 real(rp) time_ref_orb_out(6)
 
-logical at_entrance_end, at_exit_end, err_flag, err2_flag
+logical at_upstream_end, at_downstream_end, err_flag, err2_flag
 
 character(24) :: r_name = 'create_element_slice'
 
@@ -1753,7 +1518,7 @@ if (ele_in%slave_status /= super_slave$) then
   sliced_ele%lord   => ele_in
 endif
 
-call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end, err2_flag)
+call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_upstream_end, at_downstream_end, err2_flag)
 if (err2_flag) return
 
 sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
@@ -1813,7 +1578,7 @@ end subroutine create_element_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
+! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_upstream_end, at_downstream_end)
 !
 ! Routine to construct a super_slave from a super_lord when the slave has only one lord.
 ! Note: Reference energy and times are not computed in this routine.
@@ -1826,15 +1591,15 @@ end subroutine create_element_slice
 !   lord   -- Ele_struct: Lord element.
 !   offset -- Real(rp): offset of entrance end of slave from entrance end of the lord.
 !   param  -- Lat_param_struct: lattice paramters.
-!   at_entrance_end -- Logical: Slave contains the lord's entrance end?
-!   at_exit_end     -- Logical: Slave contains the lord's exit end?
+!   at_upstream_end -- Logical: Slave contains the lord's entrance end?
+!   at_downstream_end     -- Logical: Slave contains the lord's exit end?
 !
 ! Output:
 !   slave    -- Ele_struct: Slave element with appropriate values set.
 !   err_flag -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end, err_flag)
+subroutine makeup_super_slave1 (slave, lord, offset, param, at_upstream_end, at_downstream_end, err_flag)
 
 implicit none
 
@@ -1844,7 +1609,7 @@ type (lat_param_struct) param
 real(rp) offset, s_del, coef
 real(rp) value(num_ele_attrib$)
 integer i
-logical at_entrance_end, at_exit_end, err_flag
+logical at_upstream_end, at_downstream_end, err_flag
 character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
@@ -1890,11 +1655,11 @@ endif
 
 if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
 
-call compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_end)
+call compute_slave_aperture (value, slave, lord, at_upstream_end, at_downstream_end)
 
 if (slave%key == lcavity$) then
   slave%value(coupler_at$) = no_end$
-  call compute_slave_coupler (value, slave, lord, at_entrance_end, at_exit_end)
+  call compute_slave_coupler (value, slave, lord, at_upstream_end, at_downstream_end)
 endif
 
 ! s_del is the distance between lord and slave centers
@@ -1926,13 +1691,13 @@ if (slave%key == wiggler$) slave%value(n_pole$) = lord%value(n_pole$) * coef
 !     2) zero the face angles next to the split
 
 if (slave%key == sbend$) then
-  if (.not. at_entrance_end) then 
+  if (.not. at_upstream_end) then 
     slave%value(e1$)    = 0
     slave%value(h1$)    = 0
     slave%value(fint$)  = 0
     slave%value(hgap$)  = 0
   endif
-  if (.not. at_exit_end) then   ! first slave bend
+  if (.not. at_downstream_end) then   ! first slave bend
     slave%value(e2$)    = 0
     slave%value(h2$)    = 0
     slave%value(fintx$) = 0
@@ -1969,35 +1734,55 @@ end subroutine makeup_super_slave1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_end)
+! Subroutine compute_slave_aperture (value, slave, lord, at_upstream_end, at_downstream_end)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_end)
+subroutine compute_slave_aperture (value, slave, lord, at_upstream_end, at_downstream_end)
 
 implicit none
 
 type (ele_struct) slave, lord
 real(rp) value(num_ele_attrib$)
-logical at_entrance_end, at_exit_end
+integer aperture_at
+logical at_upstream_end, at_downstream_end
 
 ! 
 
 slave%aperture_at = no_end$
 
-select case (lord%aperture_at)
-case (exit_end$) 
-  if (at_exit_end) slave%aperture_at = exit_end$
-case (entrance_end$)
-  if (at_entrance_end) slave%aperture_at = entrance_end$
+
+aperture_at = lord%aperture_at
+if (aperture_at == exit_end$) then
+  if (lord%orientation == 1) then
+    aperture_at =  downstream_end$
+  else
+    aperture_at =  upstream_end$
+  endif
+elseif (aperture_at == entrance_end$) then
+  if (lord%orientation == 1) then
+    aperture_at =  upstream_end$
+  else
+    aperture_at =  downstream_end$
+  endif
+endif
+
+
+
+select case (aperture_at)
+
+case (downstream_end$) 
+  if (at_downstream_end) slave%aperture_at = downstream_end$
+case (upstream_end$)
+  if (at_upstream_end) slave%aperture_at = upstream_end$
 case (both_ends$)
-  if (at_entrance_end .and. at_exit_end) then
+  if (at_upstream_end .and. at_downstream_end) then
     slave%aperture_at = both_ends$
-  elseif (at_entrance_end) then
-    slave%aperture_at = entrance_end$
-  elseif (at_exit_end) then 
-    slave%aperture_at = exit_end$
+  elseif (at_upstream_end) then
+    slave%aperture_at = upstream_end$
+  elseif (at_downstream_end) then 
+    slave%aperture_at = downstream_end$
   endif
 case (continuous$)
   slave%aperture_at = continuous$
@@ -2016,33 +1801,33 @@ end subroutine compute_slave_aperture
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine compute_slave_coupler (value, slave, lord, at_entrance_end, at_exit_end)
+! Subroutine compute_slave_coupler (value, slave, lord, at_upstream_end, at_downstream_end)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine compute_slave_coupler (value, slave, lord, at_entrance_end, at_exit_end)
+subroutine compute_slave_coupler (value, slave, lord, at_upstream_end, at_downstream_end)
 
 implicit none
 
 type (ele_struct) slave, lord
 real(rp) value(num_ele_attrib$)
-logical at_entrance_end, at_exit_end
+logical at_upstream_end, at_downstream_end
 
 !
 
 select case (nint(lord%value(coupler_at$)))
-case (exit_end$) 
-  if (at_exit_end) slave%value(coupler_at$) = exit_end$
-case (entrance_end$)
-  if (at_entrance_end) slave%value(coupler_at$) = entrance_end$
+case (downstream_end$) 
+  if (at_downstream_end) slave%value(coupler_at$) = downstream_end$
+case (upstream_end$)
+  if (at_upstream_end) slave%value(coupler_at$) = upstream_end$
 case (both_ends$)
-  if (at_entrance_end .and. at_exit_end) then
+  if (at_upstream_end .and. at_downstream_end) then
     slave%value(coupler_at$) = both_ends$
-  elseif (at_entrance_end) then
-    slave%value(coupler_at$) = entrance_end$
-  elseif (at_exit_end) then 
-    slave%value(coupler_at$) = exit_end$
+  elseif (at_upstream_end) then
+    slave%value(coupler_at$) = upstream_end$
+  elseif (at_downstream_end) then 
+    slave%value(coupler_at$) = downstream_end$
   endif
 end select
 
@@ -2127,7 +1912,7 @@ do i = 1, slave%n_lord
 
   if (lord%lord_status /= overlay_lord$) then
     call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_slave)
-    call type_ele (slave, .true., 0, .false., 0, .true., lat)
+    call type_ele (slave, .true., 0, .false., 0, .true.)
     if (global_com%exit_on_error) call err_exit
   endif     
 
@@ -2704,9 +2489,12 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: slave
 
 integer, target :: attrib
 integer, pointer :: a_ptr
+integer i
+
 real(rp) dummy
 
 !
@@ -2722,6 +2510,32 @@ if (ele%value(p0c$) /= ele%value(p0c_start$)) then
   if (associated(a_ptr, ele%tracking_method) .or. associated(a_ptr, ele%field_calc)) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
+endif
+
+! Set independent stuff in multipass lord
+
+if (ele%lord_status == multipass_lord$) then 
+
+  do i = 1, ele%n_slave
+    slave => pointer_to_slave(ele, i)
+  
+    if (associated(a_ptr, ele%aperture_at)) then
+      slave%aperture_at = a_ptr
+    elseif (associated(a_ptr, ele%aperture_type)) then
+      ele%aperture_type = a_ptr
+    elseif (associated(a_ptr, ele%mat6_calc_method)) then
+      ele%mat6_calc_method = a_ptr
+    elseif (associated(a_ptr, ele%tracking_method)) then
+      ele%tracking_method = a_ptr
+    elseif (associated(a_ptr, ele%spin_tracking_method)) then
+      ele%spin_tracking_method = a_ptr
+    elseif (associated(a_ptr, ele%field_calc)) then
+      ele%field_calc = a_ptr
+    else
+      exit
+    endif
+  enddo
+
 endif
 
 end subroutine set_flags_for_changed_integer_attribute
@@ -2745,14 +2559,35 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: slave
+
+integer i
+
+real(rp) dummy
 
 logical, target :: attrib
 logical, pointer :: a_ptr
-real(rp) dummy
 
 !
 
 call set_flags_for_changed_real_attribute (lat, ele, dummy)
+
+
+! Set independent stuff in multipass lord
+
+if (ele%lord_status == multipass_lord$) then 
+
+  do i = 1, ele%n_slave
+    slave => pointer_to_slave(ele, i)
+  
+    if (associated(a_ptr, ele%offset_moves_aperture)) then
+      ele%offset_moves_aperture = a_ptr
+    else
+      exit
+    endif
+  enddo
+
+endif
 
 end subroutine set_flags_for_changed_logical_attribute
 
@@ -2931,8 +2766,8 @@ case (init_ele$)
     return
   endif
 
-  if (associated(a_ptr, ele%floor%x) .or. associated(a_ptr, ele%floor%y) .or. &
-      associated(a_ptr, ele%floor%z) .or. associated(a_ptr, ele%floor%theta) .or. &
+  if (associated(a_ptr, ele%floor%r(1)) .or. associated(a_ptr, ele%floor%r(2)) .or. &
+      associated(a_ptr, ele%floor%r(3)) .or. associated(a_ptr, ele%floor%theta) .or. &
       associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi)) then
     call set_ele_status_stale (ele, floor_position_group$)
     return

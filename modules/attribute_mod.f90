@@ -1142,7 +1142,6 @@ if (ele%slave_status == multipass_slave$) then
     if (ix_attrib == dphi0$) return
   case (patch$)
     lord => pointer_to_lord(ele, 1)
-    if (associated (pointer_to_slave(lord, 1), ele) .and. ele%ref_orbit == patch_in$) return
   end select
 
   free = .false.

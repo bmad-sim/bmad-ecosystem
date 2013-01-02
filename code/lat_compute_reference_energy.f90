@@ -37,7 +37,7 @@ real(rp) pc
 integer j, k, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end, ix_e_gun
 
-logical did_set, stale, err
+logical stale, err
 logical, optional :: err_flag
 
 character(40), parameter :: r_name = 'lat_compute_ref_energy_and_time'
@@ -66,35 +66,10 @@ do ib = 0, ubound(lat%branch, 1)
     if (branch%ix_from_branch >= 0) then
 
       branch_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-      branch%param%particle = nint(branch_ele%value(particle$))
-      branch%param%lattice_type = nint(branch_ele%value(lattice_type$))
 
-      did_set = .false.
-
-      if (branch_ele%value(E_tot_start$) == 0) then
+      if (branch_ele%branch%param%particle == branch%param%particle) then
         ele_init%value(E_tot$) = branch_ele%value(E_tot$)
-        call convert_total_energy_to (ele_init%value(E_tot$), branch%param%particle, pc = ele_init%value(p0c$))
-      else
-        ele_init%value(E_tot$) = branch_ele%value(E_tot_start$)
-        did_set = .true.
-      endif
-
-      if (branch_ele%value(p0c_start$) == 0) then
         ele_init%value(p0c$) = branch_ele%value(p0c$)
-       call convert_pc_to (ele_init%value(p0c$), branch%param%particle, e_tot = ele_init%value(e_tot$))
-      else
-        ele_init%value(p0c$) = branch_ele%value(p0c_start$)
-        did_set = .true.
-      endif
-
-      if (.not. did_set .and. mass_of(branch%param%particle) /= &
-                              mass_of(lat%branch(branch_ele%ix_branch)%param%particle)) then
-        call out_io (s_fatal$, r_name, &
-          'E_TOT_START OR P0C_START MUST BE SET IN A BRANCHING ELEMENT IF THE PARTICLE IN ', &
-          'THE "FROM" BRANCH IS DIFFERENT FROM THE PARTICLE IN THE "TO" BRANCH.', &
-          'PROBLEM OCCURS WITH BRANCH ELEMENT: ' // branch_ele%name) 
-        if (global_com%exit_on_error) call err_exit
-        return
       endif
 
       stale = .true.
@@ -152,10 +127,10 @@ do ib = 0, ubound(lat%branch, 1)
       call convert_total_energy_to (gun_ele%value(e_tot$), branch%param%particle, pc = gun_ele%value(p0c$))
       gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
       gun_ele%value(p0c_start$) = gun_ele%value(p0c$)
-      call init_coord (start_orb, ele = gun_ele, at_exit_end = .false., particle = branch%param%particle)
+      call init_coord (start_orb, ele = gun_ele, at_downstream_end = .false., particle = branch%param%particle)
       start_orb%vec(6) = (ele_init%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
       call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
-      if (.not. particle_is_moving_forward(end_orb, branch%param%particle)) then
+      if (.not. particle_is_moving_forward(end_orb)) then
         call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
                                        'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
         if (global_com%exit_on_error) call err_exit
@@ -197,7 +172,7 @@ do ib = 0, ubound(lat%branch, 1)
     stale = .true.
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
-      ibb = nint(ele%value(ix_branch_to$))
+      ibb = nint(ele%value(ix_to_branch$))
       call set_ele_status_stale (lat%branch(ibb)%ele(0), ref_energy_group$)
     endif
 
@@ -496,7 +471,7 @@ call zero_errors_in_ele (ele, changed)
 call init_coord (orb_start, ele%time_ref_orb_in, ele, .false., param%particle)
 if (is_inside) orb_start%location = inside$ !to avoid entrance kick in time tracking
 call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
-if (.not. particle_is_moving_forward(orb_end, param%particle)) then
+if (.not. particle_is_moving_forward(orb_end)) then
   call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
                                  'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
   if (global_com%exit_on_error) call err_exit

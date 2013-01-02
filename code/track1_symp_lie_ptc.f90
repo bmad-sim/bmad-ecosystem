@@ -43,7 +43,7 @@ call vec_bmad_to_ptc (start_orb%vec, beta0, re)
 ! Track a drift if using hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, entrance_end$, drift_ele)
+  call create_hard_edge_drift (ele, upstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, fibre_ele, param%particle, .true.)
   call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 endif  
@@ -57,7 +57,7 @@ call ele_to_fibre (ele, fibre_ele, param%particle, .true.)
 call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 
 if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, exit_end$, drift_ele)
+  call create_hard_edge_drift (ele, downstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, fibre_ele, param%particle, .true.)
   call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 endif  

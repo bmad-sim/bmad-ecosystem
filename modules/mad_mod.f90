@@ -120,9 +120,9 @@ character(16), parameter :: r_name = 'make_mad_map'
 
 ! energy structure
 
-  energy%total = ele%value(E_TOT$)
-  energy%particle = particle
-  call convert_total_energy_to (energy%total, energy%particle, energy%gamma, &
+energy%total = ele%value(E_TOT$)
+energy%particle = particle
+call convert_total_energy_to (energy%total, energy%particle, energy%gamma, &
                                   energy%kinetic, energy%beta, energy%p0c)
 
 ! choose element key

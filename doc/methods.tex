@@ -96,7 +96,7 @@ matrix was generated this may or may not be symplectic.
 \item[\vn{MAD}]
 This uses the MAD 2nd order transfer map. This method is not able to
 handle element misalignments or kicks and is generally only used for
-testing pruposes. Note: Thanks to CERN and Frank Schmidt for
+testing purposes. Note: Thanks to CERN and Frank Schmidt for
 permission to use the MAD tracking code within \bmad.
 
 \index{runge_kutta!tracking_method}
@@ -613,7 +613,7 @@ independent of the setting of \vn{integrator_order}.
 \index{ds_step}
 \index{runge_kutta}\index{time_runge_kutta}
 The \vn{runge_kutta} and \vn{time_runge_kutta} tracking uses adaptive step
-control independent of \vn{ds_step}. These methods use two prameters
+control independent of \vn{ds_step}. These methods use two parameters
 from the \bmad global parameters structure (\sref{s:bmad.params}) namely:
 \begin{example}
   bmad_com\%rel_tol_adaptive_tracking
@@ -723,16 +723,3 @@ If the global parameter \vn{bmad_com%conserve_taylor_maps}
 element is offset within a program, and if \vn{map_with_offset} is set
 to True for that element, \bmad will toggle \vn{map_with_offset} to
 False to conserve the map.
-
-%-----------------------------------------------------------------
-\section{PTC: Polynomial Tracking Code}
-\label{s:ptc}
-\index{PTC}
-
-The PTC/FPP (Polymorphic Tracking Code / Fully Polymorphic Package)
-library of Etienne Forest handles Taylor maps to any arbitrary
-order. this is also known as Truncated Power Series Algebra
-(TPSA). The core Differential Algebra (DA) package used by PTC was
-developed by Martin Berz\cite{b:berz}.  For more information see the
-FPP/PTC manual\cite{b:ptc}. For programmers, interface documentation
-can be found in chapter~\sref{c:ptc}.

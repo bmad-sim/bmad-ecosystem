@@ -31,7 +31,7 @@ is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin)) .and. &
         (f1%e_field_x == f2%e_field_x) .and. (f1%e_field_y == f2%e_field_y) .and. &
         (f1%phase_x == f2%phase_x) .and. (f1%phase_y == f2%phase_y) .and. & 
         (f1%charge == f2%charge) .and. (f1%p0c == f2%p0c) .and. &
-        (f1%beta == f2%beta) .and. (f1%ix_ele == f2%ix_ele) .and. (f1%state == f2%state)
+        (f1%beta == f2%beta) .and. (f1%state == f2%state)
         
 
 end function eq_coord
@@ -84,8 +84,7 @@ logical is_eq
 
 !
 
-is_eq = (f1%x == f2%x) .and. (f1%y == f2%y) .and. &
-          (f1%z == f2%z) .and. (f1%theta == f2%theta) .and. &
+is_eq = all(f1%r == f2%r) .and. (f1%theta == f2%theta) .and. &
           (f1%phi == f2%phi) .and. (f1%psi == f2%psi)
 
 end function eq_floor_position
@@ -435,7 +434,7 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%taylor_order == f2%taylor_order) .and. &
       (f1%default_integ_order == f2%default_integ_order) .and. &
       (f1%default_ds_step == f2%default_ds_step) .and.  &
-      (f1%canonical_coords .eqv. f2%canonical_coords) .and. &
+      (f1%use_hard_edge_drifts .eqv. f2%use_hard_edge_drifts) .and. &
       (f1%significant_length  == f2%significant_length) .and. &
       (f1%sr_wakes_on .eqv. f2%sr_wakes_on) .and.  &
       (f1%lr_wakes_on .eqv. f2%lr_wakes_on) .and.  &
@@ -676,7 +675,6 @@ is_eq = is_eq .and. (f1%mat6_calc_method == f2%mat6_calc_method)
 is_eq = is_eq .and. (f1%tracking_method == f2%tracking_method) 
 is_eq = is_eq .and. (f1%spin_tracking_method == f2%spin_tracking_method) 
 is_eq = is_eq .and. (f1%field_calc == f2%field_calc)
-is_eq = is_eq .and. (f1%ref_orbit == f2%ref_orbit)
 is_eq = is_eq .and. (f1%aperture_at == f2%aperture_at)
 is_eq = is_eq .and. (f1%aperture_type == f2%aperture_type) 
 is_eq = is_eq .and. (f1%symplectify .eqv. f2%symplectify) 
@@ -685,7 +683,7 @@ is_eq = is_eq .and. (f1%multipoles_on .eqv. f2%multipoles_on)
 is_eq = is_eq .and. (f1%scale_multipoles .eqv. f2%scale_multipoles) 
 is_eq = is_eq .and. (f1%map_with_offsets .eqv. f2%map_with_offsets)
 is_eq = is_eq .and. (f1%field_master .eqv. f2%field_master) 
-is_eq = is_eq .and. (f1%reversed .eqv. f2%reversed)
+is_eq = is_eq .and. (f1%orientation == f2%orientation)
 is_eq = is_eq .and. (f1%is_on .eqv. f2%is_on)
 is_eq = is_eq .and. (f1%old_is_on .eqv. f2%old_is_on) 
 is_eq = is_eq .and. (f1%logic .eqv. f2%logic)

@@ -26,8 +26,8 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 ! Routine to initialize a coord_struct. 
 !
 ! This routine is an overloaded name for:
-!   Subroutine init_coord1 (orb, vec, ele, at_exit_end, particle, E_photon, t_ref_offset, shift_vec6)
-!   Subroutine init_coord2 (orb, orb_in, ele, at_exit_end, particle, t_ref_offset, shift_vec6)
+!   Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, E_photon, t_ref_offset, shift_vec6)
+!   Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, t_ref_offset, shift_vec6)
 !
 ! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
 ! Additionally, if ele is an init_ele, and vec is zero or not present, orb%vec(6) is shifted
@@ -40,7 +40,7 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 !   orb_in       -- Coord_struct: Input orbit.
 !   vec(6)       -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
 !   ele          -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
-!   at_exit_end  -- Logical, optional: Particle is at entrance or exit end of the element?
+!   at_downstream_end  -- Logical, optional: Particle is at entrance or exit end of the element?
 !                     Must be present if ele argument is present.
 !                     Default is False.
 !   particle     -- Integer, optional: Particle type (electron$, etc.). 
@@ -384,26 +384,26 @@ end subroutine check_controller_controls
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord1 (orb, vec, ele, at_exit_end, particle, E_photon, t_ref_offset, shift_vec6)
+! Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, E_photon, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord1 (orb, vec, ele, at_exit_end, particle, E_photon, t_ref_offset, shift_vec6)
+subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, E_photon, t_ref_offset, shift_vec6)
 
 implicit none
 
 type (coord_struct) orb, orb2
 type (coord_struct), save :: init_orb
-type (ele_struct), optional :: ele
+type (ele_struct), optional, target :: ele
 
 real(rp), optional :: vec(:), E_photon, t_ref_offset
 real(rp) p0c, e_tot, ref_time
 
 integer species
 integer, optional :: particle
-logical, optional :: at_exit_end, shift_vec6
+logical, optional :: at_downstream_end, shift_vec6
 
 character(16), parameter :: r_name = 'init_coord1'
 
@@ -425,9 +425,9 @@ endif
 
 ! Set %location
 
-orb2%location = entrance_end$
-if (present(at_exit_end)) then
-  if (at_exit_end) orb2%location = exit_end$
+orb2%location = upstream_end$
+if (present(at_downstream_end)) then
+  if (at_downstream_end) orb2%location = downstream_end$
 endif
 
 ! set species
@@ -443,11 +443,11 @@ endif
 ! Energy values
 
 if (present(ele)) then
-  if (.not. present(at_exit_end)) then
-    call out_io (s_fatal$, r_name, 'Rule: "at_exit_end" argument must be present if "ele" argument is.')
+  if (.not. present(at_downstream_end)) then
+    call out_io (s_fatal$, r_name, 'Rule: "at_downstream_end" argument must be present if "ele" argument is.')
     call err_exit
   endif
-  if (at_exit_end .or. ele%key == init_ele$) then
+  if (at_downstream_end .or. ele%key == init_ele$) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     ref_time = ele%ref_time
@@ -477,10 +477,14 @@ endif
 
 ! If ele is present...
 
+orb2%ix_ele = -1
+
 if (present(ele)) then
 
   orb2%ix_ele = ele%ix_ele
-  if (ele%key == init_ele$) orb2%location = exit_end$
+  if (ele%slave_status == slice_slave$) orb2%ix_ele = ele%lord%ix_ele
+
+  if (ele%key == init_ele$) orb2%location = downstream_end$
 
   if (species /= photon$) then
 
@@ -521,13 +525,13 @@ end subroutine init_coord1
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord2 (orb, orb_in, ele, at_exit_end, t_ref_offset, shift_vec6)
+! Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb, orb_in, ele, at_exit_end, particle, t_ref_offset, shift_vec6)
+subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, t_ref_offset, shift_vec6)
 
 implicit none
 
@@ -535,13 +539,13 @@ type (coord_struct) orb, orb_in, orb_save
 type (ele_struct), optional :: ele
 real(rp), optional :: t_ref_offset
 integer, optional :: particle
-logical, optional :: at_exit_end, shift_vec6
+logical, optional :: at_downstream_end, shift_vec6
 
 !
 
 orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
 
-call init_coord1 (orb, orb_in%vec, ele, at_exit_end, particle, orb_in%p0c, t_ref_offset, shift_vec6)
+call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, particle, orb_in%p0c, t_ref_offset, shift_vec6)
 
 orb%spin      = orb_save%spin
 orb%e_field_x = orb_save%e_field_x
@@ -562,27 +566,27 @@ end subroutine init_coord2
 ! Routine to determine if a particle is moving in the forward +s direction.
 ! If not moving forward it is dead or is moving backward.
 !
+! Remember: +s and +z directions are counteraligned if element being tracked 
+! through is reversed.
+!
 ! Input:
 !   orbit     -- coord_struct: Particle coordinates
-!   particle  -- Integer: Type of particle. electron$, etc.
+!
 ! Output:
 !   is_moving_forward -- Logical: True if moving forward. False otherwise.
 !-
 
-function particle_is_moving_forward (orbit, particle) result (is_moving_forward)
+function particle_is_moving_forward (orbit) result (is_moving_forward)
 
 implicit none
+
 type (coord_struct) orbit
 integer particle
 logical is_moving_forward
 
 !
 
-if (particle == photon$) then
-  is_moving_forward = (orbit%state == alive$) .and. (orbit%vec(6) > 0)
-else
-  is_moving_forward = (orbit%state == alive$) .and. (orbit%p0c > 0)
-endif
+is_moving_forward = (orbit%state == alive$) .and. (orbit%p0c > 0)
 
 end function particle_is_moving_forward
 
@@ -590,14 +594,16 @@ end function particle_is_moving_forward
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function particle_is_moving_backward (orbit, particle) result (is_moving_backward)
+! Function particle_is_moving_backward (orbit) result (is_moving_backward)
 !
 ! Routine to determine if a particle is moving in the backward -s direction.
 ! If not moving backward it is dead or is moving backward.
 !
+! Remember: +s and +z directions are counteraligned if element being tracked 
+! through is reversed.
+!
 ! Input:
 !   orbit  -- coord_struct: Particle coordinates
-!   particle  -- Integer: Type of particle. electron$, etc.
 !
 ! Output:
 !   is_moving_backward -- Logical: True if moving backward. False otherwise.
@@ -606,17 +612,13 @@ end function particle_is_moving_forward
 function particle_is_moving_backward (orbit) result (is_moving_backward)
 
 implicit none
+
 type (coord_struct) orbit
-integer particle
 logical is_moving_backward
 
 !
 
-if (particle == photon$) then
-  is_moving_backward = (orbit%state == alive$) .and. (orbit%vec(6) < 0)
-else
-  is_moving_backward = (orbit%state == alive$) .and. (orbit%p0c < 0)
-endif
+is_moving_backward = (orbit%state == alive$) .and. (orbit%p0c < 0)
 
 end function particle_is_moving_backward
 
@@ -1524,7 +1526,7 @@ if (allocated(coord)) then
   call reallocate_coord_n (coord, branch%n_ele_max)
 else
   allocate (coord(0:branch%n_ele_max))
-  call init_coord (coord(0), ele = branch%ele(0), at_exit_end = .true.)
+  call init_coord (coord(0), ele = branch%ele(0), at_downstream_end = .true.)
 endif
 
 end subroutine reallocate_coord_lat
@@ -1853,6 +1855,7 @@ ele%s = 0
 ele%ref_time = 0
 ele%ix_branch = 0
 ele%ix_ele = -1
+ele%orientation       = 1
 
 ele%ixx = 0
 ele%iyy = 0
@@ -1868,7 +1871,7 @@ ele%mat6_calc_method     = bmad_standard$
 ele%tracking_method      = bmad_standard$
 ele%spin_tracking_method = bmad_standard$
 ele%field_calc           = bmad_standard$
-ele%ref_orbit  = 0
+ele%ptc_integration_type = matrix_kick$
 
 ele%is_on             = .true.
 ele%multipoles_on     = .true.
@@ -1878,13 +1881,12 @@ ele%map_with_offsets  = .true.
 ele%on_a_girder       = .false.
 ele%csr_calc_on       = .true.
 ele%logic             = .false.
-ele%reversed          = .false.
 ele%mode_flip         = .false.
 ele%field_master      = .false.
 ele%offset_moves_aperture = .false.
 
 ele%aperture_type = rectangular$
-ele%aperture_at   = exit_end$
+ele%aperture_at   = downstream_end$
 
 ! init Twiss
 
@@ -1946,9 +1948,7 @@ type (floor_position_struct) floor
 
 !
 
-floor%x = 0
-floor%y = 0
-floor%z = 0
+floor%r     = 0
 floor%theta = 0
 floor%phi   = 0
 floor%psi   = 0
@@ -2169,18 +2169,20 @@ endif
 ! 
 
 do i = curr_ub+1, ub
-  lat%branch(i)%lat => lat
-  lat%branch(i)%name = ''
-  lat%branch(i)%ix_branch = i
-  lat%branch(i)%ix_from_branch = -1
-  lat%branch(i)%ix_from_ele = -1
+  branch => lat%branch(i)
+  branch%lat => lat
+  branch%name = ''
+  branch%ix_branch = i
+  branch%ix_from_branch = -1
+  branch%ix_from_ele = -1
+  branch%ix_to_ele = 0
   if (i == 0) cycle
-  allocate(lat%branch(i)%n_ele_track)
-  allocate(lat%branch(i)%n_ele_max)
-  allocate(lat%branch(i)%param)
-  allocate(lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
-  lat%branch(i)%param = lat%param
-  call set_status_flags (lat%branch(i)%param%bookkeeping_state, stale$)
+  allocate(branch%n_ele_track)
+  allocate(branch%n_ele_max)
+  allocate(branch%param)
+  allocate(branch%a, branch%b, branch%z)
+  branch%param = lat%param
+  call set_status_flags (branch%param%bookkeeping_state, stale$)
 end do
 
 do i = 0, ub
@@ -3394,6 +3396,10 @@ integer i, ib, ios
 character(*) branch_name
 character(32), parameter :: r_name = 'pointer_to_branch_given_name'
 
+! Init in case of error
+
+nullify(branch_ptr)
+
 ! Is index.
 
 if (is_integer(trim(branch_name))) then
@@ -3814,6 +3820,70 @@ end function pointer_to_field_ele
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function pointer_to_next_ele (this_ele, dir) result (next_ele)
+!
+! Function to return a pointer to the next element in the lattice branch.
+! next_ele will be nullified if there is a problem like this_ele is
+! the last element of a linear lattice.
+!
+! Input:
+!   this_ele  -- ele_struct: Starting element.
+!   dir       -- integer, optional: If positive return next forward element.
+!                   If negative then return previous element. Default = +1.
+!
+!   next_ele -- ele_struct, pointer: Element after this_ele.
+!-
+
+function pointer_to_next_ele (this_ele, dir) result (next_ele)
+
+implicit none
+
+type (ele_struct), target :: this_ele
+type (ele_struct), pointer :: next_ele
+type (ele_struct), pointer :: an_ele
+type (branch_struct), pointer :: branch
+
+integer, optional :: dir
+
+!
+
+next_ele => null()
+
+if (.not. associated(this_ele%branch)) return
+
+branch => this_ele%branch
+if (this_ele%ix_ele < 0 .or. this_ele%ix_ele > branch%n_ele_max) return
+
+if (this_ele%ix_ele > branch%n_ele_track) then
+  if (this_ele%lord_status /= super_lord$) return
+  an_ele => pointer_to_slave(this_ele, this_ele%n_slave)
+else
+  an_ele => this_ele
+endif
+
+if (integer_option(+1, dir) > 0) then
+  if (an_ele%ix_ele == branch%n_ele_track) then
+    if (branch%param%lattice_type == linear_lattice$) return
+    next_ele => branch%ele(0)
+  else
+   next_ele => branch%ele(an_ele%ix_ele+1)
+  endif
+
+else
+  if (an_ele%ix_ele == 0) then
+    if (branch%param%lattice_type == linear_lattice$) return
+    next_ele => branch%ele(branch%n_ele_track)
+  else
+   next_ele => branch%ele(an_ele%ix_ele-1)
+  endif
+endif
+
+end function pointer_to_next_ele
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
 !
 ! Function to return a pointer to an element in a lattice.
@@ -3941,6 +4011,7 @@ logical has_drifts
 !
 
 has_drifts = .false.
+if (bmad_com%use_hard_edge_drifts) return
 
 select case (ele%key)
 case (lcavity$, rfcavity$, solenoid$)
@@ -4015,7 +4086,7 @@ end function element_has_fringe_fields
 !                     Will be nullified if there is no hard edge.
 !                     This will be track_ele unless track_ele is a super_slave.
 !   s_edge_hard  -- Real(rp): S-position of next hard egde in hard_ele frame.
-!   hard_end     -- Integer: Describes hard edge. Set to entrance_end$ or exit_end$.
+!   hard_end     -- Integer: Describes hard edge. Set to upstream_end$ or downstream_end$.
 !-
 
 subroutine calc_next_fringe_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
@@ -4077,8 +4148,8 @@ if (.not. element_has_fringe_fields (this_ele)) return
 if (this_ele%ixx == 2) return
 
 s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
-s_hard_entrance = s_off + (this_ele%value(l$) - this_ele%value(l_hard_edge$)) / 2 
-s_hard_exit     = s_off + (this_ele%value(l$) + this_ele%value(l_hard_edge$)) / 2 
+s_hard_entrance = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
+s_hard_exit     = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
 
 if (s_hard_entrance < -bmad_com%significant_length .and. &
     s_hard_exit     < -bmad_com%significant_length) return
@@ -4087,11 +4158,11 @@ if (s_hard_entrance > track_ele%value(l$) + bmad_com%significant_length .and. &
     s_hard_exit     > track_ele%value(l$) + bmad_com%significant_length) return
 
 if (this_ele%ixx == 0) then
-  this_end = entrance_end$
+  this_end = upstream_end$
   s_this_edge = max(0.0_rp, s_hard_entrance)
 
 else   ! this_ele%ixx = 1
-  this_end = exit_end$
+  this_end = downstream_end$
   s_this_edge = min(track_ele%value(l$), s_hard_exit)
 endif
 
@@ -4123,7 +4194,7 @@ end subroutine calc_next_fringe_edge
 !
 ! Input:
 !   ele_in     -- ele_struct: Input element.
-!   which_end  -- Integer: Which end is being created. entrance_end$ or exit_end$.
+!   which_end  -- Integer: Which end is being created. upstream_end$ or downstream_end$.
 !                   For an Lcavity one can have differences in reference energy.
 !
 ! Output:
@@ -4141,11 +4212,11 @@ integer which_end
 !
 
 select case (which_end)
-case (entrance_end$)
+case (upstream_end$)
   e_tot = ele_in%value(e_tot_start$)
   p0c   = ele_in%value(p0c_start$)
   drift_ele%name                   = 'drift1_' // ele_in%name(1:33)
-case (exit_end$)
+case (downstream_end$)
   e_tot = ele_in%value(e_tot$)
   p0c   = ele_in%value(p0c$)
   drift_ele%name                   = 'drift2_' // ele_in%name(1:33)
@@ -4160,12 +4231,43 @@ drift_ele%value(p0c$)            = p0c
 drift_ele%value(e_tot$)          = e_tot
 drift_ele%value(p0c_start$)      = p0c
 drift_ele%value(e_tot_start$)    = e_tot
-drift_ele%value(l$)              = (ele_in%value(l$) - ele_in%value(l_hard_edge$)) / 2 
+drift_ele%value(l$)              = (ele_in%value(l$) - hard_edge_model_length(drift_ele)) / 2 
 drift_ele%value(ds_step$)        = drift_ele%value(l$)
 drift_ele%value(num_steps$)      = 1
 drift_ele%value(delta_ref_time$) = drift_ele%value(l$) * e_tot / (c_light * p0c)
+drift_ele%orientation            = ele_in%orientation
 
 end subroutine create_hard_edge_drift 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function hard_edge_model_length (ele) result (l_hard)
+!
+! Input:
+!   ele -- ele_struct: Element
+!
+! Output:
+!   l_hard -- real(rp): Length of the hard edge model.
+!-
+
+function hard_edge_model_length (ele) result (l_hard)
+
+implicit none
+
+type (ele_struct) ele
+real(rp) l_hard
+
+!
+
+if (bmad_com%use_hard_edge_drifts) then
+  l_hard = ele%value(l_hard_edge$)
+else
+  l_hard = ele%value(l$)
+endif
+
+end function hard_edge_model_length
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

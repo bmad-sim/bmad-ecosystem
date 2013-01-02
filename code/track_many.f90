@@ -126,19 +126,21 @@ contains
 
 subroutine track_fwd (ix1, ix2, track_end_state)
 
+type (ele_struct), pointer :: ele
 integer i, n, ix1, ix2, track_end_state
 
 do n = ix1, ix2
 
-  call track1 (orbit(n-1), branch%ele(n), branch%param, orbit(n))
+  ele => branch%ele(n)
+  call track1 (orbit(n-1), ele, branch%param, orbit(n))
 
   ! check for lost particles
 
-  if (.not. particle_is_moving_forward(orbit(n), branch%param%particle)) then
+  if (.not. particle_is_moving_forward(orbit(n))) then
     track_end_state = n
     if (present(track_state)) track_state = n
 
-    if (orbit(n)%location == entrance_end$) then
+    if (orbit(n)%location == upstream_end$) then
       call zero_this_track (n, ix2)
     else
       call zero_this_track (n+1, ix2)
@@ -147,7 +149,7 @@ do n = ix1, ix2
   endif
 
   if (debug) then
-    print *, branch%ele(n)%name
+    print *, ele%name
     print *, (orbit(n)%vec(i), i = 1, 6)
   endif
 
@@ -187,11 +189,11 @@ do n = ix1, ix2, -1
 
   ! check for lost particles
 
-  if (.not. particle_is_moving_forward(orbit(n-1), branch%param%particle)) then
+  if (.not. particle_is_moving_forward(orbit(n-1))) then
     track_end_state = n
     if (present(track_state)) track_state = n
 
-    if (orbit(n-1)%location == entrance_end$) then
+    if (orbit(n-1)%location == upstream_end$) then
       call zero_this_track (ix2-1, n-1)
     else
       call zero_this_track (ix2-1, n-2)

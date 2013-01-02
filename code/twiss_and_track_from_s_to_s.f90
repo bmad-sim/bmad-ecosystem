@@ -85,9 +85,9 @@ endif
 ! 
 
 orbit = orbit_start
-if (orbit%location == exit_end$) then
+if (orbit%location == downstream_end$) then
   orbit%ix_ele = orbit%ix_ele + 1
-  orbit%location = entrance_end$
+  orbit%location = upstream_end$
 endif
 
 ix_start = orbit%ix_ele
@@ -96,8 +96,8 @@ ix_end = orbit_end%ix_ele
 ele0 => branch%ele(ix_start)
 s0 = branch%ele(ix_start-1)%s
 
-track_entrance = (orbit%location == entrance_end$)
-track_exit = (orbit_end%location == exit_end$)
+track_entrance = (orbit%location == upstream_end$)
+track_exit = (orbit_end%location == downstream_end$)
 
 ! Track within a single element case
 
@@ -115,7 +115,7 @@ call twiss_and_track_intra_ele (ele0, branch%param, s_start-s0, ele0%value(l$), 
                       track_entrance, .true., orbit_start, orbit_end, ele_start, ele_end, error)
 if (present(err)) err = error
 if (error) return
-if (.not. particle_is_moving_forward(orbit_end, branch%param%particle)) return
+if (.not. particle_is_moving_forward(orbit_end)) return
 
 ! Track to ending element
 
@@ -125,7 +125,7 @@ do
   ele_track => branch%ele(ix_ele)
 
   call track1 (orbit_end, ele_track, branch%param, orbit_end)
-  if (.not. particle_is_moving_forward(orbit_end, branch%param%particle)) then
+  if (.not. particle_is_moving_forward(orbit_end)) then
     err = .true.
     return
   endif

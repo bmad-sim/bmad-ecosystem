@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 114
+integer, parameter :: bmad_inc_version$ = 115
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -48,6 +48,13 @@ character(16), parameter :: aperture_at_name(0:6) = [ &
 character(16), parameter :: end_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
       'No_End       ']
+
+integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
+integer, parameter :: inside$ = 3
+
+character(16), parameter :: location_name(0:3) = [ &
+      'GARBAGE!      ', 'Upstream_End  ', 'Downstream_End', 'Inside        ']
+
 
 ! Structures for defining cross-sections of beam pipes and capillaries
 ! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.
@@ -90,7 +97,7 @@ end type
 ! Wall3d crotch info
 
 type wall3d_crotch_struct
-  integer :: location = no_end$  ! or entrance_end$, exit_end$, both_ends$
+  integer :: location = no_end$  ! or upstream_end$, downstream_end$, both_ends$
   integer :: ix_section = 0      ! 0 -> crotch section not defined here.
   integer :: ix_v1_cut, ix_v2_cut
   type (wall3d_section_struct) section
@@ -139,8 +146,6 @@ integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_z_aperture$ = 7
 
-integer, parameter :: inside$ = 3
-
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
   real(rp) :: s = 0               ! Longitudinal position 
@@ -150,14 +155,15 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: e_field_y = 0       ! Photon field intensity, y-axis component
   real(rp) :: phase_x = 0         ! Photon phase, x-axis component
   real(rp) :: phase_y = 0         ! Photon phase, y-axis component
-  real(rp) :: charge = 0          ! charge in a particle (Coul).
-  real(rp) :: p0c = 0             ! For non-photons: Reference momentum. Negative -> going backwards.
+  real(rp) :: charge = 0          ! macro charge (Coul).
+  real(rp) :: p0c = 0             ! For non-photons: Reference momentum. Negative -> going -s direction.
                                   !     For photons: Photon momentum (not reference).
+                                  !     Notice that z and s are counter-aligned in reversed elements.
   real(rp) :: beta = -1           ! Velocity / c_light.
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
-  integer :: location = entrance_end$  ! entrance_end$, inside$, or exit_end$
+  integer :: location = upstream_end$  ! upstream_end$, inside$, or downstream_end$
 end type
 
 type coord_array_struct
@@ -313,8 +319,8 @@ end type
 ! Local reference frame position with respect to the global (floor) coordinates
 
 type floor_position_struct
-  real(rp) x, y, z            ! offset from origin
-  real(rp) theta, phi, psi    ! angular orientation
+  real(rp) :: r(3) = 0                      ! (x, y, z) offset from origin
+  real(rp) :: theta = 0, phi = 0, psi = 0   ! angular orientation
 end type
 
 ! Space charge structure. This structure contains information about the beam as a whole.
@@ -455,11 +461,11 @@ type ele_struct
   integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
   integer tracking_method        ! bmad_standard$, taylor$, etc.
   integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
-  integer field_calc             ! Used with Boris, Runge-Kutta integrators.
-  integer ref_orbit              ! Multipass ref orb: single_ref$, match_global_coords$, 
-                                 !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
-  integer aperture_at            ! Aperture location: exit_end$, ...
-  integer aperture_type          ! rectangular$, elliptical$, star_shape$, or custom$
+  integer ptc_integration_type   ! drift_kick$, matrix_kick$, or ripken_kick$
+  integer field_calc             ! bmad_standard$, grid$, refer_to_lords$, or custom$
+  integer aperture_at            ! Aperture location: downstream_end$, ...
+  integer aperture_type          ! rectangular$, elliptical$, wall3d$, or custom$
+  integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
   logical symplectify            ! Symplectify mat6 matrices.
   logical mode_flip              ! Have the normal modes traded places?
   logical multipoles_on          ! For turning multipoles on/off
@@ -467,7 +473,6 @@ type ele_struct
                                  !   scaled by the strength of the element?
   logical map_with_offsets       ! Taylor map calculated with element offsets?
   logical field_master           ! Calculate strength from the field value?
-  logical reversed               ! Element is longitudinally reversed from the lord element.
   logical is_on                  ! For turning element on/off.
   logical old_is_on              ! For saving the element on/off state.
   logical logic                  ! For general use. Not used by Bmad.
@@ -495,6 +500,7 @@ type lat_param_struct
   real(rp) :: unstable_factor = 0         ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
   real(rp) :: t1_with_RF(6,6) = 0         ! Full 1-turn matrix with RF on.
   real(rp) :: t1_no_RF(6,6) = 0           ! Full 1-turn matrix with RF off.
+  real(rp) :: rel_tracking_charge = 1     ! Charge relative to referece charge
   integer :: particle = positron$         ! Reference particle: positron$, electron$, etc.
   integer :: lattice_type = 0             ! linear_lattice$, etc...
   integer :: ixx = 0                      ! Integer for general use
@@ -530,8 +536,9 @@ type branch_struct
   character(40) name
   integer ix_branch         ! Index of this branch. 0 => Main branch
   integer ix_root_branch    ! Root branch index for this machine.
-  integer ix_from_branch    ! -1 => Not connected
-  integer ix_from_ele
+  integer ix_from_branch    ! -1 => Not connected/
+  integer ix_from_ele       ! Branch ele in from_branch index.
+  integer ix_to_ele         ! ele in this branch that branch ele in from_branch attaches to.
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
   type (lat_struct), pointer :: lat => null()
@@ -574,7 +581,7 @@ type lat_struct
   type (branch_struct), allocatable :: branch(:)   ! Branch arrays
   type (control_struct), allocatable :: control(:) ! Control list
   type (coord_struct) beam_start          ! Starting coords
-  type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACTT
+  type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACT-T
   integer version                         ! Version number
   integer n_ele_track                     ! Number of lat elements to track through.
   integer n_ele_max                       ! Index of last valid element in %ele(:) array
@@ -609,9 +616,9 @@ integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
 integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
-integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_position$ = 49
+integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_position$ = 49, fiducial$ = 50
 
-integer, parameter :: n_key$ = 49
+integer, parameter :: n_key$ = 50
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
@@ -628,7 +635,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
-    'FLOOR_POSITION   ']
+    'FLOOR_POSITION   ', 'FIDUCIAL         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -643,8 +650,8 @@ logical has_kick_attributes(n_key$)
 
 ! Element attribute name logical definitions
 
-integer, parameter :: n_part$ = 2, taylor_order$ = 3, particle$ = 4
-integer, parameter :: lattice_type$ = 5, symmetry$ = 6
+integer, parameter :: n_part$ = 2, taylor_order$ = 3, particle$ = 14
+integer, parameter :: lattice_type$ = 15, symmetry$ = 6
 
 integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
           val6$=9, val7$=10, val8$=11, val9$=12, val10$=13, val11$=14, &
@@ -664,39 +671,48 @@ integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: t$ = 8
 integer, parameter :: e_field_x$ = 10,  e_field_y$ = 11, phase_x$ = 12, phase_y$ = 13
 
+integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
+integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
+integer, parameter :: abs_time_start$ = 8
+integer, parameter :: e_field_x_photon$ = 10,  e_field_y_photon$ = 11
+integer, parameter :: phase_x_photon$ = 12, phase_y_photon$ = 13
+
 integer, parameter :: l$=1    ! Assumed unique. Do not overload.
 integer, parameter :: tilt$=2, command$=2
 integer, parameter :: tilt_err$ = 3, rf_frequency$=3, direction$=3
 integer, parameter :: old_command$=3, angle$=3, kick$=3, x_gain_err$=3
 integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displace$=4, y_gain_err$=4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
-integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5, crunch$=5
+integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
+integer, parameter :: flexible$ = 5, crunch$=5
 integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6
 integer, parameter :: g$=6, graze_angle_in$ = 6
 integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: gradient_err$=7, critical_angle$ = 7
-integer, parameter :: graze_angle_out$ = 7, ix_branch_to$=7
+integer, parameter :: graze_angle_out$ = 7, ix_to_branch$=7
 integer, parameter :: rho$=8, voltage$=8, delta_e$ = 8, graze_angle_err$ = 8
-integer, parameter :: charge$=8, x_gain_calib$=8
-integer, parameter :: d1_thickness$ = 9, voltage_err$=9
+integer, parameter :: charge$=8, x_gain_calib$=8, ix_to_element$=8
+integer, parameter :: d1_thickness$ = 9, voltage_err$=9, rel_tracking_charge$ = 9
 integer, parameter :: ks$=9, l_chord$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
 integer, parameter :: polarity$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
 integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10, gap$=10
 integer, parameter :: grad_loss_sr_wake$=11, s_min$=11
 integer, parameter :: e2$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
 integer, parameter :: s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
-integer, parameter :: exact_fringe$=12, include_fringe$=12
-integer, parameter :: phi0$=13, fint$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
-integer, parameter :: phi0_err$=14, coef$=14, current$=14, fintx$=14, l_pole$=14
+integer, parameter :: fint$=12, fintx$=13, hgap$=14, hgapx$=15, h1$=16, h2$=17
+integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
+integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
-integer, parameter :: quad_tilt$=15
-integer, parameter :: hgap$=15, dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15
-integer, parameter :: hgapx$=16, dphi0_ref$ = 16, bend_tilt$=16, fh_im$=16, f0_im2$=16, x_length$=16
-integer, parameter :: dphi0_max$=17, h1$=17, x_quad$=17, ref_polarization$=17, y_length$=17
-integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
+integer, parameter :: quad_tilt$=14, bend_tilt$=15, x_quad$=16, y_quad$=17
+integer, parameter :: dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15
+integer, parameter :: dphi0_ref$ = 16, fh_im$=16, f0_im2$=16, x_length$=16, x_origin$= 16
+integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_length$=17, y_origin$ = 17
+integer, parameter :: negative_graze_angle$ = 18, z_origin$ = 18
+integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18
+integer, parameter :: kill_fringe$ = 19, theta_origin$ = 19
 integer, parameter :: b_param$ = 19
-integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 20
-integer, parameter :: field_scale$ = 21
+integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 20, phi_origin$ = 20
+integer, parameter :: field_scale$ = 21, psi_origin$ = 21
 integer, parameter :: roll$=22, n_cell$=22, x_ray_line_len$=22
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
@@ -713,7 +729,7 @@ integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34, c4_curve_tot$ = 34
 integer, parameter :: coupler_strength$ = 35, d_source$ = 35
 integer, parameter :: B1_gradient$ = 35, E1_gradient$ = 35
 integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36, d_detec$ = 36
-integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, translate_after$ = 37, kh_x_norm$ = 37
+integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, kh_x_norm$ = 37, ptc_field_geometry$ = 38
 integer, parameter :: Bs_field$ = 38, e_tot_offset$ = 38, kh_z_norm$ = 38
 integer, parameter :: delta_ref_time$ = 39 ! Assumed unique Do not overload.
 integer, parameter :: p0c_start$ = 40
@@ -749,8 +765,8 @@ integer, parameter :: check_sum$ = 70  ! Assumed unique. Do not overload.
 
 !! 71 = 1 + num_ele_attrib$
 
-integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71
-integer, parameter :: alias$ =72, eta_x$ = 72
+integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71, use_hard_edge_drifts$ = 71
+integer, parameter :: alias$ =72, eta_x$ = 72, ptc_max_fringe_order$ = 72
 integer, parameter :: start_edge$ =73, eta_y$ = 73
 integer, parameter :: end_edge$ =74, etap_x$ = 74
 integer, parameter :: accordion_edge$ =75, etap_y$ = 75
@@ -761,17 +777,17 @@ integer, parameter :: csr_calc_on$ = 79, cmat_12$ = 79
 integer, parameter :: symmetric_edge$ = 80, cmat_21$ = 80
 integer, parameter :: mat6_calc_method$ = 81, cmat_22$ = 81
 integer, parameter :: tracking_method$  = 82, s_long$ = 82
-integer, parameter :: ref_time$ = 83
-integer, parameter :: spin_tracking_method$ = 84
-integer, parameter :: aperture$ = 85, rf_auto_scale_amp$ = 85
-integer, parameter :: x_limit$ = 86, absolute_time_tracking$ = 86
-integer, parameter :: y_limit$ = 87, rf_auto_scale_phase$ = 87
+integer, parameter :: ref_time$ = 83, ptc_integration_type$ = 83
+integer, parameter :: spin_tracking_method$ = 84, eta_a$ = 84
+integer, parameter :: aperture$ = 85, rf_auto_scale_amp$ = 85, etap_a$ = 85
+integer, parameter :: x_limit$ = 86, absolute_time_tracking$ = 86, eta_b$ = 86
+integer, parameter :: y_limit$ = 87, rf_auto_scale_phase$ = 87, etap_b$ = 87
 integer, parameter :: offset_moves_aperture$ = 88
 integer, parameter :: aperture_limit_on$ = 89
 
 integer, parameter :: ptc_exact_misalign$ = 90
-integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90, ref_patch$ = 90
-integer, parameter :: ref_orbit$ = 91, term$ = 91, use_ptc_layout$ = 91
+integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90
+integer, parameter :: term$ = 91, use_ptc_layout$ = 91
 integer, parameter :: x_position$ = 92, s_spline$ = 92, ptc_exact_model$ = 92
 integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
 integer, parameter :: z_position$ = 94
@@ -779,13 +795,13 @@ integer, parameter :: is_on$ = 95, theta_position$ = 95
 integer, parameter :: field_calc$ = 96, phi_position$ = 96
 integer, parameter :: psi_position$ = 97
 integer, parameter :: aperture_at$ = 98, beta_a$ = 98
-integer, parameter :: ran_seed$ = 99, beta_b$ = 99
+integer, parameter :: ran_seed$ = 99, beta_b$ = 99, origin_ele$= 99
 
-integer, parameter :: to$ = 100
-integer, parameter :: field_master$ = 101
+integer, parameter :: to_line$ = 100
+integer, parameter :: field_master$ = 101, to_element$ = 101
 integer, parameter :: descrip$ = 102
 integer, parameter :: scale_multipoles$ = 103
-integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall$
+integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall3d$
 integer, parameter :: field$ = 105
 integer, parameter :: phi_b$ = 106, crystal_type$ = 106
 integer, parameter :: type$ = 107
@@ -830,13 +846,12 @@ logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
-integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, patch_in_slave$ = 12, slice_slave$ = 13
+integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, slice_slave$ = 12
 
-character(16), parameter :: control_name(13) = [ &
+character(16), parameter :: control_name(12) = [ &
             'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', 'GROUP_LORD     ', &
             'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
-            'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'PATCH_IN_SLAVE ', &
-            'SLICE_SLAVE    ']
+            'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'SLICE_SLAVE    ']
 
 logical, parameter :: set$ = .true., unset$ = .false.
 
@@ -856,6 +871,11 @@ character(16), parameter :: calc_method_name(0:n_methods$) = [ &
       'Taylor          ', 'Hard_Edge_Model ', 'Symp_Lie_Bmad   ', 'Static          ', &
       'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta', &
       'Custom2         ']
+
+integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
+character(16), parameter :: ptc_integration_type_name(0:3) = [&
+         'GARBAGE!   ', 'Drift_Kick ', 'Matrix_Kick', 'Ripken_Kick']
+
 
 ! sbend$ and rbend$ are from key definitions.
 
@@ -880,14 +900,6 @@ character(16), parameter :: field_calc_name(0:7) = &
 
 integer, parameter :: bragg$ = 1, laue$ = 2
 character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ', 'Laue    ']
-
-! ref_orbit values.
-
-integer, parameter :: single_ref$ = 1, match_at_entrance$ = 2, match_at_exit$ = 3 
-integer, parameter :: match_global_coords$ = 4, patch_in$ = 5, patch_out$ = 6
-character(20), parameter :: ref_orbit_name(0:6) = ['GARBAGE!           ', &
-     'Single_Ref         ', 'Match_at_Entrance  ', 'Match_at_Exit      ', &
-     'Match_Global_Coords', 'Patch_In           ', 'Patch_Out          ']
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.
@@ -980,17 +992,23 @@ end type
 
 type (synch_rad_common_struct), save :: synch_rad_com
 
-integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ = 4
+integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
 
 ! Note: custom$ = 7 is taken from element key names.
 
-integer, parameter :: rectangular$ = 1, elliptical$ = 2, wall$ = 3
+integer, parameter :: rectangular$ = 1, elliptical$ = 2, wall3d$ = 3
 character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Wall       ', &
+                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Wall3D     ', &
                                      'garbage!   ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 
 integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2
 character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'Pi_polarization   ']
+
+! fringe_type$ 
+
+integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$ = 4
+character(16), parameter :: fringe_type_name(0:4) = ['Garbage!      ', &
+                'FULL_STRAIGHT ', 'FULL_BEND     ',  'NONE          ', 'BASIC_BEND    ']
 
 ! ran_parsing_struct is used by parsing routines.
 ! %deterministic:
@@ -1007,6 +1025,12 @@ type ran_parsing_struct
   logical ran_function_was_called 
   logical deterministic_ran_function_was_called 
 end type
+
+! ptc_field_geometry for bends
+
+integer, parameter :: sector$ = 1, straight$ = 2, true_rbend$ = 3
+character(16), parameter :: ptc_field_geometry_name(0:3) = [ &
+                              'Garbage!  ', 'Sector    ', 'straight  ', 'true_rbend']
 
 !------------------------------------------------------------------------------
 ! common stuff
@@ -1031,8 +1055,10 @@ type bmad_common_struct
   real(rp) :: init_ds_adaptive_tracking = 1e-3     ! Initial step size
   real(rp) :: min_ds_adaptive_tracking = 1e-8      ! Min step size.
   integer :: taylor_order = 3                      ! 3rd order is default
-  integer :: default_integ_order = 2               ! PTC integration order
-  logical :: canonical_coords = .true.             ! NOT USED.
+  integer :: default_integ_order = 2               ! PTC integration order. 
+  integer :: ptc_max_fringe_order = 2              ! PTC max fringe order (2 => Quadrupole !). 
+                                                   !   Must call set_ptc after changing.
+  logical :: use_hard_edge_drifts = .true.         ! Insert drifts when tracking through cavity?
   logical :: sr_wakes_on = .true.                  ! Short range wakefields?
   logical :: lr_wakes_on = .true.                  ! Long range wakefields
   logical :: mat6_track_symmetric = .true.         ! symmetric offsets

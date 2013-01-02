@@ -347,9 +347,22 @@ do i = 1, n_key$
   call init_attribute_name1 (i, ref_beginning$,      'REF_BEGINNING')
   call init_attribute_name1 (i, ref_center$,         'REF_CENTER')
   call init_attribute_name1 (i, ref_end$,            'REF_END')
-  call init_attribute_name1 (i, create_em_field_slave$, 'CREATE_EM_FIELD_SLAVE')
 
   if (i == null_ele$) cycle
+
+  call init_attribute_name1 (i, mat6_calc_method$,       'MAT6_CALC_METHOD')
+  call init_attribute_name1 (i, tracking_method$,        'TRACKING_METHOD')
+  call init_attribute_name1 (i, spin_tracking_method$,   'SPIN_TRACKING_METHOD')
+  call init_attribute_name1 (i, ptc_integration_type$,   'PTC_INTEGRATION_TYPE')
+
+  call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
+  call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
+  call init_attribute_name1 (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
+  call init_attribute_name1 (i, ref_time_start$,         'ref_time_start', private$)
+
+  if (i == fiducial$) cycle
+
+  call init_attribute_name1 (i, create_em_field_slave$, 'CREATE_EM_FIELD_SLAVE')
 
   call init_attribute_name1 (i, wall_attribute$,         'WALL')
   call init_attribute_name1 (i, x_limit$,                'X_LIMIT')
@@ -362,14 +375,6 @@ do i = 1, n_key$
   call init_attribute_name1 (i, aperture_at$,            'APERTURE_AT')
   call init_attribute_name1 (i, aperture_type$,          'APERTURE_TYPE')
   call init_attribute_name1 (i, offset_moves_aperture$,  'OFFSET_MOVES_APERTURE')
-  call init_attribute_name1 (i, mat6_calc_method$,       'MAT6_CALC_METHOD')
-  call init_attribute_name1 (i, tracking_method$,        'TRACKING_METHOD')
-  call init_attribute_name1 (i, spin_tracking_method$,   'SPIN_TRACKING_METHOD')
-
-  call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
-  call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
-  call init_attribute_name1 (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
-  call init_attribute_name1 (i, ref_time_start$,         'ref_time_start', private$)
 
   if (i == match$) cycle
   if (i == floor_position$) cycle
@@ -380,6 +385,9 @@ do i = 1, n_key$
   call init_attribute_name1 (i, s_offset$,      'S_OFFSET')
   call init_attribute_name1 (i, x_pitch$,       'X_PITCH')
   call init_attribute_name1 (i, y_pitch$,       'Y_PITCH')
+
+  if (i == patch$)        cycle
+
   call init_attribute_name1 (i, tilt_tot$,      'TILT_TOT', dependent$)
   call init_attribute_name1 (i, x_offset_tot$,  'X_OFFSET_TOT', dependent$)
   call init_attribute_name1 (i, y_offset_tot$,  'Y_OFFSET_TOT', dependent$)
@@ -397,7 +405,6 @@ do i = 1, n_key$
   if (i == photon_branch$) cycle
   if (i == branch$)       cycle
   if (i == marker$)       cycle
-  if (i == patch$)        cycle
   if (i == beambeam$)     cycle
   if (i == hom$)          cycle
   if (i == multipole$)    cycle 
@@ -409,7 +416,6 @@ do i = 1, n_key$
   if (i == taylor$)       cycle
 
   call init_attribute_name1 (i, l$,            'L')
-  call init_attribute_name1 (i, l_hard_edge$,  'L_HARD_EDGE', dependent$)
 
   call init_attribute_name1 (i, integrator_order$,   'INTEGRATOR_ORDER')
   call init_attribute_name1 (i, num_steps$,          'NUM_STEPS', quasi_free$)
@@ -418,12 +424,17 @@ do i = 1, n_key$
   call init_attribute_name1 (i, n_ref_pass$,         'N_REF_PASS')
   call init_attribute_name1 (i, field_scale$,        'FIELD_SCALE', quasi_free$)
 
+  if (i == drift$)        cycle
+
+  call init_attribute_name1 (i, l_hard_edge$,        'L_HARD_EDGE', dependent$)
+  call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
+  call init_attribute_name1 (i, kill_fringe$,        'KILL_FRINGE')
+
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
   if (i == custom$)       cycle
   if (i == e_gun$)        cycle
   if (i == em_field$)     cycle
-  if (i == drift$)        cycle
 
   call init_attribute_name1 (i, hkick$,     'HKICK', quasi_free$)
   call init_attribute_name1 (i, vkick$,     'VKICK', quasi_free$)
@@ -457,16 +468,15 @@ enddo
 
 !
 
-call init_attribute_name1 (photon_branch$, ix_branch_to$,         'ix_branch_to', private$)
+call init_attribute_name1 (photon_branch$, ix_to_branch$,         'ix_to_branch', private$)
+call init_attribute_name1 (photon_branch$, ix_to_element$,        'ix_to_element', private$)
 call init_attribute_name1 (photon_branch$, direction$,            'DIRECTION')
-call init_attribute_name1 (photon_branch$, to$,                   'TO')
-call init_attribute_name1 (photon_branch$, particle$,             'PARTICLE')
-call init_attribute_name1 (photon_branch$, lattice_type$,         'LATTICE_TYPE')
-call init_attribute_name1 (photon_branch$, E_tot_start$,          'E_TOT_START')
-call init_attribute_name1 (photon_branch$, p0c_start$,            'P0C_START')
+call init_attribute_name1 (photon_branch$, to_line$,              'TO_LINE')
+call init_attribute_name1 (photon_branch$, to_element$,           'TO_ELEMENT')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
+call init_attribute_name1 (init_ele$, floor_set$,                   'floor_set', private$)
 call init_attribute_name1 (init_ele$, delta_ref_time$,              'delta_ref_time', private$)
 call init_attribute_name1 (init_ele$, ref_time_start$,              'ref_time_start', private$)
 call init_attribute_name1 (init_ele$, e_tot_start$,                 'E_TOT_START')
@@ -488,6 +498,10 @@ call init_attribute_name1 (init_ele$, eta_y$,                       'ETA_Y')
 call init_attribute_name1 (init_ele$, eta_z$,                       'ETA_Z')
 call init_attribute_name1 (init_ele$, etap_x$,                      'ETAP_X')
 call init_attribute_name1 (init_ele$, etap_y$,                      'ETAP_Y')
+call init_attribute_name1 (init_ele$, eta_a$,                       'ETA_A')
+call init_attribute_name1 (init_ele$, eta_b$,                       'ETA_B')
+call init_attribute_name1 (init_ele$, etap_a$,                      'ETAP_A')
+call init_attribute_name1 (init_ele$, etap_b$,                      'ETAP_B')
 call init_attribute_name1 (init_ele$, phi_a$,                       'PHI_A')
 call init_attribute_name1 (init_ele$, phi_b$,                       'PHI_B')
 call init_attribute_name1 (init_ele$, cmat_11$,                     'CMAT_11')
@@ -496,11 +510,21 @@ call init_attribute_name1 (init_ele$, cmat_21$,                     'CMAT_21')
 call init_attribute_name1 (init_ele$, cmat_22$,                     'CMAT_22')
 call init_attribute_name1 (init_ele$, s_long$,                      'S')
 call init_attribute_name1 (init_ele$, ref_time$,                    'REF_TIME')
-call init_attribute_name1 (init_ele$, e_field_x$,                   'E_FIELD_X')
-call init_attribute_name1 (init_ele$, e_field_y$,                   'E_FIELD_Y')
-call init_attribute_name1 (init_ele$, phase_x$,                     'PHASE_X')
-call init_attribute_name1 (init_ele$, phase_y$,                     'PHASE_Y')
 call init_attribute_name1 (init_ele$, wall_attribute$,              'WALL')
+call init_attribute_name1 (init_ele$, x_beam_start$,                'X_BEAM_START')
+call init_attribute_name1 (init_ele$, px_beam_start$,               'PX_BEAM_START')
+call init_attribute_name1 (init_ele$, y_beam_start$,                'Y_BEAM_START')
+call init_attribute_name1 (init_ele$, py_beam_start$,               'PY_BEAM_START')
+call init_attribute_name1 (init_ele$, z_beam_start$,                'Z_BEAM_START')
+call init_attribute_name1 (init_ele$, pz_beam_start$,               'PZ_BEAM_START')
+call init_attribute_name1 (init_ele$, e_field_x_photon$,            'E_FIELD_X_PHOTON')
+call init_attribute_name1 (init_ele$, e_field_y_photon$,            'E_FIELD_Y_PHOTON')
+call init_attribute_name1 (init_ele$, phase_x_photon$,              'PHASE_X_PHOTON')
+call init_attribute_name1 (init_ele$, phase_y_photon$,              'PHASE_Y_PHOTON')
+call init_attribute_name1 (init_ele$, abs_time_start$,              'ABS_TIME_START')
+call init_attribute_name1 (init_ele$, particle$,                    'PARTICLE')
+call init_attribute_name1 (init_ele$, lattice_type$,                'LATTICE_TYPE')
+call init_attribute_name1 (init_ele$, rel_tracking_charge$,         'REL_TRACKING_CHARGE')
 
 call init_attribute_name1 (def_parameter$, custom_attribute1$, 'CUSTOM_ATTRIBUTE1', override = .true.)
 call init_attribute_name1 (def_parameter$, custom_attribute2$, 'CUSTOM_ATTRIBUTE2', override = .true.)
@@ -521,6 +545,8 @@ call init_attribute_name1 (def_parameter$, rf_auto_scale_phase$,    'RF_AUTO_SCA
 call init_attribute_name1 (def_parameter$, rf_auto_scale_amp$,      'RF_AUTO_SCALE_AMP')
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,        'PTC_EXACT_MODEL')
 call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,     'PTC_EXACT_MISALIGN')
+call init_attribute_name1 (def_parameter$, use_hard_edge_drifts$,   'USE_HARD_EDGE_DRIFTS')
+call init_attribute_name1 (def_parameter$, ptc_max_fringe_order$,   'PTC_MAX_FRINGE_ORDER')
 
 call init_attribute_name1 (def_beam$, particle$,                    'PARTICLE')
 call init_attribute_name1 (def_beam$, e_tot$,                       'ENERGY')
@@ -644,12 +670,14 @@ call init_attribute_name1 (group$, symmetric_edge$,                 'SYMMETRIC_E
 
 call init_attribute_name1 (drift$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (drift$, field_master$,                   'FIELD_MASTER')
-call init_attribute_name1 (drift$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (drift$, p0c_start$,                     'p0c_start', private$)
+call init_attribute_name1 (drift$, E_tot_start$,                    'E_tot_start', private$)
+call init_attribute_name1 (drift$, p0c_start$,                      'p0c_start', private$)
+call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
+call init_attribute_name1 (drift$, kill_fringe$,                    'kill_fringe', private$)
 
 call init_attribute_name1 (monitor$, field_master$,                 'FIELD_MASTER')
-call init_attribute_name1 (monitor$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (monitor$, p0c_start$,                     'p0c_start', private$)
+call init_attribute_name1 (monitor$, E_tot_start$,                  'E_tot_start', private$)
+call init_attribute_name1 (monitor$, p0c_start$,                    'p0c_start', private$)
 
 attrib_array(instrument$, :)                         = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                               = attrib_array(monitor$, :)
@@ -674,7 +702,6 @@ call init_attribute_name1 (kicker$, E_tot_start$,                   'E_tot_start
 call init_attribute_name1 (kicker$, p0c_start$,                     'p0c_start', private$)
 
 call init_attribute_name1 (sbend$, angle$,                          'ANGLE', quasi_free$)
-call init_attribute_name1 (sbend$, exact_fringe$,                   'EXACT_FRINGE')
 call init_attribute_name1 (sbend$, e1$,                             'E1')
 call init_attribute_name1 (sbend$, e2$,                             'E2')
 call init_attribute_name1 (sbend$, h1$,                             'H1')
@@ -697,9 +724,9 @@ call init_attribute_name1 (sbend$, b2_gradient$,                    'B2_GRADIENT
 call init_attribute_name1 (sbend$, radius$,                         'RADIUS')
 call init_attribute_name1 (sbend$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (sbend$, field_master$,                   'FIELD_MASTER')
-call init_attribute_name1 (sbend$, ref_orbit$,                      'REF_ORBIT')
-call init_attribute_name1 (sbend$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (sbend$, p0c_start$,                     'p0c_start', private$)
+call init_attribute_name1 (sbend$, E_tot_start$,                    'E_tot_start', private$)
+call init_attribute_name1 (sbend$, p0c_start$,                      'p0c_start', private$)
+call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -725,24 +752,37 @@ call init_attribute_name1 (patch$, t_offset$,                       'T_OFFSET')
 call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START')
 call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START')
 call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSET')
-call init_attribute_name1 (patch$, ref_orbit$,                      'REF_ORBIT')
-call init_attribute_name1 (patch$, ref_patch$,                      'REF_PATCH')
-call init_attribute_name1 (patch$, n_ref_pass$,                     'N_REF_PASS')
-call init_attribute_name1 (patch$, translate_after$,                'TRANSLATE_AFTER')
 call init_attribute_name1 (patch$, z_offset$,                       'Z_OFFSET', override = .true.)
+call init_attribute_name1 (patch$, flexible$,                       'FLEXIBLE')
+call init_attribute_name1 (patch$, ptc_dir$,                        'ptc_dir', private$)
 
-call init_attribute_name1 (floor_position$, l$,                           'l', private$)
-call init_attribute_name1 (floor_position$, x_position$,                  'X_POSITION')
-call init_attribute_name1 (floor_position$, y_position$,                  'Y_POSITION')
-call init_attribute_name1 (floor_position$, z_position$,                  'Z_POSITION')
-call init_attribute_name1 (floor_position$, theta_position$,              'THETA_POSITION')
-call init_attribute_name1 (floor_position$, phi_position$,                'PHI_POSITION')
-call init_attribute_name1 (floor_position$, psi_position$,                'PSI_POSITION')
+!call init_attribute_name1 (patch$, next_ele_defines_position$,      'NEXT_ELE_DEFINES_POSITION')
 
+call init_attribute_name1 (floor_position$, l$,                      'l', private$)
+call init_attribute_name1 (floor_position$, tilt$,                   'TILT', dependent$)
+call init_attribute_name1 (floor_position$, x_offset$,               'X_OFFSET', dependent$)
+call init_attribute_name1 (floor_position$, y_offset$,               'Y_OFFSET', dependent$)
+call init_attribute_name1 (floor_position$, z_offset$,               'Z_OFFSET', dependent$)
+call init_attribute_name1 (floor_position$, x_pitch$,                'X_PITCH', dependent$)
+call init_attribute_name1 (floor_position$, y_pitch$,                'Y_PITCH', dependent$)
+
+call init_attribute_name1 (fiducial$, l$,                      'l', private$)
+call init_attribute_name1 (fiducial$, tilt$,                   'TILT')
+call init_attribute_name1 (fiducial$, x_offset$,               'X_OFFSET')
+call init_attribute_name1 (fiducial$, y_offset$,               'Y_OFFSET')
+call init_attribute_name1 (fiducial$, z_offset$,               'Z_OFFSET')
+call init_attribute_name1 (fiducial$, x_pitch$,                'X_PITCH')
+call init_attribute_name1 (fiducial$, y_pitch$,                'Y_PITCH')
+call init_attribute_name1 (fiducial$, origin_ele$,             'ORIGIN_ELE')
+call init_attribute_name1 (fiducial$, x_origin$,               'X_ORIGIN')
+call init_attribute_name1 (fiducial$, y_origin$,               'Y_ORIGIN')
+call init_attribute_name1 (fiducial$, z_origin$,               'Z_ORIGIN')
+call init_attribute_name1 (fiducial$, theta_origin$,           'THETA_ORIGIN')
+call init_attribute_name1 (fiducial$, phi_origin$,             'PHI_ORIGIN')
+call init_attribute_name1 (fiducial$, psi_origin$,             'PSI_ORIGIN')
 
 call init_attribute_name1 (quadrupole$, k1$,                        'K1', quasi_free$)
 call init_attribute_name1 (quadrupole$, B1_gradient$,               'B1_GRADIENT', quasi_free$)
-call init_attribute_name1 (quadrupole$, include_fringe$,            'INCLUDE_FRINGE')
 call init_attribute_name1 (quadrupole$, radius$,                    'RADIUS')
 call init_attribute_name1 (quadrupole$, field_calc$,                'FIELD_CALC')
 call init_attribute_name1 (quadrupole$, field_master$,              'FIELD_MASTER')
@@ -1098,12 +1138,12 @@ end function has_orientation_attributes
 !+
 ! Function attribute_type (attrib_name) result (attrib_type)
 !
-! Routine to return the type (logical, integer, real, or named) of an attribute.
+! Routine to return the type of an attribute.
 !
-! A "Named" attribute is an attribute whose integer value corresponds to some string.
+! A "switch" attribute is an attribute whose integer value corresponds to some string.
 ! For example, the "COUPLER_AT" attirbute with value 1 corresponds to "ENTRANCE_END", etc. 
 !
-! If this is a named attribute, attribute_value_name can be used to print the 
+! If this is a switch attribute, switch_attrib_value_name can be used to print the 
 ! name corresponding to the attribute's value.
 !
 ! Modules needed:
@@ -1114,7 +1154,7 @@ end function has_orientation_attributes
 !
 ! Output:
 !   attrib_type  -- Integer: Attribute type: 
-!                     is_logical$, is_integer$, is_real$, or is_name$
+!                     is_string$, is_logical$, is_integer$, is_real$, or is_switch$
 !-
 
 function attribute_type (attrib_name) result (attrib_type)
@@ -1127,14 +1167,28 @@ integer attrib_type
 !
 
 select case (attrib_name)
-case ('MATCH_END', 'MATCH_END_ORBIT', 'TRANSLATE_AFTER', 'FOLLOW_DIFFRACTED_BEAM', &
-      'NEGATIVE_GRAZE_ANGLE', 'SCALE_MULTIPOLES', 'NO_END_MARKER', 'EXACT_FRINGE', 'INCLUDE_FRINGE')
+case ('MATCH_END', 'MATCH_END_ORBIT', 'FOLLOW_DIFFRACTED_BEAM', &
+      'NEGATIVE_GRAZE_ANGLE', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
+      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'RF_AUTO_SCALE_PHASE', &
+      'RF_AUTO_SCALE_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
+      'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS')
   attrib_type = is_logical$
+
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
-      'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS')
+      'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', 'PTC_MAX_FRINGE_ORDER')
   attrib_type = is_integer$
-case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'LATTICE_TYPE')
-  attrib_type = is_name$
+
+case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'LATTICE_TYPE', &
+      'FRINGE_TYPE', 'KILL_FRINGE', 'DIFFRACTION_TYPE', 'FIELD_CALC', 'APERTURE_AT', &
+      'APERTURE_TYPE', 'TRACKING_METHOD', 'SPIN_TRACKING_METHOD', 'MAT6_CALC_METHOD', &
+      'PTC_INTEGRATION_TYPE', 'PTC_FIELD_GEOMETRY')
+  attrib_type = is_switch$
+
+case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
+     'CRYSTAL_TYPE', 'REFERENCE', 'TO_LINE', 'ORIGIN_ELE')
+  attrib_type = is_string$
+
 case default
   attrib_type = is_real$
 end select
@@ -1243,10 +1297,10 @@ end function is_a_tot_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_value_name (attrib_name, attrib_value, ele, 
+! Function switch_attrib_value_name (attrib_name, attrib_value, ele, 
 !                                     is_default) result (attrib_val_name)
 !
-! Routine to return the name corresponding to the value of a given attribute.
+! Routine to return the name corresponding to the value of a given switch attribute.
 !
 ! This routine is for "switch" attributes. For example, the "aperture_type" attribute
 ! can have value names of "Entrance_End", "Exit_End", etc.
@@ -1256,7 +1310,7 @@ end function is_a_tot_attribute
 ! not specified in the lattice file.
 !
 ! Use the routine attribute_type to first test if the type of the attribute
-! corresponds to is_name$. 
+! corresponds to is_switch$. 
 !
 ! Modules needed:
 !   use bmad
@@ -1274,7 +1328,7 @@ end function is_a_tot_attribute
 !                        present, the ele argument must also be present.
 !-
 
-function attribute_value_name (attrib_name, attrib_value, ele, &
+function switch_attrib_value_name (attrib_name, attrib_value, ele, &
                                      is_default) result (attrib_val_name)
 
 implicit none
@@ -1282,58 +1336,100 @@ implicit none
 type (ele_struct), optional :: ele
 character(*) attrib_name
 real(rp) attrib_value
+integer ix_attrib
 character(40) attrib_val_name
-character(24) :: r_name = 'attribute_value_name'
+character(24) :: r_name = 'switch_attrib_value_name'
 logical, optional :: is_default
 
 !
 
+ix_attrib = nint(attrib_value)
+
 select case (attrib_name)
 
+case ('PTC_FIELD_GEOMETRY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_field_geometry_name, &
+                                                  lbound(ptc_field_geometry_name, 1))
+  is_default = (ix_attrib == sector$)
+
 case ('PARTICLE')
-  attrib_val_name = particle_name(nint(attrib_value))
+  call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
   if (present(is_default)) then
     if (ele%key == photon_branch$) then
-      is_default = (nint(attrib_value) == photon$)
+      is_default = (ix_attrib == photon$)
     else
       is_default = .false. ! Cannot tell so assume the worst.
     endif
   endif
 
 case ('LATTICE_TYPE')
-  attrib_val_name = lattice_type(nint(attrib_value))
+  call get_this_attrib_name (attrib_val_name, ix_attrib, lattice_type, lbound(lattice_type, 1))
   if (present(is_default)) then
-    is_default = (nint(attrib_value) == linear_lattice$)
+    is_default = (ix_attrib == linear_lattice$)
   endif
 
 case ('COUPLER_AT')
-  attrib_val_name = end_at_name(nint(attrib_value))
+  call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) then
-    is_default = (nint(attrib_value) == exit_end$)
+    is_default = (ix_attrib == downstream_end$)
   endif
 
 case ('APERTURE_TYPE')
-  attrib_val_name = aperture_type_name(nint(attrib_value))
+  call get_this_attrib_name (attrib_val_name, ix_attrib, aperture_type_name, lbound(aperture_type_name, 1))
   if (present(is_default)) then
     if (ele%key == ecollimator$) then
-      is_default = (nint(attrib_value) == elliptical$)
+      is_default = (ix_attrib == elliptical$)
     else
-      is_default = (nint(attrib_value) == rectangular$)
+      is_default = (ix_attrib == rectangular$)
     endif
   endif
 
 case ('REF_POLARIZATION')
-  attrib_val_name = polarization_name(nint(attrib_value))
+  call get_this_attrib_name (attrib_val_name, ix_attrib, polarization_name, lbound(polarization_name, 1))
   if (present(is_default)) then
-    is_default = (nint(attrib_value) == sigma_polarization$)
+    is_default = (ix_attrib == sigma_polarization$)
   endif
 
+case ('FRINGE_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_type_name, lbound(fringe_type_name, 1))
+  if (present(is_default)) then
+    if (ele%key == sbend$ .or. ele%key == rbend$) then
+      is_default = (ix_attrib == basic_bend$)
+    else
+      is_default = (ix_attrib == none$)
+    endif
+  endif
+
+case ('KILL_FRINGE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib == no_end$)
+  endif
 
 case default
   call out_io (s_fatal$, r_name, 'BAD ATTRIBUTE NAME: ' // attrib_name)
 end select
 
-end function attribute_value_name 
+!---------------------------------------
+contains
+
+subroutine get_this_attrib_name (val_name, ix_attrib, name_array, min_arr)
+
+integer ix_attrib, min_arr
+character(*) val_name
+character(*) name_array(min_arr:)
+
+!
+
+if (ix_attrib < lbound(name_array, 1) .or. ix_attrib < ubound(name_array, 1)) then
+  val_name = 'Garbage!'
+else
+  val_name = name_array(ix_attrib)
+endif
+
+end subroutine
+
+end function switch_attrib_value_name 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

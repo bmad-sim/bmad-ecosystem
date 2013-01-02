@@ -30,7 +30,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: lord, slave
+type (ele_struct), pointer :: lord, slave, ele
 
 integer n, n_track
 integer, optional :: ix_branch
@@ -38,9 +38,16 @@ integer, optional :: ix_branch
 logical, optional :: err_flag
 logical err
 
-! Propagate twiss
+! Make sure gamma for ele(0) is correct.
 
 branch => lat%branch(integer_option(0, ix_branch))
+ele => branch%ele(0)
+
+if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
+if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
+
+! Propagate twiss
+
 n_track = branch%n_ele_track
 
 if (present(err_flag)) err_flag = .true.

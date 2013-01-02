@@ -1,9 +1,14 @@
-\chapter{Lattice Concepts and Organization}
+\chapter{Bmad Concepts and Organization}
 \label{c:lat.concepts}
 
-This chapter presents the basic concepts, such as \vn{element},
+This chapter is an overview of some of the nomenclature used
+by \bmad. Presented are the basic concepts, such as \vn{element},
 \vn{branch}, and \vn{lattice}, that \bmad uses to describe such things
-as LINACs, storage rings, X-ray beam lines, etc.  In fact, \bmad is
+as LINACs, storage rings, X-ray beam lines, etc.  
+
+----- \needswork
+
+In fact, \bmad is
 capable of simulating a whole machine complex of interconnected parts.
 This includes simulating transfer lines connected to storage rings or 
 simulating interconnected colliding beam storage rings.
@@ -173,4 +178,54 @@ structures to separate the physical element, which PTC calls an
 version.] This \vn{element} and \vn{fibre} combination corresponds to
 \bmad \vn{multipass_lord} and \vn{multipass_slave} elements. PTC does
 not handle overlapping fields.
+
+%---------------------------------------------------------------------------
+\section{Element Orientation}
+\label{s:ele.orientation}
+
+Lattice elements have an
+
+\etcetc
+
+%---------------------------------------------------------------------------
+\section{PTC: Polynomial Tracking Code}
+\label{s:ptc.intro}
+\index{PTC}
+
+Etienne Forest\cite{b:forest} has written what is actually two
+software libraries: FPP and PTC.  FPP stands for ``Fully Polymorphic
+Package.'' What this library does is implement Taylor maps (aka
+Truncated Power Series Algebra or TPSA) and Lie algebraic
+operations. Thus in FPP you can define a Hamiltonian and then generate
+the Taylor map for this Hamiltonian. FPP is very general. It can work
+with an arbitrary number of dimensions.  FPP, however, is a purely
+mathematical package in the sense that it knows nothing about
+accelerator physics. That is, it does not know about bends,
+quadrupoles or any other kind of element, it has no conception of a
+lattice (a string of elements), it doesn't know anything about Twiss
+parameters, etc. This is where PTC (Polymorphic Tracking Code) comes
+in. PTC implements the high energy physics stuff and uses FPP as
+the engine to do the Lie algebraic calculations.  For the purposes of
+this manual, PTC and FPP are generally considered one package and the
+combined PTC/FPP will be referred to as simply ``PTC''.
+For programmers, interface documentation can be found in
+chapter~\sref{c:ptc}.
+
+\index{PTC!single element mode}
+\bmad interfaces to PTC in two ways: One way, called ``single
+element'' mode, uses PTC on a per element basis. In this case, the
+method used for tracking a given element can be selected on an
+element-by-element basis so non-PTC tracking methods can be mixed with
+PTC tracking methods to optimize speed and accuracy. [PTC tends to be
+accurate but slow.] The advantage of single element mode is the
+flexibility it affords. The disadvantage is that it precludes using
+PTC's analysis tools which rely on the entire lattice being tracked
+via PTC. Such tools include normal form analysis beam envelope
+tracking, etc.
+
+\index{PTC!whole lattice mode}
+The alternative to single element mode is ``whole lattice'' mode where
+a series of PTC \vn{layout}s (equivalent to a \bmad branch) are
+created from a \bmad lattice. Whether single element or whole lattice
+mode (or both) is used is determined by the program being run.
 

@@ -800,7 +800,7 @@ if(beam_init%use_t_coords) then
       ! Fixed s, particles distributed in time using vec(5)
       p%s = ele%s
       p%t = p%vec(5)
-      p%location = exit_end$
+      p%location = downstream_end$
       p%vec(5) = 0 !init_coord will not complain when beta == 0 and vec(5) == 0
       
     else
@@ -1760,7 +1760,7 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
 ! average the energy
 
 avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%state == alive$))
-avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
+avg_energy = avg_energy * abs(bunch%particle(1)%p0c) / charge_live
 
 ! Convert to geometric coords and find the sigma matrix
 
