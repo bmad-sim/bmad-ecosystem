@@ -68,7 +68,7 @@ case (multilayer_mirror$)
 
 case (patch$)
   ele%value(flexible$) = 0 ! False
-  ele%value(clone$) = 1    ! True
+  ele%value(new_branch$) = 1    ! True
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
