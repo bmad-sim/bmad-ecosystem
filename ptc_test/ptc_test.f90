@@ -12,8 +12,7 @@ implicit none
 
 type (lat_struct), target :: lat, lat2, lat3
 type (ele_struct), pointer :: ele
-type (writable_coord_struct) start_orb
-type (coord_struct) starting_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
+type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
 type (coord_struct) end_orb1t, end_orb2t
 
 real(rp) diff_mat(6,6), diff_vec(6)
@@ -26,14 +25,13 @@ call bmad_parser ('ptc_test.bmad', lat)
 
 open (1, file = 'ptc_test.bmad')
 read (1, nml = params)
-call from_writable_coord_struct (start_orb, starting_orb)
 close (1)
 
 lat%ele(3)%key = -1
 call remove_eles_from_lat (lat)
 
-call track1 (starting_orb, lat%ele(1), lat%param, end_orb1)
-call track1 (starting_orb, lat%ele(2), lat%param, end_orb2)
+call track1 (start_orb, lat%ele(1), lat%param, end_orb1)
+call track1 (start_orb, lat%ele(2), lat%param, end_orb2)
 call track1 (end_orb2, lat%ele(3), lat%param, end_orb2)
 call lat_make_mat6(lat, -1)
 lat%ele(3)%vec0 = lat%ele(3)%vec0 + matmul(lat%ele(3)%mat6, lat%ele(2)%vec0)
@@ -64,8 +62,8 @@ lat2 = lat
 lat2%ele%tracking_method = symp_lie_ptc$
 lat2%ele%mat6_calc_method = symp_lie_ptc$
 
-call track1 (starting_orb, lat2%ele(1), lat2%param, end_orb1p)
-call track1 (starting_orb, lat2%ele(2), lat2%param, end_orb2p)
+call track1 (start_orb, lat2%ele(1), lat2%param, end_orb1p)
+call track1 (start_orb, lat2%ele(2), lat2%param, end_orb2p)
 call track1 (end_orb2p, lat2%ele(3), lat2%param, end_orb2p)
 call lat_make_mat6(lat2, -1)
 lat2%ele(3)%vec0 = lat2%ele(3)%vec0 + matmul(lat2%ele(3)%mat6, lat2%ele(2)%vec0)
@@ -89,8 +87,8 @@ lat3 = lat2
 lat3%ele%tracking_method = taylor$
 lat3%ele%mat6_calc_method = taylor$
 
-call track1 (starting_orb, lat3%ele(1), lat3%param, end_orb1t)
-call track1 (starting_orb, lat3%ele(2), lat3%param, end_orb2t)
+call track1 (start_orb, lat3%ele(1), lat3%param, end_orb1t)
+call track1 (start_orb, lat3%ele(2), lat3%param, end_orb2t)
 call track1 (end_orb2t, lat3%ele(3), lat3%param, end_orb2t)
 call lat_make_mat6(lat3, -1)
 lat3%ele(3)%vec0 = lat3%ele(3)%vec0 + matmul(lat3%ele(3)%mat6, lat3%ele(2)%vec0)

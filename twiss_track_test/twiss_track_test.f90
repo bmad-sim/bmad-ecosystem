@@ -66,7 +66,7 @@ open (1, file = 'twiss.out')
 do n = 1, lat%n_ele_track
   write (1, *) '!------------------------------------'
   write (1, *) 'Index:', n
-  call type2_ele (lat%ele(n), lines, n_lines, .false., 0, .false., 0, .false., lat)  
+  call type2_ele (lat%ele(n), lines, n_lines, .false., 0, .false., 0, .false.)  
   do i = 1, n_lines
     write (1, '(a)') lines(i)
   enddo
@@ -222,7 +222,6 @@ call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat2:Z%Synch_int(4)')
 
 write (2, '(a, l1, a)') '"Lat2:Lat"      STR  "', associated(lat2%ele(100)%branch, lat2%branch(0)), '"'
 
-!--------------------------------------------------------------------
 contains
 
 subroutine data_out (now, err_tol, what)
