@@ -164,7 +164,7 @@ logical, optional :: do_point
 call append_point(lay, ele_fib)
 fib => lay%end
 
-if (ele%key == patch$ .or. ele%key == floor_position$) then
+if (ele%key == patch$ .or. ele%key == floor_shift$) then
   fib%dir = ele%value(ptc_dir$)
 else
   fib%dir = ele%orientation

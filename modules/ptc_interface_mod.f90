@@ -2831,7 +2831,7 @@ case (sol_quad$)
   ptc_key%magnet = 'solenoid'
   ptc_key%list%bsol = val(ks$)
 
-case (marker$, branch$, photon_branch$, init_ele$, patch$, floor_position$, fiducial$)
+case (marker$, branch$, photon_branch$, init_ele$, patch$, floor_shift$, fiducial$)
   ptc_key%magnet = 'marker'
 
 case (kicker$, hkicker$, vkicker$)
@@ -2996,7 +2996,7 @@ endif
 
 ! Also fibre%dir for a patch must agree with the preceeding element in a layout
 
-if (ele%key == patch$ .or. ele%key == floor_position$) then
+if (ele%key == patch$ .or. ele%key == floor_shift$) then
   if (ele%orientation == -1) then
     call ele_geometry (floor0, ele, floor1)
     dr = floor1%r
@@ -3145,7 +3145,7 @@ n_max = 0
 
 select case (key)
 
-case (marker$, branch$, photon_branch$, init_ele$, em_field$, patch$, fiducial$, floor_position$)
+case (marker$, branch$, photon_branch$, init_ele$, em_field$, patch$, fiducial$, floor_shift$)
   return
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$, &
@@ -3267,7 +3267,7 @@ real(rp) x_off, y_off, x_pitch, y_pitch, roll
 
 ! Patch elements do not have misalignments
 
-if (ele%key == patch$ .or. ele%key == fiducial$ .or. ele%key == floor_position$) return
+if (ele%key == patch$ .or. ele%key == fiducial$ .or. ele%key == floor_shift$) return
 if (attribute_index(ele, 'X_OFFSET_TOT') < 1) return
 
 ! in PTC the reference point for the offsets is the beginning of the element.
