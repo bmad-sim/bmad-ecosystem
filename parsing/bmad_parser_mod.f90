@@ -3563,7 +3563,7 @@ type (branch_struct), target :: branch
 type (lat_struct), pointer :: lat
 
 integer ix, i, j, k, it, nic, nn, i_ele, ib
-integer n_inserted, n_con, i_br, ix_branch
+integer n_inserted, n_con, ix_branch
 
 character(40) matched_name(200), num, name
 character(40), allocatable :: multi_name(:)
@@ -3753,7 +3753,7 @@ do
       call check_for_multipass_superimpose_problem (branch%ele(i_ele), super_ele, err_flag); if (err_flag) return
       call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
       super_ele%name = super_ele_saved%name(:ix)            
-      call add_superimpose (lat, super_ele, i_br, err_flag, super_ele_out, &
+      call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
                   save_null_drift = .true., create_em_field_slave = pele%create_em_field_slave)
       if (err_flag) bp_com%error_flag = .true.
       call control_bookkeeper (lat, super_ele_out)
