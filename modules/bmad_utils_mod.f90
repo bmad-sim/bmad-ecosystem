@@ -736,7 +736,7 @@ end function key_name_to_key_index
 !
 ! Function to determine if an element has nonzero kick values.
 ! Kicks are something hkick$, bl_vkick$, etc.
-! See also: zero_ele_kicks, ele_has_offset, zero_ele_offsets.
+! See also: zero_ele_kicks, ele_haz_offset, zero_ele_offsets.
 !
 ! Modules needed:
 !   use bmad
@@ -776,7 +776,7 @@ end function ele_has_nonzero_kick
 ! Subroutine zero_ele_kicks (ele)
 !
 ! Subroutine to zero any kick attributes like hkick$, bl_vkick$, etc.
-! See also: ele_has_nonzero_kick, ele_has_offset, zero_ele_offsets.
+! See also: ele_has_nonzero_kick, ele_haz_offset, zero_ele_offsets.
 !
 ! Modules needed:
 !   use bmad
@@ -813,7 +813,7 @@ end subroutine zero_ele_kicks
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function ele_has_offset (ele) result (has_offset)
+! Function ele_haz_offset (ele) result (haz_offset)
 !
 ! Function to tell if an element has a non-zero offset, pitch or tilt.
 ! Also see: zero_ele_offsets, zero_ele_kicks, ele_has_nonzero_kick
@@ -825,29 +825,29 @@ end subroutine zero_ele_kicks
 !   ele -- Ele_struct: Element with possible nonzero offsets.
 !
 ! Output:
-!   has_offset -- Logical: Set true is element has a non-zero offset.
+!   haz_offset -- Logical: Set true is element has a non-zero offset.
 !-
 
-function ele_has_offset (ele) result (has_offset)
+function ele_haz_offset (ele) result (haz_offset)
 
 implicit none
 
 type (ele_struct) ele
-logical has_offset
+logical haz_offset
 
 !
 
-has_offset = .false.
+haz_offset = .false.
 if (.not. has_orientation_attributes(ele)) return
 
-if (ele%value(tilt_tot$) /= 0) has_offset = .true.
-if (ele%value(x_pitch_tot$) /= 0) has_offset = .true.
-if (ele%value(y_pitch_tot$) /= 0) has_offset = .true.
-if (ele%value(x_offset_tot$) /= 0) has_offset = .true.
-if (ele%value(y_offset_tot$) /= 0) has_offset = .true.
-if (ele%value(s_offset_tot$) /= 0) has_offset = .true.
+if (ele%value(tilt_tot$) /= 0) haz_offset = .true.
+if (ele%value(x_pitch_tot$) /= 0) haz_offset = .true.
+if (ele%value(y_pitch_tot$) /= 0) haz_offset = .true.
+if (ele%value(x_offset_tot$) /= 0) haz_offset = .true.
+if (ele%value(y_offset_tot$) /= 0) haz_offset = .true.
+if (ele%value(z_offset_tot$) /= 0) haz_offset = .true.
 
-end function ele_has_offset
+end function ele_haz_offset
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -856,7 +856,7 @@ end function ele_has_offset
 ! Subroutine zero_ele_offsets (ele)
 !
 ! Subroutine to zero the offsets, pitches and tilt of an element.
-! Also see: ele_has_offset, zero_ele_kicks, ele_has_nonzero_kick
+! Also see: ele_haz_offset, zero_ele_kicks, ele_has_nonzero_kick
 !
 ! Modules needed:
 !   use bmad
@@ -883,14 +883,14 @@ ele%value(x_pitch$) = 0
 ele%value(y_pitch$) = 0
 ele%value(x_offset$) = 0
 ele%value(y_offset$) = 0
-ele%value(s_offset$) = 0
+ele%value(z_offset$) = 0
 
 ele%value(tilt_tot$) = 0
 ele%value(x_pitch_tot$) = 0
 ele%value(y_pitch_tot$) = 0
 ele%value(x_offset_tot$) = 0
 ele%value(y_offset_tot$) = 0
-ele%value(s_offset_tot$) = 0
+ele%value(z_offset_tot$) = 0
 
 end subroutine zero_ele_offsets
 
@@ -1272,8 +1272,8 @@ if (ele_taylor%key == wiggler$ .and. ele_taylor%sub_key == map_type$) then
   vmask( [k1$, rho$, b_max$] ) = .false.  ! These are dependent attributes.
 endif
 if (.not. ele_taylor%map_with_offsets) then
-  vmask( [x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
-            y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
+  vmask( [x_offset$, y_offset$, z_offset$, tilt$, x_pitch$, &
+            y_pitch$, x_offset_tot$, y_offset_tot$, z_offset_tot$, &
             tilt_tot$, x_pitch_tot$, y_pitch_tot$] ) = .false.
 endif
 

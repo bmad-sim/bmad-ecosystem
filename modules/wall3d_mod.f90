@@ -637,7 +637,7 @@ type (wall3d_vertex_struct), allocatable :: v(:)
 
 real(rp) d_radius, r_particle, s_rel, spline, cos_theta, sin_theta
 real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
-real(rp) p1, p2, dp1, dp2, s_particle, ds_offset
+real(rp) p1, p2, dp1, dp2, s_particle, dz_offset
 real(rp), intent(in) :: position(:)
 real(rp), optional :: perp(3)
 real(rp), pointer :: vec(:), value(:)
@@ -655,7 +655,7 @@ character(32), parameter :: r_name = 'wall3d_d_radius'
 if (present(err_flag)) err_flag = .true.
 d_radius = -1
 
-wall3d_ele => pointer_to_wall3d_ele (ele, ds_offset, err)
+wall3d_ele => pointer_to_wall3d_ele (ele, dz_offset, err)
 if (err) then
  call out_io (s_error$, r_name, 'Wall priority conflict for: ' // ele%name)
  return
@@ -695,7 +695,7 @@ endif
 ! Calculate the particle radius and transverse angle.
 
 wall3d => wall3d_ele%wall3d
-s_particle = position(5) + ds_offset
+s_particle = position(5) + dz_offset
 n_sec = size(wall3d%section)
 
 if (position(1) == 0 .and. position(3) == 0) then
@@ -775,7 +775,7 @@ end function wall3d_d_radius
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_wall3d_ele (ele, ds_offset, err_flag) result (wall3d_ele)
+! Function pointer_to_wall3d_ele (ele, dz_offset, err_flag) result (wall3d_ele)
 !
 ! Function to return a pointer to the element containing the wall associated
 ! with a given lattice element. 
@@ -808,12 +808,12 @@ end function wall3d_d_radius
 ! Output:
 !   wall3d_ele -- ele_struct, pointer: Pointer to the element containing the associated wall.
 !                   Will be nullified if there is no associated wall.
-!   ds_offset  -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d_ele)
+!   dz_offset  -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d_ele)
 !   err_flag   -- logical: Set True if there is a priority conflict between multiple walls. 
 !                   False otherwise.
 !-
 
-function pointer_to_wall3d_ele (ele, ds_offset, err_flag) result (wall3d_ele)
+function pointer_to_wall3d_ele (ele, dz_offset, err_flag) result (wall3d_ele)
 
 implicit none
 
@@ -822,7 +822,7 @@ character(32), parameter :: r_name = 'pointer_to_wall3d_ele'
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: wall3d_ele, aperture_ele, ele2
 
-real(rp) ds_offset
+real(rp) dz_offset
 
 integer i
 
@@ -873,10 +873,10 @@ endif
 ! Offset
 
 err_flag = .false.
-ds_offset = 0
+dz_offset = 0
 
 if (associated(wall3d_ele)) then
-  ds_offset = (ele%s - ele%value(l$)) - (wall3d_ele%s - wall3d_ele%value(l$))
+  dz_offset = (ele%s - ele%value(l$)) - (wall3d_ele%s - wall3d_ele%value(l$))
 endif
 
 !----------------------------------------------------------------------------------------------

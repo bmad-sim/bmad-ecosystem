@@ -482,7 +482,7 @@ do ie = npos1, npos2-1
     ele%value(tilt$)     =  pdata(id+5)   ! psi
     ele%value(x_offset$) = pdata(id)   + ele%value(l$) * ele%value(x_pitch$) / 2
     ele%value(y_offset$) = pdata(id+1) + ele%value(l$) * ele%value(y_pitch$) / 2
-    ele%value(s_offset$) = pdata(id+2)
+    ele%value(z_offset$) = pdata(id+2)
   endif
 
   ! 1 meter aperture is xsif default so do not set unless value is different

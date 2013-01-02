@@ -657,7 +657,7 @@ end subroutine super_lord_length_bookkeeper
 ! Subroutine adjust_super_lord_s_position (lat, lord)
 !
 ! Subroutine to adjust the positions of the slaves of a super_lord due
-! to changes in the lord's s_offset.
+! to changes in the lord's z_offset.
 !-
 
 subroutine adjust_super_lord_s_position (lat, lord)
@@ -684,7 +684,7 @@ endif
 ! Since we don't want to kill taylor maps due to round-off errors we only change
 ! the length if the percentage or absolute change is more than 10^-10
 
-s_end_lord = lord%s + lord%value(s_offset_tot$)
+s_end_lord = lord%s + lord%value(z_offset_tot$)
 slave => pointer_to_slave(lord, lord%n_slave)
 sig_l = bmad_com%significant_length
 
@@ -1174,7 +1174,7 @@ do j = 1, slave%n_lord
     x_p = lord%value(x_pitch_tot$);  x_o = lord%value(x_offset_tot$)
     y_p = lord%value(y_pitch_tot$);  y_o = lord%value(y_offset_tot$)
 
-    s_del = s_slave - (lord%s + lord%value(s_offset_tot$) - lord%value(l$)/2)
+    s_del = s_slave - (lord%s + lord%value(z_offset_tot$) - lord%value(l$)/2)
     s_del = modulo2 (s_del, branch%param%total_length/2)
 
     ks = lord%value(ks$)
@@ -1902,7 +1902,7 @@ do i = 1, slave%n_lord
     endif
     slave%value(x_offset_tot$) = x_off + ds * lord%value(x_pitch$) + lord%value(x_offset$)
     slave%value(y_offset_tot$) = y_off + ds * lord%value(y_pitch$) + lord%value(y_offset$)
-    slave%value(s_offset_tot$) = slave%value(s_offset$) + lord%value(s_offset$)
+    slave%value(z_offset_tot$) = slave%value(z_offset$) + lord%value(z_offset$)
     slave%value(x_pitch_tot$)  = x_pitch  + lord%value(x_pitch$)
     slave%value(y_pitch_tot$)  = y_pitch  + lord%value(y_pitch$)
     slave%value(tilt_tot$)     = slave%value(tilt$)     + lord%value(tilt$)
@@ -1937,7 +1937,7 @@ if (.not. slave%on_a_girder .and. has_orientation_attributes(slave)) then
   slave%value(tilt_tot$)     = slave%value(tilt$)
   slave%value(x_offset_tot$) = slave%value(x_offset$)
   slave%value(y_offset_tot$) = slave%value(y_offset$)
-  slave%value(s_offset_tot$) = slave%value(s_offset$)
+  slave%value(z_offset_tot$) = slave%value(z_offset$)
   slave%value(x_pitch_tot$)  = slave%value(x_pitch$)
   slave%value(y_pitch_tot$)  = slave%value(y_pitch$)
 endif
@@ -2078,7 +2078,7 @@ if (.not. ele%on_a_girder .and. has_orientation_attributes(ele)) then
   val(tilt_tot$)     = val(tilt$)
   val(x_offset_tot$) = val(x_offset$)
   val(y_offset_tot$) = val(y_offset$)
-  val(s_offset_tot$) = val(s_offset$)
+  val(z_offset_tot$) = val(z_offset$)
   val(x_pitch_tot$)  = val(x_pitch$)
   val(y_pitch_tot$)  = val(y_pitch$)
 endif
@@ -2410,8 +2410,8 @@ endif
 
 if (init_needed) then
   v_mask = .true.
-  v_mask([x_offset$, y_offset$, s_offset$, &
-            tilt$, x_pitch$, y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
+  v_mask([x_offset$, y_offset$, z_offset$, &
+            tilt$, x_pitch$, y_pitch$, x_offset_tot$, y_offset_tot$, z_offset_tot$, &
             tilt_tot$, x_pitch_tot$, y_pitch_tot$]) = .false.
   offset_mask = .not. v_mask
   v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.

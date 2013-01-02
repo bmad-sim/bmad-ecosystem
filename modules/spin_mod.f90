@@ -1239,7 +1239,7 @@ a_gamma_plus = g_factor_of(param%particle) * ele%value(e_tot$) * (1 + coord%vec(
 
 if (set) then
 
-  ! Setting s_offset done already in offset_particle
+  ! Setting z_offset done already in offset_particle
 
   ! Set: pitch
   ! contrary to offset_particle no dependence on E_rel
@@ -1253,7 +1253,7 @@ if (set) then
   endif
 
   ! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
-  ! HV kicks must come after s_offset but before any tilts are applied.
+  ! HV kicks must come after z_offset but before any tilts are applied.
   ! Note: Since this is applied before tilt_coords, kicks are independent of any tilt.
 
   if (set_hv1) then
@@ -1389,7 +1389,7 @@ else
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
-  ! HV kicks must come after s_offset but before any tilts are applied.
+  ! HV kicks must come after z_offset but before any tilts are applied.
 
   if (set_hv1) then
       if (vkick$/=0.) then

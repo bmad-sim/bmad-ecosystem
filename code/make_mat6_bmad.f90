@@ -107,7 +107,7 @@ if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 if (any (key == [drift$, capillary$, kicker$, rcollimator$, &
         ecollimator$, monitor$, instrument$, hkicker$, vkicker$, pipe$ ])) then
   call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
   return
 endif
@@ -170,7 +170,7 @@ case (beambeam$)
 
   endif
 
-  call add_multipoles_and_s_offset (.false.)
+  call add_multipoles_and_z_offset (.false.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -231,7 +231,7 @@ case (lcavity$)
 
   if (gradient == 0) then
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-    call add_multipoles_and_s_offset (.true.)
+    call add_multipoles_and_z_offset (.true.)
     return
   endif
 
@@ -312,13 +312,13 @@ case (lcavity$)
 
   if (ele%value(coupler_strength$) /= 0) call coupler_kick()
 
-  ! multipoles and s_offset
+  ! multipoles and z_offset
 
   if (ele%value(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset (.false.)
+  call add_multipoles_and_z_offset (.false.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -409,7 +409,7 @@ case (octupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -527,7 +527,7 @@ case (quadrupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -606,7 +606,7 @@ case (rfcavity$)
 
   !
 
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -747,7 +747,7 @@ case (sbend$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
   endif
 
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -783,7 +783,7 @@ case (sextupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -869,7 +869,7 @@ case (solenoid$)
   yp_start = (c0%vec(4) - ks2 * c0%vec(1)) 
   mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p**3
 
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -886,7 +886,7 @@ case (sol_quad$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -907,7 +907,7 @@ case (wiggler$)
   call mat_make_unit (mat6)     ! make a unit matrix
 
   if (length == 0) then
-    call add_multipoles_and_s_offset (.true.)
+    call add_multipoles_and_z_offset (.true.)
     return
   endif
 
@@ -956,7 +956,7 @@ case (wiggler$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset (.true.)
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -983,7 +983,7 @@ end select
 
 contains
 
-subroutine add_multipoles_and_s_offset(add_m56_correction)
+subroutine add_multipoles_and_z_offset(add_m56_correction)
 
 implicit none
 
@@ -1007,8 +1007,8 @@ if (key /= multipole$ .and. key /= ab_multipole$) then
   endif
 endif
 
-if (ele%value(s_offset_tot$) /= 0) then
-  s_off = ele%value(s_offset_tot$)
+if (ele%value(z_offset_tot$) /= 0) then
+  s_off = ele%value(z_offset_tot$) * ele%direction
   mat6(1,:) = mat6(1,:) - s_off * mat6(2,:)
   mat6(3,:) = mat6(3,:) - s_off * mat6(4,:)
   mat6(:,2) = mat6(:,2) + mat6(:,1) * s_off
@@ -1191,10 +1191,10 @@ endif
 mm(:,1) = mm(:,1) + mm(:,5) * p(x_pitch_tot$) 
 mm(:,3) = mm(:,3) + mm(:,5) + p(y_pitch_tot$)
 
-! Set: s_offset
+! Set: z_offset
 
-mm(:,2) = mm(:,2) + mm(:,1) * p(s_offset_tot$)
-mm(:,4) = mm(:,4) + mm(:,3) * p(s_offset_tot$)
+mm(:,2) = mm(:,2) + mm(:,1) * p(z_offset_tot$)
+mm(:,4) = mm(:,4) + mm(:,3) * p(z_offset_tot$)
 
 !------------------------------------------------------
 ! Unset: 
@@ -1258,7 +1258,7 @@ mat6(5,:) = mat6(5,:) + rot(2) * mat6(2,:) - rot(1) * mat6(3,:)
 
 ! Unset: offset
 
-off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * p(s_offset_tot$)
+off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * p(z_offset_tot$)
 
 mat6(1,:) = mat6(1,:) - off(3) * mat6(2,:)
 mat6(3,:) = mat6(3,:) - off(3) * mat6(4,:)

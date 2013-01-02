@@ -166,7 +166,7 @@ end select
 
 val => ele%value
 
-if (.not.(val(s_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
+if (.not.(val(z_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
     val(x_pitch_tot$) == 0  .and. val(y_offset_tot$) == 0 .and. &
     val(y_pitch_tot$) == 0 .and. .not. associated(ele%a_pole) .and. &
     ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. &
@@ -213,7 +213,7 @@ character(40), parameter :: r_name = 'mad_add_offsets_and_multipoles'
 
 val => ele%value
 
-if (val(s_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
+if (val(z_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
     val(x_pitch_tot$) == 0  .and. val(y_offset_tot$) == 0 .and. &
     val(y_pitch_tot$) == 0 .and. .not. associated(ele%a_pole) .and. &
     ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. &
@@ -223,11 +223,11 @@ if (val(s_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
 
 call make_unit_mad_map (map2)
 
-! Front side: s_offset
+! Front side: z_offset
 
-if (val(s_offset_tot$) /= 0) then
-  map2%r(1,2) = val(s_offset_tot$)
-  map2%r(3,4) = val(s_offset_tot$)
+if (val(z_offset_tot$) /= 0) then
+  map2%r(1,2) = val(z_offset_tot$)
+  map2%r(3,4) = val(z_offset_tot$)
 endif
 
 ! Front side: Offset and pitch
@@ -322,9 +322,9 @@ endif
 
 ! Back side: S_offset.
 
-if (val(s_offset_tot$) /= 0) then
-  map2%r(1,2) = -val(s_offset_tot$)
-  map2%r(3,4) = -val(s_offset_tot$)
+if (val(z_offset_tot$) /= 0) then
+  map2%r(1,2) = -val(z_offset_tot$)
+  map2%r(3,4) = -val(z_offset_tot$)
 endif
 
 ! concat with map of body
