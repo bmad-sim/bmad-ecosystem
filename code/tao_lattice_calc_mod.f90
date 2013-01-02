@@ -559,10 +559,10 @@ character(24) :: r_name = "tao_inject_particle"
 ! Not main branch case
 
 branch => model%lat%branch(ix_branch)
+i_br_from  = branch%ix_from_branch
 
-if (ix_branch /= 0) then
+if (i_br_from > -1) then
   i_ele_from = branch%ix_from_ele
-  i_br_from  = branch%ix_from_branch
   from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
   branch%ele(0)%x = from_ele%x
   branch%ele(0)%y = from_ele%y

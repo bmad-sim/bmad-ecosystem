@@ -207,7 +207,7 @@ type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
 
-integer i, j, k, ix, ios
+integer i, j, k, ix, ios, ix_ele
 integer n_bunch, n_particle, n_particle_lines, ix_lost
 
 real(rp) vec(6), sum_charge
@@ -341,7 +341,7 @@ do i = 1, n_bunch
 
       call string_trim(line(ix+1:), line, ix)
       if (ix == 0) cycle
-      read (line, *, iostat = ios) p(j)%ix_ele, p(j)%location
+      read (line, *, iostat = ios) ix_ele, p(j)%location
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
                         'ERROR READING PARTICLE LOCATION IN: ' // rb_com%file_name, &
@@ -366,7 +366,7 @@ do i = 1, n_bunch
     do j = 1, n_particle_lines
       if (j > n_particle) exit
       read (rb_com%iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, &
-                                     p(j)%ix_ele, p(j)%location
+                                     ix_ele, p(j)%location
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
                         'ERROR READING PARTICLE COORDINATES IN: ' // rb_com%file_name, &

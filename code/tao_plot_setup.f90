@@ -11,10 +11,10 @@
 subroutine tao_plot_setup ()
 
 use quick_plot
-use tao_mod, dummy => tao_plot_setup
-use tao_graph_setup_mod, only: tao_graph_setup
-use tao_scale_mod, only: tao_scale_graph
-use tao_x_scale_mod, only: tao_x_scale_plot, tao_x_scale_graph
+use tao_mod
+use tao_graph_setup_mod
+use tao_scale_mod
+use tao_x_scale_mod
 
 implicit none
 

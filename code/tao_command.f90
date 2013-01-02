@@ -14,24 +14,18 @@
 
 subroutine tao_command (command_line, err)
 
-use tao_mod, dummy => tao_command
-use tao_change_mod, only: tao_change_ele, tao_change_var
-use tao_command_mod, only: tao_cmd_split, tao_history_cmd
-use tao_data_and_eval_mod, only: tao_to_int, tao_to_real
-use tao_dmerit_mod, only: tao_dmodel_dvar_calc
-use tao_misalign_mod, only: tao_misalign
-use tao_cut_ring_mod, only: tao_cut_ring
-use tao_plot_window_mod, only: tao_destroy_plot_window
-use tao_scale_mod, only: tao_scale_cmd
-use tao_set_mod, only: tao_set_beam_init_cmd, tao_set_bmad_com_cmd, &
-                 tao_set_csr_param_cmd, tao_set_curve_cmd, tao_set_data_cmd, &
-                 tao_set_drawing_cmd, tao_set_elements_cmd, tao_set_global_cmd, &
-                 tao_set_graph_cmd, tao_set_lattice_cmd, tao_set_opti_de_param_cmd, &
-                 tao_set_plot_cmd, tao_set_plot_page_cmd, tao_set_ran_state_cmd, &
-                 tao_set_universe_cmd, tao_set_var_cmd, tao_set_wave_cmd
-use tao_show_mod, only: tao_show_cmd
-use tao_wave_mod, only: tao_wave_cmd
-use tao_x_scale_mod, only: tao_x_scale_cmd
+use tao_change_mod
+use tao_command_mod
+use tao_data_and_eval_mod
+use tao_dmerit_mod
+use tao_misalign_mod
+use tao_cut_ring_mod
+use tao_plot_window_mod
+use tao_scale_mod
+use tao_set_mod
+use tao_show_mod
+use tao_wave_mod
+use tao_x_scale_mod
 
 implicit none
 
@@ -407,7 +401,7 @@ case ('reinitialize')
     s%global%init_plot_needed = .true.
     
     if (tao_com%init_tao_file /= '') call out_io (s_info$, r_name, 'Reinitializing with: ' // tao_com%init_tao_file)
-    call tao_init ()
+    call tao_init (err)
     return
 
   case default

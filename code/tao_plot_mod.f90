@@ -433,9 +433,9 @@ if (allocated(s%building_wall%section)) then
 
       do j = 2, size(pt)
         if (pt(j)%radius == 0) then   ! line
-          call floor_to_screen (pt(j-1)%x, 0.0_rp, pt(j-1)%z, end1%x, end1%y)
-          call floor_to_screen (pt(j)%x, 0.0_rp, pt(j)%z, end2%x, end2%y)
-          call qp_draw_line(end1%x, end2%x, end1%y, end2%y, color = icol)
+          call floor_to_screen ([pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
+          call floor_to_screen ([pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
+          call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), color = icol)
 
         else                    ! arc
           theta1 = atan2(pt(j-1)%x - pt(j)%x_center, pt(j-1)%z - pt(j)%z_center)
@@ -447,7 +447,7 @@ if (allocated(s%building_wall%section)) then
             v_vec(1) = pt(j)%x_center + abs(pt(j)%radius) * sin(theta)
             v_vec(2) = 0
             v_vec(3) = pt(j)%z_center + abs(pt(j)%radius) * cos(theta)
-            call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(k), y_bend(k))
+            call floor_to_screen (v_vec, x_bend(k), y_bend(k))
           enddo
           call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), color = icol)
         endif
@@ -501,8 +501,8 @@ type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 
 integer i, j, k, icol, isu, n_bend, n, ix, ic, n_mid
 
-real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2
-real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
+real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
+real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
 real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
@@ -535,10 +535,10 @@ call floor_to_screen_coords (ele2%floor, end2)
 
 ! Only draw those element that have at least one point in bounds.
   
-if ((end1%x < graph%x%min .or. graph%x%max < end1%x .or. &
-    end1%y < graph%y%min .or. graph%y%max < end1%y) .and. &
-    (end2%x < graph%x%min .or. graph%x%max < end2%x .or. &
-    end2%y < graph%y%min .or. graph%y%max < end2%y)) return
+if ((end1%r(1) < graph%x%min .or. graph%x%max < end1%r(1) .or. &
+    end1%r(2) < graph%y%min .or. graph%y%max < end1%r(2)) .and. &
+    (end2%r(1) < graph%x%min .or. graph%x%max < end2%r(1) .or. &
+    end2%r(2) < graph%y%min .or. graph%y%max < end2%r(2))) return
 
 ! Bends can be tricky if they are not in the X-Z plane. 
 ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
@@ -547,18 +547,23 @@ if ((end1%x < graph%x%min .or. graph%x%max < end1%x .or. &
 if (is_bend) then
 
   floor = ele1%floor
-  v_old = [floor%x, floor%y, floor%z]
+  v_old = floor%r
   call floor_angles_to_w_mat (floor%theta, floor%phi, 0.0_rp, w_old)
 
   n_bend = min(abs(int(100 * ele%value(angle$))) + 1, ubound(x_bend, 1))
+  ang    = ele%value(angle$)
+  length = ele%value(l$)
+  if (ele%reversed) then
+    ang = -ang; length = -length
+  endif
   do j = 0, n_bend
-    angle = j * ele%value(angle$) / n_bend
+    angle = j * ang / n_bend
     cos_t = cos(ele%value(tilt$))
     sin_t = sin(ele%value(tilt$))
     cos_a = cos(angle)
     sin_a = sin(angle)
     if (ele%value(g$) == 0) then
-      r_vec = ele%value(l$) * j * [0, 0, 1]
+      r_vec = length * j * [0, 0, 1]
     else
       r_vec = ele%value(rho$) * [cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a]
     endif
@@ -567,25 +572,29 @@ if (is_bend) then
     if (cos_t < 0) dr_vec = -dr_vec
     v_vec = matmul (w_old, r_vec) + v_old
     dv_vec = matmul (w_old, dr_vec) 
-    call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
-    call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx_bend(j), dy_bend(j))
+    call floor_to_screen (v_vec, x_bend(j), y_bend(j))
+    call floor_to_screen (dv_vec, dx_bend(j), dy_bend(j))
 
     ! Correct for e1 and e2 face angles which are a rotation of the faces about
     ! the local y-axis.
 
     if (j == 0) then
-      dr_vec = tan(ele%value(e1$)) * [cos_t * cos_a, sin_t * cos_a, sin_a]
+      e_edge = ele%value(e1$)
+      if (ele%reversed) e_edge = -ele%value(e2$)
+      dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
-      call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx1, dy1)
+      call floor_to_screen (dv_vec, dx1, dy1)
       dx_bend(j) = dx_bend(j) - dx1
       dy_bend(j) = dy_bend(j) - dy1
       e1_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
     endif
 
     if (j == n_bend) then
-      dr_vec = tan(ele%value(e2$)) * [cos_t * cos_a, sin_t * cos_a, sin_a]
+      e_edge = ele%value(e2$)
+      if (ele%reversed) e_edge = -ele%value(e1$)
+      dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
-      call floor_to_screen (dv_vec(1), dv_vec(2), dv_vec(3), dx1, dy1)
+      call floor_to_screen (dv_vec, dx1, dy1)
       dx_bend(j) = dx_bend(j) + dx1
       dy_bend(j) = dy_bend(j) + dy1
       e2_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
@@ -601,7 +610,7 @@ if (.not. associated(ele_shape)) then
   if (is_bend) then
     call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
   else
-    call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
+    call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2))
   endif
   return
 endif
@@ -637,15 +646,15 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   drift%value(l$) = ele%value(x_ray_line_len$)
   call ele_geometry (ele2%floor, drift, drift%floor) 
   call floor_to_screen_coords (drift%floor, x_ray)
-  call qp_convert_point_abs (x_ray%x, x_ray%y, 'DATA', x_ray%x, x_ray%y, 'POINTS')
+  call qp_convert_point_abs (x_ray%r(1), x_ray%r(2), 'DATA', x_ray%r(1), x_ray%r(2), 'POINTS')
 endif
 
 ! Draw the shape. Since the conversion from floor coords to screen coords can
 ! be different along x and y, we convert to screen coords to make sure that rectangles
 ! remain rectangular.
 
-call qp_convert_point_abs (end1%x, end1%y, 'DATA', end1%x, end1%y, 'POINTS')
-call qp_convert_point_abs (end2%x, end2%y, 'DATA', end2%x, end2%y, 'POINTS')
+call qp_convert_point_abs (end1%r(1), end1%r(2), 'DATA', end1%r(1), end1%r(2), 'POINTS')
+call qp_convert_point_abs (end2%r(1), end2%r(2), 'DATA', end2%r(1), end2%r(2), 'POINTS')
 
 ! dx1, etc. are offsets perpendicular to the refernece orbit
 
@@ -741,7 +750,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   if (associated(branch_shape)) then
     if (branch_shape%draw) then
       call qp_translate_to_color_index (branch_shape%color, ic)
-      call qp_draw_line (x_ray%x, end2%x, x_ray%y, end2%y, units = 'POINTS', color = ic)
+      call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = 'POINTS', color = ic)
     endif
   endif
 endif
@@ -758,21 +767,21 @@ if (ele_shape%shape == 'DIAMOND') then
     y1 = (y_bend(n) + dy_bend(n)) / 2
     y2 = (y_bend(n) - dy_bend(n)) / 2
   else
-    x1 = ((end1%x + end2%x) + (dx1 + dx2)) / 2
-    x2 = ((end1%x + end2%x) - (dx1 + dx2)) / 2
-    y1 = ((end1%y + end2%y) + (dy1 + dy2)) / 2
-    y2 = ((end1%y + end2%y) - (dy1 + dy2)) / 2
+    x1 = ((end1%r(1) + end2%r(1)) + (dx1 + dx2)) / 2
+    x2 = ((end1%r(1) + end2%r(1)) - (dx1 + dx2)) / 2
+    y1 = ((end1%r(2) + end2%r(2)) + (dy1 + dy2)) / 2
+    y2 = ((end1%r(2) + end2%r(2)) - (dy1 + dy2)) / 2
   endif
-  call qp_draw_line (end1%x, x1, end1%y, y1, units = 'POINTS', color = icol)
-  call qp_draw_line (end1%x, x2, end1%y, y2, units = 'POINTS', color = icol)
-  call qp_draw_line (end2%x, x1, end2%y, y1, units = 'POINTS', color = icol)
-  call qp_draw_line (end2%x, x2, end2%y, y2, units = 'POINTS', color = icol)
+  call qp_draw_line (end1%r(1), x1, end1%r(2), y1, units = 'POINTS', color = icol)
+  call qp_draw_line (end1%r(1), x2, end1%r(2), y2, units = 'POINTS', color = icol)
+  call qp_draw_line (end2%r(1), x1, end2%r(2), y1, units = 'POINTS', color = icol)
+  call qp_draw_line (end2%r(1), x2, end2%r(2), y2, units = 'POINTS', color = icol)
 endif
 
 ! Draw a circle.
 
 if (ele_shape%shape == 'CIRCLE') then
-  call qp_draw_circle ((end1%x+end2%x)/2, (end1%y+end2%y)/2, off, &
+  call qp_draw_circle ((end1%r(1)+end2%r(1))/2, (end1%r(2)+end2%r(2))/2, off, &
                                                   units = 'POINTS', color = icol)
 endif
 
@@ -786,8 +795,8 @@ if (ele_shape%shape == 'X') then
     dx1 = dx_bend(n)
     dy1 = dy_bend(n)
   else
-    x0 = (end1%x + end2%x) / 2
-    y0 = (end1%y + end2%y) / 2
+    x0 = (end1%r(1) + end2%r(1)) / 2
+    y0 = (end1%r(2) + end2%r(2)) / 2
   endif
   call qp_draw_line (x0 - dx1, x0 + dx1, y0 - dy1, y0 + dy1, units = 'POINTS', color = icol) 
   call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = 'POINTS', color = icol) 
@@ -803,9 +812,9 @@ if (ele_shape%shape == 'BOW_TIE' .or. shape_has_box) then
                           y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
 
   else
-    call qp_draw_line (end1%x+dx1, end2%x+dx1, end1%y+dy1, end2%y+dy1, &
+    call qp_draw_line (end1%r(1)+dx1, end2%r(1)+dx1, end1%r(2)+dy1, end2%r(2)+dy1, &
                                                     units = 'POINTS', color = icol)
-    call qp_draw_line (end1%x-dx2, end2%x-dx2, end1%y-dy2, end2%y-dy2, &
+    call qp_draw_line (end1%r(1)-dx2, end2%r(1)-dx2, end1%r(2)-dy2, end2%r(2)-dy2, &
                                                     units = 'POINTS', color = icol)
   endif
 endif
@@ -820,9 +829,9 @@ if (shape_has_box) then
     call qp_draw_line (x_bend(n)-dx_bend(n), x_bend(n)+dx_bend(n), &
                        y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = 'POINTS', color = icol)
   else
-    call qp_draw_line (end1%x+dx1, end1%x-dx2, end1%y+dy1, end1%y-dy2, &
+    call qp_draw_line (end1%r(1)+dx1, end1%r(1)-dx2, end1%r(2)+dy1, end1%r(2)-dy2, &
                                                   units = 'POINTS', color = icol)
-    call qp_draw_line (end2%x+dx1, end2%x-dx2, end2%y+dy1, end2%y-dy2, &
+    call qp_draw_line (end2%r(1)+dx1, end2%r(1)-dx2, end2%r(2)+dy1, end2%r(2)-dy2, &
                                                   units = 'POINTS', color = icol)
   endif
 endif
@@ -830,9 +839,9 @@ endif
 ! Draw X for xbox or bow_tie
 
 if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
-  call qp_draw_line (end1%x+dx1, end2%x-dx2, end1%y+dy1, end2%y-dy2, &
+  call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, &
                                                   units = 'POINTS', color = icol)
-  call qp_draw_line (end1%x-dx2, end2%x+dx1, end1%y-dy1, end2%y+dy2, &
+  call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, &
                                                   units = 'POINTS', color = icol)
 endif
 
@@ -859,8 +868,8 @@ endif
 
 if (ele_shape%label /= 'none') then
   if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
-    x_center = (end1%x + end2%x) / 2 
-    y_center = (end1%y + end2%y) / 2 
+    x_center = (end1%r(1) + end2%r(1)) / 2 
+    y_center = (end1%r(2) + end2%r(2)) / 2 
     dx = -2 * dt_y / sqrt(dt_x**2 + dt_y**2)
     dy =  2 * dt_x / sqrt(dt_x**2 + dt_y**2)
   else

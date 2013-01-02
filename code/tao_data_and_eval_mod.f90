@@ -1290,13 +1290,13 @@ case ('floor.')
   select case (datum%data_type)
 
   case ('floor.x')
-    call tao_load_this_datum (branch%ele(:)%floor%x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%floor%r(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   case ('floor.y')
-    call tao_load_this_datum (branch%ele(:)%floor%y, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%floor%r(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   case ('floor.z')
-    call tao_load_this_datum (branch%ele(:)%floor%z, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%floor%r(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   case ('floor.theta')
     call tao_load_this_datum (branch%ele(:)%floor%theta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -1842,7 +1842,7 @@ case ('rel_floor.')
     i = ix_start
     do 
       ele2 => branch%ele(i)
-      vec3 = (/ ele2%floor%x - ele_ref%floor%x, ele2%floor%y - ele_ref%floor%y, ele2%floor%z - ele_ref%floor%z /)
+      vec3 = ele2%floor%r - ele_ref%floor%r
       vec3 = matmul (w0_mat, vec3)
       select case (datum%data_type)
       case ('rel_floor.x')
@@ -2163,7 +2163,7 @@ case ('wall.')
       
       do is = 1, size(section%point)
         pt => section%point(is)
-        dz = pt%z - ele%floor%z; dx = pt%x - ele%floor%x
+        dz = pt%z - ele%floor%r(3); dx = pt%x - ele%floor%r(1)
         cos_theta = cos(ele%floor%theta); sin_theta = sin(ele%floor%theta)
         z_pt =  dz * cos_theta + dx * sin_theta
         x_pt = -dz * sin_theta + dx * cos_theta
@@ -2175,7 +2175,7 @@ case ('wall.')
           if (pt%radius == 0 .or. z_pt == 0 .or. z0_pt == 0) then
             x_wall = (x0_pt * z_pt - x_pt * z0_pt) / (z_pt - z0_pt)
           else
-            dz = pt%z_center - ele%floor%z; dx = pt%x_center - ele%floor%x
+            dz = pt%z_center - ele%floor%r(3); dx = pt%x_center - ele%floor%r(1)
             z_center =  dz * cos_theta + dx * sin_theta
             x_center = -dz * sin_theta + dx * cos_theta
             if (pt%radius * z_pt > 0) then

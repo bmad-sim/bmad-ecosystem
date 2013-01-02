@@ -4,6 +4,12 @@
 ! Module to define the interfaces for the tao routines.
 !-
 
+! Note: To overcome a problem with the intel compiler the following routine interfaces
+! Have been deleted:
+!   tao_command
+!   tao_command_end_calc
+!   tao_plot_setup
+
 module tao_interface
 
 use tao_struct
@@ -37,20 +43,6 @@ interface
     logical gang
     character(*) :: where
     real(rp) value1, value2
-  end subroutine
-end interface
- 
-interface
-  subroutine tao_cmd_end_calc ()
-    implicit none
-  end subroutine
-end interface
- 
-interface
-  subroutine tao_command (cmd_line, err)
-    implicit none
-    character(*) :: cmd_line
-    logical err
   end subroutine
 end interface
  
@@ -255,7 +247,7 @@ end interface
 interface
   subroutine tao_init (err_flag)
     implicit none
-    logical, optional :: err_flag
+    logical :: err_flag
   end subroutine
 end interface
  
@@ -340,12 +332,6 @@ interface
     implicit none
     character(*) :: where
     character(*) :: component
-  end subroutine
-end interface
- 
-interface
-  subroutine tao_plot_setup ()
-    implicit none
   end subroutine
 end interface
  
