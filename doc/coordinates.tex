@@ -76,8 +76,10 @@ in the local coordinate frame using offsets, tilt, and pitches.}
 
 There is a separate reference orbit for each branch
 (\sref{s:branch.def}) of a lattice.  When there are multiple branches,
-the reference orbit of the lattice branches are calculated in order
-starting from the first branch (branch \# 0).
+the reference orbit of a branch must not depend upon the configuration
+of branches later on in the array of branches in the lattice. As a
+consequence, the reference orbits of the branches can be calculated
+one at a time stirting with the first branch in the array.
 
 For a given lattice branch, assuming there are no \vn{fiducial} elements,
 The local reference frame is constructed beginning at the first element in

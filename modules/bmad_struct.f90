@@ -534,11 +534,10 @@ end type
 
 type branch_struct
   character(40) name
-  integer ix_branch         ! Index of this branch. 0 => Main branch
-  integer ix_root_branch    ! Root branch index for this machine.
-  integer ix_from_branch    ! -1 => Not connected/
-  integer ix_from_ele       ! Branch ele in from_branch index.
-  integer ix_to_ele         ! ele in this branch that branch ele in from_branch attaches to.
+  integer :: ix_branch = -1        ! Index of this branch. 0 => Main branch
+  integer :: ix_root_branch = -1   ! Root branch index for this machine.
+  integer :: ix_from_branch = -1   ! -1 => Not connected/
+  integer :: ix_from_ele = -1      ! Branch ele in from_branch index.
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
   type (lat_struct), pointer :: lat => null()
@@ -685,7 +684,7 @@ integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displac
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
 integer, parameter :: flexible$ = 5, crunch$=5
-integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6
+integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, clone$ = 6
 integer, parameter :: g$=6, graze_angle_in$ = 6
 integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: gradient_err$=7, critical_angle$ = 7
@@ -1077,9 +1076,18 @@ end type
   
 type (bmad_common_struct), save :: bmad_com
 
-! multi_turn_func_common is for multi_turn_tracking_to_mat.
+! Some routines need to keep track of where elements are when elements are added or removed from
+! the lattice. 
 
-type (coord_struct), pointer :: multi_turn_func_common(:) => null()
+type ele_loc_ele_struct
+  type (lat_ele_loc_struct), allocatable :: ele(:)
+end type
+
+type ele_loc_branch_struct
+  type (ele_loc_ele_struct), allocatable :: branch(:)
+end type
+
+type (ele_loc_branch_struct), save, target :: ele_loc_com
 
 ! This structure stores the radiation integrals for an individual element except
 ! lin_norm_emit_a and lin_norm_emit_b are running sums from the beginning of the branch.

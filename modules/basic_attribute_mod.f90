@@ -468,11 +468,12 @@ enddo
 
 !
 
-call init_attribute_name1 (photon_branch$, ix_to_branch$,         'ix_to_branch', private$)
-call init_attribute_name1 (photon_branch$, ix_to_element$,        'ix_to_element', private$)
-call init_attribute_name1 (photon_branch$, direction$,            'DIRECTION')
-call init_attribute_name1 (photon_branch$, to_line$,              'TO_LINE')
-call init_attribute_name1 (photon_branch$, to_element$,           'TO_ELEMENT')
+call init_attribute_name1 (photon_branch$, ix_to_branch$,            'IX_TO_BRANCH', dependent$)
+call init_attribute_name1 (photon_branch$, ix_to_element$,           'IX_TO_ELEMENT', dependent$)
+call init_attribute_name1 (photon_branch$, direction$,               'DIRECTION')
+call init_attribute_name1 (photon_branch$, to_line$,                 'TO_LINE')
+call init_attribute_name1 (photon_branch$, to_element$,              'TO_ELEMENT')
+call init_attribute_name1 (photon_branch$, clone$,                   'CLONE')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
@@ -1172,11 +1173,11 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'FOLLOW_DIFFRACTED_BEAM', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'RF_AUTO_SCALE_PHASE', &
       'RF_AUTO_SCALE_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS')
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'CLONE')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
-      'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', 'PTC_MAX_FRINGE_ORDER')
+      'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', 'PTC_MAX_FRINGE_ORDER')
   attrib_type = is_integer$
 
 case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'LATTICE_TYPE', &
@@ -1186,7 +1187,7 @@ case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'LATTICE_
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
-     'CRYSTAL_TYPE', 'REFERENCE', 'TO_LINE', 'ORIGIN_ELE')
+     'CRYSTAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE')
   attrib_type = is_string$
 
 case default

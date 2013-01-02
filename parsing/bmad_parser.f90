@@ -50,32 +50,33 @@ type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
+type (ele_pointer_struct), allocatable :: branch_ele(:)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
-character(40), allocatable ::  in_name(:), seq_name(:)
 
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc
-integer ib, ie, ib2, ie2, flip
+integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_branch, n_branch_max
 integer, pointer :: n_max, n_ptr
 
 character(*) lat_file
 character(*), optional :: use_line
 
 character(1) delim
-character(40) word_2, name
 character(16), parameter :: r_name = 'bmad_parser'
+character(40) word_2, name
 character(40) this_name, word_1
-character(200) full_lat_file_name, digested_file, call_file
-character(280) parse_line_save, line
+character(40), allocatable ::  in_name(:), seq_name(:)
 character(80) debug_line
+character(200) full_lat_file_name, digested_file, call_file
+character(280) parse_line_save, line, use_line_str
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, xsif_called, print_err, wild_here
 logical end_of_file, found, err_if_not_found, err, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, wildcards_permitted, matched
-logical auto_bookkeeper_saved
+logical auto_bookkeeper_saved, is_photon_branch, created_new_branch
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
@@ -189,8 +190,13 @@ bp_com%beam_start_ele%name = 'BEAM_START'           ! For beam starting paramete
 bp_com%beam_start_ele%key = def_beam_start$
 call find_indexx2 (in_lat%ele(3)%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)
 
+ele => in_lat%ele(4)
+ele%name = 'END'            ! Reserve END name for the last element
+ele%key = marker$
+call find_indexx2 (in_lat%ele(4)%name, in_name, in_indexx, 0, 3, ix, add_to_list = .true.)
+
 n_max => in_lat%n_ele_max
-n_max = 3                              ! Number of elements encountered
+n_max = 4                              ! Number of elements encountered
 
 lat%n_control_max = 0
 detected_expand_lattice_cmd = .false.
@@ -687,7 +693,8 @@ do i = 1, n_max-1
                   ('DUPLICATE ELEMENT NAME ' // in_lat%ele(ix1)%name)
 enddo
 
-! find line corresponding to the "use" statement and expand the used line.
+!----------------------------------------------------------------------
+! Expand all branches...
 
 if (present (use_line)) then
   if (use_line /= '') call str_upcase (lat%use_name, use_line)
@@ -699,39 +706,114 @@ if (lat%use_name == blank_name$) then
   return
 endif
 
-allocate (bp_com%used_line(n_max))
+use_line_str = lat%use_name
+n_branch_ele = 0
+allocate (branch_ele(20))
 
-line = lat%use_name
-n = 0
-do
-  ix = index(line, ',')
-  if (ix == 0) then
-    this_name = line
-    line = ''
+n_branch_max = 1000
+branch_loop: do i_branch = 1, n_branch_max
+
+  ! Expand branches from branch elements before expanding branches from the use command. 
+
+  if (n_branch_ele /= 0) then
+    ele => branch_ele(1)%ele
+    call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat, created_new_branch)
+    this_name = ele%component_name
+    is_photon_branch = (ele%key == photon_branch$)
+    n_branch_ele = n_branch_ele - 1
+    branch_ele(1:n_branch_ele) = branch_ele(2:n_branch_ele+1)
+    if (.not. created_new_branch) cycle 
+
   else
-    this_name = line(1:ix-1)
-    line = line(ix+1:)
-  endif
-  call parser_expand_line (n, lat, this_name, sequence, in_name, in_indexx, &
-                                      seq_name, seq_indexx, in_lat, n_ele_use)
-  branch => lat%branch(n)
-  branch%name = this_name
-  branch%ix_from_branch = -1
-  branch%ix_root_branch = -1
-  branch%name = this_name
+    if (use_line_str == '') exit
+    ix = index(use_line_str, ',')
+    if (ix == 0) then
+      this_name = use_line_str
+      use_line_str = ''
+    else
+      this_name = use_line_str(1:ix-1)
+      use_line_str = use_line_str(ix+1:)
+    endif
 
-  ! Add energy, species, etc info for all branches except branch(0) which is handled "old style".
-
-  if (n == 0) then
-    lat%ele(0)     = in_lat%ele(0)    ! Beginning element
+    call parser_expand_line (lat, this_name, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+    is_photon_branch = .false.
   endif
+
+  n_branch = ubound(lat%branch, 1)
+  branch => lat%branch(n_branch)
 
   call find_indexx2 (this_name, in_name, in_indexx, 0, n_max, ix)
   ele => in_lat%ele(ix)    
   ele0 => branch%ele(0)
 
+  ele0%value(e_tot$) = -1
+  ele0%value(p0c$)   = -1 
+
+
+  ! Add energy, species, etc info for all branches except branch(0) which is handled "old style".
+
+  if (n_branch == 0) then
+    lat%ele(0)     = in_lat%ele(0)    ! Beginning element
+    lat%version = bmad_inc_version$
+    lat%input_file_name         = full_lat_file_name             ! save input file  
+
+    lat%beam_start = in_lat%beam_start
+    lat%a          = in_lat%a
+    lat%b          = in_lat%b
+    lat%z          = in_lat%z
+    lat%absolute_time_tracking      = in_lat%absolute_time_tracking
+    lat%rf_auto_scale_phase         = in_lat%rf_auto_scale_phase
+    lat%rf_auto_scale_amp           = in_lat%rf_auto_scale_amp
+    lat%use_ptc_layout              = in_lat%use_ptc_layout
+    if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
+    call move_alloc (in_lat%attribute_alias, lat%attribute_alias)
+
+    call mat_make_unit (lat%ele(0)%mat6)
+    call clear_lat_1turn_mats (lat)
+
+    if (bp_com%beam_ele%value(n_part$) /= 0 .and. bp_com%param_ele%value(n_part$) /= 0) &
+              call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
+    lat%param%n_part = max(bp_com%beam_ele%value(n_part$), bp_com%param_ele%value(n_part$))
+
+    ix1 = nint(bp_com%param_ele%value(particle$))
+    ix2 = nint(bp_com%beam_ele%value(particle$))
+    if (ix1 /= positron$ .and. ix2 /= positron$) &
+            call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
+    lat%param%particle = ix1
+    if (ix2 /=  positron$) lat%param%particle = ix2
+
+    ! The lattice name from a "parameter[lattice] = ..." line is 
+    ! stored the bp_com%param_ele%descrip string
+
+    if (associated(bp_com%param_ele%descrip)) then
+      lat%lattice = bp_com%param_ele%descrip
+      deallocate (bp_com%param_ele%descrip)
+    endif
+
+    ! Set lattice_type.
+
+    ix = nint(bp_com%param_ele%value(lattice_type$))
+    if (ix > 0) then  ! lattice_type has been set.
+      lat%param%lattice_type = ix
+    else              ! else use default
+      lat%param%lattice_type = circular_lattice$      ! default 
+      if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
+        if (global_com%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
+                                      'SETTING THE LATTICE_TYPE TO LINEAR_LATTICE.')
+        lat%param%lattice_type = linear_lattice$
+      endif
+    endif
+
+  endif
+
+  !----
+
   if (ele%value(particle$) == real_garbage$) then
-    branch%param%particle = lat%param%particle
+    if (is_photon_branch) then
+      branch%param%particle = photon$
+    else
+      branch%param%particle = lat%param%particle
+    endif
   else
     branch%param%particle = ele%value(particle$)
   endif
@@ -746,120 +828,44 @@ do
   if (ele%b%beta /= 0)            ele0%b             = ele%b
   if (ele%value(floor_set$) /= 0) ele0%floor         = ele%floor 
 
-  !
-
-  if (line == '') exit
-  n = n + 1
-enddo
-
-
-if (bp_com%error_flag) then
-  call parser_end_stuff ()
-  return
-endif
-
-!---------------------------------------------------------------
-! If a girder elements refer to a line then must expand that line.
-
-do i = 1, n_max
-  lord => in_lat%ele(i)
-  if (lord%lord_status /= girder_lord$) cycle
-  pele => plat%ele(i)
-  j = 0
-  do 
-    j = j + 1
-    if (j > lord%n_slave) exit
-    call find_indexx(pele%name(j), seq_name, seq_indexx, size(seq_name), k, k2)
-    if (k == 0) cycle
-    call parser_expand_line (0, lat2, pele%name(j), sequence, in_name, in_indexx, &
-                                      seq_name, seq_indexx, in_lat, n_ele_use)
-    ! Put elements from the line expansion into the slave list.
-    ! Remember to ignore drifts.
-    lord%n_slave = lord%n_slave - 1   ! Remove beam line name
-    pele%name(1:lord%n_slave) = [pele%name(1:j-1), pele%name(j+1:lord%n_slave+1)]
-    call re_allocate (pele%name, lord%n_slave+n_ele_use)
-    do k = 1, n_ele_use
-      call find_indexx2 (lat2%ele(k)%name, in_name, in_indexx, 0, n_max, ix, ix2)      
-      if (ix /= 0) then
-        if (in_lat%ele(ix)%key == drift$) cycle
-      endif
-      lord%n_slave = lord%n_slave + 1
-      pele%name(lord%n_slave) = lat2%ele(k)%name
-    enddo
-  enddo
-enddo
-
-!---------------------------------------------------------------
-! We have the line to use in constructing the lat.
-! now to put the elements in LAT in the correct order.
-! superimpose, overlays, and groups are handled later.
-! first load beam parameters.
-
-lat%version = bmad_inc_version$
-lat%input_file_name         = full_lat_file_name             ! save input file  
-
-lat%beam_start = in_lat%beam_start
-lat%a          = in_lat%a
-lat%b          = in_lat%b
-lat%z          = in_lat%z
-lat%absolute_time_tracking      = in_lat%absolute_time_tracking
-lat%rf_auto_scale_phase         = in_lat%rf_auto_scale_phase
-lat%rf_auto_scale_amp           = in_lat%rf_auto_scale_amp
-lat%use_ptc_layout              = in_lat%use_ptc_layout
-if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
-call move_alloc (in_lat%attribute_alias, lat%attribute_alias)
-
-call mat_make_unit (lat%ele(0)%mat6)
-call clear_lat_1turn_mats (lat)
-
-if (bp_com%beam_ele%value(n_part$) /= 0 .and. bp_com%param_ele%value(n_part$) /= 0) &
-          call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
-lat%param%n_part = max(bp_com%beam_ele%value(n_part$), bp_com%param_ele%value(n_part$))
-
-ix1 = nint(bp_com%param_ele%value(particle$))
-ix2 = nint(bp_com%beam_ele%value(particle$))
-if (ix1 /= positron$ .and. ix2 /= positron$) &
-        call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
-lat%param%particle = ix1
-if (ix2 /=  positron$) lat%param%particle = ix2
-
-! The lattice name from a "parameter[lattice] = ..." line is 
-! stored the bp_com%param_ele%descrip string
-
-if (associated(bp_com%param_ele%descrip)) then
-  lat%lattice = bp_com%param_ele%descrip
-  deallocate (bp_com%param_ele%descrip)
-endif
-
-! Set lattice_type.
-
-ix = nint(bp_com%param_ele%value(lattice_type$))
-if (ix > 0) then  ! lattice_type has been set.
-  lat%param%lattice_type = ix
-else              ! else use default
-  lat%param%lattice_type = circular_lattice$      ! default 
-  if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
-    if (global_com%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
-                                  'SETTING THE LATTICE_TYPE TO LINEAR_LATTICE.')
-    lat%param%lattice_type = linear_lattice$
+  if (bp_com%error_flag) then
+    call parser_end_stuff ()
+    return
   endif
-endif
 
-! Set taylor_order
+  ! Go through the IN_LAT elements and put in the superpositions.
+  ! If the superposition is a branch element, need to add the branch line.
 
-lat%input_taylor_order = nint(bp_com%param_ele%value(taylor_order$))
+  call s_calc (lat)              ! calc longitudinal distances
+  call control_bookkeeper (lat)
 
-if (lat%input_taylor_order /= 0) call set_taylor_order (lat%input_taylor_order, .false.)
+  do i = 1, n_max
+    if (in_lat%ele(i)%lord_status /= super_lord$) cycle
+    call add_all_superimpose (branch, in_lat%ele(i), plat%ele(i), in_lat)
+    call s_calc (lat)  ! calc longitudinal distances of new branch elements
+  enddo
 
-! Add branch lines.
-! Branch lines may contain branch elements so this is an iterative process
+  ! Add branch lines to the list of branches to construct.
 
-do i = 1, lat%n_ele_max
-  if (lat%ele(i)%key /= photon_branch$ .and. lat%ele(i)%key /= branch$) cycle
-  if (lat%ele(i)%slave_status == multipass_slave$) cycle
-  call parser_add_branch (lat%ele(i), lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat)
-enddo
+  j = 0
+  do i = 1, branch%n_ele_max
+    if (branch%ele(i)%key /= photon_branch$ .and. branch%ele(i)%key /= branch$) cycle
+    j = j + 1
+    n_branch_ele = n_branch_ele + 1
+    call re_allocate_eles (branch_ele, n_branch_ele + 10, .true., .false.)
+    branch_ele(j+1:n_branch_ele) = branch_ele(j:n_branch_ele-1)
+    branch_ele(j)%ele => branch%ele(i)
+  enddo
 
+  if (i_branch == n_branch_max) then
+    call parser_error ('1000 BRANCHES GENERATED. LOOKS LIKE AN ENDLESS LOOP')
+    call parser_end_stuff ()
+    return
+  endif 
+
+enddo branch_loop
+
+!--------------------------------------------
 ! Reference energy bookkeeping. 
 
 do i = 0, ubound(lat%branch, 1)
@@ -892,94 +898,8 @@ do i = 0, ubound(lat%branch, 1)
 
   ele%value(e_tot_start$) = ele%value(e_tot$)
   ele%value(p0c_start$) = ele%value(p0c$)
-enddo
 
-! Use arbitrary energy above the rest mass energy since when tracking individual elements the
-! true reference energy is used.
-
-call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
-
-! Error check that if a superposition attribute was set that "superposition" was set.
-
-do i = 1, n_max
-  if (in_lat%ele(i)%lord_status == super_lord$) cycle
-  pele => plat%ele(i)
-  if (pele%ref_name /= blank_name$ .or. pele%s /= 0 .or. &
-      pele%ele_pt /= not_set$ .or. pele%ref_pt /= not_set$) then
-    call parser_error ('SUPERPOSITION ATTRIBUTE SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)
-  endif
-enddo
-
-! Add end marker. Make sure name is not duplicated. Also do not add marker if one already exists.
-! Also Beginning and end marker elements inherit orientation of element next to them.
-
-call init_ele (marker_ele)
-marker_ele%key = marker$
-
-do i = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i)
-
-  branch%ele(0)%orientation = branch%ele(1)%orientation
-
-  if (nint(bp_com%param_ele%value(no_end_marker$)) /= 0) cycle
-
-  n_track = branch%n_ele_track
-  marker_ele%name = 'END'
-
-  do j = 1, n_track
-    if (branch%ele(j)%name == 'END') then
-      marker_ele%name = 'END_MARKER'
-      exit
-    endif
-  enddo
-
-  if (branch%ele(n_track)%name /= 'END' .or. branch%ele(n_track)%key /= marker$) then
-    if (marker_ele%name /= 'END') then
-      call parser_error ('ELEMENT NAMED "END" FOUND IN LATTICE.', & 
-                         'ENDING MARKER WILL BE NAMED: ' // trim(marker_ele%name), warn_only = .true.)
-    endif
-    call insert_element (lat, marker_ele, n_track+1, i)
-
-    flip = 1
-    do j = n_track, 0, -1
-      ele2 => branch%ele(j)
-      if (ele2%key == patch$ .or. ele2%key == floor_shift$) then
-        if (patch_flips_propagation_direction (ele2%value(x_pitch$), ele2%value(y_pitch$))) flip = -flip
-        cycle
-      endif
-      exit
-    enddo
-    branch%ele(n_track+1)%orientation = ele2%orientation * flip
-    
-  endif
-enddo
-
-! Go through the IN_LAT elements and put in the superpositions.
-! If the superposition is a branch element, need to add the branch line.
-
-call s_calc (lat)              ! calc longitudinal distances
-call control_bookkeeper (lat)
-
-do i = 1, n_max
-
-  if (in_lat%ele(i)%lord_status /= super_lord$) cycle
-  call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i), in_lat)
-
-  if (in_lat%ele(i)%key /= photon_branch$ .and. in_lat%ele(i)%key /= branch$) cycle
-  do j = 0, ubound(lat%branch, 1)
-    branch => lat%branch(j)
-    n_ele = branch%n_ele_max
-    do k = 1, n_ele
-      if (branch%ele(k)%name /= in_lat%ele(i)%name) cycle
-      call parser_add_branch (branch%ele(k), lat, sequence, in_name, in_indexx, &
-                                                              seq_name, seq_indexx, in_lat, plat)
-      branch => lat%branch(j)
-    enddo
-  enddo
-
-  call s_calc (lat)  ! calc longitudinal distances of new branch elements
-
-enddo
+enddo 
 
 ! Work on multipass...
 ! Multipass elements are paired by ele%iyy tag and ele%name must both match.
@@ -1005,6 +925,59 @@ do ib = 0, ubound(lat%branch, 1)
     call add_this_multipass (lat, m_slaves(1:n_multi))
   enddo
 enddo
+
+!-------------------------------------
+! If a girder elements refer to a line then must expand that line.
+
+do i = 1, n_max
+  lord => in_lat%ele(i)
+  if (lord%lord_status /= girder_lord$) cycle
+  pele => plat%ele(i)
+  j = 0
+  do 
+    j = j + 1
+    if (j > lord%n_slave) exit
+    call find_indexx(pele%name(j), seq_name, seq_indexx, size(seq_name), k, k2)
+    if (k == 0) cycle
+    call init_lat (lat2)
+    call parser_expand_line (lat2, pele%name(j), sequence, in_name, in_indexx, &
+                                      seq_name, seq_indexx, in_lat, n_ele_use)
+    ! Put elements from the line expansion into the slave list.
+    ! Remember to ignore drifts.
+    lord%n_slave = lord%n_slave - 1   ! Remove beam line name
+    pele%name(1:lord%n_slave) = [pele%name(1:j-1), pele%name(j+1:lord%n_slave+1)]
+    call re_allocate (pele%name, lord%n_slave+n_ele_use)
+    do k = 1, n_ele_use
+      call find_indexx2 (lat2%ele(k)%name, in_name, in_indexx, 0, n_max, ix, ix2)      
+      if (ix /= 0) then
+        if (in_lat%ele(ix)%key == drift$) cycle
+      endif
+      lord%n_slave = lord%n_slave + 1
+      pele%name(lord%n_slave) = lat2%ele(k)%name
+    enddo
+  enddo
+enddo
+
+! PTC stuff.
+! Use arbitrary energy above the rest mass energy since when tracking individual elements the
+! true reference energy is used.
+
+lat%input_taylor_order = nint(bp_com%param_ele%value(taylor_order$))
+if (lat%input_taylor_order /= 0) call set_taylor_order (lat%input_taylor_order, .false.)
+
+call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
+
+! Error check that if a superposition attribute was set that "superposition" was set.
+
+do i = 1, n_max
+  if (in_lat%ele(i)%lord_status == super_lord$) cycle
+  pele => plat%ele(i)
+  if (pele%ref_name /= blank_name$ .or. pele%s /= 0 .or. &
+      pele%ele_pt /= not_set$ .or. pele%ref_pt /= not_set$) then
+    call parser_error ('SUPERPOSITION ATTRIBUTE SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)
+  endif
+enddo
+
 
 ! Now put in the overlay_lord, girder, and group elements
 
@@ -1173,7 +1146,6 @@ if (logic_option (.true., do_dealloc)) then
   if (associated (plat%ele))             deallocate (plat%ele)
   if (allocated (seq_indexx))            deallocate (seq_indexx, seq_name)
   if (allocated (in_indexx))             deallocate (in_indexx, in_name)
-  if (allocated (bp_com%used_line))      deallocate (bp_com%used_line)
   if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
 
 endif
