@@ -98,9 +98,9 @@ if (ele%value(l$) .eq. 0) then
   ! Reset particle to s-coordinates
   end_orb = start_orb
   if (end_orb%p0c > 0) then
-    end_orb%location = exit_end$
+    end_orb%location = downstream_end$
   else
-    end_orb%location = entrance_end$
+    end_orb%location = upstream_end$
   endif
   err_flag = .false.
   return
@@ -275,7 +275,7 @@ if (end_orb%location /= inside$ .and. end_orb%vec(6) < 0) then
 
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
- ! call apply_hard_edge_kick (end_orb, ele, param, entrance_end$)
+ ! call apply_hard_edge_kick (end_orb, ele, param, upstream_end$)
   !unset
   call offset_particle (ele, end_orb, param%particle, unset$, &
                         set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
@@ -302,7 +302,7 @@ elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
-  !call apply_hard_edge_kick (end_orb, ele, param, exit_end$)
+  !call apply_hard_edge_kick (end_orb, ele, param, downstream_end$)
   !unset
   call offset_particle (ele, end_orb, param%particle, unset$, &
                         set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)

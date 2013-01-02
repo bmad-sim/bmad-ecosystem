@@ -58,7 +58,7 @@ real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
 real(rp) dcP2_dz1, dbeta1_dpz1, dbeta2_dpz2, beta_start, beta_end
 real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, gradient_max, voltage_max
 
-integer i, n_slice, key
+integer i, n_slice, key, ix_fringe
 
 logical, optional :: end_in, err
 logical err_flag, has_nonzero_pole
@@ -324,7 +324,7 @@ case (lcavity$)
 !--------------------------------------------------------
 ! Marker, branch, photon_branch, etc.
 
-case (marker$, branch$, photon_branch$, floor_position$) 
+case (marker$, branch$, photon_branch$, floor_position$, fiducial$) 
   return
 
 !--------------------------------------------------------
@@ -475,7 +475,8 @@ case (quadrupole$)
 
   ! Edge effects
 
-  if (ele%value(include_fringe$) /= 0) then
+  ix_fringe = nint(ele%value(fringe_type$))
+  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
     ! Entrance edge effect
 
     x = c00%vec(1); px = c00%vec(2); y = c00%vec(3); py = c00%vec(4)
@@ -629,20 +630,23 @@ case (sbend$)
   call offset_particle (ele, c00, param%particle, set$, set_canonical = .false.)
     
   ! Entrance edge kick
-  if ( nint(ele%value(exact_fringe$)) == 1) then
-    call exact_bend_edge_kick (c00, ele, entrance_end$, .false., kx_1, ky_1)
-  else
-    call apply_bend_edge_kick (c00, ele, entrance_end$, .false., kx_1, ky_1)
+
+  ix_fringe = nint(ele%value(fringe_type$))
+
+  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
+    call exact_bend_edge_kick (c00, ele, upstream_end$, .false., kx_1, ky_1)
+  elseif (ix_fringe == basic_bend$) then
+    call apply_bend_edge_kick (c00, ele, upstream_end$, .false., kx_1, ky_1)
   endif
 
 
   call offset_particle (ele, c11, param%particle, set$, set_canonical = .false., ds_pos = length)
  
   ! Exit edge kick
-  if ( nint(ele%value(exact_fringe$)) == 1) then
-    call exact_bend_edge_kick (c11, ele, exit_end$, .false., kx_2, ky_2)
-  else
-    call apply_bend_edge_kick (c11, ele, exit_end$, .true., kx_2, ky_2) 
+  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
+    call exact_bend_edge_kick (c11, ele, downstream_end$, .false., kx_2, ky_2)
+  elseif (ix_fringe == basic_bend$) then
+    call apply_bend_edge_kick (c11, ele, downstream_end$, .true., kx_2, ky_2) 
   endif
  
    
@@ -1046,13 +1050,13 @@ if (nint(ele%value(coupler_at$)) == both_ends$) then
   dp_y_coupler = dp_y_coupler / 2
 endif
 
-if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
+if (nint(ele%value(coupler_at$)) == upstream_end$ .or. &
     nint(ele%value(coupler_at$)) == both_ends$) then
   mat6(:,5) = mat6(:,5) + &
       (mat6(:,2) * dp_x_coupler + mat6(:,4) * dp_y_coupler) / p0c_start
 endif
 
-if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
+if (nint(ele%value(coupler_at$)) == downstream_end$ .or. &
     nint(ele%value(coupler_at$)) == both_ends$) then
   mat6(2,:) = mat6(2,:) + dp_x_coupler * mat6(5,:) / p0c_end
   mat6(4,:) = mat6(4,:) + dp_y_coupler * mat6(5,:) / p0c_end

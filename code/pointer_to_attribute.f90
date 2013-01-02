@@ -149,11 +149,11 @@ endif
 
 select case (a_name)
 case ('X_POSITION')
-  ptr_attrib => ele%floor%x
+  ptr_attrib => ele%floor%r(1)
 case ('Y_POSITION')
-  ptr_attrib => ele%floor%y
+  ptr_attrib => ele%floor%r(2)
 case ('Z_POSITION')
-  ptr_attrib => ele%floor%z
+  ptr_attrib => ele%floor%r(3)
 case ('THETA_POSITION')
   ptr_attrib => ele%floor%theta
 case ('PHI_POSITION')
@@ -167,9 +167,9 @@ case ('ALPHA_A')
 case ('PHI_A')
   ptr_attrib => ele%a%phi
 case ('ETA_A')
-  ptr_attrib => ele%x%eta
+  ptr_attrib => ele%a%eta
 case ('ETAP_A')
-  ptr_attrib => ele%x%etap
+  ptr_attrib => ele%a%etap
 case ('ETA_X')
   ptr_attrib => ele%x%eta
 case ('ETAP_X')
@@ -181,9 +181,9 @@ case ('ALPHA_B')
 case ('PHI_B')
   ptr_attrib => ele%b%phi
 case ('ETA_B')
-  ptr_attrib => ele%y%eta
+  ptr_attrib => ele%b%eta
 case ('ETAP_B')
-  ptr_attrib => ele%y%etap
+  ptr_attrib => ele%b%etap
 case ('ETA_Y')
   ptr_attrib => ele%y%eta
 case ('ETAP_Y')

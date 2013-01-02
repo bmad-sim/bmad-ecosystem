@@ -38,6 +38,8 @@ set by \vn{parameter} are
   parameter[use_ptc_layout]         = <Logical>  ! Use single PTC fiber for calculations?
   parameter[ptc_exact_model]        = <Logical>  ! PTC to do "exact" tracking?
   parameter[ptc_exact_misalignment] = <Logical>  ! PTC to "exactly" misalign elements?
+  parameter[ptc_max_finge_order]    = <Integer>  ! Max fringe order (2 (default) => Quadrupole).
+  parameter[use_hard_edge_model_drifts] = <Logical>
   parameter[custom_attributeN]      = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
 \end{example}
 
@@ -99,11 +101,6 @@ disable all set apertures. \vn{True} is the default.
 \index{lattice statement}
 The \vn{lattice} name is stored by \bmad for use by a program but it does
 not otherwise effect any \bmad routines. 
-Historically it is possible to set the lattice name using the syntax
-\begin{example}
-  lattice = <String>   ! DO NOT USE THIS SYNTAX
-\end{example}
-This syntax is obsolete since a typographical error cannot be caught.
 
 \noindent
 \index{circular_lattice}
@@ -147,8 +144,16 @@ particle or to uses the absolute time (\sref{s:rf.time}). A value of
 \vn{True} mandates absolute time.
 
 \index{ptc_exact_model}\index{ptc_exact_misalign}
-The \vn{ptc_exact_model} and \vn{ptc_exact_misalign} switches affect tracking using
-the \vn{PTC} library. See \sref{s:integ} for more details.
+The \vn{ptc_exact_model} and \vn{ptc_exact_misalign} switches affect
+tracking using the \vn{PTC} library. See \sref{s:integ} for more
+details.
+
+\index{ptc_max_fringe_order}
+When using PTC tracking (\sref{s:ptc}), the
+\vn{parameter[ptc_max_fringe_order]} determines the maximum order of
+the calculated fringe fields. The default is 2 which means that fringe
+fields due to a quadrupolar field. These fields are 3\Rd order in the
+transverse coordinates.
 
 %-----------------------------------------------------------------------------
 \section{Beam_start Statement} \label{s:beam.start}

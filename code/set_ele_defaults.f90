@@ -53,7 +53,7 @@ case (ecollimator$)
   ele%offset_moves_aperture = .true.
 
 case (lcavity$)
-  ele%value(coupler_at$) = exit_end$
+  ele%value(coupler_at$) = downstream_end$
   ele%value(field_scale$) = 1
   ele%value(n_cell$) = 1
 
@@ -69,12 +69,15 @@ case (multilayer_mirror$)
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
   ele%value(hgapx$) = real_garbage$
+  ele%value(kill_fringe$) = no_end$
+  ele%value(fringe_type$) = basic_bend$
+  ele%value(ptc_field_geometry$) = sector$
 
 case (rcollimator$)
   ele%offset_moves_aperture = .true.
 
 case (rfcavity$)
-  ele%value(coupler_at$) = exit_end$
+  ele%value(coupler_at$) = downstream_end$
   ele%value(field_scale$) = 1
   ele%value(n_cell$) = 1
 
@@ -94,6 +97,13 @@ case (e_gun$)
   ele%value(field_scale$) = 1
 
 end select
+
+! Fringe set for non bend elements
+
+if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. attribute_index(ele, 'KILL_FRINGE') /= 0) THEN
+  ele%value(kill_fringe$) = no_end$
+  ele%value(fringe_type$) = none$
+endif
 
 ! %bookkeeping_state inits
 ! Note: Groups, for example, do not have a reference energy, etc. so set the bookkeeping

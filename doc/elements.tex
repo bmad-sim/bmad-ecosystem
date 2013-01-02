@@ -225,13 +225,13 @@ General \vn{bend_sol_quad} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings        & \ref{s:alias}    & Reference energy           & \ref{s:energy}  \HH 
-  Field table or map         & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
-  Integration settings       & \ref{s:integ}     &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -315,20 +315,20 @@ General \vn{rbend} and \vn{sbend} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Is_on                      & \ref{s:is.on}   \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings        & \ref{s:alias}    & Reference energy           & \ref{s:energy}  \HH 
-  Field table or map         & \ref{s:em.fields} & Symplectify                & \ref{s:symp}    \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
-  Integration settings       & \ref{s:integ}     &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
 
 \index{g}\index{b_field}\index{g_err}\index{b_field_err}\index{angle}
 \index{l_chord}\index{angle}\index{h1}\index{h2}
-\index{e1}\index{e2}\index{fint}\index{fintx}
+\index{e1}\index{e2}\index{fint}\index{fintx}\index{l_arc}
 \index{hgap}\index{hgapx}\index{roll}\index{k1}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
@@ -349,8 +349,10 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   b1_gradient = <Real>     ! Quadrupole field strength (\sref{s:depend}).
   b2_gradient = <Real>     ! Sextupole field strength (\sref{s:depend}).
   n_ref_pass  = <Int>      ! Multipass reference turn (\sref{s:multipass}).
-  ref_orbit   = <Switch>   ! Multipass reference geometry switch (\sref{s:multipass}).
+  l_arc       = <Real>     ! Arc length. For \vn{rbend}s only. 
   l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
+  ptc_field_geometry 
+              = <Switch>   ! 
 \end{example}
 
 \index{l}
@@ -381,13 +383,15 @@ For the bends drawn as viewed from ``above'' (viewed from positive $y$),
 \end{figure}
 
   \begin{description}
-  \index{l}\index{l_chord}
+  \index{l}\index{l_chord}\index{l_arc}
   \item[l, l_chord]  \Newline
-For an \vn{rbend}, \vn{l} is the chord length and not the arc length as
-it is for an \vn{sbend}.  However, after reading in a lattice, \bmad will
-internally convert all \vn{rbend}s into \vn{sbend}s, additionally, the
-\vn{l_chord} attribute will be set to the input \vn{l}, and \vn{l} 
-will be set to the true path length (see above).
+For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord
+length and not the arc length as it is for an \vn{sbend}.  However,
+after reading in a lattice, \bmad will internally convert all
+\vn{rbend}s into \vn{sbend}s, additionally, the \vn{l_chord} attribute
+will be set to the input \vn{l}, and \vn{l} will be set to the true
+path length (see above). Alternatively, instead of setting \vn{l}, the
+\vn{l_arc} attribute can be set to the true arc length.
   \index{h1}\index{h2}
   \item[h1, h2] \Newline
 The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
@@ -402,13 +406,6 @@ for an \vn{sbend} gives a wedge shaped magnet (\fig{f:bend}b).
 An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
 to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
 This formula holds for both positive and negative angles.
-  \index{exact_fringe}
-  \item[exact_fringe]
-When \vn{e1} or \vn{e2} are non-zero, \vn{bmad_standard} tracking, by default, uses a second order
-map to handle the edge focusing. In some cases, for instance in a chicane, this is
-not good enough. With \vn{exact_fringe} to True, the wedge shape of the edge is properly 
-taken into account. The hard edge model is still used here. \vn{exact_fringe} = True will
-be somewhat slower.
   \index{angle}
   \item[angle] \Newline
 The total design bend angle. A positive \vn{angle} represents a
@@ -489,7 +486,7 @@ For example:
 \end{example}
 Notice that \vn{l_coef} is just \vn{arc_length/2}.
 
-\vn{n_ref_pass}, and \vn{ref_orbit} attributes are only used
+The \vn{n_ref_pass} attribute are only used
 when a bend is part of a \vn{multipass} line and is used to set the
 reference geometry of the bend. See section~\sref{s:multipass} for
 more details.
@@ -508,10 +505,53 @@ always the case that the pole faces will be parallel when
   e1 + e2 = angle
 \end{example}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{true-rbend.pdf}
+  \caption[True Rbend coordinates]{Coordinate system when \vn{ptc_field_geometry}
+is set to \vn{true_rbend}.}
+  \label{f:true.rbend}
+\end{figure}
+
 Example bend specification:
 \begin{example}
   b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = fintx = 0.5
 \end{example}
+
+
+\vn{ptc_field_geometry} determines how PTC integrates through a bend
+if PTC is being used for tracking. Possible values for
+\vn{ptc_field_geometry} are:
+\begin{example}
+  sector      ! Default
+  straight
+  true_rbend  ! Only valid for rbend elements
+\end{example}
+For \vn{sector} tracking, the tracking coordinate reference frame is
+with respect to the arc of the reference trajectory. For \vn{straight}
+tracking the tracking coordinate reference frame is with respect to the
+chord line. For a bend where the number of integration steps is large
+enough, and where there are no other fields besides the basic dipole
+field, the results are the same.  When there are quadrupole or higher
+order fields, the fields are expanded about the tracking reference
+frame. Since Maxwell's equations must be satisfied, the higher order
+fields will differ when tracking with \vn{sector} vs \vn{straight} the
+difference in the fields will scale with the inverse of the bending
+radius \vn{1/rho}. The above discussion is true for
+\vn{ptc_exact_model} set to True, for \vn{ptc_exact_model} set to
+False, a simplified sector tracking model is used in all cases.
+
+The \vn{true_rbend} tracking of \vn{ptc_field_geometry} is used only
+with \vn{rbend} elements and the entrance and exit faces must be parallel
+as shown in \fig~{f:true.rbend}. That is
+\begin{example}
+  e1 + e2 = 0
+\end{example}
+In this case, the tracking geometry is parallel, to the bend face as
+shown in the figure. This can be an advantage in some situations but
+Etienne discourages use of \vn{true_rbend} due to complications of how
+to handle the reference frames in particular when you have more than
+one of them in a row.
 
 %-----------------------------------------------------------------
 \section{Branch and Photon_Branch}
@@ -531,7 +571,7 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
                          &                 & Is_on                      & \ref{s:is.on}   \HH 
@@ -541,11 +581,9 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 
 Attributes specific to a \vn{branch} and \vn{photon_branch} elements are:
 \begin{example}
-  direction    = <+/- 1>    ! Direction of branch.
-  E_tot_start  = <Real>     ! Starting reference energy for a branch (eV).
-  p0c_start    = <Real>     ! Starting reference momentum for a branch (eV).
-  lattice_type = <Switch>   ! Define linear or circular branch
-  particle     = <type>     ! Eg: positron, photon, etc.
+  direction    = <+/- 1>      ! Direction of branch.
+  to_line      = <LineName>   ! What line to branch to.
+  to_element   = <ElementID>  ! What element to in the line to attach to.
 \end{example}
 
 Branch lines can themselves have branching elements. A branch line
@@ -566,6 +604,13 @@ and the particle phase space coordinates are transformed using
 \Begineq
   (x, p_x, y, p_y, z, p_z) \longrightarrow (-x, p_x, y, -p_y, -z, p_z)
 \Endeq
+
+If the branch line is to transport particles different from
+the originating line (such as in a photon line branching
+from an electron line), the particle type and the beginning reference energy
+must be set for that line (\sreffff{}). Additionally, the \etcetc...
+
+Setting the start
 
 The \vn{E_tot_start} and \vn{p0c_start} attributes set the starting
 reference energy of the branch. This is analogous to the
@@ -593,10 +638,11 @@ Example showing an injection line branching to a ring branching to an x-ray line
 \begin{example}
   inj: line = (..., ring, ...)               ! Define the injection line
   use, inj                                   ! Injection line is the root
-  ring: branch, to = ring_layout, 
+  ring: branch, to_line = ring_layout, 
           lattice_type = circular_lattice    ! Branch to the ring
   ring_layout: line = (..., x_ray, ...)      ! Define the ring
-  x_ray: photon_branch, E_tot_start = 1e3, to = x_layout ! 1 KeV reference photon.
+  x_ray: photon_branch, E_tot_start = 1e3,   ! 1 KeV reference photon.
+                        to_line = x_layout 
   x_layout: line = (...)                     ! Define the x-ray line
 \end{example}
 
@@ -647,7 +693,7 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Symplectify            & \ref{s:symp}    & Integration settings       & \ref{s:integ}   \HH
@@ -848,12 +894,13 @@ General \vn{custom} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}  & \s                & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits        & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall           & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings    & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map     & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe fields          & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Integration settings   & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -888,11 +935,11 @@ General \vn{drift} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:alias}  & Symplectify                & \ref{s:symp}    \HH 
-  Integration settings   & \ref{s:integ}   & Hkick \& Vkick             & \ref{s:kick}    \HH
-  Chamber wall           & \ref{s:wall}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Aperture Limits        & \ref{s:limit}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Chamber wall           & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH 
+  Description strings    & \ref{s:alias}   & Symplectify                & \ref{s:symp}    \HH 
+  Integration settings   & \ref{s:integ}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Length                 & \ref{s:l}       &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -970,12 +1017,13 @@ General \vn{elseparator} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1019,7 +1067,7 @@ attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -1044,7 +1092,7 @@ General \vn{floor_position} element attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:alias}  & Reference energy           & \ref{s:energy}  \HH
+  Description strings    & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \HH
   is_on                  & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
@@ -1055,23 +1103,23 @@ General \vn{floor_position} element attributes are:
 \index{phi_position}\index{psi_position}
 Attributes specific to a \vn{floor_position} elements are:
 \begin{example}
-  x_position      = <Real>
-  y_position      = <Real>
-  z_position      = <Real>
-  theta_position  = <Real>
-  phi_position    = <Real>
-  psi_position    = <Real>
+  x_offset        = <Real>
+  y_offset        = <Real>
+  z_offset        = <Real>
+  x_pitch         = <Real>
+  y_pitch         = <Real>
+  tilt            = <Real>
 \end{example}
 
 The \vn{floor_position} element sets the global position
-(\sref{s:global}) of the reference coordinates at the exit end of the
-element.  Here, the transfer map through the \vn{floor_position} will
-be the unit map. That is, the phase space coordinates of a particle
-will not change when tracking through such an element.
+(\sref{s:global}) of the reference coordinates. The transfer map
+through the \vn{floor_position} will be the unit map. That is, the
+phase space coordinates of a particle will not change when tracking
+through a \vn{floor_position} element.
 
 Setting the floor position at an element will affect the floor
-position of all elements following the element but will not affect the
-preceding element. The \vn{floor_position} element can be used, for
+position of all elements following the element but will not affect any
+preceding elements. The \vn{floor_position} element can be used, for
 example, to restore the correct geometry when a section of the lattice
 is represented by, say, a \vn{taylor} type element.
 
@@ -1238,12 +1286,13 @@ General \vn{hkicker} \vn{vkicker} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Kick                   & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1277,13 +1326,14 @@ General \vn{kicker} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                     & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}        & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1307,14 +1357,15 @@ General \vn{lcavity} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s                 & {\sl Attribute Class}      & \s               \HH
-  Symplectify            & \ref{s:symp}       & Offsets, and pitches       & \ref{s:offset}   \HH
-  Description strings    & \ref{s:alias}     & Is_on                      & \ref{s:is.on}    \HH 
-  Reference energy       & \ref{s:energy}     & Tracking \& transfer map   & \ref{c:methods}  \HH
-  Aperture Limits        & \ref{s:limit}      & Length                     & \ref{s:l}        \HH
-  Hkick \& Vkick         & \ref{s:kick}       & Integration settings       & \ref{s:integ}    \HH
-  RF Couplers            & \ref{s:rf.coupler} & RF Wakes                   & \ref{s:rf.wakes} \HH
-  RF Fields              & \ref{s:em.fields}  & Chamber wall               & \ref{s:wall}     \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s                 \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}     \HH
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \HH 
+  Field table or map         & \ref{s:em.fields} & RF Couplers                & \ref{s:rf.coupler} \HH
+  Fringe Fields              & \ref{s:fringe}    & RF Wakes                   & \ref{s:rf.wakes}   \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \HH
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}    \HH
+  Is_on                      & \ref{s:is.on}     &                            &                    \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1782,13 +1833,14 @@ General \vn{octupole} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                     & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1822,9 +1874,9 @@ General \vn{patch} element attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  is_on                 & \ref{s:is.on}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  is_on                  & \ref{s:is.on}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Description strings        & \ref{s:alias}  \HH 
+  Aperture Limits        & \ref{s:limit}   & Description strings        & \ref{s:alias}   \HH 
   Length                 & \ref{s:l}       &                            &                 \HH
 \end{tabular}
 \end{center}
@@ -1874,13 +1926,14 @@ General \vn{quadrupole} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                     & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1891,16 +1944,11 @@ Attributes specific to a \vn{quadrupole} element are:
 \begin{example}
   k1             = <Real>    ! Quadrupole strength.
   b1_gradient    = <Real>    ! Field strength. (\sref{s:depend}).
-  include_fringe = <Logical> ! Model quadrupole fringe fields? Default: False.
  \end{example}
 
 \index{tilt}
 If the \vn{tilt} attribute is present without a value then a value of $\pi/4$
 is used.
-
-The \vn{include_fringe} switch toggles whether the fringe fields are
-taken into account\cite{b:quad.fringe}. Note: Fringe fields may not be
-accounted for in all tracking methods.
 
 For a quadrupole with zero \vn{tilt} and a positive \vn{k1}, the
 quadrupole is horizontally focusing and vertically defocusing
@@ -1925,14 +1973,15 @@ General \vn{rfcavity} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s                 & {\sl Attribute Class}      & \s                \HH
-  Symplectify            & \ref{s:symp}       & Offsets, \& pitches        & \ref{s:offset}    \HH
-  Description strings    & \ref{s:alias}     & Is_on                      & \ref{s:is.on}     \HH 
-  Reference energy       & \ref{s:energy}     & Tracking \& transfer map   & \ref{c:methods}   \HH
-  Aperture Limits        & \ref{s:limit}      & Length                     & \ref{s:l}         \HH
-  Hkick \& Vkick         & \ref{s:kick}       & RF Fields                  & \ref{s:em.fields} \HH
-  RF Couplers            & \ref{s:rf.coupler} & RF Wakes                   & \ref{s:rf.wakes}  \HH
-  Chamber Wall           & \ref{s:wall}       &                            &                   \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s                 \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}     \HH
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \HH 
+  Field table or map         & \ref{s:em.fields} & RF Couplers                & \ref{s:rf.coupler} \HH
+  Fringe Fields              & \ref{s:fringe}    & RF Wakes                   & \ref{s:rf.wakes}   \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \HH
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}    \HH
+  Is_on                      & \ref{s:is.on}     &                            &                    \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2021,13 +2070,14 @@ General \vn{sextupole} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2061,13 +2111,14 @@ General \vn{solenoid} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets \& pitches         & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2100,13 +2151,14 @@ General \vn{sol_quad} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2204,13 +2256,14 @@ General \vn{wiggler} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset

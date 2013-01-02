@@ -92,7 +92,7 @@ end subroutine
 !   Integral g^2
 !   Integral g^3
 !   Transfer matrix.
-! Also the endding horizontal transverse offset of the reference orbit (floor%x) is
+! Also the endding horizontal transverse offset of the reference orbit (floor%r(1)) is
 ! matched to zero.
 !
 ! Note: The resulting model does not have the vertical cubic nonlinearity that
@@ -354,7 +354,7 @@ call lattice_bookkeeper (lat)
 !
 ! Data to fit (14 datums if n_pole is odd, 15 datums if n_pole is even):
 !   Difference: g2_int, g3_int
-!   ele%floor%x = 0
+!   ele%floor%r(1) = 0
 !   Difference: mat6(1:2,1:2), mat6(3:4,3:4), mat6(1,6), 
 !   D length > 0
 !   D_end length > 0
@@ -407,7 +407,7 @@ do i = 1, 100
       print *
       print *, 'Wiggler g2_int, g3_int:', g2_int, g3_int
       print *, 'Model   g2_int, g3_int:', yfit(1), yfit(2)
-      print *, 'Floor: ', lat%ele(n_ele)%floor%theta, lat%ele(n_ele)%floor%x, lat%ele(n_ele)%floor%z
+      print *, 'Floor: ', lat%ele(n_ele)%floor%theta, lat%ele(n_ele)%floor%r(1), lat%ele(n_ele)%floor%r(3)
       print *, 'L:', wiggler%value(l$), lat%ele(n_ele)%s
       print *, 'chi2_g2:         ', weight(1) * (yfit(1) - y(1))**2
       print *, 'chi2_g3:         ', weight(2) * (yfit(2) - y(2))**2
@@ -555,7 +555,7 @@ endif
 
 wig_model_com%len_drifts  = [len_drift, len_d_end, len_d_end2]
 
-yfit(1:14) = [g2_int, g3_int, lat_com%ele(n_ele)%floor%x, mat_flatten(mat6), &
+yfit(1:14) = [g2_int, g3_int, lat_com%ele(n_ele)%floor%r(1), mat_flatten(mat6), &
                                          len_func(len_drift), len_func(len_d_end)]
 
 !----------------------------------

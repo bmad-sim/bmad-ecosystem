@@ -112,6 +112,10 @@ do j = 1, n_file
   write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10), 0, 0  ! stat_b(10) = Modification date
 enddo
 
+! Write bmad_com structure
+
+write (d_unit) bmad_com
+
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
 
@@ -160,12 +164,13 @@ write (d_unit) lat%beam_start
 ! Write the branch line info
 
 write (d_unit) ubound(lat%branch, 1)
-do i = 1, ubound(lat%branch, 1)
+do i = 0, ubound(lat%branch, 1)
   n_wake = 0  ! number of wakes written to the digested file for this branch.
   branch => lat%branch(i)
   write (d_unit) branch%param
   write (d_unit) branch%name, branch%ix_root_branch, branch%ix_from_branch, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, 0
+                 branch%ix_from_ele, branch%ix_to_ele, &
+                 branch%n_ele_track, branch%n_ele_max, 0
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
@@ -214,7 +219,6 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele2
 type (rf_wake_struct), pointer :: wake
 type (em_field_mode_struct), pointer :: mode, mode2
-type (coord_struct) map_ref_orb_in, map_ref_orb_out
 
 integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_t(6), ie, ib, ix_wall3d_branch
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ie_max
@@ -303,9 +307,6 @@ endif
 write (d_unit) mode3, ix_wig, ix_wig_branch, ix_r, ix_wall3d_branch, 0, 0, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d, n_em_field_mode, 0
 
-map_ref_orb_in%vec  = ele%map_ref_orb_in    ! To be compatible with olf ele_struct def.
-map_ref_orb_out%vec = ele%map_ref_orb_out
-
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -313,14 +314,14 @@ write (d_unit) &
           ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
           ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
           ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, ele%ref_orbit, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
           ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
-          map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
+          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%orientation, &
+          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, 0, &
-          0, ele%bookkeeping_state
+          0, ele%bookkeeping_state, ele%ptc_integration_type
 
 ! This compresses the ele%value array
 

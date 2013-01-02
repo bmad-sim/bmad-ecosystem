@@ -770,27 +770,35 @@ keep the statistics correct. The relative intensity of the outgoing photon is
 %-------------------------------------------------------------------------
 \section{Hamiltonian}
 \label{s:mag.hamiltonian}
-
-The general Hamiltonian is
+The time dependent Hamiltonian $H_t$ in the curvilinear coordinate system shown
+in \fig{f:local.coords} is
 \Begineq
-  H = p_z - (1 + g \, x) \sqrt{(1 + p_z + \wt\psi)^2 - (m \, c / P_0)^2 - 
-  (p_x - a_x)^2 - (p_y - a_y)^2} - (1 + g \, x) \, a_s
+  H_t = \wt\psi + \left[ (m \, c / P_0)^2 + (p_x - a_x)^2 + (p_y - a_y)^2 +  
+  \left( \frac{p_s - a_s}{1 + g\, x} \right)^2 \right]^{1/2}
+\Endeq
+where $(p_x, p_y, p_s/(1+gx))$ are the momentum normalized by $P_0$,
+$\rho$ being the local radius of curvature of the reference particle,
+and $\Bf a$ and $\wt\psi$ are the normalized vector and scalar
+potentials:
+\Begineq
+  \left( a_x, a_y, \frac{a_s}{1+g \, x} \right) = \frac{q \, \Bf A}{P_0 \, c} \qquad 
+  \wt\psi(x,y,z) = \frac{q \, \psi}{P_0 \, c^2}
+\Endeq
+
+The $s$-dependent Hamiltonian is obtained from $H_t$ by solving for
+$-p_s$. For particles propagating in the positive $s$ direction the
+$s$-dependent Hamiltonian is
+\Begineq
+  H \equiv H_s = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s
   \label{h1gx1}
 \Endeq
-Here $(x, p_x, y, p_y, z, p_z)$ are the canonical coordinates
-(\sref{s:phase.space}), $g = 1/\rho$ with $\rho$ being the local
-radius of curvature of the reference particle, and $\Bf a$ and
-$\wt\psi$ are the normalized vector and scalar potentials:
+Here $(p_z)$ is canonical coordinate (\sref{s:phase.space}) and the
+equation for $H$ has been simplified by assuming that $\wt\psi$ is
+zero. For backwards propagation, where $p_s$ is negative, solving for $p_s$ involves using
+a different part of the squareroot branch. the Hamiltonian $H_{-s}$ is then
 \Begineq
-  \Bf a(x,y,z;s) = \frac{q \, \Bf A}{P_0 \, c} \qquad 
-  \wt\psi(x,y,z;s) = \frac{q \, \psi}{P_0 \, c^2}
+  H_{-s} = (1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s
 \Endeq
-The equations of motion are
-\begin{equation}
-  \frac{dq_i}{ds} = \frac{\partial H}{\partial p_i} \qquad
-  \frac{dp_i}{ds} = -\frac{\partial H}{\partial q_i}
-  \label{rshp}
-\end{equation}
 
 \label{paraxial approximation}
 Without an electric field, $\psi$ is zero. Ignoring the $(m \, c) / P_0$ term,
@@ -1166,6 +1174,65 @@ The Hamiltonian for an upright octupole is
 \Endeq
 
 An octupole is modeled using a kick-drift-kick model.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Patch Element Tracking}
+\label{s:patch.std}
+\index{patch}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{patch.pdf}
+  \caption[Patch transformation.]
+{Tracking through a patch element. A particle's starting coordinate at
+the entrance end of the patch has, by construction, coordinate $z$ =
+0. The particle is drifted, as in a field free region, between the
+entrance $z = 0$ plane and the exit $z = 0$ plane.}
+  \label{f:patch}
+\end{figure}
+
+%---------------------------------------------------------------------------------
+
+The transformation of the reference coordinates through a patch is given 
+by \Eqs{vwlv} and \eq{wws} with $\Bf L$ and $\Bf S$ defined by \Eqs{xyz}
+and \eq{swww}. Before tracking through the patch, a particle's coordinates 
+in the entrance coordinate system will be
+\begin{alignat}{1}
+  \Bf r_{\text{ent}} &= (x, y, 0) \CRNO
+  \Bf P_{\text{ent}} &= (P_x, P_y, P_s) = 
+    \left( p_x, p_y, \pm \sqrt{(1+p_z)^2 - p_z^2 - p_y2} \right) \, P_0
+\end{alignat}
+where $p_x$, $p_y$ and $p_z$ are the phase space momenta, and $z$,
+which is coordinate $z$ and not phase space $z$, is always zero by
+construction as shown in \fig{f:patch} [Also see \fig{f:local.coords}
+and the discussion in \sref{s:phase.space}.] The sign of the
+longitudinal momentum $P_s$ is determined by whether the particle is
+traveling in the positive $s$ or negative $s$ direction (which will
+occur when an element is flipped longitudinally).
+
+The transformation between entrance and exit coordinate systems is
+\begin{alignat}{1}
+  \Bf r_1 &= \Bf S^{-1} \, (\Bf r_{\text{ent}} - \Bf L) \CRNO
+  \Bf P_1 &= \Bf S^{-1} \, \Bf P_{\text{ent}}
+\end{alignat}
+The $z_1$ coordinate will, in general, be non-zero. If this is so, the
+particle must be propagated until it intersects the $z = 0$ plane in
+the exit coordinate system.  It is assumed that the particle is in a
+field free region. The final coordinates $r_{\text{exi}}$ and $P_{\text{exi}}$ are then
+\begin{alignat}{1}
+  \Bf r_{\text{exi}} &= (x_1 - z_1 * P_{x1} / P_{s1}, y_1 - z_1 * P_{y1} / P_{s1}, 0) \CRNO
+  \Bf P_{\text{exi}} &= \Bf P_1
+\end{alignat}
+
+In addition, the phase space $z$ must be corrected due to the finite drift distance
+and/or a finite \vn{t_offset}
+\Begineq
+  z_{\text{exi}}(\text{canon}) = 
+  z_{\text{ent}}(\text{canon}) + z_1 \, \frac{|\Bf P|}{P_{s1}} + 
+  \beta \, c \, \, \text{\vn{t_offset}}
+\Endeq
+where $\beta$ is the particle velocity.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

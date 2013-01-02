@@ -182,19 +182,19 @@ ele%map_ref_orb_out(5) = -ele%map_ref_orb_out(5)
 
 ! Flip aperture limit position
 
-if (ele%aperture_at == entrance_end$) then
-  ele%aperture_at = exit_end$
-elseif (ele%aperture_at == exit_end$) then
-  ele%aperture_at = entrance_end$
+if (ele%aperture_at == upstream_end$) then
+  ele%aperture_at = downstream_end$
+elseif (ele%aperture_at == downstream_end$) then
+  ele%aperture_at = upstream_end$
 endif
 
 ! Flip coupler limit position
 
 if (ele%key == lcavity$) then
-  if (nint(ele%value(coupler_at$)) == entrance_end$) then
-    ele%value(coupler_at$) = exit_end$
-  elseif (nint(ele%value(coupler_at$)) == exit_end$) then
-    ele%value(coupler_at$) = entrance_end$
+  if (nint(ele%value(coupler_at$)) == upstream_end$) then
+    ele%value(coupler_at$) = downstream_end$
+  elseif (nint(ele%value(coupler_at$)) == downstream_end$) then
+    ele%value(coupler_at$) = upstream_end$
   endif
 endif
 

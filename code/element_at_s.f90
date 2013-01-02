@@ -72,7 +72,7 @@ if (.not. choose_max .and. s == branch%ele(0)%s) then
   if (present(position)) then
     position%ix_ele = ix_ele
     position%s = s
-    position%location = exit_end$
+    position%location = downstream_end$
   endif
   return
 endif
@@ -117,14 +117,14 @@ if (present(position)) then
 
   if (branch%ele(ix_ele)%value(l$) == 0) then
     if (choose_max) then
-      position%location = exit_end$
+      position%location = downstream_end$
     else
-      position%location = entrance_end$
+      position%location = upstream_end$
     endif
   elseif (ss == branch%ele(ix_ele)%s) then
-    position%location = exit_end$
+    position%location = downstream_end$
   elseif (ss == branch%ele(ix_ele-1)%s) then
-    position%location = entrance_end$
+    position%location = upstream_end$
   else
     position%location = inside$
   endif

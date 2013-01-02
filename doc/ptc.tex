@@ -3,22 +3,12 @@
 \index{PTC/FPP}
 %----------------------------------------------------------------------------
 
-Etienne Forest\cite{b:forest} has written what is actually two
-software libraries: FPP and PTC.  FPP stands for ``Fully Polymorphic
-Package.'' What this library does is implement Taylor maps (aka
-Truncated Power Series Algebra or TPSA) and Lie algebraic
-operations. Thus in FPP you can define a Hamiltonian and then generate
-the Taylor map for this Hamiltonian. FPP is very general. It can work
-with an arbitrary number of dimensions.  FPP, however, is a purely
-mathematical package in the sense that it knows nothing about
-accelerator physics. That is, it does not know about bends,
-quadrupoles or any other kind of element, it has no conception of a
-lattice (a string of elements), it doesn't know anything about Twiss
-parameters, etc. This is where PTC (Polymorphic Tracking Code) comes
-in PTC. PTC implements the high energy physics stuff and uses FPP as
-the engine to do the Lie algebraic calculations.  For the purposes of
-this discussion, PTC and FPP are considered one package and the
-combined PTC/FPP will be referred to as simply ``PTC''.
+The PTC/FPP (Polymorphic Tracking Code / Fully Polymorphic Package)
+library of Etienne Forest handles Taylor maps to any arbitrary
+order. this is also known as Truncated Power Series Algebra
+(TPSA). The core Differential Algebra (DA) package used by PTC was
+developed by Martin Berz\cite{b:berz}.  For more information see the
+FPP/PTC manual\cite{b:ptc}. 
 
 %--------------------------------------------------------------------------
 
@@ -66,27 +56,6 @@ orbit through the element.
 
 separates the actual uses
 a \vn{layout} structure
-
-%--------------------------------------------------------------------------
-\section{Accessing PTC}
-\label{s:ptc.access}
-
-\index{PTC!single element mode}
-\bmad uses PTC in two ways: One way, called ``single element'' mode,
-uses PTC on a per element basis. Single element mode is used whenever
-the tracking method (\sref{c:tracking}) of a given element is set to a
-tracking method that uses PTC. The advantage of single element mode is
-that it is quite flexible in that different tracking methods,
-including non-PTC methods, can be assigned to different element. The
-drawback of single element mode is that PTC's powerful analysis tools,
-which rely on the entire lattice being tracked via PTC, cannot be used
-in this case. Such tools include normal form analysis beam envelope
-tracking, etc.
-
-\index{PTC!whole lattice mode}
-The alternative to single element mode is ``whole lattice'' mode where
-a PTC \vn{layout} is created from a Bmad lattice. The routine
-\Hyperref{r:lat.to.ptc.layout}{lat_to_ptc_layout} creates a PTC layout from a \bmad lattice.
 
 %--------------------------------------------------------------------------
 \section{Phase Space}

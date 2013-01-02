@@ -358,11 +358,12 @@ real(rp) dvec(6)
 !
 
 orb_out%vec = orb_in%vec + dvec
-orb_out%p0c = orb_in%p0c
+orb_out%p0c = orb_in%p0c 
+
 if (dvec(6) == 0) then
   orb_out%beta = orb_in%beta
 else
-  call convert_pc_to (orb_out%p0c * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
+  call convert_pc_to (abs(orb_out%p0c) * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
 endif
 
 end subroutine
@@ -484,7 +485,7 @@ err = .true.
 beta0 = ele%value(p0c$) / ele%value(e_tot$) 
 dt_ds_ref = 1 / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
-e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
+e_tot = abs(orbit%p0c) * (1 + orbit%vec(6)) / orbit%beta
 
 ! calculate the field
 
@@ -497,8 +498,8 @@ vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
 v2 = vel(1)**2 + vel(2)**2
 if (v2 > 1) return
 vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2)]
-E_force = charge_of(param%particle) * field%E
-B_force = charge_of(param%particle) * cross_product(vel, field%B)
+E_force = charge_of(param%particle) * param%rel_tracking_charge * field%E
+B_force = charge_of(param%particle) * param%rel_tracking_charge * cross_product(vel, field%B)
 
 f_bend = 1
 gx_bend = 0; gy_bend = 0

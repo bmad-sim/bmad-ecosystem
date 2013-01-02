@@ -88,7 +88,7 @@ subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav)
 implicit none
 
 type (track_struct) track, track2
-type (ele_struct) :: ele
+type (ele_struct), target :: ele
 type (lat_param_struct), intent(in) :: param
 type (coord_struct) orb, orb2
 integer n_pt, n, n_old
@@ -187,7 +187,7 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 complex(rp) E_rho, E_phi, E_z, BEr, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
 
-integer i, j, m, n, sign_charge
+integer i, j, m, n
 
 logical :: local_ref_frame, local_ref, has_nonzero_pole
 logical, optional :: calc_dfield, err_flag
@@ -264,12 +264,15 @@ end if
 !Set up common variables for all (non-custom) methods
 
 charge = charge_of(param%particle)
-sign_charge = sign(1.0_rp, charge)
 
 x = local_orb%vec(1)
 y = local_orb%vec(3)
 
-f_p0c = sign_charge * ele%value(p0c$) / c_light
+if (charge == 0) then
+  f_p0c = 0
+else
+  f_p0c = ele%value(p0c$) / (c_light * charge)
+endif
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -312,15 +315,14 @@ select case (ele%field_calc)
     endif
 
     if (.not. ele%is_on) gradient = 0
-    gradient = (gradient + gradient_shift_sr_wake(ele, param)) * sign_charge
-    gradient = gradient * ele%value(l$) / ele%value(l_hard_edge$)
-
+    gradient = (gradient + gradient_shift_sr_wake(ele, param)) / charge
+    gradient = gradient * ele%value(l$) / hard_edge_model_length(ele)
     omega = twopi * ele%value(rf_frequency$)
     k_wave = omega / c_light
 
-    s_hard_offset = (ele%value(l$) - ele%value(l_hard_edge$)) / 2  ! Relative to entrance end of the cavity
+    s_hard_offset = (ele%value(l$) - hard_edge_model_length(ele)) / 2  ! Relative to entrance end of the cavity
     s_eff = s_rel - s_hard_offset
-    if (s_eff < 0 .or. s_eff > ele%value(l_hard_edge$)) return  ! Zero field outside
+    if (s_eff < 0 .or. s_eff > hard_edge_model_length(ele)) return  ! Zero field outside
 
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
     t_eff = time - s_hard_offset / (c_light * beta_start)
@@ -376,7 +378,7 @@ select case (ele%field_calc)
       c_z = cos (wig%kz * s_rel + wig%phi_z)
       s_z = sin (wig%kz * s_rel + wig%phi_z)
 
-      coef = sign_charge * wig%coef * ele%value(polarity$)
+      coef = wig%coef * ele%value(polarity$) / charge
 
       field%B(1) = field%B(1) - coef  * (wig%kx / wig%ky) * s_x * s_y * c_z * sgn_x
       field%B(2) = field%B(2) + coef  *                 c_x * c_y * c_z
@@ -509,7 +511,7 @@ select case (ele%field_calc)
   ! E_Gun
 
   case (e_gun$)
-    field%e(3) = sign_charge * ele%value(gradient$) * ele%value(field_scale$)
+    field%e(3) = ele%value(gradient$) * ele%value(field_scale$) / charge
 
   !------------------------------------------
   ! Error

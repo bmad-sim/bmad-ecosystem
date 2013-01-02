@@ -28,24 +28,27 @@ contains
 ! Output:
 !   lat -- lat_struct: The lattice.
 !     %ele(i)%floor --  floor_position_struct: Floor position.
-!       %a                -- X position at end of element
-!       %b                -- Y position at end of element
-!       %z                -- Z position at end of element
-!       %theta            -- Orientation angle at end of element in X-Z plane
-!       %phi              -- Elevation angle.
-!       %psi              -- Roll angle.
+!       %r(3)              -- X, Y, Z Floor position at end of element
+!       %theta, phi, %psi  -- Orientation angles 
 !-
 
 subroutine lat_geometry (lat)
 
+use multipass_mod
+
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, slave, b_ele
+type (ele_struct), pointer :: ele, lord, slave, b_ele, ele2, ele0
 type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: chain_ele(:)
 
-integer i, n, ix2, ie, ib
+real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3)
+
+integer i, i2, n, ix2, ie, ib, ix_pass
 logical stale, stale_lord
+
+character(16), parameter :: r_name = 'lat_geometry'
 
 !
 
@@ -63,7 +66,39 @@ do n = 0, ubound(lat%branch, 1)
 
   branch%param%bookkeeping_state%floor_position = ok$
 
-  ! Transfer info from branch element if that element exists.
+  ! If there are fiducial elements then survey the fiducial regions
+
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
+    if (ele%key /= fiducial$) cycle
+    call ele_geometry (ele%floor, ele, ele%floor)
+
+    do i2 = i+1, branch%n_ele_track
+      ele2 => branch%ele(i2)
+      if (ele2%key == patch$ .and. ele2%value(flexible$) /= 0) exit
+      if (ele2%key == fiducial$) then
+        call out_io (s_fatal$, r_name, 'FIDUCIAL ELEMENTS IN A BRANCH MUST BE SEPARATED BY A FLEXIBLE PATCH')
+        if (global_com%exit_on_error) call err_exit
+        exit
+      endif
+      call ele_geometry (branch%ele(i2-1)%floor, ele2, ele2%floor)
+    enddo
+
+    branch%ele(i-1)%floor = ele%floor  ! Save time
+
+    do i2 = i-1, 1, -1
+      ele2 => branch%ele(i2)
+      if (ele2%key == patch$ .and. ele2%value(flexible$) /= 0) exit
+      if (ele2%key == fiducial$) then
+        call out_io (s_fatal$, r_name, 'FIDUCIAL ELEMENTS IN A BRANCH MUST BE SEPARATED BY A FLEXIBLE PATCH')
+        if (global_com%exit_on_error) call err_exit
+        exit
+      endif
+      call ele_geometry (ele2%floor, ele2, branch%ele(i2-1)%floor, reverse = -1)
+    enddo
+  enddo
+
+  ! Transfer info from the from_branch element if that element exists.
 
   if (branch%ix_from_branch > -1 .and. (stale .or. branch%ele(0)%bookkeeping_state%floor_position == stale$)) then
     b_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
@@ -82,17 +117,40 @@ do n = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
     if (.not. stale .and. ele%bookkeeping_state%floor_position /= stale$) cycle
+
+    if (ele%key == patch$ .and. ele%value(flexible$) /= 0) then
+      ele2 => branch%ele(i+1)
+      call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
+      if (ix_pass > 0) then
+        ele2 => chain_ele(1)%ele
+        if (ele2%ix_ele /= 0) ele2 => pointer_to_next_ele(ele2, -1)
+        ele%floor = ele2%floor
+      endif
+
+      ele0 => branch%ele(i-1)
+      call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
+      call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, w_mat)
+      w_mat = matmul(w_mat_inv, w_mat)
+      call floor_w_mat_to_angles (w_mat, 0.0_rp, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
+      r_vec = matmul(w_mat_inv, ele%floor%r - ele0%floor%r)
+      ele%value(x_offset$) = r_vec(1)
+      ele%value(y_offset$) = r_vec(2)
+      ele%value(z_offset$) = r_vec(3)
+      stale = .false.
+    else
+      stale = .true.
+    endif
+
     call ele_geometry (branch%ele(i-1)%floor, ele, ele%floor)
-    stale = .true.
+
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
-      ib = nint(ele%value(ix_branch_to$))
+      ib = nint(ele%value(ix_to_branch$))
       lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
     endif
     if (ele%n_lord > 0) then
       call set_lords_status_stale (ele, floor_position_group$)
       stale_lord = .true.
     endif
-    ele%bookkeeping_state%floor_position = ok$
   enddo
 
 enddo
@@ -127,65 +185,76 @@ end subroutine lat_geometry
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (floor0, ele, floor)
+! Subroutine ele_geometry (floor0, ele, floor, reverse)
 !
 ! Subroutine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
+!
+! floor0 will correspond to the coordinates at the upstream end of the element
+! and floor will correspond to the coordinates at the downstream end.
+!
+! If reversed == reverse * ele%orientation is -1, the element is considered
+! to be reversed.
+!
+! Note: For floor_position element, floor is independent of floor0.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   floor0 -- Starting floor coordinates.
-!   ele    -- Ele_struct: Element to propagate the geometry through.
+!   floor0  -- Starting floor coordinates at upstream end.
+!   ele     -- Ele_struct: Element to propagate the geometry through.
+!   reverse -- Integer, optional: Reverse propagation through the element?
 !
 ! Output:
-!   floor -- floor_position_struct: Floor position at the exit end of ele.
-!        %a                -- X position at end of element
-!        %b                -- Y position at end of element
-!        %z                -- Z position at end of element
-!        %theta            -- Orientation angle at end of element in X-Z plane
-!        %phi              -- Elevation angle.
-!        %psi              -- Roll angle.
+!   floor -- floor_position_struct: Floor position at downstream end.
+!     %r(3)              -- X, Y, Z Floor position at end of element
+!     %theta, phi, %psi  -- Orientation angles 
 !-
 
-subroutine ele_geometry (floor0, ele, floor)
+subroutine ele_geometry (floor0, ele, floor, reverse)
 
 use multipole_mod
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
 type (floor_position_struct) floor0, floor
-integer i, key
+type (ele_pointer_struct), allocatable :: eles(:)
 
-real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-real(dp) chord_len, angle, leng, rho
-real(dp) pos(3), theta, phi, psi, tlt
-real(dp), save :: old_theta = 100  ! garbage number
-real(dp), save :: old_phi, old_psi
-real(dp), save :: s_ang, c_ang
-real(dp), save :: w_mat(3,3), s_mat(3,3), r_mat(3), t_mat(3,3)
-real(dp), parameter :: twopi_dp = 2 * 3.14159265358979
+real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
+real(rp) r0(3)
+real(rp) chord_len, angle, leng, rho
+real(rp) theta, phi, psi, tlt
+real(rp), save :: old_theta = 100  ! garbage number
+real(rp), save :: old_phi, old_psi
+real(rp), save :: s_ang, c_ang
+real(rp), save :: w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-logical has_nonzero_pole
+integer, optional :: reverse
+integer i, key, n_loc, reversed
 
-! floor_position element: Floor position is already set in the element.
+logical has_nonzero_pole, err
 
-if (ele%key == floor_position$) return
+character(16), parameter :: r_name = 'ele_geometry'
 
-! init
+! Init
 ! old_theta is used to tell if we have to reconstruct the w_mat
 
-pos   = [floor0%x, floor0%y, floor0%z ]
-theta = floor0%theta
-phi   = floor0%phi
-psi   = floor0%psi
+ele%bookkeeping_state%floor_position = ok$
+reversed = ele%orientation * integer_option(1, reverse)
+
+floor   = floor0
+theta   = floor0%theta
+phi     = floor0%phi
+psi     = floor0%psi
 
 knl  = 0   ! initialize
 tilt = 0  
 
-leng = ele%value(l$)
+leng = ele%value(l$) * reversed
+
 key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
@@ -193,10 +262,40 @@ if (key == multipole$) then
   call multipole_ele_to_kt (ele, positron$, .true., has_nonzero_pole, knl, tilt)
 endif
 
+! Fiducial element is independent of floor0
+
+if (key == fiducial$) then
+  if (ele%component_name == '') then
+    call floor_angles_to_w_mat (ele%value(theta_origin$), ele%value(phi_origin$), &
+                                                          ele%value(psi_origin$), w_mat)
+    r0 = [ele%value(x_origin$), ele%value(y_origin$), ele%value(z_origin$)]
+  else
+    call lat_ele_locator (ele%component_name, ele%branch%lat, eles, n_loc, err)
+    if (n_loc /= 1) then
+      call out_io (s_fatal$, r_name, 'ORIGIN_ELE: ' // ele%component_name,  &
+                                      'FOR FIDUCIAL ELEMENT: ' // ele%name, &
+                                      'IS NOT UNIQUE!')
+      if (global_com%exit_on_error) call err_exit
+    endif
+    ele0 => eles(1)%ele
+    call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat)
+    r0 = ele0%floor%r
+  endif
+
+  r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
+  floor%r = r0 + matmul(w_mat, r_vec)
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), s_mat)
+  w_mat = matmul(w_mat, s_mat)
+  dtheta = ele%value(x_pitch$)
+  call floor_w_mat_to_angles (w_mat, floor0%theta+dtheta, floor%theta, floor%phi, floor%psi)
+
+  return
+endif
+
 ! General case where layout is not in the horizontal plane
 
 if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(tilt_tot$) /= 0) .or. &
-         phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
+         phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == floor_position$ .or. &
          (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
   if (old_theta /= theta .or. old_phi /= phi .or. old_psi /= psi) then
@@ -215,12 +314,12 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
       tlt = ele%value(tilt_tot$)
       rho = 1.0_dp / ele%value(g$)
       s_ang = sin(angle); c_ang = cos(angle)
-      r_mat = [rho * (c_ang - 1), 0.0_dp, rho * s_ang ]
+      r_vec = [rho * (c_ang - 1), 0.0_dp, rho * s_ang ]
     else
-      angle = knl(0)
+      angle = knl(0) * reversed
       tlt = tilt(0)
       s_ang = sin(angle); c_ang = cos(angle)
-      r_mat = 0
+      r_vec = 0
     endif
 
     s_mat(1,:) = [c_ang,  0.0_dp, -s_ang ]
@@ -233,15 +332,17 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
       t_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
       t_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
 
-      r_mat = matmul (t_mat, r_mat)
+      r_vec = matmul (t_mat, r_vec)
 
       s_mat = matmul (t_mat, s_mat)
       t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
       s_mat = matmul (s_mat, t_mat)
     endif
 
-    pos = pos + matmul(w_mat, r_mat)
+    floor%r = floor%r + matmul(w_mat, r_vec)
     w_mat = matmul (w_mat, s_mat)
+
+    call floor_w_mat_to_angles (w_mat, floor0%theta, theta, phi, psi)
 
   ! mirror
 
@@ -256,9 +357,9 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
     tlt = ele%value(tilt_tot$)
     s_ang = sin(angle); c_ang = cos(angle)
 
-    s_mat(1,:) = [c_ang,  0.0_dp, -s_ang ]
+    s_mat(1,:) = [ c_ang, 0.0_dp,  -s_ang ]
     s_mat(2,:) = [0.0_dp, 1.0_dp,  0.0_dp ]
-    s_mat(3,:) = [s_ang,  0.0_dp,  c_ang ]
+    s_mat(3,:) = [ s_ang, 0.0_dp,   c_ang ]
 
     if (tlt /= 0) then
       s_ang = sin(tlt); c_ang = cos(tlt)
@@ -273,59 +374,36 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
 
     w_mat = matmul (w_mat, s_mat)
 
+    call floor_w_mat_to_angles (w_mat, floor0%theta, theta, phi, psi)
+
   ! patch
 
-  case (patch$)
+  case (patch$, floor_position$)
 
-    if (ele%value(translate_after$) == 0) then
-      r_mat = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$) ]
-      pos = pos + matmul(w_mat, r_mat)
-    endif
+    r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
 
-    angle = ele%value(tilt$)
-    if (angle /= 0) then
-      s_ang = sin(angle); c_ang = cos(angle)
-      s_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
-      s_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
-      s_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
+    if (reversed == -1) then
+      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = s_mat)
       w_mat = matmul(w_mat, s_mat)
-    endif
-
-    angle = ele%value(y_pitch_tot$)           ! 
-    if (angle /= 0) then
-      s_ang = sin(angle); c_ang = cos(angle)
-      s_mat(1,:) = [1.0_dp,  0.0_dp, 0.0_dp ]
-      s_mat(2,:) = [0.0_dp,  c_ang,  s_ang ]
-      s_mat(3,:) = [0.0_dp, -s_ang,  c_ang ]
+      floor%r = floor%r - matmul(w_mat, r_vec)
+      dtheta = -ele%value(x_pitch$)
+    else
+      floor%r = floor%r + matmul(w_mat, r_vec)
+      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), s_mat)
       w_mat = matmul(w_mat, s_mat)
-    endif
-
-    angle = ele%value(x_pitch_tot$)            ! x_pitch is negative MAD yrot
-    if (angle /= 0) then
-      s_ang = sin(angle); c_ang = cos(angle)
-      s_mat(1,:) = [ c_ang,  0.0_dp, s_ang ]
-      s_mat(2,:) = [ 0.0_dp, 1.0_dp, 0.0_dp ]
-      s_mat(3,:) = [-s_ang,  0.0_dp, c_ang ]
-      w_mat = matmul(w_mat, s_mat)
+      dtheta = ele%value(x_pitch$)
     endif
      
-    if (ele%value(translate_after$) /= 0) then
-      r_mat = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$) ]
-      pos = pos + matmul(w_mat, r_mat)
-    endif
+    call floor_w_mat_to_angles (w_mat, floor0%theta+dtheta, theta, phi, psi)
 
   ! everything else. Just a translation
 
   case default
-    pos = pos + w_mat(:,3) * leng
+    floor%r = floor%r + w_mat(:,3) * leng
 
   end select
 
-  ! if there has been a rotation calculate new theta, phi, and psi
-
-  if (key == sbend$ .or. key == patch$ .or. key == multipole$ .or. key == mirror$) then
-    call floor_w_mat_to_angles (w_mat, floor0%theta, theta, phi, psi)
-  endif
+  ! Save
 
   old_theta = theta
   old_phi   = phi
@@ -354,17 +432,14 @@ else
   end select
 
   theta = theta - angle / 2
-  pos(1) = pos(1) + chord_len * sin(theta)
-  pos(3) = pos(3) + chord_len * cos(theta)
+  floor%r(1) = floor%r(1) + chord_len * sin(theta)
+  floor%r(3) = floor%r(3) + chord_len * cos(theta)
   theta = theta - angle / 2
 
 endif
 
 !
 
-floor%x = pos(1)
-floor%y = pos(2)
-floor%z = pos(3)
 floor%theta = theta
 floor%phi   = phi
 floor%psi   = psi
@@ -375,7 +450,7 @@ end subroutine ele_geometry
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat)
+! Subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat, w_mat_inv)
 !
 ! Routine to construct the W matrix that specifies the orientation of an element
 ! in the global "floor" coordinates. See the Bmad manual for more details.
@@ -389,14 +464,16 @@ end subroutine ele_geometry
 !   psi   -- Real(rp): Roll angle.
 !
 ! Output:
-!   w_mat(3,3) -- Real(rp): Orientation matrix.
+!   w_mat(3,3)     -- Real(rp), optional: Orientation matrix.
+!   w_mat_inv(3,3) -- Real(rp), optional: Inverse Orientation matrix.
 !-
 
-subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat)
+subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat, w_mat_inv)
 
 implicit none
 
-real(rp) theta, phi, psi, w_mat(3,3)
+real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
+real(rp) theta, phi, psi
 real(rp) s_the, c_the, s_phi, c_phi, s_psi, c_psi
 
 !
@@ -404,15 +481,30 @@ real(rp) s_the, c_the, s_phi, c_phi, s_psi, c_psi
 s_the = sin(theta); c_the = cos(theta)
 s_phi = sin(phi);   c_phi = cos(phi)
 s_psi = sin(psi);   c_psi = cos(psi)
-w_mat(1,1) =  c_the * c_psi - s_the * s_phi * s_psi
-w_mat(1,2) = -c_the * s_psi - s_the * s_phi * c_psi
-w_mat(1,3) =  s_the * c_phi
-w_mat(2,1) =  c_phi * s_psi
-w_mat(2,2) =  c_phi * c_psi
-w_mat(2,3) =  s_phi 
-w_mat(3,1) = -s_the * c_psi - c_the * s_phi * s_psi
-w_mat(3,2) =  s_the * s_psi - c_the * s_phi * c_psi 
-w_mat(3,3) =  c_the * c_phi
+
+if (present(w_mat)) then
+  w_mat(1,1) =  c_the * c_psi - s_the * s_phi * s_psi
+  w_mat(1,2) = -c_the * s_psi - s_the * s_phi * c_psi
+  w_mat(1,3) =  s_the * c_phi
+  w_mat(2,1) =  c_phi * s_psi
+  w_mat(2,2) =  c_phi * c_psi
+  w_mat(2,3) =  s_phi 
+  w_mat(3,1) = -s_the * c_psi - c_the * s_phi * s_psi
+  w_mat(3,2) =  s_the * s_psi - c_the * s_phi * c_psi 
+  w_mat(3,3) =  c_the * c_phi
+endif
+
+if (present(w_mat_inv)) then
+  w_mat_inv(1,1) =  c_the * c_psi - s_the * s_phi * s_psi
+  w_mat_inv(1,2) =  c_phi * s_psi - s_the * s_phi * c_psi
+  w_mat_inv(1,3) = -s_the * c_psi - c_the * s_phi * s_psi 
+  w_mat_inv(2,1) =  c_the * s_psi - s_the * s_phi * c_psi 
+  w_mat_inv(2,2) =  c_phi * c_psi
+  w_mat_inv(2,3) =  s_the * s_phi - c_the * s_phi * c_psi
+  w_mat_inv(3,1) =  s_the * c_phi
+  w_mat_inv(3,2) =  s_phi
+  w_mat_inv(3,3) =  c_the * c_phi
+endif
 
 end subroutine floor_angles_to_w_mat 
 
@@ -470,6 +562,40 @@ end subroutine floor_w_mat_to_angles
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
+! Function patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)
+!
+! Routine to determine if the propagation direction is flipped in a patch.
+! This is true if the tranformation matrix element S(3,3) = cos(x_pitch) * cos(y_pitch) 
+! is negative.
+!
+! Module needed:
+!   use lat_geometry_mod
+!
+! Input:
+!   x_pitch   -- Real(rp): Rotaion around y-axis
+!   y_pitch   -- Real(rp): Rotation around x-axis.
+!
+! Output:
+!   is_flip -- Logical: True if patch does a flip
+!-
+
+function patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)
+
+implicit none
+
+real(rp) x_pitch, y_pitch
+logical is_flip
+
+!
+
+is_flip = (cos(x_pitch) * cos(y_pitch) < 0)
+
+end function patch_flips_propagation_direction 
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
 ! Subroutine shift_reference_frame (floor0, dr, theta, phi, psi, floor1)
 !
 ! Starting from a given reference frame specified by its orientation and
@@ -497,25 +623,19 @@ implicit none
 
 type (floor_position_struct) floor0, floor1
 real(rp) dr(3), theta, phi, psi
-real(rp) r(3), w_mat(3,3), w0_mat(3,3)
+real(rp) w_mat(3,3), w0_mat(3,3)
 
 !
 
 call floor_angles_to_w_mat (floor0%theta, floor0%phi, floor0%psi, w0_mat)
 
-r = matmul(w0_mat, dr) + [floor0%x, floor0%y, floor0%z]
-floor1%x = r(1)
-floor1%y = r(2)
-floor1%z = r(3)
+floor1%r = matmul(w0_mat, dr) + floor0%r
 
 call floor_angles_to_w_mat (theta, phi, psi, w_mat)
 w_mat = matmul(w0_mat, w_mat)
 call floor_w_mat_to_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi)
 
-
 end subroutine shift_reference_frame
-
-
 
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
@@ -548,7 +668,7 @@ function floor_to_local (floor0, global_position, calculate_angles) result (loca
 implicit none
 
 type (floor_position_struct) floor0, global_position, local_position
-real(rp) :: r_local(3), w0_mat(3,3), w_mat(3,3)
+real(rp) :: w0_mat(3,3), w_mat(3,3)
 logical, optional :: calculate_angles
 
 !
@@ -559,12 +679,8 @@ w0_mat = transpose(w0_mat)
 
 
 !Solve for r_local = [x, y, z]_local
-r_local = &
-   matmul(w0_mat, [global_position%x, global_position%y, global_position%z] &
-                            - [floor0%x, floor0%y, floor0%z])
-local_position%x = r_local(1)
-local_position%y = r_local(2)
-local_position%z = r_local(3)
+   
+local_position%r = matmul(w0_mat, global_position%r - floor0%r)
 
 ! If angles are not needed, just return zeros; 
 if (.not. logic_option(.true., calculate_angles) ) then
@@ -602,8 +718,8 @@ end function floor_to_local
 ! Result:
 !   local_position  -- floor_position_struct: [x, y, s] position in local curvilinear coordinates
 !   status          -- logical: inside$: s is inside ele
-!                               entrance_end$: s is before element's entrance
-!                               exit_end$: s is beyond element's end
+!                               upstream_end$: s is before element's entrance
+!                               downstream_end$: s is beyond element's end
 !   w_mat(3,3)      -- real(rp) (optional): W matrix at s, to transform vectors. 
 !                                  v_global = w_mat.v_local
 !                                  v_local = transpose(w_mat).v_global
@@ -617,7 +733,7 @@ implicit none
 type (floor_position_struct) :: global_position, local_position
 type (ele_struct)   :: ele
 type (floor_position_struct) :: floor0, floor_at_s
-real(rp) :: L_save, s_local, r_global(3), r_local(3) 
+real(rp) :: L_save, s_local, r_global(3)
 real(rp), optional :: w_mat(3,3)
 integer :: status
 logical  :: err
@@ -628,7 +744,6 @@ status = inside$
 
 ! Save ele's L. We will vary this. 
 L_save = ele%value(L$)
-
 
 if (associated (ele%branch) ) then
   ! Get floor0 from previous element
@@ -643,13 +758,13 @@ endif
 
 ! Check to see if position is within 0 < s < ele%value(L$)
 local_position = floor_to_local (floor0, global_position)
-if (local_position%z < 0) then
-  status = entrance_end$
+if (local_position%r(3) < 0) then
+  status = upstream_end$
   return
 endif
 local_position = floor_to_local (ele%floor, global_position)
-if (local_position%z > 0) then
-  status = exit_end$
+if (local_position%r(3) > 0) then
+  status = downstream_end$
   return
 endif
 
@@ -661,42 +776,42 @@ s_local = zbrent(delta_s_in_ele_for_zbrent, 0.0_rp, L_save, 1d-9)
 ele%value(L$) = L_save
 
 ! r_local was calculated in the zbrent function. Add in s_local
-local_position%z = s_local
+local_position%r(3) = s_local
 
 ! Optionally return w_mat
 if (present(w_mat) ) then
   call floor_angles_to_w_mat (local_position%theta, local_position%phi, local_position%psi, w_mat)
 endif
 
+!-------------------------------------------------------------------------
 contains
 
-  !
-  ! function for zbrent to calculate s
-  !
-  !
-  ! r_global = w_mat(s_local).[x_local, y_local, 0] 
-  !             + [floor%x, floor%y, floor%z](s_local)
-  ! Invert:
-  ! => transpose(w_mat) . ( r_global - [floor%x, floor%y, floor%z](s_local) )
-  !     == [x_local, y_local, 0]  when w_mat and floor% are calculated from correct s. 
+!+
+! function for zbrent to calculate s
+!
+! r_global = w_mat(s_local).[x_local, y_local, 0] + floor%r (s_local)
+! Invert:
+! => transpose(w_mat) . ( r_global - floor%r (s_local) )
+!     == [x_local, y_local, 0]  when w_mat and floor% are calculated from correct s. 
+!-
 
-  function delta_s_in_ele_for_zbrent (this_s)
-  
-  real(rp), intent(in)  :: this_s
-  real(rp) :: delta_s_in_ele_for_zbrent
+function delta_s_in_ele_for_zbrent (this_s)
 
-  !Vary L  
-  ele%value(L$) = this_s  
-  
-  !Get floor_at_s
-  call ele_geometry(floor0, ele, floor_at_s)
-  
-  !Get local coordinates   
-  local_position = floor_to_local (floor_at_s, global_position, calculate_angles = .false.)
+real(rp), intent(in)  :: this_s
+real(rp) :: delta_s_in_ele_for_zbrent
 
-  delta_s_in_ele_for_zbrent = local_position%z
-  
-  end function  delta_s_in_ele_for_zbrent
+!Vary L  
+ele%value(L$) = this_s  
+
+!Get floor_at_s
+call ele_geometry(floor0, ele, floor_at_s)
+
+!Get local coordinates   
+local_position = floor_to_local (floor_at_s, global_position, calculate_angles = .false.)
+
+delta_s_in_ele_for_zbrent = local_position%r(3)
+
+end function  delta_s_in_ele_for_zbrent
 end function position_in_local_frame
 
 
@@ -731,14 +846,14 @@ real(rp) :: L_save
 real(rp) :: dr(3)
 real(rp), optional :: w_mat(3,3)
 
-!Set x and y for floor offset 
-dr(1) = local_position%x
-dr(2) = local_position%y
+! Set x and y for floor offset 
+
+dr = local_position%r
  
 if (ele%key == sbend$ .or. ele%key == rbend$) then
   ! Element has a curved geometry. Shorten ele
   L_save = ele%value(L$)
-  ele%value(L$) = local_position%z
+  ele%value(L$) = local_position%r(3)
   
   ! calculate floor from previous element
   if (associated (ele%branch) ) then
@@ -763,7 +878,7 @@ else
    floor = ele%floor
       
    ! position is relative to ele's exit: 
-   dr(3) =  local_position%z - ele%value(L$) 
+   dr(3) =  local_position%r(3) - ele%value(L$) 
 endif 
 
 ! Get global floor coordinates
@@ -830,11 +945,11 @@ global_position = position_in_global_frame (position0, ele0)
 ! Loop over neighboring elements until an encompassing one is found
 do
   position1 = position_in_local_frame  (global_position, ele_try%branch%ele(ix_ele), status) 
-  if (status == entrance_end$) then
+  if (status == upstream_end$) then
     ! Try previous element
     ix_ele = ix_ele -1
     cycle
-  else if (status == exit_end$) then
+  else if (status == downstream_end$) then
     ! Try next element
     ix_ele = ix_ele + 1
     cycle

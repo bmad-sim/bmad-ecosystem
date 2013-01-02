@@ -43,7 +43,7 @@ implicit none
 
 type (lat_struct), target :: lat, in_lat, old_lat, lat2
 type (ele_struct) this_ele
-type (ele_struct), pointer :: ele, slave, lord, ele2
+type (ele_struct), pointer :: ele, slave, lord, ele2, ele0
 type (ele_struct), save :: marker_ele
 type (seq_struct), target :: sequence(1000)
 type (branch_struct), pointer :: branch0, branch
@@ -57,7 +57,7 @@ character(40), allocatable ::  in_name(:), seq_name(:)
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc
-integer ib, ie, ib2, ie2
+integer ib, ie, ib2, ie2, flip
 integer, pointer :: n_max, n_ptr
 
 character(*) lat_file
@@ -163,9 +163,9 @@ endif
 bp_com%input_line_meaningful = .true.
 bp_com%ran%ran_function_was_called = .false.
 bp_com%ran%deterministic_ran_function_was_called = .false.
-bp_com%e_tot_set = .false.
-bp_com%p0c_set   = .false.
 
+in_lat%ele(0)%value(e_tot$) = -1
+in_lat%ele(0)%value(p0c$) = -1
 call find_indexx2 (in_lat%ele(0)%name, in_name, in_indexx, 0, -1, ix, add_to_list = .true.)
 
 bp_com%beam_ele => in_lat%ele(1)
@@ -465,8 +465,8 @@ parsing_loop: do
       ele => in_lat%ele(i)
       if (key /= 0 .and. ele%key /= key) cycle
       ! No wild card matches permitted for these.
-      if (ele%name == 'BEGINNING' .or. ele%name == 'BEAM' .or. &
-          ele%name == 'PARAMETER' .or. ele%name == 'BEAM_START') cycle
+      if (ele%key == init_ele$ .or. ele%key == def_beam$ .or. &
+          ele%key == def_parameter$ .or. ele%key == def_beam_start$) cycle
       bp_com%parse_line = parse_line_save
       found = .true.
       call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
@@ -562,8 +562,19 @@ parsing_loop: do
 
     if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
     if (word_2(:ix_word) == 'LINE') then
-      sequence(iseq_tot)%type = line$
-      if (arg_list_found) sequence(iseq_tot)%type = replacement_line$
+      if (arg_list_found) then
+        sequence(iseq_tot)%type = replacement_line$
+      else
+        sequence(iseq_tot)%type = line$
+        call new_element_init(err)
+        ele => in_lat%ele(n_max)
+        ele%key = init_ele$
+        ele%value(particle$) = real_garbage$
+        ele%value(lattice_type$) = real_garbage$
+        ele%value(rel_tracking_charge$) = real_garbage$
+        ele%value(e_tot$) = -1
+        ele%value(p0c$) = -1
+      endif
     else
       sequence(iseq_tot)%type = list$
     endif
@@ -575,29 +586,8 @@ parsing_loop: do
   !-------------------------------------------------------
   ! if not line or list then must be an element
 
-  if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START') then
-    call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
-    cycle parsing_loop
-  endif
-
-  n_max = n_max + 1
-  if (n_max > ubound(in_lat%ele, 1)) then
-    call allocate_lat_ele_array (in_lat)
-    call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
-    call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
-    bp_com%beam_ele => in_lat%ele(1)
-    bp_com%param_ele => in_lat%ele(2)
-    bp_com%beam_start_ele => in_lat%ele(3)
-    call allocate_plat (plat, ubound(in_lat%ele, 1))
-  endif
-
-  call init_ele (in_lat%ele(n_max), branch = in_lat%branch(0))
-  in_lat%ele(n_max)%name = word_1
-  call find_indexx2 (in_lat%ele(n_max)%name, in_name, in_indexx, 0, n_max-1, ix, add_to_list = .true.)
-  in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
-
-  plat%ele(n_max)%lat_file = bp_com%current_file%full_name
-  plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
+  call new_element_init(err)
+  if (err) cycle parsing_loop
 
   ! Check for valid element key name or if element is part of a element key.
   ! If none of the above then we have an error.
@@ -697,21 +687,6 @@ do i = 1, n_max-1
                   ('DUPLICATE ELEMENT NAME ' // in_lat%ele(ix1)%name)
 enddo
 
-i = 1; j = 1
-do
-  if (i > iseq_tot) exit
-  if (j > n_max) exit
-  ix1 = seq_indexx(i)
-  ix2 = in_indexx(j)
-  if (sequence(ix1)%name == in_lat%ele(ix2)%name) call parser_error  &
-        ('LINE AND ELEMENT HAVE THE SAME NAME: ' // sequence(ix1)%name)
-  if (sequence(ix1)%name < in_lat%ele(ix2)%name) then
-    i = i + 1
-  else
-    j = j + 1
-  endif
-enddo
-
 ! find line corresponding to the "use" statement and expand the used line.
 
 if (present (use_line)) then
@@ -743,6 +718,36 @@ do
   branch%name = this_name
   branch%ix_from_branch = -1
   branch%ix_root_branch = -1
+  branch%name = this_name
+
+  ! Add energy, species, etc info for all branches except branch(0) which is handled "old style".
+
+  if (n == 0) then
+    lat%ele(0)     = in_lat%ele(0)    ! Beginning element
+  endif
+
+  call find_indexx2 (this_name, in_name, in_indexx, 0, n_max, ix)
+  ele => in_lat%ele(ix)    
+  ele0 => branch%ele(0)
+
+  if (ele%value(particle$) == real_garbage$) then
+    branch%param%particle = lat%param%particle
+  else
+    branch%param%particle = ele%value(particle$)
+  endif
+
+  if (ele%value(lattice_type$) /= real_garbage$) branch%param%lattice_type = nint(ele%value(lattice_type$))
+  if (ele%value(rel_tracking_charge$) /= real_garbage$) &
+                                   branch%param%rel_tracking_charge = nint(ele%value(rel_tracking_charge$))
+
+  if (ele%value(p0c$)>= 0)        ele0%value(p0c$)   = ele%value(p0c$)
+  if (ele%value(e_tot$)>= 0)      ele0%value(e_tot$) = ele%value(e_tot$)
+  if (ele%a%beta /= 0)            ele0%a             = ele%a
+  if (ele%b%beta /= 0)            ele0%b             = ele%b
+  if (ele%value(floor_set$) /= 0) ele0%floor         = ele%floor 
+
+  !
+
   if (line == '') exit
   n = n + 1
 enddo
@@ -772,7 +777,7 @@ do i = 1, n_max
     ! Remember to ignore drifts.
     lord%n_slave = lord%n_slave - 1   ! Remove beam line name
     pele%name(1:lord%n_slave) = [pele%name(1:j-1), pele%name(j+1:lord%n_slave+1)]
-    call re_associate (pele%name, lord%n_slave+n_ele_use)
+    call re_allocate (pele%name, lord%n_slave+n_ele_use)
     do k = 1, n_ele_use
       call find_indexx2 (lat2%ele(k)%name, in_name, in_indexx, 0, n_max, ix, ix2)      
       if (ix /= 0) then
@@ -793,7 +798,6 @@ enddo
 lat%version = bmad_inc_version$
 lat%input_file_name         = full_lat_file_name             ! save input file  
 
-lat%ele(0)     = in_lat%ele(0)    ! Beginning element
 lat%beam_start = in_lat%beam_start
 lat%a          = in_lat%a
 lat%b          = in_lat%b
@@ -827,44 +831,6 @@ if (associated(bp_com%param_ele%descrip)) then
   deallocate (bp_com%param_ele%descrip)
 endif
 
-! A patch element with ref_orb = patch_out$ gets a lat%control element to keep
-! track of there the corresponding patch with ref_orb = patch_in$ is.
-
-do i = lat%n_ele_track+1, lat%n_ele_max
-  ele => lat%ele(i)
-  if (ele%ref_orbit /= patch_out$) cycle
-  if (ele%component_name == '') then
-    call parser_error ('NO REF_PATCH ELEMENT GIVEN FOR PATCH: ' // ele%name)
-    cycle
-  endif
-  do j = lat%n_ele_track+1, lat%n_ele_max
-    if (lat%ele(j)%name == ele%component_name) then
-      call reallocate_control(lat, lat%n_control_max+1)
-
-      n_ic = lat%n_ic_max + 1
-      lat%n_ic_max = n_ic
-
-      n_con = lat%n_control_max + 1
-      lat%n_control_max = n_con
-
-      ele%slave_status = patch_in_slave$
-      ele%n_lord = 1
-      ele%ic1_lord = n_ic
-      ele%ic2_lord = n_ic
-
-      lat%ic(n_ic) = n_con  
-      lat%control(n_con)%ix_lord = j
-      lat%control(n_con)%ix_slave = i
-      lat%control(n_con)%ix_branch = 0
-      exit
-    endif
-  enddo
-  if (j == lat%n_ele_max + 1) then
-    call parser_error ('CANNOT FIND REF_PATCH FOR PATCH: ' // ele%name, &
-                  'CANNOT FIND: ' // ele%component_name)
-  endif
-enddo
-
 ! Set lattice_type.
 
 ix = nint(bp_com%param_ele%value(lattice_type$))
@@ -885,48 +851,53 @@ lat%input_taylor_order = nint(bp_com%param_ele%value(taylor_order$))
 
 if (lat%input_taylor_order /= 0) call set_taylor_order (lat%input_taylor_order, .false.)
 
-!-------------------------------------------------------------------------
-! energy bookkeeping.
-
-ele => lat%ele(0)
-
-err = .true.
-if (bp_com%e_tot_set .and. ele%value(e_tot$) < mass_of(lat%param%particle)) then
-  if (global_com%type_out) call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2! WILL USE 1000 * MC^2!')
-elseif (bp_com%p0c_set .and. ele%value(p0c$) < 0) then
-  if (global_com%type_out) call out_io (s_error$, r_name, 'REFERENCE MOMENTUM IS NEGATIVE! WILL USE 1000 * MC^2!')
-elseif (.not. (bp_com%p0c_set .or. bp_com%e_tot_set)) then
-  if (global_com%type_out) call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
-else
-  err = .false.
-endif
-
-if (err) then
-  ele%value(e_tot$) = 1000 * mass_of(lat%param%particle)
-  call convert_total_energy_to (ele%value(e_tot$), lat%param%particle, pc = ele%value(p0c$))
-  bp_com%write_digested = .false.
-elseif (bp_com%e_tot_set) then
-  call convert_total_energy_to (ele%value(e_tot$), lat%param%particle, pc = ele%value(p0c$))
-elseif (bp_com%p0c_set) then
-  call convert_pc_to (ele%value(p0c$), lat%param%particle, e_tot = ele%value(e_tot$))
-endif
-
-ele%value(e_tot_start$) = ele%value(e_tot$)
-ele%value(p0c_start$) = ele%value(p0c$)
-
-! Use arbitrary energy above the rest mass energy since when tracking individual elements the
-! true reference energy is used.
-
-call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
-
 ! Add branch lines.
 ! Branch lines may contain branch elements so this is an iterative process
 
 do i = 1, lat%n_ele_max
   if (lat%ele(i)%key /= photon_branch$ .and. lat%ele(i)%key /= branch$) cycle
   if (lat%ele(i)%slave_status == multipass_slave$) cycle
-  call parser_add_branch (lat%ele(i), lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat)
+  call parser_add_branch (lat%ele(i), lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat)
 enddo
+
+! Reference energy bookkeeping. 
+
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+
+  ! Do not need to have set the energy for branch lines where the particle is the same
+  if (branch%ix_from_branch > -1) then
+    branch0 => lat%branch(branch%ix_from_branch)
+    if (branch0%param%particle == branch%param%particle) cycle
+  endif
+
+  ele => branch%ele(0)
+
+  if (ele%value(p0c$) >= 0) then
+    call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
+  elseif (ele%value(e_tot$) >= mass_of(branch%param%particle)) then
+    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+  else
+    if (global_com%type_out) then
+      if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
+        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (\i0\) ' // branch%name,  'WILL USE 1000 * MC^2!')
+      else
+        call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (\i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
+      endif
+    endif
+    ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
+    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+    bp_com%write_digested = .false.
+  endif
+
+  ele%value(e_tot_start$) = ele%value(e_tot$)
+  ele%value(p0c_start$) = ele%value(p0c$)
+enddo
+
+! Use arbitrary energy above the rest mass energy since when tracking individual elements the
+! true reference energy is used.
+
+call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
 
 ! Error check that if a superposition attribute was set that "superposition" was set.
 
@@ -940,33 +911,48 @@ do i = 1, n_max
 enddo
 
 ! Add end marker. Make sure name is not duplicated. Also do not add marker if one already exists.
+! Also Beginning and end marker elements inherit orientation of element next to them.
 
-if (nint(bp_com%param_ele%value(no_end_marker$)) == 0) then
-  call init_ele (marker_ele)
-  marker_ele%key = marker$
+call init_ele (marker_ele)
+marker_ele%key = marker$
 
-  do i = 0, ubound(lat%branch, 1)
-    branch => lat%branch(i)
-    n_track = branch%n_ele_track
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
 
-    marker_ele%name = 'END'
+  branch%ele(0)%orientation = branch%ele(1)%orientation
 
-    do j = 1, n_track
-      if (branch%ele(j)%name == 'END') then
-        marker_ele%name = 'END_MARKER'
-        exit
-      endif
-    enddo
+  if (nint(bp_com%param_ele%value(no_end_marker$)) /= 0) cycle
 
-    if (branch%ele(n_track)%name /= 'END' .or. branch%ele(n_track)%key /= marker$) then
-      if (marker_ele%name /= 'END') then
-        call parser_error ('ELEMENT NAMED "END" FOUND IN LATTICE.', & 
-                           'ENDING MARKER WILL BE NAMED: ' // trim(marker_ele%name), warn_only = .true.)
-      endif
-      call insert_element (lat, marker_ele, n_track+1, i)
+  n_track = branch%n_ele_track
+  marker_ele%name = 'END'
+
+  do j = 1, n_track
+    if (branch%ele(j)%name == 'END') then
+      marker_ele%name = 'END_MARKER'
+      exit
     endif
   enddo
-endif
+
+  if (branch%ele(n_track)%name /= 'END' .or. branch%ele(n_track)%key /= marker$) then
+    if (marker_ele%name /= 'END') then
+      call parser_error ('ELEMENT NAMED "END" FOUND IN LATTICE.', & 
+                         'ENDING MARKER WILL BE NAMED: ' // trim(marker_ele%name), warn_only = .true.)
+    endif
+    call insert_element (lat, marker_ele, n_track+1, i)
+
+    flip = 1
+    do j = n_track, 0, -1
+      ele2 => branch%ele(j)
+      if (ele2%key == patch$ .or. ele2%key == floor_position$) then
+        if (patch_flips_propagation_direction (ele2%value(x_pitch$), ele2%value(y_pitch$))) flip = -flip
+        cycle
+      endif
+      exit
+    enddo
+    branch%ele(n_track+1)%orientation = ele2%orientation * flip
+    
+  endif
+enddo
 
 ! Go through the IN_LAT elements and put in the superpositions.
 ! If the superposition is a branch element, need to add the branch line.
@@ -986,12 +972,12 @@ do i = 1, n_max
     do k = 1, n_ele
       if (branch%ele(k)%name /= in_lat%ele(i)%name) cycle
       call parser_add_branch (branch%ele(k), lat, sequence, in_name, in_indexx, &
-                                                              seq_name, seq_indexx, in_lat)
+                                                              seq_name, seq_indexx, in_lat, plat)
       branch => lat%branch(j)
     enddo
   enddo
 
-  call s_calc (lat)  ! calc longitudinal distances of new branche elements
+  call s_calc (lat)  ! calc longitudinal distances of new branch elements
 
 enddo
 
@@ -1003,7 +989,6 @@ do ib = 0, ubound(lat%branch, 1)
     ele => lat%branch(ib)%ele(ie)
     if (ele%iyy == 0) cycle
     if (ele%slave_status == super_slave$) cycle
-    if (ele%key == null_ele$) cycle
     n_multi = 0  ! number of elements to slave together
     iyy = ele%iyy
     do ib2 = ib, ubound(lat%branch, 1)
@@ -1173,14 +1158,6 @@ bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 
 if (logic_option (.true., do_dealloc)) then
 
-  do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
-    if (associated (plat%ele(i)%name)) then
-      deallocate(plat%ele(i)%name)
-      deallocate(plat%ele(i)%attrib_name)
-      deallocate(plat%ele(i)%coef)
-    endif
-  enddo
-
   do i = 1, size(sequence(:))
     if (associated (sequence(i)%dummy_arg)) &
               deallocate(sequence(i)%dummy_arg, sequence(i)%corresponding_actual_arg)
@@ -1232,6 +1209,44 @@ call deallocate_lat_pointers(old_lat)
 call deallocate_lat_pointers(in_lat)
 call deallocate_lat_pointers(lat2)
 
-end subroutine
+end subroutine parser_end_stuff 
 
-end subroutine
+!---------------------------------------------------------------------
+! contains
+
+subroutine new_element_init (err)
+
+logical err
+
+!
+
+if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START') then
+  call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
+  err = .true.
+  return
+endif
+
+err = .false.
+
+n_max = n_max + 1
+if (n_max > ubound(in_lat%ele, 1)) then
+  call allocate_lat_ele_array (in_lat)
+  call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
+  call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
+  bp_com%beam_ele => in_lat%ele(1)
+  bp_com%param_ele => in_lat%ele(2)
+  bp_com%beam_start_ele => in_lat%ele(3)
+  call allocate_plat (plat, ubound(in_lat%ele, 1))
+endif
+
+call init_ele (in_lat%ele(n_max), branch = in_lat%branch(0))
+in_lat%ele(n_max)%name = word_1
+call find_indexx2 (in_lat%ele(n_max)%name, in_name, in_indexx, 0, n_max-1, ix, add_to_list = .true.)
+in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
+
+plat%ele(n_max)%lat_file = bp_com%current_file%full_name
+plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
+
+end subroutine new_element_init
+
+end subroutine bmad_parser

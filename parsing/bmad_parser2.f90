@@ -44,6 +44,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
 type (parser_lat_struct), target :: plat
+type (branch_struct), pointer :: branch
 
 real(rp) v1, v2
 
@@ -72,8 +73,6 @@ if (present(err_flag)) err_flag = .true.
 bp_com%write_digested2 = .false.
 bp_com%parser_name = 'bmad_parser2'
 bp_com%input_from_file = .true.
-bp_com%e_tot_set = .false.
-bp_com%p0c_set   = .false.
 
 ! If lat_file = 'FROM: BMAD_PARSER' then bmad_parser2 has been called by 
 ! bmad_parser (after an expand_lattice command). 
@@ -502,12 +501,15 @@ if (associated(bp_com%param_ele%descrip)) then
   deallocate (bp_com%param_ele%descrip)
 endif
 
-if (bp_com%p0c_set) then
-  call convert_pc_to (lat%ele(0)%value(p0c$), lat%param%particle, e_tot = lat%ele(0)%value(e_tot$))
-elseif (bp_com%e_tot_set) then
-  call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
-                                                         pc = lat%ele(0)%value(p0c$))
-endif
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+  ele => branch%ele(0)
+  if (ele%value(e_tot$) < 0) then
+    call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
+  elseif (ele%value(p0c$) < 0) then
+    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+  endif
+enddo
 
 v1 = param_ele%value(n_part$)
 v2 = beam_ele%value(n_part$)
@@ -588,14 +590,6 @@ if (bp_com%error_flag .and. global_com%exit_on_error) then
   call out_io (s_info$, r_name, 'FINISHED. EXITING ON ERRORS')
   stop
 endif
-
-do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
-  if (associated (plat%ele(i)%name)) then
-    deallocate(plat%ele(i)%name)
-    deallocate(plat%ele(i)%attrib_name)
-    deallocate(plat%ele(i)%coef)
-  endif
-enddo
 
 if (associated (plat%ele))      deallocate (plat%ele)
 if (allocated(lat_name))        deallocate (lat_name, lat_indexx)

@@ -20,10 +20,10 @@ use lat_ele_loc_mod, except_dummy => lat_sanity_check
 implicit none
      
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2
+type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch
 
-integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw
+integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2
 integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is
 
 character(10) str_ix_slave, str_ix_lord, str_ix_ele
@@ -46,7 +46,7 @@ good_control(group_lord$, [group_slave$, overlay_slave$, multipass_slave$]) = .t
 good_control(girder_lord$, [overlay_slave$, multipass_slave$]) = .true.
 good_control(overlay_lord$, [overlay_slave$, multipass_slave$]) = .true.
 good_control(super_lord$, [super_slave$]) = .true.
-good_control(multipass_lord$, [multipass_slave$, patch_in_slave$]) = .true.
+good_control(multipass_lord$, [multipass_slave$]) = .true.
 
 err_flag = .false.
            
@@ -68,28 +68,32 @@ do i_b = 0, ubound(lat%branch, 1)
   if (i_b > 0) then
     ix = branch%ix_from_branch
 
-    if (ix < 0 .or. ix == i_b .or. ix > ubound(lat%branch, 1)) then 
+    if (ix < -1 .or. ix == i_b .or. ix > ubound(lat%branch, 1)) then 
       call out_io (s_fatal$, r_name, &
                 'BRANCH: ' // branch%name, &
                 'HAS A IX_FROM_BRANCH INDEX OUT OF RANGE: \i0\ ', i_array = [ix] )
       err_flag = .true.
     endif
 
-    if (branch%ix_from_ele < 1 .or. branch%ix_from_ele > lat%branch(ix)%n_ele_track) then
-      call out_io (s_fatal$, r_name, &
-                'BRANCH: ' // branch%name, &
-                'HAS A IX_FROM_ELE INDEX OUT OF RANGE: \i0\ ', i_array = [branch%ix_from_ele] )
-      err_flag = .true.
-    endif
+    ! If there is a from branch
 
-    slave => lat%branch(ix)%ele(branch%ix_from_ele)
-    str_ix_slave = ele_loc_to_string(slave)
+    if (ix > -1) then
+      if (branch%ix_from_ele < -1 .or. branch%ix_from_ele > lat%branch(ix)%n_ele_track) then
+        call out_io (s_fatal$, r_name, &
+                  'BRANCH: ' // branch%name, &
+                  'HAS A IX_FROM_ELE INDEX OUT OF RANGE: \i0\ ', i_array = [branch%ix_from_ele] )
+        err_flag = .true.
+      endif
 
-    if (slave%key /= branch$ .and. slave%key /= photon_branch$) then
-      call out_io (s_fatal$, r_name, &
-            'BRANCH: ' // branch%name, &
-            'HAS A FROM ELEMENT THAT IS NOT A BRANCH NOR A PHOTON_BRANCH ELEMENT: ' // slave%name)
-      err_flag = .true.
+      slave => lat%branch(ix)%ele(branch%ix_from_ele)
+      str_ix_slave = ele_loc_to_string(slave)
+
+      if (slave%key /= branch$ .and. slave%key /= photon_branch$) then
+        call out_io (s_fatal$, r_name, &
+              'BRANCH: ' // branch%name, &
+              'HAS A FROM ELEMENT THAT IS NOT A BRANCH NOR A PHOTON_BRANCH ELEMENT: ' // slave%name)
+        err_flag = .true.
+      endif
     endif
 
   endif
@@ -110,6 +114,18 @@ do i_b = 0, ubound(lat%branch, 1)
 
     ele => branch%ele(i_t)
     str_ix_ele = ele_loc_to_string(ele)
+
+    ! Check that a true rbend has e1 + e2 = angle.
+
+    if (ele%key == sbend$ .and. nint(ele%value(ptc_field_geometry$)) == true_rbend$) then
+      if (abs(ele%value(e1$) + ele%value(e2$) - ele%value(angle$)) > 1e-12) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'WHICH IS AN RBEND WITH PTC_FIELD_GEOMETRY = TRUE_RBEND', &
+                      'DOES NOT HAVE EDGE ANGLES E1 + E2 = 0')
+        err_flag = .true.
+      endif
+    endif
 
     ! Check wakes
 
@@ -157,12 +173,12 @@ do i_b = 0, ubound(lat%branch, 1)
     ! branch check
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
-      ix = nint(ele%value(ix_branch_to$))
+      ix = nint(ele%value(ix_to_branch$))
       if (ix < 0 .or. ix > ubound(lat%branch, 1) .or. ix == i_b) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'WHICH IS A: BRANCH OR PHOTON_BRANCH ELEMENT', &
-                  'HAS A IX_BRANCH_TO INDEX OUT OF RANGE: \i0\ ', i_array = [ix] )
+                  'HAS A IX_TO_BRANCH INDEX OUT OF RANGE: \i0\ ', i_array = [ix] )
         err_flag = .true.
       endif
     endif
@@ -193,45 +209,28 @@ do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    ! A patch element which is a multipass_lord and a ref_orbit specification must
-    ! have n_ref_pass = 1
+    ! Two "consecutive" element with finite length and opposite orientations is not physical.
+    ! But is allowed for testing purposes/
+
+    if (i_t <  branch%n_ele_track .and. ele%value(l$) /= 0) then
+      do i2 = i_t + 1, branch%n_ele_track
+        ele2 => branch%ele(i2)
+        if (ele2%key == patch$ .or. ele2%key == floor_position$) exit
+        if (ele2%value(l$) == 0) cycle
+        if (ele%orientation * ele2%orientation /= 1) then
+          call out_io (s_fatal$, r_name, &
+                'ELEMENT: ' // ele%name, &
+                'WHICH IS NEXT TO: ' // ele2%name, &
+                'HAVE OPPOSITE ORIENTATIONS! THIS IS NOT PHYSICAL.')
+        endif
+        exit
+      enddo
+    endif
+
+    !
 
     l_stat = ele%lord_status
     s_stat = ele%slave_status
-    n_pass = nint(ele%value(n_ref_pass$))
-
-    if (ele%key == patch$ .and. l_stat == multipass_lord$) then
-      if (ele%ref_orbit /= 0 .and. n_pass /= 1) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele%name, &
-                  'WHICH IS A PATCH ELEMENT AND A MULTIPASS_LORD.', &
-                  'HAS REF_ORBIT = ' // ref_orbit_name(ele%ref_orbit), &
-                  'BUT N_REF_PASS IS NOT 1! \i0\ ', i_array = [nint(ele%value(n_ref_pass$))])
-        err_flag = .true.
-      endif
-    endif
-
-    if (ele%key == lcavity$ .and. l_stat == multipass_lord$) then
-      if (n_pass /= 1) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele%name, &
-                  'WHICH IS A LCAVITY ELEMENT AND A MULTIPASS_LORD.', &
-                  'HAS N_REF_PASS NOT 1! \i0\ ', i_array = [nint(ele%value(n_ref_pass$))])
-        err_flag = .true.
-      endif
-    endif
-
-    ! If n_ref_pass is set for a multipass_lord then check that there the appropriate 
-    ! slave exists
-
-    if (l_stat == multipass_lord$ .and. n_pass /= 0 .and. ele%n_slave < n_pass) then
-      call out_io (s_fatal$, r_name, &
-                  'MULTIPASS_LORD: ' // ele%name, &
-                  'HAS N_REF_PASS = \i0\ ', &
-                  'BUT NUMBER OF PASSES FOR THIS LORD IS: \i0\ ', &
-                  i_array = [n_pass, ele%n_slave])
-      err_flag = .true.
-    endif
 
     ! multipass lords/slaves must share %wall3d memory
 
@@ -370,13 +369,6 @@ do i_b = 0, ubound(lat%branch, 1)
                   'DOES NOT HAVE A REFERENCE ENERGY OR N_REF_PASS DEFINED')
         err_flag = .true.
       endif
-      if (ele%ref_orbit == match_global_coords$ .and. ele%value(n_ref_pass$) /= 1) then
-        call out_io (s_fatal$, r_name, &
-                  'BEND: ' // ele%name, &
-                  'WHICH IS A: MULTIPASS_LORD', &
-                  'HAS REF_ORBIT = MATCH_GLOBAL_COORDS BUT N_REF_PASS IS NOT SET TO 1!')
-        err_flag = .true.
-      endif
     endif
 
     ! A multipass lord that is a magnetic or electric element must either:
@@ -440,7 +432,7 @@ do i_b = 0, ubound(lat%branch, 1)
     endif
 
     if (.not. any( [free$, group_slave$, super_slave$, overlay_slave$, &
-                      multipass_slave$, patch_in_slave$] == s_stat)) then
+                                            multipass_slave$] == s_stat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
                 'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = [i_t, s_stat] )
@@ -549,7 +541,8 @@ do i_b = 0, ubound(lat%branch, 1)
         slave2 => pointer_to_slave(ele, i)
         if (slave2%lord_status == super_lord$) slave2 => pointer_to_slave(slave2, 1)
 
-        if (slave2%ix_ele <= slave1%ix_ele) then
+        if (slave2%ix_branch < slave1%ix_branch .or. &
+            (slave2%ix_branch == slave1%ix_branch .and. slave2%ix_ele <= slave1%ix_ele)) then
           call out_io (s_fatal$, r_name, &
                     'SLAVES OF A MULTIPASS_LORD: ' // trim(slave1%name) // '  (\i0\)', &
                     '                          : ' // trim(slave2%name) // '  (\i0\)', &

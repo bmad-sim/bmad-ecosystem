@@ -1,6 +1,6 @@
 !+
 ! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, 
-!        type_control, lattice, type_wake, type_floor_coords, type_field, 
+!        type_control, type_wake, type_floor_coords, type_field, 
 !        type_wall, nunit)
 !
 ! Subroutine to type out information on an element. 
@@ -26,8 +26,8 @@
 !                           = radians$  => Print Twiss, phi in radians (Default).
 !                           = degrees$  => Print Twiss, phi in degrees.
 !                           = cycles$   => Print Twiss, phi in radians/2pi.
-!   type_control       -- Logical, optional: If True then print control status.
-!                           Default is False if lattice is not present. Otherwise True.
+!   type_control       -- Logical, optional: Print control status? Default is True.
+!                           If ele%branch%lat is not associated cannot print status info.
 !   lattice            -- lat_struct, optional: Needed for control typeout.
 !   type_wake          -- Logical, optional: If True then print the long-range and 
 !                           short-range wakes information. If False then just print
@@ -49,7 +49,7 @@
 !-
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
-      type_control, lattice, type_wake, type_floor_coords, type_field, &
+      type_control, type_wake, type_floor_coords, type_field, &
       type_wall, nunit)
 
 use bmad_struct
@@ -58,7 +58,6 @@ use bmad_interface, except_dummy => type_ele
 implicit none
 
 type (ele_struct)  ele
-type (lat_struct), optional :: lattice
 
 integer n_lines, i, iu
 integer, optional :: type_mat6, twiss_out, nunit
@@ -71,7 +70,7 @@ character(200), allocatable :: lines(:)
 !
 
 call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, &
-      twiss_out, type_control, lattice, type_wake, type_floor_coords, type_field, &
+      twiss_out, type_control, type_wake, type_floor_coords, type_field, &
       type_wall)
 
 iu = integer_option(0, nunit)

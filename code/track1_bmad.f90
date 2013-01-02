@@ -33,12 +33,14 @@ subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 use capillary_mod, dummy => track1_bmad
 use track1_photon_mod, dummy2 => track1_bmad
 use mad_mod, dummy3 => track1_bmad
+use lat_geometry_mod, dummy4 => track1_bmad
 
 implicit none
 
 type (coord_struct) :: start_orb, start2_orb
 type (coord_struct) :: end_orb, temp_orb
 type (ele_struct) :: ele, temp_ele
+type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 
 real(rp) k1, k2, k2l, k3l, length, phase, beta_start
@@ -53,7 +55,7 @@ real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22, volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
 real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, len_slice, k0l, k1l
-real(rp) dcos_phi, dgradient, dpz
+real(rp) dcos_phi, dgradient, dpz, w_mat_inv(3,3), w_mat0(3,3)
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 
@@ -63,11 +65,11 @@ real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 
 real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
-real(rp) test, nn, mm, temp_vec(3)
+real(rp) test, nn, mm, temp_vec(3), p_vec(3), r_vec(3)
 
 complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
-integer i, n, n_slice, key
+integer i, n, n_slice, key, ix_fringe
 
 logical, optional :: err_flag
 logical err, has_nonzero_pole
@@ -84,8 +86,9 @@ if (present(err_flag)) err_flag = .false.
 start2_orb = start_orb ! In case start_orb and end_orb share the same memory.
 
 end_orb = start_orb     ! transfer start to end
-if (param%particle /= photon$) end_orb%p0c = ele%value(p0c$)
-
+if (param%particle /= photon$) then
+  end_orb%p0c = ele%value(p0c$)
+endif
 length = ele%value(l$)
 rel_pc = 1 + start_orb%vec(6)
 
@@ -312,7 +315,7 @@ case (lcavity$)
 
   if (ele%value(E_tot_start$) == 0) then
     if (present(err_flag)) err_flag = .true.
-    call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!')
+    call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif
@@ -457,7 +460,7 @@ case (lcavity$)
 !-----------------------------------------------
 ! marker, etc.
 
-case (marker$, branch$, photon_branch$, floor_position$)
+case (marker$, branch$, photon_branch$, floor_position$, fiducial$)
 
   return
 
@@ -578,19 +581,29 @@ case (octupole$)
 
 case (patch$)
 
-  rel_pc = 1 + end_orb%vec(6)
-
-  end_orb%vec(2) = end_orb%vec(2) - ele%value(x_pitch$) * rel_pc
-  end_orb%vec(4) = end_orb%vec(4) - ele%value(y_pitch$) * rel_pc
-  end_orb%vec(5) = end_orb%vec(5) + ele%value(x_pitch$) * end_orb%vec(1) + ele%value(y_pitch$) * end_orb%vec(3) 
-
-  if (ele%value(tilt$) /= 0) call tilt_coords (ele%value(tilt$), end_orb%vec)
-
   end_orb%vec(1) = end_orb%vec(1) - ele%value(x_offset$)
   end_orb%vec(3) = end_orb%vec(3) - ele%value(y_offset$)
-  end_orb%vec(5) = end_orb%vec(5) - ele%value(z_offset$) + ele%value(t_offset$) * end_orb%beta * c_light
-  end_orb%vec(6) = (end_orb%vec(6) * ele%value(p0c_start$) + &
-                                      (ele%value(p0c_start$) - ele%value(p0c$))) / ele%value(p0c$) 
+  r_vec = [end_orb%vec(1), end_orb%vec(3), -ele%value(s_offset$)]
+  
+  rel_pc = 1 + end_orb%vec(6)
+  p_vec = [end_orb%vec(2)/rel_pc, end_orb%vec(2)/rel_pc, 0.0_rp]
+  p_vec(3) = sqrt(1 - p_vec(1)**2 - p_vec(2)**2)
+  if (end_orb%p0c < 0) p_vec(3) = -p_vec(3)
+
+  if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+    call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
+    p_vec = matmul(w_mat_inv, p_vec)
+    r_vec = matmul(w_mat_inv, r_vec)
+    end_orb%vec(2) = p_vec(1)
+    end_orb%vec(4) = p_vec(2)
+    end_orb%p0c = sign(end_orb%p0c, p_vec(3))
+  endif
+
+  end_orb%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
+  end_orb%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
+
+  end_orb%vec(5) = end_orb%vec(5) + r_vec(3) / p_vec(3) + end_orb%beta * c_light * ele%value(t_offset$)
+  end_orb%vec(6) = (end_orb%vec(6) * ele%value(p0c_start$) + (ele%value(p0c_start$) - ele%value(p0c$))) / ele%value(p0c$) 
 
 !-----------------------------------------------
 ! quadrupole
@@ -603,7 +616,8 @@ case (quadrupole$)
 
   ! Entrance edge
 
-  if (ele%value(include_fringe$) /= 0) then
+  ix_fringe = nint(ele%value(fringe_type$))
+  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
     x = end_orb%vec(1); px = end_orb%vec(2); y = end_orb%vec(3); py = end_orb%vec(4)
     end_orb%vec(1) = x  + k1 * (x**3/12 + x*y**2/4)
     end_orb%vec(2) = px + k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
@@ -629,7 +643,7 @@ case (quadrupole$)
 
   ! Exit edge
 
-  if (ele%value(include_fringe$) /= 0) then
+  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
     x = end_orb%vec(1); px = end_orb%vec(2); y = end_orb%vec(3); py = end_orb%vec(4)
     end_orb%vec(1) = x  - k1 * (x**3/12 + x*y**2/4)
     end_orb%vec(2) = px - k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
@@ -900,7 +914,7 @@ if (nint(ele%value(coupler_at$)) == both_ends$) then
   dp_y_coupler = dp_y_coupler / 2
 endif
 
-if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
+if (nint(ele%value(coupler_at$)) == upstream_end$ .or. &
     nint(ele%value(coupler_at$)) == both_ends$) then
   end_orb%vec(2) = end_orb%vec(2) + dp_x_coupler / pc_start
   end_orb%vec(4) = end_orb%vec(4) + dp_y_coupler / pc_start
@@ -915,7 +929,7 @@ subroutine coupler_kick_exit ()
 
 implicit none
 
-if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
+if (nint(ele%value(coupler_at$)) == downstream_end$ .or. &
     nint(ele%value(coupler_at$)) == both_ends$) then
   end_orb%vec(2) = end_orb%vec(2) + dp_x_coupler / pc_end
   end_orb%vec(4) = end_orb%vec(4) + dp_y_coupler / pc_end

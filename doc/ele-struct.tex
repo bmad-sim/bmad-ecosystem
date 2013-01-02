@@ -97,16 +97,15 @@ The complete structure is shown in this and the following figure.}
   integer tracking_method        ! bmad_standard$, taylor$, etc.
   integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
   integer field_calc             ! Used with Boris, Runge-Kutta integrators.
-  integer ref_orbit              ! Multipass ref orb: single_ref$, match_global_coords$, etc.
   integer aperture_at            ! Aperture location: exit_end$, ...
   integer aperture_type          ! Type of aperture: rectanular$, elliptical$, or custom$. 
+  integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
   logical symplectify            ! Symplectify mat6 matrices.
   logical mode_flip              ! Have the normal modes traded places?
   logical multipoles_on          ! For turning multipoles on/off
   logical scale_multipoles       ! multipole components scaled by the strength of element?
   logical map_with_offsets       ! Taylor map calculated with element offsets?
   logical field_master           ! Calculate strength from the field value?
-  logical reversed               ! Element is longitudinally reversed form the lord element?
   logical is_on                  ! For turning element on/off.
   logical old_is_on              ! For saving the element on/off state.
   logical logic                  ! For general use. Not used by Bmad.

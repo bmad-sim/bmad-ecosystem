@@ -175,6 +175,10 @@ do i = 1, n_files
 
 enddo
 
+! Read bmad_com structure
+
+read (d_unit, err = 9025) bmad_com
+
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
@@ -224,17 +228,13 @@ read (d_unit, err = 9060) lat%beam_start
 read (d_unit, err = 9070) n_branch
 call allocate_branch_array (lat, n_branch)  ! Initial allocation
 
-do i = 1, n_branch
+do i = 0, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
   read (d_unit, err = 9070) branch%param
   read (d_unit, err = 9070) branch%name, branch%ix_root_branch, branch%ix_from_branch, &
-                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, idum1
-
-  if (bmad_inc_version$ == 110) then
-    if (branch%param%lattice_type == 10) branch%param%lattice_type = linear_lattice$
-    if (branch%param%lattice_type == 12) branch%param%lattice_type = circular_lattice$
-  endif
+                 branch%ix_from_ele, branch%ix_to_ele, &
+                 branch%n_ele_track, branch%n_ele_max, idum1
 
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
@@ -249,7 +249,7 @@ enddo
 ! Read PTC info
 
 read (d_unit, iostat = ios) ptc_param
-if (ios /= 0 .and. inc_version > 111) then
+if (ios /= 0) then
   if (global_com%type_out) call out_io(s_error$, r_name, 'ERROR READING PTC PARAMETERS.')
   close (d_unit)
   return
@@ -314,6 +314,13 @@ return
 
 9020  continue
 if (global_com%type_out) call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE FILE AND DATE.')
+close (d_unit)
+return
+
+!--------------------------------------------------------------
+
+9025  continue
+if (global_com%type_out) call out_io(s_error$, r_name, 'ERROR READING BMAD_COM COMMON BLOCK.')
 close (d_unit)
 return
 
@@ -388,7 +395,6 @@ subroutine read_this_ele (ele, ix_ele_in, error)
 
 type (ele_struct), target :: ele
 type (em_field_mode_struct), pointer :: mode
-type (coord_struct) map_ref_orb_in, map_ref_orb_out
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
 integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in
@@ -412,18 +418,15 @@ if (file_version >= 99) then
           ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
           ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
           ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, ele%ref_orbit, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
           ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
-          map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
+          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%orientation, &
+          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1, &
-          idum2, ele%bookkeeping_state
+          idum2, ele%bookkeeping_state, ele%ptc_integration_type
 endif
-
-ele%map_ref_orb_in  = map_ref_orb_in%vec
-ele%map_ref_orb_out = map_ref_orb_out%vec
 
 ! Decompress value array
 

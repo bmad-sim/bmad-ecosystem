@@ -569,6 +569,75 @@ Examples:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Fringe Fields}
+\label{s:fringe}
+\index{fringe fields}
+
+\index{fringe_type}\index{kill_fringe}
+The tracking through the fringe fields of such elements as bends,
+quadrupoles, etc is determined by the following element attributes
+\begin{example}
+  fringe_type    !  
+  kill_fringe
+\end{example}
+
+The \vn{kill_fringe} may be set to one of
+\begin{example}
+  no_end               ! Default
+  both_ends
+  entrance_end
+  exit_end
+\end{example}
+The \vn{kill_fringe} switch is used for vetoing fringe effects at
+either of the faces of the element. This is useful in vetoing the
+fringe effect in the interior of split elements.
+
+The \vn{fringe_type} may be set to one of the following
+\begin{example}
+  none              ! Default for non-bend elements.
+  basic_bend        ! Default for sbend and rbend elements
+  full_bend
+  full_straight
+\end{example}
+The \vn{none} setting ignores any fring fields and is the default for
+\vn{quadrupoles}, \vn{sextupoles}, etc. The \vn{basic bend} setting,
+which is the default for \vn{rbend} and \vn{sbend} elements, is
+essentially the basic vertical focusing effect that is present when
+there is a finite \vn{e1} or \vn{e2} face angle. With
+\vn{bmad_standard} tracking, \vn{basic_bend} also includes second
+order terms.  In some cases, for instance in a chicane,
+\vn{basic_bend} is not good enough. With \vn{full_bend} or
+\vn{full_straight}, higher order effects are taken into account.  The
+difference between \vn{full_bend} and \vn{full_straight} is that with
+\vn{full_bend} the fringe field is calculated assuming that there is
+translational invariance along the horizontal $x$ axis (as one would have 
+in a bend) and for \vn{full_straight} the fring_field i
+
+Eaxmple:
+\begin{example}
+  b1: rbend, angle = pi/4, g = 0.3, fringe_type = full_bend
+\end{example}
+
+\index{ptc_max_fringe_order}
+When using PTC tracking (\sref{s:ptc}), the
+\vn{parameter[ptc_max_fringe_order]} (\sref{s:param}) determines the maximum
+order of the calculated fringe fields.
+
+\index{permfringe}\index{bendfringe}
+For programmers who deal with PTC directly: The translation between
+\vn{fringe_type} on the \bmad side and \vn{permfringe} and \vn{bendfringe} 
+on the PTC side is:
+\begin{center}
+\begin{tabular}{|l|l|l} \hline
+{\em fringe_type} & {\em permfringe} & {\em bendfringe} \\
+  none            & False            & False            \\    
+  basic_bend      & False            & True             \\    
+  full_bend       & True             & True             \\    
+  full_straight   & True             & False            \\    
+\end{tabular}
+\end{center}
+
+%-----------------------------------------------------------------
 \section{Surface Curvature for X-Ray elements}
 \label{s:s.curve}
 

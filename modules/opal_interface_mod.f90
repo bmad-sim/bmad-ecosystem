@@ -793,8 +793,8 @@ do i = 1, n_particle
   dt = orb%t - bunch%t_center
   
   ! Get pc before conversion
-  pc = (1+orb%vec(6))*orb%p0c 
-  
+  pc = (1+orb%vec(6))*abs(orb%p0c)
+
   ! convert to time coordinates
   call convert_particle_coordinates_s_to_t (orb)
   

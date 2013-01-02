@@ -1,6 +1,6 @@
 !+
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, 
-!        twiss_out, type_control, lattice, type_wake, type_floor_coords, 
+!        twiss_out, type_control, type_wake, type_floor_coords, 
 !        type_field, type_wall)
 !
 ! Subroutine to put information on an element in a string array. 
@@ -25,9 +25,8 @@
 !                          = radians$  => Print Twiss, phi in radians (Default).
 !                          = degrees$  => Print Twiss, phi in degrees.
 !                          = cycles$   => Print Twiss, phi in radians/2pi.
-!   type_control      -- Logical, optional: If True then print control status.
-!                          Default: False if lattice is not present. Otherwise True.
-!   lattice           -- lat_struct, optional: Needed for control typeout.
+!   type_control       -- Logical, optional: Print control status? Default is True.
+!                           If ele%branch%lat is not associated cannot print status info.
 !   type_wake         -- Logical, optional: If True then print the long-range and 
 !                          short-range wakes information. If False then just print
 !                          how many terms the wake has. Default is True.
@@ -49,7 +48,7 @@
 !-
 
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-                type_taylor, twiss_out, type_control, lattice, type_wake, &
+                type_taylor, twiss_out, type_control, type_wake, &
                 type_floor_coords, type_field, type_wall)
 
 use multipole_mod, except_dummy => type2_ele
@@ -59,7 +58,8 @@ implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord, slave
-type (lat_struct), optional, target :: lattice
+type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
 type (wig_term_struct), pointer :: term
 type (rf_wake_lr_struct), pointer :: lr
 type (rf_wake_sr_table_struct), pointer :: sr_table
@@ -101,13 +101,20 @@ type_zero = logic_option(.false., type_zero_attrib)
 
 if (associated(ele%branch)) call lat_sanity_check(ele%branch%lat, err_flag)
 
+if (associated(ele%branch)) then
+  branch => ele%branch
+  lat => branch%lat
+else
+  nullify(lat)
+endif
+
 ! Encode element name and type
 
 nl = 0  
 
 if (ele%ix_branch /= 0) then
-  if (present(lattice)) then
-    nl=nl+1; write (li(nl), *) 'Branch #', ele%ix_branch, ': ', lattice%branch(ele%ix_branch)%name
+  if (associated(lat)) then
+    nl=nl+1; write (li(nl), *) 'Branch #', ele%ix_branch, ': ', branch%name
   else
     nl=nl+1; write (li(nl), *) 'Branch #', ele%ix_branch
   endif
@@ -210,8 +217,8 @@ else
         nl=nl+1; write (li(nl), '(i6, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', nint(ele%value(i))
       case (is_real$)
         nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, a_name(1:n_att), '=', ele%value(i)
-      case (is_name$)
-        name = attribute_value_name (a_name, ele%value(i), ele, is_default)
+      case (is_switch$)
+        name = switch_attrib_value_name (a_name, ele%value(i), ele, is_default)
         if (.not. is_default .or. type_zero) then
           nl=nl+1; write (li(nl), '(i6, 3x, 4a, i0, a)')  i, a_name(1:n_att), '=  ', &
                                                         trim(name), ' (', nint(ele%value(i)), ')'
@@ -222,7 +229,7 @@ else
 
   if (associated(ele%a_pole)) then
     particle = +1
-    if (present(lattice)) particle = lattice%param%particle
+    if (associated(lat)) particle = branch%param%particle
 
     if (ele%key == multipole$) then
       call multipole_ele_to_kt (ele, particle, .false., has_nonzero_pole, a,  b)
@@ -396,6 +403,16 @@ if (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD') then
                   'MAT6_CALC_METHOD', '=', calc_method_name(ele%mat6_calc_method)
 endif
 
+if (attribute_name(ele, spin_tracking_method$) == 'SPIN_TRACKING_METHOD') then
+  nl=nl+1; write (li(nl), fmt_a) &
+                  'SPIN_TRACKING_METHOD', '=', calc_method_name(ele%spin_tracking_method)
+endif
+
+if (attribute_name(ele, ptc_integration_type$) == 'PTC_INTEGRATION_TYPE') then
+  nl=nl+1; write (li(nl), fmt_a) &
+                  'PTC_INTEGRATION_TYPE', '=', ptc_integration_type_name(ele%ptc_integration_type)
+endif
+
 if (attribute_name(ele, field_calc$) == 'FIELD_CALC') then
   nl=nl+1; write (li(nl), fmt_a) 'FIELD_CALC', '=', field_calc_name(ele%field_calc)
 endif
@@ -412,12 +429,8 @@ if (attribute_name(ele, aperture_at$) == 'APERTURE_AT' .and. ele%aperture_at /= 
   nl=nl+1; write (li(nl), fmt_l) 'OFFSET_MOVES_APERTURE', '=', ele%offset_moves_aperture
 endif
 
-if (ele%reversed) then
-  nl=nl+1; write (li(nl), fmt_a) 'Longitudinally Reversed = T'
-endif
-
-if (ele%ref_orbit /= 0) then
-  nl=nl+1; write (li(nl), fmt_a) 'REF_ORBIT', '=', ref_orbit_name(ele%ref_orbit) 
+if (ele%orientation /= 1) then
+  nl=nl+1; write (li(nl), fmt_i) 'LONGITUDINAL ORIENTATION', '=', ele%orientation
 endif
 
 if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
@@ -441,11 +454,14 @@ if (ele%key == branch$ .or. ele%key == photon_branch$) then
     nl=nl+1; li(nl) = ' '
   endif
 
-  n = nint(ele%value(ix_branch_to$))
-  if (present(lattice)) then
-    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Branch to:', trim(lattice%branch(n)%name), '  [', n, ']'
+  n = nint(ele%value(ix_to_branch$))
+  i = nint(ele%value(ix_to_element$))
+  if (associated(lat)) then
+    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Branch to:', trim(lat%branch(n)%name), '  [', n, ']'
+    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Ele to:   ', trim(lat%branch(n)%ele(i)%name), '  [', i, ']'
   else
     nl=nl+1; write (li(nl), *) 'Branch to:', n
+    nl=nl+1; write (li(nl), *) 'Ele to:   ', i
   endif
 
 endif
@@ -455,12 +471,7 @@ endif
 ! For slaves who are overlay_lords then the attribute_name is obtained by
 !   looking at the overlay_lord's 1st slave (slave of slave of the input ele).
 
-if (logic_option(present(lattice), type_control)) then
-
-  if (.not. present (lattice)) then
-    call out_io (s_fatal$, r_name, 'TYPE_CONTROL IS TRUE BUT NO LATTICE PRESENT.')
-    if (global_com%exit_on_error) call err_exit
-  endif
+if (associated(lat) .and. logic_option(.true., type_control)) then
 
   if (li(nl) /= '') then
     nl=nl+1; li(nl) = ' '
@@ -482,13 +493,13 @@ if (logic_option(present(lattice), type_control)) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord (ele, i, ic)
       select case (lord%lord_status)
-      case (super_lord$, multipass_lord$, patch_in_slave$, girder_lord$)
+      case (super_lord$, multipass_lord$, girder_lord$)
         coef_str = ''
         a_name = ''
         val_str = ''
       case default
-        write (coef_str, '(es11.3)') lattice%control(ic)%coef
-        iv = lattice%control(ic)%ix_attrib
+        write (coef_str, '(es11.3)') lat%control(ic)%coef
+        iv = lat%control(ic)%ix_attrib
         a_name = attribute_name(ele, iv)
         ix = lord%ix_value
         if (ix == 0) then
@@ -539,8 +550,8 @@ if (logic_option(present(lattice), type_control)) then
       nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), ' Index      Attribute         Coefficient'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, i)
-        iv = lattice%control(i)%ix_attrib
-        coef = lattice%control(i)%coef
+        iv = lat%control(i)%ix_attrib
+        coef = lat%control(i)%coef
         a_name = attribute_name(slave, iv)
         index_str = trim(ele_loc_to_string(slave))
         nl=nl+1; write (li(nl), '(3x, a, 5x, a8, 2x, a18, es11.3, es12.3)') &
@@ -689,8 +700,8 @@ endif
 if (logic_option(.false., type_floor_coords)) then
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Global Floor Coords:'
-  nl=nl+1; write (li(nl), '(3(a, f12.5, 5x))') 'X =    ', ele%floor%x,     'Y =  ', ele%floor%y,   'Z =  ', ele%floor%z 
-  nl=nl+1; write (li(nl), '(3(a, f12.5, 5x))') 'Theta =', ele%floor%theta, 'Phi =', ele%floor%phi, 'Psi =', ele%floor%psi   
+  nl=nl+1; write (li(nl), '(3(a, f12.5, 5x))') 'X =    ', ele%floor%r(1),  'Y =  ', ele%floor%r(2), 'Z =  ', ele%floor%r(3) 
+  nl=nl+1; write (li(nl), '(3(a, f12.5, 5x))') 'Theta =', ele%floor%theta, 'Phi =', ele%floor%phi,  'Psi =', ele%floor%psi   
 endif
 
 ! finish

@@ -41,7 +41,7 @@ type (lat_param_struct) param
 
 integer i_slice, n_slice_tot
 real(rp) l_slice
-logical at_entrance_end, at_exit_end, err_exit
+logical at_upstream_end, at_downstream_end, err_exit
 
 !
 
@@ -49,11 +49,11 @@ if (i_slice == 1) then
   call transfer_ele (ele, sliced_ele, .true.)
 endif
 
-at_entrance_end = (i_slice == 1)
-at_exit_end = (i_slice == n_slice_tot)
+at_upstream_end = (i_slice == 1)
+at_downstream_end = (i_slice == n_slice_tot)
 
 l_slice = ele%value(l$) / n_slice_tot
 call create_element_slice (sliced_ele, ele, l_slice, l_slice * (i_slice - 1), &
-                                      param, at_entrance_end, at_exit_end, err_exit)
+                                      param, at_upstream_end, at_downstream_end, err_exit)
 
 end subroutine

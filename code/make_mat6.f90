@@ -64,7 +64,7 @@ if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
 if (present(start_orb)) then
   call init_coord (a_start_orb, start_orb%vec, ele, .false., param%particle)
 else
-  call init_coord (a_start_orb, ele = ele, at_exit_end = .false., particle = param%particle)
+  call init_coord (a_start_orb, ele = ele, at_downstream_end = .false., particle = param%particle)
 endif
 
 end_input = (logic_option (.false., end_in) .and. present(end_orb))

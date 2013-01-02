@@ -33,27 +33,29 @@ type seq_ele_struct
                                  ! if a list: pointer to SEQ array
   integer ix_arg                 ! index in arg list (for replacement lines)
   integer rep_count              ! how many copies of an element
-  logical reflect                ! reflection sequence
+  logical ele_order_reflect      ! Travel through ele sequence in reverse order
+  integer ele_orientation        ! Travel through elements in reverse.
 end type
 
 type seq_struct
-  character(40) name                 ! name of sequence
+  character(40) name              ! name of sequence
   type (seq_ele_struct), pointer :: ele(:) => null()
   character(40), pointer :: dummy_arg(:) => null()
   character(40), pointer :: corresponding_actual_arg(:) => null()
-  integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
-  integer ix                         ! current index of element in %ELE
-  integer indexx                     ! alphabetical order sorted index
-  character(200) file_name     ! file where sequence is defined
-  integer ix_line              ! line number in filewhere sequence is defined
+  integer type                    ! LINE$, REPLACEMENT_LINE$ or LIST$
+  integer ix                      ! current index of element in %ELE
+  integer indexx                  ! alphabetical order sorted index
+  character(200) file_name        ! file where sequence is defined
+  integer ix_line                 ! line number in filewhere sequence is defined
   logical multipass
+  logical ptc_layout              ! Put in separate PTC layout
 end type
 
 type used_seq_struct
   character(40) :: name = ''            ! name of sequence or element
   character(40) :: tag = ''             ! tag name.
   integer :: ix_multi = 0               ! Multipass indentifier
-  logical :: reversed = .false.         ! Multipass reversed.
+  integer :: orientation = 1            ! Element reversed?
 end type
 
 ! A LIFO stack structure is used in the final evaluation of the line that is
@@ -63,7 +65,8 @@ type seq_stack_struct
   integer ix_seq                ! index to seq(:) array
   integer ix_ele                ! index to seq%ele(:) array
   integer rep_count             ! repetition count
-  integer direction             ! +1 => forwad, -1 => back reflection.
+  integer ele_order_direction   ! +1 => forwad, -1 => back reflection.
+  integer orientation_direction ! +1 => forwad, -1 => back reflection.
   character(40) :: tag = ''
   logical multipass
 end type
@@ -103,12 +106,13 @@ end type
 
 type parser_ele_struct
   character(40) ref_name
-  character(40), pointer :: name(:) => null()
-  character(40), pointer :: attrib_name(:) => null()
-  character(200) lat_file    ! File where element was defined.
-  integer ix_line_in_file    ! Line in file where element was defined.
-  real(rp), pointer :: coef(:) => null()
+  character(40) :: ele_name = ''               ! For patch.
+  character(40), allocatable :: name(:)        ! For overlays and groups
+  character(40), allocatable :: attrib_name(:) ! For overlays and groups
+  character(200) lat_file                      ! File where element was defined.
+  real(rp), allocatable :: coef(:)             ! For overlays and groups
   real(rp) s
+  integer ix_line_in_file    ! Line in file where element was defined.
   integer ix_count
   integer ele_pt, ref_pt
   integer indexx
@@ -161,7 +165,6 @@ type bp_common_struct
   logical write_digested2     ! For bmad_parser2
   logical input_from_file     ! Input is from a lattice file?
   logical inline_call_active
-  logical e_tot_set, p0c_set
   logical :: always_parse = .false. ! For debugging to force parsing
 end type
 
@@ -286,7 +289,7 @@ if (ele%key == overlay$) then
   else
 
     if (i < 1) then
-      if (print_err) call parser_error ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+      call parser_error ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
       return
     endif
 
@@ -296,7 +299,7 @@ if (ele%key == overlay$) then
     endif
 
     if (ele%ix_value /= i) then
-      if (print_err) call parser_error ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
+      call parser_error ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
             'YOU ARE TRYING TO SET: ' // word, &
             'BUT YOU SHOULD BE SETTING: ' // ele%component_name)
       return
@@ -330,7 +333,7 @@ if (ele%key == group$) then
   endif
 
   if (i < 1) then
-    if (print_err) call parser_error ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+    call parser_error ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
     return
   endif
 
@@ -360,25 +363,19 @@ if (ele%key == group$) then
 
 endif
 
-! beginning element or beam_start element
+! beam_start element can have attributes that are not part of the element so
+! Need to use pointers_to_attribute.
 
-if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
+if (ele%key == def_beam_start$) then
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
   if (err_flag) return
   call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag, .false.)
   if (err_flag .or. size(r_ptrs) /= 1) then
-    if (print_err) call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
+    call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
   r_ptrs(1)%r = value
-  if (word == 'E_TOT') then
-    bp_com%e_tot_set = .true.
-    bp_com%p0c_set   = .false.
-  elseif (word == 'P0C') then
-    bp_com%e_tot_set = .false.
-    bp_com%p0c_set   = .true.
-  endif
 
   return
 endif
@@ -480,6 +477,15 @@ endif
 
 if (word(:ix_word) == 'REF') word = 'REFERENCE' ! allowed abbrev
 
+if (ele%key == rbend$) then
+  if (word == 'L') then
+    word = 'L_CHORD'
+    ix_word = 7
+  elseif (word == 'L_ARC') then
+    word = 'L'
+  endif
+endif
+
 ix_attrib = attribute_index(ele, word)
 attrib_word = word
 
@@ -493,10 +499,10 @@ endif
 if (ix_attrib < 1) then
   if (ele%key == drift$ .and. (word == 'HKICK' .or. word == 'VKICK' .or. &
         word == 'BL_HKICK' .or. word == 'BL_VKICK')) then
-    if (print_err) call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name, &
+    call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name, &
                       'ONE SOLUTION IS TO MAKE THIS DRIFT A "PIPE" ELEMENT.')
   else
-    if (print_err) call parser_error ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
+    call parser_error ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
   endif
   return
 endif
@@ -610,7 +616,7 @@ if (attrib_word == 'WALL') then
           ! Set ix_section
           ele%wall3d%crotch%ix_section = i_section
 
-          ! Expect form: crotch = {entrance_end, 1, 3}, 
+          ! Expect form: crotch = {upstream_end, 1, 3}, 
           if (delim /= '=') then
             call parser_error ('NO "=" AFTER "CROTCH" IN WALL SECTION FOR:' // ele%name)
             return
@@ -988,7 +994,7 @@ if (delim /= '=')  then
     return
   endif
 
-  if (ix_attrib == tilt$) then
+  if (attrib_word == 'TILT') then
     select case (ele%key)
     case (sbend$, rbend$, mirror$)
       ele%value(tilt$) = pi / 2
@@ -1003,12 +1009,10 @@ if (delim /= '=')  then
       ele%value(tilt$) = pi / 8
       return
     case default
-      if (attribute_name(ele, tilt$) == 'TILT') then
-        call parser_error ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
-                      'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
-        err_flag = .true.
-        return
-      endif
+      call parser_error ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
+                         'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
+      err_flag = .true.
+      return
     end select
   endif
 
@@ -1023,36 +1027,36 @@ if (delim /= '=')  then
     end select
   endif
 
-  select case (ix_attrib)
+  select case (attrib_word)
 
-  case (superimpose$)
+  case ('SUPERIMPOSE')
     ele%lord_status = super_lord$
 
-  case (ref_beginning$)
+  case ('REF_BEGINNING')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ref_pt = begin$
 
-  case (create_em_field_slave$)
+  case ('CREATE_EM_FIELD_SLAVE')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%create_em_field_slave = .true.
 
-  case (ref_center$)
+  case ('REF_CENTER')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ref_pt = center$
 
-  case (ref_end$)
+  case ('REF_END')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ref_pt = end$
 
-  case (ele_beginning$)
+  case ('ELE_BEGINNING')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ele_pt = begin$
 
-  case (ele_center$)
+  case ('ELE_CENTER')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ele_pt = center$
 
-  case (ele_end$)
+  case ('ELE_END')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ele_pt = end$
 
@@ -1088,8 +1092,11 @@ case ('OFFSET')
   pele%s = value
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
-     'REF_PATCH', 'CRYSTAL_TYPE')
-  call bmad_parser_type_get (ele, attrib_word, delim, delim_found)
+     'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'ORIGIN_ELE')
+  call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
+
+case ('PTC_MAX_FRINGE_ORDER')
+  call get_integer (bmad_com%ptc_max_fringe_order, err_flag)
 
 case ('SYMPLECTIFY') 
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
@@ -1100,6 +1107,9 @@ case ('SYMPLECTIFY')
   
 case ('IS_ON')
   call get_logical (attrib_word, ele%is_on, err_flag)
+
+case ('USE_HARD_EDGE_DRIFTS')
+  call get_logical (attrib_word, bmad_com%use_hard_edge_drifts, err_flag)
 
 case ('APERTURE_LIMIT_ON') 
   call get_logical (attrib_word, lat%param%aperture_limit_on, err_flag)
@@ -1156,6 +1166,14 @@ case ('COUPLER_AT')
   call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
   ele%value(coupler_at$) = ix
 
+case ('FRINGE_TYPE')
+  call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag)
+  ele%value(fringe_type$) = ix
+
+case ('KILL_FRINGE')
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
+  ele%value(kill_fringe$) = ix
+
 case ('TRACKING_METHOD')
   call get_switch (attrib_word, calc_method_name(1:), switch, err_flag)
   if (err_flag) return
@@ -1169,6 +1187,9 @@ case ('TRACKING_METHOD')
 case ('SPIN_TRACKING_METHOD')
   call get_switch (attrib_word, calc_method_name(1:), ele%spin_tracking_method, err_flag)
 
+case ('PTC_INTEGRATION_TYPE')
+  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag)
+
 case ('MAT6_CALC_METHOD')
   call get_switch (attrib_word, calc_method_name(1:), switch, err_flag)
   if (err_flag) return
@@ -1179,12 +1200,18 @@ case ('MAT6_CALC_METHOD')
   endif
   ele%mat6_calc_method = switch
 
-case ('REF_ORBIT')
-  call get_switch (attrib_word, ref_orbit_name(1:), ele%ref_orbit, err_flag)
-
 case ('PARTICLE')
   call get_switch (attrib_word, particle_name(:), ix, err_flag)
   ele%value(particle$) = ix + lbound(particle_name, 1) - 1 
+
+case ('PTC_FIELD_GEOMETRY')
+  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag)
+  ele%value(ptc_field_geometry$) = ix
+
+  if (ele%key == sbend$ .and. ix == true_rbend$) then
+    call parser_error ('TRUE_RBEND IS NOT A VALID PTC_FIELD_GEOMETRY VALUE FOR AN SBEND')
+    return
+  endif
 
 case ('LATTICE_TYPE')
   call get_switch (attrib_word, lattice_type(1:), ix, err_flag)
@@ -1206,29 +1233,34 @@ case default   ! normal attribute
         else
           ele%a_pole(ix_attrib-a0$) = value
         endif
-    elseif (ix_attrib == ran_seed$) then
+    elseif (attrib_word == 'RAN_SEED') then
       call ran_seed_put (nint(value))  ! init random number generator
       if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
         bp_com%ran%deterministic = 0
       else
         bp_com%ran%deterministic = 2
       endif
-    elseif (ix_attrib == aperture$) then
+    elseif (attrib_word == 'APERTURE') then
       ele%value(x1_limit$) = value
       ele%value(x2_limit$) = value
       ele%value(y1_limit$) = value
       ele%value(y2_limit$) = value
-    elseif (ix_attrib == x_limit$) then
+    elseif (attrib_word == 'X_LIMIT') then
       ele%value(x1_limit$) = value
       ele%value(x2_limit$) = value
-    elseif (ix_attrib == y_limit$) then
+    elseif (attrib_word == 'Y_LIMIT') then
       ele%value(y1_limit$) = value
       ele%value(y2_limit$) = value
     elseif (ix_attrib > num_ele_attrib$) then
-      call pointer_to_attribute (ele, attrib_word, .false., r_ptr, err_flag, print_err)
-      if (err_flag) return
+      call pointer_to_attribute (ele, attrib_word, .false., r_ptr, err_flag, .false.)
+      if (err_flag) then
+        call parser_error ('BAD ATTRIBUTE: ' // attrib_word, 'FOR ELEMENT: ' // ele%name)
+        return
+      endif
       r_ptr = value
-
+      if (attrib_word == 'X_POSITION' .or. attrib_word == 'X_POSITION' .or. &
+          attrib_word == 'X_POSITION' .or. attrib_word == 'THETA_POSITION' .or. &
+          attrib_word == 'PHI_POSITION' .or. attrib_word == 'PSI_POSITION') ele%value(floor_set$) = 1
     else
       ele%value(ix_attrib) = value
 
@@ -1238,28 +1270,36 @@ case default   ! normal attribute
       if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
       if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
 
-      select case (ix_attrib)
+      select case (attrib_word)
 
-      case (num_steps$)
+      case ('NUM_STEPS')
         ele%value(ds_step$) = abs(ele%value(l$) * nint(ele%value(num_steps$)))
 
-      case (e_tot$)
-        if (ele%key == def_beam$ .or. ele%key == def_parameter$) then
+      case ('E_TOT')
+        if (ele%key == def_parameter$) then
           lat%ele(0)%value(e_tot$) = value
-          if (ele%key == def_beam$) lat%ele(0)%value(e_tot$) = 1d9 * value
-          bp_com%e_tot_set = .true.
-          bp_com%p0c_set   = .false.
+          lat%ele(0)%value(p0c$) = -1
+        else
+          ele%value(p0c$) = -1
         endif
 
-      case (p0c$)
-        if (ele%key == def_beam$ .or. ele%key == def_parameter$) then
+      case ('ENERGY')    ! Only in def_beam
+        lat%ele(0)%value(e_tot$) = 1d9 * value
+        lat%ele(0)%value(p0c$) = -1
+
+      case ('P0C')
+        if (ele%key == def_parameter$) then
           lat%ele(0)%value(p0c$) = value
-          if (ele%key == def_beam$) lat%ele(0)%value(p0c$) = 1d9 * value
-          bp_com%e_tot_set = .false.
-          bp_com%p0c_set   = .true.
+          lat%ele(0)%value(e_tot$) = -1
+        else
+          ele%value(e_tot$) = -1
         endif
 
-      case (lr_freq_spread$)
+      case ('PC')    ! Only in def_beam
+        lat%ele(0)%value(p0c$) = 1d9 * value
+        ele%value(e_tot$) = -1
+
+      case ('LR_FREQ_SPREAD')
         call randomize_lr_wake_frequencies (ele, set_done)
         if (set_done) call bp_set_ran_status
 
@@ -1289,7 +1329,7 @@ is_problem = .false.
 if (logic_option(.false., check_free)) then
   is_free = attribute_free (ele, attrib_name, lat, print_err)
   if (.not. is_free) then
-    if (print_err) call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
+    call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
                                       'FOR: ' // ele%name)
     err_flag = .true.
     is_problem = .true.
@@ -2566,11 +2606,12 @@ end subroutine parser_add_variable
 ! This subroutine is not intended for general use.
 !-
 
-subroutine bmad_parser_type_get (ele, attrib_name, delim, delim_found, name)
+subroutine bmad_parser_type_get (ele, attrib_name, delim, delim_found, name, pele)
 
 implicit none
 
 type (ele_struct)  ele
+type (parser_ele_struct), optional :: pele
 
 integer ix, ix_word
 
@@ -2611,6 +2652,7 @@ case ('TYPE')
   ele%type = type_name
 case ('ALIAS')
   ele%alias = type_name
+  ele%alias = type_name
 case ('DESCRIP', 'LATTICE')
   if (.not. associated(ele%descrip)) allocate (ele%descrip) 
   ele%descrip = type_name
@@ -2618,9 +2660,12 @@ case ('SR_WAKE_FILE')
   call read_sr_wake (ele, type_name)
 case ('LR_WAKE_FILE') 
   call read_lr_wake (ele, type_name)
-case ('TO', 'REF_PATCH')
+case ('TO', 'TO_LINE', 'ORIGIN_ELE')
   ele%component_name = type_name
   call upcase_string (ele%component_name)
+case ('TO_ELEMENT')
+  pele%ele_name = type_name
+  call upcase_string (pele%ele_name)
 case ('CRYSTAL_TYPE')
   ele%component_name = type_name
 case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
@@ -3302,7 +3347,7 @@ bp_com%var(11) = bp_var_struct('E_CHARGE', e_charge, 0)
 bp_com%var(12) = bp_var_struct('EMASS', e_mass, 0)
 bp_com%var(13) = bp_var_struct('CLIGHT', c_light, 0)
 bp_com%var(14) = bp_var_struct('R_E', r_e, 0)
-bp_com%var(15) = bp_var_struct('DEGREES', 180 / pi, 0)
+bp_com%var(15) = bp_var_struct('DEGREES', pi / 180, 0) ! From degrees to radians.
 
 call indexx (bp_com%var(1:nn)%name, bp_com%var(1:nn)%indexx)
 
@@ -3357,7 +3402,6 @@ lord%n_slave = n_multipass
 lord%ix1_slave = 0
 lord%ix2_slave = -1
 call add_lattice_control_structs (lat, lord)
-if (lord%key == sbend$ .and. lord%ref_orbit == 0) lord%ref_orbit = single_ref$
 
 ! Multipass_lord does not have reference energy or s_position or map bookkeeping. 
 
@@ -3402,7 +3446,7 @@ do i = 1, n_multipass
       lmax = len(slave2%name) - 2
       do k = 1, slave2%n_lord
         lord2 => pointer_to_lord(slave2, k)
-        if (lord2%n_lord > 0) lord2 => pointer_to_lord(lord2, 1)
+        lord2 => pointer_to_lord(lord2, 1)
         slave2_name = trim(slave2_name) // trim(lord2%name) // '\'     ! '
         if (len_trim(slave2_name) > lmax) exit
       enddo
@@ -3964,10 +4008,8 @@ type (seq_ele_struct), pointer :: s_ele2(:)
 type (seq_ele_struct), pointer :: this_ele
 type (lat_struct) lat
 
-integer ix_ele, iseq_tot, ix_word, ix, i, n, ios
+integer ix_ele, iseq_tot, ix_word, ix, i, n, ios, rcount
 integer, save :: ix_internal = 0
-
-real(rp) rcount
 
 character(40) word
 character(1) delim, c_delim
@@ -3983,6 +4025,8 @@ allocate (s_ele(ubound(lat%ele, 1)))
 s_ele%type = 0
 s_ele%ix_ele = 0
 s_ele%ix_arg = 0
+s_ele%ele_order_reflect = .false.
+s_ele%ele_orientation   = 1
 
 ! save info on what file we are parsing for error messages.
 
@@ -4009,6 +4053,20 @@ do
 
   call get_next_word (word, ix_word, ':=(,)[]*', delim, delim_found, .true.)
 
+  this_ele%rep_count = 1
+
+  if (word(1:1) == '-') then
+    this_ele%ele_order_reflect = .true.
+    word = word(2:)
+    ix_word = ix_word - 1
+  endif
+
+  if (word(1:1) == '-') then
+    this_ele%ele_orientation = -1
+    word = word(2:)
+    ix_word = ix_word - 1
+  endif
+
   if (delim == '*') then    ! E.g. '-3*(A,B)'
     ! Evaluate the rep count.
     read (word, *, iostat = ios) rcount
@@ -4016,28 +4074,12 @@ do
       call parser_error ('MALFORMED REPETION COUNT FOUND IN SEQUENCE: ' // seq%name)
       return
     endif
-    this_ele%rep_count = nint(rcount)
+    this_ele%rep_count = rcount
     call get_next_word (word, ix_word, ':=(,)[]*', delim, delim_found, .true.)
-    this_ele%name = word
-    if (this_ele%rep_count < 0) then
-      this_ele%reflect = .true.
-    else
-      this_ele%reflect = .false.
-    endif
-    this_ele%rep_count = abs(this_ele%rep_count)
-  elseif (word(1:1) == '-') then
-    this_ele%reflect = .true.
-    this_ele%rep_count = 1
-    this_ele%name = word(2:)
-    ix_word = ix_word - 1
-  else
-    this_ele%reflect = .false.
-    this_ele%rep_count = 1
-    this_ele%name = word
   endif
 
-  name = this_ele%name
-  if (name /= ' ') call verify_valid_name (name, ix_word)
+  this_ele%name = word
+  if (word /= ' ') call verify_valid_name (word, ix_word)
 
   ! Check for line tag
 
@@ -4194,8 +4236,7 @@ endif
 ! %ixx is used as a pointer from the in_lat%ele array to the plat%ele array
 
 do i = n_now+1, ubound(plat%ele, 1)
-  nullify (plat%ele(i)%name)
-
+  plat%ele(i)%ele_name = ''
   plat%ele(i)%ref_name = blank_name$
   plat%ele(i)%ref_pt  = not_set$
   plat%ele(i)%ele_pt  = not_set$
@@ -4609,22 +4650,18 @@ case (sbend$, rbend$)
 
   ! If g and angle are set then this determines l
 
-  length_set = .false.
   if (ele%value(g$) /= 0 .and. angle /= 0) then
     if (ele%value(l$) /= 0) call parser_error ('ANGLE, G/RHO, AND L SPECIFIED FOR BEND: ' // ele%name)
     ele%value(l$) = angle / ele%value(g$)
-    length_set = .true.
   endif
 
-  ! Convert an rbend
+  ! Convert an rbend to an sbend
 
   if (ele%key == rbend$) then
 
-    if (.not. length_set) then
-      ele%value(l_chord$) = ele%value(l$)
+    if (ele%value(l$) == 0) then
       if (ele%value(l_chord$) == 0) then
         angle = 0
-        ele%value(l$) = 0
       elseif (angle /= 0) then
         ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
       elseif (ele%value(g$) /= 0) then
@@ -4867,7 +4904,7 @@ end subroutine reuse_taylor_elements
 !-------------------------------------------------------------------------
 !+
 ! Subroutine parser_add_branch (branch_ele, lat, sequence, in_name, in_indexx, &
-!                                                        seq_name, seq_indexx, in_lat)
+!                                                        seq_name, seq_indexx, in_lat, plat)
 !
 ! Subroutine to do line expansion.
 !
@@ -4876,20 +4913,22 @@ end subroutine reuse_taylor_elements
 !-
 
 recursive subroutine parser_add_branch (branch_ele, lat, sequence, in_name, in_indexx, &
-                                                        seq_name, seq_indexx, in_lat)
+                                                        seq_name, seq_indexx, in_lat, plat)
 
 implicit none
 
 type (lat_struct), target :: lat, in_lat
+type (parser_lat_struct) plat
 type (ele_struct) branch_ele
-type (ele_struct), pointer :: b_ele, ele2
+type (ele_struct), pointer :: b_ele, ele2, line_ele
 type (seq_struct), target :: sequence(:)
 type (branch_struct), pointer :: branch
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
-integer j, nb, n_ele_use, n
+integer j, nb, n_ele_use, n, ix
 
 character(*), allocatable ::  in_name(:), seq_name(:)
+character(40) name
 
 !
 
@@ -4897,7 +4936,7 @@ nb = ubound(lat%branch, 1) + 1
 call parser_expand_line (nb, lat, branch_ele%component_name, sequence, in_name, &
                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
 
-branch_ele%value(ix_branch_to$) = nb
+branch_ele%value(ix_to_branch$) = nb
 branch => lat%branch(nb)
 
 ! If branch_ele%value(particle$) has not been set then use default.
@@ -4913,12 +4952,31 @@ endif
 
 !
 
-branch%name           = branch_ele%name
-branch%param%particle = nint(branch_ele%value(particle$))
-branch%param%lattice_type = nint(branch_ele%value(lattice_type$))
-branch%ix_from_branch = branch_ele%ix_branch
-branch%ix_from_ele    = branch_ele%ix_ele
-branch%ix_root_branch = lat%branch(branch_ele%ix_branch)%ix_root_branch
+call find_indexx2 (branch_ele%component_name, in_name, in_indexx, 0, in_lat%n_ele_max, ix)
+line_ele => in_lat%ele(ix)    
+
+branch%name               = branch_ele%component_name
+branch%param%particle     = nint(line_ele%value(particle$))
+branch%param%lattice_type = nint(line_ele%value(lattice_type$))
+branch%ix_from_branch     = branch_ele%ix_branch
+branch%ix_from_ele        = branch_ele%ix_ele
+branch%ix_root_branch     = lat%branch(branch_ele%ix_branch)%ix_root_branch
+
+name = plat%ele(branch_ele%ixx)%ele_name
+if (name == '') then
+  branch%ix_to_ele = 0
+else
+  branch%ix_to_ele = -1
+  do j = 0, branch%n_ele_max
+    if (branch%ele(j)%name == name) then
+      if (branch%ix_to_ele /= -1) then
+        call parser_error('DUPLICATE TO_ELEMENT: ' // name, 'FOR BRANCH ELEMENT: ' // branch_ele%name)
+        exit
+      endif
+      branch%ix_to_ele = j
+    endif
+  enddo
+endif
 
 do j = 1, n_ele_use
   ele2 => lat%branch(nb)%ele(j)
@@ -4935,8 +4993,7 @@ do j = 1, n_ele_use
   enddo
   ! Now add the branch
   if (ele2%key == photon_branch$ .or. ele2%key == branch$) then
-    call parser_add_branch (ele2, lat, sequence, in_name, in_indexx, &
-                                                    seq_name, seq_indexx, in_lat)
+    call parser_add_branch (ele2, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat)
   endif
 enddo
 
@@ -5009,27 +5066,28 @@ do k = 1, iseq_tot
       cycle
     endif
 
-    call find_indexx2 (name, in_name, in_indexx, 0, n_max, j)
-    if (j < 0) then  ! if not an element it must be a sequence
-      call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
-      if (j == 0) then  ! if not a sequence then I don't know what it is
-        s_ele%ix_ele = -1
+    ! Remember: sequence names also appear in the element list so search the sequence list first.
+
+    call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
+    if (j == 0) then  ! if not an sequence, it must be an element
+      call find_indexx2 (name, in_name, in_indexx, 0, n_max, j)
+      if (j < 0) then  ! if not an element, I don't know what it is
+        s_ele%ix_ele = -1       ! Struggle on for now...
         s_ele%type = element$
       else
         s_ele%ix_ele = j
-        s_ele%type = sequence(j)%type
+        s_ele%type = element$
       endif
-      if (s_ele%type == list$ .and. s_ele%reflect) call parser_error ( &
+    else
+      s_ele%ix_ele = j
+      s_ele%type = sequence(j)%type
+      if (s_ele%type == list$ .and. s_ele%ele_order_reflect) call parser_error ( &
                           'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
                           // sequence(k)%name, 'FOR LIST: ' // s_ele%name, &
                           seq = sequence(k))
       if (sequence(k)%type == list$) &
                 call parser_error ('A REPLACEMENT LIST: ' // sequence(k)%name, &
                 'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
- 
-    else    ! if an element...
-      s_ele%ix_ele = j
-      s_ele%type = element$
     endif
 
   enddo
@@ -5044,7 +5102,8 @@ seq => sequence(i_use)
 
 stack(1)%ix_seq    = i_use           ! which sequence to use for the lat
 stack(1)%ix_ele    =  1              ! we start at the beginning
-stack(1)%direction = +1              ! and move forward
+stack(1)%ele_order_direction = +1              ! element order is forward
+stack(1)%orientation_direction = +1            ! and propagate forward through elements
 stack(1)%rep_count = seq%ele(1)%rep_count
 stack(1)%multipass = seq%multipass
 stack(1)%tag = ''
@@ -5069,7 +5128,7 @@ line_expansion: do
 
   if (stack(i_lev)%rep_count == 0) then      ! goto next element in the sequence
     ! goto the next element by changing %ix_ele index by +/- 1 
-    stack(i_lev)%ix_ele = stack(i_lev)%ix_ele + stack(i_lev)%direction 
+    stack(i_lev)%ix_ele = stack(i_lev)%ix_ele + stack(i_lev)%ele_order_direction 
     ix = stack(i_lev)%ix_ele
 
     ! Check if off the end of the current line...
@@ -5083,16 +5142,6 @@ line_expansion: do
       i_lev = i_lev - 1
       if (i_lev == 0) exit line_expansion    ! level 0 -> we are done.
       seq => sequence(stack(i_lev)%ix_seq)
-
-      ! If we have stepped out of a multipass line which has been transversed in reverse
-      !   then we need to do some bookkeeping to keep the elements straight.
-      if (.not. stack(i_lev)%multipass .and. stack(i_lev+1)%multipass) then
-        if (stack(i_lev+1)%direction == -1) then
-          bp_com%used_line(n0_multi:n_ele_use)%ix_multi = &
-                        bp_com%used_line(n_ele_use:n0_multi:-1)%ix_multi
-          bp_com%used_line(n0_multi:n_ele_use)%reversed = .true.
-        endif
-      endif
       cycle
     endif
 
@@ -5152,22 +5201,22 @@ line_expansion: do
     if (this_seq_ele%ix_ele < 1) call parser_error('NOT A DEFINED ELEMENT: ' // &
                           s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
 
-
     if (n_ele_use+1 > size(ix_lat)) then
       n = 1.5*n_ele_use
       call re_allocate (ix_lat, n)
       ix = size(bp_com%used_line) 
-      allocate (used2(ix))
-      used2(1:ix) = bp_com%used_line(1:ix)
-      deallocate (bp_com%used_line)
-      allocate (bp_com%used_line(1:n))
-      bp_com%used_line(1:ix) = used2(1:ix)
-      deallocate (used2)
+      if (ix < n) then
+        call move_alloc (bp_com%used_line, used2)
+        allocate (bp_com%used_line(1:n))
+        bp_com%used_line(1:ix) = used2(1:ix)
+        deallocate (used2)
+      endif
     endif
 
     call pushit (ix_lat, n_ele_use, this_seq_ele%ix_ele)
 
     bp_com%used_line(n_ele_use)%name = this_seq_ele%name
+    bp_com%used_line(n_ele_use)%orientation = stack(i_lev)%orientation_direction * this_seq_ele%ele_orientation
 
     if (stack(i_lev)%tag /= '' .and. s_ele%tag /= '') then
       bp_com%used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
@@ -5218,8 +5267,8 @@ line_expansion: do
 
     seq => sequence(s_ele%ix_ele)
     stack(i_lev)%ix_seq = s_ele%ix_ele
-    stack(i_lev)%direction = stack(i_lev-1)%direction
     stack(i_lev)%multipass = (stack(i_lev-1)%multipass .or. seq%multipass)
+
     if (stack(i_lev-1)%tag /= '' .and. s_ele%tag /= '') then
        stack(i_lev)%tag = trim(stack(i_lev-1)%tag) // '.' // s_ele%tag
     elseif (stack(i_lev-1)%tag /= '') then
@@ -5227,9 +5276,13 @@ line_expansion: do
     else
        stack(i_lev)%tag = s_ele%tag
     endif
-    if (s_ele%reflect) stack(i_lev)%direction = -stack(i_lev)%direction
 
-    if (stack(i_lev)%direction == 1) then
+    stack(i_lev)%orientation_direction = stack(i_lev-1)%orientation_direction * s_ele%ele_orientation
+
+    stack(i_lev)%ele_order_direction = stack(i_lev-1)%ele_order_direction
+    if (s_ele%ele_order_reflect) stack(i_lev)%ele_order_direction = -stack(i_lev)%ele_order_direction
+
+    if (stack(i_lev)%ele_order_direction == 1) then
       ix = 1
     else
       ix = size(seq%ele(:))
@@ -5277,9 +5330,9 @@ ele_line(0)%ix_branch = ix_branch
 
 do i = 1, n_ele_use
   ele_line(i) = in_lat%ele(ix_lat(i)) 
-  ele_line(i)%name      = bp_com%used_line(i)%name
-  ele_line(i)%iyy       = bp_com%used_line(i)%ix_multi
-  ele_line(i)%reversed  = bp_com%used_line(i)%reversed
+  ele_line(i)%name        = bp_com%used_line(i)%name
+  ele_line(i)%iyy         = bp_com%used_line(i)%ix_multi
+  ele_line(i)%orientation = bp_com%used_line(i)%orientation
   if (bp_com%used_line(i)%tag /= '') ele_line(i)%name = &
                 trim(bp_com%used_line(i)%tag) // '.' // ele_line(i)%name
   call settable_dep_var_bookkeeping (ele_line(i))
@@ -5347,7 +5400,7 @@ if (index(debug_line, 'SLAVE') /= 0) then
   do i = 1, lat%n_ele_track
     print *, '-------------'
     print *, 'Ele #', i
-    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat, .true., .false., .true., .true.)
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., .true., .false., .true., .true.)
   enddo
 endif
 
@@ -5358,7 +5411,7 @@ if (index(debug_line, 'LORD') /= 0) then
   do i = lat%n_ele_track+1, lat%n_ele_max
     print *, '-------------'
     print *, 'Ele #', i
-    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat, .true., .false., .true., .true.)
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., .true., .false., .true., .true.)
   enddo
 endif
 
@@ -5390,7 +5443,7 @@ if (ix /= 0) then
     print *
     print *, '----------------------------------------'
     print *, 'Element #', i
-    call type_ele (lat%ele(i), .false., 0, .true., 0, .true., lat, .true., .true., .true., .true.)
+    call type_ele (lat%ele(i), .false., 0, .true., 0, .true., .true., .true., .true., .true.)
     call string_trim (debug_line(ix+1:), debug_line, ix)
   enddo
 endif
