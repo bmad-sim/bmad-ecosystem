@@ -1,5 +1,5 @@
 !+
-! Subroutine mat6_add_offsets (ele, particle)
+! Subroutine mat6_add_offsets (ele, param)
 !
 ! Subroutine to add in the effect of an element's orientation in space to
 ! to the computed Jacobian matrix. It is assumed that the input matrix
@@ -18,7 +18,7 @@
 !     %value(x_pitch$), 
 !     %value(tilt$), etc.
 !                     -- Offsets, tilts, and pitches
-!   particle -- Integer: Type of particle. positron$, ect.
+!   param    -- lat_param_struct:
 !
 ! Output:
 !   ele       -- Ele_struct: Element with given orientation.
@@ -28,7 +28,7 @@
 !     %map_ref_orb_out -- Reference orbit at exit end.
 !-
 
-subroutine mat6_add_offsets (ele, particle)
+subroutine mat6_add_offsets (ele, param)
 
 use bmad_interface, except_dummy => mat6_add_offsets
 
@@ -37,26 +37,25 @@ implicit none
 type (ele_struct) ele
 type (coord_struct) orb, map_orb
 type (lat_param_struct) param
-integer particle
 
 ! the new vec0 is obtained by just tracking through the element
 
 orb%vec = 0
-call offset_particle (ele, orb, particle, set$, set_canonical = .false., set_hvkicks = .false.)
+call offset_particle (ele, orb, param, set$, set_canonical = .false., set_hvkicks = .false.)
 orb%vec = ele%vec0 + matmul (ele%mat6, orb%vec)
-call offset_particle (ele, orb, particle, unset$, set_canonical = .false., set_hvkicks = .false.)
+call offset_particle (ele, orb, param, unset$, set_canonical = .false., set_hvkicks = .false.)
 ele%vec0 = orb%vec
 
 ! transform the ref_orb
 
 map_orb%vec = ele%map_ref_orb_in
-call offset_particle (ele, map_orb, particle, unset$, &
+call offset_particle (ele, map_orb, param, unset$, &
                               set_canonical = .false., set_hvkicks = .false., ds_pos = 0.0_rp)
 ele%map_ref_orb_in = map_orb%vec
 
 
 map_orb%vec = ele%map_ref_orb_out
-call offset_particle (ele, map_orb, particle, unset$, &
+call offset_particle (ele, map_orb, param, unset$, &
                               set_canonical = .false., set_hvkicks = .false.)
 ele%map_ref_orb_out = map_orb%vec
 

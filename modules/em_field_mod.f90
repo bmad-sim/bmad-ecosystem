@@ -114,7 +114,7 @@ end if
 ! Notice that a translation due to a finite ele%value(s_offset$) is not wanted here.
 
 orb2 = orb
-if (local_ref_frame) call offset_particle (ele, orb2, param%particle, unset$, &
+if (local_ref_frame) call offset_particle (ele, orb2, param, unset$, &
                                     set_canonical = .false., set_s_offset = .false., ds_pos = s)
 
 track%orb(n_pt) = orb2
@@ -216,7 +216,7 @@ if (.not. ele%is_on) return
 
 local_orb = orbit
 if (.not. local_ref_frame) then
-  call offset_particle (ele, local_orb, param%particle, set$, &
+  call offset_particle (ele, local_orb, param, set$, &
           set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 endif
 
@@ -526,7 +526,7 @@ select case (ele%field_calc)
   !---------------------------------------------------------------------
   ! Add multipoles
 
-  call multipole_ele_to_ab(ele, param%particle, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
+  call multipole_ele_to_ab(ele, param, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
   if (has_nonzero_pole) then
 
     if (ele%value(l$) == 0) then

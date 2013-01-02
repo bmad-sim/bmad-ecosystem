@@ -559,7 +559,7 @@ call spinor_to_vec (start_orb, spin_vec)
 spin_probe = re
 spin_probe%s(1)%x = real(spin_vec, dp)
 
-call ele_to_fibre (ele, fibre_ele, param%particle, .true.)
+call ele_to_fibre (ele, fibre_ele, param, .true.)
 call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele)
 
 spin_vec = spin_probe%s(1)%x
@@ -648,9 +648,9 @@ case default
 end select
 
 ! offset particle coordinates at entrance of element
-call offset_particle (ele, temp_start, param%particle, set$, .false., .true., .false., .false.)
+call offset_particle (ele, temp_start, param, set$, .false., .true., .false., .false.)
 ! offset particle coordinates at exit of element
-call offset_particle (ele, temp_end, param%particle,   set$, .false., .true., .false., .false.)
+call offset_particle (ele, temp_end, param,   set$, .false., .true., .false., .false.)
 
 call offset_spin (ele, param, temp_start, set$, (isTreatedHere .or. isKicker))
 
@@ -1270,7 +1270,7 @@ if (set) then
   ! Set: Multipoles
 
   if (set_multi) then
-    call multipole_spin_precession (ele, param%particle, coord%vec, coord%spin, .true., &
+    call multipole_spin_precession (ele, param, coord%vec, coord%spin, .true., &
                                .true., (ele%key==multipole$ .or. ele%key==ab_multipole$))
   endif
 
@@ -1384,7 +1384,7 @@ else
 
   ! Unset: Multipoles
   if (set_multi) then
-    call multipole_spin_precession (ele, param%particle, coord%vec, coord%spin, .true., &
+    call multipole_spin_precession (ele, param, coord%vec, coord%spin, .true., &
                                .true., (ele%key==multipole$ .or. ele%key==ab_multipole$))
   endif
 
@@ -1422,7 +1422,7 @@ end subroutine offset_spin
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine multipole_spin_precession (ele, particle, vec, spin, do_half_prec, &
+! Subroutine multipole_spin_precession (ele, param, vec, spin, do_half_prec, &
 !                                       include_sextupole_octupole, ref_orb_offset)
 !
 ! Subroutine to track the spins in a multipole field
@@ -1438,7 +1438,7 @@ end subroutine offset_spin
 !     %value(y_pitch$)        -- Vertical roll of element.
 !     %value(tilt$)           -- Tilt of element.
 !     %value(roll$)           -- Roll of dipole.
-!   particle         -- Integer: What kind of particle.
+!   param         -- Integer: What kind of param.
 !   vec              -- Real(rp): Coordinates of the particle.
 !   spin(2)          -- Complex(rp): Incoming spinor
 !   do_half_prec     -- Logical, optional: Default is False.
@@ -1453,7 +1453,7 @@ end subroutine offset_spin
 !   spin(2)          -- Complex(rp): Resultant spinor
 !-
 
-subroutine multipole_spin_precession (ele, particle, vec, spin, do_half_prec, &
+subroutine multipole_spin_precession (ele, param, vec, spin, do_half_prec, &
                                       include_sextupole_octupole, ref_orb_offset)
 
 use multipole_mod, only: multipole_ele_to_ab
@@ -1461,6 +1461,7 @@ use multipole_mod, only: multipole_ele_to_ab
 implicit none
 
 type (ele_struct), intent(in) :: ele
+type (param_struct) param
 
 complex(rp), intent(inout) :: spin(2)
 complex(rp) kick, pos
@@ -1480,7 +1481,7 @@ half_prec = logic_option (.false., do_half_prec)
 sext_oct  = logic_option (.false., include_sextupole_octupole)
 ref_orb   = logic_option (.false., ref_orb_offset)
 
-call multipole_ele_to_ab(ele, particle, .true., has_nonzero_pole, an, bn)
+call multipole_ele_to_ab(ele, param, .true., has_nonzero_pole, an, bn)
 if (.not. has_nonzero_pole) return
 
 select case (ele%key)
@@ -1542,8 +1543,8 @@ if ( kick_angle /= 0. ) then
   Bx = aimag(kick)
   By = real(kick)
   ! precession_angle = kick_angle*(a*gamma+1)
-  kick_angle = kick_angle * (g_factor_of(particle) * ele%value(e_tot$) * &
-                        (1 + vec(6)) / mass_of(particle) + 1)
+  kick_angle = kick_angle * (g_factor_of(param%particle) * ele%value(e_tot$) * &
+                        (1 + vec(6)) / mass_of(param%particle) + 1)
   call calc_rotation_quaternion(Bx, By, 0._rp, kick_angle, a_field)
   call quaternion_track (a_field, spin)
 endif

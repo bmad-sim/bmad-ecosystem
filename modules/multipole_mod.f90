@@ -113,7 +113,7 @@ end subroutine multipole_ab_to_kt
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_kt (ele, particle, use_ele_tilt, has_nonzero_pole, knl, tilt)
+! Subroutine multipole_ele_to_kt (ele, param, use_ele_tilt, has_nonzero_pole, knl, tilt)
 !
 ! Subroutine to put the multipole components (strength and tilt)
 ! into 2 vectors along with the appropriate scaling.
@@ -124,7 +124,7 @@ end subroutine multipole_ab_to_kt
 !
 ! Input:
 !   ele          -- Ele_struct: Multipole element.
-!   particle     -- Integer: Particle species (+1 or -1).
+!   param        -- lat_param_struct
 !   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations. 
 !                     use_ele_tilt is ignored in the case of multipole$ elements.
 !
@@ -134,18 +134,19 @@ end subroutine multipole_ab_to_kt
 !   tilt(0:n_pole_maxx) -- Real(rp): Vector of tilts.
 !-
 
-subroutine multipole_ele_to_kt (ele, particle, use_ele_tilt, has_nonzero_pole, knl, tilt)
+subroutine multipole_ele_to_kt (ele, param, use_ele_tilt, has_nonzero_pole, knl, tilt)
 
 implicit none
 
 type (ele_struct), target :: ele
+type (lat_param_struct) param
 type (ele_struct), pointer :: lord
 
 real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp) tilt1
 
-integer i, particle
+integer i
 
 logical use_ele_tilt, has_nonzero_pole
 logical has_nonzero
@@ -172,14 +173,14 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   b = 0
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    call multipole_ele_to_ab (lord, particle, use_ele_tilt, has_nonzero, this_a, this_b)
+    call multipole_ele_to_ab (lord, param, use_ele_tilt, has_nonzero, this_a, this_b)
     if (.not. has_nonzero) cycle
     has_nonzero_pole = .true.
     a = a + this_a * (ele%value(l$) / lord%value(l$))
     b = b + this_b * (ele%value(l$) / lord%value(l$))
   enddo
 else
-  call multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)
+  call multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)
 endif
 
 if (has_nonzero_pole) then
@@ -248,7 +249,7 @@ end subroutine multipole_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)
+! Subroutine multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
 ! Note: The ab values will be scalled by the strength of the element.
@@ -259,8 +260,7 @@ end subroutine multipole_kt_to_ab
 ! Input:
 !   ele          -- Ele_struct: Element.
 !     %value()     -- ab_multipole values.
-!   particle     -- Integer: Particle species (positron$, etc.).
-!                     To be used with electrostatic elements.
+!   param        -- Lat param_struct:
 !   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations.
 !                     use_ele_tilt is ignored in the case of multipole$ elements.
 !
@@ -270,18 +270,19 @@ end subroutine multipole_kt_to_ab
 !   b(0:n_pole_maxx) -- Real(rp): Array of scalled multipole values.
 !-
 
-subroutine multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)
+subroutine multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)
 
 implicit none
 
 type (ele_struct), target :: ele
+type (lat_param_struct) param
 type (ele_struct), pointer :: lord
 
 real(rp) const, radius, factor, a(0:), b(0:)
 real(rp) an, bn, cos_t, sin_t
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 
-integer i, ref_exp, n, particle
+integer i, ref_exp, n, 
 
 logical use_ele_tilt, has_nonzero_pole
 
@@ -349,7 +350,7 @@ if (.not. this_ele%scale_multipoles) return
 
 ! flip sign for electrons or antiprotons with a separator.
 
-if (this_ele%key == elseparator$ .and. particle < 0) then
+if (this_ele%key == elseparator$ .and. param%particle*param_rel_tracking_charge < 0) then
   this_a = -this_a
   this_b = -this_b
 endif

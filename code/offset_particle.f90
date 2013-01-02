@@ -1,11 +1,11 @@
 !+
-! Subroutine offset_particle (ele, coord, particle, set, set_canonical, 
-!                               set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
+! Subroutine offset_particle (ele, coord, param, set, set_canonical, 
+!                               set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the entrance or exit ends of the element. Additionally, this routine will:
 !   a) Apply the half kicks due to multipole and kick attributes.
-!   b) Add drift transform to the coordinates due to nonzero %value(s_offset_tot$).
+!   b) Add drift transform to the coordinates due to nonzero %value(z_offset_tot$).
 !   c) Transform from canonical (p_x, p_y) to angle (x', y') coordinates at the entrance end
 !      and transform back at the exit end.
 !
@@ -40,7 +40,9 @@
 !     %value(x_pitch$)  -- Horizontal roll of element.
 !     %value(tilt$)     -- tilt of element.
 !   coord          -- Coord_struct: Coordinates of the particle.
-!   particle       -- Integer: Type of particle. electron$, etc.
+!   param          -- lat_param_strcut: 
+!     %particle             -- Reference particle
+!     %rel_track_ing_charge -- Charge tracked particle / referece charge
 !   set            -- Logical: 
 !                    T (= set$)   -> Translate from lab coords to the local 
 !                                      element coords.
@@ -56,8 +58,8 @@
 !                    T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
 !                    T -> Apply 1/2 any hkick or vkick.
-!   set_s_offset   -- Logical, optional: Default is True.
-!                    T -> Particle will be translated by ele%value(s_offset$) to propagate between the nominal
+!   set_z_offset   -- Logical, optional: Default is True.
+!                    T -> Particle will be translated by ele%value(z_offset$) to propagate between the nominal
 !                           edge of the element and the true physical edge of the element.
 !                    F -> Do no translate. Used by save_a_step routine.
 !   ds_pos         -- Real(rp), optional: Longitudinal particle position relative to entrance end. 
@@ -68,8 +70,8 @@
 !     coord -- Coord_struct: Coordinates of particle.
 !-
 
-subroutine offset_particle (ele, coord, particle, set, set_canonical, &
-                              set_tilt, set_multipoles, set_hvkicks, set_s_offset, ds_pos)
+subroutine offset_particle (ele, coord, param, set, set_canonical, &
+                              set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)
 
 use bmad_interface, except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
@@ -78,12 +80,13 @@ use track1_mod, only: track_a_drift
 implicit none
 
 type (ele_struct) :: ele
+type (lat_param_struct) param
 type (coord_struct), intent(inout) :: coord
 
 real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) :: del_x_vel, del_y_vel, dz
-real(rp) angle, s_here, xp, yp, x_off, y_off, s_off, vec(3), m_trans(3,3)
+real(rp) angle, s_here, xp, yp, x_off, y_off, z_off, vec(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta
 
 integer particle
@@ -91,7 +94,7 @@ integer n
 
 logical, intent(in) :: set
 logical, optional, intent(in) :: set_canonical, set_tilt, set_multipoles
-logical, optional, intent(in) :: set_hvkicks, set_s_offset
+logical, optional, intent(in) :: set_hvkicks, set_z_offset
 logical set_canon, set_multi, set_hv, set_t, set_hv1, set_hv2, is_reversed, set_s
 logical has_nonzero_pole
 
@@ -113,7 +116,7 @@ set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
-set_s     = logic_option (.true., set_s_offset) .and. has_orientation_attributes(ele)
+set_s     = logic_option (.true., set_z_offset) .and. has_orientation_attributes(ele)
 is_reversed = coord%p0c < 0
 
 if (set_hv) then
@@ -162,12 +165,12 @@ if (set) then
 
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
-    s_off = ele%value(s_offset_tot$)
+    z_off = ele%value(z_offset_tot$)
     xp = ele%value(x_pitch_tot$)
     yp = ele%value(y_pitch_tot$)
 
     if (is_reversed) then
-      s_off = -s_off
+      z_off = -z_off
       xp = -xp
       yp = -yp
     endif
@@ -176,20 +179,20 @@ if (set) then
     ! to the entrance coordinates. This rotation is just the coordinate transformation for the
     ! whole bend except with half the bending angle.
 
-    if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. s_off /= 0)) then
+    if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0)) then
       angle = ele%value(g$) * s_here  ! Notice that this is generally negative
       cos_a = cos(angle); sin_a = sin(angle)
       cos_t = cos(ele%value(tilt$));    sin_t = sin(ele%value(tilt$))
       m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
       m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
       m_trans(3,1:3) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
-      vec = matmul(m_trans, [x_off, y_off, s_off])
-      x_off = vec(1); y_off = vec(2); s_off = vec(3)
+      vec = matmul(m_trans, [x_off, y_off, z_off])
+      x_off = vec(1); y_off = vec(2); z_off = vec(3)
     endif
 
-    if (s_off /= 0 .and. set_s) then
-      call track_a_drift (coord, ele, particle, s_off)
-      coord%vec(5) = coord%vec(5) - s_off  ! Correction due to reference particle is also offset.
+    if (z_off /= 0 .and. set_s) then
+      call track_a_drift (coord, ele, param%particle, z_off)
+      coord%vec(5) = coord%vec(5) - z_off  ! Correction due to reference particle is also offset.
     endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
@@ -204,7 +207,7 @@ if (set) then
   endif
 
   ! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
-  ! HV kicks must come after s_offset but before any tilts are applied.
+  ! HV kicks must come after z_offset but before any tilts are applied.
   ! Note: Change in %vel is NOT dependent upon energy since we are using
   ! canonical momentum.
   ! Note: Since this is applied before tilt_coords, kicks are independent of any tilt.
@@ -217,7 +220,7 @@ if (set) then
   ! Set: Multipoles
 
   if (set_multi) then
-    call multipole_ele_to_kt(ele, particle, .true., has_nonzero_pole, knl, tilt)
+    call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
       knl = knl / 2
       call multipole_kicks (knl, tilt, coord)
@@ -245,7 +248,7 @@ if (set) then
   ! Note: Since this is applied after tilt_coords, kicks are dependent on any tilt.
 
   if (set_hv2) then
-    if (ele%key == elseparator$ .and. particle < 0) then
+    if (ele%key == elseparator$ .and. param%particle*param%rel_tracking_charge < 0) then
       coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
     elseif (ele%key == hkicker$) then
@@ -280,7 +283,7 @@ else
   ! Unset: HV kicks for kickers and separators only.
 
   if (set_hv2) then
-    if (ele%key == elseparator$ .and. particle < 0) then
+    if (ele%key == elseparator$ .and. param%particle*param%rel_tracking_charge < 0) then
       coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
     elseif (ele%key == hkicker$) then
@@ -312,7 +315,7 @@ else
   ! Unset: Multipoles
 
   if (set_multi) then
-    call multipole_ele_to_kt(ele, particle, .true., has_nonzero_pole, knl, tilt)
+    call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
       knl = knl / 2
       call multipole_kicks (knl, tilt, coord)
@@ -320,7 +323,7 @@ else
   endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
-  ! HV kicks must come after s_offset but before any tilts are applied.
+  ! HV kicks must come after z_offset but before any tilts are applied.
   ! Note: Change in %vel is NOT dependent upon energy since we are using
   ! canonical momentum.
 
@@ -346,25 +349,25 @@ else
 
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
-    s_off = ele%value(s_offset_tot$)
+    z_off = ele%value(z_offset_tot$)
     xp = ele%value(x_pitch_tot$)
     yp = ele%value(y_pitch_tot$)
 
     if (is_reversed) then
-      s_off = -s_off
+      z_off = -z_off
       xp = -xp
       yp = -yp
     endif
 
-    if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. s_off /= 0)) then
+    if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0)) then
       angle = ele%value(g$) * s_here 
       cos_a = cos(angle); sin_a = sin(angle)
       cos_t = cos(ele%value(tilt$));    sin_t = sin(ele%value(tilt$))
       m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
       m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
       m_trans(3,1:3) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
-      vec = matmul(m_trans, [x_off, y_off, s_off])
-      x_off = vec(1); y_off = vec(2); s_off = vec(3)
+      vec = matmul(m_trans, [x_off, y_off, z_off])
+      x_off = vec(1); y_off = vec(2); z_off = vec(3)
     endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
@@ -377,9 +380,9 @@ else
       coord%vec(4) = coord%vec(4) + yp * E_rel
     endif
 
-    if (s_off /= 0 .and. set_s) then
-      call track_a_drift (coord, ele, particle, -s_off)
-      coord%vec(5) = coord%vec(5) + s_off  ! Correction due to reference particle is also offset.
+    if (z_off /= 0 .and. set_s) then
+      call track_a_drift (coord, ele, param%particle, -z_off)
+      coord%vec(5) = coord%vec(5) + z_off  ! Correction due to reference particle is also offset.
     endif
 
   endif

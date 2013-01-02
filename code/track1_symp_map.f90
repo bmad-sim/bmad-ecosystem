@@ -42,10 +42,10 @@ if (ele%map_with_offsets) then  ! simple case
   call track1_this_body
 
 else
-  call offset_particle (ele, end_orb, param%particle, set$, &
+  call offset_particle (ele, end_orb, param, set$, &
                           set_canonical = .false., set_multipoles = .false.)
   call track1_this_body
-  call offset_particle (ele, end_orb, param%particle, unset$, &
+  call offset_particle (ele, end_orb, param, unset$, &
                           set_canonical = .false., set_multipoles = .false.)
 endif
 

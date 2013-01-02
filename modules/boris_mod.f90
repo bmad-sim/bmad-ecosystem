@@ -103,7 +103,7 @@ orb_end = orb_start
 orb_end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 call lcavity_reference_energy_correction (ele, param, orb_end)
-call offset_particle (ele, orb_end, param%particle, set$, set_canonical = .false., &
+call offset_particle (ele, orb_end, param, set$, set_canonical = .false., &
                                              set_hvkicks = .false., set_multipoles = .false.)
 
 t = particle_time(orb_end, ele)
@@ -142,7 +142,7 @@ enddo
 
 ! back to lab coords
 
-call offset_particle (ele, orb_end, param%particle, unset$, set_canonical = .false., &
+call offset_particle (ele, orb_end, param, unset$, set_canonical = .false., &
                                                             set_hvkicks = .false., set_multipoles = .false.)
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
@@ -206,7 +206,7 @@ real(rp) :: p2, t, dt, beta_ref
 
 !
 
-charge = charge_of(param%particle)
+charge = charge_of(param%particle) * param%rel_charge_tracking
 mass = mass_of(param%particle) / ele%value(p0c$)
 
 end = start

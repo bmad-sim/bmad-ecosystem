@@ -58,7 +58,7 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine qromb_rad_int(particle, do_int, pt, info, int_tot, rad_int)
+! Subroutine qromb_rad_int(param, do_int, pt, info, int_tot, rad_int)
 !
 ! Function to do integration using Romberg's method on the 7 radiation 
 ! integrals.
@@ -75,7 +75,7 @@ contains
 ! not have to be done by this routine.
 !-
 
-subroutine qromb_rad_int (particle, do_int, pt, info, int_tot, rad_int1)
+subroutine qromb_rad_int (param, do_int, pt, info, int_tot, rad_int1)
 
 use precision_def
 use nrtype
@@ -88,8 +88,8 @@ type (coord_struct) start, end
 type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
 type (rad_int1_struct) rad_int1, int_tot
+type (lat_param_struct) param
 
-integer particle
 integer, parameter :: num_int = 9
 integer j, j0, n, n_pts
 
@@ -124,13 +124,13 @@ ll = ele%value(l$)
 
 start = info%orbit(ele%ix_ele-1)
 end   = info%orbit(ele%ix_ele)
-gamma = ele%value(e_tot$) / mass_of(info%branch%param%particle)
+gamma = ele%value(e_tot$) / mass_of(param%particle)
 
 ! Go to the local element frame if there has been caching.
 if (associated(info%cache_ele)) then
-  call offset_particle (ele, start, particle, set$, &
+  call offset_particle (ele, start, param, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
-  call offset_particle (ele, end, particle, set$, &
+  call offset_particle (ele, end, param, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false., ds_pos = ll)
 endif
 
@@ -156,7 +156,7 @@ do j = 1, jmax
 
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
-    call propagate_part_way (start, particle, pt, info, z_pos, j, n)
+    call propagate_part_way (start, param, pt, info, z_pos, j, n)
     i_sum(1) = i_sum(1) + info%g_x * (info%eta_a(1) + info%eta_b(1)) + &
                   info%g_y * (info%eta_a(3) + info%eta_b(3))
     i_sum(2) = i_sum(2) + info%g2
@@ -251,7 +251,7 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (orb_start, particle, pt, info, z_here, j_loop, n_pt)
+subroutine propagate_part_way (orb_start, param, pt, info, z_here, j_loop, n_pt)
 
 implicit none
 
@@ -261,6 +261,7 @@ type (ele_struct), save :: runt, ele_end
 type (twiss_struct) a0, b0, a1, b1
 type (rad_int_info_struct) info
 type (rad_int_track_point_struct) pt, pt0, pt1
+type (lat_param_struct) param
 
 real(rp) z_here, v(4,4), v_inv(4,4), s1, s2, error
 real(rp) f0, f1, del_z, c, s, x, y
@@ -268,7 +269,6 @@ real(rp) eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
 real(rp) dz, z1
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky
 
-integer particle
 integer i0, i1, tm_saved, m6cm_saved
 integer i, ix, ip, j_loop, n_pt, n, n1, n2
 integer, save :: ix_ele = -1
@@ -345,7 +345,7 @@ if (associated(info%cache_ele)) then
   runt%map_ref_orb_in  = pt0%ref_orb_in%vec
   runt%map_ref_orb_out = pt0%ref_orb_out%vec
 
-  call mat6_add_offsets (runt, particle)  ! back to lab coords
+  call mat6_add_offsets (runt, param)  ! back to lab coords
   call twiss_propagate1 (ele0, runt)
   a0 = runt%a; b0 = runt%b
   call make_v_mats (runt, v, v_inv)
@@ -357,7 +357,7 @@ if (associated(info%cache_ele)) then
   runt%map_ref_orb_in  = pt1%ref_orb_in%vec
   runt%map_ref_orb_out = pt1%ref_orb_out%vec
 
-  call mat6_add_offsets (runt, particle)  ! back to lab coords
+  call mat6_add_offsets (runt, param)  ! back to lab coords
   call twiss_propagate1 (ele0, runt)
   a1 = runt%a; b1 = runt%b
   call make_v_mats (runt, v, v_inv)
@@ -438,7 +438,7 @@ info%g = sqrt(info%g2)
 ! Add in multipole gradient
 
 if (ele%key /= wiggler$ .or. ele%sub_key /= map_type$) then 
-  call multipole_ele_to_ab (ele, info%branch%param%particle, .true., has_nonzero_pole, a_pole, b_pole)
+  call multipole_ele_to_ab (ele, info%branch%param, .true., has_nonzero_pole, a_pole, b_pole)
   if (has_nonzero_pole) then
     do ip = 0, ubound(a_pole, 1)
       if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle

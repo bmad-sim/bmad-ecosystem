@@ -45,7 +45,7 @@ logical err_flag
 
 start2_orb = start_orb
 
-call offset_particle (ele, start2_orb, param%particle, set$, set_canonical = .false., &
+call offset_particle (ele, start2_orb, param, set$, set_canonical = .false., &
                                              set_hvkicks = .false., set_multipoles = .false.)
 
 ! Track.
@@ -58,7 +58,7 @@ end_orb%p0c = ele%value(p0c$)
 
 ! convert to lab coords.
 
-call offset_particle (ele, end_orb, param%particle, unset$, set_canonical = .false., &
+call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., &
                                                             set_hvkicks = .false., set_multipoles = .false.)
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
