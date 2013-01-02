@@ -2254,7 +2254,7 @@ beta0 = ele%value(p0c$)/ele%value(e_tot$)
 ! and create map corresponding to ele%taylor.
 
 param%particle = positron$  ! Actually this does not matter to the calculation
-call ele_to_fibre (ele, fib, param%particle, use_offsets = .true.)
+call ele_to_fibre (ele, fib, param, use_offsets = .true.)
 
 x_dp = 0
 x_ele = x_dp  ! x_ele = Identity map 
@@ -2344,20 +2344,20 @@ call taylor_to_real_8 (bmad_taylor, beta0, ptc_tlr)
 
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, upstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
+  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
   call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 endif
 
 ! Init ptc "element" (fibre) and track the map
 
-call ele_to_fibre (ele, ptc_fibre, param%particle, .true.)
+call ele_to_fibre (ele, ptc_fibre, param, .true.)
 call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 
 ! Track exit side drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, downstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
+  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
   call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
 endif
 
@@ -2473,20 +2473,20 @@ y = x   ! y = IdentityMap + x
 
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, upstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
+  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
   call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 endif
 
 ! Track element
 
-call ele_to_fibre (ele, ptc_fibre, param%particle, use_offsets)
+call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
 call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 
 ! Track exit end drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, downstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param%particle, .true.)
+  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
   call ptc_track (ptc_fibre, y, default) ! "track" in PTC
 endif
 
@@ -2669,7 +2669,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, particle, use_offsets, integ_order, steps, for_layout)
+! Subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, integ_order, steps, for_layout)
 !
 ! Subroutine to convert a Bmad element to a PTC fibre element.
 ! This subroutine allocates fresh storage for the fibre so after calling
@@ -2682,10 +2682,10 @@ end subroutine type_map
 !   use ptc_interface_mod
 !
 ! Input:
-!   ele    -- Ele_struct: Bmad element.
+!   ele         -- Ele_struct: Bmad element.
 !     %map_with_offsets -- If False then the values for x_pitch, x_offset, 
 !                           tilt, etc. for the  ptc_fibre element will be zero.
-!   particle    -- Integer: Particle type. Needed for elsep elements.
+!   param       -- lat_param_struct: 
 !   use_offsets -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
@@ -2700,13 +2700,14 @@ end subroutine type_map
 !   ptc_fibre -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, particle, use_offsets, integ_order, steps, for_layout)
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout)
 
 use madx_ptc_module
 
 implicit none
  
 type (ele_struct), target :: ele
+type (lat_param_struct) param
 type (ele_struct), pointer :: field_ele, ele2
 type (fibre), pointer :: ptc_fibre
 type (fibre) dummy_fibre
@@ -2724,7 +2725,7 @@ real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) dr(3), ang(3), exi(3,3)
 
-integer i, n, key, n_term, exception, n_field, particle, ix
+integer i, n, key, n_term, exception, n_field, ix
 integer, optional :: integ_order, steps
 
 logical use_offsets, energy
@@ -2873,7 +2874,7 @@ case (elseparator$)
   if (hk == 0 .and. vk == 0) then
     ptc_key%tiltd = 0
   else
-    if (particle < 0) then
+    if (param%particle < 0) then
       hk = -hk
       vk = -vk
     endif
@@ -2915,7 +2916,7 @@ endif
 
 ! Multipole components
 
-call ele_to_an_bn (ele, particle, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+call ele_to_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
 ! Create ptc_fibre
 ! EXCEPTION is an error_flag. Set to 1 if error. Never reset.
@@ -3093,7 +3094,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_an_bn (ele, particle, k, ks, n_max)
+! Subroutine ele_to_an_bn (ele, param, k, ks, n_max)
 !
 ! Routine to compute the a(n) and b(n) multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
@@ -3103,7 +3104,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !
 ! Input:
 !   ele                 -- ele_struct: Bmad Element.
-!   particle            -- Integer: Type of particle: electron$, etc.
+!   param               -- lat_param_struct: 
 !
 ! Output:
 !   k(1:n_pole_maxx+1)  -- real(rp): Skew multipole component.
@@ -3111,11 +3112,12 @@ end subroutine bmad_patch_parameters_to_ptc
 !   n_max               -- integer: Maximum non-zero multipole component.
 !-
 
-subroutine ele_to_an_bn (ele, particle, k, ks, n_max)
+subroutine ele_to_an_bn (ele, param, k, ks, n_max)
 
 implicit none
 
 type (ele_struct), target :: ele
+type (lat_param_struct) param
 
 real(rp) k(:), ks(:)
 real(rp) cos_t, sin_t, leng, hk, vk
@@ -3123,7 +3125,7 @@ real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 
-integer n, n_max, key, particle
+integer n, n_max, key
 logical kick_here, has_nonzero_pole
 
 character(16) :: r_name = 'ele_to_an_bn'
@@ -3176,7 +3178,7 @@ case (sol_quad$)
   k(2) = val(k1$)
 
 case (elseparator$)
-  call multipole_ele_to_ab (ele, +1, .false., has_nonzero_pole, an0, bn0) 
+  call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, an0, bn0) 
   if (has_nonzero_pole) then
     call out_io (s_fatal$, r_name, 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.')
     if (global_com%exit_on_error) call err_exit
@@ -3210,7 +3212,7 @@ elseif (has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. val(vkick$) /
   ks(1) = ks(1) - hk * sin_t + vk * cos_t
 endif
 
-call multipole_ele_to_ab (ele, particle, .false., has_nonzero_pole, an0, bn0)
+call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, an0, bn0)
 if (leng /= 0) then
   an0 = an0 / leng
   bn0 = bn0 / leng

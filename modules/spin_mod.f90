@@ -1461,7 +1461,7 @@ use multipole_mod, only: multipole_ele_to_ab
 implicit none
 
 type (ele_struct), intent(in) :: ele
-type (param_struct) param
+type (lat_param_struct) param
 
 complex(rp), intent(inout) :: spin(2)
 complex(rp) kick, pos
@@ -1469,7 +1469,6 @@ complex(rp) kick, pos
 real(rp), intent(in) :: vec(6)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), kick_angle, Bx, By, knl, a_coord(4), a_field(4)
 
-integer, intent(in) :: particle
 integer n
 
 logical, optional, intent(in) :: do_half_prec, include_sextupole_octupole, ref_orb_offset

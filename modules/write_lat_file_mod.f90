@@ -1478,7 +1478,7 @@ do
   ! just before and just after the element.
 
   if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    call multipole_ele_to_ab (ele, lat%param%particle, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
+    call multipole_ele_to_ab (ele, lat%param, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
     if (has_nonzero_pole) then
       ab_ele%a_pole = ab_ele%a_pole / 2
       ab_ele%b_pole = ab_ele%b_pole / 2
@@ -1879,12 +1879,12 @@ do ix_ele = ie1, ie2
 
   case (multipole$, ab_multipole$)
 
-    call multipole_ele_to_kt (ele, lat_out%param%particle, .true., has_nonzero_pole, knl, tilts)
+    call multipole_ele_to_kt (ele, lat_out%param, .true., has_nonzero_pole, knl, tilts)
     write (line_out, '(a, es13.5)') trim(ele%name) // ': multipole'  
 
     if (out_type == 'MAD-X') then
       knl_str = ''; ksl_str = ''
-      call multipole_ele_to_ab (ele, lat_out%param%particle, .true., has_nonzero_pole, a_pole, b_pole)
+      call multipole_ele_to_ab (ele, lat_out%param, .true., has_nonzero_pole, a_pole, b_pole)
       do i = 0, 9
         if (all(knl(i:) == 0)) exit
         if (abs(a_pole(i)) < 1d-12 * abs(b_pole(i))) a_pole(i) = 0  ! Round to zero insignificant value

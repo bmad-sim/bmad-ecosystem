@@ -32,6 +32,7 @@ subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
 use mad_mod, dummy3 => track1_bmad
 use lat_geometry_mod, dummy4 => track1_bmad
+use track1_mod, dummy2 => track1_bmad
 
 implicit none
 
@@ -309,7 +310,7 @@ case (lcavity$)
   beta_end_ref   = pc_end_ref / E_end_ref
 
   pc_start = pc_start_ref * rel_pc
-  call convert_pc_to (pc_start, param, E_tot = E_start, beta = beta_start)
+  call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
 
   ! The RF phase is defined with respect to the time at the beginning of the element.
   ! So if dealing with a slave element and absolute time tracking then need to correct.

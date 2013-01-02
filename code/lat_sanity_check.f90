@@ -36,7 +36,7 @@ logical good_control(12,12), girder_here
 
 if (any(lat%ele(:)%key == lcavity$) .and. lat%param%geometry /= open$) then
   call out_io (s_fatal$, r_name, &
-            'THERE IS A LCAVITY BUT THE GEOMETRY IS NOT SET TO LINEAR_LATTICE!')
+            'THERE IS A LCAVITY BUT THE GEOMETRY IS NOT SET TO OPEN!')
 endif
 
 ! good_control specifies what elements can control what other elements.

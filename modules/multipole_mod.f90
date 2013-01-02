@@ -282,7 +282,7 @@ real(rp) const, radius, factor, a(0:), b(0:)
 real(rp) an, bn, cos_t, sin_t
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 
-integer i, ref_exp, n, 
+integer i, ref_exp, n
 
 logical use_ele_tilt, has_nonzero_pole
 
@@ -350,7 +350,7 @@ if (.not. this_ele%scale_multipoles) return
 
 ! flip sign for electrons or antiprotons with a separator.
 
-if (this_ele%key == elseparator$ .and. param%particle*param_rel_tracking_charge < 0) then
+if (this_ele%key == elseparator$ .and. param%particle*param%rel_tracking_charge < 0) then
   this_a = -this_a
   this_b = -this_b
 endif

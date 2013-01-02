@@ -276,7 +276,7 @@ if (use_cache .or. init_cache) then
     ele2 = branch%ele(i)
     call zero_ele_offsets (ele2)
     orb_start = orbit(i-1)
-    call offset_particle (branch%ele(i), orb_start, set$, &
+    call offset_particle (branch%ele(i), orb_start, branch%param, set$, &
                           set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
@@ -431,12 +431,12 @@ do ir = 1, branch%n_ele_track
     if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
     G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
     g3_ave = 4 * G_max**3 / (3 * pi)
-    rad_int1%i0 = (ele%value(e_tot$) / mass_of(param%particle)) * 2 * G_max / 3
+    rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * 2 * G_max / 3
     rad_int1%i1 = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
     rad_int1%i2 = ll * G_max**2 / 2
     rad_int1%i3 = ll * g3_ave
 
-    call qromb_rad_int (param, [F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int1)
+    call qromb_rad_int (branch%param, [F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int1)
     cycle
 
   endif
@@ -458,10 +458,10 @@ do ir = 1, branch%n_ele_track
     pt%dgx_dy = pt%dgy_dx
     pt%dgy_dy = -pt%dgx_dx
     ! Edge effects for a bend. In this case we ignore any rolls.
-    call propagate_part_way (orbit(ir-1), param, pt, ri_info, 0.0_rp, 1, 1)
+    call propagate_part_way (orbit(ir-1), branch%param, pt, ri_info, 0.0_rp, 1, 1)
     rad_int1%i4a = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
     rad_int1%i4b = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
-    call propagate_part_way (orbit(ir-1), param, pt, ri_info, ll, 1, 2)
+    call propagate_part_way (orbit(ir-1), branch%param, pt, ri_info, ll, 1, 2)
     rad_int1%i4a = rad_int1%i4a - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
     rad_int1%i4b = rad_int1%i4a - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
   endif
@@ -476,7 +476,7 @@ do ir = 1, branch%n_ele_track
 
   ! Integrate for quads, bends and nonzero kicks
 
-  call qromb_rad_int (param, [T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int1)
+  call qromb_rad_int (branch%param, [T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int1)
 
 enddo
 
@@ -502,7 +502,7 @@ do ir = 1, branch%n_ele_track
   ll = ele%value(l$)
   if (ll == 0) cycle
 
-  call qromb_rad_int (param, [T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int1)
+  call qromb_rad_int (branch%param, [T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int1)
 
 enddo
 
@@ -512,7 +512,7 @@ enddo
 
 lat%lord_state%rad_int = ok$
 
-mc2 = mass_of (param%particle)
+mc2 = mass_of (branch%param%particle)
 gamma_f = branch%ele(branch%n_ele_track)%value(e_tot$) / mc2
 const_q = const_q_factor / mc2
 

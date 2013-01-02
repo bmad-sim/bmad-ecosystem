@@ -831,7 +831,6 @@ character(40), parameter :: blank_name$ = ' '
 
 ! lattice logical names
 
-integer, parameter :: linear_lattice$ = 1, circular_lattice$ = 2
 integer, parameter :: open$ = 1, closed$ = 2
 
 character(16), parameter :: lattice_type_name(0:2) = ['GARBAGE!        ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE']

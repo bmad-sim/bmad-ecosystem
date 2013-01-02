@@ -634,9 +634,9 @@ case (sbend$)
   ix_fringe = nint(ele%value(fringe_type$))
 
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    call exact_bend_edge_kick (c00, ele, upstream_end$, .false., kx_1, ky_1)
+    call exact_bend_edge_kick (c00, ele, param, upstream_end$, .false., kx_1, ky_1)
   elseif (ix_fringe == basic_bend$) then
-    call apply_bend_edge_kick (c00, ele, upstream_end$, .false., kx_1, ky_1)
+    call apply_bend_edge_kick (c00, ele, param, upstream_end$, .false., kx_1, ky_1)
   endif
 
 
@@ -644,9 +644,9 @@ case (sbend$)
  
   ! Exit edge kick
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    call exact_bend_edge_kick (c11, ele, downstream_end$, .false., kx_2, ky_2)
+    call exact_bend_edge_kick (c11, ele, param, downstream_end$, .false., kx_2, ky_2)
   elseif (ix_fringe == basic_bend$) then
-    call apply_bend_edge_kick (c11, ele, downstream_end$, .true., kx_2, ky_2) 
+    call apply_bend_edge_kick (c11, ele, param, downstream_end$, .true., kx_2, ky_2) 
   endif
  
    
@@ -1008,7 +1008,7 @@ if (key /= multipole$ .and. key /= ab_multipole$) then
 endif
 
 if (ele%value(z_offset_tot$) /= 0) then
-  s_off = ele%value(z_offset_tot$) * ele%direction
+  s_off = ele%value(z_offset_tot$) * ele%orientation
   mat6(1,:) = mat6(1,:) - s_off * mat6(2,:)
   mat6(3,:) = mat6(3,:) - s_off * mat6(4,:)
   mat6(:,2) = mat6(:,2) + mat6(:,1) * s_off

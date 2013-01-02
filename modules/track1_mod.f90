@@ -108,7 +108,7 @@ if (ele%offset_moves_aperture .and. (at2 == entrance_end$ .or. at2 == exit_end$)
   if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
   orb2 = orb
   s_here = orb2%s - (ele%s - ele%value(l$))
-  call offset_particle (ele, orb2, param%particle, set$, set_canonical = .false., &
+  call offset_particle (ele, orb2, param, set$, set_canonical = .false., &
                set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
                ds_pos = s_here)
   x_particle = orb2%vec(1)
@@ -317,7 +317,7 @@ type (lat_param_struct), intent(inout) :: param
 
 real(rp) angle, ct, st, x, px, y, py, z, pz, dpx_t, p_long
 real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err, c_dir
-real(rp) length, g_tot, del_p, eps, pxy2, f, k_2, alpha, beta, ct
+real(rp) length, g_tot, del_p, eps, pxy2, f, k_2, alpha, beta
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
@@ -328,7 +328,7 @@ logical has_nonzero_pole
 !-----------------------------------------------------------------------
 
 end_orb = start_orb
-call offset_particle (ele, end_orb, param%particle, set$, set_canonical = .false., set_multipoles = .false.)
+call offset_particle (ele, end_orb, param, set$, set_canonical = .false., set_multipoles = .false.)
 
 ! Entrance edge kick
 
@@ -343,13 +343,13 @@ endif
 
 n_step = 1
 
-call multipole_ele_to_kt(ele, param%particle, .true., has_nonzero_pole, knl, tilt)
+call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
 if (ele%value(k2$) /= 0 .or. has_nonzero_pole) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 knl = knl / n_step
 
 ! Set some parameters
 
-c_dir = ele%direction * param%rel_tracking_charge
+c_dir = ele%orientation * param%rel_tracking_charge
 length = ele%value(l$) / n_step
 g = ele%value(g$)
 g_tot = (g + ele%value(g_err$)) * c_dir
@@ -531,7 +531,7 @@ character(24), parameter :: r_name = 'apply_bend_edge_kick'
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
 
-c_dir = param%rel_tracking_charge * ele%direction
+c_dir = param%rel_tracking_charge * ele%orientation
 
 g     = ele%value(g$)
 g_tot = (g + ele%value(g_err$)) * c_dir
@@ -548,7 +548,7 @@ ht2 = g * tan_e**2
 hs2 = g * sec_e**2
 k1_eff = ele%value(k1$) * c_dir
 
-element_end = physical_ele_end(stream_end, ele)
+element_end = physical_ele_end(stream_end, ele%orientation)
 
 if (fint == 0) then
   k1y = -k1x
@@ -660,9 +660,9 @@ select case (hard_ele%key)
 case (sbend$)
   ix_fringe = nint(hard_ele%value(fringe_type$))
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    call exact_bend_edge_kick (orb, hard_ele, element_end, .false.)
+    call exact_bend_edge_kick (orb, hard_ele, param, element_end, .false.)
   elseif (ix_fringe == basic_bend$) then
-    call apply_bend_edge_kick (orb, hard_ele, element_end, .false.)
+    call apply_bend_edge_kick (orb, hard_ele, param, element_end, .false.)
   endif
 
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
@@ -965,7 +965,7 @@ end subroutine ptc_rot_xz
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine exact_bend_edge_kick (orb, ele, element_end, in_to_out, kx, ky)
+! Subroutine exact_bend_edge_kick (orb, ele, param, element_end, in_to_out, kx, ky)
 !
 ! Subroutine to track through the edge field of an sbend.
 ! In_to_out tracking starts with the particle just outside the bend and
@@ -1077,7 +1077,7 @@ end subroutine exact_bend_edge_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track1_low_energy_z_correction (orbit, ele, species)
+! Subroutine track1_low_energy_z_correction (orbit, ele, param)
 ! 
 ! Routine to add a correction to z due to speed < c corrections when tracking through an element.
 ! This routine assumes a constant velocity.
@@ -1088,25 +1088,25 @@ end subroutine exact_bend_edge_kick
 ! Input:
 !   orbit   -- coord_struct: Position before correction
 !   ele     -- ele_struct: Element being tracked through
-!   species -- integer: EG: positron$, etc.
+!   param   -- lat_param_struct: Species info.
 !
 ! Output:
 !   orbit   -- coord_struct: Position after correction.
 !-
 
-subroutine track1_low_energy_z_correction (orbit, ele, species)
+subroutine track1_low_energy_z_correction (orbit, ele, param)
 
 implicit none
 
 type (coord_struct) orbit
 type (ele_struct) ele
+type (lat_param_struct) param
 
 real(rp) p0c, pc, beta, beta0, mass, e_tot
-integer species
 
 !
 
-mass = mass_of(species)
+mass = mass_of(param%particle)
 e_tot = ele%value(e_tot$)
 p0c = ele%value(p0c$)
 
@@ -1114,7 +1114,7 @@ if (abs(orbit%vec(6)) < 1e-6 * mass**2 * p0c / e_tot**3) then
   orbit%vec(5) = orbit%vec(5) + ele%value(l$) * orbit%vec(6) * (1 - 3 * orbit%vec(6) / 2) * (mass / e_tot)**2
 else
   pc = (1 + orbit%vec(6)) * ele%value(p0c$)
-  call convert_pc_to (pc, species, beta = beta)
+  call convert_pc_to (pc, param%particle, beta = beta)
   beta0 = ele%value(p0c$) / ele%value(e_tot$)
   orbit%vec(5) = orbit%vec(5) + ele%value(l$) * (beta - beta0) / beta0
 endif
