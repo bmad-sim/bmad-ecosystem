@@ -150,7 +150,7 @@ DO i = 1, size(is_valid)
         call make_mat6 (ele, lat%param, lat%beam_start)
         ele%tracking_method = i
       endif
-      call init_coord (lat%beam_start, lat%beam_start, ele = ele, at_exit_end = .false.)
+      call init_coord (lat%beam_start, lat%beam_start, ele = ele, at_downstream_end = .false.)
       call track1 (lat%beam_start, ele, lat%param, end_orb)
       method(k)%step(j)%vec = end_orb%vec
       write (1,'(es24.15,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)',advance='no') ptr_array(1)%r, end_orb%vec
