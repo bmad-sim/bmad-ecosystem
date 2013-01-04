@@ -711,20 +711,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele_has(ele, 'OFFSET_MOVES_APERTURE') .and. (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture)) &
                                       write (line, '(2a, l1)') trim(line), ', offset_moves_aperture = ', ele%offset_moves_aperture
 
-    ! Multipass lord 
-
-    if (ele%key == sbend$ .or. (ele%lord_status == multipass_lord$ .and. .not. ele%field_master)) then
-      select case (ele%key)
-      case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
-            hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
-        if (ele%value(n_ref_pass$) == 0) then
-          line = trim(line) // ', e_tot = ' // str(ele%value(e_tot$))
-        else
-          write (line, '(2a, i0)') trim(line), ', n_ref_pass = ', nint(ele%value(n_ref_pass$))
-        endif
-      end select
-    endif
-
     call write_lat_line (line, iu, .false.)  
 
     ! Encode taylor

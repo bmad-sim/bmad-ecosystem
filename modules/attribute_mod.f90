@@ -1106,6 +1106,17 @@ case ('FIELD_SCALE', 'DPHI0_REF')
   free = .true.   ! This may not be true with autoscaling
   return
 
+case ('E_TOT', 'P0C')
+  if (ele%lord_status /= multipass_lord$) return
+  if (ele%field_master) return
+  if (ele%value(n_ref_pass$) /= 0) return
+  select case (ele%key)
+  case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
+        hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$, lcavity$, rfcavity$)
+    free = .true.
+  end select
+  return
+
 end select
 
 ! if the attribute is controled by an overlay lord then it cannot be varied.
