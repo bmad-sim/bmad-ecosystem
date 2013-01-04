@@ -508,6 +508,7 @@ real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
 real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
+real(rp) x_min, x_max, y_min, y_max
 
 character(*) name_in
 character(80) str
@@ -534,11 +535,16 @@ call floor_to_screen_coords (ele1%floor, end1)
 call floor_to_screen_coords (ele2%floor, end2)
 
 ! Only draw those element that have at least one point in bounds.
-  
-if ((end1%r(1) < graph%x%min .or. graph%x%max < end1%r(1) .or. &
-    end1%r(2) < graph%y%min .or. graph%y%max < end1%r(2)) .and. &
-    (end2%r(1) < graph%x%min .or. graph%x%max < end2%r(1) .or. &
-    end2%r(2) < graph%y%min .or. graph%y%max < end2%r(2))) return
+
+! If qp_eliminate_distortion has been called then the min/max
+! values of the actual plot are different from graph%x%min, etc.
+! In this case, use the actual min/max values
+
+call qp_get_axis_attrib ('X', x_min, x_max)
+call qp_get_axis_attrib ('Y', y_min, y_max)
+
+if ((end1%r(1) < x_min .or. x_max < end1%r(1) .or. end1%r(2) < y_min .or. y_max < end1%r(2)) .and. &
+    (end2%r(1) < x_min .or. x_max < end2%r(1) .or. end2%r(2) < y_min .or. y_max < end2%r(2))) return
 
 ! Bends can be tricky if they are not in the X-Z plane. 
 ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
