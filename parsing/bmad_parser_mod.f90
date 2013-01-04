@@ -1327,7 +1327,10 @@ type (ele_attribute_struct) attrib_info
 character(*) attrib_name
 logical is_problem, is_free
 
-! If not check_free then at least check if it is a dependent attribute
+! Attributes may be definitely free, definitely dependent, or may be free or
+! dependent depending upon the state of other element parameters.
+
+! If not check_free then at least check if it is a dependent attribute.
 
 is_problem = .false.
 
@@ -1341,7 +1344,11 @@ if (logic_option(.false., check_free)) then
   endif
 else
   attrib_info = attribute_info(ele, attribute_index(ele, attrib_name))
-  if (attrib_info%type == dependent$) is_problem = .true.
+  if (attrib_info%type == dependent$) then
+    call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
+                                      'FOR: ' // ele%name)
+    is_problem = .true.
+  endif
 endif
 
 end function attrib_free_problem

@@ -2519,8 +2519,8 @@ octupole. Vertical motion is calculated using a kick-drift-kick model.
 \vn{Periodic type} wigglers use a simplified model where the magnetic
 field components are
 \begin{alignat}{1}
-  B_y &= \hphantom{-} B_{\max} \, \cosh(k_z \, y) \, \cos(k_z \, z) \CRNO
-  B_z &= -B_{\max} \, \sinh(k_z \, y) \, \sin(k_z \, z) 
+  B_y &= \hphantom{-} B_{\max} \, \cosh(k_z \, y) \, \cos(k_z \, z + \phi_z) \CRNO
+  B_z &= -B_{\max} \, \sinh(k_z \, y) \, \sin(k_z \, z + \phi_z) 
   \label{bbkykz}
 \end{alignat}
 where $B_{\max}$ is the maximum field on the centerline and $k$ is
@@ -2548,7 +2548,7 @@ calculations the true horizontal trajectory with $y = 0$ is needed
 \Endeq
 
 With \vn{periodic type} wigglers and \vn{bmad_standard} tracking, the
-phase $\phi_s$ in \Eqs{bbkyks} is irrelevant. When the tracking
+phase $\phi_z$ in \Eqs{bbkykz} is irrelevant. When the tracking
 involves Taylor maps and symplectic integration, the phase is
 important. Here the phase is chosen so that $B_y$ is symmetric about
 the center of the wiggler
