@@ -639,6 +639,8 @@ do ib = 0, ubound(lat%branch, 1)
       if (.not. attribute_free (ele, attrib%name, lat, .false., .true.)) cycle
       if (val == ele_dflt%value(j)) cycle
       if (attrib%name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
+      if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
+      if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.
       if (attrib%name == null_name$) then
         print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
         print *, '      ELEMENT: ', ele%name
