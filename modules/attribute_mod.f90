@@ -939,6 +939,7 @@ logical, optional :: err_print_flag, except_overlay
 
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
+free = .false.
 
 call check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, &
                                              do_print, do_except_overlay, free, 0)
@@ -972,6 +973,7 @@ character(16) :: r_name = 'attribute_free'
 
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
+free = .false.
 
 call check_this_attribute_free (ele, attrib_name, lat, do_print, do_except_overlay, free, 0)
 
@@ -1004,6 +1006,7 @@ logical, optional :: err_print_flag, except_overlay
 
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
+free = .false.
 
 call check_this_attribute_free (lat%branch(ix_branch)%ele(ix_ele), attrib_name, &
                                              lat, do_print, do_except_overlay, free, 0)

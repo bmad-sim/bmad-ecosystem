@@ -192,7 +192,7 @@ to describe complicated machine geometries.
 
 Consider the case of an Energy Recovery Linac (ERL) where the beam
 goes through the linac section of the ERL twice. Once to accelerate
-the beam and once to decellerate and recover the energy from the
+the beam and once to decelerate and recover the energy from the
 beam. The basic ERL lattice is then
 \begin{example}
   erl: line = (injector, merge, linac, arc, linac, dump)
@@ -208,18 +208,17 @@ beam. The basic ERL lattice is then
 \end{example}
 
 %-----------------------------------------------------------------------------
-\subsection{Example: Injection Line Into a Dipole}
-\label{s:ex.inj}
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{injection.pdf}
-  \caption[Injection line into a dipole magnet.]{Injection line into a dipole magnet.}
-  \label{f:inject}
-\end{figure}
-
-An injection line into a dipole magnet is illustrated in \fig{f:inject}.
-
+%%\subsection{Example: Injection Line Into a Dipole}
+%%\label{s:ex.inj}
+%%
+%%\begin{figure}[tb]
+%%  \centering
+%%  \includegraphics[width=5in]{injection.pdf}
+%%  \caption[Injection line into a dipole magnet.]{Injection line into a dipole magnet.}
+%%  \label{f:inject}
+%%\end{figure}
+%%
+%%An injection line into a dipole magnet is illustrated in \fig{f:inject}.
 
 %-----------------------------------------------------------------------------
 \subsection{Example: Patch Between reversed and non-reversed elements.}
@@ -229,10 +228,10 @@ An injection line into a dipole magnet is illustrated in \fig{f:inject}.
   \centering
   \includegraphics[width=5in]{patch-between.pdf}
   \caption[Patching between reversed and non-reversed elements.]{
-Dirft element \vn{D} is followed by a reversed drift element \vn{B}.
+Drift element \vn{D} is followed by a reversed drift element \vn{B}.
 The view is from $+y$ onto the $x$-$z$ plane. A) If no patch is
 present then the geometry does not make physical sense. B) With a
-patch in between, a sensical geometry obtained.}
+patch in between, a sane geometry obtained.}
   \label{f:patch.between}
 \end{figure}
 
@@ -252,7 +251,7 @@ the reversed bend \vn{B}, a particle leaving \vn{D} at \vn{D}'s
 downstream end will find itself outside of of \vn{B} as well. Clearly
 this is an unphysical situation. Sanity is restored is line \vn{fig_B}
 is used. In this instance, the patch \vn{P} rotates the reference
-coordinates around the $y$-axis leaving the $y$-axis invarient the
+coordinates around the $y$-axis leaving the $y$-axis invariant the
 bend of \vn{B} is in the $x$-$z$ plane. Of course there are many other
 patches that could be used here. For example, Setting \vn{y_pitch} to
 \vn{pi}. 
@@ -295,14 +294,14 @@ counter rotating beams is shown in \fig{f:collide}. Rings \vn{A} and
   use, a, b
 \end{example}
 Lines \vn{ir1} and \vn{ir2} are the two interaction regions which are
-declaired \vn{multipass} since they are shared by the two rings. Line
+declared \vn{multipass} since they are shared by the two rings. Line
 \vn{a} represents ring \vn{A} where the beam which, by definition,
 travels in the same direction as increasing $s$, rotates clockwise.
 Line \vn{b_rev} is a ``reversed'' line of ring \vn{B} and, like
 \vn{a}, represents a beam rotating clockwise.  Line \vn{b}, which
 represents ring \vn{B}, is the reverse of \vn{b_rev} and here the beam
 rotates counterclockwise. In this construction, all elements of \vn{b}
-are reversed.  While this is not manditory (only the interaction
+are reversed.  While this is not mandatory (only the interaction
 regions must be reversed in \vn{b}), having all of \vn{b} reversed
 simplifies the geometry since this means that the local coordinate
 systems of both lines \vn{a} and \vn{b} will be ``aligned'' with the
