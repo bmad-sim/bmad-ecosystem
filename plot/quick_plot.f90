@@ -5218,12 +5218,11 @@ end subroutine load_data
 
 end subroutine qp_read_data
 
-
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_eliminate_xy_distortion (axis_to_scale)
+! Subroutine qp_eliminate_xy_distortion (axis_to_scale, mirror_axes)
 !
 ! This subroutine will increase the x or y margins so that the conversion
 ! between data units and page units is the same for the x and y axes.
@@ -5237,12 +5236,17 @@ end subroutine qp_read_data
 !
 ! Input:
 !   axis_to_scale -- Logical, optional: 
-!                         ''  -> Vary x or y margin (default).
-!                         'X' -> Vary x margin.
-!                         'Y' -> Vary y margin.
+!                         'XY'   -> Vary x or y margin (default).
+!                         'X'    -> Vary x margin.
+!                         'Y'    -> Vary y margin.
+!                         'X2Y2' -> Vary x2 or y2 margin 
+!                         'X2'   -> Vary x2 margin 
+!                         'Y2'   -> Vary y2 margin 
+!   mirror_axes   -- Logical, optional: If True, X2 will mirror X and vice versa.
+!                         Default is True.
 !-
 
-subroutine qp_eliminate_xy_distortion (axis_to_scale)
+subroutine qp_eliminate_xy_distortion (axis_to_scale, mirror_axes)
 
 implicit none
 
@@ -5251,12 +5255,19 @@ real(rp) x_scale, y_scale, dx_graph, dy_graph
 character(*), optional :: axis_to_scale
 character(1) ax_to_scale
 
+logical, optional :: mirror_axes
+logical scale_xy
+
 ! 
 
-ax_to_scale = ''
+ax_to_scale = 'XY'
 if (present(axis_to_scale)) ax_to_scale = axis_to_scale
 
-if (ax_to_scale /= '' .and. ax_to_scale /= 'X' .and. ax_to_scale /= 'Y') then
+if (ax_to_scale == 'XY' .or. ax_to_scale == 'X' .or. ax_to_scale == 'Y') then
+  scale_xy = .true.
+elseif (ax_to_scale == 'X2Y2' .or. ax_to_scale == 'X2' .or. ax_to_scale == 'Y2') then
+  scale_xy = .false.
+else
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -5268,10 +5279,18 @@ call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
 dx_graph = qp_com%graph%x2 - qp_com%graph%x1
 dy_graph = qp_com%graph%y2 - qp_com%graph%y1
 
-if (ax_to_scale == 'X' .or. (x_scale > y_scale .and. ax_to_scale == '')) then  ! shrink in x
-  call axis_scale (qp_com%plot%x, qp_com%plot%y, y_scale/x_scale, dy_graph/dx_graph)
-else  ! shrink in y
-  call axis_scale (qp_com%plot%y, qp_com%plot%x, x_scale/y_scale, dx_graph/dy_graph)
+if (scale_xy) then
+  if (ax_to_scale == 'X' .or. (x_scale > y_scale .and. ax_to_scale == 'XY')) then  ! shrink in x
+    call axis_scale (qp_com%plot%x, qp_com%plot%y, y_scale/x_scale, dy_graph/dx_graph)
+  else  ! shrink in y
+    call axis_scale (qp_com%plot%y, qp_com%plot%x, x_scale/y_scale, dx_graph/dy_graph)
+  endif
+else
+  if (ax_to_scale == 'X2' .or. (x_scale > y_scale .and. ax_to_scale == 'X2Y2')) then  ! shrink in x
+    call axis_scale (qp_com%plot%x2, qp_com%plot%y2, y_scale/x_scale, dy_graph/dx_graph)
+  else  ! shrink in y
+    call axis_scale (qp_com%plot%y2, qp_com%plot%x2, x_scale/y_scale, dx_graph/dy_graph)
+  endif
 endif
 
 ! Now adjust the margins
@@ -5279,7 +5298,7 @@ endif
 call qp_set_graph_limits
 call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
 
-if (ax_to_scale == 'X' .or. (x_scale > y_scale .and. ax_to_scale == '')) then  ! shrink in x
+if (ax_to_scale == 'X' .or. (x_scale > y_scale .and. ax_to_scale == 'XY')) then  ! shrink in x
   call margin_scale (y_scale / x_scale, qp_com%graph%x1, qp_com%graph%x2, &
                                            qp_com%margin%x1, qp_com%margin%x2) 
 
@@ -5289,6 +5308,16 @@ else  ! shrink in y
 endif
 
 call qp_set_graph_limits
+
+if (logic_option(.true., mirror_axes)) then
+  if (scale_xy) then
+    qp_com%plot%x2 = qp_com%plot%x
+    qp_com%plot%y2 = qp_com%plot%y
+  else
+    qp_com%plot%x = qp_com%plot%x2
+    qp_com%plot%y = qp_com%plot%y2
+  endif
+endif
 
 !----------------------------------------------------
 contains
@@ -5310,7 +5339,7 @@ axis_z%min = div_t * floor (0.99999 * axis_z%min / div_t)
 ! Only need to do this with axis_to_scale = "X" or "y".
 ! With axis_to_scale = "", the t-margin is allowed to be adjusted.
 
-if (ax_to_scale /= '') then
+if (ax_to_scale /= 'XY') then
   dz_max = (axis_t%max - axis_t%min) / tz_graph_ratio
   if (axis_z%max - axis_z%min > dz_max) then
     axis_z%min = div_t * nint((axis_z%max + axis_z%min - dz_max) / (2 * div_t)) 
@@ -5327,7 +5356,7 @@ axis_z%major_div = nint((axis_z%max - axis_z%min) / div_t)
 axis_z%places = axis_t%places
 axis_z%minor_div = axis_t%minor_div
 
-end subroutine
+end subroutine axis_scale
 
 !----------------------------------------------------
 ! contains
@@ -5342,7 +5371,7 @@ rd = (1 - tz_scale_ratio) * (graph_z2 - graph_z1) / 2
 margin_z1 = margin_z1 + rd
 margin_z2 = margin_z2 + rd
 
-end subroutine
+end subroutine margin_scale
 
 end subroutine qp_eliminate_xy_distortion
 
