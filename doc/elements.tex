@@ -77,8 +77,8 @@ particle and photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \HH
-  Group          & \ref{s:group}     &                &                  \HH
-  Girder         & \ref{s:girder}    &   Overlay      & \ref{s:overlay}  \HH
+  Group          & \ref{s:group}     &  Overlay       & \ref{s:overlay}  \HH
+  Girder         & \ref{s:girder}    &                &                  \HH
 \end{tabular}
 }
 \caption{Table of controller elements.}
@@ -102,7 +102,7 @@ General \vn{ab_multipole} Attributes are:
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets and tilt           & \ref{s:offset}  \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
@@ -565,7 +565,7 @@ alternative line for the beam. The only difference between \vn{branch}
 and \vn{photon_branch} is that the default particle type for a
 \vn{branch} is the same particle type in use at where the branching
 occurs. The default particle type for a \vn{photon_branch} element is
-a photon. See \sref{s:branching} for more details.
+a photon.
 
 General \vn{branch} and \vn{photon_branch} attributes are:
 \begin{center}
@@ -635,6 +635,71 @@ will be distinct. If \vn{new_branch} is set to \vn{False}, a new lattice
 branch will not be created if a lattice branch createda from the same
 line already exists. This is useful, for example, when a chicane line
 branches off from the main line and then branches back to it.
+
+The root branches of a lattice are defined by the \vn{use}
+(\sref{s:use}) statement. To further define such things as dump lines,
+x-ray beam lines, transfer lines, etc., that branch off from a root
+branch, a \vn{branch} or \vn{photon_branch} element (collectively they
+can be called branching elements) is used.  \vn{Branch} elements can
+define where the particle beam can branch off, say to a beam
+dump. \vn{photon_branch} elements can define the source point for
+X-ray beams.  Example:
+\begin{example}
+  erl: line = (..., dump, ...)               ! Define the root branch 
+  use, erl
+  dump: branch, to = d_line                  ! Define the branch point
+
+  d_line: line = (..., q3d, ...)             ! Define the branch line
+\end{example}
+The difference between a \vn{branch} element and a \vn{photon_branch}
+element is that for a \vn{branch} element the default particle for the
+branch is the same as the line that the branch branches off from. The
+default particle of the branch from a \vn{photon_branch} element is a
+\vn{photon}. The actual particle associated with a branch can be set
+by setting the \vn{particle} attribute of the branching element
+(\sref{s:branch}).
+
+\index{patch}
+Branch lines can themselves have branching elements. A branch line always
+starts out tangential to the line it is branching from. The
+\vn{direction} attribute of the branch element indicates whether the
+branch line is outgoing in the forward direction (direction = +1) or
+incoming (direction = -1). A \vn{patch} element (\sref{s:patch}) can
+be used at the beginning of a branch line to reorient the reference
+orbit as needed.
+
+Like the root branch \bmad always automatically creates an element
+with \vn{element index} 0 at the beginning of each branch called
+\vn{beginning}. The longitudinal \vn{s} position of an element in a
+branch is determined by the distance from the beginning of the branch.
+
+Branch parameters, like whether the branch is open
+(``open'') or closed (``closed''), can be set
+by setting the appropriate attribute of the \vn{branch} or
+\vn{photon_branch} element used to orient the branch.
+See \sref{s:branch} for more details.
+
+Branches are named after the branching element name. In the above
+example, the branch line would be named \vn{DUMP}. The root branch, by
+default, is called after the name in the \vn{use} statement
+(\sref{s:use}).
+
+For branch lines (\sref{s:branching}), the ``branch
+qualified'' name of an element is of the form
+\begin{example}
+  branch_name>>element_name
+\end{example}
+where \vn{branch_name} is the name of the branch and \vn{element_name} is the
+``regular'' name of the element. Example:
+\begin{example}
+  root>>q10w
+  xline>>cryst3
+\end{example}
+When parsing a lattice
+file, branches are not formed until the lattice is expanded
+(\sref{s:expand}). Therefore an \vn{expand_lattice} statement is
+required before branch qualified names can be used in statements. 
+See \sref{s:ele.names} for more details.
 
 %-----------------------------------------------------------------
 \section{Capillary}
@@ -1259,7 +1324,7 @@ General \vn{girder} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH 
+  Description strings    & \ref{s:alias}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH 
 \end{tabular}
 \end{center}
 \toffset
@@ -1319,6 +1384,151 @@ Wild card characters (\sref{s:lat.attribs}) can be used in any element
 name in the girder slave list. Additionally, beam line names
 (\sref{s:lines.wo.arg}) can be used. In this case, any \vn{drift} elements
 within a beam line will be ignored.
+
+%-----------------------------------------------------------------------------
+\section{Group}
+\label{s:group}
+\index{group|hyperbf}
+
+\vn{Group} elments are a type of \vn{control} element
+(\sref{s:lord.slave}) used to make variations in the attributes of
+other elements. For example, to simulate the action of a control room
+knob that changes the beam tune in a storage ring, a \vn{Group} can be
+used to vary the strength of selected quads in a specified
+manner. Also see \vn{overlay} (\sref{s:overlay}) The difference
+between \vn{group} and \vn{overlay} elements is that \vn{overlay}
+elements set the values of the attributes directly while \vn{group}
+elements make changes to attribute values.
+
+General \vn{girder} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Description strings    & \ref{s:alias}   &                            &                 \HH 
+\end{tabular}
+\end{center}
+\toffset
+
+\index{old_command}\index{command}
+\index{coef}\index{type}
+\index{alias}\index{descrip}
+Attributes specific to a \vn{Group} element are:
+\begin{example}
+  command     = <Real>    ! Commmand value.
+  old_command = <Real>    ! Old command value.
+  coef        = <Real>    ! Conversion factor. Not used by Bmad.  
+\end{example}
+The \vn{coef} attribute is not used by any \bmad routine. It is
+defined for individual programs to store, say, a needed conversion
+factor.
+
+The general syntax for a \vn{group} element is
+\begin{example}
+  name: GROUP = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, default_attrib = init_value
+\end{example}
+\vn{name} is the name of the \vn{group}, the list in brackets \{...\}
+is a list of element attributes to vary along with the coefficients
+used for the variation. In any item \vn{ele[attrib]:coef} in the list,
+both \vn{attrib} and \vn{coef} are optional. If not present,
+\vn{attrib} will default to \vn{default_attrib}. If not present,
+\vn{coef} will default to 1. Finally, \vn{init_value} is the initial
+value to use for the \vn{group}.
+
+A \vn{group} element is like an \vn{overlay} element in that a
+\vn{group} element controls the attribute values of other ``slave''
+elements. A \vn{group} element is used to make changes in value. This
+is unlike an \vn{overlay} which sets a specific value directly. An
+example will make this clear
+\begin{example}
+  gr: group = \{q1\}, k1 
+  gr[command] = 0.34 
+  q1, quad, l = ...
+  q1[k1] = 0.57
+\end{example}
+In this example the group \vn{gr} controls the \vn{k1} attribute of
+the element \vn{q1}. Unlike overlays, values are assigned to group
+elements using the \vn{command} attribute. When a lattice file is
+read in then command values for any groups are always applied
+last. This is independent of the order that they appear in the file.
+Thus in this example the value of q1[k1] would be $0.91 = 0.57 + 0.34$.
+When the changes are made to the slave attributes the value of
+\vn{command} is stored in the \vn{group}'s \vn{old_command} attribute.
+After the lattice is read in a program can change the \vn{gr[command]}
+attribute and this change will be added to the value of
+\vn{q1[k1]}. The bookkeeping routine that transfers the change from
+\vn{gr[command]} to \vn{q1[k1]} doesn't care what the current value of
+\vn{q1[k1]} is. It only knows it has to change it by the change in
+\vn{gr[command]}.
+
+A \vn{group} will control all elements of a given name. Thus, in
+the above example, if there are multiple elements named \vn{q1}
+then \vn{gr} will control the \vn{k1}  attribute of all of them.
+
+\index{accordion_edge}\index{start_edge}
+\index{end_edge}\index{symmetric_edge}
+\index{z_offset}
+A \vn{group} can be used to control an elements position and length
+using the following as the \vn{default_attrib}
+\begin{example}
+  accordion_edge  ! Element grows or shrinks symmetrically
+  start_edge      ! Varies element's starting edge s-position
+  end_edge        ! Varies element's ending edge s-position
+  symmetric_edge  ! Varies element's overall s-position. Constant length.
+  z_offset        ! Similar to symmetric_edge
+\end{example}
+With \vn{accordion_edge}, \vn{start_edge}, \vn{end_edge}, and
+\vn{symmetric_edge} the longitudinal position of an elements edges are
+varied. This is done by appropriate control of the element's length
+and the lengths of the elements to either side. With \vn{z_offset} the
+physical element is offset from its reference position
+(\sref{s:offset}) and the elements on either side are untouched.
+In all cases the total length of the lattice is kept invariant.
+
+As an example, consider \vn{accordion_edge} which varies the edges of
+an element so that the center of the element is fixed but the length
+varies. With \vn{accordion_edge} a change of, say, 0.1 in a
+\vn{group}'s \vn{command} attribute moves both edges of the element by
+0.1 meters so that the length of the element changes by 0.2 meters. To
+keep the total lattice length invariant the lengths of the elements to
+either side are varied accordingly. For example
+\begin{example}
+  q10: quad, l = ...
+  q11: quad, l = ...
+  d1: drift, l = ...
+  d2: drift, l = ...
+  this_line: line = (... d1, q10, d2, q11, ...)
+  gr2: group = \{q10\}, start_edge = 0.1
+\end{example}
+This last line that defines \vn{gr2} is just a shorthand notation for
+\begin{example}
+  gr2: group = \{q10\}, start_edge 
+  gr2[command] = 0.1
+\end{example}
+The effect will be to lengthen the length of \vn{q10} and shorten the
+length of \vn{d1}.
+
+Like \vn{overlay}s, coefficients can be specified for the individual
+elements under a \vn{group}'s control and \vn{group}s can control more
+than one type of attribute. For example
+\begin{example}
+  gr3: group = \{q1[k1]:-1.0, q2[tilt], oct1:-2.0\}, k3
+  gr3[command] = 2.0
+  gr3[old_command] = 1.5
+\end{example}
+In this example \vn{gr3} controls 3 attributes of 3 different
+elements. The change in \vn{gr3} when the lattice is read in is $0.5
+= 2.0 - 1.5$. this 0.5 change will change \vn{q1[k1]} by $-0.5 = -1
+\times 0.5$, \vn{q2[tilt]} will change by 0.5 and \vn{oct1[k3]} will
+change by $-1.0 = -2.0 * 0.5$.
+
+\index{overlay}\index{girder}
+Different \vn{group} elements may control the same element
+attribute. And a \vn{group} element may control other \vn{group}
+\vn{overlay} or \vn{girder} elements. However, It does not make sense
+for a \vn{group} element to control the same attribute as an
+\vn{overlay} element or for a \vn{group} element to control a
+\vn{dependent} attribute (\sref{s:depend}).
 
 %-----------------------------------------------------------------
 \section{Hybrid}
@@ -1978,6 +2188,104 @@ Example:
 \begin{example}
   oct1: octupole, l = 4.5, k3 = 0.003, tilt ! same as tilt = pi/8
 \end{example}
+
+%-----------------------------------------------------------------------------
+\section{Overlay}
+\label{s:overlay}
+\index{ovlerlay|hyperbf}
+
+\vn{Overlay} elments are a type of \vn{control} element
+(\sref{s:lord.slave}) used to make variations in the attributes of
+other elements. For example, to simulate the action of a magnet power
+supply that controls a string of magnets. Also see \vn{group}
+(\sref{s:group}) The difference between \vn{group} and \vn{overlay}
+elements is that \vn{overlay} elements set the values of the
+attributes directly while \vn{group} elements make changes to
+attribute values.
+
+General \vn{girder} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Description strings    & \ref{s:alias}   &                            &                 \HH 
+\end{tabular}
+\end{center}
+\toffset
+
+The general syntax for a \vn{overlay} element is
+\begin{example}
+  name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, default_attrib = init_value
+\end{example}
+\vn{name} is the name of the \vn{overlay}, the list in brackets \{...\}
+is a list of element attributes to vary along with the coefficients
+used for the variation. In any item \vn{ele[attrib]:coef} in the list,
+both \vn{attrib} and \vn{coef} are optional. If not present,
+\vn{attrib} will default to \vn{default_attrib}. If not present,
+\vn{coef} will default to 1. Finally, \vn{init_value} is the initial
+value to use for the \vn{overlay}.
+
+An \vn{overlay} element is used to control the attributes of other elements. 
+For example: 
+\begin{example}
+  over1: overlay = \{a_ele, b_ele:2.0\}, hkick = 0.003
+  over2: overlay = \{b_ele\}, hkick
+  over2[hkick] = 0.9
+  a_ele: quad, hkick = 0.05, ...
+  b_ele: rbend, ...
+  this_line: line = ( ... a_ele, ... b_ele, ... )
+  use, this_line
+\end{example}
+
+In the example the overlay \vn{over1} controls the \vn{hkick}
+attribute of the "slave" elements \vn{a_ele} and
+\vn{b_ele}. \vn{over2} controls the hkick attribute of just
+\vn{b_ele}. \vn{over1} has a \vn{hkick} value of 0.003 and \vn{over2}
+has been assigned a value for \vn{hkick} of 0.9.
+
+There are coefficients associated with the control of a slave element. 
+The default coefficient is 1.0. To specify a coefficient use a vertical colon ":"
+after the element name followed by the coefficient. In the above example 
+the coefficient for the control of \vn{b_ele} from \vn{over1} is 2.0 
+and for the others the default 1.0 is used. thus 
+\begin{example}
+  a_ele[hkick] = over1[hkick]
+               = 0.003
+  b_ele[hkick] = over2[hkick] + 2 * over1[hkick] 
+               = 0.906
+\end{example}
+Note: An older notation allowed a slash "/" to be used in place of the
+colon ":" for the separator between the slave name and the
+coefficient. While the slash is still accepted, its use is
+discouraged.
+
+An \vn{overlay} will control all elements of a given name. Thus, in
+the above example, if there are multiple elements in the lattice
+with the name \vn{b_ele} then the \vn{over1} and \vn{over2} overlays
+will control the \vn{hkick} attribute of all of them.
+
+Note: Overlays completely determine the value of the attributes that
+are controlled by the overlay. in the above example, the hkick of 0.05
+assigned directly to \vn{a_ele} is overwritten by the overlay action
+of \vn{over1}.
+
+\noindent The default value for an overlay is 0 so for example
+\begin{example}
+  over3: overlay = \{c_ele\}, k1
+\end{example}
+will make \vn{c_ele[k1]} = 0. Overlays can also control more than one
+type of attribute as the following example shows
+\begin{example}
+  over4: overlay = \{this_quad[k1]:5.4, this_sextupole[k2], ...\}, hkick
+\end{example}
+
+\index{group}\index{girder}
+As illustrated above, different \vn{overlay} elements may control the
+same element attribute. And an \vn{overlay} element may control other
+\vn{overlay}, \vn{group} or \vn{girder} elements. However, It does not
+make sense for an \vn{overlay} element to control the same attribute
+as a \vn{grooup} element or for an \vn{overlay} element to control a
+\vn{dependent} attribute (\sref{s:depend}).
 
 %-----------------------------------------------------------------
 \section{Patch}
