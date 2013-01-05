@@ -17,7 +17,7 @@ the lattice as a whole and not simply associated with a single element.
 \index{rf_auto_scale_phase}\index{rf_auto_scale_amp}
 \index{ptc_exact_model}\index{ptc_exact_misalign}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
-other variables. If branching is present (\sref{s:branching}), these
+other variables. If branching is present (\sref{s:branch}), these
 variables pertain to the \vn{root} branch. The variables that can be
 set by \vn{parameter} are
 \begin{example}
@@ -131,7 +131,7 @@ lattice files.
 \index{rel_tracking_charge}
 The \vn{rel_tracking_charge} establishes the charge of particles being
 tracked relative to the charge of the reference particle. The default
-is 1. See Section~\sreffff{} for more details.
+is 1. 
 
 \index{taylor_order}
 The Taylor order (\sref{s:taylor.phys}) is set by
@@ -176,7 +176,7 @@ transverse coordinates.
 \index{emittance_a}\index{emittance_b}\index{emittance_z}
 \index{e_field_x}\index{e_field_y}\index{phase_x}\index{phase_y}
 The \vn{beam_start} statement is used to set the starting coordinates
-for particle tracking. If branching is present (\sref{s:branching}), these variables
+for particle tracking. If branching is present (\sref{s:branch}), these variables
 pertain to the \vn{root} branch.
 \begin{example}
   beam_start[x]           = <Real>   ! Horizontal position.

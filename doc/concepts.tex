@@ -31,7 +31,7 @@ types that \bmad knows about.
 
 \index{branch}
 The next level up from a \vn{lattice} \vn{element} is the \vn{lattice}
-\vn{branch} (\sref{s:branching}). A \vn{lattice} \vn{branch} is not to
+\vn{branch} (\sref{s:branch}). A \vn{lattice} \vn{branch} is not to
 be confused with a \vn{branch} element (\sref{s:branch}). A
 \vn{lattice} \vn{branch} is just an ordered sequence of lattice
 elements that a particle will travel through. A branch can represent a
@@ -67,7 +67,7 @@ mechanical support structures.
 \index{root branch}
 Branches can be interconnected using \vn{branch} and
 \vn{photon_branch} elements (\sref{s:branch}). This is used to
-simulate forking beam lines (\sref{s:branching}) such as a connections
+simulate forking beam lines (\sref{s:branch}) such as a connections
 to a transfer line, dump line, or an X-ray beam line. The \vn{branch}
 from which other \vn{branches} fork is called a \vn{root} branch.
 
@@ -181,7 +181,8 @@ structures to separate the physical element, which PTC calls an
 \vn{element} and \vn{elementp}. The latter being the ``polymorph''
 version.] This \vn{element} and \vn{fibre} combination corresponds to
 \bmad \vn{multipass_lord} and \vn{multipass_slave} elements. PTC does
-not handle overlapping fields.
+not handle overlapping fields as \bmad does with \vn{superposition}
+(\sref{s:super}).
 
 %---------------------------------------------------------------------------
 \section{PTC: Polynomial Tracking Code}

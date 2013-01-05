@@ -684,7 +684,7 @@ example, the branch line would be named \vn{DUMP}. The root branch, by
 default, is called after the name in the \vn{use} statement
 (\sref{s:use}).
 
-For branch lines (\sref{s:branching}), the ``branch
+For branch lines (\sref{s:branch}), the ``branch
 qualified'' name of an element is of the form
 \begin{example}
   branch_name>>element_name
@@ -1545,7 +1545,7 @@ lattice file but are created by a program, usually for speed purposes.
 \index{init_ele|hyperbf}
 
 An \vn{init_ele} element, named \vn{BEGINNING}, is placed at the
-beginning of every branch (\sref{s:branching}) of a lattice to mark
+beginning of every branch (\sref{s:branch}) of a lattice to mark
 the start of the branch. The \vn{init_ele} always has element index 0
 (\sref{c:lat.concepts}).
 
@@ -1601,7 +1601,7 @@ proper. Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Kickers Horizontal and Vertical: Hkicker and Vkicker}
+\section{Kickers: Hkicker and Vkicker}
 \label{s:hvkicker}
 \index{hkicker|hyperbf}
 \index{vkicker|hyperbf}
@@ -1640,10 +1640,8 @@ attributes. Example:
 \label{s:kicker}
 \index{kicker|hyperbf}
 
-\index{hkick}
-\index{vkick}
-\index{h_displace}
-\index{v_displace}
+\index{hkick}\index{vkick}
+\index{h_displace}\index{v_displace}
 A \vn{kicker} can deflect a beam in both planes. Note that a
 \vn{kicker} uses the \vn{hkick} and \vn{vkick} attributes while
 \vn{hkicker} and \vn{vkicker} elements use the \vn{kick} attribute. 
