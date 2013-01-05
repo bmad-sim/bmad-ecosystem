@@ -10,14 +10,15 @@ as LINACs, storage rings, X-ray beam lines, etc.
 \section{Lattice Elements}
 \label{s:element.def}
 
-\index{element}\index{marker element}
+\index{lattice element}
+\index{element}
 \index{controller element}
 The basic building block \bmad uses to describe a machine is the
 \vn{lattice} \vn{element}. An element can be
 a physical thing like a bending magnet, a quadrupole or a Bragg
 crystal, or something like a \vn{marker} element (\sref{s:mark})
 that is used to mark a particular point in the machine.
-Besides physical the elements, there are \vn{controller} elements
+Besides physical elements, there are \vn{controller} elements
 (Table~\ref{t:control.classes}) that can be used for parameter control
 of other elements (\sref{c:control}).
 
@@ -42,46 +43,45 @@ lattice file with \vn{line}, \vn{list}, and \vn{use} statements.
 
 \index{beginning element}\index{end element}
 All elements in a branch are assigned a number starting from zero. The
-zeroth \vn{init_ele} (\sref{s:init.ele}) element is automatically
-included in every branch and is used as a marker for the beginning of
-the branch. The zeroth element is always named \vn{BEGINNING}.
-Additionally, every branch will, by default, have a final marker
-element (\sref{s:mark}) named \vn{END}.
+zeroth \vn{init_ele} (\sref{s:init.ele}) element, which is always
+named \vn{BEGINNING}, is automatically included in every branch and is
+used as a marker for the beginning of the branch.  Additionally, every
+branch will, by default, have a final marker element (\sref{s:mark})
+named \vn{END}.
 
 %---------------------------------------------------------------------------
 \section{Lattice}
 \label{s:lattice.def}
 
 \index{lattice}\index{branch} 
-A \vn{lattice} is just an array of \vn{branches} that
-can be interconnected together to describe an entire machine complex.
-The array of \vn{branches} in a \vn{lattice} is numbered starting from
-zero.
+A \vn{lattice} is just an array of \vn{branches} that can be
+interconnected together to describe an entire machine complex.  The
+array of \vn{branches} in a \vn{lattice} is numbered starting from
+zero. A \vn{lattice} can include such things as transfer lines, dump
+lines, x-ray beam lines, colliding beam storage rings, etc. All of
+which are connected together to form a coherent whole. In addition, a
+lattice may contain \vn{controller elements} (\sref{s:lattice} which
+can simulate such things as magnet power supplies and lattice element
+mechanical support structures.
 
 \index{root branch}
 Branches can be interconnected using \vn{branch} and
-\vn{photon_branch} elements (\sref{s:branch}). This is used to simulate
-forking beam lines (\sref{s:branching}) such as what occurs when there
-is a dump line or an X-ray beam line which is connected to a wiggler
-or undulator. The \vn{branch} from which other \vn{branches} fork is
-called a \vn{root} branch.
+\vn{photon_branch} elements (\sref{s:branch}). This is used to
+simulate forking beam lines (\sref{s:branching}) such as a connections
+to a transfer line, dump line, or an X-ray beam line. The \vn{branch}
+from which other \vn{branches} fork is called a \vn{root} branch.
 
 A lattice may contain multiple \vn{root} \vn{branches}. For example, a
 pair of intersecting storage rings will generally have two \vn{root}
-branches, one for each ring. The \vn{use} statement (\sref{s:use} will
-list the \vn{root} \vn{branches} of a lattice. To connect together
-lattice elements that are physically shared between branches, for
-example, the interaction region in colliding beam machines,
-\vn{multipass} lines (\sref{s:multipass}) can be used.
-
-\bmad is capable of simulating a whole machine complex of
-interconnected parts. This includes simulating transfer lines
-connected to storage rings or simulating interconnected colliding beam
-storage rings.
+branches, one for each ring. The \vn{use} statement (\sref{s:use} in a
+lattice file will list the \vn{root} \vn{branches} of a lattice. To
+connect together lattice elements that are physically shared between
+branches, for example, the interaction region in colliding beam
+machines, \vn{multipass} lines (\sref{s:multipass}) can be used.
 
 %---------------------------------------------------------------------------
 \section{Lord and Slave Elements}
-\label{s:lattice}
+\label{s:lord.slave}
 
 \begin{figure}[tb]
  \begin{center}
@@ -114,7 +114,10 @@ control the attributes of other elements which are their slaves.
 
 The other class of \vn{lord} elements embody the separation of the
 physical element from the track that a particle takes when it passes
-through the element. An example will make this clear.
+through the element. There are two types
+
+
+An example will make this clear.
 \vn{Superposition} (\sref{s:super}) is the ability to overlap lattice
 elements spatially. \fig{f:super.ip} shows an example which is a
 greatly simplified version of the IR region of Cornell's CESR storage
