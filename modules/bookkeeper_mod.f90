@@ -775,7 +775,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
-type (ele_struct), pointer :: lord, patch_in_lord
+type (ele_struct), pointer :: lord
 type (branch_struct), pointer :: branch
 type (floor_position_struct), pointer :: f0, f1
 type (coord_struct) start, end

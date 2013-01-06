@@ -111,12 +111,12 @@ Absolute tolerance to use in tracking. Specifically, Tolerance to use
 when finding the closed orbit.
 
 \item[\vn{\%rel_tol_adaptive_tracking}] \Newline
-Relative tolerance to use in tracking. Specifically, Tolerance to use
-in \vn{runge_kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+Relative tolerance to use in adaptive tracking. This is used in
+\vn{runge_kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
 
 \item[\vn{\%abs_tol_adaptive_tracking}] \Newline
-Absolute tolerance to use in tracking. Specifically, Tolerance to use
-in \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+Absolute tolerance to use in adaptive tracking. This is used in
+\vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
 
 \item[\vn{\%taylor_order}] \Newline
 Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
@@ -172,18 +172,18 @@ is tracked, \vn{%absolute_time_tracking_default} will be used to
 determine whether absolute time tracking is used.
 
 \item[\vn{\%rf_auto_scale_phase_default}] \Newline
-Default setting to be applied to a lattice if
-\vn{rf_auto_scale_phase} (\sref{s:param}) is not specified in a
-lattice file. Additionally, if an element that is not associated with a lattice
-is tracked, \vn{%rf_auto_scale_phase_default} will be used to
-determine whether phase auto scaling is done.
+Default setting to be applied to a lattice if \vn{rf_auto_scale_phase}
+(\sref{s:param}) is not specified in a lattice file. Additionally, if
+an element that is not associated with a lattice is tracked, this
+parameter will be used to determine whether phase auto scaling is
+done.
 
 \item[\vn{\%rf_auto_scale_amp_default}] \Newline
-Default setting to be applied to a lattice if
-\vn{rf_auto_scale_amp} (\sref{s:param}) is not specified in a
-lattice file. Additionally, if an element that is not associated with a lattice
-is tracked, \vn{%rf_auto_scale_amp_default} will be used to
-determine whether amplitude auto scaling is done.
+Default setting to be applied to a lattice if \vn{rf_auto_scale_amp}
+(\sref{s:param}) is not specified in a lattice file. Additionally, if
+an element that is not associated with a lattice is tracked, this
+parameter will be used to determine whether amplitude auto scaling is
+done.
 
 \end{description}
 
@@ -215,10 +215,10 @@ the beam. The parameters of this structure are:
     logical renorm_sigma = T             ! Renormalize sigma?
     !!! The following are used  by all distribution types
     type(beam_spin_struct) spin          ! Spin
-    real(rp) a_norm_emit                 ! a-mode normalized emittance (= \(\gamma \, \epsilon\))
-    real(rp) b_norm_emit                 ! b-mode normalized emittance (= \(\gamma \, \epsilon\))
-    real(rp) a_emit                      ! a-mode emittance (= \(\gamma \, \epsilon\))
-    real(rp) b_emit                      ! b-mode emittance (= \(\gamma \, \epsilon\))
+    real(rp) a_norm_emit                 ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real(rp) b_norm_emit                 ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real(rp) a_emit                      ! a-mode emittance (= \(\gamma\,\epsilon\))
+    real(rp) b_emit                      ! b-mode emittance (= \(\gamma\,\epsilon\))
     real(rp) dPz_dz = 0                  ! Correlation of Pz with long position.
     real(rp) center(6) = 0               ! Bench center offset.
     real(rp) dt_bunch                    ! Time between bunches.
@@ -226,10 +226,11 @@ the beam. The parameters of this structure are:
     real(rp) sig_e                       ! dE/E (pz) sigma.
     real(rp) bunch_charge                ! Charge in a bunch.
     integer n_bunch = 1                  ! Number of bunches.
-    integer species = not_set\$          ! Species. Default is lattice reference species.
+    integer species = not_set\$           ! Species. Default is branch reference species.
     logical init_spin = F                ! initialize beam spinors
-    logical full_6D_coupling_calc = F    ! Use V from 6x6 1-turn mat to match distribution?  
-    logical use_t_coords = .false.  ! If true, the distributions will be taken as in t-coordinates  
+    logical full_6D_coupling_calc = F    ! Use 6x6 1-turn mat to match distribution?  
+    logical use_t_coords = .false.  ! If true, the distributions will be 
+                                    !   calculated using time coordinates  
     logical use_z_as_t   = .false.  ! Only used if  use_t_coords = .true.
                                     !   If true,  particles will be distributed in t
                                     !   If false, particles will be distributed in s
@@ -487,7 +488,7 @@ The \vn{global_common_struct} is meant to hold common parameters that should
 not be modified by the user. 
 \begin{example}
   type global_common_struct
-    logical be_thread_safe = .false.                   ! Avoid thread unsafe practices?
+    logical be_thread_safe = .false.    ! Avoid thread unsafe practices?
   end type
 \end{example}
 
