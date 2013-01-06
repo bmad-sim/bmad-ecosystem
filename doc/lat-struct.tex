@@ -295,7 +295,7 @@ called \vn{lord} elements, can control the attributes (component
 values) of other \vn{%branch(:)%ele(:)} elements.  Elements so controlled are
 called \vn{slave} elements.  The situation is complicated by the fact
 that a given element may simultaneously be a \vn{lord} and a
-\vn{slave}. For example, an \vn{overlay} element (\sref{c:control}) is
+\vn{slave}. For example, an \vn{overlay} element (\sref{s:overlay}) is
 a lord since it controls attributes of other elements but an
 \vn{overlay} can itself be controlled by other \vn{overlay} and
 \vn{group} elements. In all cases, circular lord/slave chains are not permitted.
@@ -346,8 +346,7 @@ and sometimes convenient, for programs to set the \vn{%lord_status} of
 a lord element to \vn{not_a_lord\$}.
 
 \index{super_slave\$}\index{multipass_slave\$}
-\index{patch_in_slave\$}\index{overlay_slave\$}
-\index{group_slave\$}\index{free\$}\index{slice_slave\$}
+\index{overlay_slave\$}\index{group_slave\$}\index{free\$}\index{slice_slave\$}
 The possible values for the \vn{ele%slave_status} component are:
   \begin{description}
   \item[free\$]\Newline
@@ -367,10 +366,6 @@ zero associated \vn{overlay_lord}s as long as it has a \vn{girder_lord}.
 Thus the term \vn{overlay_slave} is
 a bit misleading. An \vn{overlay_slave} can also have associated
 \vn{group_lord} elements.
-  \item[patch_in_slave\$]\Newline
-A \vn{patch_in_slave} is a \vn{patch} element that is also a
-\vn{multipass_lord} with \vn{%ref_orbit} set to \vn{patch_out\$}
-(\sref{s:multipass}). 
   \item[slice_slave\$]\Newline
 A \vn{slice_slave} element represents a longitudinal slice of another element.
 Slice elements are not part of the lattice but rather are created on-the-fly
@@ -407,7 +402,6 @@ be in either the tracking or control parts of the lattice.
     \vn{free\$}             & X & X & X & X & X & X \\ 
     \vn{group_slave\$}      & X & X & X & X & X & X \\ 
     \vn{overlay_slave\$}    & X & X & X & X & X & X \\ 
-    \vn{patch_in_slave\$}   &   &   &   &   & X &   \\ 
     \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
     \vn{slice_slave\$}      & X &   &   &   &   &   \\
     \vn{super_slave\$}      & X &   &   &   &   &   \\ \bottomrule
@@ -433,7 +427,6 @@ be in either the tracking or control parts of the lattice.
     \vn{free\$}             &   &   &   &   &   &   \\ 
     \vn{group_slave\$}      &   & X &   &   &   &   \\ 
     \vn{overlay_slave\$}    &   & X & X & X &   &   \\ 
-    \vn{patch_in_slave\$}   &   &   &   &   & Y &   \\ 
     \vn{multipass_slave\$}  &   & 1 &   & X & X &   \\ 
     \vn{super_slave\$}      &   &   &   &   &   & X \\ \bottomrule
   \end{tabular}
@@ -525,16 +518,10 @@ element pointed to by
 \begin{example}
   pointer_to_lord(slave_ele_i, j)
 \end{example}
-\index{patch_in_slave}
-will be the original element \vn{this_ele}. 
-The one exception here is that the lord of a
-\vn{patch_in_slave} does not have a pointer back to
-the \vn{patch_in_slave}.
 
 \index{slave!ordering}\index{lords!ordering}
 \index{super_lord}\index{super_slave}
 \index{multipass_lord}\index{multipass_slave}
-\index{patch_in_slave}
 \index{patch}
 The following ordering of slaves and lords is observed:
   \begin{description}
@@ -555,20 +542,6 @@ will point to the slave of the $i$\Th pass.
 A \vn{multipass_slave} will have exactly one associated \vn{multipass_lord}
 and this lord will be the first one. That is, 
 \vn{pointer_to_slave (this_ele, 1)}.
-  \item[Patch_in_slave:] \Newline
-When a lattice input file has a \vn{patch} element that is used in a
-multipass line and the \vn{patch} element has its \vn{ref_orbit}
-attribute set to \vn{patch_out} (\sref{s:multi.patch}), the
-\vn{multipass_lord} element corresponding to this element is also a
-\vn{patch_in_slave}. In this case, the element will have exactly one
-lord and that lord will be the \vn{multipass_lord} element corresponding
-to the element specified by the \vn{ref_patch} attribute of the
-\vn{patch_in_slave}. Using the example given in \sref{s:multi.patch},
-the \vn{multipass_lord} corresponding to the \vn{p1} \vn{patch} element
-will have a lord that is the corresponding element to the \vn{p2}
-\vn{patch} element. The reason for this exception is so that the
-slaves pointed to by \vn{pointer_to_slave} of a \vn{multipass_lord} 
-will always be \vn{multipass_slave}s.
   \end{description}
 
 \index{control_struct}
