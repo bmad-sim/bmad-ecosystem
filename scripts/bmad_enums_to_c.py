@@ -7,8 +7,11 @@ import os
 
 def searchit (file):
 
-  re_p = re.compile('INTEGER, *PARAMETER *:: *')
+  re_int  = re.compile('INTEGER, *PARAMETER *:: *')
+  re_real = re.compile('REAL\(RP\), *PARAMETER *:: *')
   re_a = re.compile('\[')
+  re_d_exp = re.compile('\dD[+-]?\d')
+  re_equal = re.compile('\=.*\dD[+-]?\d')
 
   params_here = False
 
@@ -16,11 +19,18 @@ def searchit (file):
   for line in f_in:
     line = line.partition('!')[0]   # Strip off comment
     line = line.upper()
-    if not re_p.match(line) and not params_here: continue
     if '[' in line: continue                              # Skip parameter arrays
 
-    line = re_p.sub('const int ', line)
+    if not re_int.match(line) and not re_real.match(line) and not params_here: continue
+
+    line = re_int.sub('const int ', line)
+    line = re_real.sub('const double ', line)
+
     line = line.replace('$', '')
+
+    if re_equal.search(line):
+      sub = re_d_exp.search(line).group(0).replace('D', 'E')   # Replace "3D6" with "3E6"
+      line = re_d_exp.sub(sub, line)
 
     if '&' in line:
       line = line.replace('&', '')
@@ -46,6 +56,7 @@ namespace Bmad {
 searchit('../bmad/modules/bmad_struct.f90')
 searchit('../bmad/modules/basic_bmad_mod.f90')
 searchit('../sim_utils/io/output_mod.f90')
+searchit('../sim_utils/interfaces/physical_constants.f90')
 
 f_out.write('''
 }

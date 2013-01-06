@@ -1,6 +1,9 @@
 # List of files containing definitions of the structures to setup interfaces for.
 
-struct_def_files = ['../bmad/modules/bmad_struct.f90', '../bmad/modules/twiss_mod.f90']
+struct_def_files = ['../bmad/modules/bmad_struct.f90', 
+                    '../bmad/modules/twiss_mod.f90', 
+                    '../bmad/modules/bmad_taylor_mod.f90'
+]
 
 # List of use statements needed in various Fortran modules
 
@@ -33,12 +36,12 @@ struct_list = [
     'mode3_struct',
     'bookkeeping_state_struct',
     'rad_int_ele_cache_struct',
-    'ptc_layout_pointer_struct',
-    'ptc_branch1_info_struct',
     'wall3d_vertex_struct',
     'wall3d_section_struct',
     'wall3d_crotch_struct',
     'wall3d_struct',
+    'taylor_term_struct',
+    'taylor_struct',
     'ele_struct',
     'branch_struct',
     'control_struct',
@@ -58,13 +61,26 @@ struct_list = [
     'rad_int_all_ele_struct'
 ]
 
-to_do_struct_list = [
-]
-
 # List of sub-structures to ignore.
 # That is, do not translate these sub-structure components.
 
-component_ignore_list = set(['fibre', 'genfield'])
+structure_ignore_list = set([
+    'fibre', 
+    'genfield',
+    'ptc_branch1_info_struct',
+    'layout'
+])
+
+component_ignore_list = set([
+    'ele_struct%lord'
+])
+
+# Translations on C++ side to avoid clash with reserved words
+
+c_side_name_translation = {
+    'rf_wake_sr_table_struct%long' : 'long_wake',
+    'rf_wake_sr_table_struct%trans' : 'trans_wake'
+}
 
 # Directory where the output is put
 

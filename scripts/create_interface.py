@@ -24,8 +24,8 @@ import textwrap
 ##################################################################################
 # Init
 
-master_input_file = 'interface_input_params'
 master_input_file = 'test_interface_input'
+master_input_file = 'interface_input_params'
 
 n_char_max = 95
 debug = False # Change to True to enable printout
@@ -81,6 +81,7 @@ class struct_def_class:
   def __init__(self, f_name = ''):
     self.f_name = f_name # Struct name on Fortran side
     self.short_name = '' # Struct name without trailing '_struct'. Note: C++ name is 'CPP_<name>'
+    self.cpp_class  = '' # C++ name.
     self.arg = []        # Array of arg_class. List of structrure components + array bound dimensions. 
 
   def __repr__(self):
@@ -93,7 +94,7 @@ class arg_class:
   def __init__(self):
     self.is_component = True   # Is a structure component? If not, then will be array bound.
     self.f_name = ''           # Fortran side name of argument. Will be lower case
-    self.c_name = ''           # C++ side name of argument. Will be capitalized to avoid conflict with reserved words.
+    self.c_name = ''           # C++ side name of argument. May be mangled to avoid reserved word conflicts.
     self.type = ''             # Fortran type without '(...)'. EG: 'real', 'type', 'character', etc.
     self.kind = ''             # Fortran kind. EG: '', 'rp', 'coord_struct', etc.
     self.pointer_type = NOT    # NOT, PTR, or ALLOC
@@ -707,18 +708,19 @@ for trans in f_side_trans.keys():
 class c_side_trans_class:
 
   def __init__(self):
-    self.c_class = ''
-    self.to_f_setup = ''
-    self.to_f_cleanup = ''
-    self.to_f2_arg = ''
-    self.to_f2_call = ''
-    self.to_c2_arg = ''
-    self.to_c2_set = '  C.NAME = z_NAME;'
-    self.constructor = 'NAME(VALUE)'
+    self.c_class         = ''        # EG: 'CPP_ele_Array'
+    self.c_class_suffix  = ''        # EG: '*'
+    self.to_f_setup      = ''
+    self.to_f_cleanup    = ''
+    self.to_f2_arg       = ''
+    self.to_f2_call      = ''
+    self.to_c2_arg       = ''
+    self.to_c2_set       = '  C.NAME = z_NAME;'
+    self.constructor     = 'NAME(VALUE)'
     self.construct_value = '0'
-    self.destructor = ''
-    self.equality_test = '  is_eq = is_eq && (x.NAME == y.NAME);\n'
-    self.test_pat = '  rhs = XXX + offset; C.NAME = NNN;\n'
+    self.destructor      = ''
+    self.equality_test   = '  is_eq = is_eq && (x.NAME == y.NAME);\n'
+    self.test_pat        = '  rhs = XXX + offset; C.NAME = NNN;\n'
 
   def __repr__(self):
     return '%s,  %s,  %s,  %s' % (self.c_class, self.to_f2_arg, self.to_f2_call, self.to_c2_arg)
@@ -889,7 +891,6 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
     c_side_trans[type, dim, PTR] = copy.deepcopy(c)
     cp = c_side_trans[type, dim, PTR] 
-    cp.constructor   = 'NAME(VALUE, 0)'
     cp.destructor    = ''
 
     if type == STRUCT:
@@ -902,13 +903,13 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     # Pointer, dim = 0
 
     if dim == 0:
-      cp.c_class       = c.c_class + '*'
-      cp.constructor   = 'NAME(NULL)'
-      cp.destructor    = 'delete NAME;'
-      cp.test_pat      = test_pat_pointer0 + '    C.NAME = new ' + c_type + ';\n' + \
+      cp.c_class_suffix = '*'
+      cp.constructor    = 'NAME(NULL)'
+      cp.destructor     = 'delete NAME;'
+      cp.test_pat       = test_pat_pointer0 + '    C.NAME = new ' + c_type + ';\n' + \
                                     indent(c.test_pat.replace('C.NAME', '(*C.NAME)'), 2) + '  }\n'
-      cp.to_f_setup    = '  unsigned int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;\n'
-      cp.equality_test = '''\
+      cp.to_f_setup     = '  unsigned int n_NAME = 0; if (C.NAME != NULL) n_NAME = 1;\n'
+      cp.equality_test  = '''\
   is_eq = is_eq && ((x.NAME == NULL) == (y.NAME == NULL));
   if (!is_eq) return false;
   if (x.NAME != NULL) is_eq = (*x.NAME == *y.NAME);
@@ -937,6 +938,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     # Pointer, dim = 1
 
     if dim == 1:
+      cp.constructor = cp.constructor.replace('DIM1', '0')
       cp.to_f2_call  = 'z_NAME' 
       cp.to_c2_set   = '''
   C.NAME.resize(n1_NAME);
@@ -974,6 +976,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     # Pointer, dim = 2
 
     if dim == 2:
+      cp.constructor = cp.constructor.replace('DIM1', '0').replace('DIM2', '0')
       cp.to_c2_set   = '''\
   C.NAME.resize(n1_NAME);
   for (int i = 0; i < n1_NAME; i++) C.NAME[i].resize(n2_NAME);
@@ -1027,6 +1030,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     # Pointer, dim = 3
 
     if dim == 3:
+      cp.constructor = cp.constructor.replace('DIM1', '0').replace('DIM2', '0').replace('DIM3', '0')
       s = 'C.NAME.resize(n1_NAME);\n' + x2 + for1 + '{\n' + \
           '      C.NAME[i].resize(n2_NAME);\n' +  x4 + for2 + '\n' +\
           x6 + 'C.NAME[i][j].resize(n3_NAME);\n' + x4 + '}\n' + x4 + 'C.NAME << z_NAME;\n'
@@ -1121,10 +1125,10 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 # CHAR, 0, NOT
 
 c_side_trans[CHAR,  0, NOT] = c_side_trans_class()
-c_side_trans[CHAR,  0, NOT].c_class    = 'string'
-c_side_trans[CHAR,  0, NOT].to_f2_arg  = 'c_Char'
-c_side_trans[CHAR,  0, NOT].to_f2_call = 'C.NAME.c_str()'
-c_side_trans[CHAR,  0, NOT].to_c2_arg  = 'c_Char z_NAME'
+c_side_trans[CHAR,  0, NOT].c_class     = 'string'
+c_side_trans[CHAR,  0, NOT].to_f2_arg   = 'c_Char'
+c_side_trans[CHAR,  0, NOT].to_f2_call  = 'C.NAME.c_str()'
+c_side_trans[CHAR,  0, NOT].to_c2_arg   = 'c_Char z_NAME'
 c_side_trans[CHAR,  0, NOT].test_pat    = '  C.NAME.resize(STR_LEN);\n' + test_pat1.replace('NNN', "'a' + rhs % 26")
 c_side_trans[CHAR,  0, NOT].constructor = 'NAME()'
 
@@ -1268,6 +1272,7 @@ for file_name in params.struct_def_files:
     if not found: continue
 
     struct.short_name = struct.f_name[:-7]   # Remove '_struct' suffix
+    struct.cpp_class = 'CPP_' + struct.short_name
 
     # Now collect the struct components
 
@@ -1339,7 +1344,12 @@ for file_name in params.struct_def_files:
 
         arg = copy.deepcopy(base_arg)
         arg.f_name = split_line.pop(0).strip().lower()
-        arg.c_name = arg.f_name.capitalize()
+
+        full_name = struct.f_name + '%' + arg.f_name
+        if full_name in params.c_side_name_translation:
+          arg.c_name = params.c_side_name_translation[full_name]
+        else:
+          arg.c_name = arg.f_name
 
         if len(split_line) == 0: 
           struct.arg.append(arg)        
@@ -1421,9 +1431,14 @@ for struct in struct_definitions:
 
   ia = 0
   while ia < len(struct.arg):
-    if struct.arg[ia].kind in params.component_ignore_list: 
+    if struct.arg[ia].kind in params.structure_ignore_list: 
       struct.arg.pop(ia)
       continue
+
+    if struct.f_name + '%' + struct.arg[ia].f_name in params.component_ignore_list:
+      struct.arg.pop(ia)
+      continue
+
     ia += 1
 
   #--------
@@ -1518,7 +1533,7 @@ for struct in struct_definitions:
       arg.f_side.to_c_extra_var_type  = arg.f_side.to_c_extra_var_type.replace('KIND', kind)
       arg.f_side.test_pat    = arg.f_side.test_pat.replace('KIND', kind)
       arg.c_side.test_pat    = arg.c_side.test_pat.replace('KIND', kind)
-      arg.c_side.c_class     = arg.c_side.c_class.replace('KIND', kind)
+      arg.c_side.c_class     = 'CPP_' + kind
       arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('KIND', kind)
       arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('KIND', kind)
       arg.c_side.to_f2_arg   = arg.c_side.to_f2_arg.replace('KIND', kind)
@@ -1604,6 +1619,8 @@ for struct in struct_definitions:
       pass
     elif arg.init_value[0] == '>':   # Pointer: '=> null()'
       pass 
+    elif '_rp' in arg.init_value:
+      arg.init_value = arg.init_value.replace('_rp', '')
     elif arg.init_value == '.true.':
       arg.c_side.construct_value = 'true'
     elif arg.init_value == '.false.':
@@ -1652,7 +1669,7 @@ for struct in struct_definitions:
   for arg in struct.arg:
     if arg.type != STRUCT: continue
     if arg.kind not in struct_names:
-      print (arg.kind + ' NOT IN ' + struct.short_name)
+      print ('NO DEFINITION OF STRUCTURE: ' + arg.kind + ' WHICH IS A COMPONENT OF: ' + struct.short_name)
       err = True
 
 if err: sys.exit()
@@ -2129,6 +2146,22 @@ typedef valarray<Int_MATRIX>       Int_TENSOR;
 
 ''')
 
+# Write class declarations for classes that are pointed to by class components
+# in a preceeding class 
+
+has_been_declared = set([])
+
+for struct in struct_definitions:
+  has_been_declared.add(struct.cpp_class)
+
+  for arg in struct.arg:
+    if arg.type != STRUCT: continue
+    if arg.c_side.c_class not in has_been_declared:
+      f_class.write('class ' + arg.c_side.c_class + ';\n')
+      has_been_declared.add(arg.c_side.c_class)
+
+#
+
 for struct in struct_definitions:
   f_class.write('''
 //--------------------------------------------------------------------
@@ -2142,7 +2175,8 @@ public:
 
   for arg in struct.arg:
     if not arg.is_component: continue
-    f_class.write('  ' + arg.c_side.c_class.replace('ZZZ', struct.short_name) + ' ' + arg.c_name  + ';\n')
+    f_class.write('  ' + arg.c_side.c_class.replace('ZZZ', struct.short_name) + arg.c_side.c_class_suffix + \
+                  ' ' + arg.c_name  + ';\n')
 
   f_class.write ('''
   CPP_ZZZ() :
