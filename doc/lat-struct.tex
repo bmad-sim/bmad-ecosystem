@@ -134,33 +134,31 @@ connected to a prior branch has \vn{branch%ix_from_branch} set to
 -1. Currently, only the root branch has \vn{branch%ix_from_branch} set
 to -1.
 
-\index{lat_struct!\%ele(:)}
-\index{lat_struct!\%n_ele_track}
-\index{lat_struct!\%n_ele_max}
-\index{ele_struct!in lat_struct} 
-\index{girder}
-\index{overlay}
-\index{group}
+\index{lat_struct!\%ele(:)}\index{lat_struct!\%n_ele_track}
+\index{lat_struct!\%n_ele_max}\index{ele_struct!in lat_struct} 
+\index{girder}\index{overlay}\index{group}
 The \vn{%branch%ele(:)} array holds the array of elements in the
 branch. Historically, the \vn{lat_struct} was developed at the start
 of the \bmad project and branches were implemented well after that. To
-maintain compatibility with older code, the \vn{lat%ele(:)} array, which
-is used by older code, points to the same memory block as
-the \vn{lat%%branch(0)%ele}
-array. Similarly, \vn{%branch(0)%n_ele_track},
-\vn{%branch(0)%n_ele_max}, and \vn{%branch(0)%param} point to
-\vn{lat%n_ele_track}, \vn{lat%n_ele_max}, and \vn{lat%param} respectively.
+maintain compatibility with older code, the following components point
+to the same memory blocks
+\begin{example}
+  lat%ele(:)              <--->  lat%branch(0)%ele(:)
+  lat%n_ele_track         <--->  lat%branch(0)%n_ele_track
+  lat%n_ele_max           <--->  lat%branch(0)%n_ele_max
+  lat%param               <--->  lat%branch(0)%param        
+\end{example}
 
-The \vn{%branch%ele(:)} array is always allocated with zero as the
-lower bound.  \vn{%ele(0)} is a marker element with its \vn{%name} component
-set to ``\vn{BEGINNING}''. 
-\vn{%ele(0)%mat6} is always the unit matrix. For the
-root branch, the \vn{%branch(0)%ele(0:)} array is divided up into
-two parts: The ``tracking'' part and a ``control'' part (also called
-the ``lord'' part). The tracking part of this array holds the elements
-that are tracked through. The control part holds elements that
-control attributes of other elements (\sref{s:lat.control}). The bounds
-of these two parts is given in Table~\ref{t:part.extent}.
+All \vn{%branch%ele(:)} arrays are allocated with zero as the lower
+bound. The \vn{%ele(0)} element of all branches is an \vn{init_ele}
+element with its \vn{%name} component set to ``\vn{BEGINNING}''.
+\vn{%ele(0)%mat6} is always the unit matrix. For the root branch, the
+\vn{%branch(0)%ele(0:)} array is divided up into two parts: The
+``tracking'' part and a ``control'' part (also called the ``lord''
+part). The tracking part of this array holds the elements that are
+tracked through. The control part holds elements that control
+attributes of other elements (\sref{s:lat.control}). The bounds of
+these two parts is given in Table~\ref{t:part.extent}.
 \begin{table}[tb]
 \begin{center}
 \begin{tabular}{lll}
@@ -182,12 +180,13 @@ all other branches. Since the root branch can also be accessed via the \vn{lat%e
 array, code that deals with the lord section of the lattice may use \vn{lat%ele(:)}
 in place of \vn{lat%branch(0)%ele(:)}.
 
-The index of the associated branch for a given \vn{branch} or
-\vn{photon_branch} element is stored in \vn{%value(ix_branch_to\$)}:
+for a given \vn{branch} or \vn{photon_branch} element, the index of
+the branch that is being branched to and the index of the element that
+is being branched to is stored in:
 \begin{example}
-  ! Associated branch is: lat%branch(ix_branch)
-  ix_branch = nint(branch_ele%value(ix_branch_to$))  
-  direction = nint(branch_ele%value(direction$))
+  ix_branch  = nint(branch_ele%value(ix_branch_to$))  ! branch index
+  ix_element = nint(branch_ele%value(ix_element_to$)) ! element index
+  direction  = nint(branch_ele%value(direction$))
 \end{example}
 The direction will be +1 for forward branching and -1 for backward branching.
 
@@ -205,13 +204,14 @@ The \vn{%param} component within each \vn{lat%branch(:)} is a
   type lat_param_struct
     real(rp) n_part             ! Particles/bunch (for beambeam elements).
     real(rp) total_length       ! total_length of lattice
-    real(rp) unstable_factor    ! Circular lats: growth rate/turn. Linear lats: |orbit/limit|
+    real(rp) unstable_factor    ! closed branch: growth rate/turn. 
+                                ! open branch: |orbit/limit|
     real(rp) t1_with_RF(6,6)    ! Full 1-turn 6x6 matrix
     real(rp) t1_no_RF(6,6)      ! Transverse 1-turn 4x4 matrix (RF off).
     integer particle            ! +1 = positrons, -1 = electrons, etc.
-    integer geometry        ! open$, etc...
+    integer geometry            ! open$, etc...
     integer ixx                 ! Integer for general use
-    logical stable              ! For circular lattices: Is lat stable?
+    logical stable              ! For closed branch. Is lat stable?
     logical aperture_limit_on   ! use apertures in tracking?
     type (bookkeeper_status_struct) bookkeeping_state
                                           ! Overall status for the branch.
@@ -220,9 +220,11 @@ The \vn{%param} component within each \vn{lat%branch(:)} is a
 \caption{Definition of the \vn{param_struct}.}
 \label{f:lat.param.struct}
 \end{figure}
+This structure would be more aptly named \vn{branch_param_struct} but
+is named otherwise for historical reasons.
 
 \index{lat_param_struct!\%total_length}
-\vn{%param%total_length} is the length of the lattice that a beam
+\vn{%param%total_length} is the length of the branch that a beam
 tracks through defined by
 \begin{example}
   %param%total_length = %ele(n_ele_track)%s - %ele(0)%s
@@ -241,8 +243,8 @@ for wake field calculations.
 \index{lat_param_struct!\%t1_with_RF}
 \index{lat_param_struct!\%t1_no_RF}
 \index{lat_param_struct!\%stable}
-For circular lattices, \vn{%param%t1_with_RF} and \vn{%param%t1_no_RF}
-are the 1--turn transfer matrices from the start of the lattice to the
+For closed branches, \vn{%param%t1_with_RF} and \vn{%param%t1_no_RF}
+are the 1--turn transfer matrices from the start of the branch to the
 end. \vn{%param%t1_with_RF} is the full transfer matrix with RF
 on. \vn{%param%t1_no_RF} is the transverse transfer matrix with RF
 off. \vn{%param%t1_no_RF} is used to compute the Twiss
@@ -252,7 +254,7 @@ not stable the Twiss parameters cannot be computed. If unstable,
 \vn{%param%unstable_factor} will be set to the growth rate per turn of
 the unstable mode.
 
-For linear lattices, if a particle is lost in tracking,
+For open branches, if a particle is lost in tracking,
 \vn{%param%unstable_factor} will be set to
 \begin{example}
   orbit_amplitude / limit - 1
@@ -263,12 +265,9 @@ integer variable \vn{%param%particle}. The value of this variable will
 correspond to one of the constants:
 \index{positron\$}\index{electron\$}\index{proton\$}\index{antiproton\$}
 \begin{example}
-  muon\$
-  antimuon\$
-  positron\$
-  electron\$
-  proton\$
-  antiproton\$
+  muon\$,       antimuon\$,
+  electron\$,   positron\$,   
+  proton\$,     antiproton\$,
   photon\$
 \end{example}
 To print the name of the particle use the function
@@ -338,8 +337,8 @@ This element does not control anything.
   \end{description}
 Any element whose \vn{%lord_status} is something other than
 \vn{not_a_lord\$} is called a \vn{lord} element. In the \vn{tracking part}
-of the lattice (\sref{s:lat.struct}), \vn{%lord_status} will always be
-\vn{not_a_lord\$}. In the \vn{lord section} of the lattice, under normal
+of the branch (\sref{s:lat.struct}), \vn{%lord_status} will always be
+\vn{not_a_lord\$}. In the \vn{lord section} of the branch, under normal
 circumstances, there will never be any \vn{not_a_lord} elements.
 However, it is permissible,
 and sometimes convenient, for programs to set the \vn{%lord_status} of
@@ -371,14 +370,14 @@ A \vn{slice_slave} element represents a longitudinal slice of another element.
 Slice elements are not part of the lattice but rather are created on-the-fly
 when, for example, a program needs to track part way through an element.
   \item[super_slave\$]\Newline 
-A \vn{super_slave} element is an element in the tracking part of the lattice that 
+A \vn{super_slave} element is an element in the tracking part of the branch that 
 has one or more \vn{super_lord} lords (\sref{s:super}).
 \end{description}
 
 Any element whose \vn{%slave_status} is something other than
 \vn{free\$} is called a \vn{slave} element. \vn{super_slave} elements
-always appear in the tracking part of the lattice. The other types can
-be in either the tracking or control parts of the lattice.
+always appear in the tracking part of the branch. The other types can
+be in either the tracking or control parts of the branch.
 
 \begin{table}[tb]
   \footnotesize
@@ -454,7 +453,7 @@ example, it is {\em not} possible for an element to be simultaneously a
 {Example of multipass combined with superposition. A \vn{multipass_lord}
 element named \vn{A} controls a set of \vn{multipass_slaves} (only one shown).
 The \vn{multipass_slave} elements are also \vn{super_lord} elements and they
-will control \vn{super_slave} elements in the tracking part of the lattice.}
+will control \vn{super_slave} elements in the tracking part of the branch.}
 \label{f:super.mul}
 \end{figure}
 
@@ -466,7 +465,7 @@ values in the slave element. Thus, for example, a
 example in Section~\sref{s:multipass}, element \vn{A} would be a
 \vn{multipass_lord} and \vn{A\B1} and \vn{A\B2} would be
 \vn{multipass_slave}s. When superposition is combined with multipass,
-the elements in the tracking part of the lattice will be
+the elements in the tracking part of the branch will be
 \vn{super_slave}s.  These elements will be controlled by
 \vn{super_lord}s which will also be \vn{multipass_slave}s and these
 \vn{super_lord}/\vn{multipass_slave} elements will be controlled by

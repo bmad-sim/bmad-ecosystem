@@ -1107,6 +1107,11 @@ case ('FIELD_SCALE', 'DPHI0_REF')
   return
 
 case ('E_TOT', 'P0C')
+  if (ele%key == init_ele$) then
+    free = .true.
+    return
+  endif
+
   if (ele%lord_status /= multipass_lord$) return
   if (ele%field_master) return
   if (ele%value(n_ref_pass$) /= 0) return

@@ -30,19 +30,20 @@ set by \vn{parameter} are
   parameter[n_part]        = <Real>          ! Number of particles in a bunch.
   parameter[no_end_marker] = <Logical>       ! Default: False.
   parameter[p0c]           = <Real>          ! Reference momentum.
-  parameter[particle]      = <particle_type> ! Reference particle. positron, antiproton, etc.
+  parameter[particle]      = <particle_type> ! Reference species: positron, proton, etc.
   parameter[ran_seed]      = <Integer>       ! Random number generator init.
   parameter[rf_auto_scale_phase]    = <Logical>  ! RF automatic phase scaling.
   parameter[rf_auto_scale_amp]      = <Logical>  ! RF automatic amplitude scaling.
   parameter[taylor_order]           = <Integer>  ! Default: 3
-  parameter[use_ptc_layout]         = <Logical>  ! Use single PTC fiber for calculations?
+  parameter[use_ptc_layout]         = <Logical>  ! Construct layout for calculations?
   parameter[ptc_exact_model]        = <Logical>  ! PTC to do "exact" tracking?
   parameter[ptc_exact_misalignment] = <Logical>  ! PTC to "exactly" misalign elements?
-  parameter[ptc_max_finge_order]    = <Integer>  ! Max fringe order (2 (default) => Quadrupole).
+  parameter[ptc_max_finge_order]    = <Integer>  ! Max fringe order. 
+                                                 !    Default: 2 => Quadrupole.
   parameter[use_hard_edge_model_drifts] = <Logical>
   parameter[custom_attributeN]      = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
-  parameter[rel_tracking_charge]    = <Real>     ! Charge of tracked particles relative to 
-                                                 !   reference charge. Default is 1.
+  parameter[rel_tracking_charge]    = <Real>     ! Charge of tracked particles relative 
+                                                 !   to reference charge. Default is 1.
 \end{example}
 
 \noindent

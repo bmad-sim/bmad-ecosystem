@@ -377,12 +377,16 @@ Routine to calculate the Touschek lifetime for a lat.
 
 \index[routine]{em_field_calc}
 \label{r:em.field.calc}
-\item[em_field_calc (ele, param, s_rel, time, orbit, local_ref_frame, field, calc_dfield, err_flag)] \Newline 
+\item[\protect\parbox{6in}{
+    em_field_calc (ele, param, s_rel, time, orbit, local_ref_frame, field, \\
+    \hspace*{1in} calc_dfield, err_flag) }] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
 \label{r:em.field.custom}
-\item[em_field_custom(ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield, err_flag)] \Newline
+\item[\protect\parbox{6in}{
+  em_field_custom(ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield, \\
+  \hspace*{1in} err_flag) }] \Newline
 Custom routine for calculating fields.
 
 \end{description}
@@ -833,7 +837,9 @@ elements can be added.
 
 \index[routine]{add_superimpose}
 \label{r:add.superimpose}
-\item[add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift, create_em_field_slave)] \Newline
+\item[\protect\parbox{6in}{
+    add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, \\
+    \hspace*{1in} save_null_drift, create_em_field_slave)} ] \Newline
 Routine to make a superimposed element. 
 
 \index[routine]{attribute_bookkeeper}
@@ -1355,9 +1361,12 @@ c_multi(n, m) = +/- ("n choose m")/n!
 
 \index[routine]{ele_compute_ref_energy_and_time}
 \label{r:ele.compute.ref.energy.and.time}
-\item[ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)] \Newline 
-Routine to compute the reference energy and reference time at the end of an element 
-given the reference enegy and reference time at the start of the element.
+\item[\protect\parbox{6in}{
+    ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, \\
+    \hspace*{1in} ref_time_start, err_flag)} ] \Newline 
+Routine to compute the reference energy and reference time at the end
+of an element given the reference enegy and reference time at the
+start of the element.
 
 \index[routine]{lat_compute_ref_energy_and_time}
 \label{r:lat.compute.ref.energy.and.time}
@@ -1387,7 +1396,7 @@ Routine to mark an element as modified for use with "intelligent" bookkeeping.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Reading and Writing Lattice Files} 
+\section{Lattice: Reading and Writing Files} 
 \label{r:read}
 \index{lattice files!reading and writing routines}
 
@@ -1400,7 +1409,9 @@ Routine to parse an AML input file and put the information in a lat_struct.
 
 \index[routine]{bmad_and_xsif_parser}
 \label{r:bmad.and.xsif.parser}
-\item[bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline 
+\item[\protect\parbox{6in}{
+    bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, \\
+    \hspace*{1in} use_line, err_flag)} ] \Newline 
 Subroutine to parse either a Bmad or XSIF (extended standard input format) lattice files.
 
 \index[routine]{bmad_parser}
@@ -1530,7 +1541,9 @@ coords and vice versa.
 
 \index[routine]{mat6_from_s_to_s}
 \label{r:mat6.from.s.to.s}
-\item[mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, unit_start, err_flag, ele_save)] \Newline 
+\item[\protect\parbox{6in}{
+    mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orbit, ix_branch, one_turn, \\
+    \hspace*{1in} unit_start, err_flag, ele_save)} ] \Newline 
 Subroutine to calculate the transfer map between longitudinal positions
 s1 to s2.
 
@@ -1860,7 +1873,9 @@ Routine to calculate the energy, etc. from a particle's momentum.
 
 \index[routine]{convert_total_energy_to}
 \label{r:convert.total.energy.to}
-\item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)] \Newline
+\item[\protect\parbox{6in}{
+    convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, \\
+    \hspace*{1in} dbeta, err_flag)} ] \Newline
 Routine to calculate the momentum, etc. from a particle's total energy. 
 
 \index[routine]{init_coord}
@@ -1959,7 +1974,7 @@ Routine to create a PTC layout from a Bmad lat.
 
 \index[routine]{set_ptc}
 \label{r:set.ptc}
-\item[\protect\parbox{6.5in}{
+\item[\protect\parbox{6in}{
     set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, \\
     \hspace*{1in} exact_modeling, exact_misalign) }] \Newline
 Routine to initialize PTC. 
@@ -2561,7 +2576,7 @@ Routine to form a units from its components.
 
 \index[routine]{qp_open_page_basic}
 \label{r:qp.open.page.basic}
-\item[\protect\parbox{6.5in}{
+\item[\protect\parbox{6in}{
     qp_open_page_basic (page_type, x_len, y_len, plot_file, \\
     \hspace*{1in} x_page, y_page, i_chan, page_scale) }] \Newline 
 Routine to Initialize a page (window) for plotting.
@@ -2776,7 +2791,7 @@ tracking 7 particle with different starting conditions.
 
 \index[routine]{add_taylor_term}
 \label{r:add.taylor.term}
-\item[\protect\parbox{6.5in}{
+\item[\protect\parbox{6in}{
   add_taylor_term (bmad_taylor, coef, expn, replace) \\
   add_taylor_term (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)}] \Newline 
 Overloaded routine to add a Taylor term to a Taylor series.
@@ -2935,7 +2950,9 @@ Routine to calculate the closed orbit at the beginning of the lat.
 
 \index[routine]{closed_orbit_from_tracking}
 \label{r:closed.orbit.from.tracking}
-\item[closed_orbit_from_tracking (lat, closed_orb, i_dim, eps_rel, eps_abs, init_guess, err_flag)] \Newline
+\item[\protect\parbox{6in}{
+  closed_orbit_from_tracking (lat, closed_orb, i_dim, eps_rel, eps_abs, \\
+  \hspace*{1in} init_guess, err_flag) }] \Newline
 Routine to find the closed orbit via tracking. 
 
 \index[routine]{compute_even_steps}
@@ -2951,7 +2968,9 @@ Routine to determine the dynamic aperture of a lattice via tracking.
 
 \index[routine]{multi_turn_tracking_analysis}
 \label{r:multi.turn.tracking.analysis}
-\item[multi_turn_tracking_analysis (track, i_dim, track0, ele, stable, growth_rate, chi, err_flag)] \Newline
+\item[\protect\parbox{6in}{
+    multi_turn_tracking_analysis (track, i_dim, track0, ele, stable, growth_rate, \\
+    \hspace*{1in} chi, err_flag)} ] \Newline
 Routine to analyze multi-turn tracking data to get the Twiss
 parameters etc.
 
@@ -3030,7 +3049,9 @@ Routine to track through the lat.
 
 \index[routine]{track_from_s_to_s}
 \label{r:track.from.s.to.s}
-\item[track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)] \Newline
+\item[\protect\parbox{6in}{
+    track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, \\
+    \hspace*{1in} ix_branch, track_state)} ] \Newline
 Routine to track a particle between two s-positions.
 
 \index[routine]{track_many}

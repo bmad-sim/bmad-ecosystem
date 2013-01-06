@@ -652,7 +652,7 @@ element, can have a curved surface. The attributes for specifying the surface cu
   c4_curve               = <Real>    ! C4 curvature coefficient.
   d_detec                = <Real>    ! Detector distance.
   d_source               = <Real>    ! Source distance.
-  g_trans                = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
+  g_trans                = <Real>    ! Transverse 1/radius-of-curvature.
 \end{example}
 
 From the input attributes, the following attributes are derived:
@@ -1172,7 +1172,8 @@ The format for this type of grid is
     type = rotationally_symmetric_rz,
     r0   = (<r(0,0)>,  <z(0,0)>),     ! Grid origin 
     dr   = (<delta_r>, <delta_z>),    ! Grid spacing
-    pt(i_r, i_z) = ((<Re(E_r)>, <Im(E_r)), (<Re(E_phi)>, <Im(E_phi)>), (<Re(E_z)>, <Im(E_z)>))
+    pt(i_r, i_z) = ((<Re(E_r)>, <Im(E_r)), (<Re(E_phi)>, <Im(E_phi)>), 
+                                             (<Re(E_z)>, <Im(E_z)>))
     \ldots \}
 \end{example}
 
@@ -1240,7 +1241,8 @@ For \vn{coupler_angle} = 0 the transverse kick due to the coupler is
 
 Example:
 \begin{example}
-  rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends, coupler_strength = 0.037
+  rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends, 
+                                                  coupler_strength = 0.037
 \end{example}
 
 %-----------------------------------------------------------------

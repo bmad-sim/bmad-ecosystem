@@ -1425,7 +1425,8 @@ factor.
 
 The general syntax for a \vn{group} element is
 \begin{example}
-  name: GROUP = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, default_attrib = init_value
+  name: GROUP = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
+                                                  default_attrib = init_value
 \end{example}
 \vn{name} is the name of the \vn{group}, the list in brackets \{...\}
 is a list of element attributes to vary along with the coefficients
@@ -1745,9 +1746,9 @@ to \vn{z} -- the particles' phase space coordinate
 (\sref{s:phase.space}). With \vn{absolute time tracking},
 \vn{phi_particle} is proportional to the absolute time the particle
 reaches the cavity. See section~\sref{s:rf.time} for a discussion on
-relative verses absolute time tracking. The
-\vn{parameter[absolute_time_tracking]} switch (\sref{s:param}) sets
-the type of tracking for a lattice.
+relative verses absolute time tracking. The switch to set the type of
+tracking for a lattice is \vn{parameter[absolute_time_tracking]}
+(\sref{s:param}).
 
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}.
@@ -2213,7 +2214,8 @@ General \vn{girder} attributes are:
 
 The general syntax for a \vn{overlay} element is
 \begin{example}
-  name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, default_attrib = init_value
+  name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
+                                                       default_attrib = init_value
 \end{example}
 \vn{name} is the name of the \vn{overlay}, the list in brackets \{...\}
 is a list of element attributes to vary along with the coefficients
@@ -2472,10 +2474,9 @@ to \vn{z} -- the particles' phase space coordinate
 (\sref{s:phase.space}). With \vn{absolute time tracking},
 \vn{phi_particle} is proportional to the absolute time the particle
 reaches the cavity. See section~\sref{s:rf.time} for a discussion on
-relative verses absolute time tracking. The
-\vn{parameter[absolute_time_tracking]} switch (\sref{s:param}) sets
-the type of tracking for a lattice.
-
+relative verses absolute time tracking. The switch to set the type of
+tracking for a lattice is \vn{parameter[absolute_time_tracking]}
+(\sref{s:param}).
 
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
