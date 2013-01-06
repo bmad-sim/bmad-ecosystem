@@ -48,7 +48,6 @@ solely meant for \bmad internal use.
   Transfer Maps: Taylor Maps                  & \ref{r:taylor}         \\ \hline
   Tracking and Closed Orbit                   & \ref{r:track}          \\ \hline
   Tracking: Low Level Routines                & \ref{r:low.track}      \\ \hline
-  Tracking: Macroparticle                     & \ref{r:macro}          \\ \hline
   Tracking: Mad Routines                      & \ref{r:mad}            \\ \hline
   Tracking: Routines Called by track1         & \ref{r:track1}         \\ \hline
   Twiss and Other Calculations                & \ref{r:twiss}          \\ \hline
@@ -74,7 +73,7 @@ Adds the longitudinal wake for all particles in front of the follower.
 
 \index[routine]{apply_bend_edge_kick}
 \label{r:apply.bend.edge.kick}
-\item[apply_bend_edge_kick (orb, ele, element_end, reverse, kx, ky)] \Newline 
+\item[apply_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)] \Newline 
 Subroutine to track through the edge field of an sbend.
 Reverse tracking starts with the particle just outside the bend and
 
@@ -539,7 +538,7 @@ in the interval [-amp, amp].
 
 \index[routine]{ran_engine}
 \label{r:ran.engine}
-\item[ran_engine (set, get, ix_generator)] \Newline 
+\item[ran_engine (set, get, ran_state)] \Newline 
 Routine to set what random number generator algorithm is used.
 If this routine is never called then pseudo_random\$ is used.
 
@@ -550,18 +549,18 @@ Routine to return a Gaussian distributed random number with unit sigma.
 
 \index[routine]{ran_gauss_converter}
 \label{r:ran.gauss.converter}
-\item[ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut, ix_generator)] \Newline 
+\item[ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut, ran_state)] \Newline 
 Routine to set what conversion routine is used for converting
 uniformly distributed random numbers to Gaussian distributed random numbers.
 
 \index[routine]{ran_seed_put}
 \label{r:ran.seed.put}
-\item[ran_seed_put (seed, state, ix_generator)] \Newline 
+\item[ran_seed_put (seed, ran_state)] \Newline 
 Routine to seed the random number generator. 
 
 \index[routine]{ran_seed_get}
 \label{r:ran.seed.get}
-\item[ran_seed_get (seed, state, ix_generator)] \Newline 
+\item[ran_seed_get (seed, ran_state)] \Newline 
 Routine to return the seed used for the random number generator.
 
 \index[routine]{ran_uniform}
@@ -875,7 +874,7 @@ lat structure.
 \label{r:create.element.slice}
 \item[\protect\parbox{6in}{
     create_element_slice (sliced_ele, ele_in, l_slice, offset, param, \\
-    \hspace*{1in} at_entrance_end, at_exit_end, err_flag, old_slice)} ] \Newline 
+    \hspace*{1in} at_upstream_end, at_downstream_end, err_flag, old_slice)} ] \Newline 
 Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
 superposition lord to a slave when the slave has only one lord.
 
@@ -957,13 +956,13 @@ hybridized by \vn{make_hybrid_lat}.
 
 \index[routine]{ele_geometry}
 \label{r:ele.geometry}
-\item[ele_geometry (floor0, ele, floor)] \Newline 
+\item[ele_geometry (floor0, ele, floor, reverse)] \Newline 
 Routine to calculate the physical (floor) placement of an element given the
 placement of the preceding element. This is the same as the MAD convention.
 
 \index[routine]{floor_angles_to_w_mat}
 \label{r:floor.angles.to.w.mat}
-\item[floor_angles_to_w_mat (theta, phi, psi, w_mat)] \Newline 
+\item[floor_angles_to_w_mat (theta, phi, psi, w_mat, w_mat_inv)] \Newline 
 Routine to construct the W matrix that specifies the orientation of an element
 in the global "floor" coordinates. See the Bmad manual for more details.
 
@@ -1138,14 +1137,14 @@ Function to point to a slave of a lord.
 \index[routine]{type_ele}
 \label{r:type.ele}
 \item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, \\ 
-\hspace*{1in} type_control, lattice, type_wake, type_floor_coords, \\
+\hspace*{1in} type_control, type_wake, type_floor_coords, \\
 \hspace*{1in} type_field, type_wall, nunit)}] \Newline
 Routine to print the contents of an element at the terminal. 
 
 \index[routine]{type2_ele}
 \label{r:type2.ele}
 \item[\protect\parbox{6in}{type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, \\
-\hspace*{1in} type_taylor, twiss_out, type_control, lattice, type_wake, \\
+\hspace*{1in} type_taylor, twiss_out, type_control, type_wake, \\
 \hspace*{1in} type_floor_coords, type_field, type_wall)}] \Newline
 Like \vn{type_ele} but the output is stored in a string array. 
 
@@ -1714,12 +1713,12 @@ Routine to convert ab type multipoles to kt (MAD standard) multipoles.
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
-\item[multipole_ele_to_ab (ele, particle, use_ele_tilt, has_nonzero_pole, a, b)] \Newline
+\item[multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)] \Newline
 Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
 \label{r:multipole.ele.to.kt}
-\item[multipole_ele_to_kt (ele, particle, use_ele_tilt, has_nonzero_pole, knl, tilt)] \Newline
+\item[multipole_ele_to_kt (ele, param, use_ele_tilt, has_nonzero_pole, knl, tilt)] \Newline
 Routine to put the scaled element multipole components (strength and tilt) 
 into 2 vectors. 
 
@@ -1785,12 +1784,6 @@ These routines are overloaded by the equal sign so should not be called explicit
 
 \begin{description}
 
-\index[routine]{beam_equal_beam}
-\label{r:beam.equal.beam}
-\item[mp_beam_equal_mp_beam (beam1, beam2)] \Newline
-Routine that is used to set one macroparticle beam to another. This routine
-takes care of the pointers in beam1.
-
 \index[routine]{branch_equal_branch}
 \label{r:branch.equal.branch}
 \item[branch_equal_branch (branch1, branch2)] \Newline 
@@ -1818,12 +1811,6 @@ This routine takes care of the pointers in ele1.
 \item[ele_vec_equal_ele_vec (ele1, ele2)] \Newline
 Routine that is used to set one element vector equal to another. 
 This routine takes care of the pointers in ele1. 
-
-\index[routine]{mp_beam_equal_mp_beam}
-\label{r:mp.beam.equal.mp.beam}
-\item[mp_beam_equal_mp_beam (beam1, beam2)] \Newline 
-Routine to set one macroparticle beam equal to another taking care of
-pointers so that they don't all point to the same place.
 
 \index[routine]{real_8_equal_taylor}
 \item[real_8_equal_taylor (y8, bmad_taylor)] \Newline
@@ -1927,7 +1914,7 @@ Routine to concatenate two real_8 taylor series.
 
 \index[routine]{ele_to_fibre}
 \label{r:ele.to.fibre}
-\item[ele_to_fibre (ele, ptc_fibre, particle, use_offsets, integ_order, steps, for_layout)] \Newline
+\item[ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout)] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -2297,7 +2284,7 @@ The default color is the background color (white\$).
 
 \index[routine]{qp_eliminate_xy_distortion}
 \label{r:qp.eliminate.xy.distortion}
-\item[qp_eliminate_xy_distortion(axis_to_scale)] \Newline 
+\item[qp_eliminate_xy_distortion(axis_to_scale, mirror_axes)] \Newline 
 This routine will increase the x or y margins so that the conversion
 between data units and page units is the same for the x and y axes.
 
@@ -2667,7 +2654,7 @@ Routine to set the character text background color.
 
 \index[routine]{qp_text_len_basic}
 \label{r:qp.text.len.basic}
-\item[qp_text_len_basic (text, len_text)] \Newline 
+\item[qp_text_len_basic (text)] \Newline 
 Function to find the length of a text string.
 
 \index[routine]{qp_translate_to_color_index}
@@ -2978,7 +2965,7 @@ matrix and the closed orbit offset.
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
-    offset_particle (ele, coord, particle, set, set_canonical, set_tilt, \\
+    offset_particle (ele, coord, param, set, set_canonical, set_tilt, \\
     \hspace*{1in} set_multipoles, set_hvkicks, set_z_offset, ds_pos)}] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
@@ -3003,7 +2990,7 @@ If not moving backward it is dead or is moving backward.
 
 \index[routine]{particle_is_moving_forward}
 \label{r:particle.is.moving.forward}
-\item[particle_is_moving_forward (orbit, particle) result (is_moving_forward)] \Newline 
+\item[particle_is_moving_forward (orbit) result (is_moving_forward)] \Newline 
 Routine to determine if a particle is moving in the forward +s direction.
 If not moving forward it is dead or is moving backward.
 
@@ -3103,80 +3090,13 @@ Routine to track 1 step using boris tracking.
 
 \index[routine]{track_a_drift}
 \label{r:track.a.drift}
-\item[track_a_drift (orb, ele, species, length)] \Newline
+\item[track_a_drift (orb, ele, length)] \Newline
 Routine to track through a drift. 
 
 \index[routine]{track_a_bend}
 \label{r:track.a.bend}
 \item[track_a_bend (start_orb, ele, param, end_orb)] \Newline
 Particle tracking through a bend element. 
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Tracking: Macroparticle}
-\label{r:macro}    
-\index{macroparticle!list of routines}
-
-{\em Note: The macroparticle tracking code is not currently maintained
-in favor of tracking an ensemble of particles.}
-
-\begin{description}
-
-\index[routine]{calc_macro_bunch_params}
-\label{r:calc.macro.bunch.params}
-\item[calc_macro_bunch_params (bunch, ele, params)] \Newline
-Routine to calculate various beam characteristics from a bunch.
-
-\index[routine]{init_macro_distribution}
-\label{r:init.macro.distribution}
-\item[init_macro_distribution (beam, init, ele, canonical_out, liar_gaussian)] \Newline 
-Routine to initialize a macroparticle distribution.
-
-\index[routine]{mat_to_mp_sigma}
-\label{r:mat.to.mp.sigma}
-\item[mat_to_mp_sigma (mat, sig)] \Newline 
-Routine to convert a sigma matrix. to a linear array of 
-macroparticle sigmas.
-
-\index[routine]{mp_sigma_to_mat}
-\label{r:mp.sigma.to.mat}
-\item[mp_sigma_to_mat (s, mat)] \Newline 
-Routine to convert a linear array of macroparticle sigmas to a 
-sigma matrix. 
-
-\index[routine]{mp_to_angle_coords}
-\label{r:mp.to.angle.coords}
-\item[mp_to_angle_coords (mp, energy0)] \Newline 
-Routine to convert macroparticle coords from 
-(x, px, y, py, z, pz) to (x, x', y, y', z, E).
-
-\index[routine]{mp_to_canonical_coords}
-\label{r:mp.to.canonical.coords}
-\item[mp_to_canonical_coords (mp, energy0)] \Newline 
-Routine to convert macroparticle coords from 
-(x, x', y, y', z, E) to (x, px, y, py, z, pz).
-
-\index[routine]{reallocate_macro_beam}
-\label{r:reallocate.macro.beam}
-\item[reallocate_macro_beam (beam, n_bunch, n_slice, n_macro)] \Newline 
-Routine to reallocate memory within a beam_struct.
-
-\index[routine]{track1_macro_beam}
-\label{r:track1.macro.beam}
-\item[track1_macro_beam (beam_start, ele, param, beam_end)] \Newline
-Routine to track a beam of macroparticles through an element.
-
-\index[routine]{track_macro_beam}
-\label{r:track.macro.beam}
-\item[track_macro_beam (lat, beam, ix1, ix2)] \Newline 
-Routine to track a beam of macroparticles from the end of
-lat\%ele(ix1) Through to the end of lat\%ele(ix2).
-
-\index[routine]{track1_macroparticle}
-\label{r:track1.macroparticle}
-\item[track1_macroparticle (start, ele, param, end)] \Newline 
-Routine to track a macroparticle through an element.
 
 \end{description}
 
@@ -3194,7 +3114,7 @@ Routine to track a macroparticle through an element.
 
 \index[routine]{make_mad_map}
 \label{r:make.mad.map}
-\item[make_mad_map (ele, particle, energy, map)] \Newline 
+\item[make_mad_map (ele, param, energy, map)] \Newline 
      Routine to make a 2nd order transport map a la MAD.
 
 \index[routine]{mad_add_offsets_and_multipoles}
@@ -3326,7 +3246,7 @@ Symplectic integration through an element to 0th or 1st order.
 
 \index[routine]{track1_boris}
 \label{r:track1.boris}
-\item[track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_end)] \Newline
+\item[track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_orb)] \Newline
 Routine to do Boris tracking.  
 
 \index[routine]{track1_bmad}

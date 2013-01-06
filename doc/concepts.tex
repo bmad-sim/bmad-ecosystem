@@ -20,7 +20,7 @@ crystal, or something like a \vn{marker} element (\sref{s:mark})
 that is used to mark a particular point in the machine.
 Besides physical elements, there are \vn{controller} elements
 (Table~\ref{t:control.classes}) that can be used for parameter control
-of other elements (\sref{c:control}).
+of other elements.
 
 Chapter~\sref{c:elements} lists the complete set of different element
 types that \bmad knows about.
@@ -60,7 +60,7 @@ array of \vn{branches} in a \vn{lattice} is numbered starting from
 zero. A \vn{lattice} can include such things as transfer lines, dump
 lines, x-ray beam lines, colliding beam storage rings, etc. All of
 which are connected together to form a coherent whole. In addition, a
-lattice may contain \vn{controller elements} (\sref{s:lattice} which
+lattice may contain \vn{controller elements} (Table~\ref{t:control.classes}) which
 can simulate such things as magnet power supplies and lattice element
 mechanical support structures.
 
@@ -174,7 +174,7 @@ the \vn{lord} elements are put in the \vn{lord section} of branch 0
 and all the other \vn{lord sections} of all the other branches are
 empty.
 
-As a side note, Etienne Forest's PTC code (\sref{s:ptc}) uses separate
+As a side note, Etienne Forest's PTC code (\sref{s:ptc.intro}) uses separate
 structures to separate the physical element, which PTC calls an
 \vn{element} from the particle track which PTC call a \vn{fibre}.
 [Actually, PTC has two structures for the physical element,

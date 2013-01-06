@@ -796,7 +796,15 @@ $s$-dependent Hamiltonian is
 \Endeq
 Here $(p_z)$ is canonical coordinate (\sref{s:phase.space}) and the
 equation for $H$ has been simplified by assuming that $\wt\psi$ is
-zero. For backwards propagation, where $p_s$ is negative, solving for $p_s$ involves using
+zero. 
+The equations of motion are
+\begin{equation}
+  \frac{dq_i}{ds} = \frac{\partial H}{\partial p_i} \qquad
+  \frac{dp_i}{ds} = -\frac{\partial H}{\partial q_i}
+  \label{rshp}
+\end{equation}
+
+For backwards propagation, where $p_s$ is negative, solving for $p_s$ involves using
 a different part of the squareroot branch. the Hamiltonian $H_{-s}$ is then
 \Begineq
   H_{-s} = (1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s
