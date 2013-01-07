@@ -152,7 +152,8 @@ if (lat%param%n_part /= 0)             write (iu, '(a, es12.4)') 'parameter[n_pa
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_phase]    = ', lat%rf_auto_scale_phase
 write (iu, '(a, l1)') 'parameter[rf_auto_scale_amp]      = ', lat%rf_auto_scale_amp
 write (iu, '(a, l1)') 'parameter[absolute_time_tracking] = ', lat%absolute_time_tracking
-if (lat%ele(lat%n_ele_track)%name /= 'END') then
+ele => lat%ele(lat%n_ele_track)
+if (ele%name /= 'END' .or. ele%key /= marker$) then
   write (iu, '(a)') 'parameter[no_end_marker]          =  T'
 endif
 
@@ -211,7 +212,7 @@ do ib = 0, ubound(lat%branch, 1)
   ele_loop: do ie = 1, branch%n_ele_max
 
     ele => branch%ele(ie)
-    if (ele%name == 'END') cycle
+    if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
 
     ele_dflt => ele_default(ele%key)
 
@@ -850,6 +851,9 @@ if (size(m_info%top) /= 0) then
 
   do ie = 1, lat%n_ele_track
 
+    ele => lat%ele(ie)
+    if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
+
     ix_pass = m_info%bottom(ie)%ix_pass
     if (ix_pass /= 1) cycle 
 
@@ -863,7 +867,7 @@ if (size(m_info%top) /= 0) then
       write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ': line[multipass] = ('
     endif
 
-    call write_line_element (line, iu, lat%ele(ie), lat)
+    call write_line_element (line, iu, ele, lat)
 
   enddo
 
@@ -881,10 +885,12 @@ line = trim(lat%branch(0)%name) // ': line = ('
 
 in_multi_region = .false.
 do ie = 1, lat%n_ele_track
-  if (lat%ele(ie)%name == 'END') cycle
+
+  ele => lat%ele(ie)
+  if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
 
   if (.not. m_info%bottom(ie)%multipass) then
-    call write_line_element (line, iu, lat%ele(ie), lat)
+    call write_line_element (line, iu, ele, lat)
     cycle
   endif
 
@@ -937,8 +943,9 @@ do ib = 1, ubound(lat%branch, 1)
   line = trim(branch%name) // ': line = ('
 
   do ie = 1, branch%n_ele_track
-    if (branch%ele(ie)%name == 'END') cycle
-    call write_line_element (line, iu, branch%ele(ie), lat) 
+    ele => branch%ele(ie)
+    if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
+    call write_line_element (line, iu, ele, lat) 
   enddo
 
   line = line(:len_trim(line)-1) // ')'
