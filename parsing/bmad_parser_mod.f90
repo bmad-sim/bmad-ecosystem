@@ -5328,6 +5328,7 @@ if (nint(bp_com%param_ele%value(no_end_marker$)) == 0) then
   ele => ele_line(n_ele_use)
   ele%name = 'END'
   ele%key = marker$
+  call set_ele_defaults (ele)
   flip = 1
   do j = n_ele_use-1, 0, -1
     ele2 => ele_line(j)
