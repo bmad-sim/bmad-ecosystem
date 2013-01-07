@@ -1136,7 +1136,7 @@ c_side_trans[CHAR,  0, NOT].constructor = 'NAME()'
 
 c_side_trans[CHAR,  0, PTR] = copy.deepcopy(c_side_trans[STRUCT, 0, PTR])
 cc = c_side_trans[CHAR, 0, PTR] 
-cc.c_class       = 'string*'
+cc.c_class       = 'string'
 cc.constructor   = 'NAME(NULL)'
 cc.destructor    = 'delete NAME;'
 cc.to_f2_call    = 'z_NAME'
@@ -1431,11 +1431,9 @@ for struct in struct_definitions:
 
   ia = 0
   while ia < len(struct.arg):
-    if struct.arg[ia].kind in params.structure_ignore_list: 
-      struct.arg.pop(ia)
-      continue
 
-    if struct.f_name + '%' + struct.arg[ia].f_name in params.component_ignore_list:
+    if struct.arg[ia].kind in params.component_no_translate_list or \
+                 struct.f_name + '%' + struct.arg[ia].f_name in params.component_no_translate_list: 
       struct.arg.pop(ia)
       continue
 
@@ -1533,7 +1531,8 @@ for struct in struct_definitions:
       arg.f_side.to_c_extra_var_type  = arg.f_side.to_c_extra_var_type.replace('KIND', kind)
       arg.f_side.test_pat    = arg.f_side.test_pat.replace('KIND', kind)
       arg.c_side.test_pat    = arg.c_side.test_pat.replace('KIND', kind)
-      arg.c_side.c_class     = 'CPP_' + kind
+      arg.c_side.c_class     = arg.c_side.c_class.replace('KIND', kind)
+      ## arg.c_side.c_class     = 'CPP_' + kind
       arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('KIND', kind)
       arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('KIND', kind)
       arg.c_side.to_f2_arg   = arg.c_side.to_f2_arg.replace('KIND', kind)
@@ -1927,6 +1926,7 @@ is_eq = .true.
 
   for arg in struct.arg:
     if not arg.is_component: continue
+    if struct.f_name + '%' + arg.f_name in params.interface_ignore_list: continue 
     f_equ.write ('!! f_side.equality_test[' + arg.type + ', ' + str(len(arg.array)) + ', ' +  arg.pointer_type + ']\n')
     f_equ.write (arg.f_side.equality_test)
 
@@ -2071,6 +2071,7 @@ offset = 100 * ix_patt
 
   for i, arg in enumerate(struct.arg, 1):
     if not arg.is_component: continue
+    if struct.f_name + '%' + arg.f_name in params.interface_ignore_list: continue 
     f_test.write ('!! f_side.test_pat[' + arg.type + \
                   ', ' + str(len(arg.array)) + ', ' +  arg.pointer_type + ']\n')
 
@@ -2146,19 +2147,13 @@ typedef valarray<Int_MATRIX>       Int_TENSOR;
 
 ''')
 
-# Write class declarations for classes that are pointed to by class components
-# in a preceeding class 
-
-has_been_declared = set([])
-
 for struct in struct_definitions:
-  has_been_declared.add(struct.cpp_class)
-
-  for arg in struct.arg:
-    if arg.type != STRUCT: continue
-    if arg.c_side.c_class not in has_been_declared:
-      f_class.write('class ' + arg.c_side.c_class + ';\n')
-      has_been_declared.add(arg.c_side.c_class)
+  f_class.write('''
+class CPP_ZZZ;
+typedef valarray<CPP_ZZZ>          CPP_ZZZ_ARRAY;
+typedef valarray<CPP_ZZZ_ARRAY>    CPP_ZZZ_MATRIX;
+typedef valarray<CPP_ZZZ_MATRIX>   CPP_ZZZ_TENSOR;
+'''.replace('ZZZ', struct.short_name))
 
 #
 
@@ -2197,6 +2192,7 @@ public:
   f_class.write ('  ~CPP_ZZZ() {\n'.replace('ZZZ', struct.short_name))
   for arg in struct.arg:
     if arg.c_side.destructor == '': continue
+    if struct.f_name + '%' + arg.f_name in params.interface_ignore_list: continue 
     f_class.write ('    ' + arg.c_side.destructor + '\n')
 
   f_class.write ('  }\n')
@@ -2210,10 +2206,6 @@ extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
 extern "C" void ZZZ_to_f (const CPP_ZZZ&, ZZZ_struct*);
 
 bool operator== (const CPP_ZZZ&, const CPP_ZZZ&);
-
-typedef valarray<CPP_ZZZ>          CPP_ZZZ_ARRAY;
-typedef valarray<CPP_ZZZ_ARRAY>    CPP_ZZZ_MATRIX;
-typedef valarray<CPP_ZZZ_MATRIX>   CPP_ZZZ_TENSOR;
 
 '''.replace('ZZZ', struct.short_name))
 
@@ -2554,6 +2546,7 @@ for struct in struct_definitions:
 
   for arg in struct.arg:
     if not arg.is_component: continue
+    if struct.f_name + '%' + arg.f_name in params.interface_ignore_list: continue 
     f_eq.write (arg.c_side.equality_test)
 
   f_eq.write ('  return is_eq;\n')
@@ -2599,6 +2592,7 @@ void set_CPP_ZZZ_test_pattern (CPP_ZZZ& C, int ix_patt) {
 
   for i, arg in enumerate(struct.arg, 1):
     if not arg.is_component: continue
+    if struct.f_name + '%' + arg.f_name in params.interface_ignore_list: continue 
     f_test.write ('  // c_side.test_pat[' + arg.type + \
                   ', ' + str(len(arg.array)) + ', ' +  arg.pointer_type + ']\n')
 

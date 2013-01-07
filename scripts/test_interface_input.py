@@ -15,7 +15,8 @@ struct_list = ['z_struct', 'ttt_struct']
 # List of sub-structures to ignore.
 # That is, do not translate these sub-structure components.
 
-component_ignore_list = set(['fibre', 'genfield'])
+component_no_translate_list = set(['fibre', 'genfield'])
+interface_ignore_list = set(['fibre', 'genfield'])
 
 # Directory where the output is put
 
@@ -23,6 +24,11 @@ output_dir = 'interface_test'
 test_dir = 'interface_test'
 
 # Function to customize the interface code.
+
+c_side_name_translation = {
+    'rf_wake_sr_table_struct%long' : 'long_wake',
+    'rf_wake_sr_table_struct%trans' : 'trans_wake'
+}
 
 def customize(struct_definitions):
   pass

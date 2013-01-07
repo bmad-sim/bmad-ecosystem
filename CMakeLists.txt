@@ -5,7 +5,7 @@ set(INC_DIRS
 )
 
 set(EXE_SPECS 
-  interface_test.cmake
+  cmake.interface_test
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)

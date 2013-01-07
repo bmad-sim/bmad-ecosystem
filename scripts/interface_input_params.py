@@ -42,13 +42,10 @@ struct_list = [
     'wall3d_struct',
     'taylor_term_struct',
     'taylor_struct',
-    'ele_struct',
-    'branch_struct',
     'control_struct',
     'lat_param_struct',
     'mode_info_struct',
     'pre_tracker_struct',
-    'lat_struct',
     'anormal_mode_struct',
     'linac_normal_mode_struct',
     'normal_modes_struct',
@@ -58,22 +55,36 @@ struct_list = [
     'synch_rad_common_struct',
     'bmad_common_struct',
     'rad_int1_struct',
-    'rad_int_all_ele_struct'
+    'rad_int_all_ele_struct',
+    'ele_struct',
+    'branch_struct',
+    'lat_struct'
 ]
 
-# List of sub-structures to ignore.
-# That is, do not translate these sub-structure components.
+# List of structure components to not translate.
+# Can specify these using the syntax:
+#   <component_struct_name>        or
+#   <struct>%<component_name>
 
-structure_ignore_list = set([
+component_no_translate_list = set([
     'fibre', 
     'genfield',
     'ptc_branch1_info_struct',
-    'layout'
-])
-
-component_ignore_list = set([
+    'layout',
     'ele_struct%lord'
 ])
+
+# List of structure components links:
+# Structure components that are just links to other structures are handled differently.
+#   1) Not call delete in the C++ destructor.
+#   2) Ignore in Fortran and C++ equality tests (could go around in circles).
+#   3) Do not create a test pattern in interface test code.
+
+interface_ignore_list = set([
+  'ele_struct%branch',
+  'branch_struct%lat'
+])
+
 
 # Translations on C++ side to avoid clash with reserved words
 
