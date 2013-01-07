@@ -50,7 +50,6 @@ subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track
 use bmad_struct
 use bmad_interface, except_dummy => track_many
 use bookkeeper_mod, only: control_bookkeeper
-use reverse_mod, only: ele_reverse
 
 implicit none
 
@@ -160,8 +159,7 @@ end subroutine
 !--------------------------------------------------------------------------
 ! contains
 
-! ele_reverse is used to reverse an element for tracking backwards.
-! However, a reversed element has a different coordinate system so
+! A reversed element has a different coordinate system so
 ! we need to transform to the flipped coordinate system, then track, then
 ! flip back to the standard coord system.
 
@@ -184,7 +182,7 @@ ix_last = ix2-1  ! last index we expect to track.
 do n = ix1, ix2, -1
 
   ele = branch%ele(n)
-  call ele_reverse (ele, branch%param)
+  ele%orientation = -ele%orientation
   call track1 (orbit(n), ele, branch%param, orbit(n-1))
 
   ! check for lost particles

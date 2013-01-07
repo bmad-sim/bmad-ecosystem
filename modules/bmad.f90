@@ -10,7 +10,6 @@ module bmad
   use runge_kutta_mod
   use track1_mod
   use boris_mod
-  use reverse_mod
   use dynamic_aperture_mod
   use bookkeeper_mod
   use radiation_mod
