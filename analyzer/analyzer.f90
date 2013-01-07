@@ -7,6 +7,7 @@ program anaylzer
   use bookkeeper_mod
   use bsim_interface
   use mode3_mod
+  use reverse_mod
 
   implicit none
 
