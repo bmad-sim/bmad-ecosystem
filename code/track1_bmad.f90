@@ -223,12 +223,8 @@ case (elseparator$)
   call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.) 
   call transfer_ele(ele, temp_ele, .true.)
   call zero_ele_offsets(temp_ele)
-  temp_ele%value(hkick$) = temp_ele%value(hkick$) * param%rel_tracking_charge / (1. + end_orb%vec(6))
-  temp_ele%value(vkick$) = temp_ele%value(vkick$) * param%rel_tracking_charge / (1. + end_orb%vec(6))
-  if (param%particle < 0) then
-    temp_ele%value(hkick$) = -temp_ele%value(hkick$)
-    temp_ele%value(vkick$) = -temp_ele%value(vkick$)
-  endif
+  temp_ele%value(hkick$) = temp_ele%value(hkick$) / (1. + end_orb%vec(6))
+  temp_ele%value(vkick$) = temp_ele%value(vkick$) / (1. + end_orb%vec(6))
 
   call make_mad_map (temp_ele, param, energy, map)
   end_orb%vec(6) = 0
