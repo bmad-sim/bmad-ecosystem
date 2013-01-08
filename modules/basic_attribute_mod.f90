@@ -31,7 +31,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index (ele, name) result (attrib_index)
+! Function attribute_index (ele, name, full_name) result (attrib_index)
 !
 ! Function to return the index of a attribute for a given BMAD element type
 ! and the name of the attribute. Abbreviations are permitted but must be at 
@@ -47,6 +47,7 @@ contains
 !   name -- Character(40): Attribute name. Must be uppercase.
 !
 ! Output:
+!   full_name    -- Character(40), optional: Non-abbreviated name.
 !   attrib_index -- Integer: Index of the attribute. If the attribute name
 !                            is not appropriate then 0 will be returned.
 !
@@ -57,7 +58,7 @@ contains
 !     ix -> k1$
 !-
 
-function attribute_index (ele, name) result (attrib_index)
+function attribute_index (ele, name, full_name) result (attrib_index)
 
 implicit none
 
@@ -67,6 +68,7 @@ integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev
 integer attrib_index
 
 character(*) name
+character(*), optional :: full_name
 character(40) name40
 
 !-----------------------------------------------------------------------
@@ -76,6 +78,7 @@ if (attribute_array_init_needed) call init_attribute_name_array
 name40 = name           ! make sure we have 40 characters
 key = ele%key
 attrib_index = 0        ! match not found
+if (present(full_name)) full_name = ''
 
 ilen = len_trim(name)
 if (ilen == 0) return
@@ -92,19 +95,16 @@ if (key == overlay$) then
     do i = 1, attrib_num(k)
       if (short_attrib_array(k, i) == name40) then
         attrib_index = attrib_ix(k, i)
+        if (present(full_name)) full_name = short_attrib_array(k, i)
         return
       endif
       if (short_attrib_array(k, i)(1:ilen) == name40(1:ilen)) then
         n_abbrev = n_abbrev + 1
         ix_abbrev = attrib_ix(k, i)
+        if (present(full_name)) full_name = short_attrib_array(k, i)
       endif 
     enddo
   enddo
-
-  if (name40 == 'CURRENT') then
-    attrib_index = current$
-    return
-  endif
 
 ! else only search this type of element
 
@@ -112,18 +112,15 @@ elseif (key > 0 .and. key <= n_key$) then
   do i = 1, attrib_num(key)
     if (short_attrib_array(key, i) == name40) then
       attrib_index = attrib_ix(key, i)
+      if (present(full_name)) full_name = short_attrib_array(key, i)
       return
     endif
     if (short_attrib_array(key, i)(1:ilen) == name40(1:ilen)) then
       n_abbrev = n_abbrev + 1
       ix_abbrev = attrib_ix(key, i)
+      if (present(full_name)) full_name = short_attrib_array(key, i)
     endif 
   enddo      
-
-  if (key == rfcavity$ .and. name40 == 'LAG') then
-    attrib_index = phi0$
-    return
-  endif
 
 ! error
 
@@ -528,7 +525,8 @@ call init_attribute_name1 (def_parameter$, custom_attribute2$, 'CUSTOM_ATTRIBUTE
 call init_attribute_name1 (def_parameter$, custom_attribute3$, 'CUSTOM_ATTRIBUTE3', override = .true.)
 call init_attribute_name1 (def_parameter$, e_tot$,                  'E_TOT')
 call init_attribute_name1 (def_parameter$, p0c$,                    'P0C')
-call init_attribute_name1 (def_parameter$, geometry$,           'GEOMETRY')
+call init_attribute_name1 (def_parameter$, geometry$,               'GEOMETRY')
+call init_attribute_name1 (def_parameter$, lattice_type$,           'LATTICE_TYPE') ! For backwards compatibility
 call init_attribute_name1 (def_parameter$, lattice$,                'LATTICE')
 call init_attribute_name1 (def_parameter$, taylor_order$,           'TAYLOR_ORDER')
 call init_attribute_name1 (def_parameter$, ran_seed$,               'RAN_SEED')

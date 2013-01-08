@@ -650,7 +650,7 @@ logical has_kick_attributes(n_key$)
 ! Element attribute name logical definitions
 
 integer, parameter :: n_part$ = 2, taylor_order$ = 3, particle$ = 14
-integer, parameter :: geometry$ = 15, symmetry$ = 6
+integer, parameter :: geometry$ = 15, lattice_type$ = 16, symmetry$ = 6
 
 integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
           val6$=9, val7$=10, val8$=11, val9$=12, val10$=13, val11$=14, &
