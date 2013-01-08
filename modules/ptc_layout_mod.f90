@@ -106,9 +106,7 @@ do i = 0, ubound(lat%branch, 1)
   call branch_to_ptc_layout (lat%branch(i))
 enddo
 
-! If there are multipass sections then setup m_t
-
-!!!if (.not. any(lat%ele(lat%n_ele_track+1:lat%n_ele_max)%lord_status == multipass_lord$)) return
+! setup m_t
 
 do i = 0, ubound(lat%branch, 1)
 
@@ -117,7 +115,7 @@ do i = 0, ubound(lat%branch, 1)
   write (m_t%end%name, '(a, i4)') 'm_t Bmad branch:', i  ! For diagnostic purposes
 
   branch => lat%branch(i)
-!!  branch%ptc%layout(1)%ptr => m_t%end   ! Save layout
+  call add_ptc_layout_to_list(branch%ptc,  m_t%end)   ! Save layout
 
   lay => m_t%end
 
@@ -231,9 +229,7 @@ ix_pass0 = 0
 ele_inserted_in_layout = .false.
 
 call layout_init_stuff
-
-!! allocate(branch%ptc%layout(1))
-!! branch%ptc%layout(1)%ptr => m_u%end   ! Save layout
+call add_ptc_layout_to_list (branch%ptc,  m_u%end)   ! Save layout
 
 do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
@@ -250,6 +246,7 @@ do ie = 0, branch%n_ele_track
   if (ix_pass0 /= ix_pass .and. ele_inserted_in_layout) then
     call layout_end_stuff
     call layout_init_stuff
+    call add_ptc_layout_to_list (branch%ptc, m_u%end)   ! Save layout
     ele_inserted_in_layout = .false.
   endif
 
@@ -312,6 +309,50 @@ lielib_print(12) = n
 end subroutine layout_end_stuff
 
 end subroutine branch_to_ptc_layout
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine add_ptc_layout_to_list (branch_ptc_info, layout_end)   
+! 
+! Routine to add a layout the a list of layouts.
+!
+! Module needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   branch_ptc_info  -- ptc_branch1_info_struct: List of layouts
+!   layout_end       -- layout: ptc layout
+!
+! Output:
+!   branch_ptc_info  -- ptc_branch1_info_struct: Updated list.
+!-
+
+subroutine add_ptc_layout_to_list (branch_ptc_info, layout_end)   
+
+implicit none
+
+type (ptc_branch1_info_struct) branch_ptc_info, temp_info
+type (layout), target :: layout_end
+integer n
+
+!
+
+if (allocated(branch_ptc_info%layout)) then
+  n = size(branch_ptc_info%layout)
+  call move_alloc(branch_ptc_info%layout, temp_info%layout)
+  allocate(branch_ptc_info%layout(n+1))
+  branch_ptc_info%layout(1:n) = temp_info%layout
+  branch_ptc_info%layout(n)%ptr => layout_end
+  deallocate(temp_info%layout)
+
+else
+  allocate(branch_ptc_info%layout(1))
+  branch_ptc_info%layout(1)%ptr => layout_end  
+endif 
+
+end subroutine add_ptc_layout_to_list
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -382,7 +423,6 @@ use madx_ptc_module
 implicit none
 
 type (ele_struct) ele
-type (layout), pointer :: ptc_layout
 type (internal_state) state
 type (normal_modes_struct) norm_mode
 type (normal_spin) normal
@@ -398,15 +438,13 @@ real(dp) x(6), energy, deltap
 
 check_krein = .false.
 
-ptc_layout => ele%branch%ptc%layout(1)%ptr
-
 state = (default - nocavity0) + radiation0  ! Make sure have RF + radiation on.
 
 x = 0
 call find_orbit_x (x, state, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find closed orbit
 call vec_ptc_to_bmad (x, ele%ptc_fibre%next%beta0, closed_orb%vec)
 
-call get_loss (ptc_layout, energy, deltap)
+call get_loss (ele%ptc_fibre%parent_layout, energy, deltap)
 norm_mode%e_loss = 1d9 * energy
 norm_mode%z%alpha_damp = deltap
 
