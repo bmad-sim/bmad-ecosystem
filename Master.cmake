@@ -48,6 +48,18 @@ ELSE ()
 ENDIF ()
 
 
+#----------------------------------------------------------------
+# If any pre-build script is specified, run it before building
+# any code.  The pre-build script may generate code or header
+# files.
+#----------------------------------------------------------------
+IF (PREBUILD_ACTION)
+  message("Executing pre-build action...")
+  EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
+ENDIF ()
+
 
 get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
 #-------------------------------------------------------
@@ -289,18 +301,6 @@ endforeach(dir)
 
 set(DEPS)
 
-
-#----------------------------------------------------------------
-# If any pre-build script is specified, run it before building
-# any code.  The pre-build script may generate code or header
-# files.
-#----------------------------------------------------------------
-IF (PREBUILD_ACTION)
-  message("Executing pre-build action...")
-  EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  )
-ENDIF ()
 
 set(TARGETS)
 
