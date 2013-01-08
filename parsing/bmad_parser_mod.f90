@@ -474,28 +474,27 @@ endif
 ! if not an overlay then see if it is an ordinary attribute.
 ! if not an ordinary attribute then might be a superimpose switch
 
+if (ix_word == 0) then  ! no word
+  call parser_error  ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
+  return
+endif
+
 if (word(:ix_word) == 'REF') word = 'REFERENCE' ! allowed abbrev
 
 if (ele%key == rbend$) then
   if (word == 'L') then
     word = 'L_CHORD'
-    ix_word = 7
   elseif (word == 'L_ARC') then
     word = 'L'
   endif
 endif
 
-ix_attrib = attribute_index(ele, word)
-attrib_word = word
-
-if (attrib_word == 'LATTICE_TYPE') ix_attrib = geometry$  ! For backwards compatibility.
-
-if (attrib_free_problem(attrib_word)) return
-
-if (ix_word == 0) then  ! no word
-  call parser_error  ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
-  return
+if (ele%key == rfcavity$ .and. word == 'LAG') then   ! For MAD compatibility
+  word = 'PHI0'
 endif
+
+ix_attrib = attribute_index(ele, word, attrib_word)
+if (attrib_free_problem(attrib_word)) return
 
 if (ix_attrib < 1) then
   if (ele%key == drift$ .and. (word == 'HKICK' .or. word == 'VKICK' .or. &
@@ -1218,7 +1217,7 @@ case ('GEOMETRY')
   call get_switch (attrib_word, geometry_name(1:), ix, err_flag)
   ele%value(geometry$) = ix
 
-case ('LATTICE_TYPE')
+case ('LATTICE_TYPE')   ! Old style
   call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag)
   ele%value(geometry$) = ix
 
