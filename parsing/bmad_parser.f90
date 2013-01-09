@@ -75,7 +75,7 @@ character(280) parse_line_save, line, use_line_str
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, xsif_called, wild_here
 logical end_of_file, ele_found, match_found, err_if_not_found, err, finished, exit_on_error
-logical detected_expand_lattice_cmd, multipass, wildcards_permitted, matched
+logical detected_expand_lattice_cmd, multipass
 logical auto_bookkeeper_saved, is_photon_branch, created_new_branch
 
 ! see if digested file is open and current. If so read in and return.

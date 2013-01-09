@@ -81,7 +81,7 @@ contains
 !   is_valid  -- logical: True if a valid method. False otherwise.
 !-
 
-Function valid_tracking_method (ele, tracking_method, num_valid) result (is_valid)
+function valid_tracking_method (ele, tracking_method, num_valid) result (is_valid)
 
 implicit none
 
@@ -335,7 +335,7 @@ end function valid_tracking_method
 !   is_valid  -- logical: True if a valid method. False otherwise.
 !-
 
-Function valid_mat6_calc_method (ele, mat6_calc_method, num_valid) result (is_valid)
+function valid_mat6_calc_method (ele, mat6_calc_method, num_valid) result (is_valid)
 
 implicit none
 
@@ -533,21 +533,7 @@ case (rcollimator$)
     is_valid = .true.
   end select
 
-case (rfcavity$)
-  if (present(num_valid)) num_valid = 7 
-  select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
-case (sbend$)
-  if (present(num_valid)) num_valid = 7
-  select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
-case (sextupole$)
+case (sbend$, sextupole$, rfcavity$)
   if (present(num_valid)) num_valid = 7
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
@@ -600,6 +586,51 @@ case (wiggler$)
 end select
 
 end function valid_mat6_calc_method 
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function valid_spin_tracking_method (ele, mat6_calc_method, num_valid) result (is_valid)
+!
+! Routine to return whether a given spin_tracking method is valid for a given element.
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   ele              -- ele_struct: Lattice element.
+!   spin_tracking_method -- integer: bmad_standard$, etc.
+!
+! Output:
+!   num_valid -- integer, optional: Number of valid methods.
+!   is_valid  -- logical: True if a valid method. False otherwise.
+!-
+
+function valid_spin_tracking_method (ele, spin_tracking_method, num_valid) result (is_valid)
+
+implicit none
+
+type (ele_struct) ele
+integer spin_tracking_method
+integer, optional :: num_valid
+logical is_valid
+
+!
+
+is_valid = .false.
+if (present(num_valid)) num_valid = 0
+
+select case (ele%key)
+case default
+  if (present(num_valid)) num_valid = 3
+  select case (spin_tracking_method)
+  case (bmad_standard$, custom$, symp_lie_ptc$, tracking$)
+    is_valid = .true.
+  end select
+end select
+
+end function valid_spin_tracking_method 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
