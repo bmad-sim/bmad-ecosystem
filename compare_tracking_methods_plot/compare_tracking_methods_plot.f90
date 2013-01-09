@@ -78,7 +78,7 @@ do i = 1, size(is_valid)
 enddo
 
 DO i = 1, size(veto_methods)
-   call match_word (veto_methods(i), calc_method_name(1:), j)
+   call match_word (veto_methods(i), tracking_method_name(1:), j)
    if(j > 0) is_valid(j) = .false.
    if(j == symp_lie_ptc$) is_valid(n_methods$+1) = .false.
 END DO
@@ -114,7 +114,7 @@ DO i = 1, size(is_valid)
    if (.not. is_valid(i)) cycle
    k = k+1
    if (i /= n_methods$+1) then
-      method(k)%method_name = calc_method_name(i)
+      method(k)%method_name = tracking_method_name(i)
       method(k)%short_method_name = short_method_name(i)
    else   
       method(k)%method_name = 'Symp_Lie_PTC_Exact'
@@ -135,7 +135,7 @@ DO i = 1, size(is_valid)
    k = k+1
    if (i /= n_methods$+1) then
       ele%tracking_method = i  
-      write (1,*) "Tracking Method = ", calc_method_name(i)
+      write (1,*) "Tracking Method = ", tracking_method_name(i)
    else 
       call set_ptc(exact_modeling = .true.)
       ele%tracking_method = symp_lie_ptc$
