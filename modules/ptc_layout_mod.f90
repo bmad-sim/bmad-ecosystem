@@ -128,10 +128,8 @@ do i = 0, ubound(lat%branch, 1)
     endif
 
     if (tracking_uses_end_drifts(ele)) then
-      print *, 'USING HARD EDGE MODEL WITH LAT_TO_PTC_LAYOUT NOT YET IMPLEMENTED!'
-      call err_exit
-      call append_this_fibre(ele%ptc_fibre%p%p)
-      call append_this_fibre(ele%ptc_fibre%p)
+      call append_this_fibre(ele%ptc_fibre%previous%previous)
+      call append_this_fibre(ele%ptc_fibre%previous)
     endif
 
     call append_this_fibre(ele%ptc_fibre, .true.)
