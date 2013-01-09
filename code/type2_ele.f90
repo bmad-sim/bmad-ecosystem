@@ -395,17 +395,17 @@ endif
 
 if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then
   nl=nl+1; write (li(nl), fmt_a) &
-                  'TRACKING_METHOD', '=', calc_method_name(ele%tracking_method)
+                  'TRACKING_METHOD', '=', tracking_method_name(ele%tracking_method)
 endif
 
 if (attribute_name(ele, mat6_calc_method$) == 'MAT6_CALC_METHOD') then
   nl=nl+1; write (li(nl), fmt_a) &
-                  'MAT6_CALC_METHOD', '=', calc_method_name(ele%mat6_calc_method)
+                  'MAT6_CALC_METHOD', '=', mat6_calc_method_name(ele%mat6_calc_method)
 endif
 
 if (attribute_name(ele, spin_tracking_method$) == 'SPIN_TRACKING_METHOD') then
   nl=nl+1; write (li(nl), fmt_a) &
-                  'SPIN_TRACKING_METHOD', '=', calc_method_name(ele%spin_tracking_method)
+                  'SPIN_TRACKING_METHOD', '=', spin_tracking_method_name(ele%spin_tracking_method)
 endif
 
 if (attribute_name(ele, ptc_integration_type$) == 'PTC_INTEGRATION_TYPE') then

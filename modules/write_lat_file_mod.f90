@@ -684,11 +684,11 @@ do ib = 0, ubound(lat%branch, 1)
     ! Encode methods, etc.
 
     if (ele_has(ele, 'MAT6_CALC_METHOD') .and. (ele%mat6_calc_method /= ele_dflt%mat6_calc_method)) &
-                                      line = trim(line) // ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
+                                      line = trim(line) // ', mat6_calc_method = ' // mat6_calc_method_name(ele%mat6_calc_method)
     if (ele_has(ele, 'TRACKING_METHOD') .and. (ele%tracking_method /= ele_dflt%tracking_method)) &
-                                      line = trim(line) // ', tracking_method = ' // calc_method_name(ele%tracking_method)
+                                      line = trim(line) // ', tracking_method = ' // tracking_method_name(ele%tracking_method)
     if (ele_has(ele, 'SPIN_TRACKING_METHOD') .and. (ele%spin_tracking_method /= ele_dflt%spin_tracking_method)) &
-                                      line = trim(line) // ', spin_tracking_method = ' // calc_method_name(ele%spin_tracking_method)
+                                      line = trim(line) // ', spin_tracking_method = ' // spin_tracking_method_name(ele%spin_tracking_method)
     if (ele_has(ele, 'PTC_INTEGRATION_TYPE') .and. (ele%ptc_integration_type /= ele_dflt%ptc_integration_type)) &
                                       line = trim(line) // ', ptc_integration_type = ' // ptc_integration_type_name(ele%ptc_integration_type)
     if (ele_has(ele, 'FIELD_CALC') .and. (ele%field_calc /= ele_dflt%field_calc)) &

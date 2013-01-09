@@ -497,7 +497,7 @@ case (tracking$)
   ! Spin tracking here is handled by the particle coordinate tracker.
 
 case default
-  call out_io (s_fatal$, r_name, 'BAD SPIN_TRACKING_METHOD: ' // calc_method_name(ele%spin_tracking_method), &
+  call out_io (s_fatal$, r_name, 'BAD SPIN_TRACKING_METHOD: ' // spin_tracking_method_name(ele%spin_tracking_method), &
                                  'FOR ELEMENT: ', ele%name)
   if (global_com%exit_on_error) call err_exit
 end select
