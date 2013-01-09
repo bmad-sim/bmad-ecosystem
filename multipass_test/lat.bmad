@@ -13,18 +13,17 @@ beginning[beta_b]   = 10
 !-------------------------------------------------------
  
 slave_drift_001: drift, l = 0.5
-FORK: PHOTON_BRANCH, to_line = L2, P0C = 9.9999986944E8, E_TOT = 1E9
+FORK: PHOTON_BRANCH, to_line = L2
 slave_drift_002: drift, l = 0.5
-M: MARKER, P0C = 9.9999986944E8, E_TOT = 1E9
+M: MARKER
  
 !-------------------------------------------------------
 ! Overlays, groups, etc.
  
 x__D1: null_ele
-D1: PIPE, superimpose, ele_beginning, ref = x__D1, L = 1, P0C = 9.9999986944E8, &
-   E_TOT = 1E9
-D2: PIPE, L = 1, P0C = 100, E_TOT = 100
-FORK2: BRANCH, to_line = L1, to_element = M, P0C = 100, E_TOT = 100
+D1: PIPE, superimpose, ele_beginning, ref = x__D1, L = 1
+D2: PIPE, L = 1
+FORK2: BRANCH, to_line = L1, to_element = M
  
 L1: line = ( x__D1, slave_drift_001, FORK, slave_drift_002, M)
  
