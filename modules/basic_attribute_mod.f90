@@ -518,6 +518,7 @@ call init_attribute_name1 (init_ele$, phase_y_photon$,              'PHASE_Y_PHO
 call init_attribute_name1 (init_ele$, abs_time_start$,              'ABS_TIME_START')
 call init_attribute_name1 (init_ele$, particle$,                    'PARTICLE')
 call init_attribute_name1 (init_ele$, geometry$,                    'GEOMETRY')
+call init_attribute_name1 (init_ele$, lattice_type$,                'LATTICE_TYPE') ! For backwards compatibility
 call init_attribute_name1 (init_ele$, rel_tracking_charge$,         'REL_TRACKING_CHARGE')
 
 call init_attribute_name1 (def_parameter$, custom_attribute1$, 'CUSTOM_ATTRIBUTE1', override = .true.)

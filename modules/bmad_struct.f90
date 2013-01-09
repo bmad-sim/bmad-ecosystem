@@ -864,11 +864,25 @@ integer, parameter :: boris$ = 12, mad$ = 14
 integer, parameter :: time_runge_kutta$ = 15, custom2$ = 16
 integer, parameter :: n_methods$ = 16
 
-character(16), parameter :: calc_method_name(0:n_methods$) = [ &
+character(16), parameter :: tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
-      'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
-      'Taylor          ', 'Hard_Edge_Model ', 'Symp_Lie_Bmad   ', 'Static          ', &
+      'Linear          ', 'Garbage         ', 'Symp_Map        ', 'Custom          ', &
+      'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
       'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta', &
+      'Custom2         ']
+
+character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
+      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
+      'Garbage         ', 'Tracking        ', 'Garbage         ', 'Custom          ', &
+      'Garbage         ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Garbage         ', &
+      'Garbage         ', 'GARBAGE!        ', 'Garbage         ', 'Garbage         ', &
+      'Custom2         ']
+
+character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
+      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
+      'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
+      'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
+      'Garbage         ', 'GARBAGE!        ', 'MAD             ', 'Garbage        a', &
       'Custom2         ']
 
 integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
