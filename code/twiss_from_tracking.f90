@@ -21,9 +21,6 @@
 !   ref_orb0        -- Coord_struct: Reference orbit at lat%ele(0).
 !   d_orb(6)        -- real(rp), optional: Vector of offsets to use. 
 !                       If not present or zero bmad_com%d_orb(:) will be used.
-!   bmad_status      -- BMAD status common block
-!     %type_out      -- If True then the subroutine will type out
-!                         a warning message if a particle is lost in tracking.
 !
 ! Output:
 !   lat         -- lat_struct: Structure holding the Twiss parameters.

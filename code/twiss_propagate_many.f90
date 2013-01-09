@@ -27,9 +27,6 @@
 !                            = +1  -> Propagate forward
 !                            = -1  -> Propagate backward
 !   ix_branch    -- Integer, optional: Branch index. Default is 0 (main lattice).
-!   bmad_status  -- Common block status structure:
-!       %type_out      -- If True then will type a message if the modes are flipped.
-!       %exit_on_error -- If True then stop if there is an error.
 !
 ! Output:
 !   lat          -- lat_struct:

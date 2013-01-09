@@ -165,6 +165,7 @@ type bp_common_struct
   logical input_from_file     ! Input is from a lattice file?
   logical inline_call_active
   logical :: always_parse = .false. ! For debugging to force parsing
+  logical :: print_err = .true.  ! Print error messages?
 end type
 
 !
@@ -177,8 +178,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_set_attribute (how, ele, lat, delim, delim_found, 
-!                                            err_flag, print_err, pele, check_free)
+! Subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, pele, check_free)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file and set the appropriate value in an element.
@@ -191,7 +191,6 @@ contains
 !             "ele_name[attrib_name] = value" construct.
 !   lat -- lat_struct: Lattice. Needed if the attribute value is an expression
 !             that uses values of other elements.
-!   print_err    -- Logical: If False then do not print error messages.
 !   check_free   -- Logical, optional: If present and True then an error will be generated
 !                     if the attribute is not free to vary. Used by bmad_parser2.
 !
@@ -204,8 +203,7 @@ contains
 !                     information that cannot be stored in the ele argument.
 !-
 
-subroutine parser_set_attribute (how, ele, lat, delim, delim_found, &
-                                             err_flag, print_err, pele, check_free)
+subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, pele, check_free)
 
 use random_mod
 use wall3d_mod
@@ -235,7 +233,7 @@ character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
-logical delim_found, err_flag, logic, print_err, set_done, end_of_file, do_evaluate
+logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate
 logical, optional :: check_free
 
 ! Get next WORD.
@@ -479,19 +477,7 @@ if (ix_word == 0) then  ! no word
   return
 endif
 
-if (word(:ix_word) == 'REF') word = 'REFERENCE' ! allowed abbrev
-
-if (ele%key == rbend$) then
-  if (word == 'L') then
-    word = 'L_CHORD'
-  elseif (word == 'L_ARC') then
-    word = 'L'
-  endif
-endif
-
-if (ele%key == rfcavity$ .and. word == 'LAG') then   ! For MAD compatibility
-  word = 'PHI0'
-endif
+word = parser_translate_attribute_name (ele%key, word)
 
 ix_attrib = attribute_index(ele, word, attrib_word)
 if (attrib_free_problem(attrib_word)) return
@@ -800,12 +786,12 @@ if (attrib_word == 'FIELD') then
       case ('FIELD_SCALE');    r_ptr => em_mode%field_scale
 
       case ('GRID') 
-        call parse_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag, print_err)
+        call parse_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag)
         if (err_flag) return
         do_evaluate = .false.
 
       case ('MAP') 
-        call parse_map(em_mode%map, ele, lat, delim, delim_found, err_flag, print_err)
+        call parse_map(em_mode%map, ele, lat, delim, delim_found, err_flag)
         if (err_flag) return
         do_evaluate = .false.
 
@@ -1334,7 +1320,7 @@ logical is_problem, is_free
 is_problem = .false.
 
 if (logic_option(.false., check_free)) then
-  is_free = attribute_free (ele, attrib_name, lat, print_err)
+  is_free = attribute_free (ele, attrib_name, lat, bp_com%print_err)
   if (.not. is_free) then
     call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, &
                                       'FOR: ' // ele%name)
@@ -1442,6 +1428,42 @@ err = .false.
 end subroutine get_logical_real
 
 end subroutine parser_set_attribute 
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+function parser_translate_attribute_name (key, word) result (trans_word)
+
+implicit none
+
+character(*) word
+character(40) trans_word
+integer key
+
+!
+
+if (word == 'REF') then
+  trans_word = 'REFERENCE' ! allowed abbrev
+
+elseif (key == rbend$) then
+  if (word == 'L') then
+    trans_word = 'L_CHORD'
+  elseif (word == 'L_ARC') then
+    trans_word = 'L'
+  endif
+
+elseif (key == rfcavity$ .and. word == 'LAG') then   ! For MAD compatibility
+  trans_word = 'PHI0'
+else
+  trans_word = word
+endif
+
+end function parser_translate_attribute_name 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3261,7 +3283,7 @@ logical, optional :: stop_here, warn_only
 
 ! bp_com%error_flag is a common logical used so program will stop at end of parsing
 
-if (global_com%type_out) then
+if (global_com%type_out .and. bp_com%print_err) then
 
   nl = 0
 
@@ -5470,7 +5492,7 @@ end subroutine parser_debug_print_info
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_map (grid, ele, lat, delim, delim_found, err_flag, print_err)
+! parse_map (grid, ele, lat, delim, delim_found, err_flag)
 !
 ! Subroutine to parse a "map = {}" construct
 !
@@ -5486,7 +5508,7 @@ end subroutine parser_debug_print_info
 !    . ) },
 !-
 
-subroutine parse_map (map, ele, lat, delim, delim_found, err_flag, print_err)
+subroutine parse_map (map, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
@@ -5503,7 +5525,7 @@ integer ix_word, i_term
 character(1) delim, delim2
 character(40) word, word2, name
 
-logical err_flag, print_err, delim_found
+logical err_flag, delim_found
 
 !
 
@@ -5648,7 +5670,7 @@ end subroutine parse_map
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_grid (grid, ele, lat, delim, delim_found, err_flag, print_err)
+! parse_grid (grid, ele, lat, delim, delim_found, err_flag)
 !
 ! Subroutine to parse a "grid = {}" construct
 !
@@ -5664,7 +5686,7 @@ end subroutine parse_map
 !    . ) },
 !-
 
-subroutine parse_grid(grid, ele, lat, delim, delim_found, err_flag, print_err)
+subroutine parse_grid(grid, ele, lat, delim, delim_found, err_flag)
 
 
 type grid_pt_struct
@@ -5689,7 +5711,7 @@ integer ix_word, ix_word2
 integer pt_counter, n, i, ib, ie, im, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
 integer grid_dim,  num_dr, num_r0
 
-logical delim_found, delim_found2, err_flag, print_err, err_flag2
+logical delim_found, delim_found2, err_flag, err_flag2
 
 !
 
