@@ -1171,10 +1171,14 @@ case ('TRACKING_METHOD')
   ele%tracking_method = switch
 
 case ('SPIN_TRACKING_METHOD')
-  call get_switch (attrib_word, calc_method_name(1:), ele%spin_tracking_method, err_flag)
-
-case ('PTC_INTEGRATION_TYPE')
-  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag)
+  call get_switch (attrib_word, calc_method_name(1:), switch, err_flag)
+  if (err_flag) return
+  if (.not. valid_spin_tracking_method (ele, switch)) then
+    call parser_error ('NOT A VALID SPIN_TRACKING_METHOD: ' // word, &
+                       'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
+    return
+  endif
+  ele%spin_tracking_method = switch
 
 case ('MAT6_CALC_METHOD')
   call get_switch (attrib_word, calc_method_name(1:), switch, err_flag)
@@ -1185,6 +1189,9 @@ case ('MAT6_CALC_METHOD')
     return
   endif
   ele%mat6_calc_method = switch
+
+case ('PTC_INTEGRATION_TYPE')
+  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag)
 
 case ('PARTICLE')
   call get_switch (attrib_word, particle_name(:), ix, err_flag)
