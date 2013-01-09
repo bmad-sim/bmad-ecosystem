@@ -5253,7 +5253,7 @@ implicit none
 real(rp) x_scale, y_scale, dx_graph, dy_graph
 
 character(*), optional :: axis_to_scale
-character(1) ax_to_scale
+character(8) ax_to_scale
 
 logical, optional :: mirror_axes
 logical scale_xy
@@ -5332,8 +5332,10 @@ real(rp) tz_scale_ratio, tz_graph_ratio, div_t, dz_max
 
 div_t = (axis_t%max - axis_t%min) /axis_t%major_div
 
-axis_z%max = div_t * ceiling (0.99999 * axis_z%max / div_t)
-axis_z%min = div_t * floor (0.99999 * axis_z%min / div_t)
+if (abs(axis_z%max / div_t) < huge(1)) &
+    axis_z%max = div_t * ceiling (0.99999 * axis_z%max / div_t)
+if (abs(axis_z%min / div_t) < huge(1)) &
+    axis_z%min = div_t * floor (0.99999 * axis_z%min / div_t)
 
 ! Need to reduce the z-axis min/max range if there is not enought z-margin
 ! Only need to do this with axis_to_scale = "X" or "y".
