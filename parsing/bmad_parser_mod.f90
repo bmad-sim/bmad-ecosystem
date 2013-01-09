@@ -1447,6 +1447,8 @@ integer key
 
 !
 
+trans_word = word
+
 if (word == 'REF') then
   trans_word = 'REFERENCE' ! allowed abbrev
 
@@ -1459,8 +1461,6 @@ elseif (key == rbend$) then
 
 elseif (key == rfcavity$ .and. word == 'LAG') then   ! For MAD compatibility
   trans_word = 'PHI0'
-else
-  trans_word = word
 endif
 
 end function parser_translate_attribute_name 
