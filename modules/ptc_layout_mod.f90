@@ -90,7 +90,7 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (ele_pointer_struct), allocatable :: chain_ele(:)
-type (fibre), pointer :: fib
+type (fibre), pointer :: save_fib
 type (layout), pointer :: lay
 
 real(rp) ptc_orientation(3,3), ang(3)
@@ -128,11 +128,15 @@ do i = 0, ubound(lat%branch, 1)
     endif
 
     if (tracking_uses_end_drifts(ele)) then
-      call append_this_fibre(ele%ptc_fibre%previous%previous)
       call append_this_fibre(ele%ptc_fibre%previous)
     endif
 
+    save_fib => ele%ptc_fibre%next
     call append_this_fibre(ele%ptc_fibre, .true.)
+
+    if (tracking_uses_end_drifts(ele)) then
+      call append_this_fibre(save_fib)
+    endif
 
   enddo
 
@@ -155,22 +159,23 @@ contains
 subroutine append_this_fibre(ele_fib, do_point)
 
 type (fibre), pointer :: ele_fib
+type (fibre), pointer :: this_fib
 logical, optional :: do_point
 
 !
 
 call append_point(lay, ele_fib)
-fib => lay%end
+this_fib => lay%end
 
 if (ele%key == patch$ .or. ele%key == floor_shift$) then
-  fib%dir = ele%value(ptc_dir$)
+  this_fib%dir = ele%value(ptc_dir$)
 else
-  fib%dir = ele%orientation
+  this_fib%dir = ele%orientation
 endif
 
-fib%charge = ele%branch%param%rel_tracking_charge
+this_fib%charge = ele%branch%param%rel_tracking_charge
 
-if (logic_option(.false., do_point)) ele%ptc_fibre => fib
+if (logic_option(.false., do_point)) ele%ptc_fibre => this_fib
 
 end subroutine append_this_fibre
 
@@ -250,7 +255,7 @@ do ie = 0, branch%n_ele_track
     ele_inserted_in_layout = .false.
   endif
 
-  !
+  ! If there are end drifts then ele%ptc_fibre points to middle element.
 
   if (tracking_uses_end_drifts(ele)) then
     call create_hard_edge_drift (ele, upstream_end$, drift_ele)
@@ -261,8 +266,7 @@ do ie = 0, branch%n_ele_track
 
   if (tracking_uses_end_drifts(ele)) then
     call create_hard_edge_drift (ele, downstream_end$, drift_ele)
-    ! ele%ptc_fibre points to last PTC fibre.
-    call ele_to_fibre (drift_ele, ele%ptc_fibre, branch%param, .true., for_layout = .true.)
+    call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param, .true., for_layout = .true.)
   endif
 
   ele_inserted_in_layout = .true.
@@ -422,7 +426,7 @@ use madx_ptc_module
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
 type (internal_state) state
 type (normal_modes_struct) norm_mode
 type (normal_spin) normal
@@ -430,6 +434,7 @@ type (damapspin) da_map
 type (probe) x_probe
 type (probe_8) x_probe8  
 type (coord_struct) closed_orb
+type (fibre), pointer :: ptc_fibre
 
 real(rp) sigma_mat(6,6)
 real(dp) x(6), energy, deltap
@@ -439,12 +444,13 @@ real(dp) x(6), energy, deltap
 check_krein = .false.
 
 state = (default - nocavity0) + radiation0  ! Make sure have RF + radiation on.
+ptc_fibre => ptc_reference_fibre(ele)
 
 x = 0
-call find_orbit_x (x, state, 1.0d-5, fibre1 = ele%ptc_fibre%next)  ! find closed orbit
-call vec_ptc_to_bmad (x, ele%ptc_fibre%next%beta0, closed_orb%vec)
+call find_orbit_x (x, state, 1.0d-5, fibre1 = ptc_fibre)  ! find closed orbit
+call vec_ptc_to_bmad (x, ptc_fibre%beta0, closed_orb%vec)
 
-call get_loss (ele%ptc_fibre%parent_layout, energy, deltap)
+call get_loss (ptc_fibre%parent_layout, energy, deltap)
 norm_mode%e_loss = 1d9 * energy
 norm_mode%z%alpha_damp = deltap
 
@@ -463,7 +469,7 @@ x_probe8 = x_probe + da_map
 ! Bmad references things at the exit end.
 
 state = state+envelope0
-call track_probe (x_probe8, state, fibre1 = ele%ptc_fibre%next)
+call track_probe (x_probe8, state, fibre1 = ptc_fibre)
 da_map = x_probe8
 normal = da_map
 
@@ -479,13 +485,56 @@ norm_mode%a%emittance = normal%emittance(1)
 norm_mode%b%emittance = normal%emittance(2)
 norm_mode%z%emittance = normal%emittance(3)
 
-call sigma_mat_ptc_to_bmad (normal%s_ij0, ele%ptc_fibre%next%beta0, sigma_mat)
+call sigma_mat_ptc_to_bmad (normal%s_ij0, ptc_fibre%beta0, sigma_mat)
 
 call kill(normal)
 call kill(da_map)
 call kill(x_probe8)
 
 end subroutine ptc_emit_calc 
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Function ptc_reference_fibre (ele) result (ref_fibre)
+!
+! Routine to return the reference fibre for a bmad element.
+!
+! The reference fibre is the fibre whose upstream edge corresponds
+! to the downstream end fo the bmad element. 
+!
+! The reference fibre is so choisen since the referece edge of a
+! Bmad element where such things as Twiss parameters are computed
+! is the downstream edge while a PTC fibre uses the upstream edge 
+! for the reference.
+!
+! Module Needed:
+!   use patc_layout_mod
+!
+! Input:
+!   ele   -- ele_struct: Bmad element
+!
+! Output:
+!   ref_fibre -- fibre, pointer: Pointer to the corresponding reference fibre.
+!-
+
+function ptc_reference_fibre (ele) result (ref_fibre)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (fibre), pointer :: ref_fibre
+
+!
+
+if (tracking_uses_end_drifts(ele)) then
+  ref_fibre => ele%ptc_fibre%next%next
+else
+  ref_fibre => ele%ptc_fibre%next
+endif
+
+end function ptc_reference_fibre
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
