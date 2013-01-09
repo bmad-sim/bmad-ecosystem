@@ -4053,7 +4053,7 @@ logical has_drifts
 !
 
 has_drifts = .false.
-if (bmad_com%use_hard_edge_drifts) return
+if (.not. bmad_com%use_hard_edge_drifts) return
 
 select case (ele%key)
 case (lcavity$, rfcavity$, solenoid$)
