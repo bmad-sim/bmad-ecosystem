@@ -37,6 +37,7 @@ implicit none
 type (ele_struct) ele
 type (lat_struct) lat
 type (stack_file_struct), target :: current_file
+type (bp_common_struct) bp_save
 
 integer ix
 
@@ -46,7 +47,7 @@ character(1) delim
 character(20) :: r_name = 'set_ele_attribute'
 
 logical, optional :: err_print_flag
-logical err_flag, delim_found
+logical err_flag, delim_found, print_save, file_input_save
 
 ! Check if free
 
@@ -65,15 +66,20 @@ if (.not. attribute_free (ele, string(1:ix-1), lat, err_print_flag)) return
 ! This essentially is a wrapper for the bmad_parser routine parser_set_attribute.
 
 if (.not. allocated(bp_com%var)) call init_bmad_parser_common
+
+print_save = bp_com%print_err
+file_input_save = bp_com%input_from_file
+
 bp_com%input_from_file = .false.
 bp_com%parser_name = r_name
 bp_com%parse_line = string
 bp_com%current_file => current_file
+bp_com%print_err = logic_option(.true., err_print_flag)
 current_file%full_name = ''
 
-call parser_set_attribute (redef$, ele, lat, delim, delim_found, err_flag, &
-                                                  logic_option(.true., err_print_flag))
-
-bp_com%input_from_file = .true.
+call parser_set_attribute (redef$, ele, lat, delim, delim_found, err_flag)
+                                                  
+bp_com%input_from_file = file_input_save
+bp_com%print_err       = print_save
 
 end subroutine

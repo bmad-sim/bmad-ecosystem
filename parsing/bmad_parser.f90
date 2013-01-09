@@ -73,8 +73,8 @@ character(200) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save, line, use_line_str
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
-logical delim_found, arg_list_found, xsif_called, print_err, wild_here
-logical end_of_file, found, err_if_not_found, err, finished, exit_on_error
+logical delim_found, arg_list_found, xsif_called, wild_here
+logical end_of_file, ele_found, match_found, err_if_not_found, err, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, wildcards_permitted, matched
 logical auto_bookkeeper_saved, is_photon_branch, created_new_branch
 
@@ -217,7 +217,7 @@ parsing_loop: do
   if (delim == ':' .and. bp_com%parse_line(1:1) == ':') then
     ix = index(bp_com%parse_line, '[')
     if (ix /= 0) then
-      word_1 = trim(word_1) // ':' // bp_com%parse_line(:ix-1)
+      word_1 = trim(word_1) // ':' // upcase(bp_com%parse_line(:ix-1))
       bp_com%parse_line = bp_com%parse_line(ix+1:)
       delim = '['
       ix_word = len_trim(word_1)
@@ -351,7 +351,7 @@ parsing_loop: do
         call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
-      call parser_set_attribute (def$, bp_com%beam_ele, in_lat, delim, delim_found, err, .true.)
+      call parser_set_attribute (def$, bp_com%beam_ele, in_lat, delim, delim_found, err)
     enddo
     cycle parsing_loop
   endif
@@ -421,8 +421,7 @@ parsing_loop: do
       else
         ele => in_lat%ele(ix)
         bp_com%parse_line = parse_line_save
-        call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
-                                                    err, .true., plat%ele(ele%ixx))
+        call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx))
         if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
       endif
       bp_com%parse_line = ''  ! Might be needed in case of error.
@@ -451,8 +450,9 @@ parsing_loop: do
 
     ! When setting an attribute for all elements then suppress error printing
 
-    found = .false.
-    print_err = (key == 0 .and. word_1 /= '*') ! False only when word_1 = "*"
+    ele_found = .false.
+
+    !! print_err = (key == 0 .and. word_1 /= '*')   ! False only when word_1 = "*"
 
     this_ele%key = key
     if (key == 0) this_ele%key = overlay$
@@ -468,19 +468,24 @@ parsing_loop: do
       ! No wild card matches permitted for these.
       if (ele%key == init_ele$ .or. ele%key == def_beam$ .or. &
           ele%key == def_parameter$ .or. ele%key == def_beam_start$) cycle
+      if (.not. match_wild(ele%name, trim(name))) cycle
+      ! 
+      if (key == 0 .and. wild_here) then
+        if (attribute_index(ele, word_2) < 1) cycle
+      endif
       bp_com%parse_line = parse_line_save
-      found = .true.
-      call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
-                                                err, print_err, plat%ele(ele%ixx))
-      if (.not. err .and. delim_found) then
-        call parser_error ('BAD DELIMITER: ' // delim)
-        exit
+      ele_found = .true.
+      call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx))
+      if (err .or. delim_found) then
+        if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
+        bp_com%parse_line = '' 
+        cycle parsing_loop
       endif
     enddo
 
     bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.
 
-    if (.not. found .and. err_if_not_found) call parser_error ('ELEMENT NOT FOUND: ' // word_1)
+    if (.not. ele_found .and. err_if_not_found) call parser_error ('ELEMENT NOT FOUND OR BAD ATTRIBUTE.')
 
     cycle parsing_loop
   endif
@@ -593,25 +598,25 @@ parsing_loop: do
   ! Check for valid element key name or if element is part of a element key.
   ! If none of the above then we have an error.
 
-  found = .false.  ! found a match?
+  match_found = .false.  ! found a match?
 
   call find_indexx2 (word_2, in_name, in_indexx, 0, n_max, i)
   if (i >= 0 .and. i < n_max) then ! i < n_max avoids "abc: abc" construct.
     in_lat%ele(n_max) = in_lat%ele(i)
     in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
     in_lat%ele(n_max)%name = word_1
-    found = .true.
+    match_found = .true.
   endif
 
-  if (.not. found) then
+  if (.not. match_found) then
     in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
     if (in_lat%ele(n_max)%key > 0) then
       call set_ele_defaults (in_lat%ele(n_max))
-      found = .true.
+      match_found = .true.
     endif
   endif
 
-  if (.not. found) then
+  if (.not. match_found) then
     call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
                   'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
     cycle parsing_loop
@@ -653,8 +658,7 @@ parsing_loop: do
                     'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       exit
     endif
-    call parser_set_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, &
-                    err, .true., plat%ele(n_max))
+    call parser_set_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, err, plat%ele(n_max))
     if (err) cycle parsing_loop
   enddo
 

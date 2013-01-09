@@ -65,7 +65,7 @@ character(280) parse_line_save, call_file
 logical, optional :: make_mats6, err_flag
 logical parsing, found, delim_found, xsif_called, err, key_here
 logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
-logical print_err, check, err_if_not_found
+logical check, err_if_not_found
 
 ! Init...
 
@@ -210,8 +210,7 @@ parsing_loop: do
         call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         parsing = .false.
       else
-        call parser_set_attribute (def$, beam_ele, lat, delim, delim_found, &
-                                        err, .true., check_free = .true.)
+        call parser_set_attribute (def$, beam_ele, lat, delim, delim_found, err, check_free = .true.)
         if (err) cycle parsing_loop
       endif
     enddo
@@ -294,7 +293,6 @@ parsing_loop: do
     endif
 
     found = .false.
-    print_err = (word_1 /= '*')
 
     do i = 1, n_loc
       ele => eles(i)%ele
@@ -305,8 +303,7 @@ parsing_loop: do
         if (word_1 /= ele%name) cycle
       endif
       bp_com%parse_line = parse_line_save
-      call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
-                                                err, print_err, check_free = check)
+      call parser_set_attribute (redef$, ele, lat, delim, delim_found, err, check_free = check)
       if (.not. err .and. delim_found) then
         call parser_error ('BAD DELIMITER: ' // delim)
         exit
@@ -468,7 +465,7 @@ parsing_loop: do
       n_max = n_max - 1
       cycle parsing_loop
     else
-      call parser_set_attribute (def$, ele, lat, delim, delim_found, err, .true., pele)
+      call parser_set_attribute (def$, ele, lat, delim, delim_found, err, pele)
       call set_flags_for_changed_attribute (lat, ele)
       if (err) then
         n_max = n_max - 1
