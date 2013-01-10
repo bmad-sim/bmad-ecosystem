@@ -591,7 +591,6 @@ if (bp_com%error_flag .and. global_com%exit_on_error) then
   stop
 endif
 
-if (associated (plat%ele))      deallocate (plat%ele)
 if (allocated(lat_name))        deallocate (lat_name, lat_indexx)
 
 call deallocate_lat_pointers (lat2)

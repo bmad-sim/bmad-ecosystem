@@ -137,7 +137,6 @@ call init_lat (in_lat, 1000)
 call init_lat (lat2, 20)
 allocate (in_indexx(0:1000), in_name(0:1000))
 
-nullify (plat%ele)
 call allocate_plat (plat, ubound(in_lat%ele, 1))
 
 do i = 0, ubound(in_lat%ele, 1)
@@ -1145,7 +1144,6 @@ if (logic_option (.true., do_dealloc)) then
     endif
   enddo
 
-  if (associated (plat%ele))             deallocate (plat%ele)
   if (allocated (seq_indexx))            deallocate (seq_indexx, seq_name)
   if (allocated (in_indexx))             deallocate (in_indexx, in_name)
   if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
