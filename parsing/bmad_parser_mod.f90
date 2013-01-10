@@ -120,7 +120,7 @@ type parser_ele_struct
 end type
 
 type parser_lat_struct
-  type (parser_ele_struct), pointer :: ele(:) => null()
+  type (parser_ele_struct), allocatable :: ele(:) 
 end type
 
 !
@@ -4256,21 +4256,18 @@ Subroutine allocate_plat (plat, n_ele_max)
 
 implicit none
 
-type (parser_lat_struct) plat
-type (parser_ele_struct), pointer :: temp_pele(:)
+type (parser_lat_struct) plat, temp_plat
 
 integer i, n_now, n_ele_max
 
 ! assume all the arrays have the same size
 
-if (associated(plat%ele)) then
+if (allocated(plat%ele)) then
   n_now = ubound(plat%ele, 1)
-  allocate (temp_pele(0:n_now))
-  temp_pele = plat%ele
-  deallocate (plat%ele)
+  call move_alloc (plat%ele, temp_plat%ele)
   allocate (plat%ele(0:n_ele_max))
-  plat%ele(0:n_now) = temp_pele
-  deallocate (temp_pele)
+  plat%ele(0:n_now) = temp_plat%ele
+  deallocate (temp_plat%ele)
 
 else
   allocate (plat%ele(0:n_ele_max))
