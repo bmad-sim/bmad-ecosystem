@@ -3635,6 +3635,8 @@ super_ele = super_ele_saved        !
 n_inserted = 0
 lat => branch%lat
 
+branch%ele(:)%old_is_on = .false.  ! Tag elements.
+
 ! If no refrence point then superposition is simple
 
 if (pele%ref_name == blank_name$) then
@@ -3652,7 +3654,7 @@ do
 
   have_inserted = .false.
 
-  ele_loop: do i_ele = 1, branch%n_ele_max
+  ele_loop: do i_ele = 0, branch%n_ele_max
 
     ref_ele => branch%ele(i_ele)
      
