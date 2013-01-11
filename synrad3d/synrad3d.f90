@@ -29,7 +29,7 @@ type (random_state_struct) ran_state
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack
+real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack, photon_number_factor
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
@@ -520,9 +520,9 @@ else
 
 endif
 
-!
+! photon_number_factor -- (Num actual photons emitted per beam particle) / (Num macro photons generated in simulation)
 
-photons(:)%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
+photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / &
                                              (6 * h_bar_planck * c_light * n_photon_generated)
 
 ! Write results
@@ -541,8 +541,8 @@ do i = 1, n_photon_array
   photon => photons(i)
   iu = 1
   if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
-  write (iu, '(2i8, f12.4, es11.3, 2x, a)') i, photon%n_wall_hit, photon%start%energy, photon%intensity, &
-                                             '! index, n_wall_hit, eV, intensity'
+  write (iu, '(2i8, f12.4, es11.3, 2x, a)') i, photon%n_wall_hit, photon%start%energy, photon_number_factor, &
+                                             '! index, n_wall_hit, eV, number_factor'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
   write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 

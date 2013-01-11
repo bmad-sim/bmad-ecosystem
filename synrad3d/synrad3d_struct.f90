@@ -30,12 +30,11 @@ type sr3d_photon_wall_hit_struct
 end type
 
 ! This structure defines the full track of the photon from start to finish
-! %start -- Starting position.
-! %old   -- Used by the tracking code. Not useful otherwise.
-! %now   -- Present position. At the end of tracking, %now will be the final position.
+! %start           -- Starting position.
+! %old             -- Used by the tracking code. Not useful otherwise.
+! %now             -- Present position. At the end of tracking, %now will be the final position.
 ! %wall_hit(:)     -- Records the positions at which the photon hit the wall
 !                       including the final position. The array bounds are: %hit(1:%n_hit) 
-! %intensity       -- Intensity of this macro-photon in Photons/(beam_particle*turn).
 ! %crossed_lat_end -- Did the photon cross from the end of the lattice to the beginning
 !                       or vice versa?
 ! %hit_antechamber -- Did the photon hit the antechamber at the final position?
@@ -45,7 +44,6 @@ end type
 
 type sr3d_photon_track_struct
   type (sr3d_photon_coord_struct) start, old, now  ! coords:
-  real(rp) intensity          ! Intensity of this macro-photon in Photons/(beam_particle*turn)
   logical :: crossed_lat_end = .false.     ! Photon crossed through the lattice beginning or end?
   logical :: hit_antechamber = .false.     
   integer ix_photon                        ! Photon index.
