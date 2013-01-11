@@ -13,27 +13,28 @@ real(rp), parameter :: fourpi = 4 * pi
 real(rp), parameter :: sqrt_2 = 1.41421356237310d0
 real(rp), parameter :: sqrt_3 = 1.73205080757d0
 
-real(rp), parameter :: e_mass = 0.510998910d-3     ! DO NOT USE! In GeV
-real(rp), parameter :: p_mass   = 0.938272046d0    ! DO NOT USE! In GeV
+real(rp), parameter :: e_mass = 0.510998910d-3           ! DO NOT USE   ! In GeV
+real(rp), parameter :: p_mass   = 0.938272046d0          ! DO NOT USE   ! In GeV
 
-real(rp), parameter :: m_electron = 0.510998910d6  ! Mass in eV
-real(rp), parameter :: m_proton   = 0.938272046d9  ! Mass in eV
-real(rp), parameter :: m_muon     = 105.65836668d6 ! Mass in eV
+real(rp), parameter :: m_electron = 0.510998910d6        ! Mass [eV]
+real(rp), parameter :: m_proton   = 0.938272046d9        ! Mass [eV]
+real(rp), parameter :: m_muon     = 105.65836668d6       ! Mass [eV]
 
-real(rp), parameter :: c_light = 2.99792458d8   ! speed of light
-real(rp), parameter :: r_e = 2.8179402894d-15      ! classical electron radius
-real(rp), parameter :: r_p = r_e * m_electron / m_proton  ! proton radius
-real(rp), parameter :: e_charge = 1.6021892d-19 ! electron charge
-
-real(rp), parameter :: h_planck = 4.13566733d-15      ! eV*sec Planck's constant
-real(rp), parameter :: h_bar_planck = 6.58211899d-16  ! eV*sec h_planck/twopi
+real(rp), parameter :: c_light = 2.99792458d8            ! speed of light
+real(rp), parameter :: r_e = 2.8179402894d-15            ! classical electron radius
+real(rp), parameter :: r_p = r_e * m_electron / m_proton ! proton radius
+real(rp), parameter :: e_charge = 1.6021892d-19          ! electron charge [Coul]
+real(rp), parameter :: h_planck = 4.13566733d-15         ! Planck's constant [eV*sec]
+real(rp), parameter :: h_bar_planck = 6.58211899d-16     ! h_planck/twopi [eV*sec]
 
 real(rp), parameter :: mu_0_vac = fourpi * 1e-7                     ! Permeability of free space
 real(rp), parameter :: eps_0_vac = 1 / (c_light*c_light * mu_0_vac) ! Permittivity of free space
 
 ! Radiation constants
 
-real(rp), parameter :: classical_radius_factor = r_e * m_electron
+real(rp), parameter :: classical_radius_factor = 1.439964416d-9  ! e^2 / (4 pi eps_0) [m*eV]
+                                                                 !  = classical radius * mass. 
+                                                                 ! Is same for all particles of charge +/- 1.
 
 ! Anomalous gyro-magnetic moment
 
