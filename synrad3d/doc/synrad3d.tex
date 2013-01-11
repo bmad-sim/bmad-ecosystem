@@ -1139,13 +1139,13 @@ Subsequently, \vn{dat_file} contains 4 lines for each photon
 generated. An example of the output generated for two photons is shown
 below.
 \begin{example}
- 1       2     71.52  6.614E-03  ! index, n_wall_hits, eV, intensity
+ 1       2     71.52  6.614E-03  ! index, n_wall_hits, eV, photon_number_factor
     0.000542    0.000037   -0.000073    0.000080       9.015    1.000000  ! Start position
     0.015165    0.004010    0.023538    0.017410      18.661    0.999840  ! End position
     7.906054  ! photon_track_len
     0.001911  ! photon_track_len - ds_beam
       37   DRIFT             ! Lat ele index and class
-       2       1     11.25  6.614E-03  ! index, n_reflect, eV, intensity
+       2       1     11.25  6.614E-03  ! index, n_reflect, eV, photon_number_factor
    -0.000604   -0.000046    0.000003    0.000826       9.036    1.000000  ! Start position
     0.013187   -0.004171   -0.023902   -0.009377      15.524    0.999947  ! End position
     9.968419  ! photon_track_len
@@ -1154,16 +1154,16 @@ below.
 \end{example}
 The first line gives the photon index number, the number of times the
 photon struck the vacuum chamber (including the final hit where it is
-adsorbed), the photon energy (in eV), and the photon intensity.
+adsorbed), the photon energy (in eV), and the \vn{photon_number_factor}.
 
-The photon intensity is always the same for all photons in a given
+The \vn{photon_number_factor} is the same for all photons in a given
 run. If $N_{\gamma}$ is the total number of photons per beam particle
-emitted in one revolution, then the photon intensity in a simulation
-run containing $N_{sim}$ photons is defined as $I=N_{\gamma}/N_{sim}.$
+emitted in one revolution, then the \vn{photon_number_factor} $F$ in a simulation
+run containing $N_{sim}$ photons is defined as $F = N_{\gamma}/N_{sim}.$
 Thus, if a simulation run is done using $N_{sim}$ photons, and $N_L$
 is the number of photon absorption sites in a longitudinal region of
 length $L$, then the average number of photons per beam particle per
-unit length absorbed in this region is $(N_L/L)\times I.$ This number
+unit length absorbed in this region is $(N_L/L)\times F.$ This number
 is needed as input for electron cloud simulation programs.
 
 In the second line, the initial position of the generated photon is
