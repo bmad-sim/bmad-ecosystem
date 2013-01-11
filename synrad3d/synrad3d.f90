@@ -542,7 +542,7 @@ do i = 1, n_photon_array
   iu = 1
   if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
   write (iu, '(2i8, f12.4, es11.3, 2x, a)') i, photon%n_wall_hit, photon%start%energy, photon_number_factor, &
-                                             '! index, n_wall_hit, eV, number_factor'
+                                             '! index, n_wall_hit, eV, photon_number_factor'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
   write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 
