@@ -795,6 +795,10 @@ case (wiggler$)
   endif
   k1 = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_pc))**2
 
+  end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) & 
+                   - 1/sqrt(1 - (end_orb%vec(2) / rel_pc)**2 - (end_orb%vec(4) / rel_pc)**2)) & 
+                   - 0.5*k1*length / k_z**2 * (1 - rel_pc**2))
+
   ! 1/2 of the octupole octupole kick at the entrance face.
 
   end_orb%vec(4) = end_orb%vec(4) + k1 * length * k_z**2 * end_orb%vec(3)**3 / 3
@@ -808,10 +812,13 @@ case (wiggler$)
   ! 1/2 of the octupole octupole kick at the exit face.
 
   end_orb%vec(4) = end_orb%vec(4) + k1 * length * k_z**2 * end_orb%vec(3)**3 / 3
+  
+  end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) & 
+                   - 1/sqrt(1 - (end_orb%vec(2) / rel_pc)**2 - (end_orb%vec(4) / rel_pc)**2)) & 
+                   - 0.5*k1*length / k_z**2 * (1 - rel_pc**2))
+  
   call offset_particle (ele, end_orb, param, unset$)
-  end_orb%vec(5) = start2_orb%vec(5) + length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) - &
-                   1/sqrt(1 - (end_orb%vec(2) / rel_pc)**2 - (end_orb%vec(4) / rel_pc)**2)) &
-                   - 0.5*k1*length / k_z**2 * (1 - rel_pc**2)
+   
   call track1_low_energy_z_correction (end_orb, ele, param)
 
   end_orb%t = start2_orb%t + (ele%value(l$) - 0.5*k1*length / k_z**2 * rel_pc**2) / (end_orb%beta * c_light)
