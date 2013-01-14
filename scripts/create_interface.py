@@ -593,8 +593,18 @@ else
 endif
 '''
 
-fc.to_c_trans           = ''
-fc.test_pat             = '''\
+fc.to_c_var        = ['character(STR_LEN+1), pointer :: f_NAME', 'character(STR_LEN+1), target :: a_NAME']
+fc.to_c_trans      = '''\
+if (associated(F%NAME)) then
+  a_NAME = trim(F%NAME) // c_null_char 
+  f_NAME => a_NAME
+else
+  nullify(f_NAME)
+endif
+'''
+fc.to_c2_call = 'c_loc(f_NAME)'
+
+fc.test_pat        = '''\
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
@@ -1762,7 +1772,8 @@ interface
   f_face.write ('    import ' + ', '.join(import_set) + '\n')
   f_face.write ('    type(c_ptr), value :: C\n')
   for arg_type, args in to_c2_call_def.items():
-    f_face.write ('    ' + arg_type + ' :: ' + ', '.join(args) + '\n')
+    for i in range(1+(len(args)-1)/7): 
+      f_face.write ('    ' + arg_type + ' :: ' + ', '.join(args[i*7:i*7+7]) + '\n')
 
   f_face.write ('''  end subroutine
 end interface
@@ -1847,7 +1858,8 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 
   f_face.write ('!! f_side.to_f2_var && f_side.bindc_type :: f_side.bindc_name\n')
   for arg_type, arg_list in f2_arg_list.items():
-    f_face.write(arg_type + ' :: ' + ', '.join(arg_list) + '\n')
+    for i in range(1+(len(arg_list)-1)/7): 
+      f_face.write(arg_type + ' :: ' + ', '.join(arg_list[i*7:i*7+7]) + '\n')
 
   f_face.write('''
 call c_f_pointer (Fp, F)
