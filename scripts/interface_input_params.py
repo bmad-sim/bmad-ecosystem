@@ -98,6 +98,14 @@ c_side_name_translation = {
 output_dir = 'interface_test'
 test_dir = 'interface_test'
 
+# Lower bounds for allocatable and pointer arrays on the fortran side
+
+def f_side_lbound (id_name):
+  if id_name == 'branch%ele':
+    return '0'
+  else:
+    return '1'
+
 # Function to customize the interface code.
 
 def customize(struct_definitions):

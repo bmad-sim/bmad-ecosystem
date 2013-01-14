@@ -157,6 +157,7 @@ endif
 to_f2_trans_pointer = \
 '''if (associated(F%NAME)) then
   if (n1_NAME == 0 .or. any(shape(F%NAME) /= [DIMS])) deallocate(F%NAME)
+  if (any(lbound(F%NAME) /= LBOUND)) deallocate(F%NAME)
 endif
 if (n1_NAME /= 0) then
   call c_f_pointer (z_NAME, f_NAME, [TOTDIM])
@@ -421,10 +422,11 @@ if (n1_NAME == 0) then
 else
   if (associated(F%NAME)) then
     if (n1_NAME == 0 .or. any(shape(F%NAME) /= [n1_NAME])) deallocate(F%NAME)
+    if (any(lbound(F%NAME) /= LBOUND)) deallocate(F%NAME)
   endif
-  if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME))
+  if (.not. associated(F%NAME)) allocate(F%NAME(LBOUND:n1_NAME+LBOUND-1))
   do jd1 = 1, n1_NAME
-    call KIND_to_f (z_NAME(jd1), c_loc(F%NAME(jd1)))
+    call KIND_to_f (z_NAME(jd1), c_loc(F%NAME(jd1+LBOUND-1)))
   enddo
 endif
 '''
@@ -485,11 +487,12 @@ if (n1_NAME == 0) then
 else
   if (associated(F%NAME)) then
     if (n1_NAME == 0 .or. any(shape(F%NAME) /= [n1_NAME, n2_NAME])) deallocate(F%NAME)
+    if (any(lbound(F%NAME) /= LBOUND)) deallocate(F%NAME)
   endif
-  if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME, n2_NAME))
+  if (.not. associated(F%NAME)) allocate(F%NAME(LBOUND:n1_NAME+LBOUND-1, LBOUND:n2_NAME+LBOUND-1))
   do jd1 = 1, n1_NAME
   do jd2 = 1, n2_NAME
-    call KIND_to_f (z_NAME(n2_NAME*(jd1-1) + jd2), c_loc(F%NAME(jd1,jd2)))
+    call KIND_to_f (z_NAME(n2_NAME*(jd1-1) + jd2), c_loc(F%NAME(jd1+LBOUND-1,jd2+LBOUND-1)))
   enddo
   enddo
 endif
@@ -554,10 +557,11 @@ if (n1_NAME == 0) then
 else
   if (associated(F%NAME)) then
     if (n1_NAME == 0 .or. any(shape(F%NAME) /= [n1_NAME, n2_NAME, n3_NAME])) deallocate(F%NAME)
+    if (any(lbound(F%NAME) /= LBOUND)) deallocate(F%NAME)
   endif
-  if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME, n2_NAME, n3_NAME))
+  if (.not. associated(F%NAME)) allocate(F%NAME(LBOUND:n1_NAME+LBOUND-1, LBOUND:n2_NAME+LBOUND-1, LBOUND:n3_NAME+LBOUND-1))
   do jd1 = 1, n1_NAME;  do jd2 = 1, n2_NAME;  do jd3 = 1, n3_NAME
-    call KIND_to_f (z_NAME(n3_NAME*n2_NAME*(jd1-1) + n3_NAME*(jd2-1) + jd3), c_loc(F%NAME(jd1,jd2,jd3)))
+    call KIND_to_f (z_NAME(n3_NAME*n2_NAME*(jd1-1) + n3_NAME*(jd2-1) + jd3), c_loc(F%NAME(jd1+LBOUND-1,jd2+LBOUND-1,jd3+LBOUND-1)))
   enddo;  enddo;  enddo
 endif
 '''
@@ -664,11 +668,12 @@ if (n1_NAME == 0) then
 else
   if (associated(F%NAME)) then
     if (n1_NAME == 0 .or. any(shape(F%NAME) /= [n1_NAME])) deallocate(F%NAME)
+    if (any(lbound(F%NAME) /= LBOUND)) deallocate(F%NAME)
   endif
-  if (.not. associated(F%NAME)) allocate(F%NAME(n1_NAME))
+  if (.not. associated(F%NAME)) allocate(F%NAME(LBOUND:n1_NAME+LBOUND-1))
   do jd1 = 1, n1_NAME
     call c_f_pointer (z_NAME(jd1), f_NAME)
-    call to_f_str(f_NAME, F%NAME(jd1))
+    call to_f_str(f_NAME, F%NAME(jd1+LBOUND-1))
   enddo
 endif
 '''
@@ -1518,9 +1523,11 @@ for struct in struct_definitions:
   for arg in struct.arg:
     n_dim = len(arg.array)
     p_type = arg.pointer_type
+    f_side_id_name = struct.f_name + '%' + arg.f_name 
 
     arg.c_side.test_pat            = arg.c_side.test_pat.replace('STR_LEN', arg.kind)
     arg.f_side.to_c_var            = [var.replace('STR_LEN', arg.kind) for var in arg.f_side.to_c_var]
+    arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('LBOUND', params.f_side_lbound(f_side_id_name))
 
     if arg.type == 'type':
       kind = arg.kind[:-7]
