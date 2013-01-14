@@ -1158,7 +1158,7 @@ cc.test_pat    = '''\
   if (ix_patt < 3) 
     C.NAME == NULL;
   else {
-    C.NAME = new string(4, ' ');
+    C.NAME = new string(STR_LEN, ' ');
     for (unsigned int i = 0; i < C.NAME->size(); i++) {
       (*C.NAME)[i] = 'a' + (101 + i + XXX + offset) % 26; }
   }
@@ -1773,8 +1773,9 @@ interface
       line += ', ' + arg.f_side.to_c2_f2_sub_arg
   line += ') bind(c)\n'
 
+  f_face.write ('  !! f_side.to_c2_f2_sub_arg\n')
   f_face.write (wrap_line(line, '  ', ' &'))
-
+  f_face.write ('    !! f_side.bindc_type :: f_side.bindc_name\n')
   f_face.write ('    import ' + ', '.join(import_set) + '\n')
   f_face.write ('    type(c_ptr), value :: C\n')
   for arg_type, args in to_c2_call_def.items():
@@ -1789,9 +1790,11 @@ type(ZZZ_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 '''.replace('ZZZ', s_name))
 
+  f_face.write ('!! f_side.to_c_var\n')
   for arg in struct.arg:
     if arg.f_side.to_c_var != '': f_face.write (arg.f_side.to_c_var + '\n')
 
+  f_face.write ('!! f_side.to_c_extra_var_type :: f_side.to_c_extra_var_name\n')
   for arg in struct.arg:
     if arg.f_side.to_c_extra_var_name != '': f_face.write( \
               arg.f_side.to_c_extra_var_type + ' :: ' + arg.f_side.to_c_extra_var_name + '\n')
@@ -1838,6 +1841,7 @@ end subroutine ZZZ_to_c
 
 '''.replace('ZZZ', struct.short_name))
 
+  f_face.write ('!! f_side.to_c2_f2_sub_arg\n')
   line = 'subroutine ZZZ_to_f2 (Fp'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
     line += ', ' + arg.f_side.to_c2_f2_sub_arg
@@ -1861,6 +1865,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
     if not arg.f_side.to_f2_extra_var_type in f2_arg_list: f2_arg_list[arg.f_side.to_f2_extra_var_type] = []
     f2_arg_list[arg.f_side.to_f2_extra_var_type].append(arg.f_side.to_f2_extra_var_name)
 
+  f_face.write ('!! f_side.to_f2_extra_var_type :: f_side.to_f2_extra_var_name\n')
   for arg_type, arg_list in f2_arg_list.items():
     f_face.write(arg_type + ' :: ' + ', '.join(arg_list) + '\n')
 
