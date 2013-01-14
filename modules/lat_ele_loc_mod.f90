@@ -374,7 +374,7 @@ implicit none
 
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_pointer_struct), allocatable :: l_temp(:)
-integer n, n_old
+integer n, n_old, nn
 logical, optional :: save_old, exact
 
 !
@@ -390,7 +390,8 @@ if  (size(eles) == n) return
 if (logic_option (.false., save_old)) then
   call move_alloc (eles, l_temp)
   allocate (eles(n))
-  eles(1:size(l_temp)) = l_temp
+  nn = min(size(l_temp), n)
+  eles(1:nn) = l_temp(1:nn)
   deallocate (l_temp)
 else
   deallocate (eles)
