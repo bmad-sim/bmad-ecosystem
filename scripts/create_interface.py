@@ -129,8 +129,7 @@ class f_side_trans_class:
     self.test_pat = 'rhs = XXX + offset; F%NAME = NNN\n'
     self.to_c2_f2_sub_arg = 'z_NAME'
     self.to_f2_trans = 'F%NAME = z_NAME'
-    self.to_f2_extra_var_name = ''
-    self.to_f2_extra_var_type = ''
+    self.to_f2_var = []
     self.to_c_var = []
     self.to_c_trans = ''
     self.size_var = []              # For communicating the size of allocatable and pointer variables
@@ -317,8 +316,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
     f_side_trans[type, dim, PTR] = f_side_trans_class()
     fp = f_side_trans[type, dim, PTR]
-    fp.to_f2_extra_var_name = 'f_NAME(:)'
-    fp.to_f2_extra_var_type = f.bindc_type + ', pointer'
+    fp.to_f2_var = [f.bindc_type + ', pointer :: f_NAME(:)'] 
     fp.bindc_type = 'type(c_ptr), value'
     fp.bindc_name = 'z_NAME'
 
@@ -327,7 +325,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
     if dim == 0:
       fp.to_c2_call = 'c_loc(F%NAME)'
-      fp.to_f2_extra_var_name = 'f_NAME'
+      fp.to_f2_var = [f.bindc_type + ', pointer :: f_NAME'] 
       fp.to_f2_trans = to_f2_trans_pointer0.replace('SET', 'F%NAME = f_NAME')
 
       fp.to_c_trans = '''\
@@ -357,7 +355,7 @@ endif
         fp.to_c2_call = 'c_loc(fscaler2scaler(F%NAME, n_NAME))'
 
       if type == STRUCT:
-        fp.to_f2_extra_var_type = 'type(KIND_struct), pointer'
+        fp.to_f2_var = ['type(KIND_struct), pointer :: f_NAME'] 
         fp.test_pat = fp.test_pat.replace('SET', 'call set_KIND_test_pattern (F%NAME, ix_patt)')
         fp.to_f2_trans = '''\
 if (n_NAME == 0) then
@@ -403,8 +401,7 @@ else
         fp.bindc_name  = 'z_NAME(*)'
         fp.bindc_type  = 'type(c_ptr)'
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
-        fp.to_f2_extra_var_type = ''
-        fp.to_f2_extra_var_name = ''
+        fp.to_f2_var = []
         fp.test_pat    = tp1 + x2 + jd1_loop + x4 + \
                         'call set_KIND_test_pattern (F%NAME(jd1+lb1), ix_patt+jd1)\n' + '  enddo\n' + 'endif\n'
         ## fp.equality_test = fp.equality_test.replace
@@ -466,8 +463,7 @@ else
         fp.bindc_name  = 'z_NAME(*)'
         fp.bindc_type  = 'type(c_ptr)'
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
-        fp.to_f2_extra_var_type = ''
-        fp.to_f2_extra_var_name = ''
+        fp.to_f2_var   = []
         fp.test_pat    = tp2 + x2 + jd1_loop + x2 + jd2_loop + x4 + \
                         'call set_KIND_test_pattern (F%NAME(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)\n' + \
                          '  enddo\n' + '  enddo\n' + 'endif\n'
@@ -535,8 +531,7 @@ else
         fp.bindc_name  = 'z_NAME(*)'
         fp.bindc_type  = 'type(c_ptr)'
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
-        fp.to_f2_extra_var_type = ''
-        fp.to_f2_extra_var_name = ''
+        fp.to_f2_var   = []
         fp.test_pat    = tp3 + x2 + jd1_loop + x2 + jd2_loop + x2 + jd3_loop + x4 + \
                         'call set_KIND_test_pattern (F%NAME(jd1+lb1,jd2+lb2,jd3+lb3), ix_patt+jd1+2*jd2+3*jd3)\n' + \
                          '  enddo\n' + '  enddo\n' + '  enddo\n' + 'endif\n'
@@ -587,7 +582,7 @@ f_side_trans[CHAR, 0, NOT].to_f2_trans   = 'call to_f_str(z_NAME, F%NAME)'
 
 f_side_trans[CHAR, 0, PTR] = copy.deepcopy(f_side_trans[INT, 0, PTR])
 fc = f_side_trans[CHAR, 0, PTR] 
-fc.to_f2_extra_var_type = 'character(c_char), pointer'
+fc.to_f2_var = ['character(c_char), pointer :: f_NAME']
 fc.to_f2_trans          = '''\
 call c_f_pointer (z_NAME, f_NAME)
 if (associated(f_NAME)) then
@@ -615,8 +610,7 @@ endif
 f_side_trans[CHAR, 1, NOT] = copy.deepcopy(f_side_trans[STRUCT, 1, NOT])
 fc = f_side_trans[CHAR, 1, NOT]
 fc.bindc_name    = 'z_NAME(*)'
-fc.to_f2_extra_var_type = 'character(c_char), pointer'
-fc.to_f2_extra_var_name = 'f_NAME'
+fc.to_f2_var     = ['character(c_char), pointer :: f_NAME']
 fc.test_pat      = '''\
 do jd1 = lbound(F%NAME, 1), ubound(F%NAME, 1)
   do jd = 1, len(F%NAME(jd1))
@@ -640,10 +634,9 @@ fc.to_c_var += ['a_NAME(DIM1) :: character(STR_LEN+1)']
 
 f_side_trans[CHAR, 1, PTR] = copy.deepcopy(f_side_trans[STRUCT, 1, PTR])
 fc = f_side_trans[CHAR, 1, PTR] 
-fc.to_f2_extra_var_type = 'character(c_char), pointer'
-fc.to_f2_extra_var_name = 'f_NAME'
-fc.to_f2_trans          = fc.to_f2_trans.replace('ZZZ', 'string')
-fc.test_pat             = '''\
+fc.to_f2_var        = ['character(c_char), pointer :: f_NAME']
+fc.to_f2_trans      = fc.to_f2_trans.replace('ZZZ', 'string')
+fc.test_pat         = '''\
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
@@ -1522,7 +1515,7 @@ for struct in struct_definitions:
     if arg.type == 'type':
       kind = arg.kind[:-7]
       arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('KIND', kind)
-      arg.f_side.to_f2_extra_var_type = arg.f_side.to_f2_extra_var_type.replace('KIND', kind)
+      arg.f_side.to_f2_var   = [var.replace('KIND', kind) for var in arg.f_side.to_f2_var]
       arg.f_side.test_pat    = arg.f_side.test_pat.replace('KIND', kind)
       arg.c_side.test_pat    = arg.c_side.test_pat.replace('KIND', kind)
       arg.c_side.c_class     = arg.c_side.c_class.replace('KIND', kind)
@@ -1584,7 +1577,7 @@ for struct in struct_definitions:
     arg.f_side.to_c2_call           = arg.f_side.to_c2_call.replace('NAME', arg.f_name)
     arg.f_side.to_c2_f2_sub_arg     = arg.f_side.to_c2_f2_sub_arg.replace('NAME', arg.f_name)
     arg.f_side.bindc_name           = arg.f_side.bindc_name.replace('NAME', arg.f_name)
-    arg.f_side.to_f2_extra_var_name = arg.f_side.to_f2_extra_var_name.replace('NAME', arg.f_name)
+    arg.f_side.to_f2_var            = [var.replace('NAME', arg.f_name) for var in arg.f_side.to_f2_var]
     arg.f_side.to_f2_trans          = arg.f_side.to_f2_trans.replace('NAME', arg.f_name)
     arg.f_side.to_c_trans           = arg.f_side.to_c_trans.replace('NAME', arg.f_name)
     arg.f_side.equality_test        = arg.f_side.equality_test.replace('NAME', arg.f_name)
@@ -1716,7 +1709,7 @@ end interface
 '''.replace('ZZZ', struct.short_name))
 
 
-f_face.write ('contains\n')
+f_face.write ('\ncontains\n')
 
 
 ##############
@@ -1846,11 +1839,13 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
   for arg in struct.arg:
     if not arg.f_side.bindc_type in f2_arg_list: f2_arg_list[arg.f_side.bindc_type] = []
     f2_arg_list[arg.f_side.bindc_type].append(arg.f_side.bindc_name)
-    if arg.f_side.to_f2_extra_var_name == '': continue
-    if not arg.f_side.to_f2_extra_var_type in f2_arg_list: f2_arg_list[arg.f_side.to_f2_extra_var_type] = []
-    f2_arg_list[arg.f_side.to_f2_extra_var_type].append(arg.f_side.to_f2_extra_var_name)
+    for var in arg.f_side.to_f2_var:
+      var_type = var.split('::')[0].strip()
+      var_name = var.split('::')[1].strip()
+      if not var_type in f2_arg_list: f2_arg_list[var_type] = []
+      f2_arg_list[var_type].append(var_name)
 
-  f_face.write ('!! f_side.to_f2_extra_var_type :: f_side.to_f2_extra_var_name\n')
+  f_face.write ('!! f_side.to_f2_var && f_side.bindc_type :: f_side.bindc_name\n')
   for arg_type, arg_list in f2_arg_list.items():
     f_face.write(arg_type + ' :: ' + ', '.join(arg_list) + '\n')
 
