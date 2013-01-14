@@ -126,14 +126,12 @@ class f_side_trans_class:
     self.bindc_type = ''
     self.bindc_name = ''
     self.equality_test = 'is_eq = is_eq .and. all(f1%NAME == f2%NAME)\n'
+    self.test_pat = 'rhs = XXX + offset; F%NAME = NNN\n'
     self.to_c2_f2_sub_arg = 'z_NAME'
     self.to_f2_trans = 'F%NAME = z_NAME'
     self.to_f2_extra_var_name = ''
     self.to_f2_extra_var_type = ''
-    self.to_c_extra_var_name = ''
-    self.to_c_extra_var_type = ''
-    self.test_pat = 'rhs = XXX + offset; F%NAME = NNN\n'
-    self.to_c_var = ''
+    self.to_c_var = []
     self.to_c_trans = ''
     self.size_var = []              # For communicating the size of allocatable and pointer variables
 
@@ -230,7 +228,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
       f.bindc_name       = 'NAME'
       f.to_f2_trans      = ''
       f.to_c2_f2_sub_arg = 'NAME'
-      f.to_c_var         = 'integer(c_int) :: NAME'
+      f.to_c_var         = ['integer(c_int) :: NAME']
       f.test_value       = ''
       continue
 
@@ -265,7 +263,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
         f.to_c2_call = 'z_NAME'
         f.to_f2_trans = jd1_loop + '  call KIND_to_f(z_NAME(jd1), c_loc(F%NAME(jd1+lb1)))\nenddo'
         f.test_pat    = jd1_loop + rhs1 + '  call set_KIND_test_pattern (F%NAME(jd1+lb1), ix_patt+jd1)\n' + 'enddo\n'
-        f.to_c_var    = 'type(c_ptr) :: z_NAME(DIM1)'
+        f.to_c_var    = ['type(c_ptr) :: z_NAME(DIM1)']
         f.to_c_trans  = jd1_loop + '  z_NAME(jd1) = c_loc(F%NAME(jd1+lb1))\nenddo\n'
 
     #-----------------------------------------------
@@ -283,7 +281,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
                     '  call KIND_to_f(z_NAME(DIM2*(jd1-1) + jd2), c_loc(F%NAME(jd1+lb1,jd2+lb2)))\n' + 'enddo; enddo\n'
         f.test_pat    = jd1_loop + jd2_loop + rhs2 + \
                     '  call set_KIND_test_pattern (F%NAME(jd1+lb1,jd2+lb2), ix_patt+jd1+10*jd2)\n' + 'enddo; enddo\n'
-        f.to_c_var    = 'type(c_ptr) :: z_NAME(DIM1*DIM2)'
+        f.to_c_var    = ['type(c_ptr) :: z_NAME(DIM1*DIM2)']
         f.to_c_trans  = jd1_loop + jd2_loop + '  z_NAME(DIM2*(jd1-1) + jd2) = c_loc(F%NAME(jd1+lb1,jd2+lb2))\n' + \
                                               'enddo; enddo\n'
 
@@ -304,7 +302,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
         f.test_pat    = jd1_loop + jd2_loop + jd3_loop + rhs3 + \
               '  call set_KIND_test_pattern (F%NAME(jd1+lb1,jd2+lb2,jd3+lb3), ix_patt+jd1+10*jd2+100*jd3)\n' + \
               'enddo; enddo; enddo\n'
-        f.to_c_var    = 'type(c_ptr) :: z_NAME(DIM1*DIM2*DIM3)'
+        f.to_c_var    = ['type(c_ptr) :: z_NAME(DIM1*DIM2*DIM3)']
         f.to_c_trans  = jd1_loop + jd2_loop + jd3_loop + \
               '  z_NAME(DIM3*DIM2*(jd1-1) + DIM3*(jd2-1) + jd3) = c_loc(F%NAME(jd1+lb1,jd2+lb2,jd3+lb3))\n' + \
               'enddo; enddo; enddo\n'
@@ -404,7 +402,7 @@ else
         fp.to_c2_call  = 'z_NAME'
         fp.bindc_name  = 'z_NAME(*)'
         fp.bindc_type  = 'type(c_ptr)'
-        fp.to_c_var    = 'type(c_ptr), allocatable :: z_NAME(:)'
+        fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_extra_var_type = ''
         fp.to_f2_extra_var_name = ''
         fp.test_pat    = tp1 + x2 + jd1_loop + x4 + \
@@ -467,7 +465,7 @@ else
         fp.to_c2_call  = 'z_NAME'
         fp.bindc_name  = 'z_NAME(*)'
         fp.bindc_type  = 'type(c_ptr)'
-        fp.to_c_var    = 'type(c_ptr), allocatable :: z_NAME(:)'
+        fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_extra_var_type = ''
         fp.to_f2_extra_var_name = ''
         fp.test_pat    = tp2 + x2 + jd1_loop + x2 + jd2_loop + x4 + \
@@ -536,7 +534,7 @@ else
         fp.to_c2_call  = 'z_NAME'
         fp.bindc_name  = 'z_NAME(*)'
         fp.bindc_type  = 'type(c_ptr)'
-        fp.to_c_var    = 'type(c_ptr), allocatable :: z_NAME(:)'
+        fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_extra_var_type = ''
         fp.to_f2_extra_var_name = ''
         fp.test_pat    = tp3 + x2 + jd1_loop + x2 + jd2_loop + x2 + jd3_loop + x4 + \
@@ -636,8 +634,7 @@ fc.to_c_trans  = jd1_loop + '''\
   z_NAME(jd1) = c_loc(a_NAME(jd1))
 enddo
 '''
-fc.to_c_extra_var_type = 'character(STR_LEN+1)'
-fc.to_c_extra_var_name = 'a_NAME(DIM1)'
+fc.to_c_var += ['a_NAME(DIM1) :: character(STR_LEN+1)']
 
 # CHAR 1 PTR
 
@@ -686,8 +683,7 @@ if (associated(F%NAME)) then
 endif
 '''
 
-fc.to_c_extra_var_type = 'character(STR_LEN+1), allocatable'
-fc.to_c_extra_var_name = 'a_NAME(:)'
+fc.to_c_var += ['character(STR_LEN+1), allocatable :: a_NAME(:)']
 
 #--------------------------------------------------------------------------------------
 # Allocatable components are very similar to pointer components
@@ -1517,18 +1513,16 @@ for struct in struct_definitions:
 
 for struct in struct_definitions:
   for arg in struct.arg:
-
     n_dim = len(arg.array)
     p_type = arg.pointer_type
 
     arg.c_side.test_pat            = arg.c_side.test_pat.replace('STR_LEN', arg.kind)
-    arg.f_side.to_c_extra_var_type = arg.f_side.to_c_extra_var_type.replace('STR_LEN', arg.kind)
+    arg.f_side.to_c_var            = [var.replace('STR_LEN', arg.kind) for var in arg.f_side.to_c_var]
 
     if arg.type == 'type':
       kind = arg.kind[:-7]
       arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('KIND', kind)
       arg.f_side.to_f2_extra_var_type = arg.f_side.to_f2_extra_var_type.replace('KIND', kind)
-      arg.f_side.to_c_extra_var_type  = arg.f_side.to_c_extra_var_type.replace('KIND', kind)
       arg.f_side.test_pat    = arg.f_side.test_pat.replace('KIND', kind)
       arg.c_side.test_pat    = arg.c_side.test_pat.replace('KIND', kind)
       arg.c_side.c_class     = arg.c_side.c_class.replace('KIND', kind)
@@ -1552,9 +1546,8 @@ for struct in struct_definitions:
 
       arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM1', f_dim1)
       arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM1', f_dim1)
-      arg.f_side.to_c_var            = arg.f_side.to_c_var.replace('DIM1', f_dim1)
+      arg.f_side.to_c_var            = [var.replace('DIM1', f_dim1) for var in arg.f_side.to_c_var]
       arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM1', f_dim1)
-      arg.f_side.to_c_extra_var_name = arg.f_side.to_c_extra_var_name.replace('DIM1', f_dim1)
       arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM1', f_dim1)
       arg.c_side.constructor         = arg.c_side.constructor.replace('DIM1', c_dim1)
       arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM1', c_dim1)
@@ -1565,9 +1558,8 @@ for struct in struct_definitions:
       dim2 = str(d2)
       arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM2', dim2)
       arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM2', dim2)
-      arg.f_side.to_c_var            = arg.f_side.to_c_var.replace('DIM2', dim2)
+      arg.f_side.to_c_var            = [var.replace('DIM2', dim2) for var in arg.f_side.to_c_var]
       arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM2', dim2)
-      arg.f_side.to_c_extra_var_name = arg.f_side.to_c_extra_var_name.replace('DIM2', dim2)
       arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM2', f_dim1+'*'+dim2)
       arg.c_side.constructor         = arg.c_side.constructor.replace('DIM2', dim2)
       arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM2', dim2)
@@ -1578,9 +1570,8 @@ for struct in struct_definitions:
       dim3 = str(d3)
       arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM3', dim3)
       arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM3', dim3)
-      arg.f_side.to_c_var            = arg.f_side.to_c_var.replace('DIM3', dim3)
+      arg.f_side.to_c_var            = [var.replace('DIM3', dim3) for var in arg.f_side.to_c_var]
       arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM3', dim3)
-      arg.f_side.to_c_extra_var_name = arg.f_side.to_c_extra_var_name.replace('DIM3', dim3)
       arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM3', f_dim1+'*'+dim2+'*'+dim3)
       arg.c_side.constructor         = arg.c_side.constructor.replace('DIM3', dim3)
       arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM3', dim3)
@@ -1588,14 +1579,13 @@ for struct in struct_definitions:
 
     arg.f_side.bindc_name           = arg.f_side.bindc_name.replace('NAME', arg.f_name)
     arg.f_side.to_c2_f2_sub_arg     = arg.f_side.to_c2_f2_sub_arg.replace('NAME', arg.f_name)
-    arg.f_side.to_c_var             = arg.f_side.to_c_var.replace('NAME', arg.f_name)
+    arg.f_side.to_c_var             = [var.replace('NAME', arg.f_name) for var in arg.f_side.to_c_var]
     arg.f_side.to_c_trans           = arg.f_side.to_c_trans.replace('NAME', arg.f_name)
     arg.f_side.to_c2_call           = arg.f_side.to_c2_call.replace('NAME', arg.f_name)
     arg.f_side.to_c2_f2_sub_arg     = arg.f_side.to_c2_f2_sub_arg.replace('NAME', arg.f_name)
     arg.f_side.bindc_name           = arg.f_side.bindc_name.replace('NAME', arg.f_name)
     arg.f_side.to_f2_extra_var_name = arg.f_side.to_f2_extra_var_name.replace('NAME', arg.f_name)
     arg.f_side.to_f2_trans          = arg.f_side.to_f2_trans.replace('NAME', arg.f_name)
-    arg.f_side.to_c_extra_var_name  = arg.f_side.to_c_extra_var_name.replace('NAME', arg.f_name)
     arg.f_side.to_c_trans           = arg.f_side.to_c_trans.replace('NAME', arg.f_name)
     arg.f_side.equality_test        = arg.f_side.equality_test.replace('NAME', arg.f_name)
     arg.f_side.test_pat             = arg.f_side.test_pat.replace('NAME', arg.f_name)
@@ -1792,12 +1782,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 
   f_face.write ('!! f_side.to_c_var\n')
   for arg in struct.arg:
-    if arg.f_side.to_c_var != '': f_face.write (arg.f_side.to_c_var + '\n')
-
-  f_face.write ('!! f_side.to_c_extra_var_type :: f_side.to_c_extra_var_name\n')
-  for arg in struct.arg:
-    if arg.f_side.to_c_extra_var_name != '': f_face.write( \
-              arg.f_side.to_c_extra_var_type + ' :: ' + arg.f_side.to_c_extra_var_name + '\n')
+    for var in arg.f_side.to_c_var: f_face.write (var + '\n')
 
   f_face.write ( \
 '''
