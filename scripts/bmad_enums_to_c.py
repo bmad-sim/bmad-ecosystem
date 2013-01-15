@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
-# Note: Run this script in the cpp_bmad_interface directory.
+# Note: 
+#   Run this script in the cpp_bmad_interface directory.
+#   This script searches a set of Bmad files and generates corresponding constants for use with C++ code.
+#   The constants file is: include/bmad_enums.h
+#   For example, the proton$ parameter on the Fortran side is translated to PROTON on the C++ side.
 
 import re
 import os

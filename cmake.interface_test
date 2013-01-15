@@ -1,8 +1,9 @@
 set (EXENAME interface_test)
 
-file (GLOB SRC_FILES interface_test/*.f90 util/*.f90 interface_test/*.cpp util/*.cpp)
+file (GLOB SRC_FILES interface_test/*.f90 interface_test/*.cpp)
 
 set (LINK_LIBS
+	cpp_bmad_interface
   bmad
   sim_utils
   recipes_f-90_LEPP 

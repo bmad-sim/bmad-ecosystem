@@ -1,0 +1,34 @@
+There are two parts to cpp_bmad_interface:
+  1) Scripts to create the appropriate code files.
+  2) The standard Cmake files to create the cpp_bmad_interface
+
+Normally you should not have to create any code files since:
+  1) The code files are part of the SVN repository and do not normally have to be regenerated.
+  2) They only need to be regenerated when there are changes to Bmad structures or
+     if a new structure is to be added.
+  3) Code file generation is not meant for the unintiated.
+
+So: If you want to generate new code files, please talk to David Sagan first.
+
+----------------------------------------------------
+
+Code Generation Overview: 
+
+There are two scipts to generate files:
+  1) scripts/bmad_enums_to_c.py 
+  2) scripts/create_interface.py 
+
+1) bmad_enums_to_c.py:
+  See the script for execution directions. 
+  This script searches a set of Bmad files and generates corresponding constants for use with C++ code.
+  The constants file is: include/bmad_enums.h
+  For example, the proton$ parameter on the Fortran side is translated to PROTON on the C++ side.
+
+2) scripts/create_interface.py:
+  See the script for execution directions.
+  This script generates:
+    A) The include/cpp_bmad_classes.h file defining the C++ classes 
+    B) .f90 and .cpp translation code files in the code directory.
+	  C) .f90 and .cpp test files in the interface_test directory.
+		D) equality_mod.f90 which is placed in the bmad/modules directory.
+       This file is placed in bmad since it is used by some bmad routines. 

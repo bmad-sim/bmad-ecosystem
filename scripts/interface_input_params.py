@@ -95,8 +95,9 @@ c_side_name_translation = {
 
 # Directory where the output is put
 
-output_dir = 'interface_test'
-test_dir = 'interface_test'
+equality_mod_dir  = '../bmad/modules'
+test_dir          = 'interface_test'
+code_dir          = 'code'
 
 # Lower bounds for allocatable and pointer arrays on the fortran side
 
