@@ -59,8 +59,8 @@ HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
 ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
 ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
 
-ONLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2011_sp1.6.233/bin'
-ONLINE_IFORT_SETUP_COMMAND='/nfs/cesr/opt/intel/composer_xe_2011_sp1.6.233/bin/compilervars.sh intel64'
+ONLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2013.1.117/bin'
+ONLINE_IFORT_SETUP_COMMAND='/nfs/cesr/opt/intel/composer_xe_2013.1.117/bin/compilervars.sh intel64'
 
 #--------------------------------------------------------------
 
@@ -68,8 +68,10 @@ ONLINE_IFORT_SETUP_COMMAND='/nfs/cesr/opt/intel/composer_xe_2011_sp1.6.233/bin/c
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
 OFFLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
 
-OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composerxe/bin'
-OFFLINE_IFORT_SETUP_COMMAND='/nfs/opt/intel/composerxe/bin/compilervars.sh intel64'
+#OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composerxe/bin'
+OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composer_xe_2013.1.117/bin'
+#OFFLINE_IFORT_SETUP_COMMAND='/nfs/opt/intel/composerxe/bin/compilervars.sh intel64'
+OFFLINE_IFORT_SETUP_COMMAND='/nfs/opt/intel/composer_xe_2013.1.117/bin/compilervars.sh intel64'
 
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
 OLD_ACC_BIN=${ACC_BIN}
