@@ -37,6 +37,12 @@ real(rp) mat6(6,6), x_pitch_tot, y_pitch_tot
 
 if (x_pitch_tot == 0 .and. y_pitch_tot == 0) return
 
+! The equations below are performing matrix multiplication. The original matrix
+! is being multiplied from left and right by matrices that correspond to the pitches. 
+! The pitch matrices are obtained by differentiating the corresponding equations in   
+! the offset_particle subroutine. The (i,j) numbers mentioned as comments refer to  
+! the non-zero elements present in the pitch matrices. 
+
 mat6(:,6) = mat6(:,6) - mat6(:,2) * x_pitch_tot ! (2,6)
 mat6(:,1) = mat6(:,1) + mat6(:,5) * x_pitch_tot ! (5,1)
 
@@ -872,8 +878,8 @@ mat6(1,2) = rel_len * (px**2 / pz**2 + 1)
 mat6(3,4) = rel_len * (py**2 / pz**2 + 1)
 mat6(1,4) = rel_len * px*py / pz**2
 mat6(3,2) = rel_len * px*py / pz**2
-mat6(1,6) = - rel_len * px * ((px**2 + py**2) / pz**2 + 1)
-mat6(3,6) = - rel_len * py * ((px**2 + py**2) / pz**2 + 1)
+mat6(1,6) = - rel_len * px / pz**2
+mat6(3,6) = - rel_len * py / pz**2
 mat6(5,2) = - rel_len * px / pz**2 
 mat6(5,4) = - rel_len * py / pz**2
 mat6(5,6) = rel_len * (px**2 + py**2) / pz**2
