@@ -56,6 +56,7 @@ type used_seq_struct
   character(40) :: tag = ''             ! tag name.
   integer :: ix_multi = 0               ! Multipass indentifier
   integer :: orientation = 1            ! Element reversed?
+  integer :: ix_ele_in_in_lat = -1
 end type
 
 ! A LIFO stack structure is used in the final evaluation of the line that is
@@ -5046,7 +5047,6 @@ type (seq_ele_struct), target :: dummy_seq_ele
 type (branch_struct), pointer :: branch
 type (used_seq_struct), allocatable ::  used_line(:)
 
-integer, allocatable :: ix_lat(:)
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 integer iseq_tot, i_lev, i_use, n0_multi, n_ele_use, n_max
 integer i, j, k, n, ix, ix_multipass, ix_branch, flip
@@ -5114,7 +5114,7 @@ do k = 1, iseq_tot
 enddo
 
 ! to expand the "used" line we use a stack for nested sublines.
-! IX_LAT is the expanded array of elements in the lat.
+! used_line(:) is the expanded array of elements in the lat.
 ! init stack
 
 i_lev = 1                          ! level on the stack
@@ -5130,8 +5130,6 @@ stack(1)%tag = ''
 
 n_ele_use = 0
          
-allocate (ix_lat(n_max))
-ix_lat = -1
 sequence(:)%ix = 1  ! Init. Used for replacement list index
 
 if (stack(1)%multipass) then
@@ -5169,7 +5167,6 @@ line_expansion: do
 
   ! 
 
-  s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
   stack(i_lev)%rep_count = stack(i_lev)%rep_count - 1
 
   ! if s_ele is a dummy arg then get corresponding actual arg.
@@ -5179,6 +5176,7 @@ line_expansion: do
     name = seq%corresponding_actual_arg(ix)
     s_ele => dummy_seq_ele
     s_ele%name = name
+    s_ele%ele_orientation = seq%ele(stack(i_lev)%ix_ele)%ele_orientation
     call find_indexx2 (name, in_name, in_indexx, 0, n_max, j)
     if (j < 0) then  ! if not an element it must be a sequence
       call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
@@ -5191,6 +5189,7 @@ line_expansion: do
       s_ele%ix_ele = j
       s_ele%type = sequence(j)%type
     else
+      s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
       s_ele%ix_ele = j 
       s_ele%type = element$
     endif
@@ -5221,9 +5220,8 @@ line_expansion: do
     if (this_seq_ele%ix_ele < 1) call parser_error('NOT A DEFINED ELEMENT: ' // &
                           s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
 
-    if (n_ele_use+2 > size(ix_lat)) then
+    if (n_ele_use+2 > size(used_line)) then
       n = 1.5*n_ele_use
-      call re_allocate (ix_lat, n)
       ix = size(used_line) 
       if (ix < n) then
         call move_alloc (used_line, used2)
@@ -5233,7 +5231,8 @@ line_expansion: do
       endif
     endif
 
-    call pushit (ix_lat, n_ele_use, this_seq_ele%ix_ele)
+    n_ele_use = n_ele_use + 1
+    used_line(n_ele_use)%ix_ele_in_in_lat = this_seq_ele%ix_ele
 
     used_line(n_ele_use)%name = this_seq_ele%name
     used_line(n_ele_use)%orientation = stack(i_lev)%orientation_direction * this_seq_ele%ele_orientation
@@ -5350,7 +5349,7 @@ endif
 branch => lat%branch(ix_branch)
 
 do i = 1, n_ele_use
-  ele_line(i) = in_lat%ele(ix_lat(i)) 
+  ele_line(i) = in_lat%ele(used_line(i)%ix_ele_in_in_lat) 
   ele_line(i)%name        = used_line(i)%name
   ele_line(i)%iyy         = used_line(i)%ix_multi
   ele_line(i)%orientation = used_line(i)%orientation
