@@ -66,7 +66,7 @@ type (lat_struct)  lat
 type (lat_param_struct)  param_save
 type (coord_struct)  orb0
 real(rp), optional ::  e_init
-type (coord_struct), save, allocatable :: orbit(:)
+type (coord_struct), allocatable :: orbit(:)
 type (aperture_struct)  aperture
 type (track_input_struct)  track_input
 
