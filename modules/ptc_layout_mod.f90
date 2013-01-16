@@ -418,6 +418,7 @@ end subroutine kill_ptc_layouts
 !     %a%emittance, etc.
 !   sigma_map(6,6)  -- real(rp): Sigma matrix (Bmad coordinates).
 !   closed_orb      -- coord_struct: Closed orbit at ele (Bmad coordinates).
+!                        Notice: This closed orbit is the closed orbit with radiation on.
 !-
 
 subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
@@ -540,23 +541,27 @@ end function ptc_reference_fibre
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_closed_orbit_calc (branch, closed_orbit)
+! Subroutine ptc_closed_orbit_calc (branch, closed_orbit, radiation_damping_on)
 !
 ! Routine to calculate the closed orbit of a lattice branch using PTC.
-! This routine will use the associate PTC layout if it exists and will
-! create one if it does not.
+! This routine assumes the associated PTC layout has been crated 
+! with lat_to_ptc_layout.
 !
 ! Module Needed:
 !   use ptc_layout_mod
 !
 ! Input:
 !   branch          -- branch_struct: Branch of a lattice.
+!   radiation_damping_on
+!                   -- logical, optional: If True, radiation dampling is included in
+!                        the calculation. 
+!                        Default is the setting of bmad_com%%radiation_damping_on.
 !
 ! Output:
 !   closed_orbit(:) -- coord_struct, allocatable: closed_orbit
 !-
 
-subroutine ptc_closed_orbit_calc (branch, closed_orbit)
+subroutine ptc_closed_orbit_calc (branch, closed_orbit, radiation_damping_on)
 
 use madx_ptc_module
 
@@ -565,23 +570,32 @@ implicit none
 type (branch_struct), target :: branch
 type (coord_struct), allocatable :: closed_orbit(:)
 type (fibre), pointer :: fib
+type (internal_state) state
 
 real(dp) x(6)
 real(rp) vec(6)
 
 integer i
 
+logical, optional :: radiation_damping_on
+
 !
+
+if (logic_option(bmad_com%radiation_damping_on, radiation_damping_on)) then
+  state = DEFAULT + radiation0
+else
+  state = DEFAULT - radiation0
+endif
 
 x = 0
 fib => branch%ele(0)%ptc_fibre%next
-call find_orbit_x (x, default, 1.0d-5, fibre1 = fib)  ! find closed orbit
+call find_orbit_x (x, state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 call vec_ptc_to_bmad (x, fib%beta0, vec)
 call init_coord (closed_orbit(0), vec, branch%ele(0), .true., branch%param%particle)
 
 do i = 1, branch%n_ele_track
   fib => branch%ele(i)%ptc_fibre%next
-  call track_probe_x (x, default, branch%ele(i-1)%ptc_fibre%next, fib)
+  call track_probe_x (x, state, branch%ele(i-1)%ptc_fibre%next, fib)
   call vec_ptc_to_bmad (x, fib%beta0, vec)
   call init_coord (closed_orbit(i), vec, branch%ele(i), .true., branch%param%particle)
 enddo
