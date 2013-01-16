@@ -548,9 +548,9 @@ case (solenoid$)
   end select
 
 case (sol_quad$)
-  if (present(num_valid)) num_valid = 8
+  if (present(num_valid)) num_valid = 7
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, mad$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, symp_lie_bmad$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
