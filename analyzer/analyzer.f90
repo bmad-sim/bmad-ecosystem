@@ -44,7 +44,7 @@ program anaylzer
   integer plot_flag/0/, last
   integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
   integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8, rad_int$=9, sext$=10
-  integer, parameter :: phase$=11, de_phase$=12, v15$=13
+  integer, parameter :: phase$=11, de_phase$=12, v15$=13, v16$=14
   integer ix_cache
   integer, allocatable :: n_ele(:)
   integer i_dim/4/
@@ -608,7 +608,7 @@ program anaylzer
 
 20   print *, ' '
      write = .false.
-     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, DPHASE/DE,  ETA, DCBAR/DE, RAD_INT, DIFF, SEXT, PHASE, V15]) > '
+     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, DPHASE/DE,  ETA, DCBAR/DE, RAD_INT, DIFF, SEXT, PHASE, V15, V16]) > '
      read(5, '(a)', err=20)answer
      save_answer = answer
 
@@ -644,6 +644,8 @@ program anaylzer
        plot_flag=phase$
       elseif(index(answer(1:ix),'V15') /=0)then
        plot_flag=v15$
+      elseif(index(answer(1:ix),'V16') /=0)then
+       plot_flag=v16$
       elseif(index(answer,'DI') /= 0 .or. diff)then
        diff = .true.
       elseif(index(answer,'WRITE') /= 0)then
@@ -767,6 +769,12 @@ program anaylzer
        
        forall(i=0:n_all)x(i) = ring%ele(i)%mode3%v(1,5)
        forall(i=0:n_all)y(i) = ring%ele(i)%mode3%v(3,5)
+      endif
+
+      if(plot_flag == v16$)then
+       
+       forall(i=0:n_all)x(i) = ring%ele(i)%mode3%v(1,6)
+       forall(i=0:n_all)y(i) = ring%ele(i)%mode3%v(3,6)
       endif
 
       if(plot_flag == de_beta$)then
@@ -901,6 +909,11 @@ program anaylzer
        yy_diff(l) = ring%ele(i)%mode3%v(3,5) -y(j)
       endif
 
+      if(plot_flag == v16$)then
+       xx_diff(l) = ring%ele(i)%mode3%v(1,6) -x(j)
+       yy_diff(l) = ring%ele(i)%mode3%v(3,6) -y(j)
+      endif
+
       if(plot_flag == de_beta$)then
        xx_diff(l) = (ring_two(1)%ele(i)%a%beta - ring_two(-1)%ele(i)%a%beta)/2/de/ &
                   ring%ele(i)%a%beta - x(j)
@@ -976,14 +989,15 @@ program anaylzer
          call pgenv(start, end,-xscale,xscale,0,1)
          call pglab('z (m)','x(mm)',' Closed orbit')
        endif
-       if(plot_flag==v15$)then
+       if(plot_flag==v15$ .or. plot_flag==v16$)then
          p = int(log10(xmax))
          if(p<=0)p=p-1
          f=xmax/10**p
          xscale=(int(f*2+1)/2.)*10**p
          print *,' p,f, xmax, xscale ',p,f, xmax, xscale
          call pgenv(start, end,-xscale,xscale,0,1)
-         call pglab('z (m)','v(1,5) (mrad)',' x-z tilt')
+         if(plot_flag == v15$)call pglab('z (m)','v(1,5) (mrad)',' x-z tilt')
+         if(plot_flag == v16$)call pglab('z (m)','v(1,6) (mrad)',' x-z tilt')
        endif
        if(plot_flag == beta$)then
          xscale=(int(xmax/10.)+1)*10
@@ -1108,7 +1122,7 @@ program anaylzer
          call pgenv(start, end,-yscale,yscale,0,1)
          call pglab('z (m)','y(mm)',' Closed orbit')
        endif
-       if(plot_flag == v15$)then
+       if(plot_flag == v15$ .or. plot_flag == v16$)then
          p = int(log10(ymax))
          if(p<=0)p=p-1
          f=ymax/10**p
@@ -1116,7 +1130,8 @@ program anaylzer
          if(yscale < 1.e-20)yscale = 1.e-20
          print *,' p,f, ymax, yscale ',p,f, ymax, yscale
          call pgenv(start, end,-yscale,yscale,0,1)
-         call pglab('z (m)','V(3,5) (mrad)',' y-z tilt')
+         if(plot_flag == v15$)call pglab('z (m)','V(3,5) (mrad)',' y-z tilt')
+         if(plot_flag == v16$)call pglab('z (m)','V(3,6) (mrad)',' y-z tilt')
        endif
        if(plot_flag == beta$)then
          yscale=(int(ymax/10.)+1)*10
@@ -1259,8 +1274,9 @@ program anaylzer
                                               '   theta     ','    phi     ','    psi     ' 
 
        do i=1,ring%n_ele_track
-  write(34,'(1x,a13,7es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
-          ring%ele(i)%floor%r,ring%ele(i)%floor%theta,ring%ele(i)%floor%phi,ring%ele(i)%floor%psi
+  write(34,'(1x,a13,6es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
+!                        ring%ele(i)%floor%x,ring%ele(i)%floor%y,ring%ele(i)%floor%z, &
+                        ring%ele(i)%floor%r, ring%ele(i)%floor%theta,ring%ele(i)%floor%phi,ring%ele(i)%floor%psi
 
        end do
 
