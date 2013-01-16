@@ -5165,11 +5165,11 @@ line_expansion: do
 
   endif
 
-  ! 
-
   stack(i_lev)%rep_count = stack(i_lev)%rep_count - 1
 
   ! if s_ele is a dummy arg then get corresponding actual arg.
+
+  s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
 
   ix = s_ele%ix_arg
   if (ix /= 0) then  ! it is a dummy argument.
@@ -5189,7 +5189,6 @@ line_expansion: do
       s_ele%ix_ele = j
       s_ele%type = sequence(j)%type
     else
-      s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
       s_ele%ix_ele = j 
       s_ele%type = element$
     endif
