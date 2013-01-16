@@ -2972,7 +2972,11 @@ if (key == wiggler$) then
   n_term = size(ele2%wig%term)
   call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
 
-  ptc_fibre%mag%wi%w%a(1:n_term) = c_light * ele2%value(polarity$) * ele2%wig%term%coef / ele%value(e_tot$)
+  if (ele%is_on) then
+    ptc_fibre%mag%wi%w%a(1:n_term) = c_light * ele2%value(polarity$) * ele2%wig%term%coef / ele%value(e_tot$)
+  else
+    ptc_fibre%mag%wi%w%a(1:n_term) = 0
+  endif
   ptc_fibre%mag%wi%w%k(1,1:n_term)  = ele2%wig%term%kx
   ptc_fibre%mag%wi%w%k(2,1:n_term)  = ele2%wig%term%ky
   ptc_fibre%mag%wi%w%k(3,1:n_term)  = ele2%wig%term%kz
