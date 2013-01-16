@@ -60,6 +60,8 @@ real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, gradient_max, voltage_max
 
 integer i, n_slice, key, ix_fringe
 
+real(rp) charge_dir, hkick, vkick, kick
+
 logical, optional :: end_in, err
 logical err_flag, has_nonzero_pole
 character(16), parameter :: r_name = 'make_mat6_bmad'
@@ -100,12 +102,12 @@ c00 = c0
 c11 = c1
 
 !--------------------------------------------------------
-! Drift or element is off or Kicker.
+! Drift or element is off.
 
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
-if (any (key == [drift$, capillary$, kicker$, rcollimator$, &
-        ecollimator$, monitor$, instrument$, hkicker$, vkicker$, pipe$ ])) then
+if (any (key == [drift$, capillary$, rcollimator$, &
+        ecollimator$, monitor$, instrument$, pipe$ ])) then
   call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
   call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
@@ -196,6 +198,59 @@ case (custom$)
 case (elseparator$)
    
    call make_mat6_mad (ele, param, c0, c1)
+
+!--------------------------------------------------------
+! Kicker
+
+case (kicker$, hkicker$, vkicker$)
+
+  call offset_particle (ele, c00, param, set$, set_canonical = .false., set_hvkicks = .false.)
+  c11 = c00
+
+  charge_dir = param%rel_tracking_charge * ele%orientation
+
+  hkick = charge_dir * ele%value(hkick$) 
+  vkick = charge_dir * ele%value(vkick$) 
+  kick  = charge_dir * ele%value(kick$) 
+  
+  n_slice = max(1, nint(length / ele%value(ds_step$)))
+  if (ele%key == hkicker$) then
+     c11%vec(2) = c11%vec(2) + kick / (2 * n_slice)
+  elseif (ele%key == vkicker$) then
+     c11%vec(4) = c11%vec(4) + kick / (2 * n_slice)
+  else
+     c11%vec(2) = c11%vec(2) + hkick / (2 * n_slice)
+     c11%vec(4) = c11%vec(4) + vkick / (2 * n_slice)
+  endif
+
+  do i = 1, n_slice 
+     c00 = c11
+     call track_a_drift (c11, ele, length/n_slice)
+     call drift_mat6_calc (drift, length/n_slice, c00%vec, c11%vec)
+     mat6 = matmul(drift,mat6)
+     if (i == n_slice) then
+        if (ele%key == hkicker$) then
+           c11%vec(2) = c11%vec(2) + kick / (2 * n_slice)
+        elseif (ele%key == vkicker$) then
+           c11%vec(4) = c11%vec(4) + kick / (2 * n_slice)
+        else
+           c11%vec(2) = c11%vec(2) + hkick / (2 * n_slice)
+           c11%vec(4) = c11%vec(4) + vkick / (2 * n_slice)
+        endif
+     else 
+        if (ele%key == hkicker$) then
+           c11%vec(2) = c11%vec(2) + kick / n_slice
+        elseif (ele%key == vkicker$) then
+           c11%vec(4) = c11%vec(4) + kick / n_slice
+        else
+           c11%vec(2) = c11%vec(2) + hkick / n_slice
+           c11%vec(4) = c11%vec(4) + vkick / n_slice
+        endif
+     endif
+  end do
+
+  call add_multipoles_and_z_offset (.true.)
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity
