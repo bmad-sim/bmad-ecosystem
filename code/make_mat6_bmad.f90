@@ -205,7 +205,6 @@ case (elseparator$)
 case (kicker$, hkicker$, vkicker$)
 
   call offset_particle (ele, c00, param, set$, set_canonical = .false., set_hvkicks = .false.)
-  c11 = c00
 
   charge_dir = param%rel_tracking_charge * ele%orientation
 
@@ -215,36 +214,35 @@ case (kicker$, hkicker$, vkicker$)
   
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   if (ele%key == hkicker$) then
-     c11%vec(2) = c11%vec(2) + kick / (2 * n_slice)
+     c00%vec(2) = c00%vec(2) + kick / (2 * n_slice)
   elseif (ele%key == vkicker$) then
-     c11%vec(4) = c11%vec(4) + kick / (2 * n_slice)
+     c00%vec(4) = c00%vec(4) + kick / (2 * n_slice)
   else
-     c11%vec(2) = c11%vec(2) + hkick / (2 * n_slice)
-     c11%vec(4) = c11%vec(4) + vkick / (2 * n_slice)
+     c00%vec(2) = c00%vec(2) + hkick / (2 * n_slice)
+     c00%vec(4) = c00%vec(4) + vkick / (2 * n_slice)
   endif
 
   do i = 1, n_slice 
-     c00 = c11
-     call track_a_drift (c11, ele, length/n_slice)
-     call drift_mat6_calc (drift, length/n_slice, c00%vec, c11%vec)
+     call track_a_drift (c00, ele, length/n_slice)
+     call drift_mat6_calc (drift, length/n_slice, c00%vec)
      mat6 = matmul(drift,mat6)
      if (i == n_slice) then
         if (ele%key == hkicker$) then
-           c11%vec(2) = c11%vec(2) + kick / (2 * n_slice)
+           c00%vec(2) = c00%vec(2) + kick / (2 * n_slice)
         elseif (ele%key == vkicker$) then
-           c11%vec(4) = c11%vec(4) + kick / (2 * n_slice)
+           c00%vec(4) = c00%vec(4) + kick / (2 * n_slice)
         else
-           c11%vec(2) = c11%vec(2) + hkick / (2 * n_slice)
-           c11%vec(4) = c11%vec(4) + vkick / (2 * n_slice)
+           c00%vec(2) = c00%vec(2) + hkick / (2 * n_slice)
+           c00%vec(4) = c00%vec(4) + vkick / (2 * n_slice)
         endif
      else 
         if (ele%key == hkicker$) then
-           c11%vec(2) = c11%vec(2) + kick / n_slice
+           c00%vec(2) = c00%vec(2) + kick / n_slice
         elseif (ele%key == vkicker$) then
-           c11%vec(4) = c11%vec(4) + kick / n_slice
+           c00%vec(4) = c00%vec(4) + kick / n_slice
         else
-           c11%vec(2) = c11%vec(2) + hkick / n_slice
-           c11%vec(4) = c11%vec(4) + vkick / n_slice
+           c00%vec(2) = c00%vec(2) + hkick / n_slice
+           c00%vec(4) = c00%vec(4) + vkick / n_slice
         endif
      endif
   end do
@@ -438,7 +436,6 @@ case (multipole$, ab_multipole$)
 case (octupole$)
 
   call offset_particle (ele, c00, param, set$, set_canonical = .false.)
-  call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   k3l = ele%value(k3$) * length / n_slice
@@ -812,7 +809,6 @@ case (sbend$)
 case (sextupole$)
 
   call offset_particle (ele, c00, param, set$, set_canonical = .false.)
-  call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   k2l = ele%value(k2$) * length / n_slice
@@ -847,7 +843,6 @@ case (sextupole$)
 case (solenoid$)
 
   call offset_particle (ele, c00, param, set$)
-  call offset_particle (ele, c11, param, set$, ds_pos = length)
 
   ks = ele%value(ks$) / rel_p
 
@@ -933,7 +928,6 @@ case (solenoid$)
 case (sol_quad$)
 
   call offset_particle (ele, c00, param, set$)
-  call offset_particle (ele, c11, param, set$, ds_pos = length)
 
   call sol_quad_mat6_calc (ele%value(ks$), ele%value(k1$), length, mat6, c00%vec)
 
