@@ -1,0 +1,12 @@
+set (EXENAME test_find_first)
+
+set (SRC_FILES  programs/test_find_first.f90)
+
+set (INC_DIRS
+  ../include
+  include
+)
+
+set (LINK_LIBS
+  sim_utils
+)
