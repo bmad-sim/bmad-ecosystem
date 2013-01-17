@@ -73,7 +73,7 @@ character(40) name, look_for, attrib_name
 character(4) end_str
 character(4) last
 character(40), allocatable :: names(:)
-character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
+character(200), allocatable :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
 character(10) angle
 

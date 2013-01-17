@@ -188,7 +188,7 @@ type (uap_node_struct) expand_node
 type (uap_node_struct), pointer :: control_node, machine_node, slave_node
 type (uap_node_struct), pointer :: track_node, master_node, node, controller_node
 type (uap_node_struct), pointer :: attrib_node, param_node, child_node
-type (ele_struct), allocatable, save :: old_ele(:) 
+type (ele_struct), allocatable :: old_ele(:) 
 type (real_pointer_struct), allocatable :: ptrs(:)
 
 real(rp) dflt_coef, con_value, coef, value

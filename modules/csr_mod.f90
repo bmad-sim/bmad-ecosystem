@@ -282,7 +282,7 @@ end type
 type (coord_struct), target :: particle(:)
 type (coord_struct), pointer :: p
 type (csr_bin_struct), target :: bin
-type (this_local_struct), save, allocatable :: tloc(:)
+type (this_local_struct), allocatable :: tloc(:)
 type (csr_bin1_struct), pointer :: bin1
 
 real(rp) z_center, z_min, z_max, f, dz_particle, dz, z_maxval, z_minval
@@ -332,11 +332,7 @@ enddo
 ! The tloc records how much charge for a given particle is in a bin.
 
 n = size(particle) * (csr_param%particle_bin_span + 2)
-if (allocated(tloc)) then
-  if (size(tloc) < n) deallocate (tloc)
-endif
-
-if (.not. allocated(tloc)) allocate (tloc(n))
+allocate (tloc(n))
 tloc%ib = -1
 
 ! Compute the particle distribution center in each bin
@@ -587,7 +583,7 @@ type (ele_struct), pointer :: source_ele
 integer i, n_ele_pp, ix_source
 
 real(rp) phi, dphi, s0_kick_ele
-real(rp), allocatable, save :: g_i(:), d_i(:)
+real(rp), allocatable :: g_i(:), d_i(:)
 
 ! n_ele_pp is the number of elements between P' and P excluding the 
 ! P and P' elements

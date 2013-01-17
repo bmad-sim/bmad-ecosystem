@@ -221,7 +221,7 @@ type (ele_struct), target, save ::  ele0
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: bele
 type (wig_term_struct), pointer :: wig_term(:)
-type (real_pointer_struct), allocatable, save :: r_ptrs(:)
+type (real_pointer_struct), allocatable :: r_ptrs(:)
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
 type (em_field_mode_struct), pointer :: em_modes(:)
@@ -2507,8 +2507,8 @@ implicit none
 
 type (lat_struct), target ::  lat
 type (ele_struct), pointer :: ele
-type (real_pointer_struct), allocatable, save :: ptr(:)
-type (ele_pointer_struct), allocatable, save :: eles(:)
+type (real_pointer_struct), allocatable :: ptr(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 
 integer i, ix1, ix2, ix_word, ios, ix, n_loc
 real(rp) value

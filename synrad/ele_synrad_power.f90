@@ -35,7 +35,7 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
   type (ele_struct), pointer :: ele
   type (walls_struct), target :: walls
   type (wall_struct), pointer :: negative_x_wall, positive_x_wall
-  type (ray_struct), allocatable, save :: fan(:)
+  type (ray_struct), allocatable :: fan(:)
   type (ray_struct) ray, ray_temp
   type (synrad_param_struct) gen
   type (ele_power_struct) power(:)
@@ -86,11 +86,7 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
     endif      
   endif
 
-  if (.not. allocated (fan)) allocate(fan(n_slice+1))
-  if (n_slice+1 > size(fan)) then
-    deallocate(fan)
-    allocate(fan(n_slice+1))
-  endif
+  allocate(fan(n_slice+1))
 
   ! each change in position is the element length / n_slice
 

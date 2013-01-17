@@ -1698,7 +1698,7 @@ real(rp) avg_energy, temp6(6), eta, etap
 real(rp) :: sigma_s(6,6), s(6,6), sigma_s_save(6,6) = 0.0, sigma(6,6) = 0.0
 real(rp) :: d_r(6) = 0.0, d_i(6) = 0.0, e_r(6,6) = 0.0, e_i(6,6) = 0.0
 real(rp) :: u(6,6), n_real(6,6), beta_66_iii, charge_live
-real(rp), allocatable, save :: charge(:)
+real(rp), allocatable :: charge(:)
 
 complex(rp) :: sigma_s_complex(6,6) = 0.0
 complex(rp) :: n(6,6), e(6,6), q(6,6)

@@ -27,7 +27,7 @@ implicit none
 
 type (lat_struct)  lat
 type (lat_struct), save :: lat2
-type (coord_struct), allocatable, save :: orb(:)
+type (coord_struct), allocatable :: orb(:)
 
 real(rp) high_tune_x, high_tune_y, low_tune_x, low_tune_y
 real(rp) delta_e, chrom_x, chrom_y
