@@ -80,9 +80,10 @@ SIZE   = 'size'
 class struct_def_class:
   def __init__(self, f_name = ''):
     self.f_name = f_name # Struct name on Fortran side
-    self.short_name = '' # Struct name without trailing '_struct'. Note: C++ name is 'CPP_<name>'
+    self.short_name = '' # Struct name without trailing '_struct'. Note: C++ name is 'CPP_<short_name>'
     self.cpp_class  = '' # C++ name.
     self.arg = []        # Array of arg_class. List of structrure components + array bound dimensions. 
+    self.c_constructor_body = '{}'  # Body of the C++ constructor
 
   def __repr__(self):
     return '[name: %s, #arg: %i]' % (self.short_name, len(self.arg))
@@ -825,7 +826,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
       c.to_f2_call   = '&C.NAME[0]'
       c.to_c2_arg    = c_arg + 'Arr z_NAME'
       c.constructor  = 'NAME(VALUE, DIM1)'
-      c.to_c2_set    = '  C.NAME = ' + c_type + '_ARRAY(z_NAME, DIM1);'
+      c.to_c2_set    = '  C.NAME << z_NAME;'
       c.test_pat    = test_pat1
       c.equality_test = '  is_eq = is_eq && is_all_equal(x.NAME, y.NAME);\n'
 
@@ -1349,6 +1350,9 @@ for file_name in params.struct_def_files:
         arg = copy.deepcopy(base_arg)
         arg.f_name = split_line.pop(0).strip().lower()
 
+        # Sometimes must avoid reserved words on the C++ side. 
+        # This is handled on a case-by-case basis by params.c_side_name_translation
+
         full_name = struct.f_name + '%' + arg.f_name
         if full_name in params.c_side_name_translation:
           arg.c_name = params.c_side_name_translation[full_name]
@@ -1523,11 +1527,9 @@ for struct in struct_definitions:
   for arg in struct.arg:
     n_dim = len(arg.array)
     p_type = arg.pointer_type
-    f_side_id_name = struct.f_name + '%' + arg.f_name 
 
     arg.c_side.test_pat            = arg.c_side.test_pat.replace('STR_LEN', arg.kind)
     arg.f_side.to_c_var            = [var.replace('STR_LEN', arg.kind) for var in arg.f_side.to_c_var]
-    arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('LBOUND', params.f_side_lbound(f_side_id_name))
 
     if arg.type == 'type':
       kind = arg.kind[:-7]
@@ -1536,7 +1538,6 @@ for struct in struct_definitions:
       arg.f_side.test_pat    = arg.f_side.test_pat.replace('KIND', kind)
       arg.c_side.test_pat    = arg.c_side.test_pat.replace('KIND', kind)
       arg.c_side.c_class     = arg.c_side.c_class.replace('KIND', kind)
-      ## arg.c_side.c_class     = 'CPP_' + kind
       arg.c_side.to_c2_set   = arg.c_side.to_c2_set.replace('KIND', kind)
       arg.c_side.to_f_setup  = arg.c_side.to_f_setup.replace('KIND', kind)
       arg.c_side.to_f2_arg   = arg.c_side.to_f2_arg.replace('KIND', kind)
@@ -1633,6 +1634,12 @@ for struct in struct_definitions:
 
 ##################################################################################
 ##################################################################################
+# Customize the interface code
+
+params.customize(struct_definitions)
+
+##################################################################################
+##################################################################################
 # As a check, write results to file. 
 
 if debug: 
@@ -1672,12 +1679,6 @@ for struct in struct_definitions:
       err = True
 
 if err: sys.exit()
-
-##################################################################################
-##################################################################################
-# Customize the interface code
-
-params.customize(struct_definitions)
 
 ##################################################################################
 ##################################################################################
@@ -2204,7 +2205,7 @@ public:
     construct_list.append(arg.c_side.constructor)
 
   f_class.write ('    ' + ',\n    '.join(construct_list) + '\n')
-  f_class.write('    {}\n\n')
+  f_class.write('    ' + struct.c_constructor_body + '\n\n')
 
   # Destructor
 
