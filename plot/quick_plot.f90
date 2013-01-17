@@ -3232,7 +3232,6 @@ implicit none
 
 real(rp), optional :: x_len, y_len, scale
 real(rp) x_inch, y_inch, x_page, y_page, page_scale, x, y
-real(rp), save :: x_inch_old, y_inch_old
 
 integer, optional :: i_chan
 integer ix
@@ -5067,7 +5066,7 @@ implicit none
 integer, parameter :: i_del = 100
 
 real(rp), allocatable, optional :: x(:), y(:), z(:), t(:)
-real(rp), allocatable, save :: xyz(:)
+real(rp), allocatable :: xyz(:)
 real(rp) :: x1(i_del), y1(i_del), z1(i_del), t1(i_del)
 
 integer i, j, ix, ios
