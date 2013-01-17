@@ -47,9 +47,9 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), target :: beam_start
 type (real_pointer_struct), allocatable :: ptr_array(:)
-type (real_pointer_struct), allocatable, save :: ptrs(:)
+type (real_pointer_struct), allocatable :: ptrs(:)
 type (ele_pointer_struct), optional, allocatable :: eles(:)
-type (ele_pointer_struct), allocatable, save :: eles2(:)
+type (ele_pointer_struct), allocatable :: eles2(:)
 
 integer, optional :: ix_attrib
 integer n, i, ix, key, ix_a, n_loc
