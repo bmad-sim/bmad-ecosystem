@@ -16,7 +16,6 @@ for now_line in now_file:
 
   else:
     split = now_line.split('"', 2)
-    print str(split)
 
     if split[0].strip() != '' or len(split) != 3:
       print 'Cannot parse line: ' + now_line.strip()
