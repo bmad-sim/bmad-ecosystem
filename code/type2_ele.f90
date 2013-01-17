@@ -538,10 +538,10 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
     case (multipass_lord$, super_lord$, girder_lord$)
       name = 'Name'
-      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), '   Index       Type                 '
+      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), 'Type                Index'
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
-        nl=nl+1; write (li(nl), '(3x, a10, 2x, a, 3x, a20)') &
+        nl=nl+1; write (li(nl), '(3x, a, 3x, a20, a)') &
                     slave%name(1:n_char), key_name(slave%key), trim(ele_loc_to_string(slave))
       enddo
 

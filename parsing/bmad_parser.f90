@@ -942,7 +942,7 @@ do i = 1, n_max
     if (k == 0) cycle
     call init_lat (lat2)
     call parser_expand_line (lat2, pele%name(j), sequence, in_name, in_indexx, &
-                                      seq_name, seq_indexx, in_lat, n_ele_use)
+                                      seq_name, seq_indexx, in_lat, n_ele_use, .false.)
     ! Put elements from the line expansion into the slave list.
     ! Remember to ignore drifts.
     lord%n_slave = lord%n_slave - 1   ! Remove beam line name

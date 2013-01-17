@@ -3301,7 +3301,7 @@ character(*) what1
 character(*), optional :: what2, what3
 character(160) lines(12)
 character(16), parameter :: r_name = 'parser_error'
-integer nl
+integer nl, err_level
 logical, optional :: stop_here, warn_only
 
 ! bp_com%error_flag is a common logical used so program will stop at end of parsing
@@ -3312,8 +3312,10 @@ if (global_com%type_out .and. bp_com%print_err) then
 
   if (logic_option(.false., warn_only)) then
     nl=nl+1; lines(nl) = 'WARNING IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+    err_level = s_warn$
   else
     nl=nl+1; lines(nl) = 'ERROR IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+    err_level = s_error$
   endif
 
   if (present(what2)) then
@@ -3352,7 +3354,7 @@ if (global_com%type_out .and. bp_com%print_err) then
 
   nl=nl+1; lines(nl) = ''
 
-  call out_io (s_error$, r_name, lines(1:nl))
+  call out_io (err_level, r_name, lines(1:nl))
 
 endif
 
@@ -4310,10 +4312,11 @@ type (lat_struct), target :: in_lat, lat
 type (ele_struct), pointer :: lord, lord2, slave, ele
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
-type (control_struct), pointer, save :: cs(:) => null()
+type (control_struct), allocatable :: cs(:)
 type (branch_struct), pointer :: branch
 
 integer i, ic, n, n2, k, k2, ix, j, ib, ie, n_list, ix2, ns, ixs, ii, ix_end
+integer n_match, n_slave, nn
 integer ix_lord, k_slave, ix_ele_now, ix_girder_end, ix_super_lord_end
 integer, allocatable :: r_indexx(:), ix_ele(:), ix_branch(:)
 
@@ -4332,7 +4335,6 @@ do i = 0, ubound(lat%branch, 1)
 enddo
 
 allocate (name_list(n), ix_ele(n), ix_branch(n), r_indexx(n))
-allocate (cs(1000))
 
 n_list = 0
 do i = 0, ubound(lat%branch, 1)
@@ -4366,7 +4368,19 @@ main_loop: do n = 1, n2
     ! Find where the slave elements are. 
     ! If a slave element is not in lat but is in in_lat then the slave has 
     ! not yet been used in the lattice list. 
-    ! In this case do not add the lord to the lattice.
+    ! In this case, do not add the lord to the lattice.
+
+    ! First count the number of slaves
+    n_match = 0
+    do i = 1, lord%n_slave
+      call find_indexx (pele%name(i), name_list, r_indexx, n_list, k, k2, n_match = nn)
+      n_match = n_match + nn
+    enddo
+
+    if (allocated(cs)) then
+      if (size(cs) < n_match) deallocate(cs)
+    endif
+    if (.not. allocated(cs)) allocate (cs(n_match))
 
     j = 0 ! number of slaves found
     slave_not_in_lat = .false.  ! Is there a slave that is not in the lattice?
@@ -4478,6 +4492,9 @@ main_loop: do n = 1, n2
 
     ! Loop over all elements in the lattice.
 
+    if (allocated(cs)) deallocate(cs)
+    allocate (cs(lord%n_slave))
+
     created_girder_lord = .false.
 
     branch_loop: do ib = 0, ubound(lat%branch, 1)
@@ -4493,6 +4510,7 @@ main_loop: do n = 1, n2
         ix_ele_now = ie
         ix_super_lord_end = -1   ! Not in a super_lord
         ixs = 1       ! Index of girder slave element we are looking for
+        n_slave = 0   ! Number of actual slaves found.
 
         slave_loop: do            ! loop over all girder slaves
 
@@ -4507,6 +4525,7 @@ main_loop: do n = 1, n2
 
           if (ele%key == drift$) then
             ix_ele_now = ix_ele_now + 1
+            if (match_wild(lord%name, input_slave_name)) ixs = ixs + 1
             cycle
           endif
 
@@ -4521,8 +4540,9 @@ main_loop: do n = 1, n2
               ix_end = slave%ix_ele
               if (lord2%slave_status == multipass_slave$) lord2 => pointer_to_lord(lord2, 1)
               if (match_wild(lord2%name, input_slave_name)) then
-                cs(ixs)%ix_slave  = lord2%ix_ele
-                cs(ixs)%ix_branch = lord2%ix_branch
+                n_slave = n_slave + 1
+                cs(n_slave)%ix_slave  = lord2%ix_ele
+                cs(n_slave)%ix_branch = lord2%ix_branch
                 ixs = ixs + 1  ! Next girder slave
                 ix_super_lord_end = ix_far_index(ix_ele_now, ix_super_lord_end, ix_end)
                 cycle slave_loop
@@ -4542,8 +4562,9 @@ main_loop: do n = 1, n2
           if (ele%slave_status == multipass_slave$) then
             lord2 => pointer_to_lord(ele, 1)
             if (match_wild(lord2%name, input_slave_name)) then
-              cs(ixs)%ix_slave  = lord2%ix_ele
-              cs(ixs)%ix_branch = lord2%ix_branch
+              n_slave = n_slave + 1
+              cs(n_slave)%ix_slave  = lord2%ix_ele
+              cs(n_slave)%ix_branch = lord2%ix_branch
               ixs = ixs + 1  ! Next girder slave
               ix_ele_now = ix_ele_now + 1
               cycle
@@ -4555,13 +4576,13 @@ main_loop: do n = 1, n2
           ! Regular element
 
           if (match_wild(ele%name, input_slave_name)) then
-            cs(ixs)%ix_slave  = ele%ix_ele
-            cs(ixs)%ix_branch = ele%ix_branch
+            n_slave = n_slave + 1
+            cs(n_slave)%ix_slave  = ele%ix_ele
+            cs(n_slave)%ix_branch = ele%ix_branch
             ixs = ixs + 1  ! Next girder slave
             ix_ele_now = ix_ele_now + 1
             cycle
           endif
-
           
           ! No match to the slave list. If a marker then ignore
 
@@ -4578,8 +4599,14 @@ main_loop: do n = 1, n2
 
         ! create the girder element
 
+        if (n_slave == 0) then
+          call parser_error ('LIST OF GIRDER SLAVES IN LATTICE FILE DOES NOT INCLUDE A NON-DRIFT ELEMENT: ' // &
+                              lord%name, warn_only = .true.)
+          cycle main_loop
+        endif
+
         call new_control (lat, ix_lord)
-        call create_girder (lat, ix_lord, cs(1:lord%n_slave), lord)
+        call create_girder (lat, ix_lord, cs(1:n_slave), lord)
         created_girder_lord = .true.
 
         ix_girder_end = cs(lord%n_slave)%ix_slave
@@ -4590,7 +4617,8 @@ main_loop: do n = 1, n2
     enddo branch_loop
 
     if (.not. created_girder_lord) then
-      call parser_error ('FAILED TO FIND REGION IN LATTICE FOR CRATING GIRDER: ' // lord%name, warn_only = .true.)
+      call parser_error ('FAILED TO FIND REGION IN LATTICE FOR CRATING GIRDER: ' // &
+                          lord%name, warn_only = .true.)
     endif
 
   end select
@@ -4601,7 +4629,6 @@ enddo main_loop
 
 deallocate (r_indexx)
 deallocate (name_list)
-deallocate (cs)
 
 !-------------------------------------------------------------------------
 contains
@@ -4814,7 +4841,7 @@ end subroutine settable_dep_var_bookkeeping
 ! Subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
 !
 ! Subroutine to form the standard name of the Bmad digested file. 
-! The standard digested file name has 'digested_' prepended to the file name.
+! The standard digested file name has the suffix '_digested' added to the file name.
 !
 ! Modules needed:
 !   use bmad_parser_mod
@@ -4832,7 +4859,7 @@ subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
 
 character(*) lat_file, digested_file
 character(*), optional :: full_lat_file
-character(200) full_name, path, basename
+character(200) full_name
 
 integer ix
 
@@ -4840,13 +4867,8 @@ integer ix
 
 call fullfilename (lat_file, full_name)
 inquire (file = full_name, name = full_name)  ! full input file_name
-ix = index(full_name, ';')
-if (ix /= 0) full_name = full_name(:ix-1)
-
 if (present (full_lat_file)) full_lat_file = full_name
-
-ix = SplitFileName(full_name, path, basename)
-digested_file = trim(path) // 'digested_' // basename
+digested_file = trim(full_name) // '_digested' 
 
 end subroutine form_digested_bmad_file_name
 
@@ -5023,7 +5045,7 @@ end subroutine parser_add_branch
 !-------------------------------------------------------------------------
 !+
 ! Subroutine parser_expand_line (lat, use_name, sequence, in_name, &
-!                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+!                       in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, allow_end_marker)
 !
 ! Subroutine to do line expansion.
 !
@@ -5032,7 +5054,7 @@ end subroutine parser_add_branch
 !-
 
 subroutine parser_expand_line (lat, use_name, sequence, in_name, &
-                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+                       in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, allow_end_marker)
 
 implicit none
 
@@ -5054,6 +5076,8 @@ integer i, j, k, n, ix, ix_multipass, ix_branch, flip
 character(*), allocatable ::  in_name(:), seq_name(:)
 character(*) use_name
 character(40) name
+
+logical, optional :: allow_end_marker
 
 ! find line corresponding to the "use" statement.
 
@@ -5363,7 +5387,7 @@ deallocate(used_line)
 
 ! Add End marker and make sure it's orientation is consistant
 
-if (nint(bp_com%param_ele%value(no_end_marker$)) == 0) then
+if (nint(bp_com%param_ele%value(no_end_marker$)) == 0 .and. logic_option(.true., allow_end_marker)) then
   n_ele_use = n_ele_use + 1
   ele => ele_line(n_ele_use)
   ele%name = 'END'

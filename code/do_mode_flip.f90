@@ -16,7 +16,6 @@
 ! Output:
 !     ele         -- Ele_struct: Flipped element
 !     err_flag    -- Logical, optional: Set True if there is an error. False otherwise.
-!            %ok      -- Set false if there is a problem.
 !-
 
 subroutine do_mode_flip (ele, err_flag)
