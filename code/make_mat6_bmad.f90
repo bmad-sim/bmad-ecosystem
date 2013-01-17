@@ -454,7 +454,7 @@ case (octupole$)
         call mat4_multipole (k3l, 0.0_rp, 3, c00%vec, kmat)
      end if
      c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
-     mat6(1:4,1:4) = matmul(kmat,mat6(1:4,1:4))
+     mat6(1:4,1:6) = matmul(kmat,mat6(1:4,1:6))
   end do
 
   if (ele%value(tilt_tot$) /= 0) then
@@ -827,7 +827,7 @@ case (sextupole$)
         call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, kmat)
      end if
      c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
-     mat6(1:4,1:4) = matmul(kmat,mat6(1:4,1:4))
+     mat6(1:4,1:6) = matmul(kmat,mat6(1:4,1:6))
   end do
 
   if (ele%value(tilt_tot$) /= 0) then
