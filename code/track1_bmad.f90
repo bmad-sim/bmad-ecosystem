@@ -59,6 +59,7 @@ real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, len_slice, k0l, k1l
 real(rp) dcos_phi, dgradient, dpz, w_mat_inv(3,3), w_mat0(3,3)
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
+real(rp) new_pc, new_beta
 
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc
@@ -612,21 +613,13 @@ case (quadrupole$)
 
 case (rfcavity$)
 
+  n_slice = max(1, nint(length / ele%value(ds_step$))) 
+
   call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
   ! coupler kick
 
   if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
-
-  !
-
-  x = end_orb%vec(1)
-  y = end_orb%vec(3)
-  z = end_orb%vec(5)
-
-  px = end_orb%vec(2)
-  py = end_orb%vec(4)
-  pz = end_orb%vec(6)
 
   voltage = ele%value(voltage$) * ele%value(field_scale$) 
 
@@ -645,22 +638,29 @@ case (rfcavity$)
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
                particle_time (end_orb, ele) * ele%value(rf_frequency$))
   if (absolute_time_tracking(ele)) phase = phase + &
-                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$) 
+                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
 
-  k = twopi * ele%value(rf_frequency$) * voltage * cos(phase) / (ele%value(p0c$) * c_light)
+  dE =  param%rel_tracking_charge * voltage * sin(phase) / (ele%value(E_tot$) * n_slice)
+  
+  E = (1 + end_orb%vec(6)) * ele%value(p0c$) / end_orb%beta
+  call convert_total_energy_to (E + dE/2, param%particle, pc = new_pc, beta = new_beta)
 
-  dE0 =  voltage * sin(phase) / ele%value(E_tot$)
-  L = ele%value(l$)
-  E = 1 + pz
-  E2 = E**2
-  pxy2 = px**2 + py**2
-
-  !
-
-  end_orb%vec(1) = x + px*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3) 
-  end_orb%vec(3) = y + py*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3)
-  end_orb%vec(5) = z + pxy2*L * (-1/(2*E2) + dE0/2)
-  end_orb%vec(6) = pz + dE0 + k*pxy2*L * (-1/(4*E2) + dE0/6) 
+  end_orb%vec(6) = (new_pc - ele%value(p0c$)) / ele%value(p0c$)
+  end_orb%vec(5) = end_orb%vec(5) * new_beta / end_orb%beta
+  end_orb%beta   = new_beta
+  
+  do i = 1, n_slice
+    call track_a_drift (end_orb, ele, length/n_slice)
+    E = (1 + end_orb%vec(6)) * ele%value(p0c$) / end_orb%beta
+    if (i == n_slice) then
+      call convert_total_energy_to (E + dE/2, param%particle, pc = new_pc, beta = new_beta)
+    else
+      call convert_total_energy_to (E + dE, param%particle, pc = new_pc, beta = new_beta)
+    endif
+    end_orb%vec(6) = (new_pc - ele%value(p0c$)) / ele%value(p0c$)
+    end_orb%vec(5) = end_orb%vec(5) * new_beta / end_orb%beta
+    end_orb%beta   = new_beta
+  enddo
 
   ! coupler kick
 
