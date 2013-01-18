@@ -213,7 +213,7 @@ use sim_utils_interface
 use utilities_mod
 use output_mod
 
-#if defined (USE_PLPLOT)
+#if defined (CESR_PLPLOT)
   use plplot_interface
 #else
   use pgplot_interface
