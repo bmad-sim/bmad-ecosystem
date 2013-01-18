@@ -4,7 +4,7 @@ set (EXE_SPECS
   cmake.parse_test
   cmake.reverse_test
   cmake.multipass_test
-  cmake.math_test
+  cmake.sim_utils_test
   cmake.ptc_test
   cmake.time_runge_kutta_test
   cmake.synrad3d_test

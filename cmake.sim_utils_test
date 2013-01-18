@@ -1,6 +1,6 @@
-set (EXENAME math_test)
+set (EXENAME sim_utils_test)
 set (SRC_FILES
-  math_test/math_test.f90
+  sim_utils_test/sim_utils_test.f90
 )
 
 set (INC_DIRS

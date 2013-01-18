@@ -1,5 +1,5 @@
 multipass_test
-math_test
+sim_utils_test
 bbu_test
 abs_time_test
 slice_test
