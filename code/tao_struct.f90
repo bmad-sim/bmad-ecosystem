@@ -612,8 +612,20 @@ end type
 
 type tao_scratch_space_struct
   type (this_array_struct), allocatable :: cc(:)
-
-
+  type (ele_pointer_struct), allocatable :: eles(:)
+  type (tao_d1_data_array_struct), allocatable :: d1_array(:)
+  type (tao_v1_var_array_struct), allocatable :: v1_array(:)
+  type (tao_eval_stack1_struct), allocatable :: stack(:)
+  type (tao_var_array_struct), allocatable :: var_array(:)
+  type (real_pointer_struct), allocatable :: attribs(:)
+  type (tao_data_var_component_struct), allocatable :: comp(:)
+  logical, allocatable :: picked(:)
+  logical, allocatable :: this_u(:)
+  logical, allocatable :: gx(:), gy(:), gix(:)
+  logical, allocatable :: good(:)
+  real(rp), allocatable :: axis1(:), axis2(:)
+  real(rp), allocatable :: x(:), y(:)
+  real(rp), allocatable :: y_value(:)
 end type
 
 type (tao_scratch_space_struct), save, target :: scratch
