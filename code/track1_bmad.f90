@@ -661,7 +661,6 @@ case (rfcavity$)
 
   call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
 
-  call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
 !-----------------------------------------------
