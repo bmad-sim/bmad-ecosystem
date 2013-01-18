@@ -6,17 +6,6 @@ use utilities_mod
 use measurement_mod
 use lat_geometry_mod
 
-type this_array_struct
-  real(rp) cbar(2,2)
-  real(rp) k_11a, k_12a, k_12b, k_22b
-  real(rp) amp_a, amp_b, amp_na, amp_nb
-  real(rp) :: one = 1.0
-  logical :: coupling_calc_done = .false.
-  logical :: amp_calc_done = .false.
-end type
-
-type (this_array_struct), save, allocatable, target, private :: cc(:)
-
 ! used for parsing expressions
 
 integer, parameter :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
@@ -412,14 +401,14 @@ integer m
 ! 
 
 m = u%model%lat%n_ele_max
-if (.not. allocated(cc)) allocate (cc(0:m))
-if (ubound(cc, 1) < m) then
-  deallocate(cc)
-  allocate(cc(0:m))
+if (.not. allocated(scratch%cc)) allocate (scratch%cc(0:m))
+if (ubound(scratch%cc, 1) < m) then
+  deallocate(scratch%cc)
+  allocate(scratch%cc(0:m))
 endif
 
-cc%coupling_calc_done = .false.
-cc%amp_calc_done = .false.
+scratch%cc%coupling_calc_done = .false.
+scratch%cc%amp_calc_done = .false.
 
 end subroutine
 
@@ -881,19 +870,19 @@ case ('cbar.')
 
   case ('cbar.11')
     if (data_source == 'beam') return
-    call tao_load_this_datum (cc%cbar(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%cbar(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case ('cbar.12')
     if (data_source == 'beam') return
-    call tao_load_this_datum (cc%cbar(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%cbar(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case ('cbar.21')
     if (data_source == 'beam') return
-    call tao_load_this_datum (cc%cbar(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%cbar(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case ('cbar.22')
     if (data_source == 'beam') return
-    call tao_load_this_datum (cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
@@ -1354,16 +1343,16 @@ case ('k.')
 
   case ('k.11b')
     if (data_source == 'beam') return
-    call tao_load_this_datum (cc%k_11a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%k_11a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
   case ('k.12a')
     if (data_source == 'beam') return
-    call tao_load_this_datum (cc%k_12a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%k_12a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
   case ('k.12b')
     if (data_source == 'beam') return
-    call tao_load_this_datum (cc%k_12b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%k_12b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
   case ('k.22a')
     if (data_source == 'beam') return
-    call tao_load_this_datum (cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
@@ -1466,19 +1455,19 @@ case ('orbit.')
 
   case ('orbit.amp_a')
     if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case ('orbit.amp_b')
     if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case ('orbit.norm_amp_a')
     if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case ('orbit.norm_amp_b')
     if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+    call tao_load_this_datum (scratch%cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
@@ -2527,7 +2516,7 @@ real(rp) f, f1, f2
 
 !
 
-cc_p => cc(ix_ele)
+cc_p => scratch%cc(ix_ele)
 ele => lat%ele(ix_ele)
 
 select case (datum%data_type)
