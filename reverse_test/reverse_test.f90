@@ -8,6 +8,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (coord_struct) orb0, orb1, orb2
+logical :: err_flag
 
 ! Init
 
@@ -19,6 +20,11 @@ open (1, file = 'output.now')
 call bmad_parser ('reverse.bmad', lat)
 call write_bmad_lattice_file ('lat.bmad', lat)
 call bmad_parser ('lat.bmad', lat)
+
+lat%branch(1)%ele(0)%value(e_tot$) = lat%branch(0)%ele(1)%value(e_tot$)
+lat%branch(1)%ele(0)%value(p0c$) = lat%branch(0)%ele(1)%value(p0c$)
+
+call lat_compute_ref_energy_and_time (lat, err_flag)
 
 orb0 = lat%beam_start
 ele => lat%branch(0)%ele(1)
@@ -32,6 +38,7 @@ orb1%vec(5) = -orb1%vec(5)
 orb1%t      = -orb1%t
 
 ele => lat%branch(1)%ele(1)
+if (ele%key == rfcavity$) ele%value(rf_frequency$) = -ele%value(rf_frequency$)
 call track1 (orb1, ele, ele%branch%param, orb2)
 
 print '(6es10.2, 5x, es10.2)', orb1%vec, orb1%t
