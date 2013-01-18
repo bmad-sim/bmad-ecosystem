@@ -599,6 +599,26 @@ end type
 integer, parameter :: n_char_show = 600
 
 !-----------------------------------------------------------------------
+! scratch space
+
+type this_array_struct
+  real(rp) cbar(2,2)
+  real(rp) k_11a, k_12a, k_12b, k_22b
+  real(rp) amp_a, amp_b, amp_na, amp_nb
+  real(rp) :: one = 1.0
+  logical :: coupling_calc_done = .false.
+  logical :: amp_calc_done = .false.
+end type
+
+type tao_scratch_space_struct
+  type (this_array_struct), allocatable :: cc(:)
+
+
+end type
+
+type (tao_scratch_space_struct), save, target :: scratch
+
+!-----------------------------------------------------------------------
 
 type tao_lat_mode_struct
   real(rp) chrom
