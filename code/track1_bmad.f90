@@ -635,31 +635,24 @@ case (rfcavity$)
   ! The RF phase is defined with respect to the time at the beginning of the element.
   ! So if dealing with a slave element and absolute time tracking then need to correct.
 
-  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
-               particle_time (end_orb, ele) * ele%value(rf_frequency$))
-  if (absolute_time_tracking(ele)) phase = phase + &
-                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
+  do i = 0, n_slice
 
-  dE =  param%rel_tracking_charge * voltage * sin(phase) / (ele%value(E_tot$) * n_slice)
-  
-  E = (1 + end_orb%vec(6)) * ele%value(p0c$) / end_orb%beta
-  call convert_total_energy_to (E + dE/2, param%particle, pc = new_pc, beta = new_beta)
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
+                 particle_time (end_orb, ele) * ele%value(rf_frequency$))
+    if (absolute_time_tracking(ele)) phase = phase + &
+                              twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
 
-  end_orb%vec(6) = (new_pc - ele%value(p0c$)) / ele%value(p0c$)
-  end_orb%vec(5) = end_orb%vec(5) * new_beta / end_orb%beta
-  end_orb%beta   = new_beta
-  
-  do i = 1, n_slice
-    call track_a_drift (end_orb, ele, length/n_slice)
+    dE =  param%rel_tracking_charge * voltage * sin(phase) / n_slice
+    if (i == 0 .or. i == n_slice) dE = dE / 2
+    
     E = (1 + end_orb%vec(6)) * ele%value(p0c$) / end_orb%beta
-    if (i == n_slice) then
-      call convert_total_energy_to (E + dE/2, param%particle, pc = new_pc, beta = new_beta)
-    else
-      call convert_total_energy_to (E + dE, param%particle, pc = new_pc, beta = new_beta)
-    endif
+    call convert_total_energy_to (E + dE, param%particle, pc = new_pc, beta = new_beta)
+
     end_orb%vec(6) = (new_pc - ele%value(p0c$)) / ele%value(p0c$)
     end_orb%vec(5) = end_orb%vec(5) * new_beta / end_orb%beta
     end_orb%beta   = new_beta
+
+    if (i /= n_slice) call track_a_drift (end_orb, ele, length/n_slice)
   enddo
 
   ! coupler kick
@@ -687,22 +680,14 @@ case (sextupole$)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
 
-  k2l = charge_dir * ele%value(k2$) * length / n_slice
-
   call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
-  end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/4
-  end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3) / 2
-
-  do i = 1, n_slice
-    call track_a_drift (end_orb, ele, length/n_slice)
-    if (i == n_slice) then
-      end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/4
-      end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3) / 2
-    else
-      end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
-      end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3)
-    endif
+  do i = 0, n_slice
+    k2l = charge_dir * ele%value(k2$) * length / n_slice
+    if (i == 0 .or. i == n_slice) k2l = k2l / 2
+    end_orb%vec(2) = end_orb%vec(2) + k2l * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
+    end_orb%vec(4) = end_orb%vec(4) + k2l * end_orb%vec(1) * end_orb%vec(3)
+    if (i /= n_slice) call track_a_drift (end_orb, ele, length/n_slice)
   enddo
 
   call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
