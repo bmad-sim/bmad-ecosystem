@@ -593,7 +593,7 @@ END FUNCTION dagger2
 ! This subroutine assumes that the eigenvectors are arranged in complex-conjugate pairs: (e1 e1* e2 e2* e3 e3*)
 !
 ! The following normalizations are applied to the matrix of eigenvectors.  The result is still a matrix of eigenvectors,
-! but it is symplectic and normalized and the phase adjusted such that G and V can be easily extracted.
+! but it is normalized and the phase adjusted such that G and V can be easily extracted.
 ! It is probably also unique, though this remains to be proven.
 !
 ! 1) Normalize the eigenvectors such that their length is 1.
