@@ -97,10 +97,22 @@ set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINU
 
 
 #-----------------------------------
+# Plotting library compiler flag
+#-----------------------------------
+if ($ENV{ACC_PLOT_PACKAGE} STREQUAL "plplot")
+   set (PLOT_LIBRARY_F_FLAG " -DCESR_PLPLOT")
+   set (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
+else ()
+   set (PLOT_LIBRARY_F_FLAG "")
+   set (PLOT_LINK_LIBS "pgplot")
+endif ()
+
+
+#-----------------------------------
 # Fortran Compiler flags
 #-----------------------------------
 enable_language( Fortran )
-set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS}")
+set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG}")
 
 
 
