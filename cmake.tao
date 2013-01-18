@@ -15,7 +15,7 @@ set (LINK_LIBS
   sim_utils
   recipes_f-90_LEPP 
   xsif 
-  pgplot 
+  ${PLOT_LINK_LIBS}
   forest 
 )
 
