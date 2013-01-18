@@ -180,7 +180,7 @@ integer, optional :: ix_uni
 integer i, ix, n, ios, iu, num, ic
 
 logical, allocatable :: picked(:)
-logical, allocatable, save :: p(:)
+logical, allocatable :: p(:)
 logical err
 
 ! Init
@@ -268,7 +268,7 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_pointer_struct), allocatable, save :: this_eles(:)
+type (ele_pointer_struct), allocatable :: this_eles(:)
 
 integer i, ix, ix_word, n_eles, n0
 
@@ -279,7 +279,7 @@ character(1) delim
 
 logical err, delim_found
 logical, optional :: ignore_blank
-logical, allocatable, save :: picked(:)
+logical, allocatable :: picked(:)
 
 !
 
@@ -555,9 +555,9 @@ implicit none
 type (tao_plot_array_struct), allocatable, optional :: plot(:)
 type (tao_graph_array_struct), allocatable, optional :: graph(:)
 type (tao_curve_array_struct), allocatable, optional :: curve(:)
-type (tao_plot_array_struct), allocatable, save :: p(:)
-type (tao_graph_array_struct), allocatable, save :: g(:)
-type (tao_curve_array_struct), allocatable, save :: c(:)
+type (tao_plot_array_struct), allocatable :: p(:)
+type (tao_graph_array_struct), allocatable :: g(:)
+type (tao_curve_array_struct), allocatable :: c(:)
 
 integer i, j, k, ix, np, ng, nc
 
@@ -815,7 +815,6 @@ type (lat_struct), pointer :: lat
 type (ele_struct) ele3
 type (coord_struct), pointer :: this_orb(:)
 type (coord_struct) orb
-type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 
 character(*) param_name
@@ -831,11 +830,10 @@ integer i, j, ix, num, ixe, ix1, ios, n_tot
 
 logical err, valid, middle
 logical :: print_err
-logical, allocatable, save :: this_u(:)
 
 !
 
-call tao_pick_universe (param_name, name, this_u, err)
+call tao_pick_universe (param_name, name, scratch%this_u, err)
 if (err) return
 
 err = .true.
@@ -882,14 +880,14 @@ endif
 
 n_tot = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  if (.not. this_u(i)) cycle
+  if (.not. scratch%this_u(i)) cycle
   u => s%u(i)
-  call tao_locate_elements (class_ele, u%ix_uni, eles, err)
+  call tao_locate_elements (class_ele, u%ix_uni, scratch%eles, err)
   if (err) return
-  call re_allocate (values, n_tot + size(eles))
+  call re_allocate (values, n_tot + size(scratch%eles))
 
-  do j = 1, size(eles)
-    ixe = eles(j)%ele%ix_ele
+  do j = 1, size(scratch%eles)
+    ixe = scratch%eles(j)%ele%ix_ele
 
     if (parameter == 'index') then
       values(n_tot+j) = ixe
@@ -899,16 +897,16 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     select case (component)
     case ('model')   
       lat => u%model%lat
-      this_orb => u%model%lat_branch(eles(j)%ele%ix_branch)%orbit
-      branch => u%model%lat%branch(eles(j)%ele%ix_branch)
+      this_orb => u%model%lat_branch(scratch%eles(j)%ele%ix_branch)%orbit
+      branch => u%model%lat%branch(scratch%eles(j)%ele%ix_branch)
     case ('base')  
       lat => u%base%lat
-      this_orb => u%base%lat_branch(eles(j)%ele%ix_branch)%orbit
-      branch => u%base%lat%branch(eles(j)%ele%ix_branch)
+      this_orb => u%base%lat_branch(scratch%eles(j)%ele%ix_branch)%orbit
+      branch => u%base%lat%branch(scratch%eles(j)%ele%ix_branch)
     case ('design')
       lat => u%design%lat
-      this_orb => u%design%lat_branch(eles(j)%ele%ix_branch)%orbit
-      branch => u%design%lat%branch(eles(j)%ele%ix_branch)
+      this_orb => u%design%lat_branch(scratch%eles(j)%ele%ix_branch)%orbit
+      branch => u%design%lat%branch(scratch%eles(j)%ele%ix_branch)
     case default
       call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
       return
@@ -1100,7 +1098,6 @@ integer i, ix, iu
 
 logical err, component_here, this_err, print_error, error, found_data
 logical, optional :: print_err
-logical, allocatable, save :: picked(:)
 
 ! Init
 
@@ -1188,7 +1185,7 @@ endif
 
 ! Select universe
 
-call tao_pick_universe (dat_name, dat_name, picked, this_err)
+call tao_pick_universe (dat_name, dat_name, scratch%picked, this_err)
 if (this_err) return
 
 ! Trim 'dat::' suffix if present
@@ -1203,7 +1200,7 @@ if (present(ix_uni)) then
   call find_this_d2 (u, dat_name, this_err)
 else
   do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. picked(i)) cycle
+    if (.not. scratch%picked(i)) cycle
     u => tao_pointer_to_universe (i)
     call find_this_d2 (u, dat_name, this_err)
     if (this_err) return
