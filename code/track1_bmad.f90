@@ -661,8 +661,6 @@ case (rfcavity$)
 
   call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
 
-  call time_and_s_calc ()
-
 !-----------------------------------------------
 ! sbend
 
