@@ -3,9 +3,9 @@ no_digested
 beam_start[x]  = 0e-5
 beam_start[px] = 0e-5
 beam_start[y]  = 0e-5
-beam_start[py] = 2e-5
-beam_start[z]  = 0e-5
-beam_start[pz] = 0e-5
+beam_start[py] = 0e-5
+beam_start[z]  = 1e-3
+beam_start[pz] = 1e-5
 
 beginning[beta_a] =  10
 beginning[beta_b] =  10
@@ -13,8 +13,9 @@ beginning[beta_b] =  10
 parameter[lattice_type] = linear_lattice
 beginning[e_tot] = 1e7
 
+ele: rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 1, num_steps = 1
 !ele: quad, l = 0.1, k1 = 0001, x_pitch = 0.0001, x_offset = 0.002, tilt = 0.1, y_pitch = 0.0001, y_offset = 0.0056, a2=10
-ele: sbend, l = 0.01, g = 0.01, e1 = .1, e2 = 0
+!ele: sbend, l = 0.01, g = 0.01, e1 = .1, e2 = 0
 
 l0: line = (ele)
 
