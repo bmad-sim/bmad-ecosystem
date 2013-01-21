@@ -48,7 +48,7 @@ write (1, '(a, es11.3)') '"dorb(3)" ABS 1d-14 ', orb2%vec(3) - orb0%vec(3)
 write (1, '(a, es11.3)') '"dorb(4)" ABS 1d-14 ', orb2%vec(4) + orb0%vec(4)
 write (1, '(a, es11.3)') '"dorb(5)" ABS 1d-14 ', orb2%vec(5) + orb0%vec(5)
 write (1, '(a, es11.3)') '"dorb(6)" ABS 1d-14 ', orb2%vec(6) - orb0%vec(6)
-write (1, '(a, es11.3)') '"dt"      ABS 1d-14 ', orb2%t      + orb0%t
+write (1, '(a, es11.3)') '"c*dt"    ABS 1d-14 ', (orb2%t      + orb0%t) * c_light
 
 ! And close
 
