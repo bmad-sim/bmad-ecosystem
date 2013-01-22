@@ -13,6 +13,18 @@ cmake_minimum_required(VERSION 2.8)
 #-----------------------------------------------------------
 cmake_policy(SET CMP0015 NEW)
 
+
+#------------------------------------------
+# Honor requests for compiling with openmp
+# made via environment variable.
+#------------------------------------------
+IF ($ENV{ACC_COMPILE_WITH_OPENMP})
+  SET(ACC_COMPILE_WITH_OPENMP 1)
+ELSE ()
+  SET(ACC_COMPILE_WITH_OPENMP 0)
+ENDIF ()
+
+
 #-------------------------------------------------------
 # Import environment variables that influence the build
 #-------------------------------------------------------
@@ -34,7 +46,11 @@ IF (FORTRAN_COMPILER MATCHES "gfortran")
   set (RELEASE_NAME_TRUE "Off-site Distribution")
   set (COMPILER_CHOICE $ENV{DIST_F90})
   set (CMAKE_Fortran_COMPILER gfortran)
-  set (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
+     IF ("${ACC_COMPILE_WITH_OPENMP}")
+       SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -fopenmp")
+     ELSE ()
+       SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
+     ENDIF () 
   set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0")
 
 ELSE ()
@@ -42,7 +58,11 @@ ELSE ()
   set (RELEASE_NAME $ENV{ACC_RELEASE})
   set (RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
   set (CMAKE_Fortran_COMPILER ifort)
-  set (COMPILER_SPECIFIC_F_FLAGS "-fpp")
+     IF ("${ACC_COMPILE_WITH_OPENMP}")
+       SET (COMPILER_SPECIFIC_F_FLAGS "-fpp -openmp")
+     ELSE ()
+       SET (COMPILER_SPECIFIC_F_FLAGS "-fpp")
+     ENDIF ()
   set (COMPILER_SPECIFIC DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
 
 ENDIF ()
@@ -99,13 +119,18 @@ set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINU
 #-----------------------------------
 # Plotting library compiler flag
 #-----------------------------------
-if ($ENV{ACC_PLOT_PACKAGE} STREQUAL "plplot")
-   set (PLOT_LIBRARY_F_FLAG " -DCESR_PLPLOT")
-   set (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
-else ()
-   set (PLOT_LIBRARY_F_FLAG "")
-   set (PLOT_LINK_LIBS "pgplot")
-endif ()
+IF ($ENV{ACC_PLOT_PACKAGE})
+  IF ($ENV{ACC_PLOT_PACKAGE} STREQUAL "plplot")
+    SET (PLOT_LIBRARY_F_FLAG " -DCESR_PLPLOT")
+    SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
+  ELSE ()
+    SET (PLOT_LIBRARY_F_FLAG "")
+    SET (PLOT_LINK_LIBS "pgplot")
+  ENDIF ()
+ELSE ()
+  SET (PLOT_LIBRARY_F_FLAG "")
+  SET (PLOT_LINK_LIBS "pgplot")
+ENDIF()
 
 
 #-----------------------------------
