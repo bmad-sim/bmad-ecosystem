@@ -108,7 +108,9 @@ if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
 if (any (key == [drift$, capillary$, rcollimator$, &
         ecollimator$, monitor$, instrument$, pipe$ ])) then
-  call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
+  call offset_particle (ele, c00, param, set$)
+  call offset_particle (ele, c11, param, set$, ds_pos = length)
+  call drift_mat6_calc (mat6, length, c00%vec, c11%vec)
   call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
   return
