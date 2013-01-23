@@ -11,6 +11,13 @@ import re
 release_dir   = os.environ['ACC_RELEASE_DIR'] + '/'
 dist_dir  = os.environ['DIST_BASE_DIR'] + '/'
 
+class search_com_class:
+  def __init__(self):
+    self.found_one = False
+    self.full_doc = True
+    self.match_str = ''
+    self.case_insensitive = False
+
 #-----------------------------------------
 
 def choose_path (base_dir, base_file, dist_sub_dir):
@@ -24,11 +31,13 @@ def choose_path (base_dir, base_file, dist_sub_dir):
 
 def print_help_message ():
   print '''
-  Usage:
-    getf {options} <search_string>
+  Usage for getf and listf:
+    getf  {options} <search_string>
+    listf {options} <search_string>
   Options:
      -a          # Search Numerical recipes, forest, and varies program directories as well.
      -d <dir>    # Search files in <dir> and sub-directories for matches.
+     -i          # Case insensitive search.
 
   Standard Libraries searched:
      bmad
@@ -69,10 +78,10 @@ re_type_interface_end = re.compile('end +(type|interface)')
 re_end                = re.compile('end')
 re_routine_name_here  = re.compile('subroutine|function|interface')
 
-def search_f90 (file_name, match_str, found_one):
+def search_f90 (file_name, search_com):
 
-  re_match_str  = re.compile(match_str.lower() + '$')
-  re_type_interface_match = re.compile('^(type|interface) +' + match_str.lower() + '\s') 
+  re_match_str  = re.compile(search_com.match_str.lower() + '$')
+  re_type_interface_match = re.compile('^(type|interface) +' + search_com.match_str.lower() + '\s') 
 
   found_one_in_this_file = False
   have_printed_file_name = False
@@ -122,7 +131,7 @@ def search_f90 (file_name, match_str, found_one):
             param = chunk_match.group(1)
             if re_match_str.match(param) or \
                (param[-1] == '$' and re_match_str.match(param[:-1])):
-              found_one[0] = True
+              search_com.found_one = True
               found_one_in_this_file = True
               if not have_printed_file_name:
                 print '\nFile:', file_name
@@ -135,17 +144,17 @@ def search_f90 (file_name, match_str, found_one):
         if blank_line_found:
           comments = []
           blank_line_found = False
-        if full_doc: comments.append(line)
+        if search_com.full_doc: comments.append(line)
         continue
 
       # Match to type or interface statement
       # These we type the whole definition
 
       if re_type_interface_match.match(line2):
-        found_one[0] = True
+        search_com.found_one = True
         found_one_in_this_file = True
         print '\nFile:', file_name
-        if full_doc:
+        if search_com.full_doc:
           for com in comments: print com.rstrip()
           print ''
           print line.rstrip()
@@ -156,7 +165,7 @@ def search_f90 (file_name, match_str, found_one):
             print line.rstrip()
             if re_type_interface_end.match(line2): break
         else:
-          print line.rstrip()
+          print '    ', line.rstrip()
         comments = []
         continue
 
@@ -164,10 +173,10 @@ def search_f90 (file_name, match_str, found_one):
 
       if routine_here(line2, routine_name):
         if re_match_str.match(routine_name[0]):
-          found_one[0] = True
+          search_com.found_one = True
           found_one_in_this_file = True
           print '\nFile:', file_name
-          if full_doc:
+          if search_com.full_doc:
             for com in comments: print com.rstrip()          
           else:
             print '    ', line.rstrip()
@@ -197,13 +206,15 @@ def search_f90 (file_name, match_str, found_one):
 
 re_quote            = re.compile('"|\'')
 
-def search_c (file_name, match_str, found_one):
+def search_c (file_name, search_com):
 
   found_one_in_this_file = False
   in_extended_comment = False
   blank_line_here = False
   n_curly = 0
   comments = []
+  lines_after_comments = []
+  function_line = ''
 
   c_file = open(file_name)
   while True:
@@ -211,8 +222,12 @@ def search_c (file_name, match_str, found_one):
     if line == '': return
     line2 = line.lstrip()
     if line2.rstrip() == '':
-      blank_line_found = True
+      blank_line_here = True
       continue
+
+    # Ignore preprocessor lines
+
+    if line[0] == '#': continue
 
     # Throw out quoted substrings
 
@@ -227,7 +242,16 @@ def search_c (file_name, match_str, found_one):
 
     # Look For multiline comment "/* ... */" construct and remove if present.
 
-    if line2[0:2] == '//' or line2[0:2] == '/*' or in_extended_comment: comments.append(line)
+    if n_curly == 0:
+      if line2[0:2] == '//' or line2[0:2] == '/*' or in_extended_comment: 
+        if blank_line_here:
+          comments = []
+          blank_line_here = False
+        comments.append(line)
+        lines_after_comments = []
+      else:
+        lines_after_comments.append(line)
+
 
     while True:
       ix_save = 0
@@ -251,20 +275,44 @@ def search_c (file_name, match_str, found_one):
     # Count curly brackets
 
     for char in line2:
+
+      if n_curly == 0: 
+        function_line = function_line + char
+        if char == ';': 
+          function_line = ''
+          comments = []
+          lines_after_comments = []
+
       if char == '{':
         n_curly += 1
         if n_curly == 1:
-          print line
+          if search_com.case_insensitive:
+            is_match = re.search(search_com.match_str + ' *(\(.*\))* *{', function_line, re.I)
+          else:
+            is_match = re.search(search_com.match_str + ' *(\(.*\))* *{', function_line)
+          if is_match:
+            search_com.found_one = True
+            if search_com.full_doc:
+              print '\nFile:', file_name
+              for com in comments: print com.rstrip()
+              for com in lines_after_comments: print com.rstrip()
+            else:
+              if not found_one_in_this_file: 
+                print '\nFile:', file_name
+                found_one_in_this_file = True
+              for com in lines_after_comments: print '    ', com.rstrip()
 
       elif char == '}':
         n_curly -= 1
-
-
+        if n_curly == 0: 
+          function_line = ''
+          comments = []
+          lines_after_comments = []
   return
 
 #-----------------------------------------
 
-def searchit (this_dir, match_str, found_one):
+def search_tree (this_dir, search_com):
 
   # Loop over all directories
 
@@ -283,8 +331,8 @@ def searchit (this_dir, match_str, found_one):
     for this_file in files:
       if re.search (this_file, '#'): continue
       file_name = os.path.join(root, this_file)
-      if this_file[-4:] == '.f90' or this_file[-4:] == '.inc': search_f90(file_name, match_str, found_one)
-      if this_file[-4:] == '.cpp' or this_file[-2:] == '.h' or this_file[-2:] == '.c': search_c(file_name, match_str, found_one)
+      if this_file[-4:] == '.f90' or this_file[-4:] == '.inc': search_f90(file_name, search_com)
+      if this_file[-4:] == '.cpp' or this_file[-2:] == '.h' or this_file[-2:] == '.c': search_c(file_name, search_com)
 
   # End
 
@@ -292,84 +340,93 @@ def searchit (this_dir, match_str, found_one):
 
 #-----------------------------------------
 
-bmad_dir          = choose_path ('bmad', '/modules/bmad_struct.f90', '')
-cesr_utils_dir    = choose_path ('cesr_utils', '/modules/cesr_utils.f90', '')
-sim_utils_dir     = choose_path ('sim_utils', '/interfaces/sim_utils.f90', '')
-mpm_utils_dir     = choose_path ('mpm_utils', '/code/butout.f90', '')
-recipes_dir       = choose_path ('recipes_f-90_LEPP', '/lib_src/nr.f90', '')
-forest_dir        = choose_path ('forest', '/code/i_tpsa.f90', '/packages')
-tao_dir           = choose_path ('tao', '/code/tao_struct.f90', '')
-bmadz_dir         = choose_path ('bmadz', '/modules/bmadz_struct.f90', '')
-nonlin_bpm_dir    = choose_path ('nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
-recipes_dir       = choose_path ('recipes_f-90_LEPP', '/lib_src/nr.f90', '')
-bsim_dir          = choose_path ('bsim', '/code/bsim_interface.f90', '')
-bsim_cesr_dir     = choose_path ('bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
-cesr_programs_dir = choose_path ('cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
-cesrv_dir         = choose_path ('cesrv', '/code/cesrv_struct.f90', '')
-util_programs_dir = choose_path ('util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
-examples_dir      = choose_path ('examples', '/simple_bmad_program/simple_bmad_program.f90', '')
+def search_all (full_doc):
 
-#-----------------------------------------------------------
-# Look for arguments
+  search_com = search_com_class()
+  search_com.found_one = False
+  search_com.full_doc = full_doc
 
-extra_dir = ''
-search_all = False
+  bmad_dir          = choose_path ('bmad', '/modules/bmad_struct.f90', '')
+  cesr_utils_dir    = choose_path ('cesr_utils', '/modules/cesr_utils.f90', '')
+  sim_utils_dir     = choose_path ('sim_utils', '/interfaces/sim_utils.f90', '')
+  mpm_utils_dir     = choose_path ('mpm_utils', '/code/butout.f90', '')
+  recipes_dir       = choose_path ('recipes_f-90_LEPP', '/lib_src/nr.f90', '')
+  forest_dir        = choose_path ('forest', '/code/i_tpsa.f90', '/packages')
+  tao_dir           = choose_path ('tao', '/code/tao_struct.f90', '')
+  bmadz_dir         = choose_path ('bmadz', '/modules/bmadz_struct.f90', '')
+  nonlin_bpm_dir    = choose_path ('nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
+  recipes_dir       = choose_path ('recipes_f-90_LEPP', '/lib_src/nr.f90', '')
+  bsim_dir          = choose_path ('bsim', '/code/bsim_interface.f90', '')
+  bsim_cesr_dir     = choose_path ('bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
+  cesr_programs_dir = choose_path ('cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
+  cesrv_dir         = choose_path ('cesrv', '/code/cesrv_struct.f90', '')
+  util_programs_dir = choose_path ('util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
+  examples_dir      = choose_path ('examples', '/simple_bmad_program/simple_bmad_program.f90', '')
 
-i = 1
-while i+1 < len(sys.argv):
-  i += 1
-  arg = sys.argv[i]
+  #-----------------------------------------------------------
+  # Look for arguments
 
-  if arg[0] != '-': break
+  extra_dir = ''
+  search_all = False
 
-  if arg == '-d':
-    extra_dir = sys.argv[i+1]
+  i = 0
+  while i+1 < len(sys.argv):
     i += 1
-    continue
+    arg = sys.argv[i]
 
-  if arg == '-a':
-    search_all = True
-    continue
+    if arg[0] != '-': break
 
-  if arg == '-h':
+    if arg == '-d':
+      extra_dir = sys.argv[i+1]
+      i += 1
+      continue
+
+    if arg == '-a':
+      search_all = True
+      continue
+
+    if arg == '-i':
+      search_com.case_insensitive = True
+      continue
+
+    if arg == '-h':
+      print_help_message ()
+
+    print '!!! UNKNOWN ARGUMENT:', arg
     print_help_message ()
 
-#----------------------------------------------------------
-# Search for a match.
+  #----------------------------------------------------------
+  # Search for a match.
 
-if i >= len(sys.argv): print_help_message()
+  if i == 0 or i >= len(sys.argv): print_help_message()
 
-match_str_in = sys.argv[i]
-match_str = match_str_in.replace('*', '\w*') 
-found_one = [False]
-full_doc = True
+  match_str_in = sys.argv[i]
+  search_com.match_str = match_str_in.replace('*', '\w*') 
 
-if extra_dir != '':
-  print 'Searching also: extra_dir\n'
-  searchit (extra_dir, match_str, found_one)
+  if extra_dir != '':
+    print 'Searching also: extra_dir\n'
+    search_tree (extra_dir, search_com)
 
-bmad_dir = '/home/dcs16/linux_lib/getf_dir'
-searchit (bmad_dir, match_str, found_one)
-if False:
-  searchit (sim_utils_dir, match_str, found_one)
-  searchit (tao_dir, match_str, found_one)
-  searchit (cesr_utils_dir, match_str, found_one)
-  searchit (mpm_utils_dir, match_str, found_one)
-  searchit (bmadz_dir, match_str, found_one)
+  search_tree (bmad_dir, search_com)
+  search_tree (sim_utils_dir, search_com)
+  search_tree (tao_dir, search_com)
+  search_tree (cesr_utils_dir, search_com)
+  search_tree (mpm_utils_dir, search_com)
+  search_tree (bmadz_dir, search_com)
 
-if search_all:
-  searchit (recipes_dir, match_str, found_one)
-  searchit (forest_dir, match_str, found_one)
-  searchit (bsim_dir, match_str, found_one)
-  searchit (bsim_cesr_dir, match_str, found_one)
-  searchit (cesr_programs_dir, match_str, found_one)
-  searchit (cesrv_dir, match_str, found_one)
-  searchit (util_programs_dir, match_str, found_one)
-  searchit (examples_dir, match_str, found_one)
+  if search_all:
+    search_tree (recipes_dir, search_com)
+    search_tree (forest_dir, search_com)
+    search_tree (bsim_dir, search_com)
+    search_tree (bsim_cesr_dir, search_com)
+    search_tree (cesr_programs_dir, search_com)
+    search_tree (cesrv_dir, search_com)
+    search_tree (util_programs_dir, search_com)
+    search_tree (examples_dir, search_com)
 
-if not found_one[0]:
-  print 'Cannot match String! match_str\n'
-  print 'Use "-h" command line option to list options.\n'
-else:
-  print '\n'
+  if not search_com.found_one:
+    print 'Cannot match String:',  match_str_in
+    print 'Use "-h" command line option to list options.'
+  else:
+    print ''
 
