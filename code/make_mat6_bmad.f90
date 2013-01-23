@@ -107,9 +107,8 @@ c11 = c1
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
 if (any (key == [drift$, capillary$])) then
-  call offset_particle (ele, c00, param, set$, set_tilt = .false.)
-  call offset_particle (ele, c11, param, set$, ds_pos = length, set_tilt = .false.)
-  call drift_mat6_calc (mat6, length, c00%vec, c11%vec)
+  call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
+  call drift_mat6_calc (mat6, length, c00%vec)
   call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
   return
