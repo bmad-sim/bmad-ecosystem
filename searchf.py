@@ -42,7 +42,7 @@ def print_help_message ():
 
 #-----------------------------------------
 
-re_routine = re.compile('^(subroutine|recursive subroutine|elemental subroutine|' + \
+re_routine = re.compile('(subroutine|recursive subroutine|elemental subroutine|' + \
       'function|recursive function|real\(rp\) *function|' +  \
       'integer *function|logical *function|interface) ')
 
@@ -51,32 +51,34 @@ re_routine_name = re.compile('\w+')
 def routine_here (line2, routine_name):
   match = re_routine.match(line2)
   if match:
-    routine_name[0] = re_routine_name.match(line2[match.end(1):].lstrip()).group(0)
+    name_match = re_routine_name.match(line2[match.end(1):].lstrip())
+    if name_match: routine_name[0] = name_match.group(0)
     return True
   else:
     return False
 
 #-----------------------------------------
 
-re_interface_end      = re.compile('^end +interface')
-re_type               = re.compile(r'^type *\(')
-re_module_begin       = re.compile('^module')
-re_module_end         = re.compile('^contains')
+re_interface_end      = re.compile('end +interface')
+re_type               = re.compile(r'type *\(')
+re_module_begin       = re.compile('module')
+re_module_end         = re.compile('contains')
 re_parameter          = re.compile(' parameter.*::')
-re_parameter1         = re.compile(r'^\s*([\$\w]+)[\(-:\) ]*=')  # match to: "charge_of(-3:3) = "
-re_type_interface_end = re.compile('^end +(type|interface)')
-re_end                = re.compile('^end')
-re_routine_name_here  = re.compile('^(subroutine|function|interface)')
+re_parameter1         = re.compile(r'\s*([\$\w]+)[\(-:\) ]*=')  # match to: "charge_of(-3:3) = "
+re_type_interface_end = re.compile('end +(type|interface)')
+re_end                = re.compile('end')
+re_routine_name_here  = re.compile('subroutine|function|interface')
 
 def search_f90 (file_name, match_str, found_one):
 
-  re_match_str  = re.compile('^' + match_str.lower() + '$')
+  re_match_str  = re.compile(match_str.lower() + '$')
   re_type_interface_match = re.compile('^(type|interface) +' + match_str.lower() + '\s') 
 
   found_one_in_this_file = False
   have_printed_file_name = False
   in_module_header = False
   routine_name = ['']
+  blank_line_found = False
 
   comments = []
 
@@ -85,7 +87,9 @@ def search_f90 (file_name, match_str, found_one):
     line = f90_file.readline()
     if line == '': return
     line2 = line.lstrip().lower()
-    if line2 == '': continue
+    if line2.rstrip() == '': 
+      blank_line_found = True
+      continue
 
     # Skip blank interface blocks
 
@@ -94,18 +98,18 @@ def search_f90 (file_name, match_str, found_one):
         line = f90_file.readline()
         if line == '': return
         line2 = line.lstrip().lower()
-        if re_interface_end.search(line2): break
+        if re_interface_end.match(line2): break
 
     # Skip "type (" constructs and separator comments.
 
-    if re_type.search(line2): continue
+    if re_type.match(line2): continue
     if line2[0] == '#': continue
     if line2[0:10] == '!---------': continue   # ignore separator comment
 
     # In the header section of a module
 
-    if re_module_begin.search(line2): in_module_header = True
-    if re_module_end.search(line2): in_module_header = False
+    if re_module_begin.match(line2): in_module_header = True
+    if re_module_end.match(line2): in_module_header = False
     
     # Search for parameters
 
@@ -113,11 +117,11 @@ def search_f90 (file_name, match_str, found_one):
       if re_parameter.search(line2):
         chunks = re_parameter.split(line2)[1].split(',')
         for chunk in chunks:
-          chunk_match = re_parameter1.search(chunk)
+          chunk_match = re_parameter1.match(chunk)
           if chunk_match:
             param = chunk_match.group(1)
-            if re_match_str.search(param) or \
-               (param[-1] == '$' and re_match_str.search(param[:-1])):
+            if re_match_str.match(param) or \
+               (param[-1] == '$' and re_match_str.match(param[:-1])):
               found_one[0] = True
               found_one_in_this_file = True
               if not have_printed_file_name:
@@ -128,13 +132,16 @@ def search_f90 (file_name, match_str, found_one):
       # Add to comment block if a comment
 
       if line2[0] == '!':
+        if blank_line_found:
+          comments = []
+          blank_line_found = False
         if full_doc: comments.append(line)
         continue
 
       # Match to type or interface statement
       # These we type the whole definition
 
-      if re_type_interface_match.search(line2):
+      if re_type_interface_match.match(line2):
         found_one[0] = True
         found_one_in_this_file = True
         print '\nFile:', file_name
@@ -147,7 +154,7 @@ def search_f90 (file_name, match_str, found_one):
             if line == '': return
             line2 = line.lstrip().lower()
             print line.rstrip()
-            if re_type_interface_end.search(line2): break
+            if re_type_interface_end.match(line2): break
         else:
           print line.rstrip()
         comments = []
@@ -173,8 +180,8 @@ def search_f90 (file_name, match_str, found_one):
           if line == '': return
           line2 = line.lstrip().lower()
 
-          if re_end.search(line2):
-            if re_routine_name_here.search(line2[4:].lstrip()):
+          if re_end.match(line2):
+            if re_routine_name_here.match(line2[4:].lstrip()):
               count -= 1
           elif routine_here(line2, routine_name):
               count += 1
@@ -188,7 +195,71 @@ def search_f90 (file_name, match_str, found_one):
 
 #-----------------------------------------
 
+re_quote            = re.compile('"|\'')
+
 def search_c (file_name, match_str, found_one):
+
+  found_one_in_this_file = False
+  in_extended_comment = False
+  blank_line_here = False
+  n_curly = 0
+  comments = []
+
+  c_file = open(file_name)
+  while True:
+    line = c_file.readline()
+    if line == '': return
+    line2 = line.lstrip()
+    if line2.rstrip() == '':
+      blank_line_found = True
+      continue
+
+    # Throw out quoted substrings
+
+    line2.replace(r'\"', '').replace(r"\'", '')
+    while True:
+      match = re_quote.search(line2)
+      if not match: break
+      char = match.group(0)      
+      ix = line2.find(char, match.end(0))
+      if ix == -1: break
+      line2 = line2[0:match.start(0)] + line2[ix+1:]
+
+    # Look For multiline comment "/* ... */" construct and remove if present.
+
+    if line2[0:2] == '//' or line2[0:2] == '/*' or in_extended_comment: comments.append(line)
+
+    while True:
+      ix_save = 0
+      if in_extended_comment:
+        ix = line2.find('*/')
+        if ix == -1: break
+        in_extended_comment = False
+        line2 = line2[0:ix_save] + line2[ix+2:]
+      else:
+        ix = line2.find('/*')
+        if ix == -1: break
+        in_extended_comment = True
+        ix_save = ix
+
+    if line2[0:2] == '//': continue
+    if line2.strip() == '': continue
+
+    ix = line2.find('//')
+    if ix > -1: line2 = line2[0:ix]
+
+    # Count curly brackets
+
+    for char in line2:
+      if char == '{':
+        n_curly += 1
+        if n_curly == 1:
+          print line
+
+      elif char == '}':
+        n_curly -= 1
+
+
   return
 
 #-----------------------------------------
@@ -279,11 +350,12 @@ if extra_dir != '':
 
 bmad_dir = '/home/dcs16/linux_lib/getf_dir'
 searchit (bmad_dir, match_str, found_one)
-#searchit (sim_utils_dir, match_str, found_one)
-#searchit (tao_dir, match_str, found_one)
-#searchit (cesr_utils_dir, match_str, found_one)
-#searchit (mpm_utils_dir, match_str, found_one)
-#searchit (bmadz_dir, match_str, found_one)
+if False:
+  searchit (sim_utils_dir, match_str, found_one)
+  searchit (tao_dir, match_str, found_one)
+  searchit (cesr_utils_dir, match_str, found_one)
+  searchit (mpm_utils_dir, match_str, found_one)
+  searchit (bmadz_dir, match_str, found_one)
 
 if search_all:
   searchit (recipes_dir, match_str, found_one)
