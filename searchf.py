@@ -16,7 +16,7 @@ class search_com_class:
     self.found_one = False
     self.full_doc = True
     self.match_str = ''
-    self.case_insensitive = False
+    self.case_sensitive = False
 
 #-----------------------------------------
 
@@ -37,7 +37,7 @@ def print_help_message ():
   Options:
      -a          # Search Numerical recipes, forest, and varies program directories as well.
      -d <dir>    # Search files in <dir> and sub-directories for matches.
-     -i          # Case insensitive search.
+     -c          # Case sensitive search.
 
   Standard Libraries searched:
      bmad
@@ -286,10 +286,10 @@ def search_c (file_name, search_com):
       if char == '{':
         n_curly += 1
         if n_curly == 1:
-          if search_com.case_insensitive:
-            is_match = re.search(search_com.match_str + ' *(\(.*\))* *{', function_line, re.I)
-          else:
+          if search_com.case_sensitive:
             is_match = re.search(search_com.match_str + ' *(\(.*\))* *{', function_line)
+          else:
+            is_match = re.search(search_com.match_str + ' *(\(.*\))* *{', function_line, re.I)
           if is_match:
             search_com.found_one = True
             if search_com.full_doc:
@@ -385,8 +385,8 @@ def search_all (full_doc):
       search_all = True
       continue
 
-    if arg == '-i':
-      search_com.case_insensitive = True
+    if arg == '-c':
+      search_com.case_sensitive = True
       continue
 
     if arg == '-h':
