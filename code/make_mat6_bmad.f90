@@ -443,23 +443,18 @@ case (octupole$)
   call offset_particle (ele, c00, param, set$, set_canonical = .false.)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
-  k3l = ele%value(k3$) * length / n_slice
 
-  call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat)
-  c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
-  mat6(1:4,1:4) = kmat
-
-  do i = 1, n_slice
-     call drift_mat6_calc (drift, length/n_slice, c00%vec)
-     call track_a_drift (c00, ele, length/n_slice)
-     mat6 = matmul(drift,mat6)
-     if(i == n_slice) then
-        call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat)
-     else 
-        call mat4_multipole (k3l, 0.0_rp, 3, c00%vec, kmat)
-     end if
+  do i = 0, n_slice
+     k3l = ele%value(k3$) * length / n_slice
+     if (i == 0 .or. i == n_slice) k3l = k3l / 2
+     call mat4_multipole (k3l, 0.0_rp, 3, c00%vec, kmat)
      c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
      mat6(1:4,1:6) = matmul(kmat,mat6(1:4,1:6))
+     if (i /= n_slice) then
+        call drift_mat6_calc (drift, length/n_slice, c00%vec)
+        call track_a_drift (c00, ele, length/n_slice)
+        mat6 = matmul(drift,mat6)
+     end if
   end do
 
   if (ele%value(tilt_tot$) /= 0) then
@@ -816,23 +811,18 @@ case (sextupole$)
   call offset_particle (ele, c00, param, set$, set_canonical = .false.)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
-  k2l = ele%value(k2$) * length / n_slice
-
-  call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat)
-  c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
-  mat6(1:4,1:4) = kmat
-
-  do i = 1, n_slice
-     call drift_mat6_calc (drift, length/n_slice, c00%vec)
-     call track_a_drift (c00, ele, length/n_slice)
-     mat6 = matmul(drift,mat6)
-     if(i == n_slice) then
-        call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat)
-     else 
-        call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, kmat)
-     end if
+  
+  do i = 0, n_slice
+     k2l = ele%value(k2$) * length / n_slice
+     if (i == 0 .or. i == n_slice) k2l = k2l / 2
+     call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, kmat)
      c00%vec(1:4) = matmul(kmat, c00%vec(1:4))
      mat6(1:4,1:6) = matmul(kmat,mat6(1:4,1:6))
+     if (i /= n_slice) then
+        call drift_mat6_calc (drift, length/n_slice, c00%vec)
+        call track_a_drift (c00, ele, length/n_slice)
+        mat6 = matmul(drift,mat6)
+     end if
   end do
 
   if (ele%value(tilt_tot$) /= 0) then
