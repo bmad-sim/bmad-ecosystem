@@ -844,7 +844,7 @@ SUBROUTINE project_via_Vbar(ring, ix, mode, sigma_x, sigma_y, sigma_z)
   !Calculate terms for horizontal projection at vBSM source point
   CALL transfer_matrix_calc (ring, .true., t6, ix1=ix)
   CALL make_N(t6, N, Ninv, gamma, error)
-  IF(.not. ok) THEN
+  IF(error) THEN
     WRITE(*,*) "BAD: make_N failed.  It is likely that the Eigen decomposition of the 1-turn matrix failed."
   ENDIF
   CALL make_G(N,gamma,G6mat,G6inv)
