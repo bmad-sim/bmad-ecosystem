@@ -6,4 +6,4 @@
 
 import searchf
 
-searchf.search_all('SHORT')
+searchf.search_all('LIST')

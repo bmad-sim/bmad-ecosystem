@@ -6,4 +6,4 @@
 
 import searchf
 
-searchf.search_all(True)
+searchf.search_all('FULL')

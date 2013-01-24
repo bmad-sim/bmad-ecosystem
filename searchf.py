@@ -14,10 +14,12 @@ dist_dir  = os.environ['DIST_BASE_DIR'] + '/'
 
 class search_com_class:
   def __init__(self):
-    self.found_one = False
-    self.full_doc = True
-    self.match_str = ''
+    self.found_one      = False
+    self.doc            = 'FULL'
+    self.match_str      = ''
     self.case_sensitive = False
+    self.namelist_file  = ''
+    self.file_name_rel_root = ''   # File name relative to the root search directory
 
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
@@ -77,15 +79,16 @@ def routine_here (line2, routine_name):
 #------------------------------------------------------------------------------------
 # search_f90 function
 
-re_interface_end      = re.compile('end +interface')
-re_type               = re.compile(r'type *\(')
-re_module_begin       = re.compile('module')
-re_module_end         = re.compile('contains')
-re_parameter          = re.compile(' parameter.*::')
-re_parameter1         = re.compile(r'\s*([\$\w]+)[\(-:\) ]*=')  # match to: "charge_of(-3:3) = "
-re_type_interface_end = re.compile('end +(type|interface)')
-re_end                = re.compile('end')
-re_routine_name_here  = re.compile('subroutine|function|interface')
+re_blank_interface_begin = re.compile('interface\s*$')
+re_interface_end         = re.compile('end +interface')
+re_type                  = re.compile(r'type *\(')
+re_module_begin          = re.compile('module')
+re_module_header_end     = re.compile('contains')
+re_parameter             = re.compile(' parameter.*::')
+re_parameter1            = re.compile(r'\s*([\$\w]+)[\(-:\) ]*=')  # match to: "charge_of(-3:3) = "
+re_type_interface_end    = re.compile('end +(type|interface)')
+re_end                   = re.compile('end')
+re_routine_name_here     = re.compile('subroutine|function|interface')
 
 def search_f90 (file_name, search_com):
 
@@ -111,7 +114,7 @@ def search_f90 (file_name, search_com):
 
     # Skip blank interface blocks
 
-    if line2 == 'interface':
+    if re_blank_interface_begin.match(line2):
       while True:
         line = f90_file.readline()
         if line == '': return
@@ -127,7 +130,7 @@ def search_f90 (file_name, search_com):
     # In the header section of a module
 
     if re_module_begin.match(line2): in_module_header = True
-    if re_module_end.match(line2): in_module_header = False
+    if re_module_header_end.match(line2): in_module_header = False
     
     # Search for parameters
 
@@ -137,78 +140,95 @@ def search_f90 (file_name, search_com):
         for chunk in chunks:
           chunk_match = re_parameter1.match(chunk)
           if chunk_match:
-            param = chunk_match.group(1)
-            if re_match_str.match(param) or \
-               (param[-1] == '$' and re_match_str.match(param[:-1])):
-              search_com.found_one = True
-              found_one_in_this_file = True
-              if not have_printed_file_name:
-                print '\nFile:', file_name
-                have_printed_file_name = True
-              print '    ' + line.rstrip()
+            if search_com.doc == 'LIST':
+              if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
+              have_printed_file_name = True
+              search_com.namelist_file.write(chunk_match.group(1) + '\n')
+            else:
+              param = chunk_match.group(1)
+              if re_match_str.match(param) or \
+                 (param[-1] == '$' and re_match_str.match(param[:-1])):
+                search_com.found_one = True
+                found_one_in_this_file = True
+                if not have_printed_file_name:
+                  print '\nFile:', file_name
+                  have_printed_file_name = True
+                print '    ' + line.rstrip()
+                break
 
-      # Add to comment block if a comment
+    # Add to comment block if a comment
 
-      if line2[0] == '!':
-        if blank_line_found:
-          comments = []
-          blank_line_found = False
-        if search_com.full_doc: comments.append(line)
-        continue
-
-      # Match to type or interface statement
-      # These we type the whole definition
-
-      if re_type_interface_match.match(line2):
-        search_com.found_one = True
-        found_one_in_this_file = True
-        print '\nFile:', file_name
-        if search_com.full_doc:
-          for com in comments: print com.rstrip()
-          print ''
-          print line.rstrip()
-          while True:
-            line = f90_file.readline()
-            if line == '': return
-            line2 = line.lstrip().lower()
-            print line.rstrip()
-            if re_type_interface_end.match(line2): break
-        else:
-          print '    ', line.rstrip()
+    if line2[0] == '!':
+      if blank_line_found:
         comments = []
-        continue
+        blank_line_found = False
+      if search_com.doc == 'FULL': comments.append(line)
+      continue
 
-      # match to subroutine, function, etc.
+    # Match to type or interface statement
+    # These we type the whole definition
 
-      if routine_here(line2, routine_name):
-        if re_match_str.match(routine_name[0]):
-          search_com.found_one = True
-          found_one_in_this_file = True
-          print '\nFile:', file_name
-          if search_com.full_doc:
-            for com in comments: print com.rstrip()          
-          else:
-            print '    ', line.rstrip()
-
-        # Skip rest of routine including contained routines
-
-        count = 1
+    match = re_type_interface_match.match(line2)
+    if match:
+      search_com.found_one = True
+      found_one_in_this_file = True
+      if search_com.doc == 'LIST':
+        if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
+        have_printed_file_name = True
+        search_com.namelist_file.write(match.group(2) + '\n')
+      elif search_com.doc == 'FULL':
+        print '\nFile:', file_name
+        for com in comments: print com.rstrip()
+        print ''
+        print line.rstrip()
         while True:
           line = f90_file.readline()
           if line == '': return
           line2 = line.lstrip().lower()
-
-          if re_end.match(line2):
-            if re_routine_name_here.match(line2[4:].lstrip()):
-              count -= 1
-          elif routine_here(line2, routine_name):
-              count += 1
-
-          if count == 0: break
-
-      #
-
+          print line.rstrip()
+          if re_type_interface_end.match(line2): break
+      else:
+        print '\nFile:', file_name
+        print '    ', line.rstrip()
       comments = []
+      continue
+
+    # match to subroutine, function, etc.
+
+    if routine_here(line2, routine_name):
+      if re_match_str.match(routine_name[0]):
+        search_com.found_one = True
+        found_one_in_this_file = True
+        if search_com.doc == 'LIST':
+          if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
+          have_printed_file_name = True
+          search_com.namelist_file.write(routine_name[0] + '\n')
+        elif search_com.doc == 'FULL':
+          print '\nFile:', file_name
+          for com in comments: print com.rstrip()          
+        else:
+          print '\nFile:', file_name
+          print '    ', line.rstrip()
+
+      # Skip rest of routine including contained routines
+
+      count = 1
+      while True:
+        line = f90_file.readline()
+        if line == '': return
+        line2 = line.lstrip().lower()
+
+        if re_end.match(line2):
+          if re_routine_name_here.match(line2[4:].lstrip()):
+            count -= 1
+        elif routine_here(line2, routine_name):
+            count += 1
+
+        if count == 0: break
+
+    #
+
+    comments = []
 
 
 #------------------------------------------------------------------------------------
@@ -226,6 +246,7 @@ def search_c (file_name, search_com):
   comments = []
   lines_after_comments = []
   function_line = ''
+  have_printed_file_name = False
 
   c_file = open(file_name)
   while True:
@@ -303,7 +324,11 @@ def search_c (file_name, search_com):
             is_match = re.search(search_com.match_str + ' *(\(.*\))* *{', function_line, re.I)
           if is_match:
             search_com.found_one = True
-            if search_com.full_doc:
+            if search_com.doc == 'LIST':
+              if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
+              have_printed_file_name = True
+              search_com.namelist_file.write(is_match.group(1) + '\n')
+            elif search_com.doc == 'FULL':
               print '\nFile:', file_name
               for com in comments: print com.rstrip()
               for com in lines_after_comments: print com.rstrip()
@@ -325,11 +350,18 @@ def search_c (file_name, search_com):
 #------------------------------------------------------------------------------------
 # search_tree function
 
-def search_tree (this_dir, search_com):
+def search_tree (search_root_dir, search_com):
+
+  if search_root_dir[-1] != '/': search_root_dir = search_root_dir + '/'
+
+  # Open file if needed
+
+  if search_com.doc == 'LIST':
+    search_com.namelist_file = open(search_root_dir + 'searchf.namelist', 'w')
 
   # Loop over all directories
 
-  for root, dirs, files in os.walk(this_dir):
+  for root, dirs, files in os.walk(search_root_dir):
 
     # Remove from searching hidden directories plus "production" and "debug" derectories
     i = 0
@@ -342,8 +374,10 @@ def search_tree (this_dir, search_com):
     # Now loop over all files
 
     for this_file in files:
-      if re.search (this_file, '#'): continue
+      if re.search ('#', this_file): continue
+      if this_file[0] == '.': continue
       file_name = os.path.join(root, this_file)
+      search_com.file_name_rel_root = file_name.replace(search_root_dir, '')
       if this_file[-4:] == '.f90' or this_file[-4:] == '.inc': search_f90(file_name, search_com)
       if this_file[-4:] == '.cpp' or this_file[-2:] == '.h' or this_file[-2:] == '.c': search_c(file_name, search_com)
 
@@ -353,17 +387,13 @@ def search_tree (this_dir, search_com):
 
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
-
-
-#------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------
 # Main routine
 
-def search_all (full_doc):
+def search_all (doc_type):
 
   search_com = search_com_class()
   search_com.found_one = False
-  search_com.full_doc = full_doc
+  search_com.doc = doc_type
 
   bmad_dir          = choose_path ('bmad', '/modules/bmad_struct.f90', '')
   cesr_utils_dir    = choose_path ('cesr_utils', '/modules/cesr_utils.f90', '')
@@ -389,8 +419,9 @@ def search_all (full_doc):
   search_all = False
 
   i = 0
-  while i+1 < len(sys.argv):
+  while i < len(sys.argv):
     i += 1
+    if i >= len(sys.argv): break
     arg = sys.argv[i]
 
     if arg[0] != '-': break
@@ -415,22 +446,25 @@ def search_all (full_doc):
     print_help_message ()
 
   #----------------------------------------------------------
-  # Some setup
-
-  if i == 0 or i >= len(sys.argv): print_help_message()  # Nothing to match to
-
-  match_str_in = sys.argv[i]
-  search_com.match_str = match_str_in.replace('*', '\w*') 
-
-  # Setup dir_list list
+  # Setup dir_list list, etc
 
   dir_list = [bmad_dir, sim_utils_dir, tao_dir, cesr_utils_dir, mpm_utils_dir, bmadz_dir]
   if search_all:
     dir_list.extend([recipes_dir, forest_dir, bsim_dir, bsim_cesr_dir, cesr_programs_dir, 
                      cesrv_dir, util_programs_dir, examples_dir])
   if extra_dir != '':
-    print 'Searching also: extra_dir\n'
-    dir_list.insert(extra_dir, 0)
+    print 'Searching directory:', extra_dir
+    dir_list = [extra_dir]
+
+  if search_com.doc == 'LIST':
+    search_com.match_str = '(\w+)'
+    if i > 0 and i < len(sys.argv): dir_list = [sys.argv[i]]
+  else:
+    if i == 0 or i >= len(sys.argv): 
+      print 'NO SEARCH STRING FOUND!'
+      print_help_message()  # Nothing to match to
+    match_str_in = sys.argv[i]
+    search_com.match_str = match_str_in.replace('*', '\w*') 
 
   # Search for a match.
 
