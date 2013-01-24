@@ -3,6 +3,7 @@
 import os
 import sys
 import re
+from multiprocessing import Pool, Process
 
 # The idea is to look for a local copy of the library to search.
 # We have found a local copy when we find one specific file that we know 
@@ -354,7 +355,6 @@ def search_tree (this_dir, search_com):
 #------------------------------------------------------------------------------------
 
 
-
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
 # Main routine
@@ -415,33 +415,29 @@ def search_all (full_doc):
     print_help_message ()
 
   #----------------------------------------------------------
-  # Search for a match.
+  # Some setup
 
-  if i == 0 or i >= len(sys.argv): print_help_message()
+  if i == 0 or i >= len(sys.argv): print_help_message()  # Nothing to match to
 
   match_str_in = sys.argv[i]
   search_com.match_str = match_str_in.replace('*', '\w*') 
 
+  # Setup dir_list list
+
+  dir_list = [bmad_dir, sim_utils_dir, tao_dir, cesr_utils_dir, mpm_utils_dir, bmadz_dir]
+  if search_all:
+    dir_list.extend([recipes_dir, forest_dir, bsim_dir, bsim_cesr_dir, cesr_programs_dir, 
+                     cesrv_dir, util_programs_dir, examples_dir])
   if extra_dir != '':
     print 'Searching also: extra_dir\n'
-    search_tree (extra_dir, search_com)
+    dir_list.insert(extra_dir, 0)
 
-  search_tree (bmad_dir, search_com)
-  search_tree (sim_utils_dir, search_com)
-  search_tree (tao_dir, search_com)
-  search_tree (cesr_utils_dir, search_com)
-  search_tree (mpm_utils_dir, search_com)
-  search_tree (bmadz_dir, search_com)
+  # Search for a match.
 
-  if search_all:
-    search_tree (recipes_dir, search_com)
-    search_tree (forest_dir, search_com)
-    search_tree (bsim_dir, search_com)
-    search_tree (bsim_cesr_dir, search_com)
-    search_tree (cesr_programs_dir, search_com)
-    search_tree (cesrv_dir, search_com)
-    search_tree (util_programs_dir, search_com)
-    search_tree (examples_dir, search_com)
+  for dir in dir_list:
+    search_tree (dir, search_com)
+
+  # And finish
 
   if not search_com.found_one:
     print 'Cannot match String:',  match_str_in
