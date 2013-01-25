@@ -357,7 +357,7 @@ def search_c (file_name, search_com):
 # search_file function
 
 def search_file (search_root_dir, file_dir, file_name, search_com):
-  if re.search ('#', file_name): retirm
+  if re.search ('#', file_name): return
   if file_name[0] == '.': return
   full_file_name = os.path.join(file_dir, file_name)
   search_com.file_name_rel_root = full_file_name.replace(search_root_dir, '', 1)
@@ -372,17 +372,23 @@ def search_tree (search_root_dir, search_com):
 
   if search_root_dir == '': return    # Directory not found by choose_path
   if search_root_dir[-1] != '/': search_root_dir = search_root_dir + '/'
+  namelist_file = search_root_dir + 'searchf.namelist'
 
   # Open file for namelist output if needed
 
   if search_com.doc == 'LIST':
-    search_com.namelist_file = open(search_root_dir + 'searchf.namelist', 'w')
+    if os.access(namelist_file, os.W_OK):
+      print 'Opening:', namelist_file
+      search_com.namelist_file = open(namelist_file, 'w')
+    else:
+      print 'CANNOT WRITE TO:', namelist_file
+      return
 
   # If there is an existing searchf.namelist file then use this to see if there are matches.
 
-  if search_com.doc != 'LIST' and os.path.isfile(search_root_dir + 'searchf.namelist'):
+  if search_com.doc != 'LIST' and os.path.isfile(namelist_file):
 
-    f_namelist = open(search_root_dir + 'searchf.namelist')
+    f_namelist = open(namelist_file)
     have_searched_file = False
 
     for line in f_namelist:
