@@ -9,8 +9,11 @@ from multiprocessing import Pool, Process
 # We have found a local copy when we find one specific file that we know 
 # is in the library.
 
-release_dir   = os.environ['ACC_RELEASE_DIR'] + '/'
-dist_dir  = os.environ['DIST_BASE_DIR'] + '/'
+release_dir = ''
+dist_dir = ''
+
+if 'ACC_RELEASE_DIR' in os.environ: release_dir   = os.environ['ACC_RELEASE_DIR'] + '/'
+if 'DIST_BASE_DIR'   in os.environ: dist_dir      = os.environ['DIST_BASE_DIR'] + '/'
 
 class search_com_class:
   def __init__(self):
@@ -30,7 +33,10 @@ def choose_path (base_dir, base_file, dist_sub_dir):
   if os.path.isfile('../' + base_dir + base_file):          return '../' + base_dir
   if os.path.isfile('../../' + base_dir + base_file):       return '../../' + base_dir
   if os.path.isfile(release_dir + base_dir + base_file):    return release_dir + base_dir
-  return dist_dir + dist_sub_dir + base_dir
+  if os.path.isfile(dist_dir + dist_sub_dir + base_dir):    return dist_dir + dist_sub_dir + base_dir
+  # If release_dir is defined then we should have found the directory.
+  if release_dir != '': print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
+  return ''
 
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
@@ -352,6 +358,7 @@ def search_c (file_name, search_com):
 
 def search_tree (search_root_dir, search_com):
 
+  if search_root_dir == '': return    # Directory not found by choose_path
   if search_root_dir[-1] != '/': search_root_dir = search_root_dir + '/'
 
   # Open file if needed
