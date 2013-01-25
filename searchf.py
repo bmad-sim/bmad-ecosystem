@@ -185,7 +185,7 @@ def search_f90 (file_name, search_com):
       elif search_com.doc == 'FULL':
         print '\nFile:', file_name
         for com in comments: print com.rstrip()
-        print ''
+        if len(comments) > 0: print ''
         print line.rstrip()
         while True:
           line = f90_file.readline()
@@ -325,9 +325,9 @@ def search_c (file_name, search_com):
         n_curly += 1
         if n_curly == 1:
           if search_com.case_sensitive:
-            is_match = re.search(search_com.match_str + ' *(\(.*\))* *{', function_line)
+            is_match = re.search(search_com.match_str + '\s*(\(.*\))\s*{', function_line)
           else:
-            is_match = re.search(search_com.match_str + ' *(\(.*\))* *{', function_line, re.I)
+            is_match = re.search(search_com.match_str + '\s*(\(.*\))\s*{', function_line, re.I)
           if is_match:
             search_com.found_one = True
             if search_com.doc == 'LIST':
@@ -354,6 +354,18 @@ def search_c (file_name, search_com):
 
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
+# search_file function
+
+def search_file (search_root_dir, file_dir, file_name, search_com):
+  if re.search ('#', file_name): retirm
+  if file_name[0] == '.': return
+  full_file_name = os.path.join(file_dir, file_name)
+  search_com.file_name_rel_root = full_file_name.replace(search_root_dir, '', 1)
+  if file_name[-4:] == '.f90' or file_name[-4:] == '.inc': search_f90(full_file_name, search_com)
+  if file_name[-4:] == '.cpp' or file_name[-2:] == '.h' or file_name[-2:] == '.c': search_c(full_file_name, search_com)
+
+#------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------
 # search_tree function
 
 def search_tree (search_root_dir, search_com):
@@ -361,32 +373,56 @@ def search_tree (search_root_dir, search_com):
   if search_root_dir == '': return    # Directory not found by choose_path
   if search_root_dir[-1] != '/': search_root_dir = search_root_dir + '/'
 
-  # Open file if needed
+  # Open file for namelist output if needed
 
   if search_com.doc == 'LIST':
     search_com.namelist_file = open(search_root_dir + 'searchf.namelist', 'w')
 
-  # Loop over all directories
+  # If there is an existing searchf.namelist file then use this to see if there are matches.
 
-  for root, dirs, files in os.walk(search_root_dir):
+  if search_com.doc != 'LIST' and os.path.isfile(search_root_dir + 'searchf.namelist'):
+
+    f_namelist = open(search_root_dir + 'searchf.namelist')
+    have_searched_file = False
+
+    for line in f_namelist:
+      if line == '': return
+      if line.strip() == '': continue
+
+      if line[0:5] == 'File:':
+        file = line[6:].strip().rsplit('/', 1)
+        have_searched_file = False
+        if len(file) == 1:     # No directory spec
+          this_root_dir = search_root_dir
+          this_file = file[0]
+        else:
+          this_root_dir = search_root_dir + file[0]
+          this_file = file[1]
+        continue
+      elif have_searched_file:
+        continue
+
+      if re.search(search_com.match_str, line):
+        search_file (search_root_dir, this_root_dir, this_file, search_com)
+        have_searched_file = True
+
+    return
+
+  # No searchf.namelist: Loop over all directories
+
+  for this_root_dir, sub_dirs, files in os.walk(search_root_dir):
 
     # Remove from searching hidden directories plus "production" and "debug" derectories
     i = 0
-    while i < len(dirs):
-      if dirs[i] == 'production' or dirs[i] == 'debug' or dirs[i][0] == '.': 
-        del dirs[i]
+    while i < len(sub_dirs):
+      if sub_dirs[i] == 'production' or sub_dirs[i] == 'debug' or sub_dirs[i][0] == '.': 
+        del sub_dirs[i]
       else:
         i += 1
 
     # Now loop over all files
 
-    for this_file in files:
-      if re.search ('#', this_file): continue
-      if this_file[0] == '.': continue
-      file_name = os.path.join(root, this_file)
-      search_com.file_name_rel_root = file_name.replace(search_root_dir, '')
-      if this_file[-4:] == '.f90' or this_file[-4:] == '.inc': search_f90(file_name, search_com)
-      if this_file[-4:] == '.cpp' or this_file[-2:] == '.h' or this_file[-2:] == '.c': search_c(file_name, search_com)
+    for this_file in files: search_file (search_root_dir, this_root_dir, this_file, search_com)
 
   # End
 
