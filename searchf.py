@@ -377,7 +377,7 @@ def search_tree (search_root_dir, search_com):
   # Open file for namelist output if needed
 
   if search_com.doc == 'LIST':
-    if os.access(namelist_file, os.W_OK):
+    if os.access(search_root_dir, os.W_OK):
       print 'Opening:', namelist_file
       search_com.namelist_file = open(namelist_file, 'w')
     else:
@@ -522,9 +522,10 @@ def search_all (doc_type):
 
   # And finish
 
-  if not search_com.found_one:
-    print 'Cannot match String:',  match_str_in
-    print 'Use "-h" command line option to list options.'
-  else:
-    print ''
+  if search_com.doc != 'LIST':
+    if not search_com.found_one:
+      print 'Cannot match String:',  match_str_in
+      print 'Use "-h" command line option to list options.'
+    else:
+      print ''
 
