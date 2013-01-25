@@ -573,14 +573,21 @@ end select
 
 ! ele_start must not be specified for some data types. Check this.
 
-select case (datum%data_type)
-case ('periodic.tt', 'sigma.pz')
+if (datum%data_type(1:11) == 'periodic.tt' .or. datum%data_type == 'sigma.pz') then
   if (datum%ele_start_name /= '') then
     call out_io (s_error$, r_name, 'SPECIFYING ELE_START NOT VALID FOR: ' // tao_datum_name(datum))
     if (present(why_invalid)) why_invalid = 'SPECIFYING ELE_START NOT VALID'
     return
   endif
-end select
+endif
+
+if (datum%data_type(1:11) == 'periodic.tt') then
+  if (datum%ele_ref_name /= '') then
+    call out_io (s_error$, r_name, 'SPECIFYING ELE_REF NOT VALID FOR: ' // tao_datum_name(datum))
+    if (present(why_invalid)) why_invalid = 'SPECIFYING ELE_START NOT VALID'
+    return
+  endif
+endif
 
 if (lat_branch%track_state /= moving_forward$ .and. ix_ele >= lat_branch%track_state) then
   if ((data_source == 'beam' .and. head_data_type /= 'n_particle_loss') .or. &
@@ -1529,10 +1536,7 @@ case ('periodic.')
       call err_exit
     endif
 
-    ix0 = ix_ele
-    if (associated(ele_ref)) ix0 = ele_ref%ix_ele
-
-    call transfer_map_calc (lat, taylor, ix0, ix_ele, one_turn = .true.)
+    call transfer_map_calc (lat, taylor, ix_ele, ix_ele, one_turn = .true.)
     do i = 1, 4
       call add_taylor_term (taylor(i), -1.0_rp, i)
     enddo
