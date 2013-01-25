@@ -1963,6 +1963,7 @@ c0 = 0
 
 do i = 1, 6
 
+  if (.not. associated(taylor_in(i)%term)) cycle
   n = size(taylor_in(i)%term)
 
   do j = 1, size(taylor_in(i)%term)
@@ -2067,7 +2068,7 @@ endif
 ! Each taylor_in(i) must have at least one term for an inverse to exist.
 
 do i = 1, 6
-  if (size(tlr(i)%term) == 0) then
+  if (.not. associated(tlr(i)%term) .or. size(tlr(i)%term) == 0) then
     if (present(err)) then
       err = .true.
     else
