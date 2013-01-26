@@ -114,7 +114,7 @@ y_pitch = ele%value(y_pitch_tot$)
 
 if (calculate_mat6) then
   mat6 => ele%mat6
-  call drift_mat6_calc (mat6, ele%value(z_offset_tot$), end_orb%vec)
+  call drift_mat6_calc (mat6, ele%value(z_offset_tot$), ele, param, end_orb)
 endif
 
 if (do_offset) call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
@@ -342,7 +342,7 @@ end select
 ! element offset
 
 if (calculate_mat6) then
-  call drift_mat6_calc (m6, -ele%value(z_offset_tot$), end_orb%vec)
+  call drift_mat6_calc (m6, -ele%value(z_offset_tot$), ele, param, end_orb)
   mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
   mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
   mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)

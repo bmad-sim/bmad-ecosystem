@@ -79,6 +79,8 @@ length = ele%value(l$)
 rel_p = 1 + c0%vec(6) 
 key = ele%key
 
+charge_dir = param%rel_tracking_charge * ele%orientation
+
 if (.not. logic_option (.false., end_in)) then
   if (ele%tracking_method == linear$) then
     c0%state = alive$
@@ -108,8 +110,8 @@ if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
 if (any (key == [drift$, capillary$])) then
   call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
-  call drift_mat6_calc (mat6, length, c00%vec)
-  call add_multipoles_and_z_offset (.true.)
+  call drift_mat6_calc (mat6, length, ele, param, c00)
+  call add_multipoles_and_z_offset ()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
   return
 endif
@@ -172,7 +174,7 @@ case (beambeam$)
 
   endif
 
-  call add_multipoles_and_z_offset (.false.)
+  call add_multipoles_and_z_offset ()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -225,7 +227,7 @@ case (kicker$, hkicker$, vkicker$, rcollimator$, &
 
   do i = 1, n_slice 
      call track_a_drift (c00, ele, length/n_slice)
-     call drift_mat6_calc (drift, length/n_slice, c00%vec)
+     call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
      mat6 = matmul(drift,mat6)
      if (i == n_slice) then
         if (ele%key == hkicker$) then
@@ -252,7 +254,7 @@ case (kicker$, hkicker$, vkicker$, rcollimator$, &
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -288,8 +290,8 @@ case (lcavity$)
   gradient = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) 
 
   if (gradient == 0) then
-    call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-    call add_multipoles_and_z_offset (.true.)
+    call drift_mat6_calc (mat6, length, ele, param, c0, c1)
+    call add_multipoles_and_z_offset ()
     return
   endif
 
@@ -376,7 +378,7 @@ case (lcavity$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset (.false.)
+  call add_multipoles_and_z_offset ()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -445,14 +447,14 @@ case (octupole$)
   n_slice = max(1, nint(length / ele%value(ds_step$)))
 
   do i = 0, n_slice
-    k3l = ele%value(k3$) * length / n_slice
+    k3l = charge_dir * ele%value(k3$) * length / n_slice
     if (i == 0 .or. i == n_slice) k3l = k3l / 2
     call mat4_multipole (k3l, 0.0_rp, 3, c00%vec, kmat)
     c00%vec(2) = c00%vec(2) + k3l *  (3*c00%vec(1)*c00%vec(3)**2 - c00%vec(1)**3) / 6
     c00%vec(4) = c00%vec(4) + k3l *  (3*c00%vec(3)*c00%vec(1)**2 - c00%vec(3)**3) / 6
     mat6(1:4,1:6) = matmul(kmat,mat6(1:4,1:6))
     if (i /= n_slice) then
-      call drift_mat6_calc (drift, length/n_slice, c00%vec)
+      call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
       call track_a_drift (c00, ele, length/n_slice)
       mat6 = matmul(drift,mat6)
     end if
@@ -462,7 +464,7 @@ case (octupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -493,7 +495,7 @@ case (quadrupole$)
   call offset_particle (ele, c00, param, set$)
   call offset_particle (ele, c11, param, set$, ds_pos = length)
 
-  k1 = ele%value(k1$) / rel_p
+  k1 = ele%value(k1$) * charge_dir / rel_p
 
   call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x, ddz_x)
   call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y, ddz_y)
@@ -580,7 +582,8 @@ case (quadrupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
+  call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -659,7 +662,8 @@ case (rfcavity$)
 
   !
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
+  call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -667,13 +671,14 @@ case (rfcavity$)
 
 case (sbend$)
 
-  k1 = ele%value(k1$)
+  k1 = ele%value(k1$) * charge_dir
+  k2 = ele%value(k2$) * charge_dir
   g = ele%value(g$)
-  g_err = ele%value(g_err$)
-  g_tot = g + g_err
+  g_tot = (g + ele%value(g_err$)) * charge_dir
+  g_err = g_tot - g
 
-  if (g == 0 .and. k1 == 0) then
-    call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
+  if (g == 0 .and. k1 == 0 .and. k2 == 0) then
+    call drift_mat6_calc (mat6, length, ele, param, c0, c1)
     return
   endif
 
@@ -706,7 +711,7 @@ case (sbend$)
   ! Body
 
   if (k1 /= 0) then
-    call sbend_body_with_k1_map (g, g_err, length, k1, c00%vec, mat6 = mat6)
+    call sbend_body_with_k1_map (ele, param, 1, c00, mat6 = mat6)
 
   elseif (length /= 0) then
 
@@ -787,7 +792,7 @@ case (sbend$)
   mat6(4,1:6) = mat6(4,1:6) + ky_2 * mat6(3,1:6)
 
   if (ele%value(k2$) /= 0) then
-    k2l = ele%value(k2$) * ele%value(l$) / 2
+    k2l = charge_dir * ele%value(k2$) * ele%value(l$) / 2
     call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, mat6_m(1:4,1:4))
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
     mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
@@ -800,7 +805,8 @@ case (sbend$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
   endif
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
+  call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -814,14 +820,14 @@ case (sextupole$)
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   
   do i = 0, n_slice
-    k2l = ele%value(k2$) * length / n_slice
+    k2l = charge_dir * ele%value(k2$) * length / n_slice
     if (i == 0 .or. i == n_slice) k2l = k2l / 2
     call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, kmat)
     c00%vec(2) = c00%vec(2) + k2l * (c00%vec(3)**2 - c00%vec(1)**2)/2
     c00%vec(4) = c00%vec(4) + k2l * c00%vec(1) * c00%vec(3)
     mat6(1:4,1:6) = matmul(kmat,mat6(1:4,1:6))
     if (i /= n_slice) then
-      call drift_mat6_calc (drift, length/n_slice, c00%vec)
+      call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
       call track_a_drift (c00, ele, length/n_slice)
       mat6 = matmul(drift,mat6)
     end if
@@ -831,7 +837,7 @@ case (sextupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -920,7 +926,8 @@ case (solenoid$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
+  call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -930,13 +937,14 @@ case (sol_quad$)
 
   call offset_particle (ele, c00, param, set$)
 
-  call sol_quad_mat6_calc (ele%value(ks$), ele%value(k1$), length, mat6, c00%vec)
+  call sol_quad_mat6_calc (ele%value(ks$) * param%rel_tracking_charge, ele%value(k1$) * charge_dir, length, mat6, c00%vec)
 
   if (ele%value(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
+  call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -957,12 +965,12 @@ case (wiggler$)
   call mat_make_unit (mat6)     ! make a unit matrix
 
   if (length == 0) then
-    call add_multipoles_and_z_offset (.true.)
+    call add_multipoles_and_z_offset ()
+  call add_M56_low_E_correction()
     return
   endif
 
-  k1 = -0.5 * (c_light * ele%value(b_max$) / &
-                  (ele%value(p0c$) * rel_p))**2
+  k1 = -0.5 * charge_dir * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_p))**2
 
   ! octuple correction to k1
 
@@ -1006,7 +1014,8 @@ case (wiggler$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset (.true.)
+  call add_multipoles_and_z_offset ()
+  call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -1033,13 +1042,11 @@ end select
 
 contains
 
-subroutine add_multipoles_and_z_offset(add_m56_correction)
+subroutine add_multipoles_and_z_offset ()
 
 implicit none
 
-real(rp) mass, e_tot
-
-logical add_m56_correction, has_nonzero_pole
+logical has_nonzero_pole
 
 !
 
@@ -1069,13 +1076,20 @@ endif
 
 call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%mat6)
 
+end subroutine
+
+!----------------------------------------------------------------
+! contains
+
+subroutine add_M56_low_E_correction()
+
+real(rp) mass, e_tot
+
 ! 1/gamma^2 m56 correction
 
-if (add_m56_correction) then
-  mass = mass_of(param%particle)
-  e_tot = sqrt(mass**2 + (ele%value(p0c$) * (1 + c0%vec(6)))**2)**3
-  mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot
-endif
+mass = mass_of(param%particle)
+e_tot = ele%value(p0c$) * (1 + c0%vec(6)) / c0%beta
+mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot**3
 
 end subroutine
 
