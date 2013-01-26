@@ -161,7 +161,7 @@ case (bend_sol_quad$)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   len_slice = length / n_slice
-  ks  = charge_dir * ele%value(ks$) / rel_pc 
+  ks  = param%rel_tracking_charge * ele%value(ks$) / rel_pc 
   k0l = charge_dir * ele%value(g$) * len_slice
   k1l = charge_dir * ele%value(k1$) * len_slice
 

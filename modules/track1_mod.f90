@@ -375,7 +375,7 @@ do n = 1, n_step
 
   if (g == 0 .or. k_1 /= 0) then
 
-    call sbend_body_with_k1_map (g, g_err, length, k_1, end_orb%vec, end = end_orb%vec)
+    call sbend_body_with_k1_map (ele, param, n_step, end_orb, end_orb = end_orb)
 
   !-----------------------------------------------------------------------
   ! Track through main body...

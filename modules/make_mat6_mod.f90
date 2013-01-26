@@ -1,5 +1,6 @@
 module make_mat6_mod
 
+use bmad_struct
 use basic_bmad_mod
 
 contains
@@ -367,52 +368,67 @@ end subroutine sol_quad_mat6_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine sbend_body_with_k1_map (g, g_err, length, k_1, start, end, mat6)
+! Subroutine sbend_body_with_k1_map (ele, param, n_step, start, end, mat6)
 !
-! Subroutine to calculate the transfer matrix and/or ending coordinates for a 
-! sbend with a finite k1 but without a tilt.
+! Subroutine to calculate for a single step the transfer matrix and/or 
+! ending coordinates for a sbend with a finite k1 but without a tilt.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   g        -- Real(rp): 1/rho. rho = radius of curvature of reference orbit.
-!   g_err    -- Real(rp): Actual bend field proportional to (g + g_err)
-!   length   -- Real(rp): Length of the bend.
-!   k_1      -- Real(rp): focusing strength.
-!   start(6) -- Real(rp): Orbit at beginning of the bend.
+!   ele      -- Ele_struct: Sbend element.
+!   param    -- Lat_param_struct: Branch parameters.
+!   n_step   -- Integer: Number of steps to divide the bend into.
+!               Only one step is taken by this routine.
+!   start    -- coord_struct: Orbit at beginning of the bend.
 !
 ! Output:
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix across the sol_quad.
-!   end(6)     -- Real(rp), optional: Ending coordinates.
+!   end        -- coord_struct, optional: Ending coordinates.
 !-
 
-subroutine sbend_body_with_k1_map (g, g_err, length, k_1, start, end, mat6)
+subroutine sbend_body_with_k1_map (ele, param, n_step, start_orb, end_orb, mat6)
 
 implicit none
 
-real(rp) g, g_err, length, start(6)
-real(rp), optional :: end(6), mat6(6,6)
+type (ele_struct) ele
+type (lat_param_struct) param
+type (coord_struct) start_orb
+type (coord_struct), optional :: end_orb
+
+real(rp) g, g_err, length
+real(rp), optional :: mat6(6,6)
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, s_y, c_y, r(6)
 real(rp) z0, z1, z2, z11, z12, z22, z33, z34, z44
 real(rp) dom_x, dom_xx, dx_c, dc_x, ds_x, dom_y, dom_yy, dc_y, ds_y, dcs_x, dcs_y
-real(rp) g_tot, rel_p, rel_p2
+real(rp) g_tot, rel_p, rel_p2, charge_dir
 real(rp) rel_pc, px, py, pxy2, pz
+
+integer n_step
 
 ! Degenerate case
 
+charge_dir = param%rel_tracking_charge * ele%orientation
+
+k_1 = ele%value(k1$) * charge_dir
+g = ele%value(g$)
+g_tot = (g + ele%value(g_err$)) * charge_dir
+g_err = g_tot - g
+length = ele%value(l$) / n_step
+
 if (k_1 == 0 .and. g == 0 .and. g_err == 0) then
-  if (present(mat6)) call drift_mat6_calc (mat6, length, start)
-  if (present(end)) then
-    rel_pc = 1 + start(6)
-    px = start(2) / rel_pc
-    py = start(4) / rel_pc
+  if (present(mat6)) call drift_mat6_calc (mat6, length, ele, param, start_orb)
+  if (present(end_orb)) then
+    rel_pc = 1 + start_orb%vec(6)
+    px = start_orb%vec(2) / rel_pc
+    py = start_orb%vec(4) / rel_pc
     pxy2 = px**2 + py**2
     pz = sqrt(1 - pxy2)
-    end = start
-    end(1) = start(1) + length * px / pz
-    end(3) = start(3) + length * py / pz
-    end(5) = start(5) + length * (1 - 1/pz)
+    end_orb%vec = start_orb%vec
+    end_orb%vec(1) = start_orb%vec(1) + length * px / pz
+    end_orb%vec(3) = start_orb%vec(3) + length * py / pz
+    end_orb%vec(5) = start_orb%vec(5) + length * (1 - 1/pz)
   endif
   return
 endif
@@ -420,7 +436,7 @@ endif
 !
 
 g_tot = g + g_err
-rel_p = (1 + start(6))
+rel_p = (1 + start_orb%vec(6))
 rel_p2 = rel_p**2
 
 
@@ -460,7 +476,7 @@ else
   c_y = cosh(om_y * length)
 endif
 
-r = start
+r = start_orb%vec
 r(1) = r(1) - x_c
 
 !
@@ -536,12 +552,12 @@ endif
 
 ! Ending coords
 
-if (present(end)) then
-  end(1) = c_x * r(1) + s_x * r(2) / rel_p + x_c
-  end(2) = tau_x * om_x**2 * rel_p * s_x * r(1) + c_x * r(2)
-  end(3) = c_y * r(3) + s_y * r(4) / rel_p
-  end(4) = tau_y * om_y**2 * rel_p * s_y * r(3) + c_y * r(4)
-  end(5) = r(5) + z0 + z1 * r(1) + z2 * r(2) + &
+if (present(end_orb)) then
+  end_orb%vec(1) = c_x * r(1) + s_x * r(2) / rel_p + x_c
+  end_orb%vec(2) = tau_x * om_x**2 * rel_p * s_x * r(1) + c_x * r(2)
+  end_orb%vec(3) = c_y * r(3) + s_y * r(4) / rel_p
+  end_orb%vec(4) = tau_y * om_y**2 * rel_p * s_y * r(3) + c_y * r(4)
+  end_orb%vec(5) = r(5) + z0 + z1 * r(1) + z2 * r(2) + &
                   z11 * r(1)**2 + z12 * r(1) * r(2) + z22 * r(2)**2 + &
                   z33 * r(3)**2 + z34 * r(3) * r(4) + z44 * r(4)**2 
 endif
@@ -829,30 +845,33 @@ end subroutine solenoid_mat_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine drift_mat6_calc (mat6, length, start, end)
+! Subroutine drift_mat6_calc (mat6, length, ele, param, start, end)
 !
 ! Subroutine to calculate a drift transfer matrix with a possible kick.
-! Note: Does not include 1/gamma^2 M56 term.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!  length   -- Real(rp): Drift length
-!  start(6) -- Real(rp): Starting coords
-!  end(6)   -- Real(rp), optional: Ending coords. Only needed if there is a kick.
+!  length   -- Real(rp): Drift length. Can be different from ele%value(l$).
+!  ele      -- Real(rp): Element to drift through.
+!  start    -- coord_struct: Starting coords
+!  end      -- coord_struct, optional: Ending coords. Only needed if there is a kick.
 !
 ! Output:
 !   mat6(6,6) -- Real(rp): Transfer matrix
 !-
 
-subroutine drift_mat6_calc (mat6, length, start, end)
+subroutine drift_mat6_calc (mat6, length, ele, param, start, end)
 
 implicit none
 
-real(rp) start(:)
-real(rp), optional :: end(:)
-real(rp) ave(6)
+type (ele_struct) ele
+type (lat_param_struct) param
+type (coord_struct) start
+type (coord_struct), optional :: end
+
+real(rp) ave(6), e_tot
 real(rp) mat6(:,:), length, rel_pc, px, py, pxy2, pz, rel_len
 
 !
@@ -862,9 +881,9 @@ call mat_make_unit(mat6)
 if (length == 0) return
 
 if (present(end)) then
-  ave = (start + end) / 2
+  ave = (start%vec + end%vec) / 2
 else
-  ave = start
+  ave = start%vec
 endif
 
 rel_pc = 1 + ave(6)
@@ -882,7 +901,9 @@ mat6(1,6) = - rel_len * px / pz**2
 mat6(3,6) = - rel_len * py / pz**2
 mat6(5,2) = - rel_len * px / pz**2 
 mat6(5,4) = - rel_len * py / pz**2
-mat6(5,6) = rel_len * (px**2 + py**2) / pz**2
+e_tot = ele%value(p0c$) * (1 + ave(6)) / start%beta
+mat6(5,6) = rel_len * (px**2 + py**2) / pz**2 + &
+                  length * mass_of(param%particle)**2 * ele%value(e_tot$) / e_tot**3
 
 end subroutine drift_mat6_calc
 
