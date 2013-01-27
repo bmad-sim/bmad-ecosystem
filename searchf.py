@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+#+
+# searchf.py is the file that holds the code for the scripts:
+#   getf
+#   listf
+#   create_searchf_namelist
+#
+# See the Bmad manual for a description of listf and getf.
+# See create_searchf_namelist for documentation on the searchf.namelist files
+#-
+
 import os
 import sys
 import re
