@@ -119,18 +119,13 @@ set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINU
 #-----------------------------------
 # Plotting library compiler flag
 #-----------------------------------
-IF ($ENV{ACC_PLOT_PACKAGE})
-  IF ($ENV{ACC_PLOT_PACKAGE} STREQUAL "plplot")
-    SET (PLOT_LIBRARY_F_FLAG " -DCESR_PLPLOT")
-    SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
-  ELSE ()
-    SET (PLOT_LIBRARY_F_FLAG "")
-    SET (PLOT_LINK_LIBS "pgplot")
-  ENDIF ()
+IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
+  SET (PLOT_LIBRARY_F_FLAG " -DCESR_PLPLOT")
+  SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
 ELSE ()
   SET (PLOT_LIBRARY_F_FLAG "")
   SET (PLOT_LINK_LIBS "pgplot")
-ENDIF()
+ENDIF ()
 
 
 #-----------------------------------
