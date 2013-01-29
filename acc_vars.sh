@@ -68,9 +68,7 @@ ONLINE_IFORT_SETUP_COMMAND='/nfs/cesr/opt/intel/composer_xe_2013.1.117/bin/compi
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
 OFFLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
 
-#OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composerxe/bin'
 OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composer_xe_2013.1.117/bin'
-#OFFLINE_IFORT_SETUP_COMMAND='/nfs/opt/intel/composerxe/bin/compilervars.sh intel64'
 OFFLINE_IFORT_SETUP_COMMAND='/nfs/opt/intel/composer_xe_2013.1.117/bin/compilervars.sh intel64'
 
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
@@ -463,4 +461,12 @@ export SHLIB_PATH=`remove_duplicates ${SHLIB_PATH}`
 #--------------------------------------------------------------
 if ( [ "${ENV_USE_SNAPSHOTS}" == "Y" ] ) then
     printenv > ${ENV_SNAPSHOT_2}
+fi
+
+#--------------------------------------------------------------
+# For User defined plot libaries, check how ACC_PLOT_PACKAGE
+# is defined, if not defined then set to default "pgplot"
+#--------------------------------------------------------------
+if ( [ "${ACC_PLOT_PACKAGE}" == "" ] ) then
+    export ACC_PLOT_PACKAGE="pgplot"
 fi
