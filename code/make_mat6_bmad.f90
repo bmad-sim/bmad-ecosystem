@@ -497,8 +497,8 @@ case (quadrupole$)
 
   k1 = ele%value(k1$) * charge_dir / rel_p
 
-  call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x, ddz_x)
-  call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y, ddz_y)
+  call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x, c0%vec(6), ddz_x)
+  call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y, c0%vec(6), ddz_y)
 
   mat6(1,2) = mat6(1,2) / rel_p
   mat6(2,1) = mat6(2,1) * rel_p
@@ -513,12 +513,8 @@ case (quadrupole$)
     mat6(5,2) =    (c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)) / rel_p
     mat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
     mat6(5,4) =    (c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)) / rel_p
-    mat6(5,6) = c00%vec(1)**2 * ddz_x(1) / rel_p + &
-                c00%vec(1)*c1%vec(2) * ddz_x(2) / rel_p + &
-                c00%vec(2)**2 * ddz_x(3) / rel_p + &
-                c00%vec(3)**2 * ddz_y(1) / rel_p + &
-                c00%vec(3)*c1%vec(4) * ddz_y(2) / rel_p + &
-                c00%vec(4)**2 * ddz_y(3) / rel_p 
+    mat6(5,6) = c00%vec(1)**2 * ddz_x(1) + c00%vec(1)*c00%vec(2) * ddz_x(2) + c00%vec(2)**2 * ddz_x(3)  + &
+                c00%vec(3)**2 * ddz_y(1) + c00%vec(3)*c00%vec(4) * ddz_y(2) + c00%vec(4)**2 * ddz_y(3)  
   endif
 
   if (any(mat6(5,1:4) /= 0)) then
