@@ -332,12 +332,7 @@ call offset_particle (ele, end_orb, param, set$, set_canonical = .false., set_mu
 
 ! Entrance edge kick
 
-ix_fringe = nint(ele%value(fringe_type$))
-if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-  call exact_bend_edge_kick (end_orb, ele, param, upstream_end$, .false.)
-elseif (ix_fringe == basic_bend$) then
-  call apply_bend_edge_kick (end_orb, ele, param, upstream_end$, .false.)
-endif
+call bend_edge_kick (end_orb, ele, param, upstream_end$, .false.)
 
 ! If we have a sextupole component then step through in steps of length ds_step
 
@@ -470,11 +465,7 @@ enddo
 
 ! Track through the exit face. Treat as thin lens.
 
-if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-  call exact_bend_edge_kick (end_orb, ele, param, downstream_end$, .false.)
-elseif (ix_fringe == basic_bend$) then
-  call apply_bend_edge_kick (end_orb, ele, param, downstream_end$, .false.)
-endif
+call bend_edge_kick (end_orb, ele, param, downstream_end$, .false.)
 
 call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., set_multipoles = .false.)
 
@@ -486,7 +477,7 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine apply_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
+! Subroutine approx_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
 !
 ! Subroutine to track through the edge field of an sbend.
 ! In_to_out tracking starts with the particle just outside the bend and
@@ -512,7 +503,7 @@ end subroutine track_a_bend
 !                  The values of kx and ky are not affected by the in_to_out argument.
 !-
 
-subroutine apply_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
+subroutine approx_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
 
 implicit none
 
@@ -526,7 +517,7 @@ real(rp) ht2, hs2, c_dir
 integer stream_end, element_end
 logical in_to_out
 
-character(24), parameter :: r_name = 'apply_bend_edge_kick'
+character(24), parameter :: r_name = 'approx_bend_edge_kick'
 
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
@@ -599,7 +590,7 @@ endif
 if (present(kx)) kx = ht_x 
 if (present(ky)) ky = ht_y
 
-end subroutine apply_bend_edge_kick
+end subroutine approx_bend_edge_kick
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -661,7 +652,7 @@ case (sbend$)
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
     call exact_bend_edge_kick (orb, hard_ele, param, element_end, .false.)
   elseif (ix_fringe == basic_bend$) then
-    call apply_bend_edge_kick (orb, hard_ele, param, element_end, .false.)
+    call approx_bend_edge_kick (orb, hard_ele, param, element_end, .false.)
   endif
 
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
@@ -704,6 +695,65 @@ case (lcavity$, rfcavity$, e_gun$)
 end select
 
 end subroutine apply_hard_edge_kick
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
+!
+! Subroutine to track through the edge field of an sbend.
+! In_to_out tracking starts with the particle just outside the bend and
+! returns the orbit that the particle had just inside the bend.
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   orb         -- Coord_struct: Starting coords.
+!   ele         -- ele_struct: SBend element.
+!   param       -- lat_param_struct: Rel charge.
+!   stream_end  -- Integer: upstream_end$ or downstream_end$
+!   in_to_out   -- Logical: If True then make the inverse transformation.
+!                    That is, for the entrance end take the input orb as the coordinates
+!                    just inside the entrance end of the bend and return the coordinates 
+!                    just oustide the entrance end.
+!
+! Output:
+!   orb        -- Coord_struct: Coords after tracking.
+!   kx, ky     -- Real(rp), optional: Horizontal and vertical edge focusing strengths.
+!                  Useful for constructing the edge transfer matrix.
+!                  The values of kx and ky are not affected by the in_to_out argument.
+!-
+
+subroutine bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orb
+type (lat_param_struct) param
+
+real(rp), optional :: kx, ky
+integer stream_end, element_end, ix_fringe
+logical in_to_out
+
+ix_fringe = nint(ele%value(fringe_type$))
+if (present(kx) .and. present(ky)) then 
+   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
+      call exact_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
+   elseif (ix_fringe == basic_bend$) then
+      call approx_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)
+   endif
+else
+   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
+      call exact_bend_edge_kick (orb, ele, param, stream_end, in_to_out)
+   elseif (ix_fringe == basic_bend$) then
+      call approx_bend_edge_kick (orb, ele, param, stream_end, in_to_out)
+   endif
+end if
+
+end subroutine bend_edge_kick
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
