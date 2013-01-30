@@ -39,7 +39,7 @@ real(rp), pointer :: mat6(:,:)
 
 real(rp) mat6_m(6,6), mat4(4,4), kmat(4,4)
 real(rp) angle, k1, ks, length, e2, g, g_err
-real(rp) k2l, k3l, c2, s2, cs, ks2, del_l
+real(rp) k2l, k3l, c2, s2, cs, del_l
 real(rp) factor, kmat6(6,6), drift(6,6)
 real(rp) s_pos, s_pos_old, z_slice(100)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
@@ -865,7 +865,7 @@ case (solenoid$)
 
   call offset_particle (ele, c00, param, set$)
 
-  ks = ele%value(ks$) / rel_p
+  ks = param%rel_tracking_charge * ele%value(ks$) / rel_p
 
   call solenoid_mat_calc (ks, length, mat6(1:4,1:4))
 
@@ -935,10 +935,9 @@ case (solenoid$)
 
   ! mat6(5,6) 
 
-  ks2 = ele%value(ks$) / 2
-  xp_start = (c0%vec(2) + ks2 * c0%vec(3)) 
-  yp_start = (c0%vec(4) - ks2 * c0%vec(1)) 
-  mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p**3
+  xp_start = c00%vec(2) + ks * c00%vec(3) / 2
+  yp_start = c00%vec(4) - ks * c00%vec(1) / 2
+  mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p
 
   if (ele%value(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
