@@ -52,7 +52,7 @@ real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
 real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
 real(rp) rel_pc, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
 real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio, voltage_max
-real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22, volt_ref
+real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
 real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, len_slice, k0l, k1l
@@ -374,10 +374,10 @@ case (lcavity$)
   if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
 
   if (gradient == 0) then
-    r11 = 1
-    r12 = length
-    r21 = 0
-    r22 = 1
+    r_mat(1,1) = 1
+    r_mat(1,2) = length
+    r_mat(2,1) = 0
+    r_mat(2,2) = 1
 
   else
     voltage_max = gradient_max * length
@@ -390,19 +390,14 @@ case (lcavity$)
     cos_a = cos(alpha)
     sin_a = sin(alpha)
     f = gradient / (2 * sqrt_2 * cos_phi)
-    r11 =  cos_a
-    r12 =  sin_a * beta_start * E_start / f
-    r21 = -sin_a * f / (E_end * beta_end)
-    r22 =  cos_a * beta_start * E_start / (E_end * beta_end)
+    r_mat(1,1) =  cos_a
+    r_mat(1,2) =  sin_a * beta_start * E_start / f
+    r_mat(2,1) = -sin_a * f / (E_end * beta_end)
+    r_mat(2,2) =  cos_a * beta_start * E_start / (E_end * beta_end)
   endif
 
-  x_pos = end_orb%vec(1)
-  y_pos = end_orb%vec(3)
-
-  end_orb%vec(1) = r11 * x_pos + r12 * end_orb%vec(2)
-  end_orb%vec(2) = r21 * x_pos + r22 * end_orb%vec(2)
-  end_orb%vec(3) = r11 * y_pos + r12 * end_orb%vec(4)
-  end_orb%vec(4) = r21 * y_pos + r22 * end_orb%vec(4)
+  end_orb%vec(1:2) = matmul(r_mat, end_orb%vec(1:2))
+  end_orb%vec(3:4) = matmul(r_mat, end_orb%vec(3:4))
 
   ! coupler kick
 
