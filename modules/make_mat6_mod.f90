@@ -62,12 +62,11 @@ end subroutine mat6_add_pitch
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine quad_mat2_calc (k1, length, mat2, z_coef, dz_dpz_coef)
+! Subroutine quad_mat2_calc (k1, length, mat2, z_coef, pz, dz_dpz_coef)
 !
-! Subroutine to calculate the 2x2 transfer matrix for a quad for
-! one plane. 
-! Note: This calc does not include any energy corrections for an
-! off-energy particle.
+! Subroutine to calculate the 2x2 transfer matrix for a quad for one plane in 
+! (x, x', y, y') space. 
+! Note: mat2 does not include any energy corrections for an off-energy particle.
 !
 ! Modules needed:
 !   use bmad
@@ -77,40 +76,41 @@ end subroutine mat6_add_pitch
 !   length -- Real(rp): Quad length
 !
 ! Output:
-!   mat2(2,2)  -- Real(rp): Transfer matrix.
-!   z_coef(3)  -- Real(rp), optional: Coefficients for calculating the
-!                 the change in z position:
-!                   z = Integral [-x'^2/2 ds]
-!                      = c(1) * x_0^2 + c(2) * x_0 * x'_0 + c(3) * x'_0^2 
+!   mat2(2,2)      -- Real(rp): Transfer matrix.
+!   z_coef(3)      -- Real(rp), optional: Coefficients for calculating the
+!                       the change in z position:
+!                          z = Integral [-x'^2/2 ds]
+!                            = c(1) * x_0^2 + c(2) * x_0 * x'_0 + c(3) * x'_0^2 
+!   pz             -- Real(rp), optional: momentum deviation. Needed for dz_dpz_coef calc.
+!                       pz must be present if dz_dpz_coef is.
 !   dz_dpz_coef(3) -- Real(rp), optional: Coefficients for calculating the
-!                     the mat6(5,6) Jacobian matrix element:
-!                       dz_dpz = c(1) * x_0^2 + 
-!                                 c(2) * x_0 * x'_0 + c(3) * x'_0^2 
+!                       the mat6(5,6) Jacobian matrix element:
+!                         dz_dpz = c(1) * x_0^2 + c(2) * x_0 * x'_0 + c(3) * x'_0^2 
 !-
 
-subroutine quad_mat2_calc (k1, length, mat2, z_coef, dz_dpz_coef)
+subroutine quad_mat2_calc (k1, length, mat2, z_coef, pz, dz_dpz_coef)
 
 implicit none
 
 real(rp) length, mat2(:,:), cx, sx
-real(rp) k1, omega, arg, arg2, zc(3), dsx, dcx
-real(rp), optional :: z_coef(3), dz_dpz_coef(3)
+real(rp) k1, sqrt_k, sk_l, k_l2, zc(3), dsx, dcx, rel_p
+real(rp), optional :: pz, z_coef(3), dz_dpz_coef(3)
 
 !
 
-omega = sqrt(abs(k1))
-arg = omega * length
+sqrt_k = sqrt(abs(k1))
+sk_l = sqrt_k * length
 
-if (arg < 1e-10) then
-  arg2 = k1 * length**2
-  cx = 1 - arg2 / 2
-  sx = (1 - arg2 / 6) * length
+if (sk_l < 1e-10) then
+  k_l2 = k1 * length**2
+  cx = 1 + k_l2 / 2
+  sx = (1 + k_l2 / 6) * length
 elseif (k1 < 0) then       ! focus
-  cx = cos(arg)
-  sx = sin(arg) / omega
+  cx = cos(sk_l)
+  sx = sin(sk_l) / sqrt_k
 else                       ! defocus
-  cx = cosh(arg)
-  sx = sinh(arg) / omega
+  cx = cosh(sk_l)
+  sx = sinh(sk_l) / sqrt_k
 endif
 
 mat2(1,1) = cx
@@ -127,21 +127,23 @@ if (present(z_coef) .or. present(dz_dpz_coef)) then
   if (present(z_coef)) z_coef = zc
 endif
 
-!
+! dz_dpz_coef uses (x, px, y, py) space with px and py constant.
+! Not x', y' constant.
 
 if (present(dz_dpz_coef)) then
 
-  if (arg < 1e-10) then
-    dsx = arg2 * length / 6
-    dcx = arg2 / 2
+  if (sk_l < 1e-10) then
+    dcx = -k_l2 / 2
+    dsx = -k_l2 * length / 6
   else
+    dcx = -k1 * sx * length / 2
     dsx = (sx - length * cx) / 2
-    dcx = k1 * sx * length / 2
   endif
 
-  dz_dpz_coef(1) = -zc(1) + k1 * (cx * dsx + dcx * sx) / 4
-  dz_dpz_coef(2) = -2 * zc(2) + k1 * sx * dsx
-  dz_dpz_coef(3) = -2 * zc(3) - (cx * dsx + dcx * sx) / 4
+  rel_p = 1 + pz
+  dz_dpz_coef(1) = -zc(1)/rel_p - k1 * (cx * dsx + dcx * sx) / (4 * rel_p)
+  dz_dpz_coef(2) = -2*zc(2)/rel_p - k1 * sx * dsx/rel_p
+  dz_dpz_coef(3) = -2*zc(3)/rel_p - (cx * dsx + dcx * sx) / (4 * rel_p)
 
 endif
 
@@ -153,7 +155,7 @@ end subroutine quad_mat2_calc
 !+
 ! Subroutine sol_quad_mat6_calc (ks, k1, length, mat6, orb, dz_coef)
 !
-! Subroutine to calculate the transfer matrix for a  combination 
+! Subroutine to calculate the transfer matrix for a combination 
 ! solenoid/quadrupole element (without a tilt).
 !
 ! Note: This routine is not meant to be for general use.
@@ -165,8 +167,7 @@ end subroutine quad_mat2_calc
 !   ks      -- Real(rp): Solenoid strength.
 !   k1      -- Real(rp): Quadrupole strength.
 !   length  -- Real(rp): Sol_quad length.
-!   orb(6)  -- Real(rp): Orbit at beginning of the sol_quad.
-!              Note: using non-cononical coords here!
+!   orb(6)  -- Real(rp): Orbit at beginning of the sol_quad in (x, x', y, y') space.
 !
 ! Output:
 !   mat6(6,6)    -- Real(rp): Transfer matrix across the sol_quad.
