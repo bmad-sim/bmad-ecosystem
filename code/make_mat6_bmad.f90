@@ -618,13 +618,13 @@ case (rfcavity$)
  if (absolute_time_tracking(ele)) phase = phase + &
                          twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
 
-  k = twopi * ele%value(rf_frequency$) * voltage * cos(phase) / (ele%value(p0c$) * c_light)
+  k = twopi * param%rel_tracking_charge * ele%value(rf_frequency$) * voltage * cos(phase) / (ele%value(p0c$) * c_light)
 
   px = c0%vec(2)
   py = c0%vec(4)
   pz = c0%vec(6)
 
-  dE0 =  voltage * sin(phase) / ele%value(p0c$)
+  dE0 = param%rel_tracking_charge * voltage * sin(phase) / ele%value(p0c$)
   L = ele%value(l$)
   E = 1 + pz
   E2 = E**2
