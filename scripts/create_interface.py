@@ -885,10 +885,10 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     c.test_pat    = c.test_pat.replace('NNN', test_value)
 
     if type == STRUCT:
-      c.to_c2_arg = 'const KIND_struct* z_NAME'
+      c.to_c2_arg = 'const Bmad_KIND_class* z_NAME'
       if dim > 0: 
         c.to_f2_arg  = c.to_f2_arg.replace('Arr', '**')
-        c.to_c2_arg  = 'const KIND_struct** z_NAME'
+        c.to_c2_arg  = 'const Bmad_KIND_class** z_NAME'
         c.to_f2_call = 'z_NAME'
 
     #-------------------------------------------------------
@@ -899,7 +899,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     cp.destructor    = ''
 
     if type == STRUCT:
-      cp.to_c2_arg     = 'KIND_struct** z_NAME'
+      cp.to_c2_arg     = 'Bmad_KIND_class** z_NAME'
     else:
       cp.to_f2_arg     = c_arg + 'Arr'
       cp.to_c2_arg     = cp.to_f2_arg + ' z_NAME'
@@ -934,7 +934,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
       if type == STRUCT:
         cp.test_pat      = cp.test_pat
         cp.to_f2_call    = '*C.NAME' 
-        cp.to_c2_arg     = 'KIND_struct* z_NAME'
+        cp.to_c2_arg     = 'Bmad_KIND_class* z_NAME'
         cp.to_c2_set     = cp.to_c2_set.replace('SET', 'KIND_to_c(z_NAME, *C.NAME);')
       else:
         cp.to_c2_set     = cp.to_c2_set.replace('SET', '*C.NAME = *z_NAME;')
@@ -2182,7 +2182,7 @@ for struct in struct_definitions:
 //--------------------------------------------------------------------
 // CPP_ZZZ
 
-class ZZZ_struct {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_ZZZ_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_ZZZ {
 public:
@@ -2222,8 +2222,8 @@ public:
   f_class.write('''
 };   // End Class
 
-extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
-extern "C" void ZZZ_to_f (const CPP_ZZZ&, ZZZ_struct*);
+extern "C" void ZZZ_to_c (const Bmad_ZZZ_class*, CPP_ZZZ&);
+extern "C" void ZZZ_to_f (const CPP_ZZZ&, Bmad_ZZZ_class*);
 
 bool operator== (const CPP_ZZZ&, const CPP_ZZZ&);
 
@@ -2413,13 +2413,13 @@ for struct in struct_definitions:
 //--------------------------------------------------------------------
 // CPP_ZZZ
 
-extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
+extern "C" void ZZZ_to_c (const Bmad_ZZZ_class*, CPP_ZZZ&);
 
 '''.replace('ZZZ', struct.short_name))
 
   f_cpp.write ('// c_side.to_f2_arg\n')
 
-  line = 'extern "C" void ZZZ_to_f2 (ZZZ_struct*'.replace('ZZZ', struct.short_name)
+  line = 'extern "C" void ZZZ_to_f2 (Bmad_ZZZ_class*'.replace('ZZZ', struct.short_name)
   for arg in struct.arg:
     line += ', ' + arg.c_side.to_f2_arg.replace('ZZZ', struct.short_name)
   line += ');'
@@ -2430,7 +2430,7 @@ extern "C" void ZZZ_to_c (const ZZZ_struct*, CPP_ZZZ&);
   # ZZZ_to_f
 
   f_cpp.write('\n')
-  f_cpp.write('extern "C" void ZZZ_to_f (const CPP_ZZZ& C, ZZZ_struct* F) {\n'.replace('ZZZ', struct.short_name))
+  f_cpp.write('extern "C" void ZZZ_to_f (const CPP_ZZZ& C, Bmad_ZZZ_class* F) {\n'.replace('ZZZ', struct.short_name))
 
   for arg in struct.arg:
     if arg.c_side.to_f_setup == '': continue
@@ -2629,7 +2629,7 @@ void set_CPP_ZZZ_test_pattern (CPP_ZZZ& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_ZZZ (ZZZ_struct* F, bool& c_ok) {
+extern "C" void test_c_ZZZ (Bmad_ZZZ_class* F, bool& c_ok) {
 
   CPP_ZZZ C, C2;
 

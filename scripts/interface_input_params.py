@@ -58,7 +58,7 @@ struct_list = [
     'rad_int_all_ele_struct',
     'ele_struct',
     'branch_struct',
-    'lat_struct'
+    'lat_struct',
 ]
 
 # List of structure components to not translate.
@@ -71,7 +71,7 @@ component_no_translate_list = set([
     'genfield',
     'ptc_branch1_info_struct',
     'layout',
-    'ele_struct%lord'
+    'ele_struct%lord',
 ])
 
 # List of structure components links:
@@ -82,7 +82,7 @@ component_no_translate_list = set([
 
 interface_ignore_list = set([
   'ele_struct%branch',
-  'branch_struct%lat'
+  'branch_struct%lat',
 ])
 
 
@@ -90,7 +90,7 @@ interface_ignore_list = set([
 
 c_side_name_translation = {
     'rf_wake_sr_table_struct%long' : 'long_wake',
-    'rf_wake_sr_table_struct%trans' : 'trans_wake'
+    'rf_wake_sr_table_struct%trans' : 'trans_wake',
 }
 
 # Directory where the output is put
@@ -127,7 +127,8 @@ c_custom_constructors = {
     'ele%scale_multipoles' : 'scale_multipoles(true)', 
     'ele%map_with_offsets' : 'map_with_offsets(true)',
     'ele%is_on' : 'is_on(true)', 
-    'ele%csr_calc_on' : 'csr_calc_on(true)'
+    'ele%csr_calc_on' : 'csr_calc_on(true)',
+    'ele%orientation' : 'orientation(1)',
 }
 
 #-----------------------------------------------

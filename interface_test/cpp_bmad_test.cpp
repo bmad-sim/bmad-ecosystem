@@ -70,7 +70,7 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_coord (coord_struct* F, bool& c_ok) {
+extern "C" void test_c_coord (Bmad_coord_class* F, bool& c_ok) {
 
   CPP_coord C, C2;
 
@@ -126,7 +126,7 @@ void set_CPP_coord_array_test_pattern (CPP_coord_array& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_coord_array (coord_array_struct* F, bool& c_ok) {
+extern "C" void test_c_coord_array (Bmad_coord_array_class* F, bool& c_ok) {
 
   CPP_coord_array C, C2;
 
@@ -204,7 +204,7 @@ void set_CPP_bpm_phase_coupling_test_pattern (CPP_bpm_phase_coupling& C, int ix_
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_bpm_phase_coupling (bpm_phase_coupling_struct* F, bool& c_ok) {
+extern "C" void test_c_bpm_phase_coupling (Bmad_bpm_phase_coupling_class* F, bool& c_ok) {
 
   CPP_bpm_phase_coupling C, C2;
 
@@ -270,7 +270,7 @@ void set_CPP_wig_term_test_pattern (CPP_wig_term& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wig_term (wig_term_struct* F, bool& c_ok) {
+extern "C" void test_c_wig_term (Bmad_wig_term_class* F, bool& c_ok) {
 
   CPP_wig_term C, C2;
 
@@ -329,7 +329,7 @@ void set_CPP_wig_test_pattern (CPP_wig& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wig (wig_struct* F, bool& c_ok) {
+extern "C" void test_c_wig (Bmad_wig_class* F, bool& c_ok) {
 
   CPP_wig C, C2;
 
@@ -386,7 +386,7 @@ void set_CPP_rf_wake_sr_table_test_pattern (CPP_rf_wake_sr_table& C, int ix_patt
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rf_wake_sr_table (rf_wake_sr_table_struct* F, bool& c_ok) {
+extern "C" void test_c_rf_wake_sr_table (Bmad_rf_wake_sr_table_class* F, bool& c_ok) {
 
   CPP_rf_wake_sr_table C, C2;
 
@@ -458,7 +458,7 @@ void set_CPP_rf_wake_sr_mode_test_pattern (CPP_rf_wake_sr_mode& C, int ix_patt) 
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rf_wake_sr_mode (rf_wake_sr_mode_struct* F, bool& c_ok) {
+extern "C" void test_c_rf_wake_sr_mode (Bmad_rf_wake_sr_mode_class* F, bool& c_ok) {
 
   CPP_rf_wake_sr_mode C, C2;
 
@@ -542,7 +542,7 @@ void set_CPP_rf_wake_lr_test_pattern (CPP_rf_wake_lr& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rf_wake_lr (rf_wake_lr_struct* F, bool& c_ok) {
+extern "C" void test_c_rf_wake_lr (Bmad_rf_wake_lr_class* F, bool& c_ok) {
 
   CPP_rf_wake_lr C, C2;
 
@@ -633,7 +633,7 @@ void set_CPP_rf_wake_test_pattern (CPP_rf_wake& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rf_wake (rf_wake_struct* F, bool& c_ok) {
+extern "C" void test_c_rf_wake (Bmad_rf_wake_class* F, bool& c_ok) {
 
   CPP_rf_wake C, C2;
 
@@ -687,7 +687,7 @@ void set_CPP_em_field_map_term_test_pattern (CPP_em_field_map_term& C, int ix_pa
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_field_map_term (em_field_map_term_struct* F, bool& c_ok) {
+extern "C" void test_c_em_field_map_term (Bmad_em_field_map_term_class* F, bool& c_ok) {
 
   CPP_em_field_map_term C, C2;
 
@@ -756,7 +756,7 @@ void set_CPP_em_field_map_test_pattern (CPP_em_field_map& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_field_map (em_field_map_struct* F, bool& c_ok) {
+extern "C" void test_c_em_field_map (Bmad_em_field_map_class* F, bool& c_ok) {
 
   CPP_em_field_map C, C2;
 
@@ -810,7 +810,7 @@ void set_CPP_em_field_grid_pt_test_pattern (CPP_em_field_grid_pt& C, int ix_patt
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_field_grid_pt (em_field_grid_pt_struct* F, bool& c_ok) {
+extern "C" void test_c_em_field_grid_pt (Bmad_em_field_grid_pt_class* F, bool& c_ok) {
 
   CPP_em_field_grid_pt C, C2;
 
@@ -891,7 +891,7 @@ void set_CPP_em_field_grid_test_pattern (CPP_em_field_grid& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_field_grid (em_field_grid_struct* F, bool& c_ok) {
+extern "C" void test_c_em_field_grid (Bmad_em_field_grid_class* F, bool& c_ok) {
 
   CPP_em_field_grid C, C2;
 
@@ -979,7 +979,7 @@ void set_CPP_em_field_mode_test_pattern (CPP_em_field_mode& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_field_mode (em_field_mode_struct* F, bool& c_ok) {
+extern "C" void test_c_em_field_mode (Bmad_em_field_mode_class* F, bool& c_ok) {
 
   CPP_em_field_mode C, C2;
 
@@ -1035,7 +1035,7 @@ void set_CPP_em_fields_test_pattern (CPP_em_fields& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_fields (em_fields_struct* F, bool& c_ok) {
+extern "C" void test_c_em_fields (Bmad_em_fields_class* F, bool& c_ok) {
 
   CPP_em_fields C, C2;
 
@@ -1095,7 +1095,7 @@ void set_CPP_floor_position_test_pattern (CPP_floor_position& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_floor_position (floor_position_struct* F, bool& c_ok) {
+extern "C" void test_c_floor_position (Bmad_floor_position_class* F, bool& c_ok) {
 
   CPP_floor_position C, C2;
 
@@ -1167,7 +1167,7 @@ void set_CPP_space_charge_test_pattern (CPP_space_charge& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_space_charge (space_charge_struct* F, bool& c_ok) {
+extern "C" void test_c_space_charge (Bmad_space_charge_class* F, bool& c_ok) {
 
   CPP_space_charge C, C2;
 
@@ -1221,7 +1221,7 @@ void set_CPP_xy_disp_test_pattern (CPP_xy_disp& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_xy_disp (xy_disp_struct* F, bool& c_ok) {
+extern "C" void test_c_xy_disp (Bmad_xy_disp_class* F, bool& c_ok) {
 
   CPP_xy_disp C, C2;
 
@@ -1299,7 +1299,7 @@ void set_CPP_twiss_test_pattern (CPP_twiss& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_twiss (twiss_struct* F, bool& c_ok) {
+extern "C" void test_c_twiss (Bmad_twiss_class* F, bool& c_ok) {
 
   CPP_twiss C, C2;
 
@@ -1365,7 +1365,7 @@ void set_CPP_mode3_test_pattern (CPP_mode3& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_mode3 (mode3_struct* F, bool& c_ok) {
+extern "C" void test_c_mode3 (Bmad_mode3_class* F, bool& c_ok) {
 
   CPP_mode3 C, C2;
 
@@ -1434,7 +1434,7 @@ void set_CPP_bookkeeping_state_test_pattern (CPP_bookkeeping_state& C, int ix_pa
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_bookkeeping_state (bookkeeping_state_struct* F, bool& c_ok) {
+extern "C" void test_c_bookkeeping_state (Bmad_bookkeeping_state_class* F, bool& c_ok) {
 
   CPP_bookkeeping_state C, C2;
 
@@ -1500,7 +1500,7 @@ void set_CPP_rad_int_ele_cache_test_pattern (CPP_rad_int_ele_cache& C, int ix_pa
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rad_int_ele_cache (rad_int_ele_cache_struct* F, bool& c_ok) {
+extern "C" void test_c_rad_int_ele_cache (Bmad_rad_int_ele_cache_class* F, bool& c_ok) {
 
   CPP_rad_int_ele_cache C, C2;
 
@@ -1572,7 +1572,7 @@ void set_CPP_wall3d_vertex_test_pattern (CPP_wall3d_vertex& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wall3d_vertex (wall3d_vertex_struct* F, bool& c_ok) {
+extern "C" void test_c_wall3d_vertex (Bmad_wall3d_vertex_class* F, bool& c_ok) {
 
   CPP_wall3d_vertex C, C2;
 
@@ -1664,7 +1664,7 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wall3d_section (wall3d_section_struct* F, bool& c_ok) {
+extern "C" void test_c_wall3d_section (Bmad_wall3d_section_class* F, bool& c_ok) {
 
   CPP_wall3d_section C, C2;
 
@@ -1727,7 +1727,7 @@ void set_CPP_wall3d_crotch_test_pattern (CPP_wall3d_crotch& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wall3d_crotch (wall3d_crotch_struct* F, bool& c_ok) {
+extern "C" void test_c_wall3d_crotch (Bmad_wall3d_crotch_class* F, bool& c_ok) {
 
   CPP_wall3d_crotch C, C2;
 
@@ -1795,7 +1795,7 @@ void set_CPP_wall3d_test_pattern (CPP_wall3d& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wall3d (wall3d_struct* F, bool& c_ok) {
+extern "C" void test_c_wall3d (Bmad_wall3d_class* F, bool& c_ok) {
 
   CPP_wall3d C, C2;
 
@@ -1849,7 +1849,7 @@ void set_CPP_taylor_term_test_pattern (CPP_taylor_term& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_taylor_term (taylor_term_struct* F, bool& c_ok) {
+extern "C" void test_c_taylor_term (Bmad_taylor_term_class* F, bool& c_ok) {
 
   CPP_taylor_term C, C2;
 
@@ -1908,7 +1908,7 @@ void set_CPP_taylor_test_pattern (CPP_taylor& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_taylor (taylor_struct* F, bool& c_ok) {
+extern "C" void test_c_taylor (Bmad_taylor_class* F, bool& c_ok) {
 
   CPP_taylor C, C2;
 
@@ -1971,7 +1971,7 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_control (control_struct* F, bool& c_ok) {
+extern "C" void test_c_control (Bmad_control_class* F, bool& c_ok) {
 
   CPP_control C, C2;
 
@@ -2055,7 +2055,7 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_lat_param (lat_param_struct* F, bool& c_ok) {
+extern "C" void test_c_lat_param (Bmad_lat_param_class* F, bool& c_ok) {
 
   CPP_lat_param C, C2;
 
@@ -2118,7 +2118,7 @@ void set_CPP_mode_info_test_pattern (CPP_mode_info& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_mode_info (mode_info_struct* F, bool& c_ok) {
+extern "C" void test_c_mode_info (Bmad_mode_info_class* F, bool& c_ok) {
 
   CPP_mode_info C, C2;
 
@@ -2179,7 +2179,7 @@ void set_CPP_pre_tracker_test_pattern (CPP_pre_tracker& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_pre_tracker (pre_tracker_struct* F, bool& c_ok) {
+extern "C" void test_c_pre_tracker (Bmad_pre_tracker_class* F, bool& c_ok) {
 
   CPP_pre_tracker C, C2;
 
@@ -2245,7 +2245,7 @@ void set_CPP_anormal_mode_test_pattern (CPP_anormal_mode& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_anormal_mode (anormal_mode_struct* F, bool& c_ok) {
+extern "C" void test_c_anormal_mode (Bmad_anormal_mode_class* F, bool& c_ok) {
 
   CPP_anormal_mode C, C2;
 
@@ -2314,7 +2314,7 @@ void set_CPP_linac_normal_mode_test_pattern (CPP_linac_normal_mode& C, int ix_pa
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_linac_normal_mode (linac_normal_mode_struct* F, bool& c_ok) {
+extern "C" void test_c_linac_normal_mode (Bmad_linac_normal_mode_class* F, bool& c_ok) {
 
   CPP_linac_normal_mode C, C2;
 
@@ -2392,7 +2392,7 @@ void set_CPP_normal_modes_test_pattern (CPP_normal_modes& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_normal_modes (normal_modes_struct* F, bool& c_ok) {
+extern "C" void test_c_normal_modes (Bmad_normal_modes_class* F, bool& c_ok) {
 
   CPP_normal_modes C, C2;
 
@@ -2452,7 +2452,7 @@ void set_CPP_em_field_test_pattern (CPP_em_field& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_field (em_field_struct* F, bool& c_ok) {
+extern "C" void test_c_em_field (Bmad_em_field_class* F, bool& c_ok) {
 
   CPP_em_field C, C2;
 
@@ -2506,7 +2506,7 @@ void set_CPP_track_map_test_pattern (CPP_track_map& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_track_map (track_map_struct* F, bool& c_ok) {
+extern "C" void test_c_track_map (Bmad_track_map_class* F, bool& c_ok) {
 
   CPP_track_map C, C2;
 
@@ -2590,7 +2590,7 @@ void set_CPP_track_test_pattern (CPP_track& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_track (track_struct* F, bool& c_ok) {
+extern "C" void test_c_track (Bmad_track_class* F, bool& c_ok) {
 
   CPP_track C, C2;
 
@@ -2656,7 +2656,7 @@ void set_CPP_synch_rad_common_test_pattern (CPP_synch_rad_common& C, int ix_patt
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_synch_rad_common (synch_rad_common_struct* F, bool& c_ok) {
+extern "C" void test_c_synch_rad_common (Bmad_synch_rad_common_class* F, bool& c_ok) {
 
   CPP_synch_rad_common C, C2;
 
@@ -2788,7 +2788,7 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_bmad_common (bmad_common_struct* F, bool& c_ok) {
+extern "C" void test_c_bmad_common (Bmad_bmad_common_class* F, bool& c_ok) {
 
   CPP_bmad_common C, C2;
 
@@ -2887,7 +2887,7 @@ void set_CPP_rad_int1_test_pattern (CPP_rad_int1& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rad_int1 (rad_int1_struct* F, bool& c_ok) {
+extern "C" void test_c_rad_int1 (Bmad_rad_int1_class* F, bool& c_ok) {
 
   CPP_rad_int1 C, C2;
 
@@ -2943,7 +2943,7 @@ void set_CPP_rad_int_all_ele_test_pattern (CPP_rad_int_all_ele& C, int ix_patt) 
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rad_int_all_ele (rad_int_all_ele_struct* F, bool& c_ok) {
+extern "C" void test_c_rad_int_all_ele (Bmad_rad_int_all_ele_class* F, bool& c_ok) {
 
   CPP_rad_int_all_ele C, C2;
 
@@ -3282,7 +3282,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_ele (ele_struct* F, bool& c_ok) {
+extern "C" void test_c_ele (Bmad_ele_class* F, bool& c_ok) {
 
   CPP_ele C, C2;
 
@@ -3410,7 +3410,7 @@ void set_CPP_branch_test_pattern (CPP_branch& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_branch (branch_struct* F, bool& c_ok) {
+extern "C" void test_c_branch (Bmad_branch_class* F, bool& c_ok) {
 
   CPP_branch C, C2;
 
@@ -3572,7 +3572,7 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_lat (lat_struct* F, bool& c_ok) {
+extern "C" void test_c_lat (Bmad_lat_class* F, bool& c_ok) {
 
   CPP_lat C, C2;
 

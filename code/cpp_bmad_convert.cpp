@@ -163,13 +163,13 @@ void void_tensor_to_vec (const valarray< valarray< valarray< void** > > >& tenso
 //--------------------------------------------------------------------
 // CPP_coord
 
-extern "C" void coord_to_c (const coord_struct*, CPP_coord&);
+extern "C" void coord_to_c (const Bmad_coord_class*, CPP_coord&);
 
 // c_side.to_f2_arg
-extern "C" void coord_to_f2 (coord_struct*, c_RealArr, c_Real&, c_Real&, c_ComplexArr, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&);
+extern "C" void coord_to_f2 (Bmad_coord_class*, c_RealArr, c_Real&, c_Real&, c_ComplexArr,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&);
 
-extern "C" void coord_to_f (const CPP_coord& C, coord_struct* F) {
+extern "C" void coord_to_f (const CPP_coord& C, Bmad_coord_class* F) {
 
   // c_side.to_f2_call
   coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], C.e_field_x, C.e_field_y, C.phase_x,
@@ -217,12 +217,12 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
 //--------------------------------------------------------------------
 // CPP_coord_array
 
-extern "C" void coord_array_to_c (const coord_array_struct*, CPP_coord_array&);
+extern "C" void coord_array_to_c (const Bmad_coord_array_class*, CPP_coord_array&);
 
 // c_side.to_f2_arg
-extern "C" void coord_array_to_f2 (coord_array_struct*, const CPP_coord**, Int);
+extern "C" void coord_array_to_f2 (Bmad_coord_array_class*, const CPP_coord**, Int);
 
-extern "C" void coord_array_to_f (const CPP_coord_array& C, coord_array_struct* F) {
+extern "C" void coord_array_to_f (const CPP_coord_array& C, Bmad_coord_array_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_orb = C.orb.size();
   const CPP_coord** z_orb = NULL;
@@ -239,7 +239,7 @@ extern "C" void coord_array_to_f (const CPP_coord_array& C, coord_array_struct* 
 }
 
 // c_side.to_c2_arg
-extern "C" void coord_array_to_c2 (CPP_coord_array& C, coord_struct** z_orb, Int n1_orb) {
+extern "C" void coord_array_to_c2 (CPP_coord_array& C, Bmad_coord_class** z_orb, Int n1_orb) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.orb.resize(n1_orb);
@@ -251,13 +251,13 @@ extern "C" void coord_array_to_c2 (CPP_coord_array& C, coord_struct** z_orb, Int
 //--------------------------------------------------------------------
 // CPP_bpm_phase_coupling
 
-extern "C" void bpm_phase_coupling_to_c (const bpm_phase_coupling_struct*, CPP_bpm_phase_coupling&);
+extern "C" void bpm_phase_coupling_to_c (const Bmad_bpm_phase_coupling_class*, CPP_bpm_phase_coupling&);
 
 // c_side.to_f2_arg
-extern "C" void bpm_phase_coupling_to_f2 (bpm_phase_coupling_struct*, c_Real&, c_Real&,
+extern "C" void bpm_phase_coupling_to_f2 (Bmad_bpm_phase_coupling_class*, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
-extern "C" void bpm_phase_coupling_to_f (const CPP_bpm_phase_coupling& C, bpm_phase_coupling_struct* F) {
+extern "C" void bpm_phase_coupling_to_f (const CPP_bpm_phase_coupling& C, Bmad_bpm_phase_coupling_class* F) {
 
   // c_side.to_f2_call
   bpm_phase_coupling_to_f2 (F, C.k_22a, C.k_12a, C.k_11b, C.k_12b, C.cbar22_a, C.cbar12_a,
@@ -296,13 +296,13 @@ extern "C" void bpm_phase_coupling_to_c2 (CPP_bpm_phase_coupling& C, c_Real& z_k
 //--------------------------------------------------------------------
 // CPP_wig_term
 
-extern "C" void wig_term_to_c (const wig_term_struct*, CPP_wig_term&);
+extern "C" void wig_term_to_c (const Bmad_wig_term_class*, CPP_wig_term&);
 
 // c_side.to_f2_arg
-extern "C" void wig_term_to_f2 (wig_term_struct*, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Int&);
+extern "C" void wig_term_to_f2 (Bmad_wig_term_class*, c_Real&, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Int&);
 
-extern "C" void wig_term_to_f (const CPP_wig_term& C, wig_term_struct* F) {
+extern "C" void wig_term_to_f (const CPP_wig_term& C, Bmad_wig_term_class* F) {
 
   // c_side.to_f2_call
   wig_term_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.phi_z, C.type);
@@ -331,12 +331,12 @@ extern "C" void wig_term_to_c2 (CPP_wig_term& C, c_Real& z_coef, c_Real& z_kx, c
 //--------------------------------------------------------------------
 // CPP_wig
 
-extern "C" void wig_to_c (const wig_struct*, CPP_wig&);
+extern "C" void wig_to_c (const Bmad_wig_class*, CPP_wig&);
 
 // c_side.to_f2_arg
-extern "C" void wig_to_f2 (wig_struct*, c_Int&, const CPP_wig_term**, Int);
+extern "C" void wig_to_f2 (Bmad_wig_class*, c_Int&, const CPP_wig_term**, Int);
 
-extern "C" void wig_to_f (const CPP_wig& C, wig_struct* F) {
+extern "C" void wig_to_f (const CPP_wig& C, Bmad_wig_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_term = C.term.size();
   const CPP_wig_term** z_term = NULL;
@@ -353,8 +353,8 @@ extern "C" void wig_to_f (const CPP_wig& C, wig_struct* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void wig_to_c2 (CPP_wig& C, c_Int& z_n_link, wig_term_struct** z_term, Int n1_term)
-    {
+extern "C" void wig_to_c2 (CPP_wig& C, c_Int& z_n_link, Bmad_wig_term_class** z_term, Int
+    n1_term) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_link = z_n_link;
@@ -368,12 +368,13 @@ extern "C" void wig_to_c2 (CPP_wig& C, c_Int& z_n_link, wig_term_struct** z_term
 //--------------------------------------------------------------------
 // CPP_rf_wake_sr_table
 
-extern "C" void rf_wake_sr_table_to_c (const rf_wake_sr_table_struct*, CPP_rf_wake_sr_table&);
+extern "C" void rf_wake_sr_table_to_c (const Bmad_rf_wake_sr_table_class*, CPP_rf_wake_sr_table&);
 
 // c_side.to_f2_arg
-extern "C" void rf_wake_sr_table_to_f2 (rf_wake_sr_table_struct*, c_Real&, c_Real&, c_Real&);
+extern "C" void rf_wake_sr_table_to_f2 (Bmad_rf_wake_sr_table_class*, c_Real&, c_Real&,
+    c_Real&);
 
-extern "C" void rf_wake_sr_table_to_f (const CPP_rf_wake_sr_table& C, rf_wake_sr_table_struct* F) {
+extern "C" void rf_wake_sr_table_to_f (const CPP_rf_wake_sr_table& C, Bmad_rf_wake_sr_table_class* F) {
 
   // c_side.to_f2_call
   rf_wake_sr_table_to_f2 (F, C.z, C.long_wake, C.trans_wake);
@@ -396,13 +397,13 @@ extern "C" void rf_wake_sr_table_to_c2 (CPP_rf_wake_sr_table& C, c_Real& z_z, c_
 //--------------------------------------------------------------------
 // CPP_rf_wake_sr_mode
 
-extern "C" void rf_wake_sr_mode_to_c (const rf_wake_sr_mode_struct*, CPP_rf_wake_sr_mode&);
+extern "C" void rf_wake_sr_mode_to_c (const Bmad_rf_wake_sr_mode_class*, CPP_rf_wake_sr_mode&);
 
 // c_side.to_f2_arg
-extern "C" void rf_wake_sr_mode_to_f2 (rf_wake_sr_mode_struct*, c_Real&, c_Real&, c_Real&,
+extern "C" void rf_wake_sr_mode_to_f2 (Bmad_rf_wake_sr_mode_class*, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
-extern "C" void rf_wake_sr_mode_to_f (const CPP_rf_wake_sr_mode& C, rf_wake_sr_mode_struct* F) {
+extern "C" void rf_wake_sr_mode_to_f (const CPP_rf_wake_sr_mode& C, Bmad_rf_wake_sr_mode_class* F) {
 
   // c_side.to_f2_call
   rf_wake_sr_mode_to_f2 (F, C.amp, C.damp, C.k, C.phi, C.b_sin, C.b_cos, C.a_sin, C.a_cos);
@@ -436,13 +437,13 @@ extern "C" void rf_wake_sr_mode_to_c2 (CPP_rf_wake_sr_mode& C, c_Real& z_amp, c_
 //--------------------------------------------------------------------
 // CPP_rf_wake_lr
 
-extern "C" void rf_wake_lr_to_c (const rf_wake_lr_struct*, CPP_rf_wake_lr&);
+extern "C" void rf_wake_lr_to_c (const Bmad_rf_wake_lr_class*, CPP_rf_wake_lr&);
 
 // c_side.to_f2_arg
-extern "C" void rf_wake_lr_to_f2 (rf_wake_lr_struct*, c_Real&, c_Real&, c_Real&, c_Real&,
+extern "C" void rf_wake_lr_to_f2 (Bmad_rf_wake_lr_class*, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Bool&);
 
-extern "C" void rf_wake_lr_to_f (const CPP_rf_wake_lr& C, rf_wake_lr_struct* F) {
+extern "C" void rf_wake_lr_to_f (const CPP_rf_wake_lr& C, Bmad_rf_wake_lr_class* F) {
 
   // c_side.to_f2_call
   rf_wake_lr_to_f2 (F, C.freq, C.freq_in, C.r_over_q, C.q, C.angle, C.b_sin, C.b_cos, C.a_sin,
@@ -485,14 +486,14 @@ extern "C" void rf_wake_lr_to_c2 (CPP_rf_wake_lr& C, c_Real& z_freq, c_Real& z_f
 //--------------------------------------------------------------------
 // CPP_rf_wake
 
-extern "C" void rf_wake_to_c (const rf_wake_struct*, CPP_rf_wake&);
+extern "C" void rf_wake_to_c (const Bmad_rf_wake_class*, CPP_rf_wake&);
 
 // c_side.to_f2_arg
-extern "C" void rf_wake_to_f2 (rf_wake_struct*, c_Char, c_Char, const CPP_rf_wake_sr_table**,
-    Int, const CPP_rf_wake_sr_mode**, Int, const CPP_rf_wake_sr_mode**, Int, const
-    CPP_rf_wake_lr**, Int, c_Real&);
+extern "C" void rf_wake_to_f2 (Bmad_rf_wake_class*, c_Char, c_Char, const
+    CPP_rf_wake_sr_table**, Int, const CPP_rf_wake_sr_mode**, Int, const CPP_rf_wake_sr_mode**,
+    Int, const CPP_rf_wake_lr**, Int, c_Real&);
 
-extern "C" void rf_wake_to_f (const CPP_rf_wake& C, rf_wake_struct* F) {
+extern "C" void rf_wake_to_f (const CPP_rf_wake& C, Bmad_rf_wake_class* F) {
   // c_side.to_f_setup[type, 1, PTR]
   int n1_sr_table = C.sr_table.size();
   const CPP_rf_wake_sr_table** z_sr_table = NULL;
@@ -539,9 +540,9 @@ extern "C" void rf_wake_to_f (const CPP_rf_wake& C, rf_wake_struct* F) {
 
 // c_side.to_c2_arg
 extern "C" void rf_wake_to_c2 (CPP_rf_wake& C, c_Char z_sr_file, c_Char z_lr_file,
-    rf_wake_sr_table_struct** z_sr_table, Int n1_sr_table, rf_wake_sr_mode_struct**
-    z_sr_mode_long, Int n1_sr_mode_long, rf_wake_sr_mode_struct** z_sr_mode_trans, Int
-    n1_sr_mode_trans, rf_wake_lr_struct** z_lr, Int n1_lr, c_Real& z_z_sr_mode_max) {
+    Bmad_rf_wake_sr_table_class** z_sr_table, Int n1_sr_table, Bmad_rf_wake_sr_mode_class**
+    z_sr_mode_long, Int n1_sr_mode_long, Bmad_rf_wake_sr_mode_class** z_sr_mode_trans, Int
+    n1_sr_mode_trans, Bmad_rf_wake_lr_class** z_lr, Int n1_lr, c_Real& z_z_sr_mode_max) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.sr_file = z_sr_file;
@@ -571,12 +572,13 @@ extern "C" void rf_wake_to_c2 (CPP_rf_wake& C, c_Char z_sr_file, c_Char z_lr_fil
 //--------------------------------------------------------------------
 // CPP_em_field_map_term
 
-extern "C" void em_field_map_term_to_c (const em_field_map_term_struct*, CPP_em_field_map_term&);
+extern "C" void em_field_map_term_to_c (const Bmad_em_field_map_term_class*, CPP_em_field_map_term&);
 
 // c_side.to_f2_arg
-extern "C" void em_field_map_term_to_f2 (em_field_map_term_struct*, c_Complex&, c_Complex&);
+extern "C" void em_field_map_term_to_f2 (Bmad_em_field_map_term_class*, c_Complex&,
+    c_Complex&);
 
-extern "C" void em_field_map_term_to_f (const CPP_em_field_map_term& C, em_field_map_term_struct* F) {
+extern "C" void em_field_map_term_to_f (const CPP_em_field_map_term& C, Bmad_em_field_map_term_class* F) {
 
   // c_side.to_f2_call
   em_field_map_term_to_f2 (F, C.e_coef, C.b_coef);
@@ -597,13 +599,13 @@ extern "C" void em_field_map_term_to_c2 (CPP_em_field_map_term& C, c_Complex& z_
 //--------------------------------------------------------------------
 // CPP_em_field_map
 
-extern "C" void em_field_map_to_c (const em_field_map_struct*, CPP_em_field_map&);
+extern "C" void em_field_map_to_c (const Bmad_em_field_map_class*, CPP_em_field_map&);
 
 // c_side.to_f2_arg
-extern "C" void em_field_map_to_f2 (em_field_map_struct*, c_Char, c_Int&, c_Int&, c_Real&,
+extern "C" void em_field_map_to_f2 (Bmad_em_field_map_class*, c_Char, c_Int&, c_Int&, c_Real&,
     const CPP_em_field_map_term**, Int);
 
-extern "C" void em_field_map_to_f (const CPP_em_field_map& C, em_field_map_struct* F) {
+extern "C" void em_field_map_to_f (const CPP_em_field_map& C, Bmad_em_field_map_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_term = C.term.size();
   const CPP_em_field_map_term** z_term = NULL;
@@ -621,7 +623,7 @@ extern "C" void em_field_map_to_f (const CPP_em_field_map& C, em_field_map_struc
 
 // c_side.to_c2_arg
 extern "C" void em_field_map_to_c2 (CPP_em_field_map& C, c_Char z_file, c_Int& z_n_link, c_Int&
-    z_ele_anchor_pt, c_Real& z_dz, em_field_map_term_struct** z_term, Int n1_term) {
+    z_ele_anchor_pt, c_Real& z_dz, Bmad_em_field_map_term_class** z_term, Int n1_term) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.file = z_file;
@@ -641,12 +643,13 @@ extern "C" void em_field_map_to_c2 (CPP_em_field_map& C, c_Char z_file, c_Int& z
 //--------------------------------------------------------------------
 // CPP_em_field_grid_pt
 
-extern "C" void em_field_grid_pt_to_c (const em_field_grid_pt_struct*, CPP_em_field_grid_pt&);
+extern "C" void em_field_grid_pt_to_c (const Bmad_em_field_grid_pt_class*, CPP_em_field_grid_pt&);
 
 // c_side.to_f2_arg
-extern "C" void em_field_grid_pt_to_f2 (em_field_grid_pt_struct*, c_ComplexArr, c_ComplexArr);
+extern "C" void em_field_grid_pt_to_f2 (Bmad_em_field_grid_pt_class*, c_ComplexArr,
+    c_ComplexArr);
 
-extern "C" void em_field_grid_pt_to_f (const CPP_em_field_grid_pt& C, em_field_grid_pt_struct* F) {
+extern "C" void em_field_grid_pt_to_f (const CPP_em_field_grid_pt& C, Bmad_em_field_grid_pt_class* F) {
 
   // c_side.to_f2_call
   em_field_grid_pt_to_f2 (F, &C.e[0], &C.b[0]);
@@ -667,13 +670,13 @@ extern "C" void em_field_grid_pt_to_c2 (CPP_em_field_grid_pt& C, c_ComplexArr z_
 //--------------------------------------------------------------------
 // CPP_em_field_grid
 
-extern "C" void em_field_grid_to_c (const em_field_grid_struct*, CPP_em_field_grid&);
+extern "C" void em_field_grid_to_c (const Bmad_em_field_grid_class*, CPP_em_field_grid&);
 
 // c_side.to_f2_arg
-extern "C" void em_field_grid_to_f2 (em_field_grid_struct*, c_Char, c_Int&, c_Int&, c_Int&,
+extern "C" void em_field_grid_to_f2 (Bmad_em_field_grid_class*, c_Char, c_Int&, c_Int&, c_Int&,
     const CPP_em_field_grid_pt**, Int, Int, Int, c_RealArr, c_RealArr);
 
-extern "C" void em_field_grid_to_f (const CPP_em_field_grid& C, em_field_grid_struct* F) {
+extern "C" void em_field_grid_to_f (const CPP_em_field_grid& C, Bmad_em_field_grid_class* F) {
   // c_side.to_f_setup[type, 3, ALLOC]
 
   int n1_pt = C.pt.size(), n2_pt = 0, n3_pt = 0;
@@ -699,8 +702,8 @@ extern "C" void em_field_grid_to_f (const CPP_em_field_grid& C, em_field_grid_st
 
 // c_side.to_c2_arg
 extern "C" void em_field_grid_to_c2 (CPP_em_field_grid& C, c_Char z_file, c_Int& z_type, c_Int&
-    z_ele_anchor_pt, c_Int& z_n_link, em_field_grid_pt_struct** z_pt, Int n1_pt, Int n2_pt, Int
-    n3_pt, c_RealArr z_dr, c_RealArr z_r0) {
+    z_ele_anchor_pt, c_Int& z_n_link, Bmad_em_field_grid_pt_class** z_pt, Int n1_pt, Int n2_pt,
+    Int n3_pt, c_RealArr z_dr, c_RealArr z_r0) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.file = z_file;
@@ -731,14 +734,14 @@ extern "C" void em_field_grid_to_c2 (CPP_em_field_grid& C, c_Char z_file, c_Int&
 //--------------------------------------------------------------------
 // CPP_em_field_mode
 
-extern "C" void em_field_mode_to_c (const em_field_mode_struct*, CPP_em_field_mode&);
+extern "C" void em_field_mode_to_c (const Bmad_em_field_mode_class*, CPP_em_field_mode&);
 
 // c_side.to_f2_arg
-extern "C" void em_field_mode_to_f2 (em_field_mode_struct*, c_Int&, c_Int&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Int&, const CPP_em_field_map&, Int, const CPP_em_field_grid&,
-    Int);
+extern "C" void em_field_mode_to_f2 (Bmad_em_field_mode_class*, c_Int&, c_Int&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, const CPP_em_field_map&, Int, const
+    CPP_em_field_grid&, Int);
 
-extern "C" void em_field_mode_to_f (const CPP_em_field_mode& C, em_field_mode_struct* F) {
+extern "C" void em_field_mode_to_f (const CPP_em_field_mode& C, Bmad_em_field_mode_class* F) {
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_map = 0; if (C.map != NULL) n_map = 1;
   // c_side.to_f_setup[type, 0, PTR]
@@ -753,8 +756,8 @@ extern "C" void em_field_mode_to_f (const CPP_em_field_mode& C, em_field_mode_st
 // c_side.to_c2_arg
 extern "C" void em_field_mode_to_c2 (CPP_em_field_mode& C, c_Int& z_m, c_Int& z_harmonic,
     c_Real& z_f_damp, c_Real& z_dphi0_ref, c_Real& z_stored_energy, c_Real& z_phi0_azimuth,
-    c_Real& z_field_scale, c_Int& z_master_scale, em_field_map_struct* z_map, Int n_map,
-    em_field_grid_struct* z_grid, Int n_grid) {
+    c_Real& z_field_scale, c_Int& z_master_scale, Bmad_em_field_map_class* z_map, Int n_map,
+    Bmad_em_field_grid_class* z_grid, Int n_grid) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.m = z_m;
@@ -794,12 +797,12 @@ extern "C" void em_field_mode_to_c2 (CPP_em_field_mode& C, c_Int& z_m, c_Int& z_
 //--------------------------------------------------------------------
 // CPP_em_fields
 
-extern "C" void em_fields_to_c (const em_fields_struct*, CPP_em_fields&);
+extern "C" void em_fields_to_c (const Bmad_em_fields_class*, CPP_em_fields&);
 
 // c_side.to_f2_arg
-extern "C" void em_fields_to_f2 (em_fields_struct*, const CPP_em_field_mode**, Int);
+extern "C" void em_fields_to_f2 (Bmad_em_fields_class*, const CPP_em_field_mode**, Int);
 
-extern "C" void em_fields_to_f (const CPP_em_fields& C, em_fields_struct* F) {
+extern "C" void em_fields_to_f (const CPP_em_fields& C, Bmad_em_fields_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_mode = C.mode.size();
   const CPP_em_field_mode** z_mode = NULL;
@@ -816,8 +819,8 @@ extern "C" void em_fields_to_f (const CPP_em_fields& C, em_fields_struct* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void em_fields_to_c2 (CPP_em_fields& C, em_field_mode_struct** z_mode, Int n1_mode)
-    {
+extern "C" void em_fields_to_c2 (CPP_em_fields& C, Bmad_em_field_mode_class** z_mode, Int
+    n1_mode) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.mode.resize(n1_mode);
@@ -829,13 +832,13 @@ extern "C" void em_fields_to_c2 (CPP_em_fields& C, em_field_mode_struct** z_mode
 //--------------------------------------------------------------------
 // CPP_floor_position
 
-extern "C" void floor_position_to_c (const floor_position_struct*, CPP_floor_position&);
+extern "C" void floor_position_to_c (const Bmad_floor_position_class*, CPP_floor_position&);
 
 // c_side.to_f2_arg
-extern "C" void floor_position_to_f2 (floor_position_struct*, c_RealArr, c_Real&, c_Real&,
+extern "C" void floor_position_to_f2 (Bmad_floor_position_class*, c_RealArr, c_Real&, c_Real&,
     c_Real&);
 
-extern "C" void floor_position_to_f (const CPP_floor_position& C, floor_position_struct* F) {
+extern "C" void floor_position_to_f (const CPP_floor_position& C, Bmad_floor_position_class* F) {
 
   // c_side.to_f2_call
   floor_position_to_f2 (F, &C.r[0], C.theta, C.phi, C.psi);
@@ -860,13 +863,13 @@ extern "C" void floor_position_to_c2 (CPP_floor_position& C, c_RealArr z_r, c_Re
 //--------------------------------------------------------------------
 // CPP_space_charge
 
-extern "C" void space_charge_to_c (const space_charge_struct*, CPP_space_charge&);
+extern "C" void space_charge_to_c (const Bmad_space_charge_class*, CPP_space_charge&);
 
 // c_side.to_f2_arg
-extern "C" void space_charge_to_f2 (space_charge_struct*, const CPP_coord&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
+extern "C" void space_charge_to_f2 (Bmad_space_charge_class*, const CPP_coord&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
-extern "C" void space_charge_to_f (const CPP_space_charge& C, space_charge_struct* F) {
+extern "C" void space_charge_to_f (const CPP_space_charge& C, Bmad_space_charge_class* F) {
 
   // c_side.to_f2_call
   space_charge_to_f2 (F, C.closed_orb, C.kick_const, C.sig_x, C.sig_y, C.phi, C.sin_phi,
@@ -875,7 +878,7 @@ extern "C" void space_charge_to_f (const CPP_space_charge& C, space_charge_struc
 }
 
 // c_side.to_c2_arg
-extern "C" void space_charge_to_c2 (CPP_space_charge& C, const coord_struct* z_closed_orb,
+extern "C" void space_charge_to_c2 (CPP_space_charge& C, const Bmad_coord_class* z_closed_orb,
     c_Real& z_kick_const, c_Real& z_sig_x, c_Real& z_sig_y, c_Real& z_phi, c_Real& z_sin_phi,
     c_Real& z_cos_phi, c_Real& z_sig_z) {
 
@@ -901,12 +904,12 @@ extern "C" void space_charge_to_c2 (CPP_space_charge& C, const coord_struct* z_c
 //--------------------------------------------------------------------
 // CPP_xy_disp
 
-extern "C" void xy_disp_to_c (const xy_disp_struct*, CPP_xy_disp&);
+extern "C" void xy_disp_to_c (const Bmad_xy_disp_class*, CPP_xy_disp&);
 
 // c_side.to_f2_arg
-extern "C" void xy_disp_to_f2 (xy_disp_struct*, c_Real&, c_Real&);
+extern "C" void xy_disp_to_f2 (Bmad_xy_disp_class*, c_Real&, c_Real&);
 
-extern "C" void xy_disp_to_f (const CPP_xy_disp& C, xy_disp_struct* F) {
+extern "C" void xy_disp_to_f (const CPP_xy_disp& C, Bmad_xy_disp_class* F) {
 
   // c_side.to_f2_call
   xy_disp_to_f2 (F, C.eta, C.etap);
@@ -926,13 +929,13 @@ extern "C" void xy_disp_to_c2 (CPP_xy_disp& C, c_Real& z_eta, c_Real& z_etap) {
 //--------------------------------------------------------------------
 // CPP_twiss
 
-extern "C" void twiss_to_c (const twiss_struct*, CPP_twiss&);
+extern "C" void twiss_to_c (const Bmad_twiss_class*, CPP_twiss&);
 
 // c_side.to_f2_arg
-extern "C" void twiss_to_f2 (twiss_struct*, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
+extern "C" void twiss_to_f2 (Bmad_twiss_class*, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
-extern "C" void twiss_to_f (const CPP_twiss& C, twiss_struct* F) {
+extern "C" void twiss_to_f (const CPP_twiss& C, Bmad_twiss_class* F) {
 
   // c_side.to_f2_call
   twiss_to_f2 (F, C.beta, C.alpha, C.gamma, C.phi, C.eta, C.etap, C.sigma, C.sigma_p, C.emit,
@@ -971,13 +974,13 @@ extern "C" void twiss_to_c2 (CPP_twiss& C, c_Real& z_beta, c_Real& z_alpha, c_Re
 //--------------------------------------------------------------------
 // CPP_mode3
 
-extern "C" void mode3_to_c (const mode3_struct*, CPP_mode3&);
+extern "C" void mode3_to_c (const Bmad_mode3_class*, CPP_mode3&);
 
 // c_side.to_f2_arg
-extern "C" void mode3_to_f2 (mode3_struct*, c_RealArr, const CPP_twiss&, const CPP_twiss&,
+extern "C" void mode3_to_f2 (Bmad_mode3_class*, c_RealArr, const CPP_twiss&, const CPP_twiss&,
     const CPP_twiss&, const CPP_twiss&, const CPP_twiss&);
 
-extern "C" void mode3_to_f (const CPP_mode3& C, mode3_struct* F) {
+extern "C" void mode3_to_f (const CPP_mode3& C, Bmad_mode3_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_v[6*6]; matrix_to_vec(C.v, z_v);
 
@@ -987,9 +990,9 @@ extern "C" void mode3_to_f (const CPP_mode3& C, mode3_struct* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void mode3_to_c2 (CPP_mode3& C, c_RealArr z_v, const twiss_struct* z_a, const
-    twiss_struct* z_b, const twiss_struct* z_c, const twiss_struct* z_x, const twiss_struct*
-    z_y) {
+extern "C" void mode3_to_c2 (CPP_mode3& C, c_RealArr z_v, const Bmad_twiss_class* z_a, const
+    Bmad_twiss_class* z_b, const Bmad_twiss_class* z_c, const Bmad_twiss_class* z_x, const
+    Bmad_twiss_class* z_y) {
 
   // c_side.to_c2_set[real, 2, NOT]
   C.v << z_v;
@@ -1009,13 +1012,13 @@ extern "C" void mode3_to_c2 (CPP_mode3& C, c_RealArr z_v, const twiss_struct* z_
 //--------------------------------------------------------------------
 // CPP_bookkeeping_state
 
-extern "C" void bookkeeping_state_to_c (const bookkeeping_state_struct*, CPP_bookkeeping_state&);
+extern "C" void bookkeeping_state_to_c (const Bmad_bookkeeping_state_class*, CPP_bookkeeping_state&);
 
 // c_side.to_f2_arg
-extern "C" void bookkeeping_state_to_f2 (bookkeeping_state_struct*, c_Int&, c_Int&, c_Int&,
+extern "C" void bookkeeping_state_to_f2 (Bmad_bookkeeping_state_class*, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&);
 
-extern "C" void bookkeeping_state_to_f (const CPP_bookkeeping_state& C, bookkeeping_state_struct* F) {
+extern "C" void bookkeeping_state_to_f (const CPP_bookkeeping_state& C, Bmad_bookkeeping_state_class* F) {
 
   // c_side.to_f2_call
   bookkeeping_state_to_f2 (F, C.attributes, C.control, C.floor_position, C.s_position,
@@ -1048,13 +1051,13 @@ extern "C" void bookkeeping_state_to_c2 (CPP_bookkeeping_state& C, c_Int& z_attr
 //--------------------------------------------------------------------
 // CPP_rad_int_ele_cache
 
-extern "C" void rad_int_ele_cache_to_c (const rad_int_ele_cache_struct*, CPP_rad_int_ele_cache&);
+extern "C" void rad_int_ele_cache_to_c (const Bmad_rad_int_ele_cache_class*, CPP_rad_int_ele_cache&);
 
 // c_side.to_f2_arg
-extern "C" void rad_int_ele_cache_to_f2 (rad_int_ele_cache_struct*, c_RealArr, c_Real&,
+extern "C" void rad_int_ele_cache_to_f2 (Bmad_rad_int_ele_cache_class*, c_RealArr, c_Real&,
     c_Real&, c_RealArr, c_RealArr, c_Bool&);
 
-extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache& C, rad_int_ele_cache_struct* F) {
+extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache& C, Bmad_rad_int_ele_cache_class* F) {
 
   // c_side.to_f2_call
   rad_int_ele_cache_to_f2 (F, &C.orb0[0], C.g2_0, C.g3_0, &C.dg2_dorb[0], &C.dg3_dorb[0],
@@ -1084,13 +1087,13 @@ extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_RealArr z_o
 //--------------------------------------------------------------------
 // CPP_wall3d_vertex
 
-extern "C" void wall3d_vertex_to_c (const wall3d_vertex_struct*, CPP_wall3d_vertex&);
+extern "C" void wall3d_vertex_to_c (const Bmad_wall3d_vertex_class*, CPP_wall3d_vertex&);
 
 // c_side.to_f2_arg
-extern "C" void wall3d_vertex_to_f2 (wall3d_vertex_struct*, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&);
+extern "C" void wall3d_vertex_to_f2 (Bmad_wall3d_vertex_class*, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
-extern "C" void wall3d_vertex_to_f (const CPP_wall3d_vertex& C, wall3d_vertex_struct* F) {
+extern "C" void wall3d_vertex_to_f (const CPP_wall3d_vertex& C, Bmad_wall3d_vertex_class* F) {
 
   // c_side.to_f2_call
   wall3d_vertex_to_f2 (F, C.x, C.y, C.radius_x, C.radius_y, C.tilt, C.angle, C.x0, C.y0);
@@ -1124,14 +1127,14 @@ extern "C" void wall3d_vertex_to_c2 (CPP_wall3d_vertex& C, c_Real& z_x, c_Real& 
 //--------------------------------------------------------------------
 // CPP_wall3d_section
 
-extern "C" void wall3d_section_to_c (const wall3d_section_struct*, CPP_wall3d_section&);
+extern "C" void wall3d_section_to_c (const Bmad_wall3d_section_class*, CPP_wall3d_section&);
 
 // c_side.to_f2_arg
-extern "C" void wall3d_section_to_f2 (wall3d_section_struct*, c_Int&, c_Real&, c_Int&, const
-    CPP_wall3d_vertex**, Int, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_RealArr,
+extern "C" void wall3d_section_to_f2 (Bmad_wall3d_section_class*, c_Int&, c_Real&, c_Int&,
+    const CPP_wall3d_vertex**, Int, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_RealArr,
     c_Real&, c_RealArr, c_RealArr);
 
-extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, wall3d_section_struct* F) {
+extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Bmad_wall3d_section_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_v = C.v.size();
   const CPP_wall3d_vertex** z_v = NULL;
@@ -1150,9 +1153,9 @@ extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, wall3d_section
 
 // c_side.to_c2_arg
 extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Int& z_type, c_Real& z_s, c_Int&
-    z_n_vertex_input, wall3d_vertex_struct** z_v, Int n1_v, c_Real& z_x0, c_Real& z_y0, c_Real&
-    z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef, c_RealArr z_y0_coef, c_Real& z_dr_ds,
-    c_RealArr z_p1_coef, c_RealArr z_p2_coef) {
+    z_n_vertex_input, Bmad_wall3d_vertex_class** z_v, Int n1_v, c_Real& z_x0, c_Real& z_y0,
+    c_Real& z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef, c_RealArr z_y0_coef, c_Real&
+    z_dr_ds, c_RealArr z_p1_coef, c_RealArr z_p2_coef) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
@@ -1188,13 +1191,13 @@ extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Int& z_type, c_Re
 //--------------------------------------------------------------------
 // CPP_wall3d_crotch
 
-extern "C" void wall3d_crotch_to_c (const wall3d_crotch_struct*, CPP_wall3d_crotch&);
+extern "C" void wall3d_crotch_to_c (const Bmad_wall3d_crotch_class*, CPP_wall3d_crotch&);
 
 // c_side.to_f2_arg
-extern "C" void wall3d_crotch_to_f2 (wall3d_crotch_struct*, c_Int&, c_Int&, c_Int&, c_Int&,
+extern "C" void wall3d_crotch_to_f2 (Bmad_wall3d_crotch_class*, c_Int&, c_Int&, c_Int&, c_Int&,
     const CPP_wall3d_section&);
 
-extern "C" void wall3d_crotch_to_f (const CPP_wall3d_crotch& C, wall3d_crotch_struct* F) {
+extern "C" void wall3d_crotch_to_f (const CPP_wall3d_crotch& C, Bmad_wall3d_crotch_class* F) {
 
   // c_side.to_f2_call
   wall3d_crotch_to_f2 (F, C.location, C.ix_section, C.ix_v1_cut, C.ix_v2_cut, C.section);
@@ -1203,7 +1206,7 @@ extern "C" void wall3d_crotch_to_f (const CPP_wall3d_crotch& C, wall3d_crotch_st
 
 // c_side.to_c2_arg
 extern "C" void wall3d_crotch_to_c2 (CPP_wall3d_crotch& C, c_Int& z_location, c_Int&
-    z_ix_section, c_Int& z_ix_v1_cut, c_Int& z_ix_v2_cut, const wall3d_section_struct*
+    z_ix_section, c_Int& z_ix_v1_cut, c_Int& z_ix_v2_cut, const Bmad_wall3d_section_class*
     z_section) {
 
   // c_side.to_c2_set[integer, 0, NOT]
@@ -1222,13 +1225,13 @@ extern "C" void wall3d_crotch_to_c2 (CPP_wall3d_crotch& C, c_Int& z_location, c_
 //--------------------------------------------------------------------
 // CPP_wall3d
 
-extern "C" void wall3d_to_c (const wall3d_struct*, CPP_wall3d&);
+extern "C" void wall3d_to_c (const Bmad_wall3d_class*, CPP_wall3d&);
 
 // c_side.to_f2_arg
-extern "C" void wall3d_to_f2 (wall3d_struct*, c_Int&, c_Int&, c_Int&, const CPP_wall3d_crotch&,
-    const CPP_wall3d_section**, Int);
+extern "C" void wall3d_to_f2 (Bmad_wall3d_class*, c_Int&, c_Int&, c_Int&, const
+    CPP_wall3d_crotch&, const CPP_wall3d_section**, Int);
 
-extern "C" void wall3d_to_f (const CPP_wall3d& C, wall3d_struct* F) {
+extern "C" void wall3d_to_f (const CPP_wall3d& C, Bmad_wall3d_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_section = C.section.size();
   const CPP_wall3d_section** z_section = NULL;
@@ -1246,8 +1249,8 @@ extern "C" void wall3d_to_f (const CPP_wall3d& C, wall3d_struct* F) {
 
 // c_side.to_c2_arg
 extern "C" void wall3d_to_c2 (CPP_wall3d& C, c_Int& z_n_link, c_Int& z_priority, c_Int&
-    z_ele_anchor_pt, const wall3d_crotch_struct* z_crotch, wall3d_section_struct** z_section,
-    Int n1_section) {
+    z_ele_anchor_pt, const Bmad_wall3d_crotch_class* z_crotch, Bmad_wall3d_section_class**
+    z_section, Int n1_section) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_link = z_n_link;
@@ -1267,12 +1270,12 @@ extern "C" void wall3d_to_c2 (CPP_wall3d& C, c_Int& z_n_link, c_Int& z_priority,
 //--------------------------------------------------------------------
 // CPP_taylor_term
 
-extern "C" void taylor_term_to_c (const taylor_term_struct*, CPP_taylor_term&);
+extern "C" void taylor_term_to_c (const Bmad_taylor_term_class*, CPP_taylor_term&);
 
 // c_side.to_f2_arg
-extern "C" void taylor_term_to_f2 (taylor_term_struct*, c_Real&, c_IntArr);
+extern "C" void taylor_term_to_f2 (Bmad_taylor_term_class*, c_Real&, c_IntArr);
 
-extern "C" void taylor_term_to_f (const CPP_taylor_term& C, taylor_term_struct* F) {
+extern "C" void taylor_term_to_f (const CPP_taylor_term& C, Bmad_taylor_term_class* F) {
 
   // c_side.to_f2_call
   taylor_term_to_f2 (F, C.coef, &C.expn[0]);
@@ -1292,12 +1295,12 @@ extern "C" void taylor_term_to_c2 (CPP_taylor_term& C, c_Real& z_coef, c_IntArr 
 //--------------------------------------------------------------------
 // CPP_taylor
 
-extern "C" void taylor_to_c (const taylor_struct*, CPP_taylor&);
+extern "C" void taylor_to_c (const Bmad_taylor_class*, CPP_taylor&);
 
 // c_side.to_f2_arg
-extern "C" void taylor_to_f2 (taylor_struct*, c_Real&, const CPP_taylor_term**, Int);
+extern "C" void taylor_to_f2 (Bmad_taylor_class*, c_Real&, const CPP_taylor_term**, Int);
 
-extern "C" void taylor_to_f (const CPP_taylor& C, taylor_struct* F) {
+extern "C" void taylor_to_f (const CPP_taylor& C, Bmad_taylor_class* F) {
   // c_side.to_f_setup[type, 1, PTR]
   int n1_term = C.term.size();
   const CPP_taylor_term** z_term = NULL;
@@ -1314,8 +1317,8 @@ extern "C" void taylor_to_f (const CPP_taylor& C, taylor_struct* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void taylor_to_c2 (CPP_taylor& C, c_Real& z_ref, taylor_term_struct** z_term, Int
-    n1_term) {
+extern "C" void taylor_to_c2 (CPP_taylor& C, c_Real& z_ref, Bmad_taylor_term_class** z_term,
+    Int n1_term) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ref = z_ref;
@@ -1329,12 +1332,12 @@ extern "C" void taylor_to_c2 (CPP_taylor& C, c_Real& z_ref, taylor_term_struct**
 //--------------------------------------------------------------------
 // CPP_control
 
-extern "C" void control_to_c (const control_struct*, CPP_control&);
+extern "C" void control_to_c (const Bmad_control_class*, CPP_control&);
 
 // c_side.to_f2_arg
-extern "C" void control_to_f2 (control_struct*, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&);
+extern "C" void control_to_f2 (Bmad_control_class*, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&);
 
-extern "C" void control_to_f (const CPP_control& C, control_struct* F) {
+extern "C" void control_to_f (const CPP_control& C, Bmad_control_class* F) {
 
   // c_side.to_f2_call
   control_to_f2 (F, C.coef, C.ix_lord, C.ix_slave, C.ix_branch, C.ix_attrib);
@@ -1361,14 +1364,14 @@ extern "C" void control_to_c2 (CPP_control& C, c_Real& z_coef, c_Int& z_ix_lord,
 //--------------------------------------------------------------------
 // CPP_lat_param
 
-extern "C" void lat_param_to_c (const lat_param_struct*, CPP_lat_param&);
+extern "C" void lat_param_to_c (const Bmad_lat_param_class*, CPP_lat_param&);
 
 // c_side.to_f2_arg
-extern "C" void lat_param_to_f2 (lat_param_struct*, c_Real&, c_Real&, c_Real&, c_RealArr,
+extern "C" void lat_param_to_f2 (Bmad_lat_param_class*, c_Real&, c_Real&, c_Real&, c_RealArr,
     c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, const
     CPP_bookkeeping_state&);
 
-extern "C" void lat_param_to_f (const CPP_lat_param& C, lat_param_struct* F) {
+extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_t1_with_rf[6*6]; matrix_to_vec(C.t1_with_rf, z_t1_with_rf);
   // c_side.to_f_setup[real, 2, NOT]
@@ -1385,8 +1388,8 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, lat_param_struct* F) {
 extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_total_length,
     c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Real&
     z_rel_tracking_charge, c_Int& z_particle, c_Int& z_geometry, c_Int& z_ixx, c_Bool&
-    z_stable, c_Bool& z_aperture_limit_on, const bookkeeping_state_struct* z_bookkeeping_state)
-    {
+    z_stable, c_Bool& z_aperture_limit_on, const Bmad_bookkeeping_state_class*
+    z_bookkeeping_state) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.n_part = z_n_part;
@@ -1418,13 +1421,13 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
 //--------------------------------------------------------------------
 // CPP_mode_info
 
-extern "C" void mode_info_to_c (const mode_info_struct*, CPP_mode_info&);
+extern "C" void mode_info_to_c (const Bmad_mode_info_class*, CPP_mode_info&);
 
 // c_side.to_f2_arg
-extern "C" void mode_info_to_f2 (mode_info_struct*, c_Real&, c_Real&, c_Real&, c_Real&,
+extern "C" void mode_info_to_f2 (Bmad_mode_info_class*, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&);
 
-extern "C" void mode_info_to_f (const CPP_mode_info& C, mode_info_struct* F) {
+extern "C" void mode_info_to_f (const CPP_mode_info& C, Bmad_mode_info_class* F) {
 
   // c_side.to_f2_call
   mode_info_to_f2 (F, C.tune, C.emit, C.chrom, C.sigma, C.sigmap);
@@ -1451,12 +1454,12 @@ extern "C" void mode_info_to_c2 (CPP_mode_info& C, c_Real& z_tune, c_Real& z_emi
 //--------------------------------------------------------------------
 // CPP_pre_tracker
 
-extern "C" void pre_tracker_to_c (const pre_tracker_struct*, CPP_pre_tracker&);
+extern "C" void pre_tracker_to_c (const Bmad_pre_tracker_class*, CPP_pre_tracker&);
 
 // c_side.to_f2_arg
-extern "C" void pre_tracker_to_f2 (pre_tracker_struct*, c_Int&, c_Int&, c_Int&, c_Char);
+extern "C" void pre_tracker_to_f2 (Bmad_pre_tracker_class*, c_Int&, c_Int&, c_Int&, c_Char);
 
-extern "C" void pre_tracker_to_f (const CPP_pre_tracker& C, pre_tracker_struct* F) {
+extern "C" void pre_tracker_to_f (const CPP_pre_tracker& C, Bmad_pre_tracker_class* F) {
 
   // c_side.to_f2_call
   pre_tracker_to_f2 (F, C.who, C.ix_ele_start, C.ix_ele_end, C.input_file.c_str());
@@ -1481,13 +1484,13 @@ extern "C" void pre_tracker_to_c2 (CPP_pre_tracker& C, c_Int& z_who, c_Int& z_ix
 //--------------------------------------------------------------------
 // CPP_anormal_mode
 
-extern "C" void anormal_mode_to_c (const anormal_mode_struct*, CPP_anormal_mode&);
+extern "C" void anormal_mode_to_c (const Bmad_anormal_mode_class*, CPP_anormal_mode&);
 
 // c_side.to_f2_arg
-extern "C" void anormal_mode_to_f2 (anormal_mode_struct*, c_Real&, c_RealArr, c_Real&, c_Real&,
-    c_Real&, c_Real&);
+extern "C" void anormal_mode_to_f2 (Bmad_anormal_mode_class*, c_Real&, c_RealArr, c_Real&,
+    c_Real&, c_Real&, c_Real&);
 
-extern "C" void anormal_mode_to_f (const CPP_anormal_mode& C, anormal_mode_struct* F) {
+extern "C" void anormal_mode_to_f (const CPP_anormal_mode& C, Bmad_anormal_mode_class* F) {
 
   // c_side.to_f2_call
   anormal_mode_to_f2 (F, C.emittance, &C.synch_int[0], C.j_damp, C.alpha_damp, C.chrom,
@@ -1517,13 +1520,13 @@ extern "C" void anormal_mode_to_c2 (CPP_anormal_mode& C, c_Real& z_emittance, c_
 //--------------------------------------------------------------------
 // CPP_linac_normal_mode
 
-extern "C" void linac_normal_mode_to_c (const linac_normal_mode_struct*, CPP_linac_normal_mode&);
+extern "C" void linac_normal_mode_to_c (const Bmad_linac_normal_mode_class*, CPP_linac_normal_mode&);
 
 // c_side.to_f2_arg
-extern "C" void linac_normal_mode_to_f2 (linac_normal_mode_struct*, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&);
+extern "C" void linac_normal_mode_to_f2 (Bmad_linac_normal_mode_class*, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
-extern "C" void linac_normal_mode_to_f (const CPP_linac_normal_mode& C, linac_normal_mode_struct* F) {
+extern "C" void linac_normal_mode_to_f (const CPP_linac_normal_mode& C, Bmad_linac_normal_mode_class* F) {
 
   // c_side.to_f2_call
   linac_normal_mode_to_f2 (F, C.i2_e4, C.i3_e7, C.i5a_e6, C.i5b_e6, C.sig_e1,
@@ -1556,14 +1559,14 @@ extern "C" void linac_normal_mode_to_c2 (CPP_linac_normal_mode& C, c_Real& z_i2_
 //--------------------------------------------------------------------
 // CPP_normal_modes
 
-extern "C" void normal_modes_to_c (const normal_modes_struct*, CPP_normal_modes&);
+extern "C" void normal_modes_to_c (const Bmad_normal_modes_class*, CPP_normal_modes&);
 
 // c_side.to_f2_arg
-extern "C" void normal_modes_to_f2 (normal_modes_struct*, c_RealArr, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, const CPP_anormal_mode&, const CPP_anormal_mode&, const
+extern "C" void normal_modes_to_f2 (Bmad_normal_modes_class*, c_RealArr, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, const CPP_anormal_mode&, const CPP_anormal_mode&, const
     CPP_anormal_mode&, const CPP_linac_normal_mode&);
 
-extern "C" void normal_modes_to_f (const CPP_normal_modes& C, normal_modes_struct* F) {
+extern "C" void normal_modes_to_f (const CPP_normal_modes& C, Bmad_normal_modes_class* F) {
 
   // c_side.to_f2_call
   normal_modes_to_f2 (F, &C.synch_int[0], C.sige_e, C.sig_z, C.e_loss, C.rf_voltage,
@@ -1574,8 +1577,8 @@ extern "C" void normal_modes_to_f (const CPP_normal_modes& C, normal_modes_struc
 // c_side.to_c2_arg
 extern "C" void normal_modes_to_c2 (CPP_normal_modes& C, c_RealArr z_synch_int, c_Real&
     z_sige_e, c_Real& z_sig_z, c_Real& z_e_loss, c_Real& z_rf_voltage, c_Real& z_pz_aperture,
-    const anormal_mode_struct* z_a, const anormal_mode_struct* z_b, const anormal_mode_struct*
-    z_z, const linac_normal_mode_struct* z_lin) {
+    const Bmad_anormal_mode_class* z_a, const Bmad_anormal_mode_class* z_b, const
+    Bmad_anormal_mode_class* z_z, const Bmad_linac_normal_mode_class* z_lin) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.synch_int << z_synch_int;
@@ -1603,12 +1606,13 @@ extern "C" void normal_modes_to_c2 (CPP_normal_modes& C, c_RealArr z_synch_int, 
 //--------------------------------------------------------------------
 // CPP_em_field
 
-extern "C" void em_field_to_c (const em_field_struct*, CPP_em_field&);
+extern "C" void em_field_to_c (const Bmad_em_field_class*, CPP_em_field&);
 
 // c_side.to_f2_arg
-extern "C" void em_field_to_f2 (em_field_struct*, c_RealArr, c_RealArr, c_RealArr, c_RealArr);
+extern "C" void em_field_to_f2 (Bmad_em_field_class*, c_RealArr, c_RealArr, c_RealArr,
+    c_RealArr);
 
-extern "C" void em_field_to_f (const CPP_em_field& C, em_field_struct* F) {
+extern "C" void em_field_to_f (const CPP_em_field& C, Bmad_em_field_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_de[3*3]; matrix_to_vec(C.de, z_de);
   // c_side.to_f_setup[real, 2, NOT]
@@ -1637,12 +1641,12 @@ extern "C" void em_field_to_c2 (CPP_em_field& C, c_RealArr z_e, c_RealArr z_b, c
 //--------------------------------------------------------------------
 // CPP_track_map
 
-extern "C" void track_map_to_c (const track_map_struct*, CPP_track_map&);
+extern "C" void track_map_to_c (const Bmad_track_map_class*, CPP_track_map&);
 
 // c_side.to_f2_arg
-extern "C" void track_map_to_f2 (track_map_struct*, c_RealArr, c_RealArr);
+extern "C" void track_map_to_f2 (Bmad_track_map_class*, c_RealArr, c_RealArr);
 
-extern "C" void track_map_to_f (const CPP_track_map& C, track_map_struct* F) {
+extern "C" void track_map_to_f (const CPP_track_map& C, Bmad_track_map_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_mat6[6*6]; matrix_to_vec(C.mat6, z_mat6);
 
@@ -1664,13 +1668,13 @@ extern "C" void track_map_to_c2 (CPP_track_map& C, c_RealArr z_vec0, c_RealArr z
 //--------------------------------------------------------------------
 // CPP_track
 
-extern "C" void track_to_c (const track_struct*, CPP_track&);
+extern "C" void track_to_c (const Bmad_track_class*, CPP_track&);
 
 // c_side.to_f2_arg
-extern "C" void track_to_f2 (track_struct*, const CPP_coord**, Int, const CPP_em_field**, Int,
-    const CPP_track_map**, Int, c_Real&, c_Int&, c_Int&, c_Int&);
+extern "C" void track_to_f2 (Bmad_track_class*, const CPP_coord**, Int, const CPP_em_field**,
+    Int, const CPP_track_map**, Int, c_Real&, c_Int&, c_Int&, c_Int&);
 
-extern "C" void track_to_f (const CPP_track& C, track_struct* F) {
+extern "C" void track_to_f (const CPP_track& C, Bmad_track_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_orb = C.orb.size();
   const CPP_coord** z_orb = NULL;
@@ -1706,9 +1710,9 @@ extern "C" void track_to_f (const CPP_track& C, track_struct* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void track_to_c2 (CPP_track& C, coord_struct** z_orb, Int n1_orb, em_field_struct**
-    z_field, Int n1_field, track_map_struct** z_map, Int n1_map, c_Real& z_ds_save, c_Int&
-    z_n_pt, c_Int& z_n_bad, c_Int& z_n_ok) {
+extern "C" void track_to_c2 (CPP_track& C, Bmad_coord_class** z_orb, Int n1_orb,
+    Bmad_em_field_class** z_field, Int n1_field, Bmad_track_map_class** z_map, Int n1_map,
+    c_Real& z_ds_save, c_Int& z_n_pt, c_Int& z_n_bad, c_Int& z_n_ok) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.orb.resize(n1_orb);
@@ -1736,13 +1740,13 @@ extern "C" void track_to_c2 (CPP_track& C, coord_struct** z_orb, Int n1_orb, em_
 //--------------------------------------------------------------------
 // CPP_synch_rad_common
 
-extern "C" void synch_rad_common_to_c (const synch_rad_common_struct*, CPP_synch_rad_common&);
+extern "C" void synch_rad_common_to_c (const Bmad_synch_rad_common_class*, CPP_synch_rad_common&);
 
 // c_side.to_f2_arg
-extern "C" void synch_rad_common_to_f2 (synch_rad_common_struct*, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Bool&);
+extern "C" void synch_rad_common_to_f2 (Bmad_synch_rad_common_class*, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Bool&);
 
-extern "C" void synch_rad_common_to_f (const CPP_synch_rad_common& C, synch_rad_common_struct* F) {
+extern "C" void synch_rad_common_to_f (const CPP_synch_rad_common& C, Bmad_synch_rad_common_class* F) {
 
   // c_side.to_f2_call
   synch_rad_common_to_f2 (F, C.scale, C.i2, C.i3, C.i5a, C.i5b, C.i_calc_on);
@@ -1771,15 +1775,15 @@ extern "C" void synch_rad_common_to_c2 (CPP_synch_rad_common& C, c_Real& z_scale
 //--------------------------------------------------------------------
 // CPP_bmad_common
 
-extern "C" void bmad_common_to_c (const bmad_common_struct*, CPP_bmad_common&);
+extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common&);
 
 // c_side.to_f2_arg
-extern "C" void bmad_common_to_f2 (bmad_common_struct*, c_Real&, c_RealArr, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&,
+extern "C" void bmad_common_to_f2 (Bmad_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&,
     c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
-extern "C" void bmad_common_to_f (const CPP_bmad_common& C, bmad_common_struct* F) {
+extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_class* F) {
 
   // c_side.to_f2_call
   bmad_common_to_f2 (F, C.max_aperture_limit, &C.d_orb[0], C.default_ds_step,
@@ -1870,14 +1874,14 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
 //--------------------------------------------------------------------
 // CPP_rad_int1
 
-extern "C" void rad_int1_to_c (const rad_int1_struct*, CPP_rad_int1&);
+extern "C" void rad_int1_to_c (const Bmad_rad_int1_class*, CPP_rad_int1&);
 
 // c_side.to_f2_arg
-extern "C" void rad_int1_to_f2 (rad_int1_struct*, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
+extern "C" void rad_int1_to_f2 (Bmad_rad_int1_class*, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&);
+    c_Real&, c_Real&, c_Real&);
 
-extern "C" void rad_int1_to_f (const CPP_rad_int1& C, rad_int1_struct* F) {
+extern "C" void rad_int1_to_f (const CPP_rad_int1& C, Bmad_rad_int1_class* F) {
 
   // c_side.to_f2_call
   rad_int1_to_f2 (F, C.i0, C.i1, C.i2, C.i3, C.i4a, C.i4b, C.i4z, C.i5a, C.i5b, C.i6b,
@@ -1932,12 +1936,12 @@ extern "C" void rad_int1_to_c2 (CPP_rad_int1& C, c_Real& z_i0, c_Real& z_i1, c_R
 //--------------------------------------------------------------------
 // CPP_rad_int_all_ele
 
-extern "C" void rad_int_all_ele_to_c (const rad_int_all_ele_struct*, CPP_rad_int_all_ele&);
+extern "C" void rad_int_all_ele_to_c (const Bmad_rad_int_all_ele_class*, CPP_rad_int_all_ele&);
 
 // c_side.to_f2_arg
-extern "C" void rad_int_all_ele_to_f2 (rad_int_all_ele_struct*, const CPP_rad_int1**, Int);
+extern "C" void rad_int_all_ele_to_f2 (Bmad_rad_int_all_ele_class*, const CPP_rad_int1**, Int);
 
-extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele& C, rad_int_all_ele_struct* F) {
+extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele& C, Bmad_rad_int_all_ele_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_ele = C.ele.size();
   const CPP_rad_int1** z_ele = NULL;
@@ -1954,7 +1958,7 @@ extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele& C, rad_int_all_
 }
 
 // c_side.to_c2_arg
-extern "C" void rad_int_all_ele_to_c2 (CPP_rad_int_all_ele& C, rad_int1_struct** z_ele, Int
+extern "C" void rad_int_all_ele_to_c2 (CPP_rad_int_all_ele& C, Bmad_rad_int1_class** z_ele, Int
     n1_ele) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
@@ -1967,10 +1971,10 @@ extern "C" void rad_int_all_ele_to_c2 (CPP_rad_int_all_ele& C, rad_int1_struct**
 //--------------------------------------------------------------------
 // CPP_ele
 
-extern "C" void ele_to_c (const ele_struct*, CPP_ele&);
+extern "C" void ele_to_c (const Bmad_ele_class*, CPP_ele&);
 
 // c_side.to_f2_arg
-extern "C" void ele_to_f2 (ele_struct*, c_Char, c_Char, c_Char, c_Char, c_Char, const
+extern "C" void ele_to_f2 (Bmad_ele_class*, c_Char, c_Char, c_Char, c_Char, c_Char, const
     CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_xy_disp&, const CPP_xy_disp&,
     const CPP_bookkeeping_state&, const CPP_branch&, Int, const CPP_em_fields&, Int, const
     CPP_floor_position&, const CPP_mode3&, Int, const CPP_rad_int_ele_cache&, Int, const
@@ -1982,7 +1986,7 @@ extern "C" void ele_to_f2 (ele_struct*, c_Char, c_Char, c_Char, c_Char, c_Char, 
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
     c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
-extern "C" void ele_to_f (const CPP_ele& C, ele_struct* F) {
+extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
   // c_side.to_f_setup[character, 0, PTR]
   const char* z_descrip = NULL;  
   if (C.descrip != NULL) z_descrip = C.descrip->c_str();
@@ -2054,28 +2058,29 @@ extern "C" void ele_to_f (const CPP_ele& C, ele_struct* F) {
 
 // c_side.to_c2_arg
 extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_alias, c_Char
-    z_component_name, c_Char z_descrip, const twiss_struct* z_a, const twiss_struct* z_b, const
-    twiss_struct* z_z, const xy_disp_struct* z_x, const xy_disp_struct* z_y, const
-    bookkeeping_state_struct* z_bookkeeping_state, branch_struct* z_branch, Int n_branch,
-    em_fields_struct* z_em_field, Int n_em_field, const floor_position_struct* z_floor,
-    mode3_struct* z_mode3, Int n_mode3, rad_int_ele_cache_struct* z_rad_int_cache, Int
-    n_rad_int_cache, rf_wake_struct* z_rf_wake, Int n_rf_wake, space_charge_struct*
-    z_space_charge, Int n_space_charge, const taylor_struct** z_taylor, wall3d_struct*
-    z_wall3d, Int n_wall3d, wig_struct* z_wig, Int n_wig, c_RealArr z_value, c_RealArr
-    z_old_value, c_RealArr z_gen0, c_RealArr z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat,
-    c_Real& z_gamma_c, c_Real& z_s, c_Real& z_ref_time, c_RealArr z_r, Int n1_r, Int n2_r, Int
-    n3_r, c_RealArr z_a_pole, Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr
-    z_map_ref_orb_in, c_RealArr z_map_ref_orb_out, c_RealArr z_time_ref_orb_in, c_RealArr
-    z_time_ref_orb_out, c_Int& z_key, c_Int& z_sub_key, c_Int& z_ix_ele, c_Int& z_ix_branch,
-    c_Int& z_ix_value, c_Int& z_slave_status, c_Int& z_n_slave, c_Int& z_ix1_slave, c_Int&
-    z_ix2_slave, c_Int& z_lord_status, c_Int& z_n_lord, c_Int& z_ic1_lord, c_Int& z_ic2_lord,
-    c_Int& z_ix_pointer, c_Int& z_ixx, c_Int& z_iyy, c_Int& z_mat6_calc_method, c_Int&
-    z_tracking_method, c_Int& z_spin_tracking_method, c_Int& z_ptc_integration_type, c_Int&
-    z_field_calc, c_Int& z_aperture_at, c_Int& z_aperture_type, c_Int& z_orientation, c_Bool&
-    z_symplectify, c_Bool& z_mode_flip, c_Bool& z_multipoles_on, c_Bool& z_scale_multipoles,
-    c_Bool& z_map_with_offsets, c_Bool& z_field_master, c_Bool& z_is_on, c_Bool& z_old_is_on,
-    c_Bool& z_logic, c_Bool& z_bmad_logic, c_Bool& z_on_a_girder, c_Bool& z_csr_calc_on,
-    c_Bool& z_offset_moves_aperture) {
+    z_component_name, c_Char z_descrip, const Bmad_twiss_class* z_a, const Bmad_twiss_class*
+    z_b, const Bmad_twiss_class* z_z, const Bmad_xy_disp_class* z_x, const Bmad_xy_disp_class*
+    z_y, const Bmad_bookkeeping_state_class* z_bookkeeping_state, Bmad_branch_class* z_branch,
+    Int n_branch, Bmad_em_fields_class* z_em_field, Int n_em_field, const
+    Bmad_floor_position_class* z_floor, Bmad_mode3_class* z_mode3, Int n_mode3,
+    Bmad_rad_int_ele_cache_class* z_rad_int_cache, Int n_rad_int_cache, Bmad_rf_wake_class*
+    z_rf_wake, Int n_rf_wake, Bmad_space_charge_class* z_space_charge, Int n_space_charge,
+    const Bmad_taylor_class** z_taylor, Bmad_wall3d_class* z_wall3d, Int n_wall3d,
+    Bmad_wig_class* z_wig, Int n_wig, c_RealArr z_value, c_RealArr z_old_value, c_RealArr
+    z_gen0, c_RealArr z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat, c_Real& z_gamma_c, c_Real&
+    z_s, c_Real& z_ref_time, c_RealArr z_r, Int n1_r, Int n2_r, Int n3_r, c_RealArr z_a_pole,
+    Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr z_map_ref_orb_in, c_RealArr
+    z_map_ref_orb_out, c_RealArr z_time_ref_orb_in, c_RealArr z_time_ref_orb_out, c_Int& z_key,
+    c_Int& z_sub_key, c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_ix_value, c_Int&
+    z_slave_status, c_Int& z_n_slave, c_Int& z_ix1_slave, c_Int& z_ix2_slave, c_Int&
+    z_lord_status, c_Int& z_n_lord, c_Int& z_ic1_lord, c_Int& z_ic2_lord, c_Int& z_ix_pointer,
+    c_Int& z_ixx, c_Int& z_iyy, c_Int& z_mat6_calc_method, c_Int& z_tracking_method, c_Int&
+    z_spin_tracking_method, c_Int& z_ptc_integration_type, c_Int& z_field_calc, c_Int&
+    z_aperture_at, c_Int& z_aperture_type, c_Int& z_orientation, c_Bool& z_symplectify, c_Bool&
+    z_mode_flip, c_Bool& z_multipoles_on, c_Bool& z_scale_multipoles, c_Bool&
+    z_map_with_offsets, c_Bool& z_field_master, c_Bool& z_is_on, c_Bool& z_old_is_on, c_Bool&
+    z_logic, c_Bool& z_bmad_logic, c_Bool& z_on_a_girder, c_Bool& z_csr_calc_on, c_Bool&
+    z_offset_moves_aperture) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -2302,15 +2307,15 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
 //--------------------------------------------------------------------
 // CPP_branch
 
-extern "C" void branch_to_c (const branch_struct*, CPP_branch&);
+extern "C" void branch_to_c (const Bmad_branch_class*, CPP_branch&);
 
 // c_side.to_f2_arg
-extern "C" void branch_to_f2 (branch_struct*, c_Char, c_Int&, c_Int&, c_Int&, c_Int&, c_IntArr,
-    Int, c_IntArr, Int, const CPP_lat&, Int, const CPP_mode_info&, Int, const CPP_mode_info&,
-    Int, const CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&, Int, const
-    CPP_wall3d&, Int);
+extern "C" void branch_to_f2 (Bmad_branch_class*, c_Char, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_IntArr, Int, c_IntArr, Int, const CPP_lat&, Int, const CPP_mode_info&, Int, const
+    CPP_mode_info&, Int, const CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&,
+    Int, const CPP_wall3d&, Int);
 
-extern "C" void branch_to_f (const CPP_branch& C, branch_struct* F) {
+extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
   // c_side.to_f_setup[integer, 0, PTR]
   unsigned int n_n_ele_track = 0; if (C.n_ele_track != NULL) n_n_ele_track = 1;
   // c_side.to_f_setup[integer, 0, PTR]
@@ -2347,10 +2352,10 @@ extern "C" void branch_to_f (const CPP_branch& C, branch_struct* F) {
 // c_side.to_c2_arg
 extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, c_Int&
     z_ix_root_branch, c_Int& z_ix_from_branch, c_Int& z_ix_from_ele, c_IntArr z_n_ele_track,
-    Int n_n_ele_track, c_IntArr z_n_ele_max, Int n_n_ele_max, lat_struct* z_lat, Int n_lat,
-    mode_info_struct* z_a, Int n_a, mode_info_struct* z_b, Int n_b, mode_info_struct* z_z, Int
-    n_z, ele_struct** z_ele, Int n1_ele, lat_param_struct* z_param, Int n_param, wall3d_struct*
-    z_wall3d, Int n_wall3d) {
+    Int n_n_ele_track, c_IntArr z_n_ele_max, Int n_n_ele_max, Bmad_lat_class* z_lat, Int n_lat,
+    Bmad_mode_info_class* z_a, Int n_a, Bmad_mode_info_class* z_b, Int n_b,
+    Bmad_mode_info_class* z_z, Int n_z, Bmad_ele_class** z_ele, Int n1_ele,
+    Bmad_lat_param_class* z_param, Int n_param, Bmad_wall3d_class* z_wall3d, Int n_wall3d) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -2436,16 +2441,16 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
 //--------------------------------------------------------------------
 // CPP_lat
 
-extern "C" void lat_to_c (const lat_struct*, CPP_lat&);
+extern "C" void lat_to_c (const Bmad_lat_class*, CPP_lat&);
 
 // c_side.to_f2_arg
-extern "C" void lat_to_f2 (lat_struct*, c_Char, c_Char, c_Char, c_Char, c_Char*, Int, const
+extern "C" void lat_to_f2 (Bmad_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Char*, Int, const
     CPP_mode_info&, const CPP_mode_info&, const CPP_mode_info&, const CPP_lat_param&, const
     CPP_bookkeeping_state&, const CPP_ele&, const CPP_ele**, Int, const CPP_branch**, Int,
     const CPP_control**, Int, const CPP_coord&, const CPP_pre_tracker&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
-extern "C" void lat_to_f (const CPP_lat& C, lat_struct* F) {
+extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
   // c_side.to_f_setup[character, 1, ALLOC]
   int n1_attribute_alias = C.attribute_alias.size();
   c_Char* z_attribute_alias = NULL;
@@ -2502,14 +2507,15 @@ extern "C" void lat_to_f (const CPP_lat& C, lat_struct* F) {
 // c_side.to_c2_arg
 extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Char
     z_input_file_name, c_Char z_title, c_Char* z_attribute_alias, Int n1_attribute_alias, const
-    mode_info_struct* z_a, const mode_info_struct* z_b, const mode_info_struct* z_z, const
-    lat_param_struct* z_param, const bookkeeping_state_struct* z_lord_state, const ele_struct*
-    z_ele_init, ele_struct** z_ele, Int n1_ele, branch_struct** z_branch, Int n1_branch,
-    control_struct** z_control, Int n1_control, const coord_struct* z_beam_start, const
-    pre_tracker_struct* z_pre_tracker, c_Int& z_version, c_Int& z_n_ele_track, c_Int&
-    z_n_ele_max, c_Int& z_n_control_max, c_Int& z_n_ic_max, c_Int& z_input_taylor_order,
-    c_IntArr z_ic, Int n1_ic, c_Bool& z_absolute_time_tracking, c_Bool& z_rf_auto_scale_phase,
-    c_Bool& z_rf_auto_scale_amp, c_Bool& z_use_ptc_layout) {
+    Bmad_mode_info_class* z_a, const Bmad_mode_info_class* z_b, const Bmad_mode_info_class*
+    z_z, const Bmad_lat_param_class* z_param, const Bmad_bookkeeping_state_class* z_lord_state,
+    const Bmad_ele_class* z_ele_init, Bmad_ele_class** z_ele, Int n1_ele, Bmad_branch_class**
+    z_branch, Int n1_branch, Bmad_control_class** z_control, Int n1_control, const
+    Bmad_coord_class* z_beam_start, const Bmad_pre_tracker_class* z_pre_tracker, c_Int&
+    z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
+    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Bool&
+    z_absolute_time_tracking, c_Bool& z_rf_auto_scale_phase, c_Bool& z_rf_auto_scale_amp,
+    c_Bool& z_use_ptc_layout) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
