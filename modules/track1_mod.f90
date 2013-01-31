@@ -355,7 +355,7 @@ del_p = start_orb%vec(6)
 rel_p  = 1 + del_p
 rel_p2 = rel_p**2
 k_1 = ele%value(k1$) * c_dir
-k_2 = ele%value(k2$) * c_dir
+k_2 = ele%value(k2$) * c_dir / n_step
 
 ! 1/2 sextupole kick at the beginning.
 
