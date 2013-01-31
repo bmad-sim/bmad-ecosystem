@@ -355,11 +355,14 @@ del_p = start_orb%vec(6)
 rel_p  = 1 + del_p
 rel_p2 = rel_p**2
 k_1 = ele%value(k1$) * c_dir
-k_2 = ele%value(k2$) * c_dir / n_step
+k_2 = ele%value(k2$) * c_dir
 
 ! 1/2 sextupole kick at the beginning.
 
-if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end_orb)
+if (k_2 /= 0) then
+  end_orb%vec(2) = end_orb%vec(2) + k_2/2 * length * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
+  end_orb%vec(4) = end_orb%vec(4) + k_2/2 * length * end_orb%vec(1) * end_orb%vec(3)
+end if
 if (has_nonzero_pole) call multipole_kicks (knl/2, tilt, end_orb)
 
 ! And track with n_step steps
@@ -454,10 +457,16 @@ do n = 1, n_step
   ! sextupole kick
 
   if (n == n_step) then
-    if (k_2 /= 0) call multipole_kick (k_2/2, 0.0_rp, 2, end_orb)
+    if (k_2 /= 0) then
+      end_orb%vec(2) = end_orb%vec(2) + k_2/2 * length * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
+      end_orb%vec(4) = end_orb%vec(4) + k_2/2 * length * end_orb%vec(1) * end_orb%vec(3)
+    end if
     if (has_nonzero_pole) call multipole_kicks (knl/2, tilt, end_orb)
   else
-    if (k_2 /= 0) call multipole_kick (k_2, 0.0_rp, 2, end_orb)
+    if (k_2 /= 0) then
+       end_orb%vec(2) = end_orb%vec(2) + k_2 * length * (end_orb%vec(3)**2 - end_orb%vec(1)**2)/2
+       end_orb%vec(4) = end_orb%vec(4) + k_2 * length * end_orb%vec(1) * end_orb%vec(3)
+    end if
     if (has_nonzero_pole) call multipole_kicks (knl, tilt, end_orb)
   endif
 
