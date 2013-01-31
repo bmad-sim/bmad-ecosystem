@@ -74,7 +74,7 @@ type (wig_term_struct), pointer :: wig_term(:)
 type (wiggler_computations_struct), allocatable :: tm(:)
 type (wig_term_struct), pointer :: wt
 
-real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), x_pitch, y_pitch
+real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6)
 real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
@@ -106,9 +106,6 @@ end_orb = start_orb
 end_orb%s = ele%s - ele%value(l$)
 
 err = .false.
-
-x_pitch = ele%value(x_pitch_tot$)
-y_pitch = ele%value(y_pitch_tot$)
 
 ! element offset 
 
@@ -348,7 +345,7 @@ if (calculate_mat6) then
   mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
 
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  call mat6_add_pitch (x_pitch, y_pitch, mat6)
+  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, mat6)
 endif
 
 if (do_offset) call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
@@ -420,7 +417,7 @@ call offset_particle (ele, track%orb(ix), param, unset$, set_canonical = .false.
 if (calculate_mat6) track%map(ix)%mat6 = mat6
 
 if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%map(ix)%mat6, ele%value(tilt_tot$))
-call mat6_add_pitch (x_pitch, y_pitch, track%map(ix)%mat6)
+call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, track%map(ix)%mat6)
 
 if (calculate_mat6) then
   track%map(ix)%vec0(1:5) = track%orb(ix)%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)

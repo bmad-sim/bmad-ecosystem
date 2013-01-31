@@ -1070,7 +1070,7 @@ endif
 
 ! pitch corrections
 
-call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%mat6)
+call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, ele%mat6)
 
 end subroutine
 
