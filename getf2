@@ -1,9 +1,0 @@
-#!/usr/bin/env python
-
-#+
-# See searchf.py for all documentation
-#-
-
-import searchf
-
-searchf.search_all('FULL')
