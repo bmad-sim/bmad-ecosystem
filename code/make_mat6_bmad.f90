@@ -50,9 +50,9 @@ real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), xp_start, yp_start
 real(rp) t5_11, t5_14, t5_22, t5_23, t5_33, t5_34, t5_44
 real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
 real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
-real(rp) lcs, lc2s2, k, L
+real(rp) lcs, lc2s2, k, L, m55, m65, m66, new_pc, new_beta
 real(rp) cos_phi, gradient, e_start, e_end, e_ratio
-real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
+real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE
 real(rp) g_tot, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
 real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
@@ -599,6 +599,10 @@ case (rbend$)
 
 case (rfcavity$)
 
+  n_slice = max(1, nint(length / ele%value(ds_step$))) 
+
+  call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
+
   voltage = ele%value(voltage$) * ele%value(field_scale$) 
 
   if (voltage /= 0 .and. ele%value(RF_frequency$) == 0) then
@@ -613,54 +617,48 @@ case (rfcavity$)
   ! The RF phase is defined with respect to the time at the beginning of the element.
   ! So if dealing with a slave element and absolute time tracking then need to correct.
 
- phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
-                  particle_time (c0, ele) * ele%value(rf_frequency$))
- if (absolute_time_tracking(ele)) phase = phase + &
-                         twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
+  do i = 0, n_slice
 
-  k = twopi * param%rel_tracking_charge * ele%value(rf_frequency$) * voltage * cos(phase) / (ele%value(p0c$) * c_light)
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
+                  particle_time (c00, ele) * ele%value(rf_frequency$))
 
-  px = c0%vec(2)
-  py = c0%vec(4)
-  pz = c0%vec(6)
+    if (absolute_time_tracking(ele)) phase = phase + twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
 
-  dE0 = param%rel_tracking_charge * voltage * sin(phase) / ele%value(p0c$)
-  L = ele%value(l$)
-  E = 1 + pz
-  E2 = E**2
-  pxy2 = px**2 + py**2
+    factor = param%rel_tracking_charge * voltage / n_slice
+    if (i == 0 .or. i == n_slice) factor = factor / 2
+    dE = factor * sin(phase)
 
-  !
+    E = (1 + c00%vec(6)) * ele%value(p0c$) / c00%beta
+    call convert_total_energy_to (E + dE, param%particle, pc = new_pc, beta = new_beta)
 
-  mat6(1,1) = 1
-  mat6(1,2) = L * (1/E - dE0/2 + L*(3*px**2 + py**2)/12 + pz*dE0 + dE0*dE0/3)
-  mat6(1,4) = px*py*L**2/6
-  mat6(1,5) = L*px * (-k/2 + pz*k + 2*dE0*k/3)
-  mat6(1,6) = L*px * (-1/E2 + dE0)
-  mat6(2,2) = 1
-  mat6(3,2) = px*py*L**2/6
-  mat6(3,3) = 1
-  mat6(3,4) = L * (1/E - dE0/2 + L*(3*py**2 + px**2)/12 + pz*dE0 + dE0*dE0/3)
-  mat6(3,5) = L*py * (-k/2 + pz*k + 2*dE0*k/3)
-  mat6(3,6) = L*py * (-1/E2 + dE0)
-  mat6(4,4) = 1
-  mat6(5,2) = px*L * (-1/E2 + dE0)
-  mat6(5,4) = py*L * (-1/E2 + dE0)
-  mat6(5,5) = 1 + pxy2*k*L/2
-  mat6(5,6) = pxy2 * L / (E2*E)
-  mat6(6,2) = k*px*L * (-1/(2*E2) + dE0/3)
-  mat6(6,4) = k*py*L * (-1/(2*E2) + dE0/3)
-  mat6(6,5) = k * (1 + pxy2*L*k/6)
-  mat6(6,6) = 1 + pxy2*k*L/(2*E2*E)
+    m55 = new_beta / c00%beta
+    m65 = twopi * factor * (E + dE) * ele%value(rf_frequency$) * cos(phase) / (ele%value(p0c$) * new_pc * c00%beta * c_light)
+    m66 = c00%beta / new_beta 
+
+    mat6(6,:) = m65 * mat6(5,:) + m66 * mat6(6,:)
+    mat6(5,:) = m55 * mat6(5,:)                       ! Note: m56 = 0
+  
+    c00%vec(6) = (new_pc - ele%value(p0c$)) / ele%value(p0c$)
+    c00%vec(5) = c00%vec(5) * new_beta / c00%beta
+    c00%beta   = new_beta
+
+    if (i /= n_slice) then
+      call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
+      call track_a_drift (c00, ele, length/n_slice)
+      mat6 = matmul(drift, mat6)
+    endif
+
+  enddo
 
   ! Coupler kick
 
   if (ele%value(coupler_strength$) /= 0) call coupler_kick()
 
+  call offset_particle (ele, c00, param, unset$, set_canonical = .false., set_tilt = .false.)
+
   !
 
   call add_multipoles_and_z_offset ()
-  call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------

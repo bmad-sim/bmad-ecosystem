@@ -634,8 +634,7 @@ case (rfcavity$)
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
                  particle_time (end_orb, ele) * ele%value(rf_frequency$))
-    if (absolute_time_tracking(ele)) phase = phase + &
-                              twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
+    if (absolute_time_tracking(ele)) phase = phase + twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
 
     dE = param%rel_tracking_charge * voltage * sin(phase) / n_slice
     if (i == 0 .or. i == n_slice) dE = dE / 2
