@@ -29,7 +29,7 @@ use mad_mod, dummy1  => make_mat6_bmad
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct) :: temp_ele
+type (ele_struct) :: temp_ele1, temp_ele2
 type (coord_struct) :: c0, c1
 type (coord_struct) :: c00, c11, c_int
 type (coord_struct) orb
@@ -37,7 +37,8 @@ type (lat_param_struct)  param
 
 real(rp), pointer :: mat6(:,:)
 
-real(rp) mat6_m(6,6), mat4(4,4), kmat(4,4)
+real(rp) mat6_m(6,6), mat6_pre(6,6), mat6_post(6,6), mat6_i(6,6)
+real(rp) mat4(4,4), kmat(4,4)
 real(rp) angle, k1, ks, length, e2, g, g_err
 real(rp) k2l, k3l, c2, s2, cs, del_l
 real(rp) factor, kmat6(6,6), drift(6,6)
@@ -58,6 +59,12 @@ real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
 real(rp) dcP2_dz1, dbeta1_dpz1, dbeta2_dpz2, beta_start, beta_end
 real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, gradient_max, voltage_max
+
+real(rp) dp_long_dpx, dp_long_dpy, dp_long_dpz, dalpha_dpx, dalpha_dpy, dalpha_dpz
+real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz
+real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
+real(rp) dbeta_dx, dbeta_dpx, dbeta_dpy, dbeta_dpz, p_long, eps, beta 
+real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2    
 
 integer i, n_slice, key, ix_fringe
 
@@ -669,13 +676,9 @@ case (sbend$)
   k1 = ele%value(k1$) * charge_dir
   k2 = ele%value(k2$) * charge_dir
   g = ele%value(g$)
+  rho = 1 / g
   g_tot = (g + ele%value(g_err$)) * charge_dir
   g_err = g_tot - g
-
-  if (g == 0 .and. k1 == 0 .and. k2 == 0) then
-    call drift_mat6_calc (mat6, length, ele, param, c0, c1)
-    return
-  endif
 
   ! Reverse track here for c11 since c11 needs to be the orbit just inside the bend.
   ! Notice that kx_2 and ky_2 are not affected by reverse tracking
@@ -684,117 +687,211 @@ case (sbend$)
     
   ! Entrance edge kick
 
-  ix_fringe = nint(ele%value(fringe_type$))
-
-  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    call exact_bend_edge_kick (c00, ele, param, upstream_end$, .false., kx_1, ky_1)
-  elseif (ix_fringe == basic_bend$) then
-    call approx_bend_edge_kick (c00, ele, param, upstream_end$, .false., kx_1, ky_1)
-  endif
-
+  call bend_edge_kick (c00, ele, param, upstream_end$, .false., mat6_pre)
 
   call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
  
   ! Exit edge kick
-  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    call exact_bend_edge_kick (c11, ele, param, downstream_end$, .false., kx_2, ky_2)
-  elseif (ix_fringe == basic_bend$) then
-    call approx_bend_edge_kick (c11, ele, param, downstream_end$, .true., kx_2, ky_2) 
-  endif
+  
+  call bend_edge_kick (c11, ele, param, downstream_end$, .false., mat6_post)
+
+  ! If we have a sextupole component then step through in steps of length ds_step
+
+  n_slice = 1  
+  if (k2 /= 0) n_slice = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+  length = length / n_slice
+  k2l = charge_dir * ele%value(k2$) * length  
+  
+  call transfer_ele(ele, temp_ele1, .true.)
+  temp_ele1%value(l$) = length
+
+  call transfer_ele(ele, temp_ele2, .true.)
+  call zero_ele_offsets(temp_ele2)
+  temp_ele2%value(l$) = length
+  temp_ele2%value(e1$) = 0
+  temp_ele2%value(e2$) = 0
+  temp_ele2%value(k2$) = 0
  
-   
-  ! Body
+  ! 1/2 sextupole kick at the beginning.
 
-  if (k1 /= 0) then
-    call sbend_body_with_k1_map (ele, param, 1, c00, mat6 = mat6)
+  if (k2l /= 0) then
+    call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat)
+    c00%vec(2) = c00%vec(2) + k2l/2 * (c00%vec(3)**2 - c00%vec(1)**2)/2
+    c00%vec(4) = c00%vec(4) + k2l/2 * c00%vec(1) * c00%vec(3)
+    mat6(1:4,1:6) = matmul(kmat,mat6(1:4,1:6))
+  end if
+  
+  ! And track with n_slice steps
 
-  elseif (length /= 0) then
+  do i = 1, n_slice
 
-    ! If g_tot = 0 then have 0/0 problems.
-    ! In this case just make the approximation that g_tot ~ 1e-5 * g
+    call mat_make_unit(mat6_i)
 
-    if (abs(g_tot) < 1e-5 * abs(g)) then
-      g_tot = sign(1e-5 * g, g_tot)
-      g_err = g_tot - g
-    endif
+    if (g == 0 .or. k1 /= 0) then
 
-    ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
+      call sbend_body_with_k1_map (temp_ele1, param, 1, c00, mat6 = mat6_i)
+        
+    elseif (length /= 0) then
 
-    x  = c00%vec(1)
-    px = c00%vec(2)
-    y  = c00%vec(3)
-    py = c00%vec(4)
-    z  = c00%vec(5)
-    pz = c00%vec(6)
+      ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
+
+      x  = c00%vec(1)
+      px = c00%vec(2)
+      y  = c00%vec(3)
+      py = c00%vec(4)
+      z  = c00%vec(5)
+      pz = c00%vec(6)
  
-    angle = g * length
-    rel_p  = 1 + pz
-    rel_p2 = rel_p**2
+      angle = g * length
+      rel_p  = 1 + pz
+      rel_p2 = rel_p**2
 
-    ct = cos(angle)
-    st = sin(angle)
+      ct = cos(angle)
+      st = sin(angle)
 
-    pxy2 = px**2 + py**2
-    Dxy = sqrt(rel_p2 - pxy2)
-    Dy  = sqrt(rel_p2 - py**2)
+      pxy2 = px**2 + py**2
 
-    if (ele%value(g$) == 0) then
-      px_t = px - g_tot * length
-      dpx_t = -px*length - g_tot
-    else
-      rho = 1 / ele%value(g$)
-      if (pxy2 < 1e-5) then
-        f = pxy2 / (2 * rel_p)
-        f = pz - f - f*f/2 - g_err*rho - g_tot*x
+      p_long = sqrt(rel_p2 - pxy2)
+      dp_long_dpx = -px/p_long
+      dp_long_dpy = -py/p_long
+      dp_long_dpz = rel_p/p_long
+      
+      ! The following is to make sure that a beam entering on-axis remains 
+      ! *exactly* on-axis.
+
+      if (pxy2 < 1e-5) then  
+         f = pxy2 / (2 * rel_p)
+         f = pz - f - f*f/2 - g_err*rho - g_tot*x
+         df_dx  = -g_tot
+         df_dpx = -px * pxy2 / (2 * rel_p2) - px/rel_p
+         df_dpy = -py * pxy2 / (2 * rel_p2) - py/rel_p
+         df_dpz = 1 + pxy2**2 / (4 * rel_p**3) + pxy2 / (2 * rel_p2)
       else
-        f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - g_tot*x
+         f = p_long - g_tot * (1 + x * g) / g
+         df_dx  = -g_tot
+         df_dpx = dp_long_dpx
+         df_dpy = dp_long_dpy
+         df_dpz = dp_long_dpz
       endif
+
+      Dy  = sqrt(rel_p2 - py**2)
+      Dy_dpy = -py/Dy
+      Dy_dpy = rel_p/Dy
+
       px_t = px*ct + f*st
-      dpx_t = -px*st/rho + f*ct/rho
-    endif
+      dpx_t = -px*st*g + f*ct*g
 
-    Dxy_t = sqrt(rel_p2 - px_t**2 - py**2)
-    factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / g_tot
-    df_dpy = px/(Dxy*Dy**2) - px_t/(Dxy_t*Dy**2) + st/(Dxy*Dxy_t)
-    df_dp = rel_p * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))
+      dpx_t_dx  = ct*g*df_dx
+      dpx_t_dpx = -st*g + ct*g*df_dpx
+      dpx_t_dpy = ct*g*df_dpy
+      dpx_t_dpz = ct*g*df_dpz
 
-    mat6(1,1) = px_t * st / Dxy_t + ct
-    mat6(1,2) = -px_t * (ct - px*st/Dxy) / (g_tot * Dxy_t) + st/g_tot + px*ct/(g_tot*Dxy)
-    mat6(1,4) = (-py + px_t*py*st/Dxy) / (g_tot * Dxy_t) + py*ct/(g_tot*Dxy)
-    mat6(1,6) = (rel_p - px_t*rel_p*st/Dxy) / (g_tot * Dxy_t) - rel_p*ct/(g_tot*Dxy)
-    mat6(2,1) = -g_tot * st
-    mat6(2,2) = ct - px * st / Dxy
-    mat6(2,4) = -py * st / Dxy
-    mat6(2,6) = rel_p * st / Dxy
-    mat6(3,1) = py * st / Dxy_t
-    mat6(3,2) = py * (1/ Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / g_tot
-    mat6(3,3) = 1
-    mat6(3,4) = factor + py**2 * df_dpy / g_tot
-    mat6(3,6) = py * df_dp / g_tot
-    mat6(5,1) = -rel_p * st / Dxy_t
-    mat6(5,2) = -rel_p * (1/Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / g_tot
-    mat6(5,4) = -rel_p * py * df_dpy / g_tot
-    mat6(5,6) = -factor - rel_p * df_dp / g_tot
+      if (abs(g_tot) < 1e-5 * abs(g)) then
+        alpha = p_long * ct - px * st
+        dalpha_dpx = dp_long_dpx * ct - st
+        dalpha_dpy = dp_long_dpy * ct
+        dalpha_dpz = dp_long_dpz * ct
+        mat6_i(1,1) = -(g_tot*st**2*(1+g*x)*Dy**2)/(g*alpha**3) + p_long/alpha &
+                      +(3*g_tot**2*st**3*(1+g*x)**2*Dy**2*(ct*px+st*p_long))/(2*g**2*alpha**5)
+        mat6_i(1,2) = (3*g_tot*st**2*(1+g*x)**2*Dy**2*dalpha_dpx)/(2*g**2*alpha**4) &
+                      -(5*g_tot**2*st**3*(1+g*x)**3*Dy**2*(ct*px+st*p_long)*dalpha_dpx)/(2*g**3*alpha**6) &
+                      -((-alpha+(1+g*x)*p_long)*dalpha_dpx)/(g*alpha**2) &
+                      +(g_tot**2*st**3*(1+g*x)**3*Dy**2*(ct+st*dp_long_dpx))/(2*g**3*alpha**5) &
+                      +(-dalpha_dpx+(1+g*x)*dp_long_dpx)/(g*alpha)
+        mat6_i(1,4) = (3*g_tot*st**2*(1+g*x)**2*Dy**2*dalpha_dpy)/(2*g**2*alpha**4) &
+                      -(5*g_tot**2*st**3*(1+g*x)**3*Dy**2*(ct*px+st*p_long)*dalpha_dpy)/(2*g**3*alpha**6) &
+                      -((-alpha+(1+g*x)*p_long)*dalpha_dpy)/(g*alpha**2) &
+                      +(g_tot**2*st**4*(1+g*x)**3*Dy**2*dp_long_dpy)/(2*g**3*alpha**5) &
+                      +(-dalpha_dpy+(1+g*x)*dp_long_dpy)/(g*alpha) &
+                      -(g_tot*st**2*(1+g*x)**2*Dy*Dy_dpy)/(g**2*alpha**3) &
+                      +(g_tot**2*st**3*(1+g*x)**3*Dy*(ct*px+st*p_long)*Dy_dpy)/(g**3*alpha**5)
+        mat6_i(1,6) = (3*g_tot*st**2*(1+g*x)**2*Dy**2*dalpha_dpz)/(2*g**2*alpha**4) &
+                      -(5*g_tot**2*st**3*(1+g*x)**3*Dy**2*(ct*px+st*p_long)*dalpha_dpz)/(2*g**3*alpha**6) &
+                      -((-alpha+(1+g*x)*p_long)*dalpha_dpz)/(g*alpha**2) &
+                      +(g_tot**2*st**4*(1+g*x)**3*Dy**2*dp_long_dpz)/(2*g**3*alpha**5) &
+                      +(-dalpha_dpz+(1+g*x)*dp_long_dpz)/(g*alpha) &
+                      -(g_tot*st**2*(1+g*x)**2*Dy*Dy_dpz)/(g**2*alpha**3) &
+                      +(g_tot**2*st**3*(1+g*x)**3*Dy*(ct*px+st*p_long)*Dy_dpz)/(g**3*alpha**5)
+      else
+        eps = px_t**2 + py**2
+        deps_dx  = 2*px_t*st*df_dx
+        deps_dpx = 2*px_t*(ct+st*df_dpx)
+        deps_dpy = 2*px_t*st*df_dpy + 2*py
+        deps_dpz = 2*px_t*st*df_dpz
+        if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
+          eps = eps / (2 * rel_p)
+          deps_dx  = deps_dx / (2 * rel_p)
+          deps_dpx = deps_dpx / (2 * rel_p)
+          deps_dpy = deps_dpy / (2 * rel_p)
+          deps_dpz = deps_dpz / (2 * rel_p) - (px_t**2 + py**2) / (2*rel_p2) 
+          mat6_i(1,1) = (-rho*dpx_t_dx+(eps/(2*rel_p)-1)*deps_dx+eps*deps_dx/(2*rel_p))/g_tot
+          mat6_i(1,2) = (-rho*dpx_t_dpx+(eps/(2*rel_p)-1)*deps_dpx+eps*deps_dpx/(2*rel_p))/g_tot
+          mat6_i(1,4) = (-rho*dpx_t_dpy+(eps/(2*rel_p)-1)*deps_dpy+eps*deps_dpy/(2*rel_p))/g_tot
+          mat6_i(1,6) = (1-rho*dpx_t_dpz+(eps/(2*rel_p)-1)*deps_dpz+eps*(deps_dpz/(2*rel_p)-eps/(2*rel_p2)))/g_tot
+        else
+          mat6_i(1,1) = (-rho*dpx_t_dx-deps_dx/(2*sqrt(rel_p2-eps)))/g_tot
+          mat6_i(1,2) = (-rho*dpx_t_dpx-deps_dpx/(2*sqrt(rel_p2-eps)))/g_tot
+          mat6_i(1,4) = (-rho*dpx_t_dpy-deps_dpy/(2*sqrt(rel_p2-eps)))/g_tot
+          mat6_i(1,6) = (-rho*dpx_t_dpz+(2*rel_p-deps_dpz)/(2*sqrt(rel_p2-eps)))/g_tot
+        endif
+      endif
+      
+      mat6_i(2,1) = -g_tot * st
+      mat6_i(2,2) = ct - px * st / p_long
+      mat6_i(2,4) = -py * st / p_long
+      mat6_i(2,6) = rel_p * st / p_long
 
-  endif
+      if (abs(g_tot) < 1e-5 * abs(g)) then
+        beta = (1 + g * x) * st / (g * alpha) - &
+               g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
+        dbeta_dx  = st/alpha - (g_tot*st**2*(1+g*x)*(ct*px+st*p_long))/(g*alpha**3)
+        dbeta_dpx = -(st*(1+g*x)*dalpha_dpx)/(g*alpha**2)-(g_tot*st**2*(1+g*x)**2*(ct+st*dp_long_dpx))/(2*g**2*alpha**3)
+        dbeta_dpy = -(st*(1+g*x)*dalpha_dpy)/(g*alpha**2)-(g_tot*st**3*(1+g*x)**2*dp_long_dpy)/(2*g**2*alpha**3)
+        dbeta_dpz = -(st*(1+g*x)*dalpha_dpz)/(g*alpha**2)-(g_tot*st**3*(1+g*x)**2*dp_long_dpz)/(2*g**2*alpha**3)
+        mat6_i(3,1) = py*dbeta_dx
+        mat6_i(3,2) = py*dbeta_dpx
+        mat6_i(3,4) = beta + py*dbeta_dpy
+        mat6_i(3,6) = py*dbeta_dpz
+        mat6_i(5,1) = -rel_p*dbeta_dx
+        mat6_i(5,2) = -rel_p*dbeta_dpx
+        mat6_i(5,4) = -rel_p*dbeta_dpy
+        mat6_i(5,6) = -beta - rel_p*dbeta_dpz
+      else
+        factor = (asin(px/Dy) - asin(px_t/Dy)) / g_tot
+        factor1 = sqrt(1-(px/Dy)**2)
+        factor2 = sqrt(1-(px_t/Dy)**2)
+        dfactor_dx  = -st*df_dx/(Dy*factor2*g_tot)
+        dfactor_dpx = (1/(factor1*Dy)-(ct+st*df_dpx)/(factor2*Dy))/g_tot
+        dfactor_dpy = (-px*Dy_dpy/(factor1*Dy**2)-(-px_t*Dy_dpy/Dy**2 + st*df_dpy/Dy)/factor2)/g_tot
+        dfactor_dpz = (-px*Dy_dpz/(factor1*Dy**2)-(-px_t*Dy_dpz/Dy**2 + st*df_dpz/Dy)/factor2)/g_tot
+        mat6_i(3,1) = py*dfactor_dx
+        mat6_i(3,2) = py*dfactor_dpx
+        mat6_i(3,4) = angle/g_tot + factor + py*dfactor_dpy
+        mat6_i(3,6) = py*dfactor_dpz
+        mat6_i(5,1) = -rel_p*dfactor_dx
+        mat6_i(5,2) = -rel_p*dfactor_dpx
+        mat6_i(5,4) = -rel_p*dfactor_dpy
+        mat6_i(5,6) = -angle/g_tot - factor - rel_p*dfactor_dpz
+      endif
+      
+    endif  
 
-  ! edge focusing terms
+    mat6 = matmul(mat6_i,mat6)
+    c_int = c00
+    call track_a_bend (c_int, temp_ele2, param, c00)
 
-  mat6(1:6,1) = mat6(1:6,1) + mat6(1:6,2) * kx_1
-  mat6(1:6,3) = mat6(1:6,3) + mat6(1:6,4) * ky_1
+    if (i == n_slice) k2l = k2l/2
+    if (k2l /= 0) then
+      call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, kmat)
+      c00%vec(2) = c00%vec(2) + k2l * (c00%vec(3)**2 - c00%vec(1)**2)/2
+      c00%vec(4) = c00%vec(4) + k2l * c00%vec(1) * c00%vec(3)
+      mat6(1:4,1:6) = matmul(kmat,mat6(1:4,1:6))
+    end if
 
-  mat6(2,1:6) = mat6(2,1:6) + kx_2 * mat6(1,1:6) 
-  mat6(4,1:6) = mat6(4,1:6) + ky_2 * mat6(3,1:6)
+  end do
 
-  if (ele%value(k2$) /= 0) then
-    k2l = charge_dir * ele%value(k2$) * ele%value(l$) / 2
-    call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, mat6_m(1:4,1:4))
-    mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
-    mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
-    call mat4_multipole (k2l, 0.0_rp, 2, c11%vec, mat6_m(1:4,1:4))
-    mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
-    mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
-  endif
+  mat6 = matmul(mat6,mat6_pre)
+  mat6 = matmul(mat6_post,mat6)
 
   if (ele%value(tilt_tot$)+ele%value(roll$) /= 0) then
     call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
