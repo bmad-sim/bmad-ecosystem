@@ -33,20 +33,29 @@ class search_com_class:
     self.case_sensitive = False
     self.namelist_file  = ''
     self.file_name_rel_root = ''   # File name relative to the root search directory
+    self.search_only_for = ''
 
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
 # choose_path function
 
-def choose_path (base_dir, base_file, dist_sub_dir):
-  if os.path.isfile(base_dir + base_file):                  return base_dir
-  if os.path.isfile('../' + base_dir + base_file):          return '../' + base_dir
-  if os.path.isfile('../../' + base_dir + base_file):       return '../../' + base_dir
-  if os.path.isfile(release_dir + base_dir + base_file):    return release_dir + base_dir
-  if os.path.isfile(dist_dir + dist_sub_dir + base_dir):    return dist_dir + dist_sub_dir + base_dir
+def choose_path (dir_list, base_dir, base_file, dist_sub_dir):
+  this_dir = ''
+  if os.path.isfile(base_dir + base_file):
+    this_dir = base_dir
+  elif os.path.isfile('../' + base_dir + base_file):
+    this_dir = '../' + base_dir
+  elif os.path.isfile('../../' + base_dir + base_file):
+    this_dir = '../../' + base_dir
+  elif os.path.isfile(release_dir + base_dir + base_file):
+    this_dir = release_dir + base_dir
+  elif os.path.isfile(dist_dir + dist_sub_dir + base_dir):
+    this_dir = dist_dir + dist_sub_dir + base_dir
   # If release_dir is defined then we should have found the directory.
-  if release_dir != '': print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
-  return ''
+  elif release_dir != '': 
+    print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
+  if this_dir != '': dir_list.append(this_dir)
+  return
 
 #------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------
@@ -57,10 +66,12 @@ def print_help_message ():
   Usage for getf and listf:
     getf  {options} <search_string>
     listf {options} <search_string>
+
   Options:
      -a          # Search Numerical recipes, forest, and varies program directories as well.
      -d <dir>    # Search files in <dir> and sub-directories for matches.
      -c          # Case sensitive search.
+     -s <what>   # Search only for: <what> = "struct", "routine", "parameter", or "module".
 
   Standard Libraries searched:
      bmad
@@ -76,7 +87,7 @@ def print_help_message ():
 #------------------------------------------------------------------------------------
 # routine_here function
 
-re_routine = re.compile('(subroutine|recursive subroutine|elemental subroutine|' + \
+re_routine = re.compile('(program|subroutine|recursive subroutine|elemental subroutine|' + \
       'function|recursive function|real\(rp\) *function|' +  \
       'integer *function|logical *function|interface) ')
 
@@ -104,7 +115,7 @@ re_parameter             = re.compile(' parameter.*::')
 re_parameter1            = re.compile(r'\s*([\$\w]+)[\(-:\) ]*=')  # match to: "charge_of(-3:3) = "
 re_type_interface_end    = re.compile('end +(type|interface)')
 re_end                   = re.compile('end')
-re_routine_name_here     = re.compile('subroutine|function|interface')
+re_routine_name_here     = re.compile('program|subroutine|function|interface')
 
 def search_f90 (file_name, search_com):
 
@@ -145,13 +156,32 @@ def search_f90 (file_name, search_com):
 
     # In the header section of a module
 
-    if re_module_begin.match(line2): in_module_header = True
+    match = re_module_begin.match(line2)
+    if match:
+      in_module_header = True
+      name_match = re.match('\w+', line2[match.end(0):].lstrip())
+      if name_match and 'module'.startswith(search_com.search_only_for):
+        module_name = name_match.group(0)
+        if re_match_str.match(module_name):
+          search_com.found_one = True
+          found_one_in_this_file = True
+          if search_com.doc == 'LIST':
+            if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
+            have_printed_file_name = True
+            search_com.namelist_file.write(module_name + '\n')
+          elif search_com.doc == 'FULL':
+            print '\nFile:', file_name
+            for com in comments: print com.rstrip()          
+          else:
+            print '\nFile:', file_name
+            print '    ', line.rstrip()
+
     if re_module_header_end.match(line2): in_module_header = False
     
     # Search for parameters
 
     if in_module_header:
-      if re_parameter.search(line2):
+      if re_parameter.search(line2) and 'parameter'.startswith(search_com.search_only_for):
         chunks = re_parameter.split(line2)[1].split(',')
         for chunk in chunks:
           chunk_match = re_parameter1.match(chunk)
@@ -185,7 +215,7 @@ def search_f90 (file_name, search_com):
     # These we type the whole definition
 
     match = re_type_interface_match.match(line2)
-    if match:
+    if match and 'struct'.startswith(search_com.search_only_for):
       search_com.found_one = True
       found_one_in_this_file = True
       if search_com.doc == 'LIST':
@@ -212,7 +242,7 @@ def search_f90 (file_name, search_com):
     # match to subroutine, function, etc.
 
     if routine_here(line2, routine_name):
-      if re_match_str.match(routine_name[0]):
+      if re_match_str.match(routine_name[0]) and 'routine'.startswith(search_com.search_only_for):
         search_com.found_one = True
         found_one_in_this_file = True
         if search_com.doc == 'LIST':
@@ -338,7 +368,7 @@ def search_c (file_name, search_com):
             is_match = re.search(search_com.match_str + '\s*(\(.*\))\s*{', function_line)
           else:
             is_match = re.search(search_com.match_str + '\s*(\(.*\))\s*{', function_line, re.I)
-          if is_match:
+          if is_match and 'routine'.startswith(search_com.search_only_for):
             search_com.found_one = True
             if search_com.doc == 'LIST':
               if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
@@ -454,28 +484,12 @@ def search_all (doc_type):
   search_com.found_one = False
   search_com.doc = doc_type
 
-  bmad_dir          = choose_path ('bmad', '/modules/bmad_struct.f90', '')
-  cesr_utils_dir    = choose_path ('cesr_utils', '/modules/cesr_utils.f90', '')
-  sim_utils_dir     = choose_path ('sim_utils', '/interfaces/sim_utils.f90', '')
-  mpm_utils_dir     = choose_path ('mpm_utils', '/code/butout.f90', '')
-  recipes_dir       = choose_path ('recipes_f-90_LEPP', '/lib_src/nr.f90', '')
-  forest_dir        = choose_path ('forest', '/code/i_tpsa.f90', '/packages')
-  tao_dir           = choose_path ('tao', '/code/tao_struct.f90', '')
-  bmadz_dir         = choose_path ('bmadz', '/modules/bmadz_struct.f90', '')
-  nonlin_bpm_dir    = choose_path ('nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
-  recipes_dir       = choose_path ('recipes_f-90_LEPP', '/lib_src/nr.f90', '')
-  bsim_dir          = choose_path ('bsim', '/code/bsim_interface.f90', '')
-  bsim_cesr_dir     = choose_path ('bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
-  cesr_programs_dir = choose_path ('cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
-  cesrv_dir         = choose_path ('cesrv', '/code/cesrv_struct.f90', '')
-  util_programs_dir = choose_path ('util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
-  examples_dir      = choose_path ('examples', '/simple_bmad_program/simple_bmad_program.f90', '')
-
   #-----------------------------------------------------------
   # Look for arguments
 
-  extra_dir = ''
+  dir_list = []
   search_all = False
+  search_com.search_only_for = ''
 
   i = 0
   while i < len(sys.argv):
@@ -486,7 +500,17 @@ def search_all (doc_type):
     if arg[0] != '-': break
 
     if arg == '-d':
-      extra_dir = sys.argv[i+1]
+      dir_list = [sys.argv[i+1]]
+      i += 1
+      continue
+
+    if arg == '-s':
+      s = sys.argv[i+1] 
+      search_com.search_only_for = s
+      if not 'struct'.startswith(s) and not 'routine'.startswith(s) and \
+         not 'parameter'.startswith(s) and not 'module'.startswith(s):
+        print '-s ARGUMENT NOT CORRECT.'
+        print_help_message ()
       i += 1
       continue
 
@@ -507,13 +531,25 @@ def search_all (doc_type):
   #----------------------------------------------------------
   # Setup dir_list list, etc
 
-  dir_list = [bmad_dir, sim_utils_dir, tao_dir, cesr_utils_dir, mpm_utils_dir, bmadz_dir]
-  if search_all:
-    dir_list.extend([recipes_dir, forest_dir, bsim_dir, bsim_cesr_dir, cesr_programs_dir, 
-                     cesrv_dir, util_programs_dir, examples_dir])
-  if extra_dir != '':
-    print 'Searching directory:', extra_dir
-    dir_list = [extra_dir]
+  if len(dir_list) == 0:    # If no -d command line arg
+    choose_path (dir_list, 'bmad', '/modules/bmad_struct.f90', '')
+    choose_path (dir_list, 'sim_utils', '/interfaces/sim_utils.f90', '')
+    choose_path (dir_list, 'tao', '/code/tao_struct.f90', '')
+    choose_path (dir_list, 'cesr_utils', '/modules/cesr_utils.f90', '')
+    choose_path (dir_list, 'mpm_utils', '/code/butout.f90', '')
+    choose_path (dir_list, 'bmadz', '/modules/bmadz_struct.f90', '')
+
+    if search_all:
+      choose_path (dir_list, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
+      choose_path (dir_list, 'forest', '/code/i_tpsa.f90', '/packages')
+      choose_path (dir_list, 'bsim', '/code/bsim_interface.f90', '')
+      choose_path (dir_list, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
+      choose_path (dir_list, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
+      choose_path (dir_list, 'cesrv', '/code/cesrv_struct.f90', '')
+      choose_path (dir_list, 'util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
+      choose_path (dir_list, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
+      choose_path (dir_list, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
+      choose_path (dir_list, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
 
   if search_com.doc == 'LIST':
     search_com.match_str = '(\w+)'
