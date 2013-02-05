@@ -2016,6 +2016,7 @@ type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
+type (branch_struct), pointer :: branch
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$)
 real(rp), pointer :: val(:)
@@ -2249,7 +2250,11 @@ case (e_gun$)
 ! RFcavity
 
 case (rfcavity$)
-  if (val(harmon$) /= 0) val(rf_frequency$) =  val(harmon$) * c_light / param%total_length 
+  if (param%geometry == closed$ .and. associated(ele%branch) .and. val(p0c$) /= 0) then
+    branch => ele%branch
+    val(harmon$) = val(rf_frequency$) * branch%ele(branch%n_ele_track)%ref_time / &
+                                                   (ele%value(p0c$) / ele%value(e_tot$))
+  endif
 
   if (val(rf_frequency$) == 0) then
     val(l_hard_edge$) = 0

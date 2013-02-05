@@ -4405,44 +4405,42 @@ end function particle_time
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function slave_time_offset (ele) result (time)
+! Function rf_time_offset (ele, s_offset) result (time)
 !
-! Routine to return the reference time at the start of a slave element relative
-! to the the reference time at the beginning of the lord.
+! Routine to return an offset time to use for calculating the RF phase
+! in RF cavities. This is used only with absolute time tracking.
 ! 
-! Use of this routine is ambiguous if there are multiple lords.
-!
 ! Input:
-!   ele   -- ele_struct: Element being tracked through.
+!   ele      -- ele_struct: RF Element being tracked through.
+!   s_offset -- real(rp): Distance from the beginning of the cavity.
 !
 ! Ouput:
-!   time  -- Real(rp): Reference time as start of element relative to the lord.
-!             Returns 0 if element is not a slave.
+!   time  -- Real(rp): Offset time.
 !-
 
-function slave_time_offset (ele) result (time)
+function rf_time_offset (ele, s_offset) result (time)
 
 implicit none
 
 type (coord_struct) orbit
 type (ele_struct) ele
 type (ele_struct), pointer :: lord
-real(rp) time
+real(rp) time, s_offset
 logical abs_time
-character(16), parameter :: r_name = 'slave_time_offset'
+character(16), parameter :: r_name = 'rf_time_offset'
 
-! If not a slave then return 0
+! Offset due to s_offset: s_offset / ref_velocity
 
-if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$) then
-  time = 0
-  return
+time = s_offset / (c_light * ele%value(p0c$) / ele%value(e_tot$))
+
+! If a slave then there is an additional offset due to the position of
+! the slave relative to the lord.
+
+if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+  lord => pointer_to_lord (ele, 1)
+  time = time + ele%value(ref_time_start$) - lord%value(ref_time_start$)
 endif
 
-!
-
-lord => pointer_to_lord (ele, 1)
-time = ele%value(ref_time_start$) - lord%value(ref_time_start$)
-
-end function slave_time_offset
+end function rf_time_offset
 
 end module
