@@ -4679,7 +4679,8 @@ use random_mod
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct),  target :: ele
+type (branch_struct), pointer :: branch
 
 real(rp) angle, rr
 integer n

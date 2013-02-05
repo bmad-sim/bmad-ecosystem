@@ -52,6 +52,8 @@ type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
 type (ele_pointer_struct), allocatable :: branch_ele(:)
 
+real(rp) time
+
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
@@ -979,7 +981,6 @@ do i = 1, n_max
   endif
 enddo
 
-
 ! Now put in the overlay_lord, girder, and group elements
 
 call parser_add_lord (in_lat, n_max, plat, lat)
@@ -993,8 +994,21 @@ if (err) then
   return
 endif
 
-! Reuse the old taylor series if they exist
-! and the old taylor series has the same attributes.
+! rfcavity harmon bookkeeping
+
+call lat_compute_ref_energy_and_time (lat, err_flag)
+
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+  do j = 1, branch%n_ele_max
+    ele => branch%ele(j)
+    if (ele%key /= rfcavity$) cycle
+    if (ele%value(harmon$) == 0 .or. ele%value(rf_frequency$) /= 0) cycle
+    branch0 => pointer_to_branch(ele)
+    time = branch0%ele(branch0%n_ele_track)%ref_time
+    ele%value(rf_frequency$) = ele%value(harmon$) * ele%value(p0c$) / ele%value(e_tot$) / time
+  enddo
+enddo
 
 if (logic_option (.true., make_mats6)) then
   call lattice_bookkeeper (lat, err)

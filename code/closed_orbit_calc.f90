@@ -80,14 +80,14 @@ use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
 implicit none
 
 type (lat_struct), target ::  lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele_start
 type (branch_struct), pointer :: branch
 type (coord_struct)  del_co, del_orb
 type (coord_struct), allocatable, target ::  closed_orb(:)
 type (coord_struct), pointer :: start, end
 
 real(rp) mat2(6,6), t1(6,6)
-real(rp) :: amp_co, amp_del, amp_del_old, i1_int
+real(rp) :: amp_co, amp_del, amp_del_old, i1_int, rf_freq, dt
 
 integer, optional :: direction, ix_branch
 integer i, n, n_ele, i_dim, i_max, dir, nc, track_state
@@ -118,9 +118,11 @@ n_ele = branch%n_ele_track
 if (dir == +1) then
   start => closed_orb(0)
   end   => closed_orb(n_ele)
+  ele_start => branch%ele(0)
 else if (dir == -1) then
   start => closed_orb(n_ele)
   end   => closed_orb(0)
+  ele_start => branch%ele(n_ele)
 else
   call out_io (s_error$, r_name, 'BAD DIRECTION ARGUMENT.')
   return
@@ -204,6 +206,17 @@ case (6)
     return
   endif
 
+  ! Assume that frequencies are comensurate otherwise a closed orbit does not exist.
+
+  if (branch%lat%absolute_time_tracking) then
+    rf_freq = 0
+    do i = 1, branch%n_ele_track
+      if (branch%ele(i)%key /= rfcavity$) cycle
+      if (.not. branch%ele(i)%is_on) cycle
+      rf_freq = max(rf_freq, branch%ele(i)%value(rf_frequency$))
+    enddo
+  endif
+
 ! Error
 
 case default
@@ -242,7 +255,14 @@ do i = 1, i_max
   endif
 
   del_orb%vec = end%vec - start%vec
+
+  if (i_dim ==6 .and. branch%lat%absolute_time_tracking) then
+    dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
+    del_orb%vec(5) = -end%beta * c_light * dt
+  endif
+
   del_co%vec(1:n) = matmul(mat2(1:n,1:n), del_orb%vec(1:n)) 
+
   if (i_dim == 5) then
     del_co%vec(5) = 0
     del_co%vec(6) = del_orb%vec(5) / i1_int      
@@ -258,6 +278,7 @@ do i = 1, i_max
 
   if (amp_del < amp_del_old) then
     start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
+    call init_coord (start, start, ele_start, .false.)
     amp_del_old = amp_del
   else  ! not converging so remake mat2 matrix
     call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)

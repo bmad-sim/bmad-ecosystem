@@ -290,7 +290,7 @@ case (lcavity$)
                    ele%value(dphi0_ref$) +  ele%value(phi0_err$) + &
                    particle_time (c0, ele) * ele%value(rf_frequency$))
   if (absolute_time_tracking(ele)) phase = phase - &
-                            twopi * slave_time_offset(ele) * ele%value(rf_frequency$) 
+                            twopi * rf_time_offset(ele, 0.0_rp) * ele%value(rf_frequency$) 
 
   cos_phi = cos(phase)
   gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) 
@@ -612,15 +612,6 @@ case (rfcavity$)
 
   voltage = ele%value(voltage$) * ele%value(field_scale$) 
 
-  if (voltage /= 0 .and. ele%value(RF_frequency$) == 0) then
-     if (present(err)) err = .true.
-     call out_io (s_fatal$, r_name, &
-                 '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ' // ele%name, &
-                 'YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.')
-     if (global_com%exit_on_error) call err_exit
-     return
-  endif
-
   ! The RF phase is defined with respect to the time at the beginning of the element.
   ! So if dealing with a slave element and absolute time tracking then need to correct.
 
@@ -629,7 +620,8 @@ case (rfcavity$)
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
                   particle_time (c00, ele) * ele%value(rf_frequency$))
 
-    if (absolute_time_tracking(ele)) phase = phase + twopi * slave_time_offset(ele) * ele%value(rf_frequency$)  
+    if (absolute_time_tracking(ele)) phase = phase + &
+                              twopi * rf_time_offset(ele, i*length/n_slice) * ele%value(rf_frequency$)  
 
     factor = param%rel_tracking_charge * voltage / n_slice
     if (i == 0 .or. i == n_slice) factor = factor / 2
