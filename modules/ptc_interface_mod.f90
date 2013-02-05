@@ -1506,7 +1506,7 @@ end subroutine taylor_ref_energy_correct
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc)
+! Subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, mat6)
 !
 ! Routine to convert a Bmad vector map to PTC vector,
 !
@@ -1520,14 +1520,17 @@ end subroutine taylor_ref_energy_correct
 !
 ! Output:
 !   vec_ptc(6)  -- real(rp): PTC coordinates.
+!   mat6        -- Real(rp), optional: Jacobian matrix.
 !-
 
-subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc)
+subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, mat6)
 
 implicit none
 
 real(rp) vec_bmad(:), vec_ptc(:)
 real(rp) beta0
+real(rp), optional :: mat6(6,6)
+real(rp) factor1, factor2
 
 ! vec_ptc(5) = (E - E0) / P0c
 ! vec_ptc(6) = c (t - t0)
@@ -1537,13 +1540,23 @@ vec_ptc = vec_bmad
 vec_ptc(5) = (vec_bmad(6)**2 + 2*vec_bmad(6)) / (1/beta0 + sqrt(1/beta0**2+vec_bmad(6)**2+2*vec_bmad(6)) )
 vec_ptc(6) = -vec_bmad(5) * (1/beta0 + vec_ptc(5)) / (1 + vec_bmad(6))
 
+if (present(mat6)) then
+  call mat_make_unit(mat6)
+  factor1 = sqrt(1/beta0**2+vec_bmad(6)**2+2*vec_bmad(6))
+  factor2 = 1+beta0**2*vec_bmad(6)*(2+vec_bmad(6))
+  mat6(5,5) = 0
+  mat6(5,6) = beta0**2*(1+vec_bmad(6))*factor1/factor2
+  mat6(6,5) = -(1/beta0+beta0*vec_bmad(6)*(2+vec_bmad(6))/(1+beta0*factor1))/(1+vec_bmad(6))
+  mat6(6,6) = -((beta0**2-1)*vec_bmad(5)*factor1)/((1+vec_bmad(6))**2*factor2)
+end if
+
 end subroutine vec_bmad_to_ptc 
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad)
+! Subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, mat6)
 !
 ! Routine to convert a PTC real_8 orbit vector to a Bmad Taylor orbit vector.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
@@ -1557,20 +1570,33 @@ end subroutine vec_bmad_to_ptc
 !
 ! Output:
 !   vec_bmad(6) -- real(rp): Bmad coordinates.
+!   mat6        -- Real(rp), optional: Jacobian matrix.
 !-
 
-subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad)
+subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, mat6)
 
 implicit none
 
 real(rp) vec_bmad(:), vec_ptc(:)
 real(rp) beta0
+real(rp), optional :: mat6(6,6)
+real(rp) factor1, factor2
 
 !
 
 vec_bmad = vec_ptc
 vec_bmad(6) = (2*vec_ptc(5)/beta0+vec_ptc(5)**2)/(sqrt(1+2*vec_ptc(5)/beta0+vec_ptc(5)**2)+1)
 vec_bmad(5) = -vec_ptc(6) * (1 + vec_bmad(6)) / (1/beta0 + vec_ptc(5))
+
+if (present(mat6)) then
+  call mat_make_unit(mat6)
+  factor1 = sqrt(1+2*vec_ptc(5)/beta0+vec_ptc(5)**2)
+  factor2 = beta0+2*vec_ptc(5)+beta0*vec_ptc(5)**2 
+  mat6(5,5) = beta0*(beta0**2-1)*factor1*vec_ptc(6)/((1+beta0*vec_ptc(5))**2*factor2)
+  mat6(5,6) = -(1+vec_ptc(5)*(2+beta0*vec_ptc(5))/(beta0*(1+factor1)))/(1/beta0+vec_ptc(5))
+  mat6(6,5) = (1+beta0*vec_ptc(5))*factor1/factor2
+  mat6(6,6) = 0
+end if
 
 end subroutine vec_ptc_to_bmad 
 
