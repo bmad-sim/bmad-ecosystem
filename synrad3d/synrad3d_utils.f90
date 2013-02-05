@@ -354,7 +354,8 @@ do i = 0, wall%n_section_max
 
   ! Check %basic_shape
 
-  if (.not. any(sec%basic_shape == ['elliptical    ', 'rectangular   ', 'gen_shape     ', 'triangular'])) then
+  if (.not. any(sec%basic_shape == ['elliptical    ', 'rectangular   ', &
+                                    'gen_shape     ', 'triangular    '])) then
     call out_io (s_fatal$, r_name, &
               'BAD WALL%SECTION(i)%BASIC_SHAPE: ' // sec%basic_shape, &
               '    FOR I = \i0\ ', i_array = [i])
