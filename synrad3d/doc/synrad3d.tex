@@ -92,7 +92,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{June 12, 2012}
+\date{February 1, 2013}
 
 %---------------------------------------------------------------------------------
 
@@ -213,7 +213,7 @@ element. Both circular and ``linear'' (that is, non-circular) machines
 can be simulated.  In both cases, the orbit of the charged particle
 beam, which may be non-zero, sets the centroid position and angular
 orientation of the generated photons. The local bending field at the
-beam orbit is used to determine the photon specturm. Thus, for
+beam orbit is used to determine the photon spectrum. Thus, for
 example, radiation for an offset beam in a quadrupole is included.
 
 The photon is tracked from the point of origin to
@@ -434,6 +434,32 @@ have been computed from Eq.~\ref{Eq.diffuse.power}.
 \label{s:prog}
 
 %------------------------------------------------------------------
+\subsection{Fortran Namelist}
+\label{s:namelist}
+
+Fortran namelist syntax is used for \srthree. The general form
+of a namelist is
+\begin{example}
+  &<namelist_name>
+    <var1> = ...
+    <var2> = ...
+    ...
+  /
+\end{example}
+The tag \vn{"\&<namelist_name>"} starts the namelist where
+\vn{<namelist_name>} is the name of the namelist. The namelist ends
+with the slash \vn{"/"} tag. Anything outside of this is
+ignored. Within the namelist, anything after an exclamation mark
+\vn{"!"} is ignored including the exclamation mark. \vn{<var1>},
+\vn{<var2>}, etc. are variable names. Example:
+\begin{example}
+  &section_def section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
+\end{example}
+here \vn{section_def} is the namelist name and \vn{section} is a variable
+name.  Notice that here \vn{section} is a ``structure'' which has five
+components.
+
+%------------------------------------------------------------------
 \subsection{Master Input File} 
 \label{s:master.file}
 
@@ -482,11 +508,6 @@ Example master input file:
     sr3d_params%stop_if_hit_antechamber = F 
   /
 \end{example}
-Fortran namelist input is used.  The tag \vn{"\&synrad3d_parameters"}
-marks the start of the namelist and the namelist ends with the slash
-\vn{"/"} tag. Anything outside of this is ignored. Within the
-namelist, anything after an exclamation mark \vn{"!"} is ignored
-including the exclamation mark.
 
   \begin{description}
   \item[\vn{ix_ele_track_start}, \vn{ix_ele_track_end}] \Newline
@@ -536,12 +557,14 @@ file. See \sref{ss:wall.def} for more details.
 This string gives the name of the output data file.
 See below for more details.
   \item[\vn{surface_roughness_rms}] \Newline
-This parameter sets the surface roughness RMS value in meters. This is used for diffuse scattering.
-If negative (the default), the value 200~nm will be used.
+This parameter sets the surface roughness RMS in meters for the
+default surface (\sref{s:dflt.reflect}). This is used for diffuse
+scattering.  If negative (the default), the value 200~nm will be used.
   \item[\vn{roughness_correlation_len}] \Newline
-This parameter sets the surface roughness correlation length in
-meters.  This is used for diffuse scattering.  If negative (the
-default), the value of 5.5~$\mu$m will be used.
+This parameter sets the surface roughness correlation length in meters
+for the default surface (\sref{s:dflt.reflect}).  This is used for
+diffuse scattering.  If negative (the default), the value of
+5.5~$\mu$m will be used.
   \item[\vn{reflection_probability_file}] \Newline
 To change the reflection probability curved used in the simulation, a 
 \vn{reflection_probability_file} can be used. See \sref{s:reflect.file} for details
@@ -589,7 +612,7 @@ elements within the emission region. For each element the following are given.
   \end{enumerate}
 
   \item[\vn{random_seed}] \Newline
-Random number see used in by the random number generator. If set to 0, the system clock
+Random number seed used in by the random number generator. If set to 0, the system clock
 will be used. That is, if set to 0, the output results will vary from run to run. 
   \item[\vn{e_init_filter_min}, \vn{e_init_filter_max}] \Newline
 Minimum and maximum initial energy filter values. A negative filter value
@@ -680,6 +703,64 @@ photons have been generated, \srthree will generate another
 
 \begin{figure}[tb]
 \begin{center}
+\includegraphics[width=6in]{chamber-wall.pdf}
+\caption{The chamber wall is defined by a number of cross-sectional slices.}
+\label{f:chamber.wall}
+\end{center}
+\end{figure}
+
+The vacuum chamber wall is defined in the \vn{wall_file} specified in
+the master input file \sref{s:master.file}.  In this file, the vacuum
+chamber wall is defined by specifying the chamber cross-section at a
+number of longitudinal positions. As illustrated in
+\fig{f:chamber.wall}. Each cross-section is specified using a Fortran
+namelist (\sref{s:namelist}) named \vn{section_def}. Example:
+\begin{example}
+  &section_def section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
+  &section_def section =  74.3, "Near_IR"  "gen_shape:dipole_shape",  /
+  &section_def section =  82.9, "wig1",    "rectangular", 0.045, 0.025 /
+  &section_def section =  91.1, "IR1",     "rectangular", 0.045, 0.025, 
+                                                       -1, -1, 0.08, 0.01 /
+\end{example}
+
+The general form of a \vn{section_def} namelist is:
+\begin{example}
+  &section_def section = <s>, <section_name>, <section_id> ... /
+\end{example} 
+
+The $<s>$ values for the
+cross-sections must be in increasing order starting at $<s> = 0$ for
+the first cross-section. The exception is that the $<s>$ value for the last
+cross-section is immaterial since \srthree will automatically substitute
+the appropriate $<s>$ value at the end of the lattice.
+
+The \vn{section_name} is a descriptive name that can be, for example,
+used in plotting. The \vn{section_name} is ignored for any calculation.
+
+The \vn{section_id} can have one of five values:
+\begin{example}
+  elliptical
+  rectangular
+  gen_shape:<shape_name>
+  triangular:<shape_name>
+  multi_section:<shape_name>
+\end{example}
+Historically, the \vn{elliptical} and \vn{rectangular} shapes where
+developed first. The \vn{gen_shape} was developed later and is a
+generalization of the original two shapes. The \vn{triangular} shape
+was developed last and was developed in an effort to avoid problems
+when the chamber shape was concave. The \vn{elliptical} and
+\vn{rectangular} cross-sections are explained in the next
+section. \vn{gen_shape} and \vn{triangular} types are explained in the
+section after. And \vn{multi_section} is explained in the section
+after that.
+
+%------------------------------------------------------------------
+\subsubsection{Elliptical and Rectangular Wall Cross-Sections}
+\label{sss:el.rec}
+
+\begin{figure}[tb]
+\begin{center}
 \includegraphics[width=6in]{chamber.pdf}
 \caption{Example vacuum chamber cross-section for an \vn{elliptical} 
 chamber with an antechamber on the $+x$ side of the chamber and an
@@ -688,24 +769,13 @@ aperture on the $-x$ side.}
 \end{center}
 \end{figure}
 
-The vacuum chamber wall is defined by specifying the chamber
-cross-section at a number of longitudinal positions. 
-At a given longitudinal
-position, the wall cross-section can have one of three ``basic''
-shapes:
-\begin{example}
-  elliptical
-  rectangular
-  gen_shape
-  gen_shape_mesh
-\end{example}
-The \vn{gen_shape} and \vn{gen_shape_mesh} shapes are discussed
-later. An example \vn{elliptical} cross-section is shown in
+An example \vn{elliptical} cross-section is shown in
 \fig{f:chamber}.  For \vn{elliptical} or \vn{rectangular} shapes, the
 parameters needed to specify the chamber are:
 \begin{example}
   s                   ! Longitudinal position
-  basic_shape         ! Either "elliptical" or "rectangular"
+  section_name        ! Descriptive Name of the cross-section.
+  section_id          ! Either "elliptical" or "rectangular"
   width2              ! Half width ignoring antechamber.
   height2             ! Half height ignoring antechamber.
   width2_plus         ! Distance from pipe center to +x side edge.
@@ -714,11 +784,8 @@ parameters needed to specify the chamber are:
   ante_height2_minus  ! Antechamber half height on -x side of the wall
 \end{example}
 
-The basic chamber shape at a given position is given by the
-\vn{basic_shape} attribute which must be set to 
-\vn{"rectangular"} for a \vn{rectangular} shape and \vn{"elliptical"}
-for an \vn{elliptical} shape. \vn{width2} and \vn{height2}
-define the half-height and half-width of the basic shape.
+For both \vn{"rectangular"} and \vn{"elliptical"} shapes, \vn{width2}
+and \vn{height2} define the half-height and half-width of the shape.
 
 Antechambers on the $+x$ side and/or $-x$ side of the chamber can be
 added to the basic shape. On the $+x$ side, an antechamber is formed
@@ -742,33 +809,58 @@ value of \vn{width2_plus} must be less than the value of
 \vn{width2_minus} defines an aperture on the $-x$ side of the chamber.
 A $-x$ aperture is shown in \fig{f:chamber}.
 
-For the \vn{gen_shape} shape, the parameters are:
+Example:
 \begin{example}
-  s                   ! Longitudinal position.
-  basic_shape         ! "gen_shape".
-  ix_gen_shape        ! Index of gen_shape definition to use.
+  ! Anything outside the namelists is ignored.
+  &section_def section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
+  &section_def section =  82.9, "wig1",    "rectangular", 0.045, 0.025 /
+  &section_def section =  91.1, "IR1",     "rectangular", 0.045, 0.025, 
+                                                         -1, -1, 0.08, 0.01 /
 \end{example}
-The \vn{ix_gen_shape} index refers to a gen_shape
-specification which has the parameters
+
+The format for an \vn{elliptical} or \vn{rectangular} cross-section is
 \begin{example}
-  ix_gen_shape        ! Index of this gen_shape definition.
-  v(i)                ! (x, y) coordinates of the i\Th vertex.
-  ix_vertex_ante  = iv1, iv2  ! For defining antechamber.
-  ix_vertex_ante2 = iv1, iv2  ! For defining second antechamber.
+  &section_def section = <s>, <section_name> <section_id>, <width2>, <height2>, 
+     <width2_plus>, <ante_height2_plus>, <width2_minus>, <ante_height2_minus> /
+\end{example}
+
+For \vn{elliptical} and \vn{rectangular} sections, the first five
+parameters -- \vn{<s>}, \vn{section_name} \vn{<section_id>},
+\vn{<width2>}, and \vn{<height2>} -- must be
+specified. Values for the other parameters are optional and default to
+the ``unset'' value of -1.
+
+%------------------------------------------------------------------
+\subsubsection{Gen_Shape and Triangular Wall Cross-Sections}
+\label{sss:gen}
+
+The format for a \vn{gen_shape} or \vn{triangular} cross-section is
+\begin{example}
+  &section_def section = <s>, <section_name>, <section_id> /
+\end{example}
+The \vn{<s>} and \vn{<section_name>} parameters are explained in
+\sref{ss:wall.def}. The \vn{<section_id>} is
+\begin{example}
+  gen_shape:<shape_name>
+  triangular:<shape_name>
+\end{example}
+where \vn{<shape_name>} is the \vn{gen_shape_name} of a \vn{gen_shape_def}
+namelist which defines the \vn{gen_shape}. The \vn{gen_shape_def} namelist
+has the parameters:
+\begin{example}
+  name = <shape_name>                     ! Name of this shape.
+  v(<i>) = <x>, <y>, <r_x>, <r_y>, <tilt> ! coordinates of the i\Th vertex.
+  ix_vertex_ante  = <iv1>, <iv2>          ! For defining antechamber.
+  ix_vertex_ante2 = <iv1>, <iv2>          ! For defining second antechamber.
 \end{example}
 
 An example wall definition file is:
 \begin{example}
   ! Anything outside the namelists is ignored.
-  &wall_def section =   0.0, "elliptical", 0.045, 0.025 /
-  &wall_def section =  74.3, "gen_shape", 1 /
-  &wall_def section =  82.9, "rectangular", 0.045, 0.025 /
-  &wall_def section =  91.1, "rectangular", 0.045, 0.025, -1, -1, 0.08, 0.01 /
-  &wall_def section = 101.3, "elliptical", 0.045, 0.025 / 
-  &wall_def section =   0.0, "elliptical", 0.045, 0.025 /
+  &section_def section =  74.3, "Near_IR" "gen_shape:dipole_shape",  /
 
   &gen_shape_def
-    ix_gen_shape = 1
+    gen_shape_name = "dipole_shape"
     v(1) =  0.045,  0.025
     v(2) = -0.045,  0.025
     v(3) = -0.045, -0.025
@@ -783,31 +875,10 @@ An example wall definition file is:
   /
 \end{example}
 Fortran namelist input is used. 
-The \vn{wall_def} namelists begin with \vn{"\&wall_def"}
+The \vn{section_def} namelists begin with \vn{"\&section_def"}
 and ends with a slash \vn{"/"}. Each namelist specifies one cross-section.
 Within the namelist, anything after an exclamation
 mark \vn{"!"} is ignored including the exclamation mark. 
-
-The format for an \vn{elliptical} or \vn{rectangular} cross-section is
-\begin{example}
-  &wall_def section = <s>, <basic_shape>, <width2>, <height2>, <width2_plus>, 
-                  <ante_height2_plus>, <width2_minus>, <ante_height2_minus> /
-\end{example}
-The format for a \vn{gen_shape} cross-section is
-\begin{example}
-  &wall_def section = <s>, "gen_shape", <ix_gen_shape> /
-\end{example}
-
-The $<s>$ values for the
-cross-sections must be in increasing order starting at $<s> = 0$ for
-the first cross-section. The exception is that the $<s>$ value for the last
-cross-section is immaterial since \srthree will automatically substitute
-the appropriate $<s>$ value at the end of the lattice.
-
-For \vn{elliptical} and \vn{rectangular} shapes, the first four parameters -- \vn{<s>},
-\vn{<basic_shape>}, \vn{<width2>}, and \vn{<height2>} -- of a cross-section must be
-specified. Values for the other parameters are optional and default to
-the ``unset'' value of -1.
 
 For \vn{gen_shape} shapes, the \vn{ix_gen_shape} refers to a
 corresponding \vn{gen_shape_def} namelist that specifies the exact
@@ -822,7 +893,7 @@ namelist is:
     ... etc ...
   /
 \end{example}
-A gen_shape is specified as a list of connected vertices. Each vertex
+A \vn{gen_shape} is specified as a list of connected vertices. Each vertex
 is specified by it's $(x, y)$ coordinates. When the vertex points are
 expressed in terms of $(r, \theta)$ coordinates, the vertices must be
 in order of increasing $\theta$. If all the vertex points have
@@ -866,12 +937,12 @@ the photon is considered to have hit the antechamber if points
 $r_{w1}$ and $r_{w2}$ (See Eq.~\ref{rssss}) both correspond to points
 within the antechamber.
 
-The \vn{gen_shape_mesh} shape syntax is exactly the same as the
-\vn{gen_shape} syntax except that \vn{basic_shape} is set to
-"\vn{gen_shape_mesh}". For \vn{gen_shape_mesh} there is also the added
+The \vn{triangular} shape syntax is exactly the same as the
+\vn{gen_shape} syntax except that \vn{section_id} is set to
+"\vn{triangular}". For \vn{triangular} there is also the added
 restriction that the wall between vertices must be straight lines. The
 real difference is in the way that the chamber wall is constructed for
-\vn{gen_shape_mesh} cross-sections as detailed in \sref{s:wall}.
+\vn{triangular} cross-sections as detailed in \sref{s:wall}.
 
 %------------------------------------------------------------------
 \subsection{Vacuum Chamber Wall Interpolation} 
@@ -894,13 +965,13 @@ level, significant. Time will tell but in the meantime both approaches
 are available for use. Note that a chamber can uses the mesh approach
 in some places and linear interpolation in others.
 
-The triangular mesh approach is associated with \vn{gen_shape_mesh}
+The triangular mesh approach is associated with \vn{triangular}
 cross-sections. In particular, if a given cross-section has been
-declared \vn{gen_shape_mesh}, the section of the chamber from the
-preceding cross-section (called $C_1$) to the \vn{gen_shape_mesh}
+declared \vn{triangular}, the section of the chamber from the
+preceding cross-section (called $C_1$) to the \vn{triangular}
 cross-section (called $C_2$) will be constructed using a mesh. In this
 case, the preceding cross-section must be of type \vn{gen_shape} or
-\vn{gen_shape_mesh} and must use only straight lines between
+\vn{triangular} and must use only straight lines between
 vertices. Additionally, both cross-sections must have the same number
 of vertices.The mesh is then constructed as follows: Let $v_1(i)$ be
 the vertices in $C_1$ and let $v_2(i)$ be the vertices in $C_2$ with
@@ -1031,6 +1102,9 @@ The magnitude of the velocity, $\sqrt{v_x^2+v_y^2+v_z^2}/c$ must be 1.
 %------------------------------------------------------------------
 \subsection{Reflection Probability File}
 \label{s:reflect.file}
+
+The default reflectivity used by \srthree is based on a calculation for
+a 10 nm C film on Al substrate \sref{s:dflt.reflect}. 
 
 The probability for a photon reflecting from a wall is dependent upon
 the grazing angle and the photon energy. This probability function can
@@ -1292,7 +1366,7 @@ These test modes are explained below
 \subsection{Diffuse Reflection Test Mode}
 \label{s:test.diffuse}
 
-Diffuse reflection test mode (\sref{s:run}), involked using the
+Diffuse reflection test mode (\sref{s:run}), invoked using the
 \vn{-test diffuse_reflection} option on the command line, is used for
 studying the diffuse scattering distribution.  The simulation involves
 scattering photons at a given incident angle and energy and recording
@@ -1310,6 +1384,7 @@ reflection test is called \vn{diffuse_reflection_test}.  Example:
     roughness_correlation_len   = -1       ! Surface roughness correlation length.
     n_photons                   = 1000     ! Number of reflections simulated
     reflection_probability_file = ''       ! File for specifying reflection probabilities.
+    random_seed                 = 0        ! Random number seed.
     output_file                 = ''       ! Default is 'test_diffuse_reflection.dat'
   /
 \end{example}
@@ -1319,6 +1394,10 @@ of reflections to simulate, and \vn{output_file} is the name of the
 output data file. The default data file name is
 "test_diffuse_reflection.dat".  The other parameters are explained in
 \sref{s:master.file}.
+
+\vn{random_seed} is the random number seed used in by the random
+number generator. If set to 0, the system clock will be used. That is,
+if set to 0, the output results will vary from run to run.
 
 The output contains a header with the input parameters a then
 \vn{n_photon} lines. Each line is of the form:
@@ -1335,7 +1414,7 @@ reflected rays are in the same plane.
 \subsection{Specular Reflection Test Mode}
 \label{s:test.specular}
 
-Specular reflection test mode (\sref{s:run}), involked using the
+Specular reflection test mode (\sref{s:run}), invoked using the
 \vn{-test specular_reflection} option on the command line, is used for
 studying specular (angle in = angle out) reflections. The simulation
 here is done by simulating a single specular reflection from a set of
@@ -1372,7 +1451,7 @@ The \vn{wall_file} gives the name of the vacuum chamber will
 definition file. See \sref{ss:wall.def} for more details.
 
 The \vn{output_file} gives the name of the output data file.
-See \sref{ss:reflection.file} for details of the synax for this file.
+See \sref{ss:reflection.file} for details of the syntax for this file.
 
 %------------------------------------------------------------------
 \appendix
@@ -2851,6 +2930,56 @@ For example, if the reflectivity is a constant $R$ for $\gamma<\gamma_{max}$, an
 \frac{\left(\textrm{erf}\left(\frac{\gamma_{max}-\gamma_{1}}{\sqrt{2}\sigma_{\beta}}\right)+
 \textrm{erf}\left(\frac{\gamma_{1}}{\sqrt{2}\sigma_{\beta}}\right)\right)}{1+\textrm{erf}
 \left(\frac{\gamma_{1}}{\sqrt{2}\sigma_{\beta}}\right)}$$
+
+%------------------------------------------------------------------
+\section{Default Reflectivity Tables.}
+\label{s:dflt.reflect}
+
+  \begin{figure}
+  \centering
+  \includegraphics[width=5in]{Layered_Mirror_Reflectivity.pdf}
+  \caption[Input parameters for the default reflectivity curves.]
+  {
+Input parameters for the default reflectivity curves used by \srthree.
+  }
+\label{f:reflect}
+  \end{figure}
+
+The default reflectivity used by \srthree is based on a calculation
+for a 10 nm C film on Al substrate. Figure~\ref{f:reflect} shows the
+parameters used to generate the reflectivity tables. The tables are
+from the LBNL X-ray data base found at:
+\begin{example}
+  http://henke.lbl.gov/optical_constants/layer2.html
+\end{example}
+
+The polarization choice, $P=-1$, was made since this corresponds to the
+polarization direction of the direct synchrotron radiation striking
+the chamber surface, on the first encounter. It is probably not really
+correct for subsequent scatterings. However the polarization
+dependence of the reflectivity is not very strong.
+
+The default for the density of the substrate was used. However, a
+lower value (2.9) than the nominal (3.97) for the density of the oxide
+layer was used. This is because one of us (Dugan) had found a
+reference indicating that this is the density of thin film oxide layer
+of alumina.
+
+For simplicity, the roughness of the substrate is set to 0. This
+parameter does not have a strong effect on the results, unless it is
+set to be larger than the layer thickness, in which case the results
+get really weird. So setting this to zero seemed reasonable.
+
+The most important empirical numbers are the roughness and thickness
+of the top surface, which where chosen to both be 4 nm, on the basis of
+comparing the results by hand with the reflectivity measurements from
+INFN. 
+
+The default surface roughness for diffuse scattering is 200~nm and the
+default surface roughness correlation length is 5.5~$\mu$m. These
+values can be modified by setting \vn{surface_roughness_rms} and
+\vn{roughness_correlation_len} in the master input file
+(\sref{s:master.file}).
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}

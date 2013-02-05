@@ -5,7 +5,19 @@ use random_mod
 use photon_init_mod
 use capillary_mod
 
-private sr3d_wall_pt_params
+type sr3d_wall_section_input
+  real(rp) s                      ! Longitudinal position.
+  character(40) name              ! Name of setion
+  character(60) basic_shape       ! "elliptical", "rectangular", "triangular:xxx", or "gen_shape:xxx"
+  real(rp) width2                 ! Half width ignoring antechamber.
+  real(rp) height2                ! Half height ignoring antechamber.
+  real(rp) width2_plus            ! Distance from pipe center to +x side edge.
+  real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
+  real(rp) width2_minus           ! Distance from pipe center -x side edge.
+  real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
+end type
+
+private sr3d_wall_section_params
 
 contains
 
@@ -30,215 +42,346 @@ subroutine sr3d_init_and_check_wall (wall_file, lat, wall)
 
 implicit none
 
+! Needed since Fortran does not allow pointers to be part of a namelist
+
 type (sr3d_wall_struct), target :: wall
 type (lat_struct) lat
-type (sr3d_wall_pt_struct), pointer :: pt, pt0
-type (sr3d_wall_pt_input) section
+type (sr3d_wall_section_struct), pointer :: sec, sec0, sec2
+type (sr3d_wall_section_struct), allocatable :: temp_section(:)
+type (sr3d_wall_section_input) section
 type (wall3d_vertex_struct) v(100)
 type (wall3d_section_struct), pointer :: wall3d_section
+type (sr3d_multi_section_struct), pointer :: m_sec
 
 real(rp) ix_vertex_ante(2), ix_vertex_ante2(2)
 
-integer i, n, iu, n_wall_pt_max, ios, n_shape_max, ix_gen_shape
+integer i, j, k, im, n, ix, iu, n_wall_section_max, ios, n_shape, n_surface, n_repeat
+integer m_max, n_add
 
 character(28), parameter :: r_name = 'sr3d_init_and_check_wall'
 character(40) name
+character(40) surface
+character(200) reflectivity_file
 character(*) wall_file
 
 logical err
 
-namelist / wall_def / section, name
-namelist / gen_shape_def / ix_gen_shape, v, ix_vertex_ante, ix_vertex_ante2
+namelist / section_def / section, surface
+namelist / gen_shape_def / name, v, ix_vertex_ante, ix_vertex_ante2, surface
+namelist / surface_def / name, reflectivity_file
 
+! Open file
+
+iu = lunget()
+open (iu, file = wall_file, status = 'old')
+
+! Read in the surface info
+
+rewind(iu)
+n_surface = 0
+do
+  read (iu, nml = surface_def, iostat = ios)
+  if (ios > 0) then ! error
+    rewind (iu)
+    do
+      read (iu, nml = surface_def) ! will bomb program with error message
+    enddo  
+  endif
+  if (ios < 0) exit   ! End of file reached
+  n_surface = n_surface + 1
+enddo
+
+allocate (wall%surface(n_surface+1))
+wall%surface(1)%reflectivity_file = ''
+wall%surface(1)%name = 'default'
+call photon_reflection_std_surface_init(wall%surface(1)%info)
+
+rewind(1)
+do i = 2, n_surface+1
+  read (iu, nml = surface_def, iostat = ios)
+  wall%surface(i)%name = name
+  wall%surface(i)%reflectivity_file = reflectivity_file
+  call read_surface_reflection_file (reflectivity_file, wall%surface(i)%info)
+enddo
+
+! Read multi_section
+
+call sr3d_read_wall_multi_section (iu, wall)
 
 ! Get wall info
 ! First count the cross-section number
 
-iu = lunget()
-open (iu, file = wall_file, status = 'old')
-n_wall_pt_max = -1
+rewind(iu)
+n_wall_section_max = -1
 do
-  read (iu, nml = wall_def, iostat = ios)
+  read (iu, nml = section_def, iostat = ios)
   if (ios > 0) then ! error
     rewind (iu)
     do
-      read (iu, nml = wall_def) ! will bomb program with error message
+      read (iu, nml = section_def) ! will bomb program with error message
     enddo  
   endif
   if (ios < 0) exit   ! End of file reached
-  n_wall_pt_max = n_wall_pt_max + 1
+  n_wall_section_max = n_wall_section_max + 1
 enddo
 
-print *, 'number of wall cross-sections read:', n_wall_pt_max + 1
-if (n_wall_pt_max < 1) then
+print *, 'number of wall cross-sections read:', n_wall_section_max + 1
+if (n_wall_section_max < 1) then
   print *, 'NO WALL SPECIFIED. WILL STOP HERE.'
-  stop
+  call err_exit
 endif
 
-allocate (wall%pt(0:n_wall_pt_max))
-wall%n_pt_max = n_wall_pt_max
+allocate (wall%section(0:n_wall_section_max))
+wall%n_section_max = n_wall_section_max
 
-! Now transfer info from the file to the wall%pt array
+! Now transfer info from the file to the wall%section array
 
-n_shape_max = -1
 rewind (iu)
-do i = 0, n_wall_pt_max
+do i = 0, n_wall_section_max
   section%basic_shape = ''
   section%ante_height2_plus = -1
   section%ante_height2_minus = -1
   section%width2_plus = -1
   section%width2_minus = -1
-  name = ''
-  read (iu, nml = wall_def)
+  section%name = ''
+  surface = ''
+  read (iu, nml = section_def)
 
-  wall%pt(i) = sr3d_wall_pt_struct(name, &
-          section%s, section%basic_shape, section%width2, section%height2, &
+  sec => wall%section(i)
+  sec%delta_s = .false.
+  if (section%basic_shape(1:1) == '+') then
+    sec%delta_s = .true.
+    section%basic_shape = section%basic_shape(2:)
+  endif
+
+  ix = index(section%basic_shape, ':')
+  if (ix == 0) then
+    sec = sr3d_wall_section_struct(section%name, &
+          section%s, section%basic_shape, '', section%width2, section%height2, &
           section%width2_plus, section%ante_height2_plus, &
           section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null())
-  if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
-    n_shape_max = max (n_shape_max, nint(wall%pt(i)%width2))
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null(), sec%delta_s)
+  else
+    sec = sr3d_wall_section_struct(section%name, &
+          section%s, section%basic_shape(1:ix-1), section%basic_shape(ix+1:), section%width2, section%height2, &
+          section%width2_plus, section%ante_height2_plus, &
+          section%width2_minus, section%ante_height2_minus, &
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null(), sec%delta_s)
   endif
+
+  call sr3d_associate_surface (sec%surface, surface, wall%surface)
+
 enddo
 
 ! Get the gen_shape info
 
-if (n_shape_max > 0) then
-  rewind(iu)
-  allocate (wall%gen_shape(n_shape_max))
-  do
-    ix_gen_shape = 0
-    ix_vertex_ante = 0
-    ix_vertex_ante2 = 0
-    v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
-    read (iu, nml = gen_shape_def, iostat = ios)
-    if (ios > 0) then ! If error
-      print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
-      rewind (iu)
-      do
-        read (iu, nml = gen_shape_def) ! Generate error message
-      enddo
-    endif
-    if (ios < 0) exit  ! End of file
-    if (ix_gen_shape > n_shape_max) cycle  ! Allow shape defs that are not used.
-    if (ix_gen_shape < 1) then
-      print *, 'BAD IX_GEN_SHAPE VALUE IN WALL FILE: ', ix_gen_shape
-      call err_exit
-    endif
-
-    ! Count number of vertices and calc angles.
-
-    wall3d_section => wall%gen_shape(ix_gen_shape)%wall3d_section
-    do n = 1, size(v)
-      if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
+n_shape = 0
+rewind(iu)
+do
+  read (iu, nml = gen_shape_def, iostat = ios)
+  if (ios > 0) then ! If error
+    print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
+    rewind (iu)
+    do
+      read (iu, nml = gen_shape_def) ! Generate error message
     enddo
+  endif
+  if (ios < 0) exit  ! End of file
+  n_shape = n_shape + 1
+enddo
+allocate (wall%gen_shape(n_shape))
 
-    if (any(v(n:)%x /= 0) .or. any(v(n:)%y /= 0) .or. &
-        any(v(n:)%radius_x /= 0) .or. any(v(n:)%radius_y /= 0)) then
-      print *, 'MALFORMED GEN_SHAPE. NUMBER:', ix_gen_shape
+rewind(iu)
+do i = 1, n_shape
+  ix_vertex_ante = 0
+  ix_vertex_ante2 = 0
+  v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
+  name = ''
+  read (iu, nml = gen_shape_def, iostat = ios)
+
+  if (name == '') then
+    print *, 'GEN_SHAPE_DEF DOES NOT HAVE A NAME! GEN_SHAPE NUMBER:', i
+    call err_exit
+  endif
+
+  do j = 1, i-1
+    if (wall%gen_shape(j)%name == name) then
+      print *, 'TWO GEN_SHAPE_DEFS HAVE THE SAME NAME: ', trim(name)
       call err_exit
     endif
-
-    if (allocated(wall3d_section%v)) then
-      print *, 'ERROR: DUPLICATE IX_GEN_SHAPE =', ix_gen_shape
-      call err_exit
-    endif
-
-    allocate(wall3d_section%v(n-1))
-    wall3d_section%v = v(1:n-1)
-    wall3d_section%n_vertex_input = n-1    
-
-    call wall3d_section_initializer (wall3d_section, err)
-    if (err) then
-      print *, 'ERROR AT IX_GEN_SHAPE =', ix_gen_shape
-      call err_exit
-    endif
-
-    wall%gen_shape(ix_gen_shape)%ix_vertex_ante = ix_vertex_ante
-    if (ix_vertex_ante(1) > 0 .or. ix_vertex_ante(2) > 0) then
-      if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(wall3d_section%v) .or. &
-          ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(wall3d_section%v)) then
-        print *, 'ERROR IN IX_VERTEX_ANTE:', ix_vertex_ante
-        print *, '      FOR GEN_SHAPE =', ix_gen_shape
-        call err_exit
-      endif
-    endif
-
-    wall%gen_shape(ix_gen_shape)%ix_vertex_ante2 = ix_vertex_ante2
-    if (ix_vertex_ante2(1) > 0 .or. ix_vertex_ante2(2) > 0) then
-      if (ix_vertex_ante2(1) < 1 .or. ix_vertex_ante2(1) > size(wall3d_section%v) .or. &
-          ix_vertex_ante2(2) < 1 .or. ix_vertex_ante2(2) > size(wall3d_section%v)) then
-        print *, 'ERROR IN IX_VERTEX_ANTE2:', ix_vertex_ante2
-        print *, '      FOR GEN_SHAPE =', ix_gen_shape
-        call err_exit
-      endif
-    endif
-
   enddo
-endif
+  wall%gen_shape(i)%name = name
+
+  call sr3d_associate_surface (wall%gen_shape(j)%surface, surface, wall%surface)
+
+  ! Count number of vertices and calc angles.
+
+  wall3d_section => wall%gen_shape(i)%wall3d_section
+  do n = 1, size(v)
+    if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
+  enddo
+
+  if (any(v(n:)%x /= 0) .or. any(v(n:)%y /= 0) .or. &
+      any(v(n:)%radius_x /= 0) .or. any(v(n:)%radius_y /= 0)) then
+    print *, 'MALFORMED GEN_SHAPE:', name
+    call err_exit
+  endif
+
+  allocate(wall3d_section%v(n-1))
+  wall3d_section%v = v(1:n-1)
+  wall3d_section%n_vertex_input = n-1    
+
+  call wall3d_section_initializer (wall3d_section, err)
+  if (err) then
+    print *, 'ERROR AT GEN_SHAPE: ', trim(name)
+    call err_exit
+  endif
+
+  wall%gen_shape(i)%ix_vertex_ante = ix_vertex_ante
+  if (ix_vertex_ante(1) > 0 .or. ix_vertex_ante(2) > 0) then
+    if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(wall3d_section%v) .or. &
+        ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(wall3d_section%v)) then
+      print *, 'ERROR IN IX_VERTEX_ANTE:', ix_vertex_ante
+      print *, '      FOR GEN_SHAPE: ', trim(name)
+      call err_exit
+    endif
+  endif
+
+  wall%gen_shape(i)%ix_vertex_ante2 = ix_vertex_ante2
+  if (ix_vertex_ante2(1) > 0 .or. ix_vertex_ante2(2) > 0) then
+    if (ix_vertex_ante2(1) < 1 .or. ix_vertex_ante2(1) > size(wall3d_section%v) .or. &
+        ix_vertex_ante2(2) < 1 .or. ix_vertex_ante2(2) > size(wall3d_section%v)) then
+      print *, 'ERROR IN IX_VERTEX_ANTE2:', ix_vertex_ante2
+      print *, '      FOR GEN_SHAPE: ', trim(name)
+      call err_exit
+    endif
+  endif
+
+enddo
 
 close (iu)
 
+! Expand multi_sections
+
+i = -1
+outer: do 
+  i = i + 1
+  if (i > wall%n_section_max) exit
+  sec => wall%section(i)
+  if (sec%basic_shape /= 'multi_section') cycle
+  n_repeat = nint(sec%width2)
+
+  do j = 1, size(wall%multi_section)
+    m_sec => wall%multi_section(j)
+    if (sec%shape_name /= m_sec%name) cycle
+    m_max = ubound(m_sec%section, 1)
+
+    if (m_sec%section(m_max)%basic_shape == 'closed_end') then
+      n_add = n_repeat * m_max + 1
+    elseif (m_sec%section(m_max)%basic_shape == 'open_end') then
+      n_add = n_repeat * m_max
+    else
+      print *, 'ERROR: LAST SECTION IN MULTI_SECTION IS NOT "closed_end" NOR "open_end"'
+      call err_exit
+    endif
+
+    call move_alloc (wall%section, temp_section)
+    n = wall%n_section_max
+    allocate (wall%section(0:n+n_add-1))
+    wall%section(0:i-1) = temp_section(0:i-1)
+    wall%section(i+n_add:n+n_add-1) = temp_section(i+1:n)
+    deallocate (temp_section)
+    wall%n_section_max = n + n_add - 1
+
+    do k = 1, n_repeat
+      do im = 0, m_max - 1
+        sec2 => wall%section(i+(k-1)*m_max+im)
+        sec2 = m_sec%section(im)
+        sec2%s = sec%s + (k-1) * m_sec%section(m_max)%s + m_sec%section(im)%s
+      enddo
+    enddo
+    if (m_sec%section(m_max)%basic_shape == 'closed_end') then
+      sec2 => wall%section(i+n_repeat*m_max)
+      sec2 = m_sec%section(1)
+      sec2%s = sec%s + n_repeat * m_sec%section(m_max)%s
+    endif      
+
+    cycle outer
+
+  enddo
+
+  print *, 'CANNOT FIND MATCHING MULTI_SECTION NAME: ', trim(sec%shape_name)
+  call err_exit
+
+enddo outer
+
 ! point to gen_shapes
 
-do i = 0, n_wall_pt_max
-  if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
-    wall%pt(i)%gen_shape => wall%gen_shape(nint(wall%pt(i)%width2))
-  endif
-enddo
+section_loop: do i = 0, wall%n_section_max
+  sec => wall%section(i)
+  if (sec%basic_shape /= 'gen_shape' .and. sec%basic_shape /= 'triangular') cycle
+  do j = 1, size(wall%gen_shape)
+    if (sec%shape_name /= wall%gen_shape(j)%name) cycle
+    sec%gen_shape => wall%gen_shape(j)
+    cycle section_loop
+  enddo
+
+  print *, 'CANNOT FIND MATCHING SHAPE FOR: ', trim(sec%shape_name)
+  call err_exit
+
+enddo section_loop
 
 ! 
 
-wall%pt(wall%n_pt_max)%s = lat%ele(lat%n_ele_track)%s
+wall%section(wall%n_section_max)%s = lat%ele(lat%n_ele_track)%s
 wall%geometry = lat%param%geometry
 
-do i = 0, wall%n_pt_max
-  pt => wall%pt(i)
+do i = 0, wall%n_section_max
+  sec => wall%section(i)
 
   ! Check s ordering
 
   if (i > 0) then
-    if (pt%s <= wall%pt(i-1)%s) then
+    if (sec%s <= wall%section(i-1)%s) then
       call out_io (s_fatal$, r_name, &
-                'WALL%PT(i)%S: \f0.4\ ', &
-                '    IS LESS THAN PT(i-1)%S: \f0.4\ ', &
+                'WALL%SECTION(i)%S: \f0.4\ ', &
+                '    IS LESS THAN SECTION(i-1)%S: \f0.4\ ', &
                 '    FOR I = \i0\ ', &
-                r_array = [pt%s, wall%pt(i-1)%s], i_array = [i])
+                r_array = [sec%s, wall%section(i-1)%s], i_array = [i])
       call err_exit
     endif
   endif
 
   ! Check %basic_shape
 
-  if (.not. any(pt%basic_shape == ['elliptical    ', 'rectangular   ', 'gen_shape     ', 'gen_shape_mesh'])) then
+  if (.not. any(sec%basic_shape == ['elliptical    ', 'rectangular   ', 'gen_shape     ', 'triangular'])) then
     call out_io (s_fatal$, r_name, &
-              'BAD WALL%PT(i)%BASIC_SHAPE: ' // pt%basic_shape, &
+              'BAD WALL%SECTION(i)%BASIC_SHAPE: ' // sec%basic_shape, &
               '    FOR I = \i0\ ', i_array = [i])
     call err_exit
   endif
 
-  ! Gen_shape and gen_shape_mesh checks
+  ! Gen_shape and triangular checks
 
-  if (pt%basic_shape == 'gen_shape' .or. pt%basic_shape == 'gen_shape_mesh') then
-    if (.not. associated (pt%gen_shape)) then
-      call out_io (s_fatal$, r_name, &
-              'BAD WALL%PT(I)%IX_GEN_SHAPE SECTION NUMBER \i0\ ', i_array = [i])
+  if (sec%basic_shape == 'gen_shape' .or. sec%basic_shape == 'triangular') then
+    if (.not. associated (sec%gen_shape)) then
+      call out_io (s_fatal$, r_name, 'BAD SHAPE ASSOCIATION')
       call err_exit
     endif
-    if (pt%basic_shape == 'gen_shape') cycle
+    if (sec%basic_shape == 'gen_shape') cycle
     if (i == 0) cycle
 
-    pt0 => wall%pt(i-1)
-    if (pt0%basic_shape /= 'gen_shape' .and. pt0%basic_shape /= 'gen_shape_mesh') then
+    sec0 => wall%section(i-1)
+    if (sec0%basic_shape /= 'gen_shape' .and. sec0%basic_shape /= 'triangular') then
       call out_io (s_fatal$, r_name, &
-              'BASIC_SHAPE FOR SECTION PRECEEDING "gen_shape_mesh" SECTION MUST BE ', &
-              '"gen_shape" OR "gen_shape_mesh" SECTION NUMBER \i0\ ', i_array = [i])
+              'BASIC_SHAPE FOR SECTION PRECEEDING "triangular" SECTION MUST BE ', &
+              '"gen_shape" OR "triangular" SECTION NUMBER \i0\ ', i_array = [i])
       call err_exit
     endif
 
-    if (size(pt0%gen_shape%wall3d_section%v) /= size(pt%gen_shape%wall3d_section%v)) then
+    if (size(sec0%gen_shape%wall3d_section%v) /= size(sec%gen_shape%wall3d_section%v)) then
       call out_io (s_fatal$, r_name, &
-              '"gen_shape_mesh" CONSTRUCT MUST HAVE THE SAME NUMBER OF VERTEX POINTS ON', &
+              '"triangular" CONSTRUCT MUST HAVE THE SAME NUMBER OF VERTEX POINTS ON', &
               'SUCCESIVE CROSS-SECTIONS  \2i0\ ', i_array = [i-1, i])
       call err_exit
     endif
@@ -248,42 +391,42 @@ do i = 0, wall%n_pt_max
 
   ! Checks for everything else
 
-  if (pt%width2 <= 0) then
+  if (sec%width2 <= 0) then
     call out_io (s_fatal$, r_name, &
-              'BAD WALL%PT(i)%WIDTH2: \f0.4\ ', &
-              '    FOR I = \i0\ ', r_array = [pt%width2], i_array = [i])
+              'BAD WALL%SECTION(i)%WIDTH2: \f0.4\ ', &
+              '    FOR I = \i0\ ', r_array = [sec%width2], i_array = [i])
     call err_exit
   endif
 
-  if (pt%width2 <= 0) then
+  if (sec%width2 <= 0) then
     call out_io (s_fatal$, r_name, &
-              'BAD WALL%PT(i)%HEIGHT2: \f0.4\ ', &
-              '    FOR I = \i0\ ', r_array = [pt%height2], i_array = [i])
+              'BAD WALL%SECTION(i)%HEIGHT2: \f0.4\ ', &
+              '    FOR I = \i0\ ', r_array = [sec%height2], i_array = [i])
     call err_exit
   endif
 
   ! +x side check
 
-  if (pt%ante_height2_plus < 0 .and.pt%width2_plus > 0) then
-    if (pt%width2_plus > pt%width2) then
+  if (sec%ante_height2_plus < 0 .and.sec%width2_plus > 0) then
+    if (sec%width2_plus > sec%width2) then
       call out_io (s_fatal$, r_name, &
-              'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \f0.4\ ', &
+              'WITHOUT AN ANTECHAMBER: WALL%SECTION(i)%WIDTH2_PLUS \f0.4\ ', &
               '    MUST BE LESS THEN WIDTH2 \f0.4\ ', &
               '    FOR I = \i0\ ', &
-              r_array = [pt%width2_plus, pt%width2], i_array = [i])
+              r_array = [sec%width2_plus, sec%width2], i_array = [i])
       call err_exit
     endif
   endif
 
   ! -x side check
 
-  if (pt%ante_height2_minus < 0 .and. pt%width2_minus > 0) then
-    if (pt%width2_minus > pt%width2) then
+  if (sec%ante_height2_minus < 0 .and. sec%width2_minus > 0) then
+    if (sec%width2_minus > sec%width2) then
       call out_io (s_fatal$, r_name, &
-              'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \f0.4\ ', &
+              'WITHOUT AN ANTECHAMBER: WALL%SECTION(i)%WIDTH2_MINUS \f0.4\ ', &
               '    MUST BE LESS THEN WIDTH2 \f0.4\ ', &
               '    FOR I = \i0\ ', &
-              r_array = [pt%width2_minus, pt%width2], i_array = [i])
+              r_array = [sec%width2_minus, sec%width2], i_array = [i])
       call err_exit
     endif
   endif
@@ -293,11 +436,11 @@ enddo
 ! If circular lattice then start and end shapes must match
 
 if (wall%geometry == closed$) then
-  pt0 => wall%pt(0)
-  pt  => wall%pt(wall%n_pt_max)
-  if (pt0%basic_shape /= pt%basic_shape .or. pt0%width2 /= pt%width2 .or. pt0%height2 /= pt%height2 .or. &
-        pt0%ante_height2_plus /= pt%ante_height2_plus .or. pt0%width2_plus /= pt%width2_plus .or. &
-        pt0%ante_height2_minus /= pt%ante_height2_minus .or. pt0%width2_minus /= pt%width2_minus) then
+  sec0 => wall%section(0)
+  sec  => wall%section(wall%n_section_max)
+  if (sec0%basic_shape /= sec%basic_shape .or. sec0%width2 /= sec%width2 .or. sec0%height2 /= sec%height2 .or. &
+        sec0%ante_height2_plus /= sec%ante_height2_plus .or. sec0%width2_plus /= sec%width2_plus .or. &
+        sec0%ante_height2_minus /= sec%ante_height2_minus .or. sec0%width2_minus /= sec%width2_minus) then
       call out_io (s_fatal$, r_name, &
               'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION MUST BE THE SAME AS THE FIRST.')
       call err_exit
@@ -306,68 +449,223 @@ endif
 
 ! computations
 
-do i = 0, wall%n_pt_max
-  pt => wall%pt(i)
+do i = 0, wall%n_section_max
+  sec => wall%section(i)
 
   ! +x side computation...
   ! If ante_height2_plus > 0 --> Has +x antechamber
 
-  if (pt%ante_height2_plus > 0) then
-    if (pt%basic_shape == 'elliptical') then
-      pt%ante_x0_plus = pt%width2 * sqrt (1 - (pt%ante_height2_plus / pt%height2)**2)
+  if (sec%ante_height2_plus > 0) then
+    if (sec%basic_shape == 'elliptical') then
+      sec%ante_x0_plus = sec%width2 * sqrt (1 - (sec%ante_height2_plus / sec%height2)**2)
     else
-      pt%ante_x0_plus = pt%width2
+      sec%ante_x0_plus = sec%width2
     endif
 
-    if (pt%width2_plus <= pt%ante_x0_plus) then
+    if (sec%width2_plus <= sec%ante_x0_plus) then
       call out_io (s_fatal$, r_name, &
-              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \f0.4\ ', &
+              'WITH AN ANTECHAMBER: WALL%SECTION(i)%WIDTH2_PLUS \f0.4\ ', &
               '    MUST BE GREATER THEN: \f0.4\ ', &
               '    FOR I = \i0\ ', &
-              r_array = [pt%width2_plus, pt%ante_x0_plus], i_array = [i])
+              r_array = [sec%width2_plus, sec%ante_x0_plus], i_array = [i])
       call err_exit
     endif
 
   ! if width2_plus > 0 (and ante_height2_plus < 0) --> beam stop
 
-  elseif (pt%width2_plus > 0) then
-    if (pt%basic_shape == 'elliptical') then
-      pt%y0_plus = pt%height2 * sqrt (1 - (pt%width2_plus / pt%width2)**2)
+  elseif (sec%width2_plus > 0) then
+    if (sec%basic_shape == 'elliptical') then
+      sec%y0_plus = sec%height2 * sqrt (1 - (sec%width2_plus / sec%width2)**2)
     else
-      pt%y0_plus = pt%height2
+      sec%y0_plus = sec%height2
     endif
   endif
 
   ! -x side computation
 
-  if (pt%ante_height2_minus > 0) then
-    if (pt%basic_shape == 'elliptical') then
-      pt%ante_x0_minus = pt%width2 * sqrt (1 - (pt%ante_height2_minus / pt%height2)**2)
+  if (sec%ante_height2_minus > 0) then
+    if (sec%basic_shape == 'elliptical') then
+      sec%ante_x0_minus = sec%width2 * sqrt (1 - (sec%ante_height2_minus / sec%height2)**2)
     else
-      pt%ante_x0_minus = pt%width2
+      sec%ante_x0_minus = sec%width2
     endif
 
-    if (pt%width2_minus <= pt%ante_x0_minus) then
+    if (sec%width2_minus <= sec%ante_x0_minus) then
       call out_io (s_fatal$, r_name, &
-              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \f0.4\ ', &
+              'WITH AN ANTECHAMBER: WALL%SECTION(i)%WIDTH2_MINUS \f0.4\ ', &
               '    MUST BE GREATER THEN: \f0.4\ ', &
               '    FOR I = \i0\ ', &
-              r_array = [pt%width2_minus, pt%ante_x0_minus], i_array = [i])
+              r_array = [sec%width2_minus, sec%ante_x0_minus], i_array = [i])
 
       call err_exit
     endif
 
-  elseif (pt%width2_minus > 0) then
-    if (pt%basic_shape == 'elliptical') then
-      pt%y0_minus = pt%height2 * sqrt (1 - (pt%width2_minus / pt%width2)**2)
+  elseif (sec%width2_minus > 0) then
+    if (sec%basic_shape == 'elliptical') then
+      sec%y0_minus = sec%height2 * sqrt (1 - (sec%width2_minus / sec%width2)**2)
     else
-      pt%y0_minus = pt%height2
+      sec%y0_minus = sec%height2
     endif
   endif
 
 enddo
 
+! Surface info
+
+do i = wall%n_section_max, 0, -1
+  sec => wall%section(i)
+
+  if (associated(sec%gen_shape)) then
+    if (associated(sec%gen_shape%surface) .and. .not. associated (sec%surface)) sec%surface => sec%gen_shape%surface
+  endif
+
+  if (.not. associated(sec%surface)) then
+    if (i == wall%n_section_max) then
+      sec%surface => wall%surface(1)
+    else
+      sec%surface => wall%section(i+1)%surface
+    endif
+  endif
+enddo
+
 end subroutine sr3d_init_and_check_wall 
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine sr3d_associate_surface (surface_ptr, surface_name, surfaces)
+!
+! Routine to assocaite a surface pointer with one of an array os surfaces.
+!
+! Input:
+!   surface_name  -- Character(*): Name of surface.
+!   surfaces(:)   -- sr3d_surface_struct: Array of surfaces.
+!
+! Output:
+!   surface_ptr   -- sr3d_surface_struct, pointer: pointer to a surface.
+!-
+
+subroutine sr3d_associate_surface (surface_ptr, surface_name, surfaces)
+
+implicit none
+
+type (sr3d_surface_struct), pointer :: surface_ptr
+type (sr3d_surface_struct), target :: surfaces(:)
+
+character(*) surface_name
+
+integer i
+
+!
+
+nullify(surface_ptr)
+if (surface_name == '') return
+
+do i = 1, size(surfaces)
+  if (surfaces(i)%name == surface_name) then
+    surface_ptr => surfaces(i)
+    return
+  endif
+enddo
+
+print *, 'NO SURFACE CORRESPONDING TO: ', trim(surface_name)
+call err_exit
+
+end subroutine sr3d_associate_surface
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine sr3d_read_wall_multi_section (iu, wall)
+!
+! Routine to read in the multi_section part of the wall definition.
+!
+! Input:
+!   iu   -- integer: File unit number.
+!
+! Output:
+!   wall -- sr3d_wall_struct: Wall structure with computed parameters.
+!-
+
+subroutine sr3d_read_wall_multi_section (iu, wall)
+
+type (sr3d_wall_struct), target :: wall
+type (sr3d_wall_section_input) section(0:100)
+
+integer i, j, iu, ix, n_multi, n_section, ios
+
+character(40) surface, name
+
+namelist / multi_section_def / name, section, surface
+
+! Count multi_sections
+
+rewind(iu)
+n_multi = 0
+do
+  read (iu, nml = multi_section_def, iostat = ios)
+  if (ios > 0) then ! error
+    rewind (iu)
+    do
+      read (iu, nml = multi_section_def) ! will bomb program with error message
+    enddo  
+  endif
+  if (ios < 0) exit   ! End of file reached
+  n_multi = n_multi + 1
+enddo
+
+allocate (wall%multi_section(n_multi))
+
+! Read each multi_section
+
+rewind(iu)
+do i = 1, n_multi
+  section%basic_shape = ''
+  section%ante_height2_plus = -1
+  section%ante_height2_minus = -1
+  section%width2_plus = -1
+  section%width2_minus = -1
+  section%name = ''
+  name = ''
+  surface = ''
+  read (iu, nml = multi_section_def)
+
+  if (name == '') then
+    print *, 'MULTI_SECTION_DEF DOES NOT HAVE A NAME! MULTI_SECTION_DEF NUMBER:', i
+    call err_exit
+  endif
+
+  do j = 1, i-1
+    if (wall%multi_section(j)%name == name) then
+      print *, 'TWO GEN_SHAPE_DEFS HAVE THE SAME NAME: ', trim(name)
+      call err_exit
+    endif
+  enddo
+
+  wall%multi_section(i)%name = name
+
+  n_section = count(section%basic_shape /= '')
+  if (any(section(n_section:)%basic_shape /= '')) then
+    print *, 'CONFUSED MULTI_SECTION_DEF: ', trim(name)
+    call err_exit
+  endif
+  allocate (wall%multi_section(i)%section(0:n_section-1))
+
+  do j = 0, n_section-1
+    ix = index(section(j)%basic_shape, ':')
+    if (ix == 0) ix = len_trim(section(j)%basic_shape) + 1
+    wall%multi_section(i)%section(j) = sr3d_wall_section_struct(section(j)%name, &
+          section(j)%s, section(j)%basic_shape(:ix-1), section(j)%basic_shape(ix+1:), &
+          section(j)%width2, section(j)%height2, section(j)%width2_plus, &
+          section(j)%ante_height2_plus, section(j)%width2_minus, section(j)%ante_height2_minus, &
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null(), .false.)
+    call sr3d_associate_surface (wall%multi_section(i)%section(j)%surface, surface, wall%surface)
+  enddo
+enddo
+
+end subroutine sr3d_read_wall_multi_section
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -634,18 +932,18 @@ logical in_ante0, in_ante1
 
 call sr3d_get_wall_index (p_orb, wall, ix)
 
-! gen_shape_mesh calc.
+! triangular calc.
 ! The wall outward normal is just given by the cross product: (pt1-pt0) x (pt2-pt2)
 
-if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
+if (wall%section(ix+1)%basic_shape == 'triangular') then
   if (present(in_antechamber)) in_antechamber = .false.
   if (.not. present(dw_perp)) return
-  call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), p_orb%ix_triangle, pt0, pt1, pt2)
+  call sr3d_get_mesh_wall_triangle_pts (wall%section(ix), wall%section(ix+1), p_orb%ix_triangle, pt0, pt1, pt2)
   dp1 = pt1 - pt0
   dp2 = pt2 - pt0
   dw_perp = [dp1(2)*dp2(3) - dp1(3)*dp2(2), dp1(3)*dp2(1) - dp1(1)*dp2(3), dp1(1)*dp2(2) - dp1(2)*dp2(1)]
 
-! Not gen_shape_mesh calc.
+! Not triangular calc.
 
 else
   ! Get the parameters at the defined cross-sections to either side of the photon position.
@@ -660,17 +958,17 @@ else
     sin_ang = p_orb%vec(3) / r_photon
   endif
 
-  call sr3d_wall_pt_params (wall%pt(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0)
-  call sr3d_wall_pt_params (wall%pt(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1)
+  call sr3d_wall_section_params (wall%section(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0)
+  call sr3d_wall_section_params (wall%section(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1)
 
-  f = (p_orb%vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
+  f = (p_orb%vec(5) - wall%section(ix)%s) / (wall%section(ix+1)%s - wall%section(ix)%s)
 
   d_radius = r_photon - ((1 - f) * radius0 + f * radius1)
 
   if (present (dw_perp)) then
     dw_perp(1:2) = [cos_ang, sin_ang] - [-sin_ang, cos_ang] * &
                               ((1 - f) * dr0_dtheta + f * dr1_dtheta) / r_photon
-    dw_perp(3) = (radius0 - radius1) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
+    dw_perp(3) = (radius0 - radius1) / (wall%section(ix+1)%s - wall%section(ix)%s)
   endif
 
   if (present(in_antechamber)) in_antechamber = (in_ante0 .and. in_ante1)
@@ -708,12 +1006,12 @@ end subroutine sr3d_photon_d_radius
 !
 ! Routine to get the wall index such that 
 ! For p_orb%vec(6) > 0 (forward motion):
-!   wall%pt(ix_wall)%s < p_orb%vec(5) <= wall%pt(ix_wall+1)%s
+!   wall%section(ix_wall)%s < p_orb%vec(5) <= wall%section(ix_wall+1)%s
 ! For p_orb%vec(6) < 0 (backward motion):
-!   wall%pt(ix_wall)%s <= p_orb%vec(5) < wall%pt(ix_wall+1)%s
+!   wall%section(ix_wall)%s <= p_orb%vec(5) < wall%section(ix_wall+1)%s
 ! Exceptions:
-!   If p_orb%vec(5) == wall%pt(0)%s (= 0)       -> ix_wall = 0
-!   If p_orb%vec(5) == wall%pt(wall%n_pt_max)%s -> ix_wall = wall%n_pt_max - 1
+!   If p_orb%vec(5) == wall%section(0)%s (= 0)       -> ix_wall = 0
+!   If p_orb%vec(5) == wall%section(wall%n_section_max)%s -> ix_wall = wall%n_section_max - 1
 !
 ! Input:
 !   p_orb  -- sr3d_photon_coord_struct: Photon position.
@@ -736,15 +1034,15 @@ integer, save :: ix_wall_old = 0
 ! 
 
 ix_wall = ix_wall_old
-if (p_orb%vec(5) < wall%pt(ix_wall)%s .or. p_orb%vec(5) > wall%pt(ix_wall+1)%s) then
-  call bracket_index (wall%pt%s, 0, wall%n_pt_max, p_orb%vec(5), ix_wall)
-  if (ix_wall == wall%n_pt_max) ix_wall = wall%n_pt_max - 1
+if (p_orb%vec(5) < wall%section(ix_wall)%s .or. p_orb%vec(5) > wall%section(ix_wall+1)%s) then
+  call bracket_index (wall%section%s, 0, wall%n_section_max, p_orb%vec(5), ix_wall)
+  if (ix_wall == wall%n_section_max) ix_wall = wall%n_section_max - 1
 endif
 
 ! vec(5) at boundary cases
 
-if (p_orb%vec(5) == wall%pt(ix_wall)%s   .and. p_orb%vec(6) > 0 .and. ix_wall /= 0)               ix_wall = ix_wall - 1
-if (p_orb%vec(5) == wall%pt(ix_wall+1)%s .and. p_orb%vec(6) < 0 .and. ix_wall /= wall%n_pt_max-1) ix_wall = ix_wall + 1
+if (p_orb%vec(5) == wall%section(ix_wall)%s   .and. p_orb%vec(6) > 0 .and. ix_wall /= 0)               ix_wall = ix_wall - 1
+if (p_orb%vec(5) == wall%section(ix_wall+1)%s .and. p_orb%vec(6) < 0 .and. ix_wall /= wall%n_section_max-1) ix_wall = ix_wall + 1
 
 p_orb%ix_wall = ix_wall
 ix_wall_old = ix_wall
@@ -761,8 +1059,8 @@ end subroutine sr3d_get_wall_index
 ! two cross-sections.
 !
 ! Input:
-!   pt1 -- sr3d_wall_pt_struct: A gen_shape or gen_shape_mesh cross-section.
-!   pt2 -- sr3d_wall_pt_struct: Second cross-section. Should be gen_shape_mesh.
+!   pt1 -- sr3d_wall_section_struct: A gen_shape or triangular cross-section.
+!   pt2 -- sr3d_wall_section_struct: Second cross-section. Should be triangular.
 !   ix_tr  -- Integer: Triangle index. Must be between 1 and 2*size(pt1%gen_shape%wall3d_section%v).
 !               [Note: size(pt1%gen_shape%wall3d_section%v) = size(pt2%gen_shape%wall3d_section%v)]
 !
@@ -777,7 +1075,7 @@ subroutine sr3d_get_mesh_wall_triangle_pts (pt1, pt2, ix_tri, tri_vert0, tri_ver
 
 implicit none
 
-type (sr3d_wall_pt_struct) pt1, pt2
+type (sr3d_wall_section_struct) pt1, pt2
 
 integer ix_tri
 integer ix1, ix2
@@ -806,12 +1104,12 @@ end subroutine sr3d_get_mesh_wall_triangle_pts
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_wall_pt_params (wall_pt, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber, wall)
+! Subroutine sr3d_wall_section_params (wall_section, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber, wall)
 !
 ! Routine to compute parameters needed by sr3d_photon_d_radius routine.
 !
 ! Input:
-!   wall_pt -- sr3d_wall_pt_struct: Wall outline at a particular longitudinal location.
+!   wall_section -- sr3d_wall_section_struct: Wall outline at a particular longitudinal location.
 !   cos_photon -- Real(rp): Cosine of the photon transverse position.
 !   sin_photon -- Real(rp): Sine of the photon transverse position.
 !   wall       -- sr3d_wall_struct: Needed to determine the basic_shape.
@@ -822,11 +1120,11 @@ end subroutine sr3d_get_mesh_wall_triangle_pts
 !   in_antechamber -- Logical: Set true of particle is in antechamber
 !-
 
-subroutine sr3d_wall_pt_params (wall_pt, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber)
+subroutine sr3d_wall_section_params (wall_section, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber)
 
 implicit none
 
-type (sr3d_wall_pt_struct) wall_pt, pt
+type (sr3d_wall_section_struct) wall_section, section
 type (wall3d_vertex_struct), pointer :: v(:)
 
 real(rp) dr_dtheta, cos_photon, sin_photon 
@@ -842,10 +1140,10 @@ in_antechamber = .false.
 
 ! general shape
 
-if (wall_pt%basic_shape == 'gen_shape') then
-  call calc_wall_radius (wall_pt%gen_shape%wall3d_section%v, cos_photon, sin_photon, r_wall, dr_dtheta, ix_vertex)
+if (wall_section%basic_shape == 'gen_shape') then
+  call calc_wall_radius (wall_section%gen_shape%wall3d_section%v, cos_photon, sin_photon, r_wall, dr_dtheta, ix_vertex)
 
-  ixv = wall_pt%gen_shape%ix_vertex_ante
+  ixv = wall_section%gen_shape%ix_vertex_ante
   if (ixv(1) > 0) then
     if (ixv(2) > ixv(1)) then
       if (ix_vertex >= ixv(1) .and. ix_vertex < ixv(2)) in_antechamber = .true.
@@ -854,7 +1152,7 @@ if (wall_pt%basic_shape == 'gen_shape') then
     endif
   endif
 
-  ixv = wall_pt%gen_shape%ix_vertex_ante2
+  ixv = wall_section%gen_shape%ix_vertex_ante2
   if (ixv(1) > 0) then
     if (ixv(2) > ixv(1)) then
       if (ix_vertex >= ixv(1) .and. ix_vertex < ixv(2)) in_antechamber = .true.
@@ -869,7 +1167,7 @@ endif
 
 ! general shape: Should not be here
 
-if (wall_pt%basic_shape == 'gen_shape_mesh') then
+if (wall_section%basic_shape == 'triangular') then
   call err_exit
 endif
 
@@ -880,25 +1178,25 @@ endif
 
 ! Positive x side check.
 
-pt = wall_pt
+section = wall_section
 
 if (cos_photon > 0) then
 
   ! If there is an antechamber...
-  if (pt%ante_height2_plus > 0) then
+  if (section%ante_height2_plus > 0) then
 
-    if (abs(sin_photon/cos_photon) < pt%ante_height2_plus/pt%ante_x0_plus) then  
-      pt%basic_shape = 'rectangular'
-      pt%width2 = pt%width2_plus
-      pt%height2 = pt%ante_height2_plus
-      if (cos_photon >= pt%ante_x0_plus) in_antechamber = .true.
+    if (abs(sin_photon/cos_photon) < section%ante_height2_plus/section%ante_x0_plus) then  
+      section%basic_shape = 'rectangular'
+      section%width2 = section%width2_plus
+      section%height2 = section%ante_height2_plus
+      if (cos_photon >= section%ante_x0_plus) in_antechamber = .true.
     endif
 
   ! If there is a beam stop...
-  elseif (pt%width2_plus > 0) then
-    if (abs(sin_photon/cos_photon) < pt%y0_plus/pt%width2_plus) then 
-      pt%basic_shape = 'rectangular'
-      pt%width2 = pt%width2_plus
+  elseif (section%width2_plus > 0) then
+    if (abs(sin_photon/cos_photon) < section%y0_plus/section%width2_plus) then 
+      section%basic_shape = 'rectangular'
+      section%width2 = section%width2_plus
     endif
 
   endif
@@ -908,20 +1206,20 @@ if (cos_photon > 0) then
 elseif (cos_photon < 0) then
 
   ! If there is an antechamber...
-  if (pt%ante_height2_minus > 0) then
+  if (section%ante_height2_minus > 0) then
 
-    if (abs(sin_photon/cos_photon) < pt%ante_height2_minus/pt%ante_x0_minus) then  
-      pt%basic_shape = 'rectangular'
-      pt%width2 = pt%width2_minus
-      pt%height2 = pt%ante_height2_minus
-      if (cos_photon >= pt%ante_x0_minus) in_antechamber = .true.
+    if (abs(sin_photon/cos_photon) < section%ante_height2_minus/section%ante_x0_minus) then  
+      section%basic_shape = 'rectangular'
+      section%width2 = section%width2_minus
+      section%height2 = section%ante_height2_minus
+      if (cos_photon >= section%ante_x0_minus) in_antechamber = .true.
     endif
 
   ! If there is a beam stop...
-  elseif (pt%width2_minus > 0) then
-    if (abs(sin_photon / cos_photon) < pt%y0_minus/pt%width2_minus) then 
-      pt%basic_shape = 'rectangular'
-      pt%width2 = pt%width2_minus
+  elseif (section%width2_minus > 0) then
+    if (abs(sin_photon / cos_photon) < section%y0_minus/section%width2_minus) then 
+      section%basic_shape = 'rectangular'
+      section%width2 = section%width2_minus
     endif
 
   endif
@@ -930,20 +1228,20 @@ endif
 
 ! Compute parameters
 
-if (pt%basic_shape == 'rectangular') then
-  if (abs(cos_photon/pt%width2) > abs(sin_photon/pt%height2)) then
-    r_wall = pt%width2 / abs(cos_photon)
+if (section%basic_shape == 'rectangular') then
+  if (abs(cos_photon/section%width2) > abs(sin_photon/section%height2)) then
+    r_wall = section%width2 / abs(cos_photon)
     dr_dtheta = r_wall * sin_photon / cos_photon
   else
-    r_wall = pt%height2 / abs(sin_photon)
+    r_wall = section%height2 / abs(sin_photon)
     dr_dtheta = -r_wall * cos_photon / sin_photon
   endif
 
-elseif (pt%basic_shape == 'elliptical') then
-  r_wall = 1 / sqrt((cos_photon/pt%width2)**2 + (sin_photon/pt%height2)**2)
-  dr_dtheta = r_wall**3 * cos_photon * sin_photon * (1/pt%width2**2 - 1/pt%height2**2)
+elseif (section%basic_shape == 'elliptical') then
+  r_wall = 1 / sqrt((cos_photon/section%width2)**2 + (sin_photon/section%height2)**2)
+  dr_dtheta = r_wall**3 * cos_photon * sin_photon * (1/section%width2**2 - 1/section%height2**2)
 endif
 
-end subroutine sr3d_wall_pt_params
+end subroutine sr3d_wall_section_params
 
 end module

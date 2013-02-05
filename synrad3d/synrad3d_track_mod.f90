@@ -2,7 +2,6 @@ module synrad3d_track_mod
 
 use synrad3d_utils
 use synrad3d_output_mod
-use photon_reflection_mod
 
 ! These common variables are needed for the Num Rec routine zbrent.
 
@@ -155,7 +154,7 @@ real(rp) d_radius
 integer num_ignore_generated_outside_wall
 logical is_inside
 
-! For gen_shape_mesh "outside wall" is defined here to be true if a ray from the 
+! For triangular "outside wall" is defined here to be true if a ray from the 
 ! center to photon_start crosses a wall boundary.
 
 photon%now = photon_start
@@ -212,15 +211,15 @@ integer i, ix
 
 logical is_through
 
-! The present position is between wall%pt(ix)%s and wall%pt(ix+1)%s
+! The present position is between wall%section(ix)%s and wall%section(ix+1)%s
 
 call sr3d_get_wall_index (photon%now, wall, ix)
 
 photon%status = inside_the_wall$
 
-if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
-  do i = 1, 2*size(wall%pt(ix)%gen_shape%wall3d_section%v)
-    call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), i, tri_vert0, tri_vert1, tri_vert2)
+if (wall%section(ix+1)%basic_shape == 'triangular') then
+  do i = 1, 2*size(wall%section(ix)%gen_shape%wall3d_section%v)
+    call sr3d_get_mesh_wall_triangle_pts (wall%section(ix), wall%section(ix+1), i, tri_vert0, tri_vert1, tri_vert2)
     call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through)
     if (is_through) then
       photon%status = is_through_wall$
@@ -240,7 +239,7 @@ endif
 
 if (wall%geometry == open$) then
   if (photon%now%vec(5) == 0 .and. photon%now%vec(6) < 0) photon%status = at_lat_end$
-  if (photon%now%vec(5) == wall%pt(wall%n_pt_max)%s .and. photon%now%vec(6) > 0) photon%status = at_lat_end$
+  if (photon%now%vec(5) == wall%section(wall%n_section_max)%s .and. photon%now%vec(6) > 0) photon%status = at_lat_end$
 endif
 
 end subroutine sr3d_photon_status_calc
@@ -367,7 +366,7 @@ real(rp), pointer :: vec(:)
 
 integer ixw
 
-logical stop_at_check_pt, check_pt_here
+logical stop_at_check_pt, check_section_here
 
 
 ! update old 
@@ -382,8 +381,8 @@ dl_left = dl_step
 
 propagation_loop: do
 
-  check_pt_here = .false.
-  if (stop_at_check_pt) call bracket_index (wall%pt%s, 0, wall%n_pt_max, now%vec(5), ixw)
+  check_section_here = .false.
+  if (stop_at_check_pt) call bracket_index (wall%section%s, 0, wall%n_section_max, now%vec(5), ixw)
 
   ! If we are crossing over to a new element then update now%ix_ele.
 
@@ -411,10 +410,10 @@ propagation_loop: do
 
     s_stop = lat%ele(now%ix_ele)%s
 
-    if (stop_at_check_pt .and. ixw < wall%n_pt_max) then
-      if (wall%pt(ixw+1)%s < s_stop) then
-        s_stop = wall%pt(ixw+1)%s
-        check_pt_here = .true.
+    if (stop_at_check_pt .and. ixw < wall%n_section_max) then
+      if (wall%section(ixw+1)%s < s_stop) then
+        s_stop = wall%section(ixw+1)%s
+        check_section_here = .true.
       endif
     endif
 
@@ -443,10 +442,10 @@ propagation_loop: do
     s_stop = lat%ele(now%ix_ele-1)%s
 
     if (stop_at_check_pt .and. ixw > 0) then
-      if (wall%pt(ixw)%s == now%vec(5)) ixw = ixw - 1
-      if (wall%pt(ixw)%s > s_stop) then
-        s_stop = wall%pt(ixw)%s
-        check_pt_here = .true.
+      if (wall%section(ixw)%s == now%vec(5)) ixw = ixw - 1
+      if (wall%section(ixw)%s > s_stop) then
+        s_stop = wall%section(ixw)%s
+        check_section_here = .true.
       endif
     endif
 
@@ -471,7 +470,7 @@ propagation_loop: do
       dl = dl_left
       tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
       theta = atan(tan_t)
-      check_pt_here = .false.
+      check_section_here = .false.
       s_stop = now%vec(5) + radius * theta
     else
       dl = tan_t * (radius + now%vec(1)) / (now%vec(6) - tan_t * now%vec(2))
@@ -486,7 +485,7 @@ propagation_loop: do
         tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
         theta = atan(tan_t)
         s_stop = now%vec(5) + radius * theta
-        check_pt_here = .true.
+        check_section_here = .true.
       endif
     endif
 
@@ -520,7 +519,7 @@ propagation_loop: do
       dl = (s_stop - now%vec(5)) / now%vec(6)
     else
       dl = dl_left
-      check_pt_here = .false.
+      check_section_here = .false.
       s_stop = now%vec(5) + dl * now%vec(6)
     endif
 
@@ -537,7 +536,7 @@ propagation_loop: do
   dl_left = dl_left - dl
 
   if (dl_left == 0) exit
-  if (stop_at_check_pt .and. check_pt_here) exit
+  if (stop_at_check_pt .and. check_section_here) exit
 
 enddo propagation_loop
 
@@ -701,7 +700,7 @@ endif
 ! So just interpolate from the end
 
 if (track_len == photon_com%old%track_len .and. &
-      wall_com%pt(photon_com%now%ix_wall+1)%basic_shape == 'gen_shape_mesh') then
+      wall_com%section(photon_com%now%ix_wall+1)%basic_shape == 'triangular') then
   call sr3d_mesh_d_radius (photon_com, wall_com, d_radius)
   d_radius = d_radius - (photon_com%now%track_len - photon_com%old%track_len)  
   return
@@ -723,7 +722,7 @@ endif
 d_track = track_len - photon1_com%now%track_len
 call sr3d_propagate_photon_a_step (photon1_com, d_track, lat_com, wall_com, .false.)
 
-if (wall_com%pt(photon_com%now%ix_wall+1)%basic_shape == 'gen_shape_mesh') then
+if (wall_com%section(photon_com%now%ix_wall+1)%basic_shape == 'triangular') then
   call sr3d_mesh_d_radius (photon1_com, wall_com, d_radius)
 else
   call sr3d_photon_d_radius (photon1_com%now, wall_com, d_radius)
@@ -763,7 +762,7 @@ ix = photon%now%ix_wall
 ! To save time try old triangle
 
 if (photon%now%ix_triangle > 0) then
-  call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), photon%now%ix_triangle, tv0, tv1, tv2)
+  call sr3d_get_mesh_wall_triangle_pts (wall%section(ix), wall%section(ix+1), photon%now%ix_triangle, tv0, tv1, tv2)
   call sr3d_mesh_triangle_intersect (photon, tv0, tv1, tv2, is_through, dlen)
   if (dlen > 0) then
     d_radius = (photon%now%track_len - photon%old%track_len) - dlen 
@@ -776,8 +775,8 @@ endif
 photon%now%ix_triangle = -1
 dlen_min = 1d30   ! Something large
 
-do i = 1, 2*size(wall%pt(ix)%gen_shape%wall3d_section%v)
-  call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), i, tv0, tv1, tv2)
+do i = 1, 2*size(wall%section(ix)%gen_shape%wall3d_section%v)
+  call sr3d_get_mesh_wall_triangle_pts (wall%section(ix), wall%section(ix+1), i, tv0, tv1, tv2)
   call sr3d_mesh_triangle_intersect (photon, tv0, tv1, tv2, is_through, dlen)
   if (dlen <= 0) cycle
   if (dlen < dlen_min) then
@@ -825,9 +824,10 @@ implicit none
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_wall_struct), target :: wall
 type (lat_struct) lat
-type (sr3d_wall_pt_struct), pointer :: wall0, wall1
+type (sr3d_wall_section_struct), pointer :: wall0, wall1
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (sr3d_photon_wall_hit_struct), allocatable :: hit_temp(:)
+type (photon_reflect_surface_struct), pointer :: surface
 
 real(rp) cos_perp, dw_perp(3), denom, f, r, d_rad, theta_diffuse, phi_diffuse
 real(rp) graze_angle, reflectivity_smooth, reflectivity_rough, dvec(3)
@@ -879,7 +879,8 @@ cos_perp = dot_product (photon%now%vec(2:6:2), dw_perp)
 graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
-call photon_reflectivity (graze_angle, photon%now%energy, reflectivity_rough, reflectivity_smooth)
+surface => wall%section(photon%now%ix_wall+1)%surface%info
+call photon_reflectivity (graze_angle, photon%now%energy, surface, reflectivity_rough, reflectivity_smooth)
 
 if (cos_perp < 0) then
   print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
@@ -901,7 +902,7 @@ if (sr3d_params%diffuse_scattering_on) then
   wall_hit(n_wall_hit)%reflectivity = reflectivity_smooth
   if (r < reflectivity_smooth .or. .not. sr3d_params%allow_absorption) then
     absorbed = .false.
-    call photon_diffuse_scattering (graze_angle, photon%now%energy, theta_diffuse, phi_diffuse)
+    call photon_diffuse_scattering (graze_angle, photon%now%energy, surface, theta_diffuse, phi_diffuse)
     ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
     vec_in_plane = photon%now%vec(2:6:2) - dw_perp * cos_perp  
     vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.

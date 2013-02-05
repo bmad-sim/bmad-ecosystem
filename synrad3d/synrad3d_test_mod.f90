@@ -2,7 +2,6 @@ module synrad3d_test_mod
 
 use synrad3d_track_mod
 use synrad3d_output_mod
-use photon_reflection_mod
 
 contains
 
@@ -22,23 +21,27 @@ subroutine sr3d_diffuse_reflection_test (param_file)
 
 implicit none
 
+type (photon_reflect_surface_struct) surface
+
 real(rp) graze_angle_in, energy, angle_radians
 real(rp) p_reflect_rough, p_reflect_smooth, theta_out, phi_out
 real(rp) surface_roughness_rms, roughness_correlation_len
 
 integer n_photons
-integer i, ix, ios
+integer i, ix, ios, random_seed
 
 character(*) param_file
 character(200) output_file, reflection_probability_file
 
 namelist / diffuse_reflection_test / graze_angle_in, energy, n_photons, surface_roughness_rms, &
-            roughness_correlation_len, reflection_probability_file, output_file
+            roughness_correlation_len, reflection_probability_file, output_file, random_seed
 
 !
 
 open (1, file = param_file)
 output_file = 'test_diffuse_reflection.dat'
+
+random_seed = 0
 read (1, nml = diffuse_reflection_test, iostat = ios)
 if (ios > 0) then
   print *, 'ERROR READING DIFFUSE_REFLECTION_TEST NAMELIST IN FILE: ' // trim(param_file)
@@ -52,11 +55,19 @@ close (1)
 
 !
 
-if (reflection_probability_file /= '') call read_surface_reflection_file (reflection_probability_file, ix)
-call set_surface_roughness (surface_roughness_rms, roughness_correlation_len)
+call ran_seed_put (random_seed)
+
+if (reflection_probability_file == '') then
+  call photon_reflection_std_surface_init (surface)
+else
+  call read_surface_reflection_file (reflection_probability_file, surface)
+endif
+
+if (surface_roughness_rms > 0) surface%surface_roughness_rms = surface_roughness_rms
+if (roughness_correlation_len > 0) surface%roughness_correlation_len = roughness_correlation_len
 
 angle_radians = graze_angle_in * pi / 180
-call photon_reflectivity (angle_radians, energy, p_reflect_rough, p_reflect_smooth)
+call photon_reflectivity (angle_radians, energy, surface, p_reflect_rough, p_reflect_smooth)
 
 !
 
@@ -69,11 +80,12 @@ write (2, *) 'roughness_correlation_len: ', roughness_correlation_len
 write (2, *) 'Rough surface reflection probability: ', p_reflect_rough
 write (2, *) 'Smooth surface reflection probability:', p_reflect_smooth
 write (2, *) 'reflection_probability_file: "', trim(reflection_probability_file), '"'
+write (2, *) 'random_seed:                 "', random_seed
 
+write (2, *) '          #          theta_out                     phi_out'
 do i = 1, n_photons
-  call photon_diffuse_scattering (angle_radians, energy, theta_out, phi_out)
-  write (2, *) 'theta_out      phi_out'
-  write (2, *) theta_out, phi_out
+  call photon_diffuse_scattering (angle_radians, energy, surface, theta_out, phi_out)
+  write (2, *) i, theta_out, phi_out
 enddo
 
 close (2)
