@@ -28,6 +28,7 @@ end type
 ! All others can be set by an outside programmer. 
 
 type photon_reflect_surface_struct
+  character(40) descrip                       ! Descriptive name
   type (photon_reflect_table_struct), allocatable :: table(:)
   real(rp) :: surface_roughness_rms = 0       ! sigma in Dugan's notation
   real(rp) :: roughness_correlation_len = 0   ! T in Dugan's notation
@@ -35,29 +36,23 @@ type photon_reflect_surface_struct
   integer :: ix_surface
 end type
 
-type (photon_reflect_surface_struct), save, target :: reflect_surface_array(10)
-type (photon_reflect_surface_struct), save, pointer :: current_surface => null()
-
 !
-
-private output_specular_reflection_input_params
 
 integer, parameter, private :: n_cheb_term$ = 30
 
-type, private :: cheb_reflect_com
+type, private :: cheb_param_struct
   real(rp) x, y
   real(rp) lambda
   real(rp) ran1, ran2
   real(rp) cch_int(n_cheb_term$), cch(n_cheb_term$), chx_norm, cnorm
 end type
 
-type (cheb_reflect_com), private, target :: cheb_com
-
 real(rp), private, parameter :: converge = 1d-9, gmin = 0.001, gmax = 100
 integer(rp), private, parameter :: maxsum = 1000, ismax = 20, bmax = 100
 logical, private :: appsw = .true.
 
-private cumulr, ptwo, zmmax, cumulx, cos_phi, prob_x_diffuse, zzfi, zzfp, hzz, zbessi
+private output_specular_reflection_input_params
+private ptwo, zmmax, cos_phi, zzfi, zzfp, hzz, zbessi
 private zbessi1, zbessi0, zzexp
 
 contains
@@ -66,43 +61,46 @@ contains
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_reflection_init ()
+! Subroutine photon_reflection_std_surface_init (surface)
 !
-! Initialization routine for proton reflection probability calculation.
-! This routine is private and not meant for general 
+! Routine to initialize the standard proton reflection probability tables.
+! The standard tables are for 10 nm C film on Al substrate.
+! The surface roughness for diffuse scattering is 200 nm and the
+! the surface roughness correlation length is 5.5 um.
+!
+! Module needed:
+!   use photon_reflection_mod
+!
+! Output:
+!   surface -- photon_reflect_surface_struct
 !-
 
-Subroutine photon_reflection_init ()
+Subroutine photon_reflection_std_surface_init (surface)
 
 use nr
 
 implicit none
 
+type (photon_reflect_surface_struct), target :: surface
 type (photon_reflect_table_struct), pointer :: prt
 
 integer :: n_energy, n_angles
 integer i, j, k
 
-! Pointer to first reflection
-
-current_surface => reflect_surface_array(1)
-
-do i = 1, size(reflect_surface_array)
-  reflect_surface_array(i)%ix_surface = i
-enddo
-
 ! Parameters used in generating the reflection values
 
-current_surface%surface_roughness_rms = 200d-9      ! sigma in Dugan's notation
-current_surface%roughness_correlation_len = 5500d-9 ! T in Dugan's notation
+surface%surface_roughness_rms = 200d-9      ! sigma in Dugan's notation
+surface%roughness_correlation_len = 5500d-9 ! T in Dugan's notation
+surface%descrip = '10 nm C film on Al'
 
 ! There are four tables.
 
-allocate(current_surface%table(4))
+if (allocated (surface%table)) deallocate (surface%table)
+allocate(surface%table(4))
 
 ! Table 1: 0 - 500 eV, 10eV steps.
 
-prt => current_surface%table(1)
+prt => surface%table(1)
 
 n_energy = 58;  n_angles = 16
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles), prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
@@ -236,7 +234,7 @@ prt%p_reflect_smooth(:, 58) = [1.00, 0.850699, 0.671053, 0.264038, 0.032353, 0.0
 !---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ! Table 2: 500 - 1500 eV, 20 eV steps.
 
-prt => current_surface%table(2)
+prt => surface%table(2)
 
 n_energy = 41;  n_angles = 11
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles), prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
@@ -336,7 +334,7 @@ prt%p_reflect_smooth(:, 41) = [1.00, 0.964356, 0.914668, 0.866596, 0.096476, 0.0
 !---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ! Table 3: 1400 - 1600 eV, 10 eV steps. There is a resonance here
 
-prt => current_surface%table(3)
+prt => surface%table(3)
 
 n_energy = 21;  n_angles = 10
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles), prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
@@ -396,7 +394,7 @@ prt%p_reflect_smooth(:, 21) = [1.00, 0.978015, 0.951732, 0.912041, 0.831275, 0.6
 !---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ! Table 4: 1600 - 5000 eV, 50 eV steps
 
-prt => current_surface%table(4)
+prt => surface%table(4)
 
 n_energy = 69;  n_angles = 11
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles), prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
@@ -551,9 +549,9 @@ prt%p_reflect_smooth(:, 69) = [1.00, 0.989781, 0.199288, 0.012511, 0.007791, 0.0
 
 !---------------------------------------------------------------------------------------------
 
-call finalize_reflectivity_tables (current_surface)
+call finalize_reflectivity_tables (surface)
 
-end subroutine photon_reflection_init 
+end subroutine photon_reflection_std_surface_init
 
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
@@ -614,49 +612,41 @@ end subroutine finalize_reflectivity_tables
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine read_surface_reflection_file (file_name, ix_surface)
+! Subroutine read_surface_reflection_file (file_name, surface)
 !
 ! Routine to read the reflection probability data for a given type of surface from a file. 
-! The current surface is set to this new surface. Also see: set_surface_roughness.
 ! 
+! Module needed:
+!   photon_reflection_mod
+!
 ! Input:
 !   file_name -- Character(*): Name of the file.
 !
 ! Output:
-!   ix_surface -- Integer: Index for the data. Use this index with the 
-!                   routine set_surface.
+!   surface   -- photon_reflect_surface_struct: Surface info.
 !-
 
-subroutine read_surface_reflection_file (file_name, ix_surface)
+subroutine read_surface_reflection_file (file_name, surface)
 
 implicit none
 
+type (photon_reflect_surface_struct), target :: surface
 type (photon_reflect_table_struct), pointer :: prt
 
 character(*) file_name
+character(40) descrip
 
-integer i, j, iu, n_table, it, n_angles, n_energy, ix_surface, ix_row
+integer i, j, iu, n_table, it, n_angles, n_energy, ix_row
 
 real(rp) angles(100), energy_min, energy_max, energy_delta, p_rough(200), p_smooth(200)
+real(rp) surface_roughness_rms, roughness_correlation_len
 
 character(40), parameter :: r_name = 'read_surface_reflection_file'
 
-namelist / surface / n_table
+namelist / general / n_table, surface_roughness_rms, roughness_correlation_len, descrip
+
 namelist / table / angles, energy_min, energy_max, energy_delta
 namelist / row / ix_row, p_rough, p_smooth
-
-! Init standard table and find unused surface
-
-if (.not. associated(current_surface)) call photon_reflection_init()
-
-do ix_surface = 1, size(reflect_surface_array)
-  current_surface => reflect_surface_array(ix_surface)
-  if (current_surface%initialized) cycle
-  if (ix_surface == size(reflect_surface_array)) then
-    call out_io (s_fatal$, r_name, 'NO UNUSED SURFACE SLOTS FOR REFLECTION PROBABILITY TABLES.')
-    if (global_com%exit_on_error) call err_exit
-  endif
-enddo
 
 ! Open file
 
@@ -664,15 +654,21 @@ iu = lunget()
 open (iu, file = file_name, status = 'old')
 
 ! Allocate the reflection tables global variables.
-! See photon_reflection_mod.f90
 
-read (iu, nml = surface)
-allocate (current_surface%table(n_table))
+descrip = '???'
+read (iu, nml = general)
+
+surface%surface_roughness_rms     = surface_roughness_rms
+surface%roughness_correlation_len = roughness_correlation_len
+surface%descrip = descrip
+
+if (allocated (surface%table)) deallocate (surface%table)
+allocate (surface%table(n_table))
 
 ! Fill in each table
 
 do it = 1, n_table
-  prt => current_surface%table(it)
+  prt => surface%table(it)
 
   angles = -1
   read (iu, nml = table)
@@ -709,7 +705,7 @@ enddo
 
 close (iu)
 
-call finalize_reflectivity_tables (current_surface)
+call finalize_reflectivity_tables (surface)
 
 end subroutine read_surface_reflection_file
 
@@ -717,76 +713,7 @@ end subroutine read_surface_reflection_file
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine set_or_get_surface (ix_surface_set, ix_surface_get)
-!
-! Routine to set which surface is used for calculating the reflection probabilities.
-! Surface #1 is always the default internal surface. The other surfaces
-! must be initialized using the routine: read_surface_reflection_file.
-!
-! Input:
-!   ix_surface_set -- Integer, optional: If present, set the surface to this index.
-!
-! Output:
-!   ix_surface_get -- Integer, optional: Set this to the current surface.
-!-
-
-subroutine set_or_get_surface (ix_surface_set, ix_surface_get)
-
-integer, optional :: ix_surface_set, ix_surface_get
-
-!
-
-if (present(ix_surface_set)) current_surface => reflect_surface_array(ix_surface_set)
-if (present(ix_surface_get)) ix_surface_get = current_surface%ix_surface
-
-end subroutine set_or_get_surface
-
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!+
-! Subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
-!
-! Routine to set the surface roughness values for the current surface.
-! If a value is less then zero it is ignored.
-! Also see: set_surface
-!
-! Modules needed:
-!   use photon_reflection_mod
-!
-! Input:
-!   surface_roughness_rms     -- Real(rp): Surface roughness in meters.
-!   roughness_correlation_len -- Real(rp): Roughness correlation length in meters.
-!
-! Output:
-!   rms_set                   -- Real(rp), optional: RMS roughness setting.
-!   correlation_set           -- Real(rp), optional: Correlation length setting.
-!- 
-
-subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
-
-implicit none
-
-real(rp) surface_roughness_rms, roughness_correlation_len
-real(rp), optional :: rms_set, correlation_set
-
-!
-
-if (.not. associated(current_surface)) call photon_reflection_init
-
-if (surface_roughness_rms >= 0)     current_surface%surface_roughness_rms     = surface_roughness_rms
-if (roughness_correlation_len >= 0) current_surface%roughness_correlation_len = roughness_correlation_len
-
-if (present(rms_set)) rms_set = current_surface%surface_roughness_rms
-if (present(correlation_set)) correlation_set = current_surface%roughness_correlation_len 
-
-end subroutine
-
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!+
-! Subroutine photon_reflectivity (angle, energy, reflect_prob_rough, reflect_prob_smooth)
+! Subroutine photon_reflectivity (angle, energy, surface, reflect_prob_rough, reflect_prob_smooth)
 !
 ! Routine to evaluate the photon reflectivity using a spline interpolation.
 ! Probability = 1.0 -> 100% reflection.
@@ -796,24 +723,28 @@ end subroutine
 ! In practice the reflection tables may violate this so in this case
 ! should take diffuse probability = 0.
 !
+! Use photon_reflection_std_surface_init or read_surface_reflection_file to get surface info.
+!
 ! Modules needed:
 !  use photon_reflection_mod
 !
 ! Input:
-!  angle  -- Real(rp): Incident grazing angle in radians.
-!  energy -- Real(rp): Photon energy in eV.
+!   angle    -- Real(rp): Incident grazing angle in radians.
+!   energy   -- Real(rp): Photon energy in eV.
+!   surface  -- photon_reflect_surface_struct: surface info
 !
 ! Output:
-!  reflect_prob_rough  -- Real(rp): Rough surface reflection probability. 
-!  reflect_prob_smooth -- Real(rp): Smooth surface reflection probability. 
+!   reflect_prob_rough  -- Real(rp): Rough surface reflection probability. 
+!   reflect_prob_smooth -- Real(rp): Smooth surface reflection probability. 
 !-
 
-subroutine photon_reflectivity (angle, energy, reflect_prob_rough, reflect_prob_smooth)
+subroutine photon_reflectivity (angle, energy, surface, reflect_prob_rough, reflect_prob_smooth)
 
 use spline_mod
 
 implicit none
 
+type (photon_reflect_surface_struct), target :: surface
 type (photon_reflect_table_struct), pointer :: prt
 
 real(rp) angle, angle_deg, energy, e_tot, reflect_prob_smooth, reflect_prob_rough
@@ -824,10 +755,6 @@ integer i, j, ie, ix, n_table, n_energy, ixa, ixa0, ixa1, n_ang, n_a
 logical ok
 
 character(20), parameter :: r_name = 'photon_reflectivity'
-
-! Init
-
-if (.not. associated(current_surface)) call photon_reflection_init
 
 ! Singular cases
 
@@ -846,12 +773,12 @@ angle_deg = angle * 180 / pi
 
 ! If the energy is less than the minimum of the table then just use the minimum.
 
-e_tot = max(current_surface%table(1)%energy(1), energy)
+e_tot = max(surface%table(1)%energy(1), energy)
 
 ! If the energy is greater than what the tables covers assume that things scale as energy*angle
 
-n_table = size(current_surface%table)
-max_e = current_surface%table(n_table)%max_energy
+n_table = size(surface%table)
+max_e = surface%table(n_table)%max_energy
  
 if (e_tot > max_e) then
   angle_deg = angle_deg * e_tot / max_e
@@ -866,7 +793,7 @@ endif
 ! Find which table to use
 
 do i = 1, n_table 
-  prt => current_surface%table(i)
+  prt => surface%table(i)
   if (e_tot <= prt%max_energy) exit
 enddo
 
@@ -941,10 +868,12 @@ end subroutine photon_reflectivity
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_diffuse_scattering (angle_in, energy, theta_out, phi_out)
+! Subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out)
 !
 ! Routine to simulate the diffuse scattering of photons. The outgoing angles are
 ! choosen using the Dugan distribution.
+!
+! Use photon_reflection_std_surface_init or read_surface_reflection_file to get surface info.
 !
 ! Modules needed:
 !  use photon_reflection_mod
@@ -952,19 +881,23 @@ end subroutine photon_reflectivity
 ! Input:
 !   angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
 !   energy    -- Real(rp): Photon energy in eV.
+!   surface  -- photon_reflect_surface_struct: surface info
 !
 ! Output:
 !   theta_out -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
 !   phi_out   -- Real(rp): Azimuthal angle in radians.
 !-
 
-subroutine photon_diffuse_scattering (angle_in, energy, theta_out, phi_out)
+subroutine photon_diffuse_scattering (angle_in, energy, surface, theta_out, phi_out)
 
 use spline_mod
 use nr
 use random_mod
 
 implicit none
+
+type (photon_reflect_surface_struct), target :: surface
+type (cheb_param_struct) cheb_param
 
 real(rp) angle_in, energy, theta_out,  phi_out
 real(rp) sigma, t, ctheta2, sign_phi
@@ -974,14 +907,14 @@ character(28), parameter :: r_name = 'photon_diffuse_scattering'
 
 ! If the photon energy is lower than 1eV then use 1eV in the calculation.
 
-sigma = current_surface%surface_roughness_rms
-T = current_surface%roughness_correlation_len
-cheb_com%y = sin(angle_in)
-cheb_com%lambda = h_planck * c_light / max(1.0_rp, energy)
+sigma = surface%surface_roughness_rms
+T = surface%roughness_correlation_len
+cheb_param%y = sin(angle_in)
+cheb_param%lambda = h_planck * c_light / max(1.0_rp, energy)
 
 ! Decide if reflection is specular
 
-P_spec = exp(-(4*pi*sigma*sin(angle_in)/cheb_com%lambda)**2)
+P_spec = exp(-(4*pi*sigma*sin(angle_in)/cheb_param%lambda)**2)
 call ran_uniform(r)
 if (r < P_spec) then   ! Is specular
   theta_out = pi/2 - angle_in
@@ -993,16 +926,16 @@ endif
 ! Fit the probability distribution in x = cos(theta_out) to Chebyshev polynomials.
 ! Also compute the coefficients fo the cumulative distribution in x
 
-cheb_com%cch = chebft(0.0_rp, 1.0_rp, n_cheb_term$, prob_x_diffuse)
-cheb_com%cch_int = chint (0.0_rp, 1.0_rp, cheb_com%cch)
+cheb_param%cch = chebft(0.0_rp, 1.0_rp, n_cheb_term$, prob_x_diffuse)
+cheb_param%cch_int = chint (0.0_rp, 1.0_rp, cheb_param%cch)
 
 !  evaluate the normalization constant
 
-cheb_com%chx_norm = chebev(0.0D0, 1.0D0, cheb_com%cch_int, 1.0D0)
+cheb_param%chx_norm = chebev(0.0D0, 1.0D0, cheb_param%cch_int, 1.0D0)
 
 !  pick a random number
 
-call ran_uniform(cheb_com%ran1)
+call ran_uniform(cheb_param%ran1)
 
 ! find the value of x for which the cumulative probability equals the random number
 
@@ -1011,40 +944,38 @@ theta_out = acos(ctheta2)
 
 !  evaluate the normalization constant for the cumulative probability in phi, for this x
 
-cheb_com%x = ctheta2
-cheb_com%cnorm = cos_phi(sigma, T, cheb_com%lambda, cheb_com%y, cheb_com%x, twopi/2)
+cheb_param%x = ctheta2
+cheb_param%cnorm = cos_phi(sigma, T, twopi/2, cheb_param)
 
 ! Pick a random number and
 ! find the value of phi for which the cumulative probability equals the random number
 
-call ran_uniform(cheb_com%ran2)
-if (cheb_com%ran2 > 0.5) then
+call ran_uniform(cheb_param%ran2)
+if (cheb_param%ran2 > 0.5) then
   sign_phi = 1
-  cheb_com%ran2 = 2 * cheb_com%ran2 - 1
+  cheb_param%ran2 = 2 * cheb_param%ran2 - 1
 else
   sign_phi = -1
-  cheb_com%ran2 = 2 * cheb_com%ran2 
+  cheb_param%ran2 = 2 * cheb_param%ran2 
 endif
 
 call cumulr(0.0_rp, fl, df)
 call cumulr(pi, fh, df)
 if ((fl > 0 .and. fh > 0) .or. (fl < 0 .and. fh < 0)) then 
   call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED FOR PHI CALC!', 'fl, fh: \2es14.5\ ', r_array = [fl, fh])
-  call output_specular_reflection_input_params()
+  call output_specular_reflection_input_params(cheb_param, surface)
 endif
 
 phi_out = sign_phi * rtsafe(cumulr, 0.0D0, pi, 1.0D-5)
 
-end subroutine photon_diffuse_scattering
+!---------------------------------------------------------------------------------------------
+contains
 
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
 !+
 ! Subroutine cumulr (phi, fn, df)
 !
 ! Wrapper function passed to rtsafe.
-! Private routine to calculate integrated probability distribution in x = cos(theta_out).
+! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
 !-
 
 subroutine cumulr (phi, fn, df)
@@ -1057,142 +988,22 @@ real(rp) sigma, T
 
 !
 
-sigma = current_surface%surface_roughness_rms
-T = current_surface%roughness_correlation_len
+sigma = surface%surface_roughness_rms
+T = surface%roughness_correlation_len
 
-fn = cos_phi(sigma, T,  cheb_com%lambda, cheb_com%y, cheb_com%x, phi) / cheb_com%cnorm - cheb_com%ran2
-df = ptwo(sigma, T, cheb_com%lambda, cheb_com%y, cheb_com%x, phi) / cheb_com%cnorm
+fn = cos_phi(sigma, T, phi, cheb_param) / cheb_param%cnorm - cheb_param%ran2
+df = ptwo(sigma, T, phi, cheb_param) / cheb_param%cnorm
 
 end subroutine cumulr
 
 !---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!+
-! function ptwo(sigma,T,lambda,y,x,phi) result (p_two)
-!
-! unnormalized two-dimensional probability distribution in x and phi
-! polar angles relative to surface normal
-! azimuthal angle relative to plane of incidence (plane of incoming ray and surface normal)
-! 1/y suppressed
-!
-! Private routine.
-!-
+! contains
 
-function ptwo(sigma,T,lambda,y,x,phi) result (p_two)
-
-implicit none
-
-real(rp) p_two, sigma, t, lambda, y, x, phi, k, factor, p_twoa, r, tau, s, cp, xpy
-real(rp) xysq, g, h, a, qexp, b, g0, pxa, pxs, xmmax, xtest, fexp, term, ri, xlogi, xlogg
-real(rp) :: qlim1 = 2.0D3, qlim2 = -2.0D2
-
-integer i
-
-character(8), parameter :: r_name = 'ptwo'
-
-!
-
-p_twoa = 0.0
-p_two = 0.0
-k = twopi/lambda
-r = sigma*k
-tau = T/sigma
-s = k*T
-cp = cos(phi)
-xpy = x+y
-xysq = x**2+y**2
-g = (r*xpy)**2
-h = sqrt(1-x**2)*sqrt(1-y**2)
-a = h/(1+x*y)
-if (g < gmin) then
-  qexp = (2-xysq-2*h*cp)*s**2/4
-  p_two = 0.5/twopi*(1+x*y)**2*(1-a*cp)**2*r**2*s**2*exp(-qexp)
-  return
-end if
-b = h*tau**2/2/xpy**2
-qexp = (2-xysq)*tau**2/4/xpy**2-b*cp
-if(g > gmax.and.appsw) then
-  g0 = tau**2/2/twopi/xpy**4*(1+x*y)**2
-  pxa = g0*exp(-(2-xysq)*tau**2/4/xpy**2+b*cp)*(1-a*cp)**2
-  p_two = pxa
-else
-  if (g*qexp > qlim1) return
-  xmmax = zmmax(qexp,g)
-  xtest = xmmax*log(g)-(xmmax*log(xmmax)-xmmax+0.5*log(twopi*xmmax))-g*qexp/xmmax
-  if (xtest < qlim2) return
-  g0 = tau**2*g/2/twopi/xpy**4*(1+x*y)**2*(1-a*cp)**2
-  factor = 1.0
-  pxs = 0.0
-  i = 0
-
-  do i = 1,maxsum
-    fexp = -g*(1.0+qexp/i)
-    if (i < ismax) then
-      factor = factor*i
-      term = exp(fexp)*g**i/factor/i
-    else
-      ri = i
-      xlogi = ri*log(ri)-ri+0.5*log(twopi*ri)
-      xlogg = ri*log(g)-xlogi+fexp
-      term = exp(xlogg)/i
-    end if
-    pxs = pxs+term
-    if(term < pxs * converge) exit
-  enddo
-
-  p_two = pxs*g0
-
-  if (i > maxsum) then
-    call out_io (s_error$, r_name, 'Convergence failed!', &
-            'phi, pxs, g0: \3es14.5\ ', r_array = [phi, pxs, g0])
-    call output_specular_reflection_input_params()
-  endif
-
-end if
-
-end function ptwo
-
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!+
-! Function zmmax(x,g)
-!
-! Private routine.
-!-
-
-function zmmax(x,g) result (zm_max)
-
-implicit none
-
-real(rp) zm_max, x, g
-real(rp) :: fk1(3) = [-0.872884, -0.00154422, 3.63838E-7]
-real(rp) :: fk2(3) = [6.01394, 0.01683, -3.64794E-6]
-real(rp) :: fk3(3) = [0.843621, 0.0006004, -1.33207E-7]
-real(rp) :: fk4(3) = [-0.000901106, -1.2543E-6, 0.0]
-
-integer ik
-
-!
-
-zm_max = 0.0
-do ik = 1, 3
-  zm_max = zm_max + fk1(ik)*x**(ik-1) + fk2(ik)*x**(ik-1)*sqrt(g) + fk3(ik)*x**(ik-1)*g + fk4(ik)*x**(ik-1)*g**2
-enddo
-
-if (zm_max < 1) zm_max = 1
-
-end function zmmax
-
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
 !+
 ! Subroutine cumulx (x, fn, df)
 !
 ! Wrapper function passed to rtsafe.
-! Private routine to calculate integrated probability distribution in x = cos(theta_out).
+! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
 !-
 
 subroutine cumulx (x, fn, df)
@@ -1206,116 +1017,18 @@ real(rp), intent(out) :: fn, df
 
 !
 
-fn = chebev(0.0D0, 1.0D0, cheb_com%cch_int, x) / cheb_com%chx_norm - cheb_com%ran1
-df = chebev(0.0D0, 1.0D0, cheb_com%cch, x) / cheb_com%chx_norm
+fn = chebev(0.0D0, 1.0D0, cheb_param%cch_int, x) / cheb_param%chx_norm - cheb_param%ran1
+df = chebev(0.0D0, 1.0D0, cheb_param%cch, x) / cheb_param%chx_norm
 
 end subroutine cumulx
 
 !---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!+
-! Function cos_phi (sigma, t, lambda, y, x, phi) result (cphi)
-!
-!  computes  unnormalized cumulative distribution function in phi for a given x
-!  polar angles relative to surface normal
-!  azimuthal angle relative to plane of incidence (plane of incoming ray and surface normal)
-!  1/y suppressed
-!
-! Private routine to calculate integrated probability distribution in x = cos(theta_out).
-!-
+!contains
 
-function cos_phi (sigma,T,lambda,y,x,phi) result (cphi)
-
-implicit none
-
-real(rp) cphi, sigma, t, x, y, phi
-real(rp) k, lambda, cphia, xpy, xysq, r, tau, s, g, h, cphis, bi, fexpi
-real(rp) factor, a, fexp, qexp, bs, fz, b, g0, fzi, term, ri, xlogi, xlogg
-
-integer i
-
-logical xyzero
-
-character(16), parameter :: r_name = 'cos_phi'
-
-!
-
-cphia = 0.0
-cphi = 0.0
-if (phi == 0.0) return
-xpy = x+y
-xysq = x**2+y**2
-k = twopi/lambda
-r = sigma*k
-tau = T/sigma
-s = k*T
-g = (r*xpy)**2
-h = sqrt(1-x**2)*sqrt(1-y**2)
-a = h/(1+x*y)
-xyzero = .false.
-
-if (x == 1.0 .or. y == 1.0) xyzero = .true.
-
-if (g < gmin) then
-  qexp = (2-xysq-2*h)*s**2/4
-  bs = s**2*h/2
-  fz = zzfp(a,bs,phi,xyzero)
-  cphi = 0.5/twopi*(1+x*y)**2*r**2*s**2*exp(-qexp)*fz
-  return
-end if
-
-b = h*tau**2/2/xpy**2
-qexp = (2-xysq)*tau**2/4/xpy**2-b*cos(phi)
-
-if (g > gmax .and. appsw) then
-  g0 = tau**2/2/twopi/xpy**4*(1+x*y)**2
-  fexp = -(2-xysq-2*h)*tau**2/4/xpy**2
-  fz = zzfp(a,b,phi,xyzero)
-  cphia = g0*exp(fexp)*fz
-  cphi = cphia
-else
-  g0 = tau**2*g/2/twopi/xpy**4*(1+x*y)**2
-  factor = 1.0
-  cphis = 0.0
-
-  do i = 1,maxsum
-    bi = b*g/i
-    fexpi = -g-(2-xysq-2*h)*tau**2*g/4/i/xpy**2
-    fzi = zzfp(a,bi,phi,xyzero)
-    if (i < 20) then
-      factor = factor*i
-      term = exp(fexpi)*g**i/factor/i
-    else
-      ri = i
-      xlogi = ri*log(ri)-ri+0.5*log(twopi*ri)
-      xlogg = ri*log(g)-xlogi+fexpi
-      term = exp(xlogg)/i
-    end if
-    term = term*fzi
-    cphis = cphis+term
-    if (term < converge * cphis) exit
-  enddo
-
-  cphi = cphis*g0
-
-  if (i > maxsum) then
-    call out_io (s_error$, r_name, 'Convergence failed.', &
-              'phi, cphis, g0: \3es14.5\ ', r_array = [phi, cphis, g0])
-    call output_specular_reflection_input_params()
-  endif
-
-end if
-
-end function cos_phi
-
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------------
 !+
 ! Function prob_x_diffuse (x) result (prob_x)
 !
-! Private routine to calculate integrated probability distribution in x = cos(theta_out).
+! Contained routine to calculate integrated probability distribution in x = cos(theta_out).
 ! 
 ! Input:
 !   x    -- Real(rp): cos(theta_out)
@@ -1340,10 +1053,10 @@ logical :: xyzero
 character(16), parameter :: r_name = 'prob_x_diffuse'
 !
 
-y = cheb_com%y
-sigma = current_surface%surface_roughness_rms
-T = current_surface%roughness_correlation_len
-lambda = cheb_com%lambda
+y = cheb_param%y
+sigma = surface%surface_roughness_rms
+T = surface%roughness_correlation_len
+lambda = cheb_param%lambda
 
 main_loop: do itt = 1, size(x)
 
@@ -1413,12 +1126,244 @@ main_loop: do itt = 1, size(x)
   if (i > maxsum) then
     call out_io (s_error$, r_name, 'Convergence failed!', &
           'pxs, g0: \2es14.5\ ', r_array = [pxs, g0])
-    call output_specular_reflection_input_params()
+    call output_specular_reflection_input_params(cheb_param, surface)
   endif
 
 enddo main_loop
 
 end function prob_x_diffuse
+
+end subroutine photon_diffuse_scattering
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
+! function ptwo(sigma, T, phi, cheb_param) result (p_two)
+!
+! unnormalized two-dimensional probability distribution in x and phi
+! polar angles relative to surface normal
+! azimuthal angle relative to plane of incidence (plane of incoming ray and surface normal)
+! 1/y suppressed
+!
+! Private routine.
+!-
+
+function ptwo(sigma, T, phi, cheb_param) result (p_two)
+
+implicit none
+
+type (cheb_param_struct) cheb_param
+
+real(rp) p_two, sigma, t, lambda, y, x, phi, k, factor, p_twoa, r, tau, s, cp, xpy
+real(rp) xysq, g, h, a, qexp, b, g0, pxa, pxs, xmmax, xtest, fexp, term, ri, xlogi, xlogg
+real(rp) :: qlim1 = 2.0D3, qlim2 = -2.0D2
+
+integer i
+
+character(8), parameter :: r_name = 'ptwo'
+
+!
+
+lambda = cheb_param%lambda
+y      = cheb_param%y
+x      = cheb_param%x
+
+p_twoa = 0.0
+p_two = 0.0
+k = twopi/lambda
+r = sigma*k
+tau = T/sigma
+s = k*T
+cp = cos(phi)
+xpy = x+y
+xysq = x**2+y**2
+g = (r*xpy)**2
+h = sqrt(1-x**2)*sqrt(1-y**2)
+a = h/(1+x*y)
+if (g < gmin) then
+  qexp = (2-xysq-2*h*cp)*s**2/4
+  p_two = 0.5/twopi*(1+x*y)**2*(1-a*cp)**2*r**2*s**2*exp(-qexp)
+  return
+end if
+b = h*tau**2/2/xpy**2
+qexp = (2-xysq)*tau**2/4/xpy**2-b*cp
+if(g > gmax.and.appsw) then
+  g0 = tau**2/2/twopi/xpy**4*(1+x*y)**2
+  pxa = g0*exp(-(2-xysq)*tau**2/4/xpy**2+b*cp)*(1-a*cp)**2
+  p_two = pxa
+else
+  if (g*qexp > qlim1) return
+  xmmax = zmmax(qexp,g)
+  xtest = xmmax*log(g)-(xmmax*log(xmmax)-xmmax+0.5*log(twopi*xmmax))-g*qexp/xmmax
+  if (xtest < qlim2) return
+  g0 = tau**2*g/2/twopi/xpy**4*(1+x*y)**2*(1-a*cp)**2
+  factor = 1.0
+  pxs = 0.0
+  i = 0
+
+  do i = 1,maxsum
+    fexp = -g*(1.0+qexp/i)
+    if (i < ismax) then
+      factor = factor*i
+      term = exp(fexp)*g**i/factor/i
+    else
+      ri = i
+      xlogi = ri*log(ri)-ri+0.5*log(twopi*ri)
+      xlogg = ri*log(g)-xlogi+fexp
+      term = exp(xlogg)/i
+    end if
+    pxs = pxs+term
+    if(term < pxs * converge) exit
+  enddo
+
+  p_two = pxs*g0
+
+  if (i > maxsum) then
+    call out_io (s_error$, r_name, 'Convergence failed!', &
+            'phi, pxs, g0: \3es14.5\ ', r_array = [phi, pxs, g0])
+    call output_specular_reflection_input_params(cheb_param)
+  endif
+
+end if
+
+end function ptwo
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
+! Function zmmax(x,g)
+!
+! Private routine.
+!-
+
+function zmmax(x,g) result (zm_max)
+
+implicit none
+
+real(rp) zm_max, x, g
+real(rp) :: fk1(3) = [-0.872884, -0.00154422, 3.63838E-7]
+real(rp) :: fk2(3) = [6.01394, 0.01683, -3.64794E-6]
+real(rp) :: fk3(3) = [0.843621, 0.0006004, -1.33207E-7]
+real(rp) :: fk4(3) = [-0.000901106, -1.2543E-6, 0.0]
+
+integer ik
+
+!
+
+zm_max = 0.0
+do ik = 1, 3
+  zm_max = zm_max + fk1(ik)*x**(ik-1) + fk2(ik)*x**(ik-1)*sqrt(g) + fk3(ik)*x**(ik-1)*g + fk4(ik)*x**(ik-1)*g**2
+enddo
+
+if (zm_max < 1) zm_max = 1
+
+end function zmmax
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
+! Function cos_phi (sigma, t, phi, cheb_param) result (cphi)
+!
+!  computes  unnormalized cumulative distribution function in phi for a given x
+!  polar angles relative to surface normal
+!  azimuthal angle relative to plane of incidence (plane of incoming ray and surface normal)
+!  1/y suppressed
+!
+! Private routine to calculate integrated probability distribution in x = cos(theta_out).
+!-
+
+function cos_phi (sigma, T, phi, cheb_param) result (cphi)
+
+implicit none
+
+type (cheb_param_struct) cheb_param
+
+real(rp) cphi, sigma, t, x, y, phi
+real(rp) k, lambda, cphia, xpy, xysq, r, tau, s, g, h, cphis, bi, fexpi
+real(rp) factor, a, fexp, qexp, bs, fz, b, g0, fzi, term, ri, xlogi, xlogg
+
+integer i
+
+logical xyzero
+
+character(16), parameter :: r_name = 'cos_phi'
+
+!
+
+lambda = cheb_param%lambda
+y      = cheb_param%y
+x      = cheb_param%x
+
+cphia = 0.0
+cphi = 0.0
+if (phi == 0.0) return
+xpy = x+y
+xysq = x**2+y**2
+k = twopi/lambda
+r = sigma*k
+tau = T/sigma
+s = k*T
+g = (r*xpy)**2
+h = sqrt(1-x**2)*sqrt(1-y**2)
+a = h/(1+x*y)
+xyzero = .false.
+
+if (x == 1.0 .or. y == 1.0) xyzero = .true.
+
+if (g < gmin) then
+  qexp = (2-xysq-2*h)*s**2/4
+  bs = s**2*h/2
+  fz = zzfp(a,bs,phi,xyzero, cheb_param)
+  cphi = 0.5/twopi*(1+x*y)**2*r**2*s**2*exp(-qexp)*fz
+  return
+end if
+
+b = h*tau**2/2/xpy**2
+qexp = (2-xysq)*tau**2/4/xpy**2-b*cos(phi)
+
+if (g > gmax .and. appsw) then
+  g0 = tau**2/2/twopi/xpy**4*(1+x*y)**2
+  fexp = -(2-xysq-2*h)*tau**2/4/xpy**2
+  fz = zzfp(a,b,phi,xyzero, cheb_param)
+  cphia = g0*exp(fexp)*fz
+  cphi = cphia
+else
+  g0 = tau**2*g/2/twopi/xpy**4*(1+x*y)**2
+  factor = 1.0
+  cphis = 0.0
+
+  do i = 1,maxsum
+    bi = b*g/i
+    fexpi = -g-(2-xysq-2*h)*tau**2*g/4/i/xpy**2
+    fzi = zzfp(a,bi,phi,xyzero, cheb_param)
+    if (i < 20) then
+      factor = factor*i
+      term = exp(fexpi)*g**i/factor/i
+    else
+      ri = i
+      xlogi = ri*log(ri)-ri+0.5*log(twopi*ri)
+      xlogg = ri*log(g)-xlogi+fexpi
+      term = exp(xlogg)/i
+    end if
+    term = term*fzi
+    cphis = cphis+term
+    if (term < converge * cphis) exit
+  enddo
+
+  cphi = cphis*g0
+
+  if (i > maxsum) then
+    call out_io (s_error$, r_name, 'Convergence failed.', &
+              'phi, cphis, g0: \3es14.5\ ', r_array = [phi, cphis, g0])
+    call output_specular_reflection_input_params(cheb_param)
+  endif
+
+end if
+
+end function cos_phi
 
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
@@ -1452,14 +1397,16 @@ end function zzfi
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function zzfp (a, b, phi, xyzero) result (fp)
+! Function zzfp (a, b, phi, xyzero, cheb_param) result (fp)
 !
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-function zzfp (a, b, phi, xyzero) result (fp)
+function zzfp (a, b, phi, xyzero, cheb_param) result (fp)
 
 implicit none
+
+type (cheb_param_struct) :: cheb_param
 
 real(rp) a, b, phi, fp
 real(rp) sp, sp2
@@ -1474,7 +1421,7 @@ if(xyzero) then
   return
 end if
 if(b < bmax) then
-  fp = zzexp(a,b,phi)
+  fp = zzexp(a,b,phi, cheb_param)
 else
   fp = hzz(a,b,phi)
 end if
@@ -1638,16 +1585,18 @@ end function zbessi0
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function zzexp (a, b, phi) result (zexp)
+! Function zzexp (a, b, phi, cheb_param) result (zexp)
 !
 ! This routine computes the phi integral used in the cumulative distribution function.
 ! Series does not converge well for b>100.
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-function zzexp (a, b, phi) result (zexp)
+function zzexp (a, b, phi, cheb_param) result (zexp)
 
 implicit none 
+
+type (cheb_param_struct) :: cheb_param
 
 real(rp) a, b, phi, zexp
 real(rp) sp, cp, sp2, cp2, sp3, sp4, r0, r1, r2, spk, cpk, rk, zterm
@@ -1687,7 +1636,7 @@ zexp = zexp/sqrt(twopi*b)
 if (k > maxsum) then
   call out_io (s_error$, r_name, 'Convergence failed!', &
           'a, b, phi, zzexp: \4es14.4\ ', r_array = [a, b, phi, zexp])
-  call output_specular_reflection_input_params()
+  call output_specular_reflection_input_params(cheb_param)
 endif
 
 end function zzexp
@@ -1697,27 +1646,34 @@ end function zzexp
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine output_specular_reflection_input_params()
+! Subroutine output_specular_reflection_input_params(cc, surface)
 !
 ! Private function used in calculating diffuse scattering distribution.
 !-
 
-subroutine output_specular_reflection_input_params()
+subroutine output_specular_reflection_input_params (cc, surface)
 
 implicit none
 
-type (cheb_reflect_com), pointer :: cc
+type (cheb_param_struct) :: cc
+type (photon_reflect_surface_struct), optional :: surface
+
+real(rp) sigma, t
 
 character(40), parameter :: r_name = 'output_specular_reflection_input_params'
 
 !
 
-cc => cheb_com
+sigma = -1
+T = -1
+
+if (present(surface)) then
+  sigma = surface%surface_roughness_rms
+  T     = surface%roughness_correlation_len
+endif
 
 call out_io (s_blank$, r_name, 'sigma, T, lambda, x, y: \4es14.5\ ', 'ran1, ran2 \2es14.5\ ', &
-          r_array = [current_surface%surface_roughness_rms, &
-          current_surface%roughness_correlation_len, cc%lambda, cc%x, cc%y, cc%ran1, cc%ran2])
-
+          r_array = [sigma, T, cc%lambda, cc%x, cc%y, cc%ran1, cc%ran2])
 
 end subroutine output_specular_reflection_input_params
 
