@@ -3016,6 +3016,7 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
 
   call set_madx_(.true., .false.)
   dummy_fibre = marker('dummy')
+  nullify(dummy_fibre%loc)
   !!ptc_el_list = marker('dummy')
   !!call el_q_for_madx (dummy_fibre, ptc_el_list)
   call set_madx_(.false., .false.)
