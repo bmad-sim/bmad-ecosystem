@@ -131,12 +131,6 @@ if (test /= '') then
   stop
 endif
 
-! Reflection plotting
-
-if (plotting == 'reflect') then
-  call sr3d_plot_reflection_probability(plot_param)
-endif
-
 ! Get parameters.
 ! Radiation is produced from the end of ix_ele_track_start to the end of ix_ele_track_end.
 
@@ -220,22 +214,25 @@ if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
 
 call ran_seed_put (random_seed)
 
-! Load different surface reflection parameters if wanted
-
-if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, ix)
-call set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
-
 ! Wall init
 
 call sr3d_init_and_check_wall (wall_file, lat, wall)
 
-! Plot wall cross-sections. 
+! Load different surface reflection parameters if wanted
+
+if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, wall%surface(1)%info)
+if (surface_roughness_rms > 0) wall%surface(1)%info%surface_roughness_rms = surface_roughness_rms
+if (roughness_correlation_len > 0) wall%surface(1)%info%roughness_correlation_len = roughness_correlation_len
+
+! Plot wall cross-sections or reflections. 
 ! The plotting routines never return back to the main program.
 
 if (plotting == 'xy') then
   call sr3d_plot_wall_cross_sections (plot_param, wall, lat)
 elseif (plotting == 'xs' .or. plotting == 'ys') then
   call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting)
+elseif (plotting == 'reflect') then
+  call sr3d_plot_reflection_probability(plot_param, wall)
 elseif (plotting /= '') then
   call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
   call err_exit
@@ -690,9 +687,9 @@ write (iu, *) 'sr3d_params%dr_track_step_max         =', sr3d_params%dr_track_st
 write (iu, *) 'sr3d_params%diffuse_scattering_on     =', sr3d_params%diffuse_scattering_on
 write (iu, *) 'sr3d_params%stop_if_hit_antechamber   =', sr3d_params%stop_if_hit_antechamber
 write (iu, *) 'surface_roughness_rms (input)         =', surface_roughness_rms
-write (iu, *) 'surface_roughness_rms (set value)     =', rms_set
+write (iu, *) 'surface_roughness_rms (set value)     =', wall%surface(1)%info%surface_roughness_rms
 write (iu, *) 'roughness_correlation_len (input)     =', roughness_correlation_len
-write (iu, *) 'roughness_correlation_len (set value) =', correlation_set
+write (iu, *) 'roughness_correlation_len (set value) =', wall%surface(1)%info%roughness_correlation_len
 write (iu, *)
 
 end subroutine

@@ -3,6 +3,7 @@ module synrad3d_struct
 use bmad_struct
 use bmad_interface
 use twiss_and_track_mod
+use photon_reflection_mod
 
 ! This structure defines a photon at a particular point.
 ! for vec(6): (x, y, s) is the local coordinate system with
@@ -17,7 +18,7 @@ type sr3d_photon_coord_struct
   real(rp) track_len          ! length of the track from the start
   integer ix_ele              ! index of lattice element we are in.
   integer :: ix_wall = 0      ! Index to wall cross-section array
-  integer ix_triangle         ! Index to wall triangle if using gen_shape_mesh 
+  integer ix_triangle         ! Index to wall triangle if using triangular 
 end type
 
 type sr3d_photon_wall_hit_struct
@@ -53,22 +54,31 @@ type sr3d_photon_track_struct
 end type
 
 !--------------
-! The wall is specified by an array of points at given s locations.
-! The wall between point i-1 and i is associated with wall%pt(i) 
+! The wall is specified by an array of cross-sections at given s locations.
+! The wall between section i-1 and i is associated with wall%section(i) 
 ! (see the sr3d_photon_coord_struct).
 ! If there is an antechamber: width2_plus and width2_minus are the antechamber horizontal extent.
 ! With no antechamber: width2_plus and width2_minus specify beam stops.
 
+type sr3d_surface_struct
+  character(40) :: name = ''
+  character(200) :: reflectivity_file = ''
+  type (photon_reflect_surface_struct) :: info
+end type
+
 type sr3d_gen_shape_struct
+  character(40) name
   type (wall3d_section_struct) :: wall3d_section
   integer ix_vertex_ante(2)
   integer ix_vertex_ante2(2)
+  type (sr3d_surface_struct), pointer :: surface  => null()
 end type
 
-type sr3d_wall_pt_struct
-  character(40) name     ! Name of associated lattice element
+type sr3d_wall_section_struct
+  character(40) name              ! Name of this section
   real(rp) s                      ! Longitudinal position.
-  character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
+  character(16) basic_shape       ! "elliptical", "rectangular", "gen_shape", or "triangular"
+  character(40) shape_name
   real(rp) width2                 ! Half width ignoring antechamber.
   real(rp) height2                ! Half height ignoring antechamber.
   real(rp) width2_plus            ! Distance from pipe center to +x side edge.
@@ -79,31 +89,30 @@ type sr3d_wall_pt_struct
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
-  type (sr3d_gen_shape_struct), pointer :: gen_shape            ! Gen_shape info
+  type (sr3d_gen_shape_struct), pointer :: gen_shape => null()            ! Gen_shape info
+  type (sr3d_surface_struct), pointer :: surface  => null()
+  logical delta_s
 end type
 
-! Needed since Fortran does not allow pointers to be part of a namelist
+! multi_section structure
 
-type sr3d_wall_pt_input
-  real(rp) s                      ! Longitudinal position.
-  character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
-  real(rp) width2                 ! Half width ignoring antechamber.
-  real(rp) height2                ! Half height ignoring antechamber.
-  real(rp) width2_plus            ! Distance from pipe center to +x side edge.
-  real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
-  real(rp) width2_minus           ! Distance from pipe center -x side edge.
-  real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
+type sr3d_multi_section_struct
+  character(40) name
+  type (sr3d_wall_section_struct), allocatable :: section(:)
 end type
 
-! This is just an array of chamber cross-sections.
+! Root wall description structure.
 
 type sr3d_wall_struct
-  type (sr3d_wall_pt_struct), allocatable :: pt(:)  ! lbound index = 0
+  type (sr3d_wall_section_struct), allocatable :: section(:)  ! lbound index = 0
   type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
-  integer n_pt_max
+  type (sr3d_multi_section_struct), allocatable :: multi_section(:)
+  type (sr3d_surface_struct), allocatable :: surface(:)
+  integer n_section_max
   integer geometry      ! closed$ or open$
 end type
 
+!------------------------------------------------------------------------
 ! Some parameters that can be set. 
 
 type sr3d_params_struct

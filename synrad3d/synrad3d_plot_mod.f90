@@ -18,9 +18,7 @@ contains
 !   plot_param -- sr3d_plot_param_struct: Plot parameters.
 !-
 
-subroutine sr3d_plot_reflection_probability (plot_param)
-
-use photon_reflection_mod
+subroutine sr3d_plot_reflection_probability (plot_param, wall)
 
 implicit none
 
@@ -33,7 +31,9 @@ type yplot
 end type
 
 type (sr3d_plot_param_struct) plot_param
+type (sr3d_wall_struct), target :: wall
 type (yplot), allocatable :: ny(:)
+type (photon_reflect_surface_struct), pointer :: surface
 
 real(rp), target :: angle_min, angle_max, ev_min, ev_max, angle, ev
 real(rp) value, value1, value2, y_min, y_max
@@ -58,6 +58,8 @@ fixed_energy = .true.
 y_lab = 'Reflectivity'
 reflection_type = 'rough'
 head_lab = 'Reflectivity (ROUGH)'
+
+surface => wall%surface(1)%info
 
 n_lines = 3
 allocate (ny(n_lines))
@@ -95,7 +97,7 @@ do
         x(j) = ev
         x_lab = 'Energy (eV)'
       endif
-      call photon_reflectivity (angle*pi/180, ev, ny(i)%y_rough(j), ny(i)%y_smooth(j))
+      call photon_reflectivity (angle*pi/180, ev, surface, ny(i)%y_rough(j), ny(i)%y_smooth(j))
     enddo
 
     select case (reflection_type)
@@ -138,16 +140,22 @@ do
   ! Get input:
 
   print *
+  print '(a)', 'Surfaces:'
+  do i = 1, size (wall%surface)
+    print '(3x, i3, 2x, a)', i, trim(wall%surface(i)%name)
+  enddo
+  print *
   print '(a)', 'Commands:'
   print '(a)', '   energy   <ev_min> <ev_max>         ! energies to plot at'
   print '(a)', '   angle    <angle_min> <angle_max>   ! angles to plot at'
   print '(a)', '   n_lines  <num_lines_to_draw>'
-  print '(a)', '   fixed_energy <t|f>  '
+  print '(a)', '   fixed_energy <T|F>                 ! Lines of constant energy or angle?'
   print '(a)', '   type <rough|smooth|diff>           ! diff = smooth - rough'
+  print '(a)', '   ix_surface <n>                     ! Surface index'
   call read_a_line ('Input: ', ans)
   call string_trim(ans, ans, ix)
   if (ix == 0) cycle
-  call match_word (ans(1:ix), ['energy      ', 'angle       ', 'type        ', &
+  call match_word (ans(1:ix), ['ix_surface  ', 'energy      ', 'angle       ', 'type        ', &
                                'n_lines     ', 'fixed_energy'], n, matched_name = param)
   if (n < 1) then
     print *, 'CANNOT PARSE THIS.'
@@ -157,6 +165,21 @@ do
   call string_trim(ans(ix+1:), ans, ix)
 
   select case (param)
+
+  case ('ix_surface')
+
+    read (ans, *, iostat = ios) ix
+    if (ios /= 0) then
+      print *, 'BAD INTEGER'
+      cycle
+    endif
+
+    if (ix < 1 .or. ix > size(wall%surface)) then
+      print *, 'SURFACE INDEX OUT OF RANGE.'
+      cycle
+    endif
+
+    surface => wall%surface(ix)%info
 
   case ('type')
 
@@ -276,8 +299,8 @@ endif
 
 ! Print wall info
 
-do i = 0, wall%n_pt_max
-  print '(i4, 2x, a, f12.2)', i, wall%pt(i)%basic_shape(1:16), wall%pt(i)%s
+do i = 0, wall%n_section_max
+  print '(i4, 2x, a, f12.2)', i, wall%section(i)%basic_shape(1:16), wall%section(i)%s
 enddo
 
 ! Loop
@@ -287,8 +310,8 @@ do
   ! Determine s min/max
 
   if (.not. s_user_good) then
-    s_min = wall%pt(0)%s
-    s_max = wall%pt(wall%n_pt_max)%s
+    s_min = wall%section(0)%s
+    s_max = wall%section(wall%n_section_max)%s
   endif
 
   call qp_calc_and_set_axis ('X', s_min, s_max, 10, 16, 'GENERAL')
@@ -388,7 +411,7 @@ implicit none
 
 type (sr3d_plot_param_struct) plot_param
 type (sr3d_wall_struct), target :: wall
-type (sr3d_wall_pt_struct), pointer :: pt
+type (sr3d_wall_section_struct), pointer :: section
 type (sr3d_photon_track_struct) photon
 type (lat_struct) lat
 type (wall3d_vertex_struct), pointer :: v(:)
@@ -400,7 +423,7 @@ real(rp) minn, maxx
 
 integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu, n_norm_max
 
-character(100) :: ans, label
+character(100) :: ans, label, label2
 character(8) v_str
 
 logical at_section, draw_norm, reverse_x_axis
@@ -420,13 +443,13 @@ allocate (x1_norm(n), y1_norm(n), x2_norm(n), y2_norm(n))
 
 ! Print wall info
 
-do i = 0, wall%n_pt_max
-  pt => wall%pt(i)
-  print '(i4, 2x, a, f12.2)', i, pt%basic_shape(1:12), pt%s
+do i = 0, wall%n_section_max
+  section => wall%section(i)
+  print '(i4, 2x, a, f12.2, 2x, a)', i, section%basic_shape(1:12), section%s, section%name
 enddo
 
 ix_section = 0
-s_pos = wall%pt(ix_section)%s
+s_pos = wall%section(ix_section)%s
 s_pos_old = s_pos
 at_section = .true.
 
@@ -467,16 +490,19 @@ do
 
   if (at_section) then
     if (s_pos_old == s_pos) then
-      write (label, '(a, f0.3, a, i0, 2a)') 'S: ', s_pos, '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
+      write (label, '(a, f0.3, a, i0, 2a)') 'S: ', s_pos, '   Section #: ', ix_section, '  Name: ', wall%section(ix_section)%name
     else
       print '(2(a, f0.3), a, i0, 2a)', 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
-                                '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
+                                '   Section #: ', ix_section, '  Name: ', wall%section(ix_section)%name
       write (label, '(2(a, f0.3), a, i0, 2a)') 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
-                                '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
+                                '   Section #: ', ix_section, '  Name: ', wall%section(ix_section)%name
     endif
+    label2 = 'Surface: ' // wall%section(ix_section)%surface%name
   else
     write (label, '(a, f0.3)') 'S: ', s_pos
+    label2 = 'Surface: ' // wall%section(photon%now%ix_wall+1)%surface%name
   endif
+
   call qp_clear_page
   x_max = 1.01 * maxval(abs(x)); y_max = 1.01 * maxval(abs(y))
   if (x_max_user > 0) x_max = x_max_user
@@ -496,6 +522,7 @@ do
   endif
 
   call qp_draw_graph (x, y, 'X', 'Y', label, .true., 0)
+  call qp_draw_text (label2, 0.5_rp, 0.98_rp, '%/GRAPH/LB', 'CT')
 
   if (draw_norm) then
     do j = 1, n_norm_max
@@ -503,8 +530,8 @@ do
     enddo
   endif
 
-  if (at_section .and. wall%pt(ix_section)%basic_shape == "gen_shape") then
-    v => wall%pt(ix_section)%gen_shape%wall3d_section%v
+  if (at_section .and. wall%section(ix_section)%basic_shape == "gen_shape") then
+    v => wall%section(ix_section)%gen_shape%wall3d_section%v
     do i = 1, size(v)
       call qp_draw_symbol (100 * v(i)%x, 100 * v(i)%y)
       write (v_str, '(a, i0, a)') 'v(', i, ')'
@@ -531,7 +558,7 @@ do
 
   if (ans(1:1) == 's') then
     read (ans(2:), *, iostat = ios) s_pos
-    if (ios /= 0 .or. s_pos < wall%pt(0)%s .or. s_pos > wall%pt(wall%n_pt_max)%s) then
+    if (ios /= 0 .or. s_pos < wall%section(0)%s .or. s_pos > wall%section(wall%n_section_max)%s) then
       print *, 'Cannot read s-position or s-position out of range.'
       cycle
     endif
@@ -551,9 +578,9 @@ do
     endif
 
   elseif (ans == '') then
-    ix_section = modulo(ix_section + 1, wall%n_pt_max + 1)
+    ix_section = modulo(ix_section + 1, wall%n_section_max + 1)
     s_pos_old = s_pos
-    s_pos = wall%pt(ix_section)%s
+    s_pos = wall%section(ix_section)%s
     at_section = .true.
 
   elseif (index('normal', ans(1:ix)) == 1) then
@@ -574,9 +601,9 @@ do
     print *, 'Writen: cross_section.dat'
 
   elseif (ans == 'b') then
-    ix_section = modulo(ix_section - 1, wall%n_pt_max + 1)
+    ix_section = modulo(ix_section - 1, wall%n_section_max + 1)
     s_pos_old = s_pos
-    s_pos = wall%pt(ix_section)%s
+    s_pos = wall%section(ix_section)%s
     at_section = .true.
 
   else
@@ -585,13 +612,13 @@ do
       print *, 'Cannot read section index number'
       cycle
     endif
-    if (i_in < 0 .or. i_in > wall%n_pt_max) then
+    if (i_in < 0 .or. i_in > wall%n_section_max) then
       print *, 'Number is out of range!'
       cycle
     endif
     ix_section = i_in
     s_pos_old = s_pos
-    s_pos = wall%pt(ix_section)%s
+    s_pos = wall%section(ix_section)%s
     at_section = .true.
 
   endif
@@ -631,9 +658,9 @@ photon%old%vec(5) = photon%now%vec(5)
 r_old = sqrt(photon%now%vec(1)**2 + photon%now%vec(3)**2)
 photon%now%track_len = photon%old%track_len + r_old
 
-if (wall%pt(ixp+1)%basic_shape == 'gen_shape_mesh') then
-  do j = 1, 2*size(wall%pt(ixp)%gen_shape%wall3d_section%v)
-    call sr3d_get_mesh_wall_triangle_pts (wall%pt(ixp), wall%pt(ixp+1), j, tri_vert0, tri_vert1, tri_vert2)
+if (wall%section(ixp+1)%basic_shape == 'triangular') then
+  do j = 1, 2*size(wall%section(ixp)%gen_shape%wall3d_section%v)
+    call sr3d_get_mesh_wall_triangle_pts (wall%section(ixp), wall%section(ixp+1), j, tri_vert0, tri_vert1, tri_vert2)
     call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through, dtrack)
     if (is_through) then
       x_wall = dtrack * photon%now%vec(1) / r_old
