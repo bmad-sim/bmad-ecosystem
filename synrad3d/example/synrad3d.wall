@@ -2,9 +2,9 @@
 ! Example wall specification:
 !-
 
-&section_def section =   0.0,  'elliptical', 0.02, 0.01 /
-&section_def section =  80.0,  'elliptical', 0.04, 0.02 /
-&section_def section =  80.01, 'rectangular', 0.045, 0.025 /
-&section_def section = 100.0,  'rectangular', 0.045, 0.025, 0.06, 0.05, 0.07, 0.05 /
-&section_def section = 100.01, 'elliptical', 0.045, 0.025 /
-&section_def section =   0.0,  'elliptical', 0.02, 0.01  /
+&section_def section =   0.0,  '', 'elliptical', 0.02, 0.01 /
+&section_def section =  80.0,  '', 'elliptical', 0.04, 0.02 /
+&section_def section =  80.01, '', 'rectangular', 0.045, 0.025 /
+&section_def section = 100.0,  '', 'rectangular', 0.045, 0.025, 0.06, 0.01, 0.07, 0.01 /
+&section_def section = 100.01, '', 'elliptical', 0.045, 0.025 /
+&section_def section =   0.0,  '', 'elliptical', 0.02, 0.01  /

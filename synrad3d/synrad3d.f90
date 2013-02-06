@@ -551,7 +551,7 @@ do i = 1, n_photon_array
   j = photon%now%ix_ele
   write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
 
-  if (iu == 1) write (3, '(2i8, f12.4, es11.3, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
+  if (iu == 1) write (3, '(2i8, f12.4, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
         i, photon%n_wall_hit, photon%start%energy, photon%start%vec, photon%now%vec, &
         photon%now%track_len, dtrack, j, trim(key_name(lat%ele(j)%key)) 
 enddo

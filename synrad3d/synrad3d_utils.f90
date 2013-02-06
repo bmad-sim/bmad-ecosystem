@@ -101,12 +101,13 @@ do
   n_surface = n_surface + 1
 enddo
 
+if (allocated(wall%surface)) deallocate(wall%surface)
 allocate (wall%surface(n_surface+1))
 wall%surface(1)%reflectivity_file = ''
 wall%surface(1)%name = 'default'
 call photon_reflection_std_surface_init(wall%surface(1)%info)
 
-rewind(1)
+rewind(iu)
 do i = 2, n_surface+1
   read (iu, nml = surface_def, iostat = ios)
   wall%surface(i)%name = name
@@ -141,6 +142,7 @@ if (n_wall_section_max < 1) then
   call err_exit
 endif
 
+if (allocated(wall%section)) deallocate(wall%section)
 allocate (wall%section(0:n_wall_section_max), is_local(0:n_wall_section_max))
 wall%n_section_max = n_wall_section_max
 
@@ -200,6 +202,8 @@ do
   if (ios < 0) exit  ! End of file
   n_shape = n_shape + 1
 enddo
+
+if (allocated(wall%gen_shape)) deallocate(wall%gen_shape)
 allocate (wall%gen_shape(n_shape))
 
 rewind(iu)
@@ -627,6 +631,7 @@ do
   n_multi = n_multi + 1
 enddo
 
+if (allocated(wall%multi_section)) deallocate (wall%multi_section)
 allocate (wall%multi_section(n_multi))
 
 ! Read each multi_section
