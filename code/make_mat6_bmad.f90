@@ -768,7 +768,7 @@ case (sbend$)
 
       Dy  = sqrt(rel_p2 - py**2)
       Dy_dpy = -py/Dy
-      Dy_dpy = rel_p/Dy
+      Dy_dpz = rel_p/Dy
 
       px_t = px*ct + f*st
       dpx_t = -px*st*g + f*ct*g
