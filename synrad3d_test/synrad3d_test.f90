@@ -46,7 +46,7 @@ do
   endif
 
   if (wall_file /= old_wall_file) then
-    if (allocated(wall%pt)) deallocate (wall%pt)
+    if (allocated(wall%section)) deallocate (wall%section)
     if (allocated(wall%gen_shape)) deallocate (wall%gen_shape)
     call sr3d_init_and_check_wall (wall_file, lat, wall)
     old_wall_file = wall_file
