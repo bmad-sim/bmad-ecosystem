@@ -554,7 +554,7 @@ the Bmad format or, if the \vn{lattice_file} string is prefixed by
 This string gives the name of the vacuum chamber wall definition
 file. See \sref{ss:wall.def} for more details.
   \item[\vn{dat_file}] \Newline
-This string gives the name of the output data file (\sref{ss.main.out}).
+This string gives the name of the output data file (\sref{ss:main.out}).
 See below for more details.
   \item[\vn{surface_roughness_rms}] \Newline
 This parameter sets the surface roughness RMS in meters for the
@@ -743,11 +743,11 @@ used in plotting. The \vn{<section_name>} is ignored for any calculation.
 
 The \vn{<section_id>} can have one of five values:
 \begin{example}
-  elliptical                    ! \sref{sss.el.rec}
-  rectangular                   ! \sref{sss.el.rec}
-  gen_shape:<shape_name>        ! \sref{sss.gen}
-  triangular:<shape_name>       ! \sref{sss.gen}
-  multi_section:<shape_name>    ! \sref{sssw:multi.sec}
+  elliptical                    ! \sref{sss:el.rec}
+  rectangular                   ! \sref{sss:el.rec}
+  gen_shape:<shape_name>        ! \sref{sss:gen}
+  triangular:<shape_name>       ! \sref{sss:gen}
+  multi_section:<shape_name>    ! \sref{sss:multi.sec}
 \end{example}
 Historically, the \vn{elliptical} and \vn{rectangular} shapes where
 developed first. The \vn{gen_shape} was developed later and is a
@@ -2255,7 +2255,7 @@ $$\ln\sum_{m=1}^{\infty}X_{m}\approx m_{max}\ln g - \ln m_{max}!-gq(x,y,\phi)/m_
 If this is less than, for example, $-200$, we set the power to zero. Otherwise we go ahead and evaluate the sum.
 
 %-----------------------------------------------
-\subsubsection{Gaussian Autocorrelation: Small $g$ Limit}
+\subsubsection{Gaussian Autocorrelation: Small g Limit}
 
 For $g\ll 1$, the power is
 \begin{eqnarray}
@@ -2264,7 +2264,7 @@ For $g\ll 1$, the power is
 \end{eqnarray}
 
 %-----------------------------------------------
-\subsubsection{Large $g$ limit}
+\subsubsection{Large g limit}
 For $g\gg 1$, the power is
 \begin{eqnarray}
 \der{P_{2}}{\Omega}&=&P_{0}\frac{\left<R\right>^{2}}{2\pi\cos\theta_{1}}\frac{F_{0}(\theta_{1},\theta_{2},\phi)}{(\cos{\theta_{1}}+\cos{\theta_{2}})^{2}}\frac{2\pi^{2}T^{2}}{g\lambda^{2}}\e^{-\frac{(v_{x}^{2}+v_{y}^{2})T^{2}}{4g}}\end{eqnarray}
@@ -2306,7 +2306,7 @@ Then
 &=&P_{0}\frac{\left<R\right>^{2}}{4\pi y}\frac{(1+xy)^{2}}{(x+y)^{4}}\tau^{2}\e^{-\frac{(2-x^{2}-y^{2})\tau^{2}}{4(x+y)^{2}}}(1-a\cos\phi)^{2}\e^{b\cos\phi}\end{eqnarray}
 
 %-----------------------------------------------
-\subsubsection{Large $g$ and $\tau$ limit}
+\subsubsection{Large g and tau limit}
 For $g\gg 1$,
 
 \begin{eqnarray}
@@ -2549,7 +2549,7 @@ P_{x}(x)&=& N_{0}\frac{\left<R\right>^{2}}{2 y}(1+xy)^{2}r^{2}s^{2}\e^{-\frac{\l
 \end{eqnarray}
 
 %-----------------------------------------------
-\subsubsection{cumulative probability distribution in $\phi$}
+\subsubsection{cumulative probability distribution in phi}
 We have
 
 $$C_{\phi}(\phi)=\frac{1}{P_x(x)}\int_{0}^{\phi}d\phi'P(x,\phi'),$$
@@ -2924,7 +2924,7 @@ r^{2}s^{2}
 
 
 %-----------------------------------------------
-\subsubsection{cumulative probability distribution in $\phi$}
+\subsubsection{cumulative probability distribution in phi}
 
 We have
 $$C_{\phi}(\phi)=\frac{1}{P_x(x)}\int_{0}^{\phi}d\phi'P(x,\phi'),$$
@@ -2983,7 +2983,7 @@ This is related to the derivative of the cumulative distribution function in phi
 $$\der{C_{\phi}}{\phi}=\frac{P(x,\phi)}{P_{x}(x)}.$$
 
 %-----------------------------------------------
-\subsubsection{Large $g$}
+\subsubsection{Large g}
 
 For $g\gg 1$, we have
 \begin{eqnarray}
