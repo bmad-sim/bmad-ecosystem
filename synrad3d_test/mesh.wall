@@ -1,9 +1,9 @@
-&wall_def section =     0.0000 "gen_shape_mesh" 118 /
-&wall_def section =     1.0000 "gen_shape_mesh" 119 /
-&wall_def section =    10.0000 "gen_shape_mesh" 118 /
+&section_def section =     0.0000 "", "triangular:118" /
+&section_def section =     1.0000 "", "triangular:119" /
+&section_def section =    10.0000 "", "triangular:118" /
 
 &gen_shape_def
-ix_gen_shape = 118
+ name = "118"
 v(  1) =  0.0450, 0.0000,
 v(  2) =  0.0450, 0.0100,
 v(  3) =  0.0100, 0.0250
@@ -11,7 +11,7 @@ ix_vertex_ante = 4, 1
 / 
 
 &gen_shape_def
-ix_gen_shape = 119
+  name = "119"
 v(  1) =  0.0250, 0.0000,
 v(  2) =  0.0250, 0.0050,
 v(  3) =  0.0100, 0.0150
