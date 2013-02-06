@@ -680,7 +680,7 @@ do it = 1, n_table
   enddo
 
   n_energy = 1 + (energy_max - energy_min) / energy_delta
-  allocate(prt%angle(n_angles), prt%energy(n_energy))
+  allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect_scratch(n_angles))
   allocate(prt%p_reflect_smooth(n_angles,n_energy), prt%p_reflect_rough(n_angles,n_energy))
   allocate(prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
 
