@@ -145,11 +145,12 @@ tracking methods are identical. Note: Taylor maps for \vn{match}, and
 \index{time_runge_kutta!tracking_method}
 \item[\vn{Time_Runge_Kutta}]
 This method uses time as the independent variable instead of
-longitudinal position. The advantage of this method is that it can
+the longitudinal $z$ position. The advantage of this method is that it can
 handle particles which reverse direction longitudinally.  One use for
 this method is ``dark current'' tracking where low energy particles
 generated at the vacuum chamber walls can be found traveling in all
-directions.
+directions. Notice that \vn{time_runge_kutta} is different from using
+\vn{absolute time tracking} as explained in \sref{s:rf.time}.
 
 \end{description}
 

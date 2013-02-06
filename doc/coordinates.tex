@@ -805,3 +805,9 @@ mode (that is, has the same frequency as the fundamental mode) will
 always use relative time if the fundamental is using relative time and
 vice versa.
 
+Do not confuse absolute time tracking with the \vn{time_runge_kutta}
+tracking method (\sref{s:tkm}). The \vn{time_runge_kutta} method uses
+time as the independent variable instead of $z$. Absolute time
+tracking just means that the RF phase is dependent upon the time
+instead of $z$. It is perfectly possible to use absolute time
+tracking with code that uses $z$ as the independent variable.
