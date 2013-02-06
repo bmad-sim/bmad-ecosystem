@@ -71,7 +71,6 @@ type sr3d_gen_shape_struct
   type (wall3d_section_struct) :: wall3d_section
   integer ix_vertex_ante(2)
   integer ix_vertex_ante2(2)
-  type (sr3d_surface_struct), pointer :: surface  => null()
 end type
 
 type sr3d_wall_section_struct
@@ -91,7 +90,6 @@ type sr3d_wall_section_struct
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
   type (sr3d_gen_shape_struct), pointer :: gen_shape => null()            ! Gen_shape info
   type (sr3d_surface_struct), pointer :: surface  => null()
-  logical delta_s
 end type
 
 ! multi_section structure

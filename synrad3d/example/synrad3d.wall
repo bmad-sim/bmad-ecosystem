@@ -1,39 +1,10 @@
 !+
 ! Example wall specification:
-!
-!  &wall_def section = 0.0, 'elliptical', 0.045, 0.025 /
-!  &wall_def section = 80.01, 'rectangular', 0.045, 0.025, 0.01, 0.006 /
-!
-! The format to specify a wall point is:
-!    &wall_def section(n) = z, shape, x_half_width, y_half_height, antechamber_half_height(+x side), 
-!                                                            antechamber_half_height(-x side) /
-!
-! Wall point parameters:
-!   z             -- Longitudinal distance from the start of the lattice. 
-!                      For the first cross-section z must be 0.
-!                      For the last wall point the z value will be set by 
-!                      synrad3d to the z at the end of the lattice. 
-!   shape         -- Chamber shapes. Possible values are:
-!												'elliptical', 
-!												'rectangular'
-!   x_half_width  -- Half width of the chamber.
-!   y_half_height -- Half height of the chamber.
-!   antechamber_half_height(+x side)
-!                 -- Antechamber half height on the +x side of the chamber.
-!   antechamber_half_height(-x side)
-!                 -- Antechamber half height on the -x side of the chamber.
-!
-! The antechamber values are optional. If present, for a given wall point, the 
-! antechamber is taken to start at the previous wall point and end at the given wall point.
-! A photon stricking the wall will be considered to have entered the antechamber if
-!      |y| (vertical coordinate) < antechamber_half_height
-! Negative values for the antechamber half height are taken to mean no antechamber
-! exists for a given section of wall.
 !-
 
-&wall_def section = 0.0, 'elliptical', 0.02, 0.01 /
-&wall_def section = 80.0, 'elliptical', 0.04, 0.02 /
-&wall_def section = 80.01, 'rectangular', 0.045, 0.025 /
-&wall_def section = 100.0, 'rectangular', 0.045, 0.025, 0.06, 0.05, 0.07, 0.05 /
-&wall_def section = 100.01, 'elliptical', 0.045, 0.025 /
-&wall_def section = 0.0, 'elliptical', 0.02, 0.01  /
+&section_def section =   0.0,  'elliptical', 0.02, 0.01 /
+&section_def section =  80.0,  'elliptical', 0.04, 0.02 /
+&section_def section =  80.01, 'rectangular', 0.045, 0.025 /
+&section_def section = 100.0,  'rectangular', 0.045, 0.025, 0.06, 0.05, 0.07, 0.05 /
+&section_def section = 100.01, 'elliptical', 0.045, 0.025 /
+&section_def section =   0.0,  'elliptical', 0.02, 0.01  /

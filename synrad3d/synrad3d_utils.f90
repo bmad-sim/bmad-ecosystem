@@ -17,6 +17,11 @@ type sr3d_wall_section_input
   real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
 end type
 
+type surface_input
+  character(40) name
+  logical is_local
+end type
+
 private sr3d_wall_section_params
 
 contains
@@ -48,10 +53,13 @@ type (sr3d_wall_struct), target :: wall
 type (lat_struct) lat
 type (sr3d_wall_section_struct), pointer :: sec, sec0, sec2
 type (sr3d_wall_section_struct), allocatable :: temp_section(:)
+type (sr3d_wall_section_struct) ref_section
 type (sr3d_wall_section_input) section
 type (wall3d_vertex_struct) v(100)
 type (wall3d_section_struct), pointer :: wall3d_section
 type (sr3d_multi_section_struct), pointer :: m_sec
+type (surface_input) surface
+type (sr3d_surface_struct), pointer :: surface_ptr  => null()
 
 real(rp) ix_vertex_ante(2), ix_vertex_ante2(2)
 
@@ -60,14 +68,15 @@ integer m_max, n_add
 
 character(28), parameter :: r_name = 'sr3d_init_and_check_wall'
 character(40) name
-character(40) surface
 character(200) reflectivity_file
 character(*) wall_file
 
-logical err
+logical err, multi_local
+logical, allocatable ::  is_local(:) 
+
 
 namelist / section_def / section, surface
-namelist / gen_shape_def / name, v, ix_vertex_ante, ix_vertex_ante2, surface
+namelist / gen_shape_def / name, v, ix_vertex_ante, ix_vertex_ante2
 namelist / surface_def / name, reflectivity_file
 
 ! Open file
@@ -82,6 +91,7 @@ n_surface = 0
 do
   read (iu, nml = surface_def, iostat = ios)
   if (ios > 0) then ! error
+    print *, 'ERROR READING SURFACE_DEF NAMELIST'
     rewind (iu)
     do
       read (iu, nml = surface_def) ! will bomb program with error message
@@ -131,7 +141,7 @@ if (n_wall_section_max < 1) then
   call err_exit
 endif
 
-allocate (wall%section(0:n_wall_section_max))
+allocate (wall%section(0:n_wall_section_max), is_local(0:n_wall_section_max))
 wall%n_section_max = n_wall_section_max
 
 ! Now transfer info from the file to the wall%section array
@@ -144,13 +154,13 @@ do i = 0, n_wall_section_max
   section%width2_plus = -1
   section%width2_minus = -1
   section%name = ''
-  surface = ''
+  surface%name = ''
+  surface%is_local = .false.
   read (iu, nml = section_def)
 
   sec => wall%section(i)
-  sec%delta_s = .false.
   if (section%basic_shape(1:1) == '+') then
-    sec%delta_s = .true.
+    section%s = wall%section(i-1)%s + section%s
     section%basic_shape = section%basic_shape(2:)
   endif
 
@@ -160,16 +170,17 @@ do i = 0, n_wall_section_max
           section%s, section%basic_shape, '', section%width2, section%height2, &
           section%width2_plus, section%ante_height2_plus, &
           section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null(), sec%delta_s)
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
   else
     sec = sr3d_wall_section_struct(section%name, &
           section%s, section%basic_shape(1:ix-1), section%basic_shape(ix+1:), section%width2, section%height2, &
           section%width2_plus, section%ante_height2_plus, &
           section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null(), sec%delta_s)
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
   endif
 
-  call sr3d_associate_surface (sec%surface, surface, wall%surface)
+  call sr3d_associate_surface (sec%surface, surface%name, wall%surface)
+  is_local(i) = surface%is_local
 
 enddo
 
@@ -211,8 +222,6 @@ do i = 1, n_shape
     endif
   enddo
   wall%gen_shape(i)%name = name
-
-  call sr3d_associate_surface (wall%gen_shape(j)%surface, surface, wall%surface)
 
   ! Count number of vertices and calc angles.
 
@@ -267,21 +276,21 @@ i = -1
 outer: do 
   i = i + 1
   if (i > wall%n_section_max) exit
-  sec => wall%section(i)
-  if (sec%basic_shape /= 'multi_section') cycle
-  n_repeat = nint(sec%width2)
+  ref_section = wall%section(i)
+  if (ref_section%basic_shape /= 'multi_section') cycle
+  n_repeat = nint(ref_section%width2)
 
   do j = 1, size(wall%multi_section)
     m_sec => wall%multi_section(j)
-    if (sec%shape_name /= m_sec%name) cycle
+    if (ref_section%shape_name /= m_sec%name) cycle
     m_max = ubound(m_sec%section, 1)
 
-    if (m_sec%section(m_max)%basic_shape == 'closed_end') then
+    if (m_sec%section(m_max)%name == 'closed') then
       n_add = n_repeat * m_max + 1
-    elseif (m_sec%section(m_max)%basic_shape == 'open_end') then
+    elseif (m_sec%section(m_max)%name == 'open') then
       n_add = n_repeat * m_max
     else
-      print *, 'ERROR: LAST SECTION IN MULTI_SECTION IS NOT "closed_end" NOR "open_end"'
+      print *, 'ERROR: LAST SECTION IN MULTI_SECTION IS NOT "closed" NOR "open"'
       call err_exit
     endif
 
@@ -293,24 +302,28 @@ outer: do
     deallocate (temp_section)
     wall%n_section_max = n + n_add - 1
 
+    call re_allocate2 (is_local, 0, n+n_add-1)
+    is_local(i+n_add:n+n_add-1) = is_local(i+1:n)
+    is_local(i:i+n_add-1) = is_local(i)
+
     do k = 1, n_repeat
       do im = 0, m_max - 1
         sec2 => wall%section(i+(k-1)*m_max+im)
         sec2 = m_sec%section(im)
-        sec2%s = sec%s + (k-1) * m_sec%section(m_max)%s + m_sec%section(im)%s
+        sec2%s = ref_section%s + (k-1) * m_sec%section(m_max)%s + m_sec%section(im)%s
       enddo
     enddo
-    if (m_sec%section(m_max)%basic_shape == 'closed_end') then
+    if (m_sec%section(m_max)%name == 'closed') then
       sec2 => wall%section(i+n_repeat*m_max)
       sec2 = m_sec%section(1)
-      sec2%s = sec%s + n_repeat * m_sec%section(m_max)%s
+      sec2%s = ref_section%s + n_repeat * m_sec%section(m_max)%s
     endif      
 
     cycle outer
 
   enddo
 
-  print *, 'CANNOT FIND MATCHING MULTI_SECTION NAME: ', trim(sec%shape_name)
+  print *, 'CANNOT FIND MATCHING MULTI_SECTION NAME: ', trim(ref_section%shape_name)
   call err_exit
 
 enddo outer
@@ -513,20 +526,17 @@ enddo
 
 ! Surface info
 
+surface_ptr => wall%surface(1)  ! Default surface
+
 do i = wall%n_section_max, 0, -1
   sec => wall%section(i)
 
-  if (associated(sec%gen_shape)) then
-    if (associated(sec%gen_shape%surface) .and. .not. associated (sec%surface)) sec%surface => sec%gen_shape%surface
+  if (associated(sec%surface)) then
+    if (.not. is_local(i)) surface_ptr => sec%surface
+  else
+    sec%surface => surface_ptr
   endif
 
-  if (.not. associated(sec%surface)) then
-    if (i == wall%n_section_max) then
-      sec%surface => wall%surface(1)
-    else
-      sec%surface => wall%section(i+1)%surface
-    endif
-  endif
 enddo
 
 end subroutine sr3d_init_and_check_wall 
@@ -599,7 +609,7 @@ integer i, j, iu, ix, n_multi, n_section, ios
 
 character(40) surface, name
 
-namelist / multi_section_def / name, section, surface
+namelist / multi_section_def / name, section
 
 ! Count multi_sections
 
@@ -630,7 +640,6 @@ do i = 1, n_multi
   section%width2_minus = -1
   section%name = ''
   name = ''
-  surface = ''
   read (iu, nml = multi_section_def)
 
   if (name == '') then
@@ -661,8 +670,7 @@ do i = 1, n_multi
           section(j)%s, section(j)%basic_shape(:ix-1), section(j)%basic_shape(ix+1:), &
           section(j)%width2, section(j)%height2, section(j)%width2_plus, &
           section(j)%ante_height2_plus, section(j)%width2_minus, section(j)%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null(), .false.)
-    call sr3d_associate_surface (wall%multi_section(i)%section(j)%surface, surface, wall%surface)
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
   enddo
 enddo
 
