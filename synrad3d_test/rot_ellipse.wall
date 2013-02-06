@@ -1,7 +1,7 @@
-&wall_def section =     0.0000 "gen_shape" 117  , name = "BEAMPIPE_Q00: 1"/
-&wall_def section =    10.0000 "gen_shape" 117  , name = "BEAMPIPE_Q00: 2"/
+&section_def section =     0.0000, "BEAMPIPE_Q00: 1", "gen_shape:117"   /
+&section_def section =    10.0000, "BEAMPIPE_Q00: 2", "gen_shape:117"   /
 
 &gen_shape_def
-ix_gen_shape = 117
-v(  1) =  0.01, 0.020,.035,.02,0.523598775598299
+  name = "117"
+  v(  1) =  0.01, 0.020,.035,.02,0.523598775598299
 /
