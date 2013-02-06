@@ -52,7 +52,7 @@ IF (FORTRAN_COMPILER MATCHES "gfortran")
      ELSE ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
      ENDIF () 
-  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0")
+  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0 -frange-check -fbounds-check -Wuninitialized")
 
 ELSE ()
 
@@ -66,7 +66,7 @@ ELSE ()
      ELSE ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp")
      ENDIF ()
-  set (COMPILER_SPECIFIC DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
+  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
 
 ENDIF ()
 
