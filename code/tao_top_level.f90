@@ -51,7 +51,7 @@ do
     ! single mode
     call tao_single_mode (cmd_line(1:1))
     ! Do the standard calculations and plotting after command execution.
-    call tao_cmd_end_calc
+    call tao_cmd_end_calc ()
   else
     ! command line mode
     call tao_hook_command (cmd_line, found)

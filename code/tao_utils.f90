@@ -2579,7 +2579,7 @@ do
         '-noplot       ', '-lat          ', '-log_startup  ', '-beam         ', &
         '-var          ', '-data         ', '-building_wall', '-plot         ', &
         '-startup      ', 'help          ', '-help         ', '?             ', &
-        '-geometry     '], ix, .true., matched_name=switch)
+        '-geometry     ', '-rf_on        '], ix, .true., matched_name=switch)
 
   select case (switch)
 
@@ -2625,6 +2625,9 @@ do
 
   case ('-noplot')
     tao_com%noplot_arg_set = .true.
+
+  case ('-rf_on')
+    s%global%rf_on = .true.
 
   case ('-plot')
     call get_next_arg (tao_com%plot_file)
@@ -2705,6 +2708,7 @@ call out_io (s_blank$, r_name, [ &
         '  -noinit                          ', &
         '  -noplot                          ', &
         '  -plot <plot_file>                ', &
+        '  -rf_on                           ', &
         '  -startup <starup_command_file>   ', &
         '  -var <var_file>                  '])
 
