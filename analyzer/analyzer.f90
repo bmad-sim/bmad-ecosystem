@@ -1287,16 +1287,16 @@ program anaylzer
       print *,' write beta, alpha, and eta, etap data to "beta_alpha_eta_etap.dat"'
       open(unit=35,file="beta_alpha_eta_etap.dat")
       write(34,'(a13,5a12)')'Element','s','beta x','beta y','eta x','eta y'
-      write(35,'(a13,9a15)')'Element','s','beta x','alpha x','beta y','alpha y','eta x','etap x','eta y','etap y'
+      write(35,'(a13,10a15)')'Element','s','beta x','alpha x','beta y','alpha y','eta x','etap x','eta y','etap y','v15'
        do i=1,ring%n_ele_track
   write(34,'(1x,a13,5e12.4)')ring%ele(i)%name, ring%ele(i)%s, &
                         ring%ele(i)%a%beta,ring%ele(i)%b%beta,ring%ele(i)%x%eta, &
                         ring%ele(i)%y%eta
-  write(35,'(1x,a13,9es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
+  write(35,'(1x,a13,10es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
                         ring%ele(i)%a%beta,ring%ele(i)%a%alpha, &
                         ring%ele(i)%b%beta, ring%ele(i)%b%alpha, &
                         ring%ele(i)%x%eta, ring%ele(i)%x%etap, &
-                        ring%ele(i)%y%eta, ring%ele(i)%y%etap
+                        ring%ele(i)%y%eta, ring%ele(i)%y%etap, ring%ele(i)%mode3%v(1,5)
 
        end do
 
