@@ -586,6 +586,7 @@ do i = 1, size(s%plotting%region)
   else
     if (.not. allocated(plot%graph)) cycle
     do j = 1, size(plot%graph)
+      graph => plot%graph(i)
       call tao_x_scale_graph (graph, graph%x%min * factor, graph%x%max * factor)
     enddo
   endif
