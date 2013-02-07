@@ -19,6 +19,7 @@ set (EXE_SPECS
   synrad3d.cmake
   synrad_aperture_to_wall.cmake
   tune_plane_res_plot.cmake
+  find_quads.cmake
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
