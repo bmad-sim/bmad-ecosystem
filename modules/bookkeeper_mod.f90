@@ -2577,6 +2577,7 @@ logical, pointer :: a_ptr
 
 call set_flags_for_changed_real_attribute (lat, ele, dummy)
 
+a_ptr => attrib
 
 ! Set independent stuff in multipass lord
 
@@ -2586,7 +2587,7 @@ if (ele%lord_status == multipass_lord$) then
     slave => pointer_to_slave(ele, i)
   
     if (associated(a_ptr, ele%offset_moves_aperture)) then
-      ele%offset_moves_aperture = a_ptr
+      slave%offset_moves_aperture = attrib
     else
       exit
     endif

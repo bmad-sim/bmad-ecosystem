@@ -2061,7 +2061,7 @@ end function evaluate_array_index
 !
 ! Output:
 !   this_logic -- Logical: Result.
-!   iostat -- Integer: Status: Returns 0 if conversion successful. 
+!   iostat     -- Integer: Status: Returns 0 if conversion successful. 
 !-
 
 function evaluate_logical (word, iostat) result (this_logic)
@@ -2077,6 +2077,7 @@ integer i
 !
 
 iostat = -1
+this_logic = .false.  ! To avoid uninit compiler warnings.
 
 call str_upcase(wd, word)
 do i = 1, len(word)

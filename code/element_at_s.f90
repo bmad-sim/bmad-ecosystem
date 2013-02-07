@@ -59,6 +59,7 @@ logical choose_max, err
 
 ! Get translated position and check for position out-of-bounds.
 
+ix_ele = 0
 branch => lat%branch(integer_option(0, ix_branch))
 call check_if_s_in_bounds (branch, s, err, ss)
 if (present(err_flag)) err_flag = err
@@ -67,7 +68,6 @@ if (err) return
 ! Start of branch case
 
 if (.not. choose_max .and. s == branch%ele(0)%s) then
-  ix_ele = 0
   if (present(s_eff)) s_eff = s
   if (present(position)) then
     position%ix_ele = ix_ele
