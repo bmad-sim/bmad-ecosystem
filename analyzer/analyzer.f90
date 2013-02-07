@@ -996,8 +996,8 @@ program anaylzer
          xscale=(int(f*2+1)/2.)*10**p
          print *,' p,f, xmax, xscale ',p,f, xmax, xscale
          call pgenv(start, end,-xscale,xscale,0,1)
-         if(plot_flag == v15$)call pglab('z (m)','v(1,5) (mrad)',' x-z tilt')
-         if(plot_flag == v16$)call pglab('z (m)','v(1,6) (mrad)',' x-z tilt')
+         if(plot_flag == v15$)call pglab('z (m)','v(1,5) (rad)',' x-z tilt')
+         if(plot_flag == v16$)call pglab('z (m)','v(1,6) (rad)',' x-z tilt')
        endif
        if(plot_flag == beta$)then
          xscale=(int(xmax/10.)+1)*10
