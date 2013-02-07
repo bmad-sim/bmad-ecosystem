@@ -622,10 +622,10 @@ mode%z%alpha_damp = energy_loss * mode%z%j_damp / (2 * energy)
 
 mode%e_loss = energy_loss
 
-if (abs(m65) > 0) then
+if (abs(m65) > 0 .and. i1 >= 0) then
   mode%sig_z = sqrt(i1/abs(m65)) * mode%sigE_E
-else
-  mode%sig_z = 0.
+else   ! Unstable
+  mode%sig_z = 1e30  ! Something large
 endif
 
 mode%z%emittance = mode%sig_z * mode%sigE_E
