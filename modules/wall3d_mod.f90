@@ -663,6 +663,18 @@ endif
 
 if (.not. associated(wall3d_ele)) return
 
+! Calc particle radius
+
+if (position(1) == 0 .and. position(3) == 0) then
+  r_particle = 0
+  cos_theta = 1
+  sin_theta = 0
+else
+  r_particle = sqrt(position(1)**2 + position(3)**2)
+  cos_theta = position(1) / r_particle
+  sin_theta = position(3) / r_particle
+endif
+
 !------------------
 ! If using a continuous aperture...
 
@@ -692,21 +704,11 @@ if (.not. associated(wall3d_ele%wall3d)) then
 endif
 
 !------------------
-! Calculate the particle radius and transverse angle.
+! Init
 
 wall3d => wall3d_ele%wall3d
 s_particle = position(5) + dz_offset
 n_sec = size(wall3d%section)
-
-if (position(1) == 0 .and. position(3) == 0) then
-  r_particle = 0
-  cos_theta = 1
-  sin_theta = 0
-else
-  r_particle = sqrt(position(1)**2 + position(3)**2)
-  cos_theta = position(1) / r_particle
-  sin_theta = position(3) / r_particle
-endif
 
 ! Case where particle is outside the wall region. No interpolation needed.
 
