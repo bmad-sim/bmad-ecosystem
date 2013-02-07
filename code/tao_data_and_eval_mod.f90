@@ -2659,13 +2659,10 @@ character(40) :: r_name = 'tao_valid_datum_index'
 ! If this is the case, assume that everything is OK and just return a pointer to the element.
 
 valid = .true.
+nullify (ele)
 
 if (ele_name == '') then
-  if (ix_ele == -1) then
-    nullify (ele)
-  else
-    ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
-  endif
+  if (ix_ele /= -1) ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
   return
 endif
 
