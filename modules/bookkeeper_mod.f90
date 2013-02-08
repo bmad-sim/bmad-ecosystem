@@ -278,7 +278,10 @@ do ib = 0, ubound(lat%branch, 1)
   do ie = 0, lat%branch(ib)%n_ele_track
     ele2 => lat%branch(ib)%ele(ie)
     if (ele2%key == null_ele$) cycle
-    if (ele2%slave_status == free$) cycle
+    if (ele2%slave_status == free$) then
+      ele2%bookkeeping_state%control = ok$
+      cycle
+    endif
     if (.not. bmad_com%auto_bookkeeper .and. ele2%bookkeeping_state%control /= stale$) cycle
     call control_bookkeeper1 (lat, ele2, sm_only)
     ele2%bookkeeping_state%control = ok$
