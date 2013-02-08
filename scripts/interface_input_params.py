@@ -72,6 +72,8 @@ component_no_translate_list = set([
     'ptc_branch1_info_struct',
     'layout',
     'ele_struct%lord',
+    'ele_struct%branch',
+    'branch_struct%lat',
 ])
 
 # List of structure components links:

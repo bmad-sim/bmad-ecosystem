@@ -4858,11 +4858,11 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine ele_to_c2 (C, z_name, z_type, z_alias, z_component_name, z_descrip, z_a, z_b, z_z, &
-      z_x, z_y, z_bookkeeping_state, z_branch, n_branch, z_em_field, n_em_field, z_floor, &
-      z_mode3, n_mode3, z_rad_int_cache, n_rad_int_cache, z_rf_wake, n_rf_wake, z_space_charge, &
-      n_space_charge, z_taylor, z_wall3d, n_wall3d, z_wig, n_wig, z_value, z_old_value, z_gen0, &
-      z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, &
-      n1_a_pole, z_b_pole, n1_b_pole, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
+      z_x, z_y, z_bookkeeping_state, z_em_field, n_em_field, z_floor, z_mode3, n_mode3, &
+      z_rad_int_cache, n_rad_int_cache, z_rf_wake, n_rf_wake, z_space_charge, n_space_charge, &
+      z_taylor, z_wall3d, n_wall3d, z_wig, n_wig, z_value, z_old_value, z_gen0, z_vec0, z_mat6, &
+      z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, &
+      z_b_pole, n1_b_pole, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
       z_time_ref_orb_out, z_key, z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, z_slave_status, &
       z_n_slave, z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, &
       z_ix_pointer, z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, &
@@ -4878,15 +4878,15 @@ interface
     integer(c_int) :: z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc
     integer(c_int) :: z_aperture_at, z_aperture_type, z_orientation
     type(c_ptr), value :: z_descrip, z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state
-    type(c_ptr), value :: z_branch, z_em_field, z_floor, z_mode3, z_rad_int_cache, z_rf_wake, z_space_charge
-    type(c_ptr), value :: z_wall3d, z_wig, z_r, z_a_pole, z_b_pole
+    type(c_ptr), value :: z_em_field, z_floor, z_mode3, z_rad_int_cache, z_rf_wake, z_space_charge, z_wall3d
+    type(c_ptr), value :: z_wig, z_r, z_a_pole, z_b_pole
     logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_map_with_offsets, z_field_master, z_is_on
     logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_on_a_girder, z_csr_calc_on, z_offset_moves_aperture
     character(c_char) :: z_name(*), z_type(*), z_alias(*), z_component_name(*)
     real(c_double) :: z_value(*), z_old_value(*), z_gen0(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c
     real(c_double) :: z_s, z_ref_time, z_map_ref_orb_in(*), z_map_ref_orb_out(*), z_time_ref_orb_in(*), z_time_ref_orb_out(*)
-    integer(c_int), value :: n_branch, n_em_field, n_mode3, n_rad_int_cache, n_rf_wake, n_space_charge, n_wall3d
-    integer(c_int), value :: n_wig, n1_r, n2_r, n3_r, n1_a_pole, n1_b_pole
+    integer(c_int), value :: n_em_field, n_mode3, n_rad_int_cache, n_rf_wake, n_space_charge, n_wall3d, n_wig
+    integer(c_int), value :: n1_r, n2_r, n3_r, n1_a_pole, n1_b_pole
     type(c_ptr) :: z_taylor(*)
   end subroutine
 end interface
@@ -4898,7 +4898,6 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 character(200+1), pointer :: f_descrip
 character(200+1), target :: a_descrip
-integer(c_int) :: n_branch
 integer(c_int) :: n_em_field
 integer(c_int) :: n_mode3
 integer(c_int) :: n_rad_int_cache
@@ -4924,9 +4923,6 @@ if (associated(F%descrip)) then
 else
   nullify(f_descrip)
 endif
-!! f_side.to_c_trans[type, 0, PTR]
-n_branch = 0
-if (associated(F%branch)) n_branch = 1
 !! f_side.to_c_trans[type, 0, PTR]
 n_em_field = 0
 if (associated(F%em_field)) n_em_field = 1
@@ -4974,8 +4970,8 @@ endif
 call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, trim(F%alias) // &
     c_null_char, trim(F%component_name) // c_null_char, c_loc(f_descrip), c_loc(F%a), &
     c_loc(F%b), c_loc(F%z), c_loc(F%x), c_loc(F%y), c_loc(F%bookkeeping_state), &
-    c_loc(F%branch), n_branch, c_loc(F%em_field), n_em_field, c_loc(F%floor), c_loc(F%mode3), &
-    n_mode3, c_loc(F%rad_int_cache), n_rad_int_cache, c_loc(F%rf_wake), n_rf_wake, &
+    c_loc(F%em_field), n_em_field, c_loc(F%floor), c_loc(F%mode3), n_mode3, &
+    c_loc(F%rad_int_cache), n_rad_int_cache, c_loc(F%rf_wake), n_rf_wake, &
     c_loc(F%space_charge), n_space_charge, z_taylor, c_loc(F%wall3d), n_wall3d, c_loc(F%wig), &
     n_wig, fvec2vec(F%value, num_ele_attrib$), fvec2vec(F%old_value, num_ele_attrib$), &
     fvec2vec(F%gen0, 6), fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), mat2vec(F%c_mat, 2*2), &
@@ -5011,14 +5007,14 @@ end subroutine ele_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, z_a, z_b, z_z, &
-    z_x, z_y, z_bookkeeping_state, z_branch, n_branch, z_em_field, n_em_field, z_floor, &
-    z_mode3, n_mode3, z_rad_int_cache, n_rad_int_cache, z_rf_wake, n_rf_wake, z_space_charge, &
-    n_space_charge, z_taylor, z_wall3d, n_wall3d, z_wig, n_wig, z_value, z_old_value, z_gen0, &
-    z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, &
-    n1_a_pole, z_b_pole, n1_b_pole, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
-    z_time_ref_orb_out, z_key, z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, z_slave_status, &
-    z_n_slave, z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, &
-    z_ix_pointer, z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, &
+    z_x, z_y, z_bookkeeping_state, z_em_field, n_em_field, z_floor, z_mode3, n_mode3, &
+    z_rad_int_cache, n_rad_int_cache, z_rf_wake, n_rf_wake, z_space_charge, n_space_charge, &
+    z_taylor, z_wall3d, n_wall3d, z_wig, n_wig, z_value, z_old_value, z_gen0, z_vec0, z_mat6, &
+    z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, &
+    n1_b_pole, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, &
+    z_key, z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, z_slave_status, z_n_slave, &
+    z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer, &
+    z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, &
     z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_orientation, &
     z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_map_with_offsets, &
     z_field_master, z_is_on, z_old_is_on, z_logic, z_bmad_logic, z_on_a_girder, z_csr_calc_on, &
@@ -5038,22 +5034,21 @@ integer(c_int) :: z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tr
 integer(c_int) :: z_aperture_at, z_aperture_type, z_orientation
 type(mode3_struct), pointer :: f_mode3
 type(rad_int_ele_cache_struct), pointer :: f_rad_int_cache
-type(c_ptr), value :: z_descrip, z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state
-type(c_ptr), value :: z_branch, z_em_field, z_floor, z_mode3, z_rad_int_cache, z_rf_wake, z_space_charge
-type(c_ptr), value :: z_wall3d, z_wig, z_r, z_a_pole, z_b_pole
+integer(c_int), value :: n_em_field, n_mode3, n_rad_int_cache, n_rf_wake, n_space_charge, n_wall3d, n_wig
+integer(c_int), value :: n1_r, n2_r, n3_r, n1_a_pole, n1_b_pole
 character(c_char) :: z_name(*), z_type(*), z_alias(*), z_component_name(*)
 type(wig_struct), pointer :: f_wig
-type(branch_struct), pointer :: f_branch
+type(em_fields_struct), pointer :: f_em_field
 logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_map_with_offsets, z_field_master, z_is_on
 logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_on_a_girder, z_csr_calc_on, z_offset_moves_aperture
 real(c_double), pointer :: f_r(:), f_a_pole(:), f_b_pole(:)
 character(c_char), pointer :: f_descrip
-integer(c_int), value :: n_branch, n_em_field, n_mode3, n_rad_int_cache, n_rf_wake, n_space_charge, n_wall3d
-integer(c_int), value :: n_wig, n1_r, n2_r, n3_r, n1_a_pole, n1_b_pole
 type(space_charge_struct), pointer :: f_space_charge
 real(c_double) :: z_value(*), z_old_value(*), z_gen0(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c
 real(c_double) :: z_s, z_ref_time, z_map_ref_orb_in(*), z_map_ref_orb_out(*), z_time_ref_orb_in(*), z_time_ref_orb_out(*)
-type(em_fields_struct), pointer :: f_em_field
+type(c_ptr), value :: z_descrip, z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state
+type(c_ptr), value :: z_em_field, z_floor, z_mode3, z_rad_int_cache, z_rf_wake, z_space_charge, z_wall3d
+type(c_ptr), value :: z_wig, z_r, z_a_pole, z_b_pole
 type(c_ptr) :: z_taylor(*)
 type(wall3d_struct), pointer :: f_wall3d
 
@@ -5088,14 +5083,6 @@ call xy_disp_to_f(z_x, c_loc(F%x))
 call xy_disp_to_f(z_y, c_loc(F%y))
 !! f_side.to_f2_trans[type, 0, NOT]
 call bookkeeping_state_to_f(z_bookkeeping_state, c_loc(F%bookkeeping_state))
-!! f_side.to_f2_trans[type, 0, PTR]
-if (n_branch == 0) then
-  if (associated(F%branch)) deallocate(F%branch)
-else
-  if (.not. associated(F%branch)) allocate(F%branch)
-  call branch_to_f (z_branch, c_loc(F%branch))
-endif
-
 !! f_side.to_f2_trans[type, 0, PTR]
 if (n_em_field == 0) then
   if (associated(F%em_field)) deallocate(F%em_field)
@@ -5322,16 +5309,15 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine branch_to_c2 (C, z_name, z_ix_branch, z_ix_root_branch, z_ix_from_branch, &
-      z_ix_from_ele, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_lat, n_lat, z_a, &
-      n_a, z_b, n_b, z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d) bind(c)
+      z_ix_from_ele, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, &
+      n_b, z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d) bind(c)
     !! f_side.bindc_type :: f_side.bindc_name
     import c_int, c_ptr, c_char
     type(c_ptr), value :: C
     type(c_ptr) :: z_ele(*)
-    type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_lat, z_a, z_b, z_z, z_param
-    type(c_ptr), value :: z_wall3d
-    integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_lat, n_a, n_b, n_z, n1_ele
-    integer(c_int), value :: n_param, n_wall3d
+    type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_param, z_wall3d
+    integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_a, n_b, n_z, n1_ele, n_param
+    integer(c_int), value :: n_wall3d
     integer(c_int) :: z_ix_branch, z_ix_root_branch, z_ix_from_branch, z_ix_from_ele
     character(c_char) :: z_name(*)
   end subroutine
@@ -5344,7 +5330,6 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 integer(c_int) :: n_n_ele_track
 integer(c_int) :: n_n_ele_max
-integer(c_int) :: n_lat
 integer(c_int) :: n_a
 integer(c_int) :: n_b
 integer(c_int) :: n_z
@@ -5363,9 +5348,6 @@ if (associated(F%n_ele_track)) n_n_ele_track = 1
 !! f_side.to_c_trans[integer, 0, PTR]
 n_n_ele_max = 0
 if (associated(F%n_ele_max)) n_n_ele_max = 1
-!! f_side.to_c_trans[type, 0, PTR]
-n_lat = 0
-if (associated(F%lat)) n_lat = 1
 !! f_side.to_c_trans[type, 0, PTR]
 n_a = 0
 if (associated(F%a)) n_a = 1
@@ -5394,8 +5376,8 @@ if (associated(F%wall3d)) n_wall3d = 1
 !! f_side.to_c2_call
 call branch_to_c2 (C, trim(F%name) // c_null_char, F%ix_branch, F%ix_root_branch, &
     F%ix_from_branch, F%ix_from_ele, c_loc(F%n_ele_track), n_n_ele_track, c_loc(F%n_ele_max), &
-    n_n_ele_max, c_loc(F%lat), n_lat, c_loc(F%a), n_a, c_loc(F%b), n_b, c_loc(F%z), n_z, z_ele, &
-    n1_ele, c_loc(F%param), n_param, c_loc(F%wall3d), n_wall3d)
+    n_n_ele_max, c_loc(F%a), n_a, c_loc(F%b), n_b, c_loc(F%z), n_z, z_ele, n1_ele, &
+    c_loc(F%param), n_param, c_loc(F%wall3d), n_wall3d)
 
 end subroutine branch_to_c
 
@@ -5416,8 +5398,8 @@ end subroutine branch_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine branch_to_f2 (Fp, z_name, z_ix_branch, z_ix_root_branch, z_ix_from_branch, &
-    z_ix_from_ele, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_lat, n_lat, z_a, &
-    n_a, z_b, n_b, z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d) bind(c)
+    z_ix_from_ele, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, &
+    z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d) bind(c)
 
 
 implicit none
@@ -5426,16 +5408,14 @@ type(c_ptr), value :: Fp
 type(branch_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.bindc_type :: f_side.bindc_name
-type(lat_struct), pointer :: f_lat
 integer(c_int) :: z_ix_branch, z_ix_root_branch, z_ix_from_branch, z_ix_from_ele
-type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_lat, z_a, z_b, z_z, z_param
-type(c_ptr), value :: z_wall3d
+type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_param, z_wall3d
 type(lat_param_struct), pointer :: f_param
 character(c_char) :: z_name(*)
 integer(c_int), pointer :: f_n_ele_track, f_n_ele_max
 type(mode_info_struct), pointer :: f_a, f_b, f_z
-integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_lat, n_a, n_b, n_z, n1_ele
-integer(c_int), value :: n_param, n_wall3d
+integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_a, n_b, n_z, n1_ele, n_param
+integer(c_int), value :: n_wall3d
 type(c_ptr) :: z_ele(*)
 type(wall3d_struct), pointer :: f_wall3d
 
@@ -5467,14 +5447,6 @@ else
   call c_f_pointer (z_n_ele_max, f_n_ele_max)
   if (.not. associated(F%n_ele_max)) allocate(F%n_ele_max)
   F%n_ele_max = f_n_ele_max
-endif
-
-!! f_side.to_f2_trans[type, 0, PTR]
-if (n_lat == 0) then
-  if (associated(F%lat)) deallocate(F%lat)
-else
-  if (.not. associated(F%lat)) allocate(F%lat)
-  call lat_to_f (z_lat, c_loc(F%lat))
 endif
 
 !! f_side.to_f2_trans[type, 0, PTR]

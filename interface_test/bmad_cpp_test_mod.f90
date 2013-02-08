@@ -4461,7 +4461,7 @@ if (ix_patt < 3) then
   if (associated(F%em_field)) deallocate (F%em_field)
 else
   if (.not. associated(F%em_field)) allocate (F%em_field)
-  rhs = 14 + offset
+  rhs = 12 + offset
   call set_em_fields_test_pattern (F%em_field, ix_patt)
 endif
 !! f_side.test_pat[type, 0, NOT]
@@ -4471,7 +4471,7 @@ if (ix_patt < 3) then
   if (associated(F%mode3)) deallocate (F%mode3)
 else
   if (.not. associated(F%mode3)) allocate (F%mode3)
-  rhs = 17 + offset
+  rhs = 15 + offset
   call set_mode3_test_pattern (F%mode3, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -4479,7 +4479,7 @@ if (ix_patt < 3) then
   if (associated(F%rad_int_cache)) deallocate (F%rad_int_cache)
 else
   if (.not. associated(F%rad_int_cache)) allocate (F%rad_int_cache)
-  rhs = 19 + offset
+  rhs = 17 + offset
   call set_rad_int_ele_cache_test_pattern (F%rad_int_cache, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -4487,7 +4487,7 @@ if (ix_patt < 3) then
   if (associated(F%rf_wake)) deallocate (F%rf_wake)
 else
   if (.not. associated(F%rf_wake)) allocate (F%rf_wake)
-  rhs = 21 + offset
+  rhs = 19 + offset
   call set_rf_wake_test_pattern (F%rf_wake, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -4495,12 +4495,12 @@ if (ix_patt < 3) then
   if (associated(F%space_charge)) deallocate (F%space_charge)
 else
   if (.not. associated(F%space_charge)) allocate (F%space_charge)
-  rhs = 23 + offset
+  rhs = 21 + offset
   call set_space_charge_test_pattern (F%space_charge, ix_patt)
 endif
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1
-  rhs = 100 + jd1 + 25 + offset
+  rhs = 100 + jd1 + 23 + offset
   call set_taylor_test_pattern (F%taylor(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 0, PTR]
@@ -4508,7 +4508,7 @@ if (ix_patt < 3) then
   if (associated(F%wall3d)) deallocate (F%wall3d)
 else
   if (.not. associated(F%wall3d)) allocate (F%wall3d)
-  rhs = 26 + offset
+  rhs = 24 + offset
   call set_wall3d_test_pattern (F%wall3d, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -4516,47 +4516,47 @@ if (ix_patt < 3) then
   if (associated(F%wig)) deallocate (F%wig)
 else
   if (.not. associated(F%wig)) allocate (F%wig)
-  rhs = 28 + offset
+  rhs = 26 + offset
   call set_wig_test_pattern (F%wig, ix_patt)
 endif
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%value,1); lb1 = lbound(F%value,1) - 1
-  rhs = 100 + jd1 + 30 + offset
+  rhs = 100 + jd1 + 28 + offset
   F%value(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%old_value,1); lb1 = lbound(F%old_value,1) - 1
-  rhs = 100 + jd1 + 31 + offset
+  rhs = 100 + jd1 + 29 + offset
   F%old_value(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%gen0,1); lb1 = lbound(F%gen0,1) - 1
-  rhs = 100 + jd1 + 32 + offset
+  rhs = 100 + jd1 + 30 + offset
   F%gen0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%vec0,1); lb1 = lbound(F%vec0,1) - 1
-  rhs = 100 + jd1 + 33 + offset
+  rhs = 100 + jd1 + 31 + offset
   F%vec0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%mat6,1); lb1 = lbound(F%mat6,1) - 1
 do jd2 = 1, size(F%mat6,2); lb2 = lbound(F%mat6,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 34 + offset
+  rhs = 100 + jd1 + 10*jd2 + 32 + offset
   F%mat6(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%c_mat,1); lb1 = lbound(F%c_mat,1) - 1
 do jd2 = 1, size(F%c_mat,2); lb2 = lbound(F%c_mat,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 35 + offset
+  rhs = 100 + jd1 + 10*jd2 + 33 + offset
   F%c_mat(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 36 + offset; F%gamma_c = rhs
+rhs = 34 + offset; F%gamma_c = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 37 + offset; F%s = rhs
+rhs = 35 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 38 + offset; F%ref_time = rhs
+rhs = 36 + offset; F%ref_time = rhs
 !! f_side.test_pat[real, 3, PTR]
 if (ix_patt < 3) then
   if (associated(F%r)) deallocate (F%r)
@@ -4565,7 +4565,7 @@ else
   do jd1 = 1, size(F%r,1); lb1 = lbound(F%r,1) - 1
   do jd2 = 1, size(F%r,2); lb2 = lbound(F%r,2) - 1
   do jd3 = 1, size(F%r,3); lb3 = lbound(F%r,3) - 1
-    rhs = 100 + jd1 + 10*jd2 + 100*jd3 + 39 + offset
+    rhs = 100 + jd1 + 10*jd2 + 100*jd3 + 37 + offset
     F%r(jd1+lb1,jd2+lb2,jd3+lb3) = rhs
   enddo; enddo; enddo
 endif
@@ -4576,7 +4576,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%a_pole)) allocate (F%a_pole(-1:1))
   do jd1 = 1, size(F%a_pole,1); lb1 = lbound(F%a_pole,1) - 1
-    rhs = 100 + jd1 + 43 + offset
+    rhs = 100 + jd1 + 41 + offset
     F%a_pole(jd1+lb1) = rhs
   enddo
 endif
@@ -4587,104 +4587,104 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%b_pole)) allocate (F%b_pole(-1:1))
   do jd1 = 1, size(F%b_pole,1); lb1 = lbound(F%b_pole,1) - 1
-    rhs = 100 + jd1 + 45 + offset
+    rhs = 100 + jd1 + 43 + offset
     F%b_pole(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%map_ref_orb_in,1); lb1 = lbound(F%map_ref_orb_in,1) - 1
-  rhs = 100 + jd1 + 47 + offset
+  rhs = 100 + jd1 + 45 + offset
   F%map_ref_orb_in(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%map_ref_orb_out,1); lb1 = lbound(F%map_ref_orb_out,1) - 1
-  rhs = 100 + jd1 + 48 + offset
+  rhs = 100 + jd1 + 46 + offset
   F%map_ref_orb_out(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%time_ref_orb_in,1); lb1 = lbound(F%time_ref_orb_in,1) - 1
-  rhs = 100 + jd1 + 49 + offset
+  rhs = 100 + jd1 + 47 + offset
   F%time_ref_orb_in(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%time_ref_orb_out,1); lb1 = lbound(F%time_ref_orb_out,1) - 1
-  rhs = 100 + jd1 + 50 + offset
+  rhs = 100 + jd1 + 48 + offset
   F%time_ref_orb_out(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 51 + offset; F%key = rhs
+rhs = 49 + offset; F%key = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 52 + offset; F%sub_key = rhs
+rhs = 50 + offset; F%sub_key = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 53 + offset; F%ix_ele = rhs
+rhs = 51 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 54 + offset; F%ix_branch = rhs
+rhs = 52 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 55 + offset; F%ix_value = rhs
+rhs = 53 + offset; F%ix_value = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 56 + offset; F%slave_status = rhs
+rhs = 54 + offset; F%slave_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 57 + offset; F%n_slave = rhs
+rhs = 55 + offset; F%n_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 58 + offset; F%ix1_slave = rhs
+rhs = 56 + offset; F%ix1_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 59 + offset; F%ix2_slave = rhs
+rhs = 57 + offset; F%ix2_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 60 + offset; F%lord_status = rhs
+rhs = 58 + offset; F%lord_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 61 + offset; F%n_lord = rhs
+rhs = 59 + offset; F%n_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 62 + offset; F%ic1_lord = rhs
+rhs = 60 + offset; F%ic1_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 63 + offset; F%ic2_lord = rhs
+rhs = 61 + offset; F%ic2_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 64 + offset; F%ix_pointer = rhs
+rhs = 62 + offset; F%ix_pointer = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 65 + offset; F%ixx = rhs
+rhs = 63 + offset; F%ixx = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 66 + offset; F%iyy = rhs
+rhs = 64 + offset; F%iyy = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 67 + offset; F%mat6_calc_method = rhs
+rhs = 65 + offset; F%mat6_calc_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 68 + offset; F%tracking_method = rhs
+rhs = 66 + offset; F%tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 69 + offset; F%spin_tracking_method = rhs
+rhs = 67 + offset; F%spin_tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 70 + offset; F%ptc_integration_type = rhs
+rhs = 68 + offset; F%ptc_integration_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 71 + offset; F%field_calc = rhs
+rhs = 69 + offset; F%field_calc = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 72 + offset; F%aperture_at = rhs
+rhs = 70 + offset; F%aperture_at = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 73 + offset; F%aperture_type = rhs
+rhs = 71 + offset; F%aperture_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 74 + offset; F%orientation = rhs
+rhs = 72 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 75 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 73 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 76 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 74 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 77 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 75 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 78 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 76 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 79 + offset; F%map_with_offsets = (modulo(rhs, 2) == 0)
+rhs = 77 + offset; F%map_with_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 80 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 78 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 81 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 79 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 82 + offset; F%old_is_on = (modulo(rhs, 2) == 0)
+rhs = 80 + offset; F%old_is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 83 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 81 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 84 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 82 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 85 + offset; F%on_a_girder = (modulo(rhs, 2) == 0)
+rhs = 83 + offset; F%on_a_girder = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 86 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
+rhs = 84 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 87 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 85 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 
@@ -4802,7 +4802,7 @@ if (ix_patt < 3) then
   if (associated(F%a)) deallocate (F%a)
 else
   if (.not. associated(F%a)) allocate (F%a)
-  rhs = 12 + offset
+  rhs = 10 + offset
   call set_mode_info_test_pattern (F%a, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -4810,7 +4810,7 @@ if (ix_patt < 3) then
   if (associated(F%b)) deallocate (F%b)
 else
   if (.not. associated(F%b)) allocate (F%b)
-  rhs = 14 + offset
+  rhs = 12 + offset
   call set_mode_info_test_pattern (F%b, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -4818,7 +4818,7 @@ if (ix_patt < 3) then
   if (associated(F%z)) deallocate (F%z)
 else
   if (.not. associated(F%z)) allocate (F%z)
-  rhs = 16 + offset
+  rhs = 14 + offset
   call set_mode_info_test_pattern (F%z, ix_patt)
 endif
 !! f_side.test_pat[type, 1, PTR]
@@ -4836,7 +4836,7 @@ if (ix_patt < 3) then
   if (associated(F%param)) deallocate (F%param)
 else
   if (.not. associated(F%param)) allocate (F%param)
-  rhs = 20 + offset
+  rhs = 18 + offset
   call set_lat_param_test_pattern (F%param, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -4844,7 +4844,7 @@ if (ix_patt < 3) then
   if (associated(F%wall3d)) deallocate (F%wall3d)
 else
   if (.not. associated(F%wall3d)) allocate (F%wall3d)
-  rhs = 22 + offset
+  rhs = 20 + offset
   call set_wall3d_test_pattern (F%wall3d, ix_patt)
 endif
 

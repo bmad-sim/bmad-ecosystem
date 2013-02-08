@@ -1976,22 +1976,20 @@ extern "C" void ele_to_c (const Bmad_ele_class*, CPP_ele&);
 // c_side.to_f2_arg
 extern "C" void ele_to_f2 (Bmad_ele_class*, c_Char, c_Char, c_Char, c_Char, c_Char, const
     CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_xy_disp&, const CPP_xy_disp&,
-    const CPP_bookkeeping_state&, const CPP_branch&, Int, const CPP_em_fields&, Int, const
-    CPP_floor_position&, const CPP_mode3&, Int, const CPP_rad_int_ele_cache&, Int, const
-    CPP_rf_wake&, Int, const CPP_space_charge&, Int, const CPP_taylor**, const CPP_wall3d&,
-    Int, const CPP_wig&, Int, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr,
-    c_Real&, c_Real&, c_Real&, c_RealArr, Int, Int, Int, c_RealArr, Int, c_RealArr, Int,
-    c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
+    const CPP_bookkeeping_state&, const CPP_em_fields&, Int, const CPP_floor_position&, const
+    CPP_mode3&, Int, const CPP_rad_int_ele_cache&, Int, const CPP_rf_wake&, Int, const
+    CPP_space_charge&, Int, const CPP_taylor**, const CPP_wall3d&, Int, const CPP_wig&, Int,
+    c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&,
+    c_Real&, c_RealArr, Int, Int, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, c_RealArr,
+    c_RealArr, c_RealArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
   // c_side.to_f_setup[character, 0, PTR]
   const char* z_descrip = NULL;  
   if (C.descrip != NULL) z_descrip = C.descrip->c_str();
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_branch = 0; if (C.branch != NULL) n_branch = 1;
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_em_field = 0; if (C.em_field != NULL) n_em_field = 1;
   // c_side.to_f_setup[type, 0, PTR]
@@ -2038,12 +2036,12 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
 
   // c_side.to_f2_call
   ele_to_f2 (F, C.name.c_str(), C.type.c_str(), C.alias.c_str(), C.component_name.c_str(),
-      z_descrip, C.a, C.b, C.z, C.x, C.y, C.bookkeeping_state, *C.branch, n_branch,
-      *C.em_field, n_em_field, C.floor, *C.mode3, n_mode3, *C.rad_int_cache, n_rad_int_cache,
-      *C.rf_wake, n_rf_wake, *C.space_charge, n_space_charge, z_taylor, *C.wall3d, n_wall3d,
-      *C.wig, n_wig, &C.value[0], &C.old_value[0], &C.gen0[0], &C.vec0[0], z_mat6, z_c_mat,
-      C.gamma_c, C.s, C.ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole,
-      n1_b_pole, &C.map_ref_orb_in[0], &C.map_ref_orb_out[0], &C.time_ref_orb_in[0],
+      z_descrip, C.a, C.b, C.z, C.x, C.y, C.bookkeeping_state, *C.em_field, n_em_field,
+      C.floor, *C.mode3, n_mode3, *C.rad_int_cache, n_rad_int_cache, *C.rf_wake, n_rf_wake,
+      *C.space_charge, n_space_charge, z_taylor, *C.wall3d, n_wall3d, *C.wig, n_wig,
+      &C.value[0], &C.old_value[0], &C.gen0[0], &C.vec0[0], z_mat6, z_c_mat, C.gamma_c, C.s,
+      C.ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole,
+      &C.map_ref_orb_in[0], &C.map_ref_orb_out[0], &C.time_ref_orb_in[0],
       &C.time_ref_orb_out[0], C.key, C.sub_key, C.ix_ele, C.ix_branch, C.ix_value,
       C.slave_status, C.n_slave, C.ix1_slave, C.ix2_slave, C.lord_status, C.n_lord, C.ic1_lord,
       C.ic2_lord, C.ix_pointer, C.ixx, C.iyy, C.mat6_calc_method, C.tracking_method,
@@ -2060,19 +2058,18 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
 extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_alias, c_Char
     z_component_name, c_Char z_descrip, const Bmad_twiss_class* z_a, const Bmad_twiss_class*
     z_b, const Bmad_twiss_class* z_z, const Bmad_xy_disp_class* z_x, const Bmad_xy_disp_class*
-    z_y, const Bmad_bookkeeping_state_class* z_bookkeeping_state, Bmad_branch_class* z_branch,
-    Int n_branch, Bmad_em_fields_class* z_em_field, Int n_em_field, const
-    Bmad_floor_position_class* z_floor, Bmad_mode3_class* z_mode3, Int n_mode3,
-    Bmad_rad_int_ele_cache_class* z_rad_int_cache, Int n_rad_int_cache, Bmad_rf_wake_class*
-    z_rf_wake, Int n_rf_wake, Bmad_space_charge_class* z_space_charge, Int n_space_charge,
-    const Bmad_taylor_class** z_taylor, Bmad_wall3d_class* z_wall3d, Int n_wall3d,
-    Bmad_wig_class* z_wig, Int n_wig, c_RealArr z_value, c_RealArr z_old_value, c_RealArr
-    z_gen0, c_RealArr z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat, c_Real& z_gamma_c, c_Real&
-    z_s, c_Real& z_ref_time, c_RealArr z_r, Int n1_r, Int n2_r, Int n3_r, c_RealArr z_a_pole,
-    Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr z_map_ref_orb_in, c_RealArr
-    z_map_ref_orb_out, c_RealArr z_time_ref_orb_in, c_RealArr z_time_ref_orb_out, c_Int& z_key,
-    c_Int& z_sub_key, c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_ix_value, c_Int&
-    z_slave_status, c_Int& z_n_slave, c_Int& z_ix1_slave, c_Int& z_ix2_slave, c_Int&
+    z_y, const Bmad_bookkeeping_state_class* z_bookkeeping_state, Bmad_em_fields_class*
+    z_em_field, Int n_em_field, const Bmad_floor_position_class* z_floor, Bmad_mode3_class*
+    z_mode3, Int n_mode3, Bmad_rad_int_ele_cache_class* z_rad_int_cache, Int n_rad_int_cache,
+    Bmad_rf_wake_class* z_rf_wake, Int n_rf_wake, Bmad_space_charge_class* z_space_charge, Int
+    n_space_charge, const Bmad_taylor_class** z_taylor, Bmad_wall3d_class* z_wall3d, Int
+    n_wall3d, Bmad_wig_class* z_wig, Int n_wig, c_RealArr z_value, c_RealArr z_old_value,
+    c_RealArr z_gen0, c_RealArr z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat, c_Real& z_gamma_c,
+    c_Real& z_s, c_Real& z_ref_time, c_RealArr z_r, Int n1_r, Int n2_r, Int n3_r, c_RealArr
+    z_a_pole, Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr z_map_ref_orb_in,
+    c_RealArr z_map_ref_orb_out, c_RealArr z_time_ref_orb_in, c_RealArr z_time_ref_orb_out,
+    c_Int& z_key, c_Int& z_sub_key, c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_ix_value,
+    c_Int& z_slave_status, c_Int& z_n_slave, c_Int& z_ix1_slave, c_Int& z_ix2_slave, c_Int&
     z_lord_status, c_Int& z_n_lord, c_Int& z_ic1_lord, c_Int& z_ic2_lord, c_Int& z_ix_pointer,
     c_Int& z_ixx, c_Int& z_iyy, c_Int& z_mat6_calc_method, c_Int& z_tracking_method, c_Int&
     z_spin_tracking_method, c_Int& z_ptc_integration_type, c_Int& z_field_calc, c_Int&
@@ -2110,14 +2107,6 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
   xy_disp_to_c(z_y, C.y);
   // c_side.to_c2_set[type, 0, NOT]
   bookkeeping_state_to_c(z_bookkeeping_state, C.bookkeeping_state);
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_branch == 0)
-    delete C.branch;
-  else {
-    C.branch = new CPP_branch;
-    branch_to_c(z_branch, *C.branch);
-  }
-
   // c_side.to_c2_set[type, 0, PTR]
   if (n_em_field == 0)
     delete C.em_field;
@@ -2311,17 +2300,15 @@ extern "C" void branch_to_c (const Bmad_branch_class*, CPP_branch&);
 
 // c_side.to_f2_arg
 extern "C" void branch_to_f2 (Bmad_branch_class*, c_Char, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_IntArr, Int, c_IntArr, Int, const CPP_lat&, Int, const CPP_mode_info&, Int, const
-    CPP_mode_info&, Int, const CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&,
-    Int, const CPP_wall3d&, Int);
+    c_IntArr, Int, c_IntArr, Int, const CPP_mode_info&, Int, const CPP_mode_info&, Int, const
+    CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&, Int, const CPP_wall3d&,
+    Int);
 
 extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
   // c_side.to_f_setup[integer, 0, PTR]
   unsigned int n_n_ele_track = 0; if (C.n_ele_track != NULL) n_n_ele_track = 1;
   // c_side.to_f_setup[integer, 0, PTR]
   unsigned int n_n_ele_max = 0; if (C.n_ele_max != NULL) n_n_ele_max = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_lat = 0; if (C.lat != NULL) n_lat = 1;
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_a = 0; if (C.a != NULL) n_a = 1;
   // c_side.to_f_setup[type, 0, PTR]
@@ -2342,8 +2329,8 @@ extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
 
   // c_side.to_f2_call
   branch_to_f2 (F, C.name.c_str(), C.ix_branch, C.ix_root_branch, C.ix_from_branch,
-      C.ix_from_ele, C.n_ele_track, n_n_ele_track, C.n_ele_max, n_n_ele_max, *C.lat, n_lat,
-      *C.a, n_a, *C.b, n_b, *C.z, n_z, z_ele, n1_ele, *C.param, n_param, *C.wall3d, n_wall3d);
+      C.ix_from_ele, C.n_ele_track, n_n_ele_track, C.n_ele_max, n_n_ele_max, *C.a, n_a, *C.b,
+      n_b, *C.z, n_z, z_ele, n1_ele, *C.param, n_param, *C.wall3d, n_wall3d);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_ele;
@@ -2352,10 +2339,10 @@ extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
 // c_side.to_c2_arg
 extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, c_Int&
     z_ix_root_branch, c_Int& z_ix_from_branch, c_Int& z_ix_from_ele, c_IntArr z_n_ele_track,
-    Int n_n_ele_track, c_IntArr z_n_ele_max, Int n_n_ele_max, Bmad_lat_class* z_lat, Int n_lat,
-    Bmad_mode_info_class* z_a, Int n_a, Bmad_mode_info_class* z_b, Int n_b,
-    Bmad_mode_info_class* z_z, Int n_z, Bmad_ele_class** z_ele, Int n1_ele,
-    Bmad_lat_param_class* z_param, Int n_param, Bmad_wall3d_class* z_wall3d, Int n_wall3d) {
+    Int n_n_ele_track, c_IntArr z_n_ele_max, Int n_n_ele_max, Bmad_mode_info_class* z_a, Int
+    n_a, Bmad_mode_info_class* z_b, Int n_b, Bmad_mode_info_class* z_z, Int n_z,
+    Bmad_ele_class** z_ele, Int n1_ele, Bmad_lat_param_class* z_param, Int n_param,
+    Bmad_wall3d_class* z_wall3d, Int n_wall3d) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -2381,14 +2368,6 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
   else {
     C.n_ele_max = new Int;
     *C.n_ele_max = *z_n_ele_max;
-  }
-
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_lat == 0)
-    delete C.lat;
-  else {
-    C.lat = new CPP_lat;
-    lat_to_c(z_lat, *C.lat);
   }
 
   // c_side.to_c2_set[type, 0, PTR]
