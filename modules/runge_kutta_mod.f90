@@ -497,7 +497,7 @@ if (err) return
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
 v2 = vel(1)**2 + vel(2)**2
 if (v2 > 1) return
-vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2)]
+vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * ele%orientation]
 E_force = charge_of(param%particle) * param%rel_tracking_charge * field%E
 B_force = charge_of(param%particle) * param%rel_tracking_charge * cross_product(vel, field%B)
 
@@ -514,10 +514,10 @@ if (ele%key == sbend$) then
   f_bend = 1 + orbit%vec(1) * gx_bend + orbit%vec(3) * gy_bend
 endif
 
-dt_ds = f_bend / vel(3)
+dt_ds = f_bend / abs(vel(3))
 dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
 dbeta_ds = mass_of(param%particle)**2 * dp_ds * c_light / e_tot**3
-pz_p0 = (1 + orbit%vec(6)) * vel(3) / (orbit%beta * c_light)  ! Pz / P0
+pz_p0 = (1 + orbit%vec(6)) * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
 
 dr_ds(1) = vel(1) * dt_ds
 dr_ds(2) = (E_force(1) + B_force(1)) * dt_ds / p0 + gx_bend * pz_p0
