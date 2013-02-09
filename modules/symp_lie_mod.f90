@@ -357,6 +357,11 @@ end_orb%vec(5) = end_orb%vec(5) + z_patch
 end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + (start2_orb%vec(5) - end_orb%vec(5)) / &
                                                                             (end_orb%beta * c_light)
 
+if (calculate_mat6) then
+  mat6(5,6) = mat6(5,6) + ele%value(delta_ref_time$) * c_light * &
+                (mass_of(param%particle)/ele%value(p0c$))**2 * (end_orb%beta / (1 + end_orb%vec(6)))**3
+endif
+
 ! calc vec0
 
 if (calculate_mat6) then
