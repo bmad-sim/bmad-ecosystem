@@ -3063,6 +3063,14 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
 
   ele%value(ptc_dir$) = ptc_fibre%dir  ! Save for later
 
+  if (ele%value(e_tot_offset$) == 0) then
+    energy = .false.
+  else
+    energy = .true.
+    call out_io (s_fatal$, r_name, 'ENERGY PATCH NOT YET IMPLEMENTED!')
+    call err_exit
+  endif
+
   call survey (dummy_fibre, exi, dr)
   call find_patch (ptc_fibre, dummy_fibre, next = .false., energy_patch = energy)
 
