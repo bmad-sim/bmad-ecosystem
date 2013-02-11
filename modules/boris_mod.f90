@@ -71,6 +71,8 @@ real(rp) beta0, dref_time
 
 integer i, n_step, hard_end
 
+character(16), parameter :: r_name = 'track1_boris'
+
 logical err_flag
 
 ! init
@@ -206,17 +208,17 @@ real(rp) :: p2, t, dt, beta_ref
 
 !
 
-charge = charge_of(param%particle) * param%rel_tracking_charge
+charge = param%rel_tracking_charge
 mass = mass_of(param%particle) / ele%value(p0c$)
 
 end = start
-ds2 = ds / 2
+ds2 = ele%orientation * ds / 2
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 
 ! 1) Push the position 1/2 step
 
 p_tot = 1 + end%vec(6)
-p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
+p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2) * ele%orientation
 ds2_f = ds2 / p_z
 U_tot = sqrt (p_tot**2 + mass**2)
 old_beta = p_tot / U_tot  ! particle velocity: v/c
@@ -248,7 +250,7 @@ end%vec(2) = end%vec(2) - field%B(2) * f
 end%vec(4) = end%vec(4) + field%B(1) * f
 U_tot = U_tot + field%e(3) * f / c_light
 p_tot = sqrt (U_tot**2 - mass**2)
-p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
+p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2) * ele%orientation
 
 ! 4) Push the momenta a full step using the "R" matrix.
 

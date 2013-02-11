@@ -66,9 +66,10 @@ logical do_tilt, err
 logical, optional :: check_momentum
 character(20) :: r_name = 'check_aperture_limit'
 
-! Check if there is a limit here. If not, simply return.
+! Check if there is an aperture here. If not, simply return.
 
 at2 = physical_ele_end (at, ele%orientation)
+if (.not. at_this_end (at2, ele%aperture_at)) return
 
 if (at2 == entrance_end$) then
   if (ele%aperture_at /= entrance_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
