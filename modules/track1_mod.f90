@@ -937,10 +937,12 @@ dpt_dx4 = -X(4)/pt
 dpt_dx5 = (1/beta0+X(5))/pt
 
 pzs=sqrt(1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-Xn(2)**2-X(4)**2)
-dpzs_dx1 = -Xn(2)*mat6(2,1)/pzs
-dpzs_dx2 = -Xn(2)*mat6(2,2)/pzs
-dpzs_dx4 = (-X(4)-Xn(2)*mat6(2,4))/pzs
-dpzs_dx5 = (1/beta0+X(5)-Xn(2)*mat6(2,5))/pzs
+if (present(mat6)) then
+  dpzs_dx1 = -Xn(2)*mat6(2,1)/pzs
+  dpzs_dx2 = -Xn(2)*mat6(2,2)/pzs
+  dpzs_dx4 = (-X(4)-Xn(2)*mat6(2,4))/pzs
+  dpzs_dx5 = (1/beta0+X(5)-Xn(2)*mat6(2,5))/pzs
+end if
 
 Xn(1)=X(1)*cos(a)+(X(1)*X(2)*sin(2.0_rp*a)+sin(a)**2*(2.0_rp*X(1)*pz-b1*X(1)**2) )&
     / (pzs+pz*cos(a)-X(2)*sin(a))
