@@ -39,21 +39,32 @@ class search_com_class:
 #------------------------------------------------------------------------------------
 # choose_path function
 
-def choose_path (dir_list, base_dir, base_file, dist_sub_dir):
+def choose_path (dir_list, root_dir, base_dir, base_file, dist_sub_dir):
   this_dir = ''
-  if os.path.isfile(base_dir + base_file):
-    this_dir = base_dir
-  elif os.path.isfile('../' + base_dir + base_file):
-    this_dir = '../' + base_dir
-  elif os.path.isfile('../../' + base_dir + base_file):
-    this_dir = '../../' + base_dir
-  elif os.path.isfile(release_dir + base_dir + base_file):
-    this_dir = release_dir + base_dir
-  elif os.path.isfile(dist_dir + dist_sub_dir + base_dir):
-    this_dir = dist_dir + dist_sub_dir + base_dir
-  # If release_dir is defined then we should have found the directory.
-  elif release_dir != '': 
-    print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
+
+  if root_dir == '':
+    if os.path.isfile(base_dir + base_file):
+      this_dir = base_dir
+    elif os.path.isfile('../' + base_dir + base_file):
+      this_dir = '../' + base_dir
+    elif os.path.isfile('../../' + base_dir + base_file):
+      this_dir = '../../' + base_dir
+    elif os.path.isfile(release_dir + base_dir + base_file):
+      this_dir = release_dir + base_dir
+    elif os.path.isfile(dist_dir + dist_sub_dir + base_dir):
+      this_dir = dist_dir + dist_sub_dir + base_dir
+    # If release_dir is defined then we should have found the directory.
+    elif release_dir != '': 
+      print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
+
+
+  else:
+    if root_dir[-1] != '/': root_dir = root_dir + '/'
+    if os.path.isfile(root_dir + base_dir + base_file):
+      this_dir = root_dir + base_dir
+    else:
+      print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
+
   if this_dir != '': dir_list.append(this_dir)
   return
 
@@ -69,11 +80,23 @@ def print_help_message ():
 
   Options:
      -a          # Search Numerical recipes, forest, and varies program directories as well.
-     -d <dir>    # Search files in <dir> and sub-directories for matches.
-     -c          # Case sensitive search.
+     -c          # Case sensitive search when searching C/C++ files.
+     -d <s_dir>  # Use <s_dir> as the search directory. Will not search standard directories. 
+     -h          # Print this help message.
+     -r <r_dir>  # Use <r_dir> as the root directory to search for the search directories.
      -s <what>   # Search only for: <what> = "struct", "routine", "parameter", or "module".
 
-  Standard Libraries searched:
+  Explanation: getf/listf will search the "Search directories" and any sub-directories
+  for files of the type:
+      *.f90    *.inc    *.cpp    *.h    *.c
+  Within each of these files getf/listf will search for any routine, struct, parameter or 
+  module that matches <search_string>. Wild cards "*" and "." may be used.
+
+  Note: getf/listf look for search directories locally and then, if not found, look for the
+  search directories in a release or distribution. The exception is that if the "-r <rdir>" option
+  is used, getf/listf will only look at the subdirectories of <rdir> for the search directories.
+
+  Standard Search directories:
      bmad
      sim_utils
      cesr_utils
@@ -396,11 +419,11 @@ def search_c (file_name, search_com):
 #------------------------------------------------------------------------------------
 # search_file function
 
-def search_file (search_root_dir, file_dir, file_name, search_com):
+def search_file (search_base_dir, file_dir, file_name, search_com):
   if re.search ('#', file_name): return
   if file_name[0] == '.': return
   full_file_name = os.path.join(file_dir, file_name)
-  search_com.file_name_rel_root = full_file_name.replace(search_root_dir, '', 1)
+  search_com.file_name_rel_root = full_file_name.replace(search_base_dir, '', 1)
   if file_name[-4:] == '.f90' or file_name[-4:] == '.inc': search_f90(full_file_name, search_com)
   if file_name[-4:] == '.cpp' or file_name[-2:] == '.h' or file_name[-2:] == '.c': search_c(full_file_name, search_com)
 
@@ -408,16 +431,16 @@ def search_file (search_root_dir, file_dir, file_name, search_com):
 #------------------------------------------------------------------------------------
 # search_tree function
 
-def search_tree (search_root_dir, search_com):
+def search_tree (search_base_dir, search_com):
 
-  if search_root_dir == '': return    # Directory not found by choose_path
-  if search_root_dir[-1] != '/': search_root_dir = search_root_dir + '/'
-  namelist_file = search_root_dir + 'searchf.namelist'
+  if search_base_dir == '': return    # Directory not found by choose_path
+  if search_base_dir[-1] != '/': search_base_dir = search_base_dir + '/'
+  namelist_file = search_base_dir + 'searchf.namelist'
 
   # Open file for namelist output if needed
 
   if search_com.doc == 'LIST':
-    if os.access(search_root_dir, os.W_OK):
+    if os.access(search_base_dir, os.W_OK):
       print 'Opening:', namelist_file
       search_com.namelist_file = open(namelist_file, 'w')
     else:
@@ -439,24 +462,24 @@ def search_tree (search_root_dir, search_com):
         file = line[6:].strip().rsplit('/', 1)
         have_searched_file = False
         if len(file) == 1:     # No directory spec
-          this_root_dir = search_root_dir
+          this_search_base_dir = search_base_dir
           this_file = file[0]
         else:
-          this_root_dir = search_root_dir + file[0]
+          this_search_base_dir = search_base_dir + file[0]
           this_file = file[1]
         continue
       elif have_searched_file:
         continue
 
       if re.search(search_com.match_str, line):
-        search_file (search_root_dir, this_root_dir, this_file, search_com)
+        search_file (search_base_dir, this_search_base_dir, this_file, search_com)
         have_searched_file = True
 
     return
 
   # No searchf.namelist: Loop over all directories
 
-  for this_root_dir, sub_dirs, files in os.walk(search_root_dir):
+  for this_search_base_dir, sub_dirs, files in os.walk(search_base_dir):
 
     # Remove from searching hidden directories plus "production" and "debug" derectories
     i = 0
@@ -468,7 +491,7 @@ def search_tree (search_root_dir, search_com):
 
     # Now loop over all files
 
-    for this_file in files: search_file (search_root_dir, this_root_dir, this_file, search_com)
+    for this_file in files: search_file (search_base_dir, this_search_base_dir, this_file, search_com)
 
   # End
 
@@ -488,6 +511,7 @@ def search_all (doc_type):
   # Look for arguments
 
   dir_list = []
+  root_dir = ''
   search_all = False
   search_com.search_only_for = ''
 
@@ -499,8 +523,24 @@ def search_all (doc_type):
 
     if arg[0] != '-': break
 
+    if arg == '-a':
+      search_all = True
+      continue
+
+    if arg == '-c':
+      search_com.case_sensitive = True
+      continue
+
     if arg == '-d':
       dir_list = [sys.argv[i+1]]
+      i += 1
+      continue
+
+    if arg == '-h':
+      print_help_message ()
+
+    if arg == '-r':
+      root_dir = sys.argv[i+1]
       i += 1
       continue
 
@@ -514,17 +554,6 @@ def search_all (doc_type):
       i += 1
       continue
 
-    if arg == '-a':
-      search_all = True
-      continue
-
-    if arg == '-c':
-      search_com.case_sensitive = True
-      continue
-
-    if arg == '-h':
-      print_help_message ()
-
     print '!!! UNKNOWN ARGUMENT:', arg
     print_help_message ()
 
@@ -532,24 +561,24 @@ def search_all (doc_type):
   # Setup dir_list list, etc
 
   if len(dir_list) == 0:    # If no -d command line arg
-    choose_path (dir_list, 'bmad', '/modules/bmad_struct.f90', '')
-    choose_path (dir_list, 'sim_utils', '/interfaces/sim_utils.f90', '')
-    choose_path (dir_list, 'tao', '/code/tao_struct.f90', '')
-    choose_path (dir_list, 'cesr_utils', '/modules/cesr_utils.f90', '')
-    choose_path (dir_list, 'mpm_utils', '/code/butout.f90', '')
-    choose_path (dir_list, 'bmadz', '/modules/bmadz_struct.f90', '')
+    choose_path (dir_list, root_dir, 'bmad', '/modules/bmad_struct.f90', '')
+    choose_path (dir_list, root_dir, 'sim_utils', '/interfaces/sim_utils.f90', '')
+    choose_path (dir_list, root_dir, 'tao', '/code/tao_struct.f90', '')
+    choose_path (dir_list, root_dir, 'cesr_utils', '/modules/cesr_utils.f90', '')
+    choose_path (dir_list, root_dir, 'mpm_utils', '/code/butout.f90', '')
+    choose_path (dir_list, root_dir, 'bmadz', '/modules/bmadz_struct.f90', '')
 
     if search_all:
-      choose_path (dir_list, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
-      choose_path (dir_list, 'forest', '/code/i_tpsa.f90', '/packages')
-      choose_path (dir_list, 'bsim', '/code/bsim_interface.f90', '')
-      choose_path (dir_list, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
-      choose_path (dir_list, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
-      choose_path (dir_list, 'cesrv', '/code/cesrv_struct.f90', '')
-      choose_path (dir_list, 'util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
-      choose_path (dir_list, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
-      choose_path (dir_list, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
-      choose_path (dir_list, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
+      choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
+      choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '/packages')
+      choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
+      choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
+      choose_path (dir_list, root_dir, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
+      choose_path (dir_list, root_dir, 'cesrv', '/code/cesrv_struct.f90', '')
+      choose_path (dir_list, root_dir, 'util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
+      choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
+      choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
+      choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
 
   if search_com.doc == 'LIST':
     search_com.match_str = '(\w+)'
