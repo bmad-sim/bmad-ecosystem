@@ -53,9 +53,6 @@
 #   acc_vars.csh  instead.
 #--------------------------------------------------------------
 
-HAC_ARCHIVE_BASE_DIR='/gfs/cesr/online/lib'
-HAC_RELEASE_MGMT_DIR='/gfs/cesr/online/lib/util'
-
 ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
 ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
 
@@ -135,57 +132,35 @@ fi
 # hosts if it hasn't already been set upon entering this
 # script.
 #--------------------------------------------------------------
-#export CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
-if [ -d /gfs/cesr/online/lost+found ]; then
-    export CESR_ONLINE=/gfs/cesr/online
-else
-    export CESR_ONLINE=/nfs/cesr/online
-fi
+export CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
 
 
 
 #--------------------------------------------------------------
-# 'CESR ONLINE' hosts are interactive shell-capable machines
-# that follow the convention of having 'cesr' in their hostname.
-# If the machine on which this script is sourced is defined to
-# be a 'CESR_ONLINE' host, the following value will be 
-# shell-TRUE (0) and (1) otherwise.
-#
-#  TODO: Double check that no laboratory hostnames violate
-#        this convention.  'cesrweb'?
+# 'CESR ONLINE' libraries are kept up-to-date with /nfs/acc/libs
+# in case of a network failure.  In that event, change the 
+# following variable to 'true' to use the online libs.
 #--------------------------------------------------------------
-if ( [ `hostname | grep cesr` ] ) then
-    IS_CESR_ONLINE_HOST='true'
-fi
+USE_CESR_ONLINE_LOC='false'
 
 
-#--- CESR ONLINE Hosts
-if ( [ "${IS_CESR_ONLINE_HOST}" == "true" ] ) then
 
-    #-- CESR HAC (High-availability Cluster) Online Host
-    if ( [ "${CESR_ONLINE}" == "/gfs/cesr/online" ] )then
-	SETUP_SCRIPTS_DIR=${HAC_RELEASE_MGMT_DIR}
-	RELEASE_ARCHIVE_BASE_DIR=${HAC_ARCHIVE_BASE_DIR}
-	HOST_TYPE="CESR HAC ONLINE"
-    else
+if ( [ "${USE_CESR_ONLINE_LOC}" == "true" ] ) then
+
     #-- CESR Online Host
-	SETUP_SCRIPTS_DIR=${ONLINE_RELEASE_MGMT_DIR}
-	RELEASE_ARCHIVE_BASE_DIR=${ONLINE_ARCHIVE_BASE_DIR}
-	HOST_TYPE="CESR ONLINE"
-    fi
+    SETUP_SCRIPTS_DIR=${ONLINE_RELEASE_MGMT_DIR}
+    RELEASE_ARCHIVE_BASE_DIR=${ONLINE_ARCHIVE_BASE_DIR}
+    HOST_TYPE="CESR ONLINE"
+
     IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
 
-    # Purge any OFFILNE (opposite sense) compiler setup paths from environment
-    #  Iterate through all 
-
-#-- CESR OFFLINE Host
 else
+    #-- CESR OFFLINE Host
     SETUP_SCRIPTS_DIR=${OFFLINE_RELEASE_MGMT_DIR}
     RELEASE_ARCHIVE_BASE_DIR=${OFFLINE_ARCHIVE_BASE_DIR}
     IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
     HOST_TYPE="CESR OFFLINE"
 
-    # Purge any ONLINE (opposite sense) compiler setup paths from environment
 fi 
 
 
@@ -411,6 +386,7 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/production/lib:${AC
 #--------------------------------------------------------------
 # Information about build system setup for the current shell session.
 function accinfo() {
+    printenv | grep ACC_ | sort;
     export ACC_TRUE_RELEASE=`readlink ${ACC_RELEASE_DIR}`
     echo -e "ACC release      : \"${ACC_RELEASE}\" [${ACC_TRUE_RELEASE}]
 Architecture     : ${ACC_ARCH}
@@ -424,8 +400,8 @@ alias ACC_INFO='accinfo'
 
 alias current='ACC_RELEASE_REQUEST=current; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 alias devel='ACC_RELEASE_REQUEST=devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
-alias online='ACC_RELEASE_REQUEST=online; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
-alias online-devel='ACC_RELEASE_REQUEST=online-devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
+#alias online='ACC_RELEASE_REQUEST=online; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
+#alias online-devel='ACC_RELEASE_REQUEST=online-devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 
 alias current32='ACC_FORCE_32_BIT=Y; current'
 alias devel32='ACC_FORCE_32_BIT=Y; devel;'
