@@ -1755,7 +1755,6 @@ integer(c_int) :: n3_pt
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 3, ALLOC]
-n1_pt = 0
 if (allocated(F%pt)) then
   n1_pt = size(F%pt, 1); lb1 = lbound(F%pt, 1) - 1
   n2_pt = size(F%pt, 2); lb2 = lbound(F%pt, 2) - 1
@@ -1764,6 +1763,8 @@ if (allocated(F%pt)) then
   do jd1 = 1, n1_pt; do jd2 = 1, n2_pt; do jd3 = 1, n3_pt
     z_pt(n3_pt*n2_pt*(jd1-1) + n3_pt*(jd2-1) + jd3) = c_loc(F%pt(jd1+lb1, jd2+lb2, jd3+lb3))
   enddo;  enddo; enddo
+else
+  n1_pt = 0; n2_pt = 0; n3_pt = 0
 endif
 
 !! f_side.to_c2_call
@@ -4949,11 +4950,12 @@ if (associated(F%wall3d)) n_wall3d = 1
 n_wig = 0
 if (associated(F%wig)) n_wig = 1
 !! f_side.to_c_trans[real, 3, PTR]
-n1_r = 0; n2_r = 0; n3_r = 0
 if (associated(F%r)) then
   n1_r = size(F%r, 1)
   n2_r = size(F%r, 2)
   n3_r = size(F%r, 3)
+else
+  n1_r = 0; n2_r = 0; n3_r = 0
 endif
 !! f_side.to_c_trans[real, 1, PTR]
 n1_a_pole = 0

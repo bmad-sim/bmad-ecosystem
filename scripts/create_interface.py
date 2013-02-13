@@ -443,10 +443,12 @@ endif
       fp.equality_test = equality_test_pointer
 
       fp.to_c_trans  = \
-'''n1_NAME = 0; n2_NAME = 0
+'''\
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1)
   n2_NAME = size(F%NAME, 2)
+else
+  n1_NAME = 0; n2_NAME = 0
 endif
 '''
       tp2 = '''
@@ -472,7 +474,6 @@ else
                          '  enddo\n' + '  enddo\n' + 'endif\n'
         ## fp.equality_test = fp.equality_test.replace
         fp.to_c_trans  = '''\
-n1_NAME = 0
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1); lb1 = lbound(F%NAME, 1) - 1
   n2_NAME = size(F%NAME, 2); lb2 = lbound(F%NAME, 2) - 1
@@ -480,6 +481,8 @@ if (associated(F%NAME)) then
   do jd1 = 1, n1_NAME; do jd2 = 1, n2_NAME
     z_NAME(n2_NAME*(jd1-1) + jd2) = c_loc(F%NAME(jd1+lb1, jd2+lb2))
   enddo;  enddo
+else
+  n1_NAME = 0; n2_name = 0
 endif
 '''
         fp.to_f2_trans = '''\
@@ -510,11 +513,13 @@ endif
       fp.equality_test = equality_test_pointer
 
       fp.to_c_trans  = \
-'''n1_NAME = 0; n2_NAME = 0; n3_NAME = 0
+'''\
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1)
   n2_NAME = size(F%NAME, 2)
   n3_NAME = size(F%NAME, 3)
+else
+  n1_NAME = 0; n2_NAME = 0; n3_NAME = 0
 endif
 '''
 
@@ -541,7 +546,6 @@ else
                          '  enddo\n' + '  enddo\n' + '  enddo\n' + 'endif\n'
         ## fp.equality_test = fp.equality_test.replace
         fp.to_c_trans  = '''\
-n1_NAME = 0
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1); lb1 = lbound(F%NAME, 1) - 1
   n2_NAME = size(F%NAME, 2); lb2 = lbound(F%NAME, 2) - 1
@@ -550,6 +554,8 @@ if (associated(F%NAME)) then
   do jd1 = 1, n1_NAME; do jd2 = 1, n2_NAME; do jd3 = 1, n3_NAME
     z_NAME(n3_NAME*n2_NAME*(jd1-1) + n3_NAME*(jd2-1) + jd3) = c_loc(F%NAME(jd1+lb1, jd2+lb2, jd3+lb3))
   enddo;  enddo; enddo
+else
+  n1_NAME = 0; n2_NAME = 0; n3_NAME = 0
 endif
 '''
         fp.to_f2_trans = '''\

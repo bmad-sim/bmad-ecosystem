@@ -7,6 +7,22 @@ type c_dummy_struct
   real(rp) dummy
 end type
 
+interface
+  pure subroutine bool_to_int (logic, int_logic) bind(c)
+    import c_bool, c_int
+    logical(c_bool), intent(in) :: logic
+    integer(c_int), intent(inout) :: int_logic
+  end subroutine
+end interface
+
+interface
+  pure subroutine int_to_bool (int_logic, logic) bind(c)
+    import c_bool, c_int
+    integer(c_int), intent(in) :: int_logic
+    logical(c_bool), intent(inout) :: logic
+  end subroutine
+end interface
+
 interface vec2fvec
   module procedure bool_vec2fvec
 end interface
@@ -283,9 +299,9 @@ logical(c_bool) c_log
 !
 
 if (logic) then
-  c_log = 1
+  call int_to_bool (1, c_log)
 else
-  c_log = 0
+  call int_to_bool (0, c_log)
 endif
 
 end function c_logic1
@@ -368,14 +384,6 @@ implicit none
 logical(c_bool), intent(in) :: logic
 logical f_log
 integer int_logic
-
-interface
-  subroutine bool_to_int (logic, int_logic) bind(c)
-    import c_bool, c_int
-    logical(c_bool) logic
-    integer(c_int) int_logic
-  end subroutine
-end interface
 
 !
 
@@ -616,9 +624,14 @@ integer n, i
 logical f_scalar
 logical(c_bool) c_scalar
 
-c_scalar = 0
-if (n == 0) return
-c_scalar = c_logic(f_scalar)
+
+!
+
+if (n == 0) then
+  call int_to_bool (0, c_scalar)
+else
+  c_scalar = c_logic(f_scalar)
+endif
 
 end function bool_fscalar2scalar
 
