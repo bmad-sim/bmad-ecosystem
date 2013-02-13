@@ -488,7 +488,7 @@ type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
   real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
-  real(rp) :: de_var_to_population_factor = 5 
+  real(rp) :: de_var_to_population_factor = 5.0_rp
   real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
   real(rp) :: svd_cutoff = 1e-5          ! SVD singular value cutoff.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
@@ -717,6 +717,17 @@ type tao_universe_calc_struct
 end type
 
 !-----------------------------------------------------------------------
+! MPI information structure
+type tao_mpi_struct
+  logical :: on = .false.        ! Is MPI on?
+  logical :: master = .true.     ! Is this the master task? If yes, rank == 0
+  integer :: rank = 0            ! Rank of task (rank is 0, 1, 2, ... n_tasks-1 ) 
+  integer :: max_rank = 0        ! Maximum rank, should be n_tasks-1
+  character(160) :: host_name    ! Name of the host machine
+end type
+
+
+!-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
@@ -746,6 +757,7 @@ type tao_super_universe_struct
   type (tao_v1_var_struct), allocatable :: v1_var(:)       ! The variable types
   type (tao_var_struct), allocatable :: var(:)             ! array of all variables.
   type (tao_universe_struct), allocatable :: u(:)          ! array of universes.
+  type (tao_mpi_struct) mpi
   integer, allocatable :: key(:)
   type (tao_building_wall_struct) :: building_wall
   type (tao_wave_struct) :: wave 
