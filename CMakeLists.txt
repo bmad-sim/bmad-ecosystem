@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set(LIBNAME sim_utils)
 
+set (CREATE_SHARED true)
+
 set(INC_DIRS 
 )
 
