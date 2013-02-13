@@ -61,21 +61,15 @@ type (ele_struct) :: ele
 type (lat_param_struct), intent(inout) :: param
 
 real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r
-integer at, at2
+integer at, physical_end
 logical do_tilt, err
 logical, optional :: check_momentum
 character(20) :: r_name = 'check_aperture_limit'
 
 ! Check if there is an aperture here. If not, simply return.
 
-at2 = physical_ele_end (at, ele%orientation)
-!!if (.not. at_this_end (at2, ele%aperture_at)) return
-
-if (at2 == entrance_end$) then
-  if (ele%aperture_at /= entrance_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
-elseif (at2 == exit_end$) then
-  if (ele%aperture_at /= exit_end$ .and. ele%aperture_at /= both_ends$ .and. ele%aperture_at /= continuous$) return
-endif
+physical_end = physical_ele_end (at, ele%orientation)
+if (.not. at_this_ele_end (at, ele%aperture_at, ele%orientation)) return
 
 ! Custom
 
@@ -104,7 +98,7 @@ endif
 
 !
 
-if (ele%offset_moves_aperture .and. (at2 == entrance_end$ .or. at2 == exit_end$)) then
+if (ele%offset_moves_aperture .and. (physical_end == entrance_end$ .or. physical_end == exit_end$)) then
   do_tilt = .false.
   if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
   orb2 = orb
@@ -659,7 +653,7 @@ end subroutine approx_bend_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine apply_hard_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, element_end)
+! Subroutine apply_hard_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, stream_end)
 !
 ! Subroutine to track through the edge field of an element.
 ! This routine is used with bmad_standard field_calc where the field
@@ -686,13 +680,13 @@ end subroutine approx_bend_edge_kick
 !   track_ele   -- ele_struct: Element being tracked through. 
 !                    Is different from hard_ele when there are superpositions.
 !   param       -- lat_param_struct: lattice parameters.
-!   element_end -- Integer: upstream_end$ or downstream_end$.
+!   stream_end -- Integer: upstream_end$ or downstream_end$.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
 !-
 
-subroutine apply_hard_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, element_end)
+subroutine apply_hard_edge_kick (orb, s_edge, t_rel, hard_ele, track_ele, param, stream_end)
 
 implicit none
 
@@ -703,7 +697,7 @@ type (em_field_struct) field
 
 real(rp) t, f, l_drift, ks, t_rel, s_edge, s
 
-integer element_end, ix_fringe
+integer stream_end, ix_fringe
 
 ! 
 
@@ -711,11 +705,12 @@ if (hard_ele%field_calc /= bmad_standard$) return
 
 select case (hard_ele%key)
 case (sbend$)
+  if (at_this_ele_end (stream_end, nint(hard_ele%value(kill_fringe$)), hard_ele%orientation)) return
   ix_fringe = nint(hard_ele%value(fringe_type$))
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    call exact_bend_edge_kick (orb, hard_ele, param, element_end, .false.)
+    call exact_bend_edge_kick (orb, hard_ele, param, stream_end, .false.)
   elseif (ix_fringe == basic_bend$) then
-    call approx_bend_edge_kick (orb, hard_ele, param, element_end, .false.)
+    call approx_bend_edge_kick (orb, hard_ele, param, stream_end, .false.)
   endif
 
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
@@ -723,7 +718,7 @@ case (sbend$)
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
   ks = param%rel_tracking_charge * hard_ele%value(bs_field$) * c_light / orb%p0c
-  if (element_end == upstream_end$) then
+  if (stream_end == upstream_end$) then
     orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
     orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
   else
@@ -738,7 +733,7 @@ case (lcavity$, rfcavity$, e_gun$)
   t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
   s = s_edge
 
-  if (element_end == upstream_end$) then
+  if (stream_end == upstream_end$) then
 
     if (hard_ele%key == e_gun$) return  ! E_gun does not have an entrance kick
     s = s + bmad_com%significant_length / 10 ! Make sure inside field region
@@ -796,8 +791,10 @@ type (coord_struct) orb
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
-integer stream_end, element_end, ix_fringe
+integer stream_end, ix_fringe
 logical in_to_out
+
+if (at_this_ele_end (stream_end, nint(ele%value(kill_fringe$)), ele%orientation)) return
 
 ix_fringe = nint(ele%value(fringe_type$))
 if (present(mat6)) then 
@@ -993,7 +990,7 @@ end subroutine ptc_wedger
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! private subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end, mat6)
+! private subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, stream_end, mat6)
 !
 ! Subroutine to compute the exact hard edge fringe field of a bend.
 ! 
@@ -1007,14 +1004,14 @@ end subroutine ptc_wedger
 !   fint   -- real(rp): field integral for pole face
 !   hgap   -- real(rp): gap height at pole face in meters
 !                       Only the product fint*hgap is used
-!   element_end -- Integer: upstream_end$ or downstream_end$
+!   stream_end -- Integer: upstream_end$ or downstream_end$
 !
 ! Output:
 !   X(6)   -- real(rp): PTC phase space coordinates
 !   mat6   -- Real(rp), optional: Transfer matrix.
 !-
 
-subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end, mat6)
+subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, stream_end, mat6)
 
 implicit none
 
@@ -1024,7 +1021,7 @@ real(rp) :: beta0, g_tot
 real(rp) :: PZ,XP,YP,TIME_FAC
 real(rp) :: D(3,3),FI(3),FI0,B,co1,co2
 integer  :: i
-integer  :: element_end
+integer  :: stream_end
 character(20) :: r_name = 'ptc_fringe_dipoler'
 real(rp), optional :: mat6(6,6)
 real(rp) :: dpz_dx2, dpz_dx4, dpz_dx5, dtime_fac_dx5
@@ -1039,12 +1036,12 @@ real(rp) :: factor1, factor2
 
 !
 
-if (element_end == downstream_end$) then
+if (stream_end == downstream_end$) then
    B = -g_tot  !EL%CHARGE*BN(1)
-else if (element_end == upstream_end$) then
+else if (stream_end == upstream_end$) then
    B = g_tot       
 else
-  call out_io (s_fatal$, r_name, 'INVALID ELEMENT_END')
+  call out_io (s_fatal$, r_name, 'INVALID STREAM_END')
   call err_exit
 endif
 
@@ -1291,7 +1288,7 @@ end subroutine ptc_rot_xz
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine exact_bend_edge_kick (orb, ele, param, element_end, in_to_out, mat6)
+! Subroutine exact_bend_edge_kick (orb, ele, param, stream_end, in_to_out, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
 ! In_to_out tracking starts with the particle just outside the bend and
@@ -1306,7 +1303,7 @@ end subroutine ptc_rot_xz
 !   orb         -- Coord_struct: Starting coords.
 !   ele         -- ele_struct: SBend element.
 !   param       -- lat_param_struct: 
-!   element_end -- Integer: upstream_end$ or downstream_end$
+!   stream_end -- Integer: upstream_end$ or downstream_end$
 !   in_to_out   -- Logical: If True then make the inverse transformation.
 !                     That is, for the entrance end take the input orb as the coordinates
 !                     just inside the entrance end of the bend and return the coordinates 
@@ -1317,7 +1314,7 @@ end subroutine ptc_rot_xz
 !   mat6       -- Real(rp), optional: Transfer matrix.
 !-
 
-subroutine exact_bend_edge_kick (orb, ele, param, element_end, in_to_out, mat6)
+subroutine exact_bend_edge_kick (orb, ele, param, stream_end, in_to_out, mat6)
 
 use ptc_interface_mod
 
@@ -1330,7 +1327,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) :: mat6_int(6,6)
 real(rp) :: X(6), ct
 real(rp) :: beta0, g_tot, edge_angle, hgap, fint
-integer :: element_end
+integer :: stream_end
 logical :: in_to_out
 
 character(20) :: r_name = 'exact_bend_edge_kick'
@@ -1359,7 +1356,7 @@ end if
 ct = X(6)
 
 
-if (element_end == upstream_end$) then
+if (stream_end == upstream_end$) then
   edge_angle = ele%value(e1$)
   fint = ele%value(FINT$)
   hgap = ele%value(HGAP$)
@@ -1372,10 +1369,10 @@ if (element_end == upstream_end$) then
   end if
   ! Edge kick
   if (present(mat6)) then
-    call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end, mat6_int)
+    call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, stream_end, mat6_int)
     mat6 = matmul(mat6_int,mat6)
   else
-    call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end)
+    call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, stream_end)
   end if
   ! Backtrack
   if (present(mat6)) then
@@ -1384,7 +1381,7 @@ if (element_end == upstream_end$) then
   else
     call ptc_wedger(-edge_angle, g_tot, beta0, X)
   end if
-else if (element_end == downstream_end$) then
+else if (stream_end == downstream_end$) then
   edge_angle = ele%value(e2$)
   fint = ele%value(FINTX$)
   hgap = ele%value(HGAPX$)
@@ -1397,10 +1394,10 @@ else if (element_end == downstream_end$) then
   end if
   ! Edge kick
   if (present(mat6)) then
-    call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end, mat6_int)
+    call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, stream_end, mat6_int)
     mat6 = matmul(mat6_int,mat6)
   else
-    call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, element_end)
+    call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, stream_end)
   end if
   ! Drift forward
   if (present(mat6)) then
