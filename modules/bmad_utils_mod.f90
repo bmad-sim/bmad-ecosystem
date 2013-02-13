@@ -174,6 +174,50 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function at_this_ele_end (now_at, where_at, ele) result (is_at_this_end)
+!
+! Routine to determine if an aperture or fringe field is present.
+!
+! Input:
+!   now_at      -- Integer: Which end is under consideration: upstream$ or downstream$.
+!   where_at    -- Integer: Which ends have the aperture or fringe field: entrance_end$
+!                     exit_end$, continuous$, or both_ends$.
+!   orientation -- Integer: element orientation: +/- 1.
+!
+! Output:
+!   is_at_this_end   -- Logical: True if at this end. False otherwise.
+!- 
+
+function at_this_ele_end (now_at, where_at, orientation) result (is_at_this_end)
+
+implicit none
+
+integer now_at, where_at, orientation, physical_end
+logical is_at_this_end
+
+!
+
+physical_end = physical_ele_end (now_at, orientation)
+select case (physical_end)
+case (entrance_end$)
+  select case (where_at)
+  case (entrance_end$, both_ends$, continuous$); is_at_this_end = .true.
+  case default;                                is_at_this_end = .false.
+  end select
+
+case (exit_end$)
+  select case (where_at)
+  case (exit_end$, both_ends$, continuous$); is_at_this_end = .true.
+  case default;                            is_at_this_end = .false.
+  end select
+end select
+
+end function at_this_ele_end
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Function physical_ele_end (stream_end, ele_orientation) result (physical_end)
 !
 ! Rotine to determine which physical end of an element a particle is at given 

@@ -66,6 +66,9 @@ case (multilayer_mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
 
+case (multipole$, ab_multipole$)
+  call multipole_init (ele, .true.)
+
 case (patch$)
   ele%value(flexible$) = 0 ! False
   ele%value(new_branch$) = 1    ! True
