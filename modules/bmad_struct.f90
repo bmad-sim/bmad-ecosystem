@@ -699,6 +699,7 @@ integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10, gap$=10
 integer, parameter :: grad_loss_sr_wake$=11, s_min$=11
 integer, parameter :: e2$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
 integer, parameter :: s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
+integer, parameter :: traveling_wave$ = 12
 integer, parameter :: fint$=12, fintx$=13, hgap$=14, hgapx$=15, h1$=16, h2$=17
 integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
 integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14

@@ -25,16 +25,16 @@ private parse_grid, parse_map
 ! since sequences can be nested, can itself be a line or a list.
 
 type seq_ele_struct
-  character(40) name             ! name of element, subline, or sublist
+  character(40) name                     ! name of element, subline, or sublist
   character(40), pointer :: actual_arg(:) => null()
-  character(40) :: tag = ''      ! tag name.
-  integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
-  integer ix_ele                 ! if an element: pointer to ELE array
-                                 ! if a list: pointer to SEQ array
-  integer ix_arg                 ! index in arg list (for replacement lines)
-  integer rep_count              ! how many copies of an element
-  logical ele_order_reflect      ! Travel through ele sequence in reverse order
-  integer ele_orientation        ! Travel through elements in reverse.
+  character(40) :: tag = ''              ! tag name.
+  integer :: type = 0                    ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
+  integer :: ix_ele = 0                  ! if an element: pointer to ELE array
+                                         ! if a list: pointer to SEQ array
+  integer :: ix_arg  = 0                 ! index in arg list (for replacement lines)
+  integer ::rep_count = 1                ! how many copies of an element
+  logical :: ele_order_reflect = .false. ! Travel through ele sequence in reverse order
+  integer :: ele_orientation = 1         ! Travel through elements in reverse.
 end type
 
 type seq_struct
@@ -4070,11 +4070,6 @@ logical err_flag, top_level
 ! init
 
 allocate (s_ele(ubound(lat%ele, 1)))
-s_ele%type = 0
-s_ele%ix_ele = 0
-s_ele%ix_arg = 0
-s_ele%ele_order_reflect = .false.
-s_ele%ele_orientation   = 1
 
 ! save info on what file we are parsing for error messages.
 

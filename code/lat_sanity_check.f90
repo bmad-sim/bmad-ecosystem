@@ -210,18 +210,25 @@ do i_b = 0, ubound(lat%branch, 1)
     endif
 
     ! Two "consecutive" element with finite length and opposite orientations is not physical.
-    ! But is allowed for testing purposes/
+    ! But is allowed for testing purposes.
 
-    if (i_t <  branch%n_ele_track .and. ele%value(l$) /= 0) then
+    if (abs(ele%orientation) /= 1) then
+      call out_io (s_fatal$, r_name, &
+                'ELEMENT: ' // trim(ele%name) // ' HAS BAD ORIENTATION VALUE: \i0\ ', i_array = [ele%orientation])
+    endif
+
+
+    if (i_t <  branch%n_ele_track .and. ele%value(l$) /= 0 .and. abs(ele%orientation) == 1) then
       do i2 = i_t + 1, branch%n_ele_track
         ele2 => branch%ele(i2)
+        if (abs(ele2%orientation) /= 1) exit
         if (ele2%key == patch$ .or. ele2%key == floor_shift$) exit
         if (ele2%value(l$) == 0) cycle
         if (ele%orientation * ele2%orientation /= 1) then
           call out_io (s_fatal$, r_name, &
-                'ELEMENT: ' // ele%name, &
-                'WHICH IS NEXT TO: ' // ele2%name, &
-                'HAVE OPPOSITE ORIENTATIONS! THIS IS NOT PHYSICAL.')
+                'ELEMENT: ' // trim(ele%name) // ' WITH ORIENTATION: \i0\ ', &
+                'WHICH IS NOT SPEARATED BY ELEMENTS OF ANY LENGTH FROM: ' // trim(ele2%name) // ' WITH ORIENTATION: \i0\ ', &
+                'HAVE CONFOUNDING ORIENTATIONS! THIS IS NOT PHYSICAL.', i_array = [ele%orientation, ele2%orientation])
         endif
         exit
       enddo
