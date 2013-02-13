@@ -959,8 +959,8 @@ end if
 
 Xn(3)=(a+asin(X(2)/pt)-asin(Xn(2)/pt))/b1
 if (present(mat6)) then
-  factor1 = sqrt(1-Xn(2)**2/pt**2)
-  factor2 = sqrt(1-X(2)**2/pt**2)
+  factor1 = sqrt(1-(Xn(2)/pt)**2)
+  factor2 = sqrt(1-(X(2)/pt)**2)
   mat6(3,1) = - mat6(2,1)/(b1*factor1*pt)
   mat6(3,2) = (1/factor2-mat6(2,2)/factor1)/(b1*pt)
   mat6(3,4) = (-X(2)*dpt_dx4/(factor2*pt**2)-(-Xn(2)*dpt_dx4/pt**2+mat6(2,4)/pt)/factor1)/b1
@@ -1152,10 +1152,10 @@ dfi3_dx2 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx2-2*co2*factor1*(2*xp*(2+yp**2)
 dfi3_dx4 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx4-2*co2*factor1*(2*xp*(2+yp**2)*dxp_dx4+2*xp**2*yp*dyp_dx4)
 dfi3_dx5 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx5-2*co2*factor1*(2*xp*(2+yp**2)*dxp_dx5+2*xp**2*yp*dyp_dx5)
 
-fi0=b*tan(fi0)
 dfi0_dx2 = b*dfi0_dx2/cos(fi0)**2
 dfi0_dx4 = b*dfi0_dx4/cos(fi0)**2
 dfi0_dx5 = b*dfi0_dx5/cos(fi0)**2
+fi0=b*tan(fi0)
 
 if (present(mat6)) call mat_make_unit(mat6)
 
@@ -1164,7 +1164,6 @@ do i=1,3
    b=fi(i)*d(i,2)+b
 enddo
 
-x(3)=2.0_rp*x(3)/(1.0_rp+ sqrt(1.0_rp-2.0_rp*b*x(3)) )
 if (present(mat6)) then
   factor1 = sqrt(1-2*b*x(3))
   factor2 = (1+sqrt(1-2*b*x(3)))**2
@@ -1173,6 +1172,7 @@ if (present(mat6)) then
   mat6(3,4) = 2*x(3)**2*(fi(1)*d12_dx4+fi(2)*d22_dx4+fi(3)*d32_dx4+d(1,2)*dfi1_dx4+d(2,2)*dfi2_dx4+d(3,2)*dfi3_dx4)/(factor1*factor2)
   mat6(3,5) = 2*x(3)**2*(fi(1)*d12_dx5+fi(2)*d22_dx5+fi(3)*d32_dx5+d(1,2)*dfi1_dx5+d(2,2)*dfi2_dx5+d(3,2)*dfi3_dx5)/(factor1*factor2)
 end if
+x(3)=2.0_rp*x(3)/(1.0_rp+ sqrt(1.0_rp-2.0_rp*b*x(3)) )
 
 x(4)=x(4)-fi0*x(3)
 if (present(mat6)) then
