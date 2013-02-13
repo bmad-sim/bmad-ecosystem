@@ -816,9 +816,10 @@ call init_attribute_name1 (solenoid$, field$,                       'FIELD')
 call init_attribute_name1 (solenoid$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (solenoid$, p0c_start$,                   'p0c_start', private$)
 
-call init_attribute_name1 (rfcavity$, dphi0$,                       'DPHI0')
+call init_attribute_name1 (rfcavity$, traveling_wave$,              'TRAVELING_WAVE')
 call init_attribute_name1 (rfcavity$, voltage$,                     'VOLTAGE')
 call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENCY')
+call init_attribute_name1 (rfcavity$, dphi0$,                       'DPHI0')
 call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
 call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', private$)
 call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON')
@@ -1170,7 +1171,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'FOLLOW_DIFFRACTED_BEAM', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH')
   attrib_type = is_logical$
 
-case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'TRAVELING_WAVE', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', 'PTC_MAX_FRINGE_ORDER')
   attrib_type = is_integer$
 

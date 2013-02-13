@@ -25,7 +25,7 @@ subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
 
 use capillary_mod, dummy => track1_bmad_photon
 use track1_photon_mod, dummy2 => track1_bmad_photon
-use lat_geometry_mod, dummy4 => track1_bmad
+use lat_geometry_mod, dummy4 => track1_bmad_photon
 
 implicit none
 
