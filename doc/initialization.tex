@@ -1600,6 +1600,8 @@ namelists should be placed directly after their respective
     graph%component        = "<string>"       ! Eg: "model - design"
     graph%symbol_size_scale      = <real>     ! Phase_space plots symbol scale factor
     graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
+    graph%draw_only_good_user_data_or_vars    ! Veto data or variables with good_user = F?
+                                 = <logical>  !   Default = T.
     graph%x_axis_scale_factor    = <factor>   ! Scale the x-axis by this.
     graph%n_curve                = <number>   ! number of curves
     curve(i)%name                = "<string>" ! Default is "c<i>", <i> = curve num.
@@ -1809,6 +1811,12 @@ this calculation and the curve will be drawn as a series of lines
 connecting the symbols. The default of \vn{curve%smooth_line_calc} is
 True. Use the \vn{set curve} command (\sref{s:set}) to toggle the
 drawing of lines.
+
+The \vn{graph%draw_only_good_user_data_or_vars} switch determines
+whether datums (\sref{s:init.data}) or variables (\sref{s:init.var})
+with a \vn{good_user} component set to \vn{False} are drawn. The
+default is to not draw them which means that data or variables not
+used in an optimization are not drawn. 
 
 A graph has two vertical axes. The one on the left is called \vn{"y"}
 and the one on the right is called \vn{"y2"}. For example,

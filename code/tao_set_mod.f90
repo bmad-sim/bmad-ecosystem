@@ -1014,30 +1014,26 @@ select case (comp)
 
   case ('component')
     this_graph%component = set_value
-
-  case ('clip')
-    call tao_logical_set_value (this_graph%clip, comp, set_value, error)
-
-  case ('draw_axes')
-    call tao_logical_set_value (this_graph%draw_axes, comp, set_value, error)
-
-  case ('ix_universe')
-    call tao_integer_set_value (this_graph%ix_universe, comp, set_value, error, 1, ubound(s%u, 1))
-
-  case ('margin%x1')
-    call tao_real_set_value(this_graph%margin%x1, comp, set_value, error)
-
-  case ('margin%x2')
-    call tao_real_set_value(this_graph%margin%x2, comp, set_value, error)
-
-  case ('margin%y1')
-    call tao_real_set_value(this_graph%margin%y1, comp, set_value, error)
-
-  case ('margin%y2')
-    call tao_real_set_value(this_graph%margin%y2, comp, set_value, error)
-
   case ('bin_width')
     call tao_real_set_value(this_graph%bin_width, comp, set_value, error)
+  case ('clip')
+    call tao_logical_set_value (this_graph%clip, comp, set_value, error)
+  case ('draw_axes')
+    call tao_logical_set_value (this_graph%draw_axes, comp, set_value, error)
+  case ('draw_only_good_user_data_or_vars')
+    call tao_logical_set_value (this_graph%draw_only_good_user_data_or_vars, comp, set_value, error)
+  case ('ix_universe')
+    call tao_integer_set_value (this_graph%ix_universe, comp, set_value, error, 1, ubound(s%u, 1))
+  case ('margin%x1')
+    call tao_real_set_value(this_graph%margin%x1, comp, set_value, error)
+  case ('margin%x2')
+    call tao_real_set_value(this_graph%margin%x2, comp, set_value, error)
+  case ('margin%y1')
+    call tao_real_set_value(this_graph%margin%y1, comp, set_value, error)
+  case ('margin%y2')
+    call tao_real_set_value(this_graph%margin%y2, comp, set_value, error)
+  case ('y2_mirrors_y')
+    call tao_logical_set_value (this_graph%y2_mirrors_y, comp, set_value, error)
 
   case default
     call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)

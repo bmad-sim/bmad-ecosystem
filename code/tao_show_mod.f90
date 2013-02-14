@@ -1322,6 +1322,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), lmt) 'clip                  = ', g%clip
     nl=nl+1; write (lines(nl), lmt) 'draw_axes             = ', g%draw_axes
     nl=nl+1; write (lines(nl), lmt) 'correct_xy_distortion = ', g%correct_xy_distortion
+    nl=nl+1; write (lines(nl), lmt) 'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
       nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name
@@ -2745,6 +2746,7 @@ case ('variable')
     nl=nl+1; write(lines(nl), amt)  '%merit_type       = ', v_ptr%merit_type
     nl=nl+1; write(lines(nl), rmt)  '%merit            = ', v_ptr%merit
     nl=nl+1; write(lines(nl), rmt)  '%dmerit_dvar      = ', v_ptr%dMerit_dVar
+    nl=nl+1; write(lines(nl), rmt)  '%s                = ', v_ptr%s
     nl=nl+1; write(lines(nl), imt)  '%ix_key_table     = ', v_ptr%ix_key_table
     if (v_ptr%ix_key_table > 0 ) then
       nl=nl+1; write(lines(nl), rmt)  '%key_val0         = ', v_ptr%key_val0

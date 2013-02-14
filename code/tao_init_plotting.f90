@@ -129,6 +129,7 @@ default_graph%ix_universe           = -1
 default_graph%clip                  = .true.
 default_graph%draw_axes             = .true.
 default_graph%correct_xy_distortion = .false.
+default_graph%draw_only_good_user_data_or_vars = .true.
 default_graph%draw_curve_legend     = .true.
 default_graph%component             = 'model'
 default_graph%who%name              = ''
@@ -586,6 +587,8 @@ do  ! Loop over plot files
       grph%clip                  = graph%clip
       grph%draw_axes             = graph%draw_axes
       grph%correct_xy_distortion = graph%correct_xy_distortion
+      grph%draw_only_good_user_data_or_vars = &
+                                   graph%draw_only_good_user_data_or_vars
       grph%bin_width             = graph%bin_width
       grph%draw_curve_legend     = graph%draw_curve_legend
       grph%title_suffix          = ''
@@ -1212,6 +1215,7 @@ grph%box                   = [1, 1, 1, 1]
 grph%type                  = 'floor_plan'
 grph%margin                =  qp_rect_struct(0.15, 0.06, 0.05, 0.05, '%BOX')
 grph%correct_xy_distortion = .true.
+grph%draw_only_good_user_data_or_vars = .true.
 grph%x                     = init_axis
 grph%y                     = init_axis
 grph%draw_axes             = .true.

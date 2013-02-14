@@ -125,6 +125,7 @@ type tao_graph_input
   logical draw_axes
   logical correct_xy_distortion
   logical draw_curve_legend     ! For identifying curves. 
+  logical draw_only_good_user_data_or_vars
   type (qp_point_struct) legend_origin  ! For backwards compatibility
   type (qp_point_struct) text_legend_origin
   type (qp_point_struct) curve_legend_origin
