@@ -938,7 +938,7 @@ case ('damp.')
     valid_value = .true.
 
   case ('damp.j_z')
-    datum_value = tao_lat%modes%b%j_damp
+    datum_value = tao_lat%modes%z%j_damp
     valid_value = .true.
 
   case default
