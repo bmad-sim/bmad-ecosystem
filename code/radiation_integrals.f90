@@ -612,7 +612,11 @@ if (i2 /= 0) then
   mode%z%j_damp = 2 + i4z / i2
 
   arg = (const_q * i3 * gamma2_factor / (2*i2 + i4z))
-  mode%sigE_E = sqrt(max(0.0_rp, arg))
+  if (arg > 0) then
+    mode%sigE_E = sqrt(arg)
+  else
+    mode%sigE_E = 1e30  ! Something large
+  endif
 
 endif
 
