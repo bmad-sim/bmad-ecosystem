@@ -1240,7 +1240,7 @@ case ('s')
   if (curve%data_source == 'lat' .and. index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
 
   if (index(graph%component, 'meas') /= 0 .or. index(graph%component, 'ref') /= 0 .or. &
-      curve%data_source == 'dat') then
+      curve%data_source == 'dat' .or. curve%data_source == 'var') then
     straight_line_between_syms = .true.
     smooth_curve = .false.
   else
