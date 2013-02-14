@@ -300,8 +300,8 @@ if (graph%type == 'floor_plan') then
 ! For a lat_layout: Default is [-100, 100]
 
 elseif (graph%type == 'lat_layout') then
-    this_min = -100
-    this_max = 100
+    this_min = -1
+    this_max = 1
 
 ! Not a floor plan
 
