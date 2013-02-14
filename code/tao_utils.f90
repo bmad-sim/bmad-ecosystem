@@ -778,8 +778,8 @@ type (tao_var_struct) var(:)
 
 !
 
-var%useit_plot = var%exists .and. var%good_user .and. var%good_plot &
-                                                .and. var%good_var
+var%useit_plot = var%exists .and. var%good_plot .and. var%good_var .and. &
+                 (var%good_user .or. .not. graph%draw_only_good_user_data_or_vars)
 
 end subroutine tao_var_useit_plot_calc
 

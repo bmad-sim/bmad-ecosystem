@@ -1756,7 +1756,9 @@ type (tao_data_struct) data(:)
 
 !
 
-data%useit_plot = data%exists .and. data%good_plot .and. data%good_user
+data%useit_plot = data%exists .and. data%good_plot .and. &
+                  (data%good_user .or. .not. graph%draw_only_good_user_data_or_vars)
+
 if (index(graph%component, 'meas') /= 0) &
          data%useit_plot = data%useit_plot .and. data%good_meas
 if (index(graph%component, 'ref') /= 0)  &

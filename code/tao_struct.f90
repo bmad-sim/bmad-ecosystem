@@ -179,7 +179,8 @@ type tao_graph_struct
   logical draw_axes                   ! Draw axes, labels, etc?
   logical correct_xy_distortion       ! T -> Shrink one axis in floor plan so x-scale = y-scale.
   logical draw_curve_legend           ! Legend for displaying curve info.
-  logical :: visible = .true.         ! To draw or not to draw. 
+  logical :: visible = .true.         ! To draw or not to draw.
+  logical :: draw_only_good_user_data_or_vars = .true.
 end type
 
 ! A plot is collection of graphs.
