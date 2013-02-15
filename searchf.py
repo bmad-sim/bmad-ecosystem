@@ -45,14 +45,22 @@ def choose_path (dir_list, root_dir, base_dir, base_file, release_sub_dir):
   if root_dir == '':
     if os.path.isfile(base_dir + base_file):
       this_dir = base_dir
+
     elif os.path.isfile('../' + base_dir + base_file):
       this_dir = '../' + base_dir
+
     elif os.path.isfile('../../' + base_dir + base_file):
       this_dir = '../../' + base_dir
-    elif os.path.isfile(release_dir + base_dir + release_sub_dir + base_file):
+
+    elif os.path.isfile(release_sub_dir + base_dir + base_file):
+      this_dir = release_sub_dir + base_dir
+
+    elif os.path.isfile(release_dir + release_sub_dir + base_dir + base_file):
       this_dir = release_dir + release_sub_dir + base_dir
+
     elif os.path.isfile(dist_dir + base_dir + base_file):
       this_dir = dist_dir + base_dir
+
     # If release_dir is defined then we should have found the directory.
     elif release_dir != '': 
       print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
@@ -60,8 +68,13 @@ def choose_path (dir_list, root_dir, base_dir, base_file, release_sub_dir):
 
   else:
     if root_dir[-1] != '/': root_dir = root_dir + '/'
+
     if os.path.isfile(root_dir + base_dir + base_file):
       this_dir = root_dir + base_dir
+
+    elif os.path.isfile(root_dir + release_sub_dir + base_dir + base_file):
+      this_dir = root_dir + release_sub_dir + base_dir
+
     else:
       print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
 
@@ -440,7 +453,7 @@ def search_tree (search_base_dir, search_com):
 
   if search_com.doc == 'LIST':
     if os.access(search_base_dir, os.W_OK):
-      print 'Opening:', namelist_file
+      print 'Creating:', namelist_file
       search_com.namelist_file = open(namelist_file, 'w')
     else:
       print 'CANNOT WRITE TO:', namelist_file
@@ -568,7 +581,7 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'bmadz', '/modules/bmadz_struct.f90', '')
 
     choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
-    choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '/packages')
+    choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', 'packages/')
     choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
     choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
     choose_path (dir_list, root_dir, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
