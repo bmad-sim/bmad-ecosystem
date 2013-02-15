@@ -39,7 +39,7 @@ class search_com_class:
 #------------------------------------------------------------------------------------
 # choose_path function
 
-def choose_path (dir_list, root_dir, base_dir, base_file, dist_sub_dir):
+def choose_path (dir_list, root_dir, base_dir, base_file, release_sub_dir):
   this_dir = ''
 
   if root_dir == '':
@@ -49,10 +49,10 @@ def choose_path (dir_list, root_dir, base_dir, base_file, dist_sub_dir):
       this_dir = '../' + base_dir
     elif os.path.isfile('../../' + base_dir + base_file):
       this_dir = '../../' + base_dir
-    elif os.path.isfile(release_dir + base_dir + base_file):
-      this_dir = release_dir + base_dir
-    elif os.path.isfile(dist_dir + dist_sub_dir + base_dir):
-      this_dir = dist_dir + dist_sub_dir + base_dir
+    elif os.path.isfile(release_dir + base_dir + release_sub_dir + base_file):
+      this_dir = release_dir + release_sub_dir + base_dir
+    elif os.path.isfile(dist_dir + base_dir + base_file):
+      this_dir = dist_dir + base_dir
     # If release_dir is defined then we should have found the directory.
     elif release_dir != '': 
       print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
@@ -79,7 +79,6 @@ def print_help_message ():
     listf {options} <search_string>
 
   Options:
-     -a          # Search Numerical recipes, forest, and varies program directories as well.
      -c          # Case sensitive search when searching C/C++ files.
      -d <s_dir>  # Use <s_dir> as the search directory. Will not search standard directories. 
      -h          # Print this help message.
@@ -524,7 +523,7 @@ def search_all (doc_type):
     if arg[0] != '-': break
 
     if arg == '-a':
-      search_all = True
+      search_all = True    # Not used.
       continue
 
     if arg == '-c':
@@ -568,17 +567,16 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'mpm_utils', '/code/butout.f90', '')
     choose_path (dir_list, root_dir, 'bmadz', '/modules/bmadz_struct.f90', '')
 
-    if search_all:
-      choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
-      choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '/packages')
-      choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
-      choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
-      choose_path (dir_list, root_dir, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
-      choose_path (dir_list, root_dir, 'cesrv', '/code/cesrv_struct.f90', '')
-      choose_path (dir_list, root_dir, 'util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
-      choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
-      choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
-      choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
+    choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
+    choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '/packages')
+    choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
+    choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
+    choose_path (dir_list, root_dir, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
+    choose_path (dir_list, root_dir, 'cesrv', '/code/cesrv_struct.f90', '')
+    choose_path (dir_list, root_dir, 'util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
+    choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
+    choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
+    choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
 
   if search_com.doc == 'LIST':
     search_com.match_str = '(\w+)'
