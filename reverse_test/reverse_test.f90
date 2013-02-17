@@ -63,14 +63,19 @@ vec1 = -matmul(mat1, vec1)
 
 !
 
+orb2%vec(2) = -orb2%vec(2)
+orb2%vec(4) = -orb2%vec(4)
+orb2%vec(5) = -orb2%vec(5)
+orb2%t = -orb2%t
+
 print '(6es10.2, 5x, es10.2)', orb1%vec, orb1%t
 write (1, '(a, es11.3)') '"dorb(1)" ABS 1d-14 ', orb2%vec(1) - orb0%vec(1)
-write (1, '(a, es11.3)') '"dorb(2)" ABS 1d-14 ', orb2%vec(2) + orb0%vec(2)
+write (1, '(a, es11.3)') '"dorb(2)" ABS 1d-14 ', orb2%vec(2) - orb0%vec(2)
 write (1, '(a, es11.3)') '"dorb(3)" ABS 1d-14 ', orb2%vec(3) - orb0%vec(3)
-write (1, '(a, es11.3)') '"dorb(4)" ABS 1d-14 ', orb2%vec(4) + orb0%vec(4)
-write (1, '(a, es11.3)') '"dorb(5)" ABS 1d-14 ', orb2%vec(5) + orb0%vec(5)
+write (1, '(a, es11.3)') '"dorb(4)" ABS 1d-14 ', orb2%vec(4) - orb0%vec(4)
+write (1, '(a, es11.3)') '"dorb(5)" ABS 1d-14 ', orb2%vec(5) - orb0%vec(5)
 write (1, '(a, es11.3)') '"dorb(6)" ABS 1d-14 ', orb2%vec(6) - orb0%vec(6)
-write (1, '(a, es11.3)') '"c*dt"    ABS 1d-14 ', (orb2%t      + orb0%t) * c_light
+write (1, '(a, es11.3)') '"c*dt"    ABS 1d-14 ', (orb2%t     - orb0%t) * c_light
 
 write (1, *)
 write (1, '(a, 6es11.3)') '"mat1(1,:)" ABS 1d-14 ', ele1%mat6(1,:)
@@ -97,12 +102,13 @@ write (1, '(a, 6es11.3)') '"dmat(5,:)" ABS 1d-14 ', ele2%mat6(5,:) - mat1(5,:)
 write (1, '(a, 6es11.3)') '"dmat(6,:)" ABS 1d-14 ', ele2%mat6(6,:) - mat1(6,:)
 
 write (1, *)
-write (1, '(a, 6es11.3)') '"vec1"  ABS 1d-14 ', ele1%vec0(:)
+write (1, '(a, 6es11.3)') '"vec1"  ABS 1d-14 ', vec1(:)
 write (1, '(a, 6es11.3)') '"vec2"  ABS 1d-14 ', ele2%vec0(:)
 write (1, '(a, 7es11.3)') '"dvec0" ABS 1d-14 ', ele2%vec0(:) - vec1(:)
 
 write (1, *)
-write (1, '(a,  2es11.3)') '"max(dmat, vec0)" ABS 1d-14 ', maxval(abs(ele2%mat6 - mat1)), maxval(abs(ele2%vec0 - vec1))
+write (1, '(a,  3es11.3)') '"max(dmat, vec0)" ', maxval(abs([orb2%vec-orb0%vec, (orb2%t - orb0%t) * c_light])), &
+                                  maxval(abs(ele2%mat6 - mat1)), maxval(abs(ele2%vec0 - vec1))
 
 ! And close
 
