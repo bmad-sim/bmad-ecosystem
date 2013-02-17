@@ -1,3 +1,22 @@
+!+
+! Program reverse_test
+!
+! The basic idea is to: 
+!   0) Start with some given particle coordinates.
+!   1) Track the particle through an element, 
+!   2) Reverse the particle's momentum.
+!   3) Track the particle in reverse through the element.
+!   4) Reverse the particle's momentum.
+! Given the right conditions, the particle's final coordinates should equal the particle's 
+! initial coordinates. This gives a check as to whether the reverse tracking is correct.
+!
+! The needed conditions for guaranteeing final = initial are:
+!   A) For static magnectic fields: The particle charge is also reversed before reverse tracking.
+!   B) For static magnectic fields: The particle charge is the same in reverse tracking.
+!   C) For rfcavities with  longitudinal mirror symmetry: The particle charge is the same.
+!      Mirror symmetry is valid for standaing wave cavities.
+!-
+
 program reverse_test
 
 use bmad
@@ -6,18 +25,16 @@ use write_lat_file_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele1, ele2
-type (coord_struct) orb0, orb1, orb2
+type (ele_struct), pointer :: ele_f, ele_r
+type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r
 
-real(rp) mat1(6,6), vec1(6)
+real(rp) mat_f(6,6), m(6,6), vec1(6)
+real(rp) dz, dpc, dct
 logical :: err_flag
 
 ! Init
 
 open (1, file = 'output.now')
-
-! Basic idea is that if the particle trajectory is reversed and the particle charge
-! is reversed then the particle should come back to its starting point.
 
 call bmad_parser ('reverse.bmad', lat)
 call write_bmad_lattice_file ('lat.bmad', lat)
@@ -28,87 +45,100 @@ lat%branch(1)%ele(0)%value(p0c$) = lat%branch(0)%ele(1)%value(p0c$)
 
 call lat_compute_ref_energy_and_time (lat, err_flag)
 
-orb0 = lat%beam_start
-ele1 => lat%branch(0)%ele(1)
-call init_coord (orb0, orb0%vec, ele1, .false.)
+orb_0f = lat%beam_start
+ele_f => lat%branch(0)%ele(1)
+call init_coord (orb_0f, orb_0f%vec, ele_f, .false.)
 
-call track1 (orb0, ele1, ele1%branch%param, orb1)
-call make_mat6 (ele1, ele1%branch%param, orb0)
+call track1 (orb_0f, ele_f, ele_f%branch%param, orb_1f)
+call make_mat6 (ele_f, ele_f%branch%param, orb_0f)
 
-orb1%vec(2) = -orb1%vec(2)
-orb1%vec(4) = -orb1%vec(4)
-orb1%vec(5) = -orb1%vec(5)
-orb1%t      = -orb1%t
+print '(a, 6es10.2, 5x, es10.2)', '0: ', orb_0f%vec, orb_0f%t
+print '(a, 6es10.2, 5x, es10.2)', '1: ', orb_1f%vec, orb_1f%t
 
-ele2 => lat%branch(1)%ele(1)
-if (ele2%key == rfcavity$) ele2%value(rf_frequency$) = -ele2%value(rf_frequency$)
+orb_0r        = orb_1f
+orb_0r%vec(2) = -orb_1f%vec(2)
+orb_0r%vec(4) = -orb_1f%vec(4)
 
-call track1 (orb1, ele2, ele2%branch%param, orb2)
-call make_mat6 (ele2, ele2%branch%param, orb1)
+orb_0r%vec(5) = orb_0f%vec(5)
+orb_0r%vec(6) = orb_0f%vec(6)
+orb_0r%t      = orb_0f%t
+orb_0r%p0c    = orb_0f%p0c
+orb_0r%beta   = orb_0f%beta
 
-!
+ele_r => lat%branch(1)%ele(1)
+if (ele_r%key == rfcavity$ .or. ele_r%key == elseparator$) then
+  ele_r%branch%param%rel_tracking_charge = ele_f%branch%param%rel_tracking_charge
+endif
 
-call mat_inverse (ele1%mat6, mat1)
-mat1(1:6, 2) = -mat1(1:6, 2)
-mat1(1:6, 4) = -mat1(1:6, 4)
-mat1(1:6, 5) = -mat1(1:6, 5)
-mat1(2, 1:6) = -mat1(2, 1:6) 
-mat1(4, 1:6) = -mat1(4, 1:6) 
-mat1(5, 1:6) = -mat1(5, 1:6) 
-vec1 = ele1%vec0
-vec1(2) = -vec1(2)
-vec1(4) = -vec1(4)
-vec1(5) = -vec1(5)
-vec1 = -matmul(mat1, vec1)
+call track1 (orb_0r, ele_r, ele_r%branch%param, orb_1r)
+call make_mat6 (ele_r, ele_r%branch%param, orb_0r)
+
+print '(a, 6es10.2, 5x, es10.2)', '1: ', orb_0r%vec, orb_0r%t
+print '(a, 6es10.2, 5x, es10.2)', '2: ', orb_1r%vec, orb_1r%t
 
 !
 
-orb2%vec(2) = -orb2%vec(2)
-orb2%vec(4) = -orb2%vec(4)
-orb2%vec(5) = -orb2%vec(5)
-orb2%t = -orb2%t
+mat_f(1, 1:6) =  ele_f%mat6(1, 1:6)
+mat_f(2, 1:6) = -ele_f%mat6(2, 1:6)
+mat_f(3, 1:6) =  ele_f%mat6(3, 1:6)
+mat_f(4, 1:6) = -ele_f%mat6(4, 1:6)
+mat_f(5, 1:6) = [0, 0, 0, 0, 1, 0]
+mat_f(6, 1:6) = [0, 0, 0, 0, 0, 1]
 
-print '(6es10.2, 5x, es10.2)', orb1%vec, orb1%t
-write (1, '(a, es11.3)') '"dorb(1)" ABS 1d-14 ', orb2%vec(1) - orb0%vec(1)
-write (1, '(a, es11.3)') '"dorb(2)" ABS 1d-14 ', orb2%vec(2) - orb0%vec(2)
-write (1, '(a, es11.3)') '"dorb(3)" ABS 1d-14 ', orb2%vec(3) - orb0%vec(3)
-write (1, '(a, es11.3)') '"dorb(4)" ABS 1d-14 ', orb2%vec(4) - orb0%vec(4)
-write (1, '(a, es11.3)') '"dorb(5)" ABS 1d-14 ', orb2%vec(5) - orb0%vec(5)
-write (1, '(a, es11.3)') '"dorb(6)" ABS 1d-14 ', orb2%vec(6) - orb0%vec(6)
-write (1, '(a, es11.3)') '"c*dt"    ABS 1d-14 ', (orb2%t     - orb0%t) * c_light
+call mat_inverse (mat_f, mat_f)
 
-write (1, *)
-write (1, '(a, 6es11.3)') '"mat1(1,:)" ABS 1d-14 ', ele1%mat6(1,:)
-write (1, '(a, 6es11.3)') '"mat1(2,:)" ABS 1d-14 ', ele1%mat6(2,:)
-write (1, '(a, 6es11.3)') '"mat1(3,:)" ABS 1d-14 ', ele1%mat6(3,:)
-write (1, '(a, 6es11.3)') '"mat1(4,:)" ABS 1d-14 ', ele1%mat6(4,:)
-write (1, '(a, 6es11.3)') '"mat1(5,:)" ABS 1d-14 ', ele1%mat6(5,:)
-write (1, '(a, 6es11.3)') '"mat1(6,:)" ABS 1d-14 ', ele1%mat6(6,:)
+m(1, 1:6) = [1,  0, 0,  0, 0, 0]
+m(2, 1:6) = [0, -1, 0,  0, 0, 0]
+m(3, 1:6) = [0,  0, 1,  0, 0, 0]
+m(4, 1:6) = [0,  0, 0, -1, 0, 0]
+m(5, 1:6) = ele_f%mat6(5, 1:6)
+m(6, 1:6) = ele_f%mat6(6, 1:6)
+mat_f = matmul(m, mat_f)
 
-write (1, *)
-write (1, '(a, 6es11.3)') '"mat2(1,:)" ABS 1d-14 ', ele2%mat6(1,:)
-write (1, '(a, 6es11.3)') '"mat2(2,:)" ABS 1d-14 ', ele2%mat6(2,:)
-write (1, '(a, 6es11.3)') '"mat2(3,:)" ABS 1d-14 ', ele2%mat6(3,:)
-write (1, '(a, 6es11.3)') '"mat2(4,:)" ABS 1d-14 ', ele2%mat6(4,:)
-write (1, '(a, 6es11.3)') '"mat2(5,:)" ABS 1d-14 ', ele2%mat6(5,:)
-write (1, '(a, 6es11.3)') '"mat2(6,:)" ABS 1d-14 ', ele2%mat6(6,:)
+!
 
-write (1, *)
-write (1, '(a, 6es11.3)') '"dmat(1,:)" ABS 1d-14 ', ele2%mat6(1,:) - mat1(1,:)
-write (1, '(a, 6es11.3)') '"dmat(2,:)" ABS 1d-14 ', ele2%mat6(2,:) - mat1(2,:)
-write (1, '(a, 6es11.3)') '"dmat(3,:)" ABS 1d-14 ', ele2%mat6(3,:) - mat1(3,:)
-write (1, '(a, 6es11.3)') '"dmat(4,:)" ABS 1d-14 ', ele2%mat6(4,:) - mat1(4,:)
-write (1, '(a, 6es11.3)') '"dmat(5,:)" ABS 1d-14 ', ele2%mat6(5,:) - mat1(5,:)
-write (1, '(a, 6es11.3)') '"dmat(6,:)" ABS 1d-14 ', ele2%mat6(6,:) - mat1(6,:)
+dz  = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)) 
+dpc = (orb_1r%vec(6) - orb_0r%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6)) 
+dct = ((orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t)) * c_light
+
+orb_1r%vec(2) = -orb_1r%vec(2)
+orb_1r%vec(4) = -orb_1r%vec(4)
+
+write (1, '(a, es11.3)') '"dorb(1)" ABS 1d-14 ', orb_1r%vec(1) - orb_0f%vec(1)
+write (1, '(a, es11.3)') '"dorb(2)" ABS 1d-14 ', orb_1r%vec(2) - orb_0f%vec(2)
+write (1, '(a, es11.3)') '"dorb(3)" ABS 1d-14 ', orb_1r%vec(3) - orb_0f%vec(3)
+write (1, '(a, es11.3)') '"dorb(4)" ABS 1d-14 ', orb_1r%vec(4) - orb_0f%vec(4)
+write (1, '(a, es11.3)') '"dorb(5)" ABS 1d-14 ', dz
+write (1, '(a, es11.3)') '"dorb(6)" ABS 1d-14 ', dpc
+write (1, '(a, es11.3)') '"c*dt"    ABS 1d-14 ', dct 
 
 write (1, *)
-write (1, '(a, 6es11.3)') '"vec1"  ABS 1d-14 ', vec1(:)
-write (1, '(a, 6es11.3)') '"vec2"  ABS 1d-14 ', ele2%vec0(:)
-write (1, '(a, 7es11.3)') '"dvec0" ABS 1d-14 ', ele2%vec0(:) - vec1(:)
+write (1, '(a, 6es11.3)') '"mat_f(1,:)" ABS 1d-14 ', ele_f%mat6(1,:)
+write (1, '(a, 6es11.3)') '"mat_f(2,:)" ABS 1d-14 ', ele_f%mat6(2,:)
+write (1, '(a, 6es11.3)') '"mat_f(3,:)" ABS 1d-14 ', ele_f%mat6(3,:)
+write (1, '(a, 6es11.3)') '"mat_f(4,:)" ABS 1d-14 ', ele_f%mat6(4,:)
+write (1, '(a, 6es11.3)') '"mat_f(5,:)" ABS 1d-14 ', ele_f%mat6(5,:)
+write (1, '(a, 6es11.3)') '"mat_f(6,:)" ABS 1d-14 ', ele_f%mat6(6,:)
 
 write (1, *)
-write (1, '(a,  3es11.3)') '"max(dmat, vec0)" ', maxval(abs([orb2%vec-orb0%vec, (orb2%t - orb0%t) * c_light])), &
-                                  maxval(abs(ele2%mat6 - mat1)), maxval(abs(ele2%vec0 - vec1))
+write (1, '(a, 6es11.3)') '"mat_r(1,:)" ABS 1d-14 ', ele_r%mat6(1,:)
+write (1, '(a, 6es11.3)') '"mat_r(2,:)" ABS 1d-14 ', ele_r%mat6(2,:)
+write (1, '(a, 6es11.3)') '"mat_r(3,:)" ABS 1d-14 ', ele_r%mat6(3,:)
+write (1, '(a, 6es11.3)') '"mat_r(4,:)" ABS 1d-14 ', ele_r%mat6(4,:)
+write (1, '(a, 6es11.3)') '"mat_r(5,:)" ABS 1d-14 ', ele_r%mat6(5,:)
+write (1, '(a, 6es11.3)') '"mat_r(6,:)" ABS 1d-14 ', ele_r%mat6(6,:)
+
+write (1, *)
+write (1, '(a, 6es11.3)') '"dmat(1,:)" ABS 1d-14 ', ele_r%mat6(1,:) - mat_f(1,:)
+write (1, '(a, 6es11.3)') '"dmat(2,:)" ABS 1d-14 ', ele_r%mat6(2,:) - mat_f(2,:)
+write (1, '(a, 6es11.3)') '"dmat(3,:)" ABS 1d-14 ', ele_r%mat6(3,:) - mat_f(3,:)
+write (1, '(a, 6es11.3)') '"dmat(4,:)" ABS 1d-14 ', ele_r%mat6(4,:) - mat_f(4,:)
+write (1, '(a, 6es11.3)') '"dmat(5,:)" ABS 1d-14 ', ele_r%mat6(5,:) - mat_f(5,:)
+write (1, '(a, 6es11.3)') '"dmat(6,:)" ABS 1d-14 ', ele_r%mat6(6,:) - mat_f(6,:)
+
+write (1, *)
+write (1, '(a,  3es11.3)') '"max(dvec, dmat)" ', maxval(abs([orb_1r%vec(1:4)-orb_0f%vec(1:4), dz, dpc, dct])), &
+                                  maxval(abs(ele_r%mat6 - mat_f))
 
 ! And close
 
