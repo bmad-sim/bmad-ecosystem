@@ -650,7 +650,7 @@ implicit none
 
 integer n, i
 real(rp) f_vec(:)
-real(c_double) c_vec(n)
+real(c_double), target :: c_vec(n)
 
 forall (i = 1:n) c_vec(i) = f_vec(i)
 
@@ -671,7 +671,7 @@ implicit none
 
 integer n, i
 integer f_vec(:)
-integer(c_int) c_vec(n)
+integer(c_int), target :: c_vec(n)
 
 forall (i = 1:n) c_vec(i) = f_vec(i)
  
@@ -692,7 +692,7 @@ implicit none
 
 integer n, i
 complex(rp) f_vec(:)
-complex(c_double_complex) c_vec(n)
+complex(c_double_complex), target :: c_vec(n)
 
 forall (i = 1:n) c_vec(i) = f_vec(i)
  
@@ -713,7 +713,7 @@ implicit none
 
 integer n, i
 logical f_vec(:)
-logical(c_bool) c_vec(n)
+logical(c_bool), target :: c_vec(n)
 
 forall (i = 1:n) c_vec(i) = c_logic(f_vec(i))
  
@@ -870,7 +870,7 @@ implicit none
 
 integer n
 real(rp) tensor(:,:,:)
-real(c_double) vec(n)
+real(c_double), target :: vec(n)
 integer i, j, k, n1, n2, n3
 
 if (n == 0) return ! Real arg not allocated
@@ -901,7 +901,7 @@ implicit none
 
 integer n
 integer tensor(:,:,:)
-integer(c_int) vec(n)
+integer(c_int), target :: vec(n)
 integer i, j, k, n1, n2, n3
 
 if (n == 0) return ! Real arg not allocated
@@ -932,7 +932,7 @@ implicit none
 
 integer n
 complex(rp) tensor(:,:,:)
-complex(c_double_complex) vec(n)
+complex(c_double_complex), target :: vec(n)
 integer i, j, k, n1, n2, n3
 
 if (n == 0) return ! Real arg not allocated
@@ -963,7 +963,7 @@ implicit none
 
 integer n
 logical tensor(:,:,:)
-logical(c_bool) vec(n)
+logical(c_bool), target :: vec(n)
 integer i, j, k, n1, n2, n3
 
 if (n == 0) return ! Real arg not allocated
