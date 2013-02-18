@@ -67,7 +67,7 @@ end interface
 interface fvec2vec
   module procedure real_fvec2vec
   module procedure int_fvec2vec
-  module procedure complx_fvec2vec
+  module procedure cmplx_fvec2vec
   module procedure bool_fvec2vec
 end interface
 
@@ -85,7 +85,7 @@ end interface
 ! Overloaded functions:
 !   real_mat2vec   (real_mat)   result (real_vec)
 !   int_mat2vec    (int_mat)    result (int_vec)
-!   complx_mat2vec (complx_mat) result (complx_vec)
+!   cmplx_mat2vec (cmplx_mat) result (cmplx_vec)
 !   bool_mat2vec   (bool_mat)   result (bool_vec)
 !
 ! Modules needed:
@@ -94,7 +94,7 @@ end interface
 ! Input:
 !   real_mat(:,:)   -- Real(rp): Input matrix
 !   int_mat(:,:)    -- Integer: Input matrix
-!   complx_mat(:,:) -- Çomplex(rp): Input matrix
+!   cmplx_mat(:,:) -- Çomplex(rp): Input matrix
 !   bool_mat(:,:)   -- Logical: Input matrix
 !   n               -- Integer: Number of elements. Normally this is size(mat). 
 !                        Set to 0 if actual mat arg is not allocated.
@@ -102,7 +102,7 @@ end interface
 ! Output:
 !   real_vec(*)   -- Real(c_double): Output array 
 !   int_vec(*)    -- Integer(c_int): Output array 
-!   complx_vec(*) -- complex(c_double_complex): Output array 
+!   cmplx_vec(*) -- complex(c_double_complex): Output array 
 !   bool_vec(*)   -- Logical(c_bool): Output array 
 !-
 
@@ -680,13 +680,13 @@ end function int_fvec2vec
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function complx_fvec2vec (f_vec, n) result (c_vec)
+! Function cmplx_fvec2vec (f_vec, n) result (c_vec)
 !
 ! Function transform from Fortran to C.
 ! See fvec2vec for more details
 !-
 
-function complx_fvec2vec (f_vec, n) result (c_vec)
+function cmplx_fvec2vec (f_vec, n) result (c_vec)
 
 implicit none
 
@@ -696,7 +696,7 @@ complex(c_double_complex), target :: c_vec(n)
 
 forall (i = 1:n) c_vec(i) = f_vec(i)
  
-end function complx_fvec2vec
+end function cmplx_fvec2vec
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
