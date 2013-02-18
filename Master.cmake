@@ -61,7 +61,7 @@ ELSE ()
   set (CMAKE_Fortran_COMPILER ifort)
      IF ("${ACC_COMPILE_WITH_OPENMP}")
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp -openmp")
-       SET (LINK_FLAGS "-openmp")
+       SET (ACC_LINK_FLAGS "-openmp")
        SET (OPENMP_LINK_LIBS "")
      ELSE ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp")
@@ -138,8 +138,7 @@ enable_language( Fortran )
 set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG}")
 
 
-
-set(CMAKE_EXE_LINKER_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++")
+SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS})
 
 
 #--------------------------------------
@@ -193,15 +192,16 @@ message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
 IF ($ENV{ACC_COMPILE_WITH_OPENMP})
   IF (${FORTRAN_COMPILER} MATCHES "ifort")
     message("OpenMP ifort Flag    : -openmp")
-    message("ifort Linker Flags   : ${LINK_FLAGS}")
   ELSE()
     message("OpenMP gfortran Flag : -fopenmp")
     message("OpenMP Linker Libs   : ${OPENMP_LINK_LIBS}")
   ENDIF()
 ELSE()
   message("OpenMP Support       : Not Enabled")
-  message("${FORTRAN_COMPILER} Complier Flags : ${BASE_Fortran_FLAGS}\n")
 ENDIF()
+message("${FORTRAN_COMPILER} Complier Flags : ${BASE_Fortran_FLAGS}")
+message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS}\n")
+
 
 #-----------------------------------
 # Output path definitions
@@ -624,7 +624,7 @@ foreach(exespec ${EXE_SPECS})
   ENDIF ()
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${STATIC_FLAG} ${LINK_LIBS} ${SHARED_FLAG} ${SHARED_LINK_LIBS}
-          ${X11_LIBRARIES}
+          ${X11_LIBRARIES} ${ACC_LINK_FLAGS}
           ${LINK_FLAGS} ${MAPLINE}
   )
 
