@@ -1417,7 +1417,7 @@ character(*) name_array(min_arr:)
 
 !
 
-if (ix_attrib < lbound(name_array, 1) .or. ix_attrib < ubound(name_array, 1)) then
+if (ix_attrib < lbound(name_array, 1) .or. ix_attrib > ubound(name_array, 1)) then
   val_name = 'Garbage!'
 else
   val_name = name_array(ix_attrib)

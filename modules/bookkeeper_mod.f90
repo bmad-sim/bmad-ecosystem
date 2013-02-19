@@ -908,7 +908,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
-type (ele_struct), pointer :: lord, slave0, lord1
+type (ele_struct), pointer :: lord, slave0, lord1, major_lord
 type (ele_struct) :: sol_quad
 type (branch_struct), pointer :: branch
 
@@ -923,7 +923,7 @@ real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
 real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
-logical is_first, is_last, err_flag, major_method_set_done 
+logical is_first, is_last, err_flag, n_major_lords
 
 character(20) :: r_name = 'makeup_super_slave'
 
@@ -941,6 +941,22 @@ if (slave%slave_status /= super_slave$) then
   return
 endif
 
+! A "major" element is something other than a pipe, monitor, etc.
+! n_major_lords counts how many major lords there are.
+
+n_major_lords = 0
+
+
+do j = 1, slave%n_lord
+  lord => pointer_to_lord(slave, j, ix_con)
+  select case (lord%key)
+  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
+  case default  ! If major
+    major_lord => lord
+    n_major_lords = n_major_lords + 1
+  end select
+enddo
+
 !
 
 slave%field_calc = refer_to_lords$
@@ -948,37 +964,35 @@ slave%field_calc = refer_to_lords$
 !-----------------------------------------------------------------------
 ! 1 super_lord for this super_slave: just transfer attributes except length
 
-if (slave%n_lord == 1) then
+if (n_major_lords == 1) then
 
-  lord => pointer_to_lord(slave, 1, ix_con, ix_order)
   is_first = (ix_order == 1)
-  is_last  = (ix_order == lord%n_slave)
+  is_last  = (ix_order == major_lord%n_slave)
 
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
     if (.not. all(slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out)) then
-      slave0 => pointer_to_slave(lord, ix_order-1)
+      slave0 => pointer_to_slave(major_lord, ix_order-1)
       slave%map_ref_orb_in = slave0%map_ref_orb_out
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
   endif
 
-  ! Find the offset from the longitudinal start of the lord to the start of the slave
+  ! Find the offset from the longitudinal start of the major_lord to the start of the slave
 
   offset = 0 ! length of all slaves before this one
-  do i = 1, ix_con - lord%ix1_slave
-    slave0 => pointer_to_slave(lord, i)
+  do i = 1, ix_con - major_lord%ix1_slave
+    slave0 => pointer_to_slave(major_lord, i)
     offset = offset + slave0%value(l$)
   enddo
 
   ! If this is the last slave, adjust it's length to be consistant with
-  ! The lord length. Then do the rest of the bookkeeping
+  ! The major_lord length. Then do the rest of the bookkeeping
 
-  if (is_last) slave%value(l$) = lord%value(l$) - offset
+  if (is_last) slave%value(l$) = major_lord%value(l$) - offset
 
-  call makeup_super_slave1 (slave, lord, offset, lat%branch(slave%ix_branch)%param, &
-                                  is_first, is_last, err_flag)
+  call makeup_super_slave1 (slave, major_lord, offset, branch%param, is_first, is_last, err_flag)
   if (err_flag) return
 
   return
@@ -1017,7 +1031,7 @@ value(ref_time_start$) = slave%value(ref_time_start$)
 s_slave = slave%s - value(l$)/2  ! center of slave
 slave%is_on = .false.
 
-major_method_set_done = .false.
+n_major_lords = 0
 
 ! sum over all lords...
 
@@ -1073,11 +1087,11 @@ do j = 1, slave%n_lord
 
   if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, is_first, is_last)
 
-  ! Methods.
-  ! Major_method_set_done = T means the slave methods have been set using a "major" element.
+  ! Methods...
   ! A "major" element is something other than a pipe, monitor, etc.
+  ! n_major_lords counts how many major lords there are.
 
-  if (j == 1 .or. .not. major_method_set_done) then
+  if (n_major_lords == 0) then
     slave%mat6_calc_method = lord%mat6_calc_method
     slave%tracking_method  = lord%tracking_method
     slave%map_with_offsets = lord%map_with_offsets
@@ -1085,8 +1099,8 @@ do j = 1, slave%n_lord
 
   select case (lord%key)
   case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
-  case default
-    if (.not. major_method_set_done) then
+  case default  ! If major
+    if (n_major_lords > 0) then
       if (slave%mat6_calc_method /= lord%mat6_calc_method) then
         lord1 => pointer_to_lord(slave, 1)
         call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
@@ -1107,7 +1121,8 @@ do j = 1, slave%n_lord
       endif
     endif
 
-    major_method_set_done = .true.
+    major_lord => lord
+    n_major_lords = n_major_lords + 1
   end select
 
   ! descriptive strings.
@@ -1228,29 +1243,31 @@ if (slave%key == em_field$) then
   return  ! Field info is stored in the lord elements.
 endif
 
+slave%value = value
+
+! Kick values
+
 if (x_kick == 0 .and. y_kick == 0) then
   if (slave%key == hkicker$ .or. slave%key == vkicker$) then
-    value(kick$) = 0
+    slave%value(kick$) = 0
   else
-    value(hkick$) = 0
-    value(vkick$) = 0
+    slave%value(hkick$) = 0
+    slave%value(vkick$) = 0
   endif
 elseif (slave%key == hkicker$) then
-  value(kick$) = sqrt(x_kick**2 + y_kick**2)
-  value(tilt$) = atan2(y_kick, x_kick)
+  slave%value(kick$) = sqrt(x_kick**2 + y_kick**2)
+  slave%value(tilt$) = atan2(y_kick, x_kick)
 elseif (slave%key == vkicker$) then
-  value(kick$) = sqrt(x_kick**2 + y_kick**2)
-  value(tilt$) = atan2(-x_kick, y_kick)
+  slave%value(kick$) = sqrt(x_kick**2 + y_kick**2)
+  slave%value(tilt$) = atan2(-x_kick, y_kick)
 elseif (slave%key == kicker$) then
-  value(tilt$) = 0
-  value(hkick$) = x_kick
-  value(vkick$) = y_kick
+  slave%value(tilt$) = 0
+  slave%value(hkick$) = x_kick
+  slave%value(vkick$) = y_kick
 else
-  value(hkick$) = x_kick
-  value(vkick$) = y_kick
+  slave%value(hkick$) = x_kick
+  slave%value(vkick$) = y_kick
 endif
-
-slave%value = value
 
 !-----------------------------
 

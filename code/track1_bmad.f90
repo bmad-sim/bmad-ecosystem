@@ -757,7 +757,7 @@ case (wiggler$)
   call offset_particle (ele, end_orb, param, set$)
 
   if (ele%value(l_pole$) == 0) then
-    k_z = 0
+    k_z = 1d100    ! Something large
   else
     k_z = pi / ele%value(l_pole$)
   endif
