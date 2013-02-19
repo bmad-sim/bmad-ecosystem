@@ -1352,14 +1352,23 @@ else
   call vec_bmad_to_ptc(orb%vec, beta0, X)
 end if
 
-!Save time
-ct = X(6)
-
-
-if (stream_end == upstream_end$) then
+! get edge parameters
+ 
+if (physical_ele_end(stream_end, ele%orientation) == entrance_end$) then
   edge_angle = ele%value(e1$)
   fint = ele%value(FINT$)
   hgap = ele%value(HGAP$)
+else
+  edge_angle = ele%value(e2$)
+  fint = ele%value(FINTX$)
+  hgap = ele%value(HGAPX$)
+endif
+
+! Save time
+
+ct = X(6)
+
+if (stream_end == upstream_end$) then
   ! Drift forward
   if (present(mat6)) then
     call ptc_wedger(edge_angle, 0.0_rp, beta0, X, mat6_int)
@@ -1382,9 +1391,6 @@ if (stream_end == upstream_end$) then
     call ptc_wedger(-edge_angle, g_tot, beta0, X)
   end if
 else if (stream_end == downstream_end$) then
-  edge_angle = ele%value(e2$)
-  fint = ele%value(FINTX$)
-  hgap = ele%value(HGAPX$)
   ! Backtrack
   if (present(mat6)) then
     call ptc_wedger(-edge_angle, g_tot, beta0, X, mat6_int)
