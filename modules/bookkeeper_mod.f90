@@ -912,7 +912,7 @@ type (ele_struct), pointer :: lord, slave0, lord1, major_lord
 type (ele_struct) :: sol_quad
 type (branch_struct), pointer :: branch
 
-integer i, j, ix_con, ix, ix_slave, ix_lord, ix_order
+integer i, j, ix_con, ix, ix_slave, ix_lord, ix_order, ix_major_order
 
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
@@ -948,11 +948,12 @@ n_major_lords = 0
 
 
 do j = 1, slave%n_lord
-  lord => pointer_to_lord(slave, j, ix_con)
+  lord => pointer_to_lord(slave, j, ix_con, ix_order)
   select case (lord%key)
   case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
   case default  ! If major
     major_lord => lord
+    ix_major_order = ix_order
     n_major_lords = n_major_lords + 1
   end select
 enddo
@@ -966,14 +967,14 @@ slave%field_calc = refer_to_lords$
 
 if (n_major_lords == 1) then
 
-  is_first = (ix_order == 1)
-  is_last  = (ix_order == major_lord%n_slave)
+  is_first = (ix_major_order == 1)
+  is_last  = (ix_major_order == major_lord%n_slave)
 
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
     if (.not. all(slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out)) then
-      slave0 => pointer_to_slave(major_lord, ix_order-1)
+      slave0 => pointer_to_slave(major_lord, ix_major_order-1)
       slave%map_ref_orb_in = slave0%map_ref_orb_out
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
