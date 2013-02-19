@@ -152,7 +152,7 @@ if ( [ "${USE_CESR_ONLINE_LOC}" == "true" ] ) then
     RELEASE_ARCHIVE_BASE_DIR=${ONLINE_ARCHIVE_BASE_DIR}
     HOST_TYPE="CESR ONLINE"
 
-    IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
+    
 
 else
     #-- CESR OFFLINE Host
@@ -162,6 +162,14 @@ else
     HOST_TYPE="CESR OFFLINE"
 
 fi 
+
+# Online computers should use the online compiler 
+case $(uname -n) in
+cesr*) IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND};; 
+    *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND};;
+esac
+
+
 
 
 #--------------------------------------------------------------
