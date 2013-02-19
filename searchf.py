@@ -109,12 +109,14 @@ def print_help_message ():
   is used, getf/listf will only look at the subdirectories of <rdir> for the search directories.
 
   Standard Search directories:
-     bmad
-     sim_utils
-     cesr_utils
-     mpm_utils
-     tao
-     bmadz
+      bmad                   forest
+      bmadz                  mpm_utils
+      bsim                   nonlin_bpm
+      bsim_cesr              recipes_f-90_LEPP
+      cesr_programs          recipes_f-90_LEPP
+      cesr_utils             sim_utils
+      cesrv                  tao
+      examples               util_programs
 '''
   sys.exit()
 
@@ -579,7 +581,6 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'cesr_utils', '/modules/cesr_utils.f90', '')
     choose_path (dir_list, root_dir, 'mpm_utils', '/code/butout.f90', '')
     choose_path (dir_list, root_dir, 'bmadz', '/modules/bmadz_struct.f90', '')
-
     choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
     choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', 'packages/')
     choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
@@ -590,6 +591,9 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
     choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
     choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
+    choose_path (dir_list, root_dir, 'mpmnet', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'genplt', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'instr_utils', '/CMakeLists.txt', '')
 
   if search_com.doc == 'LIST':
     search_com.match_str = '(\w+)'
