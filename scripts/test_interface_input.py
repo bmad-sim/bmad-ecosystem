@@ -10,7 +10,8 @@ use_statements = ['use test_mod']
 # List must be in ordered such that if struct A is a component of struct B,
 # then A must be before B in the list.
 
-struct_list = ['my_struct', 'ttt_struct']
+##struct_list = ['my_struct', 'ttt_struct']
+struct_list = ['ttt_struct']
 
 # List of sub-structures to ignore.
 # That is, do not translate these sub-structure components.

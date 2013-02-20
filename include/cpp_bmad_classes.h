@@ -53,86 +53,2037 @@ typedef valarray<Real_MATRIX>      Real_TENSOR;
 typedef valarray<Int_MATRIX>       Int_TENSOR;
 
 
-class CPP_my;
-typedef valarray<CPP_my>          CPP_my_ARRAY;
-typedef valarray<CPP_my_ARRAY>    CPP_my_MATRIX;
-typedef valarray<CPP_my_MATRIX>   CPP_my_TENSOR;
+class CPP_coord;
+typedef valarray<CPP_coord>          CPP_coord_ARRAY;
+typedef valarray<CPP_coord_ARRAY>    CPP_coord_MATRIX;
+typedef valarray<CPP_coord_MATRIX>   CPP_coord_TENSOR;
 
-class CPP_ttt;
-typedef valarray<CPP_ttt>          CPP_ttt_ARRAY;
-typedef valarray<CPP_ttt_ARRAY>    CPP_ttt_MATRIX;
-typedef valarray<CPP_ttt_MATRIX>   CPP_ttt_TENSOR;
+class CPP_coord_array;
+typedef valarray<CPP_coord_array>          CPP_coord_array_ARRAY;
+typedef valarray<CPP_coord_array_ARRAY>    CPP_coord_array_MATRIX;
+typedef valarray<CPP_coord_array_MATRIX>   CPP_coord_array_TENSOR;
+
+class CPP_bpm_phase_coupling;
+typedef valarray<CPP_bpm_phase_coupling>          CPP_bpm_phase_coupling_ARRAY;
+typedef valarray<CPP_bpm_phase_coupling_ARRAY>    CPP_bpm_phase_coupling_MATRIX;
+typedef valarray<CPP_bpm_phase_coupling_MATRIX>   CPP_bpm_phase_coupling_TENSOR;
+
+class CPP_wig_term;
+typedef valarray<CPP_wig_term>          CPP_wig_term_ARRAY;
+typedef valarray<CPP_wig_term_ARRAY>    CPP_wig_term_MATRIX;
+typedef valarray<CPP_wig_term_MATRIX>   CPP_wig_term_TENSOR;
+
+class CPP_wig;
+typedef valarray<CPP_wig>          CPP_wig_ARRAY;
+typedef valarray<CPP_wig_ARRAY>    CPP_wig_MATRIX;
+typedef valarray<CPP_wig_MATRIX>   CPP_wig_TENSOR;
+
+class CPP_rf_wake_sr_table;
+typedef valarray<CPP_rf_wake_sr_table>          CPP_rf_wake_sr_table_ARRAY;
+typedef valarray<CPP_rf_wake_sr_table_ARRAY>    CPP_rf_wake_sr_table_MATRIX;
+typedef valarray<CPP_rf_wake_sr_table_MATRIX>   CPP_rf_wake_sr_table_TENSOR;
+
+class CPP_rf_wake_sr_mode;
+typedef valarray<CPP_rf_wake_sr_mode>          CPP_rf_wake_sr_mode_ARRAY;
+typedef valarray<CPP_rf_wake_sr_mode_ARRAY>    CPP_rf_wake_sr_mode_MATRIX;
+typedef valarray<CPP_rf_wake_sr_mode_MATRIX>   CPP_rf_wake_sr_mode_TENSOR;
+
+class CPP_rf_wake_lr;
+typedef valarray<CPP_rf_wake_lr>          CPP_rf_wake_lr_ARRAY;
+typedef valarray<CPP_rf_wake_lr_ARRAY>    CPP_rf_wake_lr_MATRIX;
+typedef valarray<CPP_rf_wake_lr_MATRIX>   CPP_rf_wake_lr_TENSOR;
+
+class CPP_rf_wake;
+typedef valarray<CPP_rf_wake>          CPP_rf_wake_ARRAY;
+typedef valarray<CPP_rf_wake_ARRAY>    CPP_rf_wake_MATRIX;
+typedef valarray<CPP_rf_wake_MATRIX>   CPP_rf_wake_TENSOR;
+
+class CPP_em_field_map_term;
+typedef valarray<CPP_em_field_map_term>          CPP_em_field_map_term_ARRAY;
+typedef valarray<CPP_em_field_map_term_ARRAY>    CPP_em_field_map_term_MATRIX;
+typedef valarray<CPP_em_field_map_term_MATRIX>   CPP_em_field_map_term_TENSOR;
+
+class CPP_em_field_map;
+typedef valarray<CPP_em_field_map>          CPP_em_field_map_ARRAY;
+typedef valarray<CPP_em_field_map_ARRAY>    CPP_em_field_map_MATRIX;
+typedef valarray<CPP_em_field_map_MATRIX>   CPP_em_field_map_TENSOR;
+
+class CPP_em_field_grid_pt;
+typedef valarray<CPP_em_field_grid_pt>          CPP_em_field_grid_pt_ARRAY;
+typedef valarray<CPP_em_field_grid_pt_ARRAY>    CPP_em_field_grid_pt_MATRIX;
+typedef valarray<CPP_em_field_grid_pt_MATRIX>   CPP_em_field_grid_pt_TENSOR;
+
+class CPP_em_field_grid;
+typedef valarray<CPP_em_field_grid>          CPP_em_field_grid_ARRAY;
+typedef valarray<CPP_em_field_grid_ARRAY>    CPP_em_field_grid_MATRIX;
+typedef valarray<CPP_em_field_grid_MATRIX>   CPP_em_field_grid_TENSOR;
+
+class CPP_em_field_mode;
+typedef valarray<CPP_em_field_mode>          CPP_em_field_mode_ARRAY;
+typedef valarray<CPP_em_field_mode_ARRAY>    CPP_em_field_mode_MATRIX;
+typedef valarray<CPP_em_field_mode_MATRIX>   CPP_em_field_mode_TENSOR;
+
+class CPP_em_fields;
+typedef valarray<CPP_em_fields>          CPP_em_fields_ARRAY;
+typedef valarray<CPP_em_fields_ARRAY>    CPP_em_fields_MATRIX;
+typedef valarray<CPP_em_fields_MATRIX>   CPP_em_fields_TENSOR;
+
+class CPP_floor_position;
+typedef valarray<CPP_floor_position>          CPP_floor_position_ARRAY;
+typedef valarray<CPP_floor_position_ARRAY>    CPP_floor_position_MATRIX;
+typedef valarray<CPP_floor_position_MATRIX>   CPP_floor_position_TENSOR;
+
+class CPP_space_charge;
+typedef valarray<CPP_space_charge>          CPP_space_charge_ARRAY;
+typedef valarray<CPP_space_charge_ARRAY>    CPP_space_charge_MATRIX;
+typedef valarray<CPP_space_charge_MATRIX>   CPP_space_charge_TENSOR;
+
+class CPP_xy_disp;
+typedef valarray<CPP_xy_disp>          CPP_xy_disp_ARRAY;
+typedef valarray<CPP_xy_disp_ARRAY>    CPP_xy_disp_MATRIX;
+typedef valarray<CPP_xy_disp_MATRIX>   CPP_xy_disp_TENSOR;
+
+class CPP_twiss;
+typedef valarray<CPP_twiss>          CPP_twiss_ARRAY;
+typedef valarray<CPP_twiss_ARRAY>    CPP_twiss_MATRIX;
+typedef valarray<CPP_twiss_MATRIX>   CPP_twiss_TENSOR;
+
+class CPP_mode3;
+typedef valarray<CPP_mode3>          CPP_mode3_ARRAY;
+typedef valarray<CPP_mode3_ARRAY>    CPP_mode3_MATRIX;
+typedef valarray<CPP_mode3_MATRIX>   CPP_mode3_TENSOR;
+
+class CPP_bookkeeping_state;
+typedef valarray<CPP_bookkeeping_state>          CPP_bookkeeping_state_ARRAY;
+typedef valarray<CPP_bookkeeping_state_ARRAY>    CPP_bookkeeping_state_MATRIX;
+typedef valarray<CPP_bookkeeping_state_MATRIX>   CPP_bookkeeping_state_TENSOR;
+
+class CPP_rad_int_ele_cache;
+typedef valarray<CPP_rad_int_ele_cache>          CPP_rad_int_ele_cache_ARRAY;
+typedef valarray<CPP_rad_int_ele_cache_ARRAY>    CPP_rad_int_ele_cache_MATRIX;
+typedef valarray<CPP_rad_int_ele_cache_MATRIX>   CPP_rad_int_ele_cache_TENSOR;
+
+class CPP_wall3d_vertex;
+typedef valarray<CPP_wall3d_vertex>          CPP_wall3d_vertex_ARRAY;
+typedef valarray<CPP_wall3d_vertex_ARRAY>    CPP_wall3d_vertex_MATRIX;
+typedef valarray<CPP_wall3d_vertex_MATRIX>   CPP_wall3d_vertex_TENSOR;
+
+class CPP_wall3d_section;
+typedef valarray<CPP_wall3d_section>          CPP_wall3d_section_ARRAY;
+typedef valarray<CPP_wall3d_section_ARRAY>    CPP_wall3d_section_MATRIX;
+typedef valarray<CPP_wall3d_section_MATRIX>   CPP_wall3d_section_TENSOR;
+
+class CPP_wall3d_crotch;
+typedef valarray<CPP_wall3d_crotch>          CPP_wall3d_crotch_ARRAY;
+typedef valarray<CPP_wall3d_crotch_ARRAY>    CPP_wall3d_crotch_MATRIX;
+typedef valarray<CPP_wall3d_crotch_MATRIX>   CPP_wall3d_crotch_TENSOR;
+
+class CPP_wall3d;
+typedef valarray<CPP_wall3d>          CPP_wall3d_ARRAY;
+typedef valarray<CPP_wall3d_ARRAY>    CPP_wall3d_MATRIX;
+typedef valarray<CPP_wall3d_MATRIX>   CPP_wall3d_TENSOR;
+
+class CPP_taylor_term;
+typedef valarray<CPP_taylor_term>          CPP_taylor_term_ARRAY;
+typedef valarray<CPP_taylor_term_ARRAY>    CPP_taylor_term_MATRIX;
+typedef valarray<CPP_taylor_term_MATRIX>   CPP_taylor_term_TENSOR;
+
+class CPP_taylor;
+typedef valarray<CPP_taylor>          CPP_taylor_ARRAY;
+typedef valarray<CPP_taylor_ARRAY>    CPP_taylor_MATRIX;
+typedef valarray<CPP_taylor_MATRIX>   CPP_taylor_TENSOR;
+
+class CPP_control;
+typedef valarray<CPP_control>          CPP_control_ARRAY;
+typedef valarray<CPP_control_ARRAY>    CPP_control_MATRIX;
+typedef valarray<CPP_control_MATRIX>   CPP_control_TENSOR;
+
+class CPP_lat_param;
+typedef valarray<CPP_lat_param>          CPP_lat_param_ARRAY;
+typedef valarray<CPP_lat_param_ARRAY>    CPP_lat_param_MATRIX;
+typedef valarray<CPP_lat_param_MATRIX>   CPP_lat_param_TENSOR;
+
+class CPP_mode_info;
+typedef valarray<CPP_mode_info>          CPP_mode_info_ARRAY;
+typedef valarray<CPP_mode_info_ARRAY>    CPP_mode_info_MATRIX;
+typedef valarray<CPP_mode_info_MATRIX>   CPP_mode_info_TENSOR;
+
+class CPP_pre_tracker;
+typedef valarray<CPP_pre_tracker>          CPP_pre_tracker_ARRAY;
+typedef valarray<CPP_pre_tracker_ARRAY>    CPP_pre_tracker_MATRIX;
+typedef valarray<CPP_pre_tracker_MATRIX>   CPP_pre_tracker_TENSOR;
+
+class CPP_anormal_mode;
+typedef valarray<CPP_anormal_mode>          CPP_anormal_mode_ARRAY;
+typedef valarray<CPP_anormal_mode_ARRAY>    CPP_anormal_mode_MATRIX;
+typedef valarray<CPP_anormal_mode_MATRIX>   CPP_anormal_mode_TENSOR;
+
+class CPP_linac_normal_mode;
+typedef valarray<CPP_linac_normal_mode>          CPP_linac_normal_mode_ARRAY;
+typedef valarray<CPP_linac_normal_mode_ARRAY>    CPP_linac_normal_mode_MATRIX;
+typedef valarray<CPP_linac_normal_mode_MATRIX>   CPP_linac_normal_mode_TENSOR;
+
+class CPP_normal_modes;
+typedef valarray<CPP_normal_modes>          CPP_normal_modes_ARRAY;
+typedef valarray<CPP_normal_modes_ARRAY>    CPP_normal_modes_MATRIX;
+typedef valarray<CPP_normal_modes_MATRIX>   CPP_normal_modes_TENSOR;
+
+class CPP_em_field;
+typedef valarray<CPP_em_field>          CPP_em_field_ARRAY;
+typedef valarray<CPP_em_field_ARRAY>    CPP_em_field_MATRIX;
+typedef valarray<CPP_em_field_MATRIX>   CPP_em_field_TENSOR;
+
+class CPP_track_map;
+typedef valarray<CPP_track_map>          CPP_track_map_ARRAY;
+typedef valarray<CPP_track_map_ARRAY>    CPP_track_map_MATRIX;
+typedef valarray<CPP_track_map_MATRIX>   CPP_track_map_TENSOR;
+
+class CPP_track;
+typedef valarray<CPP_track>          CPP_track_ARRAY;
+typedef valarray<CPP_track_ARRAY>    CPP_track_MATRIX;
+typedef valarray<CPP_track_MATRIX>   CPP_track_TENSOR;
+
+class CPP_synch_rad_common;
+typedef valarray<CPP_synch_rad_common>          CPP_synch_rad_common_ARRAY;
+typedef valarray<CPP_synch_rad_common_ARRAY>    CPP_synch_rad_common_MATRIX;
+typedef valarray<CPP_synch_rad_common_MATRIX>   CPP_synch_rad_common_TENSOR;
+
+class CPP_bmad_common;
+typedef valarray<CPP_bmad_common>          CPP_bmad_common_ARRAY;
+typedef valarray<CPP_bmad_common_ARRAY>    CPP_bmad_common_MATRIX;
+typedef valarray<CPP_bmad_common_MATRIX>   CPP_bmad_common_TENSOR;
+
+class CPP_rad_int1;
+typedef valarray<CPP_rad_int1>          CPP_rad_int1_ARRAY;
+typedef valarray<CPP_rad_int1_ARRAY>    CPP_rad_int1_MATRIX;
+typedef valarray<CPP_rad_int1_MATRIX>   CPP_rad_int1_TENSOR;
+
+class CPP_rad_int_all_ele;
+typedef valarray<CPP_rad_int_all_ele>          CPP_rad_int_all_ele_ARRAY;
+typedef valarray<CPP_rad_int_all_ele_ARRAY>    CPP_rad_int_all_ele_MATRIX;
+typedef valarray<CPP_rad_int_all_ele_MATRIX>   CPP_rad_int_all_ele_TENSOR;
+
+class CPP_ele;
+typedef valarray<CPP_ele>          CPP_ele_ARRAY;
+typedef valarray<CPP_ele_ARRAY>    CPP_ele_MATRIX;
+typedef valarray<CPP_ele_MATRIX>   CPP_ele_TENSOR;
+
+class CPP_branch;
+typedef valarray<CPP_branch>          CPP_branch_ARRAY;
+typedef valarray<CPP_branch_ARRAY>    CPP_branch_MATRIX;
+typedef valarray<CPP_branch_MATRIX>   CPP_branch_TENSOR;
+
+class CPP_lat;
+typedef valarray<CPP_lat>          CPP_lat_ARRAY;
+typedef valarray<CPP_lat_ARRAY>    CPP_lat_MATRIX;
+typedef valarray<CPP_lat_MATRIX>   CPP_lat_TENSOR;
 
 //--------------------------------------------------------------------
-// CPP_my
+// CPP_coord
 
-class Bmad_my_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_coord_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_my {
+class CPP_coord {
 public:
-  Int a;
+  Real_ARRAY vec;
+  Real s;
+  Real t;
+  Complex_ARRAY spin;
+  Real e_field_x;
+  Real e_field_y;
+  Real phase_x;
+  Real phase_y;
+  Real charge;
+  Real p0c;
+  Real beta;
+  Int ix_ele;
+  Int state;
+  Int location;
 
-  CPP_my() :
-    a(0)
+  CPP_coord() :
+    vec(0.0, 6),
+    s(0.0),
+    t(0.0),
+    spin(0.0, 2),
+    e_field_x(0.0),
+    e_field_y(0.0),
+    phase_x(0.0),
+    phase_y(0.0),
+    charge(0.0),
+    p0c(0.0),
+    beta(-1),
+    ix_ele(-1),
+    state(Bmad::NOT_SET),
+    location(Bmad::UPSTREAM_END)
     {}
 
-  ~CPP_my() {
+  ~CPP_coord() {
   }
 
 };   // End Class
 
-extern "C" void my_to_c (const Bmad_my_class*, CPP_my&);
-extern "C" void my_to_f (const CPP_my&, Bmad_my_class*);
+extern "C" void coord_to_c (const Bmad_coord_class*, CPP_coord&);
+extern "C" void coord_to_f (const CPP_coord&, Bmad_coord_class*);
 
-bool operator== (const CPP_my&, const CPP_my&);
+bool operator== (const CPP_coord&, const CPP_coord&);
 
 
 //--------------------------------------------------------------------
-// CPP_ttt
+// CPP_coord_array
 
-class Bmad_ttt_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_coord_array_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_ttt {
+class CPP_coord_array {
 public:
-  Bool i0;
-  Bool* ip0;
-  Bool* ia0;
-  Bool_ARRAY i1;
-  Bool_ARRAY ip1;
-  Bool_ARRAY ia1;
-  Bool_MATRIX i2;
-  Bool_MATRIX ip2;
-  Bool_MATRIX ia2;
-  Bool_TENSOR i3;
-  Bool_TENSOR ip3;
-  Bool_TENSOR ia3;
+  CPP_coord_ARRAY orb;
 
-  CPP_ttt() :
-    i0(false),
-    ip0(NULL),
-    ia0(NULL),
-    i1(false, 3),
-    ip1(false, 0),
-    ia1(false, 0),
-    i2(Bool_ARRAY(false, 2), 3),
-    ip2(Bool_ARRAY(false, 0), 0),
-    ia2(Bool_ARRAY(false, 0), 0),
-    i3(Bool_MATRIX(Bool_ARRAY(false, 1), 2), 3),
-    ip3(Bool_MATRIX(Bool_ARRAY(false, 0), 0), 0),
-    ia3(Bool_MATRIX(Bool_ARRAY(false, 0), 0), 0)
+  CPP_coord_array() :
+    orb(CPP_coord_ARRAY(CPP_coord(), 0))
     {}
 
-  ~CPP_ttt() {
-    delete ip0;
-    delete ia0;
+  ~CPP_coord_array() {
   }
 
 };   // End Class
 
-extern "C" void ttt_to_c (const Bmad_ttt_class*, CPP_ttt&);
-extern "C" void ttt_to_f (const CPP_ttt&, Bmad_ttt_class*);
+extern "C" void coord_array_to_c (const Bmad_coord_array_class*, CPP_coord_array&);
+extern "C" void coord_array_to_f (const CPP_coord_array&, Bmad_coord_array_class*);
 
-bool operator== (const CPP_ttt&, const CPP_ttt&);
+bool operator== (const CPP_coord_array&, const CPP_coord_array&);
+
+
+//--------------------------------------------------------------------
+// CPP_bpm_phase_coupling
+
+class Bmad_bpm_phase_coupling_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_bpm_phase_coupling {
+public:
+  Real k_22a;
+  Real k_12a;
+  Real k_11b;
+  Real k_12b;
+  Real cbar22_a;
+  Real cbar12_a;
+  Real cbar11_b;
+  Real cbar12_b;
+  Real phi_a;
+  Real phi_b;
+
+  CPP_bpm_phase_coupling() :
+    k_22a(0.0),
+    k_12a(0.0),
+    k_11b(0.0),
+    k_12b(0.0),
+    cbar22_a(0.0),
+    cbar12_a(0.0),
+    cbar11_b(0.0),
+    cbar12_b(0.0),
+    phi_a(0.0),
+    phi_b(0.0)
+    {}
+
+  ~CPP_bpm_phase_coupling() {
+  }
+
+};   // End Class
+
+extern "C" void bpm_phase_coupling_to_c (const Bmad_bpm_phase_coupling_class*, CPP_bpm_phase_coupling&);
+extern "C" void bpm_phase_coupling_to_f (const CPP_bpm_phase_coupling&, Bmad_bpm_phase_coupling_class*);
+
+bool operator== (const CPP_bpm_phase_coupling&, const CPP_bpm_phase_coupling&);
+
+
+//--------------------------------------------------------------------
+// CPP_wig_term
+
+class Bmad_wig_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wig_term {
+public:
+  Real coef;
+  Real kx;
+  Real ky;
+  Real kz;
+  Real phi_z;
+  Int type;
+
+  CPP_wig_term() :
+    coef(0.0),
+    kx(0.0),
+    ky(0.0),
+    kz(0.0),
+    phi_z(0.0),
+    type(0)
+    {}
+
+  ~CPP_wig_term() {
+  }
+
+};   // End Class
+
+extern "C" void wig_term_to_c (const Bmad_wig_term_class*, CPP_wig_term&);
+extern "C" void wig_term_to_f (const CPP_wig_term&, Bmad_wig_term_class*);
+
+bool operator== (const CPP_wig_term&, const CPP_wig_term&);
+
+
+//--------------------------------------------------------------------
+// CPP_wig
+
+class Bmad_wig_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wig {
+public:
+  Int n_link;
+  CPP_wig_term_ARRAY term;
+
+  CPP_wig() :
+    n_link(1),
+    term(CPP_wig_term_ARRAY(CPP_wig_term(), 0))
+    {}
+
+  ~CPP_wig() {
+  }
+
+};   // End Class
+
+extern "C" void wig_to_c (const Bmad_wig_class*, CPP_wig&);
+extern "C" void wig_to_f (const CPP_wig&, Bmad_wig_class*);
+
+bool operator== (const CPP_wig&, const CPP_wig&);
+
+
+//--------------------------------------------------------------------
+// CPP_rf_wake_sr_table
+
+class Bmad_rf_wake_sr_table_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rf_wake_sr_table {
+public:
+  Real z;
+  Real long_wake;
+  Real trans_wake;
+
+  CPP_rf_wake_sr_table() :
+    z(0.0),
+    long_wake(0.0),
+    trans_wake(0.0)
+    {}
+
+  ~CPP_rf_wake_sr_table() {
+  }
+
+};   // End Class
+
+extern "C" void rf_wake_sr_table_to_c (const Bmad_rf_wake_sr_table_class*, CPP_rf_wake_sr_table&);
+extern "C" void rf_wake_sr_table_to_f (const CPP_rf_wake_sr_table&, Bmad_rf_wake_sr_table_class*);
+
+bool operator== (const CPP_rf_wake_sr_table&, const CPP_rf_wake_sr_table&);
+
+
+//--------------------------------------------------------------------
+// CPP_rf_wake_sr_mode
+
+class Bmad_rf_wake_sr_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rf_wake_sr_mode {
+public:
+  Real amp;
+  Real damp;
+  Real k;
+  Real phi;
+  Real b_sin;
+  Real b_cos;
+  Real a_sin;
+  Real a_cos;
+
+  CPP_rf_wake_sr_mode() :
+    amp(0.0),
+    damp(0.0),
+    k(0.0),
+    phi(0.0),
+    b_sin(0.0),
+    b_cos(0.0),
+    a_sin(0.0),
+    a_cos(0.0)
+    {}
+
+  ~CPP_rf_wake_sr_mode() {
+  }
+
+};   // End Class
+
+extern "C" void rf_wake_sr_mode_to_c (const Bmad_rf_wake_sr_mode_class*, CPP_rf_wake_sr_mode&);
+extern "C" void rf_wake_sr_mode_to_f (const CPP_rf_wake_sr_mode&, Bmad_rf_wake_sr_mode_class*);
+
+bool operator== (const CPP_rf_wake_sr_mode&, const CPP_rf_wake_sr_mode&);
+
+
+//--------------------------------------------------------------------
+// CPP_rf_wake_lr
+
+class Bmad_rf_wake_lr_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rf_wake_lr {
+public:
+  Real freq;
+  Real freq_in;
+  Real r_over_q;
+  Real q;
+  Real angle;
+  Real b_sin;
+  Real b_cos;
+  Real a_sin;
+  Real a_cos;
+  Real t_ref;
+  Int m;
+  Bool polarized;
+
+  CPP_rf_wake_lr() :
+    freq(0.0),
+    freq_in(0.0),
+    r_over_q(0.0),
+    q(0.0),
+    angle(0.0),
+    b_sin(0.0),
+    b_cos(0.0),
+    a_sin(0.0),
+    a_cos(0.0),
+    t_ref(0.0),
+    m(0),
+    polarized(false)
+    {}
+
+  ~CPP_rf_wake_lr() {
+  }
+
+};   // End Class
+
+extern "C" void rf_wake_lr_to_c (const Bmad_rf_wake_lr_class*, CPP_rf_wake_lr&);
+extern "C" void rf_wake_lr_to_f (const CPP_rf_wake_lr&, Bmad_rf_wake_lr_class*);
+
+bool operator== (const CPP_rf_wake_lr&, const CPP_rf_wake_lr&);
+
+
+//--------------------------------------------------------------------
+// CPP_rf_wake
+
+class Bmad_rf_wake_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rf_wake {
+public:
+  string sr_file;
+  string lr_file;
+  CPP_rf_wake_sr_table_ARRAY sr_table;
+  CPP_rf_wake_sr_mode_ARRAY sr_mode_long;
+  CPP_rf_wake_sr_mode_ARRAY sr_mode_trans;
+  CPP_rf_wake_lr_ARRAY lr;
+  Real z_sr_mode_max;
+
+  CPP_rf_wake() :
+    sr_file(),
+    lr_file(),
+    sr_table(CPP_rf_wake_sr_table_ARRAY(CPP_rf_wake_sr_table(), 0)),
+    sr_mode_long(CPP_rf_wake_sr_mode_ARRAY(CPP_rf_wake_sr_mode(), 0)),
+    sr_mode_trans(CPP_rf_wake_sr_mode_ARRAY(CPP_rf_wake_sr_mode(), 0)),
+    lr(CPP_rf_wake_lr_ARRAY(CPP_rf_wake_lr(), 0)),
+    z_sr_mode_max(0.0)
+    {}
+
+  ~CPP_rf_wake() {
+  }
+
+};   // End Class
+
+extern "C" void rf_wake_to_c (const Bmad_rf_wake_class*, CPP_rf_wake&);
+extern "C" void rf_wake_to_f (const CPP_rf_wake&, Bmad_rf_wake_class*);
+
+bool operator== (const CPP_rf_wake&, const CPP_rf_wake&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_field_map_term
+
+class Bmad_em_field_map_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_field_map_term {
+public:
+  Complex e_coef;
+  Complex b_coef;
+
+  CPP_em_field_map_term() :
+    e_coef(0.0),
+    b_coef(0.0)
+    {}
+
+  ~CPP_em_field_map_term() {
+  }
+
+};   // End Class
+
+extern "C" void em_field_map_term_to_c (const Bmad_em_field_map_term_class*, CPP_em_field_map_term&);
+extern "C" void em_field_map_term_to_f (const CPP_em_field_map_term&, Bmad_em_field_map_term_class*);
+
+bool operator== (const CPP_em_field_map_term&, const CPP_em_field_map_term&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_field_map
+
+class Bmad_em_field_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_field_map {
+public:
+  string file;
+  Int n_link;
+  Int ele_anchor_pt;
+  Real dz;
+  CPP_em_field_map_term_ARRAY term;
+
+  CPP_em_field_map() :
+    file(),
+    n_link(1),
+    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
+    dz(0.0),
+    term(CPP_em_field_map_term_ARRAY(CPP_em_field_map_term(), 0))
+    {}
+
+  ~CPP_em_field_map() {
+  }
+
+};   // End Class
+
+extern "C" void em_field_map_to_c (const Bmad_em_field_map_class*, CPP_em_field_map&);
+extern "C" void em_field_map_to_f (const CPP_em_field_map&, Bmad_em_field_map_class*);
+
+bool operator== (const CPP_em_field_map&, const CPP_em_field_map&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_field_grid_pt
+
+class Bmad_em_field_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_field_grid_pt {
+public:
+  Complex_ARRAY e;
+  Complex_ARRAY b;
+
+  CPP_em_field_grid_pt() :
+    e(0.0, 3),
+    b(0.0, 3)
+    {}
+
+  ~CPP_em_field_grid_pt() {
+  }
+
+};   // End Class
+
+extern "C" void em_field_grid_pt_to_c (const Bmad_em_field_grid_pt_class*, CPP_em_field_grid_pt&);
+extern "C" void em_field_grid_pt_to_f (const CPP_em_field_grid_pt&, Bmad_em_field_grid_pt_class*);
+
+bool operator== (const CPP_em_field_grid_pt&, const CPP_em_field_grid_pt&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_field_grid
+
+class Bmad_em_field_grid_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_field_grid {
+public:
+  string file;
+  Int type;
+  Int ele_anchor_pt;
+  Int n_link;
+  CPP_em_field_grid_pt_TENSOR pt;
+  Real_ARRAY dr;
+  Real_ARRAY r0;
+
+  CPP_em_field_grid() :
+    file(),
+    type(0),
+    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
+    n_link(1),
+    pt(CPP_em_field_grid_pt_MATRIX(CPP_em_field_grid_pt_ARRAY(CPP_em_field_grid_pt(), 0), 0), 0),
+    dr(0.0, 3),
+    r0(0.0, 3)
+    {}
+
+  ~CPP_em_field_grid() {
+  }
+
+};   // End Class
+
+extern "C" void em_field_grid_to_c (const Bmad_em_field_grid_class*, CPP_em_field_grid&);
+extern "C" void em_field_grid_to_f (const CPP_em_field_grid&, Bmad_em_field_grid_class*);
+
+bool operator== (const CPP_em_field_grid&, const CPP_em_field_grid&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_field_mode
+
+class Bmad_em_field_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_field_mode {
+public:
+  Int m;
+  Int harmonic;
+  Real f_damp;
+  Real dphi0_ref;
+  Real stored_energy;
+  Real phi0_azimuth;
+  Real field_scale;
+  Int master_scale;
+  CPP_em_field_map* map;
+  CPP_em_field_grid* grid;
+
+  CPP_em_field_mode() :
+    m(0),
+    harmonic(0),
+    f_damp(0.0),
+    dphi0_ref(0.0),
+    stored_energy(0.0),
+    phi0_azimuth(0.0),
+    field_scale(1),
+    master_scale(0),
+    map(NULL),
+    grid(NULL)
+    {}
+
+  ~CPP_em_field_mode() {
+    delete map;
+    delete grid;
+  }
+
+};   // End Class
+
+extern "C" void em_field_mode_to_c (const Bmad_em_field_mode_class*, CPP_em_field_mode&);
+extern "C" void em_field_mode_to_f (const CPP_em_field_mode&, Bmad_em_field_mode_class*);
+
+bool operator== (const CPP_em_field_mode&, const CPP_em_field_mode&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_fields
+
+class Bmad_em_fields_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_fields {
+public:
+  CPP_em_field_mode_ARRAY mode;
+
+  CPP_em_fields() :
+    mode(CPP_em_field_mode_ARRAY(CPP_em_field_mode(), 0))
+    {}
+
+  ~CPP_em_fields() {
+  }
+
+};   // End Class
+
+extern "C" void em_fields_to_c (const Bmad_em_fields_class*, CPP_em_fields&);
+extern "C" void em_fields_to_f (const CPP_em_fields&, Bmad_em_fields_class*);
+
+bool operator== (const CPP_em_fields&, const CPP_em_fields&);
+
+
+//--------------------------------------------------------------------
+// CPP_floor_position
+
+class Bmad_floor_position_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_floor_position {
+public:
+  Real_ARRAY r;
+  Real theta;
+  Real phi;
+  Real psi;
+
+  CPP_floor_position() :
+    r(0.0, 3),
+    theta(0.0),
+    phi(0.0),
+    psi(0.0)
+    {}
+
+  ~CPP_floor_position() {
+  }
+
+};   // End Class
+
+extern "C" void floor_position_to_c (const Bmad_floor_position_class*, CPP_floor_position&);
+extern "C" void floor_position_to_f (const CPP_floor_position&, Bmad_floor_position_class*);
+
+bool operator== (const CPP_floor_position&, const CPP_floor_position&);
+
+
+//--------------------------------------------------------------------
+// CPP_space_charge
+
+class Bmad_space_charge_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_space_charge {
+public:
+  CPP_coord closed_orb;
+  Real kick_const;
+  Real sig_x;
+  Real sig_y;
+  Real phi;
+  Real sin_phi;
+  Real cos_phi;
+  Real sig_z;
+
+  CPP_space_charge() :
+    closed_orb(),
+    kick_const(0.0),
+    sig_x(0.0),
+    sig_y(0.0),
+    phi(0.0),
+    sin_phi(0.0),
+    cos_phi(0.0),
+    sig_z(0.0)
+    {}
+
+  ~CPP_space_charge() {
+  }
+
+};   // End Class
+
+extern "C" void space_charge_to_c (const Bmad_space_charge_class*, CPP_space_charge&);
+extern "C" void space_charge_to_f (const CPP_space_charge&, Bmad_space_charge_class*);
+
+bool operator== (const CPP_space_charge&, const CPP_space_charge&);
+
+
+//--------------------------------------------------------------------
+// CPP_xy_disp
+
+class Bmad_xy_disp_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_xy_disp {
+public:
+  Real eta;
+  Real etap;
+
+  CPP_xy_disp() :
+    eta(0.0),
+    etap(0.0)
+    {}
+
+  ~CPP_xy_disp() {
+  }
+
+};   // End Class
+
+extern "C" void xy_disp_to_c (const Bmad_xy_disp_class*, CPP_xy_disp&);
+extern "C" void xy_disp_to_f (const CPP_xy_disp&, Bmad_xy_disp_class*);
+
+bool operator== (const CPP_xy_disp&, const CPP_xy_disp&);
+
+
+//--------------------------------------------------------------------
+// CPP_twiss
+
+class Bmad_twiss_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_twiss {
+public:
+  Real beta;
+  Real alpha;
+  Real gamma;
+  Real phi;
+  Real eta;
+  Real etap;
+  Real sigma;
+  Real sigma_p;
+  Real emit;
+  Real norm_emit;
+
+  CPP_twiss() :
+    beta(0.0),
+    alpha(0.0),
+    gamma(0.0),
+    phi(0.0),
+    eta(0.0),
+    etap(0.0),
+    sigma(0.0),
+    sigma_p(0.0),
+    emit(0.0),
+    norm_emit(0.0)
+    {}
+
+  ~CPP_twiss() {
+  }
+
+};   // End Class
+
+extern "C" void twiss_to_c (const Bmad_twiss_class*, CPP_twiss&);
+extern "C" void twiss_to_f (const CPP_twiss&, Bmad_twiss_class*);
+
+bool operator== (const CPP_twiss&, const CPP_twiss&);
+
+
+//--------------------------------------------------------------------
+// CPP_mode3
+
+class Bmad_mode3_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_mode3 {
+public:
+  Real_MATRIX v;
+  CPP_twiss a;
+  CPP_twiss b;
+  CPP_twiss c;
+  CPP_twiss x;
+  CPP_twiss y;
+
+  CPP_mode3() :
+    v(Real_ARRAY(0.0, 6), 6),
+    a(),
+    b(),
+    c(),
+    x(),
+    y()
+    {}
+
+  ~CPP_mode3() {
+  }
+
+};   // End Class
+
+extern "C" void mode3_to_c (const Bmad_mode3_class*, CPP_mode3&);
+extern "C" void mode3_to_f (const CPP_mode3&, Bmad_mode3_class*);
+
+bool operator== (const CPP_mode3&, const CPP_mode3&);
+
+
+//--------------------------------------------------------------------
+// CPP_bookkeeping_state
+
+class Bmad_bookkeeping_state_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_bookkeeping_state {
+public:
+  Int attributes;
+  Int control;
+  Int floor_position;
+  Int s_position;
+  Int ref_energy;
+  Int mat6;
+  Int rad_int;
+
+  CPP_bookkeeping_state() :
+    attributes(Bmad::STALE),
+    control(Bmad::STALE),
+    floor_position(Bmad::STALE),
+    s_position(Bmad::STALE),
+    ref_energy(Bmad::STALE),
+    mat6(Bmad::STALE),
+    rad_int(Bmad::STALE)
+    {}
+
+  ~CPP_bookkeeping_state() {
+  }
+
+};   // End Class
+
+extern "C" void bookkeeping_state_to_c (const Bmad_bookkeeping_state_class*, CPP_bookkeeping_state&);
+extern "C" void bookkeeping_state_to_f (const CPP_bookkeeping_state&, Bmad_bookkeeping_state_class*);
+
+bool operator== (const CPP_bookkeeping_state&, const CPP_bookkeeping_state&);
+
+
+//--------------------------------------------------------------------
+// CPP_rad_int_ele_cache
+
+class Bmad_rad_int_ele_cache_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rad_int_ele_cache {
+public:
+  Real_ARRAY orb0;
+  Real g2_0;
+  Real g3_0;
+  Real_ARRAY dg2_dorb;
+  Real_ARRAY dg3_dorb;
+  Bool stale;
+
+  CPP_rad_int_ele_cache() :
+    orb0(0.0, 6),
+    g2_0(0.0),
+    g3_0(0.0),
+    dg2_dorb(0.0, 6),
+    dg3_dorb(0.0, 6),
+    stale(true)
+    {}
+
+  ~CPP_rad_int_ele_cache() {
+  }
+
+};   // End Class
+
+extern "C" void rad_int_ele_cache_to_c (const Bmad_rad_int_ele_cache_class*, CPP_rad_int_ele_cache&);
+extern "C" void rad_int_ele_cache_to_f (const CPP_rad_int_ele_cache&, Bmad_rad_int_ele_cache_class*);
+
+bool operator== (const CPP_rad_int_ele_cache&, const CPP_rad_int_ele_cache&);
+
+
+//--------------------------------------------------------------------
+// CPP_wall3d_vertex
+
+class Bmad_wall3d_vertex_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wall3d_vertex {
+public:
+  Real x;
+  Real y;
+  Real radius_x;
+  Real radius_y;
+  Real tilt;
+  Real angle;
+  Real x0;
+  Real y0;
+
+  CPP_wall3d_vertex() :
+    x(0.0),
+    y(0.0),
+    radius_x(0.0),
+    radius_y(0.0),
+    tilt(0.0),
+    angle(0.0),
+    x0(0.0),
+    y0(0.0)
+    {}
+
+  ~CPP_wall3d_vertex() {
+  }
+
+};   // End Class
+
+extern "C" void wall3d_vertex_to_c (const Bmad_wall3d_vertex_class*, CPP_wall3d_vertex&);
+extern "C" void wall3d_vertex_to_f (const CPP_wall3d_vertex&, Bmad_wall3d_vertex_class*);
+
+bool operator== (const CPP_wall3d_vertex&, const CPP_wall3d_vertex&);
+
+
+//--------------------------------------------------------------------
+// CPP_wall3d_section
+
+class Bmad_wall3d_section_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wall3d_section {
+public:
+  Int type;
+  Real s;
+  Int n_vertex_input;
+  CPP_wall3d_vertex_ARRAY v;
+  Real x0;
+  Real y0;
+  Real dx0_ds;
+  Real dy0_ds;
+  Real_ARRAY x0_coef;
+  Real_ARRAY y0_coef;
+  Real dr_ds;
+  Real_ARRAY p1_coef;
+  Real_ARRAY p2_coef;
+
+  CPP_wall3d_section() :
+    type(0),
+    s(0.0),
+    n_vertex_input(0),
+    v(CPP_wall3d_vertex_ARRAY(CPP_wall3d_vertex(), 0)),
+    x0(0.0),
+    y0(0.0),
+    dx0_ds(0.0),
+    dy0_ds(0.0),
+    x0_coef(0.0, 4),
+    y0_coef(0.0, 4),
+    dr_ds(Bmad::REAL_GARBAGE),
+    p1_coef(0.0, 3),
+    p2_coef(0.0, 3)
+    {}
+
+  ~CPP_wall3d_section() {
+  }
+
+};   // End Class
+
+extern "C" void wall3d_section_to_c (const Bmad_wall3d_section_class*, CPP_wall3d_section&);
+extern "C" void wall3d_section_to_f (const CPP_wall3d_section&, Bmad_wall3d_section_class*);
+
+bool operator== (const CPP_wall3d_section&, const CPP_wall3d_section&);
+
+
+//--------------------------------------------------------------------
+// CPP_wall3d_crotch
+
+class Bmad_wall3d_crotch_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wall3d_crotch {
+public:
+  Int location;
+  Int ix_section;
+  Int ix_v1_cut;
+  Int ix_v2_cut;
+  CPP_wall3d_section section;
+
+  CPP_wall3d_crotch() :
+    location(Bmad::NO_END),
+    ix_section(0),
+    ix_v1_cut(0),
+    ix_v2_cut(0),
+    section()
+    {}
+
+  ~CPP_wall3d_crotch() {
+  }
+
+};   // End Class
+
+extern "C" void wall3d_crotch_to_c (const Bmad_wall3d_crotch_class*, CPP_wall3d_crotch&);
+extern "C" void wall3d_crotch_to_f (const CPP_wall3d_crotch&, Bmad_wall3d_crotch_class*);
+
+bool operator== (const CPP_wall3d_crotch&, const CPP_wall3d_crotch&);
+
+
+//--------------------------------------------------------------------
+// CPP_wall3d
+
+class Bmad_wall3d_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wall3d {
+public:
+  Int n_link;
+  Int priority;
+  Int ele_anchor_pt;
+  CPP_wall3d_crotch crotch;
+  CPP_wall3d_section_ARRAY section;
+
+  CPP_wall3d() :
+    n_link(1),
+    priority(Bmad::SECONDARY),
+    ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
+    crotch(),
+    section(CPP_wall3d_section_ARRAY(CPP_wall3d_section(), 0))
+    {}
+
+  ~CPP_wall3d() {
+  }
+
+};   // End Class
+
+extern "C" void wall3d_to_c (const Bmad_wall3d_class*, CPP_wall3d&);
+extern "C" void wall3d_to_f (const CPP_wall3d&, Bmad_wall3d_class*);
+
+bool operator== (const CPP_wall3d&, const CPP_wall3d&);
+
+
+//--------------------------------------------------------------------
+// CPP_taylor_term
+
+class Bmad_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_taylor_term {
+public:
+  Real coef;
+  Int_ARRAY expn;
+
+  CPP_taylor_term() :
+    coef(0.0),
+    expn(0, 6)
+    {}
+
+  ~CPP_taylor_term() {
+  }
+
+};   // End Class
+
+extern "C" void taylor_term_to_c (const Bmad_taylor_term_class*, CPP_taylor_term&);
+extern "C" void taylor_term_to_f (const CPP_taylor_term&, Bmad_taylor_term_class*);
+
+bool operator== (const CPP_taylor_term&, const CPP_taylor_term&);
+
+
+//--------------------------------------------------------------------
+// CPP_taylor
+
+class Bmad_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_taylor {
+public:
+  Real ref;
+  CPP_taylor_term_ARRAY term;
+
+  CPP_taylor() :
+    ref(0.0),
+    term(CPP_taylor_term_ARRAY(CPP_taylor_term(), 0))
+    {}
+
+  ~CPP_taylor() {
+  }
+
+};   // End Class
+
+extern "C" void taylor_to_c (const Bmad_taylor_class*, CPP_taylor&);
+extern "C" void taylor_to_f (const CPP_taylor&, Bmad_taylor_class*);
+
+bool operator== (const CPP_taylor&, const CPP_taylor&);
+
+
+//--------------------------------------------------------------------
+// CPP_control
+
+class Bmad_control_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_control {
+public:
+  Real coef;
+  Int ix_lord;
+  Int ix_slave;
+  Int ix_branch;
+  Int ix_attrib;
+
+  CPP_control() :
+    coef(0.0),
+    ix_lord(-1),
+    ix_slave(-1),
+    ix_branch(0),
+    ix_attrib(0)
+    {}
+
+  ~CPP_control() {
+  }
+
+};   // End Class
+
+extern "C" void control_to_c (const Bmad_control_class*, CPP_control&);
+extern "C" void control_to_f (const CPP_control&, Bmad_control_class*);
+
+bool operator== (const CPP_control&, const CPP_control&);
+
+
+//--------------------------------------------------------------------
+// CPP_lat_param
+
+class Bmad_lat_param_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_lat_param {
+public:
+  Real n_part;
+  Real total_length;
+  Real unstable_factor;
+  Real_MATRIX t1_with_rf;
+  Real_MATRIX t1_no_rf;
+  Real rel_tracking_charge;
+  Int particle;
+  Int geometry;
+  Int ixx;
+  Bool stable;
+  Bool aperture_limit_on;
+  CPP_bookkeeping_state bookkeeping_state;
+
+  CPP_lat_param() :
+    n_part(0.0),
+    total_length(0.0),
+    unstable_factor(0.0),
+    t1_with_rf(Real_ARRAY(0.0, 6), 6),
+    t1_no_rf(Real_ARRAY(0.0, 6), 6),
+    rel_tracking_charge(1),
+    particle(Bmad::POSITRON),
+    geometry(0),
+    ixx(0),
+    stable(false),
+    aperture_limit_on(true),
+    bookkeeping_state()
+    {}
+
+  ~CPP_lat_param() {
+  }
+
+};   // End Class
+
+extern "C" void lat_param_to_c (const Bmad_lat_param_class*, CPP_lat_param&);
+extern "C" void lat_param_to_f (const CPP_lat_param&, Bmad_lat_param_class*);
+
+bool operator== (const CPP_lat_param&, const CPP_lat_param&);
+
+
+//--------------------------------------------------------------------
+// CPP_mode_info
+
+class Bmad_mode_info_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_mode_info {
+public:
+  Real tune;
+  Real emit;
+  Real chrom;
+  Real sigma;
+  Real sigmap;
+
+  CPP_mode_info() :
+    tune(0.0),
+    emit(0.0),
+    chrom(0.0),
+    sigma(0.0),
+    sigmap(0.0)
+    {}
+
+  ~CPP_mode_info() {
+  }
+
+};   // End Class
+
+extern "C" void mode_info_to_c (const Bmad_mode_info_class*, CPP_mode_info&);
+extern "C" void mode_info_to_f (const CPP_mode_info&, Bmad_mode_info_class*);
+
+bool operator== (const CPP_mode_info&, const CPP_mode_info&);
+
+
+//--------------------------------------------------------------------
+// CPP_pre_tracker
+
+class Bmad_pre_tracker_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_pre_tracker {
+public:
+  Int who;
+  Int ix_ele_start;
+  Int ix_ele_end;
+  string input_file;
+
+  CPP_pre_tracker() :
+    who(0),
+    ix_ele_start(0),
+    ix_ele_end(0),
+    input_file()
+    {}
+
+  ~CPP_pre_tracker() {
+  }
+
+};   // End Class
+
+extern "C" void pre_tracker_to_c (const Bmad_pre_tracker_class*, CPP_pre_tracker&);
+extern "C" void pre_tracker_to_f (const CPP_pre_tracker&, Bmad_pre_tracker_class*);
+
+bool operator== (const CPP_pre_tracker&, const CPP_pre_tracker&);
+
+
+//--------------------------------------------------------------------
+// CPP_anormal_mode
+
+class Bmad_anormal_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_anormal_mode {
+public:
+  Real emittance;
+  Real_ARRAY synch_int;
+  Real j_damp;
+  Real alpha_damp;
+  Real chrom;
+  Real tune;
+
+  CPP_anormal_mode() :
+    emittance(0.0),
+    synch_int(0.0, 3),
+    j_damp(0.0),
+    alpha_damp(0.0),
+    chrom(0.0),
+    tune(0.0)
+    {}
+
+  ~CPP_anormal_mode() {
+  }
+
+};   // End Class
+
+extern "C" void anormal_mode_to_c (const Bmad_anormal_mode_class*, CPP_anormal_mode&);
+extern "C" void anormal_mode_to_f (const CPP_anormal_mode&, Bmad_anormal_mode_class*);
+
+bool operator== (const CPP_anormal_mode&, const CPP_anormal_mode&);
+
+
+//--------------------------------------------------------------------
+// CPP_linac_normal_mode
+
+class Bmad_linac_normal_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_linac_normal_mode {
+public:
+  Real i2_e4;
+  Real i3_e7;
+  Real i5a_e6;
+  Real i5b_e6;
+  Real sig_e1;
+  Real a_emittance_end;
+  Real b_emittance_end;
+
+  CPP_linac_normal_mode() :
+    i2_e4(0.0),
+    i3_e7(0.0),
+    i5a_e6(0.0),
+    i5b_e6(0.0),
+    sig_e1(0.0),
+    a_emittance_end(0.0),
+    b_emittance_end(0.0)
+    {}
+
+  ~CPP_linac_normal_mode() {
+  }
+
+};   // End Class
+
+extern "C" void linac_normal_mode_to_c (const Bmad_linac_normal_mode_class*, CPP_linac_normal_mode&);
+extern "C" void linac_normal_mode_to_f (const CPP_linac_normal_mode&, Bmad_linac_normal_mode_class*);
+
+bool operator== (const CPP_linac_normal_mode&, const CPP_linac_normal_mode&);
+
+
+//--------------------------------------------------------------------
+// CPP_normal_modes
+
+class Bmad_normal_modes_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_normal_modes {
+public:
+  Real_ARRAY synch_int;
+  Real sige_e;
+  Real sig_z;
+  Real e_loss;
+  Real rf_voltage;
+  Real pz_aperture;
+  CPP_anormal_mode a;
+  CPP_anormal_mode b;
+  CPP_anormal_mode z;
+  CPP_linac_normal_mode lin;
+
+  CPP_normal_modes() :
+    synch_int(0.0, 4),
+    sige_e(0.0),
+    sig_z(0.0),
+    e_loss(0.0),
+    rf_voltage(0.0),
+    pz_aperture(0.0),
+    a(),
+    b(),
+    z(),
+    lin()
+    {}
+
+  ~CPP_normal_modes() {
+  }
+
+};   // End Class
+
+extern "C" void normal_modes_to_c (const Bmad_normal_modes_class*, CPP_normal_modes&);
+extern "C" void normal_modes_to_f (const CPP_normal_modes&, Bmad_normal_modes_class*);
+
+bool operator== (const CPP_normal_modes&, const CPP_normal_modes&);
+
+
+//--------------------------------------------------------------------
+// CPP_em_field
+
+class Bmad_em_field_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_em_field {
+public:
+  Real_ARRAY e;
+  Real_ARRAY b;
+  Real_MATRIX de;
+  Real_MATRIX db;
+
+  CPP_em_field() :
+    e(0.0, 3),
+    b(0.0, 3),
+    de(Real_ARRAY(0.0, 3), 3),
+    db(Real_ARRAY(0.0, 3), 3)
+    {}
+
+  ~CPP_em_field() {
+  }
+
+};   // End Class
+
+extern "C" void em_field_to_c (const Bmad_em_field_class*, CPP_em_field&);
+extern "C" void em_field_to_f (const CPP_em_field&, Bmad_em_field_class*);
+
+bool operator== (const CPP_em_field&, const CPP_em_field&);
+
+
+//--------------------------------------------------------------------
+// CPP_track_map
+
+class Bmad_track_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_track_map {
+public:
+  Real_ARRAY vec0;
+  Real_MATRIX mat6;
+
+  CPP_track_map() :
+    vec0(0.0, 6),
+    mat6(Real_ARRAY(0.0, 6), 6)
+    {}
+
+  ~CPP_track_map() {
+  }
+
+};   // End Class
+
+extern "C" void track_map_to_c (const Bmad_track_map_class*, CPP_track_map&);
+extern "C" void track_map_to_f (const CPP_track_map&, Bmad_track_map_class*);
+
+bool operator== (const CPP_track_map&, const CPP_track_map&);
+
+
+//--------------------------------------------------------------------
+// CPP_track
+
+class Bmad_track_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_track {
+public:
+  CPP_coord_ARRAY orb;
+  CPP_em_field_ARRAY field;
+  CPP_track_map_ARRAY map;
+  Real ds_save;
+  Int n_pt;
+  Int n_bad;
+  Int n_ok;
+
+  CPP_track() :
+    orb(CPP_coord_ARRAY(CPP_coord(), 0)),
+    field(CPP_em_field_ARRAY(CPP_em_field(), 0)),
+    map(CPP_track_map_ARRAY(CPP_track_map(), 0)),
+    ds_save(1e-3),
+    n_pt(0),
+    n_bad(0),
+    n_ok(0)
+    {}
+
+  ~CPP_track() {
+  }
+
+};   // End Class
+
+extern "C" void track_to_c (const Bmad_track_class*, CPP_track&);
+extern "C" void track_to_f (const CPP_track&, Bmad_track_class*);
+
+bool operator== (const CPP_track&, const CPP_track&);
+
+
+//--------------------------------------------------------------------
+// CPP_synch_rad_common
+
+class Bmad_synch_rad_common_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_synch_rad_common {
+public:
+  Real scale;
+  Real i2;
+  Real i3;
+  Real i5a;
+  Real i5b;
+  Bool i_calc_on;
+
+  CPP_synch_rad_common() :
+    scale(1.0),
+    i2(0.0),
+    i3(0.0),
+    i5a(0.0),
+    i5b(0.0),
+    i_calc_on(false)
+    {}
+
+  ~CPP_synch_rad_common() {
+  }
+
+};   // End Class
+
+extern "C" void synch_rad_common_to_c (const Bmad_synch_rad_common_class*, CPP_synch_rad_common&);
+extern "C" void synch_rad_common_to_f (const CPP_synch_rad_common&, Bmad_synch_rad_common_class*);
+
+bool operator== (const CPP_synch_rad_common&, const CPP_synch_rad_common&);
+
+
+//--------------------------------------------------------------------
+// CPP_bmad_common
+
+class Bmad_bmad_common_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_bmad_common {
+public:
+  Real max_aperture_limit;
+  Real_ARRAY d_orb;
+  Real default_ds_step;
+  Real significant_length;
+  Real rel_tol_tracking;
+  Real abs_tol_tracking;
+  Real rel_tol_adaptive_tracking;
+  Real abs_tol_adaptive_tracking;
+  Real init_ds_adaptive_tracking;
+  Real min_ds_adaptive_tracking;
+  Int taylor_order;
+  Int default_integ_order;
+  Int ptc_max_fringe_order;
+  Bool use_hard_edge_drifts;
+  Bool sr_wakes_on;
+  Bool lr_wakes_on;
+  Bool mat6_track_symmetric;
+  Bool auto_bookkeeper;
+  Bool space_charge_on;
+  Bool coherent_synch_rad_on;
+  Bool spin_tracking_on;
+  Bool radiation_damping_on;
+  Bool radiation_fluctuations_on;
+  Bool conserve_taylor_maps;
+  Bool absolute_time_tracking_default;
+  Bool rf_auto_scale_phase_default;
+  Bool rf_auto_scale_amp_default;
+  Bool use_ptc_layout_default;
+
+  CPP_bmad_common() :
+    max_aperture_limit(1e3),
+    d_orb(1e-5, 6),
+    default_ds_step(0.0),
+    significant_length(1e-10),
+    rel_tol_tracking(1e-8),
+    abs_tol_tracking(1e-10),
+    rel_tol_adaptive_tracking(1e-8),
+    abs_tol_adaptive_tracking(1e-10),
+    init_ds_adaptive_tracking(1e-3),
+    min_ds_adaptive_tracking(1e-8),
+    taylor_order(3),
+    default_integ_order(2),
+    ptc_max_fringe_order(2),
+    use_hard_edge_drifts(true),
+    sr_wakes_on(true),
+    lr_wakes_on(true),
+    mat6_track_symmetric(true),
+    auto_bookkeeper(true),
+    space_charge_on(false),
+    coherent_synch_rad_on(false),
+    spin_tracking_on(false),
+    radiation_damping_on(false),
+    radiation_fluctuations_on(false),
+    conserve_taylor_maps(true),
+    absolute_time_tracking_default(false),
+    rf_auto_scale_phase_default(true),
+    rf_auto_scale_amp_default(true),
+    use_ptc_layout_default(false)
+    {}
+
+  ~CPP_bmad_common() {
+  }
+
+};   // End Class
+
+extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common&);
+extern "C" void bmad_common_to_f (const CPP_bmad_common&, Bmad_bmad_common_class*);
+
+bool operator== (const CPP_bmad_common&, const CPP_bmad_common&);
+
+
+//--------------------------------------------------------------------
+// CPP_rad_int1
+
+class Bmad_rad_int1_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rad_int1 {
+public:
+  Real i0;
+  Real i1;
+  Real i2;
+  Real i3;
+  Real i4a;
+  Real i4b;
+  Real i4z;
+  Real i5a;
+  Real i5b;
+  Real i6b;
+  Real lin_i2_e4;
+  Real lin_i3_e7;
+  Real lin_i5a_e6;
+  Real lin_i5b_e6;
+  Real lin_norm_emit_a;
+  Real lin_norm_emit_b;
+  Real n_steps;
+
+  CPP_rad_int1() :
+    i0(0.0),
+    i1(0.0),
+    i2(0.0),
+    i3(0.0),
+    i4a(0.0),
+    i4b(0.0),
+    i4z(0.0),
+    i5a(0.0),
+    i5b(0.0),
+    i6b(0.0),
+    lin_i2_e4(0.0),
+    lin_i3_e7(0.0),
+    lin_i5a_e6(0.0),
+    lin_i5b_e6(0.0),
+    lin_norm_emit_a(0.0),
+    lin_norm_emit_b(0.0),
+    n_steps(0.0)
+    {}
+
+  ~CPP_rad_int1() {
+  }
+
+};   // End Class
+
+extern "C" void rad_int1_to_c (const Bmad_rad_int1_class*, CPP_rad_int1&);
+extern "C" void rad_int1_to_f (const CPP_rad_int1&, Bmad_rad_int1_class*);
+
+bool operator== (const CPP_rad_int1&, const CPP_rad_int1&);
+
+
+//--------------------------------------------------------------------
+// CPP_rad_int_all_ele
+
+class Bmad_rad_int_all_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_rad_int_all_ele {
+public:
+  CPP_rad_int1_ARRAY ele;
+
+  CPP_rad_int_all_ele() :
+    ele(CPP_rad_int1_ARRAY(CPP_rad_int1(), 0))
+    {}
+
+  ~CPP_rad_int_all_ele() {
+  }
+
+};   // End Class
+
+extern "C" void rad_int_all_ele_to_c (const Bmad_rad_int_all_ele_class*, CPP_rad_int_all_ele&);
+extern "C" void rad_int_all_ele_to_f (const CPP_rad_int_all_ele&, Bmad_rad_int_all_ele_class*);
+
+bool operator== (const CPP_rad_int_all_ele&, const CPP_rad_int_all_ele&);
+
+
+//--------------------------------------------------------------------
+// CPP_ele
+
+class Bmad_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_ele {
+public:
+  string name;
+  string type;
+  string alias;
+  string component_name;
+  string* descrip;
+  CPP_twiss a;
+  CPP_twiss b;
+  CPP_twiss z;
+  CPP_xy_disp x;
+  CPP_xy_disp y;
+  CPP_bookkeeping_state bookkeeping_state;
+  CPP_em_fields* em_field;
+  CPP_floor_position floor;
+  CPP_mode3* mode3;
+  CPP_rad_int_ele_cache* rad_int_cache;
+  CPP_rf_wake* rf_wake;
+  CPP_space_charge* space_charge;
+  CPP_taylor_ARRAY taylor;
+  CPP_wall3d* wall3d;
+  CPP_wig* wig;
+  Real_ARRAY value;
+  Real_ARRAY old_value;
+  Real_ARRAY gen0;
+  Real_ARRAY vec0;
+  Real_MATRIX mat6;
+  Real_MATRIX c_mat;
+  Real gamma_c;
+  Real s;
+  Real ref_time;
+  Real_TENSOR r;
+  Real_ARRAY a_pole;
+  Real_ARRAY b_pole;
+  Real_ARRAY map_ref_orb_in;
+  Real_ARRAY map_ref_orb_out;
+  Real_ARRAY time_ref_orb_in;
+  Real_ARRAY time_ref_orb_out;
+  Int key;
+  Int sub_key;
+  Int ix_ele;
+  Int ix_branch;
+  Int ix_value;
+  Int slave_status;
+  Int n_slave;
+  Int ix1_slave;
+  Int ix2_slave;
+  Int lord_status;
+  Int n_lord;
+  Int ic1_lord;
+  Int ic2_lord;
+  Int ix_pointer;
+  Int ixx;
+  Int iyy;
+  Int mat6_calc_method;
+  Int tracking_method;
+  Int spin_tracking_method;
+  Int ptc_integration_type;
+  Int field_calc;
+  Int aperture_at;
+  Int aperture_type;
+  Int orientation;
+  Bool symplectify;
+  Bool mode_flip;
+  Bool multipoles_on;
+  Bool scale_multipoles;
+  Bool map_with_offsets;
+  Bool field_master;
+  Bool is_on;
+  Bool old_is_on;
+  Bool logic;
+  Bool bmad_logic;
+  Bool on_a_girder;
+  Bool csr_calc_on;
+  Bool offset_moves_aperture;
+
+  CPP_ele() :
+    name(),
+    type(),
+    alias(),
+    component_name(),
+    descrip(NULL),
+    a(),
+    b(),
+    z(),
+    x(),
+    y(),
+    bookkeeping_state(),
+    em_field(NULL),
+    floor(),
+    mode3(NULL),
+    rad_int_cache(NULL),
+    rf_wake(NULL),
+    space_charge(NULL),
+    taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
+    wall3d(NULL),
+    wig(NULL),
+    value(double(0), Bmad::NUM_ELE_ATTRIB+1),
+    old_value(double(0), Bmad::NUM_ELE_ATTRIB+1),
+    gen0(0.0, 6),
+    vec0(0.0, 6),
+    mat6(Real_ARRAY(0.0, 6), 6),
+    c_mat(Real_ARRAY(0.0, 2), 2),
+    gamma_c(0.0),
+    s(0.0),
+    ref_time(0.0),
+    r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
+    a_pole(0.0, 0),
+    b_pole(0.0, 0),
+    map_ref_orb_in(0.0, 6),
+    map_ref_orb_out(0.0, 6),
+    time_ref_orb_in(0.0, 6),
+    time_ref_orb_out(0.0, 6),
+    key(0),
+    sub_key(0),
+    ix_ele(-1),
+    ix_branch(0),
+    ix_value(0),
+    slave_status(Bmad::FREE),
+    n_slave(0),
+    ix1_slave(0),
+    ix2_slave(-1),
+    lord_status(Bmad::NOT_A_LORD),
+    n_lord(0),
+    ic1_lord(0),
+    ic2_lord(-1),
+    ix_pointer(0),
+    ixx(0),
+    iyy(0),
+    mat6_calc_method(Bmad::BMAD_STANDARD),
+    tracking_method(Bmad::BMAD_STANDARD),
+    spin_tracking_method(Bmad::BMAD_STANDARD),
+    ptc_integration_type(0),
+    field_calc(Bmad::BMAD_STANDARD),
+    aperture_at(Bmad::EXIT_END),
+    aperture_type(Bmad::RECTANGULAR),
+    orientation(1),
+    symplectify(false),
+    mode_flip(false),
+    multipoles_on(true),
+    scale_multipoles(true),
+    map_with_offsets(true),
+    field_master(false),
+    is_on(true),
+    old_is_on(false),
+    logic(false),
+    bmad_logic(false),
+    on_a_girder(false),
+    csr_calc_on(true),
+    offset_moves_aperture(false)
+    {
+      if (key == Bmad::LCAVITY) {
+        value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+        value[Bmad::FIELD_SCALE] = 1;
+      }
+
+      if (key == Bmad::RFCAVITY) {
+        value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+        value[Bmad::FIELD_SCALE] = 1;
+      }
+    }
+
+
+  ~CPP_ele() {
+    delete descrip;
+    delete em_field;
+    delete mode3;
+    delete rad_int_cache;
+    delete rf_wake;
+    delete space_charge;
+    delete wall3d;
+    delete wig;
+  }
+
+};   // End Class
+
+extern "C" void ele_to_c (const Bmad_ele_class*, CPP_ele&);
+extern "C" void ele_to_f (const CPP_ele&, Bmad_ele_class*);
+
+bool operator== (const CPP_ele&, const CPP_ele&);
+
+
+//--------------------------------------------------------------------
+// CPP_branch
+
+class Bmad_branch_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_branch {
+public:
+  string name;
+  Int ix_branch;
+  Int ix_root_branch;
+  Int ix_from_branch;
+  Int ix_from_ele;
+  Int* n_ele_track;
+  Int* n_ele_max;
+  CPP_mode_info* a;
+  CPP_mode_info* b;
+  CPP_mode_info* z;
+  CPP_ele_ARRAY ele;
+  CPP_lat_param* param;
+  CPP_wall3d* wall3d;
+
+  CPP_branch() :
+    name(),
+    ix_branch(-1),
+    ix_root_branch(-1),
+    ix_from_branch(-1),
+    ix_from_ele(-1),
+    n_ele_track(NULL),
+    n_ele_max(NULL),
+    a(NULL),
+    b(NULL),
+    z(NULL),
+    ele(CPP_ele_ARRAY(CPP_ele(), 0)),
+    param(NULL),
+    wall3d(NULL)
+    {}
+
+  ~CPP_branch() {
+    delete n_ele_track;
+    delete n_ele_max;
+    delete a;
+    delete b;
+    delete z;
+    delete param;
+    delete wall3d;
+  }
+
+};   // End Class
+
+extern "C" void branch_to_c (const Bmad_branch_class*, CPP_branch&);
+extern "C" void branch_to_f (const CPP_branch&, Bmad_branch_class*);
+
+bool operator== (const CPP_branch&, const CPP_branch&);
+
+
+//--------------------------------------------------------------------
+// CPP_lat
+
+class Bmad_lat_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_lat {
+public:
+  string use_name;
+  string lattice;
+  string input_file_name;
+  string title;
+  String_ARRAY attribute_alias;
+  CPP_mode_info a;
+  CPP_mode_info b;
+  CPP_mode_info z;
+  CPP_lat_param param;
+  CPP_bookkeeping_state lord_state;
+  CPP_ele ele_init;
+  CPP_ele_ARRAY ele;
+  CPP_branch_ARRAY branch;
+  CPP_control_ARRAY control;
+  CPP_coord beam_start;
+  CPP_pre_tracker pre_tracker;
+  Int version;
+  Int n_ele_track;
+  Int n_ele_max;
+  Int n_control_max;
+  Int n_ic_max;
+  Int input_taylor_order;
+  Int_ARRAY ic;
+  Bool absolute_time_tracking;
+  Bool rf_auto_scale_phase;
+  Bool rf_auto_scale_amp;
+  Bool use_ptc_layout;
+
+  CPP_lat() :
+    use_name(),
+    lattice(),
+    input_file_name(),
+    title(),
+    attribute_alias(String_ARRAY(string(), 0)),
+    a(),
+    b(),
+    z(),
+    param(),
+    lord_state(),
+    ele_init(),
+    ele(CPP_ele_ARRAY(CPP_ele(), 0)),
+    branch(CPP_branch_ARRAY(CPP_branch(), 0)),
+    control(CPP_control_ARRAY(CPP_control(), 0)),
+    beam_start(),
+    pre_tracker(),
+    version(0),
+    n_ele_track(0),
+    n_ele_max(0),
+    n_control_max(0),
+    n_ic_max(0),
+    input_taylor_order(0),
+    ic(0, 0),
+    absolute_time_tracking(false),
+    rf_auto_scale_phase(false),
+    rf_auto_scale_amp(false),
+    use_ptc_layout(false)
+    {}
+
+  ~CPP_lat() {
+  }
+
+};   // End Class
+
+extern "C" void lat_to_c (const Bmad_lat_class*, CPP_lat&);
+extern "C" void lat_to_f (const CPP_lat&, Bmad_lat_class*);
+
+bool operator== (const CPP_lat&, const CPP_lat&);
 
 
 //--------------------------------------------------------------------

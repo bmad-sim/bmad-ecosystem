@@ -24,8 +24,8 @@ import textwrap
 ##################################################################################
 # Init
 
-master_input_file = 'test_interface_input'
-##master_input_file = 'interface_input_params'
+##master_input_file = 'test_interface_input'
+master_input_file = 'interface_input_params'
 
 n_char_max = 95
 debug = False # Change to True to enable printout
@@ -598,13 +598,16 @@ endif
 # CHAR 0 NOT
 
 f_side_trans[CHAR, 0, NOT] = f_side_trans_class()
-f_side_trans[CHAR, 0, NOT].to_c2_type    = 'character(c_char)'
-f_side_trans[CHAR, 0, NOT].to_c2_name    = 'z_NAME(*)'
-f_side_trans[CHAR, 0, NOT].to_c2_call    = 'trim(F%NAME) // c_null_char'
-f_side_trans[CHAR, 0, NOT].equality_test = 'is_eq = is_eq .and. (f1%NAME == f2%NAME)\n'
-f_side_trans[CHAR, 0, NOT].test_pat      = \
+fc = f_side_trans[CHAR, 0, NOT] 
+fc.to_c2_call    = 'trim(F%NAME) // c_null_char'
+fc.to_c2_type    = 'character(c_char)'
+fc.to_c2_name    = 'z_NAME(*)'
+fc.to_f2_type    = fc.to_c2_type
+fc.to_f2_name    = fc.to_c2_name
+fc.equality_test = 'is_eq = is_eq .and. (f1%NAME == f2%NAME)\n'
+fc.test_pat      = \
         'do jd1 = 1, len(F%NAME)\n  F%NAME(jd1:jd1) = char(ichar("a") + modulo(100+XXX+offset+jd1, 26))\nenddo\n'
-f_side_trans[CHAR, 0, NOT].to_f2_trans   = 'call to_f_str(z_NAME, F%NAME)'
+fc.to_f2_trans   = 'call to_f_str(z_NAME, F%NAME)'
 
 # CHAR 0 PTR
 
@@ -612,6 +615,8 @@ f_side_trans[CHAR, 0, PTR] = copy.deepcopy(f_side_trans[INT, 0, PTR])
 fc = f_side_trans[CHAR, 0, PTR] 
 fc.to_c2_type       = 'character(c_char)'
 fc.to_c2_name       = 'z_NAME(*)'
+fc.to_f2_type    = fc.to_c2_type
+fc.to_f2_name    = fc.to_c2_name
 fc.to_f2_trans      = '''\
 if (n_NAME == 0) then
   if (associated(F%NAME)) deallocate(F%NAME)
@@ -621,12 +626,12 @@ else
 endif
 '''
 
-fc.to_c_var        = ['character(STR_LEN+1), pointer :: f_NAME', 'character(STR_LEN+1), target :: a_NAME']
+fc.to_c_var        = ['character(STR_LEN+1), target :: f_NAME']
 fc.to_c_trans      = '''\
 n_NAME = 0
 if (associated(F%NAME)) then
   n_NAME = 1
-  a_NAME = trim(F%NAME) // c_null_char 
+  f_NAME = trim(F%NAME) // c_null_char 
 endif
 '''
 
@@ -648,6 +653,8 @@ endif
 f_side_trans[CHAR, 1, NOT] = copy.deepcopy(f_side_trans[STRUCT, 1, NOT])
 fc = f_side_trans[CHAR, 1, NOT]
 fc.to_c2_name    = 'z_NAME(*)'
+fc.to_f2_type    = fc.to_c2_type
+fc.to_f2_name    = fc.to_c2_name
 fc.to_f2_var     = ['character(c_char), pointer :: f_NAME']
 fc.test_pat      = '''\
 do jd1 = lbound(F%NAME, 1), ubound(F%NAME, 1)
@@ -666,14 +673,16 @@ fc.to_c_trans  = jd1_loop + '''\
   z_NAME(jd1) = c_loc(a_NAME(jd1))
 enddo
 '''
-fc.to_c_var += ['a_NAME(DIM1) :: character(STR_LEN+1)']
+fc.to_c_var += ['character(STR_LEN+1) :: a_NAME(DIM1)']
 
 # CHAR 1 PTR
 
 f_side_trans[CHAR, 1, PTR] = copy.deepcopy(f_side_trans[STRUCT, 1, PTR])
 fc = f_side_trans[CHAR, 1, PTR] 
-fc.to_c2_type       = 'character(c_char)'
+fc.to_c2_type       = 'type(c_ptr)'
 fc.to_c2_name       = 'z_NAME(*)'
+fc.to_f2_type    = fc.to_c2_type
+fc.to_f2_name    = fc.to_c2_name
 fc.to_f2_var        = ['character(c_char), pointer :: f_NAME']
 fc.to_f2_trans      = fc.to_f2_trans.replace('ZZZ', 'string')
 fc.test_pat         = '''\
@@ -1176,7 +1185,7 @@ cc.to_f_setup    = '''\
   const char* z_NAME = NULL;  
   if (C.NAME != NULL) {
     z_NAME = C.NAME->c_str();
-    n_name = 1;
+    n_NAME = 1;
   }
 '''
 cc.to_c2_arg     = 'c_Char z_NAME'
@@ -1640,8 +1649,8 @@ for struct in struct_definitions:
     arg.f_side.equality_test        = arg.f_side.equality_test.replace('NAME', arg.f_name)
     arg.f_side.test_pat             = arg.f_side.test_pat.replace('NAME', arg.f_name)
 
-    arg.c_side.equality_test        = arg.c_side.equality_test.replace('NAME', arg.f_name)
-    arg.c_side.test_pat             = arg.c_side.test_pat.replace('NAME', arg.f_name)
+    arg.c_side.equality_test        = arg.c_side.equality_test.replace('NAME', arg.c_name)
+    arg.c_side.test_pat             = arg.c_side.test_pat.replace('NAME', arg.c_name)
 
     arg.c_side.constructor          = arg.c_side.constructor.replace('NAME', arg.c_name)
     arg.c_side.destructor           = arg.c_side.destructor.replace('NAME', arg.c_name)
