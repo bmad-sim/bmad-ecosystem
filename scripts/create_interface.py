@@ -10,7 +10,7 @@
 #   Program to check the Fortran / C++ translator
 
 # Note: The corresponding C++ class component for a pointer or allocatable Fortran 
-# scaler struct component is an array whose length is zero if the Fortran component
+# scalar struct component is an array whose length is zero if the Fortran component
 # is nullified and whose length is 1 otherwise.
 
 import sys
@@ -348,7 +348,7 @@ if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = (f1%NAME == f2%NAME)
 '''
 
-      fp.test_pat    = '''\
+      test_pat    = '''\
 if (ix_patt < 3) then
   if (associated(F%NAME)) deallocate (F%NAME)
 else
@@ -358,16 +358,19 @@ else
 endif
 '''
 
+      fp.test_pat = test_pat.replace('SET', 'F%NAME = ' + test_value)
+
       if type == LOGIC:
         fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
         fp.to_f2_trans = fp.to_f2_trans.replace('= f_NAME', '= f_logic(f_NAME)')
-        fp.to_c2_call = 'fscaler2scaler(F%NAME, n_NAME)'
+        fp.to_c2_call = 'fscalar2scalar(F%NAME, n_NAME)'
         fp.to_c2_type = 'logical(c_bool)'
 
       if type == STRUCT:
+        fp.to_c2_call = 'c_loc(F%NAME)'
         fp.to_c2_type = 'type(c_ptr), value'
         fp.to_f2_var = ['type(KIND_struct), pointer :: f_NAME'] 
-        fp.test_pat = fp.test_pat.replace('SET', 'call set_KIND_test_pattern (F%NAME, ix_patt)')
+        fp.test_pat = test_pat.replace('SET', 'call set_KIND_test_pattern (F%NAME, ix_patt)')
         fp.to_f2_trans = '''\
 if (n_NAME == 0) then
   if (associated(F%NAME)) deallocate(F%NAME)
@@ -402,7 +405,7 @@ else
   if (.not. associated(F%NAME)) allocate (F%NAME(-1:1))
 '''
 
-      fp.test_pat    = tp1 + x2 + jd1_loop + x2 + rhs1 + x2 + set1.replace('NNN', 'rhs') + '  enddo\n' + 'endif\n'
+      fp.test_pat    = tp1 + x2 + jd1_loop + x2 + rhs1 + x2 + set1.replace('NNN', test_value) + '  enddo\n' + 'endif\n'
 
       if type == LOGIC:
         fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
@@ -410,8 +413,10 @@ else
 
       if type == STRUCT:
         fp.to_c2_call  = 'z_NAME'
-        fp.to_c2_name  = 'z_NAME(*)'
         fp.to_c2_type  = 'type(c_ptr)'
+        fp.to_c2_name  = 'z_NAME(*)'
+        fp.to_f2_type = fp.to_c2_type
+        fp.to_f2_name = fp.to_c2_name
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_var = []
         fp.test_pat    = tp1 + x2 + jd1_loop + x4 + \
@@ -468,15 +473,17 @@ else
   if (.not. associated(F%NAME)) allocate (F%NAME(-1:1, 2))
 ''' 
       fp.test_pat    = tp2 + x2 + jd1_loop + x2 + jd2_loop + x2 + rhs2 + \
-      x2 + set2.replace('NNN', 'rhs') + '  enddo; enddo\n' + 'endif\n'
+                       x2 + set2.replace('NNN', test_value) + '  enddo; enddo\n' + 'endif\n'
 
       if type == LOGIC:
         fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
 
       if type == STRUCT:
         fp.to_c2_call  = 'z_NAME'
-        fp.to_c2_name  = 'z_NAME(*)'
         fp.to_c2_type  = 'type(c_ptr)'
+        fp.to_c2_name  = 'z_NAME(*)'
+        fp.to_f2_type = fp.to_c2_type
+        fp.to_f2_name = fp.to_c2_name
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_var   = []
         fp.test_pat    = tp2 + x2 + jd1_loop + x2 + jd2_loop + x4 + \
@@ -492,7 +499,7 @@ if (associated(F%NAME)) then
     z_NAME(n2_NAME*(jd1-1) + jd2) = c_loc(F%NAME(jd1+lb1, jd2+lb2))
   enddo;  enddo
 else
-  n1_NAME = 0; n2_name = 0
+  n1_NAME = 0; n2_NAME = 0
 endif
 '''
         fp.to_f2_trans = '''\
@@ -540,15 +547,17 @@ else
   if (.not. associated(F%NAME)) allocate (F%NAME(-1:1, 2, 1))
 '''
       fp.test_pat    = tp3 + x2 + jd1_loop + x2 + jd2_loop + x2 + jd3_loop + x2 + rhs3 + \
-      x2 + set3.replace('NNN', 'rhs') + '  enddo; enddo; enddo\n' + 'endif\n'
+                       x2 + set3.replace('NNN', test_value) + '  enddo; enddo; enddo\n' + 'endif\n'
 
       if type == LOGIC:
         fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
 
       if type == STRUCT:
         fp.to_c2_call  = 'z_NAME'
-        fp.to_c2_name  = 'z_NAME(*)'
         fp.to_c2_type  = 'type(c_ptr)'
+        fp.to_c2_name  = 'z_NAME(*)'
+        fp.to_f2_type = fp.to_c2_type
+        fp.to_f2_name = fp.to_c2_name
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_var   = []
         fp.test_pat    = tp3 + x2 + jd1_loop + x2 + jd2_loop + x2 + jd3_loop + x4 + \
@@ -584,10 +593,6 @@ endif
 '''
 
     #----------
-
-    if fp.to_f2_type == '': fp.to_f2_type = fp.to_c2_type
-    if fp.to_f2_name == '': fp.to_f2_name = fp.to_c2_name
-    fp.test_pat = fp.test_pat.replace('SET', 'F%NAME = ' + test_value)
 
 #---------------------------
 # CHAR 0 NOT

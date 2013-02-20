@@ -161,70 +161,93 @@ void void_tensor_to_vec (const valarray< valarray< valarray< void** > > >& tenso
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_my
+
+extern "C" void my_to_c (const Bmad_my_class*, CPP_my&);
+
+// c_side.to_f2_arg
+extern "C" void my_to_f2 (Bmad_my_class*, c_Int&);
+
+extern "C" void my_to_f (const CPP_my& C, Bmad_my_class* F) {
+
+  // c_side.to_f2_call
+  my_to_f2 (F, C.a);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void my_to_c2 (CPP_my& C, c_Int& z_a) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.a = z_a;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_ttt
 
 extern "C" void ttt_to_c (const Bmad_ttt_class*, CPP_ttt&);
 
 // c_side.to_f2_arg
-extern "C" void ttt_to_f2 (Bmad_ttt_class*, c_Int&, c_IntArr, Int, c_IntArr, Int, c_IntArr,
-    c_IntArr, Int, c_IntArr, Int, c_IntArr, c_IntArr, Int, Int, c_IntArr, Int, Int, c_IntArr,
-    c_IntArr, Int, Int, Int, c_IntArr, Int, Int, Int);
+extern "C" void ttt_to_f2 (Bmad_ttt_class*, c_Bool&, c_BoolArr, Int, c_BoolArr, Int, c_BoolArr,
+    c_BoolArr, Int, c_BoolArr, Int, c_BoolArr, c_BoolArr, Int, Int, c_BoolArr, Int, Int,
+    c_BoolArr, c_BoolArr, Int, Int, Int, c_BoolArr, Int, Int, Int);
 
 extern "C" void ttt_to_f (const CPP_ttt& C, Bmad_ttt_class* F) {
-  // c_side.to_f_setup[integer, 0, PTR]
+  // c_side.to_f_setup[logical, 0, PTR]
   unsigned int n_ip0 = 0; if (C.ip0 != NULL) n_ip0 = 1;
-  // c_side.to_f_setup[integer, 0, ALLOC]
+  // c_side.to_f_setup[logical, 0, ALLOC]
   unsigned int n_ia0 = 0; if (C.ia0 != NULL) n_ia0 = 1;
-  // c_side.to_f_setup[integer, 1, PTR]
+  // c_side.to_f_setup[logical, 1, PTR]
   int n1_ip1 = C.ip1.size();
-  c_IntArr z_ip1 = NULL;
+  c_BoolArr z_ip1 = NULL;
   if (n1_ip1 > 0) {
     z_ip1 = &C.ip1[0];
   }
-  // c_side.to_f_setup[integer, 1, ALLOC]
+  // c_side.to_f_setup[logical, 1, ALLOC]
   int n1_ia1 = C.ia1.size();
-  c_IntArr z_ia1 = NULL;
+  c_BoolArr z_ia1 = NULL;
   if (n1_ia1 > 0) {
     z_ia1 = &C.ia1[0];
   }
-  // c_side.to_f_setup[integer, 2, NOT]
-  Int z_i2[3*2]; matrix_to_vec(C.i2, z_i2);
-  // c_side.to_f_setup[integer, 2, PTR]
+  // c_side.to_f_setup[logical, 2, NOT]
+  Bool z_i2[3*2]; matrix_to_vec(C.i2, z_i2);
+  // c_side.to_f_setup[logical, 2, PTR]
   int n1_ip2 = C.ip2.size(), n2_ip2 = 0;
-  Int* z_ip2 = NULL;
+  Bool* z_ip2 = NULL;
   if (n1_ip2 > 0) {
     n2_ip2 = C.ip2[0].size();
-    z_ip2 = new Int [n1_ip2*n2_ip2];
+    z_ip2 = new Bool [n1_ip2*n2_ip2];
     matrix_to_vec (C.ip2, z_ip2);
   }
-  // c_side.to_f_setup[integer, 2, ALLOC]
+  // c_side.to_f_setup[logical, 2, ALLOC]
   int n1_ia2 = C.ia2.size(), n2_ia2 = 0;
-  Int* z_ia2 = NULL;
+  Bool* z_ia2 = NULL;
   if (n1_ia2 > 0) {
     n2_ia2 = C.ia2[0].size();
-    z_ia2 = new Int [n1_ia2*n2_ia2];
+    z_ia2 = new Bool [n1_ia2*n2_ia2];
     matrix_to_vec (C.ia2, z_ia2);
   }
-  // c_side.to_f_setup[integer, 3, NOT]
-  Int z_i3[3*2*1]; tensor_to_vec(C.i3, z_i3);
-  // c_side.to_f_setup[integer, 3, PTR]
+  // c_side.to_f_setup[logical, 3, NOT]
+  Bool z_i3[3*2*1]; tensor_to_vec(C.i3, z_i3);
+  // c_side.to_f_setup[logical, 3, PTR]
 
   int n1_ip3 = C.ip3.size(), n2_ip3 = 0, n3_ip3 = 0;
-  Int* z_ip3 = NULL;
+  Bool* z_ip3 = NULL;
   if (n1_ip3 > 0) {
     n2_ip3 = C.ip3[0].size();
     n3_ip3 = C.ip3[0][0].size();
-    z_ip3 = new Int [C.ip3.size()*C.ip3[0].size()*C.ip3[0][0].size()];
+    z_ip3 = new Bool [C.ip3.size()*C.ip3[0].size()*C.ip3[0][0].size()];
     tensor_to_vec (C.ip3, z_ip3);
   }
-  // c_side.to_f_setup[integer, 3, ALLOC]
+  // c_side.to_f_setup[logical, 3, ALLOC]
 
   int n1_ia3 = C.ia3.size(), n2_ia3 = 0, n3_ia3 = 0;
-  Int* z_ia3 = NULL;
+  Bool* z_ia3 = NULL;
   if (n1_ia3 > 0) {
     n2_ia3 = C.ia3[0].size();
     n3_ia3 = C.ia3[0][0].size();
-    z_ia3 = new Int [C.ia3.size()*C.ia3[0].size()*C.ia3[0][0].size()];
+    z_ia3 = new Bool [C.ia3.size()*C.ia3[0].size()*C.ia3[0][0].size()];
     tensor_to_vec (C.ia3, z_ia3);
   }
 
@@ -233,68 +256,68 @@ extern "C" void ttt_to_f (const CPP_ttt& C, Bmad_ttt_class* F) {
       z_ip2, n1_ip2, n2_ip2, z_ia2, n1_ia2, n2_ia2, z_i3, z_ip3, n1_ip3, n2_ip3, n3_ip3, z_ia3,
       n1_ia3, n2_ia3, n3_ia3);
 
-  // c_side.to_f_cleanup[integer, 2, PTR]
+  // c_side.to_f_cleanup[logical, 2, PTR]
   delete[] z_ip2;
-  // c_side.to_f_cleanup[integer, 2, ALLOC]
+  // c_side.to_f_cleanup[logical, 2, ALLOC]
   delete[] z_ia2;
-  // c_side.to_f_cleanup[integer, 3, PTR]
+  // c_side.to_f_cleanup[logical, 3, PTR]
   delete[] z_ip3;
-  // c_side.to_f_cleanup[integer, 3, ALLOC]
+  // c_side.to_f_cleanup[logical, 3, ALLOC]
   delete[] z_ia3;
 }
 
 // c_side.to_c2_arg
-extern "C" void ttt_to_c2 (CPP_ttt& C, c_Int& z_i0, c_IntArr z_ip0, Int n_ip0, c_IntArr z_ia0,
-    Int n_ia0, c_IntArr z_i1, c_IntArr z_ip1, Int n1_ip1, c_IntArr z_ia1, Int n1_ia1, c_IntArr
-    z_i2, c_IntArr z_ip2, Int n1_ip2, Int n2_ip2, c_IntArr z_ia2, Int n1_ia2, Int n2_ia2,
-    c_IntArr z_i3, c_IntArr z_ip3, Int n1_ip3, Int n2_ip3, Int n3_ip3, c_IntArr z_ia3, Int
-    n1_ia3, Int n2_ia3, Int n3_ia3) {
+extern "C" void ttt_to_c2 (CPP_ttt& C, c_Bool& z_i0, c_BoolArr z_ip0, Int n_ip0, c_BoolArr
+    z_ia0, Int n_ia0, c_BoolArr z_i1, c_BoolArr z_ip1, Int n1_ip1, c_BoolArr z_ia1, Int n1_ia1,
+    c_BoolArr z_i2, c_BoolArr z_ip2, Int n1_ip2, Int n2_ip2, c_BoolArr z_ia2, Int n1_ia2, Int
+    n2_ia2, c_BoolArr z_i3, c_BoolArr z_ip3, Int n1_ip3, Int n2_ip3, Int n3_ip3, c_BoolArr
+    z_ia3, Int n1_ia3, Int n2_ia3, Int n3_ia3) {
 
-  // c_side.to_c2_set[integer, 0, NOT]
+  // c_side.to_c2_set[logical, 0, NOT]
   C.i0 = z_i0;
-  // c_side.to_c2_set[integer, 0, PTR]
+  // c_side.to_c2_set[logical, 0, PTR]
   if (n_ip0 == 0)
     delete C.ip0;
   else {
-    C.ip0 = new Int;
+    C.ip0 = new Bool;
     *C.ip0 = *z_ip0;
   }
 
-  // c_side.to_c2_set[integer, 0, ALLOC]
+  // c_side.to_c2_set[logical, 0, ALLOC]
   if (n_ia0 == 0)
     delete C.ia0;
   else {
-    C.ia0 = new Int;
+    C.ia0 = new Bool;
     *C.ia0 = *z_ia0;
   }
 
-  // c_side.to_c2_set[integer, 1, NOT]
+  // c_side.to_c2_set[logical, 1, NOT]
   C.i1 << z_i1;
-  // c_side.to_c2_set[integer, 1, PTR]
+  // c_side.to_c2_set[logical, 1, PTR]
 
   C.ip1.resize(n1_ip1);
   C.ip1 << z_ip1;
 
-  // c_side.to_c2_set[integer, 1, ALLOC]
+  // c_side.to_c2_set[logical, 1, ALLOC]
 
   C.ia1.resize(n1_ia1);
   C.ia1 << z_ia1;
 
-  // c_side.to_c2_set[integer, 2, NOT]
+  // c_side.to_c2_set[logical, 2, NOT]
   C.i2 << z_i2;
-  // c_side.to_c2_set[integer, 2, PTR]
+  // c_side.to_c2_set[logical, 2, PTR]
   C.ip2.resize(n1_ip2);
   for (int i = 0; i < n1_ip2; i++) C.ip2[i].resize(n2_ip2);
   C.ip2 << z_ip2;
 
-  // c_side.to_c2_set[integer, 2, ALLOC]
+  // c_side.to_c2_set[logical, 2, ALLOC]
   C.ia2.resize(n1_ia2);
   for (int i = 0; i < n1_ia2; i++) C.ia2[i].resize(n2_ia2);
   C.ia2 << z_ia2;
 
-  // c_side.to_c2_set[integer, 3, NOT]
+  // c_side.to_c2_set[logical, 3, NOT]
   C.i3 << z_i3;
-  // c_side.to_c2_set[integer, 3, PTR]
+  // c_side.to_c2_set[logical, 3, PTR]
   C.ip3.resize(n1_ip3);
   for (unsigned int i = 0; i < C.ip3.size(); i++) {
     C.ip3[i].resize(n2_ip3);
@@ -303,7 +326,7 @@ extern "C" void ttt_to_c2 (CPP_ttt& C, c_Int& z_i0, c_IntArr z_ip0, Int n_ip0, c
   }
   C.ip3 << z_ip3;
 
-  // c_side.to_c2_set[integer, 3, ALLOC]
+  // c_side.to_c2_set[logical, 3, ALLOC]
   C.ia3.resize(n1_ia3);
   for (unsigned int i = 0; i < C.ia3.size(); i++) {
     C.ia3[i].resize(n2_ia3);

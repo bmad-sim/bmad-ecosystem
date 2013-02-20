@@ -53,10 +53,39 @@ typedef valarray<Real_MATRIX>      Real_TENSOR;
 typedef valarray<Int_MATRIX>       Int_TENSOR;
 
 
+class CPP_my;
+typedef valarray<CPP_my>          CPP_my_ARRAY;
+typedef valarray<CPP_my_ARRAY>    CPP_my_MATRIX;
+typedef valarray<CPP_my_MATRIX>   CPP_my_TENSOR;
+
 class CPP_ttt;
 typedef valarray<CPP_ttt>          CPP_ttt_ARRAY;
 typedef valarray<CPP_ttt_ARRAY>    CPP_ttt_MATRIX;
 typedef valarray<CPP_ttt_MATRIX>   CPP_ttt_TENSOR;
+
+//--------------------------------------------------------------------
+// CPP_my
+
+class Bmad_my_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_my {
+public:
+  Int a;
+
+  CPP_my() :
+    a(0)
+    {}
+
+  ~CPP_my() {
+  }
+
+};   // End Class
+
+extern "C" void my_to_c (const Bmad_my_class*, CPP_my&);
+extern "C" void my_to_f (const CPP_my&, Bmad_my_class*);
+
+bool operator== (const CPP_my&, const CPP_my&);
+
 
 //--------------------------------------------------------------------
 // CPP_ttt
@@ -65,32 +94,32 @@ class Bmad_ttt_class {};  // Opaque class for pointers to corresponding fortran 
 
 class CPP_ttt {
 public:
-  Int i0;
-  Int* ip0;
-  Int* ia0;
-  Int_ARRAY i1;
-  Int_ARRAY ip1;
-  Int_ARRAY ia1;
-  Int_MATRIX i2;
-  Int_MATRIX ip2;
-  Int_MATRIX ia2;
-  Int_TENSOR i3;
-  Int_TENSOR ip3;
-  Int_TENSOR ia3;
+  Bool i0;
+  Bool* ip0;
+  Bool* ia0;
+  Bool_ARRAY i1;
+  Bool_ARRAY ip1;
+  Bool_ARRAY ia1;
+  Bool_MATRIX i2;
+  Bool_MATRIX ip2;
+  Bool_MATRIX ia2;
+  Bool_TENSOR i3;
+  Bool_TENSOR ip3;
+  Bool_TENSOR ia3;
 
   CPP_ttt() :
-    i0(0),
+    i0(false),
     ip0(NULL),
     ia0(NULL),
-    i1(0, 3),
-    ip1(0, 0),
-    ia1(0, 0),
-    i2(Int_ARRAY(0, 2), 3),
-    ip2(Int_ARRAY(0, 0), 0),
-    ia2(Int_ARRAY(0, 0), 0),
-    i3(Int_MATRIX(Int_ARRAY(0, 1), 2), 3),
-    ip3(Int_MATRIX(Int_ARRAY(0, 0), 0), 0),
-    ia3(Int_MATRIX(Int_ARRAY(0, 0), 0), 0)
+    i1(false, 3),
+    ip1(false, 0),
+    ia1(false, 0),
+    i2(Bool_ARRAY(false, 2), 3),
+    ip2(Bool_ARRAY(false, 0), 0),
+    ia2(Bool_ARRAY(false, 0), 0),
+    i3(Bool_MATRIX(Bool_ARRAY(false, 1), 2), 3),
+    ip3(Bool_MATRIX(Bool_ARRAY(false, 0), 0), 0),
+    ia3(Bool_MATRIX(Bool_ARRAY(false, 0), 0), 0)
     {}
 
   ~CPP_ttt() {

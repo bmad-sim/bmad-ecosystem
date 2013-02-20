@@ -72,6 +72,17 @@ template bool is_all_equal (const Int_TENSOR&,      const Int_TENSOR&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_my& x, const CPP_my& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.a == y.a);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_my_ARRAY&, const CPP_my_ARRAY&);
+template bool is_all_equal (const CPP_my_MATRIX&, const CPP_my_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_ttt& x, const CPP_ttt& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.i0 == y.i0);

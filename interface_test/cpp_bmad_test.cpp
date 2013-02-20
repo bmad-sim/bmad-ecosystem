@@ -17,54 +17,105 @@ using namespace std;
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_my (CPP_my&, bool&);
+
+void set_CPP_my_test_pattern (CPP_my& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.a = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_my (Bmad_my_class* F, bool& c_ok) {
+
+  CPP_my C, C2;
+
+  c_ok = true;
+
+  my_to_c (F, C);
+  set_CPP_my_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " my: C side convert F->C: Good" << endl;
+  } else {
+    cout << " my: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_my_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_my (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_my_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " my: F side convert F->C: Good" << endl;
+  } else {
+    cout << " my: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_my_test_pattern (C2, 4);
+  my_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_ttt (CPP_ttt&, bool&);
 
 void set_CPP_ttt_test_pattern (CPP_ttt& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.i0 = rhs;
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 1 + offset; C.i0 = (rhs % 2 == 0);
 
-  // c_side.test_pat[integer, 0, PTR]
+  // c_side.test_pat[logical, 0, PTR]
   if (ix_patt < 3) 
     C.ip0 = NULL;
   else {
-    C.ip0 = new Int;
-    rhs = 2 + offset; (*C.ip0) = rhs;
+    C.ip0 = new Bool;
+    rhs = 2 + offset; (*C.ip0) = (rhs % 2 == 0);
   }
 
-  // c_side.test_pat[integer, 0, ALLOC]
+  // c_side.test_pat[logical, 0, ALLOC]
   if (ix_patt < 3) 
     C.ia0 = NULL;
   else {
-    C.ia0 = new Int;
-    rhs = 4 + offset; (*C.ia0) = rhs;
+    C.ia0 = new Bool;
+    rhs = 4 + offset; (*C.ia0) = (rhs % 2 == 0);
   }
 
-  // c_side.test_pat[integer, 1, NOT]
+  // c_side.test_pat[logical, 1, NOT]
   for (unsigned int i = 0; i < C.i1.size(); i++)
-    {int rhs = 101 + i + 6 + offset; C.i1[i] = rhs;}
-  // c_side.test_pat[integer, 1, PTR]
+    {int rhs = 101 + i + 6 + offset; C.i1[i] = (rhs % 2 == 0);}
+  // c_side.test_pat[logical, 1, PTR]
   if (ix_patt < 3) 
     C.ip1.resize(0);
   else {
     C.ip1.resize(3);
     for (unsigned int i = 0; i < C.ip1.size(); i++)
-      {int rhs = 101 + i + 7 + offset; C.ip1[i] = rhs;}  }
+      {int rhs = 101 + i + 7 + offset; C.ip1[i] = (rhs % 2 == 0);}  }
 
-  // c_side.test_pat[integer, 1, ALLOC]
+  // c_side.test_pat[logical, 1, ALLOC]
   if (ix_patt < 3) 
     C.ia1.resize(0);
   else {
     C.ia1.resize(3);
     for (unsigned int i = 0; i < C.ia1.size(); i++)
-      {int rhs = 101 + i + 9 + offset; C.ia1[i] = rhs;}  }
+      {int rhs = 101 + i + 9 + offset; C.ia1[i] = (rhs % 2 == 0);}  }
 
-  // c_side.test_pat[integer, 2, NOT]
+  // c_side.test_pat[logical, 2, NOT]
   for (unsigned int i = 0; i < C.i2.size(); i++)  for (unsigned int j = 0; j < C.i2[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 11 + offset; C.i2[i][j] = rhs;}
-  // c_side.test_pat[integer, 2, PTR]
+    {int rhs = 101 + i + 10*(j+1) + 11 + offset; C.i2[i][j] = (rhs % 2 == 0);}
+  // c_side.test_pat[logical, 2, PTR]
   if (ix_patt < 3) 
     C.ip2.resize(0);
   else {
@@ -72,9 +123,9 @@ void set_CPP_ttt_test_pattern (CPP_ttt& C, int ix_patt) {
     for (unsigned int i = 0; i < C.ip2.size(); i++)
       C.ip2[i].resize(2);
     for (unsigned int i = 0; i < C.ip2.size(); i++)  for (unsigned int j = 0; j < C.ip2[0].size(); j++) 
-      {int rhs = 101 + i + 10*(j+1) + 12 + offset; C.ip2[i][j] = rhs;}  }
+      {int rhs = 101 + i + 10*(j+1) + 12 + offset; C.ip2[i][j] = (rhs % 2 == 0);}  }
 
-  // c_side.test_pat[integer, 2, ALLOC]
+  // c_side.test_pat[logical, 2, ALLOC]
   if (ix_patt < 3) 
     C.ia2.resize(0);
   else {
@@ -82,12 +133,12 @@ void set_CPP_ttt_test_pattern (CPP_ttt& C, int ix_patt) {
     for (unsigned int i = 0; i < C.ia2.size(); i++)
       C.ia2[i].resize(2);
     for (unsigned int i = 0; i < C.ia2.size(); i++)  for (unsigned int j = 0; j < C.ia2[0].size(); j++) 
-      {int rhs = 101 + i + 10*(j+1) + 15 + offset; C.ia2[i][j] = rhs;}  }
+      {int rhs = 101 + i + 10*(j+1) + 15 + offset; C.ia2[i][j] = (rhs % 2 == 0);}  }
 
-  // c_side.test_pat[integer, 3, NOT]
+  // c_side.test_pat[logical, 3, NOT]
   for (unsigned int i = 0; i < C.i3.size(); i++)  for (unsigned int j = 0; j < C.i3[0].size(); j++)   for (unsigned int k = 0; k < C.i3[0][0].size(); k++)
-    {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 18 + offset; C.i3[i][j][k] = rhs;}
-  // c_side.test_pat[integer, 3, PTR]
+    {int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 18 + offset; C.i3[i][j][k] = (rhs % 2 == 0);}
+  // c_side.test_pat[logical, 3, PTR]
   if (ix_patt < 3) 
     C.ip3.resize(0);
   else {
@@ -97,13 +148,13 @@ void set_CPP_ttt_test_pattern (CPP_ttt& C, int ix_patt) {
       for (unsigned int j = 0; j < C.ip3[0].size(); j++) {
         C.ip3[i][j].resize(1);
         for (unsigned int k = 0; k < C.ip3[0][0].size(); k++) {
-          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 19 + offset; C.ip3[i][j][k] = rhs;
+          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 19 + offset; C.ip3[i][j][k] = (rhs % 2 == 0);
         }
       }
     }
   }
 
-  // c_side.test_pat[integer, 3, ALLOC]
+  // c_side.test_pat[logical, 3, ALLOC]
   if (ix_patt < 3) 
     C.ia3.resize(0);
   else {
@@ -113,7 +164,7 @@ void set_CPP_ttt_test_pattern (CPP_ttt& C, int ix_patt) {
       for (unsigned int j = 0; j < C.ia3[0].size(); j++) {
         C.ia3[i][j].resize(1);
         for (unsigned int k = 0; k < C.ia3[0][0].size(); k++) {
-          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 23 + offset; C.ia3[i][j][k] = rhs;
+          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 23 + offset; C.ia3[i][j][k] = (rhs % 2 == 0);
         }
       }
     }
