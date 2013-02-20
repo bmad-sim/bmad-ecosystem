@@ -775,8 +775,8 @@ keep the statistics correct. The relative intensity of the outgoing photon is
 The time dependent Hamiltonian $H_t$ in the curvilinear coordinate system shown
 in \fig{f:local.coords} is
 \Begineq
-  H_t = \wt\psi + \left[ \wt m^2 + (p_x - a_x)^2 + (p_y - a_y)^2 +  
-  \left( \frac{p_s - a_s}{1 + g\, x} \right)^2 \right]^{1/2}
+  H_t = \wt\psi + \left[ \left( \frac{p_s - a_s}{1 + g\, x} \right)^2 + \wt m^2 + 
+  (p_x - a_x)^2 + (p_y - a_y)^2 +  \right]^{1/2}
 \Endeq
 where $(p_x, p_y, p_s/(1+gx))$ are the momentum normalized by $P_0$,
 $\rho$ being the local radius of curvature of the reference particle,
@@ -792,13 +792,24 @@ The $s$-dependent Hamiltonian is obtained from $H_t$ by solving for
 $-p_s$. For particles propagating in the positive $s$ direction the
 $s$-dependent Hamiltonian is
 \Begineq
-  H \equiv H_s = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2 - \wt m^2} - a_s
+  H_{s,E} = -(1 + g \, x) \sqrt{\wt E^2 - \wt m^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s
+  \label{hse1gx1}
+\Endeq
+where $\wt E = E/c\, P_0$ is the normalized energy and the equation 
+has been simplified by assuming that $\wt\psi$ is zero. Using a contact
+transformation to convert to \bmad coordinates (\sref{s:phase.space}) gives
+\Begineq
+  H \equiv H_s = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s +
+  \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
   \label{h1gx1}
 \Endeq
-Here $(p_z)$ is canonical coordinate (\sref{s:phase.space}) and the
-equation for $H$ has been simplified by assuming that $\wt\psi$ is
-zero. 
-The equations of motion are
+where $\beta_0$ is the reference velocity. The last term on the RHS of
+\Eq{h1gx1} accounts for the fact that the \bmad canonical $z$ (\Eq{zbctt})
+has an ``extra'' term $\beta \, c \, t_0$ so that \bmad canonical $z$ is with
+respect to the reference particle's $z$.
+
+The equations
+of motion are
 \begin{equation}
   \frac{dq_i}{ds} = \frac{\partial H}{\partial p_i} \qquad
   \frac{dp_i}{ds} = -\frac{\partial H}{\partial q_i}
@@ -808,16 +819,17 @@ The equations of motion are
 For backwards propagation, where $p_s$ is negative, solving for $p_s$ involves using
 a different part of the squareroot branch. the Hamiltonian $H_{-s}$ is then
 \Begineq
-  H_{-s} = (1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2 - \wt m^2} - a_s
+  H_{-s} = (1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s - 
+  \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
 \Endeq
 
-\label{paraxial approximation}
-Without an electric field, $\psi$ is zero. Ignoring the $(m \, c) / P_0$ term,
-assuming a non-curved coordinate system ($g = 0$),
-and using the paraxial approximation (\sref{s:phase.space}), \Eq{h1gx1} becomes
+\label{paraxial approximation} 
+Without an electric field, $\psi$ is zero. Assuming a non-curved
+coordinate system ($g = 0$), and using the paraxial approximation
+(\sref{s:phase.space}), \Eq{h1gx1} becomes
 \Begineq
   H = \frac{(p_x - a_x)^2}{2 (1 + p_z)} + \frac{(p_y - a_y)^2}{2 (1 + p_z)} - 
-  (1 + g \, x) \, a_s + \frac{\wt m^2}{2 (1 + p_z)}
+  (1 + g \, x) \, a_s +   \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
   \label{hpapa}
 \Endeq
 
@@ -826,7 +838,7 @@ $z_2$ at the exit end of an element is obtained from symplectic
 integration of \Eq{hpapa}
 \Begineq
   z_2 = z_1 - \frac{1}{2 (1 + p_{z1})^2} \int \! ds \, 
-  \left[ (p_x - a_x)^2 + (p_y - a_y)^2 + \wt m^2 \right] - \int \! ds \, g \, x
+  \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \, g \, x
   \label{zz121p}
 \Endeq
 where $z_1$ is the longitudinal position at the entrance end of the element.
