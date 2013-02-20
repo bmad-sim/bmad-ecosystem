@@ -24,8 +24,8 @@ import textwrap
 ##################################################################################
 # Init
 
-## master_input_file = 'test_interface_input'
-master_input_file = 'interface_input_params'
+master_input_file = 'test_interface_input'
+##master_input_file = 'interface_input_params'
 
 n_char_max = 95
 debug = False # Change to True to enable printout
@@ -124,8 +124,10 @@ class f_side_trans_class:
 
   def __init__(self):
     self.to_c2_call = ''
-    self.bindc_type = ''
-    self.bindc_name = ''
+    self.to_c2_type = ''
+    self.to_c2_name = ''
+    self.to_f2_type = ''
+    self.to_f2_name = ''
     self.equality_test = 'is_eq = is_eq .and. all(f1%NAME == f2%NAME)\n'
     self.test_pat = 'rhs = XXX + offset; F%NAME = NNN\n'
     self.to_c2_f2_sub_arg = 'z_NAME'
@@ -136,7 +138,8 @@ class f_side_trans_class:
     self.size_var = []              # For communicating the size of allocatable and pointer variables
 
   def __repr__(self):
-    return '%s,  %s,  %s :: %s' % (self.to_c2_call, self.bindc_type, self.bindc_name, self.to_f2_trans)
+    return '%s,  %s,  %s :: %s' % (self.to_c2_call, self.to_c2_type, self.to_c2_name, 
+                                   self.to_f2_trans, self.to_f2_type, self.to_f2_name)
 
 #------------------------
 
@@ -145,18 +148,8 @@ x4 = ' ' * 4
 x6 = ' ' * 6
 x8 = ' ' * 8
 
-to_f2_trans_pointer0 = '''\
-if (n_NAME == 0) then
-  if (associated(F%NAME)) deallocate(F%NAME)
-else
-  call c_f_pointer (z_NAME, f_NAME)
-  if (.not. associated(F%NAME)) allocate(F%NAME)
-  SET
-endif
-'''
-
-to_f2_trans_pointer = \
-'''if (associated(F%NAME)) then
+to_f2_trans_pointer = '''\
+if (associated(F%NAME)) then
   if (n1_NAME == 0 .or. any(shape(F%NAME) /= [DIMS])) deallocate(F%NAME)
   if (any(lbound(F%NAME) /= LBOUND)) deallocate(F%NAME)
 endif
@@ -169,8 +162,7 @@ else
 endif
 '''
 
-equality_test_pointer = \
-'''\
+equality_test_pointer = '''\
 is_eq = is_eq .and. (associated(f1%NAME) .eqv. associated(f2%NAME))
 if (.not. is_eq) return
 if (associated(f1%NAME)) is_eq = all(shape(f1%NAME) == shape(f2%NAME))
@@ -204,29 +196,31 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     f = f_side_trans[type, dim, NOT]
 
     if type == REAL:
-      f.bindc_type = 'real(c_double)'
+      f.to_c2_type = 'real(c_double)'
       test_value = 'rhs'
 
     if type == CMPLX:
-      f.bindc_type = 'complex(c_double_complex)'
+      f.to_c2_type = 'complex(c_double_complex)'
       test_value = 'cmplx(rhs, 100+rhs)'
 
     if type == INT:
-      f.bindc_type = 'integer(c_int)'
+      f.to_c2_type = 'integer(c_int)'
       test_value = 'rhs'
 
     if type == LOGIC:
-      f.bindc_type = 'logical(c_bool)'
+      f.to_c2_type = 'logical(c_bool)'
       test_value = '(modulo(rhs, 2) == 0)'
 
     if type == STRUCT:
-      f.bindc_type = 'type(c_ptr)'
+      f.to_c2_type = 'type(c_ptr)'
       test_value = 'NNN'
 
     if type == SIZE:
       f.to_c2_call       = 'NAME'
-      f.bindc_type       = 'integer(c_int), value'
-      f.bindc_name       = 'NAME'
+      f.to_c2_type       = 'integer(c_int), value'
+      f.to_c2_name       = 'NAME'
+      f.to_f2_type       = 'integer(c_int), value'
+      f.to_f2_name       = 'NAME'
       f.to_f2_trans      = ''
       f.to_c2_f2_sub_arg = 'NAME'
       f.to_c_var         = ['integer(c_int) :: NAME']
@@ -236,7 +230,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     #-----------------------------------------------
 
     if dim == 0: 
-      f.bindc_name    = 'z_NAME'
+      f.to_c2_name    = 'z_NAME'
       f.equality_test = 'is_eq = is_eq .and. (f1%NAME == f2%NAME)\n'
       f.to_c2_call    = 'F%NAME'
       f.test_pat      = f.test_pat
@@ -245,7 +239,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
         f.to_f2_trans = 'F%NAME = f_logic(z_NAME)'
         f.equality_test = f.equality_test.replace('==', '.eqv.')
       if type == STRUCT:
-        f.bindc_type = 'type(c_ptr), value'
+        f.to_c2_type = 'type(c_ptr), value'
         f.to_c2_call = 'c_loc(F%NAME)'
         f.to_f2_trans = 'call KIND_to_f(z_NAME, c_loc(F%NAME))'
         f.test_pat    = 'call set_KIND_test_pattern (F%NAME, ix_patt)\n'
@@ -254,7 +248,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
     if dim == 1:
       f.to_c2_call  = 'fvec2vec(F%NAME, DIM1)'
-      f.bindc_name  = 'z_NAME(*)'
+      f.to_c2_name  = 'z_NAME(*)'
       f.to_f2_trans = 'F%NAME = z_NAME(1:DIM1)'
       f.test_pat    = test_pat1
       if type == LOGIC:
@@ -272,7 +266,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     if dim == 2:
       f.to_f2_trans = 'call vec2mat(z_NAME, F%NAME)'
       f.to_c2_call  = 'mat2vec(F%NAME, DIM2)'
-      f.bindc_name  = 'z_NAME(*)'
+      f.to_c2_name  = 'z_NAME(*)'
       f.test_pat    = test_pat2
       if type == LOGIC:
         f.equality_test = f.equality_test.replace('==', '.eqv.')
@@ -291,7 +285,7 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     if dim == 3:
       f.to_f2_trans = 'call vec2tensor(z_NAME, F%NAME)'
       f.to_c2_call  = 'tensor2vec(F%NAME, DIM3)'
-      f.bindc_name  = 'z_NAME(*)'
+      f.to_c2_name  = 'z_NAME(*)'
       f.test_pat    = test_pat3
       if type == LOGIC:
         f.equality_test = f.equality_test.replace('==', '.eqv.')
@@ -311,6 +305,8 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
     #-------------------------
 
     f.test_pat    = f.test_pat.replace('NNN', test_value)
+    if f.to_f2_type == '': f.to_f2_type = f.to_c2_type
+    if f.to_f2_name == '': f.to_f2_name = f.to_c2_name
 
     #---------------------------------------------------------------------------------------------
     #---------------------------------------------------------------------------------------------
@@ -318,17 +314,28 @@ for type in [REAL, CMPLX, INT, LOGIC, STRUCT, SIZE]:
 
     f_side_trans[type, dim, PTR] = f_side_trans_class()
     fp = f_side_trans[type, dim, PTR]
-    fp.to_f2_var = [f.bindc_type + ', pointer :: f_NAME(:)'] 
-    fp.bindc_type = 'type(c_ptr), value'
-    fp.bindc_name = 'z_NAME'
+    fp.to_c2_type = f.to_c2_type
+    fp.to_c2_name = 'z_NAME(*)'
+    fp.to_f2_type = 'type(c_ptr), value'
+    fp.to_f2_name = 'z_NAME'
+    fp.to_f2_var = [f.to_f2_type + ', pointer :: f_NAME(:)'] 
 
     #---------------------
     # Pointer, dim = 0
 
     if dim == 0:
-      fp.to_c2_call = 'c_loc(F%NAME)'
-      fp.to_f2_var = [f.bindc_type + ', pointer :: f_NAME'] 
-      fp.to_f2_trans = to_f2_trans_pointer0.replace('SET', 'F%NAME = f_NAME')
+      fp.to_f2_var = [f.to_f2_type + ', pointer :: f_NAME'] 
+      fp.to_c2_name = 'z_NAME'
+      fp.to_c2_call = 'F%NAME'
+      fp.to_f2_trans = '''\
+if (n_NAME == 0) then                                                                                  
+  if (associated(F%NAME)) deallocate(F%NAME)                                                           
+else                                                                                                   
+  call c_f_pointer (z_NAME, f_NAME)                                                                    
+  if (.not. associated(F%NAME)) allocate(F%NAME)                                                       
+  F%NAME = f_NAME
+endif                                                                                                  
+'''
 
       fp.to_c_trans = '''\
 n_NAME = 0
@@ -354,9 +361,11 @@ endif
       if type == LOGIC:
         fp.equality_test = fp.equality_test.replace('== f', '.eqv. f')
         fp.to_f2_trans = fp.to_f2_trans.replace('= f_NAME', '= f_logic(f_NAME)')
-        fp.to_c2_call = 'c_loc(fscaler2scaler(F%NAME, n_NAME))'
+        fp.to_c2_call = 'fscaler2scaler(F%NAME, n_NAME)'
+        fp.to_c2_type = 'logical(c_bool)'
 
       if type == STRUCT:
+        fp.to_c2_type = 'type(c_ptr), value'
         fp.to_f2_var = ['type(KIND_struct), pointer :: f_NAME'] 
         fp.test_pat = fp.test_pat.replace('SET', 'call set_KIND_test_pattern (F%NAME, ix_patt)')
         fp.to_f2_trans = '''\
@@ -373,14 +382,15 @@ endif
 
     if dim == 1:
 
-      fp.to_c2_call = 'c_loc(fvec2vec(F%NAME, n1_NAME))'
+      fp.to_c2_call = 'fvec2vec(F%NAME, n1_NAME)'
       fp.to_f2_trans = to_f2_trans_pointer.replace('DIMS', 'n1_NAME')\
                                           .replace('TOTDIM', 'n1_NAME')\
                                           .replace('SET', 'F%NAME = f_NAME(1:n1_NAME)')
       fp.equality_test = equality_test_pointer
 
       fp.to_c_trans  = \
-'''n1_NAME = 0
+'''\
+n1_NAME = 0
 if (associated(F%NAME)) then
   n1_NAME = size(F%NAME, 1)
 endif
@@ -400,8 +410,8 @@ else
 
       if type == STRUCT:
         fp.to_c2_call  = 'z_NAME'
-        fp.bindc_name  = 'z_NAME(*)'
-        fp.bindc_type  = 'type(c_ptr)'
+        fp.to_c2_name  = 'z_NAME(*)'
+        fp.to_c2_type  = 'type(c_ptr)'
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_var = []
         fp.test_pat    = tp1 + x2 + jd1_loop + x4 + \
@@ -436,7 +446,7 @@ endif
     # Pointer, dim = 2
 
     if dim == 2:
-      fp.to_c2_call = 'c_loc(mat2vec(F%NAME, n1_NAME*n2_NAME))'
+      fp.to_c2_call = 'mat2vec(F%NAME, n1_NAME*n2_NAME)'
       fp.to_f2_trans = to_f2_trans_pointer.replace('DIMS', 'n1_NAME, n2_NAME')\
                                           .replace('TOTDIM', 'n1_NAME*n2_NAME')\
                                           .replace('SET', 'call vec2mat(f_NAME, F%NAME)')
@@ -465,8 +475,8 @@ else
 
       if type == STRUCT:
         fp.to_c2_call  = 'z_NAME'
-        fp.bindc_name  = 'z_NAME(*)'
-        fp.bindc_type  = 'type(c_ptr)'
+        fp.to_c2_name  = 'z_NAME(*)'
+        fp.to_c2_type  = 'type(c_ptr)'
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_var   = []
         fp.test_pat    = tp2 + x2 + jd1_loop + x2 + jd2_loop + x4 + \
@@ -506,7 +516,7 @@ endif
     # Pointer, dim = 3
 
     if dim == 3:
-      fp.to_c2_call = 'c_loc(tensor2vec(F%NAME, n1_NAME*n2_NAME*n3_NAME))'
+      fp.to_c2_call = 'tensor2vec(F%NAME, n1_NAME*n2_NAME*n3_NAME)'
       fp.to_f2_trans = to_f2_trans_pointer.replace('DIMS', 'n1_NAME, n2_NAME, n3_NAME')\
                                           .replace('TOTDIM', 'n1_NAME*n2_NAME*n3_NAME')\
                                           .replace('SET', 'call vec2tensor(f_NAME, F%NAME)')
@@ -537,8 +547,8 @@ else
 
       if type == STRUCT:
         fp.to_c2_call  = 'z_NAME'
-        fp.bindc_name  = 'z_NAME(*)'
-        fp.bindc_type  = 'type(c_ptr)'
+        fp.to_c2_name  = 'z_NAME(*)'
+        fp.to_c2_type  = 'type(c_ptr)'
         fp.to_c_var    = ['type(c_ptr), allocatable :: z_NAME(:)']
         fp.to_f2_var   = []
         fp.test_pat    = tp3 + x2 + jd1_loop + x2 + jd2_loop + x2 + jd3_loop + x4 + \
@@ -575,14 +585,16 @@ endif
 
     #----------
 
+    if fp.to_f2_type == '': fp.to_f2_type = fp.to_c2_type
+    if fp.to_f2_name == '': fp.to_f2_name = fp.to_c2_name
     fp.test_pat = fp.test_pat.replace('SET', 'F%NAME = ' + test_value)
 
 #---------------------------
 # CHAR 0 NOT
 
 f_side_trans[CHAR, 0, NOT] = f_side_trans_class()
-f_side_trans[CHAR, 0, NOT].bindc_type    = 'character(c_char)'
-f_side_trans[CHAR, 0, NOT].bindc_name    = 'z_NAME(*)'
+f_side_trans[CHAR, 0, NOT].to_c2_type    = 'character(c_char)'
+f_side_trans[CHAR, 0, NOT].to_c2_name    = 'z_NAME(*)'
 f_side_trans[CHAR, 0, NOT].to_c2_call    = 'trim(F%NAME) // c_null_char'
 f_side_trans[CHAR, 0, NOT].equality_test = 'is_eq = is_eq .and. (f1%NAME == f2%NAME)\n'
 f_side_trans[CHAR, 0, NOT].test_pat      = \
@@ -593,27 +605,27 @@ f_side_trans[CHAR, 0, NOT].to_f2_trans   = 'call to_f_str(z_NAME, F%NAME)'
 
 f_side_trans[CHAR, 0, PTR] = copy.deepcopy(f_side_trans[INT, 0, PTR])
 fc = f_side_trans[CHAR, 0, PTR] 
-fc.to_f2_var = ['character(c_char), pointer :: f_NAME']
-fc.to_f2_trans          = '''\
-call c_f_pointer (z_NAME, f_NAME)
-if (associated(f_NAME)) then
-  if (.not. associated(F%NAME)) allocate(F%NAME)
-  call to_f_str(f_NAME, F%NAME)
-else
+fc.to_c2_type       = 'character(c_char)'
+fc.to_c2_name       = 'z_NAME(*)'
+fc.to_f2_trans      = '''\
+if (n_NAME == 0) then
   if (associated(F%NAME)) deallocate(F%NAME)
+else
+  if (.not. associated(F%NAME)) allocate(F%NAME)
+  call to_f_str(z_NAME, F%NAME)
 endif
 '''
 
 fc.to_c_var        = ['character(STR_LEN+1), pointer :: f_NAME', 'character(STR_LEN+1), target :: a_NAME']
 fc.to_c_trans      = '''\
+n_NAME = 0
 if (associated(F%NAME)) then
+  n_NAME = 1
   a_NAME = trim(F%NAME) // c_null_char 
-  f_NAME => a_NAME
-else
-  nullify(f_NAME)
 endif
 '''
-fc.to_c2_call = 'c_loc(f_NAME)'
+
+fc.to_c2_call = 'f_NAME'
 
 fc.test_pat        = '''\
 if (ix_patt < 3) then
@@ -630,7 +642,7 @@ endif
 
 f_side_trans[CHAR, 1, NOT] = copy.deepcopy(f_side_trans[STRUCT, 1, NOT])
 fc = f_side_trans[CHAR, 1, NOT]
-fc.bindc_name    = 'z_NAME(*)'
+fc.to_c2_name    = 'z_NAME(*)'
 fc.to_f2_var     = ['character(c_char), pointer :: f_NAME']
 fc.test_pat      = '''\
 do jd1 = lbound(F%NAME, 1), ubound(F%NAME, 1)
@@ -655,6 +667,8 @@ fc.to_c_var += ['a_NAME(DIM1) :: character(STR_LEN+1)']
 
 f_side_trans[CHAR, 1, PTR] = copy.deepcopy(f_side_trans[STRUCT, 1, PTR])
 fc = f_side_trans[CHAR, 1, PTR] 
+fc.to_c2_type       = 'character(c_char)'
+fc.to_c2_name       = 'z_NAME(*)'
 fc.to_f2_var        = ['character(c_char), pointer :: f_NAME']
 fc.to_f2_trans      = fc.to_f2_trans.replace('ZZZ', 'string')
 fc.test_pat         = '''\
@@ -1153,12 +1167,16 @@ cc.destructor    = 'delete NAME;'
 cc.to_f2_call    = 'z_NAME'
 cc.to_f2_arg     = 'c_Char'
 cc.to_f_setup    = '''\
+  unsigned int n_NAME = 0;
   const char* z_NAME = NULL;  
-  if (C.NAME != NULL) z_NAME = C.NAME->c_str();
+  if (C.NAME != NULL) {
+    z_NAME = C.NAME->c_str();
+    n_name = 1;
+  }
 '''
 cc.to_c2_arg     = 'c_Char z_NAME'
 cc.to_c2_set     = '''\
-  if (z_NAME == NULL) 
+  if (n_NAME == 0) 
     delete C.NAME;
   else {
     C.NAME = new string;
@@ -1537,6 +1555,10 @@ for struct in struct_definitions:
     arg.c_side.test_pat            = arg.c_side.test_pat.replace('STR_LEN', arg.kind)
     arg.f_side.to_c_var            = [var.replace('STR_LEN', arg.kind) for var in arg.f_side.to_c_var]
 
+    id_name = struct.short_name + '%' + arg.f_name
+    lbound = params.f_side_lbound(id_name)
+    arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('LBOUND', lbound)
+
     if arg.type == 'type':
       kind = arg.kind[:-7]
       arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('KIND', kind)
@@ -1561,60 +1583,63 @@ for struct in struct_definitions:
         f_dim1 = str(1 + int(arg.ubound[0]) - int(arg.lbound[0]))
         c_dim1 = f_dim1
 
+      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM1', c_dim1)
       arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM1', f_dim1)
       arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM1', f_dim1)
       arg.f_side.to_c_var            = [var.replace('DIM1', f_dim1) for var in arg.f_side.to_c_var]
       arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM1', f_dim1)
       arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM1', f_dim1)
-      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM1', c_dim1)
       arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM1', c_dim1)
-      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM1', c_dim1)
+      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM1', c_dim1)
 
     if len(arg.array) >= 2 and p_type == NOT:
       d2 = 1 + int(arg.ubound[1]) - int(arg.lbound[1])
       dim2 = str(d2)
+      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM2', dim2)
       arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM2', dim2)
       arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM2', dim2)
       arg.f_side.to_c_var            = [var.replace('DIM2', dim2) for var in arg.f_side.to_c_var]
       arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM2', dim2)
       arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM2', f_dim1+'*'+dim2)
-      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM2', dim2)
       arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM2', dim2)
-      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM2', dim2)
+      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM2', dim2)
 
     if len(arg.array) >= 3 and p_type == NOT:
       d3 = 1 + int(arg.ubound[2]) - int(arg.lbound[2])
       dim3 = str(d3)
+      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM3', dim3)
       arg.f_side.to_f2_trans         = arg.f_side.to_f2_trans.replace('DIM3', dim3)
       arg.f_side.test_pat            = arg.f_side.test_pat.replace('DIM3', dim3)
       arg.f_side.to_c_var            = [var.replace('DIM3', dim3) for var in arg.f_side.to_c_var]
       arg.f_side.to_c_trans          = arg.f_side.to_c_trans.replace('DIM3', dim3)
       arg.f_side.to_c2_call          = arg.f_side.to_c2_call.replace('DIM3', f_dim1+'*'+dim2+'*'+dim3)
-      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM3', dim3)
       arg.c_side.to_c2_set           = arg.c_side.to_c2_set.replace('DIM3', dim3)
-      arg.c_side.to_f_setup          = arg.c_side.to_f_setup.replace('DIM3', dim3)
+      arg.c_side.constructor         = arg.c_side.constructor.replace('DIM3', dim3)
 
-    arg.f_side.bindc_name           = arg.f_side.bindc_name.replace('NAME', arg.f_name)
-    arg.f_side.to_c2_f2_sub_arg     = arg.f_side.to_c2_f2_sub_arg.replace('NAME', arg.f_name)
     arg.f_side.to_c_var             = [var.replace('NAME', arg.f_name) for var in arg.f_side.to_c_var]
     arg.f_side.to_c_trans           = arg.f_side.to_c_trans.replace('NAME', arg.f_name)
     arg.f_side.to_c2_call           = arg.f_side.to_c2_call.replace('NAME', arg.f_name)
     arg.f_side.to_c2_f2_sub_arg     = arg.f_side.to_c2_f2_sub_arg.replace('NAME', arg.f_name)
-    arg.f_side.bindc_name           = arg.f_side.bindc_name.replace('NAME', arg.f_name)
-    arg.f_side.to_f2_var            = [var.replace('NAME', arg.f_name) for var in arg.f_side.to_f2_var]
-    arg.f_side.to_f2_trans          = arg.f_side.to_f2_trans.replace('NAME', arg.f_name)
-    arg.f_side.to_c_trans           = arg.f_side.to_c_trans.replace('NAME', arg.f_name)
-    arg.f_side.equality_test        = arg.f_side.equality_test.replace('NAME', arg.f_name)
-    arg.f_side.test_pat             = arg.f_side.test_pat.replace('NAME', arg.f_name)
-    arg.c_side.constructor          = arg.c_side.constructor.replace('NAME', arg.c_name)
-    arg.c_side.destructor           = arg.c_side.destructor.replace('NAME', arg.c_name)
+    arg.f_side.to_c2_name           = arg.f_side.to_c2_name.replace('NAME', arg.f_name)
+    arg.c_side.to_c2_arg            = arg.c_side.to_c2_arg.replace('NAME', arg.c_name)
+    arg.c_side.to_c2_set            = arg.c_side.to_c2_set.replace('NAME', arg.c_name)
+
     arg.c_side.to_f_setup           = arg.c_side.to_f_setup.replace('NAME', arg.c_name)
     arg.c_side.to_f_cleanup         = arg.c_side.to_f_cleanup.replace('NAME', arg.c_name)
     arg.c_side.to_f2_call           = arg.c_side.to_f2_call.replace('NAME', arg.c_name)
-    arg.c_side.to_c2_arg            = arg.c_side.to_c2_arg.replace('NAME', arg.c_name)
-    arg.c_side.to_c2_set            = arg.c_side.to_c2_set.replace('NAME', arg.c_name)
-    arg.c_side.equality_test        = arg.c_side.equality_test.replace('NAME', arg.c_name)
-    arg.c_side.test_pat             = arg.c_side.test_pat.replace('NAME', arg.c_name)
+
+    arg.f_side.to_f2_var            = [var.replace('NAME', arg.f_name) for var in arg.f_side.to_f2_var]
+    arg.f_side.to_f2_trans          = arg.f_side.to_f2_trans.replace('NAME', arg.f_name)
+    arg.f_side.to_f2_name           = arg.f_side.to_f2_name.replace('NAME', arg.f_name)
+
+    arg.f_side.equality_test        = arg.f_side.equality_test.replace('NAME', arg.f_name)
+    arg.f_side.test_pat             = arg.f_side.test_pat.replace('NAME', arg.f_name)
+
+    arg.c_side.equality_test        = arg.c_side.equality_test.replace('NAME', arg.f_name)
+    arg.c_side.test_pat             = arg.c_side.test_pat.replace('NAME', arg.f_name)
+
+    arg.c_side.constructor          = arg.c_side.constructor.replace('NAME', arg.c_name)
+    arg.c_side.destructor           = arg.c_side.destructor.replace('NAME', arg.c_name)
 
     # On Fortran side "complex abc(2) = 0" is allowed but on C++ side want "0.0" for init value.
     # Therefore, ignore "0" as an init value.
@@ -1764,14 +1789,11 @@ implicit none
 interface
 '''.replace('ZZZ', s_name))
 
-  import_set = set(['c_ptr'])
   to_c2_call_def = {}
 
   for arg in struct.arg: 
-    bindc_const =  arg.f_side.bindc_type.partition('(')[2].partition(')')[0]
-    import_set.add(bindc_const)
-    if not arg.f_side.bindc_type in to_c2_call_def: to_c2_call_def[arg.f_side.bindc_type] = []
-    to_c2_call_def[arg.f_side.bindc_type].append(arg.f_side.bindc_name)
+    if not arg.f_side.to_c2_type in to_c2_call_def: to_c2_call_def[arg.f_side.to_c2_type] = []
+    to_c2_call_def[arg.f_side.to_c2_type].append(arg.f_side.to_c2_name)
 
   line = 'subroutine ZZZ_to_c2 (C'.replace('ZZZ', s_name)
   for arg in struct.arg: 
@@ -1780,8 +1802,8 @@ interface
 
   f_face.write ('  !! f_side.to_c2_f2_sub_arg\n')
   f_face.write (wrap_line(line, '  ', ' &'))
-  f_face.write ('    !! f_side.bindc_type :: f_side.bindc_name\n')
-  f_face.write ('    import ' + ', '.join(import_set) + '\n')
+  f_face.write ('    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex\n')
+  f_face.write ('    !! f_side.to_c2_type :: f_side.to_c2_name\n')
   f_face.write ('    type(c_ptr), value :: C\n')
   for arg_type, args in to_c2_call_def.items():
     for i in range(1+(len(args)-1)/7): 
@@ -1860,15 +1882,15 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 
   f2_arg_list = {}
   for arg in struct.arg:
-    if not arg.f_side.bindc_type in f2_arg_list: f2_arg_list[arg.f_side.bindc_type] = []
-    f2_arg_list[arg.f_side.bindc_type].append(arg.f_side.bindc_name)
+    if not arg.f_side.to_f2_type in f2_arg_list: f2_arg_list[arg.f_side.to_f2_type] = []
+    f2_arg_list[arg.f_side.to_f2_type].append(arg.f_side.to_f2_name)
     for var in arg.f_side.to_f2_var:
       var_type = var.split('::')[0].strip()
       var_name = var.split('::')[1].strip()
       if not var_type in f2_arg_list: f2_arg_list[var_type] = []
       f2_arg_list[var_type].append(var_name)
 
-  f_face.write ('!! f_side.to_f2_var && f_side.bindc_type :: f_side.bindc_name\n')
+  f_face.write ('!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name\n')
   for arg_type, arg_list in f2_arg_list.items():
     for i in range(1+(len(arg_list)-1)/7): 
       f_face.write(arg_type + ' :: ' + ', '.join(arg_list[i*7:i*7+7]) + '\n')

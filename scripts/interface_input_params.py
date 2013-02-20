@@ -157,7 +157,6 @@ def customize(struct_definitions):
     for arg in struct.arg:
 
       id_name = struct.short_name + '%' + arg.f_name 
-      arg.f_side.to_f2_trans = arg.f_side.to_f2_trans.replace('LBOUND', f_side_lbound(id_name))
 
       if id_name in c_custom_constructors: 
         arg.c_side.constructor = c_custom_constructors[id_name]
