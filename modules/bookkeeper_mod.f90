@@ -912,7 +912,7 @@ type (ele_struct), pointer :: lord, slave0, lord1, major_lord
 type (ele_struct) :: sol_quad
 type (branch_struct), pointer :: branch
 
-integer i, j, ix_con, ix, ix_slave, ix_lord, ix_order, ix_major_order
+integer i, j, ix_con, ix, ix_slave, ix_lord, ix_order, ix_major_order, n_major_lords
 
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
@@ -923,7 +923,7 @@ real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
 real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
-logical is_first, is_last, err_flag, n_major_lords
+logical is_first, is_last, err_flag
 
 character(20) :: r_name = 'makeup_super_slave'
 
