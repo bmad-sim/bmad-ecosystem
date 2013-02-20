@@ -673,7 +673,7 @@ fc.to_c_trans  = jd1_loop + '''\
   z_NAME(jd1) = c_loc(a_NAME(jd1))
 enddo
 '''
-fc.to_c_var += ['character(STR_LEN+1) :: a_NAME(DIM1)']
+fc.to_c_var += ['character(STR_LEN+1), target :: a_NAME(DIM1)']
 
 # CHAR 1 PTR
 
@@ -726,7 +726,7 @@ if (associated(F%NAME)) then
 endif
 '''
 
-fc.to_c_var += ['character(STR_LEN+1), allocatable :: a_NAME(:)']
+fc.to_c_var += ['character(STR_LEN+1), allocatable, target :: a_NAME(:)']
 
 #--------------------------------------------------------------------------------------
 # Allocatable components are very similar to pointer components

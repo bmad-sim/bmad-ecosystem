@@ -5552,7 +5552,7 @@ type(lat_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_attribute_alias(:)
-character(60+1), allocatable :: a_attribute_alias(:)
+character(60+1), allocatable, target :: a_attribute_alias(:)
 integer(c_int) :: n1_attribute_alias
 type(c_ptr), allocatable :: z_ele(:)
 integer(c_int) :: n1_ele
