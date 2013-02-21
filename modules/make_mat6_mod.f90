@@ -161,6 +161,8 @@ end subroutine quad_mat2_calc
 ! solenoid/quadrupole element (without a tilt).
 !
 ! Note: This routine is not meant to be for general use.
+! Input coords are in (x, x', y, y') space since the problem is linear
+! in this space.
 !
 ! Modules Needed:
 !   use bmad
@@ -169,10 +171,10 @@ end subroutine quad_mat2_calc
 !   ks      -- Real(rp): Solenoid strength.
 !   k1      -- Real(rp): Quadrupole strength.
 !   length  -- Real(rp): Sol_quad length.
-!   orb(6)  -- Real(rp): Orbit at beginning of the sol_quad in (x, x', y, y') space.
+!   orb(6)  -- Real(rp): Orbit at beginning of the sol_quad in (x, x', y, y', z, pz) space.
 !
 ! Output:
-!   mat6(6,6)    -- Real(rp): Transfer matrix across the sol_quad.
+!   mat6(6,6)    -- Real(rp): Transfer matrix across the sol_quad in normal (x, px, y, py) space.
 !   dz_coef(4,4) -- Real(rp), optional: coefs for dz calc
 !                     dz = sum_ij dz_coef(i,j) * orb(i) * orb(j)
 !-
@@ -192,7 +194,7 @@ real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db
 real(rp) ks3, fp, fm, dfm, dfp, df_f, ug
 real(rp) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
 real(rp) coef1, coef2, dcoef1, dcoef2, ks4
-real(rp) t4(4,4), ts(4,4), xp_start, xp_end, yp_start, yp_end
+real(rp) t4(4,4), ts(4,4), m0(6,6), xp_start, xp_end, yp_start, yp_end
 real(rp), optional :: dz_coef(4,4)
 
 ! Calculation is done in (x, x', y, y') coordinates and then converted
@@ -234,27 +236,29 @@ endif
 coef1 = ks2*r + 4*k1*a
 coef2 = ks2*q + 4*k1*b
 
-call mat_make_unit(m)
+! m0 is the transfer matrix in (x, x', y, y') space.
+
+call mat_make_unit(m0)
              
-m(1,1) = 2*ug * (fp*C + fm*Csh)
-m(1,2) = (2*ug/k1) * (q*S1 - r*Snh1)
-m(1,3) = (ks*ug/k1) * (-b*S1 + a*Snh1)
-m(1,4) = 4*ug*ks * (-C + Csh)
+m0(1,1) = 2*ug * (fp*C + fm*Csh)
+m0(1,2) = (2*ug/k1) * (q*S1 - r*Snh1)
+m0(1,3) = (ks*ug/k1) * (-b*S1 + a*Snh1)
+m0(1,4) = 4*ug*ks * (-C + Csh)
 
-m(2,1) = -(ug/2) * (coef1*S2 + coef2*Snh2)
-m(2,2) = m(1,1)             
-m(2,3) = ug*ks3 * (C - Csh)
-m(2,4) = ug*ks * (a*S2 + b*Snh2)
+m0(2,1) = -(ug/2) * (coef1*S2 + coef2*Snh2)
+m0(2,2) = m0(1,1)             
+m0(2,3) = ug*ks3 * (C - Csh)
+m0(2,4) = ug*ks * (a*S2 + b*Snh2)
 
-m(3,1) = -m(2,4)
-m(3,2) = -m(1,4)
-m(3,3) = 2*ug * (fm*C + fp*Csh)  
-m(3,4) = 2*ug * (r*S2 + q*Snh2)
+m0(3,1) = -m0(2,4)
+m0(3,2) = -m0(1,4)
+m0(3,3) = 2*ug * (fm*C + fp*Csh)  
+m0(3,4) = 2*ug * (r*S2 + q*Snh2)
 
-m(4,1) = -m(2,3)     
-m(4,2) = -m(1,3)
-m(4,3) = (ug/(2*k1)) * (-coef2*S1 + coef1*Snh1)
-m(4,4) = m(3,3)
+m0(4,1) = -m0(2,3)     
+m0(4,2) = -m0(1,3)
+m0(4,3) = (ug/(2*k1)) * (-coef2*S1 + coef1*Snh1)
+m0(4,4) = m0(3,3)
 
 ! 
 
@@ -297,31 +301,31 @@ endif
 dcoef1 = -2*ks2*r + ks2*dr - 4*k1*a + 4*k1*da
 dcoef2 = -2*ks2*q + ks2*dq - 4*k1*b + 4*k1*db                     
 
-! t4(i,j) is dm(i,j)/dE and give the m(x,6) terms.
+! t4(i,j) is dm0(i,j)/dE and give the m0(x,6) terms.
 
-t4(1,1) = m(1,1)*df_f + 2*ug*(fp*dC + C*dfp + fm*dCsh + Csh*dfm)
-t4(1,2) = m(1,2)*df_f + (2*ug/k1) * (dq*S1 + q*dS1 - dr*Snh1 - r*dSnh1)
-t4(1,3) = m(1,3)*df_f + (ks*ug/k1)*(-db*S1 - b*dS1 + da*Snh1 + a*dSnh1)
-t4(1,4) = m(1,4)*(df_f - 2) + 4*ks*ug*(-dC + dCsh) 
+t4(1,1) = m0(1,1)*df_f + 2*ug*(fp*dC + C*dfp + fm*dCsh + Csh*dfm)
+t4(1,2) = m0(1,2)*df_f + (2*ug/k1) * (dq*S1 + q*dS1 - dr*Snh1 - r*dSnh1)
+t4(1,3) = m0(1,3)*df_f + (ks*ug/k1)*(-db*S1 - b*dS1 + da*Snh1 + a*dSnh1)
+t4(1,4) = m0(1,4)*(df_f - 2) + 4*ks*ug*(-dC + dCsh) 
 
-t4(2,1) = m(2,1)*(df_f + 1) - &
+t4(2,1) = m0(2,1)*(df_f + 1) - &
             (ug/2)*(dcoef1*S2 + coef1*dS2 + dcoef2*Snh2 + coef2*dSnh2)
 t4(2,2) = t4(1,1)
-t4(2,3) = m(2,3)*(df_f - 2) + ks3*ug*(dC - dCsh) 
-t4(2,4) = m(2,4)*(df_f - 1) + ug*ks*(da*S2 + a*dS2 + db*Snh2 + b*dSnh2)
+t4(2,3) = m0(2,3)*(df_f - 2) + ks3*ug*(dC - dCsh) 
+t4(2,4) = m0(2,4)*(df_f - 1) + ug*ks*(da*S2 + a*dS2 + db*Snh2 + b*dSnh2)
 
 t4(3,1) = -t4(2,4)
 t4(3,2) = -t4(1,4)
-t4(3,3) = m(3,3)*df_f + 2*ug*(fm*dC + C*dfm + fp*dCsh + Csh*dfp)
-t4(3,4) = m(3,4)*(df_f - 1) + 2*ug*(dr*S2 + r*dS2 + dq*Snh2 + q*dSnh2)
+t4(3,3) = m0(3,3)*df_f + 2*ug*(fm*dC + C*dfm + fp*dCsh + Csh*dfp)
+t4(3,4) = m0(3,4)*(df_f - 1) + 2*ug*(dr*S2 + r*dS2 + dq*Snh2 + q*dSnh2)
 
 t4(4,1) = -t4(2,3)        
 t4(4,2) = -t4(1,3)
-t4(4,3) = m(4,3)*(df_f + 2) + &
+t4(4,3) = m0(4,3)*(df_f + 2) + &
              (ug/(2*k1))*(-dcoef2*S1 - coef2*dS1 + dcoef1*Snh1 + coef1*dSnh1)
 t4(4,4) = t4(3,3)
 
-m(1:4,6) = matmul(t4(1:4,1:4), orb(1:4))
+m0(1:4,6) = matmul(t4(1:4,1:4), orb(1:4))
 
 ! dz = Sum_ij dz_coef(i,j) * orb(i) * orb(j)
 
@@ -330,25 +334,27 @@ if (present(dz_coef)) then
   ts(1:4,2) =  t4(1,1:4)
   ts(1:4,3) = -t4(4,1:4)
   ts(1:4,4) =  t4(3,1:4)
-  dz_coef = matmul (ts, m(1:4,1:4)) / 2
+  dz_coef = matmul (ts, m0(1:4,1:4)) / 2
 endif
 
 ! energy corrections
 
-m(1,2) = m(1,2) / rel_p
-m(1,4) = m(1,4) / rel_p
+m = m0
 
-m(2,1) = m(2,1) * rel_p
-m(2,3) = m(2,3) * rel_p
+m(1,2) = m0(1,2) / rel_p
+m(1,4) = m0(1,4) / rel_p
 
-m(3,2) = m(3,2) / rel_p
-m(3,4) = m(3,4) / rel_p
+m(2,1) = m0(2,1) * rel_p
+m(2,3) = m0(2,3) * rel_p
 
-m(4,1) = m(4,1) * rel_p
-m(4,3) = m(4,3) * rel_p
+m(3,2) = m0(3,2) / rel_p
+m(3,4) = m0(3,4) / rel_p
 
-m(1,6) = m(1,6) / rel_p
-m(3,6) = m(3,6) / rel_p
+m(4,1) = m0(4,1) * rel_p
+m(4,3) = m0(4,3) * rel_p
+
+m(1,6) = m0(1,6) / rel_p
+m(3,6) = m0(3,6) / rel_p
 
 ! The m(5,x) terms follow from the symplectic condition.
 
