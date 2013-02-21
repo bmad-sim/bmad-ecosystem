@@ -62,7 +62,23 @@ then
   echo ""
   echo "Removed cached files.  This will force a reconfiguration upon the next build request."
   echo ""
+elif [[ ${1} == "obliterate" ]]
+then
+  gmake clean
+  cd ..
+  rm -rf `pwd`/${BUILD_TYPE}
+  DIR=`pwd`
+  rm -rf "../config/$(basename $DIR)"
+  cd ..
+  rm -rf ${BUILD_TYPE}
+  rm -rf `pwd`/*/${BUILD_TYPE}
+  echo ""
+  echo "Removed "`echo ${BUILD_TYPE}`" directories in all build project directories within the current tree:" 
+  echo ""
+  echo "   "`pwd`
+  echo ""
 else
   cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
   gmake -j2 ${@}
 fi
+#
