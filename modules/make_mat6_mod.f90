@@ -262,7 +262,12 @@ m0(4,4) = m0(3,3)
 
 ! 
 
-if (all(orb == 0) .and. .not. present(dz_coef)) return
+if (all(orb == 0) .and. .not. present(dz_coef)) then
+  m = m0
+  return
+endif
+
+!
 
 df      = -2 * (ks4 + 2*k1**2) / f
 dalpha2 = df/2 - ks2
