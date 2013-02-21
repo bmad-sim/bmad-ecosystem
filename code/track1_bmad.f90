@@ -150,43 +150,6 @@ case (beambeam$)
   call offset_particle (ele, end_orb, param, unset$)  
 
 !-----------------------------------------------
-! bend_sol_quad
-! This is modeled using kick-drift-kick where 
-!   kick  == thin bend & quad kick
-!   drift == thick solenoid
-
-case (bend_sol_quad$)
-
-  call offset_particle (ele, end_orb, param, set$)
-
-  n_slice = max(1, nint(length / ele%value(ds_step$)))
-  len_slice = length / n_slice
-  ks  = param%rel_tracking_charge * ele%value(ks$) / rel_pc 
-  k0l = charge_dir * ele%value(g$) * len_slice
-  k1l = charge_dir * ele%value(k1$) * len_slice
-
-  call solenoid_mat_calc (ks, length, mat4)
-
-  do i = 1, n_slice
-
-    ! Kick
-
-    end_orb%vec(2) = end_orb%vec(2)
-    end_orb%vec(4) = end_orb%vec(4)
-
-    ! Solendoid "drift"
-
-    xp_start = end_orb%vec(2) + ks * end_orb%vec(3) / 2
-    yp_start = end_orb%vec(4) - ks * end_orb%vec(1) / 2
-    end_orb%vec(5) = end_orb%vec(5) - len_slice * (xp_start**2 + yp_start**2 ) / 2
-    end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
-  enddo
-
-  call offset_particle (ele, end_orb, param, unset$)
-  call track1_low_energy_z_correction (end_orb, ele, param)
-  call time_and_s_calc ()
-
-!-----------------------------------------------
 ! collimator
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
