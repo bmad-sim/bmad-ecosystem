@@ -25,6 +25,25 @@ ELSE ()
 ENDIF ()
 
 
+#------------------------------------------
+# Honor requests for compiling with OpenMPI
+# made via environment variable.
+#------------------------------------------
+IF ($ENV{ACC_MPI})
+  SET(ACC_MPI 1)
+  SET(ACC_MPI_COMPILER_FLAGS "-m64 -DACC_MPI")
+  SET(ACC_MPI_LINKER_FLAGS "-lmpi_f90 -lmpi_f77 -lmpi -ldl")
+  SET(ACC_MPI_INC_DIRS /usr/include/openmpi-x86_64 /usr/lib64/openmpi/lib)
+  SET(ACC_MPI_LIB_DIRS /usr/lib64/openmpi/lib)
+ELSE ()
+  SET(ACC_MPI 0)
+  SET(ACC_MPI_COMPILER_FLAGS)
+  SET(ACC_MPI_LINKER_FLAGS)
+  SET(ACC_MPI_INC_DIRS "")
+  SET(ACC_MPI_LIB_DIRS "")
+ENDIF ()
+
+
 #-------------------------------------------------------
 # Import environment variables that influence the build
 #-------------------------------------------------------
@@ -114,17 +133,19 @@ find_package(X11)
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
-set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused" ${ACC_MPI_COMPILER_FLAGS})
 
-set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused" ${ACC_MPI_COMPILER_FLAGS})
 
 
 #-----------------------------------
 # Plotting library compiler flag
 #-----------------------------------
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
-  SET (PLOT_LIBRARY_F_FLAG " -DCESR_PLPLOT")
+  SET (PLOT_LIBRARY_F_FLAG "-DCESR_PLPLOT")
   SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
+  SET (ACC_PLOT_INC_DIRS)
+  SET (ACC_PLOT_LIB_DIRS)
 ELSE ()
   SET (PLOT_LIBRARY_F_FLAG "")
   SET (PLOT_LINK_LIBS "pgplot")
@@ -135,11 +156,12 @@ ENDIF ()
 # Fortran Compiler flags
 #-----------------------------------
 enable_language( Fortran )
-set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG}")
+set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
 
 
-SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS})
-
+SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
+SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS})
+SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS})
 
 #--------------------------------------
 # Honor requests for debug builds 
@@ -199,6 +221,11 @@ IF ($ENV{ACC_COMPILE_WITH_OPENMP})
 ELSE()
   message("OpenMP Support       : Not Enabled")
 ENDIF()
+IF ($ENV{ACC_MPI})
+  message("MPI Support          : Enabled via OpenMPI v1.5.4")
+ELSE()
+  message("MPI Support          : Not Enabled")
+ENDIF()
 message("${FORTRAN_COMPILER} Complier Flags : ${BASE_Fortran_FLAGS}")
 message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS}\n")
 
@@ -236,6 +263,7 @@ SET (MASTER_INC_DIRS
   ${OUTPUT_BASEDIR}/modules
   ${RELEASE_OUTPUT_BASEDIR}/modules
   ${RELEASE_DIR}/modules
+  ${ACC_INC_DIRS}
 )
 
 
@@ -268,6 +296,7 @@ SET(MASTER_LINK_DIRS
   ${OUTPUT_BASEDIR}/lib
   ${PACKAGES_OUTPUT_BASEDIR}/lib
   ${RELEASE_OUTPUT_BASEDIR}/lib
+  ${ACC_LIB_DIRS}
 )
 
 IF (DEBUG)
