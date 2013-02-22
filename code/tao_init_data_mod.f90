@@ -560,7 +560,14 @@ do j = n1, n2
     endif
   endif
 
-  if (data_type(1:6) == 'chrom.') u%calc%chrom = .true.
+  if (data_type(1:6) == 'chrom.') then
+    if (u%model%lat%branch(dat%ix_branch)%param%geometry == open$) then
+      call out_io (s_warn$, r_name, 'CHROMATICITY DATUM NOT VALID FOR NON-CLOSED LATTICE!')
+      dat%exists = .false.
+    else
+      u%calc%chrom = .true.
+    endif  
+  endif
 
   ! Some data types are global and are not associated with a particular element. Check for this.
 
