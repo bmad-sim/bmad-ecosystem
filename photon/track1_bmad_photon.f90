@@ -152,7 +152,7 @@ case (mirror$)
         -end_orb%vec(1), &
         -end_orb%vec(2), &
          end_orb%vec(3), &
-         end_orb%vec(4) - 2 * end_orb%vec(3) * ele%value(g_trans$)]
+         end_orb%vec(4) - 2 * end_orb%vec(3) * ele%value(c2_curve_tot$)]
 
   call offset_photon (ele, end_orb, unset$)
 

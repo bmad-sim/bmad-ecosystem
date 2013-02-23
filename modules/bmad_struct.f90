@@ -706,21 +706,21 @@ integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: quad_tilt$=14, bend_tilt$=15, x_quad$=16, y_quad$=17
 integer, parameter :: dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15
-integer, parameter :: dphi0_ref$ = 16, fh_im$=16, f0_im2$=16, x_length$=16, x_origin$= 16
-integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_length$=17, y_origin$ = 17
+integer, parameter :: dphi0_ref$ = 16, fh_im$=16, f0_im2$=16, x_half_length$=16, x_origin$= 16
+integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_half_length$=17, y_origin$ = 17
 integer, parameter :: negative_graze_angle$ = 18, z_origin$ = 18
 integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18
 integer, parameter :: kill_fringe$ = 19, theta_origin$ = 19
 integer, parameter :: b_param$ = 19
-integer, parameter :: d_spacing$ = 20, l_hard_edge$ = 20, phi_origin$ = 20
-integer, parameter :: field_scale$ = 21, psi_origin$ = 21
-integer, parameter :: roll$=22, n_cell$=22, x_ray_line_len$=22
+integer, parameter :: a2_trans_curve$ = 20, l_hard_edge$ = 20, phi_origin$ = 20
+integer, parameter :: field_scale$ = 21, psi_origin$ = 21, a3_trans_curve$ = 21
+integer, parameter :: roll$=22, n_cell$=22, x_ray_line_len$=22, a4_trans_curve$ = 22 
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
 integer, parameter :: x_offset$ = 25
 integer, parameter :: y_offset$ = 26 
 integer, parameter :: z_offset$ = 27 ! Assumed unique. Do not overload further.
-integer, parameter :: hkick$ = 28, g_trans$=28, t_offset$ = 28
+integer, parameter :: hkick$ = 28, d_spacing$ = 28, t_offset$ = 28
 integer, parameter :: vkick$ = 29, c2_curve$ = 29
 integer, parameter :: BL_hkick$ = 30, c3_curve$ = 30
 integer, parameter :: BL_vkick$ = 31, c4_curve$ = 31

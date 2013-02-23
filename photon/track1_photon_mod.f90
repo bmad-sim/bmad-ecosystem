@@ -11,14 +11,7 @@ type, private :: crystal_param_struct
   complex(rp) f0, fh
 end type
 
-! This is for passing info to the photon_depth_in_crystal routine used by zbrent.
-
-type (ele_struct), private, pointer, save :: ele_com
-type (coord_struct), private, pointer, save :: end_orb_com
-real(rp), private, pointer, save :: vec0_com(:)
-real(rp), private, pointer, save :: k0_outside_norm_com(:)
-
-private reflection_point, photon_depth_in_crystal, e_field_calc
+private reflection_point, e_field_calc
 
 contains
 
@@ -487,13 +480,6 @@ real(rp), target :: vec0(3), k0_outside_norm(3), cos_g, sin_g
 real(rp) :: s_len, hit_point(3)
 real(rp) :: s1, s2, s_center, fa, fb
 
-! init
-
-ele_com => ele
-end_orb_com => end_orb
-vec0_com => vec0
-k0_outside_norm_com => k0_outside_norm
-
 ! vec0 is the body element coordinates of the photon.
 ! Note: The photon position in element entrance coords is [vec(1), vec(3), 0].
 
@@ -502,10 +488,10 @@ vec0 = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
 ! Assume flat crystal, compute s required to hit the intersection
 ! Choose a Bracket of 1m around this point.
 
-if (ele_com%value(b_param$) < 0) then ! Bragg
-  s_center = vec0_com(1) / k0_outside_norm_com(1)
+if (ele%value(b_param$) < 0) then ! Bragg
+  s_center = vec0(1) / k0_outside_norm(1)
 else
-  s_center = vec0_com(3) / k0_outside_norm_com(3)
+  s_center = vec0(3) / k0_outside_norm(3)
 endif
 
 s1 = s_center
@@ -525,12 +511,10 @@ endif
 s_len = zbrent (photon_depth_in_crystal, s1, s2, 1d-10)
 
 ! Compute the intersection point
-hit_point = s_len * k0_outside_norm_com + vec0_com
+hit_point = s_len * k0_outside_norm + vec0
 
-end subroutine reflection_point
+contains
 
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
 ! Function photon_depth_in_crystal (s_len) result (delta_h)
@@ -553,11 +537,11 @@ implicit none
 
 real(rp), intent(in) :: s_len
 real(rp) :: delta_h
-real(rp) :: point(3), r
+real(rp) :: point(3), r, y
 
-point = s_len * k0_outside_norm_com + vec0_com
+point = s_len * k0_outside_norm + vec0
 
-if (ele_com%value(b_param$) < 0) then ! Bragg
+if (ele%value(b_param$) < 0) then ! Bragg
   r = point(3)
   delta_h = point(1) 
 else
@@ -565,10 +549,15 @@ else
   delta_h = point(3) 
 endif
 
-delta_h = delta_h + ele_com%value(c2_curve_tot$) * r**2 + &
-                    ele_com%value(c3_curve_tot$) * r**3 + ele_com%value(c4_curve_tot$) * r**4
+y = point(2)
+
+delta_h = delta_h + ele%value(a2_trans_curve$) * y**2 + ele%value(a3_trans_curve$) * y**3 + &
+                    ele%value(a4_trans_curve$) * y**4 + ele%value(c2_curve_tot$) * r**2 + &
+                    ele%value(c3_curve_tot$) * r**3 + ele%value(c4_curve_tot$) * r**4
 
 end function photon_depth_in_crystal
+
+end subroutine reflection_point
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -596,37 +585,43 @@ subroutine to_curved_body_coords (ele, hit_point, vector, set)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
 
 real(rp) hit_point(3), vector(3)
-real(rp), save :: c2_old = real_garbage$, c3_old = 0, c4_old = 0
-real(rp), save :: curverot(3,3)
-real(rp) c2, c3, c4, slope, curveangle, cos_c, sin_c
-
+real(rp) curverot(3,3)
+real(rp) slope_t, slope_c, cos_c, sin_c, cos_t, sin_t
+real(rp), pointer :: v(:)
 logical set
 
-!
+! The transformation curverot is
+!     curve_rot = W_c W_t
+! where W_c is the rotation in the reflection plane and W_t is the rotation
+! in the transverse plane. [Note: There is no good reason for choosing W_c W_t over W_t W_c.]
+! Want to have the transformation curverot match the slopes slope_c and slope_t.
+! Since rotations do not commute, the cos_t and sin_t terms, which are used
+! in W_t (the second rotation), are modified by cos_c.
 
-c2 = ele%value(c2_curve_tot$)
-c3 = ele%value(c3_curve_tot$)
-c4 = ele%value(c4_curve_tot$)
+v => ele%value
 
-if (c2 /= c2_old .or. c3 /= c3_old .or. c4 /= c4_old) then
-  slope = -2.0_rp * c2 * hit_point(3) - 3.0_rp * c3 * hit_point(3)**2 - 4.0_rp * c4 * hit_point(3)**3
-  curveangle = atan(slope)
-  cos_c = cos(curveangle)
-  sin_c = sin(curveangle)
+slope_c = 2.0_rp * v(c2_curve_tot$) * hit_point(3) + 3.0_rp * v(c3_curve_tot$) * hit_point(3)**2 + &
+          4.0_rp * v(c4_curve_tot$) * hit_point(3)**3 
+slope_t = 2.0_rp * v(a2_trans_curve$) * hit_point(2) + 3.0_rp * v(a3_trans_curve$) * hit_point(2)**2 + &
+          4.0_rp * v(a4_trans_curve$) * hit_point(2)**3
+
+if (.not. set) then
+  slope_c = -slope_c
+  slope_t = -slope_t
 endif
 
-if (set) then
-  curverot(1, 1:3) = [ cos_c, 0.0_rp, -sin_c]
-  curverot(2, 1:3) = [0.0_rp, 1.0_rp,  0.0_rp]
-  curverot(3, 1:3) = [ sin_c, 0.0_rp,  cos_c]
-else
-  curverot(1, 1:3) = [ cos_c, 0.0_rp,  sin_c]
-  curverot(2, 1:3) = [0.0_rp, 1.0_rp, 0.0_rp]
-  curverot(3, 1:3) = [-sin_c, 0.0_rp,  cos_c]
-endif
+cos_c =       1 / sqrt(1 + slope_c**2)
+sin_c = slope_c / sqrt(1 + slope_c**2)
+
+cos_t =               1 / sqrt(1 + (cos_c * slope_t)**2)
+sin_t = cos_c * slope_t / sqrt(1 + (cos_c * slope_t)**2)
+
+curverot(1, 1:3) = [ cos_c*cos_t,  cos_c*sin_t,  sin_c]
+curverot(2, 1:3) = [      -sin_t,        cos_t, 0.0_rp]
+curverot(3, 1:3) = [-sin_c*cos_t, -sin_c*sin_t,  cos_c]
 
 vector = matmul(curverot, vector) ! Goto body element coords at point of photon impact
 
@@ -656,7 +651,8 @@ logical has_curve
 
 !
 
-if (ele%value(c2_curve_tot$) /= 0 .or. ele%value(c3_curve_tot$) /= 0 .or. ele%value(c4_curve_tot$) /= 0) then
+if (ele%value(c2_curve_tot$) /= 0 .or. ele%value(c3_curve_tot$) /= 0 .or. ele%value(c4_curve_tot$) /= 0 .or. &
+    ele%value(a2_trans_curve$) /= 0 .or. ele%value(a3_trans_curve$) /= 0 .or. ele%value(a4_trans_curve$) /= 0) then
   has_curve = .true.
 else
   has_curve = .false.

@@ -317,8 +317,8 @@ do i = 1, n_key$
     call init_attribute_name1 (i, n_sample$,        'N_SAMPLE')
     call init_attribute_name1 (i, de_eta_meas$,     'DE_ETA_MEAS')
     call init_attribute_name1 (i, osc_amplitude$,   'OSC_AMPLITUDE')
-    call init_attribute_name1 (i, x_length$,        'X_LENGTH')
-    call init_attribute_name1 (i, y_length$,        'Y_LENGTH')
+    call init_attribute_name1 (i, x_half_length$,   'X_HALF_LENGTH')
+    call init_attribute_name1 (i, y_half_length$,   'Y_HALF_LENGTH')
   end select
 
   if (i == hybrid$)         cycle
@@ -932,7 +932,9 @@ call init_attribute_name1 (mirror$, graze_angle$,                   'GRAZE_ANGLE
 call init_attribute_name1 (mirror$, graze_angle_err$,               'GRAZE_ANGLE_ERR')
 call init_attribute_name1 (mirror$, critical_angle$,                'CRITICAL_ANGLE')
 call init_attribute_name1 (mirror$, tilt_err$,                      'TILT_ERR')
-call init_attribute_name1 (mirror$, g_trans$,                       'G_TRANS')
+call init_attribute_name1 (mirror$, a2_trans_curve$,                'A2_TRANS_CURVE')
+call init_attribute_name1 (mirror$, a3_trans_curve$,                'A3_TRANS_CURVE')
+call init_attribute_name1 (mirror$, a4_trans_curve$,                'A4_TRANS_CURVE')
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'l', private$)
@@ -969,7 +971,9 @@ call init_attribute_name1 (crystal$, fh_re$,                        'FH_RE')
 call init_attribute_name1 (crystal$, fh_im$,                        'FH_IM')
 call init_attribute_name1 (crystal$, b_param$,                      'B_PARAM')
 call init_attribute_name1 (crystal$, bragg_angle$,                  'BRAGG_ANGLE' )
-call init_attribute_name1 (crystal$, g_trans$,                      'G_TRANS')
+call init_attribute_name1 (crystal$, a2_trans_curve$,               'A2_TRANS_CURVE')
+call init_attribute_name1 (crystal$, a3_trans_curve$,               'A3_TRANS_CURVE')
+call init_attribute_name1 (crystal$, a4_trans_curve$,               'A4_TRANS_CURVE')
 call init_attribute_name1 (crystal$, ref_wavelength$,               'REF_WAVELENGTH')
 call init_attribute_name1 (crystal$, diffraction_type$,             'DIFFRACTION_TYPE')  ! Note: Not currently used.
 call init_attribute_name1 (crystal$, crystal_type$,                 'CRYSTAL_TYPE')
