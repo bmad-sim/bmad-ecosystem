@@ -186,6 +186,7 @@ implicit none
 real(rp) ks, k1, s_len
 real(rp) m(6,6)
 real(rp) orb(6)
+real(rp), optional :: dz_coef(4,4)
 
 real(rp) ks2, s, c, snh, csh, rel_p, ks_in, k1_in
 real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
@@ -195,7 +196,11 @@ real(rp) ks3, fp, fm, dfm, dfp, df_f, ug
 real(rp) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
 real(rp) coef1, coef2, dcoef1, dcoef2, ks4
 real(rp) t4(4,4), ts(4,4), m0(6,6), xp_start, xp_end, yp_start, yp_end
-real(rp), optional :: dz_coef(4,4)
+real(rp) dt4(4,4), dts(4,4), dz_co(4,4), d_dz_co(4,4), dm(4,4)
+real(rp) r_orb(4), d_orb(4), tsd(4,4), dtsd(4,4)
+real(rp) d2_f, dug, d2_ug, d2_C, d2_fp, d2_fm, d2_Csh, d2_q, d2_s1, d2_s2 
+real(rp) d2_r, d2_snh1, d2_snh2, d2_a, d2_b, d2_coef1, d2_coef2, factor
+real(rp) d2_alpha, d2_beta, d2_arg, d2_arg1, d2_S, d2_Snh, d2_f_f
 
 ! Calculation is done in (x, x', y, y') coordinates and then converted
 ! to (x, p_x, y, p_y) coordinates.
@@ -260,13 +265,6 @@ m0(4,2) = -m0(1,3)
 m0(4,3) = (ug/(2*k1)) * (-coef2*S1 + coef1*Snh1)
 m0(4,4) = m0(3,3)
 
-! 
-
-if (all(orb == 0) .and. .not. present(dz_coef)) then
-  m = m0
-  return
-endif
-
 !
 
 df      = -2 * (ks4 + 2*k1**2) / f
@@ -306,7 +304,7 @@ endif
 dcoef1 = -2*ks2*r + ks2*dr - 4*k1*a + 4*k1*da
 dcoef2 = -2*ks2*q + ks2*dq - 4*k1*b + 4*k1*db                     
 
-! t4(i,j) is dm0(i,j)/dE and give the m0(x,6) terms.
+! t4(i,j) is dm(i,j)/dE at pz = 0 and is used to calculate the m0(x,6) terms.
 
 t4(1,1) = m0(1,1)*df_f + 2*ug*(fp*dC + C*dfp + fm*dCsh + Csh*dfm)
 t4(1,2) = m0(1,2)*df_f + (2*ug/k1) * (dq*S1 + q*dS1 - dr*Snh1 - r*dSnh1)
@@ -332,17 +330,116 @@ t4(4,4) = t4(3,3)
 
 m0(1:4,6) = matmul(t4(1:4,1:4), orb(1:4))
 
+! m(5,6) calc
+
+d2_f  = 2*(ks4+2*k1**2)*df/f**2 + 8*(ks4+k1**2)/f
+dug  = -df/(4*f**2)
+d2_ug = -d2_f/(4*f**2) + df**2/(2*f**3)
+d2_f_f = (df/f)**2 - d2_f / f
+
+d2_alpha  = -dalpha**2/alpha + (d2_f/2+2*ks2)/(2*alpha)
+if (beta < 1e-4) then
+  d2_beta = -abs(-3*k1**3/ks**5+5*k1**3/ks**5)
+else
+  d2_beta = -dbeta**2/beta + (d2_f/2-2*ks2)/(2*beta)
+endif
+d2_arg  = s_len*d2_alpha
+d2_arg1 = s_len*d2_beta
+d2_C    = -d2_arg*S - darg*dS
+d2_Csh  = d2_arg1*Snh + darg1*dSnh
+d2_S    = d2_arg*C + darg*dC
+d2_Snh  = d2_arg1*Csh + darg1*dCsh
+d2_q    =  2*k1 - 4*ks2 + d2_f
+d2_r    = -2*k1 + 4*ks2 + d2_f
+d2_a    =  2*k1 + 4*ks2 + d2_f
+d2_b    = -2*k1 - 4*ks2 + d2_f
+d2_fp   = d2_f + 2*k1
+d2_fm   = d2_f - 2*k1
+
+d2_S1 = S*d2_alpha+alpha*d2_S+2*dS*dalpha
+d2_S2 = -dS*dalpha/alpha2+dalpha*S*dalpha2/alpha2**2-S*d2_alpha/alpha2+d2_S/alpha-dalpha*dS/alpha2
+
+d2_Snh1 = Snh*d2_beta+beta*d2_Snh+2*dSnh*dbeta
+
+if (beta < 1e-4) then
+  d2_Snh2 = 4*k1**4*s_len**3/(3*ks**6)-2*k1**4*s_len**3/ks**6
+else
+  d2_Snh2 = -dSnh*dbeta/beta2+dbeta*Snh*dbeta2/beta2**2-Snh*d2_beta/beta2+d2_Snh/beta-dbeta*dSnh/beta2
+endif
+
+d2_coef1 = 4*ks2*r-4*ks2*dr+ks2*d2_r+4*k1*a-8*k1*da+4*k1*d2_a
+d2_coef2 = 4*ks2*q-4*ks2*dq+ks2*d2_q+4*k1*b-8*k1*db+4*k1*d2_b
+
+! First deal with m elements that are not affected by rel_p
+
+dt4(1,1) = t4(1,1)*df_f + m0(1,1)*d2_f_f + 2*dug*(fp*dC + C*dfp + fm*dCsh + Csh*dfm) + &
+            2*ug*(d2_fp*C + 2*dfp*dC + fp*d2_C + d2_Csh*fm + 2*dCsh*dfm + Csh*d2_fm)
+dt4(1,2) = (t4(1,2) + m0(1,2))*df_f + m0(1,2)*d2_f_f + &
+           2*(dug/k1 + ug/k1) * (dq*S1 + q*dS1 - dr*Snh1 - r*dSnh1) + &
+           (2*ug/k1) * (d2_q*S1 + 2*dq*dS1 + q*d2_S1 - d2_r*Snh1 - 2*dr*dSnh1 - r*d2_Snh1)
+dt4(1,3) = t4(1,3)*df_f + m0(1,3)*d2_f_f + (ks*dug/k1) *(-db*S1 - b*dS1 + da*Snh1 + a*dSnh1) + &
+           (ks*ug/k1)*(-d2_b*S1 - 2*db*dS1 - b*d2_S1 + d2_a*Snh1 + 2*da*dSnh1 + a*d2_Snh1)
+dt4(1,4) = (t4(1,4) + m0(1,4))*(df_f - 2) + m0(1,4)*d2_f_f + 4*(ks*dug - ks*ug)*(-dC + dCsh) + &
+           4*ks*ug*(-d2_C + d2_Csh)
+
+dt4(2,1) = (t4(2,1) - m0(2,1))*(df_f + 1) + m0(2,1)*d2_f_f - &
+           (dug/2)*(dcoef1*S2 + coef1*dS2 + dcoef2*Snh2 + coef2*dSnh2) - &
+           (ug/2)*(d2_coef1*S2 + 2*dcoef1*dS2 + coef1*d2_S2 + d2_coef2*Snh2 + 2*dcoef2*dSnh2 + coef2*d2_Snh2)
+dt4(2,2) = dt4(1,1)
+dt4(2,3) = (t4(2,3) - m0(2,3))*(df_f - 2) + m0(2,3)*d2_f_f + (ks3*dug - 3*ks3*ug)*(dC - dCsh) + &
+           ks3*ug*(d2_C - d2_Csh)
+dt4(2,4) = t4(2,4)*(df_f - 1) + m0(2,4)*d2_f_f + (dug*ks - ug*ks)*(da*S2 + a*dS2 + db*Snh2 + b*dSnh2) + &
+           ug*ks*(d2_a*S2 + 2*da*dS2 + a*d2_S2 + d2_b*Snh2 + 2*db*dSnh2 + b*d2_Snh2)
+
+dt4(3,1) = -dt4(2,4)
+dt4(3,2) = -dt4(1,4)
+dt4(3,3) = 4*(fm*dC+fp*dCSh+C*dfm+Csh*dfp)*dug+2*(C*fm+Csh*fp)*d2_ug + &
+           2*ug*(2*dC*dfm+2*dCsh*dfp+fm*d2_C+fp*d2_Csh+C*d2_fm+Csh*d2_fp)
+dt4(3,4) = (t4(3,4) + m0(3,4))*(df_f - 1) + m0(3,4)*d2_f_f + 2*dug*(dr*S2 + r*dS2 + dq*Snh2 + q*dSnh2) + &
+           2*ug*(d2_r*S2 + 2*dr*dS2 + r*d2_S2 + d2_q*Snh2 + 2*dq*dSnh2 + q*d2_Snh2)
+
+dt4(4,1) = -dt4(2,3)
+dt4(4,2) = -dt4(1,3)
+dt4(4,3) = (t4(4,3) - m0(4,3))*(df_f + 2) + m0(4,3)*d2_f_f + &
+           ((dug + ug)/(2*k1))*(-dcoef2*S1 - coef2*dS1 + dcoef1*Snh1 + coef1*dSnh1) + &
+           (ug/(2*k1))*(-d2_coef2*S1 - 2*dcoef2*dS1 - coef2*d2_S1 + d2_coef1*Snh1 + 2*dcoef1*dSnh1 + coef1*d2_Snh1)
+dt4(4,4) = dt4(3,3)
+
+! The m(5,6) term is computed 
+
+ts(1:4,1) = -t4(2,1:4)
+ts(1:4,2) =  t4(1,1:4)
+ts(1:4,3) = -t4(4,1:4)
+ts(1:4,4) =  t4(3,1:4)
+
+dts(1:4,1) = -dt4(2,1:4)
+dts(1:4,2) =  dt4(1,1:4)
+dts(1:4,3) = -dt4(4,1:4)
+dts(1:4,4) =  dt4(3,1:4)
+
+tsd = ts
+tsd(1:4,2) = ts(1:4,2) / rel_p
+tsd(1:4,4) = ts(1:4,4) / rel_p
+
+dtsd = dts
+dtsd(1:4,2) = dts(1:4,2) / rel_p - ts(1:4,2) / rel_p**2
+dtsd(1:4,4) = dts(1:4,4) / rel_p - ts(1:4,4) / rel_p**2
+
+r_orb = [orb(1), orb(2)/rel_p, orb(3), orb(4)/rel_p]
+d_orb = [0.0_rp, -orb(2)/rel_p, 0.0_rp, -orb(4)/rel_p]
+
 ! dz = Sum_ij dz_coef(i,j) * orb(i) * orb(j)
 
 if (present(dz_coef)) then
-  ts(1:4,1) = -t4(2,1:4)
-  ts(1:4,2) =  t4(1,1:4)
-  ts(1:4,3) = -t4(4,1:4)
-  ts(1:4,4) =  t4(3,1:4)
   dz_coef = matmul (ts, m0(1:4,1:4)) / 2
 endif
 
 ! energy corrections
+
+if (all(orb == 0) .and. .not. present(dz_coef)) then
+  m = m0
+  return
+endif
 
 m = m0
 
@@ -361,20 +458,28 @@ m(4,3) = m0(4,3) * rel_p
 m(1,6) = m0(1,6) / rel_p
 m(3,6) = m0(3,6) / rel_p
 
+!
+
+dm = t4 / rel_p
+dm(2,1) = t4(2,1)
+dm(2,3) = t4(2,3)
+dm(4,1) = t4(4,1)
+dm(4,3) = t4(4,3)
+dm(1,2) = t4(1,2) / rel_p**2
+dm(1,4) = t4(1,4) / rel_p**2
+dm(3,2) = t4(3,2) / rel_p**2
+dm(3,4) = t4(3,4) / rel_p**2
+
+m(5,6) = (dot_product(matmul(matmul(d_orb, tsd), m(1:4,1:4)), r_orb) + &
+          dot_product(matmul(matmul(orb(1:4), dtsd), m(1:4,1:4)), r_orb) + &
+          dot_product(matmul(matmul(orb(1:4), tsd), dm(1:4,1:4)), r_orb)) / 2
+
 ! The m(5,x) terms follow from the symplectic condition.
 
 m(5,1) = -m(2,6)*m(1,1) + m(1,6)*m(2,1) - m(4,6)*m(3,1) + m(3,6)*m(4,1)
 m(5,2) = -m(2,6)*m(1,2) + m(1,6)*m(2,2) - m(4,6)*m(3,2) + m(3,6)*m(4,2)
 m(5,3) = -m(2,6)*m(1,3) + m(1,6)*m(2,3) - m(4,6)*m(3,3) + m(3,6)*m(4,3)
 m(5,4) = -m(2,6)*m(1,4) + m(1,6)*m(2,4) - m(4,6)*m(3,4) + m(3,6)*m(4,4)
-
-! The m(5,6) term is computed 
-
-xp_start = orb(2) + ks_in * orb(3) / 2
-yp_start = orb(4) - ks_in * orb(1) / 2
-xp_end = sum(orb(1:4) * m(2,1:4)) + ks_in * orb(3) / 2
-yp_end = sum(orb(1:4) * m(4,1:4)) - ks_in * orb(1) / 2
-m(5,6) = s_len * (xp_start**2 + yp_start**2 +xp_end**2 + yp_end**2) / (2 * rel_p**3)
 
 end subroutine sol_quad_mat6_calc
 
