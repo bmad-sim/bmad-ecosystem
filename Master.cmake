@@ -44,6 +44,17 @@ ELSE ()
 ENDIF ()
 
 
+#------------------------------------------
+# Honor requests for gfortran compiling with 
+# -O2 flag made via environment variable.
+#------------------------------------------
+IF ($ENV{ACC_GFORTRAN_O2})
+  SET(ACC_GFORTRAN_FLAG "-O2")
+ELSE ()
+  SET(ACC_GFORTRAN_FLAG)
+ENDIF ()
+
+
 #-------------------------------------------------------
 # Import environment variables that influence the build
 #-------------------------------------------------------
@@ -66,10 +77,10 @@ IF (FORTRAN_COMPILER MATCHES "gfortran")
   set (COMPILER_CHOICE $ENV{DIST_F90})
   set (CMAKE_Fortran_COMPILER gfortran)
      IF ("${ACC_COMPILE_WITH_OPENMP}")
-       SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -fopenmp")
+       SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -fopenmp ${ACC_GFORTRAN_FLAG}")
        SET (OPENMP_LINK_LIBS "gomp")
      ELSE ()
-       SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
+       SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none ${ACC_GFORTRAN_FLAG}")
      ENDIF () 
   set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0 -fno-range-check -fbounds-check -Wuninitialized")
 
@@ -159,7 +170,7 @@ enable_language( Fortran )
 set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
 
 
-SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
+SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS}")
 SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS})
 SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS})
 
@@ -227,7 +238,7 @@ ELSE()
   message("MPI Support          : Not Enabled")
 ENDIF()
 message("${FORTRAN_COMPILER} Complier Flags : ${BASE_Fortran_FLAGS}")
-message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS}\n")
+message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}\n")
 
 
 #-----------------------------------
