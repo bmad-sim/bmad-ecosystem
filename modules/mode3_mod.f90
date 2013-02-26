@@ -669,13 +669,34 @@ SUBROUTINE normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
   REAL(rp) evec_i(6,6)
   REAL(rp) adj_evec_r(6,6)
   REAL(rp) adj_evec_i(6,6)
+  REAL(rp) evec_r_temp(6)
+  REAL(rp) evec_i_temp(6)
 
   REAL(rp) theta  
   REAL(rp) costh, sinth
   REAL(rp) nrml
   REAL(rp) fix
+  REAL(rp) det(3)
 
   INTEGER i, j, ix
+
+  det(1) = AIMAG( CMPLX(evec_r(1,1),evec_i(1,1))*CMPLX(evec_r(2,2),evec_i(2,2)) - &
+                CMPLX(evec_r(1,2),evec_i(1,2))*CMPLX(evec_r(2,1),evec_i(2,1)) )
+  det(2) = AIMAG( CMPLX(evec_r(3,3),evec_i(3,3))*CMPLX(evec_r(4,4),evec_i(4,4)) - &
+                CMPLX(evec_r(3,4),evec_i(3,4))*CMPLX(evec_r(4,3),evec_i(4,3)) )
+  det(3) = AIMAG( CMPLX(evec_r(5,5),evec_i(5,5))*CMPLX(evec_r(6,6),evec_i(6,6)) - &
+                CMPLX(evec_r(5,6),evec_i(5,6))*CMPLX(evec_r(6,5),evec_i(6,5)) )
+  DO i=1,3
+    ix = i*2-1
+    IF( det(i) < 0 ) THEN
+      evec_r_temp = evec_r(:,ix+1)
+      evec_i_temp = evec_i(:,ix+1)
+      evec_r(:,ix+1) = evec_r(:,ix)
+      evec_i(:,ix+1) = evec_i(:,ix)
+      evec_r(:,ix) = evec_r_temp
+      evec_i(:,ix) = evec_i_temp
+    ENDIF
+  ENDDO
 
   DO i=1,3
     ix = i*2-1
@@ -685,27 +706,16 @@ SUBROUTINE normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
 
     ! For each element of the eigenvector, rotate the eigenvector in the complex plane
     ! by an angle that makes the (1,1 and 1,2) or (3,3 and 3,4) or (5,5 and 5,6) elements of the eigen matrix real.
-    theta = -ATAN2(evec_i(ix,ix),evec_r(ix,ix))
+    theta = ATAN2(evec_i(ix,ix),evec_r(ix,ix)) 
 
     ! Apply the normalization and rotation
-    costh = COS(theta+pi)
-    sinth = SIN(theta+pi)
-    adj_evec_r(:,ix) = (evec_r(:,ix)*costh - evec_i(:,ix)*sinth) / nrml
-    adj_evec_i(:,ix) = (evec_r(:,ix)*sinth + evec_i(:,ix)*costh) / nrml
-    costh = COS(-theta+pi)
-    sinth = SIN(-theta+pi)
-    adj_evec_r(:,ix+1) = (evec_r(:,ix+1)*costh - evec_i(:,ix+1)*sinth) / nrml
-    adj_evec_i(:,ix+1) = (evec_r(:,ix+1)*sinth + evec_i(:,ix+1)*costh) / nrml
-  ENDDO
+    costh = COS(theta)
+    sinth = SIN(theta)
+    adj_evec_r(:,ix) = ( evec_r(:,ix)*costh + evec_i(:,ix)*sinth) / nrml
+    adj_evec_i(:,ix) = (-evec_r(:,ix)*sinth + evec_i(:,ix)*costh) / nrml
 
-  !Fix signs to make the 1,1 3,3 and 5,5 elements positive
-  DO i=1,3
-    ix = i*2-1
-    fix = SIGN(1.0d0,adj_evec_r(ix,ix))
-    adj_evec_r(:,ix) = fix*adj_evec_r(:,ix)
-    adj_evec_r(:,ix+1) = fix*adj_evec_r(:,ix+1)
-    adj_evec_i(:,ix) = fix*adj_evec_i(:,ix)
-    adj_evec_i(:,ix+1) = fix*adj_evec_i(:,ix+1)
+    adj_evec_r(:,ix+1) = ( evec_r(:,ix+1)*costh - evec_i(:,ix+1)*sinth) / nrml
+    adj_evec_i(:,ix+1) = ( evec_r(:,ix+1)*sinth + evec_i(:,ix+1)*costh) / nrml
   ENDDO
 END SUBROUTINE normalize_and_phase_emat
 
