@@ -25,20 +25,31 @@ use write_lat_file_mod
 implicit none
 
 type (lat_struct), target :: lat
+character(40) :: lat_file  = 'reverse.bmad'
 type (ele_struct), pointer :: ele_f, ele_r
 type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r
 
 real(rp) mat_f(6,6), m(6,6), vec1(6)
 real(rp) dz, dpc, dct
 logical :: err_flag
+integer nargs
+
+nargs = cesr_iargc()
+if (nargs == 1)then
+   call cesr_getarg(1, lat_file)
+   print *, 'Using ', trim(lat_file)
+elseif (nargs > 1) then
+  print *, 'Only one command line arg permitted.'
+  call err_exit
+endif
 
 ! Init
 
 open (1, file = 'output.now')
 
-call bmad_parser ('reverse.bmad', lat)
-call write_bmad_lattice_file ('lat.bmad', lat)
-call bmad_parser ('lat.bmad', lat)
+call bmad_parser (lat_file, lat)
+!call write_bmad_lattice_file ('lat.bmad', lat)
+!call bmad_parser ('lat.bmad', lat)
 
 lat%branch(1)%ele(0)%value(e_tot$) = lat%branch(0)%ele(1)%value(e_tot$)
 lat%branch(1)%ele(0)%value(p0c$) = lat%branch(0)%ele(1)%value(p0c$)
