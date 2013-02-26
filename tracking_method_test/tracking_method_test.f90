@@ -2,19 +2,32 @@ program tracking_method_test
 
 use bmad
 
+use mad_mod
+
 implicit none
 
 type (lat_struct), target :: lat
 
-character(40) :: input_file  = 'tracking_method_test.bmad'
+character(40) :: lat_file  = 'tracking_method_test.bmad'
 character(38) :: final_str
-integer :: i, j
+integer :: i, j, nargs
  
 type (coord_struct) end_orb
 
-call bmad_parser ('tracking_method_test.bmad', lat)
+nargs = cesr_iargc()
+if (nargs == 1)then
+   call cesr_getarg(1, lat_file)
+   print *, 'Using ', trim(lat_file)
+elseif (nargs > 1) then
+  print *, 'Only one command line arg permitted.'
+  call err_exit
+endif
+
+call bmad_parser (lat_file, lat)
 
 open (1, file = 'output.now')
+
+mad_print_if_misaligned = .false.
 
 DO i = 1, lat%n_ele_max - 1
    DO j = 1, n_methods$
