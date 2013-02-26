@@ -545,7 +545,7 @@ real(rp) :: a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
 character(16) :: r_name = 'super_brent'
 
 !
-
+f_max = 0  ! avoid uninit warnings
 a=min(ax,cx)
 b=max(ax,cx)
 v=bx
@@ -612,6 +612,7 @@ do iter=1,ITMAX
     end if
   end if
 end do
+
 call out_io (s_fatal$, r_name, 'EXCEED MAXIMUM ITERATIONS.')
 if (global_com%exit_on_error) call err_exit
 
