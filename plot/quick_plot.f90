@@ -1407,7 +1407,7 @@ subroutine qp_clear_box
 
 call qp_paint_rectangle (qp_com%box%x1, qp_com%box%x2, &
                          qp_com%box%y1, qp_com%box%y2, &
-                         'INCH', color = white$, fill_pattern = solid_fill$)
+                         'INCH/PAGE', color = white$, fill_pattern = solid_fill$)
 
 end subroutine qp_clear_box
 
