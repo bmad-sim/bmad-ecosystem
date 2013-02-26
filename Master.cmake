@@ -144,9 +144,9 @@ find_package(X11)
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
-set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused" ${ACC_MPI_COMPILER_FLAGS})
+set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 
-set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused" ${ACC_MPI_COMPILER_FLAGS})
+set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 
 
 #-----------------------------------
