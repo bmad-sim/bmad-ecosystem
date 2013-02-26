@@ -238,8 +238,8 @@ SUBROUTINE make_N(t6,N,Ninv,gamma,error,tunes,synchrotron_motion)
   ENDIF
 
   !Adjust evec complex phase and normalize to make symplectic
-  CALL normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
-  CALL symp_emat_columns(adj_evec_r, adj_evec_i, nrml_evec_r, nrml_evec_i)
+  CALL symp_emat_columns(evec_r, evec_i, adj_evec_r, adj_evec_i)
+  CALL adjust_evec_phase(adj_evec_r, adj_evec_i, nrml_evec_r, nrml_evec_i)
 
   !Get inverse so we can easily obtain Ninv
   !Because matrix is symplectic, its cplx symp conj is its inverse.
@@ -642,15 +642,15 @@ FUNCTION dagger2(A) RESULT(Ad)
 END FUNCTION dagger2
 
 !+
-! Subroutine normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
+! Subroutine adjust_evec_phase(evec_r, evec_i, adj_evec_r, adj_evec_i)
 !
 ! This subroutine assumes that the eigenvectors are arranged in complex-conjugate pairs: (e1 e1* e2 e2* e3 e3*)
 !
 ! The following normalizations are applied to the matrix of eigenvectors.  The result is still a matrix of eigenvectors,
 ! but it is normalized and the phase adjusted such that G and V can be easily extracted.
-! It is probably also unique, though this remains to be proven.
+! The resulting matrix of eigenvectors is unique
 !
-! 1) Normalize the eigenvectors such that their length is 1.
+! 1) Swap columns to make determinant of diagonal blocks have positive imaginary part.
 ! 2) Adjust the phase of the eigenvectors such that the (1,1 and 1,2) and (3,3 and 3,4) and (5,5 and 5,6) elements are real.
 ! 3) Fixes the sign of the pairs so that the 1,1 3,3 and 5,5 elements are positive.
 !
@@ -664,7 +664,7 @@ END FUNCTION dagger2
 !  tunes(3)         -- real(rp): Tunes of the 3 normal modes.  The ambiguity in tune is resolved so that det(G) = 1.
 !
 !-
-SUBROUTINE normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
+SUBROUTINE adjust_evec_phase(evec_r, evec_i, adj_evec_r, adj_evec_i)
   REAL(rp) evec_r(6,6)
   REAL(rp) evec_i(6,6)
   REAL(rp) adj_evec_r(6,6)
@@ -674,8 +674,6 @@ SUBROUTINE normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
 
   REAL(rp) theta  
   REAL(rp) costh, sinth
-  REAL(rp) nrml
-  REAL(rp) fix
   REAL(rp) det(3)
 
   INTEGER i, j, ix
@@ -686,6 +684,7 @@ SUBROUTINE normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
                 CMPLX(evec_r(3,4),evec_i(3,4))*CMPLX(evec_r(4,3),evec_i(4,3)) )
   det(3) = AIMAG( CMPLX(evec_r(5,5),evec_i(5,5))*CMPLX(evec_r(6,6),evec_i(6,6)) - &
                 CMPLX(evec_r(5,6),evec_i(5,6))*CMPLX(evec_r(6,5),evec_i(6,5)) )
+
   DO i=1,3
     ix = i*2-1
     IF( det(i) < 0 ) THEN
@@ -701,9 +700,6 @@ SUBROUTINE normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
   DO i=1,3
     ix = i*2-1
 
-    ! Calculate norm of the eigenvector.  Result will be used to normalize length to 1.
-    nrml = SQRT(SUM(evec_r(:,ix)*evec_r(:,ix) + evec_i(:,ix)*evec_i(:,ix)))
-
     ! For each element of the eigenvector, rotate the eigenvector in the complex plane
     ! by an angle that makes the (1,1 and 1,2) or (3,3 and 3,4) or (5,5 and 5,6) elements of the eigen matrix real.
     theta = ATAN2(evec_i(ix,ix),evec_r(ix,ix)) 
@@ -711,13 +707,13 @@ SUBROUTINE normalize_and_phase_emat(evec_r, evec_i, adj_evec_r, adj_evec_i)
     ! Apply the normalization and rotation
     costh = COS(theta)
     sinth = SIN(theta)
-    adj_evec_r(:,ix) = ( evec_r(:,ix)*costh + evec_i(:,ix)*sinth) / nrml
-    adj_evec_i(:,ix) = (-evec_r(:,ix)*sinth + evec_i(:,ix)*costh) / nrml
+    adj_evec_r(:,ix) = ( evec_r(:,ix)*costh + evec_i(:,ix)*sinth)
+    adj_evec_i(:,ix) = (-evec_r(:,ix)*sinth + evec_i(:,ix)*costh)
 
-    adj_evec_r(:,ix+1) = ( evec_r(:,ix+1)*costh - evec_i(:,ix+1)*sinth) / nrml
-    adj_evec_i(:,ix+1) = ( evec_r(:,ix+1)*sinth + evec_i(:,ix+1)*costh) / nrml
+    adj_evec_r(:,ix+1) = ( evec_r(:,ix+1)*costh - evec_i(:,ix+1)*sinth)
+    adj_evec_i(:,ix+1) = ( evec_r(:,ix+1)*sinth + evec_i(:,ix+1)*costh)
   ENDDO
-END SUBROUTINE normalize_and_phase_emat
+END SUBROUTINE adjust_evec_phase
 
 !+
 ! Subroutine symp_emat_columns(evec_r, evec_i, nrm_evec_r, nrm_evec_i)
