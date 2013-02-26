@@ -51,12 +51,14 @@ describe various machine geometries.
 Drift element \vn{D} is followed by a reversed drift element \vn{B}.
 The view is from $+y$ onto the $x$-$z$ plane. A) If no patch is
 present then the geometry does not make physical sense. B) With a
-patch in between, a sane geometry obtained.}
+patch in between, a sane geometry can be obtained.}
   \label{f:patch.between}
 \end{figure}
 
-Between normal and reversed elements there must be a reversing \vn{patch}. 
-This is illustrated in \fig{f:patch.between}. The basic lattice is
+\index{patch}
+Between normal and reversed elements there must be a reflection
+\vn{patch} element (\sref{s:patch}).  This is illustrated in
+\fig{f:patch.between}. The basic lattice is
 \begin{example}
   D: drift, l = 2
   g_design = pi/12
@@ -68,13 +70,15 @@ This is illustrated in \fig{f:patch.between}. The basic lattice is
 Line \vn{fig_A} represents the situation shown in
 \fig{f:patch.between}A.  With no patch between the drift \vn{D} and
 the reversed bend \vn{B}, a particle leaving \vn{D} at \vn{D}'s
-downstream end will find itself outside of of \vn{B} as well. Clearly
-this is an unphysical situation. Sanity is restored is line \vn{fig_B}
-is used. In this instance, the patch \vn{P} rotates the reference
-coordinates around the $y$-axis leaving the $y$-axis invariant the
-bend of \vn{B} is in the $x$-$z$ plane. Of course there are many other
-patches that could be used here. For example, Setting \vn{y_pitch} to
-\vn{pi}. 
+downstream end will find itself outside of both \vn{D} and
+\vn{B}. Clearly this is an unphysical situation. Sanity is restored in
+line \vn{fig_B} shown in \fig{f:patch.between}B. In this instance, the
+patch \vn{P} rotates the reference coordinates around the $y$-axis
+leaving the $y$-axis invariant the bend of \vn{B} is in the $x$-$z$
+plane. There are other patch parameter values that could be used to
+produce a reflection patch (\sref{s:patch.coords}).  For example,
+Setting the patch's \vn{y_pitch} to \vn{pi} would produce a reflection
+patch.
 
 Since bend \vn{B} is reversed, A particle moving downstream within
 \vn{B} is going the opposite direction from the normal direction. If
