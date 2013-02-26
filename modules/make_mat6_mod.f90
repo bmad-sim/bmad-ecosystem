@@ -421,11 +421,12 @@ tsd = ts
 tsd(1:4,2) = ts(1:4,2) / rel_p
 tsd(1:4,4) = ts(1:4,4) / rel_p
 
-dtsd = dts
-dtsd(1:4,2) = dts(1:4,2) / rel_p - ts(1:4,2) / rel_p**2
-dtsd(1:4,4) = dts(1:4,4) / rel_p - ts(1:4,4) / rel_p**2
+dtsd(1:4,1) = dts(1:4,1) / rel_p
+dtsd(1:4,2) = (dts(1:4,2) - ts(1:4,2)) / rel_p**2
+dtsd(1:4,3) = dts(1:4,3) / rel_p
+dtsd(1:4,4) = (dts(1:4,4) - ts(1:4,4)) / rel_p**2
 
-r_orb = [orb(1), orb(2)/rel_p, orb(3), orb(4)/rel_p]
+r_orb = [orb(1), orb(2)*rel_p, orb(3), orb(4)*rel_p]
 d_orb = [0.0_rp, -orb(2)/rel_p, 0.0_rp, -orb(4)/rel_p]
 
 ! dz = Sum_ij dz_coef(i,j) * orb(i) * orb(j)
