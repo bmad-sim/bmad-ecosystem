@@ -904,12 +904,12 @@ case ('chrom.')
 
   select case (datum%data_type)
 
-  case ('chrom.a')
+  case ('chrom.dtune.a')
     if (data_source == 'beam') return
     datum_value = tao_lat%a%chrom
     valid_value = .true.
 
-  case ('chrom.b')
+  case ('chrom.dtuen.b')
     if (data_source == 'beam') return
     datum_value = tao_lat%b%chrom
     valid_value = .true.

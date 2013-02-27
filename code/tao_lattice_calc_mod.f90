@@ -139,7 +139,14 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
       endif
     endif
 
-    if (u%calc%chrom) call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom)
+    if (u%calc%chrom) then
+      if (u%calc%chrom_lats) then
+        call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom, &
+                          low_E_lat = tao_lat%low_E_lat, high_E_lat = tao_lat%high_E_lat)
+      else
+        call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom)
+      endif
+    endif
 
     ! do multi-turn tracking if needed. This is always the main lattice. 
 
