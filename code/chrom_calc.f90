@@ -26,7 +26,7 @@ use bookkeeper_mod, except_dummy => chrom_calc
 implicit none
 
 type (lat_struct)  lat
-type (lat_struct), save :: lat2
+type (lat_struct) :: lat2
 type (coord_struct), allocatable :: orb(:)
 
 real(rp) high_tune_x, high_tune_y, low_tune_x, low_tune_y
@@ -45,7 +45,7 @@ call reallocate_coord (orb, lat%n_ele_max)
 
 if (delta_e <= 0) delta_e = 1.0e-4
 
-lat2 = lat
+call transfer_lat (lat, lat2)
 call set_on_off (rfcavity$, lat2, off$)
 
 nt = lat%n_ele_track
