@@ -54,7 +54,7 @@ contains
 !   track      -- Track_struct, optional: Structure holding the track information.
 !-
 
-subroutine track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_orb)
+subroutine track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_end)
 
 implicit none
 
@@ -65,7 +65,7 @@ type (lat_param_struct) param
 type (track_struct), optional :: track
 type (ele_struct), pointer :: hard_ele
 
-real(rp), optional, intent(in) :: s_start, s_orb
+real(rp), optional, intent(in) :: s_start, s_end
 real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target, s_edge_hard
 real(rp) beta0, dref_time
 
@@ -85,8 +85,8 @@ else
   s1 = 0
 endif
 
-if (present(s_orb)) then
-  s2 = s_orb
+if (present(s_end)) then
+  s2 = s_end
 else 
   s2 = ele%value(l$)
 endif
