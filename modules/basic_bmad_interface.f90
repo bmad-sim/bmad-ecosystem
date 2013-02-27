@@ -89,10 +89,13 @@ interface
 end interface
 
 interface
-  subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag)
+  subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
+                         low_E_lat, high_E_lat, low_E_orb, high_E_orb)
     import
     implicit none
     type (lat_struct) lat
+    type (lat_struct), optional, target :: low_E_lat, high_E_lat
+    type (coord_struct), allocatable, optional, target :: low_E_orb(:), high_E_orb(:)
     real(rp) delta_e
     real(rp) chrom_x
     real(rp) chrom_y

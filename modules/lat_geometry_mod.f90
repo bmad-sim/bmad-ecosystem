@@ -703,14 +703,13 @@ end function floor_to_local
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function position_in_local_frame  (global_position, ele, status, w_mat) 
-!   result(local_position)
+! Function position_in_local_frame  (global_position, ele, status, w_mat) result(local_position)
 !
 ! Given a position in global coordinates, return local curvilinear coordinates in ele
 !   relative to floor0
 !
 ! Module needed:
-!   nr, only: zbrent
+!   use lat_geometry_mod
 !
 ! Input:
 !   global_position -- floor_position_struct: [X, Y, Z] position in global coordinates
@@ -819,21 +818,21 @@ end function position_in_local_frame
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-! Function position_in_global_frame (local_position, ele, w_mat) 
-!  result (global_position)
+!+
+! Function position_in_global_frame (local_position, ele, w_mat) result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates
 !
 ! Input:
-!   local_position  -- floor_position_struct: [x, y, s] position and
-!                              [theta, phi, psi] angles in local curvilinear coordinates
-!   ele             -- ele_struct: element that local_position coordinates are relative to
+!   local_position  -- floor_position_struct: Floor position in local curvilinear coordinates.
+!     %r(3)             -- Position from beginning of element.
+!   ele             -- ele_struct: element that local_position coordinates are relative to.
 !
 ! Result:
-!   global_position -- floor_position_struct: [X, Y, Z] position in global coordinates
-!   w_mat(3,3)      -- real(rp) (optional): W matrix at s, to transform vectors. 
-!                                  v_global = w_mat.v_local
-!                                  v_local = transpose(w_mat).v_global
+!   global_position -- floor_position_struct: Position in global coordinates.
+!   w_mat(3,3)      -- real(rp), optional: W matrix at s, to transform vectors. 
+!                                  v_global = w_mat . v_local
+!                                  v_local = transpose(w_mat) . v_global
 !       
 !-  
 
