@@ -118,9 +118,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   u%is_on = .true.          ! turn universe on
   u%ix_uni = i
-  u%calc%rad_int_for_data = .false.
+  u%calc%rad_int_for_data     = .false.
   u%calc%rad_int_for_plotting = .false.
-  u%calc%chrom   = .false.
+  u%calc%chrom                = .false.
+  u%calc%chrom_lats           = .false.
 
   ! If unified then only read in a lattice for the common universe.
 

@@ -251,6 +251,8 @@ do
         ! convert old style to new
         if (d_typ == 'lattice')       datum(i)%data_type = 'lat'
         if (d_typ == 'beam_tracking') datum(i)%data_source = 'beam'
+        if (d_typ == 'chrom.a')       datum(i)%data_source = 'chrom.dtune.a'
+        if (d_typ == 'chrom.b')       datum(i)%data_source = 'chrom.dtune.b'
       enddo
     endif
 
@@ -566,6 +568,14 @@ do j = n1, n2
       dat%exists = .false.
     else
       u%calc%chrom = .true.
+      if (data_type(1:12) /= 'chrom.dtune.') then 
+        u%calc%chrom_lats = .true.
+        if (.not. allocated (u%model%low_E_lat)) then
+          allocate (u%model%low_E_lat);   allocate (u%model%high_E_lat)
+          allocate (u%design%low_E_lat);  allocate (u%design%high_E_lat)
+          allocate (u%base%low_E_lat);    allocate (u%base%high_E_lat)
+        endif
+      endif
     endif  
   endif
 

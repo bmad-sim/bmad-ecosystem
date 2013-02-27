@@ -655,6 +655,7 @@ end type
 
 type tao_lattice_struct
   type (lat_struct) lat                        ! lattice structures
+  type (lat_struct), allocatable :: high_E_lat, low_E_lat  ! For chrom calc.
   type (tao_lattice_branch_struct), allocatable :: lat_branch(:)
   type (bunch_params_struct), allocatable :: bunch_params2(:)
   type (normal_modes_struct) modes             ! Synchrotron integrals stuff
@@ -712,6 +713,7 @@ type tao_universe_calc_struct
   logical rad_int_for_data       ! Do the radiation integrals need to be computed for
   logical rad_int_for_plotting   !   data or plotting?
   logical chrom                  ! Does the chromaticity need to be computed?
+  logical chrom_lats             ! Save high and low energy lattices?
   logical lattice                ! Used to indicate which lattices need tracking done.
   logical :: mat6 = .true.       ! calc linear transfer matri?
   logical :: track = .true.      ! tracking needs to be done?
