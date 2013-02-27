@@ -7,6 +7,9 @@ contains
 !
 ! Routine to open a directory to obtain a list of its files.
 ! Use this routine with dir_read and dir_close.
+!
+! Note: Subdirectories will not be searched.
+!
 ! Note: calling this routine when there is already an open directory
 !   will close the existing open directory.
 !
@@ -52,6 +55,8 @@ end function
 !
 ! Note: When there are no more files on the list and valid is
 !   set False, dir_close will be automatically called.
+!
+! Note: File names will *not* contain the directory path.
 !
 ! Note: Files "." and ".." will *not* appear in the list. 
 !
