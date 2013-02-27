@@ -32,12 +32,14 @@ type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r
 real(rp) mat_f(6,6), m(6,6), vec1(6)
 real(rp) dz, dpc, dct
 logical :: err_flag
+logical :: verbosity = .false.
 integer nargs
 
 nargs = cesr_iargc()
 if (nargs == 1)then
    call cesr_getarg(1, lat_file)
    print *, 'Using ', trim(lat_file)
+   verbosity = .true.
 elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
   call err_exit
@@ -63,8 +65,10 @@ call init_coord (orb_0f, orb_0f%vec, ele_f, .false.)
 call track1 (orb_0f, ele_f, ele_f%branch%param, orb_1f)
 call make_mat6 (ele_f, ele_f%branch%param, orb_0f)
 
-print '(a, 6es10.2, 5x, es10.2)', '0: ', orb_0f%vec, orb_0f%t
-print '(a, 6es10.2, 5x, es10.2)', '1: ', orb_1f%vec, orb_1f%t
+if (verbosity == .true.) then
+   print '(a, 6es10.2, 5x, es10.2)', '0: ', orb_0f%vec, orb_0f%t
+   print '(a, 6es10.2, 5x, es10.2)', '1: ', orb_1f%vec, orb_1f%t
+end if
 
 orb_0r        = orb_1f
 orb_0r%vec(2) = -orb_1f%vec(2)
@@ -84,8 +88,10 @@ endif
 call track1 (orb_0r, ele_r, ele_r%branch%param, orb_1r)
 call make_mat6 (ele_r, ele_r%branch%param, orb_0r)
 
-print '(a, 6es10.2, 5x, es10.2)', '1: ', orb_0r%vec, orb_0r%t
-print '(a, 6es10.2, 5x, es10.2)', '2: ', orb_1r%vec, orb_1r%t
+if (verbosity == .true.) then
+   print '(a, 6es10.2, 5x, es10.2)', '1: ', orb_0r%vec, orb_0r%t
+   print '(a, 6es10.2, 5x, es10.2)', '2: ', orb_1r%vec, orb_1r%t
+end if
 
 !
 
@@ -123,21 +129,23 @@ write (1, '(a, es11.3)') '"dorb(5)" ABS 1d-14 ', dz
 write (1, '(a, es11.3)') '"dorb(6)" ABS 1d-14 ', dpc
 write (1, '(a, es11.3)') '"c*dt"    ABS 1d-14 ', dct 
 
-write (1, *)
-write (1, '(a, 6es11.3)') '"mat_f(1,:)" ABS 1d-14 ', ele_f%mat6(1,:)
-write (1, '(a, 6es11.3)') '"mat_f(2,:)" ABS 1d-14 ', ele_f%mat6(2,:)
-write (1, '(a, 6es11.3)') '"mat_f(3,:)" ABS 1d-14 ', ele_f%mat6(3,:)
-write (1, '(a, 6es11.3)') '"mat_f(4,:)" ABS 1d-14 ', ele_f%mat6(4,:)
-write (1, '(a, 6es11.3)') '"mat_f(5,:)" ABS 1d-14 ', ele_f%mat6(5,:)
-write (1, '(a, 6es11.3)') '"mat_f(6,:)" ABS 1d-14 ', ele_f%mat6(6,:)
+if (verbosity == .true.) then
+   write (1, *)
+   write (1, '(a, 6es11.3)') '"mat_f(1,:)" ABS 1d-14 ', ele_f%mat6(1,:)
+   write (1, '(a, 6es11.3)') '"mat_f(2,:)" ABS 1d-14 ', ele_f%mat6(2,:)
+   write (1, '(a, 6es11.3)') '"mat_f(3,:)" ABS 1d-14 ', ele_f%mat6(3,:)
+   write (1, '(a, 6es11.3)') '"mat_f(4,:)" ABS 1d-14 ', ele_f%mat6(4,:)
+   write (1, '(a, 6es11.3)') '"mat_f(5,:)" ABS 1d-14 ', ele_f%mat6(5,:)
+   write (1, '(a, 6es11.3)') '"mat_f(6,:)" ABS 1d-14 ', ele_f%mat6(6,:)
 
-write (1, *)
-write (1, '(a, 6es11.3)') '"mat_r(1,:)" ABS 1d-14 ', ele_r%mat6(1,:)
-write (1, '(a, 6es11.3)') '"mat_r(2,:)" ABS 1d-14 ', ele_r%mat6(2,:)
-write (1, '(a, 6es11.3)') '"mat_r(3,:)" ABS 1d-14 ', ele_r%mat6(3,:)
-write (1, '(a, 6es11.3)') '"mat_r(4,:)" ABS 1d-14 ', ele_r%mat6(4,:)
-write (1, '(a, 6es11.3)') '"mat_r(5,:)" ABS 1d-14 ', ele_r%mat6(5,:)
-write (1, '(a, 6es11.3)') '"mat_r(6,:)" ABS 1d-14 ', ele_r%mat6(6,:)
+   write (1, *)
+   write (1, '(a, 6es11.3)') '"mat_r(1,:)" ABS 1d-14 ', ele_r%mat6(1,:)
+   write (1, '(a, 6es11.3)') '"mat_r(2,:)" ABS 1d-14 ', ele_r%mat6(2,:)
+   write (1, '(a, 6es11.3)') '"mat_r(3,:)" ABS 1d-14 ', ele_r%mat6(3,:)
+   write (1, '(a, 6es11.3)') '"mat_r(4,:)" ABS 1d-14 ', ele_r%mat6(4,:)
+   write (1, '(a, 6es11.3)') '"mat_r(5,:)" ABS 1d-14 ', ele_r%mat6(5,:)
+   write (1, '(a, 6es11.3)') '"mat_r(6,:)" ABS 1d-14 ', ele_r%mat6(6,:)
+end if
 
 write (1, *)
 write (1, '(a, 6es11.3)') '"dmat(1,:)" ABS 1d-14 ', ele_r%mat6(1,:) - mat_f(1,:)
@@ -147,9 +155,11 @@ write (1, '(a, 6es11.3)') '"dmat(4,:)" ABS 1d-14 ', ele_r%mat6(4,:) - mat_f(4,:)
 write (1, '(a, 6es11.3)') '"dmat(5,:)" ABS 1d-14 ', ele_r%mat6(5,:) - mat_f(5,:)
 write (1, '(a, 6es11.3)') '"dmat(6,:)" ABS 1d-14 ', ele_r%mat6(6,:) - mat_f(6,:)
 
-write (1, *)
-write (1, '(a,  3es11.3)') '"max(dvec, dmat)" ', maxval(abs([orb_1r%vec(1:4)-orb_0f%vec(1:4), dz, dpc, dct])), &
-                                  maxval(abs(ele_r%mat6 - mat_f))
+if (verbosity == .true.) then
+   write (1, *)
+   write (1, '(a,  3es11.3)') '"max(dvec, dmat)" ', maxval(abs([orb_1r%vec(1:4)-orb_0f%vec(1:4), dz, dpc, dct])), &
+                                     maxval(abs(ele_r%mat6 - mat_f))
+end if
 
 ! And close
 
