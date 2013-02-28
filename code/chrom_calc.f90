@@ -96,7 +96,7 @@ else
 endif
 
 if (.not. used_this_lat) then
-  call transfer_lat (lat, lat2)
+  lat2 = lat
   call set_on_off (rfcavity$, lat2, off$)
 endif
 
