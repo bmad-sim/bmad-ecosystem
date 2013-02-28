@@ -648,25 +648,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   do j = 1, size(u%data)
     data => u%data(j)
-    if (.not. data%exists) cycle
-    if (data%data_type(1:17) == 'multi_turn_orbit.') then
-      cycle ! Does not get evaluated by tao_lattice_calc_mod
-    elseif (data%data_type(1:7) == 'rad_int') then
-      ix_ele = -1
-    elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
-      ix_ele = -1
-    elseif (data%ix_ele == -1) then
-      ix_ele = -1
-    elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lat') then
-      ix_ele = -1
-    elseif (data%data_type(1:6) == 'chrom.') then
-      ix_ele = -1
-    elseif (data%ix_ele_ref > data%ix_ele) then
-      ix_ele = u%model%lat%n_ele_track
-    else
-      ix_ele = data%ix_ele
-    endif
-
+    ix_ele = choose_ix_ele()  ! Contained routine
+    if (ix_ele == int_garbage$) cycle
     uni_ele => u%uni_branch(data%ix_branch)%ele
     uni_ele(ix_ele)%n_datum = uni_ele(ix_ele)%n_datum + 1 
   enddo
@@ -688,23 +671,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   do j = 1, size(u%data)
     data => u%data(j)
-    if (.not. data%exists) cycle
-    if (data%data_type(1:17) == 'multi_turn_orbit.') then
-      cycle ! Does not get evaluated by tao_lattice_calc_mod
-    elseif (data%data_type(1:7) == 'rad_int') then
-      ix_ele = -1
-    elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
-      ix_ele = -1
-    elseif (data%ix_ele == -1) then
-      ix_ele = -1
-    elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lat') then
-      ix_ele = -1
-    elseif (data%ix_ele_ref > data%ix_ele) then
-      ix_ele = u%model%lat%n_ele_track
-    else
-      ix_ele = data%ix_ele
-    endif
-
+    ix_ele = choose_ix_ele()  ! Contained routine
+    if (ix_ele == int_garbage$) cycle
     uni_ele => u%uni_branch(data%ix_branch)%ele
     k = uni_ele(ix_ele)%n_datum + 1
     uni_ele(ix_ele)%ix_datum(k) = j
@@ -715,6 +683,34 @@ enddo
 
 call tao_data_check (err)
 if (err) stop
+
+!----------------------------------------------------------------------
+contains
+
+function choose_ix_ele() result (ix_ele)
+integer ix_ele
+
+if (.not. data%exists) then
+  ix_ele = int_garbage$
+elseif (data%data_type(1:17) == 'multi_turn_orbit.') then
+  ix_ele = int_garbage$ ! Does not get evaluated by tao_lattice_calc_mod
+elseif (data%data_type(1:7) == 'rad_int') then
+  ix_ele = -1
+elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
+  ix_ele = -1
+elseif (data%ix_ele == -1) then
+  ix_ele = -1
+elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lat') then
+  ix_ele = -1
+elseif (data%data_type(1:6) == 'chrom.') then
+  ix_ele = -1
+elseif (data%ix_ele_ref > data%ix_ele) then
+  ix_ele = u%model%lat%n_ele_track
+else
+  ix_ele = data%ix_ele
+endif
+
+end function choose_ix_ele
 
 end subroutine tao_init_data_end_stuff
 
