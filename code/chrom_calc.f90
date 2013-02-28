@@ -44,7 +44,7 @@ real(rp) delta_e, chrom_x, chrom_y
 integer nt, stat
 
 logical, optional, intent(out) :: err_flag
-logical err
+logical err, used_this_lat
 
 ! Init setup
 
@@ -57,11 +57,13 @@ nt = lat%n_ele_track
 
 if (present(low_E_lat)) then
   lat2 => low_E_lat
+  used_this_lat = .false.
 else
   lat2 => this_lat
+  used_this_lat = .true.
 endif
 
-call transfer_lat (lat, lat2)
+lat2 = lat
 call set_on_off (rfcavity$, lat2, off$)
 
 if (present(low_E_orb)) then
@@ -88,12 +90,15 @@ low_tune_y = lat2%ele(nt)%b%phi / twopi
 
 if (present(high_E_lat)) then
   lat2 => high_E_lat
+  used_this_lat = .false.
 else
   lat2 => this_lat
 endif
 
-call transfer_lat (lat, lat2)
-call set_on_off (rfcavity$, lat2, off$)
+if (.not. used_this_lat) then
+  call transfer_lat (lat, lat2)
+  call set_on_off (rfcavity$, lat2, off$)
+endif
 
 if (present(high_E_orb)) then
   call reallocate_coord (high_E_orb, lat%n_ele_max)
