@@ -659,6 +659,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       ix_ele = -1
     elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lat') then
       ix_ele = -1
+    elseif (data%data_type(1:6) == 'chrom.') then
+      ix_ele = -1
     elseif (data%ix_ele_ref > data%ix_ele) then
       ix_ele = u%model%lat%n_ele_track
     else
