@@ -13,6 +13,48 @@ cmake_minimum_required(VERSION 2.8)
 #-----------------------------------------------------------
 cmake_policy(SET CMP0015 NEW)
 
+
+#------------------------------------------
+# Honor requests for compiling with openmp
+# made via environment variable.
+#------------------------------------------
+IF ($ENV{ACC_COMPILE_WITH_OPENMP})
+  SET(ACC_COMPILE_WITH_OPENMP 1)
+ELSE ()
+  SET(ACC_COMPILE_WITH_OPENMP 0)
+ENDIF ()
+
+
+#------------------------------------------
+# Honor requests for compiling with OpenMPI
+# made via environment variable.
+#------------------------------------------
+IF ($ENV{ACC_MPI})
+  SET(ACC_MPI 1)
+  SET(ACC_MPI_COMPILER_FLAGS "-m64 -DACC_MPI")
+  SET(ACC_MPI_LINKER_FLAGS "-lmpi_f90 -lmpi_f77 -lmpi -ldl")
+  SET(ACC_MPI_INC_DIRS /usr/include/openmpi-x86_64 /usr/lib64/openmpi/lib)
+  SET(ACC_MPI_LIB_DIRS /usr/lib64/openmpi/lib)
+ELSE ()
+  SET(ACC_MPI 0)
+  SET(ACC_MPI_COMPILER_FLAGS)
+  SET(ACC_MPI_LINKER_FLAGS)
+  SET(ACC_MPI_INC_DIRS "")
+  SET(ACC_MPI_LIB_DIRS "")
+ENDIF ()
+
+
+#------------------------------------------
+# Honor requests for gfortran compiling with 
+# -O2 flag made via environment variable.
+#------------------------------------------
+IF ($ENV{ACC_GFORTRAN_O2})
+  SET(ACC_GFORTRAN_FLAG "-O2")
+ELSE ()
+  SET(ACC_GFORTRAN_FLAG)
+ENDIF ()
+
+
 #-------------------------------------------------------
 # Import environment variables that influence the build
 #-------------------------------------------------------
@@ -34,19 +76,42 @@ IF (FORTRAN_COMPILER MATCHES "gfortran")
   set (RELEASE_NAME_TRUE "Off-site Distribution")
   set (COMPILER_CHOICE $ENV{DIST_F90})
   set (CMAKE_Fortran_COMPILER gfortran)
-  set (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
-  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0")
+     IF ("${ACC_COMPILE_WITH_OPENMP}")
+       SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -fopenmp ${ACC_GFORTRAN_FLAG}")
+       SET (OPENMP_LINK_LIBS "gomp")
+     ELSE ()
+       SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none ${ACC_GFORTRAN_FLAG}")
+     ENDIF () 
+  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0 -fno-range-check -fbounds-check -Wuninitialized")
 
 ELSE ()
 
   set (RELEASE_NAME $ENV{ACC_RELEASE})
   set (RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
   set (CMAKE_Fortran_COMPILER ifort)
-  set (COMPILER_SPECIFIC_F_FLAGS "-fpp")
-  set (COMPILER_SPECIFIC DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
+     IF ("${ACC_COMPILE_WITH_OPENMP}")
+       SET (COMPILER_SPECIFIC_F_FLAGS "-fpp -openmp")
+       SET (ACC_LINK_FLAGS "-openmp")
+       SET (OPENMP_LINK_LIBS "")
+     ELSE ()
+       SET (COMPILER_SPECIFIC_F_FLAGS "-fpp")
+     ENDIF ()
+  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
 
 ENDIF ()
 
+
+#----------------------------------------------------------------
+# If any pre-build script is specified, run it before building
+# any code.  The pre-build script may generate code or header
+# files.
+#----------------------------------------------------------------
+IF (PREBUILD_ACTION)
+  message("Executing pre-build action...")
+  EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
+ENDIF ()
 
 
 get_filename_component(SHORT_DIRNAME ${CMAKE_SOURCE_DIR} NAME)
@@ -79,21 +144,35 @@ find_package(X11)
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
-set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 
-set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused")
+set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+
+
+#-----------------------------------
+# Plotting library compiler flag
+#-----------------------------------
+IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
+  SET (PLOT_LIBRARY_F_FLAG "-DCESR_PLPLOT")
+  SET (PLOT_LINK_LIBS plplotf77d plplotf77cd plplotd csirocsa qsastime)
+  SET (ACC_PLOT_INC_DIRS)
+  SET (ACC_PLOT_LIB_DIRS)
+ELSE ()
+  SET (PLOT_LIBRARY_F_FLAG "")
+  SET (PLOT_LINK_LIBS "pgplot")
+ENDIF ()
 
 
 #-----------------------------------
 # Fortran Compiler flags
 #-----------------------------------
 enable_language( Fortran )
-set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS}")
+set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
 
 
-
-set(CMAKE_EXE_LINKER_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++")
-
+SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
+SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS})
+SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS})
 
 #--------------------------------------
 # Honor requests for debug builds 
@@ -141,7 +220,25 @@ ELSE ()
 ENDIF ()
 message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 message("C Compiler           : ${CMAKE_C_COMPILER}")
-message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}\n")
+message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
+message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
+IF ($ENV{ACC_COMPILE_WITH_OPENMP})
+  IF (${FORTRAN_COMPILER} MATCHES "ifort")
+    message("OpenMP ifort Flag    : -openmp")
+  ELSE()
+    message("OpenMP gfortran Flag : -fopenmp")
+    message("OpenMP Linker Libs   : ${OPENMP_LINK_LIBS}")
+  ENDIF()
+ELSE()
+  message("OpenMP Support       : Not Enabled")
+ENDIF()
+IF ($ENV{ACC_MPI})
+  message("MPI Support          : Enabled via OpenMPI v1.5.4")
+ELSE()
+  message("MPI Support          : Not Enabled")
+ENDIF()
+message("${FORTRAN_COMPILER} Complier Flags : ${BASE_Fortran_FLAGS}")
+message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}\n")
 
 
 #-----------------------------------
@@ -177,6 +274,7 @@ SET (MASTER_INC_DIRS
   ${OUTPUT_BASEDIR}/modules
   ${RELEASE_OUTPUT_BASEDIR}/modules
   ${RELEASE_DIR}/modules
+  ${ACC_INC_DIRS}
 )
 
 
@@ -209,11 +307,18 @@ SET(MASTER_LINK_DIRS
   ${OUTPUT_BASEDIR}/lib
   ${PACKAGES_OUTPUT_BASEDIR}/lib
   ${RELEASE_OUTPUT_BASEDIR}/lib
+  ${ACC_LIB_DIRS}
 )
 
-IF (IS_DIRECTORY "${PACKAGES_DIR}/root/lib")
-  LIST(APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/root/lib")
-ENDIF()
+IF (DEBUG)
+  IF (IS_DIRECTORY "${PACKAGES_DIR}/debug/lib/root")
+    LIST(APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/debug/lib/root")
+  ENDIF()
+ELSE ()
+  IF (IS_DIRECTORY "${PACKAGES_DIR}/production/lib/root")
+    LIST(APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/production/lib/root")
+  ENDIF()
+ENDIF ()
 
 LINK_DIRECTORIES(${MASTER_LINK_DIRS})
 
@@ -283,18 +388,6 @@ endforeach(dir)
 
 set(DEPS)
 
-
-#----------------------------------------------------------------
-# If any pre-build script is specified, run it before building
-# any code.  The pre-build script may generate code or header
-# files.
-#----------------------------------------------------------------
-IF (PREBUILD_ACTION)
-  message("Executing pre-build action...")
-  EXECUTE_PROCESS (COMMAND ${PREBUILD_ACTION}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  )
-ENDIF ()
 
 set(TARGETS)
 
@@ -565,13 +658,13 @@ foreach(exespec ${EXE_SPECS})
   set(SHARED_FLAG "")
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     IF (FORTRAN_COMPILER MATCHES "ifort")
-  	  set(STATIC_FLAG "-Wl,-Bstatic")
-	    set(SHARED_FLAG "-Wl,-Bdynamic")
-	  ENDIF ()
+      set(STATIC_FLAG "-Wl,-Bstatic")
+      set(SHARED_FLAG "-Wl,-Bdynamic")
+    ENDIF ()
   ENDIF ()
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${STATIC_FLAG} ${LINK_LIBS} ${SHARED_FLAG} ${SHARED_LINK_LIBS}
-          ${X11_LIBRARIES}
+          ${X11_LIBRARIES} ${ACC_LINK_FLAGS}
           ${LINK_FLAGS} ${MAPLINE}
   )
 
