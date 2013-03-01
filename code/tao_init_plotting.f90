@@ -1104,6 +1104,147 @@ crv%data_type    = 'beta.b'
 crv%legend_text  = '\gb\dB\u'
 
 !---------------
+! dbeta (chrom.dbeta) plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(2))
+
+plt = default_plot_g1c2
+plt%name                 = 'dbeta'
+plt%description          = 'Chromatic normalized beta beat'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title               = 'Chromatic normalized beta beat'
+grph%y%label             = '\gb\u-1\d \(2265)\gb/\(2265)\gd (1)'
+grph%y%label_offset= .15
+
+crv => grph%curve(1)
+crv%name         = 'a'
+crv%g => grph
+crv%data_type    = 'chrom.dbeta.a'
+crv%legend_text  = 'a'
+crv%smooth_line_calc = .false.
+
+crv => grph%curve(2)
+crv%name         = 'b'
+crv%g => grph
+crv%data_type    = 'chrom.dbeta.b'
+crv%legend_text  = 'b'
+crv%smooth_line_calc = .false.
+
+
+!---------------
+! deta (chrom.deta) plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(2))
+
+plt = default_plot_g1c2
+plt%name                 = 'deta'
+plt%description          = 'Second order dispersion'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title               = 'Second order dispersion'
+grph%y%label             = '\(2265)\gy/\(2265)\gd (m)'
+grph%y%label_offset= .15
+
+crv => grph%curve(1)
+crv%name         = 'x'
+crv%g => grph
+crv%data_type    = 'chrom.deta.x'
+crv%legend_text  = 'x'
+crv%smooth_line_calc = .false.
+
+crv => grph%curve(2)
+crv%name         = 'y'
+crv%g => grph
+crv%data_type    = 'chrom.deta.y'
+crv%legend_text  = 'y'
+crv%smooth_line_calc = .false.
+
+!---------------
+! detap (chrom.detap) plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(2))
+
+plt = default_plot_g1c2
+plt%name                 = 'detap'
+plt%description          = 'Second order dispersion slope'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title               = 'Second order dispersion slope'
+grph%y%label             = "\(2265)\gy'/\(2265)\gd (1)"
+grph%y%label_offset= .15
+
+crv => grph%curve(1)
+crv%name         = 'x'
+crv%g => grph
+crv%data_type    = 'chrom.detap.x'
+crv%legend_text  = 'x'
+crv%smooth_line_calc = .false.
+
+crv => grph%curve(2)
+crv%name         = 'y'
+crv%g => grph
+crv%data_type    = 'chrom.detap.y'
+crv%legend_text  = 'y'
+crv%smooth_line_calc = .false.
+
+!---------------
+! dphi (chrom.dphi) plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(2))
+
+plt = default_plot_g1c2
+plt%name                 = 'dphi'
+plt%description          = 'Chromatic phase deviation'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title               = 'Chromatic phase deviation'
+grph%y%label             = '\(2265)\gf/\(2265)\gd (1)'
+grph%y%label_offset= .15
+
+crv => grph%curve(1)
+crv%name         = 'a'
+crv%g => grph
+crv%data_type    = 'chrom.dphi.a'
+crv%legend_text  = 'a'
+crv%smooth_line_calc = .false.
+
+crv => grph%curve(2)
+crv%name         = 'b'
+crv%g => grph
+crv%data_type    = 'chrom.dphi.b'
+crv%legend_text  = 'b'
+crv%smooth_line_calc = .false.
+
+!---------------
 ! emittance growth
 
 np = np + 1
