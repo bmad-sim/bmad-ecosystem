@@ -459,7 +459,7 @@ type (branch_struct), pointer :: branch
 type (bunch_params_struct), pointer :: bunch_params(:)
 type (tao_element_struct), pointer :: uni_ele(:)
 
-real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
+real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2), dpz
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3)
 real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt
@@ -901,7 +901,9 @@ case ('cbar.')
 !-----------
 
 case ('chrom.')
-
+  ! chrom_calc should be called with deltae=0, defaulting to 1e-4 delta_e per lattice 
+  dpz = 2e-4_rp
+  
   select case (datum%data_type)
 
   case ('chrom.dtune.a')
@@ -909,10 +911,100 @@ case ('chrom.')
     datum_value = tao_lat%a%chrom
     valid_value = .true.
 
-  case ('chrom.dtuen.b')
+  case ('chrom.dtune.b')
     if (data_source == 'beam') return
     datum_value = tao_lat%b%chrom
     valid_value = .true.
+
+   
+  case ('chrom.dbeta.a')
+    if (data_source == 'beam') return
+    if (data_source == 'lat') then
+      if (.not. allocated(tao_lat%low_E_lat)) return
+      do i = ix_start, ix_ele
+        ! $(1/\beta_a)^{-1}\partial\beta_{a,b}/\partial\delta$	
+        value_vec(i) = (tao_lat%high_E_lat%ele(i)%a%beta &
+                        - tao_lat%low_E_lat%ele(i)%a%beta)/tao_lat%lat%ele(i)%a%beta/dpz
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('chrom.dbeta.b')
+    if (data_source == 'beam') return
+    if (data_source == 'lat') then
+      if (.not. allocated(tao_lat%low_E_lat)) return
+      do i = ix_start, ix_ele
+        value_vec(i) = (tao_lat%high_E_lat%ele(i)%b%beta &
+                        - tao_lat%low_E_lat%ele(i)%b%beta)/tao_lat%lat%ele(i)%b%beta/dpz
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+  
+  case ('chrom.dphi.a')
+    if (data_source == 'beam') return
+    if (data_source == 'lat') then
+      if (.not. allocated(tao_lat%low_E_lat)) return
+      do i = ix_start, ix_ele
+        value_vec(i) = (tao_lat%high_E_lat%ele(i)%a%phi &
+                        -tao_lat%low_E_lat%ele(i)%a%phi)/dpz
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('chrom.dphi.b')
+    if (data_source == 'beam') return
+    if (data_source == 'lat') then
+      if (.not. allocated(tao_lat%low_E_lat)) return
+      do i = ix_start, ix_ele
+        value_vec(i) = (tao_lat%high_E_lat%ele(i)%b%phi &
+                        -tao_lat%low_E_lat%ele(i)%b%phi)/dpz
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('chrom.deta.x')
+    if (data_source == 'beam') return
+    if (data_source == 'lat') then
+      if (.not. allocated(tao_lat%low_E_lat)) return
+      do i = ix_start, ix_ele
+        value_vec(i) = (tao_lat%high_E_lat%ele(i)%x%eta &
+                        -tao_lat%low_E_lat%ele(i)%x%eta)/dpz
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('chrom.deta.y')
+    if (data_source == 'beam') return
+    if (data_source == 'lat') then
+      if (.not. allocated(tao_lat%low_E_lat)) return
+      do i = ix_start, ix_ele
+        value_vec(i) = (tao_lat%high_E_lat%ele(i)%y%eta &
+                        -tao_lat%low_E_lat%ele(i)%y%eta)/dpz
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('chrom.detap.x')
+    if (data_source == 'beam') return
+    if (data_source == 'lat') then
+      if (.not. allocated(tao_lat%low_E_lat)) return
+      do i = ix_start, ix_ele
+        value_vec(i) = (tao_lat%high_E_lat%ele(i)%x%etap &
+                        -tao_lat%low_E_lat%ele(i)%x%etap)/dpz
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('chrom.detap.y')
+    if (data_source == 'beam') return
+    if (data_source == 'lat') then
+      if (.not. allocated(tao_lat%low_E_lat)) return
+      do i = ix_start, ix_ele
+        value_vec(i) = (tao_lat%high_E_lat%ele(i)%y%etap &
+                        -tao_lat%low_E_lat%ele(i)%y%etap)/dpz
+      end do
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)

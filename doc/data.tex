@@ -466,8 +466,22 @@ where the average \vn{<>} is over all the particles in the beam.
 Note: If the beta function is calculated from the beam distribution,
 the emittance must be non-zero.
 
+  \index{chrom.}
+  \item[chrom.] \Newline
+The \vn{chrom.} data type covers chromatic transfer map terms in a ring, 
+calculated using the linear map about an energy-offset closed orbit. 
+The types \vn{chrom.dtune.a} and \vn{chrom.dtune.b} are the chromaticities, and are
+global properties of the ring. The following are evaluated at individual elements.
+The types \vn{chrom.dbeta.a} and \vn{chrom.dbeta.b} are the normalized chromatic beta beats 
+$(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$.
+The types \vn{chrom.dphi.a} and \vn{chrom.dphi.b} are the chromatic phase deviations 
+$\partial\phi_{a,b}/\partial\delta$.
+The second order dispersions $\partial\eta_{x,y}/\partial\delta$ and their slopes $\partial\eta'_{x,y}/\partial\delta$ are 
+\vn{chrom.deta.x}, \vn{chrom.deta.y}, and \vn{chrom.detap.x}, \vn{chrom.detap.y}, respectively.
+
+
   \index{element_attrib.}
-  \item{element_attrib.} \Newline
+  \item[element_attrib.] \Newline
 The \vn{element_attrib.<attrib_name>} data type is associated with the
 lattice element attribute named \vn{<attrib_name>}. For any given
 element, if \vn{<attrib_name} is not associated with the element, the
@@ -825,7 +839,12 @@ squared.
   cbar.11, cbar.12, cbar.21, cbar.22
                                       & Coupling                                      & lat       \\ \hline 
 
-  chrom.dtune.a, chrom.dtune.b        & Chromaticity for a ring                       & lat       \\ \hline
+  chrom.dtune.a, chrom.dtune.b        & Chromaticities for a ring                       & lat       \\ \hline
+  chrom.dbeta.a, chrom.dbeta.b        & Normalized Chromatic beta beats  \\ 
+  									  &$(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$			& lat       \\ \hline
+  chrom.dphi.a, chrom.dphi.b        & Chromatic phase deviations $\partial\phi_{a,b}/\partial\delta$		& lat       \\ \hline
+  chrom.deta.x, chrom.deta.y        & Second order dispersions $\partial\eta_{x,y}/\partial\delta$		& lat       \\ \hline
+  chrom.detap.x, chrom.detap.y        & Second order dispersion slopes $\partial\eta'_{x,y}/\partial\delta$		& lat       \\ \hline
 
   damp.j_a, damp.j_b, damp.j_z        & Damping partition number                      & lat       \\ hline
 
