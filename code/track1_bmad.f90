@@ -529,14 +529,7 @@ case (quadrupole$)
 
   ! Entrance edge
 
-  ix_fringe = nint(ele%value(fringe_type$))
-  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    x = end_orb%vec(1); px = end_orb%vec(2); y = end_orb%vec(3); py = end_orb%vec(4)
-    end_orb%vec(1) = x  + k1 * (x**3/12 + x*y**2/4)
-    end_orb%vec(2) = px + k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
-    end_orb%vec(3) = y  - k1 * (y**3/12 + y*x**2/4)
-    end_orb%vec(4) = py - k1 * (y*x*px/2 - py*(y**2 + x**2)/4)
-  endif
+  call quadrupole_edge_kick (ele, upstream_end$, end_orb)
 
   ! Body
 
@@ -556,13 +549,7 @@ case (quadrupole$)
 
   ! Exit edge
 
-  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    x = end_orb%vec(1); px = end_orb%vec(2); y = end_orb%vec(3); py = end_orb%vec(4)
-    end_orb%vec(1) = x  - k1 * (x**3/12 + x*y**2/4)
-    end_orb%vec(2) = px - k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
-    end_orb%vec(3) = y  + k1 * (y**3/12 + y*x**2/4)
-    end_orb%vec(4) = py + k1 * (y*x*px/2 - py*(y**2 + x**2)/4)
-  endif
+  call quadrupole_edge_kick (ele, downstream_end$, end_orb)
 
   call offset_particle (ele, end_orb, param, unset$)  
 
