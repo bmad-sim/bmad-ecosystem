@@ -124,8 +124,8 @@ case (match$)
   endif
 
   end_orb%vec = matmul (mat6, end_orb%vec) + vec0
-
-  call time_and_s_calc ()
+  end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (c_light)
+  end_orb%s = ele%s
 
 !-----------------------------------------------
 ! mirror
@@ -197,18 +197,9 @@ case (patch$)
 case (taylor$)
 
   call track1_taylor (start_orb, ele, param, end_orb)
-  call time_and_s_calc ()
+  end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (c_light)
+  end_orb%s = ele%s
 
 end select
-
-!------------------------------------------
-contains
-
-subroutine time_and_s_calc ()
-
-end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (c_light)
-end_orb%s = ele%s
-
-end subroutine time_and_s_calc
 
 end subroutine track1_bmad_photon

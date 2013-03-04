@@ -108,7 +108,7 @@ if (ele%offset_moves_aperture .and. (physical_end == entrance_end$ .or. physical
                ds_pos = s_here)
   x_particle = orb2%vec(1)
   y_particle = orb2%vec(3)
-elseif (ele%aperture_at == surface$) then
+elseif (ele%aperture_at == surface$) then  ! For photons
   x_particle = orb%vec(5)
   y_particle = orb%vec(3)
 else

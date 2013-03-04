@@ -429,8 +429,10 @@ case (multipole$, ab_multipole$)
 
   if (.not. ele%multipoles_on) return
 
+  call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
+
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
-  call mat6_multipole (knl, tilt, c0%vec, 1.0_rp, ele%mat6)
+  call mat6_multipole (knl, tilt, c00%vec, 1.0_rp, ele%mat6)
 
   ! if knl(0) is non-zero then the reference orbit itself is bent
   ! and we need to account for this.

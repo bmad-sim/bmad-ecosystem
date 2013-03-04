@@ -237,16 +237,17 @@ real(rp), target :: k0_outside_norm(3)
 real(rp) sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc, tilt_cor_mat(3,3)
 real(rp) h_norm(3), kh_outside_norm(3), e_tot, pc, p_factor
-real(rp) m_out(3, 3), y_out(3)
+real(rp) m_out(3, 3), y_out(3), position(3), hit_point(3)
 real(rp) temp_vec(3), direction(3), s_len
-real(rp) gamma_0, gamma_h, b_err
-real(rp) hit_point(3)
+real(rp) gamma_0, gamma_h, b_err, dlen
+real(rp), pointer :: vec(:)
 
 logical curved_surface
 
 !
 
 wavelength = c_light * h_planck / end_orb%p0c
+vec => end_orb%vec
 
 ! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
@@ -255,9 +256,9 @@ wavelength = c_light * h_planck / end_orb%p0c
 sin_g = sin(ele%value(graze_angle_in$))
 cos_g = cos(ele%value(graze_angle_in$))
 
-k0_outside_norm(1) =  cos_g * end_orb%vec(2) + sin_g * end_orb%vec(6)
-k0_outside_norm(2) = end_orb%vec(4)
-k0_outside_norm(3) = -sin_g * end_orb%vec(2) + cos_g * end_orb%vec(6)
+k0_outside_norm(1) =  cos_g * vec(2) + sin_g * vec(6)
+k0_outside_norm(2) = vec(4)
+k0_outside_norm(3) = -sin_g * vec(2) + cos_g * vec(6)
 
 ! m_in 
 
@@ -273,13 +274,17 @@ if (curved_surface) then
   call reflection_point (ele, cos_g, sin_g, end_orb, k0_outside_norm, hit_point, s_len)
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
 else
-  hit_point = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
+  ! position is (x,y,z) coords of photon in the cyrstal frame.
+  position = [cos_g * vec(1), vec(3), -sin_g * vec(1)]
+  dlen = -position(1) / k0_outside_norm(1)
+  hit_point = position + dlen * k0_outside_norm  ! Surface is at x = 0
+  end_orb%t = end_orb%t + dlen / c_light
 endif
 
 ! Check aperture
 
 if (ele%aperture_at == surface$) then
-  end_orb%vec(1:5:2) = hit_point ! This is temporary
+  vec(1:5:2) = hit_point ! This is temporary
   call check_aperture_limit (end_orb, ele, surface$, param)
   if (end_orb%state /= alive$) return
 endif
@@ -328,7 +333,6 @@ call e_field_calc (c_param, ele, 1.0_rp,   end_orb%e_field_y, end_orb%phase_y)  
 
 if (curved_surface) then
   call to_curved_body_coords (ele, hit_point, kh_outside_norm, unset$)
-  end_orb%vec(5) = end_orb%vec(5) + s_len  ! IS this correct ?!!!!!!!!!!!!!
 endif
 
 !--------------------------------- 
@@ -360,19 +364,18 @@ m_out(3,:) = [ele%value(kh_x_norm$), ele%value(kh_y_norm$), ele%value(kh_z_norm$
 !
 
 direction = matmul(m_out, kh_outside_norm)
-end_orb%vec(2) = direction(1)
-end_orb%vec(4) = direction(2)
-end_orb%vec(6) = sqrt(1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)
+vec(2) = direction(1)
+vec(4) = direction(2)
+vec(6) = sqrt(1 - vec(2)**2 - vec(4)**2)
 
 ! Compute position, backpropagating the ray
 
 temp_vec = matmul(m_out, hit_point)
 temp_vec = temp_vec - direction * temp_vec(3)
 
-end_orb%vec(1) = temp_vec(1)
-end_orb%vec(3) = temp_vec(2)
-! %vec(5) doesn't include phase change due to wave nature of radiation
-end_orb%vec(5) = temp_vec(3) 
+vec(1) = temp_vec(1)
+vec(3) = temp_vec(2)
+vec(5) = temp_vec(3)   ! Should be zero.
 
 end subroutine track1_crystal
 

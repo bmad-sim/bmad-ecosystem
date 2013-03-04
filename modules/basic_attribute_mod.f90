@@ -889,7 +889,6 @@ call init_attribute_name1 (sol_quad$, field$,                       'FIELD')
 call init_attribute_name1 (sol_quad$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (sol_quad$, p0c_start$,                   'p0c_start', private$)
 
-call init_attribute_name1 (multipole$, l$,                          'L')
 attrib_array(multipole$, k0l$:k20l$)%name    = &
              ['K0L ', 'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', 'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
                       'K11L', 'K12L', 'K13L', 'K14L', 'K15L', 'K16L', 'K17L', 'K18L', 'K19L', 'K20L']
@@ -899,8 +898,17 @@ attrib_array(multipole$, t0$:t20$)%name = ['T0 ', &
                                'T11', 'T12', 'T13', 'T14', 'T15', &
                                'T16', 'T17', 'T18', 'T19', 'T20' ]
 attrib_array(multipole$, k0l$:t20$)%type = is_free$
+call init_attribute_name1 (multipole$, l$,                          'L')
+call init_attribute_name1 (multipole$, x_pitch$,          null_name$, does_not_exist$, .true.)
+call init_attribute_name1 (multipole$, y_pitch$,          null_name$, does_not_exist$, .true.)
+call init_attribute_name1 (multipole$, x_pitch_tot$,      null_name$, does_not_exist$, .true.)
+call init_attribute_name1 (multipole$, y_pitch_tot$,      null_name$, does_not_exist$, .true.)
 
 call init_attribute_name1 (ab_multipole$, l$,                       'L')
+call init_attribute_name1 (ab_multipole$, x_pitch$,       null_name$, does_not_exist$, .true.)
+call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_exist$, .true.)
+call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
+call init_attribute_name1 (ab_multipole$, y_pitch_tot$,   null_name$, does_not_exist$, .true.)
 
 call init_attribute_name1 (custom$, val1$,                          'VAL1')
 call init_attribute_name1 (custom$, val2$,                          'VAL2')

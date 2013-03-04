@@ -5,8 +5,7 @@
 ! Error messages will be recorded in a local file: 'xsif.err'.
 ! Standard output messages will be recorded in a local file: 'xsif.out'
 !
-! Note: The presence of an LCavity element in the input file (even if it is not
-! used in the lattice) will make lat%geometry = open$.
+! Note: The presence of an LCavity element in the lattice will make lat%geometry = open$.
 !
 ! Note: xsif has default 1 meter apertures. This is problematical for some programs
 ! that expect the default to be zero (no aperture present). 
