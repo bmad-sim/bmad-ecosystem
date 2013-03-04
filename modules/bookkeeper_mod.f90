@@ -2285,6 +2285,12 @@ case (rfcavity$)
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   endif
 
+  if (val(l$) == 0) then
+    val(gradient$) = 1d30    ! Something large
+  else
+    val(gradient$) = val(voltage$) / val(l$)
+  endif
+
 ! Solenoid
 
 case (solenoid$)

@@ -1189,8 +1189,8 @@ subroutine coupler_kick()
 
 
 f = twopi * ele%value(rf_frequency$) / c_light
-dp_coupler = ele%value(gradient$) * ele%value(coupler_strength$) * &
-                        f * sin(phase + twopi * ele%value(coupler_phase$))
+dp_coupler = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) * &
+              ele%value(coupler_strength$) * f * sin(phase + twopi * ele%value(coupler_phase$))
 dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
 dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
 
