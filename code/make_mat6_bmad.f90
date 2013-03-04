@@ -1183,9 +1183,14 @@ end subroutine
 
 subroutine coupler_kick()
 
+real(rp) this_phase
+
 ! coupler kicks
 ! dp_x_coupler ~ (2,5) matrix term
 ! dp_y_coupler ~ (4,5) matrix term
+
+this_phase = phase
+if (ele%key == rfcavity$) this_phase = pi/2 - this_phase
 
 
 f = twopi * ele%value(rf_frequency$) / c_light
