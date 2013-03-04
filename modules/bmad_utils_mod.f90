@@ -4152,6 +4152,7 @@ implicit none
 
 type (ele_struct) ele
 logical has_fringe
+integer ix_fringe
 
 !
 
@@ -4159,7 +4160,11 @@ has_fringe = .false.
 
 select case (ele%key)
 case (lcavity$, rfcavity$, solenoid$, sbend$, sol_quad$, bend_sol_quad$, e_gun$)
-    if (ele%field_calc == bmad_standard$) has_fringe = .true.
+  if (ele%field_calc == bmad_standard$) has_fringe = .true.
+case (quadrupole$)
+  ix_fringe = nint(ele%value(fringe_type$))
+  if (ele%field_calc == bmad_standard$ .and. &
+     (ix_fringe == full_straight$ .or. ix_fringe == full_bend$)) has_fringe = .true.
 end select
 
 end function element_has_fringe_fields

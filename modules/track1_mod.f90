@@ -704,6 +704,9 @@ integer stream_end, ix_fringe
 if (hard_ele%field_calc /= bmad_standard$) return
 
 select case (hard_ele%key)
+case (quadrupole$)
+  call quadrupole_edge_kick (hard_ele, stream_end, orb)
+
 case (sbend$)
   if (at_this_ele_end (stream_end, nint(hard_ele%value(kill_fringe$)), hard_ele%orientation)) return
   ix_fringe = nint(hard_ele%value(fringe_type$))
@@ -756,6 +759,61 @@ case (lcavity$, rfcavity$, e_gun$)
 end select
 
 end subroutine apply_hard_edge_kick
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine quadrupole_edge_kick (ele, end_at, orbit)
+!
+! Routine to add the 3rd order quadrupolar edge kick.
+!
+! Moudle needed:
+!   use track1_mod
+!
+! Input:
+!   ele     -- ele_struct: Element being tracked through
+!   end_at  -- integer: Upstream_end$ or downstream_end$
+!   orbit   -- coord_struct: Position before kick.
+!
+! Output:
+!   orbit   -- coord_struct: Position after kick.
+!-
+
+subroutine quadrupole_edge_kick (ele, end_at, orbit)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orbit
+
+real(rp) k1, x, y, px, py, charge_dir
+
+integer end_at
+integer ix_fringe
+
+!
+
+ix_fringe = nint(ele%value(fringe_type$))
+if (ix_fringe /= full_straight$ .and. ix_fringe /= full_bend$) return
+
+if (associated(ele%branch)) then
+  charge_dir = ele%branch%param%rel_tracking_charge * ele%orientation
+else
+  charge_dir = ele%orientation
+endif
+
+k1 = charge_dir * ele%value(k1$) / (1 + orbit%vec(6))
+
+if (end_at == downstream_end$) k1 = -k1
+
+x = orbit%vec(1); px = orbit%vec(2); y = orbit%vec(3); py = orbit%vec(4)
+orbit%vec(1) = x  + k1 * (x**3/12 + x*y**2/4)
+orbit%vec(2) = px + k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
+orbit%vec(3) = y  - k1 * (y**3/12 + y*x**2/4)
+orbit%vec(4) = py - k1 * (y*x*px/2 - py*(y**2 + x**2)/4)
+
+end subroutine quadrupole_edge_kick
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
