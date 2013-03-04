@@ -750,6 +750,9 @@ case (lcavity$, rfcavity$, e_gun$)
     orb%vec(4) = orb%vec(4) + field%e(3) * orb%vec(3) * f + c_light * field%b(3) * orb%vec(1) * f
 
   endif
+
+  call rf_coupler_kick (hard_ele, stream_end, orb)
+
 end select
 
 end subroutine apply_hard_edge_kick
@@ -1477,5 +1480,61 @@ else
 endif
 
 end subroutine track1_low_energy_z_correction
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine rf_coupler_kick (ele, end_at, orbit)
+! 
+! Routine to add a RF cavity coupler kicks
+!
+! Moudle needed:
+!   use track1_mod
+!
+! Input:
+!   ele     -- ele_struct: Element being tracked through
+!   end_at  -- integer: Upstream_end$ or downstream_end$
+!   orbit   -- coord_struct: Position before kick.
+!
+! Output:
+!   orbit   -- coord_struct: Position after kick.
+!-
+
+subroutine rf_coupler_kick (ele, end_at, orbit)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orbit
+
+real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, pc
+
+integer end_at
+
+!
+
+if (nint(ele%value(coupler_at$)) /= end_at .and. &
+    nint(ele%value(coupler_at$)) /= both_ends$) return
+
+if (ele%value(coupler_strength$) == 0) return
+
+dp_coupler = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) * &
+      ele%value(coupler_strength$) * cos(orbit%phase_x + twopi * ele%value(coupler_phase$))
+
+dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
+dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
+
+if (nint(ele%value(coupler_at$)) == both_ends$) then
+  dp_x_coupler = dp_x_coupler / 2
+  dp_y_coupler = dp_y_coupler / 2
+endif
+
+pc = orbit%p0c * (1 + orbit%vec(6))
+
+orbit%vec(2) = orbit%vec(2) + dp_x_coupler / pc
+orbit%vec(4) = orbit%vec(4) + dp_y_coupler / pc
+
+end subroutine rf_coupler_kick
 
 end module

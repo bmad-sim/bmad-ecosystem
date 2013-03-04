@@ -55,11 +55,10 @@ real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
-real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, len_slice, k0l, k1l
 real(rp) dcos_phi, dgradient, dpz, w_mat_inv(3,3), w_mat0(3,3)
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
-real(rp) new_pc, new_beta
+real(rp) new_pc, new_beta, len_slice, k0l, k1l
 
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc
@@ -334,7 +333,8 @@ case (lcavity$)
 
   ! coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
+  end_orb%phase_x = phase
+  call rf_coupler_kick (ele, upstream_end$, end_orb)
 
   if (gradient == 0) then
     r_mat(1,1) = 1
@@ -364,7 +364,8 @@ case (lcavity$)
 
   ! coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
+  end_orb%p0c = pc_end_ref
+  call rf_coupler_kick (ele, downstream_end$, end_orb)
 
   ! exit kick
 
@@ -577,10 +578,6 @@ case (rfcavity$)
 
   call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
-  ! coupler kick
-
-  if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
-
   voltage = ele%value(voltage$) * ele%value(field_scale$) 
 
   ! The RF phase is defined with respect to the time at the beginning of the element.
@@ -592,6 +589,10 @@ case (rfcavity$)
                  particle_time (end_orb, ele) * ele%value(rf_frequency$))
     if (absolute_time_tracking(ele)) phase = phase + &
                     twopi * rf_time_offset(ele, i*length/n_slice) * ele%value(rf_frequency$)  
+    end_orb%phase_x = phase
+
+    if (i == 0) call rf_coupler_kick (ele, upstream_end$, end_orb)
+
 
     dE = param%rel_tracking_charge * voltage * sin(phase) / n_slice
     if (i == 0 .or. i == n_slice) dE = dE / 2
@@ -608,7 +609,7 @@ case (rfcavity$)
 
   ! coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
+  call rf_coupler_kick (ele, downstream_end$, end_orb)
 
   call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
 
@@ -799,45 +800,5 @@ end_orb%vec(5) = start2_orb%vec(5) - (length / rel_pc**2) * &
        start2_orb%vec(4)**2 + end_orb%vec(4)**2 + start2_orb%vec(4) * end_orb%vec(4)) / 6
 
 end subroutine end_z_calc
-
-!--------------------------------------------------------------
-! contains
-
-subroutine coupler_kick_entrance ()
-
-implicit none
-
-dp_coupler = (ele%value(gradient$) * ele%value(gradient_err$)) * ele%value(field_scale$) * &
-      ele%value(coupler_strength$) * cos(phase + twopi * ele%value(coupler_phase$))
-dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
-dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
-
-if (nint(ele%value(coupler_at$)) == both_ends$) then
-  dp_x_coupler = dp_x_coupler / 2
-  dp_y_coupler = dp_y_coupler / 2
-endif
-
-if (nint(ele%value(coupler_at$)) == upstream_end$ .or. &
-    nint(ele%value(coupler_at$)) == both_ends$) then
-  end_orb%vec(2) = end_orb%vec(2) + dp_x_coupler / pc_start
-  end_orb%vec(4) = end_orb%vec(4) + dp_y_coupler / pc_start
-endif
-
-end subroutine coupler_kick_entrance
-
-!--------------------------------------------------------------
-! contains
-
-subroutine coupler_kick_exit ()
-
-implicit none
-
-if (nint(ele%value(coupler_at$)) == downstream_end$ .or. &
-    nint(ele%value(coupler_at$)) == both_ends$) then
-  end_orb%vec(2) = end_orb%vec(2) + dp_x_coupler / pc_end
-  end_orb%vec(4) = end_orb%vec(4) + dp_y_coupler / pc_end
-endif
-
-end subroutine coupler_kick_exit
 
 end subroutine track1_bmad
