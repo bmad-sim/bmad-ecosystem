@@ -796,9 +796,11 @@ branch_loop: do i_loop = 1, n_branch_max
     ix = nint(bp_com%param_ele%value(geometry$))
     if (ix > 0) then  ! geometry has been set.
       lat%param%geometry = ix
+    elseif (lat%param%particle == photon$) then
+      lat%param%geometry = open$
     else              ! else use default
       lat%param%geometry = closed$      ! default 
-      if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
+      if (any(lat%ele(:)%key == lcavity$)) then    !   except...
         if (global_com%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
                                       'SETTING THE GEOMETRY TO LINEAR_LATTICE.')
         lat%param%geometry = open$

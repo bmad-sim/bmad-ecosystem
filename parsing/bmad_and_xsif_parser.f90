@@ -7,8 +7,7 @@
 ! lat_file is prefixed by the string 'xsif::'. Example:
 !   lat_file = 'xsif::/nfs/user/dcs/this_lat'
 !
-! Note: The presence of an LCavity element in the input file (even if it is not
-! used in the lattice) will make lat%geometry = open$.
+! Note: The presence of an LCavity element in the lattice will make lat%geometry = open$.
 !
 ! Modules needed:
 !   use bmad

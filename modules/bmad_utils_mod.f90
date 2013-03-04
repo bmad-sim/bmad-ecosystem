@@ -174,14 +174,14 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function at_this_ele_end (now_at, where_at, ele) result (is_at_this_end)
+! Function at_this_ele_end (now_at, where_at, orientation) result (is_at_this_end)
 !
 ! Routine to determine if an aperture or fringe field is present.
 !
 ! Input:
-!   now_at      -- Integer: Which end is under consideration: upstream$ or downstream$.
+!   now_at      -- Integer: Which end is under consideration: upstream_end$, downstream_end$, or surface$.
 !   where_at    -- Integer: Which ends have the aperture or fringe field: entrance_end$
-!                     exit_end$, continuous$, or both_ends$.
+!                     exit_end$, continuous$, both_ends$, no_ends$, surface$.
 !   orientation -- Integer: element orientation: +/- 1.
 !
 ! Output:
@@ -194,6 +194,13 @@ implicit none
 
 integer now_at, where_at, orientation, physical_end
 logical is_at_this_end
+
+!
+
+if (now_at == surface$ .or. where_at == surface$) then
+  is_at_this_end = (now_at == where_at)
+  return
+endif
 
 !
 
@@ -224,11 +231,11 @@ end function at_this_ele_end
 ! the position in terms of upstream/downstream and the element's orientation
 !
 ! Input:
-!   stream_end       -- Integer: Either upstream_end$ or downstream_end$
+!   stream_end       -- Integer: upstream_end$, downstream_end$, surface$
 !   ele_orientation  -- Integer: Either 1 = Normal or -1 = element reversed.
 !
 ! Output:
-!   physical_end     -- Integer: Either entrance_end$ or exit_end$
+!   physical_end     -- Integer: entrance_end$, exit_end$, or surface$
 !-
 
 function physical_ele_end (stream_end, ele_orientation) result (physical_end)
@@ -239,19 +246,31 @@ integer stream_end, ele_orientation, physical_end
 
 !
 
+if (stream_end == surface$) then
+  physical_end = surface$
+  return
+endif
+
+!
+
 select case (ele_orientation)
 
 case (1) 
   select case (stream_end)
   case (upstream_end$);   physical_end = entrance_end$
   case (downstream_end$); physical_end = exit_end$
+  case default;           call err_exit
   end select
 
 case (-1) 
   select case (stream_end)
   case (upstream_end$);   physical_end = exit_end$
   case (downstream_end$); physical_end = entrance_end$
+  case default;           call err_exit
   end select
+
+case default
+  call err_exit
 
 end select
 
