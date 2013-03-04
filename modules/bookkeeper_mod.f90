@@ -2215,6 +2215,12 @@ val(num_steps$) = max(1, nint(abs(val(l$) / val(ds_step$))))
 
 select case (ele%key)
 
+! Quadrupole
+
+case (quadrupole$)
+
+    val(l_hard_edge$) = val(l$) ! In case of edge kicks
+
 ! Bends
 
 case (sbend$)
