@@ -576,7 +576,7 @@ case (rfcavity$)
                  particle_time (end_orb, ele) * ele%value(rf_frequency$))
     if (absolute_time_tracking(ele)) phase = phase + &
                     twopi * rf_time_offset(ele, i*length/n_slice) * ele%value(rf_frequency$)  
-    end_orb%phase_x = phase
+    end_orb%phase_x = pi/2 - phase    ! This is "lcavity" phase.
 
     if (i == 0) call rf_coupler_kick (ele, upstream_end$, end_orb)
 
