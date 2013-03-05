@@ -5392,7 +5392,7 @@ end subroutine qp_eliminate_xy_distortion
 ! Output:
 !   integer_color -- integer: between[17, huge(integer)]
 !-
-function qp_continous_color(real_color) result(integer_color)
+function qp_continuous_color(real_color) result(integer_color)
 
 implicit none
 
