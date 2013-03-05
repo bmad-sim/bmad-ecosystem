@@ -581,7 +581,7 @@ subroutine qp_restore_state_basic ()
      call pllsty(pl_com%line_pattern)
   endif
 
-  call plcol0(pl_com%fg_color)
+  call qp_set_color_basic (pl_com%fg_color)
 
   if (pl_com%clip) then
     gp => pl_com%graph_pos
@@ -617,14 +617,10 @@ subroutine qp_set_color_basic (ix_color)
   implicit none
 
   integer ix_color
-  integer, parameter :: inverse_color(0:16) = &
-            [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-!            1, 0, 5, 6, 7, 2, 3, 4, 11, 12, 13,  8,  9, 10, 15, 14 
-!            0  1  2  3  4  5  6  7   8   9  10  11  12  13  14  15 
 
 ! Error check
 
-  if (ix_color < 0 .or. ix_color > ubound(inverse_color, 1)) then
+  if (ix_color < 0) then
     print *, 'ERROR IN QP_SET_COLOR_BASIC: IX_COLOR ARGUMENT OUT OF RANGE:', &
                                                                       ix_color
     if (global_com%exit_on_error) call err_exit
@@ -632,15 +628,16 @@ subroutine qp_set_color_basic (ix_color)
 
 ! Set plplot color
 
-  !if (page_type == 'GIF') then
-    !call plcol0 (inverse_color(ix_color))
-    !Save this state
-     !pl_com%fg_color = inverse_color(ix_color)
-  !else
+  if (ix_color >16) then
+    ! Set continuous color
+     call plcol1 ( (ix_color - 17)/ (1.0_rp*(huge(ix_color) - 17)) )
+  else
+    ! set discrete color
     call plcol0 (ix_color)
-    !Save this state
-    pl_com%fg_color = ix_color
-  !endif
+  endif
+    
+  !Save this state
+  pl_com%fg_color = ix_color
 
 end subroutine
 

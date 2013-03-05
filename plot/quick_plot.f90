@@ -214,7 +214,7 @@ use utilities_mod
 use output_mod
 
 #if defined (CESR_PLPLOT)
-  use plplot_interface
+  use plplot_interface!
 #else
   use pgplot_interface
 #endif
@@ -5375,5 +5375,61 @@ margin_z2 = margin_z2 + rd
 end subroutine margin_scale
 
 end subroutine qp_eliminate_xy_distortion
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_continuous_color(real_color) result(integer_color)
+! 
+! Maps real colors from 0.0_rp -- 1.0_rp to integers between[17, huge(integer)]
+!
+! Input:
+!   real_color    -- real(rp): between 0.0_rp -- 1.0_rp
+!                              Values outside this range are mapped to 
+!                              integer colors 1 and 0
+!
+! Output:
+!   integer_color -- integer: between[17, huge(integer)]
+!-
+function qp_continous_color(real_color) result(integer_color)
+
+implicit none
+
+real(rp) :: real_color
+integer :: integer_color
+if (real_color > 1.0_rp) then
+  integer_color = 1
+else if (real_color < 0.0_rp) then
+  integer_color = 0
+else
+  integer_color = nint(real_color*(huge(integer_color)-17) + 17)
+endif
+
+end function
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_continuous_color_inverse(integer_color) result(real_color)
+! 
+! Inverse of function qp_continuous_color
+!
+!-
+function qp_continuous_color_inverse(integer_color) result(real_color)
+
+implicit none
+
+real(rp) :: real_color
+integer :: integer_color
+
+if (integer_color < 17) then
+  real_color = 0.0_rp
+else
+  real_color = (integer_color - 17)/ (1.0_rp*(huge(integer_color) - 17) )
+endif
+
+end function
 
 end module

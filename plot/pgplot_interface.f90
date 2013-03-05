@@ -245,7 +245,11 @@ end subroutine
 subroutine qp_set_text_background_color_basic (color)
   implicit none
   integer color
-  call pgstbg (color)            ! set text background color
+  if (color < 0)  then
+    call pgstbg(color)
+  else
+    call qp_set_color_basic (color, set_background=.true.)
+  endif
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -367,35 +371,48 @@ end subroutine
 !   ix_color -- Integer: Color index (0 - 15).
 !-
 
-subroutine qp_set_color_basic (ix_color)
+subroutine qp_set_color_basic (ix_color, set_background)
 
   implicit none
-
+  real(rp) :: real_color
   integer ix_color
-  integer, parameter :: inverse_color(0:15) = &
-          [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
-!            1, 0, 5, 6, 7, 2, 3, 4, 11, 12, 13,  8,  9, 10, 15, 14 
-!            0  1  2  3  4  5  6  7   8   9  10  11  12  13  14  15 
+  !integer, parameter :: inverse_color(0:15) = &
+  !        [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
+  integer, parameter :: clist1(0:15) = &
+          [5, 10, 3, 9, 7, 8, 6, 13, 2, 11,  4, 12, 12, 15, 14, 1]
+  logical, optional :: set_background
+  logical :: set_bg
+
+  !
+  set_bg = .false.
+  if (present(set_background)) set_bg = set_background
+  
 
 ! Error check
 
-  if (ix_color < 0 .or. ix_color > 15) then
+  if (ix_color < 0) then
     print *, 'ERROR IN QP_SET_PGPLOT: IX_COLOR ARGUMENT OUT OF RANGE:', &
                                                                       ix_color
     if (global_com%exit_on_error) call err_exit
+  endif  
+  
+  if (ix_color > 15) then 
+    real_color = (ix_color - 17)/ (1.0_rp*(huge(ix_color) - 17) )
+    ix_color=  floor( 12*real_color)
+    ix_color = clist1(ix_color)
   endif
 
-! Set pgplot color
-
-  if (pg_com%page_type == 'GIF') then
-    call pgsci (ix_color)
-   !  call pgsci (inverse_color(ix_color))
+  if (set_bg) then
+    call pgstbg(ix_color)
   else
     call pgsci (ix_color)
   endif
-
 end subroutine
 
+
+
+
+  
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
