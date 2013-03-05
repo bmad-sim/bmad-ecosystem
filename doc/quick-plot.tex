@@ -1,3 +1,4 @@
+%\input{simple_header}
 \chapter{Quick_Plot Plotting}
 \label{c:quick.plot}
 \index{quick_plot|hyperbf}
@@ -412,6 +413,15 @@ The color styles in \quickplot are:
    14 -- Dark_Grey\$
    15 -- Light_Grey\$
 \end{example}
+   
+Integers from [17, (largest integer)] represent continuous colors. The function \vn{pq_continuous_color} maps [0.0, 1.0] to these integers. See Fig.~\ref{f:plot-continuous-color}.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth]{plot-continuous-color.pdf}
+\caption{Continuous colors using the function \vn{pg_continuous_color} in PGPlot and PLPlot. Typical usage: \vn{call qp_routine(..., color = pg_continuous_color(0.25_rp), ...)}}
+\label{f:plot-continuous-color}
+\end{figure}
 
 \index{quick_plot!fill styles}
 The fill styles are:
@@ -511,6 +521,8 @@ Greek character.}
 \label{t:greek}
 \end{table}
 
+
+
 %----------------------------------------------------------------------------
 \section{Structures}
 \label{s:qp.structs}
@@ -565,3 +577,5 @@ The \vn{qp_axis_struct} defines how axes are drawn
     logical draw_numbers      ! Draw the numbering? Default = True.
   end type
 \end{example}
+
+%\end{document}
