@@ -842,6 +842,11 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Set color map
   call plscmap0(red, green, blue, 16)
 
+! Set continuous color map (cmap1)
+  call plscmap1n(1048576)
+  call plscmap1l(0, 2, [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.8d0], [0, 0])
+
+
 ! Set size of x-window.
 ! Work around for bug in plplot-5.9.5 is to set the geometry
 
