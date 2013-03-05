@@ -221,3 +221,6 @@ if invars.nightly:
             print 'Nightly link exists.'
             os.remove(invars.libs_basedir+'/'+invars.platform+'/nightly')
         os.symlink( invars.build_name, invars.libs_basedir+'/'+invars.platform+'/nightly' )
+        print 'Creating searcf_namelist index files.'
+        sub.call(["/nfs/acc/libs/util/create_searchf_namelist", "-r", invars.libs_basedir+'/'+invars.platform+'/'+invars.build_name ])
+
