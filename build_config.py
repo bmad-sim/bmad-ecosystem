@@ -66,6 +66,7 @@ build_specs = {
                 '/trunk/src/recipes_f-90_LEPP',
                 '/trunk/src/sim_utils',
                 '/trunk/src/mpmnet',
+		'/CESR/CESR_instr/instr_utils',
                 '/trunk/src/cbi_net',
                 '/trunk/src/cbpmfio',
                 '/trunk/src/BeamInstSupport',
