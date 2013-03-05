@@ -482,32 +482,6 @@ info%g_y = g(2)
 
 end subroutine
 
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-
-subroutine transfer_rad_int_struct (rad_int_in, rad_int_out)
-
-implicit none
-
-type (rad_int_all_ele_struct) rad_int_in, rad_int_out
-integer n
-
-!
-
-n = ubound(rad_int_in%ele, 1)
-
-if (.not. allocated(rad_int_out%ele)) allocate (rad_int_out%ele(0:n))
-
-if (ubound(rad_int_out%ele, 1) /= n) then
-  deallocate (rad_int_out%ele)
-  allocate (rad_int_out%ele(0:n))
-endif
-
-rad_int_out = rad_int_in
-
-end subroutine
-
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

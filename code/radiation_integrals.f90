@@ -92,9 +92,6 @@
 !
 ! 2) The lin_norm_emit values are running sums from the beginning of the 
 !    lattice and include the beginning emittance stored in lat%a%emit and lat%b%emit.
-!
-! 3) To transfer the data from one rad_int_all_ele_struct block to another 
-!    use the routine: transfer_rad_int_struct
 !-       
 
 subroutine radiation_integrals (lat, orbit, mode, ix_cache, ix_branch, rad_int_by_ele)
@@ -108,14 +105,14 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, slave
-type (ele_struct), save :: ele2, ele_start, ele_end, ele_end1
+type (ele_struct) :: ele2, ele_start, ele_end
 type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
-type (track_struct), save :: track
+type (track_struct) :: track
 type (rad_int_all_ele_struct), optional :: rad_int_by_ele
-type (rad_int_all_ele_struct), target, save :: rad_int_all
-type (rad_int_info_struct), save :: ri_info
+type (rad_int_all_ele_struct), target :: rad_int_all
+type (rad_int_info_struct) :: ri_info
 type (rad_int_cache_struct), pointer :: cache
 type (rad_int_cache1_struct), pointer :: cache_ele ! pointer to cache in use
 type (rad_int_track_point_struct), pointer :: c_pt
@@ -179,7 +176,10 @@ rad_int_all%ele(:) = rad_int1_zero
 m65 = 0
 mode%rf_voltage = 0
 int_tot = rad_int1_zero
+
 call init_ele (ele2)
+call init_ele (ele_start)
+call init_ele (ele_end)
 
 !---------------------------------------------------------------------
 ! Caching
@@ -332,7 +332,7 @@ if (use_cache .or. init_cache) then
         c_pt => cache_ele%pt(k)
 
         call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .true., orb_start, orb_end,  ele_start, ele_end)
-        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1,     .true., .true., orb_start, orb_end1, ele_start, ele_end1)
+        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1,     .true., .true., orb_start, orb_end1, ele_start)
 
         z_start = z1
         orb_start = orb_end
@@ -636,6 +636,10 @@ mode%z%emittance = mode%sig_z * mode%sigE_E
 
 bmad_com = bmad_com_save
 
-if (present(rad_int_by_ele)) call transfer_rad_int_struct (rad_int_all, rad_int_by_ele)
+if (present(rad_int_by_ele)) call move_alloc (rad_int_all%ele, rad_int_by_ele%ele)
+
+call deallocate_ele_pointers(ele2)
+call deallocate_ele_pointers(ele_start)
+call deallocate_ele_pointers(ele_end)
 
 end subroutine

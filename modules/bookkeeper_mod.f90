@@ -2051,8 +2051,7 @@ character(20) ::  r_name = 'attribute_bookkeeper'
 logical, optional :: force_bookkeeping
 logical err_flag
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
-logical, save :: v_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
-logical :: init_needed = .true.
+logical :: v_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 
 ! Some init
 
@@ -2448,16 +2447,13 @@ endif
 
 ! Since things have changed we need to kill the Taylor Map and ptc_genfield.
 
-if (init_needed) then
-  v_mask = .true.
-  v_mask([x_offset$, y_offset$, z_offset$, &
+v_mask = .true.
+v_mask([x_offset$, y_offset$, z_offset$, &
             tilt$, x_pitch$, y_pitch$, x_offset_tot$, y_offset_tot$, z_offset_tot$, &
             tilt_tot$, x_pitch_tot$, y_pitch_tot$]) = .false.
-  offset_mask = .not. v_mask
-  v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
-  v_mask(custom_attribute1$:custom_attribute_max$) = .false.
-  init_needed = .false.
-endif
+offset_mask = .not. v_mask
+v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
+v_mask(custom_attribute1$:custom_attribute_max$) = .false.
 
 dval = val - ele%old_value
 dval(scratch$) = 0
