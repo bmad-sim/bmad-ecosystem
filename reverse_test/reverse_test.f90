@@ -51,8 +51,6 @@ endif
 open (1, file = 'output.now')
 
 call bmad_parser (lat_file, lat)
-!call write_bmad_lattice_file ('lat.bmad', lat)
-!call bmad_parser ('lat.bmad', lat)
 
 DO i = 1, lat%n_ele_max - 1
 
@@ -67,8 +65,8 @@ DO i = 1, lat%n_ele_max - 1
 
    if (verbosity == .true.) then
       print *, str
-      print '(a, 6es10.2, 5x, es10.2)', '0: ', orb_0f%vec, orb_0f%t
-      print '(a, 6es10.2, 5x, es10.2)', '1: ', orb_1f%vec, orb_1f%t
+      print '(a, 6es12.4, 5x, es12.4)', '0: ', orb_0f%vec, orb_0f%t
+      print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_1f%vec, orb_1f%t
    end if
 
    orb_0r        = orb_1f
@@ -90,8 +88,8 @@ DO i = 1, lat%n_ele_max - 1
    call make_mat6 (ele_r, ele_r%branch%param, orb_0r)
 
    if (verbosity == .true.) then
-      print '(a, 6es10.2, 5x, es10.2)', '1: ', orb_0r%vec, orb_0r%t
-      print '(a, 6es10.2, 5x, es10.2)', '2: ', orb_1r%vec, orb_1r%t
+      print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_0r%vec, orb_0r%t
+      print '(a, 6es12.4, 5x, es12.4)', '2: ', orb_1r%vec, orb_1r%t
    end if
 
    !
