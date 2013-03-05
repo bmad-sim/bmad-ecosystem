@@ -408,6 +408,7 @@ alias ACC_INFO='accinfo'
 
 alias current='ACC_RELEASE_REQUEST=current; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 alias devel='ACC_RELEASE_REQUEST=devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
+alias nightly='ACC_RELEASE_REQUEST=nightly; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 #alias online='ACC_RELEASE_REQUEST=online; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 #alias online-devel='ACC_RELEASE_REQUEST=online-devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
 
