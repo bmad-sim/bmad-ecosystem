@@ -2,22 +2,35 @@ program mat6_calc_method_test
 
 use bmad
 
+use mad_mod
+
 implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), dimension(:,:), allocatable :: temp_ele
 
-character(40) :: input_file  = 'mat6_calc_method_test.bmad'
+character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
 character(44) :: final_str
 character(*), PARAMETER  :: fmt1 = '(a,a,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)'
 character(*), PARAMETER  :: fmt2 = '(a,a,es24.15)'
-integer :: i, j, k
+integer :: i, j, k, nargs
  
 type (coord_struct) end_orb
 
-call bmad_parser ('mat6_calc_method_test.bmad', lat)
+nargs = cesr_iargc()
+if (nargs == 1)then
+   call cesr_getarg(1, lat_file)
+   print *, 'Using ', trim(lat_file)
+elseif (nargs > 1) then
+  print *, 'Only one command line arg permitted.'
+  call err_exit
+endif
+
+call bmad_parser (lat_file, lat)
 
 open (1, file = 'output.now')
+
+mad_print_if_misaligned = .false.
 
 allocate (temp_ele(lat%n_ele_max - 1, n_methods$)) 
 
