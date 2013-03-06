@@ -182,4 +182,69 @@ lat%param = param_save
 
 end subroutine
 
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine dynamic_aperture_parallel (lat, orb0, theta_xy_list, track_input, aperture_list, e_init)
+!
+! Parallel version of subroutine dynamic_aperture using OpenMP  
+! to process a list of angles theta_xy_list(:) 
+! and return a list of apertures aperture_list(:) 
+!
+!
+! See subroutine dynamic_aperture
+!
+!----------------------------------------------------------------------
+
+
+subroutine dynamic_aperture_parallel(lat, orb0, angle_list, track_input, aperture_list, e_init)
+
+!$ use omp_lib
+
+implicit none
+
+type (lat_struct) :: lat
+type (coord_struct) :: orb0
+type (lat_struct), allocatable :: omp_lat(:)
+type (track_input_struct) :: track_input
+type (aperture_struct) :: aperture
+type (aperture_struct) :: aperture_list(:)
+type (aperture_struct), allocatable :: omp_aperture(:)
+
+real(rp) :: angle_list(:), e_init
+
+integer :: i
+integer :: omp_n, omp_i
+
+!
+
+! Parallel memory setup
+omp_n = 1
+!$ omp_n = omp_get_max_threads()
+allocate(omp_lat(omp_n))
+allocate(omp_aperture(omp_n))
+do i=1, omp_n
+  omp_lat(i) = lat
+end do
+
+!$OMP parallel &
+!$OMP default(private), &
+!$OMP shared(omp_lat, orb0, omp_aperture, angle_list, aperture_list, track_input, e_init)
+!$OMP do schedule(dynamic)
+do i=lbound(angle_list, 1), ubound(angle_list, 1)
+  omp_i = 1
+  !$ omp_i = omp_get_thread_num()+1
+  call dynamic_aperture (omp_lat(omp_i), orb0, angle_list(i), track_input, omp_aperture(omp_i), e_init)
+  aperture_list(i) = omp_aperture(omp_i)
+end do  
+!$OMP end do
+!$OMP end parallel
+  
+! Cleanup
+deallocate(omp_lat, omp_aperture)
+  
+end subroutine
+
+
 end module
