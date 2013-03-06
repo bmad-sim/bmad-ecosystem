@@ -82,6 +82,8 @@ DO i = 1, lat%n_ele_max - 1
    ele_r => lat%branch(1)%ele(i)
    if (ele_r%key == rfcavity$ .or. ele_r%key == elseparator$) then
       ele_r%branch%param%rel_tracking_charge = ele_f%branch%param%rel_tracking_charge
+   else
+      ele_r%branch%param%rel_tracking_charge = -ele_f%branch%param%rel_tracking_charge
    endif
 
    call track1 (orb_0r, ele_r, ele_r%branch%param, orb_1r)
