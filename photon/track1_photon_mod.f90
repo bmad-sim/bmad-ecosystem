@@ -47,8 +47,6 @@ real(rp), pointer :: val(:)
 
 complex(rp) zero, xi_1, xi_2, kz1, kz2, c1, c2
 
-logical curved_surface
-
 character(32), parameter :: r_name = 'track1_multilayer_mirror'
 
 !
@@ -56,31 +54,7 @@ character(32), parameter :: r_name = 'track1_multilayer_mirror'
 val => ele%value
 wavelength = c_light * h_planck / end_orb%p0c
 
-! (px, py, pz) coords are with respect to laboratory reference trajectory.
-! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
-! k0_outside_norm is normalized to 1.
-
-sin_g = sin(val(graze_angle$))
-cos_g = cos(val(graze_angle$))
-
-k0_outside_norm(1) =  cos_g * end_orb%vec(2) + sin_g * end_orb%vec(6)
-k0_outside_norm(2) =          end_orb%vec(4)
-k0_outside_norm(3) = -sin_g * end_orb%vec(2) + cos_g * end_orb%vec(6)
-
-! If there is curvature, compute the reflection point which is where 
-! the photon intersects the surface.
-
-curved_surface = has_curved_surface(ele)
-if (curved_surface) then
-  call reflection_point (ele, cos_g, sin_g, end_orb, k0_outside_norm, hit_point, s_len)
-  call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
-else
-  ! position is (x,y,z) coords of photon in the cyrstal frame.
-  position = [cos_g * vec(1), vec(3), -sin_g * vec(1)]
-  dlen = -position(1) / k0_outside_norm(1)
-  hit_point = position + dlen * k0_outside_norm  ! Surface is at x = 0
-  end_orb%t = end_orb%t + dlen / c_light
-endif
+call to_crystal_surface_coords (ele, val(graze_angle$), end_orb, k0_outside_norm, hit_point, cos_g, sin_g)
 
 ! Check aperture
 
@@ -114,7 +88,7 @@ k0_outside_norm(1) = -k0_outside_norm(1)
 
 ! Rotate back to uncurved element coords
 
-if (curved_surface) then
+if (has_curved_surface(ele)) then
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, unset$)
 endif
 
@@ -246,8 +220,6 @@ real(rp) temp_vec(3), direction(3), s_len
 real(rp) gamma_0, gamma_h, b_err, dlen
 real(rp), pointer :: vec(:)
 
-logical curved_surface
-
 !
 
 wavelength = c_light * h_planck / end_orb%p0c
@@ -257,27 +229,7 @@ vec => end_orb%vec
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
 ! k0_outside_norm is normalized to 1.
 
-sin_g = sin(ele%value(graze_angle_in$))
-cos_g = cos(ele%value(graze_angle_in$))
-
-k0_outside_norm(1) =  cos_g * vec(2) + sin_g * vec(6)
-k0_outside_norm(2) = vec(4)
-k0_outside_norm(3) = -sin_g * vec(2) + cos_g * vec(6)
-
-! If there is curvature, compute the reflection point which is where 
-! the photon intersects the surface.
-
-curved_surface = has_curved_surface(ele)
-if (curved_surface) then
-  call reflection_point (ele, cos_g, sin_g, end_orb, k0_outside_norm, hit_point, s_len)
-  call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
-else
-  ! position is (x,y,z) coords of photon in the cyrstal frame.
-  position = [cos_g * vec(1), vec(3), -sin_g * vec(1)]
-  dlen = -position(1) / k0_outside_norm(1)
-  hit_point = position + dlen * k0_outside_norm  ! Surface is at x = 0
-  end_orb%t = end_orb%t + dlen / c_light
-endif
+call to_crystal_surface_coords (ele, ele%value(graze_angle_in$), end_orb, k0_outside_norm, hit_point, cos_g, sin_g)
 
 ! Check aperture
 
@@ -329,7 +281,7 @@ call e_field_calc (c_param, ele, 1.0_rp,   end_orb%e_field_y, end_orb%phase_y)  
 
 ! Rotate back from curved body coords to element coords
 
-if (curved_surface) then
+if (has_curved_surface(ele)) then
   call to_curved_body_coords (ele, hit_point, kh_outside_norm, unset$)
 endif
 
@@ -447,9 +399,6 @@ else
   e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * cp%fh)
   e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * cp%fh)
 
-  
-
-
 endif
 
 end subroutine e_field_calc
@@ -458,7 +407,64 @@ end subroutine e_field_calc
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine reflection_point (ele, sin_g, cos_g, end_orb, k0_outside_norm, hit_point, s_len)
+! Subroutine to_crystal_surface_coords (ele, graze_angle, orbit, k0_outside_norm, hit_point, cos_g, sin_g)
+!
+! Routine to compute position where crystal reflects in crystal coordinates.
+!
+! Input:
+!   ele                -- ele_struct: Element
+!   graze_angle        -- real(rp): Grazing angle.
+!   orbit              -- coord_struct: Input coordinates
+!
+! Output:
+!   k0_outside_norm(3) -- Real(rp): Direction vector. 
+!   hit_point(3)       -- Real(rp): point of reflection in crystal coordinates
+!   cos_g              -- Real(rp): cosine of grazing angle.
+!   sin_g              -- Real(rp): sine of grazing angle.
+!-
+
+subroutine to_crystal_surface_coords (ele, graze_angle, orbit, k0_outside_norm, hit_point, cos_g, sin_g)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orbit
+
+real(rp) graze_angle, k0_outside_norm(3), hit_point(3), cos_g, sin_g, s_len
+real(rp) position(3)
+
+! (px, py, pz) coords are with respect to laboratory reference trajectory.
+! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
+! k0_outside_norm is normalized to 1.
+
+sin_g = sin(graze_angle)
+cos_g = cos(graze_angle)
+
+k0_outside_norm(1) =  cos_g * orbit%vec(2) + sin_g * orbit%vec(6)
+k0_outside_norm(2) =          orbit%vec(4)
+k0_outside_norm(3) = -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)
+
+! If there is curvature, compute the reflection point which is where 
+! the photon intersects the surface.
+
+if (has_curved_surface(ele)) then
+  call reflection_point (ele, cos_g, sin_g, orbit, k0_outside_norm, hit_point, s_len)
+  call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
+else
+  ! position is (x,y,z) coords of photon in the cyrstal frame.
+  position = [cos_g * orbit%vec(1), orbit%vec(3), -sin_g * orbit%vec(1)]
+  s_len = -position(1) / k0_outside_norm(1)
+  hit_point = position + s_len * k0_outside_norm  ! Surface is at x = 0
+  orbit%t = orbit%t + s_len / c_light
+endif
+
+end subroutine to_crystal_surface_coords 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine reflection_point (ele, sin_g, cos_g, orbit, k0_outside_norm, hit_point, s_len)
 !
 ! Private routine to compute position where crystal reflects in crystal coordinates.
 !
@@ -466,7 +472,7 @@ end subroutine e_field_calc
 !   ele                -- ele_struct: Element
 !   cos_g              -- Real(rp): cosine of grazing angle.
 !   sin_g              -- Real(rp): sine of grazing angle.
-!   end_orb            -- coord_struct: Input coordinates
+!   orbit            -- coord_struct: Input coordinates
 !   k0_outside_norm(3) -- Real(rp): Direction vector. 
 !
 ! Output:
@@ -474,14 +480,14 @@ end subroutine e_field_calc
 !   s_len        -- Real(rp): distance for photon to propagate to hit_point
 !-
 
-subroutine reflection_point (ele, cos_g, sin_g, end_orb, k0_outside_norm, hit_point, s_len)
+subroutine reflection_point (ele, cos_g, sin_g, orbit, k0_outside_norm, hit_point, s_len)
 
 use nr, only: zbrent
 
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct), target :: end_orb
+type (coord_struct), target :: orbit
 
 real(rp), target :: vec0(3), k0_outside_norm(3), cos_g, sin_g
 real(rp) :: s_len, hit_point(3)
@@ -490,7 +496,7 @@ real(rp) :: s1, s2, s_center, fa, fb
 ! vec0 is the body element coordinates of the photon.
 ! Note: The photon position in element entrance coords is [vec(1), vec(3), 0].
 
-vec0 = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
+vec0 = [orbit%vec(1) * cos_g, orbit%vec(3), -orbit%vec(1) * sin_g]
 
 ! Assume flat crystal, compute s required to hit the intersection
 ! Choose a Bracket of 1m around this point.
@@ -520,7 +526,7 @@ s_len = zbrent (photon_depth_in_crystal, s1, s2, 1d-10)
 ! Compute the intersection point
 
 hit_point = s_len * k0_outside_norm + vec0
-end_orb%t = end_orb%t + s_len / c_light
+orbit%t = orbit%t + s_len / c_light
 
 contains
 

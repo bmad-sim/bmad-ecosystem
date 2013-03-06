@@ -36,6 +36,7 @@ type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 
 real(rp) length, w_mat_inv(3,3), vec0(6), mat6(6,6), r_vec(3), p_vec(3)
+real(rp) vel_vec(3), hit_point(3), cos_g, sin_g
 
 integer i, n, n_slice, key
 
@@ -134,25 +135,23 @@ case (mirror$)
 
   call offset_photon (ele, end_orb, set$)
 
+  call to_crystal_surface_coords (ele, ele%value(graze_angle$), end_orb, vel_vec, hit_point, cos_g, sin_g)
+
   ! Check aperture
 
   if (ele%aperture_at == surface$) then
-    temp_orb%vec(3) = end_orb%vec(3)
-    temp_orb%vec(5) = -end_orb%vec(1) * sin(ele%value(graze_angle$))
+    temp_orb%vec(1:5:2) = hit_point 
     call check_aperture_limit (temp_orb, ele, surface$, param)
-    if (temp_orb%state /= alive$) then
-      end_orb%state = temp_orb%state
-      return
-    endif
+    if (end_orb%state /= alive$) return
   endif
 
   ! Reflect
 
-  end_orb%vec(1:4) = [ &
-        -end_orb%vec(1), &
-        -end_orb%vec(2), &
-         end_orb%vec(3), &
-         end_orb%vec(4) - 2 * end_orb%vec(3) * ele%value(c2_curve_tot$)]
+  if (has_curved_surface(ele)) then
+    call err_exit
+  else
+    end_orb%vec(1:4) = [-end_orb%vec(1), -end_orb%vec(2), end_orb%vec(3), end_orb%vec(4)]
+  endif
 
   call offset_photon (ele, end_orb, unset$)
 
