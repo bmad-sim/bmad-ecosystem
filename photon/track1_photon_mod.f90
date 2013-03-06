@@ -42,7 +42,7 @@ type (coord_struct), target:: end_orb
 type (lat_param_struct) :: param
 
 real(rp) k0_outside_norm(3), hit_point(3), wavelength, sin_g, cos_g
-real(rp) s_len, kz_air, temp_vec(3)
+real(rp) s_len, kz_air, temp_vec(3), position(3), dlen
 real(rp), pointer :: val(:)
 
 complex(rp) zero, xi_1, xi_2, kz1, kz2, c1, c2
@@ -56,7 +56,7 @@ character(32), parameter :: r_name = 'track1_multilayer_mirror'
 val => ele%value
 wavelength = c_light * h_planck / end_orb%p0c
 
-! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
+! (px, py, pz) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
 ! k0_outside_norm is normalized to 1.
 
@@ -75,7 +75,11 @@ if (curved_surface) then
   call reflection_point (ele, cos_g, sin_g, end_orb, k0_outside_norm, hit_point, s_len)
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
 else
-  hit_point = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
+  ! position is (x,y,z) coords of photon in the cyrstal frame.
+  position = [cos_g * vec(1), vec(3), -sin_g * vec(1)]
+  dlen = -position(1) / k0_outside_norm(1)
+  hit_point = position + dlen * k0_outside_norm  ! Surface is at x = 0
+  end_orb%t = end_orb%t + dlen / c_light
 endif
 
 ! Check aperture
@@ -127,11 +131,11 @@ temp_vec(1) = cos_g * hit_point(1) - sin_g * hit_point(3)
 temp_vec(2) = hit_point(2)
 temp_vec(3) = sin_g * hit_point(1) + cos_g * hit_point(3)
 
-temp_vec = temp_vec - end_orb%vec(2:6:2) * temp_vec(3)
+temp_vec = temp_vec - end_orb%vec(2:6:2) * (temp_vec(3) / end_orb%vec(6))
 
 end_orb%vec(1) = temp_vec(1)
 end_orb%vec(3) = temp_vec(2)
-end_orb%vec(5) = temp_vec(3) 
+end_orb%vec(5) = temp_vec(3) ! Should be zero.
 
 
 !-----------------------------------------------------------------------------------------------
@@ -249,7 +253,7 @@ logical curved_surface
 wavelength = c_light * h_planck / end_orb%p0c
 vec => end_orb%vec
 
-! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
+! (px, py, pz) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
 ! k0_outside_norm is normalized to 1.
 
@@ -259,12 +263,6 @@ cos_g = cos(ele%value(graze_angle_in$))
 k0_outside_norm(1) =  cos_g * vec(2) + sin_g * vec(6)
 k0_outside_norm(2) = vec(4)
 k0_outside_norm(3) = -sin_g * vec(2) + cos_g * vec(6)
-
-! m_in 
-
-m_in(1, 1:3) = [ cos_g, 0.0_rp, sin_g]
-m_in(2, 1:3) = [0.0_rp, 1.0_rp, 0.0_rp]
-m_in(3, 1:3) = [-sin_g, 0.0_rp, cos_g]
 
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
@@ -342,12 +340,18 @@ endif
 
 if (ele%value(tilt_corr$) == 0) then
   y_out = [0, 1, 0]
+
 else
+  m_in(1, 1:3) = [ cos_g, 0.0_rp, sin_g]
+  m_in(2, 1:3) = [0.0_rp, 1.0_rp, 0.0_rp]
+  m_in(3, 1:3) = [-sin_g, 0.0_rp, cos_g]
+
   sin_tc = sin(ele%value(tilt_corr$))
   cos_tc = cos(ele%value(tilt_corr$))
   tilt_cor_mat(1,1:3) = [cos_tc, -sin_tc, 0.0_rp]  
   tilt_cor_mat(2,1:3) = [sin_tc, cos_tc, 0.0_rp]
   tilt_cor_mat(3,1:3) = [0.0_rp, 0.0_rp, 1.0_rp]
+
   y_out = matmul(m_in, [0.0_rp, 1.0_rp, 0.0_rp])
   y_out = matmul(tilt_cor_mat, y_out)
   y_out = matmul(transpose(m_in), y_out)
@@ -371,7 +375,7 @@ vec(6) = sqrt(1 - vec(2)**2 - vec(4)**2)
 ! Compute position, backpropagating the ray
 
 temp_vec = matmul(m_out, hit_point)
-temp_vec = temp_vec - direction * temp_vec(3)
+temp_vec = temp_vec - direction * (temp_vec(3) / direction(3))
 
 vec(1) = temp_vec(1)
 vec(3) = temp_vec(2)
@@ -514,7 +518,9 @@ endif
 s_len = zbrent (photon_depth_in_crystal, s1, s2, 1d-10)
 
 ! Compute the intersection point
+
 hit_point = s_len * k0_outside_norm + vec0
+end_orb%t = end_orb%t + s_len / c_light
 
 contains
 
@@ -572,10 +578,10 @@ end subroutine reflection_point
 ! respect to the surface at the point of photon impact.
 !
 ! Input:
-!   ele         -- ele_struct: reflecting element
+!   ele          -- ele_struct: reflecting element
 !   hit_point(3) -- real(rp): Point of photon impact.
-!   vector(3)   -- real(rp): Vector to rotate.
-!   set         -- Logical: True -> Transform body to curved body. False -> Transform curved body to body.
+!   vector(3)    -- real(rp): Vector to rotate.
+!   set          -- Logical: True -> Transform body to curved body. False -> Transform curved body to body.
 !
 ! Output:
 !   vector(3)   -- Real(rp): Rotated vector.
@@ -611,10 +617,8 @@ slope_c = 2.0_rp * v(c2_curve_tot$) * hit_point(3) + 3.0_rp * v(c3_curve_tot$) *
 slope_t = 2.0_rp * v(a2_trans_curve$) * hit_point(2) + 3.0_rp * v(a3_trans_curve$) * hit_point(2)**2 + &
           4.0_rp * v(a4_trans_curve$) * hit_point(2)**3
 
-if (.not. set) then
-  slope_c = -slope_c
-  slope_t = -slope_t
-endif
+slope_c = -slope_c
+slope_t = -slope_t
 
 cos_c =       1 / sqrt(1 + slope_c**2)
 sin_c = slope_c / sqrt(1 + slope_c**2)
@@ -622,9 +626,15 @@ sin_c = slope_c / sqrt(1 + slope_c**2)
 cos_t =               1 / sqrt(1 + (cos_c * slope_t)**2)
 sin_t = cos_c * slope_t / sqrt(1 + (cos_c * slope_t)**2)
 
-curverot(1, 1:3) = [ cos_c*cos_t,  cos_c*sin_t,  sin_c]
-curverot(2, 1:3) = [      -sin_t,        cos_t, 0.0_rp]
-curverot(3, 1:3) = [-sin_c*cos_t, -sin_c*sin_t,  cos_c]
+if (set) then
+  curverot(1, 1:3) = [ cos_c*cos_t,  cos_c*sin_t,  sin_c]
+  curverot(2, 1:3) = [      -sin_t,        cos_t, 0.0_rp]
+  curverot(3, 1:3) = [-sin_c*cos_t, -sin_c*sin_t,  cos_c]
+else
+  curverot(1, 1:3) = [ cos_c*cos_t,       -sin_t, -sin_c*cos_t]
+  curverot(2, 1:3) = [ cos_c*sin_t,        cos_t, -sin_c*sin_t]
+  curverot(3, 1:3) = [ sin_c,             0.0_rp,  cos_c]
+endif
 
 vector = matmul(curverot, vector) ! Goto body element coords at point of photon impact
 
