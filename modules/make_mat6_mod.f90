@@ -103,7 +103,7 @@ real(rp), optional :: pz, z_coef(3), dz_dpz_coef(3)
 sqrt_k = sqrt(abs(k1))
 sk_l = sqrt_k * length
 
-if (sk_l < 1e-10) then
+if (abs(sk_l) < 1e-10) then
   k_l2 = k1 * length**2
   cx = 1 + k_l2 / 2
   sx = (1 + k_l2 / 6) * length
@@ -134,7 +134,7 @@ endif
 
 if (present(dz_dpz_coef)) then
 
-  if (sk_l < 1e-10) then
+  if (abs(sk_l) < 1e-10) then
     dcx = -k_l2 / 2
     dsx = -k_l2 * length / 6
   else
