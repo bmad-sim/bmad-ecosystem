@@ -132,7 +132,7 @@ do n_step = 1, max_step
     call calc_next_fringe_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
-    s = s + ds_safe
+    s = s + ds_safe * direction
   enddo
 
   ! Check if we are done.
@@ -154,7 +154,7 @@ do n_step = 1, max_step
   if ((s+ds-s_edge_track)*direction > 0.0) then
     at_hard_edge = .true.
     ds_save = ds
-    ds = (s_edge_track - s - ds_safe / 2) * direction
+    ds = s_edge_track - s - ds_safe*direction / 2
   endif
 
   sqrt_N = sqrt(abs((s2-s1)/ds))  ! number of steps we would take with this ds
