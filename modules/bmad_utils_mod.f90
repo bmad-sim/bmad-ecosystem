@@ -4250,22 +4250,25 @@ subroutine does_this_ele_contain_the_next_edge (this_ele)
 
 type (ele_struct), target :: this_ele
 real(rp) s_this_edge, s_hard_entrance, s_hard_exit, s_off
-integer this_end
+integer this_end, dir
 
 !
 
 if (.not. element_has_fringe_fields (this_ele)) return
 if (this_ele%ixx == 2) return
 
+dir = 1
+if (track_ele%value(l$) < 0) dir = -1
+
 s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
 s_hard_entrance = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
 s_hard_exit     = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
 
-if (s_hard_entrance < -bmad_com%significant_length .and. &
-    s_hard_exit     < -bmad_com%significant_length) return
+if (dir * s_hard_entrance < -dir * bmad_com%significant_length .and. &
+    dir * s_hard_exit     < -dir * bmad_com%significant_length) return
 
-if (s_hard_entrance > track_ele%value(l$) + bmad_com%significant_length .and. &
-    s_hard_exit     > track_ele%value(l$) + bmad_com%significant_length) return
+if (dir * s_hard_entrance > dir * (track_ele%value(l$) + bmad_com%significant_length) .and. &
+    dir * s_hard_exit     > dir * (track_ele%value(l$) + bmad_com%significant_length)) return
 
 if (this_ele%ixx == 0) then
   this_end = upstream_end$
@@ -4276,7 +4279,7 @@ else   ! this_ele%ixx = 1
   s_this_edge = min(track_ele%value(l$), s_hard_exit)
 endif
 
-if (s_this_edge > s_edge_track) return
+if (dir * s_this_edge > dir * s_edge_track) return
 
 ! This looks like the next hard edge
 
