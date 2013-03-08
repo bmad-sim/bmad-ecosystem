@@ -30,7 +30,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct) :: temp_ele1, temp_ele2
-type (coord_struct) :: c0, c1
+type (coord_struct) :: c0, c1, c_temp
 type (coord_struct) :: c00, c11, c_int
 type (coord_struct) orb
 type (lat_param_struct)  param
@@ -504,7 +504,8 @@ case (quadrupole$)
 
   call offset_particle (ele, c00, param, set$)
   call offset_particle (ele, c11, param, set$, ds_pos = length)
-
+  
+  ix_fringe = nint(ele%value(fringe_type$))
   k1 = ele%value(k1$) * charge_dir / rel_p
 
   call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x, c0%vec(6), ddz_x)
@@ -517,6 +518,11 @@ case (quadrupole$)
   mat6(4,3) = mat6(4,3) * rel_p
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
+
+  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
+    x = c00%vec(1); px = c00%vec(2) * rel_p; y = c00%vec(3); py = c00%vec(4) * rel_p
+    call quadrupole_edge_kick (ele, upstream_end$, c00)
+  endif
 
   if (any(c00%vec(1:4) /= 0)) then
     mat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
@@ -536,49 +542,60 @@ case (quadrupole$)
 
   ! Edge effects
 
-  ix_fringe = nint(ele%value(fringe_type$))
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
     ! Entrance edge effect
 
-    x = c00%vec(1); px = c00%vec(2); y = c00%vec(3); py = c00%vec(4)
-    mat4 = 0
+    mat6_m = 0
 
-    mat4(1,1) = 1 + k1 * (x**2 + y**2) / 4
-    mat4(1,3) =     k1 * x*y/2
-    mat4(2,1) =     k1 * (y*py - x*px) / 2
-    mat4(2,2) = 1 - k1 * (x**2 + y**2) / 4
-    mat4(2,3) =     k1 * (x*py - y*px) / 2
-    mat4(2,4) =     k1 * x*y/2
+    mat6_m(1,1) = 1 + k1 * (x**2 + y**2) / 4
+    mat6_m(1,3) =     k1 * x*y/2
+    mat6_m(2,1) =     k1 * (y*py - x*px) / 2
+    mat6_m(2,2) = 1 - k1 * (x**2 + y**2) / 4
+    mat6_m(2,3) =     k1 * (x*py - y*px) / 2
+    mat6_m(2,4) =     k1 * x*y/2
 
-    mat4(3,3) = 1 - k1 * (y**2 + x**2) / 4
-    mat4(3,1) =   - k1 * y*x/2
-    mat4(4,3) =   - k1 * (x*px - y*py) / 2
-    mat4(4,4) = 1 + k1 * (y**2 + x**2) / 4
-    mat4(4,1) =   - k1 * (y*px - x*py) / 2
-    mat4(4,2) =   - k1 * y*x/2
+    mat6_m(3,3) = 1 - k1 * (y**2 + x**2) / 4
+    mat6_m(3,1) =   - k1 * y*x/2
+    mat6_m(4,3) =   - k1 * (x*px - y*py) / 2
+    mat6_m(4,4) = 1 + k1 * (y**2 + x**2) / 4
+    mat6_m(4,1) =   - k1 * (y*px - x*py) / 2
+    mat6_m(4,2) =   - k1 * y*x/2
 
-    mat6(1:4,1:4) = matmul(mat6(1:4,1:4), mat4)
+    mat6_m(1,6) = -k1 * (x**3/12 + x*y**2/4) / rel_p
+    mat6_m(2,6) = -k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
+    mat6_m(3,6) =  k1 * (y**3/12 + y*x**2/4) / rel_p
+    mat6_m(4,6) =  k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+
+    mat6_m(5,5) = 1
+    mat6_m(6,6) = 1
+
+    mat6 = matmul(mat6, mat6_m)
 
     ! Exit edge effect
 
-    x = c11%vec(1); px = c11%vec(2); y = c11%vec(3); py = c11%vec(4)
-    mat4 = 0
+    call quadrupole_edge_kick (ele, upstream_end$, c11) ! Yes upstream since we are propagating backwards.
+    x = c11%vec(1); px = c11%vec(2) * rel_p; y = c11%vec(3); py = c11%vec(4) * rel_p
 
-    mat4(1,1) = 1 - k1 * (x**2 + y**2) / 4
-    mat4(1,3) =   - k1 * x*y/2
-    mat4(2,1) =   - k1 * (y*py - x*px) / 2
-    mat4(2,2) = 1 + k1 * (x**2 + y**2) / 4
-    mat4(2,3) =   - k1 * (x*py - y*px) / 2
-    mat4(2,4) =   - k1 * x*y/2
+    mat6_m(1,1) = 1 - k1 * (x**2 + y**2) / 4
+    mat6_m(1,3) =   - k1 * x*y/2
+    mat6_m(2,1) =   - k1 * (y*py - x*px) / 2
+    mat6_m(2,2) = 1 + k1 * (x**2 + y**2) / 4
+    mat6_m(2,3) =   - k1 * (x*py - y*px) / 2
+    mat6_m(2,4) =   - k1 * x*y/2
 
-    mat4(3,3) = 1 + k1 * (y**2 + x**2) / 4
-    mat4(3,1) =     k1 * y*x/2
-    mat4(4,3) =     k1 * (x*px - y*py) / 2
-    mat4(4,4) = 1 - k1 * (y**2 + x**2) / 4
-    mat4(4,1) =     k1 * (y*px - x*py) / 2
-    mat4(4,2) =     k1 * y*x/2
+    mat6_m(3,3) = 1 + k1 * (y**2 + x**2) / 4
+    mat6_m(3,1) =     k1 * y*x/2
+    mat6_m(4,3) =     k1 * (x*px - y*py) / 2
+    mat6_m(4,4) = 1 - k1 * (y**2 + x**2) / 4
+    mat6_m(4,1) =     k1 * (y*px - x*py) / 2
+    mat6_m(4,2) =     k1 * y*x/2
 
-    mat6(1:4,1:4) = matmul(mat4, mat6(1:4,1:4))
+    mat6_m(1,6) =  k1 * (x**3/12 + x*y**2/4) / rel_p
+    mat6_m(2,6) =  k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
+    mat6_m(3,6) = -k1 * (y**3/12 + y*x**2/4) / rel_p
+    mat6_m(4,6) = -k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+
+    mat6 = matmul(mat6_m, mat6)
 
   endif
 
