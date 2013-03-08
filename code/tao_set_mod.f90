@@ -713,7 +713,7 @@ write (iu, *) ' plot_page%' // trim(component) // ' = ' // trim(set_value)
 write (iu, *) '/'
 rewind (iu)
 
-call set_plot_page (s%plotting, plot_page)
+call tao_set_plotting (plot_page, s%plotting, .false.)
 
 read (iu, nml = params, iostat = ios)
 close (iu)
@@ -723,7 +723,7 @@ if (ios /= 0) then
   return
 endif
 
-call set_plotting (plot_page, s%plotting, .false.)
+call tao_set_plotting (plot_page, s%plotting, .false.)
 
 end subroutine tao_set_plot_page_cmd
 

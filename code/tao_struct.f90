@@ -710,13 +710,13 @@ end type
 ! Logicals that determine what calculations need to be done
 
 type tao_universe_calc_struct
-  logical rad_int_for_data       ! Do the radiation integrals need to be computed for
-  logical rad_int_for_plotting   !   data or plotting?
-  logical chrom                  ! Does the chromaticity need to be computed?
-  logical chrom_lats             ! Save high and low energy lattices?
-  logical lattice                ! Used to indicate which lattices need tracking done.
-  logical :: mat6 = .true.       ! calc linear transfer matri?
-  logical :: track = .true.      ! tracking needs to be done?
+  logical rad_int_for_data        ! Do the radiation integrals need to be computed for
+  logical rad_int_for_plotting    !   data or plotting?
+  logical chrom                   ! Does the chromaticity need to be computed?
+  logical chrom_lats              ! Save high and low energy lattices?
+  logical lattice                 ! Used to indicate which lattices need tracking done.
+  logical :: mat6 = .true.        ! calc linear transfer matri?
+  logical :: track = .true.       ! tracking needs to be done?
 end type
 
 !-----------------------------------------------------------------------

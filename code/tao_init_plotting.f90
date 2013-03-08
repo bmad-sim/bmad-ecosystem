@@ -59,9 +59,10 @@ character(80) label
 character(40) str
 character(20) :: r_name = 'tao_init_plotting'
 
-logical err
+logical err, include_default_plots
 
-namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
+namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, &
+                include_default_plots
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 
@@ -86,7 +87,9 @@ init_axis%min = 0
 init_axis%max = 0
 
 place%region = ' '
-region%name = ' '       ! a region exists only if its name is not blank 
+region%name  = ' '       ! a region exists only if its name is not blank 
+include_default_plots = .false.
+
 plot_page = plot_page_default
 plot_page%title(:)%draw_it = .false.
 plot_page%title(:)%string = ' '
@@ -173,7 +176,7 @@ if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist fou
 
 master_default_graph = default_graph
 
-call set_plotting (plot_page, s%plotting, .true.)
+call tao_set_plotting (plot_page, s%plotting, .true.)
 
 ! title
 
@@ -383,14 +386,6 @@ do   ! Loop over plot files
 
   close (iu)
 enddo
-
-! If no plots have been defined then use default
-
-if (ip == 0) then
-  deallocate(s%plotting%floor_plan%ele_shape, s%plotting%lat_layout%ele_shape, s%plotting%region)
-  call tao_setup_default_plotting()
-  return
-endif
 
 !---------------
 ! Allocate the template plot and define a scratch plot
@@ -838,6 +833,15 @@ enddo  ! file
 
 close (iu)
 
+! If no plots have been defined or default plots wanted then use default
+
+if (ip == 0 .or. include_default_plots) then
+  if (size(s%plotting%lat_layout%ele_shape) == 0) deallocate(s%plotting%lat_layout%ele_shape)
+  if (size(s%plotting%floor_plan%ele_shape) == 0) deallocate(s%plotting%floor_plan%ele_shape)
+  if (size(s%plotting%region) == 0) deallocate (s%plotting%region)
+  call tao_setup_default_plotting()
+endif
+
 ! initial placement of plots
 
 do i = 1, size(place)
@@ -909,17 +913,8 @@ end subroutine
 subroutine tao_setup_default_plotting()
 
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1
-real(rp) y_layout
-integer np
-
-!
-
-call set_plotting (plot_page, s%plotting, .true.)
-
-allocate (s%plotting%floor_plan%ele_shape(10), s%plotting%lat_layout%ele_shape(10))
-
-s%plotting%lat_layout%ele_shape(:)%ele_name = ''
-s%plotting%lat_layout%ele_shape(1:7) = [&
+type (tao_plot_struct), allocatable :: temp_template(:)
+type (tao_ele_shape_struct) :: dflt_lat_layout(1:7) = [&
           tao_ele_shape_struct('SBEND::*',      'BOX',  'BLACK',   0.20_rp, 'none', .true.), &
           tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 0.37_rp, 'name', .true.), &
           tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   0.37_rp, 'none', .true.), &
@@ -927,12 +922,39 @@ s%plotting%lat_layout%ele_shape(1:7) = [&
           tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     0.50_rp, 'name', .true.), &
           tao_ele_shape_struct('WIGGLER::*',    'XBOX', 'CYAN',    0.50_rp, 'name', .true.), &
           tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLUE',    0.30_rp, 'name', .true.)]
+real(rp) y_layout
+integer np, n
 
-s%plotting%floor_plan%ele_shape = s%plotting%lat_layout%ele_shape
-s%plotting%floor_plan%ele_shape%size = 40 * s%plotting%floor_plan%ele_shape%size
+!
 
-allocate (s%plotting%template(20)) 
-np = 0
+call tao_set_plotting (plot_page, s%plotting, .true.)
+
+if (.not. allocated(s%plotting%lat_layout%ele_shape)) then
+  allocate (s%plotting%lat_layout%ele_shape(10))
+  s%plotting%lat_layout%ele_shape(:)%ele_name = ''
+  s%plotting%lat_layout%ele_shape(1:7) = dflt_lat_layout
+endif
+
+if (.not. allocated(s%plotting%floor_plan%ele_shape)) then
+  allocate (s%plotting%floor_plan%ele_shape(10))
+  s%plotting%floor_plan%ele_shape(:)%ele_name = ''
+  s%plotting%floor_plan%ele_shape(1:7) = dflt_lat_layout
+  s%plotting%floor_plan%ele_shape%size = 40 * s%plotting%floor_plan%ele_shape%size
+endif
+
+!---------------------------------
+
+if (allocated(s%plotting%template)) then
+  n = size(s%plotting%template)
+  call move_alloc(s%plotting%template, temp_template)
+  allocate (s%plotting%template(n + 20))
+  s%plotting%template(1:n) = temp_template
+  deallocate (temp_template)
+  np = n + 1
+else
+  allocate (s%plotting%template(20)) 
+  np = 0
+endif
 
 !---------------
 ! This plot defines the default 2-graph, 1-curve/graph plot
@@ -1605,7 +1627,7 @@ crv%g => grph
 crv%data_type     = 'orbit.z'
 crv%y_axis_scale_factor = 1000
 
-!---------------
+!-------------------------------------------------
 ! Scratch plot
 
 plt => s%plotting%template(size(s%plotting%template))
@@ -1615,29 +1637,32 @@ if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
 plt%name = 'scratch'
 
+!-------------------------------------------------
 ! Regions
 
-allocate (s%plotting%region(20))
+if (.not. allocated(s%plotting%region)) then
+  allocate (s%plotting%region(20))
 
-y_layout = 0.15
-s%plotting%region(1)%name = 'layout'
-s%plotting%region(1)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
+  y_layout = 0.15
+  s%plotting%region(1)%name = 'layout'
+  s%plotting%region(1)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
 
-k = 1
-do i = 1, 4
-  do j = 1, i
-    k = k + 1
-    write (s%plotting%region(k)%name, '(a, 2i0)') 'r', j, i
-    y1 = y_layout + (1 - y_layout) * real(i-j)/ i
-    y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
-    s%plotting%region(k)%location = [0.0_rp, 1.0_rp, y1, y2]
+  k = 1
+  do i = 1, 4
+    do j = 1, i
+      k = k + 1
+      write (s%plotting%region(k)%name, '(a, 2i0)') 'r', j, i
+      y1 = y_layout + (1 - y_layout) * real(i-j)/ i
+      y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
+      s%plotting%region(k)%location = [0.0_rp, 1.0_rp, y1, y2]
+    enddo
   enddo
-enddo
 
-call tao_place_cmd ('layout', 'lat_layout')
-call tao_place_cmd ('r13', 'beta')
-call tao_place_cmd ('r23', 'eta')
-call tao_place_cmd ('r33', 'orbit')
+  call tao_place_cmd ('layout', 'lat_layout')
+  call tao_place_cmd ('r13', 'beta')
+  call tao_place_cmd ('r23', 'eta')
+  call tao_place_cmd ('r33', 'orbit')
+endif
 
 end subroutine
 
