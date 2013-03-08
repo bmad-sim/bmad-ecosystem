@@ -143,14 +143,9 @@ case (4, 5)
 
   ! Check if rf is on and if so issue a warning message
 
-  do i = 1, branch%n_ele_track
-    ele => branch%ele(i)
-    if (ele%key == rfcavity$ .and. ele%is_on .and. ele%value(voltage$) /= 0) then
-      call out_io (s_warn$, r_name, &
-                     'Inconsistant calculation: RF ON with i_dim = \i4\ ', i_dim)
-      exit
-    endif
-  enddo
+  if (rf_is_on(branch)) then
+    call out_io (s_warn$, r_name, 'Inconsistant calculation: RF ON with i_dim = \i4\ ', i_dim)
+  endif
 
   !
 
