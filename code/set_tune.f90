@@ -16,7 +16,7 @@
 !                  dk1(i) relates to lat%ele(i). Those quads with a
 !                  positive dk1(i) will be varied as one group and the
 !                  quads with negative dk1(i) will be varied as another group.
-!   orb(0)%vec(6) -- Coord_struct: Energy dE/E at which the tune is computed.
+!   orb(0)%vec(6) -- Coord_struct: If RF is off: Energy dE/E at which the tune is computed.
 !
 ! Output:
 !   lat      -- lat_struct: Q_tuned lat
@@ -27,7 +27,7 @@
 subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
 
 use bmad_interface, except_dummy => set_tune
-use bookkeeper_mod, only: lattice_bookkeeper, set_flags_for_changed_attribute
+use bookkeeper_mod, only: lattice_bookkeeper, set_flags_for_changed_attribute, rf_is_on
 
 implicit none
 
@@ -42,7 +42,7 @@ real(rp) l_beta_a, l_beta_b, dk_x, dk_y, dk1(:)
 
 integer i, j, status
 
-logical ok, err
+logical ok, err, rf_on
 
 character(20) :: r_name = 'set_tune'
 real(rp), dimension(2) :: phi_array
@@ -51,12 +51,18 @@ real(rp), dimension(2) :: phi_array
 
 dQ_max = 0.001
 ok = .false.
+rf_on = rf_is_on(lat%branch(0))
 
 do i = 1, 10
 
   if (.not. bmad_com%auto_bookkeeper) call lattice_bookkeeper(lat)
 
-  call closed_orbit_calc (lat, orb, 4, err_flag = err)
+  if (rf_on) then
+    call closed_orbit_calc (lat, orb, 6, err_flag = err)
+  else
+    call closed_orbit_calc (lat, orb, 4, err_flag = err)
+  endif
+
   if (err) return
 
   call lat_make_mat6 (lat, -1, orb)
