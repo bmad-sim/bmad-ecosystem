@@ -28,8 +28,6 @@ type mad_map_struct
   real(rp) t(6,6,6)     ! 2nd order map.
 end type
 
-logical, save :: mad_print_if_misaligned = .true.
-
 !---------------------------------------------------------------------------
 contains
 
@@ -168,13 +166,13 @@ end select
 
 val => ele%value
 
-if (.not.(val(z_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
-    val(x_pitch_tot$) == 0  .and. val(y_offset_tot$) == 0 .and. &
-    val(y_pitch_tot$) == 0 .and. .not. associated(ele%a_pole) .and. &
-    ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. &
-    ele%key == elseparator$)) .and. mad_print_if_misaligned) &
-    call out_io (s_error$, r_name, &
-    'ELEMENT HAS OFFSET, PITCH, OR KICK. MAD DOES NOT SUPPORT THIS. ' // ele%name)
+!if (.not.(val(z_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
+!    val(x_pitch_tot$) == 0  .and. val(y_offset_tot$) == 0 .and. &
+!    val(y_pitch_tot$) == 0 .and. .not. associated(ele%a_pole) .and. &
+!    ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. &
+!    ele%key == elseparator$)) .and. mad_print_if_misaligned) &
+!    call out_io (s_error$, r_name, &
+!    'ELEMENT HAS OFFSET, PITCH, OR KICK. MAD DOES NOT SUPPORT THIS. ' // ele%name)
 
 end subroutine make_mad_map
 
