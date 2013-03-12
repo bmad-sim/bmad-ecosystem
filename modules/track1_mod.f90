@@ -767,6 +767,7 @@ end subroutine apply_hard_edge_kick
 ! Subroutine quadrupole_edge_kick (ele, end_at, orbit)
 !
 ! Routine to add the 3rd order quadrupolar edge kick.
+! Routine works whether orbit uses angular or canonical coordinates.
 !
 ! Moudle needed:
 !   use track1_mod
