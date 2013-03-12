@@ -165,16 +165,25 @@ ELSE ()
 ENDIF ()
 
 
-#-----------------------------------
+#--------------------------------------
 # Fortran Compiler flags
-#-----------------------------------
+#
+# For MacOS (Darwin) ifort Distrubution 
+# builds, remove unspported flag option
+# "-mcmodel=medium"
+#--------------------------------------
 enable_language( Fortran )
-set (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
 
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
+ELSE ()
+   SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
+ENDIF()
 
 SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
 SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS})
 SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS})
+
 
 #--------------------------------------
 # Honor requests for debug builds 
