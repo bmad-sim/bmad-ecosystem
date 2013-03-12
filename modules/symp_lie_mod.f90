@@ -5,6 +5,7 @@ use bmad_interface
 use make_mat6_mod
 use em_field_mod   
 use random_mod
+use track1_mod
 
 type save_coef_struct
   real(rp) coef, dx_coef, dy_coef
@@ -66,7 +67,7 @@ implicit none
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele
 type (ele_pointer_struct), allocatable :: field_eles(:)
-type (coord_struct) :: start_orb, end_orb, start2_orb
+type (coord_struct) :: start_orb, end_orb, start2_orb, c_int
 type (lat_param_struct)  param
 type (track_struct), optional :: track
 type (wig_term_struct), pointer :: wig_term(:)
@@ -75,7 +76,7 @@ type (wiggler_computations_struct), allocatable :: tm(:)
 type (wig_term_struct), pointer :: wt
 
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6)
-real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
+real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
@@ -304,6 +305,10 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     ks = ele%value(ks$)
   end select
 
+  c_int = end_orb
+
+  if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, upstream_end$, end_orb)
+
   ! loop over all steps
 
   do i = 1, n_step
@@ -324,6 +329,13 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     if (present(track)) call save_this_track_pt (i, s)
 
   enddo
+
+  if(calculate_mat6) then
+     k1 = ele%value(k1$) * param%rel_tracking_charge * ele%orientation / (1 + start2_orb%vec(6))
+     call quad_mat6_edge_effect (ele, k1, c_int, end_orb, mat6)
+  end if
+
+  if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, downstream_end$, end_orb)
 
 !----------------------------------------------------------------------------
 ! unknown element
