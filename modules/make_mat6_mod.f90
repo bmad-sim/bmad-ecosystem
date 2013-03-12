@@ -155,6 +155,97 @@ end subroutine quad_mat2_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine quad_mat6_edge_effect (ele, k1, start, end, mat6)
+!
+! Subroutine to add quadrupole edge effects to the transfer matrix. 
+!
+! Modules Needed:
+!   use bmad
+!
+! Input:
+!   ele        -- Ele_struct
+!   k1         -- Real(rp): Quadrupole strength.
+!   start      -- coord_struct: Orbit at beginning of the bend.
+!   end        -- coord_struct: Orbit at beginning of the bend.
+!   mat6(6,6)  -- Real(rp): Transfer matrix without edge effect.
+!
+! Output:
+!   mat6(6,6)  -- Real(rp): Transfer matrix with edge effect.
+!-
+
+subroutine quad_mat6_edge_effect (ele, k1, start, end, mat6)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (coord_struct) :: start, end
+real(rp) k1, mat6(6,6), mat6_m(6,6)
+integer ix_fringe
+real(rp) x, px, y, py, rel_p
+
+ix_fringe = nint(ele%value(fringe_type$))
+if (ix_fringe /= full_straight$ .and. ix_fringe /= full_bend$) return
+
+mat6_m = 0
+rel_p = 1 + start%vec(6)
+
+x = start%vec(1); px = start%vec(2) * rel_p; y = start%vec(3); py = start%vec(4) * rel_p
+
+mat6_m(1,1) = 1 + k1 * (x**2 + y**2) / 4
+mat6_m(1,3) =     k1 * x*y/2
+mat6_m(2,1) =     k1 * (y*py - x*px) / 2
+mat6_m(2,2) = 1 - k1 * (x**2 + y**2) / 4
+mat6_m(2,3) =     k1 * (x*py - y*px) / 2
+mat6_m(2,4) =     k1 * x*y/2
+
+mat6_m(3,3) = 1 - k1 * (y**2 + x**2) / 4
+mat6_m(3,1) =   - k1 * y*x/2
+mat6_m(4,3) =   - k1 * (x*px - y*py) / 2
+mat6_m(4,4) = 1 + k1 * (y**2 + x**2) / 4
+mat6_m(4,1) =   - k1 * (y*px - x*py) / 2
+mat6_m(4,2) =   - k1 * y*x/2
+
+mat6_m(1,6) = -k1 * (x**3/12 + x*y**2/4) / rel_p
+mat6_m(2,6) = -k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
+mat6_m(3,6) =  k1 * (y**3/12 + y*x**2/4) / rel_p
+mat6_m(4,6) =  k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+
+mat6_m(5,5) = 1
+mat6_m(6,6) = 1
+
+mat6 = matmul(mat6, mat6_m)
+
+! Exit edge effect
+
+x = end%vec(1); px = end%vec(2) * rel_p; y = end%vec(3); py = end%vec(4) * rel_p
+
+mat6_m(1,1) = 1 - k1 * (x**2 + y**2) / 4
+mat6_m(1,3) =   - k1 * x*y/2
+mat6_m(2,1) =   - k1 * (y*py - x*px) / 2
+mat6_m(2,2) = 1 + k1 * (x**2 + y**2) / 4
+mat6_m(2,3) =   - k1 * (x*py - y*px) / 2
+mat6_m(2,4) =   - k1 * x*y/2
+
+mat6_m(3,3) = 1 + k1 * (y**2 + x**2) / 4
+mat6_m(3,1) =     k1 * y*x/2
+mat6_m(4,3) =     k1 * (x*px - y*py) / 2
+mat6_m(4,4) = 1 - k1 * (y**2 + x**2) / 4
+mat6_m(4,1) =     k1 * (y*px - x*py) / 2
+mat6_m(4,2) =     k1 * y*x/2
+
+mat6_m(1,6) =  k1 * (x**3/12 + x*y**2/4) / rel_p
+mat6_m(2,6) =  k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
+mat6_m(3,6) = -k1 * (y**3/12 + y*x**2/4) / rel_p
+mat6_m(4,6) = -k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+
+mat6 = matmul(mat6_m, mat6)
+
+end subroutine quad_mat6_edge_effect
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine sol_quad_mat6_calc (ks, k1, length, mat6, orb, dz_coef)
 !
 ! Subroutine to calculate the transfer matrix for a combination 
