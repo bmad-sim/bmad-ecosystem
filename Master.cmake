@@ -24,7 +24,6 @@ ELSE ()
   SET(ACC_COMPILE_WITH_OPENMP 0)
 ENDIF ()
 
-
 #------------------------------------------
 # Honor requests for compiling with OpenMPI
 # made via environment variable.
@@ -168,8 +167,8 @@ ENDIF ()
 #--------------------------------------
 # Fortran Compiler flags
 #
-# For MacOS (Darwin) ifort Distrubution 
-# builds, remove unspported flag option
+# For non-Linux ifort builds builds, 
+# removed unspported flag option
 # "-mcmodel=medium"
 #--------------------------------------
 enable_language( Fortran )
@@ -178,11 +177,11 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
 ELSE ()
    SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
-ENDIF()
+ENDIF ()
 
 SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
-SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS})
-SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS})
+SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS})
+SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS})
 
 
 #--------------------------------------
@@ -676,7 +675,7 @@ foreach(exespec ${EXE_SPECS})
   ENDIF ()
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${STATIC_FLAG} ${LINK_LIBS} ${SHARED_FLAG} ${SHARED_LINK_LIBS}
-          ${X11_LIBRARIES} ${ACC_LINK_FLAGS}
+          ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
           ${LINK_FLAGS} ${MAPLINE}
   )
 
