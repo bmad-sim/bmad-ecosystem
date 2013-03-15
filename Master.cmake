@@ -248,7 +248,8 @@ IF ($ENV{ACC_MPI})
 ELSE()
   message("MPI Support          : Not Enabled")
 ENDIF()
-message("${FORTRAN_COMPILER} Complier Flags : ${BASE_Fortran_FLAGS}")
+message("FFLAGS               : ${FFLAGS}")
+message("${FORTRAN_COMPILER} Compiler Flags : ${BASE_Fortran_FLAGS}")
 message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}\n")
 
 
