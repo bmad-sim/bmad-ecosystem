@@ -1026,10 +1026,6 @@ if (delim /= '=')  then
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ref_pt = begin$
 
-  case ('CREATE_EM_FIELD_SLAVE')
-    if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%create_em_field_slave = .true.
-
   case ('REF_CENTER')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
     pele%ref_pt = center$
@@ -1106,6 +1102,10 @@ case ('APERTURE_LIMIT_ON')
 
 case ('ABSOLUTE_TIME_TRACKING')
   call get_logical (attrib_word, lat%absolute_time_tracking, err_flag)
+
+case ('CREATE_EM_FIELD_SLAVE')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
+  call get_logical (attrib_word, pele%create_em_field_slave, err_flag)
 
 case ('USE_PTC_LAYOUT')
   call get_logical (attrib_word, lat%use_ptc_layout, err_flag)
