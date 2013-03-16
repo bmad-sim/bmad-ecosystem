@@ -21,26 +21,26 @@ normal_color = '\033[0m'
 def print_all(str, terminate = False, color = False):
   results.write(str + '\n')
   if color:
-    print warning_color + str + normal_color
+    print(warning_color + str + normal_color)
   else:
-    print str
+    print(str)
 
   if terminate: 
     str2 = '     Stopping here for this regression.'
     results.write(str2 + '\n')
-    print str2
+    print(str2)
     global num_flow_failures
     num_flow_failures += 1
 
 #----------------------------------------------------------
 def print_help():
-  print 'Usage:'
-  print '   run_test.py {-bin <exe_dir>} {-debug} {-test <test_dir>} {-list <test_list_file>}'
-  print 'Defaults:'
-  print '   <exe_dir>  = "../production/bin" ! Relative to current directory.' 
-  print '              = "../debug/bin"      ! If -debug switch is present'
-  print '   <test_dir> = ""                  ! For running a single test. Overrides test.list list.'
-  print '   <test_list_file> = "test.list"   ! For running multiple tests.'
+  print('Usage:')
+  print('   run_test.py {-bin <exe_dir>} {-debug} {-test <test_dir>} {-list <test_list_file>}')
+  print('Defaults:')
+  print('   <exe_dir>  = "../production/bin" ! Relative to current directory.') 
+  print('              = "../debug/bin"      ! If -debug switch is present')
+  print('   <test_dir> = ""                  ! For running a single test. Overrides test.list list.')
+  print('   <test_list_file> = "test.list"   ! For running multiple tests.')
   exit()
 
 #----------------------------------------------------------
@@ -201,7 +201,7 @@ for line in dir_list:
         print_all ('     Does not match number in "output.correct:  ' + correct_line, True, True)
         break
 
-      for ix, (now1, correct1) in enumerate(zip(now2_split, correct2_split)):
+      for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
         if now1 != correct1:
           if len(now2_split) == 2:     # Will always have blank item in list.
             print_all ('     Regression test failed:', color = True)
@@ -231,7 +231,7 @@ for line in dir_list:
         print_all ('     Does not match number in "output.correct:  ' + correct_line, True, color = True)
         break
 
-      for ix, (now1, correct1) in enumerate(zip(now2_split, correct2_split)):
+      for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
         now_val = float(now1)
         correct_val = float(correct1)
         diff_val = now_val - correct_val
@@ -282,4 +282,4 @@ print_all ('Total number of failed tests:    ' + str(num_failures), color = (num
 print_all ('Number of Program flow failures: ' + str(num_flow_failures), color = (num_flow_failures != 0))
 
 results.close()
-print '\nResults file: regression.results\n'
+print('\nResults file: regression.results\n')

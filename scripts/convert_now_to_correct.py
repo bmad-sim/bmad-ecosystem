@@ -18,14 +18,14 @@ for now_line in now_file:
     split = now_line.split('"', 2)
 
     if split[0].strip() != '' or len(split) != 3:
-      print 'Cannot parse line: ' + now_line.strip()
+      print('Cannot parse line: ' + now_line.strip())
       continue
 
     ## print split
 
     s2 = split[2].split()
     if len(s2) < 1:
-      print 'Cannot subparse line: ' + now_line
+      print('Cannot subparse line: ' + now_line)
       continue
 
     if (s2[0] == 'STR'):
@@ -35,5 +35,5 @@ for now_line in now_file:
 
 #
 
-print 'Created file: output.temp'
-print 'Merge or rename this to: output.correct'
+print('Created file: output.temp')
+print('Merge or rename this to: output.correct')
