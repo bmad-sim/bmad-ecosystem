@@ -5,7 +5,7 @@ use bmad_interface
 use lat_ele_loc_mod
 use bookkeeper_mod
 
-private delete_underscore, adjust_super_slave_names, adjust_drift_names
+private delete_underscore, adjust_super_slave_names, adjust_drift_names, split_this_lat
 
 contains
 
@@ -61,7 +61,7 @@ type (lat_struct), target :: lat
 type (ele_struct)  super_ele_in
 type (ele_struct), pointer, optional ::  super_ele_out
 type (ele_struct) super_saved, slave_saved, drift, null_ele
-type (ele_struct), pointer :: slave, lord
+type (ele_struct), pointer :: slave, lord, slave2
 type (control_struct)  sup_con(100)
 type (branch_struct), pointer :: branch
 type (lat_ele_loc_struct), pointer :: loc
@@ -172,23 +172,19 @@ endif
 ! so that the numbering of the elments after the split changes.
 
 ! Also the splits may not be done exactly at s1 and s2 since split_lat avoids
-! making very small "runt" elements. We thus readjust the lord length to
+! making extremely small "runt" elements. We thus readjust the lord length to
 ! keep everything consistant. 
 
 ! if superimpose wraps around 0 ...
-if (s2 < s1) then     
-  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false., save_null_drift, err)
-  if (err) return
-  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false., save_null_drift, err)
-  if (err) return
+if (s2 < s1) then
+  if (split_this_lat(branch, s2, ix2_split, split2_done, save_null_drift, create_em_field_slave)) return
+  if (split_this_lat(branch, s1, ix1_split, split1_done, save_null_drift, create_em_field_slave)) return
   super_saved%value(l$) = (s2_lat - branch%ele(ix1_split)%s) + (branch%ele(ix2_split)%s - s1_lat)
 
 ! no wrap case...
 else                  
-  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false., save_null_drift, err)
-  if (err) return
-  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false., save_null_drift, err)
-  if (err) return
+  if (split_this_lat(branch, s1, ix1_split, split1_done, save_null_drift, create_em_field_slave)) return
+  if (split_this_lat(branch, s2, ix2_split, split2_done, save_null_drift, create_em_field_slave)) return
   super_saved%value(l$) = branch%ele(ix2_split)%s - branch%ele(ix1_split)%s
 endif
 
@@ -200,7 +196,6 @@ if (lat%ele(n)%key == null_ele$ .and. lat%ele(n-1)%key == null_ele$ .and. &
   lat%ele(n)%key = -1
   call remove_eles_from_lat (lat, .false.)
 endif
-
 
 ! zero length elements at the edges of the superimpose region can be excluded
 ! from the region
@@ -341,6 +336,49 @@ if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 ix_super_con = 0
 length = super_saved%value(l$)
 
+!-------------------------------------------------------------------------
+! If create_em_field_slave = T:
+
+if (logic_option(.false., create_em_field_slave)) then
+
+  ! If any existing super_lords extend past the region to be superimposed upon then
+  ! extend this region to include the existing super_lord. 
+
+  do
+    slave => branch%ele(ix1_split+1)
+    if (slave%slave_status /= super_slave$) exit
+    do i = 1, slave%n_lord
+      lord => pointer_to_lord(slave, i, ix_slave = ix)
+      if (ix == 1) cycle
+      slave2 => pointer_to_slave(lord, 1)
+      ix1_split = slave2%ix_ele - 1
+      exit
+    enddo
+    if (i == slave%n_lord + 1) exit
+  enddo
+
+  do
+    slave => branch%ele(ix2_split)
+    if (slave%slave_status /= super_slave$) exit
+    do i = 1, slave%n_lord
+      lord => pointer_to_lord(slave, i, ix_slave = ix)
+      if (ix == lord%n_slave) cycle
+      slave2 => pointer_to_slave(lord, lord%n_slave)
+      ix2_split = slave2%ix_ele
+      exit
+    enddo
+    if (i == slave%n_lord + 1) exit
+  enddo
+
+  ! All slave elements that do not have a zero length element in between 
+  ! them have to be combined into one. 
+
+
+
+
+endif
+
+!-------------------------------------------------------------------------
 ! Go through the list of elements being superimposed upon.
 ! Zero length elements (markers and multipoles) do not get involved here.
 
@@ -478,8 +516,41 @@ call adjust_drift_names (lat, branch%ele(ix2_split+1))
 
 err_flag = .false.
 
-end subroutine
+end subroutine add_superimpose
 
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+function split_this_lat (branch, s_here, ix_split, split_done, &
+                                  save_null_drift, create_em_field_slave) result (err)
+
+implicit none
+
+type (branch_struct) branch
+
+real(rp) s_here
+
+integer ix_split
+
+logical split_done, err
+logical, optional :: save_null_drift, create_em_field_slave
+
+! If creating an em_field_slave then only split at drift elements
+
+if (logic_option(.false., create_em_field_slave)) then
+  split_done = .false.
+  ix_split = element_at_s(branch%lat, s_here, .false., branch%ix_branch, err)
+  if (err) return
+  if (branch%ele(ix_split)%key /= drift$) return
+endif
+
+call split_lat (branch%lat, s_here, branch%ix_branch, ix_split, split_done, &
+                                                            .false., .false., save_null_drift, err)
+
+end function split_this_lat 
+
+!------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 ! Modify: "#\" -> "\"
@@ -504,6 +575,7 @@ if (ix /= 0) ele%name = ele%name(1:ix-1) // ele%name(ix+1:)
 
 end subroutine delete_underscore
 
+!------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
@@ -598,11 +670,9 @@ do i = ix1_lord, ix2_lord
 
 enddo
 
-
-
-
 end subroutine adjust_super_slave_names
 
+!------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+

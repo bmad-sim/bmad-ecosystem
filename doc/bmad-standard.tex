@@ -1095,12 +1095,52 @@ The generalization when the kick is not in the horizontal plane is easily derive
 \index{lcavity}
 
 The transverse trajectory through an \vn{Lcavity} is modeled using equations
-developed by Rosenzweig and Serafini\cite{b:rosenzweig} with
+developed by Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S) with
 \Begineqs
   b_0 &= 1 \CRNO
   b_{-1} &= 1 
 \Endeqs
 and all other $b_n$ set to zero.
+
+The transport equations in R\&S were developed in the
+ulta-relativistic limit with $beta = 1$ and do not include the
+longitudinal motion. To fix this, consider first the entrance and exit
+kicks given by R\&S Eq.~(12). Concentrating on the entrance horizontal kick, 
+
+Starting with
+the entrance horizontal kick, R\&S Eq.~(9) can be writen as
+\Begineq
+  dp_x = \frac{-|e| \, G \, \beta}{2 \, c \, P_0} \, x
+  \label{dpxeg}
+\Endeq
+where $dp_x$ is the change in horizontal canonical momentum through
+the entrance field, $e$ is the particle charge, $G$ is the
+accelerating gradient, $\beta$ is the particle velocity, and $P_0$ is
+the reference momentum. The underlying contact Hamiltonian
+for the entrance kick can be deduced from \Eq{dpxeg} to be
+\Begineq
+  H_{e} = \frac{G \, \beta}{4 \, P_0} \, (x^2 + y^2)
+\Endeq
+In this and future equations, factors of $e$ and $c$ will be dropped
+for convienience. The longitudinal transport is then
+\Begineqs
+  dz &= \dsfrac{\partial H_{e}}{\partial p_z} = 
+    \dsfrac{G}{4 \, P_0} \, \dsfrac{d\beta}{dp_z} \, (x^2 + y^2) \\
+  dp_z &= \dsfrac{-\partial H_{e}}{\partial z} = 
+    \dsfrac{-\beta}{4 \, P_0} \, \dsfrac{dG}{dz} \, (x^2 + y^2)
+\Endeqs
+where
+\Begineqs
+  \dsfrac{d\beta}{dp_z} &= \dsfrac{m^2 \, P_0}{E^3}
+  \dsfrac{dG}{dz} = G_{\mbox{max}} \, \dsfrac{d\cos(\Delta\phi)}{dz} \\
+    &= \dsfrac{2 \, \pi \, G_{\mbox{max}} \, \sin(\Delta\phi) \, f_{rf}}{\beta}
+\Endeqs
+where $m$ is the particle mass, $E$ is the particle energy,
+$G_{\mbox{max}}$ is the maximum accelerating gradiant at phase
+$\Delta\phi = 0$, and $f_{rf}$ is the RF frequency.
+
+The transport at the exit end of the cavity is handled in a similar manner to the
+entrance end with the appropriate change in sign of the kick (cf.~R\&S Eq.~(12)).
 
 The transport through the body (R\&S Eq.~(9)) has been modified to give the 
 correct phase-space area at non ultra-relativistic energies:
@@ -1110,8 +1150,8 @@ correct phase-space area at non ultra-relativistic energies:
     x'
   \end{pmatrix}_2 = 
   \begin{pmatrix}
-    m_{11}                      & \beta_1 \, m_{12} \\
-    \frac{1}{\beta_2} \, m_{21} & \frac{\beta_1}{\beta_2} \, m_{22} 
+    r_\beta \, m_{11}                      & r_\beta \, m_{12} \\
+    r_\beta \, m_{21} + r'_\beta \, m_{11} & r_\beta \, m_{22} + r_\beta \, m_{12} 
   \end{pmatrix}
   \,
   \begin{pmatrix}
@@ -1119,21 +1159,18 @@ correct phase-space area at non ultra-relativistic energies:
     x'
   \end{pmatrix}_1
 \Endeq
-where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and the 
-$\beta$ are the standard relativistic factors. With this, the determinate 
-of the matrix is $\beta_1 \, \gamma_1 / \beta_2 \, \gamma_2$.
-
-For a particle going into a cavity with $x'_1 = 0$, and with the energy
-change reasonably small compared to particle energy, the exit $x'_2$ is
-\Begineq
-  x'_2 = -x_1 \, \frac{\left( 1 + 2 \cos^2 (\Delta \phi) \right) \, dE^2}{8 \, E_i^2 \, L}
-\Endeq
-where $dE$ is the on-creast accelerating voltageand $E_i$ is the initial particle energy.
+where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and 
+\Begineqs
+  r_\beta &\equiv \sqrt{\dsfrac{\beta_1}{\beta_2}} \\
+  r'_\beta &\equiv \dsfrac{dr_\beta}{ds}
+\Endeqs
+With this, the matrix has the correct determinate of $\beta_1 \,
+\gamma_1 / \beta_2 \, \gamma_2$.
 
 The change in $z$ going through a cavity is calculated by first calculating the particle
 transit time $\Delta t$
 \begin{align}
-  c \, \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} \CRNO
+  c \, ccc\Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} \CRNO
   &= \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
   &= \frac{c \, P_{z2} - c \, P_{z1}}{G} \nonumber
 \end{align}
@@ -1151,31 +1188,6 @@ momenta. Using \Eq{zbctt}, the change in $z$ is thus
 \Endeq
 where $\Pbar$ and $\BAR G$ are the momentum and gradient of the
 reference particle.
-
-The derivatives are straight forward if tedious
-\begin{align}
-  m_{55} &= \frac{dz_2}{dz_1} = 
-    \frac{\beta_2}{\beta_1} + 
-    \frac{z_2 \, m_{65}}{\beta_2} \frac{d\beta_2}{dp_{z2}} - 
-    \frac{\beta_2}{G} \frac{dcP_2}{dz_1} +
-    \frac{\beta_2 \, c \, (P_2 - P_1) \, c P_2}{L \, G^2 \, E_2} 
-      \frac{dcP_2}{dz_1} \CRNO
-  m_{56} &= \frac{dz_2}{dp_{z1}} = 
-    \frac{-\beta_2 \, z_1}{\beta_1^2} \frac{d\beta_1}{dp_{z1}} + 
-    \frac{z_2 \, m_{66}}{\beta_2} \frac{d\beta_2}{dp_{z2}} -
-    \frac{\beta_2 ( c \Pbar_{2} \, m_{66} - c \Pbar_{1})}{G} \CRNO
-  m_{65} &= \frac{dp_{z2}}{dz1} =
-    \frac{E_2}{cP_2 \, c\Pbar_{2}} \frac{cP_1 \, c\Pbar_{1}}{E_1}  \\
-  m_{66} &= \frac{dp_{z2}}{dp_{z1}} = 
-    \frac{E_2}{cP_2} \frac{G \, L}{c \Pbar_{2}} \frac{2 \, \pi \, f \, \sin\phi}{c}
-    \nonumber
-\end{align}
-where
-\begin{align}
-  \frac{d\beta_1}{dp_{z1}}  &= \frac{(mc^2)^2}{E_1^3} \, c\Pbar_{1} \CRNO
-  \frac{d\beta_2}{dp_{z2}}  &= \frac{(mc^2)^2}{E_2^3} \, c\Pbar_{2} \\
-  \frac{dcP_2}{dz_1}        &= m_{65} \, c\Pbar_{2}  \nonumber
-\end{align}
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

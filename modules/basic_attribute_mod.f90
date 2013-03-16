@@ -839,7 +839,7 @@ call init_attribute_name1 (rfcavity$, dphi0_max$,                   'dphi0_max',
 call init_attribute_name1 (rfcavity$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (rfcavity$, p0c_start$,                   'p0c_start', private$)
 call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', private$)
-call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT')
+call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', dependent$)
 call init_attribute_name1 (rfcavity$, gradient_err$,                'gradient_err', private$)
 
 call init_attribute_name1 (elseparator$, gap$,                      'GAP')
