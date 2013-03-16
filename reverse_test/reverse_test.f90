@@ -63,7 +63,7 @@ DO i = 1, lat%n_ele_max - 1
 
    str = trim(ele_f%name)
 
-   if (verbosity == .true.) then
+   if (verbosity) then
       print *, str
       print '(a, 6es12.4, 5x, es12.4)', '0: ', orb_0f%vec, orb_0f%t
       print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_1f%vec, orb_1f%t
@@ -89,7 +89,7 @@ DO i = 1, lat%n_ele_max - 1
    call track1 (orb_0r, ele_r, ele_r%branch%param, orb_1r)
    call make_mat6 (ele_r, ele_r%branch%param, orb_0r)
 
-   if (verbosity == .true.) then
+   if (verbosity) then
       print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_0r%vec, orb_0r%t
       print '(a, 6es12.4, 5x, es12.4)', '2: ', orb_1r%vec, orb_1r%t
    end if
@@ -134,7 +134,7 @@ DO i = 1, lat%n_ele_max - 1
    write (1, '(a, a, es11.3)') str(1:length+2), 'dorb(6)" ABS 1e-14 ', dpc
    write (1, '(a, a, es11.3)') str(1:length+2), 'c*dt"    ABS 1e-14 ', dct 
 
-   if (verbosity == .true.) then
+   if (verbosity) then
       write (1, *)
       write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(1,:)" ABS 1e-14 ', ele_f%mat6(1,:)
       write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(2,:)" ABS 1e-14 ', ele_f%mat6(2,:)
@@ -160,7 +160,7 @@ DO i = 1, lat%n_ele_max - 1
    write (1, '(a, a, 6es11.3)') str(1:length+2), 'dmat(5,:)" ABS 1e-14 ', ele_r%mat6(5,:) - mat_f(5,:)
    write (1, '(a, a, 6es11.3)') str(1:length+2), 'dmat(6,:)" ABS 1e-14 ', ele_r%mat6(6,:) - mat_f(6,:)
 
-   if (verbosity == .true.) then
+   if (verbosity) then
       write (1, *)
       write (1, '(a, a,  3es11.3)') str(1:length+2), 'max(dvec, dmat)" ', maxval(abs([orb_1r%vec(1:4)-orb_0f%vec(1:4), dz, dpc, dct])), &
            maxval(abs(ele_r%mat6 - mat_f))
