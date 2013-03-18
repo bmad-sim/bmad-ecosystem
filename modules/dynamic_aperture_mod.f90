@@ -242,6 +242,9 @@ end do
 !$OMP end parallel
   
 ! Cleanup
+do i=1, omp_n
+  call deallocate_lat_pointers(omp_lat(i))
+end do
 deallocate(omp_lat, omp_aperture)
   
 end subroutine
