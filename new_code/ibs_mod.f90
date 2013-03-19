@@ -749,7 +749,7 @@ SUBROUTINE bjmt1(lat, ibs_sim_params, rates, i, s)
   REAL(rp) phi_h, phi_v
 
   REAL(c_double) :: Lp(3,3), Lh(3,3), Lv(3,3), L(3,3)
-  REAL(c_double) :: mats(2,3,3)
+  REAL(c_double), TARGET :: mats(2,3,3)
 
   REAL(fgsl_double), TARGET :: Elpha
   TYPE(fgsl_function) :: integrand_ready
@@ -914,8 +914,8 @@ SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
   ! Ps.sigma_mat rearranges the sigma matrix so that all xx terms are in top left block,
   ! all px terms are in top right block, and pp terms are in bottom left block.  Lower right
   ! block is px'.
-  INTEGER, PARAMETER :: Ps(6,6) = (/ (/1,0,0,0,0,0/), (/0,0,1,0,0,0/), (/0,0,0,0,1,0/), &
-                                  (/0,1,0,0,0,0/), (/0,0,0,1,0,0/), (/0,0,0,0,0,1/) /)
+  INTEGER, PARAMETER :: Ps(6,6) = RESHAPE( [1,0,0,0,0,0, 0,0,1,0,0,0, 0,0,0,0,1,0, &
+                                            0,1,0,0,0,0, 0,0,0,1,0,0, 0,0,0,0,0,1],[6,6] )
 
   TYPE(lat_struct) :: lat
   TYPE(ibs_sim_param_struct) ibs_sim_params
@@ -965,7 +965,7 @@ SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
   TYPE(c_ptr) :: ptr
   TYPE(fgsl_function) :: integrand_ready
   INTEGER(fgsl_int) :: fgsl_status
-  REAL(fgsl_double) :: args(3)
+  REAL(fgsl_double), TARGET :: args(3)
   REAL(fgsl_double) :: abserr
   REAL(fgsl_double) :: integration_result
 
@@ -1013,7 +1013,7 @@ SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
   ENDIF
   CALL make_smat_from_abc(t6, mode, sigma_mat, lerr)
   IF( lerr ) THEN
-    WRITE(*,'(A,I," ",A)') "BAD: make_smat_from_abc failed"
+    WRITE(*,'(A)') "BAD: make_smat_from_abc failed"
     rates%inv_Ta = 0.0d0
     rates%inv_Tb = 0.0d0
     rates%inv_Tz = 0.0d0
@@ -1063,7 +1063,7 @@ SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
   !Get eigen vectors of local momentum matrix
   CALL eigensys(sig_pl, u, R, etypes, 3, error)
   IF( error .ne. 0 ) THEN
-    WRITE(*,'(A,I," ",A)') "BAD: Eigenvectors of transfer matrix not found for element ", ix, ele%name
+    WRITE(*,'(A,I6," ",A)') "BAD: Eigenvectors of transfer matrix not found for element ", ix, ele%name
     rates%inv_Ta = 0.0d0
     rates%inv_Tb = 0.0d0
     rates%inv_Tz = 0.0d0
@@ -1115,7 +1115,7 @@ SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
   Dw(3,3) = cI*(g1-g3+g2-g3)
 
   !- Build update matrix
-  sig_pp_update = MATMUL(MATMUL(TRANSPOSE(R),Dw),R)
+  sig_pp_update = MATMUL(MATMUL(R,Dw),TRANSPOSE(R))
   sigma_update = 0.0d0
   DO i=1,3
     DO j=1,3
@@ -1316,7 +1316,7 @@ SUBROUTINE mpxx1(lat, ibs_sim_params, rates, i, s)
   REAL(rp) inv_Tz, inv_Ta, inv_Tb
   REAL(rp) fab, f1b, f1a
 
-  REAL(fgsl_double) args(1:2)
+  REAL(fgsl_double), TARGET :: args(1:2)
   TYPE(fgsl_function) :: integrand_ready
   REAL(fgsl_double) :: integration_result
   REAL(fgsl_double) :: abserr
@@ -1452,7 +1452,7 @@ SUBROUTINE mpzt1(lat, ibs_sim_params, rates, i, s)
   REAL(rp) inv_Tz, inv_Ta, inv_Tb
   REAL(rp) fabq, f1bq, f1aq
 
-  REAL(fgsl_double) args(1:3)
+  REAL(fgsl_double), TARGET :: args(1:3)
   TYPE(fgsl_function) :: integrand_ready
   REAL(fgsl_double) :: integration_result
   REAL(fgsl_double) :: abserr
@@ -1826,10 +1826,11 @@ SUBROUTINE multi_coulomb_log(lat,ibs_sim_params,ele,coulomb_log)
   REAL(rp) Bbar
   REAL(rp) u, v, w  !used for Raubenheimer's calculation
   REAL(rp) qmin, qmax
+  REAL(rp) vol, debye
 
   !fgsl variables
   TYPE(c_ptr) :: ptr
-  REAL(fgsl_double) args(1:3)
+  REAL(fgsl_double), TARGET :: args(1:3)
   TYPE(fgsl_integration_workspace) :: integ_wk
   TYPE(fgsl_function) :: integrand_ready
   INTEGER(fgsl_int) :: fgsl_status
@@ -1892,14 +1893,18 @@ SUBROUTINE multi_coulomb_log(lat,ibs_sim_params,ele,coulomb_log)
     coulomb_log = LOG(qmax/qmin)
   ELSEIF( ibs_sim_params%clog_to_use == 3 ) THEN
     !Tail cut Bane form: SLAC-PUB-9227
-    bminstar = SQRT(4.0d0*pi*sigma_a*sigma_b*sigma_z*gamma*gamma/NB/c_light/ibs_sim_params%tau_a) * (beta_a/emit_a)**0.25
-    bmax = sigma_b
+    vol = (4.0d0*pi)**(3.0d0/2.0d0)*sigma_a*sigma_b*sigma_z*gamma
+    bminstar = SQRT(vol/NB/pi/(ibs_sim_params%tau_a/gamma)) / SQRT(c_light*gamma*SQRT(emit_a/beta_a))
+    debye = (vol/NB)**(1.0d0/3.0d0)
+    bmax = MIN(MIN(sigma_a,sigma_b),debye)
     coulomb_log = LOG(bmax/bminstar)
   ELSEIF( ibs_sim_params%clog_to_use == 4) THEN
     !Tail cut Bane, but using relative velocity in all 3 dims, rather than just horizontal
-    Bbar = gamma*SQRT( gamma_a*emit_a + gamma_b*emit_b + sigma_p*sigma_p/gamma/gamma)
-    bminstar = SQRT(8.0_rp * SQRT(pi) *sigma_a*sigma_b*sigma_z*gamma*gamma/NB/c_light/ibs_sim_params%tau_a) / SQRT(Bbar)
-    bmax = sigma_b
+    vol = (4.0d0*pi)**(3.0d0/2.0d0)*sigma_a*sigma_b*sigma_z*gamma
+    Bbar = SQRT( gamma_a*emit_a + gamma_b*emit_b + sigma_p*sigma_p/gamma/gamma)  !beta in the rest frame
+    bminstar = SQRT(vol/NB/pi/(ibs_sim_params%tau_a/gamma)) / SQRT(c_light*gamma*Bbar)
+    debye = (vol/NB)**(1.0d0/3.0d0)
+    bmax = MIN(MIN(sigma_a,sigma_b),debye)
     coulomb_log = LOG(bmax/bminstar)
   ENDIF
 

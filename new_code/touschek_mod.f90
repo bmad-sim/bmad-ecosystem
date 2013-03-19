@@ -30,9 +30,9 @@ END TYPE momentum_aperture_struct
 PUBLIC touschek_lifetime       ! Calculates Touschek lifetime by averaging over elements
 PUBLIC touschek_lifetime_with_aperture     ! Calculates Touschek lifetime by averaging over set of locations
 PUBLIC touschek_rate1          ! Returns touschek rate for either a location s or an element ix
-PRIVATE integrand_base         ! Integral from equation 42 in Piwinski 1998
-PRIVATE integrand_base_cov     ! Change of variables from t to exp(y) for integrand base
-PRIVATE exp_bessi0             ! Exponential times Bessel I0, needed for integrand_base
+PUBLIC integrand_base         ! Integral from equation 42 in Piwinski 1998
+PUBLIC integrand_base_cov     ! Change of variables from t to exp(y) for integrand base
+PUBLIC exp_bessi0             ! Exponential times Bessel I0, needed for integrand_base
 
 ! Data Types
 PUBLIC momentum_aperture_struct
@@ -277,7 +277,7 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
   REAL(rp) B2
   TYPE(ele_struct) ele
 
-  REAL(fgsl_double) args(1:3)
+  REAL(fgsl_double), TARGET :: args(1:3)
   TYPE(fgsl_function) :: integrand_ready
   REAL(fgsl_double) :: integration_result
   REAL(fgsl_double) :: abserr
