@@ -142,7 +142,7 @@ def send_notification_email(old_relname):
 
 # Perform the rotation of active release to archive link
 # and requested build to active release.
-archive_linkname = build_mgmt.NewLinkName('devel')
+archive_linkname = build_mgmt.NewLinkName(release_type)
 for platform in platforms:
     platform_dir = builds_basedir+'/'+platform+'/'
     active_relname = active_relnames[platform]
@@ -154,11 +154,4 @@ for platform in platforms:
 
 if send_mail:
     send_notification_email(old_releasename)
-
-
-
-
-
-
-
 
