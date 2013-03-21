@@ -2710,8 +2710,6 @@ end subroutine type_map
 !
 ! Input:
 !   ele         -- Ele_struct: Bmad element.
-!     %map_with_offsets -- If False then the values for x_pitch, x_offset, 
-!                           tilt, etc. for the  ptc_fibre element will be zero.
 !   param       -- lat_param_struct: 
 !   use_offsets -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
 !   integ_order -- Integer, optional: Order for the 
@@ -2737,12 +2735,10 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (ele_struct), pointer :: field_ele, ele2
 type (fibre), pointer :: ptc_fibre
-type (fibre) dummy_fibre
 type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
 type (el_list) ptc_el_list
-type (floor_position_struct) :: floor0, floor1
 
 real(dp) beta, phi_tot
 
@@ -2750,12 +2746,11 @@ real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
-real(rp) dr(3), ang(3), exi(3,3)
 
 integer i, n, key, n_term, exception, n_field, ix
 integer, optional :: integ_order, steps
 
-logical use_offsets, energy
+logical use_offsets
 logical, optional :: for_layout
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -2938,7 +2933,7 @@ endif
 if (attribute_index(ele, 'KILL_FRINGE') > 0) then  ! If kill_fringe is a valid attribute
   ix = nint(ele%value(kill_fringe$))
   ptc_key%list%kill_ent_fringe = (ix == upstream_end$ .or. ix == both_ends$)
-  ptc_key%list%kill_ent_fringe = (ix == downstream_end$ .or. ix == both_ends$)
+  ptc_key%list%kill_exi_fringe = (ix == downstream_end$ .or. ix == both_ends$)
 endif
 
 ! Multipole components
@@ -3023,6 +3018,53 @@ endif
 
 ! Misalignments and patches...
 
+call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
+
+! Set charge
+
+if (associated(ele%branch)) then
+  ptc_fibre%charge = ele%branch%param%rel_tracking_charge
+endif
+
+end subroutine ele_to_fibre
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
+!
+! Routine to misalign a fibre associated with a Bmad element.
+!
+! Input:
+!   ele -- ele_struct: Bmad element with misalignments.
+!   use_offsets -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
+!
+! Output:
+!   ptc_fibre -- Fibre: PTC fibre element with misalignments.
+!-
+
+subroutine misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
+
+use madx_ptc_module
+
+implicit none
+
+type (ele_struct) ele
+type (ele_struct), pointer :: ele2
+type (floor_position_struct) :: floor0, floor1
+type (fibre), pointer :: ptc_fibre
+type (fibre) dummy_fibre
+
+real(rp) dr(3), ang(3), exi(3,3)
+real(dp) mis_rot(6)
+real(dp) omega(3), basis(3,3), angle(3)
+real(rp) x_off, y_off, x_pitch, y_pitch, roll
+
+logical use_offsets, energy
+
+character(*), parameter :: r_name = 'misalign_ele_to_fibre'
+
 ! In ptc there is no such thing as a reversed patch. Therefore need to
 ! use the reverse transformation if the patch is reversed in Bmad.
 
@@ -3076,17 +3118,39 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
 
   call super_zero_fibre(dummy_fibre, -1)
 
+!---------------------------------------
+! Not patch nor floor shift elements.
+
 elseif (use_offsets) then
-  call misalign_ptc_fibre (ele, ptc_fibre)
+
+  ! Patch elements do not have misalignments
+
+  if (ele%key == patch$ .or. ele%key == fiducial$ .or. ele%key == floor_shift$) return
+  if (attribute_index(ele, 'X_OFFSET_TOT') < 1) return
+
+  ! in PTC the reference point for the offsets is the beginning of the element.
+  ! In Bmad the reference point is the center of the element..
+
+  x_off = ele%value(x_offset_tot$)
+  y_off = ele%value(y_offset_tot$)
+  x_pitch = ele%value(x_pitch_tot$)
+  y_pitch = ele%value(y_pitch_tot$)
+  roll = 0
+  if (ele%key == sbend$) roll = ele%value(roll$)
+
+  if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0 .or. roll /= 0) then
+    mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch, roll]
+    angle = 0
+    angle(3) = -ptc_fibre%mag%p%tiltd
+    omega = ptc_fibre%chart%f%o
+    basis = ptc_fibre%chart%f%mid
+    call geo_rot(basis, angle, 1, basis)                 ! PTC call
+    call misalign_fibre (ptc_fibre, mis_rot, omega, basis)   ! PTC call
+  endif
+
 endif
 
-! Set charge
-
-if (associated(ele%branch)) then
-  ptc_fibre%charge = ele%branch%param%rel_tracking_charge
-endif
-
-end subroutine ele_to_fibre
+end subroutine misalign_ele_to_fibre
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -3275,64 +3339,6 @@ enddo
 n_max  = n
 
 end subroutine ele_to_an_bn
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+                                
-! Subroutine misalign_ptc_fibre (ele, ptc_fibre)
-!
-! Routine to misalign a PTC fibre.
-!
-! Module needed:
-!   use ptc_interface_mod
-!
-! Input:
-!   ele       -- ele_struct: Element containing misalignments.
-!
-! Output:
-!   ptc_fibre     -- fibre: PTC Fibre to misalign
-!-
-
-subroutine misalign_ptc_fibre (ele, ptc_fibre)
-
-use s_family
-
-implicit none
-
-type (ele_struct) ele
-type (fibre) ptc_fibre
-
-real(dp) mis_rot(6)
-real(dp) omega(3), basis(3,3), angle(3)
-real(rp) x_off, y_off, x_pitch, y_pitch, roll
-
-! Patch elements do not have misalignments
-
-if (ele%key == patch$ .or. ele%key == fiducial$ .or. ele%key == floor_shift$) return
-if (attribute_index(ele, 'X_OFFSET_TOT') < 1) return
-
-! in PTC the reference point for the offsets is the beginning of the element.
-! In Bmad the reference point is the center of the element..
-
-x_off = ele%value(x_offset_tot$)
-y_off = ele%value(y_offset_tot$)
-x_pitch = ele%value(x_pitch_tot$)
-y_pitch = ele%value(y_pitch_tot$)
-roll = 0
-if (ele%key == sbend$) roll = ele%value(roll$)
-
-if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0 .or. roll /= 0) then
-  mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch, roll]
-  angle = 0
-  angle(3) = -ptc_fibre%mag%p%tiltd
-  omega = ptc_fibre%chart%f%o
-  basis = ptc_fibre%chart%f%mid
-  call geo_rot(basis, angle, 1, basis)                 ! PTC call
-  call misalign_fibre (ptc_fibre, mis_rot, omega, basis)   ! PTC call
-endif
-
-end subroutine misalign_ptc_fibre
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
