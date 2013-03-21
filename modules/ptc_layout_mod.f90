@@ -705,9 +705,9 @@ end subroutine write_ptc_flat_file_lattice
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine modify_ptc_fibre (ele, param)
+! Subroutine update_ptc_fibre (ele, param)
 !
-! Routine to modify an existing PTC fibre. 
+! Routine to update a fibre when the associated Bmad ele has been modified.
 !
 ! Module Needed:
 !   use ptc_layout_mod
@@ -717,10 +717,10 @@ end subroutine write_ptc_flat_file_lattice
 !   param         -- lat_param_struct:
 !
 ! Output:
-!   ele%ptc_fibre 
+!   ele%ptc_fibre -- PTC fibre.
 !-
 
-subroutine modify_ptc_fibre_attribute (ele, param)
+subroutine update_ptc_fibre (ele, param)
 
 use madx_ptc_module
 
@@ -729,12 +729,16 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (keywords) ptc_key
+type (element), pointer :: mag
+type (elementp), pointer :: magp
+type (magnet_chart), pointer :: p, pp
 
-real(rp) value
+real(rp) value, hk, vk, phi_tot
+real(rp), pointer :: val(:)
 
-integer i
+integer i, ix
 
-character(32), parameter :: r_name = 'modify_ptc_fibre_attribute'
+character(*), parameter :: r_name = 'update_ptc_fibre'
 
 !
 
@@ -745,7 +749,95 @@ do i = ptc_key%list%nmul, 1, -1
   call add (ele%ptc_fibre, -i, 0, ptc_key%list%ks(i))
 enddo
 
-end subroutine modify_ptc_fibre_attribute 
+!
+
+val => ele%value
+
+mag  => ele%ptc_fibre%mag
+magp => ele%ptc_fibre%magp
+
+p => mag%p
+pp => magp%p
+
+select case (ele%key)
+
+case (elseparator$)
+  hk = val(hkick$) / val(l$)
+  vk = val(vkick$) / val(l$)
+  if (hk == 0 .and. vk == 0) then
+    ptc_key%tiltd = 0
+  else
+    if (param%particle < 0) then
+      hk = -hk
+      vk = -vk
+    endif
+    ptc_key%tiltd = -atan2 (hk, vk) + val(tilt_tot$)
+  endif
+  call set_real (mag%volt, magp%volt, 1e-6 * val(e_tot$) * sqrt(hk**2 + vk**2))
+
+case (solenoid$)
+  call set_real (mag%b_sol, magp%b_sol, val(ks$))
+
+case (sol_quad$)
+  call set_real (mag%b_sol, magp%b_sol, val(ks$))
+
+case (bend_sol_quad$)
+  call set_real (mag%b_sol, magp%b_sol, val(ks$))
+
+case (rfcavity$, lcavity$)
+  phi_tot = ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$)
+  if (ele%key == lcavity$) then
+    mag%lag = pi / 2 - twopi * phi_tot
+    call set_real (mag%phas, magp%phas, -mag%lag)
+    call set_real (mag%volt, magp%volt, 2e-6 * val(l$) * (val(gradient$) + val(gradient_err$)) * val(field_scale$))
+  else
+    mag%lag = twopi * phi_tot
+    call set_real (mag%volt, magp%volt, 2e-6 * val(voltage$) * val(field_scale$))
+  endif
+
+case (sbend$)
+  if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
+    ix = nint(val(fringe_type$)) 
+    call set_logic (p%permfringe, pp%permfringe, (ix == full_straight$ .or. ix == full_bend$))
+    call set_logic (p%bend_fringe, pp%bend_fringe, (ix == full_bend$ .or. ix == basic_bend$))
+  endif
+
+  if (attribute_index(ele, 'KILL_FRINGE') > 0) then  ! If kill_fringe is a valid attribute
+    ix = nint(val(kill_fringe$))
+    call set_logic (p%kill_ent_fringe, pp%kill_ent_fringe, (ix == upstream_end$ .or. ix == both_ends$))
+    call set_logic (p%kill_exi_fringe, pp%kill_exi_fringe, (ix == downstream_end$ .or. ix == both_ends$))
+  endif
+
+end select
+
+! misalign
+
+call misalign_ele_to_fibre (ele, .true., ele%ptc_fibre)
+
+!-------------------------------------------------------------------------
+contains
+
+subroutine set_real (to1, to2, value)
+real(rp) value, to1
+type(real_8) to2
+
+to1 = value
+to2 = value
+
+end subroutine set_real
+
+!-------------------------------------------------------------------------
+! contains
+
+subroutine set_logic (to1, to2, value)
+logical value, to1, to2
+
+to1 = value
+to2 = value
+
+end subroutine set_logic
+
+end subroutine update_ptc_fibre 
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
