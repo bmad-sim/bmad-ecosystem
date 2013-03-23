@@ -737,7 +737,7 @@ integer, parameter :: p0c_start$ = 40
 integer, parameter :: e_tot_start$ = 41   
 integer, parameter :: p0c$ = 42         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$ = 43       ! Assumed unique. Do not overload.
-integer, parameter :: ref_wavelength$ = 44
+integer, parameter :: ref_wavelength$ = 44, lord_pad1$ = 44
 integer, parameter :: x_pitch_tot$ = 45, no_end_marker$ = 45
 integer, parameter :: y_pitch_tot$ = 46
 integer, parameter :: x_offset_tot$ = 47
@@ -751,7 +751,7 @@ integer, parameter :: ref_time_start$ = 54
 integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 56, l_x$ = 56
 integer, parameter :: ds_step$ = 57, l_y$ = 57
-integer, parameter :: l_z$ = 58
+integer, parameter :: l_z$ = 58, lord_pad2$ = 58
 integer, parameter :: scratch$ = 59
 integer, parameter :: custom_attribute1$ = 61   ! For general use
 integer, parameter :: custom_attribute2$ = 62   ! For general use
@@ -775,7 +775,7 @@ integer, parameter :: lattice$ = 76, phi_a$ = 76, diffraction_type$ = 76
 integer, parameter :: aperture_type$ = 77, eta_z$ = 77
 integer, parameter :: map_with_offsets$ = 78, cmat_11$ = 78
 integer, parameter :: csr_calc_on$ = 79, cmat_12$ = 79
-integer, parameter :: symmetric_edge$ = 80, cmat_21$ = 80
+integer, parameter :: s_position$ = 80, cmat_21$ = 80
 integer, parameter :: mat6_calc_method$ = 81, cmat_22$ = 81
 integer, parameter :: tracking_method$  = 82, s_long$ = 82
 integer, parameter :: ref_time$ = 83, ptc_integration_type$ = 83

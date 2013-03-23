@@ -1095,31 +1095,23 @@ if (ele%lord_status == overlay_lord$) then
   if (ix_attrib /= ele%ix_value) then
     if (do_print) call print_error (ele, ix_attrib, &
            'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
-    return
+  else
+    free = .true.
   endif
+  return
 endif
 
 if (ele%lord_status == group_lord$) then
   if (ix_attrib /= command$ .and. ix_attrib /= old_command$) then
     if (do_print) call print_error (ele, ix_attrib, &
           'FOR THIS GROUP ELEMENT THE ATTRIBUTE TO VARY IS: "COMMAND" OR "OLD_COMMAND"')
-    return
+  else
+    free = .true.
   endif
-endif
-
-! check slaves
-
-if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
-  do i = 1, ele%n_slave
-    ele_p => pointer_to_slave(ele, i, ic)
-    call check_this_attribute_free (ele_p, attribute_name(ele_p, lat%control(ic)%ix_attrib), &
-                            lat, do_print, do_except_overlay, free, 1, ele%ix_ele)
-    if (.not. free) return
-  enddo
   return
 endif
 
-! Since not an overlay or group lord then dependent attribute is not free.
+! Here if checking something that is not an overlay or group lord... 
 
 if (attrib_info%type == dependent$) then
   if (do_print) call print_error (ele, ix_attrib, 'THIS ATTRIBUTE CANNOT BE VARIED.')

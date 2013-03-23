@@ -4234,6 +4234,7 @@ nullify (hard_ele)
 
 if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
   do i = 1, track_ele%n_lord
+    if (lord%key == overlay$ .or. lord%key == group$) cycle
     lord => pointer_to_lord(track_ele, i)
     call does_this_ele_contain_the_next_edge (lord)
   enddo

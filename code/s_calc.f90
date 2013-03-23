@@ -61,7 +61,7 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
   if (lord%lord_status == super_lord$ .or. lord%lord_status == overlay_lord$) then
     slave => pointer_to_slave(lord, lord%n_slave)
-    lord%s = slave%s
+    lord%s = slave%s - lord%value(lord_pad2$)
   else
     lord%s = 0
   endif

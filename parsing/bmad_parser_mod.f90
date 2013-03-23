@@ -4532,6 +4532,7 @@ main_loop: do n = 1, n2
           if (ele%slave_status == super_slave$) then
             do ic = 1, ele%n_lord
               lord2 => pointer_to_lord(ele, ic)
+              if (lord2%key == group$ .or. lord2%key == overlay$) cycle
               slave => pointer_to_slave(lord2, lord2%n_slave)
               ix_end = slave%ix_ele
               if (lord2%slave_status == multipass_slave$) lord2 => pointer_to_lord(lord2, 1)

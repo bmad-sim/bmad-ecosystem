@@ -11,9 +11,8 @@ use crystal_param_mod
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
 
-private control_bookkeeper1, makeup_overlay_and_girder_slave, super_lord_length_bookkeeper 
+private control_bookkeeper1, makeup_overlay_and_girder_slave, compute_slave_aperture 
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
-private compute_slave_aperture 
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -214,21 +213,9 @@ logical sm_only, all_bookkeeping_done
 
 character(20), parameter :: r_name = 'control_bookkeeper'
 
-! Check that super_slave lengths add up to the super_lord_length.
-! When super_and_multipass_only is present, this check has already been
-! done so we don't need to do it again.
+! If ele is present we only do bookkeeping for this one element and its slaves
 
 sm_only = logic_option (.false., super_and_multipass_only)
-
-if (.not. sm_only) then
-  if (present(ele)) then
-    if (ele%lord_status == super_lord$) call super_lord_length_bookkeeper (lat, ele) 
-  else
-    call super_lord_length_bookkeeper (lat) 
-  endif
-endif
-
-! If ele is present we only do bookkeeping for this one element and its slaves
 
 if (present(ele)) then
   call control_bookkeeper1 (lat, ele, sm_only)
@@ -360,10 +347,6 @@ endif
 if (ele%lord_status == group_lord$) then
   call makeup_group_lord (lat, ele)
   call_a_bookkeeper = .true.
-
-elseif (ele%lord_status == super_lord$) then
-  call adjust_super_lord_s_position (lat, ele)
-  call_a_bookkeeper = .true.
 endif
 
 ! If bookkeeping has been done by a makeup_*_salve routine then
@@ -381,337 +364,6 @@ end subroutine control_bookkeeper1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine super_lord_length_bookkeeper (lat, ele)
-!
-! Subroutine to make sure the length of the slaves of a super_lord add up to the
-! length of the lord. If not, make an adjustment to the slave length.
-!
-! Note: This routine is private and is called by control_bookkeeper. 
-!
-! Modules needed:
-!   use bookkeeper_mod
-!
-! Input:
-!   lat   -- Lat_struct: Lattice.
-!   ele   -- Ele_struct, optional: Index of super_lord element to check.
-!                  If not present, bookkeeping will be done for all super_lords.
-!
-! Output:
-!   lat  -- Lat_struct: Lattice with adjustments made.
-!-
-
-subroutine super_lord_length_bookkeeper (lat, ele)
-
-implicit none
-
-type (lat_struct), target :: lat
-type (ele_struct), pointer :: lord0, lord2, slave, slave2
-type (branch_struct), pointer :: branch
-type (ele_struct), optional :: ele
-
-real(rp) sum_len_slaves, coef, vary_sublength, length_pos, length_neg
-real(rp) d_length, d_length_pos, d_length_neg
-real(rp) dl_tol
-
-integer j, k, ie, ixa_lord0, ixb_lord0, ixa_lord2, ixb_lord2
-integer ix_pos_edge, ix_neg_edge, ixa, ixb
-
-logical pos_extension_lord_exists, neg_extension_lord_exists, all_extension_lord_exists
-logical length_adjustment_made, overlap_a, overlap_b, overlap_all
-logical, allocatable :: can_vary_length(:)
-
-character(40) :: r_name = 'super_lord_length_bookkeeper'
-
-!
-
-if (.not. bmad_com%auto_bookkeeper) then
-  if (lat%branch(0)%param%bookkeeping_state%s_position /= stale$) return
-endif
-
-dl_tol = 10 * bmad_com%significant_length
-
-length_adjustment_made = .false.
-
-do ie = lat%n_ele_track+1, lat%n_ele_max
-
-  lord0 => lat%ele(ie)
-
-  if (lord0%key == null_ele$) cycle
-  if (lord0%lord_status /= super_lord$) cycle
-
-  if (present(ele)) then
-    if (ele%ix_ele /= ie) cycle
-  endif
-
-  if (.not. bmad_com%auto_bookkeeper .and. lord0%bookkeeping_state%s_position /= stale$) cycle
-
-  sum_len_slaves = 0
-  do j = 1, lord0%n_slave
-    slave => pointer_to_slave(lord0, j)
-    sum_len_slaves = sum_len_slaves + slave%value(l$)
-  enddo
-
-  ! Nothing to be done if the lengths add up.
-
-  if (abs(sum_len_slaves - lord0%value(l$)) < dl_tol * (1 + lord0%value(l$))) cycle
-
-  ! Now we need to adjust some super_slave lengths.
-  ! We try varying the length of all the slaves except
-  ! those that are part of a "contained" super_lord. A "contained" super_lord
-  ! is a super_lord that the present lord (lord0) completely overlaps.
-  ! This is necessary since otherwise the length of the contained super_lord
-  ! would not be consistant with the lengths of its slaves.
-
-  ! The complication here is that we will need to adjust the lengths
-  ! of the elements to either side of the lord0 to keep the lengths of other
-  ! super_lords consistant with their slaves. We need to know if these other
-  ! super_lords extend in the positive, negative or both directions past lord0.
-
-  length_adjustment_made = .true.
-
-  slave => pointer_to_slave(lord0, 1)
-  ixa_lord0 = slave%ix_ele  ! Index at entrance end of lord0
-
-  slave => pointer_to_slave(lord0, lord0%n_slave)
-  ixb_lord0 = slave%ix_ele  ! Index at exit end of lord0
-
-  pos_extension_lord_exists = .false.
-  neg_extension_lord_exists = .false.
-  all_extension_lord_exists = .false.
-
-  ix_pos_edge = lat%n_ele_max
-  ix_neg_edge = 0
-
-  vary_sublength = 0
-  call re_allocate(can_vary_length, lord0%n_slave, .false.)
-
-  slave_loop: do j = 1, lord0%n_slave
-
-    slave => pointer_to_slave(lord0, j)
-    can_vary_length(j) = .true. ! Can be varied.
-
-    do k = 1, slave%n_lord
-      lord2 => pointer_to_lord(slave, k)
-      if (lord0%ix_ele == lord2%ix_ele) cycle  ! Ignore self
-      slave2 => pointer_to_slave(lord2, 1)            ! Slave at entrance end
-      ixa_lord2 = slave2%ix_ele
-
-      slave2 => pointer_to_slave(lord2, lord2%n_slave) ! Slave at exit end
-      ixb_lord2 = slave2%ix_ele
-
-      overlap_a = .false. ! entrance end of lord2 overlaps lord0?
-      overlap_b = .false. ! exit end of lord2 overlaps lord0?
-      overlap_all = .false.
-
-      ! Case where lord0 does not wrap around the IP
-
-      if (ixa_lord0 <= ixb_lord0) then
-        if (ixa_lord2 >= ixa_lord0 .and. ixa_lord2 <= ixb_lord0) overlap_a = .true.
-        if (ixb_lord2 >= ixa_lord0 .and. ixb_lord2 <= ixb_lord0) overlap_b = .true.
-        if (.not. overlap_a .and. .not. overlap_b) then
-          if (ixa_lord2 <= ixb_lord2) then           ! If lord2 does not wrap
-            if (ixa_lord2 < ixa_lord0 .and. ixb_lord2 > ixb_lord0) overlap_all = .true.
-          else                                       ! If lord2 does wrap
-            if (ixa_lord2 < ixa_lord0 .or. ixb_lord2 > ixb_lord0) overlap_all = .true.
-          endif
-        endif
-
-      ! Case where lord0 does wrap around the IP
-
-      else
-        if (ixa_lord2 >= ixa_lord0 .or. ixa_lord2 <= ixb_lord0) overlap_a = .true.
-        if (ixb_lord2 >= ixa_lord0 .or. ixb_lord2 <= ixb_lord0) overlap_b = .true.
-        if (.not. overlap_a .and. .not. overlap_b) then
-          if (ixa_lord2 > ixb_lord2) then ! and lord2 wraps also
-            if (ixa_lord2 < ixa_lord0 .and. ixb_lord2 > ixb_lord0) overlap_all = .true.
-          endif
-        endif
-      endif
-
-      ! Contained?
-
-      if (overlap_a .and. overlap_b) then  ! If contained
-        can_vary_length(j) = .false.
-      elseif (overlap_a) then
-        pos_extension_lord_exists = .true.
-        ix_pos_edge = min (ix_pos_edge, ixa_lord2)
-      elseif (overlap_b) then
-        neg_extension_lord_exists = .true.
-        ix_neg_edge = max (ix_neg_edge, ixb_lord2)
-      elseif (overlap_all) then
-        all_extension_lord_exists = .true.
-      endif
-
-    enddo
-
-    if (can_vary_length(j)) vary_sublength = vary_sublength + slave%value(l$)
-  enddo slave_loop
-
-  ! If we have not found any slaves to vary we are in trouble
-
-  if (vary_sublength == 0) then
-    call out_io (s_fatal$, r_name, 'CANNOT VARY LENGTH OF SUPER_LORD: ' // lord0%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-
-  ! Calculate positive and negative extension length changes
-
-  coef = (lord0%value(l$) - sum_len_slaves) / vary_sublength
-  d_length = lord0%value(l$) - sum_len_slaves
-
-  if (pos_extension_lord_exists) then
-    length_pos = 0
-    do j = 1, lord0%n_slave
-      slave => pointer_to_slave(lord0, j)
-      if (slave%ix_ele < ix_pos_edge) cycle
-      if (.not. can_vary_length(j)) cycle
-      length_pos = length_pos + slave%value(l$)
-    enddo
-    d_length_pos = length_pos * coef
-  endif
-
-  if (neg_extension_lord_exists) then
-    length_neg = 0
-    do j = 1, lord0%n_slave
-      slave => pointer_to_slave(lord0, j)
-      if (slave%ix_ele > ix_neg_edge) cycle
-      if (.not. can_vary_length(j)) cycle
-      length_neg = length_neg + slave%value(l$)
-    enddo    
-    d_length_neg = length_neg * coef
-  endif
-
-  ! Vary the slave lengths
-
-  do j = 1, lord0%n_slave
-    slave => pointer_to_slave(lord0, j)
-    if (.not. can_vary_length(j)) cycle
-    slave%value(l$) = slave%value(l$) * (1 + coef)
-    call set_ele_status_stale (slave, attribute_group$)
-  enddo
-
-  ! Now to make the adjustments to either side of lord0.
-
-  branch => lat%branch(slave%ix_branch)
-
-  ixa = ixa_lord0 - 1
-  if (ixa == 0) ixa = branch%n_ele_track
-
-  ixb = ixb_lord0 + 1
-  if (ixb == branch%n_ele_track + 1) ixb = 1 
-
-  if (all_extension_lord_exists) then
-    if (pos_extension_lord_exists .and. neg_extension_lord_exists) then
-      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
-      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
-    elseif (pos_extension_lord_exists) then
-      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - (d_length - d_length_pos)
-      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
-    elseif (neg_extension_lord_exists) then
-      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
-      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - (d_length - d_length_neg)
-    else
-      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length / 2
-      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length / 2
-    endif
-
-  else ! An all_extension_lord does not exist
-    if (pos_extension_lord_exists) &
-            branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
-    if (neg_extension_lord_exists) &
-            branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
-  endif
-
-  call set_ele_status_stale (branch%ele(ixa), attribute_group$)
-  call set_ele_status_stale (branch%ele(ixb), attribute_group$)
-
-enddo
-
-! If there has been a length adjustment then we need to make sure everything is ok.
-
-if (length_adjustment_made) then
-  do ie = lat%n_ele_track+1, lat%n_ele_max
-    lord0 => lat%ele(ie)
-    if (lord0%lord_status /= super_lord$) cycle
-    sum_len_slaves = 0
-    do j = 1, lord0%n_slave
-      slave => pointer_to_slave(lord0, j)
-      sum_len_slaves = sum_len_slaves + slave%value(l$)
-    enddo
-    if (abs(sum_len_slaves - lord0%value(l$)) > dl_tol * abs(lord0%value(l$))) then
-      call out_io (s_fatal$, r_name, &
-              'INCONSISTANT SUPER_LORD/SUPER_SLAVE LENGTHS!', &
-              'LORD: ' // lord0%name, &
-              'LENGTH: \es16.9\ ', &
-              'SUM OF SLAVE LENGTHS: \es16.9\ ', r_array = [lord0%value(l$), sum_len_slaves] )
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif
-  enddo
-endif
-
-end subroutine super_lord_length_bookkeeper
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine adjust_super_lord_s_position (lat, lord)
-!
-! Subroutine to adjust the positions of the slaves of a super_lord due
-! to changes in the lord's z_offset.
-!-
-
-subroutine adjust_super_lord_s_position (lat, lord)
-
-implicit none
-
-type (lat_struct), target :: lat
-type (ele_struct) lord
-type (ele_struct), pointer :: slave 
-
-real(rp) s_start_lord, s_start_slave, s_end_lord, tot_len, sig_l
-
-character(40) :: r_name = 'adjust_super_lord_s_position'
-
-!
-
-if (lord%lord_status /= super_lord$) then
-  call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
-  if (global_com%exit_on_error) call err_exit
-  return 
-endif
-
-! If a super lord is moved then we just need to adjust the start and end edges.
-! Since we don't want to kill taylor maps due to round-off errors we only change
-! the length if the percentage or absolute change is more than 10^-10
-
-s_end_lord = lord%s + lord%value(z_offset_tot$)
-slave => pointer_to_slave(lord, lord%n_slave)
-sig_l = bmad_com%significant_length
-
-if (abs(s_end_lord - slave%s) < sig_l * (1 + abs(slave%value(l$)))) return
-
-slave%value(l$) = slave%value(l$) + (s_end_lord - slave%s)
-slave%s = s_end_lord
-
-! Adjust start position of the first slave
-
-slave => pointer_to_slave(lord, 1)
-tot_len = lat%branch(slave%ix_branch)%param%total_length
-s_start_lord = s_end_lord - lord%value(l$)
-
-s_start_slave = slave%s - slave%value(l$)
-if (s_start_slave > s_start_lord + tot_len / 2) s_start_slave = s_start_slave - tot_len
-slave%value(l$) = slave%value(l$) + (s_start_slave - s_start_lord)
-
-end subroutine adjust_super_lord_s_position
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine makeup_group_lord (lat, lord)
 !
 ! Subroutine to calculate the attributes of group slave elements.
@@ -724,12 +376,12 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) :: lord
-type (ele_struct), pointer :: slave
+type (ele_struct), pointer :: slave, slave2
 
 real(rp) delta, coef
 real(rp), pointer :: r_ptr
 
-integer ix, iv, i
+integer ix, ix_attrib, i, j
 
 logical moved, err_flag
 
@@ -744,14 +396,55 @@ moved = .false.   ! have we longitudinally moved an element?
 
 do i = 1, lord%n_slave
   slave => pointer_to_slave(lord, i, ix)
-  iv = lat%control(ix)%ix_attrib
-  if (iv == l$) moved = .true.
+  ix_attrib = lat%control(ix)%ix_attrib
+  if (ix_attrib == l$) moved = .true.
   coef = lat%control(ix)%coef
-  call pointer_to_indexed_attribute (slave, iv, .false., r_ptr, err_flag)
-  if (err_flag) call err_exit
-  r_ptr = r_ptr + delta * coef
-  call set_flags_for_changed_attribute (lat, slave, r_ptr)
+
+  select case (ix_attrib)
+
+  !---------
+  ! Edge: Varying lengths takes special code.
+
+  case (start_edge$, end_edge$, s_position$, accordion_edge$, l$)
+
+    if (slave%lord_status == multipass_lord$) then
+      do j = 1, slave%n_slave
+        slave2 => pointer_to_slave (slave, j)
+        call change_this_edge (slave2)
+      enddo
+    else
+      call change_this_edge (slave)
+    endif
+
+  !---------
+  ! x_limit, y_limit, aperture
+
+  case (x_limit$)
+    call group_change_this (slave, x1_limit$, coef)
+    call group_change_this (slave, x2_limit$, coef)
+
+  case (y_limit$)
+    call group_change_this (slave, y1_limit$, coef)
+    call group_change_this (slave, y2_limit$, coef)
+
+  case (aperture$) 
+    call group_change_this (slave, x1_limit$, coef)
+    call group_change_this (slave, x2_limit$, coef)
+    call group_change_this (slave, y1_limit$, coef)
+    call group_change_this (slave, y2_limit$, coef)
+
+  !---------
+  ! All else
+
+  case default
+
+    call group_change_this (slave, ix_attrib, coef)
+
+  end select
+
 enddo
+
+!---------
 
 if (moved) then
   call s_calc (lat)       ! recompute s distances
@@ -759,6 +452,181 @@ if (moved) then
 endif
 
 lord%bookkeeping_state%control = ok$
+
+!---------------------------------------------------------------------------------
+contains
+
+subroutine change_this_edge (this_slave)
+
+type (ele_struct) this_slave
+type (ele_struct), pointer :: this_slave2
+type (branch_struct), pointer :: branch
+
+integer ix_min, ix_max, ix1, ix2
+
+!
+
+if (this_slave%lord_status == super_lord$) then
+  this_slave2 => pointer_to_slave (this_slave, 1)
+  ix_min = this_slave2%ix_ele
+  this_slave2 => pointer_to_slave (this_slave, this_slave%n_slave)
+  ix_max = this_slave2%ix_ele
+  branch => lat%branch(this_slave2%ix_branch)
+elseif (this_slave%ix_ele < lat%n_ele_track) then
+  ix_min = this_slave%ix_ele
+  ix_max = this_slave%ix_ele
+  branch => lat%branch(this_slave%ix_branch)
+else
+  call out_io (s_error$, r_name, &
+                'A GROUP IS NOT ALLOWED TO CONTROL', &
+                'A ' // control_name(slave%slave_status), &
+                'YOU TRIED TO CONTROL: ' // slave%name)
+  return
+endif
+
+! now that we have the ends we find the elements to either side whose length
+! the group can adjust
+
+if (ix_attrib /= end_edge$) then
+  ix1 = ix_min - 1
+  do
+    if (attribute_name(branch%ele(ix1), l$) == 'L') exit  ! If has length attribute
+    ix1 = ix1 - 1
+    if (ix1 < 0) then
+      call out_io (s_error$, r_name, &
+                    'START_EDGE OF CONTROLED', &
+                    'ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE', &
+                    'VARIED FOR GROUP: ' // lord%name)
+      return
+    endif
+  enddo
+endif
+
+if (ix_attrib /= start_edge$) then
+  ix2 = ix_max + 1 
+  do
+    if (attribute_name(branch%ele(ix2), l$) == 'L') exit  ! If has length attribute
+    ix2 = ix2 + 1
+    if (ix2 > branch%n_ele_track) then
+      call out_io (s_error$, r_name, &
+                    'END_EDGE OF CONTROLED', &
+                    'ELEMENT IS AT END OF LAT AND CANNOT BE', &
+                    'VARIED FOR GROUP: ' // lord%name)
+      return
+    endif
+  enddo
+endif
+
+! put in changes
+
+select case (ix_attrib)
+
+case (l$)
+  call group_change_this (branch%ele(ix_max), l$, coef)
+
+case (start_edge$)
+  call group_change_this (branch%ele(ix_min), l$, -coef)
+  call group_change_this (branch%ele(ix1), l$, coef)
+
+case (end_edge$)
+  call group_change_this (branch%ele(ix_max), l$, coef)
+  call group_change_this (branch%ele(ix2), l$, -coef)
+
+case (accordion_edge$)
+  call group_change_this (branch%ele(ix_min), l$, coef)
+  call group_change_this (branch%ele(ix1), l$, -coef)
+
+  call group_change_this (branch%ele(ix_max), l$, coef)
+  call group_change_this (branch%ele(ix2), l$, -coef)
+
+case (s_position$)
+  call group_change_this (branch%ele(ix1), l$, coef)
+  call group_change_this (branch%ele(ix2), l$, -coef)
+
+case (lord_pad1$)
+  call group_change_this (branch%ele(ix1), l$, coef, this_slave, lord_pad1$)
+
+case (lord_pad2$)
+  call group_change_this (branch%ele(ix2), l$, coef, this_slave, lord_pad1$)
+
+end select
+
+end subroutine change_this_edge
+
+!---------------------------------------------------------------------------------
+! contains 
+!+
+! Note: It is assumed that edge, super_lord, and varied_length optional args are all present if
+! any one of them is present.
+!-
+
+recursive subroutine group_change_this (ele, ix_attrib, coef, this_lord, this_pad)
+
+type (ele_struct) ele
+type (ele_struct), optional :: this_lord
+type (ele_struct), pointer :: my_lord
+
+integer ix_attrib, il, ix_slave
+integer, optional :: this_pad
+
+real(rp) coef, new_val
+real(rp), pointer :: r_ptr
+
+!
+
+call pointer_to_indexed_attribute (ele, ix_attrib, .false., r_ptr, err_flag)
+if (err_flag) call err_exit
+r_ptr = r_ptr + delta * coef
+call set_flags_for_changed_attribute (lat, ele, r_ptr)
+! super_slave length can be varied by a group so don't check this.
+if (ele%slave_status /= super_slave$ .or. ix_attrib /= l$) then
+  err_flag = attribute_free (ele, attribute_name(ele, ix_attrib), lat, .true.)
+endif
+
+! Pad check
+
+if (ele%lord_status == super_lord$ .and. r_ptr < 0) then
+  if (ix_attrib == lord_pad1$) then
+    call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
+                                   'CONTROLS SUPER_LORD: ' // ele%name, &
+                                   'AND LORD_PAD1 IS NOW NEGATIVE: \f8.3\ ', r_array = [r_ptr])
+  elseif (ix_attrib == lord_pad2$) then
+    call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
+                                   'CONTROLS SUPER_LORD: ' // ele%name, &
+                                   'AND LORD_PAD2 IS NOW NEGATIVE: \f8.3\ ', r_array = [r_ptr])
+  endif
+endif
+
+! ele is a super_slave...
+
+if (ele%slave_status == super_slave$) then
+  if (ix_attrib /= l$) then
+    call out_io (s_error$, r_name, &
+                  'CONFUSED GROUP IS TRYING TO VARY SUPER_SLAVE ATTRIBUTE: ' // attribute_name(ele, ix_attrib))
+    call err_exit
+  endif
+
+  do il = 1, ele%n_lord
+    my_lord => pointer_to_lord(ele, il)
+    call group_change_this (my_lord, ix_attrib, coef)
+  enddo
+
+  if (present(this_lord)) then
+    call group_change_this (my_lord, ix_attrib, -coef)  ! Take out length change.
+    call group_change_this (my_lord, this_pad, coef)    ! And change pad length instead.
+  endif
+
+endif
+
+! ele is a multipass_slave...
+! In the loop over all multipass_slaves, only modify the multipass_lord once
+
+if (ele%slave_status == multipass_slave$) then
+  my_lord => pointer_to_lord(ele, 1, ix_slave)
+  if (ix_slave == 1) call group_change_this (my_lord, ix_attrib, coef)
+endif
+
+end subroutine group_change_this
 
 end subroutine makeup_group_lord
 
@@ -1880,7 +1748,6 @@ type (branch_struct), pointer :: branch
 
 real(rp) value(num_ele_attrib_extended$), coef, ds, s_slave
 real(rp) t, x_off, y_off, x_pitch, y_pitch
-real(rp), pointer :: r_ptr
 integer i, ix_con, ix, iv, ix_slave, icom, l_stat
 logical used(num_ele_attrib_extended$), multipole_set, err_flag
 
@@ -1939,13 +1806,27 @@ do i = 1, slave%n_lord
     if (global_com%exit_on_error) call err_exit
   endif     
 
+
   coef = lat%control(ix_con)%coef
   iv = lat%control(ix_con)%ix_attrib
-  call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_ptr, err_flag)
-  if (err_flag) call err_exit
-  value(iv) = value(iv) + r_ptr * coef
-  used(iv) = .true.
-  if (iv > num_ele_attrib$) multipole_set = .true.
+
+  select case (iv)
+
+  case (x_limit$)
+    call overlay_change_this(x1_limit$)
+    call overlay_change_this(x2_limit$)
+  case (y_limit$)
+    call overlay_change_this(y1_limit$)
+    call overlay_change_this(y2_limit$)
+  case (aperture$)
+    call overlay_change_this(x1_limit$)
+    call overlay_change_this(x2_limit$)
+    call overlay_change_this(y1_limit$)
+    call overlay_change_this(y2_limit$)
+  case default
+    call overlay_change_this(iv)
+  end select
+
 enddo
 
 where (used(1:num_ele_attrib$)) slave%value = value(1:num_ele_attrib$)
@@ -1964,6 +1845,25 @@ if (.not. slave%on_a_girder .and. has_orientation_attributes(slave)) then
   slave%value(x_pitch_tot$)  = slave%value(x_pitch$)
   slave%value(y_pitch_tot$)  = slave%value(y_pitch$)
 endif
+
+!-------------------------------------------------------------------------------
+contains
+
+subroutine overlay_change_this (iv)
+
+integer iv
+real(rp), pointer :: r_ptr
+
+!
+
+call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_ptr, err_flag)
+if (err_flag) call err_exit
+value(iv) = value(iv) + r_ptr * coef
+used(iv) = .true.
+if (iv > num_ele_attrib$) multipole_set = .true.
+err_flag = attribute_free (slave, attribute_name(slave, iv), lat, .true., .true.)
+
+end subroutine overlay_change_this
 
 end subroutine makeup_overlay_and_girder_slave 
 
@@ -2478,6 +2378,7 @@ if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
   if (associated(ele%branch) .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
+      if (lord%key == overlay$ .or. lord%key == group$) cycle
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
       lord%map_with_offsets = .false.
     enddo

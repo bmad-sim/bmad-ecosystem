@@ -1072,6 +1072,7 @@ if (ele%slave_status == super_slave$) then
   !  put in the null_ele marker 'x__' + lord_name for the superposition.
   do j = 1, ele%n_lord
     lord => pointer_to_lord(ele, j)
+    if (lord%lord_status /= super_lord$) cycle
     lord_name = lord%name
     m_lord => pointer_to_multipass_lord (lord)
     if (associated(m_lord)) lord_name = m_lord%name

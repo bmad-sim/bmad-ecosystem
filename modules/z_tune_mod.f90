@@ -50,7 +50,7 @@ use nr, only: zbrent
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, ele2
+type (ele_struct), pointer :: ele, ele2, lord
 
 real(rp) dQz_max
 real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, coef, dz_tune
@@ -104,9 +104,9 @@ do i = 1, lat%n_ele_max
     if (.not. ele%is_on) cycle
     if (ele%value(rf_frequency$) == 0) cycle
 
-    do j = ele%ic1_lord, ele%ic2_lord ! check any overlays.
-      ix = lat%ic(j)
-      if (lat%control(ix)%ix_attrib == voltage$) cycle
+    do j = 1, ele%n_lord ! check any overlays.
+      lord => pointer_to_lord (ele, j, ix)
+      if (lord%key == overlay$ .and. lat%control(ix)%ix_attrib == voltage$) cycle
     enddo
 
     n_rf = n_rf + 1

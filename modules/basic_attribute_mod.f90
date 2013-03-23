@@ -352,6 +352,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, spin_tracking_method$,   'SPIN_TRACKING_METHOD')
   call init_attribute_name1 (i, ptc_integration_type$,   'PTC_INTEGRATION_TYPE')
 
+  call init_attribute_name1 (i, s_position$,             'S_POSITION', dependent$)
   call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
   call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
   call init_attribute_name1 (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
@@ -409,10 +410,15 @@ do i = 1, n_key$
 
   call init_attribute_name1 (i, symplectify$,         'SYMPLECTIFY')
   call init_attribute_name1 (i, map_with_offsets$,    'MAP_WITH_OFFSETS')
+  call init_attribute_name1 (i, lord_pad1$,           'LORD_PAD1', quasi_free$)
+  call init_attribute_name1 (i, lord_pad2$,           'LORD_PAD2', quasi_free$)
 
   if (i == taylor$)       cycle
 
-  call init_attribute_name1 (i, l$,            'L')
+  call init_attribute_name1 (i, l$,                   'L')
+  call init_attribute_name1 (i, start_edge$,          'START_EDGE', dependent$)
+  call init_attribute_name1 (i, end_edge$,            'END_EDGE', dependent$)
+  call init_attribute_name1 (i, accordion_edge$,      'ACCORDION_EDGE', dependent$)
 
   call init_attribute_name1 (i, integrator_order$,   'INTEGRATOR_ORDER')
   call init_attribute_name1 (i, num_steps$,          'NUM_STEPS', quasi_free$)
@@ -465,6 +471,7 @@ enddo
 
 !
 
+call init_attribute_name1 (photon_branch$, l$,                       'l', private$)
 call init_attribute_name1 (photon_branch$, ix_to_branch$,            'IX_TO_BRANCH', dependent$)
 call init_attribute_name1 (photon_branch$, ix_to_element$,           'IX_TO_ELEMENT', dependent$)
 call init_attribute_name1 (photon_branch$, direction$,               'DIRECTION')
@@ -662,7 +669,7 @@ call init_attribute_name1 (group$, coef$,                           'COEF')
 call init_attribute_name1 (group$, start_edge$,                     'START_EDGE')
 call init_attribute_name1 (group$, end_edge$,                       'END_EDGE')
 call init_attribute_name1 (group$, accordion_edge$,                 'ACCORDION_EDGE')
-call init_attribute_name1 (group$, symmetric_edge$,                 'SYMMETRIC_EDGE')
+call init_attribute_name1 (group$, s_position$,                     'S_POSITION')
 
 call init_attribute_name1 (drift$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (drift$, field_master$,                   'FIELD_MASTER')

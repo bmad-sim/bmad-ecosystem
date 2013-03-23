@@ -1,5 +1,5 @@
 !+
-! Subroutine add_lattice_control_structs (lat, ele)
+! Subroutine add_lattice_control_structs (lat, ele, add_at_end)
 ! 
 ! Subroutine to adjust the control structure of a lat so that extra control
 ! elements can be added.
@@ -8,19 +8,23 @@
 !   use bmad
 !
 ! Input:
-!   lat   -- lat_struct: lat whose control structure needs fixing
-!   ele -- Ele_struct: Element that needs extra control elements.
-!          This could be a new element or an existing element that needs more control info.
-!     %n_slave -- Increase this to reserve more room in the
-!                              lat%control(:) array.
-!     %n_lord  -- Increase this to reserve more room in the 
-!                              lat%ic(:) array.
+!   lat         -- lat_struct: lat whose control structure needs fixing
+!   ele         -- Ele_struct: Element that needs extra control elements.
+!                    This could be a new element or an existing element that needs more control info.
+!     %n_slave    -- Increase this to reserve more room in the lat%control(:) array.
+!                     Will adjust ele%ix1_slave and ele%ix2_slave as needed.
+!     %n_lord     -- Increase this to reserve more room in the lat%ic(:) array.
+!                     Will adjust ele%ic1_lord and ele%ic2_lord as needed.
+!   add_at_end  -- logical, optional: Used when %n_slave has been increased. 
+!                     If True then new space is added at the end of the [ele%ix1_slave, ele%ix2_slave] array.
+!                     If False then new space is added at the front of the [ele%ix1_slave, ele%ix2_slave] array.
+!                     Default is True.
 !
 ! Output:
 !   lat -- lat_struct: Lat with control structure fixed.
 !-
 
-subroutine add_lattice_control_structs (lat, ele)
+subroutine add_lattice_control_structs (lat, ele, add_at_end)
 
   use bmad_struct
   use bmad_interface, except_dummy => add_lattice_control_structs
@@ -31,11 +35,12 @@ subroutine add_lattice_control_structs (lat, ele)
   type (ele_struct) ele
   type (branch_struct), pointer :: branch
 
-  integer n_add, n_con, i2, n_con2, n_ic, n_ic2, ib
+  integer n_add, n_con, i1, i2, n_con2, n_ic, n_ic2, ib
+  logical, optional :: add_at_end
 
   character(40), parameter :: r_name = 'add_lattice_control_structs'
 
-  ! fix slave problems
+  ! Fix slave problems
 
   n_add = ele%n_slave - (ele%ix2_slave - ele%ix1_slave + 1) 
 
@@ -65,25 +70,37 @@ subroutine add_lattice_control_structs (lat, ele)
     ! a slice of lat%control.
 
     else
-      lat%control(i2+1+n_add:n_con+n_add) = lat%control(i2+1:n_con)
-      lat%control(i2+1:i2+n_add)%ix_lord = ele%ix_ele
-      lat%control(i2+1:i2+n_add)%ix_slave = -1
-      lat%control(i2+1:i2+n_add)%ix_branch = 0
-      lat%control(i2+1:i2+n_add)%ix_attrib = 0
-      lat%control(i2+1:i2+n_add)%coef = 0
+      if (logic_option(.true., add_at_end)) then
+        lat%control(i2+n_add+1:n_con+n_add) = lat%control(i2+1:n_con)
+        lat%control(i2+1:i2+n_add)%ix_lord = ele%ix_ele
+        lat%control(i2+1:i2+n_add)%ix_slave = -1
+        lat%control(i2+1:i2+n_add)%ix_branch = 0
+        lat%control(i2+1:i2+n_add)%ix_attrib = 0
+        lat%control(i2+1:i2+n_add)%coef = 0
+        where (lat%ic > i2) lat%ic = lat%ic + n_add
+      else
+        i1 = ele%ix1_slave
+        lat%control(i1+n_add:n_con+n_add) = lat%control(i1:n_con)
+        lat%control(i1:i1+n_add-1)%ix_lord = ele%ix_ele
+        lat%control(i1:i1+n_add-1)%ix_slave = -1
+        lat%control(i1:i1+n_add-1)%ix_branch = 0
+        lat%control(i1:i1+n_add-1)%ix_attrib = 0
+        lat%control(i1:i1+n_add-1)%coef = 0
+        where (lat%ic >= i1) lat%ic = lat%ic + n_add
+      endif
+
       do ib = 0, ubound(lat%branch, 1)
         branch => lat%branch(ib)
         where (branch%ele%ix1_slave > i2) branch%ele%ix1_slave = branch%ele%ix1_slave + n_add
         where (branch%ele%ix2_slave >= i2) branch%ele%ix2_slave = branch%ele%ix2_slave + n_add
       enddo
-      where (lat%ic > i2) lat%ic = lat%ic + n_add
     endif
 
     lat%n_control_max = n_con2
 
   endif
                                         
-  ! fix lord problems
+  ! Fix lord problems
 
   n_add = ele%n_lord - (ele%ic2_lord - ele%ic1_lord + 1) 
 

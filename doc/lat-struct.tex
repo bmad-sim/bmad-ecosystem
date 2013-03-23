@@ -422,12 +422,12 @@ be in either the tracking or control parts of the branch.
     \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
     \begin{sideways}\vn{super_lord\$}\end{sideways}
     \\ \midrule
-    %                           NL  GR  GI  O   M   S
+    %                         NL  GR  GI  O   M   S
     \vn{free\$}             &   &   &   &   &   &   \\ 
     \vn{group_slave\$}      &   & X &   &   &   &   \\ 
     \vn{overlay_slave\$}    &   & X & X & X &   &   \\ 
-    \vn{multipass_slave\$}  &   & 1 &   & X & X &   \\ 
-    \vn{super_slave\$}      &   &   &   &   &   & X \\ \bottomrule
+    \vn{multipass_slave\$}  &   & X &   & X & 1 &   \\ 
+    \vn{super_slave\$}      &   & X &   & X &   & X \\ \bottomrule
   \end{tabular}
   \label{f:lord.slave.b}
   }
@@ -435,7 +435,7 @@ be in either the tracking or control parts of the branch.
   {Possible \%lord_status/\%slave_status combinations. 
    ``X'' marks a possible combination.
    ``1'' indicates that the slave will have exactly one lord of the type 
-   given in the column. ``Y'' indicates the combination is not bidirectional.}
+   given in the column.}
   \label{f:lord.slave}
 \end{table}
 

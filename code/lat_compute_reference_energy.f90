@@ -196,6 +196,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
       do j = 1, ele%n_lord
         lord => pointer_to_lord(ele, j)
+        if (ele%slave_status == super_slave$ .and. lord%lord_status /= super_lord$) cycle
         lord2 => pointer_to_slave(lord, lord%n_slave) ! last element of lord
         ix_super_end = max(ix_super_end, lord2%ix_ele)
       enddo

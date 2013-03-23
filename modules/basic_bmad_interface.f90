@@ -1076,11 +1076,12 @@ interface
 end interface
 
 interface
-  subroutine add_lattice_control_structs (lat, ele)
+  subroutine add_lattice_control_structs (lat, ele, add_at_end)
     import
     implicit none
     type (lat_struct), target :: lat
     type (ele_struct) ele
+    logical, optional :: add_at_end
   end subroutine
 end interface
 
