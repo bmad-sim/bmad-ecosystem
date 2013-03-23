@@ -473,10 +473,10 @@ A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
 
 The transverse trajectory through an \vn{Lcavity} is modeled using equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig} with
-\Begineqs
+\begin{align}
   b_0 &= 1 \CRNO
   b_{-1} &= 1 
-\Endeqs
+\end{align}
 and all other $b_n$ set to zero.
 
 The transport through the body (R\&S Eq.~(9)) has been modified to give the 
@@ -1872,7 +1872,7 @@ curvature (see \fig{f:local.coords}), does not lie in the
 horizontal plane. Similarly, the dispersion $\bfeta\two =
 (\eta_x, \eta_y)$ will not lie in the horizontal plane. With this
 notation, the synchrotron integrals for coupled motion are:
-  \Begineqs
+  \begin{align}
     I_0 &=& \oint ds \, \gamma_0 \, g \\
     I_1 &=& \oint ds \, \bfg \cdot \bfeta 
          \equiv \oint ds \, (g_x \, \eta_x + g_y \, \eta_y) \\
@@ -1887,7 +1887,7 @@ notation, the synchrotron integrals for coupled motion are:
     I_{5a} &=& \oint ds \, g^3 \, \calH_a \\
     I_{5b} &=& \oint ds \, g^3 \, \calH_b \\
     I_{6b} &=& \oint ds \, g^3 \, \beta_b
-  \Endeqs
+  \end{align}
 where $\gamma_0$ is that usual relativistic factor and $\calH_a$ is 
   \Begineq
     \calH_a = \gamma_a \, \eta_a^2 + 2 \, \alpha_a \, \eta_a \, \eta_a' + 
@@ -1899,10 +1899,10 @@ are the dispersion vectors for the $a$ and $b$ modes respectively in
 $x$--$y$ space (these 2--vectors are not to be confused with the
 dispersion 4--vectors used in the previous section). The position
 dependence of the curvature function is:
-  \Begineqs
+  \begin{align}
     g_x(x,y) = g_{x} + x \, k_1 + y \, s_1 \CRNO
     g_y(x,y) = g_{y} + x \, s_1 - y \, k_1 
-  \Endeqs
+  \end{align}
 where $k_1$ is the quadrupole moment and $s_1$ is the skew--quadrupole moment.
 Using this gives on--axis ($x = y = 0$)
   \Begineq
@@ -1982,12 +1982,12 @@ If the synchrotron frequency is not too large the bunch length is given by
   \Endeq
 where $M(6,5)$ is the $(6,5)$ element for the 1--turn transfer matrix
 of the storage ring. Finally the emittances are given by
-  \Begineqs
+  \begin{align}
     \epsilon_a \AND= \frac{C_q}{I_2 - I_{4a}} 
       \, \gamma_0^2 \, I_{5a} \CRNO
     \epsilon_b \AND= \frac{C_q}{I_2 - I_{4b}} 
       \, \left( \gamma_0^2 \, I_{5b} + \frac{13}{55} \, I_{6b} \right) \CRNO
-  \Endeqs
+  \end{align}
 The $I_{6b}$ term come from the finite vertical opening angle of the
 radiation\cite{b:tol}. Normally this term is very small compared to
 the emittance due to coupling or vertical kicks due to magnet misalignment.
@@ -1998,12 +1998,12 @@ appropriate energy factors must be included to take account any
 changes in energy due to any \vn{lcavity} elements.  For a
 non-circular machine, the $I_1$ integral is not altered and the $I_4$
 integrals are not relevant. The other integrals become
-  \Begineqs
+  \begin{align}
     L_2 &=& \int ds \, g^2 \, \gamma_0^4 \\
     L_3 &=& \int ds \, g^3 \, \gamma_0^7 \\
     L_{5a} &=& \int ds \, g^3 \, \calH_a \, \gamma_0^6 \\
     L_{5b} &=& \int ds \, g^3 \, \calH_b \, \gamma_0^6
-  \Endeqs
+  \end{align}
 In terms of these integrals, the energy loss through the lattice is
   \Begineq
     U_0 = \frac{2 \, r_e \, mc^2}{3} L_2
@@ -2022,12 +2022,12 @@ $\sigma_E^2$ by a factor of 2.
 
 Again neglecting any initial beam width, the transverse beam size
 at the end of the lattice is
-  \Begineqs
+  \begin{align}
     \epsilon_a \AND= \frac{2}{3} \, C_q \, r_e \, 
     \frac{L_{5a}}{\gamma_f} \CRNO
     \epsilon_b \AND= \frac{2}{3} \, C_q \, r_e \, 
     \frac{L_{5b}}{\gamma_f} 
-  \Endeqs
+  \end{align}
 Where $\gamma_f$ is the final gamma.
 
 %-----------------------------------------------------------------   
@@ -2105,11 +2105,11 @@ In spinor notation, the T-BMT equation can be written as
   \Endeq   
 The solution leads to a rotation of the spin vector by an angle   
 $\alpha$ around a unit vector $\Bf e$ represented as   
-  \Begineqs   
+  \begin{align}   
     \Psi_f &=& e^{-i \frac{\alpha}{2} \Bf e \cdot \bfsig} \Psi_i \CRNO
          &=& \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \cdot \bfsig \right) \Psi_i \\
          &=& \Bf A \Psi_i. \nonumber
-  \Endeqs   
+  \end{align}   
 where $\Psi_i$ is the initial spin state, $\Phi_f$ is the final spin
 state, and the SU(2) matrix $\Bf A$, called a \textit{quaternion},
 describes the spin transport. $\Bf A$ has the normalization condition
@@ -2120,14 +2120,14 @@ describe $\Bf A$.
 With spinors, the matrix representation of the observable $S_{\Bf u}$
 corresponding to the measurement of the spin along the unit vector
 $\Bf u$ is
-\Begineqs
+\begin{align}
   S_{\Bf u} &\equiv& \frac{\hbar}{2} \, \bfsig \cdot \Bf u \\   
             &=& \frac{\hbar}{2} 
                    \begin{pmatrix} 
                      u_z            & u_x - i \, u_y \\
                      u_x + i \, u_y & u_z
                    \end{pmatrix}
-\Endeqs
+\end{align}
 The expectation value of this operator, $\Psi^\dagger \, \Bf S_u \,
 \Psi$, representing the spin of a particle, satisfies the equation of
 motion of a classical spin vector in the particle's instantaneous rest

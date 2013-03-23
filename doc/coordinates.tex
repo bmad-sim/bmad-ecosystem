@@ -46,7 +46,7 @@ There is a separate reference orbit for each branch
 the reference orbit of a branch must not depend upon the configuration
 of branches later on in the array of branches in the lattice. As a
 consequence, the reference orbits of the branches can be calculated
-one at a time stirting with the first branch.
+one at a time starting with the first branch.
 
 \index{x_offset}\index{y_offset}
 \index{x_pitch}\index{y_pitch}\index{wiggler}
@@ -80,7 +80,7 @@ blocks. Shown are the blocks along with the entrance and exit
 reference frames. The physical element may be displaced in the local
 coordinate frame using offsets, tilt, and pitches. A) For straight
 line elements the two frames are colinear. B) For bends elements, the
-two frames are rotated with respectto each other. C) For \vn{patch}
+two frames are rotated with respect to each other. C) For \vn{patch}
 and \vn{floor_shift} elements the exit frame may be arbitrarily
 positioned with respect to the entrance.}
   \label{f:ele.coord.frame}
@@ -91,13 +91,13 @@ positioned with respect to the entrance.}
 \begin{figure}[tb]
   \centering
   \includegraphics{element-stream.pdf}
-  \caption[Element LEGO block concatination.]{
-Element LEGO block concatination. A) The reference orbit is
+  \caption[Element LEGO block concatenation.]{
+Element LEGO block concatenation. A) The reference orbit is
 constructed by concatenating the LEGO blocks together. B) For normal
 (non-reversed) elements the $z$-axis is parallel with the $s$-axis. C)
-For reversed elements the $z$-axis is antiparalled with the
+For reversed elements the $z$-axis is antiparallel with the
 $s$-axis. By definition, the ``entrance'' and ``exit'' ends of an
-element are fixed relative to the element (realtive to the $z$-axis)
+element are fixed relative to the element (relative to the $z$-axis)
 while the ``upstream'' and ``downstream'' ends are fixed relative to
 the $s$-axis.}
   \label{f:stream}
@@ -143,7 +143,7 @@ element LEGO blocks are concatenated together as illustrated in
 mated to the previous block is called the ``\vn{upstream}'' end and
 the other end which will be mated to the following block is called the
 ``\vn{downstream}'' end.  Normally, the \vn{entrance} end of a block
-is used as the \vn{upsteam} end the \vn{exit} end is used as the
+is used as the \vn{upstream} end the \vn{exit} end is used as the
 \vn{downstream} end as shown in \fig{f:stream}B. However, for
 \vn{reversed} elements (\sref{s:ele.reverse}), the \vn{upstream} end
 is the \vn{exit} end of the block and vice versa. To put it another
@@ -162,7 +162,7 @@ coordinate system at the mating end of the block (the \vn{upstream}
 end) will be aligned with the mating end of the previous block (the
 \vn{downstream} end). The situation where one of the blocks is
 reversed and the other one not, and neither is a \vn{patch} nor
-\vn{floor_shift} elemeent, does not make physical sense since a
+\vn{floor_shift} element, does not make physical sense since a
 particle which is moving downstream, when it comes to the face joining
 the blocks will have to magically reverse direction in order to travel
 through the next block. Thus, to have normal and reversed elements in
@@ -175,7 +175,7 @@ reversed, whether the \vn{patch} is \vn{reflecting}, and the sign of
 particle leaving one block must enter the next. See
 Section~\sref{s:ex.patch} for an example.
 
-If there are \vn{fiducial} elements, the local referece frame is
+If there are \vn{fiducial} elements, the local reference frame is
 constructed beginning at these elements.
 
 %-----------------------------------------------------------------------------
@@ -193,7 +193,7 @@ coordinate system is oriented within the global coordinate system,
 each point on the $s$-axis of the local coordinate system is
 characterized by its $(X, Y, Z)$ position and by three angles $\theta$,
 $\phi$, and $\psi$ that describe the orientation of the local coordinate axes
-as shown in \fig{f:global.coords}. These threee angles are defined as
+as shown in \fig{f:global.coords}. These three angles are defined as
 follows:
 \begin{description}
 \item[$\theta$ Azimuth angle:] Angle in the $(X, Z)$ plane 
@@ -272,12 +272,12 @@ where
 \bmad, again following \mad, computes $\Bf V$ and $\Bf W$ by starting
 at the first element of the lattice and iteratively using the
 equations
-\Begineqs
+\begin{align}
   \Bf V_i &=& \Bf W_{i-1} \, \Bf L_i + \Bf V_{i-1}, 
     \label{vwlv} \\
   \Bf W_i &=& \Bf W_{i-1} \, \Bf S_i
     \label{wws}
-\Endeqs
+\end{align}
 $\Bf L_i$ is the displacement vector for the $i$\Th element and matrix
 $\Bf S_i$ is the rotation of the local reference system of the exit
 end with respect to the entrance end. For clarity, the subscript $i$ in 
@@ -672,7 +672,7 @@ always decreases.
 Note that \bmad's phase space coordinates are only canonical (that is,
 the particle trajectories can be described by a Hamiltonian) in a
 region where there are no longitudinal magnetic fields. This is
-only of practicle concern when doing partial tracking through lattice
+only of practical concern when doing partial tracking through lattice
 elements.
 
 A particle can also have a spin. The spin is characterized by the
@@ -712,10 +712,10 @@ In \bmad, the information associated with a photon include its phase
 space coordinates along with the photon energy and four parameters
 $E_x, \phi_x$, and $E_y, \phi_y$ specifying the intensity and phase of
 the field along the $x$ and $y$ axes.
-\Begineqs
+\begin{align}
   E_x (\Bf r, t) &\sim |E_x| \, e^{i (k \, z - \omega \, t + \phi_x)} \CRNO
   E_y (\Bf r, t) &\sim |E_y| \, e^{i (k \, z - \omega \, t + \phi_y)} \CRNO
-\Endeqs
+\end{align}
 The normalization between field and intensity is determined by the
 individual simulation programs and is not part of the \bmad standard.
 

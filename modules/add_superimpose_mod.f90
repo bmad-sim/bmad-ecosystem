@@ -61,15 +61,16 @@ type (lat_struct), target :: lat
 type (ele_struct)  super_ele_in
 type (ele_struct), pointer, optional ::  super_ele_out
 type (ele_struct) super_saved, slave_saved, drift, null_ele
-type (ele_struct), pointer :: slave, lord, slave2
+type (ele_struct), pointer :: slave, lord, slave2, ele0, ele
 type (control_struct)  sup_con(100)
+type (control_struct), pointer ::  cntl
 type (branch_struct), pointer :: branch
 type (lat_ele_loc_struct), pointer :: loc
 
 real(rp) s1, s2, length, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge, s1_in, s2_in
 
 integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch, ii
-integer ix1_split, ix2_split, ix_super, ix_super_con
+integer ix1_split, ix2_split, ix_super, ix_super_con, ix_ic
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
 logical, optional :: save_null_drift, create_em_field_slave
@@ -171,22 +172,23 @@ endif
 ! The correct order of splitting is important since we are creating elements
 ! so that the numbering of the elments after the split changes.
 
-! Also the splits may not be done exactly at s1 and s2 since split_lat avoids
-! making extremely small "runt" elements. We thus readjust the lord length to
-! keep everything consistant. 
-
 ! if superimpose wraps around 0 ...
 if (s2 < s1) then
-  if (split_this_lat(branch, s2, ix2_split, split2_done, save_null_drift, create_em_field_slave)) return
-  if (split_this_lat(branch, s1, ix1_split, split1_done, save_null_drift, create_em_field_slave)) return
-  super_saved%value(l$) = (s2_lat - branch%ele(ix1_split)%s) + (branch%ele(ix2_split)%s - s1_lat)
+  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_em_field_slave)) return
+  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_em_field_slave)) return
 
 ! no wrap case...
 else                  
-  if (split_this_lat(branch, s1, ix1_split, split1_done, save_null_drift, create_em_field_slave)) return
-  if (split_this_lat(branch, s2, ix2_split, split2_done, save_null_drift, create_em_field_slave)) return
-  super_saved%value(l$) = branch%ele(ix2_split)%s - branch%ele(ix1_split)%s
+  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_em_field_slave)) return
+  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_em_field_slave)) return
 endif
+
+! The splits may not be done exactly at s1 and s2 since split_lat avoids
+! making extremely small "runt" elements. We thus adjust the lord length slightly to
+! keep everything consistant. 
+
+if (split1_done) super_saved%value(l$) = super_saved%value(l$) - (branch%ele(ix1_split)%s - s1) 
+if (split2_done) super_saved%value(l$) = super_saved%value(l$) + (branch%ele(ix2_split)%s - s2) 
 
 ! Get rid of duplicate saved drifts if present
 
@@ -338,11 +340,10 @@ length = super_saved%value(l$)
 
 !-------------------------------------------------------------------------
 ! If create_em_field_slave = T:
+! If any existing super_lords extend past the region to be superimposed upon then
+! extend this region to include the existing super_lord. 
 
 if (logic_option(.false., create_em_field_slave)) then
-
-  ! If any existing super_lords extend past the region to be superimposed upon then
-  ! extend this region to include the existing super_lord. 
 
   do
     slave => branch%ele(ix1_split+1)
@@ -369,12 +370,6 @@ if (logic_option(.false., create_em_field_slave)) then
     enddo
     if (i == slave%n_lord + 1) exit
   enddo
-
-  ! All slave elements that do not have a zero length element in between 
-  ! them have to be combined into one. 
-
-
-
 
 endif
 
@@ -462,14 +457,18 @@ do
 
   ! change the element key
 
-  call calc_superimpose_key(slave_saved, super_saved, slave)
-  if (slave%key <= 0) then
-    call out_io (s_abort$, r_name, &
-            'I DO NOT KNOW HOW TO SUPERIMPOSE ELEMENT: "' // trim(super_saved%name) // &
-                                               '" OF TYPE: ' // key_name(super_saved%key), &
-            'UPON: "' // trim(slave_saved%name) // '" OF TYPE: ' // key_name(slave_saved%key))
-    if (global_com%exit_on_error) call err_exit 
-    return                   
+  if (logic_option(.false., create_em_field_slave)) then
+    slave%key = em_field$
+  else
+    call calc_superimpose_key(slave_saved, super_saved, slave)
+    if (slave%key <= 0) then
+      call out_io (s_abort$, r_name, &
+              'I DO NOT KNOW HOW TO SUPERIMPOSE ELEMENT: "' // trim(super_saved%name) // &
+                                                 '" OF TYPE: ' // key_name(super_saved%key), &
+              'UPON: "' // trim(slave_saved%name) // '" OF TYPE: ' // key_name(slave_saved%key))
+      if (global_com%exit_on_error) call err_exit 
+      return                   
+    endif
   endif
 
   call set_flags_for_changed_attribute (lat, lat%ele(ix_super))
@@ -510,6 +509,102 @@ lat%n_control_max = n_con
 
 call s_calc (lat)  ! just in case superimpose extended before beginning of lattice.
 call order_super_lord_slaves (lat, ix_super)
+
+!-------------------------------------------------------------------------
+! If create_em_field_slave = T:
+
+if (logic_option(.false., create_em_field_slave)) then
+
+  lat%ele(ix_super)%s = super_saved%s ! correct s-shift from call to s_calc 
+
+  ! All slave elements that do not have a zero length element in between 
+  ! them have to be combined into one. 
+
+  nullify (ele0)
+  i = ix1_split
+  do
+    i = i + 1
+    if (i == ix2_split + 1) exit
+    if (i == branch%n_ele_track + 1) i = 1
+
+    if (branch%ele(i)%value(l$) == 0) cycle
+
+    ! Mark first element in a "string".
+    if (.not. associated (ele0)) then
+      if (branch%ele(i)%value(l$) == 0) cycle ! Skip zero length elements
+      ele0 => branch%ele(i)
+    endif
+
+
+    ! If at end of string then mark all elements but ele0 for deletion.
+
+    if (i == ix2_split .or. i == branch%n_ele_track .or. branch%ele(i+1)%value(l$) == 0) then
+      ele0%value(l$) = branch%ele(i)%s - branch%ele(ele0%ix_ele-1)%s
+      ele0%s = branch%ele(i)%s
+
+      do j = ele0%ix_ele+1, i
+        ele => branch%ele(j)
+        ele%key = -1
+
+        ! Check lords and make sure that ele0 is a super_slave of the lord.
+        ! If not, make ele0 a super_slave.
+        do k = 1, ele%n_lord
+          lord => pointer_to_lord(ele, k)
+          if (lord%lord_status /= super_lord$) cycle
+          slave => pointer_to_slave(lord, 1)
+          if (slave%ix_ele <= ele0%ix_ele) cycle
+
+          ! Need to make ele0 a super_slave of this lord.
+          ele0%n_lord = ele0%n_lord + 1
+          call add_lattice_control_structs(lat, ele0)
+          lord%n_slave = lord%n_slave + 1
+          call add_lattice_control_structs(lat, lord, .false.)
+          
+          cntl => lat%control(lord%ix1_slave)
+          cntl%ix_lord = lord%ix_ele
+          cntl%ix_slave = ele0%ix_ele
+          cntl%ix_branch = ele0%ix_branch
+          lat%ic(ele0%ic2_lord) = lord%ix1_slave
+
+        enddo
+      enddo
+      nullify(ele0)
+    endif
+
+  enddo
+
+  ! Compute lord_pad2 and lord_pad1 values.
+
+  i = ix1_split
+  do
+    i = i + 1
+    if (i == ix2_split + 1) exit
+    if (i == branch%n_ele_track + 1) i = 1
+    ele => branch%ele(i)
+
+    do k = 1, ele%n_lord
+      lord => pointer_to_lord(ele, k)
+
+      slave => pointer_to_slave(lord, 1) 
+      lord%value(lord_pad1$) = (lord%s - lord%value(l$)) - (slave%s - slave%value(l$))
+      if (abs(lord%value(lord_pad1$)) < bmad_com%significant_length) lord%value(lord_pad1$) = 0
+
+      slave => pointer_to_slave(lord, lord%n_slave) 
+      lord%value(lord_pad2$) = slave%s - lord%s
+      if (abs(lord%value(lord_pad2$)) < bmad_com%significant_length) lord%value(lord_pad2$) = 0
+
+    enddo
+  enddo
+
+  ! And remove unwanted super_slave elements
+
+  call remove_eles_from_lat (lat, .false.)
+
+endif
+
+!-------------------------------------------------------------------------
+! Adjust names
+
 call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
 call adjust_drift_names (lat, branch%ele(ix1_split))
 call adjust_drift_names (lat, branch%ele(ix2_split+1))
@@ -522,7 +617,7 @@ end subroutine add_superimpose
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-function split_this_lat (branch, s_here, ix_split, split_done, &
+function split_this_lat (which, branch, s_here, ix_split, split_done, &
                                   save_null_drift, create_em_field_slave) result (err)
 
 implicit none
@@ -531,7 +626,7 @@ type (branch_struct) branch
 
 real(rp) s_here
 
-integer ix_split
+integer ix_split, which
 
 logical split_done, err
 logical, optional :: save_null_drift, create_em_field_slave
@@ -542,7 +637,10 @@ if (logic_option(.false., create_em_field_slave)) then
   split_done = .false.
   ix_split = element_at_s(branch%lat, s_here, .false., branch%ix_branch, err)
   if (err) return
-  if (branch%ele(ix_split)%key /= drift$) return
+  if (branch%ele(ix_split)%key /= drift$) then
+    if (which == 1) ix_split = ix_split - 1
+    return
+  endif
 endif
 
 call split_lat (branch%lat, s_here, branch%ix_branch, ix_split, split_done, &

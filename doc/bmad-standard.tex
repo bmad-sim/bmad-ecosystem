@@ -1096,10 +1096,10 @@ The generalization when the kick is not in the horizontal plane is easily derive
 
 The transverse trajectory through an \vn{Lcavity} is modeled using equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S) with
-\Begineqs
+\begin{align}
   b_0 &= 1 \CRNO
   b_{-1} &= 1 
-\Endeqs
+\end{align}
 and all other $b_n$ set to zero.
 
 The transport equations in R\&S were developed in the
@@ -1123,21 +1123,21 @@ for the entrance kick can be deduced from \Eq{dpxeg} to be
 \Endeq
 In this and future equations, factors of $e$ and $c$ will be dropped
 for convienience. The longitudinal transport is then
-\Begineqs
-  dz &= \dsfrac{\partial H_{e}}{\partial p_z} = 
-    \dsfrac{G}{4 \, P_0} \, \dsfrac{d\beta}{dp_z} \, (x^2 + y^2) \\
-  dp_z &= \dsfrac{-\partial H_{e}}{\partial z} = 
-    \dsfrac{-\beta}{4 \, P_0} \, \dsfrac{dG}{dz} \, (x^2 + y^2)
-\Endeqs
+\begin{align}
+  dz &= \frac{\partial H_{e}}{\partial p_z} = 
+    \frac{G}{4 \, P_0} \, \frac{d\beta}{dp_z} \, (x^2 + y^2) \\
+  dp_z &= \frac{-\partial H_{e}}{\partial z} = 
+    \frac{-\beta}{4 \, P_0} \, \frac{dG}{dz} \, (x^2 + y^2)
+\end{align}
 where
-\Begineqs
-  \dsfrac{d\beta}{dp_z} &= \dsfrac{m^2 \, P_0}{E^3}
-  \dsfrac{dG}{dz} = G_{\mbox{max}} \, \dsfrac{d\cos(\Delta\phi)}{dz} \\
-    &= \dsfrac{2 \, \pi \, G_{\mbox{max}} \, \sin(\Delta\phi) \, f_{rf}}{\beta}
-\Endeqs
+\begin{align}
+  \frac{d\beta}{dp_z} &= \frac{m^2 \, P_0}{E^3} \\
+  \frac{dG}{dz} &= G_{\mbox{max}} \, \frac{d\cos(\Delta\phi)}{dz} 
+    = \frac{2 \, \pi \, G_{\mbox{max}} \, \sin(\Delta\phi) \, f_\mss{rf}}{\beta}
+\end{align}
 where $m$ is the particle mass, $E$ is the particle energy,
 $G_{\mbox{max}}$ is the maximum accelerating gradiant at phase
-$\Delta\phi = 0$, and $f_{rf}$ is the RF frequency.
+$\Delta\phi = 0$, and $f_\mss{rf}$ is the RF frequency.
 
 The transport at the exit end of the cavity is handled in a similar manner to the
 entrance end with the appropriate change in sign of the kick (cf.~R\&S Eq.~(12)).
@@ -1160,10 +1160,11 @@ correct phase-space area at non ultra-relativistic energies:
   \end{pmatrix}_1
 \Endeq
 where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and 
-\Begineqs
-  r_\beta &\equiv \sqrt{\dsfrac{\beta_1}{\beta_2}} \\
-  r'_\beta &\equiv \dsfrac{dr_\beta}{ds}
-\Endeqs
+\begin{align}
+  r_\beta &\equiv \sqrt{\frac{\beta_1}{\beta_2}} \\
+  r'_\beta &\equiv \frac{dr_\beta}{ds} 
+    = \frac{-m^2 \, \beta_1 \, G}{2 \, r_\beta \, P_2^3}
+\end{align}
 With this, the matrix has the correct determinate of $\beta_1 \,
 \gamma_1 / \beta_2 \, \gamma_2$.
 

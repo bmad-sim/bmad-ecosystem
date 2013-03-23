@@ -49,7 +49,7 @@ integer i, j, k, ix, ix_branch
 integer ix_split, ixc, ix_attrib, ix_super_lord
 integer icon, ix2, inc, nr, n_ic2, ct
 
-logical split_done, err
+logical split_done, err, controls_need_removing
 logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
 
 character(16) :: r_name = "split_lat"
@@ -147,20 +147,27 @@ if (ele%slave_status == super_slave$) then
   if (ele%n_lord == 0) goto 8000  ! nothing to do for free element
 
   ixc = lat%n_ic_max
-  n_ic2 = ixc + ele%n_lord
-  ele1%ic1_lord = ixc + 1
-  ele1%ic2_lord = n_ic2
-  lat%n_ic_max = n_ic2
+  n_ic2 = ixc 
 
   do j = 1, ele%n_lord
 
+    ! If lord does not overlap ele1 then adjust padding and do not add
+    ! as a lord to ele1
+
     lord => pointer_to_lord(ele, j, icon)
+    if (.not. has_overlap(ele1, lord)) then
+      lord%value(lord_pad1$) = lord%value(lord_pad1$) - ele1%value(l$)
+      cycle
+    endif
+
+    !
+
+    n_ic2 = n_ic2 + 1
 
     coef_old = lat%control(icon)%coef
     ix_attrib = lat%control(icon)%ix_attrib
 
-    if (ele%slave_status == super_slave$ .or.  &
-          ix_attrib == hkick$ .or. ix_attrib == vkick$) then
+    if (ele%slave_status == super_slave$ .or. ix_attrib == hkick$ .or. ix_attrib == vkick$) then
       coef1 = coef_old * len1 / len_orig
       coef2 = coef_old * len2 / len_orig
     else
@@ -178,11 +185,28 @@ if (ele%slave_status == super_slave$) then
     lat%control(ix2)%ix_branch = ix_branch
     lat%control(ix2)%ix_attrib = ix_attrib
     lat%control(ix2)%coef = coef1
-    lat%ic(ixc+j) = ix2
+    lat%ic(n_ic2) = ix2
+
+    ele1%ic1_lord = ixc + 1
+    ele1%ic2_lord = n_ic2
+    lat%n_ic_max = n_ic2
 
     if (lord%lord_status == super_lord$) call order_super_lord_slaves (lat, lord%ix_ele)
 
   enddo
+
+  ! Remove lord/slave control for ele2 if the lord does not overlap
+
+  controls_need_removing = .false.
+  do j = 1, ele2%n_lord
+    lord => pointer_to_lord(ele2, j, ixc)
+    if (has_overlap(ele2, lord)) cycle
+    lat%control(ixc)%ix_attrib = int_garbage$
+    lord%value(lord_pad2$) = lord%value(lord_pad2$) - ele2%value(l$)
+    controls_need_removing = .true.
+  enddo
+
+  if (controls_need_removing) call remove_eles_from_lat(lat, .false.)
 
   goto 8000   ! and return
 
@@ -283,5 +307,35 @@ call control_bookkeeper (lat, ele2)
 err = .false.  ! In case lat_sanity_check is not called.
 if (logic_option(.true., check_sanity)) call lat_sanity_check (lat, err)
 if (present(err_flag)) err_flag = err
+
+!--------------------------------------------------------------
+contains
+
+function has_overlap (slave, lord) result (overlap)
+
+type (ele_struct) slave, lord
+real (rp) s0_lord, s0_slave
+logical overlap
+
+!
+
+overlap = .true.
+if (lord%lord_status /= super_lord$) return
+
+s0_lord = lord%s - lord%value(l$) + bmad_com%significant_length
+s0_slave = slave%s - slave%value(l$) - bmad_com%significant_length
+
+! Case where the lord does not wrap around the lattice
+
+if (s0_lord >= branch%ele(0)%s) then
+  if (slave%s < s0_lord .or. s0_slave > lord%s) overlap = .false.
+
+! Case where the lord does wrap
+
+else
+  if (slave%s < s0_lord .and. s0_slave > lord%s) overlap = .false.
+endif
+
+end function has_overlap
 
 end subroutine

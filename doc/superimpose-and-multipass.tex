@@ -112,14 +112,15 @@ determine these three quantities are:
 \index{ref_beginning}\index{ref_center}\index{ref_end}
 \index{ele_beginning}\index{ele_center}\index{ele_end}
 \begin{example}
-  ref = <element name in lattice>
-  offset = <length>      (default = 0)
-  ref_beginning
-  ref_center             (default)
-  ref_end
+  create_em_field_slave = <Logical>
+  ref                   = <element name in lattice>
+  offset                = <length>      ! default = 0
   ele_beginning
-  ele_center             (default)
+  ele_center                            ! default
   ele_end
+  ref_beginning
+  ref_center                            ! default
+  ref_end
 \end{example}
 \vn{ref} sets the reference element. If \vn{ref} is not present then
 the start of the lattice is used. \vn{ref_beginning}, \vn{ref_center}
@@ -174,6 +175,10 @@ drift. A similar situation applies to the entrance end of a drift. If
 this is not desired, use a \vn{pipe} element instead.
 
 %-----------------------------------------------------------------------------
+\subsection{}
+\label{s:super.length}
+
+%-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}
 \label{s:super.length}
 
@@ -190,7 +195,7 @@ results. For example:
   q2: quad, l = 10
   lat: line = (q1, q2)
   use, lat
-  o: overlay = {q1}, l = 12
+  o: overlay = \{q1\}, l = 12
   m: marker, superimpose, offset = 15
 \end{example} 
 In this example, the marker is initially positioned at 15~meters from
@@ -201,7 +206,7 @@ this problem, an \vn{expand_lattice} statement (\sref{s:expand}) can
 be placed after the overlay, but before the superimpose, statement
 \begin{example}
   ...
-  o: overlay = {q1}, l = 12
+  o: overlay = \{q1\}, l = 12
   expand_lattice
   m: marker, superimpose, offset = 15
 \end{example} 

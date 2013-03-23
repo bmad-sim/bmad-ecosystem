@@ -23,6 +23,8 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch
 
+real(rp) s1, s2, ds, l_lord
+
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2
 integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is
 
@@ -42,9 +44,9 @@ endif
 ! good_control specifies what elements can control what other elements.
 
 good_control = .false.
-good_control(group_lord$, [group_slave$, overlay_slave$, multipass_slave$]) = .true.
+good_control(group_lord$, [group_slave$, overlay_slave$, multipass_slave$, super_slave$]) = .true.
+good_control(overlay_lord$, [overlay_slave$, multipass_slave$, super_slave$]) = .true.
 good_control(girder_lord$, [overlay_slave$, multipass_slave$]) = .true.
-good_control(overlay_lord$, [overlay_slave$, multipass_slave$]) = .true.
 good_control(super_lord$, [super_slave$]) = .true.
 good_control(multipass_lord$, [multipass_slave$]) = .true.
 
@@ -537,6 +539,30 @@ do i_b = 0, ubound(lat%branch, 1)
           enddo
         endif
       enddo
+    endif
+
+    ! Check that super_lords have the correct length.
+
+    if (l_stat == super_lord$) then
+      slave => pointer_to_slave(ele, 1)
+      s1 = slave%s - slave%value(l$)
+      slave => pointer_to_slave(ele, ele%n_slave)
+      s2 = slave%s
+      if (s2 >= s1) then
+        ds = s2 - s1
+      else
+        ds = (branch%param%total_length - s1) + s2
+      endif
+      ds = ds 
+      l_lord = ele%value(l$) + ele%value(lord_pad2$) + ele%value(lord_pad1$)
+      if (abs(l_lord - ds) > bmad_com%significant_length) then
+        call out_io (s_fatal$, r_name, &
+                  'SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
+                  'HAS LENGTH + OFFSETS OF: \f15.10\ ', &
+                  'WHICH IS NOT EQUAL TO THE SUM OF THE SLAVE LENGTHS \f15.10\.', &
+                   i_array = [i_t], r_array =  [l_lord, ds])
+        err_flag = .true.
+      endif
     endif
 
     ! The ultimate slaves of a multipass_lord must must be in order

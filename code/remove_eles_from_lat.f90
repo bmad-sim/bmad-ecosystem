@@ -4,13 +4,20 @@
 ! Subroutine to compress the ele(:), control(:), and ic(:) arrays to remove
 ! elements no longer used. Note: to mark an element for removal use:
 !     lat%branch(ib)%ele(i)%key = -1
+! The lat%control and lat%ic arrays will be appropriately adjusted.
+!
+! Individual lat%control(i) elements, along with the corresponding lat%ic(j), can 
+! be removed by setting:
+!     lat%control(i)%ix_attrib = int_garbage$
+! In this case, the appropriate lord%n_slave value must have been adjusted for 
+! the appropriate lord element.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
 !   lat            -- lat_struct: Lattice to compress.
-!   check_sanity -- Logical, optional: If True (default) then call lat_sanity_check
+!   check_sanity   -- Logical, optional: If True (default) then call lat_sanity_check
 !                       after the remove to make sure everything is ok.
 !
 ! Output:
@@ -36,7 +43,7 @@ end type
 type (ele_index_temp), allocatable :: ibr(:)
 
 integer i, j, ib, ix, i1, i2
-integer, allocatable :: ic(:), control(:)
+integer :: ic(lat%n_ic_max), control(lat%n_control_max), control_to_ic(lat%n_control_max)
 
 logical, optional :: check_sanity
 logical err_flag
@@ -48,18 +55,21 @@ do i = 0, ubound(lat%branch, 1)
   allocate (ibr(i)%new(lat%branch(i)%n_ele_max))
 enddo
 
-allocate (control(lat%n_control_max))
-allocate (ic(lat%n_ic_max))
-
 control = 0
 ic = 0
 
 ! Mark entries in control and ic arrays for deletion.
 
+do i = 1, lat%n_ic_max
+  control_to_ic(lat%ic(i)) = i
+enddo
+
 do i = 1, lat%n_control_max
   ctl => lat%control(i)
   if (lat%branch(ctl%ix_branch)%ele(ctl%ix_slave)%key == -1) control(i) = -1
   if (lat%ele(ctl%ix_lord)%key == -1) control(i) = -1
+  if (ctl%ix_attrib == int_garbage$) control(i) = -1
+  if (control(i) == -1 .and. control_to_ic(i) /= -1) ic(control_to_ic(i)) = -1
 enddo
 
 do i = 1, lat%n_ic_max
@@ -204,9 +214,7 @@ if (allocated(ele_loc_com%branch)) then
   enddo
 endif
 
-! deallocate and do a check
-
-deallocate (ibr, control, ic)
+! do a check
 
 if (logic_option(.true., check_sanity)) call lat_sanity_check (lat, err_flag)
 

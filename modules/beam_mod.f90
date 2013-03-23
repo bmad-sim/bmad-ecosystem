@@ -232,6 +232,7 @@ if (associated(ele%rf_wake)) then
   if (ele%slave_status == super_slave$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
+      if (lord%lord_status /= super_lord$) cycle
       lord%rf_wake%lr%b_sin = 0;  lord%rf_wake%lr%b_cos = 0
       lord%rf_wake%lr%a_sin = 0;  lord%rf_wake%lr%a_cos = 0
       lord%rf_wake%lr%t_ref = 0
