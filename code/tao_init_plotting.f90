@@ -131,6 +131,7 @@ default_graph%ix_branch             = 0
 default_graph%ix_universe           = -1
 default_graph%clip                  = .true.
 default_graph%draw_axes             = .true.
+default_graph%draw_grid             = .true.
 default_graph%correct_xy_distortion = .false.
 default_graph%draw_only_good_user_data_or_vars = .true.
 default_graph%draw_curve_legend     = .true.
@@ -581,6 +582,7 @@ do  ! Loop over plot files
       grph%ix_branch             = graph%ix_branch
       grph%clip                  = graph%clip
       grph%draw_axes             = graph%draw_axes
+      grph%draw_grid             = graph%draw_grid
       grph%correct_xy_distortion = graph%correct_xy_distortion
       grph%draw_only_good_user_data_or_vars = &
                                    graph%draw_only_good_user_data_or_vars
@@ -983,6 +985,7 @@ grph%y%major_div_nominal  = 4
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
+grph%draw_grid            = .true.
 grph%component            = 'model'
 grph%x%label = 's [m]'
 
@@ -1004,6 +1007,7 @@ grph%y%major_div_nominal  = 4
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
+grph%draw_grid            = .true.
 grph%component            = 'model'
 
 crv => grph%curve(1)
@@ -1041,6 +1045,7 @@ grph%y2%draw_numbers      = .false.
 grph%component            = 'model'
 grph%draw_curve_legend    = .true.
 grph%draw_axes            = .true.
+grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
 grph%x%label = 's [m]'
@@ -1083,6 +1088,7 @@ grph%y%major_div_nominal  = 4
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
+grph%draw_grid            = .true.
 grph%component            = 'model'
 grph%x%label              = 's [m]'
 
@@ -1382,6 +1388,7 @@ grph%draw_only_good_user_data_or_vars = .true.
 grph%x                     = init_axis
 grph%y                     = init_axis
 grph%draw_axes             = .true.
+grph%draw_grid             = .true.
 grph%x%label               = 'Z'
 grph%x%major_div_nominal   = 4
 grph%y%label               = 'X'

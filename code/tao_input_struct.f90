@@ -122,8 +122,9 @@ type tao_graph_input
   real(rp) symbol_size_scale 
   real(rp) bin_width
   logical clip
-  logical draw_axes
   logical correct_xy_distortion
+  logical draw_axes
+  logical draw_grid
   logical draw_curve_legend     ! For identifying curves. 
   logical draw_only_good_user_data_or_vars
   type (qp_point_struct) legend_origin  ! For backwards compatibility

@@ -579,13 +579,7 @@ if (i_br_from > -1) then
   branch%ele(0)%gamma_c = from_ele%gamma_c
   orb0 => model%lat_branch(ix_branch)%orbit(0)
   orb0 = model%lat_branch(i_br_from)%orbit(i_ele_from)
-  ! reversed coordinate system for direction = -1 is:
-  !     (x, P_x, y, P_y, z, P_z) -> (-x, P_x, y, P_y, -z, P_z)
-  if (nint(from_ele%value(direction$)) == -1) then 
-    orb0%vec(1) = -orb0%vec(1)
-    orb0%vec(4) = -orb0%vec(4)
-    orb0%vec(5) = -orb0%vec(5)
-  endif
+  call track_a_patch (from_ele, orb0)
   return
 endif
 
