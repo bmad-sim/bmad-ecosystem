@@ -75,11 +75,10 @@ end type
 type qp_plot_struct
   character(80) :: title = ' '
   type (qp_axis_struct) x, y, x2, y2
-  type (qp_axis_struct), pointer :: xx, yy  ! Pointer to axes used for data plotting, etc. 
+  type (qp_axis_struct), pointer :: xx, yy  ! Pointer to axes used for plotting.
   logical :: draw_box    = .true.
   logical :: draw_title  = .true.
   logical :: draw_grid   = .true.
-  logical limit_plot
   logical :: x2_mirrors_x = .true.
   logical :: y2_mirrors_y = .true.
   logical :: xx_points_to_x
