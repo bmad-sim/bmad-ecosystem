@@ -1321,6 +1321,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), lmt) 'limited               = ', g%limited
     nl=nl+1; write (lines(nl), lmt) 'clip                  = ', g%clip
     nl=nl+1; write (lines(nl), lmt) 'draw_axes             = ', g%draw_axes
+    nl=nl+1; write (lines(nl), lmt) 'draw_grid             = ', g%draw_grid
     nl=nl+1; write (lines(nl), lmt) 'correct_xy_distortion = ', g%correct_xy_distortion
     nl=nl+1; write (lines(nl), lmt) 'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
     nl=nl+1; lines(nl) = 'Curves:'

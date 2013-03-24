@@ -351,7 +351,7 @@ if (graph%draw_axes) then
   else
     call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
   endif
-  call qp_draw_axes
+  call qp_draw_axes (draw_grid = graph%draw_grid)
 endif
 
 isu = tao_universe_number(graph%ix_universe)
@@ -1524,7 +1524,7 @@ if (graph%title == '') then
 else
   call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
 endif
-call qp_draw_axes
+call qp_draw_axes (draw_grid = graph%draw_grid)
 
 ! Draw the default x-axis label if there is none. 
 
