@@ -62,7 +62,7 @@ type (ele_struct), pointer :: lord
 type (lat_param_struct), intent(inout) :: param
 
 real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r
-integer i, edge_at, physical_end, ix_slave
+integer i, edge_at, physical_end
 logical do_tilt, err
 logical, optional :: check_momentum
 character(20) :: r_name = 'check_aperture_limit'
@@ -71,9 +71,9 @@ character(20) :: r_name = 'check_aperture_limit'
 
 if (ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
-    lord => pointer_to_lord(ele, i, ix_slave = ix_slave)
+    lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) cycle
-    if (.not. (lord_edge_aligned (edge_at, lord, ix_slave) .or. lord%aperture_at == continuous$)) cycle
+    if (.not. (lord_edge_aligned (ele, edge_at, lord) .or. lord%aperture_at == continuous$)) cycle
     call check_aperture_limit (orb, lord, edge_at, param, check_momentum)
     if (orb%state /= alive$) return
   enddo

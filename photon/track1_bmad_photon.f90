@@ -59,7 +59,7 @@ length = ele%value(l$)
 ! If element is off looks like a drift. LCavities will still do wakefields.
 
 key = ele%key
-if (.not. ele%is_on .and. key /= lcavity$) key = drift$  
+if (.not. ele%is_on) key = drift$  
 
 select case (key)
 

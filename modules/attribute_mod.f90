@@ -1167,9 +1167,9 @@ if (.not. do_except_overlay) then
   enddo
 endif
 
-! Super_slaves attributes cannot be varied
+! Super_slaves attributes cannot be varied except for L.
 
-if (ele%slave_status == super_slave$) then
+if (ele%slave_status == super_slave$ .and. a_name /= 'L') then
   if (do_print) call print_error (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
   return
 endif

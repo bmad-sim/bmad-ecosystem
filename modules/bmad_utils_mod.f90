@@ -174,36 +174,45 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function lord_edge_aligned (slave_edge, lord, ix_slave) result (is_aligned)
+! Function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
 !
-! Routine to determine if the edge of a super_lord is aligned with a given edge of a slave.
+! Routine to determine if the edge of a super_lord is aligned with a given edge 
+! of a super_slave or slice_slave.
 !
 ! Input:
-!   slave_edge  -- integer: Which end is under consideration: upstream_end$, or downstream_end$.
+!   slave       -- ele_struct: Slave element.
+!   slave_edge  -- integer: End under consideration: upstream_end$, or downstream_end$.
 !   lord        -- ele_struct: Lord element.
-!   ix_slave    -- integer: Index of the slave in the list of slaves contained in the lord.
-!                    Must be between 1 and lord%n_slave.
 !
 ! Output:
 !   is_aligned  -- integer: True if a lord edge is aligned with the slave edge.
 !- 
 
-function lord_edge_aligned (slave_edge, lord, ix_slave) result (is_aligned)
+function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
 
 implicit none
 
-type (ele_struct) lord
+type (ele_struct), target :: slave, lord
+type (branch_struct), pointer :: branch
 integer slave_edge, ix_slave
+real(rp) s_lord
 logical is_aligned
 character(*), parameter :: r_name = 'lord_edge_aligned'
 
-!
+! 
 
 select case (slave_edge)
 case (upstream_end$)
-  is_aligned = (ix_slave == 1)
+  s_lord = lord%s - lord%value(l$)
+  branch => slave%branch
+  if (associated(branch)) then
+    if (s_lord < branch%ele(0)%s) s_lord = s_lord + branch%param%total_length
+  endif
+  is_aligned = (abs(slave%s - slave%value(l$) - s_lord) < bmad_com%significant_length)
+
 case (downstream_end$)
-  is_aligned = (ix_slave == lord%n_slave)
+  is_aligned = (abs(slave%s - lord%s) < bmad_com%significant_length)
+
 case default
   call out_io (s_fatal$, r_name, 'BAD SLAVE_EDGE VALUE!')
   if (global_com%exit_on_error) call err_exit
@@ -284,6 +293,7 @@ function physical_ele_end (stream_end, ele_orientation) result (physical_end)
 implicit none
 
 integer stream_end, ele_orientation, physical_end
+character(*), parameter :: r_name  = 'physical_ele_end'
 
 !
 
@@ -300,18 +310,23 @@ case (1)
   select case (stream_end)
   case (upstream_end$);   physical_end = entrance_end$
   case (downstream_end$); physical_end = exit_end$
-  case default;           call err_exit
+  case default;
+    call out_io (s_fatal$, r_name, 'BAD STREAM_END: \i0\ ', i_array = [stream_end])
+    if (global_com%exit_on_error) call err_exit
   end select
 
 case (-1) 
   select case (stream_end)
   case (upstream_end$);   physical_end = exit_end$
   case (downstream_end$); physical_end = entrance_end$
-  case default;           call err_exit
+  case default;
+    call out_io (s_fatal$, r_name, 'BAD STREAM_END: \i0\ ', i_array = [stream_end])
+    if (global_com%exit_on_error) call err_exit
   end select
 
 case default
-  call err_exit
+  call out_io (s_fatal$, r_name, 'BAD ELEMENT ORIENTATION: \i0\ ', i_array = [ele_orientation])
+  if (global_com%exit_on_error) call err_exit
 
 end select
 
@@ -3809,6 +3824,8 @@ type (lat_struct), pointer :: lat
 integer, optional :: ix_control, ix_slave
 integer i, ix_lord, icon
 
+character(*), parameter :: r_name = 'pointer_to_lord'
+
 ! Case where there is no lord
 
 if (ix_lord > slave%n_lord .or. ix_lord < 1) then
@@ -3849,6 +3866,8 @@ if (present(ix_slave)) then
   enddo
 
   ! If ix_slave not found then this is an error
+
+  call out_io (s_fatal$, r_name, 'CANNOT FIND SLAVE INDEX FOR LORD!')
   if (global_com%exit_on_error) call err_exit   
 
 endif
