@@ -567,12 +567,15 @@ and \vn{photon_branch} is that the default particle type for a
 occurs. The default particle type for a \vn{photon_branch} element is
 a photon.
 
+Collectively \vn{branch} and \vn{photon_branch} elements can be called
+branching elements.
+
 General \vn{branch} and \vn{photon_branch} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
                          &                 & Is_on                      & \ref{s:is.on}   \HH 
@@ -580,7 +583,7 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 \end{center}
 \toffset
 
-Attributes specific to a \vn{branch} and \vn{photon_branch} elements are:
+Attributes specific to \vn{branch} and \vn{photon_branch} elements are:
 \begin{example}
   direction    = <+/- 1>      ! Direction of branch.
   to_line      = <LineName>   ! What line to branch to.
@@ -594,18 +597,34 @@ always starts out tangential to the line it is branching from. The
 branch line is outgoing in the forward direction (\vn{direction} = +1)
 or incoming (\vn{direction} = -1). A \vn{patch} element
 (\sref{s:patch}) can be used at the beginning of a branch line to
-reorient the reference orbit as needed.  For \vn{direction} = -1, the
-local coordinate system orientation is ``reversed''
-using the transformation (cf.~\fig{f:global.coords})
-\begin{equation}
-  \theta \longrightarrow \theta + \pi \comma\qquad
-  \phi   \longrightarrow -\phi \comma\qquad
-  \psi   \longrightarrow -\psi 
-\end{equation}
-and the particle phase space coordinates are transformed using
-\Begineq
-  (x, p_x, y, p_y, z, p_z) \longrightarrow (-x, p_x, y, -p_y, -z, p_z)
-\Endeq
+reorient the reference orbit as needed.
+
+The offset, pitch, and tilt attributes of a branching element can be
+used to offset the reference orbit of the element being branched
+to. This is analogous to using a rigid \vn{patch} element
+(\sref{s:patch}) to modify the reference orbit within a branch. See
+Section~\sref{s:patch} for more details.  Example:
+\begin{example}
+  from_line: line = (... A, PB, B, ...)  ! Line containing a branch
+  x_line: line = (X1, X2, ...)           ! Line branched to
+  pb: photon_branch, x_offset = 0.01, to_line = x_line
+  use, from_line
+\end{example}
+In this example, a photon generated at the branch element \vn{PB} with
+$x = 0$ with respect to the \vn{from_line} reference orbit through
+\vn{PB} will, when transferred to the \vn{x_line}, have an initial
+value for $x$ of $-0.01$ due to the setting of the \vn{x_offset} 
+parameter of \vn{PB}.
+
+Branching elements have zero length and within a lattice branch, a
+branching element acts like a \vn{marker}. Using the above example, a
+particle that is being tracked down the \vn{from_line} will have the
+same phase space coordinates at the end of element \vn{PB} as it had
+at the end of element \vn{A}. That is, the offset, pitches, and tilt
+attributes of a branching element only affect particles that are
+transferred to the \vn{to_line} when arriving at the branching element.
+particles that remain on the original lattice branch will be
+unaffected by any offset, pitches or tilt settings. 
 
 If the branch line is to transport particles different from the
 originating line the particle type and the beginning reference energy
@@ -617,7 +636,7 @@ simply related to the particle energy.
 Example showing an injection line branching to a ring branching to two
 x-ray lines:
 \begin{example}
-  inj: line = (..., ring, ...)               ! Define the injection line
+  inj: line = (..., ring_br, ...)            ! Define the injection line
   use, inj                                   ! Injection line is the root
   ring_br: branch, to_line = ring, 
           geometry = closed                  ! Branch to the ring
@@ -632,16 +651,15 @@ that the lattice branch created out of the \vn{to_line} line is distinct
 from other lattice branches of the same name. Thus, in the above example,
 the two lattice branches made from the \vn{x_line}
 will be distinct. If \vn{new_branch} is set to \vn{False}, a new lattice
-branch will not be created if a lattice branch createda from the same
+branch will not be created if a lattice branch created from the same
 line already exists. This is useful, for example, when a chicane line
 branches off from the main line and then branches back to it.
 
 The root branches of a lattice are defined by the \vn{use}
 (\sref{s:use}) statement. To further define such things as dump lines,
 x-ray beam lines, transfer lines, etc., that branch off from a root
-branch, a \vn{branch} or \vn{photon_branch} element (collectively they
-can be called branching elements) is used.  \vn{Branch} elements can
-define where the particle beam can branch off, say to a beam
+branch, a branching element is used.  \vn{Branch} elements can define
+where the particle beam can branch off, say to a beam
 dump. \vn{photon_branch} elements can define the source point for
 X-ray beams.  Example:
 \begin{example}
@@ -658,15 +676,6 @@ default particle of the branch from a \vn{photon_branch} element is a
 \vn{photon}. The actual particle associated with a branch can be set
 by setting the \vn{particle} attribute of the branching element
 (\sref{s:branch}).
-
-\index{patch}
-Branch lines can themselves have branching elements. A branch line always
-starts out tangential to the line it is branching from. The
-\vn{direction} attribute of the branch element indicates whether the
-branch line is outgoing in the forward direction (direction = +1) or
-incoming (direction = -1). A \vn{patch} element (\sref{s:patch}) can
-be used at the beginning of a branch line to reorient the reference
-orbit as needed.
 
 Like the root branch \bmad always automatically creates an element
 with \vn{element index} 0 at the beginning of each branch called
@@ -695,11 +704,10 @@ where \vn{branch_name} is the name of the branch and \vn{element_name} is the
   root>>q10w
   xline>>cryst3
 \end{example}
-When parsing a lattice
-file, branches are not formed until the lattice is expanded
-(\sref{s:expand}). Therefore an \vn{expand_lattice} statement is
-required before branch qualified names can be used in statements. 
-See \sref{s:ele.names} for more details.
+When parsing a lattice file, branches are not formed until the lattice
+is expanded (\sref{s:expand}). Therefore an \vn{expand_lattice}
+statement is required before branch qualified names can be used in
+statements.  See \sref{s:ele.names} for more details.
 
 %-----------------------------------------------------------------
 \section{Capillary}
@@ -1163,9 +1171,9 @@ Attributes specific to a \vn{floor_shift} elements are:
   x_origin        = <Real>    ! Absolute Reference x-position
   y_origin        = <Real>    ! Absolute Reference y-position
   z_origin        = <Real>    ! Absolute Reference z-position
-  theta_origin    = <Real>    ! Absolute Refernce orientation angle.
-  phi_origin      = <Real>    ! Absolute Refernce orientation angle.
-  psi_origin      = <Real>    ! Absolute Refernce orientation angle.
+  theta_origin    = <Real>    ! Absolute Reference orientation angle.
+  phi_origin      = <Real>    ! Absolute Reference orientation angle.
+  psi_origin      = <Real>    ! Absolute Reference orientation angle.
   origin_ele      = <Name>    ! Reference element.
   x_offset        = <Real>    ! x offset from reference
   y_offset        = <Real>    ! y offset from reference
@@ -1192,7 +1200,7 @@ either be specified by specifying an absolute global position using
 the attributes \vn{x_origin}, \vn{y_origin}, etc. or by specifying an
 \vn{origin_ele} element. If specified, the \vn{origin_ele} element
 must be a \vn{marker} or \vn{init_ele} element. If the \vn{origin_ele}
-is specified, the alsolute reference position attributes
+is specified, the absolute reference position attributes
 \vn{x_origin}, etc., are ignored.
 
 Once the origin reference position is determined, the reference
@@ -1202,8 +1210,8 @@ attributes \vn{x_offset}, \vn{x_pitch} as outlined in \sref{s:patch.coords}.
 \index{flexible patch}\index{patch}
 Once the position of the \vn{fiducial} element is calculated, all
 elements of the lattice branch the \vn{fiducial} element is contained
-in, {\em both} the upsteam and downstream elements, are shifted so
-that everything is consistant. That is, the \vn{fiducial} element
+in, {\em both} the upstream and downstream elements, are shifted so
+that everything is consistent. That is, the \vn{fiducial} element
 orients the entire lattice branch. The exception here is that if there
 are \vn{flexible} \vn{patch} elements (\sref{s:patch}) in the lattice
 branch, the \vn{fiducial} element will only determine the positions up
@@ -1211,23 +1219,23 @@ to the \vn{flexible} \vn{patch} element.
 
 Example: A lattice branch with elements 0 through 103 has a
 \vn{fiducial} element at position 34 and a \vn{flexible} \vn{patch} at
-postion 67. In this case the \vn{fiducial} element will determine the
+position 67. In this case the \vn{fiducial} element will determine the
 reference orbit for elements 0 through 66.
 
 Rules: 
   \begin{description}
   \item
 If a \vn{origin_ele} is specified, the position of this element must
-to calculatd before the the position of the \vn{fiducial} element is
+to calculated before the the position of the \vn{fiducial} element is
 calculated (\sref{s:ref}). This means, the \vn{origin_ele} must be in
 a prior lattice branch from the branch the \vn{fiducial} element is in
 or the \vn{origin_ele} in the same branch as the \vn{fiducial} element
 but is positioned upstream from the \vn{fiducial} element and there is
 a \vn{flexible} \vn{patch} in between the two elements.
   \item
-If a \vn{fiducial} element affets the position of element 0 in the
+If a \vn{fiducial} element affects the position of element 0 in the
 lattice branch (that is, there are no flexible \vn{branch} elements
-inbetween), any positioning of element 0 via \vn{beginning} or
+in between), any positioning of element 0 via \vn{beginning} or
 \vn{line parameter} statements (\sref{s:beginning}) are ignored.
   \item
 \vn{Fiducial} elements must not over constrain the lattice geometry.
@@ -1390,7 +1398,7 @@ within a beam line will be ignored.
 \label{s:group}
 \index{group|hyperbf}
 
-\vn{Group} elments are a type of \vn{control} element
+\vn{Group} elements are a type of \vn{control} element
 (\sref{s:lord.slave}) used to make variations in the attributes of
 other elements. For example, to simulate the action of a control room
 knob that changes the beam tune in a storage ring, a \vn{Group} can be
@@ -1415,7 +1423,7 @@ General \vn{girder} attributes are:
 \index{alias}\index{descrip}
 Attributes specific to a \vn{Group} element are:
 \begin{example}
-  command     = <Real>    ! Commmand value.
+  command     = <Real>    ! Command value.
   old_command = <Real>    ! Old command value.
   coef        = <Real>    ! Conversion factor. Not used by Bmad.  
 \end{example}
@@ -2193,7 +2201,7 @@ Example:
 \label{s:overlay}
 \index{ovlerlay|hyperbf}
 
-\vn{Overlay} elments are a type of \vn{control} element
+\vn{Overlay} elements are a type of \vn{control} element
 (\sref{s:lord.slave}) used to make variations in the attributes of
 other elements. For example, to simulate the action of a magnet power
 supply that controls a string of magnets. Also see \vn{group}
@@ -2284,7 +2292,7 @@ As illustrated above, different \vn{overlay} elements may control the
 same element attribute. And an \vn{overlay} element may control other
 \vn{overlay}, \vn{group} or \vn{girder} elements. However, It does not
 make sense for an \vn{overlay} element to control the same attribute
-as a \vn{grooup} element or for an \vn{overlay} element to control a
+as a \vn{group} element or for an \vn{overlay} element to control a
 \vn{dependent} attribute (\sref{s:depend}).
 
 %-----------------------------------------------------------------
@@ -2352,7 +2360,7 @@ and is independent of everything else.
 
 With \vn{flexible} set to \vn{True}, the exit face is taken to be the
 reference frame of the entrance face of the next element in the
-lattice. In this case, it must be possible to compute the recerence
+lattice. In this case, it must be possible to compute the reference
 coordinates of the next element before the reference coordinates of
 the \vn{patch} are computed. A \vn{flexible} \vn{patch} will have the
 its offsets, pitches, and tilt as dependent parameters

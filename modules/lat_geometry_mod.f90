@@ -102,13 +102,7 @@ do n = 0, ubound(lat%branch, 1)
 
   if (branch%ix_from_branch > -1 .and. (stale .or. branch%ele(0)%bookkeeping_state%floor_position == stale$)) then
     b_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-    branch%ele(0)%floor = b_ele%floor
-
-    if (nint(b_ele%value(direction$)) == -1) then
-      branch%ele(0)%floor%theta = modulo2(branch%ele(0)%floor%theta + pi, pi)
-      branch%ele(0)%floor%phi   = -branch%ele(0)%floor%phi
-      branch%ele(0)%floor%psi   = -branch%ele(0)%floor%psi
-    endif
+    call ele_geometry (b_ele%floor, b_ele, branch%ele(0)%floor, treat_as_patch = .true.)
     stale = .true.
   endif
 
@@ -185,7 +179,7 @@ end subroutine lat_geometry
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (floor0, ele, floor, reverse)
+! Subroutine ele_geometry (floor0, ele, floor, reverse, treat_as_patch)
 !
 ! Subroutine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
@@ -202,17 +196,20 @@ end subroutine lat_geometry
 !   use bmad
 !
 ! Input:
-!   floor0  -- Starting floor coordinates at upstream end.
-!   ele     -- Ele_struct: Element to propagate the geometry through.
-!   reverse -- Integer, optional: Reverse propagation through the element?
+!   floor0          -- Starting floor coordinates at upstream end.
+!   ele             -- Ele_struct: Element to propagate the geometry through.
+!   reverse         -- Integer, optional: Reverse propagation through the element?
+!   treat_as_patch  -- Logical, option: If present and True then treat the element
+!                        like a patch element. This is used by branch and photon_branch
+!                        elements for constructing the coordinates of the "to" lattice branch.
 !
 ! Output:
-!   floor -- floor_position_struct: Floor position at downstream end.
+!   floor       -- floor_position_struct: Floor position at downstream end.
 !     %r(3)              -- X, Y, Z Floor position at end of element
 !     %theta, phi, %psi  -- Orientation angles 
 !-
 
-subroutine ele_geometry (floor0, ele, floor, reverse)
+subroutine ele_geometry (floor0, ele, floor, reverse, treat_as_patch)
 
 use multipole_mod
 
@@ -237,6 +234,7 @@ integer, optional :: reverse
 integer i, key, n_loc, reversed
 
 logical has_nonzero_pole, err
+logical, optional :: treat_as_patch
 
 character(16), parameter :: r_name = 'ele_geometry'
 
@@ -258,6 +256,7 @@ leng = ele%value(l$) * reversed
 
 key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
+if (logic_option(.false., treat_as_patch)) key = patch$
 
 if (key == multipole$) then
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)

@@ -11,7 +11,7 @@ use crystal_param_mod
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
 
-private control_bookkeeper1, makeup_overlay_and_girder_slave, compute_slave_aperture 
+private control_bookkeeper1, makeup_overlay_and_girder_slave
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
 
 !----------------------------------------------------------------------------
@@ -817,6 +817,7 @@ n_major_lords = 0
 
 do j = 1, slave%n_lord
   lord => pointer_to_lord(slave, j, ix_con, ix_order)
+  if (lord%lord_status /= super_lord$) cycle
   select case (lord%key)
   case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
   case default  ! If major
@@ -862,7 +863,6 @@ if (n_major_lords == 1) then
   if (is_last) slave%value(l$) = major_lord%value(l$) - offset
 
   call makeup_super_slave1 (slave, major_lord, offset, branch%param, is_first, is_last, err_flag)
-  if (err_flag) return
 
   return
 
@@ -896,9 +896,11 @@ value(E_tot$)          = slave%value(E_tot$)
 value(p0c$)            = slave%value(p0c$)
 value(delta_ref_time$) = slave%value(delta_ref_time$)
 value(ref_time_start$) = slave%value(ref_time_start$)
+slave%value(x1_limit$:y2_limit$) = 0
 
-s_slave = slave%s - value(l$)/2  ! center of slave
+slave%aperture_at = no_end$
 slave%is_on = .false.
+s_slave = slave%s - value(l$)/2  ! center of slave
 
 n_major_lords = 0
 
@@ -906,19 +908,13 @@ n_major_lords = 0
 
 do j = 1, slave%n_lord
 
-  lord => pointer_to_lord(slave, j, ix_con)
-  is_first = (ix_con == lord%ix1_slave)
-  is_last  = (ix_con == lord%ix2_slave)
+  lord => pointer_to_lord(slave, j, ix_con, ix_order)
+  if (lord%lord_status /= super_lord$) cycle
+
+  is_first = (ix_order == 1)
+  is_last  = (ix_order == lord%n_slave)
 
   ! Do some error checking.
-
-  if (lord%lord_status /= super_lord$) then
-    call out_io (s_abort$, r_name, &
-          "SUPER_SLAVE HAS A CONTROL ELEMENT THAT IS NOT A SUPER_LORD", &
-          'SLAVE: ' //  slave%name // '  \i\ ', &
-          'LORD:  ' //  lord%name  // '  \i\ ', i_array = [ix_slave, lord%ix_ele] )
-    if (global_com%exit_on_error) call err_exit
-  endif
 
   if (associated(lord%rf_wake)) then
     call out_io (s_abort$, r_name, &
@@ -949,12 +945,6 @@ do j = 1, slave%n_lord
 
   if (value(ds_step$) == 0 .or. lord%value(ds_step$) < value(ds_step$)) &
                                         value(ds_step$) = lord%value(ds_step$)
-
-  ! Coupler and aperture calc.
-
-  call compute_slave_aperture (value, slave, lord, is_first, is_last)
-
-  if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, is_first, is_last)
 
   ! Methods...
   ! A "major" element is something other than a pipe, monitor, etc.
@@ -1111,7 +1101,7 @@ if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave
 
 if (slave%key == em_field$) then
   slave%value = value
-  return  ! Field info is stored in the lord elements.
+  goto 8000  ! Field info is stored in the lord elements.
 endif
 
 slave%value = value
@@ -1287,8 +1277,7 @@ case (solenoid$, sol_quad$, quadrupole$)
 ! bend_sol_quad
 
 case (bend_sol_quad$)
-  call out_io (s_abort$, r_name, &
-               'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
+  call out_io (s_abort$, r_name, 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
   if (global_com%exit_on_error) call err_exit
 
 end select
@@ -1296,6 +1285,10 @@ end select
 ! If the slave has %field_master = T then we need to convert k1, etc values to field quantities.
 
 8000 continue
+
+! Coupler and aperture calc.
+
+if (slave%key == lcavity$ .or. slave%key == rfcavity$) call compute_slave_coupler (slave)
 
 if (slave%field_master) then
   slave%field_master = .false.   ! So attribute_bookkeeper will do the right thing.
@@ -1546,13 +1539,6 @@ endif
 
 if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
 
-call compute_slave_aperture (value, slave, lord, at_upstream_end, at_downstream_end)
-
-if (slave%key == lcavity$) then
-  slave%value(coupler_at$) = no_end$
-  call compute_slave_coupler (value, slave, lord, at_upstream_end, at_downstream_end)
-endif
-
 ! s_del is the distance between lord and slave centers
 
 if (has_orientation_attributes(slave)) then
@@ -1610,7 +1596,10 @@ endif
 
 !
 
+if (slave%key == lcavity$ .or. slave%key == rfcavity$) call compute_slave_coupler (slave)
+
 if (slave%key == lcavity$) then
+  slave%value(coupler_at$) = no_end$
   slave%value(e_loss$) = lord%value(e_loss$) * coef
 endif
 
@@ -1625,106 +1614,38 @@ end subroutine makeup_super_slave1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine compute_slave_aperture (value, slave, lord, at_upstream_end, at_downstream_end)
+! Subroutine compute_slave_coupler (slave)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine compute_slave_aperture (value, slave, lord, at_upstream_end, at_downstream_end)
+subroutine compute_slave_coupler (slave)
 
 implicit none
 
-type (ele_struct) slave, lord
+type (ele_struct) slave
+type (ele_struct), pointer :: lord
 real(rp) value(num_ele_attrib$)
-integer aperture_at
-logical at_upstream_end, at_downstream_end
-
-! 
-
-slave%aperture_at = no_end$
-
-
-aperture_at = lord%aperture_at
-if (aperture_at == exit_end$) then
-  if (lord%orientation == 1) then
-    aperture_at =  downstream_end$
-  else
-    aperture_at =  upstream_end$
-  endif
-elseif (aperture_at == entrance_end$) then
-  if (lord%orientation == 1) then
-    aperture_at =  upstream_end$
-  else
-    aperture_at =  downstream_end$
-  endif
-endif
-
-
-
-select case (aperture_at)
-
-case (downstream_end$) 
-  if (at_downstream_end) slave%aperture_at = downstream_end$
-case (upstream_end$)
-  if (at_upstream_end) slave%aperture_at = upstream_end$
-case (both_ends$)
-  if (at_upstream_end .and. at_downstream_end) then
-    slave%aperture_at = both_ends$
-  elseif (at_upstream_end) then
-    slave%aperture_at = upstream_end$
-  elseif (at_downstream_end) then 
-    slave%aperture_at = downstream_end$
-  endif
-case (continuous$)
-  slave%aperture_at = continuous$
-end select
-
-if (slave%aperture_at == no_end$) then
-  value(x1_limit$) = 0
-  value(x2_limit$) = 0
-  value(y1_limit$) = 0
-  value(y2_limit$) = 0
-endif
-
-end subroutine compute_slave_aperture
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine compute_slave_coupler (value, slave, lord, at_upstream_end, at_downstream_end)
-!
-! This routine is not meant for general use.
-!-
-
-subroutine compute_slave_coupler (value, slave, lord, at_upstream_end, at_downstream_end)
-
-implicit none
-
-type (ele_struct) slave, lord
-real(rp) value(num_ele_attrib$)
-logical at_upstream_end, at_downstream_end
+integer i, ix_slave
+logical upstream, downstream
 
 !
 
-select case (nint(lord%value(coupler_at$)))
-case (downstream_end$) 
-  if (at_downstream_end) slave%value(coupler_at$) = downstream_end$
-case (upstream_end$)
-  if (at_upstream_end) slave%value(coupler_at$) = upstream_end$
-case (both_ends$)
-  if (at_upstream_end .and. at_downstream_end) then
+do i = 1, slave%n_lord
+  lord => pointer_to_lord (slave, i, ix_slave = ix_slave)
+  if (lord%key /= rfcavity$ .and. lord%key /= lcavity$) cycle
+  upstream = lord_edge_aligned (upstream_end$, lord, ix_slave)
+  downstream = lord_edge_aligned (downstream_end$, lord, ix_slave)
+  if (upstream .and. downstream) then
     slave%value(coupler_at$) = both_ends$
-  elseif (at_upstream_end) then
+  elseif (upstream) then
     slave%value(coupler_at$) = upstream_end$
-  elseif (at_downstream_end) then 
+  elseif (downstream) then
     slave%value(coupler_at$) = downstream_end$
+  else
+    slave%value(coupler_at$) = no_end$
   endif
-end select
-
-if (nint(slave%value(coupler_at$)) == no_end$) then
-  value(coupler_strength$) = 0
-endif
+enddo
 
 end subroutine compute_slave_coupler
 

@@ -562,19 +562,35 @@ The \vn{qp_axis_struct} defines how axes are drawn
                               !  Default = 0.05
     real(rp) label_offset     ! Offset in inches of the label from the numbering.
                               !  Default = 0.05
+    integer label_color       ! black\$ (default), red\$, etc. 
     real(rp) major_tick_len   ! Length of the major ticks in inches. Def = 0.10
     real(rp) minor_tick_len   ! Length of the minor ticks in inches. Def = 0.06
     integer major_div         ! Number of major divisions. Default = 5
+    integer major_div_nominal ! Nominal value. Def = 5.
     integer minor_div         ! Number of minor divisions. 0 = auto-choose. Default = 0
     integer minor_div_max     ! Maximum number for auto choose. Default = 5
     integer places            ! Places after the decimal point. Default = 0
-    character(16) type        ! For log scales. Not yet implemented.
-    integer tick_side         ! +1 = draw to the inside, 0 = both, -1 = outside.
-                              !  Default = +1
-    integer number_side       ! +1 = draw to the inside, -1 = outside.
-                              !  Default = -1
+    character(16) type        ! 'LINEAR' (default), 'LOG', or 'CUSTOM'.
+    character(16) bounds      ! 'GENERAL' (default), 'ZERO_AT_END', ZERO_SYMMETRIC.
+    integer tick_side         ! +1 = draw to the inside (def), 0 = both, -1 = outside.
+    integer number_side       ! +1 = draw to the inside, -1 = outside (default).
     logical draw_label        ! Draw the label? Default = True.
     logical draw_numbers      ! Draw the numbering? Default = True.
+  end type
+\end{example}
+
+\begin{example}
+  type qp_plot_struct
+    character(80) :: title = ' '
+    type (qp_axis_struct) x, y, x2, y2
+    type (qp_axis_struct), pointer :: xx, yy  ! Pointer to axes used for plotting.
+    logical :: draw_box    = .true.
+    logical :: draw_title  = .true.
+    logical :: draw_grid   = .true.
+    logical :: x2_mirrors_x = .true.
+    logical :: y2_mirrors_y = .true.
+    logical :: xx_points_to_x
+    logical :: yy_points_to_y
   end type
 \end{example}
 
