@@ -164,20 +164,20 @@ do i = 1, n_control
 
   ! Varying the length of a super_slave is permitted so do not check in this case.
 
-  if (ix_attrib /= l$ .or. slave%slave_status /= super_slave$) then
-    select case (ix_attrib)
-    case (start_edge$, end_edge$, accordion_edge$, s_position$)
-      free = attribute_free (slave, 'L', lat, err_print_flag)
-    case default
-      free = attribute_free (slave, attribute_name(slave, ix_attrib), lat, err_print_flag)
-    end select
-  endif
+  select case (ix_attrib)
+  case (start_edge$, end_edge$, accordion_edge$, s_position$)
+    free = attribute_free (slave, 'L', lat, err_print_flag)
+  case default
+    free = attribute_free (slave, attribute_name(slave, ix_attrib), lat, err_print_flag)
+  end select
 
   if (.not. free) then
     if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
           'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lord%name)
     err = .true.
   endif
+
+  !
 
   n_con = n_con + 1
   if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)

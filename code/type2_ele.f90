@@ -115,13 +115,13 @@ nl = 0
 
 if (ele%ix_branch /= 0) then
   if (associated(lat)) then
-    nl=nl+1; write (li(nl), *) 'Branch #', ele%ix_branch, ': ', branch%name
+    nl=nl+1; write (li(nl), *) 'Branch #      ', ele%ix_branch, ': ', trim(branch%name)
   else
-    nl=nl+1; write (li(nl), *) 'Branch #', ele%ix_branch
+    nl=nl+1; write (li(nl), *) 'Branch #      ', ele%ix_branch
   endif
 endif
-nl=nl+1; write (li(nl), *) 'Element #', ele%ix_ele
-nl=nl+1; write (li(nl), *) 'Element Name: ', ele%name
+nl=nl+1; write (li(nl), *)     'Element #     ', ele%ix_ele
+nl=nl+1; write (li(nl), *)     'Element Name: ', trim(ele%name)
 
 if (ele%type /= blank_name$) then
   nl=nl+1; write (li(nl), *) 'Element Type: "', trim(ele%type), '"'
@@ -457,11 +457,10 @@ if (ele%key == branch$ .or. ele%key == photon_branch$) then
   n = nint(ele%value(ix_to_branch$))
   i = nint(ele%value(ix_to_element$))
   if (associated(lat)) then
-    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Branch to:', trim(lat%branch(n)%name), '  [', n, ']'
-    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Ele to:   ', trim(lat%branch(n)%ele(i)%name), '  [', i, ']'
+    nl=nl+1; write (li(nl), '(5a, 2(i0, a))') 'Branch to: ', trim(lat%branch(n)%name), '>>', &
+                                  trim(lat%branch(n)%ele(i)%name), '  [', n, '>>', i, ']'
   else
-    nl=nl+1; write (li(nl), *) 'Branch to:', n
-    nl=nl+1; write (li(nl), *) 'Ele to:   ', i
+    nl=nl+1; write (li(nl), '(a, i0, a, i0)') 'Branch to: ', n, '>>', i
   endif
 
 endif

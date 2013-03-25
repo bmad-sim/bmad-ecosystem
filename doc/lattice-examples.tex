@@ -5,29 +5,6 @@ This chapter gives some examples of how lattice files can be constructed to
 describe various machine geometries.
 
 %-----------------------------------------------------------------------------
-%%\subsection{Example: Flexible Patch in an ERL}
-%%\label{s:ex.erl}
-%%
-%%\more_\needed
-%%
-%%Consider the case of an Energy Recovery Linac (ERL) where the beam
-%%goes through the linac section of the ERL twice. Once to accelerate
-%%the beam and once to decelerate and recover the energy from the
-%%beam. The basic ERL lattice is then
-%%\begin{example}
-%%  erl: line = (injector, merge, linac, arc, linac, dump)
-%%  injector: line = (...)
-%%  linac: line[multipass] = (..., rf1, ...)
-%%  arc: line = (..., patch2)
-%%  dump: line = (...)
-%%  patch2: patch, flexible = True
-%%  ...
-%%  expand_lattice
-%%  rf1\B2[dphi0] = 0.5
-%%  ...
-%%\end{example}
-
-%-----------------------------------------------------------------------------
 \section{Example: Injection Line}
 \label{s:ex.inj}
 
@@ -49,7 +26,7 @@ simulate this is:
   INJ_L: line = (..., X, P, BND2, BR)
   RING_L: line = (..., BND, M, ...)
   P: patch, x_offset = -0.5, x_pitch = 0.15, z_offset = 0.3 
-  BND: sbend, l = 6.2, rho = 1/52
+  BND: sbend, l = 6.2, g = 1/52
   BND2: BND, l = 4.7, tracking_method = runge_kutta,
           field_calc = grid, field = \{...\}
   BR: branch, to_line = RING_L, to_element = M
@@ -137,6 +114,29 @@ opposite from the counterclockwise direction of the bend. To counter
 this, \vn{g_err} is set so the total bending field \vn{g_tot = g +
 g_err} is opposite the design field. That is, \vn{g_err} is set so
 that \vn{g_tot = -g}.
+
+%-----------------------------------------------------------------------------
+%%\subsection{Example: Flexible Patch in an ERL}
+%%\label{s:ex.erl}
+%%
+%%\more_\needed
+%%
+%%Consider the case of an Energy Recovery Linac (ERL) where the beam
+%%goes through the linac section of the ERL twice. Once to accelerate
+%%the beam and once to decelerate and recover the energy from the
+%%beam. The basic ERL lattice is then
+%%\begin{example}
+%%  erl: line = (injector, merge, linac, arc, linac, dump)
+%%  injector: line = (...)
+%%  linac: line[multipass] = (..., rf1, ...)
+%%  arc: line = (..., patch2)
+%%  dump: line = (...)
+%%  patch2: patch, flexible = True
+%%  ...
+%%  expand_lattice
+%%  rf1\B2[dphi0] = 0.5
+%%  ...
+%%\end{example}
 
 %-----------------------------------------------------------------------------
 \section{Example: Colliding Beam Storage Rings}

@@ -487,7 +487,7 @@ endif
 ! now that we have the ends we find the elements to either side whose length
 ! the group can adjust
 
-if (ix_attrib /= end_edge$) then
+if (ix_attrib /= end_edge$ .and. ix_attrib /= l$) then
   ix1 = ix_min - 1
   do
     if (attribute_name(branch%ele(ix1), l$) == 'L') exit  ! If has length attribute
@@ -502,7 +502,7 @@ if (ix_attrib /= end_edge$) then
   enddo
 endif
 
-if (ix_attrib /= start_edge$) then
+if (ix_attrib /= start_edge$ .and. ix_attrib /= l$) then
   ix2 = ix_max + 1 
   do
     if (attribute_name(branch%ele(ix2), l$) == 'L') exit  ! If has length attribute
@@ -608,6 +608,7 @@ if (ele%slave_status == super_slave$) then
 
   do il = 1, ele%n_lord
     my_lord => pointer_to_lord(ele, il)
+    if (my_lord%lord_status /= super_lord$) cycle
     call group_change_this (my_lord, ix_attrib, coef)
   enddo
 
@@ -780,7 +781,7 @@ type (ele_struct), pointer :: lord, slave0, lord1, major_lord
 type (ele_struct) :: sol_quad
 type (branch_struct), pointer :: branch
 
-integer i, j, ix_con, ix, ix_slave, ix_lord, ix_order, ix_major_order, n_major_lords
+integer i, j, ix, ix_slave, ix_lord, ix_order, ix_major_order, n_major_lords
 
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
@@ -816,7 +817,7 @@ n_major_lords = 0
 
 
 do j = 1, slave%n_lord
-  lord => pointer_to_lord(slave, j, ix_con, ix_order)
+  lord => pointer_to_lord(slave, j, ix_slave = ix_order)
   if (lord%lord_status /= super_lord$) cycle
   select case (lord%key)
   case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
@@ -852,7 +853,7 @@ if (n_major_lords == 1) then
   ! Find the offset from the longitudinal start of the major_lord to the start of the slave
 
   offset = 0 ! length of all slaves before this one
-  do i = 1, ix_con - major_lord%ix1_slave
+  do i = 1, ix_order-1
     slave0 => pointer_to_slave(major_lord, i)
     offset = offset + slave0%value(l$)
   enddo
@@ -908,7 +909,7 @@ n_major_lords = 0
 
 do j = 1, slave%n_lord
 
-  lord => pointer_to_lord(slave, j, ix_con, ix_order)
+  lord => pointer_to_lord(slave, j, ix_slave = ix_order)
   if (lord%lord_status /= super_lord$) cycle
 
   is_first = (ix_order == 1)
@@ -1626,16 +1627,16 @@ implicit none
 type (ele_struct) slave
 type (ele_struct), pointer :: lord
 real(rp) value(num_ele_attrib$)
-integer i, ix_slave
+integer i
 logical upstream, downstream
 
 !
 
 do i = 1, slave%n_lord
-  lord => pointer_to_lord (slave, i, ix_slave = ix_slave)
+  lord => pointer_to_lord (slave, i)
   if (lord%key /= rfcavity$ .and. lord%key /= lcavity$) cycle
-  upstream = lord_edge_aligned (upstream_end$, lord, ix_slave)
-  downstream = lord_edge_aligned (downstream_end$, lord, ix_slave)
+  upstream = lord_edge_aligned (slave, upstream_end$, lord)
+  downstream = lord_edge_aligned (slave, downstream_end$, lord)
   if (upstream .and. downstream) then
     slave%value(coupler_at$) = both_ends$
   elseif (upstream) then
@@ -1772,8 +1773,10 @@ contains
 
 subroutine overlay_change_this (iv)
 
-integer iv
+type (ele_struct), pointer :: my_lord
+integer i, iv
 real(rp), pointer :: r_ptr
+character(40) a_name
 
 !
 
@@ -1782,7 +1785,21 @@ if (err_flag) call err_exit
 value(iv) = value(iv) + r_ptr * coef
 used(iv) = .true.
 if (iv > num_ele_attrib$) multipole_set = .true.
-err_flag = attribute_free (slave, attribute_name(slave, iv), lat, .true., .true.)
+a_name = attribute_name(slave, iv)
+err_flag = attribute_free (slave, a_name, lat, .true., .true.)
+if (err_flag) return
+
+! If super_slave varying l then vary lord lengths.
+
+if (slave%slave_status == super_slave$) then
+  do i = 1, slave%n_lord
+    my_lord = pointer_to_lord(slave, i)
+    if (my_lord%lord_status /= super_lord$) cycle
+    my_lord%value(iv) = value(iv)
+    err_flag = attribute_free (my_lord, a_name, lat, .true., .true.)
+    if (err_flag) return
+  enddo
+endif
 
 end subroutine overlay_change_this
 
