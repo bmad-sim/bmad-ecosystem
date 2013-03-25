@@ -55,7 +55,7 @@ real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
-real(rp) dcos_phi, dgradient, dpz, w_mat_inv(3,3), w_mat0(3,3)
+real(rp) dcos_phi, dgradient, dpz
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l
@@ -493,30 +493,7 @@ case (octupole$)
 
 case (patch$)
 
-  end_orb%vec(1) = end_orb%vec(1) - ele%value(x_offset$)
-  end_orb%vec(3) = end_orb%vec(3) - ele%value(y_offset$)
-  r_vec = [end_orb%vec(1), end_orb%vec(3), -ele%value(z_offset$)]
-  
-  rel_pc = 1 + end_orb%vec(6)
-  p_vec = [end_orb%vec(2)/rel_pc, end_orb%vec(2)/rel_pc, 0.0_rp]
-  p_vec(3) = sqrt(1 - p_vec(1)**2 - p_vec(2)**2)
-  if (end_orb%p0c < 0) p_vec(3) = -p_vec(3)
-
-  if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
-    call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
-    p_vec = matmul(w_mat_inv, p_vec)
-    r_vec = matmul(w_mat_inv, r_vec)
-    end_orb%vec(2) = p_vec(1)
-    end_orb%vec(4) = p_vec(2)
-    end_orb%p0c = sign(end_orb%p0c, p_vec(3))
-  endif
-
-  end_orb%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
-  end_orb%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
-
-  end_orb%vec(5) = end_orb%vec(5) + r_vec(3) / p_vec(3) + &
-                    end_orb%beta * (ele%value(z_offset$) + c_light * ele%value(t_offset$))
-  end_orb%vec(6) = (end_orb%vec(6) * ele%value(p0c_start$) + (ele%value(p0c_start$) - ele%value(p0c$))) / ele%value(p0c$) 
+  call track_a_patch(ele, end_orb)
 
 !-----------------------------------------------
 ! quadrupole

@@ -174,6 +174,47 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function lord_edge_aligned (slave_edge, lord, ix_slave) result (is_aligned)
+!
+! Routine to determine if the edge of a super_lord is aligned with a given edge of a slave.
+!
+! Input:
+!   slave_edge  -- integer: Which end is under consideration: upstream_end$, or downstream_end$.
+!   lord        -- ele_struct: Lord element.
+!   ix_slave    -- integer: Index of the slave in the list of slaves contained in the lord.
+!                    Must be between 1 and lord%n_slave.
+!
+! Output:
+!   is_aligned  -- integer: True if a lord edge is aligned with the slave edge.
+!- 
+
+function lord_edge_aligned (slave_edge, lord, ix_slave) result (is_aligned)
+
+implicit none
+
+type (ele_struct) lord
+integer slave_edge, ix_slave
+logical is_aligned
+character(*), parameter :: r_name = 'lord_edge_aligned'
+
+!
+
+select case (slave_edge)
+case (upstream_end$)
+  is_aligned = (ix_slave == 1)
+case (downstream_end$)
+  is_aligned = (ix_slave == lord%n_slave)
+case default
+  call out_io (s_fatal$, r_name, 'BAD SLAVE_EDGE VALUE!')
+  if (global_com%exit_on_error) call err_exit
+end select
+
+end function lord_edge_aligned
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Function at_this_ele_end (now_at, where_at, orientation) result (is_at_this_end)
 !
 ! Routine to determine if an aperture or fringe field is present.
@@ -209,13 +250,13 @@ select case (physical_end)
 case (entrance_end$)
   select case (where_at)
   case (entrance_end$, both_ends$, continuous$); is_at_this_end = .true.
-  case default;                                is_at_this_end = .false.
+  case default;                                  is_at_this_end = .false.
   end select
 
 case (exit_end$)
   select case (where_at)
   case (exit_end$, both_ends$, continuous$); is_at_this_end = .true.
-  case default;                            is_at_this_end = .false.
+  case default;                              is_at_this_end = .false.
   end select
 end select
 
@@ -1992,7 +2033,7 @@ ele%field_master      = .false.
 ele%offset_moves_aperture = .false.
 
 ele%aperture_type = rectangular$
-ele%aperture_at   = downstream_end$
+ele%aperture_at   = exit_end$
 
 ! init Twiss
 

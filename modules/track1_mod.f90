@@ -6,10 +6,10 @@
 
 module track1_mod
 
-use bmad_struct
 use bmad_interface
 use make_mat6_mod
 use em_field_mod
+use lat_geometry_mod
 
 ! Private routines for exact_bend_edge_kick
 private ptc_rot_xz, ptc_wedger, ptc_fringe_dipoler
@@ -20,7 +20,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine check_aperture_limit (orb, ele, at, param, check_momentum)
+! Subroutine check_aperture_limit (orb, ele, edge_at, param, check_momentum)
 !
 ! Subroutine to check if an orbit is outside an element's aperture.
 ! Note: A particle will also be considered to have hit an aperture
@@ -30,51 +30,65 @@ contains
 !   use bmad
 !
 ! Input:
-!   orb   -- Coord_struct: coordinates of a particle.
-!   ele   -- Ele_struct: Element holding the aperture
+!   orb     -- Coord_struct: coordinates of a particle.
+!   ele     -- Ele_struct: Element holding the aperture
 !     %value(x1_limit$) -- Horizontal negative side aperture.
 !     %value(x2_limit$) -- Horizontal positive side aparture.
 !     %value(y1_limit$) -- Vertical negative side aperture.
 !     %value(y2_limit$) -- Vertical positive side aparture.
 !     %offset_moves_aperture -- If True then aperture moves with the element.
-!   at    -- Integer: upstream_end$ or downstream_end$
-!   param -- lat_param_struct: Parameter structure
+!   edge_at -- Integer: upstream_end$ or downstream_end$
+!   param   -- lat_param_struct: Parameter structure
 !     %aperture_limit_on -- The aperture limit is only checked if this is true.
 !               The exception is when the orbit is larger than 
 !               bmad_com%max_aperture_limit. 
 !   check_momentum
-!         -- Logical, optional: If present and false then checking of p_x and 
-!               p_y will be disabled.
+!           -- Logical, optional: If present and false then checking of p_x and 
+!                 p_y will be disabled.
 !
 ! Output:
 !   orb   -- Coord_struct: coordinates of a particle.
 !     %state -- State of the particle
 !-
 
-subroutine check_aperture_limit (orb, ele, at, param, check_momentum)
+recursive subroutine check_aperture_limit (orb, ele, edge_at, param, check_momentum)
 
 implicit none
 
 type (coord_struct) :: orb
 type (coord_struct) orb2 
 type (ele_struct) :: ele
+type (ele_struct), pointer :: lord
 type (lat_param_struct), intent(inout) :: param
 
 real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r
-integer at, physical_end
+integer i, edge_at, physical_end, ix_slave
 logical do_tilt, err
 logical, optional :: check_momentum
 character(20) :: r_name = 'check_aperture_limit'
 
+! Super_slave elements have the aperture info stored in the lord
+
+if (ele%slave_status == super_slave$) then
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i, ix_slave = ix_slave)
+    if (lord%lord_status /= super_lord$) cycle
+    if (.not. (lord_edge_aligned (edge_at, lord, ix_slave) .or. lord%aperture_at == continuous$)) cycle
+    call check_aperture_limit (orb, lord, edge_at, param, check_momentum)
+    if (orb%state /= alive$) return
+  enddo
+  return
+endif
+
 ! Check if there is an aperture here. If not, simply return.
 
-physical_end = physical_ele_end (at, ele%orientation)
-if (.not. at_this_ele_end (at, ele%aperture_at, ele%orientation)) return
+physical_end = physical_ele_end (edge_at, ele%orientation)
+if (.not. at_this_ele_end (edge_at, ele%aperture_at, ele%orientation)) return
 
 ! Custom
 
 if (ele%aperture_type == custom$) then
-  call check_aperture_limit_custom (orb, ele, at, param, err)
+  call check_aperture_limit_custom (orb, ele, edge_at, param, err)
   return
 endif
 
@@ -1573,9 +1587,7 @@ integer end_at
 
 !
 
-if (nint(ele%value(coupler_at$)) /= end_at .and. &
-    nint(ele%value(coupler_at$)) /= both_ends$) return
-
+if (.not. at_this_ele_end (end_at, nint(ele%value(coupler_at$)), ele%orientation)) return
 if (ele%value(coupler_strength$) == 0) return
 
 dp_coupler = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) * &
@@ -1595,5 +1607,65 @@ orbit%vec(2) = orbit%vec(2) + dp_x_coupler / pc
 orbit%vec(4) = orbit%vec(4) + dp_y_coupler / pc
 
 end subroutine rf_coupler_kick
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine track_a_patch (ele, orbit)
+! 
+! Routine to track through a patch element. 
+!
+! This routine can also be used with branch or photon_branch elements to transform a particle's 
+! phase space coordinates from the "from" lattice branch to the "to" lattice branch.
+!
+! Moudle needed:
+!   use track1_mod
+!
+! Input:
+!   ele   -- ele_struct: patch, branch, or photon_branch element.
+!   orbit -- coord_struct: Starting phase space coords
+!
+! Output:
+!   orbit -- coord_struct: Coords after applying a patch transformation.
+!-
+
+subroutine track_a_patch (ele, orbit)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orbit
+
+real(rp) p_vec(3), r_vec(3), rel_pc, w_mat_inv(3,3)
+
+!
+
+orbit%vec(1) = orbit%vec(1) - ele%value(x_offset$)
+orbit%vec(3) = orbit%vec(3) - ele%value(y_offset$)
+r_vec = [orbit%vec(1), orbit%vec(3), -ele%value(z_offset$)]
+
+rel_pc = 1 + orbit%vec(6)
+p_vec = [orbit%vec(2)/rel_pc, orbit%vec(2)/rel_pc, 0.0_rp]
+p_vec(3) = sqrt(1 - p_vec(1)**2 - p_vec(2)**2)
+if (orbit%p0c < 0) p_vec(3) = -p_vec(3)
+
+if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
+  p_vec = matmul(w_mat_inv, p_vec)
+  r_vec = matmul(w_mat_inv, r_vec)
+  orbit%vec(2) = p_vec(1)
+  orbit%vec(4) = p_vec(2)
+  orbit%p0c = sign(orbit%p0c, p_vec(3))
+endif
+
+orbit%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
+orbit%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
+
+orbit%vec(5) = orbit%vec(5) + r_vec(3) / p_vec(3) + &
+                  orbit%beta * (ele%value(z_offset$) + c_light * ele%value(t_offset$))
+orbit%vec(6) = (orbit%vec(6) * ele%value(p0c_start$) + (ele%value(p0c_start$) - ele%value(p0c$))) / ele%value(p0c$) 
+
+end subroutine track_a_patch
 
 end module

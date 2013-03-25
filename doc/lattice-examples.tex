@@ -1,7 +1,7 @@
 \chapter{Lattice Examples}
 \label{c:lat.example}
 
-This chapter gives some examples of how lattice files can be constructred to
+This chapter gives some examples of how lattice files can be constructed to
 describe various machine geometries.
 
 %-----------------------------------------------------------------------------
@@ -28,20 +28,69 @@ describe various machine geometries.
 %%\end{example}
 
 %-----------------------------------------------------------------------------
-%%\subsection{Example: Injection Line Into a Dipole}
-%%\label{s:ex.inj}
-%%
-%%\begin{figure}[tb]
-%%  \centering
-%%  \includegraphics[width=5in]{injection.pdf}
-%%  \caption[Injection line into a dipole magnet.]{Injection line into a dipole magnet.}
-%%  \label{f:inject}
-%%\end{figure}
-%%
-%%An injection line into a dipole magnet is illustrated in \fig{f:inject}.
+\section{Example: Injection Line}
+\label{s:ex.inj}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{injection.pdf}
+  \caption[Injection line into a dipole magnet.]{
+Injection line into a dipole magnet.
+  }
+  \label{f:inject}
+\end{figure}
+
+An injection line is illustrated in \fig{f:inject}. In this example,
+The path of an injected particle after it leaves the last element
+\vn{X} of the injection line (dashed blue line) partially goes through
+the field of the dipole \vn{BND} in the storage ring. One way to
+simulate this is:
+\begin{example}
+  INJ_L: line = (..., X, P, BND2, BR)
+  RING_L: line = (..., BND, M, ...)
+  P: patch, x_offset = -0.5, x_pitch = 0.15, z_offset = 0.3 
+  BND: sbend, l = 6.2, rho = 1/52
+  BND2: BND, l = 4.7, tracking_method = runge_kutta,
+          field_calc = grid, field = \{...\}
+  BR: branch, to_line = RING_L, to_element = M
+  M: marker
+  use, INJ_L
+\end{example}
+
+In order to properly track particles through the fringe field of the
+dipole \vn{BND}, a partial section of \vn{BND}, called \vn{BND2}, is
+placed in the injection line \vn{INJ_L}. The \vn{tracking_method} for
+\vn{BND2} is set to \vn{runge_kutta} since the default
+\vn{bmad_standard} tracking is not able to handle these fringe
+fields. Additionally, the \vn{field_calc} parameter of \vn{BND2} is
+set to \vn{grid} so that the actual field profile of this particular
+magnet can be used in the tracking. The field is specified in the
+\vn{field} parameter (\sref{s:em.fields}). 
+
+After traversing element \vn{X} in the injection line, the particle
+goes through the patch \vn{P} which offsets the reference trajectory
+so that following element, \vn{BND2}, is properly positioned.  The
+beginning of \vn{BND2} is marked by a black dashed line in the figure.
+At the end of \vn{BND2} the branch element \vn{BR} connects \vn{INJ_L}
+with the marker \vn{M} in \vn{RING_L}.
+
+As a side note, notice that the partial bend \vn{BND2} may be
+eliminated from the lattice by eliminating \vn{P} and \vn{BND2} from
+\vn{INJ_L} and modifying \vn{BR} to have \vn{P}'s patch parameters:
+\begin{example}
+  INJ_L: line = (..., X, BR)
+  RING_L: line = (..., BND, ...)
+  BR: branch, to_line = RING_L, to_element = M2,
+          x_offset = -0.5, x_pitch = 0.15, z_offset = 0.3
+  M2: marker, superimpose, ref = BND, ref_beginning, offset = 1.5
+\end{example}
+The problem here is that \vn{BND} will need to use \vn{runge_kutta}
+tracking to be able to properly track the edge fields but generally
+this is not desirable for tracking in a storage ring since
+\vn{runge_kutta} is slow.
 
 %-----------------------------------------------------------------------------
-\subsection{Example: Patch Between reversed and non-reversed elements.}
+\section{Example: Patch Between reversed and non-reversed elements}
 \label{s:ex.patch}
 
 \begin{figure}[tb]
@@ -90,7 +139,7 @@ g_err} is opposite the design field. That is, \vn{g_err} is set so
 that \vn{g_tot = -g}.
 
 %-----------------------------------------------------------------------------
-\subsection{Example: Colliding Beam Storage Rings}
+\section{Example: Colliding Beam Storage Rings}
 \label{s:ex.collide}
 
 \begin{figure}[tb]

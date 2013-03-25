@@ -174,9 +174,17 @@ disappear if the superimposed element overlays the exit end of the
 drift. A similar situation applies to the entrance end of a drift. If
 this is not desired, use a \vn{pipe} element instead.
 
+When the attributes of a super_slave are computed from the attributes
+of its super_lords, some types of attributes may be ``missing''. For
+example, it is, in general, not possible to set appropriate aperture
+attributes (\sref{s:limit}) of a super_slave if the lords of the slave
+have differing aperture settings. When doing calculations, \bmad will
+use directly the corresponding attributes stored in the lord elements to
+correctly calculate things.
+
 %-----------------------------------------------------------------------------
-\subsection{}
-\label{s:super.length}
+\subsection{em_field_slave}
+\label{s:super.field}
 
 %-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}

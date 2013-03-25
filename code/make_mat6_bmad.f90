@@ -378,7 +378,7 @@ case (lcavity$)
 
   ! Coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) call coupler_kick()
+  if (ele%value(coupler_strength$) /= 0) call mat6_coupler_kick()
 
   ! multipoles and z_offset
 
@@ -614,7 +614,7 @@ case (rfcavity$)
 
   ! Coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) call coupler_kick()
+  if (ele%value(coupler_strength$) /= 0) call mat6_coupler_kick()
 
   call offset_particle (ele, c00, param, unset$, set_canonical = .false., set_tilt = .false.)
 
@@ -1142,7 +1142,7 @@ end subroutine
 !----------------------------------------------------------------
 ! contains
 
-subroutine coupler_kick()
+subroutine mat6_coupler_kick()
 
 real(rp) this_phase
 
@@ -1165,19 +1165,16 @@ if (nint(ele%value(coupler_at$)) == both_ends$) then
   dp_y_coupler = dp_y_coupler / 2
 endif
 
-if (nint(ele%value(coupler_at$)) == upstream_end$ .or. &
-    nint(ele%value(coupler_at$)) == both_ends$) then
-  mat6(:,5) = mat6(:,5) + &
-      (mat6(:,2) * dp_x_coupler + mat6(:,4) * dp_y_coupler) / p0c_start
+if (at_this_ele_end (upstream_end$, nint(ele%value(coupler_at$)), ele%orientation)) then
+  mat6(:,5) = mat6(:,5) + (mat6(:,2) * dp_x_coupler + mat6(:,4) * dp_y_coupler) / p0c_start
 endif
 
-if (nint(ele%value(coupler_at$)) == downstream_end$ .or. &
-    nint(ele%value(coupler_at$)) == both_ends$) then
+if (at_this_ele_end (downstream_end$, nint(ele%value(coupler_at$)), ele%orientation)) then
   mat6(2,:) = mat6(2,:) + dp_x_coupler * mat6(5,:) / p0c_end
   mat6(4,:) = mat6(4,:) + dp_y_coupler * mat6(5,:) / p0c_end
 endif
 
-end subroutine coupler_kick
+end subroutine mat6_coupler_kick
 
 end subroutine make_mat6_bmad
 
