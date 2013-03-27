@@ -42,11 +42,31 @@ DO i = 1, lat%n_ele_max - 1
       call init_coord (lat%beam_start, lat%beam_start, ele = lat%ele(i), at_downstream_end = .false.)
       call track1 (lat%beam_start, lat%ele(i), lat%param, end_orb)
       final_str = '"' // trim(lat%ele(i)%name) // ':' // trim(tracking_method_name(j)) // '"' 
-      write (1,'(2a,7es22.13)') final_str, 'REL  1E-10', end_orb%vec, end_orb%t
+      write (1,'(2a,7es22.13)') final_str, tolerance(final_str), end_orb%vec, end_orb%t
    END DO
    write (1,*)
 END DO
 
 close(1)
+
+contains
+  
+character(10) function tolerance(instr)
+  character(38) :: instr
+
+  select case (instr)
+     case('"RFCAVITY1:Time_Runge_Kutta"          ') ; tolerance = 'REL  1E-08'
+     case('"RFCAVITY2:Linear"                    ') ; tolerance = 'REL  1E-07'
+     case('"RFCAVITY2:Time_Runge_Kutta"          ') ; tolerance = 'REL  1E-08'
+     case('"SBEND4:Symp_Lie_PTC"                 ') ; tolerance = 'REL  1E-03'
+     case('"SBEND4:Linear"                       ') ; tolerance = 'REL  1E-03'
+     case('"SBEND6:Symp_Lie_PTC"                 ') ; tolerance = 'REL  1E-03'
+     case('"SBEND6:Linear"                       ') ; tolerance = 'REL  1E-03'
+     case('"LCAVITY1:Time_Runge_Kutta"           ') ; tolerance = 'REL  1E-08'
+     case('"LCAVITY3:Time_Runge_Kutta"           ') ; tolerance = 'REL  1E-08'
+     case default ; tolerance = 'REL  1E-10'
+  end select
+
+end function tolerance
 
 end program
