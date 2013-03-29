@@ -187,11 +187,11 @@ endif
 ! If the element has zero length then need to insert a zero length element
 
 if (abs(super_saved%value(l$)) < bmad_com%significant_length .and. .not. logic_option(.false., create_jumbo_slave)) then
-  ds_small = 2 * bmad_com%significant_length
+  ds_small = 100 * bmad_com%significant_length
   if (branch%ele(ix1_split)%value(l$) > ds_small) then
     call split_lat (branch%lat, s1-ds_small, branch%ix_branch, ix1_split, split_done, &
                                                             .false., .false., save_null_drift, err)
-    ix2_split = ix2_split - 1
+    ix2_split = ix2_split + 1
   elseif (branch%ele(ix1_split+1)%value(l$) > ds_small) then
     call split_lat (branch%lat, s1+ds_small, branch%ix_branch, ix2_split, split_done, &
                                                             .false., .false., save_null_drift, err)
