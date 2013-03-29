@@ -1516,7 +1516,6 @@ end subroutine taylor_ref_energy_correct
 ! Input:
 !   vec_bmad(6) -- real(rp): Bmad coordinates.
 !   beta0       -- real(rp): Reference particle velocity
-!   particle    -- Integer: Particle type. positron$, etc.
 !
 ! Output:
 !   vec_ptc(6)  -- real(rp): PTC coordinates.

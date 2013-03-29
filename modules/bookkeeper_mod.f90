@@ -1502,13 +1502,7 @@ character(24) :: r_name = 'makeup_super_slave1'
 
 err_flag = .true.
 
-if (lord%value(l$) == 0) then
-  call out_io (s_fatal$, r_name, 'LORD HAS ZERO LENGTH!')
-  if (global_com%exit_on_error) call err_exit
-  return
-endif
-
-if (abs(slave%value(l$)) > abs(lord%value(l$))) then
+if (abs(slave%value(l$)) >= abs(lord%value(l$))) then
   coef = 1
 else
   coef = slave%value(l$) / lord%value(l$) 

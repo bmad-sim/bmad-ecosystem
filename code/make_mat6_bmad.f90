@@ -114,7 +114,7 @@ c11 = c1
 !--------------------------------------------------------
 ! Drift or element is off.
 
-if (.not. ele%is_on .and. key /= lcavity$) key = drift$
+if (.not. ele%is_on .and. key /= lcavity$ .and. key /= sbend$) key = drift$
 
 if (any (key == [drift$, capillary$])) then
   call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
@@ -634,6 +634,13 @@ case (sbend$)
   rho = 1 / g
   g_tot = (g + ele%value(g_err$)) * charge_dir
   g_err = g_tot - g
+
+  if (.not. ele%is_on) then
+    g_err = 0
+    g_tot = -g
+    k1 = 0
+    k2 = 0
+  endif
 
   ! Reverse track here for c11 since c11 needs to be the orbit just inside the bend.
   ! Notice that kx_2 and ky_2 are not affected by reverse tracking

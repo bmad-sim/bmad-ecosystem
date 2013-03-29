@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 115
+integer, parameter :: bmad_inc_version$ = 116
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -737,20 +737,20 @@ integer, parameter :: p0c_start$ = 40
 integer, parameter :: e_tot_start$ = 41   
 integer, parameter :: p0c$ = 42         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$ = 43       ! Assumed unique. Do not overload.
-integer, parameter :: ref_wavelength$ = 44, lord_pad1$ = 44
-integer, parameter :: x_pitch_tot$ = 45, no_end_marker$ = 45
-integer, parameter :: y_pitch_tot$ = 46
-integer, parameter :: x_offset_tot$ = 47
-integer, parameter :: y_offset_tot$ = 48
-integer, parameter :: z_offset_tot$ = 49
-integer, parameter :: tilt_tot$ = 50
-integer, parameter :: n_ref_pass$ = 51, ref_cap_gamma$ = 51
-integer, parameter :: radius$ = 52, kh_y_norm$ = 52
-integer, parameter :: pole_radius$ = 53, follow_diffracted_beam$ = 53 
-integer, parameter :: ref_time_start$ = 54
-integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' PTC: 2, 4, or 6.
-integer, parameter :: num_steps$ = 56, l_x$ = 56
-integer, parameter :: ds_step$ = 57, l_y$ = 57
+integer, parameter :: x_pitch_tot$ = 44, no_end_marker$ = 44
+integer, parameter :: y_pitch_tot$ = 45
+integer, parameter :: x_offset_tot$ = 46
+integer, parameter :: y_offset_tot$ = 47
+integer, parameter :: z_offset_tot$ = 48
+integer, parameter :: tilt_tot$ = 49
+integer, parameter :: n_ref_pass$ = 50, ref_cap_gamma$ = 50
+integer, parameter :: radius$ = 51, kh_y_norm$ = 51
+integer, parameter :: pole_radius$ = 52, follow_diffracted_beam$ = 52 
+integer, parameter :: ref_time_start$ = 53
+integer, parameter :: thickness$ = 54, integrator_order$ = 54   ! For Etiennes' PTC: 2, 4, or 6.
+integer, parameter :: num_steps$ = 55, l_x$ = 55
+integer, parameter :: ds_step$ = 56, l_y$ = 56
+integer, parameter :: ref_wavelength$ = 57, lord_pad1$ = 57
 integer, parameter :: l_z$ = 58, lord_pad2$ = 58
 integer, parameter :: scratch$ = 59
 integer, parameter :: custom_attribute1$ = 61   ! For general use
@@ -807,7 +807,7 @@ integer, parameter :: field$ = 105
 integer, parameter :: phi_b$ = 106, crystal_type$ = 106
 integer, parameter :: type$ = 107
 
-! superimpose$ through create_em_field_slave$ assumed unique (or need to modify bmad_parser_mod.f90).
+! superimpose$ through create_jumbo_slave$ assumed unique (or need to modify bmad_parser_mod.f90).
 
 integer, parameter :: superimpose$    = 110   
 integer, parameter :: offset$         = 111
@@ -818,7 +818,7 @@ integer, parameter :: ele_end$        = 115
 integer, parameter :: ref_beginning$  = 116
 integer, parameter :: ref_center$     = 117
 integer, parameter :: ref_end$        = 118
-integer, parameter :: create_em_field_slave$ = 119
+integer, parameter :: create_jumbo_slave$ = 119
 
 integer, parameter :: a0$  = 120, k0l$  = 120
 integer, parameter :: a20$ = 140, k20l$ = 140

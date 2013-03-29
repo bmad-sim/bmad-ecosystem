@@ -6,16 +6,11 @@
 ! Note: If x_limit (or y_limit) for an element is zero then track_all will take
 !       x_limit (or y_limit) as infinite.
 !
-! Note: If a particle does not make it through an lcavity because of lack of
-!       sufficient energy, then orbit(ix_lost)%vec(6) will be < -1. 
-!
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
 !   lat         -- lat_struct: Lat to track through.
-!     %param%aperture_limit_on -- Logical: Sets whether track_all looks to
-!                                 see whether a particle hits an aperture or not.
 !   orbit(0)    -- Coord_struct: Coordinates at beginning of lat.
 !   ix_branch   -- Integer, optional: Index of branch to track. Default is 0 (main lattice).
 !

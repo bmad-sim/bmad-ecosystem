@@ -716,17 +716,17 @@ can be used for tracking purposes, etc. The setting for this
 \section {Multipoles}
 \index{ele_struct!multipoles}
 
-\index{ele_struct!\%b(:)}\index{ele_struct!\%a(:)}
+\index{ele_struct!\%b_pole(:)}\index{ele_struct!\%a_pole(:)}
 \index{multipole!an, bn!in ele_struct}
 \index{multipole!KnL, Tn!in ele_struct}
 \index{multipole!\%scale_multipoles}
 The multipole components of an element (See \sref{s:fields}) are
-stored in the pointers \vn{%a(:)} and \vn{%b(:)}. If \vn{%a} and
-\vn{%b} are allocated they always have a range \vn{%a(0:n_pole_maxx)}
-and \vn{%b(0:n_pole_maxx)}. Currently \vn{n_pole_maxx} = 20. For a
-\vn{Multipole} element, the \vn{%a(n)} array stores the integrated
-multipole strength \vn{KnL}, and the \vn{%b(n)} array stores the tilt
-\vn{Tn}.
+stored in the pointers \vn{%a_pole(:)} and \vn{%b_pole(:)}. If
+\vn{%a_pole} and \vn{%b_pole} are allocated they always have a range
+\vn{%a_pole(0:n_pole_maxx)} and \vn{%b_pole(0:n_pole_maxx)}. Currently
+\vn{n_pole_maxx} = 20. For a \vn{Multipole} element, the
+\vn{%a_pole(n)} array stores the integrated multipole strength
+\vn{KnL}, and the \vn{%b_pole(n)} array stores the tilt \vn{Tn}.
 
 A list of \bmad routines for manipulating multipoles can be found in
 \sref{r:multipoles}.

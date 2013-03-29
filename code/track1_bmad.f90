@@ -100,7 +100,7 @@ charge_dir = param%rel_tracking_charge * ele%orientation
 
 key = ele%key
 if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
-if (.not. ele%is_on .and. key /= lcavity$) key = drift$  
+if (.not. ele%is_on .and. key /= lcavity$ .and. key /= sbend$) key = drift$  
 
 select case (key)
 

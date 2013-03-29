@@ -9,6 +9,7 @@ module ptc_layout_mod
 
 use ptc_interface_mod
 use multipass_mod
+use track1_mod
 
 contains
 
@@ -541,6 +542,80 @@ end function ptc_reference_fibre
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine ptc_track_all (branch, orbit, track_state, err_flag)
+!
+! Routine to track from the start to the end of a lattice branch. 
+! 
+! Modules Needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   branch      -- lat_struct: Lat to track through.
+!   orbit(0)    -- Coord_struct: Coordinates at beginning of branch.
+!
+! Output:
+!   orbit(0:*)   -- Coord_struct: Orbit array.
+!   track_state  -- Integer, optional: Set to moving_forward$ if everything is OK.
+!                     Otherwise: set to index of element where particle was lost.
+!   err_flag     -- Logical, optional: Set true if particle lost or error. False otherwise
+!-
+
+subroutine ptc_track_all (branch, orbit, track_state, err_flag)
+
+use madx_ptc_module
+
+implicit none
+
+type (branch_struct), target :: branch
+type (coord_struct), allocatable :: orbit(:)
+type (ele_struct), pointer :: ele
+type (fibre), pointer :: fib
+
+real(rp) vec(6)
+real(dp) x(6)
+
+integer i
+integer, optional ::track_state
+
+logical, optional :: err_flag
+
+! Init
+
+if (present(err_flag)) err_flag = .true.
+if (present(track_state)) track_state = moving_forward$
+
+!
+
+call vec_bmad_to_ptc (orbit(0)%vec, branch%ele(0)%value(p0c$) / branch%ele(0)%value(E_tot$), x)
+
+do i = 1, branch%n_ele_track
+  ele => branch%ele(i)
+
+  call check_aperture_limit (orbit(i), ele, upstream_end$, branch%param)
+  if (orbit(i)%state /= alive$) then
+    if (present(err_flag)) err_flag = .false.
+    return
+  endif
+
+  fib => branch%ele(i)%ptc_fibre%next
+  call track_probe_x (x, DEFAULT, branch%ele(i-1)%ptc_fibre%next, fib)
+  call vec_ptc_to_bmad (x, fib%beta0, vec)
+  call init_coord (orbit(i), vec, branch%ele(i), .true., branch%param%particle)
+
+  call check_aperture_limit (orbit(i), ele, downstream_end$, branch%param)
+  if (orbit(i)%state /= alive$) then
+    if (present(err_flag)) err_flag = .false.
+    return
+  endif
+
+enddo
+
+end subroutine ptc_track_all
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine ptc_closed_orbit_calc (branch, closed_orbit, radiation_damping_on)
 !
 ! Routine to calculate the closed orbit of a lattice branch using PTC.
@@ -570,7 +645,7 @@ implicit none
 type (branch_struct), target :: branch
 type (coord_struct), allocatable :: closed_orbit(:)
 type (fibre), pointer :: fib
-type (internal_state) state
+type (internal_state) ptc_state
 
 real(dp) x(6)
 real(rp) vec(6)
@@ -582,20 +657,20 @@ logical, optional :: radiation_damping_on
 !
 
 if (logic_option(bmad_com%radiation_damping_on, radiation_damping_on)) then
-  state = DEFAULT + radiation0
+  ptc_state = DEFAULT + radiation0
 else
-  state = DEFAULT - radiation0
+  ptc_state = DEFAULT - radiation0
 endif
 
 x = 0
 fib => branch%ele(0)%ptc_fibre%next
-call find_orbit_x (x, state, 1.0d-5, fibre1 = fib)  ! find closed orbit
+call find_orbit_x (x, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 call vec_ptc_to_bmad (x, fib%beta0, vec)
 call init_coord (closed_orbit(0), vec, branch%ele(0), .true., branch%param%particle)
 
 do i = 1, branch%n_ele_track
   fib => branch%ele(i)%ptc_fibre%next
-  call track_probe_x (x, state, branch%ele(i-1)%ptc_fibre%next, fib)
+  call track_probe_x (x, ptc_state, branch%ele(i-1)%ptc_fibre%next, fib)
   call vec_ptc_to_bmad (x, fib%beta0, vec)
   call init_coord (closed_orbit(i), vec, branch%ele(i), .true., branch%param%particle)
 enddo
@@ -630,7 +705,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (taylor_struct) map(6)
-type (internal_state) state
+type (internal_state) ptc_state
 type (fibre), pointer :: fib
 type (damap) da_map
 type (real_8) ray(6)
@@ -643,9 +718,9 @@ logical rf_on
 !
 
 if (rf_on) then
-  state = default - nocavity0 
+  ptc_state = default - nocavity0 
 else
-  state = default + nocavity0 
+  ptc_state = default + nocavity0 
 endif
 
 ! Find closed orbit
@@ -653,7 +728,7 @@ endif
 x = 0
 x(5) = pz
 fib => ele%ptc_fibre%next
-call find_orbit_x (x, state, 1.0d-5, fibre1 = fib)  ! find closed orbit
+call find_orbit_x (x, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 
 ! Construct map.
 
@@ -661,7 +736,7 @@ call alloc(da_map)
 call alloc(ray)
 da_map = 1   ! Identity
 ray = da_map + x
-call track_probe_x (ray, state, fibre1 = fib)
+call track_probe_x (ray, ptc_state, fibre1 = fib)
 
 call real_8_to_taylor(ray, fib%beta0, map)
 

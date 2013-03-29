@@ -366,6 +366,13 @@ rel_p2 = rel_p**2
 k_1 = ele%value(k1$) * c_dir
 k_2 = ele%value(k2$) * c_dir
 
+if (.not. ele%is_on) then
+  g_err = -g
+  g_tot = 0
+  k_1 = 0
+  k_2 = 0
+endif
+
 ! 1/2 sextupole kick at the beginning.
 
 if (k_2 /= 0) then
@@ -529,7 +536,7 @@ type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
 real(rp) e, g, g_tot, fint, hgap, ht_x, ht_y, cos_e, sin_e, tan_e, sec_e, v0(6), k1_eff
-real(rp) ht2, hs2, c_dir
+real(rp) ht2, hs2, c_dir, k1
 integer stream_end, element_end
 logical in_to_out
 
@@ -541,8 +548,15 @@ character(24), parameter :: r_name = 'approx_bend_edge_kick'
 c_dir = param%rel_tracking_charge * ele%orientation
 element_end = physical_ele_end(stream_end, ele%orientation)
 
-g     = ele%value(g$)
-g_tot = (g + ele%value(g_err$)) * c_dir
+g = ele%value(g$)
+
+if (ele%is_on) then
+  g_tot = (g + ele%value(g_err$)) * c_dir
+  k1 = ele%value(k1$)
+else
+  g_tot = 0
+  k1 = 0
+endif
 
 if (element_end == entrance_end$) then
   e = ele%value(e1$); fint = ele%value(fint$); hgap = ele%value(hgap$)
@@ -554,7 +568,7 @@ cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
 ht_x = g_tot * tan_e
 ht2 = g * tan_e**2
 hs2 = g * sec_e**2
-k1_eff = ele%value(k1$) * c_dir
+k1_eff = k1 * c_dir
 
 if (fint == 0) then
   ht_y = -ht_x
@@ -1417,8 +1431,11 @@ endif
 !Get reference beta0
 
 beta0 = ele%value(e_tot$) / ele%value(p0c$)
-g_tot = ele%value(g$) + ele%value(g_err$)
-
+if (ele%is_on) then
+  g_tot = ele%value(g$) + ele%value(g_err$)
+else
+  g_tot = 0
+endif
 
 ! Convert to PTC coordinates
 if (present(mat6)) then 
