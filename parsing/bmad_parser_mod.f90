@@ -117,7 +117,7 @@ type parser_ele_struct
   integer ix_count
   integer ele_pt, ref_pt
   integer indexx
-  logical create_em_field_slave
+  logical create_jumbo_slave
 end type
 
 type parser_lat_struct
@@ -1103,9 +1103,9 @@ case ('APERTURE_LIMIT_ON')
 case ('ABSOLUTE_TIME_TRACKING')
   call get_logical (attrib_word, lat%absolute_time_tracking, err_flag)
 
-case ('CREATE_EM_FIELD_SLAVE')
+case ('CREATE_JUMBO_SLAVE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-  call get_logical (attrib_word, pele%create_em_field_slave, err_flag)
+  call get_logical (attrib_word, pele%create_jumbo_slave, err_flag)
 
 case ('USE_PTC_LAYOUT')
   call get_logical (attrib_word, lat%use_ptc_layout, err_flag)
@@ -3647,7 +3647,7 @@ if (pele%ref_name == blank_name$) then
   call compute_super_lord_s (branch%ele(0), super_ele, pele)
   call check_for_multipass_superimpose_problem (branch%ele(0), super_ele, err_flag); if (err_flag) return
   call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
-                                 create_em_field_slave = pele%create_em_field_slave)
+                                 create_jumbo_slave = pele%create_jumbo_slave)
   if (err_flag) bp_com%error_flag = .true.
   return
 endif
@@ -3699,7 +3699,7 @@ do
         call check_for_multipass_superimpose_problem (ele, super_ele, err_flag); if (err_flag) return
         ! Don't need to save drifts since a multipass_lord drift already exists.
         call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
-                      save_null_drift = .false., create_em_field_slave = pele%create_em_field_slave)
+                      save_null_drift = .false., create_jumbo_slave = pele%create_jumbo_slave)
         if (err_flag) bp_com%error_flag = .true.
         super_ele_out%name = 'temp_name!'
       enddo
@@ -3810,7 +3810,7 @@ do
       call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
       super_ele%name = super_ele_saved%name(:ix)            
       call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
-                  save_null_drift = .true., create_em_field_slave = pele%create_em_field_slave)
+                  save_null_drift = .true., create_jumbo_slave = pele%create_jumbo_slave)
       if (err_flag) bp_com%error_flag = .true.
       call control_bookkeeper (lat, super_ele_out)
     endif
@@ -4281,7 +4281,7 @@ do i = n_now+1, ubound(plat%ele, 1)
   plat%ele(i)%ref_pt  = not_set$
   plat%ele(i)%ele_pt  = not_set$
   plat%ele(i)%s       = 0
-  plat%ele(i)%create_em_field_slave = .false.
+  plat%ele(i)%create_jumbo_slave = .false.
 enddo
 
 end subroutine allocate_plat
@@ -4866,7 +4866,7 @@ integer ix
 call fullfilename (lat_file, full_name)
 inquire (file = full_name, name = full_name)  ! full input file_name
 if (present (full_lat_file)) full_lat_file = full_name
-digested_file = trim(full_name) // '_digested' 
+write (digested_file, '(2a, i0)') trim(full_name), '.digested', bmad_inc_version$ 
 
 end subroutine form_digested_bmad_file_name
 

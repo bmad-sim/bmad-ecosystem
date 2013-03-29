@@ -3038,7 +3038,7 @@ end subroutine init_wake
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine calc_superimpose_key (ele1, ele2, ele3, create_em_field_slave)
+! Subroutine calc_superimpose_key (ele1, ele2, ele3, create_jumbo_slave)
 !
 ! Function to decide what ele3%key and ele3%sub_key should be
 ! when two elements, ele1, and ele2, are superimposed.
@@ -3053,7 +3053,7 @@ end subroutine init_wake
 !   ele2     -- Ele_struct:
 !     %key
 !     %sub_key
-!   create_em_field_slave
+!   create_jumbo_slave
 !            -- Logical, optional: Default is False. If True then ele3%key
 !                     will be set to em_field.
 !
@@ -3063,14 +3063,14 @@ end subroutine init_wake
 !     %sub_key
 !-
 
-subroutine calc_superimpose_key (ele1, ele2, ele3, create_em_field_slave)
+subroutine calc_superimpose_key (ele1, ele2, ele3, create_jumbo_slave)
 
 implicit none
 
 type (ele_struct), target :: ele1, ele2, ele3
 integer key1, key2
 integer, pointer :: key3
-logical, optional :: create_em_field_slave
+logical, optional :: create_jumbo_slave
 
 !
 
@@ -3081,10 +3081,17 @@ key3 => ele3%key
 key3 = -1  ! Default if no superimpse possible
 ele3%sub_key = 0
 
-! control elements cannot be superimposed.
+! control elements, etc. cannot be superimposed.
 
-if (any(key1 == [overlay$, group$, girder$])) return
-if (any(key2 == [overlay$, group$, girder$])) return
+select case (key1)
+case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$)
+  return
+end select
+
+select case (key2)
+case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$)
+  return
+end select
 
 ! Superimposing two of like kind...
 
@@ -3175,7 +3182,7 @@ if (key1 == sbend$ .or. key2 == sbend$) return
 
 ! em_field wanted
 
-if (logic_option(.false., create_em_field_slave)) then
+if (logic_option(.false., create_jumbo_slave)) then
   key3 = em_field$
   if (key1 == lcavity$ .or. key2 == lcavity$) then
     ele3%sub_key = nonconst_ref_energy$

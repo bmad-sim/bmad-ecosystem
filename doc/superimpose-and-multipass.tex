@@ -20,41 +20,69 @@ while the \vn{slave} elements will embody the ``beam path''.
 \label{s:super}
 \index{superimpose|hyperbf}
 
+  \begin{figure}[tb]
+  \centering 
+  \includegraphics[width=0.95\textwidth]{superimpose-example.pdf} 
+  \caption[Superposition example.]
+{Superposition example. A) The physical layout involves a quadrupole
+partially inside a solenoid. B) The standard superposition procedure
+involves creating \vn{super_slave} elements whose edges are at the
+boundaries where the physical elements overlap. C) When jumbo
+\vn{super_slaves} are created, the \vn{super_slaves} span the entire
+space where elements overlap.}
+  \label{f:super.ex}
+  \end{figure}
+
 In practice the field at a particular point in the lattice may be due
 to more than one physical element. One example of this is a quadrupole
-magnet inside a larger solenoid magnet. \bmad has a mechanism to
-handle this using what is called ``superposition''. A
-simple example shows how this works:
+magnet inside a larger solenoid magnet as shown in
+\fig{f:super.ex}A. \bmad has a mechanism to handle this using what is
+called ``superposition''. A simple example shows how this works (also
+see section \sref{s:lord.slave}):
 \begin{example}
-  Q: quad, l = 10
-  D: drift, l = 10
-  S: solenoid, l = 6, superimpose, ref = q, ref_end, offset = -1
+  Q: quad, l = 4
+  D: drift, l = 12
+  S: solenoid, l = 8, superimpose, ref = Q, ele_beginning
+  M: marker, superimpose, ref = S, offset = 1
   lat: line = (Q, D)
   use, lat
 \end{example}
 The \vn{superimpose} attribute of element \vn{S} superimposes \vn{S}
 over the lattice \vn{(Q, D)}. The placement of \vn{S} is such that the
-center of \vn{S} is offset -1~meter from the end of \vn{Q} (more on how
-superimposed elements get placed later). The tracking part of the
-lattice list (the part that one does tracking through) Looks like:
+beginning of \vn{S} is coincident with the center of \vn{Q} (this is
+is explained in more detail below). Additionally, a marker \vn{M} is
+superimposed at a distance of +1~meter from the center of \vn{S}. The
+tracking part of the lattice (\sref{s:lord.slave}) looks like:
 \begin{example}
         Element   Key         Length  Total     
-  1)    Q{\#}1       Quadrupole   6        6
-  2)    Q{\B}S       Sol_quad     4       10
-  3)    S{\#}1       Solenoid     2       12
-  4)    D{\#}2       Drift        8       20
+  1)    Q{\#}1       Quadrupole   2        2
+  2)    Q{\B}S       Sol_quad     2        4
+  3)    S{\#}1       Solenoid     3        7
+  4)    M         Marker       0      
+  4)    S{\#}2       Solenoid     3       10
+  5)    D{\#}2       Drift        4       14
 \end{example}
 What \bmad has done is to split the original elements \vn{(Q, D)} at
-the edges of \vn{S}. The first element in the lattice, \vn{Q\#1}, is
-the part of \vn{Q} that is outside of \vn{S}. Since this is only part
-of \vn{Q}, \bmad has put a \vn{\#1} in the name so that there will be
-no confusion. (\vn{\#} has no special meaning other than the fact
-that \bmad uses it for mangling names). The next element, \vn{Q{\B}S},
-is the part of \vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a
-combination solenoid/quadrupole element as one could
-expect. \vn{S{\#}1} is the part of \vn{S} that is outside \vn{Q} so
-this element is just a solenoid. Finally, \vn{D\#2} is the rest of the
-drift outside \vn{S}.
+the edges of \vn{S} and then \vn{S} was split where \vn{M} is
+inserted. The first element in the lattice, \vn{Q\#1}, is the part of
+\vn{Q} that is outside of \vn{S}. Since this is only part of \vn{Q},
+\bmad has put a \vn{\#1} in the name so that there will be no
+confusion. (\vn{\#} has no special meaning other than the fact that
+\bmad uses it for mangling names). The next element, \vn{Q{\B}S}, is
+the part of \vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a combination
+solenoid/quadrupole element as one would expect. \vn{S{\#}1} is the
+part of \vn{S} that is outside \vn{Q} but before \vn{M}. This element
+is just a solenoid. Next comes \vn{M}, \vn{S{\#}1}, and finally
+\vn{D\#2} is the rest of the drift outside \vn{S}.
+
+In the above example, \vn{Q} and \vn{S} will be \vn{super_lord}
+elements (\vn{s:lord.slave}) and four elements in the tracking
+part of the lattice will be \vn{super_slave} elements. This is
+illustrated in \fig{f:super.ex}B.
+
+Notice that the name chosen for the \vn{sol_quad} element \vn{Q{\B}S}
+is dependent upon what is being superimposed upon what. If \vn{Q} had
+been superimposed upon \vn{S} then the name would have been \vn{S{\B}Q}.
 
 When \bmad sets the element class for elements created from
 superpositions, \bmad will set the class of the element to something
@@ -66,13 +94,16 @@ superimposed with a \vn{rfcavity} element will produce an
 \vn{em_field} element since there is no other class of element that
 can simultaneously handle solenoid and RF fields.
 
-\begin{figure}[tb]
-\centering 
-\includegraphics{superimpose.pdf} 
-\caption[Superposition Illustration.]
-{Illustration of a superposition.}
-\label{f:superimpose}
-\end{figure}
+  \begin{figure}[tb]
+  \centering 
+  \includegraphics[width=0.8\textwidth]{superimpose.pdf} 
+  \caption[Superposition Offset.]{
+The superposition offset is the distance from the origin point of the
+reference element to the origin point of the element being
+superimposed.
+  }
+  \label{f:superimpose}
+  \end{figure}
 
 With the lattice broken up like this \bmad has constructed something
 that can be easily analyzed. However, the original elements \vn{Q} and
@@ -85,41 +116,28 @@ in the Beam Line (with a drift before it) and \vn{Q} could then have
 been superimposed on top and the result would have been the same
 (except that the split elements could have different names).
 
-If a zero length element, such as a marker, is superimposed with some
-other element (or vice versa) the element is just split in two. For
-example:
-\begin{example}
-  Q: quad, l = 10
-  M: marker, superimpose, offset = 6
-  lat: line = (Q)
-  use, lat
-\end{example}
-The resulting is that the tracking part of the lattice would be
-\begin{example}
-        Element   Key           Length
-  1)    Q{\#}1       Quadrupole    6
-  2)    M         Marker        0
-  3)    Q{\#}2       Quadrupole    4
-\end{example}
-and the lord part of the lattice would have the \vn{Q} element.
+If an element that naturally has zero length (for example, a
+\vn{marker} element), is superimposed, or is superimposed upon, then the
+element will remain in the tracking part of the lattice and there will be
+no corresponding lord element. See \fig{f:super.ex}.
  
-A superposition is illustrated in \fig{f:superimpose} The
-placement of a superimposed element is determined by three factors: A
-reference point on the superimposed element, a reference point in the
-lattice line, and an offset between the points. The attributes that
-determine these three quantities are: 
+The placement of a superimposed element is illustrated in
+\fig{f:superimpose}. The placement of a superimposed element is
+determined by three factors: A reference point on the superimposed
+element, a reference point on the reference element, and an offset between
+the points. The attributes that determine these three quantities are:
 \index{ref}\index{offset}
 \index{ref_beginning}\index{ref_center}\index{ref_end}
 \index{ele_beginning}\index{ele_center}\index{ele_end}
 \begin{example}
-  create_em_field_slave = <Logical>
-  ref                   = <element name in lattice>
-  offset                = <length>      ! default = 0
+  create_jumbo_slave = <Logical>     ! See \sref{s:jumbo.slave}
+  ref                = <element name in lattice>
+  offset             = <length>      ! default = 0
   ele_beginning
-  ele_center                            ! default
+  ele_center                         ! default
   ele_end
   ref_beginning
-  ref_center                            ! default
+  ref_center                         ! default
   ref_end
 \end{example}
 \vn{ref} sets the reference element. If \vn{ref} is not present then
@@ -183,97 +201,117 @@ use directly the corresponding attributes stored in the lord elements to
 correctly calculate things.
 
 %-----------------------------------------------------------------------------
-\subsection{em_field_slave}
-\label{s:super.field}
+\subsection{Jumbo super_slaves}
+\label{s:jumbo.slave}
 
+The problem with the way \vn{super_slave} elements are created as
+discussed above is that edge effects will not be dealt with properly
+when elements with non-zero fields are misaligned. When this is
+important, especially at low energy, a possible remedy is to instruct
+\bmad to construct ``\vn{jumbo}'' super_slave elements. The general
+idea is to create one large \vn{super_slave} for any set of
+overlapping elements. Returning to the superposition example at the
+start of Section~\sref{s:super}, If the superposition of solenoid \vn{S}
+is modified to be
+\begin{example}
+  S: solenoid, l = 8, superimpose, ref = Q, ele_beginning, 
+               create_jumbo_slave = T
+\end{example}
+The result is shown in \fig{f:super.ex}C. The tracking part of the lattice
+will be
+\begin{example}
+        Element   Key         Length  Total     
+  1)    Q{\B}S       Sol_quad     2        4
+  2)    M         Marker       0      
+  3)    S{\#}2       Solenoid     3       10
+  4)    D{\#}2       Drift        4       14
+\end{example}
+\index{lord_pad1}\index{lord_pad2}
+\vn{Q} and part of \vn{S} have been combined into a jumbo
+\vn{super_slave} named \vn{Q{\B}S}. Since the \vn{super_lord} elements
+of a jumbo \vn{super_slave} may not completely span the slave two
+attributes of each lord will be set to show the position of the lord
+within the slave. These two attributes are
+\begin{example}
+  lord_pad1    ! offset at upstream end
+  lord_pad2    ! offset at downstream end
+\end{example}
+\vn{lord_pad1} is the distance between the upstream edge of the jumbo
+\vn{super_slave} and a \vn{super_lord}. \vn{lord_pad2} is the distance 
+between the downstream edge of a \vn{super_lord} and the downstream edge
+of the jumbo \vn{super_slave}. With the present example, the lords have
+the following padding:
+\begin{example}
+          lord_pad1    lord_pad2
+  Q            0            3
+  S            2            0
+\end{example}
 
+One major drawback of jumbo \vn{super_slave} elements is that the
+\vn{tracking_method} (\sref{s:tkm}) will, by necessity, be set by \bmad to
+\vn{runge_kutta} and the \vn{mat6_calc_method} (\sref{s:xfer}) will be set to
+\vn{tracking}.
+
+Notice that the problem with edge effects for non-jumbo
+\vn{super_slave} elements only occurs when elements with nonzero
+fields are superimposed on top of one another. Thus, for example, one
+does not need to use jumbo elements when superimposing a \vn{marker}
+element.
 
 %-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}
 \label{s:super.length}
 
-\index{overlay}
-\index{group}
-\index{expand_lattice}
-When the lattice is constructed, superposition of elements is done
-before the addition of any \vn{group} or \vn{overlay} elements. This
-is done since \vn{overlay}s and \vn{group}s are allowed to refer
-to elements that are superimposed. This can lead to some unexpected
-results. For example:
-\begin{example}
-  q1: quad, l = 10
-  q2: quad, l = 10
-  lat: line = (q1, q2)
-  use, lat
-  o: overlay = \{q1\}, l = 12
-  m: marker, superimpose, offset = 15
-\end{example} 
-In this example, the marker is initially positioned at 15~meters from
-the beginning of the lattice.  The application of the overlay will
-increase the length of \vn{q1} by 2~meters which will push the marker
-\vn{m} to 17~meters which might not be what was intended. To avoid
-this problem, an \vn{expand_lattice} statement (\sref{s:expand}) can
-be placed after the overlay, but before the superimpose, statement
-\begin{example}
-  ...
-  o: overlay = \{q1\}, l = 12
-  expand_lattice
-  m: marker, superimpose, offset = 15
-\end{example} 
+When a program is running, if \vn{group} (\sref{s:group}) or
+\vn{overlay} (\sref{s:overlay}) elements are used to vary the length
+of elements that are involved in superimposition, the results are
+different from what would have resulted if instead the lengths of the
+elements where changed in the lattice file. There are two reasons for
+this. First, once the lattice file has been parsed, lattices can be
+``mangled'' by adding or removing elements in a myriad of ways. This
+means that it is not possible to devise a general algorithm for
+adjusting superimposed element lengths that mirrors what the effect of
+changing the lengths in the lattice file.
 
-The length of a superimposed element must necessarily be equal to the
-sum of the lengths of its slave elements. For example, the element
-\vn{S} in the first example of Section~\sref{s:super} has a length of
-6~meters which is equal to the sum of the length of \vn{Q{\B}S}
-(3~meters) plus the length of \vn{S{\#1}} (also 3~meters).
+Second, even if a lattice has not been mangled, an algorithm for
+varying lengths that is based on the superimpose information in the
+lattice file could lead to unexpected results. To see this consider
+the first example in Section~\sref{s:super}. If the length of \vn{S}
+is varied in the lattice file, the upstream edge of \vn{S} will remain
+fixed at the center of \vn{Q} which means that the length of the
+\vn{super_slave} element \vn{Q{\#}1} will be invariant. On the other
+hand, if element \vn{S} is defined by 
+\begin{example}
+  S: solenoid, l = 8, superimpose, offset = 6
+\end{example}
+This new definition of \vn{S} produces produce exactly the same
+lattice as before. However, now varying the length of \vn{S} will
+result in the center of \vn{S} remaining fixed and the length of
+\vn{Q{\#}1} will not be invariant with changes of the length of
+\vn{S}. This variation in behavior could be very confusing since,
+while running a program, one could not tell by inspection of the
+element positions what should happen if a length were changed.
 
-If the length of a superimposed element is varied after the lattice
-has been expanded, the length of the slaves will be adjusted
-accordingly. For example, if, after lattice expansion, the length of
-element \vn{S} in the first example of Section~\sref{s:super} is
-increased by 50\% from 6~meters to 9~meters, the lattice would look
-like
+To avoid confusion, \bmad uses a simple algorithm for varying the
+lengths of element involved in superposition: The rule is that the
+length of the most downstream \vn{super_slave} is varied.
+With the first example in Section~\sref{s:super}, the \vn{group} \vn{G}
+varying the length of \vn{Q} defined by:
 \begin{example}
-        Element   Key         Length  Total
-  1)    Q{\#}1       Quadrupole   4        4
-  2)    Q{\B}S       Sol_quad     6       10
-  3)    S{\#}1       Solenoid     3       13
-  4)    D{\#}2       Drift        8       21
+  G: group = {Q}, l
 \end{example}
-The length of \vn{Q{\B}S} has been increased by 50\% from 4~meters to
-6~meters and the length of \vn{S{\#}1} has been increased by 50\% from
-2~meters to 3~meters to give the proper length for \vn{S}.
-Additionally, to keep the length of \vn{Q} at 10~meters, the
-length of \vn{Q{\#}1} has been decreased to 4~meters. The overall
-length of the lattice has increased by 1~meter.
-
-Notice that this result is {\em not} what would be obtained if the
-length of the element \vn{S} is increased to 9~meters in the lattice
-file. The reason for this incompatibility stems from the fact that the
-effect of varying an element's length in the lattice file depends upon
-what reference points are used for specifying any superpositions. For
-example, if the reference point of \vn{S} in the first example of
-Section~\sref{s:super} is changed to
+would vary the length of \vn{Q{\B}S} which would result in an equal
+variation of the length of \vn{S}. To keep the length of \vn{S}
+invariant while varying \vn{Q} the individual \vn{super_slave} lengths
+can be varied. Example:
 \begin{example}
-  S: solenoid, l = 6, superimpose, ele_beginning, offset = 6
+  G2: group = {Q{\#}1, S{\#}1:-1}, l
 \end{example}
-The expanded lattice is unaltered. But with this shifted reference
-point, the effect of changing the length of \vn{S} is different. That is
+Another, in this case cleaner, way of doing this is just to vary the
+downstream edge of \vn{Q}:
 \begin{example}
-  S: solenoid, l = 7, superimpose, ref = q, ref_end, offset = -1
+  G3: group = {Q}, end_edge
 \end{example}
-will not produce the same expanded lattice as
-\begin{example}
-  S: solenoid, l = 7, superimpose, ele_beginning, offset = 6
-\end{example}
-Thus if someone using a simulation program is only considering the
-expanded lattice, there is the potential for confusion if length
-changes mirrored the effect of changing the lengths in the lattice
-file.  To avoid this, and to simplify the computational overhead,
-\bmad chooses to use a relatively simple algorithm for adjusting
-lengths after lattice expansion. Notice that for layout design, the
-\vn{no_superimpose} command (\sref{s:debug}) can be used to
-suppress superposition.
 
 %-----------------------------------------------------------------------------
 \section{Multipass}

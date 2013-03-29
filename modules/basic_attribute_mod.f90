@@ -360,7 +360,7 @@ do i = 1, n_key$
 
   if (i == fiducial$) cycle
 
-  call init_attribute_name1 (i, create_em_field_slave$, 'CREATE_EM_FIELD_SLAVE')
+  call init_attribute_name1 (i, create_jumbo_slave$,     'CREATE_JUMBO_SLAVE')
 
   call init_attribute_name1 (i, wall_attribute$,         'WALL')
   call init_attribute_name1 (i, x_limit$,                'X_LIMIT')
@@ -760,7 +760,7 @@ call init_attribute_name1 (patch$, ptc_dir$,                        'ptc_dir', p
 
 !call init_attribute_name1 (patch$, next_ele_defines_position$,      'NEXT_ELE_DEFINES_POSITION')
 
-call init_attribute_name1 (floor_shift$, l$,                      'l')
+call init_attribute_name1 (floor_shift$, l$,                      'L')
 call init_attribute_name1 (floor_shift$, tilt$,                   'TILT', dependent$)
 call init_attribute_name1 (floor_shift$, x_offset$,               'X_OFFSET', dependent$)
 call init_attribute_name1 (floor_shift$, y_offset$,               'Y_OFFSET', dependent$)

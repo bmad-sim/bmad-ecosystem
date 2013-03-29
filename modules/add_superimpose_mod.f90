@@ -14,7 +14,7 @@ contains
 !-----------------------------------------------------------------------------------------
 !+
 ! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, 
-!                                                       save_null_drift, create_em_field_slave)
+!                                                       save_null_drift, create_jumbo_slave)
 !
 ! Routine to superimpose an element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -41,7 +41,7 @@ contains
 !                         reference element. After all superpositions are done, 
 !                         remove_eles_from_lat can be called to remove all null_eles.
 !                         Default is False.
-!   create_em_field_slave
+!   create_jumbo_slave
 !                   -- Logical, optional: Default is False. If True then super_slaves
 !                       that are created that have super_ele_in as their super_lord are
 !                       em_field elements.
@@ -53,7 +53,7 @@ contains
 !-
 
 subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, &
-                                                            save_null_drift, create_em_field_slave)
+                                                            save_null_drift, create_jumbo_slave)
 
 implicit none
 
@@ -68,13 +68,14 @@ type (branch_struct), pointer :: branch
 type (lat_ele_loc_struct), pointer :: loc
 
 real(rp) s1, s2, length, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge, s1_in, s2_in
+real(rp) ds_small
 
 integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch, ii
 integer ix1_split, ix2_split, ix_super, ix_super_con, ix_ic
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
-logical, optional :: save_null_drift, create_em_field_slave
-logical err_flag, setup_lord, split1_done, split2_done, all_drift, err
+logical, optional :: save_null_drift, create_jumbo_slave
+logical err_flag, setup_lord, split1_done, split2_done, all_drift, err, split_done
 
 character(100) name
 character(20) fmt
@@ -147,13 +148,13 @@ if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2
 endif
  
 !-------------------------------------------------------------------------
-! If element has zero length then just insert it in the tracking part 
-! of the lattice list.
+! If the type of superimposed element is such that the element will always have zero
+! length (like a marker), then just insert it in the tracking part of the lattice list.
 
 ! Note: Important to set super_saved%lord_status before calling insert_element since
 ! this affects the status flag setting.
 
-if (super_saved%value(l$) == 0) then
+if (attribute_name (super_saved, l$) /= 'L') then
   super_saved%lord_status  = not_a_lord$ 
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
                                 check_sanity = .false., save_null_drift = save_null_drift, err_flag = err)
@@ -174,13 +175,33 @@ endif
 
 ! if superimpose wraps around 0 ...
 if (s2 < s1) then
-  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_em_field_slave)) return
-  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_em_field_slave)) return
+  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_jumbo_slave)) return
+  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_jumbo_slave)) return
 
 ! no wrap case...
 else                  
-  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_em_field_slave)) return
-  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_em_field_slave)) return
+  if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_jumbo_slave)) return
+  if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_jumbo_slave)) return
+endif
+
+! If the element has zero length then need to insert a zero length element
+
+if (abs(super_saved%value(l$)) < bmad_com%significant_length .and. .not. logic_option(.false., create_jumbo_slave)) then
+  ds_small = 2 * bmad_com%significant_length
+  if (branch%ele(ix1_split)%value(l$) > ds_small) then
+    call split_lat (branch%lat, s1-ds_small, branch%ix_branch, ix1_split, split_done, &
+                                                            .false., .false., save_null_drift, err)
+    ix2_split = ix2_split - 1
+  elseif (branch%ele(ix1_split+1)%value(l$) > ds_small) then
+    call split_lat (branch%lat, s1+ds_small, branch%ix_branch, ix2_split, split_done, &
+                                                            .false., .false., save_null_drift, err)
+  else
+    call out_io (s_fatal$, r_name, 'CONFUSED SUPERPOSITION WITH ELEMENT OF ZERO LENGTH!')
+    if (global_com%exit_on_error) call err_exit
+  endif
+  if (err) return
+  branch%ele(ix1_split)%value(l$) = branch%ele(ix1_split)%value(l$) + ds_small  ! Reset to original size
+  branch%ele(ix2_split)%value(l$) = 0                                           ! Should be zero.
 endif
 
 ! The splits may not be done exactly at s1 and s2 since split_lat avoids
@@ -339,11 +360,11 @@ ix_super_con = 0
 length = super_saved%value(l$)
 
 !-------------------------------------------------------------------------
-! If create_em_field_slave = T:
+! If create_jumbo_slave = T:
 ! If any existing super_lords extend past the region to be superimposed upon then
 ! extend this region to include the existing super_lord. 
 
-if (logic_option(.false., create_em_field_slave)) then
+if (logic_option(.false., create_jumbo_slave)) then
 
   do
     slave => branch%ele(ix1_split+1)
@@ -457,7 +478,7 @@ do
 
   ! change the element key
 
-  if (logic_option(.false., create_em_field_slave)) then
+  if (logic_option(.false., create_jumbo_slave)) then
     slave%key = em_field$
   else
     call calc_superimpose_key(slave_saved, super_saved, slave)
@@ -511,9 +532,9 @@ call s_calc (lat)  ! just in case superimpose extended before beginning of latti
 call order_super_lord_slaves (lat, ix_super)
 
 !-------------------------------------------------------------------------
-! If create_em_field_slave = T:
+! If create_jumbo_slave = T:
 
-if (logic_option(.false., create_em_field_slave)) then
+if (logic_option(.false., create_jumbo_slave)) then
 
   lat%ele(ix_super)%s = super_saved%s ! correct s-shift from call to s_calc 
 
@@ -618,7 +639,7 @@ end subroutine add_superimpose
 !------------------------------------------------------------------------------
 
 function split_this_lat (which, branch, s_here, ix_split, split_done, &
-                                  save_null_drift, create_em_field_slave) result (err)
+                                  save_null_drift, create_jumbo_slave) result (err)
 
 implicit none
 
@@ -629,11 +650,11 @@ real(rp) s_here
 integer ix_split, which
 
 logical split_done, err
-logical, optional :: save_null_drift, create_em_field_slave
+logical, optional :: save_null_drift, create_jumbo_slave
 
-! If creating an em_field_slave then only split at drift elements
+! If creating a jumbo slave then only split at drift elements
 
-if (logic_option(.false., create_em_field_slave)) then
+if (logic_option(.false., create_jumbo_slave)) then
   split_done = .false.
   ix_split = element_at_s(branch%lat, s_here, .false., branch%ix_branch, err)
   if (err) return

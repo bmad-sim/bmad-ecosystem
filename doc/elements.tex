@@ -1400,13 +1400,14 @@ within a beam line will be ignored.
 
 \vn{Group} elements are a type of \vn{control} element
 (\sref{s:lord.slave}) used to make variations in the attributes of
-other elements. For example, to simulate the action of a control room
-knob that changes the beam tune in a storage ring, a \vn{Group} can be
-used to vary the strength of selected quads in a specified
-manner. Also see \vn{overlay} (\sref{s:overlay}) The difference
-between \vn{group} and \vn{overlay} elements is that \vn{overlay}
-elements set the values of the attributes directly while \vn{group}
-elements make changes to attribute values.
+other elements during execution of a program. For example, to simulate
+the action of a control room knob that changes the beam tune in a
+storage ring, a \vn{Group} can be used to vary the strength of
+selected quads in a specified manner. Also see \vn{overlay}
+(\sref{s:overlay}) The difference between \vn{group} and \vn{overlay}
+elements is that \vn{overlay} elements set the values of the
+attributes directly while \vn{group} elements make changes to
+attribute values.
 
 General \vn{girder} attributes are:
 \begin{center}
@@ -1481,8 +1482,8 @@ A \vn{group} can be used to control an elements position and length
 using the following as the \vn{default_attrib}
 \begin{example}
   accordion_edge  ! Element grows or shrinks symmetrically
-  start_edge      ! Varies element's starting edge s-position
-  end_edge        ! Varies element's ending edge s-position
+  start_edge      ! Varies element's upstream edge s-position
+  end_edge        ! Varies element's downstream edge s-position
   symmetric_edge  ! Varies element's overall s-position. Constant length.
   z_offset        ! Similar to symmetric_edge
 \end{example}
@@ -2203,12 +2204,12 @@ Example:
 
 \vn{Overlay} elements are a type of \vn{control} element
 (\sref{s:lord.slave}) used to make variations in the attributes of
-other elements. For example, to simulate the action of a magnet power
-supply that controls a string of magnets. Also see \vn{group}
-(\sref{s:group}) The difference between \vn{group} and \vn{overlay}
-elements is that \vn{overlay} elements set the values of the
-attributes directly while \vn{group} elements make changes to
-attribute values.
+other elements while a program is running. For example, to simulate
+the action of a magnet power supply that controls a string of
+magnets. Also see \vn{group} (\sref{s:group}) The difference between
+\vn{group} and \vn{overlay} elements is that \vn{overlay} elements set
+the values of the attributes directly while \vn{group} elements make
+changes to attribute values.
 
 General \vn{girder} attributes are:
 \begin{center}
