@@ -155,8 +155,8 @@ PLPLOT can be obtained at:
 
 Note: PLPLOT Fortran libraries need to be built along with the other PLPLOT libraries.
 The Fortran libraries are not part of the default build.
-To build the Fortran libraries on the Mac using MacPorts use the command:
-  sudo port install plplot +gcc44
+To build the Fortran libraries on the Mac with, say, gcc V4.6 using MacPorts use the command:
+  sudo port install plplot +gcc46
 
 
 *****************************************************************************
