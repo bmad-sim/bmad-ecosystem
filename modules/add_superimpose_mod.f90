@@ -67,15 +67,15 @@ type (control_struct), pointer ::  cntl
 type (branch_struct), pointer :: branch
 type (lat_ele_loc_struct), pointer :: loc
 
-real(rp) s1, s2, length, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge, s1_in, s2_in
-real(rp) ds_small
+real(rp) s1, s2, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge, s1_in, s2_in
+real(rp) ds_small, l_super
 
 integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch, ii
 integer ix1_split, ix2_split, ix_super, ix_super_con, ix_ic
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
 logical, optional :: save_null_drift, create_jumbo_slave
-logical err_flag, setup_lord, split1_done, split2_done, all_drift, err, split_done
+logical err_flag, setup_lord, split1_done, split2_done, all_drift, err, zero_length_lord
 
 character(100) name
 character(20) fmt
@@ -85,12 +85,13 @@ character(20) :: r_name = "add_superimpose"
 ! Check for negative length
 
 err_flag = .true.
+l_super = super_ele_in%value(l$)
 
-if (super_ele_in%value(l$) < 0) then
+if (l_super < 0) then
   call out_io (s_abort$, r_name, &
                   'Superposition of element with negative length not allowed!', &
                   'Element: ' // super_ele_in%name, &
-                  'Length: \es10.2\ ', r_array = [super_ele_in%value(l$)] )
+                  'Length: \es10.2\ ', r_array = [l_super] )
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -120,7 +121,7 @@ s1_lat_fudge = s1_lat - bmad_com%significant_length
 s2_lat = branch%ele(branch%n_ele_track)%s
 s2_lat_fudge = s2_lat + bmad_com%significant_length
 
-s1_in = super_saved%s - super_saved%value(l$)
+s1_in = super_saved%s - l_super
 s2_in = super_saved%s                 
 
 s1 = s1_in
@@ -186,22 +187,25 @@ endif
 
 ! If the element has zero length then need to insert a zero length element
 
-if (abs(super_saved%value(l$)) < bmad_com%significant_length .and. .not. logic_option(.false., create_jumbo_slave)) then
-  ds_small = 100 * bmad_com%significant_length
+zero_length_lord = .false.
+if (abs(l_super) < 10*bmad_com%significant_length .and. .not. logic_option(.false., create_jumbo_slave)) then
+  zero_length_lord = .true.
+  ds_small = 10 * bmad_com%significant_length
   if (branch%ele(ix1_split)%value(l$) > ds_small) then
-    call split_lat (branch%lat, s1-ds_small, branch%ix_branch, ix1_split, split_done, &
+    call split_lat (branch%lat, s1-ds_small, branch%ix_branch, ix1_split, split2_done, &
                                                             .false., .false., save_null_drift, err)
     ix2_split = ix2_split + 1
   elseif (branch%ele(ix1_split+1)%value(l$) > ds_small) then
-    call split_lat (branch%lat, s1+ds_small, branch%ix_branch, ix2_split, split_done, &
+    call split_lat (branch%lat, s1+ds_small, branch%ix_branch, ix2_split, split2_done, &
                                                             .false., .false., save_null_drift, err)
   else
-    call out_io (s_fatal$, r_name, 'CONFUSED SUPERPOSITION WITH ELEMENT OF ZERO LENGTH!')
+    call out_io (s_fatal$, r_name, 'CONFUSED SUPERPOSITION WITH ELEMENT OF SMALL LENGTH!')
     if (global_com%exit_on_error) call err_exit
   endif
   if (err) return
-  branch%ele(ix1_split)%value(l$) = branch%ele(ix1_split)%value(l$) + ds_small  ! Reset to original size
-  branch%ele(ix2_split)%value(l$) = 0                                           ! Should be zero.
+  branch%ele(ix1_split)%value(l$) = branch%ele(ix1_split)%value(l$) + ds_small - l_super ! Reset to original size - l_super
+  branch%ele(ix1_split)%s = branch%ele(ix1_split)%s + ds_small - l_super
+  branch%ele(ix2_split)%value(l$) = l_super                                                
 endif
 
 ! The splits may not be done exactly at s1 and s2 since split_lat avoids
@@ -223,17 +227,21 @@ endif
 ! zero length elements at the edges of the superimpose region can be excluded
 ! from the region
 
-do 
-  if (branch%ele(ix1_split+1)%value(l$) /= 0) exit
-  ix1_split = ix1_split + 1
-  if (ix1_split > branch%n_ele_track) ix1_split = 0
-enddo
+if (.not. zero_length_lord) then
 
-do
-  if (branch%ele(ix2_split)%value(l$) /= 0) exit
-  ix2_split = ix2_split - 1
-  if (ix2_split == -1) ix2_split = branch%n_ele_track
-enddo
+  do 
+    if (branch%ele(ix1_split+1)%value(l$) /= 0) exit
+    ix1_split = ix1_split + 1
+    if (ix1_split > branch%n_ele_track) ix1_split = 0
+  enddo
+
+  do
+    if (branch%ele(ix2_split)%value(l$) /= 0) exit
+    ix2_split = ix2_split - 1
+    if (ix2_split == -1) ix2_split = branch%n_ele_track
+  enddo
+
+endif
 
 ! If there are null_ele elements in the superimpose region then just move them
 ! out of the way to the lord section of the branch. This prevents unnecessary
@@ -357,7 +365,6 @@ call set_flags_for_changed_attribute (lat, lat%ele(ix_super))
 if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 
 ix_super_con = 0
-length = super_saved%value(l$)
 
 !-------------------------------------------------------------------------
 ! If create_jumbo_slave = T:
@@ -396,7 +403,8 @@ endif
 
 !-------------------------------------------------------------------------
 ! Go through the list of elements being superimposed upon.
-! Zero length elements (markers and multipoles) do not get involved here.
+! Elements (markers and multipoles) that have naturally zero length do not get involved here
+! unless the lord has zero length..
 
 ix_slave = ix1_split
 
@@ -408,7 +416,12 @@ do
 
   slave => branch%ele(ix_slave)
   call transfer_ele(slave, slave_saved)
-  if (slave_saved%value(l$) == 0) cycle
+
+  if (attribute_name (slave_saved, l$) /= 'L') cycle
+  select case (slave_saved%key)
+  case (multipole$, ab_multipole$)
+   if (slave_saved%value(l$) == 0) cycle
+  end select
 
   ! Do we need to set up a super lord to control this slave element?
 
@@ -473,7 +486,11 @@ do
   sup_con(ix_super_con)%ix_slave = ix_slave
   sup_con(ix_super_con)%ix_branch = ix_branch
   sup_con(ix_super_con)%ix_lord = ix_super
-  sup_con(ix_super_con)%coef = slave_saved%value(l$) / length
+  if (zero_length_lord) then
+    sup_con(ix_super_con)%coef = 1
+  else
+    sup_con(ix_super_con)%coef = slave_saved%value(l$) / l_super
+  endif
   sup_con(ix_super_con)%ix_attrib = 0
 
   ! change the element key
