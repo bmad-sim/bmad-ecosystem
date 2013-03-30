@@ -2,7 +2,7 @@
 ! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
 !
 ! Subroutine to split a lat at a point. Subroutine will not split the lat if the split
-! would create a "runt" element with length less than bmad_com%significant_length.
+! would create a "runt" element with length less than 5*bmad_com%significant_length.
 !
 ! split_lat will create a super_lord element if needed and will redo the 
 ! appropriate bookkeeping for lords and slaves. 
@@ -71,7 +71,7 @@ endif
 ! Find where to split.
 
 do ix_split = 0, branch%n_ele_track
-  if (abs(branch%ele(ix_split)%s - s_split) < 10*ds_fudge) then
+  if (abs(branch%ele(ix_split)%s - s_split) < 5*ds_fudge) then
     split_done = .false.
     if (present(err_flag)) err_flag = .false.
     return

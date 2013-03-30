@@ -927,7 +927,7 @@ do j = 1, slave%n_lord
   ! Physically, the lord length cannot be less than the slave length.
   ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
 
-  if (abs(slave%value(l$)) > abs(lord%value(l$))) then
+  if (abs(slave%value(l$)) >= abs(lord%value(l$))) then
     coef = 1
   else
     coef = slave%value(l$) / lord%value(l$) 
