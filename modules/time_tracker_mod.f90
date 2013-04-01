@@ -534,64 +534,28 @@ character(30), parameter :: r_name = 'particle_hit_wall_check_time'
 !-----------------------------------------------
 !Do nothing if there is no wall
 
-!Get wall3d_ele
+! Check that wall3d_ele exists, otherwise just return
 wall3d_ele => pointer_to_wall3d_ele (ele, dummy_real, err)
-
-! if there isn't one, do nothing
 if (.not. associated(wall3d_ele)) return
 
 old_orb => particle%old%orb
 now_orb => particle%now%orb
 
-!if (ele%ref_orbit == match_at_entrance$ .or. &
-!    ele%ref_orbit == match_global_coords$ .or. &
-!    ele%ref_orbit == match_at_exit$  ) then
-!  ! We need to move orbs into the correct frame
-!  old_orb = particle_in_new_frame_time(orb, wall3d_ele)
-!  now_orb = particle_in_new_frame_time(orb_new, wall3d_ele)
-!  ! and point the the correct wall element
-!  if (old_orb%ix_ele == now_orb%ix_ele) then 
-!    wall3d_ele => ele%branch%ele(now_orb%ix_ele)
-!  else
-!    !Special case: orbs straddle an element boundary. This can happen in a multipass bend.
-!    !FIXME
-!    call out_io (s_fatal$, r_name, 'ORBs straddle element boundary FIXME')
-!    if (global_com%exit_on_error) call err_exit
-!  endif
-!  
-!else
-  ! Prepare coordinate structures for wall3d_d_radius
-  old_orb = orb
-  now_orb = orb_new
-!endif
+! Prepare coordinate structures for wall3d_d_radius
+old_orb = orb
+now_orb = orb_new
 
 ! Do nothing if orb_new is inside the wall
-if (wall3d_d_radius(now_orb%vec, wall3d_ele) < 0) return
-
+if ( wall3d_d_radius(now_orb%vec, ele) < 0) return
 
 ! Check that old_orb was inside the wall
-d_radius = wall3d_d_radius(old_orb%vec, wall3d_ele)
+d_radius = wall3d_d_radius(old_orb%vec, ele)
 if (d_radius > 0) then
   call out_io (s_fatal$, r_name, 'OLD ORB ALSO OUTSIDE WALL IN &
      WALL3D_ELE: '//trim(wall3d_ele%name)//', D_RADIUS =  \f12.6\', d_radius )
-  !print *, 'orb s, vec(5), radius: ', old_orb%s, old_orb%vec(5), sqrt(old_orb%vec(1)**2 + old_orb%vec(3)**2)
+  !write(*, '(a, 3es15.8)') 's, r, d_radius: ', old_orb%s, sqrt(old_orb%vec(1)**2 + old_orb%vec(3)**2), d_radius
   if (global_com%exit_on_error) call err_exit
 endif
-
-!If now_orb is before element, change it
-!We can do this because it can't hit the element wall outside of the
-!element, and these do not affect tracks
-
-!if (now_orb%vec(5) < 0) then
-!   now_orb%vec(5) = 0
-!end if
-
-!If now_orb is too close to the wall, move it edge_tol away
-
-!if (abs(wall3d_d_radius(particle%now%orb%vec, ele)) < edge_tol) then
-!   now_orb%vec(1) = now_orb%vec(1) + sign(edge_tol, now_orb%vec(1))
-!   now_orb%vec(3) = now_orb%vec(3) + sign(edge_tol, now_orb%vec(3))
-!end if
 
 !Change from particle coordinates to photon coordinates
 ! (coord_struct to photon_coord_struct)
@@ -640,12 +604,12 @@ now_orb%vec(6) = old_orb%vec(6)
 !If particle hit wall, find out where
 !if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
 
-   call capillary_photon_hit_spot_calc (particle, wall3d_ele)
+   call capillary_photon_hit_spot_calc (particle, ele)
 
    orb_new = now_orb
 
    !Calculate perpendicular to get angle of impact
-   d_radius = wall3d_d_radius(particle%now%orb%vec, wall3d_ele, perp)
+   d_radius = wall3d_d_radius(particle%now%orb%vec, ele, perp)
 
    !Calculate angle of impact; cos(hit_angle) = norm_photon_vec \dot perp
    !****
