@@ -920,7 +920,7 @@ case ('chrom.')
   case ('chrom.dbeta.a')
     if (data_source == 'beam') return
     if (data_source == 'lat') then
-      if (.not. allocated(tao_lat%low_E_lat)) return
+      if (.not. associated(tao_lat%low_E_lat%ele)) return
       do i = ix_start, ix_ele
         ! $(1/\beta_a)^{-1}\partial\beta_{a,b}/\partial\delta$	
         value_vec(i) = (tao_lat%high_E_lat%ele(i)%a%beta &
@@ -932,7 +932,7 @@ case ('chrom.')
   case ('chrom.dbeta.b')
     if (data_source == 'beam') return
     if (data_source == 'lat') then
-      if (.not. allocated(tao_lat%low_E_lat)) return
+      if (.not. associated(tao_lat%low_E_lat%ele)) return
       do i = ix_start, ix_ele
         value_vec(i) = (tao_lat%high_E_lat%ele(i)%b%beta &
                         - tao_lat%low_E_lat%ele(i)%b%beta)/tao_lat%lat%ele(i)%b%beta/dpz
@@ -943,7 +943,7 @@ case ('chrom.')
   case ('chrom.dphi.a')
     if (data_source == 'beam') return
     if (data_source == 'lat') then
-      if (.not. allocated(tao_lat%low_E_lat)) return
+      if (.not. associated(tao_lat%low_E_lat%ele)) return
       do i = ix_start, ix_ele
         value_vec(i) = (tao_lat%high_E_lat%ele(i)%a%phi &
                         -tao_lat%low_E_lat%ele(i)%a%phi)/dpz
@@ -954,7 +954,7 @@ case ('chrom.')
   case ('chrom.dphi.b')
     if (data_source == 'beam') return
     if (data_source == 'lat') then
-      if (.not. allocated(tao_lat%low_E_lat)) return
+      if (.not. associated(tao_lat%low_E_lat%ele)) return
       do i = ix_start, ix_ele
         value_vec(i) = (tao_lat%high_E_lat%ele(i)%b%phi &
                         -tao_lat%low_E_lat%ele(i)%b%phi)/dpz
@@ -965,7 +965,7 @@ case ('chrom.')
   case ('chrom.deta.x')
     if (data_source == 'beam') return
     if (data_source == 'lat') then
-      if (.not. allocated(tao_lat%low_E_lat)) return
+      if (.not. associated(tao_lat%low_E_lat%ele)) return
       do i = ix_start, ix_ele
         value_vec(i) = (tao_lat%high_E_lat%ele(i)%x%eta &
                         -tao_lat%low_E_lat%ele(i)%x%eta)/dpz
@@ -976,7 +976,7 @@ case ('chrom.')
   case ('chrom.deta.y')
     if (data_source == 'beam') return
     if (data_source == 'lat') then
-      if (.not. allocated(tao_lat%low_E_lat)) return
+      if (.not. associated(tao_lat%low_E_lat%ele)) return
       do i = ix_start, ix_ele
         value_vec(i) = (tao_lat%high_E_lat%ele(i)%y%eta &
                         -tao_lat%low_E_lat%ele(i)%y%eta)/dpz
@@ -987,7 +987,7 @@ case ('chrom.')
   case ('chrom.detap.x')
     if (data_source == 'beam') return
     if (data_source == 'lat') then
-      if (.not. allocated(tao_lat%low_E_lat)) return
+      if (.not. associated(tao_lat%low_E_lat%ele)) return
       do i = ix_start, ix_ele
         value_vec(i) = (tao_lat%high_E_lat%ele(i)%x%etap &
                         -tao_lat%low_E_lat%ele(i)%x%etap)/dpz
@@ -998,7 +998,7 @@ case ('chrom.')
   case ('chrom.detap.y')
     if (data_source == 'beam') return
     if (data_source == 'lat') then
-      if (.not. allocated(tao_lat%low_E_lat)) return
+      if (.not. associated(tao_lat%low_E_lat%ele)) return
       do i = ix_start, ix_ele
         value_vec(i) = (tao_lat%high_E_lat%ele(i)%y%etap &
                         -tao_lat%low_E_lat%ele(i)%y%etap)/dpz

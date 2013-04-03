@@ -570,11 +570,6 @@ do j = n1, n2
       u%calc%chrom = .true.
       if (data_type(1:12) /= 'chrom.dtune.') then 
         u%calc%chrom_lats = .true.
-        if (.not. allocated (u%model%low_E_lat)) then
-          allocate (u%model%low_E_lat);   allocate (u%model%high_E_lat)
-          allocate (u%design%low_E_lat);  allocate (u%design%high_E_lat)
-          allocate (u%base%low_E_lat);    allocate (u%base%high_E_lat)
-        endif
       endif
     endif  
   endif
