@@ -656,7 +656,7 @@ end type
 
 type tao_lattice_struct
   type (lat_struct) lat                        ! lattice structures
-  type (lat_struct), allocatable :: high_E_lat, low_E_lat  ! For chrom calc.
+  type (lat_struct) :: high_E_lat, low_E_lat  ! For chrom calc.
   type (tao_lattice_branch_struct), allocatable :: lat_branch(:)
   type (bunch_params_struct), allocatable :: bunch_params2(:)
   type (normal_modes_struct) modes             ! Synchrotron integrals stuff
