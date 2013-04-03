@@ -132,7 +132,7 @@ for more details.
 
 Originally PGPLOT was the used for plotting. Since PGPLOT is not currently being
 maintained, the PLPLOT package has been introduced as its replacement but not
-all programs have been converted to use PLPLOT. 
+all Bmad programs have been converted to use PLPLOT. 
 
 Programs that can use PLPLOT or PGPLOT
   tao
@@ -149,18 +149,59 @@ and so must be downloaded if it is to be used.
 PLPLOT is free software primarily licensed under the GNU LGPL license.
 The PLPLOT package is not part of the Bmad distribution. Rather it should
 be downloaded and installed separately. 
-PLPLOT can be obtained at: 
-  http://plplot.sourceforge.net/
 
-Note: PLPLOT Fortran libraries need to be built along with the other PLPLOT libraries.
-The Fortran libraries are not part of the default build.
-To build the Fortran libraries on the Mac with, say, gcc V4.6 using MacPorts use the command:
+********************
+
+How to build PLPLOT:
+
+* Building PLPLOT on a Mac using MacPorts:
+
+If using, say, gcc V4.6, use the command:
   sudo port install plplot +gcc46
+Note: The default port variant will not build the needed Fortran interface libraries.
+the "+gcc46" takes care of this.
 
+
+* Building PLPLOT directly from source:
+
+PLPLOT comes with good install documentation. The following is an example of
+how it can be compiled.
+
+1) Download PLPLOT from:
+  http://plplot.sourceforge.net/
+In the next steps it will be assumed that plplot-5.9.9 is being used.
+
+2) In the same directory as plplot-5.9.9 make a directory plplot_build
+	mkdir plplot_build
+This is a temporary directory for building PLPLOT.
+
+3) go to plplot_build
+	cd plplot_build
+
+4) Set environmental variables:
+With bash:
+  export CC="gcc -O2"
+  export CXX="g++ -O2"
+  export FC="gfortran -O2"
+
+With tcsh:
+  setenv CC "gcc -O2"
+  setenv CXX "g++ -O2"
+  setenv FC "gfortran -O2"
+
+5) Use CMake to create the build scripts:
+  cmake -DENABLE_wxwidgets=OFF -DENABLE_python=OFF -DENABLE_java=OFF ../plplot-5.9.9 
+Optional: Afterwards you can use "ccmake" to view/modifiy the build settings.
+
+6) Complile the code with:
+	make
+
+7) Install the code in /usr/local
+	sudo make install
 
 *****************************************************************************
-DIRECTORY ORGANIZATION
-----------------------
+DISTRIBUTION DIRECTORY ORGANIZATION
+-----------------------------------
 
 The root directory of a distribution will be called "BMAD_DIST" (see
 the next section). The BMAD_DIST directory should contain the following

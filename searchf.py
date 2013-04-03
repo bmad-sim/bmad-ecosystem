@@ -109,14 +109,15 @@ def print_help_message ():
   is used, getf/listf will only look at the subdirectories of <rdir> for the search directories.
 
   Standard Search directories:
-      bmad                   forest
-      bmadz                  mpm_utils
-      bsim                   nonlin_bpm
-      bsim_cesr              recipes_f-90_LEPP
-      cesr_programs          recipes_f-90_LEPP
-      cesr_utils             sim_utils
-      cesrv                  tao
-      examples               util_programs
+      bmad                genplt
+      bmadz               instr_utils
+      bsim                mpm_utils
+      bsim_cesr           mpmnet
+      cesr_programs       nonlin_bpm
+      cesr_utils          recipes_f-90_LEPP
+      cesrv               sim_utils
+      examples            tao
+      forest              util_programs
 '''
   sys.exit()
 
@@ -581,7 +582,6 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'cesr_utils', '/modules/cesr_utils.f90', '')
     choose_path (dir_list, root_dir, 'mpm_utils', '/code/butout.f90', '')
     choose_path (dir_list, root_dir, 'bmadz', '/modules/bmadz_struct.f90', '')
-    choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '')
     choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', 'packages/')
     choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
     choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
