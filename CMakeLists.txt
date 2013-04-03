@@ -12,14 +12,14 @@ set (SRC_DIRS
 )
 
 set (EXE_SPECS
-  analyzer.cmake
-  bbu.cmake
-  dynamic_aperture.cmake
-  synrad.cmake
-  synrad3d.cmake
-  synrad_aperture_to_wall.cmake
-  tune_plane_res_plot.cmake
-  ##find_quads.cmake
+  cmake.analyzer
+  cmake.bbu
+  cmake.dynamic_aperture
+  cmake.synrad
+  cmake.synrad3d
+  cmake.synrad_aperture_to_wall
+  cmake.tune_plane_res_plot
+  ##cmake.find_quads
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
