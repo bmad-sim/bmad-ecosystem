@@ -1,4 +1,3 @@
-                                                           Edited: 2012-Oct-5
 BMAD DISTRIBUTION INSTALLATION INSTRUCTIONS
 
 
@@ -28,13 +27,14 @@ OBTAINING HELP
 
 For general questions, installation problems, code building problems contact:
   CESR Unix Librarian (cesrulib@cornell.edu)
-Currently, the three people sharing library responsibility are:
-  David Sagan (dcs16@cornell.edu)
-  Mike Forster (mjf7@cornell.edu)
-  Laurel Bartnik (lty2@cornell.edu)
+Currently, the people sharing library responsibility are:
+	Attilio De Falco <amd275@cornell.edu>
+  David Sagan <dcs16@cornell.edu>
+  Mike Forster <mjf7@cornell.edu>
+  Laurel Bartnik <lty2@cornell.edu>
 
 For questions on the BMAD code contact:
-  David Sagan (dcs16@cornell.edu)
+  David Sagan <dcs16@cornell.edu>
 
 
 *****************************************************************************
@@ -44,13 +44,12 @@ COMPILER AND MISCELLANEOUS SUPPORT PACKAGE ISSUES
 At present, the BMAD distribution, which includes Fortran90, C, and C++ sources,
 is known to build with the following compiler combinations:
 
-LINUX (x86)
+LINUX or Mac OSX/Darwin (Intel processor)
   gcc/gfortran Version 4.6+
 - or -
-  Intel Fortran Compiler (ifort v12+)
+  Intel Fortran Compiler (ifort v13)
 
-Mac OSX/Darwin (Intel processor)
-  gcc/gfortran 4.6+
+NOTE: ifort and gcc versions earlier than what is stated above are known to fail.
 
 IMPORTANT: The relevant compilers for your platform must appear in
 each user's default PATH, otherwise the scripts in the distribution
