@@ -3,7 +3,7 @@
 # Script to build the debug version of the distribution.
 
 # Order here matters.
-DIRLIST="xsif PGPLOT forest recipes_f-90_LEPP sim_utils bmad tao examples cesr_utils bmadz bsim lapack"
+DIRLIST="xsif PGPLOT forest recipes_f-90_LEPP sim_utils bmad tao examples cesr_utils bmadz bsim lapack gsl fgsl"
 
 for DIR in ${DIRLIST}
 do
@@ -14,6 +14,10 @@ do
   elif ( [ "${DIR}" == "lapack" ] ) then
     ./acc_build -debug
     cd LAPACK95 ; ./acc_build -debug
+  elif ( [ "${DIR}" == "gsl" ] ) then
+    ./acc_build -debug
+  elif ( [ "${DIR}" == "fgsl" ] ) then
+    ./acc_build -debug
   else
     mkd ${1}
   fi
@@ -24,6 +28,4 @@ do
 done
 
 cd ${DIST_BASE_DIR}
-
-
 

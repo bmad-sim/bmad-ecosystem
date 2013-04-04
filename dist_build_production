@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Order here matters.
-DIRLIST="xsif PGPLOT forest recipes_f-90_LEPP sim_utils bmad tao examples cesr_utils bmadz bsim lapack"
+DIRLIST="xsif PGPLOT forest recipes_f-90_LEPP sim_utils bmad tao examples cesr_utils bmadz bsim lapack gsl fgsl"
 
 for DIR in ${DIRLIST}
 do
@@ -12,6 +12,10 @@ do
   elif ( [ "${DIR}" == "lapack" ] ) then
     ./acc_build -production
     cd LAPACK95 ; ./acc_build -production
+  elif ( [ "${DIR}" == "gsl" ] ) then
+    ./acc_build -production
+  elif ( [ "${DIR}" == "fgsl" ] ) then
+    ./acc_build -production
   else
     mk ${1}
   fi
@@ -22,5 +26,4 @@ do
 done
 
 cd ${DIST_BASE_DIR}
-
 
