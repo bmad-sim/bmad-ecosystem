@@ -525,7 +525,7 @@ photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / &
 ! Write results
 
 open (1, file = dat_file)
-open (3, file = trim(dat_file) // '_table', recl = 200)
+open (3, file = trim(dat_file) // '_table', recl = 240)
 print *, 'Data file is: ', trim(dat_file)
 print *, 'Data file in table format is: ', trim(dat_file) // '_table'
 call write_this_header (1)
@@ -551,7 +551,7 @@ do i = 1, n_photon_array
   j = photon%now%ix_ele
   write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
 
-  if (iu == 1) write (3, '(2i8, f12.4, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
+  if (iu == 1) write (3, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
         i, photon%n_wall_hit, photon%start%energy, photon%start%vec, photon%now%vec, &
         photon%now%track_len, dtrack, j, trim(key_name(lat%ele(j)%key)) 
 enddo
