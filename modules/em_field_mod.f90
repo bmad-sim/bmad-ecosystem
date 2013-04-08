@@ -307,13 +307,9 @@ select case (ele%field_calc)
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$))
     if (ele%key == rfcavity$) phase = pi/2 - phase
-    orbit%phase_x = phase
+    orbit%phase_x = phase  ! RF phase is needed by apply_hard_edge_kick when calling rf_coupler_kick.
 
-    if (ele%key == lcavity$) then
-      gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
-    else
-      gradient = ele%value(voltage$) * ele%value(field_scale$) / ele%value(l$)
-    endif
+    gradient = e_accel_field (ele, gradient$)
 
     if (.not. ele%is_on) gradient = 0
     gradient = (gradient + gradient_shift_sr_wake(ele, param)) / charge
@@ -512,7 +508,7 @@ select case (ele%field_calc)
   ! E_Gun
 
   case (e_gun$)
-    field%e(3) = ele%value(gradient$) * ele%value(field_scale$) / charge
+    field%e(3) = e_accel_field (ele, gradient$) / charge
 
   !------------------------------------------
   ! Error
@@ -608,8 +604,7 @@ case(map$)
     freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
     if (freq == 0) then
       call out_io (s_fatal$, r_name, 'Frequency is zero for map in cavity: ' // ele%name)
-      if (ele%em_field%mode(1)%harmonic == 0) &
-            call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
+      if (ele%em_field%mode(1)%harmonic == 0) call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
       if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return  
@@ -1159,5 +1154,63 @@ field1 = c0 + c1 * x + c2 * x**2 + c3 * x**3
 end function interpolate_1d
 
 end function field_interpolate_3d 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function e_accel_field (ele, voltage_or_gradient) result (field)
+!
+! Routine to return the gradient or voltage through an e_gun, lcavity or rfcavity element.
+!
+! Moudle needed:
+!   use track1_mod
+!
+! Input:
+!   ele                 -- ele_struct: Lcavity or rfcavity element.
+!   voltage_or_gradient -- integer: voltage$ or gradient$
+!
+! Output:
+!   gradient -- real(rp): cavity gradient
+!-
+
+function e_accel_field (ele, voltage_or_gradient) result (field)
+
+implicit none
+
+type (ele_struct) ele
+real(rp) field
+integer voltage_or_gradient 
+
+!
+
+select case (ele%key)
+case (lcavity$)
+  select case (voltage_or_gradient)
+  case (voltage$)
+    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) * ele%value(l$)
+  case (gradient$)
+    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+  end select
+
+case (rfcavity$)
+  select case (voltage_or_gradient)
+  case (voltage$)
+    field = ele%value(voltage$) * ele%value(field_scale$)
+  case (gradient$)
+    field = ele%value(voltage$) * ele%value(field_scale$) / ele%value(l$)
+  end select
+
+case (e_gun$)
+  select case (voltage_or_gradient)
+  case (voltage$)
+    field = ele%value(gradient$) * ele%value(field_scale$) * ele%value(l$)
+  case (gradient$)
+    field = ele%value(gradient$) * ele%value(field_scale$) 
+  end select
+
+end select
+
+end function e_accel_field
 
 end module

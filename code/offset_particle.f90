@@ -178,7 +178,7 @@ if (set) then
     if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0)) then
       angle = ele%value(g$) * z_here  ! Notice that this is generally negative
       cos_a = cos(angle); sin_a = sin(angle)
-      cos_t = cos(ele%value(tilt$));    sin_t = sin(ele%value(tilt$))
+      cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
       m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
       m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
       m_trans(3,1:3) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
@@ -365,7 +365,7 @@ else
     if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0)) then
       angle = ele%value(g$) * z_here 
       cos_a = cos(angle); sin_a = sin(angle)
-      cos_t = cos(ele%value(tilt$));    sin_t = sin(ele%value(tilt$))
+      cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
       m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
       m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
       m_trans(3,1:3) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]

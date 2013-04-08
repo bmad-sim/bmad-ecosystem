@@ -38,9 +38,9 @@ type (lat_param_struct)  param
 real(rp), pointer :: mat6(:,:)
 
 real(rp) mat6_m(6,6), mat6_pre(6,6), mat6_post(6,6), mat6_i(6,6)
-real(rp) mat4(4,4), kmat(4,4)
+real(rp) mat4(4,4), kmat(4,4), m2(2,2)
 real(rp) angle, k1, ks, length, e2, g, g_err
-real(rp) k2l, k3l, c2, s2, cs, del_l
+real(rp) k2l, k3l, c2, s2, cs, del_l, beta_ref
 real(rp) factor, kmat6(6,6), drift(6,6)
 real(rp) s_pos, s_pos_old, z_slice(100)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
@@ -52,13 +52,12 @@ real(rp) t5_11, t5_14, t5_22, t5_23, t5_33, t5_34, t5_44
 real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
 real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
 real(rp) lcs, lc2s2, k, L, m55, m65, m66, new_pc, new_beta
-real(rp) cos_phi, gradient, e_start, e_end, e_ratio
-real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE
+real(rp) cos_phi, gradient, e_start, e_end, e_ratio, pc, p0c
+real(rp) alpha, sin_a, cos_a, f, phase0, phase, t0, dt_ref_slice, E, pxy2, dE
 real(rp) g_tot, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
 real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
-real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
+real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end, gradient_max, voltage_max
 real(rp) dcP2_dz1, dbeta1_dpz1, dbeta2_dpz2, beta_start, beta_end
-real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, gradient_max, voltage_max
 
 real(rp) dp_long_dpx, dp_long_dpy, dp_long_dpz, dalpha_dpx, dalpha_dpy, dalpha_dpz
 real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz
@@ -288,12 +287,10 @@ case (lcavity$)
 
   phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + &
                    ele%value(dphi0_ref$) +  ele%value(phi0_err$) + &
-                   particle_time (c0, ele) * ele%value(rf_frequency$))
-  if (absolute_time_tracking(ele)) phase = phase - &
-                            twopi * rf_time_offset(ele, 0.0_rp) * ele%value(rf_frequency$) 
+                   (particle_time (c0, ele) -rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 
   cos_phi = cos(phase)
-  gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) 
+  gradient_max = e_accel_field (ele, gradient$)
   if (.not. ele%is_on) gradient_max = 0
   gradient = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) 
 
@@ -302,6 +299,8 @@ case (lcavity$)
     call add_multipoles_and_z_offset ()
     return
   endif
+
+  if (ele%value(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, upstream_end$, phase, c00, mat6)
 
   p0c_start = ele%value(p0c_start$) 
   pc_start = p0c_start * (1 + c0%vec(6))
@@ -378,7 +377,7 @@ case (lcavity$)
 
   ! Coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) call mat6_coupler_kick()
+  if (ele%value(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, downstream_end$, phase, c11, mat6)
 
   ! multipoles and z_offset
 
@@ -569,38 +568,45 @@ case (rbend$)
 
 case (rfcavity$)
 
+  mc2 = mass_of(param%particle)
+  p0c = ele%value(p0c$)
+  beta_ref = p0c / ele%value(e_tot$)
   n_slice = max(1, nint(length / ele%value(ds_step$))) 
+  dt_ref_slice = length / (n_slice * c_light * beta_ref)
 
   call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
 
-  voltage = ele%value(voltage$) * ele%value(field_scale$) 
+  voltage = e_accel_field (ele, voltage$)
 
-  ! The RF phase is defined with respect to the time at the beginning of the element.
-  ! So if dealing with a slave element and absolute time tracking then need to correct.
+  phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
+                  (particle_time (c00, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+  phase = phase0
+  t0 = c00%t
+
+  ! Track through slices.
+  ! The phase of the accelerating wave traveling in the same direction as the particle is
+  ! assumed to be traveling with a phase velocity the same speed as the reference velocity.
+
+  if (ele%value(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, upstream_end$, phase, c00, mat6)
 
   do i = 0, n_slice
-
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
-                  particle_time (c00, ele) * ele%value(rf_frequency$))
-
-    if (absolute_time_tracking(ele)) phase = phase + &
-                              twopi * rf_time_offset(ele, i*length/n_slice) * ele%value(rf_frequency$)  
 
     factor = param%rel_tracking_charge * voltage / n_slice
     if (i == 0 .or. i == n_slice) factor = factor / 2
     dE = factor * sin(phase)
 
-    E = (1 + c00%vec(6)) * ele%value(p0c$) / c00%beta
+    pc = (1 + c00%vec(6)) * p0c 
+    E = pc / c00%beta
     call convert_total_energy_to (E + dE, param%particle, pc = new_pc, beta = new_beta)
+    f = twopi * factor * ele%value(rf_frequency$) * cos(phase) / (p0c * new_beta * c_light)
+    m2(2,1) = f / c00%beta
+    m2(2,2) = c00%beta / new_beta - f * c00%vec(5) *mc2**2 * p0c / (E * pc**2) 
+    m2(1,1) = new_beta / c00%beta + c00%vec(5) * (mc2**2 * p0c * m2(2,1) / (E+dE)**3) / c00%beta
+    m2(1,2) = c00%vec(5) * mc2**2 * p0c * (m2(2,2) / ((E+dE)**3 * c00%beta) - new_beta / (pc**2 * E))
 
-    m55 = new_beta / c00%beta
-    m65 = twopi * factor * (E + dE) * ele%value(rf_frequency$) * cos(phase) / (ele%value(p0c$) * new_pc * c00%beta * c_light)
-    m66 = c00%beta / new_beta 
-
-    mat6(6,:) = m65 * mat6(5,:) + m66 * mat6(6,:)
-    mat6(5,:) = m55 * mat6(5,:)                       ! Note: m56 = 0
+    mat6(5:6, :) = matmul(m2, mat6(5:6, :))
   
-    c00%vec(6) = (new_pc - ele%value(p0c$)) / ele%value(p0c$)
+    c00%vec(6) = (new_pc - p0c) / p0c
     c00%vec(5) = c00%vec(5) * new_beta / c00%beta
     c00%beta   = new_beta
 
@@ -608,13 +614,14 @@ case (rfcavity$)
       call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
       call track_a_drift (c00, ele, length/n_slice)
       mat6 = matmul(drift, mat6)
+      phase = phase0 + twopi * ele%value(rf_frequency$) * ((i + 1) * dt_ref_slice - (c00%t - t0)) 
     endif
 
   enddo
 
   ! Coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) call mat6_coupler_kick()
+  if (ele%value(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, downstream_end$, phase, c00, mat6)
 
   call offset_particle (ele, c00, param, unset$, set_canonical = .false., set_tilt = .false.)
 
@@ -1129,7 +1136,7 @@ endif
 
 call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, ele%mat6)
 
-end subroutine
+end subroutine add_multipoles_and_z_offset
 
 !----------------------------------------------------------------
 ! contains
@@ -1144,46 +1151,83 @@ mass = mass_of(param%particle)
 e_tot = ele%value(p0c$) * (1 + c0%vec(6)) / c0%beta
 mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot**3
 
-end subroutine
-
-!----------------------------------------------------------------
-! contains
-
-subroutine mat6_coupler_kick()
-
-real(rp) this_phase
-
-! coupler kicks
-! dp_x_coupler ~ (2,5) matrix term
-! dp_y_coupler ~ (4,5) matrix term
-
-this_phase = phase
-if (ele%key == rfcavity$) this_phase = pi/2 - this_phase
-
-
-f = twopi * ele%value(rf_frequency$) / c_light
-dp_coupler = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) * &
-              ele%value(coupler_strength$) * f * sin(phase + twopi * ele%value(coupler_phase$))
-dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
-dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
-
-if (nint(ele%value(coupler_at$)) == both_ends$) then
-  dp_x_coupler = dp_x_coupler / 2
-  dp_y_coupler = dp_y_coupler / 2
-endif
-
-if (at_this_ele_end (upstream_end$, nint(ele%value(coupler_at$)), ele%orientation)) then
-  mat6(:,5) = mat6(:,5) + (mat6(:,2) * dp_x_coupler + mat6(:,4) * dp_y_coupler) / p0c_start
-endif
-
-if (at_this_ele_end (downstream_end$, nint(ele%value(coupler_at$)), ele%orientation)) then
-  mat6(2,:) = mat6(2,:) + dp_x_coupler * mat6(5,:) / p0c_end
-  mat6(4,:) = mat6(4,:) + dp_y_coupler * mat6(5,:) / p0c_end
-endif
-
-end subroutine mat6_coupler_kick
+end subroutine add_M56_low_E_correction
 
 end subroutine make_mat6_bmad
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+
+subroutine mat6_coupler_kick(ele, param, end_at, phase, orb, mat6)
+
+use track1_mod
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orb, old_orb
+type (lat_param_struct) param
+real(rp) phase, mat6(6,6), f, f2, coef, E_new
+real(rp) dp_coef, dp_x, dp_y, ph, mc(6,6), E, pc, mc2, p0c
+integer end_at
+
+!
+
+if (.not. at_this_ele_end (end_at, nint(ele%value(coupler_at$)), ele%orientation)) return
+
+ph = phase
+if (ele%key == rfcavity$) ph = pi/2 - ph
+ph = ph + twopi * ele%value(coupler_phase$)
+
+mc2 = mass_of(param%particle)
+p0c = ele%value(p0c$)
+pc = p0c * (1 + orb%vec(6))
+E = pc / orb%beta
+
+f = twopi * ele%value(rf_frequency$) / c_light
+dp_coef = e_accel_field(ele, gradient$) * ele%value(coupler_strength$)
+dp_x = dp_coef * cos(twopi * ele%value(coupler_angle$))
+dp_y = dp_coef * sin(twopi * ele%value(coupler_angle$))
+
+if (nint(ele%value(coupler_at$)) == both_ends$) then
+  dp_x = dp_x / 2
+  dp_y = dp_y / 2
+endif
+
+! Track
+
+old_orb = orb
+call rf_coupler_kick (ele, param, end_at, phase, orb)
+
+! Matrix
+
+call mat_make_unit (mc)
+
+mc(2,5) = dp_x * f * sin(ph) / (old_orb%beta * p0c)
+mc(4,5) = dp_y * f * sin(ph) / (old_orb%beta * p0c)
+
+mc(2,6) = -dp_x * f * sin(ph) * old_orb%vec(5) * mc2**2 / (E * pc**2)
+mc(4,6) = -dp_y * f * sin(ph) * old_orb%vec(5) * mc2**2 / (E * pc**2)
+
+coef = (dp_x * old_orb%vec(1) + dp_y * old_orb%vec(3)) * cos(ph) * f**2 
+mc(6,1) = dp_x * sin(ph) * f / (orb%beta * p0c)
+mc(6,3) = dp_y * sin(ph) * f / (orb%beta * p0c)
+mc(6,5) = -coef / (orb%beta * old_orb%beta * p0c) 
+mc(6,6) = old_orb%beta/orb%beta + coef * old_orb%vec(5) * mc2**2 / (pc**2 * E * orb%beta)
+
+f2 = old_orb%vec(5) * mc2**2 / (pc * E**2 * p0c)
+E_new = p0c * (1 + orb%vec(6)) / orb%beta
+
+mc(5,1) = old_orb%vec(5) * mc2**2 * p0c * mc(6,1) / (old_orb%beta * E_new**3)
+mc(5,3) = old_orb%vec(5) * mc2**2 * p0c * mc(6,3) / (old_orb%beta * E_new**3)
+mc(5,5) = orb%beta/old_orb%beta + old_orb%vec(5) * mc2**2 * p0c * mc(6,5) / (old_orb%beta * E_new**3)
+mc(5,6) = old_orb%vec(5) * mc2**2 * p0c * (mc(6,6) / (old_orb%beta * E_new**3) - &
+                                     orb%beta / (old_orb%beta**2 * E**3))
+
+mat6 = matmul(mc, mat6)
+
+end subroutine mat6_coupler_kick
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

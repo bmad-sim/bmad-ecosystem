@@ -864,11 +864,10 @@ case (rfcavity$, lcavity$)
   if (ele%key == lcavity$) then
     mag%lag = pi / 2 - twopi * phi_tot
     call set_real (mag%phas, magp%phas, -mag%lag)
-    call set_real (mag%volt, magp%volt, 2e-6 * val(l$) * (val(gradient$) + val(gradient_err$)) * val(field_scale$))
   else
     mag%lag = twopi * phi_tot
-    call set_real (mag%volt, magp%volt, 2e-6 * val(voltage$) * val(field_scale$))
   endif
+  call set_real (mag%volt, magp%volt, 2e-6 * e_accel_field(ele, voltage$))
 
 case (sbend$)
   if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute

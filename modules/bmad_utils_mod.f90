@@ -1157,6 +1157,66 @@ end subroutine convert_pc_to
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
+! Subroutine apply_energy_kick (dE, particle, orbit)
+! 
+! Routine to change the energy of a particle by an amount dE
+! Appropriate changes to z and beta will be made
+!
+! Module needed:
+!   use bmad
+!
+! Input:
+!   dE        -- real(rp): Energy change
+!   particle  -- integer: Particle type. positron$, etc.
+!   orbit     -- coord_struct: Beginning coordinates
+!
+! Output:
+!   orbit     -- coord_struct: coordinates with added dE energy kick.
+!     %vec(6)   -- Set to -1 if particle energy becomes negative.
+!-
+
+subroutine apply_energy_kick (dE, particle, orbit)
+
+implicit none
+
+type (coord_struct) orbit
+real(rp) dE, mc2, new_pc, new_beta, p0c, new_E, pc, beta, t3
+integer particle
+
+!
+
+mc2 = mass_of(particle)
+p0c = orbit%p0c
+pc = (1 + orbit%vec(6)) * p0c
+beta = orbit%beta
+
+new_E = pc / orbit%beta + dE
+
+if (new_E < 0) then
+  orbit%vec(6) = -1
+  orbit%beta = 0
+  return
+endif
+
+t3 = mc2**2 * dE**3 / (2 * p0c * beta * pc**4) 
+if (t3 < 1e-12) then
+  orbit%vec(6) = orbit%vec(6) + dE / (beta * p0c) - (mc2 * dE / pc)**2 / (2 * p0c * pc) + t3
+  new_pc = p0c * (1 + orbit%vec(6))
+else
+  new_pc = sqrt(new_E**2 - mc2**2)
+  orbit%vec(6) = (new_pc - p0c) / p0c
+endif
+
+new_beta = new_pc / new_E
+orbit%vec(5) = orbit%vec(5) * new_beta / beta
+orbit%beta = new_beta
+
+end subroutine apply_energy_kick
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
 ! Subroutine transfer_lat_parameters (lat_in, lat_out)
 !
 ! Subroutine to transfer the lat parameters (such as lat%name, lat%param, etc.)
@@ -4544,43 +4604,43 @@ end function particle_time
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function rf_time_offset (ele, s_offset) result (time)
+! Function rf_ref_time_offset (ele) result (time)
 !
-! Routine to return an offset time to use for calculating the RF phase
-! in RF cavities. This is used only with absolute time tracking.
+! Routine to return an offset time due to the offset distance for super_slave and 
+! slice_slave elemenets. This is used for calculating the RF phase
+! in RF cavities. 
+!
+! This is only non-zer with absolute time tracking since relative time, which 
+! references the time to the reference particle,  already takes this into account.
 ! 
 ! Input:
 !   ele      -- ele_struct: RF Element being tracked through.
-!   s_offset -- real(rp): Distance from the beginning of the cavity.
 !
 ! Ouput:
 !   time  -- Real(rp): Offset time.
 !-
 
-function rf_time_offset (ele, s_offset) result (time)
+function rf_ref_time_offset (ele) result (time)
 
 implicit none
 
 type (coord_struct) orbit
 type (ele_struct) ele
 type (ele_struct), pointer :: lord
-real(rp) time, s_offset
-logical abs_time
-character(16), parameter :: r_name = 'rf_time_offset'
+real(rp) time
+character(*), parameter :: r_name = 'rf_ref_time_offset'
 
-! Offset due to s_offset: s_offset / ref_velocity
+! 
 
-time = s_offset / (c_light * ele%value(p0c$) / ele%value(e_tot$))
-
-! If a slave then there is an additional offset due to the position of
-! the slave relative to the lord.
+time = 0
+if (.not. absolute_time_tracking(ele)) return
 
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   lord => pointer_to_lord (ele, 1)
-  time = time + ele%value(ref_time_start$) - lord%value(ref_time_start$)
+  time = ele%value(ref_time_start$) - lord%value(ref_time_start$)
 endif
 
-end function rf_time_offset
+end function rf_ref_time_offset
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

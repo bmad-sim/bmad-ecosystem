@@ -44,7 +44,7 @@ type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 type (taylor_struct) taylor(6), taylor2(6)
 
-real(rp) k1, k2, k2l, k3l, length, phase, beta_start
+real(rp) k1, k2, k2l, k3l, length, phase0, phase, beta_start, beta_ref
 real(rp) beta_end, beta_start_ref, beta_end_ref, hkick, vkick, kick
 real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const, voltage
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
@@ -58,7 +58,7 @@ real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
 real(rp) dcos_phi, dgradient, dpz
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
-real(rp) new_pc, new_beta, len_slice, k0l, k1l
+real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0, dt_ref_slice
 
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc
@@ -287,11 +287,9 @@ case (lcavity$)
 
   phase = twopi * (ele%value(phi0_err$) + ele%value(dphi0_ref$) + &
              ele%value(phi0$) + ele%value(dphi0$) + &
-             particle_time (end_orb, ele) * ele%value(rf_frequency$))
-  if (absolute_time_tracking(ele)) phase = phase - &
-                            twopi * rf_time_offset(ele, 0.0_rp) * ele%value(rf_frequency$) 
+             (particle_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 
-  gradient_max = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+  gradient_max = e_accel_field(ele, gradient$)
 
   if (.not. ele%is_on) then
     gradient_max = 0
@@ -333,8 +331,7 @@ case (lcavity$)
 
   ! coupler kick
 
-  end_orb%phase_x = phase
-  call rf_coupler_kick (ele, upstream_end$, end_orb)
+  call rf_coupler_kick (ele, param, upstream_end$, phase, end_orb)
 
   if (gradient == 0) then
     r_mat(1,1) = 1
@@ -365,7 +362,7 @@ case (lcavity$)
   ! coupler kick
 
   end_orb%p0c = pc_end_ref
-  call rf_coupler_kick (ele, downstream_end$, end_orb)
+  call rf_coupler_kick (ele, param, downstream_end$, phase, end_orb)
 
   ! exit kick
 
@@ -538,42 +535,47 @@ case (quadrupole$)
 
 case (rfcavity$)
 
+  beta_ref = ele%value(p0c$) / ele%value(e_tot$)
   n_slice = max(1, nint(length / ele%value(ds_step$))) 
+  dt_ref_slice = length / (n_slice * c_light * beta_ref)
 
   call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
-  voltage = ele%value(voltage$) * ele%value(field_scale$) 
+  voltage = e_accel_field(ele, voltage$)
 
-  ! The RF phase is defined with respect to the time at the beginning of the element.
-  ! So if dealing with a slave element and absolute time tracking then need to correct.
+  phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
+          (particle_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+  phase = phase0
+  t0 = end_orb%t
+
+  call rf_coupler_kick (ele, param, upstream_end$, phase, end_orb)
+
+  ! Track through slices.
+  ! The phase of the accelerating wave traveling in the same direction as the particle is
+  ! assumed to be traveling with a phase velocity the same speed as the reference velocity.
 
   do i = 0, n_slice
 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
-                 particle_time (end_orb, ele) * ele%value(rf_frequency$))
-    if (absolute_time_tracking(ele)) phase = phase + &
-                    twopi * rf_time_offset(ele, i*length/n_slice) * ele%value(rf_frequency$)  
-    end_orb%phase_x = pi/2 - phase    ! This is "lcavity" phase.
-
-    if (i == 0) call rf_coupler_kick (ele, upstream_end$, end_orb)
-
-
     dE = param%rel_tracking_charge * voltage * sin(phase) / n_slice
     if (i == 0 .or. i == n_slice) dE = dE / 2
+
+    call apply_energy_kick (dE, param%particle, end_orb)
     
-    E = (1 + end_orb%vec(6)) * ele%value(p0c$) / end_orb%beta
-    call convert_total_energy_to (E + dE, param%particle, pc = new_pc, beta = new_beta)
+    if (end_orb%vec(6) == -1) then
+      end_orb%state = lost_z_aperture$
+      return
+    endif
 
-    end_orb%vec(6) = (new_pc - ele%value(p0c$)) / ele%value(p0c$)
-    end_orb%vec(5) = end_orb%vec(5) * new_beta / end_orb%beta
-    end_orb%beta   = new_beta
+    if (i /= n_slice) then
+      call track_a_drift (end_orb, ele, length/n_slice)
+      phase = phase0 + twopi * ele%value(rf_frequency$) * ((i + 1) * dt_ref_slice - (end_orb%t - t0)) 
+    endif
 
-    if (i /= n_slice) call track_a_drift (end_orb, ele, length/n_slice)
   enddo
 
   ! coupler kick
 
-  call rf_coupler_kick (ele, downstream_end$, end_orb)
+  call rf_coupler_kick (ele, param, downstream_end$, phase, end_orb)
 
   call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
 
