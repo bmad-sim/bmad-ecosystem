@@ -782,7 +782,9 @@ case (lcavity$, rfcavity$, e_gun$)
 
   endif
 
-  call rf_coupler_kick (hard_ele, stream_end, orb)
+  ! orb%phase_x is set by em_field_calc.
+
+  call rf_coupler_kick (hard_ele, param, stream_end, orb%phase_x, orb)
 
 end select
 
@@ -1575,7 +1577,7 @@ end subroutine track1_low_energy_z_correction
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine rf_coupler_kick (ele, end_at, orbit)
+! Subroutine rf_coupler_kick (ele, param, end_at, phase, orbit)
 ! 
 ! Routine to add a RF cavity coupler kicks
 !
@@ -1584,21 +1586,24 @@ end subroutine track1_low_energy_z_correction
 !
 ! Input:
 !   ele     -- ele_struct: Element being tracked through
+!   param   -- lat_param_struct: branch parameters.
 !   end_at  -- integer: Upstream_end$ or downstream_end$
+!   phase   -- real(rp): phase of cavity
 !   orbit   -- coord_struct: Position before kick.
 !
 ! Output:
 !   orbit   -- coord_struct: Position after kick.
 !-
 
-subroutine rf_coupler_kick (ele, end_at, orbit)
+subroutine rf_coupler_kick (ele, param, end_at, phase, orbit)
 
 implicit none
 
 type (ele_struct) ele
+type (lat_param_struct) param
 type (coord_struct) orbit
 
-real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, pc
+real(rp) dp, dp_x, dp_y, phase, ph, dE
 
 integer end_at
 
@@ -1607,21 +1612,28 @@ integer end_at
 if (.not. at_this_ele_end (end_at, nint(ele%value(coupler_at$)), ele%orientation)) return
 if (ele%value(coupler_strength$) == 0) return
 
-dp_coupler = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) * &
-      ele%value(coupler_strength$) * cos(orbit%phase_x + twopi * ele%value(coupler_phase$))
+ph = phase
+if (ele%key == rfcavity$) ph = pi/2 - ph
+ph = ph + twopi * ele%value(coupler_phase$)
 
-dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
-dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
+dp = e_accel_field(ele, gradient$) * ele%value(coupler_strength$)
+
+dp_x = dp * cos(twopi * ele%value(coupler_angle$))
+dp_y = dp * sin(twopi * ele%value(coupler_angle$))
 
 if (nint(ele%value(coupler_at$)) == both_ends$) then
-  dp_x_coupler = dp_x_coupler / 2
-  dp_y_coupler = dp_y_coupler / 2
+  dp_x = dp_x / 2
+  dp_y = dp_y / 2
 endif
 
-pc = orbit%p0c * (1 + orbit%vec(6))
+! Since the transverse kick is time dependent there must be an associated energy kick
+! to make things symplectic.
 
-orbit%vec(2) = orbit%vec(2) + dp_x_coupler / pc
-orbit%vec(4) = orbit%vec(4) + dp_y_coupler / pc
+orbit%vec(2) = orbit%vec(2) + dp_x * cos(ph) / orbit%p0c
+orbit%vec(4) = orbit%vec(4) + dp_y * cos(ph) / orbit%p0c
+
+dE = (dp_x * orbit%vec(1) + dp_y * orbit%vec(3)) * sin(ph) * twopi * ele%value(rf_frequency$) / c_light
+call apply_energy_kick (dE, param%particle, orbit)
 
 end subroutine rf_coupler_kick
 

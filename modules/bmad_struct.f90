@@ -1088,6 +1088,7 @@ type bmad_common_struct
   logical :: rf_auto_scale_phase_default = .true.       ! Default for lat%rf_auto_scale_phase
   logical :: rf_auto_scale_amp_default = .true.         ! Default for lat%rf_auto_scale_amp
   logical :: use_ptc_layout_default = .false.           ! Default for lat%use_ptc_layout
+  logical :: debug = .false.                            ! Used for code debugging.
 end type
   
 type (bmad_common_struct), save :: bmad_com

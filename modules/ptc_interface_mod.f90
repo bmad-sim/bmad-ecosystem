@@ -2876,15 +2876,13 @@ case (rfcavity$, lcavity$)
 
   if (ele%key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot
-    ptc_key%list%volt = 2e-6 * ele%value(l$) * &
-                            (val(gradient$) + val(gradient_err$)) * ele%value(field_scale$)
     ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
   else
     ptc_key%list%lag = twopi * phi_tot
-    ptc_key%list%volt = 2e-6 * val(voltage$) * ele%value(field_scale$)
     ptc_key%list%n_bessel = -1 
   endif
 
+  ptc_key%list%volt = 2e-6 * e_accel_field(ele, voltage$)
   ptc_key%list%delta_e = 0     ! For radiation calc.
   ptc_key%list%cavity_totalpath = 1  ! 
 
