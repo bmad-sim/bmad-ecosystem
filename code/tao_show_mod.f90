@@ -315,7 +315,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write (lines(nl), amt) 'tao_com%beam_file          = ', tao_com%beam_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%beam_file           = ', tao_com%beam_file
     nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file
     nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam%beam_all_file
     beam => uni_branch%ele(0)%beam
@@ -323,6 +323,7 @@ case ('beam')
       nl=nl+1; write(lines(nl), imt) 'n_particle                  = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                     = ', size(beam%bunch)
       nl=nl+1; write(lines(nl), rmt) 'bunch_charge                = ', beam%bunch(1)%charge
+      nl=nl+1; write(lines(nl), amt) 'bunch_species               = ', trim(particle_name(beam%bunch(1)%species))
     endif
     if (u%beam%beam_all_file == '' .and. u%beam%beam0_file == '') then
       beam_init => u%beam%beam_init
