@@ -1184,6 +1184,11 @@ integer voltage_or_gradient
 
 !
 
+if (.not. ele%is_on) then
+  field = 0
+  return
+endif
+
 select case (ele%key)
 case (lcavity$)
   select case (voltage_or_gradient)

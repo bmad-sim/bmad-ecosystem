@@ -10,7 +10,7 @@ real(rp), parameter :: g_factor = 0.001159657
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
 
 type spin_polar_struct
-  real(rp) :: polarization = 1 
+  real(rp) :: polarization = 1
   real(rp) :: theta = 0
   real(rp) :: phi   = 0
   real(rp) :: xi    = 0
@@ -650,7 +650,7 @@ end select
 ! offset particle coordinates at entrance of element
 call offset_particle (ele, temp_start, param, set$, .false., .true., .false., .false.)
 ! offset particle coordinates at exit of element
-call offset_particle (ele, temp_end, param,   set$, .false., .true., .false., .false.)
+call offset_particle (ele, temp_end, param,   set$, .false., .true., .false., .false., .true., ele%value(l$))
 
 call offset_spin (ele, param, temp_start, set$, (isTreatedHere .or. isKicker))
 
@@ -1438,7 +1438,8 @@ end subroutine offset_spin
 !     %value(y_pitch$)        -- Vertical roll of element.
 !     %value(tilt$)           -- Tilt of element.
 !     %value(roll$)           -- Roll of dipole.
-!   param         -- Integer: What kind of param.
+!   param            -- Lat_param_struct
+!     %particle               -- Particle species.
 !   vec              -- Real(rp): Coordinates of the particle.
 !   spin(2)          -- Complex(rp): Incoming spinor
 !   do_half_prec     -- Logical, optional: Default is False.
