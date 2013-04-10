@@ -886,6 +886,10 @@ elseif (has_kick_attributes(ele%key)) then
   if (ele%value(bl_kick$) /= 0) has_kick = .true.
 endif
 
+if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
+  if (ele%value(coupler_strength$) /= 0) has_kick = .true.
+endif
+
 end function ele_has_nonzero_kick
 
 !---------------------------------------------------------------------------
@@ -924,6 +928,10 @@ if (has_hkick_attributes(ele%key)) then
 elseif (has_kick_attributes(ele%key)) then
   ele%value(kick$) = 0
   ele%value(bl_kick$) = 0
+endif
+
+if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
+  ele%value(coupler_strength$) = 0
 endif
 
 end subroutine zero_ele_kicks
