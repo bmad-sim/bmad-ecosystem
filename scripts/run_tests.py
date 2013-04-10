@@ -206,7 +206,7 @@ for line in dir_list:
           if len(now2_split) == 2:     # Will always have blank item in list.
             print_all ('     Regression test failed:', color = True)
           else:
-            print_all ('     Regression test failed for datum number: ' + str(ix), color = True)
+            print_all ('     Regression test failed for datum number: ' + str(ix+1), color = True)
           print_all ('          Line from "output.now": ' + now_line, color = True)
           print_all ('          Line from "output.correct": ' + correct_line, color = True)
           num_local_failures += 1
@@ -249,7 +249,7 @@ for line in dir_list:
           else:
             print_all ('     Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1], color = True)
           if len(now2_split) != 1: 
-            print_all ('     Regression test failed for datum number: ' + str(ix), color = True)
+            print_all ('     Regression test failed for datum number: ' + str(ix+1), color = True)
           print_all ('        Data from "output.now":     ' + str(now2_split), color = True)
           print_all ('        Data from "output.correct": ' + str(correct2_split), color = True)
           print_all ('        Diff: ' + str(diff_val) + '  Diff/Val: ' + str(abs(diff_val) / ave_abs_val), color = True)
