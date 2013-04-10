@@ -3,7 +3,7 @@
 # Script to build the debug version of the distribution.
 
 # Order here matters.
-DIRLIST="xsif PGPLOT forest recipes_f-90_LEPP sim_utils bmad tao examples cesr_utils bmadz bsim lapack gsl fgsl"
+DIRLIST="xsif PGPLOT lapack gsl fgsl forest recipes_f-90_LEPP sim_utils bmad tao examples cesr_utils bmadz bsim"
 
 for DIR in ${DIRLIST}
 do
