@@ -94,6 +94,24 @@ build_specs = {
                 '/trunk/src/magstat',
                 '/trunk/src/simcon',
 		'/CESR/CESR_services/intloc'
+		'/trunk/src/err_mon'
+		'/trunk/src/fastlog'
+		'/trunk/src/newin'
+		'/trunk/src/show'
+		'/trunk/src/vacmon'
+		'/trunk/src/xscope'
+		'/CESR/CESR_services/condx'
+		'/CESR/CESR_services/dt80_logger'
+		'/CESR/CESR_services/event_wat'
+		'/CESR/CESR_services/htcmon'
+		'/CESR/CESR_progs/DB_utils'
+		'/CESR/CESR_progs/chfeed'
+		'/CESR/CESR_progs/diagnose'
+		'/CESR/CESR_progs/gdl'
+		'/CESR/CESR_progs/lat_utils'
+		'/CESR/CESR_progs/magnet'
+		'/CESR/CESR_progs/save'
+		'/CESR/CESR_progs/scopeget'
             ]
         }
     },
