@@ -7,7 +7,7 @@ type read_beam_common_struct
   integer :: n_bunch = 0, n_particle = 0
   integer :: iu
   character(100) :: file_name
-  logical :: ascii_file
+  character(8) file_type
 end type
 
 type (read_beam_common_struct), private, save :: rb_com
@@ -52,11 +52,16 @@ if (rb_com%iu == 0) then
   return
 endif
 
-rb_com%ascii_file = .true.
 read (rb_com%iu, '(a80)') line
-if (index(line, '!BINARY') /= 0) rb_com%ascii_file = .false.
+if (index(line, '!BINARY') /= 0) then 
+  rb_com%file_type = 'BIN:1'
+elseif (index(line, '!BIN::2') /= 0) then 
+  rb_com%file_type = 'BIN:2'
+else
+  rb_com%file_type = 'ASCII'
+endif
 
-if (rb_com%ascii_file) then
+if (rb_com%file_type == 'ASCII') then
   rewind (rb_com%iu)
 else
   close (rb_com%iu)
@@ -121,24 +126,25 @@ implicit none
 real(rp) charge_bunch
 integer n_bunch, n_particle, ix_ele, ios
 character(80) line
-character(28) :: r_name = 'tao_read_beam_file_header'
+character(*), parameter :: r_name = 'tao_read_beam_file_header'
 logical err
 
 ! Read numbers
 
 err = .true.
 
-if (rb_com%ascii_file) then
-  read (rb_com%iu, *, iostat = ios) ix_ele
-  read (rb_com%iu, *, iostat = ios) n_bunch
-  read (rb_com%iu, *, iostat = ios) n_particle
+if (rb_com%file_type == 'ASCII') then
+  read (rb_com%iu, *, iostat = ios, err = 8000) ix_ele
+  read (rb_com%iu, *, iostat = ios, err = 8000) n_bunch
+  read (rb_com%iu, *, iostat = ios, err = 8000) n_particle
 else
   read (rb_com%iu) line(1:7)  ! read "!BINARY" line
-  read (rb_com%iu, iostat = ios) ix_ele, n_bunch, n_particle
+  read (rb_com%iu, iostat = ios, err = 8000) ix_ele, n_bunch, n_particle
 endif
 
+8000 continue
 if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING HEADER INFO!')
+  call out_io (s_error$, r_name, 'ERROR READING BEAM HEADER INFO IN FILE: ' // trim(rb_com%file_name))
   return
 endif
 
@@ -242,32 +248,49 @@ do i = 1, n_bunch
   bunch => beam%bunch(i)
   p => bunch%particle
 
-  if (rb_com%ascii_file) then
+  if (rb_com%file_type == 'ASCII') then
 
     read (rb_com%iu, '(a)', iostat = ios) line
     if (ios /= 0 .or. index(line, 'BEGIN_BUNCH') == 0) then
-      call out_io (s_error$, r_name, 'NO "BEGIN_BUNCH" MARKER FOUND IN: ' // rb_com%file_name, &
+      call out_io (s_error$, r_name, 'NO "BEGIN_BUNCH" MARKER FOUND IN: ' // trim(rb_com%file_name), &
                                      'FOR BUNCH: \I0\ ', i_array = (/ i /) )
       return
     endif
 
+    read (rb_com%iu, *, iostat = ios) line
+    if (is_real(line, .true.)) then
+      call out_io (s_warn$, r_name, 'OLD STYLE FORMAT DOES NOT INCLUDE BUNCH SPECIES IN FILE: ' // trim(rb_com%file_name), &
+                                    'FOR BUNCH: \I0\ ', &
+                                    'PLEASE CORRECT.', i_array = (/ i /) )
+      return
+    endif
+
+    call match_word (line, particle_name, ix, .false., .false.)
+    if (ix < 1) then
+      call out_io (s_error$, r_name, 'BAD SPECIES NAME: ' // trim(line), &
+                                     'IN FILE: ' // trim(rb_com%file_name), &
+                                     'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+      return
+    endif
+    bunch%species = ix + lbound(particle_name, 1) - 1
+
     read (rb_com%iu, *, iostat = ios) bunch%charge
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'ERROR READING BUNCH CHARGE IN: ' //  rb_com%file_name, &
+      call out_io (s_error$, r_name, 'ERROR READING BUNCH CHARGE IN: ' // trim(rb_com%file_name), &
                                      'FOR BUNCH: \I0\ ', i_array = (/ i /) )
       return
     endif
 
     read (rb_com%iu, *, iostat = ios) bunch%z_center
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'ERROR READING BUNCH Z_CENTER IN: ' // rb_com%file_name, &
+      call out_io (s_error$, r_name, 'ERROR READING BUNCH Z_CENTER IN: ' // trim(rb_com%file_name), &
                                      'FOR BUNCH: \I0\ ', i_array = (/ i /) )
       return
     endif
 
     read (rb_com%iu, *, iostat = ios) bunch%t_center
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'ERROR READING BUNCH T_CENTER IN: ' // rb_com%file_name, &
+      call out_io (s_error$, r_name, 'ERROR READING BUNCH T_CENTER IN: ' // trim(rb_com%file_name), &
                                      'FOR BUNCH: \I0\ ', i_array = (/ i /) )
       return
     endif
@@ -280,7 +303,7 @@ do i = 1, n_bunch
       read (rb_com%iu, '(a)', iostat = ios) line
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
-                      'ERROR READING PARTICLE COORDINATE LINE: ' // rb_com%file_name, &
+                      'ERROR READING PARTICLE COORDINATE LINE: ' // trim(rb_com%file_name), &
                       'FOR BUNCH: \I0\ ', i_array = (/ i /) )
         return
       endif
@@ -299,7 +322,7 @@ do i = 1, n_bunch
         read (line, *, iostat = ios) p(j)%vec(k)
         if (ios /= 0) then
           call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE COORDINATES IN: ' // rb_com%file_name, &
+                        'ERROR READING PARTICLE COORDINATES IN: ' // trim(rb_com%file_name), &
                         'BAD LINE: ' // trim(line_in), &
                         'FOR BUNCH: \I0\ ', i_array = (/ i /) )
           return
@@ -311,7 +334,7 @@ do i = 1, n_bunch
       read (line, *, iostat = ios) p(j)%charge
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE CHARGE IN: ' // rb_com%file_name, &
+                        'ERROR READING PARTICLE CHARGE IN: ' // trim(rb_com%file_name), &
                         'BAD LINE: ' // trim(line_in), &
                         'FOR BUNCH: \I0\ ', i_array = (/ i /) )
         return
@@ -322,7 +345,7 @@ do i = 1, n_bunch
       read (line, *, iostat = ios) p(j)%state
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE "STATE" IN: ' // rb_com%file_name, &
+                        'ERROR READING PARTICLE "STATE" IN: ' // trim(rb_com%file_name), &
                         'BAD LINE: ' // trim(line_in), &
                         'FOR BUNCH: \I0\ ', i_array = (/ i /) )
         return
@@ -333,7 +356,7 @@ do i = 1, n_bunch
       read (line, *, iostat = ios) p(j)%spin
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE SPIN IN: ' // rb_com%file_name, &
+                        'ERROR READING PARTICLE SPIN IN: ' // trim(rb_com%file_name), &
                         'BAD LINE: ' // trim(line_in), &
                         'FOR BUNCH: \I0\ ', i_array = (/ i /) )
         return
@@ -344,7 +367,7 @@ do i = 1, n_bunch
       read (line, *, iostat = ios) ix_ele, p(j)%location
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE LOCATION IN: ' // rb_com%file_name, &
+                        'ERROR READING PARTICLE LOCATION IN: ' // trim(rb_com%file_name), &
                         'BAD LINE: ' // trim(line_in), &
                         'FOR BUNCH: \I0\ ', i_array = (/ i /) )
         return
@@ -354,11 +377,17 @@ do i = 1, n_bunch
 
 
   else
-    read (rb_com%iu, iostat = ios) bunch%charge, &
-                            bunch%z_center, bunch%t_center, n_particle_lines
+    if (rb_com%file_type == 'BIN:1') then
+      read (rb_com%iu, iostat = ios) bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
+      bunch%species = electron$
+      call out_io (s_warn$, r_name, 'OLD STYLE BEAM0 FILE WITHOUT SPECIES INFO. ASSUMING ELECTRONS...') 
+    else
+      read (rb_com%iu, iostat = ios) bunch%species, bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
+    endif
+
     if (ios /= 0) then
       call out_io (s_error$, r_name, &
-                        'ERROR READING BUNCH PARAMETERS IN: ' // rb_com%file_name, &
+                        'ERROR READING BUNCH PARAMETERS IN: ' // trim(rb_com%file_name), &
                         'FOR BUNCH: \I0\ ', i_array = (/ i /) )
       return
     endif
@@ -369,7 +398,7 @@ do i = 1, n_bunch
                                      ix_ele, p(j)%location
       if (ios /= 0) then
         call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE COORDINATES IN: ' // rb_com%file_name, &
+                        'ERROR READING PARTICLE COORDINATES IN: ' // trim(rb_com%file_name), &
                         'FOR BUNCH: \I0\ ', i_array = (/ i /) )
         return
       endif

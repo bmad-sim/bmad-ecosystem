@@ -652,6 +652,7 @@ written in ASCII. The ASCII file format is:
   <n_particle>     ! Number of particles per bunch to use
   [bunch loop: ib = 1 to n_bunch]
     BEGIN_BUNCH    ! Marker to mark the beginning of a bunch specification block.
+    <species_name> ! Species of particle
     <bunch_charge> ! Charge of bunch. 0 => Use <particle_charge>.
     <z_center>     ! z position at center of bunch.
     <t_center>     ! t position at center of bunch.
@@ -668,14 +669,26 @@ of bunches. The third line gives \vn{n_particle} the number of
 particles in a bunch. After this, there are \vn{<n_bunch>} blocks of
 data, one for each bunch. Each one of these blocks starts with a
 \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with
-a \vn{END_BUNCH} marker line. In between, the first three lines give
-the \vn{bunch_charge}, \vn{z_center}, and \vn{t_center} values followed by a set of
-lines, one for each particle. Only the phase space coordinates need to
-be specified for each particle. if \vn{<particle_charge>} is not
-present, or is zero, it defaults to \vn{bunch_charge/n_particle}.
-\vn{<ix_lost>} is the index at which the particle has been lost at. A
-value of -1 for \vn{<ix_lost>} indicates that the particle is still
-alive.
+a \vn{END_BUNCH} marker line. In between, the first four lines give
+the \vn{species} name, \vn{bunch_charge}, \vn{z_center}, and
+\vn{t_center} values. The \vn{species} name may be one of:
+\begin{example}
+  positron  ! default
+  electron
+  proton
+  antiproton
+  muon
+  antimuon
+  photon
+\end{example}
+
+The lines following the \vn{t_center} line specify particle
+coordinates. One line for each particle. Only the phase space
+coordinates need to be specified for each particle. if
+\vn{<particle_charge>} is not present, or is zero, it defaults to
+\vn{bunch_charge/n_particle}.  \vn{<ix_lost>} is the index at which
+the particle has been lost at. A value of -1 for \vn{<ix_lost>}
+indicates that the particle is still alive.
 
 The particle spin is specified by 2 complex numbers \vn{<spinor1>} and
 \vn{<spinor2>} using complex spinor notation (See the the section on
@@ -818,7 +831,7 @@ format for this is
     ix_max_var           = <integer>           ! Maximum array index.
     var(i)%ele_name      = "<ele_name>"        ! Element to be controlled.
     var(i)%attribute     = "<attrib_name>"     ! Attribute to be controlled.
-    var(i)%universe      = "<integer>"         ! Universe containing variable to 
+    var(i)%universe      = "<uni_list>"        ! Universe containing variable to 
                                                !    be controlled. "*" => All.
     var(i)%weight        = <number>            ! Merit function weight.
     var(i)%step          = <number>            ! Small step size.
