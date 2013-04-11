@@ -800,6 +800,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   select case (page_type)
   case ('X')
     call plsdev ('xwin')
+    call plsetopt('drvopt', 'nobuffered=1')
 
   case ('TK')
     call plsdev ('tk')
@@ -820,6 +821,9 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
   case ('GIF-L')
     call plsdev ('png')
+
+  case ('SVG')
+    call plsdev ('svg')
 
   case ('PDF')
     call plsdev ('pdf')
