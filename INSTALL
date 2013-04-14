@@ -51,6 +51,9 @@ LINUX or Mac OSX/Darwin (Intel processor)
 
 NOTE: ifort and gcc versions earlier than what is stated above are known to fail.
 
+The Bmad libraries have been built under Windows but programs that involve graphics
+or the readline system library are not currently Windows buildable.
+
 IMPORTANT: The relevant compilers for your platform must appear in
 each user's default PATH, otherwise the scripts in the distribution
 will not work!
