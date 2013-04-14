@@ -1103,47 +1103,10 @@ developed by Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S) with
 and all other $b_n$ set to zero.
 
 The transport equations in R\&S were developed in the
-ulta-relativistic limit with $beta = 1$ and do not include the
-longitudinal motion. To fix this, consider first the entrance and exit
-kicks given by R\&S Eq.~(12). Concentrating on the entrance horizontal kick, 
-
-Starting with
-the entrance horizontal kick, R\&S Eq.~(9) can be writen as
-\Begineq
-  dp_x = \frac{-|e| \, G \, \beta}{2 \, c \, P_0} \, x
-  \label{dpxeg}
-\Endeq
-where $dp_x$ is the change in horizontal canonical momentum through
-the entrance field, $e$ is the particle charge, $G$ is the
-accelerating gradient, $\beta$ is the particle velocity, and $P_0$ is
-the reference momentum. The underlying contact Hamiltonian
-for the entrance kick can be deduced from \Eq{dpxeg} to be
-\Begineq
-  H_{e} = \frac{G \, \beta}{4 \, P_0} \, (x^2 + y^2)
-\Endeq
-In this and future equations, factors of $e$ and $c$ will be dropped
-for convienience. The longitudinal transport is then
-\begin{align}
-  dz &= \frac{\partial H_{e}}{\partial p_z} = 
-    \frac{G}{4 \, P_0} \, \frac{d\beta}{dp_z} \, (x^2 + y^2) \\
-  dp_z &= \frac{-\partial H_{e}}{\partial z} = 
-    \frac{-\beta}{4 \, P_0} \, \frac{dG}{dz} \, (x^2 + y^2)
-\end{align}
-where
-\begin{align}
-  \frac{d\beta}{dp_z} &= \frac{m^2 \, P_0}{E^3} \\
-  \frac{dG}{dz} &= G_{\mss{max}} \, \frac{d\cos(\Delta\phi)}{dz} 
-    = \frac{2 \, \pi \, G_{\mss{max}} \, \sin(\Delta\phi) \, f_\mss{rf}}{\beta}
-\end{align}
-where $m$ is the particle mass, $E$ is the particle energy,
-$G_{\mss{max}}$ is the maximum accelerating gradiant at phase
-$\Delta\phi = 0$, and $f_\mss{rf}$ is the RF frequency.
-
-The transport at the exit end of the cavity is handled in a similar manner to the
-entrance end with the appropriate change in sign of the kick (cf.~R\&S Eq.~(12)).
-
-The transport through the body (R\&S Eq.~(9)) has been modified to give the 
-correct phase-space area at non ultra-relativistic energies:
+ulta-relativistic limit with $\beta = 1$.  To extend these equations,
+the transport through the cavity body (R\&S Eq.~(9)) has been modified
+to give the correct phase-space area at non ultra-relativistic
+energies:
 \Begineq
   \begin{pmatrix}
     x \\ 
@@ -1151,7 +1114,7 @@ correct phase-space area at non ultra-relativistic energies:
   \end{pmatrix}_2 = 
   \begin{pmatrix}
     r_\beta \, m_{11}                      & r_\beta \, m_{12} \\
-    r_\beta \, m_{21} + r'_\beta \, m_{11} & r_\beta \, m_{22} + r_\beta \, m_{12} 
+    r_\beta \, m_{21} + r'_\beta \, m_{11} & r_\beta \, m_{22} + r'_\beta \, m_{12} 
   \end{pmatrix}
   \,
   \begin{pmatrix}
@@ -1165,13 +1128,18 @@ where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and
   r'_\beta &\equiv \frac{dr_\beta}{ds} 
     = \frac{-m^2 \, \beta_1 \, G}{2 \, r_\beta \, P_2^3}
 \end{align}
+where $G$ is the accelerating gradient and the equation has been used:
+\begin{align}
+  \frac{d\beta}{dp_z} &= \frac{m^2 \, P_0}{E^3} \\
+\end{align}
+where $m$ is the particle mass, $E$ is the particle energy.
 With this, the matrix has the correct determinate of $\beta_1 \,
 \gamma_1 / \beta_2 \, \gamma_2$.
 
 The change in $z$ going through a cavity is calculated by first calculating the particle
 transit time $\Delta t$
 \begin{align}
-  c \, ccc\Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} \CRNO
+  c \, \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} \CRNO
   &= \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
   &= \frac{c \, P_{z2} - c \, P_{z1}}{G} \nonumber
 \end{align}
@@ -1190,13 +1158,16 @@ momenta. Using \Eq{zbctt}, the change in $z$ is thus
 where $\Pbar$ and $\BAR G$ are the momentum and gradient of the
 reference particle.
 
+Note that the above transport equations are only symplectic on-axis.
+There are second order terms that are missing. Additionally, the
+tracking will be symplectic in the limit of zero RF
+frequency (static field).
+
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{Mirror Element Tracking}
 \label{s:mirror.std}
 \index{mirror}
-
-Tracking through
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -1320,12 +1291,21 @@ with this
   m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
 \end{alignat}
 
-
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{RFcavity Element Tracking}
 \label{s:rfcavity.std}
 \index{rfcavity}
+
+Tracking through an rfcavity uses a kick-drift-kick model. The kick is
+a pure energy kick (see equations in \sref{s:rfcav}) and the phase of
+the RF is calculated under the assumption that the waveform moves at a
+phase velocity equal to the velocity of the reference particle.
+
+\index{lcavity}
+The transverse forces due to the RF are ignored. This is a resonable
+approximation when the acceleration is small. \vn{Lcavity} elements
+should be used in place of \vn{rfcavity} elements when this is not so.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -1333,12 +1313,12 @@ with this
 \label{s:sextupole.std}
 \index{sextupole}
 
-The Hamiltonian for an upright octupole is
+The Hamiltonian for an upright sextupole is
 \Begineq
   H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_2}{6} (x^3 - 3 \, x \, y^2)
 \Endeq
 
-A sextupoles modeled using a kick-drift-kick model.
+Tracking through a sextupole uses a kick-drift-kick model.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

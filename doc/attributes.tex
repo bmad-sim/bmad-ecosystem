@@ -1236,16 +1236,24 @@ The possible \vn{coupler_at} settings are:
   exit_end  ! default
   both_ends
 \end{example}
-For \vn{coupler_angle} = 0 the transverse kick due to the coupler is
+The kick due to the coupler is
 \begin{example}
-  dp_x = gradient * coupler_strength * 
-                        cos(twopi * (phi_ref + coupler_phase + phi(z))) / (c * P_0) 
-  dp_y = 0
+  dP_x = amp * cos(phase) * cos(angle) 
+  dP_y = amp * cos(phase) * sin(angle)
+  dE   = amp * (cos(angle) * x + sin(angle) * y) * sin(phase) * twopi * rf_frequency / c_light 
 \end{example}
+where \vn{dP_x} and \vn{dP_y} are the transverse momentum kicks, \vn{dE} is an energy kick, and
+\begin{example}
+  amp   = gradient * coupler_strength 
+  phase = twopi * (phi_particle + phi_ref + coupler_phase)         ! For lcavity \sref{s:lcav}
+        = pi/2 + twopi * (phi_particle - phi_ref + coupler_phase)  ! For rfcavity \sref{s:lcav}
+  angle = twopi * coupler_angle
+\end{example}
+The energy kick is needed to keep things symplectic. 
 
 Example:
 \begin{example}
-  rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends, 
+  rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends, rf
                                                   coupler_strength = 0.037
 \end{example}
 

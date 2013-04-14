@@ -51,11 +51,11 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
 real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
 real(rp) rel_pc, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
-real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio, voltage_max
+real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
-real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
-real(rp) dcos_phi, dgradient, dpz
+real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3), sqrt_8
+real(rp) dcos_phi, dgradient, dpz, r_beta, dr_beta_ds, sin_alpha_over_f
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0, dt_ref_slice
@@ -252,13 +252,11 @@ case (kicker$, hkicker$, vkicker$)
   endif
    
 !-----------------------------------------------
-! LCavity: Linac rf cavity
-! Ultra-relativistic formalism from:
+! LCavity: Linac rf cavity.
+! Modified version of the ultra-relativistic formalism from:
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
-! with b_0 = b_-1 = 1. The extra factors of beta are included to make the 
-! transverse determinant equal to (beta_i*gamma_i)/(beta_f*gamma_f) which it should
-! be at low energies.
+! with b_0 = b_-1 = 1. See the Bmad manual for more details.
 
 case (lcavity$)
 
@@ -291,26 +289,11 @@ case (lcavity$)
 
   gradient_max = e_accel_field(ele, gradient$)
 
-  if (.not. ele%is_on) then
-    gradient_max = 0
-  endif
-
   cos_phi = cos(phase)
-  gradient = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
+  gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
 
-  ! If the cavity is off and the reference energy does not change then
-  ! the tracking is simple.
-
-  if (gradient == 0 .and. gradient_ref == 0) then
-    if (ele%is_on) call offset_particle (ele, end_orb, param, set$, .false.)
-    call track_a_drift (end_orb, ele, length)
-    if (ele%is_on) call offset_particle (ele, end_orb, param, unset$, .false.)
-    ! 1/gamma^2 low E correction
-    end_orb%vec(5) = end_orb%vec(5) + length * end_orb%vec(6) * (1 - 3 * end_orb%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
-    return
-  endif
-
-  E_end = E_start + gradient * length
+  dE = gradient_net * length
+  E_end = E_start + dE
   if (E_end <= mass_of(param%particle)) then
     end_orb%state = lost_z_aperture$
     end_orb%vec(6) = -1.01  ! Something less than -1
@@ -320,84 +303,102 @@ case (lcavity$)
   call convert_total_energy_to (E_end, param%particle, pc = pc_end, beta = beta_end)
   E_ratio = E_end / E_start
   end_orb%beta = beta_end
+  mc2 = mass_of(param%particle)
 
-  call offset_particle (ele, end_orb, param, set$)
+  call offset_particle (ele, end_orb, param, set$, .false.)
 
-  ! entrance kick
-
-  k1 = -gradient / (2 * pc_start)
-  end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)
-  end_orb%vec(4) = end_orb%vec(4) + k1 * end_orb%vec(3)
-
-  ! coupler kick
+  ! Coupler kick
 
   call rf_coupler_kick (ele, param, upstream_end$, phase, end_orb)
 
-  if (gradient == 0) then
-    r_mat(1,1) = 1
-    r_mat(1,2) = length
-    r_mat(2,1) = 0
-    r_mat(2,2) = 1
+  ! Entrance kick
 
-  else
-    voltage_max = gradient_max * length
-    if (abs(voltage_max * cos_phi) < 1e-5 * pc_start) then
-      f = voltage_max / pc_start
-      alpha = f * (1 + f * cos_phi / 2)  / (2 * sqrt_2)
-    else
-      alpha = log(E_ratio) / (2 * sqrt_2 * cos_phi)
-    endif
-    cos_a = cos(alpha)
-    sin_a = sin(alpha)
-    f = gradient / (2 * sqrt_2 * cos_phi)
-    r_mat(1,1) =  cos_a
-    r_mat(1,2) =  sin_a * beta_start * E_start / f
-    r_mat(2,1) = -sin_a * f / (E_end * beta_end)
-    r_mat(2,2) =  cos_a * beta_start * E_start / (E_end * beta_end)
-  endif
+  k1 = -gradient_net / (2 * pc_start)
+  !!!end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)
+  !!!end_orb%vec(4) = end_orb%vec(4) + k1 * end_orb%vec(3)
 
-  end_orb%vec(1:2) = matmul(r_mat, end_orb%vec(1:2))
-  end_orb%vec(3:4) = matmul(r_mat, end_orb%vec(3:4))
+  ! Body tracking longitudinal
 
-  ! coupler kick
-
-  end_orb%p0c = pc_end_ref
-  call rf_coupler_kick (ele, param, downstream_end$, phase, end_orb)
-
-  ! exit kick
-
-  k2 = gradient / (2 * pc_end) 
-  end_orb%vec(2) = end_orb%vec(2) + k2 * end_orb%vec(1)
-  end_orb%vec(4) = end_orb%vec(4) + k2 * end_orb%vec(3)
-
-  ! Final momentum and z calc
-
-  mc2 = mass_of(param%particle)
+  temp_orb = end_orb
 
   end_orb%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
+  end_orb%p0c = pc_end_ref
 
-  call offset_particle (ele, end_orb, param, unset$)
-
-  dp_dg = (pc_end - pc_start) / gradient
+  if (abs(dE) <  1e-4*(pc_end+pc_start)) then
+    dp_dg = length * (E_start / pc_start - mc2**2 * dE / (2 * pc_start**3) + (mc2 * dE)**2 * E_start / (2 * pc_start**5))
+  else
+    dp_dg = (pc_end - pc_start) / gradient_net
+  endif
   end_orb%vec(5) = end_orb%vec(5) * (beta_end / beta_start) - beta_end * (dp_dg - c_light * ele%value(delta_ref_time$))
+
+  ! Body tracking transverse
+
+  sqrt_8 = 2 * sqrt_2
+  voltage_max = gradient_max * length
+
+  if (abs(voltage_max * cos_phi) < 1e-5 * E_start) then
+    f = voltage_max / E_start
+    alpha = f * (1 + f * cos_phi / 2)  / sqrt_8
+    coef = length * (1 - voltage_max * cos_phi / (2 * E_start))
+  else
+    alpha = log(E_ratio) / (sqrt_8 * cos_phi)
+    coef = sqrt_8 * E_start * sin(alpha) / gradient_max
+  endif
+
+  cos_a = cos(alpha)
+  sin_a = sin(alpha)
+
+  r_beta = sqrt(start2_orb%beta / end_orb%beta)
+  dr_beta_ds = -mc2**2 * gradient_net * r_beta / (2 * pc_end**2 * E_end)
+
+  r_mat(1,1) =  r_beta * cos_a
+  r_mat(1,2) =  r_beta * coef 
+  r_mat(2,1) = -r_beta * sin_a * gradient_max / (sqrt_8 * E_end) + dr_beta_ds * r_mat(1,1) 
+  r_mat(2,2) =  r_beta * cos_a * E_start / E_end                 + dr_beta_ds * r_mat(1,2)
+
+  !------------------------------
+!  r_mat(2,1) = -r_beta * sin_a * gradient_max / (sqrt_8 * E_end) !+ dr_beta_ds * r_mat(1,1) 
+!  r_mat(2,1) =  dr_beta_ds * r_mat(1,1)
+  !------------------------------
+
+  end_orb%vec(2) = end_orb%vec(2) / rel_pc    ! Convert to x'
+  end_orb%vec(4) = end_orb%vec(4) / rel_pc    ! Convert to y'
+
+  end_orb%vec(1:2) = matmul(r_mat, end_orb%vec(1:2))   ! R&S Eq 9.
+  end_orb%vec(3:4) = matmul(r_mat, end_orb%vec(3:4))
+
+  end_orb%vec(2) = end_orb%vec(2) * (1 + end_orb%vec(6))  ! Convert back to px
+  end_orb%vec(4) = end_orb%vec(4) * (1 + end_orb%vec(6))  ! Convert back to py
 
   ! Correction of z for finite transverse velocity assumes a uniform change in slope.
 
-  xp0 = start2_orb%vec(2) / rel_pc
+  xp0 = temp_orb%vec(2) / rel_pc
   xp1 = end_orb%vec(2) / (1 + end_orb%vec(6))
-  yp0 = start2_orb%vec(4) / rel_pc
+  yp0 = temp_orb%vec(4) / rel_pc
   yp1 = end_orb%vec(4) / (1 + end_orb%vec(6))
 
-  end_orb%vec(5) = end_orb%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
+!!!  end_orb%vec(5) = end_orb%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
+
+  ! Exit kick
+
+  k2 = gradient_net / (2 * pc_end) 
+!!!  end_orb%vec(2) = end_orb%vec(2) + k2 * end_orb%vec(1)
+!!!  end_orb%vec(4) = end_orb%vec(4) + k2 * end_orb%vec(3)
+
+  ! Coupler kick
+
+  call rf_coupler_kick (ele, param, downstream_end$, phase, end_orb)
+
+  call offset_particle (ele, end_orb, param, unset$, .false.)
 
   ! Time & s calc
 
-  f = gradient * length * mc2**2 / (pc_start**2 * E_start)
+  f = gradient_net * length * mc2**2 / (pc_start**2 * E_start)
 
   if (abs(f) < 1d-6) then
     end_orb%t = start2_orb%t + length * (E_start / pc_start) * (1 - f/2) / c_light
   else
-    end_orb%t = start2_orb%t + (pc_end - pc_start) / (gradient * c_light)
+    end_orb%t = start2_orb%t + (pc_end - pc_start) / (gradient_net * c_light)
   endif
 
   end_orb%s = ele%s

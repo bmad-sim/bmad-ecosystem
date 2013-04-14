@@ -50,7 +50,10 @@ character(16), parameter :: end_at_name(0:4) = [ &
       'No_End       ']
 
 integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
-integer, parameter :: inside$ = 3
+integer, parameter :: inside$ = 3, center_pt$ = 3
+
+character(16), parameter :: ref_pt_name(0:3) = [ &
+      'GARBAGE!      ', 'Upstream_End  ', 'Downstream_End', 'Center        ']
 
 character(16), parameter :: location_name(0:3) = [ &
       'GARBAGE!      ', 'Upstream_End  ', 'Downstream_End', 'Inside        ']
@@ -705,7 +708,7 @@ integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
 integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: quad_tilt$=14, bend_tilt$=15, x_quad$=16, y_quad$=17
-integer, parameter :: dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15
+integer, parameter :: dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15, origin_ele_ref_pt$=15
 integer, parameter :: dphi0_ref$ = 16, fh_im$=16, f0_im2$=16, x_half_length$=16, x_origin$= 16
 integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_half_length$=17, y_origin$ = 17
 integer, parameter :: negative_graze_angle$ = 18, z_origin$ = 18
