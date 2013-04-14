@@ -27,11 +27,11 @@ OBTAINING HELP
 
 For general questions, installation problems, code building problems contact:
   CESR Unix Librarian (cesrulib@cornell.edu)
+
 Currently, the people sharing library responsibility are:
-	Attilio De Falco <amd275@cornell.edu>
+  Attilio De Falco <amd275@cornell.edu>
   David Sagan <dcs16@cornell.edu>
   Mike Forster <mjf7@cornell.edu>
-  Laurel Bartnik <lty2@cornell.edu>
 
 For questions on the BMAD code contact:
   David Sagan <dcs16@cornell.edu>
@@ -45,9 +45,9 @@ At present, the BMAD distribution, which includes Fortran90, C, and C++ sources,
 is known to build with the following compiler combinations:
 
 LINUX or Mac OSX/Darwin (Intel processor)
-  gcc/gfortran Version 4.6+
+  gcc/gfortran version 4.6
 - or -
-  Intel Fortran Compiler (ifort v13)
+  Intel Fortran Compiler ifort version 13
 
 NOTE: ifort and gcc versions earlier than what is stated above are known to fail.
 
@@ -95,8 +95,18 @@ From the PGPLOT web page:
 ENVIRONMENTAL SETUP
 -------------------
 
- 1. 
-If you are using csh / tcsh: The following stuff should be put in your ~/.cshrc file:
+0. The following system libraries are needed:
+    readline
+    termcap
+    curses
+    pthread
+    stdc++
+    X11
+Generally these will be already installed. If not, you will see linker errors telling
+you that it cannot find this or that library.
+
+
+1. If you are using csh / tcsh: The following stuff should be put in your ~/.cshrc file:
         limit core 0
         limit stack unlimited  # Remove this line when using a Mac
         limit datasize unlimited
@@ -107,14 +117,15 @@ whatever one is appropriate):
         ulimit -s unlimited  # Remove this line when using a Mac
         ulimit -d unlimited
 
-  The first line prevents core dump files from being generated (takes up
-  space and no one ever looks at them anyway). The next two lines helps
-  prevent programs from bombing due to software limits on internal stack
-  and heap sizes.
+The first line prevents core dump files from being generated (takes up
+space and no one ever looks at them anyway). The next two lines helps
+prevent programs from bombing due to software limits on internal stack
+and heap sizes.
 
-   2. Run your initialization file (or simply logout and log back in):
-        source <init_script>
-      Where <init_script> is ~/.cshrc or ~/.bashrc .
+
+2. Run your initialization file (or simply logout and log back in):
+      source <init_script>
+Where <init_script> is ~/.cshrc or ~/.bashrc .
 
 
 *****************************************************************************
@@ -172,11 +183,11 @@ how it can be compiled.
 In the next steps it will be assumed that plplot-5.9.9 is being used.
 
 2) In the same directory as plplot-5.9.9 make a directory plplot_build
-	mkdir plplot_build
+  mkdir plplot_build
 This is a temporary directory for building PLPLOT.
 
 3) go to plplot_build
-	cd plplot_build
+  cd plplot_build
 
 4) Set environmental variables:
 With bash:
@@ -194,10 +205,10 @@ With tcsh:
 Optional: Afterwards you can use "ccmake" to view/modifiy the build settings.
 
 6) Complile the code with:
-	make
+  make
 
 7) Install the code in /usr/local
-	sudo make install
+  sudo make install
 
 *****************************************************************************
 DISTRIBUTION DIRECTORY ORGANIZATION
