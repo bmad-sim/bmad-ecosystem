@@ -1147,7 +1147,8 @@ no other suitable element class.
 \label{s:fiducial}
 \index{fiducial|hyperbf}
 
-A \vn{fiducial} element is used to orient the reference orbit of an entire lattice branch.
+A \vn{fiducial} element is used to orient the reference orbit of a lattice branch or, if
+there are flexible \vn{patch} elements present, sections of a lattice branch.
 
 General \vn{floor_shift} element attributes are:
 \begin{center}
@@ -1731,7 +1732,7 @@ dependent attribute and is defined to be
   voltage = gradient * L
 \end{example}
 
-The energy kick felt by a particle is 
+The energy kick felt by a particle, assuming no phase slipage, is 
 \begin{example}
   dE = gradient_tot * L * cos(twopi * (phi_particle + phi_ref))
 \end{example}
@@ -2463,7 +2464,7 @@ Attributes specific to an \vn{rfcavity} are:
 \end{example}
 
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
-\mad. The energy kick felt by a particle is 
+\mad. The integrated energy kick felt by a particle, assuming no phase slipage, is 
 \begin{example}
   dE = -e_charge * voltage * sin(twopi * (phi_particle - phi_ref))
 \end{example}

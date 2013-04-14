@@ -637,6 +637,14 @@ call init_attribute_name1 (girder$, s_min$,                         'S_MIN')
 call init_attribute_name1 (girder$, s_max$,                         'S_MAX')
 call init_attribute_name1 (girder$, s_center$,                      'S_CENTER')
 call init_attribute_name1 (girder$, tilt$,                          'TILT')
+call init_attribute_name1 (girder$, origin_ele$,             'ORIGIN_ELE')
+call init_attribute_name1 (girder$, origin_ele_ref_pt$,      'ORIGIN_ELE_REF_PT')
+call init_attribute_name1 (girder$, x_origin$,               'X_ORIGIN')
+call init_attribute_name1 (girder$, y_origin$,               'Y_ORIGIN')
+call init_attribute_name1 (girder$, z_origin$,               'Z_ORIGIN')
+call init_attribute_name1 (girder$, theta_origin$,           'THETA_ORIGIN')
+call init_attribute_name1 (girder$, phi_origin$,             'PHI_ORIGIN')
+call init_attribute_name1 (girder$, psi_origin$,             'PSI_ORIGIN')
 
 call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', dependent$)
 call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', dependent$)
@@ -1193,13 +1201,14 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'FOLLOW_DIFFRACTED_BEAM', &
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'TRAVELING_WAVE', &
-      'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', 'PTC_MAX_FRINGE_ORDER')
+      'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', &
+      'PTC_MAX_FRINGE_ORDER')
   attrib_type = is_integer$
 
 case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'GEOMETRY', &
       'FRINGE_TYPE', 'KILL_FRINGE', 'DIFFRACTION_TYPE', 'FIELD_CALC', 'APERTURE_AT', &
       'APERTURE_TYPE', 'TRACKING_METHOD', 'SPIN_TRACKING_METHOD', 'MAT6_CALC_METHOD', &
-      'PTC_INTEGRATION_TYPE', 'PTC_FIELD_GEOMETRY')
+      'PTC_INTEGRATION_TYPE', 'PTC_FIELD_GEOMETRY', 'ORIGIN_ELE_REF_PT')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
@@ -1363,6 +1372,11 @@ logical, optional :: is_default
 ix_attrib = nint(attrib_value)
 
 select case (attrib_name)
+
+case ('ORIGIN_ELE_REF_PT')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, ref_pt_name, &
+                                                       lbound(ref_pt_name, 1))
+  is_default = (ix_attrib == center_pt$)
 
 case ('PTC_FIELD_GEOMETRY')
   call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_field_geometry_name, &
