@@ -38,9 +38,9 @@ type (lat_param_struct)  param
 real(rp), pointer :: mat6(:,:)
 
 real(rp) mat6_pre(6,6), mat6_post(6,6), mat6_i(6,6)
-real(rp) mat4(4,4), m2(2,2), kmat4(4,4), om_g, om
+real(rp) mat4(4,4), m2(2,2), kmat4(4,4), om_g, om, om_g2
 real(rp) angle, k1, ks, length, e2, g, g_err, coef
-real(rp) k2l, k3l, c2, s2, cs, del_l, beta_ref
+real(rp) k2l, k3l, c2, s2, cs, del_l, beta_ref, c_min, c_plu, dc_min, dc_plu
 real(rp) factor, kmat6(6,6), drift(6,6)
 real(rp) s_pos, s_pos_old, z_slice(100)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
@@ -52,12 +52,12 @@ real(rp) t5_11, t5_14, t5_22, t5_23, t5_33, t5_34, t5_44
 real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
 real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
 real(rp) lcs, lc2s2, k, L, m55, m65, m66, new_pc, new_beta
-real(rp) cos_phi, gradient_net, e_start, e_end, e_ratio, pc, p0c
+real(rp) cos_phi, sin_phi, cos_term, dcos_phi, gradient_net, e_start, e_end, e_ratio, pc, p0c
 real(rp) alpha, sin_a, cos_a, f, phase0, phase, t0, dt_ref_slice, E, pxy2, dE
 real(rp) g_tot, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
 real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, pc_start_ref, pc_end_ref, gradient_max, voltage_max
-real(rp) beta_start, beta_end, drel_beta_dt1, drel_beta_dE1, ddsq_r_beta_ds_dt, ddsq_r_beta_ds_dE
+real(rp) beta_start, beta_end, dsq_r_beta_dt1, dsq_r_beta_dE1, ddsq_r_beta_ds_dt1, ddsq_r_beta_ds_dE1
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 
 real(rp) dp_long_dpx, dp_long_dpy, dp_long_dpz, dalpha_dpx, dalpha_dpy, dalpha_dpz
@@ -297,6 +297,7 @@ case (lcavity$)
   ! 
 
   cos_phi = cos(phase)
+  sin_phi = sin(phase)
   gradient_max = param%rel_tracking_charge * e_accel_field (ele, gradient$)
   gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) 
   dE = gradient_net * length
@@ -319,13 +320,14 @@ case (lcavity$)
   E_end = pc_end / beta_end
   E_ratio = E_end / E_start
 
-  ! Entrence kick (R&S Eq 12)
+  om = twopi * ele%value(rf_frequency$) / c_light
+  om_g = om * gradient_max * length
+  dbeta1_dE1 = mc2**2 / (pc_start * E_start**2)
+  dbeta2_dE2 = mc2**2 / (pc_end * E_end**2)
 
-  !! call lcavity_edge_kick_matrix (ele, param, -gradient_max/2, phase, c00, mat6)
-
-  ! Body of cavity transport...
   ! First convert from (x, px, y, py, z, pz) to (x, x', y, y', c(t_ref-t), E) coords 
 
+  if (.true.) then
   rel_p = 1 + c00%vec(6)
   mat6(2,:) = mat6(2,:) / rel_p - c00%vec(2) * mat6(6,:) / rel_p**2
   mat6(4,:) = mat6(4,:) / rel_p - c00%vec(4) * mat6(6,:) / rel_p**2
@@ -338,15 +340,11 @@ case (lcavity$)
   c00%vec(4) = c00%vec(4) / rel_p
   c00%vec(5) = c00%vec(5) / c00%beta 
   c00%vec(6) = rel_p * c00%p0c / c00%beta - 1
+  endif
 
   ! Body tracking longitudinal
 
-  om = twopi * ele%value(rf_frequency$) / c_light
-  om_g = om * gradient_max * length
-  dbeta1_dE1 = mc2**2 / (pc_start * E_start**2)
-  dbeta2_dE2 = mc2**2 / (pc_end * E_end**2)
-
-  kmat6(6,5) = om_g * sin(phase)
+  kmat6(6,5) = om_g * sin_phi
   kmat6(6,6) = 1
 
   if (abs(dE) <  1e-4*(pc_end+pc_start)) then
@@ -369,14 +367,14 @@ case (lcavity$)
     g = voltage_max / E_start
     alpha = g * (1 + g * cos_phi / 2)  / sqrt_8
     coef = length * (1 - voltage_max * cos_phi / (2 * E_start))
-    dalpha_dt1 = -g * g * om * sin(phase) / (2 * sqrt_8)
+    dalpha_dt1 = g * g * om * sin_phi / (2 * sqrt_8) 
     dalpha_dE1 = -(voltage_max / E_start**2 + voltage_max**2 * cos_phi / E_start**3) / sqrt_8
-    dcoef_dt1 = -length * sin(phase) * om_g / (2 * E_start)
+    dcoef_dt1 = -length * sin_phi * om_g / (2 * E_start)
     dcoef_dE1 = length * voltage_max * cos_phi / (2 * E_start**2)
   else
     alpha = log(E_ratio) / (sqrt_8 * cos_phi)
     coef = sqrt_8 * E_start * sin(alpha) / gradient_max
-    dalpha_dt1 = kmat6(6,5) / (E_end * sqrt_8 * cos_phi) - log(E_ratio) * om * sin(phase) / (sqrt_8 * cos_phi**2)
+    dalpha_dt1 = kmat6(6,5) / (E_end * sqrt_8 * cos_phi) - log(E_ratio) * om * sin_phi / (sqrt_8 * cos_phi**2)
     dalpha_dE1 = 1 / (E_end * sqrt_8 * cos_phi) - 1 / (E_start * sqrt_8 * cos_phi)
     dcoef_dt1 = sqrt_8 * E_start * cos(alpha) * dalpha_dt1 / gradient_max
     dcoef_dE1 = coef / E_start + sqrt_8 * E_start * cos(alpha) * dalpha_dE1 / gradient_max
@@ -390,55 +388,67 @@ case (lcavity$)
   z21 = -gradient_max / (sqrt_8 * E_end)
   z22 = E_start / E_end  
 
-  kmat6(1,1) =  sq_r_beta * cos_a
-  kmat6(1,2) =  sq_r_beta * coef 
-  kmat6(2,1) =  sq_r_beta * sin_a * z21 + dsq_r_beta_ds * kmat6(1,1)
-  kmat6(2,2) =  sq_r_beta * cos_a * z22 + dsq_r_beta_ds * kmat6(1,2)
+  c_min = cos_a - sqrt_2 * sin_a * cos_phi
+  c_plu = cos_a + sqrt_2 * sin_a * cos_phi
+  dc_min = -sin_a - sqrt_2 * cos_a * cos_phi 
+  dc_plu = -sin_a + sqrt_2 * cos_a * cos_phi 
+  cos_term = 1 + 2*cos_phi**2
+  dcos_phi = om * sin_phi
 
-  drel_beta_dt1 = -dbeta2_dE2 * kmat6(6,5) / (2 * beta_end)                    ! dsq_r_beta/dt1 / sq_r_beta
-  drel_beta_dE1 = dbeta1_dE1 / (2 * beta_start) - dbeta2_dE2 / (2 * beta_end)  ! dsq_r_beta/dE1 / sq_r_beta
-  ddsq_r_beta_ds_dt = -mc2**2 * kmat6(6,5) * sq_r_beta / (2 * pc_end**2 * E_end) - &
-                      dsq_r_beta_ds * kmat6(6,5) * (dbeta2_dE2 / (2 * beta_end) + 2 / (beta_end * pc_end) + 1 / E_end)
-  ddsq_r_beta_ds_dE =  dsq_r_beta_ds * (dbeta1_dE1 / (2 * beta_start) - dbeta2_dE2 / (2 * beta_end) - &
+  kmat6(1,1) =  sq_r_beta * c_min
+  kmat6(1,2) =  sq_r_beta * coef 
+  kmat6(2,1) =  sq_r_beta * cos_term * sin_a * z21 + dsq_r_beta_ds * c_min
+  kmat6(2,2) =  sq_r_beta * c_plu * z22            + dsq_r_beta_ds * coef
+
+  dsq_r_beta_dt1 = -sq_r_beta * dbeta2_dE2 * kmat6(6,5) / (2 * beta_end)
+  dsq_r_beta_dE1 = sq_r_beta * (dbeta1_dE1 / (2 * beta_start) - dbeta2_dE2 / (2 * beta_end))
+  ddsq_r_beta_ds_dt1 = -mc2**2 * kmat6(6,5) * sq_r_beta / (2 * pc_end**2 * E_end * length) - &
+          dsq_r_beta_ds * kmat6(6,5) * (dbeta2_dE2 / (2 * beta_end) + 2 / (beta_end * pc_end) + 1 / E_end)
+  ddsq_r_beta_ds_dE1 =  dsq_r_beta_ds * (dbeta1_dE1 / (2 * beta_start) - dbeta2_dE2 / (2 * beta_end) - &
                                         2 / (beta_end * pc_end) - 1 / E_end)
 
-  kmat6(1,5) = c00%vec(1) * (drel_beta_dt1 * kmat6(1,1) - sq_r_beta * sin_a * dalpha_dt1) + &
-               c00%vec(2) * (drel_beta_dt1 * kmat6(1,2) + sq_r_beta * dcoef_dt1)
+  kmat6(1,5) = c00%vec(1) * (dsq_r_beta_dt1 * c_min + sq_r_beta * dc_min * dalpha_dt1 - &
+                             sq_r_beta * sqrt_2 * sin_a * dcos_phi) + & 
+               c00%vec(2) * (dsq_r_beta_dt1 * coef  + sq_r_beta * dcoef_dt1)
 
-  kmat6(1,6) = c00%vec(1) * (drel_beta_dE1 * kmat6(1,1) - sq_r_beta * sin_a * dalpha_dE1) + &
-               c00%vec(2) * (drel_beta_dE1 * kmat6(1,2) + sq_r_beta * dcoef_dE1)
+  kmat6(1,6) = c00%vec(1) * (dsq_r_beta_dE1 * c_min + sq_r_beta * dc_min * dalpha_dE1) + &
+               c00%vec(2) * (dsq_r_beta_dE1 * coef  + sq_r_beta * dcoef_dE1)
 
-  kmat6(2,5) = c00%vec(1) * sq_r_beta * (cos_a * dalpha_dt1 * z21 - sin_a * kmat6(6,5) * z21 / E_end) + &
-               c00%vec(1) * (drel_beta_dt1 * sq_r_beta * sin_a * z21 + ddsq_r_beta_ds_dt * kmat6(1,1)) + &
-               c00%vec(2) * sq_r_beta * (-sin_a * dalpha_dt1 * z22 - cos_a * kmat6(6,5) * z22 / E_end) + &
-               c00%vec(2) * (drel_beta_dt1 * sq_r_beta * cos_a * z22 + ddsq_r_beta_ds_dt * kmat6(1,2)) + &
-               dsq_r_beta_ds * kmat6(1,5)
+  kmat6(2,5) = c00%vec(1) * sq_r_beta * z21 * (4 * cos_phi * dcos_phi * sin_a + cos_term * cos_a * dalpha_dt1) + &
+               c00%vec(1) * cos_term * z21 * (dsq_r_beta_dt1 * sin_a - sq_r_beta * sin_a * kmat6(6,5) / E_end) + & 
+               c00%vec(1) * (ddsq_r_beta_ds_dt1 * c_min + dsq_r_beta_ds * (dc_min * dalpha_dt1 - sqrt_2 * sin_a * dcos_phi)) + &
+               c00%vec(2) * sq_r_beta * z22 * (dc_plu * dalpha_dt1 + sqrt_2 * sin_a * dcos_phi - c_plu * kmat6(6,5) / E_end) + &
+               c00%vec(2) * (dsq_r_beta_dt1 * c_plu * z22) + &
+               c00%vec(2) * (ddsq_r_beta_ds_dt1 * coef + dsq_r_beta_ds * dcoef_dt1)
 
-  kmat6(2,6) = c00%vec(1) * sq_r_beta * (cos_a * dalpha_dE1 * z21 - sin_a * z21 / E_end) + &
-               c00%vec(1) * (drel_beta_dE1 * sq_r_beta * sin_a * z21 + ddsq_r_beta_ds_dE * kmat6(1,1)) + &
-               c00%vec(2) * sq_r_beta * (-sin_a * dalpha_dE1 * z22 + cos_a * z22 * (1 / E_start - 1/ E_end)) + &
-               c00%vec(2) * (drel_beta_dE1 * sq_r_beta * cos_a * z22 + ddsq_r_beta_ds_dE * kmat6(1,2)) + &
-               dsq_r_beta_ds * kmat6(1,6)
+  kmat6(2,6) = c00%vec(1) * sq_r_beta * z21 * (cos_term * cos_a * dalpha_dE1 - cos_term * sin_a / E_end) + &
+               c00%vec(1) * (dsq_r_beta_dE1 * cos_term * sin_a * z21) + &
+               c00%vec(1) * (ddsq_r_beta_ds_dE1 * c_min + dsq_r_beta_ds * dc_min * dalpha_dE1) + &
+               c00%vec(2) * sq_r_beta * z22 * (dc_plu * dalpha_dE1 + c_plu * (1 / E_start - 1/ E_end)) + &
+               c00%vec(2) * (dsq_r_beta_dE1 * c_plu * z22) + &
+               c00%vec(2) * (ddsq_r_beta_ds_dE1 * coef + dsq_r_beta_ds * dcoef_dE1)
 
   kmat6(3:4,3:4) = kmat6(1:2,1:2)
-  kmat6(3,5) = c00%vec(3) * (drel_beta_dt1 * kmat6(3,3) - sq_r_beta * sin_a * dalpha_dt1) + &
-               c00%vec(4) * (drel_beta_dt1 * kmat6(3,4) + sq_r_beta * dcoef_dt1)
+  kmat6(3,5) = c00%vec(3) * (dsq_r_beta_dt1 * c_min + sq_r_beta * dc_min * dalpha_dt1 - &
+                             sq_r_beta * sqrt_2 * sin_a * dcos_phi) + & 
+               c00%vec(4) * (dsq_r_beta_dt1 * coef  + sq_r_beta * dcoef_dt1)
 
-  kmat6(3,6) = c00%vec(3) * (drel_beta_dE1 * kmat6(3,3) - sq_r_beta * sin_a * dalpha_dE1) + &
-               c00%vec(4) * (drel_beta_dE1 * kmat6(3,4) + sq_r_beta * dcoef_dE1)
+  kmat6(3,6) = c00%vec(3) * (dsq_r_beta_dE1 * c_min + sq_r_beta * dc_min * dalpha_dE1) + &
+               c00%vec(4) * (dsq_r_beta_dE1 * coef  + sq_r_beta * dcoef_dE1)
 
-  kmat6(4,5) = c00%vec(3) * sq_r_beta * (cos_a * dalpha_dt1 * z21 - sin_a * kmat6(6,5) * z21 / E_end) + &
-               c00%vec(3) * (drel_beta_dt1 * sq_r_beta * sin_a * z21 + ddsq_r_beta_ds_dt * kmat6(3,3)) + &
-               c00%vec(4) * sq_r_beta * (-sin_a * dalpha_dt1 * z22 - cos_a * kmat6(6,5) * z22 / E_end) + &
-               c00%vec(4) * (drel_beta_dt1 * sq_r_beta * cos_a * z22 + ddsq_r_beta_ds_dt * kmat6(3,4)) + &
-               dsq_r_beta_ds * kmat6(3,5)
+  kmat6(4,5) = c00%vec(3) * sq_r_beta * z21 * (4 * cos_phi * dcos_phi * sin_a + cos_term * cos_a * dalpha_dt1) + &
+               c00%vec(3) * cos_term * z21 * (dsq_r_beta_dt1 * sin_a - sq_r_beta * sin_a * kmat6(6,5) / E_end) + & 
+               c00%vec(3) * (ddsq_r_beta_ds_dt1 * c_min + dsq_r_beta_ds * (dc_min * dalpha_dt1 - sqrt_2 * sin_a * dcos_phi)) + &
+               c00%vec(4) * sq_r_beta * z22 * (dc_plu * dalpha_dt1 + sqrt_2 * sin_a * dcos_phi - c_plu * kmat6(6,5) / E_end) + &
+               c00%vec(4) * (dsq_r_beta_dt1 * c_plu * z22) + &
+               c00%vec(4) * (ddsq_r_beta_ds_dt1 * coef + dsq_r_beta_ds * dcoef_dt1)
 
-  kmat6(4,6) = c00%vec(3) * sq_r_beta * (cos_a * dalpha_dE1 * z21 - sin_a * z21 / E_end) + &
-               c00%vec(3) * (drel_beta_dE1 * sq_r_beta * sin_a * z21 + ddsq_r_beta_ds_dE * kmat6(3,3)) + &
-               c00%vec(4) * sq_r_beta * (-sin_a * dalpha_dE1 * z22 + cos_a * z22 * (1 / E_start - 1/ E_end)) + &
-               c00%vec(4) * (drel_beta_dE1 * sq_r_beta * cos_a * z22 + ddsq_r_beta_ds_dE * kmat6(3,4)) + &
-               dsq_r_beta_ds * kmat6(3,6)
-
+  kmat6(4,6) = c00%vec(3) * sq_r_beta * z21 * (cos_term * cos_a * dalpha_dE1 - cos_term * sin_a / E_end) + &
+               c00%vec(3) * (dsq_r_beta_dE1 * cos_term * sin_a * z21) + &
+               c00%vec(3) * (ddsq_r_beta_ds_dE1 * c_min + dsq_r_beta_ds * dc_min * dalpha_dE1) + &
+               c00%vec(4) * sq_r_beta * z22 * (dc_plu * dalpha_dE1 + c_plu * (1 / E_start - 1/ E_end)) + &
+               c00%vec(4) * (dsq_r_beta_dE1 * c_plu * z22) + &
+               c00%vec(4) * (ddsq_r_beta_ds_dE1 * coef + dsq_r_beta_ds * dcoef_dE1)
 
   mat6 = matmul(kmat6, mat6)
 
@@ -453,6 +463,7 @@ case (lcavity$)
   ! Convert back from (x, x', y, y', c(t-t_ref), E)  to (x, px, y, py, z, pz) coords
   ! Here the effective t used in calculating m2 is zero so m2(1,2) is zero.
 
+  if (.true.) then
   rel_p = pc_end / pc_end_ref
   mat6(2,:) = rel_p * mat6(2,:) + c00%vec(2) * mat6(6,:) / (pc_end_ref * beta_end)
   mat6(4,:) = rel_p * mat6(4,:) + c00%vec(4) * mat6(6,:) / (pc_end_ref * beta_end)
@@ -464,12 +475,7 @@ case (lcavity$)
 
   c00%vec(2) = c00%vec(2) / rel_p
   c00%vec(4) = c00%vec(4) / rel_p
-
-  return !!!!!
-
-  ! Exit kick (R&S Eq 12)
-
-  call lcavity_edge_kick_matrix (ele, param, gradient_max/2, phase, c00, mat6)
+  endif
 
   ! Coupler kick
 
@@ -1345,18 +1351,16 @@ type (lat_param_struct) param
 real(rp) grad_max, phase, k1, mat6(6,6)
 real(rp) f, mc2, E, pc
 
-!
+! Note that phase space here is (x, x', y, y', -c(t-t_ref), E) 
 
 pc = (1 + orb%vec(6)) * orb%p0c
 E = pc / orb%beta
-k1 = grad_max * cos(phase) / pc
-f = grad_max * sin(phase) * twopi * ele%value(rf_frequency$) / (c_light * pc)
+k1 = grad_max * cos(phase)
+f = grad_max * sin(phase) * twopi * ele%value(rf_frequency$) / c_light
 mc2 = mass_of(param%particle)
 
-mat6(2,:) = mat6(2,:) + k1 * mat6(1,:) - k1 * orb%vec(1) * orb%p0c * mat6(6,:) / pc + &
-      f * orb%vec(1) * (mat6(5,:) / orb%beta - orb%vec(5) * mc2**2 * orb%p0c * mat6(6,:) / (pc**2 * E))
-mat6(4,:) = mat6(4,:) + k1 * mat6(3,:) - k1 * orb%vec(3) * orb%p0c * mat6(6,:) / pc + &
-      f * orb%vec(3) * (mat6(5,:) / orb%beta - orb%vec(5) * mc2**2 * orb%p0c * mat6(6,:) / (pc**2 * E))
+mat6(2,:) = mat6(2,:) + k1 * mat6(1,:) + f * orb%vec(1) * mat6(5,:) 
+mat6(4,:) = mat6(4,:) + k1 * mat6(3,:) - f * orb%vec(3) * mat6(5,:)
 
 orb%vec(2) = orb%vec(2) + k1 * orb%vec(1)
 orb%vec(4) = orb%vec(4) + k1 * orb%vec(3)
