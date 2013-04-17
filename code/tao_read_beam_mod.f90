@@ -71,7 +71,7 @@ endif
 rb_com%file_name = full_file_name
 err_flag = .false.
 
-end subroutine
+end subroutine tao_open_beam_file
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ rb_com%n_bunch = 0
 rb_com%n_particle = 0
 rb_com%bunch_charge = 0
 
-end subroutine
+end subroutine tao_close_beam_file
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -152,7 +152,7 @@ if (ios < 0) ix_ele = -1  ! End of file
 
 err = .false.
 
-end subroutine
+end subroutine tao_read_beam_file_header
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -186,7 +186,7 @@ if (present(n_bunch))      rb_com%n_bunch = n_bunch
 if (present(n_particle))   rb_com%n_particle = n_particle
 if (present(charge_bunch)) rb_com%bunch_charge = charge_bunch
 
-end subroutine
+end subroutine tao_set_beam_params
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -212,8 +212,9 @@ implicit none
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
+type (coord_struct) orb_init
 
-integer i, j, k, ix, ios, ix_ele
+integer i, j, k, ix, ix_word, ios, ix_ele
 integer n_bunch, n_particle, n_particle_lines, ix_lost
 
 real(rp) vec(6), sum_charge
@@ -222,7 +223,7 @@ complex(rp) spin(2)
 character(16) :: r_name = 'tao_read_beam'
 character(300) line, line_in
 
-logical err, error
+logical err, error, in_parens
 
 ! If an ASCII file: Count the number of particle lines.
 
@@ -245,56 +246,51 @@ call reallocate_beam (beam, n_bunch, n_particle)
 ! so add the default values
 
 do i = 1, n_bunch
+
   bunch => beam%bunch(i)
   p => bunch%particle
+  p = orb_init   ! init with default params
 
   if (rb_com%file_type == 'ASCII') then
 
     read (rb_com%iu, '(a)', iostat = ios) line
     if (ios /= 0 .or. index(line, 'BEGIN_BUNCH') == 0) then
-      call out_io (s_error$, r_name, 'NO "BEGIN_BUNCH" MARKER FOUND IN: ' // trim(rb_com%file_name), &
-                                     'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+      call this_error_out ('NO "BEGIN_BUNCH" MARKER FOUND')
       return
     endif
 
     read (rb_com%iu, *, iostat = ios) line
     if (is_real(line, .true.)) then
-      call out_io (s_warn$, r_name, 'OLD STYLE FORMAT DOES NOT INCLUDE BUNCH SPECIES IN FILE: ' // trim(rb_com%file_name), &
-                                    'FOR BUNCH: \I0\ ', &
-                                    'PLEASE CORRECT.', i_array = (/ i /) )
+      call this_error_out ('OLD STYLE FORMAT DOES NOT INCLUDE BUNCH SPECIES', 'PLEASE CORRECT.')
       return
     endif
 
     call match_word (line, particle_name, ix, .false., .false.)
     if (ix < 1) then
-      call out_io (s_error$, r_name, 'BAD SPECIES NAME: ' // trim(line), &
-                                     'IN FILE: ' // trim(rb_com%file_name), &
-                                     'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+      call this_error_out ('BAD SPECIES NAME: ' // trim(line))
       return
     endif
     bunch%species = ix + lbound(particle_name, 1) - 1
 
     read (rb_com%iu, *, iostat = ios) bunch%charge
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'ERROR READING BUNCH CHARGE IN: ' // trim(rb_com%file_name), &
-                                     'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+      call this_error_out ('ERROR READING BUNCH')
       return
     endif
 
     read (rb_com%iu, *, iostat = ios) bunch%z_center
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'ERROR READING BUNCH Z_CENTER IN: ' // trim(rb_com%file_name), &
-                                     'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+      call this_error_out ('ERROR READING BUNCH Z_CENTER')
       return
     endif
 
     read (rb_com%iu, *, iostat = ios) bunch%t_center
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'ERROR READING BUNCH T_CENTER IN: ' // trim(rb_com%file_name), &
-                                     'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+      call this_error_out ('ERROR READING BUNCH T_CENTER')
       return
     endif
 
+    !----------------------------------------
     ! particle coord loop
 
     j = 0
@@ -302,93 +298,94 @@ do i = 1, n_bunch
 
       read (rb_com%iu, '(a)', iostat = ios) line
       if (ios /= 0) then
-        call out_io (s_error$, r_name, &
-                      'ERROR READING PARTICLE COORDINATE LINE: ' // trim(rb_com%file_name), &
-                      'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+        call this_error_out ('ERROR READING PARTICLE COORDINATE LINE')
         return
       endif
       line_in = line ! save for error messages
 
       j = j + 1
+      in_parens = .false.
 
       if (index(line, 'END_BUNCH') /= 0) exit
       if (j > n_particle) cycle
 
       p(j)%charge = 0; p(j)%state = alive$; p(j)%spin = cmplx(0.0_rp, 0.0_rp)
 
-      ix = 0
+      call string_trim(line, line, ix_word)
       do k = 1, 6
-        call string_trim(line(ix+1:), line, ix)
         read (line, *, iostat = ios) p(j)%vec(k)
         if (ios /= 0) then
-          call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE COORDINATES IN: ' // trim(rb_com%file_name), &
-                        'BAD LINE: ' // trim(line_in), &
-                        'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+          call this_error_out ('ERROR READING PARTICLE COORDINATES', 'IN LINE: ' // trim(line_in))
           return
         endif
+        if (.not. remove_first_number (line, ix_word, '', in_parens)) return
       enddo
 
-      call string_trim(line(ix+1:), line, ix)
-      if (ix == 0) cycle
       read (line, *, iostat = ios) p(j)%charge
-      if (ios /= 0) then
-        call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE CHARGE IN: ' // trim(rb_com%file_name), &
-                        'BAD LINE: ' // trim(line_in), &
-                        'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+      if (ios /= 0 .or. ix_word == 0) then
+        call this_error_out ('ERROR READING PARTICLE CHARGE', 'IN LINE: ' // trim(line_in))
         return
       endif
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
 
-      call string_trim(line(ix+1:), line, ix)
-      if (ix == 0) cycle
+      if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%state
       if (ios /= 0) then
-        call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE "STATE" IN: ' // trim(rb_com%file_name), &
-                        'BAD LINE: ' // trim(line_in), &
-                        'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+        call this_error_out ('ERROR READING PARTICLE "STATE"', 'IN LINE: ' // trim(line_in))
         return
       endif
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
 
-      call string_trim(line(ix+1:), line, ix)
-      if (ix == 0) cycle
+      if (ix_word == 0) goto 8000
       read (line, *, iostat = ios) p(j)%spin
       if (ios /= 0) then
-        call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE SPIN IN: ' // trim(rb_com%file_name), &
-                        'BAD LINE: ' // trim(line_in), &
-                        'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+        call this_error_out ('ERROR READING PARTICLE SPIN', 'IN LINE: ' // trim(line_in))
         return
       endif
+      if (.not. remove_first_number (line, ix_word, '(x', in_parens)) return
+      if (.not. remove_first_number (line, ix_word, 'x)(', in_parens)) return
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+      if (.not. remove_first_number (line, ix_word, 'x)', in_parens)) return
 
-      call string_trim(line(ix+1:), line, ix)
-      if (ix == 0) cycle
-      read (line, *, iostat = ios) ix_ele, p(j)%location
+      if (ix_word == 0) goto 8000
+      read (line, *, iostat = ios) p(j)%ix_ele
       if (ios /= 0) then
-        call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE LOCATION IN: ' // trim(rb_com%file_name), &
-                        'BAD LINE: ' // trim(line_in), &
-                        'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+        call this_error_out ('ERROR READING ELEMENT INDEX', 'IN LINE: ' // trim(line_in))
+        return
+      endif
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+
+      if (ix_word == 0) goto 8000
+      read (line, *, iostat = ios) p(j)%location
+      if (ios /= 0) then
+        call this_error_out ('ERROR READING PARTICLE LOCATION', 'IN LINE: ' // trim(line_in))
+        return
+      endif
+      if (.not. remove_first_number (line, ix_word, '', in_parens)) return
+
+      8000 continue
+      if (in_parens .or. ix_word /= 0) then
+        call this_error_out ('UNMATCHED PARENTHESIS IN LINE: ' // trim(line_in))
         return
       endif
 
     enddo
 
 
+  !------------------------------------------------------------------------------------
+  ! Binary file
+
   else
     if (rb_com%file_type == 'BIN:1') then
       read (rb_com%iu, iostat = ios) bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
       bunch%species = electron$
-      call out_io (s_warn$, r_name, 'OLD STYLE BEAM0 FILE WITHOUT SPECIES INFO. ASSUMING ELECTRONS...') 
+      call this_error_out ('OLD STYLE BEAM0 FILE WITHOUT SPECIES INFO. ASSUMING ELECTRONS...') 
     else
       read (rb_com%iu, iostat = ios) bunch%species, bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
     endif
 
     if (ios /= 0) then
-      call out_io (s_error$, r_name, &
-                        'ERROR READING BUNCH PARAMETERS IN: ' // trim(rb_com%file_name), &
-                        'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+      call this_error_out ('ERROR READING BUNCH PARAMETERS')
       return
     endif
 
@@ -397,9 +394,7 @@ do i = 1, n_bunch
       read (rb_com%iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, &
                                      ix_ele, p(j)%location
       if (ios /= 0) then
-        call out_io (s_error$, r_name, &
-                        'ERROR READING PARTICLE COORDINATES IN: ' // trim(rb_com%file_name), &
-                        'FOR BUNCH: \I0\ ', i_array = (/ i /) )
+        call this_error_out ('ERROR READING PARTICLE COORDINATES')
         return
       endif
     enddo
@@ -418,6 +413,128 @@ enddo
 
 err = .false.
 
-end subroutine
+!---------------------------------------------------------------------------------------------------
+contains
+
+!+
+! Function remove_first_number (line, ix_word, parens_expected, in_parens) result (pop_ok)
+!
+! Pop the leading number (which has just be read) off of line leaving the next number at the
+! start of the line ready to be read.
+!
+! Input:
+!   line            -- Character(*)
+!   ix_word         -- integer: length of existing first word in line
+!   parens_expected -- Chracter(*): Tells if parentheses may be expected.
+!                       For example: 'x)(' means a ")' and then a '(' may be present after the number.
+!
+!
+! Output
+!   line          -- Character(*): Line with first word removed
+!   ix_word       -- integer: length of new first word in line
+!   in_parens     -- Logical: Inside a parenthesis '(...)' construct?
+!   pop_ok        -- Logical: True if no errors encountered.
+!-
+
+function remove_first_number (line, ix_word, parens_expected, in_parens) result (pop_ok)
+
+implicit none
+
+integer ix_word
+character(*) line, parens_expected
+character(4) expect
+logical in_parens, pop_ok
+
+
+!
+
+pop_ok = .false.
+expect = parens_expected
+
+! Remove leading '(' if present
+
+if (expect(1:1) == '(') then
+  if (line(1:1) == '(') then
+    if (in_parens) then
+      call this_error_out ('NESTED PARENTHESES FOUND', 'IN LINE: ' // trim(line_in))
+      return
+    endif
+    in_parens = .true.
+    call string_trim (line(2:), line, ix_word)
+  endif
+
+  expect = expect(2:)  
+endif
+
+! Remove word with possible trailing comma. But do not remove parenthesis.
+
+ix = index(line(:ix_word), ',')
+if (ix /= 0) ix_word = ix - 1
+
+ix = index(line(:ix_word), '(')
+if (ix /= 0) ix_word = ix - 1
+
+ix = index(line(:ix_word), ')')
+if (ix /= 0) ix_word = ix - 1
+
+call string_trim (line(ix_word+1:), line, ix_word)
+if (line(1:1) == ',') call string_trim(line(2:), line, ix_word)
+if (expect(1:1) == 'x') expect = expect(2:)  
+
+! Remove trailing ')' if present
+
+if (expect(1:1) == ')') then
+  if (line(1:1) == ')') then
+    if (.not. in_parens) then
+      call this_error_out ('MISMATCHED PARENTHESES ")" FOUND', 'IN LINE: ' // trim(line_in))
+      return
+    endif
+    in_parens = .false.
+    call string_trim (line(2:), line, ix_word)
+    if (line(1:1) == ',') call string_trim(line(2:), line, ix_word)
+  endif
+
+  expect = expect(2:)  
+endif
+
+! Remove trailing '(' if present
+
+if (expect(1:1) == '(') then
+  if (line(1:1) == '(') then
+    if (in_parens) then
+      call this_error_out ('NESTED PARENTHESES FOUND', 'IN LINE: ' // trim(line_in))
+      return
+    endif
+    in_parens = .true.
+    call string_trim (line(2:), line, ix_word)
+  endif
+
+  expect = expect(2:)  
+endif
+
+!
+
+if (line(1:1) == ',') then
+  call this_error_out ('MISPLACED COMMA FOUND', 'IN LINE: ' // trim(line_in))
+  return
+endif
+
+pop_ok = .true.
+
+end function remove_first_number
+
+!---------------------------------------------------------------------------------------------------
+! contains
+
+subroutine this_error_out (what, what2)
+
+character(*) what
+character(*), optional :: what2
+
+call out_io (s_error$, r_name, 'IN FILE: ' // trim(rb_com%file_name), what, what2)
+
+end subroutine this_error_out
+
+end subroutine tao_read_beam
 
 end module
