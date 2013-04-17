@@ -327,7 +327,6 @@ case (lcavity$)
 
   ! First convert from (x, px, y, py, z, pz) to (x, x', y, y', c(t_ref-t), E) coords 
 
-  if (.true.) then
   rel_p = 1 + c00%vec(6)
   mat6(2,:) = mat6(2,:) / rel_p - c00%vec(2) * mat6(6,:) / rel_p**2
   mat6(4,:) = mat6(4,:) / rel_p - c00%vec(4) * mat6(6,:) / rel_p**2
@@ -340,7 +339,6 @@ case (lcavity$)
   c00%vec(4) = c00%vec(4) / rel_p
   c00%vec(5) = c00%vec(5) / c00%beta 
   c00%vec(6) = rel_p * c00%p0c / c00%beta - 1
-  endif
 
   ! Body tracking longitudinal
 
@@ -463,7 +461,6 @@ case (lcavity$)
   ! Convert back from (x, x', y, y', c(t-t_ref), E)  to (x, px, y, py, z, pz) coords
   ! Here the effective t used in calculating m2 is zero so m2(1,2) is zero.
 
-  if (.true.) then
   rel_p = pc_end / pc_end_ref
   mat6(2,:) = rel_p * mat6(2,:) + c00%vec(2) * mat6(6,:) / (pc_end_ref * beta_end)
   mat6(4,:) = rel_p * mat6(4,:) + c00%vec(4) * mat6(6,:) / (pc_end_ref * beta_end)
@@ -475,7 +472,6 @@ case (lcavity$)
 
   c00%vec(2) = c00%vec(2) / rel_p
   c00%vec(4) = c00%vec(4) / rel_p
-  endif
 
   ! Coupler kick
 
