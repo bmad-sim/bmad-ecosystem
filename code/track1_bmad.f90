@@ -311,12 +311,6 @@ case (lcavity$)
 
   call rf_coupler_kick (ele, param, upstream_end$, phase, end_orb)
 
-  ! Entrance kick
-
-  k1 = -gradient_net / (2 * pc_start)
-  !!!end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)
-  !!!end_orb%vec(4) = end_orb%vec(4) + k1 * end_orb%vec(3)
-
   ! Body tracking longitudinal
 
   temp_orb = end_orb
@@ -353,19 +347,22 @@ case (lcavity$)
 
   r_mat(1,1) =  r_beta * cos_a
   r_mat(1,2) =  r_beta * coef 
-  r_mat(2,1) = -r_beta * sin_a * gradient_max / (sqrt_8 * E_end) + dr_beta_ds * r_mat(1,1) 
-  r_mat(2,2) =  r_beta * cos_a * E_start / E_end                 + dr_beta_ds * r_mat(1,2)
-
-  !------------------------------
-!  r_mat(2,1) = -r_beta * sin_a * gradient_max / (sqrt_8 * E_end) !+ dr_beta_ds * r_mat(1,1) 
-!  r_mat(2,1) =  dr_beta_ds * r_mat(1,1)
-  !------------------------------
+  r_mat(2,1) = -r_beta * sin_a * gradient_max / (sqrt_8 * E_end) + dr_beta_ds * cos_a 
+  r_mat(2,2) =  r_beta * cos_a * E_start / E_end                 + dr_beta_ds * coef
 
   end_orb%vec(2) = end_orb%vec(2) / rel_pc    ! Convert to x'
   end_orb%vec(4) = end_orb%vec(4) / rel_pc    ! Convert to y'
 
+  k1 = -gradient_net / (2 * E_start)
+  end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)    ! Entrance kick
+  end_orb%vec(4) = end_orb%vec(4) + k1 * end_orb%vec(3)    ! Entrance kick
+
   end_orb%vec(1:2) = matmul(r_mat, end_orb%vec(1:2))   ! R&S Eq 9.
   end_orb%vec(3:4) = matmul(r_mat, end_orb%vec(3:4))
+
+  k2 = gradient_net / (2 * E_end) 
+  end_orb%vec(2) = end_orb%vec(2) + k2 * end_orb%vec(1)         ! Exit kick
+  end_orb%vec(4) = end_orb%vec(4) + k2 * end_orb%vec(3)         ! Exit kick
 
   end_orb%vec(2) = end_orb%vec(2) * (1 + end_orb%vec(6))  ! Convert back to px
   end_orb%vec(4) = end_orb%vec(4) * (1 + end_orb%vec(6))  ! Convert back to py
@@ -378,12 +375,6 @@ case (lcavity$)
   yp1 = end_orb%vec(4) / (1 + end_orb%vec(6))
 
 !!!  end_orb%vec(5) = end_orb%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
-
-  ! Exit kick
-
-  k2 = gradient_net / (2 * pc_end) 
-!!!  end_orb%vec(2) = end_orb%vec(2) + k2 * end_orb%vec(1)
-!!!  end_orb%vec(4) = end_orb%vec(4) + k2 * end_orb%vec(3)
 
   ! Coupler kick
 
