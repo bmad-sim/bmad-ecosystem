@@ -313,8 +313,6 @@ case (lcavity$)
 
   ! Body tracking longitudinal
 
-  temp_orb = end_orb
-
   end_orb%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
   end_orb%p0c = pc_end_ref
 
@@ -357,8 +355,18 @@ case (lcavity$)
   end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)    ! Entrance kick
   end_orb%vec(4) = end_orb%vec(4) + k1 * end_orb%vec(3)    ! Entrance kick
 
+  xp0 = end_orb%vec(2)
+  yp0 = end_orb%vec(4)
+
   end_orb%vec(1:2) = matmul(r_mat, end_orb%vec(1:2))   ! R&S Eq 9.
   end_orb%vec(3:4) = matmul(r_mat, end_orb%vec(3:4))
+
+  xp1 = end_orb%vec(2)
+  yp1 = end_orb%vec(4)
+
+  !! Correction of z for finite transverse velocity assumes a uniform change in slope.
+  end_orb%vec(5) = end_orb%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
+  !
 
   k2 = gradient_net / (2 * E_end) 
   end_orb%vec(2) = end_orb%vec(2) + k2 * end_orb%vec(1)         ! Exit kick
@@ -366,15 +374,6 @@ case (lcavity$)
 
   end_orb%vec(2) = end_orb%vec(2) * (1 + end_orb%vec(6))  ! Convert back to px
   end_orb%vec(4) = end_orb%vec(4) * (1 + end_orb%vec(6))  ! Convert back to py
-
-  ! Correction of z for finite transverse velocity assumes a uniform change in slope.
-
-  xp0 = temp_orb%vec(2) / rel_pc
-  xp1 = end_orb%vec(2) / (1 + end_orb%vec(6))
-  yp0 = temp_orb%vec(4) / rel_pc
-  yp1 = end_orb%vec(4) / (1 + end_orb%vec(6))
-
-!!!  end_orb%vec(5) = end_orb%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
 
   ! Coupler kick
 
