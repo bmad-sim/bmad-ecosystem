@@ -220,13 +220,13 @@ SUBROUTINE make_N(t6,N,Ninv,gamma,error,tunes,synchrotron_motion)
 
   INTEGER i
 
-  IF( error ) THEN
-    RETURN
-  ENDIF
-
   CALL mat_eigen (t6, eval_r, eval_i, evec_r, evec_i, error)
   evec_r = TRANSPOSE(evec_r)
   evec_i = TRANSPOSE(evec_i)
+
+  IF( error ) THEN
+    RETURN
+  ENDIF
 
   IF( PRESENT(tunes) ) THEN
     !Calculate fractional tunes from eigenvalues.  eigenvectors are needed to determine if tune is
@@ -247,7 +247,8 @@ SUBROUTINE make_N(t6,N,Ninv,gamma,error,tunes,synchrotron_motion)
 
   !Transform to real basis
   N = MATMUL(nrml_evec_r,Qr) - MATMUL(nrml_evec_i,Qi)
-  Ninv = MATMUL(Qinv_r,evec_inv_r) - MATMUL(Qinv_i,evec_inv_i)
+  Ninv = inverse_of_symp_mat(N)
+  !Ninv = MATMUL(Qinv_r,evec_inv_r) - MATMUL(Qinv_i,evec_inv_i)
 
   gamma(1) = SQRT(ABS(N(1,1)*N(2,2) - N(1,2)*N(2,1)))
   gamma(2) = SQRT(ABS(N(3,3)*N(4,4) - N(3,4)*N(4,3)))
@@ -355,7 +356,7 @@ SUBROUTINE make_G(N,gamma,G,Ginv)
 END SUBROUTINE make_G
 
 !+
-! Subroutine make_V(N,gamma,V,Vbar)
+! Subroutine make_V(N,gamma,V,Vinv)
 !
 ! Makes V matrix from N via G.
 !
@@ -368,9 +369,9 @@ END SUBROUTINE make_G
 !  gamma(3)  -- real(rp): gamma numbers related to construction of N.
 ! Output:
 !  V(6,6)    -- real(rp): Matrix that converts from normal mode coordintes to canonical coordinates: x=Va
-!  Vbar(6,6) -- real(rp): Useful in analyzing the coupling properties of a storage ring.
+!  Vinv(6,6) -- real(rp): Inverse of V.
 !-
-SUBROUTINE make_V(N,gamma,V,Vbar)
+SUBROUTINE make_V(N,gamma,V,Vinv)
   USE bmad
 
   IMPLICIT NONE
@@ -380,15 +381,51 @@ SUBROUTINE make_V(N,gamma,V,Vbar)
   REAL(rp) G(6,6)
   REAL(rp) Ginv(6,6)
   REAL(rp) V(6,6)
-  REAL(rp), OPTIONAL :: Vbar(6,6)
+  REAL(rp), OPTIONAL :: Vinv(6,6)
 
   CALL make_G(N,gamma,G,Ginv)
   V = MATMUL(N,G) 
 
-  IF( PRESENT(Vbar) ) THEN
-    Vbar = MATMUL(G,MATMUL(V,MATMUL(TRANSPOSE(S),MATMUL(TRANSPOSE(G),S))))
+  IF( PRESENT(Vinv) ) THEN
+    Vinv = inverse_of_symp_mat(V)
   ENDIF
 END SUBROUTINE make_V
+
+!+
+! Subroutine make_Vbar(N,gamma,Vbar,Vbarinv)
+!
+! Makes Vbar matrix from N via G.
+!
+! V converts from canonical coordinates to eigenmode coordinates: a_{eigenmode} = Vbarinv.G.x
+!
+! Vbar is useful for analyzing the coupling properties of a storage ring.
+!
+! Input:
+!  N(6,6)    -- real(rp): A form of the eigen matrix of the 1-turn transfer matrix.
+!  gamma(3)  -- real(rp): gamma numbers related to construction of N.
+! Output:
+!  Vbar(6,6)    -- real(rp): Matrix that converts from canonical coordinates to eigenmode coordinates.
+!  Vbarinv(6,6) -- real(rp): Useful in analyzing the coupling properties of a storage ring.
+!-
+SUBROUTINE make_Vbar(N,gamma,Vbar,Vbarinv)
+  USE bmad
+
+  IMPLICIT NONE
+
+  REAL(rp) N(6,6)
+  REAL(rp) gamma(3)
+  REAL(rp) G(6,6)
+  REAL(rp) Ginv(6,6)
+  REAL(rp) Vbar(6,6)
+  REAL(rp), OPTIONAL :: Vbarinv(6,6)
+
+  CALL make_G(N,gamma,G,Ginv)
+  Vbar = MATMUL(G,N) 
+
+  IF( PRESENT(Vbarinv) ) THEN
+    Vbarinv = inverse_of_symp_mat(Vbar)
+  ENDIF
+END SUBROUTINE make_Vbar
 
 !+
 ! Subroutine normal_sigma_mat(sigma_mat,normal)
@@ -854,7 +891,7 @@ SUBROUTINE project_via_Vbar(ring, ix, mode, sigma_x, sigma_y, sigma_z)
     WRITE(*,*) "BAD: make_N failed.  It is likely that the Eigen decomposition of the 1-turn matrix failed."
   ENDIF
   CALL make_G(N,gamma,G6mat,G6inv)
-  CALL make_V(N,gamma,V6mat,V6bar)
+  CALL make_Vbar(N,gamma,V6bar)
 
   GiVb = MATMUL(G6inv,V6bar)
 
@@ -892,6 +929,20 @@ SUBROUTINE project_via_Vbar(ring, ix, mode, sigma_x, sigma_y, sigma_z)
   sigma_z = SQRT(TermA + TermB + TermC)
 END SUBROUTINE project_via_Vbar
 
+!+
+! Function inverse_of_symp_mat(M) RESULT(Minv)
+!
+! Input:
+!   M(6,6)     : real(rp), matrix symplectic with respect to S
+! Output:
+!   Minv(6,6)  : real(rp), inverse of M
+!-
+FUNCTION inverse_of_symp_mat(M) RESULT(Minv)
+  REAL(rp) M(6,6)
+  REAL(rp) Minv(6,6)
+
+  Minv = MATMUL(S,MATMUL(TRANSPOSE(M),TRANSPOSE(S)))
+END FUNCTION inverse_of_symp_mat
 
 !----------------------------------------------
 ! Subroutines below are from original mode3_mod
