@@ -18,28 +18,28 @@ cmake_policy(SET CMP0015 NEW)
 # Honor requests for compiling with openmp
 # made via environment variable.
 #------------------------------------------
-IF ($ENV{ACC_COMPILE_WITH_OPENMP})
-  SET(ACC_COMPILE_WITH_OPENMP 1)
+IF ($ENV{ACC_ENABLE_OPENMP})
+  SET (ACC_ENABLE_OPENMP 1)
 ELSE ()
-  SET(ACC_COMPILE_WITH_OPENMP 0)
+  SET (ACC_ENABLE_OPENMP 0)
 ENDIF ()
 
 #------------------------------------------
 # Honor requests for compiling with OpenMPI
 # made via environment variable.
 #------------------------------------------
-IF ($ENV{ACC_MPI})
-  SET(ACC_MPI 1)
-  SET(ACC_MPI_COMPILER_FLAGS "-m64 -DACC_MPI")
-  SET(ACC_MPI_LINKER_FLAGS "-lmpi_f90 -lmpi_f77 -lmpi -ldl")
-  SET(ACC_MPI_INC_DIRS /usr/include/openmpi-x86_64 /usr/lib64/openmpi/lib)
-  SET(ACC_MPI_LIB_DIRS /usr/lib64/openmpi/lib)
+IF ($ENV{ACC_ENABLE_MPI})
+  SET (ACC_ENABLE_MPI 1)
+  SET (ACC_MPI_COMPILER_FLAGS "-m64 -DACC_MPI")
+  SET (ACC_MPI_LINKER_FLAGS "-lmpi_f90 -lmpi_f77 -lmpi -ldl")
+  SET (ACC_MPI_INC_DIRS /usr/include/openmpi-x86_64 /usr/lib64/openmpi/lib)
+  SET (ACC_MPI_LIB_DIRS /usr/lib64/openmpi/lib)
 ELSE ()
-  SET(ACC_MPI 0)
-  SET(ACC_MPI_COMPILER_FLAGS)
-  SET(ACC_MPI_LINKER_FLAGS)
-  SET(ACC_MPI_INC_DIRS "")
-  SET(ACC_MPI_LIB_DIRS "")
+  SET (ACC_ENABLE_MPI 0)
+  SET (ACC_MPI_COMPILER_FLAGS)
+  SET (ACC_MPI_LINKER_FLAGS)
+  SET (ACC_MPI_INC_DIRS "")
+  SET (ACC_MPI_LIB_DIRS "")
 ENDIF ()
 
 
@@ -47,11 +47,11 @@ ENDIF ()
 # Honor requests for gfortran compiling with 
 # -O2 flag made via environment variable.
 #------------------------------------------
-IF ($ENV{ACC_GFORTRAN_O2}) 
+IF ($ENV{ACC_ENABLE_GFORTRAN_OPTIMIZATION}) 
   IF ("$ENV{DIST_F90}" MATCHES "gfortran")
-    SET(ACC_GFORTRAN_OPTIMIZATION_FLAG "-O2")
+    SET (ACC_GFORTRAN_OPTIMIZATION_FLAG "-O2")
   ELSE ()
-    SET(ACC_GFORTRAN_OPTIMIZATION_FLAG)
+    SET (ACC_GFORTRAN_OPTIMIZATION_FLAG)
   ENDIF ()
 ENDIF ()
 
@@ -77,7 +77,7 @@ IF (FORTRAN_COMPILER MATCHES "gfortran")
   set (RELEASE_NAME_TRUE "Off-site Distribution")
   set (COMPILER_CHOICE $ENV{DIST_F90})
   set (CMAKE_Fortran_COMPILER gfortran)
-     IF ("${ACC_COMPILE_WITH_OPENMP}")
+     IF ("${ACC_ENABLE_OPENMP}")
        SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -fopenmp")
        SET (OPENMP_LINK_LIBS "gomp")
      ELSE ()
@@ -90,7 +90,7 @@ ELSE ()
   set (RELEASE_NAME $ENV{ACC_RELEASE})
   set (RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
   set (CMAKE_Fortran_COMPILER ifort)
-     IF ("${ACC_COMPILE_WITH_OPENMP}")
+     IF ("${ACC_ENABLE_OPENMP}")
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp -openmp")
        SET (ACC_LINK_FLAGS "-openmp")
        SET (OPENMP_LINK_LIBS "")
@@ -142,12 +142,21 @@ ENDIF ()
 #-----------------------------------
 find_package(X11)
 
+#-----------------------------------                                                                                
+# For non-Linux or non-ifort or non-64-bit builds, do not                                                           
+# use unspported flag option "-mcmodel=medium"                                                                      
+#-----------------------------------                                                                                
+
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
-set (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 
-set (BASE_CXX_FLAGS "-O0 -Wno-deprecated -mcmodel=medium -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+  SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
+  SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
+ENDIF ()
 
 
 #-----------------------------------
@@ -166,18 +175,15 @@ ENDIF ()
 
 #--------------------------------------
 # Fortran Compiler flags
-#
-# For non-Linux ifort builds builds, 
-# removed unspported flag option
-# "-mcmodel=medium"
 #--------------------------------------
 enable_language( Fortran )
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback -mcmodel=medium ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
-ELSE ()
-   SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
+SET (BASE_Fortran_FLAGS "-Df2cFortran -DCESR_UNIX -DCESR_LINUX -u -traceback ${COMPILER_SPECIFIC_F_FLAGS} ${PLOT_LIBRARY_F_FLAG} ${ACC_MPI_COMPILER_FLAGS}")
+
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+  SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -mcmodel=medium")
 ENDIF ()
+
 
 SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
 SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS})
@@ -233,7 +239,7 @@ message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
 message("C Compiler           : ${CMAKE_C_COMPILER}")
 message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
 message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
-IF ($ENV{ACC_COMPILE_WITH_OPENMP})
+IF ($ENV{ACC_ENABLE_OPENMP})
   IF (${FORTRAN_COMPILER} MATCHES "ifort")
     message("OpenMP ifort Flag    : -openmp")
   ELSE()
@@ -243,8 +249,8 @@ IF ($ENV{ACC_COMPILE_WITH_OPENMP})
 ELSE()
   message("OpenMP Support       : Not Enabled")
 ENDIF()
-IF ($ENV{ACC_MPI})
-  message("MPI Support          : Enabled via OpenMPI v1.5.4")
+IF ($ENV{ACC_ENABLE_MPI})
+  message("MPI Support          : Enabled")
 ELSE()
   message("MPI Support          : Not Enabled")
 ENDIF()
