@@ -59,7 +59,7 @@ real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, pc_start_ref, pc_end_ref, gradient_max, voltage_max
 real(rp) beta_start, beta_end, dsq_r_beta_dt1, dsq_r_beta_dE1, ddsq_r_beta_ds_dt1, ddsq_r_beta_ds_dE1
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
-
+real(rp) drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0, xp1, xp2, yp1, yp2
 real(rp) dp_long_dpx, dp_long_dpy, dp_long_dpz, dalpha_dpx, dalpha_dpy, dalpha_dpz
 real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz
 real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
@@ -447,6 +447,44 @@ case (lcavity$)
                c00%vec(4) * sq_r_beta * z22 * (dc_plu * dalpha_dE1 + c_plu * (1 / E_start - 1/ E_end)) + &
                c00%vec(4) * (dsq_r_beta_dE1 * c_plu * z22) + &
                c00%vec(4) * (ddsq_r_beta_ds_dE1 * coef + dsq_r_beta_ds * dcoef_dE1)
+
+  ! Correction to z for finite x', y'
+  ! Note: Corrections to kmat6(5,5) and kmat6(5,6) are ignored since these are small (quadratic
+  ! in the transvers coords).
+
+  c_plu = sqrt_2 * cos_phi * cos_a + sin_a
+
+  drp1_dr0  = -gradient_net / (2 * E_start)
+  drp1_drp0 = 1
+
+  xp1 = drp1_dr0 * c00%vec(1) + drp1_drp0 * c00%vec(2)
+  yp1 = drp1_dr0 * c00%vec(3) + drp1_drp0 * c00%vec(4)
+
+  drp2_dr0  = (sq_r_beta * c_plu * z21 + dsq_r_beta_ds * c_min)
+  drp2_drp0 = (sq_r_beta * cos_a * z22 + dsq_r_beta_ds * coef)
+
+  xp2 = drp2_dr0 * c00%vec(1) + drp2_drp0 * c00%vec(2)
+  yp2 = drp2_dr0 * c00%vec(3) + drp2_drp0 * c00%vec(4)
+
+  kmat6(5,1) = -(c00%vec(1) * (drp1_dr0**2 + drp1_dr0*drp2_dr0 + drp2_dr0**2) + &
+                 c00%vec(2) * (drp1_dr0 * drp1_drp0 + drp2_dr0 * drp2_drp0 + &
+                              (drp1_dr0 * drp2_drp0 + drp1_drp0 * drp2_dr0) / 2)) * dp_dg / 3
+
+  kmat6(5,2) = -(c00%vec(2) * (drp1_drp0**2 + drp1_drp0*drp2_drp0 + drp2_drp0**2) + &
+                 c00%vec(1) * (drp1_dr0 * drp1_drp0 + drp2_dr0 * drp2_drp0 + &
+                              (drp1_dr0 * drp2_drp0 + drp1_drp0 * drp2_dr0) / 2)) * dp_dg / 3
+
+  kmat6(5,3) = -(c00%vec(3) * (drp1_dr0**2 + drp1_dr0*drp2_dr0 + drp2_dr0**2) + &
+                 c00%vec(4) * (drp1_dr0 * drp1_drp0 + drp2_dr0 * drp2_drp0 + &
+                              (drp1_dr0 * drp2_drp0 + drp1_drp0 * drp2_dr0) / 2)) * dp_dg / 3
+
+  kmat6(5,4) = -(c00%vec(4) * (drp1_drp0**2 + drp1_drp0*drp2_drp0 + drp2_drp0**2) + &
+                 c00%vec(3) * (drp1_dr0 * drp1_drp0 + drp2_dr0 * drp2_drp0 + &
+                              (drp1_dr0 * drp2_drp0 + drp1_drp0 * drp2_dr0) / 2)) * dp_dg / 3
+
+  c00%vec(5) = c00%vec(5) - (xp1**2 + xp1*xp2 + xp2**2 + yp1**2 + yp1*yp2 + yp2**2) * dp_dg / 6
+
+  !
 
   mat6 = matmul(kmat6, mat6)
 

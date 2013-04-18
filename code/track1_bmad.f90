@@ -53,7 +53,7 @@ real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
 real(rp) rel_pc, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
 real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref
-real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
+real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp1, xp2, yp1, yp2
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3), sqrt_8
 real(rp) dcos_phi, dgradient, dpz, r_beta, dr_beta_ds, sin_alpha_over_f
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
@@ -355,17 +355,17 @@ case (lcavity$)
   end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)    ! Entrance kick
   end_orb%vec(4) = end_orb%vec(4) + k1 * end_orb%vec(3)    ! Entrance kick
 
-  xp0 = end_orb%vec(2)
-  yp0 = end_orb%vec(4)
+  xp1 = end_orb%vec(2)
+  yp1 = end_orb%vec(4)
 
   end_orb%vec(1:2) = matmul(r_mat, end_orb%vec(1:2))   ! R&S Eq 9.
   end_orb%vec(3:4) = matmul(r_mat, end_orb%vec(3:4))
 
-  xp1 = end_orb%vec(2)
-  yp1 = end_orb%vec(4)
+  xp2 = end_orb%vec(2)
+  yp2 = end_orb%vec(4)
 
-  !! Correction of z for finite transverse velocity assumes a uniform change in slope.
-  end_orb%vec(5) = end_orb%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
+  ! Correction of z for finite transverse velocity assumes a uniform change in slope.
+  end_orb%vec(5) = end_orb%vec(5) - (xp1**2 + xp2**2 + xp1*xp2 + yp1**2 + yp2**2 + yp1*yp2) * beta_end * dp_dg / 6
   !
 
   k2 = gradient_net / (2 * E_end) 
