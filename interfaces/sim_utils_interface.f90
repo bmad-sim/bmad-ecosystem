@@ -370,6 +370,16 @@ interface
 end interface
  
 interface
+  function mat_scale_p0 (mat_in, p0_ratio, invert) result (mat_out)
+    import
+    real(rp), intent(in) :: mat_in(:,:)
+    real(rp), optional :: p0_ratio
+    logical, optional :: invert
+    real(rp) :: mat_out(size(mat_in, 1), size(mat_in, 2))
+  end function
+end interface
+ 
+interface
   subroutine mat_symp_conj(mat1, mat2)
     import
     implicit none
@@ -379,19 +389,20 @@ interface
 end interface
  
 interface
-  function mat_symp_error (mat) result (error)
+  function mat_symp_error (mat, p0_ratio) result (error)
     import
     real(rp), intent(in) :: mat(:,:)
+    real(rp), optional :: p0_ratio
     real(rp) error
   end function
 end interface
  
 interface
-  subroutine mat_symplectify (mat_in, mat_symp, f_scale)
+  subroutine mat_symplectify (mat_in, mat_symp, p0_ratio, r_root)
     import
     real(rp), intent(in)  :: mat_in(:,:)
     real(rp), intent(out) :: mat_symp(:,:)
-    real(rp), intent(in), optional :: f_scale
+    real(rp), intent(in), optional :: p0_ratio, r_root
   end subroutine
 end interface
  
