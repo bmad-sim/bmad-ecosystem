@@ -269,6 +269,8 @@ case (lcavity$)
     return
   endif
 
+  call offset_particle (ele, end_orb, param, set$, .false.)
+
   E_start_ref  = ele%value(E_tot_start$)
   E_end_ref    = ele%value(E_tot$)
   gradient_ref = (E_end_ref - E_start_ref) / length
@@ -304,8 +306,6 @@ case (lcavity$)
   E_ratio = E_end / E_start
   end_orb%beta = beta_end
   mc2 = mass_of(param%particle)
-
-  call offset_particle (ele, end_orb, param, set$, .false.)
 
   ! Coupler kick
 
