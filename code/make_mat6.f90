@@ -137,7 +137,7 @@ if (bmad_com%space_charge_on) call make_mat6_ultra_rel_space_charge (ele, param)
 
 ! symplectify if wanted
 
-if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6)
+if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6, ele%value(p0c$)/ele%value(p0c_start$))
 
 ! Finish up
 

@@ -700,6 +700,14 @@ defaults to true. Examples:
   s1: sextupole, symplectify, l = 0.34          ! symplectify = True
 \end{example}
 
+\label{lcavity} Note that for elements like an \vn{lcavtity} where the
+reference momentum at the downstream end of the element is different
+from the upstream end, the transfer matrix is never symplectic. In
+this case, ``symplectification'' involves first transforming the
+transfer matrix so that the reference momentum is the same upstream
+and downstream, then proforming symplectification, and finally back
+transforming the reference momentum to their original values.
+
 %-----------------------------------------------------------------
 \section{Map_with_offsets Attribute}
 \label{s:mapoff}
