@@ -7,8 +7,9 @@ use mad_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), dimension(:,:), allocatable :: temp_ele
+type (ele_struct), target, allocatable :: temp_ele(:,:)
 type (coord_struct) end_orb
+type (ele_struct), pointer :: ele
 
 character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
 character(44) :: final_str
@@ -52,110 +53,91 @@ DO i = 1, lat%n_ele_max - 1
    END DO
 END DO
 
-DO k = 1, 8
-   DO i = 1, lat%n_ele_max - 1
-      DO j = 1, n_methods$
-         if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == custom$) cycle
-         if (k < 7) then
-            final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
-            write (1, fmt1) final_str, tolerance(final_str), temp_ele(i,j)%mat6(k,:)
-         else if (k == 7) then
-            final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
-            write (1, fmt1) final_str, tolerance(final_str), temp_ele(i,j)%vec0
-         else if (k == 8) then
-            final_str = '"' // trim(temp_ele(i,j)%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
-            write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(temp_ele(i,j)%mat6)
-         end if
-      END DO
-      write (1,*)
-   END DO
+DO i = 1, lat%n_ele_max - 1
+  DO k = 1, 8
+    DO j = 1, n_methods$
+      if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == custom$) cycle
+        ele => temp_ele(i,j)
+      if (k < 7) then
+        final_str = '"' // trim(ele%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
+        write (1, fmt1) final_str, tolerance(final_str), ele%mat6(k,:)
+      else if (k == 7) then
+        final_str = '"' // trim(ele%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
+        write (1, fmt1) final_str, tolerance(final_str), ele%vec0
+      else if (k == 8) then
+        final_str = '"' // trim(ele%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
+        write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele%mat6, ele%value(p0c$)/ele%value(p0c_start$))
+      end if
+    END DO
+    write (1,*)
+  END DO
 END DO
 
 deallocate (temp_ele)
 
 close(1)
 
+!----------------------------------------------------------------------
 contains
+
 character(8) function convert_to_string(a)
-  integer :: a
-  write(convert_to_string, '(I1.1)') a
+integer :: a
+write(convert_to_string, '(I1.1)') a
 end function convert_to_string
 
-character(10) function tolerance(instr)
-  character(44) :: instr
+!----------------------------------------------------------------------
+! contains
 
-  select case (instr)
-     case('"E_GUN1:Tracking:MatrixRow1"                ') ; tolerance = 'REL  1E-04'
-     case('"SBEND4:Bmad_Standard:MatrixRow1"           ') ; tolerance = 'REL  1E-08'
-     case('"SBEND5:Tracking:MatrixRow1"                ') ; tolerance = 'REL  1E-08'
-     case('"SBEND7:Tracking:MatrixRow1"                ') ; tolerance = 'REL  1E-05'
-     case('"SOL_QUAD2:Tracking:MatrixRow1"             ') ; tolerance = 'REL  1E-07'
-     case('"LCAVITY3:Bmad_Standard:MatrixRow1"         ') ; tolerance = 'ABS  1E-16'
-     case('"E_GUN1:Tracking:MatrixRow2"                ') ; tolerance = 'REL  1E-04'
-     case('"SBEND4:Tracking:MatrixRow2"                ') ; tolerance = 'REL  1E-07'
-     case('"SBEND5:Tracking:MatrixRow2"                ') ; tolerance = 'REL  1E-08'
-     case('"SBEND6:Tracking:MatrixRow2"                ') ; tolerance = 'REL  1E-07'
-     case('"SBEND7:Tracking:MatrixRow2"                ') ; tolerance = 'REL  1E-08'
-     case('"SOL_QUAD2:Tracking:MatrixRow2"             ') ; tolerance = 'REL  1E-09'
-     case('"E_GUN1:Tracking:MatrixRow3"                ') ; tolerance = 'REL  1E-04'
-     case('"SBEND4:Bmad_Standard:MatrixRow3"           ') ; tolerance = 'REL  1E-08'
-     case('"SBEND5:Tracking:MatrixRow3"                ') ; tolerance = 'REL  1E-08'
-     case('"SBEND6:Tracking:MatrixRow3"                ') ; tolerance = 'REL  1E-08'
-     case('"SBEND7:Tracking:MatrixRow3"                ') ; tolerance = 'REL  1E-05'
-     case('"SOL_QUAD2:Tracking:MatrixRow3"             ') ; tolerance = 'REL  1E-08'
-     case('"LCAVITY3:Bmad_Standard:MatrixRow3"         ') ; tolerance = 'ABS  1E-16'
-     case('"E_GUN1:Tracking:MatrixRow4"                ') ; tolerance = 'REL  1E-03'
-     case('"SBEND4:Tracking:MatrixRow4"                ') ; tolerance = 'REL  1E-07'
-     case('"SBEND5:Tracking:MatrixRow4"                ') ; tolerance = 'REL  1E-09'
-     case('"SBEND6:Tracking:MatrixRow4"                ') ; tolerance = 'REL  1E-08'
-     case('"SBEND7:Tracking:MatrixRow4"                ') ; tolerance = 'REL  1E-09'
-     case('"SOL_QUAD2:Tracking:MatrixRow4"             ') ; tolerance = 'REL  1E-07'
-     case('"LCAVITY2:Bmad_Standard:MatrixRow4"         ') ; tolerance = 'REL  1E-09'
-     case('"E_GUN1:Tracking:MatrixRow5"                ') ; tolerance = 'REL  1E-04'
-     case('"QUADRUPOLE4:Tracking:MatrixRow5"           ') ; tolerance = 'REL  1E-09'
-     case('"QUADRUPOLE5:Tracking:MatrixRow5"           ') ; tolerance = 'REL  1E-09'
-     case('"SBEND1:Tracking:MatrixRow5"                ') ; tolerance = 'REL  1E-09'
-     case('"SBEND2:Tracking:MatrixRow5"                ') ; tolerance = 'REL  1E-07'
-     case('"SBEND3:Tracking:MatrixRow5"                ') ; tolerance = 'REL  1E-09'
-     case('"SBEND4:Bmad_Standard:MatrixRow5"           ') ; tolerance = 'REL  1E-07'
-     case('"SBEND5:Tracking:MatrixRow5"                ') ; tolerance = 'REL  1E-06'
-     case('"LCAVITY3:Bmad_Standard:MatrixRow5"         ') ; tolerance = 'ABS  1E-16'
-     case('"E_GUN1:Tracking:MatrixRow6"                ') ; tolerance = 'ABS  1E-07'
-     case('"E_GUN1:Tracking:Vector"                    ') ; tolerance = 'REL  1E-07'
-     case('"SBEND1:Tracking:Vector"                    ') ; tolerance = 'REL  1E-09'
-     case('"SBEND2:Tracking:Vector"                    ') ; tolerance = 'REL  1E-09'
-     case('"SBEND3:Tracking:Vector"                    ') ; tolerance = 'REL  1E-09'
-     case('"SBEND4:Bmad_Standard:Vector"               ') ; tolerance = 'ABS  1E-10'
-     case('"SBEND4:Tracking:Vector"                    ') ; tolerance = 'ABS  1E-14'
-     case('"SBEND5:Bmad_Standard:Vector"               ') ; tolerance = 'ABS  1E-13'
-     case('"SBEND5:Tracking:Vector"                    ') ; tolerance = 'ABS  1E-11'
-     case('"SBEND7:Tracking:Vector"                    ') ; tolerance = 'REL  1E-06'
-     case('"SOLENOID2:Symp_Lie_Bmad:Vector"            ') ; tolerance = 'REL  1E-09'
-     case('"WIGGLER_MAP1:Tracking:Vector"              ') ; tolerance = 'ABS  1E-13'
-     case('"LCAVITY2:Bmad_Standard:Vector"             ') ; tolerance = 'REL  1E-09'
-     case('"E_GUN1:Tracking:Symp_Err"                  ') ; tolerance = 'ABS  1E-06'
-     case('"HKICKER1:Bmad_Standard:Symp_Err"           ') ; tolerance = 'ABS  1E-16'
-     case('"HKICKER1:Symp_Lie_PTC:Symp_Err"            ') ; tolerance = 'ABS  1E-16'
-     case('"HKICKER1:Taylor:Symp_Err"                  ') ; tolerance = 'ABS  1E-16'
-     case('"OCTUPOLE1:Tracking:Symp_Err"               ') ; tolerance = 'REL  1E-08'
-     case('"QUADRUPOLE2:Tracking:Symp_Err"             ') ; tolerance = 'ABS  1E-13'
-     case('"QUADRUPOLE4:Tracking:Symp_Err"             ') ; tolerance = 'REL  1E-09'
-     case('"QUADRUPOLE5:Tracking:Symp_Err"             ') ; tolerance = 'REL  1E-08'
-     case('"RFCAVITY1:Bmad_Standard:Symp_Err"          ') ; tolerance = 'ABS  1E-15'
-     case('"SBEND4:Bmad_Standard:Symp_Err"             ') ; tolerance = 'ABS  1E-11'
-     case('"SBEND5:Bmad_Standard:Symp_Err"             ') ; tolerance = 'ABS  1E-15'
-     case('"SBEND5:Tracking:Symp_Err"                  ') ; tolerance = 'ABS  1E-11'
-     case('"SBEND6:Tracking:Symp_Err"                  ') ; tolerance = 'ABS  1E-12'
-     case('"SBEND7:Tracking:Symp_Err"                  ') ; tolerance = 'ABS  1E-09'
-     case('"SEXTUPOLE1:Tracking:Symp_Err"              ') ; tolerance = 'ABS  1E-16'
-     case('"SOLENOID1:Symp_Lie_PTC:Symp_Err"           ') ; tolerance = 'REL  1E-09'
-     case('"SOLENOID1:Taylor:Symp_Err"                 ') ; tolerance = 'REL  1E-09'
-     case('"SOL_QUAD1:Tracking:Symp_Err"               ') ; tolerance = 'ABS  1E-12'
-     case('"SOL_QUAD2:Bmad_Standard:Symp_Err"          ') ; tolerance = 'ABS  1E-12'
-     case('"SOL_QUAD2:Tracking:Symp_Err"               ') ; tolerance = 'ABS  1E-09'
-     case('"WIGGLER_PERIODIC1:Symp_Lie_Bmad:Symp_Err"  ') ; tolerance = 'ABS  1E-13'
-     case default ; tolerance = 'REL  1E-10'
-  end select
+character(10) function tolerance(instr)
+character(44) :: instr
+
+select case (instr)
+case ('"E_GUN1:Tracking:MatrixRow1"')              ; tolerance = 'ABS 5e-10'
+case ('"E_GUN1:Tracking:MatrixRow2"')              ; tolerance = 'ABS 5e-11'
+case ('"E_GUN1:Tracking:MatrixRow3"')              ; tolerance = 'ABS 7e-10'
+case ('"E_GUN1:Tracking:MatrixRow4"')              ; tolerance = 'ABS 1e-10'
+case ('"E_GUN1:Tracking:MatrixRow5"')              ; tolerance = 'ABS 4e-07'
+case ('"E_GUN1:Tracking:MatrixRow6"')              ; tolerance = 'ABS 6e-08'
+case ('"E_GUN1:Tracking:Symp_Err"')                ; tolerance = 'ABS 4e-07'
+case ('"E_GUN1:Tracking:Vector"')                  ; tolerance = 'ABS 6e-10'
+case ('"RFCAVITY1:Tracking:MatrixRow5"')           ; tolerance = 'ABS 2e-11'
+case ('"RFCAVITY1:Tracking:MatrixRow6"')           ; tolerance = 'ABS 1e-10'
+case ('"RFCAVITY1:Tracking:Symp_Err"')             ; tolerance = 'ABS 9e-11'
+case ('"RFCAVITY2:Tracking:MatrixRow1"')           ; tolerance = 'ABS 4e-12'
+case ('"RFCAVITY2:Tracking:MatrixRow2"')           ; tolerance = 'ABS 6e-12'
+case ('"RFCAVITY2:Tracking:MatrixRow3"')           ; tolerance = 'ABS 2e-12'
+case ('"RFCAVITY2:Tracking:MatrixRow5"')           ; tolerance = 'ABS 8e-11'
+case ('"RFCAVITY2:Tracking:MatrixRow6"')           ; tolerance = 'ABS 7e-10'
+case ('"RFCAVITY2:Tracking:Symp_Err"')             ; tolerance = 'ABS 6e-11'
+case ('"RFCAVITY2:Tracking:Vector"')               ; tolerance = 'ABS 4e-12'
+case ('"SBEND2:Tracking:MatrixRow5"')              ; tolerance = 'ABS 2e-12'
+case ('"SBEND4:Bmad_Standard:MatrixRow3"')         ; tolerance = 'ABS 9e-12'
+case ('"SBEND4:Bmad_Standard:MatrixRow5"')         ; tolerance = 'ABS 4e-09'
+case ('"SBEND4:Bmad_Standard:Symp_Err"')           ; tolerance = 'ABS 1e-11'
+case ('"SBEND4:Bmad_Standard:Vector"')             ; tolerance = 'ABS 2e-11'
+case ('"SBEND4:Tracking:MatrixRow2"')              ; tolerance = 'ABS 2e-12'
+case ('"SBEND5:Tracking:MatrixRow2"')              ; tolerance = 'ABS 2e-12'
+case ('"SBEND5:Tracking:MatrixRow5"')              ; tolerance = 'ABS 4e-10'
+case ('"SBEND5:Tracking:Symp_Err"')                ; tolerance = 'ABS 4e-12'
+case ('"SBEND5:Tracking:Vector"')                  ; tolerance = 'ABS 2e-12'
+case ('"SBEND7:Tracking:MatrixRow1"')              ; tolerance = 'ABS 3e-09'
+case ('"SBEND7:Tracking:MatrixRow2"')              ; tolerance = 'ABS 4e-12'
+case ('"SBEND7:Tracking:MatrixRow3"')              ; tolerance = 'ABS 2e-10'
+case ('"SBEND7:Tracking:Symp_Err"')                ; tolerance = 'ABS 2e-10'
+case ('"SBEND7:Tracking:Vector"')                  ; tolerance = 'ABS 4e-12'
+case ('"SOL_QUAD2:Bmad_Standard:MatrixRow1"')      ; tolerance = 'ABS 3e-12'
+case ('"SOL_QUAD2:Bmad_Standard:MatrixRow4"')      ; tolerance = 'ABS 2e-12'
+case ('"SOL_QUAD2:Tracking:MatrixRow1"')           ; tolerance = 'ABS 8e-10'
+case ('"SOL_QUAD2:Tracking:MatrixRow2"')           ; tolerance = 'ABS 2e-11'
+case ('"SOL_QUAD2:Tracking:MatrixRow3"')           ; tolerance = 'ABS 8e-11'
+case ('"SOL_QUAD2:Tracking:MatrixRow4"')           ; tolerance = 'ABS 2e-10'
+case ('"SOL_QUAD2:Tracking:MatrixRow5"')           ; tolerance = 'ABS 5e-12'
+case ('"SOL_QUAD2:Tracking:Symp_Err"')             ; tolerance = 'ABS 2e-10'
+case ('"SOL_QUAD2:Tracking:Vector"')               ; tolerance = 'ABS 6e-12'
+case ('"WIGGLER_PERIODIC1:Tracking:MatrixRow4"')   ; tolerance = 'ABS 6e-12'
+case ('"WIGGLER_PERIODIC1:Tracking:Symp_Err"')     ; tolerance = 'ABS 7e-12'
+case default                                       ; tolerance = 'ABS 1E-12'
+end select
 
 end function tolerance
 
