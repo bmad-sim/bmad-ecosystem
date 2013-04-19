@@ -204,7 +204,7 @@ type (em_field_struct) :: field
 real(rp), intent(in) :: s, ds
 real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot, ds2
 real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
-real(rp) :: p2, t, dt, beta_ref
+real(rp) :: p2, t, dt, beta_ref, p2_z
 
 !
 
@@ -218,7 +218,12 @@ beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 ! 1) Push the position 1/2 step
 
 p_tot = 1 + end%vec(6)
-p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2) * ele%orientation
+p2_z = p_tot**2 - end%vec(2)**2 - end%vec(4)**2
+if (p2_z < 0 .or. p_tot < 0) then
+  end%state = lost_z_aperture$
+  return
+endif
+p_z = sqrt(p2_z) * ele%orientation
 ds2_f = ds2 / p_z
 U_tot = sqrt (p_tot**2 + mass**2)
 old_beta = p_tot / U_tot  ! particle velocity: v/c
@@ -250,7 +255,12 @@ end%vec(2) = end%vec(2) - field%B(2) * f
 end%vec(4) = end%vec(4) + field%B(1) * f
 U_tot = U_tot + field%e(3) * f / c_light
 p_tot = sqrt (U_tot**2 - mass**2)
-p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2) * ele%orientation
+p2_z = p_tot**2 - end%vec(2)**2 - end%vec(4)**2
+if (p2_z < 0 .or. p_tot < 0) then
+  end%state = lost_z_aperture$
+  return
+endif
+p_z = sqrt(p2_z) * ele%orientation
 
 ! 4) Push the momenta a full step using the "R" matrix.
 
