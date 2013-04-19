@@ -846,28 +846,35 @@ The format for a \vn{gen_shape} or \vn{triangular} cross-section is
   &section_def section = <s>, <section_name>, <section_id> /
 \end{example}
 The \vn{<s>} and \vn{<section_name>} parameters are explained in
-\sref{ss:wall.def}. The \vn{<section_id>} is
+\sref{ss:wall.def}. The \vn{<section_id>} is one of:
 \begin{example}
   gen_shape:<shape_name>
   triangular:<shape_name>
 \end{example}
-where \vn{<shape_name>} is the \vn{gen_shape_name} of a \vn{gen_shape_def}
-namelist which defines the cross-section. The \vn{gen_shape_def} namelist
-has the parameters:
+where \vn{<shape_name>} is the \vn{name} of a \vn{gen_shape_def}
+namelist which defines the cross-section. The \vn{gen_shape_def}
+namelist has the parameters:
 \begin{example}
-  name = <shape_name>                     ! Name of this shape.
-  v(<i>) = <x>, <y>, <r_x>, <r_y>, <tilt> ! coordinates of the i\Th vertex.
-  ix_vertex_ante  = <iv1>, <iv2>          ! For defining antechamber.
-  ix_vertex_ante2 = <iv1>, <iv2>          ! For defining second antechamber.
+  &gen_shape_def
+    name = <gen_shape_name>                 ! Name of this shape.
+    v(1) = <x1> <y1> <radius_x1> <radius_y1> <tilt1>
+    v(2) = <x2> <y2> <radius_x2> <radius_y2> <tilt2>
+    v(3) = <x3> <y3> <radius_x3> <radius_y3> <tilt3>
+    ... etc ...
+    ix_vertex_ante  = <iv1>, <iv2>          ! For defining antechamber.
+    ix_vertex_ante2 = <iv1>, <iv2>          ! For defining second antechamber.
+  /
 \end{example}
 
 An example wall definition file is:
 \begin{example}
   ! Anything outside the namelists is ignored.
-  &section_def section =  74.3, "Near_IR" "gen_shape:dipole_shape",  /
+  &section_def section =  65.7, "Near_IR" "gen_shape:rectangular1" /
+  &section_def section =  74.3, "Arc"     "gen_shape:dipole_shape" /
+  &section_def section = 100.3, "Arc"     "gen_shape:dipole_shape" /
 
   &gen_shape_def
-    gen_shape_name = "dipole_shape"
+    name = "rectangular1"
     v(1) =  0.045,  0.025
     v(2) = -0.045,  0.025
     v(3) = -0.045, -0.025
@@ -875,35 +882,29 @@ An example wall definition file is:
     ix_vertex_ante = 4, 1
   /
   &gen_shape_def
-    ix_gen_shape = 2
-    v(1) =  0.045,  0.025
+    name = "dipole_shape"
+    v(1) =  0.045,  0.025, 0.3, 0.9
     v(2) = -0.045,  0.025
-    ix_vertex_ante = 4, 1
+    v(3) = -0.045,  0.025, 0.3, 0.9
+    v(4) = -0.045,  0.025
   /
 \end{example}
-Fortran namelist input is used. 
-The \vn{section_def} namelists begin with \vn{"\&section_def"}
-and ends with a slash \vn{"/"}. Each namelist specifies one cross-section.
-Within the namelist, anything after an exclamation
-mark \vn{"!"} is ignored including the exclamation mark. 
 
-For \vn{gen_shape} shapes, the \vn{ix_gen_shape} refers to a
-corresponding \vn{gen_shape_def} namelist that specifies the exact
-shape of the wall.  The format of the \vn{gen_shape_def}
-namelist is:
-\begin{example}
-  &gen_shape_def
-    ix_gen_shape = <index>
-    v(1) = <x1> <y1> <radius_x1> <radius_y1> <tilt1>
-    v(2) = <x2> <y2> <radius_x2> <radius_y2> <tilt2>
-    v(3) = <x3> <y3> <radius_x3> <radius_y3> <tilt3>
-    ... etc ...
-  /
-\end{example}
-A \vn{gen_shape} is specified as a list of connected vertices. Each vertex
-is specified by it's $(x, y)$ coordinates. When the vertex points are
-expressed in terms of $(r, \theta)$ coordinates, the vertices must be
-in order of increasing $\theta$. If all the vertex points have
+Each \vn{section_def} namelists specify which \vn{gen_shape_def}
+namelist is being used. In this example, the first \vn{section_def}
+refers to the \vn{gen_shape_def} named ``\vn{rectangular1}'', and the
+other two \vn{section_def} namelists refer to the \vn{gen_shape_def}
+named ``\vn{dipole_shape}'' (which is not show). As seen in this
+example, multiple \vn{section_def}s may refer to the same
+\vn{gen_shape_def}.
+
+For a \vn{gen_shape_def} namelist, the \vn{name} labels the shape for
+use by a \vn{section_def} namelist.  A \vn{gen_shape_def} is specified
+as a list of connected vertices. Each vertex is specified by it's $(x,
+y)$ coordinates. The vertices must ``wind'' counter-clockwise around
+the origin. That is, if $(x, y)$ coordinates of the vertices are
+expressed in terms of polar $(r, \theta)$ coordinates, the vertices
+must be in order of increasing $\theta$. If all the vertex points have
 non-negative $y$ values, it is assumed that the gen_shape is symmetric
 with respect to the $x$-axis and that only half the vertex points are
 being specified. If all the vertex points have both non-negative $x$
@@ -915,27 +916,37 @@ a \vn{<radius_x>} is given. If \vn{<radius_x>} is set to a non-zero
 value for a given vertex, the wall segment between that vertex and the
 vertex before it is the arc of a circle with the given radius. If, in
 addition, \vn{<radius_y>} is given, the arc will be a section of an
-ellipse.  If \vn{<tilt>} is given then the ellipse will be tilted.
+ellipse.  If, in addition to \vn{<radius_x>} and \vn{<radius_y>},
+\vn{<tilt>} is given, then the ellipse will be tilted.
 
-In the example above, the cross-section at $s = 74.3$~meters is a
-\vn{gen_shape} whose definition is given by the first
-\vn{gen_shape_def} namelist with an \vn{ix_gen_shape} value of 1. This
-definition defines a rectangle and is equivalent to the cross-section
-at 82.9~meters. Additionally, the second \vn{gen_shape_def} namelist
-with an \vn{ix_gen_shape} value of 2. defines a symmetric gen_shape
-which has the exact same shape as the first gen_shape.
+In the example above, the cross-section at $s = 65.7$~meters is a
+\vn{gen_shape} whose definition is given by the \vn{gen_shape_def}
+with name ``\vn{rectangular1}''.  This \vn{gen_shape_def} defines a rectangle
+with width 0.045~meters and height 0.025~meters. This shape could have been
+defined more simply by taking advantage of the symmetry of the shape: 
+\begin{example}
+  &gen_shape_def
+    name = "rectangular1"
+    v(1) =  0.045,  0.025
+  /
+\end{example}
+
+In the above example, ``the \vn{dipole_shape}'' shape is similar to
+the \vn{rectangular1} shape except the right and left sides are
+sections of an ellipse.
+
 
 In order to use the \vn{sr3d_params%stop_if_hit_antechamber} with
-\vn{gen_shape}, the \vn{ix_vertex_ante} indexes can be set to the two
-vertices that define the extent of the antechamber. The antechamber is
-taken to run from \vn{v(ix_vertex_ante(1))} counter-clockwise to the
-vertex \vn{v(ix_vertex_ante(2))} In the above example, the antechamber
-is given to extend from vertex \vn{v(4)} counter-clockwise to
-\vn{v(1)} which is the $x = 0.045$ piece of this square chamber.
-Notice that if symmetry is used in the input (as in the example with
-\vn{ix_gen_shape} = 2 above), extra vertex points will be generated to
-``complete'' the wall perimeter. This must be taken into account when
-setting \vn{ix_vertex_ante}. To see these generated vertex points, run
+\vn{gen_shape_def}, the \vn{ix_vertex_ante} indexes can be set to the
+two vertices that define the extent of the antechamber. The
+antechamber is taken to run from \vn{v(ix_vertex_ante(1))}
+counter-clockwise to the vertex \vn{v(ix_vertex_ante(2))} In the above
+example, the antechamber is given to extend from vertex \vn{v(4)}
+counter-clockwise to \vn{v(1)} which is the $x = 0.045$ piece of this
+square chamber.  Notice that if symmetry is used in the input, extra
+vertex points will be generated to ``complete'' the wall
+perimeter. This must be taken into account when setting
+\vn{ix_vertex_ante}. To see these generated vertex points, run
 \srthree with the \vn{-plot xy} option (\sref{s:run}).  If there is a
 second antechamber, \vn{ix_vertex_ante2} can be used.
 
@@ -946,7 +957,7 @@ within the antechamber.
 
 The \vn{triangular} shape syntax is exactly the same as the
 \vn{gen_shape} syntax except that \vn{<section_id>} is set to
-"\vn{triangular}". For \vn{triangular} there is also the added
+"\vn{triangular:<shape_name>}". For a \vn{triangular} shape, there is also the added
 restriction that the wall between vertices must be straight lines. The
 real difference is in the way that the chamber wall is constructed for
 \vn{triangular} cross-sections as detailed in \sref{s:wall}.
@@ -1391,7 +1402,7 @@ angle points.
 \label{ss:main.out}
 
 The format of the \vn{dat_file} specified in the master input file
-(\sref{s:master.file}) is as folows: The first 20 lines of this file
+(\sref{s:master.file}) is as follows: The first 20 lines of this file
 echo the information provided in the file \vn{synrad3d.init}.
 Subsequently, \vn{dat_file} contains six lines for each photon
 generated. An example of the output generated for two photons is shown
@@ -1445,8 +1456,8 @@ the longitudinal position at which the photon is absorbed. This is
 provided so that the photon hits can be sorted by magnetic environment
 (e.g., drift, sbend, wiggler, etc.)  
 
-The same information is outtputed as a table in a file whose name is
-the same as \vn{dat_file} with a ``_table'' suffix appendend.
+The same information is outputted as a table in a file whose name is
+the same as \vn{dat_file} with a ``_table'' suffix appended.
 
 %------------------------------------------------------------------
 \subsection{Photon Reflection File}

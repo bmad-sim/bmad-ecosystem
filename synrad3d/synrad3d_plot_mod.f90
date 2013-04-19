@@ -521,7 +521,7 @@ do
     call qp_set_axis ('X', maxx, minn) 
   endif
 
-  call qp_draw_graph (x, y, 'X', 'Y', label, .true., 0)
+  call qp_draw_graph (x, y, 'X (cm)', 'Y (cm)', label, .true., 0)
   call qp_draw_text (label2, 0.5_rp, 0.98_rp, '%/GRAPH/LB', 'CT')
 
   if (draw_norm) then
