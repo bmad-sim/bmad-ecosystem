@@ -517,9 +517,7 @@ case (lcavity$)
 
   ! multipoles and z_offset
 
-  if (ele%value(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  endif
+  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
 
   call add_multipoles_and_z_offset ()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
@@ -763,6 +761,8 @@ case (rfcavity$)
   call offset_particle (ele, c00, param, unset$, set_canonical = .false., set_tilt = .false.)
 
   !
+
+  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
 
   call add_multipoles_and_z_offset ()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
