@@ -51,6 +51,31 @@ export ACC_PLOT_PACKAGE="pgplot"
 
 
 #-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_OPENMP here to "Y"
+# will enable OpenMP support during the production build.
+#-----------------------------------------------------------
+export ACC_ENABLE_OPENMP="N"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_MPI here to "Y"
+# will enable Open MPI support during the production build.
+#-----------------------------------------------------------
+export ACC_ENABLE_MPI="N"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_GFORTRAN_OPTIMIZATION here 
+# to "Y" will force gfortran -O2 optimization during the 
+# production build. The default depends on how your 
+# gcc/gfortran is configured.
+# Type "gfortran -Q --help=optimizers -O2" to see what
+# optimizations are enabled with the "-O2" flag. 
+#-----------------------------------------------------------
+export ACC_ENABLE_GFORTRAN_OPTIMIZATION="N"
+
+
+#-----------------------------------------------------------
 # Trying to make shared object libraries with a distribution generates a gmake error.
 # This bug is being worked on and for now the making of shared
 # object libraries is disabled. That is, static libraries will be used.

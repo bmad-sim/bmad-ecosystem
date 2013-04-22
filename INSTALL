@@ -317,6 +317,8 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
         is installed in /opt/local/lib
      B) Attempt to create application executables along with libraries in all
         libraries that ship with second-tier makefiles set up for that purpose.
+     C) Neither OpenMP or Open MPI will be enabled during the build.
+     D) Your default gfortran optimization level will be used.
 
    Enabling both PLPLOT and PGPLOT is allowed. 
 
