@@ -27,7 +27,6 @@
 
 subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)
 
-  use bmad_struct
   use bmad_interface, except_dummy => twiss_from_mat6
 
   implicit none

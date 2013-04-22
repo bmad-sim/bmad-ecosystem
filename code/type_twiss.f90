@@ -18,7 +18,6 @@
 
 subroutine type_twiss (ele, frequency_units)
 
-  use bmad_struct
   use bmad_interface, except_dummy => type_twiss
 
   implicit none

@@ -36,7 +36,6 @@
 subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
                                                   stable, growth_rate, chi, err_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => multi_turn_tracking_analysis
 
 implicit none

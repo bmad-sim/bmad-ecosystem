@@ -1,6 +1,6 @@
 module basic_attribute_mod
 
-use bmad_struct
+use equal_mod
 
 ! The type of an attribute may be one of:
 !   does_not_exist$ -- Does not exist.
@@ -1429,7 +1429,7 @@ case ('KILL_FRINGE')
 case ('MAT6_CALC_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib, mat6_calc_method_name, lbound(mat6_calc_method_name, 1))
   if (present(is_default)) then
-!!!    call init_ele (ele2, ele%key)
+    call init_ele (ele2, ele%key)
     is_default = (ix_attrib == ele2%mat6_calc_method)
   endif
 
@@ -1466,7 +1466,7 @@ case ('REF_POLARIZATION')
 case ('SPIN_TRACKING_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib, spin_tracking_method_name, lbound(spin_tracking_method_name, 1))
   if (present(is_default)) then
-!!!    call init_ele (ele2, ele%key)
+    call init_ele (ele2, ele%key)
     is_default = (ix_attrib == ele2%spin_tracking_method)
   endif
 

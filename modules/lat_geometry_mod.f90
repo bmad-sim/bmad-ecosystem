@@ -170,7 +170,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     slave => pointer_to_slave(lord, 1)
     lord%floor = slave%floor
   case (girder_lord$)
-    call ele_geometry (dummy, ele, ele%floor)
+    call ele_geometry (dummy, lord, lord%floor)
   end select
 
   lord%bookkeeping_state%floor_position = ok$
@@ -310,6 +310,7 @@ if (key == fiducial$ .or. key == girder$) then
       call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w_mat)
       r0 = slave0%floor%r
     case (center_pt$)
+      r0 = (slave0%floor%r + slave1%floor%r) / 2
       call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w0_mat)
       call floor_angles_to_w_mat (slave1%floor%theta, slave1%floor%phi, slave1%floor%psi, w_mat)
       if (any(w0_mat /= w_mat)) then
@@ -318,7 +319,6 @@ if (key == fiducial$ .or. key == girder$) then
         call w_mat_to_axis_angle (dw_mat, axis, angle)
         call axis_angle_to_w_mat (axis, angle/2, dw_mat)
         w_mat = matmul(w0_mat, dw_mat)
-        r0 = (slave0%floor%r + slave1%floor%r) / 2
       endif
     case (downstream_end$)
       call floor_angles_to_w_mat (slave1%floor%theta, slave1%floor%phi, slave1%floor%psi, w_mat)

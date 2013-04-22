@@ -7,6 +7,7 @@ module bmad_struct
 use bmad_taylor_mod
 use random_mod
 use twiss_mod
+use basic_bmad_mod
 
 use definition, only: genfield, fibre, layout
 
@@ -115,22 +116,6 @@ type wall3d_struct
   type (wall3d_crotch_struct) crotch                ! Info on if there is a crotch
   type (wall3d_section_struct), allocatable :: section(:)
 end type  
-
-! electron/positron
-
-integer, parameter :: antimuon$   = +3
-integer, parameter :: proton$     = +2
-integer, parameter :: positron$   = +1
-integer, parameter :: photon$     =  0
-integer, parameter :: electron$   = -1
-integer, parameter :: antiproton$ = -2
-integer, parameter :: muon$       = -3
-
-character(16), parameter :: particle_name(-3:3) = ['MUON      ', 'ANTIPROTON', 'ELECTRON  ', &
-                                     'PHOTON    ', 'POSITRON  ', 'PROTON    ', 'ANTIMUON  ']
-
-integer, parameter :: charge_of(-3:3) = [-1, -1, -1, 0, 1, 1, 1]
-real(rp), parameter :: mass_of(-3:3) = [m_muon, m_proton, m_electron, 0.0_rp, m_electron, m_proton, m_muon]
 
 ! plane list, etc
 

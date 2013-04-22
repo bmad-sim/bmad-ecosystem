@@ -1,10 +1,172 @@
+!+
+! Module basic_bmad_mod
+!
+! Some basic routines independent of any bmad structures.
+!-
+
 module basic_bmad_mod
 
 use sim_utils
 
 integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
 
+! Species ID, mass, and charge.
+
+integer, parameter :: antimuon$   = +3
+integer, parameter :: proton$     = +2
+integer, parameter :: positron$   = +1
+integer, parameter :: photon$     =  0
+integer, parameter :: electron$   = -1
+integer, parameter :: antiproton$ = -2
+integer, parameter :: muon$       = -3
+
+character(16), parameter :: particle_name(-3:3) = ['MUON      ', 'ANTIPROTON', 'ELECTRON  ', &
+                                     'PHOTON    ', 'POSITRON  ', 'PROTON    ', 'ANTIMUON  ']
+
+integer, parameter :: charge_of(-3:3) = [-1, -1, -1, 0, 1, 1, 1]
+real(rp), parameter :: mass_of(-3:3) = [m_muon, m_proton, m_electron, 0.0_rp, m_electron, m_proton, m_muon]
+
 contains
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)
+!
+! Routine to calculate the momentum, etc. from a particle's total energy.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   E_tot    -- Real(rp): Total energy of the particle.
+!   particle -- Integer: Type of particle. positron$, etc.
+!
+! Output:
+!   gamma    -- Real(rp), optional: Gamma factor. Set to -1 for photons.
+!   kinetic  -- Real(rp), optional: Kinetic energy
+!   beta     -- Real(rp), optional: velocity / c_light
+!   pc       -- Real(rp), optional: Particle momentum
+!   brho     -- Real(rp), optional: Nominal B_field*rho_bend
+!   dbeta    -- Real(rp), optional: 1 - beta. Equal to 1/(2*gamma^2) in ultra-rel limit.
+!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
+!-
+
+subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)
+
+implicit none
+
+real(rp), intent(in) :: E_tot
+real(rp), intent(out), optional :: kinetic, beta, pc, brho, gamma, dbeta
+real(rp) pc_new, mc2, g2
+
+integer, intent(in) :: particle
+logical, optional :: err_flag
+
+character(24) :: r_name = 'convert_total_energy_to'
+
+!
+
+if (present(err_flag)) err_flag = .true.
+
+mc2 = mass_of(particle)
+if (E_tot < mc2) then
+  call out_io (s_abort$, r_name, 'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+pc_new = E_tot * sqrt(1.0 - (mc2/E_tot)**2)
+if (present(pc))     pc     = pc_new
+if (present(beta))    beta    = pc_new / E_tot  
+if (present(kinetic)) kinetic = E_tot - mc2
+if (present(brho))    brho    = pc_new / c_light
+
+if (present(gamma)) then
+  if (mc2 == 0) then
+    gamma = -1
+  else
+    gamma   = E_tot / mc2
+  endif
+endif
+
+if (present(dbeta)) then
+  if (E_tot/mc2 > 100) then
+    g2 = (E_tot / mc2)**2
+    dbeta = 1/(2*g2) + 1/(8*g2**2)
+  else
+    dbeta = 1 - pc_new / E_tot
+  endif
+endif
+
+if (present(err_flag)) err_flag = .false.
+
+end subroutine convert_total_energy_to
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta, err_flag)
+!
+! Routine to calculate the energy, etc. from a particle's momentum.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   pc       -- Real(rp): Particle momentum
+!   particle -- Integer: Type of particle. positron$, etc.
+!
+! Output:
+!   E_tot    -- Real(rp), optional: Total energy of the particle.
+!   gamma    -- Real(rp), optional: Gamma factor.
+!   kinetic  -- Real(rp), optional: Kinetic energy
+!   beta     -- Real(rp), optional: velocity / c_light
+!   brho     -- Real(rp), optional: Nominal B_field*rho_bend
+!   dbeta    -- Real(rp), optional: 1 - beta. Equal to 1/(2*gamma^2) in ultra-rel limit.
+!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
+!-
+
+subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta, err_flag)
+
+implicit none
+
+real(rp), intent(in) :: pc
+real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, dbeta
+real(rp) g2, mc2, E_tot_this 
+
+integer, intent(in) :: particle
+logical, optional :: err_flag
+
+character(20) :: r_name = 'convert_pc_to'
+
+!
+
+if (present(err_flag)) err_flag = .false.
+
+mc2 = mass_of(particle)
+E_tot_this = sqrt(pc**2 + mc2**2)
+
+if (present(E_tot))   E_tot   = E_tot_this
+if (present(beta))    beta    = pc / E_tot_this
+if (present(kinetic)) kinetic = E_tot_this - mc2
+if (present(brho))    brho    = pc / c_light
+if (present(gamma))   gamma   = E_tot_this / mc2
+
+if (present(dbeta)) then
+  if (E_tot/mc2 > 100) then
+    g2 = (E_tot_this / mc2)**2
+    dbeta = 1/(2*g2) + 1/(8*g2**2)
+  else
+    dbeta = 1 - pc / E_tot_this
+  endif
+endif
+
+if (present(err_flag)) err_flag = .false.
+
+end subroutine convert_pc_to
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

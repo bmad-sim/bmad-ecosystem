@@ -1,6 +1,6 @@
 module photon_reflection_mod
 
-use bmad_struct
+use bmad_utils_mod
 
 ! Structure for holding the reflection probability tables.
 ! For a custom reflection calc: 

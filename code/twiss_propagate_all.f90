@@ -23,7 +23,6 @@
 
 subroutine twiss_propagate_all (lat, ix_branch, err_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => twiss_propagate_all
 
 implicit none

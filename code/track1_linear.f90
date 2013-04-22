@@ -19,7 +19,6 @@
 
 subroutine track1_linear (start_orb, ele, param, end_orb)
 
-use bmad_struct
 use bmad_interface, except_dummy => track1_linear
 
 implicit none

@@ -158,7 +158,7 @@ else
 endif
 
 n_att = n_attrib_string_max_len() + 2
-write (fmt_a, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, a)'
+write (fmt_a, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, 3a)'
 write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
 write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
 write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es12.6)'
@@ -391,6 +391,10 @@ endif
 
 if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
   nl=nl+1; write (li(nl), fmt_a) 'CRYSTAL_TYPE', '=', ele%component_name
+endif
+
+if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
+  nl=nl+1; write (li(nl), fmt_a) 'ORIGIN_ELE', '=', '"', trim(ele%component_name), '"'
 endif
 
 if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then

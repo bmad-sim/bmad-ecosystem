@@ -1,6 +1,6 @@
 module beam_def_struct
 
-use bmad_struct
+use bmad_utils_mod
 
 ! Sigma matrix elements (21 total)
 integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5

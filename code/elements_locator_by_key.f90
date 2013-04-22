@@ -23,7 +23,6 @@
 
 subroutine elements_locator_by_key (key, lat, indx)
 
-  use bmad_struct
   use bmad_interface, except_dummy => elements_locator_by_key
   
   implicit none

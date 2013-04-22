@@ -32,7 +32,6 @@
 
 subroutine create_unique_ele_names (lat, key, suffix)
 
-use bmad_struct
 use bmad_interface, except => create_unique_ele_names
 
 

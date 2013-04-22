@@ -18,7 +18,6 @@
 
 function relative_mode_flip (ele1, ele2) result (rel_mode)
 
-use bmad_struct
 use bmad_interface, except_dummy => relative_mode_flip
 
 implicit none

@@ -39,7 +39,6 @@
 
 subroutine twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch, err_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => twiss_propagate_many
 
 implicit none

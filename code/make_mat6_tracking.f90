@@ -29,7 +29,6 @@
 
 subroutine make_mat6_tracking (ele, param, c0, c1)
 
-use bmad_struct
 use bmad_interface, except_dummy => make_mat6_tracking
 
 implicit none

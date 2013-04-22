@@ -17,7 +17,6 @@
 
 subroutine make_g_mats (ele, g_mat, g_inv_mat)
 
-  use bmad_struct
   use bmad_interface, except_dummy => make_g_mats
 
   implicit none

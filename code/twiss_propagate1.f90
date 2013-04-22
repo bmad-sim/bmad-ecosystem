@@ -24,7 +24,6 @@
 
 subroutine twiss_propagate1 (ele1, ele2, err_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => twiss_propagate1
 
 implicit none
@@ -272,7 +271,6 @@ end subroutine
 
 subroutine twiss1_propagate (twiss1, mat2, length, twiss2, err)
 
-use bmad_struct
 use bmad_interface, except_dummy => twiss1_propagate
 
 implicit none
