@@ -1,7 +1,6 @@
 module make_mat6_mod
 
-use bmad_struct
-use basic_bmad_mod
+use bmad_utils_mod
 
 contains
 

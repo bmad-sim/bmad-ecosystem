@@ -18,33 +18,33 @@
 
 subroutine cbar_to_c (cbar_mat, a, b, c_mat)
 
-  use bmad_struct
-  
-  implicit none
+use bmad_interface, except_dummy => cbar_to_c
 
-  type (twiss_struct) a, b
+implicit none
 
-  real(rp) cbar_mat(2,2), g_a_inv(2,2), g_b(2,2), c_mat(2,2)
-  real(rp) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
+type (twiss_struct) a, b
+
+real(rp) cbar_mat(2,2), g_a_inv(2,2), g_b(2,2), c_mat(2,2)
+real(rp) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
 
 !
 
-  sqrt_beta_a  = sqrt(a%beta)
-  sqrt_beta_b  = sqrt(b%beta)
-  alpha_a = a%alpha
-  alpha_b = b%alpha
+sqrt_beta_a  = sqrt(a%beta)
+sqrt_beta_b  = sqrt(b%beta)
+alpha_a = a%alpha
+alpha_b = b%alpha
 
-  g_b(1,1) = 1 / sqrt_beta_b
-  g_b(1,2) = 0
-  g_b(2,1) = alpha_b / sqrt_beta_b
-  g_b(2,2) = sqrt_beta_b
+g_b(1,1) = 1 / sqrt_beta_b
+g_b(1,2) = 0
+g_b(2,1) = alpha_b / sqrt_beta_b
+g_b(2,2) = sqrt_beta_b
 
-  g_a_inv(1,1) = sqrt_beta_a
-  g_a_inv(1,2) = 0
-  g_a_inv(2,1) = -alpha_a / sqrt_beta_a
-  g_a_inv(2,2) = 1 / sqrt_beta_a
+g_a_inv(1,1) = sqrt_beta_a
+g_a_inv(1,2) = 0
+g_a_inv(2,1) = -alpha_a / sqrt_beta_a
+g_a_inv(2,2) = 1 / sqrt_beta_a
 
-  c_mat = matmul (matmul (g_a_inv, cbar_mat), g_b)
+c_mat = matmul (matmul (g_a_inv, cbar_mat), g_b)
 
 end subroutine
 

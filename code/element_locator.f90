@@ -26,7 +26,6 @@
 
 subroutine element_locator (ele_name, lat, ix_ele)
 
-use bmad_struct
 use bmad_interface, except_dummy => element_locator
   
 implicit none

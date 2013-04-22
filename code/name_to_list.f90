@@ -27,7 +27,6 @@
 
 subroutine name_to_list (lat, ele_names, use_ele)
 
-  use bmad_struct
   use bmad_interface, except_dummy => name_to_list
 
   implicit none

@@ -45,7 +45,6 @@
 
 subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => create_overlay
 use bookkeeper_mod, only: control_bookkeeper
 

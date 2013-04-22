@@ -37,7 +37,6 @@
 subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, &
                                               amp_na, amp_nb, particle)
 
-  use bmad_struct
   use bmad_interface, except_dummy => orbit_amplitude_calc
 
   implicit none

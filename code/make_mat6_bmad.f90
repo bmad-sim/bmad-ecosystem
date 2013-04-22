@@ -1373,7 +1373,6 @@ end subroutine mat6_coupler_kick
 
 subroutine lcavity_edge_kick_matrix (ele, param, grad_max, phase, orb, mat6)
 
-use bmad_struct
 use bmad_interface
 
 implicit none
@@ -1407,7 +1406,6 @@ end subroutine lcavity_edge_kick_matrix
 
 subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
 
-use bmad_struct
 use bmad_interface, except_dummy => bbi_kick_matrix
 
 implicit none

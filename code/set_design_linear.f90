@@ -15,7 +15,6 @@
 
 subroutine set_design_linear (lat)
 
-  use bmad_struct
   use bmad_interface, except_dummy => set_design_linear
 
   implicit none

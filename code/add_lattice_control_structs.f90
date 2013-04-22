@@ -26,7 +26,6 @@
 
 subroutine add_lattice_control_structs (lat, ele, add_at_end)
 
-  use bmad_struct
   use bmad_interface, except_dummy => add_lattice_control_structs
 
   implicit none

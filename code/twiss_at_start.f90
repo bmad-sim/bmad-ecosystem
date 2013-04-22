@@ -30,7 +30,6 @@
 
 subroutine twiss_at_start (lat, status, ix_branch)
 
-use bmad_struct
 use bookkeeper_mod, except_dummy => twiss_at_start
 
 implicit none

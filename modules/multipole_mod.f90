@@ -1,59 +1,8 @@
 module multipole_mod
 
-use bmad_struct
 use bmad_utils_mod
 
 contains
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine multipole_init (ele, zero)
-!
-! Subroutine to allocate memory for the the ele%a_pole and ele%b_pole multipole 
-! vectors.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   zero -- Logical, optional: If present and True then zero the arrays
-!             even if they already exist when this routine is called. 
-!             Default is False which means that if the arrays already 
-!             exist then this routine will do nothing.
-!
-! Output:
-!   ele -- Ele_struct: Element holding the multipoles.
-!     %a_pole(0:n_pole_maxx) -- Multipole An array 
-!     %b_pole(0:n_pole_maxx) -- Multipole Bn array
-!-
-
-subroutine multipole_init (ele, zero)
-
-implicit none
-
-type (ele_struct) ele
-logical, optional :: zero
-
-! If %a_pole and %b_pole already exist then zero them if zero argument present 
-! and True.
-
-if (associated (ele%a_pole)) then
-  if (logic_option(.false., zero)) then
-    ele%a_pole = 0
-    ele%b_pole = 0
-  endif
-
-! If memory not allocated then allocate and zero.
-
-else
-  allocate (ele%a_pole(0:n_pole_maxx), ele%b_pole(0:n_pole_maxx))
-  ele%a_pole = 0
-  ele%b_pole = 0
-endif
-
-end subroutine multipole_init
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

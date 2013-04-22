@@ -36,7 +36,6 @@
 
 subroutine create_girder (lat, ix_girder, contrl, ele_init)
 
-use bmad_struct
 use bmad_interface, except_dummy => create_girder
 
 implicit none

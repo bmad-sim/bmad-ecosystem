@@ -28,7 +28,7 @@
 
 recursive subroutine update_hybrid_list (lat, n_in, keep_ele, keep_overlays_and_groups)
 
-use bmad_struct
+use bmad_interface, except_dummy => update_hybrid_list
 
 implicit none
 

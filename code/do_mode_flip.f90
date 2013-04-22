@@ -20,7 +20,6 @@
 
 subroutine do_mode_flip (ele, err_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => do_mode_flip
 
 implicit none

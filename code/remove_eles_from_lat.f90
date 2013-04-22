@@ -26,7 +26,6 @@
 
 subroutine remove_eles_from_lat (lat, check_sanity)
 
-use bmad_struct
 use bmad_interface, except => remove_eles_from_lat
 
 implicit none

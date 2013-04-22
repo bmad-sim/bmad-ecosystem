@@ -1,6 +1,6 @@
 module crystal_param_mod
 
-use bmad_struct
+use bmad_utils_mod
 
 type, private :: atom_position_struct
   real(rp) vec(3)

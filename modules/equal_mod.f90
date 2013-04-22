@@ -1,6 +1,6 @@
 module equal_mod
 
-use bmad_utils_mod
+use bmad_core_struct_mod
 
 interface assignment (=)
   module procedure ele_equal_ele
@@ -34,7 +34,6 @@ contains
 subroutine ele_equal_ele (ele1, ele2)
 
 use tpsalie_analysis 
-use multipole_mod
 
 implicit none
 	

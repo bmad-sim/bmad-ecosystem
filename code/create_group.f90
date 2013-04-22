@@ -87,7 +87,6 @@
 
 subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => create_group
 
 implicit none

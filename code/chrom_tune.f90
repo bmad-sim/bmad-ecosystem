@@ -33,7 +33,6 @@
 
 subroutine chrom_tune(lat, delta_e, target_x, target_y, err_tol, err_flag)
   
-use bmad_struct
 use bmad_interface, except_dummy => chrom_tune
 use nr, only: gaussj
 

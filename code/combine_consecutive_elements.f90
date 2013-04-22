@@ -17,7 +17,6 @@
 
 subroutine combine_consecutive_elements (lat)
 
-use bmad_struct
 use bookkeeper_mod, except => combine_consecutive_elements
 
 implicit none

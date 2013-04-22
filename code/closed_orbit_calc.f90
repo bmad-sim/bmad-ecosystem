@@ -73,7 +73,6 @@
 
 subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
 

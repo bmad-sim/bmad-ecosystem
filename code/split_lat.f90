@@ -32,7 +32,6 @@
 
 subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
 
-use bmad_struct
 use bmad_interface, except_dummy => split_lat
 use bookkeeper_mod, only: control_bookkeeper
 
