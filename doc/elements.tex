@@ -1157,7 +1157,6 @@ General \vn{floor_shift} element attributes are:
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Aperture Limits        & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
   Description strings    & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
-  Is_on                  & \ref{s:is.on}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1169,19 +1168,14 @@ General \vn{floor_shift} element attributes are:
 \index{phi_origin}\index{psi_origin}
 Attributes specific to a \vn{floor_shift} elements are:
 \begin{example}
-  x_origin        = <Real>    ! Absolute Reference x-position
-  y_origin        = <Real>    ! Absolute Reference y-position
-  z_origin        = <Real>    ! Absolute Reference z-position
-  theta_origin    = <Real>    ! Absolute Reference orientation angle.
-  phi_origin      = <Real>    ! Absolute Reference orientation angle.
-  psi_origin      = <Real>    ! Absolute Reference orientation angle.
-  origin_ele      = <Name>    ! Reference element.
-  x_offset        = <Real>    ! x offset from reference
-  y_offset        = <Real>    ! y offset from reference
-  z_offset        = <Real>    ! z offset from reference
-  x_pitch         = <Real>    ! rotation in the reference coords.
-  y_pitch         = <Real>    ! rotation in the reference coords.
-  tilt            = <Real>    ! rotation in the reference coords.
+  origin_ele        = <Name>     ! Reference element.
+  origin_ele_ref_pt = <location> ! Reference pt on reference ele.
+  dx_origin         = <Real>     ! x-position offset
+  dy_origin         = <Real>     ! y-position offset
+  dz_origin         = <Real>     ! z-position offset
+  dtheta_origin     = <Real>     ! orientation angle offset.
+  dphi_origin       = <Real>     ! orientation angle offset.
+  dpsi_origin       = <Real>     ! orientation angle offset.
 \end{example}
 
 For tracking purposes, the \vn{fiducial} element is considered to be a

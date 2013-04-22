@@ -52,6 +52,12 @@ case (ecollimator$)
   ele%aperture_type = elliptical$
   ele%offset_moves_aperture = .true.
 
+case (fiducial$)
+  ele%value(origin_ele_ref_pt$) = center_pt$
+
+case (girder$)
+  ele%value(origin_ele_ref_pt$) = center_pt$
+
 case (lcavity$)
   ele%value(coupler_at$) = downstream_end$
   ele%value(field_scale$) = 1

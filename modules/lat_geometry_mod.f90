@@ -3,7 +3,7 @@ module lat_geometry_mod
 use bmad_struct
 use bmad_interface
 use lat_ele_loc_mod
-use nr, only: zbrent
+use rotation_3d_mod
 
 contains
 
@@ -42,6 +42,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave, b_ele, ele2, ele0
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: chain_ele(:)
+type (floor_position_struct) dummy
 
 real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3)
 
@@ -71,7 +72,7 @@ do n = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
     if (ele%key /= fiducial$) cycle
-    call ele_geometry (ele%floor, ele, ele%floor)
+    call ele_geometry (dummy, ele, ele%floor)
 
     do i2 = i+1, branch%n_ele_track
       ele2 => branch%ele(i2)
@@ -94,7 +95,7 @@ do n = 0, ubound(lat%branch, 1)
         if (global_com%exit_on_error) call err_exit
         exit
       endif
-      call ele_geometry (ele2%floor, ele2, branch%ele(i2-1)%floor, reverse = -1)
+      call ele_geometry (ele2%floor, ele2, branch%ele(i2-1)%floor, -1.0_rp)
     enddo
   enddo
 
@@ -168,6 +169,8 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   case (multipass_lord$)
     slave => pointer_to_slave(lord, 1)
     lord%floor = slave%floor
+  case (girder_lord$)
+    call ele_geometry (dummy, ele, ele%floor)
   end select
 
   lord%bookkeeping_state%floor_position = ok$
@@ -179,16 +182,13 @@ end subroutine lat_geometry
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (floor0, ele, floor, reverse, treat_as_patch)
+! Subroutine ele_geometry (floor0, ele, floor, len_scale, treat_as_patch)
 !
 ! Subroutine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
 !
 ! floor0 will correspond to the coordinates at the upstream end of the element
 ! and floor will correspond to the coordinates at the downstream end.
-!
-! If reversed == reverse * ele%orientation is -1, the element is considered
-! to be reversed.
 !
 ! Note: For floor_position element, floor is independent of floor0.
 !
@@ -197,8 +197,12 @@ end subroutine lat_geometry
 !
 ! Input:
 !   floor0          -- Starting floor coordinates at upstream end.
+!                        Not used for fiducial and girder elements.
 !   ele             -- Ele_struct: Element to propagate the geometry through.
-!   reverse         -- Integer, optional: Reverse propagation through the element?
+!   len_scale       -- Real(rp), optional: factor to scale the length of the element.
+!                         1.0_rp => Output is geometry at end of element (default).
+!                         0.5_rp => Output is geometry at center of element.
+!                        -1.0_rp => Used to propagate geometry in reverse.
 !   treat_as_patch  -- Logical, option: If present and True then treat the element
 !                        like a patch element. This is used by branch and photon_branch
 !                        elements for constructing the coordinates of the "to" lattice branch.
@@ -209,20 +213,21 @@ end subroutine lat_geometry
 !     %theta, phi, %psi  -- Orientation angles 
 !-
 
-subroutine ele_geometry (floor0, ele, floor, reverse, treat_as_patch)
+recursive subroutine ele_geometry (floor0, ele, floor, len_scale, treat_as_patch)
 
 use multipole_mod
 
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0
-type (floor_position_struct) floor0, floor
+type (ele_struct), pointer :: ele0, slave0, slave1
+type (floor_position_struct) floor0, floor, floor_ref
 type (ele_pointer_struct), allocatable :: eles(:)
 type (lat_param_struct) param
 
+real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
-real(rp) r0(3)
+real(rp) r0(3), w0_mat(3,3), w0_mat_inv(3,3), dw_mat(3,3), axis(3)
 real(rp) chord_len, angle, leng, rho
 real(rp) theta, phi, psi, tlt
 real(rp), save :: old_theta = 100  ! garbage number
@@ -230,8 +235,7 @@ real(rp), save :: old_phi, old_psi
 real(rp), save :: s_ang, c_ang
 real(rp), save :: w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer, optional :: reverse
-integer i, key, n_loc, reversed
+integer i, key, n_loc, len_factor
 
 logical has_nonzero_pole, err
 logical, optional :: treat_as_patch
@@ -242,7 +246,7 @@ character(16), parameter :: r_name = 'ele_geometry'
 ! old_theta is used to tell if we have to reconstruct the w_mat
 
 ele%bookkeeping_state%floor_position = ok$
-reversed = ele%orientation * integer_option(1, reverse)
+len_factor = ele%orientation * real_option(1.0_rp, len_scale)
 
 floor   = floor0
 theta   = floor0%theta
@@ -252,7 +256,7 @@ psi     = floor0%psi
 knl  = 0   ! initialize
 tilt = 0  
 
-leng = ele%value(l$) * reversed
+leng = ele%value(l$) * len_factor
 
 key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
@@ -262,31 +266,76 @@ if (key == multipole$) then
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
 endif
 
-! Fiducial element is independent of floor0
+! Fiducial and girder elements.
+! Note that these elements are independent of floor0
 
-if (key == fiducial$) then
-  if (ele%component_name == '') then
-    call floor_angles_to_w_mat (ele%value(theta_origin$), ele%value(phi_origin$), &
-                                                          ele%value(psi_origin$), w_mat)
-    r0 = [ele%value(x_origin$), ele%value(y_origin$), ele%value(z_origin$)]
-  else
+if (key == fiducial$ .or. key == girder$) then
+  if (ele%component_name /= '') then
     call lat_ele_locator (ele%component_name, ele%branch%lat, eles, n_loc, err)
     if (n_loc /= 1) then
       call out_io (s_fatal$, r_name, 'ORIGIN_ELE: ' // ele%component_name,  &
-                                      'FOR FIDUCIAL ELEMENT: ' // ele%name, &
-                                      'IS NOT UNIQUE!')
+                                     'FOR ELEMENT: ' // ele%name, &
+                                     'IS NOT UNIQUE!')
       if (global_com%exit_on_error) call err_exit
+      return
     endif
     ele0 => eles(1)%ele
-    call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat)
-    r0 = ele0%floor%r
+    select case (nint(ele%value(origin_ele_ref_pt$)))
+    case (upstream_end$)
+      call ele_geometry (ele0%floor, ele0, floor_ref, -1.0_rp)
+    case (center_pt$)
+      call ele_geometry (ele0%floor, ele0, floor_ref, -0.5_rp)
+    case (downstream_end$)
+      floor_ref = ele0%floor
+    case default
+      call out_io (s_fatal$, r_name, 'ORIGIN_ELE_REF_PT NOT VALID FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+    end select
+
+    call floor_angles_to_w_mat (floor_ref%theta, floor_ref%phi, floor_ref%psi, w_mat)
+    r0 = floor_ref%r
+
+  ! Fiducial with no origin ele: Use global origin.
+  elseif (key == fiducial$) then
+    call mat_make_unit(w_mat)
+    r0 = 0
+
+  ! Girder uses center of itself by default.
+  else  ! must be girder
+    slave0 => pointer_to_slave(ele, 1)
+    slave0 => pointer_to_ele(ele%branch%lat, slave0%ix_ele-1, slave0%ix_branch)
+    slave1 => pointer_to_slave(ele, ele%n_slave)
+    select case (nint(ele%value(origin_ele_ref_pt$)))
+    case (upstream_end$)
+      call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w_mat)
+      r0 = slave0%floor%r
+    case (center_pt$)
+      call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w0_mat)
+      call floor_angles_to_w_mat (slave1%floor%theta, slave1%floor%phi, slave1%floor%psi, w_mat)
+      if (any(w0_mat /= w_mat)) then
+        call mat_symp_conj (w0_mat, w0_mat_inv) ! Take inverse 
+        dw_mat = matmul(w0_mat_inv, w_mat)
+        call w_mat_to_axis_angle (dw_mat, axis, angle)
+        call axis_angle_to_w_mat (axis, angle/2, dw_mat)
+        w_mat = matmul(w0_mat, dw_mat)
+        r0 = (slave0%floor%r + slave1%floor%r) / 2
+      endif
+    case (downstream_end$)
+      call floor_angles_to_w_mat (slave1%floor%theta, slave1%floor%phi, slave1%floor%psi, w_mat)
+      r0 = slave1%floor%r
+    case default
+      call out_io (s_fatal$, r_name, 'ORIGIN_ELE_REF_PT NOT VALID FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+    end select
   endif
 
-  r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
+  ! Now offset from origin pt.
+
+  r_vec = [ele%value(dx_origin$), ele%value(dy_origin$), ele%value(dz_origin$)]
   floor%r = r0 + matmul(w_mat, r_vec)
-  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), s_mat)
+  dtheta = ele%value(dtheta_origin$)
+  call floor_angles_to_w_mat (dtheta, ele%value(dphi_origin$), ele%value(dpsi_origin$), s_mat)
   w_mat = matmul(w_mat, s_mat)
-  dtheta = ele%value(x_pitch$)
   call floor_w_mat_to_angles (w_mat, floor0%theta+dtheta, floor%theta, floor%phi, floor%psi)
 
   return
@@ -316,7 +365,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
       s_ang = sin(angle); c_ang = cos(angle)
       r_vec = [rho * (c_ang - 1), 0.0_dp, rho * s_ang ]
     else
-      angle = knl(0) * reversed
+      angle = knl(0) * len_factor
       tlt = tilt(0)
       s_ang = sin(angle); c_ang = cos(angle)
       r_vec = 0
@@ -382,7 +431,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(t
 
     r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
 
-    if (reversed == -1) then
+    if (len_factor < 0) then
       call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = s_mat)
       w_mat = matmul(w_mat, s_mat)
       floor%r = floor%r - matmul(w_mat, r_vec)
@@ -641,8 +690,7 @@ end subroutine shift_reference_frame
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Function floor_to_local (floor0, global_position, calculate_angles = .true.)
-!   result (local_position)
+! Function floor_to_local (floor0, global_position, calculate_angles = .true.) result (local_position)
 !
 ! Returns local floor position relative to floor0 given a global floor position.
 ! This is an essentially an inverse of subroutine shift_reference_frame.
@@ -656,11 +704,9 @@ end subroutine shift_reference_frame
 !                                              local_position%theta =0
 !                                              local_position%phi = 0
 !                                              local_position%psi = 0
-!                                      
 !
 ! Output:
 !  local_position -- floor_position_struct: position relative to floor0
-!
 !-
 
 function floor_to_local (floor0, global_position, calculate_angles) result (local_position)
@@ -726,6 +772,8 @@ end function floor_to_local
 !-  
 
 function position_in_local_frame (global_position, ele, status, w_mat) result(local_position)
+
+use nr, only: zbrent
 
 implicit none
 
