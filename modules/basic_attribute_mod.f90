@@ -624,8 +624,8 @@ call init_attribute_name1 (match$, z1$,                             'Z1')
 call init_attribute_name1 (match$, pz1$,                            'PZ1')
 call init_attribute_name1 (match$, match_end_orbit$,                'MATCH_END_ORBIT')
 call init_attribute_name1 (match$, is_on$,                          'IS_ON')
-call init_attribute_name1 (match$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (match$, p0c_start$,                     'p0c_start', private$)
+call init_attribute_name1 (match$, E_tot_start$,                    'E_tot_start', private$)
+call init_attribute_name1 (match$, p0c_start$,                      'p0c_start', private$)
 
 call init_attribute_name1 (girder$, l$,                             'L')
 call init_attribute_name1 (girder$, x_offset$,                      'X_OFFSET')
@@ -633,18 +633,24 @@ call init_attribute_name1 (girder$, y_offset$,                      'Y_OFFSET')
 call init_attribute_name1 (girder$, z_offset$,                      'Z_OFFSET')
 call init_attribute_name1 (girder$, x_pitch$,                       'X_PITCH')
 call init_attribute_name1 (girder$, y_pitch$,                       'Y_PITCH')
+call init_attribute_name1 (girder$, tilt$,                          'TILT')
+call init_attribute_name1 (girder$, x_offset_tot$,                  'X_OFFSET_TOT')
+call init_attribute_name1 (girder$, y_offset_tot$,                  'Y_OFFSET_TOT')
+call init_attribute_name1 (girder$, z_offset_tot$,                  'Z_OFFSET_TOT')
+call init_attribute_name1 (girder$, x_pitch_tot$,                   'X_PITCH_TOT')
+call init_attribute_name1 (girder$, y_pitch_tot$,                   'Y_PITCH_TOT')
+call init_attribute_name1 (girder$, tilt_tot$,                      'TILT_TOT')
 call init_attribute_name1 (girder$, s_min$,                         'S_MIN')
 call init_attribute_name1 (girder$, s_max$,                         'S_MAX')
 call init_attribute_name1 (girder$, s_center$,                      'S_CENTER')
-call init_attribute_name1 (girder$, tilt$,                          'TILT')
-call init_attribute_name1 (girder$, origin_ele$,             'ORIGIN_ELE')
-call init_attribute_name1 (girder$, origin_ele_ref_pt$,      'ORIGIN_ELE_REF_PT')
-call init_attribute_name1 (girder$, x_origin$,               'X_ORIGIN')
-call init_attribute_name1 (girder$, y_origin$,               'Y_ORIGIN')
-call init_attribute_name1 (girder$, z_origin$,               'Z_ORIGIN')
-call init_attribute_name1 (girder$, theta_origin$,           'THETA_ORIGIN')
-call init_attribute_name1 (girder$, phi_origin$,             'PHI_ORIGIN')
-call init_attribute_name1 (girder$, psi_origin$,             'PSI_ORIGIN')
+call init_attribute_name1 (girder$, origin_ele$,                    'ORIGIN_ELE')
+call init_attribute_name1 (girder$, origin_ele_ref_pt$,             'ORIGIN_ELE_REF_PT')
+call init_attribute_name1 (girder$, dx_origin$,                     'DX_ORIGIN')
+call init_attribute_name1 (girder$, dy_origin$,                     'DY_ORIGIN')
+call init_attribute_name1 (girder$, dz_origin$,                     'DZ_ORIGIN')
+call init_attribute_name1 (girder$, dtheta_origin$,                 'DTHETA_ORIGIN')
+call init_attribute_name1 (girder$, dphi_origin$,                   'DPHI_ORIGIN')
+call init_attribute_name1 (girder$, dpsi_origin$,                   'DPSI_ORIGIN')
 
 call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', dependent$)
 call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', dependent$)
@@ -768,28 +774,23 @@ call init_attribute_name1 (patch$, ptc_dir$,                        'ptc_dir', p
 
 !call init_attribute_name1 (patch$, next_ele_defines_position$,      'NEXT_ELE_DEFINES_POSITION')
 
-call init_attribute_name1 (floor_shift$, l$,                      'L')
-call init_attribute_name1 (floor_shift$, tilt$,                   'TILT', dependent$)
-call init_attribute_name1 (floor_shift$, x_offset$,               'X_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, y_offset$,               'Y_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, z_offset$,               'Z_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, x_pitch$,                'X_PITCH', dependent$)
-call init_attribute_name1 (floor_shift$, y_pitch$,                'Y_PITCH', dependent$)
+call init_attribute_name1 (floor_shift$, l$,                       'L')
+call init_attribute_name1 (floor_shift$, tilt$,                    'TILT', dependent$)
+call init_attribute_name1 (floor_shift$, x_offset$,                'X_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, y_offset$,                'Y_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, z_offset$,                'Z_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, x_pitch$,                 'X_PITCH', dependent$)
+call init_attribute_name1 (floor_shift$, y_pitch$,                 'Y_PITCH', dependent$)
 
-call init_attribute_name1 (fiducial$, l$,                      'l', private$)
-call init_attribute_name1 (fiducial$, tilt$,                   'TILT')
-call init_attribute_name1 (fiducial$, x_offset$,               'X_OFFSET')
-call init_attribute_name1 (fiducial$, y_offset$,               'Y_OFFSET')
-call init_attribute_name1 (fiducial$, z_offset$,               'Z_OFFSET')
-call init_attribute_name1 (fiducial$, x_pitch$,                'X_PITCH')
-call init_attribute_name1 (fiducial$, y_pitch$,                'Y_PITCH')
-call init_attribute_name1 (fiducial$, origin_ele$,             'ORIGIN_ELE')
-call init_attribute_name1 (fiducial$, x_origin$,               'X_ORIGIN')
-call init_attribute_name1 (fiducial$, y_origin$,               'Y_ORIGIN')
-call init_attribute_name1 (fiducial$, z_origin$,               'Z_ORIGIN')
-call init_attribute_name1 (fiducial$, theta_origin$,           'THETA_ORIGIN')
-call init_attribute_name1 (fiducial$, phi_origin$,             'PHI_ORIGIN')
-call init_attribute_name1 (fiducial$, psi_origin$,             'PSI_ORIGIN')
+call init_attribute_name1 (fiducial$, l$,                          'l', private$)
+call init_attribute_name1 (fiducial$, origin_ele$,                 'ORIGIN_ELE')
+call init_attribute_name1 (fiducial$, origin_ele_ref_pt$,          'ORIGIN_ELE_REF_PT')
+call init_attribute_name1 (fiducial$, dx_origin$,                  'DX_ORIGIN')
+call init_attribute_name1 (fiducial$, dy_origin$,                  'DY_ORIGIN')
+call init_attribute_name1 (fiducial$, dz_origin$,                  'DZ_ORIGIN')
+call init_attribute_name1 (fiducial$, dtheta_origin$,              'DTHETA_ORIGIN')
+call init_attribute_name1 (fiducial$, dphi_origin$,                'DPHI_ORIGIN')
+call init_attribute_name1 (fiducial$, dpsi_origin$,                'DPSI_ORIGIN')
 
 call init_attribute_name1 (quadrupole$, k1$,                        'K1', quasi_free$)
 call init_attribute_name1 (quadrupole$, B1_gradient$,               'B1_GRADIENT', quasi_free$)
@@ -977,7 +978,7 @@ call init_attribute_name1 (multilayer_mirror$, f0_re2$,               'F0_RE2')
 call init_attribute_name1 (multilayer_mirror$, f0_im2$,               'F0_IM2')
 call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH')
 call init_attribute_name1 (multilayer_mirror$, crystal_type$,         'CRYSTAL_TYPE')
-call init_attribute_name1 (multilayer_mirror$, ref_polarization$,     'REF_POLARIZATION')
+call init_attribute_name1 (multilayer_mirror$, ref_polarization$,     'REF_POLARIZATION')  ! Note: Not currently used
 call init_attribute_name1 (multilayer_mirror$, negative_graze_angle$, 'NEGATIVE_GRAZE_ANGLE')
 
 call init_attribute_name1 (crystal$, l$,                            'l', private$)
@@ -1010,7 +1011,7 @@ call init_attribute_name1 (crystal$, kh_z_norm$,                    'kh_z_norm',
 call init_attribute_name1 (crystal$, l_x$,                          'l_x', private$)
 call init_attribute_name1 (crystal$, l_y$,                          'l_y', private$)
 call init_attribute_name1 (crystal$, l_z$,                          'l_z', private$)
-call init_attribute_name1 (crystal$, ref_polarization$,             'REF_POLARIZATION')
+call init_attribute_name1 (crystal$, ref_polarization$,             'REF_POLARIZATION')   ! Note: Not currently used
 call init_attribute_name1 (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA')
 call init_attribute_name1 (crystal$, negative_graze_angle$,         'NEGATIVE_GRAZE_ANGLE')
 
@@ -1205,10 +1206,10 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'TRAVELING
       'PTC_MAX_FRINGE_ORDER')
   attrib_type = is_integer$
 
-case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'GEOMETRY', &
-      'FRINGE_TYPE', 'KILL_FRINGE', 'DIFFRACTION_TYPE', 'FIELD_CALC', 'APERTURE_AT', &
-      'APERTURE_TYPE', 'TRACKING_METHOD', 'SPIN_TRACKING_METHOD', 'MAT6_CALC_METHOD', &
-      'PTC_INTEGRATION_TYPE', 'PTC_FIELD_GEOMETRY', 'ORIGIN_ELE_REF_PT')
+case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &
+      'FRINGE_TYPE', 'GEOMETRY', 'KILL_FRINGE', 'MAT6_CALC_METHOD', 'ORIGIN_ELE_REF_PT', &
+      'PARTICLE', 'PTC_FIELD_GEOMETRY', 'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', &
+      'SPIN_TRACKING_METHOD', 'TRACKING_METHOD')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
@@ -1354,12 +1355,12 @@ end function is_a_tot_attribute
 !                        present, the ele argument must also be present.
 !-
 
-function switch_attrib_value_name (attrib_name, attrib_value, ele, &
-                                     is_default) result (attrib_val_name)
+function switch_attrib_value_name (attrib_name, attrib_value, ele, is_default) result (attrib_val_name)
 
 implicit none
 
 type (ele_struct), optional :: ele
+type (ele_struct) ele2
 character(*) attrib_name
 real(rp) attrib_value
 integer ix_attrib
@@ -1373,36 +1374,10 @@ ix_attrib = nint(attrib_value)
 
 select case (attrib_name)
 
-case ('ORIGIN_ELE_REF_PT')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, ref_pt_name, &
-                                                       lbound(ref_pt_name, 1))
-  is_default = (ix_attrib == center_pt$)
-
-case ('PTC_FIELD_GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_field_geometry_name, &
-                                                  lbound(ptc_field_geometry_name, 1))
-  is_default = (ix_attrib == sector$)
-
-case ('PARTICLE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
+case ('APERTURE_AT')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, aperture_at_name, lbound(aperture_type_name, 1))
   if (present(is_default)) then
-    if (ele%key == photon_branch$) then
-      is_default = (ix_attrib == photon$)
-    else
-      is_default = .false. ! Cannot tell so assume the worst.
-    endif
-  endif
-
-case ('GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib == open$)
-  endif
-
-case ('COUPLER_AT')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib == downstream_end$)
+    is_default = (ix_attrib == exit_end$)
   endif
 
 case ('APERTURE_TYPE')
@@ -1415,11 +1390,19 @@ case ('APERTURE_TYPE')
     endif
   endif
 
-case ('REF_POLARIZATION')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, polarization_name, lbound(polarization_name, 1))
+case ('COUPLER_AT')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == sigma_polarization$)
+    is_default = (ix_attrib == downstream_end$)
   endif
+
+case ('DIFFRACTION_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, diffraction_type_name, lbound(diffraction_type_name, 1))
+  if (present(is_default)) is_default = .true.
+
+case ('FIELD_CALC')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, field_calc_name, lbound(field_calc_name, 1))
+  if (present(is_default)) is_default = (ix_attrib == bmad_standard$)
 
 case ('FRINGE_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_type_name, lbound(fringe_type_name, 1))
@@ -1431,10 +1414,67 @@ case ('FRINGE_TYPE')
     endif
   endif
 
+case ('GEOMETRY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib == open$)
+  endif
+
 case ('KILL_FRINGE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) then
     is_default = (ix_attrib == no_end$)
+  endif
+
+case ('MAT6_CALC_METHOD')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, mat6_calc_method_name, lbound(mat6_calc_method_name, 1))
+  if (present(is_default)) then
+!!!    call init_ele (ele2, ele%key)
+    is_default = (ix_attrib == ele2%mat6_calc_method)
+  endif
+
+case ('ORIGIN_ELE_REF_PT')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, ref_pt_name, lbound(ref_pt_name, 1))
+  is_default = (ix_attrib == center_pt$)
+
+case ('PARTICLE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
+  if (present(is_default)) then
+    if (ele%key == photon_branch$) then
+      is_default = (ix_attrib == photon$)
+    else
+      is_default = .false. ! Cannot tell so assume the worst.
+    endif
+  endif
+
+case ('PTC_FIELD_GEOMETRY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_field_geometry_name, &
+                                                  lbound(ptc_field_geometry_name, 1))
+  is_default = (ix_attrib == sector$)
+
+case ('PTC_INTEGRATION_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_integration_type_name, &
+                                                  lbound(ptc_integration_type_name, 1))
+  is_default = (ix_attrib == matrix_kick$)
+
+case ('REF_POLARIZATION')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, polarization_name, lbound(polarization_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib == sigma_polarization$)
+  endif
+
+case ('SPIN_TRACKING_METHOD')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, spin_tracking_method_name, lbound(spin_tracking_method_name, 1))
+  if (present(is_default)) then
+!!!    call init_ele (ele2, ele%key)
+    is_default = (ix_attrib == ele2%spin_tracking_method)
+  endif
+
+case ('TRACKING_METHOD')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, tracking_method_name, lbound(tracking_method_name, 1))
+  if (present(is_default)) then
+!!!    call init_ele (ele2, ele%key)
+    is_default = (ix_attrib == ele2%tracking_method)
   endif
 
 case default

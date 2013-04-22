@@ -1164,6 +1164,10 @@ case ('KILL_FRINGE')
   call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
   ele%value(kill_fringe$) = ix
 
+case ('ORIGIN_ELE_REF_PT')
+  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag)
+  ele%value(origin_ele_ref_pt$) = ix
+
 case ('TRACKING_METHOD')
   call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag)
   if (err_flag) return
