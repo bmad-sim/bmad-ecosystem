@@ -156,10 +156,14 @@ lat%lord_state%floor_position = ok$
 lat%param%bookkeeping_state%floor_position = ok$
 
 if (.not. stale_lord) return
+if (bmad_com%auto_bookkeeper) lat%ele(lat%n_ele_track+1:lat%n_ele_max)%bookkeeping_state%floor_position = stale$
 
 do i = lat%n_ele_track+1, lat%n_ele_max  
   lord => lat%ele(i)
-  if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%floor_position /= stale$) cycle
+
+  if (lord%bookkeeping_state%floor_position /= stale$) cycle
+  lord%bookkeeping_state%floor_position = ok$
+
   if (lord%n_slave == 0) cycle
 
   select case (lord%lord_status)
@@ -170,11 +174,33 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     slave => pointer_to_slave(lord, 1)
     lord%floor = slave%floor
   case (girder_lord$)
-    call ele_geometry (dummy, lord, lord%floor)
+    call girder_lord_geometry (lord)
   end select
 
-  lord%bookkeeping_state%floor_position = ok$
 enddo
+
+!---------------------------------------------------
+contains
+
+! When girders themselves have girder lords, must do computation in order: Lord before slave.
+
+recursive subroutine girder_lord_geometry (ele)
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
+integer i
+
+!
+
+do i = 1, ele%n_lord
+  lord => pointer_to_lord(ele, i)
+  if (lord%lord_status /= girder_lord$) cycle
+  if (lord%bookkeeping_state%floor_position /= stale$) cycle
+  call girder_lord_geometry (lord)
+enddo
+
+call ele_geometry (dummy, ele, ele%floor)
+
+end subroutine girder_lord_geometry
 
 end subroutine lat_geometry
 
@@ -280,7 +306,7 @@ if (key == fiducial$ .or. key == girder$) then
       return
     endif
     ele0 => eles(1)%ele
-    select case (nint(ele%value(origin_ele_ref_pt$)))
+    select case (stream_ele_end(nint(ele%value(origin_ele_ref_pt$)), ele%orientation))
     case (upstream_end$)
       call ele_geometry (ele0%floor, ele0, floor_ref, -1.0_rp)
     case (center_pt$)
@@ -311,10 +337,9 @@ if (key == fiducial$ .or. key == girder$) then
       r0 = slave0%floor%r
     case (center_pt$)
       r0 = (slave0%floor%r + slave1%floor%r) / 2
-      call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w0_mat)
+      call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w0_mat, w0_mat_inv)
       call floor_angles_to_w_mat (slave1%floor%theta, slave1%floor%phi, slave1%floor%psi, w_mat)
       if (any(w0_mat /= w_mat)) then
-        call mat_symp_conj (w0_mat, w0_mat_inv) ! Take inverse 
         dw_mat = matmul(w0_mat_inv, w_mat)
         call w_mat_to_axis_angle (dw_mat, axis, angle)
         call axis_angle_to_w_mat (axis, angle/2, dw_mat)
@@ -545,11 +570,11 @@ endif
 
 if (present(w_mat_inv)) then
   w_mat_inv(1,1) =  c_the * c_psi - s_the * s_phi * s_psi
-  w_mat_inv(1,2) =  c_phi * s_psi - s_the * s_phi * c_psi
+  w_mat_inv(1,2) =  c_phi * s_psi 
   w_mat_inv(1,3) = -s_the * c_psi - c_the * s_phi * s_psi 
-  w_mat_inv(2,1) =  c_the * s_psi - s_the * s_phi * c_psi 
+  w_mat_inv(2,1) = -c_the * s_psi - s_the * s_phi * c_psi 
   w_mat_inv(2,2) =  c_phi * c_psi
-  w_mat_inv(2,3) =  s_the * s_phi - c_the * s_phi * c_psi
+  w_mat_inv(2,3) =  s_the * s_psi - c_the * s_phi * c_psi
   w_mat_inv(3,1) =  s_the * c_phi
   w_mat_inv(3,2) =  s_phi
   w_mat_inv(3,3) =  c_the * c_phi
@@ -699,11 +724,8 @@ end subroutine shift_reference_frame
 !   floor0           -- floor_position_struct: reference position
 !   global_position  -- floor_position_struct: global position 
 !   calculate_angles -- logical (optional): calculate angles for local_position 
-!                                           Default: .true. 
-!                                           .false. returns:
-!                                              local_position%theta =0
-!                                              local_position%phi = 0
-!                                              local_position%psi = 0
+!                         Default: True
+!                         False returns local_position angles (%theta, %phi, %psi) = 0.
 !
 ! Output:
 !  local_position -- floor_position_struct: position relative to floor0
@@ -717,32 +739,28 @@ type (floor_position_struct) floor0, global_position, local_position
 real(rp) :: w0_mat(3,3), w_mat(3,3)
 logical, optional :: calculate_angles
 
-!
+! Get w0_mat and invert
 
-!  Get w0_mat and invert
 call floor_angles_to_w_mat (floor0%theta,floor0%phi, floor0%psi, w0_mat)
 w0_mat = transpose(w0_mat)
 
-
-!Solve for r_local = [x, y, z]_local
+! Solve for r_local = [x, y, z]_local
    
 local_position%r = matmul(w0_mat, global_position%r - floor0%r)
 
 ! If angles are not needed, just return zeros; 
 if (.not. logic_option(.true., calculate_angles) ) then
-  local_position%theta =0
-  local_position%phi =0
-  local_position%psi =0
+  local_position%theta = 0
+  local_position%phi = 0
+  local_position%psi = 0
   return
 endif 
 
 call floor_angles_to_w_mat (global_position%theta, global_position%phi, global_position%psi, w_mat)
-w_mat = matmul(w0_mat, w_mat) !Remember that w0_mat is actually w0_mat^T
+w_mat = matmul(w0_mat, w_mat) ! Remember that w0_mat is actually w0_mat^T
 call floor_w_mat_to_angles (w_mat, 0.0_rp, local_position%theta, local_position%phi, local_position%psi)
 
-
 end function floor_to_local
-
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

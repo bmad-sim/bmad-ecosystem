@@ -54,7 +54,7 @@ integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
 integer, parameter :: inside$ = 3, center_pt$ = 3
 
 character(16), parameter :: ref_pt_name(0:3) = [ &
-      'GARBAGE!      ', 'Upstream_End  ', 'Downstream_End', 'Center        ']
+      'GARBAGE!      ', 'Entrance_End  ', 'Exit_End      ', 'Center        ']
 
 character(16), parameter :: location_name(0:3) = [ &
       'GARBAGE!      ', 'Upstream_End  ', 'Downstream_End', 'Inside        ']
