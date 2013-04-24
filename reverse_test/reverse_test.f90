@@ -71,35 +71,27 @@ DO i = 1, lat%n_ele_max - 1
 
    orb_0r        = orb_1f
    orb_0r%vec(2) = -orb_1f%vec(2)
-   orb_0r%vec(4) = -orb_1f%vec(4) * (1 + orb_0f%vec(6)) / (1 + orb_1f%vec(6))
-
-   orb_0r%vec(5) = orb_0f%vec(5) * orb_1f%beta / orb_0f%beta
-   orb_0r%vec(6) = orb_0f%vec(6)
-   orb_0r%t      = orb_0f%t
-   orb_0r%p0c    = orb_0f%p0c
-   orb_0r%beta   = orb_0f%beta
+   orb_0r%vec(4) = -orb_1f%vec(4)
 
    ele_r => lat%branch(1)%ele(i)
-   if (ele_r%key == rfcavity$ .or. ele_r%key == elseparator$) then
-      ele_r%branch%param%rel_tracking_charge = ele_f%branch%param%rel_tracking_charge
-   else
-      ele_r%branch%param%rel_tracking_charge = -ele_f%branch%param%rel_tracking_charge
-   endif
+   ele_r%branch%param%rel_tracking_charge = -ele_f%branch%param%rel_tracking_charge
 
    call track1 (orb_0r, ele_r, ele_r%branch%param, orb_1r)
    call make_mat6 (ele_r, ele_r%branch%param, orb_0r)
+
+   dz  = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)) 
+   dpc = orb_1r%vec(6) - orb_0f%vec(6)
+   dct = ((orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t)) * c_light
+
+   orb_1r%vec(2) = -orb_1r%vec(2)
+   orb_1r%vec(4) = -orb_1r%vec(4)
 
    if (verbosity) then
       print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_0r%vec, orb_0r%t
       print '(a, 6es12.4, 5x, es12.4)', '2: ', orb_1r%vec, orb_1r%t
       print *
-      dorb%vec(1) = orb_1r%vec(1) - orb_0f%vec(1)
-      dorb%vec(2) = orb_1r%vec(2) + orb_0f%vec(2)
-      dorb%vec(3) = orb_1r%vec(3) - orb_0f%vec(3)
-      dorb%vec(4) = orb_1r%vec(4) + orb_0f%vec(4)
-      dorb%vec(5) = orb_1r%vec(5) - orb_1f%vec(5)
-      dorb%vec(6) = orb_1r%vec(6) - orb_1f%vec(6)
-      print '(a, 6es12.4, 5x, es12.4)', 'D: ', dorb%vec, c_light * (orb_1r%t - orb_1f%t)
+      dorb%vec = orb_1r%vec - orb_0f%vec
+      print '(a, 6es12.4, 5x, es12.4)', 'D: ', dorb%vec(1:4), dz, dorb%vec(6), dct
    end if
 
    !
@@ -121,14 +113,25 @@ DO i = 1, lat%n_ele_max - 1
    m(6, 1:6) = ele_f%mat6(6, 1:6)
    mat_f = matmul(m, mat_f)
 
+
+   mat_f(1, 1:6) =  ele_f%mat6(1, 1:6)
+   mat_f(2, 1:6) = -ele_f%mat6(2, 1:6)
+   mat_f(3, 1:6) =  ele_f%mat6(3, 1:6)
+   mat_f(4, 1:6) = -ele_f%mat6(4, 1:6)
+   mat_f(5, 1:6) =  ele_f%mat6(5, 1:6)
+   mat_f(6, 1:6) =  ele_f%mat6(6, 1:6)
+
+   call mat_inverse (mat_f, mat_f)
+
+   m(1, 1:6) = [1,  0, 0,  0, 0, 0]
+   m(2, 1:6) = [0, -1, 0,  0, 0, 0]
+   m(3, 1:6) = [0,  0, 1,  0, 0, 0]
+   m(4, 1:6) = [0,  0, 0, -1, 0, 0]
+   m(5, 1:6) = [0,  0, 0,  0, 1, 0]
+   m(6, 1:6) = [0,  0, 0,  0, 0, 1]
+   mat_f = matmul(m, mat_f)
+
    !
-
-   dz  = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)) 
-   dpc = (orb_1r%vec(6) - orb_0r%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6)) 
-   dct = ((orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t)) * c_light
-
-   orb_1r%vec(2) = -orb_1r%vec(2)
-   orb_1r%vec(4) = -orb_1r%vec(4)
 
    str = '"' // trim(ele_f%name) // ':'
    length = len(trim(ele_f%name))
