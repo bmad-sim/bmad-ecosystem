@@ -27,7 +27,7 @@ implicit none
 type (lat_struct), target :: lat
 character(40) :: lat_file  = 'reverse.bmad'
 type (ele_struct), pointer :: ele_f, ele_r
-type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r
+type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r, dorb
 
 real(rp) mat_f(6,6), m(6,6), vec1(6)
 real(rp) dz, dpc, dct
@@ -71,9 +71,9 @@ DO i = 1, lat%n_ele_max - 1
 
    orb_0r        = orb_1f
    orb_0r%vec(2) = -orb_1f%vec(2)
-   orb_0r%vec(4) = -orb_1f%vec(4)
+   orb_0r%vec(4) = -orb_1f%vec(4) * (1 + orb_0f%vec(6)) / (1 + orb_1f%vec(6))
 
-   orb_0r%vec(5) = orb_0f%vec(5)
+   orb_0r%vec(5) = orb_0f%vec(5) * orb_1f%beta / orb_0f%beta
    orb_0r%vec(6) = orb_0f%vec(6)
    orb_0r%t      = orb_0f%t
    orb_0r%p0c    = orb_0f%p0c
@@ -92,6 +92,14 @@ DO i = 1, lat%n_ele_max - 1
    if (verbosity) then
       print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_0r%vec, orb_0r%t
       print '(a, 6es12.4, 5x, es12.4)', '2: ', orb_1r%vec, orb_1r%t
+      print *
+      dorb%vec(1) = orb_1r%vec(1) - orb_0f%vec(1)
+      dorb%vec(2) = orb_1r%vec(2) + orb_0f%vec(2)
+      dorb%vec(3) = orb_1r%vec(3) - orb_0f%vec(3)
+      dorb%vec(4) = orb_1r%vec(4) + orb_0f%vec(4)
+      dorb%vec(5) = orb_1r%vec(5) - orb_1f%vec(5)
+      dorb%vec(6) = orb_1r%vec(6) - orb_1f%vec(6)
+      print '(a, 6es12.4, 5x, es12.4)', 'D: ', dorb%vec, c_light * (orb_1r%t - orb_1f%t)
    end if
 
    !
