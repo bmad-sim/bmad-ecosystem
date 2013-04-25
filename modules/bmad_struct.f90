@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 116
+integer, parameter :: bmad_inc_version$ = 117
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -133,6 +133,11 @@ integer, parameter :: alive$ = 1, lost$ = 2
 integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_z_aperture$ = 7
+
+type mini_coord_struct            ! Condensed Particle coordinates (saves space)
+  real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
+  real(rp) :: t = 0               ! Absolute time (not relative to reference).
+end type
 
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
@@ -415,6 +420,10 @@ type ele_struct
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (wall3d_struct), pointer :: wall3d => null()         ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()    ! Wiggler field
+  type (coord_struct) map_ref_orb_in     ! Transfer map ref orbit at entrance end of element.
+  type (coord_struct) map_ref_orb_out    ! Transfer map ref orbit at exit end of element.
+  type (coord_struct) time_ref_orb_in    ! Reference orbit at entrance end for ref_time calc.
+  type (coord_struct) time_ref_orb_out   ! Reference orbit at exit end for ref_time calc.
   real(rp) value(num_ele_attrib$)                ! attribute values.
   real(rp) old_value(num_ele_attrib$)            ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                               ! constant part of the genfield map.
@@ -427,10 +436,6 @@ type ele_struct
   real(rp), pointer :: r(:,:,:) => null()        ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()       ! knl for multipole elements.
   real(rp), pointer :: b_pole(:) => null()       ! tilt for multipole elements.
-  real(rp) map_ref_orb_in(6)     ! Transfer map ref orbit at entrance end of element.
-  real(rp) map_ref_orb_out(6)    ! Transfer map ref orbit at exit end of element.
-  real(rp) time_ref_orb_in(6)    ! Reference orbit at entrance end for ref_time calc.
-  real(rp) time_ref_orb_out(6)   ! Reference orbit at exit end for ref_time calc.
   integer key                    ! key value 
   integer sub_key                ! For wigglers: map_type$, periodic_type$
   integer :: ix_ele = -1         ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
@@ -495,7 +500,7 @@ type lat_param_struct
   integer :: ixx = 0                      ! Integer for general use
   logical :: stable = .false.             ! is closed lat stable?
   logical :: aperture_limit_on = .true.   ! use apertures in tracking?
-  type (bookkeeping_state_struct) bookkeeping_state
+  type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                           ! Overall status for the branch.
 end type
 

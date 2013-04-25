@@ -118,7 +118,6 @@ type (rad_int_cache1_struct), pointer :: cache_ele ! pointer to cache in use
 type (rad_int_track_point_struct), pointer :: c_pt
 type (rad_int_track_point_struct) pt
 type (rad_int1_struct) int_tot
-type (rad_int1_struct), save :: rad_int1_zero  ! All components zero by construction.
 type (rad_int1_struct), pointer :: rad_int1
 
 real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
@@ -171,11 +170,11 @@ endif
 ri_info%branch => branch
 ri_info%orbit => orbit
 
-rad_int_all%ele(:) = rad_int1_zero
+rad_int_all%ele(:) = rad_int1_struct()
 
 m65 = 0
 mode%rf_voltage = 0
-int_tot = rad_int1_zero
+int_tot = rad_int1_struct()
 
 call init_ele (ele2)
 call init_ele (ele_start)

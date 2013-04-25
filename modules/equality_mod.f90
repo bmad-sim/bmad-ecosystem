@@ -1258,6 +1258,8 @@ is_eq = is_eq .and. (f1%rf_auto_scale_phase_default .eqv. f2%rf_auto_scale_phase
 is_eq = is_eq .and. (f1%rf_auto_scale_amp_default .eqv. f2%rf_auto_scale_amp_default)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_ptc_layout_default .eqv. f2%use_ptc_layout_default)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 
 end function eq_bmad_common
 
@@ -1410,6 +1412,14 @@ if (associated(f1%wall3d)) is_eq = (f1%wall3d == f2%wall3d)
 is_eq = is_eq .and. (associated(f1%wig) .eqv. associated(f2%wig))
 if (.not. is_eq) return
 if (associated(f1%wig)) is_eq = (f1%wig == f2%wig)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%map_ref_orb_in == f2%map_ref_orb_in)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%map_ref_orb_out == f2%map_ref_orb_out)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%time_ref_orb_in == f2%time_ref_orb_in)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%time_ref_orb_out == f2%time_ref_orb_out)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%value == f2%value)
 !! f_side.equality_test[real, 1, NOT]
@@ -1446,14 +1456,6 @@ if (.not. is_eq) return
 if (associated(f1%b_pole)) is_eq = all(shape(f1%b_pole) == shape(f2%b_pole))
 if (.not. is_eq) return
 if (associated(f1%b_pole)) is_eq = all(f1%b_pole == f2%b_pole)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%map_ref_orb_in == f2%map_ref_orb_in)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%map_ref_orb_out == f2%map_ref_orb_out)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%time_ref_orb_in == f2%time_ref_orb_in)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%time_ref_orb_out == f2%time_ref_orb_out)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%key == f2%key)
 !! f_side.equality_test[integer, 0, NOT]

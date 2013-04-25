@@ -240,7 +240,7 @@ a vector $\Bf V$
 \Endeq
 The orientation of an element is described by a unitary matrix $\Bf
 W$.  The column vectors of $\Bf W$ are the unit vectors spanning the
-local coordinate axes in the order $(x, y, s)$. $\Bf W$ can be
+local coordinate axes in the order $(x, y, z)$. $\Bf W$ can be
 expressed in terms of the angles $\theta$, $\phi$, and $\psi$ via the
 formula
 \Begineq
@@ -484,16 +484,17 @@ graze angles for a crystal is given in Section~\ref{ss:crystal.ref}.
 \subsection{Patch, Floor_Shift and Fiducial Elements}
 \label{s:patch.coords}
 
-\index{patch}\index{tilt}\index{floor_shift}
+\index{patch}\index{tilt}\index{floor_shift}\index{girder}
 The shift in the reference coordinates from the entrance end to the
 exit end of\vn{patch} (\sref{s:patch}) or \vn{floor_shift}
 \vn{s:floor.ele} element is given by \Eqs{vwlv} and \eq{wws}. These
 equations are also used to calculate the shift in the reference
 coordinates between the origin reference coordinates of a
-\vn{fiducial} element and the reference coordinates of the
-\vn{fiducial} element itself.
+\vn{fiducial} or \vn{girder} element and the reference coordinates of
+the element itself.
 
-The $\Bf L$ vector in the transformation is
+The $\Bf L$ vector in the transformation for \vn{patch} or \vn{floor_shift}
+elements is:
 \Begineq
   \Bf L = 
   \begin{pmatrix}
@@ -503,18 +504,30 @@ The $\Bf L$ vector in the transformation is
   \end{pmatrix}
   \label{xyz}
 \Endeq
-The $\Bf S$ matrix used for the coordinate transformation is defined to be
+For \vn{fiducial} and \vn{girder} elements it is
+\Begineq
+  \Bf L = 
+  \begin{pmatrix}
+    dx_{\text{origin}} \,
+    dy_{\text{origin}} \,
+    dz_{\text{origin}}
+  \end{pmatrix}
+  \label{dxdydz}
+\Endeq
+
+The $\Bf S$ matrix used for the coordinate transformation is defined to by
 \Begineq
   \bfS = \Bf W_\Theta \, \Bf W_\Phi \, \Bf W_\Psi
   \label{swww}
 \Endeq
 with
 \begin{example}
-  \(\Theta\) = x_pitch
-  \(\Phi\) = y_pitch
-  \(\Psi\) = tilt
+             patch \& floor_shift   fiducial \& girder
+  \(\Theta\) = x_pitch                dtheta_origin
+  \(\Phi\)   = y_pitch                dphi_origin
+  \(\Psi\)   = tilt                   dpsi_origin
 \end{example} 
-Note: The form of \Eq{swww} was chosen to be similar to \Eq{wwww}, 
+Note: The form of \Eq{swww} was chosen to correspond to the form of \Eq{wwww}, 
 
 A \vn{Patch} (or a series of patches) that reflects the direction of
 the \vn{z}-axis is called a \vn{reflection} \vn{patch}. By ``reflected

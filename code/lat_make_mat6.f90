@@ -110,9 +110,9 @@ if (i_ele < 0) then
 
     if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) then
       if (present(ref_orb)) then
-        if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in)) cycle
+        if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) cycle
       else
-        if (all(ele%map_ref_orb_in == 0)) cycle
+        if (all(ele%map_ref_orb_in%vec == 0)) cycle
       endif
     endif
 
@@ -126,7 +126,7 @@ if (i_ele < 0) then
           if (lord%lord_status /= super_lord$) cycle
           if (ix_slave == 1) cycle  ! If first one then no preceeding slave
           slave0 => pointer_to_slave(lord, ix_slave-1) ! slave before this element.
-          orb_start%vec = slave0%map_ref_orb_out
+          orb_start = slave0%map_ref_orb_out
           exit
         enddo
       endif
@@ -191,9 +191,9 @@ if (i_ele < 0) then
 
     if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) then
       if (present(ref_orb)) then
-        if (all(ref_orb(i0-1)%vec == ele%map_ref_orb_in)) cycle
+        if (all(ref_orb(i0-1)%vec == ele%map_ref_orb_in%vec)) cycle
       else
-        if (all(ele%map_ref_orb_in == 0)) cycle
+        if (all(ele%map_ref_orb_in%vec == 0)) cycle
       endif
     endif
 
@@ -226,12 +226,12 @@ call control_bookkeeper (lat, ele)
 if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$ .and. &
                                          i_ele <= branch%n_ele_track) then
   if (present(ref_orb)) then
-    if (all(ref_orb(i_ele-1)%vec == ele%map_ref_orb_in)) then
+    if (all(ref_orb(i_ele-1)%vec == ele%map_ref_orb_in%vec)) then
       return
       if (present(err_flag)) err_flag = .false.
     endif
   else
-    if (all(ele%map_ref_orb_in == 0)) then
+    if (all(ele%map_ref_orb_in%vec == 0)) then
       return
       if (present(err_flag)) err_flag = .false.
     endif

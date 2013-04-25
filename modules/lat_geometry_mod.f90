@@ -253,9 +253,9 @@ type (lat_param_struct) param
 
 real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
-real(rp) r0(3), w0_mat(3,3), w0_mat_inv(3,3), dw_mat(3,3), axis(3)
+real(rp) r0(3), w0_mat(3,3)
 real(rp) chord_len, angle, leng, rho
-real(rp) theta, phi, psi, tlt
+real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
 real(rp), save :: old_theta = 100  ! garbage number
 real(rp), save :: old_phi, old_psi
 real(rp), save :: s_ang, c_ang
@@ -331,27 +331,19 @@ if (key == fiducial$ .or. key == girder$) then
     slave0 => pointer_to_slave(ele, 1)
     slave0 => pointer_to_ele(ele%branch%lat, slave0%ix_ele-1, slave0%ix_branch)
     slave1 => pointer_to_slave(ele, ele%n_slave)
-    select case (nint(ele%value(origin_ele_ref_pt$)))
-    case (upstream_end$)
-      call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w_mat)
-      r0 = slave0%floor%r
-    case (center_pt$)
-      r0 = (slave0%floor%r + slave1%floor%r) / 2
-      call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w0_mat, w0_mat_inv)
-      call floor_angles_to_w_mat (slave1%floor%theta, slave1%floor%phi, slave1%floor%psi, w_mat)
-      if (any(w0_mat /= w_mat)) then
-        dw_mat = matmul(w0_mat_inv, w_mat)
-        call w_mat_to_axis_angle (dw_mat, axis, angle)
-        call axis_angle_to_w_mat (axis, angle/2, dw_mat)
-        w_mat = matmul(w0_mat, dw_mat)
-      endif
-    case (downstream_end$)
-      call floor_angles_to_w_mat (slave1%floor%theta, slave1%floor%phi, slave1%floor%psi, w_mat)
-      r0 = slave1%floor%r
-    case default
-      call out_io (s_fatal$, r_name, 'ORIGIN_ELE_REF_PT NOT VALID FOR ELEMENT: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
-    end select
+    r0 = (slave0%floor%r + slave1%floor%r) / 2
+    ! 
+    call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w0_mat)
+    dz = r0 - slave0%floor%r
+    z0 = w0_mat(3,:)
+    z_cross = cross_product(z0, dz)
+    if (all(dz == 0) .or. sum(abs(z_cross)) <= 1d-14 * sum(abs(dz))) then
+      w_mat = w0_mat
+    else
+      angle = atan2(sqrt(dot_product(z_cross, z_cross)), dot_product(z0, dz))
+      call axis_angle_to_w_mat (z_cross, angle, w_mat)
+      w_mat = matmul (w_mat, w0_mat)
+    endif
   endif
 
   ! Now offset from origin pt.

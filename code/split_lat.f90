@@ -39,7 +39,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), save :: ele
-type (ele_struct), pointer :: ele1, ele2, slave, lord
+type (ele_struct), pointer :: ele1, ele2, slave, lord, super_lord
 type (branch_struct), pointer :: branch
 
 real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old, ds_fudge
@@ -217,15 +217,16 @@ endif   ! split element is a super_slave
 call new_control (lat, ix_super_lord)
 ele1 => branch%ele(ix_split)
 ele2 => branch%ele(ix_split+1)
+super_lord => lat%ele(ix_super_lord)
 lat%n_ele_max = ix_super_lord
-lat%ele(ix_super_lord) = ele
-lat%ele(ix_super_lord)%lord_status = super_lord$
-lat%ele(ix_super_lord)%value(l$) = len_orig
+super_lord = ele
+super_lord%lord_status = super_lord$
+super_lord%value(l$) = len_orig
 ixc = lat%n_control_max + 1
 if (ixc+1 > size(lat%control)) call reallocate_control (lat, ixc+500)
-lat%ele(ix_super_lord)%ix1_slave = ixc
-lat%ele(ix_super_lord)%ix2_slave = ixc + 1
-lat%ele(ix_super_lord)%n_slave = 2
+super_lord%ix1_slave = ixc
+super_lord%ix2_slave = ixc + 1
+super_lord%n_slave = 2
 lat%n_control_max = ixc + 1
 lat%control(ixc)%ix_lord   = ix_super_lord
 lat%control(ixc)%ix_slave  = ix_split
@@ -270,9 +271,8 @@ lat%n_ic_max = inc
 lat%ic(inc) = ixc + 1
 
 ! last details:
-!     1) Groups that point to the split element must be redirected to the lord
-!     2) Call control_bookkeeper to remake the split elements
-!     3) And return
+!     1) Groups that point to the split element must be redirected to the lord.
+!     2) Call control_bookkeeper to remake the split elements.
 
 8000  continue
 
@@ -300,8 +300,19 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
 enddo
 
-call control_bookkeeper (lat, ele1)
-call control_bookkeeper (lat, ele2)
+
+ele1%bookkeeping_state%attributes = stale$
+ele1%bookkeeping_state%floor_position = stale$
+ele2%bookkeeping_state%attributes = stale$
+ele2%bookkeeping_state%floor_position = stale$
+
+if (ix_super_lord == 0) then
+  call control_bookkeeper (lat, ele1)
+  call control_bookkeeper (lat, ele2)
+else
+  super_lord%bookkeeping_state%control = stale$
+  call control_bookkeeper (lat, super_lord)
+endif
 
 err = .false.  ! In case lat_sanity_check is not called.
 if (logic_option(.true., check_sanity)) call lat_sanity_check (lat, err)

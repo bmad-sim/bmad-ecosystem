@@ -12,8 +12,8 @@
 !   ele2        -- Ele_struct: Structure holding the transfer matrix.
 !     %key                -- Needed since, for example, Match element are handled 
 !                              differently from other elements.
-!     %map_ref_orb_in(6)  -- Important for the dispersion calc.
-!     %map_ref_orb_out(6) -- Important for the dispersion calc.
+!     %map_ref_orb_in     -- Important for the dispersion calc.
+!     %map_ref_orb_out    -- Important for the dispersion calc.
 !   bmad_status -- Common block status structure:
 !       %exit_on_error -- If True then stop if there is an error.
 !
@@ -30,9 +30,10 @@ implicit none
 type (ele_struct), target :: ele1, ele2
 type (twiss_struct) twiss_a
 type (lat_param_struct) param
+type (coord_struct), pointer :: orb, orb_out
 integer key2
 
-real(rp), pointer :: mat6(:,:), orb(:), orb_out(:)
+real(rp), pointer :: mat6(:,:)
 real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
@@ -189,8 +190,8 @@ endif
 
 orb  => ele2%map_ref_orb_in
 orb_out => ele2%map_ref_orb_out
-rel_p1 = 1 + orb(6)               ! reference energy 
-rel_p2 = 1 + orb_out(6)
+rel_p1 = 1 + orb%vec(6)               ! reference energy 
+rel_p2 = 1 + orb_out%vec(6)
 
 eta1_vec = [ele1%x%eta, ele1%x%etap * rel_p1, ele1%y%eta, ele1%y%etap * rel_p1, ele1%z%eta, 1.0_rp]
 
@@ -202,20 +203,20 @@ eta1_vec = [ele1%x%eta, ele1%x%etap * rel_p1, ele1%y%eta, ele1%y%etap * rel_p1, 
 if (key2 == rfcavity$) eta1_vec(5) = 0
 
 ! Must avoid 0/0 divide at zero reference momentum. 
-! If rel_p1 = 0 then total momentum is zero and orb(2) and orb(4) must be zero.
+! If rel_p1 = 0 then total momentum is zero and orb%vec(2) and orb%vec(4) must be zero.
 
 dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
 
 if (rel_p1 == 0) then
   eta_vec(1:5) = matmul (ele2%mat6(1:5,:), eta1_vec) / dpz2_dpz1
 else
-  dpz2_dpz1 = dpz2_dpz1 + (mat6(6,2) * orb(2) + mat6(6,4) * orb(4)) / rel_p1
+  dpz2_dpz1 = dpz2_dpz1 + (mat6(6,2) * orb%vec(2) + mat6(6,4) * orb%vec(4)) / rel_p1
   deriv_rel = dpz2_dpz1 * rel_p1
-  eta_vec(1) = (mat6(1,2) * orb(2) + mat6(1,4) * orb(4)) / deriv_rel
-  eta_vec(2) = (mat6(2,2) * orb(2) + mat6(2,4) * orb(4)) / deriv_rel - orb_out(2) / rel_p2
-  eta_vec(3) = (mat6(3,2) * orb(2) + mat6(3,4) * orb(4)) / deriv_rel
-  eta_vec(4) = (mat6(4,2) * orb(2) + mat6(4,4) * orb(4)) / deriv_rel - orb_out(4) / rel_p2
-  eta_vec(5) = (mat6(5,2) * orb(2) + mat6(5,4) * orb(4)) / deriv_rel
+  eta_vec(1) = (mat6(1,2) * orb%vec(2) + mat6(1,4) * orb%vec(4)) / deriv_rel
+  eta_vec(2) = (mat6(2,2) * orb%vec(2) + mat6(2,4) * orb%vec(4)) / deriv_rel - orb_out%vec(2) / rel_p2
+  eta_vec(3) = (mat6(3,2) * orb%vec(2) + mat6(3,4) * orb%vec(4)) / deriv_rel
+  eta_vec(4) = (mat6(4,2) * orb%vec(2) + mat6(4,4) * orb%vec(4)) / deriv_rel - orb_out%vec(4) / rel_p2
+  eta_vec(5) = (mat6(5,2) * orb%vec(2) + mat6(5,4) * orb%vec(4)) / deriv_rel
   eta_vec(1:5) = eta_vec(1:5) + matmul (ele2%mat6(1:5,:), eta1_vec) / dpz2_dpz1
 endif
 

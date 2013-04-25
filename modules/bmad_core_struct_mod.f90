@@ -939,7 +939,6 @@ subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, E_photon, t_
 implicit none
 
 type (coord_struct) orb, orb2
-type (coord_struct), save :: init_orb
 type (ele_struct), optional, target :: ele
 
 real(rp), optional :: vec(:), E_photon, t_ref_offset
@@ -954,7 +953,7 @@ character(16), parameter :: r_name = 'init_coord1'
 ! Use temporary orb2 so if actual arg for vec, particle, or E_photon
 ! is part of the orb actual arg things do not get overwriten.
 
-orb2 = init_orb                   ! See definition of coord_struct for default values.
+orb2 = coord_struct()
 
 orb2%state = alive$
 orb2%p0c = 0
@@ -980,7 +979,7 @@ if (present(particle)) then
   species = particle
 elseif (present(ele)) then
   if (associated (ele%branch)) species = ele%branch%param%particle
-elseif (init_orb%state == not_set$) then
+elseif (orb%state == not_set$) then
   species = positron$
 endif
 
@@ -1124,7 +1123,6 @@ subroutine init_lat (lat, n)
 implicit none
 
 type (lat_struct)  lat
-type (lat_param_struct), save :: param0
 
 integer, optional :: n
 
@@ -1141,7 +1139,7 @@ lat%use_name = ' '
 lat%lattice = ' '
 lat%input_file_name = ' '
 
-lat%param = param0
+lat%param = lat_param_struct()
 call set_status_flags (lat%param%bookkeeping_state, stale$)
 
 call init_mode_info (lat%a)
@@ -1221,10 +1219,10 @@ if (present(key)) call set_ele_defaults(ele)
 
 ele%value(:) = 0
 ele%old_value(:) = 0
-ele%map_ref_orb_in = 0
-ele%map_ref_orb_out = 0
-ele%time_ref_orb_in = 0
-ele%time_ref_orb_out = 0
+ele%map_ref_orb_in   = coord_struct()
+ele%map_ref_orb_out  = coord_struct()
+ele%time_ref_orb_in  = coord_struct()
+ele%time_ref_orb_out = coord_struct()
 
 ele%lord_status = not_a_lord$
 ele%slave_status = free$

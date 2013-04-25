@@ -342,8 +342,8 @@ if (associated(info%cache_ele)) then
 
   runt%mat6 = pt0%mat6
   runt%vec0 = pt0%vec0
-  runt%map_ref_orb_in  = pt0%ref_orb_in%vec
-  runt%map_ref_orb_out = pt0%ref_orb_out%vec
+  runt%map_ref_orb_in  = pt0%ref_orb_in
+  runt%map_ref_orb_out = pt0%ref_orb_out
 
   call mat6_add_offsets (runt, param)  ! back to lab coords
   call twiss_propagate1 (ele0, runt)
@@ -354,8 +354,8 @@ if (associated(info%cache_ele)) then
 
   runt%mat6 = pt1%mat6
   runt%vec0 = pt1%vec0
-  runt%map_ref_orb_in  = pt1%ref_orb_in%vec
-  runt%map_ref_orb_out = pt1%ref_orb_out%vec
+  runt%map_ref_orb_in  = pt1%ref_orb_in
+  runt%map_ref_orb_out = pt1%ref_orb_out
 
   call mat6_add_offsets (runt, param)  ! back to lab coords
   call twiss_propagate1 (ele0, runt)
