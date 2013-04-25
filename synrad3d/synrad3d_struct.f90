@@ -120,7 +120,7 @@ type sr3d_params_struct
   logical :: allow_reflections = .true. ! If False, terminate tracking when photon hits the wall.
   logical :: allow_absorption = .true.  ! If False, do not allow photon to be adsorbed.
   logical :: stop_if_hit_antechamber = .false. 
-  logical :: diffuse_scattering_on = .true.
+  logical :: specular_reflection_only = .false.
   logical :: debug_on = .false.
   integer ix_generated_warn             ! For debug use
 end type

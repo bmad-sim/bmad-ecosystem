@@ -405,8 +405,9 @@ The theory of diffuse scattering discussed above has been used,
 together with smooth surface reflectivity results taken from an X-ray
 database~\cite{b:henke}, to predict the scattering and compare with
 the measurements. From these comparisons, the best-fit value for the
-transverse autocorrelation parameter, $T$, was found to be 5500 nm. In
-addition, it was found that the smooth-surface reflectivity
+transverse autocorrelation parameter, $T$, was found to be 5500 nm. As
+discussed by Dugan and Sagan\cite{b:synrad3d},
+it was found that the smooth-surface reflectivity
 corresponding to a 10 nm carbon film on an aluminum substrate was
 needed to fit the data. The assumption of an aluminum oxide surface
 film was not consistent with the data. The data and the corresponding
@@ -621,8 +622,9 @@ indicates that the particular filter is not used. See below.
 Minimum and maximum energy filter values. A negative filter value
 indicates that the particular filter is not used. See below.
   \item[\vn{s_filter_min}, \vn{s_filter_max}] \Newline
-Minimum and maximum longitudinal position filter values. A negative filter value
-indicates that the particular filter is not used. See below.
+Minimum and maximum longitudinal position filter values of the final
+photon position. A negative filter value indicates that the particular
+filter is not used. See below.
   \item[\vn{photon_start_output_file}] \Newline
 This string, if not blank, will cause \srthree to create an output
 file, with a name given by the value of \vn{photon_start_output_file},
@@ -1380,8 +1382,7 @@ specified by a \vn{row} namelist. Example:
 \begin{example}
   &row
     ix_row = 2   ! 620 eV
-    p_smooth = 1.00, 0.888, 0.785, 0.736, 0.611, 0.479, 0.320, 0.007, 0.0
-    p_rough =  1.00, 0.941, 0.882, 0.852, 0.771, 0.669, 0.514, 0.056, 0.0
+    p_reflect =  1.00, 0.941, 0.882, 0.852, 0.771, 0.669, 0.514, 0.056, 0.0
   /
 \end{example}
 There must one \vn{row} namelist for each energy value in the
@@ -3156,22 +3157,6 @@ the chamber surface, on the first encounter. It is probably not really
 correct for subsequent scatterings. However the polarization
 dependence of the reflectivity is not very strong.
 
-The default for the density of the substrate was used. However, a
-lower value (2.9) than the nominal (3.97) for the density of the oxide
-layer was used. This is because one of us (Dugan) had found a
-reference indicating that this is the density of thin film oxide layer
-of alumina.
-
-For simplicity, the roughness of the substrate is set to 0. This
-parameter does not have a strong effect on the results, unless it is
-set to be larger than the layer thickness, in which case the results
-get really weird. So setting this to zero seemed reasonable.
-
-The most important empirical numbers are the roughness and thickness
-of the top surface, which where chosen to both be 4 nm, on the basis of
-comparing the results by hand with the reflectivity measurements from
-INFN. 
-
 The default surface roughness for diffuse scattering is 200~nm and the
 default surface roughness correlation length is 5.5~$\mu$m. These
 values can be modified by setting \vn{surface_roughness_rms} and
@@ -3187,6 +3172,10 @@ interactions: photoabsorption, scattering, transmission, and
 reflection at E=50-30000 eV,=1-92, Atomic Data and Nuclear Data
 Tables Vol. 54 (no.2), 181-342 (July 1993) {\tt
 http://henke.lbl.gov/optical\_constants/}
+
+\bibitem{b:synrad3d}
+ G.DuganandD.Sagan, “SYNRAD3D:Photon Propagation and Scattering Simulations,” 
+49th ICFA Advanced Beam Dynamics Workshop on Electron Cloud Physics, Proc. “ECLOUD10” (2010).
 
 \bibitem{b:beckmann}
 P.~Beckmann \& A.~Spizzichino, \emph{The Scattering of Electromagnetic Waves
