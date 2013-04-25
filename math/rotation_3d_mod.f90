@@ -78,7 +78,7 @@ end subroutine w_mat_to_axis_angle
 !   use rotation_3d_mod
 !
 ! Input:
-!   axis(3)    -- real(rp): Rotation axis. 
+!   axis(3)    -- real(rp): Rotation axis. Does not have to be normalized.
 !   angle      -- real(rp): Rotation angle in the range [-pi, pi].
 !
 ! Output:

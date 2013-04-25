@@ -9,6 +9,8 @@ implicit none
 contains
 
 !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 !+
 ! Function coarse_frequency_estimate(data, error) result(frequency)
 !  
@@ -23,7 +25,7 @@ contains
 !   frequency  -- real(rp): Frequency corresponding to the largest FFT amplitude
 !   err        -- logical : Error: not enough data. Frequency is near 0 or 0.5
 !-  
-!---------------------------------------------------------------------------
+
 function coarse_frequency_estimate(data, error) result(frequency)
 
 implicit none
@@ -93,6 +95,8 @@ deallocate(fdata)
 end function
 
 !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 !+
 ! Function fine_frequency_estimate(data) result(frequency)
 !  
@@ -104,8 +108,8 @@ end function
 !
 ! Output:
 !   frequency  -- real(rp): Frequency corresponding to the largest FFT amplitude
-!-  
-!---------------------------------------------------------------------------
+!-
+
 function fine_frequency_estimate(data) result(frequency)
 
 use nr, only: dbrent
@@ -138,39 +142,43 @@ fmax = ftry + fbin
 
 max_amp =  -dbrent(fmin,ftry,fmax, negative_ampsquared, negative_dampsquared, 1e-12_rp, frequency)
 
+!---------------------------------------------------------------------------
 contains
 
-	function negative_ampsquared(frequency) result(amp)
-	implicit none
-	real(rp) :: cos_amp, sin_amp
-	real(rp), intent(in) :: frequency
-	real(rp) amp
-	call fourier_amplitude(data, frequency, cos_amp, sin_amp)
+function negative_ampsquared(frequency) result(amp)
 
-	
-	amp = -cos_amp**2 - sin_amp**2
-    !print *, 'zbrent f, amp: ', frequency, amp
-    
-	end function negative_ampsquared
+implicit none
+real(rp) :: cos_amp, sin_amp
+real(rp), intent(in) :: frequency
+real(rp) amp
 
-	function negative_dampsquared(frequency) result(damp)
-	implicit none
-	real(rp) :: cos_amp, sin_amp, dcos_amp, dsin_amp
-	real(rp), intent(in) :: frequency
-	real(rp) damp
-	call fourier_amplitude(data, frequency, cos_amp, sin_amp, dcos_amp, dsin_amp)
+!
 
-	
-	damp = -cos_amp*dcos_amp - sin_amp*dsin_amp
-    !print *, 'zbrent df, damp: ', frequency, damp
-	
-	end function negative_dampsquared
+call fourier_amplitude(data, frequency, cos_amp, sin_amp)
 
+amp = -cos_amp**2 - sin_amp**2
 
+end function negative_ampsquared
+
+!---------------------------------------------------------------------------
+! contains
+
+function negative_dampsquared(frequency) result(damp)
+implicit none
+real(rp) :: cos_amp, sin_amp, dcos_amp, dsin_amp
+real(rp), intent(in) :: frequency
+real(rp) damp
+call fourier_amplitude(data, frequency, cos_amp, sin_amp, dcos_amp, dsin_amp)
+
+damp = -cos_amp*dcos_amp - sin_amp*dsin_amp
+
+end function negative_dampsquared
 
 end function fine_frequency_estimate
 
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+ 
 ! Subroutine fourier_amplitude(data, frequency, cos_amp, sin_amp, dcos_amp, dsin_amp)
@@ -187,9 +195,8 @@ end function fine_frequency_estimate
 !   sin_amp    -- real(rp): sine amplitude
 !   dcos_amp   -- real(rp), optional: cosine amplitude derivative
 !   dsin_amp   -- real(rp), optional: sine amplitude derivative
-!
 !-
-!---------------------------------------------------------------------------
+
 subroutine fourier_amplitude(data, frequency, cos_amp, sin_amp, dcos_amp, dsin_amp)
 
 implicit none
@@ -210,33 +217,30 @@ omega = frequency*twopi
 n = 0
 
 if (present(dcos_amp) .and. present(dsin_amp) ) then
-	dcos_amp = 0.0_rp
-	dsin_amp = 0.0_rp
-	do i = lbound(data,1), ubound(data,1)
-	  d = data(i)*cos(omega*n)
-	  cos_amp = cos_amp + d
-	  dsin_amp = dsin_amp + n*d  
-	  d = data(i)*sin(omega*n)
-	  sin_amp = sin_amp + d
-	  dcos_amp = dcos_amp - n*d
-	  n = n+1
-	end do
-	dcos_amp = twopi*dcos_amp/n
-	dsin_amp = twopi*dsin_amp/n
+  dcos_amp = 0.0_rp
+  dsin_amp = 0.0_rp
+  do i = lbound(data,1), ubound(data,1)
+    d = data(i)*cos(omega*n)
+    cos_amp = cos_amp + d
+    dsin_amp = dsin_amp + n*d  
+    d = data(i)*sin(omega*n)
+    sin_amp = sin_amp + d
+    dcos_amp = dcos_amp - n*d
+    n = n+1
+  end do
+  dcos_amp = twopi*dcos_amp/n
+  dsin_amp = twopi*dsin_amp/n
 else
-	do i = lbound(data,1), ubound(data,1)
-	  cos_amp = cos_amp + data(i)*cos(omega*n)
-	  sin_amp = sin_amp + data(i)*sin(omega*n)
-	  n = n+1
-	end do
+  do i = lbound(data,1), ubound(data,1)
+    cos_amp = cos_amp + data(i)*cos(omega*n)
+    sin_amp = sin_amp + data(i)*sin(omega*n)
+    n = n+1
+  end do
 endif
 
 cos_amp = cos_amp/n
 sin_amp = sin_amp/n
 
-
 end subroutine
-
-
 
 end module
