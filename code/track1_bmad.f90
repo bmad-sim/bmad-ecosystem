@@ -58,7 +58,7 @@ real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3), sqrt_8
 real(rp) dcos_phi, dgradient, dpz, r_beta, dr_beta_ds, sin_alpha_over_f
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
-real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0, dt_ref_slice
+real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
 
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc
@@ -528,15 +528,22 @@ case (rfcavity$)
 
   beta_ref = ele%value(p0c$) / ele%value(e_tot$)
   n_slice = max(1, nint(length / ele%value(ds_step$))) 
-  dt_ref_slice = length / (n_slice * c_light * beta_ref)
+  dt_ref = length / (c_light * beta_ref)
 
   call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
 
   voltage = e_accel_field(ele, voltage$)
 
+  ! The cavity field is modeled as a standing wave symmetric wrt the center.
+  ! Thus if the cavity is flipped (orientation = -1), the wave of interest, which is 
+  ! always the accelerating wave, is the "backward" wave. And the phase of the backward 
+  ! wave is different from the phase of the forward wave by a constant dt_ref * freq
+
   phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
           (particle_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+  if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0
+
   t0 = end_orb%t
 
   call rf_coupler_kick (ele, param, upstream_end$, phase, end_orb)
@@ -559,7 +566,7 @@ case (rfcavity$)
 
     if (i /= n_slice) then
       call track_a_drift (end_orb, ele, length/n_slice)
-      phase = phase0 + twopi * ele%value(rf_frequency$) * ((i + 1) * dt_ref_slice - (end_orb%t - t0)) 
+      phase = phase0 + twopi * ele%value(rf_frequency$) * ((i + 1) * dt_ref/n_slice - (end_orb%t - t0)) 
     endif
 
   enddo

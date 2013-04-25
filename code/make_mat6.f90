@@ -62,7 +62,11 @@ if (present(err_flag)) err_flag = .true.
 if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
 
 if (present(start_orb)) then
-  call init_coord (a_start_orb, start_orb%vec, ele, .false., param%particle)
+  if (start_orb%state == not_set$) then
+    call init_coord(a_start_orb, start_orb%vec, ele, .false., param%particle)
+  else
+    a_start_orb = start_orb
+  endif
 else
   call init_coord (a_start_orb, ele = ele, at_downstream_end = .false., particle = param%particle)
 endif
@@ -141,12 +145,12 @@ if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6, ele%value(p0c$)/e
 
 ! Finish up
 
-if (any(ele%map_ref_orb_in /= a_start_orb%vec)) then
-  ele%map_ref_orb_in = a_start_orb%vec
+if (any(ele%map_ref_orb_in%vec /= a_start_orb%vec)) then
+  ele%map_ref_orb_in = a_start_orb
   if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.
 endif
 
-ele%map_ref_orb_out = a_end_orb%vec
+ele%map_ref_orb_out = a_end_orb
 if (present(end_orb) .and. .not. end_input) end_orb = a_end_orb
 
 bmad_com%radiation_fluctuations_on = rad_fluct_save

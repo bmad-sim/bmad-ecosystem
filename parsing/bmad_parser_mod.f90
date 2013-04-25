@@ -4309,13 +4309,13 @@ subroutine parser_add_lord (in_lat, n2, plat, lat)
 implicit none
 
 type (lat_struct), target :: in_lat, lat
-type (ele_struct), pointer :: lord, lord2, slave, ele
+type (ele_struct), pointer :: lord, lord2, slave, ele, g_lord, g_slave
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (control_struct), allocatable :: cs(:)
 type (branch_struct), pointer :: branch
 
-integer i, ic, n, n2, k, k2, ix, j, ib, ie, n_list, ix2, ns, ixs, ii, ix_end
+integer i, ic, ig, n, n2, k, k2, ix, j, ib, ie, n_list, ix2, ns, ixs, ii, ix_end
 integer n_match, n_slave, nn
 integer ix_lord, k_slave, ix_ele_now, ix_girder_end, ix_super_lord_end
 integer, allocatable :: r_indexx(:), ix_ele(:), ix_branch(:)
@@ -4331,7 +4331,7 @@ logical err, slave_not_in_lat, found_ele_match, created_girder_lord
 
 n = n2 + 1000
 do i = 0, ubound(lat%branch, 1)
-    n = n + lat%branch(i)%n_ele_max
+  n = n + lat%branch(i)%n_ele_max
 enddo
 
 allocate (name_list(n), ix_ele(n), ix_branch(n), r_indexx(n))
@@ -4501,6 +4501,8 @@ main_loop: do n = 1, n2
       branch => lat%branch(ib)
       ix_girder_end = -1
 
+      ! Loop over all possible first elements
+
       ele_loop: do ie = 1, branch%n_ele_track
 
         if (ie <= ix_girder_end) cycle
@@ -4512,16 +4514,38 @@ main_loop: do n = 1, n2
         ixs = 1       ! Index of girder slave element we are looking for
         n_slave = 0   ! Number of actual slaves found.
 
-        slave_loop: do            ! loop over all girder slaves
+        ! loop over all girder slaves and see if lattice eles match slaves.
+
+        slave_loop: do
 
           if (ix_ele_now > branch%n_ele_track) then
-            if (branch%param%geometry == open$) cycle ele_loop
             ix_ele_now = ix_ele_now - branch%n_ele_track
           endif
 
           if (ixs > lord%n_slave) exit
-          ele => pointer_to_ele (lat, ix_ele_now, ib)
           input_slave_name = pele%name(ixs)
+
+          ! Check to see if slave is itself a girder
+
+          do ig = lat%n_ele_track+1, lat%n_ele_max
+            g_lord => lat%ele(ig)
+            if (g_lord%lord_status /= girder_lord$) cycle
+            if (g_lord%name /= input_slave_name) cycle
+            g_slave => pointer_to_slave (g_lord, 1)  ! First slave
+            if (g_slave%ix_branch /= ib .or. g_slave%ix_ele /= ix_ele_now) cycle
+            ! This matches. Move pointers to element after last girder slave 
+            g_slave => pointer_to_slave (g_lord, g_lord%n_slave) ! Last slave
+            n_slave = n_slave + 1
+            cs(n_slave)%ix_slave  = g_lord%ix_ele
+            cs(n_slave)%ix_branch = g_lord%ix_branch
+            ixs = ixs + 1 
+            ix_ele_now = g_slave%ix_ele + 1
+            cycle slave_loop
+          enddo
+
+          !
+
+          ele => pointer_to_ele (lat, ix_ele_now, ib)
 
           if (ele%key == drift$) then
             ix_ele_now = ix_ele_now + 1

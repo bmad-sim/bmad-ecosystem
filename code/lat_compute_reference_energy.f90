@@ -33,6 +33,7 @@ type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
 real(rp) pc
+real(rp), parameter :: zero6(6) = 0
 
 integer j, k, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end, ix_e_gun
@@ -72,9 +73,6 @@ do ib = 0, ubound(lat%branch, 1)
         ele_init%value(p0c$) = branch_ele%value(p0c$)
       endif
 
-      stale = .true.
-      ele_init%bookkeeping_state%ref_energy = ok$
-      ele_init%time_ref_orb_out = 0
       ele_init%value(delta_ref_time$) = 0
       ele_init%value(ref_time_start$) = ele_init%ref_time
 
@@ -87,6 +85,15 @@ do ib = 0, ubound(lat%branch, 1)
   elseif (ele_init%value(E_tot_start$) == 0) then
     ele_init%value(E_tot_start$) = ele_init%value(E_tot$)
     ele_init%value(p0c_start$) = ele_init%value(p0c$)
+  endif
+
+  if (stale .or. ele_init%bookkeeping_state%ref_energy == stale$) then
+    if (branch%ix_from_branch >= 0) then
+      call init_coord (ele_init%time_ref_orb_in, zero6, ele_init, .false.)
+      call init_coord (ele_init%time_ref_orb_out, zero6, ele_init, .true.)
+      stale = .true.
+      ele_init%bookkeeping_state%ref_energy = ok$
+    endif
   endif
 
   if (ele_init%bookkeeping_state%ref_energy == stale$) ele_init%bookkeeping_state%ref_energy = ok$
@@ -127,7 +134,7 @@ do ib = 0, ubound(lat%branch, 1)
       call convert_total_energy_to (gun_ele%value(e_tot$), branch%param%particle, pc = gun_ele%value(p0c$))
       gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
       gun_ele%value(p0c_start$) = gun_ele%value(p0c$)
-      call init_coord (start_orb, ele = gun_ele, at_downstream_end = .false., particle = branch%param%particle)
+      call init_coord (start_orb, zero6, gun_ele, .false., branch%param%particle)
       start_orb%vec(6) = (ele_init%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
       call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
       if (.not. particle_is_moving_forward(end_orb)) then
@@ -182,9 +189,9 @@ do ib = 0, ubound(lat%branch, 1)
     ! wigglers would result in z-position shifts when tracking particles.
 
     if (ix_super_end < ie) then       ! If not in super_lord region...
-      ele%time_ref_orb_in = 0   ! Want zero orbit except if this is an e_gun then must set pz.
+      call init_coord (ele%time_ref_orb_in, zero6, ele0, .true.) ! Want zero orbit except if this is an e_gun then must set pz.
       if (ie == ix_e_gun) then
-        ele%time_ref_orb_in(6) = (ele_init%value(p0c_start$) - ele_init%value(p0c$)) / ele_init%value(p0c$)
+        ele%time_ref_orb_in%vec(6) = (ele_init%value(p0c_start$) - ele_init%value(p0c$)) / ele_init%value(p0c$)
       endif 
 
     else                              ! In super_lord region
@@ -582,12 +589,13 @@ subroutine calc_time_ref_orb_out ()
 ! Notice that here the delta_ref_time value (but not ele%value(p0c$)) the value used in tracking and not the 
 ! corrected value computed later.
 
-ele%time_ref_orb_out = orb_end%vec
-ele%time_ref_orb_out(2) = ele%time_ref_orb_out(2) / (1 + orb_end%vec(6))
-ele%time_ref_orb_out(4) = ele%time_ref_orb_out(4) / (1 + orb_end%vec(6))
-ele%time_ref_orb_out(5) = ele%time_ref_orb_out(5) + &
+ele%time_ref_orb_out = orb_end
+ele%time_ref_orb_out%vec(2) = ele%time_ref_orb_out%vec(2) / (1 + orb_end%vec(6))
+ele%time_ref_orb_out%vec(4) = ele%time_ref_orb_out%vec(4) / (1 + orb_end%vec(6))
+ele%time_ref_orb_out%vec(5) = ele%time_ref_orb_out%vec(5) + &
             (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
-ele%time_ref_orb_out(6) = ((1 + orb_end%vec(6)) * orb_end%p0c - ele%value(p0c$)) / ele%value(p0c$)
+ele%time_ref_orb_out%vec(6) = ((1 + orb_end%vec(6)) * orb_end%p0c - ele%value(p0c$)) / ele%value(p0c$)
+
 
 end subroutine
 

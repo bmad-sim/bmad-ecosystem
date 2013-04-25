@@ -53,7 +53,7 @@ real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
 real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
 real(rp) lcs, lc2s2, k, L, m55, m65, m66, new_pc, new_beta
 real(rp) cos_phi, sin_phi, cos_term, dcos_phi, gradient_net, e_start, e_end, e_ratio, pc, p0c
-real(rp) alpha, sin_a, cos_a, f, phase0, phase, t0, dt_ref_slice, E, pxy2, dE
+real(rp) alpha, sin_a, cos_a, f, phase0, phase, t0, dt_ref, E, pxy2, dE
 real(rp) g_tot, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
 real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, pc_start_ref, pc_end_ref, gradient_max, voltage_max
@@ -706,15 +706,22 @@ case (rfcavity$)
   p0c = ele%value(p0c$)
   beta_ref = p0c / ele%value(e_tot$)
   n_slice = max(1, nint(length / ele%value(ds_step$))) 
-  dt_ref_slice = length / (n_slice * c_light * beta_ref)
+  dt_ref = length / (c_light * beta_ref)
 
   call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
 
   voltage = param%rel_tracking_charge * e_accel_field (ele, voltage$)
 
+  ! The cavity field is modeled as a standing wave symmetric wrt the center.
+  ! Thus if the cavity is flipped (orientation = -1), the wave of interest, which is 
+  ! always the accelerating wave, is the "backward" wave. And the phase of the backward 
+  ! wave is different from the phase of the forward wave by a constant dt_ref * freq
+
   phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
                   (particle_time (c00, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+  if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0
+
   t0 = c00%t
 
   ! Track through slices.
@@ -749,7 +756,7 @@ case (rfcavity$)
       call drift_mat6_calc (drift, length/n_slice, ele, param, c00)
       call track_a_drift (c00, ele, length/n_slice)
       mat6 = matmul(drift, mat6)
-      phase = phase0 + twopi * ele%value(rf_frequency$) * ((i + 1) * dt_ref_slice - (c00%t - t0)) 
+      phase = phase0 + twopi * ele%value(rf_frequency$) * ((i + 1) * dt_ref/n_slice - (c00%t - t0)) 
     endif
 
   enddo

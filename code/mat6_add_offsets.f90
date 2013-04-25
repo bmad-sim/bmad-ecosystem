@@ -10,10 +10,10 @@
 !
 ! Input:
 !   ele       -- Ele_struct: Element with given orientation.
-!     %vec0(6)        -- 0th order part of the transfer map.
-!     %mat6(6,6)      -- 1st order part of the transfer map (Jacobian).
-!     %map_ref_orb_in(6)  -- Reference orbit at entrance end.
-!     %map_ref_orb_out(6) -- Reference orbit at exit end.
+!     %vec0(6)         -- 0th order part of the transfer map.
+!     %mat6(6,6)       -- 1st order part of the transfer map (Jacobian).
+!     %map_ref_orb_in  -- Reference orbit at entrance end.
+!     %map_ref_orb_out -- Reference orbit at exit end.
 !     %value(x_offset$), 
 !     %value(x_pitch$), 
 !     %value(tilt$), etc.
@@ -48,16 +48,16 @@ ele%vec0 = orb%vec
 
 ! transform the ref_orb
 
-map_orb%vec = ele%map_ref_orb_in
+map_orb = ele%map_ref_orb_in
 call offset_particle (ele, map_orb, param, unset$, &
                               set_canonical = .false., set_hvkicks = .false., ds_pos = 0.0_rp)
-ele%map_ref_orb_in = map_orb%vec
+ele%map_ref_orb_in = map_orb
 
 
-map_orb%vec = ele%map_ref_orb_out
+map_orb = ele%map_ref_orb_out
 call offset_particle (ele, map_orb, param, unset$, &
                               set_canonical = .false., set_hvkicks = .false.)
-ele%map_ref_orb_out = map_orb%vec
+ele%map_ref_orb_out = map_orb
 
 ! calculate the new Jacobian.
 

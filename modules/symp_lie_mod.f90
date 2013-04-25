@@ -1139,8 +1139,8 @@ if (synch_rad_com%i_calc_on) then
     temp_ele%mat6 = mat6
     temp_ele%vec0(1:5) = end_orb%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
     temp_ele%vec0(6) = 0
-    temp_ele%map_ref_orb_in = start_orb%vec
-    temp_ele%map_ref_orb_out = end_orb%vec
+    temp_ele%map_ref_orb_in = start_orb
+    temp_ele%map_ref_orb_out = end_orb
     ele0 => ele%branch%ele(ele%ix_ele-1)
     call twiss_propagate1 (ele0, temp_ele)
     synch_rad_com%i5a = synch_rad_com%i5a + g3 * ds * (temp_ele%a%gamma * temp_ele%a%eta**2 + &

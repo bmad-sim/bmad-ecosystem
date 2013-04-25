@@ -264,10 +264,9 @@ if (ele%key /= wiggler$) return
 if (ele%sub_key /= map_type$) return
 
 if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
-ele%rad_int_cache%orb0 = ele%map_ref_orb_in
+ele%rad_int_cache%orb0 = ele%map_ref_orb_in%vec
 
-call init_coord (start0_orb, ele%map_ref_orb_in, ele, .false., param%particle)
-call symp_lie_bmad (ele, param, start0_orb, end_orb, .false., track)
+call symp_lie_bmad (ele, param, ele%map_ref_orb_in, end_orb, .false., track)
 call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
 
 do j = 1, 4

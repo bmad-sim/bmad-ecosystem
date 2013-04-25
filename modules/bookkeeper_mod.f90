@@ -94,15 +94,15 @@ logical found, err
 
 character(20), parameter :: r_name = 'lattice_bookkeeper'
 
-! Control bookkeeper is called twice to make sure, for example, that multipass bend
+! Control_bookkeeper is called twice to make sure, for example, that multipass bends
 ! are correctly computed.
 
 if (present(err_flag)) err_flag = .true.
 
-call control_bookkeeper (lat, do_free_eles = .true.)
+call control_bookkeeper (lat)
 call lat_compute_ref_energy_and_time (lat, err)
 if (err) return
-call control_bookkeeper (lat, super_and_multipass_only = .true., do_free_eles = .true.)
+call control_bookkeeper (lat, mark_eles_as_stale = .false.)
 
 ! Global geometry
 
@@ -172,10 +172,14 @@ end subroutine lattice_bookkeeper
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (lat, ele, super_and_multipass_only, do_free_eles)
+! Subroutine control_bookkeeper (lat, ele, mark_eles_as_stale)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
-! This subroutine will call attribute_bookkeeper.
+!
+! If ele argument is present, bookkeeping will include all the slaves of ele
+! but none of the lords.
+!
+! Note: This subroutine will call attribute_bookkeeper.
 ! Note: To do a complete bookkeeping job on a lattice use:
 !   lattice_bookkeeper
 !
@@ -187,17 +191,13 @@ end subroutine lattice_bookkeeper
 !   ele    -- Ele_struct, optional: Element whose attribute values 
 !               have been changed. If not present bookkeeping will be done 
 !               for all elements.
-!   super_and_multipass_only 
-!          -- Logical, optional: Default is False. If True then only do bookkeeping 
-!               for superposition and multipass elements only. Default is False. 
-!               This argument is used by lattice_bookkeeper and should not
-!               to set unless you know what you are doing.
-!   do_free_eles
-!         -- Logical, optional: Default is False. If True then call 
-!               attribute_bookkeeper for elements in the tracking part of the lattice.
+!   mark_eles_as_stale
+!          -- Logical, optional: If true then mark all elements for control bookkeeping
+!               if using auto_bookkeeper. Default is True. Do not set this argument
+!               unless you know what you are doing.
 !-
 
-recursive subroutine control_bookkeeper (lat, ele, super_and_multipass_only, do_free_eles)
+recursive subroutine control_bookkeeper (lat, ele, mark_eles_as_stale)
 
 implicit none
 
@@ -208,86 +208,64 @@ type (branch_struct), pointer :: branch
 
 integer i, j, ie, ib, n1, n2
 
-logical, optional :: super_and_multipass_only, do_free_eles
-logical sm_only, all_bookkeeping_done
+logical, optional :: mark_eles_as_stale
 
-character(20), parameter :: r_name = 'control_bookkeeper'
+character(*), parameter :: r_name = 'control_bookkeeper'
 
+!----------------------------------------------------------------
 ! If ele is present we only do bookkeeping for this one element and its slaves
 
-sm_only = logic_option (.false., super_and_multipass_only)
-
 if (present(ele)) then
-  call control_bookkeeper1 (lat, ele, sm_only)
+  call control_bookkeeper1 (lat, ele)
   do ie = 1, ele%n_slave
     slave => pointer_to_slave(ele, ie)
-    call control_bookkeeper (lat, slave, sm_only)
+    call control_bookkeeper (lat, slave)
   enddo
   return
 endif
 
+!----------------------------------------------------------------
 ! Else we need to make up all the lords...
 ! First mark all the elements needing bookkeeping
 
-n1 = lat%n_ele_track+1
-n2 = lat%n_ele_max
-
-if (bmad_com%auto_bookkeeper) then
-  lat%ele(n1:n2)%bookkeeping_state%control = stale$  ! Bookkeeping done on this element yet?
+if (bmad_com%auto_bookkeeper .and. logic_option(.true., mark_eles_as_stale)) then
+  lat%ele(:)%bookkeeping_state%control = stale$  ! Bookkeeping done on this element yet?
 endif
 
-! Now do the control bookkeeping.
-! Need to do this from the top level down.
-! The top level are those lord elements that have no lords.
+! Bookkkeeping is done from the top level down.
+! The top level elements are those lord elements that have no lords on top of them.
 
-do
-  all_bookkeeping_done = .true.
-  ie_loop: do ie = n1, n2
-    ele2 => lat%ele(ie)
-    if (ele2%key == null_ele$) cycle
-    if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
-    do j = 1, ele2%n_lord
-      lord => pointer_to_lord(ele2, j)
-      if (lord%bookkeeping_state%control /= stale$ .and. lord%bookkeeping_state%attributes /= stale$) cycle
-      all_bookkeeping_done = .false.  ! This element remains to be done.
-      cycle ie_loop ! Do not do bookkeeping yet if lord not done yet.
-    enddo
-    call control_bookkeeper1 (lat, ele2, sm_only)
-    ele2%bookkeeping_state%control = ok$  ! Done with this element
-  enddo ie_loop
-  if (all_bookkeeping_done) exit  ! And we are done
-enddo
+ie_loop: do ie = lat%n_ele_track+1, lat%n_ele_max
+  ele2 => lat%ele(ie)
+  if (ele2%key == null_ele$) then
+    ele2%bookkeeping_state%control = ok$
+    ele2%bookkeeping_state%attributes = ok$
+    cycle
+  endif
+  if (ele2%n_lord > 0) cycle
+  call control_bookkeeper1 (lat, ele2)
+enddo ie_loop
 
-! and now the slaves in the tracking lattice
+! And now bookkeeping for the free elements in the tracking lattice
 
 do ib = 0, ubound(lat%branch, 1)
-  if (.not. bmad_com%auto_bookkeeper .and. lat%branch(ib)%param%bookkeeping_state%control /= stale$) cycle
-  do ie = 0, lat%branch(ib)%n_ele_track
-    ele2 => lat%branch(ib)%ele(ie)
-    if (ele2%key == null_ele$) cycle
-    if (ele2%slave_status == free$) then
-      ele2%bookkeeping_state%control = ok$
-      cycle
+  branch => lat%branch(ib)
+  if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%control /= stale$ .and. &
+                                           branch%param%bookkeeping_state%attributes /= stale$) cycle
+  branch%param%bookkeeping_state%attributes = ok$
+  branch%param%bookkeeping_state%control = ok$
+
+  do ie = 0, branch%n_ele_track
+    ele2 => branch%ele(ie)
+    if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
+    if (ele2%slave_status /= free$) then
+      call out_io (s_warn$, r_name, 'CONFUSED CONTROL BOOKKEEPING! PLEASE CONTACT DCS!')
     endif
-    if (.not. bmad_com%auto_bookkeeper .and. ele2%bookkeeping_state%control /= stale$) cycle
-    call control_bookkeeper1 (lat, ele2, sm_only)
+    call attribute_bookkeeper (ele2, branch%param)
     ele2%bookkeeping_state%control = ok$
   enddo
-  lat%branch(ib)%param%bookkeeping_state%control = ok$
+
 enddo
-
-! Update attributes for elements in the tracking part of the lattice.
-
-if (logic_option(.false., do_free_eles)) then
-  do i = 0, ubound(lat%branch, 1)
-    branch => lat%branch(i)
-    if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%attributes /= stale$) cycle
-    do j = 0, branch%n_ele_track
-      call attribute_bookkeeper (branch%ele(j), branch%param)
-    enddo
-    branch%param%bookkeeping_state%attributes = ok$
-  enddo
-endif
 
 lat%lord_state%control = ok$
 lat%lord_state%attributes = ok$
@@ -298,65 +276,77 @@ end subroutine control_bookkeeper
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper1 (lat, ele, sm_only)
+! Subroutine control_bookkeeper1 (lat, ele)
 !
 ! This routine is for control bookkeeping for a single element.
 ! This subroutine is only to be called from control_bookkeeper and is
 ! not meant for general use.
 !-
 
-subroutine control_bookkeeper1 (lat, ele, sm_only)
+recursive subroutine control_bookkeeper1 (lat, ele)
+
+implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) ele
+type (ele_struct), pointer :: slave
 
-logical sm_only, call_a_bookkeeper
+integer i
+logical call_a_bookkeeper
 
-! Init
+! Only do bookkeeping on this element if it is stale.
 
-if (sm_only) then
-  if (ele%lord_status /= super_lord$ .and. ele%slave_status /= super_slave$ .and. &
-      ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$) return
+if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attributes == stale$) then
+
+  ! First make sure the attribute bookkeeping for this element is correct since
+  ! the makeup_*_slave routines may need it.
+
+  if (ele%key /= overlay$ .and. ele%key /= group$) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
+
+  ! Slave bookkeeping
+
+  call_a_bookkeeper = .false.
+
+  if (ele%slave_status == super_slave$) then
+    ! Attrubute bookkeeping is done in the makeup_super_slave
+    call makeup_super_slave (lat, ele)
+
+  elseif (ele%slave_status == overlay_slave$) then
+    call makeup_overlay_and_girder_slave (lat, ele)
+    call_a_bookkeeper = .true.
+
+  elseif (ele%slave_status == multipass_slave$) then
+    call makeup_multipass_slave (lat, ele)
+    if (ele%n_lord > 1) call makeup_overlay_and_girder_slave (lat, ele)
+    call_a_bookkeeper = .true.
+  endif
+
+  ! Lord bookkeeping
+
+  if (ele%lord_status == group_lord$) then
+    call makeup_group_lord (lat, ele)
+    call_a_bookkeeper = .true.
+  endif
+
+  ! If bookkeeping has been done by a makeup_*_salve routine then
+  ! attribute_bookkeeper must be called again.
+  ! This is true even if the lattice is static since a slave element
+  ! can have its lord's dependent attribute values.
+  ! Example: super_slave will, at this point, have its lord's num_steps value but 
+  ! num_steps in the slave is different from the lord due to differences in length.
+
+  if (call_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
+
+  ele%bookkeeping_state%control = ok$
+
 endif
 
-! First make sure the attribute bookkeeping for this element is correct since
-! the makeup_*_slave routines may need it.
+! Recursively call this routine on the slaves
 
-if (ele%key /= overlay$ .and. ele%key /= group$) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
-
-! Slave bookkeeping
-
-call_a_bookkeeper = .false.
-
-if (ele%slave_status == super_slave$) then
-  ! Attrubute bookkeeping is done in the makeup_super_slave
-  call makeup_super_slave (lat, ele)
-
-elseif (ele%slave_status == overlay_slave$) then
-  call makeup_overlay_and_girder_slave (lat, ele)
-  call_a_bookkeeper = .true.
-
-elseif (ele%slave_status == multipass_slave$) then
-  call makeup_multipass_slave (lat, ele)
-  if (ele%n_lord > 1) call makeup_overlay_and_girder_slave (lat, ele)
-  call_a_bookkeeper = .true.
-endif
-
-! Lord bookkeeping
-
-if (ele%lord_status == group_lord$) then
-  call makeup_group_lord (lat, ele)
-  call_a_bookkeeper = .true.
-endif
-
-! If bookkeeping has been done by a makeup_*_salve routine then
-! attribute_bookkeeper must be called again.
-! This is true even if the lattice is static since a slave element
-! can have its lord's dependent attribute values.
-! Example: super_slave will, at this point, have its lord's num_steps value but 
-! num_steps in the slave is different from the lord due to differences in length.
-
-if (call_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
+do i = 1, ele%n_slave
+  slave => pointer_to_slave (ele, i)
+  call control_bookkeeper1 (lat, slave)
+enddo
 
 end subroutine control_bookkeeper1
 
@@ -561,6 +551,8 @@ end subroutine change_this_edge
 !-
 
 recursive subroutine group_change_this (ele, ix_attrib, coef, this_lord, this_pad)
+
+implicit none
 
 type (ele_struct) ele
 type (ele_struct), optional :: this_lord
@@ -843,7 +835,7 @@ if (n_major_lords == 1) then
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
-    if (.not. all(slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out)) then
+    if (.not. all(slave%map_ref_orb_in%vec == branch%ele(ix_slave-1)%map_ref_orb_out%vec)) then
       slave0 => pointer_to_slave(major_lord, ix_major_order-1)
       slave%map_ref_orb_in = slave0%map_ref_orb_out
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
@@ -936,7 +928,7 @@ do j = 1, slave%n_lord
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
-    if (.not. all(slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out)) then
+    if (.not. all(slave%map_ref_orb_in%vec == branch%ele(ix_slave-1)%map_ref_orb_out%vec)) then
       slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
@@ -1344,9 +1336,9 @@ type (ele_struct), target :: sliced_ele, ele_in
 type (ele_struct), optional :: old_slice
 type (ele_struct) :: ele2
 type (lat_param_struct) param
+type (coord_struct) time_ref_orb_out
 
 real(rp) l_slice, offset, e_len, ref_time_start, p0c_start, e_tot_start
-real(rp) time_ref_orb_out(6)
 
 logical at_upstream_end, at_downstream_end, err_flag, err2_flag
 
@@ -1441,7 +1433,7 @@ elseif (ele_has_constant_ds_dt_ref(ele_in)) then
   p0c_start      = ele_in%value(p0c$)
   e_tot_start    = ele_in%value(e_tot$)
   ref_time_start = ele_in%ref_time - ele_in%value(delta_ref_time$) * (ele_in%value(l$) - offset) / ele_in%value(l$)
-  sliced_ele%time_ref_orb_in = 0
+  sliced_ele%time_ref_orb_in%vec = 0
 else
   call transfer_ele (sliced_ele, ele2)
   call create_element_slice (ele2, ele_in, offset, 0.0_rp, param, .true., .false., err2_flag)
@@ -2160,8 +2152,10 @@ case (beambeam$)
       if (global_com%exit_on_error) call err_exit
     endif
 
-    val(bbi_const$) = -param%n_part * val(charge$) * classical_radius_factor /  &
+    if (val(p0c$) /= 0) then  ! Can happen when parsing lattice file.
+      val(bbi_const$) = -param%n_part * val(charge$) * classical_radius_factor /  &
                              (2 * pi * val(p0c$) * (val(sig_x$) + val(sig_y$)))
+    endif
 
   endif
 
@@ -2723,9 +2717,9 @@ end subroutine set_flags_for_changed_real_attribute
 !                                         No turning on or off is done.
 !                     restore_state$ => Restore saved on/off state.
 !   orb(0:)     -- Coord_struct, optional: Needed for lat_make_mat6
-!   use_ref_orb -- Logical, optional: If present and true then use the
-!                    present ele%map_ref_orb for the reference orbit for
-!                    constructing %mat6. Default is false.
+!   use_ref_orb -- Logical, optional: If present and true then use 
+!                    ele%map_ref_orb for the reference orbit for
+!                    calculating %mat6. Default is false.
 !   ix_branch   -- integer, optional: If present then only set for 
 !                    this lattice branch.
 !
@@ -2740,7 +2734,6 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (coord_struct), optional :: orb(0:)
-type (coord_struct) ref_orb
 
 integer i, ib, key
 integer, intent(in) :: switch
@@ -2784,8 +2777,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (old_state .neqv. branch%ele(i)%is_on) then
       if (logic_option (.false., use_ref_orb)) then
-        ref_orb%vec = branch%ele(i)%map_ref_orb_in
-        call make_mat6(branch%ele(i), branch%param, ref_orb)
+        call make_mat6(branch%ele(i), branch%param, branch%ele(i)%map_ref_orb_in)
       else
         call set_ele_status_stale (branch%ele(i), mat6_group$)
         call lat_make_mat6(lat, i, orb, ib)

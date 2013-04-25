@@ -1161,8 +1161,7 @@ General \vn{floor_shift} element attributes are:
 \end{center}
 \toffset
 
-\index{l}\index{x_offset}\index{y_offset}\index{z_offset}\index{tilt}
-\index{x_pitch}\index{y_pitch}\index{origin_ele}
+\index{origin_ele}\index{origin_ele_ref_pt}
 \index{x_origin}\index{y_origin}
 \index{z_origin}\index{theta_origin}
 \index{phi_origin}\index{psi_origin}
@@ -1188,19 +1187,28 @@ first step is to determine the global coordinates of the \vn{fiducial}
 element itself and the second step is to shift the coordinates of the
 elements around it.
 
-\index{marker}\index{init_ele}
 The floor coordinates of the \vn{fiducial} element are determined
-starting with an \vn{origin reference point}. This reference point can
-either be specified by specifying an absolute global position using
-the attributes \vn{x_origin}, \vn{y_origin}, etc. or by specifying an
-\vn{origin_ele} element. If specified, the \vn{origin_ele} element
-must be a \vn{marker} or \vn{init_ele} element. If the \vn{origin_ele}
-is specified, the absolute reference position attributes
-\vn{x_origin}, etc., are ignored.
+starting with an \vn{origin_ele} element. If \vn{origin_ele} is not
+specified, the origin of the global coordinates (\sref{s:global} is
+used. If the \vn{origin_ele} has a finite length, the reference point
+may be chosen using the \vn{origin_ele_ref_pt} attribute which
+may be set to one of
+\begin{example}
+  entrance_end
+  center         ! Default
+  exit_end
+\end{example}
+
 
 Once the origin reference position is determined, the reference
 position of the \vn{fiducial} element is calculated using the offset
-attributes \vn{x_offset}, \vn{x_pitch} as outlined in \sref{s:patch.coords}.
+attributes 
+\begin{example}
+  [dx_origin,  dy_origin,  dz_origin]
+  [dtheta_origin,  dphi_origin,  dpsi_origin]
+\end{example}
+The transformation between origin and fiducial positions is given in
+\sref{s:patch.coords}.
 
 \index{flexible patch}\index{patch}
 Once the position of the \vn{fiducial} element is calculated, all
@@ -1319,6 +1327,20 @@ This is equivalent to a drift.
 \label{s:girder}
 \index{girder|hyperbf}
 
+\begin{figure}[t]
+  \centering
+  \includegraphics{girder.pdf}
+  \caption[Girder example.] {
+Girder supporting three elements labeled \vn{A}, \vn{B}, and \vn{C}.
+$\CalO_A$ is the reference coordinates at the upstream end of element
+\vn{A}, $\CalO_C$ is the reference coordinates at the downsream end of
+element \vn{C}, and $\CalO_G$ is the default reference coordinates of
+the girder.
+
+  }
+  \label{f:girder}
+\end{figure}
+
 A \vn{girder} is a support structure that orients the elements that
 are attached to it in space.
 
@@ -1333,16 +1355,30 @@ General \vn{girder} attributes are:
 \toffset
 
 Attributes specific to a \vn{girder} are:
+\index{origin_ele}\index{origin_ele_ref_pt}
+\index{x_origin}\index{y_origin}
+\index{z_origin}\index{theta_origin}
+\index{phi_origin}\index{psi_origin}
+Attributes specific to a \vn{floor_shift} elements are:
 \begin{example}
   girder = \{<List>\}   ! List of elements on the Girder
-  s_center              ! Center of the girder
+  origin_ele        = <Name>     ! Reference element.
+  origin_ele_ref_pt = <location> ! Reference pt on reference ele.
+  dx_origin         = <Real>     ! x-position offset
+  dy_origin         = <Real>     ! y-position offset
+  dz_origin         = <Real>     ! z-position offset
+  dtheta_origin     = <Real>     ! orientation angle offset.
+  dphi_origin       = <Real>     ! orientation angle offset.
+  dpsi_origin       = <Real>     ! orientation angle offset.
+  ds_girder         = <Real>     ! ``Path length'' of girder. Dependent attrib (\sref{s:depend}).
 \end{example}
 
 \index{x_offset}\index{y_pitch}\index{tilt}\index{s_center}
-When a \vn{girder} overlays an element, then that elements
-orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.) 
-give the orientation of
-the element with respect to the \vn{girder}. An example will make this clear:
+
+When a \vn{girder} ``supports'' an element, then that elements
+orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.)
+give the orientation of the element with respect to the
+\vn{girder}. An example will make this clear:
 \begin{example}
   q1: quad, l = 2
   q2: quad, l = 4, x_offset = 0.2, x_pitch = 0.01
