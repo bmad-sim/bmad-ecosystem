@@ -1,0 +1,18 @@
+no_digested
+parameter[e_tot] = 1e12
+parameter[lattice_type] = linear_lattice
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+
+q1: quadrupole, l = 1, x_offset = 0.001, tilt = 0.6
+q2: quadrupole, l = 2, y_offset = 0.002, y_pitch = 0.003, tilt = 1.7
+b: sbend, l = 1, angle = 0.3
+d: drift, l = 1
+
+g1: girder = {q1, q2}, x_offset = 0.002, y_offset = 0.003, x_pitch = 0.004, y_pitch = 0.005, tilt = -0.3
+g2: girder = {g1, q2}
+
+g_line: line = (q2, q2, b, q1)
+
+use, g_line

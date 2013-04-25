@@ -1,12 +1,13 @@
+girder_test
 multipass_test
 sim_utils_test
-bbu_test
 abs_time_test
 slice_test
 ptc_test
 time_runge_kutta_test
 synrad3d_test
-twiss_track_test
 tracking_method_test
 mat6_calc_method_test
 reverse_test
+bbu_test
+twiss_track_test
