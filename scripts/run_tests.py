@@ -106,7 +106,7 @@ for line in dir_list:
   # Run process and make sure output.now has been created
 
   program = dir_split[0]
-  # if len(dir_split) == 2: program = dir_split[1]
+  if program[-1] == '/': program = program[:-1]
   if os.path.exists('exe_file'):
     exe_file = open ('exe_file', 'r')
     program = exe_file.readline().strip().split()[0]
@@ -231,30 +231,33 @@ for line in dir_list:
         print_all ('     Does not match number in "output.correct:  ' + correct_line, True, color = True)
         break
 
+      bad_at = -1
+      bad_diff_val  = 0
+
       for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
         now_val = float(now1)
         correct_val = float(correct1)
-        diff_val = now_val - correct_val
-        ave_abs_val = (abs(now_val) + abs(correct_val)) / 2
+        diff_val = abs(now_val - correct_val)
+        abs_val = (abs(now_val) + abs(correct_val)) / 2
+        factor = 1
+        if tol_type == 'REL': factor = abs_val
 
-        ok = True
-        if tol_type == 'REL':
-          if abs(diff_val) > ave_abs_val * tol_val: ok = False
+        if diff_val > factor * tol_val and diff_val > bad_diff_val: 
+          bad_at = ix
+          bad_diff_val = diff_val
+          bad_abs_val = abs_val
+
+      if bad_at > -1:
+        if now_end[0] == 'STR':
+          print_all ('     Regression test failed for: "' + now_split[1] + '"', color = True)
         else:
-          if abs(diff_val) > tol_val: ok = False
-
-        if ok == False:
-          if now_end[0] == 'STR':
-            print_all ('     Regression test failed for: "' + now_split[1] + '"', color = True)
-          else:
-            print_all ('     Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1], color = True)
-          if len(now2_split) != 1: 
-            print_all ('     Regression test failed for datum number: ' + str(ix+1), color = True)
-          print_all ('        Data from "output.now":     ' + str(now2_split), color = True)
-          print_all ('        Data from "output.correct": ' + str(correct2_split), color = True)
-          print_all ('        Diff: ' + str(diff_val) + '  Diff/Val: ' + str(abs(diff_val) / ave_abs_val), color = True)
-          num_local_failures += 1
-          break
+          print_all ('     Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1], color = True)
+        if len(now2_split) != 1: 
+          print_all ('     Regression test failed for datum number: ' + str(bad_at+1), color = True)
+        print_all ('        Data from "output.now":     ' + str(now2_split), color = True)
+        print_all ('        Data from "output.correct": ' + str(correct2_split), color = True)
+        print_all ('        Diff: ' + str(bad_diff_val) + '  Diff/Val: ' + str(abs(bad_diff_val) / bad_abs_val), color = True)
+        num_local_failures += 1
 
     #----------------------------------------------
     # Error test

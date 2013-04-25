@@ -24,7 +24,7 @@ namelist / in / p, wall_file
 
 call bmad_parser('lat.bmad', lat)
 
-sr3d_params%diffuse_scattering_on = .false.
+sr3d_params%specular_reflection_only = .true.
 sr3d_params%allow_absorption = .false.
 num_ignored = 0
 allocate (wall_hit(0:1))

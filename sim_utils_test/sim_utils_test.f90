@@ -4,14 +4,15 @@
 
 program math_test
 
-use sim_utils
+use bmad
 use str_find_first_substring_module
 use random_mod
 use nr
 
 implicit none
 
-real(rp) array(4)
+type (coord_struct) orbit
+real(rp) array(4), dE
 integer i, which, where
 logical match
 character(40) str, sub1, sub2, sub3
@@ -39,6 +40,22 @@ match = str_find_first_substring(str, where, which, sub1, sub2, sub3)
 write (1, *)
 write (1, '(a, i0)') '"Which-Find" ABS 0   ', which
 write (1, '(a, i0)') '"Where-Find" ABS 0   ', where
+
+! 
+
+write (1, *)
+
+orbit%p0c = 1e6
+orbit%vec = 0
+orbit%vec(6) = 0.1
+
+call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), positron$, beta = orbit%beta)
+call apply_energy_kick (1d2, positron$, orbit)
+write (1, '(a, 2es20.12)') '"apply_energy_kick:0" REL 1E-12  ', orbit%beta, orbit%vec(6)
+
+call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), positron$, beta = orbit%beta)
+call apply_energy_kick (1d6, positron$, orbit)
+write (1, '(a, 2es20.12)') '"apply_energy_kick:1" REL 1E-12  ', orbit%beta, orbit%vec(6)
 
 !
 

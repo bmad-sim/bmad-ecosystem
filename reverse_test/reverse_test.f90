@@ -12,9 +12,17 @@
 !
 ! The needed conditions for guaranteeing final = initial are:
 !   A) For static magnectic fields: The particle charge is also reversed before reverse tracking.
-!   B) For static magnectic fields: The particle charge is the same in reverse tracking.
-!   C) For rfcavities with  longitudinal mirror symmetry: The particle charge is the same.
-!      Mirror symmetry is valid for standaing wave cavities.
+!   B) For static electric fields: The particle charge is the same in reverse tracking.
+!
+! For rfcaities life is more complicated since the fields are time dependent and the arrow 
+! of time cannot be reversed. In this case, longitudinal mirror symmetry must be used.
+! The procedure for rfcavities is then:
+!   0) Start with some given particle coordinates.
+!   1) Track the particle through an element, 
+!   2) Start with the same initial coords and same charge and track in reverse.
+!      Note: Must shift the time and z to be at the correct phase of the accelerating backward wave.
+! The particle's final coords tracking forward and reversed should be the same modulo
+! a constant time and z offset
 !-
 
 program reverse_test
@@ -30,7 +38,7 @@ type (ele_struct), pointer :: ele_f, ele_r
 type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r, dorb
 
 real(rp) mat_f(6,6), m(6,6), vec1(6)
-real(rp) dz, dpc, dct
+real(rp) beta_ref, dt_ref
 logical :: err_flag
 logical :: verbosity = .false.
 integer nargs, i, length
@@ -54,128 +62,125 @@ call bmad_parser (lat_file, lat)
 
 DO i = 1, lat%n_ele_max - 1
 
-   orb_0f = lat%beam_start
-   ele_f => lat%branch(0)%ele(i)
-   call init_coord (orb_0f, orb_0f%vec, ele_f, .false.)
+  orb_0f = lat%beam_start
+  ele_f => lat%branch(0)%ele(i)
+  call init_coord (orb_0f, orb_0f%vec, ele_f, .false.)
 
-   call track1 (orb_0f, ele_f, ele_f%branch%param, orb_1f)
-   call make_mat6 (ele_f, ele_f%branch%param, orb_0f)
+  call track1 (orb_0f, ele_f, ele_f%branch%param, orb_1f)
+  call make_mat6 (ele_f, ele_f%branch%param, orb_0f)
 
-   str = trim(ele_f%name)
+  str = trim(ele_f%name)
 
-   if (verbosity) then
-      print *, str
-      print '(a, 6es12.4, 5x, es12.4)', '0: ', orb_0f%vec, orb_0f%t
-      print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_1f%vec, orb_1f%t
-   end if
+  if (verbosity) then
+    print *, str
+    print '(a, 6es12.4, 5x, es12.4)', '0: ', orb_0f%vec, orb_0f%t
+    print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_1f%vec, orb_1f%t
+  end if
 
-   orb_0r        = orb_1f
-   orb_0r%vec(2) = -orb_1f%vec(2)
-   orb_0r%vec(4) = -orb_1f%vec(4)
+  orb_0r        = orb_1f
+  orb_0r%vec(2) = -orb_1f%vec(2)
+  orb_0r%vec(4) = -orb_1f%vec(4)
 
-   ele_r => lat%branch(1)%ele(i)
-   ele_r%branch%param%rel_tracking_charge = -ele_f%branch%param%rel_tracking_charge
+  ele_r => lat%branch(1)%ele(i)
 
-   call track1 (orb_0r, ele_r, ele_r%branch%param, orb_1r)
-   call make_mat6 (ele_r, ele_r%branch%param, orb_0r)
+  if (ele_f%key == elseparator$) then
+    ele_r%branch%param%rel_tracking_charge = ele_f%branch%param%rel_tracking_charge
+  elseif (ele_f%key == rfcavity$) then
+    ele_r%branch%param%rel_tracking_charge = ele_f%branch%param%rel_tracking_charge
+    ele_r%value(x_pitch$) = -ele_f%value(x_pitch$)
+    ele_r%value(y_pitch$) = -ele_f%value(y_pitch$)
+    orb_0r = orb_0f
+    beta_ref = ele_f%value(p0c$) / ele_f%value(e_tot$)
+    dt_ref = ele_f%value(l$) / (c_light * beta_ref)
+    orb_0r%vec(5) = orb_0r%vec(5) - dt_ref * orb_0r%beta
+    orb_0r%t = orb_0r%t + dt_ref
+  else
+    ele_r%branch%param%rel_tracking_charge = -ele_f%branch%param%rel_tracking_charge
+  endif
 
-   dz  = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)) 
-   dpc = orb_1r%vec(6) - orb_0f%vec(6)
-   dct = ((orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t)) * c_light
+  call track1 (orb_0r, ele_r, ele_r%branch%param, orb_1r)
+  call make_mat6 (ele_r, ele_r%branch%param, orb_0r)
 
-   orb_1r%vec(2) = -orb_1r%vec(2)
-   orb_1r%vec(4) = -orb_1r%vec(4)
+  if (ele_f%key == rfcavity$) then
+    dorb%vec = orb_1r%vec - orb_1f%vec
+    dorb%vec(5) = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)) 
+    dorb%t = c_light * ((orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t))
 
-   if (verbosity) then
-      print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_0r%vec, orb_0r%t
-      print '(a, 6es12.4, 5x, es12.4)', '2: ', orb_1r%vec, orb_1r%t
-      print *
-      dorb%vec = orb_1r%vec - orb_0f%vec
-      print '(a, 6es12.4, 5x, es12.4)', 'D: ', dorb%vec(1:4), dz, dorb%vec(6), dct
-   end if
+  else
+    orb_1r%vec(2) = -orb_1r%vec(2)
+    orb_1r%vec(4) = -orb_1r%vec(4)
+    dorb%vec = orb_1r%vec - orb_0f%vec
+    dorb%vec(5) = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)) 
+    dorb%t = c_light * ((orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t))
+  endif
 
-   !
+  if (verbosity) then
+     print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_0r%vec, orb_0r%t
+     print '(a, 6es12.4, 5x, es12.4)', '2: ', orb_1r%vec, orb_1r%t
+     print *
+     print '(a, 6es12.4, 5x, es12.4)', 'D: ', dorb%vec(1:6), dorb%t
+  end if
 
-   mat_f(1, 1:6) =  ele_f%mat6(1, 1:6)
-   mat_f(2, 1:6) = -ele_f%mat6(2, 1:6)
-   mat_f(3, 1:6) =  ele_f%mat6(3, 1:6)
-   mat_f(4, 1:6) = -ele_f%mat6(4, 1:6)
-   mat_f(5, 1:6) = [0, 0, 0, 0, 1, 0]
-   mat_f(6, 1:6) = [0, 0, 0, 0, 0, 1]
+  !
 
-   call mat_inverse (mat_f, mat_f)
+  if (ele_f%key == rfcavity$) then
+    mat_f = ele_f%mat6
+  else
+    m(1, 1:6) = [1,  0,  0,  0,  0,  0]
+    m(2, 1:6) = [0, -1,  0,  0,  0,  0]
+    m(3, 1:6) = [0,  0,  1,  0,  0,  0]
+    m(4, 1:6) = [0,  0,  0, -1,  0,  0]
+    m(5, 1:6) = [0,  0,  0,  0, -1,  0]
+    m(6, 1:6) = [0,  0,  0,  0,  0,  1]
+    call mat_inverse (ele_f%mat6, mat_f)
+    mat_f = matmul(matmul(m, mat_f), m)
+  endif
 
-   m(1, 1:6) = [1,  0, 0,  0, 0, 0]
-   m(2, 1:6) = [0, -1, 0,  0, 0, 0]
-   m(3, 1:6) = [0,  0, 1,  0, 0, 0]
-   m(4, 1:6) = [0,  0, 0, -1, 0, 0]
-   m(5, 1:6) = ele_f%mat6(5, 1:6)
-   m(6, 1:6) = ele_f%mat6(6, 1:6)
-   mat_f = matmul(m, mat_f)
+  !
 
+  str = '"' // trim(ele_f%name) // ':'
+  length = len(trim(ele_f%name))
 
-   mat_f(1, 1:6) =  ele_f%mat6(1, 1:6)
-   mat_f(2, 1:6) = -ele_f%mat6(2, 1:6)
-   mat_f(3, 1:6) =  ele_f%mat6(3, 1:6)
-   mat_f(4, 1:6) = -ele_f%mat6(4, 1:6)
-   mat_f(5, 1:6) =  ele_f%mat6(5, 1:6)
-   mat_f(6, 1:6) =  ele_f%mat6(6, 1:6)
+  if (i > 1) write (1, *)
+  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(1)"', tolerance(trim(ele_f%name),'dorb(1)'), dorb%vec(1)
+  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(2)"', tolerance(trim(ele_f%name),'dorb(2)'), dorb%vec(2)
+  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(3)"', tolerance(trim(ele_f%name),'dorb(3)'), dorb%vec(3)
+  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(4)"', tolerance(trim(ele_f%name),'dorb(4)'), dorb%vec(4)
+  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(5)"', tolerance(trim(ele_f%name),'dorb(5)'), dorb%vec(5)
+  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(6)"', tolerance(trim(ele_f%name),'dorb(6)'), dorb%vec(6)
+  write (1, '(a, a, a, es11.3)') str(1:length+2), 'c*dt"   ', tolerance(trim(ele_f%name),'c*dt'), dorb%t
 
-   call mat_inverse (mat_f, mat_f)
+  if (verbosity) then
+     write (1, *)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(1,:)" ABS 1e-14 ', ele_f%mat6(1,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(2,:)" ABS 1e-14 ', ele_f%mat6(2,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(3,:)" ABS 1e-14 ', ele_f%mat6(3,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(4,:)" ABS 1e-14 ', ele_f%mat6(4,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(5,:)" ABS 1e-14 ', ele_f%mat6(5,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(6,:)" ABS 1e-14 ', ele_f%mat6(6,:)
 
-   m(1, 1:6) = [1,  0, 0,  0, 0, 0]
-   m(2, 1:6) = [0, -1, 0,  0, 0, 0]
-   m(3, 1:6) = [0,  0, 1,  0, 0, 0]
-   m(4, 1:6) = [0,  0, 0, -1, 0, 0]
-   m(5, 1:6) = [0,  0, 0,  0, 1, 0]
-   m(6, 1:6) = [0,  0, 0,  0, 0, 1]
-   mat_f = matmul(m, mat_f)
+     write (1, *)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(1,:)" ABS 1e-14 ', ele_r%mat6(1,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(2,:)" ABS 1e-14 ', ele_r%mat6(2,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(3,:)" ABS 1e-14 ', ele_r%mat6(3,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(4,:)" ABS 1e-14 ', ele_r%mat6(4,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(5,:)" ABS 1e-14 ', ele_r%mat6(5,:)
+     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(6,:)" ABS 1e-14 ', ele_r%mat6(6,:)
+  end if
 
-   !
+  write (1, *)
+  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(1,:)"', tolerance(trim(ele_f%name),'dmat(1,:)'), ele_r%mat6(1,:) - mat_f(1,:)
+  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(2,:)"', tolerance(trim(ele_f%name),'dmat(2,:)'), ele_r%mat6(2,:) - mat_f(2,:)
+  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(3,:)"', tolerance(trim(ele_f%name),'dmat(3,:)'), ele_r%mat6(3,:) - mat_f(3,:)
+  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(4,:)"', tolerance(trim(ele_f%name),'dmat(4,:)'), ele_r%mat6(4,:) - mat_f(4,:)
+  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(5,:)"', tolerance(trim(ele_f%name),'dmat(5,:)'), ele_r%mat6(5,:) - mat_f(5,:)
+  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(6,:)"', tolerance(trim(ele_f%name),'dmat(6,:)'), ele_r%mat6(6,:) - mat_f(6,:)
 
-   str = '"' // trim(ele_f%name) // ':'
-   length = len(trim(ele_f%name))
-   
-   if (i > 1) write (1, *)
-   write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(1)"', tolerance(trim(ele_f%name),'dorb(1)'), orb_1r%vec(1) - orb_0f%vec(1)
-   write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(2)"', tolerance(trim(ele_f%name),'dorb(2)'), orb_1r%vec(2) - orb_0f%vec(2)
-   write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(3)"', tolerance(trim(ele_f%name),'dorb(3)'), orb_1r%vec(3) - orb_0f%vec(3)
-   write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(4)"', tolerance(trim(ele_f%name),'dorb(4)'), orb_1r%vec(4) - orb_0f%vec(4)
-   write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(5)"', tolerance(trim(ele_f%name),'dorb(5)'), dz
-   write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(6)"', tolerance(trim(ele_f%name),'dorb(6)'), dpc
-   write (1, '(a, a, a, es11.3)') str(1:length+2), 'c*dt"   ', tolerance(trim(ele_f%name),'c*dt'), dct 
-
-   if (verbosity) then
-      write (1, *)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(1,:)" ABS 1e-14 ', ele_f%mat6(1,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(2,:)" ABS 1e-14 ', ele_f%mat6(2,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(3,:)" ABS 1e-14 ', ele_f%mat6(3,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(4,:)" ABS 1e-14 ', ele_f%mat6(4,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(5,:)" ABS 1e-14 ', ele_f%mat6(5,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(6,:)" ABS 1e-14 ', ele_f%mat6(6,:)
-
-      write (1, *)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(1,:)" ABS 1e-14 ', ele_r%mat6(1,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(2,:)" ABS 1e-14 ', ele_r%mat6(2,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(3,:)" ABS 1e-14 ', ele_r%mat6(3,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(4,:)" ABS 1e-14 ', ele_r%mat6(4,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(5,:)" ABS 1e-14 ', ele_r%mat6(5,:)
-      write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(6,:)" ABS 1e-14 ', ele_r%mat6(6,:)
-   end if
-
-   write (1, *)
-   write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(1,:)"', tolerance(trim(ele_f%name),'dmat(1,:)'), ele_r%mat6(1,:) - mat_f(1,:)
-   write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(2,:)"', tolerance(trim(ele_f%name),'dmat(2,:)'), ele_r%mat6(2,:) - mat_f(2,:)
-   write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(3,:)"', tolerance(trim(ele_f%name),'dmat(3,:)'), ele_r%mat6(3,:) - mat_f(3,:)
-   write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(4,:)"', tolerance(trim(ele_f%name),'dmat(4,:)'), ele_r%mat6(4,:) - mat_f(4,:)
-   write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(5,:)"', tolerance(trim(ele_f%name),'dmat(5,:)'), ele_r%mat6(5,:) - mat_f(5,:)
-   write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(6,:)"', tolerance(trim(ele_f%name),'dmat(6,:)'), ele_r%mat6(6,:) - mat_f(6,:)
-
-   if (verbosity) then
-      write (1, *)
-      write (1, '(a, a,  3es11.3)') str(1:length+2), 'max(dvec, dmat)" ', maxval(abs([orb_1r%vec(1:4)-orb_0f%vec(1:4), dz, dpc, dct])), &
+  if (verbosity) then
+     write (1, *)
+     write (1, '(a, a,  3es11.3)') str(1:length+2), 'max(dvec, dmat)" ', maxval(abs([dorb%vec, dorb%t])), &
            maxval(abs(ele_r%mat6 - mat_f))
-   end if
+  end if
 
 END DO
 
@@ -183,26 +188,27 @@ END DO
 
 close (1)
 
+!-------------------------------------------------------------------------
 contains
 
 character(11) function tolerance(instr1,instr2)
-  character(*) :: instr1
-  character(*) :: instr2
+character(*) :: instr1
+character(*) :: instr2
 
-  select case (instr1)
-     case('SOL_QUAD2')
-        select case (instr2)
-           case('dorb(1)') ; tolerance = ' ABS 1e-13 '
-           case('dorb(4)') ; tolerance = ' ABS 1e-13 '
-           case('dmat(1,:)') ; tolerance = ' ABS 1e-11 '
-           case('dmat(2,:)') ; tolerance = ' ABS 1e-11 '
-           case('dmat(3,:)') ; tolerance = ' ABS 1e-11 '
-           case('dmat(4,:)') ; tolerance = ' ABS 1e-11 '
-           case('dmat(5,:)') ; tolerance = ' ABS 1e-12 '
-           case default ; tolerance = ' ABS 1e-14 '
-        end select
-     case default ; tolerance = ' ABS 1e-14 '
-  end select
+select case (instr1)
+  case('SOL_QUAD2')
+    select case (instr2)
+    case('dorb(1)') ; tolerance = ' ABS 1e-13 '
+    case('dorb(4)') ; tolerance = ' ABS 1e-13 '
+    case('dmat(1,:)') ; tolerance = ' ABS 1e-11 '
+    case('dmat(2,:)') ; tolerance = ' ABS 1e-11 '
+    case('dmat(3,:)') ; tolerance = ' ABS 1e-11 '
+    case('dmat(4,:)') ; tolerance = ' ABS 1e-11 '
+    case('dmat(5,:)') ; tolerance = ' ABS 1e-12 '
+    case default ; tolerance = ' ABS 1e-14 '
+    end select
+  case default ; tolerance = ' ABS 1e-14 '
+end select
 
 end function tolerance
 

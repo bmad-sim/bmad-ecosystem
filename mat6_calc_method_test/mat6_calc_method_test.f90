@@ -8,7 +8,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), target, allocatable :: temp_ele(:,:)
-type (coord_struct) end_orb
+type (coord_struct) start_orb, end_orb
 type (ele_struct), pointer :: ele
 
 character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
@@ -42,8 +42,9 @@ DO i = 1, lat%n_ele_max - 1
    DO j = 1, n_methods$
       if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == custom$) cycle   
       call kill_taylor(lat%ele(i)%taylor)
-      lat%ele(i)%mat6_calc_method = j  
-      call make_mat6 (lat%ele(i), lat%param, lat%beam_start, end_orb)
+      lat%ele(i)%mat6_calc_method = j
+      call init_coord (start_orb, lat%beam_start, lat%ele(i), .false., lat%param%particle)
+      call make_mat6 (lat%ele(i), lat%param, start_orb, end_orb)
       if (print_extra .and. lat%ele(i)%mat6_calc_method == bmad_standard$) then
         write (1, '(a, 6es22.13)'), 'Start track:', lat%beam_start%vec
         write (1, '(a, 6es22.13)'), 'End track:  ', end_orb%vec 
