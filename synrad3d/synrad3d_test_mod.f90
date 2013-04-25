@@ -163,7 +163,7 @@ open (1, file = photon_start_input_file, status = 'old')
 open (2, file = output_file)
 
 allocate (wall_hit(0:10))
-sr3d_params%diffuse_scattering_on = .false.
+sr3d_params%specular_reflection_only = .true.
 sr3d_params%allow_absorption = .false.
 num_ignored = 0
 n_photon = 0
