@@ -580,6 +580,7 @@ call init_attribute_name1 (e_gun$, field$,                          'FIELD')
 call init_attribute_name1 (em_field$, e_tot_start$,                 'E_TOT_START', dependent$)
 call init_attribute_name1 (em_field$, p0c_start$,                   'P0C_START', dependent$)
 call init_attribute_name1 (em_field$, field$,                       'FIELD')
+call init_attribute_name1 (em_field$, field_calc$,                  'FIELD_CALC')
 
 call init_attribute_name1 (taylor$, l$,                             'L')
 call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start', private$)
