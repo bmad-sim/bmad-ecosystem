@@ -186,7 +186,6 @@ end type
 type (show_lat_column_struct) column(50)
 
 real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z
-real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
@@ -1184,6 +1183,7 @@ case ('global')
     nl=nl+1; write (lines(nl), amt) '  %print_command                 = ', s%global%print_command
     nl=nl+1; write (lines(nl), amt) '  %random_engine                 = ', s%global%random_engine
     nl=nl+1; write (lines(nl), amt) '  %random_gauss_converter        = ', s%global%random_gauss_converter
+    nl=nl+1; write (lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write (lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
     nl=nl+1; write (lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
     if (s%global%random_seed == 0) then
@@ -2400,9 +2400,9 @@ case ('universe')
   nl=nl+1; write (lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
   nl=nl+1; write (lines(nl), imt) '%n_data_used           = ', u%n_data_used
   nl=nl+1; write (lines(nl), lmt) '%do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
-  nl=nl+1; write (lines(nl), lmt) '%calc%chrom         = ', u%calc%chrom
-  nl=nl+1; write (lines(nl), lmt) '%calc%mat6        = ', u%calc%mat6
-  nl=nl+1; write (lines(nl), lmt) '%calc%track       = ', u%calc%track
+  nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
+  nl=nl+1; write (lines(nl), lmt) '%calc%mat6             = ', u%calc%mat6
+  nl=nl+1; write (lines(nl), lmt) '%calc%track            = ', u%calc%track
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam%beam0_file)
   nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam%beam_all_file)
@@ -2444,8 +2444,8 @@ case ('universe')
   call radiation_integrals (u%model%lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache)
   call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%design%ix_rad_int_cache)
   if (lat%param%geometry == closed$) then
-    call chrom_calc (lat, delta_e, u%model%a%chrom, u%model%b%chrom)
-    call chrom_calc (u%design%lat, delta_e, u%design%a%chrom, u%design%b%chrom)
+    call chrom_calc (lat, s%global%delta_e_chrom, u%model%a%chrom, u%model%b%chrom)
+    call chrom_calc (u%design%lat, s%global%delta_e_chrom, u%design%a%chrom, u%design%b%chrom)
   endif
 
   nl=nl+1; lines(nl) = ''

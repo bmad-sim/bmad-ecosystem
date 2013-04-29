@@ -44,7 +44,6 @@ type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 
 integer iuni, j, ib, ix, n_max, iu, it, id, ie
-real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
 character(20) track_type, name
@@ -134,18 +133,14 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
     if (ib == 0) then
       if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting) then
-        call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(ib)%orbit, tao_lat%modes, &
-                                                               tao_lat%ix_rad_int_cache, ib, tao_lat%rad_int)
+        call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(ib)%orbit, &
+                              tao_lat%modes, tao_lat%ix_rad_int_cache, ib, tao_lat%rad_int)
       endif
     endif
 
-    if (u%calc%chrom) then
-      if (u%calc%chrom_lats) then
-        call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom, &
-                          low_E_lat = tao_lat%low_E_lat, high_E_lat = tao_lat%high_E_lat)
-      else
-        call chrom_calc (tao_lat%lat, delta_e, tao_lat%a%chrom, tao_lat%b%chrom)
-      endif
+    if (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting) then
+      call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_lat%a%chrom, &
+                           tao_lat%b%chrom, err, tao_lat%low_E_lat, tao_lat%high_E_lat)
     endif
 
     ! do multi-turn tracking if needed. This is always the main lattice. 

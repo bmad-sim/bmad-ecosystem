@@ -3018,12 +3018,12 @@ end subroutine tao_split_component
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting ()
+! Subroutine tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting ()
 ! 
 ! Routine to set u%dynch_rad_int_clac = T if needed for a plot.
 !-
 
-subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting ()
+subroutine tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting ()
 
 implicit none
 
@@ -3033,12 +3033,16 @@ type (tao_curve_struct), pointer :: curve
 
 integer i, j, k
 
-character(60) :: r_name = 'tao_turn_on_rad_int_calc_if_needed_for_plotting'
+character(*), parameter :: r_name = 'tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting'
 
-! Go through all the plots and find which universes need rad_int_calc.
+! Go through all the plots and find which universes need chrom_or_rad_int_calcs.
 ! u%picked_uni = True => need calc.
 
-s%u(:)%picked_uni = .false.  
+s%u(:)%picked_uni  = s%u(:)%calc%rad_int_for_plotting
+s%u(:)%picked2_uni = s%u(:)%calc%chrom_for_plotting
+
+s%u(:)%calc%rad_int_for_plotting = .false.
+s%u(:)%calc%chrom_for_plotting   = .false.
 
 do i = 1, size(s%plotting%region)
   if (.not. s%plotting%region(i)%visible) cycle
@@ -3052,31 +3056,31 @@ do i = 1, size(s%plotting%region)
       curve => graph%curve(k)
       u => tao_pointer_to_universe(curve%ix_universe)
 
-      if (tao_rad_int_calc_needed(curve%data_type, curve%data_source)) then
-
+      if (.not. u%picked_uni .and. tao_rad_int_calc_needed(curve%data_type, curve%data_source)) then
         if (curve%ix_branch /= 0) then
           call out_io (s_fatal$, r_name, 'PLOTTING THIS: ' // curve%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
           call err_exit
         endif
-
-        u%picked_uni = .true. ! Need calc
+        u%calc%rad_int_for_plotting = .true.
+        u%calc%lattice = .true.
+        u%picked_uni = .true.
       endif
 
-    enddo
-  enddo
-enddo
+      if (.not. u%picked2_uni .and. tao_chrom_calc_needed(curve%data_type, curve%data_source)) then
+        if (curve%ix_branch /= 0) then
+          call out_io (s_fatal$, r_name, 'PLOTTING THIS: ' // curve%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
+          call err_exit
+        endif
+        u%calc%chrom_for_plotting = .true.
+        u%calc%lattice = .true.
+        u%picked2_uni = .true.
+      endif
 
-! Now set u%calc%rad_int_for_plotting.
+    enddo     ! graph%curve
+  enddo     ! plot%graph
+enddo     ! plotting%region
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  ! If a rad_int_calc (from plotting or data demand) is being toggled on, also set u%calc%lattice = T
-  if (s%u(i)%picked_uni .and. .not. (s%u(i)%calc%rad_int_for_plotting .or. s%u(i)%calc%rad_int_for_data)) then
-    u%calc%lattice = .true.
-  endif
-  s%u(i)%calc%rad_int_for_plotting = s%u(i)%picked_uni
-enddo
-
-end subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting
+end subroutine tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -3108,6 +3112,31 @@ if (data_type(1:7)  == 'rad_int') do_rad_int = .true.
 if (data_type(1:16)  == 'apparent_rad_int') do_rad_int = .true.
 
 end function tao_rad_int_calc_needed
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function tao_chrom_calc_needed (data_type, data_source) result (do_chrom)
+! 
+! Routine decide if a datum or plot curve needs the chromaticity calculation.
+!-
+
+function tao_chrom_calc_needed (data_type, data_source) result (do_chrom)
+
+implicit none
+
+character(*) data_type, data_source
+logical do_chrom
+
+!
+
+do_chrom = .false.
+
+if (data_source /= 'lat') return
+if (data_type(1:6)  == 'chrom.') do_chrom = .true. 
+
+end function tao_chrom_calc_needed
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
