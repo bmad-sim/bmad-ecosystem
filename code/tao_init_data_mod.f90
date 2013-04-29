@@ -562,15 +562,12 @@ do j = n1, n2
     endif
   endif
 
-  if (data_type(1:6) == 'chrom.') then
+  if (tao_chrom_calc_needed(data_type, source)) then
     if (u%model%lat%branch(dat%ix_branch)%param%geometry == open$) then
       call out_io (s_warn$, r_name, 'CHROMATICITY DATUM NOT VALID FOR NON-CLOSED LATTICE!')
       dat%exists = .false.
     else
-      u%calc%chrom = .true.
-      if (data_type(1:12) /= 'chrom.dtune.') then 
-        u%calc%chrom_lats = .true.
-      endif
+      u%calc%chrom_for_data = .true.
     endif  
   endif
 

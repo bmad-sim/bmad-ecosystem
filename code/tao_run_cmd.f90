@@ -35,7 +35,7 @@ character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
 
 logical abort
-logical, allocatable :: do_rad_int_data(:), do_rad_int_plotting(:)
+logical, allocatable :: do_rad_int_data(:), do_chrom_data(:)
 
 !
 
@@ -62,20 +62,25 @@ endif
 ! Do not do radiation_integrals calc if not needed
 
 iu0 = lbound(s%u, 1); iu1 = ubound(s%u, 1)
-allocate (do_rad_int_data(iu0:iu1), do_rad_int_plotting(iu0:iu1))
+allocate (do_rad_int_data(iu0:iu1), do_chrom_data(iu0:iu1))
 
 do i = iu0, iu1
   u => s%u(i)
+
   do_rad_int_data(i) = u%calc%rad_int_for_data
-  do_rad_int_plotting(i) = u%calc%rad_int_for_plotting
-  u%calc%rad_int_for_data = .false.
+  do_chrom_data(i)   = u%calc%chrom_for_data
+
+  u%calc%rad_int_for_data     = .false.
   u%calc%rad_int_for_plotting = .false.
+  u%calc%chrom_for_data     = .false.
+  u%calc%chrom_for_plotting = .false.
+
   do j = 1, size(u%data)
     if (.not. u%data(j)%useit_opt) cycle
-    if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) then
-      u%calc%rad_int_for_data = .true.
-      exit
-    endif
+    if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) &
+                                                       u%calc%rad_int_for_data = .true.
+    if (tao_chrom_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) &
+                                                       u%calc%chrom_for_data = .true.
   enddo
 enddo
 
@@ -85,6 +90,7 @@ n_data = 0
 do i = iu0, iu1
   n_data = n_data + count(s%u(i)%data(:)%useit_opt)
 enddo
+
 if (n_data == 0) then
   call out_io (s_error$, r_name, 'No data constraints defined for the merit function!')
   abort = .true.
@@ -140,8 +146,9 @@ enddo
 tao_com%optimizer_running = .false.
 
 s%u(:)%calc%rad_int_for_data = do_rad_int_data
-s%u(:)%calc%rad_int_for_plotting = do_rad_int_plotting
-deallocate (do_rad_int_data, do_rad_int_plotting)
+s%u(:)%calc%chrom_for_data = do_chrom_data
+call tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting ()
+deallocate (do_rad_int_data, do_chrom_data)
 
 if (s%global%orm_analysis) s%u(:)%calc%mat6 = .true.
 s%u(:)%calc%lattice = .true.

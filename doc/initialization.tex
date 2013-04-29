@@ -657,7 +657,7 @@ written in ASCII. The ASCII file format is:
     <z_center>     ! z position at center of bunch.
     <t_center>     ! t position at center of bunch.
     [particle loop: Stop when END_BUNCH marker found]
-      <x> <px> <y> <py> <z> <pz> <charge> <state> <spinor1> <spinor2> <ix_ele> <loc>
+      <x> <px> <y> <py> <z> <pz> <charge> <state> <spinor1> <spinor2> 
     [end particle loop]
     END_BUNCH      ! Marker to mark the end of the bunch specification block
   [end bunch loop]
@@ -667,34 +667,25 @@ Example:
   0       ! ix_ele
   1       ! n_bunch
   25000   ! n_particle
- BEGIN_BUNCH
-   POSITRON
-   3.2E-9   ! bunch_charge
-   0.0      ! z_center
-   0.0      ! t_center
-   1.1201982879E-02   1.4273916776E-02   2.1653350707E-02   2.2728615043E-02   3.1346986796E-04  -2.1471214194E-02   1.28000E-13     1     1.0000000000E+00,   0.0000000000E+00     0.0000000000E+00,   0.0000000000E+00  0  2
-   1.305862E-02,-2.031704E-02,-4.542148E-03  -1.469167E-02  -1.665564E-02,,   3.682821E-02,1.2E-13     1,(1.615544E-15,   0.000000E+00)  (   1.000000E+00,   0.000000E+00)  0  2
-  -2.9144436194E-02   6.6607608278E-03   1.2261067176E-02  -1.8647392418E-02   3.3214435571E-03  -2.7069882203E-02   1.28000E-13     1     1.0000000000E+00,   0.0000000000E+00     0.0000000000E+00,   0.0000000000E+00  0  2
-  -6.5359321929E-03   9.6097300326E-03  -1.9868280183E-02   8.8575189175E-03   2.2829555192E-02  -2.4191045947E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-   8.5542149092E-03   5.5594223657E-03   4.0463646960E-02  -1.9201159022E-02  -4.9427942837E-03   2.1024127665E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-   1.1148689037E-02  -1.9764172521E-02  -2.5541136806E-02   1.0845412370E-02  -1.8241559273E-02  -7.1927051886E-03   1.28000E-13     1  (   1.6155445744E-15,   0.0000000000E+00)  (   1.0000000000E+00,   0.0000000000E+00)  0  2
-  -3.4546835035E-02  -2.7827944833E-03  -4.1451647407E-03   1.3926486125E-02   1.3124953380E-02   1.0184399864E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-   6.8211665145E-03  -4.5131036942E-03   2.5679594350E-03   1.4498726397E-02  -2.3779148391E-03   7.3947633825E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-   1.2281054424E-02  -9.8013294964E-03   1.7733726270E-03   6.4083388336E-03  -9.8504706332E-03  -7.2148861469E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-   1.1493865198E-02  -3.5819197013E-04   1.2638401305E-02   1.8324226469E-02   5.4109396314E-03   1.4311415461E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-  -2.2332220100E-02   1.8397524317E-04  -1.0702733399E-03  -2.0059753688E-03  -1.3997179504E-02  -1.4479831212E-01   1.28000E-13     1  (   1.6155445744E-15,   0.0000000000E+00)  (   1.0000000000E+00,   0.0000000000E+00)  0  2
-   1.0115017831E-02  -7.0879227502E-03   2.4867773572E-02  -1.8627192832E-02  -1.4734132432E-02   6.0918379869E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-   4.2304135207E-03   2.4485324299E-02   7.0628528988E-03   1.9183576242E-02  -1.7089107004E-02  -3.5356277947E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-   2.1255020222E-03  -5.8780398208E-03   9.7766006649E-03   9.8935672086E-03   6.9162308233E-03  -9.0895887416E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-  -1.2967330711E-02  -7.7079971403E-03  -1.5879096782E-03  -3.0829111735E-02   6.0609702533E-03   1.5244693889E-02   1.28000E-13     1  (   1.0000000000E+00,   0.0000000000E+00)  (   0.0000000000E+00,   0.0000000000E+00)  0  2
-   9.2626564067E-03   4.5298286485E-03  -1.2138076374E-03   5.5164618146E-03  -6.5234536134E-03   5.9349639142E-02   1.28000E-13     1  (   1.6155445744E-15,   0.0000000000E+00)  (   1.0000000000E+00,   0.0000000000E+00)  0  2
+  BEGIN_BUNCH
+  POSITRON
+  3.2E-9   ! bunch_charge
+  0.0      ! z_center
+  0.0      ! t_center
+ -6.5E-3  9.6E-3 -1.9E-2  8.8E-3  2.2E-2 -2.4E-2  1.20E-13  1 (1.0, 0.0) (0.0, 0.0)
+  8.5E-3  5.5E-3  4.0E-2 -1.9E-2 -4.9E-3  2.1E-2  1.20E-13  1 (1.0, 0.0) (0.0, 0.0)
+  1.1E-2 -1.9E-2 -2.5E-2  1.0E-2 -1.8E-2 -7.1E-3  1.20E-13  1 (0.0, 0.0) (1.0, 0.0)
+ -3.4E-2 -2.7E-3 -4.1E-3  1.3E-2  1.3E-2  1.0E-2  1.20E-13  1 (1.0, 0.0) (0.0, 0.0)
+  6.8E-3 -4.5E-3  2.5E-3  1.4E-2 -2.3E-3  7.3E-2  1.20E-13  1 (1.0, 0.0) (0.0, 0.0)
+  1.2E-2 -9.8E-3  1.7E-3  6.4E-3 -9.8E-3 -7.2E-2  1.20E-13  1 (1.0, 0.0) (0.0, 0.0)
+  1.1E-2 -3.5E-4  1.2E-2  1.8E-2  5.4E-3  1.4E-2  1.20E-13  1 (1.0, 0.0) (0.0, 0.0)
+     ... etc. ...
  END_BUNCH
 \end{example}
 
-
 The first line of the file gives \vn{ix_ele}, the index of the lattice
 element at which the distribution was created. This is ignored when
-the file is Reading. The second line gives \vn{<n_bunch>}, the number
+the file is Read. The second line gives \vn{<n_bunch>}, the number
 of bunches. The third line gives \vn{n_particle} the number of
 particles in a bunch. After this, there are \vn{<n_bunch>} blocks of
 data, one for each bunch. Each one of these blocks starts with a
@@ -716,9 +707,12 @@ The lines following the \vn{t_center} line specify particle
 coordinates. One line for each particle. Only the phase space
 coordinates need to be specified for each particle. if
 \vn{<particle_charge>} is not present, or is zero, it defaults to
-\vn{bunch_charge/n_particle}.  \vn{<ix_lost>} is the index at which
-the particle has been lost at. A value of -1 for \vn{<ix_lost>}
-indicates that the particle is still alive.
+\vn{bunch_charge/n_particle}. The \vn{<state>} parameter
+indicates whether a particle is alive or dead. Values are
+\begin{example}
+  1     ! Alive
+  2-7   ! Dead
+\end{example}
 
 The particle spin is specified by 2 complex numbers \vn{<spinor1>} and
 \vn{<spinor2>} using complex spinor notation (See the the section on

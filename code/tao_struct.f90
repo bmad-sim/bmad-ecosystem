@@ -496,6 +496,7 @@ type tao_global_struct
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) :: merit_stop_value = -1      ! Merit value below which an optimizer will stop.
   real(rp) :: random_sigma_cutoff = -1   ! cut-off in sigmas.
+  real(rp) :: delta_e_chrom = 0          ! delta E used from chrom calc.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_loops = 1            ! number of optimization loops
@@ -713,8 +714,8 @@ end type
 type tao_universe_calc_struct
   logical rad_int_for_data        ! Do the radiation integrals need to be computed for
   logical rad_int_for_plotting    !   data or plotting?
-  logical chrom                   ! Does the chromaticity need to be computed?
-  logical chrom_lats              ! Save high and low energy lattices?
+  logical chrom_for_data          ! Does the chromaticity need to be computed for
+  logical chrom_for_plotting      !   data or plotting? 
   logical lattice                 ! Used to indicate which lattices need tracking done.
   logical :: mat6 = .true.        ! calc linear transfer matri?
   logical :: track = .true.       ! tracking needs to be done?
@@ -750,6 +751,7 @@ type tao_universe_struct
   integer n_data_used                    ! Number of used %data(:) components.
   logical is_on                          ! universe turned on
   logical picked_uni                     ! Scratch logical.
+  logical picked2_uni                    ! Scratch logical.
 end type
 
 ! The super_universe is the structure that holds an array of universes.
