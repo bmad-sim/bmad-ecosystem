@@ -481,7 +481,7 @@ trajectory is in the middle of the Darwin curve. Calculation of the
 graze angles for a crystal is given in Section~\ref{ss:crystal.ref}.
 
 %-----------------------------------------------------------------------------
-\subsection{Patch, Floor_Shift and Fiducial Elements}
+\subsection{Fiducial, Girder, Patch, and Floor_Shift Elements}
 \label{s:patch.coords}
 
 \index{patch}\index{tilt}\index{floor_shift}\index{girder}
@@ -495,25 +495,13 @@ the element itself.
 
 The $\Bf L$ vector in the transformation for \vn{patch} or \vn{floor_shift}
 elements is:
-\Begineq
-  \Bf L = 
-  \begin{pmatrix}
-    x_{\text{offset}} \,
-    y_{\text{offset}} \,
-    z_{\text{offset}}
-  \end{pmatrix}
-  \label{xyz}
-\Endeq
+\begin{example}
+  \(\bf L\) =  (x_offset, y_offset, z_offset)
+\end{example}
 For \vn{fiducial} and \vn{girder} elements it is
-\Begineq
-  \Bf L = 
-  \begin{pmatrix}
-    dx_{\text{origin}} \,
-    dy_{\text{origin}} \,
-    dz_{\text{origin}}
-  \end{pmatrix}
-  \label{dxdydz}
-\Endeq
+\begin{example}
+  \(\bf L\) = (dx_origin, dy_origin, dz_origin)
+\end{example}
 
 The $\Bf S$ matrix used for the coordinate transformation is defined to by
 \Begineq
@@ -522,19 +510,25 @@ The $\Bf S$ matrix used for the coordinate transformation is defined to by
 \Endeq
 with
 \begin{example}
-             patch \& floor_shift   fiducial \& girder
-  \(\Theta\) = x_pitch                dtheta_origin
+       patch \& floor_shift     fiducial \& girder
+       -------------------     -----------------
+  \(\Theta\)   = x_pitch                dtheta_origin
   \(\Phi\)   = y_pitch                dphi_origin
   \(\Psi\)   = tilt                   dpsi_origin
 \end{example} 
 Note: The form of \Eq{swww} was chosen to correspond to the form of \Eq{wwww}, 
+
+%-----------------------------------------------------------------------------
+\section{Reflection Patch}
+\label{s:reflect.patch}
+\index{patch!reflection}
 
 A \vn{Patch} (or a series of patches) that reflects the direction of
 the \vn{z}-axis is called a \vn{reflection} \vn{patch}. By ``reflected
 direction'' it is meant that the dot product $\Bf z_1 \cdot \Bf z_2$ is
 negative where $\Bf z_1$ is the $z$-axis vector at the \vn{entrance}
 face and $\Bf z_2$ is the $z$-axis vector at the \vn{exit} face. This
-condition is equivalent to the condition on $\bfS$ of
+condition is equivalent to the condition on $\bfS$ in \Eq{swww} of
 \Begineq
   S(3,3) < 0
   \label{s330}

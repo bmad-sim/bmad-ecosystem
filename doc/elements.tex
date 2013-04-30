@@ -1332,17 +1332,19 @@ This is equivalent to a drift.
   \includegraphics{girder.pdf}
   \caption[Girder example.] {
 Girder supporting three elements labeled \vn{A}, \vn{B}, and \vn{C}.
-$\CalO_A$ is the reference coordinates at the upstream end of element
-\vn{A}, $\CalO_C$ is the reference coordinates at the downsream end of
-element \vn{C}, and $\CalO_G$ is the default reference coordinates of
-the girder.
-
+$\calO_A$ is the reference frame at the upstream end of element
+\vn{A}, $\calO_C$ is the reference frame at the downsream end of
+element \vn{C}, and $\calO_G$ is the default \vn{origin} reference frame of
+the girder. $r_{CA}$ is the vector from $\calO_A$ to $\calO_C$.
   }
   \label{f:girder}
 \end{figure}
 
 A \vn{girder} is a support structure that orients the elements that
-are attached to it in space.
+are attached to it in space. A girder can be used to simulate any
+rigid support structure and there are no restrictions on how the lattice
+elements that are supported are ariented with respect to one another.
+Thus, for example, optical tables can be simulated.
 
 General \vn{girder} attributes are:
 \begin{center}
@@ -1373,35 +1375,100 @@ Attributes specific to a \vn{floor_shift} elements are:
   ds_girder         = <Real>     ! ``Path length'' of girder. Dependent attrib (\sref{s:depend}).
 \end{example}
 
+A simple example of a girder is shown in \fig{f:girder}. Here a girder
+supports three elements labeled \vn{A}, \vn{B}, and \vn{C} where
+\vn{B} is a bend so the geometry is nonlinear. Such a girder may
+specified in the lattice file like:
+\begin{example}
+  g1: girder = \{A, B, C\}
+\end{example}
+
+The reference frame from which the girder's offset, pitch, and tilt
+attributes (\sref{s:offset}) are measured is constructed as follows: A
+reference frame, called the ``\vn{origin}'' reference frame may be
+defined using the attributes \vn{origin_ele} and
+\vn{origin_ele_ref_pt} which constructus the girder's
+\vn{origin} frame to be coincident with the reference frame of another
+element. Example:
+\begin{example}
+  g2: girder = \{...\}, origin_ele = Q, origin_ele_ref_pt = entrance_end
+\end{example}
+In this example, girder \vn{g2} has an \vn{origin} reference frame
+cooincident with the entrance end frame of an element named
+\vn{Q}. Valid \vn{origin_ele_ref_pt} values are
+\begin{example}
+  entrance_end
+  center        ! Default
+  exit_end
+\end{example}
+
+If \vn{origin_ele} is not given, the default \vn{origin} frame is
+used. The default \vn{origin} frame is constructed as follows:
+Let $\calO_A$ be the reference frame of the upstream end of
+the first element in the list of supoorted elements. In this example
+it is the upstream end of element \vn{A} as shown in the figure. Let
+$\calO_C$ be the downstream end of the last element in the list of
+supported elements. In this example this is the downstream end of
+element \vn{C}. The origin of the \vn{girder}'s reference frame,
+marked $\calO_G$ in the figure, will be half way along the vector
+$r_{CA}$ from the origin of $\calO_A$ to the origin of $\calO_B$.  The
+orientation of $\calO_G$ is constructed by rotating the $\calO_A$
+coordinate system along an axis in $\calO_A$'s $x$-$y$ plane such that
+$\calO_A$'s $z$ axis ends up parallel with $r_{CA}$. In the example
+above, the rotation axis will be along $\calO_A$'s $y$-axis.
+
+Once the \vn{origin} referece frame is established, the reference
+frame of the girder can be offset
+from the \vn{origin} fram using the parameters
+\begin{example}
+  dx_origin    dtheta_origin
+  dy_origin    dphi_origin
+  dz_origin    dpsi_origin
+\end{example} 
+The orientation of the \vn{girder}'s referece frame from the \vn{origin}
+frame is given in \sref{s:patch.coords}. Example:
+\begin{example}
+  g3: girder = \{ ... \}, dx_origin = 0.03
+\end{example}
+This offsets girder \vn{g3}'s reference frame 3~cm horizontally from
+the default \vn{origin} frame. If no offsets are given, the
+\vn{origin} fram is the same as the girder's reference frame.
+
+The physical orientation of the girder with respect to it's reference
+frame is 
 \index{x_offset}\index{y_pitch}\index{tilt}\index{s_center}
 
+
+
 When a \vn{girder} ``supports'' an element, then that elements
-orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.)
-give the orientation of the element with respect to the
-\vn{girder}. An example will make this clear:
+orientation attributes (\vn{x_offset}, etc. \sref{s:offset}) give the
+orientation of the element with respect to the \vn{girder}. The
+orientation with respect to the local reference coordinates is given
+by \vn{x_offset_tot}, which are computed from the orientation
+attributes of the element and the \vn{girder}.
+
+An example will make this clear:
 \begin{example}
   q1: quad, l = 2
-  q2: quad, l = 4, x_offset = 0.2, x_pitch = 0.01
+  q2: quad, l = 4, x_offset = 0.02, x_pitch = 0.01
   d: drift, l = 8
-  ib: girder = \{q1, q2\}, x_pitch = 0.1, x_offset = 0.3
+  ib: girder = \{q1, q2\}, x_pitch = 0.002, x_offset = 0.03
   this_line: line = (q1, d, q2)
   use, this_line
 \end{example}
 \index{overlay}
-In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
-\vn{s_center} of \vn{ib} is at $s = 7$~meters (\vn{ib} starts at $s =
-0$ which is the beginning of \vn{q1} and ends at $s = 14$ which is the
-end of \vn{q2}). Like other elements, pitch is calculated from the
-center of a \vn{girder} element (see Sec.~\ref{s:offset}). The center
+In this example, \vn{ib} supports elements \vn{q1} and \vn{q2}. The
+``center'' of \vn{ib} is at $s = 7$~meters (\vn{ib} starts at $s = 0$
+which is the beginning of \vn{q1} and ends at $s = 14$ which is the
+end of \vn{q2}). Like other elements, the orientation of a girder is
+calculated with respect to its center (more on this below). The center
 of \vn{q2} is at $s = 12$ so the distance between the center of
-\vn{ib} and \vn{q2} is $ds = 5$. The pitch of \vn{ib} produces an
-offset at the center of \vn{q2} of $0.5 = 0.1 * 5$. This, added to the
-offsets of \vn{ib} and \vn{q2}, give the total offset of \vn{q2} to be
-$1.0 = 0.5 + 0.3 + 0.2$. The total \vn{x_pitch} of \vn{q2} is $0.11 =
-0.1 + 0.01$. From the above example it can be seen that a \vn{girder}
-looks similar to an \vn{Overlay} (see Sec.~\ref{s:overlay}). It would,
-however, take six \vn{Overlays} to simulate the effect of a single
-\vn{girder}.
+\vn{ib} and \vn{q2} is $ds = 5$. The \vn{x_pitch} of \vn{ib} produces
+an offset at the center of \vn{q2} of $0.01 = 0.002 * 5$. This, added
+to the offsets of \vn{ib} and \vn{q2}, give the total offset of
+\vn{q2} to be $0.06 = 0.01 + 0.03 + 0.02$. (A small angle
+approximation is used here, in actuallity, small angles are not
+assumed.) The total \vn{x_pitch} of \vn{q2} is $0.022 = 0.02 + 0.001$.
 
 The \vn{girder} statement syntax is:
 \begin{example}
@@ -2379,7 +2446,7 @@ To have in a branch both normally oriented and reversed elements
 (\sref{s:ref.construct}), a \vn{patch}, (or series of \vn{patches}),
 which reflects the $z$ direction must be placed in between. Such a
 \vn{patch}, (or patches) is called a \vn{reflection}
-\vn{patch}. See Section~\sref{s:patch.coords} for more details.
+\vn{patch}. See Section~\sref{s:reflect.patch} for more details.
 
 \index{rigid patch}\index{infleible patch}
 \index{flexible patch}
