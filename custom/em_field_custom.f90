@@ -1,11 +1,18 @@
 !+
 ! Subroutine em_field_custom (ele, param, s_rel, t_rel, here, local_ref_frame, field, calc_dfield, err_flag)
 !
-! Dummy routine. 
-! A valid em_field_custom is needed only if the em_field routine is being used.
+! Routine for handling custom (user supplied) EM fields.
+! This routine is called when ele%field_calc = custom$ or when ele is a custom element (%key = custom$)
+! In or der to be used, this routine must be modified appropriately. See the Bmad manual for more details.
+!
+! Note: Fields should not have any unphysical discontinuities. 
+! Discontinuities may cause Runge-Kutta integration to fail resulting in particles getting marked as "lost".
+! The mode of failure here is that RK will try smaller and smaller steps to integrate through the 
+! discontinuity until the step size gets lower than bmad_com%min_ds_adaptive_tracking. At this
+! point the particle gets marked as lost.
 !
 ! General rule: Your code may NOT modify any argument that is not listed as
-! an output agument below."
+! an output agument below.
 !
 ! Input:
 !   ele         -- Ele_struct: Custom element.

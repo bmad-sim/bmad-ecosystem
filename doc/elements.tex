@@ -1199,7 +1199,6 @@ may be set to one of
   exit_end
 \end{example}
 
-
 Once the origin reference position is determined, the reference
 position of the \vn{fiducial} element is calculated using the offset
 attributes 
@@ -1333,7 +1332,7 @@ This is equivalent to a drift.
   \caption[Girder example.] {
 Girder supporting three elements labeled \vn{A}, \vn{B}, and \vn{C}.
 $\calO_A$ is the reference frame at the upstream end of element
-\vn{A}, $\calO_C$ is the reference frame at the downsream end of
+\vn{A}, $\calO_C$ is the reference frame at the downstream end of
 element \vn{C}, and $\calO_G$ is the default \vn{origin} reference frame of
 the girder. $r_{CA}$ is the vector from $\calO_A$ to $\calO_C$.
   }
@@ -1343,7 +1342,7 @@ the girder. $r_{CA}$ is the vector from $\calO_A$ to $\calO_C$.
 A \vn{girder} is a support structure that orients the elements that
 are attached to it in space. A girder can be used to simulate any
 rigid support structure and there are no restrictions on how the lattice
-elements that are supported are ariented with respect to one another.
+elements that are supported are oriented with respect to one another.
 Thus, for example, optical tables can be simulated.
 
 General \vn{girder} attributes are:
@@ -1383,93 +1382,6 @@ specified in the lattice file like:
   g1: girder = \{A, B, C\}
 \end{example}
 
-The reference frame from which the girder's offset, pitch, and tilt
-attributes (\sref{s:offset}) are measured is constructed as follows: A
-reference frame, called the ``\vn{origin}'' reference frame may be
-defined using the attributes \vn{origin_ele} and
-\vn{origin_ele_ref_pt} which constructus the girder's
-\vn{origin} frame to be coincident with the reference frame of another
-element. Example:
-\begin{example}
-  g2: girder = \{...\}, origin_ele = Q, origin_ele_ref_pt = entrance_end
-\end{example}
-In this example, girder \vn{g2} has an \vn{origin} reference frame
-cooincident with the entrance end frame of an element named
-\vn{Q}. Valid \vn{origin_ele_ref_pt} values are
-\begin{example}
-  entrance_end
-  center        ! Default
-  exit_end
-\end{example}
-
-If \vn{origin_ele} is not given, the default \vn{origin} frame is
-used. The default \vn{origin} frame is constructed as follows:
-Let $\calO_A$ be the reference frame of the upstream end of
-the first element in the list of supoorted elements. In this example
-it is the upstream end of element \vn{A} as shown in the figure. Let
-$\calO_C$ be the downstream end of the last element in the list of
-supported elements. In this example this is the downstream end of
-element \vn{C}. The origin of the \vn{girder}'s reference frame,
-marked $\calO_G$ in the figure, will be half way along the vector
-$r_{CA}$ from the origin of $\calO_A$ to the origin of $\calO_B$.  The
-orientation of $\calO_G$ is constructed by rotating the $\calO_A$
-coordinate system along an axis in $\calO_A$'s $x$-$y$ plane such that
-$\calO_A$'s $z$ axis ends up parallel with $r_{CA}$. In the example
-above, the rotation axis will be along $\calO_A$'s $y$-axis.
-
-Once the \vn{origin} referece frame is established, the reference
-frame of the girder can be offset
-from the \vn{origin} fram using the parameters
-\begin{example}
-  dx_origin    dtheta_origin
-  dy_origin    dphi_origin
-  dz_origin    dpsi_origin
-\end{example} 
-The orientation of the \vn{girder}'s referece frame from the \vn{origin}
-frame is given in \sref{s:patch.coords}. Example:
-\begin{example}
-  g3: girder = \{ ... \}, dx_origin = 0.03
-\end{example}
-This offsets girder \vn{g3}'s reference frame 3~cm horizontally from
-the default \vn{origin} frame. If no offsets are given, the
-\vn{origin} fram is the same as the girder's reference frame.
-
-The physical orientation of the girder with respect to it's reference
-frame is 
-\index{x_offset}\index{y_pitch}\index{tilt}\index{s_center}
-
-
-
-When a \vn{girder} ``supports'' an element, then that elements
-orientation attributes (\vn{x_offset}, etc. \sref{s:offset}) give the
-orientation of the element with respect to the \vn{girder}. The
-orientation with respect to the local reference coordinates is given
-by \vn{x_offset_tot}, which are computed from the orientation
-attributes of the element and the \vn{girder}.
-
-An example will make this clear:
-\begin{example}
-  q1: quad, l = 2
-  q2: quad, l = 4, x_offset = 0.02, x_pitch = 0.01
-  d: drift, l = 8
-  ib: girder = \{q1, q2\}, x_pitch = 0.002, x_offset = 0.03
-  this_line: line = (q1, d, q2)
-  use, this_line
-\end{example}
-\index{overlay}
-In this example, \vn{ib} supports elements \vn{q1} and \vn{q2}. The
-``center'' of \vn{ib} is at $s = 7$~meters (\vn{ib} starts at $s = 0$
-which is the beginning of \vn{q1} and ends at $s = 14$ which is the
-end of \vn{q2}). Like other elements, the orientation of a girder is
-calculated with respect to its center (more on this below). The center
-of \vn{q2} is at $s = 12$ so the distance between the center of
-\vn{ib} and \vn{q2} is $ds = 5$. The \vn{x_pitch} of \vn{ib} produces
-an offset at the center of \vn{q2} of $0.01 = 0.002 * 5$. This, added
-to the offsets of \vn{ib} and \vn{q2}, give the total offset of
-\vn{q2} to be $0.06 = 0.01 + 0.03 + 0.02$. (A small angle
-approximation is used here, in actuallity, small angles are not
-assumed.) The total \vn{x_pitch} of \vn{q2} is $0.022 = 0.02 + 0.001$.
-
 The \vn{girder} statement syntax is:
 \begin{example}
   <element_name>: GIRDER = \{<ele1>, <ele2>, ..., <eleN> \}, ...
@@ -1490,6 +1402,96 @@ Wild card characters (\sref{s:lat.attribs}) can be used in any element
 name in the girder slave list. Additionally, beam line names
 (\sref{s:lines.wo.arg}) can be used. In this case, any \vn{drift} elements
 within a beam line will be ignored.
+
+The reference frame from which the girder's offset, pitch, and tilt
+attributes (\sref{s:offset}) are measured is constructed as follows: A
+reference frame, called the ``\vn{origin}'' reference frame may be
+defined using the attributes \vn{origin_ele} and
+\vn{origin_ele_ref_pt} which constructs the girder's
+\vn{origin} frame to be coincident with the reference frame of another
+element. Example:
+\begin{example}
+  g2: girder = \{...\}, origin_ele = Q, origin_ele_ref_pt = entrance_end
+\end{example}
+In this example, girder \vn{g2} has an \vn{origin} reference frame
+coincident with the entrance end frame of an element named
+\vn{Q}. Valid \vn{origin_ele_ref_pt} values are
+\begin{example}
+  entrance_end
+  center        ! Default
+  exit_end
+\end{example}
+
+If \vn{origin_ele} is not given, the default \vn{origin} frame is
+used. The default \vn{origin} frame is constructed as follows:
+Let $\calO_A$ be the reference frame of the upstream end of
+the first element in the list of supported elements. In this example
+it is the upstream end of element \vn{A} as shown in the figure. Let
+$\calO_C$ be the downstream end of the last element in the list of
+supported elements. In this example this is the downstream end of
+element \vn{C}. The origin of the \vn{girder}'s reference frame,
+marked $\calO_G$ in the figure, will be half way along the vector
+$r_{CA}$ from the origin of $\calO_A$ to the origin of $\calO_B$.  The
+orientation of $\calO_G$ is constructed by rotating the $\calO_A$
+coordinate system along an axis in $\calO_A$'s $x$-$y$ plane such that
+$\calO_A$'s $z$ axis ends up parallel with $r_{CA}$. In the example
+above, the rotation axis will be along $\calO_A$'s $y$-axis.
+
+Once the \vn{origin} reference frame is established, the reference
+frame of the girder can be offset
+from the \vn{origin} frame using the parameters
+\begin{example}
+  dx_origin    dtheta_origin
+  dy_origin    dphi_origin
+  dz_origin    dpsi_origin
+\end{example} 
+The orientation of the \vn{girder}'s reference frame from the \vn{origin}
+frame is given in \sref{s:patch.coords}. Example:
+\begin{example}
+  g3: girder = \{ ... \}, dx_origin = 0.03
+\end{example}
+This offsets girder \vn{g3}'s reference frame 3~cm horizontally from
+the default \vn{origin} frame. If no offsets are given, the
+\vn{origin} frame is the same as the girder's reference frame.
+
+\index{x_offset}\index{y_offset}\index{x_pitch}\index{y_pitch}\index{tilt}
+The physical orientation of the girder with respect to it's reference
+frame is, like other elements, determined by the offset, pitch and
+tilt orientation attributes as outlined in \sref{s:offset} and
+\sref{s:patch.coords}.  When a girder is shifted in space, the elements
+it supports are also shifted.  In this case, the orientation
+attributes (\vn{x_offset}, \vn{y_pitch}, etc.) give the orientation of
+the element with respect to the \vn{girder}. The orientation with
+respect to the local reference coordinates is given by
+\vn{x_offset_tot}, which are computed from the orientation attributes
+of the element and the \vn{girder}. An example will make this clear:
+\begin{example}
+  q1: quad, l = 2
+  q2: quad, l = 4, x_offset = 0.02, x_pitch = 0.01
+  d: drift, l = 8
+  g4: girder = \{q1, q2\}, x_pitch = 0.002, x_offset = 0.03
+  this_line: line = (q1, d, q2)
+  use, this_line
+\end{example}
+\index{overlay}
+In this example, \vn{g4} supports quadrupoles \vn{q1} and \vn{q2}.
+Since the supported elements are colinear, the computation is greatly
+simplified. The reference frame of \vn{g4}, which is the default
+\vn{origin} frame, is at $s = 7$~meters which is half way between the
+start of \vn{q1} at at $s = 0$~meters and the end of \vn{q2}) which is
+at $s = 14$. The reference frames of \vn{q1} and \vn{q2} are at their
+centers so the $s$ positions of the reference frames is
+\begin{example}
+  Element        S_ref   dS_from_g4
+  q1             1.0     -6.0
+  g4             7.0      0.0
+  q2            12.0      5.0
+\end{example}
+Using a small angle approximation to simplify the calculation, the
+\vn{x_pitch} of \vn{g4} produces an offset at the center of \vn{q2} of
+$0.01 = 0.002 * 5$. This, added to the offsets of \vn{g4} and \vn{q2},
+give the total offset of \vn{q2} to be $0.06 = 0.01 + 0.03 + 0.02$.
+The total \vn{x_pitch} of \vn{q2} is $0.022 = 0.02 + 0.001$.
 
 %-----------------------------------------------------------------------------
 \section{Group}
@@ -1829,7 +1831,7 @@ dependent attribute and is defined to be
   voltage = gradient * L
 \end{example}
 
-The energy kick felt by a particle, assuming no phase slipage, is 
+The energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
   dE = gradient_tot * L * cos(twopi * (phi_particle + phi_ref))
 \end{example}
@@ -2561,7 +2563,7 @@ Attributes specific to an \vn{rfcavity} are:
 \end{example}
 
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
-\mad. The integrated energy kick felt by a particle, assuming no phase slipage, is 
+\mad. The integrated energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
   dE = -e_charge * voltage * sin(twopi * (phi_particle - phi_ref))
 \end{example}

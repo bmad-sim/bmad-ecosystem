@@ -241,7 +241,7 @@ For photons, the reference wavelength, \vn{ref_wavelength} is also a
 dependent attribute calculated from the reference energy.
 
 %-----------------------------------------------------------------
-\section{Offset, Pitch, Tilt, and Roll Attributes}
+\section{Element Orientation: Offset, Pitch, Tilt, and Roll Attributes}
 \label{s:offset}
 \index{x_offset|hyperbf}
 \index{y_offset|hyperbf}\index{z_offset|hyperbf}
@@ -279,8 +279,8 @@ laboratory coordinate frame, is given by
   Where: \(s\sb{x}\) = sin(x_pitch), and  \(s\sb{y}\) = sin(y_pitch)
 \end{example}
 and the rotation axis is perpendicular to the laboratory $z$-axis and
-the element $z$-axis. Transformation formulas between labortory and
-element reference frames is given in \sref{s:lab.ele.coord}.
+the element $z$-axis. Transformation formulas between laboratory and
+element reference frames is given in \sref{s:patch.coords}.
 
 If \vn{y_pitch} is zero, The \vn{x_pitch} attribute rotates an element
 about the $y$--axis so that the exit face of the element is displaced
@@ -601,7 +601,7 @@ The \vn{fringe_type} may be set to one of the following
   full_bend
   full_straight
 \end{example}
-The \vn{none} setting ignores any fring fields and is the default for
+The \vn{none} setting ignores any fringe fields and is the default for
 \vn{quadrupoles}, \vn{sextupoles}, etc. The \vn{basic bend} setting,
 which is the default for \vn{rbend} and \vn{sbend} elements, is
 essentially the basic vertical focusing effect that is present when
@@ -613,9 +613,9 @@ order terms.  In some cases, for instance in a chicane,
 difference between \vn{full_bend} and \vn{full_straight} is that with
 \vn{full_bend} the fringe field is calculated assuming that there is
 translational invariance along the horizontal $x$ axis (as one would have 
-in a bend) and for \vn{full_straight} the fring_field i
+in a bend) and for \vn{full_straight} the fringe_field i
 
-Eaxmple:
+Example:
 \begin{example}
   b1: rbend, angle = pi/4, g = 0.3, fringe_type = full_bend
 \end{example}
@@ -786,7 +786,7 @@ Note: Specifying \vn{priority}, \vn{s_spline} or
         s = 0.34, 
         v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\} \} \}
 \end{example}
-In this example an element called \vn{this_cap} is a \vn{capillay}
+In this example an element called \vn{this_cap} is a \vn{capillary}
 whose wall is defined by two cross-sections.
 
 The wall structure begins with ``\vn{wall = \{}'' and ends with a

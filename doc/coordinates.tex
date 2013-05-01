@@ -387,55 +387,6 @@ undiffracted beam (shown in red) as the reference trajectory.
 \end{figure}
 
 %-----------------------------------------------------------------------------
-\subsection{Transformation Between Laboratory and Element Body Coordinates for Straight Elements}
-\label{s:lab.ele.coord}
-
-The \vn{Element Body} coordinates are the coordinate system attached
-to an element. Without any misalignments (Here \vn{``misalignment''}
-is {\em defined} to be any offset, pitch or tilt (\sref{s:offset}),
-the laboratory and element body coordinates are the same. For a
-straight element, that is, for an element that does not bend or
-reflect like a mirror element, the transformation between laboratory
-and element frames is as follows.
-
-In the laboratory frame, a unit vector $\Bf r_{bz}$ along the $z$-axis
-attached to the element has coordinates
-\Begineq
-  \Bf r_{bz} = (s_x, s_y, \sqrt{1 - s_x^2 - s_y^2})
-\Endeq
-where
-\Begineq
-  s_x = \mbox{sin(x_pitch)}, \qquad  s_y = \mbox{sin(y_pitch)}
-\Endeq
-The rotation vector that transforms between laboratory and element
-coordinates is defined to be perpendicular to the plane defined by the
-laboratory and element $z$ axes. In the laboratory coordinates, the
-normalized rotation vector $\Bf N$ is thus
-\Begineq
-  \Bf N = \frac{1}{\sqrt{s_x^2 + s_y^2}} \, (-s_y, s_x, 0)
-\Endeq
-The rotation angle $\theta$ between the laboratory and element $z$
-axes is obtained by taking the cross product of the two which gives
-\Begineq
-  \sin\theta = \sqrt{s_x^2 + s_y^2}, \qquad
-  \cos\theta = \sqrt{1 - s_x^2 - s_y^2} 
-\Endeq
-
-The transformation from body coordinates to laboratory coordinates is
-a rotation along $\Bf N$ by an angle $\theta$.  The rotation matrix
-$\Bf W_b$ associated with this transformation is obtained from the
-standard formula
-\Begineq
-  \Bf W_b = \begin{pmatrix}
-    N_x^2 + N_y^2 \, \cos\theta    & N_x \, N_y \, (1 - \cos\theta) & s_x \\
-    N_x \, N_y \, (1 - \cos\theta) & N_y^2 + N_x^2 \, \cos\theta    & s_y \\
-    -s_x                           & -s_y                           & \cos\theta 
-  \end{pmatrix}
-\Endeq
-The reverse transformation from laboratory to body coordinates is
-obtained by reversing the sign of $s_x$ and $s_y$.
-
-%-----------------------------------------------------------------------------
 \subsection{Crystal and Mirror Element Coordinate Transformation}
 \label{s:mirror.coords}
 
@@ -481,45 +432,50 @@ trajectory is in the middle of the Darwin curve. Calculation of the
 graze angles for a crystal is given in Section~\ref{ss:crystal.ref}.
 
 %-----------------------------------------------------------------------------
-\subsection{Fiducial, Girder, Patch, and Floor_Shift Elements}
+\subsection{Element Misalignment and Origin Shift Transformation}
 \label{s:patch.coords}
 
-\index{patch}\index{tilt}\index{floor_shift}\index{girder}
-The shift in the reference coordinates from the entrance end to the
-exit end of\vn{patch} (\sref{s:patch}) or \vn{floor_shift}
-\vn{s:floor.ele} element is given by \Eqs{vwlv} and \eq{wws}. These
-equations are also used to calculate the shift in the reference
-coordinates between the origin reference coordinates of a
-\vn{fiducial} or \vn{girder} element and the reference coordinates of
-the element itself.
-
-The $\Bf L$ vector in the transformation for \vn{patch} or \vn{floor_shift}
-elements is:
+The \vn{Element Body} coordinates are the coordinate system attached
+to an element. Without any misalignments (Here \vn{``misalignment''}
+is {\em defined} to be any offset, pitch or tilt (\sref{s:offset}),
+the laboratory and element body coordinates are the same. With
+misalignments, the transformation is given by \Eqs{vwlv} and \eq{wws}
+where 
 \begin{example}
   \(\bf L\) =  (x_offset, y_offset, z_offset)
 \end{example}
-For \vn{fiducial} and \vn{girder} elements it is
-\begin{example}
-  \(\bf L\) = (dx_origin, dy_origin, dz_origin)
-\end{example}
-
-The $\Bf S$ matrix used for the coordinate transformation is defined to by
+and the $\bfS$ matrix is defined by 
 \Begineq
   \bfS = \Bf W_\Theta \, \Bf W_\Phi \, \Bf W_\Psi
   \label{swww}
 \Endeq
 with
 \begin{example}
-       patch \& floor_shift     fiducial \& girder
-       -------------------     -----------------
-  \(\Theta\)   = x_pitch                dtheta_origin
-  \(\Phi\)   = y_pitch                dphi_origin
-  \(\Psi\)   = tilt                   dpsi_origin
+   \(\Theta\) = x_pitch,  \(\Phi\) = y_pitch,  \(\Psi\) = tilt
 \end{example} 
-Note: The form of \Eq{swww} was chosen to correspond to the form of \Eq{wwww}, 
+The form of \Eq{swww} was chosen to correspond to the form of \Eq{wwww}.
+
+\index{patch}\index{floor_shift}
+For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} \vn{s:floor.ele}
+elements, the above equations are also used to calculate the The shift
+in the reference coordinates from the entrance end to the exit end of
+the element.
+
+\index{girder}\index{fiducial}
+Additionally, the above equations are used to calculate the alignment
+of reference coordinates with respect to ``\vn{origin}'' coordinates
+with \vn{fiducial} and \vn{girder} elements. In this case the vector
+$\bfL$ is constructed via
+\begin{example}
+  \(\bf L\) = (dx_origin, dy_origin, dz_origin)
+\end{example}
+And the attributes use to shift the reference coordinates orientation are:
+\begin{example}
+   \(\Theta\) = dtheta_origin,  \(\Phi\) = dphi_origin,  \(\Psi\) = dpsi_origin
+\end{example} 
 
 %-----------------------------------------------------------------------------
-\section{Reflection Patch}
+\subsection{Reflection Patch}
 \label{s:reflect.patch}
 \index{patch!reflection}
 
