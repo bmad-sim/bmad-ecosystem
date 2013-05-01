@@ -1,7 +1,6 @@
 set (EXENAME girder_test)
-set (SRC_FILES
-  girder_test/girder_test.f90
-)
+
+FILE (GLOB SRC_FILES "girder_test/*.f90")
 
 set (INC_DIRS
 )
