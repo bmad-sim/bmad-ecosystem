@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 117
+integer, parameter :: bmad_inc_version$ = 118
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -470,7 +470,6 @@ type ele_struct
   logical old_is_on              ! For saving the element on/off state.
   logical logic                  ! For general use. Not used by Bmad.
   logical bmad_logic             ! For Bmad internal use only.
-  logical on_a_girder            ! Have an Girder overlay_lord?
   logical csr_calc_on            ! Coherent synchrotron radiation calculation
   logical offset_moves_aperture  ! element offsets affects aperture?
 end type
@@ -677,7 +676,7 @@ integer, parameter :: old_command$=3, angle$=3, kick$=3, x_gain_err$=3
 integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displace$=4, y_gain_err$=4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
-integer, parameter :: flexible$ = 5, crunch$=5
+integer, parameter :: flexible$ = 5, crunch$=5, follow_diffracted_beam$=5
 integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, new_branch$ = 6
 integer, parameter :: g$=6, graze_angle_in$ = 6
 integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
@@ -689,12 +688,12 @@ integer, parameter :: d1_thickness$ = 9, voltage_err$=9, rel_tracking_charge$ = 
 integer, parameter :: ks$=9, l_chord$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
 integer, parameter :: polarity$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
 integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10, gap$=10
-integer, parameter :: grad_loss_sr_wake$=11, s_min$=11
+integer, parameter :: grad_loss_sr_wake$=11, ds_path_length$=11
 integer, parameter :: e2$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
-integer, parameter :: s_center$=12, y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
+integer, parameter :: y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
 integer, parameter :: traveling_wave$ = 12
 integer, parameter :: fint$=12, fintx$=13, hgap$=14, hgapx$=15, h1$=16, h2$=17
-integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, s_max$=13
+integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13
 integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14
 integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: quad_tilt$=14, bend_tilt$=15, x_quad$=16, y_quad$=17
@@ -736,9 +735,9 @@ integer, parameter :: x_offset_tot$ = 46
 integer, parameter :: y_offset_tot$ = 47
 integer, parameter :: z_offset_tot$ = 48
 integer, parameter :: tilt_tot$ = 49
-integer, parameter :: n_ref_pass$ = 50, ref_cap_gamma$ = 50
-integer, parameter :: radius$ = 51, kh_y_norm$ = 51
-integer, parameter :: pole_radius$ = 52, follow_diffracted_beam$ = 52 
+integer, parameter :: pole_radius$ = 50, tilt_err_tot$ = 50, roll_tot$ = 50
+integer, parameter :: n_ref_pass$ = 51, ref_cap_gamma$ = 51
+integer, parameter :: radius$ = 52, kh_y_norm$ = 52
 integer, parameter :: ref_time_start$ = 53
 integer, parameter :: thickness$ = 54, integrator_order$ = 54   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 55, l_x$ = 55

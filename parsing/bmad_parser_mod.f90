@@ -4547,12 +4547,6 @@ main_loop: do n = 1, n2
 
           ele => pointer_to_ele (lat, ix_ele_now, ib)
 
-          if (ele%key == drift$) then
-            ix_ele_now = ix_ele_now + 1
-            if (match_wild(lord%name, input_slave_name)) ixs = ixs + 1
-            cycle
-          endif
-
           ! If a super_slave then go to the lords to match the name.
           ! The logic here is complicated by the fact that elements can, for example,
           ! be completely contained within another element.
@@ -4601,17 +4595,20 @@ main_loop: do n = 1, n2
           ! Regular element
 
           if (match_wild(ele%name, input_slave_name)) then
-            n_slave = n_slave + 1
-            cs(n_slave)%ix_slave  = ele%ix_ele
-            cs(n_slave)%ix_branch = ele%ix_branch
+            if (ele%key /= drift$) then
+              n_slave = n_slave + 1
+              cs(n_slave)%ix_slave  = ele%ix_ele
+              cs(n_slave)%ix_branch = ele%ix_branch
+            endif
             ixs = ixs + 1  ! Next girder slave
             ix_ele_now = ix_ele_now + 1
             cycle
           endif
           
-          ! No match to the slave list. If a marker then ignore
+          ! No match to the slave list. If a marker or drift then ignore except 
+          ! if this is the first slave in which case there is no match.
 
-          if (ele%key == marker$) then
+          if ((ele%key == marker$ .or. ele%key == drift$) .and. ixs > 1) then
             ix_ele_now = ix_ele_now + 1
             cycle
           endif

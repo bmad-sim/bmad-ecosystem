@@ -1261,7 +1261,6 @@ ele%multipoles_on     = .true.
 ele%scale_multipoles  = .true.
 ele%symplectify       = .false.
 ele%map_with_offsets  = .true.
-ele%on_a_girder       = .false.
 ele%csr_calc_on       = .true.
 ele%logic             = .false.
 ele%mode_flip         = .false.

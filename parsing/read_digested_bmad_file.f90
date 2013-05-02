@@ -406,26 +406,24 @@ logical error
 
 error = .true.
 
-if (file_version >= 99) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_wig_branch, ix_r, ix_wall3d_branch, &
-          idum2, idum3, ix_d, ix_m, ix_t, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, &
-          ix_lr, ix_wall3d, n_em_field_mode, idum4
-  read (d_unit, err = 9100) &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%orientation, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1, &
-          idum2, ele%bookkeeping_state, ele%ptc_integration_type
-endif
+read (d_unit, err = 9100) mode3, ix_wig, ix_wig_branch, ix_r, ix_wall3d_branch, &
+        idum2, idum3, ix_d, ix_m, ix_t, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, &
+        ix_lr, ix_wall3d, n_em_field_mode, idum4
+read (d_unit, err = 9100) &
+        ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
+        ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+        ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+        ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
+        ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+        ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+        ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+        ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
+        ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+        ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+        ele%aperture_type, ele%csr_calc_on, ele%orientation, &
+        ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
+        ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1, &
+        idum2, ele%bookkeeping_state, ele%ptc_integration_type
 
 ! Decompress value array
 

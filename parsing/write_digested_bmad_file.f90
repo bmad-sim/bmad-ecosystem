@@ -317,7 +317,7 @@ write (d_unit) &
           ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%orientation, &
+          ele%aperture_type, ele%csr_calc_on, ele%orientation, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, 0, &
           0, ele%bookkeeping_state, ele%ptc_integration_type

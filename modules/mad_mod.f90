@@ -651,7 +651,7 @@ real(rp) angle, roll
 
 ! roll
 
-roll = ele%value(roll$) 
+roll = ele%value(roll_tot$) 
 if (roll /= 0) then
   angle = ele%value(l$) * ele%value(g$)
   call make_unit_mad_map (map_roll)

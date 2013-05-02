@@ -175,6 +175,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     lord%floor = slave%floor
   case (girder_lord$)
     call girder_lord_geometry (lord)
+    lord%bookkeeping_state%control = stale$
   end select
 
 enddo
@@ -254,14 +255,14 @@ type (lat_param_struct) param
 real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
 real(rp) r0(3), w0_mat(3,3)
-real(rp) chord_len, angle, leng, rho
+real(rp) chord_len, angle, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
 real(rp), save :: old_theta = 100  ! garbage number
 real(rp), save :: old_phi, old_psi
 real(rp), save :: s_ang, c_ang
 real(rp), save :: w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer i, key, n_loc, len_factor
+integer i, key, n_loc
 
 logical has_nonzero_pole, err
 logical, optional :: treat_as_patch
@@ -335,7 +336,7 @@ if (key == fiducial$ .or. key == girder$) then
     ! 
     call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w0_mat)
     dz = r0 - slave0%floor%r
-    z0 = w0_mat(3,:)
+    z0 = w0_mat(:,3)
     z_cross = cross_product(z0, dz)
     if (all(dz == 0) .or. sum(abs(z_cross)) <= 1d-14 * sum(abs(dz))) then
       w_mat = w0_mat
@@ -359,8 +360,10 @@ if (key == fiducial$ .or. key == girder$) then
 endif
 
 ! General case where layout is not in the horizontal plane
+! Note: 
 
-if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(tilt_tot$) /= 0) .or. &
+if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
+         ele%value(tilt$) /= 0) .or. &
          phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == floor_shift$ .or. &
          (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
