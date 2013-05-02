@@ -165,7 +165,7 @@ comma (,) or the end of the line marks the end of the string. Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section[Energy and Wavelength Attributes]{Energy and Wavelength Attributes: E_tot, P0C, and ref_wavelength }
+\section[Energy and Wavelength Attributes]{Energy and Wavelength Attributes: E_tot, P0C, and \\ ref_wavelength }
 \label{s:energy}
 \index{parameter statement}\index{e_tot}
 \index{e_tot_start}\index{p0c_start}
@@ -240,6 +240,8 @@ one of \vn{e_tot}, \vn{p0c}, or \vn{n_ref_pass} as described in
 For photons, the reference wavelength, \vn{ref_wavelength} is also a
 dependent attribute calculated from the reference energy.
 
+\vfill
+
 %-----------------------------------------------------------------
 \section{Element Orientation: Offset, Pitch, Tilt, and Roll Attributes}
 \label{s:offset}
@@ -248,21 +250,44 @@ dependent attribute calculated from the reference energy.
 \index{x_pitch|hyperbf}\index{y_pitch|hyperbf}
 \index{roll|hyperbf}\index{tilt|hyperbf}
 
-There are up to 7 attributes that can offset a physical element
-from the reference orbit. They are
+\begin{figure}[t]
+  \centering
+  \includegraphics{pitch.pdf}
+  \caption{Geometry of Pitch and Offset attributes}
+  \label{f:pitch}
+\end{figure}
+
+The following ``\vn{orientation}'' attributes can reorient a physical
+element from the reference position:
 \begin{example}
   x_offset = <Real>
   y_offset = <Real>
   z_offset = <Real>
   x_pitch  = <Real>
   y_pitch  = <Real>
-  tilt     = <Real>
-  roll     = <Real>
+  tilt     = <Real>    
+  tilt_err = <Real>    ! Crystal, mirror, and multilayer_mirror only.  
+  roll     = <Real>    ! Sbend and rbend only.
 \end{example}
-\index{patch}\index{branch}\index{photon_branch}
-The exception here are the \vn{patch}, \vn{branch} and
-\vn{photon_branch} elements which uses these attributes to modify the
+\index{patch}\index{branch}\index{photon_branch}\index{sbend}
+Not all of these attributes work for all element types.
+The following rules apply:
+  \begin{description}
+  \item[patch, branch, photon_branch] 
+These elements use their orientation attributes to modify the
 reference orbit itself.
+  \item[sbend, rbend]
+The \vn{tilt} attribute for bend elements controls the reference orbit.
+The \vn{roll} attribute is to be used rotate the physical element
+about the reference orbit (see below).
+  \item[crystal, mirror, multilayer_mirror]
+Like the bend elements, \vn{tilt} here controls the reference orbit.
+The \vn{tilt_err} attribute is to be used to rotate the physical
+element about the reference orbit.
+  \item[all other elements]
+Elements not mentioned above can use the \vn{tilt} attribute to 
+rotate the element about the reference orbit.
+  \end{description}
 
 \vn{x_offset} translates an element in the local $x$--direction
 as shown in \fig{f:pitch}. Similarly, \vn{y_offset} and 
@@ -274,10 +299,7 @@ axes through the bend is ignored.
 The \vn{x_pitch} and \vn{y_pitch} attributes rotate an element such
 that the unit $z$-axis vector attached to the element, in terms of the
 laboratory coordinate frame, is given by
-\begin{example}
-  \((z\sb{x}, z\sb{y}, z\sb{z})\) = \((s\sb{x}, s\sb{y}, \sqrt{1 - s\sb{x}\sp{2} - s\sb{y}\sp{2}})\)
-  Where: \(s\sb{x}\) = sin(x_pitch), and  \(s\sb{y}\) = sin(y_pitch)
-\end{example}
+
 and the rotation axis is perpendicular to the laboratory $z$-axis and
 the element $z$-axis. Transformation formulas between laboratory and
 element reference frames is given in \sref{s:patch.coords}.
@@ -296,13 +318,6 @@ of rotation angle
   x_pitch (Bmad) =  dtheta (MAD)
   y_pitch (Bmad) = -dphi (MAD)
 \end{example}
-
-\begin{figure}[t]
-  \centering
-  \includegraphics{pitch.pdf}
-  \caption{Geometry of Pitch and Offset attributes}
-  \label{f:pitch}
-\end{figure}
 
 \begin{figure}[t]
   \centering

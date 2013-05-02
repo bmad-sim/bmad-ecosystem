@@ -437,6 +437,43 @@ end function ele_loc_to_string
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function on_a_girder(ele) result (is_on_girder)
+!
+! Routine to determine if an element is being supported by a girder element.
+!
+! Input:
+!   ele     -- ele_struct: Element to check.
+!
+! Output:
+!   is_on_girder -- Logical: True if supported. False otherwise.
+!- 
+
+function on_a_girder(ele) result (is_on_girder)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
+logical is_on_girder
+integer i
+
+!
+
+is_on_girder = .false.
+
+do i = 1, ele%n_lord
+  lord => pointer_to_lord(ele, i)
+  if (lord%key /= girder$) cycle
+  is_on_girder = .true.
+  return
+enddo
+
+end function on_a_girder
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine check_controller_controls (contrl, name, err)
 !
 ! Routine to check for problems when setting up group or overlay controllers.
@@ -1597,6 +1634,90 @@ end subroutine set_lords_status_stale
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function non_ref_tilt (ele) result (tilt_ptr)
+!
+! Routine to return a pointer to the attribute of ele
+! that "tilts" the element but does not tilt the reference trajectory.
+! For crystal, mirror, multilayer_mirror elements this is:
+!    ele%value(tilt_err$)
+! For sbend and rbend elements this is 
+!    ele%value(roll$)
+! For all other elements this is:
+!    ele%value(tilt$)
+!
+! Input:
+!   ele -- ele_struct: Element
+!
+! Output:
+!   tilt_ptr -- real(rp), pointer: Pointer to non-reference tilt parameter.
+!-
+
+function non_ref_tilt (ele) result (tilt_ptr)
+
+implicit none
+
+type (ele_struct), target :: ele
+real(rp), pointer :: tilt_ptr
+
+!
+
+select case (ele%key)
+case (crystal$, mirror$, multilayer_mirror$)
+  tilt_ptr => ele%value(tilt_err$)
+case (sbend$, rbend$)
+  tilt_ptr => ele%value(roll$)
+case default
+  tilt_ptr => ele%value(tilt$)
+end select
+
+end function non_ref_tilt
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function non_ref_tilt_tot (ele) result (tilt_tot_ptr)
+!
+! Routine to return a pointer to the "total tilt" attribute of ele that 
+! corresponds to the "tilt" that does not tilt the reference trajectory.
+! For crystal, mirror, multilayer_mirror elements this is:
+!    ele%value(tilt_err_tot$)
+! For sbend and rbend elements this is 
+!    ele%value(roll_tot$)
+! For all other elements this is:
+!    ele%value(tilt_tot$)
+!
+! Input:
+!   ele -- ele_struct: Element
+!
+! Output:
+!   tilt_tot_ptr -- real(rp), pointer: Pointer to non-reference tilt parameter.
+!-
+
+function non_ref_tilt_tot (ele) result (tilt_tot_ptr)
+
+implicit none
+
+type (ele_struct), target :: ele
+real(rp), pointer :: tilt_tot_ptr
+
+!
+
+select case (ele%key)
+case (crystal$, mirror$, multilayer_mirror$)
+  tilt_tot_ptr => ele%value(tilt_err_tot$)
+case (sbend$, rbend$)
+  tilt_tot_ptr => ele%value(roll_tot$)
+case default
+  tilt_tot_ptr => ele%value(tilt_tot$)
+end select
+
+end function non_ref_tilt_tot
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Function pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
 !
 ! Function to point to the named lattice branch.
@@ -2054,21 +2175,24 @@ end function pointer_to_field_ele
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_next_ele (this_ele, dir) result (next_ele)
+! Function pointer_to_next_ele (this_ele, offset) result (next_ele)
 !
 ! Function to return a pointer to the next element in the lattice branch.
-! next_ele will be nullified if there is a problem like this_ele is
-! the last element of a linear lattice.
+! next_ele will be nullified if there is a problem. EG: element requested
+! is outside the array of elements for open lattices. For closed lattices
+! will wrap around. 
+!
+! Notice that the first eleemnt in a lattice is the beginning element.
 !
 ! Input:
 !   this_ele  -- ele_struct: Starting element.
-!   dir       -- integer, optional: If positive return next forward element.
-!                   If negative then return previous element. Default = +1.
+!   offset    -- integer, optional: +1 -> return next element, +2 -> element after that, etc.
+!                   Can be negative. Default = +1.
 !
 !   next_ele -- ele_struct, pointer: Element after this_ele.
 !-
 
-function pointer_to_next_ele (this_ele, dir) result (next_ele)
+function pointer_to_next_ele (this_ele, offset) result (next_ele)
 
 implicit none
 
@@ -2077,7 +2201,8 @@ type (ele_struct), pointer :: next_ele
 type (ele_struct), pointer :: an_ele
 type (branch_struct), pointer :: branch
 
-integer, optional :: dir
+integer, optional :: offset
+integer ix_ele
 
 !
 
@@ -2095,21 +2220,15 @@ else
   an_ele => this_ele
 endif
 
-if (integer_option(+1, dir) > 0) then
-  if (an_ele%ix_ele == branch%n_ele_track) then
-    if (branch%param%geometry == open$) return
-    next_ele => branch%ele(0)
-  else
-   next_ele => branch%ele(an_ele%ix_ele+1)
-  endif
-
+ix_ele = integer_option(+1, offset) + an_ele%ix_ele
+if (ix_ele > branch%n_ele_track) then
+  if (branch%param%geometry == open$) return
+  next_ele => branch%ele(ix_ele - branch%n_ele_track - 1)
+elseif (ix_ele < 0) then
+  if (branch%param%geometry == open$) return
+  next_ele => branch%ele(ix_ele + branch%n_ele_track + 1)
 else
-  if (an_ele%ix_ele == 0) then
-    if (branch%param%geometry == open$) return
-    next_ele => branch%ele(branch%n_ele_track)
-  else
-   next_ele => branch%ele(an_ele%ix_ele-1)
-  endif
+  next_ele => branch%ele(ix_ele)
 endif
 
 end function pointer_to_next_ele

@@ -25,10 +25,10 @@
 !
 ! Input:
 !   ele       -- Ele_struct: Element
-!     %value(x_offset$) -- Horizontal offset of element.
-!     %value(x_pitch$)  -- Horizontal roll of element.
-!     %value(tilt$)     -- tilt of element.
-!     %value(tilt_err$) -- Error tilt of element.
+!     %value(x_offset$)     -- Horizontal offset of element.
+!     %value(x_pitch$)      -- Horizontal roll of element.
+!     %value(tilt_tot$)     -- tilt of element.
+!     %value(tilt_err_tot$) -- Error tilt of element.
 !   coord     -- Coord_struct: Coordinates of the particle.
 !     %vec(6)            -- Energy deviation dE/E. 
 !                          Used to modify %vec(2) and %vec(4)
@@ -107,7 +107,7 @@ if (set) then
 
   ! Set: tilt
 
-  tilt = p(tilt_tot$) + p(tilt_err$)
+  tilt = p(tilt_tot$) + p(tilt_err_tot$)
   if (ele%key == crystal$) tilt = tilt - p(tilt_corr$)
 
   call tilt_coords (tilt, vec)
@@ -150,10 +150,10 @@ else
 
     call tilt_coords (-p(tilt_tot$), vec)
 
-    ! Unset: tilt_err
-    ! The difference between tilt and tilt_err is that tilt also rotates the output 
-    ! laboratory coords but tilt_err does not. 
-    ! The difference between tilt_err with Set vs Unset is that the tilt_err is 
+    ! Unset: tilt_err_tot
+    ! The difference between tilt_tot and tilt_err_tot is that tilt_tot also rotates the output 
+    ! laboratory coords but tilt_err_tot does not. 
+    ! The difference between tilt_err_tot with Set vs Unset is that the tilt_err_tot is 
     ! expressed in terms of the input lab coords.
 
     if (ele%key == mirror$) then
@@ -168,16 +168,16 @@ else
     st = sin(p(tilt_tot$))
 
     ! [project_x, project_y, project_z] is the matrix product of the matrices T.G.T^-1
-    ! T rotates x to y by tilt_tot, G rotates z to x by sum of graze angles
+    ! T rotates x to y by tilt, G rotates z to x by sum of graze angles
     ! project_x is the projection of the x-basis vector in the original basis onto the new basis
 
     project_x = [c2g * ct**2 + st**2,      -ct * st + c2g * ct * st, -ct * s2g ]
     project_y = [-ct * st + c2g * ct * st, ct**2 + c2g * st**2,      -s2g * st ] 
     project_s = [ct * s2g,                 s2g * st,                 c2g       ]
 
-    if (p(tilt_err$) /= 0) then
+    if (p(tilt_err_tot$) /= 0) then
 
-      rot = project_s * p(tilt_err$)
+      rot = project_s * p(tilt_err_tot$)
 
       call tilt_coords (-rot(3), vec)
 
@@ -217,7 +217,7 @@ else
 
     ! Unset: tilt
 
-    tilt = p(tilt_tot$) + p(tilt_err$)
+    tilt = p(tilt_tot$) + p(tilt_err_tot$)
     call tilt_coords (-tilt, vec)
 
     ! Unset: Pitch

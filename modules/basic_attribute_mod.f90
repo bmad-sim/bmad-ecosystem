@@ -288,10 +288,13 @@ do i = 1, n_key$
   call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
   call init_attribute_name1 (i, custom_attribute2$,  'CUSTOM_ATTRIBUTE2', private$)
   call init_attribute_name1 (i, custom_attribute3$,  'CUSTOM_ATTRIBUTE3', private$)
+  call init_attribute_name1 (i, custom_attribute4$,  'CUSTOM_ATTRIBUTE4', private$)
+  call init_attribute_name1 (i, custom_attribute5$,  'CUSTOM_ATTRIBUTE5', private$)
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
   call init_attribute_name1 (i, scratch$,   'scratch', private$)
 
   if (i == crystal$ .or. i == multilayer_mirror$ .or. i == mirror$) then
+    call init_attribute_name1 (i, tilt_err_tot$,         'TILT_ERR_TOT', dependent$)
     call init_attribute_name1 (i, d_source$,             'D_SOURCE')
     call init_attribute_name1 (i, d_detec$,              'D_DETEC')
     call init_attribute_name1 (i, c2_curve$,             'C2_CURVE')
@@ -629,6 +632,7 @@ call init_attribute_name1 (match$, E_tot_start$,                    'E_tot_start
 call init_attribute_name1 (match$, p0c_start$,                      'p0c_start', private$)
 
 call init_attribute_name1 (girder$, l$,                             'L')
+call init_attribute_name1 (girder$, ds_path_length$,                'DS_PATH_LENGTH')
 call init_attribute_name1 (girder$, x_offset$,                      'X_OFFSET')
 call init_attribute_name1 (girder$, y_offset$,                      'Y_OFFSET')
 call init_attribute_name1 (girder$, z_offset$,                      'Z_OFFSET')
@@ -641,9 +645,6 @@ call init_attribute_name1 (girder$, z_offset_tot$,                  'Z_OFFSET_TO
 call init_attribute_name1 (girder$, x_pitch_tot$,                   'X_PITCH_TOT')
 call init_attribute_name1 (girder$, y_pitch_tot$,                   'Y_PITCH_TOT')
 call init_attribute_name1 (girder$, tilt_tot$,                      'TILT_TOT')
-call init_attribute_name1 (girder$, s_min$,                         'S_MIN')
-call init_attribute_name1 (girder$, s_max$,                         'S_MAX')
-call init_attribute_name1 (girder$, s_center$,                      'S_CENTER')
 call init_attribute_name1 (girder$, origin_ele$,                    'ORIGIN_ELE')
 call init_attribute_name1 (girder$, origin_ele_ref_pt$,             'ORIGIN_ELE_REF_PT')
 call init_attribute_name1 (girder$, dx_origin$,                     'DX_ORIGIN')
@@ -719,6 +720,7 @@ call init_attribute_name1 (kicker$, pole_radius$,                   'POLE_RADIUS
 call init_attribute_name1 (kicker$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (kicker$, p0c_start$,                     'p0c_start', private$)
 
+call init_attribute_name1 (sbend$, roll_tot$,                       'ROLL_TOT', dependent$)
 call init_attribute_name1 (sbend$, angle$,                          'ANGLE', quasi_free$)
 call init_attribute_name1 (sbend$, e1$,                             'E1')
 call init_attribute_name1 (sbend$, e2$,                             'E2')
@@ -1259,17 +1261,20 @@ integer ix_attrib, ix_tot_attrib
 
 !
 
+ix_tot_attrib = -1
+
 select case (attribute_name(ele, ix_attrib))
 case ('X_PITCH');     ix_tot_attrib = x_pitch_tot$
 case ('Y_PITCH');     ix_tot_attrib = y_pitch_tot$
 case ('X_OFFSET');    ix_tot_attrib = x_offset_tot$
 case ('Y_OFFSET');    ix_tot_attrib = y_offset_tot$
 case ('Z_OFFSET');    ix_tot_attrib = z_offset_tot$
-case ('TILT');        ix_tot_attrib = tilt_tot$
 case ('C2_CURVE');    ix_tot_attrib = c2_curve_tot$
 case ('C3_CURVE');    ix_tot_attrib = c3_curve_tot$
 case ('C4_CURVE');    ix_tot_attrib = c4_curve_tot$
-case default;         ix_tot_attrib = -1
+case ('TILT_ERR');    ix_tot_attrib = tilt_err_tot$
+case ('TILT');        ix_tot_attrib = tilt_tot$
+case ('ROLL');        ix_tot_attrib = roll_tot$
 end select
 
 end function corresponding_tot_attribute_index 
@@ -1313,6 +1318,7 @@ logical is_a_tot_attrib
 
 select case (attribute_name(ele, ix_attrib))
 case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', &
+      'TILT_ERR_TOT', 'ROLL_TOT', &
       'Z_OFFSET_TOT', 'TILT_TOT', 'C2_CURVE_TOT', 'C3_CURVE_TOT', 'C4_CURVE_TOT')
   is_a_tot_attrib = .true.
 case default

@@ -104,10 +104,12 @@ call lat_compute_ref_energy_and_time (lat, err)
 if (err) return
 call control_bookkeeper (lat, mark_eles_as_stale = .false.)
 
-! Global geometry
+! Global geometry...
+! Girders, for example, will be affected by changes in the geometry.
 
 call s_calc (lat)
 call lat_geometry (lat)
+call control_bookkeeper (lat, mark_eles_as_stale = .false.)
 
 ! See if all status flags have been properly reset.
 ! Exception is mat6 flag since the bookkeeping routines do not touch this.
@@ -1650,16 +1652,20 @@ subroutine makeup_overlay_and_girder_slave (lat, slave)
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct) slave
-type (ele_struct), pointer :: lord
+type (ele_struct), target :: slave
+type (ele_struct), pointer :: lord, slave0
 type (branch_struct), pointer :: branch
+type (floor_position_struct) slave_floor
 
 real(rp) value(num_ele_attrib_extended$), coef, ds, s_slave
-real(rp) t, x_off, y_off, x_pitch, y_pitch
-integer i, ix_con, ix, iv, ix_slave, icom, l_stat
-logical used(num_ele_attrib_extended$), multipole_set, err_flag
+real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
+real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_off_tot(3,3), w_slave_off_tot(3,3), w_slave_off(3,3)
+real(rp), pointer :: v(:), vs(:), tt
 
-character(40) :: r_name = 'makeup_overlay_and_girder_slave'
+integer i, ix_con, ix, iv, ix_slave, icom, l_stat
+logical used(num_ele_attrib_extended$), multipole_set, err_flag, on_an_offset_girder
+
+character(*), parameter :: r_name = 'makeup_overlay_and_girder_slave'
 
 !
                              
@@ -1674,7 +1680,7 @@ ix_slave = slave%ix_ele
 value = 0
 used = .false.
 multipole_set = .false.
-slave%on_a_girder = .false.
+on_an_offset_girder = .false.
 
 do i = 1, slave%n_lord
   lord => pointer_to_lord(slave, i, ix_con)
@@ -1683,28 +1689,41 @@ do i = 1, slave%n_lord
   if (lord%lord_status == group_lord$) cycle
 
   if (lord%lord_status == girder_lord$ .and. has_orientation_attributes(slave)) then
-    s_slave = slave%s - slave%value(l$)/2
-    if (s_slave > lord%value(s_max$)) s_slave = s_slave - lat%branch(slave%ix_branch)%param%total_length
-    ds = s_slave - lord%value(s_center$) 
-    if (lord%value(tilt$) == 0) then
-      x_off = slave%value(x_offset$)
-      y_off = slave%value(y_offset$)
-      x_pitch = slave%value(x_pitch$)
-      y_pitch = slave%value(y_pitch$)
-    else
-      t = lord%value(tilt$)
-      x_off = slave%value(x_offset$) * cos(t) - slave%value(y_offset$) * sin(t)
-      y_off = slave%value(x_offset$) * sin(t) + slave%value(y_offset$) * cos(t)
-      x_pitch = slave%value(x_pitch$) * cos(t) - slave%value(y_pitch$) * sin(t)
-      y_pitch = slave%value(x_pitch$) * sin(t) + slave%value(y_pitch$) * cos(t)
-    endif
-    slave%value(x_offset_tot$) = x_off + ds * lord%value(x_pitch$) + lord%value(x_offset$)
-    slave%value(y_offset_tot$) = y_off + ds * lord%value(y_pitch$) + lord%value(y_offset$)
-    slave%value(z_offset_tot$) = slave%value(z_offset$) + lord%value(z_offset$)
-    slave%value(x_pitch_tot$)  = x_pitch  + lord%value(x_pitch$)
-    slave%value(y_pitch_tot$)  = y_pitch  + lord%value(y_pitch$)
-    slave%value(tilt_tot$)     = slave%value(tilt$)     + lord%value(tilt$)
-    slave%on_a_girder = .true.
+    v => lord%value
+    if (v(x_offset_tot$) == 0 .and. v(y_offset_tot$) == 0 .and. v(z_offset_tot$) == 0 .and. &
+        v(x_pitch_tot$) == 0 .and. v(y_pitch_tot$) == 0 .and. v(tilt_tot$) == 0) cycle
+    ! Transformation to get the total offsets:
+    !   T_slave_off_tot = T_slave^-1 . T_gird . T_gird_off_tot T_gird^-1 . T_slave . T_slave_off
+    select case (slave%key)
+    case (crystal$, mirror$, multilayer_mirror$)
+      slave0 => pointer_to_next_ele (slave, -1) 
+      slave_floor = slave0%floor
+    case default
+      call ele_geometry (slave%floor, slave, slave_floor, -0.5_rp)
+    end select
+    call floor_angles_to_w_mat (slave_floor%theta, slave_floor%phi, slave_floor%psi, w_mat_inv = w_slave_inv)
+    call floor_angles_to_w_mat (lord%floor%theta, lord%floor%phi, lord%floor%psi, w_gird)
+    w_gs = matmul(w_slave_inv, w_gird)
+    l_gs = matmul(w_slave_inv, (lord%floor%r - slave_floor%r))
+
+    call floor_angles_to_w_mat (v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$), w_gird_off_tot)
+    l_slave_off_tot = matmul(w_gs, [v(x_offset_tot$), v(y_offset_tot$), v(z_offset_tot$)]) + l_gs
+    w_slave_off_tot = matmul(w_gs, w_gird_off_tot)
+
+    w_slave_off_tot = matmul(w_slave_off_tot, transpose(w_gs))     ! Transpose = inverse
+    l_slave_off_tot = matmul(w_slave_off_tot, -l_gs) + l_slave_off_tot
+
+    vs => slave%value
+    call floor_angles_to_w_mat (vs(x_pitch$), vs(y_pitch$), non_ref_tilt(slave), w_slave_off)
+    l_slave_off_tot = matmul(w_slave_off_tot, [vs(x_offset$), vs(y_offset$), vs(z_offset$)]) + l_slave_off_tot
+    w_slave_off_tot = matmul(w_slave_off_tot, w_slave_off)
+
+    call floor_w_mat_to_angles (w_slave_off_tot, 0.0_rp, vs(x_pitch_tot$), vs(y_pitch_tot$), non_ref_tilt_tot(slave))
+    vs(x_offset_tot$) = l_slave_off_tot(1)
+    vs(y_offset_tot$) = l_slave_off_tot(2)
+    vs(z_offset_tot$) = l_slave_off_tot(3)
+
+    on_an_offset_girder = .true.
     cycle
   endif
 
@@ -1745,7 +1764,13 @@ endif
 
 ! If no girder then simply transfer tilt to tilt_tot, etc.
 
-if (.not. slave%on_a_girder .and. has_orientation_attributes(slave)) then
+if (.not. on_an_offset_girder .and. has_orientation_attributes(slave)) then
+  select case (slave%key)
+  case (sbend$)
+    slave%value(roll_tot$)     = slave%value(roll$)
+  case (crystal$, mirror$, multilayer_mirror$)
+    slave%value(tilt_err_tot$)     = slave%value(tilt_err$)
+  end select
   slave%value(tilt_tot$)     = slave%value(tilt$)
   slave%value(x_offset_tot$) = slave%value(x_offset$)
   slave%value(y_offset_tot$) = slave%value(y_offset$)
@@ -1866,7 +1891,7 @@ type (em_field_struct) field
 type (branch_struct), pointer :: branch
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$)
-real(rp), pointer :: val(:)
+real(rp), pointer :: val(:), tt
 
 integer i, n
 
@@ -1921,7 +1946,13 @@ endif
 
 ! Transfer tilt to tilt_tot, etc.
 
-if (.not. ele%on_a_girder .and. has_orientation_attributes(ele)) then
+if (.not. on_a_girder(ele) .and. has_orientation_attributes(ele)) then
+  select case (ele%key)
+  case (sbend$)
+    val(roll_tot$) = val(roll$)
+  case (crystal$, mirror$, multilayer_mirror$)
+    val(tilt_err_tot$) = val(tilt_err$)
+  end select
   val(tilt_tot$)     = val(tilt$)
   val(x_offset_tot$) = val(x_offset$)
   val(y_offset_tot$) = val(y_offset$)

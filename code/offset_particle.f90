@@ -138,15 +138,15 @@ endif
 
 if (ele%key == sbend$) then
   angle = ele%value(l$) * ele%value(g$) * charge_dir
-  if (ele%value(roll$) == 0) then
+  if (ele%value(roll_tot$) == 0) then
     del_x_vel = 0
     del_y_vel = 0
-  else if (abs(ele%value(roll$)) < 0.001) then
-    del_x_vel = angle * ele%value(roll$)**2 / 4
-    del_y_vel = -angle * sin(ele%value(roll$)) / 2
+  else if (abs(ele%value(roll_tot$)) < 0.001) then
+    del_x_vel = angle * ele%value(roll_tot$)**2 / 4
+    del_y_vel = -angle * sin(ele%value(roll_tot$)) / 2
   else
-    del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2
-    del_y_vel = -angle * sin(ele%value(roll$)) / 2
+    del_x_vel = angle * (1 - cos(ele%value(roll_tot$))) / 2
+    del_y_vel = -angle * sin(ele%value(roll_tot$)) / 2
   endif
 endif
 
@@ -238,11 +238,11 @@ if (set) then
   if (set_t) then
 
     if (ele%key == sbend$) then
-      if (ele%value(roll$) /= 0) then
+      if (ele%value(roll_tot$) /= 0) then
         coord%vec(2) = coord%vec(2) + del_x_vel
         coord%vec(4) = coord%vec(4) + del_y_vel
       endif
-      call tilt_coords (ele%value(tilt_tot$)+ele%value(roll$), coord%vec)
+      call tilt_coords (ele%value(tilt_tot$)+ele%value(roll_tot$), coord%vec)
     else
       call tilt_coords (ele%value(tilt_tot$), coord%vec)
     endif
@@ -306,8 +306,8 @@ else
   if (set_t) then
 
     if (ele%key == sbend$) then
-      call tilt_coords (-(ele%value(tilt_tot$) + ele%value(roll$)), coord%vec) 
-      if (ele%value(roll$) /= 0) then  
+      call tilt_coords (-(ele%value(tilt_tot$) + ele%value(roll_tot$)), coord%vec) 
+      if (ele%value(roll_tot$) /= 0) then  
         coord%vec(2) = coord%vec(2) + del_x_vel
         coord%vec(4) = coord%vec(4) + del_y_vel
       endif

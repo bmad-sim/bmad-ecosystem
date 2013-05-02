@@ -21,7 +21,7 @@ use bmad_interface, except_dummy => s_calc
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, slave
+type (ele_struct), pointer :: ele, lord, slave, slave0
 type (branch_struct), pointer :: branch
 
 integer i, j, n, ic, icon, ix2
@@ -59,12 +59,23 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%s_position /= stale$) cycle
   if (lord%key == null_ele$) cycle
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
-  if (lord%lord_status == super_lord$ .or. lord%lord_status == overlay_lord$) then
+
+  select case (lord%lord_status)
+  case (super_lord$, overlay_lord$)
     slave => pointer_to_slave(lord, lord%n_slave)
     lord%s = slave%s - lord%value(lord_pad2$)
-  else
+  case (girder_lord$)
+    slave0 => pointer_to_slave(lord, 1)
+    slave0 => pointer_to_next_ele (slave0, -1)
+    slave => pointer_to_slave(lord, lord%n_slave)
+    lord%s = slave%s
+    lord%value(ds_path_length$) = slave%s - slave0%s
+    if (lord%value(ds_path_length$) < 0) lord%value(ds_path_length$) = &
+                              lord%value(ds_path_length$) + slave0%branch%param%total_length
+  case default
     lord%s = 0
-  endif
+  end select
+
   lord%bookkeeping_state%s_position = ok$
 enddo
 
