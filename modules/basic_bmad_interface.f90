@@ -300,12 +300,12 @@ interface
 end interface
 
 interface
-  subroutine find_element_ends (lat, ele, ele1, ele2)
+  subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
     import
     implicit none
-    type (lat_struct) lat
     type (ele_struct) ele
     type (ele_struct), pointer :: ele1, ele2
+    integer, optional :: ix_multipass
   end subroutine
 end interface
 

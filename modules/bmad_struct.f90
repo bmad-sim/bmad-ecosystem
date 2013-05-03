@@ -836,13 +836,14 @@ logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 
 ! control element logicals
 
-integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
+integer, parameter :: free$ = 1, super_slave$ = 2, control_slave$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, slice_slave$ = 12
+integer, parameter :: overlay_slave$ = 3  ! Depracated name.
 
 character(16), parameter :: control_name(12) = [ &
-            'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', 'GROUP_LORD     ', &
+            'FREE           ', 'SUPER_SLAVE    ', 'CONTROL_SLAVE  ', 'GROUP_LORD     ', &
             'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
             'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'SLICE_SLAVE    ']
 

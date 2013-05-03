@@ -340,7 +340,7 @@ do i = lbound(track_node%children, 1) + 1, ubound(track_node%children, 1)
       controller_node => node%controllers(j)%node%parent
       found = parser_set_attribute_value (controller_node, 'variation', value_str)
       if (value_str == 'ABSOLUTE' .or. value_str == '') then
-        ele%slave_status = overlay_slave$
+        ele%slave_status = control_slave$
         exit
       endif
     enddo

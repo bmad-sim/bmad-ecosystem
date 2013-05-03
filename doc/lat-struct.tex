@@ -343,7 +343,7 @@ and sometimes convenient, for programs to set the \vn{%lord_status} of
 a lord element to \vn{not_a_lord\$}.
 
 \index{super_slave\$}\index{multipass_slave\$}
-\index{overlay_slave\$}\index{group_slave\$}\index{free\$}\index{slice_slave\$}
+\index{control_slave\$}\index{group_slave\$}\index{free\$}\index{slice_slave\$}
 The possible values for the \vn{ele%slave_status} component are:
   \begin{description}
   \item[free\$]\Newline
@@ -355,14 +355,10 @@ will not have any other types of lords.
   \item[multipass_slave\$]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
 (\sref{s:multipass}).
-  \item[overlay_slave\$]\Newline 
-An \vn{overlay_slave} is an element that has one or more
-\vn{overlay_lord} or \vn{girder_lord} lords. 
-Note that an \vn{overlay_slave} can have
-zero associated \vn{overlay_lord}s as long as it has a \vn{girder_lord}. 
-Thus the term \vn{overlay_slave} is
-a bit misleading. An \vn{overlay_slave} can also have associated
-\vn{group_lord} elements.
+  \item[control_slave\$]\Newline 
+A \vn{control_slave} is an element that has one or more
+\vn{overlay_lord} or \vn{girder_lord} lords. A \vn{control_slave} can
+also have associated \vn{group_lord} elements.
   \item[slice_slave\$]\Newline
 A \vn{slice_slave} element represents a longitudinal slice of another element.
 Slice elements are not part of the lattice but rather are created on-the-fly
@@ -398,7 +394,7 @@ be in either the tracking or control parts of the branch.
     %                         NL  GR  GI  O   M   S
     \vn{free\$}             & X & X & X & X & X & X \\ 
     \vn{group_slave\$}      & X & X & X & X & X & X \\ 
-    \vn{overlay_slave\$}    & X & X & X & X & X & X \\ 
+    \vn{control_slave\$}    & X & X & X & X & X & X \\ 
     \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
     \vn{slice_slave\$}      & X &   &   &   &   &   \\
     \vn{super_slave\$}      & X &   &   &   &   &   \\ \bottomrule
@@ -423,7 +419,7 @@ be in either the tracking or control parts of the branch.
     %                         NL  GR  GI  O   M   S
     \vn{free\$}             &   &   &   &   &   &   \\ 
     \vn{group_slave\$}      &   & X &   &   &   &   \\ 
-    \vn{overlay_slave\$}    &   & X & X & X &   &   \\ 
+    \vn{control_slave\$}    &   & X & X & X &   &   \\ 
     \vn{multipass_slave\$}  &   & X &   & X & 1 &   \\ 
     \vn{super_slave\$}      &   & X &   & X &   & X \\ \bottomrule
   \end{tabular}
