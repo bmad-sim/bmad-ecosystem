@@ -11,7 +11,7 @@ use crystal_param_mod
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
 
-private control_bookkeeper1, makeup_overlay_and_girder_slave
+private control_bookkeeper1, makeup_control_slave
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
 
 !----------------------------------------------------------------------------
@@ -313,13 +313,13 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
     ! Attrubute bookkeeping is done in the makeup_super_slave
     call makeup_super_slave (lat, ele)
 
-  elseif (ele%slave_status == overlay_slave$) then
-    call makeup_overlay_and_girder_slave (lat, ele)
+  elseif (ele%slave_status == control_slave$) then
+    call makeup_control_slave (lat, ele)
     call_a_bookkeeper = .true.
 
   elseif (ele%slave_status == multipass_slave$) then
     call makeup_multipass_slave (lat, ele)
-    if (ele%n_lord > 1) call makeup_overlay_and_girder_slave (lat, ele)
+    if (ele%n_lord > 1) call makeup_control_slave (lat, ele)
     call_a_bookkeeper = .true.
   endif
 
@@ -1642,12 +1642,12 @@ end subroutine compute_slave_coupler
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_overlay_and_girder_slave (lat, slave)
+! Subroutine makeup_control_slave (lat, slave)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_overlay_and_girder_slave (lat, slave)
+subroutine makeup_control_slave (lat, slave)
 
 implicit none
 
@@ -1659,17 +1659,18 @@ type (floor_position_struct) slave_floor
 
 real(rp) value(num_ele_attrib_extended$), coef, ds, s_slave
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
-real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_off_tot(3,3), w_slave_off_tot(3,3), w_slave_off(3,3)
+real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_off_tot(3,3)
+real(rp) w_slave_off_tot(3,3), w_slave_off(3,3)
 real(rp), pointer :: v(:), vs(:), tt
 
 integer i, ix_con, ix, iv, ix_slave, icom, l_stat
 logical used(num_ele_attrib_extended$), multipole_set, err_flag, on_an_offset_girder
 
-character(*), parameter :: r_name = 'makeup_overlay_and_girder_slave'
+character(*), parameter :: r_name = 'makeup_control_slave'
 
 !
                              
-branch => lat%branch(slave%ix_branch)
+branch => slave%branch
 
 slave%bookkeeping_state%control = ok$
 call set_ele_status_stale (slave, attribute_group$)
@@ -1814,7 +1815,7 @@ endif
 
 end subroutine overlay_change_this
 
-end subroutine makeup_overlay_and_girder_slave 
+end subroutine makeup_control_slave 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

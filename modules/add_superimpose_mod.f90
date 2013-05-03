@@ -428,7 +428,7 @@ do
   select case (slave%slave_status)
   case (super_slave$) 
     setup_lord = .false.
-  case (multipass_slave$, overlay_slave$, group_slave$)
+  case (multipass_slave$, control_slave$, group_slave$)
     setup_lord = .true.
   case default
     if (slave%key == drift$) then

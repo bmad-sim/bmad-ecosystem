@@ -328,10 +328,8 @@ if (key == fiducial$ .or. key == girder$) then
     r0 = 0
 
   ! Girder uses center of itself by default.
-  else  ! must be girder
-    slave0 => pointer_to_slave(ele, 1)
-    slave0 => pointer_to_ele(ele%branch%lat, slave0%ix_ele-1, slave0%ix_branch)
-    slave1 => pointer_to_slave(ele, ele%n_slave)
+  else  ! must be a girder
+    call find_element_ends (ele, slave0, slave1)
     r0 = (slave0%floor%r + slave1%floor%r) / 2
     ! 
     call floor_angles_to_w_mat (slave0%floor%theta, slave0%floor%phi, slave0%floor%psi, w0_mat)

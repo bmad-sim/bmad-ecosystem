@@ -1588,7 +1588,7 @@ do
           call out_io (s_warn$, r_name, &
               'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
           lord%key = -1 ! mark for deletion
-          call find_element_ends (lat_out, lord, ele1, ele2)
+          call find_element_ends (lord, ele1, ele2)
           ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
           ! If the wiggler wraps around the origin we are in trouble.
           if (ix2 < ix1) then 

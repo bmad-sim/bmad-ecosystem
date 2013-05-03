@@ -81,7 +81,7 @@ do i = 1, girder_ele%n_slave
   slave => pointer_to_slave(girder_ele, i, ix_con)
 
   if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
-                                                slave%slave_status = overlay_slave$
+                                                slave%slave_status = control_slave$
 
   ! You cannot control super_slaves, group_lords or overlay_lords
 

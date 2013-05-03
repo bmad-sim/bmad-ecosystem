@@ -190,7 +190,7 @@ do ib = 0, ubound(lat%branch, 1)
       case (group_lord$)
         if (ele%slave_status == free$) ele%slave_status = group_slave$
       case (overlay_lord$, girder_lord$)
-        if (ele%slave_status == free$ .or. ele%slave_status == group_slave$) ele%slave_status = overlay_slave$
+        if (ele%slave_status == free$ .or. ele%slave_status == group_slave$) ele%slave_status = control_slave$
       case (multipass_lord$)
         ele%slave_status = multipass_slave$
       case (super_lord$)
