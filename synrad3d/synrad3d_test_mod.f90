@@ -31,10 +31,10 @@ integer n_photons
 integer i, ix, ios, random_seed
 
 character(*) param_file
-character(200) output_file, reflection_probability_file
+character(200) output_file, surface_reflection_file
 
 namelist / diffuse_reflection_test / graze_angle_in, energy, n_photons, surface_roughness_rms, &
-            roughness_correlation_len, reflection_probability_file, output_file, random_seed
+            roughness_correlation_len, surface_reflection_file, output_file, random_seed
 
 !
 
@@ -57,10 +57,10 @@ close (1)
 
 call ran_seed_put (random_seed)
 
-if (reflection_probability_file == '') then
+if (surface_reflection_file == '') then
   call photon_reflection_std_surface_init (surface)
 else
-  call read_surface_reflection_file (reflection_probability_file, surface)
+  call read_surface_reflection_file (surface_reflection_file, surface)
 endif
 
 if (surface_roughness_rms > 0) surface%surface_roughness_rms = surface_roughness_rms
@@ -79,7 +79,7 @@ write (2, *) 'surface_roughness_rms:     ', surface_roughness_rms
 write (2, *) 'roughness_correlation_len: ', roughness_correlation_len
 write (2, *) 'Rough surface reflection probability: ', p_reflect_rough
 write (2, *) 'Smooth surface reflection probability:', p_reflect_smooth
-write (2, *) 'reflection_probability_file: "', trim(reflection_probability_file), '"'
+write (2, *) 'surface_reflection_file: "', trim(surface_reflection_file), '"'
 write (2, *) 'random_seed:                 "', random_seed
 
 write (2, *) '          #          theta_out                     phi_out'
