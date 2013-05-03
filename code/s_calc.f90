@@ -66,8 +66,18 @@ do n = lat%n_ele_track+1, lat%n_ele_max
     lord%s = slave%s - lord%value(lord_pad2$)
   case (girder_lord$)
     slave0 => pointer_to_slave(lord, 1)
+    do
+      if (slave0%n_slave == 0) exit
+      slave0 => pointer_to_slave(slave0, 1)
+    enddo
     slave0 => pointer_to_next_ele (slave0, -1)
+
     slave => pointer_to_slave(lord, lord%n_slave)
+    do
+      if (slave%n_slave == 0) exit
+      slave => pointer_to_slave(slave, 1)
+    enddo
+
     lord%s = slave%s
     lord%value(ds_path_length$) = slave%s - slave0%s
     if (lord%value(ds_path_length$) < 0) lord%value(ds_path_length$) = &

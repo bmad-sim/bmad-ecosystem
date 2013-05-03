@@ -257,7 +257,7 @@ dependent attribute calculated from the reference energy.
   \label{f:pitch}
 \end{figure}
 
-The following ``\vn{orientation}'' attributes can reorient a physical
+The following ``\vn{orientational}'' attributes can reorient a physical
 element from the reference position:
 \begin{example}
   x_offset = <Real>
@@ -380,9 +380,9 @@ the center of the bend. Shown here is the geometry for a bend with
 
 \index{x_offset_tot|hyperbf}\index{y_offset_tot|hyperbf}\index{z_offset_tot|hyperbf}
 \index{x_pitch_tot|hyperbf}\index{y_pitch_tot|hyperbf}
-\index{tilt_tot|hyperbf}
+\index{tilt_tot|hyperbf}\index{roll_tot|hyperbf}\index{tilt_err_tot|hyperbf}
 If an element is supported by a \vn{girder} element (\sref{s:girder}),
-the offsets, pitches and tilt of the element are with respect to the
+the orientational attributes of the element are with respect to the
 orientation of the \vn{girder}. The computed offsets, pitches and tilt with
 respect to the local reference coordinates are stored in the dependent attributes
 \begin{example}
@@ -392,9 +392,22 @@ respect to the local reference coordinates are stored in the dependent attribute
   x_pitch_tot
   y_pitch_tot
   tilt_tot
+  tilt_err_tot
+  roll_tot
 \end{example}
-If an element is not supported by a \vn{girder}, \vn{x_offset_tot}
-will have the same value as \vn{x_offset}, etc.
+\index{sbend}\index{rbend}
+A \vn{*_tot} attribute will only be present if the corresponding non
+\vn{*_tot} attribute is present. For example, only \vn{sbend} and
+\vn{rbend} elements have a \vn{roll_tot} attribute since only these
+elements have a \vn{roll} attribute.
+
+\vn{girder} elements do not affect the reference orbit so \vn{tilt}
+and \vn{tilt_tot} will be the same for any element whose \vn{tilt}
+attribute affects the reference orbit.
+
+If an element is not supported by a \vn{girder}, the values of the
+\vn{*_tot} attributes will be the same value as the values of the
+corresponding non \vn{*_tot} attributes.
 
 %-----------------------------------------------------------------
 \section{Hkick, Vkick, and Kick Attributes}
