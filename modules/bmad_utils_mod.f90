@@ -2175,24 +2175,26 @@ end function pointer_to_field_ele
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_next_ele (this_ele, offset) result (next_ele)
+! Function pointer_to_next_ele (this_ele, offset, skip_beginning) result (next_ele)
 !
-! Function to return a pointer to the next element in the lattice branch.
-! next_ele will be nullified if there is a problem. EG: element requested
-! is outside the array of elements for open lattices. For closed lattices
-! will wrap around. 
+! Function to return a pointer to the N^th element relative to this_ele
+! in the array of elements in a lattice branch.
+! Will wrap around. 
 !
 ! Notice that the first eleemnt in a lattice is the beginning element.
 !
 ! Input:
-!   this_ele  -- ele_struct: Starting element.
-!   offset    -- integer, optional: +1 -> return next element, +2 -> element after that, etc.
-!                   Can be negative. Default = +1.
+!   this_ele       -- ele_struct: Starting element.
+!   offset         -- integer, optional: +1 -> return next element, +2 -> element 
+!                       after that, etc. Can be negative. Default = +1.
+!   skip_beginning -- logical, optional: If True then skip beginning element #0
+!                       when wrapping around. Default is False.
 !
-!   next_ele -- ele_struct, pointer: Element after this_ele.
+!   next_ele -- ele_struct, pointer: Element after this_ele (if offset = 1).
+!                Nullified if there is an error. EG bad this_ele.
 !-
 
-function pointer_to_next_ele (this_ele, offset) result (next_ele)
+function pointer_to_next_ele (this_ele, offset, skip_beginning) result (next_ele)
 
 implicit none
 
@@ -2202,8 +2204,8 @@ type (ele_struct), pointer :: an_ele
 type (branch_struct), pointer :: branch
 
 integer, optional :: offset
-integer ix_ele
-
+integer ix_ele, n_off
+logical, optional :: skip_beginning
 !
 
 next_ele => null()
@@ -2213,19 +2215,33 @@ if (.not. associated(this_ele%branch)) return
 branch => this_ele%branch
 if (this_ele%ix_ele < 0 .or. this_ele%ix_ele > branch%n_ele_max) return
 
+n_off = integer_option(+1, offset) 
+if (n_off == 0) then
+  next_ele => this_ele
+  return
+endif
+
 if (this_ele%ix_ele > branch%n_ele_track) then
   if (this_ele%lord_status /= super_lord$) return
-  an_ele => pointer_to_slave(this_ele, this_ele%n_slave)
+  if (n_off > 0) then
+    an_ele => pointer_to_slave(this_ele, this_ele%n_slave)
+  else
+    an_ele => pointer_to_slave(this_ele, 1)
+  endif
 else
   an_ele => this_ele
 endif
 
-ix_ele = integer_option(+1, offset) + an_ele%ix_ele
+ix_ele = n_off + an_ele%ix_ele
 if (ix_ele > branch%n_ele_track) then
-  if (branch%param%geometry == open$) return
-  next_ele => branch%ele(ix_ele - branch%n_ele_track - 1)
+  if (logic_option(.false., skip_beginning)) then
+    next_ele => branch%ele(ix_ele - branch%n_ele_track)
+  else
+    next_ele => branch%ele(ix_ele - branch%n_ele_track - 1)
+  endif
+elseif (ix_ele == 0 .and. logic_option(.false., skip_beginning)) then
+  next_ele => branch%ele(branch%n_ele_track)
 elseif (ix_ele < 0) then
-  if (branch%param%geometry == open$) return
   next_ele => branch%ele(ix_ele + branch%n_ele_track + 1)
 else
   next_ele => branch%ele(ix_ele)
