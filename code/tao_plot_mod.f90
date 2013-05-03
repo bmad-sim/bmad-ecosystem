@@ -521,7 +521,7 @@ logical shape_has_box, is_bend
 
 !
 
-call find_element_ends (lat, ele, ele1, ele2)
+call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
 
 if (is_data) then  ! pretend this is zero length element
@@ -1120,7 +1120,7 @@ if (.not. ele_shape%draw) return
 
 shape_name = ele_shape%shape
 
-call find_element_ends (lat, ele, ele1, ele2)
+call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
 if (ele1%ix_branch /= graph%ix_branch) return
 x1 = ele1%s
