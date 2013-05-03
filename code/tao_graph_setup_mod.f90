@@ -1146,7 +1146,7 @@ case ('lat', 'beam')
       ele_shape => tao_pointer_to_ele_shape (ele, s%plotting%lat_layout%ele_shape)
       if (.not. associated(ele_shape)) cycle
       if (.not. ele_shape%draw) cycle
-      call find_element_ends (model_lat, ele, ele1, ele2)
+      call find_element_ends (ele, ele1, ele2)
       ele1%logic = .true.
       ele2%logic = .true.
     enddo
@@ -1160,12 +1160,12 @@ case ('lat', 'beam')
       if (ele%lord_status == multipass_lord$) then
         do j = 1, ele%n_slave
           slave => pointer_to_slave (ele, j)
-          call find_element_ends (model_lat, slave, ele1, ele2)
+          call find_element_ends (slave, ele1, ele2)
           ele1%logic = .true.
           ele2%logic = .true.
         enddo
       else
-        call find_element_ends (model_lat, ele, ele1, ele2)
+        call find_element_ends (ele, ele1, ele2)
         ele1%logic = .true.
         ele2%logic = .true.
       endif
