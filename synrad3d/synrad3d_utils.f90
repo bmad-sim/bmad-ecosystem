@@ -151,6 +151,8 @@ wall%n_section_max = n_wall_section_max
 rewind (iu)
 do i = 0, n_wall_section_max
   section%basic_shape = ''
+  section%width2 = -1
+  section%height2 = -1
   section%ante_height2_plus = -1
   section%ante_height2_minus = -1
   section%width2_plus = -1
@@ -158,6 +160,7 @@ do i = 0, n_wall_section_max
   section%name = ''
   surface%name = ''
   surface%is_local = .false.
+
   read (iu, nml = section_def)
 
   sec => wall%section(i)
@@ -282,7 +285,12 @@ outer: do
   if (i > wall%n_section_max) exit
   ref_section = wall%section(i)
   if (ref_section%basic_shape /= 'multi_section') cycle
-  n_repeat = nint(ref_section%width2)
+  n_repeat = nint(ref_section%width2) 
+
+  if (n_repeat < 0) then
+    print *, 'ERROR: MULTI_SECTION DOES NOT HAVE THE REPEAT COUNT SET.'
+    call err_exit
+  endif
 
   do j = 1, size(wall%multi_section)
     m_sec => wall%multi_section(j)
