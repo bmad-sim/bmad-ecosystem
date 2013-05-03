@@ -4309,7 +4309,7 @@ subroutine parser_add_lord (in_lat, n2, plat, lat)
 implicit none
 
 type (lat_struct), target :: in_lat, lat
-type (ele_struct), pointer :: lord, lord2, slave, ele, g_lord, g_slave
+type (ele_struct), pointer :: lord, lord2, slave, ele, g_lord, g_slave0, g_slave1
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (control_struct), allocatable :: cs(:)
@@ -4525,86 +4525,20 @@ main_loop: do n = 1, n2
           if (ixs > lord%n_slave) exit
           input_slave_name = pele%name(ixs)
 
-          ! Check to see if slave is itself a girder
-
-          do ig = lat%n_ele_track+1, lat%n_ele_max
-            g_lord => lat%ele(ig)
-            if (g_lord%lord_status /= girder_lord$) cycle
-            if (g_lord%name /= input_slave_name) cycle
-            g_slave => pointer_to_slave (g_lord, 1)  ! First slave
-            if (g_slave%ix_branch /= ib .or. g_slave%ix_ele /= ix_ele_now) cycle
-            ! This matches. Move pointers to element after last girder slave 
-            g_slave => pointer_to_slave (g_lord, g_lord%n_slave) ! Last slave
-            n_slave = n_slave + 1
-            cs(n_slave)%ix_slave  = g_lord%ix_ele
-            cs(n_slave)%ix_branch = g_lord%ix_branch
-            ixs = ixs + 1 
-            ix_ele_now = g_slave%ix_ele + 1
-            cycle slave_loop
-          enddo
-
-          !
-
           ele => pointer_to_ele (lat, ix_ele_now, ib)
 
-          ! If a super_slave then go to the lords to match the name.
-          ! The logic here is complicated by the fact that elements can, for example,
-          ! be completely contained within another element.
+          if (girder_match_this(ele)) cycle
 
-          if (ele%slave_status == super_slave$) then
-            do ic = 1, ele%n_lord
-              lord2 => pointer_to_lord(ele, ic)
-              if (lord2%key == group$ .or. lord2%key == overlay$) cycle
-              slave => pointer_to_slave(lord2, lord2%n_slave)
-              ix_end = slave%ix_ele
-              if (lord2%slave_status == multipass_slave$) lord2 => pointer_to_lord(lord2, 1)
-              if (match_wild(lord2%name, input_slave_name)) then
-                n_slave = n_slave + 1
-                cs(n_slave)%ix_slave  = lord2%ix_ele
-                cs(n_slave)%ix_branch = lord2%ix_branch
-                ixs = ixs + 1  ! Next girder slave
-                ix_super_lord_end = ix_far_index(ix_ele_now, ix_super_lord_end, ix_end)
-                cycle slave_loop
-              endif
-            enddo
-            ! Here if no match. 
-            ! If not previously in a super lord then there is no overall match to the slave list.
-            if (ix_super_lord_end == -1) cycle ele_loop
+          ! Here if no match. 
+          ! If not previously in a super lord then there is no overall match to the slave list.
+
+          if (ele%slave_status == super_slave$ .and. ix_super_lord_end > -1) then
             ix_ele_now = ix_ele_now + 1
             cycle
           endif
 
           ix_super_lord_end = -1  ! Not in a super_lord
 
-          ! If a multipass_slave
-
-          if (ele%slave_status == multipass_slave$) then
-            lord2 => pointer_to_lord(ele, 1)
-            if (match_wild(lord2%name, input_slave_name)) then
-              n_slave = n_slave + 1
-              cs(n_slave)%ix_slave  = lord2%ix_ele
-              cs(n_slave)%ix_branch = lord2%ix_branch
-              ixs = ixs + 1  ! Next girder slave
-              ix_ele_now = ix_ele_now + 1
-              cycle
-            endif
-            ! No match to the slave list 
-            cycle ele_loop
-          endif
-
-          ! Regular element
-
-          if (match_wild(ele%name, input_slave_name)) then
-            if (ele%key /= drift$) then
-              n_slave = n_slave + 1
-              cs(n_slave)%ix_slave  = ele%ix_ele
-              cs(n_slave)%ix_branch = ele%ix_branch
-            endif
-            ixs = ixs + 1  ! Next girder slave
-            ix_ele_now = ix_ele_now + 1
-            cycle
-          endif
-          
           ! No match to the slave list. If a marker or drift then ignore except 
           ! if this is the first slave in which case there is no match.
 
@@ -4654,6 +4588,61 @@ deallocate (name_list)
 
 !-------------------------------------------------------------------------
 contains
+
+recursive function girder_match_this (ele) result (is_matched)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord, slave1, slave2
+
+integer ii
+logical is_matched
+
+! Try to match
+
+is_matched = .false.
+
+if (match_wild(ele%name, input_slave_name)) then
+
+  is_matched = .true.
+  if (ele%key /= drift$) then
+    n_slave = n_slave + 1
+    cs(n_slave)%ix_slave  = ele%ix_ele
+    cs(n_slave)%ix_branch = ele%ix_branch
+  endif
+  ixs = ixs + 1  ! Next girder slave
+  ix_ele_now = ix_ele_now + 1
+
+  ! If a super_lord the logic here is complicated by the fact that 
+  ! elements can, for example, be completely contained within another element.
+
+  if (ele%lord_status == super_lord$) then
+    slave2 => pointer_to_slave(ele, ele%n_slave)
+    ix_super_lord_end = ix_far_index(ix_ele_now-1, ix_super_lord_end, slave2%ix_ele)
+  endif
+
+  ! If match to a girder then move pointers to element after latst girder slave
+
+  if (ele%lord_status == girder_lord$) then
+    call find_element_ends (ele, slave1, slave2)
+    ix_ele_now = slave2%ix_ele + 1
+  endif
+
+  return
+endif
+
+! Since ele does not match, look for match at a lord of this element
+
+do ii = 1, ele%n_lord
+  lord => pointer_to_lord (ele, ii)
+  if (lord%key == group$ .or. lord%key == overlay$) cycle
+  is_matched = girder_match_this(lord)
+  if (is_matched) return
+enddo
+
+end function girder_match_this
+
+!-------------------------------------------------------------------------
+! contains
 
 ! Function to return the index that is farthest (reached last) when moving
 ! from ix_now in a positive direction. Tricky part is if there is wrap around.
