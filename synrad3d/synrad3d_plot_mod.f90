@@ -23,8 +23,8 @@ subroutine sr3d_plot_reflection_probability (plot_param, wall)
 implicit none
 
 type yplot
-  real(rp), allocatable :: y_rough(:)
-  real(rp), allocatable :: y_smooth(:)
+  real(rp), allocatable :: y_reflect(:)
+  real(rp), allocatable :: y_rel_specular(:)
   real(rp), allocatable :: y(:)
   character(40) label
   type (qp_line_struct) line
@@ -56,8 +56,8 @@ ev_max = 150
 
 fixed_energy = .true.
 y_lab = 'Reflectivity'
-reflection_type = 'rough'
-head_lab = 'Reflectivity (ROUGH)'
+reflection_type = 'total'
+head_lab = 'Reflectivity (Total)'
 
 surface => wall%surface(1)%info
 
@@ -65,8 +65,8 @@ n_lines = 3
 allocate (ny(n_lines))
 
 do i = 1, n_lines
-  allocate (ny(i)%y_rough(plot_param%n_pt))
-  allocate (ny(i)%y_smooth(plot_param%n_pt))
+  allocate (ny(i)%y_reflect(plot_param%n_pt))
+  allocate (ny(i)%y_rel_specular(plot_param%n_pt))
   allocate (ny(i)%y(plot_param%n_pt))
 enddo
 
@@ -97,16 +97,18 @@ do
         x(j) = ev
         x_lab = 'Energy (eV)'
       endif
-      call photon_reflectivity (angle*pi/180, ev, surface, ny(i)%y_rough(j), ny(i)%y_smooth(j))
+      call photon_reflectivity (angle*pi/180, ev, surface, ny(i)%y_reflect(j), ny(i)%y_rel_specular(j))
     enddo
 
     select case (reflection_type)
-    case ('rough')
-      ny(i)%y = ny(i)%y_rough
-    case ('smooth')
-      ny(i)%y = ny(i)%y_smooth
-    case ('diff')
-      ny(i)%y = ny(i)%y_smooth - ny(i)%y_rough
+    case ('total')
+      ny(i)%y = ny(i)%y_reflect
+    case ('specular')
+      ny(i)%y = ny(i)%y_rel_specular * ny(i)%y_reflect
+    case ('diffuse')
+      ny(i)%y = (1 - ny(i)%y_rel_specular) * ny(i)%y_reflect
+    case ('%specular')
+      ny(i)%y = ny(i)%y_rel_specular
     case default
       call err_exit
     end select
@@ -140,7 +142,7 @@ do
   ! Get input:
 
   print *
-  print '(a)', 'Surfaces:'
+  print '(a)', 'Surfaces Defined:'
   do i = 1, size (wall%surface)
     print '(3x, i3, 2x, a)', i, trim(wall%surface(i)%name)
   enddo
@@ -150,13 +152,14 @@ do
   print '(a)', '   angle    <angle_min> <angle_max>   ! angles to plot at'
   print '(a)', '   n_lines  <num_lines_to_draw>'
   print '(a)', '   fixed_energy <T|F>                 ! Lines of constant energy or angle?'
-  print '(a)', '   type <rough|smooth|diff>           ! diff = smooth - rough'
   print '(a)', '   ix_surface <n>                     ! Surface index'
+  print '(a)', '   write                              ! Write plot points to file'
+  print '(a)', '   type <total|specular|%specular|diffuse>  ! %specular = specular / total'
   call read_a_line ('Input: ', ans)
   call string_trim(ans, ans, ix)
   if (ix == 0) cycle
   call match_word (ans(1:ix), ['ix_surface  ', 'energy      ', 'angle       ', 'type        ', &
-                               'n_lines     ', 'fixed_energy'], n, matched_name = param)
+                               'n_lines     ', 'fixed_energy', 'write       '], n, matched_name = param)
   if (n < 1) then
     print *, 'CANNOT PARSE THIS.'
     cycle
@@ -165,6 +168,34 @@ do
   call string_trim(ans(ix+1:), ans, ix)
 
   select case (param)
+
+  case ('write')
+    open (10, file = 'reflection_probability.dat')
+
+    if (fixed_energy) then
+      write (10, '(a)') 'X_axis: Angle'
+      do i = 1, n_lines
+        ev = ev_min + (i - 1) * (ev_max - ev_min) / max(1, (n_lines - 1))
+        write (10, '(i3, 2x, a, f10.1)') i, 'Energy (eV) =', ev
+      enddo
+
+    else
+      write (10, '(a)') 'X_axis: Energy'
+      do i = 1, n_lines
+        angle = angle_min + (i - 1) * (angle_max - angle_min) / max(1, (n_lines - 1))
+        write (10, '(i3, 2x, a, f10.4)') i, 'Angle =', angle
+      enddo
+    endif
+
+    write (10, '(a)') '              x        y1        y2        y3'
+
+    do i = 1, size(x)
+      write (10, '(i5, 100f10.5)') i, x(i), (ny(j)%y(i), j = 1, n_lines)
+    enddo
+
+    close (10)
+
+    print *, 'Plot file: reflection_probability.dat'
 
   case ('ix_surface')
 
@@ -183,18 +214,20 @@ do
 
   case ('type')
 
-    call match_word (ans(1:ix), ['rough ', 'smooth', 'diff  '], n, matched_name = ans)
+    call match_word (ans(1:ix), ['total    ', 'specular ', 'diffuse  ', '%specular'], n, matched_name = ans)
     if (n < 1) then
       print *, 'CANNOT PARSE THIS.'
       cycle
     endif
     select case (ans)
-    case ('rough')
-      head_lab = 'Reflectivity (ROUGH)'
-    case ('smooth')
-      head_lab = 'Reflectivity (SMOOTH)'
-    case ('diff')
-      head_lab = 'Reflectivity (SMOOTH - ROUGH)'
+    case ('total')
+      head_lab = 'Total Reflectivity Probability'
+    case ('specular')
+      head_lab = 'Specular Reflectivity Probability'
+    case ('%specular')
+      head_lab = 'Specular/Total Relative Reflectivity Probability'
+    case ('diffuse')
+      head_lab = 'Diffuse Reflectivity Probability'
     end select
     reflection_type = ans
 
