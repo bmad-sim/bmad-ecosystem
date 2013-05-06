@@ -368,7 +368,6 @@ integer ixw
 
 logical stop_at_check_pt, check_section_here
 
-
 ! update old 
 
 photon%old = photon%now  ! Save for hit spot calc
