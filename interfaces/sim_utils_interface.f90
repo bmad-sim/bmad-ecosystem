@@ -10,9 +10,7 @@ interface
     integer index(*)
     integer n
   end subroutine
-end interface
- 
-interface
+
   subroutine bbi_kick (x, y, r, kx, ky)
     import
     implicit none
@@ -22,9 +20,7 @@ interface
     real(rp) kx
     real(rp) ky
   end subroutine
-end interface
- 
-interface
+
   subroutine bracket_index (s_arr, i_min, i_max, s, ix)
     import
     implicit none
@@ -32,9 +28,15 @@ interface
     real(rp) s_arr(i_min:), s
     integer ix
   end subroutine
-end interface
- 
-interface
+
+  subroutine bracket_index2 (s_arr, i_min, i_max, s, ix0, ix)
+    import
+    implicit none
+    integer i_min, i_max
+    real(rp) s_arr(i_min:), s
+    integer ix0, ix
+  end subroutine
+
   subroutine calc_file_number (file_name, num_in, num_out, err_flag)
     implicit none
     character(*) file_name
@@ -42,17 +44,13 @@ interface
     integer num_out
     logical err_flag
   end subroutine
-end interface
- 
-interface
+
   subroutine change_file_number (file_name, change)
     implicit none
     character(*) file_name
     integer change
   end subroutine
-end interface
- 
-interface
+
   subroutine complex_error_function (wr, wi, zr, zi)
     import
     implicit none
@@ -61,60 +59,46 @@ interface
     real(rp) zr
     real(rp) zi
   end subroutine
-end interface
- 
-interface
+
   function cross_product (a, b) result (c)
     import
     implicit none
     real(rp) a(:), b(:)
     real(rp) c(3)
   end function
-end interface
- 
-interface
+
   function determinant (mat) result (det)
     import
     implicit none
     real(rp) mat(:,:)
     real(rp) det
   end function
-end interface
- 
-interface
+
   subroutine doubleup_quotes (str_in, str_out, quote)
     character(*) str_in
     character(*) str_out
     character quote*1
   end subroutine
-end interface
- 
-interface
+
   function even (num) result (is_even)
     implicit none
     integer num
     logical is_even
   end function
-end interface
- 
-interface
+
   function factorial(n) result (fact)
     import
     implicit none
     real(rp) fact
     integer n
   end function
-end interface
- 
-interface
+
   subroutine fff_sub(line, error)
     implicit none
     character(*) line
     logical error
   end subroutine
-end interface
- 
-interface
+
   subroutine file_directorizer (in_file, out_file, directory, add_switch)
     implicit none
     logical add_switch
@@ -122,18 +106,14 @@ interface
     character(*) out_file
     character(*) directory
   end subroutine
-end interface
- 
-interface
+
   subroutine file_get (string, dflt_file_name, file_name)
     implicit none
     character(*) file_name
     character(*) dflt_file_name
     character(*) string
   end subroutine
-end interface
- 
-interface
+
   subroutine file_get_open (string, dflt_file_name, &
                                     file_name, file_unit, readonly)
     implicit none
@@ -143,9 +123,7 @@ interface
     integer file_unit
     logical readonly
   end subroutine
-end interface
- 
-interface
+
   subroutine file_suffixer (in_file_name, out_file_name, suffix, add_switch)
     implicit none
     logical add_switch
@@ -153,16 +131,12 @@ interface
     character(*) out_file_name
     character(*) suffix
   end subroutine
-end interface
- 
-interface
+
   subroutine type_this_file(filename)
     implicit none
     character(*) filename
   end subroutine
-end interface
- 
-interface
+
   subroutine get_file_number (file_name, cnum_in, num_out, err_flag)
     implicit none
     character(*) file_name
@@ -170,27 +144,21 @@ interface
     integer num_out
     logical err_flag
   end subroutine
-end interface
- 
-interface
+
   subroutine get_next_number (filein, cnum, digits)
     implicit none
     character(*) filein
     character(*) cnum
     integer digits
   end subroutine
-end interface
 
-interface
   function I_bessel(m, arg) result (i_bes)
     import
     implicit none
     integer m
     real(rp) arg, i_bes
   end function
-end interface
 
-interface
   subroutine if_error (idelim, icmd, error_string, line_number, end_check)
     implicit none
     integer idelim
@@ -199,9 +167,7 @@ interface
     integer icmd
     character(*) error_string
   end subroutine
-end interface
- 
-interface
+
   subroutine increment_file_number (file_name, digits, number, cnumber)
     implicit none
     character(*) file_name
@@ -209,26 +175,20 @@ interface
     integer digits
     integer number
   end subroutine
-end interface
- 
-interface
+
   function index_nocase(string1, string2) result (indx)
     implicit none
     integer indx
     character(*) string1
     character(*) string2
   end function
-end interface
- 
-interface
+
   function integer_read(error_message) result (int_read)
     implicit none
     integer int_read
     character(*) error_message
   end function
-end interface
- 
-interface
+
   function inverse (funct, y, x1, x2, tol) result (x)
     import
     implicit none
@@ -239,43 +199,33 @@ interface
         import
         real(rp) funct, x
       end function funct
-     end interface
+    end interface
   end function
-end interface
  
-interface
   function inverse_prob (val) result (prob)
     import
     implicit none
     real(rp) prob 
     real(rp) val
   end function
-end interface
- 
-interface
+
   function is_integer (string) result (valid)
     character(*) string
     logical valid
   end function
-end interface
 
-interface
   function is_logical (string, ignore) result (valid)
     character(*) string
     logical, optional :: ignore
     logical valid
   end function
-end interface
 
-interface
   function is_real (string, ignore) result (valid)
     character(*) string
     logical, optional :: ignore
     logical valid
   end function
-end interface
 
-interface
   subroutine linear_fit (x, y, n_data, a, b, sig_a, sig_b)
     import
     implicit none
@@ -287,9 +237,7 @@ interface
     real(rp) sig_a
     real(rp) sig_b
   end subroutine
-end interface
- 
-interface
+
   subroutine location_decode(string, array, ix_min, num, names, exact_case)
     implicit none
     integer num
@@ -299,26 +247,20 @@ interface
     character(*), optional :: names(ix_min:)
     logical, optional :: exact_case
   end subroutine
-end interface
 
-interface
   subroutine make_legal_comment (comment_in, comment_out)
     implicit none
     character(*) comment_in
     character(*) comment_out
   end subroutine
-end interface
- 
-interface
+
   function match_wild (string, template) result (is_match)
     implicit none
     logical is_match
     character(*) string
     character(*) template
   end function
-end interface
 
-interface
   subroutine cplx_lubksb(a,indx,b)
     use nrtype
     import
@@ -326,9 +268,7 @@ interface
     integer(I4B), dimension(:), intent(in) :: indx
     complex(dp), dimension(:), intent(inout) :: b
   end subroutine
-end interface
 
-interface
   subroutine cplx_ludcmp(a,indx,d)
     use nrtype
     import
@@ -336,9 +276,7 @@ interface
     integer(I4B), dimension(:), intent(out) :: indx
     real(dp), intent(out) :: d
   end subroutine
-end interface
 
-interface
   subroutine cplx_mat_inverse(mat_r, mat_i, inv_r, inv_i, ok, print_err)
     import
     real(rp) :: mat_r(:,:)
@@ -347,18 +285,14 @@ interface
     real(rp) :: inv_i(:,:)
     logical, optional :: ok, print_err
   end subroutine
-end interface
- 
-interface
+
   subroutine mat_inverse (mat, mat_inv, ok, print_err)
     import
     real(rp) :: mat(:,:)
     real(rp) :: mat_inv(:,:)
     logical, optional :: ok, print_err
   end subroutine
-end interface
 
-interface
   subroutine mat_rotation (mat, angle, bet_1, bet_2, alph_1, alph_2)
     import
     implicit none
@@ -367,9 +301,7 @@ interface
     real(rp) alph_1, alph_2
     real(rp) mat(:,:)
   end subroutine
-end interface
- 
-interface
+
   function mat_scale_p0 (mat_in, p0_ratio, invert) result (mat_out)
     import
     real(rp), intent(in) :: mat_in(:,:)
@@ -377,36 +309,28 @@ interface
     logical, optional :: invert
     real(rp) :: mat_out(size(mat_in, 1), size(mat_in, 2))
   end function
-end interface
- 
-interface
+
   subroutine mat_symp_conj(mat1, mat2)
     import
     implicit none
     real(rp) mat1(:,:)
     real(rp) mat2(:,:)
   end subroutine
-end interface
- 
-interface
+
   function mat_symp_error (mat, p0_ratio) result (error)
     import
     real(rp), intent(in) :: mat(:,:)
     real(rp), optional :: p0_ratio
     real(rp) error
   end function
-end interface
- 
-interface
+
   subroutine mat_symplectify (mat_in, mat_symp, p0_ratio, r_root)
     import
     real(rp), intent(in)  :: mat_in(:,:)
     real(rp), intent(out) :: mat_symp(:,:)
     real(rp), intent(in), optional :: p0_ratio, r_root
   end subroutine
-end interface
- 
-interface
+
   subroutine mat_type (mat, nunit, header, num_form)
     import
     implicit none
@@ -414,16 +338,12 @@ interface
     integer, optional :: nunit
     character(*), optional :: header, num_form
   end subroutine
-end interface
- 
-interface
+
   subroutine mat_make_unit (mat)
     import
     real(rp) mat(:,:)
   end subroutine
-end interface
- 
-interface
+
   subroutine node_put (node, n1, n2, val_in, cmd_only, val_out, bad_set)
     implicit none
     integer n1
@@ -434,26 +354,20 @@ interface
     logical cmd_only
     logical bad_set
   end subroutine
-end interface
- 
-interface
+
   function odd (num) result (is_odd)
     implicit none
     integer num
     logical is_odd
   end function
-end interface
- 
-interface
+
   function probability_funct(x) result (prob)
     import
     implicit none
     real(rp) prob
     real(rp) x
   end function
-end interface
- 
-interface
+
   subroutine query_string (query_str, upcase, return_str, ix, ios)
     implicit none
     character(*) return_str
@@ -462,53 +376,41 @@ interface
     integer ios
     logical upcase
   end subroutine
-end interface
- 
-interface
+
   function real_read(error_message)
     import
     implicit none
     real(rp) real_read
     character(*) error_message
   end function
-end interface
- 
-interface
+
   subroutine run_timer(command, time)
     import
     implicit none
     real(rp), optional :: time
     character(*) command
   end subroutine
-end interface
- 
-interface
+
   subroutine skip_header (ix_unit, error_flag)
     implicit none
     integer ix_unit
     logical error_flag
   end subroutine
-end interface
- 
-interface
+
   function str_find_first_in_set(line, set) result (ix_match)
     implicit none
     character(*) line
     character(*) set
     integer ix_match
   end function
-end interface
- 
-interface
+
   function str_find_first_not_in_set(line, set) result (ix_match)
     implicit none
     character(*) line
     character(*) set
     integer ix_match
   end function
-end interface
- 
-interface
+
   subroutine string_to_int (line, default, value, err_flag)
     implicit none
     integer default
@@ -516,9 +418,7 @@ interface
     character(*) line
     logical err_flag
   end subroutine
-end interface
- 
-interface
+
   subroutine string_to_real (line, default, value, err_flag)
     import
     implicit none
@@ -527,9 +427,7 @@ interface
     character(*) line
     logical err_flag
   end subroutine
-end interface
- 
-interface
+
   subroutine string_trim2 (in_str, delimitors, out_str, ix_word, delim, ix_next)
     implicit none
     character(*) in_str
@@ -539,54 +437,40 @@ interface
     integer ix_word
     integer ix_next
   end subroutine
-end interface
- 
-interface
+
   subroutine test_tune_tracker_lock (tracker_locked)
     implicit none
     logical tracker_locked(2)
   end subroutine
-end interface
- 
-interface
+
   subroutine downcase_string(string)
     implicit none
     character(*) string
   end subroutine
-end interface
- 
-interface
+
   function downcase(str_in) result (str_out)
     implicit none
     character(*) str_in
     character(len(str_in)) str_out
   end function
-end interface
- 
-interface
+
   function upcase(str_in) result (str_out)
     implicit none
     character(*) str_in
     character(len(str_in)) str_out
   end function
-end interface
- 
-interface
+
   subroutine upcase_string(string)
     implicit none
     character(*) string
   end subroutine
-end interface
- 
-interface
+
   function word_len (wording) result (wlen)
     implicit none
     integer wlen 
     character(*) wording
   end function
-end interface
- 
-interface
+
   subroutine word_read (in_str, delim_list, word, &
                                        ix_word, delim, delim_found, out_str)
     implicit none
@@ -596,107 +480,83 @@ interface
     integer ix_word
     logical delim_found
   end subroutine
-end interface
- 
-interface
+
   subroutine str_substitute (string, str_match, str_replace, do_trim)
     implicit none
     character(*) string
     character(*), optional :: str_match, str_replace
     logical, optional :: do_trim
   end subroutine
-end interface
 
-interface
   subroutine date_and_time_stamp (string, numeric_month)
     implicit none
     character(*) string
     logical, optional :: numeric_month
   end subroutine
-end interface
- 
-interface
+
   subroutine find_file (file_in, found, file_out, dirs)
     character(*) file_in, dirs(:), file_out
     logical found
   end subroutine
-end interface
 
-interface                   
   subroutine get_file_time_stamp (file, time_stamp)
     implicit none
     character(*) file, time_stamp
   end subroutine
-end interface
 
-interface                   
    function lunget ()
      implicit none
      integer lunget
    end function lunget
-end interface
 
-interface
    function match_reg(str, pat) result (is_match)
      implicit none
      logical is_match
      character(*) str, pat
    end function match_reg
-end interface
 
-interface
    subroutine milli_sleep (milli_sec)
     implicit none
     integer milli_sec
   end subroutine
-end interface    
 
-interface
   subroutine ps2gif (ps_file, gif_file, kill_ps_file)
     implicit none
     character(*) ps_file, gif_file
     logical, optional :: kill_ps_file
   end subroutine
-end interface    
 
-interface
-   recursive function str_match_wild(str, pat) result (a_match)
-     implicit none
-     character(*) pat, str
-     logical a_match
-   end function str_match_wild
-end interface
+  recursive function str_match_wild(str, pat) result (a_match)
+    implicit none
+    character(*) pat, str
+    logical a_match
+  end function str_match_wild
 
-interface
-   subroutine str_upcase(dst, src)
-     implicit none
-     character(*) dst, src
-   end subroutine str_upcase
-end interface
+  subroutine str_upcase(dst, src)
+    implicit none
+    character(*) dst, src
+  end subroutine str_upcase
 
-interface
-   subroutine str_downcase(dst, src)
-     implicit none
-     character(*) dst, src
-   end subroutine str_downcase
-end interface
+  subroutine str_downcase(dst, src)
+    implicit none
+    character(*) dst, src
+  end subroutine str_downcase
 
-interface
-   subroutine system_command (line)
-     implicit none
-     character(*) line
-   end subroutine
-end interface
+  subroutine system_command (line)
+    implicit none
+    character(*) line
+  end subroutine
 
-interface
-   subroutine string_trim (in_string, out_string, word_len)
-     implicit none
-     character(*) in_string, out_string
-     integer word_len
-   end subroutine string_trim
+  subroutine string_trim (in_string, out_string, word_len)
+    implicit none
+    character(*) in_string, out_string
+    integer word_len
+  end subroutine string_trim
+
 end interface
 
 ! This is to suppress the ranlib "has no symbols" message
+
 integer, private :: private_dummy
 
 end module
