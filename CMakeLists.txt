@@ -19,6 +19,8 @@ set(SRC_DIRS
   string
 )
 
+set (FFLAGS "-pg")
+
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 
 

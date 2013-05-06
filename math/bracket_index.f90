@@ -23,48 +23,48 @@
 
 subroutine bracket_index (s_arr, i_min, i_max, s, ix)
 
-  use precision_def
+use precision_def
 
-  implicit none
+implicit none
 
-  integer i_min, i_max
-  real(rp) s_arr(i_min:), s
+integer i_min, i_max
+real(rp) s_arr(i_min:), s
 
-  integer ix, n1, n2, n3
-
-!
-
-  if (s < s_arr(i_min)) then
-    ix = i_min - 1
-    return
-  endif
-
-  if (s >= s_arr(i_max)) then
-    ix = i_max
-    return
-  endif
+integer ix, n1, n2, n3
 
 !
 
-  n1 = i_min
-  n3 = i_max
+if (s < s_arr(i_min)) then
+  ix = i_min - 1
+  return
+endif
 
-  do
+if (s >= s_arr(i_max)) then
+  ix = i_max
+  return
+endif
 
-    if (n3 == n1 + 1) then
-      ix = n1
-      return
-    endif
+!
 
-    n2 = (n1 + n3) / 2
+n1 = i_min
+n3 = i_max
 
-    if (s < s_arr(n2)) then
-      n3 = n2
-    else
-      n1 = n2
-    endif
+do
 
-  enddo
+  if (n3 == n1 + 1) then
+    ix = n1
+    return
+  endif
+
+  n2 = (n1 + n3) / 2
+
+  if (s < s_arr(n2)) then
+    n3 = n2
+  else
+    n1 = n2
+  endif
+
+enddo
 
 end subroutine
 
