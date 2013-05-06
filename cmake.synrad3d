@@ -13,6 +13,10 @@ set (INC_DIRS
   include
 )
 
+set (FFLAGS "-pg")
+set (LINK_FLAGS "-pg")
+
+
 set (LINK_LIBS
   bsim
   bmadz

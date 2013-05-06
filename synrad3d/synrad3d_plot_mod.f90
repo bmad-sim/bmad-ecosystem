@@ -476,9 +476,9 @@ allocate (x1_norm(n), y1_norm(n), x2_norm(n), y2_norm(n))
 
 ! Print wall info
 
-do i = 0, wall%n_section_max
+do i = 0, min(1000, wall%n_section_max)
   section => wall%section(i)
-  print '(i4, 2x, a, f12.2, 2x, a)', i, section%basic_shape(1:12), section%s, section%name
+  print '(i8, 2x, a, f14.6, 2x, a)', i, section%basic_shape(1:12), section%s, section%name
 enddo
 
 ix_section = 0

@@ -209,30 +209,34 @@ real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3)
 
 integer i, ix
 
-logical is_through
+logical is_through, checked
 
-! The present position is between wall%section(ix)%s and wall%section(ix+1)%s
-
-call sr3d_get_wall_index (photon%now, wall, ix)
+! check for particle outside wall
 
 photon%status = inside_the_wall$
+checked = .false.
 
-if (wall%section(ix+1)%basic_shape == 'triangular') then
-  do i = 1, 2*size(wall%section(ix)%gen_shape%wall3d_section%v)
-    call sr3d_get_mesh_wall_triangle_pts (wall%section(ix), wall%section(ix+1), i, tri_vert0, tri_vert1, tri_vert2)
-    call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through)
-    if (is_through) then
-      photon%status = is_through_wall$
-      return 
-    endif
-  enddo
+if (wall%has_triangular_sections) then
+  call sr3d_get_wall_index (photon%now, wall, ix)
+  if (wall%section(ix+1)%basic_shape == 'triangular') then
+    do i = 1, 2*size(wall%section(ix)%gen_shape%wall3d_section%v)
+      call sr3d_get_mesh_wall_triangle_pts (wall%section(ix), wall%section(ix+1), i, tri_vert0, tri_vert1, tri_vert2)
+      call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through)
+      if (is_through) then
+        photon%status = is_through_wall$
+        return 
+      endif
+    enddo
+    checked = .true.
+  endif
+endif
 
-else
-  call sr3d_photon_d_radius (photon%now, wall, d_radius)
+if (.not. checked) then
+  call sr3d_photon_d_radius (photon%now, wall, d_radius, check_safe = .true.)
   if (d_radius > 0) then
-      photon%status = is_through_wall$
-      return 
-    endif    
+    photon%status = is_through_wall$
+    return 
+  endif    
 endif
 
 ! Is through if at ends of a linear lattice
@@ -381,7 +385,10 @@ dl_left = dl_step
 propagation_loop: do
 
   check_section_here = .false.
-  if (stop_at_check_pt) call bracket_index (wall%section%s, 0, wall%n_section_max, now%vec(5), ixw)
+  if (stop_at_check_pt) then
+    call bracket_index2 (wall%section%s, 0, wall%n_section_max, now%vec(5), now%ix_wall, ixw)
+    now%ix_wall = ixw
+  endif
 
   ! If we are crossing over to a new element then update now%ix_ele.
 
@@ -463,7 +470,6 @@ propagation_loop: do
     radius = 1 / g
     theta = (s_stop - now%vec(5)) * g
     tan_t = tan(theta)
-    dl = tan_t * (radius + now%vec(1)) / (now%vec(6) - tan_t * now%vec(2))
 
     if (abs(tan_t * (radius + now%vec(1))) > dl_left * abs(now%vec(6) - tan_t * now%vec(2))) then
       dl = dl_left
@@ -480,7 +486,7 @@ propagation_loop: do
     if (stop_at_check_pt .and. now%vec(2) * g < 0) then 
       dl2 = -now%vec(2) * (radius + now%vec(1)) / (now%vec(2)**2 + now%vec(6)**2)
       if (dl2 < dl) then
-        dl = dl2 * (1 + 1d-10) ! Add extra to make sure we are not short due to roundoff.
+        dl = dl2 * (1 + sr3d_params%significant_length) ! Add extra to make sure we are not short due to roundoff.
         tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
         theta = atan(tan_t)
         s_stop = now%vec(5) + radius * theta
@@ -639,7 +645,7 @@ endif
 ! Find where the photon hits.
 
 in_zbrent = .true.
-track_len = super_zbrent (sr3d_photon_hit_func, track_len0, track_len1, 1d-10, err)
+track_len = super_zbrent (sr3d_photon_hit_func, track_len0, track_len1, sr3d_params%significant_length, err)
 if (err) then
   call print_hit_points (-1, photon, wall_hit, .true.)
   print *, 'WILL IGNORE THIS PHOTON.'
