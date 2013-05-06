@@ -62,6 +62,7 @@ type (surface_input) surface
 type (sr3d_surface_struct), pointer :: surface_ptr  => null()
 
 real(rp) ix_vertex_ante(2), ix_vertex_ante2(2)
+real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
 
 integer i, j, k, im, n, ix, iu, n_wall_section_max, ios, n_shape, n_surface, n_repeat
 integer m_max, n_add
@@ -71,7 +72,7 @@ character(40) name
 character(200) reflectivity_file
 character(*) wall_file
 
-logical err, multi_local
+logical err, multi_local, in_ante
 logical, allocatable ::  is_local(:) 
 
 
@@ -80,6 +81,8 @@ namelist / gen_shape_def / name, v, ix_vertex_ante, ix_vertex_ante2
 namelist / surface_def / name, reflectivity_file
 
 ! Open file
+
+wall%has_triangular_sections = .false.
 
 iu = lunget()
 open (iu, file = wall_file, status = 'old')
@@ -169,19 +172,16 @@ do i = 0, n_wall_section_max
     section%basic_shape = section%basic_shape(2:)
   endif
 
+  sec = sr3d_wall_section_struct(section%name, &
+          section%basic_shape, '', section%s, section%width2, section%height2, &
+          section%width2_plus, section%ante_height2_plus, &
+          section%width2_minus, section%ante_height2_minus, &
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
+
   ix = index(section%basic_shape, ':')
-  if (ix == 0) then
-    sec = sr3d_wall_section_struct(section%name, &
-          section%s, section%basic_shape, '', section%width2, section%height2, &
-          section%width2_plus, section%ante_height2_plus, &
-          section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
-  else
-    sec = sr3d_wall_section_struct(section%name, &
-          section%s, section%basic_shape(1:ix-1), section%basic_shape(ix+1:), section%width2, section%height2, &
-          section%width2_plus, section%ante_height2_plus, &
-          section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
+  if (ix /= 0) then
+    sec%basic_shape = section%basic_shape(1:ix-1)
+    sec%shape_name  = section%basic_shape(ix+1:)
   endif
 
   call sr3d_associate_surface (sec%surface, surface%name, wall%surface)
@@ -344,6 +344,7 @@ enddo outer
 
 section_loop: do i = 0, wall%n_section_max
   sec => wall%section(i)
+  if (sec%basic_shape == 'triangular') wall%has_triangular_sections = .true.
   if (sec%basic_shape /= 'gen_shape' .and. sec%basic_shape /= 'triangular') cycle
   do j = 1, size(wall%gen_shape)
     if (sec%shape_name /= wall%gen_shape(j)%name) cycle
@@ -536,6 +537,45 @@ do i = 0, wall%n_section_max
 
 enddo
 
+! Calculate largest "safe" box for each section
+
+wall%gen_shape(:)%x_safe = 0
+
+do i = 0, wall%n_section_max
+  sec => wall%section(i)
+
+  if (associated(sec%gen_shape)) then
+    if (sec%gen_shape%x_safe > 0) then
+      sec%x_safe = sec%gen_shape%x_safe
+      sec%y_safe = sec%gen_shape%y_safe
+      cycle
+    endif
+  endif
+
+  max_area = 0
+  do j = 1, 39
+    angle = j * pi / 39
+    cos_a = cos(angle); sin_a = sin(angle)
+    call sr3d_wall_section_params (sec,  cos_a,  sin_a, radius(1), dr_dtheta, in_ante)
+    call sr3d_wall_section_params (sec,  cos_a, -sin_a, radius(2), dr_dtheta, in_ante)
+    call sr3d_wall_section_params (sec, -cos_a,  sin_a, radius(3), dr_dtheta, in_ante)
+    call sr3d_wall_section_params (sec, -cos_a, -sin_a, radius(4), dr_dtheta, in_ante)
+    rad = minval(radius)
+    area = rad**2 * cos_a * sin_a
+    if (area > max_area) then
+      sec%x_safe = 0.999 * rad * cos_a
+      sec%y_safe = 0.999 * rad * sin_a
+      max_area = area
+    endif
+  enddo
+
+  if (associated(sec%gen_shape)) then
+    sec%gen_shape%x_safe = sec%x_safe
+    sec%gen_shape%y_safe = sec%y_safe
+  endif
+
+enddo
+
 ! Surface info
 
 surface_ptr => wall%surface(1)  ! Default surface
@@ -680,10 +720,10 @@ do i = 1, n_multi
     ix = index(section(j)%basic_shape, ':')
     if (ix == 0) ix = len_trim(section(j)%basic_shape) + 1
     wall%multi_section(i)%section(j) = sr3d_wall_section_struct(section(j)%name, &
-          section(j)%s, section(j)%basic_shape(:ix-1), section(j)%basic_shape(ix+1:), &
-          section(j)%width2, section(j)%height2, section(j)%width2_plus, &
+          section(j)%basic_shape(:ix-1), section(j)%basic_shape(ix+1:), &
+          section(j)%s, section(j)%width2, section(j)%height2, section(j)%width2_plus, &
           section(j)%ante_height2_plus, section(j)%width2_minus, section(j)%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
   enddo
 enddo
 
@@ -917,7 +957,7 @@ end subroutine sr3d_emit_photon
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, lat, dw_perp, in_antechamber)
+! Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, lat, dw_perp, in_antechamber, check_safe)
 !
 ! Routine to calculate the (transverse) radius of the photon  relative to the wall.
 ! Optionally can also caluclate the outwrd normal vector perpendicular to the wall.
@@ -926,9 +966,12 @@ end subroutine sr3d_emit_photon
 !   use photon_utils
 !
 ! Input:
-!   wall -- sr3d_wall_struct: Wall
-!   s    -- Real(rp): Longitudinal position.
-!   lat  -- Lat_struct, optional: Lattice. Only needed when dw_perp is calculated.
+!   wall       -- sr3d_wall_struct: Wall
+!   s          -- Real(rp): Longitudinal position.
+!   lat        -- Lat_struct, optional: Lattice. Only needed when dw_perp is calculated.
+!   check_safe -- logical, optional: If True, check if photon is safely in the "safe" box far from
+!                   the wall. This is used to speed up computations when d_radius value is not needed.
+!                   Default is False.
 !
 ! Output:
 !   d_radius       -- real(rp): r_photon - r_wall
@@ -936,7 +979,7 @@ end subroutine sr3d_emit_photon
 !   in_antechamber -- Logical, optional: At antechamber wall?
 !-
 
-Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, lat, dw_perp, in_antechamber)
+Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, lat, dw_perp, in_antechamber, check_safe)
 
 implicit none
 
@@ -952,12 +995,21 @@ real(rp) dr0_dtheta, dr1_dtheta, pt0(3), pt1(3), pt2(3), dp1(3), dp2(3)
 
 integer ix, ix_ele
 
-logical, optional :: in_antechamber
+logical, optional :: in_antechamber, check_safe
 logical in_ante0, in_ante1
 
-!
+! If the photon's position (abs(x), abs(y)) is within the box (x_safe, y_safe) then the photon
+! is guaranteed to be within the vacuum chamber.
 
 call sr3d_get_wall_index (p_orb, wall, ix)
+
+if (logic_option(.false., check_safe)) then
+  if (abs(p_orb%vec(1)) < min(wall%section(ix)%x_safe, wall%section(ix+1)%x_safe) .and. &
+      abs(p_orb%vec(3)) < min(wall%section(ix)%y_safe, wall%section(ix+1)%y_safe)) then
+    d_radius = -1
+    return
+  endif
+endif
 
 ! triangular calc.
 ! The wall outward normal is just given by the cross product: (pt1-pt0) x (pt2-pt2)
@@ -985,20 +1037,39 @@ else
     sin_ang = p_orb%vec(3) / r_photon
   endif
 
+  f = (p_orb%vec(5) - wall%section(ix)%s) / (wall%section(ix+1)%s - wall%section(ix)%s)
+
+  ! If f is close to 0 or 1 and dw_perp is not to be calculated then can simplify calc and save time.
+
+  if (.not. present(dw_perp)) then
+    if (abs(f) < sr3d_params%significant_length) then
+      call sr3d_wall_section_params (wall%section(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0)
+      d_radius = r_photon - radius0
+      if (present(in_antechamber)) in_antechamber = in_ante0
+      return
+
+    elseif (abs(f - 1) < sr3d_params%significant_length) then
+      call sr3d_wall_section_params (wall%section(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1)
+      d_radius = r_photon - radius1
+      if (present(in_antechamber)) in_antechamber = in_ante1
+      return
+    endif
+  endif
+
+  ! 
+
   call sr3d_wall_section_params (wall%section(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0)
   call sr3d_wall_section_params (wall%section(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1)
 
-  f = (p_orb%vec(5) - wall%section(ix)%s) / (wall%section(ix+1)%s - wall%section(ix)%s)
-
   d_radius = r_photon - ((1 - f) * radius0 + f * radius1)
+
+  if (present(in_antechamber)) in_antechamber = (in_ante0 .and. in_ante1)
 
   if (present (dw_perp)) then
     dw_perp(1:2) = [cos_ang, sin_ang] - [-sin_ang, cos_ang] * &
                               ((1 - f) * dr0_dtheta + f * dr1_dtheta) / r_photon
     dw_perp(3) = (radius0 - radius1) / (wall%section(ix+1)%s - wall%section(ix)%s)
   endif
-
-  if (present(in_antechamber)) in_antechamber = (in_ante0 .and. in_ante1)
 
 endif
 
@@ -1056,13 +1127,13 @@ type (sr3d_photon_coord_struct) :: p_orb
 type (sr3d_wall_struct), target :: wall
 
 integer ix_wall
-integer, save :: ix_wall_old = 0
 
 ! 
 
-ix_wall = ix_wall_old
+ix_wall = p_orb%ix_wall
 if (p_orb%vec(5) < wall%section(ix_wall)%s .or. p_orb%vec(5) > wall%section(ix_wall+1)%s) then
-  call bracket_index (wall%section%s, 0, wall%n_section_max, p_orb%vec(5), ix_wall)
+  call bracket_index2 (wall%section%s, 0, wall%n_section_max, p_orb%vec(5), p_orb%ix_wall, ix_wall)
+  p_orb%ix_wall = ix_wall
   if (ix_wall == wall%n_section_max) ix_wall = wall%n_section_max - 1
 endif
 
@@ -1070,9 +1141,6 @@ endif
 
 if (p_orb%vec(5) == wall%section(ix_wall)%s   .and. p_orb%vec(6) > 0 .and. ix_wall /= 0)               ix_wall = ix_wall - 1
 if (p_orb%vec(5) == wall%section(ix_wall+1)%s .and. p_orb%vec(6) < 0 .and. ix_wall /= wall%n_section_max-1) ix_wall = ix_wall + 1
-
-p_orb%ix_wall = ix_wall
-ix_wall_old = ix_wall
 
 end subroutine sr3d_get_wall_index
 

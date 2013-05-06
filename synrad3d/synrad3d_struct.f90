@@ -71,13 +71,14 @@ type sr3d_gen_shape_struct
   type (wall3d_section_struct) :: wall3d_section
   integer ix_vertex_ante(2)
   integer ix_vertex_ante2(2)
+  real(rp) :: x_safe = 0, y_safe = 0  ! If photon is in the "safe" box then not near the wall.
 end type
 
 type sr3d_wall_section_struct
   character(40) name              ! Name of this section
-  real(rp) s                      ! Longitudinal position.
   character(16) basic_shape       ! "elliptical", "rectangular", "gen_shape", or "triangular"
   character(40) shape_name
+  real(rp) s                      ! Longitudinal position.
   real(rp) width2                 ! Half width ignoring antechamber.
   real(rp) height2                ! Half height ignoring antechamber.
   real(rp) width2_plus            ! Distance from pipe center to +x side edge.
@@ -88,6 +89,7 @@ type sr3d_wall_section_struct
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
+  real(rp) x_safe, y_safe         ! If photon is in the "safe" box then not near the wall.
   type (sr3d_gen_shape_struct), pointer :: gen_shape => null()            ! Gen_shape info
   type (sr3d_surface_struct), pointer :: surface  => null()
 end type
@@ -108,6 +110,7 @@ type sr3d_wall_struct
   type (sr3d_surface_struct), allocatable :: surface(:)
   integer n_section_max
   integer geometry      ! closed$ or open$
+  logical has_triangular_sections
 end type
 
 !------------------------------------------------------------------------
@@ -117,6 +120,7 @@ type sr3d_params_struct
   type (random_state_struct) ran_state
   real(rp) :: ds_track_step_max = 3     ! Maximum longitudinal distance in one photon "step".
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
+  real(rp) :: significant_length = 1d-10
   logical :: allow_reflections = .true. ! If False, terminate tracking when photon hits the wall.
   logical :: allow_absorption = .true.  ! If False, do not allow photon to be adsorbed.
   logical :: stop_if_hit_antechamber = .false. 

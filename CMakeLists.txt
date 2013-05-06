@@ -22,4 +22,6 @@ set (EXE_SPECS
   ##cmake.find_quads
 )
 
+set (FFLAGS "-pg")
+
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
