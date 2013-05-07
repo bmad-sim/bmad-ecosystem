@@ -125,8 +125,10 @@ critical input to codes which model the growth of electron clouds.
 X-ray data from an LBNL database~\cite{b:henke} for the smooth-surface
 reflectivity, and an analytical model~\cite{b:beckmann,b:ogilvy} for
 diffuse scattering from a surface with finite roughness. \srthree can
-handle any planar lattice and a wide variety of vacuum chamber
-profiles.
+handle a wide variety of vacuum chamber profiles. \srthree also
+handles a wide variety of machines including machines whose geometry
+is not planar and machines using electrons or positrons as well as
+machines using protons or antiprotons.
 
 \srthree is not to be confused with an older program called
 \vn{Synrad}. The \vn{Synrad} program is used for calculating wall
@@ -272,9 +274,9 @@ number generator with a probability distribution based on the standard
 angular spectrum of photons generated in a bend. There is no angular
 offset added to the angle in the plane of the bend. The generated
 photons will have the proper correlation between photon energy and
-photon angle. Note that the plane of the bend may not be
-horizontal. For example, the bend plane orientation for an offset beam
-in a quadrupole will depend upon the offset.
+photon angle. Note that the bending plane of the charged particle beam
+need not be horizontal. For example, the bend plane orientation for an
+offset beam in a quadrupole will depend upon the offset.
 
 %------------------------------------------------------------------
 \subsection{Photon Scattering} 
@@ -1309,7 +1311,7 @@ photon energy, there are two reflection probabilities called
 probabilities that the photon will be reflected either diffusely or
 specularly, or that the photon will be absorbed. In particular
 \begin{example}
-  probability of absorbtion          = 1 - p_reflect
+  probability of absorption          = 1 - p_reflect
   probability of reflection          = p_reflect
   probability of specular reflection = p_reflect * rel_p_specular
   probability of diffuse reflection  = p_reflect * (1 - rel_p_specular)

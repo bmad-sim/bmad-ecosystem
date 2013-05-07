@@ -363,6 +363,7 @@ type (lat_struct), target :: lat
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_wall_struct) wall
 type (sr3d_photon_coord_struct), pointer :: now
+type (ele_struct), pointer :: ele
 
 real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t
 real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st
@@ -461,12 +462,17 @@ propagation_loop: do
 
   ! In a bend...
 
-  if (lat%ele(now%ix_ele)%key == sbend$ .and. lat%ele(now%ix_ele)%value(g$) /= 0) then
+  ele => lat%ele(now%ix_ele)
+  if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
+
+    ! Rotate to element reference frame (bend in x-plane) if bend is tilted.
+
+    if (ele%value(tilt_tot$) /= 0) call tilt_coords(ele%value(tilt_tot$), now%vec)
 
     ! Next position is determined by whether the distance to the element edge is 
     ! shorter than the distance left to travel.
 
-    g = lat%ele(now%ix_ele)%value(g$)
+    g = ele%value(g$)
     radius = 1 / g
     theta = (s_stop - now%vec(5)) * g
     tan_t = tan(theta)
@@ -513,6 +519,8 @@ propagation_loop: do
     now%vec(3) = now%vec(3) + dl * now%vec(4)
     now%vec(5) = s_stop
     now%vec(6) = v_s * cos_t - v_x * sin_t
+
+    if (ele%value(tilt_tot$) /= 0) call tilt_coords(-ele%value(tilt_tot$), now%vec)
 
   ! Else we are not in a bend
 
