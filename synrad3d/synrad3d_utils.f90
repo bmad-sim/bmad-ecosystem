@@ -537,12 +537,17 @@ do i = 0, wall%n_section_max
 
 enddo
 
-! Calculate largest "safe" box for each section
+! Calculate largest "safe" box for each section.
+! For triangular mesh, this is a complicated calc so, for now, the safe box calc is not 
+! implemented in this instance. 
 
 wall%gen_shape(:)%x_safe = 0
+wall%gen_shape(:)%y_safe = 0
 
 do i = 0, wall%n_section_max
   sec => wall%section(i)
+
+  if (sec%basic_shape == 'triangular') cycle
 
   if (associated(sec%gen_shape)) then
     if (sec%gen_shape%x_safe > 0) then
