@@ -773,6 +773,7 @@ call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START',
 call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START', dependent$)
 call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSET')
 call init_attribute_name1 (patch$, flexible$,                       'FLEXIBLE')
+call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (patch$, ptc_dir$,                        'ptc_dir', private$)
 
 !call init_attribute_name1 (patch$, next_ele_defines_position$,      'NEXT_ELE_DEFINES_POSITION')
