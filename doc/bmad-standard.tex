@@ -1197,7 +1197,7 @@ An octupole is modeled using a kick-drift-kick model.
 the entrance end of the patch has, by construction, coordinate $z$ =
 0. The particle is drifted, as in a field free region, between the
 entrance $z = 0$ plane and the exit $z = 0$ plane.}
-  \label{f:patch}
+  \label{f:patch.track}
 \end{figure}
 
 %---------------------------------------------------------------------------------
@@ -1212,7 +1212,7 @@ particle's coordinates in the entrance coordinate system will be
 \end{alignat}
 where $p_x$, $p_y$ and $p_z$ are the phase space momenta, and $z$,
 which is coordinate $z$ and not phase space $z$, is always zero by
-construction as shown in \fig{f:patch} [Also see \fig{f:local.coords}
+construction as shown in \fig{f:patch.track} [Also see \fig{f:local.coords}
 and the discussion in \sref{s:phase.space}.] The sign of the
 longitudinal momentum $P_s$ is determined by whether the particle is
 traveling in the positive $s$ or negative $s$ direction (which will
@@ -1236,12 +1236,13 @@ In addition, the phase space $z$ must be corrected due to the finite drift dista
 and/or a finite \vn{t_offset}
 \Begineq
   z_{\text{exi}}(\text{canon}) = 
-    z_{\text{ent}}(\text{canon}) + z_1 \, \frac{|\Bf P|}{P_{s1}} + 
-    \beta \, (\text{z_offset} + c \, \text{t_offset})
+    z_{\text{ent}}(\text{canon}) + z_1 \, \frac{P_0}{P_{s1}} + 
+    \frac{\beta}{\beta_0} \, \text{z_offset} + \beta \, c \, \text{t_offset}
 \Endeq
-where $\beta$ is the particle velocity. The \vn{z_offset} factor here is
-to make the \vn{patch} transformation the same as a drift transformation when
-only \vn{z_offset} is nonzero.
+where $\beta$ is the particle velocity, and $\beta_0$ is the velocity
+of the reference particle. The \vn{z_offset} factor here is to make
+the \vn{patch} transformation the same as a \vn{drift} transformation
+when only the \vn{patch}'s \vn{z_offset} attribute is nonzero.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

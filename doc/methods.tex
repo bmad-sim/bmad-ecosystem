@@ -35,7 +35,7 @@ set the \vn{tracking_method} for an entire class of elements.
 These switches are discussed in more detail in the following sections.
 
 %----------------------------------------------------------------------------
-\section{Phase Space Coordinate Tracking Methods}
+\section{Particle Tracking Methods}
 \label{s:tkm}
 \index{tracking methods|hyperbf}
 
@@ -204,7 +204,7 @@ directions. Notice that \vn{time_runge_kutta} is different from using
   \vn{multipole}               & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
   \vn{multilayer}              & D &   & X &   &   &     &     &     &     &     &    \\  
   \vn{octupole}                & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{patch}                   & D &   & X &   &   &     &     &     &     &  *  &    \\ 
+  \vn{patch}                   & D &   & X &   &   &  X  &     &     &     &  *  &    \\ 
   \vn{quadrupole}              & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
   \vn{rbend}                   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
   \vn{rcollimator}             & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
@@ -641,7 +641,7 @@ Possible values for \vn{field_calc} are:
 \index{custom}
 \vn{Custom} means that the field calculations are done outside of the
 \bmad software. A program doing \vn{Custom} field calculations will
-need the appropriate custom routine (\sref{s:custom.field}). Elements
+need the appropriate custom routine (\sref{s:custom.ele}). Elements
 that set \vn{field_calc} to \vn{grid} or \vn{map} need the appropriate
 \vn{field} attribute (\sref{s:em.fields}).
 

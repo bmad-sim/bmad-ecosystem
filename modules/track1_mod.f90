@@ -1641,9 +1641,12 @@ end subroutine rf_coupler_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track_a_patch (ele, orbit)
+! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent)
 ! 
-! Routine to track through a patch element. 
+! Routine to track through a patch element.
+! The steps for tracking are:
+!   1) Transform from entrance to exit coordinates.
+!   2) Drift particle from the entrance to the exit coordinants.
 !
 ! This routine can also be used with branch or photon_branch elements to transform a particle's 
 ! phase space coordinates from the "from" lattice branch to the "to" lattice branch.
@@ -1652,14 +1655,19 @@ end subroutine rf_coupler_kick
 !   use track1_mod
 !
 ! Input:
-!   ele   -- ele_struct: patch, branch, or photon_branch element.
-!   orbit -- coord_struct: Starting phase space coords
+!   ele           -- ele_struct: patch, branch, or photon_branch element.
+!   orbit         -- coord_struct: Starting phase space coords
+!   drift_to_exit -- Logical, optional: If False then do not drift the particle from
+!                      Entrance to exit faces. Default is True. 
 !
 ! Output:
-!   orbit -- coord_struct: Coords after applying a patch transformation.
+!   orbit   -- coord_struct: Coords after applying a patch transformation.
+!   s_ent   -- real(rp), optional: Longitudinal coordinate of initial particle position at
+!                the entrance face in the frame of reference of the exit face.
+!                For a patch with positive z_offset and all other attributes zero, s_ent = -z_offset.
 !-
 
-subroutine track_a_patch (ele, orbit)
+subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent)
 
 implicit none
 
@@ -1667,8 +1675,11 @@ type (ele_struct) ele
 type (coord_struct) orbit
 
 real(rp) p_vec(3), r_vec(3), rel_pc, w_mat_inv(3,3)
+real(rp), optional :: s_ent
 
-!
+logical, optional :: drift_to_exit
+
+! Transform to exit face coords.
 
 orbit%vec(1) = orbit%vec(1) - ele%value(x_offset$)
 orbit%vec(3) = orbit%vec(3) - ele%value(y_offset$)
@@ -1688,12 +1699,30 @@ if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$)
   orbit%p0c = sign(orbit%p0c, p_vec(3))
 endif
 
-orbit%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
-orbit%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
+if (ele%value(p0c_start$) /= ele%value(p0c$)) then
+  orbit%vec(2) = orbit%vec(2) * ele%value(p0c_start$) / ele%value(p0c$)
+  orbit%vec(4) = orbit%vec(4) * ele%value(p0c_start$) / ele%value(p0c$)
+  orbit%vec(6) = (rel_pc * ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$) 
+endif
 
-orbit%vec(5) = orbit%vec(5) + r_vec(3) / p_vec(3) + &
-                  orbit%beta * (ele%value(z_offset$) + c_light * ele%value(t_offset$))
-orbit%vec(6) = (orbit%vec(6) * ele%value(p0c_start$) + (ele%value(p0c_start$) - ele%value(p0c$))) / ele%value(p0c$) 
+orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * ele%value(t_offset$)
+
+! Drift to exit face.
+! Notice that the drift distance is -r_vec(3). 
+
+if (logic_option(.true., drift_to_exit)) then
+  orbit%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
+  orbit%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
+  orbit%vec(5) = orbit%vec(5) + r_vec(3) / p_vec(3) + &
+                      ele%value(z_offset$) * orbit%beta * ele%value(e_tot$) / ele%value(p0c$)
+else
+  orbit%vec(1) = r_vec(1)
+  orbit%vec(3) = r_vec(2)
+  orbit%vec(5) = orbit%vec(5) + (ele%value(z_offset$) + r_vec(3)) * &
+                                             orbit%beta * ele%value(e_tot$) / ele%value(p0c$)
+endif
+
+if (present(s_ent)) s_ent = r_vec(3)
 
 end subroutine track_a_patch
 
