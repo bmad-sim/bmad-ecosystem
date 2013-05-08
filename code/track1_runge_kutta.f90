@@ -37,7 +37,7 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp) rel_tol, abs_tol, dref_time, beta0
+real(rp) rel_tol, abs_tol, dref_time, beta0, s0, s1
 
 logical err_flag
 
@@ -45,12 +45,18 @@ logical err_flag
 
 start2_orb = start_orb
 
-call offset_particle (ele, start2_orb, param, set$, set_canonical = .false., &
+if (ele%key == patch$) then
+  call track_a_patch (ele, start2_orb, .false., s0)
+  s1 = 0
+else
+  call offset_particle (ele, start2_orb, param, set$, set_canonical = .false., &
                                              set_hvkicks = .false., set_multipoles = .false.)
+  s0 = 0; s1 = ele%value(l$)
+endif
 
 ! Track.
 
-call odeint_bmad (start2_orb, ele, param, end_orb, 0.0_rp, ele%value(l$), .true., err_flag, track)
+call odeint_bmad (start2_orb, ele, param, end_orb, s0, s1, .true., err_flag, track)
 if (err_flag) return
 
 end_orb%s = ele%s
@@ -58,8 +64,10 @@ end_orb%p0c = ele%value(p0c$)
 
 ! convert to lab coords.
 
-call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., &
+if (ele%key /= patch$) then
+  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., &
                                                             set_hvkicks = .false., set_multipoles = .false.)
+endif
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
 ! constant (see odeint_bmad for more details). In this case make the needed correction.

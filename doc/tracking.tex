@@ -672,21 +672,3 @@ available. To turn spin tracking on, use the
 sets the method used for spin tracking. After properly initializing
 the spin in the \vn{coord_struct}, calls to \vn{track1} will track
 both the particle orbit and the spin.
-
-%-----------------------------------------------------------------------------
-\section{Custom Field Calculations}
-\label{s:custom.field}
-\index{fields (electric and magnetic)!custom calculation} 
-\index{ele_struct!\%field_calc}
-
-\index{runge_kutta}\index{boris}\index{ele_struct!\%field_calc}
-\Hyperref{r:em.field.custom}{em_field_custom}
-Custom Electric and Magnetic field calculations are used with
-\vn{runge_kutta} and \vn{boris} tracking (See \sref{s:integ}).  To
-implement custom field calculations the \vn{ele%field_calc} component
-of an element must be set to \vn{custom\$}. This can be done either
-through the lattice input file or within a program. Additionally a
-routine \vn{em_field_custom} must be linked with any program using the
-custom calculations.
-
-%\end{document}

@@ -85,6 +85,19 @@ set to \vn{custom\$}. As an alternative to \vn{em_field_custom}, a
 (\sref{s:em.fields}) to characterize the element's electromagnetic
 fields.
 
+Note: When tracking through a \vn{patch} element, the first step is to
+transform the particle's coordinates from the entrance frame to the
+exit frame. This is done since it simplifies the tracking. [The
+criterion for stopping the propagation of a particle through a
+\vn{patch} is that the particle has reached the exit face and the
+calculation to determine if a particle has reached the exit face is
+simplified if the particle's coordinates are expressed in the
+coordinate frame of the exit face.] Thus for \vn{patch} elements,
+unlike all other elements, the particle coordinates passed to
+\Hyperref{r:em.field.custom}{em_field_custom} are the coordinates with
+respect to the exit coordinate frame and not the entrance coordinate
+frame.
+
 The \Hyperref{r:make.mat6.custom}{make_mat6_custom} and
 \Hyperref{r:make.mat6.custom2}{make_mat6_custom2} routines are called
 by the \Hyperref{r:make.mat6}{make_mat6} routine when calculating the
@@ -142,7 +155,7 @@ which should look like:
 \end{example}
 
 The \Hyperref{r:track1.custom}{track1_custom} and
-\Hyperref{r:track1.custom}{track1_custom} routins are called by the
+\Hyperref{r:track1.custom}{track1_custom} routines are called by the
 \Hyperref{r:track1}{track1} routine when calculating the transfer
 matrix through an element. Two routines are needed here due to the
 specifics of the coding for the \vn{track1} routine. See the
@@ -290,7 +303,7 @@ routines.
 
 The \vn{%type_out} component tells a routine if warning or error
 messages should be printed. With Severe errors, the code may ignore
-\vn{%type_out} and print an error message irregarless.
+\vn{%type_out} and print an error message irregardless.
 
 The \vn{%exit_on_error} component tell a routine if it is ok to stop a
 program on a severe error.

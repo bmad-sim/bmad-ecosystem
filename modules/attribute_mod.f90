@@ -220,9 +220,9 @@ case (octupole$)
   end select
 
 case (patch$)
-  if (present(num_valid)) num_valid = 3
+  if (present(num_valid)) num_valid = 4
   select case (tracking_method)
-  case (bmad_standard$, taylor$, custom$)
+  case (bmad_standard$, taylor$, custom$, runge_kutta$)
     is_valid = .true.
   end select
 

@@ -2404,7 +2404,18 @@ as a \vn{group} element or for an \vn{overlay} element to control a
 \label{s:patch}
 \index{patch|hyperbf}
 
-A \vn{patch} element shifts the reference orbit. Also see
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{patch.pdf}
+  \caption[Patch transformation.]
+{A \vn{patch} element can align its exit face arbitrarily with respect
+to its entrance face.}
+  \label{f:patch}
+\end{figure}
+
+%---------------------------------------------------------------------------------
+
+A \vn{patch} element shifts the reference orbit and time. Also see
 \vn{floor_shift} (\sref{s:floor.ele}) and \vn{fiducial}
 (\sref{s:fiducial}) elements.
 
@@ -2421,37 +2432,29 @@ General \vn{patch} element attributes are:
 \end{center}
 \toffset
 
+\index{flexible}\index\index{e_tot_offset}
 \index{x_offset}\index{y_offset}\index{z_offset}\index{tilt}
-\index{x_pitch}\index{y_pitch}\index{pz_offset}\index{t_offset}
+\index{x_pitch}\index{y_pitch}\index{t_offset}
 Attributes specific to a \vn{patch} elements are:
 \begin{example}
-  x_offset        = <Real>  
-  y_offset        = <Real>  
-  z_offset        = <Real>  
-  t_offset        = <Real>  
-  x_pitch         = <Real>  
-  y_pitch         = <Real>  
-  tilt            = <Real>        
+  x_offset        = <Real>  ! Exit face offset from Entrance.
+  y_offset        = <Real>  ! Exit face offset from Entrance.
+  z_offset        = <Real>  ! Exit face offset from Entrance.
+  t_offset        = <Real>  ! Exit face time offset.
+  x_pitch         = <Real>  ! Exit face orientation from Entrance.
+  y_pitch         = <Real>  ! Exit face orientation from Entrance.
+  tilt            = <Real>  ! Exit face orientation from Entrance.
   e_tot_offset    = <Real>
   flexible        = <Logic>  ! Default: False.
 \end{example}
 \index{x_offset}
 
-A \vn{patch} element can be thought of as a generalized \vn{drift}
-element.  With a \vn{drift} element, the entrance and exit faces are
-parallel and displaced by the drift length. With a \vn{patch} element,
-the entrance and exit faces can be arbitrarily oriented with respect
-to one another (\sref{s:patch.coords}). A particle, starting at
-the upstream face of the \vn{patch}, is propagated in a straight line
-to the downstream face and the suitable coordinate transformation is
-made to translate the particle's coordinates from the upstream coordinate
-frame to the downstream coordinate frame (\sref{s:patch.std}).
-
-To have in a branch both normally oriented and reversed elements
-(\sref{s:ref.construct}), a \vn{patch}, (or series of \vn{patches}),
-which reflects the $z$ direction must be placed in between. Such a
-\vn{patch}, (or patches) is called a \vn{reflection}
-\vn{patch}. See Section~\sref{s:reflect.patch} for more details.
+A straight line element like a \vn{drift} or a \vn{quadrupole} has the
+the exit face parallel to the entrance face. With a \vn{patch}
+element, the entrance and exit faces can be arbitrarily oriented with
+respect to one another as shown in \fig{f:patch}. There are two
+different ways the orientation of the exit face is determined. Which
+way is determined by the setting of the \vn{flexible} attribute.
 
 \index{rigid patch}\index{infleible patch}
 \index{flexible patch}
@@ -2461,6 +2464,10 @@ and pitch attributes as described in \sref{s:patch.coords}. This type
 of \vn{patch} is called ``rigid'' or ``inflexible'' since the geometry
 of the \vn{patch} is solely determined by the \vn{patch}'s attributes
 and is independent of everything else.
+Example:
+\begin{example}
+  pt: patch, z_offset = 3.2   ! Equivalent to a drift
+\end{example}
 
 With \vn{flexible} set to \vn{True}, the exit face is taken to be the
 reference frame of the entrance face of the next element in the
@@ -2475,12 +2482,29 @@ the geometry of the rest of the lattice is modified (is ``flexed''),
 the geometry of the \vn{patch} will vary as well. See
 Section~\sref{s:ex.erl} for an example.
 
+With \vn{bmad_standard} tracking (\sref{s:tkm}) A particle, starting
+at the upstream face of the \vn{patch}, is propagated in a straight
+line to the downstream face and the suitable coordinate transformation
+is made to translate the particle's coordinates from the upstream
+coordinate frame to the downstream coordinate frame
+(\sref{s:patch.std}). In this case the \vn{patch} element can be
+thought of as a generalized \vn{drift} element.
 
-Example:
+If there are magnetic or electric fields within the \vn{patch}, the
+tracking method through the \vn{patch} must be set to either
+\vn{runge_kutta} or \vn{custom}. Example:
 \begin{example}
-  pt: patch, z_offset = 3.2   ! Equivalent to a drift
+  pa2: patch, tracking_method = runge_kutta, field_calc = custom, ...
 \end{example}
-This is equivalent to a drift.
+When \vn{runge_kutta} tracking is used, \vn{field_calc}
+(\sref{s:integ}) must be set to \vn{custom} since otherwise \bmad has
+no way of calculating the fields.
+
+When a lattice branch contains both normally oriented and reversed elements
+(\sref{s:ref.construct}), a \vn{patch}, (or series of \vn{patches}),
+which reflects the $z$ direction must be placed in between. Such a
+\vn{patch}, (or patches) is called a \vn{reflection}
+\vn{patch}. See Section~\sref{s:reflect.patch} for more details.
 
 %-----------------------------------------------------------------
 \section{Quadrupole}

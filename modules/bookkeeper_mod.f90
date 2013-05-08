@@ -2669,12 +2669,6 @@ case (init_ele$)
     return
   endif
 
-case (sbend$)
-  if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
-      associated(a_ptr, ele%value(rho$)) .or. associated(a_ptr, ele%value(b_field$))) then
-    call set_ele_status_stale (ele, floor_position_group$)
-  endif
-
 case (branch$, photon_branch$)
   if (associated(a_ptr, ele%value(direction$))) then
     branch%param%bookkeeping_state%floor_position = stale$
@@ -2702,6 +2696,12 @@ case (lcavity$, e_gun$)
 case (patch$)
   if (associated(a_ptr, ele%value(e_tot_offset$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
+  endif
+
+case (sbend$)
+  if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
+      associated(a_ptr, ele%value(rho$)) .or. associated(a_ptr, ele%value(b_field$))) then
+    call set_ele_status_stale (ele, floor_position_group$)
   endif
 
 end select
