@@ -351,7 +351,7 @@ else
     ! whole bend except with half the bending angle.
 
     if (present(ds_pos)) then
-      z_here = ele%orientation * (ds_pos - ele%value(l$)) / 2  ! position relative to center.
+      z_here = ele%orientation * (ds_pos - ele%value(l$)/2)  ! position relative to center.
     else
       z_here = ele%orientation * ele%value(l$) / 2
     endif
