@@ -96,7 +96,33 @@ coordinate frame of the exit face.] Thus for \vn{patch} elements,
 unlike all other elements, the particle coordinates passed to
 \Hyperref{r:em.field.custom}{em_field_custom} are the coordinates with
 respect to the exit coordinate frame and not the entrance coordinate
-frame.
+frame. If field must be calculated in the entrance coordinate frame, 
+a transformation between entance and exit frames must be done:
+\begin{example}
+  subroutine em_field_custom (ele, param, s_rel, t_rel, orb, &
+                                  local_ref_frame, field, calc_dfield, err_flag)
+  use lat_geometry_mod
+  ...
+  real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3)
+  real(rp), pointer :: v(:)
+  ...
+  ! Convert particle coordinates from exit to entrance frame.
+  v => ele%value   ! v helps makes code compact
+  call floor_angles_to_w_mat (v(x_pitch\$), v(y_pitch\$), v(tilt\$), w_mat, w_mat_inv)
+  r_vec = [orb%vec(1), orb%vec(3), s_rel]  ! coords in exit frame
+  r_vec = matmul(w_mat, r_vec)               ! coords in entrance frame
+
+  ! Calculate field and possibly field derivative
+  ...
+
+  ! Convert field from entrance to exit frame
+  field%E = matmul(w_mat_inv, field%E)
+  field%B = matmul(w_mat_inv, field%B)
+  if (logic_option(.false., calc_dfield)) then
+    field%dE = matmul(w_mat_inv, matmul(field%dE, w_mat))
+    field%dB = matmul(w_mat_inv, matmul(field%dB, w_mat))
+  endif
+\end{example}
 
 The \Hyperref{r:make.mat6.custom}{make_mat6_custom} and
 \Hyperref{r:make.mat6.custom2}{make_mat6_custom2} routines are called
