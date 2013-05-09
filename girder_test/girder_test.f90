@@ -11,13 +11,12 @@ use bmad
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: girder, ele
-type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: girder, slave, slave2
 
 real(rp) w_mat(3,3), w_mat_inv(3,3), mat3(3,3)
 real(rp), pointer :: v(:)
-integer n_loc
-logical err
+integer i, ig, j
+character(40) fmt
 
 !
 
@@ -26,20 +25,28 @@ call bmad_parser ('girder_test.bmad', lat)
 !
 
 open (1, file = 'output.now')
+fmt = '(3a, 3f20.15, 5x, 3f20.15)'
 
+do ig = lat%n_ele_track+1, lat%n_ele_max
+  girder => lat%ele(ig)
+  if (girder%lord_status /= girder_lord$) cycle
 
-call lat_ele_locator ('G1', lat, eles, n_loc, err)
-girder => eles(1)%ele
+  do i = 1, girder%n_slave
+    slave => pointer_to_slave(girder, i)
+    v => slave%value
+    write (1, fmt) '"Offset: ', trim(slave%name), '" ABS 1e-14 ', v(x_offset_tot$), v(y_offset_tot$), v(z_offset_tot$)
+    write (1, fmt) '"Angle:  ', trim(slave%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$), v(roll_tot$)
+    write (1, *)
 
-ele => pointer_to_slave(girder, 1)
-v => ele%value
-write (1, '(a, 3es17.9)') '"Offset1"    ABS 1E-10', v(x_offset_tot$), v(y_offset_tot$), v(z_offset_tot$)
-write (1, '(a, 3es17.9)') '"Angle1"     ABS 1E-10', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$)
-
-ele => pointer_to_slave(girder, 2)
-v => ele%value
-write (1, '(a, 3es17.9)') '"Offset2"    ABS 1E-10', v(x_offset_tot$), v(y_offset_tot$), v(z_offset_tot$)
-write (1, '(a, 3es17.9)') '"Angle2"     ABS 1E-10', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$)
+    do j = 1, slave%n_slave
+      slave2 => pointer_to_slave(slave, j)
+      v => slave2%value
+      write (1, fmt) '"Offset: ', trim(slave2%name), '" ABS 1e-14 ', v(x_offset_tot$), v(y_offset_tot$), v(z_offset_tot$)
+      write (1, fmt) '"Angle:  ', trim(slave2%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$), v(roll_tot$)
+      write (1, *)
+    enddo
+  enddo
+enddo
 
 !
 
