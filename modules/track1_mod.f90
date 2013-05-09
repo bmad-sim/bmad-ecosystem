@@ -1686,7 +1686,7 @@ orbit%vec(3) = orbit%vec(3) - ele%value(y_offset$)
 r_vec = [orbit%vec(1), orbit%vec(3), -ele%value(z_offset$)]
 
 rel_pc = 1 + orbit%vec(6)
-p_vec = [orbit%vec(2)/rel_pc, orbit%vec(2)/rel_pc, 0.0_rp]
+p_vec = [orbit%vec(2)/rel_pc, orbit%vec(4)/rel_pc, 0.0_rp]
 p_vec(3) = sqrt(1 - p_vec(1)**2 - p_vec(2)**2)
 if (orbit%p0c < 0) p_vec(3) = -p_vec(3)
 
@@ -1694,8 +1694,8 @@ if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$)
   call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
   p_vec = matmul(w_mat_inv, p_vec)
   r_vec = matmul(w_mat_inv, r_vec)
-  orbit%vec(2) = p_vec(1)
-  orbit%vec(4) = p_vec(2)
+  orbit%vec(2) = p_vec(1) * rel_pc
+  orbit%vec(4) = p_vec(2) * rel_pc
   orbit%p0c = sign(orbit%p0c, p_vec(3))
 endif
 

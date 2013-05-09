@@ -2494,11 +2494,14 @@ If there are magnetic or electric fields within the \vn{patch}, the
 tracking method through the \vn{patch} must be set to either
 \vn{runge_kutta} or \vn{custom}. Example:
 \begin{example}
-  pa2: patch, tracking_method = runge_kutta, field_calc = custom, ...
+  pa2: patch, tracking_method = runge_kutta, field_calc = custom, 
+              mat6_calc_method = tracking, ...
 \end{example}
 When \vn{runge_kutta} tracking is used, \vn{field_calc}
-(\sref{s:integ}) must be set to \vn{custom} since otherwise \bmad has
-no way of calculating the fields.
+(\sref{s:integ}) must be set to \vn{custom} since, otherwise, \bmad
+has no way of calculating the fields. In this case, custom code must be
+supplied for calculating the fields as a function of position
+(\sref{s:custom.ele}).
 
 When a lattice branch contains both normally oriented and reversed elements
 (\sref{s:ref.construct}), a \vn{patch}, (or series of \vn{patches}),
