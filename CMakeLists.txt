@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (EXE_SPECS 
+  cmake.patch_test
   cmake.girder_test
   cmake.parse_test
   cmake.reverse_test

@@ -1,0 +1,26 @@
+no_digested
+parameter[e_tot] = 1e6
+parameter[lattice_type] = linear_lattice
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+beam_start[x]  = -0.001
+beam_start[px] = 0.002 
+beam_start[y]  = 0.00
+beam_start[py] = 0.00
+beam_start[z]  = 0.00
+beam_start[pz] = 0.00
+
+q1: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
+q2: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
+p1: patch, z_offset = 1, tracking_method = runge_kutta, field_calc = custom, x_pitch = 0.002
+
+p_line: line = (q1, q2, p1)
+
+use, p_line
+
+
+! superimpose including overlapping superimpose
+! wrap
+! multipass
+! girders controlling girders
