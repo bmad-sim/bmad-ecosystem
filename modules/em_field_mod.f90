@@ -217,7 +217,7 @@ if (.not. ele%is_on) return
 local_orb = orbit
 if (.not. local_ref_frame) then
   call offset_particle (ele, local_orb, param, set$, &
-          set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
+          set_canonical = .false., set_multipoles = .false., set_hvkicks = .false., ds_pos = s_rel)
 endif
 
 !----------------------------------------------------------------------------
