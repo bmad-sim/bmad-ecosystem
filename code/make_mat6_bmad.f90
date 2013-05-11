@@ -41,7 +41,7 @@ real(rp) mat6_pre(6,6), mat6_post(6,6), mat6_i(6,6)
 real(rp) mat4(4,4), m2(2,2), kmat4(4,4), om_g, om, om_g2
 real(rp) angle, k1, ks, length, e2, g, g_err, coef
 real(rp) k2l, k3l, c2, s2, cs, del_l, beta_ref, c_min, c_plu, dc_min, dc_plu
-real(rp) factor, kmat6(6,6), drift(6,6)
+real(rp) factor, kmat6(6,6), drift(6,6), w_inv(3,3)
 real(rp) s_pos, s_pos_old, z_slice(100)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) c_e, c_m, gamma_old, gamma_new, voltage, sqrt_8
@@ -61,10 +61,10 @@ real(rp) beta_start, beta_end, dsq_r_beta_dt1, dsq_r_beta_dE1, ddsq_r_beta_ds_dt
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0, xp1, xp2, yp1, yp2
 real(rp) dp_long_dpx, dp_long_dpy, dp_long_dpz, dalpha_dpx, dalpha_dpy, dalpha_dpz
-real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz
+real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz, p_rel
 real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
 real(rp) dbeta_dx, dbeta_dpx, dbeta_dpy, dbeta_dpz, p_long, eps, beta 
-real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2    
+real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2, ds
 
 integer i, n_slice, key, ix_fringe
 
@@ -615,18 +615,43 @@ case (octupole$)
 
 case (patch$) 
 
-  mat6(2,6) = -ele%value(x_pitch_tot$)
-  mat6(4,6) = -ele%value(y_pitch_tot$)
-  mat6(5,1) =  ele%value(x_pitch_tot$)
-  mat6(5,3) =  ele%value(y_pitch_tot$)
-
-  if (ele%value(tilt_tot$) /= 0) then
-    cos_a = cos(ele%value(tilt_tot$)) ; sin_a = sin(ele%value(tilt_tot$))
-    mat6(1,1) =  cos_a ; mat6(2,2) =  cos_a
-    mat6(1,3) =  sin_a ; mat6(2,4) =  sin_a
-    mat6(3,1) = -sin_a ; mat6(4,2) = -sin_a
-    mat6(3,3) =  cos_a ; mat6(4,4) =  cos_a
+  if (ele%field_calc == custom$) then
+    call out_io (s_fatal$, r_name, 'MAT6_CALC_METHOD=BMAD_STANDARD CANNOT HANDLE FIELD_CALC=CUSTOM', &
+                                   'FOR PATCH ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
   endif
+
+  c00%vec(5) = 0
+  call track_a_patch (ele, c00, .false., ds, w_inv)
+  p_rel = ele%value(p0c_start$) / ele%value(p0c$)
+  pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2)
+  beta_ref = ele%value(p0c$) / ele%value(e_tot$)
+  mat6(1,:) = [w_inv(1,1), 0.0_rp, w_inv(1,2), 0.0_rp, 0.0_rp, 0.0_rp]
+  mat6(3,:) = [w_inv(2,1), 0.0_rp, w_inv(2,2), 0.0_rp, 0.0_rp, 0.0_rp]
+
+  mat6(2,:) = [0.0_rp, p_rel * (w_inv(1,1) + w_inv(1,3) * c0%vec(2) / pz), &
+               0.0_rp, p_rel * (w_inv(1,2) + w_inv(1,3) * c0%vec(4) / pz), 0.0_rp, w_inv(1,3) * rel_p / pz]
+  mat6(4,:) = [0.0_rp, p_rel * (w_inv(2,1) + w_inv(2,3) * c0%vec(2) / pz), &
+               0.0_rp, p_rel * (w_inv(2,2) + w_inv(2,3) * c0%vec(4) / pz), 0.0_rp, w_inv(2,3) * rel_p / pz]
+
+  mat6(5,:) = [w_inv(3,1) * c0%beta / beta_ref, 0.0_rp, w_inv(3,2) * c00%beta / beta_ref, 0.0_rp, 1.0_rp, &
+               c00%vec(5) * mass_of(param%particle)**2  / ((1 + c00%vec(6))**3 * c00%p0c**2)]
+  mat6(6,:) = [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, ele%value(p0c_start$) / ele%value(p0c$)]
+
+  p_rel = 1 + c00%vec(6)
+  pz = sqrt(p_rel**2 - c00%vec(2)**2 - c00%vec(4)**2)
+  call drift_mat6_calc (mat6_post, -ds, ele, param, c00)
+  mat6_post(1,1) = mat6_post(1,1) + (w_inv(1,3) / w_inv(3,3)) * c00%vec(2) / pz
+  mat6_post(1,3) = mat6_post(1,3) + (w_inv(2,3) / w_inv(3,3)) * c00%vec(2) / pz
+
+  mat6_post(3,1) = mat6_post(3,1) + (w_inv(1,3) / w_inv(3,3)) * c00%vec(4) / pz
+  mat6_post(3,3) = mat6_post(3,3) + (w_inv(2,3) / w_inv(3,3)) * c00%vec(4) / pz
+
+  mat6_post(5,1) = mat6_post(5,1) + (w_inv(1,3) / w_inv(3,3)) * (c00%beta / beta_ref - 1 / pz)
+  mat6_post(5,3) = mat6_post(5,3) + (w_inv(2,3) / w_inv(3,3)) * (c00%beta / beta_ref - 1 / pz)
+
+  mat6 = matmul (mat6_post, mat6)
 
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
