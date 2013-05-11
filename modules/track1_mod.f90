@@ -1673,7 +1673,7 @@ subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, w_inv)
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct) orbit, old_orbit
+type (coord_struct) orbit
 
 real(rp), pointer :: v(:)
 real(rp) p_vec(3), r_vec(3), rel_pc, winv(3,3), beta0, ds_ref
@@ -1682,8 +1682,6 @@ real(rp), optional :: s_ent, w_inv(3,3)
 logical, optional :: drift_to_exit
 
 ! Transform to exit face coords.
-
-!!! old_orbit = orbit !!!! temp
 
 v => ele%value
 r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)]
@@ -1720,8 +1718,6 @@ orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 ! Notice that the drift distance is -r_vec(3). 
 
 if (present(s_ent)) s_ent = r_vec(3)
-
-!!! orbit = old_orbit !!!! temp
 
 if (logic_option(.true., drift_to_exit)) then
   ds_ref = (winv(3,1) * v(x_offset$) + winv(3,2) * v(y_offset$) + winv(3,3) * v(z_offset$)) / winv(3,3)

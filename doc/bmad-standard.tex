@@ -1192,8 +1192,8 @@ An octupole is modeled using a kick-drift-kick model.
 \begin{figure}[tb]
   \centering
   \includegraphics[width=5in]{patch.pdf}
-  \caption[Patch transformation.]
-{Tracking through a patch element. A particle's starting coordinate at
+  \caption[Standard patch transformation.]
+{Standard tracking through a patch element. A particle's starting coordinate at
 the entrance end of the patch has, by construction, coordinate $z$ =
 0. The particle is drifted, as in a field free region, between the
 entrance $z = 0$ plane and the exit $z = 0$ plane.}
@@ -1202,47 +1202,64 @@ entrance $z = 0$ plane and the exit $z = 0$ plane.}
 
 %---------------------------------------------------------------------------------
 
-The transformation of the reference coordinates through a patch is
-given by \Eqs{vwlv} and \eq{wws}. Before tracking through the patch, a
-particle's coordinates in the entrance coordinate system will be
+The transformation of the reference coordinates through a ``standard''
+patch (a patch where custom fields are not used) is given by
+\Eqs{vwlv} and \eq{wws}. At the entrance end of the patch, a
+particle's position and momentum in the entrance coordinate system will be
 \begin{alignat}{1}
-  \Bf r_{\text{ent}} &= (x, y, 0) \CRNO
-  \Bf P_{\text{ent}} &= (P_x, P_y, P_s) = 
-    \left( p_x, p_y, \pm \sqrt{(1+p_z)^2 - p_z^2 - p_y2} \right) \, P_0
+  \Bf r &= (x, y, 0) \CRNO
+  \Bf P &= (P_x, P_y, P_z) = 
+    \left( p_x, p_y, \pm \sqrt{(1+p_z)^2 - p_x^2 - p_y^2} \right) \, P_{0\text{ent}}
 \end{alignat}
 where $p_x$, $p_y$ and $p_z$ are the phase space momenta, and $z$,
 which is coordinate $z$ and not phase space $z$, is always zero by
 construction as shown in \fig{f:patch.track} [Also see \fig{f:local.coords}
 and the discussion in \sref{s:phase.space}.] The sign of the
-longitudinal momentum $P_s$ is determined by whether the particle is
+longitudinal momentum $P_z$ is determined by whether the particle is
 traveling in the positive $s$ or negative $s$ direction (which will
 occur when an element is flipped longitudinally).
 
 The transformation between entrance and exit coordinate systems is
 \begin{alignat}{1}
-  \Bf r_1 &= \Bf S^{-1} \, (\Bf r_{\text{ent}} - \Bf L) \CRNO
-  \Bf P_1 &= \Bf S^{-1} \, \Bf P_{\text{ent}}
+  \Bf r &\rightarrow 
+    \Bf S^{-1} \, (\Bf r - \Bf L) \CRNO
+  \Bf P &\rightarrow \Bf S^{-1} \, \Bf P
 \end{alignat}
-The $z_1$ coordinate will, in general, be non-zero. If this is so, the
-particle must be propagated until it intersects the $z = 0$ plane in
-the exit coordinate system.  It is assumed that the particle is in a
-field free region. The final coordinates $r_{\text{exi}}$ and $P_{\text{exi}}$ are then
+where $\bf L$ is given by \Eq{lxyz}
+\begin{example}
+  \(\bf L\) =  (x_offset, y_offset, z_offset)
+  \label{lxyz2}
+\end{example}
+
+After this transformation, the particle must be propagated by a longitudinal length
+$-r_z$ to intersect the $r_z = 0$ plane of the exit face.
 \begin{alignat}{1}
-  \Bf r_{\text{exi}} &= (x_1 - z_1 * P_{x1} / P_{s1}, y_1 - z_1 * P_{y1} / P_{s1}, 0) \CRNO
-  \Bf P_{\text{exi}} &= \Bf P_1
+  \Bf r &\rightarrow (r_x - r_z \, \frac{P_x}{P_z}, r_y - r_z \, \frac{P_y}{P_z}, 0) \CRNO
+  \Bf P &\rightarrow \Bf P
 \end{alignat}
 
-In addition, the phase space $z$ must be corrected due to the finite drift distance
-and/or a finite \vn{t_offset}
+The final $\Bf r$ and $\Bf P$ can now be used compute the particles
+phase space coordinates, along with the time $t$ and the reference time
+$t_{\text{ref}}$ at the exit end.
+\begin{alignat}{3}
+  x &\rightarrow r_x \qquad &p_x &\rightarrow \frac{P_x}{P_{0\text{exi}}} \CRNO
+  y &\rightarrow r_y \qquad &p_y &\rightarrow \frac{P_y}{P_{0\text{exi}}} \\
+  z &\rightarrow z + r_z \, \frac{|\Bf P|}{P_z} + L_0 \, \frac{\beta}{\beta_0} +
+    \beta \, \text{t_offset} \qquad
+    &p_z &\rightarrow \frac{(1+p_z) \, P_{0\text{ent}} - P_{0\text{exi}}}{P_{0\text{exi}}} \CRNO
+  t &\rightarrow t - r_z \, \frac{|\Bf P|}{P_z \, \beta} \qquad
+  &t_{\text{ref}} &\rightarrow t_{\text{ref}} + \text{t_offset} + L_0 \, \frac{1}{\beta_0} \nonumber
+\end{alignat}
+where the exit reference momentum $P_{0\text{exi}}$ is related to the
+entrance reference momentum $P_{0\text{ent}}$ through
+\vn{e_tot_offset}.  In the above equation, $\beta$ is the particle
+velocity, $\beta_0$ is the velocity of the reference particle, and
+$L_0$ is the drift length of the reference particle
 \Begineq
-  z_{\text{exi}}(\text{canon}) = 
-    z_{\text{ent}}(\text{canon}) + z_1 \, \frac{P_0}{P_{s1}} + 
-    \frac{\beta}{\beta_0} \, \text{z_offset} + \beta \, c \, \text{t_offset}
+  L_0 = \frac{1}{S^{-1}_{33}} \, \left( 
+  S^{-1}_{31} \, \text{x_offset} + S^{-1}_{32} \, \text{y_offset} + S^{-1}_{33} \, \text{z_offset}
+  \right)
 \Endeq
-where $\beta$ is the particle velocity, and $\beta_0$ is the velocity
-of the reference particle. The \vn{z_offset} factor here is to make
-the \vn{patch} transformation the same as a \vn{drift} transformation
-when only the \vn{patch}'s \vn{z_offset} attribute is nonzero.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

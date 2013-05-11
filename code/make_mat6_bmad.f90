@@ -661,7 +661,6 @@ case (patch$)
   mat6_post(5,3) = mat6_post(5,3) - (w_inv(2,3) / w_inv(3,3)) * rel_p / pz
 
   mat6 = matmul (mat6_post, mat6)
-  !!! mat6 = mat6_post  !!! temp
 
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
