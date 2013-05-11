@@ -1641,7 +1641,7 @@ end subroutine rf_coupler_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent)
+! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, w_mat_inv)
 ! 
 ! Routine to track through a patch element.
 ! The steps for tracking are:
@@ -1661,66 +1661,70 @@ end subroutine rf_coupler_kick
 !                      Entrance to exit faces. Default is True. 
 !
 ! Output:
-!   orbit   -- coord_struct: Coords after applying a patch transformation.
-!   s_ent   -- real(rp), optional: Longitudinal coordinate of initial particle position at
-!                the entrance face in the frame of reference of the exit face.
-!                For a patch with positive z_offset and all other attributes zero, s_ent = -z_offset.
+!   orbit      -- coord_struct: Coords after applying a patch transformation.
+!   s_ent      -- real(rp), optional: Longitudinal coordinate of initial particle position at
+!                   the entrance face in the frame of reference of the exit face.
+!                   For a patch with positive z_offset and all other attributes zero, s_ent = -z_offset.
+!   w_inv(3,3) -- real(rp): Rotation matrix used in tracking.
 !-
 
-subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent)
+subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, w_inv)
 
 implicit none
 
 type (ele_struct) ele
 type (coord_struct) orbit
 
-real(rp) p_vec(3), r_vec(3), rel_pc, w_mat_inv(3,3)
-real(rp), optional :: s_ent
+real(rp), pointer :: v(:)
+real(rp) p_vec(3), r_vec(3), rel_pc, winv(3,3), beta0
+real(rp), optional :: s_ent, w_inv(3,3)
 
 logical, optional :: drift_to_exit
 
 ! Transform to exit face coords.
 
-orbit%vec(1) = orbit%vec(1) - ele%value(x_offset$)
-orbit%vec(3) = orbit%vec(3) - ele%value(y_offset$)
-r_vec = [orbit%vec(1), orbit%vec(3), -ele%value(z_offset$)]
+v => ele%value
+r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)]
 
 rel_pc = 1 + orbit%vec(6)
-p_vec = [orbit%vec(2)/rel_pc, orbit%vec(4)/rel_pc, 0.0_rp]
-p_vec(3) = sqrt(1 - p_vec(1)**2 - p_vec(2)**2)
+p_vec = [orbit%vec(2), orbit%vec(4), sqrt(rel_pc**2 - orbit%vec(1)**2 - orbit%vec(2)**2)]
 if (orbit%p0c < 0) p_vec(3) = -p_vec(3)
 
-if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
-  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
-  p_vec = matmul(w_mat_inv, p_vec)
-  r_vec = matmul(w_mat_inv, r_vec)
-  orbit%vec(2) = p_vec(1) * rel_pc
-  orbit%vec(4) = p_vec(2) * rel_pc
-  orbit%p0c = sign(orbit%p0c, p_vec(3))
+if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
+  call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), winv = winv)
+  if (present(w_inv)) w_inv = winv
+  p_vec = matmul(winv, p_vec)
+  r_vec = matmul(winv, r_vec)
+  orbit%vec(2) = p_vec(1)
+  orbit%vec(4) = p_vec(2)
+elseif (present(w_inv)) then
+  call mat_make_unit (w_inv)
 endif
 
-if (ele%value(p0c_start$) /= ele%value(p0c$)) then
-  orbit%vec(2) = orbit%vec(2) * ele%value(p0c_start$) / ele%value(p0c$)
-  orbit%vec(4) = orbit%vec(4) * ele%value(p0c_start$) / ele%value(p0c$)
-  orbit%vec(6) = (rel_pc * ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$) 
+if (v(p0c_start$) /= v(p0c$)) then
+  orbit%vec(2) = orbit%vec(2) * v(p0c_start$) / v(p0c$)
+  orbit%vec(4) = orbit%vec(4) * v(p0c_start$) / v(p0c$)
+  orbit%vec(6) = (rel_pc * v(p0c_start$) - v(p0c$)) / v(p0c$) 
+  orbit%p0c = sign(v(p0c$), orbit%p0c)
 endif
 
-orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * ele%value(t_offset$)
+orbit%vec(1) = r_vec(1)
+orbit%vec(3) = r_vec(2)
+orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
 ! Drift to exit face.
 ! Notice that the drift distance is -r_vec(3). 
 
 if (logic_option(.true., drift_to_exit)) then
-  orbit%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
-  orbit%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
-  orbit%vec(5) = orbit%vec(5) + r_vec(3) / p_vec(3) + &
-                      ele%value(z_offset$) * orbit%beta * ele%value(e_tot$) / ele%value(p0c$)
+  dt0 = (winv(3,1) * v(x_offset$) + winv(3,2) * v(y_offset$) + winv(3,3) * v(z_offset$) * / winv(3,3)
+  dt = 
+  beta0 = v(p0c$) / v(e_tot$)
+
+  orbit%vec(1) = orbit%vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
+  orbit%vec(3) = orbit%vec(3) - r_vec(3) * p_vec(2) / p_vec(3)
+  orbit%vec(5) = orbit%vec(5) + r_vec(3) * rel_pc / p_vec(3) - orbit%beta * c_light * dt0
+  orbit%t = orbit%t - r_vec(3) * rel_pc / (p_vec(3) * orbit%beta * c_light)
 else
-  orbit%vec(1) = r_vec(1)
-  orbit%vec(3) = r_vec(2)
-  orbit%vec(5) = orbit%vec(5) + (ele%value(z_offset$) + r_vec(3)) * &
-                                             orbit%beta * ele%value(e_tot$) / ele%value(p0c$)
-endif
 
 if (present(s_ent)) s_ent = r_vec(3)
 

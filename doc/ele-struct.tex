@@ -11,7 +11,7 @@ complexity is generally hidden  by the \bmad bookkeeping routines.
 
 As a general rule, for variables like the Twiss parameters that are not
 constant along the length of an element, the value stored in the
-corresponding component in the \vn{ele_struct} is the value at the exit
+corresponding component in the \vn{ele_struct} is the value at the downstream
 end of the element.
 
 For printing information about an element, the
@@ -32,9 +32,10 @@ type ele_struct
   character(200), pointer :: descrip       ! Description string.
   type (twiss_struct)  a, b, z             ! Twiss parameters at end of element \sref{c:normal.modes}.
   type (xy_disp_struct) x, y               ! Projected dispersions \sref{c:normal.modes}.
+  type (bookkeeping_state_struct) bookkeeping_state ! Element attribute bookkeeping
+  type (branch_struct), pointer :: branch      ! Pointer to branch containing element.
   type (em_fields_struct), pointer :: em_field ! DC and RF E/M fields
   type (floor_position_struct) floor           ! Global floor position.
-  type (lat_struct), pointer :: lat            ! Pointer to lattice containing element.
   type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
   type (mode3_struct), pointer :: mode3        ! Full 6-dimensional normal mode decomposition.
   type (fibre), pointer :: ptc_fiber           ! PTC tracking.
@@ -43,10 +44,13 @@ type ele_struct
                                                ! Radiation integral calc cached values 
   type (rf_wake_struct), pointer :: rf_wake    ! Wakes
   type (space_charge_struct), pointer :: space_charge 
-  type (bookkeeper_status_struct) status       ! Element attribute bookkeeping
   type (taylor_struct) :: taylor(6)            ! Taylor terms
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
   type (wig_struct), pointer :: wig            ! Wiggler field
+  type(coord_struct) map_ref_orb_in(6)         ! Transfer map ref orbit at upstream end of element.
+  type(coord_struct) map_ref_orb_out(6)        ! Transfer map ref orbit at downstream end of element.
+  type(coord_struct) time_ref_orb_in(6)        ! Reference orbit at upstream end for ref_time calc.
+  type(coord_struct) time_ref_orb_out(6)       ! Reference orbit at downstream end for ref_time calc.
   real(rp) value(n_attrib_maxx)                ! attribute values.
   real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                             ! constant part of the genfield map.
@@ -54,16 +58,12 @@ type ele_struct
   real(rp) mat6(6,6)                           ! 1st order transport matrix.
   real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
   real(rp) gamma_c                             ! gamma associated with C matrix
-  real(rp) s                                   ! longitudinal position at the exit end.
-  real(rp) ref_time                            ! Time ref particle passes exit end.
+  real(rp) s                                   ! longitudinal position at the downstream end.
+  real(rp) ref_time                            ! Time ref particle passes downstream end.
   real(rp), pointer :: r(:,:,:)                ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:)               ! multipole
   real(rp), pointer :: b_pole(:)               ! multipoles
   real(rp), pointer :: const(:)                ! Working constants.
-  real(rp) map_ref_orb_in(6)           ! Transfer map ref orbit at entrance end of element.
-  real(rp) map_ref_orb_out(6)          ! Transfer map ref orbit at exit end of element.
-  real(rp) time_ref_orb_in(6)          ! Reference orbit at entrance end for ref_time calc.
-  real(rp) time_ref_orb_out(6)         ! Reference orbit at exit end for ref_time calc.
     ele_struct definition continued on next figure...
 \end{verbatim}
 \caption[The \vn{ele_struct} (part 1).]{The \vn{ele_struct}. structure definition. 
@@ -356,7 +356,7 @@ for more details.
 The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat}, 
 \vn{%gamma_c}, \vn{%mode_flip}, and \vn{mode3} 
 hold information on the Twiss parameters, dispersion, and coupling
-at the exit end of the element. See \cref{c:normal.modes} for more details.
+at the downstream end of the element. See \cref{c:normal.modes} for more details.
 
 %--------------------------------------------------------------------------
 \section{Element Lords and Element Slaves}
@@ -392,16 +392,16 @@ This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struc
 \label{s:ele.offset}
 \index{global coordinates!in ele_struct}
 
-The ``entrance'' and ``exit'' ends of an element are, by definition,
+The ``upstream'' and ``downstream'' ends of an element are, by definition,
 where the physical ends of the element would be if there were no
 offsets. In particular, if an element has a finite \vn{z_offset}, the
-physical ends will be displaced from entrance and exit ends. See
+physical ends will be displaced from upstream and downstream ends. See
 \sref{s:track1} for more details.
 
 \index{ele_struct!\%floor}
 \index{floor_position_struct}
 The \vn{%floor} component gives the global ``floor'' coordinates (\sref{s:global})
-at the exit end of the element. The components of the \vn{%floor} structure are
+at the downstream end of the element. The components of the \vn{%floor} structure are
 \begin{example}
   type floor_position_struct
     real(rp) x, y, z            ! offset from origin
@@ -448,12 +448,13 @@ read the position of an element a program should look at
 
 \index{ele_struct!\%s}
 \index{ele_struct!\%ref_time}
-The longitudinal position at the exit end of an element is stored in \vn{%s}
+The longitudinal position at the downstream end of an element is stored in \vn{%s}
 and the reference time is stored in \vn{%ref_time}. See \sref{s:global}
 for more details.
 
 %--------------------------------------------------------------------------
 \section{Transfer Maps: Linear and Non-linear (Taylor)}
+\label{s:ele.maps}
 \index{ele_struct!transfer maps}
 \index{transfer map!in ele_struct}
 \index{ele_struct!\%mat6}
@@ -465,9 +466,9 @@ The routine \Hyperref{r:make.mat6}{make_mat6} computes the linear
 transfer matrix (Jacobian) along with the zeroth order transfer vector. 
 This matrix is stored in \vn{%mat6(6,6)} and the
 zeroth order vector is stored in \vn{%vec0(6)}. The reference orbit at
-the entrance end of the element about
+the upstream end of the element about
 which the transfer matrix is computed is stored in \vn{%map_ref_orb_in}
-and the the reference orbit at the exit end is stored in \vn{%map_ref_orb_out}.
+and the the reference orbit at the downstream end is stored in \vn{%map_ref_orb_out}.
 In the calculation of the transfer map, the vector \vn{%vec0} is set so that
 \begin{example}
   map_ref_orb_out = %mat6 * map_ref_orbit_in + %vec0
@@ -518,7 +519,7 @@ As an example the following finds the order of a Taylor map.
 \end{example}
 
 The Taylor map is made up around some reference phase space point
-corresponding to the coordinates at the entrance of the element.
+corresponding to the coordinates at the upstream of the element.
 This reference point is saved in \vn{%taylor(1:6)%ref}.  Once a Taylor map is
 made, the reference point is not needed in subsequent
 calculations. However, the Taylor map itself will depend upon what
@@ -531,6 +532,24 @@ to the partially inverted Taylor map is stored in the \vn{%gen_field} component
 of the \vn{ele_struct}. The actual storage of the map is handled by the
 PTC library (\sref{s:libs}). The PTC partially inverted map does not have any
 zeroth order terms so the zeroth order terms are stored in the \vn{%gen0(6)} vector.
+
+%--------------------------------------------------------------------------
+\section{Reference Energy and Time}
+
+The reference energy and reference time are computed around a
+reference orbit which is different from the reference orbit used for
+computing transfer maps (\sref{s:ele.maps}). The energy and time
+reference orbit for an element is stored in
+\begin{example}
+  ele%time_ref_orb_in        ! Reference orbit at upstream end
+  ele%time_ref_orb_out       ! Reference orbit at downstream end
+\end{example}
+Generally \vn{ele%time_ref_orb_in} is the zero orbit. The exception
+comes when an element is a \vn{super_slave}. In this case, the
+reference orbit through the super_slaves of a given \vn{super_lord} is
+constructed to be continuous. This is done for consistancey sake. For
+example, to ensure that when a marker is superimposed on top of a
+wiggler the reference orbit, and hence the reference time, is not altered.
 
 %--------------------------------------------------------------------------
 \section{EM Fields}

@@ -2440,11 +2440,11 @@ Attributes specific to a \vn{patch} elements are:
   x_offset        = <Real>  ! Exit face offset from Entrance.
   y_offset        = <Real>  ! Exit face offset from Entrance.
   z_offset        = <Real>  ! Exit face offset from Entrance.
-  t_offset        = <Real>  ! Exit face time offset.
+  t_offset        = <Real>  ! Reference time offset.
   x_pitch         = <Real>  ! Exit face orientation from Entrance.
   y_pitch         = <Real>  ! Exit face orientation from Entrance.
   tilt            = <Real>  ! Exit face orientation from Entrance.
-  e_tot_offset    = <Real>
+  e_tot_offset    = <Real>  ! Reference energy offset (eV).
   flexible        = <Logic>  ! Default: False.
 \end{example}
 \index{x_offset}
@@ -2502,6 +2502,25 @@ When \vn{runge_kutta} tracking is used, \vn{field_calc}
 has no way of calculating the fields. In this case, custom code must be
 supplied for calculating the fields as a function of position
 (\sref{s:custom.ele}).
+
+The \vn{e_tot_offset} attribute offsets the
+reference energy:
+\begin{example}
+  E_tot_ref(exit) = E_tot_ref(entrance) + E_tot_offset (eV)
+\end{example}
+Setting the \vn{e_tot_offset} attribute will affect a particle's
+$p_x$, $p_y$ and $p_z$ coordinates via \Eqs{ppp} and \eq{ppppp}.
+Notice that \vn{e_tot_offset} does not affect a particle's actual
+energy, it just affects the difference between the particle energy and
+the reference energy. 
+
+The \vn{t_offset} attribute offsets the reference time:
+\begin{example}
+  t_ref(exit) = t_ref(entrance) + t_offset + dt_travel_ref
+\end{example}
+where \vn{dt_transit_ref} is the time for the reference particle to
+travel through the patch.  Setting the \vn{t_offset} attribute will
+affect a particle's $z$ coordinate via \Eqs{zbctt}.
 
 When a lattice branch contains both normally oriented and reversed elements
 (\sref{s:ref.construct}), a \vn{patch}, (or series of \vn{patches}),

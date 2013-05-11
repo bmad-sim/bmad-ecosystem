@@ -352,9 +352,9 @@ if (present(num_valid)) num_valid = 0
 select case (ele%key)
 
 case (ab_multipole$)
-  if (present(num_valid)) num_valid = 5
+  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -380,16 +380,16 @@ case (branch$, photon_branch$)
   end select
   
 case (capillary$)
-  if (present(num_valid)) num_valid = 3
+  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, custom$)
+  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (crystal$)
-  if (present(num_valid)) num_valid = 3
+  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, custom$)
+  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -464,16 +464,16 @@ case (marker$)
   end select
 
 case (match$)
-  if (present(num_valid)) num_valid = 3
+  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, custom$)
+  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (mirror$)
-  if (present(num_valid)) num_valid = 3
+  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, custom$)
+  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -487,14 +487,14 @@ case (monitor$)
 case (multipole$)
   if (present(num_valid)) num_valid = 5
   select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (multilayer_mirror$)
-  if (present(num_valid)) num_valid = 3
+  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, custom$)
+  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -506,9 +506,9 @@ case (octupole$)
   end select
 
 case (patch$)
-  if (present(num_valid)) num_valid = 3
+  if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, custom$)
+  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
