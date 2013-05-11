@@ -32,7 +32,7 @@ elseif (nargs > 1) then
   call err_exit
 endif
 
-call bmad_parser (lat_file, lat)
+call bmad_parser (lat_file, lat, make_mats6 = .false.)
 
 open (1, file = 'output.now', recl = 200)
 
