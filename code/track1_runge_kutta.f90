@@ -37,17 +37,19 @@ type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
-real(rp) rel_tol, abs_tol, dref_time, beta0, s0, s1
+real(rp) rel_tol, abs_tol, dref_time, beta0, s0, s1, ds_ref
 
 logical err_flag
 
 ! Convert to element coords
 
 start2_orb = start_orb
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
 
 if (ele%key == patch$) then
-  call track_a_patch (ele, start2_orb, .false., s0)
+  call track_a_patch (ele, start2_orb, .false., s0, ds_ref)
   s1 = 0
+  start2_orb%vec(5) = start2_orb%vec(5) + ds_ref * start2_orb%beta / beta0 + s0
 else
   call offset_particle (ele, start2_orb, param, set$, set_canonical = .false., &
                                              set_hvkicks = .false., set_multipoles = .false.)
@@ -74,7 +76,6 @@ endif
 ! dref_time is reference time for transversing the element under the assumption, used by odeint_bmad, that 
 ! the reference velocity is constant and equal to the velocity at the final enegy.
 
-beta0 = ele%value(p0c$) / ele%value(e_tot$)
 dref_time = ele%value(l$) / (beta0 * c_light)
 end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
 
