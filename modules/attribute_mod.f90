@@ -92,9 +92,6 @@ logical is_valid
 
 !
 
-
-!
-
 is_valid = .false.
 if (present(num_valid)) num_valid = 0
 
@@ -222,7 +219,7 @@ case (octupole$)
 case (patch$)
   if (present(num_valid)) num_valid = 4
   select case (tracking_method)
-  case (bmad_standard$, taylor$, custom$, runge_kutta$)
+  case (bmad_standard$, symp_lie_ptc$, taylor$, custom$, runge_kutta$)
     is_valid = .true.
   end select
 
@@ -506,9 +503,9 @@ case (octupole$)
   end select
 
 case (patch$)
-  if (present(num_valid)) num_valid = 4
+  if (present(num_valid)) num_valid = 5
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 

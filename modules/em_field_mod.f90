@@ -288,6 +288,30 @@ select case (ele%field_calc)
   select case (ele%key)
 
   !------------------------------------------
+  ! Drift, et. al. Note that kicks get added at the end for all elements
+
+  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$)
+
+  !------------------------------------------
+  ! E_Gun
+
+  case (e_gun$)
+    field%e(3) = e_accel_field (ele, gradient$) / charge
+
+  !------------------------------------------
+  ! HKicker
+
+  case (hkicker$)
+    field%b(2) = -ele%value(kick$) * f_p0c / ele%value(l$)
+
+  !------------------------------------------
+  ! Kicker  
+
+  case (kicker$)
+    field%b(1) =  ele%value(vkick$) * f_p0c / ele%value(l$)
+    field%b(2) = -ele%value(hkick$) * f_p0c / ele%value(l$)
+
+  !------------------------------------------
   ! RFcavity and Lcavity
   ! Use N_cell half-wave pillbox formulas for standing wave TM_011 mode with infinite wall radius.
   ! See S.Y. Lee, "Accelerator Physics"
@@ -337,6 +361,101 @@ select case (ele%field_calc)
     if (df_calc) then
       call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY!')
       if (global_com%exit_on_error) call err_exit
+    endif
+
+  !------------------------------------------
+  ! Octupole 
+
+  case (octupole$)
+
+    field%b(1) = -(y**3 - 3*y*x**2) / 6 * ele%value(k3$) * f_p0c 
+    field%b(2) =  (x**3 - 3*x*y**2) / 6 * ele%value(k3$) * f_p0c 
+
+    if (df_calc) then
+      field%dB(1,1) =  y * ele%value(k3$) * f_p0c
+      field%dB(1,2) =  x * ele%value(k3$) * f_p0c
+      field%dB(2,1) = -x * ele%value(k3$) * f_p0c
+      field%dB(2,2) = -y * ele%value(k3$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! Patch: There are no fields
+
+  case (patch$)
+
+    return
+
+  !------------------------------------------
+  ! Quadrupole
+
+  case (quadrupole$) 
+
+    field%b(1) = y * ele%value(k1$) * f_p0c 
+    field%b(2) = x * ele%value(k1$) * f_p0c 
+
+    if (df_calc) then
+      field%dB(1,1) =  ele%value(k1$) * f_p0c
+      field%dB(2,2) = -ele%value(k1$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! Sextupole 
+
+  case (sextupole$)
+
+    field%b(1) = x * y * ele%value(k2$) * f_p0c
+    field%b(2) = (x**2 - y**2) / 2 * ele%value(k2$) * f_p0c 
+
+    if (df_calc) then
+      field%dB(1,1) =  y * ele%value(k2$) * f_p0c
+      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
+      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
+      field%dB(2,2) = -y * ele%value(k2$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! VKicker
+
+  case (vkicker$)
+    field%b(1) =  ele%value(kick$) * f_p0c / ele%value(l$)
+
+  !------------------------------------------
+  ! SBend
+
+  case (sbend$)
+
+    field%b(1) = (y * ele%value(k1$) + x * y * ele%value(k2$)) * f_p0c 
+    field%b(2) = (x * ele%value(k1$) - ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
+
+    if (df_calc) then
+      field%dB(1,1) =  ele%value(k1$) * f_p0c + y * ele%value(k2$) * f_p0c
+      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
+      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
+      field%dB(2,2) = -ele%value(k1$) * f_p0c - y * ele%value(k2$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! Sol_quad
+
+  case (sol_quad$)
+
+    field%b(1) = y * ele%value(k1$) * f_p0c 
+    field%b(2) = x * ele%value(k1$) * f_p0c 
+    field%b(3) = ele%value(ks$) * f_p0c
+
+    if (df_calc) then
+      field%dB(1,1) =  ele%value(k1$) * f_p0c
+      field%dB(2,2) = -ele%value(k1$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! Solenoid
+
+  case (solenoid$)
+
+    field%b(3) = ele%value(ks$) * f_p0c
+
+    if (df_calc) then
     endif
 
   !------------------------------------------
@@ -399,122 +518,11 @@ select case (ele%field_calc)
     enddo
 
   !------------------------------------------
-  ! Drift, et. al. Note that kicks get added at the end for all elements
-
-  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$)
-
-  !------------------------------------------
-  ! Quadrupole
-
-  case (quadrupole$) 
-
-    field%b(1) = y * ele%value(k1$) * f_p0c 
-    field%b(2) = x * ele%value(k1$) * f_p0c 
-
-    if (df_calc) then
-      field%dB(1,1) =  ele%value(k1$) * f_p0c
-      field%dB(2,2) = -ele%value(k1$) * f_p0c
-    endif
-
-  !------------------------------------------
-  ! Sextupole 
-
-  case (sextupole$)
-
-    field%b(1) = x * y * ele%value(k2$) * f_p0c
-    field%b(2) = (x**2 - y**2) / 2 * ele%value(k2$) * f_p0c 
-
-    if (df_calc) then
-      field%dB(1,1) =  y * ele%value(k2$) * f_p0c
-      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
-      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
-      field%dB(2,2) = -y * ele%value(k2$) * f_p0c
-    endif
-
-  !------------------------------------------
-  ! Octupole 
-
-  case (octupole$)
-
-    field%b(1) = -(y**3 - 3*y*x**2) / 6 * ele%value(k3$) * f_p0c 
-    field%b(2) =  (x**3 - 3*x*y**2) / 6 * ele%value(k3$) * f_p0c 
-
-    if (df_calc) then
-      field%dB(1,1) =  y * ele%value(k3$) * f_p0c
-      field%dB(1,2) =  x * ele%value(k3$) * f_p0c
-      field%dB(2,1) = -x * ele%value(k3$) * f_p0c
-      field%dB(2,2) = -y * ele%value(k3$) * f_p0c
-    endif
-
-  !------------------------------------------
-  ! Sol_quad
-
-  case (sol_quad$)
-
-    field%b(1) = y * ele%value(k1$) * f_p0c 
-    field%b(2) = x * ele%value(k1$) * f_p0c 
-    field%b(3) = ele%value(ks$) * f_p0c
-
-    if (df_calc) then
-      field%dB(1,1) =  ele%value(k1$) * f_p0c
-      field%dB(2,2) = -ele%value(k1$) * f_p0c
-    endif
-
-  !------------------------------------------
-  ! Solenoid
-
-  case (solenoid$)
-
-    field%b(3) = ele%value(ks$) * f_p0c
-
-    if (df_calc) then
-    endif
-
-  !------------------------------------------
-  ! SBend
-
-  case (sbend$)
-
-    field%b(1) = (y * ele%value(k1$) + x * y * ele%value(k2$)) * f_p0c 
-    field%b(2) = (x * ele%value(k1$) - ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
-
-    if (df_calc) then
-      field%dB(1,1) =  ele%value(k1$) * f_p0c + y * ele%value(k2$) * f_p0c
-      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
-      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
-      field%dB(2,2) = -ele%value(k1$) * f_p0c - y * ele%value(k2$) * f_p0c
-    endif
-
-  !------------------------------------------
-  ! HKicker
-
-  case (hkicker$)
-    field%b(2) = -ele%value(kick$) * f_p0c / ele%value(l$)
-
-  !------------------------------------------
-  ! VKicker
-
-  case (vkicker$)
-    field%b(1) =  ele%value(kick$) * f_p0c / ele%value(l$)
-
-  !------------------------------------------
-  ! Kicker  
-
-  case (kicker$)
-    field%b(1) =  ele%value(vkick$) * f_p0c / ele%value(l$)
-    field%b(2) = -ele%value(hkick$) * f_p0c / ele%value(l$)
-
-  !------------------------------------------
-  ! E_Gun
-
-  case (e_gun$)
-    field%e(3) = e_accel_field (ele, gradient$) / charge
-
-  !------------------------------------------
   ! Error
 
   case default
-    call out_io (s_fatal$, r_name, 'ELEMENT NOT YET CODED: ' // key_name(ele%key), 'FOR: ' // ele%name)
+    call out_io (s_fatal$, r_name, 'EM FIELD NOT YET CODED FOR ELEMENT OF TYPE: ' // key_name(ele%key), &
+                                   'FOR ELEMENT: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
     return

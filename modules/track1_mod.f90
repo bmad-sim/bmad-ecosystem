@@ -1665,10 +1665,12 @@ end subroutine rf_coupler_kick
 !   s_ent      -- real(rp), optional: Longitudinal coordinate of initial particle position at
 !                   the entrance face in the frame of reference of the exit face.
 !                   For a patch with positive z_offset and all other attributes zero, s_ent = -z_offset.
-!   w_inv(3,3) -- real(rp): Rotation matrix used in tracking.
+!   ds_ref     -- real(rp), optional: Distance the reference particle travels from the entrance
+!                   to the exit face.
+!   w_inv(3,3) -- real(rp), optional: Rotation matrix used in tracking.
 !-
 
-subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, w_inv)
+subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_inv)
 
 implicit none
 
@@ -1676,8 +1678,8 @@ type (ele_struct), target :: ele
 type (coord_struct) orbit
 
 real(rp), pointer :: v(:)
-real(rp) p_vec(3), r_vec(3), rel_pc, winv(3,3), beta0, ds_ref
-real(rp), optional :: s_ent, w_inv(3,3)
+real(rp) p_vec(3), r_vec(3), rel_pc, winv(3,3), beta0, ds0
+real(rp), optional :: s_ent, ds_ref, w_inv(3,3)
 
 logical, optional :: drift_to_exit
 
@@ -1701,8 +1703,6 @@ else
   call mat_make_unit (winv)
 endif
 
-if (present(w_inv)) w_inv = winv
-
 if (v(p0c_start$) /= v(p0c$)) then
   orbit%vec(2) = orbit%vec(2) * v(p0c_start$) / v(p0c$)
   orbit%vec(4) = orbit%vec(4) * v(p0c_start$) / v(p0c$)
@@ -1714,18 +1714,20 @@ orbit%vec(1) = r_vec(1)
 orbit%vec(3) = r_vec(2)
 orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
+ds0 = (winv(3,1) * v(x_offset$) + winv(3,2) * v(y_offset$) + winv(3,3) * v(z_offset$)) / winv(3,3)
+
+if (present(s_ent)) s_ent = r_vec(3)
+if (present(ds_ref)) ds_ref = ds0
+if (present(w_inv)) w_inv = winv
+
 ! Drift to exit face.
 ! Notice that the drift distance is -r_vec(3). 
 
-if (present(s_ent)) s_ent = r_vec(3)
-
 if (logic_option(.true., drift_to_exit)) then
-  ds_ref = (winv(3,1) * v(x_offset$) + winv(3,2) * v(y_offset$) + winv(3,3) * v(z_offset$)) / winv(3,3)
   beta0 = v(p0c$) / v(e_tot$)
-
   orbit%vec(1) = orbit%vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
   orbit%vec(3) = orbit%vec(3) - r_vec(3) * p_vec(2) / p_vec(3)
-  orbit%vec(5) = orbit%vec(5) + r_vec(3) * rel_pc / p_vec(3) + ds_ref * orbit%beta / beta0
+  orbit%vec(5) = orbit%vec(5) + r_vec(3) * rel_pc / p_vec(3) + ds0 * orbit%beta / beta0
   orbit%t = orbit%t - r_vec(3) * rel_pc / (p_vec(3) * orbit%beta * c_light)
 endif
 

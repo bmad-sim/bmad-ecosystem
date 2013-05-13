@@ -64,7 +64,7 @@ real(rp) dp_long_dpx, dp_long_dpy, dp_long_dpz, dalpha_dpx, dalpha_dpy, dalpha_d
 real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz, dp_ratio
 real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
 real(rp) dbeta_dx, dbeta_dpx, dbeta_dpy, dbeta_dpz, p_long, eps, beta 
-real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2, ds, ds_ref
+real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2, s_ent, ds_ref
 
 integer i, n_slice, key, ix_fringe
 
@@ -626,7 +626,7 @@ case (patch$)
 
   mc2 = mass_of(param%particle)
   c00%vec(5) = 0
-  call track_a_patch (ele, c00, .false., ds, w_inv)
+  call track_a_patch (ele, c00, .false., s_ent, ds_ref, w_inv)
   dp_ratio = v(p0c_start$) / v(p0c$)
   pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2)
   beta_ref = v(p0c$) / v(e_tot$)
@@ -644,10 +644,9 @@ case (patch$)
 
   rel_p = 1 + c00%vec(6)
   pz = sqrt(rel_p**2 - c00%vec(2)**2 - c00%vec(4)**2)
-  call drift_mat6_calc (mat6_post, -ds, ele, param, c00)
+  call drift_mat6_calc (mat6_post, -s_ent, ele, param, c00)
 
-  ds_ref = (w_inv(3,1) * v(x_offset$) + w_inv(3,2) * v(y_offset$) + w_inv(3,3) * v(z_offset$)) / w_inv(3,3)
-  mat6_post(5,6) =  -ds * (c00%vec(2)**2 + c00%vec(4)**2) / pz**3 + &
+  mat6_post(5,6) =  -s_ent * (c00%vec(2)**2 + c00%vec(4)**2) / pz**3 + &
                             ds_ref * mc2**2 * c00%beta**3 / (rel_p**3 * v(p0c$)**2 * beta_ref)
 
   ! These matrix terms are due to the variation of ds drift length

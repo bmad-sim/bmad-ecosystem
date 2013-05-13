@@ -1259,10 +1259,9 @@ implicit none
 
 type (ele_struct) ele
 integer ix_attrib, ix_tot_attrib
+character(40) a_name
 
 !
-
-ix_tot_attrib = -1
 
 select case (attribute_name(ele, ix_attrib))
 case ('X_PITCH');     ix_tot_attrib = x_pitch_tot$
@@ -1276,7 +1275,11 @@ case ('C4_CURVE');    ix_tot_attrib = c4_curve_tot$
 case ('TILT_ERR');    ix_tot_attrib = tilt_err_tot$
 case ('TILT');        ix_tot_attrib = tilt_tot$
 case ('ROLL');        ix_tot_attrib = roll_tot$
+case default;         ix_tot_attrib = -1; return
 end select
+
+a_name = attribute_name(ele, ix_tot_attrib)
+if (a_name(1:1) == '!') ix_tot_attrib = -1
 
 end function corresponding_tot_attribute_index 
 
