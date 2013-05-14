@@ -69,7 +69,7 @@ end subroutine w_mat_to_axis_angle
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine axis_angle_to_w_mat (w_mat, axis, angle)
+! Subroutine axis_angle_to_w_mat (axis, angle, w_mat)
 !
 ! Routine to construct the 3D rotation matrix w_mat given an axis of rotation
 ! and a rotation angle.

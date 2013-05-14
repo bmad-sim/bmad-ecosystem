@@ -4,8 +4,6 @@ use fgsl
 use precision_def
 use physical_constants
 
-implicit none
-
 contains
 
 !---------------------------------------------------------------------------
