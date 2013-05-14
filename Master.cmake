@@ -265,7 +265,7 @@ message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LI
 set (LIBRARY_OUTPUT_PATH ${OUTPUT_BASEDIR}/lib)
 set (EXECUTABLE_OUTPUT_PATH ${OUTPUT_BASEDIR}/bin)
 set (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
-
+set (INCLUDE_OUTPUT_PATH ${OUTPUT_BASEDIR}/include)
 
 #-------------------------
 #   Include directories
@@ -273,14 +273,15 @@ set (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
 # TODO: Double each include directory entry to search for a local (../<xxx>) path and THEN
 #       to a release-based path?
 #
-#  This leaves the possibility that someone may delete the local library, and initiate a build
-#    that requires that library while leaving the local souce tree and include files intact.
-#  This new build will then perform the divergent action of linking against the release library
+# This leaves the possibility that someone may delete the local library, and initiate a build
+# that requires that library while leaving the local souce tree and include files intact.
+# This new build will then perform the divergent action of linking against the release library
 # but extracting constants and other header information from the LOCAL source tree.  
 #
 SET (MASTER_INC_DIRS
   ${X11_INCLUDE_DIR}
   ${INC_DIRS}
+  ${OUTPUT_BASEDIR}/include
   ${PACKAGES_DIR}/include
   ${PACKAGES_DIR}/forest/include
   ${PACKAGES_DIR}/recipes_c-ansi/include
@@ -291,10 +292,10 @@ SET (MASTER_INC_DIRS
   ${RELEASE_DIR}/include
   ${OUTPUT_BASEDIR}/modules
   ${RELEASE_OUTPUT_BASEDIR}/modules
+  ${RELEASE_OUTPUT_BASEDIR}/include
   ${RELEASE_DIR}/modules
   ${ACC_INC_DIRS}
 )
-
 
 #------------------------------------------------------
 # Add local include paths to search list if they exist
@@ -316,7 +317,7 @@ INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
 
 #-----------------------------------
-#  Link directories - order matters
+# Link directories - order matters
 # Lowest level to highest, i.e. in
 # order of increasing abstraction.
 #-----------------------------------
@@ -462,6 +463,7 @@ foreach(exespec ${EXE_SPECS})
   set(f_sources)
 
   include(${exespec})
+
 
   # TODO: Convert this to macro or function?
   foreach(dir ${INC_DIRS})
@@ -659,17 +661,17 @@ foreach(exespec ${EXE_SPECS})
   endif ()
 
   # Create map file output directory if it doesn't yet exist.
-  IF(IS_DIRECTORY ${OUTPUT_BASEDIR}/map)
-  ELSE()
-    file(MAKE_DIRECTORY ${OUTPUT_BASEDIR}/map)
-  ENDIF()
+  IF (IS_DIRECTORY ${OUTPUT_BASEDIR}/map)
+  ELSE ()
+    FILE (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/map)
+  ENDIF ()
 
   # Set up linking for the executable.
   # Always produce a map file.  It is placed in the ../<build_type>/map directory
   # created during build setup.
-  set(MAPLINE "-Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map")
+  set (MAPLINE "-Wl,-Map=${OUTPUT_BASEDIR}/map/${EXENAME}.map")
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
+    SET (MAPLINE "-Wl,-map -Wl,${OUTPUT_BASEDIR}/map/${EXENAME}.map")
   ENDIF ()
 
 	set(STATIC_FLAG "")
@@ -691,6 +693,19 @@ foreach(exespec ${EXE_SPECS})
   SET(COMPILER_FLAGS)
   SET(LINK_FLAGS)
 
+  # Create include file output directory if it doesn't yet exist.
+  IF (IS_DIRECTORY ${OUTPUT_BASEDIR}/include)
+  ELSE ()
+    FILE (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/include)
+  ENDIF ()
+
+  # Copy all header files from the project's specified include directory into the output include directory.
+  SET (INCLUDE_INSTALL_DIR ${INCLUDE_OUTPUT_PATH})
+  FOREACH (inc_dir ${DIR_OF_INCLUDES_TO_MOVE})
+    FILE (GLOB inc_files "${inc_dir}/*.h")
+    FILE (COPY ${inc_files} DESTINATION ${INCLUDE_INSTALL_DIR}) 
+  ENDFOREACH (inc_dir)
+
 endforeach(exespec)
 
 
@@ -711,3 +726,4 @@ FOREACH(target ${TARGETS})
   ENDIF()
 
 ENDFOREACH()
+
