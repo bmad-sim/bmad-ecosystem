@@ -32,7 +32,7 @@ type (ele_struct), target :: ele
 type (ele_struct) :: temp_ele1, temp_ele2
 type (coord_struct) :: c0, c1
 type (coord_struct) :: c00, c11, c_int
-type (coord_struct) orb
+type (coord_struct) orb, c0_off, c1_off
 type (lat_param_struct)  param
 
 real(rp), pointer :: mat6(:,:), v(:)
@@ -42,7 +42,7 @@ real(rp) mat4(4,4), m2(2,2), kmat4(4,4), om_g, om, om_g2
 real(rp) angle, k1, ks, length, e2, g, g_err, coef
 real(rp) k2l, k3l, c2, s2, cs, del_l, beta_ref, c_min, c_plu, dc_min, dc_plu
 real(rp) factor, kmat6(6,6), drift(6,6), w_inv(3,3)
-real(rp) s_pos, s_pos_old, z_slice(100)
+real(rp) s_pos, s_pos_old, z_slice(100), dr(3), axis(3), w_mat(3,3)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) c_e, c_m, gamma_old, gamma_new, voltage, sqrt_8
 real(rp) arg, rel_p, rel_p2, sq_r_beta, dsq_r_beta_ds, dp_dg, dp_dg_dz1, dp_dg_dpz1
@@ -649,7 +649,7 @@ case (patch$)
   mat6_post(5,6) =  -s_ent * (c00%vec(2)**2 + c00%vec(4)**2) / pz**3 + &
                             ds_ref * mc2**2 * c00%beta**3 / (rel_p**3 * v(p0c$)**2 * beta_ref)
 
-  ! These matrix terms are due to the variation of ds drift length
+  ! These matrix terms are due to the variation of s_ent drift length
   mat6_post(1,1) = mat6_post(1,1) + (w_inv(1,3) / w_inv(3,3)) * c00%vec(2) / pz
   mat6_post(1,3) = mat6_post(1,3) + (w_inv(2,3) / w_inv(3,3)) * c00%vec(2) / pz
 
@@ -829,16 +829,18 @@ case (sbend$)
   ! Reverse track here for c11 since c11 needs to be the orbit just inside the bend.
   ! Notice that kx_2 and ky_2 are not affected by reverse tracking
 
-  call offset_particle (ele, c00, param, set$, set_canonical = .false.)
-    
   ! Entrance edge kick
+
+  call offset_particle (ele, c00, param, set$, set_canonical = .false.)
+  c0_off = c00
 
   call bend_edge_kick (c00, ele, param, upstream_end$, .false., mat6_pre)
 
-  call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
- 
   ! Exit edge kick
   
+  call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
+  c1_off = c11 
+
   call bend_edge_kick (c11, ele, param, downstream_end$, .false., mat6_post)
 
   ! If we have a sextupole component then step through in steps of length ds_step
@@ -1039,9 +1041,28 @@ case (sbend$)
   mat6 = matmul(mat6,mat6_pre)
   mat6 = matmul(mat6_post,mat6)
 
-  if (v(tilt_tot$)+v(roll$) /= 0) then
-    call tilt_mat6 (mat6, v(tilt_tot$)+v(roll$))
+  ! Roll
+
+  if (v(roll$) /= 0) then
+    ! c0_off is the coordinates *after* the roll at the entrance end
+    ! So get the reverse roll matrix and take the inverse.
+    dr = 0
+    axis = [cos(v(angle$)) - 1, 0.0_rp, sin(v(angle$))]
+    call axis_angle_to_w_mat (axis, -v(roll$), w_mat)
+    call mat6_coord_transformation (mat6_pre, ele, param, c0_off, dr, w_mat)
+    call mat_symp_conj(mat6_pre, mat6_pre)   ! Inverse
+
+    ! c1_off is the coordinates before the roll so this is what is needed
+    axis(1) = -axis(1)  ! Axis in exit coordinates
+    call axis_angle_to_w_mat (axis, -v(roll$), w_mat)
+    call mat6_coord_transformation (mat6_post, ele, param, c1_off, dr, w_mat)
+
+    mat6 = matmul(matmul(mat6_post, mat6), mat6_pre)
   endif
+
+  !
+
+  if (v(tilt_tot$) /= 0) call tilt_mat6 (mat6, v(tilt_tot$))
 
   call add_multipoles_and_z_offset ()
   call add_M56_low_E_correction()

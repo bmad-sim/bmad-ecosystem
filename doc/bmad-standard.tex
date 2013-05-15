@@ -1207,8 +1207,8 @@ patch (a patch where custom fields are not used) is given by
 \Eqs{vwlv} and \eq{wws}. At the entrance end of the patch, a
 particle's position and momentum in the entrance coordinate system will be
 \begin{alignat}{1}
-  \Bf r &= (x, y, 0) \CRNO
-  \Bf P &= (P_x, P_y, P_z) = 
+  \bfr &= (x, y, 0) \CRNO
+  \bfP &= (P_x, P_y, P_z) = 
     \left( p_x, p_y, \pm \sqrt{(1+p_z)^2 - p_x^2 - p_y^2} \right) \, P_{0\text{ent}}
 \end{alignat}
 where $p_x$, $p_y$ and $p_z$ are the phase space momenta, and $z$,
@@ -1219,11 +1219,11 @@ longitudinal momentum $P_z$ is determined by whether the particle is
 traveling in the positive $s$ or negative $s$ direction (which will
 occur when an element is flipped longitudinally).
 
-The transformation between entrance and exit coordinate systems is
+The transformation between entrance and exit coordinate systems is given by \Eqs{rwlr} and \eq{pps}
 \begin{alignat}{1}
-  \Bf r &\rightarrow 
-    \Bf S^{-1} \, (\Bf r - \Bf L) \CRNO
-  \Bf P &\rightarrow \Bf S^{-1} \, \Bf P
+  \bfr &\rightarrow 
+    \bfS^{-1} \, (\bfr - \bfL) \CRNO
+  \bfP &\rightarrow \bfS^{-1} \, \bfP
 \end{alignat}
 where $\bf L$ is given by \Eq{lxyz}
 \begin{example}
@@ -1234,20 +1234,20 @@ where $\bf L$ is given by \Eq{lxyz}
 After this transformation, the particle must be propagated by a longitudinal length
 $-r_z$ to intersect the $r_z = 0$ plane of the exit face.
 \begin{alignat}{1}
-  \Bf r &\rightarrow (r_x - r_z \, \frac{P_x}{P_z}, r_y - r_z \, \frac{P_y}{P_z}, 0) \CRNO
-  \Bf P &\rightarrow \Bf P
+  \bfr &\rightarrow (r_x - r_z \, \frac{P_x}{P_z}, r_y - r_z \, \frac{P_y}{P_z}, 0) \CRNO
+  \bfP &\rightarrow \bfP
 \end{alignat}
 
-The final $\Bf r$ and $\Bf P$ can now be used compute the particles
+The final $\bfr$ and $\bfP$ can now be used compute the particles
 phase space coordinates, along with the time $t$ and the reference time
 $t_{\text{ref}}$ at the exit end.
 \begin{alignat}{3}
   x &\rightarrow r_x \qquad &p_x &\rightarrow \frac{P_x}{P_{0\text{exi}}} \CRNO
   y &\rightarrow r_y \qquad &p_y &\rightarrow \frac{P_y}{P_{0\text{exi}}} \\
-  z &\rightarrow z + r_z \, \frac{|\Bf P|}{P_z} + L_0 \, \frac{\beta}{\beta_0} +
+  z &\rightarrow z + r_z \, \frac{|\bfP|}{P_z} + L_0 \, \frac{\beta}{\beta_0} +
     \beta \, \text{t_offset} \qquad
     &p_z &\rightarrow \frac{(1+p_z) \, P_{0\text{ent}} - P_{0\text{exi}}}{P_{0\text{exi}}} \CRNO
-  t &\rightarrow t - r_z \, \frac{|\Bf P|}{P_z \, \beta} \qquad
+  t &\rightarrow t - r_z \, \frac{|\bfP|}{P_z \, \beta} \qquad
   &t_{\text{ref}} &\rightarrow t_{\text{ref}} + \text{t_offset} + L_0 \, \frac{1}{\beta_0} \nonumber
 \end{alignat}
 where the exit reference momentum $P_{0\text{exi}}$ is related to the

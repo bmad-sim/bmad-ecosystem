@@ -37,7 +37,7 @@
 ! Input:
 !   ele            -- Ele_struct: Element
 !     %value(x_offset$) -- Horizontal offset of element.
-!     %value(x_pitch$)  -- Horizontal roll of element.
+!     %value(x_pitch$)  -- Horizontal pitch of element.
 !     %value(tilt$)     -- tilt of element.
 !   coord          -- Coord_struct: Coordinates of the particle.
 !   param          -- lat_param_strcut: 
@@ -84,10 +84,9 @@ type (lat_param_struct) param
 type (coord_struct), intent(inout) :: coord
 
 real(rp), optional, intent(in) :: ds_pos
-real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-real(rp) :: del_x_vel, del_y_vel, dz
+real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx
 real(rp) angle, z_here, xp, yp, x_off, y_off, z_off, vec(3), m_trans(3,3)
-real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir
+real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
 
 integer particle, sign_z_vel
 integer n
@@ -136,20 +135,6 @@ else
   set_hv2 = .false.
 endif
 
-if (ele%key == sbend$) then
-  angle = ele%value(l$) * ele%value(g$) * charge_dir
-  if (ele%value(roll_tot$) == 0) then
-    del_x_vel = 0
-    del_y_vel = 0
-  else if (abs(ele%value(roll_tot$)) < 0.001) then
-    del_x_vel = angle * ele%value(roll_tot$)**2 / 4
-    del_y_vel = -angle * sin(ele%value(roll_tot$)) / 2
-  else
-    del_x_vel = angle * (1 - cos(ele%value(roll_tot$))) / 2
-    del_y_vel = -angle * sin(ele%value(roll_tot$)) / 2
-  endif
-endif
-
 !----------------------------------------------------------------
 ! Set...
 
@@ -179,9 +164,9 @@ if (set) then
       angle = ele%value(g$) * z_here  ! Notice that this is generally negative
       cos_a = cos(angle); sin_a = sin(angle)
       cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
-      m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
-      m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
-      m_trans(3,1:3) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
+      m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
+      m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
+      m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
       vec = matmul(m_trans, [x_off, y_off, z_off])
       x_off = vec(1); y_off = vec(2); z_off = vec(3)
     endif
@@ -232,19 +217,41 @@ if (set) then
     endif
   endif
 
-  ! Set: Tilt
-  ! A non-zero roll has a zeroth order effect that must be included  
+  ! Set: Tilt & Roll
 
   if (set_t) then
 
-    if (ele%key == sbend$) then
-      if (ele%value(roll_tot$) /= 0) then
-        coord%vec(2) = coord%vec(2) + del_x_vel
-        coord%vec(4) = coord%vec(4) + del_y_vel
+    call tilt_coords (ele%value(tilt_tot$), coord%vec)
+
+    if (ele%key == sbend$ .and. ele%value(roll_tot$) /= 0) then
+      angle = -ele%value(g$) * z_here
+      vec = [coord%vec(1), coord%vec(3), 0.0_rp]
+
+      sin_r = sin(ele%value(roll$)); cos_r = cos(ele%value(roll$))
+      sin_a = sin(angle);            cos_a = cos(angle)
+
+      m_trans(1,1:3) = [cos_r * cos_a**2 + sin_a**2, cos_a * sin_r, (cos_r - 1) * cos_a * sin_a]
+      m_trans(2,1:3) = [-cos_a * sin_r,              cos_r,         -sin_r * sin_a]
+      m_trans(3,1:3) = [(cos_r - 1) * cos_a * sin_a, sin_r * sin_a, cos_r * sin_a**2 + cos_a**2]
+      vec  = matmul(m_trans, vec)
+      pvec = matmul(m_trans, [coord%vec(2), coord%vec(4), sqrt(E_rel**2 - coord%vec(2)**2 - coord%vec(4)**2)])
+
+      ! If ds_pos is present then the transformation is not at the end of the bend.
+      ! In this case there is an offset from the coordinate system and the roll axis of rotation
+
+      if (present(ds_pos)) then
+        dx = cos_a - cos(ele%value(angle$)/2)
+        vec = vec + dx * [cos_a * sin_r, cos_r - 1, sin_a * sin_r]
       endif
-      call tilt_coords (ele%value(tilt_tot$)+ele%value(roll_tot$), coord%vec)
-    else
-      call tilt_coords (ele%value(tilt_tot$), coord%vec)
+
+      ! Drift -vec(3) but remember the ref particle is not moving.
+      coord%vec(1) = vec(1) - vec(3) * pvec(1) / pvec(3)
+      coord%vec(2) = pvec(1)
+      coord%vec(3) = vec(2) - vec(3) * pvec(2) / pvec(3)
+      coord%vec(4) = pvec(2)
+      coord%vec(5) = coord%vec(5) + vec(3) * E_rel / pvec(3) 
+      coord%t = coord%t - vec(3) * E_rel / (pvec(3) * c_light * coord%beta)
+
     endif
 
   endif
@@ -301,19 +308,40 @@ else
     endif
   endif
 
-  ! Unset: Tilt
+  ! Unset: Tilt & Roll
 
   if (set_t) then
 
-    if (ele%key == sbend$) then
-      call tilt_coords (-(ele%value(tilt_tot$) + ele%value(roll_tot$)), coord%vec) 
-      if (ele%value(roll_tot$) /= 0) then  
-        coord%vec(2) = coord%vec(2) + del_x_vel
-        coord%vec(4) = coord%vec(4) + del_y_vel
+    if (ele%key == sbend$ .and. ele%value(roll_tot$) /= 0) then
+      sin_r = sin(ele%value(roll$));    cos_r = cos(ele%value(roll$))
+      sin_a = sin(ele%value(angle$)/2); cos_a = cos(ele%value(angle$)/2)
+      m_trans(1,1:3) = [cos_r * cos_a**2 + sin_a**2, -cos_a * sin_r, (1 - cos_r) * cos_a * sin_a]
+      m_trans(2,1:3) = [cos_a * sin_r,               cos_r,          -sin_r * sin_a]
+      m_trans(3,1:3) = [(1 - cos_r) * cos_a * sin_a, sin_r * sin_a,  cos_r * sin_a**2 + cos_a**2]
+      vec =  matmul(m_trans, [coord%vec(1), coord%vec(3), 0.0_rp])
+      pvec = matmul(m_trans, [coord%vec(2), coord%vec(4), sqrt(E_rel**2 - coord%vec(2)**2 - coord%vec(4)**2)])
+      coord%vec(1) = vec(1); coord%vec(3) = vec(2)
+      coord%vec(2) = pvec(1); coord%vec(4) = pvec(2)
+
+      ! If ds_pos is present then the transformation is not at the end of the bend.
+      ! In this case there is an offset from the coordinate system and the roll axis of rotation
+
+      if (present(ds_pos)) then
+        dx = cos_a - cos(ele%value(angle$)/2)
+        vec = vec + dx * [-cos_a * sin_r, cos_r - 1, sin_a * sin_r]
       endif
-    else
-      call tilt_coords (-ele%value(tilt_tot$), coord%vec)   
+
+      ! Drift -vec(3) but remember the ref particle is not moving.
+      coord%vec(1) = vec(1) - vec(3) * pvec(1) / pvec(3)
+      coord%vec(2) = pvec(1)
+      coord%vec(3) = vec(2) - vec(3) * pvec(2) / pvec(3)
+      coord%vec(4) = pvec(2)
+      coord%vec(5) = coord%vec(5) + vec(3) * E_rel / pvec(3) 
+      coord%t = coord%t - vec(3) * E_rel / (pvec(3) * c_light * coord%beta)
+
     endif
+
+    call tilt_coords (-ele%value(tilt_tot$), coord%vec)   
 
   endif
 
@@ -366,9 +394,9 @@ else
       angle = ele%value(g$) * z_here 
       cos_a = cos(angle); sin_a = sin(angle)
       cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
-      m_trans(1,1:3) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
-      m_trans(2,1:3) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
-      m_trans(3,1:3) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
+      m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
+      m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
+      m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
       vec = matmul(m_trans, [x_off, y_off, z_off])
       x_off = vec(1); y_off = vec(2); z_off = vec(3)
     endif
