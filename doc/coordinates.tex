@@ -249,19 +249,19 @@ formula
 \Endeq
 where
 \Begineq
-  \Bf W_\Theta = 
+  \Bf W_\Theta(\theta) = 
   \begin{pmatrix}
     \cos\theta  & 0 & \sin\theta \\
     0           & 1 & 0          \\
     -\sin\theta & 0 & \cos\theta 
   \end{pmatrix}, \quad
-  \Bf W_\Phi = 
+  \Bf W_\Phi(\phi) = 
   \begin{pmatrix}
     1 & 0 & 0                \\
     0 & \cos\phi  & \sin\phi \\
     0 & -\sin\phi & \cos\phi 
   \end{pmatrix}, \quad
-  \Bf W_\Psi = 
+  \Bf W_\Psi(\psi) = 
   \begin{pmatrix}
     \cos\psi & -\sin\psi & 0 \\
     \sin\psi &  \cos\psi & 0 \\
@@ -387,6 +387,37 @@ undiffracted beam (shown in red) as the reference trajectory.
 \end{figure}
 
 %-----------------------------------------------------------------------------
+\subsection{Position Transformation When Transforming Coordinates}
+\label{s:pos.trans}
+
+A point $\bfR = (X, Y, Z)$ defined in the global coordinate system,
+when expressed in the coordinate system defined by $(\bfV, \bfW)$ is
+\Begineq
+  \bfR_{VW} = \bfW^{-1} \left( \bfR - \bfV \right)
+  \label{rwrv}
+\Endeq
+This is essentially the inverse of \Eq{vwlv}. That is, vectors
+propagate inversely to the propagation of the coordinate system.
+
+Using \Eq{rwrv} with \Eqs{vwlv}, and \eq{wws}, the transformation of a
+particle's position $\bfr = (x,y,z)$ and momentum $\bfP = (P_x, P_y,
+P_z)$ when the coordinate frame is transformed from frame
+$(\bfV_{i-1}, \bfW_{i-1})$ to frame $(\bfV_i, \bfW_i)$ is
+\begin{align}
+  \bfr_i &= \Bf S_i^{-1} \, \left( \bfr_{i-1} - \bfL_i \right), 
+    \label{rwlr} \\
+  \bfP_i &= \bfS_i^{-1} \, \bfP_{i-1}
+    \label{pps}
+\end{align}
+
+Notice that since $\bfS$ (and $\bfW$) is the product of orthogonal
+rotation matricies, $\bfS$ is itself orthogonal and its inverse is
+just the transpose
+\Begineq
+  \bfS^{-1} = \bfS^T
+\Endeq
+
+%-----------------------------------------------------------------------------
 \subsection{Crystal and Mirror Element Coordinate Transformation}
 \label{s:mirror.coords}
 
@@ -442,7 +473,7 @@ the laboratory and element body coordinates are the same. With
 misalignments, the transformation is given by \Eqs{vwlv} and \eq{wws}
 where 
 \begin{example}
-  \(\bf L\) =  (x_offset, y_offset, z_offset)
+          \(\bfL\) =  (x_offset, y_offset, z_offset)
   \label{lxyz}
 \end{example}
 and the $\bfS$ matrix is defined by 
@@ -452,27 +483,50 @@ and the $\bfS$ matrix is defined by
 \Endeq
 with
 \begin{example}
-   \(\Theta\) = x_pitch,  \(\Phi\) = y_pitch,  \(\Psi\) = tilt
+          \(\Theta\) = x_pitch,  \(\Phi\) = y_pitch,  \(\Psi\) = tilt
 \end{example} 
 The form of \Eq{swww} was chosen to correspond to the form of \Eq{wwww}.
 
 \index{patch}\index{floor_shift}
-For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} \vn{s:floor.ele}
-elements, the above equations are also used to calculate the The shift
+For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} (\sref{s:floor.ele})
+elements, the above equations are also used to calculate the the shift
 in the reference coordinates from the entrance end to the exit end of
 the element.
 
-\index{girder}\index{fiducial}
-Additionally, the above equations are used to calculate the alignment
-of reference coordinates with respect to ``\vn{origin}'' coordinates
-with \vn{fiducial} and \vn{girder} elements. In this case the vector
-$\bfL$ is constructed via
+\index{rbend}\index{sbend}\index{roll}\index{tilt}
+For \vn{rbend} and \vn{sbend} elements the above equations are modified
+by using 
 \begin{example}
-  \(\bf L\) = (dx_origin, dy_origin, dz_origin)
+          \(\Psi\) = 0
+\end{example}
+This is used since, unlike other elements, the \vn{tilt} attribute of
+a bend affects the reference orbit (cf.~\Eq{ltl}). In the place of a
+tilt error, the \vn{roll} attribute can be used (\sref{s:offset}). For
+a \vn{roll}, the transformation at the entrance end to go from laboratory
+coordinates to element coordinates is
+\Begineq
+  \bfL = 0, \qquad 
+  \bfS = \bfW_\Theta(\text{-angle/2}) \, \bfW_\Psi(\text{roll}) \, \bfW_\Theta(\text{angle/2})
+\Endeq
+where \vn{angle} is the total bend angle.
+The transformation back to the laboratory frame at the exit end of the bend is
+\Begineq
+  \bfL = 0, \qquad 
+  \bfS = \bfW_\Theta(\text{angle/2}) \, \bfW_\Psi(\text{-roll}) \, \bfW_\Theta(\text{-angle/2})
+\Endeq
+Notice that these transformations are not inverses of one another.
+
+\index{girder}\index{fiducial}
+For \vn{fiducial} and \vn{girder} elements the above equations are
+used to calculate the alignment of reference coordinates with respect
+to ``\vn{origin}'' coordinates. In this case, the vector $\bfL$ is
+constructed via
+\begin{example}
+          \(\bfL\) = (dx_origin, dy_origin, dz_origin)
 \end{example}
 And the attributes use to shift the reference coordinates orientation are:
 \begin{example}
-   \(\Theta\) = dtheta_origin,  \(\Phi\) = dphi_origin,  \(\Psi\) = dpsi_origin
+          \(\Theta\) = dtheta_origin,  \(\Phi\) = dphi_origin,  \(\Psi\) = dpsi_origin
 \end{example} 
 
 %-----------------------------------------------------------------------------
