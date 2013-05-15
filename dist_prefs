@@ -53,6 +53,15 @@ export ACC_PLOT_PACKAGE="pgplot"
 #-----------------------------------------------------------
 # Setting the variable ACC_ENABLE_OPENMP here to "Y"
 # will enable OpenMP support during the production build.
+#
+# NOTE: When compiling GSL, provided in this distribution,
+#       on Mac OS 10.7 or higher, OpenMP is not supported. 
+#       This is due to a bug in the Xcode 4.x supplied
+#       version of gcc (i686-apple-darwin11-llvm-gcc-4.2)
+#       or in Apple's default cc complier (clang-425.0.24). 
+#
+#       Installing and using the MacPorts version(s) of gcc 
+#       will avoid this issue (see http://macports.org).
 #-----------------------------------------------------------
 export ACC_ENABLE_OPENMP="N"
 
@@ -60,6 +69,10 @@ export ACC_ENABLE_OPENMP="N"
 #-----------------------------------------------------------
 # Setting the variable ACC_ENABLE_MPI here to "Y"
 # will enable Open MPI support during the production build.
+#
+# NOTE: To enable this option, Open MPI must already be 
+#       installed on your system, since the Open MPI package 
+#       is not inculded in this distribution.
 #-----------------------------------------------------------
 export ACC_ENABLE_MPI="N"
 

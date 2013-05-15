@@ -11,7 +11,6 @@ do
     ./acc_build -production
   elif ( [ "${DIR}" == "lapack" ] ) then
     ./acc_build -production
-    cd LAPACK95 ; ./acc_build -production
   elif ( [ "${DIR}" == "gsl" ] ) then
     ./acc_build -production
   elif ( [ "${DIR}" == "fgsl" ] ) then

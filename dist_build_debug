@@ -13,7 +13,6 @@ do
     ./acc_build -debug
   elif ( [ "${DIR}" == "lapack" ] ) then
     ./acc_build -debug
-    cd LAPACK95 ; ./acc_build -debug
   elif ( [ "${DIR}" == "gsl" ] ) then
     ./acc_build -debug
   elif ( [ "${DIR}" == "fgsl" ] ) then
