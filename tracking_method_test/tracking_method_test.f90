@@ -42,7 +42,7 @@ DO i = 1, lat%n_ele_max - 1
       call init_coord (lat%beam_start, lat%beam_start, ele = lat%ele(i), at_downstream_end = .false.)
       call track1 (lat%beam_start, lat%ele(i), lat%param, end_orb)
       final_str = '"' // trim(lat%ele(i)%name) // ':' // trim(tracking_method_name(j)) // '"' 
-      write (1,'(2a,7es22.13)') final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - lat%beam_start%t)
+      write (1,'(2a,7es18.10)') final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - lat%beam_start%t)
    END DO
    write (1,*)
 END DO
