@@ -6,22 +6,25 @@
 "Bmad:vec(6)"   5.0000000000E-03
 "Bmad:orb%t "   4.0028076481E-09
  
+"Bmad2:dvec"   -5.39E-12  -9.81E-13  1.97E-16  1.99E-17  1.09E-14  0.00E+00
+"Bmad2:dmat"   5.42E-12
+"Bmad2:dvec0"   5.42E-12
+"Bmad2:dorb%t"   -3.81E-23
  
-"Bmad2:dvec"   0 0 0 0 0 0
-"Bmad2:dmat"   0
-"Bmad2:dvec0"  0
-"Bmad2:dorb%t" 0
-
-"PTC1:dvec"   0 0 0 0 0 0
-"PTC1:dorb%t" 0
-"PTC2:dvec"   0 0 0 0 0 0
-"PTC2:dmat"   0
-"PTC2:dvec0"  0
-"PTC2:dorb%t" 0
-
-"TAYLOR1:dvec"   0 0 0 0 0 0
-"TAYLOR1:dorb%t" 0
-"TAYLOR2:dvec"   0 0 0 0 0 0
-"TAYLOR2:dmat"   0
-"TAYLOR2:dvec0"  0
-"TAYLOR2:dorb%t" 0
+"PTC1:dvec"   -2.06E-09  4.56E-09  5.78E-10  -1.21E-09  -5.59E-13  -1.73E-18
+"PTC1:dorb%t"   1.86E-21
+"PTC2:dvec"   -2.06E-09  4.56E-09  5.78E-10  -1.21E-09  -5.48E-13  -3.47E-18
+"PTC2:dmat"   1.05E-06
+"PTC2:dvec0"   1.25E-11
+"PTC2:dorb%t"   -3.81E-23
+ 
+"TAYLOR1:dvec"   -2.99E-10  -2.02E-13  -5.97E-10  -1.02E-13  -8.94E-10  1.73E-18
+"TAYLOR1:dorb%t"   2.98E-18
+"TAYLOR2:dvec"   -3.04E-10  -1.13E-12  -5.97E-10  -7.41E-14  -8.94E-10  1.73E-18
+"TAYLOR2:dmat"   5.48E-12
+"TAYLOR2:dvec0"   5.48E-12
+"TAYLOR2:dorb%t"   -3.64E-23
+ 
+"vec_convert"   0.00E+00  0.00E+00  0.00E+00  0.00E+00  0.00E+00  0.00E+00
+"mat_convert"   2.22E-16
+"map_convert"   5.55E-17  5.55E-17  5.55E-17  5.55E-17  5.55E-17  5.55E-17

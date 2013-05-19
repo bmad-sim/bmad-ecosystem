@@ -7,6 +7,7 @@
 program ptc_test
 
 use bmad
+use polymorphic_taylor
 
 implicit none
 
@@ -14,8 +15,14 @@ type (lat_struct), target :: lat, lat2, lat3
 type (ele_struct), pointer :: ele
 type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
 type (coord_struct) end_orb1t, end_orb2t
+type (taylor_struct) bmad_taylor(6)
+type (real_8) y8(6)
 
 real(rp) diff_mat(6,6), diff_vec(6)
+real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0 
+real(rp) m6_to_ptc(6,6), m6_to_bmad(6,6), m6(6,6)
+
+integer i, j
 
 namelist / params / start_orb
 
@@ -106,5 +113,31 @@ write (1, '(a, es10.2)')  '"TAYLOR2:dvec0"  ABS  1E-11', maxval(abs(diff_vec))
 write (1, '(a, es10.2)')  '"TAYLOR2:dorb%t" ABS  1E-22', &
           (end_orb1p%t - lat2%ele(1)%ref_time) - (end_orb2p%t - lat2%ele(3)%ref_time)
 
+! Vector translation
 
+vec_bmad = [0.01, 0.02, 0.03, 0.04, 1.0, 2.0]
+beta0 = 0.6
+ 
+call vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, m6_to_ptc)
+call vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad2, m6_to_bmad)
+
+m6 = matmul(m6_to_ptc, m6_to_bmad)
+forall (j = 1:6) m6(j,j) = m6(j,j) - 1
+
+write (1, *) 
+write (1, '(a, 6es10.2)') '"vec_convert" ABS 1E-15', vec_bmad2 - vec_bmad
+write (1, '(a, es10.2)')  '"mat_convert" ABS 1E-15', maxval(abs(m6))
+
+! Map translation
+
+call taylor_to_real_8 (lat3%ele(1)%taylor, beta0, y8)
+call real_8_to_taylor (y8, beta0, bmad_taylor)
+bmad_taylor = bmad_taylor - lat3%ele(1)%taylor
+
+do i = 1, 6
+  diff_vec = maxval(abs(bmad_taylor(i)%term(:)%coef))
+enddo
+
+write (1, '(a, 6es10.2)') '"map_convert" ABS 1E-15', diff_vec
+    
 end program
