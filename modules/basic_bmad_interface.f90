@@ -80,6 +80,14 @@ interface
 end interface
 
 interface
+  subroutine cryast_attribute_bookkeeper (ele, other_params)
+    import
+    type (ele_struct) ele
+    real(rp), optional :: other_params(:)
+  end subroutine
+end interface
+
+interface
   subroutine lat_sanity_check (lat, err_flag)
     import
     implicit none

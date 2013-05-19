@@ -736,14 +736,14 @@ integer, parameter :: y_offset_tot$ = 47
 integer, parameter :: z_offset_tot$ = 48
 integer, parameter :: tilt_tot$ = 49
 integer, parameter :: pole_radius$ = 50, tilt_err_tot$ = 50, roll_tot$ = 50
-integer, parameter :: n_ref_pass$ = 51, ref_cap_gamma$ = 51
+integer, parameter :: n_ref_pass$ = 51
 integer, parameter :: radius$ = 52, kh_y_norm$ = 52
 integer, parameter :: ref_time_start$ = 53
 integer, parameter :: thickness$ = 54, integrator_order$ = 54   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 55, l_x$ = 55
-integer, parameter :: ds_step$ = 56, l_y$ = 56
-integer, parameter :: ref_wavelength$ = 57, lord_pad1$ = 57
-integer, parameter :: l_z$ = 58, lord_pad2$ = 58
+integer, parameter :: ds_step$ = 56, l_y$ = 56        ! l_y$ = l_x$ + 1
+integer, parameter :: l_z$ = 57, lord_pad1$ = 57      ! l_z$ = l_x$ + 2
+integer, parameter :: lord_pad2$ = 58, ref_wavelength$ = 58
 integer, parameter :: scratch$ = 59
 integer, parameter :: custom_attribute1$ = 61   ! For general use
 integer, parameter :: custom_attribute2$ = 62   ! For general use
@@ -778,10 +778,11 @@ integer, parameter :: y_limit$ = 87, rf_auto_scale_phase$ = 87, etap_b$ = 87
 integer, parameter :: offset_moves_aperture$ = 88
 integer, parameter :: aperture_limit_on$ = 89
 
-integer, parameter :: ptc_exact_misalign$ = 90
+integer, parameter :: ptc_exact_misalign$ = 90, ref_cap_gamma$ = 90
 integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90
-integer, parameter :: term$ = 91, use_ptc_layout$ = 91
+integer, parameter :: term$ = 91, use_ptc_layout$ = 91, darwin_width_sigma$ = 91
 integer, parameter :: x_position$ = 92, s_spline$ = 92, ptc_exact_model$ = 92
+integer, parameter :: darwin_width_pi$ = 92
 integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
 integer, parameter :: z_position$ = 94
 integer, parameter :: is_on$ = 95, theta_position$ = 95
