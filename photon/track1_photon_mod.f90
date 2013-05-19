@@ -633,13 +633,13 @@ cos_t =               1 / sqrt(1 + (cos_c * slope_t)**2)
 sin_t = cos_c * slope_t / sqrt(1 + (cos_c * slope_t)**2)
 
 if (set) then
-  curverot(1, 1:3) = [ cos_c*cos_t,  cos_c*sin_t,  sin_c]
-  curverot(2, 1:3) = [      -sin_t,        cos_t, 0.0_rp]
-  curverot(3, 1:3) = [-sin_c*cos_t, -sin_c*sin_t,  cos_c]
-else
   curverot(1, 1:3) = [ cos_c*cos_t,       -sin_t, -sin_c*cos_t]
   curverot(2, 1:3) = [ cos_c*sin_t,        cos_t, -sin_c*sin_t]
   curverot(3, 1:3) = [ sin_c,             0.0_rp,  cos_c]
+else
+  curverot(1, 1:3) = [ cos_c*cos_t,  cos_c*sin_t,  sin_c]
+  curverot(2, 1:3) = [      -sin_t,        cos_t, 0.0_rp]
+  curverot(3, 1:3) = [-sin_c*cos_t, -sin_c*sin_t,  cos_c]
 endif
 
 vector = matmul(curverot, vector) ! Goto body element coords at point of photon impact
