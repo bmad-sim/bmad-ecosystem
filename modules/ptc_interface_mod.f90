@@ -1238,10 +1238,10 @@ end subroutine get_ptc_params
 !   use ptc_interface_mod
 !
 ! Input:
-!   y8(:) -- real_8: PTC Taylor map.
+!   y8(6) -- real_8: PTC Taylor map.
 !
 ! Output:
-!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
+!   bmad_taylor(6) -- Taylor_struct: Input taylor map.
 !-
 
 subroutine taylor_equal_real_8 (bmad_taylor, y8)
@@ -1290,10 +1290,10 @@ end subroutine taylor_equal_real_8
 !   use ptc_interface_mod
 !
 ! Input:
-!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
+!   bmad_taylor(6) -- Taylor_struct: Input taylor map.
 !
 ! Output:
-!   y8(:) -- real_8: PTC Taylor map.
+!   y8(6) -- real_8: PTC Taylor map.
 !-
 
 subroutine real_8_equal_taylor (y8, bmad_taylor)
@@ -1351,11 +1351,11 @@ end subroutine real_8_equal_taylor
 !   use ptc_interface_mod
 !
 ! Input:
-!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
-!   beta0 -- real(8): Reference particle velocity
+!   bmad_taylor(6) -- Taylor_struct: Input taylor map.
+!   beta0 -- real(rp): Reference particle velocity
 !
 ! Output:
-!   y8(:) -- real_8: PTC Taylor map.
+!   y8(6) -- real_8: PTC Taylor map.
 !-
 
 subroutine taylor_to_real_8 (bmad_taylor, beta0, y8)
@@ -1376,25 +1376,32 @@ real(dp) beta0, fix0(6), fix1(6)
 call alloc(bm, id, s, si)
 call alloc(bet)
 
-fix0 = 0.0d0
-y8 = bm
 call real_8_equal_taylor (y8, bmad_taylor)
-fix1 = bm
-bm = fix0
-id = 1
-s = 1
-si = 1
+bm = y8
+
+fix1 = bm     ! Save zeroth order terms
+fix0 = 0.0d0  
+bm = fix0     ! Set zeroth order terms to zero
+
+id = 1        ! Identity map
+s = 1         ! PTC to Bmad map
+si = 1        ! Bmad to PTC map
+
 s%v(6) = (2.d0*id%v(5)/beta0+id%v(5)**2)/(sqrt(1.d0+2.d0*id%v(5)/beta0+id%v(5)**2)+1.d0)
 bet = (1.d0+s%v(6))/(1.d0/beta0+id%v(5))
 s%v(5) = -bet*id%v(6)
+
 si%v(5) = (id%v(6)**2+2.d0*id%v(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+id%v(6)**2+2.d0*id%v(6)) )
 bet = (1.d0+id%v(6))/(1.d0/beta0+si%v(5))
 si%v(6) = -id%v(5)/bet
-bm = si*bm*s
-fix0 = fix1
+
+bm = si*bm*s   ! Convert bm map from Bmad units to PTC units
+
+fix0 = fix1    ! Convert fixed point from Bmad units to PTC units.
 fix0(5) = (fix1(6)**2+2.d0*fix1(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+fix1(6)**2+2.d0*fix1(6)) )
 fix0(6) = -fix1(5)/((1.d0+fix1(6))/(1.d0/beta0+fix0(5)))
-bm = fix0
+
+bm = fix0      ! Add the fixed point back in.
 y8 = bm
 
 call kill(bm, id, s, si)
@@ -1415,11 +1422,11 @@ end subroutine taylor_to_real_8
 !   use ptc_interface_mod
 !
 ! Input:
-!   y8(:) -- real_8: PTC Taylor map.
-!   beta0 -- real(8): Reference particle velocity
+!   y8(6) -- real_8: PTC Taylor map.
+!   beta0 -- real(rp): Reference particle velocity
 !
 ! Output:
-!   bmad_taylor(:) -- Taylor_struct: Bmad Taylor map.
+!   bmad_taylor(6) -- Taylor_struct: Bmad Taylor map.
 !-
 
 subroutine real_8_to_taylor (y8, beta0, bmad_taylor)
@@ -1440,24 +1447,31 @@ real(rp) beta0, fix0(6), fix1(6)
 call alloc(bm, id, s, si)
 call alloc(bet)
 
-fix0 = 0.d0
 bm = y8
-fix1 = bm
+fix1 = bm         ! Save the fixed point
+
+fix0 = 0.0d0
 bm = fix0
-id = 1
-s = 1
-si = 1
+
+id = 1            ! Unit map
+s = 1             ! PTC to Bmad map
+si = 1            ! Bmad to PTC map
+
 s%v(6) = (2.d0*id%v(5)/beta0+id%v(5)**2)/(sqrt(1.d0+2.d0*id%v(5)/beta0+id%v(5)**2)+1.d0)
 bet = (1.d0+s%v(6))/(1.d0/beta0+id%v(5))
 s%v(5) = -bet*id%v(6)
+
 si%v(5) = (id%v(6)**2+2.d0*id%v(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+id%v(6)**2+2.d0*id%v(6)) )
 bet = (1.d0+id%v(6))/(1.d0/beta0+si%v(5))
 si%v(6) = -id%v(5)/bet
-bm = s*bm*si
-fix0 = fix1
+
+bm = s*bm*si      ! Convert bm map from PTC units to Bmad units
+
+fix0 = fix1       ! Convert fixed point from PTC units to Bmad units
 fix0(6) = (2.d0*fix1(5)/beta0+fix1(5)**2)/(sqrt(1.d0+2.d0*fix1(5)/beta0+fix1(5)**2)+1.d0)
 fix0(5) = -fix1(6)*((1.d0+fix0(6))/(1.d0/beta0+fix1(5)))
-bm = fix0
+
+bm = fix0         ! Add the fixed point back in.
 y8 = bm
 call taylor_equal_real_8 (bmad_taylor, y8)
 
@@ -1519,7 +1533,7 @@ end subroutine taylor_ref_energy_correct
 !
 ! Output:
 !   vec_ptc(6)  -- real(rp): PTC coordinates.
-!   mat6        -- Real(rp), optional: Jacobian matrix.
+!   mat6        -- Real(rp), optional: Jacobian matrix of Bmad -> PTC conversion map.
 !-
 
 subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, mat6)
@@ -1569,7 +1583,7 @@ end subroutine vec_bmad_to_ptc
 !
 ! Output:
 !   vec_bmad(6) -- real(rp): Bmad coordinates.
-!   mat6        -- Real(rp), optional: Jacobian matrix.
+!   mat6        -- Real(rp), optional: Jacobian matrix of PTC -> Bmad conversion map.
 !-
 
 subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, mat6)
