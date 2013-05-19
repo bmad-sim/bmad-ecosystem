@@ -984,6 +984,8 @@ call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVEL
 call init_attribute_name1 (multilayer_mirror$, crystal_type$,         'CRYSTAL_TYPE')
 call init_attribute_name1 (multilayer_mirror$, ref_polarization$,     'REF_POLARIZATION')  ! Note: Not currently used
 call init_attribute_name1 (multilayer_mirror$, negative_graze_angle$, 'NEGATIVE_GRAZE_ANGLE')
+call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_start', private$)
+call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
 
 call init_attribute_name1 (crystal$, l$,                            'l', private$)
 call init_attribute_name1 (crystal$, graze_angle_in$,               'GRAZE_ANGLE_IN')
@@ -1016,12 +1018,18 @@ call init_attribute_name1 (crystal$, l_x$,                          'l_x', priva
 call init_attribute_name1 (crystal$, l_y$,                          'l_y', private$)
 call init_attribute_name1 (crystal$, l_z$,                          'l_z', private$)
 call init_attribute_name1 (crystal$, ref_polarization$,             'REF_POLARIZATION')   ! Note: Not currently used
-call init_attribute_name1 (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA')
 call init_attribute_name1 (crystal$, negative_graze_angle$,         'NEGATIVE_GRAZE_ANGLE')
+call init_attribute_name1 (crystal$, e_tot_start$,                  'e_tot_start', private$)
+call init_attribute_name1 (crystal$, p0c_start$,                    'p0c_start', private$)
+call init_attribute_name1 (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA', dependent$)
+call init_attribute_name1 (crystal$, darwin_width_sigma$,           'DARWIN_WIDTH_SIGMA', dependent$)
+call init_attribute_name1 (crystal$, darwin_width_pi$,              'DARWIN_WIDTH_PI', dependent$)
 
 call init_attribute_name1 (capillary$, s_spline$,                   'S_SPLINE')
 call init_attribute_name1 (capillary$, n_slice_spline$,             'N_SLICE_SPLINE')
 call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_ANGLE_FACTOR')
+call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
+call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.

@@ -1,5 +1,5 @@
 !+
-! Subroutine crystal_attribute_bookkeeper (ele)
+! Subroutine crystal_attribute_bookkeeper (ele, other_params)
 ! 
 ! Routine to orient the crystal element.
 !
@@ -12,16 +12,20 @@
 !     ... etc ...
 !
 ! Output
-!   ele   -- Ele_struct: Crystal element.
+!   ele       -- Ele_struct: Crystal element.
 !     %value(graze_angle_in$)
 !     %value(graze_angle_out$)
 !     %value(tilt_corr$)
 !     %value(kh_x_norm$
 !     %value(kh_y_norm$)
 !     %value(kh_z_norm$)
+!     ... etc.
+!   other_params(num_ele_attrib_extended$)
+!             -- real(rp), optional: Computed parameters not used in computations.
+!                  These parameters are useful for informational purposes.
 !-
 
-subroutine crystal_attribute_bookkeeper (ele)
+subroutine crystal_attribute_bookkeeper (ele, other_params)
 
 use bmad_struct
 
@@ -29,6 +33,7 @@ implicit none
 
 type (ele_struct) ele
 
+real(rp), optional :: other_params(:)
 real(rp) lambda, gamma, delta1, lambda_in, d, alpha, psi, theta0
 real(rp) cos_theta0, sin_theta0, graze_angle_in, ang_tot
 real(rp) h_x, h_y, h_z, kh_x_norm, kh_y_norm, kh_z_norm, ent_kh_x_norm, ent_kh_y_norm, ent_kh_z_norm
@@ -42,7 +47,6 @@ if (ele%value(bragg_angle$) == 0) return
 
 lambda = ele%value(ref_wavelength$)
 gamma = lambda**2 * r_e / (pi * ele%value(v_unitcell$))
-ele%value(ref_cap_gamma$) = gamma
 delta1 = 1 / sqrt( 1 - gamma * ele%value(f0_re$) )
 lambda_in = lambda * delta1
 d = ele%value(d_spacing$)
@@ -117,8 +121,16 @@ endif
 if (ele%value(b_param$) > 0) then
   ! Energy flow direction is K_0 + K_H = 2*K_0 + H
   s_vec = 2 * [sin_theta0, 0.0_rp, cos_theta0] / (delta1 * lambda) + [h_x, h_y, h_z] 
-  ele%value(l_x$:l_x$+2) = dot_product(s_vec, [0.0_rp, 0.0_rp, ele%value(thickness$)]) * &
+  ele%value(l_x$:l_z$) = dot_product(s_vec, [0.0_rp, 0.0_rp, ele%value(thickness$)]) * &
                               s_vec / dot_product(s_vec, s_vec)
+endif
+
+!
+
+if (present(other_params)) then
+  other_params(ref_cap_gamma$) = gamma
+  other_params(darwin_width_sigma$) = 2 * gamma * ele%value(fh_re$) / sin(2 * ele%value(graze_angle$))
+  other_params(darwin_width_pi$) = other_params(darwin_width_sigma$) * cos(2 * ele%value(graze_angle$))
 endif
 
 end subroutine
