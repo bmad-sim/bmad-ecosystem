@@ -672,17 +672,27 @@ on the PTC side is:
 \label{s:s.curve}
 
 Various X-Ray elements, for example a \vn{crystal} (\sref{s:crystal})
-element, can have a curved surface. The attributes for specifying the surface curvature are:
+element, can have a curved surface. The attributes for specifying the
+surface curvature in the plane of the reference trajectory are:
 \index{d_detec}\index{d_source}\index{g_trans}
 \index{c2_curve}\index{c3_curve}\index{c4_curve}
 \begin{example}
-  c2_curve               = <Real>    ! C2 curvature coefficient.
-  c3_curve               = <Real>    ! C3 curvature coefficient.
-  c4_curve               = <Real>    ! C4 curvature coefficient.
+  c2_curve               = <Real>    ! c2 curvature coefficient.
+  c3_curve               = <Real>    ! c3 curvature coefficient.
+  c4_curve               = <Real>    ! c4 curvature coefficient.
   d_detec                = <Real>    ! Detector distance.
   d_source               = <Real>    ! Source distance.
   g_trans                = <Real>    ! Transverse 1/radius-of-curvature.
 \end{example}
+  a2_trans_curve         = <Real>    ! a2 curvature coefficient.
+  a3_trans_curve         = <Real>    ! a3 curvature coefficient.
+  a4_trans_curve         = <Real>    ! a4 curvature coefficient.
+\end{example}
+
+\index{a2_trans_curve}\index{a3_trans_curve}\index{a4_trans_curve}
+In the plane transverse to the reference trajectory the attributes
+for specifying the surface curvature are
+\begin{example}
 
 From the input attributes, the following attributes are derived:
 \index{c2_curve_tot}\index{c3_curve_tot}\index{c4_curve_tot}
@@ -695,7 +705,7 @@ From the input attributes, the following attributes are derived:
 The curvature of the surface in the plane of the $x$-$z$ plane of the
 Element Reference Frame (see \fig{f:crystal}) is determined by
 the \vn{d_source}, \vn{d_detec}, \vn{c2_curve}, \vn{c2_curve}, and
-\vn{c2_curve} parameters. The curvature is surface is parameterized by
+\vn{c2_curve} parameters. The surface curvature is parameterized by
 a fourth order polynomial
 \Begineq
   -x = c_{2,tot} \, z^2 + c_{3,tot} \, z^3 + c_{4,tot} \, z^4
@@ -732,6 +742,12 @@ The \vn{g_trans} parameter is equal to 1/\vn{R_trans} where
 \vn{R_trans} is the radius of curvature of the element surface in the
 plane transverse to the bend plane. A positive \vn{g_trans} indicates
 that the element is concave from the point of view of the photons.
+
+For the transverse plane the surface curvature is parameterized by the
+equation
+\Begineq
+  -x = a_{2,tot} \, y^2 + a_{3,tot} \, y^3 + a_{4,tot} \, y^4
+\Endeq
 
 %%Note: The expansion of the equation
 %%\Begibeq

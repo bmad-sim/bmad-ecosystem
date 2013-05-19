@@ -80,7 +80,7 @@ interface
 end interface
 
 interface
-  subroutine cryast_attribute_bookkeeper (ele, other_params)
+  subroutine crystal_attribute_bookkeeper (ele, other_params)
     import
     type (ele_struct) ele
     real(rp), optional :: other_params(:)
