@@ -83,7 +83,7 @@ real(rp), pointer :: r_ptr
 character(*), allocatable :: lines(:)
 character(len(lines)), pointer :: li(:)
 character(len(lines)), allocatable :: li2(:)
-character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, coef_str
+character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, coef_str, fmt
 character(12) val_str
 character(8) angle, index_str
 character(2) str_i
@@ -161,7 +161,7 @@ n_att = n_attrib_string_max_len() + 2
 write (fmt_a, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, 3a)'
 write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
 write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
-write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es12.6)'
+write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es15.7)'
 
 if (ele%lord_status == overlay_lord$) then
   i = ele%ix_value
@@ -449,7 +449,19 @@ endif
 if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'CSR_CALC_ON', '=', ele%csr_calc_on
 endif
-  
+
+! surface info
+
+if (associated(ele%surface)) then
+  fmt = '(4x, 3(a, es14.6, 2x))'
+  nl=nl+1; write (li(nl), *)
+  nl=nl+1; write (li(nl), *) 'Surface Curvature:'
+  nl=nl+1; write (li(nl), fmt) 'D_SOURCE       =', ele%surface%d_source,       'D_DETEC        =', ele%surface%d_detec 
+  nl=nl+1; write (li(nl), fmt) 'C2_CURVE       =', ele%surface%c2_curve,       'C3_CURVE       =', ele%surface%c2_curve,       'C4_CURVE       =', ele%surface%c2_curve
+  nl=nl+1; write (li(nl), fmt) 'C2_CURVE_TOT   =', ele%surface%c2_curve_tot,   'C3_CURVE_TOT   =', ele%surface%c2_curve_tot,   'C4_CURVE_TOT   =', ele%surface%c2_curve_tot
+  nl=nl+1; write (li(nl), fmt) 'A2_TRANS_CURVE =', ele%surface%a2_trans_curve, 'A3_TRANS_CURVE =', ele%surface%a2_trans_curve, 'A4_TRANS_CURVE =', ele%surface%a2_trans_curve
+endif
+
 ! Encode branch info
 
 if (ele%key == branch$ .or. ele%key == photon_branch$) then

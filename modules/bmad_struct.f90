@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 118
+integer, parameter :: bmad_inc_version$ = 119
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -389,6 +389,16 @@ type rad_int_ele_cache_struct
   logical :: stale = .true.
 end type 
 
+! Structure for surfaces of mirrors, crystals, etc.
+! Rule: This structure is always allocated in the ele_struct for elements that need it.
+
+type photon_surface_struct
+  real(rp) :: a2_trans_curve = 0, a3_trans_curve = 0, a4_trans_curve = 0
+  real(rp) :: c2_curve = 0, c3_curve = 0, c4_curve = 0
+  real(rp) :: c2_curve_tot = 0, c3_curve_tot = 0, c4_curve_tot = 0
+  real(rp) :: d_source = 0, d_detec = 0
+end type
+
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
@@ -417,6 +427,7 @@ type ele_struct
                                                             ! Radiation integral calc cached values 
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
+  type (photon_surface_struct), pointer :: surface => null()
   type (taylor_struct) :: taylor(6)                         ! Taylor terms
   type (wall3d_struct), pointer :: wall3d => null()         ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()    ! Wiggler field
@@ -659,6 +670,11 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           x1$ = 27, px1$ = 28, y1$ = 29, py1$ = 30, z1$ = 31, pz1$ = 32, &
           match_end_orbit$ = 33, c_11$ = 34, c_12$ = 35, c_21$ = 36, c_22$ = 37, gamma_c$ = 39 
 
+integer, parameter :: a2_trans_curve$ = 71, a3_trans_curve$ = 73, a4_trans_curve$ = 74
+integer, parameter :: c2_curve$ = 75, c3_curve$ = 78, c4_curve$ = 79
+integer, parameter :: c2_curve_tot$ = 89, c3_curve_tot$ = 90, c4_curve_tot$ = 93
+integer, parameter :: d_source$ = 94, d_detec$ = 95
+
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: t$ = 8
 integer, parameter :: e_field_x$ = 10,  e_field_y$ = 11, phase_x$ = 12, phase_y$ = 13
@@ -704,24 +720,25 @@ integer, parameter :: negative_graze_angle$ = 18, dz_origin$ = 18
 integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18
 integer, parameter :: kill_fringe$ = 19, dtheta_origin$ = 19
 integer, parameter :: b_param$ = 19
-integer, parameter :: a2_trans_curve$ = 20, l_hard_edge$ = 20, dphi_origin$ = 20
-integer, parameter :: field_scale$ = 21, dpsi_origin$ = 21, a3_trans_curve$ = 21
-integer, parameter :: roll$=22, n_cell$=22, x_ray_line_len$=22, a4_trans_curve$ = 22 
+integer, parameter :: l_hard_edge$ = 20, dphi_origin$ = 20, ref_cap_gamma$ = 20
+integer, parameter :: field_scale$ = 21, dpsi_origin$ = 21, darwin_width_sigma$ = 21
+integer, parameter :: roll$=22, n_cell$=22, x_ray_line_len$=22, darwin_width_pi$ = 22
+
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
 integer, parameter :: x_offset$ = 25
 integer, parameter :: y_offset$ = 26 
 integer, parameter :: z_offset$ = 27 ! Assumed unique. Do not overload further.
 integer, parameter :: hkick$ = 28, d_spacing$ = 28, t_offset$ = 28
-integer, parameter :: vkick$ = 29, c2_curve$ = 29
-integer, parameter :: BL_hkick$ = 30, c3_curve$ = 30
-integer, parameter :: BL_vkick$ = 31, c4_curve$ = 31
-integer, parameter :: BL_kick$ = 32, c2_curve_tot$ = 32, coupler_at$ = 32
-integer, parameter :: B_field$ = 33, E_field$ = 33, coupler_phase$ = 33, c3_curve_tot$ = 33
-integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34, c4_curve_tot$ = 34
-integer, parameter :: coupler_strength$ = 35, d_source$ = 35
+integer, parameter :: vkick$ = 29
+integer, parameter :: BL_hkick$ = 30
+integer, parameter :: BL_vkick$ = 31
+integer, parameter :: BL_kick$ = 32, coupler_at$ = 32
+integer, parameter :: B_field$ = 33, E_field$ = 33, coupler_phase$ = 33
+integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34
+integer, parameter :: coupler_strength$ = 35
 integer, parameter :: B1_gradient$ = 35, E1_gradient$ = 35
-integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36, d_detec$ = 36
+integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36
 integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, kh_x_norm$ = 37, ptc_field_geometry$ = 38
 integer, parameter :: Bs_field$ = 38, e_tot_offset$ = 38, kh_z_norm$ = 38
 integer, parameter :: delta_ref_time$ = 39 ! Assumed unique Do not overload.
@@ -778,11 +795,10 @@ integer, parameter :: y_limit$ = 87, rf_auto_scale_phase$ = 87, etap_b$ = 87
 integer, parameter :: offset_moves_aperture$ = 88
 integer, parameter :: aperture_limit_on$ = 89
 
-integer, parameter :: ptc_exact_misalign$ = 90, ref_cap_gamma$ = 90
+integer, parameter :: ptc_exact_misalign$ = 90
 integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90
-integer, parameter :: term$ = 91, use_ptc_layout$ = 91, darwin_width_sigma$ = 91
+integer, parameter :: term$ = 91, use_ptc_layout$ = 91
 integer, parameter :: x_position$ = 92, s_spline$ = 92, ptc_exact_model$ = 92
-integer, parameter :: darwin_width_pi$ = 92
 integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
 integer, parameter :: z_position$ = 94
 integer, parameter :: is_on$ = 95, theta_position$ = 95

@@ -60,8 +60,6 @@ if (ele1%ix_ele > -1) then          ! If part of a lattice...
   ele1%branch => ele_save%branch     !   then ele1%branch should not change.
 endif
 
-
-
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
 ! location from ele2's so that the elements are separate.
@@ -153,6 +151,16 @@ if (associated(ele2%r)) then
   ele1%r = ele2%r
 else
   if (associated (ele_save%r)) deallocate (ele_save%r)
+endif
+
+! %surface
+
+if (associated(ele2%surface)) then
+  ele1%surface => ele_save%surface  ! reinstate
+  if (.not. associated(ele1%surface)) allocate(ele1%surface)
+  ele1%surface = ele2%surface
+else
+  if (associated (ele_save%surface)) deallocate (ele_save%surface)
 endif
 
 ! %taylor

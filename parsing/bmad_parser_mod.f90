@@ -1280,7 +1280,6 @@ case default   ! normal attribute
           attrib_word == 'PHI_POSITION' .or. attrib_word == 'PSI_POSITION') ele%value(floor_set$) = 1
     else
       ele%value(ix_attrib) = value
-
       ix = len_trim(attrib_word)
       if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
       if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.

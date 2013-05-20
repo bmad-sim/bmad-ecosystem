@@ -545,7 +545,7 @@ case (mirror$)
   mat6(1, 1) = -1
   mat6(2, 1) =  0   ! 
   mat6(2, 2) = -1
-  mat6(4, 3) = -2 * v(c2_curve_tot$)  
+  mat6(4, 3) = -2 * ele%surface%c2_curve_tot
 
   call offset_photon_mat6(mat6, ele)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)

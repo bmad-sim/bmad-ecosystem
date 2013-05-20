@@ -566,9 +566,9 @@ endif
 
 y = point(2)
 
-delta_h = delta_h + ele%value(a2_trans_curve$) * y**2 + ele%value(a3_trans_curve$) * y**3 + &
-                    ele%value(a4_trans_curve$) * y**4 + ele%value(c2_curve_tot$) * r**2 + &
-                    ele%value(c3_curve_tot$) * r**3 + ele%value(c4_curve_tot$) * r**4
+delta_h = delta_h + ele%surface%a2_trans_curve * y**2 + ele%surface%a3_trans_curve * y**3 + &
+                    ele%surface%a4_trans_curve * y**4 + ele%surface%c2_curve_tot * r**2 + &
+                    ele%surface%c3_curve_tot * r**3 + ele%surface%c4_curve_tot * r**4
 
 end function photon_depth_in_crystal
 
@@ -601,11 +601,11 @@ subroutine to_curved_body_coords (ele, hit_point, vector, set)
 implicit none
 
 type (ele_struct), target :: ele
+type (photon_surface_struct), pointer :: s
 
 real(rp) hit_point(3), vector(3)
 real(rp) curverot(3,3)
 real(rp) slope_t, slope_c, cos_c, sin_c, cos_t, sin_t
-real(rp), pointer :: v(:)
 logical set
 
 ! The transformation curverot is
@@ -616,12 +616,12 @@ logical set
 ! Since rotations do not commute, the cos_t and sin_t terms, which are used
 ! in W_t (the second rotation), are modified by cos_c.
 
-v => ele%value
+s => ele%surface
 
-slope_c = 2.0_rp * v(c2_curve_tot$) * hit_point(3) + 3.0_rp * v(c3_curve_tot$) * hit_point(3)**2 + &
-          4.0_rp * v(c4_curve_tot$) * hit_point(3)**3 
-slope_t = 2.0_rp * v(a2_trans_curve$) * hit_point(2) + 3.0_rp * v(a3_trans_curve$) * hit_point(2)**2 + &
-          4.0_rp * v(a4_trans_curve$) * hit_point(2)**3
+slope_c = 2.0_rp * s%c2_curve_tot * hit_point(3) + 3.0_rp * s%c3_curve_tot * hit_point(3)**2 + &
+          4.0_rp * s%c4_curve_tot * hit_point(3)**3 
+slope_t = 2.0_rp * s%a2_trans_curve * hit_point(2) + 3.0_rp * s%a3_trans_curve * hit_point(2)**2 + &
+          4.0_rp * s%a4_trans_curve * hit_point(2)**3
 
 slope_c = -slope_c
 slope_t = -slope_t
@@ -665,13 +665,15 @@ function has_curved_surface (ele) result (has_curve)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (photon_surface_struct), pointer :: s
 logical has_curve
 
 !
 
-if (ele%value(c2_curve_tot$) /= 0 .or. ele%value(c3_curve_tot$) /= 0 .or. ele%value(c4_curve_tot$) /= 0 .or. &
-    ele%value(a2_trans_curve$) /= 0 .or. ele%value(a3_trans_curve$) /= 0 .or. ele%value(a4_trans_curve$) /= 0) then
+s => ele%surface
+if (s%c2_curve_tot /= 0 .or. s%c3_curve_tot /= 0 .or. s%c4_curve_tot /= 0 .or. &
+    s%a2_trans_curve /= 0 .or. s%a3_trans_curve /= 0 .or. s%a4_trans_curve /= 0) then
   has_curve = .true.
 else
   has_curve = .false.
