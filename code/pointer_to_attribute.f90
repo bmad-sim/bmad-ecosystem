@@ -200,6 +200,28 @@ case ('S')
   ptr_attrib => ele%s
 case ('REF_TIME')
   ptr_attrib => ele%ref_time
+case ('D_SOURCE')
+  ptr_attrib => ele%surface%d_source
+case ('D_DETEC')
+  ptr_attrib => ele%surface%d_detec
+case ('C2_CURVE')
+  ptr_attrib => ele%surface%c2_curve
+case ('C3_CURVE')
+  ptr_attrib => ele%surface%c3_curve
+case ('C4_CURVE')
+  ptr_attrib => ele%surface%c4_curve
+case ('C2_CURVE_TOT')
+  ptr_attrib => ele%surface%c2_curve_tot
+case ('C3_CURVE_TOT')
+  ptr_attrib => ele%surface%c3_curve_tot
+case ('C4_CURVE_TOT')
+  ptr_attrib => ele%surface%c4_curve_tot
+case ('A2_TRANS_CURVE')
+  ptr_attrib => ele%surface%a2_trans_curve
+case ('A3_TRANS_CURVE')
+  ptr_attrib => ele%surface%a3_trans_curve
+case ('A4_TRANS_CURVE')
+  ptr_attrib => ele%surface%a4_trans_curve
 end select
 
 if (len(a_name) >= 6) then

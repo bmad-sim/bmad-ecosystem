@@ -1,5 +1,5 @@
 !+
-! Subroutine crystal_attribute_bookkeeper (ele, other_params)
+! Subroutine crystal_attribute_bookkeeper (ele)
 ! 
 ! Routine to orient the crystal element.
 !
@@ -20,12 +20,9 @@
 !     %value(kh_y_norm$)
 !     %value(kh_z_norm$)
 !     ... etc.
-!   other_params(num_ele_attrib_extended$)
-!             -- real(rp), optional: Computed parameters not used in computations.
-!                  These parameters are useful for informational purposes.
 !-
 
-subroutine crystal_attribute_bookkeeper (ele, other_params)
+subroutine crystal_attribute_bookkeeper (ele)
 
 use bmad_struct
 
@@ -33,7 +30,6 @@ implicit none
 
 type (ele_struct) ele
 
-real(rp), optional :: other_params(:)
 real(rp) lambda, gamma, delta1, lambda_in, d, alpha, psi, theta0
 real(rp) cos_theta0, sin_theta0, graze_angle_in, ang_tot
 real(rp) h_x, h_y, h_z, kh_x_norm, kh_y_norm, kh_z_norm, ent_kh_x_norm, ent_kh_y_norm, ent_kh_z_norm
@@ -127,10 +123,8 @@ endif
 
 !
 
-if (present(other_params)) then
-  other_params(ref_cap_gamma$) = gamma
-  other_params(darwin_width_sigma$) = 2 * gamma * ele%value(fh_re$) / sin(2 * ele%value(graze_angle$))
-  other_params(darwin_width_pi$) = other_params(darwin_width_sigma$) * cos(2 * ele%value(graze_angle$))
-endif
+ele%value(ref_cap_gamma$) = gamma
+ele%value(darwin_width_sigma$) = 2 * gamma * ele%value(fh_re$) / abs(sin(2 * ele%value(graze_angle$)))
+ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(2 * ele%value(graze_angle$)))
 
 end subroutine

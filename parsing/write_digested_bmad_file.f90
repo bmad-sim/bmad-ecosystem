@@ -220,20 +220,21 @@ type (rf_wake_struct), pointer :: wake
 type (em_field_mode_struct), pointer :: mode, mode2
 
 integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_t(6), ie, ib, ix_wall3d_branch
-integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ie_max
+integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ie_max, ix_s
 integer i, j, k, n, ng, nf, n_em_field_mode, ix_ele, ix_branch, ix_wig_branch
 
 logical write_wake, mode3
 
 !
 
-ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_r = 0
+ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_r = 0; ix_s = 0
 ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
 mode3 = .false.; ix_wall3d = 0; n_em_field_mode = 0; ix_wig_branch = 0
 
 if (associated(ele%mode3))          mode3 = .true.
 if (associated(ele%wig))            ix_wig = size(ele%wig%term)
 if (associated(ele%r))              ix_r = 1
+if (associated(ele%surface))        ix_s = 1
 if (associated(ele%descrip))        ix_d = 1
 if (associated(ele%a_pole))         ix_m = 1
 if (associated(ele%taylor(1)%term)) ix_t = [(size(ele%taylor(j)%term), j = 1, 6)]
@@ -303,7 +304,7 @@ endif
 ! Now write the element info. 
 ! The last zero is for future use.
 
-write (d_unit) mode3, ix_wig, ix_wig_branch, ix_r, ix_wall3d_branch, 0, 0, ix_d, ix_m, ix_t, &
+write (d_unit) mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, 0, 0, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d, n_em_field_mode, 0
 
 write (d_unit) &
@@ -411,6 +412,10 @@ if (associated(ele%r)) then
   do i = lbound(ele%r, 3), ubound(ele%r, 3)
     write (d_unit) ele%r(:,:,i)
   enddo
+endif
+
+if (associated(ele%surface)) then
+  write (d_unit) ele%surface
 endif
 
 if (associated(ele%descrip))  write (d_unit) ele%descrip

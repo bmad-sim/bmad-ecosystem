@@ -199,6 +199,17 @@ do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
+    ! photon elements with a surface must have ele%surface associated.
+
+    if (ele%key == crystal$ .or. ele%key == mirror$ .or. ele%key == multilayer_mirror$) then
+      if (.not. associated(ele%surface)) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'SHOULD HAVE AN ASSOCIATED %SURFACE COMPONENT BUT IT DOES NOT!')
+        err_flag = .true.
+      endif
+    endif
+
     ! match elements with match_end set should only appear in opens
 
     if (ele%key == match$) then

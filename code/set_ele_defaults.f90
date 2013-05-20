@@ -42,6 +42,8 @@ case (crystal$)
   ele%value(ref_polarization$) = sigma_polarization$ 
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
+  if (.not. associated(ele%surface)) allocate(ele%surface)
+  ele%surface = photon_surface_struct()
 
 case (custom$)  
   ele%mat6_calc_method = custom$
@@ -66,11 +68,15 @@ case (lcavity$)
 case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
+  if (.not. associated(ele%surface)) allocate(ele%surface)
+  ele%surface = photon_surface_struct()
 
 case (multilayer_mirror$)
   ele%value(ref_polarization$) = sigma_polarization$  
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
+  if (.not. associated(ele%surface)) allocate(ele%surface)
+  ele%surface = photon_surface_struct()
 
 case (multipole$, ab_multipole$)
   call multipole_init (ele, .true.)

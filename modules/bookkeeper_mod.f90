@@ -2203,12 +2203,12 @@ case (crystal$, multilayer_mirror$)
   endif
 
   gc = 0
-  if (val(d_source$) /= 0) gc = val(graze_angle_in$) / (2 * val(d_source$))
-  if (val(d_detec$) /= 0)  gc = gc + val(graze_angle_out$) / (2 * val(d_detec$))
+  if (ele%surface%d_source /= 0) gc = val(graze_angle_in$) / (2 * ele%surface%d_source)
+  if (ele%surface%d_detec /= 0)  gc = gc + val(graze_angle_out$) / (2 * ele%surface%d_detec)
 
-  val(c2_curve_tot$) = val(c2_curve$) + gc / 2
-  val(c3_curve_tot$) = val(c3_curve$)
-  val(c4_curve_tot$) = val(c4_curve$) + gc**3 / 4
+  ele%surface%c2_curve_tot = ele%surface%c2_curve + gc / 2
+  ele%surface%c3_curve_tot = ele%surface%c3_curve
+  ele%surface%c4_curve_tot = ele%surface%c4_curve + gc**3 / 4
 
 ! Elseparator
 
