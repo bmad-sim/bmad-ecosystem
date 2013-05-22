@@ -1485,7 +1485,7 @@ implicit none
 type (ele_struct), target :: slave, lord
 type (lat_param_struct) param
 
-real(rp) offset, s_del, coef
+real(rp) offset, s_del, coef, dang, lord_ang, slave_ang
 real(rp) value(num_ele_attrib$)
 integer i
 logical at_upstream_end, at_downstream_end, err_flag
@@ -1532,11 +1532,45 @@ if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
 
 if (has_orientation_attributes(slave)) then
   s_del = offset + slave%value(l$)/2 - lord%value(l$)/2
-  value(x_pitch$)  = value(x_pitch_tot$)
-  value(y_pitch$)  = value(y_pitch_tot$)
-  value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
-  value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
-  value(tilt$)     = value(tilt_tot$)
+
+  if (slave%key == sbend$ .and. value(g$) /= 0) then
+    value(tilt$)     = value(tilt_tot$)
+    value(x_pitch$)  = value(x_pitch_tot$)
+
+    if (value(x_offset_tot$) /= 0 .or. value(y_offset_tot$) /= 0 .or. value(z_offset_tot$) /= 0) then
+      dang =  s_del * value(g$)
+      value(x_offset$) = cos(dang) * value(y_offset_tot$) + sin(dang) * value(z_offset_tot$)
+      value(y_offset$) = sin(dang) * value(y_offset_tot$) + cos(dang) * value(z_offset_tot$)
+      value(z_offset$) = value(y_offset_tot$)
+    endif
+
+    if (value(x_pitch_tot$) == 0 .and. value(y_pitch_tot$) == 0 .and. value(roll_tot$) == 0) then
+      value(y_pitch$)  = value(y_pitch_tot$)
+      value(roll$)     = value(roll_tot$)
+    else  ! Use small angle approx here
+      dang =  s_del * value(g$)
+      slave_ang = value(g$) * slave%value(l$)
+      lord_ang = value(g$) * lord%value(l$)
+      value(y_pitch$) =  cos(dang) * value(y_pitch_tot$) + sin(dang) * value(roll_tot$)
+      value(roll$)    = -sin(dang) * value(y_pitch_tot$) + cos(dang) * value(roll_tot$)
+      value(x_offset$) = value(x_offset$) + value(x_pitch_tot$) * sin(dang) / value(g$)
+      value(y_offset$) = value(y_offset$) + value(y_pitch_tot$) * sin(dang) / value(g$) + &
+                (value(roll$) * cos(slave_ang/2) - lord%value(roll_tot$) * cos(lord_ang/2)) / value(g$)
+      value(z_offset$) = value(z_offset$) - 2 * value(x_pitch_tot$) * sin(dang/2)**2
+    endif
+
+  else
+    if (slave%key == sbend$) then
+      value(roll$)   = value(roll_tot$)
+    else
+      value(tilt$)   = value(tilt_tot$)
+    endif
+    value(x_pitch$)  = value(x_pitch_tot$)
+    value(y_pitch$)  = value(y_pitch_tot$)
+    value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
+    value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
+    value(z_offset$) = value(z_offset_tot$)
+  endif
 endif
 
 slave%value = value

@@ -112,7 +112,19 @@ endif
 
 !
 
-if (ele%offset_moves_aperture .and. (physical_end == entrance_end$ .or. physical_end == exit_end$)) then
+
+if (param%particle == photon$) then
+  if (ele%aperture_at == surface$) then  ! Assumes offset_moves_aperture = T
+    orb2 = orb
+    call offset_photon (ele, orb2, set$, offset_position_only = .true.)
+    x_particle = orb2%vec(1)
+    y_particle = orb2%vec(3)
+  else                                   ! Assumes offset_moves_aperture = F
+    x_particle = orb%vec(1)
+    y_particle = orb%vec(3)
+  endif
+
+elseif (ele%offset_moves_aperture .and. (physical_end == entrance_end$ .or. physical_end == exit_end$)) then
   do_tilt = .false.
   if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
   orb2 = orb
@@ -122,9 +134,7 @@ if (ele%offset_moves_aperture .and. (physical_end == entrance_end$ .or. physical
                ds_pos = s_here)
   x_particle = orb2%vec(1)
   y_particle = orb2%vec(3)
-elseif (ele%aperture_at == surface$) then  ! For photons
-  x_particle = orb%vec(5)
-  y_particle = orb%vec(3)
+
 else
   x_particle = orb%vec(1)
   y_particle = orb%vec(3)

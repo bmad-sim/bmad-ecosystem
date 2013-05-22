@@ -532,9 +532,15 @@ passes through. That is, the beam pipe does not ``touch'' the physical
 element. This can be changed by setting the \vn{offset_moves_aperture}
 attribute to \vn{True}. In this case any offsets or pitches will be
 considered to have shifted the aperture boundary. The exceptions here
-is that the default for \vn{rcollimator}, \vn{ecollimator},
-\vn{multilayer_mirror}, \vn{mirror}, and \vn{crystal} elements is for
-\vn{offset_moves_aperture} to be \vn{True}.
+is that the default for the following elements is for
+\vn{offset_moves_aperture} to be \vn{True}:
+\begin{example}
+  rcollimator, 
+  ecollimator,
+  multilayer_mirror, 
+  mirror, and 
+  crystal 
+\end{example}
 
 Even with \vn{offset_moves_aperture} set to \vn{True}, \vn{tilt}s will
 not affect the aperture calculation. This is done, for example, so
@@ -572,21 +578,21 @@ aperture is equivalent to the \vn{both_ends} setting.
 
 \index{mirror}\index{multilayer_mirror}\index{crystal}
 The \vn{surface} setting for \vn{aperture_at} can be only be used for
-\vn{mirror}, \vn{multilayer_mirror}, and \vn{crystal} elements.  For
-these elements, the \vn{surface} setting is the default.  A setting of
-\vn{surface} means that the aperture limits are calculated in the
-frame of reference of the surface of the element. To keep things
-conceptually simple, if a \vn{surface} aperture is used, the setting
-of \vn{offset_moves_aperture} must be set to True (which is the
-default for these elements). Non-moving apertures, if desired, can be
-setup at the entrance or exit end of the element. Notice that since,
-for the \vn{mirror}, \vn{multilayer_mirror}, or \vn{crystal} elements
-the offsets and pitches are measured with respect to the entrance-end
-coordinates (\sref{s:offset}), it is oftentimes simpler to set up a
-separate collimator element positioned at the exit end of the element
-than it is to set the exit-end aperture in the element itself. In any
-case, extra collimator elements are needed if entrance or exit
-collimation is to be used with surface collimation.
+elements
+\begin{example}
+  mirror, 
+  multilayer_mirror, and 
+  crystal
+\end{example}
+For these elements, the \vn{surface} setting is the default.  A
+setting of \vn{surface} means that the aperture limits are calculated
+in the frame of reference of the surface of the element. To keep
+things conceptually simple, the \vn{offset_moves_aperture} setting is
+ignored for these elements. If a \vn{surface} aperture is used, the
+aperture calculation implicitly assumes that
+\vn{offset_moves_aperture} is set to True. For \vn{entrance_end} or
+\vn{exit_end} apertures, the aperture calculation implicitly assumes
+that \vn{offset_moves_aperture} is set to False.
 
 Examples:
 \begin{example}
