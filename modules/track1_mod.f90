@@ -288,7 +288,7 @@ implicit none
 type (coord_struct) orb
 type (ele_struct) ele
 type (lat_param_struct) param
-real(rp) length, rel_pc, dz, px, py, pz, pxy2
+real(rp) length, rel_pc, dz, px, py, pxy2
 
 ! Photon tracking uses a different coordinate system. 
 ! Notice that if orb%vec(6) is negative then the photon will be going back in time.
@@ -415,7 +415,6 @@ do n = 1, n_step
     y  = end_orb%vec(3)
     py = end_orb%vec(4)
     z  = end_orb%vec(5)
-    pz = end_orb%vec(6)
    
     pxy2 = px**2 + py**2
     if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
@@ -448,7 +447,11 @@ do n = 1, n_step
       return
     endif    
 
-    if (abs(g_tot) < 1e-5 * abs(g)) then
+    if (abs(angle) < 1e-5 .and. abs(g_tot * length) < 1e-5) then
+      end_orb%vec(1) = end_orb%vec(1) + length * px / p_long - &
+                       g_tot * (length * Dy)**2 / (2 * p_long**3) + &
+                       g * length * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / (2 * p_long**2)
+    elseif (abs(g_tot) < 1e-5 * abs(g)) then
       alpha = p_long * ct - px * st
       end_orb%vec(1) = (p_long * (1 + g * x) - alpha) / (g * alpha) - &
                    g_tot * (Dy * (1 + g * x) * st)**2 / (2 * alpha**3 * g**2) + &
@@ -465,7 +468,6 @@ do n = 1, n_step
 
     end_orb%vec(2) = px_t
     end_orb%vec(4) = py
-    end_orb%vec(6) = pz
 
     if (abs(g_tot) < 1e-5 * abs(g)) then
       beta = (1 + g * x) * st / (g * alpha) - &

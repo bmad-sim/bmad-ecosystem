@@ -904,8 +904,7 @@ case (sbend$)
       dp_long_dpy = -py/p_long
       dp_long_dpz = rel_p/p_long
       
-      ! The following is to make sure that a beam entering on-axis remains 
-      ! *exactly* on-axis.
+      ! The following was obtained by differentiating the formulas of track_a_bend.
 
       if (pxy2 < 1e-5) then  
          f = pxy2 / (2 * rel_p)
@@ -934,7 +933,23 @@ case (sbend$)
       dpx_t_dpy = ct*g*df_dpy
       dpx_t_dpz = ct*g*df_dpz
 
-      if (abs(g_tot) < 1e-5 * abs(g)) then
+      if (abs(angle) < 1e-5 .and. abs(g_tot * length) < 1e-5) then
+        mat6_i(1,1) = 1
+        mat6_i(1,2) = length / p_long + length * px**2 / p_long**3 - 3 * g_tot * px * (length * Dy)**2 / (2 * p_long**5) + &
+                      g * length * (length *px + x * (p_long - px**2 / p_long)) / p_long**2 + &
+                      g * length * px * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / p_long**4
+        mat6_i(1,3) = 0
+        mat6_i(1,4) = length * px *py / p_long**3 + &
+                      g_tot * length**2 * (py / p_long**3 - 3 * py * Dy**2 / (2 * p_long**5)) + &
+                      g * length * (-length * py - x * px * py / p_long) / p_long**2 + &
+                      g * length * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * py / p_long**4
+        mat6_i(1,5) = 0
+        mat6_i(1,6) = -length * px * rel_p / p_long**3 + &
+                      g_tot * length**2 * (3 * rel_p * Dy**2 / (2 * p_long**5) - rel_p / p_long**3) + &
+                      g * length * (length * rel_p + x * px * rel_p / p_long) / p_long**2 - &
+                      g * length * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * rel_p / p_long**4
+
+      elseif (abs(g_tot) < 1e-5 * abs(g)) then
         alpha = p_long * ct - px * st
         dalpha_dpx = dp_long_dpx * ct - st
         dalpha_dpy = dp_long_dpy * ct
