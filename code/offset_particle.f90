@@ -76,6 +76,7 @@ subroutine offset_particle (ele, coord, param, set, set_canonical, &
 use bmad_interface, except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
 use track1_mod, only: track_a_drift
+use lat_geometry_mod
 
 implicit none
 
@@ -85,8 +86,9 @@ type (coord_struct), intent(inout) :: coord
 
 real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx
-real(rp) angle, z_here, xp, yp, x_off, y_off, z_off, vec(3), m_trans(3,3)
+real(rp) angle, z_here, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
+real(rp) rot(3), dr(3)
 
 integer particle, sign_z_vel
 integer n
@@ -156,35 +158,63 @@ if (set) then
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
 
-    ! If a bend then must rotate the offsets from the coordinates at the center of the bend
-    ! to the entrance coordinates. This rotation is just the coordinate transformation for the
-    ! whole bend except with half the bending angle.
-
-    if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0)) then
-      angle = ele%value(g$) * z_here  ! Notice that this is generally negative
-      cos_a = cos(angle); sin_a = sin(angle)
-      cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
-      m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
-      m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
-      m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
-      vec = matmul(m_trans, [x_off, y_off, z_off])
-      x_off = vec(1); y_off = vec(2); z_off = vec(3)
-    endif
-
-    if (z_off /= 0 .and. set_s) then
-      call track_a_drift (coord, ele, sign_z_vel*z_off)
-      coord%vec(5) = coord%vec(5) - sign_z_vel*z_off  ! Correction due to reference particle is also offset.
-    endif
-
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
-      coord%vec(1) = coord%vec(1) - x_off - xp * z_here
-      coord%vec(2) = coord%vec(2) - sign_z_vel * xp * E_rel
-      coord%vec(3) = coord%vec(3) - y_off - yp * z_here
-      coord%vec(4) = coord%vec(4) - sign_z_vel * yp * E_rel
-      dz = sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_here / 2)
-      coord%vec(5) = coord%vec(5) + dz
-      coord%t = coord%t - dz / (coord%beta * c_light) 
-    endif
+
+      ! If a bend then must rotate the offsets from the coordinates at the center of the bend
+      ! to the entrance coordinates. This rotation is just the coordinate transformation for the
+      ! whole bend except with half the bending angle.
+
+      if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
+        angle = ele%value(g$) * z_here  ! Notice that this is generally negative
+        cos_a = cos(angle); sin_a = sin(angle)
+        dr = [2 * sin(angle/2)**2 / ele%value(g$), 0.0_rp, sin_a / ele%value(g$)]
+
+        if (ele%value(tilt_tot$) == 0) then
+          off = [cos_a * x_off + sin_a * z_off, y_off, -sin_a * x_off + cos_a * z_off]
+          rot = [-cos_a * yp, xp, sin_a * yp]
+        else
+          cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
+          m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
+          m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
+          m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
+          off = matmul(m_trans, [x_off, y_off, z_off])
+          rot = matmul(m_trans, [-yp, xp, 0.0_rp])
+          dr = [cos_t * dr(1) + sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
+        endif
+
+        if (any(rot /= 0)) then
+          off = off + cross_product(rot, dr)
+        endif
+
+        if (off(3) /= 0 .and. set_s) then
+          call track_a_drift (coord, ele, sign_z_vel*off(3))
+          coord%vec(5) = coord%vec(5) - sign_z_vel*off(3)  ! Correction due to reference particle is also offset.
+        endif
+
+        coord%vec(1) = coord%vec(1) - off(1)
+        coord%vec(2) = coord%vec(2) - sign_z_vel * rot(2) * E_rel
+        coord%vec(3) = coord%vec(3) - off(2)
+        coord%vec(4) = coord%vec(4) + sign_z_vel * rot(1) * E_rel
+
+      ! Else not a bend
+
+      else
+
+        if (z_off /= 0 .and. set_s) then
+          call track_a_drift (coord, ele, sign_z_vel*z_off)
+          coord%vec(5) = coord%vec(5) - sign_z_vel*z_off  ! Correction due to reference particle is also offset.
+        endif
+
+        coord%vec(1) = coord%vec(1) - x_off - xp * z_here
+        coord%vec(2) = coord%vec(2) - sign_z_vel * xp * E_rel
+        coord%vec(3) = coord%vec(3) - y_off - yp * z_here
+        coord%vec(4) = coord%vec(4) - sign_z_vel * yp * E_rel
+        dz = sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_here / 2)
+        coord%vec(5) = coord%vec(5) + dz
+        coord%t = coord%t - dz / (coord%beta * c_light) 
+      endif
+    endif   ! has oeientation attributes
+
   endif
 
   ! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
@@ -225,7 +255,7 @@ if (set) then
 
     if (ele%key == sbend$ .and. ele%value(roll_tot$) /= 0) then
       angle = -ele%value(g$) * z_here
-      vec = [coord%vec(1), coord%vec(3), 0.0_rp]
+      off = [coord%vec(1), coord%vec(3), 0.0_rp]
 
       sin_r = sin(ele%value(roll$)); cos_r = cos(ele%value(roll$))
       sin_a = sin(angle);            cos_a = cos(angle)
@@ -233,7 +263,7 @@ if (set) then
       m_trans(1,1:3) = [cos_r * cos_a**2 + sin_a**2, cos_a * sin_r, (cos_r - 1) * cos_a * sin_a]
       m_trans(2,1:3) = [-cos_a * sin_r,              cos_r,         -sin_r * sin_a]
       m_trans(3,1:3) = [(cos_r - 1) * cos_a * sin_a, sin_r * sin_a, cos_r * sin_a**2 + cos_a**2]
-      vec  = matmul(m_trans, vec)
+      off = matmul(m_trans, off)
       pvec = matmul(m_trans, [coord%vec(2), coord%vec(4), sqrt(E_rel**2 - coord%vec(2)**2 - coord%vec(4)**2)])
 
       ! If ds_pos is present then the transformation is not at the end of the bend.
@@ -241,16 +271,16 @@ if (set) then
 
       if (present(ds_pos)) then
         dx = cos_a - cos(ele%value(angle$)/2)
-        vec = vec + dx * [cos_a * sin_r, cos_r - 1, sin_a * sin_r]
+        off = off + dx * [cos_a * sin_r, cos_r - 1, sin_a * sin_r]
       endif
 
-      ! Drift -vec(3) but remember the ref particle is not moving.
-      coord%vec(1) = vec(1) - vec(3) * pvec(1) / pvec(3)
+      ! Drift - off(3) but remember the ref particle is not moving.
+      coord%vec(1) = off(1) - off(3) * pvec(1) / pvec(3)
       coord%vec(2) = pvec(1)
-      coord%vec(3) = vec(2) - vec(3) * pvec(2) / pvec(3)
+      coord%vec(3) = off(2) - off(3) * pvec(2) / pvec(3)
       coord%vec(4) = pvec(2)
-      coord%vec(5) = coord%vec(5) + vec(3) * E_rel / pvec(3) 
-      coord%t = coord%t - vec(3) * E_rel / (pvec(3) * c_light * coord%beta)
+      coord%vec(5) = coord%vec(5) + off(3) * E_rel / pvec(3) 
+      coord%t = coord%t - off(3) * E_rel / (pvec(3) * c_light * coord%beta)
 
     endif
 
@@ -318,9 +348,9 @@ else
       m_trans(1,1:3) = [cos_r * cos_a**2 + sin_a**2, -cos_a * sin_r, (1 - cos_r) * cos_a * sin_a]
       m_trans(2,1:3) = [cos_a * sin_r,               cos_r,          -sin_r * sin_a]
       m_trans(3,1:3) = [(1 - cos_r) * cos_a * sin_a, sin_r * sin_a,  cos_r * sin_a**2 + cos_a**2]
-      vec =  matmul(m_trans, [coord%vec(1), coord%vec(3), 0.0_rp])
+      off =  matmul(m_trans, [coord%vec(1), coord%vec(3), 0.0_rp])
       pvec = matmul(m_trans, [coord%vec(2), coord%vec(4), sqrt(E_rel**2 - coord%vec(2)**2 - coord%vec(4)**2)])
-      coord%vec(1) = vec(1); coord%vec(3) = vec(2)
+      coord%vec(1) = off(1); coord%vec(3) = off(2)
       coord%vec(2) = pvec(1); coord%vec(4) = pvec(2)
 
       ! If ds_pos is present then the transformation is not at the end of the bend.
@@ -328,16 +358,16 @@ else
 
       if (present(ds_pos)) then
         dx = cos_a - cos(ele%value(angle$)/2)
-        vec = vec + dx * [-cos_a * sin_r, cos_r - 1, sin_a * sin_r]
+        off = off + dx * [-cos_a * sin_r, cos_r - 1, sin_a * sin_r]
       endif
 
-      ! Drift -vec(3) but remember the ref particle is not moving.
-      coord%vec(1) = vec(1) - vec(3) * pvec(1) / pvec(3)
+      ! Drift - off(3) but remember the ref particle is not moving.
+      coord%vec(1) = off(1) - off(3) * pvec(1) / pvec(3)
       coord%vec(2) = pvec(1)
-      coord%vec(3) = vec(2) - vec(3) * pvec(2) / pvec(3)
+      coord%vec(3) = off(2) - off(3) * pvec(2) / pvec(3)
       coord%vec(4) = pvec(2)
-      coord%vec(5) = coord%vec(5) + vec(3) * E_rel / pvec(3) 
-      coord%t = coord%t - vec(3) * E_rel / (pvec(3) * c_light * coord%beta)
+      coord%vec(5) = coord%vec(5) + off(3) * E_rel / pvec(3) 
+      coord%t = coord%t - off(3) * E_rel / (pvec(3) * c_light * coord%beta)
 
     endif
 
@@ -390,33 +420,55 @@ else
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
 
-    if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0)) then
-      angle = ele%value(g$) * z_here 
-      cos_a = cos(angle); sin_a = sin(angle)
-      cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
-      m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
-      m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
-      m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
-      vec = matmul(m_trans, [x_off, y_off, z_off])
-      x_off = vec(1); y_off = vec(2); z_off = vec(3)
+    if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0) then
+
+      if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
+        angle = ele%value(g$) * z_here 
+        cos_a = cos(angle); sin_a = sin(angle)
+        dr = [2 * sin(angle/2)**2 / ele%value(g$), 0.0_rp, sin_a / ele%value(g$)]
+
+        if (ele%value(tilt_tot$) == 0) then
+          off = [cos_a * x_off + sin_a * z_off, y_off, -sin_a * x_off + cos_a * z_off]
+          rot = [-cos_a * yp, xp, sin_a * yp]
+        else
+          cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
+          m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
+          m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
+          m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
+          off = matmul(m_trans, [x_off, y_off, z_off])
+          rot = matmul(m_trans, [-yp, xp, 0.0_rp])
+          dr = [cos_t * dr(1) + sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
+        endif
+
+        if (any(rot /= 0)) then
+          off = off + cross_product(rot, dr)
+        endif
+
+        coord%vec(1) = coord%vec(1) + off(1)
+        coord%vec(2) = coord%vec(2) + sign_z_vel * rot(2) * E_rel
+        coord%vec(3) = coord%vec(3) + off(2)
+        coord%vec(4) = coord%vec(4) - sign_z_vel * rot(1) * E_rel
+        z_off = off(3)
+
+      ! Else not a bend
+
+      else
+        dz = -sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_here / 2)
+        coord%t = coord%t - dz / (coord%beta * c_light) 
+        coord%vec(5) = coord%vec(5) + dz
+        coord%vec(1) = coord%vec(1) + x_off + xp * z_here
+        coord%vec(2) = coord%vec(2) + sign_z_vel * xp * E_rel
+        coord%vec(3) = coord%vec(3) + y_off + yp * z_here
+        coord%vec(4) = coord%vec(4) + sign_z_vel * yp * E_rel
+      endif
+
+      if (z_off /= 0 .and. set_s) then
+        call track_a_drift (coord, ele, -sign_z_vel*z_off)
+        coord%vec(5) = coord%vec(5) + sign_z_vel*z_off  ! Correction due to reference particle is also offset.
+      endif
     endif
 
-    if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
-      dz = -sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_here / 2)
-      coord%t = coord%t - dz / (coord%beta * c_light) 
-      coord%vec(5) = coord%vec(5) + dz
-      coord%vec(1) = coord%vec(1) + x_off + xp * z_here
-      coord%vec(2) = coord%vec(2) + sign_z_vel * xp * E_rel
-      coord%vec(3) = coord%vec(3) + y_off + yp * z_here
-      coord%vec(4) = coord%vec(4) + sign_z_vel * yp * E_rel
-    endif
-
-    if (z_off /= 0 .and. set_s) then
-      call track_a_drift (coord, ele, -sign_z_vel*z_off)
-      coord%vec(5) = coord%vec(5) + sign_z_vel*z_off  ! Correction due to reference particle is also offset.
-    endif
-
-  endif
+  endif   ! Has orientation attributes
 
 endif
 
