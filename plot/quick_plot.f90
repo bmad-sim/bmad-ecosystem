@@ -1419,6 +1419,8 @@ end subroutine qp_clear_box
 !
 ! Subroutine to paint a rectangular region a specified color.
 ! The default color is the background color (white$).
+! 
+! Also see qp_draw_rectangle
 !
 ! Input:
 !   x1  -- Real(rp): Left edge
@@ -2253,6 +2255,8 @@ end subroutine qp_set_margin
 ! Subroutine qp_draw_rectangle (x1, x2, y1, y2, units, color, width, line_pattern, clip, style)
 !
 ! Subroutine to draw a rectangular box.
+!
+! Also see qp_paint_rectangle
 !
 ! Input:
 !   x1, y1       -- Real(rp): (x, y) corner of box.
