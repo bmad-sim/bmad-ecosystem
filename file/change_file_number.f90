@@ -3,15 +3,13 @@
 !
 !
 ! Subroutine to:
-!     1) Open FILE_NAME and read NUMBER
-!     2) Change NUMBER to: NUMBER+CHANGE
-!     3) Put changed NUMBER back into FILE_NAME
+!   1) Open FILE_NAME and read NUMBER
+!   2) Change NUMBER to: NUMBER+CHANGE
+!   3) Put changed NUMBER back into FILE_NAME
 !
 ! Input:
-!     FILE_NAME -- Character: File name.
-!
-! Output:
-!     NUMBER  -- Integer: Incremented number.
+!   FILE_NAME -- Character(*): File name.
+!   CHANGE    -- Integer: Change in stored number.
 !-
 
 subroutine change_file_number (file_name, change)
@@ -20,7 +18,7 @@ subroutine change_file_number (file_name, change)
 
   implicit none
 
-  character*(*) file_name 
+  character(*) file_name 
   integer lun, lunget, number, change, ios
 
 ! open file
