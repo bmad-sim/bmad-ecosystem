@@ -227,15 +227,17 @@ if (roughness_correlation_len > 0) wall%surface(1)%info%roughness_correlation_le
 ! Plot wall cross-sections or reflections. 
 ! The plotting routines never return back to the main program.
 
-if (plotting == 'xy') then
-  call sr3d_plot_wall_cross_sections (plot_param, wall, lat)
-elseif (plotting == 'xs' .or. plotting == 'ys') then
-  call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting)
-elseif (plotting == 'reflect') then
-  call sr3d_plot_reflection_probability(plot_param, wall)
-elseif (plotting /= '') then
-  call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
-  call err_exit
+if (plotting /= '') then
+  if (plotting == 'xy') then
+    call sr3d_plot_wall_cross_sections (plot_param, wall, lat)
+  elseif (plotting == 'xs' .or. plotting == 'ys') then
+    call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting)
+  elseif (index('reflect', trim(plotting)) == 1) then
+    call sr3d_plot_reflection_probability(plot_param, wall)
+  else
+    call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
+    call err_exit
+  endif
 endif
 
 ! Find out much radiation is produced

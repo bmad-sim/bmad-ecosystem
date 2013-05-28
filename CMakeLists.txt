@@ -22,6 +22,7 @@ set (EXE_SPECS
   ##cmake.find_quads
 )
 
-set (FFLAGS "-pg")
+set (FFLAGS "-pg")  # For profiling
+set (CFLAGS "-pg")
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)

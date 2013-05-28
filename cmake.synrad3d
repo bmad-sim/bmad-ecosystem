@@ -13,8 +13,8 @@ set (INC_DIRS
   include
 )
 
-set (FFLAGS "-pg")
-set (LINK_FLAGS "-pg")
+# set (FFLAGS "-pg")     # For profiling
+# set (LINK_FLAGS "-pg")
 
 
 set (LINK_LIBS
