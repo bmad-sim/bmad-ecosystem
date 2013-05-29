@@ -61,7 +61,7 @@ then
   rm -rf `pwd`/${BUILD_TYPE}
   DIR=`pwd`
   rm -rf "../config/$(basename $DIR)"
-  if [ -e ../acc_build ] ; then cd ../ ; ./acc_build -"${BUILD_TYPE}" -cleaner ; fi
+  if [ -e acc_build ] ; then ./acc_build -"${BUILD_TYPE}" -cleaner ; fi
   echo -e "\nRemoved cached files.  This will force a reconfiguration upon the next build request.\n"
 elif [[ ${1} == "obliterate" ]]
 then
