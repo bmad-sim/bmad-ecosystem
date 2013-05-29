@@ -257,7 +257,7 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,formula,ratio,initial
       ibsmode%a%emittance = emit_a
       ibsmode%b%emittance = emit_b
       ibsmode%sigE_E = sigE_E 
-      ibsmode%sig_z = L_ratio * sigE_E
+      ! ibsmode%sig_z = L_ratio * sigE_E
       ! sigma_z_nat = L_ratio * sigE_E
       ! CALL potential_well_distortion(cur,alpha_c,E_tot,lat%z%tune/twopi,lat%param%total_length,inductance,sigma_z_nat,pwd_ratio)
       ! ibsmode%sig_z = sigma_z_nat * pwd_ratio
@@ -405,7 +405,6 @@ SUBROUTINE ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,formula,ratio,granula
                           ibs_sim_params%resistance,ibs_sim_params%inductance,sigma_z_vlassov)
       ibsmode%sig_z = sigma_z_vlassov
     ENDIF
-
   ENDDO
 
 !  WRITE(*,'(A,F11.3,F12.5)') "Final Coulomb Log: ", ibs_sim_params%clog, cur
@@ -904,7 +903,7 @@ END FUNCTION bjmt_integrand
 ! This is a sigma matrix based IBS calculation.  It returns the growth rates of the normal mode emittances.
 !-
 SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
-  ! Some parts of this subroutine are copied from the SAD accelerator code.
+  ! Some parts of this subroutine are patterned from the SAD accelerator code.
 
   USE mode3_mod
   USE eigen_mod
