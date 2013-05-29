@@ -25,8 +25,10 @@ THIS_SCRIPT=`basename $0`
 
 # Determine if the current working directory is a buildable project
 if ( [ ! -e CMakeLists.txt ] ) then
-  echo "No CMakeLists.txt file found.\nThis working directory is not a project supported by the ACC build system."
-  exit 1
+    if ( [ ! -e acc_build ] ) then
+	echo -e "\nThis working directory is not a project supported by the ACC build system.\n"
+	exit 1
+    fi
 fi
 
 # Assign build type based on invoked name of script.
@@ -59,9 +61,7 @@ then
   rm -rf `pwd`/${BUILD_TYPE}
   DIR=`pwd`
   rm -rf "../config/$(basename $DIR)"
-  echo ""
-  echo "Removed cached files.  This will force a reconfiguration upon the next build request."
-  echo ""
+  echo -e "\nRemoved cached files.  This will force a reconfiguration upon the next build request.\n"
 elif [[ ${1} == "obliterate" ]]
 then
   gmake clean
@@ -72,13 +72,16 @@ then
   cd ..
   rm -rf ${BUILD_TYPE}
   rm -rf `pwd`/*/${BUILD_TYPE}
-  echo ""
-  echo "Removed "`echo ${BUILD_TYPE}`" directories in all build project directories within the current tree:" 
-  echo ""
-  echo "   "`pwd`
-  echo ""
+  echo -e "\nRemoved "`echo ${BUILD_TYPE}`" directories in all build project directories within the current tree:\n" 
+  echo -e "   "`pwd`"\n"
 else
-  cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
-  gmake -j2 ${@}
+    if [ -e ../acc_build ]
+    then
+	cd ..
+	./acc_build -"${BUILD_TYPE}" || exit 1
+    else
+	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
+	gmake -j2 ${@}
+    fi
 fi
 #
