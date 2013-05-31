@@ -1,7 +1,6 @@
 set (EXENAME slice_test)
-set (SRC_FILES
-  slice_test/slice_test.f90
-)
+
+FILE (GLOB SRC_FILES "slice_test/*.f90")
 
 set (INC_DIRS
 )

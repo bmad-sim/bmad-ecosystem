@@ -1,7 +1,6 @@
 program mat6_calc_method_test
 
 use bmad
-
 use mad_mod
 
 implicit none

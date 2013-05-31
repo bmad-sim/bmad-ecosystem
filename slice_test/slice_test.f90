@@ -5,45 +5,89 @@ use transfer_map_mod
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (coord_struct), allocatable :: ref_orb(:)
 type (coord_struct) orb1, orb2a, orb2b, orb2c, orb2d
+type (coord_struct) start_orb, end_orb, end_orb2
 type (ele_struct) ele1, ele2a, ele2b
 type (taylor_struct) t_map(6)
 
 real(rp) s1, s2
 real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6)
 
-integer idum 
+integer idum, nargs
+logical print_extra
+character(100) lat_file
 
 !
 
+lat_file = 'slice_test.bmad'
+print_extra = .false.
+nargs = cesr_iargc()
+if (nargs == 1)then
+   call cesr_getarg(1, lat_file)
+   print *, 'Using ', trim(lat_file)
+   print_extra = .true.
+elseif (nargs > 1) then
+  print *, 'Only one command line arg permitted.'
+  call err_exit
+endif
+
 call bmad_parser ('slice_test.bmad', lat)
-call reallocate_coord (ref_orb, lat)
+open (1, file = 'output.now')
+
+! Test on branch 0
+
+branch => lat%branch(0)
+call init_coord (start_orb, ele = branch%ele(1), at_downstream_end = .false.)
+! Track through split bend
+call track1 (start_orb, branch%ele(1), branch%param, end_orb)
+call track1 (end_orb, branch%ele(3), branch%param, end_orb)
+
+! Track through unsplit bend
+call track1 (start_orb, branch%ele(4), branch%param, end_orb2)
+
+write (1, '(a, 6es18.9)') '"bend:dvec" ABS 1e-14', end_orb2%vec - end_orb%vec
+write (1, '(a, es18.9)')  '"bend:dt" ABS 1e-14  ', end_orb2%t - end_orb%t
+
+if (print_extra) then
+  call type_ele (branch%ele(1), .false., 0, .false., 0)
+  print '(a, 6f16.12)', 'Start: ', start_orb%vec
+  print *
+  print '(a, 6f16.12)', 'Split: ', end_orb%vec
+  print '(a, 6f16.12)', 'Whole: ', end_orb2%vec
+  print *
+  stop
+endif
+
+! Test on branch 1
+
+branch => lat%branch(1)
+call reallocate_coord (ref_orb, lat, branch%ix_branch)
 ref_orb = lat%beam_start
 
 s1 = 0.5_rp
 s2 = 2.5_rp
 
-call track_all (lat, ref_orb)
-call lat_make_mat6 (lat, -1, ref_orb)
-call twiss_propagate_all (lat)
+call track_all (lat, ref_orb, branch%ix_branch)
+call lat_make_mat6 (lat, -1, ref_orb, branch%ix_branch)
+call twiss_propagate_all (lat, branch%ix_branch)
 
-call twiss_and_track_at_s (lat, s1, ele1, ref_orb, orb1)
-call twiss_and_track_at_s (lat, s2, ele2a, ref_orb, orb2a)
+call twiss_and_track_at_s (lat, s1, ele1, ref_orb, orb1, branch%ix_branch)
+call twiss_and_track_at_s (lat, s2, ele2a, ref_orb, orb2a, branch%ix_branch)
 
 orb2c = orb1
-call mat6_from_s_to_s (lat, xmat_c, vec0_c, s1, s2, orb2c)
+call mat6_from_s_to_s (lat, xmat_c, vec0_c, s1, s2, orb2c, branch%ix_branch)
 
-idum = element_at_s (lat, s1, .true., position = orb1)
-idum = element_at_s (lat, s2, .true., position = orb2b)
-call twiss_and_track_from_s_to_s (lat%branch(0), orb1, orb2b, ele1, ele2b)
+idum = element_at_s (lat, s1, .true., branch%ix_branch, position = orb1)
+idum = element_at_s (lat, s2, .true., branch%ix_branch, position = orb2b)
+call twiss_and_track_from_s_to_s (branch, orb1, orb2b, ele1, ele2b)
 
-call transfer_map_from_s_to_s (lat, t_map, s1, s2)
+call transfer_map_from_s_to_s (lat, t_map, s1, s2, branch%ix_branch)
 call taylor_to_mat6 (t_map, orb1%vec, vec0_d, xmat_d, orb2d%vec)
 
-open (1, file = 'output.now')
-
+write (1, *)
 write (1, '(a, es22.12)') '"vec(1)" REL  1E-10', orb2a%vec(1)
 write (1, '(a, es22.12)') '"vec(2)" REL  1E-10', orb2a%vec(2)
 write (1, '(a, es22.12)') '"vec(3)" REL  1E-10', orb2a%vec(3)

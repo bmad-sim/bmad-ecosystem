@@ -7,17 +7,22 @@ use mad_mod
 implicit none
 
 type (lat_struct), target :: lat
+type (coord_struct) end_orb
 
 character(40) :: lat_file  = 'tracking_method_test.bmad'
 character(38) :: final_str
 integer :: i, j, nargs
- 
-type (coord_struct) end_orb
 
+logical print_extra
+ 
+!
+
+print_extra = .false.
 nargs = cesr_iargc()
 if (nargs == 1)then
    call cesr_getarg(1, lat_file)
    print *, 'Using ', trim(lat_file)
+   print_extra = .true.
 elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
   call err_exit
@@ -26,6 +31,11 @@ endif
 call bmad_parser (lat_file, lat)
 
 open (1, file = 'output.now')
+
+if (print_extra) then
+  print '(a, 42x, 7es18.10)', 'Start:', lat%beam_start%vec
+  print *
+endif
 
 DO i = 1, lat%n_ele_max - 1
    DO j = 1, n_methods$
