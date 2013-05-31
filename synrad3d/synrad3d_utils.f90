@@ -902,12 +902,12 @@ subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, 
 implicit none
 
 type (ele_struct), target :: ele_here
-type (coord_struct) :: orb_here
+type (coord_struct) :: orb_here, orb_init
 type (sr3d_photon_coord_struct) :: p_orb
 type (twiss_struct), pointer :: t
 
 real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma
-real(rp) orb(6), r(3), vec(4), v_mat(4,4)
+real(rp) r(3), vec(4), v_mat(4,4)
 
 integer photon_direction
 
@@ -915,10 +915,9 @@ integer photon_direction
 
 g_tot = sqrt(gx**2 + gy**2)
 call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
-call photon_init (g_tot, gamma, orb)
-p_orb%energy = orb(6)
-p_orb%vec = 0
-p_orb%vec(4) = orb(4) / sqrt(orb(4)**2 + 1)
+call photon_init (g_tot, gamma, orb_init)
+p_orb%energy = orb_init%p0c
+p_orb%vec = orb_init%vec
 
 ! rotate photon if gy is non-zero
 
