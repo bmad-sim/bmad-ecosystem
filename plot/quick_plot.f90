@@ -2284,9 +2284,7 @@ character(*), optional :: units, style
 
 logical, optional :: clip
 
-! If there is zero thickness nothing has to be drawn.
-
-if (x1 == x2 .or. y1 == y2) return
+!
 
 call qp_draw_polyline ([x1, x1, x2, x2, x1 ], [y1, y2, y2, y1, y1 ], &
                                             units, width, color, line_pattern, clip, style)
