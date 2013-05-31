@@ -42,7 +42,7 @@ axis(1) = w_mat(3,2) - w_mat(2,3)
 axis(2) = w_mat(1,3) - w_mat(3,1)
 axis(3) = w_mat(2,1) - w_mat(1,2)
 
-sin_ang = sqrt(dot_product(axis, axis)) / 2
+sin_ang = norm2(axis) / 2
 if (sin_ang == 0) then
   axis = [1, 0, 0]
   angle = 0
@@ -101,7 +101,7 @@ endif
 
 !
 
-norm = dot_product(axis, axis)
+norm = norm2(axis)
 if (norm == 0) then
   w_mat = 0
   call out_io (s_fatal$, r_name, 'ZERO AXIS LENGTH WITH NON-ZERO ROTATION!')
@@ -109,7 +109,7 @@ if (norm == 0) then
   return
 endif
 
-x = axis(1) / sqrt(norm); y = axis(2) / sqrt(norm); z = axis(3) / sqrt(norm)
+x = axis(1) / norm; y = axis(2) / norm; z = axis(3) / norm
 cos_a = cos(angle); sin_a = sin(angle)
 
 w_mat(1,1:3) = [x*x + (1 - x*x) * cos_a,       x*y * (1 - cos_a) - z * sin_a, x*z * (1 - cos_a) + y * sin_a]
