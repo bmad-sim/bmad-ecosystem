@@ -312,6 +312,7 @@ implicit none
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
+type (qp_axis_struct) x_ax, y_ax
 type (lat_struct), pointer :: lat
 type (tao_ele_shape_struct), pointer :: ele_shape
 type (tao_lattice_branch_struct), pointer :: lat_branch
@@ -337,9 +338,11 @@ logical err
 ! Each graph is a separate floor plan plot (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
 
-call qp_set_layout (x_axis = graph%x, y_axis = graph%y, y2_axis = graph%y2, &
-                                        box = graph%box, margin = graph%margin)
+call set_this_axis(graph%x, x_ax, 'X')
+call set_this_axis(graph%y, y_ax, 'Y')
 
+call qp_set_layout (x_axis = x_ax, y_axis = y_ax, y2_axis = graph%y2, &
+                                        box = graph%box, margin = graph%margin)
 
 if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
 
@@ -463,6 +466,47 @@ end if
 do i = 1, size(graph%curve)
   ! ... needs to be filled in ..
 enddo
+
+!-------------------------------------------------------------------------
+contains
+
+subroutine set_this_axis (axis_in, axis_out, which)
+
+type (qp_axis_struct) axis_in, axis_out
+real(rp) f
+integer irot
+character(*) which
+character(2) :: xz_label(0:4) = ['Z ', 'X ', '-Z', '-X', 'Z ']
+character(2) :: xy_label(0:4) = ['X ', 'Y ', '-X', '-Y', 'X ']
+character(2) :: yz_label(0:4) = ['Y ', 'Z ', '-Y', '-Z', 'Y ']
+
+!
+
+axis_out = axis_in
+if (axis_out%label /= 'SMART LABEL') return
+
+
+f = modulo(4*s%plotting%floor_plan_rotation, 1.0_rp)
+f = f - fraction(f)
+
+! If rotation is not multiple of 90 degrees then must use blank label.
+
+if (abs(f) > 0.01) then
+  axis_out%label = ''
+  return
+endif
+
+irot = nint(modulo(4*s%plotting%floor_plan_rotation, 4.0_rp))
+if (irot == 4) irot = 0
+if (which == 'Y') irot = irot + 1
+
+select case (s%plotting%floor_plan_view)
+case ('xz'); axis_out%label = xz_label(irot)
+case ('xy'); axis_out%label = xy_label(irot)
+case ('yz'); axis_out%label = yz_label(irot)
+end select
+
+end subroutine set_this_axis
 
 end subroutine tao_draw_floor_plan 
 
@@ -1191,6 +1235,7 @@ endif
 
 if (shape_name == 'CIRCLE') then
   call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
+  call qp_convert_point_rel (r_dum, y1, 'DATA', r_dum, y1, 'POINTS')
   call qp_draw_circle (x0, y0, abs(y1), units = 'POINTS', color = icol)
 endif
 

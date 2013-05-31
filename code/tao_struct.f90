@@ -166,6 +166,7 @@ type tao_graph_struct
   type (qp_axis_struct) y             ! Y-axis attributes.
   type (qp_axis_struct) y2            ! Y-axis attributes.
   type (qp_rect_struct) margin        ! Margin around the graph.
+  type (qp_rect_struct) scale_margin  ! Margin for scaling
   real(rp) :: x_axis_scale_factor = 1 ! x-axis conversion from internal to plotting units.
   real(rp) symbol_size_scale          ! Symbol size scale factor for phase_space plots.
   real(rp) :: bin_width = 0              ! bin width for histogram
@@ -221,6 +222,7 @@ end type
 
 type tao_plotting_struct
   character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
+  character(2) :: floor_plan_view = 'xz'
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                   ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text

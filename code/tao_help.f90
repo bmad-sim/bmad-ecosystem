@@ -106,11 +106,7 @@ do
   if (line(1:4)  == '\end')       cycle
   if (line(1:10) == '\centering') cycle
   if (line(1:8)  == '\caption') cycle
-  
-  if (line(1:6)  == '\vskip') then
-    call string_trim (line(7:), line, ix)
-    call string_trim (line(ix+1:), line, ix)
-  endif
+  if (line(1:6)  == '\vskip') cycle
 
   if (left_over_eliminate /= '') then
     ix = index(line, trim(left_over_eliminate))
