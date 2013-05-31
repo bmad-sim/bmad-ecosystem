@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 119
+integer, parameter :: bmad_inc_version$ = 120
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -28,6 +28,12 @@ integer, parameter :: bmad_inc_version$ = 119
 ! num_ele_attrib$ is size of ele%value(:) array.
 
 integer, parameter :: num_ele_attrib$ = 70
+
+! Diffraction
+
+integer, parameter :: bragg_diffracted$ = 1, forward_diffracted$ = 2, undiffracted$ = 3
+character(20), parameter :: ref_orbit_follows_name(0:3) = [character(20) :: 'GARBAGE!', &
+                                             'Bragg_Diffracted', 'Forward_Diffracted', 'Undefracted']
 
 ! wall3d definitions.
 
@@ -156,6 +162,7 @@ type coord_struct                 ! Particle coordinates at a single point
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
+  integer :: species = not_set$   ! Species being tracked.
   integer :: location = upstream_end$  ! upstream_end$, inside$, or downstream_end$
 end type
 
@@ -609,7 +616,7 @@ integer, parameter :: rfcavity$ = 9
 integer, parameter :: elseparator$ = 10, beambeam$ = 11, wiggler$ = 12
 integer, parameter :: sol_quad$ = 13, marker$ = 14, kicker$ = 15
 integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
-integer, parameter :: multipole$ = 19, accel_sol$ = 20
+integer, parameter :: multipole$ = 19, bend_sol_dummy$ = 20
 integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
 integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
 integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
@@ -682,8 +689,6 @@ integer, parameter :: e_field_x$ = 10,  e_field_y$ = 11, phase_x$ = 12, phase_y$
 integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
 integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
 integer, parameter :: abs_time_start$ = 8
-integer, parameter :: e_field_x_photon$ = 10,  e_field_y_photon$ = 11
-integer, parameter :: phase_x_photon$ = 12, phase_y_photon$ = 13
 
 integer, parameter :: l$=1    ! Assumed unique. Do not overload.
 integer, parameter :: tilt$=2, command$=2
@@ -692,13 +697,13 @@ integer, parameter :: old_command$=3, angle$=3, kick$=3, x_gain_err$=3
 integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displace$=4, y_gain_err$=4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
-integer, parameter :: flexible$ = 5, crunch$=5, follow_diffracted_beam$=5
+integer, parameter :: flexible$ = 5, crunch$=5, ref_orbit_follows$=5
 integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, new_branch$ = 6
 integer, parameter :: g$=6, graze_angle_in$ = 6
 integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: gradient_err$=7, critical_angle$ = 7
 integer, parameter :: graze_angle_out$ = 7, ix_to_branch$=7
-integer, parameter :: rho$=8, voltage$=8, delta_e$ = 8, graze_angle_err$ = 8
+integer, parameter :: rho$=8, voltage$=8, delta_e$ = 8
 integer, parameter :: charge$=8, x_gain_calib$=8, ix_to_element$=8
 integer, parameter :: d1_thickness$ = 9, voltage_err$=9, rel_tracking_charge$ = 9
 integer, parameter :: ks$=9, l_chord$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
@@ -716,7 +721,7 @@ integer, parameter :: quad_tilt$=14, bend_tilt$=15, x_quad$=16, y_quad$=17
 integer, parameter :: dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15, origin_ele_ref_pt$=15
 integer, parameter :: dphi0_ref$ = 16, fh_im$=16, f0_im2$=16, x_half_length$=16, dx_origin$= 16
 integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_half_length$=17, dy_origin$ = 17
-integer, parameter :: negative_graze_angle$ = 18, dz_origin$ = 18
+integer, parameter :: dz_origin$ = 18
 integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18
 integer, parameter :: kill_fringe$ = 19, dtheta_origin$ = 19
 integer, parameter :: b_param$ = 19

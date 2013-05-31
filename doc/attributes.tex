@@ -690,15 +690,6 @@ surface curvature in the plane of the reference trajectory are:
   d_source               = <Real>    ! Source distance.
   g_trans                = <Real>    ! Transverse 1/radius-of-curvature.
 \end{example}
-  a2_trans_curve         = <Real>    ! a2 curvature coefficient.
-  a3_trans_curve         = <Real>    ! a3 curvature coefficient.
-  a4_trans_curve         = <Real>    ! a4 curvature coefficient.
-\end{example}
-
-\index{a2_trans_curve}\index{a3_trans_curve}\index{a4_trans_curve}
-In the plane transverse to the reference trajectory the attributes
-for specifying the surface curvature are
-\begin{example}
 
 From the input attributes, the following attributes are derived:
 \index{c2_curve_tot}\index{c3_curve_tot}\index{c4_curve_tot}
@@ -749,8 +740,15 @@ The \vn{g_trans} parameter is equal to 1/\vn{R_trans} where
 plane transverse to the bend plane. A positive \vn{g_trans} indicates
 that the element is concave from the point of view of the photons.
 
-For the transverse plane the surface curvature is parameterized by the
-equation
+For the plane transverse to the reference trajectory, the surface
+curvature is parameterized by the
+\index{a2_trans_curve}\index{a3_trans_curve}\index{a4_trans_curve}
+\begin{example}
+  a2_trans_curve         = <Real>    ! a2 curvature coefficient.
+  a3_trans_curve         = <Real>    ! a3 curvature coefficient.
+  a4_trans_curve         = <Real>    ! a4 curvature coefficient.
+\end{example}
+And the equation of the surface is:
 \Begineq
   -x = a_{2,tot} \, y^2 + a_{3,tot} \, y^3 + a_{4,tot} \, y^4
 \Endeq

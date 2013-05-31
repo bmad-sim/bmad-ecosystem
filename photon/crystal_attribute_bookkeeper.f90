@@ -97,19 +97,19 @@ ent_kh_z_norm = kh_z_norm * cos_graze_in + kh_x_norm * sin_graze_in
 
 ! There is no tilt correction if we are following the non-diffracted beam.
 
-if (ele%value(follow_diffracted_beam$) == 0) then
-  ele%value(tilt_corr$) = atan2(ent_kh_y_norm, ent_kh_x_norm)
-else
+if (nint(ele%value(ref_orbit_follows$)) == undiffracted$) then
   ele%value(tilt_corr$) = 0
+else
+  ele%value(tilt_corr$) = atan2(ent_kh_y_norm, ent_kh_x_norm)
 endif
 
 ! total graze angle
 
-if (ele%value(follow_diffracted_beam$) /= 0) then  ! If true
+if (nint(ele%value(ref_orbit_follows$)) == undiffracted$) then
+  ele%value(graze_angle_out$) = -graze_angle_in
+else
   ang_tot = atan2(sqrt(ent_kh_x_norm**2 + ent_kh_y_norm**2), ent_kh_z_norm)
   ele%value(graze_angle_out$) = ang_tot - graze_angle_in
-else
-  ele%value(graze_angle_out$) = -graze_angle_in
 endif
 
 ! displacement L due to finite crystal thickness for Laue diffraction.

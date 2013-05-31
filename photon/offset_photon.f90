@@ -112,13 +112,6 @@ if (set) then
 
   call tilt_coords (tilt, vec)
 
-  ! Set: graze_angle_err
-
-  if (is_reflective_element) then
-    vec(2) = vec(2) + p(graze_angle_err$)
-    vec(5) = vec(5) - vec(1) * p(graze_angle_err$)
-  endif
-
   ! Set: intensity and phase rotation due to the tilt + tilt_err
 
   if (logic_option(.false., offset_position_only)) return
@@ -140,11 +133,6 @@ else
   ! reflective element...
 
   if (is_reflective_element) then
-
-    ! Unset: graze_angle_err
-
-    vec(2) = vec(2) - p(graze_angle_err$)
-    vec(5) = vec(5) + vec(1) * p(graze_angle_err$)
 
     ! Unset: tilt
 

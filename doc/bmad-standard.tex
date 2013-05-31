@@ -220,13 +220,6 @@ with $\theta_{tot}$ being
   \label{tttt}
 \Endeq
 The \vn{tilt_corr} correction is explained in \sref{ss:crystal.trans}.
-\item
-\index{graze_angle_err}
-Apply \vn{graze_angle_err} ($\theta_{gerr}$):
-\begin{align}
-  p_{x3} &= p_{x2} + \theta_{gerr} \CRNO
-  z_3    &= z_2 - x_2 \, \theta_{gerr} 
-\end{align}
 \end{enumerate}
 
 %-------------------------------------------------------------------------
@@ -236,12 +229,6 @@ Apply \vn{graze_angle_err} ($\theta_{gerr}$):
 The back transformation from exit element coordinates to exit
 laboratory coordinates is accomplished by the transformation
   \begin{enumerate}
-  \item
-Apply \vn{graze_angle_err}:
-\begin{align}
-  p_{x1} &= p_{x0} - \theta_{gerr} \CRNO
-  z_1    &= z_0 + x_0 \, \theta_{gerr} 
-\end{align}
   \item
 Apply \vn{tilt} and \vn{tilt_err}: \vn{tilt} rotates the exit
 laboratory coordinates with respect to the exit element coordinates in

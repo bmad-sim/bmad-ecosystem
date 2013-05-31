@@ -59,29 +59,32 @@ contains
 !   gamma  -- Real(rp): Relativistic beam gamma factor.
 !
 ! output:
-!   orbit(6) -- Real(rp): Photon orbit.
-!                orbit(4) = Vertical angle. Limited to be less than 1
-!                orbit(6) = Energy in EV.
+!   orbit(6) -- coord_struct: Initialized photon.
+!       %vec(4), %vec(6) -- Only these two will be nonzero.
+! 
 !-
 
 subroutine photon_init (g_bend, gamma, orbit)
 
 implicit none
 
-real(rp) g_bend, gamma, orbit(6)
-real(rp) E_rel, gamma_phi
+type (coord_struct) orbit
+real(rp) g_bend, gamma, phi
+real(rp) E_rel, gamma_phi, E_photon
 
 !
 
 call photon_energy_init (E_rel)
 call photon_vert_angle_init (E_rel, gamma_phi)
 
-orbit = 0
+E_photon = E_rel * 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
 
-orbit(4) = gamma_phi / gamma
-if (abs(orbit(4)) > 1) orbit(4) = sign(0.1_rp, orbit(4))
+phi = modulo2(gamma_phi / gamma, pi/2)
+orbit%vec = 0
+orbit%vec(4) = sin(phi)
+orbit%vec(6) = cos(phi)
 
-orbit(6) = E_rel * 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2
+call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
 
 end subroutine photon_init
 
@@ -363,8 +366,6 @@ endif
 
 gamma_phi = gamma_phi * sig * sign_phi
 
-
-
 end subroutine photon_vert_angle_init
 
 !----------------------------------------------------------------------------------------
@@ -382,7 +383,7 @@ end subroutine photon_vert_angle_init
 !   K_{5/3}   = Modified Bessel function.
 ! There is a cut-off built into the calculation so that E_rel will be in the 
 ! range [0, ~17]. The error in neglecting photons with E_rel > ~17 is very small. 
-! If r_in is given: 
+! If r_in is present: 
 !   r_in = 0 => E_rel = 0 
 !   r_in = 1 => E_rel = ~17
 !

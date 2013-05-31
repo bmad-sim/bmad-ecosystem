@@ -1292,12 +1292,6 @@ case (wiggler$)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
-! Accelerating solenoid with steerings
-! WARNING: This 6x6 matrix may produce bad results at low energies!
-
-case (accel_sol$)
-
-!--------------------------------------------------------
 ! unrecognized element
 
 case default
@@ -1569,12 +1563,6 @@ p => ele%value
 
 ! Set: Work backward form element mat6 matrix...
 
-! Set: Graze angle error
-
-if (p(graze_angle_err$) /= 0) then
-  mat6(:,1) = mat6(:,1) + mat6(:,1) * p(graze_angle_err$) 
-endif
-
 ! Set: Tilt
 
 tilt = p(tilt_tot$) + p(tilt_err$)
@@ -1619,12 +1607,6 @@ endif
 project_x = [c2g * ct**2 + st**2, -ct * st + c2g * ct * st, -ct * s2g ]
 project_y = [-ct * st + c2g * ct * st, ct**2 + c2g * st**2, -s2g * st ]
 project_s = [ct * s2g, s2g * st, c2g ]
-
-! Unset: graze_angle_error
-
-if (p(graze_angle_err$) /= 0) then
-  mm(5,:) = mm(5,:) + p(graze_angle_err$) * mm(1,:)
-endif
 
 ! Unset tilt
 
