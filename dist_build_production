@@ -6,20 +6,10 @@ DIRLIST="xsif PGPLOT lapack gsl fgsl forest recipes_f-90_LEPP sim_utils bmad tao
 for DIR in ${DIRLIST}
 do
   cd ${DIST_BASE_DIR}/${DIR};
-  echo "Building directory: ${DIR}"
-  if ( [ "${DIR}" == "PGPLOT" ] ) then
-    ./acc_build -production
-  elif ( [ "${DIR}" == "lapack" ] ) then
-    ./acc_build -production
-  elif ( [ "${DIR}" == "gsl" ] ) then
-    ./acc_build -production
-  elif ( [ "${DIR}" == "fgsl" ] ) then
-    ./acc_build -production
-  else
-    mk ${1}
-  fi
+  echo -e "\nBuilding directory: ${DIR}\n"
+  mk ${1}
   if ( [ ${?} != 0 ] ) then
-    echo "Error in distribution build."
+    echo -e "\nError in distribution build.\n"
     exit 1
   fi
 done
