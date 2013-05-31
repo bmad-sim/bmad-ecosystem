@@ -2908,6 +2908,7 @@ subroutine floor_to_screen (r_floor, x_screen, y_screen)
 implicit none
 
 real(rp) r_floor(3), x_screen, y_screen
+real(rp) x, y
 real(rp), save :: t, old_t = 0
 real(rp), save :: cc, ss
 
@@ -2918,17 +2919,29 @@ real(rp), save :: cc, ss
 
 t = s%plotting%floor_plan_rotation
 
+select case (s%plotting%floor_plan_view)
+case ('xz')
+  x = r_floor(3)
+  y = r_floor(1)
+case ('xy')
+  x = r_floor(1)
+  y = r_floor(2)
+case ('yz')
+  x = r_floor(2)
+  y = r_floor(3)
+end select
+
 if (t == 0) then
-  x_screen = r_floor(3)
-  y_screen = r_floor(1)
+  x_screen = x
+  y_screen = y
 else
   if (t /= old_t) then
     cc = cos(twopi * t)
     ss = sin(twopi * t)
     old_t = t
   endif
-  x_screen =  r_floor(3) * cc + r_floor(1) * ss
-  y_screen = -r_floor(3) * ss + r_floor(1) * cc 
+  x_screen =  x * cc + y * ss
+  y_screen = -x * ss + y * cc 
 endif
 
 end subroutine floor_to_screen

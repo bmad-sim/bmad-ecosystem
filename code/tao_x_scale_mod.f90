@@ -204,7 +204,7 @@ type (lat_struct), pointer :: lat
 
 integer i, j, k, n, p1, p2, iu, ix, ib
 real(rp) x_min, x_max
-real(rp) this_min, this_max
+real(rp) this_min, this_max, del
 logical curve_here
 
 character(24) :: r_name = 'tao_x_scale_graph'
@@ -288,6 +288,7 @@ else if (graph%p%x_axis_type == 's') then
     ix = s%u(iu)%model%lat%branch(ib)%n_ele_track
     this_max = max (this_max, s%u(iu)%model%lat%branch(ib)%ele(ix)%s)
   endif
+
   curve_here = .true.
 
 else if (graph%p%x_axis_type == 'var' .or. graph%p%x_axis_type == 'lat') then
@@ -319,6 +320,10 @@ endif
 if (.not. curve_here) then
   this_max = 100
   this_min = 0
+else
+  del = this_max - this_min
+  this_min = this_min - graph%scale_margin%x1 * del
+  this_max = this_max + graph%scale_margin%x2 * del
 endif
 
 if (graph%x%major_div_nominal > 0) then

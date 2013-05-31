@@ -199,7 +199,7 @@ type (tao_curve_struct), pointer :: curve
 type (floor_position_struct) floor, end
 type (qp_axis_struct) axis_save
 
-real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
+real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2, del
 
 integer i, j, k, ix, ib, p1, p2
 character(*), optional :: axis
@@ -373,6 +373,10 @@ else
   p1 = graph%y%major_div
   p2 = p1
 endif
+
+del = this_max - this_min
+this_min = this_min - graph%scale_margin%y1 * del
+this_max = this_max + graph%scale_margin%y2 * del
 
 if (axis == '' .or. axis == 'y' .or. graph%y2_mirrors_y) then
   call qp_calc_and_set_axis ('Y', this_min, this_max, p1, p2, 'GENERAL', graph%y%type)

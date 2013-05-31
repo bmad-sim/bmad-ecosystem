@@ -220,7 +220,7 @@ integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
-integer xfer_mat_print
+integer xfer_mat_print, twiss_out
 
 logical bmad_format, good_opt_only, show_lords, show_custom, print_wall, show_lost
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
@@ -1067,6 +1067,9 @@ case ('element')
   if (err) return
   ele => eles(1)%ele
 
+  tao_lat => tao_pointer_to_tao_lat (u, lat_type)
+  branch => tao_lat%lat%branch(ele%ix_branch)
+
   ! Show data associated with this element
 
   if (print_data) then
@@ -1080,29 +1083,27 @@ case ('element')
     call tao_lattice_calc (ok)
   endif
 
-  tao_lat => tao_pointer_to_tao_lat (u, lat_type)
-
+  twiss_out = s%global%phase_units
+  if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
   call type2_ele (ele, alloc_lines, n, print_all, xfer_mat_print, print_taylor, &
-            s%global%phase_units, .true., .true., print_floor, print_em_field, print_wall)
+            twiss_out, .true., .true., print_floor, print_em_field, print_wall)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = alloc_lines(1:n)
   nl = nl + n
 
-  if (show_what == 'element' .and. print_floor) then
+  if (print_floor) then
     nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (X, Y)]'
   endif
 
-  ele => eles(1)%ele
-  branch => tao_lat%lat%branch(ele%ix_branch)
   stat = ele%lord_status
   if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$) then
     orb = tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
     nl=nl+1; lines(nl) = ' '
     if (lat%branch(ele%ix_branch)%param%particle == photon$) then
-      fmt = '(2x, a, 3p2f15.8, 0pf15.6, f11.6)'
-      fmt2 = '(2x, a, 3p2f15.8, a, es16.8)'
-      nl=nl+1; lines(nl) = 'Orbit:   Position[mm] Momentum[mrad]      Intensity      phase  '
+      fmt = '(2x, a, 2f15.8, f15.6, f11.6)'
+      fmt2 = '(2x, a, 2f15.8, a, es16.8)'
+      nl=nl+1; lines(nl) = 'Orbit:   Position[mm]       Momentum      Intensity      phase  '
       nl=nl+1; write (lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%e_field_x**2, orb%phase_x
       nl=nl+1; write (lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%e_field_y**2, orb%phase_y
       nl=nl+1; write (lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
@@ -1285,6 +1286,8 @@ case ('graph')
     nl=nl+1; write (lines(nl), amt) 'component             = ', g%component
     nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
                                     'margin                = ', g%margin
+    nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
+                                    'scale_margin          = ', g%scale_margin
     nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
     nl=nl+1; write (lines(nl), imt) 'ix_universe           = ', g%ix_universe
     nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
@@ -2021,7 +2024,11 @@ case ('plot')
   ! Floor plan info
 
   if (what == '-floor_plan') then
-    nl=nl+1; lines(nl) = ' '
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Plot_page parameters:'
+    nl=nl+1; write (lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
+    nl=nl+1; write (lines(nl), amt)  '%floor_plan_view            = ', s%plotting%floor_plan_view
+    nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
           'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw'
@@ -2077,6 +2084,7 @@ case ('plot')
     nl=nl+1; write (lines(nl), f3mt) '%key_table_text_scale       = ', s%plotting%key_table_text_scale 
     nl=nl+1; write (lines(nl), f3mt) '%legend_text_scale          = ', s%plotting%legend_text_scale 
     nl=nl+1; write (lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
+    nl=nl+1; write (lines(nl), amt)  '%floor_plan_view            = ', s%plotting%floor_plan_view
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'

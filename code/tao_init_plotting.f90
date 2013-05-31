@@ -108,7 +108,6 @@ default_plot%x = init_axis
 default_plot%x%minor_div_max = 6
 default_plot%x%major_div_nominal = -1
 default_plot%x%major_div = -1
-default_plot%independent_graphs = .false.
 default_plot%autoscale_gang_x = .true.
 default_plot%autoscale_gang_y = .true.
 default_plot%autoscale_x = .false.
@@ -138,12 +137,13 @@ default_graph%draw_curve_legend     = .true.
 default_graph%component             = 'model'
 default_graph%who%name              = ''
 default_graph%who%sign              = 1
-default_graph%box     = [1, 1, 1, 1]
-default_graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
-default_graph%n_curve = 0
+default_graph%box                 = [1, 1, 1, 1]
+default_graph%margin              = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
+default_graph%scale_margin        = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
+default_graph%n_curve             = 0
 default_graph%x_axis_scale_factor = 1
-default_graph%symbol_size_scale = 0
-default_graph%bin_width = 0
+default_graph%symbol_size_scale   = 0
+default_graph%bin_width           = 0
 
 ! If there is no plot file then use the built-in defaults.
 
@@ -447,23 +447,6 @@ do  ! Loop over plot files
 
     if (plt%x%major_div < 0 .and. plt%x%major_div_nominal < 0) plt%x%major_div_nominal = 6
 
-    if (plot%independent_graphs) then  ! Old style
-      call out_io (s_error$, r_name, [&
-            '**********************************************************', &
-            '**********************************************************', &
-            '**********************************************************', &
-            '***** SYNTAX CHANGE:                                 *****', &
-            '*****     PLOT%INDEPENDENT_GRAPHS = True             *****', &
-            '***** NEEDS TO BE CHANGED TO:                        *****', &
-            '*****     PLOT%AUTOSCALE_GANG_Y = False              *****', &
-            '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
-            '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
-            '**********************************************************', &
-            '**********************************************************', &
-            '**********************************************************'] )
-      plt%autoscale_gang_y = .false.
-    endif
-
     call qp_calc_axis_places (plt%x)
 
     do
@@ -575,6 +558,7 @@ do  ! Loop over plot files
       grph%box                   = graph%box
       grph%title                 = graph%title
       grph%margin                = graph%margin
+      grph%scale_margin          = graph%scale_margin
       grph%x                     = graph%x
       grph%y                     = graph%y
       grph%y2                    = graph%y2
@@ -916,14 +900,29 @@ subroutine tao_setup_default_plotting()
 
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1
 type (tao_plot_struct), allocatable :: temp_template(:)
-type (tao_ele_shape_struct) :: dflt_lat_layout(1:7) = [&
-          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLACK',   0.20_rp, 'none', .true.), &
-          tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 0.37_rp, 'name', .true.), &
-          tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   0.37_rp, 'none', .true.), &
-          tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     0.50_rp, 'none', .true.), &
-          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     0.50_rp, 'name', .true.), &
-          tao_ele_shape_struct('WIGGLER::*',    'XBOX', 'CYAN',    0.50_rp, 'name', .true.), &
-          tao_ele_shape_struct('SOLENOID::*',   'BOX',  'BLUE',    0.30_rp, 'name', .true.)]
+type (tao_ele_shape_struct) :: dflt_lat_layout(1:21) = [&
+          tao_ele_shape_struct('BRANCH::*',        'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
+          tao_ele_shape_struct('CRYSTAL::*',       'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
+          tao_ele_shape_struct('E_GUN::*',         'XBOX',   'RED',     0.40_rp, 'name', .true.), &
+          tao_ele_shape_struct('EM_FIELD::*',      'XBOX',   'BLUE',    0.40_rp, 'name', .true.), &
+          tao_ele_shape_struct('ECOLLIMATOR',      'XBOX',   'BLUE',    0.20_rp, 'name', .false.), &
+          tao_ele_shape_struct('INSTRUMENT::*',    'BOX',    'BLUE',    0.30_rp, 'name', .false.), &
+          tao_ele_shape_struct('LCAVITY::*',       'XBOX',   'RED',     0.50_rp, 'none', .true.), &
+          tao_ele_shape_struct('MARKER::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.), &
+          tao_ele_shape_struct('MIRROR::*',        'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
+          tao_ele_shape_struct('MONITOR::*',       'BOX',    'BLACK',   0.30_rp, 'name', .false.), &
+          tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
+          tao_ele_shape_struct('OCTUPOLE::*',      'BOX',    'BLACK',   0.30_rp, 'name', .false.), &
+          tao_ele_shape_struct('PHOTON_BRANCH::*', 'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
+          tao_ele_shape_struct('QUADRUPOLE::*',    'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.), &
+          tao_ele_shape_struct('RCOLLIMATOR',      'XBOX',   'BLUE',    0.20_rp, 'name', .false.), &
+          tao_ele_shape_struct('RFCAVITY::*',      'XBOX',   'RED',     0.50_rp, 'name', .true.), &
+          tao_ele_shape_struct('SBEND::*',         'BOX',    'BLACK',   0.20_rp, 'none', .true.), &
+          tao_ele_shape_struct('SEXTUPOLE::*',     'XBOX',   'GREEN',   0.37_rp, 'none', .true.), &
+          tao_ele_shape_struct('SOL_QUAD::*',      'BOX',    'BLACK',   0.40_rp, 'name', .false.), &
+          tao_ele_shape_struct('SOLENOID::*',      'BOX',    'BLUE',    0.30_rp, 'name', .true.), &
+          tao_ele_shape_struct('WIGGLER::*',       'XBOX',   'CYAN',    0.50_rp, 'name', .true.)]
+
 real(rp) y_layout
 integer np, n
 
@@ -931,16 +930,18 @@ integer np, n
 
 call tao_set_plotting (plot_page, s%plotting, .true.)
 
+n = size(dflt_lat_layout)
+
 if (.not. allocated(s%plotting%lat_layout%ele_shape)) then
-  allocate (s%plotting%lat_layout%ele_shape(10))
+  allocate (s%plotting%lat_layout%ele_shape(30))
   s%plotting%lat_layout%ele_shape(:)%ele_name = ''
-  s%plotting%lat_layout%ele_shape(1:7) = dflt_lat_layout
+  s%plotting%lat_layout%ele_shape(1:n) = dflt_lat_layout
 endif
 
 if (.not. allocated(s%plotting%floor_plan%ele_shape)) then
-  allocate (s%plotting%floor_plan%ele_shape(10))
+  allocate (s%plotting%floor_plan%ele_shape(30))
   s%plotting%floor_plan%ele_shape(:)%ele_name = ''
-  s%plotting%floor_plan%ele_shape(1:7) = dflt_lat_layout
+  s%plotting%floor_plan%ele_shape(1:n) = dflt_lat_layout
   s%plotting%floor_plan%ele_shape%size = 40 * s%plotting%floor_plan%ele_shape%size
 endif
 
@@ -977,7 +978,8 @@ plt%x%minor_div_max      = 6
 grph => plt%graph(1)
 grph%name                 = 'g1'
 grph%type                 = 'data'
-grph%margin               =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
 grph%y%label_offset       = 0.1
@@ -999,7 +1001,8 @@ crv%line%width   = 2
 grph => plt%graph(2)
 grph%name                 = 'g2'
 grph%type                 = 'data'
-grph%margin               =  qp_rect_struct(0.05, 0.06, 0.12, 0.12, '%BOX')
+grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 2, 1, 2]
 grph%y                    = init_axis
 grph%y%label_offset       = 0.1
@@ -1035,7 +1038,8 @@ plt%x%minor_div_max = 6
 grph => plt%graph(1)
 grph%name                 = 'g'
 grph%type                 = 'data'
-grph%margin               =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
 grph%y%label_offset       = 0.1
@@ -1080,7 +1084,8 @@ plt%x                    = init_axis
 grph => plt%graph(1)
 grph%name                 = 'g'
 grph%type                 = 'data'
-grph%margin               =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
 grph%y%label_offset       = 0.1
@@ -1382,16 +1387,17 @@ grph%p => plt
 grph%name                  = 'g1'
 grph%box                   = [1, 1, 1, 1]
 grph%type                  = 'floor_plan'
-grph%margin                =  qp_rect_struct(0.15, 0.06, 0.05, 0.05, '%BOX')
+grph%margin                = qp_rect_struct(0.15, 0.06, 0.05, 0.05, '%BOX')
+grph%scale_margin          = qp_rect_struct(0.02_rp, 0.02_rp, 0.02_rp, 0.02_rp, '%GRAPH')
 grph%correct_xy_distortion = .true.
 grph%draw_only_good_user_data_or_vars = .true.
 grph%x                     = init_axis
 grph%y                     = init_axis
 grph%draw_axes             = .true.
 grph%draw_grid             = .true.
-grph%x%label               = 'Z'
+grph%x%label               = 'SMART LABEL'
 grph%x%major_div_nominal   = 4
-grph%y%label               = 'X'
+grph%y%label               = 'SMART LABEL'
 grph%y%major_div_nominal   = 4
 grph%y2%major_div_nominal  = 4
 grph%y2_mirrors_y          = .true.
@@ -1454,6 +1460,32 @@ crv%g => grph
 crv%data_type           = 'orbit.y'
 crv%legend_text         = 'Y'
 crv%y_axis_scale_factor = 1000
+
+!---------------
+! photon_intensity
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'photon_intensity'
+plt%description          = 'Photon intensity'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Photon Intensity'
+grph%y%label       = 'Intens'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'photon.intensity'
+crv%smooth_line_calc = .false.
+crv%y_axis_scale_factor = 1
 
 !---------------
 ! Momentum
@@ -1664,7 +1696,9 @@ if (.not. allocated(s%plotting%region)) then
       s%plotting%region(k)%location = [0.0_rp, 1.0_rp, y1, y2]
     enddo
   enddo
+endif
 
+if (all (place(:)%region == '')) then
   call tao_place_cmd ('layout', 'lat_layout')
   call tao_place_cmd ('r13', 'beta')
   call tao_place_cmd ('r23', 'eta')

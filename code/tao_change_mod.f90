@@ -245,12 +245,13 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   ! Or when doing multi_turn_orbit data taking.
 
   if (e_name == 'BEAM_START') then
-    if (u%model%lat%param%geometry == open$) cycle
-    if (a_name == 'PZ' .and. .not. s%global%rf_on) cycle
-    write (name, '(i0, a)') iu, '@multi_turn_orbit'
-    call tao_find_data (err, name, d2_dat, print_err = .false.)
-    if (associated(d2_dat)) cycle
-
+    if (u%model%lat%param%geometry == closed$) then
+      free = .false.
+      write (name, '(i0, a)') iu, '@multi_turn_orbit'
+      call tao_find_data (err, name, d2_dat, print_err = .false.)
+      if (a_name == 'PZ' .and. .not. s%global%rf_on) free = .true.
+      if (associated(d2_dat)) free = .true.
+    endif
   else
     do i = 1, nd
       free(i) = attribute_free (eles(i)%ele, a_name, u%model%lat, .false.)

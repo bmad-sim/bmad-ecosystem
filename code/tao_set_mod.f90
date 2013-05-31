@@ -696,6 +696,18 @@ case ('subtitle_loc')
   s%plotting%title(2)%y = y
   return
 
+case ('floor_plan_view')
+
+  select case (set_value)
+  case ('xz', 'yz', 'xy')
+  case default
+    call out_io(s_info$, r_name, "Valid floor_plan_view settings are: xz, yz, xy.")
+    return
+  end select
+
+  s%plotting%floor_plan_view = trim(set_value)
+  return
+
 end select
 
 ! For everything else...
@@ -1034,6 +1046,14 @@ select case (comp)
     call tao_real_set_value(this_graph%margin%y1, comp, set_value, error)
   case ('margin%y2')
     call tao_real_set_value(this_graph%margin%y2, comp, set_value, error)
+  case ('scale_margin%x1')
+    call tao_real_set_value(this_graph%scale_margin%x1, comp, set_value, error)
+  case ('scale_margin%x2')
+    call tao_real_set_value(this_graph%scale_margin%x2, comp, set_value, error)
+  case ('scale_margin%y1')
+    call tao_real_set_value(this_graph%scale_margin%y1, comp, set_value, error)
+  case ('scale_margin%y2')
+    call tao_real_set_value(this_graph%scale_margin%y2, comp, set_value, error)
   case ('y2_mirrors_y')
     call tao_logical_set_value (this_graph%y2_mirrors_y, comp, set_value, error)
 

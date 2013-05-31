@@ -1371,7 +1371,9 @@ plots go. The syntax of this block is:
 \index{tao_plot_page}    
 \index{plot_page!n_curve_pts}
 \index{plot_page!size}
-\index{plot_page!border}\index{plot_page%floor_plan_rotation}
+\index{plot_page!border}
+\index{plot_page%floor_plan_rotation}
+\index{plot_page%floor_plan_view}
 \index{plot_page!text_height}
 \index{plot_page!title}
 \index{region!name}
@@ -1382,23 +1384,24 @@ plots go. The syntax of this block is:
     plot_page%plot_display_type      = <string>  ! Display type: 'X' or 'TK'
     plot_page%size                   = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border                 = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
-    plot_page%text_height            = <num> ! height in POINTS. Def = 12
-    plot_page%main_title_text_scale  = <num> ! Relative to text_height. Def = 1.3
-    plot_page%graph_title_text_scale = <num> ! Relative to text_height. Def = 1.1
-    plot_page%axis_number_text_scale = <num> ! Relative to text_height. Def = 0.9
-    plot_page%axis_label_text_scale  = <num> ! Relative to text_height. Def = 1.0
-    plot_page%legend_text_scale      = <num> ! Relative to text_height. Def = 0.8
-    plot_page%floor_plan_rotation    = <num> ! Rotation of floor plan plot: 1.0 -> 360^deg 
-    plot_page%key_table_text_scale   = <num> ! Relative to text_height. Def = 0.9
+    plot_page%text_height            = <num>    ! height in POINTS. Def = 12
+    plot_page%main_title_text_scale  = <num>    ! Relative to text_height. Def = 1.3
+    plot_page%graph_title_text_scale = <num>    ! Relative to text_height. Def = 1.1
+    plot_page%axis_number_text_scale = <num>    ! Relative to text_height. Def = 0.9
+    plot_page%axis_label_text_scale  = <num>    ! Relative to text_height. Def = 1.0
+    plot_page%legend_text_scale      = <num>    ! Relative to text_height. Def = 0.8
+    plot_page%floor_plan_rotation    = <num>    ! Rotation of floor plan plot: 1.0 -> 360^deg 
+    plot_page%floor_plan_view        = <string> ! Either: 'xz' (default), 'xy', or 'yz'
+    plot_page%key_table_text_scale   = <num>    ! Relative to text_height. Def = 0.9
     plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
-    plot_page%n_curve_pts            = <num> ! Num points used to construct a 
-                                             !   smooth curve. Default = 401
-    plot_page%box_plots              = <T/F> ! For debugging. Default = F.
-    include_default_plots            = <T/F> ! Include default plot templates? Def = F.
+    plot_page%n_curve_pts            = <num>    ! Num points used to construct a 
+                                                !   smooth curve. Default = 401
+    plot_page%box_plots              = <T/F>    ! For debugging. Default = F.
+    include_default_plots            = <T/F>    ! Include default plot templates? Def = F.
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
-    default_plot%...                         ! See below.
-    default_graph%...                        ! See below. 
+    default_plot%...                            ! See below.
+    default_graph%...                           ! See below. 
   /
 \end{example}
 For example:
@@ -1635,6 +1638,7 @@ namelists should be placed directly after their respective
     graph%box              = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%title            = "<string>"       ! Title above the graph.
     graph%margin           =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    graph%scale_margin     =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%x                = <qp_axis_struct> ! Horizontal axis.
     graph%y                = <qp_axis_struct> ! Left axis.
     graph%y2               = <qp_axis_struct> ! Right axis.
@@ -1716,6 +1720,14 @@ placed in. For a definition of what a box is see the Quick Plot
 documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
+
+\vn{graph%margin} sets the margin between the \vn{graph} and the \vn{box}
+it is drawn in.
+
+\vn{graph%scale_margin} is used to set the minimum space between what
+is being drawn and the edges of the \vn{graph} when a \vn{scale},
+\vn{x_scale}, or a \vn{xy_scale} command is issued. Normally this
+is zero but is useful for \vn{floor plan} drawings.
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
@@ -2108,6 +2120,13 @@ Global       Plot
   Z    <--->   x
   X    <--->   y
 \end{example}
+Drawing a plane other than the horizontal $(Z, X)$ plane can be set using
+the \vn{plot_page%floor_plan_view} switch. Valid settings for this switch are
+\begin{example}
+  'xz'     ! Default
+  'xy'
+  'yz'
+\end{example}
 An overall rotation of the floor plan can be controlled by setting
 \vn{plot_page%floor_plan_rotation} in the \vn{tao_plot_page} namelist. Example:
 (\sref{s:init.plot})
@@ -2116,6 +2135,7 @@ An overall rotation of the floor plan can be controlled by setting
     plot_page%floor_plan_rotation = 0.5  ! Rotate 180 degress
   /
 \end{example}
+
 
 Alternatively, the global coordinates at the start of the lattice can
 be defined in the lattice file and this can rotate the floor plan.

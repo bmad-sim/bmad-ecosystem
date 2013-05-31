@@ -132,6 +132,7 @@ type tao_graph_input
   type (qp_point_struct) curve_legend_origin
   type (tao_data_var_component_struct) who(n_who_maxx)
   type (qp_rect_struct) margin
+  type (qp_rect_struct) scale_margin
   type (qp_axis_struct) x
   type (qp_axis_struct) y
   type (qp_axis_struct) y2
@@ -142,7 +143,6 @@ type tao_plot_input
   character(60) description
   character(16) x_axis_type
   integer n_graph
-  logical independent_graphs
   logical autoscale_gang_x      ! scale cmd scales graphs independently?
   logical autoscale_gang_y      ! scale cmd scales graphs independently?
   logical autoscale_x 
