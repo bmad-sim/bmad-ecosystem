@@ -1210,6 +1210,10 @@ case ('MAT6_CALC_METHOD')
   endif
   ele%mat6_calc_method = switch
 
+case ('REF_ORBIT_FOLLOWS')
+  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag)
+  ele%value(ref_orbit_follows$) = ix
+
 case ('PTC_INTEGRATION_TYPE')
   call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag)
 

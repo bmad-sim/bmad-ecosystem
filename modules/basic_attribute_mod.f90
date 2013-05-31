@@ -285,6 +285,8 @@ if (.not. attribute_array_init_needed) return
 
 do i = 1, n_key$
 
+  if (i == bend_sol_dummy$) cycle
+
   call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
   call init_attribute_name1 (i, custom_attribute2$,  'CUSTOM_ATTRIBUTE2', private$)
   call init_attribute_name1 (i, custom_attribute3$,  'CUSTOM_ATTRIBUTE3', private$)
@@ -524,10 +526,6 @@ call init_attribute_name1 (init_ele$, y_beam_start$,                'Y_BEAM_STAR
 call init_attribute_name1 (init_ele$, py_beam_start$,               'PY_BEAM_START')
 call init_attribute_name1 (init_ele$, z_beam_start$,                'Z_BEAM_START')
 call init_attribute_name1 (init_ele$, pz_beam_start$,               'PZ_BEAM_START')
-call init_attribute_name1 (init_ele$, e_field_x_photon$,            'E_FIELD_X_PHOTON')
-call init_attribute_name1 (init_ele$, e_field_y_photon$,            'E_FIELD_Y_PHOTON')
-call init_attribute_name1 (init_ele$, phase_x_photon$,              'PHASE_X_PHOTON')
-call init_attribute_name1 (init_ele$, phase_y_photon$,              'PHASE_Y_PHOTON')
 call init_attribute_name1 (init_ele$, abs_time_start$,              'ABS_TIME_START')
 call init_attribute_name1 (init_ele$, particle$,                    'PARTICLE')
 call init_attribute_name1 (init_ele$, geometry$,                    'GEOMETRY')
@@ -962,14 +960,12 @@ call init_attribute_name1 (hybrid$, p0c_start$,                     'P0C_START',
 
 call init_attribute_name1 (mirror$, l$,                             'l', private$)
 call init_attribute_name1 (mirror$, graze_angle$,                   'GRAZE_ANGLE')
-call init_attribute_name1 (mirror$, graze_angle_err$,               'GRAZE_ANGLE_ERR')
 call init_attribute_name1 (mirror$, critical_angle$,                'CRITICAL_ANGLE')
 call init_attribute_name1 (mirror$, tilt_err$,                      'TILT_ERR')
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'l', private$)
 call init_attribute_name1 (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
-call init_attribute_name1 (multilayer_mirror$, graze_angle_err$,      'GRAZE_ANGLE_ERR')
 call init_attribute_name1 (multilayer_mirror$, tilt_err$,             'TILT_ERR')
 call init_attribute_name1 (multilayer_mirror$, n_cell$,               'N_CELL')
 call init_attribute_name1 (multilayer_mirror$, d1_thickness$,         'D1_THICKNESS')
@@ -983,31 +979,29 @@ call init_attribute_name1 (multilayer_mirror$, f0_im2$,               'F0_IM2')
 call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH')
 call init_attribute_name1 (multilayer_mirror$, crystal_type$,         'CRYSTAL_TYPE')
 call init_attribute_name1 (multilayer_mirror$, ref_polarization$,     'REF_POLARIZATION')  ! Note: Not currently used
-call init_attribute_name1 (multilayer_mirror$, negative_graze_angle$, 'NEGATIVE_GRAZE_ANGLE')
 call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_start', private$)
 call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
 
 call init_attribute_name1 (crystal$, l$,                            'l', private$)
-call init_attribute_name1 (crystal$, graze_angle_in$,               'GRAZE_ANGLE_IN')
-call init_attribute_name1 (crystal$, graze_angle_out$,              'GRAZE_ANGLE_OUT')
-call init_attribute_name1 (crystal$, graze_angle_err$,              'GRAZE_ANGLE_ERR')
+call init_attribute_name1 (crystal$, graze_angle_in$,               'GRAZE_ANGLE_IN', dependent$)
+call init_attribute_name1 (crystal$, graze_angle_out$,              'GRAZE_ANGLE_OUT', dependent$)
 call init_attribute_name1 (crystal$, psi_angle$,                    'PSI_ANGLE')
-call init_attribute_name1 (crystal$, alpha_angle$,                  'ALPHA_ANGLE')
+call init_attribute_name1 (crystal$, alpha_angle$,                  'ALPHA_ANGLE', dependent$)
 call init_attribute_name1 (crystal$, tilt_err$,                     'TILT_ERR')
-call init_attribute_name1 (crystal$, tilt_corr$,                    'TILT_CORR')
+call init_attribute_name1 (crystal$, tilt_corr$,                    'TILT_CORR', dependent$)
 call init_attribute_name1 (crystal$, d_spacing$,                    'D_SPACING')
-call init_attribute_name1 (crystal$, v_unitcell$,                   'V_UNITCELL')
-call init_attribute_name1 (crystal$, f0_re$,                        'F0_RE')
-call init_attribute_name1 (crystal$, f0_im$,                        'F0_IM')
-call init_attribute_name1 (crystal$, fh_re$,                        'FH_RE')
-call init_attribute_name1 (crystal$, fh_im$,                        'FH_IM')
+call init_attribute_name1 (crystal$, v_unitcell$,                   'V_UNITCELL', dependent$)
+call init_attribute_name1 (crystal$, f0_re$,                        'F0_RE', dependent$)
+call init_attribute_name1 (crystal$, f0_im$,                        'F0_IM', dependent$)
+call init_attribute_name1 (crystal$, fh_re$,                        'FH_RE', dependent$)
+call init_attribute_name1 (crystal$, fh_im$,                        'FH_IM', dependent$)
 call init_attribute_name1 (crystal$, b_param$,                      'B_PARAM')
-call init_attribute_name1 (crystal$, bragg_angle$,                  'BRAGG_ANGLE' )
-call init_attribute_name1 (crystal$, ref_wavelength$,               'REF_WAVELENGTH')
+call init_attribute_name1 (crystal$, bragg_angle$,                  'BRAGG_ANGLE' , dependent$)
+call init_attribute_name1 (crystal$, ref_wavelength$,               'REF_WAVELENGTH', dependent$)
 call init_attribute_name1 (crystal$, diffraction_type$,             'DIFFRACTION_TYPE')  ! Note: Not currently used.
 call init_attribute_name1 (crystal$, crystal_type$,                 'CRYSTAL_TYPE')
 call init_attribute_name1 (crystal$, thickness$,                    'THICKNESS')
-call init_attribute_name1 (crystal$, follow_diffracted_beam$,       'FOLLOW_DIFFRACTED_BEAM')
+call init_attribute_name1 (crystal$, ref_orbit_follows$,            'REF_ORBIT_FOLLOWS')
 call init_attribute_name1 (crystal$, kh_x_norm$,                    'kh_x_norm', private$)
 call init_attribute_name1 (crystal$, kh_y_norm$,                    'kh_y_norm', private$)
 call init_attribute_name1 (crystal$, kh_z_norm$,                    'kh_z_norm', private$)
@@ -1015,7 +1009,6 @@ call init_attribute_name1 (crystal$, l_x$,                          'l_x', priva
 call init_attribute_name1 (crystal$, l_y$,                          'l_y', private$)
 call init_attribute_name1 (crystal$, l_z$,                          'l_z', private$)
 call init_attribute_name1 (crystal$, ref_polarization$,             'REF_POLARIZATION')   ! Note: Not currently used
-call init_attribute_name1 (crystal$, negative_graze_angle$,         'NEGATIVE_GRAZE_ANGLE')
 call init_attribute_name1 (crystal$, e_tot_start$,                  'e_tot_start', private$)
 call init_attribute_name1 (crystal$, p0c_start$,                    'p0c_start', private$)
 call init_attribute_name1 (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA', dependent$)
@@ -1202,8 +1195,7 @@ integer attrib_type
 !
 
 select case (attrib_name)
-case ('MATCH_END', 'MATCH_END_ORBIT', 'FOLLOW_DIFFRACTED_BEAM', &
-      'NEGATIVE_GRAZE_ANGLE', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
+case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'RF_AUTO_SCALE_PHASE', &
       'RF_AUTO_SCALE_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
@@ -1218,7 +1210,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'TRAVELING
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'KILL_FRINGE', 'MAT6_CALC_METHOD', 'ORIGIN_ELE_REF_PT', &
       'PARTICLE', 'PTC_FIELD_GEOMETRY', 'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', &
-      'SPIN_TRACKING_METHOD', 'TRACKING_METHOD')
+      'SPIN_TRACKING_METHOD', 'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
@@ -1472,6 +1464,12 @@ case ('PTC_INTEGRATION_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_integration_type_name, &
                                                   lbound(ptc_integration_type_name, 1))
   is_default = (ix_attrib == matrix_kick$)
+
+case ('REF_ORBIT_FOLLOWS')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, ref_orbit_follows_name, lbound(ref_orbit_follows_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib == bragg_diffracted$)
+  endif
 
 case ('REF_POLARIZATION')
   call get_this_attrib_name (attrib_val_name, ix_attrib, polarization_name, lbound(polarization_name, 1))

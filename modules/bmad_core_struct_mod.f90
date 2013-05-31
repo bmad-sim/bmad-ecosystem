@@ -944,7 +944,6 @@ type (ele_struct), optional, target :: ele
 real(rp), optional :: vec(:), E_photon, t_ref_offset
 real(rp) p0c, e_tot, ref_time
 
-integer species
 integer, optional :: particle
 logical, optional :: at_downstream_end, shift_vec6
 
@@ -956,6 +955,7 @@ character(16), parameter :: r_name = 'init_coord1'
 orb2 = coord_struct()
 
 orb2%state = alive$
+orb2%species = positron$
 orb2%p0c = 0
 
 ! Set %vec
@@ -976,11 +976,15 @@ endif
 ! set species
 
 if (present(particle)) then
-  species = particle
+  orb2%species = particle
 elseif (present(ele)) then
-  if (associated (ele%branch)) species = ele%branch%param%particle
-elseif (orb%state == not_set$) then
-  species = positron$
+  if (associated (ele%branch)) then
+    if (ele%branch%param%rel_tracking_charge < 0) then
+      orb2%species = -ele%branch%param%particle
+    else
+      orb2%species = ele%branch%param%particle
+    endif
+  endif
 endif
 
 ! Energy values
@@ -1005,7 +1009,7 @@ endif
 
 ! Photon
 
-if (species == photon$) then
+if (orb2%species == photon$) then
 
   if (present(ele)) orb2%p0c = p0c
 
@@ -1029,7 +1033,7 @@ if (present(ele)) then
 
   if (ele%key == init_ele$) orb2%location = downstream_end$
 
-  if (species /= photon$) then
+  if (orb2%species /= photon$) then
 
     orb2%p0c = p0c
 
@@ -1041,7 +1045,7 @@ if (present(ele)) then
     if (orb2%vec(6) == 0) then
       orb2%beta = p0c / e_tot
     else
-      call convert_pc_to (p0c * (1 + orb2%vec(6)), species, beta = orb2%beta)
+      call convert_pc_to (p0c * (1 + orb2%vec(6)), orb2%species, beta = orb2%beta)
     endif
 
     ! Do not set %t if %beta = 0 since %t may be a good value.
@@ -1096,6 +1100,7 @@ orb%e_field_y = orb_save%e_field_y
 orb%phase_x   = orb_save%phase_x
 orb%phase_y   = orb_save%phase_y
 orb%charge    = orb_save%charge
+orb%species   = orb_save%species
 if (orb%beta == 0) orb%t = orb_save%t
 
 end subroutine init_coord2

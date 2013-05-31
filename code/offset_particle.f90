@@ -158,7 +158,7 @@ if (set) then
     xp    = ele%value(x_pitch_tot$)
     yp    = ele%value(y_pitch_tot$)
 
-    if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
+    if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0) then
 
       ! If a bend then must rotate the offsets from the coordinates at the center of the bend
       ! to the entrance coordinates. This rotation is just the coordinate transformation for the
@@ -183,18 +183,20 @@ if (set) then
         endif
 
         if (any(rot /= 0)) then
-          off = off + cross_product(rot, dr)
+          call axis_angle_to_w_mat (rot, norm2(rot), m_trans)
+          off = off + matmul(m_trans, dr) - dr
         endif
+
+        coord%vec(5) = coord%vec(5) + sign_z_vel * (rot(2) * coord%vec(1) - rot(1) * coord%vec(3))
+        coord%vec(1) = coord%vec(1) - off(1)
+        coord%vec(2) = coord%vec(2) - sign_z_vel * rot(2) * E_rel
+        coord%vec(3) = coord%vec(3) - off(2)
+        coord%vec(4) = coord%vec(4) + sign_z_vel * rot(1) * E_rel
 
         if (off(3) /= 0 .and. set_s) then
           call track_a_drift (coord, ele, sign_z_vel*off(3))
           coord%vec(5) = coord%vec(5) - sign_z_vel*off(3)  ! Correction due to reference particle is also offset.
         endif
-
-        coord%vec(1) = coord%vec(1) - off(1)
-        coord%vec(2) = coord%vec(2) - sign_z_vel * rot(2) * E_rel
-        coord%vec(3) = coord%vec(3) - off(2)
-        coord%vec(4) = coord%vec(4) + sign_z_vel * rot(1) * E_rel
 
       ! Else not a bend
 
@@ -213,6 +215,7 @@ if (set) then
         coord%vec(5) = coord%vec(5) + dz
         coord%t = coord%t - dz / (coord%beta * c_light) 
       endif
+
     endif   ! has oeientation attributes
 
   endif
@@ -441,9 +444,11 @@ else
         endif
 
         if (any(rot /= 0)) then
-          off = off + cross_product(rot, dr)
+          call axis_angle_to_w_mat (rot, norm2(rot), m_trans)
+          off = off + matmul(m_trans, dr) - dr
         endif
 
+        coord%vec(5) = coord%vec(5) - sign_z_vel * (rot(2) * coord%vec(1) - rot(1) * coord%vec(3))
         coord%vec(1) = coord%vec(1) + off(1)
         coord%vec(2) = coord%vec(2) + sign_z_vel * rot(2) * E_rel
         coord%vec(3) = coord%vec(3) + off(2)

@@ -100,7 +100,7 @@ General \vn{ab_multipole} Attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets and tilt           & \ref{s:offset}  \HH
+  a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets \& tilt            & \ref{s:offset}  \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -141,8 +141,8 @@ General \vn{beambeam} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Aperture Limits        & \ref{s:limit}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                     & \ref{s:is.on}   \HH 
+  Aperture Limits        & \ref{s:limit}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
@@ -229,7 +229,7 @@ General \vn{bend_sol_quad} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -319,7 +319,7 @@ General \vn{rbend} and \vn{sbend} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -575,7 +575,7 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
                          &                 & Is_on                      & \ref{s:is.on}   \HH 
@@ -722,7 +722,7 @@ General \vn{capillary} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Is_on                      & \ref{s:is.on}   \HH 
   Capillary Wall         & \ref{s:wall}    &                            &                 \HH
@@ -756,7 +756,7 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Symplectify            & \ref{s:symp}    & Integration settings       & \ref{s:integ}   \HH
@@ -781,16 +781,19 @@ details. Example:
   \centering
   \includegraphics[width=5in]{crystal-ele.pdf}
   \caption[Crystal element geometry.]
-{Crystal element geometry for Bragg reflections. 
-The geometry shown is appropriate for zero
-\vn{tilt} (reference trajectory in the $x$-$z$ plane). The angle
-$\alpha_H$ (\vn{alpha_angle}) is the angle of the $\bfH$ vector with
-respect to the surface normal $\bfhat n$. For $\psi$ (\vn{psi_angle})
-zero, the incoming reference orbit, the outgoing reference orbit,
-$\bfhat n$, and $\bfH$ are all coplanar. The element reference coordinates
-where $\bfhat x$ is parallel to the surface normal establishes the coordinates
-for specifying a rotation of $\bfH$ around the surface normal and specifying
-a curvature of the surface.}
+{Crystal element geometry.  A) Geometry for Bragg diffraction. The
+geometry shown is for \vn{tilt} = 0 (reference trajectory in the
+$x$-$z$ plane). The angle $\alpha_H$ (\vn{alpha_angle}) is the angle
+of the $\bfH$ vector with respect to the surface normal $\bfhat
+n$. For $\psi$ (\vn{psi_angle}) zero, the incoming reference orbit,
+the outgoing reference orbit, $\bfhat n$, and $\bfH$ are all
+coplanar. The element reference coordinates where $\bfhat x$ is
+parallel to the surface normal establishes the coordinates for
+specifying a rotation of $\bfH$ around the surface normal and
+specifying a curvature of the surface. B) Geometry for Laue
+diffraction. In this case there are three outgoing beams: The Bragg
+diffracted beam, the forward diffracted beam, and the undiffracted
+beam.}
   \label{f:crystal}
 \end{figure}
 
@@ -801,7 +804,7 @@ General \vn{crystal} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Chamber Wall           & \ref{s:wall}    & Surface Curvature          & \ref{s:s.curve} \HH
@@ -809,20 +812,18 @@ General \vn{crystal} attributes are:
 \end{center}
 \toffset
 
-\index{graze_angle_err}\index{psi_angle}
+\index{psi_angle}
 \index{b_param}\index{bragg_angle}\index{crystal_type}
 \index{tilt_err}\index{g_graze}
 \index{follow_diffracted_beam}\index{thickness}
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
-  b_param                = <Real>    ! b parameter
-  crystal_type           = <String>  ! Crystal material and reflection plane.
-  graze_angle_err        = <Real>    ! Error in the graze angle.
-  psi_angle              = <Real>    ! Rotation of H-vector about the surface normal.
-  tilt_err               = <Real>    ! Error in the tilt angle.
-  thickness              = <Real>    ! Thickness of crystal for Laue diffraction.
-  follow_diffracted_beam = <Logic>   ! Track the diffracted or undiffracted beam?
-  negative_graze_angle  = <Logic>    ! Use negative graze angle? Default is False.
+  b_param            = <Real>       ! b parameter
+  crystal_type       = <String>     ! Crystal material and reflection plane.
+  psi_angle          = <Real>       ! Rotation of H-vector about the surface normal.
+  tilt_err           = <Real>       ! Error in the tilt angle.
+  thickness          = <Real>       ! Thickness of crystal for Laue diffraction.
+  ref_orbit_follows  = <which_beam> ! Reference orbit aligned with what outgoing beam?
 \end{example}
 
 \index{graze_angle_in}\index{graze_angle_out}\index{alpha_angle}
@@ -839,7 +840,7 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
   fh_re            ! Real part of fh
   fh_im            ! Imaginary part of fh
   graze_angle_in   ! Angle between incoming beam and mirror surface.
-  graze_angle_out  ! Angle between incoming beam and mirror surface.
+  graze_angle_out  ! Angle between outgoing beam and mirror surface.
   ref_wavelength   ! Reference wavelength
   ref_cap_gamma    ! \(\Gamma\) at the reference wavelength.
   tilt_corr        ! Tilt correction due to a finite psi_angle.
@@ -849,13 +850,17 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 The \vn{crystal_type} attribute defines the crystal material and
 diffraction lattice plane. The syntax is \vn{"ZZZ(ijk)"} where \vn{ZZZ}
 is the atomic formula for the material and \vn{ijk} are the Miller
-indices for the diffraction plane. For example, \vn{"Si(111)"}. The
-atomic formula is case sensitive so, for example, \vn{SI} is not
-acceptable.  Given the \vn{crystal_type} along with the reference
-photon energy (\sref{s:energy}), the spacing between lattice planes
-(\vn{d_spacing}), the unit cell volume (\vn{v_unitcell}), and the
-structure factor\cite{b:batterman} values \vn{f0_re}, \vn{f0_im},
-\vn{fh_re}, \vn{fh_im} can be computed.
+indices for the diffraction plane. For example,
+\begin{example}
+  b_cryst1: crystal, crystal_type = "Si(111)", b_param = -1, ...
+\end{example}
+The atomic formula is case sensitive so, for example, \vn{"SI(111)"}
+is not acceptable.  Given the \vn{crystal_type}, the spacing between
+lattice planes (\vn{d_spacing}), the unit cell volume
+(\vn{v_unitcell}), and the structure factor\cite{b:batterman} values
+\vn{f0_re}, and \vn{f0_im}, can be computed. And once the reference
+photon energy (\sref{s:energy}), is established, the structure factors
+\vn{fh_re}, \vn{fh_im} can be evaluated.
 
 The \vn{b_param} is the standard asymmetry factor
 \Begineq
@@ -863,39 +868,50 @@ The \vn{b_param} is the standard asymmetry factor
 \Endeq
 where $\theta_B$ is the Bragg angle (\vn{bragg_angle}) 
 \Begineq
-  \theta_B = \frac{\lambda}{d \, \sin\theta}
+  \theta_B = \sin^{-1} \left( \frac{\lambda}{2 \, d} \right)
 \Endeq
 and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprocal
 lattice $\bfH$ vector with respect to the surface normal as shown in
-\fig{f:crystal}.  If \vn{b_param} is set to -1 then there is
+\fig{f:crystal}A.  If \vn{b_param} is set to -1 then there is
 Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1
 then there is Laue diffraction again with \vn{alpha_H} zero. With the
-orientation shown in \fig{f:crystal}, \vn{alpha_H} is positive.
+orientation shown in \fig{f:crystal}A, \vn{alpha_H} is positive.
 
 The \vn{thickness} parameter is used with Laue diffraction only.
 
-The \vn{follow_diffracted_beam} parameter sets whether the diffracted
-beam or the undiffracted beam tracked. This parameter is only relevant
-with Laue diffraction.
+The \vn{ref_orbit_follows} parameter sets how the outgoing reference
+orbit is constructed. This is only relevant with Laue diffraction.
+The possible settings of this parameter are:
+\begin{example}
+  brag_diffracted
+  forward_diffracted
+  undiffracted
+\end{example}
+The geometry of this situation is shown in \fig{f:crystal}B.
 
 If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
 reference orbit, $\bfhat n$ and $\bfH$ are all coplanar. A non-zero
 \vn{psi_angle} Rotates the $\bfH$ vector around the $+\bfhat x$ axis
-of the \vn{Element Reference Frame} (See \fig{f:crystal}).
+of the \vn{Element Reference Frame} (See \fig{f:crystal}A).
 
-The reference trajectory for a \vn{crystal} is that of a zero length
-bend (\sref{s:mirror.coords}) and hence the length (\vn{l}) parameter
-of a crystal is fixed at zero. The orientation of the reference
-trajectory with respect to the crystal surface is specified by the
-incoming graze angle \vn{graze_angle_in} ($\theta_{g,in}$) and
+To keep the outgoing reference trajectory independent of the value of
+\vn{psi_angle}, the crystal will be automatically tilted by the
+appropriate ``tilt correction'' \vn{tilt_corr}. The calculation of
+\vn{tilt_corr} is outlined in \sref{ss:crystal.trans}. \vn{tilt_corr}
+will be zero if \vn{psi_angle} is zero. Thus, for the reference orbit
+calculation, the total tilt of the crystal is \vn{tilt} +
+\vn{tilt_corr}.
+
+The reference trajectory for a Bragg \vn{crystal} is that of a zero
+length bend (\sref{s:mirror.coords}) and hence the length (\vn{l})
+parameter of a crystal is fixed at zero. The orientation of the
+reference trajectory with respect to the crystal surface is specified
+by the incoming graze angle \vn{graze_angle_in} ($\theta_{g,in}$) and
 outgoing graze angle \vn{graze_angle_out} ($\theta_{g,out}$) as shown
-in \fig{f:crystal}. These angles are computed from the photon
+in \fig{f:crystal}A. These angles are computed from the photon
 reference energy and the other crystal parameters such that a photon
 with the reference energy traveling along the reference trajectory
 will be in the center of the Darwin curve (\sref{s:crystal.tracking}).
-If \vn{negative_graze_angle} is set to \vn{True}, 
-\vn{graze_angle_in} and \vn{graze_angle_out} will be negative. This is
-equivalent to setting \vn{tilt} to \vn{pi}.
 
 The reference trajectory in the global coordinate system
 (\sref{s:global}) is determined by the value of the \vn{tilt}
@@ -903,18 +919,9 @@ parameter along with the value of \vn{graze_angle_in} +
 \vn{graze_angle_out}. A positive \vn{graze_angle_in} +
 \vn{graze_angle_out} bends the reference trajectory in the same
 direction as a positive \vn{g} for a bend element. The
-\vn{graze_angle_err} and \vn{tilt_err} parameters affect the
-orientation of the \vn{crystal} in the global reference system but do
-not affect the reference trajectory.
 
 A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming
-local reference coordinates are used for these misalignments. The
-\vn{x_pitch} and \vn{y_pitch} parameters can be related to the
-\vn{graze_angle_err} and \vn{tilt_err} parameters. For example, with
-zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
-\vn{graze_angle_err} of the same magnitude, and a positive
-\vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same
-magnitude.
+local reference coordinates are used for these misalignments. 
 
 When a crystal is bent (\sref{s:s.curve}), the $\bfH$ vector is
 assumed follow the surface curvature. That is, it is assumed that the
@@ -960,7 +967,7 @@ General \vn{custom} attributes are:
   {\sl Attribute Class}  & \s                & {\sl Attribute Class}      & \s              \HH
   Aperture Limits        & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall           & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map     & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe fields          & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Integration settings   & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -998,7 +1005,7 @@ General \vn{drift} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Aperture Limits        & \ref{s:limit}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Aperture Limits        & \ref{s:limit}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Chamber wall           & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH 
   Description strings    & \ref{s:alias}   & Symplectify                & \ref{s:symp}    \HH 
   Integration settings   & \ref{s:integ}   & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -1023,7 +1030,7 @@ General \vn{e_gun} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
@@ -1083,7 +1090,7 @@ General \vn{elseparator} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -1129,7 +1136,7 @@ attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
@@ -1350,7 +1357,7 @@ General \vn{girder} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH 
+  Description strings    & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH 
 \end{tabular}
 \end{center}
 \toffset
@@ -1689,7 +1696,7 @@ General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s                  & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}        & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Symplectify            & \ref{s:symp}        & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}      & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}       & Length                     & \ref{s:l}       \HH
   Description strings    & \ref{s:alias}      & Is_on                      & \ref{s:is.on}   \HH 
@@ -1730,7 +1737,7 @@ General \vn{hkicker} \vn{vkicker} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -1769,7 +1776,7 @@ General \vn{kicker} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -1798,7 +1805,7 @@ General \vn{lcavity} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s                 \HH
   Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \HH
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}     \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}     \HH
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \HH 
   Field table or map         & \ref{s:em.fields} & RF Couplers                & \ref{s:rf.coupler} \HH
   Fringe Fields              & \ref{s:fringe}    & RF Wakes                   & \ref{s:rf.wakes}   \HH
@@ -1928,7 +1935,7 @@ General \vn{marker} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s                  & {\sl Attribute Class}      & \s              \HH
   Description strings    & \ref{s:alias}      & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}      & Offsets and tilt           & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}      & Offsets \& tilt            & \ref{s:offset}  \HH
   Aperture Limits        & \ref{s:limit}       & Tracking \& transfer map   & \ref{c:methods} \HH
   Instrumental variables & \ref{s:meas.attrib} &                            &                 \HH
 \end{tabular}
@@ -2095,7 +2102,7 @@ General \vn{mirror} attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}  & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Chamber wall               & \ref{s:wall}    \HH
   Surface Curvature      & \ref{s:s.curve} &                            &                 \HH
@@ -2106,7 +2113,6 @@ General \vn{mirror} attributes are:
 Attributes specific to a \vn{mirror} element are:
 \begin{example}
   graze_angle     = <Real>    ! Angle between incoming beam and mirror surface.
-  graze_angle_err = <Real>    ! Error in the graze angle.
   critical_angle  = <Real>    ! Critical angle.
   tilt_err        = <Real>    ! Error in the tilt angle.
 \end{example}
@@ -2117,18 +2123,10 @@ hence the length (\vn{l}) parameter of a mirror is fixed at zero. The
 reference trajectory is determined by the values of the
 \vn{graze_angle} and \vn{tilt} parameters. A positive \vn{graze_angle}
 bends the reference trajectory in the same direction as a positive
-\vn{g} for a bend element. The \vn{graze_angle_err} and \vn{tilt_err}
-parameters affect the orientation of the \vn{mirror} in the global
-reference system but do not affect the reference trajectory.
+\vn{g} for a bend element.
 
 A \vn{mirror} may be offset and pitched (\ref{s:offset}). The incoming
-local reference coordinates are used for these misalignments. The
-\vn{x_pitch} and \vn{y_pitch} parameters can be related to the
-\vn{graze_angle_err} and \vn{tilt_err} parameters. For example, with
-zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
-\vn{graze_angle_err} of the same magnitude, and a positive
-\vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same
-magnitude.
+local reference coordinates are used for these misalignments.
 
 %-----------------------------------------------------------------
 \section{Multipole}
@@ -2145,7 +2143,7 @@ General \vn{multipole} attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  K$n$L, T$n$ multipoles & \ref{s:multip}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  K$n$L, T$n$ multipoles & \ref{s:multip}  & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   &                            &                 \HH
@@ -2190,23 +2188,19 @@ General \vn{crystal} attributes are:
 \end{center}
 \toffset
 
-\index{crystal_type}\index{graze_angle_err}
-\index{d1_thickness}\index{d2_thickness}
+\index{crystal_type}\index{d1_thickness}\index{d2_thickness}
 \index{n_cell}\index{tilt_err}
 \index{c2_curve}\index{c3_curve}
 \index{c4_curve}\index{d_detec}
 \index{d_source}\index{g_trans}
-\index{tilt_err}\index{negative_graze_angle}
+\index{tilt_err}
 The attributes specific to a \vn{multilayer_mirror} are 
 \begin{example}
   crystal_type         = <String>  ! Materials in each layer.
-  graze_angle_err      = <Real>    ! Error in the graze angle.
   d1_thickness         = <Real>    ! Thickness of layer 1
   d2_thickness         = <Real>    ! Thickness of layer 2
   n_cell               = <Integer> ! Number of cells (= Number of layers / 2)
   tilt_err             = <Real>    ! Error in the tilt angle.
-  tilt_err             = <Real>    ! Error in the tilt angle.
-  negative_graze_angle = <Logic>   ! Use negative graze angle? Default is False.
 \end{example}
 
 \index{graze_angle}\index{c2_curve_tot}
@@ -2236,10 +2230,6 @@ where \vn{<material_1>} and \vn{<material_2>} are the material names
 for the first and second layers of the cell respectively. The first
 layer is the bottom layer and the second layer is the top layer of the cell.
 Material names are case sensitive. So ``FE'' cannot be used in place of ``Fe''
-
-
-If \vn{negative_graze_angle} is set to \vn{True}, \vn{graze_angle}
-will be negative. This is equivalent to setting \vn{tilt} to \vn{pi}.
 
 Example:
 \begin{example}
@@ -2276,7 +2266,7 @@ General \vn{octupole} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -2424,7 +2414,7 @@ General \vn{patch} element attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  is_on                  & \ref{s:is.on}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  is_on                  & \ref{s:is.on}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Description strings        & \ref{s:alias}   \HH 
   Length                 & \ref{s:l}       &                            &                 \HH
@@ -2544,7 +2534,7 @@ General \vn{quadrupole} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -2589,7 +2579,7 @@ General \vn{rfcavity} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s                 \HH
   Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \HH
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches, and tilt & \ref{s:offset}     \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}     \HH
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \HH 
   Field table or map         & \ref{s:em.fields} & RF Couplers                & \ref{s:rf.coupler} \HH
   Fringe Fields              & \ref{s:fringe}    & RF Wakes                   & \ref{s:rf.wakes}   \HH
@@ -2688,7 +2678,7 @@ General \vn{sextupole} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -2729,7 +2719,7 @@ General \vn{solenoid} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -2769,7 +2759,7 @@ General \vn{sol_quad} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -2807,7 +2797,7 @@ General \vn{taylor} attributes are:
   Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Length                 & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \HH
-  Reference energy       & \ref{s:energy}  & Offsets and tilt           & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Offsets \& tilt            & \ref{s:offset}  \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2874,7 +2864,7 @@ General \vn{wiggler} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
-  Description strings        & \ref{s:alias}     & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH

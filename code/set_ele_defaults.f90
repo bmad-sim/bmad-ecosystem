@@ -38,7 +38,7 @@ case (branch$, photon_branch$)
   ele%value(geometry$) = open$
 
 case (crystal$)
-  ele%value(follow_diffracted_beam$) = 1  ! True
+  ele%value(ref_orbit_follows$) = bragg_diffracted$
   ele%value(ref_polarization$) = sigma_polarization$ 
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.

@@ -1485,8 +1485,11 @@ implicit none
 type (ele_struct), target :: slave, lord
 type (lat_param_struct) param
 
-real(rp) offset, s_del, coef, dang, lord_ang, slave_ang
-real(rp) value(num_ele_attrib$)
+real(rp) offset, s_del, coef, lord_ang, slave_ang, angle
+real(rp) value(num_ele_attrib$), cos_a, sin_a, dr(3)
+real(rp) off(3), rot(3), cos_t, sin_t, m_trans(3,3)
+real(rp) xp, yp, roll, r_roll, tilt, dx, dy
+
 integer i
 logical at_upstream_end, at_downstream_end, err_flag
 character(24) :: r_name = 'makeup_super_slave1'
@@ -1534,30 +1537,62 @@ if (has_orientation_attributes(slave)) then
   s_del = offset + slave%value(l$)/2 - lord%value(l$)/2
 
   if (slave%key == sbend$ .and. value(g$) /= 0) then
-    value(tilt$)     = value(tilt_tot$)
-    value(x_pitch$)  = value(x_pitch_tot$)
 
-    if (value(x_offset_tot$) /= 0 .or. value(y_offset_tot$) /= 0 .or. value(z_offset_tot$) /= 0) then
-      dang =  s_del * value(g$)
-      value(x_offset$) = cos(dang) * value(y_offset_tot$) + sin(dang) * value(z_offset_tot$)
-      value(y_offset$) = sin(dang) * value(y_offset_tot$) + cos(dang) * value(z_offset_tot$)
-      value(z_offset$) = value(y_offset_tot$)
+    roll = value(roll_tot$);      tilt = value(tilt_tot$)
+    off = [value(x_offset_tot$), value(y_offset_tot$), value(z_offset_tot$)]
+    xp    = value(x_pitch_tot$);   yp    = value(y_pitch_tot$)
+
+    value(tilt$) = tilt
+
+    if (any(off /= 0) .or. xp /= 0 .or. yp /= 0 .or. roll /= 0) then
+      angle =  s_del * value(g$)
+      cos_a = cos(angle); sin_a = sin(angle)
+      dr = [2 * sin(angle/2)**2 / value(g$), 0.0_rp, sin_a / value(g$)]
+
+      if (roll /= 0) then
+        r_roll = value(rho$) * (1 - cos(lord%value(angle$)/2))
+        off(1) = off(1) + r_roll*(cos(roll) - 1)
+        off(2) = off(2) + r_roll*sin(roll)
+      endif
+
+      if (tilt == 0) then
+        cos_t = 1; sin_t = 0
+        off = [cos_a * off(1) + sin_a * off(3), off(2), -sin_a * off(1) + cos_a * off(3)]
+        rot = [-cos_a * yp, xp, sin_a * yp + roll]
+      else
+        cos_t = cos(tilt);    sin_t = sin(tilt)
+        m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
+        m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
+        m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
+        rot = matmul(m_trans, [-yp, xp, roll])
+        off = matmul(m_trans, off)
+        dr = [cos_t * dr(1) + sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
+      endif
+
+      if (any(rot /= 0)) then
+        call axis_angle_to_w_mat (rot, norm2(rot), m_trans)
+        off = off + matmul(m_trans, dr) - dr
+      endif
+
+      if (rot(3) /= 0) then
+        r_roll = value(rho$) * (1 - cos(value(l$)*value(g$)/2))
+        dx = r_roll * (1 - cos(rot(3)));  dy = -r_roll*sin(rot(3))
+        off(1) = off(1) + dx * cos_t - dy * sin_t
+        off(2) = off(2) + dx * sin_t + dy * cos_t
+      endif
+
+      value(x_offset$) = off(1)
+      value(y_offset$) = off(2)
+      value(z_offset$) = off(3)
+      value(x_pitch$) =  rot(2)
+      value(y_pitch$) = -rot(1)
+      value(roll$)    =  rot(3)
+
+        
+
     endif
 
-    if (value(x_pitch_tot$) == 0 .and. value(y_pitch_tot$) == 0 .and. value(roll_tot$) == 0) then
-      value(y_pitch$)  = value(y_pitch_tot$)
-      value(roll$)     = value(roll_tot$)
-    else  ! Use small angle approx here
-      dang =  s_del * value(g$)
-      slave_ang = value(g$) * slave%value(l$)
-      lord_ang = value(g$) * lord%value(l$)
-      value(y_pitch$) =  cos(dang) * value(y_pitch_tot$) + sin(dang) * value(roll_tot$)
-      value(roll$)    = -sin(dang) * value(y_pitch_tot$) + cos(dang) * value(roll_tot$)
-      value(x_offset$) = value(x_offset$) + value(x_pitch_tot$) * sin(dang) / value(g$)
-      value(y_offset$) = value(y_offset$) + value(y_pitch_tot$) * sin(dang) / value(g$) + &
-                (value(roll$) * cos(slave_ang/2) - lord%value(roll_tot$) * cos(lord_ang/2)) / value(g$)
-      value(z_offset$) = value(z_offset$) - 2 * value(x_pitch_tot$) * sin(dang/2)**2
-    endif
+  ! Not an sbend
 
   else
     if (slave%key == sbend$) then

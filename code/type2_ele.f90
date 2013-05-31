@@ -202,7 +202,7 @@ else
                         'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$)
 
     elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
-      if (ele%value(i) == 0) cycle
+      if (.not. type_zero .and. ele%value(i) == 0) cycle
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 6x, a, f10.4, a)') &
                    i, a_name(1:n_att), '=', ele%value(i), '[', ele%value(i) * 180 / pi, ' deg]'
     else
