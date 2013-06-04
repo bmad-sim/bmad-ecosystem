@@ -1062,7 +1062,11 @@ case (sbend$)
     ! c0_off is the coordinates *after* the roll at the entrance end
     ! So get the reverse roll matrix and take the inverse.
     dr = 0
-    axis = [cos(v(angle$)) - 1, 0.0_rp, sin(v(angle$))]
+    if (v(angle$) < 1e-20) then
+      axis = [v(angle$)/2, 0.0_rp, 1.0_rp]
+    else
+      axis = [cos(v(angle$)) - 1, 0.0_rp, sin(v(angle$))]
+    endif
     call axis_angle_to_w_mat (axis, -v(roll$), w_mat)
     call mat6_coord_transformation (mat6_pre, ele, param, c0_off, dr, w_mat)
     call mat_symp_conj(mat6_pre, mat6_pre)   ! Inverse
