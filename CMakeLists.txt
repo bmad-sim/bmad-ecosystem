@@ -15,6 +15,7 @@ set(SRC_DIRS
   synrad
   photon
   parsing
+  multiparticle
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
