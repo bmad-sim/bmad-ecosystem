@@ -15,12 +15,30 @@ type (ele_struct), pointer :: girder, slave, slave2
 
 real(rp) w_mat(3,3), w_mat_inv(3,3), mat3(3,3)
 real(rp), pointer :: v(:)
-integer i, ig, j
+integer i, ig, j, nargs
+
 character(40) fmt
+character(100) lat_file
+logical print_extra
 
 !
 
-call bmad_parser ('girder_test.bmad', lat)
+print_extra = .false.
+lat_file = 'girder_test.bmad'
+
+nargs = cesr_iargc()
+if (nargs == 1)then
+   call cesr_getarg(1, lat_file)
+   print *, 'Using ', trim(lat_file)
+   print_extra = .true.
+elseif (nargs > 1) then
+  print *, 'Only one command line arg permitted.'
+  call err_exit
+endif
+
+!
+
+call bmad_parser (lat_file, lat)
 
 !
 
