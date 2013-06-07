@@ -1247,7 +1247,8 @@ case default   ! normal attribute
     call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
     if (err_flag) return
 
-    if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then  ! multipole attribute
+    ! multipole attribute?
+    if (ix_attrib >= a0$ .and. ix_attrib <= b20$ .and. attrib_word(1:4) /= 'CURV') then  
         if (.not. associated(ele%a_pole)) call multipole_init (ele)
         if (ix_attrib >= b0$) then
           ele%b_pole(ix_attrib-b0$) = value

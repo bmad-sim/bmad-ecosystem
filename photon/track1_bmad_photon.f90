@@ -147,7 +147,8 @@ case (mirror$)
 
   ! Reflect
 
-  if (has_curved_surface(ele)) then
+  if (ele%surface%has_curvature) then
+    print *, 'MIRROR CURVATURE NOT YET IMPLEMENTED!'
     call err_exit
   else
     end_orb%vec(1:4) = [-end_orb%vec(1), -end_orb%vec(2), end_orb%vec(3), end_orb%vec(4)]

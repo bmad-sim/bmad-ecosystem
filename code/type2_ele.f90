@@ -67,13 +67,14 @@ type (rf_wake_sr_mode_struct), pointer :: sr_m
 type (em_field_mode_struct), pointer :: rfm
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
+type (photon_surface_struct), pointer :: s
 type (ele_attribute_struct) attrib
 type (lat_param_struct) param
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
 integer i, i1, j, n, ix, ix_tot, iv, ic, nl2, l_status, a_type, default_val
-integer nl, nt, n_term, n_att, attrib_type, n_char
+integer nl, nt, n_term, n_att, attrib_type, n_char, iz, iy
 
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -452,14 +453,22 @@ endif
 
 ! surface info
 
-if (associated(ele%surface)) then
-  fmt = '(4x, 3(a, es14.6, 2x))'
+s => ele%surface
+if (associated(s)) then
   nl=nl+1; write (li(nl), *)
   nl=nl+1; write (li(nl), *) 'Surface Curvature:'
-  nl=nl+1; write (li(nl), fmt) 'D_SOURCE       =', ele%surface%d_source,       'D_DETEC        =', ele%surface%d_detec 
-  nl=nl+1; write (li(nl), fmt) 'C2_CURVE       =', ele%surface%c2_curve,       'C3_CURVE       =', ele%surface%c2_curve,       'C4_CURVE       =', ele%surface%c2_curve
-  nl=nl+1; write (li(nl), fmt) 'C2_CURVE_TOT   =', ele%surface%c2_curve_tot,   'C3_CURVE_TOT   =', ele%surface%c2_curve_tot,   'C4_CURVE_TOT   =', ele%surface%c2_curve_tot
-  nl=nl+1; write (li(nl), fmt) 'A2_TRANS_CURVE =', ele%surface%a2_trans_curve, 'A3_TRANS_CURVE =', ele%surface%a2_trans_curve, 'A4_TRANS_CURVE =', ele%surface%a2_trans_curve
+  nl=nl+1; write (li(nl), '(4x, 2(a, es14.6, 2x))') 'D_SOURCE =', s%d_source, 'D_DETEC =', s%d_detec 
+  if (s%has_curvature) then
+    do iz = 0, 4
+    do iy = 0, 4
+      if (s%curvature_zy(iz,iy) == 0 .and. s%curvature_zy_tot(iz,iy) == 0) cycle
+      nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_Z', iz, '_Y', iy, ' =', s%curvature_zy(iz,iy), &
+                                'CURVATURE_TOT_Z', iz, '_Y', iy, ' =', s%curvature_zy_tot(iz,iy)
+    enddo
+    enddo
+  else
+    nl=nl+1; li(nl) = '    No Curvature'
+  endif
 endif
 
 ! Encode branch info
