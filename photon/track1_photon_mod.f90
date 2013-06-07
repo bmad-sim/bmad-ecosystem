@@ -220,6 +220,18 @@ real(rp) temp_vec(3), direction(3), s_len
 real(rp) gamma_0, gamma_h, b_err, dlen
 real(rp), pointer :: vec(:)
 
+character(*), parameter :: r_name = 'track1_cyrstal'
+
+! A graze angle of zero means the wavelength of the reference photon was too large
+! for the bragg condition. 
+
+if (ele%value(graze_angle_in$) == 0) then
+  call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION!')
+  end_orb%state = lost_z_aperture$
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
 !
 
 wavelength = c_light * h_planck / end_orb%p0c
