@@ -400,10 +400,10 @@ end type
 ! Rule: This structure is always allocated in the ele_struct for elements that need it.
 
 type photon_surface_struct
-  real(rp) :: a2_trans_curve = 0, a3_trans_curve = 0, a4_trans_curve = 0
-  real(rp) :: c2_curve = 0, c3_curve = 0, c4_curve = 0
-  real(rp) :: c2_curve_tot = 0, c3_curve_tot = 0, c4_curve_tot = 0
+  real(rp) :: curvature_zy(0:4,0:4) = 0
+  real(rp) :: curvature_zy_tot(0:4,0:4) = 0
   real(rp) :: d_source = 0, d_detec = 0
+  logical :: has_curvature = .false.
 end type
 
 ! Ele_struct:
@@ -677,11 +677,6 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           x1$ = 27, px1$ = 28, y1$ = 29, py1$ = 30, z1$ = 31, pz1$ = 32, &
           match_end_orbit$ = 33, c_11$ = 34, c_12$ = 35, c_21$ = 36, c_22$ = 37, gamma_c$ = 39 
 
-integer, parameter :: a2_trans_curve$ = 71, a3_trans_curve$ = 73, a4_trans_curve$ = 74
-integer, parameter :: c2_curve$ = 75, c3_curve$ = 78, c4_curve$ = 79
-integer, parameter :: c2_curve_tot$ = 89, c3_curve_tot$ = 90, c4_curve_tot$ = 93
-integer, parameter :: d_source$ = 94, d_detec$ = 95
-
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: t$ = 8
 integer, parameter :: e_field_x$ = 10,  e_field_y$ = 11, phase_x$ = 12, phase_y$ = 13
@@ -805,8 +800,8 @@ integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90
 integer, parameter :: term$ = 91, use_ptc_layout$ = 91
 integer, parameter :: x_position$ = 92, s_spline$ = 92, ptc_exact_model$ = 92
 integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
-integer, parameter :: z_position$ = 94
-integer, parameter :: is_on$ = 95, theta_position$ = 95
+integer, parameter :: z_position$ = 94, d_source$ = 94
+integer, parameter :: is_on$ = 95, theta_position$ = 95, d_detec$ = 95
 integer, parameter :: field_calc$ = 96, phi_position$ = 96
 integer, parameter :: psi_position$ = 97
 integer, parameter :: aperture_at$ = 98, beta_a$ = 98

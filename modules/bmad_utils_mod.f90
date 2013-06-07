@@ -741,7 +741,7 @@ end subroutine zero_ele_kicks
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function ele_has_offset (ele) result (haz_offset)
+! Function ele_has_offset (ele) result (has_offset)
 !
 ! Function to tell if an element has a non-zero offset, pitch or tilt.
 ! Also see: zero_ele_offsets, zero_ele_kicks, ele_has_nonzero_kick
@@ -753,27 +753,37 @@ end subroutine zero_ele_kicks
 !   ele -- Ele_struct: Element with possible nonzero offsets.
 !
 ! Output:
-!   haz_offset -- Logical: Set true is element has a non-zero offset.
+!   has_offset -- Logical: Set true is element has a non-zero offset.
 !-
 
-function ele_has_offset (ele) result (haz_offset)
+function ele_has_offset (ele) result (has_offset)
 
 implicit none
 
 type (ele_struct) ele
-logical haz_offset
+logical has_offset
 
 !
 
-haz_offset = .false.
+has_offset = .false.
 if (.not. has_orientation_attributes(ele)) return
 
-if (ele%value(tilt_tot$) /= 0) haz_offset = .true.
-if (ele%value(x_pitch_tot$) /= 0) haz_offset = .true.
-if (ele%value(y_pitch_tot$) /= 0) haz_offset = .true.
-if (ele%value(x_offset_tot$) /= 0) haz_offset = .true.
-if (ele%value(y_offset_tot$) /= 0) haz_offset = .true.
-if (ele%value(z_offset_tot$) /= 0) haz_offset = .true.
+select case (ele%key)
+case (sbend$)
+  if (ele%value(roll_tot$) /= 0) has_offset = .true.
+  if (ele%value(tilt_tot$) /= 0) has_offset = .true.
+case (mirror$, multilayer_mirror$, crystal$)
+  if (ele%value(tilt_err_tot$) /= 0) has_offset = .true.
+  if (ele%value(tilt_tot$) /= 0) has_offset = .true.
+case default
+  if (ele%value(tilt_tot$) /= 0) has_offset = .true.
+end select
+
+if (ele%value(x_pitch_tot$) /= 0) has_offset = .true.
+if (ele%value(y_pitch_tot$) /= 0) has_offset = .true.
+if (ele%value(x_offset_tot$) /= 0) has_offset = .true.
+if (ele%value(y_offset_tot$) /= 0) has_offset = .true.
+if (ele%value(z_offset_tot$) /= 0) has_offset = .true.
 
 end function ele_has_offset
 
@@ -806,14 +816,28 @@ type (ele_struct) ele
 
 if (.not. has_orientation_attributes(ele)) return
 
-ele%value(tilt$) = 0
+select case (ele%key)
+case (sbend$)
+  ele%value(roll$) = 0
+  ele%value(roll_tot$) = 0
+  ele%value(tilt$) = 0
+  ele%value(tilt_tot$) = 0
+case (mirror$, multilayer_mirror$, crystal$)
+  ele%value(tilt_err$) = 0
+  ele%value(tilt_err_tot$) = 0
+  ele%value(tilt$) = 0
+  ele%value(tilt_tot$) = 0
+case default
+  ele%value(tilt$) = 0
+  ele%value(tilt_tot$) = 0
+end select
+
 ele%value(x_pitch$) = 0
 ele%value(y_pitch$) = 0
 ele%value(x_offset$) = 0
 ele%value(y_offset$) = 0
 ele%value(z_offset$) = 0
 
-ele%value(tilt_tot$) = 0
 ele%value(x_pitch_tot$) = 0
 ele%value(y_pitch_tot$) = 0
 ele%value(x_offset_tot$) = 0

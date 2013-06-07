@@ -88,7 +88,7 @@ k0_outside_norm(1) = -k0_outside_norm(1)
 
 ! Rotate back to uncurved element coords
 
-if (has_curved_surface(ele)) then
+if (ele%surface%has_curvature) then
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, unset$)
 endif
 
@@ -281,7 +281,7 @@ call e_field_calc (c_param, ele, 1.0_rp,   end_orb%e_field_y, end_orb%phase_y)  
 
 ! Rotate back from curved body coords to element coords
 
-if (has_curved_surface(ele)) then
+if (ele%surface%has_curvature) then
   call to_curved_body_coords (ele, hit_point, kh_outside_norm, unset$)
 endif
 
@@ -447,7 +447,7 @@ k0_outside_norm(3) = -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
 
-if (has_curved_surface(ele)) then
+if (ele%surface%has_curvature) then
   call reflection_point (ele, cos_g, sin_g, orbit, k0_outside_norm, hit_point, s_len)
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
 else
@@ -550,9 +550,14 @@ function photon_depth_in_crystal (s_len) result (delta_h)
 
 implicit none
 
+type (photon_surface_struct), pointer :: surface
+
 real(rp), intent(in) :: s_len
 real(rp) :: delta_h
 real(rp) :: point(3), r, y
+integer iz, iy
+
+!
 
 point = s_len * k0_outside_norm + vec0
 
@@ -565,10 +570,14 @@ else
 endif
 
 y = point(2)
+surface => ele%surface
 
-delta_h = delta_h + ele%surface%a2_trans_curve * y**2 + ele%surface%a3_trans_curve * y**3 + &
-                    ele%surface%a4_trans_curve * y**4 + ele%surface%c2_curve_tot * r**2 + &
-                    ele%surface%c3_curve_tot * r**3 + ele%surface%c4_curve_tot * r**4
+do iz = 0, 4
+do iy = 0, 4
+  if (ele%surface%curvature_zy_tot(iz, iy) == 0) cycle
+  delta_h = delta_h + surface%curvature_zy_tot(iz, iy) * y**iy * r**iz
+enddo
+enddo
 
 end function photon_depth_in_crystal
 
@@ -605,7 +614,9 @@ type (photon_surface_struct), pointer :: s
 
 real(rp) hit_point(3), vector(3)
 real(rp) curverot(3,3)
-real(rp) slope_t, slope_c, cos_c, sin_c, cos_t, sin_t
+real(rp) slope_t, slope_c, cos_c, sin_c, cos_t, sin_t, y, z
+integer iz, iy
+
 logical set
 
 ! The transformation curverot is
@@ -618,13 +629,18 @@ logical set
 
 s => ele%surface
 
-slope_c = 2.0_rp * s%c2_curve_tot * hit_point(3) + 3.0_rp * s%c3_curve_tot * hit_point(3)**2 + &
-          4.0_rp * s%c4_curve_tot * hit_point(3)**3 
-slope_t = 2.0_rp * s%a2_trans_curve * hit_point(2) + 3.0_rp * s%a3_trans_curve * hit_point(2)**2 + &
-          4.0_rp * s%a4_trans_curve * hit_point(2)**3
+slope_c = 0
+slope_t = 0
+y = hit_point(2)
+z = hit_point(3)
 
-slope_c = -slope_c
-slope_t = -slope_t
+do iz = 0, 4
+do iy = 0, 4
+  if (s%curvature_zy_tot(iz, iy) == 0) cycle
+  if (iz > 0) slope_c = slope_c - iz * s%curvature_zy_tot(iz, iy) * y**iy * z**(iz-1)
+  if (iy > 0) slope_t = slope_t - iy * s%curvature_zy_tot(iz, iy) * y**(iy-1) * z**iz
+enddo
+enddo
 
 cos_c =       1 / sqrt(1 + slope_c**2)
 sin_c = slope_c / sqrt(1 + slope_c**2)
@@ -645,40 +661,5 @@ endif
 vector = matmul(curverot, vector) ! Goto body element coords at point of photon impact
 
 end subroutine to_curved_body_coords
-
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
-!+
-! Function has_curved_surface (ele) result (has_curve)
-!
-! Routine to determine if the reflecting surface of an element is curved or not.
-!
-! Input:
-!   ele -- ele_struct: Reflecting element.
-!
-! Output:
-!   has_curve -- Logical: True if curved. False if not.
-!-
-
-function has_curved_surface (ele) result (has_curve)
-
-implicit none
-
-type (ele_struct), target :: ele
-type (photon_surface_struct), pointer :: s
-logical has_curve
-
-!
-
-s => ele%surface
-if (s%c2_curve_tot /= 0 .or. s%c3_curve_tot /= 0 .or. s%c4_curve_tot /= 0 .or. &
-    s%a2_trans_curve /= 0 .or. s%a3_trans_curve /= 0 .or. s%a4_trans_curve /= 0) then
-  has_curve = .true.
-else
-  has_curve = .false.
-endif
-
-end function has_curved_surface
 
 end module

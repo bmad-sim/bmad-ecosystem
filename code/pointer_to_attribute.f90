@@ -43,7 +43,7 @@ type (rf_wake_lr_struct), allocatable :: lr(:)
 real(rp), pointer :: ptr_attrib
 
 integer, optional :: ix_attrib
-integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix
+integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iz, iy
 
 character(*) attrib_name
 character(40) a_name
@@ -204,31 +204,20 @@ case ('D_SOURCE')
   ptr_attrib => ele%surface%d_source
 case ('D_DETEC')
   ptr_attrib => ele%surface%d_detec
-case ('C2_CURVE')
-  ptr_attrib => ele%surface%c2_curve
-case ('C3_CURVE')
-  ptr_attrib => ele%surface%c3_curve
-case ('C4_CURVE')
-  ptr_attrib => ele%surface%c4_curve
-case ('C2_CURVE_TOT')
-  ptr_attrib => ele%surface%c2_curve_tot
-case ('C3_CURVE_TOT')
-  ptr_attrib => ele%surface%c3_curve_tot
-case ('C4_CURVE_TOT')
-  ptr_attrib => ele%surface%c4_curve_tot
-case ('A2_TRANS_CURVE')
-  ptr_attrib => ele%surface%a2_trans_curve
-case ('A3_TRANS_CURVE')
-  ptr_attrib => ele%surface%a3_trans_curve
-case ('A4_TRANS_CURVE')
-  ptr_attrib => ele%surface%a4_trans_curve
 end select
 
-if (len(a_name) >= 6) then
-  ix1 = index('123456', a_name(6:6))
-  ix2 = index('123456', a_name(7:7))
-  if (a_name(1:5) == "XMAT_" .and. ix1 /= 0 .and. ix2 /= 0) then
-    ptr_attrib => ele%mat6(ix1,ix2)
+if (a_name(1:11) == 'CURVATURE_Z' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
+  iz = index('01234', a_name(12:12)) - 1
+  iy = index('01234', a_name(15:15)) - 1
+  if (iz == -1 .or. iy == -1) return
+  ptr_attrib => ele%surface%curvature_zy(iz,iy)
+endif
+
+if (a_name(1:5) == "XMAT_") then
+  if (len(a_name) >= 7) then
+    ix1 = index('123456', a_name(6:6))
+    ix2 = index('123456', a_name(7:7))
+    if (ix1 > 0 .and. ix2 > 0) ptr_attrib => ele%mat6(ix1,ix2)
   endif
 endif
 

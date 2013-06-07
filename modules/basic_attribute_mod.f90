@@ -277,8 +277,8 @@ subroutine init_attribute_name_array ()
 
 implicit none
 
-integer i, j, num
-
+integer i, j, num, iz, iy
+character(40) word
 !
 
 if (.not. attribute_array_init_needed) return
@@ -299,15 +299,16 @@ do i = 1, n_key$
     call init_attribute_name1 (i, tilt_err_tot$,              'TILT_ERR_TOT', dependent$)
     call init_attribute_name1 (i, d_source$,                  'D_SOURCE')
     call init_attribute_name1 (i, d_detec$,                   'D_DETEC')
-    call init_attribute_name1 (i, c2_curve$,                  'C2_CURVE')
-    call init_attribute_name1 (i, c3_curve$,                  'C3_CURVE')
-    call init_attribute_name1 (i, c4_curve$,                  'C4_CURVE')
-    call init_attribute_name1 (i, c2_curve_tot$,              'C2_CURVE_TOT')
-    call init_attribute_name1 (i, c3_curve_tot$,              'C3_CURVE_TOT')
-    call init_attribute_name1 (i, c4_curve_tot$,              'C4_CURVE_TOT')
-    call init_attribute_name1 (i, a2_trans_curve$,            'A2_TRANS_CURVE')
-    call init_attribute_name1 (i, a3_trans_curve$,            'A3_TRANS_CURVE')
-    call init_attribute_name1 (i, a4_trans_curve$,            'A4_TRANS_CURVE')
+    num = a0$ - 1
+    do iz = 0, 4
+    do iy = 0, 4
+      if (iz+iy < 2) cycle
+      if (iz+iy > 4) cycle
+      write (word, '(a, i1, a, i1)') 'CURVATURE_Z', iz, '_Y', iy
+      num = num + 1
+      call init_attribute_name1 (i, num, word) 
+    enddo
+    enddo
   endif
 
   select case(i)
@@ -1236,7 +1237,6 @@ end function attribute_type
 !   x_offset          x_offset_tot
 !   x_pitch           x_pitch_tot
 !   tilt              tilt_tot
-!   c2_curve          c2_curve_tot
 !
 ! Module needed:
 !   use bmad
@@ -1266,9 +1266,6 @@ case ('Y_PITCH');     ix_tot_attrib = y_pitch_tot$
 case ('X_OFFSET');    ix_tot_attrib = x_offset_tot$
 case ('Y_OFFSET');    ix_tot_attrib = y_offset_tot$
 case ('Z_OFFSET');    ix_tot_attrib = z_offset_tot$
-case ('C2_CURVE');    ix_tot_attrib = c2_curve_tot$
-case ('C3_CURVE');    ix_tot_attrib = c3_curve_tot$
-case ('C4_CURVE');    ix_tot_attrib = c4_curve_tot$
 case ('TILT_ERR');    ix_tot_attrib = tilt_err_tot$
 case ('TILT');        ix_tot_attrib = tilt_tot$
 case ('ROLL');        ix_tot_attrib = roll_tot$
@@ -1293,7 +1290,6 @@ end function corresponding_tot_attribute_index
 !   x_offset_tot
 !   x_pitch_tot
 !   tilt_tot
-!   c2_curve_tot
 !
 ! Module needed:
 !   use bmad
@@ -1319,8 +1315,7 @@ logical is_a_tot_attrib
 
 select case (attribute_name(ele, ix_attrib))
 case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', &
-      'TILT_ERR_TOT', 'ROLL_TOT', &
-      'Z_OFFSET_TOT', 'TILT_TOT', 'C2_CURVE_TOT', 'C3_CURVE_TOT', 'C4_CURVE_TOT')
+      'TILT_ERR_TOT', 'ROLL_TOT', 'Z_OFFSET_TOT', 'TILT_TOT')
   is_a_tot_attrib = .true.
 case default
   is_a_tot_attrib = .false.
