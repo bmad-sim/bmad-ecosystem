@@ -353,6 +353,8 @@ do i = 1, n_key$
   call init_attribute_name1 (i, ref_beginning$,      'REF_BEGINNING')
   call init_attribute_name1 (i, ref_center$,         'REF_CENTER')
   call init_attribute_name1 (i, ref_end$,            'REF_END')
+  call init_attribute_name1 (i, ref_origin$,         'REF_ORIGIN')
+  call init_attribute_name1 (i, ele_origin$,         'ELE_ORIGIN')
 
   if (i == null_ele$) cycle
 
@@ -361,7 +363,6 @@ do i = 1, n_key$
   call init_attribute_name1 (i, spin_tracking_method$,   'SPIN_TRACKING_METHOD')
   call init_attribute_name1 (i, ptc_integration_type$,   'PTC_INTEGRATION_TYPE')
 
-  call init_attribute_name1 (i, s_position$,             'S_POSITION', dependent$)
   call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
   call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
   call init_attribute_name1 (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
