@@ -42,7 +42,7 @@ see section \sref{s:lord.slave}):
 \begin{example}
   Q: quad, l = 4
   D: drift, l = 12
-  S: solenoid, l = 8, superimpose, ref = Q, ele_beginning
+  S: solenoid, l = 8, superimpose, ref = Q, ele_origin = beginning
   M: marker, superimpose, ref = S, offset = 1
   lat: line = (Q, D)
   use, lat
@@ -123,41 +123,45 @@ no corresponding lord element. See \fig{f:super.ex}.
  
 The placement of a superimposed element is illustrated in
 \fig{f:superimpose}. The placement of a superimposed element is
-determined by three factors: A reference point on the superimposed
-element, a reference point on the reference element, and an offset between
+determined by three factors: An origin point on the superimposed
+element, an origin point on the reference element, and an offset between
 the points. The attributes that determine these three quantities are:
 \index{ref}\index{offset}
-\index{ref_beginning}\index{ref_center}\index{ref_end}
-\index{ele_beginning}\index{ele_center}\index{ele_end}
+\index{ref_origin}\index{ele_origin}
 \begin{example}
   create_jumbo_slave = <Logical>     ! See \sref{s:jumbo.slave}
-  ref                = <element name in lattice>
-  offset             = <length>      ! default = 0
-  ele_beginning
-  ele_center                         ! default
-  ele_end
-  ref_beginning
-  ref_center                         ! default
-  ref_end
+  ref          = <lattice_element>
+  offset       = <length>            ! default = 0
+  ele_origin   = <origin_location>   ! Origin pt on element.
+  ref_origin   = <origin_location>   ! Origin pt on ref element.
 \end{example}
 \vn{ref} sets the reference element. If \vn{ref} is not present then
-the start of the lattice is used. \vn{ref_beginning}, \vn{ref_center}
-or \vn{ref_end} can be used to indicate where on the reference element
-the reference point is. Default is \vn{ref_center}. Similarly,
-\vn{ele_beginning}, \vn{ele_center}, or \vn{ele_end} can be used to
-indicate the reference point on the superimposed element at the
-beginning (entrance) edge, the center, or the end (exit) edge
-respectively. If neither of these attributes are given the default is
-to use the element center. \vn{offset} is the longitudinal offset
-between the reference point on the reference element and the reference
-point on the superimposed element. The default if not present is zero.
+the start of the lattice is used. The location of the origin points
+are determined by the setting of \vn{ele_origin} and \vn{ref_origin}.
+The possible settings for these parameters are
+\begin{example}
+  beginning       ! Beginning (upsteam) edge of element
+  center          ! Center of element. Default.
+  end             ! End (downstream) edge of element
+\end{example}
+\vn{center} is the default setting.
+\vn{offset} is the longitudinal offset
+between the origin points. The default offset is zero.
 
-\index{geometry}
-\index{open}
-\index{drift}
-\index{overlay}
-\index{group}
-\index{girder}
+Note: There is an old syntax, deprecated but still supported for now,
+where the origin points were specified by the appearence of:
+\begin{example}
+  ele_beginning         ! Old syntax. Do not use.
+  ele_center            ! Old syntax. Do not use.
+  ele_end               ! Old syntax. Do not use.
+  ref_beginning         ! Old syntax. Do not use.
+  ref_center            ! Old syntax. Do not use.
+  ref_end               ! Old syntax. Do not use.
+\end{example}
+For example, ``ele_origin = beginning'' in the old syntax would be ``ele_beginning''.
+
+\index{geometry}\index{open}\index{drift}
+\index{overlay}\index{group}\index{girder}
 Superposition may be done with any element except \vn{Drift},
 \vn{Group}, \vn{Overlay}, and \vn{Girder} control elements. A
 superimposed element that extends beyond either end of the lattice
@@ -214,7 +218,7 @@ overlapping elements. Returning to the superposition example at the
 start of Section~\sref{s:super}, If the superposition of solenoid \vn{S}
 is modified to be
 \begin{example}
-  S: solenoid, l = 8, superimpose, ref = Q, ele_beginning, 
+  S: solenoid, l = 8, superimpose, ref = Q, ele_origin = beginning, 
                create_jumbo_slave = T
 \end{example}
 The result is shown in \fig{f:super.ex}C. The tracking part of the lattice

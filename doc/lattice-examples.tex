@@ -59,7 +59,7 @@ eliminated from the lattice by eliminating \vn{P} and \vn{BND2} from
   RING_L: line = (..., BND, ...)
   BR: branch, to_line = RING_L, to_element = M2,
           x_offset = -0.5, x_pitch = 0.15, z_offset = 0.3
-  M2: marker, superimpose, ref = BND, ref_beginning, offset = 1.5
+  M2: marker, superimpose, ref = BND, ref_origin = beginning, offset = 1.5
 \end{example}
 The problem here is that \vn{BND} will need to use \vn{runge_kutta}
 tracking to be able to properly track the edge fields but generally

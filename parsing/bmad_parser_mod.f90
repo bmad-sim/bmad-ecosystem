@@ -128,7 +128,6 @@ end type
 
 integer, parameter :: line$ = 1, list$ = 2, element$ = 3
 integer, parameter :: replacement_line$ = 4
-integer, parameter :: begin$ = -1, center$ = 0, end$ = 1
 integer, parameter :: def$ = 1, redef$ = 2
 
 !------------------------------------------------
@@ -1024,27 +1023,27 @@ if (delim /= '=')  then
 
   case ('REF_BEGINNING')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ref_pt = begin$
+    pele%ref_pt = anchor_beginning$
 
   case ('REF_CENTER')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ref_pt = center$
+    pele%ref_pt = anchor_center$
 
   case ('REF_END')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ref_pt = end$
+    pele%ref_pt = anchor_end$
 
   case ('ELE_BEGINNING')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ele_pt = begin$
+    pele%ele_pt = anchor_beginning$
 
   case ('ELE_CENTER')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ele_pt = center$
+    pele%ele_pt = anchor_center$
 
   case ('ELE_END')
     if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-    pele%ele_pt = end$
+    pele%ele_pt = anchor_end$
 
   case default
     call parser_error ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  'FOR ELEMENT: ' // ele%name)
@@ -1148,6 +1147,12 @@ case ('FIELD_CALC')
 
 case ('APERTURE_AT')
   call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag)
+
+case ('REF_ORIGIN')
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag)
+
+case ('ELE_ORIGIN')
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag)
 
 case ('APERTURE_TYPE')
   call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag)
@@ -3877,11 +3882,11 @@ real(rp) s_ref_begin, s_ref_end
 
 super_ele%s = pele%s
 
-if (pele%ele_pt == begin$) then
+if (pele%ele_pt == anchor_beginning$) then
   super_ele%s = super_ele%s + super_ele%value(l$)
-elseif (pele%ele_pt == center$ .or. pele%ele_pt == not_set$) then
+elseif (pele%ele_pt == anchor_center$ .or. pele%ele_pt == not_set$) then
   super_ele%s = super_ele%s + super_ele%value(l$) / 2
-elseif (pele%ele_pt /= end$) then
+elseif (pele%ele_pt /= anchor_end$) then
   call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!')
   if (global_com%exit_on_error) call err_exit
 endif
@@ -3907,11 +3912,11 @@ endif
 
 ! Now compute the s position at the end of the element and put it in ele%s.
 
-if (pele%ref_pt == begin$) then
+if (pele%ref_pt == anchor_beginning$) then
   super_ele%s = super_ele%s + s_ref_begin
-elseif (pele%ref_pt == center$ .or. pele%ref_pt == not_set$) then
+elseif (pele%ref_pt == anchor_center$ .or. pele%ref_pt == not_set$) then
   super_ele%s = super_ele%s + (s_ref_begin + s_ref_end) / 2
-elseif (pele%ref_pt == end$) then
+elseif (pele%ref_pt == anchor_end$) then
   super_ele%s = super_ele%s + s_ref_end
 else
   call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #2 INTERNAL ERROR!')
