@@ -87,7 +87,6 @@ online_cmd_new_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -
 online_cmd_rotate_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
 
 
-print 'Making directory ' + online_basedir + buildname
 #print online_cmd_mkdir
 print ''
 step1 = sub.Popen(online_cmd_mkdir,
@@ -95,16 +94,18 @@ step1 = sub.Popen(online_cmd_mkdir,
                shell=True,
                stdout=sub.PIPE,
                stderr=sub.STDOUT )
+print 'Making directory ' + online_basedir + buildname
+step1.communicate()
 
-print 'Coping '  + buildname + ' to ' + online_basedir + buildname 
 #print online_cmd_remote_tar
 print ''
 step2 = sub.Popen(online_cmd_remote_tar,
                bufsize=1,
                shell=True,
                stderr=sub.STDOUT )
+print 'Coping '  + buildname + ' to ' + online_basedir + buildname 
+step2.communicate()
 
-print 'Cleaning up old ' + release_type + ' link.'
 #print online_cmd_rm_link
 print ''
 step3 = sub.Popen(online_cmd_rm_link,
@@ -112,8 +113,9 @@ step3 = sub.Popen(online_cmd_rm_link,
                shell=True,
                stdout=sub.PIPE,
                stderr=sub.STDOUT )
+print 'Cleaning up old ' + release_type + ' link.'
+step3.communicate()
 
-print 'Making new soft link from ' + buildname + ' to ' + release_type
 #print online_cmd_new_link
 print ''
 step4 = sub.Popen(online_cmd_new_link,
@@ -121,8 +123,9 @@ step4 = sub.Popen(online_cmd_new_link,
                shell=True,
                stdout=sub.PIPE,
                stderr=sub.STDOUT )
+print 'Making new soft link from ' + buildname + ' to ' + release_type
+step4.communicate()
 
-print 'Rotating old ' + release_type + ' ' + active_relname + ' to '  + archive_linkname
 #print online_cmd_rotate_link
 print ''
 step5 = sub.Popen(online_cmd_rotate_link,
@@ -130,3 +133,5 @@ step5 = sub.Popen(online_cmd_rotate_link,
                shell=True,
                stdout=sub.PIPE,
                stderr=sub.STDOUT )
+print 'Rotating old ' + release_type + ' ' + active_relname + ' to '  + archive_linkname
+step5.communicate()
