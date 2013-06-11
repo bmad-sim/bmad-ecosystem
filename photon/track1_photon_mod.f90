@@ -523,12 +523,12 @@ s1 = s_center
 s2 = s_center
 if (photon_depth_in_crystal(s_center) > 0) then
   do
-    s1 = s_center - 0.1
+    s1 = s1 - 0.1
     if (photon_depth_in_crystal(s1) < 0) exit
   enddo
 else
   do
-    s2 = s_center + 0.1
+    s2 = s2 + 0.1
     if (photon_depth_in_crystal(s2) > 0) exit
   enddo
 endif
