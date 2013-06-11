@@ -117,6 +117,13 @@ case (branch$, photon_branch$)
   case (bmad_standard$, linear$, custom$)
     is_valid = .true.
   end select
+
+case (crystal$)
+  if (present(num_valid)) num_valid = 2
+  select case (tracking_method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
   
 case (drift$)
   if (present(num_valid)) num_valid = 10
@@ -307,6 +314,9 @@ case (wiggler$)
       is_valid = .true.
     end select
   endif
+
+case default
+  call err_exit
 
 end select
 
@@ -579,6 +589,9 @@ case (wiggler$)
       is_valid = .true.
     end select
   endif
+
+case default
+  call err_exit
 
 end select
 
