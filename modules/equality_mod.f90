@@ -18,11 +18,12 @@ interface operator (==)
   module procedure eq_rf_wake_sr_table, eq_rf_wake_sr_mode, eq_rf_wake_lr, eq_rf_wake, eq_em_field_map_term
   module procedure eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields
   module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d_crotch
-  module procedure eq_wall3d, eq_taylor_term, eq_taylor, eq_control, eq_lat_param
-  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
-  module procedure eq_em_field, eq_track_map, eq_track, eq_synch_rad_common, eq_bmad_common
-  module procedure eq_rad_int1, eq_rad_int_all_ele, eq_ele, eq_branch, eq_lat
+  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_photon_surface, eq_wall3d_vertex, eq_wall3d_section
+  module procedure eq_wall3d_crotch, eq_wall3d, eq_taylor_term, eq_taylor, eq_control
+  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
+  module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
+  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele, eq_branch
+  module procedure eq_lat
 end interface
 
 contains
@@ -66,6 +67,8 @@ is_eq = is_eq .and. (f1%beta == f2%beta)
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%state == f2%state)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%species == f2%species)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%location == f2%location)
 
@@ -686,6 +689,32 @@ is_eq = is_eq .and. all(f1%dg3_dorb == f2%dg3_dorb)
 is_eq = is_eq .and. (f1%stale .eqv. f2%stale)
 
 end function eq_rad_int_ele_cache
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_photon_surface (f1, f2) result (is_eq)
+
+implicit none
+
+type(photon_surface_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 2, NOT]
+is_eq = is_eq .and. all(f1%curvature_zy == f2%curvature_zy)
+!! f_side.equality_test[real, 2, NOT]
+is_eq = is_eq .and. all(f1%curvature_zy_tot == f2%curvature_zy_tot)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%d_source == f2%d_source)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%d_detec == f2%d_detec)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%has_curvature .eqv. f2%has_curvature)
+
+end function eq_photon_surface
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1400,6 +1429,11 @@ if (associated(f1%rf_wake)) is_eq = (f1%rf_wake == f2%rf_wake)
 is_eq = is_eq .and. (associated(f1%space_charge) .eqv. associated(f2%space_charge))
 if (.not. is_eq) return
 if (associated(f1%space_charge)) is_eq = (f1%space_charge == f2%space_charge)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%surface) .eqv. associated(f2%surface))
+if (.not. is_eq) return
+if (associated(f1%surface)) is_eq = (f1%surface == f2%surface)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
 !! f_side.equality_test[type, 0, PTR]
