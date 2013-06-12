@@ -30,6 +30,7 @@ call test1_f_twiss(ok); if (.not. ok) all_ok = .false.
 call test1_f_mode3(ok); if (.not. ok) all_ok = .false.
 call test1_f_bookkeeping_state(ok); if (.not. ok) all_ok = .false.
 call test1_f_rad_int_ele_cache(ok); if (.not. ok) all_ok = .false.
+call test1_f_photon_surface(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d_vertex(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d_section(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d_crotch(ok); if (.not. ok) all_ok = .false.

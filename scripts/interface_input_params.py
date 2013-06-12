@@ -36,6 +36,7 @@ struct_list = [
     'mode3_struct',
     'bookkeeping_state_struct',
     'rad_int_ele_cache_struct',
+    'photon_surface_struct',
     'wall3d_vertex_struct',
     'wall3d_section_struct',
     'wall3d_crotch_struct',

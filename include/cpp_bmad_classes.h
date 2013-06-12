@@ -163,6 +163,11 @@ typedef valarray<CPP_rad_int_ele_cache>          CPP_rad_int_ele_cache_ARRAY;
 typedef valarray<CPP_rad_int_ele_cache_ARRAY>    CPP_rad_int_ele_cache_MATRIX;
 typedef valarray<CPP_rad_int_ele_cache_MATRIX>   CPP_rad_int_ele_cache_TENSOR;
 
+class CPP_photon_surface;
+typedef valarray<CPP_photon_surface>          CPP_photon_surface_ARRAY;
+typedef valarray<CPP_photon_surface_ARRAY>    CPP_photon_surface_MATRIX;
+typedef valarray<CPP_photon_surface_MATRIX>   CPP_photon_surface_TENSOR;
+
 class CPP_wall3d_vertex;
 typedef valarray<CPP_wall3d_vertex>          CPP_wall3d_vertex_ARRAY;
 typedef valarray<CPP_wall3d_vertex_ARRAY>    CPP_wall3d_vertex_MATRIX;
@@ -298,6 +303,7 @@ public:
   Real beta;
   Int ix_ele;
   Int state;
+  Int species;
   Int location;
 
   CPP_coord() :
@@ -314,6 +320,7 @@ public:
     beta(-1),
     ix_ele(-1),
     state(Bmad::NOT_SET),
+    species(Bmad::NOT_SET),
     location(Bmad::UPSTREAM_END)
     {}
 
@@ -1031,6 +1038,38 @@ bool operator== (const CPP_rad_int_ele_cache&, const CPP_rad_int_ele_cache&);
 
 
 //--------------------------------------------------------------------
+// CPP_photon_surface
+
+class Bmad_photon_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_photon_surface {
+public:
+  Real_MATRIX curvature_zy;
+  Real_MATRIX curvature_zy_tot;
+  Real d_source;
+  Real d_detec;
+  Bool has_curvature;
+
+  CPP_photon_surface() :
+    curvature_zy(Real_ARRAY(0.0, 5), 5),
+    curvature_zy_tot(Real_ARRAY(0.0, 5), 5),
+    d_source(0.0),
+    d_detec(0.0),
+    has_curvature(false)
+    {}
+
+  ~CPP_photon_surface() {
+  }
+
+};   // End Class
+
+extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photon_surface&);
+extern "C" void photon_surface_to_f (const CPP_photon_surface&, Bmad_photon_surface_class*);
+
+bool operator== (const CPP_photon_surface&, const CPP_photon_surface&);
+
+
+//--------------------------------------------------------------------
 // CPP_wall3d_vertex
 
 class Bmad_wall3d_vertex_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1645,6 +1684,7 @@ public:
   Bool rf_auto_scale_phase_default;
   Bool rf_auto_scale_amp_default;
   Bool use_ptc_layout_default;
+  Bool debug;
 
   CPP_bmad_common() :
     max_aperture_limit(1e3),
@@ -1674,7 +1714,8 @@ public:
     absolute_time_tracking_default(false),
     rf_auto_scale_phase_default(true),
     rf_auto_scale_amp_default(true),
-    use_ptc_layout_default(false)
+    use_ptc_layout_default(false),
+    debug(false)
     {}
 
   ~CPP_bmad_common() {
@@ -1792,9 +1833,14 @@ public:
   CPP_rad_int_ele_cache* rad_int_cache;
   CPP_rf_wake* rf_wake;
   CPP_space_charge* space_charge;
+  CPP_photon_surface* surface;
   CPP_taylor_ARRAY taylor;
   CPP_wall3d* wall3d;
   CPP_wig* wig;
+  CPP_coord map_ref_orb_in;
+  CPP_coord map_ref_orb_out;
+  CPP_coord time_ref_orb_in;
+  CPP_coord time_ref_orb_out;
   Real_ARRAY value;
   Real_ARRAY old_value;
   Real_ARRAY gen0;
@@ -1807,10 +1853,6 @@ public:
   Real_TENSOR r;
   Real_ARRAY a_pole;
   Real_ARRAY b_pole;
-  Real_ARRAY map_ref_orb_in;
-  Real_ARRAY map_ref_orb_out;
-  Real_ARRAY time_ref_orb_in;
-  Real_ARRAY time_ref_orb_out;
   Int key;
   Int sub_key;
   Int ix_ele;
@@ -1845,7 +1887,6 @@ public:
   Bool old_is_on;
   Bool logic;
   Bool bmad_logic;
-  Bool on_a_girder;
   Bool csr_calc_on;
   Bool offset_moves_aperture;
 
@@ -1867,9 +1908,14 @@ public:
     rad_int_cache(NULL),
     rf_wake(NULL),
     space_charge(NULL),
+    surface(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
     wall3d(NULL),
     wig(NULL),
+    map_ref_orb_in(),
+    map_ref_orb_out(),
+    time_ref_orb_in(),
+    time_ref_orb_out(),
     value(double(0), Bmad::NUM_ELE_ATTRIB+1),
     old_value(double(0), Bmad::NUM_ELE_ATTRIB+1),
     gen0(0.0, 6),
@@ -1882,10 +1928,6 @@ public:
     r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
     a_pole(0.0, 0),
     b_pole(0.0, 0),
-    map_ref_orb_in(0.0, 6),
-    map_ref_orb_out(0.0, 6),
-    time_ref_orb_in(0.0, 6),
-    time_ref_orb_out(0.0, 6),
     key(0),
     sub_key(0),
     ix_ele(-1),
@@ -1920,7 +1962,6 @@ public:
     old_is_on(false),
     logic(false),
     bmad_logic(false),
-    on_a_girder(false),
     csr_calc_on(true),
     offset_moves_aperture(false)
     {
@@ -1943,6 +1984,7 @@ public:
     delete rad_int_cache;
     delete rf_wake;
     delete space_charge;
+    delete surface;
     delete wall3d;
     delete wig;
   }

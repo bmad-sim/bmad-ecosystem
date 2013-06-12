@@ -87,6 +87,7 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && (x.beta == y.beta);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.state == y.state);
+  is_eq = is_eq && (x.species == y.species);
   is_eq = is_eq && (x.location == y.location);
   return is_eq;
 };
@@ -429,6 +430,21 @@ template bool is_all_equal (const CPP_rad_int_ele_cache_MATRIX&, const CPP_rad_i
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.curvature_zy, y.curvature_zy);
+  is_eq = is_eq && is_all_equal(x.curvature_zy_tot, y.curvature_zy_tot);
+  is_eq = is_eq && (x.d_source == y.d_source);
+  is_eq = is_eq && (x.d_detec == y.d_detec);
+  is_eq = is_eq && (x.has_curvature == y.has_curvature);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_photon_surface_ARRAY&, const CPP_photon_surface_ARRAY&);
+template bool is_all_equal (const CPP_photon_surface_MATRIX&, const CPP_photon_surface_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_wall3d_vertex& x, const CPP_wall3d_vertex& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.x == y.x);
@@ -732,6 +748,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.rf_auto_scale_phase_default == y.rf_auto_scale_phase_default);
   is_eq = is_eq && (x.rf_auto_scale_amp_default == y.rf_auto_scale_amp_default);
   is_eq = is_eq && (x.use_ptc_layout_default == y.use_ptc_layout_default);
+  is_eq = is_eq && (x.debug == y.debug);
   return is_eq;
 };
 
@@ -809,6 +826,9 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.space_charge == NULL) == (y.space_charge == NULL));
   if (!is_eq) return false;
   if (x.space_charge != NULL) is_eq = (*x.space_charge == *y.space_charge);
+  is_eq = is_eq && ((x.surface == NULL) == (y.surface == NULL));
+  if (!is_eq) return false;
+  if (x.surface != NULL) is_eq = (*x.surface == *y.surface);
   is_eq = is_eq && is_all_equal(x.taylor, y.taylor);
   is_eq = is_eq && ((x.wall3d == NULL) == (y.wall3d == NULL));
   if (!is_eq) return false;
@@ -816,6 +836,10 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.wig == NULL) == (y.wig == NULL));
   if (!is_eq) return false;
   if (x.wig != NULL) is_eq = (*x.wig == *y.wig);
+  is_eq = is_eq && (x.map_ref_orb_in == y.map_ref_orb_in);
+  is_eq = is_eq && (x.map_ref_orb_out == y.map_ref_orb_out);
+  is_eq = is_eq && (x.time_ref_orb_in == y.time_ref_orb_in);
+  is_eq = is_eq && (x.time_ref_orb_out == y.time_ref_orb_out);
   is_eq = is_eq && is_all_equal(x.value, y.value);
   is_eq = is_eq && is_all_equal(x.old_value, y.old_value);
   is_eq = is_eq && is_all_equal(x.gen0, y.gen0);
@@ -828,10 +852,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.r, y.r);
   is_eq = is_eq && is_all_equal(x.a_pole, y.a_pole);
   is_eq = is_eq && is_all_equal(x.b_pole, y.b_pole);
-  is_eq = is_eq && is_all_equal(x.map_ref_orb_in, y.map_ref_orb_in);
-  is_eq = is_eq && is_all_equal(x.map_ref_orb_out, y.map_ref_orb_out);
-  is_eq = is_eq && is_all_equal(x.time_ref_orb_in, y.time_ref_orb_in);
-  is_eq = is_eq && is_all_equal(x.time_ref_orb_out, y.time_ref_orb_out);
   is_eq = is_eq && (x.key == y.key);
   is_eq = is_eq && (x.sub_key == y.sub_key);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
@@ -866,7 +886,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.old_is_on == y.old_is_on);
   is_eq = is_eq && (x.logic == y.logic);
   is_eq = is_eq && (x.bmad_logic == y.bmad_logic);
-  is_eq = is_eq && (x.on_a_girder == y.on_a_girder);
   is_eq = is_eq && (x.csr_calc_on == y.csr_calc_on);
   is_eq = is_eq && (x.offset_moves_aperture == y.offset_moves_aperture);
   return is_eq;
