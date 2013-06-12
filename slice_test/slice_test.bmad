@@ -10,7 +10,7 @@ beam_start[px] = 1e-4
 
 !
 
-bend: sbend, rho = 1, angle = pi/10, y_pitch = 1e-4, tilt = 1.5, roll = 2e-4,
+bend: sbend, rho = 1, angle = pi/10, y_pitch = 1e-4, ref_tilt = 1.5, roll = 2e-4,
           x_offset = 0.1, y_offset = 0.2
 bend2: bend
 m: marker, superimpose, ref = bend, offset = 0.1

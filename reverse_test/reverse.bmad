@@ -33,15 +33,20 @@ quadrupole3:       quadrupole, l = 0.6, k1 = 1e-20, tilt, num_steps = 10, x_offs
 quadrupole4:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full_bend
 quadrupole5:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full_bend
 rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
-rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1
-sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-sbend3:            sbend, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-sbend4:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full_bend, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-sbend5:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full_bend, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-sbend6:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-sbend7:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+                             y_pitch = 0.001, tilt = 0.1
+rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+                             y_pitch = 0.001, tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1
+sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend3:            sbend, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend4:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, 
+                          fringe_type = full_bend, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend5:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full_bend, 
+                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend6:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, 
+                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend7:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sextupole1:        sextupole, l = 0.6, k2 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
 solenoid1:         solenoid, l = 2.6, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 solenoid2:         solenoid, l = 2.6, ks = 1e-12, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
@@ -49,12 +54,16 @@ sol_quad1:         sol_quad, l = 2.6, k1 = 1, ks = 1, num_steps = 10, x_offset =
 sol_quad2:         sol_quad, l = 2.6, k1 = 1e-5, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 vkicker1:          vkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 
-l01: line = (ab_multipole1,beambeam1,drift1,ecollimator1,elseparator1,elseparator2,hkicker1,instrument1,kicker1,monitor1,multipole1,octupole1,quadrupole1,quadrupole2,quadrupole3)
-l02: line = (quadrupole4,quadrupole5,rcollimator1,rfcavity1,rfcavity2,sbend1,sbend2,sbend3,sbend4,sbend5,sbend6,sbend7,sextupole1,solenoid1,solenoid2,sol_quad1,sol_quad2,vkicker1)
+l01: line = (ab_multipole1,beambeam1,drift1,ecollimator1,elseparator1,elseparator2,hkicker1,instrument1,kicker1,monitor1,
+             multipole1,octupole1,quadrupole1,quadrupole2,quadrupole3)
+l02: line = (quadrupole4,quadrupole5,rcollimator1,rfcavity1,rfcavity2,sbend1,sbend2,sbend3,sbend4,sbend5,sbend6,sbend7,
+             sextupole1,solenoid1,solenoid2,sol_quad1,sol_quad2,vkicker1)
 l0: line = (l01,l02)
 
-l11: line = (--ab_multipole1,--beambeam1,--drift1,--ecollimator1,--elseparator1,--elseparator2,--hkicker1,--instrument1,--kicker1,--monitor1,--multipole1,--octupole1,--quadrupole1,--quadrupole2,--quadrupole3)
-l12: line = (--quadrupole4,--quadrupole5,--rcollimator1,--rfcavity1,--rfcavity2,--sbend1,--sbend2,--sbend3,--sbend4,--sbend5,--sbend6,--sbend7,--sextupole1,--solenoid1,--solenoid2,--sol_quad1,--sol_quad2,--vkicker1)
+l11: line = (--ab_multipole1,--beambeam1,--drift1,--ecollimator1,--elseparator1,--elseparator2,--hkicker1,
+             --instrument1,--kicker1,--monitor1,--multipole1,--octupole1,--quadrupole1,--quadrupole2,--quadrupole3)
+l12: line = (--quadrupole4,--quadrupole5,--rcollimator1,--rfcavity1,--rfcavity2,--sbend1,--sbend2,
+             --sbend3,--sbend4,--sbend5,--sbend6,--sbend7,--sextupole1,--solenoid1,--solenoid2,--sol_quad1,--sol_quad2,--vkicker1)
 l1: line = (l11,l12)
 
 l1[rel_tracking_charge] = -1
