@@ -247,7 +247,7 @@ use multipole_mod
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0, slave0, slave1
+type (ele_struct), pointer :: ele0, ele00, slave0, slave1
 type (floor_position_struct) floor0, floor, floor_ref
 type (ele_pointer_struct), allocatable :: eles(:)
 type (lat_param_struct) param
@@ -264,7 +264,7 @@ real(rp), save :: w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
 integer i, key, n_loc
 
-logical has_nonzero_pole, err
+logical has_nonzero_pole, err, calc_done
 logical, optional :: treat_as_patch
 
 character(16), parameter :: r_name = 'ele_geometry'
@@ -306,12 +306,40 @@ if (key == fiducial$ .or. key == girder$) then
       if (global_com%exit_on_error) call err_exit
       return
     endif
+
     ele0 => eles(1)%ele
+    calc_done = .false.
+
     select case (stream_ele_end(nint(ele%value(origin_ele_ref_pt$)), ele%orientation))
     case (upstream_end$)
       call ele_geometry (ele0%floor, ele0, floor_ref, -1.0_rp)
+
     case (center_pt$)
-      call ele_geometry (ele0%floor, ele0, floor_ref, -0.5_rp)
+      select case (ele0%key)
+      case (crystal$)
+        ele00 => pointer_to_next_ele(ele0, -1)
+        call floor_angles_to_w_mat (ele00%floor%theta, ele00%floor%phi, ele00%floor%psi, w_mat)
+        if (ele%value(tilt_corr$) /= 0) then
+          call w_mat_for_tilt(t_mat, ele%value(tilt_corr$))
+          w_mat = matmul(w_mat, t_mat)
+        endif
+
+        call w_mat_for_x_pitch (s_mat, ele0%value(graze_angle_in$))
+        w_mat = matmul (w_mat, s_mat)
+
+        if (ele%value(ref_tilt_tot$) /= 0) then
+          call w_mat_for_tilt(t_mat, ele%value(ref_tilt_tot$))
+          w_mat = matmul (t_mat, w_mat)
+          t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
+          w_mat = matmul (w_mat, t_mat)
+        endif
+        r0 = ele00%floor%r
+        calc_done = .true.
+
+      case default
+        call ele_geometry (ele0%floor, ele0, floor_ref, -0.5_rp)
+      end select
+
     case (downstream_end$)
       floor_ref = ele0%floor
     case default
@@ -319,8 +347,10 @@ if (key == fiducial$ .or. key == girder$) then
       if (global_com%exit_on_error) call err_exit
     end select
 
-    call floor_angles_to_w_mat (floor_ref%theta, floor_ref%phi, floor_ref%psi, w_mat)
-    r0 = floor_ref%r
+    if (.not. calc_done) then
+      call floor_angles_to_w_mat (floor_ref%theta, floor_ref%phi, floor_ref%psi, w_mat)
+      r0 = floor_ref%r
+    endif
 
   ! Fiducial with no origin ele: Use global origin.
   elseif (key == fiducial$) then
@@ -361,7 +391,7 @@ endif
 ! Note: 
 
 if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
-         ele%value(tilt$) /= 0) .or. &
+         ele%value(ref_tilt$) /= 0) .or. &
          phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == floor_shift$ .or. &
          (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
@@ -378,26 +408,20 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
   case (sbend$, multipole$)
     if (key == sbend$) then
       angle = leng * dble(ele%value(g$))
-      tlt = ele%value(tilt_tot$)
+      tlt = ele%value(ref_tilt_tot$)
       rho = 1.0_dp / ele%value(g$)
       s_ang = sin(angle); c_ang = cos(angle)
       r_vec = [rho * (c_ang - 1), 0.0_dp, rho * s_ang ]
     else
       angle = knl(0) * len_factor
       tlt = tilt(0)
-      s_ang = sin(angle); c_ang = cos(angle)
       r_vec = 0
     endif
 
-    s_mat(1,:) = [c_ang,  0.0_dp, -s_ang ]
-    s_mat(2,:) = [0.0_dp, 1.0_dp,  0.0_dp ]
-    s_mat(3,:) = [s_ang,  0.0_dp,  c_ang ]
+    call w_mat_for_x_pitch(s_mat, -angle)
 
     if (tlt /= 0) then
-      s_ang = sin(tlt); c_ang = cos(tlt)
-      t_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
-      t_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
-      t_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
+      call w_mat_for_tilt (t_mat, tlt)
 
       r_vec = matmul (t_mat, r_vec)
 
@@ -413,27 +437,20 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
 
   ! mirror
 
-  case (mirror$, crystal$)
+  case (mirror$, multilayer_mirror$, crystal$)
     
-    if (ele%key == mirror$) then
-      angle = 2 * ele%value(graze_angle$)
-    else
+    if (ele%key == crystal$) then
       angle = ele%value(graze_angle_in$) + ele%value(graze_angle_out$)
+    else
+      angle = 2 * ele%value(graze_angle$)
     endif
 
-    tlt = ele%value(tilt_tot$)
-    s_ang = sin(angle); c_ang = cos(angle)
+    angle = len_factor * angle
+    call w_mat_for_x_pitch (s_mat, -angle)
 
-    s_mat(1,:) = [ c_ang, 0.0_dp,  -s_ang ]
-    s_mat(2,:) = [0.0_dp, 1.0_dp,  0.0_dp ]
-    s_mat(3,:) = [ s_ang, 0.0_dp,   c_ang ]
-
+    tlt = ele%value(ref_tilt_tot$)
     if (tlt /= 0) then
-      s_ang = sin(tlt); c_ang = cos(tlt)
-      t_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
-      t_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
-      t_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
-
+      call w_mat_for_tilt(t_mat, tlt)
       s_mat = matmul (t_mat, s_mat)
       t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
       s_mat = matmul (s_mat, t_mat)
@@ -442,6 +459,13 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
     w_mat = matmul (w_mat, s_mat)
 
     call floor_w_mat_to_angles (w_mat, floor0%theta, theta, phi, psi)
+
+    ! Offset with Laue diffraction and finite crystal thickness.
+
+    if (ele%key == crystal$ .and. any(ele%value(l_x$:l_z$) /= 0)) then
+      print *, 'Lare offset not yet implemented!'
+      call err_exit
+    endif
 
   ! patch
 
@@ -953,12 +977,12 @@ end function position_in_global_frame
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-!  Subroutine switch_local_positions (position0, ele0, ele_try, position1, ele1, ww_mat)
+! Subroutine switch_local_positions (position0, ele0, ele_try, position1, ele1, ww_mat)
 ! 
-!  Subroutine to take a local position0 in ele0 and find a local position near ele_try
-!    If this position is beyond the bounds of ele_try, neighboring elements will be 
-!    stepped to until a containing element is found.
-!    Optionally returns the ww_mat = W1^T.W0 matrix needed to rotate vectors:  
+! Subroutine to take a local position0 in ele0 and find a local position near ele_try.
+! If this position is beyond the bounds of ele_try, neighboring elements will be 
+! stepped to until a containing element is found.
+! Optionally returns the ww_mat = W1^T.W0 matrix needed to rotate vectors:  
 !      W0.v0 = W1.v1 => W1^T.W0.v0 = v1
 !
 ! Input:
@@ -1026,5 +1050,107 @@ if (present(ww_mat) ) then
 endif
   
 end subroutine switch_local_positions
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine w_mat_for_x_pitch (w_mat, x_pitch)
+! 
+! Routine to return the transformation matrix for an x_pitch.
+!
+! Module needed:
+!   use lat_geometry_mod
+!
+! Input:
+!   x_pitch     -- real(rp): pitch angle
+!
+! Output:
+!   w_mat(3,3)  -- real(rp): Transformation matrix.
+!-   
+
+Subroutine w_mat_for_x_pitch (w_mat, x_pitch)
+
+implicit none
+
+real(rp) w_mat(3,3), x_pitch, c_ang, s_ang
+
+! An x_pitch corresponds to a rotation around the y axis.
+
+c_ang = cos(x_pitch); s_ang = sin(x_pitch)
+
+w_mat(1,:) = [ c_ang, 0.0_rp,   s_ang]
+w_mat(2,:) = [0.0_rp, 1.0_rp,  0.0_rp]
+w_mat(3,:) = [-s_ang, 0.0_rp,   c_ang]
+
+end subroutine w_mat_for_x_pitch
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine w_mat_for_y_pitch (w_mat, y_pitch)
+! 
+! Routine to return the transformation matrix for an y_pitch.
+!
+! Module needed:
+!   use lat_geometry_mod
+!
+! Input:
+!   y_pitch     -- real(rp): pitch angle
+!
+! Output:
+!   w_mat(3,3)  -- real(rp): Transformation matrix.
+!-   
+
+Subroutine w_mat_for_y_pitch (w_mat, y_pitch)
+
+implicit none
+
+real(rp) w_mat(3,3), y_pitch, c_ang, s_ang
+
+! An y_pitch corresponds to a rotation around the y axis.
+
+c_ang = cos(y_pitch); s_ang = sin(y_pitch)
+
+w_mat(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
+w_mat(1,:) = [0.0_rp,  c_ang,   s_ang]
+w_mat(3,:) = [0.0_rp, -s_ang,   c_ang]
+
+end subroutine w_mat_for_y_pitch
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine w_mat_for_tilt (w_mat, tilt)
+! 
+! Routine to return the transformation matrix for an tilt.
+!
+! Module needed:
+!   use lat_geometry_mod
+!
+! Input:
+!   tilt     -- real(rp): pitch angle
+!
+! Output:
+!   w_mat(3,3)  -- real(rp): Transformation matrix.
+!-   
+
+Subroutine w_mat_for_tilt (w_mat, tilt)
+
+implicit none
+
+real(rp) w_mat(3,3), tilt, c_ang, s_ang
+
+! An tilt corresponds to a rotation around the y axis.
+
+c_ang = cos(tilt); s_ang = sin(tilt)
+
+w_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
+w_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
+w_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
+
+end subroutine w_mat_for_tilt
 
 end module

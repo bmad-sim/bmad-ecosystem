@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 120
+integer, parameter :: bmad_inc_version$ = 121
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -422,21 +422,21 @@ type ele_struct
   character(200), pointer :: descrip => null() ! Description string.
   type (twiss_struct)  a, b, z                 ! Twiss parameters at end of element
   type (xy_disp_struct) x, y                   ! Projected dispersions.
-  type (bookkeeping_state_struct) bookkeeping_state         ! Element attribute bookkeeping
-  type (branch_struct), pointer :: branch => null()         ! Pointer to branch containing element.
-  type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
-  type (floor_position_struct) floor                        ! Global floor position.
-  type (ele_struct), pointer :: lord => null()              ! Pointer to a slice lord.
-  type (mode3_struct), pointer :: mode3 => null()           ! 6D normal mode structure.
-  type (fibre), pointer :: ptc_fibre => null()              ! PTC tracking.
-  type (genfield), pointer :: ptc_genfield => null()        ! For symp_map$
+  type (bookkeeping_state_struct) bookkeeping_state     ! Element attribute bookkeeping
+  type (branch_struct), pointer :: branch => null()     ! Pointer to branch containing element.
+  type (em_fields_struct), pointer :: em_field => null()! DC and AC E/M fields
+  type (floor_position_struct) floor                    ! Reference position in global coords.
+  type (ele_struct), pointer :: lord => null()          ! Pointer to a slice lord.
+  type (mode3_struct), pointer :: mode3 => null()       ! 6D normal mode structure.
+  type (fibre), pointer :: ptc_fibre => null()          ! PTC tracking.
+  type (genfield), pointer :: ptc_genfield => null()    ! For symp_map$
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
-                                                            ! Radiation integral calc cached values 
-  type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
+                                                        ! Radiation integral calc cached values 
+  type (rf_wake_struct), pointer :: rf_wake => null()   ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
   type (photon_surface_struct), pointer :: surface => null()
-  type (taylor_struct) :: taylor(6)                         ! Taylor terms
-  type (wall3d_struct), pointer :: wall3d => null()         ! Chamber or capillary wall
+  type (taylor_struct) :: taylor(6)                     ! Taylor terms
+  type (wall3d_struct), pointer :: wall3d => null()     ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()    ! Wiggler field
   type (coord_struct) map_ref_orb_in     ! Transfer map ref orbit at entrance end of element.
   type (coord_struct) map_ref_orb_out    ! Transfer map ref orbit at exit end of element.
@@ -685,10 +685,10 @@ integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
 integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
 integer, parameter :: abs_time_start$ = 8
 
-integer, parameter :: l$=1    ! Assumed unique. Do not overload.
-integer, parameter :: tilt$=2, command$=2
-integer, parameter :: tilt_err$ = 3, rf_frequency$=3, direction$=3
-integer, parameter :: old_command$=3, angle$=3, kick$=3, x_gain_err$=3
+integer, parameter :: l$=1                          ! Assumed unique. Do not assign 1 to another attribute.
+integer, parameter :: tilt$=2, command$=2, roll$=2  ! Important: tilt$ = roll$
+integer, parameter :: ref_tilt$ = 3, rf_frequency$=3, direction$=3
+integer, parameter :: old_command$=3, kick$=3, x_gain_err$=3
 integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displace$=4, y_gain_err$=4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
@@ -701,7 +701,7 @@ integer, parameter :: graze_angle_out$ = 7, ix_to_branch$=7
 integer, parameter :: rho$=8, voltage$=8, delta_e$ = 8
 integer, parameter :: charge$=8, x_gain_calib$=8, ix_to_element$=8
 integer, parameter :: d1_thickness$ = 9, voltage_err$=9, rel_tracking_charge$ = 9
-integer, parameter :: ks$=9, l_chord$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
+integer, parameter :: l_chord$=9, ks$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
 integer, parameter :: polarity$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
 integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10, gap$=10
 integer, parameter :: grad_loss_sr_wake$=11, ds_path_length$=11
@@ -722,7 +722,7 @@ integer, parameter :: kill_fringe$ = 19, dtheta_origin$ = 19
 integer, parameter :: b_param$ = 19
 integer, parameter :: l_hard_edge$ = 20, dphi_origin$ = 20, ref_cap_gamma$ = 20
 integer, parameter :: field_scale$ = 21, dpsi_origin$ = 21, darwin_width_sigma$ = 21
-integer, parameter :: roll$=22, n_cell$=22, x_ray_line_len$=22, darwin_width_pi$ = 22
+integer, parameter :: angle$=22, n_cell$=22, x_ray_line_len$=22, darwin_width_pi$ = 22
 
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
@@ -751,8 +751,8 @@ integer, parameter :: y_pitch_tot$ = 45
 integer, parameter :: x_offset_tot$ = 46
 integer, parameter :: y_offset_tot$ = 47
 integer, parameter :: z_offset_tot$ = 48
-integer, parameter :: tilt_tot$ = 49
-integer, parameter :: pole_radius$ = 50, tilt_err_tot$ = 50, roll_tot$ = 50
+integer, parameter :: tilt_tot$ = 49, roll_tot$ = 49  ! Important: tilt_tot$ = roll_tot$
+integer, parameter :: pole_radius$ = 50, ref_tilt_tot$ = 50
 integer, parameter :: n_ref_pass$ = 51
 integer, parameter :: radius$ = 52, kh_y_norm$ = 52
 integer, parameter :: ref_time_start$ = 53

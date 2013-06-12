@@ -1,39 +1,17 @@
 !+
-! Subroutine offset_photon (ele, coord, set, offset_position_only)
+! Subroutine offset_photon (ele, orbit, set, offset_position_only)
 !
 ! Routine to effectively offset an element by instead offsetting
 ! the photon position and field to correspond to the local crystal or mirror coordinates.
-!
-! Note: The transformation between local and lab coordinates does *not* include 
-! a transformation due to a finite graze angle. 
-! The reason why the graze angle is ignored is due to the fact that we want 
-! the transverse coordinates to be small (so we can do first order optics). 
-! However, the graze angle can be large and a transformation with a large angle
-! would result in large transverse coords.
-! Thus it is up to the calling routine to take care of a finite graze angle.
-! [Notice though, that the graze angle is used in the tilt_err transformation.]
-!
-! Because of the above, there are two sets of local coords: "Incoming" local coords
-! and "outgoing" local coords. In both cases the s-axis makes an angle of angle_graze
-! with respect to the element surface. 
-! The difference is that the angle between the s-axis of the outgoing coords and the 
-! s-axis of the incoming coords is 2*angle_graze.
-! The x-axis is similarly rotated. The y-axis is the same in both coords.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
 !   ele       -- Ele_struct: Element
-!     %value(x_offset$)     -- Horizontal offset of element.
-!     %value(x_pitch$)      -- Horizontal roll of element.
-!     %value(tilt_tot$)     -- tilt of element.
-!     %value(tilt_err_tot$) -- Error tilt of element.
-!   coord     -- Coord_struct: Coordinates of the particle.
-!     %vec(6)            -- Energy deviation dE/E. 
-!                          Used to modify %vec(2) and %vec(4)
+!   orbit     -- Coord_struct: Coordinates of the particle.
 !   set       -- Logical: 
-!                   T (= set$)   -> Translate from lab coords to incoming local 
+!                   T (= set$)   -> Translate from lab coords to local 
 !                                     element coords.
 !                   F (= unset$) -> Translate from outgoing local coords to lab coords.
 !   offset_position_only
@@ -42,21 +20,22 @@
 !                offsetting the field is not needed.
 !
 ! Output:
-!     coord -- Coord_struct: Coordinates of particle.
+!     orbit -- Coord_struct: Coordinates of particle.
 !-
 
-subroutine offset_photon (ele, coord, set, offset_position_only)
+subroutine offset_photon (ele, orbit, set, offset_position_only)
 
 use track1_mod, dummy => offset_photon
 
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct), target :: coord
+type (coord_struct), target :: orbit
 
-real(rp) c2g, s2g, ct, st, offset(6), tilt, r(3), ds_center
-real(rp) off(3), rot(3), project_x(3), project_y(3), project_s(3), rot_mat(3,3)
+real(rp) graze2, offset(6), tilt, r(3), ds_center, graze, sin_g, cos_g
+real(rp) off(3), rot(3), project(3,3), rot_mat(3,3)
 real(rp), pointer :: p(:), vec(:)
+
 complex(rp) efield_x, efield_y, efieldout_x, efieldout_y
 
 logical :: set
@@ -70,14 +49,14 @@ case (crystal$, mirror$, multilayer_mirror$)
   is_reflective_element = .true.
 case default
   is_reflective_element = .false.
-  ds_center = coord%vec(5) - ele%value(l$)/2
+  ds_center = orbit%vec(5) - ele%value(l$)/2
 end select
+
+p   => ele%value  ! parameter
+vec => orbit%vec
 
 !----------------------------------------------------------------
 ! Set...
-
-p   => ele%value  ! parameter
-vec => coord%vec
 
 if (set) then
 
@@ -86,8 +65,8 @@ if (set) then
   if (p(z_offset_tot$) /= 0) then
     vec(1) = vec(1) + vec(2) * p(z_offset_tot$) / vec(6)
     vec(3) = vec(3) + vec(4) * p(z_offset_tot$) / vec(6)
-    coord%t = coord%t + p(z_offset_tot$)  / vec(6) / c_light 
-    coord%s = coord%s + p(z_offset_tot$)
+    orbit%t = orbit%t + p(z_offset_tot$)  / vec(6) / c_light 
+    orbit%s = orbit%s + p(z_offset_tot$)
   endif
 
   ! Set: X and Y offsets
@@ -107,23 +86,49 @@ if (set) then
 
   ! Set: tilt
 
-  tilt = p(tilt_tot$) + p(tilt_err_tot$)
-  if (ele%key == crystal$) tilt = tilt - p(tilt_corr$)
+  select case (ele%key)
+  case (crystal$)
+    tilt = p(ref_tilt_tot$) + p(tilt_tot$) + p(tilt_corr$)
+  case (mirror$, multilayer_mirror$)
+    tilt = p(ref_tilt_tot$) + p(tilt_tot$)
+  case default
+    tilt = p(tilt_tot$)
+  end select
 
   call tilt_coords (tilt, vec)
 
-  ! Set: intensity and phase rotation due to the tilt + tilt_err
+  ! Set: intensity and phase rotation due to the tilt
 
   if (logic_option(.false., offset_position_only)) return
 
-  efield_x = coord%e_field_x * cmplx(cos(coord%phase_x), sin(coord%phase_x) )
-  efield_y = coord%e_field_y * cmplx(cos(coord%phase_y), sin(coord%phase_y) )
+  efield_x = orbit%e_field_x * cmplx(cos(orbit%phase_x), sin(orbit%phase_x) )
+  efield_y = orbit%e_field_y * cmplx(cos(orbit%phase_y), sin(orbit%phase_y) )
   efieldout_x = cos(tilt) * efield_x + sin(tilt)*efield_y
   efieldout_y = -sin(tilt) * efield_x + cos(tilt)*efield_y
-  coord%e_field_x = abs(efieldout_x)
-  coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
-  coord%e_field_y = abs(efieldout_y)
-  coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
+  orbit%e_field_x = abs(efieldout_x)
+  orbit%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
+  orbit%e_field_y = abs(efieldout_y)
+  orbit%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
+
+  ! Set: Rotate by the graze angle to body coords. Note vec(5) = 0 initially.
+
+  select case (ele%key)
+  case (crystal$)
+    graze = p(graze_angle_in$) 
+  case (mirror$, multilayer_mirror$)
+    graze = p(graze_angle$) 
+  case default
+    graze = 0
+  end select
+
+  if (graze /= 0) then
+    sin_g = sin(graze)
+    cos_g = cos(graze)
+
+    orbit%vec(2:6:2) =  [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
+                        -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
+    orbit%vec(1:5:2) = [cos_g * orbit%vec(1), orbit%vec(3), -sin_g * orbit%vec(1)]
+  endif
 
 !----------------------------------------------------------------
 ! Unset... 
@@ -134,69 +139,87 @@ else
 
   if (is_reflective_element) then
 
+    select case (ele%key)
+    case (crystal$)
+      graze = p(graze_angle_out$) 
+    case (mirror$, multilayer_mirror$)
+      graze = p(graze_angle$) 
+    end select
+
+    sin_g = sin(graze)
+    cos_g = cos(graze)
+
+    ! Translate momentum to laboratory exit coords
+    ! and compute position, backpropagating the ray.
+
+    orbit%vec(2:6:2) = [orbit%vec(2) * cos_g + orbit%vec(6) * sin_g, orbit%vec(4), &
+                       -orbit%vec(2) * sin_g + orbit%vec(6) * cos_g]
+
+    orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
+                       -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+
+    orbit%vec(1:5:2) = orbit%vec(1:5:2) - orbit%vec(2:6:2) * (orbit%vec(5) / orbit%vec(6))
+
     ! Unset: tilt
 
-    call tilt_coords (-p(tilt_tot$), vec)
+    call tilt_coords (-p(ref_tilt_tot$), vec)
 
-    ! Unset: tilt_err_tot
-    ! The difference between tilt_tot and tilt_err_tot is that tilt_tot also rotates the output 
-    ! laboratory coords but tilt_err_tot does not. 
-    ! The difference between tilt_err_tot with Set vs Unset is that the tilt_err_tot is 
+    ! Unset: tilt_tot
+    ! The difference between ref_tilt_tot and tilt_tot is that ref_tilt_tot also rotates the output 
+    ! laboratory coords but tilt_tot does not. 
+    ! The difference between tilt_tot with Set vs Unset is that the tilt_tot is 
     ! expressed in terms of the input lab coords.
 
-    if (ele%key == mirror$) then
-      c2g = cos(2*p(graze_angle$)) 
-      s2g = sin(2*p(graze_angle$))
-    else
-      c2g = cos(p(graze_angle_in$)+p(graze_angle_out$)) 
-      s2g = sin(p(graze_angle_in$)+p(graze_angle_out$))
-    endif
+    select case (ele%key)
+    case (mirror$, multilayer_mirror$)
+      graze2 = 2*p(graze_angle$)
+      tilt = p(tilt_tot$)
+    case (crystal$)
+      graze2 = p(graze_angle_in$)+p(graze_angle_out$)
+      tilt = p(tilt_tot$) + p(tilt_corr$)
+    end select
 
-    ct = cos(p(tilt_tot$)) 
-    st = sin(p(tilt_tot$))
+    ! project is the entrance coords in terms of the exit coords.
+    ! EG: project(1,:) is the entrance x-axis in the exit coords.
 
-    ! [project_x, project_y, project_z] is the matrix product of the matrices T.G.T^-1
-    ! T rotates x to y by tilt, G rotates z to x by sum of graze angles
-    ! project_x is the projection of the x-basis vector in the original basis onto the new basis
+    rot = [sin(p(ref_tilt_tot$)), -cos(p(ref_tilt_tot$)), 0.0_rp]
+    call axis_angle_to_w_mat (rot, graze2, project)
 
-    project_x = [c2g * ct**2 + st**2,      -ct * st + c2g * ct * st, -ct * s2g ]
-    project_y = [-ct * st + c2g * ct * st, ct**2 + c2g * st**2,      -s2g * st ] 
-    project_s = [ct * s2g,                 s2g * st,                 c2g       ]
-
-    if (p(tilt_err_tot$) /= 0) then
-
-      rot = project_s * p(tilt_err_tot$)
-
-      call tilt_coords (-rot(3), vec)
-
-      vec(2) = vec(2) + rot(2) 
-      vec(4) = vec(4) - rot(1)
-      vec(5) = vec(5) - vec(1) * rot(2) + vec(3) * rot(1)
-
+    if (tilt /= 0) then
+      call axis_angle_to_w_mat (project(3,:), tilt, rot_mat)
+      vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
+      vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
     endif
 
     ! Unset: pitch
     ! Since the pitches are with respect to the lab input coord system, we have
     ! to translate to the local output coords.
 
-    rot = project_x * p(y_pitch_tot$) - project_y * p(x_pitch_tot$)
+    if (p(x_pitch_tot$) /= 0) then
+      call axis_angle_to_w_mat (project(3,:), p(x_pitch_tot$), rot_mat)
+      vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
+      vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+    endif
 
-    vec(2) = vec(2) - rot(2)
-    vec(4) = vec(4) + rot(1)
-    vec(5) = vec(5) + vec(1) * rot(2) - vec(3) * rot(1)
+    if (p(y_pitch_tot$) /= 0) then
+      call axis_angle_to_w_mat (-project(2,:), p(y_pitch_tot$), rot_mat)
+      vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
+      vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+    endif
 
     ! Unset: offset
     ! Translate offsets to the local output coords.
 
-    off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * p(z_offset_tot$)
+    off = project(1,:) * p(x_offset_tot$) + project(2,:) * p(y_offset_tot$) + &
+          project(3,:) * p(z_offset_tot$)
 
     vec(1) = vec(1) + off(1)
     vec(3) = vec(3) + off(2)
     if (off(3) /= 0) then
       vec(1) = vec(1) - vec(2) * off(3)
       vec(3) = vec(3) - vec(4) * off(3)
-      coord%t = coord%t - p(z_offset_tot$)  / vec(6) / c_light 
-      coord%s = coord%s - p(z_offset_tot$)
+      orbit%t = orbit%t - p(z_offset_tot$)  / vec(6) / c_light 
+      orbit%s = orbit%s - p(z_offset_tot$)
     endif
 
   ! non-reflective element
@@ -205,8 +228,9 @@ else
 
     ! Unset: tilt
 
-    tilt = p(tilt_tot$) + p(tilt_err_tot$)
+    tilt = p(tilt_tot$)
     call tilt_coords (-tilt, vec)
+    rot = 0
 
     ! Unset: Pitch
 
@@ -228,23 +252,23 @@ else
     if (p(z_offset_tot$) /= 0) then
       vec(1) = vec(1) - vec(2) * p(z_offset_tot$) / vec(6)
       vec(3) = vec(3) - vec(4) * p(z_offset_tot$) / vec(6)
-      coord%t = coord%t - p(z_offset_tot$)  / vec(6) / c_light 
-      coord%s = coord%s - p(z_offset_tot$)
+      orbit%t = orbit%t - p(z_offset_tot$)  / vec(6) / c_light 
+      orbit%s = orbit%s - p(z_offset_tot$)
     endif
 
   endif
 
   ! Unset: intensities
 
-  efield_x = cmplx(coord%e_field_x*cos(coord%phase_x), coord%e_field_x*sin(coord%phase_x))
-  efield_y = cmplx(coord%e_field_y*cos(coord%phase_y), coord%e_field_y*sin(coord%phase_y))
-  tilt = p(tilt_tot$) + rot(3)
+  efield_x = cmplx(orbit%e_field_x*cos(orbit%phase_x), orbit%e_field_x*sin(orbit%phase_x))
+  efield_y = cmplx(orbit%e_field_y*cos(orbit%phase_y), orbit%e_field_y*sin(orbit%phase_y))
+  tilt = tilt + rot(3)
   efieldout_x = cos(tilt) * efield_x - sin(tilt)*efield_y
   efieldout_y = sin(tilt) * efield_x + cos(tilt)*efield_y
-  coord%e_field_x = abs(efieldout_x)
-  coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
-  coord%e_field_y = abs(efieldout_y)
-  coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
+  orbit%e_field_x = abs(efieldout_x)
+  orbit%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
+  orbit%e_field_y = abs(efieldout_y)
+  orbit%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
 
 endif
 

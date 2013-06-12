@@ -677,7 +677,7 @@ call mad_concat_map2 (map, map2, map)
 
 if (roll /= 0) map%k = map%k + map_roll%k
 
-if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
+if (ele%value(ref_tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(ref_tilt_tot$))
 
 end subroutine mad_sbend
 

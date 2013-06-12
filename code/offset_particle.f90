@@ -169,11 +169,11 @@ if (set) then
         cos_a = cos(angle); sin_a = sin(angle)
         dr = [2 * sin(angle/2)**2 / ele%value(g$), 0.0_rp, sin_a / ele%value(g$)]
 
-        if (ele%value(tilt_tot$) == 0) then
+        if (ele%value(ref_tilt_tot$) == 0) then
           off = [cos_a * x_off + sin_a * z_off, y_off, -sin_a * x_off + cos_a * z_off]
           rot = [-cos_a * yp, xp, sin_a * yp]
         else
-          cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
+          cos_t = cos(ele%value(ref_tilt_tot$));    sin_t = sin(ele%value(ref_tilt_tot$))
           m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
           m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
           m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
@@ -254,7 +254,11 @@ if (set) then
 
   if (set_t) then
 
-    call tilt_coords (ele%value(tilt_tot$), coord%vec)
+    if (ele%key == sbend$) then
+      call tilt_coords (ele%value(ref_tilt_tot$), coord%vec)
+    else
+      call tilt_coords (ele%value(tilt_tot$), coord%vec)
+    endif
 
     if (ele%key == sbend$ .and. ele%value(roll_tot$) /= 0) then
       angle = -ele%value(g$) * z_here
@@ -374,7 +378,11 @@ else
 
     endif
 
-    call tilt_coords (-ele%value(tilt_tot$), coord%vec)   
+    if (ele%key == sbend$) then
+      call tilt_coords (-ele%value(ref_tilt_tot$), coord%vec)
+    else
+      call tilt_coords (-ele%value(tilt_tot$), coord%vec)
+    endif
 
   endif
 
@@ -430,11 +438,11 @@ else
         cos_a = cos(angle); sin_a = sin(angle)
         dr = [2 * sin(angle/2)**2 / ele%value(g$), 0.0_rp, sin_a / ele%value(g$)]
 
-        if (ele%value(tilt_tot$) == 0) then
+        if (ele%value(ref_tilt_tot$) == 0) then
           off = [cos_a * x_off + sin_a * z_off, y_off, -sin_a * x_off + cos_a * z_off]
           rot = [-cos_a * yp, xp, sin_a * yp]
         else
-          cos_t = cos(ele%value(tilt_tot$));    sin_t = sin(ele%value(tilt_tot$))
+          cos_t = cos(ele%value(ref_tilt_tot$));    sin_t = sin(ele%value(ref_tilt_tot$))
           m_trans(1,:) = [cos_a * cos_t**2 + sin_t**2, (cos_a - 1) * cos_t * sin_t, cos_t * sin_a]
           m_trans(2,:) = [(cos_a - 1) * cos_t * sin_t, cos_a * sin_t**2 + cos_t**2, sin_a * sin_t]
           m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]

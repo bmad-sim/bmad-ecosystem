@@ -466,9 +466,9 @@ dvec_dt(6) = c_light*force(3)
 ! Curvilinear coordinates have added terms
 
 if (ele%key == sbend$) then   
-  if (ele%value(tilt_tot$) /= 0 .and. .not. local_ref_frame) then
-    kappa_x = ele%value(g$) * cos(ele%value(tilt_tot$))
-    kappa_y = ele%value(g$) * sin(ele%value(tilt_tot$))
+  if (ele%value(ref_tilt_tot$) /= 0 .and. .not. local_ref_frame) then
+    kappa_x = ele%value(g$) * cos(ele%value(ref_tilt_tot$))
+    kappa_y = ele%value(g$) * sin(ele%value(ref_tilt_tot$))
   else
     kappa_x = ele%value(g$)
     kappa_y = 0

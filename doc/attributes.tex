@@ -257,8 +257,8 @@ dependent attribute calculated from the reference energy.
   \label{f:pitch}
 \end{figure}
 
-The following ``\vn{orientational}'' attributes can reorient a physical
-element from the reference position:
+The following ``\vn{orientational}'' attributes can shift the physical
+element in space
 \begin{example}
   x_offset = <Real>
   y_offset = <Real>
@@ -266,51 +266,26 @@ element from the reference position:
   x_pitch  = <Real>
   y_pitch  = <Real>
   tilt     = <Real>    
-  tilt_err = <Real>    ! Crystal, mirror, and multilayer_mirror only.  
+  ref_tilt = <Real>    ! Shifts reference orbit.
   roll     = <Real>    ! Sbend and rbend only.
 \end{example}
-\index{patch}\index{branch}\index{photon_branch}\index{sbend}
-Not all of these attributes work for all element types.
-The following rules apply:
-  \begin{description}
-  \item[patch, branch, photon_branch] 
-These elements use their orientation attributes to modify the
-reference orbit itself.
-  \item[sbend, rbend]
-The \vn{tilt} attribute for bend elements controls the reference orbit.
-The \vn{roll} attribute is to be used rotate the physical element
-about the reference orbit (see below).
-  \item[crystal, mirror, multilayer_mirror]
-Like the bend elements, \vn{tilt} here controls the reference orbit.
-The \vn{tilt_err} attribute is to be used to rotate the physical
-element about the reference orbit.
-  \item[all other elements]
-Elements not mentioned above can use the \vn{tilt} attribute to 
-rotate the element about the reference orbit.
-  \end{description}
 
 \vn{x_offset} translates an element in the local $x$--direction
 as shown in \fig{f:pitch}. Similarly, \vn{y_offset} and 
 \vn{z_offset} translate an element along the local $y$ and 
-$z$--directions respectively. For a bend it is assumed that
-the bend angle is small and the rotation of the local reference
-axes through the bend is ignored.
+$z$--directions respectively.
 
-The \vn{x_pitch} and \vn{y_pitch} attributes rotate an element such
-that the unit $z$-axis vector attached to the element, in terms of the
-laboratory coordinate frame, is given by
+The \vn{x_pitch} attribute rotates an element such that the exit face
+of the element is displaced in the $+x$--direction as shown in
+figure~\ref{f:pitch}.  That is, \vn{x_pitch} represents a rotation
+around the positive $y$-axis.
 
-and the rotation axis is perpendicular to the laboratory $z$-axis and
-the element $z$-axis. Transformation formulas between laboratory and
-element reference frames is given in \sref{s:patch.coords}.
+Similarly, the \vn{y_pitch} attribute rotates an element about the
+negative $x$--axis so that the exit face of the element is displaced
+in the $+y$--direction. 
 
-If \vn{y_pitch} is zero, The \vn{x_pitch} attribute rotates an element
-about the $y$--axis so that the exit face of the element is displaced
-in the $+x$--direction as shown in figure~\ref{f:pitch}. Similarly, if
-\vn{x_pitch} is zero, the \vn{y_pitch} attribute rotates an element
-about the $x$--axis so that the exit face of the element is displaced
-in the $+y$--direction. The rotations are about the center of the
-element which is in contrast to the \vn{dtheta} and \vn{dphi}
+The \vn{x_pitch} and \vn{y_pitch} rotations are about the center of
+the element which is in contrast to the \vn{dtheta} and \vn{dphi}
 misalignment of \mad which rotate around the entrance point. In terms
 of rotation angle
 \index{MAD!element rotation origin}
@@ -377,6 +352,28 @@ the center of the bend. Shown here is the geometry for a bend with
 \vn{tilt} = 0. That is, the bend is in the $x-s$ plane.}
   \label{f:roll}
 \end{figure}
+
+
+
+\index{patch}\index{branch}\index{photon_branch}\index{sbend}
+Not all attributes are applicable to all element types. The following
+rules apply:
+  \begin{description}
+  \item[patch, branch, photon_branch] 
+These elements use their orientation attributes to modify the
+reference orbit itself.
+  \item[sbend, rbend]
+The \vn{tilt} attribute for bend elements controls the reference orbit.
+The \vn{roll} attribute is to be used rotate the physical element
+about the reference orbit (see below).
+  \item[crystal, mirror, multilayer_mirror]
+Like the bend elements, \vn{tilt} here controls the reference orbit.
+The \vn{tilt_err} attribute is to be used to rotate the physical
+element about the reference orbit.
+  \item[all other elements]
+Elements not mentioned above can use the \vn{tilt} attribute to 
+rotate the element about the reference orbit.
+  \end{description}
 
 \index{x_offset_tot|hyperbf}\index{y_offset_tot|hyperbf}\index{z_offset_tot|hyperbf}
 \index{x_pitch_tot|hyperbf}\index{y_pitch_tot|hyperbf}

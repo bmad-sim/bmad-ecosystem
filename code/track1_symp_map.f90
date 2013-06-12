@@ -4,9 +4,6 @@
 ! Particle tracking through a single element using a partially inverted taylor
 ! map (In PTC/FPP this is called a genfield). 
 !
-! Note: It is assumed that HKICK and VKICK are the kicks in the horizontal
-! and vertical kicks irregardless of the value for TILT.
-!
 ! Modules Needed:
 !   use bmad
 !

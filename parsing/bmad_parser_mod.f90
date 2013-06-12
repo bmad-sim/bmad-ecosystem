@@ -480,6 +480,10 @@ if (ix_word == 0) then  ! no word
   return
 endif
 
+if (word == 'TILT' .and. (ele%key == sbend$ .or. ele%key == rbend$)) then
+  call parser_error ('BENDS HAVE A "REF_TILT" ATTRIBUTE BUT NOT A "TILT" ATTRIBUTE.')
+endif
+
 word = parser_translate_attribute_name (ele%key, word)
 
 ix_attrib = attribute_index(ele, word, attrib_word)
@@ -985,9 +989,6 @@ if (delim /= '=')  then
 
   if (attrib_word == 'TILT') then
     select case (ele%key)
-    case (sbend$, rbend$, mirror$)
-      ele%value(tilt$) = pi / 2
-      return
     case (quadrupole$, sol_quad$) 
       ele%value(tilt$) = pi / 4
       return

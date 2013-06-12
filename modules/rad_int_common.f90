@@ -266,7 +266,7 @@ type (lat_param_struct) param
 real(rp) z_here, v(4,4), v_inv(4,4), s1, s2, error
 real(rp) f0, f1, del_z, c, s, x, y
 real(rp) eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
-real(rp) dz, z1
+real(rp) dz, z1, tilt
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky
 
 integer i0, i1, tm_saved, m6cm_saved
@@ -328,8 +328,14 @@ if (associated(info%cache_ele)) then
 
   ! Now convert the g calc back to lab coords.
   
-  if (ele%value(tilt_tot$) /= 0) then
-    c = cos(ele%value(tilt_tot$)); s = sin(ele%value(tilt_tot$)) 
+  if (ele%key == sbend$) then
+    tilt = ele%value(ref_tilt_tot$) + ele%value(roll$)  ! Small angle approx.
+  else
+    tilt = ele%value(tilt_tot$) 
+  endif
+
+  if (tilt /= 0) then
+    c = cos(tilt); s = sin(tilt) 
     x = info%g_x; y = info%g_y
     info%g_x = c * x - s * y
     info%g_y = s * x + c * y
