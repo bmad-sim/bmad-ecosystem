@@ -448,7 +448,7 @@ do ir = 1, branch%n_ele_track
           key /= hkicker$ .and. key /= vkicker$) cycle
 
   if (key == sbend$) then
-    theta = ele%value(tilt_tot$) + ele%value(roll$)
+    theta = ele%value(ref_tilt_tot$) + ele%value(roll_tot$)
     pt%g_x0 =  cos(theta) * ele%value(g$)
     pt%g_y0 = -sin(theta) * ele%value(g$)
     g2 = ele%value(g$)**2

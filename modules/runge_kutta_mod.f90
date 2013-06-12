@@ -505,9 +505,9 @@ f_bend = 1
 gx_bend = 0; gy_bend = 0
 
 if (ele%key == sbend$) then
-  if (ele%value(tilt_tot$) /= 0 .and. .not. local_ref_frame) then
-    gx_bend = ele%value(g$) * cos(ele%value(tilt_tot$))
-    gy_bend = ele%value(g$) * sin(ele%value(tilt_tot$))
+  if (ele%value(ref_tilt_tot$) /= 0 .and. .not. local_ref_frame) then
+    gx_bend = ele%value(g$) * cos(ele%value(ref_tilt_tot$))
+    gy_bend = ele%value(g$) * sin(ele%value(ref_tilt_tot$))
   else
     gx_bend = ele%value(g$)
   endif

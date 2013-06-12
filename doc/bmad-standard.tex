@@ -75,7 +75,7 @@ elements, the three element coordinate systems are shown in
 \fig{f:photon.ele.coords}. In the \vn{element entrance
 coordinates}, the surface normal $\bfhat n$ is in the $x$-$z$ plane
 and the $y$ axis will be parallel to the surface. This is a
-consequence of the convention that, with no tilt, the bend is about
+consequence of the convention that, with no \vn{ref_tilt}, the bend is about
 the $y$-axis (\sref{s:global}). The \vn{element body coordinates} are
 derived from the \vn{element entrance coordinates} by a rotation about
 the $y$-axis so that in the body coordinates, the $x$ axis points
@@ -189,7 +189,7 @@ is the same point around which the element is pitched so
 \end{align}
 where $x_{\mbox{off}} \equiv \vn{x_offset}$, $x'_{pitch} \equiv \vn{x_pitch}$, etc.
 \item
-Apply \vn{tilt} and \vn{tilt_err}:
+Apply \vn{ref_tilt} and \vn{tilt}:
 \begin{align}
   \begin{pmatrix} x_2 \\ y_2 \end{pmatrix} &=
     \bfR (\theta_{tot}) \,   
@@ -209,13 +209,13 @@ In the above equations $\bfR$ is the rotation matrix
 \Begineq
   \bfR(\theta) = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}
 \Endeq
-\index{tilt}\index{tilt_err}\index{tilt_corr}
+\index{tilt}\index{ref_tilt}\index{tilt_corr}
 with $\theta_{tot}$ being 
 \Begineq
   \theta_{tot}  = 
   \begin{cases}
-    \vn{tilt} + \vn{tilt_err} + \vn{tilt_corr} & \vn{for crystal elements} \\
-    \vn{tilt} + \vn{tilt_err} & \vn{for mirror elements}
+    \vn{ref_tilt} + \vn{tilt} + \vn{tilt_corr} & \vn{for crystal elements} \\
+    \vn{ref_tilt} + \vn{tilt} & \vn{for mirror elements}
   \end{cases}
   \label{tttt}
 \Endeq
@@ -230,28 +230,28 @@ The back transformation from exit element coordinates to exit
 laboratory coordinates is accomplished by the transformation
   \begin{enumerate}
   \item
-Apply \vn{tilt} and \vn{tilt_err}: \vn{tilt} rotates the exit
+Apply \vn{ref_tilt} and \vn{tilt}: \vn{ref_tilt} rotates the exit
 laboratory coordinates with respect to the exit element coordinates in
-the same way \vn{tilt} rotates the entrance laboratory coordinates
+the same way \vn{ref_tilt} rotates the entrance laboratory coordinates
 with respect to the entrance element coordinates. The forward and back
 transformations are thus just inverses of each other.  With
-\vn{tilt_err}, this is not true. \vn{tilt_err}, unlike \vn{tilt}, does
+\vn{tilt}, this is not true. \vn{tilt}, unlike \vn{ref_tilt}, does
 not rotate the output laboratory coordinates.  There is the further
-complication in that \vn{tilt_err} is a rotation about the {\em
+complication in that \vn{tilt} is a rotation about the {\em
 entrance} laboratory coordinates. The first step is to express
-\vn{tilt_err} with respect to the exit coordinates. This is done with
+\vn{tilt} with respect to the exit coordinates. This is done with
 the help of the $\bfS$ matrix of \Eq{ltl} with $\alpha$ given by
-\Eq{agg}. The effect of the \vn{tilt_err} can be modeled as a rotation
+\Eq{agg}. The effect of the \vn{tilt} can be modeled as a rotation
 vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing
 along the $z$-axis
 \Begineq
- \Bf e_{in} = (0, 0, \mbox{tilt_err})
+ \Bf e_{in} = (0, 0, \mbox{tilt})
 \Endeq
 In the exit laboratory coordinates, the vector $\Bf e_{out}$ is
 \Begineq
   \Bf e_{out} = \bfS \, \Bf e_{in}
 \Endeq
-The $z$ component of $\Bf e_{out}$ combines with \vn{tilt} to give
+The $z$ component of $\Bf e_{out}$ combines with \vn{ref_tilt} to give
 the transformation
 \begin{align}
   \begin{pmatrix} x_2 \\ y_2 \end{pmatrix} &=
@@ -261,7 +261,7 @@ the transformation
   \begin{pmatrix} \bfE_{x2} \\ \bfE_{y2} \end{pmatrix} &=
     \bfR (-\theta_{t}) \,   \begin{pmatrix} \bfE_{x1} \\ \bfE_{y1} \end{pmatrix} \nonumber
 \end{align}
-where $\theta_t$ is $\mbox{tilt} + \Bf e_{out,z}$. The $x$ and $y$ components
+where $\theta_t$ is $\mbox{ref_tilt} + \Bf e_{out,z}$. The $x$ and $y$ components
 of $\Bf e_{out}$ give rotations around the $x$ and $y$ axes
 \begin{align}
   p_{x3} &= p_{x2} - \Bf e_{out,y} \CRNO
@@ -546,14 +546,14 @@ $\theta_{g,in}+\theta_{g,out}$ as explained in section
   = \bfR_y(\theta_{g,in}+\theta_{g,out})
 \Endeq
 
-\index{tilt}\index{psi_angle}
+\index{ref_tilt}\index{psi_angle}
 When $\psi_H$ is non-zero, the situation is complicated since, if
 $\bfS$ as calculated above is used, the vector $\bfkbar_H$ would be
 bent out of the $x$-$z$ plane even though it has been assumed that the
-tilt $\theta_t$ is zero. But $\bfkbar_H$ points in the same direction
+\vn{ref_tilt} $\theta_t$ is zero. But $\bfkbar_H$ points in the same direction
 as the $z$ axis of the outgoing reference trajectory. Furthermore, by
 {\em definition}, the reference trajectory has the form given by
-\Eq{lrca1} with the $\bfT$ matrix depending only upon the \vn{tilt}
+\Eq{lrca1} with the $\bfT$ matrix depending only upon the \vn{ref_tilt}
 parameter (which is here taken to be zero). To satisfy \Eq{lrca1}, the
 crystal must be reorientated to keep the $\bfk_H$ vector in the
 $x$-$z$ plane of the laboratory entrance coordinates.  The

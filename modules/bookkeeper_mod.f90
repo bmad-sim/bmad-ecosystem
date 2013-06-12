@@ -1538,11 +1538,11 @@ if (has_orientation_attributes(slave)) then
 
   if (slave%key == sbend$ .and. value(g$) /= 0) then
 
-    roll = value(roll_tot$);      tilt = value(tilt_tot$)
+    roll = value(roll_tot$);      tilt = value(ref_tilt_tot$)
     off = [value(x_offset_tot$), value(y_offset_tot$), value(z_offset_tot$)]
     xp    = value(x_pitch_tot$);   yp    = value(y_pitch_tot$)
 
-    value(tilt$) = tilt
+    value(ref_tilt$) = tilt
 
     if (any(off /= 0) .or. xp /= 0 .or. yp /= 0 .or. roll /= 0) then
       angle =  s_del * value(g$)
@@ -1595,11 +1595,7 @@ if (has_orientation_attributes(slave)) then
   ! Not an sbend
 
   else
-    if (slave%key == sbend$) then
-      value(roll$)   = value(roll_tot$)
-    else
-      value(tilt$)   = value(tilt_tot$)
-    endif
+    value(tilt$)     = value(tilt_tot$)
     value(x_pitch$)  = value(x_pitch_tot$)
     value(y_pitch$)  = value(y_pitch_tot$)
     value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
@@ -1728,8 +1724,8 @@ type (floor_position_struct) slave_floor
 
 real(rp) value(num_ele_attrib_extended$), coef, ds, s_slave
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
-real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_off_tot(3,3)
-real(rp) w_slave_off_tot(3,3), w_slave_off(3,3)
+real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_mis_tot(3,3)
+real(rp) w_slave_mis_tot(3,3), w_slave_mis(3,3), dr
 real(rp), pointer :: v(:), vs(:), tt
 
 integer i, ix_con, ix, iv, ix_slave, icom, l_stat
@@ -1761,9 +1757,10 @@ do i = 1, slave%n_lord
   if (lord%lord_status == girder_lord$ .and. has_orientation_attributes(slave)) then
     v => lord%value
     if (v(x_offset_tot$) == 0 .and. v(y_offset_tot$) == 0 .and. v(z_offset_tot$) == 0 .and. &
-        v(x_pitch_tot$) == 0 .and. v(y_pitch_tot$) == 0 .and. v(tilt_tot$) == 0) cycle
-    ! Transformation to get the total offsets:
-    !   T_slave_off_tot = T_slave^-1 . T_gird . T_gird_off_tot T_gird^-1 . T_slave . T_slave_off
+        v(x_pitch_tot$) == 0 .and. v(y_pitch_tot$) == 0 .and. v(tilt_tot$) == 0 .and. v(ref_tilt_tot$) /= 0) cycle
+    ! Transformation to get the total misalignment:
+    !   T_slave_mis_tot = G_slave^-1 . G_gird . T_gird_mis_tot . G_gird^-1 . G_slave . T_slave_mis
+    ! where G = transformation wrt Global coordinate system.
     select case (slave%key)
     case (crystal$, mirror$, multilayer_mirror$)
       slave0 => pointer_to_next_ele (slave, -1) 
@@ -1776,22 +1773,31 @@ do i = 1, slave%n_lord
     w_gs = matmul(w_slave_inv, w_gird)
     l_gs = matmul(w_slave_inv, (lord%floor%r - slave_floor%r))
 
-    call floor_angles_to_w_mat (v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$), w_gird_off_tot)
+    call floor_angles_to_w_mat (v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$), w_gird_mis_tot)
     l_slave_off_tot = matmul(w_gs, [v(x_offset_tot$), v(y_offset_tot$), v(z_offset_tot$)]) + l_gs
-    w_slave_off_tot = matmul(w_gs, w_gird_off_tot)
+    w_slave_mis_tot = matmul(w_gs, w_gird_mis_tot)
 
-    w_slave_off_tot = matmul(w_slave_off_tot, transpose(w_gs))     ! Transpose = inverse
-    l_slave_off_tot = matmul(w_slave_off_tot, -l_gs) + l_slave_off_tot
+    w_slave_mis_tot = matmul(w_slave_mis_tot, transpose(w_gs))     ! Transpose = inverse
+    l_slave_off_tot = matmul(w_slave_mis_tot, -l_gs) + l_slave_off_tot
 
     vs => slave%value
-    call floor_angles_to_w_mat (vs(x_pitch$), vs(y_pitch$), non_ref_tilt(slave), w_slave_off)
-    l_slave_off_tot = matmul(w_slave_off_tot, [vs(x_offset$), vs(y_offset$), vs(z_offset$)]) + l_slave_off_tot
-    w_slave_off_tot = matmul(w_slave_off_tot, w_slave_off)
+    call floor_angles_to_w_mat (vs(x_pitch$), vs(y_pitch$), vs(tilt$), w_slave_mis)
+    l_slave_off_tot = matmul(w_slave_mis_tot, [vs(x_offset$), vs(y_offset$), vs(z_offset$)]) + l_slave_off_tot
+    w_slave_mis_tot = matmul(w_slave_mis_tot, w_slave_mis)
 
-    call floor_w_mat_to_angles (w_slave_off_tot, 0.0_rp, vs(x_pitch_tot$), vs(y_pitch_tot$), non_ref_tilt_tot(slave))
-    vs(x_offset_tot$) = l_slave_off_tot(1)
-    vs(y_offset_tot$) = l_slave_off_tot(2)
-    vs(z_offset_tot$) = l_slave_off_tot(3)
+    ! If slave is an sbend then correct offsets since roll axis is displaced from the bend center.
+    if (slave%key == sbend$ .and. vs(g$) /= 0) then
+      call floor_w_mat_to_angles (w_slave_mis_tot, 0.0_rp, vs(x_pitch_tot$), vs(y_pitch_tot$), vs(roll_tot$))
+      dr = (1 - cos(vs(angle$)/2)) / vs(g$)
+      vs(x_offset_tot$) = l_slave_off_tot(1) + dr * (1 - cos(vs(roll_tot$)))
+      vs(y_offset_tot$) = l_slave_off_tot(2) - dr * sin(vs(roll_tot$))  
+      vs(z_offset_tot$) = l_slave_off_tot(3) 
+    else
+      call floor_w_mat_to_angles (w_slave_mis_tot, 0.0_rp, vs(x_pitch_tot$), vs(y_pitch_tot$), vs(tilt_tot$))
+      vs(x_offset_tot$) = l_slave_off_tot(1)
+      vs(y_offset_tot$) = l_slave_off_tot(2)
+      vs(z_offset_tot$) = l_slave_off_tot(3)
+    endif
 
     on_an_offset_girder = .true.
     cycle
@@ -1838,10 +1844,14 @@ if (.not. on_an_offset_girder .and. has_orientation_attributes(slave)) then
   select case (slave%key)
   case (sbend$)
     slave%value(roll_tot$)     = slave%value(roll$)
+    slave%value(ref_tilt_tot$) = slave%value(ref_tilt$)
   case (crystal$, mirror$, multilayer_mirror$)
-    slave%value(tilt_err_tot$)     = slave%value(tilt_err$)
+    slave%value(tilt_tot$)     = slave%value(tilt$)
+    slave%value(ref_tilt_tot$) = slave%value(ref_tilt$)
+  case default
+    slave%value(tilt_tot$)     = slave%value(tilt$)
   end select
-  slave%value(tilt_tot$)     = slave%value(tilt$)
+
   slave%value(x_offset_tot$) = slave%value(x_offset$)
   slave%value(y_offset_tot$) = slave%value(y_offset$)
   slave%value(z_offset_tot$) = slave%value(z_offset$)
@@ -2019,11 +2029,15 @@ endif
 if (.not. on_a_girder(ele) .and. has_orientation_attributes(ele)) then
   select case (ele%key)
   case (sbend$)
-    val(roll_tot$) = val(roll$)
+    val(roll_tot$)     = val(roll$)
+    val(ref_tilt_tot$) = val(ref_tilt$)
   case (crystal$, mirror$, multilayer_mirror$)
-    val(tilt_err_tot$) = val(tilt_err$)
+    val(tilt_tot$)     = val(tilt$)
+    val(ref_tilt_tot$) = val(ref_tilt$)
+  case default
+    val(tilt_tot$)     = val(tilt$)
   end select
-  val(tilt_tot$)     = val(tilt$)
+
   val(x_offset_tot$) = val(x_offset$)
   val(y_offset_tot$) = val(y_offset$)
   val(z_offset_tot$) = val(z_offset$)

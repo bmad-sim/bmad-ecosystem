@@ -855,7 +855,7 @@ if(isTreatedHere) then
     ! call compute_quaternion (map%kappa, a(4))
 
     ! Need to insert kappa terms for lcavity. For now, use questionable renormalization for lcavity
-    if ( key == lcavity$ ) then
+    if (key == lcavity$) then
       a(4) = sqrt(1.0 - (a(1)**2 + a(2)**2 + a(3)**2))
     else
       call compute_quaternion (map%kappa, a(4))
@@ -1216,19 +1216,19 @@ endif
 
 if (set_t .and. ele%key == sbend$) then
   angle = ele%value(l$) * ele%value(g$)
-  if (angle /= old_angle .or. ele%value(roll$) /= old_roll) then
+  if (angle /= old_angle .or. ele%value(roll_tot$) /= old_roll) then
     if (ele%value(roll$) == 0) then
       del_x_vel = 0
       del_y_vel = 0
     else if (abs(ele%value(roll$)) < 0.001) then
       del_x_vel = angle * ele%value(roll$)**2 / 4
-      del_y_vel = -angle * sin(ele%value(roll$)) / 2
+      del_y_vel = -angle * sin(ele%value(roll_tot$)) / 2
     else
-      del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2
-      del_y_vel = -angle * sin(ele%value(roll$)) / 2
+      del_x_vel = angle * (1 - cos(ele%value(roll_tot$))) / 2
+      del_y_vel = -angle * sin(ele%value(roll_tot$)) / 2
     endif
     old_angle = angle
-    old_roll = ele%value(roll$)
+    old_roll = ele%value(roll_tot$)
   endif
 endif
 
@@ -1243,11 +1243,11 @@ if (set) then
 
   ! Set: pitch
   ! contrary to offset_particle no dependence on E_rel
-  if (x_pitch_tot$/=0.) then
+  if (ele%value(x_pitch_tot$) /= 0) then
     call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, ele%value(x_pitch_tot$), a)
     call quaternion_track (a, coord%spin)
   endif
-  if (y_pitch_tot$/=0.) then
+  if (ele%value(y_pitch_tot$) /= 0) then
     call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, ele%value(y_pitch_tot$), a)
     call quaternion_track (a, coord%spin)
   endif
@@ -1257,11 +1257,11 @@ if (set) then
   ! Note: Since this is applied before tilt_coords, kicks are independent of any tilt.
 
   if (set_hv1) then
-      if (hkick$/=0.) then
+      if (ele%value(hkick$) /= 0) then
         call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
-      if (vkick$/=0.) then
+      if (ele%value(vkick$) /= 0) then
         call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
@@ -1277,20 +1277,25 @@ if (set) then
   ! Set: Tilt
   ! A non-zero roll has a zeroth order effect that must be included
 
-  if (set_t .and. (tilt_tot$/=0. .or. roll$/=0.)) then
+  if (set_t) then 
 
     if (ele%key == sbend$) then
-      if (ele%value(roll$) /= 0) then
+      if (ele%value(roll_tot$) /= 0) then
         call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, -a_gamma_plus * del_x_vel, a)
         call quaternion_track (a, coord%spin)
         call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, -a_gamma_plus * del_y_vel, a)
         call quaternion_track (a, coord%spin)
       endif
-      call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, ele%value(tilt_tot$)+ele%value(roll$), a)
-      call quaternion_track (a, coord%spin)
+      if (ele%value(ref_tilt_tot$)+ele%value(roll_tot$) /= 0) then
+        call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, ele%value(ref_tilt_tot$)+ele%value(roll_tot$), a)
+        call quaternion_track (a, coord%spin)
+      endif
+
     else
-      call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, ele%value(tilt_tot$), a)
-      call quaternion_track (a, coord%spin)
+      if (ele%value(tilt_tot$) /= 0) then
+        call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, ele%value(tilt_tot$), a)
+        call quaternion_track (a, coord%spin)
+      endif
     endif
 
   endif
@@ -1305,21 +1310,21 @@ if (set) then
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
-      if (kick$/=0.) then
+      if (ele%value(kick$) /= 0) then
         call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
     elseif (ele%key == vkicker$) then
-      if (kick$/=0.) then
+      if (ele%value(kick$) /= 0) then
         call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
     else ! i.e. elseif (ele%key == kicker$) then
-      if (hkick$/=0.) then
+      if (ele%value(hkick$) /= 0) then
         call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
-      if (vkick$/=0.) then
+      if (ele%value(vkick$) /= 0) then
         call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
@@ -1340,21 +1345,21 @@ else
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
-      if (kick$/=0.) then
+      if (ele%value(kick$) /= 0) then
         call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
     elseif (ele%key == vkicker$) then
-      if (kick$/=0.) then
+      if (ele%value(kick$) /= 0) then
         call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
     else ! i.e. elseif (ele%key == kicker$) then
-      if (vkick$/=0.) then
+      if (ele%value(vkick$) /= 0) then
         call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
-      if (hkick$/=0.) then
+      if (ele%value(hkick$) /= 0) then
         call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
@@ -1364,20 +1369,24 @@ else
 
   ! Unset: Tilt
 
-  if (set_t .and. (tilt_tot$/=0. .or. roll$/=0.)) then
-
+  if (set_t) then
     if (ele%key == sbend$) then
-      call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, -(ele%value(tilt_tot$)+ele%value(roll$)), a)
-      call quaternion_track (a, coord%spin)
-      if (ele%value(roll$) /= 0) then
+      if (ele%value(tilt_tot$)+ele%value(roll_tot$) /= 0) then
+        call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, -(ele%value(tilt_tot$)+ele%value(roll_tot$)), a)
+        call quaternion_track (a, coord%spin)
+      endif
+      if (ele%value(roll_tot$) /= 0) then
         call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, -a_gamma_plus * del_y_vel, a)
         call quaternion_track (a, coord%spin)
         call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, -a_gamma_plus * del_x_vel, a)
         call quaternion_track (a, coord%spin)
       endif
+
     else
-      call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, -ele%value(tilt_tot$), a)
-      call quaternion_track (a, coord%spin)
+      if (ele%value(tilt_tot$) /= 0) then
+        call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, -ele%value(tilt_tot$), a)
+        call quaternion_track (a, coord%spin)
+      endif
     endif
 
   endif
@@ -1392,11 +1401,11 @@ else
   ! HV kicks must come after z_offset but before any tilts are applied.
 
   if (set_hv1) then
-      if (vkick$/=0.) then
+      if (ele%value(vkick$) /= 0) then
         call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
-      if (hkick$/=0.) then
+      if (ele%value(hkick$) /= 0) then
         call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
         call quaternion_track (a, coord%spin)
       endif
@@ -1404,11 +1413,11 @@ else
 
   ! Unset: (Offset and) pitch
 
-  if (y_pitch_tot$/=0.) then
+  if (ele%value(y_pitch_tot$) /= 0) then
     call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, -ele%value(y_pitch_tot$), a)
     call quaternion_track (a, coord%spin)
   endif
-  if (x_pitch_tot$/=0.) then
+  if (ele%value(x_pitch_tot$) /= 0) then
     call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, -ele%value(x_pitch_tot$), a)
     call quaternion_track (a, coord%spin)
   endif

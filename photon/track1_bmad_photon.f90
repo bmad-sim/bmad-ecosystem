@@ -134,26 +134,7 @@ case (match$)
 case (mirror$)
 
   call offset_photon (ele, end_orb, set$)
-
-  call to_crystal_surface_coords (ele, ele%value(graze_angle$), end_orb, vel_vec, hit_point, cos_g, sin_g)
-
-  ! Check aperture
-
-  if (ele%aperture_at == surface$) then
-    temp_orb%vec(1:5:2) = hit_point 
-    call check_aperture_limit (temp_orb, ele, surface$, param)
-    if (end_orb%state /= alive$) return
-  endif
-
-  ! Reflect
-
-  if (ele%surface%has_curvature) then
-    print *, 'MIRROR CURVATURE NOT YET IMPLEMENTED!'
-    call err_exit
-  else
-    end_orb%vec(1:4) = [-end_orb%vec(1), -end_orb%vec(2), end_orb%vec(3), end_orb%vec(4)]
-  endif
-
+  call track1_mirror (ele, param, end_orb)
   call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------
@@ -187,9 +168,7 @@ case (patch$)
 
   end_orb%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
   end_orb%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
-
-  end_orb%vec(5) = end_orb%vec(5) + r_vec(3) / p_vec(3) + &
-                    end_orb%beta * (ele%value(z_offset$) + c_light * ele%value(t_offset$))
+  end_orb%vec(5) = -r_vec(3)
 
 !-----------------------------------------------
 ! Taylor

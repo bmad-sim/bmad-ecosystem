@@ -771,10 +771,10 @@ if (.not. has_orientation_attributes(ele)) return
 select case (ele%key)
 case (sbend$)
   if (ele%value(roll_tot$) /= 0) has_offset = .true.
-  if (ele%value(tilt_tot$) /= 0) has_offset = .true.
+  if (ele%value(ref_tilt_tot$) /= 0) has_offset = .true.
 case (mirror$, multilayer_mirror$, crystal$)
-  if (ele%value(tilt_err_tot$) /= 0) has_offset = .true.
   if (ele%value(tilt_tot$) /= 0) has_offset = .true.
+  if (ele%value(ref_tilt_tot$) /= 0) has_offset = .true.
 case default
   if (ele%value(tilt_tot$) /= 0) has_offset = .true.
 end select
@@ -793,7 +793,7 @@ end function ele_has_offset
 !+
 ! Subroutine zero_ele_offsets (ele)
 !
-! Subroutine to zero the offsets, pitches and tilt of an element.
+! Subroutine to zero the offsets, pitches, tilt and ref_tilt of an element.
 ! Also see: ele_has_offset, zero_ele_kicks, ele_has_nonzero_kick
 !
 ! Modules needed:
@@ -820,13 +820,13 @@ select case (ele%key)
 case (sbend$)
   ele%value(roll$) = 0
   ele%value(roll_tot$) = 0
-  ele%value(tilt$) = 0
-  ele%value(tilt_tot$) = 0
+  ele%value(ref_tilt$) = 0
+  ele%value(ref_tilt_tot$) = 0
 case (mirror$, multilayer_mirror$, crystal$)
-  ele%value(tilt_err$) = 0
-  ele%value(tilt_err_tot$) = 0
   ele%value(tilt$) = 0
   ele%value(tilt_tot$) = 0
+  ele%value(ref_tilt$) = 0
+  ele%value(ref_tilt_tot$) = 0
 case default
   ele%value(tilt$) = 0
   ele%value(tilt_tot$) = 0
@@ -1653,90 +1653,6 @@ do i = 1, ele%n_lord
 enddo
 
 end subroutine set_lords_status_stale
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function non_ref_tilt (ele) result (tilt_ptr)
-!
-! Routine to return a pointer to the attribute of ele
-! that "tilts" the element but does not tilt the reference trajectory.
-! For crystal, mirror, multilayer_mirror elements this is:
-!    ele%value(tilt_err$)
-! For sbend and rbend elements this is 
-!    ele%value(roll$)
-! For all other elements this is:
-!    ele%value(tilt$)
-!
-! Input:
-!   ele -- ele_struct: Element
-!
-! Output:
-!   tilt_ptr -- real(rp), pointer: Pointer to non-reference tilt parameter.
-!-
-
-function non_ref_tilt (ele) result (tilt_ptr)
-
-implicit none
-
-type (ele_struct), target :: ele
-real(rp), pointer :: tilt_ptr
-
-!
-
-select case (ele%key)
-case (crystal$, mirror$, multilayer_mirror$)
-  tilt_ptr => ele%value(tilt_err$)
-case (sbend$, rbend$)
-  tilt_ptr => ele%value(roll$)
-case default
-  tilt_ptr => ele%value(tilt$)
-end select
-
-end function non_ref_tilt
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function non_ref_tilt_tot (ele) result (tilt_tot_ptr)
-!
-! Routine to return a pointer to the "total tilt" attribute of ele that 
-! corresponds to the "tilt" that does not tilt the reference trajectory.
-! For crystal, mirror, multilayer_mirror elements this is:
-!    ele%value(tilt_err_tot$)
-! For sbend and rbend elements this is 
-!    ele%value(roll_tot$)
-! For all other elements this is:
-!    ele%value(tilt_tot$)
-!
-! Input:
-!   ele -- ele_struct: Element
-!
-! Output:
-!   tilt_tot_ptr -- real(rp), pointer: Pointer to non-reference tilt parameter.
-!-
-
-function non_ref_tilt_tot (ele) result (tilt_tot_ptr)
-
-implicit none
-
-type (ele_struct), target :: ele
-real(rp), pointer :: tilt_tot_ptr
-
-!
-
-select case (ele%key)
-case (crystal$, mirror$, multilayer_mirror$)
-  tilt_tot_ptr => ele%value(tilt_err_tot$)
-case (sbend$, rbend$)
-  tilt_tot_ptr => ele%value(roll_tot$)
-case default
-  tilt_tot_ptr => ele%value(tilt_tot$)
-end select
-
-end function non_ref_tilt_tot
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

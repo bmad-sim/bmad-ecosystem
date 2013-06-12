@@ -1822,7 +1822,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(e1$), 'e1', 'es13.5', 'R')
     call value_to_line (line_out, val(e2$), 'e2', 'es13.5', 'R')
     call value_to_line (line_out, val(k1$), 'k1', 'es13.5', 'R')
-    call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
+    call value_to_line (line_out, val(ref_tilt$), 'tilt', 'es13.5', 'R')
 
   ! sextupole
 

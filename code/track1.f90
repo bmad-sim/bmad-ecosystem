@@ -27,10 +27,6 @@
 !   track     -- track_struct, optional: Structure holding the track information if the 
 !                  tracking method does tracking step-by-step.
 !   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
-!
-! Notes:
-! It is assumed that HKICK and VKICK are the kicks in the horizontal
-! and vertical kicks irregardless of the value for TILT.
 !-
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation)

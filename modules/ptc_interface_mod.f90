@@ -2257,7 +2257,7 @@ type (lat_param_struct) param
 type (real_8) x_ele(6), x_body(6), x1(6), x3(6)
 type (fibre), pointer :: fib
 
-real(rp) beta0
+real(rp) beta0, tilt
 real(8) x_dp(6)
 
 ! Match elements are not implemented in PTC so just use the matrix.
@@ -2299,14 +2299,20 @@ call ele_to_fibre (ele, fib, param, use_offsets = .true.)
 x_dp = 0
 x_ele = x_dp  ! x_ele = Identity map 
 
-call dtiltd (1, ele%value(tilt_tot$), 1, x_ele)
+if (ele%key == sbend$) then
+  tilt = ele%value(ref_tilt_tot$)
+else
+  tilt = ele%value(tilt_tot$)
+endif
+
+call dtiltd (1, tilt, 1, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .true.)
 
 call taylor_to_real_8 (ele%taylor, beta0, x_body)
 
 call concat_real_8 (x_ele, x_body, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .false.)
-call dtiltd (1, ele%value(tilt_tot$), 2, x_ele)
+call dtiltd (1, tilt, 2, x_ele)
 
 ! Concat with taylor1
 
@@ -2785,7 +2791,11 @@ ptc_key%list%name = ele%name
 ptc_key%list%l    = leng
 
 if (use_offsets) then
-  ptc_key%tiltd = ele%value(tilt_tot$)
+  if (ele%key == sbend$) then
+    ptc_key%tiltd = ele%value(ref_tilt_tot$)
+  else
+    ptc_key%tiltd = ele%value(tilt_tot$)
+  endif
 else
   ptc_key%tiltd = 0
 endif
@@ -3147,7 +3157,7 @@ elseif (use_offsets) then
   x_pitch = ele%value(x_pitch_tot$)
   y_pitch = ele%value(y_pitch_tot$)
   roll = 0
-  if (ele%key == sbend$) roll = ele%value(roll$)
+  if (ele%key == sbend$) roll = ele%value(roll_tot$)
 
   if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0 .or. roll /= 0) then
     mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch, roll]
@@ -3235,7 +3245,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 
 real(rp) k(:), ks(:)
-real(rp) cos_t, sin_t, leng, hk, vk
+real(rp) cos_t, sin_t, leng, hk, vk, tilt
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
@@ -3321,8 +3331,13 @@ elseif (ele%key == kicker$) then
 elseif (has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. val(vkick$) /= 0)) then
   hk = val(hkick$) / leng   ! PTC uses scaled kick for non-kicker elements.
   vk = val(vkick$) / leng
-  cos_t = cos(ele%value(tilt_tot$))
-  sin_t = sin(ele%value(tilt_tot$))
+  if (ele%key == sbend$) then
+    tilt = ele%value(ref_tilt_tot$)
+  else
+    tilt = ele%value(tilt_tot$)
+  endif
+  cos_t = cos(tilt)
+  sin_t = sin(tilt)
   k(1)  = k(1)  - hk * cos_t - vk * sin_t
   ks(1) = ks(1) - hk * sin_t + vk * cos_t
 endif

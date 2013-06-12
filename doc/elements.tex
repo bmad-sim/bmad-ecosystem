@@ -460,13 +460,16 @@ are zero except for $C_0$ and $C_1$ then
 \Begineq
   C_1 = \frac{1}{2 \,H_{gap} \, F_{int}}
 \Endeq
-  \index{tilt}
-  \item[tilt] \Newline
-The roll angle about the longitudinal axis at the entrance face of the
-bend is given by \vn{tilt}.  \vn{tilt} = 0 bends the reference
-trajectory in the $-x$ direction.  If the \vn{tilt} attribute is given
-without any value then the value $\pi/2$ will be used. This makes for
-a \vn{downward} pointing vertical bend. See \fig{f:tilt.bend}.
+  \index{ref_tilt}
+  \item[ref_tilt] \Newline
+The \vn{ref_tilt} attribute rotates a bend about the longitudinal axis
+at the entrance face of the bend. \vn{ref_tilt} = 0 bends the bends
+the element in the $-y$ direction. See \fig{f:tilt.bend}. It is
+important to understand that \vn{ref_tilt}, unlike the \vn{tilt}
+attribute of other elements, bends both the reference orbit along with
+the physical element. Note that the MAD \vn{tilt} attribute for bends
+is equivalent to the \bmad \vn{ref_tilt}. Bends in \bmad do not have
+a \vn{tilt} attribute.
   \end{description}
 
 The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
@@ -493,7 +496,7 @@ reference geometry of the bend. See section~\sref{s:multipass} for
 more details.
 
 In the local coordinate system (\sref{s:ref}), looking from ``above''
-(bend viewed from positive $y$), and with \vn{tilt} = 0, a positive
+(bend viewed from positive $y$), and with \vn{ref_tilt} = 0, a positive
 \vn{angle} represents a particle rotating clockwise. In this
 case. \vn{g} will also be positive. For counterclockwise rotation,
 both \vn{angle} and \vn{g} will be negative but the length \vn{l} is
@@ -782,7 +785,7 @@ details. Example:
   \includegraphics[width=5in]{crystal-ele.pdf}
   \caption[Crystal element geometry.]
 {Crystal element geometry.  A) Geometry for Bragg diffraction. The
-geometry shown is for \vn{tilt} = 0 (reference trajectory in the
+geometry shown is for \vn{ref_tilt} = 0 (reference trajectory in the
 $x$-$z$ plane). The angle $\alpha_H$ (\vn{alpha_angle}) is the angle
 of the $\bfH$ vector with respect to the surface normal $\bfhat
 n$. For $\psi$ (\vn{psi_angle}) zero, the incoming reference orbit,
@@ -814,13 +817,12 @@ General \vn{crystal} attributes are:
 
 \index{psi_angle}
 \index{b_param}\index{bragg_angle}\index{crystal_type}
-\index{tilt_err}\index{follow_diffracted_beam}\index{thickness}
+\index{follow_diffracted_beam}\index{thickness}
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
   b_param            = <Real>       ! b parameter
   crystal_type       = <String>     ! Crystal material and reflection plane.
   psi_angle          = <Real>       ! Rotation of H-vector about the surface normal.
-  tilt_err           = <Real>       ! Error in the tilt angle.
   thickness          = <Real>       ! Thickness of crystal for Laue diffraction.
   ref_orbit_follows  = <which_beam> ! Reference orbit aligned with what outgoing beam?
 \end{example}
@@ -896,9 +898,7 @@ To keep the outgoing reference trajectory independent of the value of
 \vn{psi_angle}, the crystal will be automatically tilted by the
 appropriate ``tilt correction'' \vn{tilt_corr}. The calculation of
 \vn{tilt_corr} is outlined in \sref{ss:crystal.trans}. \vn{tilt_corr}
-will be zero if \vn{psi_angle} is zero. Thus, for the reference orbit
-calculation, the total tilt of the crystal is \vn{tilt} +
-\vn{tilt_corr}.
+will be zero if \vn{psi_angle} is zero.
 
 The reference trajectory for a Bragg \vn{crystal} is that of a zero
 length bend (\sref{s:mirror.coords}) and hence the length (\vn{l})
@@ -912,7 +912,7 @@ with the reference energy traveling along the reference trajectory
 will be in the center of the Darwin curve (\sref{s:crystal.tracking}).
 
 The reference trajectory in the global coordinate system
-(\sref{s:global}) is determined by the value of the \vn{tilt}
+(\sref{s:global}) is determined by the value of the \vn{ref_tilt}
 parameter along with the value of \vn{graze_angle_in} +
 \vn{graze_angle_out}. A positive \vn{graze_angle_in} +
 \vn{graze_angle_out} bends the reference trajectory in the same
@@ -2112,14 +2112,13 @@ Attributes specific to a \vn{mirror} element are:
 \begin{example}
   graze_angle     = <Real>    ! Angle between incoming beam and mirror surface.
   critical_angle  = <Real>    ! Critical angle.
-  tilt_err        = <Real>    ! Error in the tilt angle.
 \end{example}
 
 The reference trajectory for a
 \vn{mirror} is that of a zero length bend (\sref{s:mirror.coords}) and
 hence the length (\vn{l}) parameter of a mirror is fixed at zero. The
 reference trajectory is determined by the values of the
-\vn{graze_angle} and \vn{tilt} parameters. A positive \vn{graze_angle}
+\vn{graze_angle} and \vn{ref_tilt} parameters. A positive \vn{graze_angle}
 bends the reference trajectory in the same direction as a positive
 \vn{g} for a bend element.
 
@@ -2178,7 +2177,7 @@ General \vn{crystal} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}  & Offsets                    & \ref{s:offset}  \HH
+  Description strings    & \ref{s:alias}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Chamber Wall           & \ref{s:wall}    & Surface Curvature          & \ref{s:s.curve} \HH
@@ -2187,15 +2186,13 @@ General \vn{crystal} attributes are:
 \toffset
 
 \index{crystal_type}\index{d1_thickness}\index{d2_thickness}
-\index{n_cell}\index{tilt_err}
-\index{tilt_err}
+\index{n_cell}
 The attributes specific to a \vn{multilayer_mirror} are 
 \begin{example}
   crystal_type         = <String>  ! Materials in each layer.
   d1_thickness         = <Real>    ! Thickness of layer 1
   d2_thickness         = <Real>    ! Thickness of layer 2
   n_cell               = <Integer> ! Number of cells (= Number of layers / 2)
-  tilt_err             = <Real>    ! Error in the tilt angle.
 \end{example}
 
 \index{graze_angle}

@@ -575,6 +575,7 @@ select case (ele%field_calc)
       else
         ! Rotate from lab to local
         tilt = ele%value(tilt_tot$)
+        if (ele%key == sbend$) tilt = ele%value(ref_tilt_tot$)
         field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) - ele%value(hkick$) * sin(tilt)) * f_p0c / ele%value(l$)
         field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) + ele%value(vkick$) * sin(tilt)) * f_p0c / ele%value(l$)
       endif
