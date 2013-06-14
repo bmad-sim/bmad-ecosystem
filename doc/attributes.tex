@@ -243,22 +243,65 @@ dependent attribute calculated from the reference energy.
 \vfill
 
 %-----------------------------------------------------------------
-\section{Element Orientation: Offset, Pitch, Tilt, and Roll Attributes}
+\section{Orientation: Offset, Pitch, Tilt, and Roll Attributes}
 \label{s:offset}
 \index{x_offset|hyperbf}
 \index{y_offset|hyperbf}\index{z_offset|hyperbf}
 \index{x_pitch|hyperbf}\index{y_pitch|hyperbf}
 \index{roll|hyperbf}\index{tilt|hyperbf}
 
-\begin{figure}[t]
-  \centering
-  \includegraphics{pitch.pdf}
-  \caption{Geometry of Pitch and Offset attributes}
-  \label{f:pitch}
-\end{figure}
+By default, an element, like a quadrupole, is aligned in space
+coincident with the reference orbit running through it
+(\sref{s:ref.construct}). A quadrupole can be displaced in space using
+the quadrupole's ``\vn{orientational}'' attributes. For a quadrupole,
+the orientational attributes only affect the physical element and not
+the reference orbit. However, the orientational attributes of some
+other elements, like the \vn{fiducial} element, do affect the
+reference orbit. To sort all this out, lattice elements can be divided
+into five classes:
+  \begin{description}
+  \item[\vn{Straight line elements}]  \Newline
+Straight line elements are elements where the reference orbit is a
+straight line. Examples include \vn{quadrupoles}, and \vn{sextupoles}
+as well as zero length elements like \vn{markers}.
+  \item[\vn{Dipole bends}]  \Newline
+Dipole bends are:
+\begin{example}
+  sbend \& rbend             ! \sref{s:bend}
+\end{example}
+  \item[\vn{Photon reflecting elements}]  \Newline
+The reflecting elements are
+\begin{example}
+  crystal                   ! \sref{s:crystal}
+  mirror                    ! \sref{s:mirror}
+  multilayer_mirror         ! \sref{s:multilayer}
+\end{example}
+These elements have a kink in the reference orbit at the nominal
+element surface.
+  \item[\vn{Position defining elements}]  \Newline
+Elements that are used to manipulate the reference orbit or other the 
+positions of other elements are
+\begin{example}
+  branch \& photon_branch    ! \sref{s:branch}
+  fiducial                  ! \sref{s:fiducial}
+  floor_shift               ! \sref{s:floor.ele}
+  girder                    ! \sref{s:girder}
+  patch                     ! \sref{s:patch}
+\end{example}
+  \item[\vn{Control Elements}]  \Newline
+Control elements are elements that control attributes of other
+elements. The control elements are:
+\begin{example}
+  group
+  overlay
+\end{example}
+These elements do not have orientational attributes.
+  \end{description}
 
-The following ``\vn{orientational}'' attributes can shift the physical
-element in space
+%-----------------------------------------------------------------
+\subsection{Straight Line Element Orientation}
+
+The straight line elements have the following orientational attributes:
 \begin{example}
   x_offset = <Real>
   y_offset = <Real>
@@ -266,35 +309,42 @@ element in space
   x_pitch  = <Real>
   y_pitch  = <Real>
   tilt     = <Real>    
-  ref_tilt = <Real>    ! Shifts reference orbit.
-  roll     = <Real>    ! Sbend and rbend only.
 \end{example}
+For straight line elements the orientational attributes only shift the
+physical element and do not affect the reference orbit.
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics{pitch.pdf}
+  \caption{Geometry of Pitch and Offset attributes}
+  \label{f:pitch}
+\end{figure}
 
 \vn{x_offset} translates an element in the local $x$--direction
 as shown in \fig{f:pitch}. Similarly, \vn{y_offset} and 
 \vn{z_offset} translate an element along the local $y$ and 
 $z$--directions respectively.
 
-The \vn{x_pitch} attribute rotates an element such that the exit face
-of the element is displaced in the $+x$--direction as shown in
-figure~\ref{f:pitch}.  That is, \vn{x_pitch} represents a rotation
-around the positive $y$-axis.
+The \vn{x_pitch} attribute rotates an element about the element's
+center such that the exit face of the element is displaced in the
+$+x$--direction as shown in figure~\ref{f:pitch}.  An
+\vn{x_pitch} represents a rotation around the positive $y$-axis.
 
 Similarly, the \vn{y_pitch} attribute rotates an element about the
-negative $x$--axis so that the exit face of the element is displaced
-in the $+y$--direction. 
+element's center using the negative $x$--axis as the rotation axis so
+that the exit face of the element is displaced in the $+y$--direction.
 
 The \vn{x_pitch} and \vn{y_pitch} rotations are about the center of
 the element which is in contrast to the \vn{dtheta} and \vn{dphi}
-misalignment of \mad which rotate around the entrance point. In terms
-of rotation angle
+misalignments of \mad which rotate around the entrance point. The
+sense of the rotation between \bmad and MAD is:
 \index{MAD!element rotation origin}
 \begin{example}
   x_pitch (Bmad) =  dtheta (MAD)
   y_pitch (Bmad) = -dphi (MAD)
 \end{example}
 
-\begin{figure}[t]
+\begin{figure}[tb]
   \centering
   \includegraphics{tilt.pdf}
   \caption{Geometry of a Tilt}
@@ -302,27 +352,104 @@ of rotation angle
 \end{figure}
 
 The tilt attribute rotates the element in the $(x, y)$ plane as shown
-in figure~\ref{f:tilt}. The rotation axis is the $z$-axis at the
-entrance face. The reference orbit is also rotated for any element
-who's exit coordinates are not colinear with the entrance
-coordinates. For example, a \vn{bend} or \vn{mirror} with a tilt of
-$\pi/2$ will bend a beam vertically upward. The \vn{hkick} and
-\vn{vkick} attributes are not affected by \vn{tilt} except for
-\vn{kicker} and \vn{elseparator} elements. Like MAD, \bmad allows the
-use of the \vn{tilt} attribute without a value to designate a skew
-element. For example
+in figure~\ref{f:tilt}. The rotation axis is the positive
+$z$-axis. For example
 \begin{example}
   q1: quad, l = 0.6, x_offset = 0.03, y_pitch = 0.001, tilt
 \end{example}
-\index{rbend!tilt default}\index{sbend!tilt default}
 \index{sol_quad!tilt default}\index{quadrupole!tilt default}
 \index{sextupole!tilt default}\index{octupole!tilt default}
-Default tilts can be used for \vn{rbend}, \vn{sbend}, \vn{sol_quad},
-\vn{quadrupole}, \vn{sextupole}, and \vn{octupole} elements.
-The default tilt is $\pi/(2(n+1))$ where $n$ is the order of the 
-element (n = 0 for bends, n = 1 for quadrupoles etc.) 
+Like MAD, \bmad allows the use of the \vn{tilt} attribute without a
+value to designate a skew element. The default tilt is $\pi/(2(n+1))$
+where $n$ is the order of the element:
+\begin{example}
+  sol_quad       n = 1
+  quadrupole     n = 1
+  sextupole      n = 2
+  octupole       n = 3
+\end{example}
 
-\index{sbend}\index{rbend}\index{crystal}\index{mirror}\index{multilayer_mirror}
+Note that \vn{hkick} and \vn{vkick} attributes are not affected by
+\vn{tilt} except for \vn{kicker} and \vn{elseparator} elements.
+
+%-----------------------------------------------------------------
+\subsection{Bend Element Orientation}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{roll.pdf}
+  \caption[Geometry of a Bend]{
+Geometry of a Bend. Like straight line elements, offsets and pitches
+are calculated with respect to the coordinates at the center of the
+bend. The exception is the \vn{roll} attribute which is a rotation
+around the axis passing through the entrance and exit points.  Shown
+here is the geometry for a bend with \vn{ref_tilt} = 0. That is, the bend
+is in the $x-z$ plane.}
+  \label{f:roll}
+\end{figure}
+
+The orientation attributes for \vn{sbend} and \vn{rbend} elements is
+\begin{example}
+  x_offset = <Real>
+  y_offset = <Real>
+  z_offset = <Real>
+  x_pitch  = <Real>
+  y_pitch  = <Real>
+  ref_tilt = <Real>    ! Shifts both element and reference orbit.
+  roll     = <Real>    
+\end{example}
+The geometry for orienting a bend is shown in \fig{f:roll}. Like
+straight line elements, the offset and pitch attributes are evaluated
+with respect to the center of the element. 
+
+Unlike the straight line elements, bends do not have a \vn{tilt}
+attribute. Rather they have a \vn{ref_tilt} and a \vn{roll} attribute.
+The \vn{roll} attribute rotates the bend along an axis that runs
+through the entrance point and exit point as shown in
+figure~\ref{f:roll}. A \vn{roll} attribute, like the offset and pitch
+attributes does not affect the reference orbit.
+The major effect of a \vn{roll} is to give a vertical
+kick to the beam. For a bend with positive bend angle, a positive
+\vn{roll} will move the outside portion ($+x$ side) of the bend upward
+and the inside portion (-$x$ side) downward. Much like car racetracks
+which are typically slanted towards the inside of a turn.
+
+The \vn{ref_tilt} attribute of a bend rotates the bend about the $z$
+axis at the upstream end of the bend as shown in \fig{f:roll}. Unlike
+\vn{rolls} and \vn{tilts}, \vn{ref_tilt} rotates the reference orbit
+along with the physical element. A \vn{bend} with a \vn{ref_tilt} of
+$\pi/2$ will bend a beam vertically downward (\sref{s:global}). Note
+that the \vn{ref_tilt} attribute of \bmad is the same as the MAD
+\vn{tilt} attribute.
+
+%-----------------------------------------------------------------
+\subsection{Photon Reflecting Element Orientation}
+
+Photon reflecting elements have the following orientational attributes:
+\begin{example}
+  x_offset = <Real>
+  y_offset = <Real>
+  z_offset = <Real>
+  x_pitch  = <Real>
+  y_pitch  = <Real>
+  ref_tilt = <Real>    ! Shifts both element and reference orbit.
+  tilt     = <Real>    
+\end{example}
+Roughly, these elements can be viewed as zero length bends except,
+since there is no center position, the orientational attributes are
+measured with respect to the entrance coordinates as shown in
+\fig{f:reflect.orient}.
+
+%-----------------------------------------------------------------
+\subsection{Position Defining Elements}
+
+
+
+
+
+
+
+
 For all elements, except \vn{crystal}, \vn{mirror}, and
 \vn{multilayer_mirror} elements, offsets and pitches and are measured
 with respect to the local coordinates at the center of the element. To
@@ -332,26 +459,11 @@ measure their offsets and pitches with respect to the entrance
 coordinates.  Note that all element define \vn{tilt} with respect to
 the entrance coordinates.
 
-The \vn{roll} attribute is only used for bends and rotates the bend,
-along an axis that runs through the entrance point and exit point as
-shown in figure~\ref{f:roll}. A \vn{roll}, unlike a \vn{tilt}, does not affect the
-reference orbit. The major effect of a \vn{roll} is to give a vertical
-kick to the beam. For a bend with positive bend angle, a positive
-\vn{roll} will move the outside portion ($+x$ side) of the bend upward
-and the inside portion (-$x$ side) downward. Much like car racetracks
-which are typically slanted towards the inside of a turn.
 
-\begin{figure}[ht]
-  \centering
-  \includegraphics{roll.pdf}
-  \caption[Geometry of a Bend]{
-Geometry of a Bend. A roll is a rotation around the axis passing
-through the entrance and exit points. Like most other elements,
-offsets and pitches are calculated with respect to the coordinates at
-the center of the bend. Shown here is the geometry for a bend with
-\vn{tilt} = 0. That is, the bend is in the $x-s$ plane.}
-  \label{f:roll}
-\end{figure}
+
+
+
+
 
 
 

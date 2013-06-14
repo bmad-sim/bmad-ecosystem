@@ -1152,10 +1152,12 @@ no other suitable element class.
 \label{s:fiducial}
 \index{fiducial|hyperbf}
 
-A \vn{fiducial} element is used to orient the reference orbit of a lattice branch or, if
-there are flexible \vn{patch} elements present, sections of a lattice branch.
+A \vn{fiducial} element is used to fit the position and orientation of
+the reference orbit within the global coordinate system at the
+location of the \vn{fiducial} element. A \vn{fiducial} element will
+affect the reference orbit both upstream and downstream of the element.
 
-General \vn{floor_shift} element attributes are:
+General \vn{fiducial} element attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
@@ -1187,10 +1189,10 @@ zero length marker. That is, the transfer map through a \vn{fiducial}
 element is the unit map.
 
 A \vn{fiducial} element sets the reference orbit of itself and of the
-elements around it. This can be thought of as a two step process. The
-first step is to determine the global coordinates of the \vn{fiducial}
-element itself and the second step is to shift the coordinates of the
-elements around it.
+elements, both upstream and downstream, around it. This can be thought
+of as a two step process. The first step is to determine the global
+coordinates of the \vn{fiducial} element itself, and the second step is
+to shift the coordinates of the elements around it.
 
 The floor coordinates of the \vn{fiducial} element are determined
 starting with an \vn{origin_ele} element. If \vn{origin_ele} is not
@@ -1230,9 +1232,9 @@ position 67. In this case the \vn{fiducial} element will determine the
 reference orbit for elements 0 through 66.
 
 Rules: 
-  \begin{description}
+  \begin{itemize}
   \item
-If a \vn{origin_ele} is specified, the position of this element must
+If an \vn{origin_ele} is specified, the position of this element must
 to calculated before the the position of the \vn{fiducial} element is
 calculated (\sref{s:ref}). This means, the \vn{origin_ele} must be in
 a prior lattice branch from the branch the \vn{fiducial} element is in
@@ -1258,7 +1260,7 @@ branch \vn{B} contains a \vn{fiducial} element then this is an error
 since the coordinate calculation never backtracks to recalculate the
 coordinates of the elements of a branch once the calculation has
 finished with that branch.
-  \end{description}
+  \end{itemize}
 
 Example:
 \begin{example}
@@ -1932,7 +1934,7 @@ General \vn{marker} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s                  & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}      & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}       & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}      & Offsets \& tilt            & \ref{s:offset}  \HH
   Aperture Limits        & \ref{s:limit}       & Tracking \& transfer map   & \ref{c:methods} \HH
   Instrumental variables & \ref{s:meas.attrib} &                            &                 \HH
