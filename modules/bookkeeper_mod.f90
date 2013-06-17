@@ -1722,16 +1722,17 @@ type (ele_struct), pointer :: lord, slave0
 type (branch_struct), pointer :: branch
 type (floor_position_struct) slave_floor
 
-real(rp) value(num_ele_attrib_extended$), coef, ds, s_slave
+real(rp) coef, ds, s_slave
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
 real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_mis_tot(3,3)
 real(rp) w_slave_mis_tot(3,3), w_slave_mis(3,3), dr
 real(rp), pointer :: v(:), vs(:), tt
 
 integer i, ix_con, ix, iv, ix_slave, icom, l_stat
-logical used(num_ele_attrib_extended$), multipole_set, err_flag, on_an_offset_girder
+logical err_flag, on_an_offset_girder
 
 character(*), parameter :: r_name = 'makeup_control_slave'
+logical has_been_set(num_ele_attrib_extended$)
 
 !
                              
@@ -1743,10 +1744,8 @@ call set_ele_status_stale (slave, attribute_group$)
 l_stat = slave%lord_status
 ix_slave = slave%ix_ele
 
-value = 0
-used = .false.
-multipole_set = .false.
 on_an_offset_girder = .false.
+has_been_set = .false.
 
 do i = 1, slave%n_lord
   lord => pointer_to_lord(slave, i, ix_con)
@@ -1757,7 +1756,7 @@ do i = 1, slave%n_lord
   if (lord%lord_status == girder_lord$ .and. has_orientation_attributes(slave)) then
     v => lord%value
     if (v(x_offset_tot$) == 0 .and. v(y_offset_tot$) == 0 .and. v(z_offset_tot$) == 0 .and. &
-        v(x_pitch_tot$) == 0 .and. v(y_pitch_tot$) == 0 .and. v(tilt_tot$) == 0 .and. v(ref_tilt_tot$) /= 0) cycle
+        v(x_pitch_tot$) == 0 .and. v(y_pitch_tot$) == 0 .and. v(tilt_tot$) == 0) cycle
     ! Transformation to get the total misalignment:
     !   T_slave_mis_tot = G_slave^-1 . G_gird . T_gird_mis_tot . G_gird^-1 . G_slave . T_slave_mis
     ! where G = transformation wrt Global coordinate system.
@@ -1832,12 +1831,6 @@ do i = 1, slave%n_lord
 
 enddo
 
-where (used(1:num_ele_attrib$)) slave%value = value(1:num_ele_attrib$)
-if (multipole_set) then
-  where (used(a0$:a20$)) slave%a_pole = value(a0$:a20$)
-  where (used(b0$:b20$)) slave%b_pole = value(b0$:b20$)
-endif
-
 ! If no girder then simply transfer tilt to tilt_tot, etc.
 
 if (.not. on_an_offset_girder .and. has_orientation_attributes(slave)) then
@@ -1866,16 +1859,24 @@ subroutine overlay_change_this (iv)
 
 type (ele_struct), pointer :: my_lord
 integer i, iv
-real(rp), pointer :: r_ptr
+real(rp), pointer :: r_lord, r_slave
 character(40) a_name
 
 !
 
-call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_ptr, err_flag)
+call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_lord, err_flag)
 if (err_flag) call err_exit
-value(iv) = value(iv) + r_ptr * coef
-used(iv) = .true.
-if (iv > num_ele_attrib$) multipole_set = .true.
+call pointer_to_indexed_attribute (slave, iv, .true., r_slave, err_flag)
+if (err_flag) call err_exit
+
+if (.not. has_been_set(iv)) then
+  r_slave = 0
+  has_been_set(iv) = .true.
+  call set_flags_for_changed_attribute (lat, slave, r_slave)
+endif
+
+r_slave = r_slave + r_lord * coef
+
 a_name = attribute_name(slave, iv)
 err_flag = attribute_free (slave, a_name, lat, .true., .true.)
 if (err_flag) return
@@ -1886,7 +1887,9 @@ if (slave%slave_status == super_slave$) then
   do i = 1, slave%n_lord
     my_lord = pointer_to_lord(slave, i)
     if (my_lord%lord_status /= super_lord$) cycle
-    my_lord%value(iv) = value(iv)
+    my_lord%value(iv) = r_slave
+    call set_flags_for_changed_attribute (lat, my_lord, my_lord%value(iv))
+
     err_flag = attribute_free (my_lord, a_name, lat, .true., .true.)
     if (err_flag) return
   enddo

@@ -349,6 +349,9 @@ if (ele%key == group$) then
       if (err_flag) return
       if (how == def$) then
         ele%value(command$) = value
+      elseif (i > num_ele_attrib$) then
+        call parser_error ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+        return
       else
         ele%value(i) = value
       endif
@@ -4333,7 +4336,7 @@ integer, allocatable :: r_indexx(:), ix_ele(:), ix_branch(:)
 character(40), allocatable :: name_list(:)
 character(40) name, input_slave_name, attrib_name, missing_slave_name
 
-logical err, slave_not_in_lat, found_ele_match, created_girder_lord
+logical err, slave_not_in_lat, created_girder_lord
 
 ! Setup...
 ! in_lat has the lords that are to be added to lat.

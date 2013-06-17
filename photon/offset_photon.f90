@@ -47,6 +47,7 @@ logical is_reflective_element
 select case (ele%key)
 case (crystal$, mirror$, multilayer_mirror$)
   is_reflective_element = .true.
+  ds_center = 0
 case default
   is_reflective_element = .false.
   ds_center = orbit%vec(5) - ele%value(l$)/2

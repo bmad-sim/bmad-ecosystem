@@ -71,9 +71,9 @@ The following helper routines are generally not useful for general use.
 \item[add_sr_long_wake (ele, param, bunch, num_in_front, ix_follower)] \Newline 
 Adds the longitudinal wake for all particles in front of the follower.
 
-\index[routine]{apply_bend_edge_kick}
-\label{r:apply.bend.edge.kick}
-\item[apply_bend_edge_kick (orb, ele, param, stream_end, in_to_out, kx, ky)] \Newline 
+\index[routine]{bend_edge_kick}
+\label{r:bend.edge.kick}
+\item[bend_edge_kick (orb, ele, param, stream_end, in_to_out, mat6)] \Newline 
 Subroutine to track through the edge field of an sbend.
 Reverse tracking starts with the particle just outside the bend and
 
@@ -621,12 +621,12 @@ Routine to take the inverse of a square matrix.
 
 \index[routine]{mat_symplectify}
 \label{r:mat.symplectify}
-\item[mat_symplectify (mat_in, mat_symp, f_scale)] \Newline
+\item[mat_symplectify (mat_in, mat_symp, p0_ratio, r_root)] \Newline
 Routine to form a symplectic matrix that is approximately equal to the input matrix. 
 
 \index[routine]{mat_symp_error}
 \label{r:mat.symp.error}
-\item[mat_symp_error (mat) result (error)] \Newline
+\item[mat_symp_error (mat, p0_ratio) result (error)] \Newline
 Routine to check the symplecticity of a square matrix 
 
 \index[routine]{mat_symp_conj}
@@ -831,15 +831,14 @@ These routine are for adding elements, moving elements, etc.
 
 \index[routine]{add_lattice_control_structs}
 \label{r:add.lattice.control.structs}
-\item[add_lattice_control_structs (lat, ele)] \Newline 
+\item[add_lattice_control_structs (lat, ele, add_at_end)] \Newline 
 Routine to adjust the control structure of a lat so that extra control
 elements can be added.
 
 \index[routine]{add_superimpose}
 \label{r:add.superimpose}
 \item[\protect\parbox{6in}{
-    add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, \\
-    \hspace*{1in} save_null_drift, create_em_field_slave)} ] \Newline
+    add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift, create_jumbo_slave)} ] \Newline
 Routine to make a superimposed element. 
 
 \index[routine]{attribute_bookkeeper}
@@ -962,7 +961,7 @@ hybridized by \vn{make_hybrid_lat}.
 
 \index[routine]{ele_geometry}
 \label{r:ele.geometry}
-\item[ele_geometry (floor0, ele, floor, reverse)] \Newline 
+\item[ele_geometry (floor0, ele, floor, len_scale, treat_as_patch)] \Newline 
 Routine to calculate the physical (floor) placement of an element given the
 placement of the preceding element. This is the same as the MAD convention.
 
@@ -1025,7 +1024,7 @@ Overloaded function to check if an attribute is free to vary.
 
 \index[routine]{attribute_index}
 \label{r:attribute.index}
-\item[attribute_index (ele, name)] \Newline
+\item[attribute_index (ele, name, full_name)] \Newline
 Function to return the index of an attribute for a given element 
 type and the name of the attribute 
 
@@ -1039,9 +1038,9 @@ Function to return the name of an attribute for a particular type of element.
 \item[attribute_type (attrib_name) result (attrib_type)] \Newline 
 Routine to return the type (logical, integer, real, or named) of an attribute.
 
-\index[routine]{attribute_value_name}
-\label{r:attribute.value.name}
-\item[attribute_value_name (attrib_name, attrib_value, ele, 
+\index[routine]{switch_attrib_value_name}
+\label{r:switch.attrib.value.name}
+\item[switch_attrib_value_name (attrib_name, attrib_value, ele, 
                                     is_default) result (val_name)] \Newline 
 Routine to return the name corresponding to the value of a given attribute.
 
@@ -1082,7 +1081,7 @@ that their Taylor Maps, if they existed, would be the same.
 
 \index[routine]{find_element_ends}
 \label{r:find.element.ends}
-\item[find_element_ends (lat, ele, ele1, ele2)] \Newline
+\item[find_element_ends (ele, ele1, ele2, ix_multipass)] \Newline
 Routine to find the end points of an element. 
 
 \index[routine]{get_slave_list}
@@ -1182,12 +1181,6 @@ Routine to return whether a given mat6_calc method is valid for a given element.
 
 \begin{description}
 
-\index[routine]{adjust_super_lord_s_position}
-\label{r:adjust.super.lord.s.position}
-\item[adjust_super_lord_s_position (lat, lord)] \Newline
-Routine to adjust the positions of the slaves of a 
-super_lord due to changes in the lord's z_offset. 
-
 \index[routine]{bracket_index}
 \label{r:bracket.index}
 \item[bracket_index (s_arr, i_min, i_max, s, ix)] \Newline
@@ -1234,7 +1227,7 @@ Routine to allocate or re-allocate an element array.
 
 \index[routine]{control_bookkeeper}
 \label{r:control.bookkeeper}
-\item[control_bookkeeper (lat, ele, super_and_multipass_only, do_free_eles)] \Newline
+\item[control_bookkeeper (lat, ele, mark_eles_as_stale)] \Newline
 Routine to calculate the combined strength of the attributes for
 controlled elements.
 
@@ -1620,7 +1613,7 @@ Listed below are helper routines that are not meant for general use.
 
 \index[routine]{drift_mat6_calc}
 \label{r:drift.mat6.calc}
-\item[drift_mat6_calc (mat6, length, start, end)] \Newline
+\item[drift_mat6_calc (mat6, length, ele, param, start, end)] \Newline
 Routine to calculate a drift transfer matrix with a possible kick. 
 
 \index[routine]{sol_quad_mat6_calc}
@@ -2035,12 +2028,12 @@ Routine to convert from a universal_taylor map in Etienne's PTC to a taylor map 
 
 \index[routine]{vec_bmad_to_ptc}
 \label{r:vec.bmad.to.ptc}
-\item[vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc)] \Newline
+\item[vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, mat6)] \Newline
 Routine to convert from Bmad to PTC coordinates. 
 
 \index[routine]{vec_ptc_to_bmad}
 \label{r:vec.ptc.to.bmad}
-\item[vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad)] \Newline
+\item[vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, mat6)] \Newline
 Routine to convert from PTC to Bmad coordinates. 
 
 \end{description}
@@ -2632,7 +2625,7 @@ Note: This affects both lines and symbols.
 
 \index[routine]{qp_set_color_basic}
 \label{r:qp.set.color.basic}
-\item[qp_set_color_basic (ix_color)  ] \Newline 
+\item[qp_set_color_basic (ix_color, set_background)  ] \Newline 
 Routine to set the color taking into account that GIF
 inverts the black for white.
 
@@ -2934,7 +2927,7 @@ The following routines perform tracking and closed orbit calculations.
 
 \index[routine]{check_aperture_limit}
 \label{r:check.aperture.limit}
-\item[check_aperture_limit (orb, ele, at, param, check_momentum)] \Newline
+\item[check_aperture_limit (orb, ele, edge_at, param, check_momentum)] \Newline
 Routine to check if an orbit is outside an element's aperture. 
 
 \index[routine]{check_aperture_limit_custom}
@@ -2991,7 +2984,7 @@ the particle position to correspond to the local element coordinates.
 
 \index[routine]{offset_photon}
 \label{r:offset.photon}
-\item[offset_photon (ele, coord, set, offset_position_only)] \Newline 
+\item[offset_photon (ele, orbit, set, offset_position_only)] \Newline 
 Routine to effectively offset an element by instead offsetting
 the photon position to correspond to the local crystal or mirror coordinates.
 
@@ -3267,7 +3260,7 @@ Symplectic integration through an element to 0th or 1st order.
 
 \index[routine]{track1_boris}
 \label{r:track1.boris}
-\item[track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_orb)] \Newline
+\item[track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_end)] \Newline
 Routine to do Boris tracking.  
 
 \index[routine]{track1_bmad}
@@ -3333,7 +3326,7 @@ Routine to calculate the synchrotron tune from the full 6X6 1 turn matrix.
 
 \index[routine]{chrom_calc}
 \label{r:chrom.calc}
-\item[chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag)] \Newline
+\item[chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, low_E_lat, high_E_lat, low_E_orb, high_E_orb)] \Newline
 Routine to calculate the chromaticities by computing the tune 
 change when then energy is changed. 
 
