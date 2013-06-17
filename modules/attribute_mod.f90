@@ -904,8 +904,10 @@ type (ele_struct), target :: ele
 real(rp), pointer :: ptr_attrib
 
 integer :: ix_attrib
+integer iz, iy
 
-character(40) :: r_name = 'pointer_to_indexed_attribute'
+character(40) a_name
+character(*), parameter :: r_name = 'pointer_to_indexed_attribute'
 
 logical err_flag, do_allocation, do_print
 logical, optional :: err_print_flag
@@ -916,25 +918,37 @@ err_flag = .true.
 nullify (ptr_attrib)
 do_print = logic_option (.true., err_print_flag)
 
-! multipole?
+! Multipole or curvature attribute
+! Note that elements that have surface curvature automatically have ele%surface allocated.
 
-if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   ! multipole attribute
+if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   
+  a_name = attribute_name(ele, ix_attrib)
 
-  if (.not. associated(ele%a_pole)) then
-    if (do_allocation) then
-      call multipole_init (ele)
+  ! Curvature
+  if (a_name(1:4) == 'CURV') then
+    iz = (ix_attrib - a0$) / 5
+    iy = ix_attrib - a0$ - 5 * iz
+    ptr_attrib => ele%surface%curvature_zy(iz,iy)
+
+  ! Multipole
+  else
+    if (.not. associated(ele%a_pole)) then
+      if (do_allocation) then
+        call multipole_init (ele)
+      else
+        if (do_print) call out_io (s_error$, r_name, 'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
+        return
+      endif
+    endif
+
+    if (ix_attrib >= b0$) then
+      ptr_attrib => ele%b_pole(ix_attrib-b0$)
     else
-      if (do_print) call out_io (s_error$, r_name, &
-                      'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
-      return
+      ptr_attrib => ele%a_pole(ix_attrib-a0$)
     endif
   endif
 
-  if (ix_attrib >= b0$) then
-    ptr_attrib => ele%b_pole(ix_attrib-b0$)
-  else
-    ptr_attrib => ele%a_pole(ix_attrib-a0$)
-  endif
+! Out of bounds
 
 elseif (ix_attrib < 1 .or. ix_attrib > num_ele_attrib$) then
   if (do_print) call out_io (s_error$, r_name, &
@@ -942,7 +956,7 @@ elseif (ix_attrib < 1 .or. ix_attrib > num_ele_attrib$) then
           i_array = [ix_attrib])
   return
 
-! otherwise must be in ele%value(:) array
+! Otherwise must be in ele%value(:) array
 
 else
   ptr_attrib => ele%value(ix_attrib)

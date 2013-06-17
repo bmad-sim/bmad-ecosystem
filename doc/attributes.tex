@@ -394,7 +394,7 @@ The orientation attributes for \vn{sbend} and \vn{rbend} elements is
   z_offset = <Real>
   x_pitch  = <Real>
   y_pitch  = <Real>
-  ref_tilt = <Real>    ! Shifts both element and reference orbit.
+  ref_tilt = <Real>    ! Shifts and reference orbit rotation axis.
   roll     = <Real>    
 \end{example}
 The geometry for orienting a bend is shown in \fig{f:roll}. Like
@@ -415,11 +415,11 @@ which are typically slanted towards the inside of a turn.
 
 The \vn{ref_tilt} attribute of a bend rotates the bend about the $z$
 axis at the upstream end of the bend as shown in \fig{f:roll}. Unlike
-\vn{rolls} and \vn{tilts}, \vn{ref_tilt} rotates the reference orbit
-along with the physical element. A \vn{bend} with a \vn{ref_tilt} of
-$\pi/2$ will bend a beam vertically downward (\sref{s:global}). Note
-that the \vn{ref_tilt} attribute of \bmad is the same as the MAD
-\vn{tilt} attribute.
+\vn{rolls} and \vn{tilts}, \vn{ref_tilt} also shifts the rotation axis
+of the reference orbit along with the physical element. A \vn{bend}
+with a \vn{ref_tilt} of $\pi/2$ will bend a beam vertically downward
+(\sref{s:global}). Note that the \vn{ref_tilt} attribute of \bmad is
+the same as the MAD \vn{tilt} attribute.
 
 %-----------------------------------------------------------------
 \subsection{Photon Reflecting Element Orientation}

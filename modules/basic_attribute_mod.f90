@@ -305,7 +305,7 @@ do i = 1, n_key$
       if (iz+iy < 2) cycle
       if (iz+iy > 4) cycle
       write (word, '(a, i1, a, i1)') 'CURVATURE_Z', iz, '_Y', iy
-      num = num + 1
+      num = a0$ + 5 * iz + iy
       call init_attribute_name1 (i, num, word) 
     enddo
     enddo

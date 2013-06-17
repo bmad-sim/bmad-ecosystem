@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 121
+integer, parameter :: bmad_inc_version$ = 122
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -730,9 +730,9 @@ integer, parameter :: x_offset$ = 25
 integer, parameter :: y_offset$ = 26 
 integer, parameter :: z_offset$ = 27 ! Assumed unique. Do not overload further.
 integer, parameter :: hkick$ = 28, d_spacing$ = 28, t_offset$ = 28
-integer, parameter :: vkick$ = 29
-integer, parameter :: BL_hkick$ = 30
-integer, parameter :: BL_vkick$ = 31
+integer, parameter :: vkick$ = 29, l_x$ = 29
+integer, parameter :: BL_hkick$ = 30, l_y$ = 30        ! l_y$ = l_x$ + 1
+integer, parameter :: BL_vkick$ = 31, l_z$ = 31        ! l_z$ = l_x$ + 2
 integer, parameter :: BL_kick$ = 32, coupler_at$ = 32
 integer, parameter :: B_field$ = 33, E_field$ = 33, coupler_phase$ = 33
 integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34
@@ -757,9 +757,9 @@ integer, parameter :: n_ref_pass$ = 51
 integer, parameter :: radius$ = 52, kh_y_norm$ = 52
 integer, parameter :: ref_time_start$ = 53
 integer, parameter :: thickness$ = 54, integrator_order$ = 54   ! For Etiennes' PTC: 2, 4, or 6.
-integer, parameter :: num_steps$ = 55, l_x$ = 55
-integer, parameter :: ds_step$ = 56, l_y$ = 56        ! l_y$ = l_x$ + 1
-integer, parameter :: l_z$ = 57, lord_pad1$ = 57      ! l_z$ = l_x$ + 2
+integer, parameter :: num_steps$ = 55
+integer, parameter :: ds_step$ = 56
+integer, parameter :: lord_pad1$ = 57
 integer, parameter :: lord_pad2$ = 58, ref_wavelength$ = 58
 integer, parameter :: scratch$ = 59
 integer, parameter :: custom_attribute1$ = 61   ! For general use

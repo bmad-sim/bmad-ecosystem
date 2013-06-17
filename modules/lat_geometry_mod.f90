@@ -323,12 +323,12 @@ if (key == fiducial$ .or. key == girder$) then
           call w_mat_for_tilt(t_mat, ele%value(tilt_corr$))
           w_mat = matmul(w_mat, t_mat)
         endif
-
-        call w_mat_for_x_pitch (s_mat, ele0%value(graze_angle_in$))
+        ! By definition positive graze angle is equivalent to negative x_pitch
+        call w_mat_for_x_pitch (s_mat, -ele0%value(graze_angle_in$))
         w_mat = matmul (w_mat, s_mat)
 
-        if (ele%value(ref_tilt_tot$) /= 0) then
-          call w_mat_for_tilt(t_mat, ele%value(ref_tilt_tot$))
+        if (ele0%value(ref_tilt_tot$) /= 0) then
+          call w_mat_for_tilt(t_mat, ele0%value(ref_tilt_tot$))
           w_mat = matmul (t_mat, w_mat)
           t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
           w_mat = matmul (w_mat, t_mat)
@@ -379,10 +379,9 @@ if (key == fiducial$ .or. key == girder$) then
 
   r_vec = [ele%value(dx_origin$), ele%value(dy_origin$), ele%value(dz_origin$)]
   floor%r = r0 + matmul(w_mat, r_vec)
-  dtheta = ele%value(dtheta_origin$)
-  call floor_angles_to_w_mat (dtheta, ele%value(dphi_origin$), ele%value(dpsi_origin$), s_mat)
+  call floor_angles_to_w_mat (ele%value(dtheta_origin$), ele%value(dphi_origin$), ele%value(dpsi_origin$), s_mat)
   w_mat = matmul(w_mat, s_mat)
-  call floor_w_mat_to_angles (w_mat, floor0%theta+dtheta, floor%theta, floor%phi, floor%psi)
+  call floor_w_mat_to_angles (w_mat, 0.0_rp, floor%theta, floor%phi, floor%psi, floor0)
 
   return
 endif
@@ -417,7 +416,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
       tlt = tilt(0)
       r_vec = 0
     endif
-
+    ! By definition, positive angle is equivalent to negative x_pitch
     call w_mat_for_x_pitch(s_mat, -angle)
 
     if (tlt /= 0) then
@@ -433,7 +432,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
     floor%r = floor%r + matmul(w_mat, r_vec)
     w_mat = matmul (w_mat, s_mat)
 
-    call floor_w_mat_to_angles (w_mat, floor0%theta, theta, phi, psi)
+    call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi, floor0)
 
   ! mirror
 
@@ -446,6 +445,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
     endif
 
     angle = len_factor * angle
+    ! By definition, positive angle is equivalent to negative x_pitch
     call w_mat_for_x_pitch (s_mat, -angle)
 
     tlt = ele%value(ref_tilt_tot$)
@@ -458,12 +458,12 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
 
     w_mat = matmul (w_mat, s_mat)
 
-    call floor_w_mat_to_angles (w_mat, floor0%theta, theta, phi, psi)
+    call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi, floor0)
 
     ! Offset with Laue diffraction and finite crystal thickness.
 
     if (ele%key == crystal$ .and. any(ele%value(l_x$:l_z$) /= 0)) then
-      print *, 'Lare offset not yet implemented!'
+      print *, 'Laue offset not yet implemented!'
       call err_exit
     endif
 
@@ -477,15 +477,13 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
       call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = s_mat)
       w_mat = matmul(w_mat, s_mat)
       floor%r = floor%r - matmul(w_mat, r_vec)
-      dtheta = -ele%value(x_pitch$)
     else
       floor%r = floor%r + matmul(w_mat, r_vec)
       call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), s_mat)
       w_mat = matmul(w_mat, s_mat)
-      dtheta = ele%value(x_pitch$)
     endif
      
-    call floor_w_mat_to_angles (w_mat, floor0%theta+dtheta, theta, phi, psi)
+    call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi, floor0)
 
   ! everything else. Just a translation
 
@@ -617,6 +615,10 @@ end subroutine floor_angles_to_w_mat
 !                   [theta0 - pi, theta0 + pi]. Theta0 is used to keep track of the total
 !                   winding angle. If you care, set theta0 to the old value of theta.
 !                   If you don't care, set theta0 to 0.0_rp.
+!   floor0     -- floor_position_struct, optional: There are two solutions related by:
+!                   [theta, phi, psi] & [pi+theta, pi-phi, pi+psi]
+!                 If floor0 is present, choose the solution "nearest" the angles in floor0.
+!                 If floor0 is present then theta0 is ignored.
 !
 ! Output:
 !   theta -- Real(rp): Azimuth angle.
@@ -624,15 +626,20 @@ end subroutine floor_angles_to_w_mat
 !   psi   -- Real(rp): Roll angle.
 !-
 
-subroutine floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi)
+subroutine floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi, floor0)
 
 implicit none
 
+type (floor_position_struct), optional :: floor0
 real(rp) theta0, theta, phi, psi, w_mat(3,3)
+real(rp) diff1(3), diff2(3)
 
-if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then ! special degenerate case
+! special degenerate case
+
+if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then 
   ! Note: Only theta +/- psi is well defined here so this is rather arbitrary.
   theta = theta0  
+  if (present(floor0)) theta = floor0%theta
   if (w_mat(2,3) > 0) then
     phi = pi/2
     psi = atan2(-w_mat(3,1), w_mat(1,1)) - theta
@@ -640,11 +647,25 @@ if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then ! special degenerate case
     phi = -pi/2
     psi = atan2(w_mat(3,1), w_mat(1,1)) + theta
   endif
-else  ! normal case
+
+! normal case
+
+else 
   theta = atan2 (w_mat(1,3), w_mat(3,3))
-  theta = theta - twopi * nint((theta - theta0) / twopi)
   phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
   psi = atan2 (w_mat(2,1), w_mat(2,2))
+
+  if (present(floor0)) then
+    diff1 = [modulo2(theta-floor0%theta, pi), modulo2(phi-floor0%phi, pi), modulo2(psi-floor0%psi, pi)]
+    diff2 = [modulo2(pi+theta-floor0%theta, pi), modulo2(pi-phi-floor0%phi, pi), modulo2(pi+psi-floor0%psi, pi)]
+    if (sum(abs(diff2)) < sum(abs(diff1))) diff1 = diff2
+    theta = diff1(1) + floor0%theta
+    phi   = diff1(2) + floor0%phi
+    psi   = diff1(3) + floor0%psi
+  else
+    theta = theta - twopi * nint((theta - theta0) / twopi)
+  endif
+
 endif
 
 end subroutine floor_w_mat_to_angles 
@@ -724,7 +745,7 @@ floor1%r = matmul(w0_mat, dr) + floor0%r
 
 call floor_angles_to_w_mat (theta, phi, psi, w_mat)
 w_mat = matmul(w0_mat, w_mat)
-call floor_w_mat_to_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi)
+call floor_w_mat_to_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi, floor0)
 
 end subroutine shift_reference_frame
 
