@@ -133,8 +133,8 @@ c2 = exp(I_imaginary * kz2 * val(d2_thickness$) / 2)
 
 zero = cmplx(0.0_rp, 0.0_rp)
 
-call multilayer_track (xi_1, xi_2, orbit%e_field_x, orbit%phase_x)     ! pi polarization
-call multilayer_track (zero, zero, orbit%e_field_y, orbit%phase_y)     ! sigma polarization
+call multilayer_track (xi_1, xi_2, orbit%field(1), orbit%phase(1))     ! pi polarization
+call multilayer_track (zero, zero, orbit%field(2), orbit%phase(2))     ! sigma polarization
 
 ! Reflect momentum vector
 
@@ -311,8 +311,8 @@ c_param%f0                = cmplx(ele%value(f0_re$), ele%value(f0_im$))
 c_param%fh                = cmplx(ele%value(fh_re$), ele%value(fh_im$))
 
 p_factor = cos(2.0_rp*ele%value(graze_angle_in$))
-call e_field_calc (c_param, ele, p_factor, orbit%e_field_x, orbit%phase_x)
-call e_field_calc (c_param, ele, 1.0_rp,   orbit%e_field_y, orbit%phase_y)   ! Sigma polarization
+call e_field_calc (c_param, ele, p_factor, orbit%field(1), orbit%phase(1))
+call e_field_calc (c_param, ele, 1.0_rp,   orbit%field(2), orbit%phase(2))   ! Sigma polarization
 
 ! Rotate back from curved body coords to element coords
 

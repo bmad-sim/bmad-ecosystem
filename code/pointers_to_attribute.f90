@@ -106,14 +106,14 @@ case ('BEAM_START')
       ptr_array(1)%r => lat%beam_start%vec(5)
     case (pz$)
       ptr_array(1)%r => lat%beam_start%vec(6)
-    case (e_field_x$)
-      ptr_array(1)%r => lat%beam_start%e_field_x
-    case (e_field_y$)
-      ptr_array(1)%r => lat%beam_start%e_field_y
+    case (field_x$)
+      ptr_array(1)%r => lat%beam_start%field(1)
+    case (field_y$)
+      ptr_array(1)%r => lat%beam_start%field(2)
     case (phase_x$)
-      ptr_array(1)%r => lat%beam_start%phase_x
+      ptr_array(1)%r => lat%beam_start%phase(1)
     case (phase_y$)
-      ptr_array(1)%r => lat%beam_start%phase_y
+      ptr_array(1)%r => lat%beam_start%phase(2)
     case (t$)
       ptr_array(1)%r => lat%beam_start%t
     end select

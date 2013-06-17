@@ -1095,10 +1095,8 @@ orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
 call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, particle, orb_in%p0c, t_ref_offset, shift_vec6)
 
 orb%spin      = orb_save%spin
-orb%e_field_x = orb_save%e_field_x
-orb%e_field_y = orb_save%e_field_y
-orb%phase_x   = orb_save%phase_x
-orb%phase_y   = orb_save%phase_y
+orb%field     = orb_save%field
+orb%phase     = orb_save%phase
 orb%charge    = orb_save%charge
 orb%species   = orb_save%species
 if (orb%beta == 0) orb%t = orb_save%t

@@ -784,8 +784,8 @@ species = param%particle
 
 if (species == photon$) then
   n = size(bunch%particle)
-  bunch%particle(1:n:2)%e_field_x = 1
-  bunch%particle(2:n:2)%e_field_y = 1
+  bunch%particle(1:n:2)%field(1) = 1/sqrt(2.0_rp)
+  bunch%particle(1:n:2)%field(1) = 1/sqrt(2.0_rp)
 endif
 
 ! Fill in %t and %s
@@ -1729,11 +1729,11 @@ bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%state == alive$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%state == alive$))
 
-bunch_params%centroid%e_field_x = sum(bunch%particle%e_field_x, mask = (bunch%particle%state == alive$))
-bunch_params%centroid%e_field_y = sum(bunch%particle%e_field_y, mask = (bunch%particle%state == alive$))
+bunch_params%centroid%field(1) = sum(bunch%particle%field(1), mask = (bunch%particle%state == alive$))
+bunch_params%centroid%field(2) = sum(bunch%particle%field(2), mask = (bunch%particle%state == alive$))
 
 if (bunch%species == photon$) then
-  charge = bunch%particle%e_field_x**2 + bunch%particle%e_field_y**2
+  charge = bunch%particle%field(1)**2 + bunch%particle%field(2)**2
 else
   charge = bunch%particle%charge
 endif
