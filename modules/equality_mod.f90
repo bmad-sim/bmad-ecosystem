@@ -49,14 +49,10 @@ is_eq = is_eq .and. (f1%s == f2%s)
 is_eq = is_eq .and. (f1%t == f2%t)
 !! f_side.equality_test[complex, 1, NOT]
 is_eq = is_eq .and. all(f1%spin == f2%spin)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%e_field_x == f2%e_field_x)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%e_field_y == f2%e_field_y)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%phase_x == f2%phase_x)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%phase_y == f2%phase_y)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%field == f2%field)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%phase == f2%phase)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%charge == f2%charge)
 !! f_side.equality_test[real, 0, NOT]

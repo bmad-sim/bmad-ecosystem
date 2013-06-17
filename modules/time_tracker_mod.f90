@@ -509,7 +509,7 @@ end subroutine em_field_kick_vector_time
 !
 ! Output
 !   orb_new -- coord_struct: Location of hit
-!    %phase_x -- real(rp): Used to store hit angle
+!    %phase(2) -- real(rp): Used to store hit angle
 !-
 
 subroutine  particle_hit_wall_check_time(orb, orb_new, param, ele)
@@ -613,10 +613,10 @@ now_orb%vec(6) = old_orb%vec(6)
 
    !Calculate angle of impact; cos(hit_angle) = norm_photon_vec \dot perp
    !****
-   !Notice we store this in orb_new%phase_x; this is so that we don't have
+   !Notice we store this in orb_new%phase(2); this is so that we don't have
    !to add another argument- yeah, it's a hack.
    !****
-   orb_new%phase_x = acos( &
+   orb_new%phase(2) = acos( &
         ((now_orb%vec(1) - old_orb%vec(1)) * perp(1) + &
         (now_orb%vec(3) - old_orb%vec(3)) * perp(2) + &
         (now_orb%vec(5) - old_orb%vec(5)) * perp(3)) / particle%now%track_len)

@@ -36,7 +36,7 @@ real(rp) graze2, offset(6), tilt, r(3), ds_center, graze, sin_g, cos_g
 real(rp) off(3), rot(3), project(3,3), rot_mat(3,3)
 real(rp), pointer :: p(:), vec(:)
 
-complex(rp) efield_x, efield_y, efieldout_x, efieldout_y
+complex(rp) field(2)
 
 logical :: set
 logical, optional :: offset_position_only
@@ -77,8 +77,8 @@ if (set) then
 
   ! Set: pitch
 
-  if (p(x_offset_tot$) /= 0 .or. p(y_offset_tot$) /= 0) then
-    call pitches_to_rotation_matrix (p(x_offset_tot$), p(y_offset_tot$), set, rot_mat)
+  if (p(x_pitch_tot$) /= 0 .or. p(y_pitch_tot$) /= 0) then
+    call pitches_to_rotation_matrix (p(x_pitch_tot$), p(y_pitch_tot$), set, rot_mat)
     r = [vec(1:3:2), ds_center]
     vec(1:5:2) = matmul(rot_mat, r)
     vec(5) = vec(5) + ele%value(l$)/2
@@ -102,14 +102,17 @@ if (set) then
 
   if (logic_option(.false., offset_position_only)) return
 
-  efield_x = orbit%e_field_x * cmplx(cos(orbit%phase_x), sin(orbit%phase_x) )
-  efield_y = orbit%e_field_y * cmplx(cos(orbit%phase_y), sin(orbit%phase_y) )
-  efieldout_x = cos(tilt) * efield_x + sin(tilt)*efield_y
-  efieldout_y = -sin(tilt) * efield_x + cos(tilt)*efield_y
-  orbit%e_field_x = abs(efieldout_x)
-  orbit%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
-  orbit%e_field_y = abs(efieldout_y)
-  orbit%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
+  field = [orbit%field(1) * cmplx(cos(orbit%phase(1)), sin(orbit%phase(1))), &
+           orbit%field(2) * cmplx(cos(orbit%phase(2)), sin(orbit%phase(2)))]
+
+  field = [cos(tilt) * field(1) + sin(tilt)*field(2), &
+          -sin(tilt) * field(1) + cos(tilt)*field(2)]
+
+  orbit%field(1) = abs(field(1))
+  orbit%phase(1) = atan2(aimag(field(1)), real(field(1)))
+
+  orbit%field(2) = abs(field(2))
+  orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
 
   ! Set: Rotate by the graze angle to body coords. Note vec(5) = 0 initially.
 
@@ -235,8 +238,8 @@ else
 
     ! Unset: Pitch
 
-    if (p(x_offset_tot$) /= 0 .or. p(y_offset_tot$) /= 0) then
-      call pitches_to_rotation_matrix (-p(x_offset_tot$), -p(y_offset_tot$), set, rot_mat)
+    if (p(x_pitch_tot$) /= 0 .or. p(y_pitch_tot$) /= 0) then
+      call pitches_to_rotation_matrix (-p(x_pitch_tot$), -p(y_pitch_tot$), set, rot_mat)
       r = [vec(1:3:2), ds_center]
       vec(1:5:2) = matmul(rot_mat, r)
       vec(5) = vec(5) - ele%value(l$)/2
@@ -261,15 +264,18 @@ else
 
   ! Unset: intensities
 
-  efield_x = cmplx(orbit%e_field_x*cos(orbit%phase_x), orbit%e_field_x*sin(orbit%phase_x))
-  efield_y = cmplx(orbit%e_field_y*cos(orbit%phase_y), orbit%e_field_y*sin(orbit%phase_y))
+  field = [cmplx(orbit%field(1)*cos(orbit%phase(1)), orbit%field(1)*sin(orbit%phase(1))), &
+           cmplx(orbit%field(2)*cos(orbit%phase(2)), orbit%field(2)*sin(orbit%phase(2)))]
+
   tilt = tilt + rot(3)
-  efieldout_x = cos(tilt) * efield_x - sin(tilt)*efield_y
-  efieldout_y = sin(tilt) * efield_x + cos(tilt)*efield_y
-  orbit%e_field_x = abs(efieldout_x)
-  orbit%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
-  orbit%e_field_y = abs(efieldout_y)
-  orbit%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
+  field = [cos(tilt) * field(1) - sin(tilt)*field(2), &
+           sin(tilt) * field(1) + cos(tilt)*field(2)]
+
+  orbit%field(1) = abs(field(1))
+  orbit%phase(1) = atan2(aimag(field(1)),real(field(1)))
+
+  orbit%field(2) = abs(field(2))
+  orbit%phase(2) = atan2(aimag(field(2)),real(field(2)))
 
 endif
 

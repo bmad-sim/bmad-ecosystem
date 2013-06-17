@@ -794,9 +794,9 @@ case (lcavity$, rfcavity$, e_gun$)
 
   endif
 
-  ! orb%phase_x is set by em_field_calc.
+  ! orb%phase(1) is set by em_field_calc.
 
-  call rf_coupler_kick (hard_ele, param, stream_end, orb%phase_x, orb)
+  call rf_coupler_kick (hard_ele, param, stream_end, orb%phase(1), orb)
 
 end select
 

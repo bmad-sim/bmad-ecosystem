@@ -331,7 +331,7 @@ select case (ele%field_calc)
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$))
     if (ele%key == rfcavity$) phase = pi/2 - phase
-    orbit%phase_x = phase  ! RF phase is needed by apply_hard_edge_kick when calling rf_coupler_kick.
+    orbit%phase(1) = phase  ! RF phase is needed by apply_hard_edge_kick when calling rf_coupler_kick.
 
     gradient = e_accel_field (ele, gradient$)
 
