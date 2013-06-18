@@ -442,7 +442,7 @@ case ('beam')
     nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', 100 * real(n_tot - n_live) / n_tot
     if (u%model%lat%branch(ix_branch)%param%particle == photon$) then
       nl=nl+1; write (lines(nl), rmt)  '  Intensity:                  ', &
-                        bunch_p%centroid%e_field_x**2 + bunch_p%centroid%e_field_y**2
+                        bunch_p%centroid%field(1)**2 + bunch_p%centroid%field(2)**2
     endif
     nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
     nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
@@ -1104,8 +1104,8 @@ case ('element')
       fmt = '(2x, a, 2f15.8, f15.6, f11.6)'
       fmt2 = '(2x, a, 2f15.8, a, es16.8)'
       nl=nl+1; lines(nl) = 'Orbit:   Position[mm]       Momentum      Intensity      phase  '
-      nl=nl+1; write (lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%e_field_x**2, orb%phase_x
-      nl=nl+1; write (lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%e_field_y**2, orb%phase_y
+      nl=nl+1; write (lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%field(1)**2, orb%phase(1)
+      nl=nl+1; write (lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%field(2)**2, orb%phase(2)
       nl=nl+1; write (lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
     else
       z = (ele%ref_time - orb%t) * orb%beta * c_light
@@ -1995,8 +1995,8 @@ case ('particle')
   nl=nl+1; write (lines(nl), imt) 'Particle:    ', ix_p
   nl=nl+1; write (lines(nl), lmt) 'Is Alive?    ', bunch%particle(ix_p)%state == alive$
   if (u%model%lat%branch(ix_branch)%param%particle == photon$) then
-    nl=nl+1; write (lines(nl), rmt) 'Intensity_x: ', bunch%particle(ix_p)%e_field_x**2
-    nl=nl+1; write (lines(nl), rmt) 'Intensity_y: ', bunch%particle(ix_p)%e_field_y**2
+    nl=nl+1; write (lines(nl), rmt) 'Intensity_x: ', bunch%particle(ix_p)%field(1)**2
+    nl=nl+1; write (lines(nl), rmt) 'Intensity_y: ', bunch%particle(ix_p)%field(2)**2
   else
     nl=nl+1; write (lines(nl), rmt) 'Charge:      ', bunch%particle(ix_p)%charge
   endif

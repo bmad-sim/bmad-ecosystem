@@ -524,7 +524,7 @@ p =>beam%bunch(n_bunch)%particle(:)
 all_lost = all(p%state /= alive$)
 
 if (particle == photon$) then
-  if (sum(p%e_field_x**2) + sum(p%e_field_y**2) == 0 .or. all_lost) no_beam = .true.
+  if (sum(p%field(1)**2) + sum(p%field(2)**2) == 0 .or. all_lost) no_beam = .true.
 else
   if (sum(p%charge) == 0 .or. all_lost) no_beam = .true.
 endif
