@@ -36,8 +36,10 @@ bb: aa, l = 2
 b2: sextupole
 cc: sextupole
 
+ov1: overlay = {aa}, hkick
+
 b*[k1] = 1
-*[tracking_method] = runge_kuttaz
+*[tracking_method] = runge_kutta
 sextupole::cc[k2] = 3
 
 ll: line = (aa, aa, bb, bb, cc)
