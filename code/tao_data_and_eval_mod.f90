@@ -1565,34 +1565,34 @@ case ('photon.')
 
   case ('photon.intensity_x')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%e_field_x**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      call tao_load_this_datum (orbit(:)%e_field_x**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      call tao_load_this_datum (orbit(:)%field(1)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
   case ('photon.intensity_y')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%e_field_y**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%centroid%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      call tao_load_this_datum (orbit(:)%e_field_y**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      call tao_load_this_datum (orbit(:)%field(2)**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
   case ('photon.intensity')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%e_field_x**2+bunch_params(:)%centroid%e_field_y**2, &
+      call tao_load_this_datum (bunch_params(:)%centroid%field(1)**2+bunch_params(:)%centroid%field(2)**2, &
                                                                       ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      call tao_load_this_datum (orbit(:)%e_field_x**2 + orbit(:)%e_field_y**2, ele_ref, ele_start, ele, &
+      call tao_load_this_datum (orbit(:)%field(1)**2 + orbit(:)%field(2)**2, ele_ref, ele_start, ele, &
                                                                            datum_value, valid_value, datum, lat, why_invalid)
     endif
 
   case ('photon.phase_x')
     if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%phase_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (orbit(:)%phase(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   case ('photon.phase_y')
     if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%phase_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (orbit(:)%phase(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   end select
 
