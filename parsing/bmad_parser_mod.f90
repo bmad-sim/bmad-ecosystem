@@ -283,12 +283,16 @@ endif
 if (ele%key == overlay$) then
   i = attribute_index(ele, word)       ! general attribute search
 
-  if (i == type$ .or. i == alias$) then
+  if (i == type$ .or. i == alias$ .or. i == descrip$) then
     call bmad_parser_type_get (ele, word, delim, delim_found)
 
   else
 
     if (i < 1) then
+      if (wild_and_key0) then
+        err_flag = .false.
+        return
+      endif
       call parser_error ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
       return
     endif
@@ -298,18 +302,23 @@ if (ele%key == overlay$) then
       ele%component_name = word
     endif
 
+    value = 0
+    if (delim == '=') then  ! value
+      call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+      if (err_flag) return
+    endif
+
     if (ele%ix_value /= i) then
+      if (wild_and_key0) then
+        err_flag = .false.
+        return
+      endif
       call parser_error ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
             'YOU ARE TRYING TO SET: ' // word, &
             'BUT YOU SHOULD BE SETTING: ' // ele%component_name)
       return
     endif
 
-    value = 0
-    if (delim == '=') then  ! value
-      call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
-      if (err_flag) return
-    endif
     call pointer_to_indexed_attribute (ele, i, .true., r_ptr, err_flag, .true.)
     r_ptr = value
 

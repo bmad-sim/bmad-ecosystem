@@ -614,7 +614,7 @@ integer, parameter :: rfcavity$ = 9
 integer, parameter :: elseparator$ = 10, beambeam$ = 11, wiggler$ = 12
 integer, parameter :: sol_quad$ = 13, marker$ = 14, kicker$ = 15
 integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
-integer, parameter :: multipole$ = 19, bend_sol_dummy$ = 20
+integer, parameter :: multipole$ = 19, key_dummy$ = 20
 integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
 integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
 integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29

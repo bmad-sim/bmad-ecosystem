@@ -37,13 +37,15 @@ contains
 ! and the name of the attribute. Abbreviations are permitted but must be at 
 ! least 3 characters.
 !
+! Note:
+!   If ele%key = key_dummy$ -> Entire name table will be searched.
+!
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
 !   ele  -- Ele_struct: attribute_index will restrict the name search to 
-!             valid attributes of the given element. Note: If 
-!             ele%key = overlay$ then the entire name table will be searched.
+!             valid attributes of the given element. 
 !   name -- Character(40): Attribute name. Must be uppercase.
 !
 ! Output:
@@ -88,9 +90,11 @@ n_abbrev = 0            ! number of abbreviation matches.
 !-----------------------------------------------------------------------
 ! search for name
 
-! Overlays search all types of elements
+! Overlay attribute must be real except for TYPE, ALIAS, and DESCRIP
 
-if (key == overlay$) then
+if (key == overlay$ .or. key == key_dummy$) then
+  if (key == overlay$ .and. attribute_type(name40) /= is_real$ .and. &
+      name40 /= 'TYPE' .and. name40 /= 'ALIAS' .and. name40 /= 'DESCRIP') return
   do k = 1, n_key$
     do i = 1, attrib_num(k)
       if (short_attrib_array(k, i) == name40) then
@@ -285,7 +289,7 @@ if (.not. attribute_array_init_needed) return
 
 do i = 1, n_key$
 
-  if (i == bend_sol_dummy$) cycle
+  if (i == key_dummy$) cycle
 
   call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
   call init_attribute_name1 (i, custom_attribute2$,  'CUSTOM_ATTRIBUTE2', private$)
