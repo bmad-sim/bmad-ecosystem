@@ -546,19 +546,13 @@ type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (photon_surface_struct), pointer :: s
 
-real(rp) curverot(3,3)
+real(rp) curverot(3,3), angle
 real(rp) slope_t, slope_c, cos_c, sin_c, cos_t, sin_t, y, z
 integer iz, iy
 
 logical set
 
-! The transformation curverot is
-!     curve_rot = W_c W_t
-! where W_c is the rotation in the reflection plane and W_t is the rotation
-! in the transverse plane. [Note: There is no good reason for choosing W_c W_t over W_t W_c.]
-! Want to have the transformation curverot match the slopes slope_c and slope_t.
-! Since rotations do not commute, the cos_t and sin_t terms, which are used
-! in W_t (the second rotation), are modified by cos_c.
+! Compute slopes
 
 s => ele%surface
 
@@ -575,23 +569,15 @@ do iy = 0, 4
 enddo
 enddo
 
-cos_c =       1 / sqrt(1 + slope_c**2)
-sin_c = slope_c / sqrt(1 + slope_c**2)
+if (slope_c == 0 .and. slope_t == 0) return
 
-cos_t =               1 / sqrt(1 + (cos_c * slope_t)**2)
-sin_t = cos_c * slope_t / sqrt(1 + (cos_c * slope_t)**2)
+! Compute rotation matrix and goto body element coords at point of photon impact
 
-if (set) then
-  curverot(1, 1:3) = [ cos_c*cos_t,       -sin_t, -sin_c*cos_t]
-  curverot(2, 1:3) = [ cos_c*sin_t,        cos_t, -sin_c*sin_t]
-  curverot(3, 1:3) = [ sin_c,             0.0_rp,  cos_c]
-else
-  curverot(1, 1:3) = [ cos_c*cos_t,  cos_c*sin_t,  sin_c]
-  curverot(2, 1:3) = [      -sin_t,        cos_t, 0.0_rp]
-  curverot(3, 1:3) = [-sin_c*cos_t, -sin_c*sin_t,  cos_c]
-endif
+angle = atan2(sqrt(slope_c**2 + slope_t**2), 1.0_rp)
+if (set) angle = -angle
+call axis_angle_to_w_mat ([0.0_rp, slope_c, -slope_t], angle, curverot)
 
-orbit%vec(2:6:2) = matmul(curverot, orbit%vec(2:6:2)) ! Goto body element coords at point of photon impact
+orbit%vec(2:6:2) = matmul(curverot, orbit%vec(2:6:2))
 
 end subroutine to_curved_body_coords
 
