@@ -12,6 +12,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: girder, slave, slave2
+type (floor_position_struct), pointer :: floor
 
 real(rp) w_mat(3,3), w_mat_inv(3,3), mat3(3,3)
 integer i, ig, j, nargs
@@ -42,11 +43,14 @@ call bmad_parser (lat_file, lat)
 !
 
 open (1, file = 'output.now')
-fmt = '(3a, 3f20.15, 5x, 3f20.15)'
+fmt = '(a, a10, a, 3f20.15, 5x, 3f20.15)'
 
 do ig = lat%n_ele_track+1, lat%n_ele_max
   girder => lat%ele(ig)
   if (girder%lord_status /= girder_lord$) cycle
+
+  floor => girder%floor
+  write (1, fmt) '"Floor:  ', trim(girder%name), '" ABS 1e-14 ', floor%r, floor%theta, floor%phi, floor%psi
 
   do i = 1, girder%n_slave
     slave => pointer_to_slave(girder, i)
@@ -85,9 +89,9 @@ write (1, fmt) '"Offset: ', trim(ele%name), '" ABS 1e-14 ', v(x_offset_tot$), v(
 
 select case (ele%key)
 case (sbend$)
-  write (1, fmt) '"Angle:  ', trim(ele%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(ref_tilt_tot$), v(roll_tot$)
+  write (1, fmt) '"Angle:  ', trim(ele%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(roll_tot$), v(ref_tilt_tot$)
 case (multilayer_mirror$, mirror$, crystal$)
-  write (1, fmt) '"Angle:  ', trim(ele%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(ref_tilt_tot$), v(tilt_tot$)
+  write (1, fmt) '"Angle:  ', trim(ele%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$), v(ref_tilt_tot$)
 case default
   write (1, fmt) '"Angle:  ', trim(ele%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$)
 end select

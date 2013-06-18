@@ -18,7 +18,7 @@ wig2: wig0, map_with_offsets = T
 
 
 l: line = (wig1, wig2)
-m: marker, superimpose, offset = 2
+m: marker, superimpose, offset = 2, ele_origin = center
 
 use, l
 
