@@ -1,0 +1,20 @@
+no_digested
+parameter[geometry] = open
+parameter[e_tot] = 1e6
+
+q1: quadrupole, l = 1, k1 = 1
+q2: quadrupole, l = 2, k1 = 2
+
+ov1: overlay = {q1[k1]:-1, q1[tilt]:2}, hkick = 10
+ov2: overlay = {q1[k1]:3, q1[tilt], q1}, hkick = 20
+
+g1: group = {ov1[hkick]}, k3 = 5
+g2: group = {q1}, end_edge
+
+a_line: line = (q1, q2)
+use, a_line
+
+expand_lattice
+
+g1[command] = 7
+g2[command] = 1
