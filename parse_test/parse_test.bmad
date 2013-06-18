@@ -37,6 +37,7 @@ b2: sextupole
 cc: sextupole
 
 ov1: overlay = {aa}, hkick
+gr1: group = {aa:-1}, vkick
 
 b*[k1] = 1
 *[tracking_method] = runge_kutta
