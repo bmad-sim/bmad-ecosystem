@@ -193,15 +193,17 @@ non-multipole elements.
 \begin{tabular}{|l|l|l|} \hline
 \tt
   {\em Element} & $F$                              & $n_\text{ref}$ \\ \hline
-  \vn{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
   \vn{Hkicker}     & Kick                                   & 0 \\
-  \vn{Vkicker}     & Kick                                   & 0 \\
+  \vn{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
   \vn{Rbend}       & G * L                                  & 0 \\
   \vn{Sbend}       & G * L                                  & 0 \\
-  \vn{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Vkicker}     & Kick                                   & 0 \\
+  \vn{Wiggler}     & $\dsfrac{2 \, c \, {\tt L\_pole} \, B_{max}}{\pi \, {\tt p0c}}$ 
+                                                            & 0 \\
   \vn{Quadrupole}  & K1 * L                                 & 1 \\
-  \vn{Solenoid}    & KS * L                                 & 1 \\
   \vn{Sol_Quad}    & K1 * L                                 & 1 \\
+  \vn{Solenoid}    & KS * L                                 & 1 \\
   \vn{Sextupole}   & K2 * L                                 & 2 \\
   \vn{Octupole}    & K3 * L                                 & 3 \\ \hline
 \end{tabular}

@@ -357,8 +357,8 @@ case (quadrupole$, sol_quad$)
   ref_exp = 1
 
 case (wiggler$)
-  const = 2 * this_ele%value(l$) / &
-                  (pi * this_ele%value(rho$) * this_ele%value(n_pole$))
+  const = 2 * c_light * this_ele%value(b_max$) * this_ele%value(l_pole$) / &
+                                                    (pi * this_ele%value(p0c$))
   ref_exp = 0
 
 case (solenoid$)
