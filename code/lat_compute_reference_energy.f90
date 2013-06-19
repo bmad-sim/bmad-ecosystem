@@ -39,13 +39,13 @@ integer j, k, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end, ix_e_gun
 
 logical stale, err
-logical, optional :: err_flag
+logical :: err_flag
 
 character(40), parameter :: r_name = 'lat_compute_ref_energy_and_time'
 
 ! propagate the energy through the tracking part of the lattice
 
-if (present(err_flag)) err_flag = .true.
+err_flag = .true.
 
 do ib = 0, ubound(lat%branch, 1)
 
@@ -302,7 +302,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 enddo ! Branch loop
 
 lat%lord_state%ref_energy = ok$
-if (present(err_flag)) err_flag = .false.
+err_flag = .false.
 
 end subroutine lat_compute_ref_energy_and_time
 
