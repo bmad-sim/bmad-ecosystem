@@ -586,11 +586,13 @@ if (present(track_state)) track_state = moving_forward$
 
 !
 
+if (orbit(0)%state == not_set$) call init_coord(orbit(0), orbit(0)%vec, branch%ele(0), .true., branch%param%particle) 
 call vec_bmad_to_ptc (orbit(0)%vec, branch%ele(0)%value(p0c$) / branch%ele(0)%value(E_tot$), x)
 
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
 
+  orbit(i) = orbit(i-1)
   call check_aperture_limit (orbit(i), ele, upstream_end$, branch%param)
   if (orbit(i)%state /= alive$) then
     if (present(err_flag)) err_flag = .false.
@@ -600,7 +602,7 @@ do i = 1, branch%n_ele_track
   fib => branch%ele(i)%ptc_fibre%next
   call track_probe_x (x, DEFAULT, branch%ele(i-1)%ptc_fibre%next, fib)
   call vec_ptc_to_bmad (x, fib%beta0, vec)
-  call init_coord (orbit(i), vec, branch%ele(i), .true., branch%param%particle)
+  call init_coord (orbit(i), vec, ele, .true., branch%param%particle)
 
   call check_aperture_limit (orbit(i), ele, downstream_end$, branch%param)
   if (orbit(i)%state /= alive$) then
