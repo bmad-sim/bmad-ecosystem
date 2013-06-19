@@ -147,7 +147,7 @@ interface
   subroutine lat_compute_ref_energy_and_time (lat, err_flag)
     import
     type (lat_struct) lat
-    logical, optional :: err_flag
+    logical err_flag
   end subroutine
 
   subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out, err_flag)

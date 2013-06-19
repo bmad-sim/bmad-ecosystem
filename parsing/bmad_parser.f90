@@ -136,7 +136,6 @@ old_lat = lat
 
 call init_lat (lat, 1)
 call init_lat (in_lat, 1000)
-call init_lat (lat2, 20)
 allocate (in_indexx(0:1000), in_name(0:1000))
 
 call allocate_plat (plat, ubound(in_lat%ele, 1))
@@ -998,7 +997,7 @@ endif
 
 ! rfcavity harmon bookkeeping
 
-call lat_compute_ref_energy_and_time (lat, err_flag)
+call lat_compute_ref_energy_and_time (lat, err)
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)

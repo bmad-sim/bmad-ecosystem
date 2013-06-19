@@ -74,7 +74,8 @@ if (present(ref_orb)) then
   endif
 endif
 
-if (bmad_com%auto_bookkeeper) call lat_compute_ref_energy_and_time (lat)
+if (bmad_com%auto_bookkeeper) call lat_compute_ref_energy_and_time (lat, err)
+if (err) return
 
 !--------------------------------------------------------------
 ! Make entire lat if i_ele < 0.
