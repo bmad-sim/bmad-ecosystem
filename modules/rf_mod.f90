@@ -98,9 +98,8 @@ character(28), parameter :: r_name = 'rf_auto_scale_phase_and_amp'
 
 ! Check if auto scale is needed.
 
-if (.not. ele%is_on) return
-
 err_flag = .false.
+if (.not. ele%is_on) return
 
 do_scale_phase = bmad_com%rf_auto_scale_phase_default
 do_scale_amp   = bmad_com%rf_auto_scale_amp_default
