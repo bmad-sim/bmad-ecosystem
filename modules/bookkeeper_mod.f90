@@ -13,6 +13,7 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4
 
 private control_bookkeeper1, makeup_control_slave
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
+private ptc_bookkeeper
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -110,6 +111,10 @@ call control_bookkeeper (lat, mark_eles_as_stale = .false.)
 call s_calc (lat)
 call lat_geometry (lat)
 call control_bookkeeper (lat, mark_eles_as_stale = .false.)
+
+! PTC bookkeeping
+
+call ptc_bookkeeper (lat)
 
 ! See if all status flags have been properly reset.
 ! Exception is mat6 flag since the bookkeeping routines do not touch this.
@@ -2012,6 +2017,7 @@ endif
 
 ele%bookkeeping_state%attributes = ok$
 ele%bookkeeping_state%rad_int = stale$
+ele%bookkeeping_state%ptc     = stale$
 
 ! For auto bookkeeping if no change then we don't need to do anything
 

@@ -139,17 +139,20 @@ case (group$)
   ele%bookkeeping_state%ref_energy     = ok$
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
+  ele%bookkeeping_state%ptc            = ok$
 
 case (overlay$)
   ele%bookkeeping_state%attributes     = ok$
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
+  ele%bookkeeping_state%ptc            = ok$
 
 case (girder$)
   ele%bookkeeping_state%attributes     = ok$
   ele%bookkeeping_state%ref_energy     = ok$
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
+  ele%bookkeeping_state%ptc            = ok$
 
 case (init_ele$)
   ele%bookkeeping_state%rad_int        = ok$

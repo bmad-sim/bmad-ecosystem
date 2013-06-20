@@ -1985,6 +1985,7 @@ bookkeeping_state%ref_energy     = stat
 bookkeeping_state%attributes     = stat
 bookkeeping_state%mat6           = stat
 bookkeeping_state%rad_int        = stat
+bookkeeping_state%ptc            = stat
 
 end subroutine set_status_flags
 

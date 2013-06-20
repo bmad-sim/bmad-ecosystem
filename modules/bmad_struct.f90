@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 122
+integer, parameter :: bmad_inc_version$ = 123
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -381,6 +381,7 @@ type bookkeeping_state_struct
   integer :: ref_energy = stale$      ! Reference energy and ref time: super_ok$, ok$ or stale$
   integer :: mat6 = stale$            ! Linear transfer map status: super_ok$, ok$ or stale$
   integer :: rad_int = stale$         ! Radiation integrals cache status
+  integer :: ptc = stale$             ! Associated PTC fibre (or layout) status.
 end type
 
 ! radiation integral data cache

@@ -1496,6 +1496,7 @@ select case (status_group)
 case (attribute_group$)
   call set_attributes
   call set_mat6
+  call set_ptc
 
 case (control_group$)
   call set_control
@@ -1503,16 +1504,19 @@ case (control_group$)
 case (floor_position_group$)
   call set_floor_position
   call set_mat6
+  call set_ptc
 
 case (s_position_group$)
   call set_s_position
   call set_floor_position
   call set_mat6
+  call set_ptc
 
 case (ref_energy_group$)
   call set_ref_energy
   call set_mat6
   call set_attributes ! EG: k1 <--> b1_gradient calc needed 
+  call set_ptc
 
 case (mat6_group$)
   call set_mat6
@@ -1528,6 +1532,7 @@ case (all_groups$)
   call set_s_position
   call set_mat6
   call set_rad_int
+  call set_ptc
 
 case default
    if (global_com%exit_on_error) call err_exit   ! Should not be here
@@ -1597,6 +1602,15 @@ subroutine set_rad_int
   ele%bookkeeping_state%rad_int = stale$
   if (associated(state)) state%rad_int = stale$
 end subroutine set_rad_int
+
+!----------------------------------------------------------------------------
+! contains
+
+subroutine set_ptc
+  if (ele%key == overlay$ .or. ele%key == group$) return
+  ele%bookkeeping_state%ptc = stale$
+  if (associated(state)) state%ptc = stale$
+end subroutine set_ptc
 
 !----------------------------------------------------------------------------
 ! contains
