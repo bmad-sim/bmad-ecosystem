@@ -76,6 +76,7 @@ subroutine offset_particle (ele, coord, param, set, set_canonical, &
 use bmad_interface, except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
 use track1_mod, only: track_a_drift
+use rotation_3d_mod
 
 implicit none
 
