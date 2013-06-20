@@ -173,7 +173,7 @@ SUBROUTINE solve_psi_adaptive(t0,t1,p0,args,p1)
   REAL(fgsl_double) y(1)
   REAL(fgsl_double) default_step
   REAL(fgsl_double), PARAMETER :: abs_err_goal = 0.0_fgsl_double
-  REAL(fgsl_double), PARAMETER :: rel_err_goal = 1.0d-6
+  REAL(fgsl_double), PARAMETER :: rel_err_goal = 1.0d-7
 
   default_step = (t1-t0)/100.
 
@@ -241,7 +241,7 @@ SUBROUTINE solve_psi_fixed_steps(t0,t1,p0,args,t,p)
 
   ptr = c_loc(args)
   ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
-  ode_drv = fgsl_odeiv2_driver_alloc_y_new(ode_system, fgsl_odeiv2_step_bsimp, 1.0e-6_fgsl_double, 0.0_fgsl_double, 1.0E-6_fgsl_double)
+  ode_drv = fgsl_odeiv2_driver_alloc_y_new(ode_system, fgsl_odeiv2_step_bsimp, 1.0e-6_fgsl_double, 0.0_fgsl_double, 1.0E-7_fgsl_double)
 
   tcur = t0
   y(1) = p0
@@ -362,7 +362,7 @@ SUBROUTINE find_normalization(bound,p0,args,pnrml)
     CALL integrate_psi(bound,x(2),args,f(2))
     x(1) = x(2) - f(2)*(x(2)-x(3))/(f(2)-f(3))
 
-    IF(ABS((x(1)-x(2))/x(2)) .lt. 1.0d-6) EXIT
+    IF(ABS((x(1)-x(2))/x(2)) .lt. 1.0d-7) EXIT
 
     x(3) = x(2)
     x(2) = x(1)
@@ -434,7 +434,7 @@ SUBROUTINE find_fwhm(bound,args,fwhm)
       xmax = xnew
     ENDIF
 
-    IF(ABS((xmax-xmin)/xmax) .lt. 1.0d-6) EXIT
+    IF(ABS((xmax-xmin)/xmax) .lt. 1.0d-7) EXIT
   ENDDO
 
   max_time = xnew
@@ -457,7 +457,7 @@ SUBROUTINE find_fwhm(bound,args,fwhm)
     x(1) = x(2) - f(2) * (x(2)-x(3)) / (f(2)-f(3))
     x(1) = MIN(x(1), max_time)
 
-    IF( ABS((x(1)-x(2))/x(1)) .lt. 1.0d-6 ) EXIT
+    IF( ABS((x(1)-x(2))/x(1)) .lt. 1.0d-7 ) EXIT
 
     x(3) = x(2)
     f(3) = f(2)
@@ -482,7 +482,7 @@ SUBROUTINE find_fwhm(bound,args,fwhm)
     x(1) = x(2) - f(2) * (x(2)-x(3)) / (f(2)-f(3))
     x(1) = MAX(x(1), max_time)
 
-    IF( ABS((x(1)-x(2))/x(1)) .lt. 1.0d-6 ) EXIT
+    IF( ABS((x(1)-x(2))/x(1)) .lt. 1.0d-7 ) EXIT
 
     x(3) = x(2)
     f(3) = f(2)
