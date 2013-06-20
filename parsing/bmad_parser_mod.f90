@@ -1146,7 +1146,7 @@ case ('MAP_WITH_OFFSETS')
 case ('OFFSET_MOVES_APERTURE')
   call get_logical (attrib_word, ele%offset_moves_aperture, err_flag)
 
-case ('FIELD_MASTER')
+case ('FIELD_MASTER', 'HARMON_MASTER')
   call get_logical (attrib_word, ele%field_master, err_flag)
 
 case ('SCALE_MULTIPOLES')
@@ -4802,6 +4802,14 @@ case (lcavity$)
                 ('BOTH VOLTAGE AND GRADIENT NON-ZERO FOR A LCAVITY:', ele%name)
     ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
   endif
+
+! 
+
+case (rfcavity$) 
+
+  if (ele%value(rf_frequency$) /= 0 .and. ele%value(harmon$) /= 0) call parser_error &
+              ('BOTH RF_FREQUENCY AND HARMON SET FOR RFCAVITY: ' // ele%name, &
+               'SETTING OF HARMON WILL BE IGNORED!', warn_only = .true.)
 
 ! for a periodic_type wiggler n_pole is a dependent attribute
 

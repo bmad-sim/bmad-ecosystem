@@ -806,7 +806,7 @@ integer, parameter :: aperture_at$ = 98, beta_a$ = 98
 integer, parameter :: ran_seed$ = 99, beta_b$ = 99, origin_ele$= 99
 
 integer, parameter :: to_line$ = 100
-integer, parameter :: field_master$ = 101, to_element$ = 101
+integer, parameter :: field_master$ = 101, harmon_master$ = 101, to_element$ = 101
 integer, parameter :: descrip$ = 102
 integer, parameter :: scale_multipoles$ = 103
 integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall3d$

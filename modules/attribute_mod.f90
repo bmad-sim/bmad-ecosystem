@@ -1224,7 +1224,8 @@ select case (ele%key)
 case (sbend$)
   if (any(ix_attrib == [angle$, l_chord$, rho$])) free = .false.
 case (rfcavity$)
-  if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) free = .false.
+  if (ix_attrib == rf_frequency$ .and. ele%field_master) free = .false.
+  if (ix_attrib == harmon$ .and. .not. ele%field_master) free = .false.
 case (lcavity$)
   if (ix_attrib == voltage$) free = .false.
 case (elseparator$)

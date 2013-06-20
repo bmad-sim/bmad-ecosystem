@@ -2582,15 +2582,15 @@ General \vn{rfcavity} attributes are:
 \end{center}
 \toffset
 
-\index{rf_frequency}\index{harmon}\index{voltage}\index{phi0}\index{dphi0}
+\index{rf_frequency}\index{harmon}\index{voltage}\index{phi0}\index{dphi0}\index{harmon_master}
 Attributes specific to an \vn{rfcavity} are:
 \begin{example}
-  rf_frequency = <Real>    ! Frequency
-  harmon       = <Real>    ! Harmonic number
-  voltage      = <Real>    ! Cavity voltage
-  phi0         = <Real>    ! Cavity phase
-  dphi0        = <Real>    ! Phase variation with multipass
-  gradient     = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
+  rf_frequency  = <Real>    ! Frequency
+  harmon        = <Real>    ! Harmonic number
+  voltage       = <Real>    ! Cavity voltage
+  phi0          = <Real>    ! Cavity phase
+  dphi0         = <Real>    ! Phase variation with multipass
+  gradient      = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
 \end{example}
 
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
@@ -2627,12 +2627,14 @@ energy kick is independent of the sign of the charge of the particle
 \vn{dphi0_ref} is a phase calculated by \bmad's RF auto-phase module
 (\sref{s:em.fields}).
 
-If \vn{harmon} is non--zero then \vn{rf_frequency} is a dependent
-attribute calculated by
+If \vn{harmon} is non--zero the \vn{rf_frequency} is calculated by
 \begin{example}
-  rf_frequency = harmon * c_light / L_lattice 
+  rf_frequency = harmon * c_light * beta0 / L_lattice 
 \end{example}
-where \vn{L_lattice} is the total lattice length.
+where \vn{L_lattice} is the total lattice length and \vn{beta0} is the
+velocity of the reference particle at the start of the lattice. After
+the lattice has been read in, \vn{rf_frequency} will be the
+independent variable (\sref{s:depend}).
 
 Couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:rf.wakes} can
 be modeled. In addition, if a field map is specified

@@ -849,12 +849,12 @@ call init_attribute_name1 (solenoid$, p0c_start$,                   'p0c_start',
 
 call init_attribute_name1 (rfcavity$, traveling_wave$,              'TRAVELING_WAVE')
 call init_attribute_name1 (rfcavity$, voltage$,                     'VOLTAGE')
-call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENCY')
+call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENCY', quasi_free$)
 call init_attribute_name1 (rfcavity$, dphi0$,                       'DPHI0')
 call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
-call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON')
+call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON', quasi_free$)
 call init_attribute_name1 (rfcavity$, field_calc$,                  'FIELD_CALC')
-call init_attribute_name1 (rfcavity$, field_master$,                'FIELD_MASTER')
+call init_attribute_name1 (rfcavity$, harmon_master$,               'HARMON_MASTER')
 call init_attribute_name1 (rfcavity$, sr_wake_file$,                'SR_WAKE_FILE')
 call init_attribute_name1 (rfcavity$, lr_wake_file$,                'LR_WAKE_FILE')
 call init_attribute_name1 (rfcavity$, lr_freq_spread$,              'LR_FREQ_SPREAD')
@@ -1209,7 +1209,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'RF_AUTO_SCALE_PHASE', &
       'RF_AUTO_SCALE_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH')
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'TRAVELING_WAVE', &
