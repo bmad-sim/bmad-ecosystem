@@ -35,38 +35,32 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   // c_side.test_pat[complex, 1, NOT]
   for (unsigned int i = 0; i < C.spin.size(); i++)
     {int rhs = 101 + i + 4 + offset; C.spin[i] = Complex(rhs, 100+rhs);}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.field.size(); i++)
+    {int rhs = 101 + i + 5 + offset; C.field[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.phase.size(); i++)
+    {int rhs = 101 + i + 6 + offset; C.phase[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.e_field_x = rhs;
+  rhs = 7 + offset; C.charge = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.e_field_y = rhs;
+  rhs = 8 + offset; C.p0c = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.phase_x = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.phase_y = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.charge = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.p0c = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.beta = rhs;
+  rhs = 9 + offset; C.beta = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 12 + offset; C.ix_ele = rhs;
+  rhs = 10 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.state = rhs;
+  rhs = 11 + offset; C.state = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 14 + offset; C.species = rhs;
+  rhs = 12 + offset; C.species = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 15 + offset; C.location = rhs;
+  rhs = 13 + offset; C.location = rhs;
 
 
 }

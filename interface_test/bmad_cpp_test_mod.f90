@@ -101,28 +101,30 @@ do jd1 = 1, size(F%spin,1); lb1 = lbound(F%spin,1) - 1
   rhs = 100 + jd1 + 4 + offset
   F%spin(jd1+lb1) = cmplx(rhs, 100+rhs)
 enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%field,1); lb1 = lbound(F%field,1) - 1
+  rhs = 100 + jd1 + 5 + offset
+  F%field(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%phase,1); lb1 = lbound(F%phase,1) - 1
+  rhs = 100 + jd1 + 6 + offset
+  F%phase(jd1+lb1) = rhs
+enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%e_field_x = rhs
+rhs = 7 + offset; F%charge = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%e_field_y = rhs
+rhs = 8 + offset; F%p0c = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%phase_x = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%phase_y = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%charge = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%p0c = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%beta = rhs
+rhs = 9 + offset; F%beta = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%ix_ele = rhs
+rhs = 10 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%state = rhs
+rhs = 11 + offset; F%state = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%species = rhs
+rhs = 12 + offset; F%species = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%location = rhs
+rhs = 13 + offset; F%location = rhs
 
 end subroutine set_coord_test_pattern
 

@@ -294,10 +294,8 @@ public:
   Real s;
   Real t;
   Complex_ARRAY spin;
-  Real e_field_x;
-  Real e_field_y;
-  Real phase_x;
-  Real phase_y;
+  Real_ARRAY field;
+  Real_ARRAY phase;
   Real charge;
   Real p0c;
   Real beta;
@@ -311,10 +309,8 @@ public:
     s(0.0),
     t(0.0),
     spin(0.0, 2),
-    e_field_x(0.0),
-    e_field_y(0.0),
-    phase_x(0.0),
-    phase_y(0.0),
+    field(0.0, 2),
+    phase(0.0, 2),
     charge(0.0),
     p0c(0.0),
     beta(-1),

@@ -78,10 +78,8 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.t == y.t);
   is_eq = is_eq && is_all_equal(x.spin, y.spin);
-  is_eq = is_eq && (x.e_field_x == y.e_field_x);
-  is_eq = is_eq && (x.e_field_y == y.e_field_y);
-  is_eq = is_eq && (x.phase_x == y.phase_x);
-  is_eq = is_eq && (x.phase_y == y.phase_y);
+  is_eq = is_eq && is_all_equal(x.field, y.field);
+  is_eq = is_eq && is_all_equal(x.phase, y.phase);
   is_eq = is_eq && (x.charge == y.charge);
   is_eq = is_eq && (x.p0c == y.p0c);
   is_eq = is_eq && (x.beta == y.beta);
