@@ -442,9 +442,12 @@ if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'SYMPLECTIFY', '=', ele%symplectify
 endif
   
-if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. &
-    ele%lord_status /= girder_lord$ .and. attribute_index(ele, 'FIELD_MASTER') /= 0) then
+if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'FIELD_MASTER', '=', ele%field_master
+endif
+
+if (attribute_index(ele, 'HARMON_MASTER') /= 0) then
+  nl=nl+1; write (li(nl), fmt_l) 'HARMON_MASTER', '=', ele%field_master
 endif
 
 if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then

@@ -17,7 +17,7 @@
 !   lat_file   -- Character(*): Name of the input file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
 !                   Elements and do other bookkeeping like calculate the reference energy? 
-!                   Default is True.
+!                   Default is True. Do not set False unless you know what you are doing.
 !   use_line   -- Character(*), optional: If present and not blank, override the use 
 !                   statement in the lattice file and use use_line instead.
 !
@@ -52,7 +52,7 @@ type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
 type (ele_pointer_struct), allocatable :: branch_ele(:)
 
-real(rp) time
+real(rp) beta
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 
@@ -986,6 +986,20 @@ enddo
 
 call parser_add_lord (in_lat, n_max, plat, lat)
 
+! If harmon is set for rfcavity then need to calc rf_frequency
+
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+  do j = 1, branch%n_ele_max
+    ele => branch%ele(j)
+    if (ele%key /= rfcavity$) cycle
+    if (ele%value(harmon$) == 0 .or. ele%value(rf_frequency$) /= 0) cycle
+    branch0 => pointer_to_branch(ele)
+    beta = branch0%ele(0)%value(p0c$) / branch0%ele(0)%value(e_tot$)
+    ele%value(rf_frequency$) = ele%value(harmon$) * c_light * beta / branch0%param%total_length
+  enddo
+enddo
+
 ! Consistancy check
 
 call lat_sanity_check (lat, err)
@@ -995,21 +1009,7 @@ if (err) then
   return
 endif
 
-! rfcavity harmon bookkeeping
-
-call lat_compute_ref_energy_and_time (lat, err)
-
-do i = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i)
-  do j = 1, branch%n_ele_max
-    ele => branch%ele(j)
-    if (ele%key /= rfcavity$) cycle
-    if (ele%value(harmon$) == 0 .or. ele%value(rf_frequency$) /= 0) cycle
-    branch0 => pointer_to_branch(ele)
-    time = branch0%ele(branch0%n_ele_track)%ref_time
-    ele%value(rf_frequency$) = ele%value(harmon$) * ele%value(p0c$) / ele%value(e_tot$) / time
-  enddo
-enddo
+! Bookkeeping
 
 if (logic_option (.true., make_mats6)) then
   call lattice_bookkeeper (lat, err)
