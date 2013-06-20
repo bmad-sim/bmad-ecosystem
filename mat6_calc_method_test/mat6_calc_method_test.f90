@@ -31,7 +31,9 @@ elseif (nargs > 1) then
   call err_exit
 endif
 
+
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
+call lattice_bookkeeper (lat)
 
 open (1, file = 'output.now', recl = 200)
 
