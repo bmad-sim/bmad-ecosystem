@@ -401,6 +401,12 @@ interface
     real(rp) mat4(4,4)
   end subroutine
 
+  subroutine ptc_bookkeeper (lat)
+    import
+    implicit none
+    type (lat_struct) lat
+  end subroutine
+
   subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
                                              stable, growth_rate, chi, err_flag)
     import

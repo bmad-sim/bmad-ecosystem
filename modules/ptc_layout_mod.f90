@@ -890,6 +890,8 @@ end select
 
 call misalign_ele_to_fibre (ele, .true., ele%ptc_fibre)
 
+ele%bookkeeping_state%ptc = ok$
+
 !-------------------------------------------------------------------------
 contains
 
