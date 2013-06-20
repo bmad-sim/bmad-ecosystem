@@ -14,6 +14,7 @@ TYPE ibs_sim_param_struct
   REAL(rp) inductance
   REAL(rp) resistance
 !  REAL(rp) clog         ! Smuggle Coulomb Log out of this depths of the calculation.
+  TYPE(coord_struct), DIMENSION(:), POINTER :: co => NULL()
 END TYPE
 
 TYPE ibs_struct
@@ -952,6 +953,7 @@ SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
   REAL(rp) bmin1, bmin2
   REAL(rp) t6(6,6)
   REAL(rp) W(6,6)
+  REAL(rp) boost_beta_x, boost_beta_y, boost_beta_z
 
   INTEGER error
   LOGICAL lerror
@@ -1019,24 +1021,34 @@ SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
     RETURN
   ENDIF
 
+  !-------------------------------------------------------------------------
   ! make transfer matrix from canonical to spatial coordinates
+  !
+  !- The difference between the sigma matrix in canonical coordinates and sigma matrix
+  !- in spatial coordinates is trivial.  This transformation is set to the identity.
   Tspat = 0.0d0
   DO i=1,6
     Tspat(i,i) = 1.0d0
   ENDDO
-!  Tspat(1,2) = ele%value(l$)/4
-!  Tspat(3,4) = ele%value(l$)/4
-!  Tspat(5,6) = ele%value(l$)/4/gamma/gamma
   spatial_sigma_mat = MATMUL(Tspat,MATMUL(sigma_mat,TRANSPOSE(Tspat)))
+  ! CALL spatial_smat_from_canonical_smat(sigma_mat,spatial_sigma_mat)
+  !-------------------------------------------------------------------------
 
+  !-------------------------------------------------------------------------
   ! boost sigma matrix to COM frame of bunch
-  Tboost = 0.0d0
-  do i=1,6
-    Tboost(i,i) = 1.0d0
-  enddo
-  Tboost(5,5) = 1.0d0 + gamma*gamma/(1.0d0+gamma)
-  Tboost(6,6) = 1.0d0 / gamma
-  boosted_sigma_mat = MATMUL(Tboost,MATMUL(spatial_sigma_mat,TRANSPOSE(Tboost)))
+  boost_beta_x = ibs_sim_params%co(ix)%vec(2) * rbeta
+  boost_beta_y = ibs_sim_params%co(ix)%vec(4) * rbeta
+  boost_beta_z = SQRT(1.0d0 - ibs_sim_params%co(ix)%vec(2)**2 - ibs_sim_params%co(ix)%vec(4)**2) * rbeta
+  ! WRITE(*,'(A,3F15.8)') "FOO: ", boost_beta_x, boost_beta_y, boost_beta_z
+  CALL boost_dist(boost_beta_x, boost_beta_y, boost_beta_z, 1, spatial_sigma_mat, boosted_sigma_mat)
+!  Tboost = 0.0d0
+!  do i=1,6
+!    Tboost(i,i) = 1.0d0
+!  enddo
+!  Tboost(5,5) = 1.0d0 + gamma*gamma/(1.0d0+gamma)
+!  Tboost(6,6) = 1.0d0 / gamma
+!  boosted_sigma_mat = MATMUL(Tboost,MATMUL(spatial_sigma_mat,TRANSPOSE(Tboost)))
+  !-------------------------------------------------------------------------
 
   ! permute sigma matrix to x,y,z,px,py,pz form
   ar_sigma_mat = MATMUL(MATMUL(TRANSPOSE(Ps),boosted_sigma_mat),Ps)
@@ -1123,15 +1135,16 @@ SUBROUTINE kubo1(lat, ibs_sim_params, rates, ix, s)
   ENDDO
   
   ! boost updates to lab frame
-  CALL mat_inverse(Tboost,Tboost_inv,ok)
-  IF( .not. ok ) THEN
-    WRITE(*,*) "BAD: Could not invert Tboost"
-    rates%inv_Ta = 0.0d0
-    rates%inv_Tb = 0.0d0
-    rates%inv_Tz = 0.0d0
-    RETURN
-  ENDIF
-  spatial_sigma_update = MATMUL(Tboost_inv,MATMUL(sigma_update,TRANSPOSE(Tboost_inv)))
+  ! CALL mat_inverse(Tboost,Tboost_inv,ok)
+  ! IF( .not. ok ) THEN
+  !   WRITE(*,*) "BAD: Could not invert Tboost"
+  !   rates%inv_Ta = 0.0d0
+  !   rates%inv_Tb = 0.0d0
+  !   rates%inv_Tz = 0.0d0
+  !   RETURN
+  ! ENDIF
+  ! spatial_sigma_update = MATMUL(Tboost_inv,MATMUL(sigma_update,TRANSPOSE(Tboost_inv)))
+  CALL boost_dist(boost_beta_x, boost_beta_y, boost_beta_z, -1, sigma_update, spatial_sigma_update)
 
   ! back to canonical coordinates
   CALL mat_inverse(Tspat, Tspat_inv, ok)
@@ -1970,6 +1983,63 @@ SUBROUTINE bl_via_vlassov(current,alpha,Energy,sigma_p,Vrf,omega,U0,circ,R,L,sig
 
   CALL get_bl_from_fwhm(bound,args,sigma_z)
 END SUBROUTINE bl_via_vlassov
+
+!+
+!-
+SUBROUTINE spatial_smat_from_canonical_smat(Ecan,Espatial)
+  REAL(rp) Ecan(6,6)
+  REAL(rp) Espatial(6,6)
+
+  Espatial = Ecan
+  Espatial(1,1) = Ecan(1,1) + Ecan(2,2)*Ecan(5,5) + 2.0d0*Ecan(2,5)**2
+  Espatial(3,3) = Ecan(3,3) + Ecan(4,4)*Ecan(5,5) + 2.0d0*Ecan(4,5)**2
+  Espatial(1,3) = Ecan(1,3) + Ecan(2,4)*Ecan(5,5) + 2.0d0*Ecan(2,5)*Ecan(4,5)
+  Espatial(3,1) = Espatial(1,3)
+
+  ! Espatial(1,1) = Ecan(1,1) + Ecan(2,2)*Ecan(5,5) + 2.0d0*Ecan(2,5)**2
+  ! Espatial(1,2) = Ecan(1,2)
+  ! Espatial(1,3) = Ecan(1,3) + Ecan(2,4)*Ecan(5,5) + 2.0d0*Ecan(2,5)*Ecan(4,5)
+  ! Espatial(1,4) = Ecan(1,4)
+  ! Espatial(1,5) = Ecan(1,5)
+  ! Espatial(1,6) = Ecan(1,6) ! + Ecan(2,5)
+
+  ! Espatial(2,2) = Ecan(2,2)
+  ! Espatial(2,3) = Ecan(2,3)
+  ! Espatial(2,4) = Ecan(2,4)
+  ! Espatial(2,5) = Ecan(2,5)
+  ! Espatial(2,6) = Ecan(2,6)
+
+  ! Espatial(3,3) = Ecan(3,3) + Ecan(4,4)*Ecan(5,5) + 2.0d0*Ecan(4,5)**2
+  ! Espatial(3,4) = Ecan(3,4)
+  ! Espatial(3,5) = Ecan(3,5)
+  ! Espatial(3,6) = Ecan(3,6) ! + Ecan(4,5)
+
+  ! Espatial(4,4) = Ecan(4,4)
+  ! Espatial(4,5) = Ecan(4,5)
+  ! Espatial(4,6) = Ecan(4,6)
+
+  ! Espatial(5,5) = Ecan(5,5)
+  ! Espatial(5,6) = Ecan(5,6)
+
+  ! Espatial(6,6) = Ecan(6,6) ! + 1.0d0
+
+  ! Espatial(2,1) = Espatial(1,2)
+  ! Espatial(3,1) = Espatial(1,3)
+  ! Espatial(3,2) = Espatial(2,3)
+  ! Espatial(4,1) = Espatial(1,4)
+  ! Espatial(4,2) = Espatial(2,4)
+  ! Espatial(4,3) = Espatial(3,4)
+  ! Espatial(5,1) = Espatial(1,5)
+  ! Espatial(5,2) = Espatial(2,5)
+  ! Espatial(5,3) = Espatial(3,5)
+  ! Espatial(5,4) = Espatial(4,5)
+  ! Espatial(6,1) = Espatial(1,6)
+  ! Espatial(6,2) = Espatial(2,6)
+  ! Espatial(6,3) = Espatial(3,6)
+  ! Espatial(6,4) = Espatial(4,6)
+  ! Espatial(6,5) = Espatial(5,6)
+
+END SUBROUTINE spatial_smat_from_canonical_smat
 
 !+
 !-

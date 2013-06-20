@@ -375,6 +375,12 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
          (g2*g2)/beta2/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_x/emit_y* &
          integral
 
+  !Simplified (a small bit) from thesis !FOO
+  !rate = (r_e**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ &
+  !       (g2*g2)/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_x/emit_y* &
+  !       integral
+
+
   IF(rate .lt. 0.0_rp) rate = 0.0_rp
 
 END SUBROUTINE touschek_rate1
@@ -416,9 +422,17 @@ tm = args(1)
 B1 = args(2)
 B2 = args(3)
 
+! Classic Piwinski
 integrand_base = ( (2._rp+1._rp/t)**2*(t/tm/(1.+t)-1._rp)+ 1._rp - SQRT(1._rp+t)/SQRT(t/tm) &
                         - 0.5_rp/t*(4._rp+1._rp/t)*LOG(t/tm/(1._rp+t)) ) * SQRT(t) / SQRT(1._rp+t) &
                       * exp_bessi0(t, B1, B2)
+
+! Simplified from thesis FOO
+! Also set tm=deltaE,max**2
+!integrand_base =   ( (1.0d0/t+2.0d0)**2*(t/tm/(1.0d0+t) - 1.0d0) + 1.0d0 - SQRT(tm*(1.0d0+t)/t) &
+!                     + (1.0d0/t/t+4.0d0/t)*LOG(SQRT(tm*(1.0d0+t)/t)) ) * SQRT(t) / SQRT(1.0d0+t) &
+!                  * exp_bessi0(t, B1, B2)
+                
 integrand_base = MAX(integrand_base,0._rp)
 
 END FUNCTION integrand_base
