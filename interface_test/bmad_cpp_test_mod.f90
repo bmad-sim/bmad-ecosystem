@@ -2145,6 +2145,8 @@ rhs = 5 + offset; F%ref_energy = rhs
 rhs = 6 + offset; F%mat6 = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 7 + offset; F%rad_int = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%ptc = rhs
 
 end subroutine set_bookkeeping_state_test_pattern
 

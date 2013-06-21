@@ -1426,6 +1426,9 @@ void set_CPP_bookkeeping_state_test_pattern (CPP_bookkeeping_state& C, int ix_pa
   // c_side.test_pat[integer, 0, NOT]
   rhs = 7 + offset; C.rad_int = rhs;
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.ptc = rhs;
+
 
 }
 

@@ -83,6 +83,7 @@ class struct_def_class:
     self.short_name = '' # Struct name without trailing '_struct'. Note: C++ name is 'CPP_<short_name>'
     self.cpp_class  = '' # C++ name.
     self.arg = []        # Array of arg_class. List of structrure components + array bound dimensions. 
+    self.c_constructor_arg_list = ''
     self.c_constructor_body = '{}'  # Body of the C++ constructor
 
   def __repr__(self):
@@ -747,19 +748,19 @@ for trans in f_side_trans.keys():
 class c_side_trans_class:
 
   def __init__(self):
-    self.c_class         = ''        # EG: 'CPP_ele_Array'
-    self.c_class_suffix  = ''        # EG: '*'
-    self.to_f_setup      = ''
-    self.to_f_cleanup    = ''
-    self.to_f2_arg       = ''
-    self.to_f2_call      = ''
-    self.to_c2_arg       = ''
-    self.to_c2_set       = '  C.NAME = z_NAME;'
-    self.constructor     = 'NAME(VALUE)'
-    self.construct_value = '0'
-    self.destructor      = ''
-    self.equality_test   = '  is_eq = is_eq && (x.NAME == y.NAME);\n'
-    self.test_pat        = '  rhs = XXX + offset; C.NAME = NNN;\n'
+    self.c_class             = ''        # EG: 'CPP_ele_Array'
+    self.c_class_suffix      = ''        # EG: '*'
+    self.to_f_setup          = ''
+    self.to_f_cleanup        = ''
+    self.to_f2_arg           = ''
+    self.to_f2_call          = ''
+    self.to_c2_arg           = ''
+    self.to_c2_set           = '  C.NAME = z_NAME;'
+    self.constructor         = 'NAME(VALUE)'
+    self.construct_value     = '0'
+    self.destructor          = ''
+    self.equality_test       = '  is_eq = is_eq && (x.NAME == y.NAME);\n'
+    self.test_pat            = '  rhs = XXX + offset; C.NAME = NNN;\n'
 
   def __repr__(self):
     return '%s,  %s,  %s,  %s' % (self.c_class, self.to_f2_arg, self.to_f2_call, self.to_c2_arg)
@@ -2236,8 +2237,8 @@ public:
                   ' ' + arg.c_name  + ';\n')
 
   f_class.write ('''
-  CPP_ZZZ() :
-'''.replace('ZZZ', struct.short_name))
+  CPP_ZZZ(AAA) :
+'''.replace('ZZZ', struct.short_name).replace('AAA', struct.c_constructor_arg_list))
 
   # Constructor
 

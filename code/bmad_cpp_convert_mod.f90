@@ -2555,11 +2555,12 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bookkeeping_state_to_c2 (C, z_attributes, z_control, z_floor_position, &
-      z_s_position, z_ref_energy, z_mat6, z_rad_int) bind(c)
+      z_s_position, z_ref_energy, z_mat6, z_rad_int, z_ptc) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_attributes, z_control, z_floor_position, z_s_position, z_ref_energy, z_mat6, z_rad_int
+    integer(c_int) :: z_ptc
   end subroutine
 end interface
 
@@ -2576,7 +2577,7 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call bookkeeping_state_to_c2 (C, F%attributes, F%control, F%floor_position, F%s_position, &
-    F%ref_energy, F%mat6, F%rad_int)
+    F%ref_energy, F%mat6, F%rad_int, F%ptc)
 
 end subroutine bookkeeping_state_to_c
 
@@ -2597,7 +2598,7 @@ end subroutine bookkeeping_state_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bookkeeping_state_to_f2 (Fp, z_attributes, z_control, z_floor_position, &
-    z_s_position, z_ref_energy, z_mat6, z_rad_int) bind(c)
+    z_s_position, z_ref_energy, z_mat6, z_rad_int, z_ptc) bind(c)
 
 
 implicit none
@@ -2607,6 +2608,7 @@ type(bookkeeping_state_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int) :: z_attributes, z_control, z_floor_position, z_s_position, z_ref_energy, z_mat6, z_rad_int
+integer(c_int) :: z_ptc
 
 call c_f_pointer (Fp, F)
 
@@ -2624,6 +2626,8 @@ F%ref_energy = z_ref_energy
 F%mat6 = z_mat6
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%rad_int = z_rad_int
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ptc = z_ptc
 
 end subroutine bookkeeping_state_to_f2
 

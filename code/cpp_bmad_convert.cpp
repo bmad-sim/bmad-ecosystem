@@ -1013,20 +1013,20 @@ extern "C" void bookkeeping_state_to_c (const Bmad_bookkeeping_state_class*, CPP
 
 // c_side.to_f2_arg
 extern "C" void bookkeeping_state_to_f2 (Bmad_bookkeeping_state_class*, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&);
 
 extern "C" void bookkeeping_state_to_f (const CPP_bookkeeping_state& C, Bmad_bookkeeping_state_class* F) {
 
   // c_side.to_f2_call
   bookkeeping_state_to_f2 (F, C.attributes, C.control, C.floor_position, C.s_position,
-      C.ref_energy, C.mat6, C.rad_int);
+      C.ref_energy, C.mat6, C.rad_int, C.ptc);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void bookkeeping_state_to_c2 (CPP_bookkeeping_state& C, c_Int& z_attributes, c_Int&
     z_control, c_Int& z_floor_position, c_Int& z_s_position, c_Int& z_ref_energy, c_Int&
-    z_mat6, c_Int& z_rad_int) {
+    z_mat6, c_Int& z_rad_int, c_Int& z_ptc) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.attributes = z_attributes;
@@ -1042,6 +1042,8 @@ extern "C" void bookkeeping_state_to_c2 (CPP_bookkeeping_state& C, c_Int& z_attr
   C.mat6 = z_mat6;
   // c_side.to_c2_set[integer, 0, NOT]
   C.rad_int = z_rad_int;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ptc = z_ptc;
 }
 
 //--------------------------------------------------------------------

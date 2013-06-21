@@ -977,6 +977,7 @@ public:
   Int ref_energy;
   Int mat6;
   Int rad_int;
+  Int ptc;
 
   CPP_bookkeeping_state() :
     attributes(Bmad::STALE),
@@ -985,7 +986,8 @@ public:
     s_position(Bmad::STALE),
     ref_energy(Bmad::STALE),
     mat6(Bmad::STALE),
-    rad_int(Bmad::STALE)
+    rad_int(Bmad::STALE),
+    ptc(Bmad::STALE)
     {}
 
   ~CPP_bookkeeping_state() {
@@ -1886,7 +1888,7 @@ public:
   Bool csr_calc_on;
   Bool offset_moves_aperture;
 
-  CPP_ele() :
+  CPP_ele(const int k = 0) :
     name(),
     type(),
     alias(),
@@ -1924,7 +1926,7 @@ public:
     r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
     a_pole(0.0, 0),
     b_pole(0.0, 0),
-    key(0),
+    key(k),
     sub_key(0),
     ix_ele(-1),
     ix_branch(0),

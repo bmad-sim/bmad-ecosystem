@@ -404,6 +404,7 @@ bool operator== (const CPP_bookkeeping_state& x, const CPP_bookkeeping_state& y)
   is_eq = is_eq && (x.ref_energy == y.ref_energy);
   is_eq = is_eq && (x.mat6 == y.mat6);
   is_eq = is_eq && (x.rad_int == y.rad_int);
+  is_eq = is_eq && (x.ptc == y.ptc);
   return is_eq;
 };
 
