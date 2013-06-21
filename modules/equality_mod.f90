@@ -655,6 +655,8 @@ is_eq = is_eq .and. (f1%ref_energy == f2%ref_energy)
 is_eq = is_eq .and. (f1%mat6 == f2%mat6)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%rad_int == f2%rad_int)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ptc == f2%ptc)
 
 end function eq_bookkeeping_state
 
