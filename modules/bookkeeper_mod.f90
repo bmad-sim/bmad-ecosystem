@@ -1890,7 +1890,7 @@ if (err_flag) return
 
 if (slave%slave_status == super_slave$) then
   do i = 1, slave%n_lord
-    my_lord = pointer_to_lord(slave, i)
+    my_lord => pointer_to_lord(slave, i)
     if (my_lord%lord_status /= super_lord$) cycle
     my_lord%value(iv) = r_slave
     call set_flags_for_changed_attribute (lat, my_lord, my_lord%value(iv))
