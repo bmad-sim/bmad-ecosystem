@@ -1945,9 +1945,9 @@ public:
     mat6_calc_method(Bmad::BMAD_STANDARD),
     tracking_method(Bmad::BMAD_STANDARD),
     spin_tracking_method(Bmad::BMAD_STANDARD),
-    ptc_integration_type(0),
+    ptc_integration_type(Bmad::MATRIX_KICK),
     field_calc(Bmad::BMAD_STANDARD),
-    aperture_at(Bmad::EXIT_END),
+    aperture_at(Bmad::DOWNSTREAM_END),
     aperture_type(Bmad::RECTANGULAR),
     orientation(1),
     symplectify(false),
@@ -1962,15 +1962,23 @@ public:
     bmad_logic(false),
     csr_calc_on(true),
     offset_moves_aperture(false)
-    {
+        {
       if (key == Bmad::LCAVITY) {
-        value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+        value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
         value[Bmad::FIELD_SCALE] = 1;
+        value[Bmad::N_CELL] = 1;
       }
 
       if (key == Bmad::RFCAVITY) {
-        value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+        value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
         value[Bmad::FIELD_SCALE] = 1;
+        value[Bmad::N_CELL] = 1;
+      }
+
+      if (key == Bmad::RBEND || key == Bmad::SBEND) {
+        value[Bmad::KILL_FRINGE] = Bmad::NO_END;
+        value[Bmad::FRINGE_TYPE] = Bmad::BASIC_BEND;
+        value[Bmad::PTC_FIELD_GEOMETRY] = Bmad::SECTOR;
       }
     }
 

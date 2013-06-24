@@ -125,7 +125,8 @@ c_custom_constructors = {
     'ele%tracking_method' : 'tracking_method(Bmad::BMAD_STANDARD)',
     'ele%spin_tracking_method' : 'spin_tracking_method(Bmad::BMAD_STANDARD)',
     'ele%field_calc' : 'field_calc(Bmad::BMAD_STANDARD)',
-    'ele%aperture_at' : 'aperture_at(Bmad::EXIT_END)', 
+    'ele%ptc_integration_type' : 'ptc_integration_type(Bmad::MATRIX_KICK)',
+    'ele%aperture_at' : 'aperture_at(Bmad::DOWNSTREAM_END)', 
     'ele%aperture_type' : 'aperture_type(Bmad::RECTANGULAR)',
     'ele%multipoles_on' : 'multipoles_on(true)', 
     'ele%scale_multipoles' : 'scale_multipoles(true)', 
@@ -145,15 +146,23 @@ def customize(struct_definitions):
     if struct.f_name == 'ele_struct': 
       struct.c_constructor_arg_list = 'const int k = 0'
       struct.c_constructor_body = '''\
-{
+    {
       if (key == Bmad::LCAVITY) {
-        value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+        value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
         value[Bmad::FIELD_SCALE] = 1;
+        value[Bmad::N_CELL] = 1;
       }
 
       if (key == Bmad::RFCAVITY) {
-        value[Bmad::COUPLER_AT] = Bmad::EXIT_END;
+        value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
         value[Bmad::FIELD_SCALE] = 1;
+        value[Bmad::N_CELL] = 1;
+      }
+
+      if (key == Bmad::RBEND || key == Bmad::SBEND) {
+        value[Bmad::KILL_FRINGE] = Bmad::NO_END;
+        value[Bmad::FRINGE_TYPE] = Bmad::BASIC_BEND;
+        value[Bmad::PTC_FIELD_GEOMETRY] = Bmad::SECTOR;
       }
     }
 '''
