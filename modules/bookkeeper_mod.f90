@@ -1862,7 +1862,7 @@ contains
 
 subroutine overlay_change_this (iv)
 
-type (ele_struct), pointer :: my_lord
+type (ele_struct), pointer :: my_lord, my_slave
 integer i, iv
 real(rp), pointer :: r_lord, r_slave
 character(40) a_name
@@ -1898,6 +1898,14 @@ if (slave%slave_status == super_slave$) then
     err_flag = attribute_free (my_lord, a_name, lat, .true., .true.)
     if (err_flag) return
   enddo
+endif
+
+! If super_lord varying l last slave length
+
+if (slave%lord_status == super_lord$ .and. iv == l$) then
+  my_slave => pointer_to_slave(slave, slave%n_slave)
+  my_slave%value(iv) = r_slave
+  call set_flags_for_changed_attribute (lat, my_lord, my_lord%value(iv))
 endif
 
 end subroutine overlay_change_this
