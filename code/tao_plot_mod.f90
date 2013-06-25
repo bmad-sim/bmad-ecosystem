@@ -338,11 +338,15 @@ logical err
 ! Each graph is a separate floor plan plot (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
 
+call qp_save_state(.false.)
+
 call set_this_axis(graph%x, x_ax, 'X')
 call set_this_axis(graph%y, y_ax, 'Y')
 
-call qp_set_layout (x_axis = x_ax, y_axis = y_ax, y2_axis = graph%y2, &
-                                        box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = x_ax, y_axis = y_ax, y2_axis = graph%y2, x2_mirrors_x = .true., &
+                    y2_mirrors_y = .true., box = graph%box, margin = graph%margin)
+
+call qp_set_axis ('X2', draw_numbers = .true.)
 
 if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
 
@@ -466,6 +470,8 @@ end if
 do i = 1, size(graph%curve)
   ! ... needs to be filled in ..
 enddo
+
+call qp_restore_state
 
 !-------------------------------------------------------------------------
 contains
@@ -1014,7 +1020,8 @@ lat_len = branch%param%total_length
   
 ! Setup the placement of the graph on the plot page.
 
-call qp_set_layout (x_axis = graph%x, y_axis = graph%y, box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = graph%x, y_axis = graph%y, x2_mirrors_x = .false., &
+                    box = graph%box, margin = graph%margin)
 
 call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
 
@@ -1328,7 +1335,8 @@ lat_len = branch%param%total_length
   
 ! Setup the placement of the graph on the plot page.
 
-call qp_set_layout (x_axis = graph%x, y_axis = graph%y, box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = graph%x, y_axis = graph%y, x2_mirrors_x = .false., &
+                    box = graph%box, margin = graph%margin)
 call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
 
 ! Loop over all elements
@@ -1562,7 +1570,7 @@ character(100), allocatable :: text(:)
 ! Set scales, margens, etc
 
 call qp_set_layout (box = graph%box, margin = graph%margin)
-call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
+call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .false.)
 call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, y2_mirrors_y = graph%y2_mirrors_y)
 if (graph%title == '') then
   call qp_set_graph (title = '')
