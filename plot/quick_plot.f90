@@ -5223,7 +5223,7 @@ end subroutine qp_read_data
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_eliminate_xy_distortion (axis_to_scale, mirror_axes)
+! Subroutine qp_eliminate_xy_distortion (axis_to_scale)
 !
 ! This subroutine will increase the x or y margins so that the conversion
 ! between data units and page units is the same for the x and y axes.
@@ -5243,11 +5243,9 @@ end subroutine qp_read_data
 !                         'X2Y2' -> Vary x2 or y2 margin 
 !                         'X2'   -> Vary x2 margin 
 !                         'Y2'   -> Vary y2 margin 
-!   mirror_axes   -- Logical, optional: If True, X2 will mirror X and vice versa.
-!                         Default is True.
 !-
 
-subroutine qp_eliminate_xy_distortion (axis_to_scale, mirror_axes)
+subroutine qp_eliminate_xy_distortion (axis_to_scale)
 
 implicit none
 
@@ -5256,7 +5254,6 @@ real(rp) x_scale, y_scale, dx_graph, dy_graph
 character(*), optional :: axis_to_scale
 character(8) ax_to_scale
 
-logical, optional :: mirror_axes
 logical scale_xy
 
 ! 
@@ -5309,16 +5306,6 @@ else  ! shrink in y
 endif
 
 call qp_set_graph_limits
-
-if (logic_option(.true., mirror_axes)) then
-  if (scale_xy) then
-    qp_com%plot%x2 = qp_com%plot%x
-    qp_com%plot%y2 = qp_com%plot%y
-  else
-    qp_com%plot%x = qp_com%plot%x2
-    qp_com%plot%y = qp_com%plot%y2
-  endif
-endif
 
 !----------------------------------------------------
 contains
