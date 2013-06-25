@@ -303,8 +303,6 @@ do i = 1, n_key$
 
   if (i == crystal$ .or. i == multilayer_mirror$ .or. i == mirror$) then
     call init_attribute_name1 (i, ref_tilt_tot$,              'REF_TILT_TOT', dependent$)
-    call init_attribute_name1 (i, d_source$,                  'D_SOURCE')
-    call init_attribute_name1 (i, d_detec$,                   'D_DETEC')
     num = a0$ - 1
     do iz = 0, ubound(surface%curvature_zy, 1)
     do iy = 0, ubound(surface%curvature_zy, 2)

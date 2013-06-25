@@ -703,12 +703,6 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%curvature_zy == f2%curvature_zy)
-!! f_side.equality_test[real, 2, NOT]
-is_eq = is_eq .and. all(f1%curvature_zy_tot == f2%curvature_zy_tot)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%d_source == f2%d_source)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%d_detec == f2%d_detec)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%has_curvature .eqv. f2%has_curvature)
 

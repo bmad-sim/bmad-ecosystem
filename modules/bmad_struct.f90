@@ -400,8 +400,6 @@ end type
 
 type photon_surface_struct
   real(rp) :: curvature_zy(0:6,0:6) = 0
-  real(rp) :: curvature_zy_tot(0:6,0:6) = 0
-  real(rp) :: d_source = 0, d_detec = 0
   logical :: has_curvature = .false.
 end type
 
@@ -799,8 +797,8 @@ integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90
 integer, parameter :: term$ = 91, use_ptc_layout$ = 91
 integer, parameter :: x_position$ = 92, s_spline$ = 92, ptc_exact_model$ = 92
 integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
-integer, parameter :: z_position$ = 94, d_source$ = 94
-integer, parameter :: is_on$ = 95, theta_position$ = 95, d_detec$ = 95
+integer, parameter :: z_position$ = 94
+integer, parameter :: is_on$ = 95, theta_position$ = 95
 integer, parameter :: field_calc$ = 96, phi_position$ = 96
 integer, parameter :: psi_position$ = 97
 integer, parameter :: aperture_at$ = 98, beta_a$ = 98

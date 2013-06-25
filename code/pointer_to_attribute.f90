@@ -200,10 +200,6 @@ case ('S')
   ptr_attrib => ele%s
 case ('REF_TIME')
   ptr_attrib => ele%ref_time
-case ('D_SOURCE')
-  ptr_attrib => ele%surface%d_source
-case ('D_DETEC')
-  ptr_attrib => ele%surface%d_detec
 end select
 
 if (a_name(1:11) == 'CURVATURE_Z' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
