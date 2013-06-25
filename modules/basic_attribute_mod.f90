@@ -281,8 +281,10 @@ subroutine init_attribute_name_array ()
 
 implicit none
 
+type (photon_surface_struct) surface
 integer i, j, num, iz, iy
 character(40) word
+
 !
 
 if (.not. attribute_array_init_needed) return
@@ -304,12 +306,12 @@ do i = 1, n_key$
     call init_attribute_name1 (i, d_source$,                  'D_SOURCE')
     call init_attribute_name1 (i, d_detec$,                   'D_DETEC')
     num = a0$ - 1
-    do iz = 0, 4
-    do iy = 0, 4
+    do iz = 0, ubound(surface%curvature_zy, 1)
+    do iy = 0, ubound(surface%curvature_zy, 2)
       if (iz+iy < 2) cycle
-      if (iz+iy > 4) cycle
+      if (iz+iy > ubound(surface%curvature_zy, 1)) cycle
       write (word, '(a, i1, a, i1)') 'CURVATURE_Z', iz, '_Y', iy
-      num = a0$ + 5 * iz + iy
+      num = num + 1
       call init_attribute_name1 (i, num, word) 
     enddo
     enddo

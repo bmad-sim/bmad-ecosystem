@@ -207,9 +207,11 @@ case ('D_DETEC')
 end select
 
 if (a_name(1:11) == 'CURVATURE_Z' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
-  iz = index('01234', a_name(12:12)) - 1
-  iy = index('01234', a_name(15:15)) - 1
+  iz = index('0123456789', a_name(12:12)) - 1
+  iy = index('0123456789', a_name(15:15)) - 1
   if (iz == -1 .or. iy == -1) return
+  if (iz > ubound(ele%surface%curvature_zy, 1)) return
+  if (iy > ubound(ele%surface%curvature_zy, 2)) return
   ptr_attrib => ele%surface%curvature_zy(iz,iy)
 endif
 

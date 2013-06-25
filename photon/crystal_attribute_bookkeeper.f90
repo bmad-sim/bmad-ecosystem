@@ -124,7 +124,8 @@ endif
 !
 
 ele%value(ref_cap_gamma$) = gamma
-ele%value(darwin_width_sigma$) = 2 * gamma * ele%value(fh_re$) / abs(sin(2 * ele%value(graze_angle$)))
+ele%value(darwin_width_sigma$) = 2 * gamma * ele%value(fh_re$) / &
+                      (abs(sin(2 * ele%value(graze_angle$))) * sqrt(abs(ele%value(b_param$))))
 ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(2 * ele%value(graze_angle$)))
 
 end subroutine

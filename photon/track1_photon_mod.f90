@@ -505,8 +505,8 @@ endif
 y = point(2)
 surface => ele%surface
 
-do iz = 0, 4
-do iy = 0, 4
+do iz = 0, ubound(surface%curvature_zy_tot, 1)
+do iy = 0, ubound(surface%curvature_zy_tot, 2) - iz
   if (ele%surface%curvature_zy_tot(iz, iy) == 0) cycle
   delta_h = delta_h + surface%curvature_zy_tot(iz, iy) * y**iy * z**iz
 enddo
@@ -561,8 +561,8 @@ slope_t = 0
 y = orbit%vec(3)
 z = orbit%vec(5)
 
-do iz = 0, 4
-do iy = 0, 4
+do iz = 0, ubound(s%curvature_zy_tot, 1)
+do iy = 0, ubound(s%curvature_zy_tot, 2) - iz
   if (s%curvature_zy_tot(iz, iy) == 0) cycle
   if (iz > 0) slope_c = slope_c - iz * s%curvature_zy_tot(iz, iy) * y**iy * z**(iz-1)
   if (iy > 0) slope_t = slope_t - iy * s%curvature_zy_tot(iz, iy) * y**(iy-1) * z**iz
