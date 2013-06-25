@@ -840,14 +840,21 @@ element attributes
 \begin{example}
   d_detec              = <Real>    ! Detector distance.
   d_source             = <Real>    ! Source distance.
-  curvature_z<i>_y<j>  = <Real>   
+  curvature_zM_yN      = <Real>   
 \end{example}
-where \vn{<i>} and \vn{<j>} are integers in the range 0 through 4. Example:
+where \vn{M} and \vn{N} are integers in the range 0 through 4 with the restriction
+\begin{example}
+  2 \(\le\) M + N \(\le\) 4
+\end{example}
+Example:
 \begin{example}
   c2: crystal, curvature_z2_y0 = 37, ...
 \end{example}
 in this example, \vn{curvature_z2_y0} corresponds to the $c_{20}$ term
-in \Eq{xs2ij4}. 
+in \Eq{xs2ij4}. To get the effect of a nonzero $z^0\, y^0$, $z^1 \,
+y^0$, or $z^0 \, y^1$ terms (since corresponding \vn{curvature_zN_yM}
+are not permitted), element offsets and pitches can be used
+(\sref{s:offset}).
 
 If the \vn{d_detec} or \vn{d_source} attributes are
 set, they set the $c_{20}$ and $c_{40}$ coefficients so that the

@@ -399,8 +399,8 @@ end type
 ! Rule: This structure is always allocated in the ele_struct for elements that need it.
 
 type photon_surface_struct
-  real(rp) :: curvature_zy(0:4,0:4) = 0
-  real(rp) :: curvature_zy_tot(0:4,0:4) = 0
+  real(rp) :: curvature_zy(0:6,0:6) = 0
+  real(rp) :: curvature_zy_tot(0:6,0:6) = 0
   real(rp) :: d_source = 0, d_detec = 0
   logical :: has_curvature = .false.
 end type
