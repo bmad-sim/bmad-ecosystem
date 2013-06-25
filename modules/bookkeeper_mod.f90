@@ -2308,15 +2308,7 @@ case (crystal$, multilayer_mirror$)
     call multilayer_type_to_multilayer_params (ele, err_flag)
   endif
 
-  gc = 0
-  if (ele%surface%d_source /= 0) gc = val(graze_angle_in$) / (2 * ele%surface%d_source)
-  if (ele%surface%d_detec /= 0)  gc = gc + val(graze_angle_out$) / (2 * ele%surface%d_detec)
-
-  ele%surface%curvature_zy_tot = ele%surface%curvature_zy
-  ele%surface%curvature_zy_tot(2,0) = ele%surface%curvature_zy(2,0) + gc / 2
-  ele%surface%curvature_zy_tot(4,0) = ele%surface%curvature_zy(4,0) + gc**3 / 4
-
-  ele%surface%has_curvature = (any(ele%surface%curvature_zy_tot /= 0))
+  ele%surface%has_curvature = (any(ele%surface%curvature_zy /= 0))
 
 ! Elseparator
 

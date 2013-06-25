@@ -835,11 +835,8 @@ a fourth order polynomial in $z$ and $y$
 \Endeq
 The coefficients are set in the lattice file by setting the following
 element attributes
-\index{d_detec}\index{d_source}
 \index{surface curveture}
 \begin{example}
-  d_detec              = <Real>    ! Detector distance.
-  d_source             = <Real>    ! Source distance.
   curvature_zM_yN      = <Real>   
 \end{example}
 where \vn{M} and \vn{N} are integers in the range 0 through 4 with the restriction
@@ -856,33 +853,25 @@ y^0$, or $z^0 \, y^1$ terms (since corresponding \vn{curvature_zN_yM}
 are not permitted), element offsets and pitches can be used
 (\sref{s:offset}).
 
-If the \vn{d_detec} or \vn{d_source} attributes are
-set, they set the $c_{20}$ and $c_{40}$ coefficients so that the
-element will focus light coming from a detector a distance
-\vn{d_source} away onto a detector a distance \vn{d_detec} from the
-element as indicated in \fig{f:surface}. Explicitly, these coefficients are
-calculated via the equations
-\begin{align}
-  c_{20} &= \mbox{curvature_z2_y0} + \frac{1}{2 \, R_c} \CRNO
-  c_{40} &= \mbox{curvature_z4_y0} + \frac{1}{4 \, R_c^3} 
-\end{align}
-where 
+Some useful formulas: Series expansion for a circle of radius $R$:
 \Begineq
-  \frac{2}{R_c} = \frac{\theta_{g,in}}{d_s} + \frac{\theta_{g,out}}{d_d}
+  {-x} = \frac{z^2}{2 \, R} + \frac{z^4}{8 \, R^3} + \frac{z^6}{16 \, R^5} +
+         \frac{y^2}{2 \, R} + \frac{y^4}{8 \, R^3} + \frac{y^6}{16 \, R^5} +
+         \frac{z^2 \, y^2}{4 \, R^3} + \frac{3 \, z^4 \, y^2}{16 \, R^5} +
+         \frac{3 \, z^2 \, y^4}{16 \, R^5} 
 \Endeq
-with
-\begin{align}
-  d_s &= \begin{cases} 
-    \infty & \mbox{d_source} = 0 \\
-    \mbox{d_source} & \mbox{otherwise}
-  \end{cases} \CRNO
-  d_d &= \begin{cases} 
-    \infty & \mbox{d_detec} = 0 \\
-    \mbox{d_detec} & \mbox{otherwise}
-  \end{cases}
-\end{align}
-and $\theta_{g,in}$ and $\theta_{g,our}$ are the entrance and exit
-graze angles.
+If $p$ is the distance from the source to the crystal, and $q$ is the
+distance from the crystal to the detector, the radius of the Rowland
+circle $R_s$ in the sagittal plane is given by\cite{b:del.rio}
+\Begineq
+  \frac{1}{p} + \frac{1}{q} = \frac{\sin\theta_{g,in} + \sin\theta_{g,out}}{R_s}
+\Endeq
+where $\theta_{g,in}$ and $\theta_{g,out}$ are the entrance and exit
+graze angles. In the transverse plane (also called meridional plane),
+the radius $R_t$ needed for foucusing is
+\Begineq
+  \frac{\sin^2\theta_{g,in}}{p} + \frac{\sin^2\theta_{g,out}}{q} = \frac{\sin\theta_{g,in} + \sin\theta_{g,out}}{R_t}
+\Endeq
 
 %-----------------------------------------------------------------
 

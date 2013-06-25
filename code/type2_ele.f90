@@ -460,13 +460,12 @@ s => ele%surface
 if (associated(s)) then
   nl=nl+1; write (li(nl), *)
   nl=nl+1; write (li(nl), *) 'Surface Curvature:'
-  nl=nl+1; write (li(nl), '(4x, 2(a, es14.6, 2x))') 'D_SOURCE =', s%d_source, 'D_DETEC =', s%d_detec 
+ 
   if (s%has_curvature) then
     do iz = 0, 4
     do iy = 0, 4
-      if (s%curvature_zy(iz,iy) == 0 .and. s%curvature_zy_tot(iz,iy) == 0) cycle
-      nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_Z', iz, '_Y', iy, ' =', s%curvature_zy(iz,iy), &
-                                'CURVATURE_TOT_Z', iz, '_Y', iy, ' =', s%curvature_zy_tot(iz,iy)
+      if (s%curvature_zy(iz,iy) == 0) cycle
+      nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_Z', iz, '_Y', iy, ' =', s%curvature_zy(iz,iy)
     enddo
     enddo
   else
