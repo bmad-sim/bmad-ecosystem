@@ -277,25 +277,34 @@ set (INCLUDE_OUTPUT_PATH ${OUTPUT_BASEDIR}/include)
 # that requires that library while leaving the local souce tree and include files intact.
 # This new build will then perform the divergent action of linking against the release library
 # but extracting constants and other header information from the LOCAL source tree.  
-#
+
 SET (MASTER_INC_DIRS
   ${X11_INCLUDE_DIR}
   ${INC_DIRS}
   ${OUTPUT_BASEDIR}/include
-  ${PACKAGES_DIR}/include
-  ${PACKAGES_DIR}/forest/include
-  ${PACKAGES_DIR}/recipes_c-ansi/include
-  ${PACKAGES_DIR}/cfortran/include
-  ${PACKAGES_DIR}/root/include
-  ${PACKAGES_OUTPUT_BASEDIR}/modules
   ${ROOT_INC}
   ${RELEASE_DIR}/include
   ${OUTPUT_BASEDIR}/modules
   ${RELEASE_OUTPUT_BASEDIR}/modules
   ${RELEASE_OUTPUT_BASEDIR}/include
-  ${RELEASE_DIR}/modules
   ${ACC_INC_DIRS}
 )
+
+# If not building a distribution, include the include directories which are not part 
+# of the distribution.
+
+IF (${DISTRIBUTION_BUILD})
+ELSE()
+  SET (MASTER_INC_DIRS
+    ${MASTER_INC_DIRS}
+    ${PACKAGES_DIR}/include
+    ${PACKAGES_DIR}/forest/include
+    ${PACKAGES_DIR}/recipes_c-ansi/include
+    ${PACKAGES_DIR}/cfortran/include
+    ${PACKAGES_DIR}/root/include
+    ${PACKAGES_OUTPUT_BASEDIR}/modules
+  )
+ENDIF()
 
 #------------------------------------------------------
 # Add local include paths to search list if they exist
