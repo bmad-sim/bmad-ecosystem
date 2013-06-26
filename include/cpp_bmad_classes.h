@@ -11,7 +11,6 @@
 #ifndef CPP_BMAD_CLASSES
 
 #include <string>
-#include <string.h>
 #include <valarray>
 #include <complex>
 #include "bmad_enums.h"
