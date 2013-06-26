@@ -455,3 +455,10 @@ fi
 if ( [ "${ACC_PLOT_PACKAGE}" == "" ] ) then
     export ACC_PLOT_PACKAGE="pgplot"
 fi
+
+# If there are some acc dependent definitions
+# (from cesr_online.bashrc)
+# then redefine them
+if [[ -n `type -t acc_dep_define` ]]; then
+	  acc_dep_define
+fi
