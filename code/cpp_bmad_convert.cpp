@@ -1089,34 +1089,23 @@ extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_RealArr z_o
 extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photon_surface&);
 
 // c_side.to_f2_arg
-extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, c_RealArr, c_RealArr,
-    c_Real&, c_Real&, c_Bool&);
+extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, c_RealArr, c_Bool&);
 
 extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Bmad_photon_surface_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
-  Real z_curvature_zy[5*5]; matrix_to_vec(C.curvature_zy, z_curvature_zy);
-  // c_side.to_f_setup[real, 2, NOT]
-  Real z_curvature_zy_tot[5*5]; matrix_to_vec(C.curvature_zy_tot, z_curvature_zy_tot);
+  Real z_curvature_zy[7*7]; matrix_to_vec(C.curvature_zy, z_curvature_zy);
 
   // c_side.to_f2_call
-  photon_surface_to_f2 (F, z_curvature_zy, z_curvature_zy_tot, C.d_source, C.d_detec,
-      C.has_curvature);
+  photon_surface_to_f2 (F, z_curvature_zy, C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_RealArr z_curvature_zy,
-    c_RealArr z_curvature_zy_tot, c_Real& z_d_source, c_Real& z_d_detec, c_Bool&
+extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_RealArr z_curvature_zy, c_Bool&
     z_has_curvature) {
 
   // c_side.to_c2_set[real, 2, NOT]
   C.curvature_zy << z_curvature_zy;
-  // c_side.to_c2_set[real, 2, NOT]
-  C.curvature_zy_tot << z_curvature_zy_tot;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.d_source = z_d_source;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.d_detec = z_d_detec;
   // c_side.to_c2_set[logical, 0, NOT]
   C.has_curvature = z_has_curvature;
 }

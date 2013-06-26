@@ -1043,16 +1043,10 @@ class Bmad_photon_surface_class {};  // Opaque class for pointers to correspondi
 class CPP_photon_surface {
 public:
   Real_MATRIX curvature_zy;
-  Real_MATRIX curvature_zy_tot;
-  Real d_source;
-  Real d_detec;
   Bool has_curvature;
 
   CPP_photon_surface() :
-    curvature_zy(Real_ARRAY(0.0, 5), 5),
-    curvature_zy_tot(Real_ARRAY(0.0, 5), 5),
-    d_source(0.0),
-    d_detec(0.0),
+    curvature_zy(Real_ARRAY(0.0, 7), 7),
     has_curvature(false)
     {}
 

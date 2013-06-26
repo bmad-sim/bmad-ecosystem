@@ -2746,13 +2746,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_surface_to_c2 (C, z_curvature_zy, z_curvature_zy_tot, z_d_source, &
-      z_d_detec, z_has_curvature) bind(c)
+  subroutine photon_surface_to_c2 (C, z_curvature_zy, z_has_curvature) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_has_curvature
-    real(c_double) :: z_curvature_zy(*), z_curvature_zy_tot(*), z_d_source, z_d_detec
+    real(c_double) :: z_curvature_zy(*)
   end subroutine
 end interface
 
@@ -2768,8 +2767,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_surface_to_c2 (C, mat2vec(F%curvature_zy, 5*5), mat2vec(F%curvature_zy_tot, 5*5), &
-    F%d_source, F%d_detec, c_logic(F%has_curvature))
+call photon_surface_to_c2 (C, mat2vec(F%curvature_zy, 7*7), c_logic(F%has_curvature))
 
 end subroutine photon_surface_to_c
 
@@ -2789,8 +2787,7 @@ end subroutine photon_surface_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_surface_to_f2 (Fp, z_curvature_zy, z_curvature_zy_tot, z_d_source, z_d_detec, &
-    z_has_curvature) bind(c)
+subroutine photon_surface_to_f2 (Fp, z_curvature_zy, z_has_curvature) bind(c)
 
 
 implicit none
@@ -2800,18 +2797,12 @@ type(photon_surface_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_has_curvature
-real(c_double) :: z_curvature_zy(*), z_curvature_zy_tot(*), z_d_source, z_d_detec
+real(c_double) :: z_curvature_zy(*)
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[real, 2, NOT]
 call vec2mat(z_curvature_zy, F%curvature_zy)
-!! f_side.to_f2_trans[real, 2, NOT]
-call vec2mat(z_curvature_zy_tot, F%curvature_zy_tot)
-!! f_side.to_f2_trans[real, 0, NOT]
-F%d_source = z_d_source
-!! f_side.to_f2_trans[real, 0, NOT]
-F%d_detec = z_d_detec
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%has_curvature = f_logic(z_has_curvature)
 

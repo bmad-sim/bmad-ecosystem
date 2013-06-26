@@ -2342,18 +2342,8 @@ do jd2 = 1, size(F%curvature_zy,2); lb2 = lbound(F%curvature_zy,2) - 1
   rhs = 100 + jd1 + 10*jd2 + 1 + offset
   F%curvature_zy(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
-!! f_side.test_pat[real, 2, NOT]
-do jd1 = 1, size(F%curvature_zy_tot,1); lb1 = lbound(F%curvature_zy_tot,1) - 1
-do jd2 = 1, size(F%curvature_zy_tot,2); lb2 = lbound(F%curvature_zy_tot,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 2 + offset
-  F%curvature_zy_tot(jd1+lb1,jd2+lb2) = rhs
-enddo; enddo
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%d_source = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%d_detec = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 5 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
+rhs = 2 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
 
 end subroutine set_photon_surface_test_pattern
 

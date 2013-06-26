@@ -1546,17 +1546,8 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.curvature_zy.size(); i++)  for (unsigned int j = 0; j < C.curvature_zy[0].size(); j++) 
     {int rhs = 101 + i + 10*(j+1) + 1 + offset; C.curvature_zy[i][j] = rhs;}
-  // c_side.test_pat[real, 2, NOT]
-  for (unsigned int i = 0; i < C.curvature_zy_tot.size(); i++)  for (unsigned int j = 0; j < C.curvature_zy_tot[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 2 + offset; C.curvature_zy_tot[i][j] = rhs;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.d_source = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.d_detec = rhs;
-
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 2 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }

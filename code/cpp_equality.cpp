@@ -432,9 +432,6 @@ template bool is_all_equal (const CPP_rad_int_ele_cache_MATRIX&, const CPP_rad_i
 bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.curvature_zy, y.curvature_zy);
-  is_eq = is_eq && is_all_equal(x.curvature_zy_tot, y.curvature_zy_tot);
-  is_eq = is_eq && (x.d_source == y.d_source);
-  is_eq = is_eq && (x.d_detec == y.d_detec);
   is_eq = is_eq && (x.has_curvature == y.has_curvature);
   return is_eq;
 };
