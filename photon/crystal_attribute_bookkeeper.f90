@@ -34,7 +34,7 @@ real(rp) lambda, gamma, delta1, lambda_in, d, alpha, psi, theta0
 real(rp) cos_theta0, sin_theta0, graze_angle_in, ang_tot
 real(rp) h_x, h_y, h_z, kh_x_norm, kh_y_norm, kh_z_norm, ent_kh_x_norm, ent_kh_y_norm, ent_kh_z_norm
 real(rp) cos_graze_in, sin_graze_in, s_vec(3)
-real(rp) source_r,detect_r,r_c
+real(rp) source_r,detect_r,r_c, total_angle
 
 ! If the photon energy or the bragg angle has not been set then cannot do the calc yet.
 
@@ -124,8 +124,9 @@ endif
 !
 
 ele%value(ref_cap_gamma$) = gamma
+total_angle = ele%value(graze_angle_in$) + ele%value(graze_angle_out$)
 ele%value(darwin_width_sigma$) = 2 * gamma * ele%value(fh_re$) / &
-                      (abs(sin(2 * ele%value(graze_angle$))) * sqrt(abs(ele%value(b_param$))))
-ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(2 * ele%value(graze_angle$)))
+                      (abs(sin(total_angle)) * sqrt(abs(ele%value(b_param$))))
+ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(total_angle))
 
 end subroutine

@@ -310,7 +310,7 @@ c_param%dtheta_sin_2theta = -dot_product(h_norm + 2 * old_vec(2:6:2), h_norm) / 
 c_param%f0                = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
 c_param%fh                = cmplx(ele%value(fh_re$), ele%value(fh_im$))
 
-p_factor = cos(2.0_rp*ele%value(graze_angle_in$))
+p_factor = cos(ele%value(graze_angle_in$) + ele%value(graze_angle_out$))
 call e_field_calc (c_param, ele, p_factor, orbit%field(1), orbit%phase(1))
 call e_field_calc (c_param, ele, 1.0_rp,   orbit%field(2), orbit%phase(2))   ! Sigma polarization
 

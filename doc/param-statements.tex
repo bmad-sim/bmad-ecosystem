@@ -175,7 +175,7 @@ transverse coordinates.
 \index{e_gun}
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \index{emittance_a}\index{emittance_b}\index{emittance_z}
-\index{e_field_x}\index{e_field_y}\index{phase_x}\index{phase_y}
+\index{field_x}\index{field_y}\index{phase_x}\index{phase_y}
 The \vn{beam_start} statement is used to set the starting coordinates
 for particle tracking. If branching is present (\sref{s:branch}), these variables
 pertain to the \vn{root} branch.
@@ -189,8 +189,8 @@ pertain to the \vn{root} branch.
   beam_start[emittance_a] = <Real>   ! A-mode emittance
   beam_start[emittance_b] = <Real>   ! B-mode emittance
   beam_start[emittance_z] = <Real>   ! Z-mode emittance
-  beam_start[e_field_x]   = <Real>   ! Photon beam field along x-axis
-  beam_start[e_field_y]   = <Real>   ! Photon beam field along y-axis
+  beam_start[field_x]     = <Real>   ! Photon beam field along x-axis
+  beam_start[field_y]     = <Real>   ! Photon beam field along y-axis
   beam_start[phase_x]     = <Real>   ! Photon beam phase along x-axis
   beam_start[phase_y]     = <Real>   ! Photon beam phase along y-axis
   beam_start[t]           = <Real>   ! Absolute time
