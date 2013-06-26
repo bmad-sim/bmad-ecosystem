@@ -462,8 +462,8 @@ if (associated(s)) then
   nl=nl+1; write (li(nl), *) 'Surface Curvature:'
  
   if (s%has_curvature) then
-    do iz = 0, 4
-    do iy = 0, 4
+    do iz = 0, ubound(s%curvature_zy, 1)
+    do iy = 0, ubound(s%curvature_zy, 2)
       if (s%curvature_zy(iz,iy) == 0) cycle
       nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_Z', iz, '_Y', iy, ' =', s%curvature_zy(iz,iy)
     enddo

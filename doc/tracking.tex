@@ -44,8 +44,8 @@ longitudinal position in the lattice. The definition of the
     real(rp) s          ! Longitudinal position
     real(rp) t          ! Absolute time (not relative to reference).
     complex(rp) spin(2) ! Spin in spinor notation
-    real(rp) e_field_x  ! Photon field intensity, x-axis component
-    real(rp) e_field_y  ! Photon field intensity, y-axis component
+    real(rp) field_x    ! Photon field intensity, x-axis component
+    real(rp) field_y    ! Photon field intensity, y-axis component
     real(rp) phase_x    ! Photon phase, x-axis component
     real(rp) phase_y    ! Photon phase, y-axis component
     real(rp) charge     ! charge in a particle (Coul).
@@ -79,7 +79,7 @@ spinor notation.
 The \vn{%s} component gives the absolute s-position of the particle
 and \vn{%t} gives the absolute time.
 
-The \vn{%e_field_x} and \vn{%e_field_y} components are for photon
+The \vn{%field_x} and \vn{%field_y} components are for photon
 tracking and are in units of field/sqrt(cross-section-area). That is,
 the square of these units is an intensity. It is up to individual
 programs to define an overall scaling factor for the intensity if

@@ -831,19 +831,21 @@ Attributes specific to a \vn{crystal} element are:
 \index{f0_im}\index{fh_re}\index{fh_im}\index{ref_wave_length}
 Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 \begin{example}
-  alpha_angle      ! Angle of H-vector with respect to the surface normal.
-  bragg_angle      ! Nominal Bragg angle at the reference wave length. 
-  d_spacing        ! Lattice plane spacing. 
-  f0_re            ! Real part of f0
-  f0_im            ! Imaginary part of f0
-  fh_re            ! Real part of fh
-  fh_im            ! Imaginary part of fh
-  graze_angle_in   ! Angle between incoming beam and mirror surface.
-  graze_angle_out  ! Angle between outgoing beam and mirror surface.
-  ref_wavelength   ! Reference wavelength
-  ref_cap_gamma    ! \(\Gamma\) at the reference wavelength.
-  tilt_corr        ! Tilt correction due to a finite psi_angle.
-  v_unitcell       ! Unit cell volume. 
+  alpha_angle        ! Angle of H-vector with respect to the surface normal.
+  bragg_angle        ! Nominal Bragg angle at the reference wave length. 
+  d_spacing          ! Lattice plane spacing. 
+  f0_re              ! Real part of f0
+  f0_im              ! Imaginary part of f0
+  fh_re              ! Real part of fh
+  fh_im              ! Imaginary part of fh
+  graze_angle_in     ! Angle between incoming beam and mirror surface.
+  graze_angle_out    ! Angle between outgoing beam and mirror surface.
+  ref_wavelength     ! Reference wavelength
+  ref_cap_gamma      ! \(\Gamma\) at the reference wavelength.
+  tilt_corr          ! Tilt correction due to a finite psi_angle.
+  v_unitcell         ! Unit cell volume. 
+  darwin_width_sigma ! Darwin width in radians.
+  darwin_width_pi    ! Darwin width in radians.
 \end{example}
 
 The \vn{crystal_type} attribute defines the crystal material and
@@ -927,6 +929,18 @@ lattice planes are curved by the bending.
 Example:
 \begin{example}
   crystal_ele: crystal, crystal_type = 'Si(111)', b_param = -1
+\end{example}
+
+The \vn{darwin_width_sigma} and \vn{darwin_width_pi} parameters are
+the computed Darwin width, in radians, for sigma andd pi polarized
+photons respectively. Here the Darwin width is defined as the width
+at the $\eta = \pm 1$ points (cf.~Batterman\cite{b:batterman} Eq (32))
+\Begineq
+  d\theta = \frac{2 \, \Gamma \, |P| \, F_H}{|b|^{1/2} \, \sin\theta_{tot}}
+\Endeq
+where
+\begin{example}
+  \(\theta_{tot}\) = graze_angle_in + graze_angle_out 
 \end{example}
 
 %-----------------------------------------------------------------
