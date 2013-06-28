@@ -50,6 +50,7 @@ ix_br = integer_option (0, ix_branch)
 branch => lat%branch(ix_br)
 if (present(track_state)) track_state = moving_forward$
 
+if (.not. allocated(orbit)) call reallocate_coord (orbit, branch%n_ele_max)
 if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_max)
 
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
