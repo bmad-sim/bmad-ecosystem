@@ -253,7 +253,7 @@ ie_loop: do ie = lat%n_ele_track+1, lat%n_ele_max
   call control_bookkeeper1 (lat, ele2)
 enddo ie_loop
 
-! And now bookkeeping for the free elements in the tracking lattice
+! And now bookkeeping for the elements in the tracking lattice
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -265,9 +265,6 @@ do ib = 0, ubound(lat%branch, 1)
   do ie = 0, branch%n_ele_track
     ele2 => branch%ele(ie)
     if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
-    if (ele2%slave_status /= free$) then
-      call out_io (s_warn$, r_name, 'CONFUSED CONTROL BOOKKEEPING! PLEASE CONTACT DCS!')
-    endif
     call attribute_bookkeeper (ele2, branch%param)
     ele2%bookkeeping_state%control = ok$
   enddo
