@@ -32,14 +32,21 @@ call bmad_parser (lat_file, lat, make_mats6 = .false.)
 
 open (1, file = 'output.now', recl = 200)
 
-ele => lat%ele(1)
-write (1, '(a, f10.4)') '"Q1:L"      ABS 0', ele%value(l$)
-write (1, '(a, f10.4)') '"Q1:K1"     ABS 0', ele%value(k1$) 
-write (1, '(a, f10.4)') '"Q1:TILT"   ABS 0', ele%value(tilt$) 
-write (1, '(a, f10.4)') '"Q1:HKICK"  ABS 0', ele%value(hkick$) 
+do i = 1, lat%n_ele_max
+  ele => lat%ele(i)
 
-ele => lat%ele(2)
-write (1, '(a, f10.4)') '"Q2:L"      ABS 0', ele%value(l$)
+  if (ele%name == 'Q1') then
+    write (1, '(a, f10.4)') '"Q1:L"      ABS 0', ele%value(l$)
+    write (1, '(a, f10.4)') '"Q1:K1"     ABS 0', ele%value(k1$) 
+    write (1, '(a, f10.4)') '"Q1:TILT"   ABS 0', ele%value(tilt$) 
+    write (1, '(a, f10.4)') '"Q1:HKICK"  ABS 0', ele%value(hkick$) 
+  endif
+
+  if (ele%name == 'Q2') then
+    write (1, '(a, f10.4)') '"Q2:L"      ABS 0', ele%value(l$)
+  endif
+
+enddo
 
 close(1)
 
