@@ -881,7 +881,9 @@ end if
 ! But only write this once.
 
 write (iu, *)
-line = trim(lat%branch(0)%name) // ': line = ('
+name = lat%branch(0)%name
+if (name == '') name = 'lat_line'
+line = trim(name) // ': line = ('
 
 in_multi_region = .false.
 do ie = 1, lat%n_ele_track
@@ -921,7 +923,7 @@ enddo
 line = line(:len_trim(line)-1) // ')'
 call write_lat_line (line, iu, .true.)
 
-line = 'use, ' // trim(lat%branch(0)%name)
+line = 'use, ' // trim(name)
 do ib = 1, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   if (branch%ix_from_branch > -1) cycle

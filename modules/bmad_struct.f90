@@ -541,7 +541,7 @@ end type
 !
 
 type branch_struct
-  character(40) name
+  character(40) :: name = ''
   integer :: ix_branch = -1        ! Index of this branch. 0 => Main branch
   integer :: ix_root_branch = -1   ! Root branch index for this machine.
   integer :: ix_from_branch = -1   ! -1 => Not connected/

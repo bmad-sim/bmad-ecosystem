@@ -2555,7 +2555,7 @@ endif
 ! If not numeric...
 
 ix_word = len_trim(word)
-call verify_valid_name (word, ix_word)
+if (.not. verify_valid_name (word, ix_word)) return
 
 ! If word does not have a "[...]" then it must be a variable
 
@@ -3221,7 +3221,7 @@ end subroutine get_overlay_group_names
 !-
 
 
-subroutine verify_valid_name (name, ix_name, wildcards_permitted, integer_permitted)
+function verify_valid_name (name, ix_name) result (is_valid)
 
 implicit none
 
@@ -3232,18 +3232,17 @@ character(27), parameter :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 character(44), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#'
 character(1), parameter :: tab = achar(9)
 
-logical, optional :: wildcards_permitted, integer_permitted
-logical OK, wild_permit
-
-! init
-
-wild_permit = logic_option (.false., wildcards_permitted)
+logical OK, is_valid
 
 ! check for blank spaces
 
+is_valid = .false.
+
 do i = 1, min(ix_name, len(name))
-  if (name(i:i) == ' ' .or. name(i:i) == tab) call parser_error  &
-                        ('NO DELIMITER BETWEEN NAMES: ' // name)
+  if (name(i:i) == ' ' .or. name(i:i) == tab) then
+    call parser_error  ('NO DELIMITER BETWEEN NAMES: ' // name)
+    return
+  endif
 enddo
 
 ! check for name too long
@@ -3251,63 +3250,86 @@ enddo
 if (ix_name > len(name)) then
    call parser_error ('NAME TOO LONG: ' // name)
    ix_name = len(name)      ! chop name
+  return
 endif
 
 ! check for name too short
 
 if (ix_name == 0) call parser_error ('BLANK NAME')
 
-! Check if integer
-
-if (logic_option(.false., integer_permitted)) then
-  if (is_integer(name)) return
-endif
-
 ! check for invalid characters in name
 
 OK = .true.
-if (index(letters, name(1:1)) == 0 .and. &
-          .not. (wild_permit .and. (name(1:1) == '*' .or. name(1:1) == '%'))) OK = .false.
+if (index(letters, name(1:1)) == 0) OK = .false.
 
 do i = 1, ix_name
-  if (index(valid_chars, name(i:i)) == 0 .and. &
-         .not. (wild_permit .and. (name(i:i) == '*' .or. name(i:i) == '%'))) OK = .false.
+  if (index(valid_chars, name(i:i)) == 0) OK = .false.
 enddo
 
-if (.not. OK) call parser_error ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' // name)
+if (.not. OK) then
+  call parser_error ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' // name)
+  return
+endif
 
 ! Check for non-matched "(" ")" pairs
 
 ix1 = index(name, '(')
 ix2 = index(name, ')')
 if (ix1 /= 0 .or. ix2 /= 0) then
-  if (ix1 == 0) call parser_error ('UNMATCHED PARENTHESIS: ' // name)
-  if (ix2 <= ix1+1) call parser_error  ('INVALID: REVERSED PARENTHESES: ' // name)
-  if (index(name(ix1+1:), '(') /= 0 .or. index(name(ix2+1:), ')') /=  &
-                 0) call parser_error ('INVALID: BAD PARENTHESES: ' // name)
+  if (ix1 == 0) then
+    call parser_error ('UNMATCHED PARENTHESIS: ' // name)
+    return
+  endif
+  if (ix2 <= ix1+1) then
+    call parser_error  ('INVALID: REVERSED PARENTHESES: ' // name)
+    return
+  endif
+  if (index(name(ix1+1:), '(') /= 0 .or. index(name(ix2+1:), ')') /=  0) then
+    call parser_error ('INVALID: BAD PARENTHESES: ' // name)
+    return
+  endif
 endif
 
 ! Check for non matched "[" "]" pairs
 
 ix1 = index(name, '[')
 ix2 = index(name, ']')
+
 if (ix1 /= 0 .or. ix2 /= 0) then
-  if (ix1 == 0) call parser_error ('UNMATCHED BRACKET: ' // name)
-  if (ix2 <= ix1+1) call parser_error  ('INVALID: REVERSED BRACKETS: ' // name)
-  if (index(name(ix1+1:), '[') /= 0 .or. index(name(ix2+1:), ']') /=  &
-                 0) call parser_error ('INVALID: BAD BRACKETS: ' // name)
-  if (ix2 /= len(name)) then
-    if (name(ix2+1:ix2+1) /= ' ') call parser_error  &
-                  ('INVALID: SOMETHING AFTER CLOSING "]" BRACKET: ' // name)
+  if (ix1 == 0) then 
+    call parser_error ('UNMATCHED BRACKET: ' // name)
+    return
   endif
+
+  if (ix2 <= ix1+1) then
+    call parser_error  ('INVALID: REVERSED BRACKETS: ' // name)
+    return
+  endif
+
+  if (index(name(ix1+1:), '[') /= 0 .or. index(name(ix2+1:), ']') /=  0) then
+    call parser_error ('INVALID: BAD BRACKETS: ' // name)
+    return
+  endif
+
+  if (ix2 /= len(name)) then
+    if (name(ix2+1:ix2+1) /= ' ') then
+      call parser_error  ('INVALID: SOMETHING AFTER CLOSING "]" BRACKET: ' // name)
+      return
+    endif
+  endif
+
 endif
 
 ! check for more than 40 characters
 
-if ((ix1 == 0 .and. ix_name > 40) .or. (ix1 > 41 .or. ix2 - ix1 > 41)) &
-                          call parser_error ('NAME HAS > 40 CHARACTERS: ' // name)
+if ((ix1 == 0 .and. ix_name > 40) .or. (ix1 > 41 .or. ix2 - ix1 > 41)) then
+  call parser_error ('NAME HAS > 40 CHARACTERS: ' // name)
+  return
+endif
 
-end subroutine verify_valid_name
+is_valid = .true.
+
+end function verify_valid_name
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4148,7 +4170,9 @@ do
   endif
 
   this_ele%name = word
-  if (word /= ' ') call verify_valid_name (word, ix_word)
+  if (word /= ' ') then
+    if (.not. verify_valid_name (word, ix_word)) return
+  endif
 
   ! Check for line tag
 
