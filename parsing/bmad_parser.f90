@@ -228,7 +228,7 @@ parsing_loop: do
   ! If delim = '[' then have attribute redef and things are complicated so do not check.
 
   if (delim /= '[') then
-    call verify_valid_name(word_1, ix_word)
+    if (.not.  verify_valid_name(word_1, ix_word)) cycle
   endif
 
   !-------------------------------------------
@@ -294,7 +294,7 @@ parsing_loop: do
         call parser_error ('CONFUSED "USE" STATEMENT', '')
         cycle parsing_loop
       endif
-      call verify_valid_name(word_2, ix_word)
+      if (.not. verify_valid_name(word_2, ix_word)) cycle parsing_loop
       lat%use_name = trim(lat%use_name) // ',' // word_2
       if (.not. delim_found .and. bp_com%parse_line == '') then
         lat%use_name = lat%use_name(2:)   ! Trim initial comma
@@ -544,7 +544,7 @@ parsing_loop: do
     multipass = .false.
   endif
 
-  call verify_valid_name(word_2, ix_word)
+  if (.not. verify_valid_name(word_2, ix_word)) cycle parsing_loop
 
   ! arg lists are only used with lines
 

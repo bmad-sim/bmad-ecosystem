@@ -149,7 +149,7 @@ parsing_loop: do
   ! If delim = '[' then have attribute redef and things are complicated so do not check.
 
   if (delim /= '[') then
-    call verify_valid_name(word_1, ix_word)
+    if (.not. verify_valid_name(word_1, ix_word)) cycle parsing_loop
   endif
 
   !-------------------------------------------
@@ -368,7 +368,7 @@ parsing_loop: do
     if (global_com%exit_on_error) call err_exit
   endif
 
-  call verify_valid_name(word_2, ix_word)
+  if (.not. verify_valid_name(word_2, ix_word)) cycle parsing_loop
 
   !-------------------------------------------------------
   ! if line or list then this is an error for bmad_parser2
