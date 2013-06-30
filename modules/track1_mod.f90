@@ -898,7 +898,12 @@ real(rp), optional :: mat6(6,6)
 integer stream_end, ix_fringe
 logical in_to_out
 
-if (at_this_ele_end (stream_end, nint(ele%value(kill_fringe$)), ele%orientation)) return
+!
+
+if (at_this_ele_end (stream_end, nint(ele%value(kill_fringe$)), ele%orientation)) then
+  if (present(mat6)) call mat_make_unit(mat6)
+  return
+endif
 
 ix_fringe = nint(ele%value(fringe_type$))
 if (present(mat6)) then 
