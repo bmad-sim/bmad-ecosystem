@@ -85,6 +85,7 @@ class struct_def_class:
     self.arg = []        # Array of arg_class. List of structrure components + array bound dimensions. 
     self.c_constructor_arg_list = ''
     self.c_constructor_body = '{}'  # Body of the C++ constructor
+    self.c_extra_methods = ''       # Additional custom methods
 
   def __repr__(self):
     return '[name: %s, #arg: %i]' % (self.short_name, len(self.arg))
@@ -2234,6 +2235,10 @@ public:
     if not arg.is_component: continue
     f_class.write('  ' + arg.c_side.c_class.replace('ZZZ', struct.short_name) + arg.c_side.c_class_suffix + \
                   ' ' + arg.c_name  + ';\n')
+
+  # Extra methods
+
+  f_class.write(struct.c_extra_methods)
 
   f_class.write ('''
   CPP_ZZZ(AAA) :

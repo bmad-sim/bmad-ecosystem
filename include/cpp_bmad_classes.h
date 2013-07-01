@@ -1881,7 +1881,29 @@ public:
   Bool csr_calc_on;
   Bool offset_moves_aperture;
 
-  CPP_ele(const int k = 0) :
+  void class_init (const int key_) {
+    key = key_;
+
+    if (key == Bmad::LCAVITY) {
+      value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
+      value[Bmad::FIELD_SCALE] = 1;
+      value[Bmad::N_CELL] = 1;
+    }
+
+    if (key == Bmad::RFCAVITY) {
+      value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
+      value[Bmad::FIELD_SCALE] = 1;
+      value[Bmad::N_CELL] = 1;
+    }
+
+    if (key == Bmad::RBEND || key == Bmad::SBEND) {
+      value[Bmad::KILL_FRINGE] = Bmad::NO_END;
+      value[Bmad::FRINGE_TYPE] = Bmad::BASIC_BEND;
+      value[Bmad::PTC_FIELD_GEOMETRY] = Bmad::SECTOR;
+    }
+  }
+
+  CPP_ele(const int key_ = 0) :
     name(),
     type(),
     alias(),
@@ -1919,7 +1941,7 @@ public:
     r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
     a_pole(0.0, 0),
     b_pole(0.0, 0),
-    key(k),
+    key(key_),
     sub_key(0),
     ix_ele(-1),
     ix_branch(0),
@@ -1956,23 +1978,7 @@ public:
     csr_calc_on(true),
     offset_moves_aperture(false)
         {
-      if (key == Bmad::LCAVITY) {
-        value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-        value[Bmad::FIELD_SCALE] = 1;
-        value[Bmad::N_CELL] = 1;
-      }
-
-      if (key == Bmad::RFCAVITY) {
-        value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-        value[Bmad::FIELD_SCALE] = 1;
-        value[Bmad::N_CELL] = 1;
-      }
-
-      if (key == Bmad::RBEND || key == Bmad::SBEND) {
-        value[Bmad::KILL_FRINGE] = Bmad::NO_END;
-        value[Bmad::FRINGE_TYPE] = Bmad::BASIC_BEND;
-        value[Bmad::PTC_FIELD_GEOMETRY] = Bmad::SECTOR;
-      }
+      class_init(key);
     }
 
 

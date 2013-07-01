@@ -113,7 +113,7 @@ def f_side_lbound (id_name):
 # custom C++ side init
 
 c_custom_constructors = {
-    'ele%key' : 'key(k)',
+    'ele%key' : 'key(key_)',
     'ele%value' : 'value(double(0), Bmad::NUM_ELE_ATTRIB+1)',
     'ele%old_value' : 'old_value(double(0), Bmad::NUM_ELE_ATTRIB+1)', 
     'ele%ix_ele' : 'ix_ele(-1)',
@@ -144,29 +144,36 @@ def customize(struct_definitions):
   for struct in struct_definitions:
 
     if struct.f_name == 'ele_struct': 
-      struct.c_constructor_arg_list = 'const int k = 0'
-      struct.c_constructor_body = '''\
-    {
-      if (key == Bmad::LCAVITY) {
-        value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-        value[Bmad::FIELD_SCALE] = 1;
-        value[Bmad::N_CELL] = 1;
-      }
+      struct.c_constructor_arg_list = 'const int key_ = 0'
+      struct.c_extra_methods = '''
+  void class_init (const int key_) {
+    key = key_;
 
-      if (key == Bmad::RFCAVITY) {
-        value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-        value[Bmad::FIELD_SCALE] = 1;
-        value[Bmad::N_CELL] = 1;
-      }
-
-      if (key == Bmad::RBEND || key == Bmad::SBEND) {
-        value[Bmad::KILL_FRINGE] = Bmad::NO_END;
-        value[Bmad::FRINGE_TYPE] = Bmad::BASIC_BEND;
-        value[Bmad::PTC_FIELD_GEOMETRY] = Bmad::SECTOR;
-      }
+    if (key == Bmad::LCAVITY) {
+      value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
+      value[Bmad::FIELD_SCALE] = 1;
+      value[Bmad::N_CELL] = 1;
     }
+
+    if (key == Bmad::RFCAVITY) {
+      value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
+      value[Bmad::FIELD_SCALE] = 1;
+      value[Bmad::N_CELL] = 1;
+    }
+
+    if (key == Bmad::RBEND || key == Bmad::SBEND) {
+      value[Bmad::KILL_FRINGE] = Bmad::NO_END;
+      value[Bmad::FRINGE_TYPE] = Bmad::BASIC_BEND;
+      value[Bmad::PTC_FIELD_GEOMETRY] = Bmad::SECTOR;
+    }
+  }
 '''
 
+      struct.c_constructor_body = '''\
+    {
+      class_init(key);
+    }
+'''
     for arg in struct.arg:
 
       id_name = struct.short_name + '%' + arg.f_name 
