@@ -182,6 +182,10 @@ build_specs = {
         'host' : 'acc101.lns.cornell.edu',
         'repositories' : {
             'ACC-LEPP' : [
+                '/trunk/packages/activemq-cpp-3.7.0',
+                    # mk 
+		    # mkd  
+		    # Please see /trunk/packages/activemq-cpp-3.7.0/acc_build for build flags  
                 '/trunk/packages/cfortran',
                     # A copy, perhaps, to central include directory?
                     # Makefiles need to know how to find this, so perhaps not, for now.
@@ -200,40 +204,24 @@ build_specs = {
                     # mk
 		    # mkd
                 '/trunk/packages/PGPLOT',
-                    # ./makemake . linux ifort_gcc
-                    # gmake
-                    # gmake cpg
-                    # cp -p libpgplot.a ../production/lib/libpgplot.a
-                    # cp -p libcpgplot.a ../production/lib/libcpgplot.a
-                    # gmake clean
-                    #---------debug------------------
-                    # ./makemake . linux ifort_gcc_g
-                    # gmake
-                    # gmake cpg
-                    # cp -p libpgplot.a ../debug/lib/libpgplot.a
-                    # cp -p libcpgplot.a ../debug/lib/libcpgplot.a
-                    # gmake clean
+                    # mk 
+		    # mkd  
+		    # Please see /trunk/packages/PGPLOT/acc_build for build flags  
                 '/trunk/packages/gsl',
-                    # ./configure --prefix `pwd`/../production
-                    # make
-                    # make install
+                    # mk 
+		    # mkd  
+		    # Please see /trunk/packages/gsl/acc_build for build flags  
                 '/trunk/packages/fgsl',
-                    # ./configure --prefix `pwd`/../production --f90 ifort --gsl `pwd`/../production
-                    # make
-                    # make install
+                    # mk 
+		    # mkd  
+		    # Please see /trunk/packages/fgsl/acc_build for build flags  
                 '/trunk/packages/lapack',
-                    # cmake .
-                    # make
-                    # cp lib/* ../production/lib
-		    # cp lib/* ../debug/lib
+                    # mk 
+		    # mkd  
+		    # Please see /trunk/packages/lapack/acc_build for build flags  
                 '/trunk/packages/lapack/LAPACK95',
-                    # cd SRC
-                    # make single_double_complex_dcomplex
-		    # cd ..
-                    # cp lapack95.a ../../../production/lib
-		    # cp lapack95.a ../../../debug/lib
-                    # cp lapack95_modules/* ../../production/modules
-                    # cp lapack95_modules/* ../../debug/modules
+		    # Gets built when lapack is built.
+                    # Please see /trunk/packages/lapack/acc_build_lapack95 for build flags  
                 'fftw3'
 		    # Production pass
 		    # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/../production --includedir=`pwd`/../include
