@@ -205,7 +205,7 @@ parsing_loop: do
   loop_counter = loop_counter + 1
 
   ! get a line from the input file and parse out the first word.
-  call load_parse_line ('normal', 1, end_of_file)  ! load an input line
+  call load_parse_line ('new_command', 1, end_of_file)  ! load an input line
   call get_next_word (word_1, ix_word, '[:](,)= ', delim, delim_found, .true.)
   if (end_of_file) then
     word_1 = 'END_FILE'
