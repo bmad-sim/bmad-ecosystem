@@ -578,8 +578,8 @@ endif
 
 cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
 ht_x = g_tot * tan_e
-ht2 = g * tan_e**2
-hs2 = g * sec_e**2
+ht2 = g_tot * tan_e**2
+hs2 = g_tot * sec_e**2
 k1_eff = k1 * c_dir
 
 if (fint == 0) then

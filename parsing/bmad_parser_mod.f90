@@ -1694,8 +1694,11 @@ if (bp_com%input_from_file) then
     select case (bp_com%parse_line(n:n))
     case (',', '+', '-', '*', '/', '(', '{', '[', '=')
       call load_parse_line('continue', n+2, end_of_file)
+      if (end_of_file) exit
+
     case ('&')
       call load_parse_line('continue', n, end_of_file)
+      if (end_of_file) exit
 
     case default
       ! If in an inline called file then make sure the rest of the file is blank and
@@ -1907,7 +1910,7 @@ end subroutine parser_file_stack
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   action -- Character(*): 'continue', 'normal', or 'init'
+!   action -- Character(*): 'continue', 'new_command', or 'init'
 !   ix_start  -- Integer: index in bp_com%parse_line string where to append stuff.
 !
 ! Output:
@@ -1915,17 +1918,18 @@ end subroutine parser_file_stack
 !   bp_com%parse_line -- String to append to.
 !-
 
-subroutine load_parse_line (action, ix_start, end_of_file)
+recursive subroutine load_parse_line (action, ix_start, end_of_file)
 
 implicit none
 
-integer ix_start, ix
+integer ix_start, ix, n
 
 character(*) action
-character(n_parse_line+20), save :: line, saved_line
+character(n_parse_line+20) :: line
+character(n_parse_line+20), save :: saved_line
 character(1), parameter :: tab = achar(9)
 
-logical :: have_saved_line = .false., end_of_file
+logical :: have_saved_line = .false., end_of_file, flush_this
 
 ! action = 'init'
 
@@ -1938,6 +1942,19 @@ endif
 !
 
 end_of_file = .false.
+flush_this = .false.
+
+! If 'new_command' then will need to must lines that are part of the rest of the current command. 
+! This will happen when there has been an error and the entire command was not parsed.
+
+if (action == 'new_command' .and. .not. have_saved_line) then
+  n = len_trim(bp_com%parse_line)
+  if (n /= 0) then
+    if (index (',+-*/({[=&', bp_com%parse_line(n:n)) /= 0) flush_this = .true.
+  endif
+endif
+
+!
 
 do
 
@@ -1955,13 +1972,13 @@ do
 
   ! %input_line1 and %input_line2 are for error messages if needed.
   ! Only the input string being parsed is saved in these lines.
-  ! 'normal' action means we are loading a new input string so start from scratch.
+  ! 'new_command' action means we are loading a new input string so start from scratch.
   ! 'continue' action means keep the existing input string.
 
   if (action == 'continue') then
     bp_com%input_line1 = bp_com%input_line2
     bp_com%input_line2 = line
-  elseif (action == 'normal') then
+  elseif (action == 'new_command') then
     bp_com%input_line1 = ' '
     bp_com%input_line2 = line
   else
@@ -2004,6 +2021,10 @@ enddo
 
 call str_substitute (line)
 bp_com%parse_line(ix_start:) = line
+
+! Flush this line if needed
+
+if (flush_this) call load_parse_line (action, ix_start, end_of_file)
 
 return
 
@@ -3179,7 +3200,7 @@ do
     if (err_flag) then
       call parser_error ('BAD COEFFICIENT: ' // word_in,  &
                                         'FOR ELEMENT: ' // ele%name)
-      call load_parse_line ('normal', 1, end_of_file)         ! next line
+      call load_parse_line ('new_command', 1, end_of_file)         ! next line
       return
     endif
     coef(ixs) = value
@@ -3255,7 +3276,10 @@ endif
 
 ! check for name too short
 
-if (ix_name == 0) call parser_error ('BLANK NAME')
+if (ix_name == 0) then
+  call parser_error ('BLANK NAME')
+  return
+endif
 
 ! check for invalid characters in name
 
