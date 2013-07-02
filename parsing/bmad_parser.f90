@@ -77,7 +77,7 @@ character(280) parse_line_save, line, use_line_str
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, xsif_called, wild_here
 logical end_of_file, ele_found, match_found, err_if_not_found, err, finished, exit_on_error
-logical detected_expand_lattice_cmd, multipass, wild_and_key0
+logical detected_expand_lattice_cmd, multipass, wild_or_key0
 logical auto_bookkeeper_saved, is_photon_branch, created_new_branch
 
 ! see if digested file is open and current. If so read in and return.
@@ -475,8 +475,8 @@ parsing_loop: do
       endif
       bp_com%parse_line = parse_line_save
       ele_found = .true.
-      wild_and_key0 = (key == 0 .and. wild_here)
-      call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx), wild_and_key0 = wild_and_key0)
+      wild_or_key0 = (key == 0 .and. wild_here)
+      call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx), wild_or_key0 = wild_or_key0)
       if (err .or. delim_found) then
         if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
         bp_com%parse_line = '' 
