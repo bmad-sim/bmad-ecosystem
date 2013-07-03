@@ -23,8 +23,8 @@ use basic_bmad_interface
 ! Routine to initialize a coord_struct. 
 !
 ! This routine is an overloaded name for:
-!   Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, E_photon, t_ref_offset, shift_vec6)
-!   Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, t_ref_offset, shift_vec6)
+!   Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+!   Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, t_ref_offset, shift_vec6)
 !
 ! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
 ! Additionally, if ele is an init_ele, and vec is zero or not present, orb%vec(6) is shifted
@@ -41,6 +41,8 @@ use basic_bmad_interface
 !                     Must be present if ele argument is present.
 !                     Default is False.
 !   particle     -- Integer, optional: Particle type (electron$, etc.). 
+!   dirction     -- Integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.
+!                     Default = +1.  
 !   E_photon     -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
 !   t_ref_offset -- real(rp), optional: Offset of the reference time. This is non-zero when
 !                     there are multiple bunches and the reference time for a particular particle
@@ -928,13 +930,13 @@ end subroutine deallocate_wall3d_pointer
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, E_photon, t_ref_offset, shift_vec6)
+! Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, E_photon, t_ref_offset, shift_vec6)
+subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 
 implicit none
 
@@ -944,7 +946,7 @@ type (ele_struct), optional, target :: ele
 real(rp), optional :: vec(:), E_photon, t_ref_offset
 real(rp) p0c, e_tot, ref_time
 
-integer, optional :: particle
+integer, optional :: particle, direction
 logical, optional :: at_downstream_end, shift_vec6
 
 character(16), parameter :: r_name = 'init_coord1'
@@ -957,6 +959,7 @@ orb2 = coord_struct()
 orb2%state = alive$
 orb2%species = positron$
 orb2%p0c = 0
+orb2%direction = integer_option(+1, direction)
 
 ! Set %vec
 
@@ -1072,27 +1075,27 @@ end subroutine init_coord1
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, t_ref_offset, shift_vec6)
+! Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, t_ref_offset, shift_vec6)
+subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, t_ref_offset, shift_vec6)
 
 implicit none
 
 type (coord_struct) orb, orb_in, orb_save
 type (ele_struct), optional :: ele
 real(rp), optional :: t_ref_offset
-integer, optional :: particle
+integer, optional :: particle, direction
 logical, optional :: at_downstream_end, shift_vec6
 
 !
 
 orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
 
-call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, particle, orb_in%p0c, t_ref_offset, shift_vec6)
+call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, particle, direction, orb_in%p0c, t_ref_offset, shift_vec6)
 
 orb%spin      = orb_save%spin
 orb%field     = orb_save%field

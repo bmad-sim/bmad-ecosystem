@@ -178,7 +178,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, pele, check_free, wild_or_key0)
+! Subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, pele, check_free, wild_and_key0)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file and set the appropriate value in an element.
@@ -193,7 +193,7 @@ contains
 !                      that uses values of other elements.
 !   check_free    -- Logical, optional: If present and True then an error will be generated
 !                       if the attribute is not free to vary. Used by bmad_parser2.
-!   wild_or_key0  -- Logical, optional: If True (default = False), calling routine is working on
+!   wild_and_key0 -- Logical, optional: If True (default = False), calling routine is working on
 !                       something like "*[tracking_method] = runge_kutta". In this case, 
 !                       runge_kutta may not be valid for ele but this is not an error.
 !
@@ -206,7 +206,7 @@ contains
 !                     information that cannot be stored in the ele argument.
 !-
 
-subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, pele, check_free, wild_or_key0)
+subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, pele, check_free, wild_and_key0)
 
 use random_mod
 use wall3d_mod
@@ -237,7 +237,7 @@ character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
 logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0
-logical, optional :: check_free, wild_or_key0
+logical, optional :: check_free, wild_and_key0
 
 ! Get next WORD.
 ! If an overlay or group element then word is just an attribute to control
@@ -248,7 +248,7 @@ call get_next_word (word, ix_word, ':, =()', delim, delim_found, call_check = .t
 
 ! taylor
 
-wild_key0 = logic_option(.false., wild_or_key0)
+wild_key0 = logic_option(.false., wild_and_key0)
 
 if (ele%key == taylor$ .and. word(1:1) == '{') then
 

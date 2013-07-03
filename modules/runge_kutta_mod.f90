@@ -363,7 +363,7 @@ orb_out%p0c = orb_in%p0c
 if (dvec(6) == 0) then
   orb_out%beta = orb_in%beta
 else
-  call convert_pc_to (abs(orb_out%p0c) * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
+  call convert_pc_to (orb_out%p0c * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
 endif
 
 end subroutine
@@ -485,7 +485,7 @@ err = .true.
 beta0 = ele%value(p0c$) / ele%value(e_tot$) 
 dt_ds_ref = 1 / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
-e_tot = abs(orbit%p0c) * (1 + orbit%vec(6)) / orbit%beta
+e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 
 ! calculate the field
 

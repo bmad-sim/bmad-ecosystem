@@ -103,7 +103,7 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
 ! check for particles outside aperture.
 
-if (end_orb%p0c < 0) then
+if (end_orb%direction == -1) then
   call check_aperture_limit (start2_orb, ele, downstream_end$, param)
 else
   call check_aperture_limit (start2_orb, ele, upstream_end$, param)
@@ -220,10 +220,10 @@ if (bmad_com%space_charge_on .and. do_extra) &
 if (bmad_com%spin_tracking_on .and. do_extra) call track1_spin (start2_orb, ele, param, end_orb)
 
 ! check for particles outside aperture
-! Note that a particle going backwards (p0c < 0) must be at the entrance end.
+! Note that a particle going backwards (direction = -1) must be at the entrance end.
 
 
-if (end_orb%p0c < 0) then   ! At entrance end...
+if (end_orb%direction == -1) then   ! At entrance end...
   call check_aperture_limit (start2_orb, ele, upstream_end$, param)
 else                        ! At exit end...
   call check_aperture_limit (end_orb, ele, downstream_end$, param)

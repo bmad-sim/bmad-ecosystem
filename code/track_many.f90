@@ -1,26 +1,23 @@
 !+
 ! Subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 !
-! Subroutine to track from one point in the lat to another.
+! Subroutine to track from one point in the lattice to another.
 !
-! Note: A faster way for tracking backward is to use a reversed lat using
-!   lat_reverse. See lat_reverse for more details.
+! Note: Tracking with direction = -1 means that the particle is moving in
+!   the -s direction. The particle is still moving forward in time though.
+!
+! Note: The coordinates for tracking backward are the same as for tracking 
+!   forward: That is, +z always points in the direction of increasing s, not 
+!   in the actual direction that the particle is traveling.
 !
 ! Note: Starting and ending points are just after the elements with index
 !   IX_START and IX_END. For example, if DIRECTION = +1 then the first element
 !   tracked through is element ix_start+1. If DIRECTION = -1 then the first
 !   element tracked through is element ix_start.
 !
-! Note: The coordinates for tracking backward are the same as for tracking 
-!   forward: That is, +z always points in the direction of increasing s, not 
-!   in the actual direction that the particle is traveling.
-!
-! Note: If needed the subroutine will track through from the end of the lat
+! Note: If needed, the subroutine will track through from the end of the lat
 !   to the beginning (or vice versa) to get to the end point. 
 !   Also: If IX_START = IX_END then the subroutine will track 1 full turn.
-!
-! Note: If x_limit (or y_limit) for an element is zero then TRACK_MANY will
-!   take x_limit (or y_limit) as infinite (this is standard BMAD).
 !
 ! Modules Needed:
 !   use bmad
@@ -73,6 +70,9 @@ if (present(track_state)) track_state = moving_forward$
 track_end_state = moving_forward$
 
 n_ele_track = branch%n_ele_track
+
+if (orbit(ix_start)%state == not_set$) call init_coord(orbit(ix_start), orbit(ix_start)%vec, &
+                                                       branch%ele(ix_start), .true., branch%param%particle)
 
 ! Track forward through the elements.
 
@@ -158,21 +158,10 @@ end subroutine
 !--------------------------------------------------------------------------
 ! contains
 
-! A reversed element has a different coordinate system so
-! we need to transform to the flipped coordinate system, then track, then
-! flip back to the standard coord system.
-
 subroutine track_back (ix1, ix2, track_end_state)
 
-type (ele_struct) :: ele
-
+type (ele_struct), pointer :: ele
 integer i, n, ix1, ix2, ix_last, track_end_state
-
-! flip to reversed coords
-
-orbit(ix1)%vec(2) = -orbit(ix1)%vec(2)
-orbit(ix1)%vec(4) = -orbit(ix1)%vec(4)
-orbit(ix1)%vec(5) = -orbit(ix1)%vec(5)
 
 ! track
 
@@ -180,9 +169,10 @@ ix_last = ix2-1  ! last index we expect to track.
 
 do n = ix1, ix2, -1
 
-  ele = branch%ele(n)
+  ele => branch%ele(n)
   ele%orientation = -ele%orientation
   call track1 (orbit(n), ele, branch%param, orbit(n-1))
+  ele%orientation = -ele%orientation
 
   ! check for lost particles
 
@@ -203,15 +193,8 @@ do n = ix1, ix2, -1
     print *, (orbit(n)%vec(i), i = 1, 6)
   endif
 
-  call deallocate_ele_pointers(ele)
 
 enddo
-
-! flip back to normal coords
-
-orbit(ix_last:ix1)%vec(2) = -orbit(ix_last:ix1)%vec(2)
-orbit(ix_last:ix1)%vec(4) = -orbit(ix_last:ix1)%vec(4)
-orbit(ix_last:ix1)%vec(5) = -orbit(ix_last:ix1)%vec(5)
 
 end subroutine
 

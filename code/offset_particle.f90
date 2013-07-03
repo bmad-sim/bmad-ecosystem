@@ -11,13 +11,13 @@
 !
 ! set = set$:
 !    Transforms from lab to element coords. 
-!    Assumes the particle is at the upstream (-S) end of the element if coord%p0c > 0. 
-!    Assumes the particle is at the downstream (+S) end of the elment if coord%p0c < 0.
+!    Assumes the particle is at the upstream (-S) end of the element if coord%direction = +1. 
+!    Assumes the particle is at the downstream (+S) end of the elment if coord%direction = -1.
 !
 ! set = unset$:
 !    Transforms from element to lab coords.
-!    Assumes the particle is at the downstream (+S) end of the element if coord%p0c > 0.
-!    Assumes the particle is at the upstream (-S) end of the elment if coord%p0c < 0.
+!    Assumes the particle is at the downstream (+S) end of the element if coord%direction = +1.
+!    Assumes the particle is at the upstream (-S) end of the elment if coord%direction = -1.
 !
 ! Note: the assumption of where the particle is can be overridden by using the ds_pos argument.
 !
@@ -118,8 +118,7 @@ set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
 set_s     = logic_option (.true., set_z_offset) .and. has_orientation_attributes(ele)
-sign_z_vel = ele%orientation
-if (coord%p0c < 0) sign_z_vel = -sign_z_vel
+sign_z_vel = ele%orientation * coord%direction
 
 charge_dir = param%rel_tracking_charge * sign_z_vel 
 

@@ -64,6 +64,8 @@ is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%state == f2%state)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%direction == f2%direction)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%species == f2%species)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%location == f2%location)

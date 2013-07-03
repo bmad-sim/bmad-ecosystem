@@ -1706,8 +1706,7 @@ v => ele%value
 r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)]
 
 rel_pc = 1 + orbit%vec(6)
-p_vec = [orbit%vec(2), orbit%vec(4), sqrt(rel_pc**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
-if (orbit%p0c < 0) p_vec(3) = -p_vec(3)
+p_vec = [orbit%vec(2), orbit%vec(4), orbit%direction * sqrt(rel_pc**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
 
 if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
   call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat_inv = winv)
@@ -1721,10 +1720,17 @@ else
 endif
 
 if (v(p0c_start$) /= v(p0c$)) then
-  orbit%vec(2) = orbit%vec(2) * v(p0c_start$) / v(p0c$)
-  orbit%vec(4) = orbit%vec(4) * v(p0c_start$) / v(p0c$)
-  orbit%vec(6) = (rel_pc * v(p0c_start$) - v(p0c$)) / v(p0c$) 
-  orbit%p0c = sign(v(p0c$), orbit%p0c)
+  if (orbit%direction == 1) then
+    orbit%vec(2) = orbit%vec(2) * v(p0c_start$) / v(p0c$)
+    orbit%vec(4) = orbit%vec(4) * v(p0c_start$) / v(p0c$)
+    orbit%vec(6) = (rel_pc * v(p0c_start$) - v(p0c$)) / v(p0c$) 
+    orbit%p0c = v(p0c$)
+  else
+    orbit%vec(2) = orbit%vec(2) * v(p0c$) / v(p0c_start$)
+    orbit%vec(4) = orbit%vec(4) * v(p0c$) / v(p0c_start$)
+    orbit%vec(6) = (rel_pc * v(p0c$) - v(p0c_start$)) / v(p0c_start$) 
+    orbit%p0c = v(p0c_start$)
+  endif
 endif
 
 orbit%vec(1) = r_vec(1)

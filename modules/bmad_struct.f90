@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 123
+integer, parameter :: bmad_inc_version$ = 124
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -153,13 +153,14 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
   real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y)
   real(rp) :: charge = 0          ! macro charge (Coul).
-  real(rp) :: p0c = 0             ! For non-photons: Reference momentum. Negative -> going -s direction.
+  real(rp) :: p0c = 0             ! For non-photons: Reference momentum.
                                   !     For photons: Photon momentum (not reference).
                                   !     Notice that z and s are counter-aligned in reversed elements.
   real(rp) :: beta = -1           ! Velocity / c_light.
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
+  integer :: direction = 1        ! Longitudinal direction of motion
   integer :: species = not_set$   ! Species being tracked.
   integer :: location = upstream_end$  ! upstream_end$, inside$, or downstream_end$
 end type
