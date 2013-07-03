@@ -675,7 +675,7 @@ if (u%beam%beam0_file /= "") then
         beam%bunch(i)%particle(j)%vec = beam%bunch(i)%particle(j)%vec + model%lat%beam_start%vec
         if (beam%bunch(i)%particle(j)%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
         call init_coord (beam%bunch(i)%particle(j), beam%bunch(i)%particle(j), &
-                         branch%ele(0), .true., branch%param%particle, beam%bunch(i)%t_center)
+                         branch%ele(0), .true., branch%param%particle, +1, beam%bunch(i)%t_center)
       enddo
     enddo
     call out_io (s_info$, r_name, &
