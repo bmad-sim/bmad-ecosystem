@@ -549,7 +549,7 @@ logical is_moving_forward
 
 !
 
-is_moving_forward = (orbit%state == alive$) .and. (orbit%p0c > 0)
+is_moving_forward = (orbit%state == alive$) .and. (orbit%direction == 1)
 
 end function particle_is_moving_forward
 
@@ -581,7 +581,7 @@ logical is_moving_backward
 
 !
 
-is_moving_backward = (orbit%state == alive$) .and. (orbit%p0c < 0)
+is_moving_backward = (orbit%state == alive$) .and. (orbit%direction == -1)
 
 end function particle_is_moving_backward
 

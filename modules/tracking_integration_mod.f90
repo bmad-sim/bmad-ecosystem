@@ -54,12 +54,7 @@ if (ele%value(p0c$) == ele%value(p0c_start$)) return
 
 orbit%vec(2:4:2) = orbit%vec(2:4:2) * ele%value(p0c_start$) / ele%value(p0c$)
 orbit%vec(6) = (1 + orbit%vec(6)) * ele%value(p0c_start$) / ele%value(p0c$) - 1
-
-if (orbit%p0c > 0) then
-  orbit%p0c = ele%value(p0c$)
-else
-  orbit%p0c = -ele%value(p0c$)
-endif
+orbit%p0c = ele%value(p0c$)
 
 end subroutine lcavity_reference_energy_correction
 

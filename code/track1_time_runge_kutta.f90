@@ -97,7 +97,7 @@ if (ele%value(l$) .eq. 0) then
   endif
   ! Reset particle to s-coordinates
   end_orb = start_orb
-  if (end_orb%p0c > 0) then
+  if (end_orb%direction == +1) then
     end_orb%location = downstream_end$
   else
     end_orb%location = upstream_end$
@@ -127,7 +127,7 @@ enddo
 ! Kicks and multipoles should be turned off in offset_particle
 
 ! Particle is moving forward towards the entrance
-if (end_orb%p0c > 0 .and. end_orb%location /= inside$) then
+if (end_orb%direction == +1 .and. end_orb%location /= inside$) then
   call offset_particle (ele, end_orb, param, set$, &
                         set_canonical = .false., set_hvkicks = .false., set_multipoles = .false., &
                         ds_pos = 0.0_rp ) 
@@ -139,7 +139,7 @@ elseif (end_orb%location == inside$) then
                         ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
 
 ! Particle is at the exit surface, should be moving backwards
-elseif (end_orb%p0c < 0 .and. end_orb%location /= inside$) then
+elseif (end_orb%direction == -1 .and. end_orb%location /= inside$) then
   call offset_particle (ele, end_orb, param, set$, &
                         set_canonical = .false., set_hvkicks = .false., set_multipoles = .false., &
                         ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
@@ -229,7 +229,7 @@ else
 	  if (abs(del_s) < bmad_com%significant_length) then
 	    ! At an edge. Kick.         
         ! Get s and ref_time
-	    if (end_orb%p0c > 0 ) then 
+	    if (end_orb%direction == +1) then 
    		  s1 = edge(i)%s
    		  ref_time = edge(i)%hard_ele%ref_time - edge(i)%hard_ele%value(delta_ref_time$)
 	    else 
@@ -270,7 +270,8 @@ deallocate (edge)
 if (end_orb%location /= inside$ .and. end_orb%vec(6) < 0) then
   !Particle left entrance end going backwards
   !set reference time and momentum
-  end_orb%p0c = -1*ele%value(p0c_start$)
+  end_orb%p0c = ele%value(p0c_start$)
+  end_orb%direction = -1
   ref_time = ele%ref_time - ele%value(delta_ref_time$)
 
   !ele(t-based) -> ele(s-based)
@@ -284,9 +285,11 @@ elseif (end_orb%state /= alive$) then
     !Particle is lost in the interior of the element.
     !  The reference is a the end of the element
     if (end_orb%vec(6) < 0) then
-      end_orb%p0c = -1*ele%value(p0c$)
+      end_orb%p0c = ele%value(p0c$)
+      end_orb%direction = -1
     else 
       end_orb%p0c = ele%value(p0c$)
+      end_orb%direction = 1
     end if
     ref_time = ele%ref_time
     !ele(t-based) -> ele(s-based)
@@ -299,6 +302,7 @@ elseif (end_orb%state /= alive$) then
 elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   !Particle left exit end going forward
   end_orb%p0c = ele%value(p0c$)
+  end_orb%direction = 1
   ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
   call convert_particle_coordinates_t_to_s(end_orb, mass_of(param%particle), ref_time)
@@ -313,7 +317,7 @@ else
 endif
 
 !Set relativistic beta
-call convert_pc_to (abs(end_orb%p0c) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
+call convert_pc_to (end_orb%p0c * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
 err_flag = .false.
 
 end subroutine

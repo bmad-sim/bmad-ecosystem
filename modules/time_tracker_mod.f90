@@ -830,7 +830,7 @@ real(rp) :: pctot
 
 real(rp), pointer :: vec(:)
 vec => particle%vec
-p0c=abs(particle%p0c)
+p0c = particle%p0c
 
 ! Convert t to s
 pctot = sqrt (vec(2)**2 + vec(4)**2 + vec(6)**2)
@@ -851,7 +851,6 @@ end subroutine convert_particle_coordinates_t_to_s
 ! Subroutine convert_particle_coordinates_s_to_t (particle)
 !
 ! Subroutine to convert particle coordinates from s-based to t-based system. 
-!     The sign of particle%p0c indicates the direction of p_s
 !
 ! Note: t coordinates are:            
 !     vec(1) = x                              [m]
@@ -883,11 +882,11 @@ real(rp), pointer :: vec(:)
 vec => particle%vec
 
 ! Convert s to t
-vec(6) = particle%p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
+vec(6) = particle%direction * particle%p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
 ! vec(1) = vec(1) !this is unchanged
-vec(2) = vec(2)*abs(particle%p0c)
+vec(2) = vec(2) * particle%p0c
 ! vec(3) = vec(3) !this is unchanged
-vec(4) = vec(4)*abs(particle%p0c)
+vec(4) = vec(4) * particle%p0c
 vec(5) = particle%s
 
 end subroutine convert_particle_coordinates_s_to_t
@@ -1018,7 +1017,7 @@ do i = 1, n_particle
   dt = orb%t - bunch%t_center
   
   !Get pc before conversion
-  pc = (1+orb%vec(6))*orb%p0c 
+  pc = (1+orb%vec(6)) * orb%p0c 
   
   !convert to time coordinates
   call convert_particle_coordinates_s_to_t (orb)

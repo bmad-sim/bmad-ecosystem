@@ -1760,7 +1760,7 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
 ! average the energy
 
 avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%state == alive$))
-avg_energy = avg_energy * abs(bunch%particle(1)%p0c) / charge_live
+avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
 
 ! Convert to geometric coords and find the sigma matrix
 
