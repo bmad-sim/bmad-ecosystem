@@ -61,7 +61,7 @@ case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$
 
 case (lcavity$)
-  ele%value(coupler_at$) = downstream_end$
+  ele%value(coupler_at$) = exit_end$
   ele%value(field_scale$) = 1
   ele%value(n_cell$) = 1
 
@@ -96,7 +96,7 @@ case (rcollimator$)
   ele%offset_moves_aperture = .true.
 
 case (rfcavity$)
-  ele%value(coupler_at$) = downstream_end$
+  ele%value(coupler_at$) = exit_end$
   ele%value(field_scale$) = 1
   ele%value(n_cell$) = 1
 

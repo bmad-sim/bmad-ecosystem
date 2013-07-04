@@ -307,7 +307,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
   c_int = end_orb
 
-  if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, upstream_end$, end_orb)
+  if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, first_track_edge$, end_orb)
 
   ! loop over all steps
 
@@ -335,7 +335,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
      call quad_mat6_edge_effect (ele, k1, c_int, end_orb, mat6)
   end if
 
-  if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, downstream_end$, end_orb)
+  if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, second_track_edge$, end_orb)
 
 !----------------------------------------------------------------------------
 ! unknown element

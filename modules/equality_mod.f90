@@ -11,7 +11,7 @@
 !- 
 
 module equality_mod
-use bmad_struct
+use beam_def_struct
 
 interface operator (==)
   module procedure eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_wig_term, eq_wig
@@ -23,7 +23,7 @@ interface operator (==)
   module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
   module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
   module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele, eq_branch
-  module procedure eq_lat
+  module procedure eq_lat, eq_bunch, eq_beam
 end interface
 
 contains
@@ -1715,4 +1715,66 @@ is_eq = is_eq .and. (f1%rf_auto_scale_amp .eqv. f2%rf_auto_scale_amp)
 is_eq = is_eq .and. (f1%use_ptc_layout .eqv. f2%use_ptc_layout)
 
 end function eq_lat
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_bunch (f1, f2) result (is_eq)
+
+implicit none
+
+type(bunch_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%particle) .eqv. allocated(f2%particle))
+if (.not. is_eq) return
+if (allocated(f1%particle)) is_eq = all(shape(f1%particle) == shape(f2%particle))
+if (.not. is_eq) return
+if (allocated(f1%particle)) is_eq = all(f1%particle == f2%particle)
+!! f_side.equality_test[integer, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%ix_z) .eqv. allocated(f2%ix_z))
+if (.not. is_eq) return
+if (allocated(f1%ix_z)) is_eq = all(shape(f1%ix_z) == shape(f2%ix_z))
+if (.not. is_eq) return
+if (allocated(f1%ix_z)) is_eq = all(f1%ix_z == f2%ix_z)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%charge == f2%charge)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z_center == f2%z_center)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%t_center == f2%t_center)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%species == f2%species)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_bunch == f2%ix_bunch)
+
+end function eq_bunch
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_beam (f1, f2) result (is_eq)
+
+implicit none
+
+type(beam_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%bunch) .eqv. allocated(f2%bunch))
+if (.not. is_eq) return
+if (allocated(f1%bunch)) is_eq = all(shape(f1%bunch) == shape(f2%bunch))
+if (.not. is_eq) return
+if (allocated(f1%bunch)) is_eq = all(f1%bunch == f2%bunch)
+
+end function eq_beam
 end module

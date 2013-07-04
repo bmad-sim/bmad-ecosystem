@@ -95,7 +95,7 @@ contains
 !
 ! Input:
 !   slave       -- ele_struct: Slave element.
-!   slave_edge  -- integer: End under consideration: upstream_end$, or downstream_end$.
+!   slave_edge  -- integer: End under consideration: entrance_end$, or exit_end$.
 !   lord        -- ele_struct: Lord element.
 !
 ! Output:
@@ -115,7 +115,7 @@ character(*), parameter :: r_name = 'lord_edge_aligned'
 
 ! 
 
-select case (slave_edge)
+select case (stream_ele_end(slave_edge, slave%orientation))
 case (upstream_end$)
   s_lord = lord%s - lord%value(l$)
   branch => slave%branch
@@ -138,25 +138,24 @@ end function lord_edge_aligned
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function at_this_ele_end (now_at, where_at, orientation) result (is_at_this_end)
+! Function at_this_ele_end (now_at, where_at) result (is_at_this_end)
 !
 ! Routine to determine if an aperture or fringe field is present.
 !
 ! Input:
-!   now_at      -- Integer: Which end is under consideration: upstream_end$, downstream_end$, or surface$.
+!   now_at      -- Integer: Which end is under consideration: entrance_end$, exit_end$, or surface$.
 !   where_at    -- Integer: Which ends have the aperture or fringe field: entrance_end$
 !                     exit_end$, continuous$, both_ends$, no_ends$, surface$.
-!   orientation -- Integer: element orientation: +/- 1.
 !
 ! Output:
 !   is_at_this_end   -- Logical: True if at this end. False otherwise.
 !- 
 
-function at_this_ele_end (now_at, where_at, orientation) result (is_at_this_end)
+function at_this_ele_end (now_at, where_at) result (is_at_this_end)
 
 implicit none
 
-integer now_at, where_at, orientation, physical_end
+integer now_at, where_at
 logical is_at_this_end
 
 !
@@ -168,8 +167,7 @@ endif
 
 !
 
-physical_end = physical_ele_end (now_at, orientation)
-select case (physical_end)
+select case (now_at)
 case (entrance_end$)
   select case (where_at)
   case (entrance_end$, both_ends$, continuous$); is_at_this_end = .true.
@@ -189,57 +187,58 @@ end function at_this_ele_end
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function physical_ele_end (stream_end, ele_orientation) result (physical_end)
+! Function physical_ele_end (track_end, track_direction, ele_orientation) result (physical_end)
 !
 ! Rotine to determine which physical end of an element a particle is at given 
 ! the position in terms of upstream/downstream and the element's orientation
 !
 ! Input:
-!   stream_end       -- Integer: upstream_end$, downstream_end$, surface$
+!   track_end        -- Integer: first_track_edge$, second_track_edge$, or surface$
+!   track_direction  -- Integer: +1 or -1
 !   ele_orientation  -- Integer: Either 1 = Normal or -1 = element reversed.
 !
 ! Output:
 !   physical_end     -- Integer: entrance_end$, exit_end$, or surface$
 !-
 
-function physical_ele_end (stream_end, ele_orientation) result (physical_end)
+function physical_ele_end (track_end, track_direction, ele_orientation) result (physical_end)
 
 implicit none
 
-integer stream_end, ele_orientation, physical_end
+integer track_end, track_direction, ele_orientation, physical_end
 character(*), parameter :: r_name  = 'physical_ele_end'
 
 !
 
-if (stream_end == surface$) then
+if (track_end == surface$) then
   physical_end = surface$
   return
 endif
 
 !
 
-select case (ele_orientation)
+select case (ele_orientation * track_direction)
 
 case (1) 
-  select case (stream_end)
-  case (upstream_end$);   physical_end = entrance_end$
-  case (downstream_end$); physical_end = exit_end$
+  select case (track_end)
+  case (first_track_edge$);   physical_end = entrance_end$
+  case (second_track_edge$); physical_end = exit_end$
   case default;
-    call out_io (s_fatal$, r_name, 'BAD STREAM_END: \i0\ ', i_array = [stream_end])
+    call out_io (s_fatal$, r_name, 'BAD TRACK_END: \i0\ ', i_array = [track_end])
     if (global_com%exit_on_error) call err_exit
   end select
 
 case (-1) 
-  select case (stream_end)
-  case (upstream_end$);   physical_end = exit_end$
-  case (downstream_end$); physical_end = entrance_end$
+  select case (track_end)
+  case (first_track_edge$);   physical_end = exit_end$
+  case (second_track_edge$); physical_end = entrance_end$
   case default;
-    call out_io (s_fatal$, r_name, 'BAD STREAM_END: \i0\ ', i_array = [stream_end])
+    call out_io (s_fatal$, r_name, 'BAD TRACK_END: \i0\ ', i_array = [track_end])
     if (global_com%exit_on_error) call err_exit
   end select
 
 case default
-  call out_io (s_fatal$, r_name, 'BAD ELEMENT ORIENTATION: \i0\ ', i_array = [ele_orientation])
+  call out_io (s_fatal$, r_name, 'BAD ELEMENT ORIENTATION: \2i4\ ', i_array = [ele_orientation, track_direction])
   if (global_com%exit_on_error) call err_exit
 
 end select
@@ -2391,7 +2390,7 @@ end function element_has_fringe_fields
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine calc_next_fringe_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
+! Subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
 !
 ! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
 ! This routine is used by integration tracking routines like Runge-Kutta.
@@ -2404,8 +2403,9 @@ end function element_has_fringe_fields
 ! edge. [Remember that Bmad's coordinates are not canonical inside a field region.]
 !
 ! Input:
-!   track_ele     -- ele_struct: Element being tracked through.
-!   hard_ele      -- ele_struct, pointer: Needs to be nullified at the start of tracking.
+!   track_ele       -- ele_struct: Element being tracked through.
+!   track_direction -- integer: +1 -> +s direction, -1 -> -s direction.
+!   hard_ele        -- ele_struct, pointer: Needs to be nullified at the start of tracking.
 !
 ! Output:
 !   s_edge_track -- Real(rp): S position of next hard edge in track_ele frame.
@@ -2414,10 +2414,10 @@ end function element_has_fringe_fields
 !                     Will be nullified if there is no hard edge.
 !                     This will be track_ele unless track_ele is a super_slave.
 !   s_edge_hard  -- Real(rp): S-position of next hard egde in hard_ele frame.
-!   hard_end     -- Integer: Describes hard edge. Set to upstream_end$ or downstream_end$.
+!   hard_end     -- Integer: Describes hard edge. Set to first_track_edge$ or second_track_edge$
 !-
 
-subroutine calc_next_fringe_edge (track_ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
+subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 implicit none
 
@@ -2425,7 +2425,7 @@ type (ele_struct), target :: track_ele
 type (ele_struct), pointer :: hard_ele, lord
 
 real(rp) s_edge_track, s_edge_hard
-integer hard_end
+integer hard_end, track_direction
 integer i
 
 ! Init if needed.
@@ -2468,7 +2468,7 @@ contains
 subroutine does_this_ele_contain_the_next_edge (this_ele)
 
 type (ele_struct), target :: this_ele
-real(rp) s_this_edge, s_hard_entrance, s_hard_exit, s_off
+real(rp) s_this_edge, s_hard_upstream, s_hard_downstream, s_off
 integer this_end, dir
 
 !
@@ -2476,26 +2476,34 @@ integer this_end, dir
 if (.not. element_has_fringe_fields (this_ele)) return
 if (this_ele%ixx == 2) return
 
-dir = 1
-if (track_ele%value(l$) < 0) dir = -1
+dir = track_direction
+if (track_ele%value(l$) < 0) dir = -dir
 
 s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
-s_hard_entrance = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
-s_hard_exit     = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
+s_hard_upstream   = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
+s_hard_downstream = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
 
-if (dir * s_hard_entrance < -dir * bmad_com%significant_length .and. &
-    dir * s_hard_exit     < -dir * bmad_com%significant_length) return
+if (dir * s_hard_upstream   < -dir * bmad_com%significant_length .and. &
+    dir * s_hard_downstream < -dir * bmad_com%significant_length) return
 
-if (dir * s_hard_entrance > dir * (track_ele%value(l$) + bmad_com%significant_length) .and. &
-    dir * s_hard_exit     > dir * (track_ele%value(l$) + bmad_com%significant_length)) return
+if (dir * s_hard_upstream   > dir * (track_ele%value(l$) + bmad_com%significant_length) .and. &
+    dir * s_hard_downstream > dir * (track_ele%value(l$) + bmad_com%significant_length)) return
 
 if (this_ele%ixx == 0) then
-  this_end = upstream_end$
-  s_this_edge = max(0.0_rp, s_hard_entrance)
+  this_end = first_track_edge$
+  if (dir == 1) then
+    s_this_edge = max(0.0_rp, s_hard_upstream)
+  else
+    s_this_edge = min(track_ele%value(l$), s_hard_downstream)
+  endif
 
 else   ! this_ele%ixx = 1
-  this_end = downstream_end$
-  s_this_edge = min(track_ele%value(l$), s_hard_exit)
+  this_end = second_track_edge$
+  if (dir == 1) then
+    s_this_edge = min(track_ele%value(l$), s_hard_downstream)
+  else
+    s_this_edge = max(0.0_rp, s_hard_upstream)
+  endif
 endif
 
 if (dir * s_this_edge > dir * s_edge_track) return

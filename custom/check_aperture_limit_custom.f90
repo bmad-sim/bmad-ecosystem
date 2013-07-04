@@ -1,5 +1,5 @@
 !+
-! Subroutine check_aperture_limit_custom (orb, ele, at, param, err_flag)
+! Subroutine check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)
 !
 ! Dummy routine.
 ! A valid check_aperture_limit_custom is needed only if ele%aperture_type is set to
@@ -14,12 +14,7 @@
 ! Input:
 !   orb   -- Coord_struct: coordinates of a particle.
 !   ele   -- Ele_struct: Element holding the aperture
-!     %value(x1_limit$) -- Horizontal negative side aperture.
-!     %value(x2_limit$) -- Horizontal positive side aparture.
-!     %value(y1_limit$) -- Vertical negative side aperture.
-!     %value(y2_limit$) -- Vertical positive side aparture.
-!     %offset_moves_aperture -- If True then aperture moves with the element.
-!   at    -- Integer: entrance_end$ or exit_end$
+!   particle_at    -- Integer: first_track_edge$, second_track_edge$, or surface$
 !   param -- lat_param_struct: Parameter structure
 !     %aperture_limit_on -- The aperture limit is only checked if this is true.
 !               The exception is when the orbit is larger than 
@@ -30,7 +25,7 @@
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine check_aperture_limit_custom (orb, ele, at, param, err_flag)
+subroutine check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)
 
 use bmad_interface, dummy => check_aperture_limit_custom
 
@@ -40,7 +35,7 @@ type (coord_struct) :: orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
-integer at
+integer particle_at
 logical err_flag
 
 character(32) :: r_name = 'check_aperture_limit_custom'

@@ -1683,21 +1683,21 @@ type (ele_struct) slave
 type (ele_struct), pointer :: lord
 real(rp) value(num_ele_attrib$)
 integer i
-logical upstream, downstream
+logical entrance_end, exit_end
 
 !
 
 do i = 1, slave%n_lord
   lord => pointer_to_lord (slave, i)
   if (lord%key /= rfcavity$ .and. lord%key /= lcavity$) cycle
-  upstream = lord_edge_aligned (slave, upstream_end$, lord)
-  downstream = lord_edge_aligned (slave, downstream_end$, lord)
-  if (upstream .and. downstream) then
+  entrance_end = lord_edge_aligned (slave, entrance_end$, lord)
+  exit_end = lord_edge_aligned (slave, exit_end$, lord)
+  if (entrance_end .and. exit_end) then
     slave%value(coupler_at$) = both_ends$
-  elseif (upstream) then
-    slave%value(coupler_at$) = upstream_end$
-  elseif (downstream) then
-    slave%value(coupler_at$) = downstream_end$
+  elseif (entrance_end) then
+    slave%value(coupler_at$) = entrance_end$
+  elseif (exit_end) then
+    slave%value(coupler_at$) = exit_end$
   else
     slave%value(coupler_at$) = no_end$
   endif

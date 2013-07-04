@@ -102,7 +102,7 @@ call lcavity_reference_energy_correction (ele, param, orb_end)
 ! to apply the appropriate hard edge kick.
 
 nullify (hard_ele)
-call calc_next_fringe_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
+call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 ! Initial time
 
@@ -129,7 +129,7 @@ do n_step = 1, max_step
     if (.not. associated(hard_ele)) exit
     if ((s-s_edge_track)*direction < -ds_safe) exit
     call apply_hard_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
-    call calc_next_fringe_edge (ele, s_edge_track, hard_ele, s_edge_hard, hard_end)
+    call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
     s = s + ds_safe * direction

@@ -45,8 +45,13 @@ character(12), parameter :: wall3d_priority_name(0:3) = ['GARBAGE! ', 'Primary  
 
 ! Note: upstream_end$ = entrance_end$ & downstream_end$ = exit_end$
 
+! first_track_edge$ is the edge a particle enters the element at. 
+! This edge will depend upon whether a particle is moving in +s or -s direction.
+! Similarly, second_track_edge$ is the edge a particle leaves the element at.
+
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4
 integer, parameter :: continuous$ = 5, surface$ = 6
+integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12
 
 character(16), parameter :: aperture_at_name(0:6) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &

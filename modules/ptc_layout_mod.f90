@@ -593,7 +593,7 @@ do i = 1, branch%n_ele_track
   ele => branch%ele(i)
 
   orbit(i) = orbit(i-1)
-  call check_aperture_limit (orbit(i), ele, upstream_end$, branch%param)
+  call check_aperture_limit (orbit(i), ele, first_track_edge$, branch%param)
   if (orbit(i)%state /= alive$) then
     if (present(err_flag)) err_flag = .false.
     return
@@ -604,7 +604,7 @@ do i = 1, branch%n_ele_track
   call vec_ptc_to_bmad (x, fib%beta0, vec)
   call init_coord (orbit(i), vec, ele, .true., branch%param%particle)
 
-  call check_aperture_limit (orbit(i), ele, downstream_end$, branch%param)
+  call check_aperture_limit (orbit(i), ele, second_track_edge$, branch%param)
   if (orbit(i)%state /= alive$) then
     if (present(err_flag)) err_flag = .false.
     return

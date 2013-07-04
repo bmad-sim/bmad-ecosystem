@@ -11,7 +11,7 @@
 !   param  -- lat_param_struct: Parameters are needed for some elements.
 !   c0     -- Coord_struct: Coordinates at the beginning of element. 
 !   end_in -- Logical, optional: If present and True then the end coords c1
-!               will be taken as input. not output as normal.
+!               will be taken as input. Not output as normal.
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
@@ -90,13 +90,15 @@ rel_p = 1 + c0%vec(6)
 key = ele%key
 
 charge_dir = param%rel_tracking_charge * ele%orientation
+c00 = c0
+c00%direction = +1
 
 if (.not. logic_option (.false., end_in)) then
   if (ele%tracking_method == linear$) then
-    c0%state = alive$
-    call track1_bmad (c0, ele, param, c1)
+    c00%state = alive$
+    call track1_bmad (c00, ele, param, c1)
   else
-    call track1 (c0, ele, param, c1)
+    call track1 (c00, ele, param, c1)
   endif
   ! If the particle has been lost in tracking this is an error.
   ! Exception: A match element with match_end set to True. 
@@ -110,7 +112,6 @@ if (.not. logic_option (.false., end_in)) then
   endif
 endif
 
-c00 = c0
 c11 = c1
 
 !--------------------------------------------------------
@@ -209,7 +210,7 @@ case (custom$)
 
 case (elseparator$)
    
-   call make_mat6_mad (ele, param, c0, c1)
+   call make_mat6_mad (ele, param, c00, c11)
 
 !--------------------------------------------------------
 ! Kicker
@@ -288,13 +289,11 @@ case (lcavity$)
 
   phase = twopi * (v(phi0$) + v(dphi0$) + &
                    v(dphi0_ref$) +  v(phi0_err$) + &
-                   (particle_time (c0, ele) - rf_ref_time_offset(ele)) * v(rf_frequency$))
-
-  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, upstream_end$, phase, c00, mat6)
+                   (particle_time (c00, ele) - rf_ref_time_offset(ele)) * v(rf_frequency$))
 
   ! Coupler kick
 
-  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, downstream_end$, phase, c00, mat6)
+  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, first_track_edge$, phase, c00, mat6)
 
   ! 
 
@@ -515,7 +514,7 @@ case (lcavity$)
 
   ! Coupler kick
 
-  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, downstream_end$, phase, c00, mat6)
+  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, second_track_edge$, phase, c00, mat6)
 
   ! multipoles and z_offset
 
@@ -693,8 +692,8 @@ case (quadrupole$)
 
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
     c_int = c00
-    call quadrupole_edge_kick (ele, upstream_end$, c00)
-    call quadrupole_edge_kick (ele, upstream_end$, c11) ! Yes upstream since we are propagating backwards.
+    call quadrupole_edge_kick (ele, first_track_edge$, c00)
+    call quadrupole_edge_kick (ele, first_track_edge$, c11) ! Yes first edge since we are propagating backwards.
   endif
 
   if (any(c00%vec(1:4) /= 0)) then
@@ -767,7 +766,7 @@ case (rfcavity$)
   ! The phase of the accelerating wave traveling in the same direction as the particle is
   ! assumed to be traveling with a phase velocity the same speed as the reference velocity.
 
-  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, upstream_end$, phase, c00, mat6)
+  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, first_track_edge$, phase, c00, mat6)
 
   do i = 0, n_slice
 
@@ -802,7 +801,7 @@ case (rfcavity$)
 
   ! Coupler kick
 
-  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, downstream_end$, phase, c00, mat6)
+  if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, second_track_edge$, phase, c00, mat6)
 
   call offset_particle (ele, c00, param, unset$, set_canonical = .false., set_tilt = .false.)
 
@@ -840,14 +839,14 @@ case (sbend$)
   call offset_particle (ele, c00, param, set$, set_canonical = .false.)
   c0_off = c00
 
-  call bend_edge_kick (c00, ele, param, upstream_end$, .false., mat6_pre)
+  call bend_edge_kick (c00, ele, param, first_track_edge$, .false., mat6_pre)
 
   ! Exit edge kick
   
   call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
   c1_off = c11 
 
-  call bend_edge_kick (c11, ele, param, downstream_end$, .false., mat6_post)
+  call bend_edge_kick (c11, ele, param, second_track_edge$, .false., mat6_post)
 
   ! If we have a sextupole component then step through in steps of length ds_step
 
@@ -1377,7 +1376,7 @@ end subroutine make_mat6_bmad
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 
-subroutine mat6_coupler_kick(ele, param, end_at, phase, orb, mat6)
+subroutine mat6_coupler_kick(ele, param, particle_at, phase, orb, mat6)
 
 use track1_mod
 
@@ -1388,11 +1387,12 @@ type (coord_struct) orb, old_orb
 type (lat_param_struct) param
 real(rp) phase, mat6(6,6), f, f2, coef, E_new
 real(rp) dp_coef, dp_x, dp_y, ph, mc(6,6), E, pc, mc2, p0c
-integer end_at
+integer particle_at, physical_end
 
 !
 
-if (.not. at_this_ele_end (end_at, nint(ele%value(coupler_at$)), ele%orientation)) return
+physical_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
+if (.not. at_this_ele_end (physical_end, nint(ele%value(coupler_at$)))) return
 
 ph = phase
 if (ele%key == rfcavity$) ph = pi/2 - ph
@@ -1416,7 +1416,7 @@ endif
 ! Track
 
 old_orb = orb
-call rf_coupler_kick (ele, param, end_at, phase, orb)
+call rf_coupler_kick (ele, param, particle_at, phase, orb)
 
 ! Matrix
 
