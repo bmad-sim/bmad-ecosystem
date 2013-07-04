@@ -15,16 +15,17 @@ So: If you want to generate new code files, please talk to David Sagan first.
 Code Generation Overview: 
 
 There are two scipts to generate files:
-  1) scripts/bmad_enums_to_c.py 
-  2) scripts/create_interface.py 
+  * scripts/bmad_enums_to_c.py 
+  * scripts/create_interface.py 
 
-1) bmad_enums_to_c.py:
+* bmad_enums_to_c.py:
   See the script for execution directions. 
   This script searches a set of Bmad files and generates corresponding constants for use with C++ code.
   The constants file is: include/bmad_enums.h
   For example, the proton$ parameter on the Fortran side is translated to PROTON on the C++ side.
 
-2) scripts/create_interface.py:
+* scripts/create_interface.py:
+	You must have a local copy of bmad in the same directory as cpp_bmad_interface
   See the script for execution directions.
   This script generates:
     A) The include/cpp_bmad_classes.h file defining the C++ classes 
@@ -32,3 +33,11 @@ There are two scipts to generate files:
 	  C) .f90 and .cpp test files in the interface_test directory.
 		D) equality_mod.f90 which is placed in the bmad/modules directory.
        This file is placed in bmad since it is used by some bmad routines. 
+
+----------------------------------------------------
+
+Testing:
+
+1) go to the bmad directory and recompile
+2) return to the cpp_bmad_interface directory and run the test program:
+	../production/bin/cpp_interface_test

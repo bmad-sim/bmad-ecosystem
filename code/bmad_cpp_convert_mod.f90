@@ -10,7 +10,7 @@
 
 module bmad_cpp_convert_mod
 
-use bmad_struct
+use beam_def_struct
 use fortran_cpp_utils
 use, intrinsic :: iso_c_binding
 
@@ -428,6 +428,24 @@ interface
   end subroutine
 end interface
 
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine bunch_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine beam_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
 contains
 
 !--------------------------------------------------------------------------
@@ -452,14 +470,14 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine coord_to_c2 (C, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_p0c, &
-      z_beta, z_ix_ele, z_state, z_species, z_location) bind(c)
+      z_beta, z_ix_ele, z_state, z_direction, z_species, z_location) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_spin(*)
     real(c_double) :: z_vec(*), z_s, z_t, z_field(*), z_phase(*), z_charge, z_p0c
     real(c_double) :: z_beta
-    integer(c_int) :: z_ix_ele, z_state, z_species, z_location
+    integer(c_int) :: z_ix_ele, z_state, z_direction, z_species, z_location
   end subroutine
 end interface
 
@@ -476,7 +494,8 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call coord_to_c2 (C, fvec2vec(F%vec, 6), F%s, F%t, fvec2vec(F%spin, 2), fvec2vec(F%field, 2), &
-    fvec2vec(F%phase, 2), F%charge, F%p0c, F%beta, F%ix_ele, F%state, F%species, F%location)
+    fvec2vec(F%phase, 2), F%charge, F%p0c, F%beta, F%ix_ele, F%state, F%direction, F%species, &
+    F%location)
 
 end subroutine coord_to_c
 
@@ -497,7 +516,7 @@ end subroutine coord_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine coord_to_f2 (Fp, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_p0c, z_beta, &
-    z_ix_ele, z_state, z_species, z_location) bind(c)
+    z_ix_ele, z_state, z_direction, z_species, z_location) bind(c)
 
 
 implicit none
@@ -509,7 +528,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 complex(c_double_complex) :: z_spin(*)
 real(c_double) :: z_vec(*), z_s, z_t, z_field(*), z_phase(*), z_charge, z_p0c
 real(c_double) :: z_beta
-integer(c_int) :: z_ix_ele, z_state, z_species, z_location
+integer(c_int) :: z_ix_ele, z_state, z_direction, z_species, z_location
 
 call c_f_pointer (Fp, F)
 
@@ -535,6 +554,8 @@ F%beta = z_beta
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%state = z_state
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%direction = z_direction
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%species = z_species
 !! f_side.to_f2_trans[integer, 0, NOT]
@@ -5888,4 +5909,252 @@ F%rf_auto_scale_amp = f_logic(z_rf_auto_scale_amp)
 F%use_ptc_layout = f_logic(z_use_ptc_layout)
 
 end subroutine lat_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine bunch_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad bunch_struct to a C++ CPP_bunch structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad bunch_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_bunch struct.
+!-
+
+subroutine bunch_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine bunch_to_c2 (C, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge, z_z_center, &
+      z_t_center, z_species, z_ix_ele, z_ix_bunch) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int), value :: n1_particle, n1_ix_z
+    real(c_double) :: z_charge, z_z_center, z_t_center
+    integer(c_int) :: z_ix_z(*), z_species, z_ix_ele, z_ix_bunch
+    type(c_ptr) :: z_particle(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(bunch_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_particle(:)
+integer(c_int) :: n1_particle
+integer(c_int) :: n1_ix_z
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_particle = 0
+if (allocated(F%particle)) then
+  n1_particle = size(F%particle); lb1 = lbound(F%particle, 1) - 1
+  allocate (z_particle(n1_particle))
+  do jd1 = 1, n1_particle
+    z_particle(jd1) = c_loc(F%particle(jd1+lb1))
+  enddo
+endif
+!! f_side.to_c_trans[integer, 1, ALLOC]
+n1_ix_z = 0
+if (allocated(F%ix_z)) then
+  n1_ix_z = size(F%ix_z, 1)
+endif
+
+!! f_side.to_c2_call
+call bunch_to_c2 (C, z_particle, n1_particle, fvec2vec(F%ix_z, n1_ix_z), n1_ix_z, F%charge, &
+    F%z_center, F%t_center, F%species, F%ix_ele, F%ix_bunch)
+
+end subroutine bunch_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine bunch_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_bunch structure to a Bmad bunch_struct structure.
+! This routine is called by bunch_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the bunch_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad bunch_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine bunch_to_f2 (Fp, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge, z_z_center, &
+    z_t_center, z_species, z_ix_ele, z_ix_bunch) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(bunch_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_species, z_ix_ele, z_ix_bunch
+integer(c_int), value :: n1_particle, n1_ix_z
+integer(c_int), pointer :: f_ix_z(:)
+real(c_double) :: z_charge, z_z_center, z_t_center
+type(c_ptr), value :: z_ix_z
+type(c_ptr) :: z_particle(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_particle == 0) then
+  if (allocated(F%particle)) deallocate(F%particle)
+else
+  if (allocated(F%particle)) then
+    if (n1_particle == 0 .or. any(shape(F%particle) /= [n1_particle])) deallocate(F%particle)
+    if (any(lbound(F%particle) /= 1)) deallocate(F%particle)
+  endif
+  if (.not. allocated(F%particle)) allocate(F%particle(1:n1_particle+1-1))
+  do jd1 = 1, n1_particle
+    call coord_to_f (z_particle(jd1), c_loc(F%particle(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[integer, 1, ALLOC]
+if (allocated(F%ix_z)) then
+  if (n1_ix_z == 0 .or. any(shape(F%ix_z) /= [n1_ix_z])) deallocate(F%ix_z)
+  if (any(lbound(F%ix_z) /= 1)) deallocate(F%ix_z)
+endif
+if (n1_ix_z /= 0) then
+  call c_f_pointer (z_ix_z, f_ix_z, [n1_ix_z])
+  if (.not. allocated(F%ix_z)) allocate(F%ix_z(n1_ix_z))
+  F%ix_z = f_ix_z(1:n1_ix_z)
+else
+  if (allocated(F%ix_z)) deallocate(F%ix_z)
+endif
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%charge = z_charge
+!! f_side.to_f2_trans[real, 0, NOT]
+F%z_center = z_z_center
+!! f_side.to_f2_trans[real, 0, NOT]
+F%t_center = z_t_center
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%species = z_species
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_ele = z_ix_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_bunch = z_ix_bunch
+
+end subroutine bunch_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine beam_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad beam_struct to a C++ CPP_beam structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad beam_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_beam struct.
+!-
+
+subroutine beam_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine beam_to_c2 (C, z_bunch, n1_bunch) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int), value :: n1_bunch
+    type(c_ptr) :: z_bunch(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(beam_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_bunch(:)
+integer(c_int) :: n1_bunch
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_bunch = 0
+if (allocated(F%bunch)) then
+  n1_bunch = size(F%bunch); lb1 = lbound(F%bunch, 1) - 1
+  allocate (z_bunch(n1_bunch))
+  do jd1 = 1, n1_bunch
+    z_bunch(jd1) = c_loc(F%bunch(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call beam_to_c2 (C, z_bunch, n1_bunch)
+
+end subroutine beam_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine beam_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_beam structure to a Bmad beam_struct structure.
+! This routine is called by beam_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the beam_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad beam_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine beam_to_f2 (Fp, z_bunch, n1_bunch) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(beam_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int), value :: n1_bunch
+type(c_ptr) :: z_bunch(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_bunch == 0) then
+  if (allocated(F%bunch)) deallocate(F%bunch)
+else
+  if (allocated(F%bunch)) then
+    if (n1_bunch == 0 .or. any(shape(F%bunch) /= [n1_bunch])) deallocate(F%bunch)
+    if (any(lbound(F%bunch) /= 1)) deallocate(F%bunch)
+  endif
+  if (.not. allocated(F%bunch)) allocate(F%bunch(1:n1_bunch+1-1))
+  do jd1 = 1, n1_bunch
+    call bunch_to_f (z_bunch(jd1), c_loc(F%bunch(jd1+1-1)))
+  enddo
+endif
+
+
+end subroutine beam_to_f2
 end module

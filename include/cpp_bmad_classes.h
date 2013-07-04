@@ -282,6 +282,16 @@ typedef valarray<CPP_lat>          CPP_lat_ARRAY;
 typedef valarray<CPP_lat_ARRAY>    CPP_lat_MATRIX;
 typedef valarray<CPP_lat_MATRIX>   CPP_lat_TENSOR;
 
+class CPP_bunch;
+typedef valarray<CPP_bunch>          CPP_bunch_ARRAY;
+typedef valarray<CPP_bunch_ARRAY>    CPP_bunch_MATRIX;
+typedef valarray<CPP_bunch_MATRIX>   CPP_bunch_TENSOR;
+
+class CPP_beam;
+typedef valarray<CPP_beam>          CPP_beam_ARRAY;
+typedef valarray<CPP_beam_ARRAY>    CPP_beam_MATRIX;
+typedef valarray<CPP_beam_MATRIX>   CPP_beam_TENSOR;
+
 //--------------------------------------------------------------------
 // CPP_coord
 
@@ -300,6 +310,7 @@ public:
   Real beta;
   Int ix_ele;
   Int state;
+  Int direction;
   Int species;
   Int location;
 
@@ -315,6 +326,7 @@ public:
     beta(-1),
     ix_ele(-1),
     state(Bmad::NOT_SET),
+    direction(1),
     species(Bmad::NOT_SET),
     location(Bmad::UPSTREAM_END)
     {}
@@ -2131,6 +2143,68 @@ extern "C" void lat_to_c (const Bmad_lat_class*, CPP_lat&);
 extern "C" void lat_to_f (const CPP_lat&, Bmad_lat_class*);
 
 bool operator== (const CPP_lat&, const CPP_lat&);
+
+
+//--------------------------------------------------------------------
+// CPP_bunch
+
+class Bmad_bunch_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_bunch {
+public:
+  CPP_coord_ARRAY particle;
+  Int_ARRAY ix_z;
+  Real charge;
+  Real z_center;
+  Real t_center;
+  Int species;
+  Int ix_ele;
+  Int ix_bunch;
+
+  CPP_bunch() :
+    particle(CPP_coord_ARRAY(CPP_coord(), 0)),
+    ix_z(0, 0),
+    charge(0.0),
+    z_center(0.0),
+    t_center(0.0),
+    species(0),
+    ix_ele(0),
+    ix_bunch(0)
+    {}
+
+  ~CPP_bunch() {
+  }
+
+};   // End Class
+
+extern "C" void bunch_to_c (const Bmad_bunch_class*, CPP_bunch&);
+extern "C" void bunch_to_f (const CPP_bunch&, Bmad_bunch_class*);
+
+bool operator== (const CPP_bunch&, const CPP_bunch&);
+
+
+//--------------------------------------------------------------------
+// CPP_beam
+
+class Bmad_beam_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_beam {
+public:
+  CPP_bunch_ARRAY bunch;
+
+  CPP_beam() :
+    bunch(CPP_bunch_ARRAY(CPP_bunch(), 0))
+    {}
+
+  ~CPP_beam() {
+  }
+
+};   // End Class
+
+extern "C" void beam_to_c (const Bmad_beam_class*, CPP_beam&);
+extern "C" void beam_to_f (const CPP_beam&, Bmad_beam_class*);
+
+bool operator== (const CPP_beam&, const CPP_beam&);
 
 
 //--------------------------------------------------------------------

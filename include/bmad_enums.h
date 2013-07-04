@@ -2,13 +2,14 @@
 #ifndef BMAD_ENUMS
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 121;
+  const int BMAD_INC_VERSION = 124;
   const int NUM_ELE_ATTRIB = 70;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
   const int ANCHOR_BEGINNING = 1, ANCHOR_CENTER = 2, ANCHOR_END = 3;
   const int PRIMARY = 1, SECONDARY = 2, IGNORE = 3;
   const int ENTRANCE_END = 1, EXIT_END = 2, BOTH_ENDS = 3, NO_END = 4;
   const int CONTINUOUS = 5, SURFACE = 6;
+  const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
   const int INSIDE = 3, CENTER_PT = 3;
   const int X_PLANE = 1, Y_PLANE = 2;
@@ -32,7 +33,7 @@ namespace Bmad {
   const int ELSEPARATOR = 10, BEAMBEAM = 11, WIGGLER = 12;
   const int SOL_QUAD = 13, MARKER = 14, KICKER = 15;
   const int HYBRID = 16, OCTUPOLE = 17, RBEND = 18;
-  const int MULTIPOLE = 19, BEND_SOL_DUMMY = 20;
+  const int MULTIPOLE = 19, KEY_DUMMY = 20;
   const int DEF_BEAM = 21, AB_MULTIPOLE = 22, SOLENOID = 23;
   const int PATCH = 24, LCAVITY = 25, DEF_PARAMETER = 26;
   const int NULL_ELE = 27, INIT_ELE = 28, HOM = 29;
@@ -60,7 +61,7 @@ namespace Bmad {
             MATCH_END_ORBIT = 33, C_11 = 34, C_12 = 35, C_21 = 36, C_22 = 37, GAMMA_C = 39;
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
-  const int E_FIELD_X = 10,  E_FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
+  const int FIELD_X = 10, FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
   const int X_BEAM_START = 1, PX_BEAM_START = 2, Y_BEAM_START = 3;
   const int PY_BEAM_START = 4, Z_BEAM_START = 5, PZ_BEAM_START = 6;
   const int ABS_TIME_START = 8;
@@ -108,9 +109,9 @@ namespace Bmad {
   const int Y_OFFSET = 26;
   const int Z_OFFSET = 27;
   const int HKICK = 28, D_SPACING = 28, T_OFFSET = 28;
-  const int VKICK = 29;
-  const int BL_HKICK = 30;
-  const int BL_VKICK = 31;
+  const int VKICK = 29, L_X = 29;
+  const int BL_HKICK = 30, L_Y = 30;
+  const int BL_VKICK = 31, L_Z = 31;
   const int BL_KICK = 32, COUPLER_AT = 32;
   const int B_FIELD = 33, E_FIELD = 33, COUPLER_PHASE = 33;
   const int COUPLER_ANGLE = 34, B_FIELD_ERR = 34;
@@ -135,9 +136,9 @@ namespace Bmad {
   const int RADIUS = 52, KH_Y_NORM = 52;
   const int REF_TIME_START = 53;
   const int THICKNESS = 54, INTEGRATOR_ORDER = 54;
-  const int NUM_STEPS = 55, L_X = 55;
-  const int DS_STEP = 56, L_Y = 56;
-  const int L_Z = 57, LORD_PAD1 = 57;
+  const int NUM_STEPS = 55;
+  const int DS_STEP = 56;
+  const int LORD_PAD1 = 57;
   const int LORD_PAD2 = 58, REF_WAVELENGTH = 58;
   const int SCRATCH = 59;
   const int CUSTOM_ATTRIBUTE1 = 61;
@@ -174,14 +175,14 @@ namespace Bmad {
   const int TERM = 91, USE_PTC_LAYOUT = 91;
   const int X_POSITION = 92, S_SPLINE = 92, PTC_EXACT_MODEL = 92;
   const int SYMPLECTIFY = 93, Y_POSITION = 93, N_SLICE_SPLINE = 93;
-  const int Z_POSITION = 94, D_SOURCE = 94;
-  const int IS_ON = 95, THETA_POSITION = 95, D_DETEC = 95;
+  const int Z_POSITION = 94;
+  const int IS_ON = 95, THETA_POSITION = 95;
   const int FIELD_CALC = 96, PHI_POSITION = 96;
   const int PSI_POSITION = 97;
   const int APERTURE_AT = 98, BETA_A = 98;
   const int RAN_SEED = 99, BETA_B = 99, ORIGIN_ELE= 99;
   const int TO_LINE = 100;
-  const int FIELD_MASTER = 101, TO_ELEMENT = 101;
+  const int FIELD_MASTER = 101, HARMON_MASTER = 101, TO_ELEMENT = 101;
   const int DESCRIP = 102;
   const int SCALE_MULTIPOLES = 103;
   const int WALL_ATTRIBUTE = 104;

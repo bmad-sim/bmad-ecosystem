@@ -167,20 +167,21 @@ extern "C" void coord_to_c (const Bmad_coord_class*, CPP_coord&);
 
 // c_side.to_f2_arg
 extern "C" void coord_to_f2 (Bmad_coord_class*, c_RealArr, c_Real&, c_Real&, c_ComplexArr,
-    c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&);
+    c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&);
 
 extern "C" void coord_to_f (const CPP_coord& C, Bmad_coord_class* F) {
 
   // c_side.to_f2_call
   coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], &C.field[0], &C.phase[0], C.charge, C.p0c,
-      C.beta, C.ix_ele, C.state, C.species, C.location);
+      C.beta, C.ix_ele, C.state, C.direction, C.species, C.location);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t,
     c_ComplexArr z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real& z_p0c,
-    c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_state, c_Int& z_species, c_Int& z_location) {
+    c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_state, c_Int& z_direction, c_Int& z_species,
+    c_Int& z_location) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.vec << z_vec;
@@ -204,6 +205,8 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
   C.ix_ele = z_ix_ele;
   // c_side.to_c2_set[integer, 0, NOT]
   C.state = z_state;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.direction = z_direction;
   // c_side.to_c2_set[integer, 0, NOT]
   C.species = z_species;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -2604,6 +2607,101 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   C.rf_auto_scale_amp = z_rf_auto_scale_amp;
   // c_side.to_c2_set[logical, 0, NOT]
   C.use_ptc_layout = z_use_ptc_layout;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_bunch
+
+extern "C" void bunch_to_c (const Bmad_bunch_class*, CPP_bunch&);
+
+// c_side.to_f2_arg
+extern "C" void bunch_to_f2 (Bmad_bunch_class*, const CPP_coord**, Int, c_IntArr, Int, c_Real&,
+    c_Real&, c_Real&, c_Int&, c_Int&, c_Int&);
+
+extern "C" void bunch_to_f (const CPP_bunch& C, Bmad_bunch_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_particle = C.particle.size();
+  const CPP_coord** z_particle = NULL;
+  if (n1_particle != 0) {
+    z_particle = new const CPP_coord*[n1_particle];
+    for (int i = 0; i < n1_particle; i++) z_particle[i] = &C.particle[i];
+  }
+  // c_side.to_f_setup[integer, 1, ALLOC]
+  int n1_ix_z = C.ix_z.size();
+  c_IntArr z_ix_z = NULL;
+  if (n1_ix_z > 0) {
+    z_ix_z = &C.ix_z[0];
+  }
+
+  // c_side.to_f2_call
+  bunch_to_f2 (F, z_particle, n1_particle, z_ix_z, n1_ix_z, C.charge, C.z_center, C.t_center,
+      C.species, C.ix_ele, C.ix_bunch);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_particle;
+}
+
+// c_side.to_c2_arg
+extern "C" void bunch_to_c2 (CPP_bunch& C, Bmad_coord_class** z_particle, Int n1_particle,
+    c_IntArr z_ix_z, Int n1_ix_z, c_Real& z_charge, c_Real& z_z_center, c_Real& z_t_center,
+    c_Int& z_species, c_Int& z_ix_ele, c_Int& z_ix_bunch) {
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.particle.resize(n1_particle);
+  for (int i = 0; i < n1_particle; i++) coord_to_c(z_particle[i], C.particle[i]);
+
+  // c_side.to_c2_set[integer, 1, ALLOC]
+
+  C.ix_z.resize(n1_ix_z);
+  C.ix_z << z_ix_z;
+
+  // c_side.to_c2_set[real, 0, NOT]
+  C.charge = z_charge;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.z_center = z_z_center;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.t_center = z_t_center;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.species = z_species;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_ele = z_ix_ele;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_bunch = z_ix_bunch;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_beam
+
+extern "C" void beam_to_c (const Bmad_beam_class*, CPP_beam&);
+
+// c_side.to_f2_arg
+extern "C" void beam_to_f2 (Bmad_beam_class*, const CPP_bunch**, Int);
+
+extern "C" void beam_to_f (const CPP_beam& C, Bmad_beam_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_bunch = C.bunch.size();
+  const CPP_bunch** z_bunch = NULL;
+  if (n1_bunch != 0) {
+    z_bunch = new const CPP_bunch*[n1_bunch];
+    for (int i = 0; i < n1_bunch; i++) z_bunch[i] = &C.bunch[i];
+  }
+
+  // c_side.to_f2_call
+  beam_to_f2 (F, z_bunch, n1_bunch);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_bunch;
+}
+
+// c_side.to_c2_arg
+extern "C" void beam_to_c2 (CPP_beam& C, Bmad_bunch_class** z_bunch, Int n1_bunch) {
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.bunch.resize(n1_bunch);
+  for (int i = 0; i < n1_bunch; i++) bunch_to_c(z_bunch[i], C.bunch[i]);
+
 }
 
 #define CPP_BMAD_CONVERT

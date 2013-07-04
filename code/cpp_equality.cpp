@@ -85,6 +85,7 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && (x.beta == y.beta);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.state == y.state);
+  is_eq = is_eq && (x.direction == y.direction);
   is_eq = is_eq && (x.species == y.species);
   is_eq = is_eq && (x.location == y.location);
   return is_eq;
@@ -963,3 +964,32 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
 
 template bool is_all_equal (const CPP_lat_ARRAY&, const CPP_lat_ARRAY&);
 template bool is_all_equal (const CPP_lat_MATRIX&, const CPP_lat_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_bunch& x, const CPP_bunch& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.particle, y.particle);
+  is_eq = is_eq && is_all_equal(x.ix_z, y.ix_z);
+  is_eq = is_eq && (x.charge == y.charge);
+  is_eq = is_eq && (x.z_center == y.z_center);
+  is_eq = is_eq && (x.t_center == y.t_center);
+  is_eq = is_eq && (x.species == y.species);
+  is_eq = is_eq && (x.ix_ele == y.ix_ele);
+  is_eq = is_eq && (x.ix_bunch == y.ix_bunch);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_bunch_ARRAY&, const CPP_bunch_ARRAY&);
+template bool is_all_equal (const CPP_bunch_MATRIX&, const CPP_bunch_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_beam& x, const CPP_beam& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.bunch, y.bunch);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_beam_ARRAY&, const CPP_beam_ARRAY&);
+template bool is_all_equal (const CPP_beam_MATRIX&, const CPP_beam_MATRIX&);

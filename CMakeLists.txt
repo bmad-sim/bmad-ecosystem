@@ -12,7 +12,7 @@ set(SRC_DIRS
 )
 
 set(EXE_SPECS 
-  cmake.interface_test
+  cmake.cpp_interface_test
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)

@@ -2,12 +2,13 @@
 
 struct_def_files = ['../bmad/modules/bmad_struct.f90', 
                     '../bmad/modules/twiss_mod.f90', 
-                    '../bmad/modules/bmad_taylor_mod.f90'
+                    '../bmad/modules/bmad_taylor_mod.f90',
+                    '../bmad/multiparticle/beam_def_struct.f90'
 ]
 
 # List of use statements needed in various Fortran modules
 
-use_statements = ['use bmad_struct']
+use_statements = ['use beam_def_struct']
 
 # List of structures to setup interfaces for.
 # List must be in ordered such that if struct A is a component of struct B,
@@ -60,6 +61,8 @@ struct_list = [
     'ele_struct',
     'branch_struct',
     'lat_struct',
+    'bunch_struct',
+    'beam_struct',
 ]
 
 # List of structure components to not translate.
