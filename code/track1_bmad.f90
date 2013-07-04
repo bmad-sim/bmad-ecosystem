@@ -309,7 +309,7 @@ case (lcavity$)
 
   ! Coupler kick
 
-  call rf_coupler_kick (ele, param, upstream_end$, phase, end_orb)
+  call rf_coupler_kick (ele, param, first_track_edge$, phase, end_orb)
 
   ! Body tracking longitudinal
 
@@ -377,7 +377,7 @@ case (lcavity$)
 
   ! Coupler kick
 
-  call rf_coupler_kick (ele, param, downstream_end$, phase, end_orb)
+  call rf_coupler_kick (ele, param, second_track_edge$, phase, end_orb)
 
   call offset_particle (ele, end_orb, param, unset$, .false.)
 
@@ -494,7 +494,7 @@ case (quadrupole$)
 
   ! Entrance edge
 
-  call quadrupole_edge_kick (ele, upstream_end$, end_orb)
+  call quadrupole_edge_kick (ele, first_track_edge$, end_orb)
 
   ! Body
 
@@ -514,7 +514,7 @@ case (quadrupole$)
 
   ! Exit edge
 
-  call quadrupole_edge_kick (ele, downstream_end$, end_orb)
+  call quadrupole_edge_kick (ele, second_track_edge$, end_orb)
 
   call offset_particle (ele, end_orb, param, unset$)  
 
@@ -546,7 +546,7 @@ case (rfcavity$)
 
   t0 = end_orb%t
 
-  call rf_coupler_kick (ele, param, upstream_end$, phase, end_orb)
+  call rf_coupler_kick (ele, param, first_track_edge$, phase, end_orb)
 
   ! Track through slices.
   ! The phase of the accelerating wave traveling in the same direction as the particle is
@@ -573,7 +573,7 @@ case (rfcavity$)
 
   ! coupler kick
 
-  call rf_coupler_kick (ele, param, downstream_end$, phase, end_orb)
+  call rf_coupler_kick (ele, param, second_track_edge$, phase, end_orb)
 
   call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
 

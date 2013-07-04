@@ -1,13 +1,13 @@
 module custom_bmad_interface
 
 interface 
-  subroutine check_aperture_limit_custom (orb, ele, at, param, err_flag)
+  subroutine check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)
     use bmad_struct, only: coord_struct, ele_struct, lat_param_struct
     implicit none
     type (coord_struct) :: orb
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
-    integer at
+    integer particle_at
     logical err_flag
   end subroutine
 end interface
