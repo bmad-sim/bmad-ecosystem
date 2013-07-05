@@ -214,7 +214,7 @@ type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
 type (coord_struct) orb_init
 
-integer i, j, k, ix, ix_word, ios, ix_ele
+integer i, j, k, ix, ix_word, ios, ix_ele, species
 integer n_bunch, n_particle, n_particle_lines, ix_lost
 
 real(rp) vec(6), sum_charge
@@ -270,7 +270,7 @@ do i = 1, n_bunch
       call this_error_out ('BAD SPECIES NAME: ' // trim(line))
       return
     endif
-    bunch%species = ix + lbound(particle_name, 1) - 1
+    bunch%particle%species = ix + lbound(particle_name, 1) - 1
 
     read (rb_com%iu, *, iostat = ios) bunch%charge
     if (ios /= 0) then
@@ -378,10 +378,11 @@ do i = 1, n_bunch
   else
     if (rb_com%file_type == 'BIN:1') then
       read (rb_com%iu, iostat = ios) bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
-      bunch%species = electron$
+      bunch%particle%species = electron$
       call this_error_out ('OLD STYLE BEAM0 FILE WITHOUT SPECIES INFO. ASSUMING ELECTRONS...') 
     else
-      read (rb_com%iu, iostat = ios) bunch%species, bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
+      read (rb_com%iu, iostat = ios) species, bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
+      p%species = species
     endif
 
     if (ios /= 0) then
