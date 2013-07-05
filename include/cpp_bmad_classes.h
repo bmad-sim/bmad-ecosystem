@@ -2157,7 +2157,6 @@ public:
   Real charge;
   Real z_center;
   Real t_center;
-  Int species;
   Int ix_ele;
   Int ix_bunch;
 
@@ -2167,7 +2166,6 @@ public:
     charge(0.0),
     z_center(0.0),
     t_center(0.0),
-    species(0),
     ix_ele(0),
     ix_bunch(0)
     {}

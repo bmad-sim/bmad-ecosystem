@@ -57,10 +57,13 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   rhs = 11 + offset; C.state = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 12 + offset; C.species = rhs;
+  rhs = 12 + offset; C.direction = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.location = rhs;
+  rhs = 13 + offset; C.species = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 14 + offset; C.location = rhs;
 
 
 }
@@ -3665,5 +3668,140 @@ extern "C" void test_c_lat (Bmad_lat_class* F, bool& c_ok) {
 
   set_CPP_lat_test_pattern (C2, 4);
   lat_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_bunch (CPP_bunch&, bool&);
+
+void set_CPP_bunch_test_pattern (CPP_bunch& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.particle.resize(0);
+  else {
+    C.particle.resize(3);
+    for (unsigned int i = 0; i < C.particle.size(); i++)  {set_CPP_coord_test_pattern(C.particle[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[integer, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.ix_z.resize(0);
+  else {
+    C.ix_z.resize(3);
+    for (unsigned int i = 0; i < C.ix_z.size(); i++)
+      {int rhs = 101 + i + 3 + offset; C.ix_z[i] = rhs;}  }
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.charge = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.z_center = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.t_center = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.ix_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 9 + offset; C.ix_bunch = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_bunch (Bmad_bunch_class* F, bool& c_ok) {
+
+  CPP_bunch C, C2;
+
+  c_ok = true;
+
+  bunch_to_c (F, C);
+  set_CPP_bunch_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " bunch: C side convert F->C: Good" << endl;
+  } else {
+    cout << " bunch: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_bunch_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_bunch (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_bunch_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " bunch: F side convert F->C: Good" << endl;
+  } else {
+    cout << " bunch: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_bunch_test_pattern (C2, 4);
+  bunch_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_beam (CPP_beam&, bool&);
+
+void set_CPP_beam_test_pattern (CPP_beam& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.bunch.resize(0);
+  else {
+    C.bunch.resize(3);
+    for (unsigned int i = 0; i < C.bunch.size(); i++)  {set_CPP_bunch_test_pattern(C.bunch[i], ix_patt+i+1);}
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_beam (Bmad_beam_class* F, bool& c_ok) {
+
+  CPP_beam C, C2;
+
+  c_ok = true;
+
+  beam_to_c (F, C);
+  set_CPP_beam_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " beam: C side convert F->C: Good" << endl;
+  } else {
+    cout << " beam: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_beam_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_beam (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_beam_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " beam: F side convert F->C: Good" << endl;
+  } else {
+    cout << " beam: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_beam_test_pattern (C2, 4);
+  beam_to_f (C2, F);
 
 }

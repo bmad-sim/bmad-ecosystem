@@ -122,9 +122,11 @@ rhs = 10 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 11 + offset; F%state = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%species = rhs
+rhs = 12 + offset; F%direction = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%location = rhs
+rhs = 13 + offset; F%species = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 14 + offset; F%location = rhs
 
 end subroutine set_coord_test_pattern
 
@@ -5130,5 +5132,214 @@ rhs = 31 + offset; F%rf_auto_scale_amp = (modulo(rhs, 2) == 0)
 rhs = 32 + offset; F%use_ptc_layout = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_bunch (ok)
+
+implicit none
+
+type(bunch_struct), target :: f_bunch, f2_bunch
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_bunch (c_bunch, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_bunch
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_bunch_test_pattern (f2_bunch, 1)
+
+call test_c_bunch(c_loc(f2_bunch), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_bunch_test_pattern (f_bunch, 4)
+if (f_bunch == f2_bunch) then
+  print *, 'bunch: C side convert C->F: Good'
+else
+  print *, 'bunch: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_bunch
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_bunch (c_bunch, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_bunch
+type(bunch_struct), target :: f_bunch, f2_bunch
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call bunch_to_f (c_bunch, c_loc(f_bunch))
+
+call set_bunch_test_pattern (f2_bunch, 2)
+if (f_bunch == f2_bunch) then
+  print *, 'bunch: F side convert C->F: Good'
+else
+  print *, 'bunch: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_bunch_test_pattern (f2_bunch, 3)
+call bunch_to_c (c_loc(f2_bunch), c_bunch)
+
+end subroutine test2_f_bunch
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_bunch_test_pattern (F, ix_patt)
+
+implicit none
+
+type(bunch_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%particle)) deallocate (F%particle)
+else
+  if (.not. allocated(F%particle)) allocate (F%particle(-1:1))
+  do jd1 = 1, size(F%particle,1); lb1 = lbound(F%particle,1) - 1
+    call set_coord_test_pattern (F%particle(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[integer, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%ix_z)) deallocate (F%ix_z)
+else
+  if (.not. allocated(F%ix_z)) allocate (F%ix_z(-1:1))
+  do jd1 = 1, size(F%ix_z,1); lb1 = lbound(F%ix_z,1) - 1
+    rhs = 100 + jd1 + 3 + offset
+    F%ix_z(jd1+lb1) = rhs
+  enddo
+endif
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%charge = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%z_center = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%t_center = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%ix_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 9 + offset; F%ix_bunch = rhs
+
+end subroutine set_bunch_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_beam (ok)
+
+implicit none
+
+type(beam_struct), target :: f_beam, f2_beam
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_beam (c_beam, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_beam
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_beam_test_pattern (f2_beam, 1)
+
+call test_c_beam(c_loc(f2_beam), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_beam_test_pattern (f_beam, 4)
+if (f_beam == f2_beam) then
+  print *, 'beam: C side convert C->F: Good'
+else
+  print *, 'beam: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_beam
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_beam (c_beam, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_beam
+type(beam_struct), target :: f_beam, f2_beam
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call beam_to_f (c_beam, c_loc(f_beam))
+
+call set_beam_test_pattern (f2_beam, 2)
+if (f_beam == f2_beam) then
+  print *, 'beam: F side convert C->F: Good'
+else
+  print *, 'beam: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_beam_test_pattern (f2_beam, 3)
+call beam_to_c (c_loc(f2_beam), c_beam)
+
+end subroutine test2_f_beam
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_beam_test_pattern (F, ix_patt)
+
+implicit none
+
+type(beam_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%bunch)) deallocate (F%bunch)
+else
+  if (.not. allocated(F%bunch)) allocate (F%bunch(-1:1))
+  do jd1 = 1, size(F%bunch,1); lb1 = lbound(F%bunch,1) - 1
+    call set_bunch_test_pattern (F%bunch(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+
+end subroutine set_beam_test_pattern
 
 end module

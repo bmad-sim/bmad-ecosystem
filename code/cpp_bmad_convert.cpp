@@ -2617,7 +2617,7 @@ extern "C" void bunch_to_c (const Bmad_bunch_class*, CPP_bunch&);
 
 // c_side.to_f2_arg
 extern "C" void bunch_to_f2 (Bmad_bunch_class*, const CPP_coord**, Int, c_IntArr, Int, c_Real&,
-    c_Real&, c_Real&, c_Int&, c_Int&, c_Int&);
+    c_Real&, c_Real&, c_Int&, c_Int&);
 
 extern "C" void bunch_to_f (const CPP_bunch& C, Bmad_bunch_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -2636,7 +2636,7 @@ extern "C" void bunch_to_f (const CPP_bunch& C, Bmad_bunch_class* F) {
 
   // c_side.to_f2_call
   bunch_to_f2 (F, z_particle, n1_particle, z_ix_z, n1_ix_z, C.charge, C.z_center, C.t_center,
-      C.species, C.ix_ele, C.ix_bunch);
+      C.ix_ele, C.ix_bunch);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_particle;
@@ -2645,7 +2645,7 @@ extern "C" void bunch_to_f (const CPP_bunch& C, Bmad_bunch_class* F) {
 // c_side.to_c2_arg
 extern "C" void bunch_to_c2 (CPP_bunch& C, Bmad_coord_class** z_particle, Int n1_particle,
     c_IntArr z_ix_z, Int n1_ix_z, c_Real& z_charge, c_Real& z_z_center, c_Real& z_t_center,
-    c_Int& z_species, c_Int& z_ix_ele, c_Int& z_ix_bunch) {
+    c_Int& z_ix_ele, c_Int& z_ix_bunch) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.particle.resize(n1_particle);
@@ -2662,8 +2662,6 @@ extern "C" void bunch_to_c2 (CPP_bunch& C, Bmad_coord_class** z_particle, Int n1
   C.z_center = z_z_center;
   // c_side.to_c2_set[real, 0, NOT]
   C.t_center = z_t_center;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.species = z_species;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_ele = z_ix_ele;
   // c_side.to_c2_set[integer, 0, NOT]

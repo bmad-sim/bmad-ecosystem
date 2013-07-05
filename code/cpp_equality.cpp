@@ -974,7 +974,6 @@ bool operator== (const CPP_bunch& x, const CPP_bunch& y) {
   is_eq = is_eq && (x.charge == y.charge);
   is_eq = is_eq && (x.z_center == y.z_center);
   is_eq = is_eq && (x.t_center == y.t_center);
-  is_eq = is_eq && (x.species == y.species);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_bunch == y.ix_bunch);
   return is_eq;

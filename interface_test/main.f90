@@ -54,6 +54,8 @@ call test1_f_rad_int_all_ele(ok); if (.not. ok) all_ok = .false.
 call test1_f_ele(ok); if (.not. ok) all_ok = .false.
 call test1_f_branch(ok); if (.not. ok) all_ok = .false.
 call test1_f_lat(ok); if (.not. ok) all_ok = .false.
+call test1_f_bunch(ok); if (.not. ok) all_ok = .false.
+call test1_f_beam(ok); if (.not. ok) all_ok = .false.
 
 if (all_ok) then
   print *, 'Bottom Line: Everything OK!'

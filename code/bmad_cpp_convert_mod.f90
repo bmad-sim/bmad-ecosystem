@@ -5932,13 +5932,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_to_c2 (C, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge, z_z_center, &
-      z_t_center, z_species, z_ix_ele, z_ix_bunch) bind(c)
+      z_t_center, z_ix_ele, z_ix_bunch) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int), value :: n1_particle, n1_ix_z
     real(c_double) :: z_charge, z_z_center, z_t_center
-    integer(c_int) :: z_ix_z(*), z_species, z_ix_ele, z_ix_bunch
+    integer(c_int) :: z_ix_z(*), z_ix_ele, z_ix_bunch
     type(c_ptr) :: z_particle(*)
   end subroutine
 end interface
@@ -5973,7 +5973,7 @@ endif
 
 !! f_side.to_c2_call
 call bunch_to_c2 (C, z_particle, n1_particle, fvec2vec(F%ix_z, n1_ix_z), n1_ix_z, F%charge, &
-    F%z_center, F%t_center, F%species, F%ix_ele, F%ix_bunch)
+    F%z_center, F%t_center, F%ix_ele, F%ix_bunch)
 
 end subroutine bunch_to_c
 
@@ -5994,7 +5994,7 @@ end subroutine bunch_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bunch_to_f2 (Fp, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge, z_z_center, &
-    z_t_center, z_species, z_ix_ele, z_ix_bunch) bind(c)
+    z_t_center, z_ix_ele, z_ix_bunch) bind(c)
 
 
 implicit none
@@ -6003,7 +6003,7 @@ type(c_ptr), value :: Fp
 type(bunch_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_species, z_ix_ele, z_ix_bunch
+integer(c_int) :: z_ix_ele, z_ix_bunch
 integer(c_int), value :: n1_particle, n1_ix_z
 integer(c_int), pointer :: f_ix_z(:)
 real(c_double) :: z_charge, z_z_center, z_t_center
@@ -6045,8 +6045,6 @@ F%charge = z_charge
 F%z_center = z_z_center
 !! f_side.to_f2_trans[real, 0, NOT]
 F%t_center = z_t_center
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%species = z_species
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
