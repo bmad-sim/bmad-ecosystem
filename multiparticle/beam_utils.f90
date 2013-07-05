@@ -175,7 +175,7 @@ endif
 if (n_sr_table > 0) then
 
   ele%value(grad_loss_sr_wake$) = ele%value(grad_loss_sr_wake$) + &
-                   ele%rf_wake%sr_table(0)%long * e_charge * abs(charge_of(param%particle)) / 2.0
+         ele%rf_wake%sr_table(0)%long * e_charge * abs(charge_of(bunch%particle(1)%species)) / 2.0
 
   !-----------------------------------
   ! add up all wakes from front of bunch to follower
@@ -748,7 +748,6 @@ endif
 
 bunch%charge = beam_init%bunch_charge
 bunch%ix_ele = ele%ix_ele
-bunch%species = param%particle
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
@@ -781,6 +780,7 @@ call init_spin_distribution (beam_init, bunch)
 ! For now just give one half e_field_x = 1 and one half e_field_y = 1
 
 species = param%particle
+bunch%particle%species = species
 
 if (species == photon$) then
   n = size(bunch%particle)
@@ -1703,7 +1703,7 @@ real(rp), allocatable :: charge(:)
 complex(rp) :: sigma_s_complex(6,6) = 0.0
 complex(rp) :: n(6,6), e(6,6), q(6,6)
 
-integer i, j
+integer i, j, species
 
 logical, optional :: print_err
 logical err, err1
@@ -1723,6 +1723,8 @@ s(6,5) = -1.0
 
 call re_allocate (charge, size(bunch%particle))
 
+species = bunch%particle(1)%species
+
 ! n_particle and centroid
 
 bunch_params%n_particle_tot = size(bunch%particle)
@@ -1732,7 +1734,7 @@ bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%sta
 bunch_params%centroid%field(1) = sum(bunch%particle%field(1), mask = (bunch%particle%state == alive$))
 bunch_params%centroid%field(2) = sum(bunch%particle%field(2), mask = (bunch%particle%state == alive$))
 
-if (bunch%species == photon$) then
+if (species == photon$) then
   charge = bunch%particle%field(1)**2 + bunch%particle%field(2)**2
 else
   charge = bunch%particle%charge
@@ -1790,9 +1792,9 @@ bunch_params%a%emit = d_i(1)
 bunch_params%b%emit = d_i(3)
 bunch_params%c%emit = d_i(5)
 
-bunch_params%a%norm_emit = d_i(1) * (avg_energy/mass_of(bunch%species))
-bunch_params%b%norm_emit = d_i(3) * (avg_energy/mass_of(bunch%species))
-bunch_params%c%norm_emit = d_i(5) * (avg_energy/mass_of(bunch%species))
+bunch_params%a%norm_emit = d_i(1) * (avg_energy/mass_of(species))
+bunch_params%b%norm_emit = d_i(3) * (avg_energy/mass_of(species))
+bunch_params%c%norm_emit = d_i(5) * (avg_energy/mass_of(species))
 
 ! Now find normal-mode sigma matrix and twiss parameters
 ! N = E.Q from eq. 44
@@ -1911,7 +1913,7 @@ endif
 emit = sqrt(max(0.0_rp, x2*px2 - x_px**2)) ! Roundoff may give negative argument.
 
 twiss%emit      = emit
-twiss%norm_emit = (avg_energy/mass_of(bunch%species)) * emit
+twiss%norm_emit = (avg_energy/mass_of(species)) * emit
 
 if (emit /= 0) then
   twiss%alpha = -x_px / emit

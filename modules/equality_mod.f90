@@ -1748,8 +1748,6 @@ is_eq = is_eq .and. (f1%z_center == f2%z_center)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%t_center == f2%t_center)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%species == f2%species)
-!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_bunch == f2%ix_bunch)
