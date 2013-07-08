@@ -578,7 +578,7 @@ interface
     logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag
   end subroutine
 
-  subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
+  subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
     import
     implicit none
     type (lat_struct) lat
@@ -586,6 +586,7 @@ interface
     real(rp) :: xfer_mat(:,:)
     real(rp), optional :: xfer_vec(:)
     integer, optional :: ix1, ix2, ix_branch
+    logical, optional :: one_turn
   end subroutine
 
   subroutine transfer_map_calc (lat, t_map, ix1, ix2, &

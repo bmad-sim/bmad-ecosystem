@@ -1,5 +1,5 @@
 !+         
-! Subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
+! Subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
 !
 ! Subroutine to calculate the 6X6 transfer matrix between two elements.
 ! To calculate transfer maps see the routine: transfer_map_calc.
@@ -15,7 +15,8 @@
 ! If ix2 < ix1 and lat%param%geometry is open$ then the backwards
 ! transfer matrix is computed.
 !
-! If ix1 = ix2 then xfr_mat is the unit matrix. 
+! If ix1 = ix2 then xfr_mat is the unit matrix except if one_turn = True and 
+! the lattice is circular.
 !
 ! To get the one-turn matrix for a circular lattice, omit ix2 from the argument list.
 !
@@ -36,13 +37,17 @@
 !                If ix1 is present and lattice is circular: Calculate the 
 !                  one-turn matrix from ix1 back to ix1.
 !   ix_branch -- Integer, optional: Branch index. Default is 0.
+!   one_turn   -- Logical, optional: If present and True, and s1 = s2, and the lattice
+!                   is circular: Construct the one-turn matrix from s1 back to s1.
+!                   Otherwise mat6 is unchanged or the unit map if unit_start = T.
+!                   Default = False.
 !
 ! Output:
 !    xfr_mat(6,6) -- Real(rp): Transfer matrix.
 !    xfr_vec(6)   -- Real(rp), optional: 0th order part of the transfer map.
 !-
 
-subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
+subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)
 
 use bmad_interface, except_dummy => transfer_matrix_calc
 use sim_utils, only: integer_option
@@ -60,7 +65,8 @@ integer, optional :: ix1, ix2, ix_branch
 integer i, i1, i2
 
 logical :: rf_on
-logical vec_present, one_turn
+logical vec_present, one_turn_this
+logical, optional :: one_turn
 
 !
 
@@ -72,24 +78,22 @@ call mat_make_unit (xfer_mat)
 branch => lat%branch(integer_option(0, ix_branch))  
 i1 = integer_option(0, ix1) 
 i2 = integer_option(branch%n_ele_track, ix2) 
-one_turn = .false.
+one_turn_this = logic_option (.false., one_turn)
 
-if (branch%param%geometry == closed$ .and. &
-                    present(ix1) .and. .not. present(ix2)) then
+if (branch%param%geometry == closed$ .and. present(ix1) .and. .not. present(ix2)) then
   i2 = i1
-  one_turn = .true.
 endif
 
 ! Normal case
 
-if (i1 <= i2 .and. .not. one_turn) then  
+if (i1 <= i2 .and. .not. one_turn_this) then  
   do i = i1+1, i2
     call add_on_to_xfer_mat
   enddo
 
 ! For a circular lattice push through the origin.
 
-elseif (branch%param%geometry == closed$ .or. one_turn) then
+elseif (branch%param%geometry == closed$ .or. one_turn_this) then
   do i = i1+1, branch%n_ele_track
     call add_on_to_xfer_mat
   enddo
