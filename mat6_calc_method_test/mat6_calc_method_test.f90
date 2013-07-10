@@ -6,16 +6,18 @@ use mad_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), target, allocatable :: temp_ele(:,:)
+type (ele_struct), target, allocatable :: temp_ele(:)
 type (coord_struct) start_orb, end_orb
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele2
+type (lat_param_struct) param
+type (branch_struct), pointer :: branch
 
 character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
 character(44) :: final_str
 character(*), PARAMETER  :: fmt1 = '(a,a,6es22.13)'
 character(*), PARAMETER  :: fmt2 = '(a,a,es22.13)'
 
-integer :: i, j, k, nargs
+integer :: i, j, k, ib, nargs
 logical print_extra
 
 !
@@ -37,43 +39,47 @@ call lattice_bookkeeper (lat)
 
 open (1, file = 'output.now', recl = 200)
 
-allocate (temp_ele(lat%n_ele_max - 1, n_methods$)) 
+allocate (temp_ele(n_methods$)) 
 
-DO i = 1, lat%n_ele_max - 1
-   DO j = 1, n_methods$
-      if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == custom$) cycle   
-      call kill_taylor(lat%ele(i)%taylor)
-      lat%ele(i)%mat6_calc_method = j
-      call init_coord (start_orb, lat%beam_start, lat%ele(i), .false., lat%param%particle)
-      call make_mat6 (lat%ele(i), lat%param, start_orb, end_orb)
-      if (print_extra .and. lat%ele(i)%mat6_calc_method == bmad_standard$) then
-        write (1, '(a, 6es22.13)'), 'Start track:', lat%beam_start%vec
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  DO i = 1, branch%n_ele_max - 1
+    ele => branch%ele(i)
+
+    do j = 1, n_methods$
+      if(.not. valid_mat6_calc_method(ele,j) .or. j == static$ .or. j == custom$) cycle
+      call kill_taylor(ele%taylor)
+      ele%mat6_calc_method = j
+      call init_coord (start_orb, lat%beam_start, ele, .false., branch%param%particle)
+      call make_mat6 (ele, branch%param, start_orb, end_orb)
+      call transfer_ele(ele, temp_ele(j), .true.)
+      if (print_extra .and. ele%mat6_calc_method == bmad_standard$) then
+        write (1, '(a, 6es22.13)'), 'Start track:', start_orb%vec
         write (1, '(a, 6es22.13)'), 'End track:  ', end_orb%vec 
         write (1, *)
       endif
-      call transfer_ele(lat%ele(i), temp_ele(i,j), .true.)
-   END DO
-END DO
+    enddo
 
-DO i = 1, lat%n_ele_max - 1
-  DO k = 1, 8
-    DO j = 1, n_methods$
-      if(.not. valid_mat6_calc_method(lat%ele(i),j) .or. j == static$ .or. j == custom$) cycle
-        ele => temp_ele(i,j)
-      if (k < 7) then
-        final_str = '"' // trim(ele%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
-        write (1, fmt1) final_str, tolerance(final_str), ele%mat6(k,:)
-      else if (k == 7) then
-        final_str = '"' // trim(ele%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
-        write (1, fmt1) final_str, tolerance(final_str), ele%vec0
-      else if (k == 8) then
-        final_str = '"' // trim(ele%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
-        write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele%mat6, ele%value(p0c$)/ele%value(p0c_start$))
-      end if
+    DO k = 1, 8
+      DO j = 1, n_methods$
+        if(.not. valid_mat6_calc_method(ele,j) .or. j == static$ .or. j == custom$) cycle
+        ele2 => temp_ele(j)
+        if (k < 7) then
+          final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
+          write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)
+        else if (k == 7) then
+          final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
+          write (1, fmt1) final_str, tolerance(final_str), ele2%vec0
+        else if (k == 8) then
+          final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
+          write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$))
+        end if
+
+      END DO
+      write (1,*)
     END DO
-    write (1,*)
   END DO
-END DO
+enddo
 
 deallocate (temp_ele)
 
