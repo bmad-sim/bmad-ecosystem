@@ -8,10 +8,12 @@ implicit none
 
 type (lat_struct), target :: lat
 type (coord_struct) end_orb
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 
 character(40) :: lat_file  = 'tracking_method_test.bmad'
 character(38) :: final_str
-integer :: i, j, nargs
+integer :: i, j, ib, nargs
 
 logical print_extra
  
@@ -37,28 +39,33 @@ if (print_extra) then
   print *
 endif
 
-DO i = 1, lat%n_ele_max - 1
-   DO j = 1, n_methods$
-      if(.not. valid_tracking_method(lat%ele(i),j) .or. j == symp_map$ .or. j == custom$) cycle
-      if(lat%ele(i)%key == elseparator$ .and. (j == runge_kutta$ .or. j == boris$ .or. j == time_runge_kutta$)) cycle
-      call kill_taylor(lat%ele(i)%taylor)
-      lat%ele(i)%tracking_method = j
-      if (j == linear$) then
-        lat%ele(i)%tracking_method = symp_lie_ptc$
-        if(lat%ele(i)%key == beambeam$) lat%ele(i)%tracking_method = bmad_standard$
-        call make_mat6 (lat%ele(i), lat%param, lat%beam_start)
-        lat%ele(i)%tracking_method = j
-      endif
-      call init_coord (lat%beam_start, lat%beam_start, ele = lat%ele(i), at_downstream_end = .false.)
-      call track1 (lat%beam_start, lat%ele(i), lat%param, end_orb)
-      final_str = '"' // trim(lat%ele(i)%name) // ':' // trim(tracking_method_name(j)) // '"' 
-      write (1,'(2a,7es18.10)') final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - lat%beam_start%t)
-   END DO
-   write (1,*)
-END DO
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  DO i = 1, branch%n_ele_max - 1
+     ele => branch%ele(i)
+     DO j = 1, n_methods$
+        if(.not. valid_tracking_method(ele,j) .or. j == symp_map$ .or. j == custom$) cycle
+        if(ele%key == elseparator$ .and. (j == runge_kutta$ .or. j == boris$ .or. j == time_runge_kutta$)) cycle
+        call kill_taylor(ele%taylor)
+        ele%tracking_method = j
+        if (j == linear$) then
+          ele%tracking_method = symp_lie_ptc$
+          if(ele%key == beambeam$) ele%tracking_method = bmad_standard$
+          call make_mat6 (ele, branch%param, lat%beam_start)
+          ele%tracking_method = j
+        endif
+        call init_coord (lat%beam_start, lat%beam_start, ele = ele, at_downstream_end = .false.)
+        call track1 (lat%beam_start, ele, branch%param, end_orb)
+        final_str = '"' // trim(ele%name) // ':' // trim(tracking_method_name(j)) // '"' 
+        write (1,'(2a,7es18.10)') final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - lat%beam_start%t)
+     END DO
+     write (1,*)
+  END DO
+enddo
 
 close(1)
 
+!--------------------------------------------------------------------------------------
 contains
   
 character(10) function tolerance(instr)
