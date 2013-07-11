@@ -39,7 +39,7 @@ use symp_lie_mod, only: symp_lie_bmad
 use bookkeeper_mod, only: attribute_bookkeeper
 use mad_mod, only: make_mat6_mad
 use space_charge_mod, except_dummy => make_mat6
-use equality_mod
+use equality_mod, only: operator(==)
 
 implicit none
 
