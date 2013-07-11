@@ -47,7 +47,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(i)
 
     do j = 1, n_methods$
-      if(.not. valid_mat6_calc_method(ele,j) .or. j == static$ .or. j == custom$) cycle
+      if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
       call kill_taylor(ele%taylor)
       ele%mat6_calc_method = j
       call init_coord (start_orb, lat%beam_start, ele, .false., branch%param%particle)
@@ -62,7 +62,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     DO k = 1, 8
       DO j = 1, n_methods$
-        if(.not. valid_mat6_calc_method(ele,j) .or. j == static$ .or. j == custom$) cycle
+        if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
         ele2 => temp_ele(j)
         if (k < 7) then
           final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
@@ -100,6 +100,8 @@ character(10) function tolerance(instr)
 character(44) :: instr
 
 select case (instr)
+case ('"CRYSTAL1:Tracking:MatrixRow2"')            ; tolerance = 'ABS 4e-12'
+case ('"CRYSTAL1:Tracking:MatrixRow6"')            ; tolerance = 'ABS 2e-11'
 case ('"E_GUN1:Tracking:MatrixRow1"')              ; tolerance = 'ABS 5e-10'
 case ('"E_GUN1:Tracking:MatrixRow2"')              ; tolerance = 'ABS 5e-11'
 case ('"E_GUN1:Tracking:MatrixRow3"')              ; tolerance = 'ABS 7e-10'
