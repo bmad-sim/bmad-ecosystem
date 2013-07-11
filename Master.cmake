@@ -185,7 +185,12 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort"
 ENDIF ()
 
 
-SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
+IF (${DISTRIBUTION_BUILD})
+    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
+ELSE()
+    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
+ENDIF()
+
 SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS})
 SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS})
 
