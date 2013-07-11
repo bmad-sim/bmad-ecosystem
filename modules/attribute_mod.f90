@@ -65,7 +65,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Function valid_tracking_method (ele, tracking_method, num_valid) result (is_valid)
+! Function valid_tracking_method (ele, species, tracking_method, num_valid) result (is_valid)
 !
 ! Routine to return whether a given tracking method is valid for a given element.
 !
@@ -74,6 +74,7 @@ contains
 !
 ! Input:
 !   ele             -- ele_struct: Lattice element.
+!   species         -- Type of particle being tracked. electron$, etc. or not_set$
 !   tracking_method -- integer: bmad_standard$, etc.
 !
 ! Output:
@@ -81,12 +82,12 @@ contains
 !   is_valid  -- logical: True if a valid method. False otherwise.
 !-
 
-function valid_tracking_method (ele, tracking_method, num_valid) result (is_valid)
+function valid_tracking_method (ele, species, tracking_method, num_valid) result (is_valid)
 
 implicit none
 
 type (ele_struct) ele
-integer tracking_method
+integer tracking_method, species
 integer, optional :: num_valid
 logical is_valid
 
@@ -94,6 +95,28 @@ logical is_valid
 
 is_valid = .false.
 if (present(num_valid)) num_valid = 0
+
+! If tracking photons...
+
+if (species == photon$) then
+
+  select case (ele%key)
+  case (crystal$, mirror$, multilayer_mirror$, drift$, branch$, photon_branch$, capillary$)
+    if (present(num_valid)) num_valid = 2
+    select case (tracking_method)
+    case (bmad_standard$, custom$)
+      is_valid = .true.
+    end select
+
+  case default
+    ! Nothing is valid
+  end select
+
+  return
+
+endif
+
+!
 
 select case (ele%key)
 
@@ -117,14 +140,16 @@ case (branch$, photon_branch$)
   case (bmad_standard$, linear$, custom$)
     is_valid = .true.
   end select
-
-case (crystal$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
-  case (bmad_standard$, custom$)
-    is_valid = .true.
-  end select
   
+case (crystal$, mirror$, multilayer_mirror$, capillary$)
+  if (species == not_set$) then
+    if (present(num_valid)) num_valid = 2
+    select case (tracking_method)
+    case (bmad_standard$, custom$)
+      is_valid = .true.
+    end select
+  endif
+
 case (drift$)
   if (present(num_valid)) num_valid = 10
   select case (tracking_method)
@@ -326,7 +351,7 @@ end function valid_tracking_method
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Function valid_mat6_calc_method (ele, mat6_calc_method, num_valid) result (is_valid)
+! Function valid_mat6_calc_method (ele, species, mat6_calc_method, num_valid) result (is_valid)
 !
 ! Routine to return whether a given mat6_calc method is valid for a given element.
 !
@@ -335,6 +360,7 @@ end function valid_tracking_method
 !
 ! Input:
 !   ele              -- ele_struct: Lattice element.
+!   species          -- Type of particle being tracked. electron$, etc. or not_set$
 !   mat6_calc_method -- integer: bmad_standard$, etc.
 !
 ! Output:
@@ -342,12 +368,12 @@ end function valid_tracking_method
 !   is_valid  -- logical: True if a valid method. False otherwise.
 !-
 
-function valid_mat6_calc_method (ele, mat6_calc_method, num_valid) result (is_valid)
+function valid_mat6_calc_method (ele, species, mat6_calc_method, num_valid) result (is_valid)
 
 implicit none
 
 type (ele_struct) ele
-integer mat6_calc_method
+integer mat6_calc_method, species
 integer, optional :: num_valid
 logical is_valid
 
@@ -355,6 +381,28 @@ logical is_valid
 
 is_valid = .false.
 if (present(num_valid)) num_valid = 0
+
+! If tracking photons...
+
+if (species == photon$) then
+
+  select case (ele%key)
+  case (crystal$, mirror$, multilayer_mirror$, drift$, branch$, photon_branch$, capillary$)
+    if (present(num_valid)) num_valid = 4
+    select case (mat6_calc_method)
+    case (bmad_standard$, static$, tracking$, custom$)
+      is_valid = .true.
+    end select
+
+  case default
+    ! Nothing is valid
+  end select
+
+  return
+
+endif
+
+!
 
 select case (ele%key)
 
@@ -385,20 +433,14 @@ case (branch$, photon_branch$)
   case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
-  
-case (capillary$)
-  if (present(num_valid)) num_valid = 4
-  select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
 
-case (crystal$)
-  if (present(num_valid)) num_valid = 4
-  select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
+case (crystal$, mirror$, multilayer_mirror$, capillary$)
+  if (species == not_set$) then
+    select case (mat6_calc_method)
+    case (bmad_standard$, static$, tracking$, custom$)
+      is_valid = .true.
+    end select
+  endif
 
 case (drift$)
   if (present(num_valid)) num_valid = 7
@@ -477,13 +519,6 @@ case (match$)
     is_valid = .true.
   end select
 
-case (mirror$)
-  if (present(num_valid)) num_valid = 4
-  select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
 case (monitor$)
   if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
@@ -495,13 +530,6 @@ case (multipole$)
   if (present(num_valid)) num_valid = 5
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
-case (multilayer_mirror$)
-  if (present(num_valid)) num_valid = 4
-  select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 

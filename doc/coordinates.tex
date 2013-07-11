@@ -369,19 +369,19 @@ pointing bend.
 \begin{figure}
   \centering \includegraphics{mirror.pdf} 
 \caption[Mirror and crystal geometry] {Mirror and crystal geometry.
-The geometry shown here is appropriate for a \vn{ref_tilt} angle of $\theta_t =
-0$.  $\theta_g$ is the graze angle of the incoming (entrance)
-reference coordinates, and $\alpha_b$ is the total bend angle of the
-coordinates. A) Geometry for a mirror or a Bragg crystal. Point
-$\calO$ is the origin of both the local coordinates just before and
-just after the reflection/diffraction. B) Geometry for a Laue crystal.
-Point $\calO_{out}$ is the origin of the coordinates just after
-diffraction is displaced from the origin $\calO_{in}$ just before
-diffraction due to the finite thickness of the crystal. here the
-``graze'' angles are measured with respect to the line that is in the
-plane of the entrance and exit coordinates and perpendicular to the
-surface. For Laue diffraction, the user has the option of using the
-undiffracted beam (shown in red) as the reference trajectory.
+The geometry shown here is appropriate for a \vn{ref_tilt} angle of
+$\theta_t = 0$.  $\theta_g$ is the bend angle of the incoming
+(entrance) ray, and $\alpha_b$ is the total bend
+angle of the reference trajectory. A) Geometry for a mirror or a Bragg
+crystal. Point $\calO$ is the origin of both the local coordinates
+just before and just after the reflection/diffraction. B) Geometry for
+a Laue crystal.  Point $\calO_{out}$ is the origin of the coordinates
+just after diffraction is displaced from the origin $\calO_{in}$ just
+before diffraction due to the finite thickness of the crystal. here
+the bend angles are measured with respect to the line that is in
+the plane of the entrance and exit coordinates and perpendicular to
+the surface. For Laue diffraction, the user has the option of using
+the undiffracted beam (shown in red) as the reference trajectory.
   }  
   \label{f:mirror}
 \end{figure}
@@ -439,12 +439,12 @@ origin $\calO_{out}$.
 
 In all cases, the total bending angle is
 \begin{align}
-  \alpha_b &= \mbox{graze_angle_in} + \mbox{graze_angle_out} &\mbox{! Crystal} \CRNO
+  \alpha_b &= \mbox{bragg_angle_in} + \mbox{bragg_angle_out} &\mbox{! Crystal} \CRNO
   \alpha_b &= 2 \, \mbox{graze_angle}                        &\mbox{! Mirror}
   \label{agg}
 \end{align}
-With a mirror or Bragg diffraction, the graze angles are measured with
-respect to the surface plane. With Laue diffraction the graze angles
+With a mirror or Bragg diffraction, the bend angles are measured with
+respect to the surface plane. With Laue diffraction the bend angles
 are measured with respect to the line in the bend plane perpendicular
 to the surface.
 
@@ -453,14 +453,14 @@ undiffracted beam (shown in red) as the reference trajectory.
 
 The orientation of the exit coordinates (the local coordinates after
 the reflection) are only affected by the element's \vn{ref_tilt} and
-graze angle parameters and is independent of all other parameters such
+bend angle parameters and is independent of all other parameters such
 as the radius of curvature of the surface, etc. The local $z$-axis of
 the entrance coordinates along with the $z$-axis of the exit
 coordinates define a plane which is called the element's \vn{bend
 plane}.  For a mirror, the graze angle is a parameter supplied by the
-user. For a crystal, the graze angles are calculated so that the
+user. For a crystal, the Bragg angles are calculated so that the
 reference trajectory is in the middle of the Darwin curve. Calculation
-of the graze angles for a crystal is given in
+of the Bragg angles for a crystal is given in
 Section~\ref{ss:crystal.ref}.
 
 %-----------------------------------------------------------------------------

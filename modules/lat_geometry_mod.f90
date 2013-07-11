@@ -324,7 +324,7 @@ if (key == fiducial$ .or. key == girder$) then
           w_mat = matmul(w_mat, t_mat)
         endif
         ! By definition positive graze angle is equivalent to negative x_pitch
-        call w_mat_for_x_pitch (s_mat, -ele0%value(graze_angle_in$))
+        call w_mat_for_x_pitch (s_mat, -ele0%value(bragg_angle_in$))
         w_mat = matmul (w_mat, s_mat)
 
         if (ele0%value(ref_tilt_tot$) /= 0) then
@@ -439,7 +439,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
   case (mirror$, multilayer_mirror$, crystal$)
     
     if (ele%key == crystal$) then
-      angle = ele%value(graze_angle_in$) + ele%value(graze_angle_out$)
+      angle = ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$)
     else
       angle = 2 * ele%value(graze_angle$)
     endif
@@ -513,7 +513,7 @@ else
     angle = 2 * ele%value(graze_angle$)
     chord_len = 0
   case (crystal$)
-    angle = ele%value(graze_angle_in$) + ele%value(graze_angle_out$)
+    angle = ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$)
     chord_len = 0
   case default
     angle = 0

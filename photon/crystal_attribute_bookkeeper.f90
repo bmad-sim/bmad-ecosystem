@@ -13,12 +13,9 @@
 !
 ! Output
 !   ele       -- Ele_struct: Crystal element.
-!     %value(graze_angle_in$)
-!     %value(graze_angle_out$)
+!     %value(bragg_angle_in$)
+!     %value(bragg_angle_out$)
 !     %value(tilt_corr$)
-!     %value(kh_x_norm$
-!     %value(kh_y_norm$)
-!     %value(kh_z_norm$)
 !     ... etc.
 !-
 
@@ -31,7 +28,7 @@ implicit none
 type (ele_struct) ele
 
 real(rp) lambda, gamma, delta1, lambda_in, d, alpha, psi, theta0
-real(rp) cos_theta0, sin_theta0, graze_angle_in, ang_tot
+real(rp) cos_theta0, sin_theta0, bragg_angle_in, ang_tot
 real(rp) h_x, h_y, h_z, kh_x_norm, kh_y_norm, kh_z_norm, ent_kh_x_norm, ent_kh_y_norm, ent_kh_z_norm
 real(rp) cos_graze_in, sin_graze_in, s_vec(3)
 real(rp) source_r,detect_r,r_c, total_angle
@@ -50,27 +47,31 @@ d = ele%value(d_spacing$)
 alpha = ele%value(alpha_angle$)
 psi   = ele%value(psi_angle$)
 
-h_x = -cos(alpha) / d
-h_y = sin(alpha) * sin(psi) / d
-h_z = sin(alpha) * cos(psi) / d
+ele%value(h_x_norm$) = cos(alpha) 
+ele%value(h_y_norm$) = sin(alpha) * sin(psi) 
+ele%value(h_z_norm$) = sin(alpha) * cos(psi)
+
+h_x = -ele%value(h_x_norm$)  / d
+h_y =  ele%value(h_y_norm$) / d
+h_z =  ele%value(h_z_norm$) / d
 
 theta0 = asin(lambda_in / (2 * d * sqrt(1 - (d * h_y)**2))) - atan(h_z/h_x)
 cos_theta0 = cos(theta0)
 sin_theta0 = sin(theta0)
 
-! Compute graze_angle_in
+! Compute bragg_angle_in
 
 if (ele%value(b_param$) < 0) then ! Bragg
   cos_graze_in   = cos_theta0/delta1
-  graze_angle_in = acos(cos_graze_in)
-  sin_graze_in   = sin(graze_angle_in)
+  bragg_angle_in = acos(cos_graze_in)
+  sin_graze_in   = sin(bragg_angle_in)
 else                              ! Laue
   sin_graze_in   = sin_theta0/delta1
-  graze_angle_in = asin(sin_graze_in)
-  cos_graze_in   = cos(graze_angle_in)
+  bragg_angle_in = asin(sin_graze_in)
+  cos_graze_in   = cos(bragg_angle_in)
 endif
 
-ele%value(graze_angle_in$) = graze_angle_in
+ele%value(bragg_angle_in$) = bragg_angle_in
 
 ! kh_norm is the normalized k_H vector.
 ! Obtained from: k_H = H + K_0 + q*n_surface
@@ -84,10 +85,6 @@ else                              ! Laue
   kh_y_norm = lambda * h_y
   kh_z_norm = sqrt(1 - kh_x_norm**2 - kh_y_norm**2)
 endif
-
-ele%value(kh_x_norm$) = kh_x_norm
-ele%value(kh_y_norm$) = kh_y_norm
-ele%value(kh_z_norm$) = kh_z_norm
 
 ! ent_kh_norm is kn_norm in element entrance coordinates
 
@@ -106,10 +103,10 @@ endif
 ! total graze angle
 
 if (nint(ele%value(ref_orbit_follows$)) == undiffracted$) then
-  ele%value(graze_angle_out$) = -graze_angle_in
+  ele%value(bragg_angle_out$) = -bragg_angle_in
 else
   ang_tot = atan2(sqrt(ent_kh_x_norm**2 + ent_kh_y_norm**2), ent_kh_z_norm)
-  ele%value(graze_angle_out$) = ang_tot - graze_angle_in
+  ele%value(bragg_angle_out$) = ang_tot - bragg_angle_in
 endif
 
 ! displacement L due to finite crystal thickness for Laue diffraction.
@@ -124,7 +121,7 @@ endif
 !
 
 ele%value(ref_cap_gamma$) = gamma
-total_angle = ele%value(graze_angle_in$) + ele%value(graze_angle_out$)
+total_angle = ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$)
 ele%value(darwin_width_sigma$) = 2 * gamma * ele%value(fh_re$) / &
                       (abs(sin(total_angle)) * sqrt(abs(ele%value(b_param$))))
 ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(total_angle))

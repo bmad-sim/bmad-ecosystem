@@ -826,7 +826,7 @@ Attributes specific to a \vn{crystal} element are:
   ref_orbit_follows  = <which_beam> ! Reference orbit aligned with what outgoing beam?
 \end{example}
 
-\index{graze_angle_in}\index{graze_angle_out}\index{alpha_angle}
+\index{bragg_angle_in}\index{bragg_angle_out}\index{alpha_angle}
 \index{tilt_corr}\index{d_spacing}\index{v_unitcell}\index{f0_re}
 \index{f0_im}\index{fh_re}\index{fh_im}\index{ref_wave_length}
 Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
@@ -838,8 +838,8 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
   f0_im              ! Imaginary part of f0
   fh_re              ! Real part of fh
   fh_im              ! Imaginary part of fh
-  graze_angle_in     ! Angle between incoming beam and mirror surface.
-  graze_angle_out    ! Angle between outgoing beam and mirror surface.
+  bragg_angle_in     ! Angle between incoming beam and mirror surface.
+  bragg_angle_out    ! Angle between outgoing beam and mirror surface.
   ref_wavelength     ! Reference wavelength
   ref_cap_gamma      ! \(\Gamma\) at the reference wavelength.
   tilt_corr          ! Tilt correction due to a finite psi_angle.
@@ -905,8 +905,8 @@ The reference trajectory for a Bragg \vn{crystal} is that of a zero
 length bend (\sref{s:mirror.coords}) and hence the length (\vn{l})
 parameter of a crystal is fixed at zero. The orientation of the
 reference trajectory with respect to the crystal surface is specified
-by the incoming graze angle \vn{graze_angle_in} ($\theta_{g,in}$) and
-outgoing graze angle \vn{graze_angle_out} ($\theta_{g,out}$) as shown
+by the incoming Bragg angle \vn{bragg_angle_in} ($\theta_{g,in}$) and
+outgoing Bragg angle \vn{bragg_angle_out} ($\theta_{g,out}$) as shown
 in \fig{f:crystal}A. These angles are computed from the photon
 reference energy and the other crystal parameters such that a photon
 with the reference energy traveling along the reference trajectory
@@ -914,9 +914,9 @@ will be in the center of the Darwin curve (\sref{s:crystal.tracking}).
 
 The reference trajectory in the global coordinate system
 (\sref{s:global}) is determined by the value of the \vn{ref_tilt}
-parameter along with the value of \vn{graze_angle_in} +
-\vn{graze_angle_out}. A positive \vn{graze_angle_in} +
-\vn{graze_angle_out} bends the reference trajectory in the same
+parameter along with the value of \vn{bragg_angle_in} +
+\vn{bragg_angle_out}. A positive \vn{bragg_angle_in} +
+\vn{bragg_angle_out} bends the reference trajectory in the same
 direction as a positive \vn{g} for a bend element. The
 
 A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming
@@ -940,7 +940,7 @@ at the $\eta = \pm 1$ points (cf.~Batterman\cite{b:batterman} Eq (32))
 \Endeq
 where
 \begin{example}
-  \(\theta_{tot}\) = graze_angle_in + graze_angle_out 
+  \(\theta_{tot}\) = bragg_angle_in + bragg_angle_out 
 \end{example}
 
 %-----------------------------------------------------------------

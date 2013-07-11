@@ -1926,8 +1926,8 @@ end subroutine makeup_control_slave
 !                           (2 * pi * p0c$ * (sig_x$ + sig_y$)
 !
 ! CRYSTAL:
-!     graze_angle_in$
-!     graze_angle_out$
+!     bragg_angle_in$
+!     bragg_angle_out$
 !     tilt_corr$
 !
 ! ELSEPARATOR:

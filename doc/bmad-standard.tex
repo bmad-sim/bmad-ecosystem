@@ -332,15 +332,15 @@ Crystal diffraction is modeled using dynamical diffraction theory. The
 notation here follows Batterman and Cole\cite{b:batterman}.  The
 problem can be divided up into two parts. First the reference
 trajectory must be calculated. This means calculating the incoming
-grazing angle $\theta_{g,in}$ and outgoing grazing angle
-$\theta_{g,out}$ as well as calculating the transformations between
+grazing angle $\theta_{B,in}$ and outgoing grazing angle
+$\theta_{B,out}$ as well as calculating the transformations between
 the various coordinate systems. This is done in \sref{ss:crystal.ref},
 \sref{ss:crystal.trans}, and \sref{ss:crystal.dlaue}.  The second part
 is the actual tracking of the photon and this is covered in
 \sref{ss:crystal.track}.
 
 %-------------------------------------------------------------------------
-\subsection{Calculation of Entrance and Exit Graze Angles}
+\subsection{Calculation of Entrance and Exit Bragg Angles}
 \label{ss:crystal.ref}
 
 \fig{f:crystal.diffraction} shows the geometry of the
@@ -369,9 +369,9 @@ the $x$-$z$ plane. Thus $\bfkbar_0$ and $\bfKbar_0$ can be written in the form
 \Begineq
   \bfkbar_0 = \frac{1}{\lambda} \, 
     \begin{pmatrix}
-    \sin\theta_{g,in} \\
+    \sin\theta_{B,in} \\
     0 \\
-    \cos\theta_{g,in}
+    \cos\theta_{B,in}
     \end{pmatrix}
   \; , \qquad
   \bfKbar_0 = \frac{1}{\lambda \, (1 + \delta)} \, 
@@ -382,7 +382,7 @@ the $x$-$z$ plane. Thus $\bfkbar_0$ and $\bfKbar_0$ can be written in the form
     \end{pmatrix}
   \label{k1lst}
 \Endeq
-Where, as shown in \fig{f:crystal.diffraction}, $\theta_{g,in}$,
+Where, as shown in \fig{f:crystal.diffraction}, $\theta_{B,in}$,
 and $\theta_0$ are the angles of $\bfkbar_0$ and $\bfKbar_0$ with respect to
 the $z$ axis, and use has been made of the relations
 \begin{align}
@@ -404,12 +404,21 @@ rotation of $\bfH$ around the $-\bfhat x$ axis such that for $\psi_H =
 0$, $\bfH$ is in the $x$-$z$ plane and oriented as shown in
 \fig{f:crystal.diffraction}. Thus
 \Begineq
-  \bfH = \frac{1}{d}
-  \begin{pmatrix} 
-     -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi_H \\ \sin \alpha_H \, \cos \psi_H 
-  \end{pmatrix}
+  \bfH 
+  \equiv \frac{1}{d} \, \bfhat{H} 
+  = \begin{cases}
+    \frac{1}{d} \,
+    \begin{pmatrix} 
+       -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi_H \\ \sin \alpha_H \, \cos \psi_H 
+    \end{pmatrix} & \vn{Bragg} \\
+    \frac{1}{d}
+    \begin{pmatrix} 
+       -\sin \alpha_H \, \cos \psi_H \\ \sin \alpha_H \, \sin \psi_H \\ -\cos \alpha_H
+    \end{pmatrix} & \vn{Laue}
+  \end{cases}
   \label{h1daa}
 \Endeq
+where $\bfhat{H}$ is $\bfH$ normalized to 1.
 
 The vectors $\bfKbar_0$ and $\bfH$ must add up to the reciprocal lattice vector $\bfKbar_H$
 \Begineq
@@ -422,25 +431,24 @@ Using this with \Eqs{k1lst} and \eq{h1daa} gives
   \begin{pmatrix} \sin\theta_0 \\ 0 \\ \cos\theta_0 \end{pmatrix}
   + \frac{1}{d}
   \begin{pmatrix} 
-    -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi_H \\ \sin \alpha_H \, \cos \psi_H 
+    \what{H}_x \\ \what{H}_y \\ \what{H}_z 
   \end{pmatrix}
   \label{1l1dk}
 \Endeq
-Taking the length of both sides with \Eq{kk1l2} gives
+Taking the length of both sides of \Eq{1l1dk} and using \Eq{kk1l2} gives for 
+$\theta_0$ 
 \Begineq
-  \frac{\lambda (1 + \delta)}{2 \, d} = \cos\alpha_H \, \sin\theta_0 -
-  \sin\alpha_H \, \cos\psi_H \, \cos\theta_0
+  \sin \theta_0 = \frac{-\beta \, \what{H}_x + \what{H}_z \, \sqrt{\what{H}_x^2 + \what{H}_z^2 - \beta^2}}
+  {\what{H}_x^2 + \what{H}_z^2}
 \Endeq
-Solving for $\theta_0$ gives
+where
 \Begineq
-  \theta_0 = \sin^{-1} 
-  \frac{\lambda (1 + \delta)}{2 \, d \, \sqrt{1 - \sin^2\alpha_H \, \sin^2\psi_H}} +
-  \tan^{-1} (\tan\alpha_H \, \cos\psi_H)
+  \beta \equiv \frac{\lambda \, (1 + \delta)}{2 \, d}
 \Endeq
-Once $\theta_0$ has been calculated, $\theta_{g,in}$ can be calculated from \Eq{kkqn1}
+Once $\theta_0$ has been calculated, $\theta_{B,in}$ can be calculated from \Eq{kkqn1}
 \begin{align}
-  \cos\theta_{g,in} &= \frac{\cos\theta_0}{1 + \delta} \quad [\mbox{Bragg}] \\
-  \sin\theta_{g,in} &= \frac{\sin\theta_0}{1 + \delta} \quad [\mbox{Laue}] 
+  \cos\theta_{B,in} &= \frac{\cos\theta_0}{1 + \delta} \quad [\mbox{Bragg}] \\
+  \sin\theta_{B,in} &= \frac{\sin\theta_0}{1 + \delta} \quad [\mbox{Laue}] 
 \end{align}
 
 The outgoing reference wave vector $k_H$ is computed using the equation
@@ -448,20 +456,20 @@ The outgoing reference wave vector $k_H$ is computed using the equation
   \bfK_H = \bfk_H + q_H \, \bfhat n
   \label{kkqn2}
 \Endeq
-With this an the normalization condition \Eq{1l1dk} gives for Bragg diffraction
+Using \Eqs{kk1l1}, \eq{1l1dk}, and \eq{kkqn2} gives for Bragg diffraction
 \begin{align}
   \kbar_{H,x} &= -\sqrt{\frac{1}{\lambda^2} - \kbar_{H,y}^2 - \kbar_{H,z}^2} \CRNO
-  \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \sin\alpha_H \, \sin\psi_H 
+  \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \, \what{H}_y 
   \qquad \qquad [\mbox{Bragg}] 
   \label{k1dapb} \\
-  \kbar_{H,z} &= \Kbar_{H,z} = \frac{1}{d} \sin\alpha_H \, cos\psi_H + 
+  \kbar_{H,z} &= \Kbar_{H,z} = \frac{1}{d} \, \what{H}_z + 
     \frac{1}{\lambda \, (1 + \delta)} \, \cos\theta_0 \nonumber
 \end{align}
-and for Laue diffraction
+and for Laue diffraction the corresponding equations arep
 \begin{align}
-  \kbar_{H,x} &= \Kbar_{H,z} = \frac{-1}{d} \cos\alpha_H + 
+  \kbar_{H,x} &= \Kbar_{H,z} = \frac{1}{d} \, \what{H}_x + 
     \frac{1}{\lambda \, (1 + \delta)} \, \sin\theta_0 \CRNO
-  \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \sin\alpha_H \, \sin\psi_H 
+  \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \, \what{H}_y 
   \qquad \qquad [\mbox{Laue}] 
   \label{k1dapl} \\
   \kbar_{H,z} &= \sqrt{\frac{1}{\lambda^2} - \kbar_{H,x}^2 - \kbar_{H,y}^2} \nonumber
@@ -472,10 +480,10 @@ The total bending angle of the reference trajectory is then
   \theta_{bend} = \tan^{-1} 
   \left( \frac{ | \bfkbar_0 \times \bfkbar_H | }{\bfkbar_0 \cdot \bfkbar_H} \right)
 \Endeq
-The outgoing graze angle $\theta_{g,out}$ is then {\em defined} to be
-the difference between the total bend angle and the entrance graze angle.
+The outgoing Bragg angle $\theta_{B,out}$ is then {\em defined} to be
+the difference between the total bend angle and the entrance Bragg angle.
 \Begineq
-  \theta_{g,out} \equiv \theta_{bend} - \theta_{g,in}
+  \theta_{B,out} \equiv \theta_{bend} - \theta_{B,in}
 \Endeq
 
 %-------------------------------------------------------------------------
@@ -520,17 +528,17 @@ identical. Furthermore, the transformation $\Bf\Sigma_2$ from element
 entrance coordinates to body coordinates is a rotation around the $y$
 axis
 \Begineq
-  \Bf\Sigma_2 = \bfR_y(\theta_{g,in}) \equiv \begin{pmatrix}
-     \cos\theta_{g,in} & 0 & \sin\theta_{g,in} \\
+  \Bf\Sigma_2 = \bfR_y(\theta_{B,in}) \equiv \begin{pmatrix}
+     \cos\theta_{B,in} & 0 & \sin\theta_{B,in} \\
      0                 & 1 & 0                 \\
-    -\sin\theta_{g,in} & 0 & \cos\theta_{g,in} \\
+    -\sin\theta_{B,in} & 0 & \cos\theta_{B,in} \\
   \end{pmatrix}
   \label{mt0t010}
 \Endeq
 The transformation from element body coordinates to element exit
 coordinates, $\Bf\Sigma_3$, is another rotation around the $y$ axis 
 \Begineq
-  \Bf\Sigma_3 = \bfR_y(\theta_{g,out})
+  \Bf\Sigma_3 = \bfR_y(\theta_{B,out})
 \Endeq
 and the transformation from element exit coordinates
 to laboratory exit coordinates, $\Bf\Sigma_{out}$ is the unity matrix
@@ -539,11 +547,11 @@ to laboratory exit coordinates, $\Bf\Sigma_{out}$ is the unity matrix
 \Endeq
 Thus, the combined transformation $\bfS$ from laboratory entrance to
 laboratory exit coordinates is a rotation around the $y$ axis of
-$\theta_{g,in}+\theta_{g,out}$ as explained in section
+$\theta_{B,in}+\theta_{B,out}$ as explained in section
 \sref{s:global}
 \Begineq
   \bfS = \Bf\Sigma_4 \, \Bf\Sigma_3 \, \Bf\Sigma_2 \, \Bf\Sigma_1 
-  = \bfR_y(\theta_{g,in}+\theta_{g,out})
+  = \bfR_y(\theta_{B,in}+\theta_{B,out})
 \Endeq
 
 \index{ref_tilt}\index{psi_angle}
@@ -585,7 +593,7 @@ satisfy \Eq{lrca1}, this vector must have zero $y$ component
 Solving gives
 \Begineq
   \theta_{corr} = \tan^{-1} 
-  \frac{k_{H,y}}{k_{H,z} \, \sin\theta_{g,in} - k_{H,x} \, \cos\theta_{g,in}}
+  \frac{k_{H,y}}{k_{H,z} \, \sin\theta_{B,in} - k_{H,x} \, \cos\theta_{B,in}}
 \Endeq
 The transformation $\Bf\Sigma_3$ from element body coordinates to
 element exit coordinates is now obtained by requiring that the total
@@ -605,7 +613,7 @@ dropped since it is the unit matrix independent of $\psi_H$.
 For Laue diffraction when the non-diffracted beam is tracked, the exit
 coordinate system corresponds to the entrance coordinate system. That
 is, $\bfV$ is the unit matrix. In this case, there is no tilt
-correction and $\Bf\Sigma_3 = \bfR_y(-\theta_{g,in})$ is just the
+correction and $\Bf\Sigma_3 = \bfR_y(-\theta_{B,in})$ is just the
 inverse of $\Bf\Sigma_2$.
 
 %-------------------------------------------------------------------------
@@ -692,7 +700,7 @@ and $P$ is the polarization factor
   \end{cases}
 \Endeq
 $2\theta_g$ is the angle between $\bfK_0$ and $\bfK_H$ which is well
-approximated by $\theta_{g,in} + \theta_{g,out}$.
+approximated by $\theta_{B,in} + \theta_{B,out}$.
 
 The solution to \Eq{xx14} is (\cite{b:batterman} Eq.~(31))
 \begin{align}

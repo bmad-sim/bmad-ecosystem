@@ -118,7 +118,7 @@ if (set) then
 
   select case (ele%key)
   case (crystal$)
-    graze = p(graze_angle_in$) 
+    graze = p(bragg_angle_in$) 
   case (mirror$, multilayer_mirror$)
     graze = p(graze_angle$) 
   case default
@@ -145,7 +145,7 @@ else
 
     select case (ele%key)
     case (crystal$)
-      graze = p(graze_angle_out$) 
+      graze = p(bragg_angle_out$) 
     case (mirror$, multilayer_mirror$)
       graze = p(graze_angle$) 
     end select
@@ -179,7 +179,7 @@ else
       graze2 = 2*p(graze_angle$)
       tilt = p(tilt_tot$)
     case (crystal$)
-      graze2 = p(graze_angle_in$)+p(graze_angle_out$)
+      graze2 = p(bragg_angle_in$)+p(bragg_angle_out$)
       tilt = p(tilt_tot$) + p(tilt_corr$)
     end select
 

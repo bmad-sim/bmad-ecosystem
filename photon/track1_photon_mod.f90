@@ -244,8 +244,7 @@ type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (crystal_param_struct) c_param
 
-real(rp) sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
-real(rp) h_norm(3), e_tot, pc, p_factor
+real(rp) h_norm(3), e_tot, pc, p_factor, wavelength
 real(rp) gamma_0, gamma_h, old_vec(6)
 
 character(*), parameter :: r_name = 'track1_cyrstal'
@@ -253,7 +252,7 @@ character(*), parameter :: r_name = 'track1_cyrstal'
 ! A graze angle of zero means the wavelength of the reference photon was too large
 ! for the bragg condition. 
 
-if (ele%value(graze_angle_in$) == 0) then
+if (ele%value(bragg_angle_in$) == 0) then
   call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION!')
   orbit%state = lost_z_aperture$
   if (global_com%exit_on_error) call err_exit
@@ -280,11 +279,7 @@ endif
 
 ! Construct h_norm = H * wavelength.
 
-sin_alpha = sin(ele%value(alpha_angle$))
-cos_alpha = cos(ele%value(alpha_angle$))
-sin_psi = sin(ele%value(psi_angle$))
-cos_psi = cos(ele%value(psi_angle$))
-h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wavelength / ele%value(d_spacing$)
+h_norm = [-ele%value(h_x_norm$), ele%value(h_y_norm$), ele%value(h_z_norm$)] * wavelength / ele%value(d_spacing$)
 
 ! kh_outside_norm is the normalized outgoing wavevector outside the crystal
 
@@ -310,7 +305,7 @@ c_param%dtheta_sin_2theta = -dot_product(h_norm + 2 * old_vec(2:6:2), h_norm) / 
 c_param%f0                = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
 c_param%fh                = cmplx(ele%value(fh_re$), ele%value(fh_im$))
 
-p_factor = cos(ele%value(graze_angle_in$) + ele%value(graze_angle_out$))
+p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
 call e_field_calc (c_param, ele, p_factor, orbit%field(1), orbit%phase(1))
 call e_field_calc (c_param, ele, 1.0_rp,   orbit%field(2), orbit%phase(2))   ! Sigma polarization
 

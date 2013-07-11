@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 124
+integer, parameter :: bmad_inc_version$ = 125
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -697,10 +697,10 @@ integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
 integer, parameter :: flexible$ = 5, crunch$=5, ref_orbit_follows$=5
 integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, new_branch$ = 6
-integer, parameter :: g$=6, graze_angle_in$ = 6
+integer, parameter :: g$=6, bragg_angle_in$ = 6
 integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: gradient_err$=7, critical_angle$ = 7
-integer, parameter :: graze_angle_out$ = 7, ix_to_branch$=7
+integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$=7
 integer, parameter :: rho$=8, voltage$=8, delta_e$ = 8
 integer, parameter :: charge$=8, x_gain_calib$=8, ix_to_element$=8
 integer, parameter :: d1_thickness$ = 9, voltage_err$=9, rel_tracking_charge$ = 9
@@ -741,9 +741,9 @@ integer, parameter :: B_field$ = 33, E_field$ = 33, coupler_phase$ = 33
 integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34
 integer, parameter :: coupler_strength$ = 35
 integer, parameter :: B1_gradient$ = 35, E1_gradient$ = 35
-integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36
-integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, kh_x_norm$ = 37, ptc_field_geometry$ = 38
-integer, parameter :: Bs_field$ = 38, e_tot_offset$ = 38, kh_z_norm$ = 38
+integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36, h_x_norm$ = 36
+integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, h_y_norm$ = 37, ptc_field_geometry$ = 38
+integer, parameter :: Bs_field$ = 38, e_tot_offset$ = 38, h_z_norm$ = 38
 integer, parameter :: delta_ref_time$ = 39 ! Assumed unique Do not overload.
 integer, parameter :: p0c_start$ = 40
 integer, parameter :: e_tot_start$ = 41   
@@ -757,7 +757,7 @@ integer, parameter :: z_offset_tot$ = 48
 integer, parameter :: tilt_tot$ = 49, roll_tot$ = 49  ! Important: tilt_tot$ = roll_tot$
 integer, parameter :: pole_radius$ = 50, ref_tilt_tot$ = 50
 integer, parameter :: n_ref_pass$ = 51
-integer, parameter :: radius$ = 52, kh_y_norm$ = 52
+integer, parameter :: radius$ = 52
 integer, parameter :: ref_time_start$ = 53
 integer, parameter :: thickness$ = 54, integrator_order$ = 54   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 55
