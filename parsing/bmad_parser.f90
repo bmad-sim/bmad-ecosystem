@@ -888,13 +888,19 @@ do i = 0, ubound(lat%branch, 1)
   else
     if (global_com%type_out) then
       if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
-        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (\i0\) ' // branch%name, &
-                                       'WILL USE 1000 * MC^2!', i_array = [i])
+        if (branch%param%particle == photon$) then
+          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (\i0\) ' // branch%name, &
+                                         'WILL USE 1000 eV!', i_array = [i])
+        else
+          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (\i0\) ' // branch%name, &
+                                         'WILL USE 1000 * MC^2!', i_array = [i])
+        endif
       else
         call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (\i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
       endif
     endif
     ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
+    if (branch%param%particle == photon$) ele%value(e_tot$) = 1000
     call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
     bp_com%write_digested = .false.
   endif

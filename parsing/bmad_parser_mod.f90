@@ -1191,7 +1191,7 @@ case ('ORIGIN_ELE_REF_PT')
 case ('TRACKING_METHOD')
   call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag)
   if (err_flag) return
-  if (.not. valid_tracking_method (ele, switch)) then
+  if (.not. valid_tracking_method (ele, not_set$, switch)) then
     if (wild_key0) then
       err_flag = .false.
     else
@@ -1219,7 +1219,7 @@ case ('SPIN_TRACKING_METHOD')
 case ('MAT6_CALC_METHOD')
   call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag)
   if (err_flag) return
-  if (.not. valid_mat6_calc_method (ele, switch)) then
+  if (.not. valid_mat6_calc_method (ele, not_set$, switch)) then
     if (wild_key0) then
       err_flag = .false.
     else

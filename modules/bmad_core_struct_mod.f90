@@ -24,7 +24,7 @@ use basic_bmad_interface
 !
 ! This routine is an overloaded name for:
 !   Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
-!   Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, t_ref_offset, shift_vec6)
+!   Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 !
 ! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
 ! Additionally, if ele is an init_ele, and vec is zero or not present, orb%vec(6) is shifted
@@ -1075,19 +1075,19 @@ end subroutine init_coord1
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, t_ref_offset, shift_vec6)
+! Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, t_ref_offset, shift_vec6)
+subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 
 implicit none
 
 type (coord_struct) orb, orb_in, orb_save
 type (ele_struct), optional :: ele
-real(rp), optional :: t_ref_offset
+real(rp), optional :: t_ref_offset, E_photon
 integer, optional :: particle, direction
 logical, optional :: at_downstream_end, shift_vec6
 
@@ -1095,7 +1095,7 @@ logical, optional :: at_downstream_end, shift_vec6
 
 orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
 
-call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, particle, direction, orb_in%p0c, t_ref_offset, shift_vec6)
+call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 
 orb%spin      = orb_save%spin
 orb%field     = orb_save%field

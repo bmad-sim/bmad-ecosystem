@@ -296,7 +296,7 @@ r = ele%value(ref_wavelength$) / (2 * d)
 if (r < 1) then
   ele%value(bragg_angle$) = asin(r)
   bp = ele%value(b_param$)
-  ele%value(alpha_angle$) = atan(tan(ele%value(bragg_angle$)) * (bp + 1) / (bp - 1))
+  ele%value(alpha_angle$) = atan2(-sin(ele%value(bragg_angle$)) * (1 + bp), cos(ele%value(bragg_angle$)) * (1 - bp))
 else
   ele%value(bragg_angle$) = 0
   ele%value(alpha_angle$) = 0
