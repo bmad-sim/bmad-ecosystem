@@ -71,9 +71,9 @@ start_orb_desc = "Starting orbit: (" // trim(adjustl(convert_to_string(lat%beam_
 
 do i = 1, size(is_valid)
   if (i /= n_methods$+1) then 
-     is_valid(i) = valid_tracking_method(ele, i)
+     is_valid(i) = valid_tracking_method(ele, electron$, i)
   else
-     is_valid(i) = valid_tracking_method(ele, symp_lie_ptc$)
+     is_valid(i) = valid_tracking_method(ele, electron$, symp_lie_ptc$)
   end if
 enddo
 
