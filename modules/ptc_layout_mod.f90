@@ -683,7 +683,7 @@ end subroutine ptc_closed_orbit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_map_at_ele (ele, rf_on, pz, map)
+! Subroutine ptc_one_turn_map_at_ele (ele, map, rf_on, pz, order)
 !
 ! Routine to calculate the one turn map for a ring.
 ! Note: Use set_ptc(no_cavity = True/False) set turn on/off the RF cavities.
@@ -693,13 +693,16 @@ end subroutine ptc_closed_orbit_calc
 !
 ! Input:
 !   ele     -- ele_struct: Element determining start/end position for one turn map.
+!   rf_on   -- logical: calculate with RF on
+!   pz      -- real(rp), optional: momentum deviation of closed orbit. 
+!                                  Default = 0
 !   order   -- integer, optional: Order of the map. If not given then default order is used.
 !
 ! Output:
 !   map(6)  -- taylor_struct: Bmad taylor map
 !-
 
-subroutine ptc_one_turn_map_at_ele (ele, rf_on, pz, map)
+subroutine ptc_one_turn_map_at_ele (ele, map, rf_on, pz, order)
 
 use madx_ptc_module
 
@@ -712,23 +715,33 @@ type (fibre), pointer :: fib
 type (damap) da_map
 type (real_8) ray(6)
 
-real(rp) pz
+real(rp), optional :: pz
 real(dp) x(6)
 
-logical rf_on
+integer :: map_order
+integer, optional :: order
+
+logical rf_on 
 
 !
 
-if (rf_on) then
-  ptc_state = default - nocavity0 
+if (present(order)) then
+  map_order = order
 else
-  ptc_state = default + nocavity0 
+  map_order = bmad_com%taylor_order ! set to something else?
 endif
+
+if (rf_on) then
+  ptc_state = default - nocavity0 + time0
+else
+  ptc_state = default + nocavity0 + time0
+endif
+call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
 
 x = 0
-x(5) = pz
+if (present(pz)) x(5) = pz
 fib => ele%ptc_fibre%next
 call find_orbit_x (x, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 
