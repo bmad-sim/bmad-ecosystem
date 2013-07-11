@@ -74,10 +74,10 @@ namespace Bmad {
   const int LR_FREQ_SPREAD=5, GRAZE_ANGLE=5, K2=5, SIG_Y=5, B_MAX=5, V_DISPLACE=5;
   const int FLEXIBLE = 5, CRUNCH=5, REF_ORBIT_FOLLOWS=5;
   const int GRADIENT=6, K3=6, SIG_Z=6, NOISE=6, NEW_BRANCH = 6;
-  const int G=6, GRAZE_ANGLE_IN = 6;
+  const int G=6, BRAGG_ANGLE_IN = 6;
   const int G_ERR=7, N_POLE=7, BBI_CONST=7, OSC_AMPLITUDE=7;
   const int GRADIENT_ERR=7, CRITICAL_ANGLE = 7;
-  const int GRAZE_ANGLE_OUT = 7, IX_TO_BRANCH=7;
+  const int BRAGG_ANGLE_OUT = 7, IX_TO_BRANCH=7;
   const int RHO=8, VOLTAGE=8, DELTA_E = 8;
   const int CHARGE=8, X_GAIN_CALIB=8, IX_TO_ELEMENT=8;
   const int D1_THICKNESS = 9, VOLTAGE_ERR=9, REL_TRACKING_CHARGE = 9;
