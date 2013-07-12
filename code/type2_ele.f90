@@ -52,7 +52,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                 type_floor_coords, type_field, type_wall)
 
 use multipole_mod, except_dummy => type2_ele
-use attribute_mod, only: pointer_to_indexed_attribute
+use lat_geometry_mod, only: pointer_to_indexed_attribute, shift_reference_frame
 
 implicit none
 
@@ -60,6 +60,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord, slave
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
+type (floor_position_struct) :: floor
 type (wig_term_struct), pointer :: term
 type (rf_wake_lr_struct), pointer :: lr
 type (rf_wake_sr_table_struct), pointer :: sr_table
@@ -725,10 +726,18 @@ endif
 ! Encode Floor coords
 
 if (logic_option(.false., type_floor_coords)) then
+  select case (ele%key)
+  case (floor_shift$, group$, overlay$, hybrid$, init_ele$, match$, null_ele$, patch$)
+    floor = ele%floor
+  case default
+    call shift_reference_frame (ele%floor, [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)], &
+                                            ele%value(x_pitch$), ele%value(x_pitch$), ele%value(tilt$), floor) 
+  end select
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Global Floor Coords:'
-  nl=nl+1; write (li(nl), '(3(a, f12.5, 5x))') 'X =    ', ele%floor%r(1),  'Y =  ', ele%floor%r(2), 'Z =  ', ele%floor%r(3) 
-  nl=nl+1; write (li(nl), '(3(a, f12.5, 5x))') 'Theta =', ele%floor%theta, 'Phi =', ele%floor%phi,  'Psi =', ele%floor%psi   
+  nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
+  nl=nl+1; write (li(nl), '(a, 6f12.5)') 'Reference', ele%floor%r, floor%theta, ele%floor%phi, ele%floor%psi   
+  nl=nl+1; write (li(nl), '(a, 6f12.5)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi   
 endif
 
 ! finish
