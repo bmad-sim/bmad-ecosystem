@@ -905,7 +905,11 @@ case ('chrom.')
   if (data_source == 'beam') return
 
   if (.not. associated(tao_lat%low_E_lat%ele)) then
-    why_invalid = 'Chrom bookkeeping problem. Please contact DCS.'
+    if (branch%param%unstable_factor == 0) then
+      why_invalid = 'Chrom bookkeeping problem. Please contact DCS.'
+    else
+      why_invalid = 'Unstable lattice.'
+    endif
     return
   endif
 
