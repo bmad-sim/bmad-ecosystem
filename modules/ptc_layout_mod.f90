@@ -492,6 +492,7 @@ call sigma_mat_ptc_to_bmad (normal%s_ij0, ptc_fibre%beta0, sigma_mat)
 call kill(normal)
 call kill(da_map)
 call kill(x_probe8)
+call init (DEFAULT, bmad_com%taylor_order, 0)
 
 end subroutine ptc_emit_calc 
 
@@ -725,17 +726,14 @@ logical rf_on
 
 !
 
-if (present(order)) then
-  map_order = order
-else
-  map_order = bmad_com%taylor_order ! set to something else?
-endif
+map_order = integer_option(order, bmad_com%taylor_order)
 
 if (rf_on) then
-  ptc_state = default - nocavity0 + time0
+  ptc_state = default - nocavity0
 else
-  ptc_state = default + nocavity0 + time0
+  ptc_state = default + nocavity0
 endif
+
 call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
@@ -757,6 +755,7 @@ call real_8_to_taylor(ray, fib%beta0, map)
 
 call kill(ray)
 call kill(da_map)
+call init (DEFAULT, bmad_com%taylor_order, 0)
 
 end Subroutine ptc_one_turn_map_at_ele
 
