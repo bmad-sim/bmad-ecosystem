@@ -13,7 +13,6 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4
 
 private control_bookkeeper1, makeup_control_slave
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
-private ptc_bookkeeper
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
