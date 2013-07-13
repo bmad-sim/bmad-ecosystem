@@ -52,7 +52,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                 type_floor_coords, type_field, type_wall)
 
 use multipole_mod, except_dummy => type2_ele
-use lat_geometry_mod, only: pointer_to_indexed_attribute, shift_reference_frame
+use lat_geometry_mod, only: pointer_to_indexed_attribute, shift_reference_frame, ele_geometry
 
 implicit none
 
@@ -729,9 +729,16 @@ if (logic_option(.false., type_floor_coords)) then
   select case (ele%key)
   case (floor_shift$, group$, overlay$, hybrid$, init_ele$, match$, null_ele$, patch$)
     floor = ele%floor
+  case (crystal$, mirror$, multilayer_mirror$)
+    call ele_geometry (ele%floor, ele, floor, -1.0_rp)
+    call shift_reference_frame (floor, [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)], &
+                                        ele%value(x_pitch$), ele%value(x_pitch$), ele%value(tilt$), floor) 
+    call ele_geometry (floor, ele, floor)
   case default
-    call shift_reference_frame (ele%floor, [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)], &
-                                            ele%value(x_pitch$), ele%value(x_pitch$), ele%value(tilt$), floor) 
+    call ele_geometry (ele%floor, ele, floor, -0.5_rp)
+    call shift_reference_frame (floor, [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)], &
+                                        ele%value(x_pitch$), ele%value(x_pitch$), ele%value(tilt$), floor) 
+    call ele_geometry (floor, ele, floor, 0.5_rp)
   end select
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Global Floor Coords:'

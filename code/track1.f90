@@ -105,10 +105,6 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
 call check_aperture_limit (start2_orb, ele, first_track_edge$, param)
 
-if (ele%aperture_at == surface$) then
-  call check_aperture_limit (start2_orb, ele, surface$, param)
-endif
-
 if (start2_orb%state /= alive$) then
   end_orb = start2_orb
   if (present(err_flag)) err_flag = .false.

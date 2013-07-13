@@ -439,7 +439,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
   case (mirror$, multilayer_mirror$, crystal$)
     
     if (ele%key == crystal$) then
-      angle = ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$)
+      angle = (ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
     else
       angle = 2 * ele%value(graze_angle$)
     endif
@@ -509,11 +509,11 @@ else
   case (multipole$)
     angle = knl(0)
     chord_len = 0
-  case (mirror$)
-    angle = 2 * ele%value(graze_angle$)
+  case (mirror$, multilayer_mirror$)
+    angle = 2 * ele%value(graze_angle$) * len_factor
     chord_len = 0
   case (crystal$)
-    angle = ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$)
+    angle = (ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$)) * len_factor
     chord_len = 0
   case default
     angle = 0

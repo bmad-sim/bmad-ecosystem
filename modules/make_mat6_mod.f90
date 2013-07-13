@@ -1096,23 +1096,33 @@ else
   ave = start%vec
 endif
 
-rel_pc = 1 + ave(6)
-px = ave(2) / rel_pc
-py = ave(4) / rel_pc
-pxy2 = px**2 + py**2
-pz = sqrt(1 - pxy2)
+if (param%particle == photon$) then
+  rel_pc = start%p0c / ele%value(p0c$)
+  px = ave(2)
+  py = ave(4)
+  pz = ave(6)
+  pxy2 = px**2 + py**2
+  e_tot = rel_pc
+else
+  rel_pc = 1 + ave(6)
+  px = ave(2) / rel_pc
+  py = ave(4) / rel_pc
+  pxy2 = px**2 + py**2
+  pz = sqrt(1 - pxy2)
+  e_tot = ele%value(p0c$) * (1 + ave(6)) / start%beta
+endif
+
 rel_len = length / (rel_pc * pz)
 
-mat6(1,2) = rel_len * (px**2 / pz**2 + 1)
-mat6(3,4) = rel_len * (py**2 / pz**2 + 1)
-mat6(1,4) = rel_len * px*py / pz**2
-mat6(3,2) = rel_len * px*py / pz**2
-mat6(1,6) = - rel_len * px / pz**2
-mat6(3,6) = - rel_len * py / pz**2
-mat6(5,2) = - rel_len * px / pz**2 
-mat6(5,4) = - rel_len * py / pz**2
-e_tot = ele%value(p0c$) * (1 + ave(6)) / start%beta
-mat6(5,6) = rel_len * (px**2 + py**2) / pz**2 + &
+mat6(1,2) =  rel_len * (px**2 / pz**2 + 1)
+mat6(3,4) =  rel_len * (py**2 / pz**2 + 1)
+mat6(1,4) =  rel_len * px*py / pz**2
+mat6(3,2) =  rel_len * px*py / pz**2
+mat6(1,6) = -rel_len * px / pz**2
+mat6(3,6) = -rel_len * py / pz**2
+mat6(5,2) = -rel_len * px / pz**2 
+mat6(5,4) = -rel_len * py / pz**2
+mat6(5,6) =  rel_len * (px**2 + py**2) / pz**2 + &
                   length * mass_of(param%particle)**2 * ele%value(e_tot$) / e_tot**3
 
 end subroutine drift_mat6_calc
