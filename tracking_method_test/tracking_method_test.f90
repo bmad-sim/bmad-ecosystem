@@ -56,11 +56,12 @@ do ib = 0, ubound(lat%branch, 1)
         endif
         start_orb = lat%beam_start
         call init_coord (start_orb, start_orb, ele, .false., E_photon = ele%value(p0c$) * (1 + start_orb%vec(6)))
+        start_orb%field = [1, 2]
         call track1 (start_orb, ele, branch%param, end_orb)
         final_str = '"' // trim(ele%name) // ':' // trim(tracking_method_name(j)) // '"' 
         write (1,'(2a,7es18.10)') final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
         if (branch%param%particle == photon$) then
-          write (1, '(4a, 2es18.10)') '"', trim(ele%name), ':E_Field', '"        ABS 1E-10', end_orb%field
+          write (1, '(4a, 2es18.10)') '"', trim(ele%name), ':E_Field', '"              REL 1E-10', end_orb%field
         endif
      END DO
      write (1,*)
