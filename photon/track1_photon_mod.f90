@@ -421,10 +421,10 @@ if (ele%surface%has_curvature) then
   ! Assume flat crystal, compute s required to hit the intersection
   ! Choose a Bracket of 1m around this point.
 
-  if (ele%value(b_param$) < 0) then ! Bragg
-    s_center = orbit%vec(1) / orbit%vec(2)
-  else
+  if (ele%key == crystal$ .and. ele%value(b_param$) > 0) then ! Laue
     s_center = orbit%vec(5) / orbit%vec(6)
+  else
+    s_center = orbit%vec(1) / orbit%vec(2)
   endif
 
   s1 = s_center
@@ -489,12 +489,12 @@ integer iz, iy
 
 point = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
 
-if (ele%value(b_param$) < 0) then ! Bragg
-  z = point(3)
-  delta_h = point(1)
-else
+if (ele%key == crystal$ .and. ele%value(b_param$) > 0) then ! Laue
   z = point(1)
   delta_h = point(3)
+else
+  z = point(3)
+  delta_h = point(1)
 endif
 
 y = point(2)

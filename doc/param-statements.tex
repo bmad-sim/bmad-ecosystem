@@ -185,7 +185,8 @@ pertain to the \vn{root} branch.
   beam_start[y]           = <Real>   ! Vertical position.
   beam_start[py]          = <Real>   ! Vertical momentum.
   beam_start[z]           = <Real>   ! Longitudinal position.
-  beam_start[pz]          = <Real>   ! Longitudinal momentum (energy deviation).
+  beam_start[pz]          = <Real>   ! Momentum deviation. Only used for non-photons
+  beam_start[E_photon]    = <Real>   ! Energy (eV). Only used for photons.
   beam_start[emittance_a] = <Real>   ! A-mode emittance
   beam_start[emittance_b] = <Real>   ! B-mode emittance
   beam_start[emittance_z] = <Real>   ! Z-mode emittance
@@ -201,8 +202,11 @@ initial velocity is zero. (This can happen if there is an \vn{e_gun}
 (\sref{s:e.gun}) element in the lattice). In this case, $z$ must be
 zero and $t$ is an independent parameter that can be set.
 
-\noindent
-Examples
+For photons, \vn{px}, \vn{py}, and \vn{pz} are the normalized velocity components
+(Cf.~\Eq{xbybzb}). For photons \vn{pz} is a dependent parameter which will be set
+so that \Eq{bbb1} is obayed.
+
+Example
 \begin{example}
   beam_start[y] = 2 * beam_start[x]
 \end{example}
