@@ -116,6 +116,8 @@ case ('BEAM_START')
       ptr_array(1)%r => lat%beam_start%phase(2)
     case (t$)
       ptr_array(1)%r => lat%beam_start%t
+    case (e_photon$)
+      ptr_array(1)%r => lat%beam_start%p0c
     end select
   end select
 
