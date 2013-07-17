@@ -100,7 +100,8 @@ character(10) function tolerance(instr)
 character(44) :: instr
 
 select case (instr)
-case ('"CRYSTAL1:Tracking:MatrixRow2"')            ; tolerance = 'ABS 4e-12'
+case ('"CRYSTAL1:Tracking:MatrixRow2"')            ; tolerance = 'ABS 2e-11'
+case ('"CRYSTAL1:Tracking:MatrixRow4"')            ; tolerance = 'ABS 2e-12'
 case ('"CRYSTAL1:Tracking:MatrixRow6"')            ; tolerance = 'ABS 2e-11'
 case ('"E_GUN1:Tracking:MatrixRow1"')              ; tolerance = 'ABS 5e-10'
 case ('"E_GUN1:Tracking:MatrixRow2"')              ; tolerance = 'ABS 5e-11'
