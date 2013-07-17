@@ -4,8 +4,8 @@
 
 For tracking and transfer map calculations (here generically called
 ``tracking''), \bmad has various methods that can be applied to a
-given element (\sref{c:methods}). This chapter discusses the
-\vn{bmad_standard} calculation that is the default for almost all
+given element (Cf. Chapter~\sref{c:methods}). This chapter discusses
+the \vn{bmad_standard} calculation that is the default for almost all
 element types and the \vn{symp_lie_bmad} calculation that does
 symplectic integration.
 
@@ -17,73 +17,52 @@ Generally it will be assumed that tracking is in the forward direction.
 \label{s:misalign.track}
 
 \index{element reference coordinates}
-The general procedure for tracking through an element makes use of
-three sets of coordinates called \vn{``element reference
-coordinates''} (or simply \vn{element coordinates}).  With
-misalignments, the \vn{element coordinates} will stay fixed relative
-to the element and will therefore shift with the element in the
-laboratory frame of reference.  Here \vn{``misalignment''} is {\em
-defined} to be any offset, pitch or tilt (\sref{s:offset}).
+The general procedure for tracking through an element makes use of the
+\vn{element reference coordinates} Without any offsets, pitches or
+tilt, (henseforth called ``misalignments''), the element reference
+coordinates are the same as the \vn{laboratory reference coordinates}
+(\sref{s:ref}). With misalignments, the \vn{element reference
+coordinates} will stay fixed relative to the element and will
+therefore shift as the element shifts in the laboratory fram.
 
-The three coordinate systems are named \vn{element entrance
-coordinates}, \vn{element body coordinates}, and \vn{element exit
-coordinates}. Without any \vn{``misalignments''}, the \vn{element
-entrance coordinates} and \vn{element exit coordinates} are the same
-as the laboratory coordinate system (\sref{s:ref}) at the entrance and
-exit ends of the element respectively. [The one exception is when
-a \vn{crystal} element has a non-zero \vn{psi_angle} value. See
-\sref{ss:crystal.trans}.] The \vn{body coordinate system} will be
-discussed below. The general procedure for tracking a particle through
-a given element is then a three step process: At the start, the
-particle is at the entrance end of the element and the particle's
-coordinates are given with respect to the laboratory coordinates.
+\index{crystal}\index{mirror}\index{multilayer_mirror}
+For \vn{crystal} (\sref{s:crystal}), \vn{mirror} (\sref{s:mirror}),
+and \vn{multilayer_mirror} (\sref{s:multilayer}) elements, the
+non-straight reference trajectory through the element complicates the
+calculation. For these elements, the \vn{element coordinates} is
+choisen so that the $z$-axis points into the element as shown in
+\fig{f:photon.ele.coords}.
+
+Tracking a particle through an element is therefore a three
+step transformation:
 \begin{enumerate}
 \item
-Transform from the laboratory reference coordinates to the element
-entrance coordinates.
+At the entrance end of the element, transform from the
+laboratory reference coordinates to the (entrance) \vn{element coordinates}.
 \item
-Track through the element ignoring any misalignments ending up with
-the particle at the exit end of the element with the particle's
-coordinates given with respect to the element exit coordinates.
+Track through the element ignoring any misalignments. For \vn{crystal}
+and \vn{mirror} elements, this includes the transformation from
+\vn{entrance} to \vn{exit element coordinates}.
 \item
-Transform from the element exit coordinates to the laboratory
-coordinates.
+At the exit end of the element, transform from the \vn{element
+reference from} to the \vn{laboratory reference frame}.
 \end{enumerate}
-The \Hyperref{r:offset.particle}{offset_particle} routine is used to
-transform particle coordinates between laboratory and element
-frames. The \Hyperref{r:offset.photon}{offset_photon} routine does an
-analogous job for photons.
+
+The transformation between \vn{local} and \vn{element} reference frames
+will depend upon whether \vn{local} reference frame through the
+element is straight or not. 
 
 \begin{figure}[tb]
   \centering
   \includegraphics[width=5in]{photon-ele-coords.pdf}
-  \caption[Crystal and Mirror Element Coordinates.]
-{Element coordinates for \vn{crystal} and \vn{mirror} elements. For
-clarity, the three coordinate systems are displaced from each
-other. In actuality, the origin $\Bf O$ of all three is the same.
-$\bfhat n$ is the normal to the element surface}
-  \label{f:photon.ele.coords}
+  \caption[Crystal, Mirror, and Multilayer_Mirror Element Coordinates.]
+{Element coordinates for \vn{crystal} (Bragg configuration),
+\vn{mirror}, and \vn{multilayer_mirror} elements. The laboratory
+entrance and exit coordinates are shown as well (assuming no
+misalignments). In actuality, the origin $\Bf O$ of all three are the
+same.  $\bfhat n$ is the normal to the element surface.}
+  \label{f:photon.ele.coords}.
 \end{figure}
-
-\index{crystal}\index{mirror}
-For \vn{straight} elements (\sref{s:ref}), all three element
-coordinate systems are the same and, in this case, all three are
-simply referred to as \vn{element coordinates}.  For \vn{crystal}
-(\sref{s:crystal}) and \vn{mirror} (\sref{s:mirror}) elements, the
-non-straight reference trajectory complicates the geometry. For these
-elements, the three element coordinate systems are shown in
-\fig{f:photon.ele.coords}. In the \vn{element entrance
-coordinates}, the surface normal $\bfhat n$ is in the $x$-$z$ plane
-and the $y$ axis will be parallel to the surface. This is a
-consequence of the convention that, with no \vn{ref_tilt}, the bend is about
-the $y$-axis (\sref{s:global}). The \vn{element body coordinates} are
-derived from the \vn{element entrance coordinates} by a rotation about
-the $y$-axis so that in the body coordinates, the $x$ axis points
-opposite the $\bfhat n$ vector and the $z$-axis is parallel to the
-surface. The \vn{element exit coordinates} will generally have it's
-$y$-axis aligned with the $y$-axes of the other two coordinate
-systems. The exceptional case occurs for a \vn{crystal} element when
-\vn{phi_angle} is nonzero (\sref{ss:crystal.trans}).
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
@@ -350,41 +329,8 @@ the reference photon will be in the center of the Darwin curve. That
 is, the internal wave vectors $\bfKbar_0$ and $\bfKbar_H$ originate
 from the $Q$ point (See \cite{b:batterman} Figs.~8 and 29).
 
-The external incoming wave vector $\bfkbar_0$,
-which is coincident with the element entrance trajectory, lies along
-the element entrance coordinates $z$ axis. In element body coordinates
-(which will be the coordinate system used henceforth), $\bfkbar_0$ thus
-lies in the $x$-$z$ plane. $\bfKbar_0$ is related to $\bfkbar_0$ via
-Batterman Eq.~(25)
-\Begineq
-  \bfK_0 = \bfk_0 + q_0 \, \bfhat n
-  \label{kkqn1}
-\Endeq
-where the value of $q_0$ is to be determined. Here, and in equations
-below, if the equation is true in general, and not just for the
-reference trajectory, the bar superscript is dropped.
-
-Since $\bfhat n$ is in the $-\bfhat x$ direction, $\bfKbar_0$ is also in
-the $x$-$z$ plane. Thus $\bfkbar_0$ and $\bfKbar_0$ can be written in the form
-\Begineq
-  \bfkbar_0 = \frac{1}{\lambda} \, 
-    \begin{pmatrix}
-    \sin\theta_{B,in} \\
-    0 \\
-    \cos\theta_{B,in}
-    \end{pmatrix}
-  \; , \qquad
-  \bfKbar_0 = \frac{1}{\lambda \, (1 + \delta)} \, 
-    \begin{pmatrix}
-    \sin\theta_0 \\
-    0 \\
-    \cos\theta_0
-    \end{pmatrix}
-  \label{k1lst}
-\Endeq
-Where, as shown in \fig{f:crystal.diffraction}, $\theta_{B,in}$,
-and $\theta_0$ are the angles of $\bfkbar_0$ and $\bfKbar_0$ with respect to
-the $z$ axis, and use has been made of the relations
+The external wave vectors $\bf k_0$, and $\bf k_H$ and the internal wave vectors
+have magnitude
 \begin{align}
   |\bf k_0| &= |\bf k_H| = \frac{1}{\lambda} 
   \label{kk1l1} \\
@@ -398,48 +344,87 @@ where $\lambda$ is the wavelength, and $\delta$ is
 with $r_e$ being the classical electron radius, $V$ the unit cell
 volume, and $F_0$ the $F_{(0,0,0)}$ structure factor. 
 
+In element body coordinates (which will be the coordinate system used
+henceforth), $\bfkbar_0$ lies in the $x$-$z$ plane. $\bfKbar_0$ is
+related to $\bfkbar_0$ via Batterman Eq.~(25)
+\Begineq
+  \bfK_0 = \bfk_0 + q_0 \, \bfhat n
+  \label{kkqn1}
+\Endeq
+where the value of $q_0$ is to be determined. Here, and in equations
+below, if the equation is true in general, and not just for the
+reference trajectory, the bar superscript is dropped.
+
+Since $\bfhat n$ is in the $-\bfhat x$ direction, $\bfKbar_0$ is also
+in the $x$-$z$ plane. Thus $\bfkbar_0$ and $\bfKbar_0$ can be written
+in the form
+\begin{alignat}{3}
+  \bfkbar_0 &= \frac{1}{\lambda} \, 
+    \begin{pmatrix}
+    -\cos\theta_{B,in} \\
+    0 \\
+    \sin\theta_{B,in}
+    \end{pmatrix}
+  \; , & \qquad
+  \bfKbar_0 &= \frac{1}{\lambda \, (1 + \delta)} \, 
+    \begin{pmatrix}
+    -\cos\theta_0 \\
+    0 \\
+    \sin\theta_0
+    \end{pmatrix}
+  & \qquad &\mbox{[Bragg]} \CRNO
+  \bfkbar_0 &= \frac{1}{\lambda} \, 
+    \begin{pmatrix}
+    \sin\theta_{B,in} \\
+    0 \\
+    \cos\theta_{B,in}
+    \end{pmatrix}
+  \; , & \qquad
+  \bfKbar_0 &= \frac{1}{\lambda \, (1 + \delta)} \, 
+    \begin{pmatrix}
+    \sin\theta_0 \\
+    0 \\
+    \cos\theta_0
+    \end{pmatrix}
+  &\qquad & \mbox{[Laue]} 
+  \label{k1lst}
+\end{alignat}
+Where, as shown in \fig{f:crystal.diffraction}, $\theta_{B,in}$, and
+$\theta_0$ are the angles of $\bfkbar_0$ and $\bfKbar_0$ with respect
+to the $x$-axis for Bragg reflections and with respect to the $z$-axis
+for Laue reflection.
+
 $\alpha_H$ (\vn{alpha_angle}) is the angle that $\bfH$ makes with
-respect to the $-\bfhat x$ axis and $\psi_H$ (\vn{psi_angle}) is the
-rotation of $\bfH$ around the $-\bfhat x$ axis such that for $\psi_H =
+respect to the $-\bfhat z$ axis and $\psi_H$ (\vn{psi_angle}) is the
+rotation of $\bfH$ around the $-\bfhat z$ axis such that for $\psi_H =
 0$, $\bfH$ is in the $x$-$z$ plane and oriented as shown in
 \fig{f:crystal.diffraction}. Thus
 \Begineq
   \bfH 
   \equiv \frac{1}{d} \, \bfhat{H} 
-  = \begin{cases}
-    \frac{1}{d} \,
-    \begin{pmatrix} 
-       -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi_H \\ \sin \alpha_H \, \cos \psi_H 
-    \end{pmatrix} & \vn{Bragg} \\
-    \frac{1}{d}
+  = \frac{1}{d}
     \begin{pmatrix} 
        -\sin \alpha_H \, \cos \psi_H \\ \sin \alpha_H \, \sin \psi_H \\ -\cos \alpha_H
-    \end{pmatrix} & \vn{Laue}
-  \end{cases}
+    \end{pmatrix}
   \label{h1daa}
 \Endeq
 where $\bfhat{H}$ is $\bfH$ normalized to 1.
 
-The vectors $\bfKbar_0$ and $\bfH$ must add up to the reciprocal lattice vector $\bfKbar_H$
+The vectors $\bfK_0$ and $\bfH$ must add up to the reciprocal lattice vector $\bfK_H$
 \Begineq
   \bfK_H = \bfK_0 + \bfH
 \Endeq
-Using this with \Eqs{k1lst} and \eq{h1daa} gives
+Taking the length of both sides of this equation and using
+\Eqs{kk1l2}, \eq{k1lst}, \eq{h1daa}, and \eq{1l1dk} gives for
+$\theta_0$
 \Begineq
-  \begin{pmatrix} \Kbar_{H,x} \\ \Kbar_{H,y} \\ \Kbar_{H,z} \end{pmatrix}
-  = \frac{1}{\lambda \, (1 + \delta)} \, 
-  \begin{pmatrix} \sin\theta_0 \\ 0 \\ \cos\theta_0 \end{pmatrix}
-  + \frac{1}{d}
-  \begin{pmatrix} 
-    \what{H}_x \\ \what{H}_y \\ \what{H}_z 
-  \end{pmatrix}
-  \label{1l1dk}
-\Endeq
-Taking the length of both sides of \Eq{1l1dk} and using \Eq{kk1l2} gives for 
-$\theta_0$ 
-\Begineq
-  \sin \theta_0 = \frac{-\beta \, \what{H}_x + \what{H}_z \, \sqrt{\what{H}_x^2 + \what{H}_z^2 - \beta^2}}
-  {\what{H}_x^2 + \what{H}_z^2}
+  \sin \theta_0 = 
+  \begin{dcases}
+    \dsfrac{-\beta \, \what{H}_z - \what{H}_x \, \sqrt{\what{H}_x^2 + \what{H}_z^2 - \beta^2}}
+    {\what{H}_x^2 + \what{H}_z^2} & \vn{Bragg} \\
+    \dsfrac{-\beta \, \what{H}_x + \what{H}_z \, \sqrt{\what{H}_x^2 + \what{H}_z^2 - \beta^2}}
+    {\what{H}_x^2 + \what{H}_z^2} & \vn{Laue}
+  \end{dcases}
 \Endeq
 where
 \Begineq
@@ -456,21 +441,10 @@ The outgoing reference wave vector $k_H$ is computed using the equation
   \bfK_H = \bfk_H + q_H \, \bfhat n
   \label{kkqn2}
 \Endeq
-Using \Eqs{kk1l1}, \eq{1l1dk}, and \eq{kkqn2} gives for Bragg diffraction
+Using \Eqs{kk1l1}, \eq{1l1dk}, and \eq{kkqn2} gives 
 \begin{align}
-  \kbar_{H,x} &= -\sqrt{\frac{1}{\lambda^2} - \kbar_{H,y}^2 - \kbar_{H,z}^2} \CRNO
+  \kbar_{H,x} &= \Kbar_{H,z} = \frac{1}{d} \, \what{H}_x + \kbar_{0,x} \\
   \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \, \what{H}_y 
-  \qquad \qquad [\mbox{Bragg}] 
-  \label{k1dapb} \\
-  \kbar_{H,z} &= \Kbar_{H,z} = \frac{1}{d} \, \what{H}_z + 
-    \frac{1}{\lambda \, (1 + \delta)} \, \cos\theta_0 \nonumber
-\end{align}
-and for Laue diffraction the corresponding equations arep
-\begin{align}
-  \kbar_{H,x} &= \Kbar_{H,z} = \frac{1}{d} \, \what{H}_x + 
-    \frac{1}{\lambda \, (1 + \delta)} \, \sin\theta_0 \CRNO
-  \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \, \what{H}_y 
-  \qquad \qquad [\mbox{Laue}] 
   \label{k1dapl} \\
   \kbar_{H,z} &= \sqrt{\frac{1}{\lambda^2} - \kbar_{H,x}^2 - \kbar_{H,y}^2} \nonumber
 \end{align}
@@ -673,14 +647,8 @@ The outgoing wave vector $\bfk_H$ is related to $\bfk_0$ via
 \Endeq
 where $q_t$ is determined by using \Eqs{k1lst} and \eq{h1daa} in \Eq{kk1l1}
 \begin{align}
-  k_{H,x} &= -\sqrt{\lambda^2 - k_{H,y}^2 - k_{H,z}^2} \CRNO
-  k_{H,y} &= k_{0,y} + H_y \qquad\qquad \mbox{[Bragg]} \\
-  k_{H,z} &= k_{0,z} + H_z \nonumber
-\end{align}
-and 
-\begin{align}
   k_{H,x} &= k_{0,x} + H_x \nonumber \CRNO
-  k_{H,y} &= k_{0,y} + H_y \qquad\qquad \mbox{[Laue]} \\
+  k_{H,y} &= k_{0,y} + H_y \\
   k_{H,z} &= \sqrt{\lambda^2 - k_{H,x}^2 - k_{H,y}^2} \nonumber
 \end{align}
 

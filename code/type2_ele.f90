@@ -75,7 +75,7 @@ type (lat_param_struct) param
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
 integer i, i1, j, n, ix, ix_tot, iv, ic, nl2, l_status, a_type, default_val
-integer nl, nt, n_term, n_att, attrib_type, n_char, iz, iy
+integer nl, nt, n_term, n_att, attrib_type, n_char, iy
 
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -464,10 +464,10 @@ if (associated(s)) then
   nl=nl+1; write (li(nl), *) 'Surface Curvature:'
  
   if (s%has_curvature) then
-    do iz = 0, ubound(s%curvature_zy, 1)
-    do iy = 0, ubound(s%curvature_zy, 2)
-      if (s%curvature_zy(iz,iy) == 0) cycle
-      nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_Z', iz, '_Y', iy, ' =', s%curvature_zy(iz,iy)
+    do ix = 0, ubound(s%curvature_xy, 1)
+    do iy = 0, ubound(s%curvature_xy, 2)
+      if (s%curvature_xy(ix,iy) == 0) cycle
+      nl=nl+1; write (li(nl), '(2x, 2(2x, 2(a, i0), a, es14.6))') 'CURVATURE_X', ix, '_Y', iy, ' =', s%curvature_xy(ix,iy)
     enddo
     enddo
   else

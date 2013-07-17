@@ -932,7 +932,7 @@ type (ele_struct), target :: ele
 real(rp), pointer :: ptr_attrib
 
 integer :: ix_attrib
-integer iz, iy
+integer ix, iy
 
 character(40) a_name
 character(*), parameter :: r_name = 'pointer_to_indexed_attribute'
@@ -954,9 +954,9 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then
 
   ! Curvature
   if (a_name(1:4) == 'CURV') then
-    iz = (ix_attrib - a0$) / 5
-    iy = ix_attrib - a0$ - 5 * iz
-    ptr_attrib => ele%surface%curvature_zy(iz,iy)
+    read (a_name(12:12), *) ix
+    read (a_name(15:15), *) iy
+    ptr_attrib => ele%surface%curvature_xy(ix,iy)
 
   ! Multipole
   else

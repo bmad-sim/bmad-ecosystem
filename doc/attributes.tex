@@ -713,15 +713,13 @@ elements
   multilayer_mirror, and 
   crystal
 \end{example}
-For these elements, the \vn{surface} setting is the default.  A
-setting of \vn{surface} means that the aperture limits are calculated
-in the frame of reference of the surface of the element. To keep
-things conceptually simple, the \vn{offset_moves_aperture} setting is
-ignored for these elements. If a \vn{surface} aperture is used, the
-aperture calculation implicitly assumes that
-\vn{offset_moves_aperture} is set to True. For \vn{entrance_end} or
-\vn{exit_end} apertures, the aperture calculation implicitly assumes
-that \vn{offset_moves_aperture} is set to False.
+For these elements, the \vn{surface} setting is the default. Due to
+the complicated geometry of these elements, to keep things
+coceptionally simple, the rule is imposed that, for an aperture at the
+surface, the \vn{offset_moves_aperture} setting must be left in its
+default state of True. Additionally, For \vn{entrance_end} or
+\vn{exit_end} apertures, \vn{offset_moves_aperture} must be set to
+False.
 
 Examples:
 \begin{example}
@@ -830,14 +828,14 @@ defined by the entrance and exit reference orbit. In this coordinate system,
 the surface curvature is parameterized by
 a fourth order polynomial in $z$ and $y$
 \Begineq
-  {-x} = \sum_{2 \le i+j \le 4} c_{ij} \, z^i \, y^j
+  {-z} = \sum_{2 \le i+j \le 4} c_{ij} \, x^i \, y^j
   \label{xs2ij4}
 \Endeq
 The coefficients are set in the lattice file by setting the following
 element attributes
 \index{surface curveture}
 \begin{example}
-  curvature_zM_yN      = <Real>   
+  curvature_xM_yN      = <Real>   
 \end{example}
 where \vn{M} and \vn{N} are integers in the range 0 through 4 with the restriction
 \begin{example}
@@ -845,20 +843,20 @@ where \vn{M} and \vn{N} are integers in the range 0 through 4 with the restricti
 \end{example}
 Example:
 \begin{example}
-  c2: crystal, curvature_z2_y0 = 37, ...
+  c2: crystal, curvature_x2_y0 = 37, ...
 \end{example}
-in this example, \vn{curvature_z2_y0} corresponds to the $c_{20}$ term
-in \Eq{xs2ij4}. To get the effect of a nonzero $z^0\, y^0$, $z^1 \,
-y^0$, or $z^0 \, y^1$ terms (since corresponding \vn{curvature_zN_yM}
+in this example, \vn{curvature_x2_y0} corresponds to the $c_{20}$ term
+in \Eq{xs2ij4}. To get the effect of a nonzero $x^0\, y^0$, $x^1 \,
+y^0$, or $x^0 \, y^1$ terms (since corresponding \vn{curvature_xN_yM}
 are not permitted), element offsets and pitches can be used
 (\sref{s:offset}).
 
 Some useful formulas: Series expansion for a circle of radius $R$:
 \Begineq
-  {-x} = \frac{z^2}{2 \, R} + \frac{z^4}{8 \, R^3} + \frac{z^6}{16 \, R^5} +
+  {-x} = \frac{x^2}{2 \, R} + \frac{x^4}{8 \, R^3} + \frac{x^6}{16 \, R^5} +
          \frac{y^2}{2 \, R} + \frac{y^4}{8 \, R^3} + \frac{y^6}{16 \, R^5} +
-         \frac{z^2 \, y^2}{4 \, R^3} + \frac{3 \, z^4 \, y^2}{16 \, R^5} +
-         \frac{3 \, z^2 \, y^4}{16 \, R^5} 
+         \frac{x^2 \, y^2}{4 \, R^3} + \frac{3 \, x^4 \, y^2}{16 \, R^5} +
+         \frac{3 \, x^2 \, y^4}{16 \, R^5} 
 \Endeq
 If $p$ is the distance from the source to the crystal, and $q$ is the
 distance from the crystal to the detector, the radius of the Rowland

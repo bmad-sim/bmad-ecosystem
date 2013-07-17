@@ -114,13 +114,15 @@ if (set) then
   orbit%field(2) = abs(field(2))
   orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
 
-  ! Set: Rotate by the graze angle to body coords. Note vec(5) = 0 initially.
+  ! Set: Rotate by the graze angle to ele coords. Note vec(5) = 0 initially.
+  ! Note Laue crystals have ele coords such that the rotation is in the opposite direction
 
   select case (ele%key)
   case (crystal$)
     graze = p(bragg_angle_in$) 
+    if (p(b_param$) < 0) graze = graze - pi/2  ! Bragg
   case (mirror$, multilayer_mirror$)
-    graze = p(graze_angle$) 
+    graze = p(graze_angle$) - pi/2
   case default
     graze = 0
   end select
@@ -145,9 +147,10 @@ else
 
     select case (ele%key)
     case (crystal$)
-      graze = p(bragg_angle_out$) 
+      graze = p(bragg_angle_out$)
+      if (p(b_param$) < 0) graze = graze + pi/2  ! Bragg
     case (mirror$, multilayer_mirror$)
-      graze = p(graze_angle$) 
+      graze = p(graze_angle$) + pi/2
     end select
 
     sin_g = sin(graze)
