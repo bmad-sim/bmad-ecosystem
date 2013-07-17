@@ -24,7 +24,7 @@ contains
 !
 ! Subroutine to check if an orbit is outside an element's aperture.
 ! Note: A particle will also be considered to have hit an aperture
-! if |p_x| or |p_y| > 1.
+! if |p_x| or |p_y| > 1 
 !
 ! Modules needed:
 !   use bmad
@@ -55,7 +55,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct), intent(inout) :: param
 
-real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r
+real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r, rel_p
 integer i, particle_at, physical_end
 logical do_tilt, err
 logical, optional :: check_momentum
@@ -90,13 +90,23 @@ endif
 ! Check p_x and p_y
 
 if (logic_option(.true., check_momentum)) then
-  if (abs(orb%vec(2)) > 1+orb%vec(6) .and. abs(orb%vec(2)) > abs(orb%vec(4))) then
+  if (orb%species == photon$) then
+    rel_p = 1
+    if (abs(orb%vec(6)) > 1) then
+      orb%state = lost_z_aperture$
+      return
+    endif
+  else
+    rel_p = 1 + orb%vec(6)
+  endif
+
+  if (abs(orb%vec(2)) > rel_p .and. abs(orb%vec(2)) > abs(orb%vec(4))) then
     if (orb%vec(2) > 0) then; orb%state = lost_pos_x_aperture$
     else;                     orb%state = lost_neg_x_aperture$
     endif
     param%unstable_factor = 100 * abs(orb%vec(2)) 
     return
-  elseif (abs(orb%vec(4)) > 1 + orb%vec(6)) then
+  elseif (abs(orb%vec(4)) > rel_p) then
     if (orb%vec(4) > 0) then; orb%state = lost_pos_y_aperture$
     else;                     orb%state = lost_neg_y_aperture$
     endif
