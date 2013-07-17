@@ -61,7 +61,7 @@ do ib = 0, ubound(lat%branch, 1)
         final_str = '"' // trim(ele%name) // ':' // trim(tracking_method_name(j)) // '"' 
         write (1,'(2a,7es18.10)') final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
         if (branch%param%particle == photon$) then
-          write (1, '(4a, 2es18.10)') '"', trim(ele%name), ':E_Field', '"              REL 1E-10', end_orb%field
+          write (1, '(4a, 2es18.10)') '"', trim(ele%name), ':E_Field', '"              REL 5E-08', end_orb%field
         endif
      END DO
      write (1,*)
@@ -74,21 +74,21 @@ close(1)
 contains
   
 character(10) function tolerance(instr)
-  character(38) :: instr
+character(38) :: instr
 
   select case (instr)
-     case('"RFCAVITY1:Time_Runge_Kutta"') ; tolerance = 'REL  1E-08'
-     case('"RFCAVITY2:Linear"')           ; tolerance = 'REL  1E-07'
-     case('"RFCAVITY2:Time_Runge_Kutta"') ; tolerance = 'REL  1E-08'
-     case('"SBEND4:Symp_Lie_PTC"')        ; tolerance = 'REL  1E-03'
-     case('"SBEND4:Linear"')              ; tolerance = 'REL  1E-03'
-     case('"SBEND6:Symp_Lie_PTC"')        ; tolerance = 'REL  1E-03'
-     case('"SBEND6:Linear"')              ; tolerance = 'REL  1E-03'
-     case('"LCAVITY1:Time_Runge_Kutta"')  ; tolerance = 'REL  1E-08'
-     case('"LCAVITY3:Time_Runge_Kutta"')  ; tolerance = 'REL  1E-08'
-     case default                         ; tolerance = 'REL  1E-10'
+    case('"MIRROR1:Bmad_Standard"')      ; tolerance = 'ABS  1E-09'
+    case('"RFCAVITY1:Time_Runge_Kutta"') ; tolerance = 'REL  1E-08'
+    case('"RFCAVITY2:Linear"')           ; tolerance = 'REL  1E-07'
+    case('"RFCAVITY2:Time_Runge_Kutta"') ; tolerance = 'REL  1E-08'
+    case('"SBEND4:Symp_Lie_PTC"')        ; tolerance = 'REL  1E-03'
+    case('"SBEND4:Linear"')              ; tolerance = 'REL  1E-03'
+    case('"SBEND6:Symp_Lie_PTC"')        ; tolerance = 'REL  1E-03'
+    case('"SBEND6:Linear"')              ; tolerance = 'REL  1E-03'
+    case('"LCAVITY1:Time_Runge_Kutta"')  ; tolerance = 'REL  1E-08'
+    case('"LCAVITY3:Time_Runge_Kutta"')  ; tolerance = 'REL  1E-08'
+    case default                         ; tolerance = 'REL  1E-10'
   end select
 
 end function tolerance
-
 end program
