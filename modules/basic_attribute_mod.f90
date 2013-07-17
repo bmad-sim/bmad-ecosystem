@@ -282,7 +282,7 @@ subroutine init_attribute_name_array ()
 implicit none
 
 type (photon_surface_struct) surface
-integer i, j, num, iz, iy
+integer i, j, num, ix, iy
 character(40) word
 
 !
@@ -304,11 +304,11 @@ do i = 1, n_key$
   if (i == crystal$ .or. i == multilayer_mirror$ .or. i == mirror$) then
     call init_attribute_name1 (i, ref_tilt_tot$,              'REF_TILT_TOT', dependent$)
     num = a0$ - 1
-    do iz = 0, ubound(surface%curvature_zy, 1)
-    do iy = 0, ubound(surface%curvature_zy, 2)
-      if (iz+iy < 2) cycle
-      if (iz+iy > ubound(surface%curvature_zy, 1)) cycle
-      write (word, '(a, i1, a, i1)') 'CURVATURE_Z', iz, '_Y', iy
+    do ix = 0, ubound(surface%curvature_xy, 1)
+    do iy = 0, ubound(surface%curvature_xy, 2)
+      if (ix+iy < 2) cycle
+      if (ix+iy > ubound(surface%curvature_xy, 1)) cycle
+      write (word, '(a, i1, a, i1)') 'CURVATURE_X', ix, '_Y', iy
       num = num + 1
       call init_attribute_name1 (i, num, word) 
     enddo

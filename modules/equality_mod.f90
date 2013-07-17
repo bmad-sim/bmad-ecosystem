@@ -704,7 +704,7 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[real, 2, NOT]
-is_eq = is_eq .and. all(f1%curvature_zy == f2%curvature_zy)
+is_eq = is_eq .and. all(f1%curvature_xy == f2%curvature_xy)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%has_curvature .eqv. f2%has_curvature)
 

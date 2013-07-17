@@ -2304,7 +2304,7 @@ case (crystal$, multilayer_mirror$)
     call multilayer_type_to_multilayer_params (ele, err_flag)
   endif
 
-  ele%surface%has_curvature = (any(ele%surface%curvature_zy /= 0))
+  ele%surface%has_curvature = (any(ele%surface%curvature_xy /= 0))
 
 ! Elseparator
 

@@ -59,7 +59,7 @@ real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r, rel_p
 integer i, particle_at, physical_end
 logical do_tilt, err
 logical, optional :: check_momentum
-character(20) :: r_name = 'check_aperture_limit'
+character(*), parameter :: r_name = 'check_aperture_limit'
 
 ! Super_slave elements have the aperture info stored in the lord
 
@@ -115,35 +115,42 @@ if (logic_option(.true., check_momentum)) then
   endif
 endif
 
-!
+! A photon at the surface will have the appropriate coords already so do not need to offset.
 
+select case (ele%key)
+case (crystal$, mirror$, multilayer_mirror$)
 
-if (param%particle == photon$) then
-  if (ele%aperture_at == surface$) then  ! Assumes offset_moves_aperture = T
+  select case (ele%aperture_at)
+  case (surface$)
+    if (.not. ele%offset_moves_aperture) then 
+      call out_io (s_error$, r_name, 'Surface aperture must have offset_moves_aperture = True for element: ' // ele%name)
+    endif
+  case default
+    if (ele%offset_moves_aperture) then 
+      call out_io (s_error$, r_name, 'Non-Surface aperture must have offset_moves_aperture = False for element: ' // ele%name)
+    endif
+  end select
+
+  x_particle = orb%vec(1)
+  y_particle = orb%vec(3)
+
+case default
+  if (ele%offset_moves_aperture .and. (physical_end == entrance_end$ .or. physical_end == exit_end$)) then
+    do_tilt = .false.
+    if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
     orb2 = orb
-    call offset_photon (ele, orb2, set$, offset_position_only = .true.)
-    x_particle = -orb2%vec(5)
+    s_here = orb2%s - (ele%s - ele%value(l$))
+    call offset_particle (ele, orb2, param, set$, set_canonical = .false., &
+                 set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
+                 ds_pos = s_here)
+    x_particle = orb2%vec(1)
     y_particle = orb2%vec(3)
-  else                                   ! Assumes offset_moves_aperture = F
+
+  else
     x_particle = orb%vec(1)
     y_particle = orb%vec(3)
   endif
-
-elseif (ele%offset_moves_aperture .and. (physical_end == entrance_end$ .or. physical_end == exit_end$)) then
-  do_tilt = .false.
-  if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
-  orb2 = orb
-  s_here = orb2%s - (ele%s - ele%value(l$))
-  call offset_particle (ele, orb2, param, set$, set_canonical = .false., &
-               set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
-               ds_pos = s_here)
-  x_particle = orb2%vec(1)
-  y_particle = orb2%vec(3)
-
-else
-  x_particle = orb%vec(1)
-  y_particle = orb%vec(3)
-endif
+end select
 
 !
 

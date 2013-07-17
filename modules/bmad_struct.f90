@@ -160,7 +160,6 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: charge = 0          ! macro charge (Coul).
   real(rp) :: p0c = 0             ! For non-photons: Reference momentum.
                                   !     For photons: Photon momentum (not reference).
-                                  !     Notice that z and s are counter-aligned in reversed elements.
   real(rp) :: beta = -1           ! Velocity / c_light.
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.
@@ -405,7 +404,7 @@ end type
 ! Rule: This structure is always allocated in the ele_struct for elements that need it.
 
 type photon_surface_struct
-  real(rp) :: curvature_zy(0:6,0:6) = 0
+  real(rp) :: curvature_xy(0:6,0:6) = 0
   logical :: has_curvature = .false.
 end type
 

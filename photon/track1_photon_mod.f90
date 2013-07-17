@@ -51,6 +51,7 @@ val => ele%value
 wavelength = c_light * h_planck / orbit%p0c
 
 call to_surface_coords (ele, orbit)
+if (orbit%state /= alive$) return
 
 ! Check aperture
 
@@ -61,7 +62,7 @@ endif
 
 ! Reflect momentum vector
 
-orbit%vec(2) = -orbit%vec(2)
+orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
@@ -110,6 +111,7 @@ val => ele%value
 wavelength = c_light * h_planck / orbit%p0c
 
 call to_surface_coords (ele, orbit)
+if (orbit%state /= alive$) return
 
 ! Check aperture
 
@@ -124,9 +126,9 @@ endif
 xi_1 = cmplx(-val(f0_re1$), val(f0_im1$)) * r_e * wavelength**2 / (pi * val(v1_unitcell$)) 
 xi_2 = cmplx(-val(f0_re2$), val(f0_im2$)) * r_e * wavelength**2 / (pi * val(v2_unitcell$)) 
 
-kz1 = twopi * sqrt(orbit%vec(2)**2 + xi_1) / wavelength
-kz2 = twopi * sqrt(orbit%vec(2)**2 + xi_2) / wavelength
-kz_air = twopi * orbit%vec(2) / wavelength
+kz1 = twopi * sqrt(orbit%vec(6)**2 + xi_1) / wavelength
+kz2 = twopi * sqrt(orbit%vec(6)**2 + xi_2) / wavelength
+kz_air = twopi * orbit%vec(6) / wavelength
 
 c1 = exp(I_imaginary * kz1 * val(d1_thickness$) / 2)
 c2 = exp(I_imaginary * kz2 * val(d2_thickness$) / 2)
@@ -138,7 +140,7 @@ call multilayer_track (zero, zero, orbit%field(2), orbit%phase(2))     ! sigma p
 
 ! Reflect momentum vector
 
-orbit%vec(2) = -orbit%vec(2)
+orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
@@ -268,6 +270,8 @@ wavelength = c_light * h_planck / orbit%p0c
 ! k0_outside_norm is normalized to 1.
 
 call to_surface_coords (ele, orbit)
+if (orbit%state /= alive$) return
+
 old_vec = orbit%vec
 
 ! Check aperture
@@ -279,7 +283,7 @@ endif
 
 ! Construct h_norm = H * wavelength.
 
-h_norm = [-ele%value(h_x_norm$), ele%value(h_y_norm$), ele%value(h_z_norm$)] * wavelength / ele%value(d_spacing$)
+h_norm = [ele%value(h_x_norm$), ele%value(h_y_norm$), ele%value(h_z_norm$)] * wavelength / ele%value(d_spacing$)
 
 ! kh_outside_norm is the normalized outgoing wavevector outside the crystal
 
@@ -288,14 +292,13 @@ c_param%cap_gamma = r_e * wavelength**2 / (pi * ele%value(v_unitcell$))
 orbit%vec(2:6:2) = orbit%vec(2:6:2) + h_norm
 
 if (ele%value(b_param$) < 0) then ! Bragg
-  orbit%vec(2) = -sqrt(1 - orbit%vec(4)**2 - orbit%vec(6)**2)
-  gamma_0 = old_vec(2)
-  gamma_h = orbit%vec(2)
+  orbit%vec(6) = -sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
 else
   orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
-  gamma_0 = old_vec(6)
-  gamma_h = orbit%vec(6)
 endif
+
+gamma_0 = old_vec(6)
+gamma_h = orbit%vec(6)
 
 !-------------------------------------
 ! Calculate phase and intensity
@@ -394,11 +397,12 @@ end subroutine e_field_calc
 ! Routine to adjust the photon position to be at the surface
 !
 ! Input:
-!   ele                -- ele_struct: Element
-!   orbit              -- coord_struct: Input coordinates
+!   ele        -- ele_struct: Element
+!   orbit      -- coord_struct: Input coordinates
 !
 ! Output:
-!   orbit              -- coord_struct: Input coordinates
+!   orbit      -- coord_struct: Input coordinates
+!   err        -- logical: Set true if surface intersection cannot be found. 
 !-
 
 subroutine to_surface_coords (ele, orbit)
@@ -411,7 +415,7 @@ type (ele_struct) ele
 type (coord_struct) orbit
 
 real(rp) :: s_len, s1, s2, s_center
-
+character(*), parameter :: r_name = 'to_surface_coords'
 
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
@@ -421,11 +425,7 @@ if (ele%surface%has_curvature) then
   ! Assume flat crystal, compute s required to hit the intersection
   ! Choose a Bracket of 1m around this point.
 
-  if (ele%key == crystal$ .and. ele%value(b_param$) > 0) then ! Laue
-    s_center = orbit%vec(5) / orbit%vec(6)
-  else
-    s_center = orbit%vec(1) / orbit%vec(2)
-  endif
+  s_center = orbit%vec(5) / orbit%vec(6)
 
   s1 = s_center
   s2 = s_center
@@ -433,11 +433,23 @@ if (ele%surface%has_curvature) then
     do
       s1 = s1 - 0.1
       if (photon_depth_in_crystal(s1) < 0) exit
+      if (s1 < -10) then
+        call out_io (s_warn$, r_name, &
+              'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
+        orbit%state = lost$
+        return
+      endif
     enddo
   else
     do
       s2 = s2 + 0.1
       if (photon_depth_in_crystal(s2) > 0) exit
+      if (s1 > 10) then
+        call out_io (s_warn$, r_name, &
+              'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
+        orbit%state = lost$
+        return
+      endif
     enddo
   endif
 
@@ -451,8 +463,8 @@ if (ele%surface%has_curvature) then
   call to_curved_body_coords (ele, orbit, set$)
 
 else
-  s_len = -orbit%vec(1) / orbit%vec(2)
-  orbit%vec(1:5:2) = orbit%vec(1:5:2) + s_len * orbit%vec(2:6:2) ! Surface is at x = 0
+  s_len = -orbit%vec(5) / orbit%vec(6)
+  orbit%vec(1:5:2) = orbit%vec(1:5:2) + s_len * orbit%vec(2:6:2) ! Surface is at z = 0
   orbit%t = orbit%t + s_len / c_light
 endif
 
@@ -463,9 +475,9 @@ contains
 ! Function photon_depth_in_crystal (s_len) result (delta_h)
 ! 
 ! Private routine to be used as an argument in zbrent. Propagates
-! photon forward by a distance s_len. Returns delta_h = x-x0
-! where x0 is the height of the crystal surface. 
-! Since positive x points inward, positive delta_h => inside crystal.
+! photon forward by a distance s_len. Returns delta_h = z-z0
+! where z0 is the height of the crystal surface. 
+! Since positive z points inward, positive delta_h => inside crystal.
 !
 ! Input:
 !   s_len   -- Real(rp): Place to position the photon.
@@ -482,28 +494,22 @@ type (photon_surface_struct), pointer :: surface
 
 real(rp), intent(in) :: s_len
 real(rp) :: delta_h
-real(rp) :: point(3), z, y
-integer iz, iy
+real(rp) :: point(3), x, y
+integer ix, iy
 
 !
 
 point = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
 
-if (ele%key == crystal$ .and. ele%value(b_param$) > 0) then ! Laue
-  z = point(1)
-  delta_h = point(3)
-else
-  z = point(3)
-  delta_h = point(1)
-endif
-
+x = point(1)
 y = point(2)
+delta_h = point(3)
 surface => ele%surface
 
-do iz = 0, ubound(surface%curvature_zy, 1)
-do iy = 0, ubound(surface%curvature_zy, 2) - iz
-  if (ele%surface%curvature_zy(iz, iy) == 0) cycle
-  delta_h = delta_h + surface%curvature_zy(iz, iy) * y**iy * z**iz
+do ix = 0, ubound(surface%curvature_xy, 1)
+do iy = 0, ubound(surface%curvature_xy, 2) - ix
+  if (ele%surface%curvature_xy(ix, iy) == 0) cycle
+  delta_h = delta_h + surface%curvature_xy(ix, iy) * x**ix * y**iy
 enddo
 enddo
 
@@ -542,8 +548,8 @@ type (coord_struct) orbit
 type (photon_surface_struct), pointer :: s
 
 real(rp) curverot(3,3), angle
-real(rp) slope_t, slope_c, cos_c, sin_c, cos_t, sin_t, y, z
-integer iz, iy
+real(rp) slope_y, slope_x, x, y
+integer ix, iy
 
 logical set
 
@@ -551,26 +557,27 @@ logical set
 
 s => ele%surface
 
-slope_c = 0
-slope_t = 0
+slope_x = 0
+slope_y = 0
+
+x = orbit%vec(1)
 y = orbit%vec(3)
-z = orbit%vec(5)
 
-do iz = 0, ubound(s%curvature_zy, 1)
-do iy = 0, ubound(s%curvature_zy, 2) - iz
-  if (s%curvature_zy(iz, iy) == 0) cycle
-  if (iz > 0) slope_c = slope_c - iz * s%curvature_zy(iz, iy) * y**iy * z**(iz-1)
-  if (iy > 0) slope_t = slope_t - iy * s%curvature_zy(iz, iy) * y**(iy-1) * z**iz
+do ix = 0, ubound(s%curvature_xy, 1)
+do iy = 0, ubound(s%curvature_xy, 2) - ix
+  if (s%curvature_xy(ix, iy) == 0) cycle
+  if (ix > 0) slope_x = slope_x - ix * s%curvature_xy(ix, iy) * x**(ix-1) * y**iy
+  if (iy > 0) slope_y = slope_y - iy * s%curvature_xy(ix, iy) * x**ix * y**(iy-1)
 enddo
 enddo
 
-if (slope_c == 0 .and. slope_t == 0) return
+if (slope_x == 0 .and. slope_y == 0) return
 
 ! Compute rotation matrix and goto body element coords at point of photon impact
 
-angle = atan2(sqrt(slope_c**2 + slope_t**2), 1.0_rp)
+angle = atan2(sqrt(slope_x**2 + slope_y**2), 1.0_rp)
 if (set) angle = -angle
-call axis_angle_to_w_mat ([0.0_rp, slope_c, -slope_t], angle, curverot)
+call axis_angle_to_w_mat ([slope_y, -slope_x, 0.0_rp], angle, curverot)
 
 orbit%vec(2:6:2) = matmul(curverot, orbit%vec(2:6:2))
 
