@@ -32,7 +32,7 @@ implicit none
 type (ele_struct), target :: ele
 type (coord_struct), target :: orbit
 
-real(rp) graze2, offset(6), tilt, r(3), ds_center, graze, sin_g, cos_g
+real(rp) graze2, offset(6), tilt, r(3), ds_center, rot_angle, sin_g, cos_g
 real(rp) off(3), rot(3), project(3,3), rot_mat(3,3)
 real(rp), pointer :: p(:), vec(:)
 
@@ -114,22 +114,22 @@ if (set) then
   orbit%field(2) = abs(field(2))
   orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
 
-  ! Set: Rotate by the graze angle to ele coords. Note vec(5) = 0 initially.
-  ! Note Laue crystals have ele coords such that the rotation is in the opposite direction
+  ! Set: Rotate to ele coords. Note vec(5) = 0 initially.
+  ! Note: Laue crystals have ele coords such that the rotation is in the opposite direction
 
   select case (ele%key)
   case (crystal$)
-    graze = p(bragg_angle_in$) 
-    if (p(b_param$) < 0) graze = graze - pi/2  ! Bragg
+    rot_angle = p(bragg_angle_in$) 
+    if (p(b_param$) < 0) rot_angle = rot_angle - pi/2  ! Bragg
   case (mirror$, multilayer_mirror$)
-    graze = p(graze_angle$) - pi/2
+    rot_angle = p(graze_angle$) - pi/2
   case default
-    graze = 0
+    rot_angle = 0
   end select
 
-  if (graze /= 0) then
-    sin_g = sin(graze)
-    cos_g = cos(graze)
+  if (rot_angle /= 0) then
+    sin_g = sin(rot_angle)
+    cos_g = cos(rot_angle)
 
     orbit%vec(2:6:2) =  [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
                         -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
@@ -147,14 +147,14 @@ else
 
     select case (ele%key)
     case (crystal$)
-      graze = p(bragg_angle_out$)
-      if (p(b_param$) < 0) graze = graze + pi/2  ! Bragg
+      rot_angle = p(bragg_angle_out$)
+      if (p(b_param$) < 0) rot_angle = rot_angle + pi/2  ! Bragg
     case (mirror$, multilayer_mirror$)
-      graze = p(graze_angle$) + pi/2
+      rot_angle = p(graze_angle$) + pi/2
     end select
 
-    sin_g = sin(graze)
-    cos_g = cos(graze)
+    sin_g = sin(rot_angle)
+    cos_g = cos(rot_angle)
 
     ! Translate momentum to laboratory exit coords
     ! and compute position, backpropagating the ray.

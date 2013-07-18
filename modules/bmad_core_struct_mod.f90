@@ -1101,7 +1101,7 @@ orb%spin      = orb_save%spin
 orb%field     = orb_save%field
 orb%phase     = orb_save%phase
 orb%charge    = orb_save%charge
-orb%species   = orb_save%species
+if (orb_save%species /= not_set$) orb%species   = orb_save%species
 if (orb%beta == 0) orb%t = orb_save%t
 
 end subroutine init_coord2

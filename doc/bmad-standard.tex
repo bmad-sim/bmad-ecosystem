@@ -413,9 +413,10 @@ where $\bfhat{H}$ is $\bfH$ normalized to 1.
 The vectors $\bfK_0$ and $\bfH$ must add up to the reciprocal lattice vector $\bfK_H$
 \Begineq
   \bfK_H = \bfK_0 + \bfH
+  \label{kkh}
 \Endeq
 Taking the length of both sides of this equation and using
-\Eqs{kk1l2}, \eq{k1lst}, \eq{h1daa}, and \eq{1l1dk} gives for
+\Eqs{kk1l2}, \eq{k1lst}, and \eq{h1daa} gives for
 $\theta_0$
 \Begineq
   \sin \theta_0 = 
@@ -441,7 +442,7 @@ The outgoing reference wave vector $k_H$ is computed using the equation
   \bfK_H = \bfk_H + q_H \, \bfhat n
   \label{kkqn2}
 \Endeq
-Using \Eqs{kk1l1}, \eq{1l1dk}, and \eq{kkqn2} gives 
+Using this with \Eqs{h1daa} and \eq{kkh} gives
 \begin{align}
   \kbar_{H,x} &= \Kbar_{H,z} = \frac{1}{d} \, \what{H}_x + \kbar_{0,x} \\
   \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \, \what{H}_y 
@@ -557,7 +558,7 @@ the transformation $\Bf\Sigma_2$ from element entrance coordinates to element bo
 coordinates is not affected by a finite $\psi_H$ and so \Eq{mt0t010}
 is unmodified. The $\bfk_H$ vector, expressed in laboratory entrance
 coordinates, is $\Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H$ where the
-components of $\bfk_H$ are given by \Eq{k1dapb} or Eq\eq{k1dapl}. To
+components of $\bfk_H$ are given by \Eq{k1dapl}. To
 satisfy \Eq{lrca1}, this vector must have zero $y$ component
 \Begineq
   \left( \Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H \right) \cdot

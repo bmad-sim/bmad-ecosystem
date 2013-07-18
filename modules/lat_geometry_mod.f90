@@ -254,13 +254,10 @@ type (lat_param_struct) param
 
 real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
-real(rp) r0(3), w0_mat(3,3)
+real(rp) r0(3), w0_mat(3,3), rot_angle
 real(rp) chord_len, angle, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
-real(rp), save :: old_theta = 100  ! garbage number
-real(rp), save :: old_phi, old_psi
-real(rp), save :: s_ang, c_ang
-real(rp), save :: w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
+real(rp) :: s_ang, c_ang, w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
 integer i, key, n_loc
 
@@ -270,7 +267,6 @@ logical, optional :: treat_as_patch
 character(16), parameter :: r_name = 'ele_geometry'
 
 ! Init
-! old_theta is used to tell if we have to reconstruct the w_mat
 
 ele%bookkeeping_state%floor_position = ok$
 len_factor = ele%orientation * real_option(1.0_rp, len_scale)
@@ -316,15 +312,23 @@ if (key == fiducial$ .or. key == girder$) then
 
     case (center_pt$)
       select case (ele0%key)
-      case (crystal$)
+      case (crystal$, mirror$, multilayer_mirror$)
         ele00 => pointer_to_next_ele(ele0, -1)
         call floor_angles_to_w_mat (ele00%floor%theta, ele00%floor%phi, ele00%floor%psi, w_mat)
-        if (ele%value(tilt_corr$) /= 0) then
-          call w_mat_for_tilt(t_mat, ele%value(tilt_corr$))
-          w_mat = matmul(w_mat, t_mat)
-        endif
-        ! By definition positive graze angle is equivalent to negative x_pitch
-        call w_mat_for_x_pitch (s_mat, -ele0%value(bragg_angle_in$))
+
+        select case (ele0%key)
+        case (crystal$)
+          if (ele0%value(tilt_corr$) /= 0) then
+            call w_mat_for_tilt(t_mat, ele0%value(tilt_corr$))
+            w_mat = matmul(w_mat, t_mat)
+          endif
+          rot_angle = ele0%value(bragg_angle_in$) 
+          if (ele0%value(b_param$) < 0) rot_angle = rot_angle - pi/2  ! Bragg
+        case (mirror$, multilayer_mirror$)
+          rot_angle = ele0%value(graze_angle$) - pi/2
+        end select
+
+        call w_mat_for_x_pitch (s_mat, -rot_angle)
         w_mat = matmul (w_mat, s_mat)
 
         if (ele0%value(ref_tilt_tot$) /= 0) then
@@ -394,9 +398,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
          phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == floor_shift$ .or. &
          (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
-  if (old_theta /= theta .or. old_phi /= phi .or. old_psi /= psi) then
-    call floor_angles_to_w_mat (theta, phi, psi, w_mat)
-  endif
+  call floor_angles_to_w_mat (theta, phi, psi, w_mat)
 
   !
 
@@ -491,12 +493,6 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
     floor%r = floor%r + w_mat(:,3) * leng
 
   end select
-
-  ! Save
-
-  old_theta = theta
-  old_phi   = phi
-  old_psi   = psi
 
 ! Simple case where the local reference frame stays in the horizontal plane.
 

@@ -953,20 +953,6 @@ to do tracking, transfer matrix calculations, etc. See the programmer
 who wrote the custom routines for more details! See
 \sref{s:custom.ele} on how to write custom routines.
 
-\index{tracking_method}\index{mat6_calc_method}\index{field_calc}
-As an alternative to defining a custom element, standard elements can
-be ``customized'' by setting one or more of the following attributes
-to \vn{custom}:
-\begin{example}
-  tracking_method       \sref{s:tkm}
-  mat6_calc_method      \sref{s:xfer}
-  field_calc            \sref{s:integ}
-  aperture_type         \sref{s:limit}
-\end{example}
-As with a custom element, setting one of these attributes to
-\vn{custom} necessitates the use of custom code to implement the
-corresponding calculation.
-
 General \vn{custom} attributes are:
 \begin{center}
 \tt
@@ -981,6 +967,20 @@ General \vn{custom} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+
+\index{tracking_method}\index{mat6_calc_method}\index{field_calc}
+As an alternative to defining a custom element, standard elements can
+be ``customized'' by setting one or more of the following attributes
+to \vn{custom}:
+\begin{example}
+  tracking_method       \sref{s:tkm}
+  mat6_calc_method      \sref{s:xfer}
+  field_calc            \sref{s:integ}
+  aperture_type         \sref{s:limit}
+\end{example}
+As with a custom element, setting one of these attributes to
+\vn{custom} necessitates the use of custom code to implement the
+corresponding calculation.
 
 \index{delta_e}
 \index{val1,  ..., Val12}
@@ -1142,13 +1142,13 @@ attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
-  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+  {\sl Attribute Class}    & \s                & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits          & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Chamber wall             & \ref{s:wall}      & Length                     & \ref{s:l}       \HH 
+  Description strings      & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Field table or map       & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH
+  Hkick \& Vkick           & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \HH
+  Integration settings     & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1434,12 +1434,15 @@ element. Example:
 \end{example}
 In this example, girder \vn{g2} has an \vn{origin} reference frame
 coincident with the entrance end frame of an element named
-\vn{Q}. Valid \vn{origin_ele_ref_pt} values are
+\vn{Q}. Valid values are
 \begin{example}
   entrance_end
   center        ! Default
   exit_end
 \end{example}
+For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements,
+setting \vn{origin_ele_ref_pt} to \vn{center} results in the reference
+frame being the frame of the surface (cf.~\fig{f:surface}).
 
 If \vn{origin_ele} is not given, the default \vn{origin} frame is
 used. The default \vn{origin} frame is constructed as follows:
@@ -1708,7 +1711,7 @@ General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
   Symplectify            & \ref{s:symp}        & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}      & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}       & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:alias}      & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}       & Is_on                      & \ref{s:is.on}   \HH 
   Integration settings   & \ref{s:integ}       & Hkick \& Vkick             & \ref{s:kick}    \HH
   Instrumental variables & \ref{s:meas.attrib} & Chamber wall               & \ref{s:wall}    \HH
 \end{tabular}
