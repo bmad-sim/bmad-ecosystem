@@ -543,6 +543,11 @@ type mode_info_struct
   real(rp) sigmap    ! Beam divergence.
 end type
 
+type normal_form_struct
+  type (taylor_struct) m(6), a(6), a_inv(6), dhdj(6)
+  type (ele_struct), pointer :: ele_origin
+end type
+
 !
 
 type branch_struct
@@ -559,6 +564,7 @@ type branch_struct
   type (lat_param_struct), pointer :: param => null()
   type (wall3d_struct), pointer :: wall3d => null()
   type (ptc_branch1_info_struct) ptc
+  type (normal_form_struct) normal_form_with_rf, normal_form_no_rf
 end type
 
 integer, parameter :: opal$ = 1, impactt$ = 2
