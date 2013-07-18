@@ -549,7 +549,7 @@ type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
 type (ele_struct), pointer :: from_ele, ele0
 type (coord_struct) pos
-type (coord_struct), pointer :: orb0
+type (coord_struct), pointer :: orb0, orb_in
 type (spin_polar_struct) :: polar
 type (branch_struct), pointer :: branch
 
@@ -582,16 +582,13 @@ endif
 ! This is important with common_lattice since tao_lat%lat_branch(0)%orbit(0) has been overwritten.
 
 if (model%lat%branch(ix_branch)%param%geometry == open$) then
-  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat%beam_start, &
-                                                 model%lat%ele(0), .true., branch%param%particle)
+  orb_in => model%lat%beam_start
 else
-  call init_coord (model%lat_branch(ix_branch)%orbit(0), model%lat_branch(ix_branch)%orb0, &
-                                                 model%lat%ele(0), .true., branch%param%particle)
+  orb_in => model%lat_branch(ix_branch)%orbit(0)
 endif
 
 orb0 => model%lat_branch(ix_branch)%orbit(0)
-
-! 
+call init_coord (orb0, orb_in, model%lat%ele(0), .true., branch%param%particle, 1, orb_in%p0c)
 
 polar%theta = u%beam%beam_init%spin%theta
 polar%phi = u%beam%beam_init%spin%phi
@@ -618,6 +615,7 @@ type (lat_param_struct), pointer :: param
 type (branch_struct), pointer :: branch
 type (beam_init_struct), pointer :: beam_init
 type (beam_struct), pointer :: beam
+type (coord_struct), pointer :: orbit
 
 real(rp) v(6)
 integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib, ie
@@ -672,10 +670,10 @@ if (u%beam%beam0_file /= "") then
     do i = 1, size(beam%bunch)
       n = n + size(beam%bunch(i)%particle)
       do j = 1, size(beam%bunch(i)%particle)
-        beam%bunch(i)%particle(j)%vec = beam%bunch(i)%particle(j)%vec + model%lat%beam_start%vec
-        if (beam%bunch(i)%particle(j)%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
-        call init_coord (beam%bunch(i)%particle(j), beam%bunch(i)%particle(j), &
-                         branch%ele(0), .true., branch%param%particle, +1, beam%bunch(i)%t_center)
+        orbit => beam%bunch(i)%particle(j)
+        orbit%vec = orbit%vec + model%lat%beam_start%vec
+        if (orbit%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
+        call init_coord (orbit, orbit, branch%ele(0), .true., branch%param%particle, +1, orbit%p0c, beam%bunch(i)%t_center)
       enddo
     enddo
     call out_io (s_info$, r_name, &

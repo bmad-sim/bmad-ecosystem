@@ -322,7 +322,7 @@ case ('beam')
       nl=nl+1; write(lines(nl), imt) 'n_particle                  = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                     = ', size(beam%bunch)
       nl=nl+1; write(lines(nl), rmt) 'bunch_charge                = ', beam%bunch(1)%charge
-      nl=nl+1; write(lines(nl), amt) 'bunch_species               = ', trim(particle_name(beam%bunch(1)%particle(1)%species))
+      nl=nl+1; write(lines(nl), amt) 'bunch_species               = ', trim(species_name(beam%bunch(1)%particle(1)%species))
     endif
     if (u%beam%beam_all_file == '' .and. u%beam%beam0_file == '') then
       beam_init => u%beam%beam_init
@@ -526,7 +526,7 @@ case ('branch')
     nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from ele               =', branch%ix_from_ele
     nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_track               =', branch%n_ele_track
     nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_max                 =', branch%n_ele_max
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%particle            = ' // trim(particle_name(branch%param%particle))
+    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%particle            = ' // trim(species_name(branch%param%particle))
     nl=nl+1; write (lines(nl), '(a, f6.1)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
     nl=nl+1; write (lines(nl), '(a, a)')   '%param%geometry            = ', geometry_name(branch%param%geometry)
 
@@ -1092,25 +1092,22 @@ case ('element')
   lines(nl+1:nl+n) = alloc_lines(1:n)
   nl = nl + n
 
-  if (print_floor) then
-    nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (X, Y)]'
-  endif
-
   stat = ele%lord_status
-  if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$) then
+  if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$ .and. stat /= girder_lord$) then
     orb = tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
     nl=nl+1; lines(nl) = ' '
+    nl=nl+1; write (lines(nl), '(4a)') 'Orbit:  ', trim(species_name(orb%species)), '   State: ', trim(coord_state_name(orb%state))
     if (lat%branch(ele%ix_branch)%param%particle == photon$) then
-      fmt = '(2x, a, 2f15.8, f15.6, f11.6)'
+      fmt = '(2x, a, 2f15.8, f15.6, f11.6, 7x, a, f11.3)'
       fmt2 = '(2x, a, 2f15.8, a, es16.8)'
-      nl=nl+1; lines(nl) = 'Orbit:   Position[mm]       Momentum      Intensity      phase  '
-      nl=nl+1; write (lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%field(1)**2, orb%phase(1)
-      nl=nl+1; write (lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%field(2)**2, orb%phase(2)
+      nl=nl+1; lines(nl) = '         Position[mm]            V/C      Intensity      Phase  '
+      nl=nl+1; write (lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%field(1)**2, orb%phase(1), 'E: ', orb%p0c
+      nl=nl+1; write (lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
       nl=nl+1; write (lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
     else
       z = (ele%ref_time - orb%t) * orb%beta * c_light
       fmt = '(2x, a, 2f15.8, a, es16.8, 2x, a, f9.6)'
-      nl=nl+1; lines(nl) = 'Orbit:   Position[mm] Momentum[mrad]  |                            Time'
+      nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]  |                            Time'
       nl=nl+1; write (lines(nl), fmt) 'X:  ', 1000*orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t
       nl=nl+1; write (lines(nl), fmt) 'Y:  ', 1000*orb%vec(3:4),   '  | Abs-Ref [sec]:    ', orb%t - ele%ref_time
       nl=nl+1; write (lines(nl), fmt) 'Z:  ', 1000*orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z, 'beta:', orb%beta

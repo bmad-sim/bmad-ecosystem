@@ -122,6 +122,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%calc%rad_int_for_plotting = .false.
   u%calc%chrom_for_data       = .false.
   u%calc%chrom_for_plotting   = .false.
+  u%calc%one_turn_map         = .false.
 
   ! If unified then only read in a lattice for the common universe.
 

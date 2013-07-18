@@ -718,6 +718,7 @@ type tao_universe_calc_struct
   logical rad_int_for_plotting    !   data or plotting?
   logical chrom_for_data          ! Does the chromaticity need to be computed for
   logical chrom_for_plotting      !   data or plotting? 
+  logical one_turn_map            ! Compute the one turn map?
   logical lattice                 ! Used to indicate which lattices need tracking done.
   logical :: mat6 = .true.        ! calc linear transfer matri?
   logical :: track = .true.       ! tracking needs to be done?
