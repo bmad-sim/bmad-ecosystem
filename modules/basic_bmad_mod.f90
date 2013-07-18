@@ -12,6 +12,8 @@ integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
 
 ! Species ID, mass, and charge.
 
+integer, parameter :: not_set$ = -999
+
 integer, parameter :: antimuon$   = +3
 integer, parameter :: proton$     = +2
 integer, parameter :: positron$   = +1
@@ -27,6 +29,47 @@ integer, parameter :: charge_of(-3:3) = [-1, -1, -1, 0, 1, 1, 1]
 real(rp), parameter :: mass_of(-3:3) = [m_muon, m_proton, m_electron, 0.0_rp, m_electron, m_proton, m_muon]
 
 contains
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Function species_name (species) result (species_str)
+!
+! Routine to return the string representation of the type of particle under consideration.
+! This routine is similar in action to the particle_name array except that
+! this routine does not have a problem with array index out of bounds.
+!
+! Module needed:
+!   use bmad
+!
+! Input:
+!   species     -- integer: Species. positron$, etc.
+!
+! Output:
+!   species_str -- Character(12): String representation.
+!-
+
+Function species_name (species) result (species_str)
+
+implicit none
+
+integer species
+character(12) species_str
+
+!
+
+if (species < lbound(particle_name, 1) .or. species > ubound(particle_name, 1)) then
+  select case (species)
+  case (not_set$); species_str = 'Not_Set!'
+  case default;    species_str = 'UNKNOWN!'
+  end select
+  return
+endif
+
+species_str = particle_name(species)
+
+end function species_name
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

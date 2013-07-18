@@ -136,9 +136,9 @@ integer, parameter :: z_plane$ = 3, n_plane$ = 4, s_plane$ = 5
 character(1), parameter :: plane_name(6) = ['X', 'Y', 'Z', 'N', 'S', ' ']
 
 ! coordinate def
+! Use coord_state_name for getting the string representation of coord%state
 
 integer, parameter :: moving_forward$ = -9
-integer, parameter :: not_set$ = -999
 
 integer, parameter :: alive$ = 1, lost$ = 2
 integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
@@ -1150,5 +1150,45 @@ end type
 type rad_int_all_ele_struct
   type (rad_int1_struct), allocatable :: ele(:) ! Array is indexed from 0
 end type
+
+contains
+
+!-------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------
+!+
+! Function coord_state_name (coord_state) result (state_str)
+!
+! Routine to return the string representation of a coord%state state.
+!
+! Input:
+!   coord_state -- integer: coord%state value
+!
+! Output:
+!   state_str   -- character(20): String representation.
+!-
+
+function coord_state_name (coord_state) result (state_str)
+
+implicit none
+
+integer coord_state
+character(20) state_str
+
+!
+
+select case (coord_state)
+case (alive$);                 state_str = 'Alive'
+case (lost$);                  state_str = 'Lost'
+case (not_set$);               state_str = 'Not_Set'
+Case (lost_neg_x_aperture$);   state_str = 'Lost_Neg_X_Aperture'
+case (lost_pos_x_aperture$);   state_str = 'Lost_Pos_X_Aperture'
+case (lost_neg_y_aperture$);   state_str = 'Lost_Neg_Y_Aperture'
+case (lost_pos_y_aperture$);   state_str = 'Lost_Pos_Y_Aperture'
+case (lost_z_aperture$);       state_str = 'Lost_Z_Aperture'
+case default;                  state_str = 'UNKNOWN!'
+end select
+
+end function coord_state_name
 
 end module
