@@ -763,6 +763,101 @@ end Subroutine ptc_one_turn_map_at_ele
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine normal_form_taylors(one_turn_taylor, rf_on, dhdj, A_t, A_t_inverse)
+!
+! Do a normal form decomposition on a one-turn taylor map M:
+!   M = A_t o R o A_t_inverse
+! where A_t maps Floquet (fully normalized) coordinates to lab coordinates. 
+! In Floquet coordinates, the amplitudes are defined as J_i = (1/2) (x_i^2 + p_i^2).
+! The map R = exp(:h:) is a pure rotation with h = h(J) is a function of the amplitudes only.
+! The angles (phase advances) are given by phi_i = 2pi*dh/dJ_i.
+! The taylor terms of dhdj are therefore the tunes, chromaticities, amplitude dependent tune shifts, etc.
+!
+! The mapping procedure for one turn is:
+!  z_Floquet_in = A_t_inverse o z_Lab_in
+!  [phi_a, phi_b, phi_c] = 2 pi * dhdj o z_Floquet_in
+!  z_Floquet_out = RotationMatrix(phi_a, phi_b, phi_c) . z_Floquet_in
+!  z_Lab_out = A_t o z_Floquet_out
+!
+!
+! Module Needed:
+!   use ptc_layout_mod
+!
+! Input: 
+!   one_turn_taylor -- taylor_struct      : one turn taylor map
+!   rf_on           -- logical            : calculate with RF on?
+!
+! Output:
+!   A_t             -- taylor_struct, optional: Map from Floquet coordinates to Lab coordinates
+!   A_t_inverse     -- taylor_struct, optional: Map from Lab coordinates to Floquet coordinates
+!   dhdj            -- taylor_struct, optional: Map from Floquet coordinates to phase advances
+!-
+subroutine normal_form_taylors(one_turn_taylor, rf_on, dhdj, A_t, A_t_inverse)
+
+use ptc_interface_mod
+use madx_ptc_module
+
+implicit none
+
+type (taylor_struct) :: one_turn_taylor(6)
+type (taylor_struct), optional :: A_t_inverse(6), dhdj(6), A_t(6)
+type (damap) :: da_map
+type (real_8) :: map8(6)
+type (normalform) :: normal
+type (internal_state) :: state
+logical :: rf_on
+!
+
+if (rf_on) then
+  state = default - nocavity0
+else
+  state = default + nocavity0
+endif
+
+call init (state, bmad_com%taylor_order, 0) 
+call alloc(map8)
+call alloc(da_map)
+call alloc(normal)
+
+! Convert to real_8, then a damap
+map8 = one_turn_taylor
+
+! Get the normal form
+da_map = map8
+normal = da_map
+
+! Convert to taylor_structs
+
+! A_t
+if (present(A_t)) then
+  map8 = normal%A_t
+  A_t = map8
+endif
+
+! A_t_inverse
+if (present(A_t_inverse)) then
+  map8 = normal%A_t**-1
+  A_t_inverse = map8
+endif
+
+! dhdj 
+if (present(dhdj)) then
+  map8 = normal%dhdj
+  dhdj = map8
+endif
+
+! Cleanup
+
+call kill(map8)
+call kill(da_map)
+call kill(normal)
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine write_ptc_flat_file_lattice (file_name, branch)
 !
 ! Routine to create a PTC flat file lattice from a Bmad branch.
