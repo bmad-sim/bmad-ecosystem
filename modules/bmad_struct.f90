@@ -544,8 +544,12 @@ type mode_info_struct
 end type
 
 type normal_form_struct
-  type (taylor_struct) m(6), a(6), a_inv(6), dhdj(6)
-  type (ele_struct), pointer :: ele_origin
+  type (taylor_struct) :: M(6)             ! One-turn taylor map: M = A o R o A_inv, R = exp(:h:)
+  type (taylor_struct) :: A(6)             ! Map from Floquet -> Lab coordinates
+  type (taylor_struct) :: A_inv(6)         ! Map from Lab -> Floquet coordinates
+  type (taylor_struct) :: dhdj(6)          ! Nonlinear tune function operating on Floquet coordinates
+  type (ele_struct), pointer :: ele_origin ! Element at which the on-turn map was created.
+                                           ! See subroutine: normal_form_taylors
 end type
 
 !
