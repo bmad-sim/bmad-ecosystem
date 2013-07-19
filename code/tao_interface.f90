@@ -85,6 +85,16 @@ interface
 end interface
 
 interface
+  subroutine tao_hook_branch_calc (u, tao_lat, branch)
+    import
+    implicit none
+    type (tao_universe_struct), target :: u
+    type (tao_lattice_struct), target :: tao_lat
+    type (branch_struct), target :: branch
+  end subroutine
+end interface
+ 
+interface
   subroutine tao_hook_command (command_line, found)
     implicit none
     character(*) command_line

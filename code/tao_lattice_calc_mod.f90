@@ -63,7 +63,7 @@ call tao_hook_lattice_calc (calc_ok)
     
 ! To save time, s%u(:)%calc%lattice are used to determine what gets calculated. 
 
-do iuni = lbound(s%u, 1), ubound(s%u, 1)
+uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(iuni)
   if (.not. u%is_on .or. .not. u%calc%lattice) cycle
@@ -82,7 +82,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   u%info%lat_len_tot = 0
 
-  do ib = 0, ubound(tao_lat%lat%branch, 1)
+  branch_loop: do ib = 0, ubound(tao_lat%lat%branch, 1)
  
     branch => tao_lat%lat%branch(ib)
     u%info%lat_len_tot = u%info%lat_len_tot + branch%param%total_length
@@ -180,7 +180,9 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
       endif
     endif
 
-  enddo
+    call tao_hook_branch_calc (u, tao_lat, branch)
+
+  enddo branch_loop
 
   call tao_load_data_array (u, -1, 0, model$)
 
@@ -197,7 +199,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   u%calc%lattice = .false.
 
-enddo
+enddo uni_loop
 
 ! do any post-processing
 
