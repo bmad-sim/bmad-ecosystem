@@ -725,8 +725,8 @@ two different locations:
 The first instance where a file is found is used.
 Thus, in the above example, the first call will search for:
 \begin{example}
-  2) ../layout/my_layout.bmad  (relative to the calling file directory)
-  1) ../layout/my_layout.bmad  (relative to the current directory)
+  1) ../layout/my_layout.bmad  (relative to the calling file directory)
+  2) ../layout/my_layout.bmad  (relative to the current directory)
 \end{example}
 
 An XSIF (\sref{s:lattice.file.formats}) lattice file may be called
@@ -767,13 +767,11 @@ attribute is redefined and has the form
 \begin{example}
   <ele_name>[<attribute_name>] = call::<file_name>
 \end{example}
+Example:
+\begin{example}
+  c: crystal, call::my_curvature.bmad, surface = call::my_surface.bmad, ...
+\end{example}  
 
-
-%Most element attributes are associated with a single real number. Some
-%attributes are more complicated and are defined by a ``structure''
-%which contain multiple numbers. The \vn{wall} attribute
-%(\sref{s:wall}) is an example of an attribute that has a complicated
-%structure. 
 
 %--------------------------------------------------------------------------
 \section{Return and End_File statements}

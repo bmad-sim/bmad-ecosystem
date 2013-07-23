@@ -302,6 +302,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, scratch$,   'scratch', private$)
 
   if (i == crystal$ .or. i == multilayer_mirror$ .or. i == mirror$) then
+    call init_attribute_name1 (i, surface_attrib$,            'SURFACE')
     call init_attribute_name1 (i, ref_tilt_tot$,              'REF_TILT_TOT', dependent$)
     num = a0$ - 1
     do ix = 0, ubound(surface%curvature_xy, 1)

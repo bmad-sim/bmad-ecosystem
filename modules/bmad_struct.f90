@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 125
+integer, parameter :: bmad_inc_version$ = 126
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -28,6 +28,10 @@ integer, parameter :: bmad_inc_version$ = 125
 ! num_ele_attrib$ is size of ele%value(:) array.
 
 integer, parameter :: num_ele_attrib$ = 70
+
+! Misc
+
+integer, parameter :: off$ = 1, on$ = 2
 
 ! Diffraction
 
@@ -145,11 +149,6 @@ integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_z_aperture$ = 7
 
-type mini_coord_struct            ! Condensed Particle coordinates (saves space)
-  real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
-  real(rp) :: t = 0               ! Absolute time (not relative to reference).
-end type
-
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
   real(rp) :: s = 0               ! Longitudinal position 
@@ -172,8 +171,6 @@ end type
 type coord_array_struct
   type (coord_struct), allocatable :: orb(:)
 end type
-
-integer, parameter :: mesh_surface$ = 1, linear_surface$ = 2
 
 ! Coupling structure
 
@@ -403,7 +400,33 @@ end type
 ! Structure for surfaces of mirrors, crystals, etc.
 ! Rule: This structure is always allocated in the ele_struct for elements that need it.
 
+type surface_grid_pt_struct
+  real(rp) x_pitch, y_pitch, x_pitch_rms, y_pitch_rms
+end type
+
+integer, parameter :: segmented$ = 2, h_misalign$ = 3
+character(16), parameter :: surface_grid_type_name(0:3) = ['GARBAGE!', 'Off', 'Segmented', 'H_Misalign']
+
+type surface_grid_struct
+  character(200) :: file = ''
+  integer :: type = off$   ! or segmented$, or h_misalign$
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (surface_grid_pt_struct), allocatable :: pt(:,:)
+end type
+
+! Scratch space for segmented surface calculations
+
+type :: segmented_surface_struct
+  integer :: ix = int_garbage$, iy = int_garbage$    ! Index of segment
+  real(rp) :: x0 = 0, y0 = 0, z0 = 0         ! Center of segment
+  real(rp) :: slope_x = 0, slope_y = 0  ! Slopes of segment
+end type
+
+! Main surface container structure
+
 type photon_surface_struct
+  type (surface_grid_struct) :: grid = surface_grid_struct()
+  type (segmented_surface_struct) :: segment = segmented_surface_struct()
   real(rp) :: curvature_xy(0:6,0:6) = 0
   logical :: has_curvature = .false.
 end type
@@ -795,7 +818,7 @@ integer, parameter :: end_edge$ =74, etap_x$ = 74
 integer, parameter :: accordion_edge$ =75, etap_y$ = 75
 integer, parameter :: lattice$ = 76, phi_a$ = 76, diffraction_type$ = 76
 integer, parameter :: aperture_type$ = 77, eta_z$ = 77
-integer, parameter :: map_with_offsets$ = 78, cmat_11$ = 78
+integer, parameter :: map_with_offsets$ = 78, cmat_11$ = 78, surface_attrib$ = 78
 integer, parameter :: csr_calc_on$ = 79, cmat_12$ = 79
 integer, parameter :: s_position$ = 80, cmat_21$ = 80
 integer, parameter :: mat6_calc_method$ = 81, cmat_22$ = 81

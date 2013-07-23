@@ -67,7 +67,7 @@ orbit%vec(6) = -orbit%vec(6)
 ! Rotate back to uncurved element coords
 
 if (ele%surface%has_curvature) then
-  call to_curved_body_coords (ele, orbit, unset$)
+  call rotate_for_curved_surface (ele, orbit, unset$)
 endif
 
 end subroutine track1_mirror
@@ -145,7 +145,7 @@ orbit%vec(6) = -orbit%vec(6)
 ! Rotate back to uncurved element coords
 
 if (ele%surface%has_curvature) then
-  call to_curved_body_coords (ele, orbit, unset$)
+  call rotate_for_curved_surface (ele, orbit, unset$)
 endif
 
 !-----------------------------------------------------------------------------------------------
@@ -246,7 +246,7 @@ type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (crystal_param_struct) c_param
 
-real(rp) h_norm(3), e_tot, pc, p_factor, wavelength
+real(rp) h_bar(3), e_tot, pc, p_factor, wavelength
 real(rp) gamma_0, gamma_h, old_vec(6)
 
 character(*), parameter :: r_name = 'track1_cyrstal'
@@ -281,15 +281,18 @@ if (ele%aperture_at == surface$) then
   if (orbit%state /= alive$) return
 endif
 
-! Construct h_norm = H * wavelength.
+! Construct h_bar = H * wavelength.
 
-h_norm = [ele%value(h_x_norm$), ele%value(h_y_norm$), ele%value(h_z_norm$)] * wavelength / ele%value(d_spacing$)
+
+h_bar = [ele%value(h_x_norm$), ele%value(h_y_norm$), ele%value(h_z_norm$)] 
+if (ele%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar) 
+h_bar = h_bar * wavelength / ele%value(d_spacing$)
 
 ! kh_outside_norm is the normalized outgoing wavevector outside the crystal
 
 c_param%cap_gamma = r_e * wavelength**2 / (pi * ele%value(v_unitcell$)) 
 
-orbit%vec(2:6:2) = orbit%vec(2:6:2) + h_norm
+orbit%vec(2:6:2) = orbit%vec(2:6:2) + h_bar
 
 if (ele%value(b_param$) < 0) then ! Bragg
   orbit%vec(6) = -sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
@@ -304,7 +307,7 @@ gamma_h = orbit%vec(6)
 ! Calculate phase and intensity
 
 c_param%b_eff             = gamma_0 / gamma_h
-c_param%dtheta_sin_2theta = -dot_product(h_norm + 2 * old_vec(2:6:2), h_norm) / 2
+c_param%dtheta_sin_2theta = -dot_product(h_bar + 2 * old_vec(2:6:2), h_bar) / 2
 c_param%f0                = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
 c_param%fh                = cmplx(ele%value(fh_re$), ele%value(fh_im$))
 
@@ -315,7 +318,7 @@ call e_field_calc (c_param, ele, 1.0_rp,   orbit%field(2), orbit%phase(2))   ! S
 ! Rotate back from curved body coords to element coords
 
 if (ele%surface%has_curvature) then
-  call to_curved_body_coords (ele, orbit, unset$)
+  call rotate_for_curved_surface (ele, orbit, unset$)
 endif
 
 end subroutine track1_crystal
@@ -413,14 +416,17 @@ implicit none
 
 type (ele_struct) ele
 type (coord_struct) orbit
+type (segmented_surface_struct), pointer :: segment
 
-real(rp) :: s_len, s1, s2, s_center
+real(rp) :: s_len, s1, s2, s_center, x0, y0
 character(*), parameter :: r_name = 'to_surface_coords'
 
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
 
 if (ele%surface%has_curvature) then
+
+  ele%surface%segment%ix = int_garbage$; ele%surface%segment%iy = int_garbage$
 
   ! Assume flat crystal, compute s required to hit the intersection
   ! Choose a Bracket of 1m around this point.
@@ -460,7 +466,7 @@ if (ele%surface%has_curvature) then
   orbit%vec(1:5:2) = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
   orbit%t = orbit%t + s_len / c_light
 
-  call to_curved_body_coords (ele, orbit, set$)
+  call rotate_for_curved_surface (ele, orbit, set$)
 
 else
   s_len = -orbit%vec(5) / orbit%vec(6)
@@ -490,28 +496,37 @@ function photon_depth_in_crystal (s_len) result (delta_h)
 
 implicit none
 
-type (photon_surface_struct), pointer :: surface
+type (photon_surface_struct), pointer :: surf
 
 real(rp), intent(in) :: s_len
 real(rp) :: delta_h
 real(rp) :: point(3), x, y
-integer ix, iy
+integer ix, iy, i_pt
 
 !
 
 point = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
 
+surf => ele%surface
 x = point(1)
 y = point(2)
-delta_h = point(3)
-surface => ele%surface
 
-do ix = 0, ubound(surface%curvature_xy, 1)
-do iy = 0, ubound(surface%curvature_xy, 2) - ix
-  if (ele%surface%curvature_xy(ix, iy) == 0) cycle
-  delta_h = delta_h + surface%curvature_xy(ix, iy) * x**ix * y**iy
-enddo
-enddo
+
+if (surf%grid%type == segmented$) then
+  call init_surface_segment (x, y, ele)
+
+  delta_h = point(3) - surf%segment%z0 + (x - surf%segment%x0) * surf%segment%slope_x + &
+                                         (y - surf%segment%y0) * surf%segment%slope_y
+
+else
+  delta_h = point(3)
+  do ix = 0, ubound(surf%curvature_xy, 1)
+  do iy = 0, ubound(surf%curvature_xy, 2) - ix
+    if (ele%surface%curvature_xy(ix, iy) == 0) cycle
+    delta_h = delta_h + surf%curvature_xy(ix, iy) * x**ix * y**iy
+  enddo
+  enddo
+endif
 
 end function photon_depth_in_crystal
 
@@ -521,7 +536,7 @@ end subroutine to_surface_coords
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine to_curved_body_coords (ele, orbit, set)
+! Subroutine rotate_for_curved_surface (ele, orbit, set)
 !
 ! Routine to rotate between element body coords and effective body coords ("curved body coords") with 
 ! respect to the surface at the point of photon impact.
@@ -536,10 +551,7 @@ end subroutine to_surface_coords
 !   orbit    -- coord_struct: Photon position.
 !-
 
-! Compute the slope of the crystal at that the point of impact.
-! curverot transforms from standard body element coords to body element coords at point of impact.
-
-subroutine to_curved_body_coords (ele, orbit, set)
+subroutine rotate_for_curved_surface (ele, orbit, set)
 
 implicit none
 
@@ -553,23 +565,31 @@ integer ix, iy
 
 logical set
 
-! Compute slopes
+! Compute the slope of the crystal at that the point of impact.
+! curverot transforms from standard body element coords to body element coords at point of impact.
 
 s => ele%surface
-
-slope_x = 0
-slope_y = 0
-
 x = orbit%vec(1)
 y = orbit%vec(3)
 
-do ix = 0, ubound(s%curvature_xy, 1)
-do iy = 0, ubound(s%curvature_xy, 2) - ix
-  if (s%curvature_xy(ix, iy) == 0) cycle
-  if (ix > 0) slope_x = slope_x - ix * s%curvature_xy(ix, iy) * x**(ix-1) * y**iy
-  if (iy > 0) slope_y = slope_y - iy * s%curvature_xy(ix, iy) * x**ix * y**(iy-1)
-enddo
-enddo
+if (s%grid%type == segmented$) then
+  call init_surface_segment (x, y, ele)
+  slope_x = s%segment%slope_x; slope_y = s%segment%slope_y
+
+else
+
+  slope_x = 0
+  slope_y = 0
+
+  do ix = 0, ubound(s%curvature_xy, 1)
+  do iy = 0, ubound(s%curvature_xy, 2) - ix
+    if (s%curvature_xy(ix, iy) == 0) cycle
+    if (ix > 0) slope_x = slope_x - ix * s%curvature_xy(ix, iy) * x**(ix-1) * y**iy
+    if (iy > 0) slope_y = slope_y - iy * s%curvature_xy(ix, iy) * x**ix * y**(iy-1)
+  enddo
+  enddo
+
+endif
 
 if (slope_x == 0 .and. slope_y == 0) return
 
@@ -581,6 +601,147 @@ call axis_angle_to_w_mat ([slope_y, -slope_x, 0.0_rp], angle, curverot)
 
 orbit%vec(2:6:2) = matmul(curverot, orbit%vec(2:6:2))
 
-end subroutine to_curved_body_coords
+end subroutine rotate_for_curved_surface
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine init_surface_segment (x, y, ele)
+!
+! Routine to init the componentes in ele%surface%segment for use with segmented surface calculations.
+! The segment used is determined by the (x,y) photon coordinates
+!
+! Input:
+!   x, y   -- Real(rp): Coordinates of the photon.
+!   ele    -- ele_struct: Elment containing a surface.
+!
+! Output:
+!   ele    -- ele_struct: Element with ele%surface%segment initialized.
+!-
+
+subroutine init_surface_segment (x, y, ele)
+
+type (ele_struct), target :: ele
+type (photon_surface_struct), pointer :: s
+type (segmented_surface_struct), pointer :: seg
+
+real(rp) x, y, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag
+integer ix, iy
+
+! Only redo the cacluation if needed
+
+s => ele%surface
+seg => s%segment
+
+ix = nint(x / s%grid%dr(1))
+iy = nint(y / s%grid%dr(2))
+
+if (ix == seg%ix .and. iy == seg%iy) return
+
+!
+
+x0 = ix * s%grid%dr(1)
+y0 = iy * s%grid%dr(2)
+
+seg%ix = ix
+seg%iy = iy
+
+seg%x0 = x0
+seg%y0 = y0
+seg%z0 = 0
+
+seg%slope_x = 0
+seg%slope_y = 0
+coef_xx = 0; coef_xy = 0; coef_yy = 0
+
+do ix = 0, ubound(s%curvature_xy, 1)
+do iy = 0, ubound(s%curvature_xy, 2) - ix
+  if (s%curvature_xy(ix, iy) == 0) cycle
+  seg%z0 = seg%z0 - s%curvature_xy(ix, iy) * x0**ix * y0**iy
+  if (ix > 0) seg%slope_x = seg%slope_x - ix * s%curvature_xy(ix, iy) * x0**(ix-1) * y0**iy
+  if (iy > 0) seg%slope_y = seg%slope_y - iy * s%curvature_xy(ix, iy) * x0**ix * y0**(iy-1)
+  if (ix > 1) coef_xx = coef_xx - ix * (ix-1) * s%curvature_xy(ix, iy) * x0**(ix-2) * y0**iy / 2
+  if (iy > 1) coef_yy = coef_yy - iy * (iy-1) * s%curvature_xy(ix, iy) * x0**ix * y0**(iy-2) / 2
+  if (ix > 0 .and. iy > 0) coef_xy = coef_xy - ix * iy * s%curvature_xy(ix, iy) * x0**(ix-1) * y0**(iy-1)
+enddo
+enddo
+
+! Correct for fact that segment is supported at the corners of the segment
+! This correction only affects z0 and not the slopes
+
+dx = s%grid%dr(1) / 2
+dy = s%grid%dr(2) / 2
+coef_xx = coef_xx * dx**2
+coef_xy = coef_xy * dx * dy
+coef_yy = coef_yy * dy**2
+coef_diag = coef_xx + coef_yy - abs(coef_xy)
+
+if (coef_diag < coef_xx .and. coef_diag < coef_yy) then
+  seg%z0 = seg%z0 + coef_diag
+else if (coef_xx < coef_yy) then
+  seg%z0 = seg%z0 + coef_xx
+else
+  seg%z0 = seg%z0 + coef_yy
+endif
+
+end Subroutine init_surface_segment 
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine crystal_h_misalign (ele, orbit, h_vec)
+!
+! Routine reorient the crystal H vector due to local imperfections in the crystal lattice.
+!
+! Input:
+!   ele      -- ele_struct: Crystal element
+!   orbit    -- coord_struct: Photon position at crystal surface.
+!   h_vec(3) -- real(rp): H vector before misalignment.
+!
+! Output:
+!   h_vec(3) -- real(rp): H vector after misalignment.
+!-
+
+subroutine crystal_h_misalign (ele, orbit, h_vec)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (coord_struct) orbit
+type (photon_surface_struct), pointer :: s
+type (surface_grid_pt_struct), pointer :: pt
+
+real(rp) h_vec(3), r(2)
+integer ij(2)
+character(*), parameter :: r_name = 'crystal_h_misalign'
+
+!
+
+s => ele%surface
+
+ij = nint((orbit%vec(1:3:2) + s%grid%r0) / s%grid%dr)
+
+if (any(ij < lbound(s%grid%pt)) .or. any(ij > ubound(s%grid%pt))) then
+  call out_io (s_error$, r_name, &
+              'Photon position on crystal surface outside of grid bounds for element: ' // ele%name)
+  return
+endif
+
+! Make small angle approximation
+
+pt => s%grid%pt(ij(1), ij(2))
+if (pt%x_pitch == 0 .and. pt%y_pitch == 0 .and. pt%x_pitch_rms == 0 .and. pt%y_pitch_rms == 0) return
+
+h_vec(1:2) = h_vec(1:2) + [pt%x_pitch, pt%y_pitch]
+if (pt%x_pitch_rms /= 0 .or. pt%y_pitch /= 0) then
+  call ran_gauss (r)
+  h_vec(1:2) = h_vec(1:2) + [pt%x_pitch_rms, pt%y_pitch_rms] * r
+endif
+
+h_vec(3) = sqrt(1 - h_vec(1)**2 - h_vec(2)**2)
+
+end subroutine crystal_h_misalign
 
 end module

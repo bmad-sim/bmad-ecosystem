@@ -218,6 +218,8 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele2
 type (rf_wake_struct), pointer :: wake
 type (em_field_mode_struct), pointer :: mode, mode2
+type (photon_surface_struct), pointer :: surf
+type (surface_grid_pt_struct), pointer :: s_pt
 
 integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_t(6), ie, ib, ix_wall3d_branch
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ie_max, ix_s
@@ -414,8 +416,22 @@ if (associated(ele%r)) then
   enddo
 endif
 
-if (associated(ele%surface)) then
-  write (d_unit) ele%surface
+surf => ele%surface
+if (associated(surf)) then
+  write (d_unit) surf%curvature_xy, surf%has_curvature, surf%grid%type, &
+                 surf%grid%dr, surf%grid%r0, allocated(surf%grid%pt)
+  if (allocated(surf%grid%pt)) then
+    write (d_unit) ubound(surf%grid%pt)
+    do i = 0, ubound(surf%grid%pt, 1)
+    do j = 0, ubound(surf%grid%pt, 2)
+      s_pt => surf%grid%pt(i,j)
+      if (all ([s_pt%x_pitch, s_pt%y_pitch, s_pt%x_pitch_rms, s_pt%y_pitch_rms] == 0)) cycle
+      write (d_unit), i, j
+      write (d_unit) s_pt
+    enddo
+    enddo
+    write (d_unit), -1, -1
+  endif
 endif
 
 if (associated(ele%descrip))  write (d_unit) ele%descrip
