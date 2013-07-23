@@ -1806,7 +1806,6 @@ if (allocated (coord)) then
 
 else
   allocate (coord(0:n_coord))
-  call init_coord (coord(0))
 endif
 
 end subroutine reallocate_coord_n

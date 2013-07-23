@@ -394,13 +394,15 @@ subroutine read_this_ele (ele, ix_ele_in, error)
 
 type (ele_struct), target :: ele
 type (em_field_mode_struct), pointer :: mode
+type (photon_surface_struct), pointer :: surf
+type (surface_grid_pt_struct), pointer :: s_pt
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
 integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max
 integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, idum4, ix_d, ix_m
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d_branch
 
-logical error
+logical error, is_alloc
 
 !
 
@@ -499,7 +501,18 @@ endif
 
 if (ix_s /= 0) then
   allocate (ele%surface)
-  read (d_unit, err = 9360) ele%surface
+  surf => ele%surface
+  read (d_unit, err = 9360) surf%curvature_xy, surf%has_curvature, surf%grid%type, &
+                            surf%grid%dr, surf%grid%r0, is_alloc
+  if (is_alloc) then
+    read (d_unit) i, j
+    allocate(surf%grid%pt(0:i, 0:j))
+    do 
+      read (d_unit) i, j
+      if (i == -1) exit
+      read (d_unit) surf%grid%pt(i,j)
+    enddo
+  endif
 endif
 
 if (ix_d /= 0) then

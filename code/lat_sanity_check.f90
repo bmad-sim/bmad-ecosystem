@@ -22,6 +22,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch
+type (photon_surface_struct), pointer :: surf
 
 real(rp) s1, s2, ds, l_lord
 
@@ -208,6 +209,40 @@ do i_b = 0, ubound(lat%branch, 1)
                   'SHOULD HAVE AN ASSOCIATED %SURFACE COMPONENT BUT IT DOES NOT!')
         err_flag = .true.
       endif
+    endif
+
+    ! photonic element surface consistancy check
+
+    if (associated(ele%surface)) then
+      surf => ele%surface
+      if (all (surf%grid%type /= [off$, segmented$, h_misalign$])) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'HAS AN INVALID SURFACE%GRID%TYPE SETTING: \i0\ ', i_array = [surf%grid%type])
+        err_flag = .true.
+      endif
+
+      if (surf%grid%type /= off$ .and. any (surf%grid%dr == 0)) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'HAS A ZERO DR VALUE BUT THE GRID TYPE IS NOT OFF. \2f10.2\ ', r_array = surf%grid%dr)
+        err_flag = .true.
+      endif
+
+      if (surf%grid%type == h_misalign$ .and. .not. allocated(surf%grid%pt)) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'HAS GRID TYPE H_MISALIGN BUT NO GRID IS DEFINED!')
+        err_flag = .true.
+      endif
+
+      if (surf%grid%type == h_misalign$ .and. ele%value(b_param$) > 0) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'HAS GRID TYPE H_MISALIGN BUT THIS IS NOT IMPLEMENTED FOR LAUE DIFFRACTION!')
+        err_flag = .true.
+      endif
+
     endif
 
     ! match elements with match_end set should only appear in opens

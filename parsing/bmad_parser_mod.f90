@@ -15,7 +15,7 @@ use attribute_mod
 use add_superimpose_mod
 use track1_mod
 
-private parse_grid, parse_map
+private parse_rf_grid, parse_rf_map
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
@@ -226,17 +226,17 @@ type (wall3d_vertex_struct), pointer :: v_ptr
 type (em_field_mode_struct), pointer :: em_modes(:)
 type (em_field_mode_struct), pointer :: em_mode
 
-real(rp) kx, ky, kz, tol, value, coef
+real(rp) kx, ky, kz, tol, value, coef, r_vec(10)
 real(rp), pointer :: r_ptr
 
 integer i, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
-integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
+integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im, i_vec(2)
 
 character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
-logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0
+logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0, err_flag2
 logical, optional :: check_free, wild_and_key0
 
 ! Get next WORD.
@@ -743,16 +743,86 @@ if (attrib_word == 'WALL') then
 
 endif
 
-! rf field
+!-------------------------------
+! Reflecting Surface
+
+if (attrib_word == 'SURFACE') then
+
+  if (.not. expect_this ('={', .true., .true., 'AFTER "SURFACE"')) return
+
+  ! Expect "GRID ={"
+
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  if (word /= 'GRID') then 
+    call parser_error ('UNKNOWN SURFACE COMPONENT: ' // word2, 'FOR: ' // ele%name)
+    return
+  endif
+
+  if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"')) return
+
+  do
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+    if (word /= 'PT') then
+      if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN SURFACE CONSTRUCT')) return
+    endif
+
+    select case (word)
+    case ('DR')
+      if (.not. parse_real_list (trim(ele%name) // ' GRID DR', ele%surface%grid%dr, .true.)) return
+
+    case ('R0')
+      if (.not. parse_real_list (trim(ele%name) // ' GRID R0', ele%surface%grid%r0, .true.)) return
+
+    case ('PT_MAX')
+      if (.not. parse_integer_list (trim(ele%name) // ' GRID R0', i_vec, .true.)) return
+      if (any(i_vec < 0)) then
+        call parser_error ('SURFACE PT_MAX VALUE IS NEGATIVE', trim(ele%name))
+        return
+      endif
+      if (allocated (ele%surface%grid%pt)) deallocate (ele%surface%grid%pt)
+      allocate (ele%surface%grid%pt(0:i_vec(1), 0:i_vec(2)))
+
+    case ('PT')
+      bp_com%parse_line = delim // bp_com%parse_line
+      if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', i_vec, .true.)) return
+      if (.not. allocated(ele%surface%grid%pt)) then
+        call parser_error ('SURFACE PT_MAX MISSING', 'FOR: ' // ele%name)
+        return
+      endif
+      if (any(i_vec < 0) .or. any(i_vec > ubound(ele%surface%grid%pt))) then
+        call parser_error ('SURFACE PT(I,J) INDEX OUT OF BOUNDS', 'FOR: ' // ele%name)
+        return
+      endif
+      if (.not. expect_this ('=', .false., .false., 'GRID PT')) return
+      if (.not. parse_real_list (trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
+      ele%surface%grid%pt(i_vec(1), i_vec(2)) = surface_grid_pt_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+
+    case ('TYPE')
+      call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ele%surface%grid%type, err_flag2)
+      if (err_flag2) return
+      bp_com%parse_line = delim // bp_com%parse_line
+
+    case default
+      call parser_error ('GRID COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
+      return
+    end select
+
+    if (.not. expect_either (',}', .false.)) return
+    if (delim == '}') exit
+  enddo
+
+  if (.not. expect_this ('}', .false., .false., 'BAD DELIMITOR FOR ELEMENT: ' // ele%name)) return
+  if (.not. expect_either(', ', .false.)) return
+  err_flag = .false.
+  return
+endif
+
+!-------------------------------
+! RF field
 
 if (attrib_word == 'FIELD') then
 
-  ! Expect "= {"
-  call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
-  if (delim /= '=' .or. delim2 /= '{' .or. word /= '') then
-    call parser_error ('NO "= {" FOUND AFTER "FIELD"', 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
+  if (.not. expect_this ('={', .true., .true., 'AFTER "FIELD"')) return
 
   ! Loop over all modes
 
@@ -775,12 +845,8 @@ if (attrib_word == 'FIELD') then
 
     ! Expect "MODE = {"
 
-    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-    call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
-    if (word /= 'MODE' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
-      call parser_error ('NO "MODE = {" SIGN FOUND IN FIELD STRUCTURE', 'FOR ELEMENT: ' // ele%name)
-      return
-    endif
+    call get_next_word (word2, ix_word, '{}=,()', delim, delim_found)
+    if (word2 /= 'MODE' .or. .not. expect_this ('={', .true., .true., 'AFTER "MODE"')) return
 
     ! Read in mode...
 
@@ -807,12 +873,12 @@ if (attrib_word == 'FIELD') then
       case ('FIELD_SCALE');    r_ptr => em_mode%field_scale
 
       case ('GRID') 
-        call parse_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag)
+        call parse_rf_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag)
         if (err_flag) return
         do_evaluate = .false.
 
       case ('MAP') 
-        call parse_map(em_mode%map, ele, lat, delim, delim_found, err_flag)
+        call parse_rf_map(em_mode%map, ele, lat, delim, delim_found, err_flag)
         if (err_flag) return
         do_evaluate = .false.
 
@@ -895,6 +961,7 @@ if (attrib_word == 'FIELD') then
 
 endif
 
+!------------------------------
 ! wiggler term attribute
 
 if (ix_attrib == term$ .and. ele%key == wiggler$) then
@@ -906,15 +973,10 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
     return
   endif
 
-  call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.) ! (
+  call get_integer (ix, err_flag); if (err_flag) return
+
   if (delim /= ')') then
     call parser_error ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', 'FOR: ' // ele%name)
-    return
-  endif
-
-  read (word, *, iostat = ios) ix
-  if (ix < 1 .or. ios /= 0) then
-    call parser_error ('BAD TERM NUMBER FOR A WIGGLER FOR: ' // ele%name)
     return
   endif
 
@@ -1357,6 +1419,80 @@ err_flag = .false.
 !--------------------------------------------------------
 contains
 
+function expect_this (expecting, check_delim, call_check, err_str) result (is_ok)
+
+implicit none
+
+character(*) expecting, err_str
+logical is_ok, check_delim, call_check
+integer ix
+
+!
+
+is_ok = .false.
+
+ix = 1
+if (check_delim) then
+  if (delim /= expecting(1:1)) then
+    call parser_error ('NO "' // expecting // '" FOUND ' // err_str, 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+  ix = 2
+endif
+
+do
+  if (ix > len(expecting)) exit
+  call get_next_word (word, ix_word, expecting(ix:ix), delim, delim_found, call_check = call_check)
+  if (delim /= expecting(ix:ix) .or. word /= '') then
+    call parser_error ('NO "' // expecting // '" FOUND ' // err_str, 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+  ix = ix + 1
+enddo
+
+is_ok = .true.
+
+end function expect_this
+
+!--------------------------------------------------------
+! contains
+
+! delim_list -- character(*): List of valid tokens. If list contains a space character
+!                 then no token (indicating the end of the command) is a valid possibility.
+
+function expect_either (delim_list, check_delim) result (is_ok)
+
+character(*) delim_list
+logical check_delim, is_ok, must_have_delim
+
+!
+
+is_ok = .false.
+must_have_delim = (index(delim_list, ' ') == 0)
+
+if (check_delim) then
+  if ((must_have_delim .and. .not. delim_found) .or. &
+      (delim /= '' .and. index(delim_list, delim) == 0)) then
+    call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+else
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  if (word /= '' .or. (must_have_delim .and. .not. delim_found) .or. &
+      (delim /= '' .and. index(delim_list, delim) == 0)) then
+    call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+endif
+
+is_ok = .true.
+
+end function expect_either
+
+!--------------------------------------------------------
+! contains
+
 function attrib_free_problem (attrib_name) result (is_problem)
 
 type (ele_attribute_struct) attrib_info
@@ -1635,7 +1771,7 @@ end subroutine add_this_taylor_term
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word)
+! Subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word, call_check)
 !
 ! Subroutine to get the next word from the input stream.
 ! This subroutine is used by bmad_parser and bmad_parser2.
@@ -5627,7 +5763,7 @@ end subroutine parser_debug_print_info
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_map (grid, ele, lat, delim, delim_found, err_flag)
+! parse_rf_map (grid, ele, lat, delim, delim_found, err_flag)
 !
 ! Subroutine to parse a "map = {}" construct
 !
@@ -5643,7 +5779,7 @@ end subroutine parser_debug_print_info
 !    . ) },
 !-
 
-subroutine parse_map (map, ele, lat, delim, delim_found, err_flag)
+subroutine parse_rf_map (map, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
@@ -5799,13 +5935,13 @@ endif
 deallocate(array)
 err_flag = .false.
 
-end subroutine parse_map
+end subroutine parse_rf_map
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_grid (grid, ele, lat, delim, delim_found, err_flag)
+! parse_rf_grid (grid, ele, lat, delim, delim_found, err_flag)
 !
 ! Subroutine to parse a "grid = {}" construct
 !
@@ -5821,11 +5957,10 @@ end subroutine parse_map
 !    . ) },
 !-
 
-subroutine parse_grid(grid, ele, lat, delim, delim_found, err_flag)
-
+subroutine parse_rf_grid(grid, ele, lat, delim, delim_found, err_flag)
 
 type grid_pt_struct
-  integer :: ix1 , ix2, ix3
+  integer :: ix(3)
   complex(rp) :: field(6) = 0
 end type
 
@@ -5835,12 +5970,10 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: bele
 type (lat_struct),  target :: lat
 type (branch_struct), pointer :: branch
-type(grid_pt_struct), allocatable :: array(:), array2(:)
+type (grid_pt_struct), allocatable :: array(:), array2(:)
 
 character(1) delim, delim2
 character(40) :: word, word2, name
-
-real(rp), allocatable :: dr(:), r0(:)
 
 integer ix_word, ix_word2
 integer pt_counter, n, i, ib, ie, im, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
@@ -5908,10 +6041,8 @@ do
       return
     endif
     ! expect ( 1. ) or (1. , 2.) or (1., 2., 3.)
-    call parse_real_list(err_flag2, r0, num_r0, num_expected = 3)
-    if (err_flag2) return
-    grid%r0 = r0
-    !Expect , or }
+    if (.not. parse_real_list(trim(ele%name) // ' GRID', grid%r0, .false.)) return
+    ! Expect , or }
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '') then
       call parser_error ('BAD INPUT AFTER R0 DEFINITION: ' // word , &
@@ -5927,9 +6058,7 @@ do
       return
     endif      
     ! expect ( 1.) or (1. , 2.) or (1., 2., 3.)
-    call parse_real_list(err_flag2, dr, num_dr, num_expected = 3)
-    if (err_flag2) return
-    grid%dr = dr
+    if (.not. parse_real_list(trim(ele%name) // ' GRID', grid%dr, .false.)) return
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '') then
       call parser_error ('BAD INPUT AFTER DR DEFINITION: ' // word , &
@@ -5939,37 +6068,19 @@ do
 
   case ('PT')
     !Increment 
-    pt_counter = pt_counter +1
+    pt_counter = pt_counter + 1
       !Reallocate temporary structure if needed
-    if (pt_counter > size(array)) then
-      n = size(array)
-      allocate( array2(n))
-      array2 = array
-      deallocate(array)
+    n = size(array)
+    if (pt_counter > n) then
+      call move_alloc(array, array2)
       allocate(array(2*n))
       array(1:n) = array2
       deallocate(array2)
     end if
 
-    !Expect "("
-    if (delim /= '(') then
-      call parser_error ('BAD GRID PT CONSTRUCT', &
-                           'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-      return
-    end if
-     
-    !Get indices
-    call parse_pt_indices(array(pt_counter)%ix1, delim, err_flag2)
-    if (err_flag2) return
-    if ( delim == ',') call parse_pt_indices(array(pt_counter)%ix2, delim, err_flag2)
-    if (delim == ',') call parse_pt_indices(array(pt_counter)%ix3, delim, err_flag2) 
-
-    !Expect last delim was ")"
-    if (delim /= ')') then
-      call parser_error ('BAD GRID PT CONSTRUCT, NO CLOSING ")" FOR INDICES', &
-      'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-      return
-    end if
+    ! Get indices
+    bp_com%parse_line = delim // bp_com%parse_line
+    if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', array(pt_counter)%ix, .false.)) return
       
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     call get_next_word (word2, ix_word2, '{}=,()', delim2, delim_found2)
@@ -5979,7 +6090,7 @@ do
                  'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return
     end if
-    !Get as many field components as listed
+    ! Get as many field components as listed
     do i = 1, 6
       call parse_complex_component(array(pt_counter)%field(i), delim, err_flag2)
       if (err_flag2) return
@@ -5990,7 +6101,7 @@ do
         return
       end if    
     end do
-    !Expect , or }
+    ! Expect , or }
     call get_next_word (word, ix_word, ',}', delim, delim_found) 
     if (word /= '') then
       call parser_error ('BAD INPUT AFTER PT DEFINITION: ' // word , &
@@ -6019,28 +6130,28 @@ if (ix_word /= 0) then
     return 
 endif
 
-!Clear pts
+! Clear pts
 
 if (allocated(grid%pt)) deallocate(grid%pt)
 
-!Allocate grid for different dimensions
+! Allocate grid for different dimensions
 
 grid_dim = em_grid_dimension(grid%type)
 select case(grid_dim)
   case (1)
-    max_ix1 = maxval(array(1:pt_counter)%ix1)
+    max_ix1 = maxval(array(1:pt_counter)%ix(1))
     ix2 = 1
     ix3 = 1
     allocate(grid%pt(0:max_ix1, 1:1, 1:1))
   case (2)
-    max_ix1 = maxval(array(1:pt_counter)%ix1)
-    max_ix2 = maxval(array(1:pt_counter)%ix2)
+    max_ix1 = maxval(array(1:pt_counter)%ix(1))
+    max_ix2 = maxval(array(1:pt_counter)%ix(2))
     ix3 = 1
     allocate(grid%pt(0:max_ix1, 0:max_ix2, 1:1))
   case (3)
-    max_ix1 = maxval(array(1:pt_counter)%ix1)
-    max_ix2 = maxval(array(1:pt_counter)%ix2)
-    max_ix3 = maxval(array(1:pt_counter)%ix3)
+    max_ix1 = maxval(array(1:pt_counter)%ix(1))
+    max_ix2 = maxval(array(1:pt_counter)%ix(2))
+    max_ix3 = maxval(array(1:pt_counter)%ix(3))
     allocate(grid%pt(0:max_ix1, 0:max_ix2, 0:max_ix3))
   case default
     call parser_error ('BAD GRID DIMENSION', &
@@ -6048,11 +6159,11 @@ select case(grid_dim)
     return
 end select
 
-!Assign grid values
+! Assign grid values
 do i = 1, pt_counter
-  ix1 = array(i)%ix1
-  if (grid_dim >1)   ix2 = array(i)%ix2
-  if (grid_dim == 3) ix3 = array(i)%ix3
+  ix1 = array(i)%ix(1)
+  if (grid_dim >1)   ix2 = array(i)%ix(2)
+  if (grid_dim == 3) ix3 = array(i)%ix(3)
   grid%pt(ix1, ix2, ix3)%E(1:3) = array(i)%field(1:3)
   grid%pt(ix1, ix2, ix3)%B(1:3) = array(i)%field(4:6)
 end do
@@ -6083,39 +6194,13 @@ enddo branch_loop
 
 err_flag = .false.
 
-!------------------------------------------------------------
-
-contains
-
-subroutine parse_pt_indices (ix, delim, err_flag2)
-
-character(1) delim
-character(40) :: word
-integer ix, ix_word
-logical delim_found, err_flag2
-
-!
-
-err_flag2 = .true.
-
-!Expect integer followed by "," or ")"
-
-call get_next_word (word, ix_word, ',)', delim, delim_found)
-if (.not. is_integer(word)) then
-  call parser_error ('BAD GRID PT INDEX, NOT AN INTEGER', &
-                         'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-  return
-end if       
-read (word, *) ix
-err_flag2 = .false.
-
-end subroutine parse_pt_indices
-
 !-----------------------------------------------------------
-! contains 
+contains 
+
 ! subroutine parse_complex_component(complex_component, delim, err_flag2)
 ! looks for (x, y) or x followed by , or ) 
 ! returns complex field_component and next delim, which should be , or )
+
 subroutine parse_complex_component(complex_component, delim, err_flag2)
 
 character(1) delim, delim2
@@ -6138,7 +6223,7 @@ if (is_real(word)) then
 else if (delim == '(') then
   call get_next_word (word, ix_word, ',', delim, delim_found)
   call get_next_word (word2, ix_word2, ')', delim2, delim_found2)
-  !Expect: real, real ) 
+  ! Expect: real, real ) 
   if ((.not. is_real(word)) .or. (.not. is_real(word2)) &
     .or. (delim /= ',') .or. (delim2 /= ')') &
     .or. (.not. delim_found) .or. (.not. delim_found2)) then
@@ -6150,7 +6235,7 @@ else if (delim == '(') then
    read (word, *) x
       read (word2, *) y
       complex_component = cmplx(x,y)
-      !Look for "," or end of list ")"
+      ! Look for "," or end of list ")"
    call get_next_word (word, ix_word, ',)', delim, delim_found)
 end if
 
@@ -6158,168 +6243,251 @@ err_flag2 = .false.
 
 end subroutine parse_complex_component
 
-
-end subroutine parse_grid
+end subroutine parse_rf_grid
 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_integer_list (integer_array, num_found, 
-!           num_expected = 1, open_delim = '(', 
-!           separator = ',', close_delim = ')', 
-!           do_resize = .false.)
+! Function parse_integer_list (err_str, int_array, exact_size, open_delim, 
+!           separator, close_delim, default_value) result (is_ok)
 !
-! subroutine to parse a list of integers of the form
+! Routine to parse a list of integers of the form:
 !    open_delim integer_1 separator integer_2 . . . close_delim
+! Example:   "(1.2, 2.3, 4.4, 8.5)"
+! 
+! Similar to parse_integer_list2 except does not use allocatable array.
+! See parse_integer_list2 for more details
+!-
+
+function parse_integer_list (err_str, int_array, exact_size, open_delim, &
+                          separator, close_delim, default_value) result (is_ok)
+
+implicit none
+
+integer int_array(:)
+integer, optional :: default_value
+integer, allocatable :: vec(:)
+
+integer num_found
+
+character(*) err_str
+character(*), optional :: open_delim, separator, close_delim
+
+logical is_ok, exact_size
+
 !
-!       example:   (1, 2, 4, 8) 
+
+is_ok = .false.
+if (.not. parse_integer_list2 (err_str, vec, num_found, size(int_array), &
+                          open_delim, separator, close_delim, default_value)) return
+
+if (num_found > size(int_array) .or. (exact_size .and. num_found < size(int_array))) then
+  call parser_error (err_str)
+  return
+endif
+
+int_array(1:num_found) = vec(1:num_found)
+
+is_ok = .true.
+
+end function parse_integer_list
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function parse_integer_list2 (err_str, int_array, num_found, num_expected, open_delim, 
+!                               separator, close_delim, default_value) result (is_ok)
 !
-! Note: nearly identical to subroutine parse_real_list
+! Routine to parse a list of integers of the form
+!    open_delim integer_1 separator integer_2 . . . close_delim
+! Example:   (1, 2, 4, 8) 
 !
 ! Input:
-!  integer_array -- Integer, allocatable: the array to be read in 
+!  err_str    -- character(*): Error string to print if there is an error. 
+!  int_array -- Integer, allocatable: the array to be read in 
 !
 !   Optional: 
 !   num_expected = 1     -- integer : number of expected arguments
-!              Used to initialize integer_array
+!                             Used to initialize int_array
 !   open_delim   = '('   -- character(1) : opening delimeter
 !   separator    = ','   -- character(1) : separating character
 !   close_delim  = ')'   -- character(1) : closing delimeter
-!   do_resize    = .false.  -- logical : resize integer_array to num_found
+!   default_value = 0    -- real(rp) : inital assignment of real_array elements
 !
 ! Output:
-!   integer_array(1:num_found) --integer(rp) : Array of values
-!   num_found    -- integer : number of elements
+!   is_ok                   -- logical: Set True if everything is ok
+!   int_array(1:num_found) --integer(rp) : Array of values
+!   num_found                  -- integer : number of elements
+!-
 
+function parse_integer_list2 (err_str, int_array, num_found, num_expected, open_delim, &
+                              separator, close_delim, default_value) result (is_ok)
 
-subroutine parse_integer_list(integer_array, num_found, &
-          num_expected, open_delim, separator, close_delim, &
-          do_resize)
-
-!Arguments
-integer, allocatable :: integer_array(:)
+! Arguments
+integer, allocatable :: int_array(:)
 integer :: num_found
-integer, optional :: num_expected
+integer, optional :: num_expected, default_value
+character(*) err_str
 character(1), optional :: open_delim, close_delim, separator
-logical, optional :: do_resize
+logical is_ok
 
-!Local
+! Local
 integer num_expect
 character(1) delim, op_delim, cl_delim, sep
 character(40) :: word
 integer  ix_word
-logical delim_found, resize
+logical delim_found
 
-character(20), parameter :: r_name =  'parse_integer_list'
+! Optional arguments
 
-!Optional arguments
-num_expect = 1
+is_ok = .false.
+num_expect = integer_option (1, num_expected)
 op_delim = '('
 cl_delim = ')'
 sep      = ','
-resize = .false. 
-if (present(num_expected)) num_expect = num_expected
 if (present(open_delim)) op_delim = open_delim
 if (present(close_delim)) cl_delim = close_delim
 if (present(separator)) sep = separator
-if (present(do_resize)) resize = do_resize
 
-
-!Expect op_delim
+! Expect op_delim
 call get_next_word (word, ix_word, op_delim, delim, delim_found)
 if ((word /= '') .or. (delim /= op_delim)) then
-  call parser_error ('BAD OPENING DELIMITER', &
-                         'IN: ' // r_name)
-    return
+  call parser_error (err_str)
+  return
 end if
 
-!Initial allocation
-call re_allocate(integer_array, num_expected, .false.)
+! Initial allocation
+call re_allocate(int_array, num_expected, .false.)
+int_array = integer_option(0, default_value)
 
-!counter
+! counter
 num_found = 0
 
-!Get integers
+! Get integers
 do 
   call get_next_word (word, ix_word, sep // cl_delim, delim, delim_found)
   if (.not. is_integer(word) ) then 
-    call parser_error ('BAD ELEMENT: ' // word, &
-                         'IN : ' // r_name)
+    call parser_error ('BAD REAL NUMBER IN: ' // err_str)
     return
    end if    
-  !integer is found
+  ! integer is found
   num_found = num_found + 1
-  !reallocate if needed  
-  if (size(integer_array) < num_found) call re_allocate (integer_array, 2*num_found, .false.)
+  ! reallocate if needed  
+  ! reallocate if needed  
+  if (size(int_array) < num_found) then
+    call re_allocate (int_array, 2*num_found, .false.)
+    int_array(num_found:2*num_found) = integer_option(0, default_value)
+  endif
   
-  !Read value
-   read (word, *)  integer_array(num_found) 
+  ! Read value
+   read (word, *)  int_array(num_found) 
   
-  !Exit if cl_delim is found
+  ! Exit if cl_delim is found
   if (delim == cl_delim) exit
   
-  !Check separator
+  ! Check separator
   if (delim /= sep) then
-    call parser_error ('BAD SEPARATOR', &
-                         'IN: ' // r_name)
+    call parser_error ('BAD SEPARATOR IN: ' // err_str)
     return  
   end if
   
 end do
 
-!Resize if asked
-if (resize) call re_allocate(integer_array, num_found, .true.)
+is_ok = .true.
 
-end subroutine parse_integer_list
+end function parse_integer_list2
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! parse_real_list (err_flag, real_array, num_found, 
-!           num_expected = 1, open_delim = '(', 
-!           separator = ',', close_delim = ')', 
-!           do_resize = .false., default_value = 0.0_rp)
+! Function parse_real_list (err_str, real_array, exact_size, open_delim, 
+!           separator, close_delim, default_value) result (is_ok)
 !
-! subroutine to parse a list of reals of the form
+! Routine to parse a list of reals of the form:
 !    open_delim real_1 separator real_2 . . . close_delim
+! Example:   "(1.2, 2.3, 4.4, 8.5)"
+! 
+! Similar to parse_real_list2 except does not use allocatable array.
+! See parse_real_list2 for more details
+!-
+
+function parse_real_list (err_str, real_array, exact_size, open_delim, &
+                          separator, close_delim, default_value) result (is_ok)
+
+implicit none
+
+real(rp) real_array(:)
+real(rp), optional :: default_value
+real(rp), allocatable :: vec(:)
+
+integer num_found
+
+character(*) err_str
+character(*), optional :: open_delim, separator, close_delim
+
+logical is_ok, exact_size
+
 !
-!       example:   (1.2, 2.3, 4.4, 8.5) 
+
+is_ok = .false.
+if (.not. parse_real_list2 (err_str, vec, num_found, size(real_array), &
+                          open_delim, separator, close_delim, default_value)) return
+
+if (num_found > size(real_array) .or. (exact_size .and. num_found < size(real_array))) then
+  call parser_error (err_str)
+  return
+endif
+
+real_array(1:num_found) = vec(1:num_found)
+
+is_ok = .true.
+
+end function parse_real_list
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function parse_real_list2 (err_str, real_array, num_found, num_expected, open_delim, 
+!                            separator, close_delim, default_value) result (is_ok)
 !
-! Note: nearly identical to subroutine parse_integer_list
+! Routine to parse a list of reals of the form:
+!    open_delim real_1 separator real_2 . . . close_delim
+! Example:   "(1.2, 2.3, 4.4, 8.5)"
 !
 ! Input:
+!  err_str    -- character(*): Error string to print if there is an error. 
 !  real_array -- real(rp), allocatable: the array to be read in 
 !
 !   Optional: 
 !   num_expected = 1     -- integer : number of expected arguments
-!              Used to initialize integer_array
+!                             Used to initialize real_array
 !   open_delim   = '('   -- character(1) : opening delimeter
 !   separator    = ','   -- character(1) : separating character
 !   close_delim  = ')'   -- character(1) : closing delimeter
-!   do_resize    = .false.  -- logical : resize integer_array to num_found
-!   default_value = 0.0_rp  -- real(rp) : inital assignment of real_array elements
-!                  useful when do_resize = .false. 
+!   default_value = 0.0_rp -- real(rp) : inital assignment of real_array elements
 !
 ! Output:
+!   is_ok                   -- logical: Set True if everything is ok
 !   real_array(1:num_found) -- real(rp) : Array of values
-!   num_found    -- integer : number of elements
+!   num_found               -- integer : number of elements
+!-
 
-
-subroutine parse_real_list (err_flag, real_array, num_found, &
-          num_expected, open_delim, separator, close_delim, &
-          do_resize, default_value)
+function parse_real_list2 (err_str, real_array, num_found, num_expected, open_delim, &
+          separator, close_delim, default_value) result (is_ok)
 
 ! Arguments
 
 real(rp), allocatable :: real_array(:)
 integer :: num_found
 integer, optional :: num_expected
+character(*) err_str
 character(1), optional :: open_delim, close_delim, separator
-logical err_flag
-logical, optional :: do_resize
+logical is_ok
 real(rp), optional :: default_value
 
 ! Local
@@ -6327,73 +6495,68 @@ integer num_expect
 character(1) delim, op_delim, cl_delim, sep
 character(40) :: word
 integer  ix_word
-logical delim_found, resize
+logical delim_found
 real(rp) :: default_val
-
-character(20), parameter :: r_name =  'parse_real_list'
 
 ! Optional arguments
 
-err_flag = .true.
-num_expect = 1
+is_ok = .false.
+num_expect = integer_option(1, num_expected)
+default_val = real_option(0.0_rp, default_value)
+
 op_delim = '('
 cl_delim = ')'
 sep      = ','
-resize = .false. 
-default_val = 0.0_rp
-if (present(num_expected)) num_expect = num_expected
 if (present(open_delim)) op_delim = open_delim
 if (present(close_delim)) cl_delim = close_delim
 if (present(separator)) sep = separator
-if (present(do_resize)) resize = do_resize
-if (present(default_value)) default_val = default_value
 
-
-!Expect op_delim
+! Expect op_delim
 call get_next_word (word, ix_word, op_delim, delim, delim_found)
 if ((word /= '') .or. (delim /= op_delim)) then
-  call parser_error ('BAD OPENING DELIMITER', 'IN: ' // r_name)
+  call parser_error ('BAD OPENING DELIMITER IN: ' // err_str)
   return
 end if
 
-!Initial allocation
+! Initial allocation
 call re_allocate(real_array, num_expected, .false.)
 real_array = default_val
 
-!counter
+! counter
 num_found = 0
 
-!Get integers
+! Get reals
 do 
+
   call get_next_word (word, ix_word, sep // cl_delim, delim, delim_found)
   if (.not. is_real(word) ) then 
-    call parser_error ('BAD ELEMENT: ' // word, 'IN : ' // r_name)
+    call parser_error ('BAD REAL NUMBER IN: ' // err_str)
     return
    end if    
-  !real is found
+  ! real is found
   num_found = num_found + 1
-  !reallocate if needed  
-  if (size(real_array) < num_found) call re_allocate (real_array, 2*num_found, .false.)
-  
-  !Read value
+  ! reallocate if needed  
+  if (size(real_array) < num_found) then
+    call re_allocate (real_array, 2*num_found, .false.)
+    real_array(num_found:2*num_found) = default_val
+  endif
+
+  ! Read value
    read (word, *)  real_array(num_found) 
   
-  !Exit if cl_delim is found
+  ! Exit if cl_delim is found
   if (delim == cl_delim) exit
   
-  !Check separator
+  ! Check separator
   if (delim /= sep) then
-    call parser_error ('BAD SEPARATOR', 'IN: ' // r_name)
+    call parser_error ('BAD SEPARATOR IN: ' // err_str)
     return  
   end if
 
 end do
 
-!Resize if asked
-if (resize) call re_allocate(real_array, num_found, .true.)
+is_ok = .true.
 
-err_flag = .false.
-
-end subroutine parse_real_list
+end function parse_real_list2
 
 end module
