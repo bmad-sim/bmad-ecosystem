@@ -12,7 +12,7 @@ type, private :: crystal_params_struct
   real(rp) c, a0
 end type
 
-type (crystal_params_struct), private, target, save :: params_si, params_b4c, params_w
+type (crystal_params_struct), private, target, save :: params_si, params_b4c, params_w, params_diamond
 
 private pointer_to_crystal_params
 
@@ -117,23 +117,26 @@ complex f0
 
 select case (material_name)
 case ('Si') 
-
   f0 = atomic_f0_calc('Si', ele%value(e_tot$))
   cp => pointer_to_crystal_params('SI')
 
 ! Boron Carbide
 
 case ('B4C')
-
   f0 = 4 * atomic_f0_calc('B', ele%value(e_tot$)) + atomic_f0_calc('C', ele%value(e_tot$)) 
   cp => pointer_to_crystal_params('B4C')
 
 ! Tungstan
 
 case ('W')
-
   f0 = atomic_f0_calc('W', ele%value(e_tot$))
   cp => pointer_to_crystal_params('W')
+
+! Diamond
+
+case ('Diamond')
+  f0 = atomic_f0_calc('C', ele%value(e_tot$))
+  cp => pointer_to_crystal_params('DIAMOND')
 
 case default
 
@@ -229,18 +232,28 @@ atomic_formula = ele%component_name(1:ix1-1)
 hkl_str = ele%component_name(ix1+1:ix2-1)
 
 ! Load constants for the particular crystal...
+
+select case (atomic_formula)
+
 ! Silicon
 
-if (atomic_formula == 'Si') then
+case ('Si') 
   f0 = atomic_f0_calc('Si', ele%value(e_tot$))
   cp => pointer_to_crystal_params('Si')
 
-else
+! Diamond
 
+case ('Diamond')
+  f0 = atomic_f0_calc('C', ele%value(e_tot$))
+  cp => pointer_to_crystal_params('Diamond')
+
+! Not recognized
+
+case default
   call out_io (s_fatal$, r_name, 'BAD CRYSTAL TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
 
-endif
+end select
 
 !------------------------------------------------------
 ! Multiply by number of atoms to get CRYSTAL structure factor, ie f0_re and f0_im
@@ -591,7 +604,8 @@ if (init_needed) then
   f0_c(82) = atomic_f_struct(23583.0, 6.00115, 0.787230E-03)
   f0_c(83) = atomic_f_struct(25966.2, 6.00063, 0.624439E-03)
   f0_c(84) = atomic_f_struct(28590.2, 6.00020, 0.496161E-03)
-! Tungston
+
+  ! Tungston
   f0_w(01) = atomic_f_struct(10.0000, -9999., 1.92551)
   f0_w(02) = atomic_f_struct(11.0105, -9999., 2.44381)
   f0_w(03) = atomic_f_struct(12.1232, -9999., 2.99166)
@@ -725,6 +739,7 @@ end function atomic_f0_calc
 ! Function pointer_to_crystal_params (atomic_formula) result (param_ptr)
 ! 
 ! Routine to return a pointer to the crystal structure parameters.
+! For %a and %b parameters see xop/data/dabax/f0_xop.dat.
 !
 ! Input:
 !   atomic_formula -- Character(*): Atomic formula. EG: "Si".
@@ -750,9 +765,9 @@ if (init_needed) then
   ! Silicon
   cp => params_si
   allocate (cp%r_atom(8), cp%a(5), cp%b(5))
-  cp%a = [4.98816795, 3.35710271, 1.50292204, 1.22172882, 2.76143663]
-  cp%b = [2.53600438, 29.97580504, 0.08254945, 88.73513838, 1.16712390]
-  cp%c = 0.15142442
+  cp%a  = [4.98816795, 3.35710271, 1.50292204, 1.22172882, 2.76143663]
+  cp%b  = [2.53600438, 29.97580504, 0.08254945, 88.73513838, 1.16712390]
+  cp%c  = 0.15142442
   cp%a0 = 5.4309e-10
 
   cp%r_atom(1)%vec = [0.00, 0.00, 0.00]
@@ -764,10 +779,23 @@ if (init_needed) then
   cp%r_atom(7)%vec = [0.75, 0.25, 0.75]
   cp%r_atom(8)%vec = [0.75, 0.75, 0.25]
 
+  ! Diamond
+  cp => params_diamond
+  allocate (cp%r_atom(8), cp%a(5), cp%b(5))
+
+  cp%a  = [2.75491071, 1.06083859, 1.39000885, -61.38969569, 0.72824752]   
+  cp%b  = [13.55853062, 0.76518509, 43.40152845, -0.00002249, 0.23756415]
+  cp%c  = 61.44921510    
+  cp%a0 = 5.65370e-10
+
+  cp%r_atom = params_si%r_atom
+
+  ! B4C
   cp => params_b4c
   allocate (cp%r_atom(3))
   cp%a0 = (109.5e-30)**(1.0/3)
 
+  ! W
   cp => params_w
   allocate (cp%r_atom(2))
   cp%a0 = 3.1652e-10
@@ -777,9 +805,10 @@ end if
 !
 
 select case (atomic_formula)
-case ('Si');   param_ptr => params_si
-case ('B4C');  param_ptr => params_b4c
-case ('W');    param_ptr => params_w
+case ('Si');      param_ptr => params_si
+case ('B4C');     param_ptr => params_b4c
+case ('W');       param_ptr => params_w
+case ('Diamond'); param_ptr => params_diamond
 case default; if (global_com%exit_on_error) call err_exit
 end select 
 

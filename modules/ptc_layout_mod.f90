@@ -852,6 +852,8 @@ call kill(map8)
 call kill(da_map)
 call kill(normal)
 
+call init (DEFAULT, bmad_com%taylor_order, 0)
+
 end subroutine
 
 !-----------------------------------------------------------------------------
