@@ -913,18 +913,10 @@ integer photon_direction
 
 ! Get photon energy and "vertical angle".
 
-g_tot = sqrt(gx**2 + gy**2)
 call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
-call photon_init (g_tot, gamma, orb_init)
+call photon_init (gx, gy, gamma, .false., orb_init)
 p_orb%energy = orb_init%p0c
 p_orb%vec = orb_init%vec
-
-! rotate photon if gy is non-zero
-
-if (gy /= 0) then
-  p_orb%vec(2) = gy * p_orb%vec(4) / g_tot
-  p_orb%vec(4) = gx * p_orb%vec(4) / g_tot
-endif
 
 ! Offset due to finite beam size
 
