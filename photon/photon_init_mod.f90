@@ -47,42 +47,67 @@ contains
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_init (g_bend, gamma, orbit)
+! Subroutine photon_init (g_bend_x, g_bend_y, gamma, set_polarization, orbit)
 !
-! Routine to initalize a photon
+! Routine to initalize a photon. 
+! The photon is initialized using Monte Carlo and the standard formulas for bending radiation.
+! The photon's position orbit%vec(1:5:2) will be untouched.
+! The photon's polarization will be either in the plane of the bend or out of the plane and
+! the magnitude will be 1.
 !
 ! Modules needed:
 !   use photon_init_mod
 !
 ! Input:
-!   g_bend -- Real(rp): Bending 1/rho.
-!   gamma  -- Real(rp): Relativistic beam gamma factor.
+!   g_bend_x -- Real(rp): Bending 1/rho component in horizontal plane.
+!   g_bend_y -- Real(rp): Bending 1/rho component in vertical plane.
+!   gamma    -- Real(rp): Relativistic gamma factor of generating charged particle.
+!   set_polarization -- Logical: If False then the polarization is not set
 !
 ! output:
 !   orbit(6) -- coord_struct: Initialized photon.
-!       %vec(4), %vec(6) -- Only these two will be nonzero.
-! 
 !-
 
-subroutine photon_init (g_bend, gamma, orbit)
+subroutine photon_init (g_bend_x, g_bend_y, gamma, set_polarization, orbit)
+
+use nr
 
 implicit none
 
 type (coord_struct) orbit
-real(rp) g_bend, gamma, phi
+real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi
 real(rp) E_rel, gamma_phi, E_photon
+real(rp) r, gp2, xi, dum1, dum2, dum3, k_23, k_13, prob_x, prob_y
+logical set_polarization
 
 !
 
 call photon_energy_init (E_rel)
 call photon_vert_angle_init (E_rel, gamma_phi)
 
+g_bend = sqrt(g_bend_x**2 + g_bend_y**2)
 E_photon = E_rel * 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
 
 phi = modulo2(gamma_phi / gamma, pi/2)
 orbit%vec = 0
-orbit%vec(4) = sin(phi)
+orbit%vec(2) =  g_bend_y * sin(phi) / g_bend
+orbit%vec(4) = -g_bend_x * sin(phi) / g_bend
 orbit%vec(6) = cos(phi)
+
+if (set_polarization) then
+  gp2 = gamma_phi**2
+  xi = E_rel * sqrt(1+gp2)**3 / 2
+  call bessik(gp2, 1.0_rp/3, dum1, k_13, dum2, dum3)
+  call bessik(gp2, 2.0_rp/3, dum1, k_23, dum2, dum3)
+  prob_x = k_23**2
+  prob_y = gp2 * k_13**2 / (1 + gp2)
+  call ran_uniform(r)
+  if (r > prob_x / (prob_x + prob_y)) then ! If "vertical" polarization
+    orbit%field = [g_bend_x, g_bend_y] / g_bend
+  else  ! "horizontal" polarization
+    orbit%field = [-g_bend_y, g_bend_x] / g_bend
+  endif
+endif
 
 call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
 

@@ -1238,10 +1238,10 @@ end subroutine get_ptc_params
 !   use ptc_interface_mod
 !
 ! Input:
-!   y8(6) -- real_8: PTC Taylor map.
+!   y8(:) -- real_8: PTC Taylor map.
 !
 ! Output:
-!   bmad_taylor(6) -- Taylor_struct: Input taylor map.
+!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
 !-
 
 subroutine taylor_equal_real_8 (bmad_taylor, y8)
@@ -1253,20 +1253,21 @@ implicit none
 
 type (real_8), intent(in) :: y8(:)
 type (taylor_struct), intent(inout) :: bmad_taylor(:)
-type (universal_taylor) :: u_t(6)
+type (universal_taylor) :: u_t(size(y8))
 
-integer i
+integer i, n_taylor
 
 !
 
-do i = 1, 6
+n_taylor = size(y8)
+do i = 1, n_taylor
   u_t(i) = 0  ! nullify
   u_t(i) = y8(i)%t
 enddo
 
 call universal_to_bmad_taylor (u_t, bmad_taylor)
 
-do i = 1, 6
+do i = 1, n_taylor
   u_t(i) = -1  ! deallocate
 enddo
 
@@ -1290,10 +1291,10 @@ end subroutine taylor_equal_real_8
 !   use ptc_interface_mod
 !
 ! Input:
-!   bmad_taylor(6) -- Taylor_struct: Input taylor map.
+!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
 !
 ! Output:
-!   y8(6) -- real_8: PTC Taylor map.
+!   y8(:) -- real_8: PTC Taylor map.
 !-
 
 subroutine real_8_equal_taylor (y8, bmad_taylor)
@@ -1306,7 +1307,7 @@ type (real_8), intent(inout) :: y8(:)
 type (taylor_struct), intent(in) :: bmad_taylor(:)
 type (universal_taylor) :: u_t
 
-integer i, j, n
+integer i, j, n, n_taylor
 
 logical switch
 
@@ -1317,14 +1318,15 @@ call real_8_init (y8, .true.)
 
 !
 
-do i = 1, 6
+n_taylor = size(bmad_taylor)
+do i = 1, n_taylor
 
   switch = .true.
 
   n = size(bmad_taylor(i)%term)
-  allocate (u_t%n, u_t%nv, u_t%c(n), u_t%j(n,6))
+  allocate (u_t%n, u_t%nv, u_t%c(n), u_t%j(n,n_taylor))
   u_t%n = n
-  u_t%nv = 6
+  u_t%nv = n_taylor
 
   do j = 1, n
     u_t%j(j,:) = bmad_taylor(i)%term(j)%expn(:)
@@ -1751,12 +1753,12 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   y(6)       -- Real_8: 
+!   y(:)       -- Real_8: 
 !   set_taylor -- Logical, optional :: If present and True then make
 !                   y the identity taylor series (kind = 2).
 !
 ! Output:
-!   y(6) -- Real_8: Identity map.
+!   y(:) -- Real_8: Identity map.
 !-
 
 subroutine real_8_init (y, set_taylor)
@@ -1766,7 +1768,7 @@ use s_fibre_bundle, only: assignment(=), alloc, real_8
 implicit none
 
 type (real_8) :: y(:)
-real(dp) :: x(6) = [0, 0, 0, 0, 0, 0 ]
+real(dp) :: x(size(y))
 
 logical, optional :: set_taylor
 
@@ -1776,6 +1778,7 @@ call alloc(y)
 y = ptc_com%real_8_map_init
 
 if (present(set_taylor)) then
+  x = 0
   if (set_taylor) y = x   ! converts y to taylor (kind = 2)
 endif
 
@@ -1794,10 +1797,10 @@ end subroutine real_8_init
 !   use ptc_interface_mod
 !
 ! Input:
-!   u_taylor(6) -- Universal_taylor: Universal_taylor map.
+!   u_taylor(:) -- Universal_taylor: Universal_taylor map.
 !
 ! Output:
-!   bmad_taylor(6)   -- Taylor_struct:
+!   bmad_taylor(:)   -- Taylor_struct:
 !-
 
 Subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor)
@@ -1809,11 +1812,12 @@ implicit none
 type (universal_taylor), intent(in) :: u_taylor(:)
 type (taylor_struct) :: bmad_taylor(:)
 
-integer i, j, k, n
+integer i, j, k, n, n_taylor
 
 ! Remember to suppress any terms that have a zero coef.  
 
-do i = 1, 6
+n_taylor = size(u_taylor)
+do i = 1, n_taylor
 
   if (associated(bmad_taylor(i)%term)) deallocate(bmad_taylor(i)%term)
 
@@ -1846,11 +1850,11 @@ end subroutine universal_to_bmad_taylor
 !   use ptc_interface_mod
 !
 ! Input:
-!   y1(6) -- real_8: First Input map.
-!   y2(6) -- real_8: Second Input map.
+!   y1(:) -- real_8: First Input map.
+!   y2(:) -- real_8: Second Input map.
 !
 ! Output
-!   y3(6) -- real_8: Concatinated map.
+!   y3(:) -- real_8: Concatinated map.
 !-
 
 subroutine concat_real_8 (y1, y2, y3)
@@ -1905,11 +1909,11 @@ end subroutine concat_real_8
 !   use ptc_interface_mod
 !
 ! Input:
-!   bmad_taylor(6) -- Taylor_struct: Input taylor map.
+!   bmad_taylor(:) -- Taylor_struct: Input taylor map.
 !
 ! Output:
-!   ptc_genfield      -- Genfield: Output partially inverted map.
-!   c0(6)          -- Real(rp): The constant part of the bmad_taylor map
+!   ptc_genfield   -- Genfield: Output partially inverted map.
+!   c0(:)          -- Real(rp): The constant part of the bmad_taylor map
 !-
 
 subroutine taylor_to_genfield (bmad_taylor, ptc_genfield, c0)
@@ -1918,13 +1922,13 @@ use s_fitting, only: alloc, kill, assignment(=), damap, real_8
 
 implicit none
 
-type (taylor_struct), intent(in) :: bmad_taylor(6)
+type (taylor_struct), intent(in) :: bmad_taylor(:)
 type (genfield), intent(inout) :: ptc_genfield
-type (taylor_struct) taylor(6)
+type (taylor_struct) taylor(size(bmad_taylor))
 type (damap) da_map
-type (real_8) y(6)
+type (real_8) y(size(bmad_taylor))
 
-real(rp), intent(out) :: c0(6)
+real(rp), intent(out) :: c0(:)
 
 ! set the taylor order in PTC if not already done so
 
@@ -1974,13 +1978,13 @@ end subroutine taylor_to_genfield
 !   use ptc_interface_mod
 !
 ! Input:
-!  taylor_in(6) -- Taylor_struct: Input taylor map.
+!  taylor_in(:)              -- Taylor_struct: Input taylor map.
 !  remove_higher_order_terms -- Logical: If True then terms that are higher
 !                               order than bmad_com%taylor_order are removed.
 !
 ! Output:
-!   taylor_out(6)  -- Taylor_struct: Taylor with constant terms removed.
-!   c0(6)          -- Real(rp): The constant part of the taylor map
+!   taylor_out(:)  -- Taylor_struct: Taylor with constant terms removed.
+!   c0(:)          -- Real(rp): The constant part of the taylor map
 !-
 
 subroutine remove_constant_taylor (taylor_in, taylor_out, c0, remove_higher_order_terms)
@@ -2000,7 +2004,7 @@ logical, intent(in) :: remove_higher_order_terms
 
 c0 = 0
 
-do i = 1, 6
+do i = 1, size(taylor_in)
 
   if (.not. associated(taylor_in(i)%term)) cycle
   n = size(taylor_in(i)%term)
@@ -2045,12 +2049,12 @@ end subroutine remove_constant_taylor
 !   use ptc_interface_mod
 !
 ! Input:
-!   taylor_in(6)  -- Taylor_struct: Input taylor map.
-!   ref_pt(6)     -- Real(rp), optional: Reference point about which the 
+!   taylor_in(:)  -- Taylor_struct: Input taylor map.
+!   ref_pt(:)     -- Real(rp), optional: Reference point about which the 
 !                     inverse is taken. Default is zero.
 !
 ! Output:
-!   taylor_inv(6) -- Taylor_struct: Inverted taylor map.
+!   taylor_inv(:) -- Taylor_struct: Inverted taylor map.
 !   err           -- Logical, optional: Set True if there is no inverse.
 !                     If not present then print an error message.
 !-
@@ -2063,16 +2067,16 @@ implicit none
 
 type (taylor_struct) :: taylor_in(:)
 type (taylor_struct) :: taylor_inv(:)
-type (taylor_struct) tlr(6), tlr2(6)
-type (real_8) y(6), yc(6)
+type (taylor_struct) tlr(size(taylor_in)), tlr2(size(taylor_in))
+type (real_8) y(size(taylor_in)), yc(size(taylor_in))
 type (damap) da
 
 real(rp), optional :: ref_pt(:)
-real(rp) c0(6)
+real(rp) c0(size(taylor_in))
 
-integer i, expn(6)
+integer i, n_taylor, expn(size(taylor_in))
 
-real(dp) c8(6), c_ref(6)
+real(dp) c8(size(taylor_in)), c_ref(size(taylor_in))
 
 logical, optional :: err
 
@@ -2106,7 +2110,8 @@ endif
 
 ! Each taylor_in(i) must have at least one term for an inverse to exist.
 
-do i = 1, 6
+n_taylor = size(taylor_in)
+do i = 1, n_taylor
   if (.not. associated(tlr(i)%term) .or. size(tlr(i)%term) == 0) then
     if (present(err)) then
       err = .true.
@@ -2146,7 +2151,7 @@ taylor_inv = y
 ! Take out the ref_pt offset if needed
 
 if (present(ref_pt)) then
-  do i = 1, 6
+  do i = 1, n_taylor
     call add_taylor_term (taylor_inv(i), ref_pt(i))
   enddo
 endif
@@ -2178,11 +2183,11 @@ end subroutine taylor_inverse
 !   use ptc_interface_mod
 !
 ! Input:
-!   taylor1(6) -- Taylor_struct: Taylor map.
-!   taylor2(6) -- Taylor_struct: Taylor map.
+!   taylor1(:) -- Taylor_struct: Taylor map.
+!   taylor2(:) -- Taylor_struct: Taylor map.
 !
 ! Output
-!   taylor3(6) -- Taylor_struct: Concatinated map
+!   taylor3(:) -- Taylor_struct: Concatinated map
 !-
 
 subroutine concat_taylor (taylor1, taylor2, taylor3)
@@ -2193,7 +2198,7 @@ implicit none
 
 type (taylor_struct) :: taylor1(:), taylor2(:)
 type (taylor_struct) :: taylor3(:)
-type (real_8) y1(6), y2(6), y3(6)
+type (real_8) y1(size(taylor1)), y2(size(taylor1)), y3(size(taylor1))
 
 ! Set the taylor order in PTC if not already done so
 
@@ -2628,21 +2633,17 @@ use definition, only: universal_taylor
 
 implicit none
 
-type (universal_taylor), intent(in)  :: ut_in
+type (universal_taylor), target, intent(in)  :: ut_in
 type (universal_taylor) :: ut_sorted
 
 integer, allocatable :: ix(:), ord(:)
-integer i, n, nv, expn(6)
+integer i, j, n, nv
+integer, pointer :: expn(:)
 
 ! init
 
 n = ut_in%n
 nv = ut_in%nv
-
-if (nv /= 6) then
-  print *, 'ERROR IN SORT_UNIVERSAL_TERMS: I AM NOT SET UP FOR NV /= 6'
-  if (global_com%exit_on_error) call err_exit
-endif
 
 if (associated(ut_sorted%n)) deallocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c, ut_sorted%j)
 allocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c(n), ut_sorted%j(n,nv), ix(n), ord(n))
@@ -2653,9 +2654,11 @@ ut_sorted%nv = nv
 !
 
 do i = 1, n
-  expn = ut_in%j(i,:)
-  ord(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
-              expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
+  expn => ut_in%j(i,:)
+  ord(i) = sum(expn)*10**nv
+  do j = 1, nv-1
+    ord(i) = ord(i) + expn(j) * 10**(j-1)
+  enddo
 enddo
 
 call indexx (ord, ix)
