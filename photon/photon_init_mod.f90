@@ -94,22 +94,22 @@ orbit%vec(2) =  g_bend_y * sin(phi) / g_bend
 orbit%vec(4) = -g_bend_x * sin(phi) / g_bend
 orbit%vec(6) = cos(phi)
 
+call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
+
 if (set_polarization) then
   gp2 = gamma_phi**2
   xi = E_rel * sqrt(1+gp2)**3 / 2
-  call bessik(gp2, 1.0_rp/3, dum1, k_13, dum2, dum3)
-  call bessik(gp2, 2.0_rp/3, dum1, k_23, dum2, dum3)
+  call bessik(xi, 1.0_rp/3, dum1, k_13, dum2, dum3)
+  call bessik(xi, 2.0_rp/3, dum1, k_23, dum2, dum3)
   prob_x = k_23**2
   prob_y = gp2 * k_13**2 / (1 + gp2)
   call ran_uniform(r)
   if (r > prob_x / (prob_x + prob_y)) then ! If "vertical" polarization
-    orbit%field = [g_bend_x, g_bend_y] / g_bend
-  else  ! "horizontal" polarization
     orbit%field = [-g_bend_y, g_bend_x] / g_bend
+  else  ! "horizontal" polarization
+    orbit%field = [g_bend_x, g_bend_y] / g_bend
   endif
 endif
-
-call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
 
 end subroutine photon_init
 

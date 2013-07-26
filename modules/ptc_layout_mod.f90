@@ -277,6 +277,13 @@ enddo
 
 call layout_end_stuff
 
+! Set bookkeeping state
+
+do ie = 0, branch%n_ele_max
+  branch%ele(ie)%bookkeeping_state%ptc = ok$
+enddo
+branch%param%bookkeeping_state%ptc = ok$
+
 !-----------------------------------------------------------------------------
 contains
 
@@ -925,6 +932,13 @@ real(rp), pointer :: val(:)
 integer i, ix
 
 character(*), parameter :: r_name = 'update_ptc_fibre'
+
+! Warning
+
+if (ele%key == sbend$) then
+  call out_io (s_fatal$, r_name, 'sbend variation has bug!')
+  call err_exit
+endif
 
 !
 
