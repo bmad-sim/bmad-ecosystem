@@ -52,8 +52,7 @@ contains
 ! Routine to initalize a photon. 
 ! The photon is initialized using Monte Carlo and the standard formulas for bending radiation.
 ! The photon's position orbit%vec(1:5:2) will be untouched.
-! The photon's polarization will be either in the plane of the bend or out of the plane and
-! the magnitude will be 1.
+! The photon's polarization have unit amplitude.
 !
 ! Modules needed:
 !   use photon_init_mod
@@ -65,7 +64,7 @@ contains
 !   set_polarization -- Logical: If False then the polarization is not set
 !
 ! output:
-!   orbit(6) -- coord_struct: Initialized photon.
+!   orbit    -- coord_struct: Initialized photon.
 !-
 
 subroutine photon_init (g_bend_x, g_bend_y, gamma, set_polarization, orbit)
@@ -77,7 +76,6 @@ implicit none
 type (coord_struct) orbit
 real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi
 real(rp) E_rel, gamma_phi, E_photon
-real(rp) r, gp2, xi, dum1, dum2, dum3, k_23, k_13, prob_x, prob_y
 logical set_polarization
 
 !
@@ -96,22 +94,61 @@ orbit%vec(6) = cos(phi)
 
 call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
 
-if (set_polarization) then
-  gp2 = gamma_phi**2
-  xi = E_rel * sqrt(1+gp2)**3 / 2
-  call bessik(xi, 1.0_rp/3, dum1, k_13, dum2, dum3)
-  call bessik(xi, 2.0_rp/3, dum1, k_23, dum2, dum3)
-  prob_x = k_23**2
-  prob_y = gp2 * k_13**2 / (1 + gp2)
-  call ran_uniform(r)
-  if (r > prob_x / (prob_x + prob_y)) then ! If "vertical" polarization
-    orbit%field = [-g_bend_y, g_bend_x] / g_bend
-  else  ! "horizontal" polarization
-    orbit%field = [g_bend_x, g_bend_y] / g_bend
-  endif
-endif
+if (set_polarization) call photon_polarization_init(g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
 
 end subroutine photon_init
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!+
+! Subroutine photon_polarization_init (g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
+!
+! Routine to set a photon's polarization.
+! The photon's polarization will be either in the plane of the bend or out of the plane and
+! the magnitude will be 1.
+!
+! Module needed:
+!   use photon_init_mod
+!
+! Input:
+!   g_bend_x  -- Real(rp): Bending 1/rho component in horizontal plane.
+!   g_bend_y  -- Real(rp): Bending 1/rho component in vertical plane.
+!   E_rel     -- Real(rp): Relative photon energy E/E_crit. 
+!   gamma_phi -- Real(rp): gamma * phi where gamma is the beam relativistic factor and
+!                  phi is the vertical photon angle (in radians).
+! 
+! Output:
+!   orbit        -- coord_struct: Photon coords
+!     %field(2)     -- (x,y) polaraization. Will have unit magnitude
+!     %phase(2)     -- (x,y) phases. Will be [0, pi/2].
+!-
+
+subroutine photon_polarization_init (g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
+
+implicit none
+
+type (coord_struct) :: orbit
+real(rp) g_bend_x, g_bend_y, g_bend, gamma_phi
+real(rp) gp2, xi, dum1, dum2, dum3, k_23, k_13, pol_x, pol_y
+real(rp) E_rel, E_photon
+
+!
+
+g_bend = sqrt(g_bend_x**2 + g_bend_y**2)
+gp2 = (gamma_phi)**2
+xi = E_rel * sqrt(1+gp2)**3 / 2
+
+call bessik(xi, 1.0_rp/3, dum1, k_13, dum2, dum3)
+call bessik(xi, 2.0_rp/3, dum1, k_23, dum2, dum3)
+
+pol_x = k_23
+pol_y = k_13 * sqrt(gp2 / (1 + gp2))
+
+orbit%field = [pol_x, sign(pol_y, gamma_phi)] / sqrt(pol_x**2 + pol_y**2)
+orbit%phase = [0.0_rp, pi/2]
+
+end subroutine photon_polarization_init
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
@@ -126,15 +163,15 @@ end subroutine photon_init
 !   use photon_init_mod
 !
 ! Input:
+!   E_rel -- Real(rp): Relative photon energy E/E_crit. 
 !   r_in  -- Real(rp), optional: number in the range [0,1].
 !             If not present, a random number will be used.
-!             Note: gamma_phi is an increasing monotonic function of r_in except at one point
-!             where it is discontinuous.
-!   E_rel -- Real(rp): Relative photon energy E/E_crit. 
 ! 
 ! Output:
 !   gamma_phi -- Real(rp): gamma * phi where gamma is the beam relativistic factor and
-!                 phi is the vertical photon angle (in radians).
+!                  phi is the vertical photon angle (in radians).
+!                  Note: gamma_phi is an increasing monotonic function of r_in except 
+!                  at one point where it is discontinuous.
 !-
 
 subroutine photon_vert_angle_init (E_rel, gamma_phi, r_in)
