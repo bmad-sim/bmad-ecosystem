@@ -83,7 +83,7 @@ if build_mgmt.RelNameConsistency(release_type):
         sys.exit(1)
     else:
         old_releasename = activenames[0]
-        print old_releasename
+        #print old_releasename
 
 
 # Verify that the build directory exists in all supported build
@@ -116,8 +116,8 @@ def send_notification_email(old_relname):
     f.write('   -Accelerator Code Librarian\n\n')
     f.write('--------------------------------------------------------------------------------\n')
     f.write('Accelerator Code Support Links -\n')
-    f.write('Documentation      : https://wiki.lepp.cornell.edu/lepp/bin/view/ACC/ACL/WebHome\n')
-    f.write('Bug Reports        : cesr-libraries@rt.lepp.cornell.edu\n')
+    f.write('Documentation      : https://wiki.classe.cornell.edu/ACC/ACL/WebHome\n')
+    f.write('Bug Reports        : service-classe@cornell.edu\n')
     f.write('Librarian Email    : cesrulib@cornell.edu\n')
     f.write('Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/\n')
 
@@ -130,7 +130,6 @@ def send_notification_email(old_relname):
     if os.path.exists(mail_tempfile):
         os.remove(mail_tempfile)
     print 'Done.'
-
 
 #def tag_release():
 #    
@@ -150,6 +149,72 @@ for platform in platforms:
     os.symlink(active_relname, archive_linkname)
     os.remove(platform_dir+'/'+release_type)
     os.symlink(buildname, release_type)
+
+    # ssh/tar release to CESR Online
+    #
+    online_basedir = '/nfs/cesr/online/lib/Linux_x86_64_intel/'
+    print ''
+    print 'New '+ release_type +' Build name:                   ' + buildname  
+    print 'New '+ release_type +' Build directory to copy:      ' + platform_dir + buildname 
+    print 'Old '+ release_type +' will be rotated to link name: ' + archive_linkname
+    print 'Old '+ release_type +':                              ' + active_relname
+    print 'CESR Online base directory to copy to:  ' + online_basedir 
+    print ''
+
+    online_cmd_mkdir = ("ssh cesrulib@cesrshell mkdir " + online_basedir + buildname)
+    online_cmd_remote_tar = ("cd " + platform_dir + buildname + "; tar -cf - . | ssh cesrulib@cesrshell 'cd "+ online_basedir + buildname + " ; tar -xf - .'")
+    online_cmd_rm_link = ("ssh cesrulib@cesrshell rm -f " + online_basedir + release_type)
+    online_cmd_new_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + buildname + " " + release_type +"'")
+    online_cmd_rotate_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
+
+    #print online_cmd_mkdir
+    step1 = sub.Popen(online_cmd_mkdir,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+    print 'Making directory ' + online_basedir + buildname
+    step1.communicate()
+
+    #print online_cmd_remote_tar
+    print ''
+    step2 = sub.Popen(online_cmd_remote_tar,
+                      bufsize=1,
+                      shell=True,
+                      stderr=sub.STDOUT )
+    print 'Coping '  + buildname + ' to ' + online_basedir + buildname 
+    step2.communicate()
+
+    #print online_cmd_rm_link
+    print ''
+    step3 = sub.Popen(online_cmd_rm_link,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+    print 'Cleaning up old ' + release_type + ' link.'
+    step3.communicate()
+
+    #print online_cmd_new_link
+    print ''
+    step4 = sub.Popen(online_cmd_new_link,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+    print 'Making new soft link from ' + buildname + ' to ' + release_type
+    step4.communicate()
+
+    #print online_cmd_rotate_link
+    print ''
+    step5 = sub.Popen(online_cmd_rotate_link,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+    print 'Rotating old ' + release_type + ' ' + active_relname + ' to '  + archive_linkname
+    step5.communicate()
+    print ''
 
 
 if send_mail:
