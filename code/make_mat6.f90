@@ -98,6 +98,9 @@ bmad_com%radiation_fluctuations_on = .false.
 
 select case (mat6_calc_method)
 
+! Note: To use make_mat6_custom2 instead of make_mat6_custom, set 
+! ele%mat6_calc_method = custom2$ in init_custom. See manual for details.
+
 case (custom2$)
   call make_mat6_custom2 (ele, param, a_start_orb, a_end_orb, err)
   if (err) return

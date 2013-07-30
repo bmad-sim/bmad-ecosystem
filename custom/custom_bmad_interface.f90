@@ -70,7 +70,7 @@ interface
 end interface
 
 interface
-  subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, track)
+  subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
@@ -83,7 +83,7 @@ interface
 end interface
 
 interface
-  subroutine track1_custom2 (start_orb, ele, param, end_orb, err_flag, track)
+  subroutine track1_custom2 (start_orb, ele, param, end_orb, track, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb

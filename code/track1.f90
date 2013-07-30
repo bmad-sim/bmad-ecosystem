@@ -89,10 +89,10 @@ if (start2_orb%state == inside$ .and. ele%tracking_method /= time_runge_kutta$) 
   if (global_com%exit_on_error) call err_exit
 endif
 
-! custom tracking if the custom routine is to do everything
+! Custom tracking if the custom routine is to do everything.
 
 if (ele%tracking_method == custom$) then
-  call track1_custom (start2_orb, ele, param, end_orb, err, track)
+  call track1_custom (start2_orb, ele, param, end_orb, track, err)
   if (present(err_flag)) err_flag = err
   return
 endif
@@ -133,10 +133,6 @@ case (bmad_standard$)
   endif
   if (err) return
 
-case (custom$)
-  call track1_custom (start2_orb, ele, param, end_orb, err, track)
-  if (err) return
-
 case (runge_kutta$) 
   call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track)
   if (err) return
@@ -163,8 +159,11 @@ case (boris$)
 case (mad$)
   call track1_mad (start2_orb, ele, param, end_orb)
 
+! Note: To use track1_custom2 instead of track1_custom, set 
+! ele%tracking_method = custom2$ in init_custom. See manual for details.
+
 case (custom2$)
-  call track1_custom2 (start2_orb, ele, param, end_orb, err)
+  call track1_custom2 (start2_orb, ele, param, end_orb, track, err)
   if (err) return
 
 case (time_runge_kutta$)
