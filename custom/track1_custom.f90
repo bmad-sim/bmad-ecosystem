@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, track)
+! Subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag)
 !
 ! Dummy routine for custom tracking. 
 ! If called, this routine will generate an error message and quit.
@@ -26,7 +26,7 @@
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, track)
+subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag)
 
 use bmad_interface, except_dummy => track1_custom
 
