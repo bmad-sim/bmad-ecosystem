@@ -1239,7 +1239,7 @@ case (taylor$)
 !--------------------------------------------------------
 ! wiggler
 
-case (wiggler$)
+case (wiggler$, undulator$)
 
   call offset_particle (ele, c00, param, set$)
   call offset_particle (ele, c11, param, set$, ds_pos = length)

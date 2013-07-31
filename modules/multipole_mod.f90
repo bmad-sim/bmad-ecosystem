@@ -356,7 +356,7 @@ case (quadrupole$, sol_quad$)
   const = this_ele%value(k1$) * this_ele%value(l$)
   ref_exp = 1
 
-case (wiggler$)
+case (wiggler$, undulator$)
   const = 2 * c_light * this_ele%value(b_max$) * this_ele%value(l_pole$) / &
                                                     (pi * this_ele%value(p0c$))
   ref_exp = 0

@@ -749,7 +749,7 @@ do ib = 0, ubound(lat%branch, 1)
       enddo
     endif
     
-    if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+    if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == map_type$) then
       line = trim(line) // ', &'
       call write_lat_line (line, iu, .true.)  
       do j = 1, size(ele%wig%term)
@@ -1554,7 +1554,7 @@ do
   ! Convert sol_quad_and wiggler elements.
   ! NOTE: FOR NOW SOL_QUAD  USES DRIFT-MATRIX-DRIFT MODEL!
 
-  if (ele%key == wiggler$ .or. ele%key == sol_quad$) then
+  if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == sol_quad$) then
     if (logic_option(.false., use_matrix_model) .or. ele%key == sol_quad$) then
 
       drift_ele%value(l$) = -val(l$) / 2
@@ -1581,7 +1581,7 @@ do
     ! out the markers that caused the slicing.
 
     else
-      if (ele%key == wiggler$) then
+      if (ele%key == wiggler$ .or. ele%key == undulator$) then
         if (ele%slave_status == super_slave$) then
           ! Create the wiggler model using the super_lord
           lord => pointer_to_lord(ele, 1)

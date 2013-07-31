@@ -1407,16 +1407,16 @@ sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
 select case (sliced_ele%tracking_method)
 case (taylor$, symp_map$, symp_lie_ptc$)
   select case (sliced_ele%key)
-  case (wiggler$); sliced_ele%tracking_method = symp_lie_bmad$
-  case default;    sliced_ele%tracking_method = bmad_standard$
+  case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
+  case default;                sliced_ele%tracking_method = bmad_standard$
   end select
 end select
 
 select case (sliced_ele%mat6_calc_method)
 case (taylor$, symp_map$, symp_lie_ptc$)
   select case (sliced_ele%key)
-  case (wiggler$); sliced_ele%mat6_calc_method = symp_lie_bmad$
-  case default;    sliced_ele%mat6_calc_method = bmad_standard$
+  case (wiggler$, undulator$); sliced_ele%mat6_calc_method = symp_lie_bmad$
+  case default;                sliced_ele%mat6_calc_method = bmad_standard$
   end select
 end select
 
@@ -1615,7 +1615,7 @@ if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave
 
 ! wiggler fields and electro-magnetic fields
 
-if (slave%key == wiggler$) slave%value(n_pole$) = lord%value(n_pole$) * coef
+if (slave%key == wiggler$ .or. slave%key == undulator$) slave%value(n_pole$) = lord%value(n_pole$) * coef
 
 ! If an sbend:
 !     1) renormalize the angles
@@ -2320,7 +2320,7 @@ case (elseparator$)
 
 ! Wiggler
 
-case (wiggler$) 
+case (wiggler$, undulator$) 
 
   ! Calculate b_max for map_type wigglers. 
 

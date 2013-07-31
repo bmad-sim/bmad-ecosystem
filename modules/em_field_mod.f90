@@ -461,7 +461,7 @@ select case (ele%field_calc)
   !------------------------------------------
   ! Wiggler
 
-  case(wiggler$)
+  case(wiggler$, undulator$)
 
     n = 0
     if (associated(ele%wig)) n = size(ele%wig%term)

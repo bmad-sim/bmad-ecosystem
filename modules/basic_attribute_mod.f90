@@ -466,7 +466,7 @@ enddo
 do i = 1, n_key$
   select case (i)
   case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
-         sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, bend_sol_quad$, &
+         sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, bend_sol_quad$, &
          hkicker$, vkicker$)
     attrib_array(i, a0$:a20$)%name = [ 'A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
@@ -912,6 +912,8 @@ call init_attribute_name1 (wiggler$, x_ray_line_len$,               'X_RAY_LINE_
 call init_attribute_name1 (wiggler$, field$,                        'FIELD')
 call init_attribute_name1 (wiggler$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start', private$)
+
+attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
 call init_attribute_name1 (sol_quad$, k1$,                          'K1', quasi_free$)
 call init_attribute_name1 (sol_quad$, ks$,                          'KS', quasi_free$)

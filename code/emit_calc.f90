@@ -4,19 +4,18 @@
 ! Subroutine to calculate the emittance, energy spread, and synchrotron
 ! integrals. This subroutine assumes that bends are in the horizontal plane.
 !
-! For a better, more complete calculation, see the subroutine: 
-!               RADIATION_INTEGRALS
-! The only possible saving grace of this subroutine is that it is faster
-! than RADIATION_INTEGRALS.
+! THIS ROUTINE IS DEPRECATED AND NOT BEING MAINTAINED!
+! Instead, use the routine:
+!               radiation_integrals
 !
 ! Modules Needed:
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     LAT -- lat_struct: Lat to use
 !     WHAT -- Integer: Which elements to use in the calculation.
 !               = BENDS$      Use only the bends.
-!               = WIGGLERS$   Use only wigglers.
+!               = WIGGLERS$   Use only wigglers & undulators.
 !               = All$        Use both bends and wigglers.
 !
 ! Output:
@@ -255,7 +254,7 @@ subroutine emit_calc (lat, what, mode)
 !---------------------------------------------------------------------
 ! wiggler contribution
 
-    elseif (do_wigs .and. lat%ele(ir)%key == wiggler$) then
+    elseif (do_wigs .and. (lat%ele(ir)%key == wiggler$ .or. lat%ele(ir)%key == undulator$)) then
 
       if (lat%ele(ir)%sub_key == map_type$) then
         if (print_wig_err_message) then

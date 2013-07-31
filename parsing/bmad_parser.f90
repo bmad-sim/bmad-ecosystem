@@ -1186,7 +1186,7 @@ if (present(err_flag)) err_flag = bp_com%error_flag
 
 do i = 1, lat%n_ele_max
   ele => lat%ele(i)
-  if (ele%key /= wiggler$) cycle
+  if (ele%key /= wiggler$ .and. ele%key /= undulator$) cycle
   if (ele%sub_key /= periodic_type$) cycle
   if (ele%slave_status == super_slave$) cycle
   if (abs(modulo2(ele%value(n_pole$) / 2, 0.5_rp)) > 0.01) then

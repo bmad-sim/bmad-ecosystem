@@ -325,7 +325,7 @@ case (vkicker$)
     is_valid = .true.
   end select
 
-case (wiggler$)
+case (wiggler$, undulator$)
   if (ele%sub_key == map_type$) then
     if (present(num_valid)) num_valid = 9
     select case (tracking_method)
@@ -603,7 +603,7 @@ case (vkicker$)
     is_valid = .true.
   end select
 
-case (wiggler$)
+case (wiggler$, undulator$)
   if (ele%sub_key == map_type$) then
     if (present(num_valid)) num_valid = 6
     select case (mat6_calc_method)

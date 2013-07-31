@@ -189,7 +189,7 @@ do j = 1, jmax
   ! fool itself if we stop before j = 5.
 
   if (j < 3) cycle
-  if (ele%key == wiggler$ .and. j < 5) cycle
+  if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. j < 5) cycle
 
   j0 = max(j-4, 1)
 
@@ -403,7 +403,7 @@ endif
 ! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
 ! switch to symp_lie_bmad type tracking.
 
-if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
+if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == periodic_type$) then
   tm_saved = ele%tracking_method  
   m6cm_saved = ele%mat6_calc_method  
   ele%tracking_method = symp_lie_bmad$
@@ -416,7 +416,7 @@ call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1,     .true., 
 info%a = ele_end%a
 info%b = ele_end%b
 
-if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
+if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == periodic_type$) then
   ele%tracking_method  = tm_saved 
   ele%mat6_calc_method = m6cm_saved 
 endif
@@ -428,7 +428,7 @@ call make_v_mats (ele_end, v, v_inv)
 info%eta_a = matmul(v, [info%a%eta, info%a%etap, 0.0_rp,   0.0_rp ])
 info%eta_b = matmul(v, [0.0_rp,   0.0_rp,    info%b%eta, info%b%etap ])
 
-if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then 
+if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == map_type$) then 
   call calc_wiggler_g_params (ele, z_here, orb, pt, info)
 else
   info%g_x = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
@@ -443,7 +443,7 @@ info%g = sqrt(info%g2)
 
 ! Add in multipole gradient
 
-if (ele%key /= wiggler$ .or. ele%sub_key /= map_type$) then 
+if ((ele%key /= wiggler$ .and. ele%key /= undulator$) .or. ele%sub_key /= map_type$) then 
   call multipole_ele_to_ab (ele, info%branch%param, .true., has_nonzero_pole, a_pole, b_pole)
   if (has_nonzero_pole) then
     do ip = 0, ubound(a_pole, 1)

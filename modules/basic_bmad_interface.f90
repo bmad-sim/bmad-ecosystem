@@ -909,12 +909,6 @@ interface
     real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
   end subroutine
 
-  subroutine set_design_linear (lat)
-    import
-    implicit none
-    type (lat_struct) lat
-  end subroutine
-
   subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
     import
     implicit none

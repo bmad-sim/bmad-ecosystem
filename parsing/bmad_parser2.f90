@@ -548,7 +548,7 @@ do i = 1, ele_num
   if (ele%lord_status /= super_lord$) cycle
 
   select case (ele%key)
-  case (wiggler$)
+  case (wiggler$, undulator$)
     if (ele%sub_key == periodic_type$) then
       if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
         ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 

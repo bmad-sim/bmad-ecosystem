@@ -56,12 +56,13 @@ ray%y_twiss = runt_ele%b
 
 ! set the ray's g_bend value (inverse bending radius at src pt) 
 
-if (ele%key == sbend$) then  
+select case (ele%key)
+case (sbend$)
 
   ! sbends are easy
   ray%g_bend = abs(1 / ele%value(rho$))
 
-elseif (ele%key == quadrupole$ .or. ele%key == sol_quad$) then
+case (quadrupole$, sol_quad$)
 
   ! for quads or sol_quads, get the bending radius
   ! from the change in x' and y' over a small 
@@ -73,34 +74,38 @@ elseif (ele%key == quadrupole$ .or. ele%key == sol_quad$) then
   orb1%vec = orb1%vec - orb0%vec
   ray%g_bend = sqrt(orb1%vec(2)**2 + orb1%vec(4)**2) / l_small
 
-elseif (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
+case (wiggler$, undulator$)
 
-  ! for periodic wigglers, get the max g_bend from 
-  ! the max B field of the wiggler, then scale it 
-  ! by the cos of the position along the poles
-  ! Note: assumes particles are relativistic!!
-  k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
+  if (ele%sub_key == periodic_type$) then
 
-  ! changed to use the E_TOT at the ele 2006.11.24 mjf
-  g_max = c_light * ele%value(b_max$) / (ele%value(E_TOT$))
-  ray%g_bend = abs(g_max * cos (k_wig * l_offset))
-  orb0%vec(2) = orb0%vec(2) + (g_max / k_wig) * sin (k_wig * l_offset)
+    ! for periodic wigglers, get the max g_bend from 
+    ! the max B field of the wiggler, then scale it 
+    ! by the cos of the position along the poles
+    ! Note: assumes particles are relativistic!!
+    k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
 
-elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+    ! changed to use the E_TOT at the ele 2006.11.24 mjf
+    g_max = c_light * ele%value(b_max$) / (ele%value(E_TOT$))
+    ray%g_bend = abs(g_max * cos (k_wig * l_offset))
+    orb0%vec(2) = orb0%vec(2) + (g_max / k_wig) * sin (k_wig * l_offset)
 
-  ! for mapped wigglers, find the B field at the source point
-  ! and extract the g_bend
-  ! Note: assumes particles are relativistic!!
-  call em_field_calc (runt_ele, lat%param, l_offset, 0.0_rp, orb0, .false., field)
+  else  ! map type
 
-  ! changed to use the E_TOT at the ele 2006.11.24 mjf
-  ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(E_TOT$)
+    ! for mapped wigglers, find the B field at the source point
+    ! and extract the g_bend
+    ! Note: assumes particles are relativistic!!
+    call em_field_calc (runt_ele, lat%param, l_offset, 0.0_rp, orb0, .false., field)
 
-else
+    ! changed to use the E_TOT at the ele 2006.11.24 mjf
+    ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(E_TOT$)
+
+  endif
+
+case default
 
   print *, 'ERROR: UNKNOWN ELEMENT HERE ', ele%name
 
-endif
+end select
 
 ray%ix_source = ix_ele
 ray%start = orb0

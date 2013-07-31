@@ -142,7 +142,7 @@ wiggler = wiggler_in
 wig_com => wiggler  ! For yfit_calc
 lat_com => lat      ! For yfit_calc
 
-if (wiggler%key /= wiggler$) then
+if (wiggler%key /= wiggler$ .and. wiggler%key /= undulator$) then
   call out_io (s_fatal$, r_name, 'Element is not a wiggler!: ' // wiggler%name)
   if (global_com%exit_on_error) call err_exit
 endif

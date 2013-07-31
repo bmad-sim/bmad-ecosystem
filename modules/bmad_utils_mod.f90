@@ -953,7 +953,7 @@ if (ele_taylor%value(integrator_order$) /= ele2%value(integrator_order$)) return
 vmask = .true.
 vmask(delta_ref_time$) = .false.
 vmask(ref_time_start$) = .false.
-if (ele_taylor%key == wiggler$ .and. ele_taylor%sub_key == map_type$) then
+if ((ele_taylor%key == wiggler$ .or. ele_taylor%key == undulator$) .and. ele_taylor%sub_key == map_type$) then
   vmask( [k1$, rho$, b_max$] ) = .false.  ! These are dependent attributes.
 endif
 if (.not. ele_taylor%map_with_offsets) then
@@ -1255,7 +1255,7 @@ if (key1 == key2) then
   select case (key1)
   case (sbend$)
     ! Bad
-  case (wiggler$, rfcavity$)
+  case (wiggler$, undulator$, rfcavity$)
     key3 = em_field$
     ele3%sub_key = const_ref_energy$
   case (lcavity$)
@@ -2294,7 +2294,7 @@ logical is_const
 ! has a varying ds/dt(ref).
 
 select case (ele%key)
-case (lcavity$, custom$, hybrid$, wiggler$, rfcavity$, em_field$)
+case (lcavity$, custom$, hybrid$, wiggler$, undulator$, rfcavity$, em_field$)
   is_const = .false.
 case default
   is_const = .true.

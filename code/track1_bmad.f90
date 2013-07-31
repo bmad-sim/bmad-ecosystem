@@ -672,7 +672,7 @@ case (taylor$)
 !   2) Track as a quadrupole through the body
 !   3) 1/2 the octupole kick at the exit face.
 
-case (wiggler$)
+case (wiggler$, undulator$)
 
   if (ele%sub_key == map_type$) then
     if (present(err_flag)) err_flag = .true.
