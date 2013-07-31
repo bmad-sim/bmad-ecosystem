@@ -37,7 +37,7 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
   ele => lat%ele(ix_ele)
 
   if (ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. &
-        ele%key /= wiggler$) then
+        ele%key /= wiggler$ .and. ele%key /= undulator$) then
     call out_io (s_fatal$, r_name, 'ELEMENT NOT A QUAD, SOL_QUAD OR WIGGLER: [\i0\] ' // ele%name, key_name(ele%key))
     if (global_com%exit_on_error) call err_exit
   endif
@@ -61,7 +61,7 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 
   k_quad = ele%value(k1$)
   
-  if( ele%key == wiggler$)then
+  if (ele%key == wiggler$ .or. ele%key == undulator$)then
     beta_a_ave = b_ave(ele%a%beta, -ele%a%alpha,  0.0_rp, ele%value(l$))
     beta_b_ave = b_ave(ele%b%beta, -ele%b%alpha, -k_quad, ele%value(l$))
   else

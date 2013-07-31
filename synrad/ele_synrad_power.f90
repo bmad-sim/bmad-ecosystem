@@ -53,7 +53,7 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
   ele => lat%ele(ie)
 
   if (ele%key /= sbend$ .and. ele%key /= quadrupole$ .and. &
-                     ele%key /= wiggler$ .and. ele%key /= sol_quad$) return
+                     ele%key /= wiggler$ .and. ele%key /= undulator$ .and. ele%key /= sol_quad$) return
 
   ! check if ele is on
   if (.not. ele%is_on) return

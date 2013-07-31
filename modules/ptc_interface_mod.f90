@@ -2936,7 +2936,7 @@ case (beambeam$)
   call out_io (s_fatal$, r_name,  'BEAMBEAM ELEMENT NOT YET IMPLEMENTED!')
   if (global_com%exit_on_error) call err_exit
 
-case (wiggler$)
+case (wiggler$, undulator$)
   ptc_key%magnet = 'wiggler'
 
 case default
@@ -2996,12 +2996,12 @@ ptc_fibre = energy_work
 
 ! wiggler
 
-if (key == wiggler$) then
+if (key == wiggler$ .or. key == undulator$) then
 
   call get_field_ele_list (ele, field_eles, dz_offset, n_field)
   do i = 1, n_field
     ele2 => field_eles(i)%ele
-    if (ele2%key == wiggler$) then
+    if (ele2%key == ele%key) then
       s_rel = dz_offset(i)
       exit
     endif
@@ -3279,7 +3279,7 @@ case (marker$, branch$, photon_branch$, init_ele$, em_field$, patch$, fiducial$,
   return
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$, &
-      ab_multipole$, multipole$, beambeam$, wiggler$, kicker$, hkicker$, vkicker$)
+      ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, kicker$, hkicker$, vkicker$)
   ! Nothing to be done
 
 case (quadrupole$) 

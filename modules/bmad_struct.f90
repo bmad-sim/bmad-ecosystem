@@ -662,8 +662,9 @@ integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
+integer, parameter :: undulator$ = 51
 
-integer, parameter :: n_key$ = 50
+integer, parameter :: n_key$ = 51
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
@@ -680,7 +681,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
-    'FLOOR_SHIFT      ', 'FIDUCIAL         ']
+    'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.

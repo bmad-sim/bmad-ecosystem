@@ -106,7 +106,7 @@ case (taylor$)   ! start with unit matrix
   ele%map_with_offsets = .false.
   call taylor_make_unit (ele%taylor)
 
-case (wiggler$) 
+case (wiggler$, undulator$) 
   ele%sub_key = periodic_type$   
   ele%value(polarity$) = 1.0     
 

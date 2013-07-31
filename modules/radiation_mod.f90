@@ -93,7 +93,7 @@ character(20) :: r_name = 'track1_radiation'
 ! Also symplectic tracking handles the radiation.
 
 if (ele%tracking_method == symp_lie_bmad$ .or. .not. any (ele%key == &
-          [quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$])) then
+          [quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$])) then
   end = start
   return
 endif
@@ -122,7 +122,7 @@ if (s_len < 0) s_len = 0
 
 ! Get the coords in the frame of reference of the element
 
-if (ele%key /= wiggler$) then
+if (ele%key /= wiggler$ .and. ele%key /= undulator$) then
   start2 = start
   call offset_particle (ele, start2, param, set)
 endif
@@ -162,7 +162,7 @@ case (sbend$)
     if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
   endif
 
-case (wiggler$)
+case (wiggler$, undulator$)
   ! Reuse g2 and g3 values from start_edge
   if (ele%sub_key == map_type$) then
     if (edge == start_edge$) then
@@ -260,7 +260,7 @@ integer i, j
 ! Compute for a map_type wiggler the change in g2 and g3 
 !   with respect to transverse orbit for an on-energy particle.
 
-if (ele%key /= wiggler$) return
+if (ele%key /= wiggler$ .and. ele%key /= undulator$) return
 if (ele%sub_key /= map_type$) return
 
 if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)

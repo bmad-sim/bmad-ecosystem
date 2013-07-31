@@ -6,16 +6,20 @@ use random_mod
 
 ! An init_spectrum_struct holds an array of spline fits of E_rel of gamma_phi vs 
 ! integrated probability r over a certain range. Each spline section is fit to 
-! one of four forms. 
-! The poly_n_spline$ is of the form:
-!   fit_value = c0 + c1 * t + c2 * t^c3
+! one of two forms:
+! 
+! The gen_poly_spline$ type is of the form:
+! [See the code how which form is chosen.]
+!   fit_value = c0 + c1 * t + c2 * t^c3      
 ! or
 !   fit_value = c0 + c1 * t + c2 * t^2 + c3 * t^3
-! where t = a + b * r is in the range [0, 1].
+!
+! The end_spline$ type is of the form:
+!   fit_value = c0 + c1 * t + c2 * t^2 / (1 - t/c3)
+!
+! where t is in the range [0, 1].
 !   t = 0 at the start of the spline section.
 !   t = 1 at the end of the spline section.
-! The end_spline$ is of the form:
-!   fit_value = c0 + c1 * t + c2 * t^2 / (1 - t/c3)
 
 type photon_init_spline_pt_struct
   real(rp) c0, c1, c2, c3
@@ -692,8 +696,7 @@ case (gen_poly_spline$)
   if (v * vp > 0 .and. abs(vp) > abs(3 * v)) then   ! c0 + c1 x + c2 * x^c3 spline
     fit_val = spline%pt(i)%c0 + spline%pt(i)%c1 * x + spline%pt(i)%c2 * x**spline%pt(i)%c3
   else    ! Cubic spline
-    fit_val = spline%pt(i)%c0 + spline%pt(i)%c1 * x + &
-                                    spline%pt(i)%c2 * x**2 + spline%pt(i)%c3 * x**3
+    fit_val = spline%pt(i)%c0 + spline%pt(i)%c1 * x + spline%pt(i)%c2 * x**2 + spline%pt(i)%c3 * x**3
   endif
 
 case (end_spline$)

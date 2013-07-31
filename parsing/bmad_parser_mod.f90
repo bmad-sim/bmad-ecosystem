@@ -964,7 +964,7 @@ endif
 !------------------------------
 ! wiggler term attribute
 
-if (ix_attrib == term$ .and. ele%key == wiggler$) then
+if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) then
 
   err_flag = .true. ! assume the worst
 
@@ -4999,7 +4999,7 @@ case (rfcavity$)
 
 ! for a periodic_type wiggler n_pole is a dependent attribute
 
-case (wiggler$)
+case (wiggler$, undulator$)
   if (ele%sub_key == periodic_type$) then
 
     if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
@@ -5052,7 +5052,7 @@ if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for thi
   if (ele%value(num_steps$) > 0) then
     ele%value(ds_step$) = abs(ele%value(l$) / ele%value(num_steps$))
   elseif (ele%value(ds_step$) == 0) then
-    if (ele%key == wiggler$ .and. ele%value(l_pole$) /= 0) then
+    if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%value(l_pole$) /= 0) then
       ele%value(ds_step$) = ele%value(l_pole$) / 10
     else
       ele%value(ds_step$) = bmad_com%default_ds_step

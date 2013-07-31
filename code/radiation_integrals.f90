@@ -130,7 +130,7 @@ real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt
 
 
 integer, optional :: ix_cache, ix_branch
-integer i, j, k, ip, ir, key, n_step
+integer i, j, k, ip, ir, key, key2, n_step
 
 character(20) :: r_name = 'radiation_integrals'
 
@@ -236,6 +236,7 @@ if (init_cache) then
     if (ele%value(l$) == 0) cycle
 
     key = ele%key
+    if (key == undulator$) key = wiggler$
     if ((key == wiggler$ .and. ele%sub_key == map_type$) .or. &
         (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
         key == sbend$ .or. key == wiggler$ .or. ele%value(hkick$) /= 0 .or. &
@@ -273,12 +274,15 @@ if (use_cache .or. init_cache) then
     ! no offsets.
 
     ele2 = branch%ele(i)
+    key2 = ele2%key
+    if (key2 == undulator$) key2 = wiggler$
+
     call zero_ele_offsets (ele2)
     orb_start = orbit(i-1)
     call offset_particle (branch%ele(i), orb_start, branch%param, set$, &
                           set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 
-    if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
+    if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$) then
       n_step = nint(10 * ele2%value(l$) / ele2%value(l_pole$))
       del_z = ele2%value(l$) / n_step
       ! bmad_standard will not properly do partial track through a periodic_type wiggler so
@@ -298,7 +302,7 @@ if (use_cache .or. init_cache) then
 
     ! map_type wiggler
 
-    if (ele2%key == wiggler$ .and. ele2%sub_key == map_type$) then
+    if (key2 == wiggler$ .and. ele2%sub_key == map_type$) then
       call symp_lie_bmad (ele2, branch%param, orb_start, orb_end, calc_mat6 = .true., track = track)
       do k = 0, track%n_pt
         c_pt => cache_ele%pt(k)
@@ -349,11 +353,11 @@ if (use_cache .or. init_cache) then
         c_pt%dgy_dx = 0
         c_pt%dgy_dy = 0
 
-        if (ele2%key == quadrupole$ .or. ele2%key == sol_quad$ .or. ele2%key == bend_sol_quad$) then
+        if (key2 == quadrupole$ .or. key2 == sol_quad$ .or. key2 == bend_sol_quad$) then
           c_pt%dgx_dx =  ele2%value(k1$)
           c_pt%dgy_dy = -ele2%value(k1$)
 
-        elseif (ele2%key == sbend$) then
+        elseif (key2 == sbend$) then
           c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
           c_pt%dgx_dx =  ele2%value(k1$)
           c_pt%dgy_dy = -ele2%value(k1$)
@@ -403,6 +407,7 @@ do ir = 1, branch%n_ele_track
   pt%dgy_dy = 0
 
   key = ele%key
+  if (key == undulator$) key = wiggler$
 
   if (key == rfcavity$) then
     m65 = m65 + ele%mat6(6,5)
@@ -486,7 +491,7 @@ do ir = 1, branch%n_ele_track
 
   ele => branch%ele(ir)
 
-  if (ele%key /= wiggler$) cycle
+  if (ele%key /= wiggler$ .and. ele%key /= undulator$) cycle
   if (ele%sub_key /= map_type$) cycle
   if (.not. ele%is_on) cycle
 

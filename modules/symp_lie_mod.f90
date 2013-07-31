@@ -156,12 +156,12 @@ select case (ele%key)
 !------------------------------------------------------------------
 ! Wiggler
 
-Case (wiggler$)
+Case (wiggler$, undulator$)
 
   call get_field_ele_list (ele, field_eles, dz_offset, n_field)
   do i = 1, n_field
     field_ele => field_eles(i)%ele
-    if (field_ele%key == wiggler$) exit
+    if (field_ele%key == ele%key) exit
   enddo
 
   wig_term => field_ele%wig%term

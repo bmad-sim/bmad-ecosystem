@@ -71,7 +71,7 @@ endif
 ! ele%value(b_max$) and ele%value(l_pole$) so sharing the same memeory location would
 ! lead to trouble if these attributes are modified in one element but not the other.
 
-if (ele1%key == wiggler$ .and. ele1%sub_key == periodic_type$ .and. &
+if ((ele1%key == wiggler$ .or. ele1%key == undulator$) .and. ele1%sub_key == periodic_type$ .and. &
     ele_save%slave_status /= super_slave$ .and. ele_save%slave_status /= multipass_slave$ .and. &
     ele_save%slave_status /= slice_slave$) then
 
