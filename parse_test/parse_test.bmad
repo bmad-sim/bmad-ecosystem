@@ -1,4 +1,15 @@
-no_digested
+!!no_digested
+
+ c: crystal, surface = {
+      grid = {
+        dr = (1, 2),
+        r0 = (3,4), 
+        type = segmented, 
+        pt_max = (10, 11),
+        pt(1,3) = (0, 1, 2, 3),
+        pt(3,4) = (1, 2, 3,4) &
+      } }
+
 
  B01: SBEND, L = 6.574262, ANGLE = 0.074799746, E1=0.018699937, E2=0.018699937
  B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! RHO =  31.65434
