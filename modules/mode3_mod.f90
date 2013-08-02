@@ -117,7 +117,7 @@ SUBROUTINE xyz_to_action(ring,ix,X,J,error)
 
   LOGICAL error
 
-  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix)
+  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
   CALL make_N(t6, N, Ninv, gamma, error)
   IF( error ) THEN
     RETURN
@@ -167,7 +167,7 @@ SUBROUTINE action_to_xyz(ring,ix,J,X,error)
 
   LOGICAL error
 
-  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix)
+  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
   CALL make_N(t6, N, Ninv, gamma, error)
   IF( error ) THEN
     RETURN
@@ -518,7 +518,7 @@ SUBROUTINE get_abc_from_updated_smat(ring, ix, sigma_mat, normal, error)
 
   error = .false.
 
-  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix)
+  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
 
   CALL mat_eigen (t6, eval_r, eval_i, evec_r, evec_i, error)
   IF( error ) THEN
@@ -840,13 +840,24 @@ SUBROUTINE project_via_EDES(ring, ix, mode, sigma_x, sigma_y, sigma_z)
   REAL(rp) sigma_mat(6,6)
   LOGICAL error
 
-  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix)
+  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
 
   sigma_x = SQRT(sigma_mat(1,1))
   sigma_y = SQRT(sigma_mat(3,3))
   sigma_z = SQRT(sigma_mat(5,5))
-END SUBROUTINE project_via_EDES
+END SUBROUTINE 
+
+!- SUBROUTINE spatial_smat_from_canonical_smat_b(Ecan,Espatial)
+!-   REAL(rp) Ecan(6,6)
+!-   REAL(rp) Espatial(6,6)
+!- 
+!-   Espatial = Ecan
+!-   Espatial(1,1) = Ecan(1,1) + Ecan(2,2)*Ecan(5,5) + 2.0d0*Ecan(2,5)**2
+!-   Espatial(3,3) = Ecan(3,3) + Ecan(4,4)*Ecan(5,5) + 2.0d0*Ecan(4,5)**2
+!-   Espatial(1,3) = Ecan(1,3) + Ecan(2,4)*Ecan(5,5) + 2.0d0*Ecan(2,5)*Ecan(4,5)
+!-   Espatial(3,1) = Espatial(1,3)
+!- END SUBROUTINE spatial_smat_from_canonical_smat_b
 
 !+
 ! Subroutine project_via_Vbar(ring, ix, mode, sigma_x, sigma_y, sigma_z)
@@ -885,7 +896,7 @@ SUBROUTINE project_via_Vbar(ring, ix, mode, sigma_x, sigma_y, sigma_z)
   LOGICAL ok, error
 
   !Calculate terms for horizontal projection at vBSM source point
-  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix)
+  CALL transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
   CALL make_N(t6, N, Ninv, gamma, error)
   IF(error) THEN
     WRITE(*,*) "BAD: make_N failed.  It is likely that the Eigen decomposition of the 1-turn matrix failed."
@@ -1057,7 +1068,7 @@ error = .true.
 
 IF (.NOT. ASSOCIATED(lat%ele(0)%mode3)) ALLOCATE(lat%ele(0)%mode3)
 
-CALL transfer_matrix_calc (lat, .true., lat%param%t1_with_RF)
+CALL transfer_matrix_calc (lat, .true., lat%param%t1_with_RF, one_turn=.true.)
 if (ALL(lat%param%t1_with_RF(6,1:5) == 0)) then
   call out_io (s_error$, r_name, 'RF IS OFF FOR THE MODE3 CALCULATION!')
   RETURN
