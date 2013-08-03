@@ -2,8 +2,9 @@
 #ifndef BMAD_ENUMS
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 124;
+  const int BMAD_INC_VERSION = 126;
   const int NUM_ELE_ATTRIB = 70;
+  const int OFF = 1, ON = 2;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
   const int ANCHOR_BEGINNING = 1, ANCHOR_CENTER = 2, ANCHOR_END = 3;
   const int PRIMARY = 1, SECONDARY = 2, IGNORE = 3;
@@ -15,17 +16,16 @@ namespace Bmad {
   const int X_PLANE = 1, Y_PLANE = 2;
   const int Z_PLANE = 3, N_PLANE = 4, S_PLANE = 5;
   const int MOVING_FORWARD = -9;
-  const int NOT_SET = -999;
   const int ALIVE = 1, LOST = 2;
   const int LOST_NEG_X_APERTURE = 3, LOST_POS_X_APERTURE = 4;
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
   const int LOST_Z_APERTURE = 7;
-  const int MESH_SURFACE = 1, LINEAR_SURFACE = 2;
   const int HYPER_Y = 1, HYPER_XY = 2, HYPER_X = 3;
   const int SUPER_OK = 0, STALE = 2;
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
   const int RAD_INT_GROUP = 7, ALL_GROUPS = 8;
+  const int SEGMENTED = 2, H_MISALIGN = 3;
   const int OPAL = 1, IMPACTT = 2;
   const int DRIFT = 1, SBEND = 2, QUADRUPOLE = 3, GROUP = 4;
   const int SEXTUPOLE = 5, OVERLAY = 6, CUSTOM = 7, TAYLOR = 8;
@@ -44,7 +44,8 @@ namespace Bmad {
   const int BRANCH = 41, MIRROR = 42, CRYSTAL = 43;
   const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
   const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
-  const int N_KEY = 50;
+  const int UNDULATOR = 51;
+  const int N_KEY = 51;
   const int N_PART = 2, TAYLOR_ORDER = 3, PARTICLE = 14;
   const int GEOMETRY = 15, LATTICE_TYPE = 16, SYMMETRY = 6;
   const int VAL1=3, VAL2=4, VAL3=5, VAL4=6, VAL5=7,
@@ -62,6 +63,7 @@ namespace Bmad {
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
   const int FIELD_X = 10, FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
+  const int E_PHOTON = 14;
   const int X_BEAM_START = 1, PX_BEAM_START = 2, Y_BEAM_START = 3;
   const int PY_BEAM_START = 4, Z_BEAM_START = 5, PZ_BEAM_START = 6;
   const int ABS_TIME_START = 8;
@@ -117,9 +119,9 @@ namespace Bmad {
   const int COUPLER_ANGLE = 34, B_FIELD_ERR = 34;
   const int COUPLER_STRENGTH = 35;
   const int B1_GRADIENT = 35, E1_GRADIENT = 35;
-  const int B2_GRADIENT = 36, E2_GRADIENT = 36;
-  const int B3_GRADIENT = 37, E3_GRADIENT = 37, KH_X_NORM = 37, PTC_FIELD_GEOMETRY = 38;
-  const int BS_FIELD = 38, E_TOT_OFFSET = 38, KH_Z_NORM = 38;
+  const int B2_GRADIENT = 36, E2_GRADIENT = 36, H_X_NORM = 36;
+  const int B3_GRADIENT = 37, E3_GRADIENT = 37, H_Y_NORM = 37, PTC_FIELD_GEOMETRY = 38;
+  const int BS_FIELD = 38, E_TOT_OFFSET = 38, H_Z_NORM = 38;
   const int DELTA_REF_TIME = 39;
   const int P0C_START = 40;
   const int E_TOT_START = 41;
@@ -133,7 +135,7 @@ namespace Bmad {
   const int TILT_TOT = 49, ROLL_TOT = 49;
   const int POLE_RADIUS = 50, REF_TILT_TOT = 50;
   const int N_REF_PASS = 51;
-  const int RADIUS = 52, KH_Y_NORM = 52;
+  const int RADIUS = 52;
   const int REF_TIME_START = 53;
   const int THICKNESS = 54, INTEGRATOR_ORDER = 54;
   const int NUM_STEPS = 55;
@@ -158,7 +160,7 @@ namespace Bmad {
   const int ACCORDION_EDGE =75, ETAP_Y = 75;
   const int LATTICE = 76, PHI_A = 76, DIFFRACTION_TYPE = 76;
   const int APERTURE_TYPE = 77, ETA_Z = 77;
-  const int MAP_WITH_OFFSETS = 78, CMAT_11 = 78;
+  const int MAP_WITH_OFFSETS = 78, CMAT_11 = 78, SURFACE_ATTRIB = 78;
   const int CSR_CALC_ON = 79, CMAT_12 = 79;
   const int S_POSITION = 80, CMAT_21 = 80;
   const int MAT6_CALC_METHOD = 81, CMAT_22 = 81;
@@ -234,6 +236,7 @@ namespace Bmad {
   const int FULL_STRAIGHT = 1, FULL_BEND = 2, NONE = 3, BASIC_BEND = 4;
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const int N_POLE_MAXX = 20;
+  const int NOT_SET = -999;
   const int ANTIMUON   = +3;
   const int PROTON     = +2;
   const int POSITRON   = +1;

@@ -215,6 +215,33 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine surface_grid_pt_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine surface_grid_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine segmented_surface_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine photon_surface_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -405,6 +432,15 @@ end interface
 
 interface 
   subroutine ele_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine normal_form_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -2750,6 +2786,312 @@ end subroutine rad_int_ele_cache_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine surface_grid_pt_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad surface_grid_pt_struct to a C++ CPP_surface_grid_pt structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad surface_grid_pt_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_surface_grid_pt struct.
+!-
+
+subroutine surface_grid_pt_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine surface_grid_pt_to_c2 (C, z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms) &
+      bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(surface_grid_pt_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call surface_grid_pt_to_c2 (C, F%x_pitch, F%y_pitch, F%x_pitch_rms, F%y_pitch_rms)
+
+end subroutine surface_grid_pt_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine surface_grid_pt_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_surface_grid_pt structure to a Bmad surface_grid_pt_struct structure.
+! This routine is called by surface_grid_pt_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the surface_grid_pt_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad surface_grid_pt_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine surface_grid_pt_to_f2 (Fp, z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms) &
+    bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(surface_grid_pt_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x_pitch = z_x_pitch
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y_pitch = z_y_pitch
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x_pitch_rms = z_x_pitch_rms
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y_pitch_rms = z_y_pitch_rms
+
+end subroutine surface_grid_pt_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine surface_grid_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad surface_grid_struct to a C++ CPP_surface_grid structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad surface_grid_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_surface_grid struct.
+!-
+
+subroutine surface_grid_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine surface_grid_to_c2 (C, z_file, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int), value :: n1_pt, n2_pt
+    real(c_double) :: z_dr(*), z_r0(*)
+    type(c_ptr) :: z_pt(*)
+    integer(c_int) :: z_type
+    character(c_char) :: z_file(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(surface_grid_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_pt(:)
+integer(c_int) :: n1_pt
+integer(c_int) :: n2_pt
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 2, ALLOC]
+if (allocated(F%pt)) then
+  n1_pt = size(F%pt, 1); lb1 = lbound(F%pt, 1) - 1
+  n2_pt = size(F%pt, 2); lb2 = lbound(F%pt, 2) - 1
+  allocate (z_pt(n1_pt * n2_pt))
+  do jd1 = 1, n1_pt; do jd2 = 1, n2_pt
+    z_pt(n2_pt*(jd1-1) + jd2) = c_loc(F%pt(jd1+lb1, jd2+lb2))
+  enddo;  enddo
+else
+  n1_pt = 0; n2_pt = 0
+endif
+
+!! f_side.to_c2_call
+call surface_grid_to_c2 (C, trim(F%file) // c_null_char, F%type, fvec2vec(F%dr, 2), &
+    fvec2vec(F%r0, 2), z_pt, n1_pt, n2_pt)
+
+end subroutine surface_grid_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine surface_grid_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_surface_grid structure to a Bmad surface_grid_struct structure.
+! This routine is called by surface_grid_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the surface_grid_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad surface_grid_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine surface_grid_to_f2 (Fp, z_file, z_type, z_dr, z_r0, z_pt, n1_pt, n2_pt) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(surface_grid_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int), value :: n1_pt, n2_pt
+real(c_double) :: z_dr(*), z_r0(*)
+type(c_ptr) :: z_pt(*)
+integer(c_int) :: z_type
+character(c_char) :: z_file(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_file, F%file)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
+!! f_side.to_f2_trans[real, 1, NOT]
+F%dr = z_dr(1:2)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%r0 = z_r0(1:2)
+!! f_side.to_f2_trans[type, 2, ALLOC]
+if (n1_pt == 0) then
+  if (allocated(F%pt)) deallocate(F%pt)
+else
+  if (allocated(F%pt)) then
+    if (n1_pt == 0 .or. any(shape(F%pt) /= [n1_pt, n2_pt])) deallocate(F%pt)
+    if (any(lbound(F%pt) /= 1)) deallocate(F%pt)
+  endif
+  if (.not. allocated(F%pt)) allocate(F%pt(1:n1_pt+1-1, 1:n2_pt+1-1))
+  do jd1 = 1, n1_pt
+  do jd2 = 1, n2_pt
+    call surface_grid_pt_to_f (z_pt(n2_pt*(jd1-1) + jd2), c_loc(F%pt(jd1+1-1,jd2+1-1)))
+  enddo
+  enddo
+endif
+
+
+end subroutine surface_grid_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine segmented_surface_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad segmented_surface_struct to a C++ CPP_segmented_surface structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad segmented_surface_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_segmented_surface struct.
+!-
+
+subroutine segmented_surface_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine segmented_surface_to_c2 (C, z_ix, z_iy, z_x0, z_y0, z_z0, z_slope_x, z_slope_y) &
+      bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_x0, z_y0, z_z0, z_slope_x, z_slope_y
+    integer(c_int) :: z_ix, z_iy
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(segmented_surface_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call segmented_surface_to_c2 (C, F%ix, F%iy, F%x0, F%y0, F%z0, F%slope_x, F%slope_y)
+
+end subroutine segmented_surface_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine segmented_surface_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_segmented_surface structure to a Bmad segmented_surface_struct structure.
+! This routine is called by segmented_surface_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the segmented_surface_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad segmented_surface_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine segmented_surface_to_f2 (Fp, z_ix, z_iy, z_x0, z_y0, z_z0, z_slope_x, z_slope_y) &
+    bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(segmented_surface_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_x0, z_y0, z_z0, z_slope_x, z_slope_y
+integer(c_int) :: z_ix, z_iy
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix = z_ix
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%iy = z_iy
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x0 = z_x0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y0 = z_y0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%z0 = z_z0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%slope_x = z_slope_x
+!! f_side.to_f2_trans[real, 0, NOT]
+F%slope_y = z_slope_y
+
+end subroutine segmented_surface_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine photon_surface_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad photon_surface_struct to a C++ CPP_photon_surface structure
@@ -2767,12 +3109,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_surface_to_c2 (C, z_curvature_zy, z_has_curvature) bind(c)
+  subroutine photon_surface_to_c2 (C, z_grid, z_segment, z_curvature_xy, z_has_curvature) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_has_curvature
-    real(c_double) :: z_curvature_zy(*)
+    type(c_ptr), value :: z_grid, z_segment
+    real(c_double) :: z_curvature_xy(*)
   end subroutine
 end interface
 
@@ -2788,7 +3132,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_surface_to_c2 (C, mat2vec(F%curvature_zy, 7*7), c_logic(F%has_curvature))
+call photon_surface_to_c2 (C, c_loc(F%grid), c_loc(F%segment), mat2vec(F%curvature_xy, 7*7), &
+    c_logic(F%has_curvature))
 
 end subroutine photon_surface_to_c
 
@@ -2808,7 +3153,8 @@ end subroutine photon_surface_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_surface_to_f2 (Fp, z_curvature_zy, z_has_curvature) bind(c)
+subroutine photon_surface_to_f2 (Fp, z_grid, z_segment, z_curvature_xy, z_has_curvature) &
+    bind(c)
 
 
 implicit none
@@ -2818,12 +3164,17 @@ type(photon_surface_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_has_curvature
-real(c_double) :: z_curvature_zy(*)
+type(c_ptr), value :: z_grid, z_segment
+real(c_double) :: z_curvature_xy(*)
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_f2_trans[type, 0, NOT]
+call surface_grid_to_f(z_grid, c_loc(F%grid))
+!! f_side.to_f2_trans[type, 0, NOT]
+call segmented_surface_to_f(z_segment, c_loc(F%segment))
 !! f_side.to_f2_trans[real, 2, NOT]
-call vec2mat(z_curvature_zy, F%curvature_zy)
+call vec2mat(z_curvature_xy, F%curvature_xy)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%has_curvature = f_logic(z_has_curvature)
 
@@ -5420,6 +5771,138 @@ end subroutine ele_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine normal_form_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad normal_form_struct to a C++ CPP_normal_form structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad normal_form_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_normal_form struct.
+!-
+
+subroutine normal_form_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine normal_form_to_c2 (C, z_m, z_a, z_a_inv, z_dhdj, z_ele_origin, n_ele_origin) &
+      bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    type(c_ptr), value :: z_ele_origin
+    integer(c_int), value :: n_ele_origin
+    type(c_ptr) :: z_m(*), z_a(*), z_a_inv(*), z_dhdj(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(normal_form_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr) :: z_m(6)
+type(c_ptr) :: z_a(6)
+type(c_ptr) :: z_a_inv(6)
+type(c_ptr) :: z_dhdj(6)
+integer(c_int) :: n_ele_origin
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, NOT]
+do jd1 = 1, size(F%m,1); lb1 = lbound(F%m,1) - 1
+  z_m(jd1) = c_loc(F%m(jd1+lb1))
+enddo
+!! f_side.to_c_trans[type, 1, NOT]
+do jd1 = 1, size(F%a,1); lb1 = lbound(F%a,1) - 1
+  z_a(jd1) = c_loc(F%a(jd1+lb1))
+enddo
+!! f_side.to_c_trans[type, 1, NOT]
+do jd1 = 1, size(F%a_inv,1); lb1 = lbound(F%a_inv,1) - 1
+  z_a_inv(jd1) = c_loc(F%a_inv(jd1+lb1))
+enddo
+!! f_side.to_c_trans[type, 1, NOT]
+do jd1 = 1, size(F%dhdj,1); lb1 = lbound(F%dhdj,1) - 1
+  z_dhdj(jd1) = c_loc(F%dhdj(jd1+lb1))
+enddo
+!! f_side.to_c_trans[type, 0, PTR]
+n_ele_origin = 0
+if (associated(F%ele_origin)) n_ele_origin = 1
+
+!! f_side.to_c2_call
+call normal_form_to_c2 (C, z_m, z_a, z_a_inv, z_dhdj, c_loc(F%ele_origin), n_ele_origin)
+
+end subroutine normal_form_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine normal_form_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_normal_form structure to a Bmad normal_form_struct structure.
+! This routine is called by normal_form_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the normal_form_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad normal_form_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine normal_form_to_f2 (Fp, z_m, z_a, z_a_inv, z_dhdj, z_ele_origin, n_ele_origin) &
+    bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(normal_form_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+type(ele_struct), pointer :: f_ele_origin
+type(c_ptr), value :: z_ele_origin
+integer(c_int), value :: n_ele_origin
+type(c_ptr) :: z_m(*), z_a(*), z_a_inv(*), z_dhdj(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[type, 1, NOT]
+do jd1 = 1, size(F%m,1); lb1 = lbound(F%m,1) - 1
+  call taylor_to_f(z_m(jd1), c_loc(F%m(jd1+lb1)))
+enddo
+!! f_side.to_f2_trans[type, 1, NOT]
+do jd1 = 1, size(F%a,1); lb1 = lbound(F%a,1) - 1
+  call taylor_to_f(z_a(jd1), c_loc(F%a(jd1+lb1)))
+enddo
+!! f_side.to_f2_trans[type, 1, NOT]
+do jd1 = 1, size(F%a_inv,1); lb1 = lbound(F%a_inv,1) - 1
+  call taylor_to_f(z_a_inv(jd1), c_loc(F%a_inv(jd1+lb1)))
+enddo
+!! f_side.to_f2_trans[type, 1, NOT]
+do jd1 = 1, size(F%dhdj,1); lb1 = lbound(F%dhdj,1) - 1
+  call taylor_to_f(z_dhdj(jd1), c_loc(F%dhdj(jd1+lb1)))
+enddo
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_ele_origin == 0) then
+  if (associated(F%ele_origin)) deallocate(F%ele_origin)
+else
+  if (.not. associated(F%ele_origin)) allocate(F%ele_origin)
+  call ele_to_f (z_ele_origin, c_loc(F%ele_origin))
+endif
+
+
+end subroutine normal_form_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine branch_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad branch_struct to a C++ CPP_branch structure
@@ -5439,14 +5922,15 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine branch_to_c2 (C, z_name, z_ix_branch, z_ix_root_branch, z_ix_from_branch, &
       z_ix_from_ele, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, &
-      n_b, z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d) bind(c)
+      n_b, z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d, &
+      z_normal_form_with_rf, z_normal_form_no_rf) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr) :: z_ele(*)
     integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_a, n_b, n_z, n1_ele, n_param
     integer(c_int), value :: n_wall3d
-    type(c_ptr), value :: z_a, z_b, z_z, z_param, z_wall3d
+    type(c_ptr), value :: z_a, z_b, z_z, z_param, z_wall3d, z_normal_form_with_rf, z_normal_form_no_rf
     integer(c_int) :: z_ix_branch, z_ix_root_branch, z_ix_from_branch, z_ix_from_ele, z_n_ele_track, z_n_ele_max
     character(c_char) :: z_name(*)
   end subroutine
@@ -5506,7 +5990,7 @@ if (associated(F%wall3d)) n_wall3d = 1
 call branch_to_c2 (C, trim(F%name) // c_null_char, F%ix_branch, F%ix_root_branch, &
     F%ix_from_branch, F%ix_from_ele, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, &
     c_loc(F%a), n_a, c_loc(F%b), n_b, c_loc(F%z), n_z, z_ele, n1_ele, c_loc(F%param), n_param, &
-    c_loc(F%wall3d), n_wall3d)
+    c_loc(F%wall3d), n_wall3d, c_loc(F%normal_form_with_rf), c_loc(F%normal_form_no_rf))
 
 end subroutine branch_to_c
 
@@ -5528,7 +6012,8 @@ end subroutine branch_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine branch_to_f2 (Fp, z_name, z_ix_branch, z_ix_root_branch, z_ix_from_branch, &
     z_ix_from_ele, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, &
-    z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d) bind(c)
+    z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d, z_normal_form_with_rf, &
+    z_normal_form_no_rf) bind(c)
 
 
 implicit none
@@ -5539,6 +6024,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int) :: z_ix_branch, z_ix_root_branch, z_ix_from_branch, z_ix_from_ele
 type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_param, z_wall3d
+type(c_ptr), value :: z_normal_form_with_rf, z_normal_form_no_rf
 type(lat_param_struct), pointer :: f_param
 character(c_char) :: z_name(*)
 integer(c_int), pointer :: f_n_ele_track, f_n_ele_max
@@ -5632,6 +6118,10 @@ else
   call wall3d_to_f (z_wall3d, c_loc(F%wall3d))
 endif
 
+!! f_side.to_f2_trans[type, 0, NOT]
+call normal_form_to_f(z_normal_form_with_rf, c_loc(F%normal_form_with_rf))
+!! f_side.to_f2_trans[type, 0, NOT]
+call normal_form_to_f(z_normal_form_no_rf, c_loc(F%normal_form_no_rf))
 
 end subroutine branch_to_f2
 

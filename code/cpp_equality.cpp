@@ -430,9 +430,57 @@ template bool is_all_equal (const CPP_rad_int_ele_cache_MATRIX&, const CPP_rad_i
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_surface_grid_pt& x, const CPP_surface_grid_pt& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.x_pitch == y.x_pitch);
+  is_eq = is_eq && (x.y_pitch == y.y_pitch);
+  is_eq = is_eq && (x.x_pitch_rms == y.x_pitch_rms);
+  is_eq = is_eq && (x.y_pitch_rms == y.y_pitch_rms);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_surface_grid_pt_ARRAY&, const CPP_surface_grid_pt_ARRAY&);
+template bool is_all_equal (const CPP_surface_grid_pt_MATRIX&, const CPP_surface_grid_pt_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_surface_grid& x, const CPP_surface_grid& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && (x.type == y.type);
+  is_eq = is_eq && is_all_equal(x.dr, y.dr);
+  is_eq = is_eq && is_all_equal(x.r0, y.r0);
+  is_eq = is_eq && is_all_equal(x.pt, y.pt);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_surface_grid_ARRAY&, const CPP_surface_grid_ARRAY&);
+template bool is_all_equal (const CPP_surface_grid_MATRIX&, const CPP_surface_grid_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_segmented_surface& x, const CPP_segmented_surface& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.ix == y.ix);
+  is_eq = is_eq && (x.iy == y.iy);
+  is_eq = is_eq && (x.x0 == y.x0);
+  is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.z0 == y.z0);
+  is_eq = is_eq && (x.slope_x == y.slope_x);
+  is_eq = is_eq && (x.slope_y == y.slope_y);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_segmented_surface_ARRAY&, const CPP_segmented_surface_ARRAY&);
+template bool is_all_equal (const CPP_segmented_surface_MATRIX&, const CPP_segmented_surface_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.curvature_zy, y.curvature_zy);
+  is_eq = is_eq && (x.grid == y.grid);
+  is_eq = is_eq && (x.segment == y.segment);
+  is_eq = is_eq && is_all_equal(x.curvature_xy, y.curvature_xy);
   is_eq = is_eq && (x.has_curvature == y.has_curvature);
   return is_eq;
 };
@@ -893,6 +941,23 @@ template bool is_all_equal (const CPP_ele_MATRIX&, const CPP_ele_MATRIX&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_normal_form& x, const CPP_normal_form& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.m, y.m);
+  is_eq = is_eq && is_all_equal(x.a, y.a);
+  is_eq = is_eq && is_all_equal(x.a_inv, y.a_inv);
+  is_eq = is_eq && is_all_equal(x.dhdj, y.dhdj);
+  is_eq = is_eq && ((x.ele_origin == NULL) == (y.ele_origin == NULL));
+  if (!is_eq) return false;
+  if (x.ele_origin != NULL) is_eq = (*x.ele_origin == *y.ele_origin);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_normal_form_ARRAY&, const CPP_normal_form_ARRAY&);
+template bool is_all_equal (const CPP_normal_form_MATRIX&, const CPP_normal_form_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_branch& x, const CPP_branch& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);
@@ -922,6 +987,8 @@ bool operator== (const CPP_branch& x, const CPP_branch& y) {
   is_eq = is_eq && ((x.wall3d == NULL) == (y.wall3d == NULL));
   if (!is_eq) return false;
   if (x.wall3d != NULL) is_eq = (*x.wall3d == *y.wall3d);
+  is_eq = is_eq && (x.normal_form_with_rf == y.normal_form_with_rf);
+  is_eq = is_eq && (x.normal_form_no_rf == y.normal_form_no_rf);
   return is_eq;
 };
 

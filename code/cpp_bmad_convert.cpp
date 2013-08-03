@@ -1087,28 +1087,152 @@ extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_RealArr z_o
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_surface_grid_pt
+
+extern "C" void surface_grid_pt_to_c (const Bmad_surface_grid_pt_class*, CPP_surface_grid_pt&);
+
+// c_side.to_f2_arg
+extern "C" void surface_grid_pt_to_f2 (Bmad_surface_grid_pt_class*, c_Real&, c_Real&, c_Real&,
+    c_Real&);
+
+extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt& C, Bmad_surface_grid_pt_class* F) {
+
+  // c_side.to_f2_call
+  surface_grid_pt_to_f2 (F, C.x_pitch, C.y_pitch, C.x_pitch_rms, C.y_pitch_rms);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, c_Real& z_x_pitch, c_Real&
+    z_y_pitch, c_Real& z_x_pitch_rms, c_Real& z_y_pitch_rms) {
+
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_pitch = z_x_pitch;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y_pitch = z_y_pitch;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_pitch_rms = z_x_pitch_rms;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y_pitch_rms = z_y_pitch_rms;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_surface_grid
+
+extern "C" void surface_grid_to_c (const Bmad_surface_grid_class*, CPP_surface_grid&);
+
+// c_side.to_f2_arg
+extern "C" void surface_grid_to_f2 (Bmad_surface_grid_class*, c_Char, c_Int&, c_RealArr,
+    c_RealArr, const CPP_surface_grid_pt**, Int, Int);
+
+extern "C" void surface_grid_to_f (const CPP_surface_grid& C, Bmad_surface_grid_class* F) {
+  // c_side.to_f_setup[type, 2, ALLOC]
+
+  int n1_pt = C.pt.size(), n2_pt = 0;
+  const CPP_surface_grid_pt** z_pt = NULL;
+  if (n1_pt > 0) {
+    n2_pt = C.pt[0].size();
+    z_pt = new const CPP_surface_grid_pt* [n1_pt*n2_pt];
+    for (int i = 0; i < n1_pt; i++) {
+      for (int j = 0; j < n2_pt; j++) z_pt[i*n2_pt + j] = &C.pt[i][j];}
+  }
+
+  // c_side.to_f2_call
+  surface_grid_to_f2 (F, C.file.c_str(), C.type, &C.dr[0], &C.r0[0], z_pt, n1_pt, n2_pt);
+
+  // c_side.to_f_cleanup[type, 2, ALLOC]
+  delete[] z_pt;
+}
+
+// c_side.to_c2_arg
+extern "C" void surface_grid_to_c2 (CPP_surface_grid& C, c_Char z_file, c_Int& z_type,
+    c_RealArr z_dr, c_RealArr z_r0, Bmad_surface_grid_pt_class** z_pt, Int n1_pt, Int n2_pt) {
+
+  // c_side.to_c2_set[character, 0, NOT]
+  C.file = z_file;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.type = z_type;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.dr << z_dr;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.r0 << z_r0;
+  // c_side.to_c2_set[type, 2, ALLOC]
+  C.pt.resize(n1_pt);
+  for (int i = 0; i < n1_pt; i++) {
+    C.pt[i].resize(n2_pt);
+    for (int j = 0; j < n2_pt; j++) surface_grid_pt_to_c(z_pt[n2_pt*i+j], C.pt[i][j]);
+  }
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_segmented_surface
+
+extern "C" void segmented_surface_to_c (const Bmad_segmented_surface_class*, CPP_segmented_surface&);
+
+// c_side.to_f2_arg
+extern "C" void segmented_surface_to_f2 (Bmad_segmented_surface_class*, c_Int&, c_Int&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
+
+extern "C" void segmented_surface_to_f (const CPP_segmented_surface& C, Bmad_segmented_surface_class* F) {
+
+  // c_side.to_f2_call
+  segmented_surface_to_f2 (F, C.ix, C.iy, C.x0, C.y0, C.z0, C.slope_x, C.slope_y);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void segmented_surface_to_c2 (CPP_segmented_surface& C, c_Int& z_ix, c_Int& z_iy,
+    c_Real& z_x0, c_Real& z_y0, c_Real& z_z0, c_Real& z_slope_x, c_Real& z_slope_y) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix = z_ix;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.iy = z_iy;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x0 = z_x0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y0 = z_y0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.z0 = z_z0;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.slope_x = z_slope_x;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.slope_y = z_slope_y;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_photon_surface
 
 extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photon_surface&);
 
 // c_side.to_f2_arg
-extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, c_RealArr, c_Bool&);
+extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, const CPP_surface_grid&,
+    const CPP_segmented_surface&, c_RealArr, c_Bool&);
 
 extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Bmad_photon_surface_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
-  Real z_curvature_zy[7*7]; matrix_to_vec(C.curvature_zy, z_curvature_zy);
+  Real z_curvature_xy[7*7]; matrix_to_vec(C.curvature_xy, z_curvature_xy);
 
   // c_side.to_f2_call
-  photon_surface_to_f2 (F, z_curvature_zy, C.has_curvature);
+  photon_surface_to_f2 (F, C.grid, C.segment, z_curvature_xy, C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_RealArr z_curvature_zy, c_Bool&
+extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Bmad_surface_grid_class*
+    z_grid, const Bmad_segmented_surface_class* z_segment, c_RealArr z_curvature_xy, c_Bool&
     z_has_curvature) {
 
+  // c_side.to_c2_set[type, 0, NOT]
+  surface_grid_to_c(z_grid, C.grid);
+  // c_side.to_c2_set[type, 0, NOT]
+  segmented_surface_to_c(z_segment, C.segment);
   // c_side.to_c2_set[real, 2, NOT]
-  C.curvature_zy << z_curvature_zy;
+  C.curvature_xy << z_curvature_xy;
   // c_side.to_c2_set[logical, 0, NOT]
   C.has_curvature = z_has_curvature;
 }
@@ -2340,6 +2464,60 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_normal_form
+
+extern "C" void normal_form_to_c (const Bmad_normal_form_class*, CPP_normal_form&);
+
+// c_side.to_f2_arg
+extern "C" void normal_form_to_f2 (Bmad_normal_form_class*, const CPP_taylor**, const
+    CPP_taylor**, const CPP_taylor**, const CPP_taylor**, const CPP_ele&, Int);
+
+extern "C" void normal_form_to_f (const CPP_normal_form& C, Bmad_normal_form_class* F) {
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_taylor* z_m[6];
+  for (int i = 0; i < 6; i++) {z_m[i] = &C.m[i];}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_taylor* z_a[6];
+  for (int i = 0; i < 6; i++) {z_a[i] = &C.a[i];}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_taylor* z_a_inv[6];
+  for (int i = 0; i < 6; i++) {z_a_inv[i] = &C.a_inv[i];}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_taylor* z_dhdj[6];
+  for (int i = 0; i < 6; i++) {z_dhdj[i] = &C.dhdj[i];}
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_ele_origin = 0; if (C.ele_origin != NULL) n_ele_origin = 1;
+
+  // c_side.to_f2_call
+  normal_form_to_f2 (F, z_m, z_a, z_a_inv, z_dhdj, *C.ele_origin, n_ele_origin);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void normal_form_to_c2 (CPP_normal_form& C, const Bmad_taylor_class** z_m, const
+    Bmad_taylor_class** z_a, const Bmad_taylor_class** z_a_inv, const Bmad_taylor_class**
+    z_dhdj, Bmad_ele_class* z_ele_origin, Int n_ele_origin) {
+
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.m.size(); i++) taylor_to_c(z_m[i], C.m[i]);
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.a.size(); i++) taylor_to_c(z_a[i], C.a[i]);
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.a_inv.size(); i++) taylor_to_c(z_a_inv[i], C.a_inv[i]);
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.dhdj.size(); i++) taylor_to_c(z_dhdj[i], C.dhdj[i]);
+  // c_side.to_c2_set[type, 0, PTR]
+  if (n_ele_origin == 0)
+    delete C.ele_origin;
+  else {
+    C.ele_origin = new CPP_ele;
+    ele_to_c(z_ele_origin, *C.ele_origin);
+  }
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_branch
 
 extern "C" void branch_to_c (const Bmad_branch_class*, CPP_branch&);
@@ -2348,7 +2526,7 @@ extern "C" void branch_to_c (const Bmad_branch_class*, CPP_branch&);
 extern "C" void branch_to_f2 (Bmad_branch_class*, c_Char, c_Int&, c_Int&, c_Int&, c_Int&,
     c_IntArr, Int, c_IntArr, Int, const CPP_mode_info&, Int, const CPP_mode_info&, Int, const
     CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&, Int, const CPP_wall3d&,
-    Int);
+    Int, const CPP_normal_form&, const CPP_normal_form&);
 
 extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
   // c_side.to_f_setup[integer, 0, PTR]
@@ -2376,7 +2554,8 @@ extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
   // c_side.to_f2_call
   branch_to_f2 (F, C.name.c_str(), C.ix_branch, C.ix_root_branch, C.ix_from_branch,
       C.ix_from_ele, C.n_ele_track, n_n_ele_track, C.n_ele_max, n_n_ele_max, *C.a, n_a, *C.b,
-      n_b, *C.z, n_z, z_ele, n1_ele, *C.param, n_param, *C.wall3d, n_wall3d);
+      n_b, *C.z, n_z, z_ele, n1_ele, *C.param, n_param, *C.wall3d, n_wall3d,
+      C.normal_form_with_rf, C.normal_form_no_rf);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_ele;
@@ -2388,7 +2567,8 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
     Int n_n_ele_track, c_IntArr z_n_ele_max, Int n_n_ele_max, Bmad_mode_info_class* z_a, Int
     n_a, Bmad_mode_info_class* z_b, Int n_b, Bmad_mode_info_class* z_z, Int n_z,
     Bmad_ele_class** z_ele, Int n1_ele, Bmad_lat_param_class* z_param, Int n_param,
-    Bmad_wall3d_class* z_wall3d, Int n_wall3d) {
+    Bmad_wall3d_class* z_wall3d, Int n_wall3d, const Bmad_normal_form_class*
+    z_normal_form_with_rf, const Bmad_normal_form_class* z_normal_form_no_rf) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -2460,6 +2640,10 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
     wall3d_to_c(z_wall3d, *C.wall3d);
   }
 
+  // c_side.to_c2_set[type, 0, NOT]
+  normal_form_to_c(z_normal_form_with_rf, C.normal_form_with_rf);
+  // c_side.to_c2_set[type, 0, NOT]
+  normal_form_to_c(z_normal_form_no_rf, C.normal_form_no_rf);
 }
 
 //--------------------------------------------------------------------

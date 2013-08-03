@@ -162,6 +162,21 @@ typedef valarray<CPP_rad_int_ele_cache>          CPP_rad_int_ele_cache_ARRAY;
 typedef valarray<CPP_rad_int_ele_cache_ARRAY>    CPP_rad_int_ele_cache_MATRIX;
 typedef valarray<CPP_rad_int_ele_cache_MATRIX>   CPP_rad_int_ele_cache_TENSOR;
 
+class CPP_surface_grid_pt;
+typedef valarray<CPP_surface_grid_pt>          CPP_surface_grid_pt_ARRAY;
+typedef valarray<CPP_surface_grid_pt_ARRAY>    CPP_surface_grid_pt_MATRIX;
+typedef valarray<CPP_surface_grid_pt_MATRIX>   CPP_surface_grid_pt_TENSOR;
+
+class CPP_surface_grid;
+typedef valarray<CPP_surface_grid>          CPP_surface_grid_ARRAY;
+typedef valarray<CPP_surface_grid_ARRAY>    CPP_surface_grid_MATRIX;
+typedef valarray<CPP_surface_grid_MATRIX>   CPP_surface_grid_TENSOR;
+
+class CPP_segmented_surface;
+typedef valarray<CPP_segmented_surface>          CPP_segmented_surface_ARRAY;
+typedef valarray<CPP_segmented_surface_ARRAY>    CPP_segmented_surface_MATRIX;
+typedef valarray<CPP_segmented_surface_MATRIX>   CPP_segmented_surface_TENSOR;
+
 class CPP_photon_surface;
 typedef valarray<CPP_photon_surface>          CPP_photon_surface_ARRAY;
 typedef valarray<CPP_photon_surface_ARRAY>    CPP_photon_surface_MATRIX;
@@ -271,6 +286,11 @@ class CPP_ele;
 typedef valarray<CPP_ele>          CPP_ele_ARRAY;
 typedef valarray<CPP_ele_ARRAY>    CPP_ele_MATRIX;
 typedef valarray<CPP_ele_MATRIX>   CPP_ele_TENSOR;
+
+class CPP_normal_form;
+typedef valarray<CPP_normal_form>          CPP_normal_form_ARRAY;
+typedef valarray<CPP_normal_form_ARRAY>    CPP_normal_form_MATRIX;
+typedef valarray<CPP_normal_form_MATRIX>   CPP_normal_form_TENSOR;
 
 class CPP_branch;
 typedef valarray<CPP_branch>          CPP_branch_ARRAY;
@@ -1047,17 +1067,119 @@ bool operator== (const CPP_rad_int_ele_cache&, const CPP_rad_int_ele_cache&);
 
 
 //--------------------------------------------------------------------
+// CPP_surface_grid_pt
+
+class Bmad_surface_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_surface_grid_pt {
+public:
+  Real x_pitch;
+  Real y_pitch;
+  Real x_pitch_rms;
+  Real y_pitch_rms;
+
+  CPP_surface_grid_pt() :
+    x_pitch(0.0),
+    y_pitch(0.0),
+    x_pitch_rms(0.0),
+    y_pitch_rms(0.0)
+    {}
+
+  ~CPP_surface_grid_pt() {
+  }
+
+};   // End Class
+
+extern "C" void surface_grid_pt_to_c (const Bmad_surface_grid_pt_class*, CPP_surface_grid_pt&);
+extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt&, Bmad_surface_grid_pt_class*);
+
+bool operator== (const CPP_surface_grid_pt&, const CPP_surface_grid_pt&);
+
+
+//--------------------------------------------------------------------
+// CPP_surface_grid
+
+class Bmad_surface_grid_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_surface_grid {
+public:
+  string file;
+  Int type;
+  Real_ARRAY dr;
+  Real_ARRAY r0;
+  CPP_surface_grid_pt_MATRIX pt;
+
+  CPP_surface_grid() :
+    file(),
+    type(Bmad::OFF),
+    dr(0.0, 2),
+    r0(0.0, 2),
+    pt(CPP_surface_grid_pt_ARRAY(CPP_surface_grid_pt(), 0), 0)
+    {}
+
+  ~CPP_surface_grid() {
+  }
+
+};   // End Class
+
+extern "C" void surface_grid_to_c (const Bmad_surface_grid_class*, CPP_surface_grid&);
+extern "C" void surface_grid_to_f (const CPP_surface_grid&, Bmad_surface_grid_class*);
+
+bool operator== (const CPP_surface_grid&, const CPP_surface_grid&);
+
+
+//--------------------------------------------------------------------
+// CPP_segmented_surface
+
+class Bmad_segmented_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_segmented_surface {
+public:
+  Int ix;
+  Int iy;
+  Real x0;
+  Real y0;
+  Real z0;
+  Real slope_x;
+  Real slope_y;
+
+  CPP_segmented_surface() :
+    ix(Bmad::INT_GARBAGE),
+    iy(Bmad::INT_GARBAGE),
+    x0(0.0),
+    y0(0.0),
+    z0(0.0),
+    slope_x(0.0),
+    slope_y(0.0)
+    {}
+
+  ~CPP_segmented_surface() {
+  }
+
+};   // End Class
+
+extern "C" void segmented_surface_to_c (const Bmad_segmented_surface_class*, CPP_segmented_surface&);
+extern "C" void segmented_surface_to_f (const CPP_segmented_surface&, Bmad_segmented_surface_class*);
+
+bool operator== (const CPP_segmented_surface&, const CPP_segmented_surface&);
+
+
+//--------------------------------------------------------------------
 // CPP_photon_surface
 
 class Bmad_photon_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
 
 class CPP_photon_surface {
 public:
-  Real_MATRIX curvature_zy;
+  CPP_surface_grid grid;
+  CPP_segmented_surface segment;
+  Real_MATRIX curvature_xy;
   Bool has_curvature;
 
   CPP_photon_surface() :
-    curvature_zy(Real_ARRAY(0.0, 7), 7),
+    grid(),
+    segment(),
+    curvature_xy(Real_ARRAY(0.0, 7), 7),
     has_curvature(false)
     {}
 
@@ -2015,6 +2137,39 @@ bool operator== (const CPP_ele&, const CPP_ele&);
 
 
 //--------------------------------------------------------------------
+// CPP_normal_form
+
+class Bmad_normal_form_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_normal_form {
+public:
+  CPP_taylor_ARRAY m;
+  CPP_taylor_ARRAY a;
+  CPP_taylor_ARRAY a_inv;
+  CPP_taylor_ARRAY dhdj;
+  CPP_ele* ele_origin;
+
+  CPP_normal_form() :
+    m(CPP_taylor_ARRAY(CPP_taylor(), 6)),
+    a(CPP_taylor_ARRAY(CPP_taylor(), 6)),
+    a_inv(CPP_taylor_ARRAY(CPP_taylor(), 6)),
+    dhdj(CPP_taylor_ARRAY(CPP_taylor(), 6)),
+    ele_origin(NULL)
+    {}
+
+  ~CPP_normal_form() {
+    delete ele_origin;
+  }
+
+};   // End Class
+
+extern "C" void normal_form_to_c (const Bmad_normal_form_class*, CPP_normal_form&);
+extern "C" void normal_form_to_f (const CPP_normal_form&, Bmad_normal_form_class*);
+
+bool operator== (const CPP_normal_form&, const CPP_normal_form&);
+
+
+//--------------------------------------------------------------------
 // CPP_branch
 
 class Bmad_branch_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -2034,6 +2189,8 @@ public:
   CPP_ele_ARRAY ele;
   CPP_lat_param* param;
   CPP_wall3d* wall3d;
+  CPP_normal_form normal_form_with_rf;
+  CPP_normal_form normal_form_no_rf;
 
   CPP_branch() :
     name(),
@@ -2048,7 +2205,9 @@ public:
     z(NULL),
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
     param(NULL),
-    wall3d(NULL)
+    wall3d(NULL),
+    normal_form_with_rf(),
+    normal_form_no_rf()
     {}
 
   ~CPP_branch() {
