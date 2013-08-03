@@ -2962,7 +2962,7 @@ endif
 
 ! Multipole components
 
-call ele_to_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+call ele_to_an_bn (ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
 ! Create ptc_fibre
 ! EXCEPTION is an error_flag. Set to 1 if error. Never reset.
@@ -3222,7 +3222,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_an_bn (ele, param, k, ks, n_max)
+! Subroutine ele_to_an_bn (ele, param, creating_fibre, k, ks, n_max)
 !
 ! Routine to compute the a(n) and b(n) multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
@@ -3233,6 +3233,7 @@ end subroutine bmad_patch_parameters_to_ptc
 ! Input:
 !   ele                 -- ele_struct: Bmad Element.
 !   param               -- lat_param_struct: 
+!   creating_fibre      -- integer: Set True if fibre is being created. False if fibre is being modified.
 !
 ! Output:
 !   k(1:n_pole_maxx+1)  -- real(rp): Skew multipole component.
@@ -3240,7 +3241,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !   n_max               -- integer: Maximum non-zero multipole component.
 !-
 
-subroutine ele_to_an_bn (ele, param, k, ks, n_max)
+subroutine ele_to_an_bn (ele, param, creating_fibre, k, ks, n_max)
 
 implicit none
 
@@ -3254,7 +3255,7 @@ real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 
 integer n, n_max, key
-logical kick_here, has_nonzero_pole
+logical creating_fibre, kick_here, has_nonzero_pole
 
 character(16) :: r_name = 'ele_to_an_bn'
 
@@ -3285,12 +3286,18 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity
 case (quadrupole$) 
   k(2) = val(k1$)
 
-case (sbend$) 
+case (sbend$)
   if (ele%is_on) then
     k(1) = ele%value(g_err$)
   else
     k(1) = -ele%value(g$)
   endif
+
+  ! On ptc side k(1) is error field when creating a fibre but 
+  ! is total field when fibre is being modified.
+
+  if (.not. creating_fibre) k(1) = k(1) + ele%value(g$)
+
   k(2) = val(k1$)
   k(3) = val(k2$) / 2
 
