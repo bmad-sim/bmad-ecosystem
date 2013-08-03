@@ -843,7 +843,7 @@ endif
 
 ! A_t_inverse
 if (present(A_t_inverse)) then
-  map8 = normal%A_t**-1
+  map8 = normal%A_t**(-1)
   A_t_inverse = map8
 endif
 
@@ -940,9 +940,10 @@ if (ele%key == sbend$) then
   call err_exit
 endif
 
-!
+! "0" argument in add routine means set k/ks to value given.
+! As opposed to "1" which means add to existing value.
 
-call ele_to_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+call ele_to_an_bn (ele, param, .false., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
 do i = ptc_key%list%nmul, 1, -1
   call add (ele%ptc_fibre,  i, 0, ptc_key%list%k(i))

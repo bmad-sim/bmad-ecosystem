@@ -405,7 +405,8 @@ type surface_grid_pt_struct
 end type
 
 integer, parameter :: segmented$ = 2, h_misalign$ = 3
-character(16), parameter :: surface_grid_type_name(0:3) = ['GARBAGE!', 'Off', 'Segmented', 'H_Misalign']
+character(16), parameter :: surface_grid_type_name(0:3) = &
+                          ['GARBAGE!  ', 'Off       ', 'Segmented ', 'H_Misalign']
 
 type surface_grid_struct
   character(200) :: file = ''
@@ -416,7 +417,7 @@ end type
 
 ! Scratch space for segmented surface calculations
 
-type :: segmented_surface_struct
+type segmented_surface_struct
   integer :: ix = int_garbage$, iy = int_garbage$    ! Index of segment
   real(rp) :: x0 = 0, y0 = 0, z0 = 0         ! Center of segment
   real(rp) :: slope_x = 0, slope_y = 0  ! Slopes of segment
@@ -425,7 +426,7 @@ end type
 ! Main surface container structure
 
 type photon_surface_struct
-  type (surface_grid_struct) :: grid = surface_grid_struct()
+  type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
   real(rp) :: curvature_xy(0:6,0:6) = 0
   logical :: has_curvature = .false.

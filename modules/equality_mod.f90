@@ -18,12 +18,13 @@ interface operator (==)
   module procedure eq_rf_wake_sr_table, eq_rf_wake_sr_mode, eq_rf_wake_lr, eq_rf_wake, eq_em_field_map_term
   module procedure eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields
   module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_photon_surface, eq_wall3d_vertex, eq_wall3d_section
-  module procedure eq_wall3d_crotch, eq_wall3d, eq_taylor_term, eq_taylor, eq_control
-  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
-  module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
-  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele, eq_branch
-  module procedure eq_lat, eq_bunch, eq_beam
+  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
+  module procedure eq_photon_surface, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d_crotch, eq_wall3d
+  module procedure eq_taylor_term, eq_taylor, eq_control, eq_lat_param, eq_mode_info
+  module procedure eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field
+  module procedure eq_track_map, eq_track, eq_synch_rad_common, eq_bmad_common, eq_rad_int1
+  module procedure eq_rad_int_all_ele, eq_ele, eq_normal_form, eq_branch, eq_lat
+  module procedure eq_bunch, eq_beam
 end interface
 
 contains
@@ -693,6 +694,90 @@ end function eq_rad_int_ele_cache
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_surface_grid_pt (f1, f2) result (is_eq)
+
+implicit none
+
+type(surface_grid_pt_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_pitch == f2%x_pitch)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_pitch == f2%y_pitch)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
+
+end function eq_surface_grid_pt
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_surface_grid (f1, f2) result (is_eq)
+
+implicit none
+
+type(surface_grid_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%file == f2%file)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%type == f2%type)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%dr == f2%dr)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%r0 == f2%r0)
+!! f_side.equality_test[type, 2, ALLOC]
+is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
+if (.not. is_eq) return
+if (allocated(f1%pt)) is_eq = all(shape(f1%pt) == shape(f2%pt))
+if (.not. is_eq) return
+if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
+
+end function eq_surface_grid
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_segmented_surface (f1, f2) result (is_eq)
+
+implicit none
+
+type(segmented_surface_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix == f2%ix)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%iy == f2%iy)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x0 == f2%x0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y0 == f2%y0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z0 == f2%z0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%slope_x == f2%slope_x)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%slope_y == f2%slope_y)
+
+end function eq_segmented_surface
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_photon_surface (f1, f2) result (is_eq)
 
 implicit none
@@ -703,6 +788,10 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%grid == f2%grid)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%segment == f2%segment)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%curvature_xy == f2%curvature_xy)
 !! f_side.equality_test[logical, 0, NOT]
@@ -1562,6 +1651,35 @@ end function eq_ele
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_normal_form (f1, f2) result (is_eq)
+
+implicit none
+
+type(normal_form_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 1, NOT]
+is_eq = is_eq .and. all(f1%m == f2%m)
+!! f_side.equality_test[type, 1, NOT]
+is_eq = is_eq .and. all(f1%a == f2%a)
+!! f_side.equality_test[type, 1, NOT]
+is_eq = is_eq .and. all(f1%a_inv == f2%a_inv)
+!! f_side.equality_test[type, 1, NOT]
+is_eq = is_eq .and. all(f1%dhdj == f2%dhdj)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%ele_origin) .eqv. associated(f2%ele_origin))
+if (.not. is_eq) return
+if (associated(f1%ele_origin)) is_eq = (f1%ele_origin == f2%ele_origin)
+
+end function eq_normal_form
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_branch (f1, f2) result (is_eq)
 
 implicit none
@@ -1623,6 +1741,10 @@ if (associated(f1%param)) is_eq = (f1%param == f2%param)
 is_eq = is_eq .and. (associated(f1%wall3d) .eqv. associated(f2%wall3d))
 if (.not. is_eq) return
 if (associated(f1%wall3d)) is_eq = (f1%wall3d == f2%wall3d)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%normal_form_with_rf == f2%normal_form_with_rf)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%normal_form_no_rf == f2%normal_form_no_rf)
 
 end function eq_branch
 
