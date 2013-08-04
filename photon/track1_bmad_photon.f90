@@ -87,7 +87,7 @@ case (crystal$)
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
   call offset_photon (ele, end_orb, set$)
-  call track_a_drift_photon (end_orb, ele, length)
+  call track_a_drift_photon (end_orb, length)
   call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------

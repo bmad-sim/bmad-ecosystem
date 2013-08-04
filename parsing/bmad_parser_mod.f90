@@ -2695,8 +2695,9 @@ type (lat_struct), target ::  lat
 type (ele_struct), pointer :: ele
 type (real_pointer_struct), allocatable :: ptr(:)
 type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_attribute_struct) attrib_info
 
-integer i, ix1, ix2, ix_word, ios, ix, n_loc
+integer i, ix1, ix2, ix_word, ios, ix, n_loc, ix_attrib
 real(rp) value
 real(rp), pointer :: v(:)
 character(*) word
@@ -2778,11 +2779,23 @@ case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
 ! Everything else
 
 case default
-  call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false.)
+  call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false., eles, ix_attrib)
   if (err_flag .or. size(ptr) == 0) then
     call parser_error('BAD ATTRIBUTE: ' // word)
+    return
   else
     value = ptr(1)%r
+  endif
+
+  ! If this is bmad_parser, and not bmad_parser2, then dependent attributes have not been set and cannot
+  ! be used.
+
+  if (ix_attrib > 0 .and. bp_com%parser_name == 'bmad_parser') then
+    attrib_info = attribute_info (eles(1)%ele, ix_attrib)
+    if (attrib_info%type == dependent$) then
+      call parser_error ('DEPENDENT ATTRIBUTE IS NOT CALCULATED BEFORE LATTICE EXPANSION AND', &
+                         'THEREFORE CANNOT BE USED BEFORE ANY EXPAND_LATTICE COMMAND: ' // word)
+    endif
   endif
 
   ! If size(ptr) > 1 then there must be more than one element of the same name.

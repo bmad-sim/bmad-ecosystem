@@ -277,7 +277,7 @@ end subroutine track_a_drift
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_drift_photon (orb, ele, length)
+! Subroutine track_a_drift_photon (orb, length)
 !
 ! Subroutine to track a particle as through a drift.
 !
@@ -286,19 +286,17 @@ end subroutine track_a_drift
 !
 ! Input:
 !   orb      -- coord_struct: Orbit at start of the drift.
-!   ele      -- Ele_struct: Element tracked through.
 !   length   -- Real(rp): Length to drift through.
 !
 ! Output:
 !   orb      -- coord_struct: Orbit at end of the drift
 !-
 
-subroutine track_a_drift_photon (orb, ele, length)
+subroutine track_a_drift_photon (orb, length)
 
 implicit none
 
 type (coord_struct) orb
-type (ele_struct) ele
 type (lat_param_struct) param
 real(rp) length, rel_pc, dz, px, py, pxy2
 

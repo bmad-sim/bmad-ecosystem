@@ -198,7 +198,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
     return
   endif
 
-end subroutine
+end subroutine mat_symp_decouple
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -275,7 +275,7 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
     twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
   endif
 
-end subroutine
+end subroutine twiss_from_mat2
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -316,7 +316,7 @@ subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
   mat2(2,1) = -s * (1 + twiss%alpha**2) / twiss%beta
   mat2(2,2) =  c - s * twiss%alpha
 
-end subroutine
+end subroutine twiss_to_1_turn_mat
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -359,7 +359,7 @@ subroutine make_g2_mats (twiss, g2_mat, g2_inv_mat)
   g2_inv_mat = g2_mat
   g2_inv_mat(2,1) = -g2_mat(2,1)
 
-end subroutine
+end subroutine make_g2_mats
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
@@ -407,6 +407,45 @@ subroutine transfer_mat2_from_twiss (twiss1, twiss2, mat)
   mat(2,1) = -((a2-a1) * cos21 + (1 + a1 * a2) * sin21) / (sqrt(b1 * b2))
   mat(2,2) = sqrt(b1/b2) * (cos21 - a2 * sin21)
 
-end subroutine
+end subroutine transfer_mat2_from_twiss
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!+
+! Function average_twiss (frac1, twiss1, twiss2) result (ave_twiss)
+!
+! Routine to average twiss parameters.
+!
+! Input:
+!   frac1  -- real(rp): Fraction of twiss1 to use in the average.
+!   twiss1 -- twiss_struct: Twiss parameters to average.
+!   twiss1 -- twiss_struct: Twiss parameters to average.
+!
+! Output:
+!   ave_twiss -- twiss_struct: Average twiss.
+!-
+
+function average_twiss (frac1, twiss1, twiss2) result (ave_twiss)
+
+implicit none
+
+type (twiss_struct) twiss1, twiss2, ave_twiss
+real(rp) frac1
+
+!
+
+ave_twiss%beta      = frac1 * twiss1%beta      + (1-frac1) * twiss2%beta
+ave_twiss%alpha     = frac1 * twiss1%alpha     + (1-frac1) * twiss2%alpha
+ave_twiss%gamma     = frac1 * twiss1%gamma     + (1-frac1) * twiss2%gamma
+ave_twiss%phi       = frac1 * twiss1%phi       + (1-frac1) * twiss2%phi
+ave_twiss%eta       = frac1 * twiss1%eta       + (1-frac1) * twiss2%eta
+ave_twiss%etap      = frac1 * twiss1%etap      + (1-frac1) * twiss2%etap
+ave_twiss%sigma     = frac1 * twiss1%sigma     + (1-frac1) * twiss2%sigma
+ave_twiss%sigma_p   = frac1 * twiss1%sigma_p   + (1-frac1) * twiss2%sigma_p
+ave_twiss%emit      = frac1 * twiss1%emit      + (1-frac1) * twiss2%emit
+ave_twiss%norm_emit = frac1 * twiss1%norm_emit + (1-frac1) * twiss2%norm_emit
+
+end function average_twiss
 
 end module
