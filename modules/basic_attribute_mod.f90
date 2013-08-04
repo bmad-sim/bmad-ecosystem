@@ -997,8 +997,8 @@ call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_sta
 call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
 
 call init_attribute_name1 (crystal$, l$,                            'l', private$)
-call init_attribute_name1 (crystal$, bragg_angle_in$,               'GRAZE_ANGLE_IN', dependent$)
-call init_attribute_name1 (crystal$, bragg_angle_out$,              'GRAZE_ANGLE_OUT', dependent$)
+call init_attribute_name1 (crystal$, bragg_angle_in$,               'BRAGG_ANGLE_IN', dependent$)
+call init_attribute_name1 (crystal$, bragg_angle_out$,              'BRAGG_ANGLE_OUT', dependent$)
 call init_attribute_name1 (crystal$, psi_angle$,                    'PSI_ANGLE')
 call init_attribute_name1 (crystal$, alpha_angle$,                  'ALPHA_ANGLE', dependent$)
 call init_attribute_name1 (crystal$, ref_tilt$,                     'REF_TILT')

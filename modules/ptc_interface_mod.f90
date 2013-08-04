@@ -1089,7 +1089,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
 use mad_like, only: make_states, exact_model, always_exactmis, &
               assignment(=), nocavity, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE
-use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, set_up, m_u, bmadl
+use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl
 
 implicit none
 
@@ -1169,7 +1169,6 @@ if (params_present) then
     ! Only do this once
     if (init_needed) then
       call ptc_ini_no_append 
-      call set_up(bmadl)
     endif
     init_needed = .false.
   endif
@@ -2720,10 +2719,7 @@ end subroutine type_map
 !+                                
 ! Subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, integ_order, steps, for_layout)
 !
-! Subroutine to convert a Bmad element to a PTC fibre element.
-! This subroutine allocates fresh storage for the fibre so after calling
-! this routine you need to deallocate at some point with:
-!       call kill (ptc_fibre)
+! Routine to convert a Bmad element to a PTC fibre element.
 !
 ! Note: You need to call set_ptc before using this routine.
 !
@@ -2976,6 +2972,10 @@ if (logic_option(.false., for_layout)) then
 
 else
   call set_madx (energy = ele%value(e_tot$), method = ptc_key%method , step = ptc_key%nstep)
+  if (associated(bmadl%start)) then
+    call kill (bmadl)
+    call set_up(bmadl)
+  endif
   call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION)   ! ptc routine
   ptc_fibre => bmadl%start
   bmadl%closed=.true.

@@ -3,6 +3,7 @@ module photon_init_mod
 use bmad_struct
 use bmad_interface
 use random_mod
+use rotation_3d_mod
 
 ! An init_spectrum_struct holds an array of spline fits of E_rel of gamma_phi vs 
 ! integrated probability r over a certain range. Each spline section is fit to 
@@ -51,12 +52,54 @@ contains
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_init (g_bend_x, g_bend_y, gamma, set_polarization, orbit)
+! Subroutine absolute_photon_position (e_orb, photon_orb)
+! 
+! Routine to calculate the photon position given the photon position relative to
+! some emitting charged particle and the charged particle position itself.
 !
-! Routine to initalize a photon. 
+! Input:
+!   e_orb      -- coord_struct: charged particle position.
+!   photon_orb -- coord_struct: Photon position relative to e_orb.
+!
+! Output:
+!   photon_orb -- coord_struct: Photon position.
+!-
+
+subroutine absolute_photon_position (e_orb, photon_orb)
+
+implicit none
+
+type (coord_struct) photon_orb, e_orb
+real(rp) e_vec(3), w_mat(3,3), theta
+
+! Remember: Phase space description for charged particle is different from photons.
+
+photon_orb%vec(1) = e_orb%vec(1)
+photon_orb%vec(3) = e_orb%vec(3)
+
+e_vec(1:2) = e_orb%vec(2:4:2) / (e_orb%p0c * (1 + e_orb%vec(6)))
+theta = asin(norm2(e_vec(1:2)))
+if (theta == 0) return
+call axis_angle_to_w_mat ([-e_vec(2), e_vec(1), 0.0_rp], theta, w_mat)
+photon_orb%vec(2:6:2) = matmul(w_mat, photon_orb%vec(2:6:2))
+
+end subroutine absolute_photon_position
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!+
+! Subroutine photon_init (g_bend_x, g_bend_y, gamma, E_min, E_max, set_polarization, orbit)
+!
+! Routine to initalize a photon for dipole bends and wigglers (but not undulators).
+! The photon's energy will be in the range [E_min, E_max].
+! To not restrict the photon's energy, set E_max = 0.
 ! The photon is initialized using Monte Carlo and the standard formulas for bending radiation.
-! The photon's position orbit%vec(1:5:2) will be untouched.
-! The photon's polarization have unit amplitude.
+! The photon's polarization, if set, will have unit amplitude.
+!
+! This routine assumes that the emitting charged particle is on-axis and moving in 
+! the forward direction. To correct for the actual charged particle postion use the routine
+!   absolute_photon_position
 !
 ! Modules needed:
 !   use photon_init_mod
@@ -65,30 +108,44 @@ contains
 !   g_bend_x -- Real(rp): Bending 1/rho component in horizontal plane.
 !   g_bend_y -- Real(rp): Bending 1/rho component in vertical plane.
 !   gamma    -- Real(rp): Relativistic gamma factor of generating charged particle.
+!   E_min    -- Real(rp): Minimum photon energy.
+!   E_max    -- Real(rp): Maximum phton energy. Set E_max = 0 to not restrict the energy.
 !   set_polarization -- Logical: If False then the polarization is not set
 !
 ! output:
-!   orbit    -- coord_struct: Initialized photon.
+!   orbit             -- coord_struct: Initialized photon.
 !-
 
-subroutine photon_init (g_bend_x, g_bend_y, gamma, set_polarization, orbit)
-
-use nr
+subroutine photon_init (g_bend_x, g_bend_y, gamma, E_min, E_max, set_polarization, orbit)
 
 implicit none
 
 type (coord_struct) orbit
-real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi
-real(rp) E_rel, gamma_phi, E_photon
+real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi, e_factor
+real(rp) E_rel, gamma_phi, E_photon, E_min, E_max, r_min, r_max, r
 logical set_polarization
 
-!
-
-call photon_energy_init (E_rel)
-call photon_vert_angle_init (E_rel, gamma_phi)
+! Photon energy
 
 g_bend = sqrt(g_bend_x**2 + g_bend_y**2)
-E_photon = E_rel * 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
+e_factor = 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
+
+
+if (E_max == 0) then
+  call photon_energy_init (E_rel)
+else
+  r_min = photon_energy_integ_prob(E_min, g_bend, gamma)
+  r_max = photon_energy_integ_prob(E_max, g_bend, gamma)
+  call ran_uniform(r)
+  r = r_min + r * (r_max - r_min)
+  call photon_energy_init (E_rel, r)
+endif
+
+E_photon = E_rel * e_factor
+
+! Photon vertical angle
+
+call photon_vert_angle_init (E_rel, gamma_phi)
 
 phi = modulo2(gamma_phi / gamma, pi/2)
 orbit%vec = 0
@@ -98,9 +155,74 @@ orbit%vec(6) = cos(phi)
 
 call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
 
+! Polaraization
+
 if (set_polarization) call photon_polarization_init(g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
 
 end subroutine photon_init
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!+
+! Function photon_energy_integ_prob (E_photon, g_bend, gamma) result (integ_prob)
+!
+! Routine to find the integrated probability corresponding to emitting a photon
+! from a bend in the range [0, E_photon].
+!
+! Input:
+!   E_photon -- real(rp): Photon energy.
+!   g_bend   -- real(rp): 1/rho bending strength.
+!   gamma    -- Real(rp): Relativistic gamma factor of generating charged particle.
+!
+! Output:
+!   integ_prob -- real(rp): Integrated probability. Will be in the range [0, 1].
+!-
+
+function photon_energy_integ_prob (E_photon, g_bend, gamma) result (integ_prob)
+
+use nr
+
+implicit none
+
+real(rp) E_photon, g_bend, gamma, integ_prob, E1, E_rel_target
+real(rp), parameter :: e_factor = 3 * h_bar_planck * c_light / 2 
+
+! Easy cases. phton_energy_init gives a finite energy at integ_prob = 1 (in theory 
+! should be infinity) so return 1.0 if E_photon > E (upper bound).
+
+if (E_photon == 0) then
+  integ_prob = 0
+  return
+endif
+
+E_rel_target = E_photon / (e_factor * gamma**3 * g_bend)
+
+call photon_energy_init (E1, 1.0_rp)
+if (E_rel_target >= E1) then
+  integ_prob = 1
+  return
+endif
+
+! photon_energy_init calculates photon energy given the integrated probability
+! so invert using the NR routine zbrent.
+
+integ_prob = zbrent(energy_func, 0.0_rp, 1.0_rp, 1d-10)
+
+!----------------------------------------------------------------------------------------
+contains
+
+function energy_func(integ_prob) result (dE)
+
+real(rp), intent(in) :: integ_prob
+real(rp) dE, E_rel
+
+call photon_energy_init(E_rel, integ_prob)
+dE = E_rel - E_rel_target
+
+end function energy_func
+
+end function photon_energy_integ_prob
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
@@ -488,7 +610,7 @@ character(20) :: r_name = 'photon_energy_init'
 if (present(r_in)) then
   rr = r_in
   if (rr < 0  .or. rr > 1) then
-    call out_io (s_fatal$, r_name, 'RR IS OUT OF RANGE: \es12.4\ ', rr)
+    call out_io (s_fatal$, r_name, 'R_IN IS OUT OF RANGE: \es12.4\ ', rr)
     stop
   endif
 else

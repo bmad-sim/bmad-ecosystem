@@ -15,6 +15,43 @@ contains
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !+
+! Function g_bend_from_em_field (B, E, orbit) result (g_bend)
+!
+! Routine to calculate the bending strength (1/bending_radius) for
+! a given particle for a given field.
+!
+! Input:
+!   B(3)  -- real(rp): Magnetic field.
+!   E(3)  -- real(rp): Electric field
+!   orbit -- coord_struct: particle orbit
+!
+! Output:
+!   g_bend(3) -- real(rp): bending strength vector.
+!-
+
+function g_bend_from_em_field (B, E, orbit) result (g_bend)
+
+implicit none
+
+type (coord_struct) orbit
+real(rp) b(3), e(3), g_bend(3)
+real(rp) vel(3), rel_pc, force(3)
+
+! vel is normalized velocity
+
+rel_pc = 1 + orbit%vec(6)
+vel(1:2) = [orbit%vec(2), orbit%vec(4)] / rel_pc
+vel(3) = sqrt(1 - vel(1)**2 - vel(2)**2) * orbit%direction
+
+force = (E + cross_product(vel, B) * orbit%beta * c_light) * charge_of(orbit%species)
+g_bend = -(force - vel * (dot_product(force, vel))) / (orbit%p0c * rel_pc)
+
+end function g_bend_from_em_field
+
+!-----------------------------------------------------------------
+!-----------------------------------------------------------------
+!-----------------------------------------------------------------
+!+
 ! Subroutine init_saved_orbit (track, n_pt)
 !
 ! Subroutine to initialize the track structure.

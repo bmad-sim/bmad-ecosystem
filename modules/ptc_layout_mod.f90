@@ -1041,6 +1041,91 @@ end subroutine set_logic
 
 end subroutine update_ptc_fibre 
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine update_bmad_ele (ele, param)
+!
+! Routine to update a bmad lattice element when the associated PTC fibre has been modified.
+!
+! Module Needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   ele           -- ele_struct: Element with corresponding ele%ptc_fibre fibre.
+!   param         -- lat_param_struct:
+!
+! Output:
+!   ele       -- ele_struct: Modified element. 
+!-
+
+subroutine update_bmad_ele (ele, param)
+
+implicit none
+
+type (ele_struct) ele
+type (lat_param_struct) param
+
+!
+
+call update_this (ele%value(l$), 0.0_rp)
+call update_this (ele%value(ds_step$), 0.0_rp)
+call update_this (ele%value(tilt$), 0.0_rp)
+
+!
+
+select case (ele%key)
+case (drift$)
+
+
+case (elseparator$)
+
+
+case (lcavity$, rfcavity$)
+  call update_this (ele%value(rf_frequency$), 0.0_rp)
+  call update_this (ele%value(phi0$), 0.0_rp)
+
+
+case (octupole$)
+
+
+case (quadrupole$)
+
+
+case (sbend$)
+  call update_this (ele%value(g$), 0.0_rp)
+  call update_this (ele%value(e1$), 0.0_rp)
+  call update_this (ele%value(e2$), 0.0_rp)
+  call update_this (ele%value(hgap$), 0.0_rp)
+  call update_this (ele%value(fint$), 0.0_rp)
+
+case (sextupole$)
+
+
+case (solenoid$)
+
+case (sol_quad$)
+
+
+case (wiggler$, undulator$)
+
+
+case default
+end select
+
+!------------------------------------------------------------------------
+contains
+
+subroutine update_this (var, value)
+
+real(rp) var, value
+
+ 
+end subroutine update_this
+
+end subroutine update_bmad_ele
+
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
