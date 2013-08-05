@@ -33,8 +33,6 @@ contains
 
 subroutine ele_equal_ele (ele1, ele2)
 
-use tpsalie_analysis 
-
 implicit none
 	
 type (ele_struct), intent(inout) :: ele1
