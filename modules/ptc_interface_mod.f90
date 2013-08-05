@@ -3238,7 +3238,8 @@ end subroutine bmad_patch_parameters_to_ptc
 ! Output:
 !   k(1:n_pole_maxx+1)  -- real(rp): Skew multipole component.
 !   ks(1:n_pole_maxx+1) -- real(rp): Normal multipole component.
-!   n_max               -- integer: Maximum non-zero multipole component.
+!   n_max               -- integer: If creating fibre: Maximum non-zero multipole component.
+!                                   If modifiying fibre: Maximum relavent multipole component.
 !-
 
 subroutine ele_to_an_bn (ele, param, creating_fibre, k, ks, n_max)
@@ -3254,8 +3255,8 @@ real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
 
-integer n, n_max, key
-logical creating_fibre, kick_here, has_nonzero_pole
+integer n, n_max, key, n_relavent
+logical creating_fibre, kick_here, has_nonzero_pole, add_kick
 
 character(16) :: r_name = 'ele_to_an_bn'
 
@@ -3273,6 +3274,8 @@ endif
 k = 0
 ks = 0
 n_max = 0
+n_relavent = 0
+add_kick = .true.
 
 select case (key)
 
@@ -3280,11 +3283,12 @@ case (marker$, branch$, photon_branch$, init_ele$, em_field$, patch$, fiducial$,
   return
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$, &
-      ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, kicker$, hkicker$, vkicker$)
+      ab_multipole$, multipole$, beambeam$, wiggler$, undulator$)
   ! Nothing to be done
 
 case (quadrupole$) 
   k(2) = val(k1$)
+  n_relavent = 2
 
 case (sbend$)
   if (ele%is_on) then
@@ -3300,17 +3304,33 @@ case (sbend$)
 
   k(2) = val(k1$)
   k(3) = val(k2$) / 2
+  n_relavent = 3
 
 case (sextupole$)
   k(3) = val(k2$) / 2
+  n_relavent = 3
 
 case (octupole$)
   k(4) = val(k3$) / 6
+  n_relavent = 4
 
 case (solenoid$)
 
 case (sol_quad$)
   k(2) = val(k1$)
+  n_relavent = 2
+
+case (hkicker$, vkicker$)
+  if (ele%key == hkicker$) k(1)  = k(1)  + val(kick$) 
+  if (ele%key == vkicker$) ks(1) = ks(1) + val(kick$) 
+  n_relavent = 1
+  add_kick = .false.
+
+case (kicker$)
+  k(1)  = k(1)  + val(hkick$) 
+  ks(1) = ks(1) + val(vkick$) 
+  n_relavent = 1
+  add_kick = .false.
 
 case (elseparator$)
   call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, an0, bn0) 
@@ -3327,18 +3347,8 @@ case default
 
 end select
 
-! multipole components
-! bmad an and bn are integrated fields. PTC uses just the field.
-
-if (ele%key == hkicker$ .or. ele%key == vkicker$) then
-  if (ele%key == hkicker$) k(1)  = k(1)  + val(kick$) 
-  if (ele%key == vkicker$) ks(1) = ks(1) + val(kick$) 
-
-elseif (ele%key == kicker$) then
-  k(1)  = k(1)  + val(hkick$) 
-  ks(1) = ks(1) + val(vkick$) 
-
-elseif (has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. val(vkick$) /= 0)) then
+if (add_kick .and. has_hkick_attributes(ele%key) .and. &
+                        (val(hkick$) /= 0 .or. val(vkick$) /= 0)) then
   hk = val(hkick$) / leng   ! PTC uses scaled kick for non-kicker elements.
   vk = val(vkick$) / leng
   if (ele%key == sbend$) then
@@ -3350,29 +3360,40 @@ elseif (has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. val(vkick$) /
   sin_t = sin(tilt)
   k(1)  = k(1)  - hk * cos_t - vk * sin_t
   ks(1) = ks(1) - hk * sin_t + vk * cos_t
+  n_relavent = max(1, n_relavent)
 endif
 
-call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, an0, bn0)
-if (leng /= 0) then
-  an0 = an0 / leng
-  bn0 = bn0 / leng
-endif
+! bmad an and bn are integrated fields. PTC uses just the field.
 
-n = min(n_pole_maxx+1, size(k))
-if (n-1 < n_pole_maxx) then
-  if (any(an0(n:n_pole_maxx) /= 0) .or. any(bn0(n:n_pole_maxx) /= 0)) then
-    print *, 'WARNING IN ELE_TO_FIBRE: MULTIPOLE NOT TRANSFERED TO FIBRE'
-    print *, '        FOR: ', ele%name
+if (associated(ele%a_pole)) then
+  call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, an0, bn0)
+  if (leng /= 0) then
+    an0 = an0 / leng
+    bn0 = bn0 / leng
   endif
-endif
- 
-ks(1:n) = ks(1:n) + an0(0:n-1)
-k(1:n) = k(1:n) + bn0(0:n-1)
 
-do n = size(k), 1, -1
-  if (ks(n) /= 0 .or. k(n) /= 0) exit
-enddo
-n_max  = n
+  n = min(n_pole_maxx+1, size(k))
+  if (n-1 < n_pole_maxx) then
+    if (any(an0(n:n_pole_maxx) /= 0) .or. any(bn0(n:n_pole_maxx) /= 0)) then
+      print *, 'WARNING IN ELE_TO_FIBRE: MULTIPOLE NOT TRANSFERED TO FIBRE'
+      print *, '        FOR: ', ele%name
+    endif
+  endif
+   
+  ks(1:n) = ks(1:n) + an0(0:n-1)
+  k(1:n) = k(1:n) + bn0(0:n-1)
+  n_relavent = n_pole_maxx
+endif
+
+
+if (creating_fibre) then
+  do n = size(k), 1, -1
+    if (ks(n) /= 0 .or. k(n) /= 0) exit
+  enddo
+  n_max  = n
+else
+  n_max = n_relavent
+endif
 
 end subroutine ele_to_an_bn
 
