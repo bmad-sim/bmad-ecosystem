@@ -147,7 +147,7 @@ type bp_common_struct
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
   type (bp_var_struct), allocatable :: var(:)   ! variable name
-  type (ran_parsing_struct) ran
+  type (extra_parsing_info_struct) extra
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
@@ -1159,6 +1159,13 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
 
 case ('PTC_MAX_FRINGE_ORDER')
   call get_integer (bmad_com%ptc_max_fringe_order, err_flag)
+  bp_com%extra%ptc_max_fringe_order_set = .true.
+  bp_com%extra%ptc_max_fringe_order = bmad_com%ptc_max_fringe_order
+
+case ('TAYLOR_ORDER')
+  call get_integer (bmad_com%taylor_order, err_flag)
+  bp_com%extra%taylor_order_set = .true.
+  bp_com%extra%taylor_order = bmad_com%taylor_order
 
 case ('SYMPLECTIFY') 
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
@@ -1172,6 +1179,8 @@ case ('IS_ON')
 
 case ('USE_HARD_EDGE_DRIFTS')
   call get_logical (attrib_word, bmad_com%use_hard_edge_drifts, err_flag)
+  bp_com%extra%use_hard_edge_drifts_set = .true.
+  bp_com%extra%use_hard_edge_drifts = bmad_com%use_hard_edge_drifts
 
 case ('APERTURE_LIMIT_ON') 
   call get_logical (attrib_word, lat%param%aperture_limit_on, err_flag)
@@ -1340,9 +1349,9 @@ case default   ! normal attribute
     elseif (attrib_word == 'RAN_SEED') then
       call ran_seed_put (nint(value))  ! init random number generator
       if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
-        bp_com%ran%deterministic = 0
+        bp_com%extra%deterministic = 0
       else
-        bp_com%ran%deterministic = 2
+        bp_com%extra%deterministic = 2
       endif
     elseif (attrib_word == 'APERTURE') then
       ele%value(x1_limit$) = value
@@ -5667,10 +5676,10 @@ end subroutine parser_expand_line
 
 subroutine bp_set_ran_status
 
-if (bp_com%ran%deterministic == 0) then
-  bp_com%ran%ran_function_was_called = .true.
-elseif (bp_com%ran%deterministic == 1) then
-  bp_com%ran%deterministic_ran_function_was_called = .true.
+if (bp_com%extra%deterministic == 0) then
+  bp_com%extra%ran_function_was_called = .true.
+elseif (bp_com%extra%deterministic == 1) then
+  bp_com%extra%deterministic_ran_function_was_called = .true.
 endif
 
 end subroutine bp_set_ran_status

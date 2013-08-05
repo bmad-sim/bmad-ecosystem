@@ -871,14 +871,14 @@ interface
     logical, optional :: compact_format
   end subroutine
 
-  subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran, err_flag)
+  subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, extra, err_flag)
     import
     implicit none
     type (lat_struct), target, intent(in) :: lat
     integer, intent(in), optional :: n_files
     character(*) digested_name
     character(*), optional :: file_names(:)
-    type (ran_parsing_struct), optional :: ran
+    type (extra_parsing_info_struct), optional :: extra
     logical, optional :: err_flag
   end subroutine
 

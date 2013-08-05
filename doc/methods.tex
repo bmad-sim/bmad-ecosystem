@@ -110,9 +110,9 @@ accurate. This method is non-symplectic.
 \item[\vn{Symp_Lie_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad routine. By bypassing some of the generality inherent in PTC (\sref{s:ptc.intro}),
-\vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
-\vn{Symp_Lie_PTC}.
+\bmad routine. By bypassing some of the generality inherent in PTC
+(\sref{s:ptc.intro}), \vn{Symp_Lie_Bmad} achieves about a factor of 10
+improvement in speed over \vn{Symp_Lie_PTC}.
 
 \index{symp_lie_ptc!tracking_method}
 \item[\vn{Symp_Lie_PTC}]
@@ -546,12 +546,14 @@ those that simply track a particle's position.  The Taylor map methods
 are
 \begin{example}
   symp_lie_bmad
-  symp_lie_ptc
-  taylor
+  symp_lie_ptc    ! Uses PTC
+  taylor          ! Uses PTC
 \end{example}
 See section \sref{s:taylor.phys} for more information on Taylor maps
-and symplectic integration.  The methods that do not involve Taylor
-maps are
+and symplectic integration. The latter two methods involve using the
+PTC library (\sref{s:ptc.intro}).
+
+The methods that do not involve Taylor maps are
 \index{boris!and Taylor maps}
 \index{runge_kutta!and Taylor maps}
 \begin{example}
@@ -674,6 +676,24 @@ tracking when the bend radius is small.
 The \vn{ptc_exact_misalignment} parameter determines whether
 misalignments are handled exactly or whether approximations are made
 that will speed up the calculation.
+
+In addition to the above parameters, the type of integration in
+\vn{PTC} can be set for individual elements using the
+\vn{ptc_integration_type} parameter. Possible settings of this
+parameter are
+\begin{example}
+  matrix_kick   ! Default
+  drift_kick
+  ripken_kick
+\end{example}
+Example:
+\begin{example}
+  q2: quad, l = 0.6, k1 = 0.34, ptc_integration_type = drift_kick
+\end{example}
+\vn{matrix_kick}, which is the default, symplectically integrates by
+alternating 
+
+The \vn{drift_kick} setting uses 
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}

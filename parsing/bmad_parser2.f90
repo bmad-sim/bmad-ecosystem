@@ -104,7 +104,6 @@ call init_ele (param_ele)
 param_ele%name = 'PARAMETER'
 param_ele%key = def_parameter$
 param_ele%value(geometry$) = lat%param%geometry
-param_ele%value(taylor_order$) = lat%input_taylor_order
 param_ele%value(n_part$)       = lat%param%n_part
 param_ele%value(particle$)     = lat%param%particle
 param_ele%ixx = 2                    ! Pointer to plat%ele() array
@@ -491,7 +490,7 @@ enddo parsing_loop
 bp_com%input_line_meaningful = .false.
 
 lat%param%geometry = nint(param_ele%value(geometry$))
-lat%input_taylor_order = nint(param_ele%value(taylor_order$))
+lat%input_taylor_order = bmad_com%taylor_order
 
 if (associated(bp_com%param_ele%descrip)) then
   lat%lattice = bp_com%param_ele%descrip

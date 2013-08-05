@@ -1,12 +1,9 @@
 !+
-! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names, ran_p, err_flag)
+! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names, extra, err_flag)
 !
 ! Subroutine to write a digested file. The names of the original files used
 ! to create the LAT structure are also put in the digested file and are used
 ! by other routines to check if the digested file is out of date.
-!
-! The ran_p argument is used to encode in the digested file information about
-! whether a random number generator was used to construct the lattice.
 !
 ! Modules Needed:
 !   use bmad
@@ -17,17 +14,15 @@
 !   n_files       -- Integer, optional: Number of original files
 !   file_names(:) -- Character(*), optional: Names of the original 
 !                     files used to create the lat structure.
-!   ran_p         -- ran_parsing_struct, optional: 
-!     %ran_function_was_called
-!     %deterministic_ran_function_was_called
-!     %initial_state
+!   extra         -- extra_parsing_info_struct, optional: Extra info that can
+!                     be stored in the digested file.
 !
 ! Output:
 !   err_flag -- Logical, optional: Set True if there is a problem. EG: No write permission.
 !                 Set False if everything is OK.
 !-
 
-subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran_p, err_flag)
+subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, extra, err_flag)
 
 use equality_mod, only: operator(==)
 use ptc_interface_mod, dummy => write_digested_bmad_file
@@ -36,8 +31,7 @@ implicit none
 
 type (lat_struct), target, intent(in) :: lat
 type (branch_struct), pointer :: branch
-type (ran_parsing_struct), optional :: ran_p
-type (ran_parsing_struct), save :: dummy_ran_state
+type (extra_parsing_info_struct), optional :: extra
 type (ptc_parameter_struct) ptc_param
 
 real(rp) value(num_ele_attrib$)
@@ -74,23 +68,7 @@ inquire (file = full_digested_name, name = full_digested_name)
 call simplify_path (full_digested_name, full_digested_name)
 open (unit = d_unit, file = full_digested_name, form = 'unformatted', err = 9000)
 
-! Ran function called?
-
-if (present(ran_p)) then
-  if (ran_p%ran_function_was_called) then
-    write (d_unit, err = 9000) n_file+2, bmad_inc_version$
-    fname = '!RAN FUNCTION WAS CALLED'
-    write (d_unit) fname, 0
-  elseif (ran_p%deterministic_ran_function_was_called) then
-    write (d_unit, err = 9000) n_file+2, bmad_inc_version$
-    fname = '!DETERMINISTIC RAN FUNCTION WAS CALLED'
-    write (d_unit) fname, 0
-  else
-    write (d_unit, err = 9000) n_file+1, bmad_inc_version$
-  endif
-else
-  write (d_unit, err = 9000) n_file+1, bmad_inc_version$
-endif
+write (d_unit, err = 9000) n_file+1, bmad_inc_version$
 
 ! Write digested file name
 
@@ -111,10 +89,6 @@ do j = 1, n_file
   endif
   write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10), 0, 0  ! stat_b(10) = Modification date
 enddo
-
-! Write bmad_com structure
-
-write (d_unit) bmad_com
 
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
@@ -183,10 +157,11 @@ write (d_unit) ptc_param
 
 ! Write random state info
 
-if (present(ran_p)) then
-  write (d_unit) ran_p
+if (present(extra)) then
+  write (d_unit) .true.
+  write (d_unit) extra
 else
-  write (d_unit) dummy_ran_state
+  write (d_unit) .false.
 endif
 
 ! End stuff
