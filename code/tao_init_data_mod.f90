@@ -634,7 +634,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     uni_ele(:)%n_datum = 0
   end do
 
-  ! Since some information gets lost during tracking (like beam distributions),
+  ! Since some beam distributions information is not saved during tracking,
   !   find where each datum gets evaluated when tao_load_data_array is called.
   ! ix_ele = -1  -->  Gets evaluated after all tracking
 
@@ -686,6 +686,8 @@ if (.not. data%exists) then
   ix_ele = int_garbage$
 elseif (data%data_type(1:17) == 'multi_turn_orbit.') then
   ix_ele = int_garbage$ ! Does not get evaluated by tao_lattice_calc_mod
+elseif (data%data_source /= 'beam') then
+  ix_ele = -1
 elseif (data%data_type(1:7) == 'rad_int') then
   ix_ele = -1
 elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then

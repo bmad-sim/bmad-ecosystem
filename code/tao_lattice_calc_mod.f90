@@ -98,9 +98,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     case ('single') 
       call tao_inject_particle (u, tao_lat, ib)
       call tao_single_track (u, tao_lat, this_calc_ok, ib)
-      do ie = 0, branch%n_ele_track
-        call tao_load_data_array (u, ie, ib, model$)
-      enddo
       if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) exit
 
