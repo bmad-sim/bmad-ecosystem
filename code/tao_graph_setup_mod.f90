@@ -498,7 +498,7 @@ graph%valid = .false.
 if (size(graph%curve) == 0) return
 
 if (graph%bin_width <= 0) then
-  graph%why_invalid = 'Bin_width not positive.'
+  graph%why_invalid = 'graph%bin_width not positive.'
   return
 endif
 

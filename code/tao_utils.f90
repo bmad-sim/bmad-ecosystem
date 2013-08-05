@@ -2227,7 +2227,7 @@ end subroutine tao_lat_bookkeeper
 !      ixc  = 3
 !
 ! Gives:
-!      ix = 3
+!      ix = 2
 !
 ! Example:
 !      name = mat_94
