@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 126
+integer, parameter :: bmad_inc_version$ = 127
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1075,7 +1075,7 @@ integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$
 character(16), parameter :: fringe_type_name(0:4) = ['Garbage!      ', &
                 'FULL_STRAIGHT ', 'FULL_BEND     ',  'NONE          ', 'BASIC_BEND    ']
 
-! ran_parsing_struct is used by parsing routines.
+! extra_parsing_info_struct is used by parsing routines.
 ! %deterministic:
 !   0 = Not, 1 = Ran state on input deterministic, 2 = ran state deterministice
 !   will be generated in exactly the same way every time?
@@ -1084,11 +1084,14 @@ character(16), parameter :: fringe_type_name(0:4) = ['Garbage!      ', &
 ! %determinisitc_ran_function_was_called:
 !   Only set True when ran function is called with ran_determinisitc = 1.
 
-type ran_parsing_struct
+type extra_parsing_info_struct
   type (random_state_struct) :: initial_state
   integer deterministic   
   logical ran_function_was_called 
   logical deterministic_ran_function_was_called 
+  logical taylor_order_set, ptc_max_fringe_order_set, use_hard_edge_drifts_set
+  integer taylor_order, ptc_max_fringe_order
+  logical use_hard_edge_drifts
 end type
 
 ! ptc_field_geometry for bends

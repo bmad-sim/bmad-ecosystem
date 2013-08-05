@@ -154,16 +154,20 @@ endif
 
 iseq_tot = 0                            ! number of sequences encountered
 
-call ran_default_state (get_state = bp_com%ran%initial_state) ! Get initial random state.
-if (bp_com%ran%initial_state%ix == -1) then
-  bp_com%ran%deterministic = 0
+call ran_default_state (get_state = bp_com%extra%initial_state) ! Get initial random state.
+if (bp_com%extra%initial_state%ix == -1) then
+  bp_com%extra%deterministic = 0
 else
-  bp_com%ran%deterministic = 1
+  bp_com%extra%deterministic = 1
 endif
 
+bp_com%extra%ran_function_was_called = .false.
+bp_com%extra%deterministic_ran_function_was_called = .false.
+bp_com%extra%taylor_order_set = .false.
+bp_com%extra%ptc_max_fringe_order_set = .false. 
+bp_com%extra%use_hard_edge_drifts_set = .false.
+
 bp_com%input_line_meaningful = .true.
-bp_com%ran%ran_function_was_called = .false.
-bp_com%ran%deterministic_ran_function_was_called = .false.
 
 in_lat%ele(0)%value(e_tot$) = -1
 in_lat%ele(0)%value(p0c$) = -1
@@ -972,7 +976,7 @@ enddo
 ! Use arbitrary energy above the rest mass energy since when tracking individual elements the
 ! true reference energy is used.
 
-lat%input_taylor_order = nint(bp_com%param_ele%value(taylor_order$))
+lat%input_taylor_order = bmad_com%taylor_order
 if (lat%input_taylor_order /= 0) call set_taylor_order (lat%input_taylor_order, .false.)
 
 call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
@@ -1126,14 +1130,14 @@ if (.not. bp_com%error_flag) then
   bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
   if (bp_com%write_digested) then
     call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, &
-                                                            bp_com%lat_file_names, bp_com%ran, err)
+                                                            bp_com%lat_file_names, bp_com%extra, err)
     if (.not. err .and. global_com%type_out) call out_io (s_info$, r_name, 'Created new digested file')
   endif
 endif
 
 call parser_end_stuff ()
 
-if (bp_com%ran%ran_function_was_called) then
+if (bp_com%extra%ran_function_was_called) then
   if (global_com%type_out) call out_io(s_warn$, r_name, &
                 'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')

@@ -31,7 +31,7 @@ implicit none
 
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
-type (ran_parsing_struct) :: ran_state
+type (extra_parsing_info_struct) :: extra
 type (ptc_parameter_struct) ptc_param
 
 real(rp) value(num_ele_attrib$)
@@ -48,7 +48,7 @@ character(60) p_name
 character(25) :: r_name = 'read_digested_bmad_file'
 
 logical, optional :: err_flag
-logical deterministic_ran_function_used, is_ok
+logical is_ok
 logical found_it, can_read_this_old_version, mode3, error, is_match, err, err_found
 
 ! init all elements in lat
@@ -64,7 +64,6 @@ call init_lat (lat)
 d_unit = lunget()
 inc_version = -1
 lat%n_ele_track = 0
-deterministic_ran_function_used = .false.
 
 call fullfilename (digested_file, full_digested_file)
 inquire (file = full_digested_file, name = full_digested_file)
@@ -135,16 +134,6 @@ do i = 1, n_files
     cycle
   endif
 
-  if (fname_read == '!RAN FUNCTION WAS CALLED') then ! Not deterministic
-    err_found = .true.
-    cycle
-  endif
-
-  if (fname_read == '!DETERMINISTIC RAN FUNCTION WAS CALLED') then
-    deterministic_ran_function_used = .true.
-    cycle
-  endif
-
   if (fname_read(1:7) == '!PRINT:') cycle  ! Only print at end if no errors.
 
   call simplify_path (fname_read, fname_read)
@@ -174,10 +163,6 @@ do i = 1, n_files
   endif
 
 enddo
-
-! Read bmad_com structure
-
-read (d_unit, err = 9025) bmad_com
 
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
@@ -258,10 +243,15 @@ if (ios == 0) then
   call set_ptc (exact_modeling = ptc_param%exact_model, exact_misalign = ptc_param%exact_misalign)
 endif
 
-! Read random state info.
-! At this point in time this is not used.
+! Read extra state info.
 
-read (d_unit, iostat = ios) ran_state
+read (d_unit, iostat = ios) found_it
+if (found_it) then
+  read (d_unit, iostat = ios) extra
+  if (extra%taylor_order_set)         bmad_com%taylor_order         = extra%taylor_order
+  if (extra%ptc_max_fringe_order_set) bmad_com%ptc_max_fringe_order = extra%ptc_max_fringe_order
+  if (extra%use_hard_edge_drifts_set) bmad_com%use_hard_edge_drifts = extra%use_hard_edge_drifts
+endif
 
 ! Setup any attribute aliases in the global attribute name table.
 ! This is done last in read_digested bmad_file so as to not to pollute the name table if 
