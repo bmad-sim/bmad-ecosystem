@@ -42,7 +42,7 @@ character(200) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(36) = [ &
+character(16) :: cmd_names(37) = [ &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
@@ -50,7 +50,7 @@ character(16) :: cmd_names(36) = [ &
     'single_mode  ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
     'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
-    'python       ']
+    'python       ', 'ptc          ']
 
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
@@ -327,6 +327,14 @@ case ('plot')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err)
   call tao_plot_cmd (cmd_word(1), cmd_word(2))
+
+!--------------------------------
+! ptc
+
+case ('ptc')
+
+  call tao_ptc_cmd (cmd_line)
+  return
 
 !--------------------------------
 ! python
