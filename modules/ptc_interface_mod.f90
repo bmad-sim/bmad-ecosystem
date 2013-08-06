@@ -679,14 +679,14 @@ if (logic_option(.true., print_coords)) then
     if (integer2_value(0, ptch%time) == 1 .or. integer2_value(0, ptch%time) == 3) printit = .true.
 
     if (printit) then
-      call write_real ('%a_t    [Entrance dTime]:', ptch%a_t,   'es13.5', writeit = .true.)
+      call write_real ('%a_t    [Patch Entrance dTime]:', ptch%a_t,   'es13.5', writeit = .true.)
     endif
 
     printit = .false.
     if (integer2_value(0, ptch%time) == 2 .or. integer2_value(0, ptch%time) == 3) printit = .true.
 
     if (printit) then
-      call write_real ('%b_t    [Exit dTime]:', ptch%b_t,   'es13.5', writeit = .true.)
+      call write_real ('%b_t    [Patch Exit dTime]:', ptch%b_t,   'es13.5', writeit = .true.)
     endif
 
 
@@ -3029,15 +3029,13 @@ if (key == wiggler$ .or. key == undulator$) then
   ptc_fibre%mag%wi%w%f(1:n_term)    = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
   ptc_fibre%mag%wi%w%form(1:n_term) = ele2%wig%term%type
 
+  ! Correct z-position 
+
+  z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
+  ptc_fibre%mag%wi%internal(6) = z_patch
+
   call copy (ptc_fibre%mag, ptc_fibre%magp)
-endif
 
-! Correct z-position for wigglers, etc. 
-
-z_patch = ele%value(delta_ref_time$) * c_light * ele%value(p0c$) / ele%value(e_tot$) - ele%value(l$)
-if (abs(z_patch) > bmad_com%significant_length) then
-  ptc_fibre%patch%time = 2   ! Patch exit end
-  ptc_fibre%patch%b_t = z_patch
 endif
 
 ! Misalignments and patches...
