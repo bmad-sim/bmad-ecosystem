@@ -18,16 +18,16 @@ do i = 0, 5
 enddo
 
 call ran_engine ('quasi')
-call photon_init (0.10_rp, 0.02_rp, 1d4, 1.0d3, 1.1d3, .true., orbit, prob)
+call photon_init (0.10_rp, 0.02_rp, 1d4, 1.0d3, 1.1d3, .true., orbit)
+prob = photon_energy_integ_prob(1.0d3, 0.10_rp, 1d4)
 write (1, '(a, 6f14.8)') '"Photon_vec"   ABS 0', orbit%vec
 write (1, '(a, 6f14.4)') '"Photon_p0c"   ABS 0', orbit%p0c
 write (1, '(a, 6f14.8)') '"Photon_field" ABS 0', orbit%field
 write (1, '(a, 6f14.8)') '"Photon_prob"  ABS 0', prob
 
-call photon_init (0.10_rp, 0.02_rp, 1d4, 0d0, 0d0, .true., orbit, prob)
+call photon_init (0.10_rp, 0.02_rp, 1d4, 0d0, 0d0, .true., orbit)
 write (1, '(a, 6f14.8)') '"Photon2_vec"   ABS 0', orbit%vec
 write (1, '(a, 6f14.4)') '"Photon2_p0c"   ABS 0', orbit%p0c
 write (1, '(a, 6f14.8)') '"Photon2_field" ABS 0', orbit%field
-write (1, '(a, 6f14.8)') '"Photon2_prob"  ABS 0', prob
 
 end program
