@@ -315,8 +315,30 @@ end subroutine track_a_drift_photon
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_bend_photon (start_orb, ele, end_orb)
+! Subroutine track_a_bend_photon (start_orb, ele, length, end_orb)
 !
+! Routine to track a photon through a dipole bend.
+!
+! Input:
+!   start_orb  -- Coord_struct: Starting position.
+!   ele        -- Ele_struct: Bend element.
+!   length     -- real(rp): length to track.
+!
+! Output:
+!   end_orb     -- Coord_struct: End position.
+!-
+
+subroutine track_a_bend_photon (start_orb, ele, length, end_orb)
+
+implicit none
+
+type (coord_struct) start_orb, end_orb
+type (ele_struct) ele
+
+real(rp) length
+
+
+end subroutine track_a_bend_photon
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -333,11 +355,11 @@ end subroutine track_a_drift_photon
 !
 ! Input:
 !   start_orb  -- Coord_struct: Starting position.
-!   ele    -- Ele_struct: Bend element.
-!   param  -- lat_param_struct: Lattice parameters.
+!   ele        -- Ele_struct: Bend element.
+!   param      -- lat_param_struct: Lattice parameters.
 !
 ! Output:
-!   end_orb     -- Coord_struct: End position.
+!   end_orb    -- Coord_struct: End position.
 !-
 
 subroutine track_a_bend (start_orb, ele, param, end_orb)
