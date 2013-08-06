@@ -1487,7 +1487,7 @@ endif
 
 !Get reference beta0
 
-beta0 = ele%value(e_tot$) / ele%value(p0c$)
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
 if (ele%is_on) then
   g_tot = ele%value(g$) + ele%value(g_err$)
 else
