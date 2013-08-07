@@ -333,7 +333,9 @@ case ('plot')
 
 case ('ptc')
 
-  call tao_ptc_cmd (cmd_line)
+  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
+
+  call tao_ptc_cmd (cmd_word(1), cmd_word(2))
   return
 
 !--------------------------------
