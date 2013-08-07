@@ -45,9 +45,10 @@ of the line is ignored.  Example:
   pause         & \sref{s:pause}    & view          & \sref{s:view}     \\ \hline 
   place         & \sref{s:place}    & wave          & \sref{s:wave}     \\ \hline
   plot          & \sref{s:plot}     & write         & \sref{s:write}    \\ \hline 
-  python        & \sref{s:python}   & x_axis        & \sref{s:x.axis}   \\ \hline 
-  quit          & \sref{s:quit}     & x_scale       & \sref{s:x.scale}  \\ \hline 
-  read          & \sref{s:read}     & xy_scale      & \sref{s:xy.scale} \\ \hline
+  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ \hline 
+  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ \hline 
+  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\ \hline
+  read          & \sref{s:read}     &               &                   \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -473,6 +474,27 @@ Examples:
 \begin{example}
   plot bottom model - design       ! Plot model - design in the bottom region
   plot top meas - model + design - ref 
+\end{example}
+
+%% ptc -----------------------------------------------------------
+\section{ptc}\index{commands!ptc}
+\label{s:ptc}
+
+The \vn{ptc} command is used manipulating PTC layouts associated with 
+Bmad lattices. Format:
+\begin{example}
+  ptc init            ! Init associated PTC layout.
+  ptc script <file>   ! Run a ptc script
+\end{example}
+
+\vskip 0.2in 
+
+The \vn{ptc init} command must be run before running any script.
+
+\Examples:
+\begin{example}
+  ptc init
+  ptc script doit.ptc  ! Execute doit.ptc file.
 \end{example}
 
 %% python -----------------------------------------------------------
