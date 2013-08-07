@@ -315,27 +315,73 @@ end subroutine track_a_drift_photon
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_bend_photon (start_orb, ele, length, end_orb)
+! Subroutine track_a_bend_photon (orb, ele, length)
 !
 ! Routine to track a photon through a dipole bend.
 !
 ! Input:
-!   start_orb  -- Coord_struct: Starting position.
+!   orb        -- Coord_struct: Starting position.
 !   ele        -- Ele_struct: Bend element.
 !   length     -- real(rp): length to track.
 !
 ! Output:
-!   end_orb     -- Coord_struct: End position.
+!   orb         -- Coord_struct: End position.
 !-
 
-subroutine track_a_bend_photon (start_orb, ele, length, end_orb)
+subroutine track_a_bend_photon (orb, ele, length)
 
 implicit none
 
-type (coord_struct) start_orb, end_orb
+type (coord_struct) orb
 type (ele_struct) ele
 
 real(rp) length
+real(rp) g, radius, theta, tan_t, dl, st, ct, denom, sin_t, cos_t
+real(rp) v_x, v_s
+
+!
+
+g = ele%value(g$)
+
+! g = 0 case
+
+if (g == 0) then
+  call track_a_drift_photon (orb, length)
+  return
+endif
+
+! Normal case
+
+if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(ele%value(ref_tilt_tot$), orb%vec)
+
+radius = 1 / g
+theta = length * g
+tan_t = tan(theta)
+dl = tan_t * (radius + orb%vec(1)) / (orb%vec(6) - tan_t * orb%vec(2))
+
+! Move to the stop point. 
+! Need to remember that radius can be negative.
+
+st = dl * orb%vec(6)
+ct = radius + orb%vec(1) + dl * orb%vec(2)
+if (abs(st) < 1e-3 * ct) then
+  denom = sign (ct * (1 + (st/ct)**2/2 + (st/ct)**4/8), radius)
+else
+  denom = sign (sqrt((radius + orb%vec(1) + dl * orb%vec(2))**2 + (dl * orb%vec(6))**2), radius)
+endif
+sin_t = st / denom
+cos_t = ct / denom
+v_x = orb%vec(2); v_s = orb%vec(6)
+
+orb%vec(1) = denom - radius
+orb%vec(2) = v_s * sin_t + v_x * cos_t
+orb%vec(3) = orb%vec(3) + dl * orb%vec(4)
+orb%vec(5) = orb%vec(5) + length
+orb%vec(6) = v_s * cos_t - v_x * sin_t
+orb%s      = orb%s + length
+orb%t      = orb%t + length * orb%vec(6) / c_light
+
+if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), orb%vec)
 
 
 end subroutine track_a_bend_photon
