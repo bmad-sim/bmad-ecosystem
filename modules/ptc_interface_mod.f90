@@ -2438,7 +2438,7 @@ end subroutine taylor_propagate1
 !
 ! Input:
 !   ele   -- Element_struct: 
-!     %valueintegrator_order$)  -- Order for the symplectic integrator: 2, 4, or 6.
+!     %value(integrator_order$)  -- Order for the symplectic integrator: 2, 4, or 6.
 !     %value(ds_step$)          -- Integrater step size.
 !     %map_with_offsets         -- Make Taylor map with element offsets, pitches, and tilt?
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor map 

@@ -268,6 +268,12 @@ interface
     integer, optional :: ix_branch
   end subroutine
 
+  subroutine kill_ptc_layouts (lat)
+    import
+    implicit none
+    type (lat_struct) lat
+  end subroutine
+
   subroutine make_g_mats (ele, g_mat, g_inv_mat)
     import
     implicit none
