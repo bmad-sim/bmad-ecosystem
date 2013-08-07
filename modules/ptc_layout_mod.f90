@@ -370,44 +370,6 @@ end subroutine add_ptc_layout_to_list
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine kill_ptc_layouts (lat)
-!
-! Routine to kill the layouts associated with a Bmad lattice.
-!
-! Module Needed:
-!   use ptc_layout_mod
-!
-! Input: 
-!   lat  -- lat_struct: Bmad lattice with associated layouts.
-!-
-
-subroutine kill_ptc_layouts (lat)
-
-use madx_ptc_module
-
-implicit none
-
-type (lat_struct), target :: lat
-type (branch_struct), pointer :: branch
-
-integer ib, il
-
-!
-
-do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  do il = 1, size(branch%ptc%layout)
-    call kill_layout_in_universe(branch%ptc%layout(il)%ptr)
-  enddo
-  deallocate(branch%ptc%layout)
-enddo
-
-end subroutine kill_ptc_layouts
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
 ! Subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
 !
 ! Routine to calculate emittances, etc.
@@ -898,7 +860,7 @@ end subroutine write_ptc_flat_file_lattice
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine update_ptc_fibre (ele, param)
+! Subroutine update_ptc_fibre_from_bmad (ele, param)
 !
 ! Routine to update a fibre when the associated Bmad ele has been modified.
 !
@@ -913,7 +875,7 @@ end subroutine write_ptc_flat_file_lattice
 !   ele%ptc_fibre -- PTC fibre.
 !-
 
-subroutine update_ptc_fibre (ele, param)
+subroutine update_ptc_fibre_from_bmad (ele, param)
 
 use madx_ptc_module
 
@@ -931,7 +893,7 @@ real(rp), pointer :: val(:)
 
 integer i, ix
 
-character(*), parameter :: r_name = 'update_ptc_fibre'
+character(*), parameter :: r_name = 'update_ptc_fibre_from_bmad'
 
 ! Warning
 
@@ -1039,13 +1001,13 @@ to2 = value
 
 end subroutine set_logic
 
-end subroutine update_ptc_fibre 
+end subroutine update_ptc_fibre_from_bmad 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine update_bmad_ele (ele, param)
+! Subroutine update_bmad_ele_from_ptc (ele, param)
 !
 ! Routine to update a bmad lattice element when the associated PTC fibre has been modified.
 !
@@ -1060,18 +1022,40 @@ end subroutine update_ptc_fibre
 !   ele       -- ele_struct: Modified element. 
 !-
 
-subroutine update_bmad_ele (ele, param)
+subroutine update_bmad_ele_from_ptc (ele, param)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
 type (lat_param_struct) param
+type (fibre), pointer :: fib
+real(rp) an(21), bn(21)
+integer nmul, ix
 
 !
 
-call update_this (ele%value(l$), 0.0_rp)
-call update_this (ele%value(ds_step$), 0.0_rp)
-call update_this (ele%value(tilt$), 0.0_rp)
+fib => ele%ptc_fibre
+
+call update_this_real (ele%value(l$), fib%mag%p%ld)
+
+call update_this_real (ele%value(num_steps$), real(fib%mag%p%nst, rp))
+if (ele%value(num_steps$) == 0) then
+  ele%value(ds_step$) = 0
+else
+  ele%value(ds_step$) = ele%value(l$) / ele%value(num_steps$)
+endif
+
+call update_this_real (ele%value(integrator_order$), real(fib%mag%p%method, rp))
+
+nmul = min(fib%mag%p%nmul, 21)
+an(1:nmul) = fib%mag%an(1:nmul)
+bn(1:nmul) = fib%mag%bn(1:nmul)
+
+if (ele%key == sbend$) then
+  call update_this_real (ele%value(ref_tilt_tot$), fib%mag%p%tiltd)
+else
+  call update_this_real (ele%value(tilt_tot$), fib%mag%p%tiltd)
+endif
 
 !
 
@@ -1083,8 +1067,9 @@ case (elseparator$)
 
 
 case (lcavity$, rfcavity$)
-  call update_this (ele%value(rf_frequency$), 0.0_rp)
-  call update_this (ele%value(phi0$), 0.0_rp)
+  call update_this_real (ele%value(rf_frequency$), fib%mag%freq)
+  call update_this_real (ele%value(voltage$), fib%mag%freq)
+  call update_this_real (ele%value(phi0$), fib%mag%phas)
 
 
 case (octupole$)
@@ -1094,14 +1079,20 @@ case (quadrupole$)
 
 
 case (sbend$)
-  call update_this (ele%value(g$), 0.0_rp)
-  call update_this (ele%value(e1$), 0.0_rp)
-  call update_this (ele%value(e2$), 0.0_rp)
-  call update_this (ele%value(hgap$), 0.0_rp)
-  call update_this (ele%value(fint$), 0.0_rp)
+  call update_this_real (ele%value(g$), fib%mag%p%b0)
+  call update_this_real (ele%value(angle$), ele%value(g$) * ele%value(l$))
+  ix = nint(ele%value(ptc_field_geometry$))
+  if (ix == straight$ .or. ix == true_rbend$) then
+    call update_this_real (ele%value(e1$), fib%mag%p%edge(1) + ele%value(angle$)/2)
+    call update_this_real (ele%value(e2$), fib%mag%p%edge(2) + ele%value(angle$)/2)
+  else
+    call update_this_real (ele%value(e1$), fib%mag%p%edge(1))
+    call update_this_real (ele%value(e2$), fib%mag%p%edge(2))
+  endif
+  call update_this_real (ele%value(hgap$), fib%mag%hgap)
+  call update_this_real (ele%value(fint$), fib%mag%fint)
 
 case (sextupole$)
-
 
 case (solenoid$)
 
@@ -1114,17 +1105,34 @@ case (wiggler$, undulator$)
 case default
 end select
 
+
+! multipoles
+
+! kicks
+
 !------------------------------------------------------------------------
 contains
 
-subroutine update_this (var, value)
+subroutine update_this_real (var, value)
 
 real(rp) var, value
 
- 
-end subroutine update_this
+var = value
 
-end subroutine update_bmad_ele
+end subroutine update_this_real
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine update_this_integer (var, value)
+
+integer var, value
+
+var = value
+
+end subroutine update_this_integer
+
+end subroutine update_bmad_ele_from_ptc
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1186,5 +1194,70 @@ call thin_lens_resplit (ptc_layout, kl_max, lim = limit_int, &
                         lmax0 = ds_max, sexr = r_typical, xbend = dx_tol_bend)
 
 end subroutine ptc_calculate_tracking_step_size
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex_dx, even, crossover)
+!
+! Routine to resplit (that is, recalculate the number of integration steps for an element)
+! For the fibres in all layouts. After doing a resplit, the tune (and any other relavent
+! "adjustable" parameters) should be adjusted to the correct values.
+!
+! Module needed:
+!   use ptc_layout_mod
+!
+! Input:
+!   dKL_max      -- real(rp): Maximum K1 * L quadrupole strength allowed for an integration step.
+!                     Reasonable value would be something like 0.04.
+!   l_max        -- real(rp): Maximum step length. Ignored if set to 0.
+!   l_max_drift_only
+!                -- logical: If True then l_max is only used for splitting drifts.
+!   bend_dorb    -- real(rp): Residual bend orbit error. With some integration methods a zero
+!                     orbit at the start of the bend will not be zero at the end. In this case,
+!                     bend_dorb sets a maximum allowable orbit deviation. If set to zero, 
+!                     this argument will be ignored. A resonable value is 10d-7. Note that the 
+!                     actual orbit deviation is not simply related to bend_dorb and can be larger.
+!                     In any case, lowering bend_dorb (without making it zero) will lower the 
+!                     orbit deviation.
+!   sex_dx       -- real(rp): To split sextupoles, sex_dx is used as the reference position 
+!                     about which the quadrupole strength is calculated. This quadrupole strength
+!                     is then used with dKL_max to calculate the number of integration steps.
+!                     Set to zero to ignore.
+!   even         -- logical, optional: If True then each fibre  will have an even number of steps.
+!                     If False then the number of steps will be odd. If not present then number
+!                     of steps is not constrained to be even or odd.
+!   crossover(2) -- integer, optional: crossover(1) sets the maximum number of 2nd order integration
+!                     steps to use. If the number of steps would exceed crossover(1) then integration
+!                     is switched to 4th order. crossover(2) sets the maximum number of 4th order
+!                     integration steps. If this number is exceeded, 6th order integration is used.
+!                     Currently the default in PTC is [4, 18].
+!-
+
+
+subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex_dx, even, crossover)
+
+use s_fitting
+use madx_ptc_module, only: m_u
+
+implicit none
+
+type(layout), pointer :: r
+
+real(rp) dKL_max, bend_dorb, sex_dx, l_max
+integer, optional :: crossover(2)
+logical l_max_drift_only
+logical, optional :: even
+
+!
+
+r => m_u%start
+
+call thin_lens_restart(r, universe=.true.)
+call thin_lens_resplit(r, dKL_max, even, crossover, l_max, bend_dorb, sex_dx, universe=.true.)
+
+end subroutine ptc_layouts_resplit
+
 
 end module

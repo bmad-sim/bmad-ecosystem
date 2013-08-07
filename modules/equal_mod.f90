@@ -309,6 +309,10 @@ type (branch_struct), pointer :: branch_out
 
 integer i, n, ie, n_out, n_in
 
+! Kill allociated PTC layouts if they exist
+
+call kill_ptc_layouts(lat_out)
+
 ! If the element arrays have not been initialized in lat_in then deallocate lat_out.
 
 if (.not. allocated (lat_in%branch) .or. .not. associated(lat_in%ele)) then
