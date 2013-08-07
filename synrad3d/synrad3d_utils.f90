@@ -1079,10 +1079,10 @@ if (present(dw_perp)) then
   ix_ele = element_at_s (lat, p_orb%vec(5), .true.)
   ele => lat%ele(ix_ele)
   if (ele%key == sbend$) then
-    if (ele%value(tilt_tot$) == 0) then
+    if (ele%value(ref_tilt_tot$) == 0) then
       disp = p_orb%vec(1) 
     else
-      disp = p_orb%vec(1) * cos(ele%value(tilt_tot$)) + p_orb%vec(3) * sin(ele%value(tilt_tot$))
+      disp = p_orb%vec(1) * cos(ele%value(ref_tilt_tot$)) + p_orb%vec(3) * sin(ele%value(ref_tilt_tot$))
     endif
     dw_perp(3) = dw_perp(3) / (1 + disp * ele%value(g$))
   endif
