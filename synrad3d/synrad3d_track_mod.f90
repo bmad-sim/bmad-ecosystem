@@ -467,7 +467,7 @@ propagation_loop: do
 
     ! Rotate to element reference frame (bend in x-plane) if bend is tilted.
 
-    if (ele%value(tilt_tot$) /= 0) call tilt_coords(ele%value(tilt_tot$), now%vec)
+    if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(ele%value(ref_tilt_tot$), now%vec)
 
     ! Next position is determined by whether the distance to the element edge is 
     ! shorter than the distance left to travel.
@@ -520,7 +520,7 @@ propagation_loop: do
     now%vec(5) = s_stop
     now%vec(6) = v_s * cos_t - v_x * sin_t
 
-    if (ele%value(tilt_tot$) /= 0) call tilt_coords(-ele%value(tilt_tot$), now%vec)
+    if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), now%vec)
 
   ! Else we are not in a bend
 
