@@ -170,7 +170,7 @@ logical, allocatable, save :: action_logic(:)
         else
           ele%value(ix_attrib) = ref_ele%value(ix_attrib) + gauss_err() * misalign_value_num
         endif
-        call set_flags_for_changed_attribute (lat, ele, ele%value(ix_attrib))
+        call set_flags_for_changed_attribute (ele, ele%value(ix_attrib))
 
         if (j .eq. lat%n_ele_max) exit
 
@@ -179,7 +179,7 @@ logical, allocatable, save :: action_logic(:)
           ! Found Woodley double
           ele2%value(ix_attrib) = ele%value(ix_attrib)
           found_double = .true.
-          call set_flags_for_changed_attribute (lat, ele2, ele2%value(ix_attrib))
+          call set_flags_for_changed_attribute (ele2, ele2%value(ix_attrib))
         endif
         
       end if
