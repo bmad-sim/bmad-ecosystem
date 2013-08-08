@@ -8,6 +8,7 @@ program ptc_test
 
 use bmad
 use polymorphic_taylor
+use ptc_layout_mod
 
 implicit none
 
@@ -17,6 +18,7 @@ type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
 type (coord_struct) end_orb1t, end_orb2t
 type (taylor_struct) bmad_taylor(6)
 type (real_8) y8(6)
+type (branch_struct), pointer :: branch
 
 real(rp) diff_mat(6,6), diff_vec(6)
 real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0 
@@ -26,6 +28,16 @@ integer i, j
 
 namelist / params / start_orb
 
+!----------------------------------------------------------
+! Check information passing between bmad element and associated ptc fibre
+
+branch => lat%branch(1)
+!!call branch_to_ptc_layout (branch)
+
+
+
+!------------------------------------------------------------------------
+! Tracking tests
 ! ele(1) is a wiggler, ele(2:4) is the same wiggler split by a marker.
 
 call bmad_parser ('ptc_test.bmad', lat)
@@ -139,5 +151,5 @@ do i = 1, 6
 enddo
 
 write (1, '(a, 6es10.2)') '"map_convert" ABS 1E-15', diff_vec
-    
+
 end program

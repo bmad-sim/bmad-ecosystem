@@ -195,19 +195,30 @@ character(11) function tolerance(instr1,instr2)
 character(*) :: instr1
 character(*) :: instr2
 
+tolerance = ' ABS 1e-14 '
+
 select case (instr1)
   case('SOL_QUAD2')
     select case (instr2)
-    case('dorb(1)') ; tolerance = ' ABS 1e-13 '
-    case('dorb(4)') ; tolerance = ' ABS 1e-13 '
+    case('dorb(1)') ;   tolerance = ' ABS 1e-13 '
+    case('dorb(4)') ;   tolerance = ' ABS 1e-13 '
     case('dmat(1,:)') ; tolerance = ' ABS 1e-11 '
     case('dmat(2,:)') ; tolerance = ' ABS 1e-11 '
     case('dmat(3,:)') ; tolerance = ' ABS 1e-11 '
     case('dmat(4,:)') ; tolerance = ' ABS 1e-11 '
     case('dmat(5,:)') ; tolerance = ' ABS 1e-12 '
-    case default ; tolerance = ' ABS 1e-14 '
     end select
-  case default ; tolerance = ' ABS 1e-14 '
+
+  case('SBEND4')
+    select case (instr2)
+    case('dorb(1)') ;   tolerance = ' ABS 2e-12 '
+    case('dorb(3)') ;   tolerance = ' ABS 2e-11 '
+    case('dorb(5)') ;   tolerance = ' ABS 2e-08 '
+    case('c*dt') ;      tolerance = ' ABS 2e-08 '
+    case('dmat(1,:)') ; tolerance = ' ABS 2e-09 '
+    case('dmat(3,:)') ; tolerance = ' ABS 2e-08 '
+    case('dmat(5,:)') ; tolerance = ' ABS 2e-08 '
+    end select
 end select
 
 end function tolerance
