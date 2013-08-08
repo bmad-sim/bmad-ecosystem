@@ -2102,7 +2102,7 @@ do i = 1, size(var%this)
   t => var%this(i)
   t%model_value = value
   ele => s%u(t%ix_uni)%model%lat%branch(t%ix_branch)%ele(t%ix_ele)
-  call set_flags_for_changed_attribute (s%u(t%ix_uni)%model%lat, ele, t%model_value)
+  call set_flags_for_changed_attribute (ele, t%model_value)
   if (tao_com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
     s%u(:)%calc%lattice = .true.
   else
