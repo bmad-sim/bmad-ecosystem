@@ -101,6 +101,6 @@ if (allocated(ele_loc_com%branch)) then
   enddo
 endif
 
-call set_flags_for_changed_attribute (lat, inserted_ele)
+call set_flags_for_changed_attribute (inserted_ele)
 
 end subroutine

@@ -289,7 +289,7 @@ if (all_drift) then
   ix_super = ix1_split + 1
   branch%ele(ix_super) = super_saved
   branch%ele(ix_super)%lord_status  = not_a_lord$
-  call set_flags_for_changed_attribute (lat, branch%ele(ix_super))
+  call set_flags_for_changed_attribute (branch%ele(ix_super))
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   ! If a single drift was split: give the runt drifts on either end 
   ! names by adding "#" suffix to signify the split
@@ -361,7 +361,7 @@ lat%n_ele_max = ix_super
 if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
 lat%ele(ix_super) = super_saved
 lat%ele(ix_super)%lord_status = super_lord$
-call set_flags_for_changed_attribute (lat, lat%ele(ix_super))
+call set_flags_for_changed_attribute (lat%ele(ix_super))
 if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 
 ix_super_con = 0
@@ -509,7 +509,7 @@ do
     endif
   endif
 
-  call set_flags_for_changed_attribute (lat, lat%ele(ix_super))
+  call set_flags_for_changed_attribute (lat%ele(ix_super))
 
 enddo
 

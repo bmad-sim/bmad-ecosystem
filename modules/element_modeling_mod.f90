@@ -265,7 +265,7 @@ lat%n_ele_track = n_ele
 lat%n_ele_max   = n_ele
 lat%ele(0)%value(p0c$) = wiggler%value(p0c$)
 lat%ele(0)%value(e_tot$) = wiggler%value(e_tot$)
-call set_flags_for_changed_attribute (lat, lat%ele(0))
+call set_flags_for_changed_attribute (lat%ele(0))
 lat%param%particle = positron$
 
 ! Simple model if there is no field
@@ -274,7 +274,7 @@ if (g_max == 0) then
   lat%ele(1)%key = drift$
   lat%ele(1)%value(l$) = wiggler%value(l$)
   lat%ele(1)%name = wiggler%name
-  call set_flags_for_changed_attribute (lat, lat%ele(1))
+  call set_flags_for_changed_attribute (lat%ele(1))
   call lattice_bookkeeper (lat)
   call lat_make_mat6 (lat)
   return

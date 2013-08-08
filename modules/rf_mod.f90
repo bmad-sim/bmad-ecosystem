@@ -453,8 +453,8 @@ endif
 call cleanup_this()
 
 if (associated (ele%branch)) then
-  if (do_scale_amp)   call set_flags_for_changed_attribute (ele%branch%lat, ele, field_scale)
-  if (do_scale_phase) call set_flags_for_changed_attribute (ele%branch%lat, ele, dphi0_ref)
+  if (do_scale_amp)   call set_flags_for_changed_attribute (ele, field_scale)
+  if (do_scale_phase) call set_flags_for_changed_attribute (ele, dphi0_ref)
 endif
 
 !------------------------------------
