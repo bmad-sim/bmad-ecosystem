@@ -17,25 +17,31 @@ private makeup_group_lord, makeup_super_slave1, makeup_super_slave
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_attribute (lat, ele, attrib)
+! Subroutine set_flags_for_changed_attribute (ele, attrib)
 !
-! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+! Routine to mark an element or lattice as modified for use with "intelligent" bookkeeping.
 ! Also will do some dependent variable bookkeeping when a particular attribute has 
 ! been altered. Look at this routine's code for more details.
 !
 ! set_flages_for_changed_attribute is an overloaded name for:
-!   set_flages_for_changed_real_attribute 
-!   set_flages_for_changed_inteter_attribute 
-!   set_flages_for_changed_logical_attribute 
+!   set_flages_for_changed_lat_attribute (lat)
+!   set_flages_for_changed_real_attribute (ele, real_attrib)
+!   set_flages_for_changed_inteter_attribute (ele, int_attrib)
+!   set_flages_for_changed_logical_attribute (ele, logic_attrib)
+!
+! The set_flages_for_changed_lat_attribute (lat) routine is used when one
+! does not know what has changed and wants a complete bookkeeping done.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   lat    -- lat_struct: Lattice with the changed attribute.
-!   ele    -- ele_struct, optional: Element being modified.
-!               If not present, mark the entire lattice as being modified.
-!   attrib -- Real(rp), integer, or logical; optional: Attribute that has been changed.
+!   lat          -- lat_struct: Lattice being modified.
+!   ele          -- ele_struct, Element being modified.
+!   real_attrib  -- real(rp), optional: Attribute that has been changed.
+!                     If not present then assume everything has potentially changed.
+!   int_attrib   -- integer: Attribute that has been changed.
+!   logic_attrib -- logical; Attribute that has been changed.
 !
 ! Output:
 !   lat  -- lat_struct: Lattice with appropriate changes.
@@ -45,6 +51,7 @@ interface set_flags_for_changed_attribute
   module procedure set_flags_for_changed_real_attribute 
   module procedure set_flags_for_changed_integer_attribute 
   module procedure set_flags_for_changed_logical_attribute 
+  module procedure set_flags_for_changed_lat_attribute 
 end interface
 
 contains
@@ -571,7 +578,7 @@ real(rp), pointer :: r_ptr
 call pointer_to_indexed_attribute (ele, ix_attrib, .false., r_ptr, err_flag)
 if (err_flag) call err_exit
 r_ptr = r_ptr + delta * coef
-call set_flags_for_changed_attribute (lat, ele, r_ptr)
+call set_flags_for_changed_attribute (ele, r_ptr)
 ! super_slave length can be varied by a group so don't check this.
 if (ele%slave_status /= super_slave$ .or. ix_attrib /= l$) then
   err_flag = attribute_free (ele, attribute_name(ele, ix_attrib), lat, .true.)
@@ -1872,7 +1879,7 @@ if (err_flag) call err_exit
 if (.not. has_been_set(iv)) then
   r_slave = 0
   has_been_set(iv) = .true.
-  call set_flags_for_changed_attribute (lat, slave, r_slave)
+  call set_flags_for_changed_attribute (slave, r_slave)
 endif
 
 r_slave = r_slave + r_lord * coef
@@ -1888,7 +1895,7 @@ if (slave%slave_status == super_slave$) then
     my_lord => pointer_to_lord(slave, i)
     if (my_lord%lord_status /= super_lord$) cycle
     my_lord%value(iv) = r_slave
-    call set_flags_for_changed_attribute (lat, my_lord, my_lord%value(iv))
+    call set_flags_for_changed_attribute (my_lord, my_lord%value(iv))
 
     err_flag = attribute_free (my_lord, a_name, lat, .true., .true.)
     if (err_flag) return
@@ -1900,7 +1907,7 @@ endif
 if (slave%lord_status == super_lord$ .and. iv == l$) then
   my_slave => pointer_to_slave(slave, slave%n_slave)
   my_slave%value(iv) = r_slave
-  call set_flags_for_changed_attribute (lat, my_lord, my_lord%value(iv))
+  call set_flags_for_changed_attribute (my_lord, my_lord%value(iv))
 endif
 
 end subroutine overlay_change_this
@@ -2464,7 +2471,7 @@ end subroutine attribute_bookkeeper
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_integer_attribute (lat, ele, attrib)
+! Subroutine set_flags_for_changed_integer_attribute (ele, attrib)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
 !
@@ -2472,13 +2479,11 @@ end subroutine attribute_bookkeeper
 ! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_integer_attribute (lat, ele, attrib)
+subroutine set_flags_for_changed_integer_attribute (ele, attrib)
 
 implicit none
 
-type (lat_struct), target :: lat
 type (ele_struct), target :: ele
-type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: slave
 
 integer, target :: attrib
@@ -2487,13 +2492,12 @@ integer i
 
 real(rp) dummy
 
+! This will set some generic flags
+
+call set_flags_for_changed_real_attribute (ele, dummy)
+
 !
 
-call set_flags_for_changed_real_attribute (lat, ele, dummy)
-
-!
-
-branch => lat%branch(ele%ix_branch)
 a_ptr => attrib
 
 if (ele%value(p0c$) /= ele%value(p0c_start$)) then
@@ -2534,7 +2538,7 @@ end subroutine set_flags_for_changed_integer_attribute
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_logical_attribute (lat, ele, attrib)
+! Subroutine set_flags_for_changed_logical_attribute (ele, attrib)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
 !
@@ -2542,13 +2546,11 @@ end subroutine set_flags_for_changed_integer_attribute
 ! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_logical_attribute (lat, ele, attrib)
+subroutine set_flags_for_changed_logical_attribute (ele, attrib)
 
 implicit none
 
-type (lat_struct), target :: lat
 type (ele_struct), target :: ele
-type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: slave
 
 integer i
@@ -2558,9 +2560,9 @@ real(rp) dummy
 logical, target :: attrib
 logical, pointer :: a_ptr
 
-!
+! Call to set_flags_for_changed_real_attribute will set some generic flags
 
-call set_flags_for_changed_real_attribute (lat, ele, dummy)
+call set_flags_for_changed_real_attribute (ele, dummy)
 
 a_ptr => attrib
 
@@ -2586,7 +2588,40 @@ end subroutine set_flags_for_changed_logical_attribute
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_real_attribute (lat, ele, attrib)
+! Subroutine set_flags_for_changed_lat_attribute (lat)
+!
+! Routine to mark a lattice as modified for use with "intelligent" bookkeeping.
+!
+! This routine is overloaded by set_flags_for_changed_attribute. 
+! See set_flags_for_changed_attribute for more details.
+!-
+
+subroutine set_flags_for_changed_lat_attribute (lat)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+
+integer i, j
+
+!
+
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+  call set_status_flags (branch%param%bookkeeping_state, stale$)
+  do j = 0, ubound(branch%ele, 1)
+    call set_status_flags (branch%ele(j)%bookkeeping_state, stale$)
+  enddo
+enddo
+
+end subroutine set_flags_for_changed_lat_attribute
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine set_flags_for_changed_real_attribute (ele, attrib)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
 !
@@ -2594,12 +2629,11 @@ end subroutine set_flags_for_changed_logical_attribute
 ! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_real_attribute (lat, ele, attrib)
+subroutine set_flags_for_changed_real_attribute (ele, attrib)
 
 implicit none
 
-type (lat_struct), target :: lat
-type (ele_struct), optional, target :: ele
+type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
 type (em_field_mode_struct), pointer :: mode
 
@@ -2608,27 +2642,14 @@ real(rp), pointer :: a_ptr
 real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4)
 real(rp), target :: unknown_attrib
 
-integer i, j, ib
+integer i
 
 logical coupling_change, found
-
-! If ele is not present then must reinit everything.
-
-if (.not. present(ele)) then
-  do i = 0, ubound(lat%branch, 1)
-    branch => lat%branch(i)
-    call set_status_flags (branch%param%bookkeeping_state, stale$)
-    do j = 0, ubound(branch%ele, 1)
-      call set_status_flags (branch%ele(j)%bookkeeping_state, stale$)
-    enddo
-  enddo
-  return
-endif
 
 !-------------------
 ! For a particular elemement...
 
-branch => lat%branch(ele%ix_branch)
+branch => ele%branch
 
 ! If a lord then set the control flag stale
 
@@ -2678,7 +2699,7 @@ endif
 ! In addition, for an init_ele, must also set e_tot_start and p0c_start. This is important
 ! for lattices with an e_gun element
 
-if (associated(a_ptr, ele%value(e_tot$))) then
+if (associated(a_ptr, ele%value(e_tot$)) .and. associated(branch)) then
   call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
   call set_ele_status_stale (ele, ref_energy_group$)
   if (ele%key == init_ele$) then
@@ -2688,7 +2709,7 @@ if (associated(a_ptr, ele%value(e_tot$))) then
   return
 endif
 
-if (associated(a_ptr, ele%value(p0c$))) then
+if (associated(a_ptr, ele%value(p0c$)) .and. associated(branch)) then
   call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
   call set_ele_status_stale (ele, ref_energy_group$)
   if (ele%key == init_ele$) then
@@ -2698,13 +2719,13 @@ if (associated(a_ptr, ele%value(p0c$))) then
   return
 endif
 
-if (associated(a_ptr, ele%value(e_tot_start$))) then
+if (associated(a_ptr, ele%value(e_tot_start$)) .and. associated(branch)) then
   call convert_total_energy_to (ele%value(e_tot_start$), branch%param%particle, pc = ele%value(p0c_start$))
   call set_ele_status_stale (ele, ref_energy_group$)
   return
 endif
 
-if (associated(a_ptr, ele%value(p0c_start$))) then
+if (associated(a_ptr, ele%value(p0c_start$)) .and. associated(branch)) then
   call convert_pc_to (ele%value(p0c_start$), branch%param%particle, e_tot = ele%value(e_tot_start$))
   call set_ele_status_stale (ele, ref_energy_group$)
   return
@@ -2765,7 +2786,7 @@ case (init_ele$)
   endif
 
 case (branch$, photon_branch$)
-  if (associated(a_ptr, ele%value(direction$))) then
+  if (associated(a_ptr, ele%value(direction$)) .and. associated(branch)) then
     branch%param%bookkeeping_state%floor_position = stale$
     branch%ele(0)%bookkeeping_state%floor_position = stale$
   endif

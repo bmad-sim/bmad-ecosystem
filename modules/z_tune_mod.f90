@@ -167,7 +167,7 @@ if (abs(lat%z%tune) < dQz_max .or. z_tune_wanted == 0) then
   do i = 1, n_rf
     ele => lat%ele(ix_rf(i))
     ele%value(ix_attrib(i)) = volt
-    call set_flags_for_changed_attribute (lat, ele, ele%value(ix_attrib(i)))
+    call set_flags_for_changed_attribute (ele, ele%value(ix_attrib(i)))
     call lat_make_mat6 (lat, ix_rf(i))
   enddo
   call calc_z_tune (lat)
@@ -229,7 +229,7 @@ integer i
 do i = 1, n_rf
   ele => lat_com%ele(ix_rf(i))
   ele%value(ix_attrib(i)) = volt0(i) * coef
-  call set_flags_for_changed_attribute (lat_com, ele, ele%value(ix_attrib(i)))
+  call set_flags_for_changed_attribute (ele, ele%value(ix_attrib(i)))
   call lat_make_mat6 (lat_com, ix_rf(i))
 enddo
 

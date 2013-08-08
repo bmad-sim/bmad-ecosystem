@@ -665,6 +665,7 @@ call init_attribute_name1 (girder$, dtheta_origin$,                 'DTHETA_ORIG
 call init_attribute_name1 (girder$, dphi_origin$,                   'DPHI_ORIGIN')
 call init_attribute_name1 (girder$, dpsi_origin$,                   'DPSI_ORIGIN')
 
+call init_attribute_name1 (lcavity$, traveling_wave$,               'TRAVELING_WAVE')
 call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', dependent$)
 call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', dependent$)
 call init_attribute_name1 (lcavity$, dphi0$,                        'DPHI0')
@@ -1213,10 +1214,10 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'RF_AUTO_SCALE_PHASE', &
       'RF_AUTO_SCALE_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER')
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER')
   attrib_type = is_logical$
 
-case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'TRAVELING_WAVE', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', &
       'PTC_MAX_FRINGE_ORDER')
   attrib_type = is_integer$

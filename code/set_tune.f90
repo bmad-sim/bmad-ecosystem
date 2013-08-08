@@ -116,7 +116,7 @@ do i = 1, 10
     else
       ele%value(k1$) = ele%value(k1$) + abs(dk1(j)) * dk_y
     endif
-    call set_flags_for_changed_attribute (lat, ele, ele%value(k1$))
+    call set_flags_for_changed_attribute (ele, ele%value(k1$))
   enddo
 
 enddo

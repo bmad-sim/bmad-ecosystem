@@ -308,7 +308,7 @@ parsing_loop: do
         exit
       endif
 
-      call set_flags_for_changed_attribute (lat, ele)
+      call set_flags_for_changed_attribute (ele)
 
       if (.not. found) then   ! First time
         if (attribute_index (ele, word_2)  == 0) then
@@ -465,7 +465,7 @@ parsing_loop: do
       cycle parsing_loop
     else
       call parser_set_attribute (def$, ele, lat, delim, delim_found, err, pele)
-      call set_flags_for_changed_attribute (lat, ele)
+      call set_flags_for_changed_attribute (ele)
       if (err) then
         n_max = n_max - 1
         cycle parsing_loop
