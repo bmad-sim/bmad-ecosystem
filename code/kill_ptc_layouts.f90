@@ -12,7 +12,7 @@
 
 subroutine kill_ptc_layouts (lat)
 
-use ptc_layout_mod
+use ptc_layout_mod, except_dummy => kill_ptc_layouts
 use madx_ptc_module
 
 implicit none

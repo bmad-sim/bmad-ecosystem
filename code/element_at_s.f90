@@ -107,7 +107,7 @@ enddo
 ! Solution is n3 except in one case.
 
 ix_ele = n3
-if (.not. choose_max .and. ss == branch%ele(n2)%s) ix_ele = n2
+if (.not. choose_max .and. ss == branch%ele(n3-1)%s) ix_ele = n3-1
 
 if (present(s_eff)) s_eff = ss
 
