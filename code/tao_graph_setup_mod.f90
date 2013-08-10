@@ -1489,8 +1489,7 @@ do ii = 1, size(curve%x_line)
       call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err)
       orbit_end = orbit
     else
-      idum = element_at_s(lat, s_now, .false., ix_branch, err, position = orbit_end)
-      call twiss_and_track_from_s_to_s (branch, orbit, orbit_end, ele, ele, err)
+      call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err)
       orbit = orbit_end
     endif
 
