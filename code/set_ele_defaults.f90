@@ -64,6 +64,7 @@ case (lcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_scale$) = 1
   ele%value(n_cell$) = 1
+  ele%value(traveling_wave$) = 0
 
 case (mirror$)
   ele%aperture_at = surface$
@@ -99,6 +100,7 @@ case (rfcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_scale$) = 1
   ele%value(n_cell$) = 1
+  ele%value(traveling_wave$) = 0
 
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  

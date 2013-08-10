@@ -2892,17 +2892,21 @@ case (rfcavity$, lcavity$)
   endif
 
   beta = ele%value(p0c$) / ele%value(e_tot$)
-  ptc_key%magnet = 'rfcavity'
+  if (is_true(ele%value(traveling_wave$))) then
+    ptc_key%magnet = 'twcavity'
+  else
+    ptc_key%magnet = 'rfcavity'
+    ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
+  endif
+
   ptc_key%list%freq0 = ele%value(rf_frequency$)
   phi_tot = ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$)
   if (tracking_uses_end_drifts(ele)) ptc_key%list%l = hard_edge_model_length(ele)
 
   if (ele%key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot
-    ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
   else
     ptc_key%list%lag = twopi * phi_tot
-    ptc_key%list%n_bessel = -1 
   endif
 
   ptc_key%list%volt = 2e-6 * e_accel_field(ele, voltage$)

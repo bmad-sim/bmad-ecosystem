@@ -214,7 +214,7 @@ else
       case (is_logical$)
         if (ele%value(i) /= 0) ele%value(i) = 1
         nl=nl+1; write (li(nl), '(i6, 3x, 2a, l1, a, i0, a)')  i, a_name(1:n_att), '=  ', &
-                                    (ele%value(i) /= 0), ' (', nint(ele%value(i)), ')'
+                                    is_true(ele%value(i)), ' (', nint(ele%value(i)), ')'
       case (is_integer$)
         if (ele%value(i) == 0 .and. .not. type_zero) cycle
         nl=nl+1; write (li(nl), '(i6, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', nint(ele%value(i))
