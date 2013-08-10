@@ -186,7 +186,7 @@ end subroutine lat_to_ptc_layout
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine branch_to_ptc_layout (lat)
+! Subroutine branch_to_ptc_layout (branch)
 !
 ! Subroutine to create a PTC layout from a Bmad lattice branch..
 ! Note: If ptc_layout has been already used then you should first do a 
@@ -1071,7 +1071,6 @@ case (lcavity$, rfcavity$)
   call update_this_real (ele%value(voltage$), fib%mag%freq)
   call update_this_real (ele%value(phi0$), fib%mag%phas)
 
-
 case (octupole$)
 
 
@@ -1117,7 +1116,10 @@ subroutine update_this_real (var, value)
 
 real(rp) var, value
 
+if (var == value) return
+
 var = value
+call set_flags_for_changed_attribute (ele, var)
 
 end subroutine update_this_real
 
@@ -1128,7 +1130,10 @@ subroutine update_this_integer (var, value)
 
 integer var, value
 
+if (var == value) return
+
 var = value
+call set_flags_for_changed_attribute (ele, var)
 
 end subroutine update_this_integer
 

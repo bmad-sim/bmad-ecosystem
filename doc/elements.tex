@@ -1939,6 +1939,12 @@ Example:
   lwf: lcavity, l = 2.3, rf_frequency = 500e6, voltage = 20e6
 \end{example}
 
+{\em Note: The default \vn{bmad_standard} tracking for \vn{lcavity}
+elements when the velocity $\beta$ is significantly different from 1
+can only be considered as a rough approximation. Indeed, the only
+accurate way to simulate a cavity in this situation is by integrating
+through the actual field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
+
 %-----------------------------------------------------------------
 \section{Marker}
 \label{s:mark}

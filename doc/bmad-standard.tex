@@ -1077,8 +1077,12 @@ energies:
     x'
   \end{pmatrix}_2 = 
   \begin{pmatrix}
-    r_\beta \, m_{11}                      & r_\beta \, m_{12} \\
-    r_\beta \, m_{21} + r'_\beta \, m_{11} & r_\beta \, m_{22} + r'_\beta \, m_{12} 
+    \cos(\alpha)  &  
+    \sqrt{\frac{8}{\eta(\Delta\phi)}} \, \frac{\beta_1 \, \gamma_1}{\gamma'} \, 
+                                                   \cos(\Delta\phi) \, \sin(\alpha) \\
+    -\sqrt{\frac{\eta(\Delta\phi)}{8}} \, 
+                     \frac{\gamma'}{\beta_2 \, \gamma_2 \, \cos(\Delta\phi)} \, \sin(\alpha) &
+    \frac{\beta_1 \, \gamma_1}{\beta_2 \, \gamma_2} \, \cos(\alpha)
   \end{pmatrix}
   \,
   \begin{pmatrix}
@@ -1086,19 +1090,13 @@ energies:
     x'
   \end{pmatrix}_1
 \Endeq
-where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and 
-\begin{align}
-  r_\beta &\equiv \sqrt{\frac{\beta_1}{\beta_2}} \\
-  r'_\beta &\equiv \frac{dr_\beta}{ds} 
-    = \frac{-m^2 \, \beta_1 \, G}{2 \, r_\beta \, P_2^3}
-\end{align}
-where $G$ is the accelerating gradient and the equation has been used:
-\begin{align}
-  \frac{d\beta}{dp_z} &= \frac{m^2 \, P_0}{E^3} \\
-\end{align}
-where $m$ is the particle mass, $E$ is the particle energy.
-With this, the matrix has the correct determinate of $\beta_1 \,
-\gamma_1 / \beta_2 \, \gamma_2$.
+The added factors of $\beta$ give the matrix the correct determinate
+of $\beta_1 \, \gamma_1 / \beta_2 \, \gamma_2$. {\em While the added
+factors of $\beta$ do correct the phase space area, the above equation
+can only be considered as a rough approximation for simulating
+particles when $\beta$ is significantly different from 1. Indeed, the
+only accurate way to simulate such particles is by integrating through
+the actual field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
 
 The change in $z$ going through a cavity is calculated by first calculating the particle
 transit time $\Delta t$

@@ -1,23 +1,20 @@
 !+
-! Subroutine twiss_and_track_from_s_to_s (branch, orbit_start, orbit_end, ele_start, ele_end, err)
+! Subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, ele_start, ele_end, err)
 !
-! Routine to track a particle within an element.
+! Routine to track a particle from one location to another
 !
 ! See also: 
 !   twiss_and_track_at_s
 !   track_from_s_to_s
 !
-! The track_entrance and track_exit arguments determine whether entrance and exit effects are 
-! included. These effects are bend edge focusing and aperture checks. 
-!
 ! Note: orbit_start%ix_ele, orbit_start%location, only matter when orbit_start%s corresponds 
-! to a position where there are zero length elements that affect the orbit like kickers. 
-! In this case orbit_start%ix_ele and orbit_start%location can determine which side of a 
-! zero length element the starting position is on.
-! A similar situation hold for orbit_end.
+! to a position where there are zero length elements that affect the orbit like kickers or
+! when the particle is at an element with edge fields like a bend.
 !
-! Note: Use element_at_s to properly initialize orbit_start and orbit_end given starting
-! and ending s-values.
+! If s_end corresponds to the location of a zero length element or elements, the particle will
+! stop just before any such elements.
+!
+! Note: Use element_at_s to properly initialize orbit_start.
 !
 ! Modules needed:
 !   use bmad
@@ -28,10 +25,7 @@
 !     %s               -- Starting position.
 !     %ix_ele          -- Starting element. 
 !     %location        -- Location relative element.
-!   orbit_end      -- Coord_struct: End phase space coordinates. 
-!     %s               -- Ending position.
-!     %ix_ele          -- Ending element. 
-!     %location        -- Location relative element. 
+!   s_end          -- real(rp): Ending position.
 !   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters at s_start.
 !
 ! Output:
@@ -42,7 +36,7 @@
 !                      the particle gets lost in tracking
 !-   
 
-subroutine twiss_and_track_from_s_to_s (branch, orbit_start, orbit_end, ele_start, ele_end, err)
+subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, ele_start, ele_end, err)
 
 use bookkeeper_mod, dummy => twiss_and_track_from_s_to_s
 
@@ -62,14 +56,13 @@ integer ix_start, ix_end
 integer ix_ele
 
 logical, optional :: err
-logical track_entrance, track_exit, error
+logical track_entrance, track_exit, err_flag
 
 character(40), parameter :: r_name = 'twiss_and_track_from_s_to_s'
 
 ! Easy case & error check
 
 s_start = orbit_start%s
-s_end   = orbit_end%s
 
 if (s_start == s_end .and. branch%param%geometry == open$) then
   orbit_end = orbit_start
@@ -91,13 +84,15 @@ if (orbit%location == downstream_end$) then
 endif
 
 ix_start = orbit%ix_ele
-ix_end = orbit_end%ix_ele
+ix_end = element_at_s (branch%lat, s_end, .false., branch%ix_branch, err_flag)
+if (present(err)) err = err_flag
+if (err_flag) return
 
 ele0 => branch%ele(ix_start)
 s0 = branch%ele(ix_start-1)%s
 
 track_entrance = (orbit%location == upstream_end$)
-track_exit = (orbit_end%location == downstream_end$)
+track_exit = .true.
 
 ! Track within a single element case
 
@@ -112,9 +107,9 @@ endif
 ! First track to end of current element
 
 call twiss_and_track_intra_ele (ele0, branch%param, s_start-s0, ele0%value(l$), &
-                      track_entrance, .true., orbit_start, orbit_end, ele_start, ele_end, error)
-if (present(err)) err = error
-if (error) return
+                      track_entrance, .true., orbit_start, orbit_end, ele_start, ele_end, err_flag)
+if (present(err)) err = err_flag
+if (err_flag) return
 if (.not. particle_is_moving_forward(orbit_end)) return
 
 ! Track to ending element
@@ -139,9 +134,9 @@ do
     ele_end%mat6            = ele_track%mat6
     ele_end%map_ref_orb_in  = ele_track%map_ref_orb_in   ! Needed for dispersion calc.
     ele_end%map_ref_orb_out = ele_track%map_ref_orb_out  ! Needed for dispersion calc.
-    call twiss_propagate1 (ele_here, ele_end, error)
-    if (present(err)) err = error
-    if (error) return
+    call twiss_propagate1 (ele_here, ele_end, err_flag)
+    if (present(err)) err = err_flag
+    if (err_flag) return
     ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_track%vec0
     ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
   endif

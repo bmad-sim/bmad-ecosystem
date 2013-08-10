@@ -45,17 +45,16 @@ Table~\ref{t:track.methods} gives which methods are available for each
 type of element.
 
 A note on terminology: Adaptive step size control used with the
-\vn{Runge_Kutta} integrator means that
-instead of taking fixed step sizes the integrator chooses the proper
-step size so that the error in the tracking is below the maximum
-allowable error set by \vn{rel_tol} and \vn{abs_tol} tolerances. The
-advantage of step size control is that the integrator uses a smaller
-step size when needed (the fields are rapidly varying), but makes
-larger steps when it can. The disadvantage is that a step is more
-computationally intensive since the error in a step is estimated by
-repeating a step using two mini steps. If the fields are rather
-uniform and you know what a good step size is you can save time by
-using a fixed step size.
+\vn{Runge_Kutta} integrator means that instead of taking fixed step
+sizes the integrator chooses the proper step size so that the error in
+the tracking is below the maximum allowable error set by \vn{rel_tol}
+and \vn{abs_tol} tolerances. The advantage of step size control is
+that the integrator uses a smaller step size when needed (the fields
+are rapidly varying), but makes larger steps when it can. The
+disadvantage is that a step is more computationally intensive since
+the error in a step is estimated by repeating a step using two mini
+steps. If the fields are rather uniform and you know what a good step
+size is you can save time by using a fixed step size.
 
 \begin{description}
 
