@@ -720,7 +720,17 @@ if (lord%key == match$) then
   endif
 endif
 
-! multipoles
+! Sbend field: The design bending strength is same for slave as lord. 
+! So the error field must be adjusted so that total_field = design_field + err_field is the same. 
+! Note: The lord's energy may not yet be set if bmad_parser is active. So only do calc if p0c is set.
+
+if (slave%key == sbend$ .and. lord%value(p0c$) /= 0) then
+  slave%value(b_field$) = lord%value(b_field$) * slave%value(p0c$) / lord%value(p0c$)
+  slave%value(b_field_err$) = (lord%value(b_field$) + lord%value(b_field_err$)) - slave%value(b_field$)
+  slave%value(g_err$) = (lord%value(g$) + lord%value(g_err$)) - slave%value(g$)
+endif
+
+! Multipoles
 
 if (associated (slave%a_pole)) then
   slave%a_pole           = lord%a_pole
@@ -1594,8 +1604,6 @@ if (has_orientation_attributes(slave)) then
       value(x_pitch$) =  rot(2)
       value(y_pitch$) = -rot(1)
       value(roll$)    =  rot(3)
-
-        
 
     endif
 
