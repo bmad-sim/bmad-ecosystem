@@ -55,7 +55,7 @@ real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_m
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp1, xp2, yp1, yp2
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3), sqrt_8
-real(rp) dcos_phi, dgradient, dpz, r_beta, dr_beta_ds, sin_alpha_over_f
+real(rp) dcos_phi, dgradient, dpz, sin_alpha_over_f
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
@@ -331,22 +331,19 @@ case (lcavity$)
   if (abs(voltage_max * cos_phi) < 1e-5 * E_start) then
     f = voltage_max / E_start
     alpha = f * (1 + f * cos_phi / 2)  / sqrt_8
-    coef = length * (1 - voltage_max * cos_phi / (2 * E_start))
+    coef = length * beta_start * (1 - voltage_max * cos_phi / (2 * E_start))
   else
     alpha = log(E_ratio) / (sqrt_8 * cos_phi)
-    coef = sqrt_8 * E_start * sin(alpha) / gradient_max
+    coef = sqrt_8 * pc_start * sin(alpha) / gradient_max
   endif
 
   cos_a = cos(alpha)
   sin_a = sin(alpha)
 
-  r_beta = sqrt(start2_orb%beta / end_orb%beta)
-  dr_beta_ds = -mc2**2 * gradient_net * r_beta / (2 * pc_end**2 * E_end)
-
-  r_mat(1,1) =  r_beta * cos_a
-  r_mat(1,2) =  r_beta * coef 
-  r_mat(2,1) = -r_beta * sin_a * gradient_max / (sqrt_8 * E_end) + dr_beta_ds * cos_a 
-  r_mat(2,2) =  r_beta * cos_a * E_start / E_end                 + dr_beta_ds * coef
+  r_mat(1,1) =  cos_a
+  r_mat(1,2) =  coef 
+  r_mat(2,1) = -sin_a * gradient_max / (sqrt_8 * pc_end)
+  r_mat(2,2) =  cos_a * pc_start / pc_end
 
   end_orb%vec(2) = end_orb%vec(2) / rel_pc    ! Convert to x'
   end_orb%vec(4) = end_orb%vec(4) / rel_pc    ! Convert to y'
