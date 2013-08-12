@@ -254,7 +254,7 @@ do i = 1, n_bunch
   if (rb_com%file_type == 'ASCII') then
 
     read (rb_com%iu, '(a)', iostat = ios) line
-    if (ios /= 0 .or. index(line, 'BEGIN_BUNCH') == 0) then
+    if (ios /= 0 .or. index(upcase(line), 'BEGIN_BUNCH') == 0) then
       call this_error_out ('NO "BEGIN_BUNCH" MARKER FOUND')
       return
     endif
@@ -265,7 +265,7 @@ do i = 1, n_bunch
       return
     endif
 
-    call match_word (line, particle_name, ix, .false., .false.)
+    call match_word (upcase(line), particle_name, ix, .false., .false.)
     if (ix < 1) then
       call this_error_out ('BAD SPECIES NAME: ' // trim(line))
       return
@@ -306,7 +306,7 @@ do i = 1, n_bunch
       j = j + 1
       in_parens = .false.
 
-      if (index(line, 'END_BUNCH') /= 0) exit
+      if (index(upcase(line), 'END_BUNCH') /= 0) exit
       if (j > n_particle) cycle
 
       p(j)%charge = 0; p(j)%state = alive$; p(j)%spin = cmplx(0.0_rp, 0.0_rp)
