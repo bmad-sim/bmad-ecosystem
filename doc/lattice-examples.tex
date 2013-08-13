@@ -67,6 +67,41 @@ this is not desirable for tracking in a storage ring since
 \vn{runge_kutta} is slow.
 
 %-----------------------------------------------------------------------------
+\section{Example: Energy Recovery Linac}
+\label{s:ex.erl}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{erl.pdf}
+  \caption[
+Example Energy Recovery Linac. The ERL consists of an injection line,
+accelerating linac, return arc, decellerating linac, and finally a
+beam dump.}
+  \label{f:erl}
+\end{figure}
+
+An Energy Recovery Linac (ERL) is illustrated in \fig{f:erl}. The ERL
+starts with an injection line that feeds a linac which accelerates the
+beam to some energy. The beam then transverses a \vn{return arc} which
+reinjects the bunches into the linac. The length of the return arc is
+such that, on the second pass, the beam is decelleratied giving its
+energy back to the RF cavities. Finally, the decelleratied beam is
+steered through a dump line where, at the end, an absorber stops the beam.
+
+ A lattice file for modeling this ERL:
+\begin{example}
+  inj_patch: patch, flexible = T
+  dump_patch: patch, x_pitch = 0.34
+  INJECT: line = (...)
+  LINAC: line[multipass] = (...)
+  ARC: line = (...)
+  DUMP: line = (...)
+  ERL: line = (INJECT, LINAC, ARC, inj_patch, LINAC, dump_patch, DUMP)
+\end{example}
+
+
+
+%-----------------------------------------------------------------------------
 \section{Example: Patch Between reversed and non-reversed elements}
 \label{s:ex.patch}
 

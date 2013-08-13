@@ -225,9 +225,9 @@ do ib = 0, ubound(lat%branch, 1)
         ! This adjusts the RF phase and amplitude.
         ! Note: Any multipass lord element where the reference energy is not constant must have n_ref_pass = 1.
         if (lord%lord_status == multipass_lord$ .and. lord%value(n_ref_pass$) == 0) then
-          if (lord%value(p0c$) /= 0) then
+          if (lord%value(p0c$) > 0) then
             call convert_pc_to(lord%value(p0c$), branch%param%particle, lord%value(e_tot$))
-          elseif (lord%value(e_tot$) /= 0) then
+          elseif (lord%value(e_tot$) > 0) then
             call convert_total_energy_to(lord%value(e_tot$), branch%param%particle, pc = lord%value(p0c$))
           else
             ! Marker element, for example, may not set either p0c or e_tot.
