@@ -13,38 +13,83 @@ use ptc_layout_mod
 implicit none
 
 type (lat_struct), target :: lat, lat2, lat3
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele2
 type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
 type (coord_struct) end_orb1t, end_orb2t
 type (taylor_struct) bmad_taylor(6)
 type (real_8) y8(6)
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, branch2
 
 real(rp) diff_mat(6,6), diff_vec(6)
 real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0 
 real(rp) m6_to_ptc(6,6), m6_to_bmad(6,6), m6(6,6)
+real(rp) a_pole, b_pole, a_pole2, b_pole2
 
 integer i, j
+character(80) str
 
 namelist / params / start_orb
 
+!
+
+call bmad_parser ('ptc_test.bmad', lat)
+open (1, file = 'output.now')
+
 !----------------------------------------------------------
 ! Check information passing between bmad element and associated ptc fibre
+! Procedure: 
+!   0) branch%ele(i) and branch2%ele(i) are the same type of element but
+!      with different attribute values.
+!   1) Setup ptc layout using branch.
+!   2) Point branch2%ele to same fibre as branch%ele
+!   3) Transfer attribute values from branch2%ele to ptc fibre.
+!   4) Transfer back attribute values from ptc fibre to branch.
+!   5) Check that branch%ele and branch2%ele have same attribute values.
 
 branch => lat%branch(1)
-!!call branch_to_ptc_layout (branch)
+call branch_to_ptc_layout (branch)
 
+branch2 => lat%branch(2)
 
+do i = 1, branch%n_ele_track
+  ele => branch%ele(i)
+  ele2 => branch2%ele(i)
+  ele2%ptc_fibre => ele%ptc_fibre
+  call update_ptc_fibre_from_bmad (ele2)
+  call update_bmad_ele_from_ptc (ele)
+  str = 'NO-DIFF'
+  do j = 1, num_ele_attrib$
+    call check_if_different (str, ele, j, ele%value(j), ele2%value(j))
+  enddo
+  do j = 0, n_pole_maxx
+    if (associated(ele%a_pole)) then
+      a_pole = ele%a_pole(j); b_pole = ele%a_pole(j)
+    else
+      a_pole = 0; b_pole = 0
+    endif
+
+    if (associated(ele2%a_pole)) then
+      a_pole2 = ele2%a_pole(j); b_pole2 = ele2%a_pole(j)
+    else
+      a_pole2 = 0; b_pole2 = 0
+    endif
+
+    call check_if_different (str, ele, j+a0$, a_pole, a_pole2)
+    call check_if_different (str, ele, j+b0$, b_pole, b_pole2)
+
+  enddo
+
+  write (1, '(4a)') '"IN-OUT:', trim(ele%name), '" STR ', str
+
+enddo
 
 !------------------------------------------------------------------------
 ! Tracking tests
 ! ele(1) is a wiggler, ele(2:4) is the same wiggler split by a marker.
 
-call bmad_parser ('ptc_test.bmad', lat)
-
-open (1, file = 'ptc_test.bmad')
-read (1, nml = params)
-close (1)
+open (2, file = 'ptc_test.bmad')
+read (2, nml = params)
+close (2)
 
 lat%ele(3)%key = -1
 call remove_eles_from_lat (lat)
@@ -59,7 +104,7 @@ lat%ele(3)%mat6 = matmul(lat%ele(3)%mat6, lat%ele(2)%mat6)
 diff_mat = lat%ele(3)%mat6 - lat%ele(1)%mat6
 diff_vec = lat%ele(3)%vec0 - lat%ele(1)%vec0
 
-open (1, file = 'output.now')
+write (1, *)
 write (1, '(a, es20.10)') '"Bmad:vec(1)" REL  1E-10', end_orb1%vec(1)
 write (1, '(a, es20.10)') '"Bmad:vec(2)" REL  1E-10', end_orb1%vec(2)
 write (1, '(a, es20.10)') '"Bmad:vec(3)" REL  1E-10', end_orb1%vec(3)
@@ -151,5 +196,30 @@ do i = 1, 6
 enddo
 
 write (1, '(a, 6es10.2)') '"map_convert" ABS 1E-15', diff_vec
+
+!-----------------------------------------------------------------
+contains
+
+subroutine check_if_different (str, ele, ix_attrib, val, val2)
+
+type (ele_struct) ele
+real(rp) val, val2
+integer ix_attrib
+character(*) str
+
+!
+
+if (val == 0 .and. val2 == 0) return
+
+if (val * val2 <= 0) then  ! opposite sign
+  if (abs(val) + abs(val2) < 2e-10) return
+else
+  if (abs(val-val2) / abs(val+val2) < 1e-10) return
+endif
+
+write (str, '(a, i0, 2a, 2es20.10, a)') &
+        '"', ix_attrib, ':', trim(attribute_name(ele, ix_attrib)), val, val2, '"'
+
+end subroutine
 
 end program
