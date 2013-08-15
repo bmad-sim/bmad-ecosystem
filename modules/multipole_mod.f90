@@ -11,6 +11,7 @@ contains
 ! Subroutine multipole_ab_to_kt (an, bn, knl, tn)
 !
 ! Subroutine to convert ab type multipoles to kt (MAD standard) multipoles.
+! Also see: multipole1_ab_to_kt.
 !
 ! Modules needed:
 !   use bmad
@@ -30,33 +31,63 @@ implicit none
 
 real(rp) an(0:), bn(0:)
 real(rp) knl(0:), tn(0:)
-real(rp) n_fact, a, b
 
 integer n
 
-! use a, b as temp values to avoid problems with a call like:
-!   call multipole_ab_to_kt (vec1, vec2, vec1, vec2)
-
-n_fact = 1
+!
 
 do n = 0, n_pole_maxx
-
-  if (n /= 0) n_fact = n_fact * n
-
-  a = an(n)
-  b = bn(n)
-
-  if (a == 0 .and. b == 0) then
-    knl(n) = 0
-    tn(n) = 0
-  else
-    knl(n)  = n_fact * sqrt(a**2 + b**2)
-    tn(n) = -atan2(a, b) / (n + 1)
-  endif
-
+  call multipole1_ab_to_kt (an(n), bn(n), n, knl(n), tn(n))
 enddo
 
 end subroutine multipole_ab_to_kt
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine multipole1_ab_to_kt (an, bn, n, knl, tn)
+!
+! Subroutine to convert ab type multipole to kt (MAD standard) multipole.
+! Also see: multipole_ab_to_kt.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   an -- Real(rp): Skew multipole component.
+!   bn -- Real(rp): Normal multipole component.
+!   n  -- Integer: Order of multipole. 
+!
+! Output:
+!   knl -- Real(rp): Multitude magnatude.
+!   tn  -- Real(rp): Multipole angle.
+!-
+
+subroutine multipole1_ab_to_kt (an, bn, n, knl, tn)
+
+implicit none
+
+real(rp) an, bn, knl, tn
+
+integer n
+
+!
+
+real(rp) a, b
+
+if (an == 0 .and. bn == 0) then
+  knl = 0
+  tn = 0
+else
+  ! Use temp a, b to avoid problems when actual (knl, tn) args are the same as (an, bn).
+  a = an
+  b = bn
+  knl  = factorial(n) * sqrt(a**2 + b**2)
+  tn = -atan2(a, b) / (n + 1)
+endif
+
+end subroutine multipole1_ab_to_kt
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -149,6 +180,7 @@ end subroutine multipole_ele_to_kt
 ! Subroutine multipole_kt_to_ab (knl, tn, an, bn)
 !
 ! Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
+! Also see: multipole1_kt_to_ab.
 !
 ! Modules needed:
 !   use bmad
@@ -168,32 +200,62 @@ implicit none
 
 real(rp) an(0:), bn(0:)
 real(rp) knl(0:), tn(0:)
-real(rp) n_fact, angle, kl
 
 integer n
 
 !
 
-n_fact = 1
-
 do n = lbound(an, 1), ubound(an, 1)
-
-  if (n /= 0) n_fact = n_fact * n
-
-  kl = knl(n) / n_fact
-
-  if (kl == 0) then
-    an(n) = 0
-    bn(n) = 0
-  else
-    angle = -tn(n) * (n + 1)
-    an(n) = kl * sin(angle)
-    bn(n) = kl * cos(angle)
-  endif
-
+  call multipole1_kt_to_ab (knl(n), tn(n), n, an(n), bn(n))
 enddo
 
 end subroutine multipole_kt_to_ab
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine multipole1_kt_to_ab (knl, tn, n, an, bn)
+!
+! Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
+! Also see: multipole_kt_to_ab.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   knl -- Real(rp): Multitude magnatude.
+!   tn  -- Real(rp): Multipole angle.
+!   n   -- Integer: Multipole order.
+!
+! Output:
+!   an -- Real(rp): Skew multipole component.
+!   bn -- Real(rp): Normal multipole component.
+!-
+
+subroutine multipole1_kt_to_ab (knl, tn, n, an, bn)
+
+implicit none
+
+real(rp) an, bn
+real(rp) knl, tn
+real(rp) angle, kl
+
+integer n
+
+!
+
+if (knl == 0) then
+  an = 0
+  bn = 0
+else
+  kl = knl / factorial(n)
+  angle = -tn * (n + 1)
+  an = kl * sin(angle)
+  bn = kl * cos(angle)
+endif
+
+end subroutine multipole1_kt_to_ab
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

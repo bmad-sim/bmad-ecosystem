@@ -3323,14 +3323,14 @@ case (sol_quad$)
   n_relavent = 2
 
 case (hkicker$, vkicker$)
-  if (ele%key == hkicker$) k(1)  = k(1)  + val(kick$) 
-  if (ele%key == vkicker$) ks(1) = ks(1) + val(kick$) 
+  if (ele%key == hkicker$) k(1)  = val(kick$) 
+  if (ele%key == vkicker$) ks(1) = val(kick$) 
   n_relavent = 1
   add_kick = .false.
 
 case (kicker$)
-  k(1)  = k(1)  + val(hkick$) 
-  ks(1) = ks(1) + val(vkick$) 
+  k(1)  = val(hkick$) 
+  ks(1) = val(vkick$) 
   n_relavent = 1
   add_kick = .false.
 
@@ -3366,6 +3366,7 @@ if (add_kick .and. has_hkick_attributes(ele%key) .and. &
 endif
 
 ! bmad an and bn are integrated fields. PTC uses just the field.
+! Exception is multipole element.
 
 if (associated(ele%a_pole)) then
   call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, an0, bn0)
