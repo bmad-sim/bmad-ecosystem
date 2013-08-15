@@ -676,21 +676,24 @@ The \vn{ptc_exact_misalignment} parameter determines whether
 misalignments are handled exactly or whether approximations are made
 that will speed up the calculation.
 
-In addition to the above parameters, the type of integration in
-\vn{PTC} can be set for individual elements using the
+In addition to the above parameters, how the Hamiltonian is split when
+tracking with \vn{PTC} can be set for individual elements using the
 \vn{ptc_integration_type} parameter. Possible settings of this
 parameter are
 \begin{example}
-  matrix_kick   ! Default
-  drift_kick
-  ripken_kick
+  drift_kick    ! See Eq.~(125) of \cite{b:geo.int}
+  matrix_kick   ! See Eq.~(132) of \cite{b:geo.int}. Default
+  ripken_kick   ! See Eq.~(130) of \cite{b:geo.int}
 \end{example}
 Example:
 \begin{example}
   q2: quad, l = 0.6, k1 = 0.34, ptc_integration_type = drift_kick
 \end{example}
 A discussion of the different types of integration schemes is given by
-Forest\cite{b:geo.int}. 
+Forest\cite{b:geo.int}. The equation that shows the appropriate
+splitting of the Hamiltonian for each integration type is referenced
+in the above list. The \vn{ripken_kick} type is for benchmarking with
+the \vn{SixTrack} program and is not otherwise generally useful.
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}
@@ -717,12 +720,12 @@ defaults to true. Examples:
   s1: sextupole, symplectify, l = 0.34          ! symplectify = True
 \end{example}
 
-\label{lcavity} Note that for elements like an \vn{lcavtity} where the
+\label{lcavity} Note that for elements like an \vn{lcavity} where the
 reference momentum at the downstream end of the element is different
 from the upstream end, the transfer matrix is never symplectic. In
 this case, ``symplectification'' involves first transforming the
 transfer matrix so that the reference momentum is the same upstream
-and downstream, then proforming symplectification, and finally back
+and downstream, then performing symplectification, and finally back
 transforming the reference momentum to their original values.
 
 %-----------------------------------------------------------------

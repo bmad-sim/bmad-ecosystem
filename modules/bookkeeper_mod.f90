@@ -228,11 +228,7 @@ character(*), parameter :: r_name = 'control_bookkeeper'
 ! If ele is present we only do bookkeeping for this one element and its slaves
 
 if (present(ele)) then
-  call control_bookkeeper1 (lat, ele)
-  do ie = 1, ele%n_slave
-    slave => pointer_to_slave(ele, ie)
-    call control_bookkeeper (lat, slave)
-  enddo
+  call control_bookkeeper1 (lat, ele, .true.)
   return
 endif
 
@@ -255,7 +251,7 @@ ie_loop: do ie = lat%n_ele_track+1, lat%n_ele_max
     cycle
   endif
   if (ele2%n_lord > 0) cycle
-  call control_bookkeeper1 (lat, ele2)
+  call control_bookkeeper1 (lat, ele2, .false.)
 enddo ie_loop
 
 ! And now bookkeeping for the elements in the tracking lattice
@@ -285,14 +281,14 @@ end subroutine control_bookkeeper
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper1 (lat, ele)
+! Subroutine control_bookkeeper1 (lat, ele, force_bookkeeping)
 !
 ! This routine is for control bookkeeping for a single element.
 ! This subroutine is only to be called from control_bookkeeper and is
 ! not meant for general use.
 !-
 
-recursive subroutine control_bookkeeper1 (lat, ele)
+recursive subroutine control_bookkeeper1 (lat, ele, force_bookkeeping)
 
 implicit none
 
@@ -301,11 +297,11 @@ type (ele_struct) ele
 type (ele_struct), pointer :: slave
 
 integer i
-logical call_a_bookkeeper
+logical call_a_bookkeeper, force_bookkeeping
 
-! Only do bookkeeping on this element if it is stale.
+! Only do bookkeeping on this element if it is stale or bookkeeping is forced by the calling routine.
 
-if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attributes == stale$) then
+if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attributes == stale$ .or. force_bookkeeping) then
 
   ! First make sure the attribute bookkeeping for this element is correct since
   ! the makeup_*_slave routines may need it.
@@ -354,7 +350,7 @@ endif
 
 do i = 1, ele%n_slave
   slave => pointer_to_slave (ele, i)
-  call control_bookkeeper1 (lat, slave)
+  call control_bookkeeper1 (lat, slave, force_bookkeeping)
 enddo
 
 end subroutine control_bookkeeper1
@@ -872,7 +868,11 @@ if (n_major_lords == 1) then
   ! If this is the last slave, adjust it's length to be consistant with
   ! The major_lord length. Then do the rest of the bookkeeping
 
-  if (is_last) slave%value(l$) = major_lord%value(l$) - offset
+!  if (is_last) then
+!    slave%value(l$) = major_lord%value(l$) + major_lord%value(lord_pad1$) + &
+!                      major_lord%value(lord_pad2$) - offset
+!    call set_flags_for_changed_attribute (slave, slave%value(l$))
+!  endif
 
   call makeup_super_slave1 (slave, major_lord, offset, branch%param, is_first, is_last, err_flag)
 
@@ -1733,27 +1733,27 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), target :: slave
-type (ele_struct), pointer :: lord, slave0
+type (ele_struct), pointer :: lord, slave0, my_lord, my_slave
 type (branch_struct), pointer :: branch
 type (floor_position_struct) slave_floor
 
-real(rp) coef, ds, s_slave
+real(rp) coef, ds, s_slave, val_slave(num_ele_attrib_extended$)
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
 real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_mis_tot(3,3)
-real(rp) w_slave_mis_tot(3,3), w_slave_mis(3,3), dr
-real(rp), pointer :: v(:), vs(:), tt
+real(rp) w_slave_mis_tot(3,3), w_slave_mis(3,3), dr, length
+real(rp), pointer :: v(:), vs(:), tt, r_slave
 
-integer i, ix_con, ix, iv, ix_slave, icom, l_stat
+integer i, j, ix_con, ix, iv, ix_slave, icom, l_stat
 logical err_flag, on_an_offset_girder
 
+character(40) a_name
 character(*), parameter :: r_name = 'makeup_control_slave'
-logical has_been_set(num_ele_attrib_extended$)
+logical is_free, has_been_set(num_ele_attrib_extended$)
 
 !
                              
 branch => slave%branch
 
-slave%bookkeeping_state%control = ok$
 call set_ele_status_stale (slave, attribute_group$)
 
 l_stat = slave%lord_status
@@ -1770,6 +1770,8 @@ do i = 1, slave%n_lord
 
   if (lord%lord_status == girder_lord$ .and. has_orientation_attributes(slave)) then
     v => lord%value
+    vs => slave%value
+
     if (v(x_offset_tot$) == 0 .and. v(y_offset_tot$) == 0 .and. v(z_offset_tot$) == 0 .and. &
         v(x_pitch_tot$) == 0 .and. v(y_pitch_tot$) == 0 .and. v(tilt_tot$) == 0) cycle
     ! Transformation to get the total misalignment:
@@ -1794,7 +1796,6 @@ do i = 1, slave%n_lord
     w_slave_mis_tot = matmul(w_slave_mis_tot, transpose(w_gs))     ! Transpose = inverse
     l_slave_off_tot = matmul(w_slave_mis_tot, -l_gs) + l_slave_off_tot
 
-    vs => slave%value
     call floor_angles_to_w_mat (vs(x_pitch$), vs(y_pitch$), vs(tilt$), w_slave_mis)
     l_slave_off_tot = matmul(w_slave_mis_tot, [vs(x_offset$), vs(y_offset$), vs(z_offset$)]) + l_slave_off_tot
     w_slave_mis_tot = matmul(w_slave_mis_tot, w_slave_mis)
@@ -1814,6 +1815,7 @@ do i = 1, slave%n_lord
     endif
 
     on_an_offset_girder = .true.
+
     cycle
   endif
 
@@ -1846,6 +1848,66 @@ do i = 1, slave%n_lord
 
 enddo
 
+! Transfer values from val_slave to slave
+
+do iv = 1, size(val_slave)
+
+  if (.not. has_been_set(iv)) cycle
+
+  a_name = attribute_name(slave, iv)
+  is_free = attribute_free (slave, a_name, lat, .true., .true.)
+  if (.not. is_free) then
+    call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
+         'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(a_name) // ']')
+    err_flag = .true.
+    return
+  endif
+
+  call pointer_to_indexed_attribute (slave, iv, .true., r_slave, err_flag)
+  if (err_flag) call err_exit
+
+  if (r_slave == val_slave(iv)) cycle
+  r_slave = val_slave(iv)
+  call set_flags_for_changed_attribute (slave, r_slave)
+
+  ! If varying length then must update any associated super_lords and super_slaves
+
+  if (iv == l$) then
+
+    ! If varying a  super_lord length then adjust last super_slave length to match.
+    if (slave%lord_status == super_lord$) then
+      length = 0
+      do i = 1, slave%n_slave-1
+        my_slave => pointer_to_slave(slave, i)
+        length = length + my_slave%value(l$)
+      enddo
+      my_slave => pointer_to_slave(slave, slave%n_slave)
+      my_slave%value(l$) = r_slave + slave%value(lord_pad1$) + slave%value(lord_pad2$) - length
+      call set_flags_for_changed_attribute (my_slave, my_slave%value(l$))
+    else
+      my_slave => slave
+    endif
+
+    ! If varying a super_slave length then vary all associated super_lord lengths to match.
+    if (my_slave%slave_status == super_slave$) then
+      do i = 1, my_slave%n_lord
+        my_lord => pointer_to_lord(my_slave, i)
+        if (my_lord%lord_status /= super_lord$) cycle
+        length = 0
+        do j = 1, my_lord%n_slave
+          slave0 => pointer_to_slave(my_lord, j)
+          length = length + slave0%value(l$)
+        enddo
+        my_lord%value(l$) = length - my_lord%value(lord_pad1$) - my_lord%value(lord_pad2$)
+        call set_flags_for_changed_attribute (my_lord, my_lord%value(l$))
+      enddo
+    endif
+  endif
+
+  call s_calc (lat)
+
+enddo
+
 ! If no girder then simply transfer tilt to tilt_tot, etc.
 
 if (.not. on_an_offset_girder .and. has_orientation_attributes(slave)) then
@@ -1867,56 +1929,28 @@ if (.not. on_an_offset_girder .and. has_orientation_attributes(slave)) then
   slave%value(y_pitch_tot$)  = slave%value(y_pitch$)
 endif
 
+slave%bookkeeping_state%control = ok$
+
 !-------------------------------------------------------------------------------
 contains
 
 subroutine overlay_change_this (iv)
 
 type (ele_struct), pointer :: my_lord, my_slave
-integer i, iv
-real(rp), pointer :: r_lord, r_slave
-character(40) a_name
+integer iv
+real(rp), pointer :: r_lord
 
 !
 
 call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_lord, err_flag)
 if (err_flag) call err_exit
-call pointer_to_indexed_attribute (slave, iv, .true., r_slave, err_flag)
-if (err_flag) call err_exit
 
 if (.not. has_been_set(iv)) then
-  r_slave = 0
+  val_slave(iv) = 0
   has_been_set(iv) = .true.
-  call set_flags_for_changed_attribute (slave, r_slave)
 endif
 
-r_slave = r_slave + r_lord * coef
-
-a_name = attribute_name(slave, iv)
-err_flag = attribute_free (slave, a_name, lat, .true., .true.)
-if (err_flag) return
-
-! If super_slave varying l then vary lord lengths.
-
-if (slave%slave_status == super_slave$) then
-  do i = 1, slave%n_lord
-    my_lord => pointer_to_lord(slave, i)
-    if (my_lord%lord_status /= super_lord$) cycle
-    my_lord%value(iv) = r_slave
-    call set_flags_for_changed_attribute (my_lord, my_lord%value(iv))
-
-    err_flag = attribute_free (my_lord, a_name, lat, .true., .true.)
-    if (err_flag) return
-  enddo
-endif
-
-! If super_lord varying l last slave length
-
-if (slave%lord_status == super_lord$ .and. iv == l$) then
-  my_slave => pointer_to_slave(slave, slave%n_slave)
-  my_slave%value(iv) = r_slave
-  call set_flags_for_changed_attribute (my_lord, my_lord%value(iv))
-endif
+val_slave(iv) = val_slave(iv) + r_lord * coef
 
 end subroutine overlay_change_this
 

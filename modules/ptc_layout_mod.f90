@@ -82,8 +82,8 @@ end subroutine type_ptc_layout
 
 subroutine lat_to_ptc_layout (lat)
 
-use madx_ptc_module, only: m_u, m_t, fibre, append_empty_layout, survey, make_node_layout, append_point, &
-                           set_up, ring_l
+use madx_ptc_module, only: m_u, m_t, fibre, append_empty_layout, survey, make_node_layout, &
+                           append_point, set_up, ring_l
 
 implicit none
 
@@ -763,7 +763,6 @@ end Subroutine ptc_one_turn_map_at_ele
 !-
 subroutine normal_form_taylors(one_turn_taylor, rf_on, dhdj, A_t, A_t_inverse)
 
-use ptc_interface_mod
 use madx_ptc_module
 
 implicit none
@@ -860,7 +859,7 @@ end subroutine write_ptc_flat_file_lattice
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine update_ptc_fibre_from_bmad (ele, param)
+! Subroutine update_ptc_fibre_from_bmad (ele)
 !
 ! Routine to update a fibre when the associated Bmad ele has been modified.
 !
@@ -869,20 +868,19 @@ end subroutine write_ptc_flat_file_lattice
 !
 ! Input:
 !   ele           -- ele_struct: Element with corresponding PTC fibre.
-!   param         -- lat_param_struct:
 !
 ! Output:
 !   ele%ptc_fibre -- PTC fibre.
 !-
 
-subroutine update_ptc_fibre_from_bmad (ele, param)
+subroutine update_ptc_fibre_from_bmad (ele)
 
 use madx_ptc_module
 
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) param
+type (branch_struct), pointer :: branch
 type (keywords) ptc_key
 type (element), pointer :: mag
 type (elementp), pointer :: magp
@@ -895,17 +893,11 @@ integer i, ix
 
 character(*), parameter :: r_name = 'update_ptc_fibre_from_bmad'
 
-! Warning
-
-if (ele%key == sbend$) then
-  call out_io (s_fatal$, r_name, 'sbend variation has bug!')
-  call err_exit
-endif
-
 ! "0" argument in add routine means set k/ks to value given.
 ! As opposed to "1" which means add to existing value.
 
-call ele_to_an_bn (ele, param, .false., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+branch => pointer_to_branch(ele)
+call ele_to_an_bn (ele, branch%param, .false., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
 do i = ptc_key%list%nmul, 1, -1
   call add (ele%ptc_fibre,  i, 0, ptc_key%list%k(i))
@@ -930,7 +922,7 @@ case (elseparator$)
   if (hk == 0 .and. vk == 0) then
     ptc_key%tiltd = 0
   else
-    if (param%particle < 0) then
+    if (branch%param%particle < 0) then
       hk = -hk
       vk = -vk
     endif
@@ -1007,7 +999,7 @@ end subroutine update_ptc_fibre_from_bmad
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine update_bmad_ele_from_ptc (ele, param)
+! Subroutine update_bmad_ele_from_ptc (ele)
 !
 ! Routine to update a bmad lattice element when the associated PTC fibre has been modified.
 !
@@ -1016,25 +1008,28 @@ end subroutine update_ptc_fibre_from_bmad
 !
 ! Input:
 !   ele           -- ele_struct: Element with corresponding ele%ptc_fibre fibre.
-!   param         -- lat_param_struct:
 !
 ! Output:
 !   ele       -- ele_struct: Modified element. 
 !-
 
-subroutine update_bmad_ele_from_ptc (ele, param)
+subroutine update_bmad_ele_from_ptc (ele)
 
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) param
+type (branch_struct), pointer :: branch
 type (fibre), pointer :: fib
-real(rp) an(21), bn(21)
+
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx), tilt, kick
 integer nmul, ix
+character(40) name
 
 !
 
 fib => ele%ptc_fibre
+branch => pointer_to_branch(ele)
 
 call update_this_real (ele%value(l$), fib%mag%p%ld)
 
@@ -1045,11 +1040,19 @@ else
   ele%value(ds_step$) = ele%value(l$) / ele%value(num_steps$)
 endif
 
-call update_this_real (ele%value(integrator_order$), real(fib%mag%p%method, rp))
+! If integrator_order is defined for this element then update
 
-nmul = min(fib%mag%p%nmul, 21)
-an(1:nmul) = fib%mag%an(1:nmul)
-bn(1:nmul) = fib%mag%bn(1:nmul)
+name = attribute_name(ele, integrator_order$)
+if (name(1:1) /= '!') call update_this_real (ele%value(integrator_order$), real(fib%mag%p%method, rp))
+
+!
+a_pole = 0
+b_pole = 0
+nmul = min(fib%mag%p%nmul, n_pole_maxx+1)
+a_pole(0:nmul-1) = fib%mag%an(1:nmul)
+b_pole(0:nmul-1) = fib%mag%bn(1:nmul)
+
+call multipole_ab_to_kt (a_pole, b_pole, knl, tn)
 
 if (ele%key == sbend$) then
   call update_this_real (ele%value(ref_tilt_tot$), fib%mag%p%tiltd)
@@ -1060,22 +1063,45 @@ endif
 !
 
 select case (ele%key)
+case (ab_multipole$)
+  ele%a_pole = a_pole
+  ele%b_pole = b_pole
+
 case (drift$)
 
+! Use dsin & dcos due to bug in ifort 13.1 compiler. 
+! Can rename to sin & cos when bug is fixed.
 
 case (elseparator$)
+  kick = fib%mag%volt * 1e6 / ele%value(e_tot$)
+  if (branch%param%particle < 0) kick = -kick
+  tilt = fib%mag%p%tiltd - ele%value(tilt_tot$)
+  call update_this_real (ele%value(hkick$), -kick * dsin(tilt))
+  call update_this_real (ele%value(vkick$), -kick * dcos(tilt))
 
+case (hkicker$)
+  call update_this_real (ele%value(kick$), knl(1))
 
 case (lcavity$, rfcavity$)
   call update_this_real (ele%value(rf_frequency$), fib%mag%freq)
   call update_this_real (ele%value(voltage$), fib%mag%freq)
   call update_this_real (ele%value(phi0$), fib%mag%phas)
 
-case (octupole$)
+case (multipole$)
+  ele%a_pole = knl
+  ele%b_pole = tn
 
+case (octupole$)
+  call update_this_real (ele%value(k3$), knl(3))
+  call update_this_real (ele%value(tilt$), tn(3))
+  knl(3) = 0
+  tn(3) = 0
 
 case (quadrupole$)
-
+  call update_this_real (ele%value(k1$), knl(1))
+  call update_this_real (ele%value(tilt$), tn(1))
+  knl(1) = 0
+  tn(1) = 0
 
 case (sbend$)
   call update_this_real (ele%value(g$), fib%mag%p%b0)
@@ -1092,11 +1118,20 @@ case (sbend$)
   call update_this_real (ele%value(fint$), fib%mag%fint)
 
 case (sextupole$)
+  call update_this_real (ele%value(k2$), knl(2))
+  call update_this_real (ele%value(tilt$), tn(2))
+  knl(2) = 0
+  tn(2) = 0
 
 case (solenoid$)
+  call update_this_real (ele%value(ks$), fib%mag%b_sol)
 
 case (sol_quad$)
-
+  call update_this_real (ele%value(ks$), fib%mag%b_sol)
+  call update_this_real (ele%value(k1$), knl(1))
+  call update_this_real (ele%value(tilt$), tn(1))
+  knl(1) = 0
+  tn(1) = 0
 
 case (wiggler$, undulator$)
 
@@ -1104,8 +1139,11 @@ case (wiggler$, undulator$)
 case default
 end select
 
-
 ! multipoles
+
+if (any(knl /= 0)) then
+endif
+
 
 ! kicks
 
@@ -1243,7 +1281,7 @@ end subroutine ptc_calculate_tracking_step_size
 
 subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex_dx, even, crossover)
 
-use s_fitting
+use s_fitting, only: thin_lens_restart, thin_lens_resplit
 use madx_ptc_module, only: m_u
 
 implicit none
